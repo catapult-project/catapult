@@ -19,8 +19,8 @@ from telemetry.core.backends.chrome import inspector_timeline
 from telemetry.core.backends.chrome import inspector_websocket
 from telemetry.core.backends.chrome import websocket
 from telemetry.core.heap import model
-from telemetry.core.timeline import model as timeline_model
-from telemetry.core.timeline import recording_options
+from telemetry.timeline import model as timeline_model
+from telemetry.timeline import recording_options
 
 
 class InspectorException(Exception):

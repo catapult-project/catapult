@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.timeline_data import TimelineData
+from telemetry.timeline.timeline_data import TimelineData
 
 class EmptyTimelineDataImporter(object):
   """Imports empty TimlineData objects."""

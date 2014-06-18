@@ -1,4 +1,4 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 ''' TraceEventImporter imports TraceEvent-formatted data
@@ -11,10 +11,10 @@ import copy
 import json
 import re
 
-from telemetry.core.backends.chrome import tracing_timeline_data
-from telemetry.core.timeline import importer
-import telemetry.core.timeline.async_slice as tracing_async_slice
-import telemetry.core.timeline.flow_event as tracing_flow_event
+from telemetry.timeline import importer
+from telemetry.timeline import tracing_timeline_data
+import telemetry.timeline.async_slice as tracing_async_slice
+import telemetry.timeline.flow_event as tracing_flow_event
 
 
 class TraceEventTimelineImporter(importer.TimelineImporter):

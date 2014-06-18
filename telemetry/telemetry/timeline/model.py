@@ -1,4 +1,4 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 '''A container for timeline-based events and traces and can handle importing
@@ -9,13 +9,13 @@ https://code.google.com/p/trace-viewer/
 
 from operator import attrgetter
 
-import telemetry.core.timeline.process as tracing_process
+import telemetry.timeline.process as tracing_process
 
 # Register importers for data
-from telemetry.core.timeline import bounds
-from telemetry.core.timeline import empty_timeline_data_importer
-from telemetry.core.timeline import inspector_importer
-from telemetry.core.timeline import trace_event_importer
+from telemetry.timeline import bounds
+from telemetry.timeline import empty_timeline_data_importer
+from telemetry.timeline import inspector_importer
+from telemetry.timeline import trace_event_importer
 
 _IMPORTERS = [
     empty_timeline_data_importer.EmptyTimelineDataImporter,

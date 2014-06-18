@@ -29,7 +29,7 @@ def _TimeRangesHasOverlap(iterable_time_ranges):
 class TimelineBasedMetric(object):
 
   def __init__(self):
-    """Computes metrics from a telemetry.core.timeline Model and a range
+    """Computes metrics from a telemetry.timeline Model and a range
 
     """
     super(TimelineBasedMetric, self).__init__()
@@ -41,7 +41,7 @@ class TimelineBasedMetric(object):
     within the interaction_records' start and end time ranges.
 
     Args:
-      model: An instance of telemetry.core.timeline.model.TimelineModel.
+      model: An instance of telemetry.timeline.model.TimelineModel.
       interaction_records: A list of instances of TimelineInteractionRecord. If
         the override of this method doesn't support overlapped ranges, use
         VerifyNonOverlappedRecords to check that no records are overlapped.

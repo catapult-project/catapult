@@ -7,8 +7,8 @@ import unittest
 
 from telemetry import test
 from telemetry.core import wpr_modes
-from telemetry.core.timeline import model as model_module
-from telemetry.core.timeline import async_slice
+from telemetry.timeline import model as model_module
+from telemetry.timeline import async_slice
 from telemetry.page import page_measurement_unittest_base
 from telemetry.page import page_set
 from telemetry.page import page as page_module

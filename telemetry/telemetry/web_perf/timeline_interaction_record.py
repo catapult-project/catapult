@@ -5,7 +5,7 @@
 import re
 
 from telemetry import decorators
-import telemetry.core.timeline.bounds as timeline_bounds
+import telemetry.timeline.bounds as timeline_bounds
 
 
 IS_SMOOTH = 'is_smooth'
@@ -85,7 +85,7 @@ class TimelineInteractionRecord(object):
     """Construct an timeline_interaction_record from an async event.
     Args:
       async_event: An instance of
-        telemetry.core.timeline.async_slices.AsyncSlice
+        telemetry.timeline.async_slices.AsyncSlice
     """
     assert async_event.start_thread == async_event.end_thread, (
         'Start thread of this record\'s async event is not the same as its '
@@ -170,7 +170,7 @@ class TimelineInteractionRecord(object):
       _GetOverlappedThreadTimeForSliceInDifferentThread for more details)
 
     Args:
-      timeline_slice: An instance of telemetry.core.timeline.slice.Slice
+      timeline_slice: An instance of telemetry.timeline.slice.Slice
     """
     if not self._async_event:
       raise ThreadTimeRangeOverlappedException(

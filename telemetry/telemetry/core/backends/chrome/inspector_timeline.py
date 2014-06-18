@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.backends.chrome import inspector_timeline_data
 from telemetry.core.backends.chrome import timeline_recorder
+from telemetry.timeline import inspector_timeline_data
 
 
 class TabBackendException(Exception):

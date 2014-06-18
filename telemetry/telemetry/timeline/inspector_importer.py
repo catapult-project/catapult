@@ -1,12 +1,12 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 '''Imports event data obtained from the inspector's timeline.'''
 
-from telemetry.core.timeline import importer
-from telemetry.core.backends.chrome import inspector_timeline_data
-import telemetry.core.timeline.thread as timeline_thread
-import telemetry.core.timeline.slice as tracing_slice
+from telemetry.timeline import importer
+from telemetry.timeline import inspector_timeline_data
+import telemetry.timeline.thread as timeline_thread
+import telemetry.timeline.slice as tracing_slice
 
 class InspectorTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, timeline_data):

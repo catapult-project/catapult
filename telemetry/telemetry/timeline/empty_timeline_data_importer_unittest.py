@@ -4,8 +4,8 @@
 
 import unittest
 
-from telemetry.core.timeline import empty_timeline_data_importer
-from telemetry.core.backends.chrome import tracing_timeline_data
+from telemetry.timeline import empty_timeline_data_importer
+from telemetry.timeline import tracing_timeline_data
 
 
 class EmptyTimelineDataImporterTest(unittest.TestCase):

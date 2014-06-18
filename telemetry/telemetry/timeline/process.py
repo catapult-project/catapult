@@ -1,10 +1,10 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import telemetry.core.timeline.event_container as event_container
-import telemetry.core.timeline.counter as tracing_counter
-import telemetry.core.timeline.thread as tracing_thread
+import telemetry.timeline.event_container as event_container
+import telemetry.timeline.counter as tracing_counter
+import telemetry.timeline.thread as tracing_thread
 
 class Process(event_container.TimelineEventContainer):
   ''' The Process represents a single userland process in the trace.

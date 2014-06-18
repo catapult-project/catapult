@@ -4,8 +4,8 @@
 
 import unittest
 
-from telemetry.core.timeline import model
-from telemetry.core.backends.chrome import tracing_timeline_data
+from telemetry.timeline import model
+from telemetry.timeline import tracing_timeline_data
 
 class TimelineModelUnittest(unittest.TestCase):
   def testEmptyImport(self):

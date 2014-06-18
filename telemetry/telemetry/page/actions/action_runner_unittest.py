@@ -6,7 +6,7 @@ from telemetry import test
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
-from telemetry.core.timeline import model
+from telemetry.timeline import model
 from telemetry.page.actions import gesture_action
 from telemetry.page.actions import action_runner as action_runner_module
 # pylint: disable=W0401,W0614

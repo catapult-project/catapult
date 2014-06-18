@@ -24,7 +24,7 @@ from telemetry.core.backends.chrome import extension_backend
 from telemetry.core.backends.chrome import system_info_backend
 from telemetry.core.backends.chrome import tab_list_backend
 from telemetry.core.backends.chrome import tracing_backend
-from telemetry.core.backends.chrome import tracing_timeline_data
+from telemetry.timeline import tracing_timeline_data
 from telemetry.unittest import options_for_unittests
 
 

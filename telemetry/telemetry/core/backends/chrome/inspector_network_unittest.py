@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 from telemetry.core.backends.chrome import inspector_network
-from telemetry.core.timeline import recording_options
+from telemetry.timeline import recording_options
 from telemetry.unittest import tab_test_case
 
 

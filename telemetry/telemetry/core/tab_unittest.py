@@ -10,7 +10,7 @@ from telemetry.core import video
 from telemetry.core import util
 from telemetry.core import exceptions
 from telemetry.core.backends.chrome import tracing_backend
-from telemetry.core.timeline import model
+from telemetry.timeline import model
 from telemetry.unittest import tab_test_case
 
 

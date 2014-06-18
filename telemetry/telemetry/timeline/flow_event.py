@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import telemetry.core.timeline.event as event
+import telemetry.timeline.event as event
 
 class FlowEvent(event.TimelineEvent):
   ''' A FlowEvent represents an interval of time plus parameters associated

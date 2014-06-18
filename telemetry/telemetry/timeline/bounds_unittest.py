@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import unittest
 
-from telemetry.core.timeline import bounds
+from telemetry.timeline import bounds
 
 
 class BoundsTests(unittest.TestCase):

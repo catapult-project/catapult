@@ -13,9 +13,9 @@ from telemetry.web_perf.metrics.rendering_stats import HasRenderingStats
 from telemetry.web_perf.metrics.rendering_stats import RenderingStats
 from telemetry.web_perf.metrics.rendering_stats import NotEnoughFramesError
 from telemetry.util.statistics import DivideIfPossibleOrZero
-import telemetry.core.timeline.bounds as timeline_bounds
-from telemetry.core.timeline import model
-import telemetry.core.timeline.async_slice as tracing_async_slice
+import telemetry.timeline.bounds as timeline_bounds
+from telemetry.timeline import model
+import telemetry.timeline.async_slice as tracing_async_slice
 
 
 class MockTimer(object):

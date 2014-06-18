@@ -8,9 +8,9 @@ import logging
 import unittest
 
 from telemetry.core import util
-from telemetry.core.backends.chrome import tracing_timeline_data
 from telemetry.core.backends.chrome import tracing_backend
-from telemetry.core.timeline.model import TimelineModel
+from telemetry.timeline import tracing_timeline_data
+from telemetry.timeline.model import TimelineModel
 from telemetry.unittest import tab_test_case
 
 class CategoryFilterTest(unittest.TestCase):

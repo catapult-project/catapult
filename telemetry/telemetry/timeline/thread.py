@@ -1,11 +1,11 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import itertools
 
-import telemetry.core.timeline.event_container as event_container
-import telemetry.core.timeline.sample as tracing_sample
-import telemetry.core.timeline.slice as tracing_slice
+import telemetry.timeline.event_container as event_container
+import telemetry.timeline.sample as tracing_sample
+import telemetry.timeline.slice as tracing_slice
 
 class Thread(event_container.TimelineEventContainer):
   ''' A Thread stores all the trace events collected for a particular

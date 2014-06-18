@@ -1,8 +1,8 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import telemetry.core.timeline.event_container as event_container
+import telemetry.timeline.event_container as event_container
 
 # Doesn't inherit from TimelineEvent because its only a temporary wrapper of a
 # counter sample into an event. During stable operation, the samples are stored

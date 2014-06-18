@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import unittest
 
-from telemetry.core.timeline import model as model_module
+from telemetry.timeline import model as model_module
 
 class ThreadUnittest(unittest.TestCase):
 

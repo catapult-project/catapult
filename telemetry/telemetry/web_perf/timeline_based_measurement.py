@@ -7,7 +7,7 @@ import os
 
 from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
-from telemetry.core.timeline import model as model_module
+from telemetry.timeline import model as model_module
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import smoothness
 from telemetry.web_perf.metrics import responsiveness_metric
