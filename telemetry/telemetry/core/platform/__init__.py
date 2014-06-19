@@ -133,7 +133,7 @@ class Platform(object):
 
   def IsApplicationRunning(self, application):
     """Returns whether an application is currently running."""
-    return self._platform_backend.IsApplicationLaunchning(application)
+    return self._platform_backend.IsApplicationRunning(application)
 
   def CanLaunchApplication(self, application):
     """Returns whether the platform can launch the given application."""

@@ -31,7 +31,7 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
 
     Args:
       columns: A list of require columns, e.g., ['pid', 'pss'].
-      pid: If nont None, returns only the information of the process
+      pid: If not None, returns only the information of the process
          with the pid.
     """
     args = ['ps']
@@ -70,6 +70,12 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
 
   def CanLaunchApplication(self, application):
     return bool(distutils.spawn.find_executable(application))
+
+  def IsApplicationRunning(self, application):
+    ps_output = self._GetPsOutput(['command'])
+    application_re = re.compile(
+        '(.*%s|^)%s(\s|$)' % (os.path.sep, application))
+    return any(application_re.match(cmd) for cmd in ps_output)
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):

@@ -1,8 +1,12 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import os
+import sys
 import unittest
 
+from telemetry import test
+from telemetry.core.platform import factory
 from telemetry.core.platform import posix_platform_backend
 
 
@@ -46,3 +50,13 @@ class PosixPlatformBackendTest(unittest.TestCase):
     backend.SetMockPsOutput(['  1 0 S  ', '  2 1', '3 2 '])
     result = backend.GetChildPids(1)
     self.assertEquals(set(result), set([2, 3]))
+
+  @test.Enabled('linux', 'mac')
+  def testIsApplicationRunning(self):
+    backend = factory.GetPlatformBackendForCurrentOS()
+
+    self.assertFalse(backend.IsApplicationRunning('This_Is_A_Bad___App__Name'))
+    sys_exe = os.path.basename(sys.executable)
+    self.assertTrue(backend.IsApplicationRunning(sys_exe))
+    self.assertFalse(
+        backend.IsApplicationRunning('%s append_bad_after_space' % sys_exe))
