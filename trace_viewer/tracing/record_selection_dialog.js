@@ -14,6 +14,7 @@ tvcm.require('tvcm.utils');
 tvcm.require('tracing.filter');
 tvcm.require('tvcm.ui.overlay');
 tvcm.require('tvcm.ui.dom_helpers');
+tvcm.require('tvcm.ui.info_bar');
 
 tvcm.exportTo('tracing', function() {
   var RecordSelectionDialog = tvcm.ui.define('div');
@@ -64,6 +65,12 @@ tvcm.exportTo('tracing', function() {
           this.querySelector('.default-enabled-categories'));
       this.createGroupSelectButtons_(
           this.querySelector('.default-disabled-categories'));
+
+      // TODO(chrishenry): When used with tvcm.ui.Overlay (such as in
+      // chrome://tracing, this does not yet look quite right due to
+      // the 10px overlay content padding (but it's good enough).
+      this.infoBarGroup_ = this.querySelector('x-info-bar-group');
+      tvcm.ui.decorate(this.infoBarGroup_, tvcm.ui.InfoBarGroup);
 
       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
     },
@@ -232,6 +239,11 @@ tvcm.exportTo('tracing', function() {
       }
       disabledCategories = disabledCategories.sort();
       categories = categories.sort();
+
+      if (this.categories_.length == 0) {
+        this.infoBarGroup_.addMessage(
+            'No categories found; recording will use default categories.');
+      }
 
       this.buildInputs_(categories, true, this.enabledCategoriesContainerEl_);
 

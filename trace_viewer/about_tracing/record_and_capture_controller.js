@@ -133,8 +133,7 @@ tvcm.exportTo('about_tracing', function() {
 
     // Step 2: Show tracing dialog.
     var selectionDlg;
-    function showTracingDialog(categoriesString) {
-      var categories = JSON.parse(categoriesString);
+    function showTracingDialog(categories) {
       selectionDlg = new tracing.RecordSelectionDialog();
       selectionDlg.categories = categories;
       selectionDlg.settings_key = 'about_tracing.record_selection_dialog';
@@ -187,10 +186,18 @@ tvcm.exportTo('about_tracing', function() {
           recordFailed);
 
       stopButton.addEventListener('click', function() {
+        // TODO(chrishenry): Currently, this only dismiss the progress
+        // dialog when tracingComplete event is received. When performing
+        // remote debugging, the tracingComplete event may be delayed
+        // considerable. We should indicate to user that we are waiting
+        // for tracingComplete event instead of being unresponsive. (For
+        // now, I disable the "stop" button, since clicking on the button
+        // again now cause exception.)
         var recordingPromise = endRecording(tracingControllerClient);
         recordingPromise.then(
             recordFinished,
             recordFailed);
+        stopButton.disabled = true;
         bufferPercentFullDiv = undefined;
       });
       finalPromise.progressDlg = progressDlg;

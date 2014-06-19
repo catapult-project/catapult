@@ -6,7 +6,7 @@ found in the LICENSE file.
 
 <template id="record-selection-dialog-template">
   <style>
-    .record-selection-dialog {
+    .categories-column-view {
       display: -webkit-flex;
       -webkit-flex-direction: row;
       min-height: 0;
@@ -48,23 +48,26 @@ found in the LICENSE file.
 
   </style>
   <div class="record-selection-dialog">
-    <div class="default-enabled-categories">
-      <div>Record&nbsp;Categories</div>
-      <div class="group-selectors">
-        Select
-        <button class="all-btn">All</button>
-        <button class="none-btn">None</button>
+    <x-info-bar-group></x-info-bar-group>
+    <div class="categories-column-view">
+      <div class="default-enabled-categories">
+        <div>Record&nbsp;Categories</div>
+        <div class="group-selectors">
+          Select
+          <button class="all-btn">All</button>
+          <button class="none-btn">None</button>
+        </div>
+        <div class="categories"></div>
       </div>
-      <div class="categories"></div>
-    </div>
-    <div class="default-disabled-categories">
-      <div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories</div>
-      <div class="group-selectors">
-        Select
-        <button class="all-btn">All</button>
-        <button class="none-btn">None</button>
+      <div class="default-disabled-categories">
+        <div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories</div>
+        <div class="group-selectors">
+          Select
+          <button class="all-btn">All</button>
+          <button class="none-btn">None</button>
+        </div>
+        <div class="categories"></div>
       </div>
-      <div class="categories"></div>
     </div>
   </div>
 </template>

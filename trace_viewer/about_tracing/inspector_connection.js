@@ -85,7 +85,7 @@ tvcm.exportTo('about_tracing', function() {
           resolver.reject(message.error);
           return;
         }
-        resolver.resolve(message.params);
+        resolver.resolve(message.result);
         return;
       }
 

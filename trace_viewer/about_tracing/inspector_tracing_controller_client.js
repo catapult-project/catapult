@@ -56,7 +56,12 @@ tvcm.exportTo('about_tracing', function() {
     },
 
     getCategories: function() {
-      return createResolvedPromise(JSON.stringify(['a', 'b', 'c']));
+      var res = this.conn_.req('Tracing.getCategories', {});
+      return res.then(function(result) {
+        return result.categories;
+      }, function(err) {
+        return [];
+      });
     },
 
     beginRecording: function(recordingOptions) {
@@ -154,7 +159,7 @@ tvcm.exportTo('about_tracing', function() {
         this.conn_.setNotificationListener(
             'Tracing.tracingComplete', tracingComplete.bind(this));
         this.conn_.req('Tracing.end', {}).then(
-            function end(data) {
+            function end() {
               // Nothing happens here. We're really waiting for
               // Tracing.tracingComplete.
             }.bind(this),

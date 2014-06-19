@@ -60,7 +60,10 @@ tvcm.exportTo('about_tracing', function() {
     },
 
     getCategories: function() {
-      return beginXhr('GET', '/json/categories');
+      return beginXhr('GET', '/json/categories').then(
+          function(json) {
+            return JSON.parse(json);
+          });
     },
 
     beginRecording: function(recordingOptions) {
