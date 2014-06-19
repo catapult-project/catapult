@@ -7,15 +7,17 @@ import copy
 import logging
 import sys
 import traceback
-import unittest
 
-class PageTestResults(unittest.TestResult):
+
+class PageTestResults(object):
   def __init__(self, output_stream=None):
     super(PageTestResults, self).__init__()
     self._output_stream = output_stream
     self.pages_that_had_errors = set()
     self.pages_that_had_failures = set()
     self.successes = []
+    self.errors = []
+    self.failures = []
     self.skipped = []
 
   def __copy__(self):
@@ -32,38 +34,28 @@ class PageTestResults(unittest.TestResult):
     return self.pages_that_had_errors.union(
       self.pages_that_had_failures)
 
-  def _exc_info_to_string(self, err, test):
-    if isinstance(test, unittest.TestCase):
-      return super(PageTestResults, self)._exc_info_to_string(err, test)
-    else:
-      return ''.join(traceback.format_exception(*err))
-
-  def addSuccess(self, test):
-    self.successes.append(test)
-
-  def addSkip(self, test, reason):  # Python 2.7 has this in unittest.TestResult
-    logging.warning('%s\n%s\nSkipping page.', test, reason)
-    self.skipped.append((test, reason))
+  def _GetStringFromExcInfo(self, err):
+    return ''.join(traceback.format_exception(*err))
 
   def StartTest(self, page):
-    self.startTest(page.display_name)
+    pass
 
   def StopTest(self, page):
-    self.stopTest(page.display_name)
+    pass
 
   def AddError(self, page, err):
     self.pages_that_had_errors.add(page)
-    self.addError(page.display_name, err)
+    self.errors.append((page, self._GetStringFromExcInfo(err)))
 
   def AddFailure(self, page, err):
     self.pages_that_had_failures.add(page)
-    self.addFailure(page.display_name, err)
-
-  def AddSuccess(self, page):
-    self.addSuccess(page.display_name)
+    self.failures.append((page, self._GetStringFromExcInfo(err)))
 
   def AddSkip(self, page, reason):
-    self.addSkip(page.display_name, reason)
+    self.skipped.append((page, reason))
+
+  def AddSuccess(self, page):
+    self.successes.append(page)
 
   def AddFailureMessage(self, page, message):
     try:
@@ -79,10 +71,13 @@ class PageTestResults(unittest.TestResult):
 
   def PrintSummary(self):
     if self.failures:
-      logging.error('Failed pages:\n%s', '\n'.join(zip(*self.failures)[0]))
+      logging.error('Failed pages:\n%s', '\n'.join(
+          p.display_name for p in zip(*self.failures)[0]))
 
     if self.errors:
-      logging.error('Errored pages:\n%s', '\n'.join(zip(*self.errors)[0]))
+      logging.error('Errored pages:\n%s', '\n'.join(
+          p.display_name for p in zip(*self.errors)[0]))
 
     if self.skipped:
-      logging.warning('Skipped pages:\n%s', '\n'.join(zip(*self.skipped)[0]))
+      logging.warning('Skipped pages:\n%s', '\n'.join(
+          p.display_name for p in zip(*self.skipped)[0]))

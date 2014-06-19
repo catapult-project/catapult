@@ -32,8 +32,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.AddSuccess(self.pages[1])
     self.assertEquals(results.pages_that_had_failures,
                       set([self.pages[0]]))
-    self.assertEquals(results.successes,
-                      [self.pages[1].display_name])
+    self.assertEquals(results.successes, [self.pages[1]])
 
   def test_errors(self):
     results = NonPrintingPageTestResults()
@@ -41,8 +40,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.AddSuccess(self.pages[1])
     self.assertEquals(results.pages_that_had_errors,
                       set([self.pages[0]]))
-    self.assertEquals(results.successes,
-                      [self.pages[1].display_name])
+    self.assertEquals(results.successes, [self.pages[1]])
 
   def test_errors_and_failures(self):
     results = NonPrintingPageTestResults()
@@ -51,5 +49,4 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.AddSuccess(self.pages[2])
     self.assertEquals(results.pages_that_had_errors_or_failures,
                       set([self.pages[0], self.pages[1]]))
-    self.assertEquals(results.successes,
-                      [self.pages[2].display_name])
+    self.assertEquals(results.successes, [self.pages[2]])
