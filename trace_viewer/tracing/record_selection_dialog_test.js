@@ -41,7 +41,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     var expected =
         ['"cc"', '"cc.debug"', '"disabled-by-default-one"', '"three"', '"two"'];
 
-    var labels = dlg.getElementsByTagName('input');
+    var labels = dlg.querySelectorAll('.categories input');
     var results = [];
     for (var i = 0; i < labels.length; i++) {
       results.push('"' + labels[i].value + '"');
@@ -57,7 +57,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     dlg.settings_key = 'key';
     dlg.updateForm_();
 
-    var checkboxes = dlg.getElementsByTagName('input');
+    var checkboxes = dlg.querySelectorAll('.categories input');
     assertEquals(3, checkboxes.length);
     assertEquals('three', checkboxes[0].id);
     assertEquals('three', checkboxes[0].value);
@@ -71,7 +71,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
 
     assertEquals('', dlg.categoryFilter());
 
-    var labels = dlg.getElementsByTagName('label');
+    var labels = dlg.querySelectorAll('.categories label');
     assertEquals(3, labels.length);
     assertEquals('three', labels[0].textContent);
     assertEquals('two', labels[1].textContent);
@@ -87,7 +87,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     dlg.settings_key = 'categories';
     dlg.updateForm_();
 
-    var checkboxes = dlg.getElementsByTagName('input');
+    var checkboxes = dlg.querySelectorAll('.categories input');
     assertEquals(3, checkboxes.length);
     assertEquals('three', checkboxes[0].id);
     assertEquals('three', checkboxes[0].value);
@@ -101,7 +101,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
 
     assertEquals('-three', dlg.categoryFilter());
 
-    var labels = dlg.getElementsByTagName('label');
+    var labels = dlg.querySelectorAll('.categories label');
     assertEquals(3, labels.length);
     assertEquals('three', labels[0].textContent);
     assertEquals('two', labels[1].textContent);

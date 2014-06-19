@@ -38,9 +38,9 @@ tvcm.unittest.testSuite('tvcm.ui.overlay_test', function() {
     dlg.classList.add('example-overlay');
     dlg.title = 'ExampleOverlay';
     dlg.innerHTML = 'hello';
-    dlg.leftButtons.appendChild(makeButton('i am a button'));
-    dlg.leftButtons.appendChild(makeCloseButton(dlg));
-    dlg.rightButtons.appendChild(tvcm.ui.createSpan(
+    dlg.buttons.appendChild(makeButton('i am a button'));
+    dlg.buttons.appendChild(makeCloseButton(dlg));
+    dlg.buttons.appendChild(tvcm.ui.createSpan(
         {textContent: 'i am a span'}));
     addShowButtonForDialog.call(this, dlg);
   });
@@ -59,7 +59,7 @@ tvcm.unittest.testSuite('tvcm.ui.overlay_test', function() {
     dlg.userCanClose = false;
     dlg.title = 'Unclosable';
     dlg.innerHTML = 'This has no close X button.';
-    dlg.leftButtons.appendChild(makeCloseButton(dlg));
+    dlg.buttons.appendChild(makeCloseButton(dlg));
     addShowButtonForDialog.call(this, dlg);
   });
 
@@ -77,7 +77,7 @@ tvcm.unittest.testSuite('tvcm.ui.overlay_test', function() {
     }
 
 
-    dlg.leftButtons.appendChild(makeButton('i am a button'));
+    dlg.buttons.appendChild(makeButton('i am a button'));
     addShowButtonForDialog.call(this, dlg);
   });
 
@@ -91,7 +91,7 @@ tvcm.unittest.testSuite('tvcm.ui.overlay_test', function() {
       dlg.appendChild(el);
     }
 
-    dlg.leftButtons.appendChild(makeButton('i am a button'));
+    dlg.buttons.appendChild(makeButton('i am a button'));
     addShowButtonForDialog.call(this, dlg);
   });
 
@@ -99,7 +99,7 @@ tvcm.unittest.testSuite('tvcm.ui.overlay_test', function() {
     var dlg = new tvcm.ui.Overlay();
     dlg.title = 'Test closeclick event';
     var closeBtn = makeCloseButton(dlg);
-    dlg.leftButtons.appendChild(closeBtn);
+    dlg.buttons.appendChild(closeBtn);
 
     var closeClicked = false;
     dlg.addEventListener('closeclick', function() {

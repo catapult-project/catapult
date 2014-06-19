@@ -77,21 +77,12 @@ found in the LICENSE file.
       min-width: 300px;
     }
     button-bar {
-      -webkit-flex-direction: row;
+      -webkit-align-items: baseline;
       border-top: 1px solid #ccc;
       display: -webkit-flex;
-      padding:4px;
-      -webkit-align-items: baseline;
       -webkit-flex: 0 0 auto;
-    }
-    button-bar > padding {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1 1 auto;
-    }
-    button-bar > left-buttons,
-    button-bar > right-buttons {
-      display: -webkit-flex;
-      -webkit-flex-direction: row;
+      -webkit-flex-direction: row-reverse;
+      padding: 4px;
     }
   </style>
 
@@ -105,11 +96,7 @@ found in the LICENSE file.
         <overlay-content>
           <content></content>
         </overlay-content>
-        <button-bar>
-          <left-buttons></left-buttons>
-          <padding></padding>
-          <right-buttons></right-buttons>
-        </button-bar>
+        <button-bar></button-bar>
       </overlay-frame>
     </overlay-vertical-centering-container>
   </overlay-mask>

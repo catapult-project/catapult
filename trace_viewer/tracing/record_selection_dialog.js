@@ -37,7 +37,7 @@ tvcm.exportTo('tracing', function() {
           'click',
           this.onRecordButtonClicked_.bind(this));
       this.recordButtonEl_.style.fontSize = '110%';
-      this.rightButtons.appendChild(this.recordButtonEl_);
+      this.buttons.appendChild(this.recordButtonEl_);
 
       this.continuousTracingBn_ = tvcm.ui.createCheckBox(
           undefined, undefined,
@@ -51,9 +51,11 @@ tvcm.exportTo('tracing', function() {
           undefined, undefined,
           'recordSelectionDialog.useSampling', false,
           'State sampling');
-      this.leftButtons.appendChild(this.continuousTracingBn_);
-      this.leftButtons.appendChild(this.systemTracingBn_);
-      this.leftButtons.appendChild(this.samplingTracingBn_);
+      this.tracingModesContainerEl_ = this.querySelector('.tracing-modes');
+      this.tracingModesContainerEl_.appendChild(this.continuousTracingBn_);
+      this.tracingModesContainerEl_.appendChild(this.systemTracingBn_);
+      this.tracingModesContainerEl_.appendChild(this.samplingTracingBn_);
+
 
       this.enabledCategoriesContainerEl_ =
           this.querySelector('.default-enabled-categories .categories');

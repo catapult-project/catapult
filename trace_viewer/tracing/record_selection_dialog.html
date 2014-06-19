@@ -8,10 +8,15 @@ found in the LICENSE file.
   <style>
     .categories-column-view {
       display: -webkit-flex;
-      -webkit-flex-direction: row;
+      -webkit-flex-direction: column;
       min-height: 0;
       min-width: 0;
       font-family: sans-serif;
+    }
+
+    .categories-selection {
+      display: -webkit-flex;
+      -webkit-flex-direction: row;
     }
 
     .default-enabled-categories,
@@ -21,6 +26,14 @@ found in the LICENSE file.
       -webkit-flex-direction: column;
       padding: 4px;
       width: 300px;
+    }
+
+    .tracing-modes {
+      -webkit-flex: 1 0 auto;
+      display: -webkit-flex;
+      -webkit-flex-direction: row-reverse;
+      padding: 4px;
+      border-bottom: 2px solid #ddd;
     }
 
     .default-disabled-categories {
@@ -50,6 +63,8 @@ found in the LICENSE file.
   <div class="record-selection-dialog">
     <x-info-bar-group></x-info-bar-group>
     <div class="categories-column-view">
+    <div class="tracing-modes"></div>
+    <div class="categories-selection">
       <div class="default-enabled-categories">
         <div>Record&nbsp;Categories</div>
         <div class="group-selectors">

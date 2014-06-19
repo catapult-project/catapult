@@ -88,12 +88,8 @@ tvcm.exportTo('tvcm.ui', function() {
           userCanClose ? 'block' : 'none';
     },
 
-    get leftButtons() {
-      return this.shadow_.querySelector('left-buttons');
-    },
-
-    get rightButtons() {
-      return this.shadow_.querySelector('right-buttons');
+    get buttons() {
+      return this.shadow_.querySelector('button-bar');
     },
 
     get visible() {
@@ -169,8 +165,7 @@ tvcm.exportTo('tvcm.ui', function() {
     },
 
     didButtonBarMutate_: function(e) {
-      var hasButtons = this.leftButtons.children.length +
-          this.rightButtons.children.length > 0;
+      var hasButtons = this.buttons.children.length > 0;
       if (hasButtons)
         this.shadow_.querySelector('button-bar').style.display = undefined;
       else
@@ -222,7 +217,7 @@ tvcm.exportTo('tvcm.ui', function() {
     b.addEventListener('click', function() {
       o.visible = false;
     });
-    o.rightButtons.appendChild(b);
+    o.buttons.appendChild(b);
     o.visible = true;
     return o;
   }
