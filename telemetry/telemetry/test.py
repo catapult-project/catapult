@@ -38,11 +38,7 @@ class Test(command_line.Command):
     if hasattr(cls, 'tag'):
       name += '.' + cls.tag
     if hasattr(cls, 'page_set'):
-      if isinstance(cls.page_set, basestring):
-        # TODO(dtu): Remove this code path after crbug.com/362293.
-        name += '.' + os.path.basename(os.path.splitext(cls.page_set)[0])
-      else:
-        name += '.' + cls.page_set.Name()
+      name += '.' + cls.page_set.Name()
     return name
 
   @classmethod
@@ -186,14 +182,7 @@ class Test(command_line.Command):
     By default, it will create a page set from the file at this test's
     page_set attribute. Override to generate a custom page set.
     """
-    if not hasattr(cls, 'page_set'):
-      raise NotImplementedError('This test has no "page_set" attribute.')
-    if isinstance(cls.page_set, basestring):
-      # TODO(dtu): Remove this code path after crbug.com/362293.
-      return page_set.PageSet.FromFile(
-          file_path=os.path.join(util.GetBaseDir(), cls.page_set))
-    else:
-      return cls.PageSetClass()()
+    return cls.PageSetClass()()
 
   @classmethod
   def CreateExpectations(cls, ps):  # pylint: disable=W0613
