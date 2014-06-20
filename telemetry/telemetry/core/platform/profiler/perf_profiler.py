@@ -172,7 +172,7 @@ class PerfProfiler(profiler.Profiler):
         device = browser_backend.adb.device()
         perf_binary = android_profiling_helper.PrepareDeviceForPerf(device)
         self._perf_control = perf_control.PerfControl(device)
-        self._perf_control.ForceAllCpusOnline(True)
+        self._perf_control.SetPerfProfilingMode()
       else:
         _PrepareHostForPerf()
 
@@ -185,7 +185,7 @@ class PerfProfiler(profiler.Profiler):
                 perf_binary, perfhost_binary))
     except:
       if self._is_android:
-        self._perf_control.ForceAllCpusOnline(False)
+        self._perf_control.SetDefaultPerfMode()
       raise
 
   @classmethod
@@ -209,7 +209,7 @@ class PerfProfiler(profiler.Profiler):
 
   def CollectProfile(self):
     if self._is_android:
-      self._perf_control.ForceAllCpusOnline(False)
+      self._perf_control.SetDefaultPerfMode()
     output_files = []
     for single_process in self._process_profilers:
       output_files.append(single_process.CollectProfile())
