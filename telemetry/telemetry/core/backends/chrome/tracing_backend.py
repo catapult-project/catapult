@@ -15,9 +15,12 @@ DEFAULT_TRACE_CATEGORIES = None
 # Categories for absolute minimum overhead tracing. This contains no
 # sub-traces of thread tasks, so it's only useful for capturing the
 # cpu-time spent on threads (as well as needed benchmark traces)
+# FIXME: Remove webkit.console when blink.console lands in chromium and
+# the ref builds are updated. crbug.com/386847
 MINIMAL_TRACE_CATEGORIES = ("toplevel,"
                             "benchmark,"
                             "webkit.console,"
+                            "blink.console,"
                             "trace_event_overhead")
 
 
