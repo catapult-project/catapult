@@ -1061,8 +1061,7 @@ tvcm.exportTo('tracing.importer', function() {
         throw new Error('item is missing its args');
 
       function handleField(object, fieldName, fieldValue) {
-        if (fieldValue === undefined ||
-            (!fieldValue.id_ref && !fieldValue.idRef))
+        if (!fieldValue || (!fieldValue.id_ref && !fieldValue.idRef))
           return;
 
         var id = fieldValue.id_ref || fieldValue.idRef;

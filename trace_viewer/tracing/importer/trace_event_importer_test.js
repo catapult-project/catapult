@@ -121,6 +121,16 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     new tracing.TraceModel(events);
   });
 
+  test('importDoesNotChokeOnNulls', function() {
+    var events = [
+      {name: 'a', args: { foo: null }, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'}, // @suppress longLineCheck
+      {name: 'a', pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    // This should not throw an exception.
+    new tracing.TraceModel(events);
+  });
+
   test('categoryBeginEndMismatchPrefersBegin', function() {
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
