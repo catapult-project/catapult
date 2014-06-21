@@ -22,6 +22,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories = categories;
     dlg.settings_key = 'key';
+    dlg.currentlyChosenPreset = [];
 
     var showButton = document.createElement('button');
     showButton.textContent = 'Show record selection dialog';
@@ -36,6 +37,8 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories =
         ['cc,disabled-by-default-one,cc.debug', 'two,three', 'three'];
+    dlg.settings_key = 'key';
+    dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
     var expected =
@@ -55,6 +58,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one', 'two', 'three'];
     dlg.settings_key = 'key';
+    dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
     var checkboxes = dlg.querySelectorAll('.categories input');
@@ -85,6 +89,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
+    dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
     var checkboxes = dlg.querySelectorAll('.categories input');
@@ -112,6 +117,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-bar', 'baz'];
     dlg.settings_key = 'categories';
+    dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
     assertEquals('', dlg.categoryFilter());
@@ -132,6 +138,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
+    dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
   });
 
@@ -142,6 +149,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
+    dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
     // Enables the three option, two already enabled.
@@ -169,5 +177,143 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     assertEquals('', dlg.categoryFilter());
     assertEquals(false,
         tvcm.Settings.get('disabled-by-default-one', false, 'categories'));
+  });
+
+  test('recordSelectionDialog_defaultPreset', function() {
+    tvcm.Settings.set('two', true, 'categories');
+    tvcm.Settings.set('three', false, 'categories');
+
+    var dlg = new tracing.RecordSelectionDialog();
+    dlg.categories = ['disabled-by-default-one'];
+    dlg.settings_key = 'categories';
+    // Note: currentlyChosenPreset is not set here, so the default is used.
+    dlg.updateForm_();
+
+    // Make sure the default filter is returned.
+    assertEquals('-three,-two', dlg.categoryFilter());
+
+    // Make sure the default tracing types are returned.
+    assertEquals(true, dlg.useContinuousTracing);
+    assertEquals(false, dlg.useSystemTracing);
+    assertEquals(false, dlg.useSampling);
+
+    // Make sure the manual settings are not visible.
+    var classList = dlg.categoriesView_.classList;
+    assertEquals(true, classList.contains('categories-column-view-hidden'));
+
+    // Verify manual settings do not modify the checkboxes.
+    var checkboxes = dlg.querySelectorAll('.categories input');
+    assertEquals(3, checkboxes.length);
+    assertEquals('three', checkboxes[0].id);
+    assertEquals('three', checkboxes[0].value);
+    assertEquals(false, checkboxes[0].checked);
+    assertEquals('two', checkboxes[1].id);
+    assertEquals('two', checkboxes[1].value);
+    assertEquals(true, checkboxes[1].checked);
+    assertEquals('disabled-by-default-one', checkboxes[2].id);
+    assertEquals('disabled-by-default-one', checkboxes[2].value);
+    assertEquals(false, checkboxes[2].checked);
+  });
+
+  test('recordSelectionDialog_changePresets', function() {
+    tvcm.Settings.set('two', true, 'categories');
+    tvcm.Settings.set('three', false, 'categories');
+    tvcm.Settings.set('disabled-by-default-cc.debug', true, 'categories');
+    tvcm.Settings.set('recordSelectionDialog.useContinuousTracing', false);
+    tvcm.Settings.set('recordSelectionDialog.useSystemTracing', true);
+    tvcm.Settings.set('recordSelectionDialog.useSampling', false);
+
+    var dlg = new tracing.RecordSelectionDialog();
+    dlg.categories = ['disabled-by-default-one'];
+    dlg.settings_key = 'categories';
+    // Note: currentlyChosenPreset is not set here, so the default is used.
+    dlg.updateForm_();
+
+    // Make sure the default filter is returned.
+    assertEquals('-three,-two',
+        dlg.categoryFilter());
+
+    // Make sure the default tracing types are returned.
+    assertEquals(true, dlg.useContinuousTracing);
+    assertEquals(false, dlg.useSystemTracing);
+    assertEquals(false, dlg.useSampling);
+
+    // Make sure the manual settings are not visible.
+    var classList = dlg.categoriesView_.classList;
+    assertEquals(true, classList.contains('categories-column-view-hidden'));
+
+    // Switch to manual settings and verify the default values are not returned.
+    dlg.currentlyChosenPreset = [];
+    assertEquals('-three,disabled-by-default-cc.debug', dlg.categoryFilter());
+    assertEquals(false, dlg.useContinuousTracing);
+    assertEquals(true, dlg.useSystemTracing);
+    assertEquals(false, dlg.useSampling);
+    assertEquals(false, classList.contains('categories-column-view-hidden'));
+
+    // Switch to the graphics, rendering, and rasterization preset.
+    dlg.currentlyChosenPreset = ['blink', 'cc', 'renderer',
+      'disabled-by-default-cc.debug'];
+    assertEquals('disabled-by-default-cc.debug,-three,-two',
+        dlg.categoryFilter());
+  });
+
+  test('recordSelectionDialog_savedPreset', function() {
+    tvcm.Settings.set('two', true, 'categories');
+    tvcm.Settings.set('three', false, 'categories');
+    tvcm.Settings.set('recordSelectionDialog.useContinuousTracing', true);
+    tvcm.Settings.set('recordSelectionDialog.useSystemTracing', true);
+    tvcm.Settings.set('recordSelectionDialog.useSampling', true);
+    tvcm.Settings.set('about_tracing.record_selection_dialog_preset',
+        ['blink', 'cc', 'renderer', 'cc.debug']);
+
+    var dlg = new tracing.RecordSelectionDialog();
+    dlg.categories = ['disabled-by-default-one'];
+    dlg.settings_key = 'categories';
+    dlg.updateForm_();
+
+    // Make sure the correct filter is returned.
+    assertEquals('-three,-two', dlg.categoryFilter());
+
+    // Make sure the correct tracing types are returned.
+    assertEquals(true, dlg.useContinuousTracing);
+    assertEquals(false, dlg.useSystemTracing);
+    assertEquals(false, dlg.useSampling);
+
+    // Make sure the manual settings are not visible.
+    var classList = dlg.categoriesView_.classList;
+    assertEquals(true, classList.contains('categories-column-view-hidden'));
+
+    // Switch to manual settings and verify the default values are not returned.
+    dlg.currentlyChosenPreset = [];
+    assertEquals('-three', dlg.categoryFilter());
+    assertEquals(true, dlg.useContinuousTracing);
+    assertEquals(true, dlg.useSystemTracing);
+    assertEquals(true, dlg.useSampling);
+    assertEquals(false, classList.contains('categories-column-view-hidden'));
+  });
+
+  test('recordSelectionDialog_categoryFilters', function() {
+    tvcm.Settings.set('default1', true, 'categories');
+    tvcm.Settings.set('disabled1', false, 'categories');
+    tvcm.Settings.set('disabled-by-default-cc.disabled2', false, 'categories');
+    tvcm.Settings.set('input', true, 'categories');
+    tvcm.Settings.set('blink', true, 'categories');
+    tvcm.Settings.set('cc', false, 'categories');
+    tvcm.Settings.set('disabled-by-default-cc.debug', true, 'categories');
+
+    var dlg = new tracing.RecordSelectionDialog();
+    dlg.settings_key = 'categories';
+    dlg.categories = [];
+    dlg.currentlyChosenPreset = [];
+    dlg.updateForm_();
+
+    assertEquals('-cc,-disabled1,disabled-by-default-cc.debug',
+        dlg.categoryFilter());
+
+    // Switch to the graphics, rendering, and rasterization preset.
+    dlg.currentlyChosenPreset = ['blink', 'cc', 'renderer',
+      'disabled-by-default-cc.debug'];
+    assertEquals('-default1,disabled-by-default-cc.debug,-disabled1,-input',
+        dlg.categoryFilter());
   });
 });

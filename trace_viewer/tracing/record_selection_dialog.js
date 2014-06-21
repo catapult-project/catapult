@@ -19,6 +19,23 @@ tvcm.require('tvcm.ui.info_bar');
 tvcm.exportTo('tracing', function() {
   var RecordSelectionDialog = tvcm.ui.define('div');
 
+  var DEFAULT_PRESETS = [
+    {title: 'Web developer',
+      categoryFilter: ['blink', 'browser', 'cc', 'renderer']},
+    {title: 'Input latency',
+      categoryFilter: ['input']},
+    {title: 'Graphics and rendering',
+      categoryFilter: ['blink', 'cc', 'renderer']},
+    {title: 'Graphics, rendering, and rasterization',
+      categoryFilter: ['blink', 'cc',
+        'renderer', 'disabled-by-default-cc.debug']},
+    {title: 'Manually select settings',
+      categoryFilter: []}
+  ];
+  var DEFAULT_CONTINUOUS_TRACING = true;
+  var DEFAULT_SYSTEM_TRACING = false;
+  var DEFAULT_SAMPLING_TRACING = false;
+
   RecordSelectionDialog.prototype = {
     __proto__: tvcm.ui.Overlay.prototype,
 
@@ -38,6 +55,18 @@ tvcm.exportTo('tracing', function() {
           this.onRecordButtonClicked_.bind(this));
       this.recordButtonEl_.style.fontSize = '110%';
       this.buttons.appendChild(this.recordButtonEl_);
+
+
+      this.categoriesView_ = this.querySelector('.categories-column-view');
+      this.presetsEl_ = this.querySelector('.category-presets');
+      this.presetsEl_.appendChild(tvcm.ui.createSelector(
+          this, 'currentlyChosenPreset',
+          'about_tracing.record_selection_dialog_preset',
+          DEFAULT_PRESETS[0].categoryFilter,
+          DEFAULT_PRESETS.map(function(p) {
+            return { label: p.title, value: p.categoryFilter };
+          })));
+
 
       this.continuousTracingBn_ = tvcm.ui.createCheckBox(
           undefined, undefined,
@@ -87,6 +116,8 @@ tvcm.exportTo('tracing', function() {
     },
 
     get useContinuousTracing() {
+      if (this.usingPreset_())
+        return DEFAULT_CONTINUOUS_TRACING;
       return this.continuousTracingBn_.checked;
     },
     set useContinuousTracing(value) {
@@ -94,12 +125,16 @@ tvcm.exportTo('tracing', function() {
     },
 
     get useSystemTracing() {
+      if (this.usingPreset_())
+        return DEFAULT_SYSTEM_TRACING;
       return this.systemTracingBn_.checked;
     },
     set useSystemTracing(value) {
       this.systemTracingBn_.checked = !!value;
     },
     get useSampling() {
+      if (this.usingPreset_())
+        return DEFAULT_SAMPLING_TRACING;
       return this.samplingTracingBn_.checked;
     },
     set useSampling(value) {
@@ -125,7 +160,44 @@ tvcm.exportTo('tracing', function() {
       throw new Error('Dont use this!');
     },
 
+    usingPreset_: function() {
+      return this.currentlyChosenPreset_.length > 0;
+    },
+
+    get currentlyChosenPreset() {
+      return this.currentlyChosenPreset_;
+    },
+
+    set currentlyChosenPreset(preset) {
+      if (!(preset instanceof Array))
+        throw new Error('RecordSelectionDialog.currentlyChosenPreset:' +
+            ' preset must be an array.');
+      this.currentlyChosenPreset_ = preset;
+
+      var classList = this.categoriesView_.classList;
+      if (!this.usingPreset_())
+        classList.remove('categories-column-view-hidden');
+      else if (!classList.contains('categories-column-view-hidden'))
+        classList.add('categories-column-view-hidden');
+    },
+
     categoryFilter: function() {
+      if (this.usingPreset_()) {
+        var categories = [];
+        var allCategories = this.allCategories_();
+        for (var category in allCategories) {
+          var disabled = category.indexOf('disabled-by-default-') == 0;
+          if (this.currentlyChosenPreset_.indexOf(category) >= 0) {
+            if (disabled)
+              categories.push(category);
+          } else {
+            if (!disabled)
+              categories.push('-' + category);
+          }
+        }
+        return categories.join(',');
+      }
+
       var categories = this.unselectedCategories_();
       var categories_length = categories.length;
       var negated_categories = [];
@@ -147,7 +219,6 @@ tvcm.exportTo('tracing', function() {
         results.push(categories);
       if (disabledCategories !== '')
         results.push(disabledCategories);
-
       return results.join(',');
     },
 
@@ -215,25 +286,28 @@ tvcm.exportTo('tracing', function() {
       }
     },
 
+    allCategories_: function() {
+      // Dedup the categories. We may have things in settings that are also
+      // returned when we query the category list.
+      var categorySet = {};
+      var allCategories =
+          this.categories_.concat(tvcm.Settings.keys(this.settings_key_));
+      var allCategoriesLength = allCategories.length;
+      for (var i = 0; i < allCategoriesLength; ++i)
+        categorySet[allCategories[i]] = true;
+      return categorySet;
+    },
+
     updateForm_: function() {
       this.enabledCategoriesContainerEl_.innerHTML = ''; // Clear old categories
       this.disabledCategoriesContainerEl_.innerHTML = '';
 
       this.recordButtonEl_.focus();
 
-      // Dedup the categories. We may have things in settings that are also
-      // returned when we query the category list.
-      var set = {};
-      var allCategories =
-          this.categories_.concat(tvcm.Settings.keys(this.settings_key_));
-      var allCategoriesLength = allCategories.length;
-      for (var i = 0; i < allCategoriesLength; ++i) {
-        set[allCategories[i]] = true;
-      }
-
+      var allCategories = this.allCategories_();
       var categories = [];
       var disabledCategories = [];
-      for (var category in set) {
+      for (var category in allCategories) {
         if (category.indexOf('disabled-by-default-') == 0)
           disabledCategories.push(category);
         else

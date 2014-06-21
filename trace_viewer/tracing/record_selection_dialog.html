@@ -9,14 +9,28 @@ found in the LICENSE file.
     .categories-column-view {
       display: -webkit-flex;
       -webkit-flex-direction: column;
+      font-family: sans-serif;
+      max-height: 420px;
+      max-width: 640px;
       min-height: 0;
       min-width: 0;
-      font-family: sans-serif;
+      opacity: 1;
+      transition: max-height 1s ease, max-width 1s ease, opacity 1s ease;
+    }
+
+    .categories-column-view-hidden {
+      max-height: 0;
+      max-width: 0;
+      opacity: 0;
     }
 
     .categories-selection {
       display: -webkit-flex;
       -webkit-flex-direction: row;
+    }
+
+    .category-presets {
+      padding: 4px;
     }
 
     .default-enabled-categories,
@@ -28,12 +42,18 @@ found in the LICENSE file.
       width: 300px;
     }
 
+    .default-enabled-categories > div,
+    .default-disabled-categories > div {
+      padding: 4px;
+    }
+
     .tracing-modes {
       -webkit-flex: 1 0 auto;
       display: -webkit-flex;
-      -webkit-flex-direction: row-reverse;
+      -webkit-flex-direction: reverse;
       padding: 4px;
       border-bottom: 2px solid #ddd;
+      border-top: 2px solid #ddd;
     }
 
     .default-disabled-categories {
@@ -62,26 +82,30 @@ found in the LICENSE file.
   </style>
   <div class="record-selection-dialog">
     <x-info-bar-group></x-info-bar-group>
+    <div class="category-presets">
+      Settings preset:
+    </div>
     <div class="categories-column-view">
-    <div class="tracing-modes"></div>
-    <div class="categories-selection">
-      <div class="default-enabled-categories">
-        <div>Record&nbsp;Categories</div>
-        <div class="group-selectors">
-          Select
-          <button class="all-btn">All</button>
-          <button class="none-btn">None</button>
+      <div class="tracing-modes"></div>
+      <div class="categories-selection">
+        <div class="default-enabled-categories">
+          <div>Record&nbsp;Categories</div>
+          <div class="group-selectors">
+            Select
+            <button class="all-btn">All</button>
+            <button class="none-btn">None</button>
+          </div>
+          <div class="categories"></div>
         </div>
-        <div class="categories"></div>
-      </div>
-      <div class="default-disabled-categories">
-        <div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories</div>
-        <div class="group-selectors">
-          Select
-          <button class="all-btn">All</button>
-          <button class="none-btn">None</button>
+        <div class="default-disabled-categories">
+          <div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories</div>
+          <div class="group-selectors">
+            Select
+            <button class="all-btn">All</button>
+            <button class="none-btn">None</button>
+          </div>
+          <div class="categories"></div>
         </div>
-        <div class="categories"></div>
       </div>
     </div>
   </div>

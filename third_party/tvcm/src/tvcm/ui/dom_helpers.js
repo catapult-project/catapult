@@ -45,11 +45,16 @@ tvcm.exportTo('tvcm.ui', function() {
   function createSelector(
       targetEl, targetElProperty,
       settingsKey, defaultValue,
-      items) {
+      items, opt_namespace) {
+    function valuesEqual(a, b) {
+      if (a instanceof Array && b instanceof Array)
+        return a.length == b.length && JSON.stringify(a) == JSON.stringify(b);
+      return a == b;
+    }
     var defaultValueIndex;
     for (var i = 0; i < items.length; i++) {
       var item = items[i];
-      if (item.value == defaultValue) {
+      if (valuesEqual(item.value, defaultValue)) {
         defaultValueIndex = i;
         break;
       }
@@ -68,7 +73,7 @@ tvcm.exportTo('tvcm.ui', function() {
     }
     function onChange(e) {
       var value = selectorEl.selectedOptions[0].targetPropertyValue;
-      tvcm.Settings.set(settingsKey, value);
+      tvcm.Settings.set(settingsKey, value, opt_namespace);
       targetEl[targetElProperty] = value;
     }
     var oldSetter = targetEl.__lookupSetter__('selectedIndex');
@@ -78,7 +83,7 @@ tvcm.exportTo('tvcm.ui', function() {
     selectorEl.__defineSetter__('selectedValue', function(v) {
       for (var i = 0; i < selectorEl.children.length; i++) {
         var value = selectorEl.children[i].targetPropertyValue;
-        if (value == v) {
+        if (valuesEqual(value, v)) {
           var changed = selectorEl.selectedIndex != i;
           if (changed) {
             selectorEl.selectedIndex = i;
@@ -90,10 +95,12 @@ tvcm.exportTo('tvcm.ui', function() {
       throw new Error('Not a valid value');
     });
 
-    var initialValue = tvcm.Settings.get(settingsKey, defaultValue);
+    var initialValue = tvcm.Settings.get(
+        settingsKey, defaultValue, opt_namespace);
     var didSet = false;
     for (var i = 0; i < selectorEl.children.length; i++) {
-      if (selectorEl.children[i].targetPropertyValue == initialValue) {
+      if (valuesEqual(selectorEl.children[i].targetPropertyValue,
+          initialValue)) {
         didSet = true;
         targetEl[targetElProperty] = initialValue;
         selectorEl.selectedIndex = i;
