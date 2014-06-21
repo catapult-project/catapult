@@ -70,25 +70,24 @@ class ActionRunner(object):
     """
     return self.BeginInteraction('Gesture_' + label, is_smooth, is_responsive)
 
-  def NavigateToPage(self, page, timeout_seconds=None):
+  def NavigateToPage(self, page, timeout_in_seconds=60):
     """ Navigate to the given page.
 
     Args:
       page: page is an instance of page.Page
+      timeout_in_seconds: The timeout in seconds (default to 60).
     """
     if page.is_file:
       target_side_url = self._tab.browser.http_server.UrlOf(page.file_path_url)
     else:
       target_side_url = page.url
-    attributes = {
-        'url': target_side_url,
-        'script_to_evaluate_on_commit': page.script_to_evaluate_on_commit}
-    if timeout_seconds:
-      attributes['timeout_seconds'] = timeout_seconds
-    self.RunAction(NavigateAction(attributes))
+    self.RunAction(NavigateAction(
+        url=target_side_url,
+        script_to_evaluate_on_commit=page.script_to_evaluate_on_commit,
+        timeout_in_seconds=timeout_in_seconds))
 
-  def WaitForNavigate(self, timeout_seconds=60):
-    self._tab.WaitForNavigate(timeout_seconds)
+  def WaitForNavigate(self, timeout_in_seconds_seconds=60):
+    self._tab.WaitForNavigate(timeout_in_seconds_seconds)
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def ExecuteJavaScript(self, statement):
@@ -129,19 +128,19 @@ class ActionRunner(object):
     """
     time.sleep(seconds)
 
-  def WaitForJavaScriptCondition(self, condition, timeout=60):
+  def WaitForJavaScriptCondition(self, condition, timeout_in_seconds=60):
     """Wait for a JavaScript condition to become true.
 
     Example: runner.WaitForJavaScriptCondition('window.foo == 10');
 
     Args:
       condition: The JavaScript condition (as string).
-      timeout: The timeout in seconds (default to 60).
+      timeout_in_seconds: The timeout in seconds (default to 60).
     """
-    self._tab.WaitForJavaScriptExpression(condition, timeout)
+    self._tab.WaitForJavaScriptExpression(condition, timeout_in_seconds)
 
   def WaitForElement(self, selector=None, text=None, element_function=None,
-                     timeout=60):
+                     timeout_in_seconds=60):
     """Wait for an element to appear in the document.
 
     The element may be selected via selector, text, or element_function.
@@ -153,11 +152,11 @@ class ActionRunner(object):
       element_function: A JavaScript function (as string) that is used
           to retrieve the element. For example:
           '(function() { return foo.element; })()'.
-      timeout: The timeout in seconds (default to 60).
+      timeout_in_seconds: The timeout in seconds (default to 60).
     """
     self.RunAction(WaitForElementAction(
         selector=selector, text=text, element_function=element_function,
-        timeout=timeout))
+        timeout_in_seconds=timeout_in_seconds))
 
   def TapElement(self, selector=None, text=None, element_function=None):
     """Tap an element.

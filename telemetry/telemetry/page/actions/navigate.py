@@ -5,19 +5,16 @@ from telemetry.page.actions import page_action
 
 
 class NavigateAction(page_action.PageAction):
-  def __init__(self, attributes=None):
-    super(NavigateAction, self).__init__(attributes)
-    assert hasattr(self, 'url'), 'Must specify url for navigate action'
+  def __init__(self, url, script_to_evaluate_on_commit=None,
+               timeout_in_seconds=60):
+    super(NavigateAction, self).__init__()
+    assert url, 'Must specify url for navigate action'
+    self._url = url
+    self._script_to_evaluate_on_commit = script_to_evaluate_on_commit
+    self._timeout_in_seconds = timeout_in_seconds
 
   def RunAction(self, tab):
-    script_to_evaluate_on_commit = None
-    if hasattr(self, 'script_to_evaluate_on_commit'):
-      script_to_evaluate_on_commit = getattr(self,
-                                             'script_to_evaluate_on_commit')
-    if hasattr(self, 'timeout_seconds') and self.timeout_seconds:
-      tab.Navigate(self.url,
-                   script_to_evaluate_on_commit,
-                   self.timeout_seconds)
-    else:
-      tab.Navigate(self.url, script_to_evaluate_on_commit)
+    tab.Navigate(self._url,
+                 self._script_to_evaluate_on_commit,
+                 self._timeout_in_seconds)
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()

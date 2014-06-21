@@ -33,7 +33,7 @@ class PageAction(object):
 
 def EvaluateCallbackWithElement(
     tab, callback_js, selector=None, text=None, element_function=None,
-    wait=False, timeout=60):
+    wait=False, timeout_in_seconds=60):
   """Evaluates the JavaScript callback with the given element.
 
   The element may be selected via selector, text, or element_function.
@@ -61,7 +61,7 @@ def EvaluateCallbackWithElement(
         to retrieve the element. For example:
         '(function() { return foo.element; })()'.
     wait: Whether to wait for the return value to be true.
-    timeout: The timeout for wait (if waiting).
+    timeout_in_seconds: The timeout for wait (if waiting).
   """
   count = 0
   info_msg = ''
@@ -107,7 +107,7 @@ def EvaluateCallbackWithElement(
       })()''' % (element_function, callback_js, info_msg)
 
   if wait:
-    tab.WaitForJavaScriptExpression(code, timeout)
+    tab.WaitForJavaScriptExpression(code, timeout_in_seconds)
     return True
   else:
     return tab.EvaluateJavaScript(code)

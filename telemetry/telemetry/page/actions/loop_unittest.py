@@ -45,9 +45,9 @@ class LoopActionTest(tab_test_case.TabTestCase):
 
   @decorators.Disabled('android')
   def testLoopWaitForLoopTimeout(self):
-    """Tests that wait_for_loop timeouts if video does not loop."""
+    """Tests that wait_for_loop timeout_in_secondss if video does not loop."""
     data = {'selector': '#video_1',
-            'wait_timeout': 1,
+            'wait_timeout_in_seconds': 1,
             'loop_count': 2}
     action = loop.LoopAction(data)
     action.WillRunAction(self._tab)

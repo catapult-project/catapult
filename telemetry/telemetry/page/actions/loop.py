@@ -8,7 +8,7 @@ Action attributes are:
 - loop_count: The number of times to loop media.
 - selector: If no selector is defined then the action attempts to loop the first
             media element on the page. If 'all' then loop all media elements.
-- wait_timeout: Timeout to wait for media to loop. Default is
+- wait_timeout_in_seconds: Timeout to wait for media to loop. Default is
                 60 sec x loop_count.
 - wait_for_loop: If true, forces the action to wait for last loop to end,
                  otherwise it starts the loops and exit. Default true.
@@ -31,12 +31,14 @@ class LoopAction(media_action.MediaAction):
       selector = self.selector if hasattr(self, 'selector') else ''
       tab.ExecuteJavaScript('window.__loopMedia("%s", %i);' %
                             (selector, self.loop_count))
-      timeout = (self.wait_timeout if hasattr(self, 'wait_timeout')
-                 else 60 * self.loop_count)
+      timeout_in_seconds = (
+          self.wait_timeout_in_seconds if hasattr(self,
+                                                  'wait_timeout_in_seconds')
+          else 60 * self.loop_count)
       # Check if there is no need to wait for all loops to end
       if hasattr(self, 'wait_for_loop') and not self.wait_for_loop:
         return
-      self.WaitForEvent(tab, selector, 'loop', timeout)
+      self.WaitForEvent(tab, selector, 'loop', timeout_in_seconds)
     except exceptions.EvaluateException:
       raise page_action.PageActionFailed('Cannot loop media element(s) with '
                                          'selector = %s.' % selector)

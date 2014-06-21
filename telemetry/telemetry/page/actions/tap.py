@@ -11,7 +11,7 @@ class TapAction(GestureAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_position_percentage=0.5, top_position_percentage=0.5,
                duration_ms=50):
-    super(TapAction, self).__init__(None)
+    super(TapAction, self).__init__()
     self.automatically_record_interaction = False
     self.selector = selector
     self.text = text

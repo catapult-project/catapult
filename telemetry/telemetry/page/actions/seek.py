@@ -13,7 +13,7 @@ Action attributes are:
                  seeks. Default true.
 - wait_for_seeked: If true forces the action to wait for seeked event to fire.
                    Default false.
-- wait_timeout: Timeout to wait for seeked event. Only valid with
+- wait_timeout_in_seconds: Timeout to wait for seeked event. Only valid with
                 wait_for_seeked=true
 - seek_label: A suffix string to name the seek perf measurement.
 """
@@ -37,10 +37,11 @@ class SeekAction(media_action.MediaAction):
       seek_label = self.seek_label if hasattr(self, 'seek_label') else ''
       tab.ExecuteJavaScript('window.__seekMedia("%s", "%s", %i, "%s");' %
                             (selector, self.seek_time, log_seek, seek_label))
-      timeout = self.wait_timeout if hasattr(self, 'wait_timeout') else 60
+      timeout_in_seconds = (self.wait_timeout_in_seconds
+                            if hasattr(self, 'wait_timeout_in_seconds') else 60)
       # Check if we need to wait for 'seeked' event to fire.
       if hasattr(self, 'wait_for_seeked') and self.wait_for_seeked:
-        self.WaitForEvent(tab, selector, 'seeked', timeout)
+        self.WaitForEvent(tab, selector, 'seeked', timeout_in_seconds)
     except exceptions.EvaluateException:
       raise page_action.PageActionFailed('Cannot seek media element(s) with '
                                          'selector = %s.' % selector)

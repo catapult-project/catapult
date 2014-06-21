@@ -66,7 +66,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     """Tests that wait_for_playing timeouts if video does not play."""
     data = {'selector': '#video_1',
             'wait_for_playing': True,
-            'wait_timeout': 1}
+            'wait_timeout_in_seconds': 1}
     action = play.PlayAction(data)
     action.WillRunAction(self._tab)
     self._tab.EvaluateJavaScript('document.getElementById("video_1").src = ""')
@@ -100,7 +100,8 @@ class PlayActionTest(tab_test_case.TabTestCase):
 
   def testPlayWaitForEndedTimeout(self):
     """Tests that action raises exception if timeout is reached."""
-    data = {'selector': '#video_1', 'wait_for_ended': True, 'wait_timeout': 1}
+    data = {'selector': '#video_1', 'wait_for_ended': True,
+            'wait_timeout_in_seconds': 1}
     action = play.PlayAction(data)
     action.WillRunAction(self._tab)
     # Assert video not playing before running action.

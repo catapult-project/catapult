@@ -57,7 +57,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
     """Tests that wait_for_seeked timeouts if video does not seek."""
     data = {'selector': '#video_1',
             'wait_for_seeked': True,
-            'wait_timeout': 1,
+            'wait_timeout_in_seconds': 1,
             'seek_time': 1}
     action = seek.SeekAction(data)
     action.WillRunAction(self._tab)

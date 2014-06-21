@@ -30,13 +30,14 @@ class PlayAction(media_action.MediaAction):
     try:
       selector = self.selector if hasattr(self, 'selector') else ''
       tab.ExecuteJavaScript('window.__playMedia("%s");' % selector)
-      timeout = self.wait_timeout if hasattr(self, 'wait_timeout') else 60
+      timeout_in_seconds = (self.wait_timeout_in_seconds
+                            if hasattr(self, 'wait_timeout_in_seconds') else 60)
       # Check if we need to wait for 'playing' event to fire.
       if hasattr(self, 'wait_for_playing') and self.wait_for_playing:
-        self.WaitForEvent(tab, selector, 'playing', timeout)
+        self.WaitForEvent(tab, selector, 'playing', timeout_in_seconds)
       # Check if we need to wait for 'ended' event to fire.
       if hasattr(self, 'wait_for_ended') and self.wait_for_ended:
-        self.WaitForEvent(tab, selector, 'ended', timeout)
+        self.WaitForEvent(tab, selector, 'ended', timeout_in_seconds)
     except exceptions.EvaluateException:
       raise page_action.PageActionFailed('Cannot play media element(s) with '
                                          'selector = %s.' % selector)
