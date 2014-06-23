@@ -95,7 +95,7 @@ class PageSet(object):
         page_set_classes.append(getattr(module, m))
     if len(page_set_classes) != 1:
       raise PageSetError("Pageset file needs to contain exactly 1 pageset class"
-                         " with prefix 'PageSet'")
+                         " with suffix 'PageSet'")
     page_set = page_set_classes[0]()
     for page in page_set.pages:
       page_class = page.__class__
