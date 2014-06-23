@@ -128,6 +128,7 @@
       'trace_viewer/tracing/analysis/analysis_results.js',
       'trace_viewer/tracing/analysis/analysis_view.js',
       'trace_viewer/tracing/analysis/analyze_counters.js',
+      'trace_viewer/tracing/analysis/analyze_samples.js',
       'trace_viewer/tracing/analysis/analyze_selection.js',
       'trace_viewer/tracing/analysis/analyze_slices.js',
       'trace_viewer/tracing/analysis/cpu_slice_view.js',

@@ -5,6 +5,7 @@
 'use strict';
 
 tvcm.require('tracing.analysis.analyze_counters');
+tvcm.require('tracing.analysis.analyze_samples');
 tvcm.require('tracing.analysis.analyze_slices');
 tvcm.require('tracing.analysis.util');
 tvcm.require('tvcm.ui');
