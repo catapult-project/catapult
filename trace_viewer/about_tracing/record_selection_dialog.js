@@ -21,14 +21,14 @@ tvcm.exportTo('about_tracing', function() {
 
   var DEFAULT_PRESETS = [
     {title: 'Web developer',
-      categoryFilter: ['blink', 'browser', 'cc', 'renderer']},
+      categoryFilter: ['blink', 'browser', 'cc', 'net', 'v8']},
     {title: 'Input latency',
-      categoryFilter: ['input']},
+      categoryFilter: ['benchmark', 'input']},
     {title: 'Graphics and rendering',
-      categoryFilter: ['blink', 'cc', 'renderer']},
+      categoryFilter: ['blink', 'cc', 'gpu']},
     {title: 'Graphics, rendering, and rasterization',
-      categoryFilter: ['blink', 'cc',
-        'renderer', 'disabled-by-default-cc.debug']},
+      categoryFilter: ['blink', 'cc', 'gpu',
+        'disabled-by-default-cc.debug']},
     {title: 'Manually select settings',
       categoryFilter: []}
   ];
