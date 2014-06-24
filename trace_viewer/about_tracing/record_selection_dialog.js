@@ -8,7 +8,7 @@
  * @fileoverview RecordSelectionDialog presents the available categories
  * to be enabled/disabled during tracing.
  */
-tvcm.requireTemplate('tracing.record_selection_dialog');
+tvcm.requireTemplate('about_tracing.record_selection_dialog');
 
 tvcm.require('tvcm.utils');
 tvcm.require('tracing.filter');
@@ -16,7 +16,7 @@ tvcm.require('tvcm.ui.overlay');
 tvcm.require('tvcm.ui.dom_helpers');
 tvcm.require('tvcm.ui.info_bar');
 
-tvcm.exportTo('tracing', function() {
+tvcm.exportTo('about_tracing', function() {
   var RecordSelectionDialog = tvcm.ui.define('div');
 
   var DEFAULT_PRESETS = [

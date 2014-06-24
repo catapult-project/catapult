@@ -4,7 +4,7 @@
 
 'use strict';
 
-tvcm.require('tracing.record_selection_dialog');
+tvcm.require('about_tracing.record_selection_dialog');
 
 tvcm.exportTo('about_tracing', function() {
   function beginMonitoring(tracingControllerClient) {
@@ -134,7 +134,7 @@ tvcm.exportTo('about_tracing', function() {
     // Step 2: Show tracing dialog.
     var selectionDlg;
     function showTracingDialog(categories) {
-      selectionDlg = new tracing.RecordSelectionDialog();
+      selectionDlg = new about_tracing.RecordSelectionDialog();
       selectionDlg.categories = categories;
       selectionDlg.settings_key = 'about_tracing.record_selection_dialog';
       selectionDlg.addEventListener('recordclick', startTracing);

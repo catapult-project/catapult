@@ -6,9 +6,9 @@
 
 tvcm.require('tvcm.settings');
 tvcm.require('tracing.test_utils');
-tvcm.require('tracing.record_selection_dialog');
+tvcm.require('about_tracing.record_selection_dialog');
 
-tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
+tvcm.unittest.testSuite('about_tracing.record_selection_dialog_test', function() { // @suppress longLineCheck
   test('instantitate', function() {
     var categories = [];
     for (var i = 0; i < 30; i++)
@@ -19,7 +19,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     categories.push('first,second,third');
     categories.push('cc,disabled-by-default-cc.debug');
 
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.categories = categories;
     dlg.settings_key = 'key';
     dlg.currentlyChosenPreset = [];
@@ -34,7 +34,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
   });
 
   test('recordSelectionDialog_splitCategories', function() {
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.categories =
         ['cc,disabled-by-default-one,cc.debug', 'two,three', 'three'];
     dlg.settings_key = 'key';
@@ -55,7 +55,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
   });
 
   test('recordSelectionDialog_UpdateForm_NoSettings', function() {
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one', 'two', 'three'];
     dlg.settings_key = 'key';
     dlg.currentlyChosenPreset = [];
@@ -86,7 +86,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     tvcm.Settings.set('two', true, 'categories');
     tvcm.Settings.set('three', false, 'categories');
 
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     dlg.currentlyChosenPreset = [];
@@ -114,7 +114,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
   });
 
   test('recordSelectionDialog_UpdateForm_DisabledByDefault', function() {
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-bar', 'baz'];
     dlg.settings_key = 'categories';
     dlg.currentlyChosenPreset = [];
@@ -135,7 +135,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     tvcm.Settings.set('two', true, 'categories');
     tvcm.Settings.set('three', false, 'categories');
 
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     dlg.currentlyChosenPreset = [];
@@ -146,7 +146,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     tvcm.Settings.set('two', true, 'categories');
     tvcm.Settings.set('three', false, 'categories');
 
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     dlg.currentlyChosenPreset = [];
@@ -183,7 +183,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     tvcm.Settings.set('two', true, 'categories');
     tvcm.Settings.set('three', false, 'categories');
 
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     // Note: currentlyChosenPreset is not set here, so the default is used.
@@ -223,7 +223,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     tvcm.Settings.set('recordSelectionDialog.useSystemTracing', true);
     tvcm.Settings.set('recordSelectionDialog.useSampling', false);
 
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     // Note: currentlyChosenPreset is not set here, so the default is used.
@@ -266,7 +266,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     tvcm.Settings.set('about_tracing.record_selection_dialog_preset',
         ['blink', 'cc', 'renderer', 'cc.debug']);
 
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     dlg.updateForm_();
@@ -301,7 +301,7 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     tvcm.Settings.set('cc', false, 'categories');
     tvcm.Settings.set('disabled-by-default-cc.debug', true, 'categories');
 
-    var dlg = new tracing.RecordSelectionDialog();
+    var dlg = new about_tracing.RecordSelectionDialog();
     dlg.settings_key = 'categories';
     dlg.categories = [];
     dlg.currentlyChosenPreset = [];

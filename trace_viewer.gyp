@@ -6,7 +6,7 @@
   'variables': {
     'tracing_html_files': [
       'trace_viewer/about_tracing/profiling_view.html',
-      'trace_viewer/tracing/record_selection_dialog.html',
+      'trace_viewer/about_tracing/record_selection_dialog.html',
       'trace_viewer/tracing/sampling_summary_side_panel.html',
       'trace_viewer/tracing/time_summary_side_panel.html',
       'trace_viewer/tracing/input_latency_side_panel.html',
@@ -85,6 +85,7 @@
       'trace_viewer/about_tracing/mock_tracing_controller_client.js',
       'trace_viewer/about_tracing/profiling_view.js',
       'trace_viewer/about_tracing/record_and_capture_controller.js',
+      'trace_viewer/about_tracing/record_selection_dialog.js',
       'trace_viewer/about_tracing/tracing_controller_client.js',
       'trace_viewer/about_tracing/xhr_based_tracing_controller_client.js',
       'trace_viewer/cc/__init__.js',
@@ -183,7 +184,6 @@
       'trace_viewer/tracing/importer/v8/splaytree.js',
       'trace_viewer/tracing/importer/v8_log_importer.js',
       'trace_viewer/tracing/importer/zip_importer.js',
-      'trace_viewer/tracing/record_selection_dialog.js',
       'trace_viewer/tracing/sampling_summary_side_panel.js',
       'trace_viewer/tracing/selection.js',
       'trace_viewer/tracing/standalone_timeline_view.js',
