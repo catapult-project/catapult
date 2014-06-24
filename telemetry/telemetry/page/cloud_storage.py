@@ -204,19 +204,17 @@ def GetIfChanged(file_path, bucket=None):
   else:
     buckets = [PUBLIC_BUCKET, PARTNER_BUCKET, INTERNAL_BUCKET]
 
-  found = False
   for bucket in buckets:
     try:
       url = 'gs://%s/%s' % (bucket, expected_hash)
       _RunCommand(['cp', url, file_path])
       logging.info('Downloaded %s to %s' % (url, file_path))
-      found = True
+      return True
     except NotFoundError:
       continue
 
-  if not found:
-    logging.warning('Unable to find file in Cloud Storage: %s', file_path)
-  return found
+  logging.warning('Unable to find file in Cloud Storage: %s', file_path)
+  return False
 
 
 def CalculateHash(file_path):
