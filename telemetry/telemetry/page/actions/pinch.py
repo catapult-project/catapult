@@ -53,7 +53,7 @@ class PinchAction(GestureAction):
     top_anchor_percentage = getattr(self, 'top_anchor_percentage', 0.5)
     scale_factor = getattr(self, 'scale_factor',
                            PinchAction._GetDefaultScaleFactorForPage(tab))
-    speed = getattr(self, 'speed', 800)
+    speed = getattr(self, 'speed_in_pixels_per_second', 800)
 
     if hasattr(self, 'element_function'):
       tab.ExecuteJavaScript("""

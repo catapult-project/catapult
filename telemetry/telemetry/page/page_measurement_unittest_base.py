@@ -21,7 +21,10 @@ class BasicTestPage(page_module.Page):
     super(BasicTestPage, self).__init__(url, page_set, base_dir)
 
   def RunSmoothness(self, action_runner):
-    action_runner.RunAction(ScrollAction())
+    interaction = action_runner.BeginGestureInteraction(
+        'ScrollAction', is_smooth=True)
+    action_runner.ScrollPage()
+    interaction.End()
 
 
 class PageMeasurementUnitTestBase(unittest.TestCase):

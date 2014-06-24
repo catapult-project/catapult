@@ -6,6 +6,7 @@ import time
 
 from telemetry.page.actions.javascript_click import ClickElementAction
 from telemetry.page.actions.navigate import NavigateAction
+from telemetry.page.actions.scroll import ScrollAction
 from telemetry.page.actions.swipe import SwipeAction
 from telemetry.page.actions.tap import TapAction
 from telemetry.page.actions.wait import WaitForElementAction
@@ -190,8 +191,80 @@ class ActionRunner(object):
     self.RunAction(ClickElementAction(
         selector=selector, text=text, element_function=element_function))
 
+  def ScrollPage(self, left_start_ratio=0.5, top_start_ratio=0.5,
+                 direction='down', distance=None, distance_expr=None,
+                 speed_in_pixels_per_second=800, use_touch=False):
+    """Perform scroll gesture on the page.
+
+    You may specify distance or distance_expr, but not both. If
+    neither is specified, the default scroll distance is variable
+    depending on direction (see scroll.js for full implementation).
+
+    Args:
+      left_start_ratio: The horizontal starting coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          document.body.
+      top_start_ratio: The vertical starting coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          document.body.
+      direction: The direction of scroll, either 'left', 'right',
+          'up', or 'down'
+      distance: The distance to scroll (in pixel).
+      distance_expr: A JavaScript expression (as string) that can be
+          evaluated to compute scroll distance. Example:
+          'window.scrollTop' or '(function() { return crazyMath(); })()'.
+      speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
+      use_touch: Whether scrolling should be done with touch input.
+    """
+    self.RunAction(ScrollAction(
+        left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
+        direction=direction, distance=distance, distance_expr=distance_expr,
+        speed_in_pixels_per_second=speed_in_pixels_per_second,
+        use_touch=use_touch))
+
+  def ScrollElement(self, selector=None, text=None, element_function=None,
+                    left_start_ratio=0.5, top_start_ratio=0.5,
+                    direction='down', distance=None, distance_expr=None,
+                    speed_in_pixels_per_second=800, use_touch=False):
+    """Perform scroll gesture on the element.
+
+    The element may be selected via selector, text, or element_function.
+    Only one of these arguments must be specified.
+
+    You may specify distance or distance_expr, but not both. If
+    neither is specified, the default scroll distance is variable
+    depending on direction (see scroll.js for full implementation).
+
+    Args:
+      selector: A CSS selector describing the element.
+      text: The element must contains this exact text.
+      element_function: A JavaScript function (as string) that is used
+          to retrieve the element. For example:
+          'function() { return foo.element; }'.
+      left_start_ratio: The horizontal starting coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          the element.
+      top_start_ratio: The vertical starting coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          the element.
+      direction: The direction of scroll, either 'left', 'right',
+          'up', or 'down'
+      distance: The distance to scroll (in pixel).
+      distance_expr: A JavaScript expression (as string) that can be
+          evaluated to compute scroll distance. Example:
+          'window.scrollTop' or '(function() { return crazyMath(); })()'.
+      speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
+      use_touch: Whether scrolling should be done with touch input.
+    """
+    self.RunAction(ScrollAction(
+        selector=selector, text=text, element_function=element_function,
+        left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
+        direction=direction, distance=distance, distance_expr=distance_expr,
+        speed_in_pixels_per_second=speed_in_pixels_per_second,
+        use_touch=use_touch))
+
   def SwipePage(self, left_start_ratio=0.5, top_start_ratio=0.5,
-                direction='left', distance=100, speed=800):
+                direction='left', distance=100, speed_in_pixels_per_second=800):
     """Perform swipe gesture on the page.
 
     Args:
@@ -204,16 +277,21 @@ class ActionRunner(object):
       direction: The direction of swipe, either 'left', 'right',
           'up', or 'down'
       distance: The distance to swipe (in pixel).
-      speed: The speed of the gesture.
+      speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
     """
     self.RunAction(SwipeAction(
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
-        direction=direction, distance=distance, speed=speed))
+        direction=direction, distance=distance,
+        speed_in_pixels_per_second=speed_in_pixels_per_second))
 
   def SwipeElement(self, selector=None, text=None, element_function=None,
                    left_start_ratio=0.5, top_start_ratio=0.5,
-                   direction='left', distance=100, speed=800):
+                   direction='left', distance=100,
+                   speed_in_pixels_per_second=800):
     """Perform swipe gesture on the element.
+
+    The element may be selected via selector, text, or element_function.
+    Only one of these arguments must be specified.
 
     Args:
       selector: A CSS selector describing the element.
@@ -230,12 +308,13 @@ class ActionRunner(object):
       direction: The direction of swipe, either 'left', 'right',
           'up', or 'down'
       distance: The distance to swipe (in pixel).
-      speed: The speed of the gesture.
+      speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
     """
     self.RunAction(SwipeAction(
         selector=selector, text=text, element_function=element_function,
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
-        direction=direction, distance=distance, speed=speed))
+        direction=direction, distance=distance,
+        speed_in_pixels_per_second=speed_in_pixels_per_second))
 
   def ForceGarbageCollection(self):
     """Forces JavaScript garbage collection on the page."""

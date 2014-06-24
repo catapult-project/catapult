@@ -10,7 +10,7 @@ from telemetry.page.actions import page_action
 class SwipeAction(GestureAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_start_ratio=0.5, top_start_ratio=0.5,
-               direction='left', distance=100, speed=800):
+               direction='left', distance=100, speed_in_pixels_per_second=800):
     super(SwipeAction, self).__init__()
     if direction not in ['down', 'up', 'left', 'right']:
       raise page_action.PageActionNotSupported(
@@ -23,7 +23,7 @@ class SwipeAction(GestureAction):
     self._top_start_ratio = top_start_ratio
     self._direction = direction
     self._distance = distance
-    self._speed = speed
+    self._speed = speed_in_pixels_per_second
 
   def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'swipe.js']:

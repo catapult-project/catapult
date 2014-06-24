@@ -68,7 +68,7 @@ class ScrollBounceAction(GestureAction):
       overscroll = self.overscroll
     if hasattr(self, 'repeat_count'):
       repeat_count = self.repeat_count
-    if hasattr(self, 'speed'):
+    if hasattr(self, 'speed_in_pixels_per_second'):
       speed = self.speed
     if hasattr(self, 'element_function'):
       tab.ExecuteJavaScript("""

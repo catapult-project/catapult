@@ -180,6 +180,28 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.TapElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
+  def testScroll(self):
+    if not gesture_action.GestureAction.IsGestureSourceTypeSupported(
+        self._tab, 'touch'):
+      return
+
+    self.Navigate('page_with_swipeables.html')
+    action_runner = action_runner_module.ActionRunner(self._tab)
+
+    action_runner.ScrollElement(
+        selector='#left-right', direction='right', left_start_ratio=0.9)
+    self.assertTrue(action_runner.EvaluateJavaScript(
+        'document.querySelector("#left-right").scrollLeft') > 75)
+    action_runner.ScrollElement(
+        selector='#top-bottom', direction='down', top_start_ratio=0.9)
+    self.assertTrue(action_runner.EvaluateJavaScript(
+        'document.querySelector("#top-bottom").scrollTop') > 75)
+
+    action_runner.ScrollPage(direction='right', left_start_ratio=0.9,
+                             distance=100)
+    self.assertTrue(action_runner.EvaluateJavaScript(
+        'document.body.scrollLeft') > 75)
+
   def testSwipe(self):
     if not gesture_action.GestureAction.IsGestureSourceTypeSupported(
         self._tab, 'touch'):
