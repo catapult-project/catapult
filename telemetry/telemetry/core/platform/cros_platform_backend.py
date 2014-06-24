@@ -4,6 +4,7 @@
 
 from telemetry.core.platform import proc_supporting_platform_backend
 from telemetry.core.platform import ps_util
+from telemetry.core.platform.power_monitor import cros_power_monitor
 
 
 class CrosPlatformBackend(
@@ -12,6 +13,7 @@ class CrosPlatformBackend(
   def __init__(self, cri):
     super(CrosPlatformBackend, self).__init__()
     self._cri = cri
+    self._powermonitor = cros_power_monitor.CrosPowerMonitor(cri)
 
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
@@ -67,3 +69,12 @@ class CrosPlatformBackend(
 
   def FlushSystemCacheForDirectory(self, directory, ignoring=None):
     raise NotImplementedError()
+
+  def CanMonitorPower(self):
+    return self._powermonitor.CanMonitorPower()
+
+  def StartMonitoringPower(self, browser):
+    self._powermonitor.StartMonitoringPower(browser)
+
+  def StopMonitoringPower(self):
+    self._powermonitor.StopMonitoringPower()
