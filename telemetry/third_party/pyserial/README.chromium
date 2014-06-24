@@ -16,3 +16,4 @@ Includes only the serial/ folder and LICENSE.txt.
 Packaging and setup files have not been copied downstream.
 All other files and folders (documentation/, examples/, test/)
 have not been copied downstream.
+linux-product_info.patch has been applied to include the product information as description.
