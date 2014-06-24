@@ -33,6 +33,11 @@ def _CommonChecksImpl(input_api, output_api):
   if len(gyp_result) > 0:
     results += [output_api.PresubmitError(gyp_result)]
 
+  from trace_viewer.build import check_gn
+  gn_result = check_gn.GnCheck()
+  if len(gn_result) > 0:
+    results += [output_api.PresubmitError(gn_result)]
+
   black_list = input_api.DEFAULT_BLACK_LIST
   sources = lambda x: input_api.FilterSourceFile(x, black_list=black_list)
   results += input_api.canned_checks.CheckLicense(
