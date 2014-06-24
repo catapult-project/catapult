@@ -42,6 +42,14 @@ DEVICE_LIST_URL = 'http://localhost:9221/json'
 IOS_WEBKIT_DEBUG_PROXY = 'ios_webkit_debug_proxy'
 
 
+def SelectDefaultBrowser(_):
+  return None  # TODO(baxley): Implement me.
+
+
+def CanFindAvailableBrowsers():
+  return False  # TODO(baxley): Implement me.
+
+
 def FindAllAvailableBrowsers(finder_options):
   """Find all running iOS browsers on connected devices."""
   ios_device_attached = False
