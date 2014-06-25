@@ -135,13 +135,14 @@ def Main(base_dir):
   if results.errors or results.failures:
     logging.warning('Some pages failed. The recording has not been updated for '
                     'these pages.')
-    logging.warning('Failed pages:\n%s',
-                    '\n'.join(zip(*results.errors + results.failures)[0]))
+    logging.warning('Failed pages:\n%s', '\n'.join(
+        p.display_name for p in zip(*results.errors + results.failures)[0]))
 
   if results.skipped:
     logging.warning('Some pages were skipped. The recording has not been '
                     'updated for these pages.')
-    logging.warning('Skipped pages:\n%s', '\n'.join(zip(*results.skipped)[0]))
+    logging.warning('Skipped pages:\n%s', '\n'.join(
+        p.display_name for p in zip(*results.skipped)[0]))
 
   if results.successes:
     # Update the metadata for the pages which were recorded.

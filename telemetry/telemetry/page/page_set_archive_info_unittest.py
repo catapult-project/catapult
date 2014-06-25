@@ -1,6 +1,7 @@
 # Copyright 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import json
 import os
 import shutil
 import tempfile
@@ -70,6 +71,29 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.assertEquals(recording2, os.path.basename(
         self.archive_info.WprFilePathForPage(page3)))
 
+  def testArchiveInfoFileGetsUpdated(self):
+    """Ensures that the archive info file is updated correctly."""
+
+    expected_archive_file_contents = {
+        u'description': (u'Describes the Web Page Replay archives for a page'
+                         u' set. Don\'t edit by hand! Use record_wpr for'
+                         u' updating.'),
+        u'archives': {
+            u'data_003.wpr': [u'Bar', u'http://www.baz.com/'],
+            u'data_001.wpr': [u'Foo']
+        }
+    }
+
+    new_temp_recording = os.path.join(self.tmp_dir, 'recording.wpr')
+    with open(new_temp_recording, 'w') as f:
+      f.write('wpr data')
+    self.archive_info.AddNewTemporaryRecording(new_temp_recording)
+    self.archive_info.AddRecordedPages([page2, page3])
+
+    with open(self.page_set_archive_info_file, 'r') as f:
+      archive_file_contents = json.load(f)
+      self.assertEquals(expected_archive_file_contents, archive_file_contents)
+
   def testModifications(self):
     recording1_path = os.path.join(self.tmp_dir, recording1)
     recording2_path = os.path.join(self.tmp_dir, recording2)
@@ -88,7 +112,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.assertEquals(new_temp_recording,
                       self.archive_info.WprFilePathForPage(page3))
 
-    self.archive_info.AddRecordedPages([page2.display_name])
+    self.archive_info.AddRecordedPages([page2])
 
     self.assertTrue(os.path.exists(new_recording1))
     self.assertFalse(os.path.exists(new_temp_recording))
@@ -102,7 +126,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
       f.write('wpr data')
 
     self.archive_info.AddNewTemporaryRecording(new_temp_recording)
-    self.archive_info.AddRecordedPages([page3.display_name])
+    self.archive_info.AddRecordedPages([page3])
 
     self.assertTrue(os.path.exists(new_recording2))
     self.assertCorrectHashFile(new_recording2)
@@ -145,7 +169,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.assertEquals(new_temp_recording,
                       self.archive_info.WprFilePathForPage(page1))
 
-    self.archive_info.AddRecordedPages([page1.display_name])
+    self.archive_info.AddRecordedPages([page1])
 
     # Expected name for the recording (decided by PageSetArchiveInfo).
     new_recording = os.path.join(self.tmp_dir, 'new_archive_info_000.wpr')

@@ -84,10 +84,10 @@ class PageSetArchiveInfo(object):
   def AddNewTemporaryRecording(self, temp_target_wpr_file_path):
     self.temp_target_wpr_file_path = temp_target_wpr_file_path
 
-  def AddRecordedPages(self, page_names):
+  def AddRecordedPages(self, pages):
     (target_wpr_file, target_wpr_file_path) = self._NextWprFileName()
-    for page_name in page_names:
-      self._SetWprFileForPage(page_name, target_wpr_file)
+    for page in pages:
+      self._SetWprFileForPage(page.display_name, target_wpr_file)
     shutil.move(self.temp_target_wpr_file_path, target_wpr_file_path)
 
     # Update the hash file.
