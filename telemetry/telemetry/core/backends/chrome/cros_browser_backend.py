@@ -19,7 +19,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, browser_type, browser_options, cri, is_guest,
                extensions_to_load):
     super(CrOSBrowserBackend, self).__init__(
-        is_content_shell=False, supports_extensions=not is_guest,
+        supports_tab_control=True, supports_extensions=not is_guest,
         browser_options=browser_options,
         output_profile_path=None, extensions_to_load=extensions_to_load)
 

@@ -35,7 +35,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
                is_content_shell, browser_directory, is_local_build=False):
     target_os = sys.platform.lower()
     super(PossibleDesktopBrowser, self).__init__(browser_type, target_os,
-        finder_options)
+        finder_options, not is_content_shell)
     assert browser_type in ALL_BROWSER_TYPES, \
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
     self._local_executable = executable

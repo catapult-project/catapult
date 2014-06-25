@@ -11,10 +11,12 @@ class PossibleBrowser(object):
   Call Create() to launch the browser and begin manipulating it..
   """
 
-  def __init__(self, browser_type, target_os, finder_options):
+  def __init__(self, browser_type, target_os, finder_options,
+               supports_tab_control):
     self._browser_type = browser_type
     self._target_os = target_os
     self._finder_options = finder_options
+    self._supports_tab_control = supports_tab_control
     self._platform = None
 
   def __repr__(self):
@@ -32,6 +34,10 @@ class PossibleBrowser(object):
   @property
   def finder_options(self):
     return self._finder_options
+
+  @property
+  def supports_tab_control(self):
+    return self._supports_tab_control
 
   @property
   def platform(self):

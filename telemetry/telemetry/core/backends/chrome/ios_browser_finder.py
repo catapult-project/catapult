@@ -22,7 +22,7 @@ class PossibleIOSBrowser(possible_browser.PossibleBrowser):
   """A running iOS browser instance."""
   def __init__(self, browser_type, finder_options):
     super(PossibleIOSBrowser, self).__init__(browser_type, 'ios',
-        finder_options)
+        finder_options, True)
 
   # TODO(baxley): Implement the following methods for iOS.
   def Create(self):

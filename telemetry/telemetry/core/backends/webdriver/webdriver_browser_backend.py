@@ -14,7 +14,6 @@ class WebDriverBrowserBackend(browser_backend.BrowserBackend):
 
   def __init__(self, driver_creator, supports_extensions, browser_options):
     super(WebDriverBrowserBackend, self).__init__(
-        is_content_shell=False,
         supports_extensions=supports_extensions,
         browser_options=browser_options,
         tab_list_backend=webdriver_tab_list_backend.WebDriverTabListBackend)

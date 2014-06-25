@@ -47,10 +47,6 @@ class AndroidBrowserBackendSettings(object):
     sys.exit(1)
 
   @property
-  def is_content_shell(self):
-    return False
-
-  @property
   def profile_dir(self):
     return '/data/data/%s/' % self.package
 
@@ -121,10 +117,6 @@ class ContentShellBackendSettings(AndroidBrowserBackendSettings):
   def GetDevtoolsRemotePort(self):
     return 'localabstract:content_shell_devtools_remote'
 
-  @property
-  def is_content_shell(self):
-    return True
-
 
 class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, adb, package):
@@ -138,10 +130,6 @@ class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
 
   def GetDevtoolsRemotePort(self):
     return 'localabstract:chrome_shell_devtools_remote'
-
-  @property
-  def is_content_shell(self):
-    return True
 
 
 class WebviewBackendSettings(AndroidBrowserBackendSettings):
@@ -182,7 +170,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, browser_options, backend_settings, use_rndis_forwarder,
                output_profile_path, extensions_to_load):
     super(AndroidBrowserBackend, self).__init__(
-        is_content_shell=backend_settings.is_content_shell,
+        supports_tab_control=backend_settings.supports_tab_control,
         supports_extensions=False, browser_options=browser_options,
         output_profile_path=output_profile_path,
         extensions_to_load=extensions_to_load)
@@ -363,10 +351,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   @property
   def activity(self):
     return self._backend_settings.activity
-
-  @property
-  def supports_tab_control(self):
-    return self._backend_settings.supports_tab_control
 
   def __del__(self):
     self.Close()

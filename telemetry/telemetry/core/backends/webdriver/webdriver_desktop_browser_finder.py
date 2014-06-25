@@ -39,7 +39,7 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
   def __init__(self, browser_type, finder_options):
     target_os = sys.platform.lower()
     super(PossibleWebDriverBrowser, self).__init__(browser_type, target_os,
-        finder_options)
+        finder_options, False)
     assert browser_type in ALL_BROWSER_TYPES, \
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
 

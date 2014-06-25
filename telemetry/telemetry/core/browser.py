@@ -58,11 +58,6 @@ class Browser(object):
     return self._browser_backend.browser_type
 
   @property
-  def is_content_shell(self):
-    """Returns whether this browser is a content shell, only."""
-    return self._browser_backend.is_content_shell
-
-  @property
   def supports_extensions(self):
     return self._browser_backend.supports_extensions
 

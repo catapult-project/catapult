@@ -28,7 +28,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, browser_options, executable, flash_path, is_content_shell,
                browser_directory, output_profile_path, extensions_to_load):
     super(DesktopBrowserBackend, self).__init__(
-        is_content_shell=is_content_shell,
+        supports_tab_control=not is_content_shell,
         supports_extensions=not is_content_shell,
         browser_options=browser_options,
         output_profile_path=output_profile_path,
@@ -45,6 +45,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     assert not flash_path or os.path.exists(flash_path)
     self._flash_path = flash_path
+
+    self._is_content_shell = is_content_shell
 
     if len(extensions_to_load) > 0 and is_content_shell:
       raise browser_backend.ExtensionsNotSupportedException(
@@ -69,7 +71,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self._tmp_profile_dir = tempfile.mkdtemp()
       profile_dir = self._profile_dir or self.browser_options.profile_dir
       if profile_dir:
-        if self.is_content_shell:
+        if self._is_content_shell:
           logging.critical('Profiles cannot be used with content shell')
           sys.exit(1)
         logging.info("Using profile directory:'%s'." % profile_dir)
@@ -169,7 +171,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     args.append('--remote-debugging-port=%i' % self._port)
     args.append('--enable-crash-reporter-for-testing')
     args.append('--use-mock-keychain')
-    if not self.is_content_shell:
+    if not self._is_content_shell:
       args.append('--window-size=1280,1024')
       if self._flash_path:
         args.append('--ppapi-flash-path=%s' % self._flash_path)
@@ -181,7 +183,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Make sure _profile_dir hasn't already been set.
     assert self._profile_dir is None
 
-    if self.is_content_shell:
+    if self._is_content_shell:
       logging.critical('Profile creation cannot be used with content shell')
       sys.exit(1)
 

@@ -67,7 +67,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
   def __init__(self, browser_type, finder_options, backend_settings, apk_name):
     super(PossibleAndroidBrowser, self).__init__(browser_type, 'android',
-        finder_options)
+        finder_options, backend_settings.supports_tab_control)
     assert browser_type in ALL_BROWSER_TYPES, \
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
     self._backend_settings = backend_settings
