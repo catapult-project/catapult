@@ -19,6 +19,7 @@ from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'pyserial')
 import serial  # pylint: disable=F0401
+import serial.tools.list_ports
 
 
 Power = collections.namedtuple('Power', ['amps', 'volts'])
@@ -56,33 +57,33 @@ class Monsoon:
       self.ser = serial.Serial(device, timeout=1)
       return
 
-    while 1:  # Try all /dev/ttyACM* until we find one we can use.
-      for dev in os.listdir('/dev'):
-        if not dev.startswith('ttyACM'):
+    while 1:
+      for (port, desc, _) in serial.tools.list_ports.comports():
+        if not desc.lower().startswith('mobile device power monitor'):
           continue
-        tmpname = '/tmp/monsoon.%s.%s' % (os.uname()[0], dev)
+        tmpname = '/tmp/monsoon.%s.%s' % (os.uname()[0], os.path.basename(port))
         self._tempfile = open(tmpname, 'w')
         try:  # Use a lockfile to ensure exclusive access.
           # Put the import in here to avoid doing it on unsupported platforms.
           import fcntl
           fcntl.lockf(self._tempfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
-          logging.error('device %s is in use', dev)
+          logging.error('device %s is in use', port)
           continue
 
         try:  # Try to open the device.
-          self.ser = serial.Serial('/dev/%s' % dev, timeout=1)
+          self.ser = serial.Serial(port, timeout=1)
           self.StopDataCollection()  # Just in case.
           self._FlushInput()  # Discard stale input.
           status = self.GetStatus()
         except IOError, e:
-          logging.error('error opening device %s: %s', dev, e)
+          logging.error('error opening device %s: %s', port, e)
           continue
 
         if not status:
-          logging.error('no response from device %s', dev)
+          logging.error('no response from device %s', port)
         elif serialno and status['serialNumber'] != serialno:
-          logging.error('device %s is #%d', dev, status['serialNumber'])
+          logging.error('device %s is #%d', port, status['serialNumber'])
         else:
           if status['hardwareRevision'] == 1:
             self._voltage_multiplier = 62.5 / 10**6
