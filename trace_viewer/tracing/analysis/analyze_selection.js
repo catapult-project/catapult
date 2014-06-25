@@ -55,8 +55,8 @@ tvcm.exportTo('tracing.analysis', function() {
     }
 
     if (sampleEvents.length == 1) {
-      tracing.analysis.analyzeSingleSlice(results, sampleEvents[0],
-                                          'Sample Event');
+      tracing.analysis.analyzeSingleSampleEvent(results, sampleEvents[0],
+                                                'Sample Event');
     } else if (sampleEvents.length > 1) {
       tracing.analysis.analyzeMultipleSampleEvents(results, sampleEvents,
                                                    'Sample Events');

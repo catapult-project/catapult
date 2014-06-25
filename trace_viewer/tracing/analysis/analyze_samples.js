@@ -12,6 +12,17 @@ tvcm.require('tvcm.ui.sortable_table');
 
 tvcm.exportTo('tracing.analysis', function() {
 
+  function analyzeSingleSampleEvent(results, sample, type) {
+    results.appendHeader('Selected ' + type + ':');
+    var table = results.appendTable('analysis-slice-table', 2);
+
+    results.appendInfoRow(table, 'Title', sample.title);
+    results.appendInfoRowTime(table, 'Sample Time', sample.start);
+    results.appendInfoRow(table,
+                          'Stack Trace',
+                          sample.getUserFriendlyStackTrace());
+  }
+
   function analyzeSingleTypeSampleEvents_(results, sliceGroup) {
     results.appendInfo('Title: ', sliceGroup[0].title);
     results.appendInfo('Category: ', sliceGroup[0].category);
@@ -107,6 +118,7 @@ tvcm.exportTo('tracing.analysis', function() {
   }
 
   return {
-    analyzeMultipleSampleEvents: analyzeMultipleSampleEvents
+    analyzeMultipleSampleEvents: analyzeMultipleSampleEvents,
+    analyzeSingleSampleEvent: analyzeSingleSampleEvent
   };
 });

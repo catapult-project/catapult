@@ -4,6 +4,7 @@
 
 'use strict';
 
+tvcm.require('tracing.test_utils');
 tvcm.require('tracing.trace_model');
 
 tvcm.unittest.testSuite('tracing.trace_model.sample_test', function() {
@@ -14,9 +15,7 @@ tvcm.unittest.testSuite('tracing.trace_model.sample_test', function() {
   test('sampleStackTrace', function() {
     var thread = new Thread({}, 1);
 
-    var fA = new StackFrame(undefined, 1, 'cat', 'a', 7);
-    var fAB = new StackFrame(fA, 2, 'cat', 'b', 7);
-    var fABC = new StackFrame(fAB, 3, 'cat', 'c', 7);
+    var fABC = tracing.test_utils.newStackTrace('cat', ['a', 'b', 'c']);
 
     var s = new Sample(undefined, thread, 'instructions_retired',
                        10, fABC, 10);

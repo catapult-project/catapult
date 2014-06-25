@@ -12,6 +12,7 @@
 tvcm.require('tracing.trace_model.counter');
 tvcm.require('tracing.trace_model.slice');
 tvcm.require('tracing.trace_model.slice_group');
+tvcm.require('tracing.trace_model.stack_frame');
 
 tvcm.exportTo('tracing.test_utils', function() {
   function newAsyncSlice(start, duration, startThread, endThread) {
@@ -54,12 +55,11 @@ tvcm.exportTo('tracing.test_utils', function() {
     return s;
   }
 
-  function newSampleNamed(thread, sampleName, lastFrameName, start) {
-    var f = new tracing.trace_model.StackFrame(undefined, tvcm.GUID.allocate(),
-                                               '', lastFrameName, 0);
-    thread.parent.model.addStackFrame(f);
-    var s = new tracing.trace_model.Sample(undefined, thread, sampleName,
-                                           0, f, 1);
+  function newSampleNamed(thread, sampleName, category, frameNames, start) {
+    var s = new tracing.trace_model.Sample(undefined, thread,
+                                           sampleName, start,
+                                           newStackTrace(category, frameNames),
+                                           1);
     return s;
   }
 
@@ -67,6 +67,14 @@ tvcm.exportTo('tracing.test_utils', function() {
     var s = new tracing.trace_model.Slice(
         category, name, 0, start, {}, duration);
     return s;
+  }
+
+  function newStackTrace(category, titles) {
+    var frame = undefined;
+    for (var i = 0; i < titles.length; i++)
+      frame = new tracing.trace_model.StackFrame(frame, tvcm.GUID.allocate(),
+                                                 category, titles[i], 7);
+    return frame;
   }
 
   function findSliceNamed(slices, name) {
@@ -88,6 +96,7 @@ tvcm.exportTo('tracing.test_utils', function() {
     newSliceNamed: newSliceNamed,
     newSampleNamed: newSampleNamed,
     newSliceCategory: newSliceCategory,
+    newStackTrace: newStackTrace,
     findSliceNamed: findSliceNamed
   };
 });

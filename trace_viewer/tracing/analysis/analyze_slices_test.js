@@ -17,7 +17,6 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
   var AnalysisView = tracing.analysis.AnalysisView;
   var StubAnalysisResults = tracing.analysis.StubAnalysisResults;
   var newSliceNamed = tracing.test_utils.newSliceNamed;
-  var newSampleNamed = tracing.test_utils.newSampleNamed;
   var newSliceCategory = tracing.test_utils.newSliceCategory;
 
   var createSelectionWithSingleSlice = function(withCategory) {
@@ -70,30 +69,6 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
     return selection;
   };
 
-  var createSelectionWithSamples = function() {
-    var model = new Model();
-    var t53;
-    model.importTraces([], false, false, function() {
-      t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-      model.samples.push(newSampleNamed(t53, 'X', 'BBB', 0));
-      model.samples.push(newSampleNamed(t53, 'X', 'AAA', 0.02));
-      model.samples.push(newSampleNamed(t53, 'X', 'AAA', 0.04));
-      model.samples.push(newSampleNamed(t53, 'X', 'Sleeping', 0.06));
-      model.samples.push(newSampleNamed(t53, 'X', 'BBB', 0.08));
-      model.samples.push(newSampleNamed(t53, 'X', 'AAA', 0.10));
-      model.samples.push(newSampleNamed(t53, 'X', 'CCC', 0.12));
-      model.samples.push(newSampleNamed(t53, 'X', 'Sleeping', 0.14));
-    });
-
-    var t53track = {};
-    t53track.thread = t53;
-
-    var selection = new Selection();
-    for (var i = 0; i < t53.samples.length; i++)
-      selection.push(t53.samples[i]);
-    return selection;
-  };
-
   test('instantiate_withSingleSlice', function() {
     var selection = createSelectionWithSingleSlice();
 
@@ -120,14 +95,6 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
 
   test('instantiate_withMultipleSlicesSameTitle', function() {
     var selection = createSelectionWithTwoSlicesSameTitle();
-
-    var analysisEl = new AnalysisView();
-    analysisEl.selection = selection;
-    this.addHTMLOutput(analysisEl);
-  });
-
-  test('instantiate_withMultipleSamples', function() {
-    var selection = createSelectionWithSamples();
 
     var analysisEl = new AnalysisView();
     analysisEl.selection = selection;
@@ -247,62 +214,6 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
           args: {}
         },
         t.rows[1]);
-  });
-
-  test('analyzeSelectionWithSamples', function() {
-    var selection = createSelectionWithSamples();
-
-    var results = new StubAnalysisResults();
-    tracing.analysis.analyzeSelection(results, selection);
-    console.log(results.tables);
-    assertEquals(1, results.tables.length);
-
-    assertEquals('Sample Events:', results.headers[0].label);
-
-    var table = results.tables[0];
-    assertObjectEquals({
-      label: 'AAA',
-      duration: null,
-      cpuDuration: null,
-      selfTime: null,
-      cpuSelfTime: null,
-      occurences: 3,
-      percentage: '50%',
-      details: null
-    }, table.rows[0]);
-
-    assertObjectEquals({
-      label: 'BBB',
-      duration: null,
-      cpuDuration: null,
-      selfTime: null,
-      cpuSelfTime: null,
-      occurences: 2,
-      percentage: '33.333%',
-      details: null
-    }, table.rows[1]);
-
-    assertObjectEquals({
-      label: 'CCC',
-      duration: null,
-      cpuDuration: null,
-      selfTime: null,
-      cpuSelfTime: null,
-      occurences: 1,
-      percentage: '16.667%',
-      details: null
-    }, table.rows[2]);
-
-    assertObjectEquals({
-      label: 'Sleeping',
-      duration: null,
-      cpuDuration: null,
-      selfTime: null,
-      cpuSelfTime: null,
-      occurences: 2,
-      percentage: '-',
-      details: null
-    }, table.rows[3]);
   });
 
   test('instantiate_withSingleSliceContainingIDRef', function() {
