@@ -15,6 +15,10 @@ class GTestUnittestResults(unittest.TestResult):
     self._timestamp = None
     self._successes_count = 0
 
+  @property
+  def successes_count(self):
+    return self._successes_count
+
   def _GetMs(self):
     return (time.time() - self._timestamp) * 1000
 
