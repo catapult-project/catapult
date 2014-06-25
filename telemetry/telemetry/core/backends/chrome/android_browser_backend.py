@@ -17,6 +17,8 @@ from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core.forwarders import android_forwarder
 
+from pylib.device import intent
+
 
 class AndroidBrowserBackendSettings(object):
 
@@ -34,10 +36,11 @@ class AndroidBrowserBackendSettings(object):
 
   def RemoveProfile(self):
     files = self.adb.device().RunShellCommand(
-        'ls "%s"' % self.profile_dir, root=True)
+        'ls "%s"' % self.profile_dir, as_root=True)
     # Don't delete lib, since it is created by the installer.
     paths = ['"%s/%s"' % (self.profile_dir, f) for f in files if f != 'lib']
-    self.adb.device().RunShellCommand('rm -r %s' % ' '.join(paths), root=True)
+    self.adb.device().RunShellCommand('rm -r %s' % ' '.join(paths),
+                                      as_root=True)
 
   def PushProfile(self, _):
     logging.critical('Profiles cannot be overriden with current configuration')
@@ -97,7 +100,7 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
     id_line = next(line for line in dumpsys if 'userId=' in line)
     uid = re.search('\d+', id_line).group()
     files = self.adb.device().RunShellCommand(
-        'ls "%s"' % self.profile_dir, root=True)
+        'ls "%s"' % self.profile_dir, as_root=True)
     files.remove('lib')
     paths = ['%s/%s' % (self.profile_dir, f) for f in files]
     for path in paths:
@@ -285,12 +288,11 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # startup with the NTP can lead to race conditions with Telemetry
       url = 'about:blank'
     self._adb.device().old_interface.DismissCrashDialogIfNeeded()
-    self._adb.StartActivity(self._backend_settings.package,
-                            self._backend_settings.activity,
-                            True,
-                            None,
-                            None,
-                            url)
+    self._adb.device().StartActivity(
+        intent.Intent(package=self._backend_settings.package,
+                      activity=self._backend_settings.activity,
+                      action=None, data=url, category=None),
+        blocking=True)
 
     self._adb.Forward('tcp:%d' % self._port,
                       self._backend_settings.GetDevtoolsRemotePort())

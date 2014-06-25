@@ -184,7 +184,7 @@ class AndroidPlatformBackend(
     raise NotImplementedError()
 
   def FlushDnsCache(self):
-    self._device.RunShellCommand('ndc resolver flushdefaultif', root=True)
+    self._device.RunShellCommand('ndc resolver flushdefaultif', as_root=True)
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):

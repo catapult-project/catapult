@@ -41,7 +41,7 @@ def _ElfSectionMd5Sum(elf_file, section):
 def _FindMatchingUnstrippedLibraryOnHost(device, lib):
   lib_base = os.path.basename(lib)
 
-  device_md5 = device.RunShellCommand('md5 "%s"' % lib, root=True)[0]
+  device_md5 = device.RunShellCommand('md5 "%s"' % lib, as_root=True)[0]
   device_md5 = device_md5.split(' ', 1)[0]
 
   def FindMatchingStrippedLibrary(out_path):
