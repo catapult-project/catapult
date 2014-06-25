@@ -7,3 +7,6 @@
   fill: none;
   stroke-width: 1.5px;
 }
+.line-chart #brushes > rect {
+  fill: rgb(192, 192, 192);
+}

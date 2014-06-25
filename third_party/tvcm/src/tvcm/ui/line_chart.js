@@ -7,6 +7,7 @@
 tvcm.require('tvcm.range');
 tvcm.require('tvcm.ui.d3');
 tvcm.require('tvcm.ui.chart_base');
+tvcm.require('tvcm.ui.mouse_tracker');
 
 tvcm.requireStylesheet('tvcm.ui.line_chart');
 
@@ -26,11 +27,18 @@ tvcm.exportTo('tvcm.ui', function() {
       ChartBase.prototype.decorate.call(this);
       this.classList.add('line-chart');
 
+      this.brushedRange_ = new tvcm.Range();
+
       this.xScale_ = d3.scale.linear();
       this.yScale_ = d3.scale.linear();
       d3.select(this.chartAreaElement)
           .append('g')
+          .attr('id', 'brushes');
+      d3.select(this.chartAreaElement)
+          .append('g')
           .attr('id', 'series');
+
+      this.addEventListener('mousedown', this.onMouseDown_.bind(this));
     },
 
     /**
@@ -59,6 +67,14 @@ tvcm.exportTo('tvcm.ui', function() {
       this.data_ = data;
       this.seriesKeys_ = keys;
 
+      this.updateContents_();
+    },
+
+    // Note: range can only be set, not retrieved. It needs to be immutable
+    // or else odd data binding effects will result.
+    set brushedRange(range) {
+      this.brushedRange_.reset();
+      this.brushedRange_.addRange(range);
       this.updateContents_();
     },
 
@@ -95,6 +111,25 @@ tvcm.exportTo('tvcm.ui', function() {
         return;
 
       var chartAreaSel = d3.select(this.chartAreaElement);
+
+      var brushes = this.brushedRange_.isEmpty ? [] : [this.brushedRange_];
+
+      var brushRectsSel = chartAreaSel.select('#brushes')
+          .selectAll('rect').data(brushes);
+      brushRectsSel.enter()
+          .append('rect');
+      brushRectsSel.exit().remove();
+      brushRectsSel
+        .attr('x', function(d) {
+            return this.xScale_(d.min);
+          }.bind(this))
+        .attr('y', 0)
+        .attr('width', function(d) {
+            return this.xScale_(d.max) - this.xScale_(d.min);
+          }.bind(this))
+        .attr('height', this.chartAreaSize.height);
+
+
       var seriesSel = chartAreaSel.select('#series');
       var pathsSel = seriesSel.selectAll('path').data(this.seriesKeys_);
       pathsSel.enter()
@@ -110,6 +145,77 @@ tvcm.exportTo('tvcm.ui', function() {
             return line(this.data_);
           }.bind(this));
       pathsSel.exit().remove();
+    },
+
+    getDataIndexAtClientPoint_: function(clientX, clientY, clipToY) {
+      var rect = this.getBoundingClientRect();
+      var margin = this.margin;
+      var chartAreaSize = this.chartAreaSize;
+
+      var x = clientX - rect.left - margin.left;
+      var y = clientY - rect.top - margin.top;
+
+      // Don't check width: let people select the left- and right-most data
+      // points.
+      if (clipToY) {
+        if (y < 0 ||
+            y >= chartAreaSize.height)
+          return undefined;
+      }
+
+      var dataX = this.xScale_.invert(x);
+
+      var index;
+      if (this.data_) {
+        var bisect = d3.bisector(function(d) { return d.x; }).right;
+        index = bisect(this.data_, dataX) - 1;
+      }
+
+      return index;
+    },
+
+    onMouseDown_: function(e) {
+      var index = this.getDataIndexAtClientPoint_(e.clientX, e.clientY, true);
+
+      if (index !== undefined) {
+        tvcm.ui.trackMouseMovesUntilMouseUp(
+            this.onMouseMove_.bind(this, e.button),
+            this.onMouseUp_.bind(this, e.button));
+      }
+      e.preventDefault();
+      e.stopPropagation();
+
+      var event = new Event('item-mousedown');
+      event.data = this.data_[index];
+      event.index = index;
+      event.buttons = e.buttons;
+      this.dispatchEvent(event);
+    },
+
+    onMouseMove_: function(button, e) {
+      var index = this.getDataIndexAtClientPoint_(e.clientX, e.clientY, false);
+      if (e.buttons !== undefined) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      var event = new Event('item-mousemove');
+      event.data = this.data_[index];
+      event.index = index;
+      event.button = button;
+      this.dispatchEvent(event);
+    },
+
+    onMouseUp_: function(button, e) {
+      var index = this.getDataIndexAtClientPoint_(e.clientX, e.clientY, false);
+      e.preventDefault();
+      e.stopPropagation();
+
+      var event = new Event('item-mouseup');
+      event.data = this.data_[index];
+      event.index = index;
+      event.button = button;
+      this.dispatchEvent(event);
     }
   };
 
