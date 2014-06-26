@@ -15,6 +15,10 @@ found in the LICENSE file.
     margin-left: 64px !important;
   }
 
+  x-profiling-view .controls #upload-button {
+    display: none;
+  }
+
   x-profiling-view > x-timeline-view {
     -webkit-flex: 1 1 auto;
   }
@@ -31,6 +35,7 @@ found in the LICENSE file.
         <button id="capture-button">Capture Monitoring Snapshot</button>
       </span>
       <button id="save-button">Save</button>
+      <button id="upload-button">Upload</button>
       <button id="load-button">Load</button>
     </x-timeline-view-buttons>
   </x-timeline-view>
