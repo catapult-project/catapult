@@ -188,7 +188,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._port = adb_commands.AllocateTestServerPort()
 
     # Kill old browser.
-    self._adb.CloseApplication(self._backend_settings.package)
+    self._adb.device().ForceStop(self._backend_settings.package)
 
     if self._adb.device().old_interface.CanAccessProtectedFileContents():
       if self.browser_options.profile_dir:
@@ -357,7 +357,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
-    self._adb.CloseApplication(self._backend_settings.package)
+    self._adb.device().ForceStop(self._backend_settings.package)
 
     if self._output_profile_path:
       logging.info("Pulling profile directory from device: '%s'->'%s'.",
