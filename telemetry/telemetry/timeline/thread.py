@@ -1,11 +1,11 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import itertools
-
 import telemetry.timeline.event_container as event_container
-import telemetry.timeline.sample as tracing_sample
-import telemetry.timeline.slice as tracing_slice
+import telemetry.timeline.sample as sample_module
+import telemetry.timeline.async_slice as async_slice_module
+import telemetry.timeline.flow_event as flow_event_module
+import telemetry.timeline.slice as slice_module
 
 class Thread(event_container.TimelineEventContainer):
   ''' A Thread stores all the trace events collected for a particular
@@ -20,6 +20,7 @@ class Thread(event_container.TimelineEventContainer):
     self._flow_events = []
     self._samples = []
     self._toplevel_slices = []
+    self._all_slices = []
 
     # State only valid during import.
     self._open_slices = []
@@ -31,7 +32,7 @@ class Thread(event_container.TimelineEventContainer):
 
   @property
   def all_slices(self):
-    return list(self.IterAllSlices())
+    return self._all_slices
 
   @property
   def samples(self):
@@ -46,53 +47,41 @@ class Thread(event_container.TimelineEventContainer):
     return len(self._open_slices)
 
   def IterChildContainers(self):
-    return iter([])
+    return
+    yield # pylint: disable=W0101
 
-  def IterAllSlices(self):
-    for s in self._toplevel_slices:
-      yield s
-      for sub_slice in s.IterEventsInThisContainerRecrusively():
-        yield sub_slice
+  def IterEventsInThisContainer(self, event_type_predicate, event_predicate):
+    if event_type_predicate(slice_module.Slice):
+      for s in self._newly_added_slices:
+        if event_predicate(s):
+          yield s
+      for s in self._all_slices:
+        if event_predicate(s):
+          yield s
 
-  def IterAllSlicesInRange(self, start, end):
-    for s in self.IterAllSlices():
-      if s.start >= start and s.end <= end:
-        yield s
+    if event_type_predicate(async_slice_module.AsyncSlice):
+      for async_slice in self._async_slices:
+        if event_predicate(async_slice):
+          yield async_slice
+        for sub_slice in async_slice.IterEventsInThisContainerRecrusively():
+          if event_predicate(sub_slice):
+            yield sub_slice
 
-  def IterAllSlicesOfName(self, name):
-    for s in self.IterAllSlices():
-      if s.name == name:
-        yield s
+    if event_type_predicate(flow_event_module.FlowEvent):
+      for flow_event in self._flow_events:
+        if event_predicate(flow_event):
+          yield flow_event
 
-  def IterAllAsyncSlices(self):
-    for async_slice in self._async_slices:
-      yield async_slice
-      for sub_slice in async_slice.IterEventsInThisContainerRecrusively():
-        yield sub_slice
-
-  def IterAllAsyncSlicesOfName(self, name):
-    for s in self.IterAllAsyncSlices():
-      if s.name == name:
-        yield s
-
-  def IterAllFlowEvents(self):
-    for flow_event in self._flow_events:
-      yield flow_event
-
-  def IterEventsInThisContainer(self):
-    return itertools.chain(
-      iter(self._newly_added_slices),
-      self.IterAllAsyncSlices(),
-      self.IterAllFlowEvents(),
-      self.IterAllSlices(),
-      iter(self._samples)
-      )
+    if event_type_predicate(sample_module.Sample):
+      for sample in self._samples:
+        if event_predicate(sample):
+          yield sample
 
   def AddSample(self, category, name, timestamp, args=None):
     if len(self._samples) and timestamp < self._samples[-1].start:
       raise ValueError(
           'Samples must be added in increasing timestamp order')
-    sample = tracing_sample.Sample(self,
+    sample = sample_module.Sample(self,
         category, name, timestamp, args=args)
     self._samples.append(sample)
 
@@ -120,7 +109,7 @@ class Thread(event_container.TimelineEventContainer):
     if len(self._open_slices) > 0 and timestamp < self._open_slices[-1].start:
       raise ValueError(
           'Slices must be added in increasing timestamp order')
-    new_slice = tracing_slice.Slice(self, category, name, timestamp,
+    new_slice = slice_module.Slice(self, category, name, timestamp,
                                     thread_timestamp=thread_timestamp,
                                     args=args)
     self._open_slices.append(new_slice)
@@ -158,9 +147,9 @@ class Thread(event_container.TimelineEventContainer):
 
   def PushCompleteSlice(self, category, name, timestamp, duration,
                         thread_timestamp, thread_duration, args=None):
-    new_slice = tracing_slice.Slice(self, category, name, timestamp,
-                                    thread_timestamp=thread_timestamp,
-                                    args=args)
+    new_slice = slice_module.Slice(self, category, name, timestamp,
+                                   thread_timestamp=thread_timestamp,
+                                   args=args)
     if duration == None:
       new_slice.did_not_finish = True
     else:
@@ -230,8 +219,11 @@ class Thread(event_container.TimelineEventContainer):
       return cmp(s1.start, s2.start)
 
     assert len(self._toplevel_slices) == 0
+    assert len(self._all_slices) == 0
     if not len(self._newly_added_slices):
       return
+
+    self._all_slices.extend(self._newly_added_slices)
 
     sorted_slices = sorted(self._newly_added_slices, cmp=CompareSlices)
     root_slice = sorted_slices[0]
@@ -241,6 +233,7 @@ class Thread(event_container.TimelineEventContainer):
         root_slice = s
         self._toplevel_slices.append(root_slice)
     self._newly_added_slices = []
+
 
   def _AddSliceIfBounds(self, root, child):
     ''' Adds a child slice to a root slice its proper row.

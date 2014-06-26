@@ -27,11 +27,18 @@ class Slice(timeline_event.TimelineEvent):
     assert sub_slice.parent_slice == self
     self.sub_slices.append(sub_slice)
 
-  def IterEventsInThisContainerRecrusively(self):
-    for sub_slice in self.sub_slices:
-      yield sub_slice
-      for sub_sub in sub_slice.IterEventsInThisContainerRecrusively():
-        yield sub_sub
+  def IterEventsInThisContainerRecrusively(self, stack=None):
+    # This looks awkward, but it lets us create only a single iterator instead
+    # of having to create one iterator for every subslice found.
+    if stack == None:
+      stack = []
+    else:
+      assert len(stack) == 0
+    stack.extend(reversed(self.sub_slices))
+    while len(stack):
+      s = stack.pop()
+      yield s
+      stack.extend(reversed(s.sub_slices))
 
   @property
   def self_time(self):

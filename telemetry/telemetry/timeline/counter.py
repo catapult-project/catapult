@@ -59,11 +59,25 @@ class Counter(event_container.TimelineEventContainer):
     self.max_total = 0
 
   def IterChildContainers(self):
-    return iter([])
+    return
+    yield # pylint: disable=W0101
 
-  def IterEventsInThisContainer(self):
-    for i in range(len(self.timestamps)):
-      yield CounterSample(self, i)
+  def IterEventsInThisContainer(self, event_type_predicate, event_predicate):
+    if event_type_predicate(CounterSample):
+      # This is convoluted because we want to pass the sample to the event
+      # predicate, but not create a ton of garbage for rejected samples. So we
+      # reuse a sample object across iterations until its yielded. When that
+      # happens, we create a fresh sample object. So, if nothing passes the
+      # predicate, only one piece of CounterSample garbage is created.
+      s = None
+      for i in range(len(self.timestamps)):
+        if s:
+          s._sample_index = i
+        else:
+          s = CounterSample(self, i)
+        if event_predicate(s):
+          yield s
+          s = None
 
   @property
   def num_series(self):

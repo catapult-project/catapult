@@ -90,4 +90,3 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
     self.assertEqual(1, len(images_second))
     # On the second fetch, the image is served from cache.
     self.assertTrue(images_second[0].served_from_cache)
-

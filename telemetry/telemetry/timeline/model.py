@@ -9,11 +9,14 @@ https://code.google.com/p/trace-viewer/
 
 from operator import attrgetter
 
-import telemetry.timeline.process as tracing_process
+import telemetry.timeline.process as process_module
+from telemetry.timeline import slice as slice_module
+from telemetry.timeline import async_slice as async_slice_module
 
 # Register importers for data
 from telemetry.timeline import bounds
 from telemetry.timeline import empty_timeline_data_importer
+from telemetry.timeline import event_container
 from telemetry.timeline import inspector_importer
 from telemetry.timeline import trace_event_importer
 
@@ -35,8 +38,13 @@ class MarkerOverlapError(Exception):
     super(MarkerOverlapError, self).__init__(
         'Overlapping timeline markers found')
 
+def IsSliceOrAsyncSlice(t):
+  if t == async_slice_module.AsyncSlice:
+    return True
+  return t == slice_module.Slice
 
-class TimelineModel(object):
+
+class TimelineModel(event_container.TimelineEventContainer):
   def __init__(self, timeline_data=None, shift_world_to_zero=True):
     """ Initializes a TimelineModel. timeline_data can be a single TimelineData
     object, a list of TimelineData objects, or None. If timeline_data is not
@@ -44,6 +52,7 @@ class TimelineModel(object):
     be shifted such that the first event starts at time 0, if
     shift_world_to_zero is True.
     """
+    super(TimelineModel, self).__init__(name='TimelineModel', parent=None)
     self._bounds = bounds.Bounds()
     self._thread_time_bounds = {}
     self._processes = {}
@@ -56,13 +65,22 @@ class TimelineModel(object):
     if timeline_data is not None:
       self.ImportTraces(timeline_data, shift_world_to_zero=shift_world_to_zero)
 
+  def IterChildContainers(self):
+    for process in self._processes.itervalues():
+      yield process
+
+  def GetAllProcesses(self):
+    return self._processes.values()
+
+  def GetAllThreads(self):
+    threads = []
+    for process in self._processes.values():
+      threads.extend(process.threads.values())
+    return threads
+
   @property
   def bounds(self):
     return self._bounds
-
-  @property
-  def thread_time_bounds(self):
-    return self._thread_time_bounds
 
   @property
   def processes(self):
@@ -109,7 +127,7 @@ class TimelineModel(object):
     if not self.bounds.is_empty:
       for process in self._processes.itervalues():
         process.AutoCloseOpenSlices(self.bounds.max,
-                                    self.thread_time_bounds)
+                                    self._thread_time_bounds)
 
     for importer in importers:
       importer.FinalizeImport()
@@ -142,59 +160,18 @@ class TimelineModel(object):
     self._thread_time_bounds = {}
     for thread in self.GetAllThreads():
       self._thread_time_bounds[thread] = bounds.Bounds()
-      for event in thread.IterEventsInThisContainer():
+      for event in thread.IterEventsInThisContainer(
+          event_type_predicate=lambda t: True,
+          event_predicate=lambda e: True):
         if event.thread_start != None:
           self._thread_time_bounds[thread].AddValue(event.thread_start)
         if event.thread_end != None:
           self._thread_time_bounds[thread].AddValue(event.thread_end)
 
-  def GetAllContainers(self):
-    containers = []
-    def Iter(container):
-      containers.append(container)
-      for container in container.IterChildContainers():
-        Iter(container)
-    for process in self._processes.itervalues():
-      Iter(process)
-    return containers
-
-  def IterAllEvents(self):
-    for container in self.GetAllContainers():
-      for event in container.IterEventsInThisContainer():
-        yield event
-
-  def GetAllProcesses(self):
-    return self._processes.values()
-
-  def GetAllThreads(self):
-    threads = []
-    for process in self._processes.values():
-      threads.extend(process.threads.values())
-    return threads
-
-  def GetAllEvents(self):
-    return list(self.IterAllEvents())
-
-  def GetAllEventsOfName(self, name, only_root_events=False):
-    events = [e for e in self.IterAllEvents() if e.name == name]
-    if only_root_events:
-      return filter(lambda ev: ev.parent_slice == None, events)
-    else:
-      return events
-
-  def GetEventOfName(self, name, only_root_events=False,
-                     fail_if_more_than_one=False):
-    events = self.GetAllEventsOfName(name, only_root_events)
-    if len(events) == 0:
-      raise Exception('No event of name "%s" found.' % name)
-    if fail_if_more_than_one and len(events) > 1:
-      raise Exception('More than one event of name "%s" found.' % name)
-    return events[0]
-
   def GetOrCreateProcess(self, pid):
     if pid not in self._processes:
       assert not self._frozen
-      self._processes[pid] = tracing_process.Process(self, pid)
+      self._processes[pid] = process_module.Process(self, pid)
     return self._processes[pid]
 
   def FindTimelineMarkers(self, timeline_marker_names):
@@ -213,8 +190,16 @@ class TimelineModel(object):
     name_set = set()
     for name in names:
       name_set.add(name)
-    for name in name_set:
-      events.extend(self.GetAllEventsOfName(name, True))
+
+    def IsEventNeeded(event):
+      if event.parent_slice != None:
+        return
+      return event.name in name_set
+
+    events = list(self.IterAllEvents(
+      recursive=True,
+      event_type_predicate=IsSliceOrAsyncSlice,
+      event_predicate=IsEventNeeded))
     events.sort(key=attrgetter('start'))
 
     # Check if the number and order of events matches the provided names,

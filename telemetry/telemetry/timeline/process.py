@@ -29,17 +29,7 @@ class Process(event_container.TimelineEventContainer):
     for counter in self._counters.itervalues():
       yield counter
 
-  def IterAllSlicesOfName(self, name):
-    for thread in self._threads.itervalues():
-      for s in thread.IterAllSlicesOfName(name):
-        yield s
-
-  def IterAllAsyncSlicesOfName(self, name):
-    for thread in self._threads.itervalues():
-      for s in thread.IterAllAsyncSlicesOfName(name):
-        yield s
-
-  def IterEventsInThisContainer(self):
+  def IterEventsInThisContainer(self, event_type_predicate, event_predicate):
     return
     yield # pylint: disable=W0101
 

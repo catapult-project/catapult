@@ -267,8 +267,9 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
                                      shift_world_to_zero=False)
     p = m.GetAllProcesses()[0]
     t1 = p.threads[1]
-    self.assertAlmostEqual(0.000, m.thread_time_bounds[t1].min)
-    self.assertAlmostEqual(0.003, m.thread_time_bounds[t1].max)
+    t1_thread_time_bounds = m._thread_time_bounds[t1] # pylint: disable=W0212
+    self.assertAlmostEqual(0.000, t1_thread_time_bounds.min)
+    self.assertAlmostEqual(0.003, t1_thread_time_bounds.max)
     self.assertEqual(2, len(t1.all_slices))
 
     slice_event = FindEventNamed(t1.all_slices, 'a')
@@ -280,8 +281,9 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertAlmostEqual(0.003, slice_event.thread_duration)
 
     t2 = p.threads[2]
-    self.assertAlmostEqual(0.001, m.thread_time_bounds[t2].min)
-    self.assertAlmostEqual(0.002, m.thread_time_bounds[t2].max)
+    t2_thread_time_bounds = m._thread_time_bounds[t2] # pylint: disable=W0212
+    self.assertAlmostEqual(0.001, t2_thread_time_bounds.min)
+    self.assertAlmostEqual(0.002, t2_thread_time_bounds.max)
     slice2 = FindEventNamed(t2.all_slices, 'c')
     self.assertEqual('c', slice2.name)
     self.assertEqual('bar', slice2.category)
@@ -762,7 +764,8 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     timeline_data = tracing_timeline_data.TracingTimelineData(events)
     m = timeline_model.TimelineModel(timeline_data=timeline_data)
 
-    self.assertEqual(2, len(m.GetAllEvents()))
+    events = list(m.IterAllEvents())
+    self.assertEqual(2, len(events))
 
     processes = m.GetAllProcesses()
     t = processes[0].threads[53]
