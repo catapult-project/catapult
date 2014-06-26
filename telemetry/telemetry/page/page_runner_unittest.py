@@ -319,6 +319,7 @@ class PageRunnerTests(unittest.TestCase):
     self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
 
   # Ensure that page_runner forces exactly 1 tab before running a page.
+  @decorators.Enabled('has tabs')
   def testOneTab(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
@@ -333,13 +334,9 @@ class PageRunnerTests(unittest.TestCase):
 
       def DidStartBrowser(self, browser):
         self._browser = browser
-        if self._browser.supports_tab_control:
-          self._browser.tabs.New()
+        self._browser.tabs.New()
 
       def ValidatePage(self, *_):
-        if not self._browser.supports_tab_control:
-          logging.warning('Browser does not support tab control, skipping test')
-          return
         assert len(self._browser.tabs) == 1
 
     test = TestOneTab()

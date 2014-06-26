@@ -47,8 +47,8 @@ def FilterSuite(suite, predicate):
   return new_suite
 
 
-def DiscoverAndRunTests(dir_name, args, top_level_dir, platform,
-                        options, default_options, runner):
+def DiscoverAndRunTests(dir_name, args, top_level_dir, possible_browser,
+                        default_options, runner):
   if not runner:
     runner = gtest_testrunner.GTestTestRunner(print_result_after_run=True)
   suite = Discover(dir_name, top_level_dir, '*_unittest.py')
@@ -66,7 +66,7 @@ def DiscoverAndRunTests(dir_name, args, top_level_dir, platform,
     if not hasattr(test, '_testMethodName'):
       return True
     method = getattr(test, test._testMethodName)
-    return decorators.IsEnabled(method, options.GetBrowserType(), platform)
+    return decorators.IsEnabled(method, possible_browser)
   filtered_suite = FilterSuite(suite, IsTestSelected)
   test_result = runner.run(filtered_suite)
   return test_result
@@ -129,8 +129,8 @@ def Main(args, start_dir, top_level_dir, runner=None):
     success = True
     for _ in xrange(default_options.run_test_repeat_count):
       success = success and DiscoverAndRunTests(
-          start_dir, args, top_level_dir, browser_to_create.platform,
-          options_for_unittests, default_options, runner)
+          start_dir, args, top_level_dir, browser_to_create, default_options,
+          runner)
     if success:
       return 0
   finally:

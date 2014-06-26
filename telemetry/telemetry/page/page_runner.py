@@ -355,8 +355,7 @@ def Run(test, page_set, expectations, finder_options):
   browser_options.platform = possible_browser.platform
   test.CustomizeBrowserOptions(browser_options)
 
-  if not decorators.IsEnabled(
-      test, browser_options.browser_type, browser_options.platform):
+  if not decorators.IsEnabled(test, possible_browser):
     return results
 
   # Reorder page set based on options.

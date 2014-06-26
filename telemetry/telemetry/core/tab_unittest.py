@@ -57,11 +57,8 @@ class TabTest(tab_test_case.TabTestCase):
                       lambda: self._tab.Navigate('chrome://crash',
                                                  timeout=5))
 
+  @test.Enabled('has tabs')
   def testActivateTab(self):
-    if not self._browser.supports_tab_control:
-      logging.warning('Browser does not support tab control, skipping test.')
-      return
-
     util.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
     new_tab = self._browser.tabs.New()
     new_tab.Navigate('about:blank')

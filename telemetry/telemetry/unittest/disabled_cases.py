@@ -57,3 +57,7 @@ class DisabledCases(unittest.TestCase):
   @test.Disabled('system')
   def testNoSystem(self):
     pass
+
+  @test.Enabled('has tabs')
+  def testHasTabs(self):
+    pass

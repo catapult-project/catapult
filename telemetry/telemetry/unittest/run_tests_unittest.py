@@ -9,6 +9,14 @@ from telemetry.core import util
 from telemetry.unittest import run_tests
 
 
+class MockPossibleBrowser(object):
+  def __init__(self, browser_type, os_name, os_version_name,
+               supports_tab_control):
+    self.browser_type = browser_type
+    self.platform = MockPlatform(os_name, os_version_name)
+    self.supports_tab_control = supports_tab_control
+
+
 class MockPlatform(object):
   def __init__(self, os_name, os_version_name):
     self.os_name = os_name
@@ -27,11 +35,13 @@ class RunTestsUnitTest(unittest.TestCase):
     self.suite = run_tests.Discover(
         util.GetTelemetryDir(), util.GetTelemetryDir(), 'disabled_cases.py')
 
-  def _GetEnabledTests(self, browser_type, platform):
+  def _GetEnabledTests(self, browser_type, os_name, os_version_name,
+                       supports_tab_control):
     # pylint: disable=W0212
     def MockPredicate(test):
       method = getattr(test, test._testMethodName)
-      return decorators.IsEnabled(method, browser_type, platform)
+      return decorators.IsEnabled(method, MockPossibleBrowser(
+          browser_type, os_name, os_version_name, supports_tab_control))
 
     enabled_tests = set()
     for i in run_tests.FilterSuite(self.suite, MockPredicate)._tests:
@@ -47,8 +57,9 @@ class RunTestsUnitTest(unittest.TestCase):
              'testMavericksOnly',
              'testNoChromeOS',
              'testNoWinLinux',
-             'testSystemOnly']),
-        self._GetEnabledTests('system', MockPlatform('mac', 'mavericks')))
+             'testSystemOnly',
+             'testHasTabs']),
+        self._GetEnabledTests('system', 'mac', 'mavericks', True))
 
   def testSystemMacLion(self):
     self.assertEquals(
@@ -57,8 +68,9 @@ class RunTestsUnitTest(unittest.TestCase):
              'testNoChromeOS',
              'testNoMavericks',
              'testNoWinLinux',
-             'testSystemOnly']),
-        self._GetEnabledTests('system', MockPlatform('mac', 'lion')))
+             'testSystemOnly',
+             'testHasTabs']),
+        self._GetEnabledTests('system', 'mac', 'lion', True))
 
   def testCrosGuestChromeOS(self):
     self.assertEquals(
@@ -67,8 +79,9 @@ class RunTestsUnitTest(unittest.TestCase):
              'testNoMac',
              'testNoMavericks',
              'testNoSystem',
-             'testNoWinLinux']),
-        self._GetEnabledTests('cros-guest', MockPlatform('chromeos', '')))
+             'testNoWinLinux',
+             'testHasTabs']),
+        self._GetEnabledTests('cros-guest', 'chromeos', '', True))
 
   def testCanaryWindowsWin7(self):
     self.assertEquals(
@@ -77,5 +90,16 @@ class RunTestsUnitTest(unittest.TestCase):
              'testNoMac',
              'testNoMavericks',
              'testNoSystem',
+             'testWinOrLinuxOnly',
+             'testHasTabs']),
+        self._GetEnabledTests('canary', 'win', 'win7', True))
+
+  def testDoesntHaveTabs(self):
+    self.assertEquals(
+        set(['testAllEnabled',
+             'testNoChromeOS',
+             'testNoMac',
+             'testNoMavericks',
+             'testNoSystem',
              'testWinOrLinuxOnly']),
-        self._GetEnabledTests('canary', MockPlatform('win', 'win7')))
+        self._GetEnabledTests('canary', 'win', 'win7', False))
