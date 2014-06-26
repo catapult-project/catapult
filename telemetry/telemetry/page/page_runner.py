@@ -352,7 +352,6 @@ def Run(test, page_set, expectations, finder_options):
 
   browser_options = possible_browser.finder_options.browser_options
   browser_options.browser_type = possible_browser.browser_type
-  browser_options.platform = possible_browser.platform
   test.CustomizeBrowserOptions(browser_options)
 
   if not decorators.IsEnabled(test, possible_browser):
