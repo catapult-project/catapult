@@ -67,8 +67,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                    self.profile_directory)
       cri.Chown(self.profile_directory)
 
-    self._SetBranchNumber(self._GetChromeVersion())
-
   def GetBrowserStartupArgs(self):
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
     args.extend([
@@ -91,13 +89,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       args.append('--oobe-skip-postlogin')
 
     return args
-
-  def _GetChromeVersion(self):
-    result = util.WaitFor(self._cri.GetChromeProcess, timeout=30)
-    assert result and result['path']
-    (version, _) = self._cri.RunCmdOnDevice([result['path'], '--version'])
-    assert version
-    return version
 
   @property
   def pid(self):
@@ -147,7 +138,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Wait for oobe.
     self._WaitForBrowserToComeUp(wait_for_extensions=False)
-    self._PostBrowserStartupInitialization()
     util.WaitFor(lambda: self.oobe_exists, 10)
 
     if self.browser_options.auto_login:

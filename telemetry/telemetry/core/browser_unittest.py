@@ -73,9 +73,6 @@ class BrowserTest(unittest.TestCase):
 
   def testVersionDetection(self):
     b = self.CreateBrowser()
-    v = b._browser_backend._inspector_protocol_version # pylint: disable=W0212
-    self.assertTrue(v > 0)
-
     v = b._browser_backend.chrome_branch_number # pylint: disable=W0212
     self.assertTrue(v > 0)
 

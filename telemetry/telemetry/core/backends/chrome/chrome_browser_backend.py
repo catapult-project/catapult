@@ -42,8 +42,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._port = None
 
     self._supports_tab_control = supports_tab_control
-    self._inspector_protocol_version = 0
-    self._chrome_branch_number = None
     self._tracing_backend = None
     self._system_info_backend = None
 
@@ -192,37 +190,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
             pprint.pformat(self.extension_backend, indent=4))
         raise
 
-  def _PostBrowserStartupInitialization(self):
-    # Detect version information.
-    data = self.Request('version')
-    resp = json.loads(data)
-    if 'Protocol-Version' in resp:
-      self._inspector_protocol_version = resp['Protocol-Version']
-
-      if self._chrome_branch_number:
-        return
-
-      if 'Browser' in resp:
-        branch_number_match = re.search('Chrome/\d+\.\d+\.(\d+)\.\d+',
-                                        resp['Browser'])
-      else:
-        branch_number_match = re.search(
-            'Chrome/\d+\.\d+\.(\d+)\.\d+ (Mobile )?Safari',
-            resp['User-Agent'])
-
-      if branch_number_match:
-        self._chrome_branch_number = int(branch_number_match.group(1))
-
-      if not self._chrome_branch_number:
-        # Content Shell returns '' for Browser, WebViewShell returns '0'.
-        # For now we have to fall-back and assume branch 1025.
-        self._chrome_branch_number = 1025
-      return
-
-    # Detection has failed: assume 18.0.1025.168 ~= Chrome Android.
-    self._inspector_protocol_version = 1.0
-    self._chrome_branch_number = 1025
-
   def ListInspectableContexts(self):
     return json.loads(self.Request(''))
 
@@ -251,9 +218,27 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     raise NotImplementedError()
 
   @property
+  @decorators.Cache
   def chrome_branch_number(self):
-    assert self._chrome_branch_number
-    return self._chrome_branch_number
+    # Detect version information.
+    data = self.Request('version')
+    resp = json.loads(data)
+    if 'Protocol-Version' in resp:
+      if 'Browser' in resp:
+        branch_number_match = re.search('Chrome/\d+\.\d+\.(\d+)\.\d+',
+                                        resp['Browser'])
+      else:
+        branch_number_match = re.search(
+            'Chrome/\d+\.\d+\.(\d+)\.\d+ (Mobile )?Safari',
+            resp['User-Agent'])
+
+      if branch_number_match:
+        branch_number = int(branch_number_match.group(1))
+        if branch_number:
+          return branch_number
+
+    # Branch number can't be determined, so fail any branch number checks.
+    return 0
 
   @property
   def supports_tab_control(self):
@@ -328,8 +313,3 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       self._system_info_backend = system_info_backend.SystemInfoBackend(
           self._port)
     return self._system_info_backend.GetSystemInfo()
-
-  def _SetBranchNumber(self, version):
-    assert version
-    self._chrome_branch_number = re.search(r'\d+\.\d+\.(\d+)\.\d+',
-                                           version).group(1)

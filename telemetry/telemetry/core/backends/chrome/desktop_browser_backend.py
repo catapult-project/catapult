@@ -211,7 +211,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     try:
       self._WaitForBrowserToComeUp()
-      self._PostBrowserStartupInitialization()
     except:
       self.Close()
       raise
