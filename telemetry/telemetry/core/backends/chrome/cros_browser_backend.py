@@ -79,14 +79,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             # Disables the start page, as well as other external apps that can
             # steal focus or make measurements inconsistent.
             '--disable-default-apps',
-            # Skip user image selection screen, and post login screens.
-            '--oobe-skip-postlogin',
             # Allow devtools to connect to chrome.
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             # Open a maximized window.
             '--start-maximized',
             # Debug logging.
             '--vmodule=*/chromeos/net/*=2,*/chromeos/login/*=2'])
+
+    if not self.browser_options.gaia_login:
+      # Skip user image selection screen, and post login screens.
+      args.append('--oobe-skip-postlogin')
 
     return args
 
