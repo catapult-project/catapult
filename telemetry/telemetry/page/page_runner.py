@@ -305,8 +305,7 @@ def _UpdatePageSetArchivesIfChanged(page_set):
   if page_set.credentials_path:
     try:
       cloud_storage.GetIfChanged(
-          os.path.join(page_set.base_dir, page_set.credentials_path),
-          page_set.bucket)
+          os.path.join(page_set.base_dir, page_set.credentials_path))
     except (cloud_storage.CredentialsError, cloud_storage.PermissionError,
             cloud_storage.CloudStorageError) as e:
       logging.warning('Cannot retrieve credential file %s due to cloud storage '
@@ -329,7 +328,7 @@ def _UpdatePageSetArchivesIfChanged(page_set):
             os.path.join(dirpath, filename))
         if extension != '.sha1':
           continue
-        cloud_storage.GetIfChanged(path, page_set.bucket)
+        cloud_storage.GetIfChanged(path)
 
 
 def Run(test, page_set, expectations, finder_options):
