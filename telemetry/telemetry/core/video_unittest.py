@@ -8,36 +8,21 @@ import unittest
 
 from telemetry import test
 from telemetry.core import bitmap
+from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core import video
-from telemetry.core.platform import android_platform_backend
-from telemetry.unittest import system_stub
 
-class MockAdbCommands(object):
-  def CanAccessProtectedFileContents(self):
-    return True
-
-class MockDevice(object):
-  def __init__(self, mock_adb_commands):
-    self.old_interface = mock_adb_commands
 
 class VideoTest(unittest.TestCase) :
-  def setUp(self):
-    self._stubs = system_stub.Override(android_platform_backend,
-                                       ['perf_control', 'thermal_throttle'])
-
-  def tearDown(self):
-    self._stubs.Restore()
 
   @test.Disabled
   def testFramesFromMp4(self):
-    mock_adb = MockDevice(MockAdbCommands())
-    backend = android_platform_backend.AndroidPlatformBackend(mock_adb, False)
+    host_platform = platform.GetHostPlatform()
 
     try:
-      backend.InstallApplication('avconv')
+      host_platform.InstallApplication('avconv')
     finally:
-      if not backend.CanLaunchApplication('avconv'):
+      if not host_platform.CanLaunchApplication('avconv'):
         logging.warning('Test not supported on this platform')
         return  # pylint: disable=W0150
 
@@ -53,7 +38,7 @@ class VideoTest(unittest.TestCase) :
       1926,
       ]
 
-    video_obj = video.Video(backend, vid)
+    video_obj = video.Video(vid)
 
     # Calling _FramesFromMp4 should return all frames.
     # pylint: disable=W0212

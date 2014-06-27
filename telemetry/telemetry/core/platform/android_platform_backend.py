@@ -243,7 +243,7 @@ class AndroidPlatformBackend(
     self._video_recorder.Pull()
     self._video_recorder = None
 
-    return video.Video(self, self._video_output)
+    return video.Video(self._video_output)
 
   def CanMonitorPower(self):
     return self._powermonitor.CanMonitorPower()

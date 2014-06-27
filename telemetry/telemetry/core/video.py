@@ -5,6 +5,7 @@
 import subprocess
 
 from telemetry.core import bitmap
+from telemetry.core import platform
 from telemetry.page import cloud_storage
 
 HIGHLIGHT_ORANGE_FRAME = bitmap.WEB_PAGE_TEST_ORANGE
@@ -16,8 +17,7 @@ class BoundingBoxNotFoundException(Exception):
 class Video(object):
   """Utilities for storing and interacting with the video capture."""
 
-  def __init__(self, platform_backend, video_file_path):
-    self._platform_backend = platform_backend
+  def __init__(self, video_file_path):
     # TODO(satyanarayana): Figure out when to delete this file.
     self._video_file_path = video_file_path
     self._tab_contents_bounding_box = None
@@ -113,8 +113,9 @@ class Video(object):
     return self._tab_contents_bounding_box
 
   def _FramesFromMp4(self, mp4_file):
-    if not self._platform_backend.CanLaunchApplication('avconv'):
-      self._platform_backend.InstallApplication('avconv')
+    host_platform = platform.GetHostPlatform()
+    if not host_platform.CanLaunchApplication('avconv'):
+      host_platform.InstallApplication('avconv')
 
     def GetDimensions(video):
       proc = subprocess.Popen(['avconv', '-i', video], stderr=subprocess.PIPE)

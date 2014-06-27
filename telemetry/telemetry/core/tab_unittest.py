@@ -28,7 +28,7 @@ class FakePlatform(object):
 
   def StopVideoCapture(self):
     self._is_video_capture_running = False
-    return video.Video(self, None)
+    return video.Video(None)
 
   def SetFullPerformanceModeEnabled(self, enabled):
     pass
