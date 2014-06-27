@@ -6,17 +6,10 @@
 import os
 import sys
 
-from telemetry.unittest import gtest_testrunner
 from telemetry.unittest import run_tests
 
 
 if __name__ == '__main__':
-  top_level_dir = os.path.abspath(os.path.dirname(__file__))
-  runner = gtest_testrunner.GTestTestRunner(print_result_after_run=False)
-  ret = run_tests.Main(sys.argv[1:], top_level_dir, top_level_dir, runner)
-
-  if runner.result:
-    runner.result.PrintSummary()
-    sys.exit(min(ret + runner.result.num_errors, 255))
-  else:
-    sys.exit(ret)
+  base_dir = os.path.dirname(os.path.realpath(__file__))
+  run_tests.environment = run_tests.Environment(base_dir, [base_dir])
+  sys.exit(run_tests.RunTestsCommand.main())

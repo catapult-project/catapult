@@ -32,8 +32,9 @@ class MockPlatform(object):
 class RunTestsUnitTest(unittest.TestCase):
 
   def setUp(self):
-    self.suite = run_tests.Discover(
-        util.GetTelemetryDir(), util.GetTelemetryDir(), 'disabled_cases.py')
+    self.suite = unittest.TestSuite()
+    self.suite.addTests(run_tests.Discover(
+        util.GetTelemetryDir(), util.GetTelemetryDir(), 'disabled_cases.py'))
 
   def _GetEnabledTests(self, browser_type, os_name, os_version_name,
                        supports_tab_control):
@@ -45,8 +46,8 @@ class RunTestsUnitTest(unittest.TestCase):
 
     enabled_tests = set()
     for i in run_tests.FilterSuite(self.suite, MockPredicate)._tests:
-      for j in i._tests:
-        for k in j._tests:
+      for j in i:
+        for k in j:
           enabled_tests.add(k._testMethodName)
     return enabled_tests
 

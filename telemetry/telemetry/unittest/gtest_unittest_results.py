@@ -8,11 +8,20 @@ import time
 import unittest
 
 
+class GTestTestSuite(unittest.TestSuite):
+  def run(self, result):  # pylint: disable=W0221
+    result.StartTestSuite(self)
+    result = super(GTestTestSuite, self).run(result)
+    result.StopTestSuite(self)
+    return result
+
+
 class GTestUnittestResults(unittest.TestResult):
   def __init__(self, output_stream):
     super(GTestUnittestResults, self).__init__()
     self._output_stream = output_stream
-    self._timestamp = None
+    self._test_start_time = None
+    self._test_suite_start_time = None
     self._successes_count = 0
 
   @property
@@ -20,7 +29,7 @@ class GTestUnittestResults(unittest.TestResult):
     return self._successes_count
 
   def _GetMs(self):
-    return (time.time() - self._timestamp) * 1000
+    return (time.time() - self._test_start_time) * 1000
 
   @property
   def num_errors(self):
@@ -51,7 +60,7 @@ class GTestUnittestResults(unittest.TestResult):
     print >> self._output_stream, '[ RUN      ]', (
         GTestUnittestResults._formatTestname(test))
     sys.stdout.flush()
-    self._timestamp = time.time()
+    self._test_start_time = time.time()
 
   def addSuccess(self, test):
     super(GTestUnittestResults, self).addSuccess(test)
@@ -65,11 +74,30 @@ class GTestUnittestResults(unittest.TestResult):
     super(GTestUnittestResults, self).addSkip(test, reason)
     test_name = GTestUnittestResults._formatTestname(test)
     logging.warning('===== SKIPPING TEST %s: %s =====', test_name, reason)
-    if self._timestamp == None:
-      self._timestamp = time.time()
+    if self._test_start_time == None:
+      self._test_start_time = time.time()
     print >> self._output_stream, '[       OK ]', test_name, (
         '(%0.f ms)' % self._GetMs())
     sys.stdout.flush()
+
+  def StartTestSuite(self, suite):
+    contains_test_suites = any(isinstance(test, unittest.TestSuite)
+                               for test in suite)
+    if not contains_test_suites:
+      test_count = len([test for test in suite])
+      unit = 'test' if test_count == 1 else 'tests'
+      print '[----------]', test_count, unit
+      self._test_suite_start_time = time.time()
+
+  def StopTestSuite(self, suite):
+    contains_test_suites = any(isinstance(test, unittest.TestSuite)
+                               for test in suite)
+    if not contains_test_suites:
+      elapsed_ms = (time.time() - self._test_suite_start_time) * 1000
+      test_count = len([test for test in suite])
+      unit = 'test' if test_count == 1 else 'tests'
+      print '[----------]', test_count, unit, '(%d ms total)' % elapsed_ms
+      print
 
   def PrintSummary(self):
     unit = 'test' if self._successes_count == 1 else 'tests'
