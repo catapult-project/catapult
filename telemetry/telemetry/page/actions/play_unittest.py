@@ -22,7 +22,8 @@ class PlayActionTest(tab_test_case.TabTestCase):
   @decorators.Disabled('android')
   def testPlayWithNoSelector(self):
     """Tests that with no selector Play action plays first video element."""
-    action = play.PlayAction(playing_event_timeout_in_seconds=60)
+    data = {'wait_for_playing': True}
+    action = play.PlayAction(data)
     action.WillRunAction(self._tab)
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
@@ -35,8 +36,8 @@ class PlayActionTest(tab_test_case.TabTestCase):
   @decorators.Disabled('android')
   def testPlayWithVideoSelector(self):
     """Tests that Play action plays video element matching selector."""
-    action = play.PlayAction(selector='#video_1',
-                             playing_event_timeout_in_seconds=60)
+    data = {'selector': '#video_1', 'wait_for_playing': True}
+    action = play.PlayAction(data)
     action.WillRunAction(self._tab)
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
@@ -49,8 +50,8 @@ class PlayActionTest(tab_test_case.TabTestCase):
   @decorators.Disabled('android')
   def testPlayWithAllSelector(self):
     """Tests that Play action plays all video elements with selector='all'."""
-    action = play.PlayAction(selector='all',
-                             playing_event_timeout_in_seconds=60)
+    data = {'selector': 'all', 'wait_for_playing': True}
+    action = play.PlayAction(data)
     action.WillRunAction(self._tab)
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
@@ -63,8 +64,10 @@ class PlayActionTest(tab_test_case.TabTestCase):
   # http://crbug.com/273887
   def testPlayWaitForPlayTimeout(self):
     """Tests that wait_for_playing timeouts if video does not play."""
-    action = play.PlayAction(selector='#video_1',
-                             playing_event_timeout_in_seconds=1)
+    data = {'selector': '#video_1',
+            'wait_for_playing': True,
+            'wait_timeout_in_seconds': 1}
+    action = play.PlayAction(data)
     action.WillRunAction(self._tab)
     self._tab.EvaluateJavaScript('document.getElementById("video_1").src = ""')
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
@@ -73,8 +76,8 @@ class PlayActionTest(tab_test_case.TabTestCase):
   @decorators.Disabled('android')
   def testPlayWaitForEnded(self):
     """Tests that wait_for_ended waits for video to end."""
-    action = play.PlayAction(selector='#video_1',
-                             ended_event_timeout_in_seconds=60)
+    data = {'selector': '#video_1', 'wait_for_ended': True}
+    action = play.PlayAction(data)
     action.WillRunAction(self._tab)
     # Assert video not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
@@ -85,8 +88,8 @@ class PlayActionTest(tab_test_case.TabTestCase):
 
   def testPlayWithoutWaitForEnded(self):
     """Tests that wait_for_ended waits for video to end."""
-    action = play.PlayAction(selector='#video_1',
-                             ended_event_timeout_in_seconds=0)
+    data = {'selector': '#video_1', 'wait_for_ended': False}
+    action = play.PlayAction(data)
     action.WillRunAction(self._tab)
     # Assert video not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
@@ -97,8 +100,9 @@ class PlayActionTest(tab_test_case.TabTestCase):
 
   def testPlayWaitForEndedTimeout(self):
     """Tests that action raises exception if timeout is reached."""
-    action = play.PlayAction(selector='#video_1',
-                             ended_event_timeout_in_seconds=1)
+    data = {'selector': '#video_1', 'wait_for_ended': True,
+            'wait_timeout_in_seconds': 1}
+    action = play.PlayAction(data)
     action.WillRunAction(self._tab)
     # Assert video not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))

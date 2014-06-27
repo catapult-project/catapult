@@ -19,7 +19,8 @@ class SeekActionTest(tab_test_case.TabTestCase):
 
   def testSeekWithNoSelector(self):
     """Tests that with no selector Seek  action seeks first media element."""
-    action = seek.SeekAction(seconds=1, timeout_in_seconds=10)
+    data = {'wait_for_seeked': True, 'seek_time': 1}
+    action = seek.SeekAction(data)
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
     # Assert only first video has played.
@@ -28,8 +29,8 @@ class SeekActionTest(tab_test_case.TabTestCase):
 
   def testSeekWithVideoSelector(self):
     """Tests that Seek action seeks video element matching selector."""
-    action = seek.SeekAction(seconds=1, selector='#video_1',
-                             timeout_in_seconds=10)
+    data = {'selector': '#video_1', 'wait_for_seeked': True, 'seek_time': 1}
+    action = seek.SeekAction(data)
     action.WillRunAction(self._tab)
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
@@ -41,8 +42,8 @@ class SeekActionTest(tab_test_case.TabTestCase):
 
   def testSeekWithAllSelector(self):
     """Tests that Seek action seeks all video elements with selector='all'."""
-    action = seek.SeekAction(seconds=1, selector='all',
-                             timeout_in_seconds=10)
+    data = {'selector': 'all', 'wait_for_seeked': True, 'seek_time': 1}
+    action = seek.SeekAction(data)
     action.WillRunAction(self._tab)
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
@@ -54,9 +55,19 @@ class SeekActionTest(tab_test_case.TabTestCase):
 
   def testSeekWaitForSeekTimeout(self):
     """Tests that wait_for_seeked timeouts if video does not seek."""
-    action = seek.SeekAction(seconds=1, selector='#video_1',
-                             timeout_in_seconds=1)
+    data = {'selector': '#video_1',
+            'wait_for_seeked': True,
+            'wait_timeout_in_seconds': 1,
+            'seek_time': 1}
+    action = seek.SeekAction(data)
     action.WillRunAction(self._tab)
     self._tab.EvaluateJavaScript('document.getElementById("video_1").src = ""')
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
     self.assertRaises(util.TimeoutException, action.RunAction, self._tab)
+
+  def testSeekWithoutSeekTime(self):
+    """Tests that seek action fails with no seek time."""
+    data = {'wait_for_seeked': True}
+    action = seek.SeekAction(data)
+    action.WillRunAction(self._tab)
+    self.assertRaises(AssertionError, action.RunAction, self._tab)
