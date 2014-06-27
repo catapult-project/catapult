@@ -16,9 +16,6 @@ class TestOutputStream(object):
     assert isinstance(data, str)
     self.output_data.append(data)
 
-  def flush(self):
-    pass
-
 
 class BaseTestResultsUnittest(unittest.TestCase):
 

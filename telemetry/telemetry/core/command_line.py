@@ -108,4 +108,4 @@ class SubcommandCommand(Command):
     args.command.ProcessCommandLineArgs(parser, args)
 
   def Run(self, args):
-    return args.command().Run(args)
+    args.command().Run(args)
