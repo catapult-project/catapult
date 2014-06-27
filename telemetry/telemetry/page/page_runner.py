@@ -328,7 +328,7 @@ def _UpdatePageSetArchivesIfChanged(page_set):
             os.path.join(dirpath, filename))
         if extension != '.sha1':
           continue
-        cloud_storage.GetIfChanged(path)
+        cloud_storage.GetIfChanged(path, page_set.bucket)
 
 
 def Run(test, page_set, expectations, finder_options):
