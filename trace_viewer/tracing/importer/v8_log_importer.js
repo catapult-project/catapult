@@ -161,7 +161,7 @@ tvcm.exportTo('tracing.importer', function() {
             lastStackFrame = new tracing.trace_model.StackFrame(
                 lastStackFrame, 'v8sf-' + tvcm.GUID.allocate(),
                 'v8', entryName,
-                tvcm.ui.getStringColorId(name));
+                tvcm.ui.getStringColorId(entryName));
             lastStackFrame.entryID = entryID;
             this.model_.addStackFrame(lastStackFrame);
           } else {
@@ -176,7 +176,7 @@ tvcm.exportTo('tracing.importer', function() {
           lastStackFrame = new tracing.trace_model.StackFrame(
               undefined, pcEntryID,
               'v8', pcEntryName,
-              tvcm.ui.getStringColorId(name));
+              tvcm.ui.getStringColorId(entryName));
           this.model_.addStackFrame(lastStackFrame);
         }
         lastStackFrame = this.model_.stackFrames[pcEntryID];
