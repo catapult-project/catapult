@@ -11,11 +11,11 @@ class RepaintContinuouslyAction(page_action.PageAction):
   until self.seconds have elapsed AND at least three RAFs have been fired. Times
   out after max(60, self.seconds), if less than three RAFs were fired.
   """
-  def __init__(self, attributes=None):
-    super(RepaintContinuouslyAction, self).__init__(attributes)
+  def __init__(self, seconds):
+    super(RepaintContinuouslyAction, self).__init__()
+    self._seconds = seconds
 
   def RunAction(self, tab):
-    assert(hasattr(self, 'seconds'))
     start_time = time.time()
     tab.ExecuteJavaScript(
         'window.__rafCount = 0;'
@@ -25,16 +25,17 @@ class RepaintContinuouslyAction(page_action.PageAction):
         '};'
         'window.webkitRequestAnimationFrame(window.__rafFunction);')
 
-    time_out = max(60, self.seconds)
+    time_out = max(60, self._seconds)
     min_rafs = 3
 
-    # Wait until al leat self.seconds have elapsed AND min_rafs have been fired.
-    # Use a hard time-out after 60 seconds (or self.seconds).
+    # Wait until at least self.seconds have elapsed AND min_rafs have
+    # been fired.  Use a hard time-out after 60 seconds (or
+    # self.seconds).
     while True:
       raf_count = tab.EvaluateJavaScript('window.__rafCount;')
       elapsed_time = time.time() - start_time
       if elapsed_time > time_out:
         break
-      elif elapsed_time > self.seconds and raf_count > min_rafs:
+      elif elapsed_time > self._seconds and raf_count > min_rafs:
         break
       time.sleep(1)
