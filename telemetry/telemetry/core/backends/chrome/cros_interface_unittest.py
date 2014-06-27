@@ -10,7 +10,7 @@ import socket
 import tempfile
 import unittest
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import forwarders
 from telemetry.core.backends.chrome import cros_interface
 from telemetry.core.forwarders import cros_forwarder
@@ -19,7 +19,7 @@ from telemetry.unittest import options_for_unittests
 
 
 class CrOSInterfaceTest(unittest.TestCase):
-  @test.Enabled('cros-chrome')
+  @benchmark.Enabled('cros-chrome')
   def testPushContents(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -30,7 +30,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     contents = cri.GetFileContents('/tmp/testPushContents')
     self.assertEquals(contents, 'hello world')
 
-  @test.Enabled('cros-chrome')
+  @benchmark.Enabled('cros-chrome')
   def testExists(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -40,14 +40,14 @@ class CrOSInterfaceTest(unittest.TestCase):
     self.assertTrue(cri.FileExistsOnDevice('/etc/passwd'))
     self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
 
-  @test.Enabled('linux')
+  @benchmark.Enabled('linux')
   def testExistsLocal(self):
     cri = cros_interface.CrOSInterface()
     self.assertTrue(cri.FileExistsOnDevice('/proc/cpuinfo'))
     self.assertTrue(cri.FileExistsOnDevice('/etc/passwd'))
     self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
 
-  @test.Enabled('cros-chrome')
+  @benchmark.Enabled('cros-chrome')
   def testGetFileContents(self): # pylint: disable=R0201
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -56,7 +56,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     hosts = cri.GetFileContents('/etc/lsb-release')
     self.assertTrue('CHROMEOS' in hosts)
 
-  @test.Enabled('cros-chrome')
+  @benchmark.Enabled('cros-chrome')
   def testGetFileContentsNonExistent(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -69,7 +69,7 @@ class CrOSInterfaceTest(unittest.TestCase):
       OSError,
       lambda: cri.GetFileContents(f.name))
 
-  @test.Enabled('cros-chrome')
+  @benchmark.Enabled('cros-chrome')
   def testGetFile(self): # pylint: disable=R0201
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -81,7 +81,7 @@ class CrOSInterfaceTest(unittest.TestCase):
       res = f2.read()
       self.assertTrue('CHROMEOS' in res)
 
-  @test.Enabled('cros-chrome')
+  @benchmark.Enabled('cros-chrome')
   def testGetFileNonExistent(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -94,7 +94,7 @@ class CrOSInterfaceTest(unittest.TestCase):
       OSError,
       lambda: cri.GetFile(f.name))
 
-  @test.Enabled('cros-chrome')
+  @benchmark.Enabled('cros-chrome')
   def testIsServiceRunning(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -103,12 +103,12 @@ class CrOSInterfaceTest(unittest.TestCase):
 
     self.assertTrue(cri.IsServiceRunning('openssh-server'))
 
-  @test.Enabled('linux')
+  @benchmark.Enabled('linux')
   def testIsServiceRunningLocal(self):
     cri = cros_interface.CrOSInterface()
     self.assertTrue(cri.IsServiceRunning('dbus'))
 
-  @test.Enabled('cros-chrome')
+  @benchmark.Enabled('cros-chrome')
   def testGetRemotePortAndIsHTTPServerRunningOnPort(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -145,7 +145,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     # longer in use.
     self.assertFalse(cri.IsHTTPServerRunningOnPort(remote_port))
 
-  @test.Enabled('cros-chrome')
+  @benchmark.Enabled('cros-chrome')
   def testGetRemotePortReservedPorts(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -161,7 +161,7 @@ class CrOSInterfaceTest(unittest.TestCase):
 
   # TODO(tengs): It would be best if we can filter this test and other tests
   # that need to be run locally based on the platform of the system browser.
-  @test.Enabled('linux')
+  @benchmark.Enabled('linux')
   def testEscapeCmdArguments(self):
     ''' Commands and their arguments that are executed through the cros
     interface should follow bash syntax. This test needs to run on remotely

@@ -14,7 +14,7 @@ import os
 import sys
 
 from telemetry import decorators
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import command_line
@@ -109,7 +109,7 @@ class Run(command_line.OptparseCommand):
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
-    test.AddCommandLineArgs(parser)
+    benchmark.AddCommandLineArgs(parser)
 
     # Allow tests to add their own command line options.
     matching_tests = []
@@ -158,7 +158,7 @@ class Run(command_line.OptparseCommand):
               discover.IsPageSetFile(page_set_path)):
         parser.error('Unsupported page set file format.')
 
-      class TestWrapper(test.Test):
+      class TestWrapper(benchmark.Benchmark):
         test = test_class
 
         @classmethod
@@ -170,9 +170,10 @@ class Run(command_line.OptparseCommand):
       if len(args.positional_args) > 1:
         parser.error('Too many arguments.')
 
-    assert issubclass(test_class, test.Test), 'Trying to run a non-Test?!'
+    assert issubclass(test_class, benchmark.Benchmark), (
+        'Trying to run a non-Benchmark?!')
 
-    test.ProcessCommandLineArgs(parser, args)
+    benchmark.ProcessCommandLineArgs(parser, args)
     test_class.ProcessCommandLineArgs(parser, args)
 
     cls._test = test_class
@@ -202,7 +203,7 @@ def _MatchingCommands(string):
 def _Tests():
   tests = []
   for base_dir in config.base_paths:
-    tests += discover.DiscoverClasses(base_dir, base_dir, test.Test,
+    tests += discover.DiscoverClasses(base_dir, base_dir, benchmark.Benchmark,
                                       index_by_class_name=True).values()
     page_tests = discover.DiscoverClasses(base_dir, base_dir,
                                           page_test.PageTest,
@@ -261,7 +262,7 @@ def _GetJsonTestList(possible_browser, test_classes, num_shards):
     }
   }
   for test_class in test_classes:
-    if not issubclass(test_class, test.Test):
+    if not issubclass(test_class, benchmark.Benchmark):
       continue
     if not decorators.IsEnabled(test_class, possible_browser):
       continue
@@ -289,7 +290,7 @@ def _PrintTestList(tests):
   format_string = '  %%-%ds %%s' % max(len(t.Name()) for t in tests)
 
   filtered_tests = [test_class for test_class in tests
-                    if issubclass(test_class, test.Test)]
+                    if issubclass(test_class, benchmark.Benchmark)]
   if filtered_tests:
     print >> sys.stderr, 'Available tests are:'
     for test_class in sorted(filtered_tests, key=lambda t: t.Name()):

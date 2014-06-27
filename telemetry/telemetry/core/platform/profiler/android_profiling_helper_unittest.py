@@ -8,7 +8,7 @@ import re
 import shutil
 import tempfile
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import util
 from telemetry.core.platform.profiler import android_profiling_helper
 from telemetry.unittest import simple_mock
@@ -63,7 +63,7 @@ class TestAndroidProfilingHelper(tab_test_case.TabTestCase):
     finally:
       android_profiling_helper.subprocess = real_subprocess
 
-  @test.Enabled('android')
+  @benchmark.Enabled('android')
   def testGetRequiredLibrariesForVTuneProfile(self):
     vtune_db_output = os.path.join(
         util.GetUnittestDataDir(), 'sample_vtune_db_output')
@@ -94,7 +94,7 @@ class TestAndroidProfilingHelper(tab_test_case.TabTestCase):
     finally:
       android_profiling_helper.sqlite3 = real_sqlite3
 
-  @test.Enabled('android')
+  @benchmark.Enabled('android')
   def testCreateSymFs(self):
     # pylint: disable=W0212
     browser_pid = self._browser._browser_backend.pid
@@ -123,7 +123,7 @@ class TestAndroidProfilingHelper(tab_test_case.TabTestCase):
     finally:
       shutil.rmtree(symfs_dir)
 
-  @test.Enabled('android')
+  @benchmark.Enabled('android')
   def testGetToolchainBinaryPath(self):
     with tempfile.NamedTemporaryFile() as libc:
       self._device.old_interface.PullFileFromDevice('/system/lib/libc.so',

@@ -4,7 +4,7 @@
 
 import logging
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import bitmap
 from telemetry.core import video
 from telemetry.core import util
@@ -57,7 +57,7 @@ class TabTest(tab_test_case.TabTestCase):
                       lambda: self._tab.Navigate('chrome://crash',
                                                  timeout=5))
 
-  @test.Enabled('has tabs')
+  @benchmark.Enabled('has tabs')
   def testActivateTab(self):
     util.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
     new_tab = self._browser.tabs.New()
@@ -155,7 +155,7 @@ class GpuTabTest(tab_test_case.TabTestCase):
     super(GpuTabTest, self).setUp()
 
   # Test flaky on mac: http://crbug.com/358664
-  @test.Disabled('android', 'mac')
+  @benchmark.Disabled('android', 'mac')
   def testScreenshot(self):
     if not self._tab.screenshot_supported:
       logging.warning('Browser does not support screenshots, skipping test.')

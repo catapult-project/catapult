@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core.platform import android_platform_backend
 from telemetry.unittest import system_stub
 
@@ -43,7 +43,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
   def tearDown(self):
     self._stubs.Restore()
 
-  @test.Disabled('chromeos')
+  @benchmark.Disabled('chromeos')
   def testGetCpuStats(self):
     proc_stat_content = [
         '7702 (.android.chrome) S 167 167 0 0 -1 1077936448 '
@@ -57,7 +57,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     cpu_stats = backend.GetCpuStats('7702')
     self.assertEquals(cpu_stats, {'CpuProcessTime': 5.0})
 
-  @test.Disabled('chromeos')
+  @benchmark.Disabled('chromeos')
   def testGetCpuStatsInvalidPID(self):
     # Mock an empty /proc/pid/stat.
     adb_empty_proc_stat = MockDevice(MockAdbCommands([], {}))

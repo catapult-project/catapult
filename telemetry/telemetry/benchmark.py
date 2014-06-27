@@ -1,4 +1,4 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -25,8 +25,8 @@ Disabled = decorators.Disabled
 Enabled = decorators.Enabled
 
 
-class Test(command_line.Command):
-  """Base class for a Telemetry test or benchmark.
+class Benchmark(command_line.Command):
+  """Base class for a Telemetry benchmark.
 
   A test packages a PageTest/PageMeasurement and a PageSet together.
   """
@@ -153,9 +153,9 @@ class Test(command_line.Command):
 
   @classmethod
   def PageTestClass(cls):
-    """Get the PageTest for this Test.
+    """Get the PageTest for this Benchmark.
 
-    If the Test has no PageTest, raises NotImplementedError.
+    If the Benchmark has no PageTest, raises NotImplementedError.
     """
     if not hasattr(cls, 'test'):
       raise NotImplementedError('This test has no "test" attribute.')
@@ -165,9 +165,9 @@ class Test(command_line.Command):
 
   @classmethod
   def PageSetClass(cls):
-    """Get the PageSet for this Test.
+    """Get the PageSet for this Benchmark.
 
-    If the Test has no PageSet, raises NotImplementedError.
+    If the Benchmark has no PageSet, raises NotImplementedError.
     """
     if not hasattr(cls, 'page_set'):
       raise NotImplementedError('This test has no "page_set" attribute.')

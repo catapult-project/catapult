@@ -4,14 +4,14 @@
 
 import logging
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends.chrome import cros_test_case
 
 
 class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
-  @test.Enabled('chromeos')
+  @benchmark.Enabled('chromeos')
   def testCryptohome(self):
     """Verifies cryptohome mount status for regular and guest user and when
     logged out"""
@@ -36,7 +36,7 @@ class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
 
 
 class CrOSLoginTest(cros_test_case.CrOSTestCase):
-  @test.Enabled('chromeos')
+  @benchmark.Enabled('chromeos')
   def testLoginStatus(self):
     """Tests autotestPrivate.loginStatus"""
     if self._is_guest:
@@ -50,7 +50,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
       self.assertEquals(login_status['email'], self._username)
       self.assertFalse(login_status['isScreenLocked'])
 
-  @test.Enabled('chromeos')
+  @benchmark.Enabled('chromeos')
   def testLogout(self):
     """Tests autotestPrivate.logout"""
     if self._is_guest:
@@ -64,7 +64,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
         pass
       util.WaitFor(lambda: not self._IsCryptohomeMounted(), 20)
 
-  @test.Enabled('chromeos')
+  @benchmark.Enabled('chromeos')
   def testGaiaLogin(self):
     """Tests gaia login. Credentials are expected to be found in a
     credentials.txt file, with a single line of format username:password."""
@@ -121,7 +121,7 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
     util.WaitFor(lambda: not browser.oobe_exists, 10)
     self.assertFalse(self._IsScreenLocked(browser))
 
-  @test.Enabled('chromeos')
+  @benchmark.Enabled('chromeos')
   def testScreenLock(self):
     """Tests autotestPrivate.screenLock"""
     if self._is_guest:

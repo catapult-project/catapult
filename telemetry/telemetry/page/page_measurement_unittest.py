@@ -5,7 +5,7 @@
 import json
 import os
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import wpr_modes
 from telemetry.page import page as page_module
@@ -104,7 +104,7 @@ class PageMeasurementUnitTest(
 
   # This test is disabled because it runs against live sites, and needs to be
   # fixed. crbug.com/179038
-  @test.Disabled
+  @benchmark.Disabled
   def testRecordAndReplay(self):
     test_archive = '/tmp/google.wpr'
     google_url = 'http://www.google.com/'

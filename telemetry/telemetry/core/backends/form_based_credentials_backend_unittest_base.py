@@ -6,7 +6,7 @@ import logging
 import os
 import unittest
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import browser_finder
 from telemetry.core import util
 from telemetry.unittest import options_for_unittests
@@ -28,7 +28,7 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
   def setUp(self):
     self._credentials_type = None
 
-  @test.Disabled
+  @benchmark.Disabled
   def testRealLoginIfPossible(self):
     credentials_path = _GetCredentialsPath()
     if not credentials_path:
@@ -43,7 +43,7 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
       ret = b.credentials.LoginNeeded(b.tabs[0], self._credentials_type)
       self.assertTrue(ret)
 
-  @test.Disabled
+  @benchmark.Disabled
   def testRealLoginWithDontOverrideProfileIfPossible(self):
     credentials_path = _GetCredentialsPath()
     if not credentials_path:

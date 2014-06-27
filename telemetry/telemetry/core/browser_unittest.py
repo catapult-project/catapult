@@ -5,7 +5,7 @@
 import logging
 import unittest
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import browser_finder
 from telemetry.core import gpu_device
 from telemetry.core import gpu_info
@@ -76,7 +76,7 @@ class BrowserTest(unittest.TestCase):
     v = b._browser_backend.chrome_branch_number # pylint: disable=W0212
     self.assertTrue(v > 0)
 
-  @test.Enabled('has tabs')
+  @benchmark.Enabled('has tabs')
   def testNewCloseTab(self):
     b = self.CreateBrowser()
     existing_tab = b.tabs[0]
@@ -103,8 +103,8 @@ class BrowserTest(unittest.TestCase):
     tab.Navigate(b.http_server.UrlOf('blank.html'))
     b.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
-  @test.Enabled('has tabs')
-  @test.Disabled('win')  # crbug.com/321527
+  @benchmark.Enabled('has tabs')
+  @benchmark.Disabled('win')  # crbug.com/321527
   def testCloseReferencedTab(self):
     b = self.CreateBrowser()
     b.tabs.New()
@@ -113,7 +113,7 @@ class BrowserTest(unittest.TestCase):
     tab.Close()
     self.assertEquals(1, len(b.tabs))
 
-  @test.Enabled('has tabs')
+  @benchmark.Enabled('has tabs')
   def testForegroundTab(self):
     b = self.CreateBrowser()
     # Should be only one tab at this stage, so that must be the foreground tab

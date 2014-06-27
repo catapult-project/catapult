@@ -6,13 +6,13 @@ import shutil
 import tempfile
 import zipfile
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core.platform.profiler import android_systrace_profiler
 from telemetry.unittest import tab_test_case
 
 
 class TestAndroidSystraceProfiler(tab_test_case.TabTestCase):
-  @test.Enabled('android')
+  @benchmark.Enabled('android')
   def testSystraceProfiler(self):
     try:
       out_dir = tempfile.mkdtemp()

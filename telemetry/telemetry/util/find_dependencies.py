@@ -11,7 +11,7 @@ import os
 import sys
 import zipfile
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import command_line
 from telemetry.core import discover
 from telemetry.core import util
@@ -70,7 +70,7 @@ def FindPageSetDependencies(base_dir):
 
   # Add base_dir to path so our imports relative to base_dir will work.
   sys.path.append(base_dir)
-  tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
+  tests = discover.DiscoverClasses(base_dir, base_dir, benchmark.Benchmark,
                                    index_by_class_name=True)
 
   for test_class in tests.itervalues():

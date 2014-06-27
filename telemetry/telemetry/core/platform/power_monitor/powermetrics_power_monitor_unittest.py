@@ -6,7 +6,7 @@ import logging
 import os
 import unittest
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import util
 from telemetry.core.platform import mac_platform_backend
 from telemetry.core.platform import platform_backend
@@ -14,7 +14,7 @@ from telemetry.core.platform.power_monitor import powermetrics_power_monitor
 
 
 class PowerMetricsPowerMonitorTest(unittest.TestCase):
-  @test.Enabled('mac')
+  @benchmark.Enabled('mac')
   def testCanMonitorPowerUsage(self):
     backend = mac_platform_backend.MacPlatformBackend()
     power_monitor = powermetrics_power_monitor.PowerMetricsPowerMonitor(backend)
@@ -24,13 +24,13 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
     self.assertEqual(power_monitor.CanMonitorPower(), mavericks_or_later,
         "Error checking powermetrics availability: '%s'" % '|'.join(os.uname()))
 
-  @test.Enabled('mac')
+  @benchmark.Enabled('mac')
   def testParseEmptyPowerMetricsOutput(self):
     # Important to handle zero length powermetrics outout - crbug.com/353250 .
     self.assertIsNone(powermetrics_power_monitor.PowerMetricsPowerMonitor.
         ParsePowerMetricsOutput(''))
 
-  @test.Enabled('mac')
+  @benchmark.Enabled('mac')
   def testParsePowerMetricsOutput(self):
     def getOutput(output_file):
       test_data_path = os.path.join(util.GetUnittestDataDir(), output_file)

@@ -2,13 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.unittest import tab_test_case
 
 
 class InspectorMemoryTest(tab_test_case.TabTestCase):
 
-  @test.Enabled('has tabs')
+  @benchmark.Enabled('has tabs')
   def testGetDOMStats(self):
     # Due to an issue with CrOS, we create a new tab here rather than
     # using the existing tab to get a consistent starting page on all platforms.

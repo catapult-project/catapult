@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core.platform import factory
 from telemetry.core.platform import platform_backend
 
@@ -22,7 +22,7 @@ class MacPlatformBackendTest(unittest.TestCase):
                      'mavericks2')
     self.assertEqual(platform_backend.LION.upper(), 'LION')
 
-  @test.Enabled('mac')
+  @benchmark.Enabled('mac')
   def testGetCPUStats(self):
     backend = factory.GetPlatformBackendForCurrentOS()
 

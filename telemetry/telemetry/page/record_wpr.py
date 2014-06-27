@@ -8,7 +8,7 @@ import sys
 import tempfile
 import time
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import wpr_modes
@@ -88,7 +88,7 @@ def Main(base_dir):
       # Filter out unneeded ProfileCreators (crbug.com/319573).
       if not issubclass(cls, profile_creator.ProfileCreator)
       }
-  tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
+  tests = discover.DiscoverClasses(base_dir, base_dir, benchmark.Benchmark,
                                    index_by_class_name=True)
 
   options = browser_options.BrowserFinderOptions()

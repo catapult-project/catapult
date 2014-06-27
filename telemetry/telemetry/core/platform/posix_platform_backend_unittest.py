@@ -5,7 +5,7 @@ import os
 import sys
 import unittest
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core.platform import factory
 from telemetry.core.platform import posix_platform_backend
 
@@ -51,7 +51,7 @@ class PosixPlatformBackendTest(unittest.TestCase):
     result = backend.GetChildPids(1)
     self.assertEquals(set(result), set([2, 3]))
 
-  @test.Enabled('linux', 'mac')
+  @benchmark.Enabled('linux', 'mac')
   def testIsApplicationRunning(self):
     backend = factory.GetPlatformBackendForCurrentOS()
 

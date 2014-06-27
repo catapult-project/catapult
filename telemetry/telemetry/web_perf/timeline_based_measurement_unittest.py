@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import wpr_modes
 from telemetry.timeline import model as model_module
 from telemetry.timeline import async_slice
@@ -121,7 +121,7 @@ class TimelineBasedMeasurementTest(
     self._options.browser_options.wpr_mode = wpr_modes.WPR_OFF
 
   # Disabled due to flakiness: crbug.com/368386
-  @test.Disabled
+  @benchmark.Disabled
   def testSmoothnessTimelineBasedMeasurementForSmoke(self):
     ps = self.CreatePageSetFromFileInUnittestDataDir(
         'interaction_enabled_page.html')
@@ -137,7 +137,7 @@ class TimelineBasedMeasurementTest(
     self.assertEquals(len(v), 1)
 
   # Disabled since mainthread_jank metric is not supported on windows platform.
-  @test.Disabled('win')
+  @benchmark.Disabled('win')
   def testMainthreadJankTimelineBasedMeasurement(self):
     ps = self.CreateEmptyPageSet()
     ps.AddPage(TestTimelinebasedMeasurementPage(ps, ps.base_dir))

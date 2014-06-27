@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import test
+from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
@@ -158,7 +158,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.ClickElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
-  @test.Disabled('debug')
+  @benchmark.Disabled('debug')
   def testTapElement(self):
     self.Navigate('page_with_clickables.html')
     action_runner = action_runner_module.ActionRunner(self._tab)
