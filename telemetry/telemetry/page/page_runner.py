@@ -213,6 +213,10 @@ def AddCommandLineArgs(parser):
       help='Run against live sites and ignore the Web Page Replay archives.')
   parser.add_option_group(group)
 
+  parser.add_option('-d', '--also-run-disabled-tests',
+                    dest='run_disabled_tests',
+                    action='store_true', default=False,
+                    help='Ignore @Disabled and @Enabled restrictions.')
 
 def ProcessCommandLineArgs(parser, args):
   page_filter.PageFilter.ProcessCommandLineArgs(parser, args)
@@ -354,7 +358,13 @@ def Run(test, page_set, expectations, finder_options):
   browser_options.browser_type = possible_browser.browser_type
   test.CustomizeBrowserOptions(browser_options)
 
-  if not decorators.IsEnabled(test, possible_browser):
+  should_run = decorators.IsEnabled(test, possible_browser)
+
+  should_run = should_run or finder_options.run_disabled_tests
+
+  if not should_run:
+    logging.warning('You are trying to run a disabled test.')
+    logging.warning('Pass --also-run-disabled-tests to squelch this message.')
     return results
 
   # Reorder page set based on options.
