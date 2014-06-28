@@ -176,7 +176,7 @@ tvcm.exportTo('tracing.importer', function() {
           lastStackFrame = new tracing.trace_model.StackFrame(
               undefined, pcEntryID,
               'v8', pcEntryName,
-              tvcm.ui.getStringColorId(entryName));
+              tvcm.ui.getStringColorId(pcEntryName));
           this.model_.addStackFrame(lastStackFrame);
         }
         lastStackFrame = this.model_.stackFrames[pcEntryID];
