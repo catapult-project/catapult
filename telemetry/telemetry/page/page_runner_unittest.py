@@ -151,6 +151,7 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(0, len(results.failures))
     self.assertEquals(0, len(results.errors))
 
+  @decorators.Disabled('xp')  # Flaky, http://crbug.com/390079.
   def testDiscardFirstResult(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
