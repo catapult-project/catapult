@@ -70,7 +70,17 @@ tvcm.exportTo('about_tracing', function() {
       this.recording_ = 'starting';
       var res = this.conn_.req(
           'Tracing.start',
-          { bufferUsageReportingInterval: 1000});
+          {
+            categories: recordingOptions.categoryFilter,
+            options:
+                [
+                  (recordingOptions.useContinuousTracing ?
+                     'record-continuously' : ''),
+                  (recordingOptions.useSampling ?
+                     'enable-sampling' : '')
+                ].join(),
+            bufferUsageReportingInterval: 1000
+          });
       res = res.then(
           function ok() {
             this.conn_.setNotificationListener(
