@@ -82,7 +82,7 @@ tvcm.exportTo('tracing.analysis', function() {
         span.title = tooltip;
         return td;
       } else {
-        this.appendTableCell_(table, row, cellnum, text);
+        return this.appendTableCell_(table, row, cellnum, text);
       }
     },
 
