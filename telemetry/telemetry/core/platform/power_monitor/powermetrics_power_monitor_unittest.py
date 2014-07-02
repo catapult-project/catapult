@@ -45,6 +45,9 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
       logging.warning('Test not supported on this platform.')
       return
 
+    # Not supported on Mac at this time.
+    self.assertFalse(power_monitor.CanMeasurePerApplicationPower())
+
     # Supported hardware reports power samples and energy consumption.
     result = getOutput('powermetrics_output.output')
 

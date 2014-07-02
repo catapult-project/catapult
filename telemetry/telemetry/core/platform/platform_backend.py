@@ -135,6 +135,9 @@ class PlatformBackend(object):
   def CanMonitorPower(self):
     return False
 
+  def CanMeasurePerApplicationPower(self):
+    return False
+
   def StartMonitoringPower(self, browser):
     raise NotImplementedError()
 

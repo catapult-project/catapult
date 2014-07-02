@@ -176,6 +176,13 @@ class Platform(object):
     """
     return self._platform_backend.CanMonitorPower()
 
+  def CanMeasurePerApplicationPower(self):
+    """Returns True if the power monitor can measure power for the target
+    application in isolation. False if power measurement is for full system
+    energy consumption."""
+    return self._platform_backend.CanMeasurePerApplicationPower()
+
+
   def StartMonitoringPower(self, browser):
     """Starts monitoring power utilization statistics.
 
@@ -199,10 +206,15 @@ class Platform(object):
         # each sample.
         'power_samples_mw':  [mw0, mw1, ..., mwN],
 
-        # The total energy consumption during the sampling period in milliwatt
-        # hours. May be estimated by integrating power samples or may be exact
-        # on supported hardware.
+        # The full system energy consumption during the sampling period in
+        # milliwatt hours. May be estimated by integrating power samples or may
+        # be exact on supported hardware.
         'energy_consumption_mwh': mwh,
+
+        # The target application's energy consumption during the sampling period
+        # in milliwatt hours. Should be returned iff
+        # CanMeasurePerApplicationPower() return true.
+        'application_energy_consumption_mwh': mwh,
 
         # A platform-specific dictionary of additional details about the
         # utilization of individual hardware components.
