@@ -154,9 +154,6 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def CanMonitorPower(self):
     return self.power_monitor_.CanMonitorPower()
 
-  def CanMeasurePerApplicationPower(self):
-    return self.power_monitor_.CanMeasurePerApplicationPower()
-
   def StartMonitoringPower(self, browser):
     self.power_monitor_.StartMonitoringPower(browser)
 
