@@ -143,6 +143,8 @@ def SelectDefaultBrowser(possible_browsers):
 adb_works = None
 def CanFindAvailableBrowsers(logging=real_logging):
   if not adb_commands.IsAndroidSupported():
+    logging.info('Android build commands unavailable on this machine. Have '
+                 'you installed Android build dependencies?')
     return False
 
   global adb_works
