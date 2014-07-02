@@ -394,7 +394,7 @@ tvcm.exportTo('tracing', function() {
         progressMeter.update('Autoclosing open slices...');
         // Sort the samples.
         this.samples.sort(function(x, y) {
-          return x.ts - y.ts;
+          return x.start - y.start;
         });
 
         this.updateBounds();

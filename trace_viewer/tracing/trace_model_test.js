@@ -280,4 +280,18 @@ tvcm.unittest.testSuite('tracing.trace_model_test', function() {
     assertEquals(3, t2.sliceGroup.length);
     assertEquals(2, t2.sliceGroup.topLevelSlices.length);
   });
+
+  test('traceModel_sortsSamples', function() {
+    var m = new tracing.TraceModel();
+    // The 184, 0 and 185 are the tick-times
+    // and irrespective of the order
+    // in which the lines appear in the trace,
+    // the samples should always be sorted by sampling time.
+    m.importTraces(['tick,0x9a,184,0,0x0,5',
+                    'tick,0x9b,0,0,0x0,5',
+                    'tick,0x9c,185,0,0x0,5']);
+    assertEquals(0, m.samples[0].start);
+    assertEquals(0.184, m.samples[1].start);
+    assertEquals(0.185, m.samples[2].start);
+  });
 });
