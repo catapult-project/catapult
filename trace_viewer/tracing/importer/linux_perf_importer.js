@@ -664,6 +664,11 @@ tvcm.exportTo('tracing.importer', function() {
      */
     traceMarkingWriteEvent: function(eventName, cpuNumber, pid, ts, eventBase,
                                      threadName) {
+
+      // Some profiles end up with a \n\ on the end of each line. Strip it
+      // before we do the comparisons.
+      eventBase.details = eventBase.details.replace(/\\n.*$/, '');
+
       var event = /^\s*(\w+):\s*(.*)$/.exec(eventBase.details);
       if (!event) {
         // Check if the event matches events traced by the Android framework

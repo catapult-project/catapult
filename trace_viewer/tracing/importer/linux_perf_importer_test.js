@@ -359,6 +359,24 @@ tvcm.unittest.testSuite('tracing.importer.linux_perf_importer_test', function() 
     assertAlmostEquals((15180.978813 - 0) * 1000, c.slices[0].start);
   });
 
+  test('tracingMarkWriteEOLCleanup', function() {
+    var lines = [
+      'systrace.sh-8182  [001] ...1 2068001.677892: tracing_mark_write: ' +
+          'B|9304|test\\n\\',
+      'systrace.sh-8182  [002] ...1 2068991.686415: tracing_mark_write: E\\n\\'
+    ];
+
+    var m = new tracing.TraceModel(lines.join('\n'), false);
+    assertFalse(m.hasImportWarnings);
+
+    var c = m.processes[9304].threads[8182].sliceGroup;
+    assertEquals(1, c.slices.length);
+
+    assertAlmostEquals((2068001.677892 - 0) * 1000, c.slices[0].start);
+    assertAlmostEquals((2068991.686415 - 2068001.677892) * 1000,
+        c.slices[0].duration);
+  });
+
   test('cpuCount', function() {
     var lines = [
       'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
