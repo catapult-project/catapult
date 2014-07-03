@@ -18,6 +18,13 @@ tvcm.exportTo('tracing', function() {
   var EventPresenter = tracing.EventPresenter;
 
   /**
+   * This value is used to allow for consistent style UI elements.
+   * Thread time visualisation uses a smaller rectangle that has this height.
+   * @const
+   */
+  var THIN_SLICE_HEIGHT = 4;
+
+  /**
    * Should we elide text on trace labels?
    * Without eliding, text that is too wide isn't drawn at all.
    * Disable if you feel this causes a performance problem.
@@ -116,6 +123,14 @@ tvcm.exportTo('tracing', function() {
     var pixWidth = dt.xViewVectorToWorld(1);
     var height = viewHeight * pixelRatio;
 
+    var darkRectHeight = THIN_SLICE_HEIGHT * pixelRatio;
+
+    // Not enough space for both colors, use light color only.
+    if (height < darkRectHeight)
+      darkRectHeight = 0;
+
+    var lightRectHeight = height - darkRectHeight;
+
     // Begin rendering in world space.
     ctx.save();
     dt.applyTransformToCanvas(ctx);
@@ -144,7 +159,59 @@ tvcm.exportTo('tracing', function() {
 
       var colorId = EventPresenter.getSliceColorId(slice);
       var alpha = EventPresenter.getSliceAlpha(slice, async);
-      tr.fillRect(x, w, colorId, alpha);
+      var lightAlpha = alpha * 0.70;
+
+      // If cpuDuration is available, draw rectangles proportional to the
+      // amount of cpu time taken.
+      if (!slice.cpuDuration) {
+        // No cpuDuration available, draw using only one alpha.
+        tr.fillRect(x, w, colorId, alpha);
+        continue;
+      }
+
+      var activeWidth = w * (slice.cpuDuration / slice.duration);
+      var waitingWidth = w - activeWidth;
+
+      var finalActiveWidth = activeWidth;
+      var finalWaitingWidth = waitingWidth;
+
+      // Check if we have enough screen space to draw the whole slice, with
+      // both color tones.
+      if (activeWidth < pixWidth || waitingWidth < pixWidth) {
+        if (activeWidth > waitingWidth) {
+          finalActiveWidth = w;
+          finalWaitingWidth = 0;
+        } else {
+          finalActiveWidth = 0;
+          finalWaitingWidth = w;
+        }
+      }
+
+      // We now draw the two rectangles making up the event slice.
+      // NOTE: The if statements are necessary for performance considerations.
+      // We do not want to force draws, if the width of the rectangle is 0.
+      //
+      // First draw the solid color, representing the 'active' part.
+      if (finalActiveWidth > 0) {
+        tr.fillRect(x, finalActiveWidth, colorId, alpha);
+      }
+
+      // Next draw the two toned 'idle' part.
+      // NOTE: Substracting pixWidth and drawing one extra pixel is done to
+      // prevent drawing artifacts. Without it, the two parts of the slice,
+      // ('active' and 'idle') may appear split apart.
+      if (finalWaitingWidth > 0) {
+        // First draw the light toned top part.
+        tr.setYandH(0, lightRectHeight);
+        tr.fillRect(x + finalActiveWidth - pixWidth,
+            finalWaitingWidth + pixWidth, colorId, lightAlpha);
+        // Then the solid bottom half.
+        tr.setYandH(lightRectHeight, darkRectHeight);
+        tr.fillRect(x + finalActiveWidth - pixWidth,
+            finalWaitingWidth + pixWidth, colorId, alpha);
+        // Reset for the next slice.
+        tr.setYandH(0, height);
+      }
     }
     tr.flush();
     ctx.restore();
@@ -278,6 +345,8 @@ tvcm.exportTo('tracing', function() {
     drawTriangle: drawTriangle,
     drawArrow: drawArrow,
 
-    elidedTitleCache_: elidedTitleCache
+    elidedTitleCache_: elidedTitleCache,
+
+    THIN_SLICE_HEIGHT: THIN_SLICE_HEIGHT
   };
 });

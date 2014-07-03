@@ -64,7 +64,7 @@ tvcm.exportTo('tracing.tracks', function() {
       if (this.thread_.timeSlices) {
         var timeSlicesTrack = new tracing.tracks.SliceTrack(this.viewport);
         timeSlicesTrack.heading = '';
-        timeSlicesTrack.height = '4px';
+        timeSlicesTrack.height = tracing.THIN_SLICE_HEIGHT + 'px';
         timeSlicesTrack.slices = this.thread_.timeSlices;
         if (timeSlicesTrack.hasVisibleContent)
           this.appendChild(timeSlicesTrack);
