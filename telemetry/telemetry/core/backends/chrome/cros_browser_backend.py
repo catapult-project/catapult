@@ -73,7 +73,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--enable-smooth-scrolling',
             '--enable-threaded-compositing',
             '--enable-per-tile-painting',
-            '--force-compositing-mode',
             # Disables the start page, as well as other external apps that can
             # steal focus or make measurements inconsistent.
             '--disable-default-apps',
