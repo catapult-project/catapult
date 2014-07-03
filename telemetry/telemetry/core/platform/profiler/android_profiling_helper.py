@@ -197,12 +197,12 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
 
       if not os.path.exists(output_lib) or lib in mismatching_files[device_dir]:
         logging.info('Pulling %s to %s' % (lib, output_lib))
-        device.old_interface.PullFileFromDevice(lib, output_lib)
+        device.PullFile(lib, output_lib)
 
   # Also pull a copy of the kernel symbols.
   output_kallsyms = os.path.join(symfs_dir, 'kallsyms')
   if not os.path.exists(output_kallsyms):
-    device.old_interface.PullFileFromDevice('/proc/kallsyms', output_kallsyms)
+    device.PullFile('/proc/kallsyms', output_kallsyms)
   return output_kallsyms
 
 
@@ -217,8 +217,7 @@ def PrepareDeviceForPerf(device):
   """
   android_prebuilt_profiler_helper.InstallOnDevice(device, 'perf')
   # Make sure kernel pointers are not hidden.
-  device.old_interface.SetProtectedFileContents(
-      '/proc/sys/kernel/kptr_restrict', '0')
+  device.WriteFile('/proc/sys/kernel/kptr_restrict', '0', as_root=True)
   return android_prebuilt_profiler_helper.GetDevicePath('perf')
 
 

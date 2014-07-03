@@ -29,7 +29,7 @@ class DS2784PowerMonitor(power_monitor.PowerMonitor):
 
   @decorators.Cache
   def _HasFuelGauge(self):
-    return self._device.old_interface.FileExistsOnDevice(CHARGE_COUNTER)
+    return self._device.FileExists(CHARGE_COUNTER)
 
   def CanMonitorPower(self):
     if not self._HasFuelGauge():

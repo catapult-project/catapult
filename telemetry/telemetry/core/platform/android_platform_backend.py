@@ -258,8 +258,7 @@ class AndroidPlatformBackend(
     if not self._can_access_protected_file_contents:
       logging.warning('%s cannot be retrieved on non-rooted device.' % fname)
       return ''
-    return '\n'.join(
-        self._device.old_interface.GetProtectedFileContents(fname))
+    return '\n'.join(self._device.ReadFile(fname, as_root=True))
 
   def _GetPsOutput(self, columns, pid=None):
     assert columns == ['pid', 'name'] or columns == ['pid'], \

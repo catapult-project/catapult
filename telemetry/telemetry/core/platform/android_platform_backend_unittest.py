@@ -34,6 +34,9 @@ class MockDevice(object):
   def __init__(self, mock_adb_commands):
     self.old_interface = mock_adb_commands
 
+  def ReadFile(self, device_path, as_root=False): # pylint: disable=W0613
+    return self.old_interface.GetProtectedFileContents(device_path)
+
 
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):

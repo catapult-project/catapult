@@ -4,10 +4,12 @@
 
 import os
 
+from telemetry.core import util
 from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.platform import profiler
 from telemetry.util import support_binaries
 
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import intent
 
 class UnableToFindApplicationException(Exception):

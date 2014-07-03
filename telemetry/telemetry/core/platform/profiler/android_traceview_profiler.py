@@ -18,8 +18,7 @@ class AndroidTraceviewProfiler(profiler.Profiler):
     super(AndroidTraceviewProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)
 
-    if self._browser_backend.adb.device().old_interface.FileExistsOnDevice(
-        self._DEFAULT_DEVICE_DIR):
+    if self._browser_backend.adb.device().FileExists(self._DEFAULT_DEVICE_DIR):
       self._browser_backend.adb.RunShellCommand(
           'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))
     else:

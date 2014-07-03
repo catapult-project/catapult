@@ -40,7 +40,7 @@ class _TCMallocHeapProfilerAndroid(object):
       if not device_property or not device_property.strip():
         self._browser_backend.adb.system_properties[values[0]] = values[1]
         device_configured = True
-    if not self._browser_backend.adb.device().old_interface.FileExistsOnDevice(
+    if not self._browser_backend.adb.device().FileExists(
         self._DEFAULT_DEVICE_DIR):
       self._browser_backend.adb.RunShellCommand(
           'mkdir -p ' + self._DEFAULT_DEVICE_DIR)

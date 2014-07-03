@@ -17,6 +17,8 @@ from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core.forwarders import android_forwarder
 
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+from pylib.device import device_errors
 from pylib.device import intent
 
 
@@ -76,7 +78,7 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
 
   def PushProfile(self, new_profile_dir):
     # Pushing the profile is slow, so we don't want to do it every time.
-    # Avoid this by pushing to a safe location using PushIfNeeded, and
+    # Avoid this by pushing to a safe location using PushChangedFiles, and
     # then copying into the correct location on each test run.
 
     (profile_parent, profile_base) = os.path.split(new_profile_dir)
@@ -86,8 +88,7 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
       profile_base = os.path.basename(profile_parent)
 
     saved_profile_location = '/sdcard/profile/%s' % profile_base
-    self.adb.device().old_interface.PushIfNeeded(
-        new_profile_dir, saved_profile_location)
+    self.adb.device().PushChangedFiles(new_profile_dir, saved_profile_location)
 
     self.adb.device().old_interface.EfficientDeviceDirectoryCopy(
         saved_profile_location, self.profile_dir)
@@ -245,24 +246,19 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         else:
           return True
 
-    if IsProtectedFile(self._backend_settings.cmdline_file):
-      if not self._adb.device().old_interface.CanAccessProtectedFileContents():
-        logging.critical('Cannot set Chrome command line. '
-                         'Fix this by flashing to a userdebug build.')
-        sys.exit(1)
+    protected = IsProtectedFile(self._backend_settings.cmdline_file)
+    try:
       self._saved_cmdline = ''.join(
-          self._adb.device().old_interface.GetProtectedFileContents(
-              self._backend_settings.cmdline_file)
+          self._adb.device().ReadFile(
+              self._backend_settings.cmdline_file, as_root=protected)
           or [])
-      self._adb.device().old_interface.SetProtectedFileContents(
-          self._backend_settings.cmdline_file, file_contents)
-    else:
-      self._saved_cmdline = ''.join(
-          self._adb.device().old_interface.GetFileContents(
-              self._backend_settings.cmdline_file)
-          or [])
-      self._adb.device().old_interface.SetFileContents(
-          self._backend_settings.cmdline_file, file_contents)
+      self._adb.device().WriteFile(
+          self._backend_settings.cmdline_file, file_contents,
+          as_root=protected)
+    except device_errors.CommandFailedError:
+      logging.critical('Cannot set Chrome command line. '
+                       'Fix this by flashing to a userdebug build.')
+      sys.exit(1)
 
   def Start(self):
     self._SetUpCommandLine()

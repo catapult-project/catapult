@@ -19,7 +19,7 @@ def _GetLibrariesMappedIntoProcesses(device, pids):
   libs = set()
   for pid in pids:
     maps_file = '/proc/%d/maps' % pid
-    maps = device.old_interface.GetProtectedFileContents(maps_file)
+    maps = device.ReadFile(maps_file, as_root=True)
     for map_line in maps:
       lib = re.match(r'.*\s(/.*[.]so)$', map_line)
       if lib:
@@ -126,8 +126,7 @@ class TestAndroidProfilingHelper(tab_test_case.TabTestCase):
   @benchmark.Enabled('android')
   def testGetToolchainBinaryPath(self):
     with tempfile.NamedTemporaryFile() as libc:
-      self._device.old_interface.PullFileFromDevice('/system/lib/libc.so',
-                                                    libc.name)
+      self._device.PullFile('/system/lib/libc.so', libc.name)
       path = android_profiling_helper.GetToolchainBinaryPath(libc.name,
                                                              'objdump')
       assert os.path.exists(path)

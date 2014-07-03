@@ -176,8 +176,7 @@ class AndroidRndisConfigurator(object):
 
   def _IsRndisSupported(self):
     """Checks that the device has RNDIS support in the kernel."""
-    return self._device.old_interface.FileExistsOnDevice(
-        '%s/f_rndis/device' % self._RNDIS_DEVICE)
+    return self._device.FileExists('%s/f_rndis/device' % self._RNDIS_DEVICE)
 
   def _WaitForDevice(self):
     self._device.old_interface.Adb().SendCommand('wait-for-device')
@@ -202,7 +201,7 @@ class AndroidRndisConfigurator(object):
   def _FindHostRndisInterface(self):
     """Returns the name of the host-side network interface."""
     interface_list = self._EnumerateHostInterfaces()
-    ether_address = self._device.old_interface.GetFileContents(
+    ether_address = self._device.ReadFile(
         '%s/f_rndis/ethaddr' % self._RNDIS_DEVICE)[0]
     interface_name = None
     for line in interface_list:
@@ -255,13 +254,12 @@ function doit() {
 doit &
     """ % {'dev': self._RNDIS_DEVICE, 'functions': 'rndis,adb',
            'prefix': script_prefix }
-    self._device.old_interface.SetFileContents('%s.sh' % script_prefix, script)
+    self._device.WriteFile('%s.sh' % script_prefix, script)
     # TODO(szym): run via su -c if necessary.
     self._device.RunShellCommand('rm %s.log' % script_prefix)
     self._device.RunShellCommand('. %s.sh' % script_prefix)
     self._WaitForDevice()
-    result = self._device.old_interface.GetFileContents(
-        '%s.log' % script_prefix)
+    result = self._device.ReadFile('%s.log' % script_prefix)
     assert any('DONE' in line for line in result), 'RNDIS script did not run!'
 
   def _CheckEnableRndis(self, force):
