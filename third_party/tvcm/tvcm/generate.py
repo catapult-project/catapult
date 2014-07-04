@@ -55,7 +55,10 @@ def GenerateCSS(load_sequence):
 def _EscapeJSIfNeeded(js):
   return js.replace("</script>", "<\/script>")
 
-def GenerateJS(load_sequence, include_html_templates=True):
+def GenerateJS(load_sequence, include_html_templates=True, use_include_tags_for_scripts=False, dir_for_include_tag_root=None):
+  if use_include_tags_for_scripts and dir_for_include_tag_root == None:
+    raise Exception('Must provide dir_for_include_tag_root')
+
   js_chunks = [js_warning_message, '\n']
   js_chunks.append("window.FLATTENED = {};\n")
   js_chunks.append("window.FLATTENED_RAW_SCRIPTS = {};\n")
@@ -80,10 +83,20 @@ def GenerateJS(load_sequence, include_html_templates=True):
 
   for module in load_sequence:
     for dependent_raw_script in module.dependent_raw_scripts:
-      js_chunks.append(_EscapeJSIfNeeded(dependent_raw_script.contents))
-      js_chunks.append('\n')
-    js_chunks.append(_EscapeJSIfNeeded(module.contents))
-    js_chunks.append("\n")
+      if use_include_tags_for_scripts:
+        rel_filename = os.path.relpath(dependent_raw_script.filename,
+                                       dir_for_include_tag_root)
+        js_chunks.append("""<include src="%s">\n""" % rel_filename)
+      else:
+        js_chunks.append(_EscapeJSIfNeeded(dependent_raw_script.contents))
+        js_chunks.append('\n')
+    if use_include_tags_for_scripts:
+      rel_filename = os.path.relpath(module.filename,
+                                     dir_for_include_tag_root)
+      js_chunks.append("""<include src="%s">\n""" % rel_filename)
+    else:
+      js_chunks.append(_EscapeJSIfNeeded(module.contents))
+      js_chunks.append("\n")
 
   return ''.join(js_chunks)
 
