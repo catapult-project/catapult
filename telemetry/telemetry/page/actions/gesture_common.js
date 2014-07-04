@@ -7,12 +7,29 @@
 
 (function() {
 
+  // Returns the bounding rectangle wrt to the top-most document.
+  function getBoundingRect(el) {
+    var client_rect = el.getBoundingClientRect();
+    var bound = { left: client_rect.left,
+                  top: client_rect.top,
+                  width: client_rect.width,
+                  height: client_rect.height };
+
+    var frame = el.ownerDocument.defaultView.frameElement;
+    while (frame) {
+      var frame_bound = frame.getBoundingClientRect();
+      // This computation doesn't account for more complex CSS transforms on the
+      // frame (e.g. scaling or rotations).
+      bound.left += frame_bound.left;
+      bound.top += frame_bound.top;
+
+      frame = frame.ownerDocument.frameElement;
+    }
+    return bound;
+  }
+
   function getBoundingVisibleRect(el) {
-    var bound = el.getBoundingClientRect();
-    var rect = { top: bound.top,
-                 left: bound.left,
-                 width: bound.width,
-                 height: bound.height };
+    var rect = getBoundingRect(el);
     if (rect.top < 0) {
       rect.height += rect.top;
       rect.top = 0;
