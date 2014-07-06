@@ -16,6 +16,12 @@ class PowerMonitor(object):
     """
     return False
 
+  def CanMeasurePerApplicationPower(self):
+    """Returns True if the power monitor can measure power for the target
+    application in isolation. False if power measurement is for full system
+    energy consumption."""
+    return False
+
   def StartMonitoringPower(self, browser):
     """Starts monitoring power utilization statistics.
 
