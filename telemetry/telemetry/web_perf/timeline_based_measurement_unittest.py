@@ -103,14 +103,20 @@ class TimelineBasedMetricsTests(unittest.TestCase):
 
 class TestTimelinebasedMeasurementPage(page_module.Page):
 
-  def __init__(self, ps, base_dir):
+  def __init__(self, ps, base_dir, trigger_animation=False,
+               trigger_jank=False):
     super(TestTimelinebasedMeasurementPage, self).__init__(
         'file://interaction_enabled_page.html', ps, base_dir)
+    self._trigger_animation = trigger_animation
+    self._trigger_jank = trigger_jank
 
   def RunSmoothness(self, action_runner):
-    action_runner.Wait(2)
-    action_runner.TapElement('#drawer')
-    action_runner.Wait(1)
+    if self._trigger_animation:
+      action_runner.TapElement('#animating-button')
+      action_runner.WaitForJavaScriptCondition('window.animationDone')
+    if self._trigger_jank:
+      action_runner.TapElement('#jank-button')
+      action_runner.WaitForJavaScriptCondition('window.jankScriptDone')
 
 
 class TimelineBasedMeasurementTest(
@@ -120,16 +126,15 @@ class TimelineBasedMeasurementTest(
     self._options = options_for_unittests.GetCopy()
     self._options.browser_options.wpr_mode = wpr_modes.WPR_OFF
 
-  # Disabled due to flakiness: crbug.com/368386
-  @benchmark.Disabled
   def testSmoothnessTimelineBasedMeasurementForSmoke(self):
-    ps = self.CreatePageSetFromFileInUnittestDataDir(
-        'interaction_enabled_page.html')
-    setattr(ps.pages[0], 'RunSmoothness', {
-        'action': 'wait', 'javascript': 'window.animationDone'})
+    ps = self.CreateEmptyPageSet()
+    ps.AddPage(TestTimelinebasedMeasurementPage(
+        ps, ps.base_dir, trigger_animation=True))
+
     measurement = tbm_module.TimelineBasedMeasurement()
     results = self.RunMeasurement(measurement, ps,
                                   options=self._options)
+
     self.assertEquals(0, len(results.failures))
     v = results.FindAllPageSpecificValuesNamed('CenterAnimation-jank')
     self.assertEquals(len(v), 1)
@@ -140,7 +145,8 @@ class TimelineBasedMeasurementTest(
   @benchmark.Disabled('win')
   def testMainthreadJankTimelineBasedMeasurement(self):
     ps = self.CreateEmptyPageSet()
-    ps.AddPage(TestTimelinebasedMeasurementPage(ps, ps.base_dir))
+    ps.AddPage(TestTimelinebasedMeasurementPage(
+        ps, ps.base_dir, trigger_jank=True))
 
     measurement = tbm_module.TimelineBasedMeasurement()
     results = self.RunMeasurement(measurement, ps,

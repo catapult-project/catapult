@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
   <head>
+    <meta name="viewport" content="user-scalable:no">
     <style type="text/css">
       body { height: 1500px; }
       #center {
@@ -29,7 +30,7 @@
     <script>
     'use strict';
     window.animationDone = false;
-    window.addEventListener('load', function() {
+    function makeAnimation() {
       var centerEl = document.querySelector('#center');
       centerEl.style.webkitTransform = 'scale(1.0, 1.0)';
       console.time('Interaction.CenterAnimation/is_smooth');
@@ -43,8 +44,25 @@
           window.animationDone = true;
         });
       });
-    });
+    }
     </script>
+
+    <script>
+    'use strict';
+    var jankMs = 100;
+    window.jankScriptDone = false;
+    function makeJank() {
+      console.time('Interaction.JankThreadJSRun/is_responsive');
+      var startTime = window.performance.now();
+      var currTime = startTime;
+      while (currTime - startTime < jankMs) {
+        var currTime = window.performance.now();
+      }
+      console.timeEnd('Interaction.JankThreadJSRun/is_responsive');
+      window.jankScriptDone = true;
+    }
+    </script>
+
   </head>
   <body>
     <div id="center">
@@ -53,20 +71,12 @@
     <div id="drawer">
       This is a drawer.
     </div>
-    <script>
-    'use strict';
-    var jankMs = 100;
-    function jankThread() {
-      console.time('Interaction.JankThreadJSRun/is_responsive');
-      var startTime = window.performance.now();
-      var currTime = startTime;
-      while (currTime - startTime < jankMs) {
-        var currTime = window.performance.now();
-      }
-      console.timeEnd('Interaction.JankThreadJSRun/is_responsive');
-    }
-    var drawer = document.getElementById('drawer');
-    drawer.addEventListener('click', jankThread);
-    </script>
+    <button type="button" id="animating-button" onclick="makeAnimation()">
+      Click or tap this to trigger an animation.
+    </div>
+    <button type="button" id="jank-button" onclick="makeJank()">
+      Click or tap this to make jank of 100ms (approximately).
+    </div>
+
   </body>
 </html>
