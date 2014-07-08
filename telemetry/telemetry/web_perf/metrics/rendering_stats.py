@@ -1,9 +1,11 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 
 from operator import attrgetter
 from telemetry.page import page_measurement
+from telemetry.web_perf.metrics import rendering_frame
 
 # These are LatencyInfo component names indicating the various components
 # that the input event has travelled through.
@@ -42,12 +44,13 @@ def GetInputLatencyEvents(process, timeline_range):
   input_events = []
   if not process:
     return input_events
-  for event in process.IterAllAsyncSlicesOfName("InputLatency"):
+  for event in process.IterAllAsyncSlicesOfName('InputLatency'):
     if event.start >= timeline_range.min and event.end <= timeline_range.max:
       for ss in event.sub_slices:
         if 'data' in ss.args:
           input_events.append(ss)
   return input_events
+
 
 def ComputeInputEventLatency(input_events):
   """ Compute the input event latency.
@@ -77,6 +80,7 @@ def ComputeInputEventLatency(input_events):
         raise ValueError, 'LatencyInfo has no begin component'
       input_event_latency.append(latency / 1000.0)
   return input_event_latency
+
 
 def HasRenderingStats(process):
   """ Returns True if the process contains at least one
@@ -126,6 +130,7 @@ class RenderingStats(object):
     # End-to-end latency for input event - from when input event is
     # generated to when the its resulted page is swap buffered.
     self.input_event_latency = []
+    self.frame_queueing_durations = []
 
     for timeline_range in timeline_ranges:
       self.frame_timestamps.append([])
@@ -148,6 +153,8 @@ class RenderingStats(object):
           renderer_process, timeline_range)
       self._InitInputLatencyStatsFromTimeline(
           browser_process, renderer_process, timeline_range)
+      self._InitFrameQueueingDurationsFromTimeline(
+          renderer_process, timeline_range)
 
     # Check if we have collected at least 2 frames in every range. Otherwise we
     # can't compute any meaningful metrics.
@@ -176,7 +183,7 @@ class RenderingStats(object):
   def _AddFrameTimestamp(self, event):
     frame_count = event.args['data']['frame_count']
     if frame_count > 1:
-      raise ValueError, 'trace contains multi-frame render stats'
+      raise ValueError('trace contains multi-frame render stats')
     if frame_count == 1:
       self.frame_timestamps[-1].append(
           event.start)
@@ -192,7 +199,6 @@ class RenderingStats(object):
     event_name = 'BenchmarkInstrumentation::ImplThreadRenderingStats'
     for event in self._GatherEvents(event_name, process, timeline_range):
       self._AddFrameTimestamp(event)
-
 
   def _InitMainThreadRenderingStatsFromTimeline(self, process, timeline_range):
     event_name = 'BenchmarkInstrumentation::MainThreadRenderingStats'
@@ -215,3 +221,13 @@ class RenderingStats(object):
                   float(data['visible_content_area']) * 100.0, 3))
       else:
         self.approximated_pixel_percentages[-1].append(0.0)
+
+  def _InitFrameQueueingDurationsFromTimeline(self, process, timeline_range):
+    try:
+      events = rendering_frame.GetFrameEventsInsideRange(process,
+                                                         timeline_range)
+      new_frame_queueing_durations = [e.queueing_duration for e in events]
+      self.frame_queueing_durations.append(new_frame_queueing_durations)
+    except rendering_frame.NoBeginFrameIdException:
+      logging.warning('Current chrome version does not support the queueing '
+                      'delay metric.')

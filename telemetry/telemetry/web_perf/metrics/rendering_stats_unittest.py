@@ -10,8 +10,8 @@ from telemetry.web_perf.metrics.rendering_stats import (
 from telemetry.web_perf.metrics.rendering_stats import ComputeInputEventLatency
 from telemetry.web_perf.metrics.rendering_stats import GetInputLatencyEvents
 from telemetry.web_perf.metrics.rendering_stats import HasRenderingStats
-from telemetry.web_perf.metrics.rendering_stats import RenderingStats
 from telemetry.web_perf.metrics.rendering_stats import NotEnoughFramesError
+from telemetry.web_perf.metrics.rendering_stats import RenderingStats
 from telemetry.util.statistics import DivideIfPossibleOrZero
 import telemetry.timeline.bounds as timeline_bounds
 from telemetry.timeline import model
@@ -194,6 +194,7 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
   ref_latency_stats.input_event.append(async_sub_slice)
   ref_latency_stats.input_event_latency.append(
       (data[END_COMP_NAME]['time'] - data[ORIGINAL_COMP_NAME]['time']) / 1000.0)
+
 
 class RenderingStatsUnitTest(unittest.TestCase):
   def testHasRenderingStats(self):

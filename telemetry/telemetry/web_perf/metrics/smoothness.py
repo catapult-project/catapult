@@ -30,6 +30,11 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
       results.Add('input_event_latency_discrepancy', 'ms',
                   round(input_event_latency_discrepancy, 4))
 
+    # List of queueing durations
+    frame_queueing_durations = FlattenList(stats.frame_queueing_durations)
+    if frame_queueing_durations:
+      results.Add('queueing_durations', 'ms', frame_queueing_durations)
+
     # List of raw frame times.
     frame_times = FlattenList(stats.frame_times)
     results.Add('frame_times', 'ms', frame_times)
