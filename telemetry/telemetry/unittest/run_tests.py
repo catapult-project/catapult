@@ -6,70 +6,80 @@ import logging
 import unittest
 
 from telemetry import decorators
+from telemetry.core import browser_finder
 from telemetry.core import browser_options
+from telemetry.core import command_line
 from telemetry.core import discover
-from telemetry.core import util
-from telemetry.unittest import gtest_testrunner
-from telemetry.unittest import options_for_unittests
+from telemetry.unittest import gtest_unittest_results
+
+
+class Environment(object):
+  def __init__(self, top_level_dir, test_dirs):
+    self._top_level_dir = top_level_dir
+    self._test_dirs = tuple(test_dirs)
+
+  @property
+  def top_level_dir(self):
+    return self._top_level_dir
+
+  @property
+  def test_dirs(self):
+    return self._test_dirs
 
 
 def Discover(start_dir, top_level_dir=None, pattern='test*.py'):
   loader = unittest.defaultTestLoader
-  loader.suiteClass = gtest_testrunner.GTestTestSuite
-  subsuites = []
+  loader.suiteClass = gtest_unittest_results.GTestTestSuite
 
+  test_suites = []
   modules = discover.DiscoverModules(start_dir, top_level_dir, pattern)
   for module in modules:
     if hasattr(module, 'suite'):
-      new_suite = module.suite()
+      suite = module.suite()
     else:
-      new_suite = loader.loadTestsFromModule(module)
-    if new_suite.countTestCases():
-      subsuites.append(new_suite)
-  return gtest_testrunner.GTestTestSuite(subsuites)
+      suite = loader.loadTestsFromModule(module)
+    if suite.countTestCases():
+      test_suites.append(suite)
+  return test_suites
 
 
 def FilterSuite(suite, predicate):
   new_suite = suite.__class__()
-  for x in suite:
-    if isinstance(x, unittest.TestSuite):
-      subsuite = FilterSuite(x, predicate)
-      if subsuite.countTestCases() == 0:
-        continue
-
-      new_suite.addTest(subsuite)
-      continue
-
-    assert isinstance(x, unittest.TestCase)
-    if predicate(x):
-      new_suite.addTest(x)
+  for test in suite:
+    if isinstance(test, unittest.TestSuite):
+      subsuite = FilterSuite(test, predicate)
+      if subsuite.countTestCases():
+        new_suite.addTest(subsuite)
+    else:
+      assert isinstance(test, unittest.TestCase)
+      if predicate(test):
+        new_suite.addTest(test)
 
   return new_suite
 
 
-def DiscoverAndRunTests(dir_name, args, top_level_dir, possible_browser,
-                        default_options, runner):
-  if not runner:
-    runner = gtest_testrunner.GTestTestRunner(print_result_after_run=True)
-  suite = Discover(dir_name, top_level_dir, '*_unittest.py')
+def DiscoverTests(search_dirs, top_level_dir, possible_browser,
+                  selected_tests=None, run_disabled_tests=False):
   def IsTestSelected(test):
-    if len(args) != 0:
+    if selected_tests:
       found = False
-      for name in args:
+      for name in selected_tests:
         if name in test.id():
           found = True
       if not found:
         return False
-    if default_options.run_disabled_tests:
+    if run_disabled_tests:
       return True
     # pylint: disable=W0212
     if not hasattr(test, '_testMethodName'):
       return True
     method = getattr(test, test._testMethodName)
     return decorators.IsEnabled(method, possible_browser)
-  filtered_suite = FilterSuite(suite, IsTestSelected)
-  test_result = runner.run(filtered_suite)
-  return test_result
+
+  wrapper_suite = gtest_unittest_results.GTestTestSuite()
+  for search_dir in search_dirs:
+    wrapper_suite.addTests(Discover(search_dir, top_level_dir, '*_unittest.py'))
+  return FilterSuite(wrapper_suite, IsTestSelected)
 
 
 def RestoreLoggingLevel(func):
@@ -87,53 +97,51 @@ def RestoreLoggingLevel(func):
   return _LoggingRestoreWrapper
 
 
-@RestoreLoggingLevel
-def Main(args, start_dir, top_level_dir, runner=None):
-  """Unit test suite that collects all test cases for telemetry."""
-  # Add unittest_data to the path so we can import packages from it.
-  util.AddDirToPythonPath(util.GetUnittestDataDir())
+environment = None
 
-  default_options = browser_options.BrowserFinderOptions()
-  default_options.browser_type = 'any'
 
-  parser = default_options.CreateParser('run_tests [options] [test names]')
-  parser.add_option('--repeat-count', dest='run_test_repeat_count',
-                    type='int', default=1,
-                    help='Repeats each a provided number of times.')
-  parser.add_option('-d', '--also-run-disabled-tests',
-                    dest='run_disabled_tests',
-                    action='store_true', default=False,
-                    help='Ignore @Disabled and @Enabled restrictions.')
+class RunTestsCommand(command_line.OptparseCommand):
+  """Run unit tests"""
 
-  _, args = parser.parse_args(args)
+  usage = '[test_name ...] [<options>]'
 
-  if default_options.verbosity == 0:
-    logging.getLogger().setLevel(logging.WARN)
+  @classmethod
+  def CreateParser(cls):
+    options = browser_options.BrowserFinderOptions()
+    options.browser_type = 'any'
+    parser = options.CreateParser('%%prog %s' % cls.usage)
+    return parser
 
-  from telemetry.core import browser_finder
-  try:
-    browser_to_create = browser_finder.FindBrowser(default_options)
-  except browser_finder.BrowserFinderException, ex:
-    logging.error(str(ex))
-    return 1
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
+    parser.add_option('--repeat-count', type='int', default=1,
+                      help='Repeats each a provided number of times.')
+    parser.add_option('-d', '--also-run-disabled-tests',
+                      dest='run_disabled_tests',
+                      action='store_true', default=False,
+                      help='Ignore @Disabled and @Enabled restrictions.')
 
-  if browser_to_create == None:
-    logging.error('No browser found of type %s. Cannot run tests.',
-                  default_options.browser_type)
-    logging.error('Re-run with --browser=list to see available browser types.')
-    return 1
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
+    if args.verbosity == 0:
+      logging.getLogger().setLevel(logging.WARN)
 
-  options_for_unittests.Set(default_options,
-                            browser_to_create.browser_type)
-  try:
-    success = True
-    for _ in xrange(default_options.run_test_repeat_count):
-      success = success and DiscoverAndRunTests(
-          start_dir, args, top_level_dir, browser_to_create, default_options,
-          runner)
-    if success:
-      return 0
-  finally:
-    options_for_unittests.Set(None, None)
+    try:
+      possible_browser = browser_finder.FindBrowser(args)
+    except browser_finder.BrowserFinderException, ex:
+      parser.error(ex)
 
-  return 1
+    if not possible_browser:
+      parser.error('No browser found of type %s. Cannot run tests.\n'
+                   'Re-run with --browser=list to see '
+                   'available browser types.' % args.browser_type)
+
+  @RestoreLoggingLevel
+  def Run(self, args):
+    possible_browser = browser_finder.FindBrowser(args)
+    test_suite = DiscoverTests(
+        environment.test_dirs, environment.top_level_dir, possible_browser,
+        args.positional_args, args.run_disabled_tests)
+    runner = gtest_unittest_results.GTestTestRunner()
+    result = runner.run(test_suite, args.repeat_count, args)
+    return len(result.failures_and_errors)

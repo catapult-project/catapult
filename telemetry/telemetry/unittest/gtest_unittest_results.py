@@ -7,87 +7,123 @@ import sys
 import time
 import unittest
 
+from telemetry.core import util
+from telemetry.unittest import options_for_unittests
+
+
+class GTestTestSuite(unittest.TestSuite):
+  def run(self, result):  # pylint: disable=W0221
+    result.StartTestSuite(self)
+    result = super(GTestTestSuite, self).run(result)
+    result.StopTestSuite(self)
+    return result
+
+
+class GTestTestRunner(object):
+  def run(self, test, repeat_count, args):
+    util.AddDirToPythonPath(util.GetUnittestDataDir())
+    result = GTestUnittestResults(sys.stdout)
+    try:
+      options_for_unittests.Set(args)
+      for _ in xrange(repeat_count):
+        test(result)
+    finally:
+      options_for_unittests.Set(None)
+
+    result.PrintSummary()
+    return result
+
+
+def _FormatTestName(test):
+  chunks = test.id().split('.')[2:]
+  return '.'.join(chunks)
+
 
 class GTestUnittestResults(unittest.TestResult):
   def __init__(self, output_stream):
     super(GTestUnittestResults, self).__init__()
     self._output_stream = output_stream
-    self._timestamp = None
-    self._successes_count = 0
+    self._test_start_time = None
+    self._test_suite_start_time = None
+    self.successes = []
 
   @property
-  def successes_count(self):
-    return self._successes_count
+  def failures_and_errors(self):
+    return self.failures + self.errors
 
   def _GetMs(self):
-    return (time.time() - self._timestamp) * 1000
+    return (time.time() - self._test_start_time) * 1000
 
-  @property
-  def num_errors(self):
-    return len(self.errors) + len(self.failures)
-
-  @staticmethod
-  def _formatTestname(test):
-    chunks = test.id().split('.')[2:]
-    return '.'.join(chunks)
-
-  def _emitFailure(self, test, err):
+  def _EmitFailure(self, test, err):
     print >> self._output_stream, self._exc_info_to_string(err, test)
-    test_name = GTestUnittestResults._formatTestname(test)
-    print >> self._output_stream, '[  FAILED  ]', test_name, (
+    print >> self._output_stream, '[  FAILED  ]', _FormatTestName(test), (
         '(%0.f ms)' % self._GetMs())
     sys.stdout.flush()
 
   def addError(self, test, err):
     super(GTestUnittestResults, self).addError(test, err)
-    self._emitFailure(test, err)
+    self._EmitFailure(test, err)
 
   def addFailure(self, test, err):
     super(GTestUnittestResults, self).addFailure(test, err)
-    self._emitFailure(test, err)
+    self._EmitFailure(test, err)
 
   def startTest(self, test):
     super(GTestUnittestResults, self).startTest(test)
-    print >> self._output_stream, '[ RUN      ]', (
-        GTestUnittestResults._formatTestname(test))
+    print >> self._output_stream, '[ RUN      ]', _FormatTestName(test)
     sys.stdout.flush()
-    self._timestamp = time.time()
+    self._test_start_time = time.time()
 
   def addSuccess(self, test):
     super(GTestUnittestResults, self).addSuccess(test)
-    self._successes_count += 1
-    test_name = GTestUnittestResults._formatTestname(test)
-    print >> self._output_stream, '[       OK ]', test_name, (
+    self.successes.append(test)
+    print >> self._output_stream, '[       OK ]', _FormatTestName(test), (
         '(%0.f ms)' % self._GetMs())
     sys.stdout.flush()
 
   def addSkip(self, test, reason):
     super(GTestUnittestResults, self).addSkip(test, reason)
-    test_name = GTestUnittestResults._formatTestname(test)
-    logging.warning('===== SKIPPING TEST %s: %s =====', test_name, reason)
-    if self._timestamp == None:
-      self._timestamp = time.time()
-    print >> self._output_stream, '[       OK ]', test_name, (
+    logging.warning('===== SKIPPING TEST %s: %s =====',
+                    _FormatTestName(test), reason)
+    if self._test_start_time == None:
+      self._test_start_time = time.time()
+    print >> self._output_stream, '[       OK ]', _FormatTestName(test), (
         '(%0.f ms)' % self._GetMs())
     sys.stdout.flush()
 
+  def StartTestSuite(self, suite):
+    contains_test_suites = any(isinstance(test, unittest.TestSuite)
+                               for test in suite)
+    if not contains_test_suites:
+      test_count = len([test for test in suite])
+      unit = 'test' if test_count == 1 else 'tests'
+      print '[----------]', test_count, unit
+      self._test_suite_start_time = time.time()
+
+  def StopTestSuite(self, suite):
+    contains_test_suites = any(isinstance(test, unittest.TestSuite)
+                               for test in suite)
+    if not contains_test_suites:
+      elapsed_ms = (time.time() - self._test_suite_start_time) * 1000
+      test_count = len([test for test in suite])
+      unit = 'test' if test_count == 1 else 'tests'
+      print '[----------]', test_count, unit, '(%d ms total)' % elapsed_ms
+      print
+
   def PrintSummary(self):
-    unit = 'test' if self._successes_count == 1 else 'tests'
+    unit = 'test' if len(self.successes) == 1 else 'tests'
     print >> self._output_stream, '[  PASSED  ]', (
-        '%d %s.' % (self._successes_count, unit))
-    if self.errors or self.failures:
-      all_errors = self.errors[:]
-      all_errors.extend(self.failures)
-      unit = 'test' if len(all_errors) == 1 else 'tests'
-      print >> self._output_stream, '[  FAILED  ]', (
-          '%d %s, listed below:' % (len(all_errors), unit))
-      for test, _ in all_errors:
-        print >> self._output_stream, '[  FAILED  ] ', (
-            GTestUnittestResults._formatTestname(test))
+        '%d %s.' % (len(self.successes), unit))
     if not self.wasSuccessful():
+      failure_and_error_count = len(self.failures_and_errors)
+      unit = 'test' if failure_and_error_count == 1 else 'tests'
+      print >> self._output_stream, '[  FAILED  ]', (
+          '%d %s, listed below:' % (failure_and_error_count, unit))
+      for test, _ in self.failures_and_errors:
+        print >> self._output_stream, '[  FAILED  ] ', _FormatTestName(test)
       print >> self._output_stream
-      count = len(self.errors) + len(self.failures)
-      unit = 'TEST' if count == 1 else 'TESTS'
-      print >> self._output_stream, '%d FAILED %s' % (count, unit)
+
+      unit = 'TEST' if failure_and_error_count == 1 else 'TESTS'
+      print >> self._output_stream, failure_and_error_count, 'FAILED', unit
     print >> self._output_stream
     sys.stdout.flush()

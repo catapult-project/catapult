@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import logging
-import sys
 import time
 
 from telemetry.results import page_test_results
@@ -17,15 +16,11 @@ class GTestTestResults(page_test_results.PageTestResults):
   def _GetMs(self):
     return (time.time() - self._timestamp) * 1000
 
-  @property
-  def num_errors(self):
-    return len(self.errors) + len(self.failures)
-
   def _emitFailure(self, page, err):
     print >> self._output_stream, self._GetStringFromExcInfo(err)
     print >> self._output_stream, '[  FAILED  ]', page.display_name, (
         '(%0.f ms)' % self._GetMs())
-    sys.stdout.flush()
+    self._output_stream.flush()
 
   def AddError(self, page, err):
     super(GTestTestResults, self).AddError(page, err)
@@ -37,27 +32,25 @@ class GTestTestResults(page_test_results.PageTestResults):
 
   def StartTest(self, page):
     super(GTestTestResults, self).StartTest(page)
-    print >> self._output_stream, '[ RUN      ]', (
-        page.display_name)
-    sys.stdout.flush()
+    print >> self._output_stream, '[ RUN      ]', page.display_name
+    self._output_stream.flush()
     self._timestamp = time.time()
 
   def AddSuccess(self, page):
     super(GTestTestResults, self).AddSuccess(page)
-    test_name = page.display_name
-    print >> self._output_stream, '[       OK ]', test_name, (
+    print >> self._output_stream, '[       OK ]', page.display_name, (
         '(%0.f ms)' % self._GetMs())
-    sys.stdout.flush()
+    self._output_stream.flush()
 
   def AddSkip(self, page, reason):
     super(GTestTestResults, self).AddSkip(page, reason)
-    test_name = page.display_name
-    logging.warning('===== SKIPPING TEST %s: %s =====', test_name, reason)
+    logging.warning('===== SKIPPING TEST %s: %s =====',
+                    page.display_name, reason)
     if self._timestamp == None:
       self._timestamp = time.time()
-    print >> self._output_stream, '[       OK ]', test_name, (
+    print >> self._output_stream, '[       OK ]', page.display_name, (
         '(%0.f ms)' % self._GetMs())
-    sys.stdout.flush()
+    self._output_stream.flush()
 
   def PrintSummary(self):
     unit = 'test' if len(self.successes) == 1 else 'tests'
@@ -77,4 +70,4 @@ class GTestTestResults(page_test_results.PageTestResults):
       unit = 'TEST' if count == 1 else 'TESTS'
       print >> self._output_stream, '%d FAILED %s' % (count, unit)
     print >> self._output_stream
-    sys.stdout.flush()
+    self._output_stream.flush()
