@@ -6,6 +6,17 @@
 
 /**
  * @fileoverview Parses processes events in the Windows event trace format.
+ *
+ * The Windows process events are:
+ *
+ * - DCStart: Describes a process that was already running when the trace
+ *    started. ETW automatically generates these events for all running
+ *    processes at the beginning of the trace.
+ * - Start: Describes a process launched during the tracing session.
+ * - End: Describes a process that ended during the tracing session.
+ * - DCEnd: Describes a process that was still running when the trace ended.
+ *
+ * See http://msdn.microsoft.com/library/windows/desktop/aa364092.aspx
  */
 tvcm.require('tracing.importer.etw.parser');
 
@@ -115,25 +126,37 @@ tvcm.exportTo('tracing.importer.etw', function() {
 
     decodeStart: function(header, decoder) {
       var fields = this.decodeFields(header, decoder);
-      // TODO(etienneb): Update the TraceModel with |fields|.
+      var process = this.model.getOrCreateProcess(fields.processId);
+      if (process.hasOwnProperty('has_ended')) {
+        // On Windows, a process ID used by a process could be reused as soon as
+        // the process ends (there is no pid cycling like on Linux). However, in
+        // a short trace, this is unlikely to happen.
+        throw new Error('Process clash detected.');
+      }
+      process.name = fields.imageFileName;
       return true;
     },
 
     decodeEnd: function(header, decoder) {
       var fields = this.decodeFields(header, decoder);
-      // TODO(etienneb): Update the TraceModel with |fields|.
+      var process = this.model.getOrCreateProcess(fields.processId);
+      process.has_ended = true;
       return true;
     },
 
     decodeDCStart: function(header, decoder) {
       var fields = this.decodeFields(header, decoder);
-      // TODO(etienneb): Update the TraceModel with |fields|.
+      var process = this.model.getOrCreateProcess(fields.processId);
+      if (process.hasOwnProperty('has_ended'))
+        throw new Error('Process clash detected.');
+      process.name = fields.imageFileName;
       return true;
     },
 
     decodeDCEnd: function(header, decoder) {
       var fields = this.decodeFields(header, decoder);
-      // TODO(etienneb): Update the TraceModel with |fields|.
+      var process = this.model.getOrCreateProcess(fields.processId);
+      process.has_ended = true;
       return true;
     },
 

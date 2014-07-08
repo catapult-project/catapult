@@ -271,9 +271,9 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     assertTrue(importer.tidsToPid_.hasOwnProperty(20));
 
     // Retrieve existing threads and processes.
-    var pid10 = importer.getThreadFromWindowsTid(10);
-    var pid11 = importer.getThreadFromWindowsTid(11);
-    var pid20 = importer.getThreadFromWindowsTid(20);
+    var pid10 = importer.getPidFromWindowsTid(10);
+    var pid11 = importer.getPidFromWindowsTid(11);
+    var pid20 = importer.getPidFromWindowsTid(20);
 
     assertTrue(pid10, 1);
     assertTrue(pid11, 1);

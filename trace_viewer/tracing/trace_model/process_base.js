@@ -176,6 +176,14 @@ tvcm.exportTo('tracing.trace_model', function() {
 
     /**
      * @return {TimelineThread} The thread identified by tid on this process,
+     * or undefined if it doesn't exist.
+     */
+    getThread: function(tid) {
+      return this.threads[tid];
+    },
+
+    /**
+     * @return {TimelineThread} The thread identified by tid on this process,
      * creating it if it doesn't exist.
      */
     getOrCreateThread: function(tid) {

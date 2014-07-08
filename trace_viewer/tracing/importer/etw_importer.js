@@ -43,12 +43,17 @@
 tvcm.require('tvcm.base64');
 tvcm.require('tracing.trace_model');
 tvcm.require('tracing.importer.importer');
+tvcm.require('tracing.importer.etw.eventtrace_parser');
 tvcm.require('tracing.importer.etw.process_parser');
 tvcm.require('tracing.importer.etw.thread_parser');
 
 tvcm.exportTo('tracing.importer', function() {
 
   var Importer = tracing.importer.Importer;
+
+  // GUID and opcode of a Thread DCStart event, as defined at the link above.
+  var kThreadGuid = '3D6FA8D1-FE05-11D0-9DDA-00C04FD7BA7C';
+  var kThreadDCStartOpcode = 3;
 
   /**
    * Represents the raw bytes payload decoder.
@@ -258,6 +263,9 @@ tvcm.exportTo('tracing.importer', function() {
     this.handlers_ = {};
     this.decoder_ = new Decoder();
     this.parsers_ = [];
+    this.walltime_ = undefined;
+    this.ticks_ = undefined;
+    this.is64bit_ = undefined;
 
     // A map of tids to their process pid. On Windows, the tid is global to
     // the system and doesn't need to belong to a process. As many events
@@ -300,18 +308,97 @@ tvcm.exportTo('tracing.importer', function() {
       this.tidsToPid_[tid] = pid;
     },
 
-    getThreadFromWindowsTid: function(tid) {
+    removeThreadIfPresent: function(tid) {
+      this.tidsToPid_[tid] = undefined;
+    },
+
+    getPidFromWindowsTid: function(tid) {
+      if (tid == 0)
+        return 0;
       var pid = this.tidsToPid_[tid];
-      if (pid == undefined)
-        throw new Error('Process ID cannot be found.');
+      if (pid == undefined) {
+        // Kernel threads are not defined.
+        return 0;
+      }
       return pid;
+    },
+
+    getThreadFromWindowsTid: function(tid) {
+      var pid = this.getPidFromWindowsTid(tid);
+      var process = this.model_.getProcess(pid);
+      if (!process)
+        return undefined;
+      return process.getThread(tid);
+    },
+
+    /*
+     * Retrieve the Cpu for a given cpuNumber.
+     * @return {Cpu} A Cpu corresponding to the given cpuNumber.
+     */
+    getOrCreateCpu: function(cpuNumber) {
+      var cpu = this.model_.kernel.getOrCreateCpu(cpuNumber);
+      return cpu;
     },
 
     /**
      * Imports the data in this.events_ into this.model_.
      */
     importEvents: function(isSecondaryImport) {
+      this.events_.content.forEach(this.parseInfo.bind(this));
+
+      if (this.walltime_ == undefined || this.ticks_ == undefined)
+        throw Error('Cannot find clock sync information in the system trace.');
+
+      if (this.is64bit_ == undefined)
+        throw Error('Cannot determine pointer size of the system trace.');
+
       this.events_.content.forEach(this.parseEvent.bind(this));
+    },
+
+    importTimestamp: function(timestamp) {
+      var ts = parseInt(timestamp, 16);
+      return (ts - this.walltime_ + this.ticks_) / 1000.;
+    },
+
+    parseInfo: function(event) {
+      // Retrieve clock sync information.
+      if (event.hasOwnProperty('guid') &&
+          event.hasOwnProperty('walltime') &&
+          event.hasOwnProperty('tick') &&
+          event.guid === 'ClockSync') {
+        this.walltime_ = parseInt(event.walltime, 16);
+        this.ticks_ = parseInt(event.tick, 16);
+      }
+
+      // Retrieve pointer size information from a Thread.DCStart event.
+      if (this.is64bit_ == undefined &&
+          event.hasOwnProperty('guid') &&
+          event.hasOwnProperty('op') &&
+          event.hasOwnProperty('ver') &&
+          event.hasOwnProperty('payload') &&
+          event.guid === kThreadGuid &&
+          event.op == kThreadDCStartOpcode) {
+        var decoded_size = tvcm.Base64.getDecodedBufferLength(event.payload);
+
+        if (event.ver == 1) {
+          if (decoded_size >= 52)
+            this.is64bit_ = true;
+          else
+            this.is64bit_ = false;
+        } else if (event.ver == 2) {
+          if (decoded_size >= 64)
+            this.is64bit_ = true;
+          else
+            this.is64bit_ = false;
+        } else if (event.ver == 3) {
+          if (decoded_size >= 60)
+            this.is64bit_ = true;
+          else
+            this.is64bit_ = false;
+        }
+      }
+
+      return true;
     },
 
     parseEvent: function(event) {
@@ -324,16 +411,16 @@ tvcm.exportTo('tracing.importer', function() {
         return false;
       }
 
-      // Timestamp is 100-nanosecond intervals since midnight, January 1, 1601.
-      // TODO(etienneb): substract the origin.
-      var timestamp = (event.ts) / 10000.;
+      var timestamp = this.importTimestamp(event.ts);
+
+      // Create the event header.
       var header = {
         guid: event.guid,
         opcode: event.op,
         version: event.ver,
         cpu: event.cpu,
         timestamp: timestamp,
-        is64: event.ver
+        is64: this.is64bit_
       };
 
       // Set the payload to decode.

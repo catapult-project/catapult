@@ -93,6 +93,14 @@ tvcm.exportTo('tracing', function() {
     },
 
     /**
+     * @return {Process} Gets a TimelineProcess for a specified pid. Returns
+     * undefined if the process doesn't exist.
+     */
+    getProcess: function(pid) {
+      return this.processes[pid];
+    },
+
+    /**
      * @return {Process} Gets a TimelineProcess for a specified pid or
      * creates one if it does not exist.
      */

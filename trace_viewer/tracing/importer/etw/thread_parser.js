@@ -6,6 +6,17 @@
 
 /**
  * @fileoverview Parses threads events in the Windows event trace format.
+ *
+ * The Windows thread events are:
+ *
+ * - DCStart: Describes a thread that was already running when the trace
+ *    started. ETW automatically generates these events for all running
+ *    threads at the beginning of the trace.
+ * - Start: Describes a thread that started during the tracing session.
+ * - End: Describes a thread that ended during the tracing session.
+ * - DCEnd: Describes a thread that was still alive when the trace ended.
+ *
+ * See http://msdn.microsoft.com/library/windows/desktop/aa364132.aspx
  */
 tvcm.require('tracing.importer.etw.parser');
 
@@ -161,31 +172,59 @@ tvcm.exportTo('tracing.importer.etw', function() {
 
     decodeStart: function(header, decoder) {
       var fields = this.decodeFields(header, decoder);
-      // TODO(etienneb): Update the TraceModel with |fields|..
+      this.importer.createThreadIfNeeded(fields.processId, fields.threadId);
       return true;
     },
 
     decodeEnd: function(header, decoder) {
       var fields = this.decodeFields(header, decoder);
-      // TODO(etienneb): Update the TraceModel with |fields|.
+      this.importer.removeThreadIfPresent(fields.threadId);
       return true;
     },
 
     decodeDCStart: function(header, decoder) {
       var fields = this.decodeFields(header, decoder);
-      // TODO(etienneb): Update the TraceModel with |fields|.
+      this.importer.createThreadIfNeeded(fields.processId, fields.threadId);
       return true;
     },
 
     decodeDCEnd: function(header, decoder) {
       var fields = this.decodeFields(header, decoder);
-      // TODO(etienneb): Update the TraceModel with |fields|.
+      this.importer.removeThreadIfPresent(fields.threadId);
       return true;
     },
 
     decodeCSwitch: function(header, decoder) {
       var fields = this.decodeCSwitchFields(header, decoder);
-      // TODO(etienneb): Update the TraceModel with |fields|.
+      var cpu = this.importer.getOrCreateCpu(header.cpu);
+      var new_thread =
+          this.importer.getThreadFromWindowsTid(fields.newThreadId);
+
+      // Generate the new thread name. If some events were lost, it's possible
+      // that information about the new thread or process is not available.
+      var new_thread_name;
+      if (new_thread && new_thread.userFriendlyName) {
+        new_thread_name = new_thread.userFriendlyName;
+      } else {
+        var new_process_id = this.importer.getPidFromWindowsTid(
+            fields.newThreadId);
+        var new_process = this.model.getProcess(new_process_id);
+        var new_process_name;
+        if (new_process)
+          new_process_name = new_process.name;
+        else
+          new_process_name = 'Unknown process';
+
+        new_thread_name =
+            new_process_name + ' (tid ' + fields.newThreadId + ')';
+      }
+
+      cpu.switchActiveThread(
+          header.timestamp,
+          {},
+          fields.newThreadId,
+          new_thread_name,
+          fields);
       return true;
     }
 
