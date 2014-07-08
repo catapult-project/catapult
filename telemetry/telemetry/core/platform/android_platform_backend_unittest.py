@@ -37,6 +37,11 @@ class MockDevice(object):
   def ReadFile(self, device_path, as_root=False): # pylint: disable=W0613
     return self.old_interface.GetProtectedFileContents(device_path)
 
+  def GetProp(self, property_name):
+    return self.old_interface.system_properties[property_name]
+
+  def SetProp(self, property_name, property_value):
+    self.old_interface.system_properties[property_name] = property_value
 
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):

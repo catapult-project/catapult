@@ -61,6 +61,5 @@ class AndroidTraceviewProfiler(profiler.Profiler):
     return output_files
 
   def _FileSize(self, file_name):
-    f = self._browser_backend.adb.device().old_interface.ListPathContents(
-        file_name)
+    f = self._browser_backend.adb.device().Ls(file_name)
     return f.get(os.path.basename(file_name), (0, ))[0]

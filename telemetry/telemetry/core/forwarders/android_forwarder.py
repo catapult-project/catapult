@@ -119,11 +119,11 @@ class AndroidRndisForwarder(forwarders.Forwarder):
       return  # If there is no route, then nobody cares about DNS.
     # DNS proxy in older versions of Android is configured via properties.
     # TODO(szym): run via su -c if necessary.
-    self._adb.system_properties['net.dns1'] = dns1
-    self._adb.system_properties['net.dns2'] = dns2
-    dnschange = self._adb.system_properties['net.dnschange']
+    self._adb.device().SetProp('net.dns1', dns1)
+    self._adb.device().SetProp('net.dns2', dns2)
+    dnschange = self._adb.device.GetProp('net.dnschange')
     if dnschange:
-      self._adb.system_properties['net.dnschange'] = int(dnschange) + 1
+      self._adb.device().SetProp('net.dnschange', int(dnschange) + 1)
     # Since commit 8b47b3601f82f299bb8c135af0639b72b67230e6 to frameworks/base
     # the net.dns1 properties have been replaced with explicit commands for netd
     self._adb.RunShellCommand('ndc netd resolver setifdns %s %s %s' %
@@ -138,8 +138,8 @@ class AndroidRndisForwarder(forwarders.Forwarder):
     default_routes = [route[0] for route in routes if route[1] == '00000000']
     return (
       default_routes[0] if default_routes else None,
-      self._adb.system_properties['net.dns1'],
-      self._adb.system_properties['net.dns2'],
+      self._adb.GetProp('net.dns1'),
+      self._adb.GetProp('net.dns2'),
     )
 
 
@@ -215,7 +215,7 @@ class AndroidRndisConfigurator(object):
         ['sudo', 'bash', '-c', 'echo -e "%s" > %s' % (contents, path)])
 
   def _DisableRndis(self):
-    self._device.old_interface.system_properties['sys.usb.config'] = 'adb'
+    self._device.SetProp('sys.usb.config', 'adb')
     self._WaitForDevice()
 
   def _EnableRndis(self):

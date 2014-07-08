@@ -171,7 +171,7 @@ class AndroidPlatformBackend(
 
   @decorators.Cache
   def GetOSVersionName(self):
-    return self._device.old_interface.GetBuildId()[0]
+    return self._device.GetProp('ro.build.id')[0]
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return False
