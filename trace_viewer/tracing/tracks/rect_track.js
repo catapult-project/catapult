@@ -63,7 +63,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tracing.tracks.DrawType.RECT:
+        case tracing.tracks.DrawType.SLICE:
           this.drawRects_(viewLWorld, viewRWorld);
           break;
       }
@@ -74,7 +74,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
       ctx.save();
       var bounds = this.getBoundingClientRect();
-      tracing.drawRects(
+      tracing.drawSlices(
           ctx,
           this.viewport.currentDisplayTransform,
           viewLWorld,
