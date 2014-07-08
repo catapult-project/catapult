@@ -130,4 +130,52 @@ tvcm.unittest.testSuite('tracing.trace_model.cpu_test', function() {
         undefined,
         t2.timeSlices[1].getCpuSliceThatTookCpu());
   });
+
+  test('switchActiveThread', function() {
+    var m = new tracing.TraceModel();
+    var cpu = m.kernel.getOrCreateCpu(1);
+
+    cpu.switchActiveThread(5, {}, 0, 'idle thread', {});
+    cpu.switchActiveThread(10, {}, 1, 'thread one', {a: 1});
+    cpu.switchActiveThread(15, {b: 2}, 2, 'thread two', {c: 3});
+    cpu.switchActiveThread(30, {c: 4, d: 5}, 3, 'thread three', {e: 6});
+    cpu.closeActiveThread(40, {f: 7});
+    cpu.switchActiveThread(50, {}, 4, 'thread four', {g: 8});
+    cpu.switchActiveThread(60, {}, 1, 'thread one', {});
+    cpu.closeActiveThread(70, {});
+
+    self.assertEquals(5, cpu.slices.length);
+
+    self.assertEquals('thread one', cpu.slices[0].title);
+    self.assertEquals(10, cpu.slices[0].start);
+    self.assertEquals(5, cpu.slices[0].duration);
+    self.assertEquals(2, Object.keys(cpu.slices[0].args).length);
+    self.assertEquals(1, cpu.slices[0].args.a);
+    self.assertEquals(2, cpu.slices[0].args.b);
+
+    self.assertEquals('thread two', cpu.slices[1].title);
+    self.assertEquals(15, cpu.slices[1].start);
+    self.assertEquals(15, cpu.slices[1].duration);
+    self.assertEquals(2, Object.keys(cpu.slices[1].args).length);
+    self.assertEquals(4, cpu.slices[1].args.c);
+    self.assertEquals(5, cpu.slices[1].args.d);
+
+    self.assertEquals('thread three', cpu.slices[2].title);
+    self.assertEquals(30, cpu.slices[2].start);
+    self.assertEquals(10, cpu.slices[2].duration);
+    self.assertEquals(2, Object.keys(cpu.slices[2].args).length);
+    self.assertEquals(6, cpu.slices[2].args.e);
+    self.assertEquals(7, cpu.slices[2].args.f);
+
+    self.assertEquals('thread four', cpu.slices[3].title);
+    self.assertEquals(50, cpu.slices[3].start);
+    self.assertEquals(10, cpu.slices[3].duration);
+    self.assertEquals(1, Object.keys(cpu.slices[3].args).length);
+    self.assertEquals(8, cpu.slices[3].args.g);
+
+    self.assertEquals('thread one', cpu.slices[4].title);
+    self.assertEquals(60, cpu.slices[4].start);
+    self.assertEquals(10, cpu.slices[4].duration);
+    self.assertEquals(0, Object.keys(cpu.slices[4].args).length);
+  });
 });

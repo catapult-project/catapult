@@ -37,7 +37,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     cpuStateSlice: function(ts, targetCpuNumber, eventType, cpuState) {
-      var targetCpu = this.importer.getOrCreateCpuState(targetCpuNumber);
+      var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
       var powerCounter;
       if (eventType != '1') {
         this.importer.model.importWarning({
@@ -47,7 +47,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
         });
         return;
       }
-      powerCounter = targetCpu.cpu.getOrCreateCounter('', 'C-State');
+      powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tracing.trace_model.CounterSeries('state',
             tvcm.ui.getStringColorId(powerCounter.name + '.' + 'state')));
@@ -58,8 +58,8 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
     },
 
     cpuIdleSlice: function(ts, targetCpuNumber, cpuState) {
-      var targetCpu = this.importer.getOrCreateCpuState(targetCpuNumber);
-      var powerCounter = targetCpu.cpu.getOrCreateCounter('', 'C-State');
+      var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
+      var powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tracing.trace_model.CounterSeries('state',
             tvcm.ui.getStringColorId(powerCounter.name)));
@@ -72,9 +72,9 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
     },
 
     cpuFrequencySlice: function(ts, targetCpuNumber, powerState) {
-      var targetCpu = this.importer.getOrCreateCpuState(targetCpuNumber);
+      var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
       var powerCounter =
-          targetCpu.cpu.getOrCreateCounter('', 'Clock Frequency');
+          targetCpu.getOrCreateCounter('', 'Clock Frequency');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tracing.trace_model.CounterSeries('state',
             tvcm.ui.getStringColorId(powerCounter.name + '.' + 'state')));

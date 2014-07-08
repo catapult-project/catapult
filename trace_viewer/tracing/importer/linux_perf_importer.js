@@ -43,55 +43,6 @@ tvcm.exportTo('tracing.importer', function() {
   var Importer = tracing.importer.Importer;
 
   /**
-   * Represents the scheduling state for a single thread.
-   * @constructor
-   */
-  function CpuState(cpu) {
-    this.cpu = cpu;
-  }
-
-  CpuState.prototype = {
-    __proto__: Object.prototype,
-
-    /**
-     * Switches the active pid on this Cpu. If necessary, add a Slice
-     * to the cpu representing the time spent on that Cpu since the last call to
-     * switchRunningLinuxPid.
-     */
-    switchRunningLinuxPid: function(importer, prevState, ts, pid, comm, prio) {
-      // Generate a slice if the last active pid was not the idle task
-      if (this.lastActivePid !== undefined && this.lastActivePid != 0) {
-        var duration = ts - this.lastActiveTs;
-        var thread = importer.threadsByLinuxPid[this.lastActivePid];
-        var name;
-        if (thread)
-          name = thread.userFriendlyName;
-        else
-          name = this.lastActiveComm;
-
-        var slice = new tracing.trace_model.CpuSlice(
-            '', name,
-            tvcm.ui.getStringColorId(name),
-            this.lastActiveTs,
-            {
-              comm: this.lastActiveComm,
-              tid: this.lastActivePid,
-              prio: this.lastActivePrio,
-              stateWhenDescheduled: prevState
-            },
-            duration);
-        slice.cpu = this.cpu;
-        this.cpu.slices.push(slice);
-      }
-
-      this.lastActiveTs = ts;
-      this.lastActivePid = pid;
-      this.lastActiveComm = comm;
-      this.lastActivePrio = prio;
-    }
-  };
-
-  /**
    * Imports linux perf events into a specified model.
    * @constructor
    */
@@ -100,7 +51,6 @@ tvcm.exportTo('tracing.importer', function() {
     this.model_ = model;
     this.events_ = events;
     this.clockSyncRecords_ = [];
-    this.cpuStates_ = {};
     this.wakeups_ = [];
     this.kernelThreadStates_ = {};
     this.buildMapFromLinuxPidsToThreads();
@@ -330,14 +280,10 @@ tvcm.exportTo('tracing.importer', function() {
     },
 
     /**
-     * @return {CpuState} A CpuState corresponding to the given cpuNumber.
+     * @return {Cpu} A Cpu corresponding to the given cpuNumber.
      */
-    getOrCreateCpuState: function(cpuNumber) {
-      if (!this.cpuStates_[cpuNumber]) {
-        var cpu = this.model_.kernel.getOrCreateCpu(cpuNumber);
-        this.cpuStates_[cpuNumber] = new CpuState(cpu);
-      }
-      return this.cpuStates_[cpuNumber];
+    getOrCreateCpu: function(cpuNumber) {
+      return this.model_.kernel.getOrCreateCpu(cpuNumber);
     },
 
     /**
@@ -404,9 +350,8 @@ tvcm.exportTo('tracing.importer', function() {
      */
     buildPerThreadCpuSlicesFromCpuState: function() {
       // Push the cpu slices to the threads that they run on.
-      for (var cpuNumber in this.cpuStates_) {
-        var cpuState = this.cpuStates_[cpuNumber];
-        var cpu = cpuState.cpu;
+      for (var cpuNumber in this.model_.kernel.cpus) {
+        var cpu = this.model_.kernel.cpus[cpuNumber];
 
         for (var i = 0; i < cpu.slices.length; i++) {
           var cpuSlice = cpu.slices[i];

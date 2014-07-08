@@ -32,8 +32,8 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     exynosBusfreqSample: function(name, ts, frequency) {
-      var targetCpu = this.importer.getOrCreateCpuState(0);
-      var counter = targetCpu.cpu.getOrCreateCounter('', name);
+      var targetCpu = this.importer.getOrCreateCpu(0);
+      var counter = targetCpu.getOrCreateCounter('', name);
       if (counter.numSeries === 0) {
         counter.addSeries(new tracing.trace_model.CounterSeries('frequency',
             tvcm.ui.getStringColorId(counter.name + '.' + 'frequency')));

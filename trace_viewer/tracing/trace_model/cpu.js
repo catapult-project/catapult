@@ -169,6 +169,17 @@ tvcm.exportTo('tracing.trace_model', function() {
     this.counters = {};
     this.bounds = new tvcm.Range();
     this.samples_ = undefined; // Set during createSubSlices
+
+    // Start timestamp of the last active thread.
+    this.lastActiveTimestamp_ = undefined;
+
+    // Identifier of the last active thread. On Linux, it's a pid while on
+    // Windows it's a thread id.
+    this.lastActiveThread_ = undefined;
+
+    // Name and arguments of the last active thread.
+    this.lastActiveName_ = undefined;
+    this.lastActiveArgs_ = undefined;
   };
 
   Cpu.prototype = {
@@ -269,6 +280,56 @@ tvcm.exportTo('tracing.trace_model', function() {
 
       for (var id in this.counters)
         this.counters[id].iterateAllEvents(callback, opt_this);
+    },
+
+    /**
+     * Closes the thread running on the CPU. |end_timestamp| is the timestamp
+     * at which the thread was unscheduled. |args| is merged with the arguments
+     * specified when the thread was initially scheduled.
+     */
+    closeActiveThread: function(end_timestamp, args) {
+      // Don't generate a slice if the last active thread is the idle task.
+      if (this.lastActiveThread_ == undefined || this.lastActiveThread_ == 0)
+        return;
+
+      if (end_timestamp < this.lastActiveTimestamp_) {
+        throw new Error('The end timestamp of a thread running on CPU ' +
+                        this.cpuNumber + ' is before its start timestamp.');
+      }
+
+      // Merge |args| with |this.lastActiveArgs_|. If a key is in both
+      // dictionaries, the value from |args| is used.
+      for (var key in args) {
+        this.lastActiveArgs_[key] = args[key];
+      }
+
+      var duration = end_timestamp - this.lastActiveTimestamp_;
+      var slice = new tracing.trace_model.CpuSlice(
+          '', this.lastActiveName_,
+          tvcm.ui.getStringColorId(this.lastActiveName_),
+          this.lastActiveTimestamp_,
+          this.lastActiveArgs_,
+          duration);
+      slice.cpu = this;
+      this.slices.push(slice);
+
+      // Clear the last state.
+      this.lastActiveTimestamp_ = undefined;
+      this.lastActiveThread_ = undefined;
+      this.lastActiveName_ = undefined;
+      this.lastActiveArgs_ = undefined;
+    },
+
+    switchActiveThread: function(timestamp, old_thread_args, new_thread_id,
+                                 new_thread_name, new_thread_args) {
+      // Close the previous active thread and generate a slice.
+      this.closeActiveThread(timestamp, old_thread_args);
+
+      // Keep track of the new thread.
+      this.lastActiveTimestamp_ = timestamp;
+      this.lastActiveThread_ = new_thread_id;
+      this.lastActiveName_ = new_thread_name;
+      this.lastActiveArgs_ = new_thread_args;
     },
 
     get samples() {

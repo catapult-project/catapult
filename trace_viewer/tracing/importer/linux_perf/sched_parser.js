@@ -43,7 +43,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     /**
-     * Parses scheduler events and sets up state in the importer.
+     * Parses scheduler events and sets up state in the CPUs of the importer.
      */
     schedSwitchEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = schedSwitchRE.exec(eventBase.details);
@@ -55,9 +55,25 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       var nextPid = parseInt(event[6]);
       var nextPrio = parseInt(event[7]);
 
-      var cpuState = this.importer.getOrCreateCpuState(cpuNumber);
-      cpuState.switchRunningLinuxPid(this.importer,
-          prevState, ts, nextPid, nextComm, nextPrio);
+      var nextThread = this.importer.threadsByLinuxPid[nextPid];
+      var nextName;
+      if (nextThread)
+        nextName = nextThread.userFriendlyName;
+      else
+        nextName = nextComm;
+
+      var cpu = this.importer.getOrCreateCpu(cpuNumber);
+      cpu.switchActiveThread(
+          ts,
+          {stateWhenDescheduled: prevState},
+          nextPid,
+          nextName,
+          {
+            comm: nextComm,
+            tid: nextPid,
+            prio: nextPrio
+          });
+
       return true;
     },
 
