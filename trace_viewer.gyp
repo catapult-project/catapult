@@ -235,6 +235,7 @@
       'trace_viewer/tracing/tracks/rect_track.js',
       'trace_viewer/tracing/tracks/ruler_track.js',
       'trace_viewer/tracing/tracks/slice_group_track.js',
+      'trace_viewer/tracing/tracks/slice_track.js',
       'trace_viewer/tracing/tracks/spacing_track.js',
       'trace_viewer/tracing/tracks/stacked_bars_track.js',
       'trace_viewer/tracing/tracks/thread_track.js',

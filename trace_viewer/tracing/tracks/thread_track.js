@@ -7,7 +7,7 @@
 tvcm.requireStylesheet('tracing.tracks.thread_track');
 
 tvcm.require('tracing.tracks.container_track');
-tvcm.require('tracing.tracks.rect_track');
+tvcm.require('tracing.tracks.slice_track');
 tvcm.require('tracing.tracks.slice_group_track');
 tvcm.require('tracing.tracks.async_slice_group_track');
 tvcm.require('tracing.filter');
@@ -17,7 +17,7 @@ tvcm.require('tvcm.iteration_helpers');
 tvcm.exportTo('tracing.tracks', function() {
 
   /**
-   * Visualizes a Thread using a series of of RectTracks.
+   * Visualizes a Thread using a series of of SliceTracks.
    * @constructor
    */
   var ThreadTrack = tvcm.ui.define('thread-track',
@@ -62,10 +62,10 @@ tvcm.exportTo('tracing.tracks', function() {
       this.appendThreadSamplesTracks_();
 
       if (this.thread_.timeSlices) {
-        var timeSlicesTrack = new tracing.tracks.RectTrack(this.viewport);
+        var timeSlicesTrack = new tracing.tracks.SliceTrack(this.viewport);
         timeSlicesTrack.heading = '';
         timeSlicesTrack.height = tracing.THIN_SLICE_HEIGHT + 'px';
-        timeSlicesTrack.rects = this.thread_.timeSlices;
+        timeSlicesTrack.slices = this.thread_.timeSlices;
         if (timeSlicesTrack.hasVisibleContent)
           this.appendChild(timeSlicesTrack);
       }
@@ -96,16 +96,16 @@ tvcm.exportTo('tracing.tracks', function() {
 
       sampleTitles.forEach(function(sampleTitle) {
         var samples = samplesByTitle[sampleTitle];
-        var samplesTrack = new tracing.tracks.RectTrack(this.viewport);
+        var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
         samplesTrack.group = this.thread_;
-        samplesTrack.rects = samples;
+        samplesTrack.slices = samples;
         samplesTrack.heading = this.thread_.userFriendlyName + ': ' +
             sampleTitle;
         samplesTrack.tooltip = this.thread_.userFriendlyDetails;
         samplesTrack.selectionGenerator = function() {
           var selection = new tracing.Selection();
-          for (var i = 0; i < samplesTrack.rects.length; i++) {
-            selection.push(samplesTrack.rects[i]);
+          for (var i = 0; i < samplesTrack.slices.length; i++) {
+            selection.push(samplesTrack.slices[i]);
           }
           return selection;
         };

@@ -57,16 +57,16 @@ tvcm.exportTo('tracing.tracks', function() {
       this.updateContents_();
     },
 
-    addRectTrack_: function(slices) {
-      var track = new tracing.tracks.RectTrack(this.viewport);
-      track.rects = slices;
+    addSliceTrack_: function(slices) {
+      var track = new tracing.tracks.SliceTrack(this.viewport);
+      track.slices = slices;
       this.appendChild(track);
       return track;
     },
 
     get subRows() {
       return tvcm.asArray(this.children).map(function(sliceTrack) {
-        return sliceTrack.rects;
+        return sliceTrack.slices;
       });
     },
 
@@ -96,7 +96,7 @@ tvcm.exportTo('tracing.tracks', function() {
         var subRow = subRows[srI];
         if (!subRow.length)
           continue;
-        this.addRectTrack_(subRow);
+        this.addSliceTrack_(subRow);
       }
       this.updateHeadingAndTooltip_();
     },
