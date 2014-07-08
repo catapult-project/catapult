@@ -5,7 +5,7 @@
 'use strict';
 
 tvcm.require('tracing.tracks.container_track');
-tvcm.require('tracing.tracks.slice_track');
+tvcm.require('tracing.tracks.rect_track');
 tvcm.require('tracing.filter');
 tvcm.require('tracing.trace_model');
 tvcm.require('tvcm.ui');
@@ -13,7 +13,7 @@ tvcm.require('tvcm.ui');
 tvcm.exportTo('tracing.tracks', function() {
 
   /**
-   * Visualizes a Cpu using a series of of SliceTracks.
+   * Visualizes a Cpu using a series of of RectTracks.
    * @constructor
    */
   var CpuTrack =
@@ -54,8 +54,8 @@ tvcm.exportTo('tracing.tracks', function() {
         return;
       var slices = this.cpu_.slices;
       if (slices.length) {
-        var track = new tracing.tracks.SliceTrack(this.viewport);
-        track.slices = slices;
+        var track = new tracing.tracks.RectTrack(this.viewport);
+        track.rects = slices;
         track.heading = this.cpu_.userFriendlyName + ':';
         this.appendChild(track);
       }
@@ -88,15 +88,15 @@ tvcm.exportTo('tracing.tracks', function() {
 
       sampleTitles.forEach(function(sampleTitle) {
         var samples = samplesByTitle[sampleTitle];
-        var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
+        var samplesTrack = new tracing.tracks.RectTrack(this.viewport);
         samplesTrack.group = this.cpu_;
-        samplesTrack.slices = samples;
+        samplesTrack.rects = samples;
         samplesTrack.heading = this.cpu_.userFriendlyName + ': ' +
             sampleTitle;
         samplesTrack.tooltip = this.cpu_.userFriendlyDetails;
         samplesTrack.selectionGenerator = function() {
           var selection = new tracing.Selection();
-          for (var i = 0; i < samplesTrack.slices.length; i++) {
+          for (var i = 0; i < samplesTrack.rects.length; i++) {
             selection.push(samplesTrack.slices[i]);
           }
           return selection;

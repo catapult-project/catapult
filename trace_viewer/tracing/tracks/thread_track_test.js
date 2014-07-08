@@ -115,16 +115,16 @@ tvcm.unittest.testSuite('tracing.tracks.thread_track_test', function() {
     // Instructions retired
     var t0 = t.tracks_[0];
     assertTrue(t0.heading.indexOf('instructions_retired') != -1);
-    assertTrue(t0 instanceof tracing.tracks.SliceTrack);
-    assertTrue(4, t0.slices.length);
-    t0.slices.forEach(function(s) {
+    assertTrue(t0 instanceof tracing.tracks.RectTrack);
+    assertTrue(4, t0.rects.length);
+    t0.rects.forEach(function(s) {
       assertTrue(s instanceof tracing.trace_model.Sample);
     });
 
     // page_fault
     var t1 = t.tracks_[1];
     assertTrue(t1.heading.indexOf('page_fault') != -1);
-    assertTrue(t1 instanceof tracing.tracks.SliceTrack);
-    assertTrue(2, t1.slices.length);
+    assertTrue(t1 instanceof tracing.tracks.RectTrack);
+    assertTrue(2, t1.rects.length);
   });
 });

@@ -8,7 +8,7 @@ tvcm.require('tracing.timeline_viewport');
 tvcm.require('tracing.test_utils');
 tvcm.require('tracing.trace_model');
 tvcm.require('tracing.selection');
-tvcm.require('tracing.tracks.slice_track');
+tvcm.require('tracing.tracks.rect_track');
 
 tvcm.unittest.testSuite('tracing.selection_test', function() {
   test('selectionObject', function() {
@@ -46,9 +46,9 @@ tvcm.unittest.testSuite('tracing.selection_test', function() {
         new tracing.trace_model.ThreadSlice('', 'a', 0, 5, {}, 1));
 
     var viewport = new tracing.TimelineViewport();
-    var track = new tracing.tracks.SliceTrack(viewport);
+    var track = new tracing.tracks.RectTrack(viewport);
     viewport.modelTrackContainer = track;
-    track.slices = t1.sliceGroup.slices;
+    track.rects = t1.sliceGroup.slices;
 
     viewport.rebuildEventToTrackMap();
 

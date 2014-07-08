@@ -4,7 +4,7 @@
 
 'use strict';
 
-tvcm.requireStylesheet('tracing.tracks.slice_track');
+tvcm.requireStylesheet('tracing.tracks.rect_track');
 
 tvcm.require('tvcm.sorted_array_utils');
 tvcm.require('tracing.tracks.heading_track');
@@ -15,22 +15,22 @@ tvcm.require('tvcm.ui');
 tvcm.exportTo('tracing.tracks', function() {
 
   /**
-   * A track that displays an array of Slice objects.
+   * A track that displays an array of Rect objects.
    * @constructor
    * @extends {HeadingTrack}
    */
-  var SliceTrack = tvcm.ui.define(
-      'slice-track', tracing.tracks.HeadingTrack);
+  var RectTrack = tvcm.ui.define(
+      'rect-track', tracing.tracks.HeadingTrack);
 
-  SliceTrack.prototype = {
+  RectTrack.prototype = {
 
     __proto__: tracing.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
       tracing.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('slice-track');
+      this.classList.add('rect-track');
       this.asyncStyle_ = false;
-      this.slices_ = null;
+      this.rects_ = null;
     },
 
     get asyncStyle() {
@@ -41,12 +41,12 @@ tvcm.exportTo('tracing.tracks', function() {
       this.asyncStyle_ = !!v;
     },
 
-    get slices() {
-      return this.slices_;
+    get rects() {
+      return this.rects_;
     },
 
-    set slices(slices) {
-      this.slices_ = slices || [];
+    set rects(rects) {
+      this.rects_ = rects || [];
     },
 
     get height() {
@@ -58,29 +58,29 @@ tvcm.exportTo('tracing.tracks', function() {
     },
 
     get hasVisibleContent() {
-      return this.slices.length > 0;
+      return this.rects.length > 0;
     },
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tracing.tracks.DrawType.SLICE:
-          this.drawSlices_(viewLWorld, viewRWorld);
+        case tracing.tracks.DrawType.RECT:
+          this.drawRects_(viewLWorld, viewRWorld);
           break;
       }
     },
 
-    drawSlices_: function(viewLWorld, viewRWorld) {
+    drawRects_: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
 
       ctx.save();
       var bounds = this.getBoundingClientRect();
-      tracing.drawSlices(
+      tracing.drawRects(
           ctx,
           this.viewport.currentDisplayTransform,
           viewLWorld,
           viewRWorld,
           bounds.height,
-          this.slices_,
+          this.rects_,
           this.asyncStyle_);
       ctx.restore();
 
@@ -92,93 +92,93 @@ tvcm.exportTo('tracing.tracks', function() {
           this.viewport.currentDisplayTransform,
           viewLWorld,
           viewRWorld,
-          this.slices_,
+          this.rects_,
           this.asyncStyle_);
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {
-      if (this.slices_ === undefined || this.slices_ === null)
+      if (this.rects_ === undefined || this.rects_ === null)
         return;
 
-      this.slices_.forEach(function(slice) {
-        eventToTrackMap.addEvent(slice, this);
+      this.rects_.forEach(function(rect) {
+        eventToTrackMap.addEvent(rect, this);
       }, this);
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
-      function onSlice(slice) {
-        selection.push(slice);
+      function onRect(rect) {
+        selection.push(rect);
       }
-      tvcm.iterateOverIntersectingIntervals(this.slices_,
+      tvcm.iterateOverIntersectingIntervals(this.rects_,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,
-          onSlice);
+          onRect);
     },
 
     /**
-     * Find the index for the given slice.
-     * @return {index} Index of the given slice, or undefined.
+     * Find the index for the given rect.
+     * @return {index} Index of the given rect, or undefined.
      * @private
      */
-    indexOfSlice_: function(slice) {
-      var index = tvcm.findLowIndexInSortedArray(this.slices_,
+    indexOfRect_: function(rect) {
+      var index = tvcm.findLowIndexInSortedArray(this.rects_,
           function(x) { return x.start; },
-          slice.start);
-      while (index < this.slices_.length &&
-          slice.start == this.slices_[index].start &&
-          slice.colorId != this.slices_[index].colorId) {
+          rect.start);
+      while (index < this.rects_.length &&
+          rect.start == this.rects_[index].start &&
+          rect.colorId != this.rects_[index].colorId) {
         index++;
       }
-      return index < this.slices_.length ? index : undefined;
+      return index < this.rects_.length ? index : undefined;
     },
 
     /**
      * Add the item to the left or right of the provided event, if any, to the
      * selection.
-     * @param {slice} The current slice.
-     * @param {Number} offset Number of slices away from the event to look.
+     * @param {rect} The current rect.
+     * @param {Number} offset Number of rects away from the event to look.
      * @param {Selection} selection The selection to add an event to,
      * if found.
      * @return {boolean} Whether an event was found.
      * @private
      */
     addItemNearToProvidedEventToSelection: function(event, offset, selection) {
-      var index = this.indexOfSlice_(event);
+      var index = this.indexOfRect_(event);
       if (index === undefined)
         return false;
 
       var newIndex = index + offset;
-      if (newIndex < 0 || newIndex >= this.slices_.length)
+      if (newIndex < 0 || newIndex >= this.rects_.length)
         return false;
 
-      selection.push(this.slices_[newIndex]);
+      selection.push(this.rects_[newIndex]);
       return true;
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
-      for (var i = 0; i < this.slices_.length; ++i) {
-        if (filter.matchSlice(this.slices_[i]))
-          selection.push(this.slices_[i]);
+      for (var i = 0; i < this.rects_.length; ++i) {
+        if (filter.matchSlice(this.rects_[i]))
+          selection.push(this.rects_[i]);
       }
     },
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      var slice = tvcm.findClosestIntervalInSortedIntervals(
-          this.slices_,
+      var rect = tvcm.findClosestIntervalInSortedIntervals(
+          this.rects_,
           function(x) { return x.start; },
           function(x) { return x.end; },
           worldX,
           worldMaxDist);
 
-      if (slice)
-        selection.push(slice);
+      if (rect)
+        selection.push(rect);
     }
   };
 
   return {
-    SliceTrack: SliceTrack
+    RectTrack: RectTrack
   };
 });
