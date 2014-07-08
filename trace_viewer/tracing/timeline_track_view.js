@@ -323,7 +323,8 @@ tvcm.exportTo('tracing', function() {
     },
 
     onTouchStart_: function(e) {
-      this.storeInitialInteractionPositionsAndFocus_(e);
+      this.storeLastTouchPositions_(e);
+      this.focusElements_();
     },
 
     onTouchMove_: function(e) {
@@ -332,7 +333,8 @@ tvcm.exportTo('tracing', function() {
     },
 
     onTouchEnd_: function(e) {
-      this.storeInitialInteractionPositionsAndFocus_(e);
+      this.storeLastTouchPositions_(e);
+      this.focusElements_();
     },
 
     onKeypress_: function(e) {
@@ -854,7 +856,6 @@ tvcm.exportTo('tracing', function() {
 
       this.storeInitialMouseDownPos_(e);
       this.storeLastMousePos_(e);
-      this.storeLastTouchPositions_(e);
 
       this.focusElements_();
     },
