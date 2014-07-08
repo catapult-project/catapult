@@ -119,8 +119,14 @@ tvcm.exportTo('tracing', function() {
 
       this.addEventListener('mousemove', this.onMouseMove_);
 
+      this.addEventListener('touchstart', this.onTouchStart_);
+      this.addEventListener('touchmove', this.onTouchMove_);
+      this.addEventListener('touchend', this.onTouchEnd_);
+
       this.mouseViewPosAtMouseDown_ = {x: 0, y: 0};
       this.lastMouseViewPos_ = {x: 0, y: 0};
+
+      this.lastTouchViewPositions_ = [];
 
       this.selection_ = new Selection();
       this.highlight_ = new Selection();
@@ -314,6 +320,19 @@ tvcm.exportTo('tracing', function() {
         return;
 
       this.storeLastMousePos_(e);
+    },
+
+    onTouchStart_: function(e) {
+      this.storeInitialInteractionPositionsAndFocus_(e);
+    },
+
+    onTouchMove_: function(e) {
+      e.preventDefault();
+      this.onUpdateTransformForTouch_(e);
+    },
+
+    onTouchEnd_: function(e) {
+      this.storeInitialInteractionPositionsAndFocus_(e);
     },
 
     onKeypress_: function(e) {
@@ -791,12 +810,29 @@ tvcm.exportTo('tracing', function() {
       this.lastMouseViewPos_ = this.extractRelativeMousePosition_(e);
     },
 
+    storeLastTouchPositions_: function(e) {
+      this.lastTouchViewPositions_ = this.extractRelativeTouchPositions_(e);
+    },
+
     extractRelativeMousePosition_: function(e) {
       var canv = this.modelTrackContainer_.canvas;
       return {
         x: e.clientX - canv.offsetLeft,
         y: e.clientY - canv.offsetTop
       };
+    },
+
+    extractRelativeTouchPositions_: function(e) {
+      var canv = this.modelTrackContainer_.canvas;
+
+      var touches = [];
+      for (var i = 0; i < e.touches.length; ++i) {
+        touches.push({
+          x: e.touches[i].clientX - canv.offsetLeft,
+          y: e.touches[i].clientY - canv.offsetTop
+        });
+      }
+      return touches;
     },
 
     storeInitialMouseDownPos_: function(e) {
@@ -818,6 +854,7 @@ tvcm.exportTo('tracing', function() {
 
       this.storeInitialMouseDownPos_(e);
       this.storeLastMousePos_(e);
+      this.storeLastTouchPositions_(e);
 
       this.focusElements_();
     },
@@ -959,6 +996,65 @@ tvcm.exportTo('tracing', function() {
 
       if (!e.isClick)
         e.preventDefault();
+    },
+
+    computeTouchCenter_: function(positions) {
+      var xSum = 0;
+      var ySum = 0;
+      for (var i = 0; i < positions.length; ++i) {
+        xSum += positions[i].x;
+        ySum += positions[i].y;
+      }
+      return {
+        x: xSum / positions.length,
+        y: ySum / positions.length
+      };
+    },
+
+    computeTouchSpan_: function(positions) {
+      var xMin = Number.MAX_VALUE;
+      var yMin = Number.MAX_VALUE;
+      var xMax = Number.MIN_VALUE;
+      var yMax = Number.MIN_VALUE;
+      for (var i = 0; i < positions.length; ++i) {
+        xMin = Math.min(xMin, positions[i].x);
+        yMin = Math.min(yMin, positions[i].y);
+        xMax = Math.max(xMax, positions[i].x);
+        yMax = Math.max(yMax, positions[i].y);
+      }
+      return Math.sqrt((xMin - xMax) * (xMin - xMax) +
+          (yMin - yMax) * (yMin - yMax));
+    },
+
+    onUpdateTransformForTouch_: function(e) {
+      var newPositions = this.extractRelativeTouchPositions_(e);
+      var currentPositions = this.lastTouchViewPositions_;
+
+      var newCenter = this.computeTouchCenter_(newPositions);
+      var currentCenter = this.computeTouchCenter_(currentPositions);
+
+      var newSpan = this.computeTouchSpan_(newPositions);
+      var currentSpan = this.computeTouchSpan_(currentPositions);
+
+      var vp = this.viewport;
+      var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
+      var pixelRatio = window.devicePixelRatio || 1;
+
+      var xDelta = pixelRatio * (newCenter.x - currentCenter.x);
+      var yDelta = newCenter.y - currentCenter.y;
+      var zoomScaleValue = currentSpan > 10 ? newSpan / currentSpan : 1;
+
+      var viewFocus = pixelRatio * newCenter.x;
+      var worldFocus = vp.currentDisplayTransform.xViewToWorld(viewFocus);
+
+      tempDisplayTransform.set(vp.currentDisplayTransform);
+      tempDisplayTransform.scaleX *= zoomScaleValue;
+      tempDisplayTransform.xPanWorldPosToViewPos(
+          worldFocus, viewFocus, viewWidth);
+      tempDisplayTransform.incrementPanXInViewUnits(xDelta);
+      tempDisplayTransform.panY -= yDelta;
+      vp.setDisplayTransformImmediately(tempDisplayTransform);
+      this.storeLastTouchPositions_(e);
     }
   };
 
