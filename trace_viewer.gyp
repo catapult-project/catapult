@@ -290,6 +290,7 @@
       'trace_viewer/tracing/tracks/process_track_base.js',
       'trace_viewer/tracing/tracks/rect_track.js',
       'trace_viewer/tracing/tracks/ruler_track.js',
+      'trace_viewer/tracing/tracks/sample_track.js',
       'trace_viewer/tracing/tracks/slice_group_track.js',
       'trace_viewer/tracing/tracks/slice_track.js',
       'trace_viewer/tracing/tracks/spacing_track.js',

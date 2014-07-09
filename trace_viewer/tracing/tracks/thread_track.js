@@ -7,6 +7,7 @@
 tvcm.requireStylesheet('tracing.tracks.thread_track');
 
 tvcm.require('tracing.tracks.container_track');
+tvcm.require('tracing.tracks.sample_track');
 tvcm.require('tracing.tracks.slice_track');
 tvcm.require('tracing.tracks.slice_group_track');
 tvcm.require('tracing.tracks.async_slice_group_track');
@@ -96,16 +97,16 @@ tvcm.exportTo('tracing.tracks', function() {
 
       sampleTitles.forEach(function(sampleTitle) {
         var samples = samplesByTitle[sampleTitle];
-        var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
+        var samplesTrack = new tracing.tracks.SampleTrack(this.viewport);
         samplesTrack.group = this.thread_;
-        samplesTrack.slices = samples;
+        samplesTrack.samples = samples;
         samplesTrack.heading = this.thread_.userFriendlyName + ': ' +
             sampleTitle;
         samplesTrack.tooltip = this.thread_.userFriendlyDetails;
         samplesTrack.selectionGenerator = function() {
           var selection = new tracing.Selection();
-          for (var i = 0; i < samplesTrack.slices.length; i++) {
-            selection.push(samplesTrack.slices[i]);
+          for (var i = 0; i < samplesTrack.samples.length; i++) {
+            selection.push(samplesTrack.samples[i]);
           }
           return selection;
         };
