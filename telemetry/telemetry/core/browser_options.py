@@ -42,8 +42,6 @@ class BrowserFinderOptions(optparse.Values):
     self.profiler = None
     self.verbosity = 0
 
-    self.report_root_metrics = False
-
     self.browser_options = BrowserOptions()
     self.output_file = None
     self.skip_navigate_on_repeat = False
@@ -121,9 +119,6 @@ class BrowserFinderOptions(optparse.Values):
         'test is executed at maximum CPU speed in order to minimize noise '
         '(specially important for dashboards / continuous builds). '
         'This option prevents Telemetry from tweaking such platform settings.')
-    group.add_option(
-        '--report-root-metrics', action='store_true',dest='report_root_metrics',
-        help='Enable metrics that require root access to record.')
     group.add_option('--android-rndis', dest='android_rndis', default=False,
         action='store_true', help='Use RNDIS forwarding on Android.')
     group.add_option('--no-android-rndis', dest='android_rndis',
