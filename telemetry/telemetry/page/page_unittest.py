@@ -115,3 +115,8 @@ class TestPage(unittest.TestCase):
     ps.AddPageWithDefaultRunNavigate('file://../../otherdir/foo')
 
     self.assertEquals(ps[0].display_name, 'foo')
+
+  def testPagesHaveDifferentIds(self):
+    p = page.Page("http://example.com")
+    p2 = page.Page("http://example.com")
+    self.assertNotEqual(p.id, p2.id)
