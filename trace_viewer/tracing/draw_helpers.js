@@ -129,7 +129,7 @@ tvcm.exportTo('tracing', function() {
    * @param {Context} ctx The canvas context.
    * @param {TimelineDrawTransform} dt The draw transform.
    * @param {float} viewLWorld The left most point of the world viewport.
-   * @param {float} viewLWorld The right most point of the world viewport.
+   * @param {float} viewRWorld The right most point of the world viewport.
    * @param {float} viewHeight The height of the viewport.
    * @param {Array} slices The slices to draw.
    * @param {bool} async Whether the slices are drawn with async style.
@@ -246,7 +246,7 @@ tvcm.exportTo('tracing', function() {
    * @param {Context} ctx The canvas context.
    * @param {TimelineDrawTransform} dt The draw transform.
    * @param {float} viewLWorld The left most point of the world viewport.
-   * @param {float} viewLWorld The right most point of the world viewport.
+   * @param {float} viewRWorld The right most point of the world viewport.
    * @param {float} viewHeight The height of the viewport.
    * @param {Array} slices The slices to draw.
    * @param {Numer} lineWidthInPixels The width of the lines.
@@ -296,7 +296,7 @@ tvcm.exportTo('tracing', function() {
    * @param {Context} ctx The graphics context.
    * @param {TimelineDrawTransform} dt The draw transform.
    * @param {float} viewLWorld The left most point of the world viewport.
-   * @param {float} viewLWorld The right most point of the world viewport.
+   * @param {float} viewRWorld The right most point of the world viewport.
    * @param {Array} slices The slices to label.
    * @param {bool} async Whether the slice labels are drawn with async style.
    */
