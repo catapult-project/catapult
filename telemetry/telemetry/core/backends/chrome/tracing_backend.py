@@ -115,9 +115,6 @@ class TracingBackend(object):
   def is_tracing_running(self):
     return self._inspector_websocket.is_dispatching_async_notifications
 
-  def AddTabToMarkerMapping(self, tab, marker):
-    self._tab_to_marker_mapping[tab] = marker
-
   def StartTracing(self, custom_categories=None, timeout=10):
     """ Starts tracing on the first nested call and returns True. Returns False
         and does nothing on subsequent nested calls.
