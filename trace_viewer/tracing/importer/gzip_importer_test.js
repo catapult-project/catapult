@@ -55,4 +55,22 @@ tvcm.unittest.testSuite('tracing.importer.gzip_importer_test', function() {
     var slice = findSliceNamed(threads[0].sliceGroup, 'a');
     self.assertEquals(slice.category, 'foo');
   });
+
+  test('importXMLHttpRequest', function() {
+    var req = new XMLHttpRequest();
+    var url = '/test_data/simple_trace_gz.gz';
+    req.open('GET', url, false);
+    req.overrideMimeType('text/plain; charset=x-user-defined');
+    req.send(null);
+    var gzip_data = req.responseText;
+    self.assertTrue(tracing.importer.GzipImporter.canImport(gzip_data));
+
+    var model = new tracing.TraceModel(gzip_data);
+    var threads = model.getAllThreads();
+    self.assertEquals(threads.length, 2);
+
+    var slice = findSliceNamed(threads[0].sliceGroup, 'B');
+    self.assertEquals(slice.category, 'PERF');
+
+  });
 });

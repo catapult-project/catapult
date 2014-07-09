@@ -17,6 +17,8 @@ tvcm.exportTo('tracing.importer', function() {
 
   var Importer = tracing.importer.Importer;
 
+  var GZIP_MEMBER_HEADER_ID_SIZE = 3;
+
   var GZIP_HEADER_ID1 = 0x1f;
   var GZIP_HEADER_ID2 = 0x8b;
   var GZIP_DEFLATE_COMPRESSION = 8;
@@ -41,11 +43,11 @@ tvcm.exportTo('tracing.importer', function() {
   GzipImporter.canImport = function(eventData) {
     var header;
     if (eventData instanceof ArrayBuffer)
-      header = new Uint8Array(eventData.slice(0, 3));
+      header = new Uint8Array(eventData.slice(0, GZIP_MEMBER_HEADER_ID_SIZE));
     else if (typeof(eventData) === 'string' || eventData instanceof String) {
-      header = eventData.substring(0, 7);
-      header =
-          [header.charCodeAt(0), header.charCodeAt(1), header.charCodeAt(2)];
+      header = eventData.substring(0, GZIP_MEMBER_HEADER_ID_SIZE);
+      // Convert the string to a byteArray for correct value comparison.
+      header = JSZip.utils.transformTo('uint8array', header);
     } else
       return false;
     return header[0] == GZIP_HEADER_ID1 &&
