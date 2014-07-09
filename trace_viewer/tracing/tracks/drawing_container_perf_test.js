@@ -4,7 +4,7 @@
 
 'use strict';
 
-tvcm.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.importer');
 tvcm.require('tracing.timeline_view');
 tvcm.require('tracing.timeline_viewport');
 tvcm.require('tracing.trace_model');
@@ -13,6 +13,9 @@ tvcm.unittest.testSuite('tracing.tracks.drawing_container_perf_test', function()
   function getSynchronous(url) {
     var req = new XMLHttpRequest();
     req.open('GET', url, false);
+    // Without the mime type specified like this, the file's bytes are not
+    // retrieved correctly.
+    req.overrideMimeType('text/plain; charset=x-user-defined');
     req.send(null);
     return req.responseText;
   }
@@ -27,7 +30,8 @@ tvcm.unittest.testSuite('tracing.tracks.drawing_container_perf_test', function()
     function setUpOnce() {
       if (model !== undefined)
         return;
-      var events = getSynchronous('/test_data/huge_trace.json');
+      var fileUrl = '/test_data/thread_time_visualisation.json.gz';
+      var events = getSynchronous(fileUrl);
       model = new tracing.TraceModel();
       model.importTraces([events], true);
     }

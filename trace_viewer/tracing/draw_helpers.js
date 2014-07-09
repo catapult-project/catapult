@@ -25,6 +25,23 @@ tvcm.exportTo('tracing', function() {
   var THIN_SLICE_HEIGHT = 4;
 
   /**
+   * This value is used to for performance considerations when drawing large
+   * zoomed out traces that feature cpu time in the slices. If the waiting
+   * width is less than the threshold, we only draw the rectangle as a solid.
+   * @const
+   */
+  var SLICE_WAITING_WIDTH_DRAW_THRESHOLD = 3;
+
+  /**
+   * If the slice has mostly been waiting to be scheduled on the cpu, the
+   * wall clock will be far greater than the cpu clock. Draw the slice
+   * only as an idle slice, if the active width is not thicker than the
+   * threshold.
+   * @const
+   */
+  var SLICE_ACTIVE_WIDTH_DRAW_THRESHOLD = 1;
+
+  /**
    * Should we elide text on trace labels?
    * Without eliding, text that is too wide isn't drawn at all.
    * Disable if you feel this causes a performance problem.
@@ -172,19 +189,19 @@ tvcm.exportTo('tracing', function() {
       var activeWidth = w * (slice.cpuDuration / slice.duration);
       var waitingWidth = w - activeWidth;
 
-      var finalActiveWidth = activeWidth;
-      var finalWaitingWidth = waitingWidth;
-
       // Check if we have enough screen space to draw the whole slice, with
       // both color tones.
-      if (activeWidth < pixWidth || waitingWidth < pixWidth) {
-        if (activeWidth > waitingWidth) {
-          finalActiveWidth = w;
-          finalWaitingWidth = 0;
-        } else {
-          finalActiveWidth = 0;
-          finalWaitingWidth = w;
-        }
+      //
+      // Truncate the activeWidth to 0 if it is less than 'threshold' pixels.
+      if (activeWidth < SLICE_ACTIVE_WIDTH_DRAW_THRESHOLD * pixWidth) {
+        activeWidth = 0;
+        waitingWidth = w;
+      }
+
+      // Truncate the waitingWidth to 0 if it is less than 'threshold' pixels.
+      if (waitingWidth < SLICE_WAITING_WIDTH_DRAW_THRESHOLD * pixWidth) {
+        activeWidth = w;
+        waitingWidth = 0;
       }
 
       // We now draw the two rectangles making up the event slice.
@@ -192,23 +209,23 @@ tvcm.exportTo('tracing', function() {
       // We do not want to force draws, if the width of the rectangle is 0.
       //
       // First draw the solid color, representing the 'active' part.
-      if (finalActiveWidth > 0) {
-        tr.fillRect(x, finalActiveWidth, colorId, alpha);
+      if (activeWidth > 0) {
+        tr.fillRect(x, activeWidth, colorId, alpha);
       }
 
       // Next draw the two toned 'idle' part.
       // NOTE: Substracting pixWidth and drawing one extra pixel is done to
       // prevent drawing artifacts. Without it, the two parts of the slice,
       // ('active' and 'idle') may appear split apart.
-      if (finalWaitingWidth > 0) {
+      if (waitingWidth > 0) {
         // First draw the light toned top part.
         tr.setYandH(0, lightRectHeight);
-        tr.fillRect(x + finalActiveWidth - pixWidth,
-            finalWaitingWidth + pixWidth, colorId, lightAlpha);
+        tr.fillRect(x + activeWidth - pixWidth,
+            waitingWidth + pixWidth, colorId, lightAlpha);
         // Then the solid bottom half.
         tr.setYandH(lightRectHeight, darkRectHeight);
-        tr.fillRect(x + finalActiveWidth - pixWidth,
-            finalWaitingWidth + pixWidth, colorId, alpha);
+        tr.fillRect(x + activeWidth - pixWidth,
+            waitingWidth + pixWidth, colorId, alpha);
         // Reset for the next slice.
         tr.setYandH(0, height);
       }
