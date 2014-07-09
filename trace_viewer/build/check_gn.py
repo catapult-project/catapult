@@ -23,6 +23,7 @@ def GnCheck():
   f.close()
 
   listed_files = []
+  error = ""
   for group in check_common.FILE_GROUPS:
     expr = '%s = \[(.+?)\]\n' % group
     m = re.search(expr, gn, re.DOTALL)
@@ -33,9 +34,10 @@ def GnCheck():
     filenames = [ItemToFilename(item.strip()) for item in items
                  if len(item) > 0]
 
+    error += check_common.CheckListedFilesSorted(GN_FILE, group, filenames)
     listed_files.extend(map(os.path.normpath, filenames))
 
-  return check_common.CheckCommon(GN_FILE, listed_files)
+  return error + check_common.CheckCommon(GN_FILE, listed_files)
 
 if __name__ == '__main__':
   print GnCheck()

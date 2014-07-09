@@ -13,6 +13,29 @@ FILE_GROUPS = ["tracing_html_files",
     "tracing_img_files"]
 
 
+def CheckListedFilesSorted(src_file, group_name, listed_files):
+  sorted_files = sorted(listed_files)
+  if sorted_files != listed_files:
+    mismatch = ''
+    for i in range(len(listed_files)):
+      if listed_files[i] != sorted_files[i]:
+        mismatch = listed_files[i]
+        break
+    what_is = '  ' + '\n  '.join(listed_files)
+    what_should_be = '  ' + '\n  '.join(sorted_files)
+    return '''In group {0} from file {1}, filenames aren't sorted.
+
+First mismatch:
+  {2}
+
+Current listing:
+{3}
+
+Correct listing:
+{4}\n\n'''.format(group_name, src_file, mismatch, what_is, what_should_be)
+  else:
+    return ''
+
 def CheckCommon(file_name, listed_files):
   project = trace_viewer_project.TraceViewerProject()
   known_files = []

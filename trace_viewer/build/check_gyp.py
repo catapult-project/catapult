@@ -15,10 +15,13 @@ def GypCheck():
 
   data = eval(gyp)
   listed_files = []
+  error = ""
   for group in check_common.FILE_GROUPS:
-    listed_files.extend(map(os.path.normpath, data["variables"][group]))
+    filenames = map(os.path.normpath, data["variables"][group])
+    error += check_common.CheckListedFilesSorted(GYP_FILE, group, filenames)
+    listed_files.extend(filenames)
 
-  return check_common.CheckCommon(GYP_FILE, listed_files)
+  return error + check_common.CheckCommon(GYP_FILE, listed_files)
 
 if __name__ == '__main__':
   print GypCheck()
