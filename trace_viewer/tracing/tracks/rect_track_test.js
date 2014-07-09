@@ -1,4 +1,4 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
+// Copyright (c) 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -16,7 +16,14 @@ tvcm.unittest.testSuite('tracing.tracks.rect_track_test', function() {
   var Slice = tracing.trace_model.Slice;
   var Viewport = tracing.TimelineViewport;
 
-  test('instantiate_withSlices', function() {
+  var monkeyPatchTrack = function(track) {
+    track.addRectToSelection = function(rect, selection) {
+      selection.push(rect);
+    };
+    return track;
+  };
+
+  test('instantiate_withRects', function() {
     var div = document.createElement('div');
     this.addHTMLOutput(div);
 
@@ -28,7 +35,7 @@ tvcm.unittest.testSuite('tracing.tracks.rect_track_test', function() {
     drawingContainer.appendChild(track);
     drawingContainer.invalidate();
 
-    track.heading = 'testBasicSlices';
+    track.heading = 'testBasicRects';
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -41,7 +48,7 @@ tvcm.unittest.testSuite('tracing.tracks.rect_track_test', function() {
     track.viewport.setDisplayTransformImmediately(dt);
   });
 
-  test('instantiate_shrinkingSliceSize', function() {
+  test('instantiate_shrinkingRectSize', function() {
     var div = document.createElement('div');
     this.addHTMLOutput(div);
 
@@ -53,7 +60,7 @@ tvcm.unittest.testSuite('tracing.tracks.rect_track_test', function() {
     drawingContainer.appendChild(track);
     drawingContainer.invalidate();
 
-    track.heading = 'testShrinkingSliceSizes';
+    track.heading = 'testShrinkingRectSizes';
     var x = 0;
     var widths = [10, 5, 4, 3, 2, 1, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05];
     var slices = [];
@@ -107,7 +114,7 @@ tvcm.unittest.testSuite('tracing.tracks.rect_track_test', function() {
   });
 
   test('findAllObjectsMatchingInRectTrack', function() {
-    var track = RectTrack(new tracing.TimelineViewport());
+    var track = monkeyPatchTrack(RectTrack(new tracing.TimelineViewport()));
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -133,7 +140,7 @@ tvcm.unittest.testSuite('tracing.tracks.rect_track_test', function() {
     var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
     testEl.appendChild(drawingContainer);
 
-    var track = new RectTrack(viewport);
+    var track = monkeyPatchTrack(new RectTrack(viewport));
     drawingContainer.appendChild(track);
     drawingContainer.updateCanvasSizeIfNeeded_();
 
@@ -252,8 +259,8 @@ tvcm.unittest.testSuite('tracing.tracks.rect_track_test', function() {
     assertEquals('...', stringWidthPair.string.substring(len - 3, len));
   });
 
-  test('sliceTrackAddItemNearToProvidedEvent', function() {
-    var track = new RectTrack(new tracing.TimelineViewport());
+  test('rectTrackAddItemNearToProvidedEvent', function() {
+    var track = monkeyPatchTrack(new RectTrack(new tracing.TimelineViewport()));
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -303,8 +310,8 @@ tvcm.unittest.testSuite('tracing.tracks.rect_track_test', function() {
     assertEquals(0, selNone.length);
   });
 
-  test('sliceTrackAddClosestEventToSelection', function() {
-    var track = new RectTrack(new tracing.TimelineViewport());
+  test('rectTrackAddClosestEventToSelection', function() {
+    var track = monkeyPatchTrack(new RectTrack(new tracing.TimelineViewport()));
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),

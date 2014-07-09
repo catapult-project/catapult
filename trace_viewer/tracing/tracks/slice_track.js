@@ -30,6 +30,10 @@ tvcm.exportTo('tracing.tracks', function() {
 
     set slices(slices) {
       this.rects = slices;
+    },
+
+    addRectToSelection: function(slice, selection) {
+      selection.push(slice);
     }
   };
 

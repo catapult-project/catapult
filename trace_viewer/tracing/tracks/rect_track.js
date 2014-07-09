@@ -58,7 +58,11 @@ tvcm.exportTo('tracing.tracks', function() {
     },
 
     get hasVisibleContent() {
-      return this.rects.length > 0;
+      return this.rects_.length > 0;
+    },
+
+    addRectToSelection: function(rect, selection) {
+      throw new Error('Not implemented.');
     },
 
     draw: function(type, viewLWorld, viewRWorld) {
@@ -108,8 +112,9 @@ tvcm.exportTo('tracing.tracks', function() {
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onRect(rect) {
-        selection.push(rect);
+        this.addRectToSelection(rect, selection);
       }
+      onRect = onRect.bind(this);
       tvcm.iterateOverIntersectingIntervals(this.rects_,
           function(x) { return x.start; },
           function(x) { return x.duration; },
@@ -153,14 +158,14 @@ tvcm.exportTo('tracing.tracks', function() {
       if (newIndex < 0 || newIndex >= this.rects_.length)
         return false;
 
-      selection.push(this.rects_[newIndex]);
+      this.addRectToSelection(this.rects_[newIndex], selection);
       return true;
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
       for (var i = 0; i < this.rects_.length; ++i) {
         if (filter.matchSlice(this.rects_[i]))
-          selection.push(this.rects_[i]);
+          this.addRectToSelection(this.rects_[i], selection);
       }
     },
 
@@ -174,7 +179,7 @@ tvcm.exportTo('tracing.tracks', function() {
           worldMaxDist);
 
       if (rect)
-        selection.push(rect);
+        this.addRectToSelection(rect, selection);
     }
   };
 
