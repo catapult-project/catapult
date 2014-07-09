@@ -6,6 +6,7 @@
 
 tvcm.requireStylesheet('tracing.tracks.heading_track');
 
+tvcm.require('tracing.analysis.analysis_link');
 tvcm.require('tracing.constants');
 tvcm.require('tracing.tracks.track');
 tvcm.require('tvcm.ui');
