@@ -58,7 +58,6 @@ class AndroidPlatformBackend(
     self._powermonitor = android_temperature_monitor.AndroidTemperatureMonitor(
         power_controller, device)
     self._video_recorder = None
-    self._video_output = None
     if self._no_performance_mode:
       logging.warning('CPU governor will not be set!')
 
@@ -225,11 +224,10 @@ class AndroidPlatformBackend(
     if min_bitrate_mbps > 100:
       raise ValueError('Android video capture cannot capture at %dmbps. '
                        'Max capture rate is 100mbps.' % min_bitrate_mbps)
-    self._video_output = tempfile.mkstemp()[1]
     if self.is_video_capture_running:
       self._video_recorder.Stop()
     self._video_recorder = screenshot.VideoRecorder(
-        self._device, self._video_output, megabits_per_second=min_bitrate_mbps)
+        self._device, megabits_per_second=min_bitrate_mbps)
     self._video_recorder.Start()
     util.WaitFor(self._video_recorder.IsStarted, 5)
 
@@ -240,10 +238,11 @@ class AndroidPlatformBackend(
   def StopVideoCapture(self):
     assert self.is_video_capture_running, 'Must start video capture first'
     self._video_recorder.Stop()
-    self._video_recorder.Pull()
+    video_file_obj = tempfile.NamedTemporaryFile()
+    self._video_recorder.Pull(video_file_obj.name)
     self._video_recorder = None
 
-    return video.Video(self._video_output)
+    return video.Video(video_file_obj)
 
   def CanMonitorPower(self):
     return self._powermonitor.CanMonitorPower()

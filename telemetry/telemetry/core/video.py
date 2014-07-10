@@ -17,9 +17,10 @@ class BoundingBoxNotFoundException(Exception):
 class Video(object):
   """Utilities for storing and interacting with the video capture."""
 
-  def __init__(self, video_file_path):
-    # TODO(satyanarayana): Figure out when to delete this file.
-    self._video_file_path = video_file_path
+  def __init__(self, video_file_obj):
+    assert video_file_obj.delete
+    assert not video_file_obj.close_called
+    self._video_file_obj = video_file_obj
     self._tab_contents_bounding_box = None
 
   def UploadToCloudStorage(self, bucket, target_path):
@@ -28,7 +29,7 @@ class Video(object):
     Args:
       target_path: Path indicating where to store the file in cloud storage.
     """
-    cloud_storage.Insert(bucket, target_path, self._video_file_path)
+    cloud_storage.Insert(bucket, target_path, self._video_file_obj.name)
 
   def GetVideoFrameIter(self):
     """Returns the iteration for processing the video capture.
@@ -42,7 +43,7 @@ class Video(object):
         time_ms is milliseconds since navigationStart.
         bitmap is a telemetry.core.Bitmap.
     """
-    frame_generator = self._FramesFromMp4(self._video_file_path)
+    frame_generator = self._FramesFromMp4(self._video_file_obj.name)
 
     # Flip through frames until we find the initial tab contents flash.
     content_box = None

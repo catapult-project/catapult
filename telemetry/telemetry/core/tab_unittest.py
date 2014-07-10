@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import tempfile
 
 from telemetry import benchmark
 from telemetry.core import bitmap
@@ -28,7 +29,7 @@ class FakePlatform(object):
 
   def StopVideoCapture(self):
     self._is_video_capture_running = False
-    return video.Video(None)
+    return video.Video(tempfile.NamedTemporaryFile())
 
   def SetFullPerformanceModeEnabled(self, enabled):
     pass
