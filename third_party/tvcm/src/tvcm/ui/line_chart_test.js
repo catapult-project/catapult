@@ -44,6 +44,37 @@ tvcm.testSuite('tvcm.ui.line_chart_test', function() {
     this.addHTMLOutput(chart);
   });
 
+  test('brushRangeFromIndices', function() {
+    var chart = new tvcm.ui.LineChart();
+    var data = [
+      {x: 10, value: 50},
+      {x: 30, value: 60},
+      {x: 70, value: 70},
+      {x: 80, value: 80},
+      {x: 120, value: 90}
+    ];
+    chart.data = data;
+    var r = new tvcm.Range();
+
+    // Range min should be 10.
+    r = chart.computeBrushRangeFromIndices(-2, 1);
+    assertEquals(10, r.min);
+
+    // Range max should be 120.
+    r = chart.computeBrushRangeFromIndices(3, 10);
+    assertEquals(120, r.max);
+
+    // Range should be [10, 120]
+    r = chart.computeBrushRangeFromIndices(-2, 10);
+    assertEquals(10, r.min);
+    assertEquals(120, r.max);
+
+    // Range should be [20, 100]
+    r = chart.computeBrushRangeFromIndices(1, 3);
+    assertEquals(20, r.min);
+    assertEquals(100, r.max);
+  });
+
   test('interactiveBrushing', function() {
     var chart = new tvcm.ui.LineChart();
     chart.width = 400;
@@ -61,36 +92,16 @@ tvcm.testSuite('tvcm.ui.line_chart_test', function() {
     ];
     chart.data = data;
 
-
     var mouseDownIndex = undefined;
     var curMouseIndex = undefined;
-    function getSampleWidth(index, leftSide) {
-      var leftIndex, rightIndex;
-      if (leftSide) {
-        leftIndex = Math.max(index - 1, 0);
-        rightIndex = index;
-      } else {
-        leftIndex = index;
-        rightIndex = Math.min(index + 1, data.length - 1);
-      }
-      var leftWidth = data[index].x - data[leftIndex].x;
-      var rightWidth = data[rightIndex].x - data[index].x;
-      return leftWidth * 0.5 + rightWidth * 0.5;
-    }
 
     function updateBrushedRange() {
-      var r = new tvcm.Range();
       if (mouseDownIndex === undefined) {
-        chart.brushedRange = r;
+        chart.brushedRange = new tvcm.Range();
         return;
       }
-      var leftIndex = Math.min(mouseDownIndex, curMouseIndex);
-      var rightIndex = Math.max(mouseDownIndex, curMouseIndex);
-      leftIndex = Math.max(0, leftIndex);
-      rightIndex = Math.min(data.length - 1, rightIndex);
-      r.addValue(data[leftIndex].x - getSampleWidth(leftIndex, true));
-      r.addValue(data[rightIndex].x + getSampleWidth(rightIndex, false));
-      chart.brushedRange = r;
+      chart.brushedRange = chart.computeBrushRangeFromIndices(
+          mouseDownIndex, curMouseIndex);
     }
 
     chart.addEventListener('item-mousedown', function(e) {

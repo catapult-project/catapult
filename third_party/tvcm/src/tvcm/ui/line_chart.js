@@ -15,6 +15,20 @@ tvcm.exportTo('tvcm.ui', function() {
   var ChartBase = tvcm.ui.ChartBase;
   var getColorOfKey = tvcm.ui.getColorOfKey;
 
+  function getSampleWidth(data, index, leftSide) {
+    var leftIndex, rightIndex;
+    if (leftSide) {
+      leftIndex = Math.max(index - 1, 0);
+      rightIndex = index;
+    } else {
+      leftIndex = index;
+      rightIndex = Math.min(index + 1, data.length - 1);
+    }
+    var leftWidth = data[index].x - data[leftIndex].x;
+    var rightWidth = data[rightIndex].x - data[index].x;
+    return leftWidth * 0.5 + rightWidth * 0.5;
+  }
+
   /**
    * @constructor
    */
@@ -76,6 +90,19 @@ tvcm.exportTo('tvcm.ui', function() {
       this.brushedRange_.reset();
       this.brushedRange_.addRange(range);
       this.updateContents_();
+    },
+
+    computeBrushRangeFromIndices: function(indexA, indexB) {
+      var r = new tvcm.Range();
+      var leftIndex = Math.min(indexA, indexB);
+      var rightIndex = Math.max(indexA, indexB);
+      leftIndex = Math.max(0, leftIndex);
+      rightIndex = Math.min(this.data_.length - 1, rightIndex);
+      r.addValue(this.data_[leftIndex].x -
+          getSampleWidth(this.data_, leftIndex, true));
+      r.addValue(this.data_[rightIndex].x +
+          getSampleWidth(this.data_, rightIndex, false));
+      return r;
     },
 
     getLegendKeys_: function() {

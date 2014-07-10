@@ -5,6 +5,7 @@
 'use strict';
 
 tvcm.require('tracing.analysis.util');
+tvcm.require('tracing.selection');
 tvcm.require('tracing.timeline_view_side_panel');
 tvcm.require('tvcm.iteration_helpers');
 tvcm.require('tvcm.statistics');
@@ -219,6 +220,8 @@ tvcm.exportTo('tracing', function() {
       this.latencyChart_ = undefined;
       this.frametimeChart_ = undefined;
       this.selectedProcess_ = undefined;
+      this.mouseDownIndex_ = undefined;
+      this.curMouseIndex_ = undefined;
     },
 
     get model() {
@@ -251,6 +254,68 @@ tvcm.exportTo('tracing', function() {
         return;
       this.selectedProcess_ = process;
       this.updateContents_();
+    },
+
+    set selection(selection) {
+      if (this.latencyChart_ === undefined)
+        return;
+      this.latencyChart_.brushedRange = selection.bounds;
+    },
+
+    // This function is for testing purpose.
+    setBrushedIndices: function(mouseDownIndex, curIndex) {
+      this.mouseDownIndex_ = mouseDownIndex;
+      this.curMouseIndex_ = curIndex;
+      this.updateBrushedRange_();
+    },
+
+    updateBrushedRange_: function() {
+      if (this.latencyChart_ === undefined)
+        return;
+
+      var r = new tvcm.Range();
+      if (this.mouseDownIndex_ === undefined) {
+        this.latencyChart_.brushedRange = r;
+        return;
+      }
+      r = this.latencyChart_.computeBrushRangeFromIndices(this.mouseDownIndex_,
+                                                          this.curMouseIndex_);
+      this.latencyChart_.brushedRange = r;
+
+      // Based on the brushed range, update the selection of LatencyInfo in
+      // the timeline view by sending a selectionChange event.
+      var latencySlices = [];
+      this.model_.getAllThreads().forEach(function(thread) {
+        thread.iterateAllEvents(function(event) {
+          if (event.title.indexOf('InputLatency:') === 0)
+            latencySlices.push(event);
+        });
+      });
+      latencySlices = getSlicesIntersectingRange(r, latencySlices);
+
+      var event = new tracing.RequestSelectionChangeEvent();
+      event.selection = new tracing.Selection(latencySlices);
+      this.latencyChart_.dispatchEvent(event);
+    },
+
+    registerMouseEventForLatencyChart_: function() {
+      this.latencyChart_.addEventListener('item-mousedown', function(e) {
+        this.mouseDownIndex_ = e.index;
+        this.curMouseIndex_ = e.index;
+        this.updateBrushedRange_();
+      }.bind(this));
+
+      this.latencyChart_.addEventListener('item-mousemove', function(e) {
+        if (e.button == undefined)
+          return;
+        this.curMouseIndex_ = e.index;
+        this.updateBrushedRange_();
+      }.bind(this));
+
+      this.latencyChart_.addEventListener('item-mouseup', function(e) {
+        this.curMouseIndex = e.index;
+        this.updateBrushedRange_();
+      }.bind(this));
     },
 
     updateToolbar_: function() {
@@ -328,6 +393,7 @@ tvcm.exportTo('tracing', function() {
       if (latencyData.length != 0) {
         this.latencyChart_ = createLatencyLineChart(latencyData,
                                                     'Latency Over Time');
+        this.registerMouseEventForLatencyChart_();
         resultArea.appendChild(this.latencyChart_);
       }
 

@@ -156,4 +156,31 @@ tvcm.unittest.testSuite('tracing.input_latency_side_panel_test', function() {
                                                         'frametime');
     this.addHTMLOutput(frametimeChart);
   });
+
+  test('brushedRangeChange', function() {
+    var events = [];
+    for (var i = 0; i < 10; i++) {
+      var start_ts = i * 10000;
+      var end_ts = start_ts + 1000 * (i % 2);
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : start_ts, 'ph' : 'S', 'name' : 'InputLatency', 'id' : i}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : end_ts, 'ph' : 'T', 'name' : 'InputLatency', 'args' : {'step' : 'GestureScrollUpdate'}, 'id' : i}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : end_ts, 'ph' : 'F', 'name' : 'InputLatency', 'args' : {'data' : {'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT' : {'time' : start_ts}, 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT' : {'time' : end_ts}}}, 'id': i}); // @suppress longLineCheck
+    }
+
+    var panel = new tracing.InputLatencySidePanel();
+    this.addHTMLOutput(panel);
+
+    var selectionChanged = false;
+    panel.model = new tracing.TraceModel(events);
+    panel.ownerDocument.addEventListener('requestSelectionChange', function(e) {
+      selectionChanged = true;
+      assertEquals(3, e.selection.length);
+      assertEquals(20, e.selection[0].start);
+      assertEquals(31, e.selection[1].start);
+      assertEquals(40, e.selection[2].start);
+    });
+    panel.setBrushedIndices(2, 4);
+    assertTrue(selectionChanged);
+  });
+
 });
