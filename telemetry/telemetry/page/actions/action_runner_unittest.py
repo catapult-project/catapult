@@ -9,8 +9,6 @@ from telemetry.core.backends.chrome import tracing_backend
 from telemetry.timeline import model
 from telemetry.page.actions import gesture_action
 from telemetry.page.actions import action_runner as action_runner_module
-# pylint: disable=W0401,W0614
-from telemetry.page.actions.all_page_actions import *
 from telemetry.unittest import tab_test_case
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
