@@ -232,7 +232,6 @@
       'trace_viewer/tracing/importer/linux_perf_importer.js',
       'trace_viewer/tracing/importer/simple_line_reader.js',
       'trace_viewer/tracing/importer/task.js',
-      'trace_viewer/tracing/importer/timeline_stream_importer.js',
       'trace_viewer/tracing/importer/trace2html_importer.js',
       'trace_viewer/tracing/importer/trace_event_importer.js',
       'trace_viewer/tracing/importer/v8/codemap.js',
