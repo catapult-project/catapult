@@ -277,7 +277,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
           logging.error('Aborting multi-tab test after tab %s crashed',
                         page.url)
           raise
-        logging.warning(e)
+        logging.warning(str(e))
         state.StopBrowser()
 
       if finder_options.profiler:
@@ -301,7 +301,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
       if test.is_multi_tab_test:
         logging.error('Aborting multi-tab test after browser crashed')
         raise
-      logging.warning(e)
+      logging.warning(str(e))
 
 
 def _UpdatePageSetArchivesIfChanged(page_set):
