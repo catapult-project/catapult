@@ -18,7 +18,7 @@ tvcm.exportTo('tracing', function() {
 
   TimelineViewSidePanel.getPanelConstructors = function() {
     return panelConstructors;
-  }
+  };
 
   TimelineViewSidePanel.registerPanelSubtype = function(panelConstructor) {
     if (panelConstructor.supportsModel === undefined)
@@ -28,14 +28,14 @@ tvcm.exportTo('tracing', function() {
       throw new Error('Panel constructors must provide a ' +
                       'textLabel strig');
     panelConstructors.push(panelConstructor);
-  }
+  };
 
   TimelineViewSidePanel.unregisterPanelSubtype = function(panelConstructor) {
     var i = panelConstructors.indexOf(panelConstructor);
     if (i == -1)
       throw new Error('Panel not registered');
     panelConstructors.splice(i, 1);
-  }
+  };
 
   TimelineViewSidePanel.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -64,7 +64,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     get model() {
-      return model_;
+      return this.model_;
     },
 
     set model(model) {
@@ -168,7 +168,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     get selection() {
-      return selection_;
+      return this.selection_;
     },
 
     set selection(selection) {

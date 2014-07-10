@@ -14,48 +14,40 @@ tvcm.unittest.testSuite('tracing.sampling_summary_side_panel_test', function() {
 
   var newSliceNamed = tracing.test_utils.newSliceNamed;
 
-  function createModel() {
+  function createSelection() {
+    var selection = new tracing.Selection();
     var model = new tracing.TraceModel();
-    model.importTraces([], false, false, function() {
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    thread.name = 'The Thread';
 
-      var cpu = model.kernel.getOrCreateCpu(1);
-      var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
-      thread.name = 'The Thread';
+    var fA = new StackFrame(undefined, 1, 'Chrome', 'a', 7);
+    var fAB = new StackFrame(fA, 2, 'Chrome', 'b', 7);
+    var fABC = new StackFrame(fAB, 3, 'Chrome', 'c', 7);
+    var fAD = new StackFrame(fA, 4, 'GPU Driver', 'd', 7);
 
-      var fA = model.addStackFrame(new StackFrame(
-          undefined, 1, 'Chrome', 'a', 7));
-      var fAB = model.addStackFrame(new StackFrame(
-          fA, 2, 'Chrome', 'b', 7));
-      var fABC = model.addStackFrame(new StackFrame(
-          fAB, 3, 'Chrome', 'c', 7));
-      var fAD = model.addStackFrame(new StackFrame(
-          fA, 4, 'GPU Driver', 'd', 7));
-
-      model.samples.push(new Sample(undefined, thread, 'cycles',
-                                    10, fABC, 10));
-      model.samples.push(new Sample(undefined, thread, 'cycles',
-                                    20, fAB, 10));
-      model.samples.push(new Sample(undefined, thread, 'cycles',
-                                    25, fAB, 10));
-      model.samples.push(new Sample(undefined, thread, 'cycles',
-                                    30, fAB, 10));
-      model.samples.push(new Sample(undefined, thread, 'cycles',
-                                    35, fAD, 10));
-      model.samples.push(new Sample(undefined, thread, 'cycles',
-                                    35, fAD, 5));
-      model.samples.push(new Sample(undefined, thread, 'cycles',
-                                    40, fAD, 5));
-      model.samples.push(new Sample(undefined, thread, 'page_misses',
-                                    35, fAD, 7));
-      model.samples.push(new Sample(undefined, thread, 'page_misses',
-                                    40, fAD, 9));
-    });
-    return model;
+    selection.push(new Sample(undefined, thread, 'cycles',
+                              10, fABC, 10));
+    selection.push(new Sample(undefined, thread, 'cycles',
+                              20, fAB, 10));
+    selection.push(new Sample(undefined, thread, 'cycles',
+                              25, fAB, 10));
+    selection.push(new Sample(undefined, thread, 'cycles',
+                              30, fAB, 10));
+    selection.push(new Sample(undefined, thread, 'cycles',
+                              35, fAD, 10));
+    selection.push(new Sample(undefined, thread, 'cycles',
+                              35, fAD, 5));
+    selection.push(new Sample(undefined, thread, 'cycles',
+                              40, fAD, 5));
+    selection.push(new Sample(undefined, thread, 'page_misses',
+                              35, fAD, 7));
+    selection.push(new Sample(undefined, thread, 'page_misses',
+                              40, fAD, 9));
+    return selection;
   }
 
   test('createSunburstDataBasic', function() {
-    var m = createModel();
-    assertTrue(tracing.SamplingSummarySidePanel.supportsModel(m).supported);
+    var s = createSelection();
 
     var expect = {
       name: '<All Threads>',
@@ -103,14 +95,27 @@ tvcm.unittest.testSuite('tracing.sampling_summary_side_panel_test', function() {
       ]
     };
 
-    var sunburstData = tracing.createSunburstData(m, m.bounds, 'cycles');
+    var sunburstData = tracing.createSunburstData(s, 'cycles');
     assertEquals(JSON.stringify(expect), JSON.stringify(sunburstData));
   });
 
-  test('createSunburstDataRange', function() {
-    var m = createModel();
-    assertTrue(tracing.SamplingSummarySidePanel.supportsModel(m).supported);
+  test('processOnlySamples', function() {
+    var selection = new tracing.Selection();
+    var model = new tracing.TraceModel();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    thread.name = 'The Thread';
 
+    var fA = new StackFrame(undefined, 1, 'Chrome', 'a', 7);
+    var fAB = new StackFrame(fA, 2, 'Chrome', 'b', 7);
+    var fABC = new StackFrame(fAB, 3, 'Chrome', 'c', 7);
+    var fAD = new StackFrame(fA, 4, 'GPU Driver', 'd', 7);
+
+    selection.push(new Sample(undefined, thread, 'cycles',
+                              10, fABC, 10));
+    selection.push(new Sample(undefined, thread, 'cycles',
+                              20, fAB, 10));
+    selection.push(new Sample(undefined, thread, 'page_misses',
+                              40, fAD, 9));
     var expect = {
       name: '<All Threads>',
       category: 'root',
@@ -128,14 +133,9 @@ tvcm.unittest.testSuite('tracing.sampling_summary_side_panel_test', function() {
                   name: 'a',
                   children: [
                     {
-                      category: 'Chrome',
-                      name: 'b',
-                      size: 20
-                    },
-                    {
                       category: 'GPU Driver',
                       name: 'd',
-                      size: 15
+                      size: 9
                     }
                   ]
                 }
@@ -146,16 +146,17 @@ tvcm.unittest.testSuite('tracing.sampling_summary_side_panel_test', function() {
       ]
     };
 
-    var range = new tvcm.Range();
-    range.addValue(25);
-    range.addValue(35);
-    var sunburstData = tracing.createSunburstData(m, range, 'cycles');
+    // Along with the samples, push some slices too.
+    // The panel should completely ignore these.
+    selection.push(newSliceNamed('a', 1, 2));
+    selection.push(newSliceNamed('f', 9, 7));
+
+    var sunburstData = tracing.createSunburstData(selection, 'page_misses');
     assertEquals(JSON.stringify(expect), JSON.stringify(sunburstData));
   });
 
   test('createSunburstDataSampleType', function() {
-    var m = createModel();
-    assertTrue(tracing.SamplingSummarySidePanel.supportsModel(m).supported);
+    var s = createSelection();
 
     var expect = {
       name: '<All Threads>',
@@ -187,17 +188,16 @@ tvcm.unittest.testSuite('tracing.sampling_summary_side_panel_test', function() {
       ]
     };
 
-    var sunburstData = tracing.createSunburstData(m, m.bounds, 'page_misses');
+    var sunburstData = tracing.createSunburstData(s, 'page_misses');
     assertEquals(JSON.stringify(expect), JSON.stringify(sunburstData));
   });
 
   test('instantiate', function() {
-    var m = createModel();
-    assertTrue(tracing.SamplingSummarySidePanel.supportsModel(m).supported);
+    var s = createSelection();
 
     var panel = new tracing.SamplingSummarySidePanel();
     this.addHTMLOutput(panel);
     panel.style.border = '1px solid black';
-    panel.model = m;
+    panel.selection = s;
   });
 });

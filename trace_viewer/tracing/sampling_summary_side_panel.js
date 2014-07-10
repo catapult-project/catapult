@@ -21,15 +21,15 @@ tvcm.exportTo('tracing', function() {
   var getColorOfKey = tvcm.ui.getColorOfKey;
 
   /**
-     * @constructor
-     */
+    * @constructor
+    */
   var CallTreeNode = function(name, category) {
     this.parent = undefined;
     this.name = name;
     this.category = category;
     this.selfTime = 0.0;
     this.children = [];
-  }
+  };
 
   /**
    * @constructor
@@ -40,7 +40,7 @@ tvcm.exportTo('tracing', function() {
     this.rootCategories = {};
     this.sfToNode = {};
     this.sfToNode[0] = self.rootNode;
-  }
+  };
 
   Thread.prototype = {
     getCallTreeNode: function(stackFrame) {
@@ -101,22 +101,17 @@ tvcm.exportTo('tracing', function() {
     return ret;
   }
 
-  function getSampleTypes(model, rangeOfInterest) {
+  function getSampleTypes(selection) {
     var sampleDict = {};
-    var samples = model.samples;
-    var rangeMin = rangeOfInterest.min;
-    var rangeMax = rangeOfInterest.max;
+    var samples = selection.getEventsOrganizedByType().samples;
     for (var i = 0; i < samples.length; i++) {
-      var sample = samples[i];
-      if (sample.start >= rangeMin && sample.start <= rangeMax)
-        sampleDict[sample.title] = null;
+      sampleDict[samples[i].title] = null;
     }
     return Object.keys(sampleDict);
   }
 
-  // Create sunburst data from model data.
-  function createSunburstData(model, rangeOfInterest, sampleType) {
-    // TODO(vmiura): Add selection.
+  // Create sunburst data from the selection.
+  function createSunburstData(selection, sampleType) {
     var threads = {};
     function getOrCreateThread(thread) {
       var ret = undefined;
@@ -130,14 +125,10 @@ tvcm.exportTo('tracing', function() {
     }
 
     // Process samples.
-    var samples = model.samples;
-    var rangeMin = rangeOfInterest.min;
-    var rangeMax = rangeOfInterest.max;
+    var samples = selection.getEventsOrganizedByType().samples;
     for (var i = 0; i < samples.length; i++) {
       var sample = samples[i];
-      if (sample.start >= rangeMin &&
-          sample.start <= rangeMax &&
-          sample.title == sampleType)
+      if (sample.title == sampleType)
         getOrCreateThread(sample.thread).addSample(sample);
     }
 
@@ -198,16 +189,16 @@ tvcm.exportTo('tracing', function() {
 
       this.sampleType_ = undefined;
       this.sampleTypeSelector_ = undefined;
-      this.rangeOfInterest_ = new tvcm.Range();
       this.chart_ = undefined;
+      this.selection_ = undefined;
     },
 
-    get model() {
-      return model_;
+    get selection() {
+      return this.selection_;
     },
 
-    set model(model) {
-      this.model_ = model;
+    set selection(selection) {
+      this.selection_ = selection;
       this.updateContents_();
     },
 
@@ -220,15 +211,6 @@ tvcm.exportTo('tracing', function() {
       if (this.sampleTypeSelector_)
         this.sampleTypeSelector_.selectedValue = type;
       this.updateResultArea_();
-    },
-
-    get rangeOfInterest() {
-      return this.rangeOfInterest_;
-    },
-
-    set rangeOfInterest(rangeOfInterest) {
-      this.rangeOfInterest_ = rangeOfInterest;
-      this.updateContents_();
     },
 
     updateCallees_: function(d) {
@@ -327,21 +309,15 @@ tvcm.exportTo('tracing', function() {
 
     updateResultArea_: function() {
       var that = this;
-      if (that.model_ === undefined)
+      if (that.selection_ === undefined)
         return;
 
       var resultArea = that.querySelector('result-area');
       that.chart_ = undefined;
       resultArea.textContent = '';
 
-      var rangeOfInterest;
-      if (that.rangeOfInterest_.isEmpty)
-        rangeOfInterest = that.model_.bounds;
-      else
-        rangeOfInterest = that.rangeOfInterest_;
-
       var sunburstData =
-          createSunburstData(that.model_, rangeOfInterest, that.sampleType_);
+          createSunburstData(that.selection_, that.sampleType_);
       that.chart_ = new tvcm.ui.SunburstChart();
       that.chart_.width = 600;
       that.chart_.height = 600;
@@ -363,17 +339,11 @@ tvcm.exportTo('tracing', function() {
 
     updateContents_: function() {
       var that = this;
-      if (that.model_ === undefined)
+      if (that.selection_ === undefined || that.selection_.length == 0)
         return;
 
-      var rangeOfInterest;
-      if (that.rangeOfInterest_.isEmpty)
-        rangeOfInterest = that.model_.bounds;
-      else
-        rangeOfInterest = that.rangeOfInterest_;
-
       // Get available sample types in range.
-      var sampleTypes = getSampleTypes(that.model_, rangeOfInterest);
+      var sampleTypes = getSampleTypes(that.selection_);
       if (sampleTypes.indexOf(this.sampleType_) == -1)
         this.sampleType_ = sampleTypes[0];
 
