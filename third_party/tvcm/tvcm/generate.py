@@ -55,7 +55,7 @@ def GenerateCSS(load_sequence):
 def _EscapeJSIfNeeded(js):
   return js.replace("</script>", "<\/script>")
 
-def GenerateJS(load_sequence, include_html_templates=True, use_include_tags_for_scripts=False, dir_for_include_tag_root=None):
+def GenerateJS(load_sequence, use_include_tags_for_scripts=False, dir_for_include_tag_root=None):
   if use_include_tags_for_scripts and dir_for_include_tag_root == None:
     raise Exception('Must provide dir_for_include_tag_root')
 
@@ -68,18 +68,6 @@ def GenerateJS(load_sequence, include_html_templates=True, use_include_tags_for_
       js_chunks.append("window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
         dependent_raw_script.resource.unix_style_relative_path)
     js_chunks.append( "window.FLATTENED['%s'] = true;\n" % module.name)
-
-  if include_html_templates:
-    html_encoded = base64.b64encode(
-        GenerateHTMLForCombinedTemplates(load_sequence))
-    js_chunks.append("var templateData_ = window.atob('" +
-                     html_encoded + "');\n");
-    js_chunks.append("var templateElem_ = document.createElement('div');\n");
-    js_chunks.append("templateElem_.innerHTML = templateData_;\n");
-    js_chunks.append("while (templateElem_.hasChildNodes()) {\n");
-    js_chunks.append("  document.head.appendChild(" +
-                     "templateElem_.removeChild(templateElem_.firstChild));\n");
-    js_chunks.append("}\n\n");
 
   for module in load_sequence:
     for dependent_raw_script in module.dependent_raw_scripts:
@@ -184,8 +172,7 @@ def GenerateStandaloneHTMLToFile(output_file,
     output_file.write('<script src="%s"></script>\n' % flattened_js_url)
   else:
     output_file.write('<script>\n')
-    output_file.write(GenerateJS(load_sequence,
-                                 include_html_templates=False))
+    output_file.write(GenerateJS(load_sequence))
     output_file.write('</script>\n')
 
   for extra_script in extra_scripts:

@@ -18,7 +18,6 @@ def GenerateHTML(outdir, load_sequence):
 def GenerateJS(outdir, load_sequence):
   return tvcm.GenerateJS(
     load_sequence,
-    include_html_templates=False,
     use_include_tags_for_scripts=True,
     dir_for_include_tag_root=outdir)
 

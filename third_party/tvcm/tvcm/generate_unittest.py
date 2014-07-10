@@ -40,8 +40,7 @@ tvcm.requireRawScript('foo/raw/raw_script.js');
     with self.fs:
       load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
           ['foo/my_module.js'])
-      res = generate.GenerateJS(load_sequence, False)
-      res = generate.GenerateJS(load_sequence, True)
+      res = generate.GenerateJS(load_sequence)
 
   def testHTMLGeneration(self):
     with self.fs:
