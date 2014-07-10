@@ -7,8 +7,36 @@ from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
 class ScrollBounceAction(GestureAction):
-  def __init__(self, attributes=None):
-    super(ScrollBounceAction, self).__init__(attributes)
+  def __init__(self, selector=None, text=None, element_function=None,
+               left_start_ratio=0.5, top_start_ratio=0.5,
+               direction='down', distance=100,
+               overscroll=10, repeat_count=10,
+               speed_in_pixels_per_second=400):
+    super(ScrollBounceAction, self).__init__()
+    if direction not in ['down', 'up', 'left', 'right']:
+      raise page_action.PageActionNotSupported(
+          'Invalid scroll direction: %s' % self.direction)
+    self.automatically_record_interaction = False
+    self._selector = selector
+    self._text = text
+    self._element_function = element_function
+    self._left_start_ratio = left_start_ratio
+    self._top_start_ratio = top_start_ratio
+    # Should be big enough to do more than just hide the URL bar.
+    self._distance = distance
+    self._direction = direction
+    # This needs to be < height / repeat_count so we don't walk off the screen.
+    # We also probably don't want to spend more than a couple frames in
+    # overscroll since it may mask any synthetic delays.
+    self._overscroll = overscroll
+    # It's the transitions we really want to stress, make this big.
+    self._repeat_count = repeat_count
+    # 7 pixels per frame should be plenty of frames.
+    self._speed = speed_in_pixels_per_second
+
+    if (self._selector is None and self._text is None and
+        self._element_function is None):
+      self._element_function = 'document.body'
 
   def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'scroll_bounce.js']:
@@ -40,72 +68,29 @@ class ScrollBounceAction(GestureAction):
         % (done_callback))
 
   def RunGesture(self, tab):
-    left_start_percentage = 0.5
-    top_start_percentage = 0.5
-    direction = 'down'
-    # Should be big enough to do more than just hide the URL bar.
-    distance = 100
-    # This needs to be < height / repeat_count so we don't walk off the screen.
-    # We also probably don't want to spend more than a couple frames in
-    # overscroll since it may mask any synthetic delays.
-    overscroll = 10
-    # It's the transitions we really want to stress, make this big.
-    repeat_count = 10
-    # 7 pixels per frame should be plenty of frames.
-    speed = 400
-    if hasattr(self, 'left_start_percentage'):
-      left_start_percentage = self.left_start_percentage
-    if hasattr(self, 'top_start_percentage'):
-      top_start_percentage = self.top_start_percentage
-    if hasattr(self, 'direction'):
-      direction = self.direction
-      if direction not in ['down', 'up', 'left', 'right']:
-        raise page_action.PageActionNotSupported(
-            'Invalid scroll bounce direction: %s' % direction)
-    if hasattr(self, 'distance'):
-      distance = self.distance
-    if hasattr(self, 'overscroll'):
-      overscroll = self.overscroll
-    if hasattr(self, 'repeat_count'):
-      repeat_count = self.repeat_count
-    if hasattr(self, 'speed_in_pixels_per_second'):
-      speed = self.speed
-    if hasattr(self, 'element_function'):
-      tab.ExecuteJavaScript("""
-          (%s)(function(element) { window.__scrollBounceAction.start(
-             { element: element,
-               left_start_percentage: %s,
-               top_start_percentage: %s,
-               direction: '%s',
-               distance: %s,
-               overscroll: %s,
-               repeat_count: %s,
-               speed: %s })
-             });""" % (self.element_function,
-                       left_start_percentage,
-                       top_start_percentage,
-                       direction,
-                       distance,
-                       overscroll,
-                       repeat_count,
-                       speed))
-    else:
-      tab.ExecuteJavaScript("""
-          window.__scrollBounceAction.start(
-          { element: document.body,
-            left_start_percentage: %s,
-            top_start_percentage: %s,
+    code = '''
+        function(element, info) {
+          if (!element) {
+            throw Error('Cannot find element: ' + info);
+          }
+          window.__scrollBounceAction.start({
+            element: element,
+            left_start_ratio: %s,
+            top_start_ratio: %s,
             direction: '%s',
             distance: %s,
             overscroll: %s,
             repeat_count: %s,
-            speed: %s });"""
-        % (left_start_percentage,
-           top_start_percentage,
-           direction,
-           distance,
-           overscroll,
-           repeat_count,
-           speed))
-
+            speed: %s
+          });
+        }''' % (self._left_start_ratio,
+                self._top_start_ratio,
+                self._direction,
+                self._distance,
+                self._overscroll,
+                self._repeat_count,
+                self._speed)
+    page_action.EvaluateCallbackWithElement(
+        tab, code, selector=self._selector, text=self._text,
+        element_function=self._element_function)
     tab.WaitForJavaScriptExpression('window.__scrollBounceActionDone', 60)

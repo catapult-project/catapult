@@ -4,14 +4,12 @@
 
 """A Telemetry page_action that loops media playback.
 
-Action attributes are:
+Action parameters are:
 - loop_count: The number of times to loop media.
 - selector: If no selector is defined then the action attempts to loop the first
             media element on the page. If 'all' then loop all media elements.
-- wait_timeout_in_seconds: Timeout to wait for media to loop. Default is
-                60 sec x loop_count.
-- wait_for_loop: If true, forces the action to wait for last loop to end,
-                 otherwise it starts the loops and exit. Default true.
+- timeout_in_seconds: Timeout to wait for media to loop. Default is
+                      60 sec x loop_count. 0 means do not wait.
 """
 
 from telemetry.core import exceptions
@@ -20,6 +18,13 @@ from telemetry.page.actions import page_action
 
 
 class LoopAction(media_action.MediaAction):
+  def __init__(self, loop_count, selector=None, timeout_in_seconds=None):
+    super(LoopAction, self).__init__()
+    self._loop_count = loop_count
+    self._selector = selector if selector else ''
+    self._timeout_in_seconds = (
+        timeout_in_seconds if timeout_in_seconds else 60 * loop_count)
+
   def WillRunAction(self, tab):
     """Load the media metrics JS code prior to running the action."""
     super(LoopAction, self).WillRunAction(tab)
@@ -27,18 +32,10 @@ class LoopAction(media_action.MediaAction):
 
   def RunAction(self, tab):
     try:
-      assert hasattr(self, 'loop_count') and self.loop_count > 0
-      selector = self.selector if hasattr(self, 'selector') else ''
       tab.ExecuteJavaScript('window.__loopMedia("%s", %i);' %
-                            (selector, self.loop_count))
-      timeout_in_seconds = (
-          self.wait_timeout_in_seconds if hasattr(self,
-                                                  'wait_timeout_in_seconds')
-          else 60 * self.loop_count)
-      # Check if there is no need to wait for all loops to end
-      if hasattr(self, 'wait_for_loop') and not self.wait_for_loop:
-        return
-      self.WaitForEvent(tab, selector, 'loop', timeout_in_seconds)
+                            (self._selector, self._loop_count))
+      if self._timeout_in_seconds > 0:
+        self.WaitForEvent(tab, self._selector, 'loop', self._timeout_in_seconds)
     except exceptions.EvaluateException:
       raise page_action.PageActionFailed('Cannot loop media element(s) with '
-                                         'selector = %s.' % selector)
+                                         'selector = %s.' % self._selector)

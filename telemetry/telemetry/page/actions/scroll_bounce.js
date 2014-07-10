@@ -33,9 +33,9 @@
 
     var rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element);
     var start_left =
-        rect.left + rect.width * this.options_.left_start_percentage;
+        rect.left + rect.width * this.options_.left_start_ratio;
     var start_top =
-        rect.top + rect.height * this.options_.top_start_percentage;
+        rect.top + rect.height * this.options_.top_start_ratio;
     chrome.gpuBenchmarking.scrollBounce(this.options_.direction,
                                         this.options_.distance,
                                         this.options_.overscroll,

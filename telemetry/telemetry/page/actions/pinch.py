@@ -7,8 +7,22 @@ from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
 class PinchAction(GestureAction):
-  def __init__(self, attributes=None):
-    super(PinchAction, self).__init__(attributes)
+  def __init__(self, selector=None, text=None, element_function=None,
+               left_anchor_ratio=0.5, top_anchor_ratio=0.5,
+               scale_factor=None, speed_in_pixels_per_second=800):
+    super(PinchAction, self).__init__()
+    self.automatically_record_interaction = False
+    self._selector = selector
+    self._text = text
+    self._element_function = element_function
+    self._left_anchor_ratio = left_anchor_ratio
+    self._top_anchor_ratio = top_anchor_ratio
+    self._scale_factor = scale_factor
+    self._speed = speed_in_pixels_per_second
+
+    if (self._selector is None and self._text is None and
+        self._element_function is None):
+      self._element_function = 'document.body'
 
   def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'pinch.js']:
@@ -49,36 +63,25 @@ class PinchAction(GestureAction):
     return 3.0 / current_scale_factor
 
   def RunGesture(self, tab):
-    left_anchor_percentage = getattr(self, 'left_anchor_percentage', 0.5)
-    top_anchor_percentage = getattr(self, 'top_anchor_percentage', 0.5)
-    scale_factor = getattr(self, 'scale_factor',
-                           PinchAction._GetDefaultScaleFactorForPage(tab))
-    speed = getattr(self, 'speed_in_pixels_per_second', 800)
-
-    if hasattr(self, 'element_function'):
-      tab.ExecuteJavaScript("""
-          (%s)(function(element) { window.__pinchAction.start(
-             { element: element,
-               left_anchor_percentage: %s,
-               top_anchor_percentage: %s,
-               scale_factor: %s,
-               speed: %s })
-             });""" % (self.element_function,
-                       left_anchor_percentage,
-                       top_anchor_percentage,
-                       scale_factor,
-                       speed))
-    else:
-      tab.ExecuteJavaScript("""
-          window.__pinchAction.start(
-          { element: document.body,
-            left_anchor_percentage: %s,
-            top_anchor_percentage: %s,
+    scale_factor = (self._scale_factor if self._scale_factor else
+                    PinchAction._GetDefaultScaleFactorForPage(tab))
+    code = '''
+        function(element, info) {
+          if (!element) {
+            throw Error('Cannot find element: ' + info);
+          }
+          window.__pinchAction.start({
+            element: element,
+            left_anchor_ratio: %s,
+            top_anchor_ratio: %s,
             scale_factor: %s,
-            speed: %s });"""
-        % (left_anchor_percentage,
-           top_anchor_percentage,
-           scale_factor,
-           speed))
-
+            speed: %s
+          });
+        }''' % (self._left_anchor_ratio,
+                self._top_anchor_ratio,
+                scale_factor,
+                self._speed)
+    page_action.EvaluateCallbackWithElement(
+        tab, code, selector=self._selector, text=self._text,
+        element_function=self._element_function)
     tab.WaitForJavaScriptExpression('window.__pinchActionDone', 60)
