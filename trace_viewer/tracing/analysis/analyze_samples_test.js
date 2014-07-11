@@ -74,8 +74,8 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_samples_test', function() {
     var selection = createSelectionWithMultipleSamples();
 
     var analysisEl = new AnalysisView();
-    analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
+    analysisEl.selection = selection;
   });
 
   test('analyzeSelectionWithSingleSample', function() {
@@ -94,61 +94,5 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_samples_test', function() {
     assertEquals('my-category: a', table.rows[2].text[0]);
     assertEquals('my-category: b', table.rows[2].text[1]);
     assertEquals('my-category: c', table.rows[2].text[2]);
-  });
-
-  test('analyzeSelectionWithMultipleSamples', function() {
-    var selection = createSelectionWithMultipleSamples();
-
-    var results = new StubAnalysisResults();
-    tracing.analysis.analyzeSelection(results, selection);
-    console.log(results.tables);
-    assertEquals(1, results.tables.length);
-
-    assertEquals('Sample Events:', results.headers[0].label);
-
-    var table = results.tables[0];
-    assertObjectEquals({
-      label: 'AAA',
-      duration: null,
-      cpuDuration: null,
-      selfTime: null,
-      cpuSelfTime: null,
-      occurences: 3,
-      percentage: '50%',
-      details: null
-    }, table.rows[0]);
-
-    assertObjectEquals({
-      label: 'BBB',
-      duration: null,
-      cpuDuration: null,
-      selfTime: null,
-      cpuSelfTime: null,
-      occurences: 2,
-      percentage: '33.333%',
-      details: null
-    }, table.rows[1]);
-
-    assertObjectEquals({
-      label: 'CCC',
-      duration: null,
-      cpuDuration: null,
-      selfTime: null,
-      cpuSelfTime: null,
-      occurences: 1,
-      percentage: '16.667%',
-      details: null
-    }, table.rows[2]);
-
-    assertObjectEquals({
-      label: 'Sleeping',
-      duration: null,
-      cpuDuration: null,
-      selfTime: null,
-      cpuSelfTime: null,
-      occurences: 2,
-      percentage: '-',
-      details: null
-    }, table.rows[3]);
   });
 });

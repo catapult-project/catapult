@@ -4,19 +4,19 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<template id="x-sample-summary-side-panel-template">
+<template id="x-sample-summary-panel-template">
   <style>
-    .x-sample-summary-side-panel {
+    .x-sample-summary-panel {
       display: block;
       overflow: auto;
       padding: 5px;
     }
-    .x-sample-summary-side-panel > x-toolbar {
+    .x-sample-summary-panel > x-toolbar {
       display: block;
       border-bottom: 1px solid black;
     }
 
-    .x-sample-summary-side-panel > x-left-panel {
+    .x-sample-summary-panel > x-left-panel {
       position: relative;
       width: 610px;
       left: 0;
@@ -25,7 +25,7 @@ found in the LICENSE file.
       padding: 5px;
     }
 
-    .x-sample-summary-side-panel > x-left-panel > result-area {
+    .x-sample-summary-panel > x-left-panel > result-area {
       display: block;
       width: 610px;
       position: absolute;
@@ -34,7 +34,7 @@ found in the LICENSE file.
       height: 610px;
     }
 
-    .x-sample-summary-side-panel > x-left-panel > x-explanation {
+    .x-sample-summary-panel > x-left-panel > x-explanation {
       display: block;
       position: absolute;
       top: 300px;
@@ -48,21 +48,21 @@ found in the LICENSE file.
       font-size: 12px;
     }
 
-    .x-sample-summary-side-panel > x-right-panel {
+    .x-sample-summary-panel > x-right-panel {
       display: block;
       min-height: 610px;
       margin-left: 610px;
       padding: 5px;
     }
 
-    .x-sample-summary-side-panel > x-right-panel td {
+    .x-sample-summary-panel > x-right-panel td {
       color: #fff;
       padding: 1px 5px;
       font-size: 1.0em;
       white-space: nowrap;
     }
 
-    .x-sample-summary-side-panel > x-right-panel > x-sequence {
+    .x-sample-summary-panel > x-right-panel > x-sequence {
       display: block;
       overflow: auto;
       width: 600px;
@@ -71,11 +71,11 @@ found in the LICENSE file.
       margin: 10px;
     }
 
-    .x-sample-summary-side-panel > x-right-panel > x-sequence table {
+    .x-sample-summary-panel > x-right-panel > x-sequence table {
       min-width: 600px;
     }
 
-    .x-sample-summary-side-panel > x-right-panel > x-callees {
+    .x-sample-summary-panel > x-right-panel > x-callees {
       display: block;
       position: relative;
       width: 600px;
@@ -85,20 +85,20 @@ found in the LICENSE file.
       margin: 10px;
     }
 
-    .x-sample-summary-side-panel > x-right-panel > x-callees .x-col-numeric {
+    .x-sample-summary-panel > x-right-panel > x-callees .x-col-numeric {
       width: 30px;
     }
 
-    .x-sample-summary-side-panel > x-right-panel > x-callees .x-td-numeric {
+    .x-sample-summary-panel > x-right-panel > x-callees .x-td-numeric {
       text-align: right;
     }
 
-    .x-sample-summary-side-panel > x-right-panel > x-callees table {
+    .x-sample-summary-panel > x-right-panel > x-callees table {
       min-width: 600px;
       max-width: 600px;
     }
 
-    .x-sample-summary-side-panel > x-right-panel > x-callees {
+    .x-sample-summary-panel > x-right-panel > x-callees {
       display: block;
       overflow: auto;
       height: 300px;

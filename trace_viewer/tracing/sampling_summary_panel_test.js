@@ -4,11 +4,11 @@
 
 'use strict';
 
-tvcm.require('tracing.sampling_summary_side_panel');
+tvcm.require('tracing.sampling_summary_panel');
 tvcm.require('tracing.trace_model');
 tvcm.require('tracing.test_utils');
 
-tvcm.unittest.testSuite('tracing.sampling_summary_side_panel_test', function() {
+tvcm.unittest.testSuite('tracing.sampling_summary_panel_test', function() {
   var StackFrame = tracing.trace_model.StackFrame;
   var Sample = tracing.trace_model.Sample;
 
@@ -195,7 +195,7 @@ tvcm.unittest.testSuite('tracing.sampling_summary_side_panel_test', function() {
   test('instantiate', function() {
     var s = createSelection();
 
-    var panel = new tracing.SamplingSummarySidePanel();
+    var panel = new tracing.SamplingSummaryPanel();
     this.addHTMLOutput(panel);
     panel.style.border = '1px solid black';
     panel.selection = s;

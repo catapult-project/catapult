@@ -14,7 +14,7 @@ tvcm.require('tvcm.ui.pie_chart');
 tvcm.require('tvcm.ui.sortable_table');
 tvcm.require('tvcm.ui.sunburst_chart');
 
-tvcm.requireTemplate('tracing.sampling_summary_side_panel');
+tvcm.requireTemplate('tracing.sampling_summary_panel');
 
 tvcm.exportTo('tracing', function() {
   var RequestSelectionChangeEvent = tracing.RequestSelectionChangeEvent;
@@ -154,11 +154,11 @@ tvcm.exportTo('tracing', function() {
   /**
    * @constructor
    */
-  var SamplingSummarySidePanel =
-      tvcm.ui.define('x-sample-summary-side-panel',
+  var SamplingSummaryPanel =
+      tvcm.ui.define('x-sample-summary-panel',
                      tracing.TimelineViewSidePanel);
-  SamplingSummarySidePanel.textLabel = 'Sampling Summary';
-  SamplingSummarySidePanel.supportsModel = function(m) {
+  SamplingSummaryPanel.textLabel = 'Sampling Summary';
+  SamplingSummaryPanel.supportsModel = function(m) {
     if (m == undefined) {
       return {
         supported: false,
@@ -178,14 +178,14 @@ tvcm.exportTo('tracing', function() {
     };
   };
 
-  SamplingSummarySidePanel.prototype = {
+  SamplingSummaryPanel.prototype = {
     __proto__: tracing.TimelineViewSidePanel.prototype,
 
     decorate: function() {
       tracing.TimelineViewSidePanel.prototype.decorate.call(this);
-      this.classList.add('x-sample-summary-side-panel');
+      this.classList.add('x-sample-summary-panel');
       this.appendChild(tvcm.instantiateTemplate(
-          '#x-sample-summary-side-panel-template'));
+          '#x-sample-summary-panel-template'));
 
       this.sampleType_ = undefined;
       this.sampleTypeSelector_ = undefined;
@@ -356,7 +356,7 @@ tvcm.exportTo('tracing', function() {
       this.sampleTypeSelector_ = tvcm.ui.createSelector(
           this,
           'sampleType',
-          'samplingSummarySidePanel.sampleType',
+          'samplingSummaryPanel.sampleType',
           this.sampleType_,
           sampleTypeOptions);
       toolbarEl.textContent = 'Sample Type: ';
@@ -364,10 +364,8 @@ tvcm.exportTo('tracing', function() {
     }
   };
 
-  tracing.TimelineViewSidePanel.registerPanelSubtype(SamplingSummarySidePanel);
-
   return {
-    SamplingSummarySidePanel: SamplingSummarySidePanel,
+    SamplingSummaryPanel: SamplingSummaryPanel,
     createSunburstData: createSunburstData
   };
 });
