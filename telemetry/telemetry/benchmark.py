@@ -127,7 +127,7 @@ class Benchmark(command_line.Command):
                       'If you believe you have credentials, follow the '
                       'instructions below.',
                       generated_profile_archive_path)
-        logging.error(e)
+        logging.error(str(e))
         sys.exit(-1)
 
     # Unzip profile directory.

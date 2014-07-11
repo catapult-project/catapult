@@ -90,7 +90,7 @@ def FindAllAvailableBrowsers(finder_options):
   except urllib2.URLError as e:
     logging.debug('Error communicating with devices over %s.'
                   % IOS_WEBKIT_DEBUG_PROXY)
-    logging.debug(e)
+    logging.debug(str(e))
     return []
 
   # TODO(baxley): Move to ios-webkit-debug-proxy command class, similar
