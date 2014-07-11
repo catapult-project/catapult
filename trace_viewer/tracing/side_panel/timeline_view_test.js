@@ -4,10 +4,10 @@
 
 'use strict';
 
-tvcm.require('tracing.timeline_view_side_panel');
+tvcm.require('tracing.side_panel.timeline_view');
 tvcm.require('tracing.trace_model');
 
-tvcm.testSuite('tracing.timeline_view_side_panel_test', function() {
+tvcm.testSuite('tracing.side_panel.timeline_view_test', function() {
   var TimelineViewSidePanel = tracing.TimelineViewSidePanel;
   var TimelineViewSidePanelContainer = tracing.TimelineViewSidePanelContainer;
 

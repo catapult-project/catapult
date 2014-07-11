@@ -23,10 +23,11 @@ tvcm.require('tvcm.ui.drag_handle');
 
 tvcm.require('tracing.analysis.cpu_slice_view');
 tvcm.require('tracing.analysis.thread_time_slice_view');
-tvcm.require('tracing.input_latency_side_panel');
-tvcm.require('tracing.sampling_summary_panel');
-tvcm.require('tracing.time_summary_side_panel');
-tvcm.require('tracing.timeline_view_side_panel');
+
+tvcm.require('tracing.side_panel.input_latency');
+tvcm.require('tracing.side_panel.sampling_summary');
+tvcm.require('tracing.side_panel.time_summary');
+tvcm.require('tracing.side_panel.timeline_view');
 
 tvcm.exportTo('tracing', function() {
 

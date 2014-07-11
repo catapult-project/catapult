@@ -4,11 +4,11 @@
 
 'use strict';
 
-tvcm.require('tracing.sampling_summary_panel');
+tvcm.require('tracing.side_panel.sampling_summary');
 tvcm.require('tracing.trace_model');
 tvcm.require('tracing.test_utils');
 
-tvcm.unittest.testSuite('tracing.sampling_summary_panel_test', function() {
+tvcm.unittest.testSuite('tracing.side_panel.sampling_summary_test', function() {
   var StackFrame = tracing.trace_model.StackFrame;
   var Sample = tracing.trace_model.Sample;
 

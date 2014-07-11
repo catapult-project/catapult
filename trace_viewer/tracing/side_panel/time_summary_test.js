@@ -4,11 +4,11 @@
 
 'use strict';
 
-tvcm.require('tracing.time_summary_side_panel');
+tvcm.require('tracing.side_panel.time_summary');
 tvcm.require('tracing.trace_model');
 tvcm.require('tracing.test_utils');
 
-tvcm.unittest.testSuite('tracing.time_summary_side_panel_test', function() {
+tvcm.unittest.testSuite('tracing.side_panel.time_summary_test', function() {
   var newSliceNamed = tracing.test_utils.newSliceNamed;
 
   function createModel(opt_options) {

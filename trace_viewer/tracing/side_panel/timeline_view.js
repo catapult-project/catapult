@@ -6,7 +6,7 @@
 
 tvcm.require('tvcm.range');
 
-tvcm.requireStylesheet('tracing.timeline_view_side_panel');
+tvcm.requireStylesheet('tracing.side_panel.timeline_view');
 
 tvcm.exportTo('tracing', function() {
   /**

@@ -6,13 +6,13 @@
 
 tvcm.require('tracing.analysis.util');
 tvcm.require('tracing.selection');
-tvcm.require('tracing.timeline_view_side_panel');
+tvcm.require('tracing.side_panel.timeline_view');
 tvcm.require('tvcm.iteration_helpers');
 tvcm.require('tvcm.statistics');
 tvcm.require('tvcm.ui.dom_helpers');
 tvcm.require('tvcm.ui.pie_chart');
 
-tvcm.requireTemplate('tracing.time_summary_side_panel');
+tvcm.requireTemplate('tracing.side_panel.time_summary');
 
 tvcm.exportTo('tracing', function() {
   var ThreadSlice = tracing.trace_model.ThreadSlice;

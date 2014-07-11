@@ -5,11 +5,11 @@
 'use strict';
 
 tvcm.require('tracing.importer.trace_event_importer');
-tvcm.require('tracing.input_latency_side_panel');
+tvcm.require('tracing.side_panel.input_latency');
 tvcm.require('tracing.trace_model');
 tvcm.require('tracing.test_utils');
 
-tvcm.unittest.testSuite('tracing.input_latency_side_panel_test', function() {
+tvcm.unittest.testSuite('tracing.side_panel.input_latency_test', function() {
 
   test('getLatencyData', function() {
     var events = [];

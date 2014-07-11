@@ -5,14 +5,14 @@
 'use strict';
 
 tvcm.require('tracing.analysis.util');
+tvcm.require('tracing.side_panel.timeline_view');
 tvcm.require('tracing.selection');
-tvcm.require('tracing.timeline_view_side_panel');
 tvcm.require('tvcm.iteration_helpers');
 tvcm.require('tvcm.statistics');
 tvcm.require('tvcm.ui.dom_helpers');
 tvcm.require('tvcm.ui.line_chart');
 
-tvcm.requireTemplate('tracing.input_latency_side_panel');
+tvcm.requireTemplate('tracing.side_panel.input_latency');
 
 tvcm.exportTo('tracing', function() {
 
