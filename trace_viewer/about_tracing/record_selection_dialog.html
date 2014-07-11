@@ -16,6 +16,7 @@ found in the LICENSE file.
       min-width: 0;
       opacity: 1;
       transition: max-height 1s ease, max-width 1s ease, opacity 1s ease;
+      will-change: opacity;
     }
 
     .categories-column-view-hidden {
@@ -31,6 +32,23 @@ found in the LICENSE file.
 
     .category-presets {
       padding: 4px;
+    }
+
+    .category-description {
+      color: #aaa;
+      font-size: small;
+      max-height: 1em;
+      opacity: 1;
+      padding-left: 4px;
+      padding-right: 4px;
+      text-align: right;
+      transition: max-height 1s ease, opacity 1s ease;
+      will-change: opacity;
+    }
+
+    .category-description-hidden {
+      max-height: 0;
+      opacity: 0;
     }
 
     .default-enabled-categories,
@@ -85,6 +103,7 @@ found in the LICENSE file.
     <div class="category-presets">
       Settings preset:
     </div>
+    <div class="category-description"></div>
     <div class="categories-column-view">
       <div class="tracing-modes"></div>
       <div class="categories-selection">

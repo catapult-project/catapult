@@ -179,6 +179,19 @@ tvcm.exportTo('about_tracing', function() {
         classList.remove('categories-column-view-hidden');
       else if (!classList.contains('categories-column-view-hidden'))
         classList.add('categories-column-view-hidden');
+      this.updatePresetDescription_();
+    },
+
+    updatePresetDescription_: function() {
+      var description = this.querySelector('.category-description');
+      if (this.usingPreset_()) {
+        description.innerText = this.currentlyChosenPreset_;
+        description.classList.remove('category-description-hidden');
+      } else {
+        description.innerText = '';
+        if (!description.classList.contains('category-description-hidden'))
+          description.classList.add('category-description-hidden');
+      }
     },
 
     categoryFilter: function() {
