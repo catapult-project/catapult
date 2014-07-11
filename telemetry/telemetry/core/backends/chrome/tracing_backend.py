@@ -28,6 +28,10 @@ class TracingUnsupportedException(Exception):
   pass
 
 
+class TracingTimeoutException(Exception):
+  pass
+
+
 class CategoryFilter(object):
   def __init__(self, filter_string):
     self.excluded = set()
@@ -110,10 +114,11 @@ class TracingBackend(object):
     self._category_filter = None
     self._nesting = 0
     self._tracing_data = []
+    self._is_tracing_running = False
 
   @property
   def is_tracing_running(self):
-    return self._inspector_websocket.is_dispatching_async_notifications
+    return self._is_tracing_running
 
   def StartTracing(self, custom_categories=None, timeout=10):
     """ Starts tracing on the first nested call and returns True. Returns False
@@ -134,12 +139,10 @@ class TracingBackend(object):
     if custom_categories:
       req['params'] = {'categories': custom_categories}
     self._inspector_websocket.SyncRequest(req, timeout)
-    # Tracing.start will send asynchronous notifications containing trace
-    # data, until Tracing.end is called.
-    self._inspector_websocket.StartAsyncDispatchNotifications()
+    self._is_tracing_running = True
     return True
 
-  def StopTracing(self):
+  def StopTracing(self, timeout=30):
     """ Stops tracing on the innermost (!) nested call, because we cannot get
         results otherwise. Resets _tracing_data on the outermost nested call.
         Returns the result of the trace, as TracingTimelineData object.
@@ -149,7 +152,19 @@ class TracingBackend(object):
     if self.is_tracing_running:
       req = {'method': 'Tracing.end'}
       self._inspector_websocket.SendAndIgnoreResponse(req)
-      self._inspector_websocket.StopAsyncDispatchNotifications()
+      # After Tracing.end, chrome browser will send asynchronous notifications
+      # containing trace data. This is until Tracing.tracingComplete is sent,
+      # which means there is no trace buffers pending flush.
+      try:
+        self._inspector_websocket.DispatchNotificationsUntilDone(timeout)
+      except \
+          inspector_websocket.DispatchNotificationsUntilDoneTimeoutException \
+          as err:
+        raise TracingTimeoutException(
+            'Trace data was not fully received due to timeout after %s '
+            'seconds. If the trace data is big, you may want to increase the '
+            'time out amount.' % err.elapsed_time)
+      self._is_tracing_running = False
     if self._nesting == 0:
       self._category_filter = None
       return self._GetTraceResultAndReset()

@@ -5,10 +5,19 @@
 import json
 import logging
 import socket
-import threading
 import time
 
 from telemetry.core.backends.chrome import websocket
+
+
+class DispatchNotificationsUntilDoneTimeoutException(Exception):
+  """Exception that can be thrown from DispatchNotificationsUntilDone to
+  indicate timeout exception of the function.
+  """
+
+  def __init__(self, elapsed_time):
+    super(DispatchNotificationsUntilDoneTimeoutException, self).__init__()
+    self.elapsed_time = elapsed_time
 
 
 class InspectorWebsocket(object):
@@ -18,23 +27,19 @@ class InspectorWebsocket(object):
 
     Args:
       notification_handler: A callback for notifications received as a result of
-        calling DispatchNotifications() or StartAsyncDispatchNotifications().
+        calling DispatchNotifications() or DispatchNotificationsUntilDone().
         Must accept a single JSON object containing the Inspector's
-        notification. May return True to indicate the stop async dispatching.
+        notification. May return True to indicate the dispatching is done for
+        DispatchNotificationsUntilDone.
       error_handler: A callback for errors in communicating with the Inspector.
         Must accept a single numeric parameter indicated the time elapsed before
         the error.
     """
     self._socket = None
-    self._thread = None
     self._cur_socket_timeout = 0
     self._next_request_id = 0
     self._notification_handler = notification_handler
     self._error_handler = error_handler
-
-  @property
-  def is_dispatching_async_notifications(self):
-    return self._thread != None
 
   def Connect(self, url, timeout=10):
     assert not self._socket
@@ -55,7 +60,6 @@ class InspectorWebsocket(object):
     logging.debug('sent [%s]', data)
 
   def SyncRequest(self, req, timeout=10):
-    assert not self._thread, 'Cannot be used during async dispatching.'
     self.SendAndIgnoreResponse(req)
 
     while self._socket:
@@ -64,28 +68,28 @@ class InspectorWebsocket(object):
         return res
 
   def DispatchNotifications(self, timeout=10):
-    assert not self._thread, 'Cannot be used during async dispatching.'
     self._Receive(timeout)
 
-  def StartAsyncDispatchNotifications(self):
-    assert not self._thread, 'Cannot be started twice.'
-    self._thread = threading.Thread(target=self._AsyncDispatcher)
-    self._thread.daemon = True
-    self._thread.start()
+  def DispatchNotificationsUntilDone(self, timeout):
+    """Dispatch notifications until notification_handler return True.
 
-  def StopAsyncDispatchNotifications(self):
-    self._thread.join(timeout=30)
-    if self._thread.is_alive():
-      raise RuntimeError('Timed out waiting for async dispatch notifications.')
-    self._thread = None
+    Args:
+      timeout: the total timeout value for dispatching multiple notifications
+      until done.
+    """
 
-  def _AsyncDispatcher(self):
+    if timeout < self._cur_socket_timeout:
+      self._SetTimeout(timeout)
+    start_time = time.time()
     while self._socket:
       try:
-        if not self._Receive():
+        if not self._Receive(timeout):
           break
       except websocket.WebSocketTimeoutException:
         pass
+      elapsed_time = time.time() - start_time
+      if elapsed_time > timeout:
+        raise DispatchNotificationsUntilDoneTimeoutException(elapsed_time)
 
   def _SetTimeout(self, timeout):
     if self._cur_socket_timeout != timeout:
