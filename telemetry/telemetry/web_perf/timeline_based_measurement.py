@@ -159,3 +159,7 @@ class TimelineBasedMeasurement(page_measurement.PageMeasurement):
   def CleanUpAfterPage(self, page, tab):
     if tab.browser.is_tracing_running:
       tab.browser.StopTracing()
+
+  @property
+  def results_are_the_same_on_every_page(self):
+    return False
