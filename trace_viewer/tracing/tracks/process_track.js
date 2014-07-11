@@ -58,9 +58,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
         case tracing.tracks.DrawType.BACKGROUND:
           this.drawBackground_();
-          // Don't bother recursing further, Process is the only level that
-          // draws backgrounds.
-          return;
+          break;
       }
 
       tracing.tracks.ContainerTrack.prototype.drawTrack.call(this, type);

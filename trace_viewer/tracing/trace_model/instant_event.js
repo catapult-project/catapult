@@ -13,7 +13,8 @@ tvcm.exportTo('tracing.trace_model', function() {
   var InstantEventType = {
     GLOBAL: 1,
     PROCESS: 2,
-    THREAD: 3
+    THREAD: 3,
+    THREAD_HIGHLIGHT: 4
   };
 
   function InstantEvent(category, title, colorId, start, args) {
@@ -61,10 +62,20 @@ tvcm.exportTo('tracing.trace_model', function() {
     __proto__: InstantEvent.prototype
   };
 
+  function ThreadHighlightInstantEvent(category, title, colorId, start, args) {
+    InstantEvent.apply(this, arguments);
+    this.type = InstantEventType.THREAD_HIGHLIGHT;
+  };
+
+  ThreadHighlightInstantEvent.prototype = {
+    __proto__: InstantEvent.prototype
+  };
+
   return {
     GlobalInstantEvent: GlobalInstantEvent,
     ProcessInstantEvent: ProcessInstantEvent,
     ThreadInstantEvent: ThreadInstantEvent,
+    ThreadHighlightInstantEvent: ThreadHighlightInstantEvent,
 
     InstantEventType: InstantEventType,
     InstantEvent: InstantEvent

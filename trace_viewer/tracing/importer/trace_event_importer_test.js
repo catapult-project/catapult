@@ -1709,6 +1709,32 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals(1, m.samples[0].weight);
   });
 
+  test('basicThreadHighlightInstantEvent', function() {
+    var events = [
+      {name: 'a', pid: 52, ts: 629, cat: 'bar', tid: 53, ph: 'I', s: 't'},
+      {name: 'b', pid: 52, ts: 630, cat: 'bar', tid: 53, ph: 'I', s: 'p'},
+      {name: 'c', pid: 52, ts: 631, cat: 'bar', tid: 53, ph: 'I', s: 'h'},
+      {name: 'd', pid: 52, ts: 632, cat: 'bar', tid: 53, ph: 'I', s: 'h'}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    assertEquals(1, m.numProcesses);
+    var p = m.processes[52];
+    assertNotUndefined(p);
+
+    assertEquals(1, p.numThreads);
+    var t = p.threads[53];
+    assertNotUndefined(t);
+    assertEquals(1, t.sliceGroup.length);
+    assertEquals(53, t.tid);
+    assertEquals(2, t.highlightEvents.length);
+    assertEquals('bar', t.highlightEvents[0].category);
+    assertEquals('c', t.highlightEvents[0].title);
+    assertEquals('d', t.highlightEvents[1].title);
+    assertEquals(0, t.highlightEvents[0].duration);
+    assertEquals(4, t.highlightEvents[0].type);
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
 

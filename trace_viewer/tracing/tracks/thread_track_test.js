@@ -6,10 +6,12 @@
 
 tvcm.require('tracing.test_utils');
 tvcm.require('tracing.timeline_track_view');
+tvcm.require('tracing.trace_model.instant_event');
 tvcm.require('tracing.tracks.thread_track');
 tvcm.require('tvcm.ui.dom_helpers');
 
 tvcm.unittest.testSuite('tracing.tracks.thread_track_test', function() {
+  var HighlightInstantEvent = tracing.trace_model.ThreadHighlightInstantEvent;
   var Process = tracing.trace_model.Process;
   var Selection = tracing.Selection;
   var StackFrame = tracing.trace_model.StackFrame;
@@ -60,6 +62,39 @@ tvcm.unittest.testSuite('tracing.tracks.thread_track_test', function() {
         (1.5 / wW) * vW, (1.8 / wW) * vW,
         y, y + h, selection);
     assertEquals(t1.sliceGroup.slices[0], selection[0]);
+  });
+
+  test('selectionHitTestingWithThreadTrackAndFrames', function() {
+    var model = new tracing.TraceModel();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.pushHighlightEvent(new HighlightInstantEvent('cat', 'name', 0, 2, {}));
+
+    var testEl = document.createElement('div');
+    testEl.appendChild(tvcm.ui.createScopedStyle('heading { width: 100px; }'));
+    testEl.style.width = '600px';
+
+    var viewport = new Viewport(testEl);
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    testEl.appendChild(drawingContainer);
+
+    var track = new ThreadTrack(viewport);
+    drawingContainer.appendChild(track);
+    drawingContainer.updateCanvasSizeIfNeeded_();
+    track.thread = t1;
+
+    var y = track.getBoundingClientRect().top;
+    var h = track.getBoundingClientRect().height;
+    var wW = 10;
+    var vW = drawingContainer.canvas.getBoundingClientRect().width;
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, wW, vW);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    var selection = new Selection();
+    var x = (1.5 / wW) * vW;
+    track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
+    assertEquals(t1.highlightEvents[0], selection[0]);
   });
 
   test('filterThreadSlices', function() {

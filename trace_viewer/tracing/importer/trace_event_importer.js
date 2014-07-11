@@ -340,6 +340,9 @@ tvcm.exportTo('tracing.importer', function() {
         case 'p':
           constructor = tracing.trace_model.ProcessInstantEvent;
           break;
+        case 'h':
+          constructor = tracing.trace_model.ThreadHighlightInstantEvent;
+          break;
         case 't':
           // fall through
         default:
@@ -366,6 +369,12 @@ tvcm.exportTo('tracing.importer', function() {
           var thread = this.model_.getOrCreateProcess(event.pid)
               .getOrCreateThread(event.tid);
           thread.sliceGroup.pushInstantEvent(instantEvent);
+          break;
+
+        case tracing.trace_model.InstantEventType.THREAD_HIGHLIGHT:
+          var thread = this.model_.getOrCreateProcess(event.pid)
+              .getOrCreateThread(event.tid);
+          thread.pushHighlightEvent(instantEvent);
           break;
         default:
           throw new Error('Unknown instant event type: ' + event.s);

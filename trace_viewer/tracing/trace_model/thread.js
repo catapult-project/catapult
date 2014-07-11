@@ -67,6 +67,7 @@ tvcm.exportTo('tracing.trace_model', function() {
     this.tid = tid;
     this.name = undefined;
     this.samples_ = undefined; // Set during createSubSlices
+    this.highlightEvents_ = [];
 
     var that = this;
     function ThreadSliceForThisThread(
@@ -131,6 +132,10 @@ tvcm.exportTo('tracing.trace_model', function() {
         }
       }
 
+      this.highlightEvents_.forEach(function(highlightEvent) {
+        highlightEvent.start += amount;
+      });
+
       this.kernelSliceGroup.shiftTimestampsForward(amount);
       this.asyncSliceGroup.shiftTimestampsForward(amount);
     },
@@ -151,6 +156,8 @@ tvcm.exportTo('tracing.trace_model', function() {
       if (this.asyncSliceGroup.length)
         return false;
       if (this.samples_.length)
+        return false;
+      if (this.highlightEvents_.length)
         return false;
       return true;
     },
@@ -176,6 +183,13 @@ tvcm.exportTo('tracing.trace_model', function() {
         this.bounds.addValue(
             this.timeSlices[this.timeSlices.length - 1].end);
       }
+
+      if (this.highlightEvents_.length) {
+        this.bounds.addValue(this.highlightEvents_[0].start);
+        this.bounds.addValue(
+            this.highlightEvents_[this.highlightEvents_.length - 1].end);
+      }
+
       if (this.samples_ && this.samples_.length) {
         this.bounds.addValue(this.samples_[0].start);
         this.bounds.addValue(
@@ -262,10 +276,21 @@ tvcm.exportTo('tracing.trace_model', function() {
 
       if (this.timeSlices && this.timeSlices.length)
         this.timeSlices.forEach(callback, opt_this);
+      if (this.highlightEvents_.length)
+        this.highlightEvents_.forEach(callback, opt_this);
     },
 
     get samples() {
       return this.samples_;
+    },
+
+    get highlightEvents() {
+      return this.highlightEvents_;
+    },
+
+    pushHighlightEvent: function(highlightEvent) {
+      this.highlightEvents_.push(highlightEvent);
+      this.highlightEvents_.sort(function(a, b) { return a.start - b.start; });
     }
   };
 

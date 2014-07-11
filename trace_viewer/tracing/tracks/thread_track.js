@@ -31,6 +31,65 @@ tvcm.exportTo('tracing.tracks', function() {
       this.classList.add('thread-track');
     },
 
+    drawTrack: function(type) {
+      if (type === tracing.tracks.DrawType.BACKGROUND)
+        this.drawBackground_();
+      tracing.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
+    },
+
+    drawBackground_: function() {
+      var highlightEvents = this.thread_.highlightEvents;
+      if (highlightEvents.length === 0)
+        return;
+
+      var ctx = this.context();
+      var canvasBounds = ctx.canvas.getBoundingClientRect();
+      var pixelRatio = window.devicePixelRatio || 1;
+      var bounds = this.getBoundingClientRect();
+
+      ctx.save();
+
+      var dt = this.viewport.currentDisplayTransform;
+      dt.applyTransformToCanvas(ctx);
+      var pixWidth = dt.xViewVectorToWorld(1);
+      var viewLWorld = dt.xViewToWorld(0);
+      var viewRWorld = dt.xViewToWorld(bounds.width * pixelRatio);
+
+      for (var index = 0; index < highlightEvents.length; index++) {
+        var x = highlightEvents[index].start;
+        var y = pixelRatio * (bounds.top - canvasBounds.top);
+        var width = index + 1 < highlightEvents.length ?
+            highlightEvents[index + 1].start - highlightEvents[index].start : 0;
+        var height = pixelRatio * bounds.height;
+
+        // Use even/odd colors with a slightly lighter shade when selected.
+        var selected = highlightEvents[index].selectionState ===
+            tracing.trace_model.SelectionState.SELECTED;
+        var highlightColor = undefined;
+        if (index % 2 === 0) // Even.
+          highlightColor =
+              selected ? 'rgba(180,180,180,0.4)' : 'rgba(224,224,224,0.6)';
+        else if (selected)
+          highlightColor = 'rgba(224,224,224,0.4)';
+
+        // Fill the highlight area with a darker color.
+        if (highlightColor) {
+          ctx.fillStyle = highlightColor;
+          ctx.fillRect(x, y, width, height);
+        }
+
+        // Draw a 1px line on the right of the highlight to help visibility.
+        ctx.fillStyle = '#999';
+        ctx.fillRect(x + width, y, pixWidth, height);
+
+        // Draw a 1px line on the left of the highlight to help visibility.
+        ctx.fillStyle = selected ? 'black' : '#999';
+        ctx.fillRect(x, y, pixWidth, height);
+      }
+
+      ctx.restore();
+    },
+
     get thread() {
       return this.thread_;
     },
@@ -131,6 +190,31 @@ tvcm.exportTo('tracing.tracks', function() {
           this.tracks[i].style.display = '';
         }
       }
+    },
+
+    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+        loWX, hiWX, viewPixWidthWorld, selection) {
+      function onPickHit(instantEvent) {
+        selection.push(instantEvent);
+      }
+
+      tvcm.iterateOverIntersectingIntervals(this.thread_.highlightEvents_,
+          function(x) { return x.start; },
+          function(x) { return x.duration; },
+          loWX, hiWX,
+          onPickHit.bind(this));
+
+      tracing.tracks.ContainerTrack.prototype.
+          addIntersectingItemsInRangeToSelectionInWorldSpace.
+          apply(this, arguments);
+    },
+
+    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+                                         selection) {
+      this.addClosestInstantEventToSelection(this.thread_.highlightEvents,
+                                             worldX, worldMaxDist, selection);
+      tracing.tracks.ContainerTrack.prototype.addClosestEventToSelection.
+          apply(this, arguments);
     }
   };
 
