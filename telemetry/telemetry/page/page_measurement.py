@@ -20,7 +20,8 @@ class PageMeasurement(page_test.PageTest):
         def MeasurePage(self, page, tab, results):
            body_child_count = tab.EvaluateJavaScript(
                'document.body.children.length')
-           results.Add('body_children', 'count', body_child_count)
+           results.AddValue(scalar.ScalarValue(
+               page, 'body_children', 'count', body_child_count))
 
      if __name__ == '__main__':
          page_measurement.Main(BodyChildElementMeasurement())
@@ -34,7 +35,8 @@ class PageMeasurement(page_test.PageTest):
         def MeasurePage(self, page, tab, results):
            body_child_count = tab.EvaluateJavaScript(
               'document.querySelector('%s').children.length')
-           results.Add('children', 'count', child_count)
+           results.AddValue(scalar.ScalarValue(
+               page, 'children', 'count', child_count))
 
   is_action_name_to_run_optional determines what to do if action_name_to_run is
   not empty but the page doesn't have that action. The page will run (without
@@ -77,7 +79,7 @@ class PageMeasurement(page_test.PageTest):
     page is a page_set.Page
     tab is an instance of telemetry.core.Tab
 
-    Should call results.Add(name, units, value) for each result, or raise an
+    Should call results.AddValue(...) for each result, or raise an
     exception on failure. The name and units of each Add() call must be
     the same across all iterations. The name 'url' must not be used.
 
@@ -90,6 +92,7 @@ class PageMeasurement(page_test.PageTest):
          res = tab.EvaluateJavaScript('2+2')
          if res != 4:
            raise Exception('Oh, wow.')
-         results.Add('two_plus_two', 'count', res)
+         results.AddValue(scalar.ScalarValue(
+             page, 'two_plus_two', 'count', res))
     """
     raise NotImplementedError()

@@ -14,6 +14,7 @@ from telemetry.page import page_measurement_unittest_base
 from telemetry.page import page_set
 from telemetry.page import page_set_archive_info
 from telemetry.unittest import options_for_unittests
+from telemetry.value import scalar
 
 
 class MeasurementThatFails(page_measurement.PageMeasurement):
@@ -30,7 +31,7 @@ class MeasurementThatHasDefaults(page_measurement.PageMeasurement):
     if self.options.x != 3:
       raise page_measurement.MeasurementFailure(
           'Expected x == 3, got x == ' + self.options.x)
-    results.Add('x', 'ms', 7)
+    results.AddValue(scalar.ScalarValue(page, 'x', 'ms', 7))
 
 class MeasurementForBlank(page_measurement.PageMeasurement):
   def MeasurePage(self, page, tab, results):

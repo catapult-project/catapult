@@ -19,6 +19,7 @@ from telemetry.page import page_test
 from telemetry.page import page_runner
 from telemetry.page import test_expectations
 from telemetry.unittest import options_for_unittests
+from telemetry.value import scalar
 
 
 SIMPLE_CREDENTIALS_STRING = """
@@ -213,9 +214,10 @@ class PageRunnerTests(unittest.TestCase):
 
     class Measurement(page_measurement.PageMeasurement):
       i = 0
-      def MeasurePage(self, _1, _2, results):
+      def MeasurePage(self, page, _, results):
         self.i += 1
-        results.Add('metric', 'unit', self.i)
+        results.AddValue(scalar.ScalarValue(
+            page, 'metric', 'unit', self.i))
 
     output_file = tempfile.NamedTemporaryFile(delete=False).name
     try:
