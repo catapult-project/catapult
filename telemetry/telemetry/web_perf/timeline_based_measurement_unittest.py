@@ -7,48 +7,90 @@ import unittest
 
 from telemetry import benchmark
 from telemetry.core import wpr_modes
-from telemetry.timeline import model as model_module
-from telemetry.timeline import async_slice
+from telemetry.page import page as page_module
 from telemetry.page import page_measurement_unittest_base
 from telemetry.page import page_set
 from telemetry.page import page as page_module
 from telemetry.results import page_measurement_results
+from telemetry.timeline import async_slice
+from telemetry.timeline import model as model_module
 from telemetry.unittest import options_for_unittests
 from telemetry.web_perf import timeline_based_measurement as tbm_module
+from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import timeline_based_metric
+
+
+class FakeSmoothMetric(timeline_based_metric.TimelineBasedMetric):
+
+  def AddResults(self, model, renderer_thread,
+                 interaction_records, results):
+    results.Add('FakeSmoothMetric', 'ms', 1)
+    results.Add('SmoothMetricRecords', 'count', len(interaction_records))
+
+
+class FakeLoadingMetric(timeline_based_metric.TimelineBasedMetric):
+
+  def AddResults(self, model, renderer_thread,
+                 interaction_records, results):
+    results.Add('FakeLoadingMetric', 'ms', 2)
+    results.Add('LoadingMetricRecords', 'count', len(interaction_records))
+
+
+def GetMetricFromMetricType(metric_type):
+  if metric_type == tir_module.IS_SMOOTH:
+    return FakeSmoothMetric()
+  if metric_type == tir_module.IS_RESPONSIVE:
+    return FakeLoadingMetric()
+  raise Exception('Unrecognized metric type: %s' % metric_type)
+
+
+class TimelineBasedMetricTestData(object):
+
+  def __init__(self):
+    self._model = model_module.TimelineModel()
+    renderer_process = self._model.GetOrCreateProcess(1)
+    self._renderer_thread = renderer_process.GetOrCreateThread(2)
+    self._renderer_thread.name = 'CrRendererMain'
+    self._results = page_measurement_results.PageMeasurementResults()
+    self._metric = None
+
+  @property
+  def results(self):
+    return self._results
+
+  @property
+  def metric(self):
+    return self._metric
+
+  def AddInteraction(self, marker='', ts=0, duration=5):
+    self._renderer_thread.async_slices.append(async_slice.AsyncSlice(
+        'category', marker, timestamp=ts, duration=duration,
+        start_thread=self._renderer_thread, end_thread=self._renderer_thread,
+        thread_start=ts, thread_duration=duration))
+
+  def FinalizeImport(self):
+    self._model.FinalizeImport()
+    self._metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
+        self._model, self._renderer_thread, GetMetricFromMetricType)
+    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
+    self._results.WillMeasurePage(ps.pages[0])
+
+  def AddResults(self):
+    self._metric.AddResults(self._results)
+    self._results.DidMeasurePage()
 
 
 class TimelineBasedMetricsTests(unittest.TestCase):
 
-  def setUp(self):
-    model = model_module.TimelineModel()
-    renderer_thread = model.GetOrCreateProcess(1).GetOrCreateThread(2)
-    renderer_thread.name = 'CrRendererMain'
-
-    # [      X       ]
-    #      [  Y  ]
-    renderer_thread.BeginSlice('cat1', 'x.y', 10, 0)
-    renderer_thread.EndSlice(20, 20)
-
-    renderer_thread.async_slices.append(async_slice.AsyncSlice(
-        'cat', 'Interaction.LogicalName1/is_smooth',
-        timestamp=0, duration=20,
-        start_thread=renderer_thread, end_thread=renderer_thread,
-        thread_start=5, thread_duration=15))
-    renderer_thread.async_slices.append(async_slice.AsyncSlice(
-        'cat', 'Interaction.LogicalName2/is_responsive',
-        timestamp=25, duration=5,
-        start_thread=renderer_thread, end_thread=renderer_thread,
-        thread_start=25, thread_duration=5))
-    model.FinalizeImport()
-
-    self.model = model
-    self.renderer_thread = renderer_thread
-
   def testFindTimelineInteractionRecords(self):
-    metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
-      self.model, self.renderer_thread, lambda _: [])
-    interactions = metric.FindTimelineInteractionRecords()
+    d = TimelineBasedMetricTestData()
+    d.AddInteraction(ts=0, duration=20,
+                     marker='Interaction.LogicalName1/is_smooth')
+    d.AddInteraction(ts=25, duration=5,
+                     marker='Interaction.LogicalName2/is_responsive')
+    d.FinalizeImport()
+    interactions = d.metric.FindTimelineInteractionRecords()
     self.assertEquals(2, len(interactions))
     self.assertTrue(interactions[0].is_smooth)
     self.assertEquals(0, interactions[0].start)
@@ -59,44 +101,51 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     self.assertEquals(30, interactions[1].end)
 
   def testAddResults(self):
-    results = page_measurement_results.PageMeasurementResults()
+    d = TimelineBasedMetricTestData()
+    d.AddInteraction(ts=0, duration=20,
+                     marker='Interaction.LogicalName1/is_smooth')
+    d.AddInteraction(ts=25, duration=5,
+                     marker='Interaction.LogicalName2/is_responsive')
+    d.FinalizeImport()
+    d.AddResults()
+    self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
+        'LogicalName1-FakeSmoothMetric')))
+    self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
+        'LogicalName2-FakeLoadingMetric')))
 
-    class FakeSmoothMetric(timeline_based_metric.TimelineBasedMetric):
+  def testNoInteractions(self):
+    d = TimelineBasedMetricTestData()
+    d.FinalizeImport()
+    self.assertRaises(tbm_module.InvalidInteractions, d.AddResults)
 
-      def AddResults(self, model, renderer_thread,
-                     interaction_records, results):
-        results.Add('FakeSmoothMetric', 'ms', 1)
+  def testDuplicateUnrepeatableInteractions(self):
+    d = TimelineBasedMetricTestData()
+    d.AddInteraction(ts=10, duration=5,
+                     marker='Interaction.LogicalName/is_smooth')
+    d.AddInteraction(ts=20, duration=5,
+                     marker='Interaction.LogicalName/is_smooth')
+    d.FinalizeImport()
+    self.assertRaises(tbm_module.InvalidInteractions, d.AddResults)
 
-    class FakeLoadingMetric(timeline_based_metric.TimelineBasedMetric):
+  def testDuplicateRepeatableInteractions(self):
+    d = TimelineBasedMetricTestData()
+    d.AddInteraction(ts=10, duration=5,
+                     marker='Interaction.LogicalName/is_smooth,repeatable')
+    d.AddInteraction(ts=20, duration=5,
+                     marker='Interaction.LogicalName/is_smooth,repeatable')
+    d.FinalizeImport()
+    d.AddResults()
+    self.assertEquals(1, len(d.results.pages_that_succeeded))
 
-      def AddResults(self, model, renderer_thread,
-                     interaction_records, results):
-        for r in interaction_records:
-          assert r.logical_name == 'LogicalName2'
-        results.Add('FakeLoadingMetric', 'ms', 2)
+  def testDuplicateRepeatableInteractionsWithDifferentMetrics(self):
+    d = TimelineBasedMetricTestData()
 
-    def CreateMetricsForTimelineInteractionRecord(interaction):
-      res = []
-      if interaction.is_smooth:
-        res.append(FakeSmoothMetric())
-      if interaction.is_responsive:
-        res.append(FakeLoadingMetric())
-      return res
-
-    metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
-        self.model, self.renderer_thread,
-        CreateMetricsForTimelineInteractionRecord)
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
-
-    results.WillMeasurePage(ps.pages[0])
-    metric.AddResults(results)
-    results.DidMeasurePage()
-
-    v = results.FindAllPageSpecificValuesNamed('LogicalName1-FakeSmoothMetric')
-    self.assertEquals(len(v), 1)
-    v = results.FindAllPageSpecificValuesNamed('LogicalName2-FakeLoadingMetric')
-    self.assertEquals(len(v), 1)
+    responsive_marker = 'Interaction.LogicalName/is_responsive,repeatable'
+    d.AddInteraction(ts=10, duration=5, marker=responsive_marker)
+    smooth_marker = 'Interaction.LogicalName/is_smooth,repeatable'
+    d.AddInteraction(ts=20, duration=5, marker=smooth_marker)
+    d.FinalizeImport()
+    self.assertRaises(tbm_module.InvalidInteractions, d.AddResults)
 
 
 class TestTimelinebasedMeasurementPage(page_module.Page):

@@ -8,13 +8,18 @@ from telemetry import decorators
 import telemetry.timeline.bounds as timeline_bounds
 
 
+# Enables the smoothness metric for this interaction
 IS_SMOOTH = 'is_smooth'
+# Enables the responsiveness metric for this interaction
 IS_RESPONSIVE = 'is_responsive'
+# Allows multiple duplicate interactions of the same type
+REPEATABLE = 'repeatable'
 
-FLAGS = [
-    IS_SMOOTH,
-    IS_RESPONSIVE
+METRICS = [
+    IS_RESPONSIVE,
+    IS_SMOOTH
 ]
+FLAGS = METRICS + [REPEATABLE]
 
 
 class ThreadTimeRangeOverlappedException(Exception):
@@ -29,6 +34,12 @@ class NoThreadTimeDataException(ThreadTimeRangeOverlappedException):
 def IsTimelineInteractionRecord(event_name):
   return event_name.startswith('Interaction.')
 
+def _AssertFlagsAreValid(flags):
+  assert isinstance(flags, list)
+  for f in flags:
+    if f not in FLAGS:
+      raise AssertionError(
+          'Unrecognized flag for a timeline Interaction record: %s' % f)
 
 class TimelineInteractionRecord(object):
   """Represents an interaction that took place during a timeline recording.
@@ -66,6 +77,10 @@ class TimelineInteractionRecord(object):
   smoothness and network metrics to be reported for the marked up 1000ms
   time-range.
 
+  The valid interaction flags are:
+     * is_smooth: Enables the smoothness metrics
+     * is_responsive: Enables the responsiveness metrics
+     * repeatable: Allows other interactions to use the same logical name
   """
 
   def __init__(self, logical_name, start, end, async_event=None):
@@ -75,6 +90,7 @@ class TimelineInteractionRecord(object):
     self.end = end
     self.is_smooth = False
     self.is_responsive = False
+    self.repeatable = False
     self._async_event = async_event
 
   # TODO(nednguyen): After crbug.com/367175 is marked fixed, we should be able
@@ -105,16 +121,11 @@ class TimelineInteractionRecord(object):
 
     record = TimelineInteractionRecord(logical_name, async_event.start,
                                        async_event.end, async_event)
-    for f in flags:
-      if not f in FLAGS:
-        raise Exception(
-            'Unrecognized flag in timeline Interaction record: %s' % f)
+    _AssertFlagsAreValid(flags)
     record.is_smooth = IS_SMOOTH in flags
     record.is_responsive = IS_RESPONSIVE in flags
+    record.repeatable = REPEATABLE in flags
     return record
-
-  def GetResultNameFor(self, result_name):
-    return '%s-%s' % (self.logical_name, result_name)
 
   @decorators.Cache
   def GetBounds(self):
@@ -128,12 +139,14 @@ class TimelineInteractionRecord(object):
     """ Get the marker string of an interaction record with logical_name
     and flags.
     """
-    assert isinstance(flags, list)
-    for f in flags:
-      if f not in FLAGS:
-        raise AssertionError(
-            'Unrecognized flag for a timeline Interaction record: %s' % f)
+    _AssertFlagsAreValid(flags)
     return 'Interaction.%s/%s' % (logical_name, ','.join(flags))
+
+  def HasMetric(self, metric_type):
+    if metric_type not in METRICS:
+      raise AssertionError('Unrecognized metric type for a timeline '
+                           'interaction record: %s' % metric_type)
+    return getattr(self, metric_type)
 
   def GetOverlappedThreadTimeForSlice(self, timeline_slice):
     """Get the thread duration of timeline_slice that overlaps with this record.

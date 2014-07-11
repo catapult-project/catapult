@@ -29,7 +29,8 @@ class ActionRunner(object):
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
 
-  def BeginInteraction(self, label, is_smooth=False, is_responsive=False):
+  def BeginInteraction(self, label, is_smooth=False, is_responsive=False,
+                       repeatable=False):
     """Marks the beginning of an interaction record.
 
     An interaction record is a labeled time period containing
@@ -44,19 +45,24 @@ class ActionRunner(object):
       is_smooth: Whether to check for smoothness metrics for this interaction.
       is_responsive: Whether to check for responsiveness metrics for
           this interaction.
+      repeatable: Whether other interactions may use the same logical name
+          as this interaction. All interactions with the same logical name must
+          have the same flags.
     """
     flags = []
     if is_smooth:
       flags.append(tir_module.IS_SMOOTH)
     if is_responsive:
       flags.append(tir_module.IS_RESPONSIVE)
+    if repeatable:
+      flags.append(tir_module.REPEATABLE)
 
     interaction = Interaction(self._tab, label, flags)
     interaction.Begin()
     return interaction
 
-  def BeginGestureInteraction(
-      self, label, is_smooth=False, is_responsive=False):
+  def BeginGestureInteraction(self, label, is_smooth=False, is_responsive=False,
+                              repeatable=False):
     """Marks the beginning of a gesture-based interaction record.
 
     This is similar to normal interaction record, but it will
@@ -73,8 +79,12 @@ class ActionRunner(object):
       is_smooth: Whether to check for smoothness metrics for this interaction.
       is_responsive: Whether to check for responsiveness metrics for
           this interaction.
+      repeatable: Whether other interactions may use the same logical name
+          as this interaction. All interactions with the same logical name must
+          have the same flags.
     """
-    return self.BeginInteraction('Gesture_' + label, is_smooth, is_responsive)
+    return self.BeginInteraction('Gesture_' + label, is_smooth, is_responsive,
+                                 repeatable)
 
   def NavigateToPage(self, page, timeout_in_seconds=60):
     """Navigate to the given page.

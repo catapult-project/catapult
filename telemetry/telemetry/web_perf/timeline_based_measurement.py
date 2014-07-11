@@ -5,12 +5,13 @@
 import logging
 import os
 
+from collections import defaultdict
 from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.timeline import model as model_module
 from telemetry.web_perf import timeline_interaction_record as tir_module
-from telemetry.web_perf.metrics import smoothness
 from telemetry.web_perf.metrics import responsiveness_metric
+from telemetry.web_perf.metrics import smoothness
 from telemetry.page import page_measurement
 from telemetry.value import string as string_value_module
 
@@ -30,28 +31,43 @@ ALL_OVERHEAD_LEVELS = [
 ]
 
 
+class InvalidInteractions(Exception):
+  pass
+
+
+def _GetMetricFromMetricType(metric_type):
+  if metric_type == tir_module.IS_SMOOTH:
+    return smoothness.SmoothnessMetric()
+  if metric_type == tir_module.IS_RESPONSIVE:
+    return responsiveness_metric.ResponsivenessMetric()
+  raise Exception('Unrecognized metric type: %s' % metric_type)
+
+
 class _ResultsWrapper(object):
-  def __init__(self, results, interaction_record):
+  def __init__(self, results, logical_name):
     self._results = results
-    self._interaction_record = interaction_record
+    self._result_prefix = logical_name
+
+  def _GetResultName(self, trace_name):
+    return '%s-%s' % (self._result_prefix, trace_name)
 
   def Add(self, trace_name, units, value, chart_name=None, data_type='default'):
-    trace_name = self._interaction_record.GetResultNameFor(trace_name)
-    self._results.Add(trace_name, units, value, chart_name, data_type)
+    result_name = self._GetResultName(trace_name)
+    self._results.Add(result_name, units, value, chart_name, data_type)
 
   def AddSummary(self, trace_name, units, value, chart_name=None,
-                  data_type='default'):
-    trace_name = self._interaction_record.GetResultNameFor(trace_name)
-    self._results.AddSummary(trace_name, units, value, chart_name, data_type)
+                 data_type='default'):
+    result_name = self._GetResultName(trace_name)
+    self._results.AddSummary(result_name, units, value, chart_name, data_type)
 
 
 class _TimelineBasedMetrics(object):
   def __init__(self, model, renderer_thread,
-               create_metrics_for_interaction_record_callback):
+               get_metric_from_metric_type_callback):
     self._model = model
     self._renderer_thread = renderer_thread
-    self._create_metrics_for_interaction_record_callback = \
-        create_metrics_for_interaction_record_callback
+    self._get_metric_from_metric_type_callback = \
+        get_metric_from_metric_type_callback
 
   def FindTimelineInteractionRecords(self):
     # TODO(nduca): Add support for page-load interaction record.
@@ -60,16 +76,37 @@ class _TimelineBasedMetrics(object):
             if tir_module.IsTimelineInteractionRecord(event.name)]
 
   def AddResults(self, results):
-    interactions = self.FindTimelineInteractionRecords()
-    if len(interactions) == 0:
-      raise Exception('Expected at least one Interaction on the page')
-    for interaction in interactions:
-      metrics = \
-          self._create_metrics_for_interaction_record_callback(interaction)
-      wrapped_results = _ResultsWrapper(results, interaction)
-      for m in metrics:
-        m.AddResults(self._model, self._renderer_thread,
-                     [interaction], wrapped_results)
+    all_interactions = self.FindTimelineInteractionRecords()
+    if len(all_interactions) == 0:
+      raise InvalidInteractions('Expected at least one interaction record on '
+                                'the page')
+
+    interactions_by_logical_name = defaultdict(list)
+    for i in all_interactions:
+      interactions_by_logical_name[i.logical_name].append(i)
+
+    for logical_name, interactions in interactions_by_logical_name.iteritems():
+      are_repeatable = [i.repeatable for i in interactions]
+      if not all(are_repeatable) and len(interactions) > 1:
+        raise InvalidInteractions('Duplicate unrepeatable interaction records '
+                                  'on the page')
+      wrapped_results = _ResultsWrapper(results, logical_name)
+      self.UpdateResultsByMetric(interactions, wrapped_results)
+
+  def UpdateResultsByMetric(self, interactions, wrapped_results):
+    for metric_type in tir_module.METRICS:
+      # For each metric type, either all or none of the interactions should
+      # have that metric.
+      interactions_with_metric = [i for i in interactions if
+                                  i.HasMetric(metric_type)]
+      if not interactions_with_metric:
+        continue
+      if len(interactions_with_metric) != len(interactions):
+        raise InvalidInteractions('Interaction records with the same logical '
+                                  'name must have the same flags.')
+      metric = self._get_metric_from_metric_type_callback(metric_type)
+      metric.AddResults(self._model, self._renderer_thread,
+                        interactions, wrapped_results)
 
 
 class TimelineBasedMeasurement(page_measurement.PageMeasurement):
@@ -124,17 +161,6 @@ class TimelineBasedMeasurement(page_measurement.PageMeasurement):
     categories = ','.join([categories] + page.GetSyntheticDelayCategories())
     tab.browser.StartTracing(categories)
 
-  def CreateMetricsForTimelineInteractionRecord(self, interaction):
-    """ Subclass of TimelineBasedMeasurement overrides this method to customize
-    the binding of interaction's flags to metrics.
-    """
-    res = []
-    if interaction.is_smooth:
-      res.append(smoothness.SmoothnessMetric())
-    if interaction.is_responsive:
-      res.append(responsiveness_metric.ResponsivenessMetric())
-    return res
-
   def MeasurePage(self, page, tab, results):
     """ Collect all possible metrics and added them to results. """
     trace_result = tab.browser.StopTracing()
@@ -153,7 +179,7 @@ class TimelineBasedMeasurement(page_measurement.PageMeasurement):
     model = model_module.TimelineModel(trace_result)
     renderer_thread = model.GetRendererThreadFromTabId(tab.id)
     meta_metrics = _TimelineBasedMetrics(
-      model, renderer_thread, self.CreateMetricsForTimelineInteractionRecord)
+        model, renderer_thread, _GetMetricFromMetricType)
     meta_metrics.AddResults(results)
 
   def CleanUpAfterPage(self, page, tab):
