@@ -17,6 +17,6 @@ class InspectorMemoryTest(tab_test_case.TabTestCase):
     self.Navigate('dom_counter_sample.html')
 
     counts = self._tab.dom_stats
-    self.assertEqual(counts['document_count'], 2)
-    self.assertEqual(counts['node_count'], 18)
+    self.assertEqual(counts['document_count'], 1)
+    self.assertEqual(counts['node_count'], 14)
     self.assertEqual(counts['event_listener_count'], 2)
