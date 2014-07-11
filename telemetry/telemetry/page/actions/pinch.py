@@ -3,15 +3,13 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
-class PinchAction(GestureAction):
+class PinchAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_anchor_ratio=0.5, top_anchor_ratio=0.5,
                scale_factor=None, speed_in_pixels_per_second=800):
     super(PinchAction, self).__init__()
-    self.automatically_record_interaction = False
     self._selector = selector
     self._text = text
     self._element_function = element_function
@@ -41,12 +39,12 @@ class PinchAction(GestureAction):
           'This version of the browser doesn\'t support the new JS interface '
           'for pinch gestures.')
 
-    if (GestureAction.GetGestureSourceTypeFromOptions(tab) ==
+    if (page_action.GetGestureSourceTypeFromOptions(tab) ==
         'chrome.gpuBenchmarking.MOUSE_INPUT'):
       raise page_action.PageActionNotSupported(
           'Pinch page action does not support mouse input')
 
-    if not GestureAction.IsGestureSourceTypeSupported(tab, 'touch'):
+    if not page_action.IsGestureSourceTypeSupported(tab, 'touch'):
       raise page_action.PageActionNotSupported(
           'Touch input not supported for this browser')
 
@@ -62,7 +60,7 @@ class PinchAction(GestureAction):
         'window.outerWidth / window.innerWidth')
     return 3.0 / current_scale_factor
 
-  def RunGesture(self, tab):
+  def RunAction(self, tab):
     scale_factor = (self._scale_factor if self._scale_factor else
                     PinchAction._GetDefaultScaleFactorForPage(tab))
     code = '''

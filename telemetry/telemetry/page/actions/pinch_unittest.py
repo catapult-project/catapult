@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.page.actions import action_runner as action_runner_module
-from telemetry.page.actions.gesture_action import GestureAction
+from telemetry.page.actions import page_action
 from telemetry.unittest import tab_test_case
 
 
@@ -13,7 +13,7 @@ class PinchActionTest(tab_test_case.TabTestCase):
 
   def testPinchByApiCalledWithCorrectArguments(self):
     self.Navigate('blank.html')
-    if not GestureAction.IsGestureSourceTypeSupported(self._tab, 'touch'):
+    if not page_action.IsGestureSourceTypeSupported(self._tab, 'touch'):
       return
 
     action_runner = action_runner_module.ActionRunner(self._tab)

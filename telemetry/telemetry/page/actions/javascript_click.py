@@ -7,7 +7,6 @@ from telemetry.page.actions import page_action
 class ClickElementAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None):
     super(ClickElementAction, self).__init__()
-    self.automatically_record_interaction = False
     self.selector = selector
     self.text = text
     self.element_function = element_function

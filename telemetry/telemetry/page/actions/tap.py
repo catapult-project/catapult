@@ -4,15 +4,13 @@
 
 import os
 
-from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
-class TapAction(GestureAction):
+class TapAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_position_percentage=0.5, top_position_percentage=0.5,
                duration_ms=50):
     super(TapAction, self).__init__()
-    self.automatically_record_interaction = False
     self.selector = selector
     self.text = text
     self.element_function = element_function
@@ -41,10 +39,10 @@ class TapAction(GestureAction):
     return (self.element_function is not None or self.selector is not None or
             self.text is not None)
 
-  def RunGesture(self, tab):
+  def RunAction(self, tab):
     if not self.HasElementSelector():
       self.element_function = 'document.body'
-    gesture_source_type = GestureAction.GetGestureSourceTypeFromOptions(tab)
+    gesture_source_type = page_action.GetGestureSourceTypeFromOptions(tab)
 
     tap_cmd = ('''
         window.__tapAction.start({

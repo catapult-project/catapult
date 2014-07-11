@@ -4,6 +4,8 @@
 
 import re
 
+from telemetry import decorators
+
 class PageActionNotSupported(Exception):
   pass
 
@@ -13,11 +15,6 @@ class PageActionFailed(Exception):
 
 class PageAction(object):
   """Represents an action that a user might try to perform to a page."""
-
-  def __init__(self, attributes=None):
-    if attributes:
-      for k, v in attributes.iteritems():
-        setattr(self, k, v)
 
   def WillRunAction(self, tab):
     """Override to do action-specific setup before
@@ -29,7 +26,6 @@ class PageAction(object):
 
   def CleanUp(self, tab):
     pass
-
 
 def EvaluateCallbackWithElement(
     tab, callback_js, selector=None, text=None, element_function=None,
@@ -114,3 +110,23 @@ def EvaluateCallbackWithElement(
 
 def _EscapeSelector(selector):
   return selector.replace('\'', '\\\'')
+
+def GetGestureSourceTypeFromOptions(tab):
+  gesture_source_type = tab.browser.synthetic_gesture_source_type
+  return 'chrome.gpuBenchmarking.' + gesture_source_type.upper() + '_INPUT'
+
+@decorators.Cache
+def IsGestureSourceTypeSupported(tab, gesture_source_type):
+  # TODO(dominikg): remove once support for
+  #                 'chrome.gpuBenchmarking.gestureSourceTypeSupported' has
+  #                 been rolled into reference build.
+  if tab.EvaluateJavaScript("""
+      typeof chrome.gpuBenchmarking.gestureSourceTypeSupported ===
+          'undefined'"""):
+    return (tab.browser.platform.GetOSName() != 'mac' or
+            gesture_source_type.lower() != 'touch')
+
+  return tab.EvaluateJavaScript("""
+      chrome.gpuBenchmarking.gestureSourceTypeSupported(
+          chrome.gpuBenchmarking.%s_INPUT)"""
+      % (gesture_source_type.upper()))

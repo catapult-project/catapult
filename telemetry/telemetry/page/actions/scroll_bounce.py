@@ -3,10 +3,9 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
-class ScrollBounceAction(GestureAction):
+class ScrollBounceAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_start_ratio=0.5, top_start_ratio=0.5,
                direction='down', distance=100,
@@ -16,7 +15,6 @@ class ScrollBounceAction(GestureAction):
     if direction not in ['down', 'up', 'left', 'right']:
       raise page_action.PageActionNotSupported(
           'Invalid scroll direction: %s' % self.direction)
-    self.automatically_record_interaction = False
     self._selector = selector
     self._text = text
     self._element_function = element_function
@@ -52,11 +50,11 @@ class ScrollBounceAction(GestureAction):
 
     # Fail if we can't send touch events (bouncing is really only
     # interesting for touch)
-    if not GestureAction.IsGestureSourceTypeSupported(tab, 'touch'):
+    if not page_action.IsGestureSourceTypeSupported(tab, 'touch'):
       raise page_action.PageActionNotSupported(
           'Touch scroll not supported for this browser')
 
-    if (GestureAction.GetGestureSourceTypeFromOptions(tab) ==
+    if (page_action.GetGestureSourceTypeFromOptions(tab) ==
         'chrome.gpuBenchmarking.MOUSE_INPUT'):
       raise page_action.PageActionNotSupported(
           'ScrollBounce page action does not support mouse input')
@@ -67,7 +65,7 @@ class ScrollBounceAction(GestureAction):
         window.__scrollBounceAction = new __ScrollBounceAction(%s);"""
         % (done_callback))
 
-  def RunGesture(self, tab):
+  def RunAction(self, tab):
     code = '''
         function(element, info) {
           if (!element) {

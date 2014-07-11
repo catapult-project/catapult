@@ -7,8 +7,8 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.timeline import model
-from telemetry.page.actions import gesture_action
 from telemetry.page.actions import action_runner as action_runner_module
+from telemetry.page.actions import page_action
 from telemetry.unittest import tab_test_case
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
@@ -179,7 +179,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
   def testScroll(self):
-    if not gesture_action.GestureAction.IsGestureSourceTypeSupported(
+    if not page_action.IsGestureSourceTypeSupported(
         self._tab, 'touch'):
       return
 
@@ -201,7 +201,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         'document.body.scrollLeft') > 75)
 
   def testSwipe(self):
-    if not gesture_action.GestureAction.IsGestureSourceTypeSupported(
+    if not page_action.IsGestureSourceTypeSupported(
         self._tab, 'touch'):
       return
 

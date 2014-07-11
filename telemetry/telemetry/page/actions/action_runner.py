@@ -25,9 +25,7 @@ class ActionRunner(object):
   def __init__(self, tab):
     self._tab = tab
 
-  # TODO(nednguyen): remove this (or make private) when
-  # crbug.com/361809 is marked fixed
-  def RunAction(self, action):
+  def _RunAction(self, action):
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
 
@@ -89,7 +87,7 @@ class ActionRunner(object):
       target_side_url = self._tab.browser.http_server.UrlOf(page.file_path_url)
     else:
       target_side_url = page.url
-    self.RunAction(NavigateAction(
+    self._RunAction(NavigateAction(
         url=target_side_url,
         script_to_evaluate_on_commit=page.script_to_evaluate_on_commit,
         timeout_in_seconds=timeout_in_seconds))
@@ -167,7 +165,7 @@ class ActionRunner(object):
           '(function() { return foo.element; })()'.
       timeout_in_seconds: The timeout in seconds (default to 60).
     """
-    self.RunAction(WaitForElementAction(
+    self._RunAction(WaitForElementAction(
         selector=selector, text=text, element_function=element_function,
         timeout_in_seconds=timeout_in_seconds))
 
@@ -184,7 +182,7 @@ class ActionRunner(object):
           to retrieve the element. For example:
           '(function() { return foo.element; })()'.
     """
-    self.RunAction(TapAction(
+    self._RunAction(TapAction(
         selector=selector, text=text, element_function=element_function))
 
   def ClickElement(self, selector=None, text=None, element_function=None):
@@ -200,7 +198,7 @@ class ActionRunner(object):
           to retrieve the element. For example:
           '(function() { return foo.element; })()'.
     """
-    self.RunAction(ClickElementAction(
+    self._RunAction(ClickElementAction(
         selector=selector, text=text, element_function=element_function))
 
   def PinchPage(self, left_anchor_ratio=0.5, top_anchor_ratio=0.5,
@@ -223,7 +221,7 @@ class ActionRunner(object):
           3.0 / (window.outerWidth/window.innerWidth).
       speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
     """
-    self.RunAction(PinchAction(
+    self._RunAction(PinchAction(
         left_anchor_ratio=left_anchor_ratio, top_anchor_ratio=top_anchor_ratio,
         scale_factor=scale_factor,
         speed_in_pixels_per_second=speed_in_pixels_per_second))
@@ -254,7 +252,7 @@ class ActionRunner(object):
           3.0 / (window.outerWidth/window.innerWidth).
       speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
     """
-    self.RunAction(PinchAction(
+    self._RunAction(PinchAction(
         selector=selector, text=text, element_function=element_function,
         left_anchor_ratio=left_anchor_ratio, top_anchor_ratio=top_anchor_ratio,
         scale_factor=scale_factor,
@@ -285,7 +283,7 @@ class ActionRunner(object):
       speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
       use_touch: Whether scrolling should be done with touch input.
     """
-    self.RunAction(ScrollAction(
+    self._RunAction(ScrollAction(
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         direction=direction, distance=distance, distance_expr=distance_expr,
         speed_in_pixels_per_second=speed_in_pixels_per_second,
@@ -325,7 +323,7 @@ class ActionRunner(object):
       speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
       use_touch: Whether scrolling should be done with touch input.
     """
-    self.RunAction(ScrollAction(
+    self._RunAction(ScrollAction(
         selector=selector, text=text, element_function=element_function,
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         direction=direction, distance=distance, distance_expr=distance_expr,
@@ -358,7 +356,7 @@ class ActionRunner(object):
       repeat_count: How often we want to repeat the full gesture.
       speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
     """
-    self.RunAction(ScrollBounceAction(
+    self._RunAction(ScrollBounceAction(
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         direction=direction, distance=distance,
         overscroll=overscroll, repeat_count=repeat_count,
@@ -396,7 +394,7 @@ class ActionRunner(object):
       repeat_count: How often we want to repeat the full gesture.
       speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
     """
-    self.RunAction(ScrollBounceAction(
+    self._RunAction(ScrollBounceAction(
         selector=selector, text=text, element_function=element_function,
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         direction=direction, distance=distance,
@@ -419,7 +417,7 @@ class ActionRunner(object):
       distance: The distance to swipe (in pixel).
       speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
     """
-    self.RunAction(SwipeAction(
+    self._RunAction(SwipeAction(
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         direction=direction, distance=distance,
         speed_in_pixels_per_second=speed_in_pixels_per_second))
@@ -450,7 +448,7 @@ class ActionRunner(object):
       distance: The distance to swipe (in pixel).
       speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
     """
-    self.RunAction(SwipeAction(
+    self._RunAction(SwipeAction(
         selector=selector, text=text, element_function=element_function,
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         direction=direction, distance=distance,
@@ -476,7 +474,7 @@ class ActionRunner(object):
     Raises:
       TimeoutException: If the maximum waiting time is exceeded.
     """
-    self.RunAction(PlayAction(
+    self._RunAction(PlayAction(
         selector=selector,
         playing_event_timeout_in_seconds=playing_event_timeout_in_seconds,
         ended_event_timeout_in_seconds=ended_event_timeout_in_seconds))
@@ -501,7 +499,7 @@ class ActionRunner(object):
     Raises:
       TimeoutException: If the maximum waiting time is exceeded.
     """
-    self.RunAction(SeekAction(
+    self._RunAction(SeekAction(
         seconds=seconds, selector=selector,
         timeout_in_seconds=timeout_in_seconds,
         log_time=log_time, label=label))
@@ -522,7 +520,7 @@ class ActionRunner(object):
     Raises:
       TimeoutException: If the maximum waiting time is exceeded.
     """
-    self.RunAction(LoopAction(
+    self._RunAction(LoopAction(
         loop_count=loop_count, selector=selector,
         timeout_in_seconds=timeout_in_seconds))
 
@@ -546,7 +544,7 @@ class ActionRunner(object):
     of seconds have elapsed AND at least three RAFs have been
     fired. Times out after max(60, self.seconds), if less than three
     RAFs were fired."""
-    self.RunAction(RepaintContinuouslyAction(seconds=seconds))
+    self._RunAction(RepaintContinuouslyAction(seconds=seconds))
 
 class Interaction(object):
 

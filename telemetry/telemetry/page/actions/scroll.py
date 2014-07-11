@@ -3,14 +3,12 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
-class ScrollAction(GestureAction):
+class ScrollAction(page_action.PageAction):
   # TODO(chrishenry): Ignore attributes, to be deleted when usage in
   # other repo is cleaned up.
-  def __init__(self, attributes=None,
-               selector=None, text=None, element_function=None,
+  def __init__(self, selector=None, text=None, element_function=None,
                left_start_ratio=0.5, top_start_ratio=0.5, direction='down',
                distance=None, distance_expr=None,
                speed_in_pixels_per_second=800, use_touch=False):
@@ -18,7 +16,6 @@ class ScrollAction(GestureAction):
     if direction not in ['down', 'up', 'left', 'right']:
       raise page_action.PageActionNotSupported(
           'Invalid scroll direction: %s' % self.direction)
-    self.automatically_record_interaction = False
     self._selector = selector
     self._text = text
     self._element_function = element_function
@@ -49,11 +46,11 @@ class ScrollAction(GestureAction):
 
     # Fail if this action requires touch and we can't send touch events.
     if self._use_touch:
-      if not GestureAction.IsGestureSourceTypeSupported(tab, 'touch'):
+      if not page_action.IsGestureSourceTypeSupported(tab, 'touch'):
         raise page_action.PageActionNotSupported(
             'Touch scroll not supported for this browser')
 
-      if (GestureAction.GetGestureSourceTypeFromOptions(tab) ==
+      if (page_action.GetGestureSourceTypeFromOptions(tab) ==
           'chrome.gpuBenchmarking.MOUSE_INPUT'):
         raise page_action.PageActionNotSupported(
             'Scroll requires touch on this page but mouse input was requested')
@@ -64,12 +61,12 @@ class ScrollAction(GestureAction):
         window.__scrollAction = new __ScrollAction(%s, %s);"""
         % (done_callback, self._distance_func))
 
-  def RunGesture(self, tab):
+  def RunAction(self, tab):
     if (self._selector is None and self._text is None and
         self._element_function is None):
       self._element_function = 'document.body'
 
-    gesture_source_type = GestureAction.GetGestureSourceTypeFromOptions(tab)
+    gesture_source_type = page_action.GetGestureSourceTypeFromOptions(tab)
     if self._use_touch:
       gesture_source_type = 'chrome.gpuBenchmarking.TOUCH_INPUT'
 
