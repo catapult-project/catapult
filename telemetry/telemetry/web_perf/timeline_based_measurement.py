@@ -44,9 +44,9 @@ def _GetMetricFromMetricType(metric_type):
 
 
 class _ResultsWrapper(object):
-  def __init__(self, results, logical_name):
+  def __init__(self, results, label):
     self._results = results
-    self._result_prefix = logical_name
+    self._result_prefix = label
 
   def _GetResultName(self, trace_name):
     return '%s-%s' % (self._result_prefix, trace_name)
@@ -81,16 +81,16 @@ class _TimelineBasedMetrics(object):
       raise InvalidInteractions('Expected at least one interaction record on '
                                 'the page')
 
-    interactions_by_logical_name = defaultdict(list)
+    interactions_by_label = defaultdict(list)
     for i in all_interactions:
-      interactions_by_logical_name[i.logical_name].append(i)
+      interactions_by_label[i.label].append(i)
 
-    for logical_name, interactions in interactions_by_logical_name.iteritems():
+    for label, interactions in interactions_by_label.iteritems():
       are_repeatable = [i.repeatable for i in interactions]
       if not all(are_repeatable) and len(interactions) > 1:
         raise InvalidInteractions('Duplicate unrepeatable interaction records '
                                   'on the page')
-      wrapped_results = _ResultsWrapper(results, logical_name)
+      wrapped_results = _ResultsWrapper(results, label)
       self.UpdateResultsByMetric(interactions, wrapped_results)
 
   def UpdateResultsByMetric(self, interactions, wrapped_results):

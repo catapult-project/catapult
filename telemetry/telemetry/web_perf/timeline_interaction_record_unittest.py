@@ -38,35 +38,34 @@ class TimelineInteractionRecordTests(unittest.TestCase):
 
   def testCreate(self):
     r = self.CreateSimpleRecordWithName('Interaction.LogicalName')
-    self.assertEquals('LogicalName', r.logical_name)
+    self.assertEquals('LogicalName', r.label)
     self.assertEquals(False, r.is_smooth)
     self.assertEquals(False, r.is_responsive)
 
     r = self.CreateSimpleRecordWithName('Interaction.LogicalName/is_smooth')
-    self.assertEquals('LogicalName', r.logical_name)
+    self.assertEquals('LogicalName', r.label)
     self.assertEquals(True, r.is_smooth)
     self.assertEquals(False, r.is_responsive)
 
     r = self.CreateSimpleRecordWithName(
         'Interaction.LogicalNameWith/Slash/is_smooth')
-    self.assertEquals('LogicalNameWith/Slash', r.logical_name)
+    self.assertEquals('LogicalNameWith/Slash', r.label)
     self.assertEquals(True, r.is_smooth)
     self.assertEquals(False, r.is_responsive)
 
     r = self.CreateSimpleRecordWithName(
         'Interaction.LogicalNameWith/Slash/is_smooth,is_responsive')
-    self.assertEquals('LogicalNameWith/Slash', r.logical_name)
+    self.assertEquals('LogicalNameWith/Slash', r.label)
     self.assertEquals(True, r.is_smooth)
     self.assertEquals(True, r.is_responsive)
 
   def testGetJavaScriptMarker(self):
-    smooth_marker = tir_module.TimelineInteractionRecord.GetJavaScriptMarker(
-        'LogicalName', [tir_module.IS_SMOOTH])
-    self.assertEquals('Interaction.LogicalName/is_smooth', smooth_marker)
-    slr_marker = tir_module.TimelineInteractionRecord.GetJavaScriptMarker(
-        'LogicalName', [tir_module.IS_SMOOTH, tir_module.IS_RESPONSIVE])
-    self.assertEquals('Interaction.LogicalName/is_smooth,is_responsive',
-                      slr_marker)
+    smooth_marker = tir_module.GetJavaScriptMarker(
+        'MyLabel', [tir_module.IS_SMOOTH])
+    self.assertEquals('Interaction.MyLabel/is_smooth', smooth_marker)
+    slr_marker = tir_module.GetJavaScriptMarker(
+        'MyLabel', [tir_module.IS_SMOOTH, tir_module.IS_RESPONSIVE])
+    self.assertEquals('Interaction.MyLabel/is_smooth,is_responsive', slr_marker)
 
   def testGetOverlappedThreadTimeForSliceInSameThread(self):
     # Create a renderer thread.
@@ -113,7 +112,7 @@ class TimelineInteractionRecordTests(unittest.TestCase):
         end_thread=renderer_main, thread_start=30, thread_duration=30)
     record = tir_module.TimelineInteractionRecord.FromAsyncEvent(s)
     expected_repr = (
-        'TimelineInteractionRecord(logical_name=\'Test\', '
+        'TimelineInteractionRecord(label=\'Test\', '
         'start=0.000000, end=200.000000, flags=is_smooth, '
         'async_event=TimelineEvent(name=\'Interaction.Test/is_smooth\','
         ' start=0.000000, duration=200, thread_start=30, thread_duration=30))')

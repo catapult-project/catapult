@@ -17,7 +17,7 @@ from telemetry.page.actions.seek import SeekAction
 from telemetry.page.actions.swipe import SwipeAction
 from telemetry.page.actions.tap import TapAction
 from telemetry.page.actions.wait import WaitForElementAction
-from telemetry.web_perf import timeline_interaction_record as tir_module
+from telemetry.web_perf import timeline_interaction_record
 
 
 class ActionRunner(object):
@@ -51,11 +51,11 @@ class ActionRunner(object):
     """
     flags = []
     if is_smooth:
-      flags.append(tir_module.IS_SMOOTH)
+      flags.append(timeline_interaction_record.IS_SMOOTH)
     if is_responsive:
-      flags.append(tir_module.IS_RESPONSIVE)
+      flags.append(timeline_interaction_record.IS_RESPONSIVE)
     if repeatable:
-      flags.append(tir_module.REPEATABLE)
+      flags.append(timeline_interaction_record.REPEATABLE)
 
     interaction = Interaction(self._tab, label, flags)
     interaction.Begin()
@@ -572,12 +572,12 @@ class Interaction(object):
     assert not self._started
     self._started = True
     self._action_runner.ExecuteJavaScript('console.time("%s");' %
-        tir_module.TimelineInteractionRecord.GetJavaScriptMarker(
+        timeline_interaction_record.GetJavaScriptMarker(
             self._label, self._flags))
 
   def End(self):
     assert self._started
     self._started = False
     self._action_runner.ExecuteJavaScript('console.timeEnd("%s");' %
-        tir_module.TimelineInteractionRecord.GetJavaScriptMarker(
+        timeline_interaction_record.GetJavaScriptMarker(
             self._label, self._flags))

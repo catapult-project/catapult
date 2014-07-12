@@ -34,7 +34,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertEqual(1, len(records),
                      'Fail to issue the interaction record on tracing timeline.'
                      ' Trace data:\n%s' % repr(trace_data.EventData()))
-    self.assertEqual('TestInteraction', records[0].logical_name)
+    self.assertEqual('TestInteraction', records[0].label)
     self.assertTrue(records[0].is_smooth)
 
   def testExecuteJavaScript(self):

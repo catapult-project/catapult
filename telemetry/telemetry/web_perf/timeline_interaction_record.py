@@ -39,7 +39,27 @@ def _AssertFlagsAreValid(flags):
   for f in flags:
     if f not in FLAGS:
       raise AssertionError(
-          'Unrecognized flag for a timeline Interaction record: %s' % f)
+          'Unrecognized flag for a timeline interaction record: %s' % f)
+
+def GetJavaScriptMarker(label, flags):
+  """Computes the marker string of an interaction record.
+
+  This marker string can be used with JavaScript API console.time()
+  and console.timeEnd() to mark the beginning and end of the
+  interaction record..
+
+  Args:
+    label: The label used to identify the interaction record.
+    flags: the flags for the interaction record see FLAGS above.
+
+  Returns:
+    The interaction record marker string (e.g., Interaction.Label/flag1,flag2).
+
+  Raises:
+    AssertionError: If one or more of the flags is unrecognized.
+  """
+  _AssertFlagsAreValid(flags)
+  return 'Interaction.%s/%s' % (label, ','.join(flags))
 
 class TimelineInteractionRecord(object):
   """Represents an interaction that took place during a timeline recording.
@@ -51,8 +71,8 @@ class TimelineInteractionRecord(object):
   interactions.
 
   From the point of view of the page, each interaction might have a different
-  logical name: ClickComposeButton and SendEmail, for instance. From the point
-  of view of the benchmarking harness, the names aren't so interesting as what
+  label: ClickComposeButton and SendEmail, for instance. From the point
+  of view of the benchmarking harness, the labels aren't so interesting as what
   the performance expectations are for that interaction: was it loading
   resources from the network? was there an animation?
 
@@ -62,7 +82,7 @@ class TimelineInteractionRecord(object):
   story.
 
   Instead, we expect pages to mark up the timeline what they are doing, with
-  logical names, and flags indicating the semantics of that interaction. This
+  label and flags indicating the semantics of that interaction. This
   is currently done by pushing markers into the console.time/timeEnd API: this
   for instance can be issued in JS:
 
@@ -83,9 +103,9 @@ class TimelineInteractionRecord(object):
      * repeatable: Allows other interactions to use the same logical name
   """
 
-  def __init__(self, logical_name, start, end, async_event=None):
-    assert logical_name
-    self.logical_name = logical_name
+  def __init__(self, label, start, end, async_event=None):
+    assert label
+    self.label = label
     self.start = start
     self.end = end
     self.is_smooth = False
@@ -108,7 +128,7 @@ class TimelineInteractionRecord(object):
         'end thread')
     m = re.match('Interaction\.(.+)\/(.+)', async_event.name)
     if m:
-      logical_name = m.group(1)
+      label = m.group(1)
       if m.group(1) != '':
         flags = m.group(2).split(',')
       else:
@@ -116,10 +136,10 @@ class TimelineInteractionRecord(object):
     else:
       m = re.match('Interaction\.(.+)', async_event.name)
       assert m
-      logical_name = m.group(1)
+      label = m.group(1)
       flags = []
 
-    record = TimelineInteractionRecord(logical_name, async_event.start,
+    record = TimelineInteractionRecord(label, async_event.start,
                                        async_event.end, async_event)
     _AssertFlagsAreValid(flags)
     record.is_smooth = IS_SMOOTH in flags
@@ -133,14 +153,6 @@ class TimelineInteractionRecord(object):
     bounds.AddValue(self.start)
     bounds.AddValue(self.end)
     return bounds
-
-  @staticmethod
-  def GetJavaScriptMarker(logical_name, flags):
-    """ Get the marker string of an interaction record with logical_name
-    and flags.
-    """
-    _AssertFlagsAreValid(flags)
-    return 'Interaction.%s/%s' % (logical_name, ','.join(flags))
 
   def HasMetric(self, metric_type):
     if metric_type not in METRICS:
@@ -234,9 +246,9 @@ class TimelineInteractionRecord(object):
       flags.append(IS_RESPONSIVE)
     flags_str = ','.join(flags)
 
-    return ('TimelineInteractionRecord(logical_name=\'%s\', start=%f, end=%f,' +
+    return ('TimelineInteractionRecord(label=\'%s\', start=%f, end=%f,' +
             ' flags=%s, async_event=%s)') % (
-                self.logical_name,
+                self.label,
                 self.start,
                 self.end,
                 flags_str,
