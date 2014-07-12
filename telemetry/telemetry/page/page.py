@@ -57,6 +57,16 @@ class Page(object):
     assert browser_info
     return True
 
+  def AsDict(self):
+    """Converts a page object to a dict suitable for JSON output."""
+    d = {
+      'id': self._id,
+      'url': self._url,
+    }
+    if self._name:
+      d['name'] = self._name
+    return d
+
   @property
   def page_set(self):
     return self._page_set

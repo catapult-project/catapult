@@ -117,6 +117,23 @@ class TestPage(unittest.TestCase):
     self.assertEquals(ps[0].display_name, 'foo')
 
   def testPagesHaveDifferentIds(self):
-    p = page.Page("http://example.com")
-    p2 = page.Page("http://example.com")
-    self.assertNotEqual(p.id, p2.id)
+    p0 = page.Page("http://example.com")
+    p1 = page.Page("http://example.com")
+    self.assertNotEqual(p0.id, p1.id)
+
+  def testNamelessPageAsDict(self):
+    nameless_dict = page.Page('http://example.com/').AsDict()
+    self.assertIn('id', nameless_dict)
+    del nameless_dict['id']
+    self.assertEquals({
+          'url': 'http://example.com/',
+        }, nameless_dict)
+
+  def testNamedPageAsDict(self):
+    named_dict = page.Page('http://example.com/', name='Example').AsDict()
+    self.assertIn('id', named_dict)
+    del named_dict['id']
+    self.assertEquals({
+          'url': 'http://example.com/',
+          'name': 'Example'
+        }, named_dict)
