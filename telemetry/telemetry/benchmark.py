@@ -191,10 +191,7 @@ class Benchmark(command_line.Command):
     By default, it will create an empty expectations set. Override to generate
     custom expectations.
     """
-    if hasattr(cls, 'expectations'):
-      return cls.expectations
-    else:
-      return test_expectations.TestExpectations()
+    return test_expectations.TestExpectations()
 
 
 def AddCommandLineArgs(parser):
