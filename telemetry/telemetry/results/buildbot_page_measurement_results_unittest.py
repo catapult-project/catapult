@@ -5,10 +5,12 @@ import os
 
 from telemetry import perf_tests_helper
 from telemetry.page import page_set
+from telemetry.value import histogram
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from telemetry.results import base_test_results_unittest
 from telemetry.results import buildbot_page_measurement_results
+
 
 def _MakePageSet():
   ps = page_set.PageSet(file_path=os.path.dirname(__file__))
@@ -35,12 +37,16 @@ class BuildbotPageMeasurementResultsTest(
 
     measurement_results = SummarySavingPageMeasurementResults()
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 3))
+
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 7)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 7))
+
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
@@ -60,7 +66,8 @@ class BuildbotPageMeasurementResultsTest(
 
     measurement_results = SummarySavingPageMeasurementResults()
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 3))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
@@ -77,19 +84,24 @@ class BuildbotPageMeasurementResultsTest(
 
     measurement_results = SummarySavingPageMeasurementResults()
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 3)
-    measurement_results.Add('b', 'seconds', 10)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 3))
+    measurement_results.AddValue(
+        scalar.ScalarValue(test_page_set.pages[0], 'b', 'seconds', 10))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 3)
-    measurement_results.Add('b', 'seconds', 10)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 3))
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'b', 'seconds', 10))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
     measurement_results.WillMeasurePage(test_page_set.pages[2])
-    measurement_results.Add('a', 'seconds', 7)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[2], 'a', 'seconds', 7))
     # Note, page[2] does not report a 'b' metric.
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[2])
@@ -115,12 +127,14 @@ class BuildbotPageMeasurementResultsTest(
 
     measurement_results = SummarySavingPageMeasurementResults()
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 3))
     measurement_results.DidMeasurePage()
     measurement_results.AddFailureMessage(test_page_set.pages[0], 'message')
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 7)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 7))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
@@ -139,21 +153,25 @@ class BuildbotPageMeasurementResultsTest(
 
     measurement_results = SummarySavingPageMeasurementResults()
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 3))
     measurement_results.DidMeasurePage()
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 7)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 7))
     measurement_results.DidMeasurePage()
     measurement_results.AddFailureMessage(test_page_set.pages[1], 'message')
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 4)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 4))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 8)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 8))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
@@ -176,22 +194,26 @@ class BuildbotPageMeasurementResultsTest(
 
     measurement_results = SummarySavingPageMeasurementResults()
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 3))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 7)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 7))
     measurement_results.DidMeasurePage()
     measurement_results.AddErrorMessage(test_page_set.pages[1], 'message')
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 4)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 4))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 8)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 8))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
@@ -213,22 +235,26 @@ class BuildbotPageMeasurementResultsTest(
 
     measurement_results = SummarySavingPageMeasurementResults()
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 3))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 7)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 7))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 4)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 4))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 8)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 8))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
@@ -254,22 +280,26 @@ class BuildbotPageMeasurementResultsTest(
 
     measurement_results = SummarySavingPageMeasurementResults()
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 3))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'seconds', 4)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 4))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 7)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 7))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'seconds', 8)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 8))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
@@ -299,12 +329,14 @@ class BuildbotPageMeasurementResultsTest(
         scalar.ScalarValue(None, 'a', 'seconds', 1))
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('b', 'seconds', 2)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'b', 'seconds', 2))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('b', 'seconds', 3)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'b', 'seconds', 3))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
@@ -332,12 +364,14 @@ class BuildbotPageMeasurementResultsTest(
         scalar.ScalarValue(None, 'a', 'seconds', 1))
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('b', 'seconds', 2)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'b', 'seconds', 2))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('b', 'seconds', 3)
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'b', 'seconds', 3))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
@@ -362,12 +396,14 @@ class BuildbotPageMeasurementResultsTest(
         scalar.ScalarValue(None, 'a', 'seconds', 1, important=False))
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('b', 'seconds', 2, data_type='unimportant')
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'b', 'seconds', 2, important=False))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('b', 'seconds', 3, data_type='unimportant')
+    measurement_results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'b', 'seconds', 3, important=False))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
@@ -392,12 +428,14 @@ class BuildbotPageMeasurementResultsTest(
         list_of_scalar_values.ListOfScalarValues(None, 'a', 'seconds', [1, 1]))
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('b', 'seconds', [2, 2])
+    measurement_results.AddValue(list_of_scalar_values.ListOfScalarValues(
+        test_page_set.pages[0], 'b', 'seconds', [2, 2]))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('b', 'seconds', [3, 3])
+    measurement_results.AddValue(list_of_scalar_values.ListOfScalarValues(
+        test_page_set.pages[1], 'b', 'seconds', [3, 3]))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
@@ -420,16 +458,18 @@ class BuildbotPageMeasurementResultsTest(
 
     measurement_results = SummarySavingPageMeasurementResults()
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', 'units',
-                            '{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
-                            data_type='unimportant-histogram')
+    measurement_results.AddValue(histogram.HistogramValue(
+        test_page_set.pages[0], 'a', 'units',
+        raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
+        important=False))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[0])
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', 'units',
-                          '{"buckets": [{"low": 2, "high": 3, "count": 1}]}',
-                          data_type='unimportant-histogram')
+    measurement_results.AddValue(histogram.HistogramValue(
+        test_page_set.pages[1], 'a', 'units',
+        raw_value_json='{"buckets": [{"low": 2, "high": 3, "count": 1}]}',
+        important=False))
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 

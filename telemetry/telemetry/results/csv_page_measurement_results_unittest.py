@@ -8,6 +8,8 @@ import unittest
 
 from telemetry.results import csv_page_measurement_results
 from telemetry.page import page_set
+from telemetry.value import histogram
+from telemetry.value import scalar
 
 
 def _MakePageSet():
@@ -47,7 +49,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
   def test_with_output_after_every_page(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, True)
     results.WillMeasurePage(self._page_set[0])
-    results.Add('foo', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.DidMeasurePage()
     self.assertEquals(
         self.output_header_row,
@@ -57,7 +59,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
         [self._page_set[0].url, '3'])
 
     results.WillMeasurePage(self._page_set[1])
-    results.Add('foo', 'seconds', 4)
+    results.AddValue(scalar.ScalarValue(self._page_set[1], 'foo', 'seconds', 4))
     results.DidMeasurePage()
     self.assertEquals(
         len(self.output_data_rows),
@@ -69,7 +71,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
   def test_with_no_results_on_second_run(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, True)
     results.WillMeasurePage(self._page_set[0])
-    results.Add('foo', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self._page_set[1])
@@ -78,23 +80,23 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
   def test_fewer_results_on_second_run(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, True)
     results.WillMeasurePage(self._page_set[0])
-    results.Add('foo', 'seconds', 3)
-    results.Add('bar', 'seconds', 4)
+    results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
+    results.AddValue(scalar.ScalarValue(self._page_set[0], 'bar', 'seconds', 4))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self._page_set[1])
-    results.Add('bar', 'seconds', 5)
+    results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 5))
     results.DidMeasurePage()
 
   def test_more_results_on_second_run(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, True)
     results.WillMeasurePage(self._page_set[0])
-    results.Add('foo', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self._page_set[1])
-    results.Add('foo', 'seconds', 4)
-    results.Add('bar', 'seconds', 5)
+    results.AddValue(scalar.ScalarValue(self._page_set[1], 'foo', 'seconds', 4))
+    results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 5))
 
     self.assertRaises(
         Exception,
@@ -103,12 +105,12 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
   def test_with_output_after_every_page_and_inconsistency(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, True)
     results.WillMeasurePage(self._page_set[0])
-    results.Add('foo', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.DidMeasurePage()
 
     # We printed foo, now change to bar
     results.WillMeasurePage(self._page_set[1])
-    results.Add('bar', 'seconds', 4)
+    results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 4))
 
     self.assertRaises(
         Exception,
@@ -117,11 +119,11 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
   def test_with_output_at_print_summary_time(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, False)
     results.WillMeasurePage(self._page_set[0])
-    results.Add('foo', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self._page_set[1])
-    results.Add('bar', 'seconds', 4)
+    results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 4))
     results.DidMeasurePage()
 
     results.PrintSummary()
@@ -137,15 +139,15 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
   def test_histogram(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, False)
     results.WillMeasurePage(self._page_set[0])
-    results.Add('a', '',
-                '{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
-                data_type='histogram')
+    results.AddValue(histogram.HistogramValue(
+        self._page_set[0], 'a', '',
+        raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}'))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self._page_set[1])
-    results.Add('a', '',
-                '{"buckets": [{"low": 2, "high": 3, "count": 1}]}',
-                data_type='histogram')
+    results.AddValue(histogram.HistogramValue(
+        self._page_set[1], 'a', '',
+        raw_value_json='{"buckets": [{"low": 2, "high": 3, "count": 1}]}'))
     results.DidMeasurePage()
 
     results.PrintSummary()

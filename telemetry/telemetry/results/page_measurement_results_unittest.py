@@ -7,7 +7,9 @@ import unittest
 from telemetry import perf_tests_helper
 from telemetry.page import page_set
 from telemetry.results import page_measurement_results
+from telemetry.value import histogram
 from telemetry.value import scalar
+
 
 def _MakePageSet():
   ps = page_set.PageSet(file_path=os.path.dirname(__file__))
@@ -45,11 +47,11 @@ class PageMeasurementResultsTest(unittest.TestCase):
   def test_basic(self):
     results = NonPrintingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[1])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 3))
     results.DidMeasurePage()
 
     results.PrintSummary()
@@ -68,13 +70,14 @@ class PageMeasurementResultsTest(unittest.TestCase):
     results.WillMeasurePage(self.pages[0])
     self.assertRaises(
       AssertionError,
-      lambda: results.Add('url', 'string', 'foo'))
+      lambda: results.AddValue(scalar.ScalarValue(
+          self.pages[0], 'url', 'string', 'foo')))
 
   def test_value_names_that_have_been_seen(self):
     results = NonPrintingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
-    results.Add('a', 'a_units', 3)
-    results.Add('b', 'b_units', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'a_units', 3))
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'b', 'b_units', 3))
     results.AddSummaryValue(scalar.ScalarValue(None, 'c', 'c_units', 3))
     results.DidMeasurePage()
     self.assertEquals(set(['a', 'b', 'c']),
@@ -94,37 +97,40 @@ class PageMeasurementResultsTest(unittest.TestCase):
   def test_unit_change(self):
     results = NonPrintingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[1])
     self.assertRaises(
       AssertionError,
-      lambda: results.Add('a', 'foobgrobbers', 3))
+      lambda: results.AddValue(scalar.ScalarValue(
+          self.pages[1], 'a', 'foobgrobbers', 3)))
 
     self.assertEquals(['a'], results.all_value_names_that_have_been_seen)
 
   def test_type_change(self):
     results = NonPrintingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[1])
     self.assertRaises(
       AssertionError,
-      lambda: results.Add('a', 'seconds', 3, data_type='histogram'))
+      lambda: results.AddValue(histogram.HistogramValue(
+          self.pages[1], 'a', 'seconds',
+          raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}')))
 
   def test_basic_summary_all_pages_fail(self):
     """If all pages fail, no summary is printed."""
     results = SummarySavingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
     results.DidMeasurePage()
     results.AddFailureMessage(self.pages[0], 'message')
 
     results.WillMeasurePage(self.pages[1])
-    results.Add('a', 'seconds', 7)
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 7))
     results.DidMeasurePage()
     results.AddFailureMessage(self.pages[1], 'message')
 
@@ -134,7 +140,7 @@ class PageMeasurementResultsTest(unittest.TestCase):
   def test_get_successful_page_values_merged_no_failures(self):
     results = SummarySavingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
     self.assertEquals(1, len(results.page_specific_values_for_current_page))
     results.DidMeasurePage()
     self.assertRaises(
@@ -144,15 +150,15 @@ class PageMeasurementResultsTest(unittest.TestCase):
   def test_get_all_values_for_successful_pages(self):
     results = SummarySavingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[1])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[2])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[2], 'a', 'seconds', 3))
     results.DidMeasurePage()
 
     values = results.all_page_specific_values
@@ -163,7 +169,7 @@ class PageMeasurementResultsTest(unittest.TestCase):
   def test_get_all_values_for_successful_pages_one_page_fails(self):
     results = SummarySavingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[1])
@@ -171,7 +177,7 @@ class PageMeasurementResultsTest(unittest.TestCase):
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[2])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(self.pages[2], 'a', 'seconds', 3))
     results.DidMeasurePage()
 
     values = results.all_page_specific_values

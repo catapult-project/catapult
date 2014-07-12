@@ -7,6 +7,7 @@ import unittest
 
 from telemetry.page import page_set
 from telemetry.results import block_page_measurement_results
+from telemetry.value import scalar
 
 
 BlockPageMeasurementResults = \
@@ -43,11 +44,13 @@ class BlockPageMeasurementResultsTest(unittest.TestCase):
   def test_with_output_after_every_page(self):
     results = NonPrintingBlockPageMeasurementResults(self._output)
     results.WillMeasurePage(self._page_set[0])
-    results.Add('foo', 'seconds', 3)
+    results.AddValue(
+        scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self._page_set[1])
-    results.Add('bar', 'seconds', 4)
+    results.AddValue(
+        scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 4))
     results.DidMeasurePage()
 
     expected = [

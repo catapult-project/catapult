@@ -7,6 +7,7 @@ import unittest
 
 from telemetry.page import page_set
 from telemetry.results import html_page_measurement_results
+from telemetry.value import scalar
 
 
 def _MakePageSet():
@@ -41,12 +42,14 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
     results = DeterministicHtmlPageMeasurementResults(
         output_file, 'test_name', False, False, 'browser_type')
     results.WillMeasurePage(test_page_set.pages[0])
-    results.Add('a', 'seconds', 3)
+    results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 3))
     results.DidMeasurePage()
     results.AddSuccess(test_page_set.pages[0])
 
     results.WillMeasurePage(test_page_set.pages[1])
-    results.Add('a', 'seconds', 7)
+    results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 7))
     results.DidMeasurePage()
     results.AddSuccess(test_page_set.pages[1])
 
@@ -96,12 +99,14 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
     results = DeterministicHtmlPageMeasurementResults(
         output_file, 'test_name', False, False, 'browser_type')
     results.WillMeasurePage(test_page_set.pages[0])
-    results.Add('a', 'seconds', 4)
+    results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 4))
     results.DidMeasurePage()
     results.AddSuccess(test_page_set.pages[0])
 
     results.WillMeasurePage(test_page_set.pages[1])
-    results.Add('a', 'seconds', 8)
+    results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 8))
     results.DidMeasurePage()
     results.AddSuccess(test_page_set.pages[1])
 
@@ -189,12 +194,14 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
     results = DeterministicHtmlPageMeasurementResults(
        output_file, 'test_name', True, False, 'browser_type')
     results.WillMeasurePage(test_page_set.pages[0])
-    results.Add('a', 'seconds', 5)
+    results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[0], 'a', 'seconds', 5))
     results.DidMeasurePage()
     results.AddSuccess(test_page_set.pages[0])
 
     results.WillMeasurePage(test_page_set.pages[1])
-    results.Add('a', 'seconds', 9)
+    results.AddValue(scalar.ScalarValue(
+        test_page_set.pages[1], 'a', 'seconds', 9))
     results.DidMeasurePage()
     results.AddSuccess(test_page_set.pages[1])
 
