@@ -1,4 +1,4 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
@@ -17,6 +17,31 @@ class TestBase(unittest.TestCase):
   @property
   def pages(self):
     return self.page_set.pages
+
+class ValueForMergingTest(value.Value):
+  @classmethod
+  def MergeLikeValuesFromSamePage(cls, values):
+    pass
+  @classmethod
+  def MergeLikeValuesFromDifferentPages(cls, values,
+                                        group_by_name_suffix=False):
+    pass
+
+  def GetBuildbotDataType(self, output_context):
+    pass
+
+  def GetBuildbotValue(self):
+    pass
+
+  def GetBuildbotMeasurementAndTraceNameForComputedSummaryResult(
+      self, trace_tag):
+    pass
+
+  def GetRepresentativeNumber(self):
+    pass
+
+  def GetRepresentativeString(self):
+    pass
 
 class ValueTest(TestBase):
   def testCompat(self):
@@ -39,5 +64,5 @@ class ValueTest(TestBase):
     self.assertFalse(b.IsMergableWith(a))
 
     a = value.Value(page0, 'x', 'unit', important=False)
-    b = value.ScalarValue(page0, 'x', 'unit', 3, important=True)
+    b = ValueForMergingTest(page0, 'x', 'unit', important=True)
     self.assertFalse(b.IsMergableWith(a))
