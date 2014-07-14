@@ -5,14 +5,23 @@
 'use strict';
 
 tvcm.require('tracing.test_utils');
-tvcm.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.importer');
 
 tvcm.unittest.testSuite('tracing.importer.trace_event_importer_perf_test', function() { // @suppress longLineCheck
   var eventStrings = {};
 
+  // @const
+  var TEST_NAMES = ['simple_trace', 'lthi_cats'];
+  // @const
+  var TEST_FILES_PATHS = ['/test_data/simple_trace.json',
+                          '/test_data/lthi_cats.json.gz'];
+
   function getSynchronous(url) {
     var req = new XMLHttpRequest();
     req.open('GET', url, false);
+    // Without the mime type specified like this, the file's bytes are not
+    // retrieved correctly.
+    req.overrideMimeType('text/plain; charset=x-user-defined');
     req.send(null);
     return req.responseText;
   }
@@ -33,7 +42,7 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_perf_test', funct
     for (var k in initialOptions)
       options[k] = initialOptions[k];
     options.setUp = function() {
-      ['/test_data/simple_trace.json', '/test_data/lthi_cats.json'].forEach(
+      TEST_FILES_PATHS.forEach(
           function warmup(url) {
             getEvents(url);
           });
@@ -43,15 +52,15 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_perf_test', funct
 
   var n110100 = [1, 10, 100];
   n110100.forEach(function(val) {
-    timedPerfTestWithEvents('simple_trace_' + val, function() {
-      var events = getEvents('/test_data/simple_trace.json');
+    timedPerfTestWithEvents(TEST_NAMES[0] + '_' + val, function() {
+      var events = getEvents(TEST_FILES_PATHS[0]);
       var m = new tracing.TraceModel();
       m.importTraces([events], false, false);
     }, {iterations: val});
   });
 
-  timedPerfTestWithEvents('lthi_cats_1', function() {
-    var events = getEvents('/test_data/lthi_cats.json');
+  timedPerfTestWithEvents(TEST_NAMES[1] + '_1', function() {
+    var events = getEvents(TEST_FILES_PATHS[1]);
     var m = new tracing.TraceModel();
     m.importTraces([events], false, false);
   }, {iterations: 1});
