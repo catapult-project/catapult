@@ -13,30 +13,44 @@ from telemetry.unittest import tab_test_case
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
 
-class ActionRunnerTest(tab_test_case.TabTestCase):
-  def testIssuingInteractionRecord(self):
+class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
+
+  def GetInteractionRecords(self, trace_data):
+    timeline_model = model.TimelineModel(trace_data)
+    renderer_thread = timeline_model.GetRendererThreadFromTabId(self._tab.id)
+    return [
+        tir_module.TimelineInteractionRecord.FromAsyncEvent(e)
+        for e in renderer_thread.async_slices
+        if tir_module.IsTimelineInteractionRecord(e.name)
+        ]
+
+  def VerifyIssuingInteractionRecords(self, **interaction_kwargs):
     action_runner = action_runner_module.ActionRunner(self._tab)
     self.Navigate('interaction_enabled_page.html')
     action_runner.Wait(1)
     self._browser.StartTracing(tracing_backend.DEFAULT_TRACE_CATEGORIES)
-    interaction = action_runner.BeginInteraction(
-        'TestInteraction', is_smooth=True)
+    interaction = action_runner.BeginInteraction('InteractionName',
+                                                 **interaction_kwargs)
     interaction.End()
     trace_data = self._browser.StopTracing()
-    timeline_model = model.TimelineModel(trace_data)
 
-    records = []
-    renderer_thread = timeline_model.GetRendererThreadFromTabId(self._tab.id)
-    for event in renderer_thread.async_slices:
-      if not tir_module.IsTimelineInteractionRecord(event.name):
-        continue
-      records.append(tir_module.TimelineInteractionRecord.FromAsyncEvent(event))
-    self.assertEqual(1, len(records),
-                     'Fail to issue the interaction record on tracing timeline.'
-                     ' Trace data:\n%s' % repr(trace_data.EventData()))
-    self.assertEqual('TestInteraction', records[0].label)
-    self.assertTrue(records[0].is_smooth)
+    records = self.GetInteractionRecords(trace_data)
+    self.assertEqual(
+        1, len(records),
+        'Failed to issue the interaction record on the tracing timeline.'
+        ' Trace data:\n%s' % repr(trace_data.EventData()))
+    self.assertEqual('InteractionName', records[0].label)
+    for attribute_name in interaction_kwargs:
+      self.assertTrue(getattr(records[0], attribute_name))
 
+  def testIssuingMultipleMeasurementInteractionRecords(self):
+    self.VerifyIssuingInteractionRecords(is_fast=True)
+    self.VerifyIssuingInteractionRecords(is_responsive=True)
+    self.VerifyIssuingInteractionRecords(is_smooth=True)
+    self.VerifyIssuingInteractionRecords(is_fast=True, is_smooth=True)
+
+
+class ActionRunnerTest(tab_test_case.TabTestCase):
   def testExecuteJavaScript(self):
     action_runner = action_runner_module.ActionRunner(self._tab)
     self.Navigate('blank.html')

@@ -20,23 +20,30 @@ from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import timeline_based_metric
 
 
+class FakeFastMetric(timeline_based_metric.TimelineBasedMetric):
+
+  def AddResults(self, model, renderer_thread, interaction_records, results):
+    results.Add('FakeFastMetric', 'ms', 1)
+    results.Add('FastMetricRecords', 'count', len(interaction_records))
+
+
 class FakeSmoothMetric(timeline_based_metric.TimelineBasedMetric):
 
-  def AddResults(self, model, renderer_thread,
-                 interaction_records, results):
+  def AddResults(self, model, renderer_thread, interaction_records, results):
     results.Add('FakeSmoothMetric', 'ms', 1)
     results.Add('SmoothMetricRecords', 'count', len(interaction_records))
 
 
 class FakeLoadingMetric(timeline_based_metric.TimelineBasedMetric):
 
-  def AddResults(self, model, renderer_thread,
-                 interaction_records, results):
+  def AddResults(self, model, renderer_thread, interaction_records, results):
     results.Add('FakeLoadingMetric', 'ms', 2)
     results.Add('LoadingMetricRecords', 'count', len(interaction_records))
 
 
 def GetMetricFromMetricType(metric_type):
+  if metric_type == tir_module.IS_FAST:
+    return FakeFastMetric()
   if metric_type == tir_module.IS_SMOOTH:
     return FakeSmoothMetric()
   if metric_type == tir_module.IS_RESPONSIVE:
@@ -89,9 +96,11 @@ class TimelineBasedMetricsTests(unittest.TestCase):
                      marker='Interaction.LogicalName1/is_smooth')
     d.AddInteraction(ts=25, duration=5,
                      marker='Interaction.LogicalName2/is_responsive')
+    d.AddInteraction(ts=50, duration=15,
+                     marker='Interaction.LogicalName3/is_fast')
     d.FinalizeImport()
     interactions = d.metric.FindTimelineInteractionRecords()
-    self.assertEquals(2, len(interactions))
+    self.assertEquals(3, len(interactions))
     self.assertTrue(interactions[0].is_smooth)
     self.assertEquals(0, interactions[0].start)
     self.assertEquals(20, interactions[0].end)
@@ -100,18 +109,26 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     self.assertEquals(25, interactions[1].start)
     self.assertEquals(30, interactions[1].end)
 
+    self.assertTrue(interactions[2].is_fast)
+    self.assertEquals(50, interactions[2].start)
+    self.assertEquals(65, interactions[2].end)
+
   def testAddResults(self):
     d = TimelineBasedMetricTestData()
     d.AddInteraction(ts=0, duration=20,
                      marker='Interaction.LogicalName1/is_smooth')
     d.AddInteraction(ts=25, duration=5,
                      marker='Interaction.LogicalName2/is_responsive')
+    d.AddInteraction(ts=50, duration=15,
+                     marker='Interaction.LogicalName3/is_fast')
     d.FinalizeImport()
     d.AddResults()
     self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
         'LogicalName1-FakeSmoothMetric')))
     self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
         'LogicalName2-FakeLoadingMetric')))
+    self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
+        'LogicalName3-FakeFastMetric')))
 
   def testNoInteractions(self):
     d = TimelineBasedMetricTestData()

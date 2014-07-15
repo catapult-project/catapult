@@ -10,6 +10,7 @@ from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.timeline import model as model_module
 from telemetry.web_perf import timeline_interaction_record as tir_module
+from telemetry.web_perf.metrics import fast_metric
 from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.web_perf.metrics import smoothness
 from telemetry.page import page_measurement
@@ -36,6 +37,8 @@ class InvalidInteractions(Exception):
 
 
 def _GetMetricFromMetricType(metric_type):
+  if metric_type == tir_module.IS_FAST:
+    return fast_metric.FastMetric()
   if metric_type == tir_module.IS_SMOOTH:
     return smoothness.SmoothnessMetric()
   if metric_type == tir_module.IS_RESPONSIVE:

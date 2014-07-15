@@ -8,6 +8,8 @@ from telemetry import decorators
 import telemetry.timeline.bounds as timeline_bounds
 
 
+# Enables the fast metric for this interaction
+IS_FAST = 'is_fast'
 # Enables the smoothness metric for this interaction
 IS_SMOOTH = 'is_smooth'
 # Enables the responsiveness metric for this interaction
@@ -16,6 +18,7 @@ IS_RESPONSIVE = 'is_responsive'
 REPEATABLE = 'repeatable'
 
 METRICS = [
+    IS_FAST,
     IS_RESPONSIVE,
     IS_SMOOTH
 ]
@@ -86,15 +89,15 @@ class TimelineInteractionRecord(object):
   is currently done by pushing markers into the console.time/timeEnd API: this
   for instance can be issued in JS:
 
-     var str = 'Interaction.SendEmail/is_smooth,is_responsive';
+     var str = 'Interaction.SendEmail/is_smooth,is_responsive,is_fast';
      console.time(str);
      setTimeout(function() {
        console.timeEnd(str);
      }, 1000);
 
   When run with perf.measurements.timeline_based_measurement running, this will
-  then cause a TimelineInteractionRecord to be created for this range and both
-  smoothness and network metrics to be reported for the marked up 1000ms
+  then cause a TimelineInteractionRecord to be created for this range with
+  smoothness, responsive, and fast metrics reported for the marked up 1000ms
   time-range.
 
   The valid interaction flags are:
@@ -108,6 +111,7 @@ class TimelineInteractionRecord(object):
     self.label = label
     self.start = start
     self.end = end
+    self.is_fast = False
     self.is_smooth = False
     self.is_responsive = False
     self.repeatable = False
@@ -116,8 +120,8 @@ class TimelineInteractionRecord(object):
   # TODO(nednguyen): After crbug.com/367175 is marked fixed, we should be able
   # to get rid of perf.measurements.smooth_gesture_util and make this the only
   # constructor method for TimelineInteractionRecord.
-  @staticmethod
-  def FromAsyncEvent(async_event):
+  @classmethod
+  def FromAsyncEvent(cls, async_event):
     """Construct an timeline_interaction_record from an async event.
     Args:
       async_event: An instance of
@@ -139,9 +143,9 @@ class TimelineInteractionRecord(object):
       label = m.group(1)
       flags = []
 
-    record = TimelineInteractionRecord(label, async_event.start,
-                                       async_event.end, async_event)
+    record = cls(label, async_event.start, async_event.end, async_event)
     _AssertFlagsAreValid(flags)
+    record.is_fast = IS_FAST in flags
     record.is_smooth = IS_SMOOTH in flags
     record.is_responsive = IS_RESPONSIVE in flags
     record.repeatable = REPEATABLE in flags
@@ -244,6 +248,8 @@ class TimelineInteractionRecord(object):
       flags.append(IS_SMOOTH)
     elif self.is_responsive:
       flags.append(IS_RESPONSIVE)
+    elif self.is_fast:
+      flags.append(IS_FAST)
     flags_str = ','.join(flags)
 
     return ('TimelineInteractionRecord(label=\'%s\', start=%f, end=%f,' +
