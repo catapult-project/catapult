@@ -52,25 +52,26 @@ class SimpleLocalServer(local_server.LocalServer):
     return self.forwarder.url + '/'
 
 class LocalServerUnittest(tab_test_case.TabTestCase):
+  @classmethod
+  def setUpClass(cls):
+    super(LocalServerUnittest, cls).setUpClass()
+    cls._server = SimpleLocalServer()
+    cls._browser.StartLocalServer(cls._server)
+
   def testLocalServer(self):
-    server = SimpleLocalServer()
-    self._browser.StartLocalServer(server)
-    self.assertTrue(server in self._browser.local_servers)
-    self._tab.Navigate(server.url)
+    self.assertTrue(self._server in self._browser.local_servers)
+    self._tab.Navigate(self._server.url)
     self._tab.WaitForDocumentReadyStateToBeComplete()
     body_text = self._tab.EvaluateJavaScript('document.body.textContent')
     body_text = body_text.strip()
     self.assertEquals('hello world', body_text)
 
   def testStartingAndRestarting(self):
-    server1 = SimpleLocalServer()
-    self._browser.StartLocalServer(server1)
-
     server2 = SimpleLocalServer()
     self.assertRaises(Exception,
                       lambda: self._browser.StartLocalServer(server2))
 
-    server1.Close()
-    self.assertTrue(server1 not in self._browser.local_servers)
+    self._server.Close()
+    self.assertTrue(self._server not in self._browser.local_servers)
 
     self._browser.StartLocalServer(server2)

@@ -63,9 +63,6 @@ class MockSubprocess(object):
 
 
 class TestVTuneProfiler(tab_test_case.TabTestCase):
-  def setUp(self):
-    super(TestVTuneProfiler, self).setUp()
-
   def testVTuneProfilerIsSupported(self):
     options = options_for_unittests.GetCopy()
 

@@ -12,9 +12,6 @@ from telemetry.unittest import test
 
 
 class ScrollActionTest(tab_test_case.TabTestCase):
-  def setUp(self):
-    super(ScrollActionTest, self).setUp()
-
   def CreateAndNavigateToPageFromUnittestDataDir(
     self, filename):
     self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())

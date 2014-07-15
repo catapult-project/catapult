@@ -6,12 +6,6 @@ from telemetry.unittest import tab_test_case
 
 
 class InspectorPageTest(tab_test_case.TabTestCase):
-  def __init__(self, *args):
-    super(InspectorPageTest, self).__init__(*args)
-
-  def setUp(self):
-    super(InspectorPageTest, self).setUp()
-
   def testPageNavigateToNormalUrl(self):
     self.Navigate('blank.html')
 

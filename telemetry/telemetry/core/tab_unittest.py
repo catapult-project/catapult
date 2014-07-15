@@ -151,9 +151,10 @@ class TabTest(tab_test_case.TabTestCase):
 
 
 class GpuTabTest(tab_test_case.TabTestCase):
-  def setUp(self):
-    self._extra_browser_args = ['--enable-gpu-benchmarking']
-    super(GpuTabTest, self).setUp()
+  @classmethod
+  def setUpClass(cls):
+    cls._extra_browser_args = ['--enable-gpu-benchmarking']
+    super(GpuTabTest, cls).setUpClass()
 
   # Test flaky on mac: http://crbug.com/358664
   @benchmark.Disabled('android', 'mac')

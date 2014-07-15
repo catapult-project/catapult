@@ -11,41 +11,48 @@ from telemetry.unittest import options_for_unittests
 
 
 class TabTestCase(unittest.TestCase):
+  _extra_browser_args = []
+
   def __init__(self, *args):
-    self._extra_browser_args = []
-    self.test_file_path = None
-    self.test_url = None
     super(TabTestCase, self).__init__(*args)
 
-  def setUp(self):
-    self._browser = None
     self._tab = None
+    self.test_file_path = None
+    self.test_url = None
+
+  @classmethod
+  def setUpClass(cls):
     options = options_for_unittests.GetCopy()
-
-    self.CustomizeBrowserOptions(options.browser_options)
-
-    if self._extra_browser_args:
-      options.AppendExtraBrowserArgs(self._extra_browser_args)
+    cls.CustomizeBrowserOptions(options.browser_options)
+    if cls._extra_browser_args:
+      options.AppendExtraBrowserArgs(cls._extra_browser_args)
 
     browser_to_create = browser_finder.FindBrowser(options)
     if not browser_to_create:
       raise Exception('No browser found, cannot continue test.')
-    try:
-      self._browser = browser_to_create.Create()
-      self._browser.Start()
-      self._tab = self._browser.tabs[0]
-      self._tab.Navigate('about:blank')
-      self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
+    cls._browser = None
+    try:
+      cls._browser = browser_to_create.Create()
+      cls._browser.Start()
     except:
-      self.tearDown()
+      cls.tearDownClass()
       raise
 
-  def tearDown(self):
-    if self._browser:
-      self._browser.Close()
+  def setUp(self):
+    self._tab = self._browser.tabs.New()
+    while len(self._browser.tabs) > 1:
+      self._browser.tabs[0].Close()
+    self._tab.Navigate('about:blank')
+    self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
-  def CustomizeBrowserOptions(self, options):
+  @classmethod
+  def tearDownClass(cls):
+    if cls._browser:
+      cls._browser.Close()
+
+  @classmethod
+  def CustomizeBrowserOptions(cls, options):
     """Override to add test-specific options to the BrowserOptions object"""
     pass
 

@@ -7,7 +7,8 @@ from telemetry.unittest import tab_test_case
 
 
 class UserAgentTest(tab_test_case.TabTestCase):
-  def CustomizeBrowserOptions(self, options):
+  @classmethod
+  def CustomizeBrowserOptions(cls, options):
     options.browser_user_agent_type = 'tablet'
 
   def testUserAgent(self):
