@@ -6,7 +6,7 @@ import subprocess
 
 from telemetry.core import bitmap
 from telemetry.core import platform
-from telemetry.page import cloud_storage
+from telemetry.util import cloud_storage
 
 HIGHLIGHT_ORANGE_FRAME = bitmap.WEB_PAGE_TEST_ORANGE
 

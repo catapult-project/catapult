@@ -7,8 +7,8 @@ import tempfile
 import unittest
 
 from telemetry.core import util
-from telemetry.page import cloud_storage
 from telemetry.page import page_set
+from telemetry.util import cloud_storage
 
 class TestPageSet(unittest.TestCase):
 

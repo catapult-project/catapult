@@ -18,8 +18,8 @@ from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core.forwarders import android_forwarder
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib.device import device_errors
-from pylib.device import intent
+from pylib.device import device_errors  # pylint: disable=F0401
+from pylib.device import intent  # pylint: disable=F0401
 
 
 class AndroidBrowserBackendSettings(object):

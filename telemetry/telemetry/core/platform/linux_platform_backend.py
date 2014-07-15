@@ -11,7 +11,7 @@ from telemetry import decorators
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
 from telemetry.core.platform import proc_supporting_platform_backend
-from telemetry.page import cloud_storage
+from telemetry.util import cloud_storage
 from telemetry.util import support_binaries
 
 

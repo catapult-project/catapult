@@ -10,7 +10,7 @@ from telemetry.core.platform import profiler
 from telemetry.util import support_binaries
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib.device import intent
+from pylib.device import intent  # pylint: disable=F0401
 
 class UnableToFindApplicationException(Exception):
   """Exception when unable to find a launched application"""

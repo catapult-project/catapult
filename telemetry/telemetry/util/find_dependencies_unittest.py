@@ -12,7 +12,7 @@ import tempfile
 import unittest
 import zipfile
 
-from telemetry.page import cloud_storage
+from telemetry.util import cloud_storage
 from telemetry.util import find_dependencies
 
 

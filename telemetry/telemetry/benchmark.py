@@ -14,11 +14,11 @@ from telemetry.core import browser_finder
 from telemetry.core import command_line
 from telemetry.core import util
 from telemetry.page import page_runner
-from telemetry.page import cloud_storage
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import page_test_results
+from telemetry.util import cloud_storage
 
 
 Disabled = decorators.Disabled

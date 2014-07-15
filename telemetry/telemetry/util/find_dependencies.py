@@ -15,8 +15,8 @@ from telemetry import benchmark
 from telemetry.core import command_line
 from telemetry.core import discover
 from telemetry.core import util
-from telemetry.page import cloud_storage
 from telemetry.util import bootstrap
+from telemetry.util import cloud_storage
 from telemetry.util import path_set
 
 

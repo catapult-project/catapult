@@ -8,7 +8,7 @@ import os
 import re
 import shutil
 
-from telemetry.page import cloud_storage
+from telemetry.util import cloud_storage
 
 
 class PageSetArchiveInfo(object):

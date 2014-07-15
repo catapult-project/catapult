@@ -7,9 +7,9 @@ import shutil
 import tempfile
 import unittest
 
-from telemetry.page import cloud_storage
 from telemetry.page import page
 from telemetry.page import page_set_archive_info
+from telemetry.util import cloud_storage
 
 
 class MockPage(page.Page):

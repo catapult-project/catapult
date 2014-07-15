@@ -10,8 +10,8 @@ import re
 import sys
 
 from telemetry.core import util
-from telemetry.page import cloud_storage
 from telemetry.results import buildbot_page_measurement_results
+from telemetry.util import cloud_storage
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'util')
 import lastchange  # pylint: disable=F0401

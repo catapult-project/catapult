@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 from telemetry.core import command_line
-from telemetry.page import cloud_storage
+from telemetry.util import cloud_storage
 
 
 BUCKET_ALIASES = {

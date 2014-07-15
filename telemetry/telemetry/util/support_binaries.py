@@ -6,7 +6,7 @@ import os
 
 from telemetry import decorators
 from telemetry.core import util
-from telemetry.page import cloud_storage
+from telemetry.util import cloud_storage
 
 
 def _GetBinPath(binary_name, platform_name):
