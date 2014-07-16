@@ -30,6 +30,9 @@ class JSModule(module.Module):
       ValidateTestSuiteDefinition(self.name, stripped_text)
     self.dependency_metadata = Parse(self.name, stripped_text)
 
+  def GetTVCMDepsModuleType(self):
+    return 'tvcm.JS_MODULE_TYPE'
+
   def AppendJSContentsToFile(self,
                              f,
                              use_include_tags_for_scripts,

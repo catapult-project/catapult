@@ -117,6 +117,10 @@ class Module(object):
     """Parses self.contents and fills in the module's dependency metadata."""
     raise NotImplementedError()
 
+  def GetTVCMDepsModuleType(self):
+    """Returns the tvcm.setModuleInfo type for this module"""
+    raise NotImplementedError()
+
   def AppendTVCMJSControlCodeToFile(self, f):
     """Appends the JS to make tvcm.require happy in a generated context."""
     for dependent_raw_script in self.dependent_raw_scripts:

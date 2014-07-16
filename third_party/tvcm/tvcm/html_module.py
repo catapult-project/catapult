@@ -24,6 +24,9 @@ class HTMLModule(module.Module):
                                      parser_results)
     self._parser_results = parser_results
 
+  def GetTVCMDepsModuleType(self):
+    return 'tvcm.HTML_MODULE_TYPE'
+
   def AppendJSContentsToFile(self,
                              f,
                              use_include_tags_for_scripts,

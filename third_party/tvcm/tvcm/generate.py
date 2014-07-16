@@ -81,8 +81,9 @@ def GenerateDepsJS(load_sequence, project):
   chunks = [js_warning_message, '\n']
   loader = load_sequence[0].loader
   for module in loader.loaded_modules.values():
-    chunks.append("tvcm.setResourceFileName('%s','%s');\n" % (
-        module.name, module.resource.unix_style_relative_path))
+    module_type = module.GetTVCMDepsModuleType()
+    chunks.append("tvcm.setModuleInfo('%s', {relativeFileName: '%s', type: %s});\n" % (
+        module.name, module.resource.unix_style_relative_path, module_type))
 
   for module in load_sequence:
     for dependent_module in module.dependent_modules:

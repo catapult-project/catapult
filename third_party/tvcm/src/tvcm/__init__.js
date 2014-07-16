@@ -58,12 +58,18 @@ this.tvcm = (function() {
   var moduleDependencies = {};
   var moduleStylesheets = {};
   var moduleRawScripts = {};
-  var resourceFileNames = {};
+  var moduleInfoByModuleName = {};
 
-  function setResourceFileName(moduleName, relativeFileName) {
-    if (resourceFileNames[moduleName] !== undefined)
+  var JS_MODULE_TYPE = 'js_module';
+  var HTML_MODULE_TYPE = 'html_module';
+
+  function setModuleInfo(moduleName, moduleInfo) {
+    if (moduleInfoByModuleName[moduleName] !== undefined)
       throw new Error('Cannot set file name twice!');
-    resourceFileNames[moduleName] = relativeFileName;
+    if (!(moduleInfo.type === JS_MODULE_TYPE ||
+          moduleInfo.type === HTML_MODULE_TYPE))
+      throw new Error('Unrecognized module type');
+    moduleInfoByModuleName[moduleName] = moduleInfo;
   }
 
   function addModuleDependency(moduleName, dependentModuleName) {
@@ -126,10 +132,12 @@ this.tvcm = (function() {
       throw new Error(msg);
     }
 
-    tvcm.setResourceFileName = setResourceFileName;
+    tvcm.setModuleInfo = setModuleInfo;
     tvcm.addModuleDependency = addModuleDependency;
     tvcm.addModuleRawScriptDependency = addModuleRawScriptDependency;
     tvcm.addModuleStylesheet = addModuleStylesheet;
+    tvcm.JS_MODULE_TYPE = JS_MODULE_TYPE;
+    tvcm.HTML_MODULE_TYPE = HTML_MODULE_TYPE;
     try {
       // By construction, the deps should call addModuleDependency.
       eval(req.responseText);
@@ -137,10 +145,12 @@ this.tvcm = (function() {
       throw new Error('When loading deps, got ' +
                       e.stack ? e.stack : e.message);
     }
-    delete tvcm.setResourceFileName;
+    delete tvcm.setModuleInfo;
     delete tvcm.addModuleStylesheet;
     delete tvcm.addModuleRawScriptDependency;
     delete tvcm.addModuleDependency;
+    delete tvcm.JS_MODULE_TYPE;
+    delete tvcm.HTML_MODULE_TYPE;
   }
 
   var panicElement = undefined;
@@ -260,9 +270,16 @@ this.tvcm = (function() {
     moduleLoadStatus[dependentModuleName] = 'RESOLVING';
     requireDependencies(dependentModuleName, indentLevel);
 
-    if (resourceFileNames[dependentModuleName] === undefined)
-      throw new Error('Not sure what filename is for ' + dependentModuleName);
-    loadScript(resourceFileNames[dependentModuleName]);
+    var moduleInfo = moduleInfoByModuleName[dependentModuleName];
+    if (moduleInfo === undefined)
+      throw new Error('OMG: Module info for ' + dependentModuleName +
+                      ' is missing.');
+    if (moduleInfo.type === JS_MODULE_TYPE)
+      loadScript(moduleInfo.relativeFileName);
+    else if (moduleInfo.type === HTML_MODULE_TYPE)
+      loadImport(moduleInfo.relativeFileName);
+    else
+      throw new Error('Unrecognized module type: ' + moduleInfo.type);
     moduleLoadStatus[name] = 'APPENDED';
   }
 
@@ -296,6 +313,13 @@ this.tvcm = (function() {
     scriptEl.defer = true;
     scriptEl.async = false;
     tvcm.doc.head.appendChild(scriptEl);
+  }
+
+  function loadImport(path) {
+    var linkEl = document.createElement('link');
+    linkEl.setAttribute('rel', 'import');
+    linkEl.setAttribute('href', '/' + path);
+    tvcm.doc.head.appendChild(linkEl);
   }
 
   /**
