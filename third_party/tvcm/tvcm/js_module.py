@@ -30,24 +30,13 @@ class JSModule(module.Module):
       ValidateTestSuiteDefinition(self.name, stripped_text)
     self.dependency_metadata = Parse(self.name, stripped_text)
 
-  def AppendTVCMJSControlCodeToFile(self, f):
-    for dependent_raw_script in self.dependent_raw_scripts:
-      f.write("window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
-        dependent_raw_script.resource.unix_style_relative_path)
-    f.write( "window.FLATTENED['%s'] = true;\n" % self.name)
-
   def AppendJSContentsToFile(self,
                              f,
                              use_include_tags_for_scripts,
                              dir_for_include_tag_root):
-    for dependent_raw_script in self.dependent_raw_scripts:
-      if use_include_tags_for_scripts:
-        rel_filename = os.path.relpath(dependent_raw_script.filename,
-                                       dir_for_include_tag_root)
-        f.write("""<include src="%s">\n""" % rel_filename)
-      else:
-        f.write(js_utils.EscapeJSIfNeeded(dependent_raw_script.contents))
-        f.write('\n')
+    super(JSModule, self).AppendJSContentsToFile(f,
+                                                 use_include_tags_for_scripts,
+                                                 dir_for_include_tag_root)
     if use_include_tags_for_scripts:
       rel_filename = os.path.relpath(self.filename,
                                      dir_for_include_tag_root)
@@ -55,9 +44,6 @@ class JSModule(module.Module):
     else:
       f.write(js_utils.EscapeJSIfNeeded(self.contents))
       f.write("\n")
-
-  def AppendHTMLContentsToFile(self, f):
-    pass
 
 
 def IsJSTest(text, text_is_stripped=True):
@@ -143,7 +129,7 @@ def ValidateUsesStrictMode(module_name, stripped_text):
     raise module.DepsException('%s must use strict mode' % module_name)
 
 
-def Parse(module_name, stripped_text):
+def Parse(module_name, stripped_text, tvcm_already_included=False):
   """Parses the tvcm.require* lines in the module and returns module.ModuleDependencyMetadata.
 
   Args:
@@ -153,7 +139,7 @@ def Parse(module_name, stripped_text):
     DepsException: The name of a resource was not formatted properly.
   """
   res = module.ModuleDependencyMetadata()
-  if module_name != 'tvcm':
+  if module_name != 'tvcm' and tvcm_already_included == False:
     res.dependent_module_names.append('tvcm')
   if not module_name:
     raise Exception("Module.name must be set.")

@@ -84,6 +84,16 @@ class ParseTests(unittest.TestCase):
     inner_script = """tvcm.require("foo");tvcm.require('bar');"""
     self.assertEquals(inner_script, val)
 
+    assert 'tvcm.require("foo");' not in module.html_contents_without_links_and_script
+
+  def test_parse_script_src_sripping(self):
+    html = """
+<script src="blah.js"></script>
+"""
+    module = parse_html_deps.HTMLModuleParser().Parse(html)
+    self.assertEquals('\n\n', module.html_contents_without_links_and_script)
+
+
   def test_parse_link_rel_stylesheet(self):
     html = """<polymer-element name="hi">
                 <template>
@@ -97,6 +107,14 @@ class ParseTests(unittest.TestCase):
     self.assertEquals(['frameworkstyles.css'], module.stylesheets)
     self.assertEquals([], module.imports)
     self.assertFalse(module.has_decl)
+
+  def test_parse_inline_style(self):
+    html = """
+<style>
+  hello
+</style>"""
+    module = parse_html_deps.HTMLModuleParser().Parse(html)
+    self.assertEquals(html, module.html_contents_without_links_and_script)
 
   def test_parse_style_import(self):
     html = """<polymer-element name="x-blink">
@@ -130,6 +148,7 @@ class ParseTests(unittest.TestCase):
     module = parser.Parse(html)
     self.assertEquals("""<a b="c">d</a>""",
                       module.html_contents_without_links_and_script)
+
 
 
 if __name__ == '__main__':

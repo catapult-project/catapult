@@ -72,6 +72,9 @@ class StyleSheet(object):
 
 
   def load(self):
+    if self.contents.find('@import') != -1:
+      raise Exception('@imports are not supported')
+
     matches = re.findall(
       'url\((?:["|\']?)([^"\'()]*)(?:["|\']?)\)',
       self.contents)

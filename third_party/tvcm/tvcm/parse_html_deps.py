@@ -21,10 +21,6 @@ class HTMLModuleParserResults(object):
   def html_contents_without_links_and_script(self):
     return ''.join(self._html_content_chunks_without_links_and_script)
 
-  @property
-  def js_contents(self):
-    return '\n'.join(self.scripts_inline)
-
 
 class HTMLModuleParser(HTMLParser):
   def __init__(self):
@@ -86,10 +82,11 @@ class HTMLModuleParser(HTMLParser):
 
 
   def handle_endtag(self, tag):
-    if tag == 'script' and self.in_script:
-      self.current_results.scripts_inline.append(self.current_script)
-      self.current_script = ""
-      self.in_script = False
+    if tag == 'script':
+      if self.in_script:
+        self.current_results.scripts_inline.append(self.current_script)
+        self.current_script = ""
+        self.in_script = False
 
     elif tag == 'style':
       if self.in_style:

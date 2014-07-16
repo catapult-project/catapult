@@ -15,6 +15,8 @@ import re
 import inspect
 
 from tvcm import resource as resource_module
+from tvcm import js_utils
+
 
 class DepsException(Exception):
   """Exceptions related to module dependency resolution."""
@@ -64,6 +66,14 @@ class ModuleDependencyMetadata(object):
     self.style_sheet_names = []
     self.html_template_names = []
 
+  def AppendMetdata(self, other):
+    self.dependent_module_names += other.dependent_module_names
+    self.dependent_raw_script_relative_paths += \
+        other.dependent_raw_script_relative_paths
+    self.style_sheet_names += other.style_sheet_names
+    self.html_template_names += other.html_template_names
+
+
 class Module(object):
   """Represents a javascript module.
 
@@ -109,18 +119,28 @@ class Module(object):
 
   def AppendTVCMJSControlCodeToFile(self, f):
     """Appends the JS to make tvcm.require happy in a generated context."""
-    raise NotImplementedError()
+    for dependent_raw_script in self.dependent_raw_scripts:
+      f.write("window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
+        dependent_raw_script.resource.unix_style_relative_path)
+    f.write( "window.FLATTENED['%s'] = true;\n" % self.name)
 
   def AppendJSContentsToFile(self,
                              f,
                              use_include_tags_for_scripts,
                              dir_for_include_tag_root):
     """Appends the js for this module to the provided file."""
-    raise NotImplementedError()
+    for dependent_raw_script in self.dependent_raw_scripts:
+      if use_include_tags_for_scripts:
+        rel_filename = os.path.relpath(dependent_raw_script.filename,
+                                       dir_for_include_tag_root)
+        f.write("""<include src="%s">\n""" % rel_filename)
+      else:
+        f.write(js_utils.EscapeJSIfNeeded(dependent_raw_script.contents))
+        f.write('\n')
 
   def AppendHTMLContentsToFile(self, f):
     """Appends the html for this module [without links] to the provided file."""
-    raise NotImplementedError()
+    pass
 
   def Load(self):
     """Loads the sub-resources that this module depends on from its dependency metadata.

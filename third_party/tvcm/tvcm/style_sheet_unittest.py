@@ -53,3 +53,16 @@ class StyleSheetUnittest(unittest.TestCase):
 
       self.assertRaises(module.DepsException,
                         lambda: loader.LoadStyleSheet('foo.x'))
+
+  def testImportsCauseFailure(self):
+    fs = fake_fs.FakeFS()
+    fs.AddFile('/src/foo/x.css', """
+@import url(awesome.css);
+""")
+    with fs:
+      project = project_module.Project(['/src/'],
+                                       include_tvcm_paths=False)
+      loader = resource_loader.ResourceLoader(project)
+
+      self.assertRaises(Exception,
+                        lambda: loader.LoadStyleSheet('foo.x'))
