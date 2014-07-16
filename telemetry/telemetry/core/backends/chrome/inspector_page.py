@@ -17,18 +17,31 @@ class InspectorPage(object):
         self._OnClose)
 
     self._navigation_pending = False
-    self._navigation_url = ""
+    self._navigation_url = ''  # Support for legacy backends.
+    self._navigation_frame_id = ''
+    self._navigated_frame_ids = None  # Holds frame ids while navigating.
     self._script_to_evaluate_on_commit = None
     # Turn on notifications. We need them to get the Page.frameNavigated event.
     self._EnablePageNotifications(timeout=timeout)
 
   def _OnNotification(self, msg):
     logging.debug('Notification: %s', json.dumps(msg, indent=2))
-    if msg['method'] == 'Page.frameNavigated' and self._navigation_pending:
+    if msg['method'] == 'Page.frameNavigated':
       url = msg['params']['frame']['url']
-      if (self._navigation_url == url or
-          (not url == 'chrome://newtab/' and not url == 'about:blank'
-          and not 'parentId' in msg['params']['frame'])):
+      if not self._navigated_frame_ids == None:
+        frame_id = msg['params']['frame']['id']
+        if self._navigation_frame_id == frame_id:
+          self._navigation_frame_id = ''
+          self._navigated_frame_ids = None
+          self._navigation_pending = False
+        else:
+          self._navigated_frame_ids.add(frame_id)
+      elif self._navigation_url == url:
+        # TODO(tonyg): Remove this when Chrome 38 goes stable.
+        self._navigation_url = ''
+        self._navigation_pending = False
+      elif (not url == 'chrome://newtab/' and not url == 'about:blank'
+        and not 'parentId' in msg['params']['frame']):
         # Marks the navigation as complete and unblocks the
         # WaitForNavigate call.
         self._navigation_pending = False
@@ -104,8 +117,20 @@ class InspectorPage(object):
             'url': url,
             }
         }
-    self._inspector_backend.SyncRequest(request, timeout)
-    self._navigation_url = url
+    self._navigated_frame_ids = set()
+    res = self._inspector_backend.SyncRequest(request, timeout)
+    if 'frameId' in res['result']:
+      # Modern backends are returning frameId from Page.navigate.
+      # Use it here to unblock upon precise navigation.
+      frame_id = res['result']['frameId']
+      if frame_id in self._navigated_frame_ids:
+        self._navigated_frame_ids = None
+        return
+      self._navigation_frame_id = frame_id
+    else:
+      # TODO(tonyg): Remove this when Chrome 38 goes stable.
+      self._navigated_frame_ids = None
+      self._navigation_url = url
     self.WaitForNavigate(timeout)
 
   def GetCookieByName(self, name, timeout=60):
