@@ -11,6 +11,20 @@ class HTMLModuleParserResults(object):
     self.scripts_inline = []
     self.stylesheets = []
     self.imports = []
+    self.has_decl = False
+    self._html_content_chunks_without_links_and_script = []
+
+  def AppendHTMLContent(self, chunk):
+    self._html_content_chunks_without_links_and_script.append(chunk)
+
+  @property
+  def html_contents_without_links_and_script(self):
+    return ''.join(self._html_content_chunks_without_links_and_script)
+
+  @property
+  def js_contents(self):
+    return '\n'.join(self.scripts_inline)
+
 
 class HTMLModuleParser(HTMLParser):
   def __init__(self):
@@ -29,6 +43,10 @@ class HTMLModuleParser(HTMLParser):
     self.current_results = None
     return results
 
+  def handle_decl(self, decl):
+    assert self.current_results.has_decl == False, 'Only one doctype decl allowed'
+    self.current_results.has_decl = True
+
   def handle_starttag(self, tag, attrs):
     if tag == 'link':
       is_stylesheet = False
@@ -46,6 +64,9 @@ class HTMLModuleParser(HTMLParser):
         self.current_results.stylesheets.append(href)
       elif is_import:
         self.current_results.imports.append(href)
+      else:
+        self.current_results.AppendHTMLContent(
+          self.get_starttag_text())
 
     elif tag == 'script':
       for attr in attrs:
@@ -56,6 +77,13 @@ class HTMLModuleParser(HTMLParser):
 
     elif tag == 'style':
       self.in_style = True
+      self.current_results.AppendHTMLContent(
+        self.get_starttag_text())
+
+    else:
+      self.current_results.AppendHTMLContent(
+        self.get_starttag_text())
+
 
   def handle_endtag(self, tag):
     if tag == 'script' and self.in_script:
@@ -63,14 +91,24 @@ class HTMLModuleParser(HTMLParser):
       self.current_script = ""
       self.in_script = False
 
-    elif tag == 'style' and self.in_style:
-      self.in_style = False
+    elif tag == 'style':
+      if self.in_style:
+        self.in_style = False
+      self.current_results.AppendHTMLContent('</style>')
+
+    else:
+      self.current_results.AppendHTMLContent("</%s>" % tag)
 
   def handle_data(self, data):
     if self.in_script:
       self.current_script += data
+
     elif self.in_style:
       result = re.match(r"\s*@import url\(([^\)]*)\)", data,
                         flags=re.IGNORECASE)
       if result:
-        self.current_results.stylesheets.append(result.group(1))
+        raise Exception("@import not yet supported")
+      self.current_results.AppendHTMLContent(data)
+
+    else:
+      self.current_results.AppendHTMLContent(data)

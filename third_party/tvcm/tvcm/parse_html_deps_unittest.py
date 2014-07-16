@@ -41,6 +41,8 @@ class ParseTests(unittest.TestCase):
     self.assertEquals([], module.scripts_inline)
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
+    self.assertTrue(module.has_decl)
+    self.assertTrue('DOCTYPE html' not in module.html_contents_without_links_and_script)
 
   def test_parse_link_rel_import(self):
     html = """<!DOCTYPE html>
@@ -57,6 +59,7 @@ class ParseTests(unittest.TestCase):
     self.assertEquals([], module.scripts_inline)
     self.assertEquals([], module.stylesheets)
     self.assertEquals(['x-foo.html'], module.imports)
+    self.assertTrue(module.has_decl)
 
   def test_parse_script_inline(self):
     html = """<polymer-element name="tk-element-proto">
@@ -74,6 +77,7 @@ class ParseTests(unittest.TestCase):
     self.assertEquals(1, len(module.scripts_inline))
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
+    self.assertFalse(module.has_decl)
 
     val = module.scripts_inline[0]
     val = re.sub(r"\s+", '', val)
@@ -92,6 +96,7 @@ class ParseTests(unittest.TestCase):
     self.assertEquals([], module.scripts_inline)
     self.assertEquals(['frameworkstyles.css'], module.stylesheets)
     self.assertEquals([], module.imports)
+    self.assertFalse(module.has_decl)
 
   def test_parse_style_import(self):
     html = """<polymer-element name="x-blink">
@@ -102,11 +107,29 @@ class ParseTests(unittest.TestCase):
                 </template>
               </polymer-element>"""
     parser = parse_html_deps.HTMLModuleParser()
+    self.assertRaises(lambda: parser.Parse(html))
+
+  def html_contents_basic(self):
+    html = """<a b="c">d</a>"""
+    parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
-    self.assertEquals([], module.scripts_external);
-    self.assertEquals([], module.scripts_inline)
-    self.assertEquals(['awesome.css'], module.stylesheets)
-    self.assertEquals([], module.imports)
+    self.assertEquals(html, module.html_contents_without_links_and_script)
+
+  def html_contents_with_link_stripping(self):
+    html = """<a b="c">d</a>
+              <link rel="import" href="x-foo.html">"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+    self.assertEquals("""<a b="c">d</a>""",
+                      module.html_contents_without_links_and_script)
+
+  def html_contents_with_style_link_stripping(self):
+    html = """<a b="c">d</a>
+              <link rel="stylesheet" href="frameworkstyles.css">"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+    self.assertEquals("""<a b="c">d</a>""",
+                      module.html_contents_without_links_and_script)
 
 
 if __name__ == '__main__':
