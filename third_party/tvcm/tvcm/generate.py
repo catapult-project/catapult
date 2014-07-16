@@ -47,6 +47,16 @@ css_warning_message = """
  */
 """
 
+def GenerateJS(load_sequence,
+               use_include_tags_for_scripts=False,
+               dir_for_include_tag_root=None):
+  f = StringIO.StringIO()
+  GenerateJSToFile(f,
+                   load_sequence,
+                   use_include_tags_for_scripts,
+                   dir_for_include_tag_root)
+  return f.getvalue()
+
 def GenerateJSToFile(f,
                      load_sequence,
                      use_include_tags_for_scripts=False,
