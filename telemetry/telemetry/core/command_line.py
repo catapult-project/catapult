@@ -46,13 +46,13 @@ class Command(ArgumentHandlerMixIn):
     raise NotImplementedError()
 
   @classmethod
-  def main(cls):
+  def main(cls, args=None):
     """Main method to run this command as a standalone script."""
     parser = argparse.ArgumentParser()
     cls.AddCommandLineArgs(parser)
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
     cls.ProcessCommandLineArgs(parser, args)
-    return cls().Run(args)
+    return min(cls().Run(args), 255)
 
 
 # TODO: Convert everything to argparse.
@@ -68,14 +68,14 @@ class OptparseCommand(Command):
     raise NotImplementedError()
 
   @classmethod
-  def main(cls):
+  def main(cls, args=None):
     """Main method to run this command as a standalone script."""
     parser = cls.CreateParser()
     cls.AddCommandLineArgs(parser)
-    options, args = parser.parse_args()
+    options, args = parser.parse_args(args=args)
     options.positional_args = args
     cls.ProcessCommandLineArgs(parser, options)
-    return cls().Run(options)
+    return min(cls().Run(options), 255)
 
 
 class SubcommandCommand(Command):
