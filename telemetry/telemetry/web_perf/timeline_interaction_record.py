@@ -10,10 +10,10 @@ import telemetry.timeline.bounds as timeline_bounds
 
 # Enables the fast metric for this interaction
 IS_FAST = 'is_fast'
-# Enables the smoothness metric for this interaction
-IS_SMOOTH = 'is_smooth'
 # Enables the responsiveness metric for this interaction
 IS_RESPONSIVE = 'is_responsive'
+# Enables the smoothness metric for this interaction
+IS_SMOOTH = 'is_smooth'
 # Allows multiple duplicate interactions of the same type
 REPEATABLE = 'repeatable'
 
@@ -101,21 +101,48 @@ class TimelineInteractionRecord(object):
   time-range.
 
   The valid interaction flags are:
-     * is_smooth: Enables the smoothness metrics
-     * is_responsive: Enables the responsiveness metrics
-     * repeatable: Allows other interactions to use the same logical name
+     * is_fast: Enables the fast metric
+     * is_responsive: Enables the responsiveness metric
+     * is_smooth: Enables the smoothness metric
+     * repeatable: Allows other interactions to use the same label
   """
 
-  def __init__(self, label, start, end, async_event=None):
+  def __init__(self, label, start, end, async_event=None, flags=None):
     assert label
-    self.label = label
-    self.start = start
-    self.end = end
-    self.is_fast = False
-    self.is_smooth = False
-    self.is_responsive = False
-    self.repeatable = False
+    self._label = label
+    self._start = start
+    self._end = end
     self._async_event = async_event
+    self._flags = flags if flags is not None else []
+    _AssertFlagsAreValid(self._flags)
+
+  @property
+  def label(self):
+    return self._label
+
+  @property
+  def start(self):
+    return self._start
+
+  @property
+  def end(self):
+    return self._end
+
+  @property
+  def is_fast(self):
+    return IS_FAST in self._flags
+
+  @property
+  def is_responsive(self):
+    return IS_RESPONSIVE in self._flags
+
+  @property
+  def is_smooth(self):
+    return IS_SMOOTH in self._flags
+
+  @property
+  def repeatable(self):
+    return REPEATABLE in self._flags
 
   # TODO(nednguyen): After crbug.com/367175 is marked fixed, we should be able
   # to get rid of perf.measurements.smooth_gesture_util and make this the only
@@ -130,26 +157,12 @@ class TimelineInteractionRecord(object):
     assert async_event.start_thread == async_event.end_thread, (
         'Start thread of this record\'s async event is not the same as its '
         'end thread')
-    m = re.match('Interaction\.(.+)\/(.+)', async_event.name)
-    if m:
-      label = m.group(1)
-      if m.group(1) != '':
-        flags = m.group(2).split(',')
-      else:
-        flags = []
-    else:
-      m = re.match('Interaction\.(.+)', async_event.name)
-      assert m
-      label = m.group(1)
-      flags = []
-
-    record = cls(label, async_event.start, async_event.end, async_event)
-    _AssertFlagsAreValid(flags)
-    record.is_fast = IS_FAST in flags
-    record.is_smooth = IS_SMOOTH in flags
-    record.is_responsive = IS_RESPONSIVE in flags
-    record.repeatable = REPEATABLE in flags
-    return record
+    m = re.match('Interaction\.(?P<label>.+?)(/(?P<flags>[^/]+))?$',
+                 async_event.name)
+    assert m, "Async event is not an interaction record."
+    label = m.group('label')
+    flags = m.group('flags').split(',') if m.group('flags') is not None else []
+    return cls(label, async_event.start, async_event.end, async_event, flags)
 
   @decorators.Cache
   def GetBounds(self):
@@ -162,7 +175,7 @@ class TimelineInteractionRecord(object):
     if metric_type not in METRICS:
       raise AssertionError('Unrecognized metric type for a timeline '
                            'interaction record: %s' % metric_type)
-    return getattr(self, metric_type)
+    return metric_type in self._flags
 
   def GetOverlappedThreadTimeForSlice(self, timeline_slice):
     """Get the thread duration of timeline_slice that overlaps with this record.
@@ -243,15 +256,7 @@ class TimelineInteractionRecord(object):
             record_scheduled_ratio)
 
   def __repr__(self):
-    flags = []
-    if self.is_smooth:
-      flags.append(IS_SMOOTH)
-    elif self.is_responsive:
-      flags.append(IS_RESPONSIVE)
-    elif self.is_fast:
-      flags.append(IS_FAST)
-    flags_str = ','.join(flags)
-
+    flags_str = ','.join(self._flags)
     return ('TimelineInteractionRecord(label=\'%s\', start=%f, end=%f,' +
             ' flags=%s, async_event=%s)') % (
                 self.label,
