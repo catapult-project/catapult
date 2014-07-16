@@ -9,6 +9,9 @@ import os
 import re
 import StringIO
 
+from tvcm import js_utils
+
+
 srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                       "..", "..", "..", "src"))
 
@@ -44,49 +47,25 @@ css_warning_message = """
  */
 """
 
-def GenerateCSS(load_sequence):
-  style_sheet_chunks = [css_warning_message, '\n']
-  for module in load_sequence:
-    for style_sheet in module.style_sheets:
-      style_sheet_chunks.append(style_sheet.contents_with_inlined_images)
-      style_sheet_chunks.append('\n')
-  return ''.join(style_sheet_chunks)
-
-def _EscapeJSIfNeeded(js):
-  return js.replace("</script>", "<\/script>")
-
-def GenerateJS(load_sequence, use_include_tags_for_scripts=False, dir_for_include_tag_root=None):
+def GenerateJSToFile(f,
+                     load_sequence,
+                     use_include_tags_for_scripts=False,
+                     dir_for_include_tag_root=None):
   if use_include_tags_for_scripts and dir_for_include_tag_root == None:
     raise Exception('Must provide dir_for_include_tag_root')
 
-  js_chunks = [js_warning_message, '\n']
-  js_chunks.append("window.FLATTENED = {};\n")
-  js_chunks.append("window.FLATTENED_RAW_SCRIPTS = {};\n")
+  f.write(js_warning_message)
+  f.write('\n')
+  f.write("window.FLATTENED = {};\n")
+  f.write("window.FLATTENED_RAW_SCRIPTS = {};\n")
 
   for module in load_sequence:
-    for dependent_raw_script in module.dependent_raw_scripts:
-      js_chunks.append("window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
-        dependent_raw_script.resource.unix_style_relative_path)
-    js_chunks.append( "window.FLATTENED['%s'] = true;\n" % module.name)
+    module.AppendTVCMJSControlCodeToFile(f)
 
   for module in load_sequence:
-    for dependent_raw_script in module.dependent_raw_scripts:
-      if use_include_tags_for_scripts:
-        rel_filename = os.path.relpath(dependent_raw_script.filename,
-                                       dir_for_include_tag_root)
-        js_chunks.append("""<include src="%s">\n""" % rel_filename)
-      else:
-        js_chunks.append(_EscapeJSIfNeeded(dependent_raw_script.contents))
-        js_chunks.append('\n')
-    if use_include_tags_for_scripts:
-      rel_filename = os.path.relpath(module.filename,
-                                     dir_for_include_tag_root)
-      js_chunks.append("""<include src="%s">\n""" % rel_filename)
-    else:
-      js_chunks.append(_EscapeJSIfNeeded(module.contents))
-      js_chunks.append("\n")
-
-  return ''.join(js_chunks)
+    module.AppendJSContentsToFile(f,
+                                  use_include_tags_for_scripts,
+                                  dir_for_include_tag_root)
 
 def GenerateDepsJS(load_sequence, project):
   chunks = [js_warning_message, '\n']
@@ -147,6 +126,14 @@ def GenerateStandaloneHTMLAsString(*args, **kwargs):
   GenerateStandaloneHTMLToFile(f, *args, **kwargs)
   return f.getvalue()
 
+def _GenerateCSS(load_sequence):
+  style_sheet_chunks = [css_warning_message, '\n']
+  for module in load_sequence:
+    for style_sheet in module.style_sheets:
+      style_sheet_chunks.append(style_sheet.contents_with_inlined_images)
+      style_sheet_chunks.append('\n')
+  return ''.join(style_sheet_chunks)
+
 def GenerateStandaloneHTMLToFile(output_file,
                                  load_sequence,
                                  title,
@@ -162,11 +149,14 @@ def GenerateStandaloneHTMLToFile(output_file,
 """ % title)
 
   output_file.write('<style>\n')
-  output_file.write(GenerateCSS(load_sequence))
+  output_file.write(_GenerateCSS(load_sequence))
   output_file.write('\n')
   output_file.write('</style>\n')
 
   output_file.write(GenerateHTMLForCombinedTemplates(load_sequence))
+
+  for module in load_sequence:
+    module.AppendHTMLContentsToFile(output_file)
 
   if flattened_js_url:
     output_file.write('<script src="%s"></script>\n' % flattened_js_url)

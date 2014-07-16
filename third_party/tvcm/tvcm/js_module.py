@@ -15,6 +15,8 @@ import re
 
 from tvcm import module
 from tvcm import strip_js_comments
+from tvcm import js_utils
+
 
 class JSModule(module.Module):
   def Parse(self):
@@ -27,6 +29,36 @@ class JSModule(module.Module):
     if IsJSTest(stripped_text, text_is_stripped=True):
       ValidateTestSuiteDefinition(self.name, stripped_text)
     self.dependency_metadata = Parse(self.name, stripped_text)
+
+  def AppendTVCMJSControlCodeToFile(self, f):
+    for dependent_raw_script in self.dependent_raw_scripts:
+      f.write("window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
+        dependent_raw_script.resource.unix_style_relative_path)
+    f.write( "window.FLATTENED['%s'] = true;\n" % self.name)
+
+  def AppendJSContentsToFile(self,
+                             f,
+                             use_include_tags_for_scripts,
+                             dir_for_include_tag_root):
+    for dependent_raw_script in self.dependent_raw_scripts:
+      if use_include_tags_for_scripts:
+        rel_filename = os.path.relpath(dependent_raw_script.filename,
+                                       dir_for_include_tag_root)
+        f.write("""<include src="%s">\n""" % rel_filename)
+      else:
+        f.write(js_utils.EscapeJSIfNeeded(dependent_raw_script.contents))
+        f.write('\n')
+    if use_include_tags_for_scripts:
+      rel_filename = os.path.relpath(self.filename,
+                                     dir_for_include_tag_root)
+      f.write("""<include src="%s">\n""" % rel_filename)
+    else:
+      f.write(js_utils.EscapeJSIfNeeded(self.contents))
+      f.write("\n")
+
+  def AppendHTMLContentsToFile(self, f):
+    pass
+
 
 def IsJSTest(text, text_is_stripped=True):
   if text_is_stripped:

@@ -103,12 +103,23 @@ class Module(object):
   def filename(self):
     return self.resource.absolute_path
 
-  @staticmethod
-  def html_contents_is_polymer_module(contents):
-    return '<polymer-component>' in contents
-
   def Parse(self):
     """Parses self.contents and fills in the module's dependency metadata."""
+    raise NotImplementedError()
+
+  def AppendTVCMJSControlCodeToFile(self, f):
+    """Appends the JS to make tvcm.require happy in a generated context."""
+    raise NotImplementedError()
+
+  def AppendJSContentsToFile(self,
+                             f,
+                             use_include_tags_for_scripts,
+                             dir_for_include_tag_root):
+    """Appends the js for this module to the provided file."""
+    raise NotImplementedError()
+
+  def AppendHTMLContentsToFile(self, f):
+    """Appends the html for this module [without links] to the provided file."""
     raise NotImplementedError()
 
   def Load(self):
