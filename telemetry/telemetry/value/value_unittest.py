@@ -18,10 +18,11 @@ class TestBase(unittest.TestCase):
   def pages(self):
     return self.page_set.pages
 
-class ValueForMergingTest(value.Value):
+class ValueForTest(value.Value):
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
     pass
+
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values,
                                         group_by_name_suffix=False):
@@ -42,6 +43,15 @@ class ValueForMergingTest(value.Value):
 
   def GetRepresentativeString(self):
     pass
+
+  @classmethod
+  def GetJSONTypeName(cls):
+    pass
+
+class ValueForAsDictTest(ValueForTest):
+  @classmethod
+  def GetJSONTypeName(cls):
+    return 'baz'
 
 class ValueTest(TestBase):
   def testCompat(self):
@@ -64,5 +74,30 @@ class ValueTest(TestBase):
     self.assertFalse(b.IsMergableWith(a))
 
     a = value.Value(page0, 'x', 'unit', important=False)
-    b = ValueForMergingTest(page0, 'x', 'unit', important=True)
+    b = ValueForTest(page0, 'x', 'unit', important=True)
     self.assertFalse(b.IsMergableWith(a))
+
+  def testAsDictBaseKeys(self):
+    v = ValueForAsDictTest(None, 'x', 'unit', important=True)
+    d = v.AsDict()
+
+    self.assertEquals(d, {
+          'name': 'x',
+          'type': 'baz',
+          'unit': 'unit',
+        })
+
+  def testAsDictWithPage(self):
+    page0 = self.pages[0]
+
+    v = ValueForAsDictTest(page0, 'x', 'unit', important=False)
+    d = v.AsDict()
+
+    self.assertIn('page_id', d)
+
+
+  def testAsDictWithoutPage(self):
+    v = ValueForAsDictTest(None, 'x', 'unit', important=False)
+    d = v.AsDict()
+
+    self.assertNotIn('page_id', d)

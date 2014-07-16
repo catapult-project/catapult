@@ -59,3 +59,11 @@ class StringValueTest(TestBase):
     self.assertEquals('label', vM.units)
     self.assertEquals(True, vM.important)
     self.assertEquals(['L1', 'L2'], vM.values)
+
+  def testAsDictIsAccurate(self):
+    v = string.StringValue(None, 'x', 'unit', 'foo', important=False)
+    d = v.AsDictWithoutBaseClassEntries()
+
+    self.assertEquals(d, {
+          'value': 'foo'
+        })

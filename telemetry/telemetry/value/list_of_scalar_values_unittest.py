@@ -76,3 +76,13 @@ class ValueTest(TestBase):
     self.assertEquals(value.PICK_FIRST, vM.same_page_merge_policy)
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2, 3, 4], vM.values)
+
+  def testAsDictIsAccurate(self):
+    v = list_of_scalar_values.ListOfScalarValues(
+        None, 'x', 'unit', [1, 2],
+        same_page_merge_policy=value.PICK_FIRST, important=False)
+    d = v.AsDictWithoutBaseClassEntries()
+
+    self.assertEquals(d, {
+          'values': [1, 2]
+        })

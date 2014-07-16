@@ -150,6 +150,37 @@ class Value(object):
     """
     raise NotImplementedError()
 
+  @classmethod
+  def GetJSONTypeName(cls):
+    """Gets the typename for serialization to JSON using AsDict."""
+    raise NotImplementedError()
+
+  def AsDict(self):
+    """Gets a representation of this value as a dict for eventual
+    serialization to JSON.
+    """
+    return self._AsDictImpl()
+
+  def _AsDictImpl(self):
+    d = {
+      'name': self.name,
+      'type': self.GetJSONTypeName(),
+      'unit': self.units,
+    }
+
+    if self.page:
+      d['page_id'] = self.page.id
+
+    return d
+
+  def AsDictWithoutBaseClassEntries(self):
+    full_dict = self.AsDict()
+    base_dict_keys = set(self._AsDictImpl().keys())
+
+    # Exctracts only entries added by the subclass.
+    return dict([(k, v) for (k, v) in full_dict.iteritems()
+                  if k not in base_dict_keys])
+
 def ValueNameFromTraceAndChartName(trace_name, chart_name=None):
   """Mangles a trace name plus optional chart name into a standard string.
 

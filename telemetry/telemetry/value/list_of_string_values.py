@@ -51,6 +51,15 @@ class ListOfStringValues(value_module.Value):
             self.same_page_merge_policy == that.same_page_merge_policy)
 
   @classmethod
+  def GetJSONTypeName(cls):
+    return 'list_of_string_values'
+
+  def AsDict(self):
+    d = super(ListOfStringValues, self).AsDict()
+    d['values'] = self.values
+    return d
+
+  @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
     assert len(values) > 0
     v0 = values[0]

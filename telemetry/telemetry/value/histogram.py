@@ -12,6 +12,13 @@ class HistogramValueBucket(object):
     self.high = high
     self.count = count
 
+  def AsDict(self):
+    return {
+      'low': self.low,
+      'high': self.high,
+      'count': self.count
+    }
+
   def ToJSONString(self):
     return '{%s}' % ', '.join([
       '"low": %i' % self.low,
@@ -77,6 +84,14 @@ class HistogramValue(value_module.Value):
 
   def GetRepresentativeString(self):
     return self.GetBuildbotValue()
+
+  def GetJSONTypeName(self):
+    return 'histogram'
+
+  def AsDict(self):
+    d = super(HistogramValue, self).AsDict()
+    d['buckets'] = [b.AsDict() for b in self.buckets]
+    return d
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):

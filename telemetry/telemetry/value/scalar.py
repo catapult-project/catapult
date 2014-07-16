@@ -47,6 +47,15 @@ class ScalarValue(value_module.Value):
     return str(self.value)
 
   @classmethod
+  def GetJSONTypeName(cls):
+    return 'scalar'
+
+  def AsDict(self):
+    d = super(ScalarValue, self).AsDict()
+    d['value'] = self.value
+    return d
+
+  @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
     assert len(values) > 0
     v0 = values[0]

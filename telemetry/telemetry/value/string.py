@@ -45,6 +45,15 @@ class StringValue(value_module.Value):
     return str(self.value)
 
   @classmethod
+  def GetJSONTypeName(cls):
+    return 'string'
+
+  def AsDict(self):
+    d = super(StringValue, self).AsDict()
+    d['value'] = self.value
+    return d
+
+  @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
     assert len(values) > 0
     v0 = values[0]

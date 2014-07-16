@@ -42,3 +42,24 @@ class ValueTest(TestBase):
     self.assertEquals(
         'histogram',
         histogram.GetBuildbotDataType(value.SUMMARY_RESULT_OUTPUT_CONTEXT))
+
+  def testBucketAsDict(self):
+    bucket = histogram_module.HistogramValueBucket(33, 45, 78)
+    d = bucket.AsDict()
+
+    self.assertEquals(d, {
+          'low': 33,
+          'high': 45,
+          'count': 78
+        })
+
+  def testAsDictIsAccurate(self):
+    histogram = histogram_module.HistogramValue(
+        None, 'x', 'counts',
+        raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
+        important=False)
+    d = histogram.AsDictWithoutBaseClassEntries()
+
+    self.assertEquals(['buckets'], d.keys())
+    self.assertTrue(isinstance(d['buckets'], list))
+    self.assertEquals(len(d['buckets']), 1)

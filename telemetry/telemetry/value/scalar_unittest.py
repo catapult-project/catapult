@@ -59,3 +59,11 @@ class ValueTest(TestBase):
     self.assertEquals('unit', vM.units)
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2], vM.values)
+
+  def testAsDictIsAccurate(self):
+    v = scalar.ScalarValue(None, 'x', 'unit', 42, important=False)
+    d = v.AsDictWithoutBaseClassEntries()
+
+    self.assertEquals(d, {
+          'value': 42
+        })
