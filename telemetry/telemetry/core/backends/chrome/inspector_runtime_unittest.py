@@ -34,7 +34,8 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
   def testRuntimeExecuteOfSomethingThatCantJSONize(self):
     self._tab.ExecuteJavaScript('window')
 
-  @decorators.Disabled('android')
+  # TODO(achuith): Fix http://crbug.com/394454 on cros.
+  @decorators.Disabled('android', 'chromeos')
   def testIFrame(self):
     self.Navigate('host.html')
 
