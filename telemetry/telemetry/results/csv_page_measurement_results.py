@@ -27,7 +27,7 @@ class CsvPageMeasurementResults(
         return
 
       if not self._did_output_header:
-        self._OutputHeader()
+        self._OutputHeader(values)
       else:
         self._ValidateOutputNamesForCurrentPage()
       self._OutputValuesForPage(values[0].page, values)
@@ -39,9 +39,9 @@ class CsvPageMeasurementResults(
       if self._output_after_every_page:
         return
 
-      self._OutputHeader()
       values = merge_values.MergeLikeValuesFromSamePage(
           self.all_page_specific_values)
+      self._OutputHeader(values)
       value_groups_by_page = merge_values.GroupStably(
           values, lambda value: value.page.url)
       for values_for_page in value_groups_by_page:
@@ -61,17 +61,32 @@ added:
 %s
 """ % (current_page_value_names - header_names_written_to_writer)
 
-  def _OutputHeader(self):
+  def _OutputHeader(self, values):
+    """Output the header rows.
+
+    This will retrieve the header string from the given values. As a
+    results, you would typically pass it all of the recorded values at
+    the end of the entire telemetry run. In cases where each page
+    produces the same set of value names, you may call this method
+    with that set of values.
+
+    Args:
+      values: A set of values from which to extract the header string,
+          which is the value name and the units.
+    """
     assert not self._did_output_header
-    all_value_names = list(
-      self.all_value_names_that_have_been_seen)
-    all_value_names.sort()
+    representative_value_names = {}
+    for value in values:
+      if value.name not in representative_value_names:
+        representative_value_names[value.name] = value
     self._did_output_header = True
-    self._header_names_written_to_writer = list(all_value_names)
+    self._header_names_written_to_writer = list(
+        representative_value_names.keys())
+    self._header_names_written_to_writer.sort()
 
     row = ['page_name']
-    for value_name in all_value_names:
-      units = self.GetUnitsForValueName(value_name)
+    for value_name in self._header_names_written_to_writer:
+      units = representative_value_names[value_name].units
       row.append('%s (%s)' % (value_name, units))
     self._results_writer.writerow(row)
     self._output_stream.flush()

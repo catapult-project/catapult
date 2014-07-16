@@ -73,19 +73,6 @@ class PageMeasurementResultsTest(unittest.TestCase):
       lambda: results.AddValue(scalar.ScalarValue(
           self.pages[0], 'url', 'string', 'foo')))
 
-  def test_value_names_that_have_been_seen(self):
-    results = NonPrintingPageMeasurementResults()
-    results.WillMeasurePage(self.pages[0])
-    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'a_units', 3))
-    results.AddValue(scalar.ScalarValue(self.pages[0], 'b', 'b_units', 3))
-    results.AddSummaryValue(scalar.ScalarValue(None, 'c', 'c_units', 3))
-    results.DidMeasurePage()
-    self.assertEquals(set(['a', 'b', 'c']),
-                      set(results.all_value_names_that_have_been_seen))
-    self.assertEquals('a_units', results.GetUnitsForValueName('a'))
-    self.assertEquals('b_units', results.GetUnitsForValueName('b'))
-    self.assertEquals('c_units', results.GetUnitsForValueName('c'))
-
   def test_add_summary_value_with_page_specified(self):
     results = NonPrintingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
@@ -105,8 +92,6 @@ class PageMeasurementResultsTest(unittest.TestCase):
       AssertionError,
       lambda: results.AddValue(scalar.ScalarValue(
           self.pages[1], 'a', 'foobgrobbers', 3)))
-
-    self.assertEquals(['a'], results.all_value_names_that_have_been_seen)
 
   def test_type_change(self):
     results = NonPrintingPageMeasurementResults()

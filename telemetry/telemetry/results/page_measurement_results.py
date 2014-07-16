@@ -15,7 +15,7 @@ class PageMeasurementResults(page_test_results.PageTestResults):
     self._current_page = None
     self._page_specific_values_for_current_page = None
 
-    self._representative_values_for_each_value_name = {}
+    self._representative_value_for_each_value_name = {}
 
     self._all_summary_values = []
     self._all_page_specific_values = []
@@ -29,13 +29,6 @@ class PageMeasurementResults(page_test_results.PageTestResults):
   @property
   def current_page(self):
     return self._current_page
-
-  @property
-  def all_value_names_that_have_been_seen(self):
-    return list(self._representative_values_for_each_value_name.keys())
-
-  def GetUnitsForValueName(self, value_name):
-    return self._representative_values_for_each_value_name[value_name].units
 
   @property
   def all_page_specific_values(self):
@@ -70,13 +63,10 @@ class PageMeasurementResults(page_test_results.PageTestResults):
 
   def _ValidateValue(self, value):
     assert isinstance(value, value_module.Value)
-
-    if value.name not in self._representative_values_for_each_value_name:
-      self._representative_values_for_each_value_name[value.name] = value
-
-    representative_value = self._representative_values_for_each_value_name[
+    if value.name not in self._representative_value_for_each_value_name:
+      self._representative_value_for_each_value_name[value.name] = value
+    representative_value = self._representative_value_for_each_value_name[
         value.name]
-
     assert value.IsMergableWith(representative_value)
 
   def DidMeasurePage(self):
