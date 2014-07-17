@@ -78,12 +78,13 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             # Open a maximized window.
             '--start-maximized',
+            # Skip user image selection screen, and post login screens.
+            '--oobe-skip-postlogin',
             # Debug logging.
             '--vmodule=*/chromeos/net/*=2,*/chromeos/login/*=2'])
 
     if not self.browser_options.gaia_login:
-      # Skip user image selection screen, and post login screens.
-      args.append('--oobe-skip-postlogin')
+      args.append('--disable-gaia-services')
 
     return args
 
