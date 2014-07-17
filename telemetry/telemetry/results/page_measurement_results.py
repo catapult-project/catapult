@@ -23,7 +23,7 @@ class PageMeasurementResults(page_test_results.PageTestResults):
   @property
   def pages_that_succeeded(self):
     pages = set([value.page for value in self._all_page_specific_values])
-    pages.difference_update(self.pages_that_had_errors_or_failures)
+    pages.difference_update(self.pages_that_had_failures)
     return pages
 
   @property

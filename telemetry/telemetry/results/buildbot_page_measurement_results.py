@@ -22,8 +22,8 @@ class BuildbotPageMeasurementResults(
     self._output_stream.flush()
 
   @property
-  def had_errors_or_failures(self):
-    return self.errors or self.failures
+  def had_failures(self):
+    return len(self.failures) > 0
 
   def PrintSummary(self):
     """Print summary data in a format expected by buildbot for perf dashboards.
@@ -35,7 +35,7 @@ class BuildbotPageMeasurementResults(
     perf_tests_helper.PrintPages(
         [page.display_name for page in self.pages_that_succeeded])
     summary = summary_module.Summary(self.all_page_specific_values,
-                                     self.had_errors_or_failures)
+                                     self.had_failures)
     for value in summary.interleaved_computed_per_page_values_and_summaries:
       if value.page:
         self._PrintComputedPerPageValue(value)
@@ -62,7 +62,7 @@ class BuildbotPageMeasurementResults(
     # If there were any page errors, we typically will print nothing.
     #
     # Note: this branch is structured less-densely to improve legibility.
-    if self.had_errors_or_failures:
+    if self.had_failures:
       return
 
     buildbot_value = value.GetBuildbotValue()
@@ -79,7 +79,7 @@ class BuildbotPageMeasurementResults(
   def _PrintOverallResults(self):
     # If there were no failed pages, output the overall results (results not
     # associated with a page).
-    if not self.had_errors_or_failures:
+    if not self.had_failures:
       for value in self._all_summary_values:
         buildbot_value = value.GetBuildbotValue()
         buildbot_data_type = value.GetBuildbotDataType(
@@ -98,7 +98,12 @@ class BuildbotPageMeasurementResults(
     # Print the number of failed and errored pages.
     self._PrintPerfResult('telemetry_page_measurement_results', 'num_failed',
                           [len(self.failures)], 'count', 'unimportant')
+
+    # TODO(chrishenry): Remove this in a separate patch to reduce the risk
+    # of rolling back due to buildbot breakage.
+    # Also fix src/tools/bisect-perf-regression_test.py when this is
+    # removed.
     self._PrintPerfResult('telemetry_page_measurement_results', 'num_errored',
-                          [len(self.errors)], 'count', 'unimportant')
+                          [0], 'count', 'unimportant')
 
     super(BuildbotPageMeasurementResults, self).PrintSummary()

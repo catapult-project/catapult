@@ -22,10 +22,6 @@ class GTestTestResults(page_test_results.PageTestResults):
         '(%0.f ms)' % self._GetMs())
     self._output_stream.flush()
 
-  def AddError(self, page, err):
-    super(GTestTestResults, self).AddError(page, err)
-    self._emitFailure(page, err)
-
   def AddFailure(self, page, err):
     super(GTestTestResults, self).AddFailure(page, err)
     self._emitFailure(page, err)
@@ -56,17 +52,15 @@ class GTestTestResults(page_test_results.PageTestResults):
     unit = 'test' if len(self.successes) == 1 else 'tests'
     print >> self._output_stream, '[  PASSED  ]', (
         '%d %s.' % (len(self.successes), unit))
-    if self.errors or self.failures:
-      all_errors = self.errors[:]
-      all_errors.extend(self.failures)
-      unit = 'test' if len(all_errors) == 1 else 'tests'
+    if self.failures:
+      unit = 'test' if len(self.failures) == 1 else 'tests'
       print >> self._output_stream, '[  FAILED  ]', (
-          '%d %s, listed below:' % (len(all_errors), unit))
-      for page, _ in all_errors:
+          '%d %s, listed below:' % (len(self.failures), unit))
+      for page, _ in self.failures:
         print >> self._output_stream, '[  FAILED  ] ', (
             page.display_name)
       print >> self._output_stream
-      count = len(self.errors) + len(self.failures)
+      count = len(self.failures)
       unit = 'TEST' if count == 1 else 'TESTS'
       print >> self._output_stream, '%d FAILED %s' % (count, unit)
     print >> self._output_stream

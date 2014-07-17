@@ -31,7 +31,6 @@ class PageTest(command_line.Command):
                clear_cache_before_each_run=False,
                attempts=3,
                max_failures=None,
-               max_errors=None,
                is_action_name_to_run_optional=False):
     super(PageTest, self).__init__()
 
@@ -49,7 +48,6 @@ class PageTest(command_line.Command):
     self._close_tabs_before_run = True
     self._attempts = attempts
     self._max_failures = max_failures
-    self._max_errors = max_errors
     self._is_action_name_to_run_optional = is_action_name_to_run_optional
     assert self._attempts > 0, 'Test attempts must be greater than 0'
     # If the test overrides the TabForPage method, it is considered a multi-tab
@@ -111,15 +109,6 @@ class PageTest(command_line.Command):
   @max_failures.setter
   def max_failures(self, count):
     self._max_failures = count
-
-  @property
-  def max_errors(self):
-    """Maximum number of errors allowed for the page set."""
-    return self._max_errors
-
-  @max_errors.setter
-  def max_errors(self, count):
-    self._max_errors = count
 
   def Run(self, args):
     # Define this method to avoid pylint errors.

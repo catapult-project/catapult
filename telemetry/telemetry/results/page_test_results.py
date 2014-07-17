@@ -13,10 +13,8 @@ class PageTestResults(object):
   def __init__(self, output_stream=None):
     super(PageTestResults, self).__init__()
     self._output_stream = output_stream
-    self.pages_that_had_errors = set()
     self.pages_that_had_failures = set()
     self.successes = []
-    self.errors = []
     self.failures = []
     self.skipped = []
 
@@ -29,11 +27,6 @@ class PageTestResults(object):
       setattr(result, k, v)
     return result
 
-  @property
-  def pages_that_had_errors_or_failures(self):
-    return self.pages_that_had_errors.union(
-      self.pages_that_had_failures)
-
   def _GetStringFromExcInfo(self, err):
     return ''.join(traceback.format_exception(*err))
 
@@ -42,10 +35,6 @@ class PageTestResults(object):
 
   def StopTest(self, page):
     pass
-
-  def AddError(self, page, err):
-    self.pages_that_had_errors.add(page)
-    self.errors.append((page, self._GetStringFromExcInfo(err)))
 
   def AddFailure(self, page, err):
     self.pages_that_had_failures.add(page)
@@ -63,20 +52,10 @@ class PageTestResults(object):
     except Exception:
       self.AddFailure(page, sys.exc_info())
 
-  def AddErrorMessage(self, page, message):
-    try:
-      raise Exception(message)
-    except Exception:
-      self.AddError(page, sys.exc_info())
-
   def PrintSummary(self):
     if self.failures:
       logging.error('Failed pages:\n%s', '\n'.join(
           p.display_name for p in zip(*self.failures)[0]))
-
-    if self.errors:
-      logging.error('Errored pages:\n%s', '\n'.join(
-          p.display_name for p in zip(*self.errors)[0]))
 
     if self.skipped:
       logging.warning('Skipped pages:\n%s', '\n'.join(

@@ -132,11 +132,11 @@ def Main(base_dir):
   recorder.CustomizeBrowserOptions(options)
   results = page_runner.Run(recorder, ps, expectations, options)
 
-  if results.errors or results.failures:
+  if results.failures:
     logging.warning('Some pages failed. The recording has not been updated for '
                     'these pages.')
     logging.warning('Failed pages:\n%s', '\n'.join(
-        p.display_name for p in zip(*results.errors + results.failures)[0]))
+        p.display_name for p in zip(*results.failures)[0]))
 
   if results.skipped:
     logging.warning('Some pages were skipped. The recording has not been '

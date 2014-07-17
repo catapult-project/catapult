@@ -32,8 +32,8 @@ class Summary(object):
       ]
 
   """
-  def __init__(self, all_page_specific_values, had_errors_or_failures):
-    self.had_errors_or_failures = had_errors_or_failures
+  def __init__(self, all_page_specific_values, had_failures):
+    self.had_failures = had_failures
     self._computed_per_page_values = []
     self._computed_summary_values = []
     self._interleaved_computed_per_page_values_and_summaries = []
@@ -100,7 +100,7 @@ class Summary(object):
     # value name so that we can find them when printing out value names in
     # alphabetical order.
     merged_pages_value_by_value_name = {}
-    if not self.had_errors_or_failures:
+    if not self.had_failures:
       for value in merge_values.MergeLikeValuesFromDifferentPages(
           all_successful_page_values):
         assert value.name not in merged_pages_value_by_value_name
@@ -142,7 +142,7 @@ class Summary(object):
     # Note: this branch is structured less-densely to improve legibility.
     if num_successful_pages_for_this_value_name > 1:
       should_print = True
-    elif (self.had_errors_or_failures and
+    elif (self.had_failures and
          num_successful_pages_for_this_value_name == 1):
       should_print = True
     else:

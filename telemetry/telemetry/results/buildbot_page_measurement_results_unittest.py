@@ -188,48 +188,6 @@ class BuildbotPageMeasurementResultsTest(
                     'num_errored= 0 count']
     self.assertEquals(expected, measurement_results.results)
 
-  def test_repeated_pageset_one_iteration_one_page_error(self):
-    """Page error on one iteration, no averaged results should print."""
-    test_page_set = _MakePageSet()
-
-    measurement_results = SummarySavingPageMeasurementResults()
-    measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.AddValue(scalar.ScalarValue(
-        test_page_set.pages[0], 'a', 'seconds', 3))
-    measurement_results.DidMeasurePage()
-    measurement_results.AddSuccess(test_page_set.pages[0])
-
-    measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.AddValue(scalar.ScalarValue(
-        test_page_set.pages[1], 'a', 'seconds', 7))
-    measurement_results.DidMeasurePage()
-    measurement_results.AddErrorMessage(test_page_set.pages[1], 'message')
-
-    measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.AddValue(scalar.ScalarValue(
-        test_page_set.pages[0], 'a', 'seconds', 4))
-    measurement_results.DidMeasurePage()
-    measurement_results.AddSuccess(test_page_set.pages[0])
-
-    measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.AddValue(scalar.ScalarValue(
-        test_page_set.pages[1], 'a', 'seconds', 8))
-    measurement_results.DidMeasurePage()
-    measurement_results.AddSuccess(test_page_set.pages[1])
-
-    measurement_results.PrintSummary()
-    expected = ['RESULT a: http___www.bar.com_= [7,8] seconds\n' +
-                    'Avg a: 7.500000seconds\n' +
-                    'Sd  a: 0.707107seconds',
-                'RESULT a: http___www.foo.com_= [3,4] seconds\n' +
-                    'Avg a: 3.500000seconds\n' +
-                    'Sd  a: 0.707107seconds',
-                'RESULT telemetry_page_measurement_results: ' +
-                    'num_failed= 0 count',
-                'RESULT telemetry_page_measurement_results: ' +
-                    'num_errored= 1 count']
-    self.assertEquals(expected, measurement_results.results)
-
   def test_repeated_pageset(self):
     test_page_set = _MakePageSet()
 

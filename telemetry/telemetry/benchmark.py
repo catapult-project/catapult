@@ -86,7 +86,7 @@ class Benchmark(command_line.Command):
       logging.warning(str(failure))
 
     results.PrintSummary()
-    return len(results.failures) + len(results.errors)
+    return len(results.failures)
 
   def _DownloadGeneratedProfileArchive(self, options):
     """Download and extract profile directory archive if one exists."""

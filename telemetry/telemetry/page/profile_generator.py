@@ -46,11 +46,10 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
 
   results = page_runner.Run(test, test.page_set, expectations, options)
 
-  if results.errors or results.failures:
+  if results.failures:
     logging.warning('Some pages failed.')
-    if results.errors or results.failures:
-      logging.warning('Failed pages:\n%s',
-                      '\n'.join(zip(*results.errors + results.failures)[0]))
+    logging.warning('Failed pages:\n%s',
+                    '\n'.join(zip(*results.failures)[0]))
     return 1
 
   # Everything is a-ok, move results to final destination.

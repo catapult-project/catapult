@@ -69,23 +69,6 @@ class GTestTestResultsTest(
                 '1 FAILED TEST\n\n' % exception_trace)
     self.assertEquals(expected, ''.join(results.output_data))
 
-  def testSingleErrorPage(self):
-    test_page_set = _MakePageSet()
-    results = SummaryGtestTestResults()
-    results.StartTest(test_page_set.pages[0])
-    exception = self.CreateException()
-    results.AddError(test_page_set.pages[0], exception)
-    results.PrintSummary()
-    exception_trace = ''.join(traceback.format_exception(*exception))
-    expected = ('[ RUN      ] http://www.foo.com/\n'
-                '%s\n'
-                '[  FAILED  ] http://www.foo.com/ (0 ms)\n'
-                '[  PASSED  ] 0 tests.\n'
-                '[  FAILED  ] 1 test, listed below:\n'
-                '[  FAILED  ]  http://www.foo.com/\n\n'
-                '1 FAILED TEST\n\n' % exception_trace)
-    self.assertEquals(expected, ''.join(results.output_data))
-
   def testSingleSkippedPage(self):
     test_page_set = _MakePageSet()
     results = SummaryGtestTestResults()
@@ -109,7 +92,7 @@ class GTestTestResultsTest(
 
     results.StartTest(test_page_set.pages[1])
     self._mock_timer.SetTime(0.009)
-    results.AddError(test_page_set.pages[1], exception)
+    results.AddFailure(test_page_set.pages[1], exception)
 
     results.StartTest(test_page_set.pages[2])
     self._mock_timer.SetTime(0.015)
@@ -153,7 +136,7 @@ class GTestTestResultsTest(
     results.StartTest(test_page_set.pages[1])
     self._mock_timer.SetTime(0.009)
     exception_trace = ''.join(traceback.format_exception(*exception))
-    results.AddError(test_page_set.pages[1], exception)
+    results.AddFailure(test_page_set.pages[1], exception)
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
                 '[ RUN      ] http://www.bar.com/\n'

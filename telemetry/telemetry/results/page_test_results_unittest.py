@@ -33,20 +33,3 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEquals(results.pages_that_had_failures,
                       set([self.pages[0]]))
     self.assertEquals(results.successes, [self.pages[1]])
-
-  def test_errors(self):
-    results = NonPrintingPageTestResults()
-    results.AddError(self.pages[0], self.CreateException())
-    results.AddSuccess(self.pages[1])
-    self.assertEquals(results.pages_that_had_errors,
-                      set([self.pages[0]]))
-    self.assertEquals(results.successes, [self.pages[1]])
-
-  def test_errors_and_failures(self):
-    results = NonPrintingPageTestResults()
-    results.AddError(self.pages[0], self.CreateException())
-    results.AddError(self.pages[1], self.CreateException())
-    results.AddSuccess(self.pages[2])
-    self.assertEquals(results.pages_that_had_errors_or_failures,
-                      set([self.pages[0], self.pages[1]]))
-    self.assertEquals(results.successes, [self.pages[2]])

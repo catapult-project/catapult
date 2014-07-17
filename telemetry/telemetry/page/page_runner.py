@@ -423,10 +423,6 @@ def Run(test, page_set, expectations, finder_options):
             len(results.failures) > test.max_failures):
           logging.error('Too many failures. Aborting.')
           test.RequestExit()
-        if (not test.max_errors is None and
-            len(results.errors) > test.max_errors):
-          logging.error('Too many errors. Aborting.')
-          test.RequestExit()
         if test.IsExiting():
           break
       state.repeat_state.DidRunPageSet()
@@ -500,7 +496,7 @@ def _CheckArchives(page_set, pages, results):
 
   for page in pages_missing_archive_path + pages_missing_archive_data:
     results.StartTest(page)
-    results.AddErrorMessage(page, 'Page set archive doesn\'t exist.')
+    results.AddFailureMessage(page, 'Page set archive doesn\'t exist.')
     results.StopTest(page)
 
   return [page for page in pages if page not in
@@ -523,7 +519,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
       results.AddSuccess(page)
     else:
       msg = 'Exception while running %s' % page.url
-      results.AddError(page, sys.exc_info())
+      results.AddFailure(page, sys.exc_info())
     exception_formatter.PrintFormattedException(msg=msg)
 
   try:
