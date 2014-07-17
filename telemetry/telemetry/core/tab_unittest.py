@@ -108,6 +108,7 @@ class TabTest(tab_test_case.TabTestCase):
         break
     self.assertTrue(found_video_start_event)
 
+  @benchmark.Enabled('has tabs')
   def testGetRendererThreadFromTabId(self):
     self.assertEquals(self._tab.url, 'about:blank')
     # Create 3 tabs. The third tab is closed before we call StartTracing.

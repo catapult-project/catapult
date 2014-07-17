@@ -40,9 +40,12 @@ class TabTestCase(unittest.TestCase):
       raise
 
   def setUp(self):
-    self._tab = self._browser.tabs.New()
-    while len(self._browser.tabs) > 1:
-      self._browser.tabs[0].Close()
+    if self._browser.supports_tab_control:
+      self._tab = self._browser.tabs.New()
+      while len(self._browser.tabs) > 1:
+        self._browser.tabs[0].Close()
+    else:
+      self._tab = self._browser.tabs[0]
     self._tab.Navigate('about:blank')
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
