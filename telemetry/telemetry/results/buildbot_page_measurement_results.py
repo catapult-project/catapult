@@ -80,7 +80,7 @@ class BuildbotPageMeasurementResults(
     # If there were no failed pages, output the overall results (results not
     # associated with a page).
     if not self.had_failures:
-      for value in self._all_summary_values:
+      for value in self.all_summary_values:
         buildbot_value = value.GetBuildbotValue()
         buildbot_data_type = value.GetBuildbotDataType(
             output_context=value_module.SUMMARY_RESULT_OUTPUT_CONTEXT)
