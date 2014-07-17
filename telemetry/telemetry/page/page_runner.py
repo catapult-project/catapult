@@ -247,7 +247,6 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
     tries -= 1
     try:
       results_for_current_run = copy.copy(results)
-      results_for_current_run.StartTest(page)
       if test.RestartBrowserBeforeEachPage() or page.startup_url:
         state.StopBrowser()
         # If we are restarting the browser for each page customize the per page
@@ -258,7 +257,6 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
       if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
         logging.info('Skip test for page %s because browser is not supported.'
                      % page.url)
-        results_for_current_run.StopTest(page)
         return results
 
       expectation = expectations.GetExpectationForPage(state.browser, page)
@@ -285,8 +283,6 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
 
       if (test.StopBrowserAfterPage(state.browser, page)):
         state.StopBrowser()
-
-      results_for_current_run.StopTest(page)
 
       if state.first_page[page]:
         state.first_page[page] = False
@@ -393,8 +389,10 @@ def Run(test, page_set, expectations, finder_options):
 
   for page in list(pages):
     if not test.CanRunForPage(page):
+      results.StartTest(page)
       logging.debug('Skipping test: it cannot run for %s', page.url)
       results.AddSkip(page, 'Test cannot run')
+      results.StopTest(page)
       pages.remove(page)
 
   if not pages:
@@ -414,10 +412,14 @@ def Run(test, page_set, expectations, finder_options):
         state.repeat_state.WillRunPage()
         test.WillRunPageRepeats(page)
         while state.repeat_state.ShouldRepeatPage():
-          results = _PrepareAndRunPage(
-              test, page_set, expectations, finder_options, browser_options,
-              page, credentials_path, possible_browser, results, state)
-          state.repeat_state.DidRunPage()
+          results.StartTest(page)
+          try:
+            results = _PrepareAndRunPage(
+                test, page_set, expectations, finder_options, browser_options,
+                page, credentials_path, possible_browser, results, state)
+          finally:
+            state.repeat_state.DidRunPage()
+            results.StopTest(page)
         test.DidRunPageRepeats(page)
         if (not test.max_failures is None and
             len(results.failures) > test.max_failures):
