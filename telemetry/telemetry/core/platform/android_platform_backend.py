@@ -200,7 +200,7 @@ class AndroidPlatformBackend(
   def IsApplicationRunning(self, application):
     if application in _HOST_APPLICATIONS:
       return platform.GetHostPlatform().IsApplicationRunning(application)
-    return len(self._device.old_interface.ExtractPid(application)) > 0
+    return len(self._device.GetPids(application)) > 0
 
   def CanLaunchApplication(self, application):
     if application in _HOST_APPLICATIONS:
