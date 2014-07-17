@@ -5,6 +5,7 @@
 import logging
 
 from telemetry.timeline import bounds
+from telemetry.value import scalar
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import timeline_based_metric
 
@@ -31,7 +32,8 @@ class FastMetric(timeline_based_metric.TimelineBasedMetric):
     self.VerifyNonOverlappedRecords(interaction_records)
 
     duration = sum(r.end - r.start for r in interaction_records)
-    results.Add('fast-duration', 'ms', duration)
+    results.AddValue(scalar.ScalarValue(
+        results.current_page, 'fast-duration', 'ms', duration))
 
     try:
       cpu_time = sum(
@@ -44,10 +46,12 @@ class FastMetric(timeline_based_metric.TimelineBasedMetric):
           'trace does not contain thread time data.',
           repr(interaction_records))
     else:
-      results.Add('fast-cpu_time', 'ms', cpu_time)
+      results.AddValue(scalar.ScalarValue(
+          results.current_page, 'fast-cpu_time', 'ms', cpu_time))
 
     idle_time = duration - sum(
         bounds.Bounds.GetOverlap(r.start, r.end, s.start, s.end)
         for r in interaction_records
         for s in renderer_thread.toplevel_slices)
-    results.Add('fast-idle_time', 'ms', idle_time)
+    results.AddValue(scalar.ScalarValue(
+        results.current_page, 'fast-idle_time', 'ms', idle_time))

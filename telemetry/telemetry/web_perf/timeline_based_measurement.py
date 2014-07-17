@@ -46,23 +46,23 @@ def _GetMetricFromMetricType(metric_type):
   raise Exception('Unrecognized metric type: %s' % metric_type)
 
 
+# TODO(nednguyen): Get rid of this results wrapper hack after we add interaction
+# record to telemetry value system.
 class _ResultsWrapper(object):
   def __init__(self, results, label):
     self._results = results
     self._result_prefix = label
 
+  @property
+  def current_page(self):
+    return self._results.current_page
+
   def _GetResultName(self, trace_name):
     return '%s-%s' % (self._result_prefix, trace_name)
 
-  def Add(self, trace_name, units, value, chart_name=None, data_type='default'):
-    result_name = self._GetResultName(trace_name)
-    self._results.Add(result_name, units, value, chart_name, data_type)
-
-  def AddSummary(self, trace_name, units, value, chart_name=None,
-                 data_type='default'):
-    result_name = self._GetResultName(trace_name)
-    self._results.AddSummary(result_name, units, value, chart_name, data_type)
-
+  def AddValue(self, value):
+    value.name = self._GetResultName(value.name)
+    self._results.AddValue(value)
 
 class _TimelineBasedMetrics(object):
   def __init__(self, model, renderer_thread,

@@ -15,6 +15,7 @@ from telemetry.results import page_measurement_results
 from telemetry.timeline import async_slice
 from telemetry.timeline import model as model_module
 from telemetry.unittest import options_for_unittests
+from telemetry.value import scalar
 from telemetry.web_perf import timeline_based_measurement as tbm_module
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import timeline_based_metric
@@ -23,22 +24,31 @@ from telemetry.web_perf.metrics import timeline_based_metric
 class FakeFastMetric(timeline_based_metric.TimelineBasedMetric):
 
   def AddResults(self, model, renderer_thread, interaction_records, results):
-    results.Add('FakeFastMetric', 'ms', 1)
-    results.Add('FastMetricRecords', 'count', len(interaction_records))
+    results.AddValue(scalar.ScalarValue(
+        results.current_page, 'FakeFastMetric', 'ms', 1))
+    results.AddValue(scalar.ScalarValue(
+        results.current_page, 'FastMetricRecords', 'count',
+        len(interaction_records)))
 
 
 class FakeSmoothMetric(timeline_based_metric.TimelineBasedMetric):
 
   def AddResults(self, model, renderer_thread, interaction_records, results):
-    results.Add('FakeSmoothMetric', 'ms', 1)
-    results.Add('SmoothMetricRecords', 'count', len(interaction_records))
+    results.AddValue(scalar.ScalarValue(
+        results.current_page, 'FakeSmoothMetric', 'ms', 1))
+    results.AddValue(scalar.ScalarValue(
+        results.current_page, 'SmoothMetricRecords', 'count',
+        len(interaction_records)))
 
 
 class FakeLoadingMetric(timeline_based_metric.TimelineBasedMetric):
 
   def AddResults(self, model, renderer_thread, interaction_records, results):
-    results.Add('FakeLoadingMetric', 'ms', 2)
-    results.Add('LoadingMetricRecords', 'count', len(interaction_records))
+    results.AddValue(scalar.ScalarValue(
+        results.current_page, 'FakeLoadingMetric', 'ms', 2))
+    results.AddValue(scalar.ScalarValue(
+        results.current_page, 'LoadingMetricRecords', 'count',
+        len(interaction_records)))
 
 
 def GetMetricFromMetricType(metric_type):

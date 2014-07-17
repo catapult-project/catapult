@@ -6,6 +6,7 @@ import logging
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import mainthread_jank_stats
 from telemetry.web_perf.metrics import timeline_based_metric
+from telemetry.value import scalar
 
 
 class ResponsivenessMetric(timeline_based_metric.TimelineBasedMetric):
@@ -41,7 +42,9 @@ class ResponsivenessMetric(timeline_based_metric.TimelineBasedMetric):
           repr(interaction_records), repr(e))
       return
 
-    results.Add('responsive-total_big_jank_thread_time', 'ms',
-                jank_stats.total_big_jank_thread_time)
-    results.Add('responsive-biggest_jank_thread_time', 'ms',
-                jank_stats.biggest_jank_thread_time)
+    results.AddValue(scalar.ScalarValue(
+        results.current_page, 'responsive-total_big_jank_thread_time', 'ms',
+        jank_stats.total_big_jank_thread_time))
+    results.AddValue(scalar.ScalarValue(
+        results.current_page, 'responsive-biggest_jank_thread_time', 'ms',
+        jank_stats.biggest_jank_thread_time))
