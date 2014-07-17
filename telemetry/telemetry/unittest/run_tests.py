@@ -10,13 +10,14 @@ from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import discover
-from telemetry.unittest import gtest_unittest_results
+from telemetry.unittest import output_formatter
 
 
-class Environment(object):
-  def __init__(self, top_level_dir, test_dirs):
+class Config(object):
+  def __init__(self, top_level_dir, test_dirs, output_formatters):
     self._top_level_dir = top_level_dir
     self._test_dirs = tuple(test_dirs)
+    self._output_formatters = tuple(output_formatters)
 
   @property
   def top_level_dir(self):
@@ -26,10 +27,14 @@ class Environment(object):
   def test_dirs(self):
     return self._test_dirs
 
+  @property
+  def output_formatters(self):
+    return self._output_formatters
+
 
 def Discover(start_dir, top_level_dir=None, pattern='test*.py'):
   loader = unittest.defaultTestLoader
-  loader.suiteClass = gtest_unittest_results.GTestTestSuite
+  loader.suiteClass = output_formatter.TestSuite
 
   test_suites = []
   modules = discover.DiscoverModules(start_dir, top_level_dir, pattern)
@@ -76,7 +81,7 @@ def DiscoverTests(search_dirs, top_level_dir, possible_browser,
     method = getattr(test, test._testMethodName)
     return decorators.IsEnabled(method, possible_browser)
 
-  wrapper_suite = gtest_unittest_results.GTestTestSuite()
+  wrapper_suite = output_formatter.TestSuite()
   for search_dir in search_dirs:
     wrapper_suite.addTests(Discover(search_dir, top_level_dir, '*_unittest.py'))
   return FilterSuite(wrapper_suite, IsTestSelected)
@@ -97,7 +102,7 @@ def RestoreLoggingLevel(func):
   return _LoggingRestoreWrapper
 
 
-environment = None
+config = None
 
 
 class RunTestsCommand(command_line.OptparseCommand):
@@ -136,12 +141,17 @@ class RunTestsCommand(command_line.OptparseCommand):
                    'Re-run with --browser=list to see '
                    'available browser types.' % args.browser_type)
 
-  @RestoreLoggingLevel
   def Run(self, args):
     possible_browser = browser_finder.FindBrowser(args)
     test_suite = DiscoverTests(
-        environment.test_dirs, environment.top_level_dir, possible_browser,
+        config.test_dirs, config.top_level_dir, possible_browser,
         args.positional_args, args.run_disabled_tests)
-    runner = gtest_unittest_results.GTestTestRunner()
-    result = runner.run(test_suite, args.repeat_count, args)
+    runner = output_formatter.TestRunner()
+    result = runner.run(
+        test_suite, config.output_formatters, args.repeat_count, args)
     return len(result.failures_and_errors)
+
+  @classmethod
+  @RestoreLoggingLevel
+  def main(cls, args=None):
+    return super(RunTestsCommand, cls).main(args)

@@ -11,23 +11,22 @@ This allows multiple unit tests to use a specific
 browser, in face of multiple options."""
 
 
-_options = None
+_options = []
 
 
-def Set(options):
-  global _options
+def Push(options):
+  _options.append(options)
 
-  _options = options
+
+def Pop():
+  return _options.pop()
 
 
 def GetCopy():
-  if not _options:
+  if not AreSet():
     return None
-
-  return _options.Copy()
+  return _options[-1].Copy()
 
 
 def AreSet():
-  if _options:
-    return True
-  return False
+  return bool(_options)
