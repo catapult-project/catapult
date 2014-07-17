@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from telemetry.results import page_test_results
-from telemetry.value import value_backcompat
 
 class PageMeasurementResults(page_test_results.PageTestResults):
   def __init__(self, output_stream=None, trace_tag=''):
@@ -26,15 +25,6 @@ class PageMeasurementResults(page_test_results.PageTestResults):
     assert not self._current_page
     self._current_page = page
     self._page_specific_values_for_current_page = []
-
-  # TODO(nednguyen): Ned has a patch to kill this.
-  def Add(self, trace_name, units, value, chart_name=None, data_type='default'):
-    assert self._current_page
-    # TODO(isherman): Remove this as well.
-    value = value_backcompat.ConvertOldCallingConventionToValue(
-      self._current_page,
-      trace_name, units, value, chart_name, data_type)
-    self.AddValue(value)
 
   def AddValue(self, value):
     super(PageMeasurementResults, self).AddValue(value)
