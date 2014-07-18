@@ -7,10 +7,9 @@ import os
 from trace_viewer import trace_viewer_project
 
 
-FILE_GROUPS = ["tracing_html_files",
-    "tracing_css_files",
-    "tracing_js_files",
-    "tracing_img_files"]
+FILE_GROUPS = ["tracing_css_files",
+               "tracing_js_html_files",
+               "tracing_img_files"]
 
 
 def CheckListedFilesSorted(src_file, group_name, listed_files):

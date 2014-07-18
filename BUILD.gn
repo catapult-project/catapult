@@ -2,25 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-tracing_html_files = [
-  "third_party/tvcm/src/tvcm/ui/chart_base.html",
-  "third_party/tvcm/src/tvcm/ui/mouse_mode_selector.html",
-  "third_party/tvcm/src/tvcm/ui/overlay.html",
-  "third_party/tvcm/src/tvcm/ui/quad_stack_view.html",
-  "third_party/tvcm/src/tvcm/unittest/html_test_results.html",
-  "third_party/tvcm/src/tvcm/unittest/interactive_test_runner.html",
-  "third_party/tvcm/src/tvcm/unittest/module_test_case_runner.html",
-  "trace_viewer/about_tracing/profiling_view.html",
-  "trace_viewer/about_tracing/record_selection_dialog.html",
-  "trace_viewer/cc/picture_debugger.html",
-  "trace_viewer/tracing/analysis/cpu_slice_view.html",
-  "trace_viewer/tracing/analysis/thread_time_slice_view.html",
-  "trace_viewer/tracing/find_control.html",
-  "trace_viewer/tracing/side_panel/input_latency.html",
-  "trace_viewer/tracing/side_panel/sampling_summary.html",
-  "trace_viewer/tracing/side_panel/time_summary.html",
-  "trace_viewer/tracing/timeline_view.html",
-]
 tracing_css_files = [
   "third_party/tvcm/src/tvcm/ui/bar_chart.css",
   "third_party/tvcm/src/tvcm/ui/common.css",
@@ -75,7 +56,7 @@ tracing_css_files = [
   "trace_viewer/tracing/tracks/trace_model_track.css",
   "trace_viewer/tracing/tracks/track.css",
 ]
-tracing_js_files = [
+tracing_js_html_files = [
   "third_party/tvcm/src/tvcm/__init__.js",
   "third_party/tvcm/src/tvcm/base64.js",
   "third_party/tvcm/src/tvcm/bbox2.js",
@@ -104,6 +85,7 @@ tracing_js_files = [
   "third_party/tvcm/src/tvcm/ui/animation_controller.js",
   "third_party/tvcm/src/tvcm/ui/bar_chart.js",
   "third_party/tvcm/src/tvcm/ui/camera.js",
+  "third_party/tvcm/src/tvcm/ui/chart_base.html",
   "third_party/tvcm/src/tvcm/ui/chart_base.js",
   "third_party/tvcm/src/tvcm/ui/color_scheme.js",
   "third_party/tvcm/src/tvcm/ui/container_that_decorates_its_children.js",
@@ -114,18 +96,24 @@ tracing_js_files = [
   "third_party/tvcm/src/tvcm/ui/line_chart.js",
   "third_party/tvcm/src/tvcm/ui/list_and_associated_view.js",
   "third_party/tvcm/src/tvcm/ui/list_view.js",
+  "third_party/tvcm/src/tvcm/ui/mouse_mode_selector.html",
   "third_party/tvcm/src/tvcm/ui/mouse_mode_selector.js",
   "third_party/tvcm/src/tvcm/ui/mouse_tracker.js",
+  "third_party/tvcm/src/tvcm/ui/overlay.html",
   "third_party/tvcm/src/tvcm/ui/overlay.js",
   "third_party/tvcm/src/tvcm/ui/pie_chart.js",
+  "third_party/tvcm/src/tvcm/ui/quad_stack_view.html",
   "third_party/tvcm/src/tvcm/ui/quad_stack_view.js",
   "third_party/tvcm/src/tvcm/ui/sortable_table.js",
   "third_party/tvcm/src/tvcm/ui/sunburst_chart.js",
   "third_party/tvcm/src/tvcm/unittest/__init__.js",
   "third_party/tvcm/src/tvcm/unittest/assertions.js",
   "third_party/tvcm/src/tvcm/unittest/constants.js",
+  "third_party/tvcm/src/tvcm/unittest/html_test_results.html",
   "third_party/tvcm/src/tvcm/unittest/html_test_results.js",
+  "third_party/tvcm/src/tvcm/unittest/interactive_test_runner.html",
   "third_party/tvcm/src/tvcm/unittest/interactive_test_runner.js",
+  "third_party/tvcm/src/tvcm/unittest/module_test_case_runner.html",
   "third_party/tvcm/src/tvcm/unittest/suite_loader.js",
   "third_party/tvcm/src/tvcm/unittest/test_case.js",
   "third_party/tvcm/src/tvcm/unittest/test_error.js",
@@ -138,8 +126,10 @@ tracing_js_files = [
   "trace_viewer/about_tracing/inspector_connection.js",
   "trace_viewer/about_tracing/inspector_tracing_controller_client.js",
   "trace_viewer/about_tracing/mock_tracing_controller_client.js",
+  "trace_viewer/about_tracing/profiling_view.html",
   "trace_viewer/about_tracing/profiling_view.js",
   "trace_viewer/about_tracing/record_and_capture_controller.js",
+  "trace_viewer/about_tracing/record_selection_dialog.html",
   "trace_viewer/about_tracing/record_selection_dialog.js",
   "trace_viewer/about_tracing/tracing_controller_client.js",
   "trace_viewer/about_tracing/xhr_based_tracing_controller_client.js",
@@ -155,6 +145,7 @@ tracing_js_files = [
   "trace_viewer/cc/layer_view.js",
   "trace_viewer/cc/picture.js",
   "trace_viewer/cc/picture_as_image_data.js",
+  "trace_viewer/cc/picture_debugger.html",
   "trace_viewer/cc/picture_debugger.js",
   "trace_viewer/cc/picture_ops_chart_summary_view.js",
   "trace_viewer/cc/picture_ops_chart_view.js",
@@ -187,6 +178,7 @@ tracing_js_files = [
   "trace_viewer/tracing/analysis/analyze_samples.js",
   "trace_viewer/tracing/analysis/analyze_selection.js",
   "trace_viewer/tracing/analysis/analyze_slices.js",
+  "trace_viewer/tracing/analysis/cpu_slice_view.html",
   "trace_viewer/tracing/analysis/cpu_slice_view.js",
   "trace_viewer/tracing/analysis/default_object_view.js",
   "trace_viewer/tracing/analysis/generic_object_view.js",
@@ -195,6 +187,7 @@ tracing_js_files = [
   "trace_viewer/tracing/analysis/slice_view.js",
   "trace_viewer/tracing/analysis/stub_analysis_results.js",
   "trace_viewer/tracing/analysis/stub_analysis_table.js",
+  "trace_viewer/tracing/analysis/thread_time_slice_view.html",
   "trace_viewer/tracing/analysis/thread_time_slice_view.js",
   "trace_viewer/tracing/analysis/util.js",
   "trace_viewer/tracing/color_scheme.js",
@@ -203,6 +196,7 @@ tracing_js_files = [
   "trace_viewer/tracing/elided_cache.js",
   "trace_viewer/tracing/fast_rect_renderer.js",
   "trace_viewer/tracing/filter.js",
+  "trace_viewer/tracing/find_control.html",
   "trace_viewer/tracing/find_control.js",
   "trace_viewer/tracing/find_controller.js",
   "trace_viewer/tracing/importer/__init__.js",
@@ -240,8 +234,11 @@ tracing_js_files = [
   "trace_viewer/tracing/importer/v8_log_importer.js",
   "trace_viewer/tracing/importer/zip_importer.js",
   "trace_viewer/tracing/selection.js",
+  "trace_viewer/tracing/side_panel/input_latency.html",
   "trace_viewer/tracing/side_panel/input_latency.js",
+  "trace_viewer/tracing/side_panel/sampling_summary.html",
   "trace_viewer/tracing/side_panel/sampling_summary.js",
+  "trace_viewer/tracing/side_panel/time_summary.html",
   "trace_viewer/tracing/side_panel/time_summary.js",
   "trace_viewer/tracing/side_panel/timeline_view.js",
   "trace_viewer/tracing/standalone_timeline_view.js",
@@ -250,6 +247,7 @@ tracing_js_files = [
   "trace_viewer/tracing/timeline_display_transform_animations.js",
   "trace_viewer/tracing/timeline_interest_range.js",
   "trace_viewer/tracing/timeline_track_view.js",
+  "trace_viewer/tracing/timeline_view.html",
   "trace_viewer/tracing/timeline_view.js",
   "trace_viewer/tracing/timeline_viewport.js",
   "trace_viewer/tracing/timing_tool.js",
@@ -315,7 +313,7 @@ output_resource_dir = "$root_gen_dir/content/browser/tracing"
 action("generate_about_tracing") {
   script = "trace_viewer/build/generate_about_tracing_contents"
 
-  source_prereqs = tracing_html_files + tracing_css_files + tracing_js_files +
+  source_prereqs = tracing_css_files + tracing_js_html_files +
     tracing_img_files
   outputs = [
     "$output_resource_dir/about_tracing.js",
