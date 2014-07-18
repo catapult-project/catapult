@@ -95,8 +95,8 @@ class AndroidRndisForwarder(forwarders.Forwarder):
       protocol = 'udp' if port_pair.remote_port == 53 else 'tcp'
       self._adb.RunShellCommand(
           'iptables -t nat -A OUTPUT -p %s --dport %d'
-          ' -j DNAT --to-destination :%d' %
-          (protocol, port_pair.remote_port, port_pair.local_port))
+          ' -j DNAT --to-destination %s:%d' %
+          (protocol, port_pair.remote_port, self.host_ip, port_pair.local_port))
 
   def _OverrideDns(self):
     """Overrides DNS on device to point at the host."""
@@ -121,7 +121,7 @@ class AndroidRndisForwarder(forwarders.Forwarder):
     # TODO(szym): run via su -c if necessary.
     self._adb.device().SetProp('net.dns1', dns1)
     self._adb.device().SetProp('net.dns2', dns2)
-    dnschange = self._adb.device.GetProp('net.dnschange')
+    dnschange = self._adb.device().GetProp('net.dnschange')
     if dnschange:
       self._adb.device().SetProp('net.dnschange', int(dnschange) + 1)
     # Since commit 8b47b3601f82f299bb8c135af0639b72b67230e6 to frameworks/base
@@ -138,8 +138,8 @@ class AndroidRndisForwarder(forwarders.Forwarder):
     default_routes = [route[0] for route in routes if route[1] == '00000000']
     return (
       default_routes[0] if default_routes else None,
-      self._adb.GetProp('net.dns1'),
-      self._adb.GetProp('net.dns2'),
+      self._adb.device().GetProp('net.dns1'),
+      self._adb.device().GetProp('net.dns2'),
     )
 
 
