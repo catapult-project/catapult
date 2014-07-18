@@ -42,6 +42,7 @@ def CheckCommon(file_name, listed_files):
   def handle(dirpath, dirnames, filenames):
     for name in filenames:
       if not (name.endswith(("_test.js",
+                             "_test.html",
                              "_test_data.js",
                              "tests.html",
                              ".py",
