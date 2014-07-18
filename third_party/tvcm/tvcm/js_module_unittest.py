@@ -4,12 +4,14 @@
 import unittest
 
 from tvcm import fake_fs
-from tvcm import module
+from tvcm import html_module
 from tvcm import js_module
+from tvcm import module
 from tvcm import project as project_module
 from tvcm import resource as resource_module
 from tvcm import resource_loader
 from tvcm import strip_js_comments
+from tvcm import style_sheet as style_sheet_module
 
 class SmokeTest(unittest.TestCase):
   def testBasic(self):
@@ -254,3 +256,69 @@ tvcm.unittest.testSuite('tvcm.bbox2_test', function() {
  */
 var mat4 = {};"""
     self.assertFalse(js_module.IsJSModule(js))
+
+class TestJSModule(js_module.JSModule):
+  def __init__(self, name):
+    resource = resource_module.Resource('/src/', '/src/' + name + '.js')
+    super(TestJSModule, self).__init__(
+      loader=None,
+      name=name,
+      resource=resource,
+      load_resource=False)
+
+class TestHTMLModule(html_module.HTMLModule):
+  def __init__(self, name):
+    resource = resource_module.Resource('/src/', '/src/' + name + '.html')
+    super(TestHTMLModule, self).__init__(
+      loader=None,
+      name=name,
+      resource=resource,
+      load_resource=False)
+
+class JSModuleToHTMLTests(unittest.TestCase):
+  def testStripJS(self):
+    js = """'use strict';
+tvcm.require('a');
+tvcm.requireStylesheet('a');
+tvcm.requireRawScript('raw/raw.js');
+/* b */
+"""
+    stripped_js = js_module.StripImportsFromJS(js)
+    self.assertEquals("""'use strict';
+/* was require a */;
+/* was requireStylesheet a */;
+/* was requireRawScript raw/raw.js */;
+/* b */
+""", stripped_js)
+  def testContentsAsHTML(self):
+    mA = TestJSModule('a')
+    mH = TestHTMLModule('h')
+
+    sA = style_sheet_module.StyleSheet(
+        None, 'a', resource_module.Resource('/src/', '/src/a.css'))
+
+    rsA = module.RawScript(resource_module.Resource('/raw/', '/raw/raw.js'))
+
+
+    mB = TestJSModule('b')
+    mB.contents = """'use strict';
+tvcm.require('a');
+tvcm.require('h');
+tvcm.requireRawScript('raw/raw.js');
+/* b */
+"""
+    mB.dependent_modules.append(mA)
+    mB.dependent_modules.append(mH)
+    mB.style_sheets.append(sA)
+    mB.dependent_raw_scripts.append(rsA)
+
+    html = mB.contents_as_html_module
+    print "\n****\n%s****" % html
+    self.assertTrue(html.startswith("""<!DOCTYPE html>
+<link rel="import" href="a.js.html">
+<link rel="import" href="h.html">
+<link rel="stylesheet" href="a.css">
+<script src="raw.js"></script>
+<script>
+"""))
+    self.assertTrue(html.endswith("</script>\n"))

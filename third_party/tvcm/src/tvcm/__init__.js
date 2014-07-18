@@ -56,8 +56,6 @@ this.tvcm = (function() {
 
   var didLoadModules = false;
   var moduleDependencies = {};
-  var moduleStylesheets = {};
-  var moduleRawScripts = {};
   var moduleInfoByModuleName = {};
 
   var JS_MODULE_TYPE = 'js_module';
@@ -85,32 +83,6 @@ this.tvcm = (function() {
         dependentModules.push(dependentModuleName);
   }
 
-  function addModuleRawScriptDependency(moduleName, rawScriptFilename) {
-    if (!moduleRawScripts[moduleName])
-      moduleRawScripts[moduleName] = [];
-
-    var dependentRawScripts = moduleRawScripts[moduleName];
-    var found = false;
-    for (var i = 0; i < moduleRawScripts.length; i++)
-      if (dependentRawScripts[i] == rawScriptFilename)
-        found = true;
-      if (!found)
-        dependentRawScripts.push(rawScriptFilename);
-  }
-
-  function addModuleStylesheet(moduleName, stylesheetName) {
-    if (!moduleStylesheets[moduleName])
-      moduleStylesheets[moduleName] = [];
-
-    var stylesheets = moduleStylesheets[moduleName];
-    var found = false;
-    for (var i = 0; i < stylesheets.length; i++)
-      if (stylesheets[i] == stylesheetName)
-        found = true;
-      if (!found)
-        stylesheets.push(stylesheetName);
-  }
-
   function ensureDepsLoaded() {
     if (window.FLATTENED)
       return;
@@ -134,8 +106,6 @@ this.tvcm = (function() {
 
     tvcm.setModuleInfo = setModuleInfo;
     tvcm.addModuleDependency = addModuleDependency;
-    tvcm.addModuleRawScriptDependency = addModuleRawScriptDependency;
-    tvcm.addModuleStylesheet = addModuleStylesheet;
     tvcm.JS_MODULE_TYPE = JS_MODULE_TYPE;
     tvcm.HTML_MODULE_TYPE = HTML_MODULE_TYPE;
     try {
@@ -146,8 +116,6 @@ this.tvcm = (function() {
                       e.stack ? e.stack : e.message);
     }
     delete tvcm.setModuleInfo;
-    delete tvcm.addModuleStylesheet;
-    delete tvcm.addModuleRawScriptDependency;
     delete tvcm.addModuleDependency;
     delete tvcm.JS_MODULE_TYPE;
     delete tvcm.HTML_MODULE_TYPE;
@@ -231,7 +199,6 @@ this.tvcm = (function() {
   }
 
   var moduleLoadStatus = {};
-  var rawScriptLoadStatus = {};
   function require(modules, opt_indentLevel) {
     var indentLevel = opt_indentLevel || 0;
     var dependentModules = modules;
@@ -268,51 +235,21 @@ this.tvcm = (function() {
 
     mLog('require(' + dependentModuleName + ')', indentLevel);
     moduleLoadStatus[dependentModuleName] = 'RESOLVING';
-    requireDependencies(dependentModuleName, indentLevel);
+
+    var dependentModules = moduleDependencies[dependentModuleName] || [];
+    require(dependentModules, indentLevel + 1);
 
     var moduleInfo = moduleInfoByModuleName[dependentModuleName];
     if (moduleInfo === undefined)
       throw new Error('OMG: Module info for ' + dependentModuleName +
                       ' is missing.');
     if (moduleInfo.type === JS_MODULE_TYPE)
-      loadScript(moduleInfo.relativeFileName);
+      loadImport(moduleInfo.relativeFileName + '.html');
     else if (moduleInfo.type === HTML_MODULE_TYPE)
       loadImport(moduleInfo.relativeFileName);
     else
       throw new Error('Unrecognized module type: ' + moduleInfo.type);
     moduleLoadStatus[name] = 'APPENDED';
-  }
-
-  function requireDependencies(dependentModuleName, indentLevel) {
-    // Load the module's dependent scripts after.
-    var dependentModules = moduleDependencies[dependentModuleName] || [];
-    require(dependentModules, indentLevel + 1);
-
-    // Load the module stylesheet first.
-    var stylesheets = moduleStylesheets[dependentModuleName] || [];
-    for (var i = 0; i < stylesheets.length; i++)
-      requireStylesheet(stylesheets[i]);
-
-    // Load the module raw scripts next
-    var rawScripts = moduleRawScripts[dependentModuleName] || [];
-    for (var i = 0; i < rawScripts.length; i++) {
-      var rawScriptFilename = rawScripts[i];
-      if (rawScriptLoadStatus[rawScriptFilename])
-        continue;
-
-      loadScript(rawScriptFilename);
-      mLog('load(' + rawScriptFilename + ')', indentLevel);
-      rawScriptLoadStatus[rawScriptFilename] = 'APPENDED';
-    }
-  }
-
-  function loadScript(path) {
-    var scriptEl = document.createElement('script');
-    scriptEl.src = '/' + path;
-    scriptEl.type = 'text/javascript';
-    scriptEl.defer = true;
-    scriptEl.async = false;
-    tvcm.doc.head.appendChild(scriptEl);
   }
 
   function loadImport(path) {
@@ -330,57 +267,15 @@ this.tvcm = (function() {
    * calling project, typically a third_party directory.
    */
   function requireRawScript(relativeRawScriptPath) {
-    if (window.FLATTENED_RAW_SCRIPTS) {
-      if (!window.FLATTENED_RAW_SCRIPTS[relativeRawScriptPath]) {
-        throw new Error('Somehow, ' + relativeRawScriptPath +
-            ' didn\'t get stored in the flattened js file! ' +
-            'You have probably found a tvcm bug.');
-      }
-      return;
-    }
-
-    if (rawScriptLoadStatus[relativeRawScriptPath])
-      return;
-    throw new Error(
-        relativeRawScriptPath + ' should already have been loaded.' +
-        'You have probably found a tvcm bug.');
+    /* This doesn't actually need to execute at runtime. */
   }
 
-  var stylesheetLoadStatus = {};
   function requireStylesheet(dependentStylesheetName) {
-    if (window.FLATTENED)
-      return;
-
-    if (stylesheetLoadStatus[dependentStylesheetName])
-      return;
-    stylesheetLoadStatus[dependentStylesheetName] = true;
-
-    var localPath = dependentStylesheetName.replace(/\./g, '/') + '.css';
-    var stylesheetPath = '/' + localPath;
-
-    var linkEl = document.createElement('link');
-    linkEl.setAttribute('rel', 'stylesheet');
-    linkEl.setAttribute('href', stylesheetPath);
-    tvcm.doc.head.appendChild(linkEl);
+    /* This doesn't actually need to execute at runtime. */
   }
 
-  var templateLoadStatus = {};
   function requireTemplate(template) {
-    if (window.FLATTENED)
-      return;
-
-    if (templateLoadStatus[template])
-      return;
-    templateLoadStatus[template] = true;
-
-    var localPath = template.replace(/\./g, '/') + '.html';
-    var importPath = localPath;
-
-    var linkEl = document.createElement('link');
-    linkEl.setAttribute('rel', 'import');
-    linkEl.setAttribute('href', importPath);
-    // TODO(dsinclair): Enable when HTML imports are available.
-    //tvcm.doc.head.appendChild(linkEl);
+    /* This doesn't actually need to execute at runtime. */
   }
 
   function exportTo(namespace, fn) {

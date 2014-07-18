@@ -48,6 +48,28 @@ class JSModule(module.Module):
       f.write(js_utils.EscapeJSIfNeeded(self.contents))
       f.write("\n")
 
+  @property
+  def contents_as_html_module(self):
+    chunks = []
+    chunks.append('<!DOCTYPE html>')
+    # imports and scripts
+    for module in self.dependent_modules:
+      if isinstance(module, JSModule):
+        suffix = '.html'
+      else:
+        suffix = ''
+      chunks.append('<link rel="import" href="/%s%s">' % (
+        module.resource.unix_style_relative_path, suffix))
+    for style_sheet in self.style_sheets:
+      chunks.append('<link rel="stylesheet" href="/%s">' %
+                    style_sheet.resource.unix_style_relative_path)
+    for raw_script in self.dependent_raw_scripts:
+      chunks.append('<script src="/%s"></script>' %
+                    raw_script.resource.unix_style_relative_path)
+    chunks.append('<script>')
+    chunks.append(js_utils.EscapeJSIfNeeded(StripImportsFromJS(self.contents)))
+    chunks.append('</script>\n')
+    return '\n'.join(chunks)
 
 def IsJSTest(text, text_is_stripped=True):
   if text_is_stripped:
@@ -205,3 +227,15 @@ def Parse(module_name, stripped_text, tvcm_already_included=False):
     rest = rest[m.end():]
 
   return res
+
+def StripImportsFromJS(js):
+  js = re.sub("""tvcm\s*\.\s*require\((["'])(.+?)\\1\)""",
+              r'/* was require \2 */',
+              js, count=0, flags=re.DOTALL)
+  js = re.sub("""tvcm\s*\.\s*requireStylesheet\((["'])(.+?)\\1\)""",
+              r'/* was requireStylesheet \2 */',
+              js, count=0, flags=re.DOTALL)
+  js = re.sub("""tvcm\s*\.\s*requireRawScript\((["'])(.+?)\\1\)""",
+              r'/* was requireRawScript \2 */',
+              js, count=0, flags=re.DOTALL)
+  return js

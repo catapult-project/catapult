@@ -13,9 +13,11 @@ import traceback
 from tvcm import project as project_module
 from tvcm import generate
 from tvcm import resource_loader
+from tvcm import js_module
 
 import SocketServer
 import SimpleHTTPServer
+import StringIO
 import BaseHTTPServer
 
 DEPS_CHECK_DELAY = 30
@@ -47,17 +49,43 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       try:
         handler(self)
       except Exception, ex:
-        msg = json.dumps({"details": traceback.format_exc(),
-                          "message": ex.message});
-        self.log_error('While parsing %s: %s', self.path, ex.message)
-        self.send_response(500)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Cache-Control', 'no-cache')
-        self.send_header('Content-Length', len(msg))
-        self.end_headers()
-        self.wfile.write(msg)
+        send_500(self, "While parsing %s" % self.path, ex)
       return True
     return False
+
+  def send_head_for_jshtml(self):
+    js_path = self.path[0:-5]
+    translated_js_path = self.translate_path(js_path)
+    if translated_js_path == '':
+      self.send_error(404, "File not found")
+      return None
+
+    abs_translated_js_path = os.path.abspath(translated_js_path)
+    m = self.server.loader.LoadModule(module_filename=abs_translated_js_path)
+
+    assert isinstance(m, js_module.JSModule)
+    htmlified_module = m.contents_as_html_module
+
+    self.send_response(200)
+    self.send_header("Content-Type", 'text/html')
+    self.send_header("Content-Length", str(len(htmlified_module)))
+
+    fs = os.stat(abs_translated_js_path)
+    self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
+    self.end_headers()
+
+    return StringIO.StringIO(htmlified_module)
+
+  def send_head(self):
+    if self.path.endswith('.js.html'):
+      try:
+        return self.send_head_for_jshtml()
+      except Exception, ex:
+        import traceback; traceback.print_exc()
+        send_500(self, "While htmlifying %s" % self.path[:-5], ex,
+                 log_error=False)
+        return None
+    return SimpleHTTPServer.SimpleHTTPRequestHandler.send_head(self)
 
   def translate_path(self, path):
     path = path.split('?',1)[0]
@@ -101,19 +129,25 @@ def do_GET_json_tests(self):
   self.wfile.write(tests_as_json)
 
 
+def send_500(self, msg, ex, log_error=True):
+  msg = json.dumps({"details": traceback.format_exc(),
+                    "message": ex.message});
+  if log_error:
+    self.log_error('%s: %s', msg, ex.message)
+  self.send_response(500)
+  self.send_header('Content-Type', 'application/json')
+  self.send_header('Cache-Control', 'no-cache')
+  self.send_header('Content-Length', len(msg))
+  self.end_headers()
+  self.wfile.write(msg)
+  return
+
+
 def do_GET_deps(self):
   try:
     self.server.UpdateDepsAndTemplate()
   except Exception, ex:
-    msg = json.dumps({"details": traceback.format_exc(),
-                      "message": ex.message});
-    self.log_error('While parsing deps: %s', ex.message)
-    self.send_response(500)
-    self.send_header('Content-Type', 'application/json')
-    self.send_header('Cache-Control', 'no-cache')
-    self.send_header('Content-Length', len(msg))
-    self.end_headers()
-    self.wfile.write(msg)
+    send_500(self, "While parsing deps", ex)
     return
   self.send_response(200)
   self.send_header('Content-Type', 'application/javascript')
@@ -210,6 +244,10 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def project(self):
     return self._project
 
+  @property
+  def loader(self):
+    return self._project.loader
+
   def UpdateDepsAndTemplate(self):
     current_time = time.time()
     if self._next_deps_check >= current_time:
@@ -231,6 +269,7 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     return self._port
 
   def serve_forever(self):
+    self.UpdateDepsAndTemplate()
     if not self._quiet:
       sys.stderr.write("Now running on http://localhost:%i\n" % self._port)
     BaseHTTPServer.HTTPServer.serve_forever(self)

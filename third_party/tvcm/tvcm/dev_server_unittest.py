@@ -30,6 +30,12 @@ class DevServerTests(unittest.TestCase):
     # Just smoke test that it works.
     resp_str = self.server.Get('/tvcm/deps.js')
 
+  def testJSHTMLGet(self):
+    project = project_module.Project()
+
+    # Just smoke test that it works.
+    resp_str = self.server.Get('/tvcm/still_a_js_module.js.html')
+
   def testTests(self):
     # Just smoke test for a known test to see if things worked.
     resp_str = self.server.Get('/tvcm/json/tests')

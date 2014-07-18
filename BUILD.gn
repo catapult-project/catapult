@@ -98,6 +98,7 @@ tracing_js_files = [
   "third_party/tvcm/src/tvcm/settings.js",
   "third_party/tvcm/src/tvcm/sorted_array_utils.js",
   "third_party/tvcm/src/tvcm/statistics.js",
+  "third_party/tvcm/src/tvcm/still_a_js_module.js",
   "third_party/tvcm/src/tvcm/ui/__init__.js",
   "third_party/tvcm/src/tvcm/ui/animation.js",
   "third_party/tvcm/src/tvcm/ui/animation_controller.js",

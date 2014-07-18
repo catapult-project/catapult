@@ -90,15 +90,6 @@ def GenerateDepsJS(load_sequence, project):
       chunks.append("tvcm.addModuleDependency('%s','%s');\n" % (
           module.name, dependent_module.name));
 
-    for dependent_raw_script in module.dependent_raw_scripts:
-      relative_path = dependent_raw_script.resource.unix_style_relative_path
-      chunks.append(
-          "tvcm.addModuleRawScriptDependency('%s','%s');\n" % (
-           module.name, relative_path));
-
-    for style_sheet in module.style_sheets:
-      chunks.append("tvcm.addModuleStylesheet('%s','%s');\n" % (
-          module.name, style_sheet.name));
   return "".join(chunks)
 
 def GenerateHTMLForCombinedTemplates(load_sequence):
