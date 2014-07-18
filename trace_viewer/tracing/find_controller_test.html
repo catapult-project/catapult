@@ -1,11 +1,16 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/find_controller.html">
+
+<script>
 'use strict';
 
 tvcm.require('tracing.test_utils');
-tvcm.require('tracing.find_controller');
 
 tvcm.unittest.testSuite('tracing.find_controller_test', function() {
   /*
@@ -189,3 +194,4 @@ tvcm.unittest.testSuite('tracing.find_controller_test', function() {
     assertEquals(0, timeline.selection.length);
   });
 });
+</script>
