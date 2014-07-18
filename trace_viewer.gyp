@@ -74,7 +74,7 @@
       'third_party/tvcm/src/tvcm/polymer.js',
       'third_party/tvcm/src/tvcm/promise.js',
       'third_party/tvcm/src/tvcm/properties.js',
-      'third_party/tvcm/src/tvcm/quad.js',
+      'third_party/tvcm/src/tvcm/quad.html',
       'third_party/tvcm/src/tvcm/raf.js',
       'third_party/tvcm/src/tvcm/range.js',
       'third_party/tvcm/src/tvcm/rect.js',
