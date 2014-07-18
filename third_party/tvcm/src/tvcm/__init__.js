@@ -404,6 +404,17 @@ this.tvcm = (function() {
    * Initialization which must be deferred until run-time.
    */
   function initialize() {
+    if (!window.FLATTENED) {
+      var ver = parseInt(
+          window.navigator.appVersion.match(/Chrome\/(\d+)\./)[1], 10);
+      if (ver < 36) {
+        var msg = 'A Chrome version of 36 or higher is required for ' +
+            'tvcm development. Please upgrade your version of Chrome ' +
+            'and try again.';
+        showPanic('Invalid Chrome version', msg);
+      }
+    }
+
     // If 'document' isn't defined, then we must be being pre-compiled,
     // so set a trap so that we're initialized on first access at run-time.
     if (!global.document) {
