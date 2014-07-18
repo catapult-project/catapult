@@ -127,27 +127,27 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParser()
     self.assertRaises(lambda: parser.Parse(html))
 
-  def html_contents_basic(self):
+  def test_html_contents_basic(self):
     html = """<a b="c">d</a>"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
     self.assertEquals(html, module.html_contents_without_links_and_script)
 
-  def html_contents_with_link_stripping(self):
+  def test_html_contents_with_link_stripping(self):
     html = """<a b="c">d</a>
               <link rel="import" href="x-foo.html">"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
     self.assertEquals("""<a b="c">d</a>""",
-                      module.html_contents_without_links_and_script)
+                      module.html_contents_without_links_and_script.strip())
 
-  def html_contents_with_style_link_stripping(self):
+  def test_html_contents_with_style_link_stripping(self):
     html = """<a b="c">d</a>
               <link rel="stylesheet" href="frameworkstyles.css">"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
     self.assertEquals("""<a b="c">d</a>""",
-                      module.html_contents_without_links_and_script)
+                      module.html_contents_without_links_and_script.strip())
 
 
 
