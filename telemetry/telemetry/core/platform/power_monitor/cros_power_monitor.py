@@ -6,10 +6,12 @@ import collections
 import re
 
 from telemetry import decorators
-from telemetry.core.platform import power_monitor
+from telemetry.core.platform.power_monitor import cros_sysfs_platform
+from telemetry.core.platform.power_monitor import sysfs_power_monitor
 
+CPU_PATH = '/sys/devices/system/cpu/'
 
-class CrosPowerMonitor(power_monitor.PowerMonitor):
+class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   """PowerMonitor that relies on 'power_supply_info' to monitor power
   consumption of a single ChromeOS application.
   """
@@ -22,39 +24,30 @@ class CrosPowerMonitor(power_monitor.PowerMonitor):
     Attributes:
         _browser: The browser to monitor.
         _cri: The Chrome interface.
-        _final_stats: The result of 'power_supply_info' after the test.
-        _initial_stats: The result of 'power_supply_info' before the test.
-        _start_time: The time the test started monitoring power.
+        _initial_power: The result of 'power_supply_info' before the test.
     """
-    super(CrosPowerMonitor, self).__init__()
+    super(CrosPowerMonitor, self).__init__(
+        cros_sysfs_platform.CrosSysfsPlatform(cri))
     self._browser = None
     self._cri = cri
-    self._final_stats = None
-    self._initial_stats = None
-    self._start_time = None
+    self._initial_power = None
 
   @decorators.Cache
   def CanMonitorPower(self):
     return self._IsOnBatteryPower()
 
   def StartMonitoringPower(self, browser):
-    assert not self._browser, 'Must call StopMonitoringPower().'
-    self._browser = browser
-    # The time on the device is recorded to determine the length of the test.
-    self._start_time = self._browser.cpu_stats['Gpu']['TotalTime']
-    self._initial_stats = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
+    super(CrosPowerMonitor, self).StartMonitoringPower(browser)
+    self._initial_power = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
 
   def StopMonitoringPower(self):
-    assert self._browser, 'StartMonitoringPower() not called.'
-    try:
-      # The length of the test is used to measure energy consumption.
-      length_h = (self._browser.cpu_stats['Gpu']['TotalTime'] -
-          self._start_time) / (3600 * 10 ** 3)
-      self._final_stats = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
-      return CrosPowerMonitor.ParseSamplingOutput(self._initial_stats,
-                                                  self._final_stats, length_h)
-    finally:
-      self._browser = None
+    cpu_stats = super(CrosPowerMonitor, self).StopMonitoringPower()
+    final_power = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
+    # The length of the test is used to measure energy consumption.
+    length_h = (self._end_time - self._start_time) / 3600.0
+    power_stats = CrosPowerMonitor.ParsePower(
+        self._initial_power, final_power, length_h)
+    return CrosPowerMonitor.CombineResults(cpu_stats, power_stats)
 
   @staticmethod
   def IsOnBatteryPower(status, board):
@@ -69,7 +62,7 @@ class CrosPowerMonitor(power_monitor.PowerMonitor):
     """
     on_battery = status['Line Power']['online'] == 'no'
     # Butterfly can incorrectly report AC online for some time after unplug.
-    # Check batter discharge state to confirm.
+    # Check battery discharge state to confirm.
     if board == 'butterfly':
       on_battery |= status['Battery']['state'] == 'Discharging'
     return on_battery
@@ -110,10 +103,10 @@ class CrosPowerMonitor(power_monitor.PowerMonitor):
           rv[dev][kname[0]] = result[0][1]
         else:
           rv[dev][result[0][0]] = result[0][1]
-    return rv
+    return dict(rv)
 
   @staticmethod
-  def ParseSamplingOutput(initial_stats, final_stats, length_h):
+  def ParsePower(initial_stats, final_stats, length_h):
     """Parse output of 'power_supply_info'
 
     Args:
@@ -124,25 +117,47 @@ class CrosPowerMonitor(power_monitor.PowerMonitor):
     Returns:
         Dictionary in the format returned by StopMonitoringPower().
     """
-    out_dict = {'identifier': 'power_supply_info', 'power_samples_mw': []}
+    out_dict = {'identifier': 'power_supply_info'}
+    component_utilization = {}
     initial = CrosPowerMonitor.ParsePowerSupplyInfo(initial_stats)
     final = CrosPowerMonitor.ParsePowerSupplyInfo(final_stats)
     # The charge value reported by 'power_supply_info' is not precise enough to
     # give meaningful results across shorter tests, so average energy rate and
     # the length of the test are used.
-    average_power_mw = (float(initial['Battery']['energy rate']) +
-                        float(final['Battery']['energy rate'])) * 10 ** 3 / 2.0
-    out_dict['power_samples_mw'].append(average_power_mw)
+    initial_power_mw = float(initial['Battery']['energy rate']) * 10 ** 3
+    final_power_mw = float(final['Battery']['energy rate']) * 10 ** 3
+    average_power_mw = (initial_power_mw + final_power_mw) / 2.0
+    out_dict['power_samples_mw'] = [initial_power_mw, final_power_mw]
     out_dict['energy_consumption_mwh'] = average_power_mw * length_h
     # Duplicating CrOS battery fields where applicable.
-    whole_package = {}
-    whole_package['charge_full'] = float(final['Battery']['full charge'])
-    whole_package['charge_full_design'] = (
+    battery = {}
+    battery['charge_full'] = float(final['Battery']['full charge'])
+    battery['charge_full_design'] = (
         float(final['Battery']['full charge design']))
-    whole_package['charge_now'] = float(final['Battery']['charge'])
-    whole_package['current_now'] = float(final['Battery']['current'])
-    whole_package['energy'] = float(final['Battery']['energy'])
-    whole_package['energy_rate'] = float(final['Battery']['energy rate'])
-    whole_package['voltage_now'] = float(final['Battery']['voltage'])
-    out_dict['component_utilization'] = {'whole_package': whole_package}
+    battery['charge_now'] = float(final['Battery']['charge'])
+    battery['current_now'] = float(final['Battery']['current'])
+    battery['energy'] = float(final['Battery']['energy'])
+    battery['energy_rate'] = float(final['Battery']['energy rate'])
+    battery['voltage_now'] = float(final['Battery']['voltage'])
+    component_utilization['battery'] = battery
+    out_dict['component_utilization'] = component_utilization
     return out_dict
+
+  @staticmethod
+  def CombineResults(cpu_stats, power_stats):
+    """Add frequency and c-state residency data to the power data.
+
+    Args:
+        cpu_stats: Dictionary of CPU data gathered from SysfsPowerMonitor.
+        power_stats: Dictionary containing power statistics.
+
+    Returns:
+        Dictionary in the format returned by StopMonitoringPower.
+    """
+    if not cpu_stats:
+      return power_stats
+    comp_util = power_stats['component_utilization']
+    # Add CPU stats to power stat dictionary.
+    for cpu in cpu_stats:
+      comp_util[cpu] = cpu_stats[cpu]
+    return power_stats

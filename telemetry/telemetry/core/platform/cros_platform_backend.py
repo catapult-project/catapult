@@ -77,4 +77,4 @@ class CrosPlatformBackend(
     self._powermonitor.StartMonitoringPower(browser)
 
   def StopMonitoringPower(self):
-    self._powermonitor.StopMonitoringPower()
+    return self._powermonitor.StopMonitoringPower()
