@@ -109,6 +109,14 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     # Dont spam the console unless it is important.
     pass
 
+  def finish(self):
+    try:
+      SimpleHTTPServer.SimpleHTTPRequestHandler.finish(self)
+    except socket.error:
+        # An final socket error may have occurred here, such as
+        # the local error ECONNABORTED.
+        pass
+
 def do_GET_json_tests(self):
   test_module_resources = self.server.project.FindAllTestModuleResources()
   if self.server.test_module_resource_filter:
