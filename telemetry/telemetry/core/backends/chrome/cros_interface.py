@@ -104,7 +104,8 @@ class CrOSInterface(object):
                       '-o StrictHostKeyChecking=no',
                       '-o KbdInteractiveAuthentication=no',
                       '-o PreferredAuthentications=publickey',
-                      '-o UserKnownHostsFile=/dev/null']
+                      '-o UserKnownHostsFile=/dev/null',
+                      '-o ControlMaster=no']
 
     if ssh_identity:
       self._ssh_identity = os.path.abspath(os.path.expanduser(ssh_identity))
