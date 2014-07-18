@@ -313,12 +313,11 @@ tvcm.requireRawScript('raw/raw.js');
     mB.dependent_raw_scripts.append(rsA)
 
     html = mB.contents_as_html_module
-    print "\n****\n%s****" % html
     self.assertTrue(html.startswith("""<!DOCTYPE html>
-<link rel="import" href="a.js.html">
-<link rel="import" href="h.html">
-<link rel="stylesheet" href="a.css">
-<script src="raw.js"></script>
+<link rel="import" href="/a.js.html">
+<link rel="import" href="/h.html">
+<link rel="stylesheet" href="/a.css">
+<script src="/raw.js"></script>
 <script>
 """))
     self.assertTrue(html.endswith("</script>\n"))
