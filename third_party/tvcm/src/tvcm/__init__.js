@@ -267,11 +267,21 @@ this.tvcm = (function() {
    * calling project, typically a third_party directory.
    */
   function requireRawScript(relativeRawScriptPath) {
-    /* This doesn't actually need to execute at runtime. */
+    if (window.FLATTENED)
+      return;
+
+    throw new Error('This code should never get called. Please ' +
+                    'convert the calling module to an html file and ' +
+                    'replace this with <script src="...">')
   }
 
   function requireStylesheet(dependentStylesheetName) {
-    /* This doesn't actually need to execute at runtime. */
+    if (window.FLATTENED)
+      return;
+
+    throw new Error('This code should never get called. Please ' +
+                    'convert the calling module to an html file and ' +
+                    'replace this with <import rel="stylesheet">')
   }
 
   function requireTemplate(template) {
