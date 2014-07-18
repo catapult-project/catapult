@@ -8,9 +8,7 @@ tvcm.require('tvcm.unittest.assertions');
 tvcm.require('tvcm.quad');
 tvcm.require('tvcm.rect');
 
-tvcm.requireRawScript('gl-matrix/common.js');
-tvcm.requireRawScript('gl-matrix/vec2.js');
-tvcm.requireRawScript('gl-matrix/vec3.js');
+tvcm.require('tvcm.gl_matrix');
 
 tvcm.unittest.testSuite('tvcm.unittest.assertions_test', function() {
   function assertionTestSetup() {

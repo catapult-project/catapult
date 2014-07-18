@@ -60,7 +60,8 @@ tvcm.unittest.testSuite('tracing.importer.task_test', function() {
 
   test('taskThatThrowsShouldRejectItsPromise', function() {
     var startingTask = new Task(function(task) {
-      throw new Errror('Expected error');
+      throw new Error(
+          'IGNORE. This is an expected error to test error handling.');
     }, this);
 
     var taskPromise = Task.RunWhenIdle(startingTask);
