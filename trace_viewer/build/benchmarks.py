@@ -21,10 +21,10 @@ class CalcDepsBench(Bench):
     project = trace_viewer_project.TraceViewerProject()
     load_sequence = project.CalcLoadSequenceForAllModules()
 
-class FindAllJSModuleFilenamesBench(Bench):
+class FindAllModuleFilenamesBench(Bench):
   def Run(self):
     project = trace_viewer_project.TraceViewerProject()
-    filenames = project.FindAllJSModuleFilenames()
+    filenames = project.FindAllModuleFilenames()
 
 class DoGenerate(Bench):
   def SetUp():

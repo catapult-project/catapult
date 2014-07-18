@@ -79,7 +79,7 @@ def _ParseScriptResource(res, resource):
 
 def Parse(loader, module_name, module_dir_name, parser_results):
   if parser_results.has_decl == False:
-    raise Exception('%s must have <!DOCTYPE html>')
+    raise Exception('%s must have <!DOCTYPE html>' % module_name)
 
   res = module.ModuleDependencyMetadata()
 

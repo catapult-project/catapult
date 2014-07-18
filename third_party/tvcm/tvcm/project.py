@@ -18,19 +18,35 @@ def _FindAllFilesRecursive(source_paths):
         all_filenames.add(x)
   return all_filenames
 
-def _IsFilenameAJSModule(loader, x):
-  if not x.endswith(".js"):
+def _IsFilenameAModule(loader, x):
+  if x.endswith(".js"):
+    s = loader.GetStrippedJSForFilename(x, early_out_if_no_tvcm=True)
+    if not s:
+      return
+    return js_module.IsJSModule(s, text_is_stripped=True)
+  elif x.endswith('.html'):
+    with open(x) as f:
+      contents = f.read()
+    if '<html>' in contents:
+      return False
+    if not contents.startswith('<!DOCTYPE html>'):
+      return False
+    return True
+  else:
     return False
-  s = loader.GetStrippedJSForFilename(x, early_out_if_no_tvcm=True)
-  if not s:
-    return
-  return js_module.IsJSModule(s, text_is_stripped=True)
 
-def _IsFilenameAJSTest(loader, x):
+
+def _IsFilenameATest(loader, x):
   if x.endswith('_test.js'):
     return True
 
+  if x.endswith('_test.html'):
+    return True
+
   if x.endswith('_unittest.js'):
+    return True
+
+  if x.endswith('_unittest.html'):
     return True
 
   # TODO(nduca): Add content test?
@@ -86,15 +102,15 @@ class Project(object):
   def ResetLoader(self):
     self._loader = None
 
-  def _FindAllJSModuleFilenames(self, source_paths):
+  def _FindAllModuleFilenames(self, source_paths):
     all_filenames = _FindAllFilesRecursive(source_paths)
     return [x for x in all_filenames if
-            _IsFilenameAJSModule(self.loader, x)]
+            _IsFilenameAModule(self.loader, x)]
 
   def _FindTestModuleFilenames(self, source_paths):
     all_filenames = _FindAllFilesRecursive(source_paths)
     return [x for x in all_filenames if
-            _IsFilenameAJSTest(self.loader, x)]
+            _IsFilenameATest(self.loader, x)]
 
   def FindAllTestModuleResources(self, start_path=None):
     if start_path == None:
@@ -107,11 +123,11 @@ class Project(object):
     return [self.loader.FindResourceGivenAbsolutePath(x)
             for x in test_module_filenames]
 
-  def FindAllJSModuleFilenames(self):
-    return self._FindAllJSModuleFilenames(self.source_paths)
+  def FindAllModuleFilenames(self):
+    return self._FindAllModuleFilenames(self.source_paths)
 
   def CalcLoadSequenceForAllModules(self):
-    filenames = self.FindAllJSModuleFilenames()
+    filenames = self.FindAllModuleFilenames()
     return self.CalcLoadSequenceForModuleFilenames(filenames)
 
   def _Load(self, filenames):
