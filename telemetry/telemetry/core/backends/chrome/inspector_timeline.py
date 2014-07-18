@@ -37,6 +37,7 @@ class InspectorTimeline(timeline_recorder.TimelineRecorder):
     super(InspectorTimeline, self).__init__()
     self._inspector_backend = inspector_backend
     self._is_recording = False
+    self._raw_events = None
 
   @property
   def is_timeline_recording_running(self):
@@ -45,6 +46,7 @@ class InspectorTimeline(timeline_recorder.TimelineRecorder):
   def Start(self):
     """Starts recording."""
     assert not self._is_recording, 'Start should only be called once.'
+    self._raw_events = None
     self._is_recording = True
     self._inspector_backend.RegisterDomain(
         'Timeline', self._OnNotification, self._OnClose)
@@ -66,7 +68,13 @@ class InspectorTimeline(timeline_recorder.TimelineRecorder):
     self._inspector_backend.UnregisterDomain('Timeline')
     self._is_recording = False
 
-    raw_events = result['events']
+    # TODO: Backward compatibility. Needs to be removed when
+    # M38 becomes stable.
+    if 'events' in result:
+      raw_events = result['events']
+    else:  # In M38 events will arrive via Timeline.stopped event.
+      raw_events = self._raw_events
+      self._raw_events = None
     return inspector_timeline_data.InspectorTimelineData(raw_events)
 
   def _SendSyncRequest(self, request, timeout=60):
@@ -93,8 +101,9 @@ class InspectorTimeline(timeline_recorder.TimelineRecorder):
   def _OnNotification(self, msg):
     """Handler called when a message is received."""
     # Since 'Timeline.start' was invoked with the 'bufferEvents' parameter,
-    # there will be no timeline notifications while recording.
-    pass
+    # the events will arrive in Timeline.stopped event.
+    if msg['method'] == 'Timeline.stopped' and 'events' in msg['params']:
+      self._raw_events = msg['params']['events']
 
   def _OnClose(self):
     """Handler called when a domain is unregistered."""
