@@ -86,16 +86,18 @@ class Module(object):
   In addition to these properties, a Module also contains lists of other
   resources that it depends on.
   """
-  def __init__(self, loader, name, resource):
+  def __init__(self, loader, name, resource, load_resource=True):
     assert isinstance(name, basestring), 'Got %s instead' % repr(name)
-    assert isinstance(resource, resource_module.Resource)
     self.loader = loader
     self.name = name
     self.resource = resource
 
-    f = open(self.filename, 'r')
-    self.contents = f.read()
-    f.close()
+    if load_resource:
+      f = open(self.filename, 'r')
+      self.contents = f.read()
+      f.close()
+    else:
+      self.contents = None
 
     # Dependency metadata, set up during Parse().
     self.dependency_metadata = None
