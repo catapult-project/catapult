@@ -80,6 +80,14 @@ class HTMLModuleParser(HTMLParser):
       self.current_results.AppendHTMLContent(
         self.get_starttag_text())
 
+  def handle_entityref(self, name):
+    self.current_results.AppendHTMLContent('&%s;' % name)
+
+  def handle_charref(self, name):
+    self.current_results.AppendHTMLContent('&#%s;' % name)
+
+  def handle_startendtag(self, tag, attrs):
+    self.current_results.AppendHTMLContent('%s' % self.get_starttag_text())
 
   def handle_endtag(self, tag):
     if tag == 'script':

@@ -133,6 +133,30 @@ class ParseTests(unittest.TestCase):
     module = parser.Parse(html)
     self.assertEquals(html, module.html_contents_without_links_and_script)
 
+  def test_html_contents_with_entity(self):
+    html = """<a>&rarr;</a>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+    self.assertEquals(html, module.html_contents_without_links_and_script)
+
+  def test_html_content_with_charref(self):
+    html = """<a>&#62;</a>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+    self.assertEquals(html, module.html_contents_without_links_and_script)
+
+  def test_html_content_start_end_br(self):
+    html = """<a><br /><br></a>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+    self.assertEquals(html, module.html_contents_without_links_and_script)
+
+  def test_html_content_start_end_img(self):
+    html = """<a><img src="foo.png" id="bar" /></a>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+    self.assertEquals(html, module.html_contents_without_links_and_script)
+
   def test_html_contents_with_link_stripping(self):
     html = """<a b="c">d</a>
               <link rel="import" href="x-foo.html">"""
