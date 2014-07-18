@@ -16,6 +16,7 @@ tvcm.require('tvcm.utils');
 tvcm.require('tvcm.settings');
 tvcm.require('tracing.analysis.analysis_view');
 tvcm.require('tracing.find_control');
+tvcm.require('tracing.find_controller');
 tvcm.require('tracing.timeline_track_view');
 tvcm.require('tvcm.ui.dom_helpers');
 tvcm.require('tvcm.ui.overlay');

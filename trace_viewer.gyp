@@ -206,6 +206,7 @@
       'trace_viewer/tracing/fast_rect_renderer.js',
       'trace_viewer/tracing/filter.js',
       'trace_viewer/tracing/find_control.js',
+      'trace_viewer/tracing/find_controller.js',
       'trace_viewer/tracing/importer/__init__.js',
       'trace_viewer/tracing/importer/etw/eventtrace_parser.js',
       'trace_viewer/tracing/importer/etw/parser.js',
