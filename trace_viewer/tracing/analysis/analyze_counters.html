@@ -1,12 +1,18 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/analysis/util.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.analysis.util');
 tvcm.require('tvcm.ui');
 tvcm.require('tracing.trace_model.counter_sample');
+
 tvcm.exportTo('tracing.analysis', function() {
 
   var CounterSample = tracing.trace_model.CounterSample;
@@ -78,3 +84,5 @@ tvcm.exportTo('tracing.analysis', function() {
     analyzeMultipleCounterTimestamps: analyzeMultipleCounterTimestamps
   };
 });
+</script>
+

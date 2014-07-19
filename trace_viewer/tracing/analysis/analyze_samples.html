@@ -1,17 +1,22 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="stylesheet" href="/tracing/analysis/analyze_slices.css">
+
+<link rel="import" href="/tracing/analysis/util.html">
+
+<script>
 
 'use strict';
 
-tvcm.requireStylesheet('tracing.analysis.analyze_slices');
-
-tvcm.require('tracing.analysis.util');
 tvcm.require('tvcm.ui');
 tvcm.require('tvcm.ui.sortable_table');
 
 tvcm.exportTo('tracing.analysis', function() {
-
   function analyzeSingleSampleEvent(results, sample, type) {
     results.appendHeader('Selected ' + type + ':');
     var table = results.appendTable('analysis-slice-table', 2);
@@ -35,3 +40,5 @@ tvcm.exportTo('tracing.analysis', function() {
     analyzeSingleSampleEvent: analyzeSingleSampleEvent
   };
 });
+</script>
+

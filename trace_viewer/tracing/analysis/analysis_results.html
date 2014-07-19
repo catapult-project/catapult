@@ -1,14 +1,19 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/tracing/analysis/analysis_results.css">
+
+<link rel="import" href="/tracing/analysis/util.html">
+<link rel="import" href="/tracing/analysis/analysis_link.html">
+<link rel="import" href="/tracing/analysis/generic_object_view.html">
+
+<script>
 'use strict';
 
-tvcm.requireStylesheet('tracing.analysis.analysis_results');
-
-tvcm.require('tracing.analysis.util');
-tvcm.require('tracing.analysis.analysis_link');
-tvcm.require('tracing.analysis.generic_object_view');
 tvcm.require('tvcm.ui');
 
 tvcm.exportTo('tracing.analysis', function() {
@@ -404,3 +409,5 @@ tvcm.exportTo('tracing.analysis', function() {
     AnalysisResults: AnalysisResults
   };
 });
+</script>
+

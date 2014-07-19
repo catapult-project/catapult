@@ -1,14 +1,18 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/analysis/cpu_slice_view.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.analysis.cpu_slice_view');
 tvcm.require('tracing.trace_model');
 tvcm.require('tracing.timeline_view');
 tvcm.require('tracing.importer.linux_perf_importer');
-
 
 tvcm.unittest.testSuite('tracing.analysis.thread_time_slice_view_test', function() { // @suppress longLineCheck
   function createBasicModel() {
@@ -78,5 +82,6 @@ tvcm.unittest.testSuite('tracing.analysis.thread_time_slice_view_test', function
     view.querySelector('.analysis-link').click();
     assertTrue(didSelectionChangeHappen);
   });
-
 });
+</script>
+

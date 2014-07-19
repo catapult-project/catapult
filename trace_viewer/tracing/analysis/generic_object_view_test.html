@@ -1,11 +1,16 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/analysis/generic_object_view.html">
+
+<script>
 'use strict';
 
 tvcm.require('tracing.trace_model.object_instance');
-tvcm.require('tracing.analysis.generic_object_view');
 
 tvcm.unittest.testSuite('tracing.analysis.generic_object_view_test', function() { // @suppress longLineCheck
   var GenericObjectView = tracing.analysis.GenericObjectView;
@@ -123,3 +128,5 @@ tvcm.unittest.testSuite('tracing.analysis.generic_object_view_test', function() 
     this.addHTMLOutput(view);
   });
 });
+</script>
+
