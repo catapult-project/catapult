@@ -1,10 +1,14 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/system_stats/system_stats_instance_track.css">
+
+<script>
 'use strict';
-
-tvcm.requireStylesheet('system_stats.system_stats_instance_track');
 
 tvcm.require('tvcm.sorted_array_utils');
 tvcm.require('tracing.tracks.stacked_bars_track');
@@ -13,7 +17,6 @@ tvcm.require('tracing.color_scheme');
 tvcm.require('tvcm.ui');
 
 tvcm.exportTo('system_stats', function() {
-
   var EventPresenter = tracing.EventPresenter;
 
   var palette = tvcm.ui.getColorPalette();
@@ -351,3 +354,4 @@ tvcm.exportTo('system_stats', function() {
     SystemStatsInstanceTrack: SystemStatsInstanceTrack
   };
 });
+</script>
