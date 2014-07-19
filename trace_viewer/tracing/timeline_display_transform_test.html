@@ -1,10 +1,14 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/timeline_display_transform.html">
+
+<script>
 'use strict';
-
-tvcm.require('tracing.timeline_display_transform');
 
 tvcm.unittest.testSuite('tracing.timeline_display_transform_test', function() {
   var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
@@ -32,3 +36,5 @@ tvcm.unittest.testSuite('tracing.timeline_display_transform_test', function() {
     assertTrue(a.almostEquals(c));
   });
 });
+</script>
+

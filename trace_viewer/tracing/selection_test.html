@@ -1,13 +1,18 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/timeline_viewport.html">
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/trace_model.html">
+<link rel="import" href="/tracing/selection.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.timeline_viewport');
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.trace_model');
-tvcm.require('tracing.selection');
 tvcm.require('tracing.tracks.slice_track');
 
 tvcm.unittest.testSuite('tracing.selection_test', function() {
@@ -61,3 +66,5 @@ tvcm.unittest.testSuite('tracing.selection_test', function() {
     assertEquals(t1.sliceGroup.slices[1], shifted[0]);
   });
 });
+</script>
+

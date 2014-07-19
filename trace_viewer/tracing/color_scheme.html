@@ -1,7 +1,11 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<script>
 'use strict';
 
 tvcm.require('tracing.trace_model.event');
@@ -11,7 +15,6 @@ tvcm.require('tvcm.ui.color_scheme');
  * @fileoverview Provides color scheme related functions.
  */
 tvcm.exportTo('tracing', function() {
-
   var paletteRaw = tvcm.ui.getRawColorPalette();
   var palette = tvcm.ui.getColorPalette();
 
@@ -87,3 +90,5 @@ tvcm.exportTo('tracing', function() {
     EventPresenter: EventPresenter
   };
 });
+</script>
+

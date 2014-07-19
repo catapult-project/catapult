@@ -1,15 +1,19 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/timeline_track_view.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.timeline_track_view');
 tvcm.require('tracing.importer.trace_event_importer');
 
 tvcm.unittest.testSuite('tracing.timeline_track_view_test', function() {
-
   var Selection = tracing.Selection;
   var SelectionState = tracing.trace_model.SelectionState;
 
@@ -307,3 +311,5 @@ tvcm.unittest.testSuite('tracing.timeline_track_view_test', function() {
     trackView.viewport.interestRange.setMinAndMax(slice.start, slice.start);
   });
 });
+</script>
+

@@ -1,13 +1,18 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/constants.html">
+<link rel="import" href="/tracing/selection.html">
+
+<script>
 'use strict';
 
 tvcm.require('tvcm.range');
 tvcm.require('tvcm.ui');
-tvcm.require('tracing.constants');
-tvcm.require('tracing.selection');
 tvcm.require('tracing.trace_model.slice');
 
 /**
@@ -302,3 +307,5 @@ tvcm.exportTo('tracing', function() {
     TimingTool: TimingTool
   };
 });
+</script>
+

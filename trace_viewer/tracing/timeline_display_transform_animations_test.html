@@ -1,11 +1,16 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/timeline_display_transform.html">
+<link rel="import" href="/tracing/timeline_display_transform_animations.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.timeline_display_transform');
-tvcm.require('tracing.timeline_display_transform_animations');
 tvcm.require('tvcm.ui.animation_controller');
 
 tvcm.unittest.testSuite('tracing.timeline_display_transform_animations_test', function() { // @suppress longLineCheck
@@ -57,5 +62,6 @@ tvcm.unittest.testSuite('tracing.timeline_display_transform_animations_test', fu
     assertFalse(controller.hasActiveAnimation);
     assertEquals(20, target.panX);
   });
-
 });
+</script>
+

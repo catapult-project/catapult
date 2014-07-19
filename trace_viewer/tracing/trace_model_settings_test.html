@@ -1,14 +1,17 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/trace_model.html">
+<link rel="import" href="/tracing/trace_model_settings.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.trace_model');
-tvcm.require('tracing.trace_model_settings');
-
 tvcm.unittest.testSuite('tracing.trace_model_settings_test', function() {
-
   test('process_name_uniqueness_0', function() {
     var model = new tracing.TraceModel();
     var p1 = model.getOrCreateProcess(1);
@@ -170,5 +173,6 @@ tvcm.unittest.testSuite('tracing.trace_model_settings_test', function() {
     settings = new tracing.TraceModelSettings(model);
     assertFalse(settings.getSettingFor(t1, 'true_by_default', true));
   });
-
 });
+</script>
+

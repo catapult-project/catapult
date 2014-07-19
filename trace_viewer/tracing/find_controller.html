@@ -5,16 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/filter.html">
+<link rel="import" href="/tracing/selection.html">
+
 <script>
 'use strict';
 
 /**
  * @fileoverview FindController.
  */
-
-tvcm.require('tracing.filter');
-tvcm.require('tracing.selection');
-
 tvcm.exportTo('tracing', function() {
   function FindController() {
     this.timeline_ = undefined;

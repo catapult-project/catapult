@@ -1,7 +1,13 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/filter.html">
+
+<script>
 'use strict';
 
 /**
@@ -29,11 +35,9 @@ tvcm.require('tracing.trace_model.kernel');
 tvcm.require('tracing.trace_model.process');
 tvcm.require('tracing.trace_model.sample');
 tvcm.require('tracing.trace_model.stack_frame');
-tvcm.require('tracing.filter');
 tvcm.require('tvcm.ui.overlay');
 
 tvcm.exportTo('tracing', function() {
-
   var Importer = tracing.importer.Importer;
   var Process = tracing.trace_model.Process;
   var Kernel = tracing.trace_model.Kernel;
@@ -565,3 +569,5 @@ tvcm.exportTo('tracing', function() {
     TraceModel: TraceModel
   };
 });
+</script>
+

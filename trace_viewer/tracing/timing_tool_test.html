@@ -1,10 +1,14 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/timing_tool.html">
+
+<script>
 'use strict';
-
-tvcm.require('tracing.timing_tool');
 
 tvcm.unittest.testSuite('tracing.timing_tool_test', function() {
   function create100PxWideViewportInto10WideWorld() {
@@ -69,3 +73,5 @@ tvcm.unittest.testSuite('tracing.timing_tool_test', function() {
     assertFalse(vp.interestRange.rightSelected);
   });
 });
+</script>
+

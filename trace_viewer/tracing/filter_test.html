@@ -1,12 +1,17 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/filter.html">
+<link rel="import" href="/tracing/test_utils.html">
+
+<script>
 'use strict';
 
 tvcm.require('tvcm.unittest');
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.filter');
 
 tvcm.unittest.testSuite('tracing.filter_test', function() {
   var TitleFilter = tracing.TitleFilter;
@@ -55,3 +60,5 @@ tvcm.unittest.testSuite('tracing.filter_test', function() {
     assertFalse(new ExactTitleFilter('a').matchSlice(s1));
   });
 });
+</script>
+

@@ -1,7 +1,20 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/tvcm/ui/common.css">
+<link rel="stylesheet" href="/tracing/timeline_track_view.css">
+
+<link rel="import" href="/tracing/filter.html">
+<link rel="import" href="/tracing/selection.html">
+<link rel="import" href="/tracing/timeline_viewport.html">
+<link rel="import" href="/tracing/timeline_display_transform_animations.html">
+<link rel="import" href="/tracing/timing_tool.html">
+
+<script>
 'use strict';
 
 /**
@@ -18,16 +31,9 @@
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-tvcm.requireStylesheet('tvcm.ui.common');
-tvcm.requireStylesheet('tracing.timeline_track_view');
 tvcm.require('tvcm.events');
 tvcm.require('tvcm.properties');
 tvcm.require('tvcm.settings');
-tvcm.require('tracing.filter');
-tvcm.require('tracing.selection');
-tvcm.require('tracing.timeline_viewport');
-tvcm.require('tracing.timeline_display_transform_animations');
-tvcm.require('tracing.timing_tool');
 tvcm.require('tracing.trace_model.event');
 tvcm.require('tracing.tracks.drawing_container');
 tvcm.require('tracing.tracks.trace_model_track');
@@ -36,7 +42,6 @@ tvcm.require('tvcm.ui');
 tvcm.require('tvcm.ui.mouse_mode_selector');
 
 tvcm.exportTo('tracing', function() {
-
   var Selection = tracing.Selection;
   var SelectionState = tracing.trace_model.SelectionState;
   var Viewport = tracing.TimelineViewport;
@@ -1063,3 +1068,5 @@ tvcm.exportTo('tracing', function() {
     TimelineTrackView: TimelineTrackView
   };
 });
+</script>
+

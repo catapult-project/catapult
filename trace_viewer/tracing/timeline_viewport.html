@@ -1,21 +1,25 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/draw_helpers.html">
+<link rel="import" href="/tracing/timeline_interest_range.html">
+<link rel="import" href="/tracing/timeline_display_transform.html">
+
+<script>
 'use strict';
 
 /**
  * @fileoverview Code for the viewport.
  */
 tvcm.require('tvcm.events');
-tvcm.require('tracing.draw_helpers');
-tvcm.require('tracing.timeline_interest_range');
-tvcm.require('tracing.timeline_display_transform');
 tvcm.require('tvcm.ui.animation');
 tvcm.require('tvcm.ui.animation_controller');
 
 tvcm.exportTo('tracing', function() {
-
   var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
   var TimelineInterestRange = tracing.TimelineInterestRange;
 
@@ -347,3 +351,5 @@ tvcm.exportTo('tracing', function() {
     TimelineViewport: TimelineViewport
   };
 });
+</script>
+

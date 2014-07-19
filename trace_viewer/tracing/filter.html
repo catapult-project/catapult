@@ -1,7 +1,11 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<script>
 'use strict';
 
 tvcm.exportTo('tracing', function() {
@@ -9,8 +13,7 @@ tvcm.exportTo('tracing', function() {
    * @constructor The generic base class for filtering a TraceModel based on
    * various rules. The base class returns true for everything.
    */
-  function Filter() {
-  }
+  function Filter() { }
 
   Filter.prototype = {
     __proto__: Object.prototype,
@@ -80,3 +83,5 @@ tvcm.exportTo('tracing', function() {
     ExactTitleFilter: ExactTitleFilter
   };
 });
+</script>
+

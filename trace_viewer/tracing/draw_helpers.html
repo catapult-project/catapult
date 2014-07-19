@@ -1,12 +1,17 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/color_scheme.html">
+<link rel="import" href="/tracing/elided_cache.html">
+
+<script>
 'use strict';
 
 tvcm.require('tvcm.sorted_array_utils');
-tvcm.require('tracing.color_scheme');
-tvcm.require('tracing.elided_cache');
 
 /**
  * @fileoverview Provides various helper methods for drawing to a provided
@@ -367,3 +372,5 @@ tvcm.exportTo('tracing', function() {
     THIN_SLICE_HEIGHT: THIN_SLICE_HEIGHT
   };
 });
+</script>
+

@@ -1,11 +1,16 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/trace_model.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.trace_model');
 tvcm.require('tracing.importer');
 
 tvcm.unittest.testSuite('tracing.trace_model_test', function() {
@@ -295,3 +300,5 @@ tvcm.unittest.testSuite('tracing.trace_model_test', function() {
     assertEquals(0.185, m.samples[2].start);
   });
 });
+</script>
+
