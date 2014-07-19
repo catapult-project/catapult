@@ -1,9 +1,13 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script>
 
 'use strict';
-
 
 /**
  * Contains connection code that inspector's embedding framework calls on
@@ -11,23 +15,17 @@
  */
 tvcm.exportTo('about_tracing', function() {
   // Shim needed to keep the bootup code of chrome://inspect happy.
-  window.WebInspector = {
-  };
-
-  window.WebInspector.addExtensions = function() {
-  };
-
+  window.WebInspector = { };
+  window.WebInspector.addExtensions = function() { };
 
   // Interface used by inspector when it hands data to us from the backend.
   window.InspectorFrontendAPI = {
-    setToolbarColors: function() {
-    },
+    setToolbarColors: function() { },
 
     dispatchMessage: function(payload) {
       throw new Error('Should have been patched by InspectorConnection');
     }
   };
-
 
   /**
    * @constructor
@@ -111,3 +109,5 @@ tvcm.exportTo('about_tracing', function() {
     InspectorConnection: InspectorConnection
   };
 });
+</script>
+

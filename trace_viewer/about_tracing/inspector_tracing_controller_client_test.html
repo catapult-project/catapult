@@ -1,10 +1,14 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/about_tracing/inspector_tracing_controller_client.html">
+
+<script>
 'use strict';
-
-tvcm.require('about_tracing.inspector_tracing_controller_client');
 
 tvcm.unittest.testSuite('about_tracing.inspector_tracing_controller_client_test', function() { // @suppress longLineCheck
   test('beginRecording_sendCategoriesAndOptions', function() {
@@ -26,6 +30,7 @@ tvcm.unittest.testSuite('about_tracing.inspector_tracing_controller_client_test'
       this.setNotificationListener = function(method, listener) {
       };
     })();
+
     var recordingOptions = {
       categoryFilter: JSON.stringify(['a', 'b', 'c']),
       useSystemTracing: false,
@@ -47,3 +52,5 @@ tvcm.unittest.testSuite('about_tracing.inspector_tracing_controller_client_test'
     assertTrue(sampleFlag);
   });
 });
+</script>
+

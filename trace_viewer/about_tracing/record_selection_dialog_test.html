@@ -1,12 +1,17 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/about_tracing/record_selection_dialog.html">
+
+<script>
 'use strict';
 
 tvcm.require('tvcm.settings');
 tvcm.require('tracing.test_utils');
-tvcm.require('about_tracing.record_selection_dialog');
 
 tvcm.unittest.testSuite('about_tracing.record_selection_dialog_test', function() { // @suppress longLineCheck
   test('instantitate', function() {
@@ -317,3 +322,5 @@ tvcm.unittest.testSuite('about_tracing.record_selection_dialog_test', function()
         dlg.categoryFilter());
   });
 });
+</script>
+

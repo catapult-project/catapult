@@ -1,14 +1,17 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/about_tracing/mock_tracing_controller_client.html">
+<link rel="import" href="/about_tracing/profiling_view.html">
+
+<script>
 'use strict';
 
-tvcm.require('about_tracing.mock_tracing_controller_client');
-tvcm.require('about_tracing.profiling_view');
-
 tvcm.unittest.testSuite('about_tracing.profiling_view_test', function() {
-
   var testData = [
     {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 19000, cat: 'foo', tid: 53, ph: 'E'},
@@ -27,7 +30,6 @@ tvcm.unittest.testSuite('about_tracing.profiling_view_test', function() {
   var ProfilingView = about_tracing.ProfilingView;
 
   test('recording', function() {
-
     var mock = new about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
     mock.expectRequest('getMonitoringStatus', function() {
@@ -72,7 +74,6 @@ tvcm.unittest.testSuite('about_tracing.profiling_view_test', function() {
   });
 
   test('monitoring', function() {
-
     var mock = new about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
     mock.expectRequest('getMonitoringStatus', function() {
@@ -126,3 +127,5 @@ tvcm.unittest.testSuite('about_tracing.profiling_view_test', function() {
     });
   });
 });
+</script>
+

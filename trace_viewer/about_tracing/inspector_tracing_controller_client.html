@@ -1,11 +1,17 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/about_tracing/tracing_controller_client.html">
+<link rel="import" href="/about_tracing/inspector_connection.html">
+
+<script>
 'use strict';
+
 tvcm.require('tvcm.promise');
-tvcm.require('about_tracing.tracing_controller_client');
-tvcm.require('about_tracing.inspector_connection');
 
 tvcm.exportTo('about_tracing', function() {
   function createResolvedPromise(data) {
@@ -182,3 +188,5 @@ tvcm.exportTo('about_tracing', function() {
     InspectorTracingControllerClient: InspectorTracingControllerClient
   };
 });
+</script>
+

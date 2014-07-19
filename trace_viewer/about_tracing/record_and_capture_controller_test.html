@@ -1,11 +1,15 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/about_tracing/mock_tracing_controller_client.html">
+<link rel="import" href="/about_tracing/record_and_capture_controller.html">
+
+<script>
 'use strict';
-
-tvcm.require('about_tracing.mock_tracing_controller_client');
-tvcm.require('about_tracing.record_and_capture_controller');
 
 tvcm.unittest.testSuite('about_tracing.record_and_capture_controller_test', function() { // @suppress longLineCheck
   var testData = [
@@ -101,3 +105,5 @@ tvcm.unittest.testSuite('about_tracing.record_and_capture_controller_test', func
     });
   });
 });
+</script>
+

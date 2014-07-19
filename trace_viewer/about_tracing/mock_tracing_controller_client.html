@@ -1,10 +1,14 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/about_tracing/tracing_controller_client.html">
+
+<script>
 'use strict';
-
-tvcm.require('about_tracing.tracing_controller_client');
 
 tvcm.exportTo('about_tracing', function() {
   function MockTracingControllerClient() {
@@ -93,3 +97,5 @@ tvcm.exportTo('about_tracing', function() {
     MockTracingControllerClient: MockTracingControllerClient
   };
 });
+</script>
+
