@@ -1,10 +1,14 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/tcmalloc/heap_instance_track.css">
+
+<script>
 'use strict';
-
-tvcm.requireStylesheet('tcmalloc.heap_instance_track');
 
 tvcm.require('tracing.tracks.stacked_bars_track');
 tvcm.require('tracing.tracks.object_instance_track');
@@ -13,7 +17,6 @@ tvcm.require('tvcm.sorted_array_utils');
 tvcm.require('tvcm.ui');
 
 tvcm.exportTo('tcmalloc', function() {
-
   var EventPresenter = tracing.EventPresenter;
 
   /**
@@ -170,3 +173,4 @@ tvcm.exportTo('tcmalloc', function() {
     HeapInstanceTrack: HeapInstanceTrack
   };
 });
+</script>

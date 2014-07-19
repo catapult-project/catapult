@@ -1,10 +1,14 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tcmalloc/heap.html">
+
+<script>
 'use strict';
-
-tvcm.require('tcmalloc.heap');
 
 tvcm.unittest.testSuite('tcmalloc.heap_test', function() {
   var HeapSnapshot = tcmalloc.HeapSnapshot;
@@ -105,3 +109,4 @@ tvcm.unittest.testSuite('tcmalloc.heap_test', function() {
     assertEquals(1, Object.keys(trace.children).length);
   });
 });
+</script>

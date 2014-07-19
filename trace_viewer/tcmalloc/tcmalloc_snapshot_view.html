@@ -1,16 +1,19 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/tcmalloc/tcmalloc_snapshot_view.css">
+
+<script>
 'use strict';
-
-tvcm.requireStylesheet('tcmalloc.tcmalloc_snapshot_view');
 
 tvcm.require('tracing.analysis.object_snapshot_view');
 tvcm.require('tracing.analysis.util');
 
 tvcm.exportTo('tcmalloc', function() {
-
   var tsRound = tracing.analysis.tsRound;
 
   /*
@@ -171,5 +174,5 @@ tvcm.exportTo('tcmalloc', function() {
   return {
     TcmallocSnapshotView: TcmallocSnapshotView
   };
-
 });
+</script>
