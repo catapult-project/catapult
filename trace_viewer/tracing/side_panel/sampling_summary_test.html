@@ -1,12 +1,17 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/side_panel/sampling_summary.html">
+<link rel="import" href="/tracing/test_utils.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.side_panel.sampling_summary');
 tvcm.require('tracing.trace_model');
-tvcm.require('tracing.test_utils');
 
 tvcm.unittest.testSuite('tracing.side_panel.sampling_summary_test', function() {
   var StackFrame = tracing.trace_model.StackFrame;
@@ -201,3 +206,5 @@ tvcm.unittest.testSuite('tracing.side_panel.sampling_summary_test', function() {
     panel.selection = s;
   });
 });
+</script>
+
