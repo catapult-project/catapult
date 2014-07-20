@@ -1,15 +1,18 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/importer/etw_importer.html">
+<link rel="import" href="/tracing/importer/etw/eventtrace_parser.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.importer.etw_importer');
-tvcm.require('tracing.importer.etw.eventtrace_parser');
-
 tvcm.unittest.testSuite('tracing.importer.etw.eventtrace_parser_test', function() { // @suppress longLineCheck
-
   // Constants for EventTrace events.
   var guid = '68FDD900-4A3E-11D1-84F4-0000F80464E3';
   var kEventTraceHeaderOpcode = 0;
@@ -108,5 +111,6 @@ tvcm.unittest.testSuite('tracing.importer.etw.eventtrace_parser_test', function(
     assertTrue(fields.sessionNameString === 'Relogger');
     assertTrue(fields.logFileNameString === 'C:\\kernel.etl');
   });
-
 });
+</script>
+

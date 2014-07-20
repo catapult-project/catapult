@@ -1,7 +1,13 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/importer/etw/parser.html">
+
+<script>
 'use strict';
 
 /**
@@ -18,10 +24,7 @@
  *
  * See http://msdn.microsoft.com/library/windows/desktop/aa364092.aspx
  */
-tvcm.require('tracing.importer.etw.parser');
-
 tvcm.exportTo('tracing.importer.etw', function() {
-
   var Parser = tracing.importer.etw.Parser;
 
   // Constants for Process events.
@@ -174,3 +177,5 @@ tvcm.exportTo('tracing.importer.etw', function() {
     ProcessParser: ProcessParser
   };
 });
+</script>
+

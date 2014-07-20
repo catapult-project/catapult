@@ -1,15 +1,18 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/importer/etw_importer.html">
+<link rel="import" href="/tracing/importer/etw/process_parser.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.importer.etw_importer');
-tvcm.require('tracing.importer.etw.process_parser');
-
 tvcm.unittest.testSuite('tracing.importer.etw.process_parser_test', function() { // @suppress longLineCheck
-
   // Constants for Process events.
   var guid = '3D6FA8D0-FE05-11D0-9DDA-00C04FD7BA7C';
   var kProcessStartOpcode = 1;
@@ -143,3 +146,5 @@ tvcm.unittest.testSuite('tracing.importer.etw.process_parser_test', function() {
     assertTrue(fields.exitTime === '01cefaecf9a2498d');
   });
 });
+</script>
+
