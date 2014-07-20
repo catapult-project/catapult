@@ -1,7 +1,11 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<script>
 'use strict';
 
 /**
@@ -11,9 +15,7 @@ tvcm.exportTo('tracing.importer.v8', function() {
   /**
    * Creates a CSV lines parser.
    */
-  function CsvParser() {
-  };
-
+  function CsvParser() { };
 
   /**
    * A regex for matching a CSV field.
@@ -21,13 +23,11 @@ tvcm.exportTo('tracing.importer.v8', function() {
    */
   CsvParser.CSV_FIELD_RE_ = /^"((?:[^"]|"")*)"|([^,]*)/;
 
-
   /**
    * A regex for matching a double quote.
    * @private
    */
   CsvParser.DOUBLE_QUOTE_RE_ = /""/g;
-
 
   /**
    * Parses a line of CSV-encoded values. Returns an array of fields.
@@ -86,7 +86,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     this.csvParser_ = new CsvParser();
   };
 
-
   /**
    * Used for printing error messages.
    *
@@ -95,7 +94,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
   LogReader.prototype.printError = function(str) {
     // Do nothing.
   };
-
 
   /**
    * Processes a portion of V8 profiler event log.
@@ -106,7 +104,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     this.processLog_(chunk.split('\n'));
   };
 
-
   /**
    * Processes a line of V8 profiler event log.
    *
@@ -115,7 +112,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
   LogReader.prototype.processLogLine = function(line) {
     this.processLog_([line]);
   };
-
 
   /**
    * Processes stack record.
@@ -143,7 +139,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     return fullStack;
   };
 
-
   /**
    * Returns whether a particular dispatch must be skipped.
    *
@@ -153,7 +148,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
   LogReader.prototype.skipDispatch = function(dispatch) {
     return false;
   };
-
 
   /**
    * Does a dispatch of a log record.
@@ -191,7 +185,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     dispatch.processor.apply(this, parsedFields);
   };
 
-
   /**
    * Processes log lines.
    *
@@ -217,3 +210,5 @@ tvcm.exportTo('tracing.importer.v8', function() {
     LogReader: LogReader
   };
 });
+</script>
+

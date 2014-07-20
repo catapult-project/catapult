@@ -1,7 +1,11 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<script>
 'use strict';
 
 /**
@@ -16,9 +20,7 @@ tvcm.exportTo('tracing.importer.v8', function() {
    *
    * @constructor
    */
-  function SplayTree() {
-  };
-
+  function SplayTree() { };
 
   /**
    * Pointer to the root node of the tree.
@@ -28,15 +30,12 @@ tvcm.exportTo('tracing.importer.v8', function() {
    */
   SplayTree.prototype.root_ = null;
 
-
   /**
    * @return {boolean} Whether the tree is empty.
    */
   SplayTree.prototype.isEmpty = function() {
     return !this.root_;
   };
-
-
 
   /**
    * Inserts a node into the tree with the specified key and value if
@@ -119,7 +118,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     return this.root_.key == key ? this.root_ : null;
   };
 
-
   /**
    * @return {SplayTree.Node} Node having the minimum key value.
    */
@@ -134,7 +132,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     return current;
   };
 
-
   /**
    * @return {SplayTree.Node} Node having the maximum key value.
    */
@@ -148,7 +145,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     }
     return current;
   };
-
 
   /**
    * @return {SplayTree.Node} Node having the maximum key value that
@@ -172,7 +168,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     }
   };
 
-
   /**
    * @return {Array<*>} An array containing all the values of tree's nodes
    * paired with keys.
@@ -184,7 +179,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     return result;
   };
 
-
   /**
    * @return {Array<*>} An array containing all the values of tree's nodes.
    */
@@ -193,7 +187,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     this.traverse_(function(node) { result.push(node.value); });
     return result;
   };
-
 
   /**
    * Perform the splay operation for the given key. Moves the node with
@@ -266,7 +259,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     this.root_ = current;
   };
 
-
   /**
    * Performs a preorder traversal of the tree.
    *
@@ -286,7 +278,6 @@ tvcm.exportTo('tracing.importer.v8', function() {
     }
   };
 
-
   /**
    * Constructs a Splay tree node.
    *
@@ -298,12 +289,10 @@ tvcm.exportTo('tracing.importer.v8', function() {
     this.value = value;
   };
 
-
   /**
    * @type {SplayTree.Node}
    */
   SplayTree.Node.prototype.left = null;
-
 
   /**
    * @type {SplayTree.Node}
@@ -314,3 +303,4 @@ tvcm.exportTo('tracing.importer.v8', function() {
     SplayTree: SplayTree
   };
 });
+</script>

@@ -1,11 +1,16 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/importer/v8_log_importer.html">
+
+<script>
 
 'use strict';
-
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.importer.v8_log_importer');
 
 tvcm.unittest.testSuite('tracing.importer.v8_log_importer_test', function() {
   var V8LogImporter = tracing.importer.V8LogImporter;
@@ -238,3 +243,5 @@ tvcm.unittest.testSuite('tracing.importer.v8_log_importer_test', function() {
     assertFalse(V8LogImporter.canImport([]));
   });
 });
+</script>
+
