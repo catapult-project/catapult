@@ -1,11 +1,15 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/test_utils.html">'
+<link rel="import" href="/tracing/importer.html">
+
+<script>
 'use strict';
-
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.importer');
 
 tvcm.unittest.testSuite('tracing.importer.trace_event_importer_perf_test', function() { // @suppress longLineCheck
   var eventStrings = {};
@@ -65,3 +69,5 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_perf_test', funct
     m.importTraces([events], false, false);
   }, {iterations: 1});
 });
+</script>
+

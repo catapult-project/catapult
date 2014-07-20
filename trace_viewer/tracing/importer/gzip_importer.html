@@ -1,20 +1,25 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/importer/importer.html">
+
+<script src="/jszip.js"></script>
+<script src="/jszip-inflate.js"></script>
+
+<script>
 'use strict';
 
 /**
  * @fileoverview GzipImporter inflates gzip compressed data and passes it along
  * to an actual importer.
  */
-tvcm.require('tracing.importer.importer');
 tvcm.require('tracing.trace_model');
-tvcm.requireRawScript('jszip.js');
-tvcm.requireRawScript('jszip-inflate.js');
 
 tvcm.exportTo('tracing.importer', function() {
-
   var Importer = tracing.importer.Importer;
 
   var GZIP_MEMBER_HEADER_ID_SIZE = 3;
@@ -135,3 +140,5 @@ tvcm.exportTo('tracing.importer', function() {
     GzipImporter: GzipImporter
   };
 });
+</script>
+

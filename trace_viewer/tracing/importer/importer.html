@@ -1,17 +1,18 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<script>
 'use strict';
 
 /**
  * @fileoverview Base class for trace data importers.
  */
-
 tvcm.exportTo('tracing.importer', function() {
-
-  function Importer() {
-  }
+  function Importer() { }
 
   Importer.prototype = {
     __proto__: Object.prototype,
@@ -54,3 +55,5 @@ tvcm.exportTo('tracing.importer', function() {
     Importer: Importer
   };
 });
+</script>
+

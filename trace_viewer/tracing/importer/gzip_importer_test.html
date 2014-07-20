@@ -1,12 +1,16 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/importer/gzip_importer.html">
+<link rel="import" href="/tracing/importer/trace_event_importer.html">
+
+<script>
 'use strict';
-
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.importer.gzip_importer');
-tvcm.require('tracing.importer.trace_event_importer');
 
 tvcm.unittest.testSuite('tracing.importer.gzip_importer_test', function() {
   var findSliceNamed = tracing.test_utils.findSliceNamed;
@@ -74,3 +78,5 @@ tvcm.unittest.testSuite('tracing.importer.gzip_importer_test', function() {
 
   });
 });
+</script>
+
