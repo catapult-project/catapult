@@ -6,6 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/filter.html">
+<link rel="import" href="/tracing/importer/importer.html">
+<link rel="import" href="/tracing/importer/task.html">
+<link rel="import" href="/tracing/trace_model/kernel.html">
+<link rel="import" href="/tracing/trace_model/process.html">
+<link rel="import" href="/tracing/trace_model/sample.html">
+<link rel="import" href="/tracing/trace_model/stack_frame.html">
 
 <script>
 'use strict';
@@ -29,12 +35,6 @@ found in the LICENSE file.
 tvcm.require('tvcm.range');
 tvcm.require('tvcm.events');
 tvcm.require('tvcm.interval_tree');
-tvcm.require('tracing.importer.importer');
-tvcm.require('tracing.importer.task');
-tvcm.require('tracing.trace_model.kernel');
-tvcm.require('tracing.trace_model.process');
-tvcm.require('tracing.trace_model.sample');
-tvcm.require('tracing.trace_model.stack_frame');
 tvcm.require('tvcm.ui.overlay');
 
 tvcm.exportTo('tracing', function() {
