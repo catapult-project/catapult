@@ -15,6 +15,10 @@ UA_TYPE_MAPPING = {
       'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus 7 Build/IMM76B) '
       'AppleWebKit/535.19 (KHTML, like Gecko) Chrome/27.0.1453.111 '
       'Safari/535.19',
+  'tablet_10_inch':
+      'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus 10 Build/IMM76B) '
+      'AppleWebKit/535.19 (KHTML, like Gecko) Chrome/27.0.1453.111 '
+      'Safari/535.19',
 }
 
 
