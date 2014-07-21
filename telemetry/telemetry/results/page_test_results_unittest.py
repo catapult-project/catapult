@@ -6,7 +6,6 @@ from telemetry.results import base_test_results_unittest
 
 from telemetry.page import page_set
 from telemetry.results import page_test_results
-from telemetry.value import failure
 
 class NonPrintingPageTestResults(
     page_test_results.PageTestResults):
@@ -29,8 +28,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
   def test_failures(self):
     results = NonPrintingPageTestResults()
-    results.AddValue(
-        failure.FailureValue(self.pages[0], self.CreateException()))
+    results.AddFailure(self.pages[0], self.CreateException())
     results.AddSuccess(self.pages[1])
-    self.assertEquals(results.pages_that_had_failures, [self.pages[0]])
+    self.assertEquals(results.pages_that_had_failures,
+                      set([self.pages[0]]))
     self.assertEquals(results.successes, [self.pages[1]])

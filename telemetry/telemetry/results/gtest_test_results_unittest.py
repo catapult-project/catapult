@@ -8,7 +8,6 @@ from telemetry.page import page_set
 from telemetry.results import base_test_results_unittest
 from telemetry.results import gtest_test_results
 from telemetry.unittest import simple_mock
-from telemetry.value import failure
 
 
 def _MakePageSet():
@@ -57,10 +56,10 @@ class GTestTestResultsTest(
 
     results = SummaryGtestTestResults()
     results.StartTest(test_page_set.pages[0])
-    exc_info = self.CreateException()
-    results.AddValue(failure.FailureValue(test_page_set.pages[0], exc_info))
+    exception = self.CreateException()
+    results.AddFailure(test_page_set.pages[0], exception)
     results.PrintSummary()
-    exception_trace = ''.join(traceback.format_exception(*exc_info))
+    exception_trace = ''.join(traceback.format_exception(*exception))
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '%s\n'
                 '[  FAILED  ] http://www.foo.com/ (0 ms)\n'
@@ -85,7 +84,7 @@ class GTestTestResultsTest(
   def testPassAndFailedPages(self):
     test_page_set = _MakePageSet()
     results = SummaryGtestTestResults()
-    exc_info = self.CreateException()
+    exception = self.CreateException()
 
     results.StartTest(test_page_set.pages[0])
     self._mock_timer.SetTime(0.007)
@@ -93,18 +92,18 @@ class GTestTestResultsTest(
 
     results.StartTest(test_page_set.pages[1])
     self._mock_timer.SetTime(0.009)
-    results.AddValue(failure.FailureValue(test_page_set.pages[1], exc_info))
+    results.AddFailure(test_page_set.pages[1], exception)
 
     results.StartTest(test_page_set.pages[2])
     self._mock_timer.SetTime(0.015)
-    results.AddValue(failure.FailureValue(test_page_set.pages[2], exc_info))
+    results.AddFailure(test_page_set.pages[2], exception)
 
     results.StartTest(test_page_set.pages[3])
     self._mock_timer.SetTime(0.020)
     results.AddSuccess(test_page_set.pages[3])
 
     results.PrintSummary()
-    exception_trace = ''.join(traceback.format_exception(*exc_info))
+    exception_trace = ''.join(traceback.format_exception(*exception))
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
                 '[ RUN      ] http://www.bar.com/\n'
@@ -125,7 +124,7 @@ class GTestTestResultsTest(
   def testStreamingResults(self):
     test_page_set = _MakePageSet()
     results = SummaryGtestTestResults()
-    exc_info = self.CreateException()
+    exception = self.CreateException()
 
     results.StartTest(test_page_set.pages[0])
     self._mock_timer.SetTime(0.007)
@@ -136,8 +135,8 @@ class GTestTestResultsTest(
 
     results.StartTest(test_page_set.pages[1])
     self._mock_timer.SetTime(0.009)
-    exception_trace = ''.join(traceback.format_exception(*exc_info))
-    results.AddValue(failure.FailureValue(test_page_set.pages[1], exc_info))
+    exception_trace = ''.join(traceback.format_exception(*exception))
+    results.AddFailure(test_page_set.pages[1], exception)
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
                 '[ RUN      ] http://www.bar.com/\n'

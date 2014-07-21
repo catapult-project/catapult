@@ -4,7 +4,6 @@
 
 from collections import defaultdict
 
-from telemetry.value import failure
 from telemetry.value import merge_values
 
 class Summary(object):
@@ -59,9 +58,7 @@ class Summary(object):
     return self._interleaved_computed_per_page_values_and_summaries
 
   def _ComputePerPageValues(self, all_page_specific_values):
-    all_successful_page_values = [
-        v for v in all_page_specific_values if not isinstance(
-            v, failure.FailureValue)]
+    all_successful_page_values = all_page_specific_values
 
     # We will later need to determine how many values were originally created
     # for each value name, to apply a workaround meant to clean up the printf

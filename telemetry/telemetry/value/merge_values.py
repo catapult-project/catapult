@@ -1,9 +1,6 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
-from telemetry.value import failure
-
 def MergeLikeValuesFromSamePage(all_values):
   """Merges values that measure the same thing on the same page.
 
@@ -111,12 +108,6 @@ def GroupStably(all_values, key_func):
   merge_groups = {}
   merge_groups_in_creation_order = []
   for value in all_values:
-    # TODO(chrishenry): This is temporary. When we figure out the
-    # right summarization strategy for page runs with failures, we
-    # should use that instead.
-    if isinstance(value, failure.FailureValue):
-      continue
-
     key = key_func(value)
     if key not in merge_groups:
       merge_groups[key] = []
