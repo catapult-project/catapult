@@ -136,7 +136,7 @@ def Main(base_dir):
     logging.warning('Some pages failed. The recording has not been updated for '
                     'these pages.')
     logging.warning('Failed pages:\n%s', '\n'.join(
-        p.display_name for p in zip(*results.failures)[0]))
+        p.display_name for p in results.pages_that_had_failures))
 
   if results.skipped:
     logging.warning('Some pages were skipped. The recording has not been '

@@ -52,6 +52,9 @@ class BuildbotPageMeasurementResults(
     buildbot_value = value.GetBuildbotValue()
     buildbot_data_type = value.GetBuildbotDataType(
         output_context=value_module.PER_PAGE_RESULT_OUTPUT_CONTEXT)
+    if buildbot_value is None or buildbot_data_type is None:
+      return
+
     buildbot_measurement_name, buildbot_trace_name = (
         value.GetBuildbotMeasurementAndTraceNameForPerPageResult())
     self._PrintPerfResult(buildbot_measurement_name,
@@ -68,10 +71,12 @@ class BuildbotPageMeasurementResults(
     buildbot_value = value.GetBuildbotValue()
     buildbot_data_type = value.GetBuildbotDataType(
         output_context=value_module.COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT)
+    if buildbot_value is None or buildbot_data_type is None:
+      return
+
     buildbot_measurement_name, buildbot_trace_name = (
         value.GetBuildbotMeasurementAndTraceNameForComputedSummaryResult(
             self._trace_tag))
-
     self._PrintPerfResult(buildbot_measurement_name,
                           buildbot_trace_name,
                           buildbot_value, value.units, buildbot_data_type)

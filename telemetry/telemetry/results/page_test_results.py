@@ -5,18 +5,18 @@
 import collections
 import copy
 import logging
-import sys
 import traceback
 
 from telemetry import value as value_module
+from telemetry.value import failure
 
 class PageTestResults(object):
   def __init__(self, output_stream=None):
     super(PageTestResults, self).__init__()
     self._output_stream = output_stream
-    self.pages_that_had_failures = set()
+    # TODO(chrishenry,eakuefner): Remove self.successes once they can
+    # be inferred.
     self.successes = []
-    self.failures = []
     self.skipped = []
 
     self._representative_value_for_each_value_name = {}
@@ -44,7 +44,16 @@ class PageTestResults(object):
   def pages_that_succeeded(self):
     pages = set([value.page for value in self._all_page_specific_values])
     pages.difference_update(self.pages_that_had_failures)
-    return pages
+    return list(pages)
+
+  @property
+  def pages_that_had_failures(self):
+    return list(set([v.page for v in self.failures]))
+
+  @property
+  def failures(self):
+    values = self._all_page_specific_values
+    return [v for v in values if isinstance(v, failure.FailureValue)]
 
   def _GetStringFromExcInfo(self, err):
     return ''.join(traceback.format_exception(*err))
@@ -56,15 +65,15 @@ class PageTestResults(object):
     pass
 
   def AddValue(self, value):
-    self.ValidateValue(value)
+    self._ValidateValue(value)
     self._all_page_specific_values.append(value)
 
   def AddSummaryValue(self, value):
     assert value.page is None
-    self.ValidateValue(value)
+    self._ValidateValue(value)
     self._all_summary_values.append(value)
 
-  def ValidateValue(self, value):
+  def _ValidateValue(self, value):
     assert isinstance(value, value_module.Value)
     if value.name not in self._representative_value_for_each_value_name:
       self._representative_value_for_each_value_name[value.name] = value
@@ -72,26 +81,16 @@ class PageTestResults(object):
         value.name]
     assert value.IsMergableWith(representative_value)
 
-  def AddFailure(self, page, err):
-    self.pages_that_had_failures.add(page)
-    self.failures.append((page, self._GetStringFromExcInfo(err)))
-
   def AddSkip(self, page, reason):
     self.skipped.append((page, reason))
 
   def AddSuccess(self, page):
     self.successes.append(page)
 
-  def AddFailureMessage(self, page, message):
-    try:
-      raise Exception(message)
-    except Exception:
-      self.AddFailure(page, sys.exc_info())
-
   def PrintSummary(self):
     if self.failures:
       logging.error('Failed pages:\n%s', '\n'.join(
-          p.display_name for p in zip(*self.failures)[0]))
+          p.display_name for p in self.pages_that_had_failures))
 
     if self.skipped:
       logging.warning('Skipped pages:\n%s', '\n'.join(
