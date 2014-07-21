@@ -68,8 +68,8 @@ class ViewerDataScript(generate.ExtraScript):
 def WriteHTMLForTracesToFile(trace_filenames, output_file):
   project = trace_viewer_project.TraceViewerProject()
   load_sequence = project.CalcLoadSequenceForModuleFilenames(
-      ['tracing/standalone_timeline_view.js',
-       'about_tracing/features.js'])
+      ['tracing/standalone_timeline_view.html',
+       'about_tracing/features.html'])
 
   with open(os.path.join(os.path.dirname(__file__),
                          'trace2html.js'), 'r') as f:
