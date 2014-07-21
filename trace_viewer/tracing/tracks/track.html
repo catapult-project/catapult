@@ -1,20 +1,23 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/tracing/tracks/track.css">
+
+<script>
 'use strict';
+
+tvcm.require('tvcm.ui');
+tvcm.require('tvcm.ui.container_that_decorates_its_children');
 
 /**
  * @fileoverview Renders an array of slices into the provided div,
  * using a child canvas element. Uses a FastRectRenderer to draw only
  * the visible slices.
  */
-
-tvcm.requireStylesheet('tracing.tracks.track');
-
-tvcm.require('tvcm.ui');
-tvcm.require('tvcm.ui.container_that_decorates_its_children');
-
 tvcm.exportTo('tracing.tracks', function() {
   /**
    * The base class for all tracks.
@@ -140,3 +143,5 @@ tvcm.exportTo('tracing.tracks', function() {
     Track: Track
   };
 });
+</script>
+

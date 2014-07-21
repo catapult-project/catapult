@@ -1,15 +1,20 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/tracing/tracks/rect_track.css">
+
+<link rel="import" href="/tracing/tracks/heading_track.html">
+<link rel="import" href="/tracing/fast_rect_renderer.html">
+<link rel="import" href="/tracing/draw_helpers.html">
+
+<script>
 'use strict';
 
-tvcm.requireStylesheet('tracing.tracks.rect_track');
-
 tvcm.require('tvcm.sorted_array_utils');
-tvcm.require('tracing.tracks.heading_track');
-tvcm.require('tracing.fast_rect_renderer');
-tvcm.require('tracing.draw_helpers');
 tvcm.require('tvcm.ui');
 
 tvcm.exportTo('tracing.tracks', function() {
@@ -187,3 +192,5 @@ tvcm.exportTo('tracing.tracks', function() {
     RectTrack: RectTrack
   };
 });
+</script>
+

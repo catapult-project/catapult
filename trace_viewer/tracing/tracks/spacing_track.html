@@ -1,12 +1,16 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/tracing/tracks/spacing_track.css">
+
+<link rel="import" href="/tracing/tracks/heading_track.html">
+
+<script>
 'use strict';
-
-tvcm.requireStylesheet('tracing.tracks.spacing_track');
-
-tvcm.require('tracing.tracks.heading_track');
 
 tvcm.exportTo('tracing.tracks', function() {
   /**
@@ -34,3 +38,5 @@ tvcm.exportTo('tracing.tracks', function() {
     SpacingTrack: SpacingTrack
   };
 });
+</script>
+

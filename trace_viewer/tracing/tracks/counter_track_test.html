@@ -1,11 +1,15 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/timeline_track_view.html">
+
+<script>
 'use strict';
-
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.timeline_track_view');
 
 tvcm.unittest.testSuite('tracing.tracks.counter_track_test', function() {
   var Counter = tracing.trace_model.Counter;
@@ -179,3 +183,5 @@ tvcm.unittest.testSuite('tracing.tracks.counter_track_test', function() {
     });
   });
 });
+</script>
+

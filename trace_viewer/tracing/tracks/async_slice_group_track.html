@@ -1,19 +1,23 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/tracks/slice_group_track.html">
+
+<script>
 'use strict';
 
-tvcm.require('tracing.tracks.slice_group_track');
 tvcm.require('tvcm.ui');
-tvcm.exportTo('tracing.tracks', function() {
 
+tvcm.exportTo('tracing.tracks', function() {
   /**
    * A track that displays a AsyncSliceGroup.
    * @constructor
    * @extends {SliceGroup}
    */
-
   var AsyncSliceGroupTrack = tvcm.ui.define(
       'async-slice-group-track',
       tracing.tracks.SliceGroupTrack);
@@ -86,3 +90,5 @@ tvcm.exportTo('tracing.tracks', function() {
     AsyncSliceGroupTrack: AsyncSliceGroupTrack
   };
 });
+</script>
+

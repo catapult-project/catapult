@@ -1,12 +1,17 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/tracing/tracks/drawing_container.css">
+
+<link rel="import" href="/tracing/tracks/track.html">
+
+<script>
 'use strict';
 
-tvcm.requireStylesheet('tracing.tracks.drawing_container');
-
-tvcm.require('tracing.tracks.track');
 tvcm.require('tvcm.raf');
 tvcm.require('tvcm.ui');
 
@@ -169,3 +174,4 @@ tvcm.exportTo('tracing.tracks', function() {
     DrawType: DrawType
   };
 });
+</script>

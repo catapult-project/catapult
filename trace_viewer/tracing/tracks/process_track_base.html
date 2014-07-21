@@ -1,23 +1,28 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/tracing/tracks/process_track_base.css">
+
+<link rel="import" href="/tcmalloc/heap_instance_track.html">
+<link rel="import" href="/tracing/analysis/object_snapshot_view.html">
+<link rel="import" href="/tracing/analysis/object_instance_view.html">
+<link rel="import" href="/tracing/tracks/container_track.html">
+<link rel="import" href="/tracing/tracks/counter_track.html">
+<link rel="import" href="/tracing/tracks/object_instance_track.html">
+<link rel="import" href="/tracing/tracks/spacing_track.html">
+<link rel="import" href="/tracing/tracks/thread_track.html">
+<link rel="import" href="/tracing/trace_model_settings.html">
+<link rel="import" href="/tracing/filter.html">
+
+<script>
 'use strict';
 
-tvcm.require('tcmalloc.heap_instance_track');
-tvcm.require('tracing.analysis.object_snapshot_view');
-tvcm.require('tracing.analysis.object_instance_view');
-tvcm.require('tracing.tracks.container_track');
-tvcm.require('tracing.tracks.counter_track');
-tvcm.require('tracing.tracks.object_instance_track');
-tvcm.require('tracing.tracks.spacing_track');
-tvcm.require('tracing.tracks.thread_track');
-tvcm.require('tracing.trace_model_settings');
-tvcm.require('tracing.filter');
 tvcm.require('tvcm.ui');
 tvcm.require('tvcm.ui.dom_helpers');
-
-tvcm.requireStylesheet('tracing.tracks.process_track_base');
 
 tvcm.exportTo('tracing.tracks', function() {
 
@@ -236,3 +241,5 @@ tvcm.exportTo('tracing.tracks', function() {
     ProcessTrackBase: ProcessTrackBase
   };
 });
+</script>
+

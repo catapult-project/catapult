@@ -1,12 +1,16 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/timeline_track_view.html">
+<link rel="import" href="/tracing/trace_model.html">
+
+<script>
 'use strict';
-
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.timeline_track_view');
-tvcm.require('tracing.trace_model');
 
 tvcm.unittest.testSuite('tracing.tracks.cpu_track_test', function() {
   var Cpu = tracing.trace_model.Cpu;
@@ -88,3 +92,5 @@ tvcm.unittest.testSuite('tracing.tracks.cpu_track_test', function() {
     track.viewport.setDisplayTransformImmediately(dt);
   });
 });
+</script>
+

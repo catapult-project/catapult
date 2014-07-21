@@ -1,12 +1,16 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/tracks/process_track_base.html">
+<link rel="import" href="/tracing/tracks/cpu_track.html">
+<link rel="import" href="/tracing/tracks/spacing_track.html">
+
+<script>
 'use strict';
-
-tvcm.require('tracing.tracks.process_track_base');
-tvcm.require('tracing.tracks.cpu_track');
-tvcm.require('tracing.tracks.spacing_track');
 
 tvcm.exportTo('tracing.tracks', function() {
   var Cpu = tracing.trace_model.Cpu;
@@ -60,3 +64,5 @@ tvcm.exportTo('tracing.tracks', function() {
     KernelTrack: KernelTrack
   };
 });
+</script>
+

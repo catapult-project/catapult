@@ -1,20 +1,24 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="stylesheet" href="/tracing/tracks/trace_model_track.css">
+
+<link rel="import" href="/tracing/tracks/container_track.html">
+<link rel="import" href="/tracing/tracks/kernel_track.html">
+<link rel="import" href="/tracing/tracks/process_track.html">
+<link rel="import" href="/tracing/draw_helpers.html">
+
+<script>
 'use strict';
 
-tvcm.requireStylesheet('tracing.tracks.trace_model_track');
-
 tvcm.require('tvcm.measuring_stick');
-tvcm.require('tracing.tracks.container_track');
-tvcm.require('tracing.tracks.kernel_track');
-tvcm.require('tracing.tracks.process_track');
-tvcm.require('tracing.draw_helpers');
 tvcm.require('tvcm.ui');
 
 tvcm.exportTo('tracing.tracks', function() {
-
   /**
    * Visualizes a Model by building ProcessTracks and
    * CpuTracks.
@@ -290,3 +294,5 @@ tvcm.exportTo('tracing.tracks', function() {
     TraceModelTrack: TraceModelTrack
   };
 });
+</script>
+

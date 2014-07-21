@@ -1,11 +1,15 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<link rel="import" href="/tracing/tracks/process_track_base.html">
+<link rel="import" href="/tracing/draw_helpers.html">
+
+<script>
 'use strict';
-
-tvcm.require('tracing.tracks.process_track_base');
-tvcm.require('tracing.draw_helpers');
 
 tvcm.exportTo('tracing.tracks', function() {
   var ProcessTrackBase = tracing.tracks.ProcessTrackBase;
@@ -124,3 +128,5 @@ tvcm.exportTo('tracing.tracks', function() {
     ProcessTrack: ProcessTrack
   };
 });
+</script>
+
