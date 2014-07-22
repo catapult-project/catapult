@@ -30,3 +30,15 @@ class TraceViewerProject(project_module.Project):
       paths.extend(other_paths)
     super(TraceViewerProject, self).__init__(
       paths)
+
+    non_module_html_files = [
+      'test_data/android_systrace.html',
+      'third_party/jszip/examples/download-zip-file.html',
+      'third_party/jszip/examples/get-binary-files-xhr2.html',
+      'third_party/jszip/examples/read-local-file-api.html',
+      'third_party/jszip/index.html',
+      'third_party/jszip/test/index.html'
+    ]
+    self.non_module_html_files.update(
+      [os.path.abspath(os.path.join(self.trace_viewer_path, x))
+       for x in non_module_html_files])

@@ -25,12 +25,6 @@ def _IsFilenameAModule(loader, x):
       return
     return js_module.IsJSModule(s, text_is_stripped=True)
   elif x.endswith('.html'):
-    with open(x) as f:
-      contents = f.read()
-    if '<html>' in contents:
-      return False
-    if not contents.startswith('<!DOCTYPE html>'):
-      return False
     return True
   else:
     return False
@@ -68,6 +62,7 @@ class Project(object):
         Module paths are relative to these directories.
     """
     self.source_paths = []
+    self.non_module_html_files = set()
     if include_tvcm_paths:
       self.source_paths += [
           self.tvcm_src_path,
@@ -76,6 +71,19 @@ class Project(object):
           os.path.join(self.tvcm_third_party_path, 'polymer'),
           os.path.join(self.tvcm_third_party_path, 'd3')
       ]
+      non_module_html_files = [
+        'gl-matrix/jsdoc-template/static/header.html',
+        'gl-matrix/jsdoc-template/static/index.html',
+        'Promises/polyfill/tests/test.html',
+        'Promises/reworked_APIs/IndexedDB/example/after.html',
+        'Promises/reworked_APIs/IndexedDB/example/before.html',
+        'Promises/reworked_APIs/WebCrypto/example/after.html',
+        'Promises/reworked_APIs/WebCrypto/example/before.html'
+      ]
+      self.non_module_html_files.update(
+        [os.path.abspath(os.path.join(self.tvcm_third_party_path, x))
+         for x in non_module_html_files])
+
     if source_paths != None:
       self.source_paths += [os.path.abspath(p) for p in source_paths]
     self._loader = None
@@ -105,6 +113,7 @@ class Project(object):
   def _FindAllModuleFilenames(self, source_paths):
     all_filenames = _FindAllFilesRecursive(source_paths)
     return [x for x in all_filenames if
+            x not in self.non_module_html_files and
             _IsFilenameAModule(self.loader, x)]
 
   def _FindTestModuleFilenames(self, source_paths):

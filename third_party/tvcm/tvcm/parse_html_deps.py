@@ -21,7 +21,7 @@ class HTMLModuleParserResults(object):
   def html_contents_without_links_and_script(self):
     return ''.join(self._html_content_chunks_without_links_and_script)
 
-_SELF_CLOSING_TAGS = ('link', 'p')
+_SELF_CLOSING_TAGS = ('link', 'p', 'meta')
 
 class HTMLModuleParser(HTMLParser):
   def __init__(self):
