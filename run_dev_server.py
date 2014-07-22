@@ -26,6 +26,7 @@ def do_GET_json_examples(request):
   request.wfile.write(files_as_json)
 
 def do_GET_json_examples_skp(request):
+  skp_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'skp_data'))
   data_files = []
   for dirpath, dirnames, filenames in os.walk(skp_data_path):
     for f in filenames:
