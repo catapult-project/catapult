@@ -35,7 +35,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     self._tab.ExecuteJavaScript('window')
 
   # TODO(achuith): Fix http://crbug.com/394454 on cros.
-  @decorators.Disabled('android', 'chromeos')
+  @decorators.Disabled('android', 'chromeos', 'win')
   def testIFrame(self):
     self.Navigate('host.html')
 
