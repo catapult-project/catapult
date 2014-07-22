@@ -36,6 +36,8 @@ class HTMLModuleParser(HTMLParser):
     results = HTMLModuleParserResults()
     if html is None or len(html) == 0:
       return results
+    if html.find('< /script>') != -1:
+      raise Exception('Escape script tags with <\/script>')
     self.current_results = results
     self.feed(html)
     self.current_results = None

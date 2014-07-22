@@ -226,5 +226,17 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
 
+  def test_invalid_script_escaping_raises(self):
+    html = """<script>
+              var html_lines = [
+                '<script>',
+                '< /script>',
+              ];
+              </script>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    def DoIt():
+      module = parser.Parse(html)
+    self.assertRaises(Exception, DoIt)
+
 if __name__ == '__main__':
   unittest.main()
