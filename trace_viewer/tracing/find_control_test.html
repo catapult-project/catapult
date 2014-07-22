@@ -13,14 +13,10 @@ found in the LICENSE file.
 
 tvcm.unittest.testSuite('tracing.find_control_test', function() {
   test('instantiate', function() {
-    var ctl = new tracing.FindControl();
+    var ctl = new TracingFindControl();
     ctl.controller = {
-      findNext: function() {
-      },
-
-      findPrevious: function() {
-      },
-
+      findNext: function() { },
+      findPrevious: function() { },
       reset: function() {},
 
       filterHits: ['a', 'b'],
