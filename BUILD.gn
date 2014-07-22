@@ -198,6 +198,7 @@ tracing_js_html_files = [
   "trace_viewer/tracing/importer/etw_importer.html",
   "trace_viewer/tracing/importer/gzip_importer.html",
   "trace_viewer/tracing/importer/importer.html",
+  "trace_viewer/tracing/importer/jszip.html",
   "trace_viewer/tracing/importer/linux_perf/android_parser.html",
   "trace_viewer/tracing/importer/linux_perf/bus_parser.html",
   "trace_viewer/tracing/importer/linux_perf/clock_parser.html",
