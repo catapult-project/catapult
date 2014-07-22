@@ -6,13 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/analysis/analysis_view.html">
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/trace_model.html">
+<link rel="import" href="/tracing/selection.html">
 
 <script>
 'use strict';
-
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.trace_model');
-tvcm.require('tracing.selection');
 
 tvcm.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
   var TraceModel = tracing.TraceModel;
@@ -174,4 +173,3 @@ tvcm.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
   });
 });
 </script>
-

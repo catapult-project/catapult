@@ -6,12 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/trace_model/event.html">
+<link rel="import" href="/tvcm/iteration_helpers.html">
+<link rel="import" href="/tvcm/sorted_array_utils.html">
 
 <script>
 'use strict';
-
-tvcm.require('tvcm.iteration_helpers');
-tvcm.require('tvcm.sorted_array_utils');
 
 tvcm.exportTo('tracing.trace_model', function() {
   function CounterSample(series, timestamp, value) {
@@ -96,4 +95,3 @@ tvcm.exportTo('tracing.trace_model', function() {
   };
 });
 </script>
-

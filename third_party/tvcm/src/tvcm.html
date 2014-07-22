@@ -207,6 +207,12 @@ this.tvcm = (function() {
 
   var moduleLoadStatus = {};
   function require(modules, opt_indentLevel) {
+    if (document.currentScript) {
+                        debugger;
+      console.warn('tvcm.require() is only for starting loading. ' +
+                   'To load a module from another module, use imports.');
+    }
+
     var indentLevel = opt_indentLevel || 0;
     var dependentModules = modules;
     if (!(modules instanceof Array))

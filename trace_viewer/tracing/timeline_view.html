@@ -14,6 +14,15 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/find_control.html">
 <link rel="import" href="/tracing/find_controller.html">
 <link rel="import" href="/tracing/timeline_track_view.html">
+<link rel="import" href="/tvcm/utils.html">
+<link rel="import" href="/tvcm/settings.html">
+<link rel="import" href="/tvcm/ui/dom_helpers.html">
+<link rel="import" href="/tvcm/ui/overlay.html">
+<link rel="import" href="/tvcm/ui/drag_handle.html">
+<link rel="import" href="/tracing/side_panel/input_latency.html">
+<link rel="import" href="/tracing/side_panel/sampling_summary.html">
+<link rel="import" href="/tracing/side_panel/time_summary.html">
+<link rel="import" href="/tracing/side_panel/timeline_view.html">
 
 <template id="timeline-view-template">
   <div class="control">
@@ -183,17 +192,6 @@ found in the LICENSE file.
  * @fileoverview View visualizes TRACE_EVENT events using the
  * tracing.Timeline component and adds in selection summary and control buttons.
  */
-tvcm.require('tvcm.utils');
-tvcm.require('tvcm.settings');
-tvcm.require('tvcm.ui.dom_helpers');
-tvcm.require('tvcm.ui.overlay');
-tvcm.require('tvcm.ui.drag_handle');
-
-tvcm.require('tracing.side_panel.input_latency');
-tvcm.require('tracing.side_panel.sampling_summary');
-tvcm.require('tracing.side_panel.time_summary');
-tvcm.require('tracing.side_panel.timeline_view');
-
 tvcm.exportTo('tracing', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 

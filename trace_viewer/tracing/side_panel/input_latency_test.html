@@ -7,12 +7,11 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/side_panel/input_latency.html">
 <link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/trace_model.html">
 
 <script>
 'use strict';
-
-tvcm.require('tracing.importer.trace_event_importer');
-tvcm.require('tracing.trace_model');
 
 tvcm.unittest.testSuite('tracing.side_panel.input_latency_test', function() {
 
@@ -189,4 +188,3 @@ tvcm.unittest.testSuite('tracing.side_panel.input_latency_test', function() {
   });
 });
 </script>
-

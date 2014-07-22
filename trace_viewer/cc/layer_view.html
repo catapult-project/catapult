@@ -10,6 +10,10 @@ found in the LICENSE file.
 <link rel="import" href="/cc/constants.html">
 <link rel="import" href="/cc/layer_tree_quad_stack_view.html">
 <link rel="import" href="/cc/picture.html">
+<link rel="import" href="/tvcm/raf.html">
+<link rel="import" href="/tvcm/settings.html">
+<link rel="import" href="/tracing/analysis/util.html">
+<link rel="import" href="/tvcm/ui/drag_handle.html">
 
 <script>
 'use strict';
@@ -17,10 +21,6 @@ found in the LICENSE file.
 /**
  * @fileoverview LayerView coordinates graphical and analysis views of layers.
  */
-tvcm.require('tvcm.raf');
-tvcm.require('tvcm.settings');
-tvcm.require('tracing.analysis.util');
-tvcm.require('tvcm.ui.drag_handle');
 
 tvcm.exportTo('cc', function() {
   var constants = cc.constants;

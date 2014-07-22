@@ -7,11 +7,10 @@ found in the LICENSE file.
 
 <link rel="import" href="/about_tracing/tracing_controller_client.html">
 <link rel="import" href="/about_tracing/inspector_connection.html">
+<link rel="import" href="/tvcm/promise.html">
 
 <script>
 'use strict';
-
-tvcm.require('tvcm.promise');
 
 tvcm.exportTo('about_tracing', function() {
   function createResolvedPromise(data) {
@@ -189,4 +188,3 @@ tvcm.exportTo('about_tracing', function() {
   };
 });
 </script>
-

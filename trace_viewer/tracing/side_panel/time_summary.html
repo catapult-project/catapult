@@ -8,6 +8,10 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/selection.html">
 <link rel="import" href="/tracing/side_panel/timeline_view.html">
+<link rel="import" href="/tvcm/iteration_helpers.html">
+<link rel="import" href="/tvcm/statistics.html">
+<link rel="import" href="/tvcm/ui/dom_helpers.html">
+<link rel="import" href="/tvcm/ui/pie_chart.html">
 
 <style>
   .x-time-summary-side-panel {
@@ -36,11 +40,6 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-
-tvcm.require('tvcm.iteration_helpers');
-tvcm.require('tvcm.statistics');
-tvcm.require('tvcm.ui.dom_helpers');
-tvcm.require('tvcm.ui.pie_chart');
 
 tvcm.exportTo('tracing', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
@@ -483,4 +482,3 @@ tvcm.exportTo('tracing', function() {
   };
 });
 </script>
-

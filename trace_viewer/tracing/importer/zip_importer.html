@@ -5,12 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<script src="/jszip.js"></script>
-<script src="/jszip-load.js"></script>
-<script src="/jszip-inflate.js"></script>
-
+<link rel="import" href="/tracing/importer/jszip.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/importer/gzip_importer.html">
+<link rel="import" href="/tracing/trace_model.html">
 
 <script>
 'use strict';
@@ -19,8 +17,6 @@ found in the LICENSE file.
  * @fileoverview ZipImporter inflates zip compressed data and passes it along
  * to an actual importer.
  */
-tvcm.require('tracing.trace_model');
-
 tvcm.exportTo('tracing.importer', function() {
   var Importer = tracing.importer.Importer;
 

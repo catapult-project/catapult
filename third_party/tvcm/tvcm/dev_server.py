@@ -136,7 +136,6 @@ def do_GET_json_tests(self):
   self.end_headers()
   self.wfile.write(tests_as_json)
 
-
 def send_500(self, msg, ex, log_error=True):
   msg = json.dumps({"details": traceback.format_exc(),
                     "message": ex.message});
@@ -277,7 +276,6 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     return self._port
 
   def serve_forever(self):
-    self.UpdateDepsAndTemplate()
     if not self._quiet:
       sys.stderr.write("Now running on http://localhost:%i\n" % self._port)
     BaseHTTPServer.HTTPServer.serve_forever(self)

@@ -6,13 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/analysis/cpu_slice_view.html">
+<link rel="import" href="/tracing/trace_model.html">
+<link rel="import" href="/tracing/timeline_view.html">
+<link rel="import" href="/tracing/importer/linux_perf_importer.html">
 
 <script>
 'use strict';
-
-tvcm.require('tracing.trace_model');
-tvcm.require('tracing.timeline_view');
-tvcm.require('tracing.importer.linux_perf_importer');
 
 tvcm.unittest.testSuite('tracing.analysis.thread_time_slice_view_test', function() { // @suppress longLineCheck
   function createBasicModel() {
@@ -84,4 +83,3 @@ tvcm.unittest.testSuite('tracing.analysis.thread_time_slice_view_test', function
   });
 });
 </script>
-

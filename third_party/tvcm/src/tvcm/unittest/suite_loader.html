@@ -58,6 +58,7 @@ tvcm.exportTo('tvcm.unittest', function() {
     } else {
       getAsync('/tvcm/json/tests').then(
           function(data) {
+            console.log(data);
             var testMetadata = JSON.parse(data);
             var testModuleNames = testMetadata.test_module_names;
             this.beginLoadingModules_(testModuleNames, testMetadata);

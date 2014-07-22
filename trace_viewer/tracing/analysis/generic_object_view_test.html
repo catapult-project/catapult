@@ -6,11 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/analysis/generic_object_view.html">
+<link rel="import" href="/tracing/trace_model/object_instance.html">
 
 <script>
 'use strict';
-
-tvcm.require('tracing.trace_model.object_instance');
 
 tvcm.unittest.testSuite('tracing.analysis.generic_object_view_test', function() { // @suppress longLineCheck
   var GenericObjectView = tracing.analysis.GenericObjectView;
@@ -129,4 +128,3 @@ tvcm.unittest.testSuite('tracing.analysis.generic_object_view_test', function() 
   });
 });
 </script>
-

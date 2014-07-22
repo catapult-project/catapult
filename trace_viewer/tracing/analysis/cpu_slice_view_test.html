@@ -6,12 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/analysis/cpu_slice_view.html">
+<link rel="import" href="/tracing/trace_model.html">
+<link rel="import" href="/tracing/importer/linux_perf_importer.html">
 
 <script>
 'use strict';
-
-tvcm.require('tracing.trace_model');
-tvcm.require('tracing.importer.linux_perf_importer');
 
 tvcm.unittest.testSuite('tracing.analysis.cpu_slice_view_test', function() {
   function createBasicModel() {
@@ -71,4 +70,3 @@ tvcm.unittest.testSuite('tracing.analysis.cpu_slice_view_test', function() {
 
 });
 </script>
-

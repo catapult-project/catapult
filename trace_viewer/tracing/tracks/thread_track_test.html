@@ -9,11 +9,10 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/timeline_track_view.html">
 <link rel="import" href="/tracing/trace_model/instant_event.html">
 <link rel="import" href="/tracing/tracks/thread_track.html">
+<link rel="import" href="/tvcm/ui/dom_helpers.html">
 
 <script>
 'use strict';
-
-tvcm.require('tvcm.ui.dom_helpers');
 
 tvcm.unittest.testSuite('tracing.tracks.thread_track_test', function() {
   var HighlightInstantEvent = tracing.trace_model.ThreadHighlightInstantEvent;
@@ -169,4 +168,3 @@ tvcm.unittest.testSuite('tracing.tracks.thread_track_test', function() {
   });
 });
 </script>
-

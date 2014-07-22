@@ -22,6 +22,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/importer/linux_perf/workqueue_parser.html">
 <link rel="import" href="/tracing/importer/linux_perf/android_parser.html">
 <link rel="import" href="/tracing/importer/linux_perf/kfunc_parser.html">
+<link rel="import" href="/tracing/importer/importer.html">
+<link rel="import" href="/tracing/importer/simple_line_reader.html">
+
 
 <script>
 /**
@@ -39,9 +42,6 @@ found in the LICENSE file.
  * code's readability.
  */
 'use strict';
-
-tvcm.require('tracing.importer.importer');
-tvcm.require('tracing.importer.simple_line_reader');
 
 tvcm.exportTo('tracing.importer', function() {
   var Importer = tracing.importer.Importer;
@@ -751,4 +751,3 @@ tvcm.exportTo('tracing.importer', function() {
   };
 });
 </script>
-

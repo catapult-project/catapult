@@ -9,6 +9,12 @@ found in the LICENSE file.
 <link rel="import" href="/about_tracing/inspector_tracing_controller_client.html">
 <link rel="import" href="/about_tracing/xhr_based_tracing_controller_client.html">
 <link rel="import" href="/about_tracing/features.html">
+<link rel="import" href="/tracing/timeline_view.html">
+<link rel="import" href="/tvcm/key_event_manager.html">
+<link rel="import" href="/tvcm/promise.html">
+<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/tvcm/ui/info_bar.html">
+<link rel="import" href="/tvcm/ui/overlay.html">
 
 <template id="profiling-view-template">
   <style>
@@ -56,13 +62,6 @@ found in the LICENSE file.
  * @fileoverview ProfilingView glues the View control to
  * TracingController.
  */
-tvcm.require('tracing.timeline_view');
-tvcm.require('tvcm.key_event_manager');
-tvcm.require('tvcm.promise');
-tvcm.require('tvcm.ui');
-tvcm.require('tvcm.ui.info_bar');
-tvcm.require('tvcm.ui.overlay');
-
 tvcm.exportTo('about_tracing', function() {
   function readFile(file) {
     return new Promise(function(resolver) {

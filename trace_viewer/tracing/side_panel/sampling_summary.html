@@ -8,6 +8,12 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/selection.html">
 <link rel="import" href="/tracing/side_panel/timeline_view.html">
+<link rel="import" href="/tvcm/iteration_helpers.html">
+<link rel="import" href="/tvcm/statistics.html">
+<link rel="import" href="/tvcm/ui/dom_helpers.html">
+<link rel="import" href="/tvcm/ui/pie_chart.html">
+<link rel="import" href="/tvcm/ui/sortable_table.html">
+<link rel="import" href="/tvcm/ui/sunburst_chart.html">
 
 <template id="x-sample-summary-panel-template">
   <style>
@@ -124,13 +130,6 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-
-tvcm.require('tvcm.iteration_helpers');
-tvcm.require('tvcm.statistics');
-tvcm.require('tvcm.ui.dom_helpers');
-tvcm.require('tvcm.ui.pie_chart');
-tvcm.require('tvcm.ui.sortable_table');
-tvcm.require('tvcm.ui.sunburst_chart');
 
 tvcm.exportTo('tracing', function() {
   var THIS_DOC = document.currentScript.ownerDocument;

@@ -8,12 +8,11 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/tracing/analysis/analyze_slices.css">
 
 <link rel="import" href="/tracing/analysis/util.html">
+<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/tvcm/ui/sortable_table.html">
 
 <script>
 'use strict';
-
-tvcm.require('tvcm.ui');
-tvcm.require('tvcm.ui.sortable_table');
 
 tvcm.exportTo('tracing.analysis', function() {
   function analyzeSingleSlice(results, slice, type) {
@@ -242,4 +241,3 @@ tvcm.exportTo('tracing.analysis', function() {
   };
 });
 </script>
-

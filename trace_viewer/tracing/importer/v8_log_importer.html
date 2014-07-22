@@ -8,19 +8,17 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/color_scheme.html">
 <link rel="import" href="/tracing/importer/v8/log_reader.html">
 <link rel="import" href="/tracing/importer/v8/codemap.html">
+<link rel="import" href="/tracing/importer/importer.html">
+<link rel="import" href="/tracing/trace_model.html">
+<link rel="import" href="/tracing/trace_model/slice.html">
 
 <script>
 
 'use strict';
 
-tvcm.require('tracing.importer.importer');
-
 /**
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
-tvcm.require('tracing.trace_model');
-tvcm.require('tracing.trace_model.slice');
-
 tvcm.exportTo('tracing.importer', function() {
   var Importer = tracing.importer.Importer;
 
@@ -288,4 +286,3 @@ tvcm.exportTo('tracing.importer', function() {
   };
 });
 </script>
-

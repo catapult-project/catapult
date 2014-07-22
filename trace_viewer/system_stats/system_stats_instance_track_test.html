@@ -6,15 +6,14 @@
 -->
 
 <link rel="import" href="/system_stats.html">
+<link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/selection.html">
+<link rel="import" href="/tracing/trace_model/event.html">
+<link rel="import" href="/tracing/timeline_viewport.html">
+<link rel="import" href="/tracing/tracks/drawing_container.html">
 
 <script>
 'use strict';
-
-tvcm.require('tracing.test_utils');
-tvcm.require('tracing.selection');
-tvcm.require('tracing.trace_model.event');
-tvcm.require('tracing.timeline_viewport');
-tvcm.require('tracing.tracks.drawing_container');
 
 tvcm.unittest.testSuite('system_stats.system_stats_instance_track_test', function() { // @suppress longLineCheck
   var SystemStatsInstanceTrack = system_stats.SystemStatsInstanceTrack;

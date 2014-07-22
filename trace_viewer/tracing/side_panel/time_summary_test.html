@@ -7,11 +7,10 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/side_panel/time_summary.html">
 <link rel="import" href="/tracing/test_utils.html">
+<link rel="import" href="/tracing/trace_model.html">
 
 <script>
 'use strict';
-
-tvcm.require('tracing.trace_model');
 
 tvcm.unittest.testSuite('tracing.side_panel.time_summary_test', function() {
   var newSliceNamed = tracing.test_utils.newSliceNamed;
@@ -201,4 +200,3 @@ tvcm.unittest.testSuite('tracing.side_panel.time_summary_test', function() {
   });
 });
 </script>
-

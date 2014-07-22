@@ -6,15 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="stylesheet" href="/system_stats/system_stats_instance_track.css">
+<link rel="import" href="/tvcm/sorted_array_utils.html">
+<link rel="import" href="/tracing/tracks/stacked_bars_track.html">
+<link rel="import" href="/tracing/tracks/object_instance_track.html">
+<link rel="import" href="/tracing/color_scheme.html">
+<link rel="import" href="/tvcm/ui.html">
 
 <script>
 'use strict';
-
-tvcm.require('tvcm.sorted_array_utils');
-tvcm.require('tracing.tracks.stacked_bars_track');
-tvcm.require('tracing.tracks.object_instance_track');
-tvcm.require('tracing.color_scheme');
-tvcm.require('tvcm.ui');
 
 tvcm.exportTo('system_stats', function() {
   var EventPresenter = tracing.EventPresenter;

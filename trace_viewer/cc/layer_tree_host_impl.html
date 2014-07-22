@@ -8,6 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/cc/constants.html">
 <link rel="import" href="/cc/layer_tree_impl.html">
 <link rel="import" href="/cc/util.html">
+<link rel="import" href="/tvcm/bbox2.html">
+<link rel="import" href="/tracing/trace_model/object_instance.html">
 
 <script>
 'use strict';
@@ -15,9 +17,6 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the LayerTreeHostImpl model-level objects.
  */
-tvcm.require('tvcm.bbox2');
-tvcm.require('tracing.trace_model.object_instance');
-
 tvcm.exportTo('cc', function() {
   var constants = cc.constants;
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;

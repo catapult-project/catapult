@@ -56,7 +56,7 @@ class Project(object):
   tvcm_third_party_path = os.path.abspath(os.path.join(
       tvcm_path, 'third_party'))
 
-  def __init__(self, source_paths=None, include_tvcm_paths=True):
+  def __init__(self, source_paths=None, include_tvcm_paths=True, non_module_html_files=None):
     """
     source_paths: A list of top-level directories in which modules and raw scripts can be found.
         Module paths are relative to these directories.
@@ -71,7 +71,7 @@ class Project(object):
           os.path.join(self.tvcm_third_party_path, 'polymer'),
           os.path.join(self.tvcm_third_party_path, 'd3')
       ]
-      non_module_html_files = [
+      local_non_module_html_files = [
         'gl-matrix/jsdoc-template/static/header.html',
         'gl-matrix/jsdoc-template/static/index.html',
         'Promises/polyfill/tests/test.html',
@@ -82,18 +82,27 @@ class Project(object):
       ]
       self.non_module_html_files.update(
         [os.path.abspath(os.path.join(self.tvcm_third_party_path, x))
-         for x in non_module_html_files])
+         for x in local_non_module_html_files])
 
     if source_paths != None:
       self.source_paths += [os.path.abspath(p) for p in source_paths]
+
+    if non_module_html_files != None:
+      self.non_module_html_files.update([os.path.abspath(p) for p in non_module_html_files])
+
     self._loader = None
 
   @staticmethod
   def FromDict(d):
-    return Project(d['source_paths'])
+    return Project(d['source_paths'],
+                   include_tvcm_paths=False,
+                   non_module_html_files=d.get('non_module_html_files', None))
 
   def AsDict(self):
-    return {'source_paths': self.source_paths}
+    return {
+      'source_paths': self.source_paths,
+      'non_module_html_files': list(self.non_module_html_files)
+    }
 
   def __repr__(self):
     return "Project(%s)" % repr(self.source_paths)
@@ -119,6 +128,7 @@ class Project(object):
   def _FindTestModuleFilenames(self, source_paths):
     all_filenames = _FindAllFilesRecursive(source_paths)
     return [x for x in all_filenames if
+            x not in self.non_module_html_files and
             _IsFilenameATest(self.loader, x)]
 
   def FindAllTestModuleResources(self, start_path=None):

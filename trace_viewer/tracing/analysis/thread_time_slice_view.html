@@ -9,6 +9,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/slice_view.html">
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/analysis/analysis_link.html">
+<link rel="import" href="/tvcm/sorted_array_utils.html">
+<link rel="import" href="/tvcm/utils.html">
+<link rel="import" href="/tracing/color_scheme.html">
 
 <template id="thread-time-slice-view-template">
   <table>
@@ -45,10 +48,6 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-
-tvcm.require('tvcm.sorted_array_utils');
-tvcm.require('tvcm.utils');
-tvcm.require('tracing.color_scheme');
 
 tvcm.exportTo('tracing.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;

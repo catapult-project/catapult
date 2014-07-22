@@ -7,11 +7,10 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/test_utils.html">
 <link rel="import" href="/tracing/timeline_track_view.html">
+<link rel="import" href="/tracing/importer/trace_event_importer.html">
 
 <script>
 'use strict';
-
-tvcm.require('tracing.importer.trace_event_importer');
 
 tvcm.unittest.testSuite('tracing.timeline_track_view_test', function() {
   var Selection = tracing.Selection;
@@ -312,4 +311,3 @@ tvcm.unittest.testSuite('tracing.timeline_track_view_test', function() {
   });
 });
 </script>
-

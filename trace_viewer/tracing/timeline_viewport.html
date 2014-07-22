@@ -8,6 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/draw_helpers.html">
 <link rel="import" href="/tracing/timeline_interest_range.html">
 <link rel="import" href="/tracing/timeline_display_transform.html">
+<link rel="import" href="/tvcm/events.html">
+<link rel="import" href="/tvcm/ui/animation.html">
+<link rel="import" href="/tvcm/ui/animation_controller.html">
 
 <script>
 'use strict';
@@ -15,10 +18,6 @@ found in the LICENSE file.
 /**
  * @fileoverview Code for the viewport.
  */
-tvcm.require('tvcm.events');
-tvcm.require('tvcm.ui.animation');
-tvcm.require('tvcm.ui.animation_controller');
-
 tvcm.exportTo('tracing', function() {
   var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
   var TimelineInterestRange = tracing.TimelineInterestRange;
@@ -352,4 +351,3 @@ tvcm.exportTo('tracing', function() {
   };
 });
 </script>
-

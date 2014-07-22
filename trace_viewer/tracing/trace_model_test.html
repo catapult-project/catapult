@@ -7,11 +7,10 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/test_utils.html">
 <link rel="import" href="/tracing/trace_model.html">
+<link rel="import" href="/tracing/importer.html">
 
 <script>
 'use strict';
-
-tvcm.require('tracing.importer');
 
 tvcm.unittest.testSuite('tracing.trace_model_test', function() {
   var ThreadSlice = tracing.trace_model.ThreadSlice;
@@ -301,4 +300,3 @@ tvcm.unittest.testSuite('tracing.trace_model_test', function() {
   });
 });
 </script>
-

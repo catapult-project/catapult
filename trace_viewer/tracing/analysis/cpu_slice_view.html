@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/slice_view.html">
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/analysis/analysis_link.html">
+<link rel="import" href="/tvcm/utils.html">
 
 <template id="cpu-slice-view-template">
   <table>
@@ -34,8 +35,6 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-
-tvcm.require('tvcm.utils');
 
 tvcm.exportTo('tracing.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
@@ -101,4 +100,3 @@ tvcm.exportTo('tracing.analysis', function() {
   };
 });
 </script>
-

@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/importer/linux_perf/parser.html">
+<link rel="import" href="/tracing/trace_model/counter_series.html">
 
 <script>
 'use strict';
@@ -14,8 +15,6 @@ found in the LICENSE file.
  * @fileoverview Parses trace_marker events that were inserted in the trace by
  * userland.
  */
-tvcm.require('tracing.trace_model.counter_series');
-
 tvcm.exportTo('tracing.importer.linux_perf', function() {
 
   var Parser = tracing.importer.linux_perf.Parser;
@@ -67,4 +66,3 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
   };
 });
 </script>
-
