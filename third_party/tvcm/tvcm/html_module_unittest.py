@@ -93,7 +93,7 @@ tvcm.exportTo('foo', function() {
                                  "a.b.start",
                                  "/tmp/a/b/",
                                  parse_results)
-    self.assertEquals(['tvcm', 'tvcm.polymer', 'a.foo'], metadata.dependent_module_names)
+    self.assertEquals(['tvcm', 'a.foo'], metadata.dependent_module_names)
 
 
   def testValidExternalScriptReferenceToRawScript(self):
@@ -110,7 +110,7 @@ tvcm.exportTo('foo', function() {
                                  "a.b.start",
                                  "/tmp/a/b/",
                                  parse_results)
-    self.assertEquals(['tvcm', 'tvcm.polymer'], metadata.dependent_module_names)
+    self.assertEquals(['tvcm', ], metadata.dependent_module_names)
     self.assertEquals(['a/foo.js'], metadata.dependent_raw_script_relative_paths)
 
 
@@ -167,7 +167,7 @@ tvcm.exportTo('foo', function() {
                                  "a.b.start",
                                  "/tmp/a/b/",
                                  parse_results)
-    self.assertEquals(['tvcm', 'tvcm.polymer', 'a.foo'], metadata.dependent_module_names)
+    self.assertEquals(['tvcm', 'a.foo'], metadata.dependent_module_names)
     self.assertEquals(['a/raw.js'], metadata.dependent_raw_script_relative_paths)
     self.assertEquals(['a.bar'], metadata.style_sheet_names)
     self.assertEquals(['a.foo'], metadata.html_template_names)
@@ -200,7 +200,7 @@ console.log('Logging without strict mode is no fun.');
                                  "a.b.start",
                                  "/tmp/a/b/",
                                  parse_results)
-    self.assertEquals(['tvcm', 'tvcm.polymer', 'a.foo'], metadata.dependent_module_names)
+    self.assertEquals(['tvcm', 'a.foo'], metadata.dependent_module_names)
 
   def testStyleSheetImport(self):
     parse_results = parse_html_deps.HTMLModuleParserResults()
@@ -214,7 +214,7 @@ console.log('Logging without strict mode is no fun.');
                                  "a.b.start",
                                  "/tmp/a/b/",
                                  parse_results)
-    self.assertEquals(['tvcm', 'tvcm.polymer'], metadata.dependent_module_names)
+    self.assertEquals(['tvcm'], metadata.dependent_module_names)
     self.assertEquals(['a.foo'], metadata.style_sheet_names)
 
   def testUsingAbsoluteHref(self):
@@ -233,7 +233,7 @@ tvcm.exportTo('foo', function() {
                                  "a.b.start",
                                  "/tmp/a/b/",
                                  parse_results)
-    self.assertEquals(['tvcm', 'tvcm.polymer', 'foo'], metadata.dependent_module_names)
+    self.assertEquals(['tvcm', 'foo'], metadata.dependent_module_names)
 
 
 class HTMLModuleTests(unittest.TestCase):
@@ -256,11 +256,6 @@ class HTMLModuleTests(unittest.TestCase):
 </polymer-element>
 """
     file_contents['/tvcm/tvcm/__init__.js'] = """
-'use strict';
-tvcm.exportTo('a', function() {
-});
-"""
-    file_contents['/tvcm/tvcm/polymer.js'] = """
 'use strict';
 tvcm.exportTo('a', function() {
 });
@@ -307,7 +302,7 @@ tvcm.exportTo('a', function() {
 
       # Check load sequence names.
       load_sequence_names = [x.name for x in load_sequence]
-      self.assertEquals(['tvcm', 'tvcm.polymer',
+      self.assertEquals(['tvcm',
                          'a.old_tvcm_component_2', 'a.old_tvcm_component_1',
                          'widget',
                          'a.old_tvcm_component_3',
