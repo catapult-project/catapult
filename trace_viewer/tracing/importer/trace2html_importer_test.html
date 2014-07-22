@@ -14,13 +14,13 @@ tvcm.unittest.testSuite('tracing.importer.trace2html_importer_test', function() 
   test('simple', function() {
     var html_lines = [
       '<!DOCTYPE HTML>',
-      '< script id="viewer-data" type="application/json">',
+      '<script id="viewer-data" type="application/json">',
       btoa('hello'),
-      '</ script>',
-      '< script id="viewer-data" type="application/json">',
+      '<\/script>',
+      '<script id="viewer-data" type="application/json">',
       btoa('world'),
-      '</ script>',
-      '</ html>'
+      '<\/script>',
+      '</html>'
     ];
     var html_text = html_lines.join('\n');
     assertTrue(tracing.importer.Trace2HTMLImporter.canImport(html_text));
@@ -39,4 +39,3 @@ tvcm.unittest.testSuite('tracing.importer.trace2html_importer_test', function() 
   });
 });
 </script>
-

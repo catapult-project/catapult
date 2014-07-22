@@ -18,7 +18,10 @@ def IsHTMLResourceTheModuleGivenConflictingResourceNames(
 class HTMLModule(module.Module):
   def Parse(self):
     module_dir_name = os.path.dirname(self.resource.absolute_path)
-    parser_results = parse_html_deps.HTMLModuleParser().Parse(self.contents)
+    try:
+      parser_results = parse_html_deps.HTMLModuleParser().Parse(self.contents)
+    except Exception, ex:
+      raise Exception('While parsing %s: %s' % (self.name, str(ex)))
     self.dependency_metadata = Parse(self.loader,
                                      self.name, module_dir_name,
                                      parser_results)

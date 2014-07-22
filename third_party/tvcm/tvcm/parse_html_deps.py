@@ -21,6 +21,7 @@ class HTMLModuleParserResults(object):
   def html_contents_without_links_and_script(self):
     return ''.join(self._html_content_chunks_without_links_and_script)
 
+_SELF_CLOSING_TAGS = ('link', 'p')
 
 class HTMLModuleParser(HTMLParser):
   def __init__(self):
@@ -29,6 +30,7 @@ class HTMLModuleParser(HTMLParser):
     self.current_script = ""
     self.in_script = False
     self.in_style = False
+    self.open_tags = []
 
   def Parse(self, html):
     results = HTMLModuleParserResults()
@@ -37,6 +39,8 @@ class HTMLModuleParser(HTMLParser):
     self.current_results = results
     self.feed(html)
     self.current_results = None
+    if len(self.open_tags):
+      raise Exception('There were open tags: %s' % ','.join(self.open_tags))
     return results
 
   def handle_decl(self, decl):
@@ -44,6 +48,12 @@ class HTMLModuleParser(HTMLParser):
     self.current_results.has_decl = True
 
   def handle_starttag(self, tag, attrs):
+    if tag == 'br':
+      raise Exception('Must use <br/>')
+
+    if tag not in _SELF_CLOSING_TAGS:
+      self.open_tags.append(tag)
+
     if tag == 'link':
       is_stylesheet = False
       is_import = False
@@ -65,11 +75,13 @@ class HTMLModuleParser(HTMLParser):
           self.get_starttag_text())
 
     elif tag == 'script':
+      had_src = False
       for attr in attrs:
         if attr[0] == 'src':
           self.current_results.scripts_external.append(attr[1])
-          return
-      self.in_script = True
+          had_src = True
+      if had_src == False:
+        self.in_script = True
 
     elif tag == 'style':
       self.in_style = True
@@ -87,9 +99,20 @@ class HTMLModuleParser(HTMLParser):
     self.current_results.AppendHTMLContent('&#%s;' % name)
 
   def handle_startendtag(self, tag, attrs):
+    if (tag == 'script'):
+      raise Exception('Script must have explicit close tag')
     self.current_results.AppendHTMLContent('%s' % self.get_starttag_text())
 
   def handle_endtag(self, tag):
+    if tag not in _SELF_CLOSING_TAGS:
+      if len(self.open_tags) == 0:
+        raise Exception('got </%s> with no previous open tag' % tag)
+
+      if self.open_tags[-1] != tag:
+        raise Exception('Expected </%s> but got </%s>' % (
+            self.open_tags[-1], tag))
+      self.open_tags.pop()
+
     if tag == 'script':
       if self.in_script:
         self.current_results.scripts_inline.append(self.current_script)

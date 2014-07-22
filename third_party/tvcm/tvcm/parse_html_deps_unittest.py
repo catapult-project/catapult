@@ -146,7 +146,7 @@ class ParseTests(unittest.TestCase):
     self.assertEquals(html, module.html_contents_without_links_and_script)
 
   def test_html_content_start_end_br(self):
-    html = """<a><br /><br></a>"""
+    html = """<a><br /></a>"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
     self.assertEquals(html, module.html_contents_without_links_and_script)
@@ -173,7 +173,58 @@ class ParseTests(unittest.TestCase):
     self.assertEquals("""<a b="c">d</a>""",
                       module.html_contents_without_links_and_script.strip())
 
+  def test_malformed_script_raises(self):
+    html = """<script src="x"/>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    def DoIt():
+      module = parser.Parse(html)
+    self.assertRaises(Exception, DoIt)
 
+  def test_malformed_br_raises(self):
+    html = """<br>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    def DoIt():
+      module = parser.Parse(html)
+    self.assertRaises(Exception, DoIt)
+
+  def test_br_does_not_raise(self):
+    html = """<div><br/></div>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+
+  def test_p_does_not_raises(self):
+    html = """<div></p></div>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+
+  def test_link_endlink_does_not_raise(self):
+    html = """<link rel="stylesheet" href="foo.css"></link>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+
+  def test_link_script_does_not_raise(self):
+    html = """<link rel="stylesheet" href="foo.css">
+              <script>
+              </script>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+
+  def test_malformed_script_raises(self):
+    html = """<script src="/jszip-inflate.js"</script>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    def DoIt():
+      module = parser.Parse(html)
+    self.assertRaises(Exception, DoIt)
+
+  def test_script_with_script_inside_as_js(self):
+    html = """<script>
+              var html_lines = [
+                '<script>',
+                '<\/script>',
+              ];
+              </script>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
 
 if __name__ == '__main__':
   unittest.main()
