@@ -18,10 +18,11 @@ class BlockPageMeasurementResults(
         return
       lines = ['name: %s' % values[0].page.display_name]
       for value in sorted(values, key=lambda x: x.name):
-        lines.append('%s (%s): %s' %
-                     (value.name,
-                      value.units,
-                      value.GetRepresentativeString()))
+        if value.GetRepresentativeString() is not None:
+          lines.append('%s (%s): %s' %
+                       (value.name,
+                        value.units,
+                        value.GetRepresentativeString()))
       for line in lines:
         self._output_stream.write(line)
         self._output_stream.write(os.linesep)

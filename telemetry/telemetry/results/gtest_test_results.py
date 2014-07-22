@@ -22,7 +22,7 @@ class GTestTestResults(page_test_results.PageTestResults):
         '(%0.f ms)' % self._GetMs())
     self._output_stream.flush()
 
-  def ValidateValue(self, value):
+  def AddValue(self, value):
     # TODO(chrishenry): When FailureValue is added, this should instead
     # validate that isinstance(value, FailureValue) is true.
     raise Exception('GTestTestResults does not support AddValue().')

@@ -56,15 +56,15 @@ class PageTestResults(object):
     pass
 
   def AddValue(self, value):
-    self.ValidateValue(value)
+    self._ValidateValue(value)
     self._all_page_specific_values.append(value)
 
   def AddSummaryValue(self, value):
     assert value.page is None
-    self.ValidateValue(value)
+    self._ValidateValue(value)
     self._all_summary_values.append(value)
 
-  def ValidateValue(self, value):
+  def _ValidateValue(self, value):
     assert isinstance(value, value_module.Value)
     if value.name not in self._representative_value_for_each_value_name:
       self._representative_value_for_each_value_name[value.name] = value
