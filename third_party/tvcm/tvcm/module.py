@@ -108,6 +108,9 @@ class Module(object):
     self.style_sheets = []
     self.html_templates = []
 
+    # Caches.
+    self._all_dependent_modules_recursive = None
+
   def __repr__(self):
     return '%s(%s)' % (self.__class__.__name__, self.name)
 
@@ -176,8 +179,19 @@ class Module(object):
       html_template = self.loader.LoadHTMLTemplate(name)
       self.html_templates.append(html_template)
 
+  @property
+  def all_dependent_modules_recursive(self):
+    if self._all_dependent_modules_recursive:
+      return self._all_dependent_modules_recursive
+
+    self._all_dependent_modules_recursive = set(self.dependent_modules)
+    for dependent_module in self.dependent_modules:
+      self._all_dependent_modules_recursive.update(
+          dependent_module.all_dependent_modules_recursive)
+    return self._all_dependent_modules_recursive
+
   def ComputeLoadSequenceRecursive(self, load_sequence, already_loaded_set,
-                                      depth=0):
+                                   depth=0):
     """Recursively builds up a load sequence list.
 
     Args:

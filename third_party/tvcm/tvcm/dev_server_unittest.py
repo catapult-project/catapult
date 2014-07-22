@@ -19,8 +19,8 @@ class DevServerTests(unittest.TestCase):
 
   def testBasic(self):
     project = project_module.Project()
-    resp_str = self.server.Get('/tvcm/__init__.js')
-    with open(os.path.join(project.tvcm_src_path, 'tvcm', '__init__.js'), 'r') as f:
+    resp_str = self.server.Get('/tvcm.html')
+    with open(os.path.join(project.tvcm_src_path, 'tvcm.html'), 'r') as f:
       tvcm_str = f.read()
     self.assertEquals(resp_str, tvcm_str)
 

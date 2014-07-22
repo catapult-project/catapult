@@ -12,10 +12,8 @@ from tvcm import resource_loader
 class GenerateTests(unittest.TestCase):
   def setUp(self):
     self.fs = fake_fs.FakeFS()
-    self.fs.AddFile('/x/tvcm/__init__.js', """
-'use strict';
-/* ohai */
-    """)
+    self.fs.AddFile('/x/tvcm.html', """<!DOCTYPE html>
+""")
     self.fs.AddFile('/x/foo/my_module.js', """
 'use strict';
 tvcm.require('foo.other_module');

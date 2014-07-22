@@ -20,9 +20,9 @@ class ResourceLoaderTest(unittest.TestCase):
     guid_module = loader.LoadModule(module_name='tvcm')
     self.assertTrue(os.path.samefile(
         guid_module.filename,
-        os.path.join(tvcm_project.tvcm_src_path, 'tvcm', '__init__.js')))
+        os.path.join(tvcm_project.tvcm_src_path, 'tvcm.html')))
     expected_contents = ''
-    with open(os.path.join(tvcm_project.tvcm_src_path, 'tvcm', '__init__.js')) as f:
+    with open(os.path.join(tvcm_project.tvcm_src_path, 'tvcm.html')) as f:
       expected_contents = f.read()
     self.assertEquals(guid_module.contents, expected_contents)
 

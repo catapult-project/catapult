@@ -8,8 +8,12 @@ found in the LICENSE file.
 <head>
 <title>Simple Embedded Viewer</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<script src="/tvcm/__init__.js"></script>
-
+<link rel="import" href="/tracing/timeline_view.html">
+<link rel="import" href="/tracing/importer.html">
+<link rel="import" href="/cc.html">
+<link rel="import" href="/tcmalloc.html">
+<link rel="import" href="/system_stats.html">
+<link rel="import" href="/gpu.html">
 <style>
   body {
     margin: 0;
@@ -39,17 +43,6 @@ found in the LICENSE file.
   </div>
   <x-timeline-view>
   </x-timeline-view>
-
-  <script>
-  'use strict';
-  tvcm.require('tracing.timeline_view');
-  tvcm.require('tracing.importer');
-  </script>
-
-  <link rel="import" href="/cc.html">
-  <link rel="import" href="/tcmalloc.html">
-  <link rel="import" href="/system_stats.html">
-  <link rel="import" href="/gpu.html">
 
   <script>
   'use strict';

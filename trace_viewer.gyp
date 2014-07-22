@@ -58,7 +58,7 @@
       'trace_viewer/tracing/tracks/track.css',
     ],
     'tracing_js_html_files': [
-      'third_party/tvcm/src/tvcm/__init__.js',
+      'third_party/tvcm/src/tvcm.html',
       'third_party/tvcm/src/tvcm/base64.html',
       'third_party/tvcm/src/tvcm/bbox2.html',
       'third_party/tvcm/src/tvcm/color.html',

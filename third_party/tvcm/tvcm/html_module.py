@@ -27,6 +27,21 @@ class HTMLModule(module.Module):
                                      parser_results)
     self._parser_results = parser_results
 
+  def Load(self):
+    super(HTMLModule, self).Load()
+
+    reachable_names = set([m.name
+                           for m in self.all_dependent_modules_recursive])
+    if 'tvcm.exportTo' in self.contents:
+      if 'tvcm' not in reachable_names:
+        raise Exception('%s:7:Does not have a dependency on tvcm' % os.path.relpath(self.resource.absolute_path))
+
+    """
+    if 'tvcm.testSuite' in self.contents or 'tvcm.unittest.testSuite' in self.contents:
+      if 'tvcm.unittest' not in reachable_names:
+        raise Exception('%s:7:Does not have a dependency on tvcm.unittest' % os.path.relpath(self.resource.absolute_path))
+    """
+
   def GetTVCMDepsModuleType(self):
     return 'tvcm.HTML_MODULE_TYPE'
 
@@ -85,10 +100,6 @@ def Parse(loader, module_name, module_dir_name, parser_results):
     raise Exception('%s must have <!DOCTYPE html>' % module_name)
 
   res = module.ModuleDependencyMetadata()
-
-  # Add tvcm and tvcm.polymer reference, always.
-  if module_name != 'tvcm':
-    res.dependent_module_names.append('tvcm')
 
   # External script references..
   for href in parser_results.scripts_external:

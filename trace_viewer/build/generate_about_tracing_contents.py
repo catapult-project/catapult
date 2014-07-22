@@ -20,7 +20,7 @@ def main(args):
     parser.print_help()
     return 1
 
-  filenames = ["tvcm/__init__.js", "about_tracing.html"]
+  filenames = ["about_tracing.html"]
   project = trace_viewer_project.TraceViewerProject()
   load_sequence = project.CalcLoadSequenceForModuleFilenames(filenames)
 
