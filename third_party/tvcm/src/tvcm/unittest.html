@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tvcm/key_event_manager.html">
+<link rel="import" href="/tvcm/promise.html">
+<link rel="import" href="/tvcm/settings.html">
+<link rel="import" href="/tvcm/unittest/test_error.html">
+<link rel="import" href="/tvcm/unittest/assertions.html">
+<link rel="import" href="/tvcm/unittest/suite_loader.html">
+<link rel="import" href="/tvcm/unittest/test_case.html">
+<link rel="import" href="/tvcm/unittest/test_suite.html">
+<link rel="import" href="/tvcm/unittest/test_runner.html">
+<script>
+'use strict';
+tvcm.exportTo('tvcm.unittest', function() {
+
+  // Manually export tvcm.unittest.testSuite to the tvcm namespace. This is done
+  // to avoid linewrapping in 80col-constrained environments.
+  tvcm.testSuite = tvcm.unittest.testSuite;
+
+  return {
+  };
+});
+</script>

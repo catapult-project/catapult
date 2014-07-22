@@ -12,9 +12,13 @@
  */
 var global = this;
 
-
 /** Platform, package, object property, and Event support. */
 this.tvcm = (function() {
+  if (window.tvcm) {
+    console.warn('TVCM was multiply initialized. First init wins.');
+    return window.tvcm;
+  }
+
   function mLog(text, opt_indentLevel) {
     if (true)
       return;
@@ -318,23 +322,6 @@ this.tvcm = (function() {
             'and try again.';
         showPanic('Invalid Chrome version', msg);
       }
-    }
-
-    // If 'document' isn't defined, then we must be being pre-compiled,
-    // so set a trap so that we're initialized on first access at run-time.
-    if (!global.document) {
-      var originalTVCM = tvcm;
-
-      Object.defineProperty(global, 'tvcm', {
-        get: function() {
-          Object.defineProperty(global, 'tvcm', {value: originalTVCM});
-          originalTVCM.initialize();
-          return originalTVCM;
-        },
-        configurable: true
-      });
-
-      return;
     }
 
     tvcm.doc = document;

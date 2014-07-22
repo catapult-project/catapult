@@ -87,8 +87,9 @@ def Parse(loader, module_name, module_dir_name, parser_results):
   res = module.ModuleDependencyMetadata()
 
   # Add tvcm and tvcm.polymer reference, always.
-  res.dependent_module_names.append('tvcm')
-  res.dependent_module_names.append('tvcm.polymer')
+  if module_name not in ('tvcm', 'tvcm.polymer'):
+    res.dependent_module_names.append('tvcm')
+    res.dependent_module_names.append('tvcm.polymer')
 
   # External script references..
   for href in parser_results.scripts_external:
