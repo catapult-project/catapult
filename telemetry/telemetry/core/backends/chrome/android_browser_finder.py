@@ -19,11 +19,6 @@ from telemetry.core.backends import adb_commands
 from telemetry.core.backends.chrome import android_browser_backend
 from telemetry.core.platform import android_platform_backend
 
-try:
-  import psutil  # pylint: disable=F0401
-except ImportError:
-  psutil = None
-
 
 CHROME_PACKAGE_NAMES = {
   'android-content-shell':
@@ -212,18 +207,19 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
     # Ignore result.
     adb.EnableAdbRoot()
 
-  if psutil:
-    # Host side workaround for crbug.com/268450 (adb instability).
+  if sys.platform.startswith('linux'):
+    # Host side workaround for crbug.com/268450 (adb instability)
     # The adb server has a race which is mitigated by binding to a single core.
-    for proc in psutil.process_iter():
-      try:
-        if 'adb' in proc.name:
-          if hasattr(proc, 'cpu_affinity'):
-            proc.cpu_affinity([0])      # New versions of psutil.
-          else:
-            proc.set_cpu_affinity([0])  # Older versions.
-      except (psutil.NoSuchProcess, psutil.AccessDenied):
-        logging.warn('Failed to set adb process CPU affinity')
+    import psutil  # pylint: disable=F0401
+    pids  = [p.pid for p in psutil.process_iter() if 'adb' in p.name]
+    with open(os.devnull, 'w') as devnull:
+      for pid in pids:
+        ret = subprocess.call(['taskset', '-p', '-c', '0', str(pid)],
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              stdin=devnull)
+        if ret:
+          logging.warn('Failed to taskset %d (%s)', pid, ret)
 
   if not os.environ.get('BUILDBOT_BUILDERNAME'):
     # Killing adbd before running tests has proven to make them less likely to
