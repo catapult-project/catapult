@@ -10,6 +10,7 @@ from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import discover
+from telemetry.unittest import json_results
 from telemetry.unittest import output_formatter
 
 
@@ -125,6 +126,7 @@ class RunTestsCommand(command_line.OptparseCommand):
                       dest='run_disabled_tests',
                       action='store_true', default=False,
                       help='Ignore @Disabled and @Enabled restrictions.')
+    json_results.AddOptions(parser)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
@@ -141,6 +143,8 @@ class RunTestsCommand(command_line.OptparseCommand):
                    'Re-run with --browser=list to see '
                    'available browser types.' % args.browser_type)
 
+    json_results.ValidateArgs(parser, args)
+
   def Run(self, args):
     possible_browser = browser_finder.FindBrowser(args)
     test_suite = DiscoverTests(
@@ -149,6 +153,9 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner = output_formatter.TestRunner()
     result = runner.run(
         test_suite, config.output_formatters, args.repeat_count, args)
+
+    json_results.WriteandUploadResultsIfNecessary(args, test_suite, result)
+
     return len(result.failures_and_errors)
 
   @classmethod
