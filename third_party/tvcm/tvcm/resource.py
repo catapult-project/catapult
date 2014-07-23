@@ -32,12 +32,8 @@ class Resource(object):
     basename = os.path.basename(relative_path)
     modname  = os.path.splitext(basename)[0]
     if len(dirname):
-      if basename == '__init__.js':
-        name = dirname.replace(os.path.sep, '.')
-      else:
-        name = dirname.replace(os.path.sep, '.') + '.' + modname
+      name = dirname.replace(os.path.sep, '.') + '.' + modname
     else:
-      assert basename != '__init__.js'
       name = modname
     return name
 

@@ -93,16 +93,7 @@ class ResourceLoader(object):
 
   def FindModuleResource(self, requested_module_name):
     """Finds a module javascript file and returns a Resource, or none."""
-    # TODO(nduca): Look for name/__init__.js as well as name.js
     js_resource = self._FindResourceGivenNameAndSuffix(requested_module_name, '.js', return_resource=True)
-    if not js_resource:
-      js_resource = self._FindResourceGivenNameAndSuffix(requested_module_name + '.__init__', '.js', return_resource=True)
-    else:
-      # Verify that no __init__.js exists.
-      init_resource = self._FindResourceGivenNameAndSuffix(requested_module_name + '.__init__', '.js', return_resource=True)
-      if init_resource:
-        raise module.DepsException('While loading "%s", found a __init__.js form as well', requested_module_name)
-
     html_resource = self._FindResourceGivenNameAndSuffix(requested_module_name, '.html', return_resource=True)
     if js_resource and html_resource:
       if html_module.IsHTMLResourceTheModuleGivenConflictingResourceNames(js_resource, html_resource):
@@ -120,11 +111,6 @@ class ResourceLoader(object):
         raise Exception('Could not find %s in %s' % (
             module_filename, repr(self.source_paths)))
       module_name = resource.name
-      if resource.absolute_path.endswith('__init__.js'):
-        old_style_filename = os.path.dirname(resource.absolute_path) + '.js'
-        if os.path.exists(old_style_filename):
-          raise module.DepsException('While loading __init__.js of %s, found %s which should never exist',
-                                     module_name, old_style_filename)
     else:
       resource = None # Will be set if we end up needing to load.
 
