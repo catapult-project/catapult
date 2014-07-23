@@ -80,7 +80,6 @@
       'third_party/tvcm/src/tvcm/settings.html',
       'third_party/tvcm/src/tvcm/sorted_array_utils.html',
       'third_party/tvcm/src/tvcm/statistics.html',
-      'third_party/tvcm/src/tvcm/still_a_js_module.js',
       'third_party/tvcm/src/tvcm/ui.html',
       'third_party/tvcm/src/tvcm/ui/animation.html',
       'third_party/tvcm/src/tvcm/ui/animation_controller.html',

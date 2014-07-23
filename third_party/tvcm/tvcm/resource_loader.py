@@ -7,7 +7,6 @@ import os
 from tvcm import module
 from tvcm import style_sheet as style_sheet_module
 from tvcm import resource as resource_module
-from tvcm import js_module
 from tvcm import html_module
 from tvcm import strip_js_comments
 
@@ -123,10 +122,9 @@ class ResourceLoader(object):
       if not resource:
         raise module.DepsException('No resource for module "%s"' % module_name)
 
-    if resource.absolute_path.endswith('.html'):
-      m = html_module.HTMLModule(self, module_name, resource)
-    else:
-      m = js_module.JSModule(self, module_name, resource)
+    if resource.absolute_path.endswith('.js'):
+      raise Exception(".js modules are deprecated")
+    m = html_module.HTMLModule(self, module_name, resource)
     m.Parse()
     self.loaded_modules[module_name] = m
     m.Load()

@@ -15,20 +15,20 @@ from tvcm import project as project_module
 class ModuleIntegrationTests(unittest.TestCase):
   def test_module(self):
     fs = fake_fs.FakeFS()
-    fs.AddFile('/src/x.js', """
+    fs.AddFile('/src/x.html', """
+<!DOCTYPE html>
+<link rel="import" href="/y.html">
+<link rel="import" href="/z.html">
+<script>
 'use strict';
-tvcm.require('y');
-tvcm.require('z');
-tvcm.exportTo('xyz', function() { });
+</script>
 """)
-    fs.AddFile('/src/y.js', """
-'use strict';
-tvcm.require('z');
-tvcm.exportTo('xyz', function() { });
+    fs.AddFile('/src/y.html', """
+<!DOCTYPE html>
+<link rel="import" href="/z.html">
 """)
-    fs.AddFile('/src/z.js', """
-'use strict';
-tvcm.exportTo('xyz', function() { });
+    fs.AddFile('/src/z.html', """
+<!DOCTYPE html>
 """)
     fs.AddFile('/src/tvcm.html', '<!DOCTYPE html>')
     with fs:
@@ -37,8 +37,7 @@ tvcm.exportTo('xyz', function() { });
       loader = resource_loader.ResourceLoader(project)
       x_module = loader.LoadModule('x')
 
-      self.assertEquals([loader.loaded_modules['tvcm'],
-                         loader.loaded_modules['y'],
+      self.assertEquals([loader.loaded_modules['y'],
                          loader.loaded_modules['z']],
                         x_module.dependent_modules)
 
@@ -46,50 +45,40 @@ tvcm.exportTo('xyz', function() { });
       load_sequence = []
       x_module.ComputeLoadSequenceRecursive(load_sequence, already_loaded_set)
 
-      self.assertEquals([loader.loaded_modules['tvcm'],
-                         loader.loaded_modules['z'],
+      self.assertEquals([loader.loaded_modules['z'],
                          loader.loaded_modules['y'],
                          x_module],
                         load_sequence)
 
   def testBasic(self):
     fs = fake_fs.FakeFS()
-    fs.AddFile('/x/src/my_module.js', """
-'use strict';
-tvcm.require('tvcm.foo');
-tvcm.exportTo('foo', function() {
+    fs.AddFile('/x/src/my_module.html', """
+<!DOCTYPE html>
+<link rel="import" href="/tvcm/foo.html">
 });
 """)
-    fs.AddFile('/x/tvcm/foo.js', """
-'use strict';
-tvcm.require('tvcm.foo');
-tvcm.exportTo('foo', function() {
+    fs.AddFile('/x/tvcm/foo.html', """
+<!DOCTYPE html>
 });
 """);
-    fs.AddFile('/x/tvcm.html', '<!DOCTYPE html>')
     project = project_module.Project(['/x'],
                                      include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)
     with fs:
       my_module = loader.LoadModule(module_name = 'src.my_module')
       dep_names = [x.name for x in my_module.dependent_modules]
-      self.assertEquals(['tvcm', 'tvcm.foo'], dep_names)
+      self.assertEquals(['tvcm.foo'], dep_names)
 
   def testDepsExceptionContext(self):
     fs = fake_fs.FakeFS()
-    fs.AddFile('/x/src/my_module.js', """
-'use strict';
-tvcm.require('tvcm.foo');
-tvcm.exportTo('foo', function() {
-});
+    fs.AddFile('/x/src/my_module.html', """
+<!DOCTYPE html>
+<link rel="import" href="/tvcm/foo.html">
 """)
-    fs.AddFile('/x/tvcm/foo.js', """
-'use strict';
-tvcm.require('missing');
-tvcm.exportTo('foo', function() {
-});
+    fs.AddFile('/x/tvcm/foo.html', """
+<!DOCTYPE html>
+<link rel="import" href="missing.html">
 """);
-    fs.AddFile('/x/tvcm.html', '<!DOCTYPE html>')
     project = project_module.Project(['/x'],
                                      include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)
@@ -106,12 +95,11 @@ tvcm.exportTo('foo', function() {
 
   def testRawScript(self):
     fs = fake_fs.FakeFS()
-    fs.AddFile('/x/y/z/foo.js', """
-'use strict';
-    tvcm.requireRawScript('bar.js');
+    fs.AddFile('/x/y/z/foo.html', """
+<!DOCTYPE html>
+<script src="/bar.js"></script>
 """)
     fs.AddFile('/x/raw/bar.js', 'hello');
-    fs.AddFile('/x/y/tvcm.html', '<!DOCTYPE html>')
     project = project_module.Project(['/x/y', '/x/raw/'],
                                      include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)

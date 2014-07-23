@@ -244,13 +244,11 @@ class HTMLModuleTests(unittest.TestCase):
 <link rel="import" href="/widget.html">
 <link rel="stylesheet" href="../common.css">
 <script src="/raw_script.js"></script>
-<script src="../old_tvcm_component_1.js"></script>
 <polymer-element name="start">
   <template>
   </template>
   <script>
     'use strict';
-    tvcm.require("a.old_tvcm_component_3");
     console.log('inline script for start.html got written');
   </script>
 </polymer-element>
@@ -272,25 +270,6 @@ console.log('inline script for widget.html');
     file_contents['/raw/raw_script.js'] = """
 console.log('/raw/raw_script.js was written');
 """
-    file_contents['/tmp/a/old_tvcm_component_1.js'] = """
-'use strict';
-tvcm.require('a.old_tvcm_component_2')
-console.log('/tmp/a/old_tvcm_component_1.js was written');
-tvcm.exportTo('a', function() {
-});
-"""
-    file_contents['/tmp/a/old_tvcm_component_2.js'] = """
-'use strict';
-console.log('/tmp/a/old_tvcm_component_2.js was written');
-tvcm.exportTo('a', function() {
-});
-"""
-    file_contents['/tmp/a/old_tvcm_component_3.js'] = """
-'use strict';
-console.log('/tmp/a/old_tvcm_component_3.js was written');
-tvcm.exportTo('a', function() {
-});
-"""
     with fake_fs.FakeFS(file_contents):
       project = project_module.Project(['/tvcm/', '/tmp/', '/components/', '/raw/'],
                                        include_tvcm_paths=False)
@@ -301,9 +280,7 @@ tvcm.exportTo('a', function() {
       # Check load sequence names.
       load_sequence_names = [x.name for x in load_sequence]
       self.assertEquals(['tvcm',
-                         'a.old_tvcm_component_2', 'a.old_tvcm_component_1',
                          'widget',
-                         'a.old_tvcm_component_3',
                          'a.b.start'], load_sequence_names)
 
 
@@ -311,16 +288,13 @@ tvcm.exportTo('a', function() {
       def HasDependentModule(module, name):
         return [x for x in module.dependent_modules
                 if x.name == name]
-      assert HasDependentModule(a_b_start_module, 'a.old_tvcm_component_1')
+      assert HasDependentModule(a_b_start_module, 'widget')
 
       # Check JS generation.
       js = generate.GenerateJS(load_sequence)
       assert 'inline script for start.html' in js
       assert 'inline script for widget.html' in js
       assert '/raw/raw_script.js' in js
-      assert '/tmp/a/old_tvcm_component_1.js' in js
-      assert '/tmp/a/old_tvcm_component_2.js' in js
-      assert '/tmp/a/old_tvcm_component_3.js' in js
 
       # Check HTML generation.
       html = generate.GenerateStandaloneHTMLAsString(load_sequence, title='',

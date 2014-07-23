@@ -70,12 +70,12 @@ def _HRefToResource(loader, module_name, module_dir_name, href, tag_for_err_msg)
     resource = loader.FindResourceGivenAbsolutePath(abspath)
 
   if not resource:
-    raise Exception('In %s, the %s cannot be loaded because ' \
+    raise module.DepsException('In %s, the %s cannot be loaded because ' \
                     'it is not in the search path' % (module_name, tag_for_err_msg))
   try:
     resource_contents = resource.contents
   except:
-    raise Exception('In %s, %s points at a nonexistant file ' % (
+    raise module.DepsException('In %s, %s points at a nonexistant file ' % (
       module_name,
       tag_for_err_msg))
   return resource

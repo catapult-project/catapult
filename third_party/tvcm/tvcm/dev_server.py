@@ -53,38 +53,7 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       return True
     return False
 
-  def send_head_for_jshtml(self):
-    js_path = self.path[0:-5]
-    translated_js_path = self.translate_path(js_path)
-    if translated_js_path == '':
-      self.send_error(404, "File not found")
-      return None
-
-    abs_translated_js_path = os.path.abspath(translated_js_path)
-    m = self.server.loader.LoadModule(module_filename=abs_translated_js_path)
-
-    assert isinstance(m, js_module.JSModule)
-    htmlified_module = m.contents_as_html_module
-
-    self.send_response(200)
-    self.send_header("Content-Type", 'text/html')
-    self.send_header("Content-Length", str(len(htmlified_module)))
-
-    fs = os.stat(abs_translated_js_path)
-    self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
-    self.end_headers()
-
-    return StringIO.StringIO(htmlified_module)
-
   def send_head(self):
-    if self.path.endswith('.js.html'):
-      try:
-        return self.send_head_for_jshtml()
-      except Exception, ex:
-        import traceback; traceback.print_exc()
-        send_500(self, "While htmlifying %s" % self.path[:-5], ex,
-                 log_error=False)
-        return None
     return SimpleHTTPServer.SimpleHTTPRequestHandler.send_head(self)
 
   def translate_path(self, path):
