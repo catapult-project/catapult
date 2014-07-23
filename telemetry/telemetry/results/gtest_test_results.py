@@ -6,6 +6,7 @@ import logging
 import time
 
 from telemetry.results import page_test_results
+from telemetry.value import failure
 
 
 class GTestTestResults(page_test_results.PageTestResults):
@@ -16,20 +17,19 @@ class GTestTestResults(page_test_results.PageTestResults):
   def _GetMs(self):
     return (time.time() - self._timestamp) * 1000
 
-  def _emitFailure(self, page, err):
-    print >> self._output_stream, self._GetStringFromExcInfo(err)
-    print >> self._output_stream, '[  FAILED  ]', page.display_name, (
+  def _emitFailure(self, failure_value):
+    print >> self._output_stream, failure.GetStringFromExcInfo(
+        failure_value.exc_info)
+    display_name = failure_value.page.display_name
+    print >> self._output_stream, '[  FAILED  ]', display_name, (
         '(%0.f ms)' % self._GetMs())
     self._output_stream.flush()
 
   def AddValue(self, value):
-    # TODO(chrishenry): When FailureValue is added, this should instead
-    # validate that isinstance(value, FailureValue) is true.
-    raise Exception('GTestTestResults does not support AddValue().')
-
-  def AddFailure(self, page, err):
-    super(GTestTestResults, self).AddFailure(page, err)
-    self._emitFailure(page, err)
+    assert isinstance(value, failure.FailureValue), (
+        'GTestTestResults only accepts FailureValue.')
+    super(GTestTestResults, self).AddValue(value)
+    self._emitFailure(value)
 
   def StartTest(self, page):
     super(GTestTestResults, self).StartTest(page)
@@ -61,9 +61,9 @@ class GTestTestResults(page_test_results.PageTestResults):
       unit = 'test' if len(self.failures) == 1 else 'tests'
       print >> self._output_stream, '[  FAILED  ]', (
           '%d %s, listed below:' % (len(self.failures), unit))
-      for page, _ in self.failures:
+      for failure_value in self.failures:
         print >> self._output_stream, '[  FAILED  ] ', (
-            page.display_name)
+            failure_value.page.display_name)
       print >> self._output_stream
       count = len(self.failures)
       unit = 'TEST' if count == 1 else 'TESTS'

@@ -5,11 +5,12 @@ import os
 
 from telemetry import perf_tests_helper
 from telemetry.page import page_set
+from telemetry.results import base_test_results_unittest
+from telemetry.results import buildbot_page_measurement_results
+from telemetry.value import failure
 from telemetry.value import histogram
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
-from telemetry.results import base_test_results_unittest
-from telemetry.results import buildbot_page_measurement_results
 
 
 def _MakePageSet():
@@ -130,7 +131,8 @@ class BuildbotPageMeasurementResultsTest(
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 3))
     measurement_results.DidMeasurePage()
-    measurement_results.AddFailureMessage(test_page_set.pages[0], 'message')
+    measurement_results.AddValue(
+        failure.FailureValue.FromMessage(test_page_set.pages[0], 'message'))
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
     measurement_results.AddValue(scalar.ScalarValue(
@@ -161,7 +163,8 @@ class BuildbotPageMeasurementResultsTest(
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 7))
     measurement_results.DidMeasurePage()
-    measurement_results.AddFailureMessage(test_page_set.pages[1], 'message')
+    measurement_results.AddValue(
+        failure.FailureValue.FromMessage(test_page_set.pages[1], 'message'))
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(

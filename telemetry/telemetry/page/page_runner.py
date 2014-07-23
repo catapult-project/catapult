@@ -27,7 +27,7 @@ from telemetry.page.actions import page_action
 from telemetry.results import results_options
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
-
+from telemetry.value import failure
 
 class _RunState(object):
   def __init__(self):
@@ -498,7 +498,8 @@ def _CheckArchives(page_set, pages, results):
 
   for page in pages_missing_archive_path + pages_missing_archive_data:
     results.StartTest(page)
-    results.AddFailureMessage(page, 'Page set archive doesn\'t exist.')
+    results.AddValue(failure.FailureValue.FromMessage(
+        page, 'Page set archive doesn\'t exist.'))
     results.StopTest(page)
 
   return [page for page in pages if page not in
@@ -521,7 +522,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
       results.AddSuccess(page)
     else:
       msg = 'Exception while running %s' % page.url
-      results.AddFailure(page, sys.exc_info())
+      results.AddValue(failure.FailureValue(page, sys.exc_info()))
     exception_formatter.PrintFormattedException(msg=msg)
 
   try:
@@ -541,7 +542,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     else:
       exception_formatter.PrintFormattedException(
           msg='Failure while running %s' % page.url)
-      results.AddFailure(page, sys.exc_info())
+      results.AddValue(failure.FailureValue(page, sys.exc_info()))
   except (util.TimeoutException, exceptions.LoginException,
           exceptions.ProfilingException):
     ProcessError()
@@ -554,7 +555,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
   except Exception:
     exception_formatter.PrintFormattedException(
         msg='Unhandled exception while running %s' % page.url)
-    results.AddFailure(page, sys.exc_info())
+    results.AddValue(failure.FailureValue(page, sys.exc_info()))
   else:
     if expectation == 'fail':
       logging.warning('%s was expected to fail, but passed.\n', page.url)

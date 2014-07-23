@@ -7,6 +7,7 @@ import unittest
 from telemetry import perf_tests_helper
 from telemetry.page import page_set
 from telemetry.results import page_measurement_results
+from telemetry.value import failure
 from telemetry.value import histogram
 from telemetry.value import scalar
 
@@ -112,12 +113,12 @@ class PageMeasurementResultsTest(unittest.TestCase):
     results.WillMeasurePage(self.pages[0])
     results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
     results.DidMeasurePage()
-    results.AddFailureMessage(self.pages[0], 'message')
+    results.AddValue(failure.FailureValue.FromMessage(self.pages[0], 'message'))
 
     results.WillMeasurePage(self.pages[1])
     results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 7))
     results.DidMeasurePage()
-    results.AddFailureMessage(self.pages[1], 'message')
+    results.AddValue(failure.FailureValue.FromMessage(self.pages[1], 'message'))
 
     results.PrintSummary()
     self.assertEquals(results.results, [])
@@ -135,37 +136,39 @@ class PageMeasurementResultsTest(unittest.TestCase):
   def test_get_all_values_for_successful_pages(self):
     results = SummarySavingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
-    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
+    value1 = scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3)
+    results.AddValue(value1)
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[1])
-    results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 3))
+    value2 = scalar.ScalarValue(self.pages[1], 'a', 'seconds', 3)
+    results.AddValue(value2)
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[2])
-    results.AddValue(scalar.ScalarValue(self.pages[2], 'a', 'seconds', 3))
+    value3 = scalar.ScalarValue(self.pages[2], 'a', 'seconds', 3)
+    results.AddValue(value3)
     results.DidMeasurePage()
 
-    values = results.all_page_specific_values
-    self.assertEquals(3, len(values))
-    self.assertEquals([self.pages[0], self.pages[1], self.pages[2]],
-                      [v.page for v in values])
+    self.assertEquals(
+        [value1, value2, value3], results.all_page_specific_values)
 
   def test_get_all_values_for_successful_pages_one_page_fails(self):
     results = SummarySavingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
-    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
+    value1 = scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3)
+    results.AddValue(value1)
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[1])
-    results.AddFailureMessage(self.pages[1], "Failure")
+    value2 = failure.FailureValue.FromMessage(self.pages[1], 'Failure')
+    results.AddValue(value2)
     results.DidMeasurePage()
 
     results.WillMeasurePage(self.pages[2])
-    results.AddValue(scalar.ScalarValue(self.pages[2], 'a', 'seconds', 3))
+    value3 = scalar.ScalarValue(self.pages[2], 'a', 'seconds', 3)
+    results.AddValue(value3)
     results.DidMeasurePage()
 
-    values = results.all_page_specific_values
-    self.assertEquals(2, len(values))
-    self.assertEquals([self.pages[0], self.pages[2]],
-                      [v.page for v in values])
+    self.assertEquals(
+        [value1, value2, value3], results.all_page_specific_values)
