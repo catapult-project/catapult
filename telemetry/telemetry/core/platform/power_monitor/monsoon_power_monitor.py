@@ -103,15 +103,16 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
     """
     power_samples = []
     total_energy_consumption_mwh = 0
+
     result = json.loads(powermonitor_output)
-    timedelta_h = result['duration_s'] / len(result['samples']) / 3600
-    for (current_a, voltage_v) in result['samples']:
-      energy_consumption_mw = current_a * voltage_v * 10**3
-      total_energy_consumption_mwh += energy_consumption_mw * timedelta_h
-      power_samples.append(energy_consumption_mw)
-    # -------- Collect and Process Data -------------
+    if result['samples']:
+      timedelta_h = result['duration_s'] / len(result['samples']) / 3600
+      for (current_a, voltage_v) in result['samples']:
+        energy_consumption_mw = current_a * voltage_v * 10**3
+        total_energy_consumption_mwh += energy_consumption_mw * timedelta_h
+        power_samples.append(energy_consumption_mw)
+
     out_dict = {}
-    # Raw power usage samples.
     out_dict['identifier'] = 'monsoon'
     out_dict['power_samples_mw'] = power_samples
     out_dict['energy_consumption_mwh'] = total_energy_consumption_mwh

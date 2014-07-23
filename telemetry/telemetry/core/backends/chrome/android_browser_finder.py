@@ -18,6 +18,7 @@ from telemetry.core import util
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends.chrome import android_browser_backend
 from telemetry.core.platform import android_platform_backend
+from telemetry.core.platform.profiler import monsoon
 
 
 CHROME_PACKAGE_NAMES = {
@@ -176,6 +177,7 @@ def CanFindAvailableBrowsers(logging=real_logging):
         adb_works = False
   return adb_works
 
+
 def FindAllAvailableBrowsers(finder_options, logging=real_logging):
   """Finds all the desktop browsers available on this machine."""
   if not CanFindAvailableBrowsers(logging=logging):
@@ -183,15 +185,38 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
                  'Will not try searching for Android browsers.')
     return []
 
-  device = None
-  if finder_options.android_device:
-    devices = [finder_options.android_device]
-  else:
-    devices = adb_commands.GetAttachedDevices()
+  def _GetDevices():
+    if finder_options.android_device:
+      return [finder_options.android_device]
+    else:
+      return adb_commands.GetAttachedDevices()
 
-  if len(devices) == 0:
-    logging.info('No android devices found.')
-    return []
+  devices = _GetDevices()
+
+  if not devices:
+    try:
+      m = monsoon.Monsoon(wait=False)
+      m.SetUsbPassthrough(1)
+      m.SetVoltage(3.8)
+      m.SetMaxCurrent(8)
+      logging.warn("""
+Monsoon power monitor detected, but no Android devices.
+
+The Monsoon's power output has been enabled. Please now ensure that:
+
+  1. The Monsoon's front and back USB are connected to the host.
+  2. The Device is connected to the Monsoon's main and USB channels.
+  3. The Device is turned on.
+
+Waiting for device...
+""")
+      util.WaitFor(_GetDevices, 600)
+      devices = _GetDevices()
+      if not devices:
+        raise IOError()
+    except IOError:
+      logging.info('No android devices found.')
+      return []
 
   if len(devices) > 1:
     logging.warn(
