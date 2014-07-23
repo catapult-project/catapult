@@ -8,6 +8,7 @@ import logging
 import optparse
 import os
 import shutil
+import stat
 import sys
 import tempfile
 
@@ -36,6 +37,33 @@ def _DiscoverProfileCreatorClasses():
   return profile_creators
 
 
+def _IsPseudoFile(directory, paths):
+  """Filter function for shutil.copytree() to reject socket files and symlinks
+  since those can't be copied around on bots."""
+  def IsSocket(full_path):
+    """Check if a file at a given path is a socket."""
+    try:
+      if stat.S_ISSOCK(os.stat(full_path).st_mode):
+        return True
+    except OSError:
+      # Thrown if we encounter a broken symlink.
+      pass
+    return False
+
+  ignore_list = []
+  for path in paths:
+    full_path = os.path.join(directory, path)
+
+    if os.path.isdir(full_path):
+      continue
+    if not IsSocket(full_path) and not os.path.islink(full_path):
+      continue
+
+    logging.warning('Ignoring pseudo file: %s' % full_path)
+    ignore_list.append(path)
+
+  return ignore_list
+
 def GenerateProfiles(profile_creator_class, profile_creator_name, options):
   """Generate a profile"""
   expectations = test_expectations.TestExpectations()
@@ -60,19 +88,7 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
   if os.path.exists(out_path):
     shutil.rmtree(out_path)
 
-  # A profile may contain pseudo files like sockets which can't be copied
-  # around by bots.
-  def IsPseudoFile(directory, paths):
-    ignore_list = []
-    for path in paths:
-      full_path = os.path.join(directory, path)
-      if (not os.path.isfile(full_path) and
-          not os.path.isdir(full_path) and
-          not os.path.islink(full_path)):
-        logging.warning('Ignoring pseudo file: %s' % full_path)
-        ignore_list.append(path)
-    return ignore_list
-  shutil.copytree(temp_output_directory, out_path, ignore=IsPseudoFile)
+  shutil.copytree(temp_output_directory, out_path, ignore=_IsPseudoFile)
   shutil.rmtree(temp_output_directory)
   sys.stderr.write("SUCCESS: Generated profile copied to: '%s'.\n" % out_path)
 
@@ -121,8 +137,7 @@ def ProcessCommandLineArgs(parser, args):
 def Main():
   options = browser_options.BrowserFinderOptions()
   parser = options.CreateParser(
-      "%%prog <--profile-type-to-generate=...> <--browser=...>"
-      " <--output-directory>")
+      "%%prog <--profile-type-to-generate=...> <--browser=...> <--output-dir>")
   AddCommandLineArgs(parser)
   _, _ = parser.parse_args()
   ProcessCommandLineArgs(parser, options)
