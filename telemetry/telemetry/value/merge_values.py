@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.value import failure
+from telemetry.value import skip
 
 def MergeLikeValuesFromSamePage(all_values):
   """Merges values that measure the same thing on the same page.
@@ -112,9 +113,12 @@ def GroupStably(all_values, key_func):
   merge_groups_in_creation_order = []
   for value in all_values:
     # TODO(chrishenry): This is temporary. When we figure out the
-    # right summarization strategy for page runs with failures, we
+    # right summarization strategy for page runs with failures/skips, we
     # should use that instead.
-    if isinstance(value, failure.FailureValue):
+    should_skip_value = (isinstance(value, failure.FailureValue) or
+                         isinstance(value, skip.SkipValue))
+
+    if should_skip_value:
       continue
 
     key = key_func(value)

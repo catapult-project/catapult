@@ -6,6 +6,7 @@ from collections import defaultdict
 
 from telemetry.value import failure
 from telemetry.value import merge_values
+from telemetry.value import skip
 
 class Summary(object):
   """Computes summary values from the per-page-run values produced by a test.
@@ -60,8 +61,8 @@ class Summary(object):
 
   def _ComputePerPageValues(self, all_page_specific_values):
     all_successful_page_values = [
-        v for v in all_page_specific_values if not isinstance(
-            v, failure.FailureValue)]
+        v for v in all_page_specific_values if not (isinstance(
+            v, failure.FailureValue) or isinstance(v, skip.SkipValue))]
 
     # We will later need to determine how many values were originally created
     # for each value name, to apply a workaround meant to clean up the printf
