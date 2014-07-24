@@ -137,7 +137,7 @@ class AndroidPlatformBackend(
       raise Exception('Error while purging ashmem: ' + '\n'.join(output))
 
   def GetMemoryStats(self, pid):
-    memory_usage = self._device.old_interface.GetMemoryUsageForPid(pid)
+    memory_usage = self._device.GetMemoryUsageForPid(pid)
     return {'ProportionalSetSize': memory_usage['Pss'] * 1024,
             'SharedDirty': memory_usage['Shared_Dirty'] * 1024,
             'PrivateDirty': memory_usage['Private_Dirty'] * 1024,

@@ -321,7 +321,7 @@ doit &
     """Returns the IP addresses on all connected devices.
     Excludes interface |excluded_iface| on the selected device.
     """
-    my_device = self._device.old_interface.GetDevice()
+    my_device = str(self._device)
     addresses = []
     for device_serial in adb_commands.GetAttachedDevices():
       device = adb_commands.AdbCommands(device_serial).device()
