@@ -205,72 +205,6 @@ this.tvcm = (function() {
       document.head.appendChild(elem.removeChild(elem.firstChild));
   }
 
-  var moduleLoadStatus = {};
-  function require(modules, opt_indentLevel) {
-    if (document.currentScript) {
-      console.warn('tvcm.require() is only for starting loading. ' +
-                   'To load a module from another module, use imports.');
-    }
-
-    var indentLevel = opt_indentLevel || 0;
-    var dependentModules = modules;
-    if (!(modules instanceof Array))
-      dependentModules = [modules];
-
-    ensureDepsLoaded();
-    ensureTemplatesLoaded();
-
-    dependentModules.forEach(function(module) {
-      requireModule(module, indentLevel);
-    });
-  }
-
-  var modulesWaiting = [];
-  function requireModule(dependentModuleName, indentLevel) {
-    if (dependentModuleName == 'tvcm')
-      return;
-
-    if (window.FLATTENED) {
-      if (!window.FLATTENED[dependentModuleName]) {
-        throw new Error('Somehow, module ' + dependentModuleName +
-                        ' didn\'t get stored in the flattened js file! ' +
-                        'You have likely found a tvcm bug.');
-      }
-      return;
-    }
-
-    if (moduleLoadStatus[dependentModuleName] == 'APPENDED')
-      return;
-
-    if (moduleLoadStatus[dependentModuleName] == 'RESOLVING')
-      return;
-
-    mLog('require(' + dependentModuleName + ')', indentLevel);
-    moduleLoadStatus[dependentModuleName] = 'RESOLVING';
-
-    var dependentModules = moduleDependencies[dependentModuleName] || [];
-    require(dependentModules, indentLevel + 1);
-
-    var moduleInfo = moduleInfoByModuleName[dependentModuleName];
-    if (moduleInfo === undefined)
-      throw new Error('OMG: Module info for ' + dependentModuleName +
-                      ' is missing.');
-    if (moduleInfo.type === JS_MODULE_TYPE)
-      loadImport(moduleInfo.relativeFileName + '.html');
-    else if (moduleInfo.type === HTML_MODULE_TYPE)
-      loadImport(moduleInfo.relativeFileName);
-    else
-      throw new Error('Unrecognized module type: ' + moduleInfo.type);
-    moduleLoadStatus[name] = 'APPENDED';
-  }
-
-  function loadImport(path) {
-    var linkEl = document.createElement('link');
-    linkEl.setAttribute('rel', 'import');
-    linkEl.setAttribute('href', '/' + path);
-    tvcm.doc.head.appendChild(linkEl);
-  }
-
   /**
    * Adds a dependency on a raw javascript file, e.g. a third party
    * library.
@@ -340,12 +274,14 @@ this.tvcm = (function() {
     tvcm.isLinux = /Linux/.test(navigator.userAgent);
     tvcm.isGTK = /GTK/.test(chrome.toolkit);
     tvcm.isViews = /views/.test(chrome.toolkit);
+
+    ensureDepsLoaded();
+    ensureTemplatesLoaded();
   }
 
   return {
     initialize: initialize,
 
-    require: require,
     requireStylesheet: requireStylesheet,
     requireRawScript: requireRawScript,
     requireTemplate: requireTemplate,
