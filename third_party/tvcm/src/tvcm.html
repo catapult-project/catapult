@@ -22,17 +22,6 @@ this.tvcm = (function() {
     return window.tvcm;
   }
 
-  function mLog(text, opt_indentLevel) {
-    if (true)
-      return;
-
-    var spacing = '';
-    var indentLevel = opt_indentLevel || 0;
-    for (var i = 0; i < indentLevel; i++)
-      spacing += ' ';
-    console.log(spacing + text);
-  }
-
   /**
    * Builds an object structure for the provided namespace path,
    * ensuring that names that already exist are not overwritten. For
@@ -187,53 +176,6 @@ this.tvcm = (function() {
     }).join(', ');
   }
 
-  // TODO(dsinclair): Remove this when HTML imports land as the templates
-  // will be pulled in by the requireTemplate calls.
-  var templatesLoaded_ = false;
-  function ensureTemplatesLoaded() {
-    if (templatesLoaded_ || window.FLATTENED)
-      return;
-    templatesLoaded_ = true;
-
-    var req = new XMLHttpRequest();
-    req.open('GET', '/tvcm/all_templates.html', false);
-    req.send(null);
-
-    var elem = document.createElement('div');
-    elem.innerHTML = req.responseText;
-    while (elem.hasChildNodes())
-      document.head.appendChild(elem.removeChild(elem.firstChild));
-  }
-
-  /**
-   * Adds a dependency on a raw javascript file, e.g. a third party
-   * library.
-   * @param {String} rawScriptFilename The path to the script file, relative to
-   * the calling file. rawScriptFilename must be in the data path used by the
-   * calling project, typically a third_party directory.
-   */
-  function requireRawScript(relativeRawScriptPath) {
-    if (window.FLATTENED)
-      return;
-
-    throw new Error('This code should never get called. Please ' +
-                    'convert the calling module to an html file and ' +
-                    'replace this with <script src="...">')
-  }
-
-  function requireStylesheet(dependentStylesheetName) {
-    if (window.FLATTENED)
-      return;
-
-    throw new Error('This code should never get called. Please ' +
-                    'convert the calling module to an html file and ' +
-                    'replace this with <import rel="stylesheet">')
-  }
-
-  function requireTemplate(template) {
-    /* This doesn't actually need to execute at runtime. */
-  }
-
   function exportTo(namespace, fn) {
     var obj = exportPath(namespace);
     var exports = fn();
@@ -244,10 +186,8 @@ this.tvcm = (function() {
       // properties.
       var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
                                                                propertyName);
-      if (propertyDescriptor) {
+      if (propertyDescriptor)
         Object.defineProperty(obj, propertyName, propertyDescriptor);
-        mLog('  +' + propertyName);
-      }
     }
   };
 
@@ -276,15 +216,11 @@ this.tvcm = (function() {
     tvcm.isViews = /views/.test(chrome.toolkit);
 
     ensureDepsLoaded();
-    ensureTemplatesLoaded();
   }
 
   return {
     initialize: initialize,
 
-    requireStylesheet: requireStylesheet,
-    requireRawScript: requireRawScript,
-    requireTemplate: requireTemplate,
     exportTo: exportTo,
     showPanic: showPanic,
     hasPanic: hasPanic,
