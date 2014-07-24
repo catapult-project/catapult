@@ -140,7 +140,8 @@ class ResourceLoader(object):
     if not resource:
       raise module.DepsException('Could not find a file for raw script %s in %s' % (
         self.source_paths, relative_raw_script_path))
-    assert relative_raw_script_path == resource.unix_style_relative_path
+    assert relative_raw_script_path == resource.unix_style_relative_path, \
+        'Expected %s == %s' % (relative_raw_script_path, resource.unix_style_relative_path)
 
     if resource.absolute_path in self.loaded_raw_scripts:
       return self.loaded_raw_scripts[resource.absolute_path]
