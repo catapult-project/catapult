@@ -4,6 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/tvcm/event_target.html">
 <link rel="import" href="/tvcm/iteration_helpers.html">
 <link rel="import" href="/tvcm/promise.html">
 <link rel="import" href="/tvcm/unittest/test_suite.html">
@@ -11,9 +12,6 @@ found in the LICENSE file.
 'use strict';
 
 tvcm.exportTo('tvcm.unittest', function() {
-  var currentSuiteLoader_ = undefined;
-  var hadLoaderFailure_ = false;
-
   function getAsync(url, cb) {
     return new tvcm.Promise(function(resolver) {
       var req = new XMLHttpRequest();
@@ -24,7 +22,6 @@ tvcm.exportTo('tvcm.unittest', function() {
             if (req.status == 200) {
               resolver.fulfill(req.responseText);
             } else {
-              console.log('Failed to load ' + url);
               resolver.reject();
             }
           }, 0);
@@ -40,36 +37,57 @@ tvcm.exportTo('tvcm.unittest', function() {
   }
 
   function SuiteLoader(opt_suiteNamesToLoad) {
-    if (currentSuiteLoader_)
-      throw new Error('Cannot have more than one SuiteLoader active at once');
-    currentSuiteLoader_ = this;
-    this.numPendingSuites_ = {};
-    this.pendingSuiteNames_ = {};
+    tvcm.EventTarget.call(this);
 
+    this.testSuiteGUIDs_ = {};
     this.testSuites = [];
     this.testLinks = [];
 
-    this.allSuitesLoadedPromise = new tvcm.Promise(function(r) {
-      this.allSuitesLoadedResolver_ = r;
-    }.bind(this));
-
     if (opt_suiteNamesToLoad) {
-      this.beginLoadingModules_(opt_suiteNamesToLoad);
+      this.allSuitesLoadedPromise = this.beginLoadingModules_(opt_suiteNamesToLoad);
     } else {
-      getAsync('/tvcm/json/tests').then(
+      var p;
+      p = getAsync('/tvcm/json/tests');
+      p = p.then(
           function(data) {
-            console.log(data);
             var testMetadata = JSON.parse(data);
             var testModuleNames = testMetadata.test_module_names;
-            this.beginLoadingModules_(testModuleNames, testMetadata);
-          }.bind(this),
-          this.loadingTestsFailed_.bind(this));
+            return this.beginLoadingModules_(testModuleNames, testMetadata);
+          }.bind(this));
+      this.allSuitesLoadedPromise = p;
     }
   }
 
-  var loadedSuitesByName = {};
+  function loadModule(moduleName) {
+    return new Promise(function(resolver) {
+      var parts = moduleName.split('.');
+      var href = '/' + parts.join('/') + '.html';
+
+      var importEl = document.createElement('link');
+      importEl.moduleName = moduleName;
+      importEl.setAttribute('rel', 'import');
+      importEl.setAttribute('href', href);
+      tvcm.doc.head.appendChild(importEl);
+
+      importEl.addEventListener('load', function() {
+        resolver.resolve(importEl);
+      });
+      importEl.addEventListener('error', function(e) {
+        resolver.reject(e);
+      });
+    });
+  }
+
+  function loadModules(moduleNames) {
+    var promises = moduleNames.map(function(moduleName) {
+      return loadModule(moduleName);
+    });
+
+  }
 
   SuiteLoader.prototype = {
+    __proto__: tvcm.EventTarget.prototype,
+
     beginLoadingModules_: function(testModuleNames, opt_testMetadata) {
       if (opt_testMetadata) {
         var testMetadata = opt_testMetadata;
@@ -80,68 +98,69 @@ tvcm.exportTo('tvcm.unittest', function() {
         }
       }
 
-      var moduleNamesThatNeedToBeLoaded = [];
+      // Hooks!
+      this.bindGlobalHooks_();
+
+      // Load the modules.
+      var modulePromises = [];
       for (var i = 0; i < testModuleNames.length; i++) {
-        var name = testModuleNames[i];
-        if (loadedSuitesByName[name] === undefined) {
-          moduleNamesThatNeedToBeLoaded.push(name);
-          continue;
+        var p = loadModule(testModuleNames[i]);
+        p = p.then(
+            function(importEl) {
+              this.didImportElementGetLoaded_(importEl);
+            }.bind(this));
+            p.x = 7;
+        modulePromises.push(p);
+      }
+
+      var allModulesLoadedProise = new Promise(function(resolver) {
+        var remaining = modulePromises.length;
+        var resolved = false;
+        function oneMoreLoaded() {
+          if (resolved)
+            return;
+          remaining--;
+          if (remaining > 0)
+            return;
+          resolved = true;
+          resolver.resolve();
         }
-        this.testSuites.push(loadedSuitesByName[name]);
-      }
 
-      for (var i = 0; i < moduleNamesThatNeedToBeLoaded.length; i++)
-        this.pendingSuiteNames_[moduleNamesThatNeedToBeLoaded[i]] = true;
+        function oneRejected(e) {
+          if (resolved)
+            return;
+          resolved = true;
+          resolver.reject(e);
+        }
 
-      // Start the loading.
-      if (moduleNamesThatNeedToBeLoaded.length > 0) {
-        this.willLoadTests_();
-        tvcm.require(moduleNamesThatNeedToBeLoaded);
-        this.loadTimeout_ = window.setTimeout(
-            this.loadingTestsTimeout_.bind(this),
-            60 * 1000);
-      } else {
-        this.didLoadAllTests_();
-      }
+        modulePromises.forEach(function(modulePromise) {
+          modulePromise.then(oneMoreLoaded, oneRejected);
+        });
+      });
+
+      // Script errors errors abort load;
+      var scriptErrorPromise = new Promise(function(resolver) {
+        this.scriptErrorPromiseResolver_ = resolver;
+      }.bind(this));
+      var donePromise = Promise.any(allModulesLoadedProise,
+                                    scriptErrorPromise);
+
+      // Cleanup.
+      return donePromise.then(
+        function() {
+          this.scriptErrorPromiseResolver_ = undefined;
+          this.unbindGlobalHooks_();
+        }.bind(this),
+        function(e) {
+          this.scriptErrorPromiseResolver_ = undefined;
+          this.unbindGlobalHooks_();
+        }.bind(this));
     },
 
-    loadingTestsFailed_: function() {
-      currentSuiteLoader_ = undefined;
-      this.allSuitesLoadedResolver_.reject(
-          new Error('/tvcm/json/tests failed to load'));
-    },
-
-    loadingTestsTimeout_: function() {
-      window.onerror = this.oldWindowOnError_;
-      this.oldWindowOnError_ = undefined;
-
-      currentSuiteLoader_ = undefined;
-      this.allSuitesLoadedResolver_.reject(
-          new Error('Timed out waiting for %s to define suites: ' +
-                    tvcm.dictionaryKeys(this.pendingSuiteNames_)));
-    },
-
-    get areAllSuitesLoaded() {
-      return tvcm.dictionaryLength(this.pendingSuiteNames_) === 0;
-    },
-
-    addTestSuite: function(suite) {
-      if (this.pendingSuiteNames_[suite.name] === undefined)
-        throw new Error('Did not expect to load ' + suite.name);
-
-      loadedSuitesByName[suite.name] = suite;
-      delete this.pendingSuiteNames_[suite.name];
-
-      this.testSuites.push(suite);
-      if (!this.areAllSuitesLoaded)
-        return;
-      this.didLoadAllTests_();
-    },
-
-    willLoadTests_: function() {
+    bindGlobalHooks_: function() {
       this.oldWindowOnError_ = window.onerror;
       window.onerror = function(errorMsg, url, lineNumber) {
-        this.hadErrorDuringTestLoading_(
+        this.scriptErrorPromiseResolver_.reject(
             new Error(errorMsg + '\n' + url + ':' + lineNumber));
         if (this.oldWindowOnError_)
           return this.oldWindowOnError_(errorMsg, url, lineNumber);
@@ -149,32 +168,26 @@ tvcm.exportTo('tvcm.unittest', function() {
       }.bind(this);
     },
 
-    hadErrorDuringTestLoading_: function(err) {
+    unbindGlobalHooks_: function() {
       window.onerror = this.oldWindowOnError_;
       this.oldWindowOnError_ = undefined;
-
-      if (this.loadTimeout_) {
-        window.clearTimeout(this.loadTimeout_);
-        this.loadTimeout_ = undefined;
-      }
-
-      currentSuiteLoader_ = undefined;
-      hadLoaderFailure_ = true; // Lets testSuite adding to fail silently.
-
-      this.allSuitesLoadedResolver_.reject(err);
     },
 
-    didLoadAllTests_: function() {
-      window.onerror = this.oldWindowOnError_;
-      this.oldWindowOnError_ = undefined;
+    didImportElementGetLoaded_: function(importEl) {
+      // The global tvcm.testSute function stashes test suites
+      // onto the _tvcmTestSuites array.
+      var importDoc = importEl.import;
+      var suites = allTestSuitesByModuleURL[importDoc.URL];
+      suites.forEach(function(testSuite) {
+        if (this.testSuiteGUIDs_[testSuite.guid])
+          return;
+        this.testSuiteGUIDs_[testSuite.guid] = true;
+        this.testSuites.push(testSuite);
 
-      if (this.loadTimeout_) {
-        window.clearTimeout(this.loadTimeout_);
-        this.loadTimeout_ = undefined;
-      }
-
-      currentSuiteLoader_ = undefined;
-      this.allSuitesLoadedResolver_.resolve(this);
+        var e = new Event('suite-loaded');
+        e.testSuite = testSuite;
+        this.dispatchEvent(e);
+      }, this);
     },
 
     getAllTests: function() {
@@ -194,18 +207,25 @@ tvcm.exportTo('tvcm.unittest', function() {
             return test;
         }
       }
-      throw new Error('Test ' + fullyQualifiedName + 'not found');
+      throw new Error('Test ' + fullyQualifiedName + 'not found amongst ' + this.testSuites.length);
     }
   };
 
+  var allTestSuitesByModuleURL = [];
+
   function testSuite(name, suiteConstructor) {
-    if (currentSuiteLoader_ === undefined) {
-      if (hadLoaderFailure_)
-        return;
-      throw new Error('Cannot define testSuites when no SuiteLoader exists.');
-    }
-    currentSuiteLoader_.addTestSuite(new tvcm.unittest.TestSuite(
-        currentSuiteLoader_, name, suiteConstructor));
+    if (!document.currentScript)
+      throw new Error('Cannot call testSuite except during load.');
+
+    var testSuite = new tvcm.unittest.TestSuite(
+      name, suiteConstructor);
+
+    var linkDoc = document.currentScript.ownerDocument;
+    var url = linkDoc.URL;
+
+    if (allTestSuitesByModuleURL[url] === undefined)
+      allTestSuitesByModuleURL[url] = [];
+    allTestSuitesByModuleURL[url].push(testSuite);
   }
 
   return {

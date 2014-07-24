@@ -4,6 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/tvcm/guid.html">
 <link rel="import" href="/tvcm/unittest/test_case.html">
 <link rel="import" href="/tvcm/unittest/constants.html">
 <script>
@@ -15,8 +16,8 @@ tvcm.exportTo('tvcm.unittest', function() {
 
   var TestTypes = tvcm.unittest.TestTypes;
 
-  function TestSuite(loader, name, suiteConstructor) {
-    this.loader_ = loader;
+  function TestSuite(name, suiteConstructor) {
+    this.guid = tvcm.GUID.allocate();
     this.name_ = name;
     this.tests_ = [];
     this.testNames_ = {}; // For dupe checking.
