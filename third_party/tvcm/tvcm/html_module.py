@@ -100,7 +100,7 @@ def Parse(loader, module_name, module_dir_name, parser_results):
     resource = _HRefToResource(loader, module_name, module_dir_name,
                                href,
                                tag_for_err_msg='<script src="%s">' % href)
-    res.dependent_raw_script_relative_paths.append(resource.relative_path)
+    res.dependent_raw_script_relative_paths.append(resource.unix_style_relative_path)
 
   # External imports. Mostly the same as <script>, but we know its a module.
   for href in parser_results.imports:
