@@ -250,7 +250,7 @@ Waiting for device...
           else:
             logging.warn(
                 'Cannot set CPU affinity due to stale psutil version: %s',
-                '.'.join(psutil.version_info))
+                '.'.join(str(x) for x in psutil.version_info))
       except (psutil.NoSuchProcess, psutil.AccessDenied):
         logging.warn('Failed to set adb process CPU affinity')
 
