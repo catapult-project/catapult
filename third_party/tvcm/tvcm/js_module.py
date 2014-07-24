@@ -107,9 +107,9 @@ def ValidateTestSuiteDefinition(module_name, stripped_text):
   rest = stripped_text
   num_matches = 0
   while True:
-    m_ts1 = re.search("""tvcm\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
+    m_ts1 = re.search("""tvcm\s*\.\s*unittest\s*\.\s*testSuite\(""",
                       rest, re.DOTALL)
-    m_ts2 = re.search("""tvcm\s*\.\s*testSuite\((["'])(.+?)\\1""",
+    m_ts2 = re.search("""tvcm\s*\.\s*testSuite\(""",
                       rest, re.DOTALL)
 
     # Figure out which was first.
@@ -120,10 +120,6 @@ def ValidateTestSuiteDefinition(module_name, stripped_text):
     else:
       break
 
-    suite_name = m.group(2)
-    if suite_name != module_name:
-      raise Exception(('%s must use the module name in its testSuite ' +
-                      'definition instead of %s') % (module_name, suite_name))
     num_matches += 1
     rest = rest[m.end():]
 

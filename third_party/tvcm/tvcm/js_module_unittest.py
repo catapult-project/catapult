@@ -49,26 +49,10 @@ tvcm.unittest.testSuite(function() {
     js_module.ValidateTestSuiteDefinition('foo.bar_test', text)
 
     text = """
-tvcm.testSuite('foo.bar_test', function() {
+tvcm.testSuite(function() {
 });
 """
     js_module.ValidateTestSuiteDefinition('foo.bar_test', text)
-
-
-  def test_wrong_name(self):
-    text = """
-tvcm.unittest.testSuite(function() {
-});
-"""
-    self.assertRaises(
-      lambda: js_module.ValidateTestSuiteDefinition('foo.bar_test', text))
-
-    text = """
-tvcm.testSuite('foo.bar', function() {
-});
-"""
-    self.assertRaises(
-      lambda: js_module.ValidateTestSuiteDefinition('foo.bar_test', text))
 
   def test_no_suite_failure(self):
     text = """
