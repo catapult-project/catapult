@@ -51,7 +51,7 @@ class Help(command_line.OptparseCommand):
         parser.print_help()
         return 0
 
-    print >> sys.stderr, ('usage: %s <command> [<options>]' % _ScriptName())
+    print >> sys.stderr, ('usage: %s [command] [<options>]' % _ScriptName())
     print >> sys.stderr, 'Available commands are:'
     for command in _Commands():
       print >> sys.stderr, '  %-10s %s' % (
@@ -97,7 +97,7 @@ class List(command_line.OptparseCommand):
 
 
 class Run(command_line.OptparseCommand):
-  """Run one or more tests"""
+  """Run one or more tests (default)"""
 
   usage = 'test_name [page_set] [<options>]'
 
