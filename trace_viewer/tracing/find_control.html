@@ -7,97 +7,128 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/find_controller.html">
 <link rel="import" href="/tracing/timeline_track_view.html">
-<link rel="import" href="/tvcm/polymer.html">
 
-<polymer-element name="tracing-find-control" constructor="TracingFindControl">
-  <template>
-    <style>
-      div.root {
-        -webkit-user-select: none;
-        display: -webkit-flex;
-        position: relative;
-      }
-      input {
-        -webkit-user-select: auto;
-        background-color: #f8f8f8;
-        border: 1px solid rgba(0, 0, 0, 0.5);
-        box-sizing: border-box;
-        height: 19px;
-        margin-bottom: 1px;
-        margin-left: 0;
-        margin-right: 0;
-        margin-top: 1px;
-        padding: 0;
-        width: 170px;
-      }
-      input:focus {
-        background-color: white;
-      }
-      .button {
-        border-left: none;
-        height: 17px;
-        margin-left: 0;
-      }
-      .button :first-of-type {
-        margin-right: 0;
-      }
-      #hitCount {
-        height: 19px;
-        left: 0;
-        opacity: 0.25;
-        pointer-events: none;
-        position: absolute;
-        text-align: right;
-        top: 2px;
-        width: 170px;
-        z-index: 1;
-      }
-    </style>
+<template id="find-control-template">
+  <style>
+    find-control-root {
+      -webkit-user-select: none;
+      display: -webkit-flex;
+      position: relative;
+    }
+    input {
+      -webkit-user-select: auto;
+      background-color: #f8f8f8;
+      border: 1px solid rgba(0, 0, 0, 0.5);
+      box-sizing: border-box;
+      height: 19px;
+      margin-bottom: 1px;
+      margin-left: 0;
+      margin-right: 0;
+      margin-top: 1px;
+      padding: 0;
+      width: 170px;
+    }
+    input:focus {
+      background-color: white;
+    }
+    .button {
+      border-left: none;
+      height: 17px;
+      margin-left: 0;
+    }
+    .find-previous {
+      margin-right: 0;
+    }
+    .hit-count-label {
+      height: 19px;
+      left: 0;
+      opacity: 0.25;
+      pointer-events: none;
+      position: absolute;
+      text-align: right;
+      top: 2px;
+      width: 170px;
+      z-index: 1;
+    }
+  </style>
+  <find-control-root>
+    <input type='text' id='find-control-filter' />
+    <div class="button find-previous">&larr;</div>
+    <div class="button find-next">&rarr;</div>
+    <div class="hit-count-label">1 of 7</div>
+  </find-control-root>
+</template>
 
-    <div class="root">
-      <input type='text' id='filter'
-          on-input="{{ filterTextChanged }}"}
-          on-keypress="{{ filterKeyPress }}"
-          on-keydown="{{ filterKeyDown }}"
-          on-blur="{{ filterBlur }}"
-          on-focus="{{ filterFocus }}"
-          on-mouseup="{{ filterMouseUp }}" />
-      <div class="button" on-click="{{ findPrevious }}">&larr;</div>
-      <div class="button" on-click="{{ findNext }}">&rarr;</div>
-      <div id="hitCount">0 of 0</div>
-    </div>
-  </template>
+<script>
+'use strict';
 
-  <script>
-  'use strict';
+/**
+ * @fileoverview FindControl.
+ */
 
-  Polymer({
-    filterKeyDown: function(e) {
-      e.stopPropagation();
-      if (e.keyCode !== 13) //
-        return;
+tvcm.exportTo('tracing', function() {
+  var THIS_DOC = document.currentScript.ownerDocument;
 
-      e.shiftKey ? this.findPrevious() : this.findNext();
-    },
+  /**
+   * FindControl
+   * @constructor
+   */
+  var FindControl = tvcm.ui.define('find-control');
 
-    filterKeyPress: function(e) {
-      e.stopPropagation();
-    },
+  FindControl.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
 
-    filterBlur: function(e) {
-      this.updateHitCountEl();
-    },
+    decorate: function() {
+      var createShadowRoot = this.createShadowRoot ||
+          this.webkitCreateShadowRoot;
+      var shadow = createShadowRoot.call(this);
 
-    filterFocus: function(e) {
-      this.controller.reset();
-      this.filterTextChanged();
-      this.$.filter.select();
-    },
+      shadow.appendChild(tvcm.instantiateTemplate('#find-control-template',
+          THIS_DOC));
 
-    // Prevent that the input text is deselected after focusing the find
-    // control with the mouse.
-    filterMouseUp: function(e) {
-      e.preventDefault();
+      this.hitCountEl_ = shadow.querySelector('.hit-count-label');
+
+      shadow.querySelector('.find-previous')
+          .addEventListener('click', this.findPrevious_.bind(this));
+
+      shadow.querySelector('.find-next')
+          .addEventListener('click', this.findNext_.bind(this));
+
+      this.filterEl_ = shadow.querySelector('#find-control-filter');
+      this.filterEl_.addEventListener('input',
+          this.filterTextChanged_.bind(this));
+
+      this.filterEl_.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.keyCode == 13) {
+          if (e.shiftKey)
+            this.findPrevious_();
+          else
+            this.findNext_();
+        }
+      }.bind(this));
+
+      this.filterEl_.addEventListener('keypress', function(e) {
+        e.stopPropagation();
+      });
+
+      this.filterEl_.addEventListener('blur', function(e) {
+        this.updateHitCountEl_();
+      }.bind(this));
+
+      this.filterEl_.addEventListener('focus', function(e) {
+        this.controller.reset();
+        this.filterTextChanged_();
+        this.filterEl_.select();
+      }.bind(this));
+
+      // Prevent that the input text is deselected after focusing the find
+      // control with the mouse.
+      this.filterEl_.addEventListener('mouseup', function(e) {
+        e.preventDefault();
+      });
+
+      this.updateHitCountEl_();
     },
 
     get controller() {
@@ -106,44 +137,50 @@ found in the LICENSE file.
 
     set controller(c) {
       this.controller_ = c;
-      this.updateHitCountEl();
+      this.updateHitCountEl_();
     },
 
     focus: function() {
-      this.$.filter.focus();
+      this.filterEl_.focus();
     },
 
     hasFocus: function() {
       return this === document.activeElement;
     },
 
-    filterTextChanged: function() {
-      this.controller.filterText = this.$.filter.value;
-      this.updateHitCountEl();
+    filterTextChanged_: function() {
+      this.controller.filterText = this.filterEl_.value;
+      this.updateHitCountEl_();
     },
 
-    findNext: function() {
+    findNext_: function() {
       if (this.controller)
         this.controller.findNext();
-      this.updateHitCountEl();
+      this.updateHitCountEl_();
     },
 
-    findPrevious: function() {
+    findPrevious_: function() {
       if (this.controller)
         this.controller.findPrevious();
-      this.updateHitCountEl();
+      this.updateHitCountEl_();
     },
 
-    updateHitCountEl: function() {
+    updateHitCountEl_: function() {
       if (!this.controller || !this.hasFocus()) {
-        this.$.hitCount.textContent = '';
+        this.hitCountEl_.textContent = '';
         return;
       }
-
+      var i = this.controller.currentHitIndex;
       var n = this.controller.filterHits.length;
-      var i = n === 0 ? -1 : this.controller.currentHitIndex;
-      this.$.hitCount.textContent = (i + 1) + ' of ' + n;
+      if (n == 0)
+        this.hitCountEl_.textContent = '0 of 0';
+      else
+        this.hitCountEl_.textContent = (i + 1) + ' of ' + n;
     }
-  });
-  </script>
-</polymer-element>
+  };
+
+  return {
+    FindControl: FindControl
+  };
+});
+</script>

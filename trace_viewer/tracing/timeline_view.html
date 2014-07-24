@@ -219,7 +219,7 @@ tvcm.exportTo('tracing', function() {
       tvcm.ui.decorate(this.timelineViewSidePanelContainer_,
                        tracing.TimelineViewSidePanelContainer);
 
-      this.findCtl_ = new TracingFindControl();
+      this.findCtl_ = new tracing.FindControl();
       this.findCtl_.controller = new tracing.FindController();
 
       this.rightControls.appendChild(this.createMetadataButton_());
@@ -455,6 +455,23 @@ tvcm.exportTo('tracing', function() {
         this.querySelector('.view-help-button').click();
         e.preventDefault();
       }
+    },
+
+    beginFind: function() {
+      if (this.findInProgress_)
+        return;
+      this.findInProgress_ = true;
+      var dlg = tracing.FindControl();
+      dlg.controller = new tracing.FindController();
+      dlg.controller.trackView = this.trackView;
+      dlg.visible = true;
+      dlg.addEventListener('close', function() {
+        this.findInProgress_ = false;
+      }.bind(this));
+      dlg.addEventListener('findNext', function() {
+      });
+      dlg.addEventListener('findPrevious', function() {
+      });
     },
 
     onSelectionChanged_: function(e) {

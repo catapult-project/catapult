@@ -303,7 +303,7 @@ tvcm.exportTo('tracing', function() {
     get listenToKeys_() {
       if (!this.viewport.isAttachedToDocumentOrInTestMode)
         return false;
-      if (this.activeElement instanceof TracingFindControl)
+      if (this.activeElement instanceof tracing.FindControl)
         return false;
       if (!this.focusElement_)
         return true;
