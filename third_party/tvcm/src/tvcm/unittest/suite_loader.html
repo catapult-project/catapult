@@ -213,7 +213,36 @@ tvcm.exportTo('tvcm.unittest', function() {
 
   var allTestSuitesByModuleURL = [];
 
-  function testSuite(name, suiteConstructor) {
+  function _guessModuleNameFromURL(url) {
+    var m = /.+?:\/\/.+?(\/.+)/.exec(url);
+    if (!m)
+      throw new Error('Guessing module name failed');
+    var path = m[1];
+    if (path[0] != '/')
+      throw new Error('malformed path');
+    if (path.substring(path.length - 5) != '.html')
+      throw new Error('Cannot define testSuites outside html imports');
+    var parts = path.substring(1, path.length - 5).split('/');
+    return parts.join('.');
+  }
+  window._Guess = _guessModuleNameFromURL;
+
+  function testSuite(a, b) {
+    var linkDoc = document.currentScript.ownerDocument;
+    if (typeof a === 'string') {
+      if (b === undefined || typeof b !== 'function')
+        throw new Error('Must provide constructor');
+
+      var aGuess = _guessModuleNameFromURL(linkDoc.URL);
+      if (aGuess != a)
+        throw new Error('Guess fail');
+      return _testSuiteImpl(a, b);
+    } else {
+      return _testSuiteImpl(_guessModuleNameFromURL(linkDoc.URL), a);
+    }
+  }
+
+  function _testSuiteImpl(name, suiteConstructor) {
     if (!document.currentScript)
       throw new Error('Cannot call testSuite except during load.');
 
