@@ -8,6 +8,18 @@ import os
 from tvcm import project as project_module
 
 
+def _FindAllFilesRecursive(source_paths):
+  all_filenames = set()
+  for source_path in source_paths:
+    for dirpath, dirnames, filenames in os.walk(source_path):
+      for f in filenames:
+        if f.startswith('.'):
+          continue
+        x = os.path.abspath(os.path.join(dirpath, f))
+        all_filenames.add(x)
+  return all_filenames
+
+
 class TraceViewerProject(project_module.Project):
   trace_viewer_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
@@ -24,23 +36,17 @@ class TraceViewerProject(project_module.Project):
   test_data_path = os.path.join(trace_viewer_path, 'test_data')
   skp_data_path = os.path.join(trace_viewer_path, 'skp_data')
 
-  def __init__(self, other_paths=None):
-    paths = [self.src_path, self.jszip_path]
-    if other_paths:
-      paths.extend(other_paths)
+  def __init__(self, *args, **kwargs):
+    super(TraceViewerProject, self).__init__(*args, **kwargs)
 
-    non_module_html_files = [
+    self.source_paths.append(self.src_path)
+    self.source_paths.append(self.jszip_path)
+
+    self.non_module_html_files.extendRel(self.trace_viewer_path, [
       'test_data/android_systrace.html',
       'third_party/jszip/examples/download-zip-file.html',
       'third_party/jszip/examples/get-binary-files-xhr2.html',
       'third_party/jszip/examples/read-local-file-api.html',
       'third_party/jszip/index.html',
       'third_party/jszip/test/index.html'
-    ]
-    abs_non_module_html_files = [
-      os.path.abspath(os.path.join(
-          self.trace_viewer_path, x))
-      for x in non_module_html_files
-    ]
-    super(TraceViewerProject, self).__init__(
-      source_paths=paths, non_module_html_files=abs_non_module_html_files)
+    ])

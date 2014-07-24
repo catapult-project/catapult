@@ -46,6 +46,60 @@ def _IsFilenameATest(loader, x):
   # TODO(nduca): Add content test?
   return False
 
+class AbsFilenameList(object):
+  def __init__(self, willDirtyCallback):
+    self._willDirtyCallback = willDirtyCallback
+    self._filenames = []
+    self._filenames_set = set()
+
+  def _WillBecomeDirty(self):
+    if self._willDirtyCallback:
+      self._willDirtyCallback()
+
+  def append(self, filename):
+    assert os.path.isabs(filename)
+    self._WillBecomeDirty()
+    self._filenames.append(filename)
+    self._filenames_set.add(filename)
+
+  def extend(self, iter):
+    self._WillBecomeDirty()
+    for filename in iter:
+      assert os.path.isabs(filename)
+      self._filenames.append(filename)
+      self._filenames_set.add(filename)
+
+  def appendRel(self, basedir, filename):
+    assert os.path.isabs(basedir)
+    self._WillBecomeDirty()
+    n = os.path.abspath(os.path.join(basedir, filename))
+    self._filenames.append(n)
+    self._filenames_set.add(n)
+
+  def extendRel(self, basedir, iter):
+    self._WillBecomeDirty()
+    assert os.path.isabs(basedir)
+    for filename in iter:
+      n = os.path.abspath(os.path.join(basedir, filename))
+      self._filenames.append(n)
+      self._filenames_set.add(n)
+
+  def __contains__(self, x):
+    return x in self._filenames_set
+
+  def __len__(self):
+    return self._filenames.__len__()
+
+  def __iter__(self):
+    return iter(self._filenames)
+
+  def __repr__(self):
+    return repr(self._filenames)
+
+  def __str__(self):
+    return str(self._filenames)
+
+
 class Project(object):
   tvcm_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
@@ -61,17 +115,20 @@ class Project(object):
     source_paths: A list of top-level directories in which modules and raw scripts can be found.
         Module paths are relative to these directories.
     """
-    self.source_paths = []
-    self.non_module_html_files = set()
+    self._loader = None
+    self._frozen = False
+    self.source_paths = AbsFilenameList(self._WillPartOfPathChange)
+    self.non_module_html_files = AbsFilenameList(self._WillPartOfPathChange)
+
     if include_tvcm_paths:
-      self.source_paths += [
-          self.tvcm_src_path,
-          os.path.join(self.tvcm_third_party_path, 'Promises', 'polyfill', 'src'),
-          os.path.join(self.tvcm_third_party_path, 'gl-matrix', 'src'),
-          os.path.join(self.tvcm_third_party_path, 'polymer'),
-          os.path.join(self.tvcm_third_party_path, 'd3')
-      ]
-      local_non_module_html_files = [
+      self.source_paths.append(self.tvcm_src_path)
+      self.source_paths.extendRel(self.tvcm_third_party_path, [
+        'Promises/polyfill/src',
+        'gl-matrix/src',
+        'polymer',
+        'd3'
+      ])
+      self.non_module_html_files.extendRel(self.tvcm_third_party_path, [
         'gl-matrix/jsdoc-template/static/header.html',
         'gl-matrix/jsdoc-template/static/index.html',
         'Promises/polyfill/tests/test.html',
@@ -79,17 +136,20 @@ class Project(object):
         'Promises/reworked_APIs/IndexedDB/example/before.html',
         'Promises/reworked_APIs/WebCrypto/example/after.html',
         'Promises/reworked_APIs/WebCrypto/example/before.html'
-      ]
-      self.non_module_html_files.update(
-        [os.path.abspath(os.path.join(self.tvcm_third_party_path, x))
-         for x in local_non_module_html_files])
+      ]);
 
     if source_paths != None:
-      self.source_paths += [os.path.abspath(p) for p in source_paths]
+      self.source_paths.extend(source_paths)
 
     if non_module_html_files != None:
-      self.non_module_html_files.update([os.path.abspath(p) for p in non_module_html_files])
+      self.non_module_html_files.extend(non_module_html_files)
 
+  def Freeze(self):
+    self._frozen = True
+
+  def _WillPartOfPathChange(self):
+    if self._frozen:
+      raise Exception('The project is frozen. You cannot edit it now')
     self._loader = None
 
   @staticmethod
@@ -100,7 +160,7 @@ class Project(object):
 
   def AsDict(self):
     return {
-      'source_paths': self.source_paths,
+      'source_paths': list(self.source_paths),
       'non_module_html_files': list(self.non_module_html_files)
     }
 

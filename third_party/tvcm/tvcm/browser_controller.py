@@ -116,6 +116,9 @@ class BrowserController(object):
       self._browser.Start()
       self._tab = self._browser.tabs[0]
 
+      # Prevent the project from being mutated from here on out.
+      project.Freeze()
+
       self._server = _LocalDevServer(self._project)
       self._browser.StartLocalServer(self._server)
 
