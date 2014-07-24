@@ -79,44 +79,6 @@ this.tvcm = (function() {
         dependentModules.push(dependentModuleName);
   }
 
-  function ensureDepsLoaded() {
-    if (window.FLATTENED)
-      return;
-
-    if (didLoadModules)
-      return;
-    didLoadModules = true;
-
-    var req = new XMLHttpRequest();
-    var src = '/tvcm/deps.js';
-    req.open('GET', src, false);
-    req.send(null);
-    if (req.status != 200) {
-      var serverSideException = JSON.parse(req.responseText);
-      var msg = 'You have a module problem: ' +
-          serverSideException.message;
-      showPanic(serverSideException.message,
-                serverSideException.details);
-      throw new Error(msg);
-    }
-
-    tvcm.setModuleInfo = setModuleInfo;
-    tvcm.addModuleDependency = addModuleDependency;
-    tvcm.JS_MODULE_TYPE = JS_MODULE_TYPE;
-    tvcm.HTML_MODULE_TYPE = HTML_MODULE_TYPE;
-    try {
-      // By construction, the deps should call addModuleDependency.
-      eval(req.responseText);
-    } catch (e) {
-      throw new Error('When loading deps, got ' +
-                      e.stack ? e.stack : e.message);
-    }
-    delete tvcm.setModuleInfo;
-    delete tvcm.addModuleDependency;
-    delete tvcm.JS_MODULE_TYPE;
-    delete tvcm.HTML_MODULE_TYPE;
-  }
-
   var panicElement = undefined;
   var rawPanicMessages = [];
   function showPanicElementIfNeeded() {
@@ -214,8 +176,6 @@ this.tvcm = (function() {
     tvcm.isLinux = /Linux/.test(navigator.userAgent);
     tvcm.isGTK = /GTK/.test(chrome.toolkit);
     tvcm.isViews = /views/.test(chrome.toolkit);
-
-    ensureDepsLoaded();
   }
 
   return {

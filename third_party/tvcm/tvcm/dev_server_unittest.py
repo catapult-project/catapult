@@ -24,12 +24,6 @@ class DevServerTests(unittest.TestCase):
       tvcm_str = f.read()
     self.assertEquals(resp_str, tvcm_str)
 
-  def testDeps(self):
-    project = project_module.Project()
-
-    # Just smoke test that it works.
-    resp_str = self.server.Get('/tvcm/deps.js')
-
   def testTests(self):
     # Just smoke test for a known test to see if things worked.
     resp_str = self.server.Get('/tvcm/json/tests')

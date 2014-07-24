@@ -20,7 +20,7 @@ import SimpleHTTPServer
 import StringIO
 import BaseHTTPServer
 
-DEPS_CHECK_DELAY = 30
+RELOAD_CHECK_DELAY = 30
 
 class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def __init__(self, *args, **kwargs):
@@ -32,6 +32,12 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       self.send_header('Cache-Control', 'no-cache')
 
   def do_GET(self):
+    try:
+      self.server.ReloadProjectIfNeeded()
+    except Exception, ex:
+      send_500(self, "While processing project files", ex)
+      return
+
     if self.do_path_handler('GET'):
       return
 
@@ -118,28 +124,6 @@ def send_500(self, msg, ex, log_error=True):
   self.wfile.write(msg)
   return
 
-
-def do_GET_deps(self):
-  try:
-    self.server.UpdateDepsAndTemplate()
-  except Exception, ex:
-    send_500(self, "While parsing deps", ex)
-    return
-  self.send_response(200)
-  self.send_header('Content-Type', 'application/javascript')
-  self.send_header('Content-Length', len(self.server.deps))
-  self.end_headers()
-  self.wfile.write(self.server.deps)
-
-def do_GET_templates(self):
-  self.server.UpdateDepsAndTemplate()
-  self.send_response(200)
-  self.send_header('Content-Type', 'text/html')
-  self.send_header('Content-Length', len(self.server.templates))
-  self.end_headers()
-  self.wfile.write(self.server.templates)
-
-
 class PathHandler(object):
   def __init__(self, path, handler, supports_get, supports_post):
     self.path = path
@@ -175,9 +159,8 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     else:
       self._project = project_module.Project([])
 
-    self._next_deps_check = -1
+    self._next_reload_check = -1
     self.test_module_resource_filter = None
-    self.deps = None
 
     self.AddPathHandler('/', do_GET_root)
     self.AddPathHandler('', do_GET_root)
@@ -188,8 +171,6 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     self.AddPathHandler('/tests.html', do_GET_root)
 
     self.AddPathHandler('/tvcm/json/tests', do_GET_json_tests)
-    self.AddPathHandler('/tvcm/all_templates.html', do_GET_templates)
-    self.AddPathHandler('/tvcm/deps.js', do_GET_deps)
 
   def AddPathHandler(self, path, handler, supports_get=True, supports_post=False):
     self._path_handlers.append(PathHandler(path, handler, supports_get, supports_post))
@@ -224,21 +205,17 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def loader(self):
     return self._project.loader
 
-  def UpdateDepsAndTemplate(self):
+  def ReloadProjectIfNeeded(self):
     current_time = time.time()
-    if self._next_deps_check >= current_time:
+    if self._next_reload_check >= current_time:
       return
 
     if not self._quiet:
-      sys.stderr.write('Regenerating deps and templates\n')
+      sys.stderr.write('Reloading project to check for errors...\n')
 
     self.project.ResetLoader()
     load_sequence = self.project.CalcLoadSequenceForAllModules()
-    self.deps = generate.GenerateDepsJS(
-        load_sequence, self.project)
-    self.templates = generate.GenerateHTMLForCombinedTemplates(
-        load_sequence)
-    self._next_deps_check = current_time + DEPS_CHECK_DELAY
+    self._next_reload_check = current_time + RELOAD_CHECK_DELAY
 
   @property
   def port(self):
