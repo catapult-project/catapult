@@ -5,6 +5,19 @@
 import re
 from HTMLParser import HTMLParser
 
+from tvcm import module
+
+
+CHUNK_TEXT_OP = 'text-op'
+CHUNK_SCRIPT_OP = 'script-op'
+CHUNK_STYLESHEET_OP = 'stylesheet-op'
+
+
+class _Chunk(object):
+  def __init__(self, op, data):
+    self.op = op
+    self.data = data
+
 class HTMLModuleParserResults(object):
   def __init__(self):
     self.scripts_external = []
@@ -12,14 +25,38 @@ class HTMLModuleParserResults(object):
     self.stylesheets = []
     self.imports = []
     self.has_decl = False
-    self._html_content_chunks_without_links_and_script = []
+    self._chunks = []
 
-  def AppendHTMLContent(self, chunk):
-    self._html_content_chunks_without_links_and_script.append(chunk)
+  def AppendHTMLContent(self, text):
+    self._chunks.append(_Chunk(CHUNK_TEXT_OP, text))
+
+  def AppendHTMLScriptSplicePoint(self, href):
+    self._chunks.append(_Chunk(CHUNK_SCRIPT_OP, href))
+
+  def AppendHTMLStylesheetSplicePoint(self, href):
+    self._chunks.append(_Chunk(CHUNK_STYLESHEET_OP, href))
+
+  def GenerateHTML(self, controller):
+    return ''.join(list(self.YieldHTMLInPieces(controller)))
+
+  def YieldHTMLInPieces(self, controller):
+    for chunk in self._chunks:
+      if chunk.op == CHUNK_TEXT_OP:
+        yield chunk.data
+      elif chunk.op == CHUNK_SCRIPT_OP:
+        html = controller.GetHTMLForScriptHRef(chunk.data)
+        if html:
+          yield html
+      elif chunk.op == CHUNK_STYLESHEET_OP:
+        html = controller.GetHTMLForStylesheetHRef(chunk.data)
+        if html:
+          yield html
+      else:
+        raise NotImplementedError()
 
   @property
   def html_contents_without_links_and_script(self):
-    return ''.join(self._html_content_chunks_without_links_and_script)
+    return self.GenerateHTML(module.HTMLGenerationController())
 
 _SELF_CLOSING_TAGS = ('link', 'p', 'meta')
 
@@ -69,6 +106,7 @@ class HTMLModuleParser(HTMLParser):
           href = attr[1]
 
       if is_stylesheet:
+        self.current_results.AppendHTMLStylesheetSplicePoint(href)
         self.current_results.stylesheets.append(href)
       elif is_import:
         self.current_results.imports.append(href)
@@ -81,6 +119,7 @@ class HTMLModuleParser(HTMLParser):
       for attr in attrs:
         if attr[0] == 'src':
           self.current_results.scripts_external.append(attr[1])
+          self.current_results.AppendHTMLScriptSplicePoint(attr[1])
           had_src = True
       if had_src == False:
         self.in_script = True

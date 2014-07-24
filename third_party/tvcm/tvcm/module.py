@@ -74,6 +74,14 @@ class ModuleDependencyMetadata(object):
     self.html_template_names += other.html_template_names
 
 
+class HTMLGenerationController(object):
+  def GetHTMLForScriptHRef(self, href):
+    return None
+
+  def GetHTMLForStylesheetHRef(self, href):
+    return None
+
+
 class Module(object):
   """Represents a javascript module.
 
@@ -147,7 +155,7 @@ class Module(object):
         f.write(js_utils.EscapeJSIfNeeded(dependent_raw_script.contents))
         f.write('\n')
 
-  def AppendHTMLContentsToFile(self, f):
+  def AppendHTMLContentsToFile(self, f, ctl):
     """Appends the html for this module [without links] to the provided file."""
     pass
 

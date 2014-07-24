@@ -10,6 +10,7 @@ import re
 import StringIO
 
 from tvcm import js_utils
+from tvcm import module as module_module
 
 
 srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -128,14 +129,6 @@ def GenerateStandaloneHTMLAsString(*args, **kwargs):
   GenerateStandaloneHTMLToFile(f, *args, **kwargs)
   return f.getvalue()
 
-def _GenerateCSS(load_sequence):
-  style_sheet_chunks = [css_warning_message, '\n']
-  for module in load_sequence:
-    for style_sheet in module.style_sheets:
-      style_sheet_chunks.append(style_sheet.contents_with_inlined_images)
-      style_sheet_chunks.append('\n')
-  return ''.join(style_sheet_chunks)
-
 def GenerateStandaloneHTMLToFile(output_file,
                                  load_sequence,
                                  title,
@@ -150,15 +143,29 @@ def GenerateStandaloneHTMLToFile(output_file,
   <title>%s</title>
 """ % title)
 
-  output_file.write('<style>\n')
-  output_file.write(_GenerateCSS(load_sequence))
-  output_file.write('\n')
-  output_file.write('</style>\n')
-
   output_file.write(GenerateHTMLForCombinedTemplates(load_sequence))
 
+  loader = load_sequence[0].loader
+
+  written_style_sheets = set()
+
+  class HTMLGenerationController(module_module.HTMLGenerationController):
+    def __init__(self, module):
+      self.module = module
+    def GetHTMLForStylesheetHRef(self, href):
+      resource = self.module.HRefToResource(
+          href, '<link rel="stylesheet" href="%s">' % href)
+      style_sheet = loader.LoadStyleSheet(resource.name)
+
+      if style_sheet in written_style_sheets:
+        return None
+      written_style_sheets.add(style_sheet)
+
+      return "<style>\n%s\n</style>" % style_sheet.contents_with_inlined_images
+
   for module in load_sequence:
-    module.AppendHTMLContentsToFile(output_file)
+    ctl = HTMLGenerationController(module)
+    module.AppendHTMLContentsToFile(output_file, ctl)
 
   if flattened_js_url:
     output_file.write('<script src="%s"></script>\n' % flattened_js_url)

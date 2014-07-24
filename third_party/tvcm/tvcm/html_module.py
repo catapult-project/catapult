@@ -16,14 +16,17 @@ def IsHTMLResourceTheModuleGivenConflictingResourceNames(
   return 'polymer-element' in html_resource.contents
 
 class HTMLModule(module.Module):
+  @property
+  def _module_dir_name(self):
+    return os.path.dirname(self.resource.absolute_path)
+
   def Parse(self):
-    module_dir_name = os.path.dirname(self.resource.absolute_path)
     try:
       parser_results = parse_html_deps.HTMLModuleParser().Parse(self.contents)
     except Exception, ex:
       raise Exception('While parsing %s: %s' % (self.name, str(ex)))
     self.dependency_metadata = Parse(self.loader,
-                                     self.name, module_dir_name,
+                                     self.name, self._module_dir_name,
                                      parser_results)
     self._parser_results = parser_results
 
@@ -56,9 +59,14 @@ class HTMLModule(module.Module):
       f.write(js_utils.EscapeJSIfNeeded(inline_script_contents))
       f.write("\n")
 
-  def AppendHTMLContentsToFile(self, f):
-    super(HTMLModule, self).AppendHTMLContentsToFile(f)
-    f.write(self._parser_results.html_contents_without_links_and_script)
+  def AppendHTMLContentsToFile(self, f, ctl):
+    super(HTMLModule, self).AppendHTMLContentsToFile(f, ctl)
+    for piece in self._parser_results.YieldHTMLInPieces(ctl):
+      f.write(piece)
+
+  def HRefToResource(self, href, tag_for_err_msg):
+    return _HRefToResource(self.loader, self.name, self._module_dir_name,
+                           href, tag_for_err_msg)
 
 
 def _HRefToResource(loader, module_name, module_dir_name, href, tag_for_err_msg):

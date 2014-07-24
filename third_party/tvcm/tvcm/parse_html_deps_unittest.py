@@ -2,10 +2,12 @@
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import re
 import unittest
 
-import parse_html_deps
-import re
+from tvcm import parse_html_deps
+from tvcm import module as module_module
 
 
 class ParseTests(unittest.TestCase):
@@ -44,6 +46,29 @@ class ParseTests(unittest.TestCase):
     self.assertTrue(module.has_decl)
     self.assertTrue('DOCTYPE html' not in module.html_contents_without_links_and_script)
 
+    class Ctl(module_module.HTMLGenerationController):
+      def GetHTMLForScriptHRef(self, href):
+        if href == "polymer.min.js":
+          return "<script>POLYMER</script>"
+        elif href == "foo.js":
+          return "<script>FOO</script>"
+        return None
+
+      def GetHTMLForStylesheetHRef(self, href):
+        return None
+
+    gen_html = module.GenerateHTML(Ctl())
+    ghtm = """
+              <html>
+                <head>
+                  <script>POLYMER</script>
+                  <script>FOO</script>
+                </head>
+                <body>
+                </body>
+              </html>"""
+    self.assertEquals(ghtm, gen_html)
+
   def test_parse_link_rel_import(self):
     html = """<!DOCTYPE html>
               <html>
@@ -60,6 +85,7 @@ class ParseTests(unittest.TestCase):
     self.assertEquals([], module.stylesheets)
     self.assertEquals(['x-foo.html'], module.imports)
     self.assertTrue(module.has_decl)
+
 
   def test_parse_script_inline(self):
     html = """<polymer-element name="tk-element-proto">
@@ -107,6 +133,24 @@ class ParseTests(unittest.TestCase):
     self.assertEquals(['frameworkstyles.css'], module.stylesheets)
     self.assertEquals([], module.imports)
     self.assertFalse(module.has_decl)
+
+    class Ctl(module_module.HTMLGenerationController):
+      def GetHTMLForScriptHRef(self, href):
+        return None
+
+      def GetHTMLForStylesheetHRef(self, href):
+        if href == "frameworkstyles.css":
+          return "<style>FRAMEWORK</style>"
+        return None
+
+    gen_html = module.GenerateHTML(Ctl())
+    ghtm = """<polymer-element name="hi">
+                <template>
+                  <style>FRAMEWORK</style>
+                </template>
+              </polymer-element>"""
+    self.assertEquals(ghtm, gen_html)
+
 
   def test_parse_inline_style(self):
     html = """
