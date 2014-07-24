@@ -89,20 +89,6 @@ def _HRefToResource(loader, module_name, module_dir_name, href, tag_for_err_msg)
   return resource
 
 
-def _ParseScriptResource(res, resource):
-  # Now, is it a module or a raw script?
-  tvcm_hints = ['tvcm.require', 'tvcm.requireRawScript',
-                'tvcm.requireStylesheet', 'tvcm.requireTemplate', 'tvcm.exportTo']
-  is_tvcm_module = False
-  for hint in tvcm_hints:
-    if resource.contents.find(hint) != -1:
-      is_tvcm_module = True
-  if is_tvcm_module:
-    res.dependent_module_names.append(resource.name)
-  else:
-    res.dependent_raw_script_relative_paths.append(resource.relative_path)
-
-
 def Parse(loader, module_name, module_dir_name, parser_results):
   if parser_results.has_decl == False:
     raise Exception('%s must have <!DOCTYPE html>' % module_name)
@@ -114,7 +100,7 @@ def Parse(loader, module_name, module_dir_name, parser_results):
     resource = _HRefToResource(loader, module_name, module_dir_name,
                                href,
                                tag_for_err_msg='<script src="%s">' % href)
-    _ParseScriptResource(res, resource)
+    res.dependent_raw_script_relative_paths.append(resource.relative_path)
 
   # External imports. Mostly the same as <script>, but we know its a module.
   for href in parser_results.imports:
@@ -135,9 +121,6 @@ def Parse(loader, module_name, module_dir_name, parser_results):
     except:
       raise Exception('%s has an inline script tag that is missing ' \
                       'a \'use strict\' directive.' % module_name)
-    sub_metadata = js_module.Parse(module_name, stripped_text,
-                                  tvcm_already_included=True)
-    res.AppendMetdata(sub_metadata)
 
   # Style sheets
   for href in parser_results.stylesheets:

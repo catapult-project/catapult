@@ -78,24 +78,6 @@ class ParseTests(unittest.TestCase):
                         parse_results)
     self.assertRaises(Exception, DoIt)
 
-  def testValidExternalScriptReferenceToModule(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults()
-    parse_results.has_decl = True
-    parse_results.scripts_external.append('../foo.js')
-
-    file_contents = {}
-    file_contents['/tmp/a/foo.js'] = """
-'use strict';
-tvcm.exportTo('foo', function() {
-});"""
-
-    metadata = html_module.Parse(FakeLoader(["/tmp"], file_contents),
-                                 "a.b.start",
-                                 "/tmp/a/b/",
-                                 parse_results)
-    self.assertEquals(['a.foo'], metadata.dependent_module_names)
-
-
   def testValidExternalScriptReferenceToRawScript(self):
     parse_results = parse_html_deps.HTMLModuleParserResults()
     parse_results.has_decl = True
@@ -142,35 +124,6 @@ tvcm.exportTo('foo', function() {
                         "/tmp/a/b/",
                         parse_results)
     self.assertRaises(Exception, DoIt)
-
-  def testTVCMRequiresInsideInlineScriptTags(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults()
-    parse_results.has_decl = True
-    parse_results.scripts_inline.append("""
-    'use strict';
-    tvcm.require('a.foo');
-    tvcm.requireRawScript('a/raw.js');
-    tvcm.requireStylesheet('a.bar');
-    tvcm.requireTemplate('a.foo');
-    """)
-
-    file_contents = {}
-    file_contents['/tmp/a/foo.js'] = """
-"""
-    file_contents['/tmp/a/raw.js'] = """
-"""
-    file_contents['/tmp/a/bar.css'] = """
-"""
-    file_contents['/tmp/a/foo.html'] = """
-"""
-    metadata = html_module.Parse(FakeLoader(["/tmp"], file_contents),
-                                 "a.b.start",
-                                 "/tmp/a/b/",
-                                 parse_results)
-    self.assertEquals(['a.foo'], metadata.dependent_module_names)
-    self.assertEquals(['a/raw.js'], metadata.dependent_raw_script_relative_paths)
-    self.assertEquals(['a.bar'], metadata.style_sheet_names)
-    self.assertEquals(['a.foo'], metadata.html_template_names)
 
   def testInlineScriptWithoutStrictNote(self):
     parse_results = parse_html_deps.HTMLModuleParserResults()
@@ -223,17 +176,13 @@ console.log('Logging without strict mode is no fun.');
     parse_results.scripts_external.append('/foo.js')
 
     file_contents = {}
-    file_contents['/src/foo.js'] = """
-'use strict';
-tvcm.requireRawScript('b.c');
-tvcm.exportTo('foo', function() {
-});"""
+    file_contents['/src/foo.js'] = ''
 
     metadata = html_module.Parse(FakeLoader(["/tmp", "/src"], file_contents),
                                  "a.b.start",
                                  "/tmp/a/b/",
                                  parse_results)
-    self.assertEquals(['foo'], metadata.dependent_module_names)
+    self.assertEquals(['foo.js'], metadata.dependent_raw_script_relative_paths)
 
 
 class HTMLModuleTests(unittest.TestCase):
