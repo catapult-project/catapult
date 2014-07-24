@@ -43,7 +43,7 @@ class ValidateStrictModeTests(unittest.TestCase):
 class ValidateTestSuiteDefinition(unittest.TestCase):
   def test_basic_success(self):
     text = """
-tvcm.unittest.testSuite('foo.bar_test', function() {
+tvcm.unittest.testSuite(function() {
 });
 """
     js_module.ValidateTestSuiteDefinition('foo.bar_test', text)
@@ -57,7 +57,7 @@ tvcm.testSuite('foo.bar_test', function() {
 
   def test_wrong_name(self):
     text = """
-tvcm.unittest.testSuite('foo.bar', function() {
+tvcm.unittest.testSuite(function() {
 });
 """
     self.assertRaises(
@@ -78,9 +78,9 @@ tvcm.testSuite('foo.bar', function() {
 
   def test_multiple_suites_failure(self):
     text = """
-tvcm.unittest.testSuite('foo.bar_test', function() {
+tvcm.unittest.testSuite(function() {
 });
-tvcm.unittest.testSuite('foo.bar_test', function() {
+tvcm.unittest.testSuite(function() {
 });
 """
     self.assertRaises(
@@ -245,7 +245,7 @@ tvcm.exportTo('tvcm', function() {
 
 tvcm.require('tvcm.bbox2');
 
-tvcm.unittest.testSuite('tvcm.bbox2_test', function() {
+tvcm.unittest.testSuite(function() {
   test('addVec2', function() {"""
     self.assertTrue(js_module.IsJSModule(js))
 

@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite('tracing.trace_model.object_collection_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite(function() { // @suppress longLineCheck
   var TestObjectInstance = function(parent, id, category, name, creationTs) {
     tracing.trace_model.ObjectInstance.call(
         this, parent, id, category, name, creationTs);

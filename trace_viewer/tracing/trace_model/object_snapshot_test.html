@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite('tracing.trace_model.object_snapshot_test', function() {
+tvcm.unittest.testSuite(function() {
   test('snapshotTypeRegistry', function() {
     function MySnapshot() {
       tracing.trace_model.ObjectSnapshot.apply(this, arguments);

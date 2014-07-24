@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite('tvcm.color_test', function() {
+tvcm.unittest.testSuite(function() {
   test('fromRGB', function() {
     var c = tvcm.Color.fromString('rgb(1, 2, 3)');
     assertEquals(1, c.r);

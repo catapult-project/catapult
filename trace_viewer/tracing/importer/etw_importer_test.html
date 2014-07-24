@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
+tvcm.unittest.testSuite(function() {
   test('canImport', function() {
     assertFalse(tracing.importer.EtwImporter.canImport('string'));
     assertFalse(tracing.importer.EtwImporter.canImport([]));

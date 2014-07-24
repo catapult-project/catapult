@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite('tvcm.settings_test', function() {
+tvcm.unittest.testSuite(function() {
   function assertSettingIs(expectedValue, key) {
     assertEquals(expectedValue, tvcm.Settings.get('my_key'),
                  'Expected Settings.' + key + ' to be ' + expectedValue);

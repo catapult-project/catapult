@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite('tvcm.unittest.test_case_test', function() {
+tvcm.unittest.testSuite(function() {
   test('parseFullyQualifiedName', function() {
     var p = tvcm.unittest.TestCase.parseFullyQualifiedName('foo.bar');
     assertEquals(p.suiteName, 'foo');

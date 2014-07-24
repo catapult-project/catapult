@@ -14,7 +14,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite('gpu.state_test', function() {
+tvcm.unittest.testSuite(function() {
   test('basic', function() {
     var m = new tracing.TraceModel(g_gpu_state_trace);
     var p = tvcm.dictionaryValues(m.processes)[0];

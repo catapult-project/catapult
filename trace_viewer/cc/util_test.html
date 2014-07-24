@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 'use strict';
 
-tvcm.unittest.testSuite('cc.util_test', function() {
+tvcm.unittest.testSuite(function() {
   test('nameConvert', function() {
     assertEquals('_foo', cc.convertNameToJSConvention('_foo'));
     assertEquals('foo_', cc.convertNameToJSConvention('foo_'));
