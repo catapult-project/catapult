@@ -225,32 +225,17 @@ tvcm.exportTo('tvcm.unittest', function() {
     var parts = path.substring(1, path.length - 5).split('/');
     return parts.join('.');
   }
-  window._Guess = _guessModuleNameFromURL;
 
-  function testSuite(a, b) {
+  function testSuite(suiteConstructor) {
     var linkDoc = document.currentScript.ownerDocument;
-    if (typeof a === 'string') {
-      if (b === undefined || typeof b !== 'function')
-        throw new Error('Must provide constructor');
-
-      var aGuess = _guessModuleNameFromURL(linkDoc.URL);
-      if (aGuess != a)
-        throw new Error('Guess fail');
-      return _testSuiteImpl(a, b);
-    } else {
-      return _testSuiteImpl(_guessModuleNameFromURL(linkDoc.URL), a);
-    }
-  }
-
-  function _testSuiteImpl(name, suiteConstructor) {
+    var url = linkDoc.URL;
+    var name = _guessModuleNameFromURL(url);
     if (!document.currentScript)
       throw new Error('Cannot call testSuite except during load.');
 
     var testSuite = new tvcm.unittest.TestSuite(
       name, suiteConstructor);
 
-    var linkDoc = document.currentScript.ownerDocument;
-    var url = linkDoc.URL;
 
     if (allTestSuitesByModuleURL[url] === undefined)
       allTestSuitesByModuleURL[url] = [];
