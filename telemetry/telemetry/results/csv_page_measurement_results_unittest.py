@@ -46,39 +46,24 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     rows = list(csv.reader(self.lines))
     return rows[1:]
 
-  def test_with_output_after_every_page(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output, True)
-    results.WillMeasurePage(self._page_set[0])
-    results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
-    results.DidMeasurePage()
-    self.assertEquals(
-        self.output_header_row,
-        ['page_name', 'foo (seconds)'])
-    self.assertEquals(
-        self.output_data_rows[0],
-        [self._page_set[0].url, '3'])
-
-    results.WillMeasurePage(self._page_set[1])
-    results.AddValue(scalar.ScalarValue(self._page_set[1], 'foo', 'seconds', 4))
-    results.DidMeasurePage()
-    self.assertEquals(
-        len(self.output_data_rows),
-        2)
-    self.assertEquals(
-        self.output_data_rows[1],
-        [self._page_set[1].url, '4'])
-
   def test_with_no_results_on_second_run(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output, True)
+    results = NonPrintingCsvPageMeasurementResults(self._output)
     results.WillMeasurePage(self._page_set[0])
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.DidMeasurePage()
 
     results.WillMeasurePage(self._page_set[1])
     results.DidMeasurePage()
+
+    results.PrintSummary()
+    self.assertEqual(['page_name', 'foo (seconds)'], self.output_header_row)
+    # TODO(chrishenry): Is this really the right behavior? Should this
+    # not output a second row with '-' as its results?
+    expected = [[self._page_set[0].url, '3.0']]
+    self.assertEqual(expected, self.output_data_rows)
 
   def test_fewer_results_on_second_run(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output, True)
+    results = NonPrintingCsvPageMeasurementResults(self._output)
     results.WillMeasurePage(self._page_set[0])
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'bar', 'seconds', 4))
@@ -88,36 +73,15 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 5))
     results.DidMeasurePage()
 
-  def test_more_results_on_second_run(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output, True)
-    results.WillMeasurePage(self._page_set[0])
-    results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
-    results.DidMeasurePage()
-
-    results.WillMeasurePage(self._page_set[1])
-    results.AddValue(scalar.ScalarValue(self._page_set[1], 'foo', 'seconds', 4))
-    results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 5))
-
-    self.assertRaises(
-        Exception,
-        lambda: results.DidMeasurePage()) # pylint: disable=W0108
-
-  def test_with_output_after_every_page_and_inconsistency(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output, True)
-    results.WillMeasurePage(self._page_set[0])
-    results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
-    results.DidMeasurePage()
-
-    # We printed foo, now change to bar
-    results.WillMeasurePage(self._page_set[1])
-    results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 4))
-
-    self.assertRaises(
-        Exception,
-        lambda: results.DidMeasurePage()) # pylint: disable=W0108
+    results.PrintSummary()
+    self.assertEqual(['page_name', 'bar (seconds)', 'foo (seconds)'],
+                     self.output_header_row)
+    expected = [[self._page_set[0].url, '4.0', '3.0'],
+                [self._page_set[1].url, '5.0', '-']]
+    self.assertEqual(expected, self.output_data_rows)
 
   def test_with_output_at_print_summary_time(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output, False)
+    results = NonPrintingCsvPageMeasurementResults(self._output)
     results.WillMeasurePage(self._page_set[0])
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.DidMeasurePage()
@@ -128,16 +92,16 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
 
     results.PrintSummary()
 
-    self.assertEquals(
+    self.assertEqual(
       self.output_header_row,
       ['page_name', 'bar (seconds)', 'foo (seconds)'])
 
     expected = [[self._page_set[0].display_name, '-', '3.0'],
                 [self._page_set[1].display_name, '4.0', '-']]
-    self.assertEquals(expected, self.output_data_rows)
+    self.assertEqual(expected, self.output_data_rows)
 
   def test_histogram(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output, False)
+    results = NonPrintingCsvPageMeasurementResults(self._output)
     results.WillMeasurePage(self._page_set[0])
     results.AddValue(histogram.HistogramValue(
         self._page_set[0], 'a', '',
@@ -152,10 +116,10 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
 
     results.PrintSummary()
 
-    self.assertEquals(
+    self.assertEqual(
         self.output_header_row,
         ['page_name', 'a ()'])
-    self.assertEquals(
+    self.assertEqual(
         self.output_data_rows,
         [[self._page_set[0].display_name, '1.5'],
          [self._page_set[1].display_name, '2.5']])

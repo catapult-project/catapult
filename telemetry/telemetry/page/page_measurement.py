@@ -63,16 +63,6 @@ class PageMeasurement(page_test.PageTest):
     finally:
       results.DidMeasurePage()
 
-  @property
-  def results_are_the_same_on_every_page(self):
-    """By default, measurements are assumed to output the same values for every
-    page. This allows incremental output, for example in CSV. If, however, the
-    measurement discovers what values it can report as it goes, and those values
-    may vary from page to page, you need to override this function and return
-    False. Output will not appear in this mode until the entire pageset has
-    run."""
-    return True
-
   def MeasurePage(self, page, tab, results):
     """Override to actually measure the page's performance.
 

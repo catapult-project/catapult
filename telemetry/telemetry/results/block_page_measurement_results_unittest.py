@@ -41,7 +41,7 @@ class BlockPageMeasurementResultsTest(unittest.TestCase):
   def data(self):
     return [line.split(': ', 1) for line in self.lines]
 
-  def test_with_output_after_every_page(self):
+  def testOutput(self):
     results = NonPrintingBlockPageMeasurementResults(self._output)
     results.WillMeasurePage(self._page_set[0])
     results.AddValue(
@@ -53,12 +53,13 @@ class BlockPageMeasurementResultsTest(unittest.TestCase):
         scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 4))
     results.DidMeasurePage()
 
+    results.PrintSummary()
     expected = [
       ['name', 'http://www.foo.com/'],
-      ['foo (seconds)', '3'],
+      ['foo (seconds)', '[3]'],
       [''],
       ['name', 'http://www.bar.com/'],
-      ['bar (seconds)', '4'],
+      ['bar (seconds)', '[4]'],
       ['']
     ]
     self.assertEquals(self.data, expected)

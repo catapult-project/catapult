@@ -68,10 +68,10 @@ def PrepareResults(test, options):
         output_stream, trace_tag=options.output_trace_tag)
   elif options.output_format == 'csv':
     return csv_page_measurement_results.CsvPageMeasurementResults(
-      output_stream, test.results_are_the_same_on_every_page)
+        output_stream)
   elif options.output_format == 'block':
     return block_page_measurement_results.BlockPageMeasurementResults(
-      output_stream)
+        output_stream)
   elif options.output_format == 'buildbot':
     return buildbot_page_measurement_results.BuildbotPageMeasurementResults(
         output_stream, trace_tag=options.output_trace_tag)

@@ -4,29 +4,33 @@
 import os
 
 from telemetry.results import page_measurement_results
+from telemetry.value import merge_values
 
 class BlockPageMeasurementResults(
     page_measurement_results.PageMeasurementResults):
   def __init__(self, output_stream):
     super(BlockPageMeasurementResults, self).__init__(output_stream)
 
-  def DidMeasurePage(self):
+  def PrintSummary(self):
     try:
-      values = self.page_specific_values_for_current_page
-      if not values:
-        # Do not output if no results were added on this page.
-        return
-      lines = ['name: %s' % values[0].page.display_name]
-      for value in sorted(values, key=lambda x: x.name):
-        if value.GetRepresentativeString() is not None:
+      values = merge_values.MergeLikeValuesFromSamePage(
+          self.all_page_specific_values)
+      value_groups_by_page = merge_values.GroupStably(
+          values, lambda value: value.page.url)
+      for values_for_page in value_groups_by_page:
+        if not values_for_page:
+          # Do not output if no results were added on this page.
+          return
+        lines = ['name: %s' % values_for_page[0].page.display_name]
+        for value in sorted(values_for_page, key=lambda x: x.name):
           lines.append('%s (%s): %s' %
                        (value.name,
                         value.units,
                         value.GetRepresentativeString()))
-      for line in lines:
-        self._output_stream.write(line)
+        for line in lines:
+          self._output_stream.write(line)
+          self._output_stream.write(os.linesep)
         self._output_stream.write(os.linesep)
-      self._output_stream.write(os.linesep)
-      self._output_stream.flush()
+        self._output_stream.flush()
     finally:
-      super(BlockPageMeasurementResults, self).DidMeasurePage()
+      super(BlockPageMeasurementResults, self).PrintSummary()
