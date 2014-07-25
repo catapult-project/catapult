@@ -197,11 +197,14 @@ class OsModuleStub(object):
 
   X_OK = os.X_OK
 
+  pathsep = os.pathsep
+
   def __init__(self, sys_module=sys):
     self.path = OsModuleStub.OsPathModuleStub(sys_module)
     self.environ = OsModuleStub.OsEnvironModuleStub()
     self.display = ':0'
     self.local_app_data = None
+    self.sys_path = None
     self.program_files = None
     self.program_files_x86 = None
     self.devnull = os.devnull
@@ -209,16 +212,20 @@ class OsModuleStub(object):
   def access(self, path, _):
     return path in self.path.files
 
-  def getenv(self, name):
+  def getenv(self, name, value=None):
     if name == 'DISPLAY':
-      return self.display
+      env = self.display
     elif name == 'LOCALAPPDATA':
-      return self.local_app_data
+      env = self.local_app_data
+    elif name == 'PATH':
+      env = self.sys_path
     elif name == 'PROGRAMFILES':
-      return self.program_files
+      env = self.program_files
     elif name == 'PROGRAMFILES(X86)':
-      return self.program_files_x86
-    raise Exception('Unsupported getenv')
+      env = self.program_files_x86
+    else:
+      raise NotImplementedError('Unsupported getenv')
+    return env if env else value
 
 
 class PerfControlModuleStub(object):

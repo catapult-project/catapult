@@ -5,13 +5,13 @@
 import os
 
 from telemetry import decorators
-from telemetry.core import util
 from telemetry.util import cloud_storage
+from telemetry.util import path
 
 
 def _GetBinPath(binary_name, platform_name):
   # TODO(tonyg): Add another nesting level for architecture_name.
-  return os.path.join(util.GetTelemetryDir(), 'bin', platform_name, binary_name)
+  return os.path.join(path.GetTelemetryDir(), 'bin', platform_name, binary_name)
 
 
 def _IsInCloudStorage(binary_name, platform_name):
@@ -23,11 +23,11 @@ def FindLocallyBuiltPath(binary_name):
   """Finds the most recently built |binary_name|."""
   command = None
   command_mtime = 0
-  chrome_root = util.GetChromiumSrcDir()
+  chrome_root = path.GetChromiumSrcDir()
   required_mode = os.X_OK
   if binary_name.endswith('.apk'):
     required_mode = os.R_OK
-  for build_dir, build_type in util.GetBuildDirectories():
+  for build_dir, build_type in path.GetBuildDirectories():
     candidate = os.path.join(chrome_root, build_dir, build_type, binary_name)
     if os.path.isfile(candidate) and os.access(candidate, required_mode):
       candidate_mtime = os.stat(candidate).st_mtime

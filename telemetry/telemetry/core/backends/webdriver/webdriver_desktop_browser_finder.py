@@ -93,16 +93,15 @@ def FindAllAvailableBrowsers(finder_options):
   # Look for the IE browser in the standard location.
   if sys.platform.startswith('win'):
     ie_path = os.path.join('Internet Explorer', 'iexplore.exe')
-    win_search_paths = {
-        '32' : { 'path' : os.getenv('PROGRAMFILES(X86)'),
-                 'type' : 'internet-explorer'},
-        '64' : { 'path' : os.getenv('PROGRAMFILES'),
-                 'type' : 'internet-explorer-x64'}}
-    for architecture, ie_info in win_search_paths.iteritems():
-      if not ie_info['path']:
+    search_paths = (
+        (32, os.getenv('PROGRAMFILES(X86)'), 'internet-explorer'),
+        (64, os.getenv('PROGRAMFILES'), 'internet-explorer-x64'),
+    )
+    for architecture, search_path, browser_type in search_paths:
+      if not search_path:
         continue
-      if os.path.exists(os.path.join(ie_info['path'], ie_path)):
+      if os.path.exists(os.path.join(search_path, ie_path)):
         browsers.append(
-            PossibleDesktopIE(ie_info['type'], finder_options, architecture))
+            PossibleDesktopIE(browser_type, finder_options, architecture))
 
   return browsers

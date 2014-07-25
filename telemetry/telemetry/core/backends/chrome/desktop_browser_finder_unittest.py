@@ -17,15 +17,18 @@ class FindTestBase(unittest.TestCase):
   def setUp(self):
     self._finder_options = browser_options.BrowserFinderOptions()
     self._finder_options.chrome_root = '../../../'
-    self._stubs = system_stub.Override(desktop_browser_finder,
-                                       ['os', 'subprocess', 'sys'])
+    self._finder_stubs = system_stub.Override(desktop_browser_finder,
+                                              ['os', 'subprocess', 'sys'])
+    self._path_stubs = system_stub.Override(desktop_browser_finder.path,
+                                            ['os', 'sys'])
 
   def tearDown(self):
-    self._stubs.Restore()
+    self._finder_stubs.Restore()
+    self._path_stubs.Restore()
 
   @property
   def _files(self):
-    return self._stubs.os.path.files
+    return self._path_stubs.os.path.files
 
   def DoFindAll(self):
     return desktop_browser_finder.FindAllAvailableBrowsers(self._finder_options)
@@ -45,7 +48,8 @@ def has_type(array, browser_type):
 class FindSystemTest(FindTestBase):
   def setUp(self):
     super(FindSystemTest, self).setUp()
-    self._stubs.sys.platform = 'win32'
+    self._finder_stubs.sys.platform = 'win32'
+    self._path_stubs.sys.platform = 'win32'
 
   def testFindProgramFiles(self):
     if not self.CanFindAvailableBrowsers():
@@ -53,8 +57,8 @@ class FindSystemTest(FindTestBase):
 
     self._files.append(
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
-    self._stubs.os.program_files = 'C:\\Program Files'
-    self.assertTrue('system' in self.DoFindAllTypes())
+    self._path_stubs.os.program_files = 'C:\\Program Files'
+    self.assertIn('system', self.DoFindAllTypes())
 
   def testFindProgramFilesX86(self):
     if not self.CanFindAvailableBrowsers():
@@ -62,8 +66,8 @@ class FindSystemTest(FindTestBase):
 
     self._files.append(
         'C:\\Program Files(x86)\\Google\\Chrome\\Application\\chrome.exe')
-    self._stubs.os.program_files_x86 = 'C:\\Program Files(x86)'
-    self.assertTrue('system' in self.DoFindAllTypes())
+    self._path_stubs.os.program_files_x86 = 'C:\\Program Files(x86)'
+    self.assertIn('system', self.DoFindAllTypes())
 
   def testFindLocalAppData(self):
     if not self.CanFindAvailableBrowsers():
@@ -71,41 +75,43 @@ class FindSystemTest(FindTestBase):
 
     self._files.append(
         'C:\\Local App Data\\Google\\Chrome\\Application\\chrome.exe')
-    self._stubs.os.local_app_data = 'C:\\Local App Data'
-    self.assertTrue('system' in self.DoFindAllTypes())
+    self._path_stubs.os.local_app_data = 'C:\\Local App Data'
+    self.assertIn('system', self.DoFindAllTypes())
 
 
 class FindLocalBuildsTest(FindTestBase):
   def setUp(self):
     super(FindLocalBuildsTest, self).setUp()
-    self._stubs.sys.platform = 'win32'
+    self._finder_stubs.sys.platform = 'win32'
+    self._path_stubs.sys.platform = 'win32'
 
   def testFindBuild(self):
     if not self.CanFindAvailableBrowsers():
       return
 
     self._files.append('..\\..\\..\\build\\Release\\chrome.exe')
-    self.assertTrue('release' in self.DoFindAllTypes())
+    self.assertIn('release', self.DoFindAllTypes())
 
   def testFindOut(self):
     if not self.CanFindAvailableBrowsers():
       return
 
     self._files.append('..\\..\\..\\out\\Release\\chrome.exe')
-    self.assertTrue('release' in self.DoFindAllTypes())
+    self.assertIn('release', self.DoFindAllTypes())
 
   def testFindXcodebuild(self):
     if not self.CanFindAvailableBrowsers():
       return
 
     self._files.append('..\\..\\..\\xcodebuild\\Release\\chrome.exe')
-    self.assertTrue('release' in self.DoFindAllTypes())
+    self.assertIn('release', self.DoFindAllTypes())
 
 
 class OSXFindTest(FindTestBase):
   def setUp(self):
     super(OSXFindTest, self).setUp()
-    self._stubs.sys.platform = 'darwin'
+    self._finder_stubs.sys.platform = 'darwin'
+    self._path_stubs.sys.platform = 'darwin'
     self._files.append('/Applications/Google Chrome Canary.app/'
                        'Contents/MacOS/Google Chrome Canary')
     self._files.append('/Applications/Google Chrome.app/' +
@@ -135,7 +141,8 @@ class LinuxFindTest(FindTestBase):
   def setUp(self):
     super(LinuxFindTest, self).setUp()
 
-    self._stubs.sys.platform = 'linux2'
+    self._finder_stubs.sys.platform = 'linux2'
+    self._path_stubs.sys.platform = 'linux2'
     self._files.append('/foo/chrome')
     self._files.append('../../../out/Release/chrome')
     self._files.append('../../../out/Debug/chrome')
@@ -148,7 +155,7 @@ class LinuxFindTest(FindTestBase):
       if this.has_google_chrome_on_path:
         return 0
       raise OSError('Not found')
-    self._stubs.subprocess.call = call_hook
+    self._finder_stubs.subprocess.call = call_hook
 
   def testFindAllWithExact(self):
     if not self.CanFindAvailableBrowsers():
@@ -165,18 +172,18 @@ class LinuxFindTest(FindTestBase):
       return
 
     self._finder_options.browser_executable = '/foo/chrome'
-    self.assertTrue('exact' in self.DoFindAllTypes())
+    self.assertIn('exact', self.DoFindAllTypes())
 
   def testFindUsingDefaults(self):
     if not self.CanFindAvailableBrowsers():
       return
 
     self.has_google_chrome_on_path = True
-    self.assertTrue('release' in self.DoFindAllTypes())
+    self.assertIn('release', self.DoFindAllTypes())
 
     del self._files[1]
     self.has_google_chrome_on_path = True
-    self.assertTrue('system' in self.DoFindAllTypes())
+    self.assertIn('system', self.DoFindAllTypes())
 
     self.has_google_chrome_on_path = False
     del self._files[1]
@@ -187,23 +194,24 @@ class LinuxFindTest(FindTestBase):
     if not self.CanFindAvailableBrowsers():
       return
 
-    self.assertTrue('release' in self.DoFindAllTypes())
+    self.assertIn('release', self.DoFindAllTypes())
 
 
 class WinFindTest(FindTestBase):
   def setUp(self):
     super(WinFindTest, self).setUp()
 
-    self._stubs.sys.platform = 'win32'
-    self._stubs.os.local_app_data = 'c:\\Users\\Someone\\AppData\\Local'
+    self._finder_stubs.sys.platform = 'win32'
+    self._path_stubs.sys.platform = 'win32'
+    self._path_stubs.os.local_app_data = 'c:\\Users\\Someone\\AppData\\Local'
     self._files.append('c:\\tmp\\chrome.exe')
     self._files.append('..\\..\\..\\build\\Release\\chrome.exe')
     self._files.append('..\\..\\..\\build\\Debug\\chrome.exe')
     self._files.append('..\\..\\..\\build\\Release\\content_shell.exe')
     self._files.append('..\\..\\..\\build\\Debug\\content_shell.exe')
-    self._files.append(self._stubs.os.local_app_data + '\\' +
+    self._files.append(self._path_stubs.os.local_app_data + '\\' +
                        'Google\\Chrome\\Application\\chrome.exe')
-    self._files.append(self._stubs.os.local_app_data + '\\' +
+    self._files.append(self._path_stubs.os.local_app_data + '\\' +
                        'Google\\Chrome SxS\\Application\\chrome.exe')
 
   def testFindAllGivenDefaults(self):

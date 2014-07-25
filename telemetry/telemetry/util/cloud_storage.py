@@ -14,7 +14,7 @@ import tarfile
 import urllib2
 
 from telemetry.core.backends.chrome import cros_interface
-from telemetry.core import util
+from telemetry.util import path
 
 
 PUBLIC_BUCKET = 'chromium-telemetry'
@@ -23,7 +23,7 @@ INTERNAL_BUCKET = 'chrome-telemetry'
 
 
 _GSUTIL_URL = 'http://storage.googleapis.com/pub/gsutil.tar.gz'
-_DOWNLOAD_PATH = os.path.join(util.GetTelemetryDir(), 'third_party', 'gsutil')
+_DOWNLOAD_PATH = os.path.join(path.GetTelemetryDir(), 'third_party', 'gsutil')
 # TODO(tbarzic): A workaround for http://crbug.com/386416 and
 #     http://crbug.com/359293. See |_RunCommand|.
 _CROS_GSUTIL_HOME_WAR = '/home/chromeos-test/'
@@ -62,9 +62,10 @@ class NotFoundError(CloudStorageError):
 
 # TODO(tonyg/dtu): Can this be replaced with distutils.spawn.find_executable()?
 def _FindExecutableInPath(relative_executable_path, *extra_search_paths):
-  for path in list(extra_search_paths) + os.environ['PATH'].split(os.pathsep):
-    executable_path = os.path.join(path, relative_executable_path)
-    if os.path.isfile(executable_path) and os.access(executable_path, os.X_OK):
+  search_paths = list(extra_search_paths) + os.environ['PATH'].split(os.pathsep)
+  for search_path in search_paths:
+    executable_path = os.path.join(search_path, relative_executable_path)
+    if path.IsExecutable(executable_path):
       return executable_path
   return None
 

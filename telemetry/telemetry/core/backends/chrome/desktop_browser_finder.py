@@ -10,10 +10,10 @@ import sys
 
 from telemetry.core import browser
 from telemetry.core import possible_browser
-from telemetry.core import util
 from telemetry.core.backends.chrome import cros_interface
 from telemetry.core.backends.chrome import desktop_browser_backend
 from telemetry.core.platform import factory
+from telemetry.util import path
 
 ALL_BROWSER_TYPES = [
     'exact',
@@ -108,7 +108,7 @@ def FindAllAvailableBrowsers(finder_options):
   if finder_options.chrome_root:
     chrome_root = finder_options.chrome_root
   else:
-    chrome_root = util.GetChromiumSrcDir()
+    chrome_root = path.GetChromiumSrcDir()
 
   flash_bin_dir = os.path.join(
       chrome_root, 'third_party', 'adobe', 'flash', 'binaries', 'ppapi')
@@ -136,14 +136,11 @@ def FindAllAvailableBrowsers(finder_options):
   else:
     raise Exception('Platform not recognized')
 
-  def IsExecutable(path):
-    return os.path.isfile(path) and os.access(path, os.X_OK)
-
   # Add the explicit browser executable if given.
   if finder_options.browser_executable:
     normalized_executable = os.path.expanduser(
         finder_options.browser_executable)
-    if IsExecutable(normalized_executable):
+    if path.IsExecutable(normalized_executable):
       browser_directory = os.path.dirname(finder_options.browser_executable)
       browsers.append(PossibleDesktopBrowser('exact', finder_options,
                                              normalized_executable, flash_path,
@@ -155,7 +152,7 @@ def FindAllAvailableBrowsers(finder_options):
   def AddIfFound(browser_type, build_dir, type_dir, app_name, content_shell):
     browser_directory = os.path.join(chrome_root, build_dir, type_dir)
     app = os.path.join(browser_directory, app_name)
-    if IsExecutable(app):
+    if path.IsExecutable(app):
       is_64 = browser_type.endswith('_x64')
       browsers.append(PossibleDesktopBrowser(
           browser_type, finder_options, app,
@@ -165,7 +162,7 @@ def FindAllAvailableBrowsers(finder_options):
     return False
 
   # Add local builds
-  for build_dir, build_type in util.GetBuildDirectories():
+  for build_dir, build_type in path.GetBuildDirectories():
     for chromium_app_name in chromium_app_names:
       AddIfFound(build_type.lower(), build_dir, build_type,
                  chromium_app_name, False)
@@ -178,12 +175,12 @@ def FindAllAvailableBrowsers(finder_options):
     mac_canary = mac_canary_root + 'Contents/MacOS/Google Chrome Canary'
     mac_system_root = '/Applications/Google Chrome.app'
     mac_system = mac_system_root + '/Contents/MacOS/Google Chrome'
-    if IsExecutable(mac_canary):
+    if path.IsExecutable(mac_canary):
       browsers.append(PossibleDesktopBrowser('canary', finder_options,
                                              mac_canary, None, False,
                                              mac_canary_root))
 
-    if IsExecutable(mac_system):
+    if path.IsExecutable(mac_system):
       browsers.append(PossibleDesktopBrowser('system', finder_options,
                                              mac_system, None, False,
                                              mac_system_root))
@@ -205,35 +202,19 @@ def FindAllAvailableBrowsers(finder_options):
 
   # Win32-specific options.
   if sys.platform.startswith('win'):
-    system_path = os.path.join('Google', 'Chrome', 'Application')
-    canary_path = os.path.join('Google', 'Chrome SxS', 'Application')
+    app_paths = (
+        ('system', os.path.join('Google', 'Chrome', 'Application')),
+        ('canary', os.path.join('Google', 'Chrome SxS', 'Application')),
+    )
 
-    win_search_paths = [os.getenv('PROGRAMFILES(X86)'),
-                        os.getenv('PROGRAMFILES'),
-                        os.getenv('LOCALAPPDATA')]
-
-    def AddIfFoundWin(browser_name, search_path, app_path):
-      browser_directory = os.path.join(search_path, app_path)
+    for browser_name, app_path in app_paths:
       for chromium_app_name in chromium_app_names:
-        app = os.path.join(browser_directory, chromium_app_name)
-        if IsExecutable(app):
-          browsers.append(PossibleDesktopBrowser(browser_name, finder_options,
-                                                 app, None, False,
-                                                 browser_directory))
-          return True
-      return False
-
-    for path in win_search_paths:
-      if not path:
-        continue
-      if AddIfFoundWin('canary', path, canary_path):
-        break
-
-    for path in win_search_paths:
-      if not path:
-        continue
-      if AddIfFoundWin('system', path, system_path):
-        break
+        app_path = os.path.join(app_path, chromium_app_name)
+        app_path = path.FindInstalledWindowsApplication(app_path)
+        if app_path:
+          browsers.append(PossibleDesktopBrowser(
+              browser_name, finder_options, app_path,
+              None, False, os.path.dirname(app_path)))
 
   if len(browsers) and not has_display:
     logging.warning(

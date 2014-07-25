@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import distutils
 import glob
 import heapq
 import logging
@@ -18,6 +17,7 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
+from telemetry.util import path
 from telemetry.util import support_binaries
 
 
@@ -107,11 +107,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         '--pipe-name=%s' % self._GetCrashServicePipeName()])
 
   def _GetCdbPath(self):
-    search_paths = [os.getenv('PROGRAMFILES(X86)', ''),
-                    os.getenv('PROGRAMFILES', ''),
-                    os.getenv('LOCALAPPDATA', ''),
-                    os.getenv('PATH', '')]
-    possible_paths = [
+    possible_paths = (
         'Debugging Tools For Windows',
         'Debugging Tools For Windows (x86)',
         'Debugging Tools For Windows (x64)',
@@ -121,13 +117,12 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                      'x86'),
         os.path.join('win_toolchain', 'vs2013_files', 'win8sdk', 'Debuggers',
                      'x64'),
-        ]
+    )
     for possible_path in possible_paths:
-      path = distutils.spawn.find_executable(
-          os.path.join(possible_path, 'cdb'),
-          path=os.pathsep.join(search_paths))
-      if path:
-        return path
+      app_path = os.path.join(possible_path, 'cdb')
+      app_path = path.FindInstalledWindowsApplication(app_path)
+      if app_path:
+        return app_path
     return None
 
   def HasBrowserFinishedLaunching(self):
