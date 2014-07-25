@@ -57,11 +57,7 @@ class PageMeasurement(page_test.PageTest):
       is_action_name_to_run_optional=is_action_name_to_run_optional)
 
   def ValidatePage(self, page, tab, results):
-    results.WillMeasurePage(page)
-    try:
-      self.MeasurePage(page, tab, results)
-    finally:
-      results.DidMeasurePage()
+    self.MeasurePage(page, tab, results)
 
   def MeasurePage(self, page, tab, results):
     """Override to actually measure the page's performance.

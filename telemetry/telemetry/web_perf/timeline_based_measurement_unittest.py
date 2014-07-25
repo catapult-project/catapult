@@ -70,6 +70,7 @@ class TimelineBasedMetricTestData(object):
     self._renderer_thread.name = 'CrRendererMain'
     self._results = page_measurement_results.PageMeasurementResults()
     self._metric = None
+    self._ps = None
 
   @property
   def results(self):
@@ -89,13 +90,13 @@ class TimelineBasedMetricTestData(object):
     self._model.FinalizeImport()
     self._metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
         self._model, self._renderer_thread, GetMetricFromMetricType)
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
-    self._results.WillMeasurePage(ps.pages[0])
+    self._ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    self._ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
+    self._results.StartTest(self._ps.pages[0])
 
   def AddResults(self):
     self._metric.AddResults(self._results)
-    self._results.DidMeasurePage()
+    self._results.StopTest(self._ps.pages[0])
 
 
 class TimelineBasedMetricsTests(unittest.TestCase):

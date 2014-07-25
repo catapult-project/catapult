@@ -42,9 +42,10 @@ class RendererThreadHelper(object):
         for s in self._async_slices]
     results = page_measurement_results.PageMeasurementResults()
     fake_page = None
-    results.WillMeasurePage(fake_page)
+    results.StartTest(fake_page)
     metric.AddResults(self._model, self._renderer_thread, interaction_records,
                       results)
+    results.StopTest(fake_page)
     return results
 
 

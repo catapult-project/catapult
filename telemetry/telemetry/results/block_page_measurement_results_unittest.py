@@ -43,15 +43,15 @@ class BlockPageMeasurementResultsTest(unittest.TestCase):
 
   def testOutput(self):
     results = NonPrintingBlockPageMeasurementResults(self._output)
-    results.WillMeasurePage(self._page_set[0])
+    results.StartTest(self._page_set[0])
     results.AddValue(
         scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
-    results.DidMeasurePage()
+    results.StopTest(self._page_set[0])
 
-    results.WillMeasurePage(self._page_set[1])
+    results.StartTest(self._page_set[1])
     results.AddValue(
         scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 4))
-    results.DidMeasurePage()
+    results.StopTest(self._page_set[1])
 
     results.PrintSummary()
     expected = [

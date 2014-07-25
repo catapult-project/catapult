@@ -11,9 +11,12 @@ from telemetry import value as value_module
 from telemetry.value import failure
 
 class PageTestResults(object):
-  def __init__(self, output_stream=None):
+  def __init__(self, output_stream=None, trace_tag=''):
     super(PageTestResults, self).__init__()
     self._output_stream = output_stream
+    self._trace_tag = trace_tag
+    self._current_page = None
+
     # TODO(chrishenry,eakuefner): Remove self.successes once they can
     # be inferred.
     self.successes = []
@@ -41,6 +44,10 @@ class PageTestResults(object):
     return self._all_summary_values
 
   @property
+  def current_page(self):
+    return self._current_page
+
+  @property
   def pages_that_succeeded(self):
     """Returns the set of pages that succeeded."""
     pages = set(value.page for value in self._all_page_specific_values)
@@ -61,10 +68,10 @@ class PageTestResults(object):
     return ''.join(traceback.format_exception(*err))
 
   def StartTest(self, page):
-    pass
+    self._current_page = page
 
-  def StopTest(self, page):
-    pass
+  def StopTest(self, page):  # pylint: disable=W0613
+    self._current_page = None
 
   def AddValue(self, value):
     self._ValidateValue(value)
