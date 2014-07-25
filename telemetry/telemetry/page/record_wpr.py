@@ -3,9 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import logging
-import os
 import sys
-import tempfile
 import time
 
 from telemetry import benchmark
@@ -119,7 +117,6 @@ class WprRecorder(object):
   def __init__(self, base_dir, target, extra_args=None):
     action_names_to_run = FindAllActionNames(base_dir)
     self._record_page_test = RecorderPageTest(action_names_to_run)
-    self._temp_target_wpr_file_path = tempfile.mkstemp()[1]
     self._options = self._CreateOptions()
 
     self._benchmark = _MaybeGetInstanceOfClass(target, base_dir,
@@ -169,8 +166,7 @@ class WprRecorder(object):
     return ps
 
   def Record(self):
-    self._page_set.wpr_archive_info.AddNewTemporaryRecording(
-        self._temp_target_wpr_file_path)
+    self._page_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
     return page_runner.Run(self._record_page_test, self._page_set,
                            test_expectations.TestExpectations(), self._options)
@@ -180,12 +176,7 @@ class WprRecorder(object):
       logging.warning('Some pages failed and/or were skipped. The recording '
                       'has not been updated for these pages.')
     results.PrintSummary()
-
-    if results.successes:
-      # Update the metadata for the pages which were recorded.
-      self._page_set.wpr_archive_info.AddRecordedPages(results.successes)
-    else:
-      os.remove(self._temp_target_wpr_file_path)
+    self._page_set.wpr_archive_info.AddRecordedPages(results.successes)
 
 
 def Main(base_dir):
