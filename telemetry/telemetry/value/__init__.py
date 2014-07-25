@@ -11,6 +11,7 @@ The core Value concept provides the basic functionality:
 - naming and units
 - importance tracking [whether a value will show up on a waterfall or output
   file by default]
+- other metadata, such as a description of what was measured
 - default conversion to scalar and string
 - merging properties
 
@@ -37,16 +38,26 @@ SUMMARY_RESULT_OUTPUT_CONTEXT = 'summary-result-output-context'
 class Value(object):
   """An abstract value produced by a telemetry page test.
   """
-  def __init__(self, page, name, units, important):
+  def __init__(self, page, name, units, important, description):
     """A generic Value object.
 
-    Note: page may be given as None to indicate that the value represents
-    results multiple pages.
+    Args:
+      page: A Page object, may be given as None to indicate that the value
+          represents results for multiple pages.
+      name: A value name string, may contain a dot. Values from the same test
+          with the same prefix before the dot may be considered to belong to
+          the same chart.
+      units: A units string.
+      important: Whether the value is "important". Causes the value to appear
+          by default in downstream UIs.
+      description: A string explaining in human-understandable terms what this
+          value represents.
     """
     self.page = page
     self.name = name
     self.units = units
     self.important = important
+    self.description = description
 
   def IsMergableWith(self, that):
     return (self.units == that.units and
@@ -168,6 +179,9 @@ class Value(object):
       'unit': self.units,
     }
 
+    if self.description:
+      d['description'] = self.description
+
     if self.page:
       d['page_id'] = self.page.id
 
@@ -177,7 +191,7 @@ class Value(object):
     full_dict = self.AsDict()
     base_dict_keys = set(self._AsDictImpl().keys())
 
-    # Exctracts only entries added by the subclass.
+    # Extracts only entries added by the subclass.
     return dict([(k, v) for (k, v) in full_dict.iteritems()
                   if k not in base_dict_keys])
 

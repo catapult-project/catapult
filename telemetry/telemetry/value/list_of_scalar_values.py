@@ -11,8 +11,10 @@ def _Mean(values):
 
 class ListOfScalarValues(value_module.Value):
   def __init__(self, page, name, units, values,
-               important=True, same_page_merge_policy=value_module.CONCATENATE):
-    super(ListOfScalarValues, self).__init__(page, name, units, important)
+               important=True, description=None,
+               same_page_merge_policy=value_module.CONCATENATE):
+    super(ListOfScalarValues, self).__init__(page, name, units, important,
+                                             description)
     assert len(values) > 0
     assert isinstance(values, list)
     for v in values:
@@ -29,12 +31,14 @@ class ListOfScalarValues(value_module.Value):
       merge_policy = 'CONCATENATE'
     else:
       merge_policy = 'PICK_FIRST'
-    return ('ListOfScalarValues(%s, %s, %s, %s, ' +
-            'important=%s, same_page_merge_policy=%s)') % (
+    return ('ListOfScalarValues(%s, %s, %s, %s, '
+            'important=%s, description=%s, same_page_merge_policy=%s)') % (
               page_name,
-              self.name, self.units,
+              self.name,
+              self.units,
               repr(self.values),
               self.important,
+              self.description,
               merge_policy)
 
   def GetBuildbotDataType(self, output_context):

@@ -58,27 +58,28 @@ class ValueTest(TestBase):
     page0 = self.pages[0]
     page1 = self.pages[0]
 
-    a = value.Value(page0, 'x', 'unit', important=False)
-    b = value.Value(page1, 'x', 'unit', important=False)
+    a = value.Value(page0, 'x', 'unit', important=False, description=None)
+    b = value.Value(page1, 'x', 'unit', important=False, description=None)
     self.assertTrue(b.IsMergableWith(a))
 
   def testIncompat(self):
     page0 = self.pages[0]
 
-    a = value.Value(page0, 'x', 'unit', important=False)
-    b = value.Value(page0, 'x', 'incompatUnit', important=False)
+    a = value.Value(page0, 'x', 'unit', important=False, description=None)
+    b = value.Value(page0, 'x', 'incompatUnit', important=False,
+                    description=None)
     self.assertFalse(b.IsMergableWith(a))
 
-    a = value.Value(page0, 'x', 'unit', important=False)
-    b = value.Value(page0, 'x', 'unit', important=True)
+    a = value.Value(page0, 'x', 'unit', important=False, description=None)
+    b = value.Value(page0, 'x', 'unit', important=True, description=None)
     self.assertFalse(b.IsMergableWith(a))
 
-    a = value.Value(page0, 'x', 'unit', important=False)
-    b = ValueForTest(page0, 'x', 'unit', important=True)
+    a = value.Value(page0, 'x', 'unit', important=False, description=None)
+    b = ValueForTest(page0, 'x', 'unit', important=True, description=None)
     self.assertFalse(b.IsMergableWith(a))
 
   def testAsDictBaseKeys(self):
-    v = ValueForAsDictTest(None, 'x', 'unit', important=True)
+    v = ValueForAsDictTest(None, 'x', 'unit', important=True, description=None)
     d = v.AsDict()
 
     self.assertEquals(d, {
@@ -90,14 +91,24 @@ class ValueTest(TestBase):
   def testAsDictWithPage(self):
     page0 = self.pages[0]
 
-    v = ValueForAsDictTest(page0, 'x', 'unit', important=False)
+    v = ValueForAsDictTest(page0, 'x', 'unit', important=False,
+                           description=None)
     d = v.AsDict()
 
     self.assertIn('page_id', d)
 
-
   def testAsDictWithoutPage(self):
-    v = ValueForAsDictTest(None, 'x', 'unit', important=False)
+    v = ValueForAsDictTest(None, 'x', 'unit', important=False, description=None)
     d = v.AsDict()
 
     self.assertNotIn('page_id', d)
+
+  def testAsDictWithDescription(self):
+    v = ValueForAsDictTest(None, 'x', 'unit', important=False,
+                           description='Some description.')
+    d = v.AsDict()
+    self.assertEqual('Some description.', d['description'])
+
+  def testAsDictWithoutDescription(self):
+    v = ValueForAsDictTest(None, 'x', 'unit', important=False, description=None)
+    self.assertNotIn('description', v.AsDict())

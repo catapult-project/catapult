@@ -6,14 +6,14 @@ from telemetry import value as value_module
 
 class SkipValue(value_module.Value):
 
-  def __init__(self, page, reason):
+  def __init__(self, page, reason, description=None):
     """A value representing a skipped page.
 
     Args:
       page: The skipped page object.
       reason: The string reason the page was skipped.
     """
-    super(SkipValue, self).__init__(page, 'skip', '', True)
+    super(SkipValue, self).__init__(page, 'skip', '', True, description)
     self._reason = reason
 
   def __repr__(self):
