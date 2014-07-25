@@ -82,29 +82,29 @@ tvcm.exportTo('tracing', function() {
 
       this.classList.add('timeline-track-view');
 
-      this.viewport = new Viewport(this);
+      this.viewport_ = new Viewport(this);
       this.viewportDisplayTransformAtMouseDown_ = null;
 
       this.rulerTrackContainer_ =
-          new tracing.tracks.DrawingContainer(this.viewport);
+          new tracing.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.rulerTrackContainer_);
       this.rulerTrackContainer_.invalidate();
 
-      this.rulerTrack_ = new tracing.tracks.RulerTrack(this.viewport);
+      this.rulerTrack_ = new tracing.tracks.RulerTrack(this.viewport_);
       this.rulerTrackContainer_.appendChild(this.rulerTrack_);
 
       this.modelTrackContainer_ =
-          new tracing.tracks.DrawingContainer(this.viewport);
+          new tracing.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.modelTrackContainer_);
       this.modelTrackContainer_.style.display = 'block';
       this.modelTrackContainer_.invalidate();
 
-      this.viewport.modelTrackContainer = this.modelTrackContainer_;
+      this.viewport_.modelTrackContainer = this.modelTrackContainer_;
 
-      this.modelTrack_ = new tracing.tracks.TraceModelTrack(this.viewport);
+      this.modelTrack_ = new tracing.tracks.TraceModelTrack(this.viewport_);
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
-      this.timingTool_ = new tracing.TimingTool(this.viewport,
+      this.timingTool_ = new tracing.TimingTool(this.viewport_,
                                                 this);
 
       this.initMouseModeSelector();
@@ -216,11 +216,11 @@ tvcm.exportTo('tracing', function() {
         binding.object.removeEventListener(binding.event, binding.boundFunc);
       }
       this.boundListeners_ = undefined;
-      this.viewport.detach();
+      this.viewport_.detach();
     },
 
     get viewport() {
-      return this.viewport;
+      return this.viewport_;
     },
 
     get model() {
@@ -237,7 +237,7 @@ tvcm.exportTo('tracing', function() {
 
       // Set up a reasonable viewport.
       if (modelInstanceChanged)
-        this.viewport.setWhenPossible(this.setInitialViewport_.bind(this));
+        this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
 
       tvcm.setPropertyAndDispatchChange(this, 'model', model);
     },
@@ -301,7 +301,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     get listenToKeys_() {
-      if (!this.viewport.isAttachedToDocumentOrInTestMode)
+      if (!this.viewport_.isAttachedToDocumentOrInTestMode)
         return false;
       if (this.activeElement instanceof tracing.FindControl)
         return false;
@@ -342,7 +342,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     onKeypress_: function(e) {
-      var vp = this.viewport;
+      var vp = this.viewport_;
       if (!this.listenToKeys_)
         return;
       if (document.activeElement.nodeName == 'INPUT')
@@ -480,11 +480,11 @@ tvcm.exportTo('tracing', function() {
     },
 
     queueSmoothPan_: function(viewDeltaX, deltaY) {
-      var deltaX = this.viewport.currentDisplayTransform.xViewVectorToWorld(
+      var deltaX = this.viewport_.currentDisplayTransform.xViewVectorToWorld(
           viewDeltaX);
       var animation = new tracing.TimelineDisplayTransformPanAnimation(
           deltaX, deltaY);
-      this.viewport.queueDisplayTransformAnimation(animation);
+      this.viewport_.queueDisplayTransformAnimation(animation);
     },
 
     /**
