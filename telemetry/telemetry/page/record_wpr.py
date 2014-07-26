@@ -114,7 +114,7 @@ def _MaybeGetInstanceOfClass(target, base_dir, cls):
 
 class WprRecorder(object):
 
-  def __init__(self, base_dir, target, extra_args=None):
+  def __init__(self, base_dir, target, args=None):
     action_names_to_run = FindAllActionNames(base_dir)
     self._record_page_test = RecorderPageTest(action_names_to_run)
     self._options = self._CreateOptions()
@@ -125,7 +125,7 @@ class WprRecorder(object):
       self._record_page_test.page_test = self._benchmark.test()
     self._parser = self._options.CreateParser(usage='%prog <PageSet|Benchmark>')
     self._AddCommandLineArgs()
-    self._ParseArgs(extra_args)
+    self._ParseArgs(args)
     self._ProcessCommandLineArgs()
     self._page_set = self._GetPageSet(base_dir, target)
 
@@ -145,11 +145,9 @@ class WprRecorder(object):
       self._benchmark.AddCommandLineArgs(self._parser)
       self._benchmark.SetArgumentDefaults(self._parser)
 
-  def _ParseArgs(self, extra_args=None):
-    args = sys.argv[1:]
-    if extra_args is not None:
-      args += extra_args
-    self._parser.parse_args(args)
+  def _ParseArgs(self, args=None):
+    args_to_parse = sys.argv[1:] if args is None else args
+    self._parser.parse_args(args_to_parse)
 
   def _ProcessCommandLineArgs(self):
     page_runner.ProcessCommandLineArgs(self._parser, self._options)

@@ -138,8 +138,9 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     self.assertEqual('ValidatePage', record_page_test.page_test.func_calls[2])
 
   def testWprRecorderWithPageSet(self):
+    flags = []
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir,
-                                          MockPageSet(url=self._url))
+                                          MockPageSet(url=self._url), flags)
     results = wpr_recorder.Record()
     self.assertEquals(1, len(results.successes))
     mock_page = results.successes.pop()
