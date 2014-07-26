@@ -8,7 +8,6 @@ import sys
 
 from telemetry.core import util
 from telemetry.page import page_measurement
-from telemetry.results import block_page_measurement_results
 from telemetry.results import buildbot_page_measurement_results
 from telemetry.results import csv_page_measurement_results
 from telemetry.results import gtest_test_results
@@ -17,7 +16,7 @@ from telemetry.results import page_measurement_results
 
 
 # Allowed output formats. The default is the first item in the list.
-_OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'block', 'csv', 'gtest', 'none')
+_OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'csv', 'gtest', 'none')
 
 
 def AddResultsOptions(parser):
@@ -67,11 +66,7 @@ def PrepareResults(test, options):
     return page_measurement_results.PageMeasurementResults(
         output_stream, trace_tag=options.output_trace_tag)
   elif options.output_format == 'csv':
-    return csv_page_measurement_results.CsvPageMeasurementResults(
-        output_stream)
-  elif options.output_format == 'block':
-    return block_page_measurement_results.BlockPageMeasurementResults(
-        output_stream)
+    return csv_page_measurement_results.CsvPageMeasurementResults(output_stream)
   elif options.output_format == 'buildbot':
     return buildbot_page_measurement_results.BuildbotPageMeasurementResults(
         output_stream, trace_tag=options.output_trace_tag)
