@@ -67,31 +67,12 @@ def GenerateJSToFile(f,
 
   f.write(js_warning_message)
   f.write('\n')
-  f.write("window.FLATTENED = {};\n")
-  f.write("window.FLATTENED_RAW_SCRIPTS = {};\n")
-
-  for module in load_sequence:
-    module.AppendTVCMJSControlCodeToFile(f)
+  f.write("window._TVCM_IS_COMPILED = true;\n")
 
   for module in load_sequence:
     module.AppendJSContentsToFile(f,
                                   use_include_tags_for_scripts,
                                   dir_for_include_tag_root)
-
-def GenerateDepsJS(load_sequence, project):
-  chunks = [js_warning_message, '\n']
-  loader = load_sequence[0].loader
-  for module in loader.loaded_modules.values():
-    module_type = module.GetTVCMDepsModuleType()
-    chunks.append("tvcm.setModuleInfo('%s', {relativeFileName: '%s', type: %s});\n" % (
-        module.name, module.resource.unix_style_relative_path, module_type))
-
-  for module in load_sequence:
-    for dependent_module in module.dependent_modules:
-      chunks.append("tvcm.addModuleDependency('%s','%s');\n" % (
-          module.name, dependent_module.name));
-
-  return "".join(chunks)
 
 def GenerateHTMLForCombinedTemplates(load_sequence):
   chunks = []

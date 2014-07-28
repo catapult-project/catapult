@@ -134,13 +134,6 @@ class Module(object):
     """Returns the tvcm.setModuleInfo type for this module"""
     raise NotImplementedError()
 
-  def AppendTVCMJSControlCodeToFile(self, f):
-    """Appends the JS to make tvcm.require happy in a generated context."""
-    for dependent_raw_script in self.dependent_raw_scripts:
-      f.write("window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
-        dependent_raw_script.resource.unix_style_relative_path)
-    f.write( "window.FLATTENED['%s'] = true;\n" % self.name)
-
   def AppendJSContentsToFile(self,
                              f,
                              use_include_tags_for_scripts,

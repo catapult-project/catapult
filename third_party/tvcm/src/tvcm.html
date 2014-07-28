@@ -157,7 +157,7 @@ this.tvcm = (function() {
    * Initialization which must be deferred until run-time.
    */
   function initialize() {
-    if (!window.FLATTENED) {
+    if (!window._TVCM_IS_COMPILED) {
       var ver = parseInt(
           window.navigator.appVersion.match(/Chrome\/(\d+)\./)[1], 10);
       if (ver < 36) {
