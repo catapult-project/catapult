@@ -128,9 +128,9 @@ class ParseTests(unittest.TestCase):
   def testInlineScriptWithoutStrictNote(self):
     parse_results = parse_html_deps.HTMLModuleParserResults()
     parse_results.has_decl = True
-    parse_results.scripts_inline.append("""
+    parse_results.inline_scripts.append(parse_html_deps.InlineScript("""
 console.log('Logging without strict mode is no fun.');
-""")
+""", []))
 
     file_contents = {}
     def DoIt():

@@ -18,10 +18,15 @@ class _Chunk(object):
     self.op = op
     self.data = data
 
+class InlineScript(object):
+  def __init__(self, contents, open_tags):
+    self.contents = contents
+    self.open_tags = open_tags
+
 class HTMLModuleParserResults(object):
   def __init__(self):
     self.scripts_external = []
-    self.scripts_inline = []
+    self.inline_scripts = []
     self.stylesheets = []
     self.imports = []
     self.has_decl = False
@@ -60,12 +65,16 @@ class HTMLModuleParserResults(object):
 
 _SELF_CLOSING_TAGS = ('link', 'p', 'meta')
 
+class _Tag(object):
+  def __init__(self, tag, attrs):
+    self.tag = tag
+    self.attrs = attrs
+
 class HTMLModuleParser(HTMLParser):
   def __init__(self):
     HTMLParser.__init__(self)
     self.current_results = None
-    self.current_script = ""
-    self.in_script = False
+    self.current_inline_script = None
     self.in_style = False
     self.open_tags = []
 
@@ -91,7 +100,7 @@ class HTMLModuleParser(HTMLParser):
       raise Exception('Must use <br/>')
 
     if tag not in _SELF_CLOSING_TAGS:
-      self.open_tags.append(tag)
+      self.open_tags.append(_Tag(tag, self.get_starttag_text()))
 
     if tag == 'link':
       is_stylesheet = False
@@ -122,7 +131,10 @@ class HTMLModuleParser(HTMLParser):
           self.current_results.AppendHTMLScriptSplicePoint(attr[1])
           had_src = True
       if had_src == False:
-        self.in_script = True
+        assert self.current_inline_script == None
+        self.current_inline_script = InlineScript(
+            '',
+            list(self.open_tags[:-1]))
 
     elif tag == 'style':
       self.in_style = True
@@ -149,16 +161,16 @@ class HTMLModuleParser(HTMLParser):
       if len(self.open_tags) == 0:
         raise Exception('got </%s> with no previous open tag' % tag)
 
-      if self.open_tags[-1] != tag:
+      if self.open_tags[-1].tag != tag:
         raise Exception('Expected </%s> but got </%s>' % (
-            self.open_tags[-1], tag))
+            self.open_tags[-1].tag, tag))
       self.open_tags.pop()
 
     if tag == 'script':
-      if self.in_script:
-        self.current_results.scripts_inline.append(self.current_script)
-        self.current_script = ""
-        self.in_script = False
+      if self.current_inline_script:
+        self.current_results.inline_scripts.append(
+            self.current_inline_script)
+        self.current_inline_script = None
 
     elif tag == 'style':
       if self.in_style:
@@ -169,8 +181,8 @@ class HTMLModuleParser(HTMLParser):
       self.current_results.AppendHTMLContent("</%s>" % tag)
 
   def handle_data(self, data):
-    if self.in_script:
-      self.current_script += data
+    if self.current_inline_script:
+      self.current_inline_script.contents += data
 
     elif self.in_style:
       result = re.match(r"\s*@import url\(([^\)]*)\)", data,

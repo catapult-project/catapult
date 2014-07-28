@@ -15,7 +15,7 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse("")
     self.assertEquals([], module.scripts_external)
-    self.assertEquals([], module.scripts_inline)
+    self.assertEquals([], module.inline_scripts)
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
 
@@ -23,7 +23,7 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(None)
     self.assertEquals([], module.scripts_external)
-    self.assertEquals([], module.scripts_inline)
+    self.assertEquals([], module.inline_scripts)
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
 
@@ -40,7 +40,7 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
     self.assertEquals(['polymer.min.js', 'foo.js'], module.scripts_external);
-    self.assertEquals([], module.scripts_inline)
+    self.assertEquals([], module.inline_scripts)
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
     self.assertTrue(module.has_decl)
@@ -81,7 +81,7 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
     self.assertEquals([], module.scripts_external);
-    self.assertEquals([], module.scripts_inline)
+    self.assertEquals([], module.inline_scripts)
     self.assertEquals([], module.stylesheets)
     self.assertEquals(['x-foo.html'], module.imports)
     self.assertTrue(module.has_decl)
@@ -100,15 +100,18 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
     self.assertEquals([], module.scripts_external);
-    self.assertEquals(1, len(module.scripts_inline))
+    self.assertEquals(1, len(module.inline_scripts))
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
     self.assertFalse(module.has_decl)
 
-    val = module.scripts_inline[0]
-    val = re.sub(r"\s+", '', val)
+    script0 = module.inline_scripts[0]
+    val = re.sub(r"\s+", '', script0.contents)
     inner_script = """tvcm.require("foo");tvcm.require('bar');"""
     self.assertEquals(inner_script, val)
+
+    self.assertEquals(1, len(script0.open_tags))
+    self.assertEquals('polymer-element', script0.open_tags[0].tag)
 
     assert 'tvcm.require("foo");' not in module.html_contents_without_links_and_script
 
@@ -129,7 +132,7 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
     self.assertEquals([], module.scripts_external);
-    self.assertEquals([], module.scripts_inline)
+    self.assertEquals([], module.inline_scripts)
     self.assertEquals(['frameworkstyles.css'], module.stylesheets)
     self.assertEquals([], module.imports)
     self.assertFalse(module.has_decl)

@@ -61,8 +61,8 @@ class HTMLModule(module.Module):
     super(HTMLModule, self).AppendJSContentsToFile(f,
                                                    use_include_tags_for_scripts,
                                                    dir_for_include_tag_root)
-    for inline_script_contents in self._parser_results.scripts_inline:
-      f.write(js_utils.EscapeJSIfNeeded(inline_script_contents))
+    for inline_script in self._parser_results.inline_scripts:
+      f.write(js_utils.EscapeJSIfNeeded(inline_script.contents))
       f.write("\n")
 
   def AppendHTMLContentsToFile(self, f, ctl):
@@ -120,8 +120,8 @@ def Parse(loader, module_name, module_dir_name, parser_results):
     res.dependent_module_names.append(resource.name)
 
   # Validate the inline scripts.
-  for inline_script_contents in parser_results.scripts_inline:
-    stripped_text = strip_js_comments.StripJSComments(inline_script_contents)
+  for inline_script in parser_results.inline_scripts:
+    stripped_text = strip_js_comments.StripJSComments(inline_script.contents)
     try:
       js_module.ValidateUsesStrictMode('_', stripped_text)
     except:
