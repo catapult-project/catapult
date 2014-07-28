@@ -64,14 +64,12 @@ class ModuleDependencyMetadata(object):
     self.dependent_module_names = []
     self.dependent_raw_script_relative_paths = []
     self.style_sheet_names = []
-    self.html_template_names = []
 
   def AppendMetdata(self, other):
     self.dependent_module_names += other.dependent_module_names
     self.dependent_raw_script_relative_paths += \
         other.dependent_raw_script_relative_paths
     self.style_sheet_names += other.style_sheet_names
-    self.html_template_names += other.html_template_names
 
 
 class HTMLGenerationController(object):
@@ -114,7 +112,6 @@ class Module(object):
     self.dependent_modules = []
     self.dependent_raw_scripts = []
     self.style_sheets = []
-    self.html_templates = []
 
     # Caches.
     self._all_dependent_modules_recursive = None
@@ -176,10 +173,6 @@ class Module(object):
       style_sheet = self.loader.LoadStyleSheet(name)
       self.style_sheets.append(style_sheet)
 
-    for name in metadata.html_template_names:
-      html_template = self.loader.LoadHTMLTemplate(name)
-      self.html_templates.append(html_template)
-
   @property
   def all_dependent_modules_recursive(self):
     if self._all_dependent_modules_recursive:
@@ -211,18 +204,6 @@ class Module(object):
     if self.name not in already_loaded_set:
       already_loaded_set.add(self.name)
       load_sequence.append(self)
-
-
-class HTMLTemplate(object):
-  """Represents an html template resource referenced by a module via the
-  tvcm.requireTemplate(xxx) directive."""
-  def __init__(self, name, filename, contents):
-    self.name = name
-    self.filename = filename
-    self.contents = contents
-
-  def __repr__(self):
-    return "HTMLTemplate(%s)" % self.name
 
 
 class RawScript(object):

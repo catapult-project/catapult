@@ -24,7 +24,6 @@ class ResourceLoader(object):
     self.loaded_modules = {}
     self.loaded_raw_scripts = {}
     self.loaded_style_sheets = {}
-    self.loaded_html_templates = {}
     self.loaded_images = {}
 
   @property
@@ -162,19 +161,6 @@ class ResourceLoader(object):
     style_sheet.load()
     self.loaded_style_sheets[name] = style_sheet
     return style_sheet
-
-  def LoadHTMLTemplate(self, name):
-    if name in self.loaded_html_templates:
-      return self.loaded_html_templates[name]
-
-    resource = self._FindResourceGivenNameAndSuffix(name, '.html', return_resource=True)
-    if not resource:
-      raise module.DepsException(
-          'Could not find a file for html template named %s' % name)
-
-    html_template = module.HTMLTemplate(name, resource.absolute_path, resource.contents)
-    self.loaded_html_templates[name] = html_template
-    return html_template
 
   def LoadImage(self, abs_path):
     if abs_path in self.loaded_images:

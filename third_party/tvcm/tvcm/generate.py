@@ -74,13 +74,6 @@ def GenerateJSToFile(f,
                                   use_include_tags_for_scripts,
                                   dir_for_include_tag_root)
 
-def GenerateHTMLForCombinedTemplates(load_sequence):
-  chunks = []
-  for module in load_sequence:
-    for html_template in module.html_templates:
-      chunks.append(html_template.contents)
-  return "\n".join(chunks)
-
 class ExtraScript(object):
   def __init__(self, script_id=None, text_content=None, content_type=None):
     if script_id != None:
@@ -123,8 +116,6 @@ def GenerateStandaloneHTMLToFile(output_file,
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>%s</title>
 """ % title)
-
-  output_file.write(GenerateHTMLForCombinedTemplates(load_sequence))
 
   loader = load_sequence[0].loader
 
