@@ -41,7 +41,7 @@ class LoopActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
 
-  @decorators.Disabled('android')
+  @decorators.Disabled('android', 'linux')
   def testLoopWaitForLoopTimeout(self):
     """Tests that wait_for_loop timeout_in_secondss if video does not loop."""
     action = loop.LoopAction(loop_count=2, selector='#video_1',
