@@ -119,7 +119,7 @@ def Parse(loader, module_name, module_dir_name, parser_results):
                                tag_for_err_msg='<link rel="import" href="%s">' % href)
     res.dependent_module_names.append(resource.name)
 
-  # Search the inline scripts for tvcm commands
+  # Validate the inline scripts.
   for inline_script_contents in parser_results.scripts_inline:
     stripped_text = strip_js_comments.StripJSComments(inline_script_contents)
     try:
