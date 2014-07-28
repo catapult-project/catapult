@@ -50,23 +50,6 @@ this.tvcm = (function() {
     return cur;
   };
 
-  var didLoadModules = false;
-  var moduleDependencies = {};
-  var moduleInfoByModuleName = {};
-
-  function addModuleDependency(moduleName, dependentModuleName) {
-    if (!moduleDependencies[moduleName])
-      moduleDependencies[moduleName] = [];
-
-    var dependentModules = moduleDependencies[moduleName];
-    var found = false;
-    for (var i = 0; i < dependentModules.length; i++)
-      if (dependentModules[i] == dependentModuleName)
-        found = true;
-      if (!found)
-        dependentModules.push(dependentModuleName);
-  }
-
   var panicElement = undefined;
   var rawPanicMessages = [];
   function showPanicElementIfNeeded() {
