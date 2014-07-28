@@ -38,6 +38,7 @@ class ModuleTestSuite(unittest.TestSuite):
     super(ModuleTestSuite, self).__init__()
     self._project = project
     self._bc = None
+    self._bc_startup_exception_string = None
 
   @property
   def __class__(self):
@@ -61,19 +62,26 @@ class ModuleTestSuite(unittest.TestSuite):
   def bc(self):
     return self._bc
 
+  @property
+  def bc_startup_exception_string(self):
+    return self._bc_startup_exception_string
+
   def setUp(self):
     try:
       self._bc = browser_controller.BrowserController(self._project)
       _NavigateToTestCaseRunner(self._bc)
     except:
+      import traceback
+      traceback.print_exc()
+      self._bc_startup_exception_string = traceback.format_exc()
       self._bc.Close()
       self._bc = None
-      return
 
     global _currently_active_module_test_suite
     assert _currently_active_module_test_suite == None
     _currently_active_module_test_suite = self
-    self._bc.stdout_enabled = True
+    if self._bc:
+      self._bc.stdout_enabled = True
 
   def tearDown(self):
     if self._bc:
@@ -148,6 +156,9 @@ class ModuleTestCase(unittest.TestCase):
     mts = _currently_active_module_test_suite
     assert mts, 'Something is wrong: ModuleTestCase can only be run inside a ModuleTestSuite.run()'
 
+    if not mts.bc:
+      raise Exception('Test cannot run because browser did not start.\n\nOriginal %s\n\n' % \
+                      mts.bc_startup_exception_string)
     bc = mts.bc
     res = bc.EvaluateThennableAndWait(
       'runTestNamed(%s)' % json.dumps(self.fully_qualified_test_name))
