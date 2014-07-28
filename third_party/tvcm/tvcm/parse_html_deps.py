@@ -6,6 +6,7 @@ import re
 from HTMLParser import HTMLParser
 
 from tvcm import module
+from tvcm import strip_js_comments
 
 
 CHUNK_TEXT_OP = 'text-op'
@@ -22,6 +23,14 @@ class InlineScript(object):
   def __init__(self, contents, open_tags):
     self.contents = contents
     self.open_tags = open_tags
+    self._stripped_contents = None
+
+  @property
+  def stripped_contents(self):
+    if not self._stripped_contents:
+      self._stripped_contents = strip_js_comments.StripJSComments(
+          self.contents)
+    return self._stripped_contents
 
 class HTMLModuleParserResults(object):
   def __init__(self):
@@ -70,6 +79,10 @@ class _Tag(object):
     self.tag = tag
     self.attrs = attrs
 
+  def __repr__(self):
+    attr_string = ' '.join(['%s="%s"' % (x[0], x[1]) for x in self.attrs])
+    return '<%s %s>' % (self.tag, attr_string)
+
 class HTMLModuleParser(HTMLParser):
   def __init__(self):
     HTMLParser.__init__(self)
@@ -100,7 +113,7 @@ class HTMLModuleParser(HTMLParser):
       raise Exception('Must use <br/>')
 
     if tag not in _SELF_CLOSING_TAGS:
-      self.open_tags.append(_Tag(tag, self.get_starttag_text()))
+      self.open_tags.append(_Tag(tag, attrs))
 
     if tag == 'link':
       is_stylesheet = False

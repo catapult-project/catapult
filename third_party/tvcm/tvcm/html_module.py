@@ -8,7 +8,6 @@ import re
 from tvcm import module
 from tvcm import js_module
 from tvcm import js_utils
-from tvcm import strip_js_comments
 from tvcm import parse_html_deps
 
 def IsHTMLResourceTheModuleGivenConflictingResourceNames(
@@ -62,7 +61,14 @@ class HTMLModule(module.Module):
                                                    use_include_tags_for_scripts,
                                                    dir_for_include_tag_root)
     for inline_script in self._parser_results.inline_scripts:
-      f.write(js_utils.EscapeJSIfNeeded(inline_script.contents))
+      if not HasPolymerCall(inline_script.stripped_contents):
+        js = inline_script.contents
+      else:
+        js = GetInlineScriptContentWithPolymerizingApplied(inline_script)
+
+      js = js_utils.EscapeJSIfNeeded(js)
+
+      f.write(js)
       f.write("\n")
 
   def AppendHTMLContentsToFile(self, f, ctl):
@@ -74,6 +80,52 @@ class HTMLModule(module.Module):
     return _HRefToResource(self.loader, self.name, self._module_dir_name,
                            href, tag_for_err_msg)
 
+def GetInlineScriptContentWithPolymerizingApplied(inline_script):
+  polymer_element_name = GetPolymerElementNameFromOpenTags(
+      inline_script.open_tags)
+  if polymer_element_name == None:
+    raise module.DepsException(
+        'Tagless Polymer() call must be made inside a <polymer-element> tag')
+
+  return UpdatePolymerCallsGivenElementName(
+    inline_script.stripped_contents, polymer_element_name)
+
+def GetPolymerElementNameFromOpenTags(open_tags):
+  found_tag = None
+  for tag in reversed(open_tags):
+    if tag.tag == 'polymer-element':
+      found_tag = tag
+      break
+
+  if not found_tag:
+    return None
+
+  for attr in found_tag.attrs:
+    if attr[0] == 'name':
+      return attr[1]
+
+  return None
+
+_POLYMER_RE_1 = 'Polymer(\s*?)\((\s*?)\{'
+_POLYMER_RE_2 = 'Polymer(\s*?)\((\s*?)\)'
+
+def HasPolymerCall(js):
+  if re.search(_POLYMER_RE_1, js) != None:
+    return True
+  if re.search(_POLYMER_RE_2, js) != None:
+    return True
+  return False
+
+def UpdatePolymerCallsGivenElementName(js, polymer_element_name):
+  if re.search(_POLYMER_RE_1, js) != None:
+    return re.sub(_POLYMER_RE_1,
+                  'Polymer\g<1>(\g<2>\'%s\', {' % polymer_element_name,
+                  js, 0, re.DOTALL)
+  if re.search(_POLYMER_RE_2, js) != None:
+    return re.sub(_POLYMER_RE_2,
+                  'Polymer\g<1>(\g<2>\'%s\')' % polymer_element_name,
+                  js, 0, re.DOTALL)
+  assert False, 'This should never be reached'
 
 def _HRefToResource(loader, module_name, module_dir_name, href, tag_for_err_msg):
   if href[0] == '/':
@@ -121,7 +173,7 @@ def Parse(loader, module_name, module_dir_name, parser_results):
 
   # Validate the inline scripts.
   for inline_script in parser_results.inline_scripts:
-    stripped_text = strip_js_comments.StripJSComments(inline_script.contents)
+    stripped_text = inline_script.stripped_contents
     try:
       js_module.ValidateUsesStrictMode('_', stripped_text)
     except:

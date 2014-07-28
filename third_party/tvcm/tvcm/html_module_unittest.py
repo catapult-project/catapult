@@ -4,6 +4,7 @@
 
 import os
 import unittest
+import StringIO
 
 from tvcm import fake_fs
 from tvcm import generate
@@ -277,3 +278,73 @@ console.log('/raw/raw_script.js was written');
       self.assertRaises(
           Exception,
           lambda: loader.LoadModule(module_name='a.b.my_component'))
+
+  def testPolymerConversion(self):
+    file_contents = {}
+    file_contents['/tmp/a/b/my_component.html'] = """
+<!DOCTYPE html>
+<link rel="import" href="/tvcm/polymer.html">
+<polymer-element name="my-component">
+  <template>
+  </template>
+  <script>
+    'use strict';
+    Polymer ( {
+    });
+  </script>
+</polymer-element>
+"""
+    file_contents['/tvcm/tvcm/polymer.html'] = """<!DOCTYPE html>
+"""
+    with fake_fs.FakeFS(file_contents):
+      project = project_module.Project(['/tvcm/', '/tmp/'],
+                                       include_tvcm_paths=False)
+      loader = resource_loader.ResourceLoader(project)
+      my_component = loader.LoadModule(module_name='a.b.my_component')
+
+      f = StringIO.StringIO()
+      my_component.AppendJSContentsToFile(
+          f,
+          use_include_tags_for_scripts=False,
+          dir_for_include_tag_root=None)
+      js = f.getvalue().rstrip()
+      expected_js = """
+    'use strict';
+    Polymer ( 'my-component', {
+    });
+""".rstrip()
+      self.assertEquals(expected_js, js)
+
+  def testPolymerConversion2(self):
+    file_contents = {}
+    file_contents['/tmp/a/b/my_component.html'] = """
+<!DOCTYPE html>
+<link rel="import" href="/tvcm/polymer.html">
+<polymer-element name="my-component">
+  <template>
+  </template>
+  <script>
+    'use strict';
+    Polymer ( );
+  </script>
+</polymer-element>
+"""
+    file_contents['/tvcm/tvcm/polymer.html'] = """<!DOCTYPE html>
+"""
+    with fake_fs.FakeFS(file_contents):
+      project = project_module.Project(['/tvcm/', '/tmp/'],
+                                       include_tvcm_paths=False)
+      loader = resource_loader.ResourceLoader(project)
+      my_component = loader.LoadModule(module_name='a.b.my_component')
+
+      f = StringIO.StringIO()
+      my_component.AppendJSContentsToFile(
+          f,
+          use_include_tags_for_scripts=False,
+          dir_for_include_tag_root=None)
+      js = f.getvalue().rstrip()
+      expected_js = """
+    'use strict';
+    Polymer ( 'my-component');
+""".rstrip()
+      self.assertEquals(expected_js, js)
