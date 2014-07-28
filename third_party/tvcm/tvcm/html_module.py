@@ -35,6 +35,12 @@ class HTMLModule(module.Module):
 
     reachable_names = set([m.name
                            for m in self.all_dependent_modules_recursive])
+    if 'polymer-element' in self.contents or \
+       'Polymer(' in self.contents:
+      if 'tvcm.polymer' not in reachable_names:
+        raise Exception('%s:7:Does not have a dependency on tvcm.polymer' % \
+                        os.path.relpath(self.resource.absolute_path))
+
     if 'tvcm.exportTo' in self.contents:
       if 'tvcm' not in reachable_names:
         raise Exception('%s:7:Does not have a dependency on tvcm' % os.path.relpath(self.resource.absolute_path))
