@@ -70,7 +70,6 @@
       'third_party/tvcm/src/tvcm/iteration_helpers.html',
       'third_party/tvcm/src/tvcm/key_event_manager.html',
       'third_party/tvcm/src/tvcm/measuring_stick.html',
-      'third_party/tvcm/src/tvcm/polymer.html',
       'third_party/tvcm/src/tvcm/promise.html',
       'third_party/tvcm/src/tvcm/properties.html',
       'third_party/tvcm/src/tvcm/quad.html',

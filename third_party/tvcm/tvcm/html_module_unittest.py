@@ -205,12 +205,9 @@ class HTMLModuleTests(unittest.TestCase):
 """
     file_contents['/tvcm/tvcm.html'] = """<!DOCTYPE html>
 """
-    file_contents['/tvcm/tvcm/polymer.html'] = """<!DOCTYPE html>
-"""
     file_contents['/components/widget.html'] = """
 <!DOCTYPE html>
 <link rel="import" href="/tvcm.html">
-<link rel="import" href="/tvcm/polymer.html">
 <widget name="widget.html"></widget>
 <script>
 'use strict';
@@ -223,6 +220,11 @@ console.log('inline script for widget.html');
     file_contents['/raw/raw_script.js'] = """
 console.log('/raw/raw_script.js was written');
 """
+    file_contents['/raw/platform.min.js'] = """
+"""
+    file_contents['/raw/polymer.min.js'] = """
+"""
+
     with fake_fs.FakeFS(file_contents):
       project = project_module.Project(['/tvcm/', '/tmp/', '/components/', '/raw/'],
                                        include_tvcm_paths=False)
@@ -232,7 +234,7 @@ console.log('/raw/raw_script.js was written');
 
       # Check load sequence names.
       load_sequence_names = [x.name for x in load_sequence]
-      self.assertEquals(['tvcm', 'tvcm.polymer',
+      self.assertEquals(['tvcm',
                          'widget',
                          'a.b.start'], load_sequence_names)
 
@@ -256,34 +258,10 @@ console.log('/raw/raw_script.js was written');
       assert 'inline script for widget.html' not in html
       assert 'common.css' in html
 
-
-  def testPolymerReferenceWithoutImportRaises(self):
-    file_contents = {}
-    file_contents['/tmp/a/b/my_component.html'] = """
-<!DOCTYPE html>
-<polymer-element name="my-component">
-  <script>
-    'use strict';
-    Polymer({
-    });
-  </script>
-</polymer-element>
-"""
-    file_contents['/tvcm/tvcm/polymer.html'] = """<!DOCTYPE html>
-"""
-    with fake_fs.FakeFS(file_contents):
-      project = project_module.Project(['/tvcm/', '/tmp/'],
-                                       include_tvcm_paths=True)
-      loader = resource_loader.ResourceLoader(project)
-      self.assertRaises(
-          Exception,
-          lambda: loader.LoadModule(module_name='a.b.my_component'))
-
   def testPolymerConversion(self):
     file_contents = {}
     file_contents['/tmp/a/b/my_component.html'] = """
 <!DOCTYPE html>
-<link rel="import" href="/tvcm/polymer.html">
 <polymer-element name="my-component">
   <template>
   </template>
@@ -293,8 +271,6 @@ console.log('/raw/raw_script.js was written');
     });
   </script>
 </polymer-element>
-"""
-    file_contents['/tvcm/tvcm/polymer.html'] = """<!DOCTYPE html>
 """
     with fake_fs.FakeFS(file_contents):
       project = project_module.Project(['/tvcm/', '/tmp/'],
@@ -319,7 +295,6 @@ console.log('/raw/raw_script.js was written');
     file_contents = {}
     file_contents['/tmp/a/b/my_component.html'] = """
 <!DOCTYPE html>
-<link rel="import" href="/tvcm/polymer.html">
 <polymer-element name="my-component">
   <template>
   </template>
@@ -328,8 +303,6 @@ console.log('/raw/raw_script.js was written');
     Polymer ( );
   </script>
 </polymer-element>
-"""
-    file_contents['/tvcm/tvcm/polymer.html'] = """<!DOCTYPE html>
 """
     with fake_fs.FakeFS(file_contents):
       project = project_module.Project(['/tvcm/', '/tmp/'],

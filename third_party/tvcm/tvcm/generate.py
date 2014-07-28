@@ -67,6 +67,16 @@ def GenerateJSToFile(f,
 
   f.write(js_warning_message)
   f.write('\n')
+
+  loader = load_sequence[0].loader
+
+  platform_script = loader.LoadRawScript('platform.min.js')
+  f.write(platform_script.contents)
+
+  polymer_script = loader.LoadRawScript('polymer.min.js')
+  f.write(polymer_script.contents)
+
+  f.write('\n')
   f.write("window._TVCM_IS_COMPILED = true;\n")
 
   for module in load_sequence:

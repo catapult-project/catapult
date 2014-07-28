@@ -67,17 +67,10 @@ class ViewerDataScript(generate.ExtraScript):
 
 def WriteHTMLForTracesToFile(trace_filenames, output_file):
   project = trace_viewer_project.TraceViewerProject()
-  load_sequence = project.CalcLoadSequenceForModuleFilenames(
-      ['tracing/standalone_timeline_view.html',
-       'about_tracing/features.html'])
+  load_sequence = project.CalcLoadSequenceForModuleNames(
+      ['build.trace2html'])
 
-  with open(os.path.join(os.path.dirname(__file__),
-                         'trace2html.js'), 'r') as f:
-    bootstrap_js = f.read()
-  bootstrap_script = generate.ExtraScript(text_content=bootstrap_js)
-
-  scripts = [bootstrap_script]
-  scripts += [ViewerDataScript(x) for x in trace_filenames]
+  scripts = [ViewerDataScript(x) for x in trace_filenames]
 
   title = "Trace from %s" % ','.join(trace_filenames)
   generate.GenerateStandaloneHTMLToFile(
