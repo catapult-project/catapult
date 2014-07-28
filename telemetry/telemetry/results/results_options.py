@@ -9,10 +9,11 @@ import sys
 from telemetry.core import util
 from telemetry.page import page_measurement
 from telemetry.results import buildbot_page_measurement_results
-from telemetry.results import csv_page_measurement_results
+from telemetry.results import csv_output_formatter
 from telemetry.results import gtest_test_results
 from telemetry.results import html_page_measurement_results
 from telemetry.results import page_measurement_results
+from telemetry.results import page_test_results
 
 
 # Allowed output formats. The default is the first item in the list.
@@ -62,11 +63,13 @@ def PrepareResults(test, options):
   if not hasattr(options, 'output_trace_tag'):
     options.output_trace_tag = ''
 
+  output_formatters = []
   if options.output_format == 'none':
     return page_measurement_results.PageMeasurementResults(
         output_stream, trace_tag=options.output_trace_tag)
   elif options.output_format == 'csv':
-    return csv_page_measurement_results.CsvPageMeasurementResults(output_stream)
+    output_formatters.append(
+        csv_output_formatter.CsvOutputFormatter(output_stream))
   elif options.output_format == 'buildbot':
     return buildbot_page_measurement_results.BuildbotPageMeasurementResults(
         output_stream, trace_tag=options.output_trace_tag)
@@ -77,6 +80,10 @@ def PrepareResults(test, options):
         output_stream, test.__class__.__name__, options.reset_results,
         options.upload_results, options.browser_type,
         options.results_label, trace_tag=options.output_trace_tag)
+
+  if len(output_formatters) > 0:
+    return page_test_results.PageTestResults(
+        output_formatters=output_formatters)
   else:
     # Should never be reached. The parser enforces the choices.
     raise Exception('Invalid --output-format "%s". Valid choices are: %s'

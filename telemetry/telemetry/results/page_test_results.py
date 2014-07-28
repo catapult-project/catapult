@@ -11,9 +11,22 @@ from telemetry import value as value_module
 from telemetry.value import failure
 
 class PageTestResults(object):
-  def __init__(self, output_stream=None, trace_tag=''):
+  def __init__(self, output_stream=None, output_formatters=None, trace_tag=''):
+    """
+    Args:
+      output_stream: The output stream to use to write test results.
+      output_formatters: A list of output formatters. The output
+          formatters are typically used to format the test results, such
+          as CsvOutputFormatter, which output the test results as CSV.
+      trace_tag: A string to append to the buildbot trace
+      name. Currently only used for buildbot.
+    """
+    # TODO(chrishenry): Figure out if trace_tag is still necessary.
+
     super(PageTestResults, self).__init__()
     self._output_stream = output_stream
+    self._output_formatters = (
+        output_formatters if output_formatters is not None else [])
     self._trace_tag = trace_tag
     self._current_page = None
 
@@ -97,6 +110,9 @@ class PageTestResults(object):
     self.successes.append(page)
 
   def PrintSummary(self):
+    for output_formatter in self._output_formatters:
+      output_formatter.Format(self)
+
     if self.failures:
       logging.error('Failed pages:\n%s', '\n'.join(
           p.display_name for p in self.pages_that_had_failures))

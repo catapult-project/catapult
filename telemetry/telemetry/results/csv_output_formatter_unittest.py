@@ -6,7 +6,8 @@ import csv
 import os
 import unittest
 
-from telemetry.results import csv_page_measurement_results
+from telemetry.results import csv_output_formatter
+from telemetry.results import page_test_results
 from telemetry.page import page_set
 from telemetry.value import histogram
 from telemetry.value import scalar
@@ -18,18 +19,12 @@ def _MakePageSet():
   ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
   return ps
 
-class NonPrintingCsvPageMeasurementResults(
-    csv_page_measurement_results.CsvPageMeasurementResults):
-  def __init__(self, *args):
-    super(NonPrintingCsvPageMeasurementResults, self).__init__(*args)
 
-  def _PrintPerfResult(self, *args):
-    pass
-
-class CsvPageMeasurementResultsTest(unittest.TestCase):
+class CsvOutputFormatterTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
     self._page_set = _MakePageSet()
+    self._formatter = csv_output_formatter.CsvOutputFormatter(self._output)
 
   @property
   def lines(self):
@@ -47,7 +42,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     return rows[1:]
 
   def test_with_no_results_on_second_run(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output)
+    results = page_test_results.PageTestResults()
     results.StartTest(self._page_set[0])
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.StopTest(self._page_set[0])
@@ -55,7 +50,8 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     results.StartTest(self._page_set[1])
     results.StopTest(self._page_set[1])
 
-    results.PrintSummary()
+    self._formatter.Format(results)
+
     self.assertEqual(['page_name', 'foo (seconds)'], self.output_header_row)
     # TODO(chrishenry): Is this really the right behavior? Should this
     # not output a second row with '-' as its results?
@@ -63,7 +59,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     self.assertEqual(expected, self.output_data_rows)
 
   def test_fewer_results_on_second_run(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output)
+    results = page_test_results.PageTestResults()
     results.StartTest(self._page_set[0])
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'bar', 'seconds', 4))
@@ -73,7 +69,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 5))
     results.StopTest(self._page_set[1])
 
-    results.PrintSummary()
+    self._formatter.Format(results)
     self.assertEqual(['page_name', 'bar (seconds)', 'foo (seconds)'],
                      self.output_header_row)
     expected = [[self._page_set[0].url, '4.0', '3.0'],
@@ -81,7 +77,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     self.assertEqual(expected, self.output_data_rows)
 
   def test_with_output_at_print_summary_time(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output)
+    results = page_test_results.PageTestResults()
     results.StartTest(self._page_set[0])
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.StopTest(self._page_set[0])
@@ -90,7 +86,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 4))
     results.StopTest(self._page_set[1])
 
-    results.PrintSummary()
+    self._formatter.Format(results)
 
     self.assertEqual(
       self.output_header_row,
@@ -101,7 +97,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     self.assertEqual(expected, self.output_data_rows)
 
   def test_histogram(self):
-    results = NonPrintingCsvPageMeasurementResults(self._output)
+    results = page_test_results.PageTestResults()
     results.StartTest(self._page_set[0])
     results.AddValue(histogram.HistogramValue(
         self._page_set[0], 'a', '',
@@ -114,7 +110,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
         raw_value_json='{"buckets": [{"low": 2, "high": 3, "count": 1}]}'))
     results.StopTest(self._page_set[1])
 
-    results.PrintSummary()
+    self._formatter.Format(results)
 
     self.assertEqual(
         self.output_header_row,
