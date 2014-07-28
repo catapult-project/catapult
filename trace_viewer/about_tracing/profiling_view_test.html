@@ -53,7 +53,7 @@ tvcm.unittest.testSuite(function() {
     view.style.border = '1px solid black';
     this.addHTMLOutput(view);
 
-    return new Promise(function(resolver) {
+    return new Promise(function(resolve, reject) {
       var recordingPromise = view.beginRecording();
       function pressRecord() {
         recordingPromise.selectionDlg.clickRecordButton();
@@ -65,10 +65,10 @@ tvcm.unittest.testSuite(function() {
       setTimeout(pressRecord, 60);
       recordingPromise.then(
           function() {
-            resolver.resolve();
+            resolve();
           },
           function() {
-            resolver.reject();
+            reject();
           });
     });
   });
@@ -94,7 +94,7 @@ tvcm.unittest.testSuite(function() {
     view.style.border = '1px solid black';
     this.addHTMLOutput(view);
 
-    return new Promise(function(resolver) {
+    return new Promise(function(resolve, reject) {
       var buttons = view.querySelector('x-timeline-view-buttons');
       assertEquals(buttons.querySelector('#monitor-checkbox').checked, false);
 
@@ -122,8 +122,8 @@ tvcm.unittest.testSuite(function() {
       setTimeout(beginMonitoring, 60);
 
       monitoringPromise.then(
-          resolver.resolve.bind(resolver),
-          resolver.reject.bind(resolver));
+          resolve,
+          reject);
     });
   });
 });

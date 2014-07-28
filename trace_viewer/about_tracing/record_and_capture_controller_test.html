@@ -20,7 +20,7 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
   ];
 
   test('fullRecording', function() {
-    return new Promise(function(r) {
+    return new Promise(function(resolve, reject) {
       var mock = new about_tracing.MockTracingControllerClient();
       mock.expectRequest('endRecording', function() {
         return '';
@@ -52,16 +52,16 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
             mock.assertAllRequestsHandled();
             var testDataString = JSON.stringify(testData);
             assertEquals(testDataString, data);
-            r.resolve();
+            resolve();
           },
           function(error) {
-            r.reject('This should never be reached');
+            reject('This should never be reached');
           });
     });
   });
 
   test('monitoring', function() {
-    return new Promise(function(r) {
+    return new Promise(function(resolve, reject) {
       var mock = new about_tracing.MockTracingControllerClient();
 
       mock.expectRequest('beginMonitoring', function(monitoringOptions) {
@@ -77,7 +77,7 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
                 assertEquals(testDataString, data);
               },
               function(error) {
-                r.reject();
+                reject();
               });
         }, 10);
         return '';
@@ -89,10 +89,10 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
           endPromise.then(
               function(data) {
                 mock.assertAllRequestsHandled();
-                r.resolve();
+                resolve();
               },
               function(error) {
-                r.reject();
+                reject();
               });
         }, 10);
         return JSON.stringify(testData);

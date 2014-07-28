@@ -75,8 +75,11 @@ tvcm.exportTo('tvcm.unittest', function() {
       if (this.pendingTestCases_.length)
         throw new Error('Tests still running!');
 
-      this.runCompletedPromise = new tvcm.Promise(function(resolver) {
-        this.runCompletedResolver_ = resolver;
+      this.runCompletedPromise = new Promise(function(resolve, reject) {
+        this.runCompletedResolver_ = {
+          resolve: resolve,
+          reject: reject
+        };
       }.bind(this));
 
       this.pendingTestCases_ = this.testCases_.slice(0);
@@ -158,24 +161,24 @@ tvcm.exportTo('tvcm.unittest', function() {
     },
 
     runCurrentTestCase_: function() {
-      return new Promise(function(runTestCaseResolver) {
+      return new Promise(function(resolve, reject) {
         try {
           var maybePromise = this.currentTestCase_.run();
         } catch (error) {
-          runTestCaseResolver.reject(error);
+          reject(error);
           return;
         }
 
         if (maybePromise !== undefined && maybePromise.then) {
           maybePromise.then(
               function(result) {
-                runTestCaseResolver.fulfill(result);
+                resolve(result);
               },
               function(error) {
-                runTestCaseResolver.reject(error);
+                reject(error);
               });
         } else {
-          runTestCaseResolver.fulfill(maybePromise);
+          resolve(maybePromise);
         }
       }.bind(this));
     },

@@ -55,8 +55,11 @@ found in the LICENSE file.
       var testCaseNameToRun = p.testCaseName;
 
       var runTestResolver;
-      var runTestPromise = new Promise(function(resolver) {
-        runTestResolver = resolver;
+      var runTestPromise = new Promise(function(resolve, reject) {
+        runTestResolver = {
+          resolve: resolve,
+          reject: reject
+        };
       });
 
       var loader = new tvcm.unittest.SuiteLoader([suiteNameToLoad]);

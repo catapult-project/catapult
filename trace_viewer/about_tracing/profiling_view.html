@@ -11,7 +11,6 @@ found in the LICENSE file.
 <link rel="import" href="/about_tracing/features.html">
 <link rel="import" href="/tracing/timeline_view.html">
 <link rel="import" href="/tvcm/key_event_manager.html">
-<link rel="import" href="/tvcm/promise.html">
 <link rel="import" href="/tvcm/ui.html">
 <link rel="import" href="/tvcm/ui/info_bar.html">
 <link rel="import" href="/tvcm/ui/overlay.html">
@@ -62,14 +61,14 @@ x-profiling-view > x-timeline-view {
  */
 tvcm.exportTo('about_tracing', function() {
   function readFile(file) {
-    return new Promise(function(resolver) {
+    return new Promise(function(resolve, reject) {
       var reader = new FileReader();
       var filename = file.name;
       reader.onload = function(data) {
-        resolver.resolve(data.target.result);
+        resolve(data.target.result);
       };
       reader.onerror = function(err) {
-        resolver.reject(err);
+        reject(err);
       }
 
       var is_binary = /[.]gz$/.test(filename) || /[.]zip$/.test(filename);
@@ -273,9 +272,8 @@ tvcm.exportTo('about_tracing', function() {
       var resultPromise =
           about_tracing.getMonitoringStatus(this.tracingControllerClient_);
       resultPromise.then(
-          function(isMonitoring, categoryFilter, useSystemTracing,
-                   useContinuousTracing, useSampling) {
-            this.onMonitoringStateChanged_(isMonitoring);
+          function(status) {
+            this.onMonitoringStateChanged_(status.isMonitoring);
           }.bind(this),
           function(err) {
             if (err instanceof about_tracing.UserCancelledError)

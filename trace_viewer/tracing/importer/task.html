@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tvcm/raf.html">
-<link rel="import" href="/tvcm/promise.html">
 
 <script>
 'use strict';
@@ -105,13 +104,13 @@ tvcm.exportTo('tracing.importer', function() {
    * a promise for its completion.
    */
   Task.RunWhenIdle = function(task) {
-    return new tvcm.Promise(function(resolver) {
+    return new Promise(function(resolve, reject) {
       var curTask = task;
       function runAnother() {
         try {
           curTask = curTask.run();
         } catch (e) {
-          resolver.reject(e);
+          reject(e);
           console.error(e.stack);
           return;
         }
@@ -121,7 +120,7 @@ tvcm.exportTo('tracing.importer', function() {
           return;
         }
 
-        resolver.resolve();
+        resolve();
       }
       tvcm.requestIdleCallback(runAnother);
     });

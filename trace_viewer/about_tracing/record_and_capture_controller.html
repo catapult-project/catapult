@@ -13,8 +13,11 @@ found in the LICENSE file.
 tvcm.exportTo('about_tracing', function() {
   function beginMonitoring(tracingControllerClient) {
     var finalPromiseResolver;
-    var finalPromise = new Promise(function(resolver) {
-      finalPromiseResolver = resolver;
+    var finalPromise = new Promise(function(resolve, reject) {
+      finalPromiseResolver = {
+        resolve: resolve,
+        reject: reject
+      };
     });
 
     // TODO(haraken): Implement a configure dialog to set these options.
@@ -41,73 +44,33 @@ tvcm.exportTo('about_tracing', function() {
   }
 
   function endMonitoring(tracingControllerClient) {
-    var finalPromiseResolver;
-    var finalPromise = new Promise(function(resolver) {
-      finalPromiseResolver = resolver;
-    });
-
     var endMonitoringPromise = tracingControllerClient.endMonitoring();
-    endMonitoringPromise.then(
+    return endMonitoringPromise.then(
         function() {
-          finalPromiseResolver.resolve();
         },
         function(err) {
-          finalPromiseResolver.reject(err);
         });
-
-    return finalPromise;
   }
 
   function captureMonitoring(tracingControllerClient) {
-    var finalPromiseResolver;
-    var finalPromise = new Promise(function(resolver) {
-      finalPromiseResolver = resolver;
-    });
-
     var captureMonitoringPromise =
         tracingControllerClient.captureMonitoring();
-    captureMonitoringPromise.then(
-        captureMonitoringResolved,
-        captureMonitoringRejected);
-
-    function captureMonitoringResolved(tracedData) {
-      finalPromiseResolver.resolve(tracedData);
-    }
-
-    function captureMonitoringRejected(err) {
-      finalPromiseResolver.reject(err);
-    }
-
-    return finalPromise;
+    return captureMonitoringPromise;
   }
 
   function getMonitoringStatus(tracingControllerClient) {
-    var finalPromiseResolver;
-    var finalPromise = new Promise(function(resolver) {
-      finalPromiseResolver = resolver;
-    });
-
     var getMonitoringStatusPromise =
         tracingControllerClient.getMonitoringStatus();
-    getMonitoringStatusPromise.then(
-        function(monitoringOptions) {
-          finalPromiseResolver.resolve(monitoringOptions.isMonitoring,
-                                       monitoringOptions.categoryFilter,
-                                       monitoringOptions.useSystemTracing,
-                                       monitoringOptions.useContinuousTracing,
-                                       monitoringOptions.useSampling);
-        },
-        function(err) {
-          finalPromiseResolver.reject(err);
-        });
-
-    return finalPromise;
+    return getMonitoringStatusPromise;
   }
 
   function beginRecording(tracingControllerClient) {
     var finalPromiseResolver;
-    var finalPromise = new Promise(function(resolver) {
-      finalPromiseResolver = resolver;
+    var finalPromise = new Promise(function(resolve, reject) {
+      finalPromiseResolver = {
+        resolve: resolve,
+        reject: reject
+      };
     });
     finalPromise.selectionDlg = undefined;
     finalPromise.progressDlg = undefined;

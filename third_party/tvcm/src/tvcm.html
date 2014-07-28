@@ -85,6 +85,10 @@ this.tvcm = (function() {
   }
 
   function showPanic(panicTitle, panicDetails) {
+
+    if (panicDetails instanceof Error)
+      panicDetails = panicDetails.stack;
+
     showPanicElementIfNeeded();
     var panicMessageEl = document.createElement('div');
     panicMessageEl.innerHTML =

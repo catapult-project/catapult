@@ -36,7 +36,7 @@ tvcm.exportTo('about_tracing', function() {
     },
 
     _request: function(method, args) {
-      return new Promise(function(resolver) {
+      return new Promise(function(resolve) {
         var requestIndex = this.nextRequestIndex;
         if (requestIndex >= this.requests.length)
           throw new Error('Unhandled request');
@@ -50,7 +50,7 @@ tvcm.exportTo('about_tracing', function() {
         var req = this.requests[requestIndex];
         assertEquals(req.method, method);
         var resp = req.generateResponseCb(args);
-        resolver.resolve(resp);
+        resolve(resp);
       }.bind(this));
     },
 

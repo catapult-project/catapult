@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/about_tracing/tracing_controller_client.html">
-<link rel="import" href="/tvcm/promise.html">
 
 <script>
 'use strict';
@@ -15,7 +14,7 @@ tvcm.exportTo('about_tracing', function() {
   function beginXhr(method, path, data) {
     if (data === undefined)
       data = null;
-    return new Promise(function(resolver) {
+    return new Promise(function(resolve, reject) {
       var req = new XMLHttpRequest();
       if (method != 'POST' && data !== null)
         throw new Error('Non-POST should have data==null');
@@ -24,9 +23,9 @@ tvcm.exportTo('about_tracing', function() {
         if (req.readyState == 4) {
           window.setTimeout(function() {
             if (req.status == 200 && req.responseText != '##ERROR##') {
-              resolver.resolve(req.responseText);
+              resolve(req.responseText);
             } else {
-              resolver.reject(new Error('Error occured at ' + path));
+              reject(new Error('Error occured at ' + path));
             }
           }, 0);
         }

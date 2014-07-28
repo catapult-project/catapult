@@ -51,8 +51,11 @@ tvcm.exportTo('about_tracing', function() {
       });
       InspectorFrontendHost.sendMessageToBackend(msg);
 
-      return new Promise(function(resolver) {
-        this.pendingRequestResolversId_[id] = resolver;
+      return new Promise(function(resolve, reject) {
+        this.pendingRequestResolversId_[id] = {
+          resolve: resolve,
+          reject: reject
+        };
       }.bind(this));
     },
 

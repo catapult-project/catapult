@@ -1,3 +1,0 @@
-[submodule "polyfill/third_party/promises-tests"]
-	path = polyfill/third_party/promises-tests
-	url = https://github.com/promises-aplus/promises-tests.git

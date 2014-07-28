@@ -7,18 +7,17 @@ found in the LICENSE file.
 
 <link rel="import" href="/about_tracing/tracing_controller_client.html">
 <link rel="import" href="/about_tracing/inspector_connection.html">
-<link rel="import" href="/tvcm/promise.html">
 
 <script>
 'use strict';
 
 tvcm.exportTo('about_tracing', function() {
   function createResolvedPromise(data) {
-    var promise = new Promise(function(resolver) {
+    var promise = new Promise(function(resolve, reject) {
       if (data)
-        resolver.resolve(data);
+        resolve(data);
       else
-        resolver.resolve();
+        resolve();
     });
     return promise;
   }
@@ -105,9 +104,9 @@ tvcm.exportTo('about_tracing', function() {
 
     beginGetBufferPercentFull: function() {
       var that = this;
-      return new Promise(function(resolver) {
+      return new Promise(function(resolve, reject) {
         setTimeout(function() {
-          resolver.resolve(that.bufferUsage_);
+          resolve(that.bufferUsage_);
         }, 100);
       });
     },

@@ -108,13 +108,13 @@ tvcm.unittest.testSuite(function() {
       closeClicked = true;
     });
 
-    return new Promise(function(resolver) {
+    return new Promise(function(resolve, reject) {
       function pressClose() {
         closeBtn.click();
         if (closeClicked)
-          resolver.resolve();
+          resolve();
         else
-          resolver.reject(new Error('closeclick event is not dispatched'));
+          reject(new Error('closeclick event is not dispatched'));
       }
       dlg.visible = true;
       setTimeout(pressClose, 60);

@@ -6,23 +6,22 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tvcm/event_target.html">
 <link rel="import" href="/tvcm/iteration_helpers.html">
-<link rel="import" href="/tvcm/promise.html">
 <link rel="import" href="/tvcm/unittest/test_suite.html">
 <script>
 'use strict';
 
 tvcm.exportTo('tvcm.unittest', function() {
   function getAsync(url, cb) {
-    return new tvcm.Promise(function(resolver) {
+    return new Promise(function(resolve, reject) {
       var req = new XMLHttpRequest();
       req.open('GET', url, true);
       req.onreadystatechange = function(aEvt) {
         if (req.readyState == 4) {
           window.setTimeout(function() {
             if (req.status == 200) {
-              resolver.fulfill(req.responseText);
+              resolve(req.responseText);
             } else {
-              resolver.reject();
+              reject();
             }
           }, 0);
         }
@@ -59,7 +58,7 @@ tvcm.exportTo('tvcm.unittest', function() {
   }
 
   function loadModule(moduleName) {
-    return new Promise(function(resolver) {
+    return new Promise(function(resolve, reject) {
       var parts = moduleName.split('.');
       var href = '/' + parts.join('/') + '.html';
 
@@ -70,10 +69,10 @@ tvcm.exportTo('tvcm.unittest', function() {
       tvcm.doc.head.appendChild(importEl);
 
       importEl.addEventListener('load', function() {
-        resolver.resolve(importEl);
+        resolve(importEl);
       });
       importEl.addEventListener('error', function(e) {
-        resolver.reject(e);
+        reject(e);
       });
     });
   }
@@ -113,7 +112,7 @@ tvcm.exportTo('tvcm.unittest', function() {
         modulePromises.push(p);
       }
 
-      var allModulesLoadedProise = new Promise(function(resolver) {
+      var allModulesLoadedProise = new Promise(function(resolve, reject) {
         var remaining = modulePromises.length;
         var resolved = false;
         function oneMoreLoaded() {
@@ -123,14 +122,14 @@ tvcm.exportTo('tvcm.unittest', function() {
           if (remaining > 0)
             return;
           resolved = true;
-          resolver.resolve();
+          resolve();
         }
 
         function oneRejected(e) {
           if (resolved)
             return;
           resolved = true;
-          resolver.reject(e);
+          reject(e);
         }
 
         modulePromises.forEach(function(modulePromise) {
@@ -139,11 +138,16 @@ tvcm.exportTo('tvcm.unittest', function() {
       });
 
       // Script errors errors abort load;
-      var scriptErrorPromise = new Promise(function(resolver) {
-        this.scriptErrorPromiseResolver_ = resolver;
+      var scriptErrorPromise = new Promise(function(xresolve, xreject) {
+        this.scriptErrorPromiseResolver_ = {
+          resolve: xresolve,
+          reject: xreject
+        };
       }.bind(this));
-      var donePromise = Promise.any(allModulesLoadedProise,
-                                    scriptErrorPromise);
+      var donePromise = Promise.race([
+        allModulesLoadedProise,
+        scriptErrorPromise
+      ]);
 
       // Cleanup.
       return donePromise.then(

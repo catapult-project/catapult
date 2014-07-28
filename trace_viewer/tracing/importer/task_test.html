@@ -69,11 +69,11 @@ tvcm.unittest.testSuite(function() {
 
     var taskPromise = Task.RunWhenIdle(startingTask);
 
-    return new Promise(function(resolver) {
+    return new Promise(function(resolve, reject) {
       taskPromise.then(function() {
-        resolver.reject(new Error('Should have thrown'));
+        reject(new Error('Should have thrown'));
       }, function(err) {
-        resolver.resolve();
+        resolve();
       });
     });
   });

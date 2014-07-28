@@ -13,15 +13,15 @@ tvcm.unittest.testSuite(function() {
 
 
   test('promise', function() {
-    return new Promise(function(r) {
-      r.resolve();
+    return new Promise(function(resolve, reject) {
+      resolve();
     });
   });
 
   test('async', function() {
-    return new Promise(function(r) {
+    return new Promise(function(resolve) {
       tvcm.requestAnimationFrame(function() {
-        r.resolve();
+        resolve();
       });
     });
   });
@@ -32,13 +32,13 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('rejected-promise', function() {
-    return new Promise(function(resolver){
-      resolver.reject("Failure by rejection");
+    return new Promise(function(resolve, reject){
+      reject("Failure by rejection");
     });
   });
 
    test('promise-that-throws-after-resolver', function() {
-    return new Promise(function(resolver){
+    return new Promise(function(resolve, rejet){
       throw new Error('blah');
     });
   });
