@@ -6,7 +6,6 @@ import os
 import re
 
 from tvcm import module
-from tvcm import js_module
 from tvcm import js_utils
 from tvcm import parse_html_deps
 
@@ -175,7 +174,7 @@ def Parse(loader, module_name, module_dir_name, parser_results):
   for inline_script in parser_results.inline_scripts:
     stripped_text = inline_script.stripped_contents
     try:
-      js_module.ValidateUsesStrictMode('_', stripped_text)
+      js_utils.ValidateUsesStrictMode('_', stripped_text)
     except:
       raise Exception('%s has an inline script tag that is missing ' \
                       'a \'use strict\' directive.' % module_name)

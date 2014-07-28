@@ -54,18 +54,6 @@ this.tvcm = (function() {
   var moduleDependencies = {};
   var moduleInfoByModuleName = {};
 
-  var JS_MODULE_TYPE = 'js_module';
-  var HTML_MODULE_TYPE = 'html_module';
-
-  function setModuleInfo(moduleName, moduleInfo) {
-    if (moduleInfoByModuleName[moduleName] !== undefined)
-      throw new Error('Cannot set file name twice!');
-    if (!(moduleInfo.type === JS_MODULE_TYPE ||
-          moduleInfo.type === HTML_MODULE_TYPE))
-      throw new Error('Unrecognized module type');
-    moduleInfoByModuleName[moduleName] = moduleInfo;
-  }
-
   function addModuleDependency(moduleName, dependentModuleName) {
     if (!moduleDependencies[moduleName])
       moduleDependencies[moduleName] = [];

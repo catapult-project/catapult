@@ -5,7 +5,6 @@ import os
 
 from tvcm import resource as resource_module
 from tvcm import resource_loader
-from tvcm import js_module
 
 def _FindAllFilesRecursive(source_paths):
   all_filenames = set()
@@ -19,12 +18,7 @@ def _FindAllFilesRecursive(source_paths):
   return all_filenames
 
 def _IsFilenameAModule(loader, x):
-  if x.endswith(".js"):
-    s = loader.GetStrippedJSForFilename(x, early_out_if_no_tvcm=True)
-    if not s:
-      return
-    return js_module.IsJSModule(s, text_is_stripped=True)
-  elif x.endswith('.html'):
+  if x.endswith('.html'):
     return True
   else:
     return False

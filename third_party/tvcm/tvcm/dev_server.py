@@ -13,7 +13,6 @@ import traceback
 from tvcm import project as project_module
 from tvcm import generate
 from tvcm import resource_loader
-from tvcm import js_module
 
 import SocketServer
 import SimpleHTTPServer
