@@ -112,7 +112,7 @@ tvcm.exportTo('tvcm.unittest', function() {
         modulePromises.push(p);
       }
 
-      var allModulesLoadedProise = new Promise(function(resolve, reject) {
+      var allModulesLoadedPromise = new Promise(function(resolve, reject) {
         var remaining = modulePromises.length;
         var resolved = false;
         function oneMoreLoaded() {
@@ -145,7 +145,7 @@ tvcm.exportTo('tvcm.unittest', function() {
         };
       }.bind(this));
       var donePromise = Promise.race([
-        allModulesLoadedProise,
+        allModulesLoadedPromise,
         scriptErrorPromise
       ]);
 
