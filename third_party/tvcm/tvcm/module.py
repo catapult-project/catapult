@@ -205,6 +205,30 @@ class Module(object):
       already_loaded_set.add(self.name)
       load_sequence.append(self)
 
+  def GetAllDependentFilenamesRecursive(self, include_raw_scripts=True):
+    dependent_filenames = []
+
+    visited_modules = set()
+    def Get(module):
+      module.AppendDirectlyDependentFilenamesTo(
+          dependent_filenames, include_raw_scripts)
+      visited_modules.add(module)
+      for m in module.dependent_modules:
+        if m in visited_modules:
+          continue
+        Get(m)
+
+    Get(self)
+    return dependent_filenames
+
+  def AppendDirectlyDependentFilenamesTo(
+      self, dependent_filenames, include_raw_scripts=True):
+    dependent_filenames.append(self.resource.absolute_path)
+    if include_raw_scripts:
+      for raw_script in self.dependent_raw_scripts:
+        dependent_filenames.append(raw_script.resource.absolute_path)
+    for style_sheet in self.style_sheets:
+      style_sheet.AppendDirectlyDependentFilenamesTo(dependent_filenames)
 
 class RawScript(object):
   """Represents a raw script resource referenced by a module via the

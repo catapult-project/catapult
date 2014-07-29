@@ -93,12 +93,25 @@ class ModuleIntegrationTests(unittest.TestCase):
         ['src.my_module', 'tvcm.foo'],
         exc.context)
 
-  def testRawScript(self):
+
+
+  def testGetAllDependentFilenamesRecursive(self):
     fs = fake_fs.FakeFS()
     fs.AddFile('/x/y/z/foo.html', """
 <!DOCTYPE html>
+<link rel="import" href="/z/foo2.html">
+<link rel="stylesheet" href="/z/foo.css">
 <script src="/bar.js"></script>
 """)
+    fs.AddFile('/x/y/z/foo.css', """
+.x .y {
+    background-image: url(foo.jpeg);
+}
+""")
+    fs.AddFile('/x/y/z/foo.jpeg', '')
+    fs.AddFile('/x/y/z/foo2.html', """
+<!DOCTYPE html>
+""");
     fs.AddFile('/x/raw/bar.js', 'hello');
     project = project_module.Project(['/x/y', '/x/raw/'],
                                      include_tvcm_paths=False)
@@ -107,6 +120,11 @@ class ModuleIntegrationTests(unittest.TestCase):
       my_module = loader.LoadModule(module_name='z.foo')
       self.assertEquals(1, len(my_module.dependent_raw_scripts))
 
-      rs = my_module.dependent_raw_scripts[0]
-      self.assertEquals('hello', rs.contents)
-      self.assertEquals('/x/raw/bar.js', rs.filename)
+      dependent_filenames = my_module.GetAllDependentFilenamesRecursive()
+      self.assertEquals([
+        '/x/y/z/foo.html',
+        '/x/raw/bar.js',
+        '/x/y/z/foo.css',
+        '/x/y/z/foo.jpeg',
+        '/x/y/z/foo2.html'
+      ], dependent_filenames)

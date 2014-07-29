@@ -49,6 +49,11 @@ class StyleSheet(object):
     self.load()
     return self._images
 
+  def AppendDirectlyDependentFilenamesTo(self, dependent_filenames):
+    dependent_filenames.append(self.resource.absolute_path)
+    for i in self.images:
+      dependent_filenames.append(i.resource.absolute_path)
+
   @property
   def contents_with_inlined_images(self):
     images_by_url = {}
