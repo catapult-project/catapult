@@ -18,6 +18,7 @@ except ImportError:
 
 from telemetry.core import util
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
+from telemetry.util import support_binaries
 
 
 _TEXT_SECTION = '.text'
@@ -96,7 +97,8 @@ def GetRequiredLibrariesForPerfProfile(profile_file):
     A set of required library file names.
   """
   with open(os.devnull, 'w') as dev_null:
-    perf = subprocess.Popen(['perf', 'script', '-i', profile_file],
+    perfhost_path = support_binaries.FindPath('perfhost', 'linux')
+    perf = subprocess.Popen([perfhost_path, 'script', '-i', profile_file],
                              stdout=dev_null, stderr=subprocess.PIPE)
     _, output = perf.communicate()
   missing_lib_re = re.compile(

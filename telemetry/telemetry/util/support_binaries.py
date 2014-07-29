@@ -47,4 +47,8 @@ def FindPath(binary_name, platform_name):
   if not command and _IsInCloudStorage(binary_name, platform_name):
     cloud_storage.GetIfChanged(_GetBinPath(binary_name, platform_name))
     command = _GetBinPath(binary_name, platform_name)
+
+  # Return an absolute path consistently.
+  if command:
+    command = os.path.abspath(command)
   return command
