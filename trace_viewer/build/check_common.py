@@ -35,33 +35,19 @@ Correct listing:
   else:
     return ''
 
+def GetKnownFiles():
+  p = trace_viewer_project.TraceViewerProject()
+  m = p.loader.LoadModule(module_name='about_tracing')
+  absolute_filenames = m.GetAllDependentFilenamesRecursive(
+      include_raw_scripts=False)
+
+  return [os.path.relpath(f, p.trace_viewer_path) for f in absolute_filenames]
+
 def CheckCommon(file_name, listed_files):
   project = trace_viewer_project.TraceViewerProject()
-  known_files = []
   build_dir = os.path.join(project.src_path, 'build')
-  def handle(dirpath, dirnames, filenames):
-    for name in filenames:
-      if not (name.endswith(("_test.js",
-                             "_test.html",
-                             "_test_data.js",
-                             "tests.html",
-                             ".py",
-                             ".pyc")) or
-         name.startswith((".")) or
-         dirpath == build_dir):
-        x = os.path.relpath(os.path.normpath(os.path.join(dirpath, name)),
-                            project.trace_viewer_path)
-        known_files.append(x)
-    if '.svn' in dirnames:
-      dirnames.remove('.svn')
 
-  for (dirpath, dirnames, filenames) in os.walk(project.src_path):
-    handle(dirpath, dirnames, filenames)
-
-  for (dirpath, dirnames, filenames) in os.walk(
-      os.path.join(project.tvcm_path, 'src')):
-    handle(dirpath, dirnames, filenames)
-
+  known_files = GetKnownFiles()
   u = set(listed_files).union(set(known_files))
   i = set(listed_files).intersection(set(known_files))
   diff = list(u - i)
