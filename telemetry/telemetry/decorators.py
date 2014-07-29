@@ -1,8 +1,10 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+# pylint: disable=W0212
 
 import functools
+import inspect
 import types
 
 
@@ -16,15 +18,18 @@ def Cache(obj):
 
   If CreateFoo() accepts parameters, a separate cached value is maintained
   for each unique parameter combination.
-  """
-  cache = obj.__cache = {}
 
+  Cached methods maintain their cache for the lifetime of the /instance/, while
+  cached functions maintain their cache for the lifetime of the /module/.
+  """
   @functools.wraps(obj)
   def Cacher(*args, **kwargs):
-    key = str(args) + str(kwargs)
-    if key not in cache:
-      cache[key] = obj(*args, **kwargs)
-    return cache[key]
+    cacher = args[0] if inspect.getargspec(obj).args[:1] == ['self'] else obj
+    cacher.__cache = cacher.__cache if hasattr(cacher, '__cache') else {}
+    key = str(obj) + str(args) + str(kwargs)
+    if key not in cacher.__cache:
+      cacher.__cache[key] = obj(*args, **kwargs)
+    return cacher.__cache[key]
   return Cacher
 
 
@@ -87,7 +92,6 @@ def Enabled(*args):
   return _Enabled
 
 
-# pylint: disable=W0212
 def IsEnabled(test, possible_browser):
   """Returns True iff |test| is enabled given the |possible_browser|.
 
