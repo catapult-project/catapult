@@ -12,12 +12,14 @@ from telemetry.results import buildbot_page_measurement_results
 from telemetry.results import csv_output_formatter
 from telemetry.results import gtest_test_results
 from telemetry.results import html_page_measurement_results
+from telemetry.results import json_output_formatter
 from telemetry.results import page_measurement_results
 from telemetry.results import page_test_results
 
 
 # Allowed output formats. The default is the first item in the list.
-_OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'csv', 'gtest', 'none')
+_OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'block', 'csv', 'gtest',
+    'json', 'none')
 
 
 def AddResultsOptions(parser):
@@ -80,6 +82,8 @@ def PrepareResults(test, options):
         output_stream, test.__class__.__name__, options.reset_results,
         options.upload_results, options.browser_type,
         options.results_label, trace_tag=options.output_trace_tag)
+  elif options.output_format == 'json':
+    return json_output_formatter.JsonOutputFormatter(output_stream)
 
   if len(output_formatters) > 0:
     return page_test_results.PageTestResults(
