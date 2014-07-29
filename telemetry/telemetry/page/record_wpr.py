@@ -170,7 +170,7 @@ class WprRecorder(object):
                            test_expectations.TestExpectations(), self._options)
 
   def HandleResults(self, results):
-    if results.failures or results.skipped_values:
+    if results.failures or results.skipped:
       logging.warning('Some pages failed and/or were skipped. The recording '
                       'has not been updated for these pages.')
     results.PrintSummary()

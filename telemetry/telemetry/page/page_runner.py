@@ -28,7 +28,6 @@ from telemetry.results import results_options
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
 from telemetry.value import failure
-from telemetry.value import skip
 
 class _RunState(object):
   def __init__(self):
@@ -392,7 +391,7 @@ def Run(test, page_set, expectations, finder_options):
     if not test.CanRunForPage(page):
       results.StartTest(page)
       logging.debug('Skipping test: it cannot run for %s', page.url)
-      results.AddValue(skip.SkipValue(page, 'Test cannot run'))
+      results.AddSkip(page, 'Test cannot run')
       results.StopTest(page)
       pages.remove(page)
 
@@ -510,7 +509,7 @@ def _CheckArchives(page_set, pages, results):
 def _RunPage(test, page, state, expectation, results, finder_options):
   if expectation == 'skip':
     logging.debug('Skipping test: Skip expectation for %s', page.url)
-    results.AddValue(skip.SkipValue(page, 'Skipped by test expectations'))
+    results.AddSkip(page, 'Skipped by test expectations')
     return
 
   logging.info('Running %s', page.url)
@@ -552,7 +551,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     # Run() catches these exceptions to relaunch the tab/browser, so re-raise.
     raise
   except page_action.PageActionNotSupported as e:
-    results.AddValue(skip.SkipValue(page, 'Unsupported page action: %s' % e))
+    results.AddSkip(page, 'Unsupported page action: %s' % e)
   except Exception:
     exception_formatter.PrintFormattedException(
         msg='Unhandled exception while running %s' % page.url)

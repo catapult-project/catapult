@@ -7,7 +7,6 @@ import time
 
 from telemetry.results import page_test_results
 from telemetry.value import failure
-from telemetry.value import skip
 
 
 class GTestTestResults(page_test_results.PageTestResults):
@@ -18,7 +17,7 @@ class GTestTestResults(page_test_results.PageTestResults):
   def _GetMs(self):
     return (time.time() - self._timestamp) * 1000
 
-  def _EmitFailure(self, failure_value):
+  def _emitFailure(self, failure_value):
     print >> self._output_stream, failure.GetStringFromExcInfo(
         failure_value.exc_info)
     display_name = failure_value.page.display_name
@@ -26,29 +25,11 @@ class GTestTestResults(page_test_results.PageTestResults):
         '(%0.f ms)' % self._GetMs())
     self._output_stream.flush()
 
-  def _EmitSkip(self, skip_value):
-    page = skip_value.page
-    reason = skip_value.reason
-    logging.warning('===== SKIPPING TEST %s: %s =====',
-                    page.display_name, reason)
-    if self._timestamp == None:
-      self._timestamp = time.time()
-    print >> self._output_stream, '[       OK ]', page.display_name, (
-        '(%0.f ms)' % self._GetMs())
-    self._output_stream.flush()
-
   def AddValue(self, value):
-    is_failure = isinstance(value, failure.FailureValue)
-    is_skip = isinstance(value, skip.SkipValue)
-
-    assert is_failure or is_skip, (
-        'GTestTestResults only accepts FailureValue or SkipValue.')
+    assert isinstance(value, failure.FailureValue), (
+        'GTestTestResults only accepts FailureValue.')
     super(GTestTestResults, self).AddValue(value)
-    # TODO(eakuefner/chrishenry): move emit failure/skip output to DidRunPage.
-    if is_failure:
-      self._EmitFailure(value)
-    elif is_skip:
-      self._EmitSkip(value)
+    self._emitFailure(value)
 
   def StartTest(self, page):
     super(GTestTestResults, self).StartTest(page)
@@ -58,6 +39,16 @@ class GTestTestResults(page_test_results.PageTestResults):
 
   def AddSuccess(self, page):
     super(GTestTestResults, self).AddSuccess(page)
+    print >> self._output_stream, '[       OK ]', page.display_name, (
+        '(%0.f ms)' % self._GetMs())
+    self._output_stream.flush()
+
+  def AddSkip(self, page, reason):
+    super(GTestTestResults, self).AddSkip(page, reason)
+    logging.warning('===== SKIPPING TEST %s: %s =====',
+                    page.display_name, reason)
+    if self._timestamp == None:
+      self._timestamp = time.time()
     print >> self._output_stream, '[       OK ]', page.display_name, (
         '(%0.f ms)' % self._GetMs())
     self._output_stream.flush()
