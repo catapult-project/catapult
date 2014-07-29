@@ -9,6 +9,7 @@ from telemetry.results import base_test_results_unittest
 from telemetry.results import gtest_test_results
 from telemetry.unittest import simple_mock
 from telemetry.value import failure
+from telemetry.value import skip
 
 
 def _MakePageSet():
@@ -75,7 +76,8 @@ class GTestTestResultsTest(
     results = SummaryGtestTestResults()
     results.StartTest(test_page_set.pages[0])
     self._mock_timer.SetTime(0.007)
-    results.AddSkip(test_page_set.pages[0], 'Page skipped for testing reason')
+    results.AddValue(skip.SkipValue(test_page_set.pages[0],
+        'Page skipped for testing reason'))
     results.PrintSummary()
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
