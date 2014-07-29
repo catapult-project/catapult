@@ -157,6 +157,17 @@ class BrowserTest(unittest.TestCase):
     for g in info.gpu.devices:
       self.assertTrue(isinstance(g, gpu_device.GPUDevice))
 
+  def testGetSystemInfoNotCachedObject(self):
+    b = self.CreateBrowser()
+    if not b.supports_system_info:
+      logging.warning(
+          'Browser does not support getting system info, skipping test.')
+      return
+
+    info_a = b.GetSystemInfo()
+    info_b = b.GetSystemInfo()
+    self.assertFalse(info_a is info_b)
+
   def testGetSystemTotalMemory(self):
     b = self.CreateBrowser()
     self.assertTrue(b.memory_stats['SystemTotalPhysicalMemory'] > 0)
