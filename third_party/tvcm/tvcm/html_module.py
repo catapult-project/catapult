@@ -38,7 +38,7 @@ class HTMLModule(module.Module):
         raise Exception('%s:7:Does not have a dependency on tvcm' % os.path.relpath(self.resource.absolute_path))
 
     """
-    if 'tvcm.testSuite' in self.contents or 'tvcm.unittest.testSuite' in self.contents:
+    if 'tvcm.unittest.testSuite' in self.contents:
       if 'tvcm.unittest' not in reachable_names:
         raise Exception('%s:7:Does not have a dependency on tvcm.unittest' % os.path.relpath(self.resource.absolute_path))
     """
