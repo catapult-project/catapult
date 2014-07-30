@@ -19,7 +19,7 @@ class OutputFormatter(object):
     Args:
       output_stream: The stream to write the formatted output to.
     """
-    self._output_stream = output_stream
+    self.output_stream = output_stream
 
   def Format(self, page_test_results):
     """Formats the given PageTestResults into the output stream.
@@ -31,7 +31,3 @@ class OutputFormatter(object):
          from the current benchmark run.
     """
     raise NotImplementedError()
-
-  @property
-  def output_stream(self):
-    return self._output_stream

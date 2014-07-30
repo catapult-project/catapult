@@ -6,8 +6,7 @@ import StringIO
 import unittest
 
 from telemetry.page import page_set
-from telemetry.results import html_output_formatter
-from telemetry.results import page_test_results
+from telemetry.results import html_page_measurement_results
 from telemetry.value import scalar
 
 
@@ -19,8 +18,8 @@ def _MakePageSet():
   return ps
 
 
-class DeterministicHtmlOutputFormatter(
-    html_output_formatter.HtmlOutputFormatter):
+class DeterministicHtmlPageMeasurementResults(
+    html_page_measurement_results.HtmlPageMeasurementResults):
   def _GetBuildTime(self):
     return 'build_time'
 
@@ -33,14 +32,15 @@ class StringIOFile(StringIO.StringIO):
   name = 'fake_output_file'
 
 
-class HtmlOutputFormatterTest(unittest.TestCase):
+class HtmlPageMeasurementResultsTest(unittest.TestCase):
 
   def test_basic_summary(self):
     test_page_set = _MakePageSet()
     output_file = StringIOFile()
 
     # Run the first time and verify the results are written to the HTML file.
-    results = page_test_results.PageTestResults()
+    results = DeterministicHtmlPageMeasurementResults(
+        output_file, 'test_name', False, False, 'browser_type')
     results.StartTest(test_page_set.pages[0])
     results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 3))
@@ -53,9 +53,8 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.AddSuccess(test_page_set.pages[1])
     results.StopTest(test_page_set.pages[1])
 
-    formatter = DeterministicHtmlOutputFormatter(
-        output_file, 'test_name', False, False, 'browser_type')
-    formatter.Format(results)
+    results.PrintSummary()
+    results.GetResults()
     expected = {
       "platform": "browser_type",
       "buildTime": "build_time",
@@ -93,11 +92,12 @@ class HtmlOutputFormatterTest(unittest.TestCase):
       },
       "revision": "revision"
     }
-    self.assertEquals(expected, formatter.GetResults())
+    self.assertEquals(expected, results.GetResults())
 
     # Run the second time and verify the results are appended to the HTML file.
     output_file.seek(0)
-    results = page_test_results.PageTestResults()
+    results = DeterministicHtmlPageMeasurementResults(
+        output_file, 'test_name', False, False, 'browser_type')
     results.StartTest(test_page_set.pages[0])
     results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 4))
@@ -110,9 +110,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.AddSuccess(test_page_set.pages[1])
     results.StopTest(test_page_set.pages[1])
 
-    formatter = DeterministicHtmlOutputFormatter(
-        output_file, 'test_name', False, False, 'browser_type')
-    formatter.Format(results)
+    results.PrintSummary()
     expected = [
       {
         "platform": "browser_type",
@@ -188,12 +186,13 @@ class HtmlOutputFormatterTest(unittest.TestCase):
         },
         "revision": "revision"
       }]
-    self.assertEquals(expected, formatter.GetCombinedResults())
+    self.assertEquals(expected, results.GetCombinedResults())
     last_output_len = len(output_file.getvalue())
 
     # Now reset the results and verify the old ones are gone.
     output_file.seek(0)
-    results = page_test_results.PageTestResults()
+    results = DeterministicHtmlPageMeasurementResults(
+       output_file, 'test_name', True, False, 'browser_type')
     results.StartTest(test_page_set.pages[0])
     results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 5))
@@ -206,9 +205,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.AddSuccess(test_page_set.pages[1])
     results.StopTest(test_page_set.pages[1])
 
-    formatter = DeterministicHtmlOutputFormatter(
-       output_file, 'test_name', True, False, 'browser_type')
-    formatter.Format(results)
+    results.PrintSummary()
     expected = [{
       "platform": "browser_type",
       "buildTime": "build_time",
@@ -246,5 +243,5 @@ class HtmlOutputFormatterTest(unittest.TestCase):
       },
       "revision": "revision"
     }]
-    self.assertEquals(expected, formatter.GetCombinedResults())
+    self.assertEquals(expected, results.GetCombinedResults())
     self.assertTrue(len(output_file.getvalue()) < last_output_len)
