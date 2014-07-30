@@ -9,6 +9,7 @@ import traceback
 
 from telemetry import value as value_module
 from telemetry.value import failure
+from telemetry.value import skip
 
 class PageTestResults(object):
   def __init__(self, output_stream=None, output_formatters=None, trace_tag=''):
@@ -33,7 +34,6 @@ class PageTestResults(object):
     # TODO(chrishenry,eakuefner): Remove self.successes once they can
     # be inferred.
     self.successes = []
-    self.skipped = []
 
     self._representative_value_for_each_value_name = {}
     self._all_page_specific_values = []
@@ -77,6 +77,11 @@ class PageTestResults(object):
     values = self._all_page_specific_values
     return [v for v in values if isinstance(v, failure.FailureValue)]
 
+  @property
+  def skipped_values(self):
+    values = self._all_page_specific_values
+    return [v for v in values if isinstance(v, skip.SkipValue)]
+
   def _GetStringFromExcInfo(self, err):
     return ''.join(traceback.format_exception(*err))
 
@@ -88,6 +93,7 @@ class PageTestResults(object):
 
   def AddValue(self, value):
     self._ValidateValue(value)
+    # TODO(eakuefner/chrishenry): Add only one skip per pagerun assert here
     self._all_page_specific_values.append(value)
 
   def AddSummaryValue(self, value):
@@ -103,9 +109,6 @@ class PageTestResults(object):
         value.name]
     assert value.IsMergableWith(representative_value)
 
-  def AddSkip(self, page, reason):
-    self.skipped.append((page, reason))
-
   def AddSuccess(self, page):
     self.successes.append(page)
 
@@ -117,9 +120,9 @@ class PageTestResults(object):
       logging.error('Failed pages:\n%s', '\n'.join(
           p.display_name for p in self.pages_that_had_failures))
 
-    if self.skipped:
+    if self.skipped_values:
       logging.warning('Skipped pages:\n%s', '\n'.join(
-          p.display_name for p in zip(*self.skipped)[0]))
+          v.page.display_name for v in self.skipped_values))
 
   def FindPageSpecificValuesForPage(self, page, value_name):
     values = []

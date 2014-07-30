@@ -7,6 +7,7 @@ from telemetry.results import base_test_results_unittest
 from telemetry.page import page_set
 from telemetry.results import page_test_results
 from telemetry.value import failure
+from telemetry.value import skip
 
 class NonPrintingPageTestResults(
     page_test_results.PageTestResults):
@@ -33,4 +34,15 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
         failure.FailureValue(self.pages[0], self.CreateException()))
     results.AddSuccess(self.pages[1])
     self.assertEquals(results.pages_that_had_failures, set([self.pages[0]]))
+    self.assertEquals(results.successes, [self.pages[1]])
+
+  def test_skips(self):
+    results = NonPrintingPageTestResults()
+    results.AddValue(skip.SkipValue(self.pages[0], 'testing reason'))
+    results.AddSuccess(self.pages[1])
+
+    expected_page_id = self.pages[0].id
+    actual_page_id = results.skipped_values[0].page.id
+
+    self.assertEquals(expected_page_id, actual_page_id)
     self.assertEquals(results.successes, [self.pages[1]])
