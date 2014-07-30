@@ -61,8 +61,8 @@ def _FullResults(suite, result, metadata):
   failed_test_names = _FailedTestNames(result)
 
   full_results['num_failures_by_type'] = {
-      'Failure': len(failed_test_names),
-      'Pass': len(all_test_names) - len(failed_test_names),
+      'FAIL': len(failed_test_names),
+      'PASS': len(all_test_names) - len(failed_test_names),
   }
 
   full_results['tests'] = {}
