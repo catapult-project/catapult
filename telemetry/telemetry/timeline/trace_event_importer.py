@@ -17,6 +17,10 @@ import telemetry.timeline.async_slice as tracing_async_slice
 import telemetry.timeline.flow_event as tracing_flow_event
 
 
+class TraceBufferOverflowException(Exception):
+  pass
+
+
 class TraceEventTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, timeline_data):
     super(TraceEventTimelineImporter, self).__init__(
@@ -202,9 +206,12 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       thread = (self._GetOrCreateProcess(event['pid'])
           .GetOrCreateThread(event['tid']))
       thread.name = event['args']['name']
-    if event['name'] == 'process_name':
+    elif event['name'] == 'process_name':
       process = self._GetOrCreateProcess(event['pid'])
       process.name = event['args']['name']
+    elif event['name'] == 'trace_buffer_overflowed':
+      process = self._GetOrCreateProcess(event['pid'])
+      process.SetTraceBufferOverflowTimestamp(event['args']['overflowed_at_ts'])
     else:
       self._model.import_errors.append(
           'Unrecognized metadata name: ' + event['name'])
@@ -452,7 +459,21 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       if thread.name == 'CrBrowserMain':
         self._model.browser_process = thread.parent
 
+  def _CheckTraceBufferOverflow(self):
+    for process in self._model.GetAllProcesses():
+      if process.trace_buffer_did_overflow:
+        raise TraceBufferOverflowException(
+            'Trace buffer of process with pid=%d overflowed at timestamp %d. '
+            'Raw trace data:\n%s' %
+            (process.pid, process.trace_buffer_overflow_event.start,
+             repr(self._events)))
+
   def _CreateTabIdsToThreadsMap(self):
+    # Since _CreateTabIdsToThreadsMap() relies on markers output on timeline
+    # tracing data, it maynot work in case we have trace events dropped due to
+    # trace buffer overflow.
+    self._CheckTraceBufferOverflow()
+
     tab_ids_list = []
     for metadata in self._model.metadata:
       if metadata['name'] == 'tabIds':

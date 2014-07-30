@@ -1156,6 +1156,30 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     m = timeline_model.TimelineModel(timeline_data=timeline_data)
     self.assertEqual(0, len(m.flow_events))
 
+  def testImportOverflowedTrace(self):
+    events = [
+      {'name': 'a', 'args': {}, 'pid': 1, 'ts': 7, 'cat': 'foo',
+       'tid': 1, 'ph': 'B'},
+      {'name': 'a', 'args': {}, 'pid': 1, 'ts': 8, 'cat': 'foo',
+       'tid': 1, 'ph': 'E'},
+      {'name': 'b', 'args': {}, 'pid': 2, 'ts': 9, 'cat': 'foo',
+       'tid': 2, 'ph': 'B'},
+      {'name': 'b', 'args': {}, 'pid': 2, 'ts': 10, 'cat': 'foo',
+       'tid': 2, 'ph': 'E'},
+      {'name': 'trace_buffer_overflowed',
+       'args': {'overflowed_at_ts': 12},
+        'pid': 2, 'ts': 0, 'tid': 2, 'ph': 'M'}
+    ]
+    timeline_data = tracing_timeline_data.TracingTimelineData(events)
+
+    with self.assertRaises(trace_event_importer.TraceBufferOverflowException) \
+        as context:
+      timeline_model.TimelineModel(timeline_data=timeline_data)
+    self.assertTrue(
+        'Trace buffer of process with pid=2 overflowed at timestamp 12' in
+        context.exception.message)
+
+
   def testTraceEventsWithTabIdsMarkers(self):
     trace_events = [
       {'name': 'a', 'args': {}, 'pid': 1, 'ts': 20, 'tts': 10, 'cat': 'foo',
