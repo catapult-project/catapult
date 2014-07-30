@@ -37,8 +37,8 @@ tvcm.exportTo('tvcm.unittest', function() {
     }
 
     global.sessionStorage.clear();
-    tvcm.Settings.setAlternativeStorageInstance(global.sessionStorage);
-    tvcm.KeyEventManager.resetInstanceForUnitTesting();
+    var e = new Event('tvcm-unittest-will-run');
+    document.head.dispatchEvent(e);
   }
 
   function uninstallGlobalTestHooks() {

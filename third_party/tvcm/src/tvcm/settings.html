@@ -23,6 +23,10 @@ tvcm.exportTo('tvcm', function() {
     return Settings;
   };
 
+  document.head.addEventListener('tvcm-unittest-will-run', function() {
+    Settings.setAlternativeStorageInstance(global.sessionStorage);
+  });
+
   function SessionSettings() {
     return SessionSettings;
   }

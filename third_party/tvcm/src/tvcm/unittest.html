@@ -5,8 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tvcm.html">
-<link rel="import" href="/tvcm/key_event_manager.html">
-<link rel="import" href="/tvcm/settings.html">
 <link rel="import" href="/tvcm/unittest/test_error.html">
 <link rel="import" href="/tvcm/unittest/assertions.html">
 <link rel="import" href="/tvcm/unittest/suite_loader.html">
@@ -16,12 +14,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 tvcm.exportTo('tvcm.unittest', function() {
+  return {
+  };
 
   // Manually export tvcm.unittest.testSuite to the tvcm namespace. This is done
   // to avoid linewrapping in 80col-constrained environments.
   tvcm.testSuite = tvcm.unittest.testSuite;
 
-  return {
-  };
 });
 </script>
