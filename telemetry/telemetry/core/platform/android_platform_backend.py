@@ -55,7 +55,7 @@ class AndroidPlatformBackend(
         android_ds2784_power_monitor.DS2784PowerMonitor(device),
         android_dumpsys_power_monitor.DumpsysPowerMonitor(device),
     ])
-    self._powermonitor = android_temperature_monitor.AndroidTemperatureMonitor(
+    self._power_monitor = android_temperature_monitor.AndroidTemperatureMonitor(
         power_controller, device)
     self._video_recorder = None
     if self._no_performance_mode:
@@ -245,13 +245,13 @@ class AndroidPlatformBackend(
     return video.Video(video_file_obj)
 
   def CanMonitorPower(self):
-    return self._powermonitor.CanMonitorPower()
+    return self._power_monitor.CanMonitorPower()
 
   def StartMonitoringPower(self, browser):
-    self._powermonitor.StartMonitoringPower(browser)
+    self._power_monitor.StartMonitoringPower(browser)
 
   def StopMonitoringPower(self):
-    return self._powermonitor.StopMonitoringPower()
+    return self._power_monitor.StopMonitoringPower()
 
   def _GetFileContents(self, fname):
     if not self._can_access_protected_file_contents:
