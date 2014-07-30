@@ -268,7 +268,7 @@ def _GetJsonTestList(possible_browser, test_classes, num_shards):
       continue
     name = test_class.Name()
     output['steps'][name] = {
-      'cmd': ' '.join([sys.executable, sys.argv[0],
+      'cmd': ' '.join([sys.executable, os.path.realpath(sys.argv[0]),
                        '--browser=%s' % possible_browser.browser_type,
                        '-v', '--output-format=buildbot', name]),
       # TODO(tonyg): Currently we set the device affinity to a stable hash of
