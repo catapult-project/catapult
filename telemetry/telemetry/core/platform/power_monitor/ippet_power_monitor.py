@@ -106,7 +106,7 @@ class IppetPowerMonitor(power_monitor.PowerMonitor):
     self._ippet_port = util.GetUnreservedAvailableLocalPort()
     parameters = ['-log_dir', self._output_dir,
                   '-web_port', str(self._ippet_port),
-                  '-zip', 'n', '-all_processes', '-l', '0']
+                  '-zip', 'n']
     self._ippet_handle = self._backend.LaunchApplication(
         IppetPath(), parameters, elevate_privilege=True)
 
