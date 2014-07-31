@@ -7,10 +7,9 @@ import json
 import logging
 import os
 import re
-import sys
 
 from telemetry.core import util
-from telemetry.results import buildbot_page_measurement_results
+from telemetry.results import buildbot_output_formatter
 from telemetry.util import cloud_storage
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'util')
@@ -27,11 +26,15 @@ _PLUGINS = [('third_party', 'flot', 'jquery.flot.min.js'),
 _UNIT_JSON = ('tools', 'perf', 'unit-info.json')
 
 
-class HtmlPageMeasurementResults(
-    buildbot_page_measurement_results.BuildbotPageMeasurementResults):
+# TODO(chrishenry): This should not really extend BuildbotOutputFormatter.
+# Leaving as-is now since we are going to move HtmlOutputFormatter to be
+# based on JSON anyway.
+class HtmlOutputFormatter(buildbot_output_formatter.BuildbotOutputFormatter):
   def __init__(self, output_stream, test_name, reset_results, upload_results,
       browser_type, results_label=None, trace_tag=''):
-    super(HtmlPageMeasurementResults, self).__init__(sys.stdout, trace_tag)
+    # Pass output_stream=None so that we blow up if
+    # BuildbotOutputFormatter ever use the output_stream.
+    super(HtmlOutputFormatter, self).__init__(None, trace_tag)
     self._test_name = test_name
     self._reset_results = reset_results
     self._upload_results = upload_results
@@ -87,9 +90,6 @@ class HtmlPageMeasurementResults(
 
   def _PrintPerfResult(self, measurement, trace, values, units,
                        result_type='default'):
-    super(HtmlPageMeasurementResults, self)._PrintPerfResult(
-        measurement, trace, values, units, result_type)
-
     metric_name = measurement
     if trace != measurement:
       metric_name += '.' + trace
@@ -109,8 +109,9 @@ class HtmlPageMeasurementResults(
     all_results.append(self.GetResults())
     return all_results
 
-  def PrintSummary(self):
-    super(HtmlPageMeasurementResults, self).PrintSummary()
+  def Format(self, page_test_results):
+    super(HtmlOutputFormatter, self).Format(page_test_results)
+
     html = self._GetHtmlTemplate()
     html = html.replace('%json_results%', json.dumps(self.GetCombinedResults()))
     html = html.replace('%json_units%', self._GetUnitJson())

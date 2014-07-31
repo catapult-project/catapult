@@ -4,5 +4,5 @@
 
 # TODO(nduca): Convert preexisting unittests to be summary tests. Summary is
 # currently very thoroughly unit tested by
-# buildbot_page_measurement_results_unittest. It originated as part of that
+# buildbot_output_formatter_unittest. It originated as part of that
 # code, but was extracted because it proved useful.

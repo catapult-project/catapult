@@ -238,7 +238,11 @@ class PageRunnerTests(unittest.TestCase):
       self.assertIn('RESULT metric: green_rect.html= [2,4] unit', stdout)
       self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', stdout)
     finally:
-      results._output_stream.close()  # pylint: disable=W0212
+      # TODO(chrishenry): This is a HACK!!1 Really, the right way to
+      # do this is for page_runner (or output formatter) to close any
+      # files it has opened.
+      for formatter in results._output_formatters:  # pylint: disable=W0212
+        formatter.output_stream.close()
       os.remove(output_file)
 
   def testCredentialsWhenLoginFails(self):
