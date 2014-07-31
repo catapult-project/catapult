@@ -85,7 +85,7 @@ found in the LICENSE file.
 
       function runTestCaseComplete() {
         if (results.numTestsThatFailed === 0) {
-          runTestResolver.fulfill();
+          runTestResolver.resolve();
           return;
         }
 
