@@ -68,10 +68,14 @@ def _FullResults(suite, result, metadata):
   full_results['tests'] = {}
 
   for test_name in all_test_names:
-    value = {
-        'expected': 'PASS',
-        'actual': 'FAIL' if (test_name in failed_test_names) else 'PASS',
-    }
+    value = {}
+    value['expected'] = 'PASS'
+    if test_name in failed_test_names:
+      value['actual'] = 'FAIL'
+      value['is_unexpected'] = True
+    else:
+      value['actual'] = 'PASS'
+
     _AddPathToTrie(full_results['tests'], test_name, value)
 
   return full_results
