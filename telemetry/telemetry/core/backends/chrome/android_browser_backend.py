@@ -11,6 +11,7 @@ import time
 
 from telemetry.core import exceptions
 from telemetry.core import forwarders
+from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends import browser_backend
@@ -200,8 +201,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
         self._adb, use_rndis_forwarder)
 
-    if self.browser_options.netsim:
-      assert use_rndis_forwarder, 'Netsim requires RNDIS forwarding.'
+    if (self.browser_options.netsim or
+        platform.GetHostPlatform().GetOSName() == 'mac'):
+      assert use_rndis_forwarder, 'Netsim and/or Mac require RNDIS forwarding.'
       self.wpr_port_pairs = forwarders.PortPairs(
           http=forwarders.PortPair(0, 80),
           https=forwarders.PortPair(0, 443),

@@ -13,6 +13,8 @@ from telemetry.core import forwarders
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
+from telemetry.util import cloud_storage
+from telemetry.util import path
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
@@ -167,6 +169,9 @@ class AndroidRndisConfigurator(object):
     self._host_ip = None
     self.device_iface = None
 
+    if platform.GetHostPlatform().GetOSName() == 'mac':
+      self._InstallHorndis()
+
     assert self._IsRndisSupported(), 'Device does not support RNDIS.'
     self._CheckConfigureNetwork()
 
@@ -210,9 +215,19 @@ class AndroidRndisConfigurator(object):
       elif ether_address in line:
         return interface_name
 
-  def _WriteProtectedFile(self, path, contents):
+  def _WriteProtectedFile(self, file_path, contents):
     subprocess.check_call(
-        ['sudo', 'bash', '-c', 'echo -e "%s" > %s' % (contents, path)])
+        ['sudo', 'bash', '-c', 'echo -e "%s" > %s' % (contents, file_path)])
+
+  def _InstallHorndis(self):
+    if 'HoRNDIS' in subprocess.check_output(['kextstat']):
+      return
+    logging.info('Installing HoRNDIS...')
+    pkg_path = os.path.join(
+        path.GetTelemetryDir(), 'bin', 'mac', 'HoRNDIS-rel5.pkg')
+    cloud_storage.GetIfChanged(pkg_path, bucket=cloud_storage.PUBLIC_BUCKET)
+    subprocess.check_call(
+        ['sudo', 'installer', '-pkg', pkg_path, '-target', '/'])
 
   def _DisableRndis(self):
     self._device.SetProp('sys.usb.config', 'adb')
@@ -350,44 +365,52 @@ doit &
         if candidate not in used_addresses:
           return candidate
 
-    if platform.GetHostPlatform().GetOSName() == 'mac':
-      # TODO(tonyg): Probably want to ifconfig restart host_iface here.
-      pass
-    elif platform.GetHostPlatform().GetOSName() == 'linux':
-      with open(self._NETWORK_INTERFACES) as f:
-        orig_interfaces = f.read()
-      if self._INTERFACES_INCLUDE not in orig_interfaces:
-        interfaces = '\n'.join([
-            orig_interfaces,
-            '',
-            '# Added by Telemetry.',
-            self._INTERFACES_INCLUDE])
-        self._WriteProtectedFile(self._NETWORK_INTERFACES, interfaces)
-      interface_conf_file = self._TELEMETRY_INTERFACE_FILE.format(host_iface)
-      if not os.path.exists(interface_conf_file):
-        interface_conf_dir = os.path.dirname(interface_conf_file)
-        if not interface_conf_dir:
-          subprocess.call(['sudo', '/bin/mkdir', interface_conf_dir])
-          subprocess.call(['sudo', '/bin/chmod', '755', interface_conf_dir])
-        interface_conf = '\n'.join([
-            '# Added by Telemetry for RNDIS forwarding.',
-            'auto %s' % host_iface,
-            'iface %s inet static' % host_iface,
-            '  address 192.168.123.1',
-            '  netmask 255.255.255.0',
-            ])
-        self._WriteProtectedFile(interface_conf_file, interface_conf)
-        subprocess.check_call(['sudo', '/etc/init.d/networking', 'restart'])
-      if 'stop/waiting' not in subprocess.check_output(
-          ['status', 'network-manager']):
-        logging.info('Stopping network-manager...')
-        subprocess.call(['sudo', 'stop', 'network-manager'])
-
     def HasHostAddress():
       _, host_address = self._GetHostAddresses(host_iface)
       return bool(host_address)
-    logging.info('Waiting for RNDIS connectivity...')
-    util.WaitFor(HasHostAddress, 10)
+
+    if not HasHostAddress():
+      if platform.GetHostPlatform().GetOSName() == 'mac':
+        if 'Telemetry' not in subprocess.check_output(
+            ['networksetup', '-listallnetworkservices']):
+          subprocess.check_call(
+              ['sudo', 'networksetup',
+               '-createnetworkservice', 'Telemetry', host_iface])
+          subprocess.check_call(
+              ['sudo', 'networksetup',
+               '-setmanual', 'Telemetry', '192.168.123.1', '255.255.255.0'])
+      elif platform.GetHostPlatform().GetOSName() == 'linux':
+        with open(self._NETWORK_INTERFACES) as f:
+          orig_interfaces = f.read()
+        if self._INTERFACES_INCLUDE not in orig_interfaces:
+          interfaces = '\n'.join([
+              orig_interfaces,
+              '',
+              '# Added by Telemetry.',
+              self._INTERFACES_INCLUDE])
+          self._WriteProtectedFile(self._NETWORK_INTERFACES, interfaces)
+        interface_conf_file = self._TELEMETRY_INTERFACE_FILE.format(host_iface)
+        if not os.path.exists(interface_conf_file):
+          interface_conf_dir = os.path.dirname(interface_conf_file)
+          if not interface_conf_dir:
+            subprocess.call(['sudo', '/bin/mkdir', interface_conf_dir])
+            subprocess.call(['sudo', '/bin/chmod', '755', interface_conf_dir])
+          interface_conf = '\n'.join([
+              '# Added by Telemetry for RNDIS forwarding.',
+              'auto %s' % host_iface,
+              'iface %s inet static' % host_iface,
+              '  address 192.168.123.1',
+              '  netmask 255.255.255.0',
+              ])
+          self._WriteProtectedFile(interface_conf_file, interface_conf)
+          subprocess.check_call(['sudo', '/etc/init.d/networking', 'restart'])
+        if 'stop/waiting' not in subprocess.check_output(
+            ['status', 'network-manager']):
+          logging.info('Stopping network-manager...')
+          subprocess.call(['sudo', 'stop', 'network-manager'])
+
+      logging.info('Waiting for RNDIS connectivity...')
+      util.WaitFor(HasHostAddress, 10)
 
     addresses, host_address = self._GetHostAddresses(host_iface)
     assert host_address, 'Interface %s could not be configured.' % host_iface
