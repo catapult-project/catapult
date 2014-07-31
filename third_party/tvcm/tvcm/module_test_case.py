@@ -67,6 +67,12 @@ class ModuleTestSuite(unittest.TestSuite):
     return self._bc_startup_exception_string
 
   def setUp(self):
+    global _currently_active_module_test_suite
+    if _currently_active_module_test_suite:
+      self._bc_startup_exception_string = "Some previous suite did not shut down cleanly"
+      self._bc = None
+      return
+
     try:
       self._bc = browser_controller.BrowserController(self._project)
       _NavigateToTestCaseRunner(self._bc)
@@ -77,8 +83,6 @@ class ModuleTestSuite(unittest.TestSuite):
       self._bc.Close()
       self._bc = None
 
-    global _currently_active_module_test_suite
-    assert _currently_active_module_test_suite == None
     _currently_active_module_test_suite = self
     if self._bc:
       self._bc.stdout_enabled = True
