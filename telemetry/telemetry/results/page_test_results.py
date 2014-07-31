@@ -85,10 +85,10 @@ class PageTestResults(object):
   def _GetStringFromExcInfo(self, err):
     return ''.join(traceback.format_exception(*err))
 
-  def StartTest(self, page):
+  def WillRunPage(self, page):
     self._current_page = page
 
-  def StopTest(self, page):  # pylint: disable=W0613
+  def DidRunPage(self, page):  # pylint: disable=W0613
     self._current_page = None
 
   def AddValue(self, value):

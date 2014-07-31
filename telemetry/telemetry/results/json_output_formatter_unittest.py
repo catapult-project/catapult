@@ -37,20 +37,20 @@ class JsonOutputFormatterTest(unittest.TestCase):
 
     self._output.truncate(0)
 
-    results.StartTest(self._page_set[0])
+    results.WillRunPage(self._page_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3)
     results.AddValue(v0)
-    results.StopTest(self._page_set[0])
+    results.DidRunPage(self._page_set[0])
 
     self._formatter.Format(results)
     json.loads(self._output.getvalue())
 
   def testAsDictWithOnePage(self):
     results = page_test_results.PageTestResults()
-    results.StartTest(self._page_set[0])
+    results.WillRunPage(self._page_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3)
     results.AddValue(v0)
-    results.StopTest(self._page_set[0])
+    results.DidRunPage(self._page_set[0])
 
     d = ResultsAsDict(results)
 
@@ -59,15 +59,15 @@ class JsonOutputFormatterTest(unittest.TestCase):
 
   def testAsDictWithTwoPages(self):
     results = page_test_results.PageTestResults()
-    results.StartTest(self._page_set[0])
+    results.WillRunPage(self._page_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3)
     results.AddValue(v0)
-    results.StopTest(self._page_set[0])
+    results.DidRunPage(self._page_set[0])
 
-    results.StartTest(self._page_set[1])
+    results.WillRunPage(self._page_set[1])
     v1 = scalar.ScalarValue(results.current_page, 'bar', 'seconds', 4)
     results.AddValue(v1)
-    results.StopTest(self._page_set[1])
+    results.DidRunPage(self._page_set[1])
 
     d = ResultsAsDict(results)
 

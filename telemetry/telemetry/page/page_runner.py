@@ -390,10 +390,10 @@ def Run(test, page_set, expectations, finder_options):
 
   for page in list(pages):
     if not test.CanRunForPage(page):
-      results.StartTest(page)
+      results.WillRunPage(page)
       logging.debug('Skipping test: it cannot run for %s', page.url)
       results.AddValue(skip.SkipValue(page, 'Test cannot run'))
-      results.StopTest(page)
+      results.DidRunPage(page)
       pages.remove(page)
 
   if not pages:
@@ -413,14 +413,14 @@ def Run(test, page_set, expectations, finder_options):
         state.repeat_state.WillRunPage()
         test.WillRunPageRepeats(page)
         while state.repeat_state.ShouldRepeatPage():
-          results.StartTest(page)
+          results.WillRunPage(page)
           try:
             results = _PrepareAndRunPage(
                 test, page_set, expectations, finder_options, browser_options,
                 page, credentials_path, possible_browser, results, state)
           finally:
             state.repeat_state.DidRunPage()
-            results.StopTest(page)
+            results.DidRunPage(page)
         test.DidRunPageRepeats(page)
         if (not test.max_failures is None and
             len(results.failures) > test.max_failures):
@@ -498,10 +498,10 @@ def _CheckArchives(page_set, pages, results):
                     'against live sites, pass the flag --use-live-sites.')
 
   for page in pages_missing_archive_path + pages_missing_archive_data:
-    results.StartTest(page)
+    results.WillRunPage(page)
     results.AddValue(failure.FailureValue.FromMessage(
         page, 'Page set archive doesn\'t exist.'))
-    results.StopTest(page)
+    results.DidRunPage(page)
 
   return [page for page in pages if page not in
           pages_missing_archive_path + pages_missing_archive_data]

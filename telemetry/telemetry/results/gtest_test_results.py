@@ -50,8 +50,8 @@ class GTestTestResults(page_test_results.PageTestResults):
     elif is_skip:
       self._EmitSkip(value)
 
-  def StartTest(self, page):
-    super(GTestTestResults, self).StartTest(page)
+  def WillRunPage(self, page):
+    super(GTestTestResults, self).WillRunPage(page)
     print >> self._output_stream, '[ RUN      ]', page.display_name
     self._output_stream.flush()
     self._timestamp = time.time()

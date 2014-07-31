@@ -43,12 +43,12 @@ class CsvOutputFormatterTest(unittest.TestCase):
 
   def test_with_no_results_on_second_run(self):
     results = page_test_results.PageTestResults()
-    results.StartTest(self._page_set[0])
+    results.WillRunPage(self._page_set[0])
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
-    results.StopTest(self._page_set[0])
+    results.DidRunPage(self._page_set[0])
 
-    results.StartTest(self._page_set[1])
-    results.StopTest(self._page_set[1])
+    results.WillRunPage(self._page_set[1])
+    results.DidRunPage(self._page_set[1])
 
     self._formatter.Format(results)
 
@@ -60,14 +60,14 @@ class CsvOutputFormatterTest(unittest.TestCase):
 
   def test_fewer_results_on_second_run(self):
     results = page_test_results.PageTestResults()
-    results.StartTest(self._page_set[0])
+    results.WillRunPage(self._page_set[0])
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'bar', 'seconds', 4))
-    results.StopTest(self._page_set[0])
+    results.DidRunPage(self._page_set[0])
 
-    results.StartTest(self._page_set[1])
+    results.WillRunPage(self._page_set[1])
     results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 5))
-    results.StopTest(self._page_set[1])
+    results.DidRunPage(self._page_set[1])
 
     self._formatter.Format(results)
     self.assertEqual(['page_name', 'bar (seconds)', 'foo (seconds)'],
@@ -78,13 +78,13 @@ class CsvOutputFormatterTest(unittest.TestCase):
 
   def test_with_output_at_print_summary_time(self):
     results = page_test_results.PageTestResults()
-    results.StartTest(self._page_set[0])
+    results.WillRunPage(self._page_set[0])
     results.AddValue(scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3))
-    results.StopTest(self._page_set[0])
+    results.DidRunPage(self._page_set[0])
 
-    results.StartTest(self._page_set[1])
+    results.WillRunPage(self._page_set[1])
     results.AddValue(scalar.ScalarValue(self._page_set[1], 'bar', 'seconds', 4))
-    results.StopTest(self._page_set[1])
+    results.DidRunPage(self._page_set[1])
 
     self._formatter.Format(results)
 
@@ -98,17 +98,17 @@ class CsvOutputFormatterTest(unittest.TestCase):
 
   def test_histogram(self):
     results = page_test_results.PageTestResults()
-    results.StartTest(self._page_set[0])
+    results.WillRunPage(self._page_set[0])
     results.AddValue(histogram.HistogramValue(
         self._page_set[0], 'a', '',
         raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}'))
-    results.StopTest(self._page_set[0])
+    results.DidRunPage(self._page_set[0])
 
-    results.StartTest(self._page_set[1])
+    results.WillRunPage(self._page_set[1])
     results.AddValue(histogram.HistogramValue(
         self._page_set[1], 'a', '',
         raw_value_json='{"buckets": [{"low": 2, "high": 3, "count": 1}]}'))
-    results.StopTest(self._page_set[1])
+    results.DidRunPage(self._page_set[1])
 
     self._formatter.Format(results)
 

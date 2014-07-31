@@ -92,11 +92,11 @@ class TimelineBasedMetricTestData(object):
         self._model, self._renderer_thread, GetMetricFromMetricType)
     self._ps = page_set.PageSet(file_path=os.path.dirname(__file__))
     self._ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
-    self._results.StartTest(self._ps.pages[0])
+    self._results.WillRunPage(self._ps.pages[0])
 
   def AddResults(self):
     self._metric.AddResults(self._results)
-    self._results.StopTest(self._ps.pages[0])
+    self._results.DidRunPage(self._ps.pages[0])
 
 
 class TimelineBasedMetricsTests(unittest.TestCase):
