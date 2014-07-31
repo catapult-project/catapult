@@ -39,6 +39,14 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
     if self.page_test:
       self.page_test.DidNavigateToPage(page, tab)
 
+  def WillStartBrowser(self, browser):
+    if self.page_test:
+      self.page_test.WillStartBrowser(browser)
+
+  def DidStartBrowser(self, browser):
+    if self.page_test:
+      self.page_test.DidStartBrowser(browser)
+
   def WillRunActions(self, page, tab):
     if self.page_test:
       self.page_test.WillRunActions(page, tab)
@@ -132,6 +140,10 @@ class WprRecorder(object):
   @property
   def options(self):
     return self._options
+
+  @property
+  def page_test(self):
+    return self._record_page_test.page_test if self._benchmark else None
 
   def _CreateOptions(self):
     options = browser_options.BrowserFinderOptions()
