@@ -119,7 +119,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                      'x64'),
     )
     for possible_path in possible_paths:
-      app_path = os.path.join(possible_path, 'cdb')
+      app_path = os.path.join(possible_path, 'cdb.exe')
       app_path = path.FindInstalledWindowsApplication(app_path)
       if app_path:
         return app_path
