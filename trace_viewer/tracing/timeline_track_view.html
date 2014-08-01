@@ -263,11 +263,11 @@ tvcm.exportTo('tracing', function() {
         range = this.model_.bounds.range;
       }
       var boost = range * 0.15;
-      tempDisplayTransform.set(this.viewport.currentDisplayTransform);
+      tempDisplayTransform.set(this.viewport_.currentDisplayTransform);
       tempDisplayTransform.xSetWorldBounds(min - boost,
                                            min + range + boost,
                                            w);
-      this.viewport.setDisplayTransformImmediately(tempDisplayTransform);
+      this.viewport_.setDisplayTransformImmediately(tempDisplayTransform);
     },
 
     /**
@@ -403,7 +403,7 @@ tvcm.exportTo('tracing', function() {
       if (!this.listenToKeys_)
         return;
       var sel;
-      var vp = this.viewport;
+      var vp = this.viewport_;
       var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
 
       switch (e.keyCode) {
@@ -494,7 +494,7 @@ tvcm.exportTo('tracing', function() {
      */
     zoomBy_: function(scale, smooth) {
       smooth = !!smooth;
-      var vp = this.viewport;
+      var vp = this.viewport_;
       var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
       var pixelRatio = window.devicePixelRatio || 1;
 
@@ -531,12 +531,12 @@ tvcm.exportTo('tracing', function() {
       var adjustedWorldRange = bounds.range * 1.25;
       var newScale = this.modelTrackContainer_.canvas.width /
           adjustedWorldRange;
-      var zoomInRatio = newScale / this.viewport.currentDisplayTransform.scaleX;
+      var zoomInRatio = newScale / this.viewport_.currentDisplayTransform.scaleX;
       var animation = new tracing.TimelineDisplayTransformZoomToAnimation(
           worldCenter, 'center',
-          this.viewport.currentDisplayTransform.panY,
+          this.viewport_.currentDisplayTransform.panY,
           zoomInRatio);
-      this.viewport.queueDisplayTransformAnimation(animation);
+      this.viewport_.queueDisplayTransformAnimation(animation);
     },
 
     /**
@@ -550,7 +550,7 @@ tvcm.exportTo('tracing', function() {
       var worldCenter = bounds.center;
       var viewWidth = this.modelTrackContainer_.canvas.width;
 
-      var dt = this.viewport.currentDisplayTransform;
+      var dt = this.viewport_.currentDisplayTransform;
       if (false && !bounds.range) {
         if (dt.xWorldToView(bounds.center) < 0 ||
             dt.xWorldToView(bounds.center) > viewWidth) {
@@ -560,7 +560,7 @@ tvcm.exportTo('tracing', function() {
           var deltaX = tempDisplayTransform.panX - dt.panX;
           var animation = new tracing.TimelineDisplayTransformPanAnimation(
               deltaX, 0);
-          this.viewport.queueDisplayTransformAnimation(animation);
+          this.viewport_.queueDisplayTransformAnimation(animation);
         }
         return;
       }
@@ -573,21 +573,21 @@ tvcm.exportTo('tracing', function() {
       var deltaX = tempDisplayTransform.panX - dt.panX;
       var animation = new tracing.TimelineDisplayTransformPanAnimation(
           deltaX, 0);
-      this.viewport.queueDisplayTransformAnimation(animation);
+      this.viewport_.queueDisplayTransformAnimation(animation);
     },
 
     setCurrentSelectionAsInterestRange_: function() {
       var selectionBounds = this.selection.bounds;
       if (selectionBounds.empty) {
-        this.viewport.interestRange.reset();
+        this.viewport_.interestRange.reset();
         return;
       }
 
-      if (this.viewport.interestRange.min == selectionBounds.min &&
-          this.viewport.interestRange.max == selectionBounds.max)
-        this.viewport.interestRange.reset();
+      if (this.viewport_.interestRange.min == selectionBounds.min &&
+          this.viewport_.interestRange.max == selectionBounds.max)
+        this.viewport_.interestRange.reset();
       else
-        this.viewport.interestRange.set(selectionBounds);
+        this.viewport_.interestRange.set(selectionBounds);
     },
 
     /**
@@ -695,12 +695,12 @@ tvcm.exportTo('tracing', function() {
       tvcm.dispatchSimpleEvent(this, 'selectionChange');
 
       if (this.selectionOfInterest.length) {
-        var track = this.viewport.trackForEvent(this.selectionOfInterest[0]);
+        var track = this.viewport_.trackForEvent(this.selectionOfInterest[0]);
         if (track)
           track.scrollIntoViewIfNeeded();
       }
 
-      this.viewport.dispatchChangeEvent(); // Triggers a redraw.
+      this.viewport_.dispatchChangeEvent(); // Triggers a redraw.
     },
 
     /**
@@ -772,7 +772,7 @@ tvcm.exportTo('tracing', function() {
 
       var pixelRatio = window.devicePixelRatio || 1;
       var canv = this.modelTrackContainer_.canvas;
-      var dt = this.viewport.currentDisplayTransform;
+      var dt = this.viewport_.currentDisplayTransform;
       var loWX = dt.xViewToWorld(
           (loX - canv.offsetLeft) * pixelRatio);
       var hiWX = dt.xViewToWorld(
@@ -792,24 +792,24 @@ tvcm.exportTo('tracing', function() {
 
       // Toggle the grid off if the grid is on, the marker position is the same
       // and the same element is selected (same timebase).
-      if (this.viewport.gridEnabled &&
-          this.viewport.gridSide === left &&
-          this.viewport.gridInitialTimebase === tb) {
-        this.viewport.gridside = undefined;
-        this.viewport.gridEnabled = false;
-        this.viewport.gridInitialTimebase = undefined;
+      if (this.viewport_.gridEnabled &&
+          this.viewport_.gridSide === left &&
+          this.viewport_.gridInitialTimebase === tb) {
+        this.viewport_.gridside = undefined;
+        this.viewport_.gridEnabled = false;
+        this.viewport_.gridInitialTimebase = undefined;
         return;
       }
 
       // Shift the timebase left until its just left of model_.bounds.min.
       var numIntervalsSinceStart = Math.ceil((tb - this.model_.bounds.min) /
-          this.viewport.gridStep_);
+          this.viewport_.gridStep_);
 
-      this.viewport.gridEnabled = true;
-      this.viewport.gridSide = left;
-      this.viewport.gridInitialTimebase = tb;
-      this.viewport.gridTimebase = tb -
-          (numIntervalsSinceStart + 1) * this.viewport.gridStep_;
+      this.viewport_.gridEnabled = true;
+      this.viewport_.gridSide = left;
+      this.viewport_.gridInitialTimebase = tb;
+      this.viewport_.gridTimebase = tb -
+          (numIntervalsSinceStart + 1) * this.viewport_.gridStep_;
     },
 
     storeLastMousePos_: function(e) {
@@ -865,7 +865,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     onBeginPanScan_: function(e) {
-      var vp = this.viewport;
+      var vp = this.viewport_;
       this.viewportDisplayTransformAtMouseDown_ =
           vp.currentDisplayTransform.clone();
       this.isPanningAndScanning_ = true;
@@ -890,7 +890,7 @@ tvcm.exportTo('tracing', function() {
       tempDisplayTransform.set(this.viewportDisplayTransformAtMouseDown_);
       tempDisplayTransform.incrementPanXInViewUnits(xDeltaView);
       tempDisplayTransform.panY -= yDelta;
-      this.viewport.setDisplayTransformImmediately(tempDisplayTransform);
+      this.viewport_.setDisplayTransformImmediately(tempDisplayTransform);
 
       e.preventDefault();
       e.stopPropagation();
@@ -1041,7 +1041,7 @@ tvcm.exportTo('tracing', function() {
       var newSpan = this.computeTouchSpan_(newPositions);
       var currentSpan = this.computeTouchSpan_(currentPositions);
 
-      var vp = this.viewport;
+      var vp = this.viewport_;
       var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
       var pixelRatio = window.devicePixelRatio || 1;
 
