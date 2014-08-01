@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import collections
+import contextlib
 import ctypes
 import platform
 import re
@@ -15,6 +16,7 @@ try:
   from win32com.shell import shellcon  # pylint: disable=F0401
   import win32con  # pylint: disable=F0401
   import win32process  # pylint: disable=F0401
+  import win32security  # pylint: disable=F0401
 except ImportError:
   pywintypes = None
   shell = None
@@ -22,12 +24,21 @@ except ImportError:
   win32api = None
   win32con = None
   win32process = None
+  win32security = None
 
 from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core.platform import desktop_platform_backend
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform.power_monitor import ippet_power_monitor
+
+
+def IsCurrentProcessElevated():
+  handle = win32process.GetCurrentProcess()
+  with contextlib.closing(
+      win32security.OpenProcessToken(handle, win32con.TOKEN_QUERY)) as token:
+    return bool(
+        win32security.GetTokenInformation(token, win32security.TokenElevation))
 
 
 class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
@@ -215,18 +226,25 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       self, application, parameters=None, elevate_privilege=False):
     """Launch an application. Returns a PyHANDLE object."""
 
-    # Use ShellExecuteEx() instead of subprocess.Popen()/OpenProcess() to
-    # elevate privileges. A new console will be created if the new process has
-    # different permissions than this process.
-    proc_info = shell.ShellExecuteEx(
-        fMask=shellcon.SEE_MASK_NOCLOSEPROCESS | shellcon.SEE_MASK_NO_CONSOLE,
-        lpVerb='runas' if elevate_privilege else '',
-        lpFile=application,
-        lpParameters=' '.join(parameters) if parameters else '',
-        nShow=win32con.SW_HIDE)
-    if proc_info['hInstApp'] <= 32:
-      raise Exception('Unable to launch %s' % application)
-    return proc_info['hProcess']
+    parameters = ' '.join(parameters) if parameters else ''
+    if elevate_privilege and not IsCurrentProcessElevated():
+      # Use ShellExecuteEx() instead of subprocess.Popen()/CreateProcess() to
+      # elevate privileges. A new console will be created if the new process has
+      # different permissions than this process.
+      proc_info = shell.ShellExecuteEx(
+          fMask=shellcon.SEE_MASK_NOCLOSEPROCESS | shellcon.SEE_MASK_NO_CONSOLE,
+          lpVerb='runas' if elevate_privilege else '',
+          lpFile=application,
+          lpParameters=parameters,
+          nShow=win32con.SW_HIDE)
+      if proc_info['hInstApp'] <= 32:
+        raise Exception('Unable to launch %s' % application)
+      return proc_info['hProcess']
+    else:
+      handle, _, _, _ = win32process.CreateProcess(
+          None, application + ' ' + parameters, None, None, False,
+          win32process.CREATE_NO_WINDOW, None, None, win32process.STARTUPINFO())
+      return handle
 
   def CanMonitorPower(self):
     return self._power_monitor.CanMonitorPower()
