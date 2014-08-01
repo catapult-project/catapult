@@ -1,16 +1,16 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import os
-from telemetry.results import base_test_results_unittest
 
 from telemetry.page import page_set
+from telemetry.results import base_test_results_unittest
 from telemetry.results import page_test_results
 from telemetry.value import failure
 from telemetry.value import skip
 
-class NonPrintingPageTestResults(
-    page_test_results.PageTestResults):
+class NonPrintingPageTestResults(page_test_results.PageTestResults):
   def __init__(self):
     super(NonPrintingPageTestResults, self).__init__()
 
@@ -28,21 +28,39 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def pages(self):
     return self.page_set.pages
 
-  def test_failures(self):
+  def testFailures(self):
     results = NonPrintingPageTestResults()
+    results.WillRunPage(self.pages[0])
     results.AddValue(
         failure.FailureValue(self.pages[0], self.CreateException()))
-    results.AddSuccess(self.pages[1])
-    self.assertEquals(results.pages_that_had_failures, set([self.pages[0]]))
-    self.assertEquals(results.successes, [self.pages[1]])
+    results.DidRunPage(self.pages[0])
 
-  def test_skips(self):
+    results.WillRunPage(self.pages[1])
+    results.AddSuccess(self.pages[1])
+    results.DidRunPage(self.pages[1])
+
+    self.assertEqual(set([self.pages[0]]), results.pages_that_failed)
+    self.assertEqual(set([self.pages[1]]), results.pages_that_succeeded)
+
+    self.assertEqual(2, len(results.all_page_runs))
+    self.assertTrue(results.all_page_runs[0].failed)
+    self.assertTrue(results.all_page_runs[1].ok)
+
+  def testSkips(self):
     results = NonPrintingPageTestResults()
+    results.WillRunPage(self.pages[0])
     results.AddValue(skip.SkipValue(self.pages[0], 'testing reason'))
+    results.DidRunPage(self.pages[0])
+
+    results.WillRunPage(self.pages[1])
     results.AddSuccess(self.pages[1])
+    results.DidRunPage(self.pages[1])
 
-    expected_page_id = self.pages[0].id
-    actual_page_id = results.skipped_values[0].page.id
+    self.assertTrue(results.all_page_runs[0].skipped)
+    self.assertEqual(self.pages[0], results.all_page_runs[0].page)
+    self.assertEqual(set([self.pages[0], self.pages[1]]),
+                     results.pages_that_succeeded)
 
-    self.assertEquals(expected_page_id, actual_page_id)
-    self.assertEquals(results.successes, [self.pages[1]])
+    self.assertEqual(2, len(results.all_page_runs))
+    self.assertTrue(results.all_page_runs[0].skipped)
+    self.assertTrue(results.all_page_runs[1].ok)

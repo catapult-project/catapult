@@ -17,7 +17,7 @@ def ResultsAsDict(res):
   return result_dict
 
 def _all_pages(res):
-  pages = set(value.page for value in res.all_page_specific_values)
+  pages = set(page_run.page for page_run in res.all_page_runs)
   return pages
 
 class JsonOutputFormatter(output_formatter.OutputFormatter):

@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import collections
-import copy
 import logging
 import optparse
 import os
@@ -247,7 +246,8 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
   while tries:
     tries -= 1
     try:
-      results_for_current_run = copy.copy(results)
+      results.WillAttemptPageRun()
+
       if test.RestartBrowserBeforeEachPage() or page.startup_url:
         state.StopBrowser()
         # If we are restarting the browser for each page customize the per page
@@ -258,7 +258,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
       if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
         logging.info('Skip test for page %s because browser is not supported.'
                      % page.url)
-        return results
+        return
 
       expectation = expectations.GetExpectationForPage(state.browser, page)
 
@@ -268,8 +268,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         state.StartProfiling(page, finder_options)
 
       try:
-        _RunPage(test, page, state, expectation,
-                 results_for_current_run, finder_options)
+        _RunPage(test, page, state, expectation, results, finder_options)
         _CheckThermalThrottling(state.browser.platform)
       except exceptions.TabCrashException as e:
         if test.is_multi_tab_test:
@@ -285,11 +284,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
       if (test.StopBrowserAfterPage(state.browser, page)):
         state.StopBrowser()
 
-      if state.first_page[page]:
-        state.first_page[page] = False
-        if test.discard_first_result:
-          return results
-      return results_for_current_run
+      return
     except exceptions.BrowserGoneException as e:
       state.StopBrowser()
       if not tries:
@@ -415,12 +410,18 @@ def Run(test, page_set, expectations, finder_options):
         while state.repeat_state.ShouldRepeatPage():
           results.WillRunPage(page)
           try:
-            results = _PrepareAndRunPage(
+            _PrepareAndRunPage(
                 test, page_set, expectations, finder_options, browser_options,
                 page, credentials_path, possible_browser, results, state)
           finally:
             state.repeat_state.DidRunPage()
-            results.DidRunPage(page)
+
+            discard_run = False
+            if state.first_page[page]:
+              state.first_page[page] = False
+              if test.discard_first_result:
+                discard_run = True
+            results.DidRunPage(page, discard_run=discard_run)
         test.DidRunPageRepeats(page)
         if (not test.max_failures is None and
             len(results.failures) > test.max_failures):

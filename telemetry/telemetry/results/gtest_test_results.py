@@ -63,18 +63,26 @@ class GTestTestResults(page_test_results.PageTestResults):
     self._output_stream.flush()
 
   def PrintSummary(self):
-    unit = 'test' if len(self.successes) == 1 else 'tests'
+    successful_runs = []
+    failed_runs = []
+    for run in self.all_page_runs:
+      if run.failed:
+        failed_runs.append(run)
+      else:
+        successful_runs.append(run)
+
+    unit = 'test' if len(successful_runs) == 1 else 'tests'
     print >> self._output_stream, '[  PASSED  ]', (
-        '%d %s.' % (len(self.successes), unit))
+        '%d %s.' % (len(successful_runs), unit))
     if self.failures:
-      unit = 'test' if len(self.failures) == 1 else 'tests'
+      unit = 'test' if len(failed_runs) == 1 else 'tests'
       print >> self._output_stream, '[  FAILED  ]', (
           '%d %s, listed below:' % (len(self.failures), unit))
       for failure_value in self.failures:
         print >> self._output_stream, '[  FAILED  ] ', (
             failure_value.page.display_name)
       print >> self._output_stream
-      count = len(self.failures)
+      count = len(failed_runs)
       unit = 'TEST' if count == 1 else 'TESTS'
       print >> self._output_stream, '%d FAILED %s' % (count, unit)
     print >> self._output_stream

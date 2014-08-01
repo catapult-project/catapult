@@ -174,7 +174,8 @@ class WprRecorder(object):
       logging.warning('Some pages failed and/or were skipped. The recording '
                       'has not been updated for these pages.')
     results.PrintSummary()
-    self._page_set.wpr_archive_info.AddRecordedPages(results.successes)
+    self._page_set.wpr_archive_info.AddRecordedPages(
+        results.pages_that_succeeded)
 
 
 def Main(base_dir):

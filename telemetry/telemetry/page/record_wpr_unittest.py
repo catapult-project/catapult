@@ -70,6 +70,7 @@ class MockPageTest(page_test.PageTest):
 
 class MockBenchmark(benchmark.Benchmark):
   test = MockPageTest
+  mock_page_set = None
 
   @classmethod
   def AddTestCommandLineArgs(cls, group):
@@ -79,7 +80,8 @@ class MockBenchmark(benchmark.Benchmark):
     kwargs = {}
     if (options.mock_benchmark_url):
       kwargs['url'] = options.mock_benchmark_url
-    return MockPageSet(**kwargs)
+    self.mock_page_set = MockPageSet(**kwargs)
+    return self.mock_page_set
 
 
 class RecordWprUnitTests(tab_test_case.TabTestCase):
@@ -139,23 +141,20 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
 
   def testWprRecorderWithPageSet(self):
     flags = []
+    mock_page_set = MockPageSet(url=self._url)
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir,
-                                          MockPageSet(url=self._url), flags)
+                                          mock_page_set, flags)
     results = wpr_recorder.Record()
-    self.assertEquals(1, len(results.successes))
-    mock_page = results.successes.pop()
-    self.assertTrue('RunFoo' in mock_page.func_calls)
-    self.assertFalse('RunBaz' in mock_page.func_calls)
+    self.assertEqual(set(mock_page_set.pages), results.pages_that_succeeded)
 
   def testWprRecorderWithBenchmark(self):
     flags = ['--mock-benchmark-url', self._url]
-    wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, MockBenchmark(),
+    mock_benchmark = MockBenchmark()
+    wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, mock_benchmark,
                                           flags)
     results = wpr_recorder.Record()
-    self.assertEquals(1, len(results.successes))
-    mock_page = results.successes.pop()
-    self.assertFalse('RunFoo' in mock_page.func_calls)
-    self.assertTrue('RunBaz' in mock_page.func_calls)
+    self.assertEqual(set(mock_benchmark.mock_page_set.pages),
+                     results.pages_that_succeeded)
 
   def testCommandLineFlags(self):
     flags = [

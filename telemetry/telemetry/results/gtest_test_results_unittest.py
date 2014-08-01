@@ -46,6 +46,7 @@ class GTestTestResultsTest(
     results.WillRunPage(test_page_set.pages[0])
     self._mock_timer.SetTime(0.007)
     results.AddSuccess(test_page_set.pages[0])
+    results.DidRunPage(test_page_set.pages[0])
 
     results.PrintSummary()
     expected = ('[ RUN      ] http://www.foo.com/\n'
@@ -60,6 +61,8 @@ class GTestTestResultsTest(
     results.WillRunPage(test_page_set.pages[0])
     exc_info = self.CreateException()
     results.AddValue(failure.FailureValue(test_page_set.pages[0], exc_info))
+    results.DidRunPage(test_page_set.pages[0])
+
     results.PrintSummary()
     exception_trace = ''.join(traceback.format_exception(*exc_info))
     expected = ('[ RUN      ] http://www.foo.com/\n'
@@ -78,10 +81,12 @@ class GTestTestResultsTest(
     self._mock_timer.SetTime(0.007)
     results.AddValue(skip.SkipValue(test_page_set.pages[0],
         'Page skipped for testing reason'))
+    results.DidRunPage(test_page_set.pages[0])
+
     results.PrintSummary()
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
-                '[  PASSED  ] 0 tests.\n\n')
+                '[  PASSED  ] 1 test.\n\n')
     self.assertEquals(expected, ''.join(results.output_data))
 
   def testPassAndFailedPages(self):
@@ -92,18 +97,22 @@ class GTestTestResultsTest(
     results.WillRunPage(test_page_set.pages[0])
     self._mock_timer.SetTime(0.007)
     results.AddSuccess(test_page_set.pages[0])
+    results.DidRunPage(test_page_set.pages[0])
 
     results.WillRunPage(test_page_set.pages[1])
     self._mock_timer.SetTime(0.009)
     results.AddValue(failure.FailureValue(test_page_set.pages[1], exc_info))
+    results.DidRunPage(test_page_set.pages[1])
 
     results.WillRunPage(test_page_set.pages[2])
     self._mock_timer.SetTime(0.015)
     results.AddValue(failure.FailureValue(test_page_set.pages[2], exc_info))
+    results.DidRunPage(test_page_set.pages[2])
 
     results.WillRunPage(test_page_set.pages[3])
     self._mock_timer.SetTime(0.020)
     results.AddSuccess(test_page_set.pages[3])
+    results.DidRunPage(test_page_set.pages[3])
 
     results.PrintSummary()
     exception_trace = ''.join(traceback.format_exception(*exc_info))
@@ -132,6 +141,7 @@ class GTestTestResultsTest(
     results.WillRunPage(test_page_set.pages[0])
     self._mock_timer.SetTime(0.007)
     results.AddSuccess(test_page_set.pages[0])
+    results.DidRunPage(test_page_set.pages[0])
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n')
     self.assertEquals(expected, ''.join(results.output_data))
@@ -140,6 +150,7 @@ class GTestTestResultsTest(
     self._mock_timer.SetTime(0.009)
     exception_trace = ''.join(traceback.format_exception(*exc_info))
     results.AddValue(failure.FailureValue(test_page_set.pages[1], exc_info))
+    results.DidRunPage(test_page_set.pages[1])
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
                 '[ RUN      ] http://www.bar.com/\n'

@@ -8,8 +8,10 @@ import logging
 import traceback
 
 from telemetry import value as value_module
+from telemetry.results import page_run
 from telemetry.value import failure
 from telemetry.value import skip
+
 
 class PageTestResults(object):
   def __init__(self, output_stream=None, output_formatters=None, trace_tag=''):
@@ -29,14 +31,10 @@ class PageTestResults(object):
     self._output_formatters = (
         output_formatters if output_formatters is not None else [])
     self._trace_tag = trace_tag
-    self._current_page = None
 
-    # TODO(chrishenry,eakuefner): Remove self.successes once they can
-    # be inferred.
-    self.successes = []
-
+    self._current_page_run = None
+    self._all_page_runs = []
     self._representative_value_for_each_value_name = {}
-    self._all_page_specific_values = []
     self._all_summary_values = []
 
   def __copy__(self):
@@ -50,7 +48,12 @@ class PageTestResults(object):
 
   @property
   def all_page_specific_values(self):
-    return self._all_page_specific_values
+    values = []
+    for run in self._all_page_runs:
+      values += run.values
+    if self._current_page_run:
+      values += self._current_page_run.values
+    return values
 
   @property
   def all_summary_values(self):
@@ -58,43 +61,72 @@ class PageTestResults(object):
 
   @property
   def current_page(self):
-    return self._current_page
+    assert self._current_page_run, 'Not currently running test.'
+    return self._current_page_run.page
+
+  @property
+  def all_page_runs(self):
+    return self._all_page_runs
 
   @property
   def pages_that_succeeded(self):
     """Returns the set of pages that succeeded."""
-    pages = set(value.page for value in self._all_page_specific_values)
-    pages.difference_update(self.pages_that_had_failures)
+    pages = set(run.page for run in self.all_page_runs)
+    pages.difference_update(self.pages_that_failed)
     return pages
 
   @property
-  def pages_that_had_failures(self):
+  def pages_that_failed(self):
     """Returns the set of failed pages."""
-    return set(v.page for v in self.failures)
+    failed_pages = set()
+    for run in self.all_page_runs:
+      if run.failed:
+        failed_pages.add(run.page)
+    return failed_pages
 
   @property
   def failures(self):
-    values = self._all_page_specific_values
+    values = self.all_page_specific_values
     return [v for v in values if isinstance(v, failure.FailureValue)]
 
   @property
   def skipped_values(self):
-    values = self._all_page_specific_values
+    values = self.all_page_specific_values
     return [v for v in values if isinstance(v, skip.SkipValue)]
 
   def _GetStringFromExcInfo(self, err):
     return ''.join(traceback.format_exception(*err))
 
   def WillRunPage(self, page):
-    self._current_page = page
+    assert not self._current_page_run, 'Did not call DidRunPage.'
+    self._current_page_run = page_run.PageRun(page)
 
-  def DidRunPage(self, page):  # pylint: disable=W0613
-    self._current_page = None
+  def DidRunPage(self, page, discard_run=False):  # pylint: disable=W0613
+    """
+    Args:
+      page: The current page under test.
+      discard_run: Whether to discard the entire run and all of its
+          associated results.
+    """
+    assert self._current_page_run, 'Did not call WillRunPage.'
+    if not discard_run:
+      self._all_page_runs.append(self._current_page_run)
+    self._current_page_run = None
+
+  def WillAttemptPageRun(self):
+    """To be called when a single attempt on a page run is starting.
+
+    This is called between WillRunPage and DidRunPage and can be
+    called multiple times, one for each attempt.
+    """
+    # Clear any values from previous attempts for this page run.
+    self._current_page_run.ClearValues()
 
   def AddValue(self, value):
+    assert self._current_page_run, 'Not currently running test.'
     self._ValidateValue(value)
     # TODO(eakuefner/chrishenry): Add only one skip per pagerun assert here
-    self._all_page_specific_values.append(value)
+    self._current_page_run.AddValue(value)
 
   def AddSummaryValue(self, value):
     assert value.page is None
@@ -109,8 +141,9 @@ class PageTestResults(object):
         value.name]
     assert value.IsMergableWith(representative_value)
 
+  # TODO(chrishenry): Kill this in a separate patch.
   def AddSuccess(self, page):
-    self.successes.append(page)
+    pass
 
   def PrintSummary(self):
     for output_formatter in self._output_formatters:
@@ -118,7 +151,7 @@ class PageTestResults(object):
 
     if self.failures:
       logging.error('Failed pages:\n%s', '\n'.join(
-          p.display_name for p in self.pages_that_had_failures))
+          p.display_name for p in self.pages_that_failed))
 
     if self.skipped_values:
       logging.warning('Skipped pages:\n%s', '\n'.join(

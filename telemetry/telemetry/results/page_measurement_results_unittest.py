@@ -112,13 +112,13 @@ class PageMeasurementResultsTest(unittest.TestCase):
     results = SummarySavingPageMeasurementResults()
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
-    results.DidRunPage(self.pages[0])
     results.AddValue(failure.FailureValue.FromMessage(self.pages[0], 'message'))
+    results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
     results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 7))
-    results.DidRunPage(self.pages[1])
     results.AddValue(failure.FailureValue.FromMessage(self.pages[1], 'message'))
+    results.DidRunPage(self.pages[1])
 
     results.PrintSummary()
     self.assertEquals(results.results, [])

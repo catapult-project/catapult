@@ -20,6 +20,7 @@ from telemetry.page import page_runner
 from telemetry.page import test_expectations
 from telemetry.unittest import options_for_unittests
 from telemetry.value import scalar
+from telemetry.value import string
 
 
 SIMPLE_CREDENTIALS_STRING = """
@@ -57,6 +58,10 @@ class StubCredentialsBackend(object):
     self.did_get_login_no_longer_needed = True
 
 
+def GetSuccessfulPageRuns(results):
+  return [run for run in results.all_page_runs if run.ok or run.skipped]
+
+
 class PageRunnerTests(unittest.TestCase):
   # TODO(nduca): Move the basic "test failed, test succeeded" tests from
   # page_measurement_unittest to here.
@@ -75,7 +80,7 @@ class PageRunnerTests(unittest.TestCase):
     options.output_format = 'none'
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(Test(), ps, expectations, options)
-    self.assertEquals(0, len(results.successes))
+    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
 
   def testHandlingOfTestThatRaisesWithNonFatalUnknownExceptions(self):
@@ -105,7 +110,7 @@ class PageRunnerTests(unittest.TestCase):
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(test, ps, expectations, options)
     self.assertEquals(2, test.run_count)
-    self.assertEquals(1, len(results.successes))
+    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
 
   def testHandlingOfCrashedTabWithExpectedFailure(self):
@@ -124,7 +129,7 @@ class PageRunnerTests(unittest.TestCase):
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(
         Test(), ps, expectations, options)
-    self.assertEquals(1, len(results.successes))
+    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
 
   def testRetryOnBrowserCrash(self):
@@ -135,7 +140,11 @@ class PageRunnerTests(unittest.TestCase):
 
     class CrashyMeasurement(page_measurement.PageMeasurement):
       has_crashed = False
-      def MeasurePage(self, _, tab, __):
+      def MeasurePage(self, page, tab, results):
+        # This value should be discarded on the first run when the
+        # browser crashed.
+        results.AddValue(
+            string.StringValue(page, 'test', 't', str(self.has_crashed)))
         if not self.has_crashed:
           self.has_crashed = True
           raise exceptions.BrowserGoneException(tab.browser)
@@ -146,8 +155,11 @@ class PageRunnerTests(unittest.TestCase):
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(CrashyMeasurement(), ps, expectations, options)
 
-    self.assertEquals(1, len(results.successes))
+    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
+    self.assertEquals(1, len(results.all_page_specific_values))
+    self.assertEquals(
+        'True', results.all_page_specific_values[0].GetRepresentativeString())
 
   @decorators.Disabled('xp')  # Flaky, http://crbug.com/390079.
   def testDiscardFirstResult(self):
@@ -162,8 +174,9 @@ class PageRunnerTests(unittest.TestCase):
       @property
       def discard_first_result(self):
         return True
-      def MeasurePage(self, *args):
-        pass
+
+      def MeasurePage(self, page, _, results):
+        results.AddValue(string.StringValue(page, 'test', 't', page.url))
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
@@ -175,30 +188,34 @@ class PageRunnerTests(unittest.TestCase):
     options.pageset_repeat = 1
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
-    self.assertEquals(0, len(results.successes))
+    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
+    self.assertEquals(0, len(results.all_page_specific_values))
 
     options.page_repeat = 1
     options.pageset_repeat = 2
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
-    self.assertEquals(2, len(results.successes))
+    self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
+    self.assertEquals(2, len(results.all_page_specific_values))
 
     options.page_repeat = 2
     options.pageset_repeat = 1
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
-    self.assertEquals(2, len(results.successes))
+    self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
+    self.assertEquals(2, len(results.all_page_specific_values))
 
     options.output_format = 'html'
     options.page_repeat = 1
     options.pageset_repeat = 1
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
-    self.assertEquals(0, len(results.successes))
+    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
+    self.assertEquals(0, len(results.all_page_specific_values))
 
   @decorators.Disabled('win')
   def testPagesetRepeat(self):
@@ -230,7 +247,7 @@ class PageRunnerTests(unittest.TestCase):
       SetUpPageRunnerArguments(options)
       results = page_runner.Run(Measurement(), ps, expectations, options)
       results.PrintSummary()
-      self.assertEquals(4, len(results.successes))
+      self.assertEquals(4, len(GetSuccessfulPageRuns(results)))
       self.assertEquals(0, len(results.failures))
       with open(output_file) as f:
         stdout = f.read()
@@ -475,7 +492,7 @@ class PageRunnerTests(unittest.TestCase):
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(test, ps, expectations, options)
     self.assertFalse(test.will_navigate_to_page_called)
-    self.assertEquals(0, len(results.successes))
+    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
 
   def TestUseLiveSitesFlag(self, options, expect_from_archive):
@@ -558,7 +575,7 @@ class PageRunnerTests(unittest.TestCase):
     options.output_format = 'none'
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(Test(max_failures=2), ps, expectations, options)
-    self.assertEquals(0, len(results.successes))
+    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     # Runs up to max_failures+1 failing tests before stopping, since
     # every tests after max_failures failures have been encountered
     # may all be passing.
