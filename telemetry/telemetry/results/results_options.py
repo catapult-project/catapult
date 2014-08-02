@@ -7,10 +7,9 @@ import os
 import sys
 
 from telemetry.core import util
-from telemetry.page import page_measurement
 from telemetry.results import buildbot_output_formatter
 from telemetry.results import csv_output_formatter
-from telemetry.results import gtest_test_results
+from telemetry.results import gtest_progress_reporter
 from telemetry.results import html_output_formatter
 from telemetry.results import json_output_formatter
 from telemetry.results import page_test_results
@@ -45,11 +44,6 @@ def AddResultsOptions(parser):
 
 
 def PrepareResults(test, options):
-  if not isinstance(test, page_measurement.PageMeasurement):
-    # Sort of hacky. The default for non-Measurements should be "gtest."
-    if options.output_format != 'none':
-      options.output_format = 'gtest'
-
   # TODO(chrishenry): This logic prevents us from having multiple
   # OutputFormatters. We should have an output_file per OutputFormatter.
   # Maybe we should have --output-dir instead of --output-file?
@@ -68,6 +62,7 @@ def PrepareResults(test, options):
     options.output_trace_tag = ''
 
   output_formatters = []
+  output_skipped_tests_summary = True
   if options.output_format == 'none':
     pass
   elif options.output_format == 'csv':
@@ -77,7 +72,10 @@ def PrepareResults(test, options):
     output_formatters.append(buildbot_output_formatter.BuildbotOutputFormatter(
         output_stream, trace_tag=options.output_trace_tag))
   elif options.output_format == 'gtest':
-    return gtest_test_results.GTestTestResults(output_stream)
+    # TODO(chrishenry): This is here to not change the output of
+    # gtest. Let's try enabling skipped tests summary for gtest test
+    # results too (in a separate patch), and see if we break anything.
+    output_skipped_tests_summary = False
   elif options.output_format == 'html':
     # TODO(chrishenry): We show buildbot output so that users can grep
     # through the results easily without needing to open the html
@@ -99,4 +97,7 @@ def PrepareResults(test, options):
                     % (options.output_format,
                        ', '.join(_OUTPUT_FORMAT_CHOICES)))
 
-  return page_test_results.PageTestResults(output_formatters=output_formatters)
+  reporter = gtest_progress_reporter.GTestProgressReporter(
+      sys.stdout, output_skipped_tests_summary=output_skipped_tests_summary)
+  return page_test_results.PageTestResults(
+      output_formatters=output_formatters, progress_reporter=reporter)

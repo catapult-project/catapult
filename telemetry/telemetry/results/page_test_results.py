@@ -4,23 +4,26 @@
 
 import collections
 import copy
-import logging
 import traceback
 
 from telemetry import value as value_module
 from telemetry.results import page_run
+from telemetry.results import progress_reporter as progress_reporter_module
 from telemetry.value import failure
 from telemetry.value import skip
 
 
 class PageTestResults(object):
-  def __init__(self, output_stream=None, output_formatters=None, trace_tag=''):
+  def __init__(self, output_stream=None, output_formatters=None,
+               progress_reporter=None, trace_tag=''):
     """
     Args:
       output_stream: The output stream to use to write test results.
       output_formatters: A list of output formatters. The output
           formatters are typically used to format the test results, such
           as CsvOutputFormatter, which output the test results as CSV.
+      progress_reporter: An instance of progress_reporter.ProgressReporter,
+          to be used to output test status/results progressively.
       trace_tag: A string to append to the buildbot trace
       name. Currently only used for buildbot.
     """
@@ -28,6 +31,9 @@ class PageTestResults(object):
 
     super(PageTestResults, self).__init__()
     self._output_stream = output_stream
+    self._progress_reporter = (
+        progress_reporter if progress_reporter is not None
+        else progress_reporter_module.ProgressReporter(self._output_stream))
     self._output_formatters = (
         output_formatters if output_formatters is not None else [])
     self._trace_tag = trace_tag
@@ -100,6 +106,7 @@ class PageTestResults(object):
   def WillRunPage(self, page):
     assert not self._current_page_run, 'Did not call DidRunPage.'
     self._current_page_run = page_run.PageRun(page)
+    self._progress_reporter.WillRunPage(page)
 
   def DidRunPage(self, page, discard_run=False):  # pylint: disable=W0613
     """
@@ -127,6 +134,7 @@ class PageTestResults(object):
     self._ValidateValue(value)
     # TODO(eakuefner/chrishenry): Add only one skip per pagerun assert here
     self._current_page_run.AddValue(value)
+    self._progress_reporter.DidAddValue(value)
 
   def AddSummaryValue(self, value):
     assert value.page is None
@@ -143,19 +151,12 @@ class PageTestResults(object):
 
   # TODO(chrishenry): Kill this in a separate patch.
   def AddSuccess(self, page):
-    pass
+    self._progress_reporter.DidAddSuccess(page)
 
   def PrintSummary(self):
+    self._progress_reporter.DidFinishAllTests(self)
     for output_formatter in self._output_formatters:
       output_formatter.Format(self)
-
-    if self.failures:
-      logging.error('Failed pages:\n%s', '\n'.join(
-          p.display_name for p in self.pages_that_failed))
-
-    if self.skipped_values:
-      logging.warning('Skipped pages:\n%s', '\n'.join(
-          v.page.display_name for v in self.skipped_values))
 
   def FindPageSpecificValuesForPage(self, page, value_name):
     values = []
