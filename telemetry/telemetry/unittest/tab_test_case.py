@@ -45,6 +45,9 @@ class TabTestCase(unittest.TestCase):
       while len(self._browser.tabs) > 1:
         self._browser.tabs[0].Close()
     else:
+      if not self._browser.tabs:
+        self.tearDownClass()
+        self.setUpClass()
       self._tab = self._browser.tabs[0]
     self._tab.Navigate('about:blank')
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
