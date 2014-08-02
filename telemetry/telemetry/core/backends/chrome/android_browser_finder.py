@@ -63,11 +63,6 @@ CHROME_PACKAGE_NAMES = {
 
 ALL_BROWSER_TYPES = CHROME_PACKAGE_NAMES.keys()
 
-# adb shell pm list packages
-# adb
-# intents to run (pass -D url for the rest)
-#   com.android.chrome/.Main
-#   com.google.android.apps.chrome/.Main
 
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
@@ -137,6 +132,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       return os.path.getmtime(self._local_apk)
     return -1
 
+
 def SelectDefaultBrowser(possible_browsers):
   local_builds_by_date = sorted(possible_browsers,
                                 key=lambda b: b.last_modification_time())
@@ -146,41 +142,35 @@ def SelectDefaultBrowser(possible_browsers):
     return newest_browser
   return None
 
-adb_works = None
+
+@decorators.Cache
 def CanFindAvailableBrowsers(logging=real_logging):
   if not adb_commands.IsAndroidSupported():
     logging.info('Android build commands unavailable on this machine. Have '
                  'you installed Android build dependencies?')
     return False
 
-  global adb_works
-
-  if adb_works == None:
-    try:
-      with open(os.devnull, 'w') as devnull:
-        proc = subprocess.Popen(['adb', 'devices'],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                stdin=devnull)
-        stdout, _ = proc.communicate()
-        if re.search(re.escape('????????????\tno permissions'), stdout) != None:
-          logging.warn(
-              ('adb devices reported a permissions error. Consider '
-               'restarting adb as root:'))
-          logging.warn('  adb kill-server')
-          logging.warn('  sudo `which adb` devices\n\n')
-        adb_works = True
-    except OSError:
-      platform_tools_path = os.path.join(util.GetChromiumSrcDir(),
-          'third_party', 'android_tools', 'sdk', 'platform-tools')
-      if (sys.platform.startswith('linux') and
-          os.path.exists(os.path.join(platform_tools_path, 'adb'))):
-        os.environ['PATH'] = os.pathsep.join([platform_tools_path,
-                                              os.environ['PATH']])
-        adb_works = True
-      else:
-        adb_works = False
-  return adb_works
+  try:
+    with open(os.devnull, 'w') as devnull:
+      proc = subprocess.Popen(
+          ['adb', 'devices'],
+          stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=devnull)
+      stdout, _ = proc.communicate()
+    if re.search(re.escape('????????????\tno permissions'), stdout) != None:
+      logging.warn('adb devices reported a permissions error. Consider '
+                   'restarting adb as root:')
+      logging.warn('  adb kill-server')
+      logging.warn('  sudo `which adb` devices\n\n')
+    return True
+  except OSError:
+    platform_tools_path = os.path.join(util.GetChromiumSrcDir(),
+        'third_party', 'android_tools', 'sdk', 'platform-tools')
+    if (sys.platform.startswith('linux') and
+        os.path.exists(os.path.join(platform_tools_path, 'adb'))):
+      os.environ['PATH'] = os.pathsep.join([platform_tools_path,
+                                            os.environ['PATH']])
+      return True
+  return False
 
 
 def FindAllAvailableBrowsers(finder_options, logging=real_logging):

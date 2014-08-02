@@ -25,7 +25,7 @@ class AndroidBrowserFinderTest(unittest.TestCase):
   def setUp(self):
     self._stubs = system_stub.Override(android_browser_finder,
                                        ['adb_commands', 'os', 'subprocess'])
-    android_browser_finder.adb_works = None  # Blow cache between runs.
+    self._log_stub = LoggingStub()
 
   def tearDown(self):
     self._stubs.Restore()
@@ -36,13 +36,15 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     def NoAdb(*args, **kargs): # pylint: disable=W0613
       raise OSError('not found')
     self._stubs.subprocess.Popen = NoAdb
-    browsers = android_browser_finder.FindAllAvailableBrowsers(finder_options)
+    browsers = android_browser_finder.FindAllAvailableBrowsers(
+        finder_options, self._log_stub)
     self.assertEquals(0, len(browsers))
 
   def test_adb_no_devices(self):
     finder_options = browser_options.BrowserFinderOptions()
 
-    browsers = android_browser_finder.FindAllAvailableBrowsers(finder_options)
+    browsers = android_browser_finder.FindAllAvailableBrowsers(
+        finder_options, self._log_stub)
     self.assertEquals(0, len(browsers))
 
   def test_adb_permissions_error(self):
@@ -55,10 +57,9 @@ class AndroidBrowserFinderTest(unittest.TestCase):
 * daemon started successfully *
 """)
 
-    log_stub = LoggingStub()
     browsers = android_browser_finder.FindAllAvailableBrowsers(
-      finder_options, log_stub)
-    self.assertEquals(3, len(log_stub.warnings))
+        finder_options, self._log_stub)
+    self.assertEquals(3, len(self._log_stub.warnings))
     self.assertEquals(0, len(browsers))
 
   def test_adb_two_devices(self):
@@ -67,10 +68,9 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     self._stubs.adb_commands.attached_devices = ['015d14fec128220c',
                                                  '015d14fec128220d']
 
-    log_stub = LoggingStub()
     browsers = android_browser_finder.FindAllAvailableBrowsers(
-      finder_options, log_stub)
-    self.assertEquals(1, len(log_stub.warnings))
+        finder_options, self._log_stub)
+    self.assertEquals(1, len(self._log_stub.warnings))
     self.assertEquals(0, len(browsers))
 
   @benchmark.Disabled('chromeos')
@@ -88,5 +88,6 @@ class AndroidBrowserFinderTest(unittest.TestCase):
 
     self._stubs.adb_commands.shell_command_handlers['pm'] = OnPM
 
-    browsers = android_browser_finder.FindAllAvailableBrowsers(finder_options)
+    browsers = android_browser_finder.FindAllAvailableBrowsers(
+        finder_options, self._log_stub)
     self.assertEquals(1, len(browsers))
