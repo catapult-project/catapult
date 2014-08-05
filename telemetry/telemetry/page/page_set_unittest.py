@@ -7,6 +7,7 @@ import tempfile
 import unittest
 
 from telemetry.core import util
+from telemetry.page import page
 from telemetry.page import page_set
 from telemetry.util import cloud_storage
 
@@ -98,3 +99,24 @@ class TestPageSet(unittest.TestCase):
     self.assertEqual(internal_ps.bucket, expected_bucket)
 
     self.assertRaises(ValueError, page_set.PageSet, bucket='garbage_bucket')
+
+  def testFormingPageSetFromSubPageSet(self):
+    page_set_a = page_set.PageSet()
+    pages = [
+        page.Page('http://foo.com', page_set_a),
+        page.Page('http://bar.com', page_set_a),
+        ]
+    for p in pages:
+      page_set_a.AddPage(p)
+
+    # Form page_set_b from sub page_set_a.
+    page_set_b = page_set.PageSet()
+    for p in pages:
+      p.TransferToPageSet(page_set_b)
+    page_set_b.AddPage(page.Page('http://baz.com', page_set_b))
+    self.assertEqual(0, len(page_set_a.pages))
+    self.assertEqual(
+        set(['http://foo.com', 'http://bar.com', 'http://baz.com']),
+        set(p.url for p in page_set_b.pages))
+    for p in page_set_b.pages:
+      self.assertIs(page_set_b, p.page_set)
