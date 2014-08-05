@@ -30,12 +30,12 @@ _UNIT_JSON = ('tools', 'perf', 'unit-info.json')
 # Leaving as-is now since we are going to move HtmlOutputFormatter to be
 # based on JSON anyway.
 class HtmlOutputFormatter(buildbot_output_formatter.BuildbotOutputFormatter):
-  def __init__(self, output_stream, test_name, reset_results, upload_results,
+  def __init__(self, output_stream, metadata, reset_results, upload_results,
       browser_type, results_label=None, trace_tag=''):
     # Pass output_stream=None so that we blow up if
     # BuildbotOutputFormatter ever use the output_stream.
     super(HtmlOutputFormatter, self).__init__(None, trace_tag)
-    self._test_name = test_name
+    self._metadata = metadata
     self._reset_results = reset_results
     self._upload_results = upload_results
     self._html_output_stream = output_stream
@@ -100,6 +100,10 @@ class HtmlOutputFormatter(buildbot_output_formatter.BuildbotOutputFormatter):
         'units': units,
         'important': result_type == 'default'
         }
+
+  @property
+  def _test_name(self):
+    return self._metadata.name
 
   def GetResults(self):
     return self._result

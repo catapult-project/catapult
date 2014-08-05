@@ -1,15 +1,17 @@
-# Copyright 2012 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 import unittest
 
+from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.page import page_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
+from telemetry.results import results_options
 from telemetry.page import test_expectations
 from telemetry.unittest import options_for_unittests
 
@@ -24,6 +26,10 @@ class BasicTestPage(page_module.Page):
     action_runner.ScrollPage()
     interaction.End()
 
+
+class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
+  def __init__(self):
+    super(EmptyMetadataForTest, self).__init__('')
 
 class PageMeasurementUnitTestBase(unittest.TestCase):
   """unittest.TestCase-derived class to help in the construction of unit tests
@@ -63,7 +69,9 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
     options.output_trace_tag = None
     page_runner.ProcessCommandLineArgs(temp_parser, options)
     measurement.ProcessCommandLineArgs(temp_parser, options)
-    return page_runner.Run(measurement, ps, expectations, options)
+    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    page_runner.Run(measurement, ps, expectations, options, results)
+    return results
 
   def TestTracingCleanedUp(self, measurement_class, options=None):
     ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')

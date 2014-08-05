@@ -144,7 +144,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     mock_page_set = MockPageSet(url=self._url)
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir,
                                           mock_page_set, flags)
-    results = wpr_recorder.Record()
+    results = wpr_recorder.CreateResults()
+    wpr_recorder.Record(results)
     self.assertEqual(set(mock_page_set.pages), results.pages_that_succeeded)
 
   def testWprRecorderWithBenchmark(self):
@@ -152,7 +153,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     mock_benchmark = MockBenchmark()
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, mock_benchmark,
                                           flags)
-    results = wpr_recorder.Record()
+    results = wpr_recorder.CreateResults()
+    wpr_recorder.Record(results)
     self.assertEqual(set(mock_benchmark.mock_page_set.pages),
                      results.pages_that_succeeded)
 

@@ -43,7 +43,7 @@ def AddResultsOptions(parser):
   parser.add_option_group(group)
 
 
-def PrepareResults(test, options):
+def CreateResults(metadata, options):
   # TODO(chrishenry): This logic prevents us from having multiple
   # OutputFormatters. We should have an output_file per OutputFormatter.
   # Maybe we should have --output-dir instead of --output-file?
@@ -85,12 +85,12 @@ def PrepareResults(test, options):
     output_formatters.append(buildbot_output_formatter.BuildbotOutputFormatter(
         sys.stdout, trace_tag=options.output_trace_tag))
     output_formatters.append(html_output_formatter.HtmlOutputFormatter(
-        output_stream, test.__class__.__name__, options.reset_results,
+        output_stream, metadata, options.reset_results,
         options.upload_results, options.browser_type,
         options.results_label, trace_tag=options.output_trace_tag))
   elif options.output_format == 'json':
     output_formatters.append(json_output_formatter.JsonOutputFormatter(
-        output_stream))
+        output_stream, metadata))
   else:
     # Should never be reached. The parser enforces the choices.
     raise Exception('Invalid --output-format "%s". Valid choices are: %s'

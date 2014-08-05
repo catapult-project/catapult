@@ -1,4 +1,4 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -12,12 +12,14 @@ import stat
 import sys
 import tempfile
 
+from telemetry import benchmark
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import util
 from telemetry.page import page_runner
 from telemetry.page import profile_creator
 from telemetry.page import test_expectations
+from telemetry.results import results_options
 
 
 def _DiscoverProfileCreatorClasses():
@@ -72,7 +74,9 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
   temp_output_directory = tempfile.mkdtemp()
   options.output_profile_path = temp_output_directory
 
-  results = page_runner.Run(test, test.page_set, expectations, options)
+  results = results_options.CreateResults(
+      benchmark.BenchmarkMetadata(test.__class__.__name__), options)
+  page_runner.Run(test, test.page_set, expectations, options, results)
 
   if results.failures:
     logging.warning('Some pages failed.')

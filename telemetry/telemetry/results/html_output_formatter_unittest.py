@@ -5,6 +5,7 @@ import os
 import StringIO
 import unittest
 
+from telemetry import benchmark
 from telemetry.page import page_set
 from telemetry.results import html_output_formatter
 from telemetry.results import page_test_results
@@ -27,6 +28,9 @@ class DeterministicHtmlOutputFormatter(
   def _GetRevision(self):
     return 'revision'
 
+class FakeMetadataForTest(benchmark.BenchmarkMetadata):
+  def __init__(self):
+    super(FakeMetadataForTest, self).__init__('test_name')
 
 # Wrap string IO with a .name property so that it behaves more like a file.
 class StringIOFile(StringIO.StringIO):
@@ -54,7 +58,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.DidRunPage(test_page_set.pages[1])
 
     formatter = DeterministicHtmlOutputFormatter(
-        output_file, 'test_name', False, False, 'browser_type')
+        output_file, FakeMetadataForTest(), False, False, 'browser_type')
     formatter.Format(results)
     expected = {
       "platform": "browser_type",
@@ -111,7 +115,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.DidRunPage(test_page_set.pages[1])
 
     formatter = DeterministicHtmlOutputFormatter(
-        output_file, 'test_name', False, False, 'browser_type')
+        output_file, FakeMetadataForTest(), False, False, 'browser_type')
     formatter.Format(results)
     expected = [
       {
@@ -207,7 +211,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.DidRunPage(test_page_set.pages[1])
 
     formatter = DeterministicHtmlOutputFormatter(
-       output_file, 'test_name', True, False, 'browser_type')
+       output_file, FakeMetadataForTest(), True, False, 'browser_type')
     formatter.Format(results)
     expected = [{
       "platform": "browser_type",

@@ -17,6 +17,7 @@ from telemetry.page import page_test
 from telemetry.page import profile_creator
 from telemetry.page import test_expectations
 from telemetry.results import page_measurement_results
+from telemetry.results import results_options
 
 
 class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
@@ -113,7 +114,6 @@ def _MaybeGetInstanceOfClass(target, base_dir, cls):
 
 
 class WprRecorder(object):
-
   def __init__(self, base_dir, target, args=None):
     action_names_to_run = FindAllActionNames(base_dir)
     self._record_page_test = RecorderPageTest(action_names_to_run)
@@ -139,6 +139,14 @@ class WprRecorder(object):
     options.browser_options.no_proxy_server = True
     return options
 
+  def CreateResults(self):
+    if self._benchmark is not None:
+      benchmark_metadata = self._benchmark.GetMetadata()
+    else:
+      benchmark_metadata = benchmark.BenchmarkMetadata('record_wpr')
+
+    return results_options.CreateResults(benchmark_metadata, self._options)
+
   def _AddCommandLineArgs(self):
     page_runner.AddCommandLineArgs(self._parser)
     if self._benchmark is not None:
@@ -163,11 +171,11 @@ class WprRecorder(object):
       sys.exit(1)
     return ps
 
-  def Record(self):
+  def Record(self, results):
     self._page_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
-    return page_runner.Run(self._record_page_test, self._page_set,
-                           test_expectations.TestExpectations(), self._options)
+    page_runner.Run(self._record_page_test, self._page_set,
+        test_expectations.TestExpectations(), self._options, results)
 
   def HandleResults(self, results):
     if results.failures or results.skipped_values:
@@ -185,6 +193,7 @@ def Main(base_dir):
     sys.exit(1)
   target = quick_args.pop()
   wpr_recorder = WprRecorder(base_dir, target)
-  results = wpr_recorder.Record()
+  results = wpr_recorder.CreateResults()
+  wpr_recorder.Record(results)
   wpr_recorder.HandleResults(results)
   return min(255, len(results.failures))

@@ -17,13 +17,21 @@ from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
-from telemetry.results import page_test_results
+from telemetry.results import results_options
 from telemetry.util import cloud_storage
 
 
 Disabled = decorators.Disabled
 Enabled = decorators.Enabled
 
+
+class BenchmarkMetadata(object):
+  def __init__(self, name):
+    self._name = name
+
+  @property
+  def name(self):
+    return self._name
 
 class Benchmark(command_line.Command):
   """Base class for a Telemetry benchmark.
@@ -62,26 +70,29 @@ class Benchmark(command_line.Command):
   def CustomizeBrowserOptions(self, options):
     """Add browser options that are required by this benchmark."""
 
-  def Run(self, args):
-    """Run this test with the given options."""
-    self.CustomizeBrowserOptions(args.browser_options)
+  def GetMetadata(self):
+    return BenchmarkMetadata(self.Name())
 
-    test = self.PageTestClass()()
-    test.__name__ = self.__class__.__name__
+  def Run(self, finder_options):
+    """Run this test with the given options."""
+    self.CustomizeBrowserOptions(finder_options.browser_options)
+
+    pt = self.PageTestClass()()
+    pt.__name__ = self.__class__.__name__
 
     if hasattr(self, '_disabled_strings'):
-      test._disabled_strings = self._disabled_strings
+      pt._disabled_strings = self._disabled_strings
     if hasattr(self, '_enabled_strings'):
-      test._enabled_strings = self._enabled_strings
+      pt._enabled_strings = self._enabled_strings
 
-    ps = self.CreatePageSet(args)
+    ps = self.CreatePageSet(finder_options)
     expectations = self.CreateExpectations(ps)
 
-    self._DownloadGeneratedProfileArchive(args)
+    self._DownloadGeneratedProfileArchive(finder_options)
 
-    results = page_test_results.PageTestResults()
+    results = results_options.CreateResults(self.GetMetadata(), finder_options)
     try:
-      results = page_runner.Run(test, ps, expectations, args)
+      page_runner.Run(pt, ps, expectations, finder_options, results)
     except page_test.TestNotSupportedOnPlatformFailure as failure:
       logging.warning(str(failure))
 

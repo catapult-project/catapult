@@ -1,4 +1,4 @@
-# Copyright 2012 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -327,10 +327,8 @@ def _UpdatePageSetArchivesIfChanged(page_set):
         cloud_storage.GetIfChanged(path, page_set.bucket)
 
 
-def Run(test, page_set, expectations, finder_options):
+def Run(test, page_set, expectations, finder_options, results):
   """Runs a given test against a given page_set with the given options."""
-  results = results_options.PrepareResults(test, finder_options)
-
   test.ValidatePageSet(page_set)
 
   # Create a possible_browser with the given options.
@@ -357,7 +355,7 @@ def Run(test, page_set, expectations, finder_options):
   if not should_run:
     logging.warning('You are trying to run a disabled test.')
     logging.warning('Pass --also-run-disabled-tests to squelch this message.')
-    return results
+    return
 
   # Reorder page set based on options.
   pages = _ShuffleAndFilterPageSet(page_set, finder_options)
@@ -392,7 +390,7 @@ def Run(test, page_set, expectations, finder_options):
       pages.remove(page)
 
   if not pages:
-    return results
+    return
 
   state = _RunState()
   # TODO(dtu): Move results creation and results_for_current_run into RunState.
@@ -435,7 +433,7 @@ def Run(test, page_set, expectations, finder_options):
   finally:
     state.StopBrowser()
 
-  return results
+  return
 
 
 def _ShuffleAndFilterPageSet(page_set, finder_options):

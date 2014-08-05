@@ -6,9 +6,9 @@ import os
 import unittest
 import json
 
+from telemetry import benchmark
 from telemetry.results import json_output_formatter
 from telemetry.results import page_test_results
-from telemetry.results.json_output_formatter import ResultsAsDict
 from telemetry.page import page_set
 from telemetry.value import scalar
 
@@ -25,12 +25,12 @@ def _HasPage(pages, page):
 def _HasValueNamed(values, name):
   return len([x for x in values if x['name'] == name]) == 1
 
-
 class JsonOutputFormatterTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
     self._page_set = _MakePageSet()
-    self._formatter = json_output_formatter.JsonOutputFormatter(self._output)
+    self._formatter = json_output_formatter.JsonOutputFormatter(self._output,
+        benchmark.BenchmarkMetadata('test_name'))
 
   def testOutputAndParse(self):
     results = page_test_results.PageTestResults()
@@ -52,7 +52,7 @@ class JsonOutputFormatterTest(unittest.TestCase):
     results.AddValue(v0)
     results.DidRunPage(self._page_set[0])
 
-    d = ResultsAsDict(results)
+    d = json_output_formatter.ResultsAsDict(results, self._formatter.metadata)
 
     self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
     self.assertTrue(_HasValueNamed(d['per_page_values'], 'foo'))
@@ -69,7 +69,7 @@ class JsonOutputFormatterTest(unittest.TestCase):
     results.AddValue(v1)
     results.DidRunPage(self._page_set[1])
 
-    d = ResultsAsDict(results)
+    d = json_output_formatter.ResultsAsDict(results, self._formatter.metadata)
 
     self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
     self.assertTrue(_HasPage(d['pages'], self._page_set[1]))
@@ -81,7 +81,7 @@ class JsonOutputFormatterTest(unittest.TestCase):
     v = scalar.ScalarValue(None, 'baz', 'seconds', 5)
     results.AddSummaryValue(v)
 
-    d = ResultsAsDict(results)
+    d = json_output_formatter.ResultsAsDict(results, self._formatter.metadata)
 
     self.assertFalse(d['pages'])
     self.assertTrue(_HasValueNamed(d['summary_values'], 'baz'))
