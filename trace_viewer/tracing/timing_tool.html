@@ -200,10 +200,9 @@ tvcm.exportTo('tracing', function() {
 
     getWorldXFromEvent_: function(e) {
       var pixelRatio = window.devicePixelRatio || 1;
-      var modelTrackContainer = this.viewport_.modelTrackContainer;
-      var viewX = (e.clientX -
-                   modelTrackContainer.offsetLeft -
-                   constants.HEADING_WIDTH) * pixelRatio;
+      var canvas = this.viewport_.modelTrackContainer.canvas;
+      var worldOffset = canvas.getBoundingClientRect().left;
+      var viewX = (e.clientX - worldOffset) * pixelRatio;
       return this.viewport_.currentDisplayTransform.xViewToWorld(viewX);
     },
 
