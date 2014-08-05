@@ -269,31 +269,47 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.warning('minidump_stackwalk binary not found.')
       return None
 
-    symbols = glob.glob(os.path.join(self._browser_directory, '*.breakpad*'))
-    if not symbols:
-      logging.warning('No breakpad symbols found.')
-      return None
-
     with open(minidump, 'rb') as infile:
       minidump += '.stripped'
       with open(minidump, 'wb') as outfile:
         outfile.write(''.join(infile.read().partition('MDMP')[1:]))
 
     symbols_path = os.path.join(self._tmp_minidump_dir, 'symbols')
-    for symbol in sorted(symbols, key=os.path.getmtime, reverse=True):
-      if not os.path.isfile(symbol):
-        continue
-      with open(symbol, 'r') as f:
-        fields = f.readline().split()
-        if not fields:
+
+    symbols = glob.glob(os.path.join(self._browser_directory, '*.breakpad*'))
+    if symbols:
+      for symbol in sorted(symbols, key=os.path.getmtime, reverse=True):
+        if not os.path.isfile(symbol):
           continue
-        sha = fields[3]
-        binary = ' '.join(fields[4:])
-      symbol_path = os.path.join(symbols_path, binary, sha)
-      if os.path.exists(symbol_path):
-        continue
-      os.makedirs(symbol_path)
-      shutil.copyfile(symbol, os.path.join(symbol_path, binary + '.sym'))
+        with open(symbol, 'r') as f:
+          fields = f.readline().split()
+          if not fields:
+            continue
+          sha = fields[3]
+          binary = ' '.join(fields[4:])
+        symbol_path = os.path.join(symbols_path, binary, sha)
+        if os.path.exists(symbol_path):
+          continue
+        os.makedirs(symbol_path)
+        shutil.copyfile(symbol, os.path.join(symbol_path, binary + '.sym'))
+    else:
+      logging.info('Dumping breakpad symbols')
+      generate_breakpad_symbols_path = os.path.join(
+          util.GetChromiumSrcDir(), "components", "breakpad",
+          "tools", "generate_breakpad_symbols.py")
+      cmd = [
+          sys.executable,
+          generate_breakpad_symbols_path,
+          '--binary=%s' % self._executable,
+          '--symbols-dir=%s' % symbols_path,
+          '--build-dir=%s' % self._browser_directory,
+          ]
+
+      try:
+        subprocess.check_output(cmd, stderr=open(os.devnull, 'w'))
+      except subprocess.CalledProcessError:
+        logging.warning('Failed to execute "%s"' % ' '.join(cmd))
+        return None
 
     return subprocess.check_output([stackwalk, minidump, symbols_path],
                                    stderr=open(os.devnull, 'w'))
