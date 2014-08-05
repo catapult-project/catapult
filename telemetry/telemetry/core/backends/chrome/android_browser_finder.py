@@ -108,7 +108,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         self.finder_options.browser_options, self._backend_settings,
         use_rndis_forwarder,
         output_profile_path=self.finder_options.output_profile_path,
-        extensions_to_load=self.finder_options.extensions_to_load)
+        extensions_to_load=self.finder_options.extensions_to_load,
+        target_arch=self.finder_options.target_arch)
     b = browser.Browser(backend, self._platform_backend)
     return b
 

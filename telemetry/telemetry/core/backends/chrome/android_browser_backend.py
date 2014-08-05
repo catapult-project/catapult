@@ -170,7 +170,7 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android."""
   def __init__(self, browser_options, backend_settings, use_rndis_forwarder,
-               output_profile_path, extensions_to_load):
+               output_profile_path, extensions_to_load, target_arch):
     super(AndroidBrowserBackend, self).__init__(
         supports_tab_control=backend_settings.supports_tab_control,
         supports_extensions=False, browser_options=browser_options,
@@ -184,6 +184,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._adb = backend_settings.adb
     self._backend_settings = backend_settings
     self._saved_cmdline = ''
+    self._target_arch = target_arch
 
     # TODO(tonyg): This is flaky because it doesn't reserve the port that it
     # allocates. Need to fix this.
@@ -398,8 +399,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                          'android_platform', 'development', 'scripts', 'stack')
     # Try to symbolize logcat.
     if os.path.exists(stack):
-      p = subprocess.Popen([stack], stdin=subprocess.PIPE,
-                           stdout=subprocess.PIPE)
+      cmd = [stack]
+      if self._target_arch:
+        cmd.append('--arch=%s' % self._target_arch)
+      p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
       ret += Decorate('Stack from Logcat', p.communicate(input=logcat)[0])
 
     # Try to get tombstones.
