@@ -99,7 +99,7 @@ found in the LICENSE file.
       this.childrenUpdated_(
         this.childrenObserver_.takeRecords(), this.childrenObserver_);
       // Search for the specific node in our tabs list.
-      // If it is not there throw an error.
+      // If it is not there print a warning.
       var contentTabId = undefined;
       for (var i = 0; i < this.tabs_.length; i++)
         if (this.tabs_[i].content === content) {
@@ -168,7 +168,7 @@ found in the LICENSE file.
 
       this.tabs_.push(tabObject);
       if (child.hasAttribute('selected')) {
-        // When receving a child with the selected attribute, if we have no
+        // When receiving a child with the selected attribute, if we have no
         // selected tab, mark the child as the selected tab, otherwise keep
         // the previous selection.
         if (this.selectedTab_)
