@@ -21,6 +21,8 @@ class ProcSupportingPlatformBackend(platform_backend.PlatformBackend):
   def GetSystemCommitCharge(self):
     meminfo_contents = self._GetFileContents('/proc/meminfo')
     meminfo = self._GetProcFileDict(meminfo_contents)
+    if not meminfo:
+      return None
     return (self._ConvertKbToByte(meminfo['MemTotal'])
             - self._ConvertKbToByte(meminfo['MemFree'])
             - self._ConvertKbToByte(meminfo['Buffers'])
@@ -30,6 +32,8 @@ class ProcSupportingPlatformBackend(platform_backend.PlatformBackend):
   def GetSystemTotalPhysicalMemory(self):
     meminfo_contents = self._GetFileContents('/proc/meminfo')
     meminfo = self._GetProcFileDict(meminfo_contents)
+    if not meminfo:
+      return None
     return self._ConvertKbToByte(meminfo['MemTotal'])
 
   def GetCpuStats(self, pid):

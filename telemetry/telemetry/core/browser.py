@@ -177,10 +177,12 @@ class Browser(object):
     """
     self._platform_backend.PurgeUnpinnedMemory()
     result = self._GetStatsCommon(self._platform_backend.GetMemoryStats)
-    result['SystemCommitCharge'] = \
-        self._platform_backend.GetSystemCommitCharge()
-    result['SystemTotalPhysicalMemory'] = \
-        self._platform_backend.GetSystemTotalPhysicalMemory()
+    commit_charge = self._platform_backend.GetSystemCommitCharge()
+    if commit_charge:
+      result['SystemCommitCharge'] = commit_charge
+    total = self._platform_backend.GetSystemTotalPhysicalMemory()
+    if total:
+      result['SystemTotalPhysicalMemory'] = total
     return result
 
   @property
