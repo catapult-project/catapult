@@ -46,7 +46,6 @@ class GTestProgressReporterTest(
         progress_reporter=self._reporter)
     results.WillRunPage(test_page_set.pages[0])
     self._mock_timer.SetTime(0.007)
-    results.AddSuccess(test_page_set.pages[0])
     results.DidRunPage(test_page_set.pages[0])
 
     results.PrintSummary()
@@ -88,6 +87,8 @@ class GTestProgressReporterTest(
 
     results.PrintSummary()
     expected = ('[ RUN      ] http://www.foo.com/\n'
+                '===== SKIPPING TEST http://www.foo.com/:'
+                ' Page skipped for testing reason =====\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
                 '[  PASSED  ] 1 test.\n\n')
     self.assertEquals(expected, ''.join(self._output_stream.output_data))
@@ -100,7 +101,6 @@ class GTestProgressReporterTest(
 
     results.WillRunPage(test_page_set.pages[0])
     self._mock_timer.SetTime(0.007)
-    results.AddSuccess(test_page_set.pages[0])
     results.DidRunPage(test_page_set.pages[0])
 
     results.WillRunPage(test_page_set.pages[1])
@@ -115,7 +115,6 @@ class GTestProgressReporterTest(
 
     results.WillRunPage(test_page_set.pages[3])
     self._mock_timer.SetTime(0.020)
-    results.AddSuccess(test_page_set.pages[3])
     results.DidRunPage(test_page_set.pages[3])
 
     results.PrintSummary()
@@ -137,6 +136,30 @@ class GTestProgressReporterTest(
                 '2 FAILED TESTS\n\n' % (exception_trace, exception_trace))
     self.assertEquals(expected, ''.join(self._output_stream.output_data))
 
+  def testWillAttemptPageRun(self):
+    test_page_set = _MakePageSet()
+
+    results = page_test_results.PageTestResults(
+        progress_reporter=self._reporter)
+    results.WillRunPage(test_page_set.pages[0])
+    results.WillAttemptPageRun(1, 5)
+    results.WillAttemptPageRun(2, 5)
+    results.WillAttemptPageRun(3, 5)
+    self._mock_timer.SetTime(0.007)
+    results.DidRunPage(test_page_set.pages[0])
+
+    results.PrintSummary()
+    expected = ('[ RUN      ] http://www.foo.com/\n'
+                '===== RETRYING PAGE RUN (attempt 2 out of 5 allowed) =====\n'
+                'Page run attempt failed and will be retried.'
+                ' Discarding previous results.\n'
+                '===== RETRYING PAGE RUN (attempt 3 out of 5 allowed) =====\n'
+                'Page run attempt failed and will be retried.'
+                ' Discarding previous results.\n'
+                '[       OK ] http://www.foo.com/ (7 ms)\n'
+                '[  PASSED  ] 1 test.\n\n')
+    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+
   def testStreamingResults(self):
     test_page_set = _MakePageSet()
     results = page_test_results.PageTestResults(
@@ -145,7 +168,6 @@ class GTestProgressReporterTest(
 
     results.WillRunPage(test_page_set.pages[0])
     self._mock_timer.SetTime(0.007)
-    results.AddSuccess(test_page_set.pages[0])
     results.DidRunPage(test_page_set.pages[0])
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n')
@@ -176,6 +198,8 @@ class GTestProgressReporterTest(
 
     results.PrintSummary()
     expected = ('[ RUN      ] http://www.foo.com/\n'
+                '===== SKIPPING TEST http://www.foo.com/:'
+                ' Page skipped for testing reason =====\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
                 '[  PASSED  ] 1 test.\n'
                 '\n'

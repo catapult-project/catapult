@@ -71,6 +71,11 @@ class PageTestResults(object):
     return self._current_page_run.page
 
   @property
+  def current_page_run(self):
+    assert self._current_page_run, 'Not currently running test.'
+    return self._current_page_run
+
+  @property
   def all_page_runs(self):
     return self._all_page_runs
 
@@ -106,7 +111,7 @@ class PageTestResults(object):
   def WillRunPage(self, page):
     assert not self._current_page_run, 'Did not call DidRunPage.'
     self._current_page_run = page_run.PageRun(page)
-    self._progress_reporter.WillRunPage(page)
+    self._progress_reporter.WillRunPage(self)
 
   def DidRunPage(self, page, discard_run=False):  # pylint: disable=W0613
     """
@@ -116,16 +121,25 @@ class PageTestResults(object):
           associated results.
     """
     assert self._current_page_run, 'Did not call WillRunPage.'
+    self._progress_reporter.DidRunPage(self)
     if not discard_run:
       self._all_page_runs.append(self._current_page_run)
     self._current_page_run = None
 
-  def WillAttemptPageRun(self):
+  def WillAttemptPageRun(self, attempt_count, max_attempts):
     """To be called when a single attempt on a page run is starting.
 
     This is called between WillRunPage and DidRunPage and can be
     called multiple times, one for each attempt.
+
+    Args:
+      attempt_count: The current attempt number, start at 1
+          (attempt_count == 1 for the first attempt, 2 for second
+          attempt, and so on).
+      max_attempts: Maximum number of page run attempts before failing.
     """
+    self._progress_reporter.WillAttemptPageRun(
+        self, attempt_count, max_attempts)
     # Clear any values from previous attempts for this page run.
     self._current_page_run.ClearValues()
 
@@ -148,10 +162,6 @@ class PageTestResults(object):
     representative_value = self._representative_value_for_each_value_name[
         value.name]
     assert value.IsMergableWith(representative_value)
-
-  # TODO(chrishenry): Kill this in a separate patch.
-  def AddSuccess(self, page):
-    self._progress_reporter.DidAddSuccess(page)
 
   def PrintSummary(self):
     self._progress_reporter.DidFinishAllTests(self)

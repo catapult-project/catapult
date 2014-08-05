@@ -242,11 +242,12 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         if page.archive_path and os.path.isfile(page.archive_path)
         else wpr_modes.WPR_OFF)
 
-  tries = test.attempts
-  while tries:
-    tries -= 1
+  max_attempts = test.attempts
+  attempt_num = 0
+  while attempt_num < max_attempts:
+    attempt_num = attempt_num + 1
     try:
-      results.WillAttemptPageRun()
+      results.WillAttemptPageRun(attempt_num, max_attempts)
 
       if test.RestartBrowserBeforeEachPage() or page.startup_url:
         state.StopBrowser()
@@ -287,7 +288,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
       return
     except exceptions.BrowserGoneException as e:
       state.StopBrowser()
-      if not tries:
+      if attempt_num == max_attempts:
         logging.error('Aborting after too many retries')
         raise
       if test.is_multi_tab_test:
@@ -519,7 +520,6 @@ def _RunPage(test, page, state, expectation, results, finder_options):
   def ProcessError():
     if expectation == 'fail':
       msg = 'Expected exception while running %s' % page.url
-      results.AddSuccess(page)
     else:
       msg = 'Exception while running %s' % page.url
       results.AddValue(failure.FailureValue(page, sys.exc_info()))
@@ -538,7 +538,6 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     if expectation == 'fail':
       exception_formatter.PrintFormattedException(
           msg='Expected failure while running %s' % page.url)
-      results.AddSuccess(page)
     else:
       exception_formatter.PrintFormattedException(
           msg='Failure while running %s' % page.url)
@@ -559,7 +558,6 @@ def _RunPage(test, page, state, expectation, results, finder_options):
   else:
     if expectation == 'fail':
       logging.warning('%s was expected to fail, but passed.\n', page.url)
-    results.AddSuccess(page)
   finally:
     page_state.CleanUpPage(test)
 

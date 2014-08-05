@@ -36,7 +36,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
-    results.AddSuccess(self.pages[1])
     results.DidRunPage(self.pages[1])
 
     self.assertEqual(set([self.pages[0]]), results.pages_that_failed)
@@ -53,7 +52,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
-    results.AddSuccess(self.pages[1])
     results.DidRunPage(self.pages[1])
 
     self.assertTrue(results.all_page_runs[0].skipped)

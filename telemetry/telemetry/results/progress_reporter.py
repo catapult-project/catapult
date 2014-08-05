@@ -17,13 +17,23 @@ class ProgressReporter(object):
   def __init__(self, output_stream):
     self.output_stream = output_stream
 
-  def WillRunPage(self, page):
-    pass
-
   def DidAddValue(self, value):
     pass
 
-  def DidAddSuccess(self, page):
+  def WillRunPage(self, page_test_results):
+    pass
+
+  def DidRunPage(self, page_test_results):
+    pass
+
+  def WillAttemptPageRun(self, page_test_results, attempt_count, max_attempts):
+    """
+    Args:
+      attempt_count: The current attempt number, start at 1
+          (attempt_count == 1 for the first attempt, 2 for second
+          attempt, and so on).
+      max_attempts: Maximum number of page run attempts before failing.
+    """
     pass
 
   def DidFinishAllTests(self, page_test_results):

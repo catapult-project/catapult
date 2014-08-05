@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
 import time
 
 from telemetry.results import progress_reporter
@@ -19,49 +18,52 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     self._output_skipped_tests_summary = output_skipped_tests_summary
 
   def _GetMs(self):
+    assert self._timestamp is not None, 'Did not call WillRunPage.'
     return (time.time() - self._timestamp) * 1000
-
-  def _EmitFailure(self, failure_value):
-    print >> self.output_stream, failure.GetStringFromExcInfo(
-        failure_value.exc_info)
-    display_name = failure_value.page.display_name
-    print >> self.output_stream, '[  FAILED  ]', display_name, (
-        '(%0.f ms)' % self._GetMs())
-    self.output_stream.flush()
-
-  def _EmitSkip(self, skip_value):
-    page = skip_value.page
-    reason = skip_value.reason
-    logging.warning('===== SKIPPING TEST %s: %s =====',
-                    page.display_name, reason)
-    if self._timestamp == None:
-      self._timestamp = time.time()
-    print >> self.output_stream, '[       OK ]', page.display_name, (
-        '(%0.f ms)' % self._GetMs())
-    self.output_stream.flush()
 
   def DidAddValue(self, value):
     super(GTestProgressReporter, self).DidAddValue(value)
-    is_failure = isinstance(value, failure.FailureValue)
-    is_skip = isinstance(value, skip.SkipValue)
+    if isinstance(value, failure.FailureValue):
+      print >> self.output_stream, failure.GetStringFromExcInfo(
+          value.exc_info)
+      self.output_stream.flush()
+    elif isinstance(value, skip.SkipValue):
+      print >> self.output_stream, '===== SKIPPING TEST %s: %s =====' % (
+          value.page.display_name, value.reason)
+    # TODO(chrishenry): Consider outputting metric values as well. For
+    # e.g., it can replace BuildbotOutputFormatter in
+    # --output-format=html, which we used only so that users can grep
+    # the results without opening results.html.
 
-    # TODO(eakuefner/chrishenry): move emit failure/skip output to DidRunPage.
-    if is_failure:
-      self._EmitFailure(value)
-    elif is_skip:
-      self._EmitSkip(value)
-
-  def WillRunPage(self, page):
-    super(GTestProgressReporter, self).WillRunPage(page)
-    print >> self.output_stream, '[ RUN      ]', page.display_name
+  def WillRunPage(self, page_test_results):
+    super(GTestProgressReporter, self).WillRunPage(page_test_results)
+    print >> self.output_stream, '[ RUN      ]', (
+        page_test_results.current_page.display_name)
     self.output_stream.flush()
     self._timestamp = time.time()
 
-  def DidAddSuccess(self, page):
-    super(GTestProgressReporter, self).DidAddSuccess(page)
-    print >> self.output_stream, '[       OK ]', page.display_name, (
-        '(%0.f ms)' % self._GetMs())
+  def DidRunPage(self, page_test_results):
+    super(GTestProgressReporter, self).DidRunPage(page_test_results)
+    page = page_test_results.current_page
+    if page_test_results.current_page_run.failed:
+      print >> self.output_stream, '[  FAILED  ]', page.display_name, (
+          '(%0.f ms)' % self._GetMs())
+    else:
+      print >> self.output_stream, '[       OK ]', page.display_name, (
+          '(%0.f ms)' % self._GetMs())
     self.output_stream.flush()
+
+  def WillAttemptPageRun(self, page_test_results, attempt_count, max_attempts):
+    super(GTestProgressReporter, self).WillAttemptPageRun(
+        page_test_results, attempt_count, max_attempts)
+    # A failed attempt will have at least 1 value.
+    if attempt_count != 1:
+      print >> self.output_stream, (
+          '===== RETRYING PAGE RUN (attempt %s out of %s allowed) =====' % (
+              attempt_count, max_attempts))
+      print >> self.output_stream, (
+          'Page run attempt failed and will be retried. '
+          'Discarding previous results.')
 
   def DidFinishAllTests(self, page_test_results):
     super(GTestProgressReporter, self).DidFinishAllTests(page_test_results)

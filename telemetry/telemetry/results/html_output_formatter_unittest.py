@@ -48,13 +48,11 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.WillRunPage(test_page_set.pages[0])
     results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 3))
-    results.AddSuccess(test_page_set.pages[0])
     results.DidRunPage(test_page_set.pages[0])
 
     results.WillRunPage(test_page_set.pages[1])
     results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 7))
-    results.AddSuccess(test_page_set.pages[1])
     results.DidRunPage(test_page_set.pages[1])
 
     formatter = DeterministicHtmlOutputFormatter(
@@ -105,13 +103,11 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.WillRunPage(test_page_set.pages[0])
     results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 4))
-    results.AddSuccess(test_page_set.pages[0])
     results.DidRunPage(test_page_set.pages[0])
 
     results.WillRunPage(test_page_set.pages[1])
     results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 8))
-    results.AddSuccess(test_page_set.pages[1])
     results.DidRunPage(test_page_set.pages[1])
 
     formatter = DeterministicHtmlOutputFormatter(
@@ -201,13 +197,11 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.WillRunPage(test_page_set.pages[0])
     results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 5))
-    results.AddSuccess(test_page_set.pages[0])
     results.DidRunPage(test_page_set.pages[0])
 
     results.WillRunPage(test_page_set.pages[1])
     results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 9))
-    results.AddSuccess(test_page_set.pages[1])
     results.DidRunPage(test_page_set.pages[1])
 
     formatter = DeterministicHtmlOutputFormatter(

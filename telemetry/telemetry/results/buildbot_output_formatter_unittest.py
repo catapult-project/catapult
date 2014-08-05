@@ -33,13 +33,11 @@ class BuildbotOutputFormatterTest(
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 3))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 7))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
@@ -63,7 +61,6 @@ class BuildbotOutputFormatterTest(
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 3))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
@@ -86,7 +83,6 @@ class BuildbotOutputFormatterTest(
         test_page_set.pages[0], 'a', 'seconds', 3))
     measurement_results.AddValue(
         scalar.ScalarValue(test_page_set.pages[0], 'b', 'seconds', 10))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
@@ -94,14 +90,12 @@ class BuildbotOutputFormatterTest(
         test_page_set.pages[1], 'a', 'seconds', 3))
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'b', 'seconds', 10))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     measurement_results.WillRunPage(test_page_set.pages[2])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[2], 'a', 'seconds', 7))
     # Note, page[2] does not report a 'b' metric.
-    measurement_results.AddSuccess(test_page_set.pages[2])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
@@ -137,7 +131,6 @@ class BuildbotOutputFormatterTest(
     measurement_results.WillRunPage(test_page_set.pages[1])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 7))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
@@ -172,13 +165,11 @@ class BuildbotOutputFormatterTest(
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 4))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 8))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
@@ -204,25 +195,21 @@ class BuildbotOutputFormatterTest(
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 3))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 7))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 4))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 8))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
@@ -252,25 +239,21 @@ class BuildbotOutputFormatterTest(
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 3))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'a', 'seconds', 4))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 7))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'a', 'seconds', 8))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
@@ -303,13 +286,11 @@ class BuildbotOutputFormatterTest(
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'b', 'seconds', 2))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'b', 'seconds', 3))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     measurement_results.AddSummaryValue(
@@ -340,13 +321,11 @@ class BuildbotOutputFormatterTest(
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'b', 'seconds', 2))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'b', 'seconds', 3))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
@@ -374,13 +353,11 @@ class BuildbotOutputFormatterTest(
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[0], 'b', 'seconds', 2, important=False))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
     measurement_results.AddValue(scalar.ScalarValue(
         test_page_set.pages[1], 'b', 'seconds', 3, important=False))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
@@ -408,13 +385,11 @@ class BuildbotOutputFormatterTest(
     measurement_results.WillRunPage(test_page_set.pages[0])
     measurement_results.AddValue(list_of_scalar_values.ListOfScalarValues(
         test_page_set.pages[0], 'b', 'seconds', [2, 2]))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
     measurement_results.AddValue(list_of_scalar_values.ListOfScalarValues(
         test_page_set.pages[1], 'b', 'seconds', [3, 3]))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
@@ -442,7 +417,6 @@ class BuildbotOutputFormatterTest(
         test_page_set.pages[0], 'a', 'units',
         raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
         important=False))
-    measurement_results.AddSuccess(test_page_set.pages[0])
     measurement_results.DidRunPage(test_page_set.pages[0])
 
     measurement_results.WillRunPage(test_page_set.pages[1])
@@ -450,7 +424,6 @@ class BuildbotOutputFormatterTest(
         test_page_set.pages[1], 'a', 'units',
         raw_value_json='{"buckets": [{"low": 2, "high": 3, "count": 1}]}',
         important=False))
-    measurement_results.AddSuccess(test_page_set.pages[1])
     measurement_results.DidRunPage(test_page_set.pages[1])
 
     formatter = buildbot_output_formatter.BuildbotOutputFormatter(
