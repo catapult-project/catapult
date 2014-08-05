@@ -28,5 +28,5 @@ class PlatformBackendTest(unittest.TestCase):
     backend.StartMonitoringPower(browser_mock)
     time.sleep(0.001)
     output = backend.StopMonitoringPower()
-    self.assertTrue(output.has_key('power_samples_mw'))
+    self.assertTrue(output.has_key('energy_consumption_mwh'))
     self.assertTrue(output.has_key('identifier'))
