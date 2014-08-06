@@ -11,7 +11,7 @@ from telemetry.page import page as page_module
 from telemetry.page import page_measurement_unittest_base
 from telemetry.page import page_set
 from telemetry.page import page as page_module
-from telemetry.results import page_measurement_results
+from telemetry.results import page_test_results
 from telemetry.timeline import async_slice
 from telemetry.timeline import model as model_module
 from telemetry.unittest import options_for_unittests
@@ -68,7 +68,7 @@ class TimelineBasedMetricTestData(object):
     renderer_process = self._model.GetOrCreateProcess(1)
     self._renderer_thread = renderer_process.GetOrCreateThread(2)
     self._renderer_thread.name = 'CrRendererMain'
-    self._results = page_measurement_results.PageMeasurementResults()
+    self._results = page_test_results.PageTestResults()
     self._metric = None
     self._ps = None
 

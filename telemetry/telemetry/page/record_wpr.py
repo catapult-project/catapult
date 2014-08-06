@@ -16,7 +16,7 @@ from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import profile_creator
 from telemetry.page import test_expectations
-from telemetry.results import page_measurement_results
+from telemetry.results import page_test_results
 from telemetry.results import results_options
 
 
@@ -63,9 +63,9 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
     time.sleep(3)
 
     # When running record_wpr, results is a GTestTestResults, so we create a
-    # dummy PageMeasurementResults that implements the functions we use.
+    # dummy PageTestResults that implements the functions we use.
     # TODO(chrishenry): Fix the need for a dummy_results object.
-    dummy_results = page_measurement_results.PageMeasurementResults()
+    dummy_results = page_test_results.PageTestResults()
 
     if self.page_test:
       self._action_name_to_run = self.page_test.action_name_to_run

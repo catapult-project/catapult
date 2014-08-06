@@ -9,7 +9,7 @@ import unittest
 from telemetry.web_perf.metrics import fast_metric
 from telemetry.timeline import model as model_module
 from telemetry.timeline import async_slice
-from telemetry.results import page_measurement_results
+from telemetry.results import page_test_results
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
 
@@ -40,7 +40,7 @@ class RendererThreadHelper(object):
     interaction_records = [
         tir_module.TimelineInteractionRecord.FromAsyncEvent(s)
         for s in self._async_slices]
-    results = page_measurement_results.PageMeasurementResults()
+    results = page_test_results.PageTestResults()
     fake_page = None
     results.WillRunPage(fake_page)
     metric.AddResults(self._model, self._renderer_thread, interaction_records,
