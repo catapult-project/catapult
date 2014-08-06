@@ -83,6 +83,7 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     page_runner.Run(Test(), ps, expectations, options, results)
@@ -112,6 +113,7 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     test = Test()
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
@@ -133,6 +135,7 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     page_runner.Run(Test(), ps, expectations, options, results)
@@ -158,6 +161,7 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'csv'
+    options.suppress_gtest_report = True
 
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
@@ -188,6 +192,7 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     options.reset_results = None
     options.upload_results = None
     options.results_label = None
@@ -220,6 +225,7 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(2, len(results.all_page_specific_values))
 
     options.output_format = 'html'
+    options.suppress_gtest_report = True
     options.page_repeat = 1
     options.pageset_repeat = 1
     SetUpPageRunnerArguments(options)
@@ -250,6 +256,7 @@ class PageRunnerTests(unittest.TestCase):
       options = options_for_unittests.GetCopy()
       options.output_format = 'buildbot'
       options.output_file = output_file
+      options.suppress_gtest_report = True
       options.reset_results = None
       options.upload_results = None
       options.results_label = None
@@ -318,6 +325,7 @@ class PageRunnerTests(unittest.TestCase):
       test = TestThatInstallsCredentialsBackend(credentials_backend)
       options = options_for_unittests.GetCopy()
       options.output_format = 'none'
+      options.suppress_gtest_report = True
       SetUpPageRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
       page_runner.Run(test, ps, expectations, options, results)
@@ -348,6 +356,7 @@ class PageRunnerTests(unittest.TestCase):
     test = TestUserAgent()
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     page_runner.Run(test, ps, expectations, options, results)
@@ -378,6 +387,7 @@ class PageRunnerTests(unittest.TestCase):
     test = TestOneTab()
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     page_runner.Run(test, ps, expectations, options, results)
@@ -411,6 +421,7 @@ class PageRunnerTests(unittest.TestCase):
     test = TestBeforeLaunch()
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     page_runner.Run(test, ps, expectations, options, results)
@@ -439,6 +450,7 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.page_repeat = 2
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     if not browser_finder.FindBrowser(options):
       return
     test = Measurement()
@@ -471,6 +483,7 @@ class PageRunnerTests(unittest.TestCase):
     test = Test()
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     page_runner.Run(test, ps, expectations, options, results)
@@ -508,6 +521,7 @@ class PageRunnerTests(unittest.TestCase):
     test = Test()
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     page_runner.Run(test, ps, expectations, options, results)
@@ -550,6 +564,7 @@ class PageRunnerTests(unittest.TestCase):
   def testUseLiveSitesFlagSet(self):
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     options.use_live_sites = True
     SetUpPageRunnerArguments(options)
     self.TestUseLiveSitesFlag(options, expect_from_archive=False)
@@ -557,6 +572,7 @@ class PageRunnerTests(unittest.TestCase):
   def testUseLiveSitesFlagUnset(self):
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     self.TestUseLiveSitesFlag(options, expect_from_archive=True)
 
@@ -594,6 +610,7 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     page_runner.Run(Test(max_failures=2), ps, expectations, options, results)

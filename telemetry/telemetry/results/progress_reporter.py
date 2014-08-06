@@ -4,7 +4,7 @@
 
 
 class ProgressReporter(object):
-  """A class that reports progress of a benchmark to the output stream.
+  """A class that reports progress of a benchmark.
 
   The reporter produces output whenever a significant event happens
   during the progress of a benchmark, including (but not limited to):
@@ -13,9 +13,6 @@ class ProgressReporter(object):
 
   The default implementation outputs nothing.
   """
-
-  def __init__(self, output_stream):
-    self.output_stream = output_stream
 
   def DidAddValue(self, value):
     pass

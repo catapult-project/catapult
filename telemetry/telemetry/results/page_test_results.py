@@ -33,7 +33,7 @@ class PageTestResults(object):
     self._output_stream = output_stream
     self._progress_reporter = (
         progress_reporter if progress_reporter is not None
-        else progress_reporter_module.ProgressReporter(self._output_stream))
+        else progress_reporter_module.ProgressReporter())
     self._output_formatters = (
         output_formatters if output_formatters is not None else [])
     self._trace_tag = trace_tag
