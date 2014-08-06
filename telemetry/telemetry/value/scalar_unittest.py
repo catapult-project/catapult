@@ -60,10 +60,36 @@ class ValueTest(TestBase):
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2], vM.values)
 
-  def testAsDictIsAccurate(self):
+  def testAsDict(self):
     v = scalar.ScalarValue(None, 'x', 'unit', 42, important=False)
     d = v.AsDictWithoutBaseClassEntries()
 
     self.assertEquals(d, {
           'value': 42
         })
+
+  def testFromDictInt(self):
+    d = {
+      'type': 'scalar',
+      'name': 'x',
+      'units': 'unit',
+      'value': 42
+    }
+
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, scalar.ScalarValue))
+    self.assertEquals(v.value, 42)
+
+  def testFromDictFloat(self):
+    d = {
+      'type': 'scalar',
+      'name': 'x',
+      'units': 'unit',
+      'value': 42.4
+    }
+
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, scalar.ScalarValue))
+    self.assertEquals(v.value, 42.4)

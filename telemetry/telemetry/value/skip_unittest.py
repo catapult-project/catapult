@@ -32,3 +32,14 @@ class ValueTest(TestBase):
     v = skip.SkipValue(self.pages[0], 'page skipped for testing reason')
     d = v.AsDictWithoutBaseClassEntries()
     self.assertEquals(d['reason'], 'page skipped for testing reason')
+
+  def testFromDict(self):
+    d = {
+      'type': 'skip',
+      'name': 'skip',
+      'units': '',
+      'reason': 'page skipped for testing reason'
+    }
+    v = value.Value.FromDict(d, {})
+    self.assertTrue(isinstance(v, skip.SkipValue))
+    self.assertEquals(v.reason, 'page skipped for testing reason')

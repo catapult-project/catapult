@@ -29,10 +29,15 @@ class FailureValue(value_module.Value):
       page: The page where this failure occurs.
       message: A string message describing the failure.
     """
+    exc_info = cls._GetExcInfoFromMessage(message)
+    return FailureValue(page, exc_info)
+
+  @staticmethod
+  def _GetExcInfoFromMessage(message):
     try:
       raise Exception(message)
     except Exception:
-      return FailureValue(page, sys.exc_info())
+      return sys.exc_info()
 
   def __repr__(self):
     if self.page:
@@ -61,14 +66,27 @@ class FailureValue(value_module.Value):
   def GetRepresentativeString(self):
     return None
 
-  @classmethod
-  def GetJSONTypeName(cls):
+  @staticmethod
+  def GetJSONTypeName():
     return 'failure'
 
   def AsDict(self):
     d = super(FailureValue, self).AsDict()
     d['value'] = GetStringFromExcInfo(self.exc_info)
     return d
+
+  @staticmethod
+  def FromDict(value_dict, page_dict):
+    kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
+    del kwargs['name']
+    del kwargs['units']
+    important = kwargs.get('important', None)
+    if important != None:
+      del kwargs['important']
+    kwargs['exc_info'] = FailureValue._GetExcInfoFromMessage(
+        value_dict['value'])
+
+    return FailureValue(**kwargs)
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):

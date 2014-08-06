@@ -60,10 +60,23 @@ class StringValueTest(TestBase):
     self.assertEquals(True, vM.important)
     self.assertEquals(['L1', 'L2'], vM.values)
 
-  def testAsDictIsAccurate(self):
+  def testAsDict(self):
     v = string.StringValue(None, 'x', 'unit', 'foo', important=False)
     d = v.AsDictWithoutBaseClassEntries()
 
     self.assertEquals(d, {
           'value': 'foo'
         })
+
+  def testFromDict(self):
+    d = {
+      'type': 'string',
+      'name': 'x',
+      'units': 'unit',
+      'value': 'foo'
+    }
+
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, string.StringValue))
+    self.assertEquals(v.value, 'foo')

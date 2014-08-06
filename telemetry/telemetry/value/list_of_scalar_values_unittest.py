@@ -77,7 +77,7 @@ class ValueTest(TestBase):
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2, 3, 4], vM.values)
 
-  def testAsDictIsAccurate(self):
+  def testAsDict(self):
     v = list_of_scalar_values.ListOfScalarValues(
         None, 'x', 'unit', [1, 2],
         same_page_merge_policy=value.PICK_FIRST, important=False)
@@ -86,3 +86,27 @@ class ValueTest(TestBase):
     self.assertEquals(d, {
           'values': [1, 2]
         })
+
+  def testFromDictInts(self):
+    d = {
+      'type': 'list_of_scalar_values',
+      'name': 'x',
+      'units': 'unit',
+      'values': [1, 2]
+    }
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, list_of_scalar_values.ListOfScalarValues))
+    self.assertEquals(v.values, [1, 2])
+
+  def testFromDictFloats(self):
+    d = {
+      'type': 'list_of_scalar_values',
+      'name': 'x',
+      'units': 'unit',
+      'values': [1.3, 2.7]
+    }
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, list_of_scalar_values.ListOfScalarValues))
+    self.assertEquals(v.values, [1.3, 2.7])

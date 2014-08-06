@@ -59,14 +59,21 @@ class ListOfScalarValues(value_module.Value):
     return (super(ListOfScalarValues, self).IsMergableWith(that) and
             self.same_page_merge_policy == that.same_page_merge_policy)
 
-  @classmethod
-  def GetJSONTypeName(cls):
+  @staticmethod
+  def GetJSONTypeName():
     return 'list_of_scalar_values'
 
   def AsDict(self):
     d = super(ListOfScalarValues, self).AsDict()
     d['values'] = self.values
     return d
+
+  @staticmethod
+  def FromDict(value_dict, page_dict):
+    kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
+    kwargs['values'] = value_dict['values']
+
+    return ListOfScalarValues(**kwargs)
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):

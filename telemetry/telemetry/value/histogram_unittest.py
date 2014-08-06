@@ -53,7 +53,7 @@ class ValueTest(TestBase):
           'count': 78
         })
 
-  def testAsDictIsAccurate(self):
+  def testAsDict(self):
     histogram = histogram_module.HistogramValue(
         None, 'x', 'counts',
         raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
@@ -63,3 +63,17 @@ class ValueTest(TestBase):
     self.assertEquals(['buckets'], d.keys())
     self.assertTrue(isinstance(d['buckets'], list))
     self.assertEquals(len(d['buckets']), 1)
+
+  def testFromDict(self):
+    d = {
+      'type': 'histogram',
+      'name': 'x',
+      'units': 'counts',
+      'buckets': [{'low': 1, 'high': 2, 'count': 1}]
+    }
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, histogram_module.HistogramValue))
+    self.assertEquals(
+      ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
+      v.GetBuildbotValue())

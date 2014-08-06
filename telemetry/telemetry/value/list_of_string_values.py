@@ -54,14 +54,21 @@ class ListOfStringValues(value_module.Value):
     return (super(ListOfStringValues, self).IsMergableWith(that) and
             self.same_page_merge_policy == that.same_page_merge_policy)
 
-  @classmethod
-  def GetJSONTypeName(cls):
+  @staticmethod
+  def GetJSONTypeName():
     return 'list_of_string_values'
 
   def AsDict(self):
     d = super(ListOfStringValues, self).AsDict()
     d['values'] = self.values
     return d
+
+  @staticmethod
+  def FromDict(value_dict, page_dict):
+    kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
+    kwargs['values'] = value_dict['values']
+
+    return ListOfStringValues(**kwargs)
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):

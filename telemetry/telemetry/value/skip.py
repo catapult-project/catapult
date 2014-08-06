@@ -39,14 +39,26 @@ class SkipValue(value_module.Value):
   def GetRepresentativeString(self):
     return None
 
-  @classmethod
-  def GetJSONTypeName(cls):
+  @staticmethod
+  def GetJSONTypeName():
     return 'skip'
 
   def AsDict(self):
     d = super(SkipValue, self).AsDict()
     d['reason'] = self._reason
     return d
+
+  @staticmethod
+  def FromDict(value_dict, page_dict):
+    kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
+    del kwargs['name']
+    del kwargs['units']
+    important = kwargs.get('important', None)
+    if important != None:
+      del kwargs['important']
+    kwargs['reason'] = value_dict['reason']
+
+    return SkipValue(**kwargs)
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):

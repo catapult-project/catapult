@@ -47,14 +47,21 @@ class StringValue(value_module.Value):
   def GetRepresentativeString(self):
     return str(self.value)
 
-  @classmethod
-  def GetJSONTypeName(cls):
+  @staticmethod
+  def GetJSONTypeName():
     return 'string'
 
   def AsDict(self):
     d = super(StringValue, self).AsDict()
     d['value'] = self.value
     return d
+
+  @staticmethod
+  def FromDict(value_dict, page_dict):
+    kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
+    kwargs['value'] = value_dict['value']
+
+    return StringValue(**kwargs)
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):

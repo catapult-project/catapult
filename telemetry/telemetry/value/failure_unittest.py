@@ -5,6 +5,7 @@
 import os
 import sys
 import unittest
+import traceback
 
 from telemetry import value
 from telemetry.page import page_set
@@ -22,12 +23,12 @@ class TestBase(unittest.TestCase):
 class ValueTest(TestBase):
   def testName(self):
     v0 = failure.FailureValue.FromMessage(self.pages[0], 'Failure')
-    self.assertEqual('Exception', v0.name)
+    self.assertEquals('Exception', v0.name)
     try:
       raise NotImplementedError()
     except Exception:
       v1 = failure.FailureValue(self.pages[0], sys.exc_info())
-    self.assertEqual('NotImplementedError', v1.name)
+    self.assertEquals('NotImplementedError', v1.name)
 
   def testBuildbotAndRepresentativeValue(self):
     v = failure.FailureValue.FromMessage(self.pages[0], 'Failure')
@@ -42,3 +43,19 @@ class ValueTest(TestBase):
     v = failure.FailureValue.FromMessage(self.pages[0], 'Failure')
     d = v.AsDictWithoutBaseClassEntries()
     self.assertTrue(d['value'].find('Exception: Failure') > -1)
+
+  def testFromDict(self):
+    try:
+      raise Exception('test')
+    except Exception:
+      exc_info = sys.exc_info()
+    d = {
+      'type': 'failure',
+      'name': exc_info[0].__name__,
+      'units': '',
+      'value': ''.join(traceback.format_exception(*exc_info))
+    }
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, failure.FailureValue))
+    self.assertEquals(v.name, 'Exception')

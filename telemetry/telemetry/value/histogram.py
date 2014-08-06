@@ -32,7 +32,8 @@ class HistogramValue(value_module.Value):
     super(HistogramValue, self).__init__(page, name, units, important,
                                          description)
     if raw_value_json:
-      assert raw_value == None, 'Dont specify both raw_value and raw_value_json'
+      assert raw_value == None, \
+             'Don\'t specify both raw_value and raw_value_json'
       raw_value = json.loads(raw_value_json)
     if raw_value:
       assert 'buckets' in raw_value
@@ -89,13 +90,21 @@ class HistogramValue(value_module.Value):
   def GetRepresentativeString(self):
     return self.GetBuildbotValue()
 
-  def GetJSONTypeName(self):
+  @staticmethod
+  def GetJSONTypeName():
     return 'histogram'
 
   def AsDict(self):
     d = super(HistogramValue, self).AsDict()
     d['buckets'] = [b.AsDict() for b in self.buckets]
     return d
+
+  @staticmethod
+  def FromDict(value_dict, page_dict):
+    kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
+    kwargs['raw_value'] = value_dict
+
+    return HistogramValue(**kwargs)
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):

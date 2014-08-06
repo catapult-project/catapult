@@ -77,7 +77,7 @@ class ListOfStringValuesTest(TestBase):
     self.assertEquals(True, vM.important)
     self.assertEquals(['L1', 'L2', 'L3', 'L4'], vM.values)
 
-  def testAsDictIsAccurate(self):
+  def testAsDict(self):
     v = list_of_string_values.ListOfStringValues(
         None, 'x', 'unit', ['foo', 'bar'],
         same_page_merge_policy=value.PICK_FIRST, important=False)
@@ -86,3 +86,15 @@ class ListOfStringValuesTest(TestBase):
     self.assertEquals(d, {
           'values': ['foo', 'bar']
         })
+
+  def testFromDict(self):
+    d = {
+      'type': 'list_of_string_values',
+      'name': 'x',
+      'units': 'unit',
+      'values': ['foo', 'bar']
+    }
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, list_of_string_values.ListOfStringValues))
+    self.assertEquals(v.values, ['foo', 'bar'])
