@@ -154,20 +154,20 @@ tvcm.exportTo('about_tracing', function() {
       }.bind(this);
 
       this.recording_ = 'stopping';
-      return new Promise(function(endRecordingDoneResolver) {
+      return new Promise(function(resolve, reject) {
         function tracingComplete() {
           clearListeners();
           this.recording_ = false;
           this.currentTraceTextChunks_.push(']');
           var traceText = this.currentTraceTextChunks_.join('');
           this.currentTraceTextChunks_ = undefined;
-          endRecordingDoneResolver.resolve(traceText);
+          resolve(traceText);
         }
 
         function tracingFailed(err) {
           clearListeners();
           this.recording_ = false;
-          endRecordingDoneResolver.reject(err);
+          reject(err);
         }
 
         this.conn_.setNotificationListener(
