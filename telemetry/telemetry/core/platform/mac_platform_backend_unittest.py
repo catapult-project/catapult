@@ -6,7 +6,7 @@ import os
 import unittest
 
 from telemetry import benchmark
-from telemetry.core.platform import factory
+from telemetry.core import platform as platform_module
 from telemetry.core.platform import platform_backend
 
 
@@ -24,7 +24,9 @@ class MacPlatformBackendTest(unittest.TestCase):
 
   @benchmark.Enabled('mac')
   def testGetCPUStats(self):
-    backend = factory.GetPlatformBackendForCurrentOS()
+    platform = platform_module.GetHostPlatform()
+
+    backend = platform._platform_backend # pylint: disable=W0212
 
     cpu_stats = backend.GetCpuStats(os.getpid())
     self.assertGreater(cpu_stats['CpuProcessTime'], 0)

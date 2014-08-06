@@ -37,6 +37,17 @@ MAVERICKS =    OSVersion('mavericks',    10.9)
 
 
 class PlatformBackend(object):
+  def __init__(self):
+    self._platform = None
+
+  def SetPlatform(self, platform):
+    assert self._platform == None
+    self._platform = platform
+
+  @property
+  def platform(self):
+    return self._platform
+
   def IsRawDisplayFrameRateSupported(self):
     return False
 

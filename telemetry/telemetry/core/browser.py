@@ -10,7 +10,6 @@ from telemetry.core import exceptions
 from telemetry.core import extension_dict
 from telemetry.core import local_server
 from telemetry.core import memory_cache_http_server
-from telemetry.core import platform
 from telemetry.core import tab_list
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
@@ -30,17 +29,19 @@ class Browser(object):
       ... do all your operations on browser here
   """
   def __init__(self, backend, platform_backend):
+    assert platform_backend.platform != None
+
     self._browser_backend = backend
+    self._platform_backend = platform_backend
     self._http_server = None
     self._wpr_server = None
-    self._platform_backend = platform_backend
-    self._platform = platform.Platform(platform_backend)
     self._active_profilers = []
     self._profilers_states = {}
     self._local_server_controller = local_server.LocalServerController(backend)
     self._tabs = tab_list.TabList(backend.tab_list_backend)
     self.credentials = browser_credentials.BrowserCredentials()
-    self._platform.SetFullPerformanceModeEnabled(True)
+
+    self.platform.SetFullPerformanceModeEnabled(True)
 
   def __enter__(self):
     self.Start()
@@ -51,7 +52,7 @@ class Browser(object):
 
   @property
   def platform(self):
-    return self._platform
+    return self._platform_backend.platform
 
   @property
   def browser_type(self):

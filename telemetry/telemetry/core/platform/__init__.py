@@ -2,11 +2,35 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.platform import factory
+import sys
+
+
+_host_platform = None
+
+
+def _InitHostPlatformIfNeeded():
+  global _host_platform
+  if _host_platform:
+    return
+
+  if sys.platform.startswith('linux'):
+    from telemetry.core.platform import linux_platform_backend
+    backend = linux_platform_backend.LinuxPlatformBackend()
+  elif sys.platform == 'darwin':
+    from telemetry.core.platform import mac_platform_backend
+    backend = mac_platform_backend.MacPlatformBackend()
+  elif sys.platform == 'win32':
+    from telemetry.core.platform import win_platform_backend
+    backend = win_platform_backend.WinPlatformBackend()
+  else:
+    raise NotImplementedError()
+
+  _host_platform = Platform(backend)
 
 
 def GetHostPlatform():
-  return Platform(factory.GetPlatformBackendForCurrentOS())
+  _InitHostPlatformIfNeeded()
+  return _host_platform
 
 
 class Platform(object):
@@ -18,6 +42,7 @@ class Platform(object):
   """
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
+    self._platform_backend.SetPlatform(self)
 
   def IsRawDisplayFrameRateSupported(self):
     """Platforms may be able to collect GL surface stats."""

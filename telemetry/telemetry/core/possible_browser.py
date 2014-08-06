@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import platform
 
 
 class PossibleBrowser(object):
@@ -18,6 +17,7 @@ class PossibleBrowser(object):
     self._finder_options = finder_options
     self._supports_tab_control = supports_tab_control
     self._platform = None
+    self._platform_backend = None
 
   def __repr__(self):
     return 'PossibleBrowser(browser_type=%s)' % self.browser_type
@@ -41,9 +41,11 @@ class PossibleBrowser(object):
 
   @property
   def platform(self):
-    if not self._platform:
-      self._platform = platform.Platform(self._platform_backend)
+    self._InitPlatformIfNeeded()
     return self._platform
+
+  def _InitPlatformIfNeeded(self):
+    raise NotImplementedError()
 
   def Create(self):
     raise NotImplementedError()

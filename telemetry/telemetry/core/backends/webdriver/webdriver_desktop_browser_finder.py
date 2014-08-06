@@ -8,10 +8,10 @@ import os
 import sys
 
 from telemetry.core import browser
+from telemetry.core import platform as platform_module
 from telemetry.core import possible_browser
 from telemetry.core import util
 from telemetry.core.backends.webdriver import webdriver_ie_backend
-from telemetry.core.platform import factory
 from telemetry.util import support_binaries
 
 # Try to import the selenium python lib which may be not available.
@@ -43,14 +43,20 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
     assert browser_type in ALL_BROWSER_TYPES, \
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
 
-  @property
-  def _platform_backend(self):
-    return factory.GetPlatformBackendForCurrentOS()
-
   def CreateWebDriverBackend(self, platform_backend):
     raise NotImplementedError()
 
+  def _InitPlatformIfNeeded(self):
+    if self._platform:
+      return
+
+    self._platform = platform_module.GetHostPlatform()
+
+    # pylint: disable=W0212
+    self._platform_backend = self._platform._platform_backend
+
   def Create(self):
+    self._InitPlatformIfNeeded()
     backend = self.CreateWebDriverBackend(self._platform_backend)
     return browser.Browser(backend, self._platform_backend)
 

@@ -6,8 +6,8 @@
 
 import logging
 
-from telemetry import decorators
 from telemetry.core import browser
+from telemetry.core import platform as platform_module
 from telemetry.core import possible_browser
 from telemetry.core.backends.chrome import cros_browser_with_oobe
 from telemetry.core.backends.chrome import cros_browser_backend
@@ -31,20 +31,23 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
     self._cri = cri
     self._is_guest = is_guest
-    self._platform = None
 
   def __repr__(self):
     return 'PossibleCrOSBrowser(browser_type=%s)' % self.browser_type
 
-  @property
-  @decorators.Cache
-  def _platform_backend(self):
-    return cros_platform_backend.CrosPlatformBackend(self._cri)
+  def _InitPlatformIfNeeded(self):
+    if self._platform:
+      return
+    self._platform_backend = cros_platform_backend.CrosPlatformBackend(
+        self._cri)
+    self._platform = platform_module.Platform(self._platform_backend)
 
   def Create(self):
     if self.finder_options.output_profile_path:
       raise NotImplementedError(
           'Profile generation is not yet supported on CrOS.')
+
+    self._InitPlatformIfNeeded()
 
     browser_options = self.finder_options.browser_options
     backend = cros_browser_backend.CrOSBrowserBackend(

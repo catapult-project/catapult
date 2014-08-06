@@ -13,6 +13,7 @@ import sys
 from telemetry import decorators
 from telemetry.core import browser
 from telemetry.core import platform
+from telemetry.core import platform as platform_module
 from telemetry.core import possible_browser
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
@@ -93,14 +94,18 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def __repr__(self):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
 
-  @property
-  @decorators.Cache
-  def _platform_backend(self):
-    return android_platform_backend.AndroidPlatformBackend(
+  def _InitPlatformIfNeeded(self):
+    if self._platform:
+      return
+
+    self._platform_backend = android_platform_backend.AndroidPlatformBackend(
         self._backend_settings.adb.device(),
         self.finder_options.no_performance_mode)
+    self._platform = platform_module.Platform(self._platform_backend)
 
   def Create(self):
+    self._InitPlatformIfNeeded()
+
     use_rndis_forwarder = (self.finder_options.android_rndis or
                            self.finder_options.browser_options.netsim or
                            platform.GetHostPlatform().GetOSName() != 'linux')

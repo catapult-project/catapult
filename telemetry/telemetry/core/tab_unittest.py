@@ -19,6 +19,10 @@ def _IsDocumentVisible(tab):
   return not tab.EvaluateJavaScript('document.hidden || document.webkitHidden')
 
 
+class FakePlatformBackend(object):
+  def __init__(self):
+    self.platform = FakePlatform()
+
 class FakePlatform(object):
   def __init__(self):
     self._is_video_capture_running = False
@@ -83,14 +87,16 @@ class TabTest(tab_test_case.TabTestCase):
 
   #pylint: disable=W0212
   def testIsVideoCaptureRunning(self):
-    original_platform = self._tab.browser._platform
-    self._tab.browser._platform = FakePlatform()
-    self.assertFalse(self._tab.is_video_capture_running)
-    self._tab.StartVideoCapture(min_bitrate_mbps=2)
-    self.assertTrue(self._tab.is_video_capture_running)
-    self.assertIsNotNone(self._tab.StopVideoCapture())
-    self.assertFalse(self._tab.is_video_capture_running)
-    self._tab.browser._platform = original_platform
+    original_platform_backend = self._tab.browser._platform_backend
+    try:
+      self._tab.browser._platform_backend = FakePlatformBackend()
+      self.assertFalse(self._tab.is_video_capture_running)
+      self._tab.StartVideoCapture(min_bitrate_mbps=2)
+      self.assertTrue(self._tab.is_video_capture_running)
+      self.assertIsNotNone(self._tab.StopVideoCapture())
+      self.assertFalse(self._tab.is_video_capture_running)
+    finally:
+      self._tab.browser._platform_backend = original_platform_backend
 
   def testHighlight(self):
     self.assertEquals(self._tab.url, 'about:blank')

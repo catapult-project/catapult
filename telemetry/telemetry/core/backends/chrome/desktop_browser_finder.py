@@ -9,10 +9,10 @@ import subprocess
 import sys
 
 from telemetry.core import browser
+from telemetry.core import platform as platform_module
 from telemetry.core import possible_browser
 from telemetry.core.backends.chrome import cros_interface
 from telemetry.core.backends.chrome import desktop_browser_backend
-from telemetry.core.platform import factory
 from telemetry.util import path
 
 ALL_BROWSER_TYPES = [
@@ -48,9 +48,14 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     return 'PossibleDesktopBrowser(browser_type=%s, executable=%s)' % (
         self.browser_type, self._local_executable)
 
-  @property
-  def _platform_backend(self):
-    return factory.GetPlatformBackendForCurrentOS()
+  def _InitPlatformIfNeeded(self):
+    if self._platform:
+      return
+
+    self._platform = platform_module.GetHostPlatform()
+
+    # pylint: disable=W0212
+    self._platform_backend = self._platform._platform_backend
 
   def Create(self):
     if self._flash_path and not os.path.exists(self._flash_path):
@@ -59,6 +64,8 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
           'To run with Flash, check it out via http://go/read-src-internal',
           self._flash_path)
       self._flash_path = None
+
+    self._InitPlatformIfNeeded()
 
     backend = desktop_browser_backend.DesktopBrowserBackend(
         self.finder_options.browser_options, self._local_executable,
