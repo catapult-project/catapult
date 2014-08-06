@@ -71,6 +71,10 @@ class IppetPowerMonitor(power_monitor.PowerMonitor):
     self._output_dir = None
 
   def CanMonitorPower(self):
+    # IPPET disabled because of flakiness (crbug.com/336558).
+    if True:
+      return False
+
     if not win32event:
       return False
 
