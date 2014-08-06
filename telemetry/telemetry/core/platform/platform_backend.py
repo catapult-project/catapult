@@ -2,6 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import weakref
+
+from telemetry.core.platform import tracing_controller_backend
+
+
 # pylint: disable=W0613
 
 # pylint: disable=W0212
@@ -39,6 +44,9 @@ MAVERICKS =    OSVersion('mavericks',    10.9)
 class PlatformBackend(object):
   def __init__(self):
     self._platform = None
+    self._running_browser_backends = weakref.WeakSet()
+    self._tracing_controller_backend = \
+        tracing_controller_backend.TracingControllerBackend(self)
 
   def SetPlatform(self, platform):
     assert self._platform == None
@@ -47,6 +55,41 @@ class PlatformBackend(object):
   @property
   def platform(self):
     return self._platform
+
+  @property
+  def running_browser_backends(self):
+    return list(self._running_browser_backends)
+
+  @property
+  def tracing_controller_backend(self):
+    return self._tracing_controller_backend
+
+  def DidCreateBrowser(self, browser, browser_backend):
+    self.SetFullPerformanceModeEnabled(True)
+
+  def DidStartBrowser(self, browser, browser_backend):
+    assert browser not in self._running_browser_backends
+    self._running_browser_backends.add(browser_backend)
+    self._tracing_controller_backend.DidStartBrowser(
+        browser, browser_backend)
+
+  def WillCloseBrowser(self, browser, browser_backend):
+    self._tracing_controller_backend.WillCloseBrowser(
+        browser, browser_backend)
+
+    is_last_browser = len(self._running_browser_backends) == 1
+    if is_last_browser:
+      self.SetFullPerformanceModeEnabled(False)
+
+    self._running_browser_backends.remove(browser_backend)
+
+  def GetBackendForBrowser(self, browser):
+    matches = [x for x in self._running_browser_backends
+               if x.browser == browser]
+    if len(matches) == 0:
+      raise Exception('No browser found')
+    assert len(matches) == 1
+    return matches[0]
 
   def IsRawDisplayFrameRateSupported(self):
     return False

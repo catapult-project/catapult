@@ -3,25 +3,9 @@
 # found in the LICENSE file.
 
 import logging
-import re
 
 from telemetry.core.backends.chrome import inspector_websocket
-
-
-# All tracing categories not disabled-by-default
-DEFAULT_TRACE_CATEGORIES = None
-
-
-# Categories for absolute minimum overhead tracing. This contains no
-# sub-traces of thread tasks, so it's only useful for capturing the
-# cpu-time spent on threads (as well as needed benchmark traces)
-# FIXME: Remove webkit.console when blink.console lands in chromium and
-# the ref builds are updated. crbug.com/386847
-MINIMAL_TRACE_CATEGORIES = ("toplevel,"
-                            "benchmark,"
-                            "webkit.console,"
-                            "blink.console,"
-                            "trace_event_overhead")
+from telemetry.core.platform import tracing_category_filter
 
 
 class TracingUnsupportedException(Exception):
@@ -31,77 +15,6 @@ class TracingUnsupportedException(Exception):
 class TracingTimeoutException(Exception):
   pass
 
-
-class CategoryFilter(object):
-  def __init__(self, filter_string):
-    self.excluded = set()
-    self.included = set()
-    self.disabled = set()
-    self.synthetic_delays = set()
-    self.contains_wildcards = False
-
-    if not filter_string:
-      return
-
-    if '*' in filter_string or '?' in filter_string:
-      self.contains_wildcards = True
-
-    filter_set = set(filter_string.split(','))
-    delay_re = re.compile(r'DELAY[(][A-Za-z0-9._;]+[)]')
-    for category in filter_set:
-      if category == '':
-        continue
-      if delay_re.match(category):
-        self.synthetic_delays.add(category)
-      elif category[0] == '-':
-        category = category[1:]
-        self.excluded.add(category)
-      elif category.startswith('disabled-by-default-'):
-        self.disabled.add(category)
-      else:
-        self.included.add(category)
-
-  def IsSubset(self, other):
-    """ Determine if filter A (self) is a subset of filter B (other).
-        Returns True if A is a subset of B, False if A is not a subset of B,
-        and None if we can't tell for sure.
-    """
-    # We don't handle filters with wildcards in this test.
-    if self.contains_wildcards or other.contains_wildcards:
-      return None
-
-    # Disabled categories get into a trace if and only if they are contained in
-    # the 'disabled' set. Return False if A's disabled set is not a subset of
-    # B's disabled set.
-    if not self.disabled <= other.disabled:
-      return False
-
-    # If A defines more or different synthetic delays than B, then A is not a
-    # subset.
-    if not self.synthetic_delays <= other.synthetic_delays:
-      return False
-
-    if self.included and other.included:
-      # A and B have explicit include lists. If A includes something that B
-      # doesn't, return False.
-      if not self.included <= other.included:
-        return False
-    elif self.included:
-      # Only A has an explicit include list. If A includes something that B
-      # excludes, return False.
-      if self.included.intersection(other.excluded):
-        return False
-    elif other.included:
-      # Only B has an explicit include list. We don't know which categories are
-      # contained in the default list, so return None.
-      return None
-    else:
-      # None of the filter have explicit include list. If B excludes categories
-      # that A doesn't exclude, return False.
-      if not other.excluded <= self.excluded:
-        return False
-
-    return True
 
 class TracingBackend(object):
   def __init__(self, devtools_port):
@@ -126,7 +39,8 @@ class TracingBackend(object):
     """
     self._nesting += 1
     if self.is_tracing_running:
-      new_category_filter = CategoryFilter(custom_categories)
+      new_category_filter = tracing_category_filter.TracingCategoryFilter(
+          filter_string=custom_categories)
       is_subset = new_category_filter.IsSubset(self._category_filter)
       assert(is_subset != False)
       if is_subset == None:
@@ -135,7 +49,8 @@ class TracingBackend(object):
       return False
     self._CheckNotificationSupported()
     req = {'method': 'Tracing.start'}
-    self._category_filter = CategoryFilter(custom_categories)
+    self._category_filter = tracing_category_filter.TracingCategoryFilter(
+        filter_string=custom_categories)
     if custom_categories:
       req['params'] = {'categories': custom_categories}
     self._inspector_websocket.SyncRequest(req, timeout)

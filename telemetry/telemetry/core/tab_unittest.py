@@ -10,7 +10,7 @@ from telemetry.core import bitmap
 from telemetry.core import video
 from telemetry.core import util
 from telemetry.core import exceptions
-from telemetry.core.backends.chrome import tracing_backend
+from telemetry.core.platform import tracing_category_filter
 from telemetry.timeline import model
 from telemetry.unittest import tab_test_case
 
@@ -23,6 +23,13 @@ class FakePlatformBackend(object):
   def __init__(self):
     self.platform = FakePlatform()
 
+  def DidStartBrowser(self, _, _2):
+    pass
+
+  def WillCloseBrowser(self, _, _2):
+    pass
+
+
 class FakePlatform(object):
   def __init__(self):
     self._is_video_capture_running = False
@@ -34,9 +41,6 @@ class FakePlatform(object):
   def StopVideoCapture(self):
     self._is_video_capture_running = False
     return video.Video(tempfile.NamedTemporaryFile())
-
-  def SetFullPerformanceModeEnabled(self, enabled):
-    pass
 
   @property
   def is_video_capture_running(self):
@@ -100,7 +104,7 @@ class TabTest(tab_test_case.TabTestCase):
 
   def testHighlight(self):
     self.assertEquals(self._tab.url, 'about:blank')
-    self._browser.StartTracing(tracing_backend.DEFAULT_TRACE_CATEGORIES)
+    self._browser.StartTracing()
     self._tab.Highlight(bitmap.WEB_PAGE_TEST_ORANGE)
     self._tab.ClearHighlight(bitmap.WEB_PAGE_TEST_ORANGE)
     trace_data = self._browser.StopTracing()
@@ -127,7 +131,8 @@ class TabTest(tab_test_case.TabTestCase):
     third_tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
     third_tab.Close()
 
-    self._browser.StartTracing(tracing_backend.MINIMAL_TRACE_CATEGORIES)
+    self._browser.StartTracing(
+        tracing_category_filter.CreateNoOverheadFilter())
     first_tab.ExecuteJavaScript('console.time("first-tab-marker");')
     first_tab.ExecuteJavaScript('console.timeEnd("first-tab-marker");')
     second_tab.ExecuteJavaScript('console.time("second-tab-marker");')

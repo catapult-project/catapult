@@ -4,6 +4,8 @@
 
 import sys
 
+from telemetry.core.platform import tracing_controller
+
 
 _host_platform = None
 
@@ -43,6 +45,12 @@ class Platform(object):
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
     self._platform_backend.SetPlatform(self)
+    self._tracing_controller = tracing_controller.TracingController(
+        self._platform_backend.tracing_controller_backend)
+
+  @property
+  def tracing_controller(self):
+    return self._tracing_controller
 
   def IsRawDisplayFrameRateSupported(self):
     """Platforms may be able to collect GL surface stats."""
@@ -77,16 +85,6 @@ class Platform(object):
   def GetRawDisplayFrameRateMeasurements(self):
     """Returns a list of RawDisplayFrameRateMeasurement."""
     return self._platform_backend.GetRawDisplayFrameRateMeasurements()
-
-  def SetFullPerformanceModeEnabled(self, enabled):
-    """Platforms may tweak their CPU governor, system status, etc.
-
-    Most platforms can operate in a battery saving mode. While good for battery
-    life, this can cause confusing performance results and add noise. Turning
-    full performance mode on disables these features, which is useful for
-    performance testing.
-    """
-    return self._platform_backend.SetFullPerformanceModeEnabled(enabled)
 
   def CanMonitorThermalThrottling(self):
     """Platforms may be able to detect thermal throttling.

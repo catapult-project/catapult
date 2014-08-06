@@ -7,7 +7,7 @@ import os
 
 from collections import defaultdict
 from telemetry.core import util
-from telemetry.core.backends.chrome import tracing_backend
+from telemetry.core.platform import tracing_category_filter
 from telemetry.timeline import model as model_module
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import fast_metric
@@ -153,16 +153,19 @@ class TimelineBasedMeasurement(page_measurement.PageMeasurement):
   def WillNavigateToPage(self, page, tab):
     if not tab.browser.supports_tracing:
       raise Exception('Not supported')
+
     assert self.options.overhead_level in ALL_OVERHEAD_LEVELS
     if self.options.overhead_level == NO_OVERHEAD_LEVEL:
-      categories = tracing_backend.MINIMAL_TRACE_CATEGORIES
-    elif self.options.overhead_level == \
-        MINIMAL_OVERHEAD_LEVEL:
-      categories = ''
+      category_filter = tracing_category_filter.CreateNoOverheadFilter()
+    elif self.options.overhead_level == MINIMAL_OVERHEAD_LEVEL:
+      category_filter = tracing_category_filter.CreateMinimalOverheadFilter()
     else:
-      categories = '*,disabled-by-default-cc.debug'
-    categories = ','.join([categories] + page.GetSyntheticDelayCategories())
-    tab.browser.StartTracing(categories)
+      category_filter = tracing_category_filter.CreateDebugOverheadFilter()
+
+    for delay in page.GetSyntheticDelayCategories():
+      category_filter.AddSyntheticDelay(delay)
+
+    tab.browser.StartTracing(category_filter)
 
   def MeasurePage(self, page, tab, results):
     """ Collect all possible metrics and added them to results. """

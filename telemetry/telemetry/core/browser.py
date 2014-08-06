@@ -14,8 +14,9 @@ from telemetry.core import tab_list
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
 from telemetry.core.backends import browser_backend
+from telemetry.core.platform import tracing_category_filter
+from telemetry.core.platform import tracing_options
 from telemetry.core.platform.profiler import profiler_finder
-
 
 class Browser(object):
   """A running browser instance that can be controlled in a limited way.
@@ -41,7 +42,7 @@ class Browser(object):
     self._tabs = tab_list.TabList(backend.tab_list_backend)
     self.credentials = browser_credentials.BrowserCredentials()
 
-    self.platform.SetFullPerformanceModeEnabled(True)
+    self._platform_backend.DidCreateBrowser(self, self._browser_backend)
 
   def __enter__(self):
     self.Start()
@@ -96,7 +97,7 @@ class Browser(object):
 
   @property
   def supports_tracing(self):
-    return self._browser_backend.supports_tracing
+    return self.platform.tracing_controller.IsChromeTracingSupported(self)
 
   def is_profiler_active(self, profiler_name):
     return profiler_name in [profiler.name() for
@@ -273,16 +274,28 @@ class Browser(object):
     self._active_profilers = []
     return output_files
 
+
   def StartTracing(self, custom_categories=None, timeout=10):
-    return self._browser_backend.StartTracing(custom_categories, timeout)
+    """Note: this function is deprecated. Prefer platform.tracing_controller."""
+    if not isinstance(custom_categories,
+                      tracing_category_filter.TracingCategoryFilter):
+      category_filter = tracing_category_filter.TracingCategoryFilter(
+          filter_string=custom_categories)
+    else:
+      category_filter = custom_categories
+    options = tracing_options.TracingOptions()
+    options.enable_chrome_trace = True
+    return self.platform.tracing_controller.Start(
+        options, category_filter, timeout)
 
   @property
   def is_tracing_running(self):
-    return self._browser_backend.is_tracing_running
+    """Note: this function is deprecated. Prefer platform.tracing_controller."""
+    return self.platform.tracing_controller.is_tracing_running
 
   def StopTracing(self):
-    """ Stops tracing and returns the result as TimelineData object. """
-    return self._browser_backend.StopTracing()
+    """Note: this function is deprecated. Prefer platform.tracing_controller."""
+    return self.platform.tracing_controller.Stop()
 
   def Start(self):
     browser_options = self._browser_backend.browser_options
@@ -298,6 +311,7 @@ class Browser(object):
 
     self._browser_backend.SetBrowser(self)
     self._browser_backend.Start()
+    self._platform_backend.DidStartBrowser(self, self._browser_backend)
 
   def Close(self):
     """Closes this browser."""
@@ -305,7 +319,8 @@ class Browser(object):
       profiler_class.WillCloseBrowser(self._browser_backend,
                                       self._platform_backend)
 
-    self.platform.SetFullPerformanceModeEnabled(False)
+    if self._browser_backend.IsBrowserRunning():
+      self._platform_backend.WillCloseBrowser(self, self._browser_backend)
 
     if self._wpr_server:
       self._wpr_server.Close()
