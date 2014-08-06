@@ -11,6 +11,14 @@ FILE_GROUPS = ["tracing_css_files",
                "tracing_js_html_files",
                "tracing_img_files"]
 
+def GetFileGroupFromFileName(filename):
+   extension = os.path.splitext(filename)[1]
+   return {
+     '.css': 'tracing_css_files',
+     '.html': 'tracing_js_html_files',
+     '.js': 'tracing_js_html_files',
+     '.png': 'tracing_img_files'
+   }[extension]
 
 def CheckListedFilesSorted(src_file, group_name, listed_files):
   sorted_files = sorted(listed_files)
@@ -41,7 +49,8 @@ def GetKnownFiles():
   absolute_filenames = m.GetAllDependentFilenamesRecursive(
       include_raw_scripts=False)
 
-  return [os.path.relpath(f, p.trace_viewer_path) for f in absolute_filenames]
+  return list(set([os.path.relpath(f, p.trace_viewer_path)
+                   for f in absolute_filenames]))
 
 def CheckCommon(file_name, listed_files):
   project = trace_viewer_project.TraceViewerProject()

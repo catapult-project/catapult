@@ -128,7 +128,7 @@ def _GroupFiles(fileNameToGroupNameFunc, filenames):
 def _UpdateBuildFile(filename, build_file_class):
   updated_content = None
   with open(filename, 'r') as f:
-    build_file = build_file_class(f.read())
+    build_file = build_file_class(f.read(), check_common.FILE_GROUPS)
   files_by_group = _GroupFiles(check_common.GetFileGroupFromFileName,
                                check_common.GetKnownFiles())
   build_file.Update(files_by_group)
