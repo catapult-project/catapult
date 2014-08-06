@@ -57,6 +57,8 @@ def CreateResults(metadata, options):
   # Maybe we should have --output-dir instead of --output-file?
   if options.output_format == 'html' and not options.output_file:
     options.output_file = os.path.join(util.GetBaseDir(), 'results.html')
+  elif options.output_format == 'json' and not options.output_file:
+    options.output_file = os.path.join(util.GetBaseDir(), 'results.json')
 
   if hasattr(options, 'output_file') and options.output_file:
     output_file = os.path.expanduser(options.output_file)
@@ -98,8 +100,8 @@ def CreateResults(metadata, options):
         options.upload_results, options.browser_type,
         options.results_label, trace_tag=options.output_trace_tag))
   elif options.output_format == 'json':
-    output_formatters.append(json_output_formatter.JsonOutputFormatter(
-        output_stream, metadata))
+    output_formatters.append(
+        json_output_formatter.JsonOutputFormatter(output_stream, metadata))
   else:
     # Should never be reached. The parser enforces the choices.
     raise Exception('Invalid --output-format "%s". Valid choices are: %s'

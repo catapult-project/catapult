@@ -6,19 +6,22 @@ import json
 
 from telemetry.results import output_formatter
 
-def ResultsAsDict(res, metadata):
+def ResultsAsDict(page_test_results, metadata):
   result_dict = {
     'format_version': '0.2',
     'benchmark_name': metadata.name,
-    'summary_values': [v.AsDict() for v in res.all_summary_values],
-    'per_page_values': [v.AsDict() for v in res.all_page_specific_values],
-    'pages': dict((p.id, p.AsDict()) for p in _all_pages(res))
+    'summary_values': [v.AsDict() for v in
+                       page_test_results.all_summary_values],
+    'per_page_values': [v.AsDict() for v in
+                        page_test_results.all_page_specific_values],
+    'pages': dict((p.id, p.AsDict()) for p in _GetAllPages(page_test_results))
   }
 
   return result_dict
 
-def _all_pages(res):
-  pages = set(page_run.page for page_run in res.all_page_runs)
+def _GetAllPages(page_test_results):
+  pages = set(page_run.page for page_run in
+              page_test_results.all_page_runs)
   return pages
 
 class JsonOutputFormatter(output_formatter.OutputFormatter):
