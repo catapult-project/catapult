@@ -16,7 +16,6 @@ from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import profile_creator
 from telemetry.page import test_expectations
-from telemetry.results import page_test_results
 from telemetry.results import results_options
 
 
@@ -62,14 +61,9 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
     # speed index metric.
     time.sleep(3)
 
-    # When running record_wpr, results is a GTestTestResults, so we create a
-    # dummy PageTestResults that implements the functions we use.
-    # TODO(chrishenry): Fix the need for a dummy_results object.
-    dummy_results = page_test_results.PageTestResults()
-
     if self.page_test:
       self._action_name_to_run = self.page_test.action_name_to_run
-      self.page_test.RunPage(page, tab, dummy_results)
+      self.page_test.RunPage(page, tab, results)
       return
 
     should_reload = False
@@ -82,7 +76,7 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
       if should_reload:
         self.RunNavigateSteps(page, tab)
       self._action_name_to_run = action_name
-      super(RecorderPageTest, self).RunPage(page, tab, dummy_results)
+      super(RecorderPageTest, self).RunPage(page, tab, results)
       should_reload = True
 
   def RunNavigateSteps(self, page, tab):
