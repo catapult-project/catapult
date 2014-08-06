@@ -19,8 +19,56 @@ class TestNotSupportedOnPlatformFailure(Failure):
   browser version."""
 
 
+class MeasurementFailure(Failure):
+  """Exception that can be thrown from MeasurePage to indicate an undesired but
+  designed-for problem."""
+
+
 class PageTest(command_line.Command):
-  """A class styled on unittest.TestCase for creating page-specific tests."""
+  """A class styled on unittest.TestCase for creating page-specific tests.
+
+  This class also support running a measurement by default (but can be
+  overridden by overriding ValidatePage method).
+
+  To use this for measurement, subclass from the measurement and
+  override MeasurePage. For example:
+
+     class BodyChildElementMeasurement(PageTest):
+       def MeasurePage(self, page, tab, results):
+         body_child_count = tab.EvaluateJavaScript(
+             'document.body.children.length')
+         results.AddValue(scalar.ScalarValue(
+             page, 'body_children', 'count', body_child_count))
+
+  The class also provide hooks to add test-specific options. Here is
+  an example:
+
+     class BodyChildElementMeasurement(PageTest):
+        def AddCommandLineArgs(parser):
+          parser.add_option('--element', action='store', default='body')
+
+        def MeasurePage(self, page, tab, results):
+          body_child_count = tab.EvaluateJavaScript(
+              'document.querySelector('%s').children.length')
+          results.AddValue(scalar.ScalarValue(
+              page, 'children', 'count', child_count))
+
+  Args:
+    action_name_to_run: This is the method name in telemetry.page.Page
+        subclasses to run.
+    discard_first_run: Discard the first run of this page. This is
+        usually used with page_repeat and pageset_repeat options.
+    attempts: The number of attempts to run if we encountered
+        infrastructure problems (as opposed to test issues), such as
+        losing a browser.
+    max_failures: The number of page failures allowed before we stop
+        running other pages.
+    is_action_name_to_run_optional: Determines what to do if
+        action_name_to_run is not empty but the page doesn't have that
+        action. The page will run (without any action) if
+        is_action_name_to_run_optional is True, otherwise the page
+        will fail.
+  """
 
   options = {}
 
@@ -218,8 +266,34 @@ class PageTest(command_line.Command):
   def ValidatePage(self, page, tab, results):
     """Override to check the actual test assertions.
 
-    This is where most your test logic should go."""
-    raise NotImplementedError()
+    This is where most your test logic should go. By default it runs
+    self.MeasurePage.
+    """
+    self.MeasurePage(page, tab, results)
+
+  def MeasurePage(self, page, tab, results):
+    """Override to actually measure the page's performance.
+
+    Should call results.AddValue(...) for each result. Can raise an
+    exception of add a failure.FailureValue on failure.
+
+    Prefer metric value names that are in accordance with python
+    variable style. e.g., metric_name. The name 'url' must not be used.
+
+    Put together:
+
+       def MeasurePage(self, page, tab, results):
+         res = tab.EvaluateJavaScript('2+2')
+         if res != 4:
+           raise Exception('Oh, wow.')
+         results.AddValue(scalar.ScalarValue(
+             page, 'two_plus_two', 'count', res))
+
+    Args:
+      page: A telemetry.page.Page instance.
+      tab: A telemetry.core.Tab instance.
+      results: A telemetry.results.PageTestResults instance.
+    """
 
   def RunPage(self, page, tab, results):
     # Run actions.

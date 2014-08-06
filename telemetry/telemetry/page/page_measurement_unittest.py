@@ -9,53 +9,53 @@ from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import wpr_modes
 from telemetry.page import page as page_module
-from telemetry.page import page_measurement
 from telemetry.page import page_measurement_unittest_base
 from telemetry.page import page_set
 from telemetry.page import page_set_archive_info
+from telemetry.page import page_test
 from telemetry.unittest import options_for_unittests
 from telemetry.value import scalar
 
 
-class MeasurementThatFails(page_measurement.PageMeasurement):
+class MeasurementThatFails(page_test.PageTest):
   def MeasurePage(self, page, tab, results):
     raise exceptions.IntentionalException
 
-class MeasurementThatHasDefaults(page_measurement.PageMeasurement):
+class MeasurementThatHasDefaults(page_test.PageTest):
   def AddCommandLineArgs(self, parser):
     parser.add_option('-x', dest='x', default=3)
 
   def MeasurePage(self, page, tab, results):
     if not hasattr(self.options, 'x'):
-      raise page_measurement.MeasurementFailure('Default option was not set.')
+      raise page_test.MeasurementFailure('Default option was not set.')
     if self.options.x != 3:
-      raise page_measurement.MeasurementFailure(
+      raise page_test.MeasurementFailure(
           'Expected x == 3, got x == ' + self.options.x)
     results.AddValue(scalar.ScalarValue(page, 'x', 'ms', 7))
 
-class MeasurementForBlank(page_measurement.PageMeasurement):
+class MeasurementForBlank(page_test.PageTest):
   def MeasurePage(self, page, tab, results):
     contents = tab.EvaluateJavaScript('document.body.textContent')
     if contents.strip() != 'Hello world':
-      raise page_measurement.MeasurementFailure(
+      raise page_test.MeasurementFailure(
           'Page contents were: ' + contents)
 
-class MeasurementForReplay(page_measurement.PageMeasurement):
+class MeasurementForReplay(page_test.PageTest):
   def MeasurePage(self, page, tab, results):
     # Web Page Replay returns '404 Not found' if a page is not in the archive.
     contents = tab.EvaluateJavaScript('document.body.textContent')
     if '404 Not Found' in contents.strip():
-      raise page_measurement.MeasurementFailure('Page not in archive.')
+      raise page_test.MeasurementFailure('Page not in archive.')
 
-class MeasurementQueryParams(page_measurement.PageMeasurement):
+class MeasurementQueryParams(page_test.PageTest):
   def MeasurePage(self, page, tab, results):
     query = tab.EvaluateJavaScript('window.location.search')
     expected = '?foo=1'
     if query.strip() != expected:
-      raise page_measurement.MeasurementFailure(
+      raise page_test.MeasurementFailure(
           'query was %s, not %s.' % (query, expected))
 
-class MeasurementWithAction(page_measurement.PageMeasurement):
+class MeasurementWithAction(page_test.PageTest):
   def __init__(self):
     super(MeasurementWithAction, self).__init__('RunTestAction')
 

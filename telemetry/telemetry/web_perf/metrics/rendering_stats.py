@@ -4,7 +4,7 @@
 import logging
 
 from operator import attrgetter
-from telemetry.page import page_measurement
+from telemetry.page import page_test
 from telemetry.web_perf.metrics import rendering_frame
 
 # These are LatencyInfo component names indicating the various components
@@ -19,7 +19,7 @@ BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT'
 END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT'
 
 
-class NotEnoughFramesError(page_measurement.MeasurementFailure):
+class NotEnoughFramesError(page_test.MeasurementFailure):
   def __init__(self, frame_count):
     super(NotEnoughFramesError, self).__init__(
       'Only %i frame timestamps were collected ' % frame_count +
