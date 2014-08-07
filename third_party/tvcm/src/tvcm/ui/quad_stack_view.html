@@ -13,7 +13,32 @@ found in the LICENSE file.
 <link rel="import" href="/tvcm/ui/camera.html">
 <link rel="import" href="/tvcm/ui/mouse_mode_selector.html">
 <link rel="import" href="/tvcm/ui/mouse_tracker.html">
-<link rel="stylesheet" href="/tvcm/ui/quad_stack_view.css">
+
+<style>
+quad-stack-view {
+  display: block;
+  float: left;
+  height: 100%;
+  overflow: hidden;
+  position: relative; /* For the absolute positioned mouse-mode-selector */
+  width: 100%;
+}
+
+quad-stack-view > #chrome-left {
+  content: url('../images/chrome-left.png');
+  display: none;
+}
+
+quad-stack-view > #chrome-mid {
+  content: url('../images/chrome-mid.png');
+  display: none;
+}
+
+quad-stack-view > #chrome-right {
+  content: url('../images/chrome-right.png');
+  display: none;
+}
+</style>
 
 <template id='quad-stack-view-template'>
   <canvas id='canvas'></canvas>

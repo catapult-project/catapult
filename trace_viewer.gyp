@@ -12,7 +12,6 @@
       'third_party/tvcm/src/tvcm/ui/list_view.css',
       'third_party/tvcm/src/tvcm/ui/mouse_mode_selector.css',
       'third_party/tvcm/src/tvcm/ui/pie_chart.css',
-      'third_party/tvcm/src/tvcm/ui/quad_stack_view.css',
       'third_party/tvcm/src/tvcm/ui/sortable_table.css',
       'third_party/tvcm/src/tvcm/ui/sunburst_chart.css',
       'third_party/tvcm/src/tvcm/ui/tool_button.css',
