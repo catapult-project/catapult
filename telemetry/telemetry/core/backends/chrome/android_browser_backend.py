@@ -11,7 +11,6 @@ import time
 
 from telemetry.core import exceptions
 from telemetry.core import forwarders
-from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends import browser_backend
@@ -26,13 +25,14 @@ from pylib.device import intent  # pylint: disable=F0401
 class AndroidBrowserBackendSettings(object):
 
   def __init__(self, adb, activity, cmdline_file, package, pseudo_exec_name,
-               supports_tab_control):
+               supports_tab_control, relax_ssl_check=False):
     self.adb = adb
     self.activity = activity
     self.cmdline_file = cmdline_file
     self.package = package
     self.pseudo_exec_name = pseudo_exec_name
     self.supports_tab_control = supports_tab_control
+    self.relax_ssl_check = relax_ssl_check
 
   def GetDevtoolsRemotePort(self):
     raise NotImplementedError()
@@ -185,6 +185,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._backend_settings = backend_settings
     self._saved_cmdline = ''
     self._target_arch = target_arch
+    self._saved_sslflag = ''
 
     # TODO(tonyg): This is flaky because it doesn't reserve the port that it
     # allocates. Need to fix this.
@@ -202,9 +203,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
         self._adb, use_rndis_forwarder)
 
-    if (self.browser_options.netsim or
-        platform.GetHostPlatform().GetOSName() == 'mac'):
-      assert use_rndis_forwarder, 'Netsim and/or Mac require RNDIS forwarding.'
+    if self.browser_options.netsim or use_rndis_forwarder:
+      assert use_rndis_forwarder, 'Netsim requires RNDIS forwarding.'
       self.wpr_port_pairs = forwarders.PortPairs(
           http=forwarders.PortPair(0, 80),
           https=forwarders.PortPair(0, 443),
@@ -265,6 +265,14 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Start(self):
     self._SetUpCommandLine()
+
+    # Disables android.net SSL certificate check.  This is necessary for
+    # applications using the android.net stack to work with proxy HTTPS server
+    # created by telemetry
+    if self._backend_settings.relax_ssl_check:
+      self._saved_sslflag = self._adb.device().GetProp('socket.relaxsslcheck')
+      self._adb.device().SetProp('socket.relaxsslcheck', 'yes')
+
     self._adb.device().RunShellCommand('logcat -c')
     if self.browser_options.startup_url:
       url = self.browser_options.startup_url
@@ -360,6 +368,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
     self._adb.device().ForceStop(self._backend_settings.package)
+
+    # Restore android.net SSL check
+    if self._backend_settings.relax_ssl_check:
+      self._adb.device().SetProp('socket.relaxsslcheck', self._saved_sslflag)
 
     if self._output_profile_path:
       logging.info("Pulling profile directory from device: '%s'->'%s'.",
