@@ -22,35 +22,19 @@ class Image(object):
   def contents(self):
     return self.resource.contents
 
-class StyleSheet(object):
-  """Represents a stylesheet resource referenced by a module via the
-  base.requireStylesheet(xxx) directive."""
-  def __init__(self, loader, name, resource):
+
+class ParsedStyleSheet(object):
+  def __init__(self, loader, containing_dirname, contents):
     self.loader = loader
-    self.name = name
-    self.resource = resource
+    self.contents = contents
     self._images = None
-
-  @property
-  def filename(self):
-    return self.resource.absolute_path
-
-  @property
-  def contents(self):
-    return self.resource.contents
-
-  def __repr__(self):
-    return "StyleSheet(%s)" % self.name
+    self._Load(containing_dirname)
 
   @property
   def images(self):
-    if self._images != None:
-      return self._images
-    self.load()
     return self._images
 
   def AppendDirectlyDependentFilenamesTo(self, dependent_filenames):
-    dependent_filenames.append(self.resource.absolute_path)
     for i in self.images:
       dependent_filenames.append(i.resource.absolute_path)
 
@@ -76,7 +60,12 @@ class StyleSheet(object):
                   self.contents)
 
 
-  def load(self):
+  def AppendDirectlyDependentFilenamesTo(self, dependent_filenames):
+    for i in self.images:
+      dependent_filenames.append(i.resource.absolute_path)
+
+
+  def _Load(self, containing_dirname):
     if self.contents.find('@import') != -1:
       raise Exception('@imports are not supported')
 
@@ -84,14 +73,61 @@ class StyleSheet(object):
       'url\((?:["|\']?)([^"\'()]*)(?:["|\']?)\)',
       self.contents)
 
-    module_dirname = os.path.dirname(self.resource.absolute_path)
     def resolve_url(url):
       if os.path.isabs(url):
         raise module.DepsException('URL references must be relative')
       # URLS are relative to this module's directory
-      abs_path = os.path.abspath(os.path.join(module_dirname, url))
+      abs_path = os.path.abspath(os.path.join(containing_dirname, url))
       image = self.loader.LoadImage(abs_path)
       image.aliases.append(url)
       return image
 
     self._images = [resolve_url(x) for x in matches]
+
+
+class StyleSheet(object):
+  """Represents a stylesheet resource referenced by a module via the
+  base.requireStylesheet(xxx) directive."""
+  def __init__(self, loader, name, resource):
+    self.loader = loader
+    self.name = name
+    self.resource = resource
+    self._parsed_style_sheet = None
+
+  @property
+  def filename(self):
+    return self.resource.absolute_path
+
+  @property
+  def contents(self):
+    return self.resource.contents
+
+  def __repr__(self):
+    return "StyleSheet(%s)" % self.name
+
+  @property
+  def images(self):
+    self._InitParsedStyleSheetIfNeeded()
+    return self._parsed_style_sheet.images
+
+  def AppendDirectlyDependentFilenamesTo(self, dependent_filenames):
+    self._InitParsedStyleSheetIfNeeded()
+
+    dependent_filenames.append(self.resource.absolute_path)
+    self._parsed_style_sheet.AppendDirectlyDependentFilenamesTo(
+        dependent_filenames)
+
+  @property
+  def contents_with_inlined_images(self):
+    self._InitParsedStyleSheetIfNeeded()
+    return self._parsed_style_sheet.contents_with_inlined_images
+
+  def load(self):
+    self._InitParsedStyleSheetIfNeeded()
+
+  def _InitParsedStyleSheetIfNeeded(self):
+    if self._parsed_style_sheet:
+      return
+    module_dirname = os.path.dirname(self.resource.absolute_path)
+    self._parsed_style_sheet = ParsedStyleSheet(
+        self.loader, module_dirname, self.contents)

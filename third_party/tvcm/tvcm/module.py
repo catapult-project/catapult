@@ -72,14 +72,6 @@ class ModuleDependencyMetadata(object):
     self.style_sheet_names += other.style_sheet_names
 
 
-class HTMLGenerationController(object):
-  def GetHTMLForScriptHRef(self, href):
-    return None
-
-  def GetHTMLForStylesheetHRef(self, href):
-    return None
-
-
 class Module(object):
   """Represents a javascript module.
 

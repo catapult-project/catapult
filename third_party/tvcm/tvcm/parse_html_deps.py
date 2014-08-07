@@ -7,12 +7,13 @@ from HTMLParser import HTMLParser
 
 from tvcm import module
 from tvcm import strip_js_comments
+from tvcm import html_generation_controller
 
 
 CHUNK_TEXT_OP = 'text-op'
 CHUNK_SCRIPT_OP = 'script-op'
 CHUNK_STYLESHEET_OP = 'stylesheet-op'
-
+CHUNK_INLINE_STYLE_OP = 'inline-style-op'
 
 class _Chunk(object):
   def __init__(self, op, data):
@@ -41,8 +42,16 @@ class HTMLModuleParserResults(object):
     self.has_decl = False
     self._chunks = []
 
+  @property
+  def inline_stylesheets(self):
+    return [x.data for x in self._chunks
+            if x.op == CHUNK_INLINE_STYLE_OP]
+
   def AppendHTMLContent(self, text):
     self._chunks.append(_Chunk(CHUNK_TEXT_OP, text))
+
+  def AppendHTMLInlineStyleContent(self, text):
+    self._chunks.append(_Chunk(CHUNK_INLINE_STYLE_OP, text))
 
   def AppendHTMLScriptSplicePoint(self, href):
     self._chunks.append(_Chunk(CHUNK_SCRIPT_OP, href))
@@ -57,6 +66,10 @@ class HTMLModuleParserResults(object):
     for chunk in self._chunks:
       if chunk.op == CHUNK_TEXT_OP:
         yield chunk.data
+      elif chunk.op == CHUNK_INLINE_STYLE_OP:
+        html = controller.GetHTMLForInlineStylesheet(chunk.data)
+        if html:
+          yield html
       elif chunk.op == CHUNK_SCRIPT_OP:
         html = controller.GetHTMLForScriptHRef(chunk.data)
         if html:
@@ -70,7 +83,7 @@ class HTMLModuleParserResults(object):
 
   @property
   def html_contents_without_links_and_script(self):
-    return self.GenerateHTML(module.HTMLGenerationController())
+    return self.GenerateHTML(html_generation_controller.HTMLGenerationController())
 
 _SELF_CLOSING_TAGS = ('link', 'p', 'meta')
 
@@ -88,7 +101,7 @@ class HTMLModuleParser(HTMLParser):
     HTMLParser.__init__(self)
     self.current_results = None
     self.current_inline_script = None
-    self.in_style = False
+    self._current_inline_style_sheet_contents = None
     self.open_tags = []
 
   def Parse(self, html):
@@ -150,7 +163,7 @@ class HTMLModuleParser(HTMLParser):
             list(self.open_tags[:-1]))
 
     elif tag == 'style':
-      self.in_style = True
+      self._current_inline_style_sheet_contents = ''
       self.current_results.AppendHTMLContent(
         self.get_starttag_text())
 
@@ -186,8 +199,10 @@ class HTMLModuleParser(HTMLParser):
         self.current_inline_script = None
 
     elif tag == 'style':
-      if self.in_style:
-        self.in_style = False
+      if self._current_inline_style_sheet_contents != None:
+        self.current_results.AppendHTMLInlineStyleContent(
+            self._current_inline_style_sheet_contents)
+        self._current_inline_style_sheet_contents = None
       self.current_results.AppendHTMLContent('</style>')
 
     else:
@@ -197,12 +212,11 @@ class HTMLModuleParser(HTMLParser):
     if self.current_inline_script:
       self.current_inline_script.contents += data
 
-    elif self.in_style:
+    elif self._current_inline_style_sheet_contents != None:
       result = re.match(r"\s*@import url\(([^\)]*)\)", data,
                         flags=re.IGNORECASE)
       if result:
         raise Exception("@import not yet supported")
-      self.current_results.AppendHTMLContent(data)
-
+      self._current_inline_style_sheet_contents += data
     else:
       self.current_results.AppendHTMLContent(data)

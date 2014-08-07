@@ -11,6 +11,7 @@ import StringIO
 
 from tvcm import js_utils
 from tvcm import module as module_module
+from tvcm import html_generation_controller
 
 
 srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -131,7 +132,7 @@ def GenerateStandaloneHTMLToFile(output_file,
 
   written_style_sheets = set()
 
-  class HTMLGenerationController(module_module.HTMLGenerationController):
+  class HTMLGenerationController(html_generation_controller.HTMLGenerationController):
     def __init__(self, module):
       self.module = module
     def GetHTMLForStylesheetHRef(self, href):

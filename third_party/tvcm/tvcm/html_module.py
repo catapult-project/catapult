@@ -8,6 +8,7 @@ import re
 from tvcm import module
 from tvcm import js_utils
 from tvcm import parse_html_deps
+from tvcm import style_sheet
 
 def IsHTMLResourceTheModuleGivenConflictingResourceNames(
     js_resource, html_resource):
@@ -66,12 +67,29 @@ class HTMLModule(module.Module):
 
   def AppendHTMLContentsToFile(self, f, ctl):
     super(HTMLModule, self).AppendHTMLContentsToFile(f, ctl)
-    for piece in self._parser_results.YieldHTMLInPieces(ctl):
-      f.write(piece)
+
+    ctl.current_module = self
+    try:
+      for piece in self._parser_results.YieldHTMLInPieces(ctl):
+        f.write(piece)
+    finally:
+      ctl.current_module = None
 
   def HRefToResource(self, href, tag_for_err_msg):
     return _HRefToResource(self.loader, self.name, self._module_dir_name,
                            href, tag_for_err_msg)
+
+
+  def AppendDirectlyDependentFilenamesTo(
+      self, dependent_filenames, include_raw_scripts=True):
+    super(HTMLModule, self).AppendDirectlyDependentFilenamesTo(
+      dependent_filenames, include_raw_scripts)
+    for contents in self._parser_results.inline_stylesheets:
+      module_dirname = os.path.dirname(self.resource.absolute_path)
+      ss = style_sheet.ParsedStyleSheet(
+          self.loader, module_dirname, contents)
+      ss.AppendDirectlyDependentFilenamesTo(dependent_filenames)
+
 
 def GetInlineScriptContentWithPolymerizingApplied(inline_script):
   polymer_element_name = GetPolymerElementNameFromOpenTags(

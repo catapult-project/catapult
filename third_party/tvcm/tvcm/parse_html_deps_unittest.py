@@ -8,6 +8,7 @@ import unittest
 
 from tvcm import parse_html_deps
 from tvcm import module as module_module
+from tvcm import html_generation_controller
 
 
 class ParseTests(unittest.TestCase):
@@ -46,7 +47,7 @@ class ParseTests(unittest.TestCase):
     self.assertTrue(module.has_decl)
     self.assertTrue('DOCTYPE html' not in module.html_contents_without_links_and_script)
 
-    class Ctl(module_module.HTMLGenerationController):
+    class Ctl(html_generation_controller.HTMLGenerationController):
       def GetHTMLForScriptHRef(self, href):
         if href == "polymer.min.js":
           return "<script>POLYMER</script>"
@@ -137,7 +138,7 @@ class ParseTests(unittest.TestCase):
     self.assertEquals([], module.imports)
     self.assertFalse(module.has_decl)
 
-    class Ctl(module_module.HTMLGenerationController):
+    class Ctl(html_generation_controller.HTMLGenerationController):
       def GetHTMLForScriptHRef(self, href):
         return None
 
@@ -162,6 +163,19 @@ class ParseTests(unittest.TestCase):
 </style>"""
     module = parse_html_deps.HTMLModuleParser().Parse(html)
     self.assertEquals(html, module.html_contents_without_links_and_script)
+
+    class Ctl(html_generation_controller.HTMLGenerationController):
+      def GetHTMLForInlineStylesheet(self, contents):
+        if contents == '\n  hello\n':
+          return '\n  HELLO\n'
+        return None
+
+    gen_html = module.GenerateHTML(Ctl())
+    ghtm = """
+<style>
+  HELLO
+</style>"""
+    self.assertEquals(ghtm, gen_html)
 
   def test_parse_style_import(self):
     html = """<polymer-element name="x-blink">

@@ -8,6 +8,7 @@ import StringIO
 
 from tvcm import fake_fs
 from tvcm import generate
+from tvcm import html_generation_controller
 from tvcm import html_module
 from tvcm import module
 from tvcm import parse_html_deps
@@ -321,3 +322,38 @@ console.log('/raw/raw_script.js was written');
     Polymer ( 'my-component');
 """.rstrip()
       self.assertEquals(expected_js, js)
+
+
+  def testInlineStylesheetURLs(self):
+    file_contents = {}
+    file_contents['/tmp/a/b/my_component.html'] = """
+<!DOCTYPE html>
+<style>
+.some-rule {
+    background-image: url('../something.jpg');
+}
+</style>
+"""
+    file_contents['/tmp/a/something.jpg'] = 'jpgdata'
+    with fake_fs.FakeFS(file_contents):
+      project = project_module.Project(['/tvcm/', '/tmp/'],
+                                       include_tvcm_paths=False)
+      loader = resource_loader.ResourceLoader(project)
+      my_component = loader.LoadModule(module_name='a.b.my_component')
+
+      computed_deps = []
+      my_component.AppendDirectlyDependentFilenamesTo(computed_deps)
+      self.assertEquals(set(computed_deps),
+                        set(['/tmp/a/b/my_component.html',
+                             '/tmp/a/something.jpg']))
+
+      f = StringIO.StringIO()
+      ctl = html_generation_controller.HTMLGenerationController()
+      my_component.AppendHTMLContentsToFile(f, ctl)
+      html = f.getvalue().rstrip()
+      expected_html = """
+.some-rule {
+    background-image: url(data:image/jpg;base64,anBnZGF0YQ==);
+}
+""".rstrip()
+      print html
