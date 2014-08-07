@@ -19,6 +19,7 @@ found in the LICENSE file.
  */
 tvcm.exportTo('cc', function() {
   var constants = cc.constants;
+
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
   var ObjectInstance = tracing.trace_model.ObjectInstance;
 
@@ -78,6 +79,33 @@ tvcm.exportTo('cc', function() {
       if (whichTree == constants.PENDING_TREE)
         return this.pendingTree;
       throw new Exception('Unknown tree type + ' + whichTree);
+    },
+
+    get tilesHaveGpuMemoryUsageInfo() {
+      if (this.tilesHaveGpuMemoryUsageInfo_ !== undefined)
+        return this.tilesHaveGpuMemoryUsageInfo_;
+
+      for (var i = 0; i < this.tiles.length; i++) {
+        if (this.tiles[i].gpuMemoryUsageInBytes === undefined)
+          continue;
+        this.tilesHaveGpuMemoryUsageInfo_ = true;
+        return true;
+      }
+      this.tilesHaveGpuMemoryUsageInfo_ = false;
+      return false;
+    },
+
+    get gpuMemoryUsageInBytes() {
+      if (!this.tilesHaveGpuMemoryUsageInfo)
+        return;
+
+      var usage = 0;
+      for (var i = 0; i < this.tiles.length; i++) {
+        var u = this.tiles[i].gpuMemoryUsageInBytes;
+        if (u !== undefined)
+          usage += u;
+      }
+      return usage;
     }
   };
 

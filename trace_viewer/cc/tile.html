@@ -54,6 +54,8 @@ tvcm.exportTo('cc', function() {
       if (this.timeToVisible > 60)
         this.timeToVisible = 60;
 
+      this.gpuMemoryUsageInBytes = this.args.gpuMemoryUsage;
+
       // This check is for backward compatability. It can probably
       // be removed once we're confident that most traces contain
       // content_rect.

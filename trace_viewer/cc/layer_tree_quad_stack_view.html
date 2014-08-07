@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/cc/render_pass.html">
 <link rel="import" href="/cc/tile.html">
 <link rel="import" href="/cc/debug_colors.html">
+<link rel="import" href="/cc/util.html">
 <link rel="import" href="/tvcm/color.html">
 <link rel="import" href="/tvcm/properties.html">
 <link rel="import" href="/tvcm/raf.html">
@@ -39,6 +40,9 @@ tvcm.exportTo('cc', function() {
     return [{label: 'None', value: 'none'},
             {label: 'Coverage Rects', value: 'coverage'}];
   }
+
+  var bytesToRoundedMegabytes = cc.bytesToRoundedMegabytes;
+
 
   /**
    * @constructor
@@ -327,6 +331,22 @@ tvcm.exportTo('cc', function() {
         this.quadStackView_.quads = this.generateRenderPassQuads();
       else
         this.quadStackView_.quads = this.generateLayerQuads();
+
+      if (lthi.tilesHaveGpuMemoryUsageInfo) {
+        var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
+        var otherTreeUsageInBytes = lthi.gpuMemoryUsageInBytes -
+            thisTreeUsageInBytes;
+        var message = bytesToRoundedMegabytes(thisTreeUsageInBytes) +
+                'MB on this tree';
+        if (otherTreeUsageInBytes) {
+          message += ', ' +
+              bytesToRoundedMegabytes(otherTreeUsageInBytes) +
+              'MB on the other tree';
+        }
+        this.quadStackView_.headerText = message;
+      } else {
+        this.quadStackView_.headerText = undefined;
+      }
 
       this.updateInfoBar_(status.messages);
     },

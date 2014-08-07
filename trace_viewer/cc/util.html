@@ -138,11 +138,16 @@ tvcm.exportTo('cc', function() {
     }
   }
 
+  function bytesToRoundedMegabytes(bytes) {
+    return Math.round(bytes / 100000.0) / 10.0;
+  }
+
   return {
     preInitializeObject: preInitializeObject,
     convertNameToJSConvention: convertNameToJSConvention,
     moveRequiredFieldsFromArgsToToplevel: moveRequiredFieldsFromArgsToToplevel,
-    moveOptionalFieldsFromArgsToToplevel: moveOptionalFieldsFromArgsToToplevel
+    moveOptionalFieldsFromArgsToToplevel: moveOptionalFieldsFromArgsToToplevel,
+    bytesToRoundedMegabytes: bytesToRoundedMegabytes
   };
 });
 </script>
