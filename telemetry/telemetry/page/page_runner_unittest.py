@@ -554,12 +554,18 @@ class PageRunnerTests(unittest.TestCase):
 
     test = ArchiveTest()
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(test, ps, expectations, options, results)
-    if expect_from_archive and not test.archive_path_exist:
-      logging.warning('archive path did not exist, asserting that page '
-                      'is from archive is skipped.')
-      return
-    self.assertEquals(expect_from_archive, test.is_page_from_archive)
+    try:
+      page_runner.Run(test, ps, expectations, options, results)
+      if expect_from_archive and not test.archive_path_exist:
+        logging.warning('archive path did not exist, asserting that page '
+                        'is from archive is skipped.')
+        return
+      self.assertEquals(expect_from_archive, test.is_page_from_archive)
+    finally:
+      for p in ps:
+        if os.path.isfile(p.archive_path):
+          os.remove(p.archive_path)
+
 
   def testUseLiveSitesFlagSet(self):
     options = options_for_unittests.GetCopy()
