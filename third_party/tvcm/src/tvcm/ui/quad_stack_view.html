@@ -24,6 +24,13 @@ quad-stack-view {
   width: 100%;
 }
 
+quad-stack-view > #header {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 400px;
+}
+
 quad-stack-view > #chrome-left {
   content: url('../images/chrome-left.png');
   display: none;
@@ -41,6 +48,7 @@ quad-stack-view > #chrome-right {
 </style>
 
 <template id='quad-stack-view-template'>
+  <div id="header"></div>
   <canvas id='canvas'></canvas>
   <img id='chrome-left'/>
   <img id='chrome-mid'/>
@@ -358,7 +366,7 @@ tvcm.exportTo('tvcm.ui', function() {
       var node = tvcm.instantiateTemplate('#quad-stack-view-template',
                                           THIS_DOC);
       this.appendChild(node);
-
+      this.updateHeaderVisibility_();
       this.canvas_ = this.querySelector('#canvas');
       this.chromeImages_ = {
         left: this.querySelector('#chrome-left'),
@@ -378,6 +386,22 @@ tvcm.exportTo('tvcm.ui', function() {
 
       this.stackingDistance_ = 45;
       this.pixelRatio_ = window.devicePixelRatio || 1;
+    },
+
+    updateHeaderVisibility_: function() {
+      if (this.headerText)
+        this.querySelector('#header').style.display = '';
+      else
+        this.querySelector('#header').style.display = 'none';
+    },
+
+    get headerText() {
+      return this.querySelector('#header').textContent;
+    },
+
+    set headerText(headerText) {
+      this.querySelector('#header').textContent = headerText;
+      this.updateHeaderVisibility_();
     },
 
     onStackingDistanceChange: function(e) {
