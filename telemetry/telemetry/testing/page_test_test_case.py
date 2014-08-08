@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+"""Provide a TestCase base class for PageTest subclasses' unittests."""
+
 import unittest
 
 from telemetry import benchmark
@@ -31,9 +33,9 @@ class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
   def __init__(self):
     super(EmptyMetadataForTest, self).__init__('')
 
-class PageMeasurementUnitTestBase(unittest.TestCase):
-  """unittest.TestCase-derived class to help in the construction of unit tests
-  for a measurement."""
+
+class PageTestTestCase(unittest.TestCase):
+  """A base class to simplify writing unit tests for PageTest subclasses."""
 
   def CreatePageSetFromFileInUnittestDataDir(self, test_filename):
     ps = self.CreateEmptyPageSet()

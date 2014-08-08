@@ -9,10 +9,10 @@ from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import wpr_modes
 from telemetry.page import page as page_module
-from telemetry.page import page_measurement_unittest_base
 from telemetry.page import page_set
 from telemetry.page import page_set_archive_info
 from telemetry.page import page_test
+from telemetry.testing import page_test_test_case
 from telemetry.unittest import options_for_unittests
 from telemetry.value import scalar
 
@@ -70,8 +70,7 @@ class PageWithAction(page_module.Page):
   def RunTestAction(self, _):
     self.run_test_action_called = True
 
-class PageMeasurementUnitTest(
-  page_measurement_unittest_base.PageMeasurementUnitTestBase):
+class PageMeasurementUnitTest(page_test_test_case.PageTestTestCase):
 
   def setUp(self):
     self._options = options_for_unittests.GetCopy()
