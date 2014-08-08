@@ -10,7 +10,7 @@ from telemetry.page import page_test
 
 
 class DoNothingPageTest(page_test.PageTest):
-  def ValidatePage(self, *_):
+  def ValidateAndMeasurePage(self, *_):
     pass
 
 
@@ -22,8 +22,8 @@ class TestPage(page_module.Page):
   def RunActionToRun(self, _):
     self.run_action_to_run_called = True
 
-class PageTestUnitTest(unittest.TestCase):
 
+class PageTestUnitTest(unittest.TestCase):
   def testRunActions(self):
     test = DoNothingPageTest('RunActionToRun')
     page = TestPage('file://blank.html', None, util.GetUnittestDataDir())
