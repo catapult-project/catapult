@@ -108,6 +108,7 @@ def _MaybeGetInstanceOfClass(target, base_dir, cls):
 
 
 class WprRecorder(object):
+
   def __init__(self, base_dir, target, args=None):
     action_names_to_run = FindAllActionNames(base_dir)
     self._record_page_test = RecorderPageTest(action_names_to_run)
@@ -146,6 +147,10 @@ class WprRecorder(object):
     if self._benchmark is not None:
       self._benchmark.AddCommandLineArgs(self._parser)
       self._benchmark.SetArgumentDefaults(self._parser)
+    self._SetArgumentDefaults()
+
+  def _SetArgumentDefaults(self):
+    self._parser.set_defaults(**{'output_format': 'none'})
 
   def _ParseArgs(self, args=None):
     args_to_parse = sys.argv[1:] if args is None else args
