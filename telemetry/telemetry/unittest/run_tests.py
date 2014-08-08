@@ -126,6 +126,9 @@ class RunTestsCommand(command_line.OptparseCommand):
                       dest='run_disabled_tests',
                       action='store_true', default=False,
                       help='Ignore @Disabled and @Enabled restrictions.')
+    parser.add_option('--retry-limit', type='int', default=0,
+                      help='Retry each failure up to N times (default %default)'
+                           ' to de-flake things.')
     json_results.AddOptions(parser)
 
   @classmethod
@@ -147,16 +150,36 @@ class RunTestsCommand(command_line.OptparseCommand):
 
   def Run(self, args):
     possible_browser = browser_finder.FindBrowser(args)
-    test_suite = DiscoverTests(
-        config.test_dirs, config.top_level_dir, possible_browser,
-        args.positional_args, args.run_disabled_tests)
+
+    test_suite, result = self.RunOneSuite(possible_browser, args)
+
+    results = [result]
+
+    failed_tests = json_results.FailedTestNames(result)
+    retry_limit = args.retry_limit
+
+    while retry_limit and failed_tests:
+      args.positional_args = failed_tests
+
+      _, result = self.RunOneSuite(possible_browser, args)
+      results.append(result)
+
+      failed_tests = json_results.FailedTestNames(result)
+      retry_limit -= 1
+
+    full_results = json_results.FullResults(args, test_suite, results)
+    json_results.WriteFullResultsIfNecessary(args, full_results)
+
+    return json_results.ExitCodeFromFullResults(full_results)
+
+  def RunOneSuite(self, possible_browser, args):
+    test_suite = DiscoverTests(config.test_dirs, config.top_level_dir,
+                               possible_browser, args.positional_args,
+                               args.run_disabled_tests)
     runner = output_formatter.TestRunner()
-    result = runner.run(
-        test_suite, config.output_formatters, args.repeat_count, args)
-
-    json_results.WriteandUploadResultsIfNecessary(args, test_suite, result)
-
-    return len(result.failures_and_errors)
+    result = runner.run(test_suite, config.output_formatters,
+                        args.repeat_count, args)
+    return test_suite, result
 
   @classmethod
   @RestoreLoggingLevel
