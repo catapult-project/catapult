@@ -27,7 +27,7 @@ tvcm.exportTo('tvcm', function() {
     var el = doc.querySelector(selector);
     if (!el)
       throw new Error('Element not found');
-    return el.content.cloneNode(true);
+    return el.createInstance();
   }
 
   function tracedFunction(fn, name, opt_this) {
