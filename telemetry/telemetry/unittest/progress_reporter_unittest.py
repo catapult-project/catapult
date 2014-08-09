@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.unittest import output_formatter
+from telemetry.unittest import progress_reporter
 
 
 class TestFoo(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestFoo(unittest.TestCase):
     self.fail('expected failure')
 
 
-class LoggingOutputFormatter(object):
+class LoggingProgressReporter(object):
   def __init__(self):
     self._call_log = []
 
@@ -31,16 +31,16 @@ class LoggingOutputFormatter(object):
     return wrapper
 
 
-class OutputFormatterTest(unittest.TestCase):
+class ProgressReporterTest(unittest.TestCase):
   def testTestRunner(self):
-    suite = output_formatter.TestSuite()
+    suite = progress_reporter.TestSuite()
     suite.addTest(TestFoo(methodName='RunPassingTest'))
     suite.addTest(TestFoo(methodName='RunFailingTest'))
 
-    formatter = LoggingOutputFormatter()
-    runner = output_formatter.TestRunner()
-    output_formatters = (formatter,)
-    result = runner.run(suite, output_formatters, 1, None)
+    reporter = LoggingProgressReporter()
+    runner = progress_reporter.TestRunner()
+    progress_reporters = (reporter,)
+    result = runner.run(suite, progress_reporters, 1, None)
 
     self.assertEqual(len(result.successes), 1)
     self.assertEqual(len(result.failures), 1)
@@ -51,4 +51,4 @@ class OutputFormatterTest(unittest.TestCase):
         'StartTest', 'Failure', 'StopTest',
         'StopTestSuite', 'StopTestRun',
     )
-    self.assertEqual(formatter.call_log, expected)
+    self.assertEqual(reporter.call_log, expected)

@@ -5,7 +5,7 @@
 import unittest
 import sys
 
-from telemetry.unittest import gtest_output_formatter
+from telemetry.unittest import gtest_progress_reporter
 from telemetry.unittest import simple_mock
 
 
@@ -49,18 +49,19 @@ class TestResultWithSuccesses(unittest.TestResult):
     self.successes.append(test)
 
 
-class GTestOutputFormatterTest(unittest.TestCase):
+class GTestProgressReporterTest(unittest.TestCase):
   def setUp(self):
-    super(GTestOutputFormatterTest, self).setUp()
+    super(GTestProgressReporterTest, self).setUp()
     self._stream = TestOutputStream()
-    self._formatter = gtest_output_formatter.GTestOutputFormatter(self._stream)
+    self._formatter = gtest_progress_reporter.GTestProgressReporter(
+        self._stream)
 
     self._mock_timer = simple_mock.MockTimer()
-    self._real_time_time = gtest_output_formatter.time.time
-    gtest_output_formatter.time.time = self._mock_timer.GetTime
+    self._real_time_time = gtest_progress_reporter.time.time
+    gtest_progress_reporter.time.time = self._mock_timer.GetTime
 
   def tearDown(self):
-    gtest_output_formatter.time.time = self._real_time_time
+    gtest_progress_reporter.time.time = self._real_time_time
 
   def testTestSuiteWithWrapperSuite(self):
     suite = unittest.TestSuite()
@@ -87,9 +88,10 @@ class GTestOutputFormatterTest(unittest.TestCase):
     self._mock_timer.SetTime(0.042)
     self._formatter.Failure(test, DUMMY_EXCEPTION)
 
-    expected = ('[ RUN      ] gtest_output_formatter_unittest.TestFoo.runTezt\n'
-                '[  FAILED  ] gtest_output_formatter_unittest.TestFoo.runTezt '
-                '(42 ms)\n')
+    expected = (
+        '[ RUN      ] gtest_progress_reporter_unittest.TestFoo.runTezt\n'
+        '[  FAILED  ] gtest_progress_reporter_unittest.TestFoo.runTezt '
+        '(42 ms)\n')
     self.assertEqual(self._stream.output_data, expected)
 
   def testCaseSuccess(self):
@@ -98,9 +100,10 @@ class GTestOutputFormatterTest(unittest.TestCase):
     self._mock_timer.SetTime(0.042)
     self._formatter.Success(test)
 
-    expected = ('[ RUN      ] gtest_output_formatter_unittest.TestFoo.runTezt\n'
-                '[       OK ] gtest_output_formatter_unittest.TestFoo.runTezt '
-                '(42 ms)\n')
+    expected = (
+        '[ RUN      ] gtest_progress_reporter_unittest.TestFoo.runTezt\n'
+        '[       OK ] gtest_progress_reporter_unittest.TestFoo.runTezt '
+        '(42 ms)\n')
     self.assertEqual(self._stream.output_data, expected)
 
   def testStopTestRun(self):
@@ -120,6 +123,6 @@ class GTestOutputFormatterTest(unittest.TestCase):
     expected = (
         '[  PASSED  ] 1 test.\n'
         '[  FAILED  ] 1 test, listed below:\n'
-        '[  FAILED  ]  gtest_output_formatter_unittest.TestFoo.runTezt\n\n'
+        '[  FAILED  ]  gtest_progress_reporter_unittest.TestFoo.runTezt\n\n'
         '1 FAILED TEST\n\n')
     self.assertEqual(self._stream.output_data, expected)

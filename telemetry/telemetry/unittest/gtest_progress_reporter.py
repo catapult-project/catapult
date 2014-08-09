@@ -6,7 +6,7 @@ import logging
 import time
 import unittest
 
-from telemetry.unittest import output_formatter
+from telemetry.unittest import progress_reporter
 from telemetry.util import exception_formatter
 
 
@@ -15,9 +15,9 @@ def _FormatTestName(test):
   return '.'.join(chunks)
 
 
-class GTestOutputFormatter(output_formatter.OutputFormatter):
+class GTestProgressReporter(progress_reporter.ProgressReporter):
   def __init__(self, output_stream):
-    super(GTestOutputFormatter, self).__init__(output_stream)
+    super(GTestProgressReporter, self).__init__(output_stream)
     self._suite_start_time = None
     self._test_start_time = None
 
