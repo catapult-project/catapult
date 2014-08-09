@@ -5,11 +5,14 @@
 import json
 import time
 import unittest
+import urllib2
+
 
 # TODO(dpranke): This code is largely cloned from, and redundant with,
 # src/mojo/tools/run_mojo_python_tests.py, and also duplicates logic
 # in test-webkitpy and run-webkit-tests. We should consolidate the
 # python TestResult parsing/converting/uploading code as much as possible.
+
 
 def AddOptions(parser):
   parser.add_option('--metadata', action='append', default=[],
@@ -18,13 +21,28 @@ def AddOptions(parser):
                           'numbers, etc.)'))
   parser.add_option('--write-full-results-to', metavar='FILENAME',
                     action='store',
-                    help='path to write the list of full results to.')
+                    help='The path to write the list of full results to.')
+  parser.add_option('--builder-name',
+                    help='The name of the builder as shown on the waterfall.')
+  parser.add_option('--master-name',
+                    help='The name of the buildbot master.')
+  parser.add_option("--test-results-server", default="",
+                    help=('If specified, upload full_results.json file to '
+                          'this server.'))
+  parser.add_option('--test-type',
+                    help=('Name of test type / step on the waterfall '
+                         '(e.g., "telemetry_unittests").'))
 
 
 def ValidateArgs(parser, args):
   for val in args.metadata:
     if '=' not in val:
       parser.error('Error: malformed metadata "%s"' % val)
+
+  if (args.test_results_server and
+      (not args.builder_name or not args.master_name or not args.test_type)):
+    parser.error('Error: --builder-name, --master-name, and --test-type '
+                 'must be specified along with --test-result-server.')
 
 
 def WriteFullResultsIfNecessary(args, full_results):
@@ -34,6 +52,18 @@ def WriteFullResultsIfNecessary(args, full_results):
   with open(args.write_full_results_to, 'w') as fp:
     json.dump(full_results, fp, indent=2)
     fp.write("\n")
+
+
+def UploadFullResultsIfNecessary(args, full_results):
+  if not args.test_results_server:
+    return False, ''
+
+  url = 'http://%s/testfile/upload' % args.test_results_server
+  attrs = [('builder', args.builder_name),
+           ('master', args.master_name),
+           ('testtype', args.test_type)]
+  content_type, data = _EncodeMultiPartFormData(attrs,  full_results)
+  return _UploadData(url, data, content_type)
 
 
 TEST_SEPARATOR = '.'
@@ -131,3 +161,41 @@ def _AddPathToTrie(trie, path, value):
   if directory not in trie:
     trie[directory] = {}
   _AddPathToTrie(trie[directory], rest, value)
+
+
+def _EncodeMultiPartFormData(attrs, full_results):
+  # Cloned from webkitpy/common/net/file_uploader.py
+  BOUNDARY = '-M-A-G-I-C---B-O-U-N-D-A-R-Y-'
+  CRLF = '\r\n'
+  lines = []
+
+  for key, value in attrs:
+    lines.append('--' + BOUNDARY)
+    lines.append('Content-Disposition: form-data; name="%s"' % key)
+    lines.append('')
+    lines.append(value)
+
+  lines.append('--' + BOUNDARY)
+  lines.append('Content-Disposition: form-data; name="file"; '
+               'filename="full_results.json"')
+  lines.append('Content-Type: application/json')
+  lines.append('')
+  lines.append(json.dumps(full_results))
+
+  lines.append('--' + BOUNDARY + '--')
+  lines.append('')
+  body = CRLF.join(lines)
+  content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
+  return content_type, body
+
+
+def _UploadData(url, data, content_type):
+  request = urllib2.Request(url, data, {'Content-Type': content_type})
+  try:
+    response = urllib2.urlopen(request)
+    if response.code == 200:
+      return False, ''
+    return True, ('Uploading the JSON results failed with %d: "%s"' %
+                  (response.code, response.read()))
+  except Exception as e:
+    return True, 'Uploading the JSON results raised "%s"\n' % str(e)

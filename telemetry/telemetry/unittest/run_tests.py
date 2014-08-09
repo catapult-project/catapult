@@ -170,6 +170,13 @@ class RunTestsCommand(command_line.OptparseCommand):
     full_results = json_results.FullResults(args, test_suite, results)
     json_results.WriteFullResultsIfNecessary(args, full_results)
 
+    err_occurred, err_str = json_results.UploadFullResultsIfNecessary(
+        args, full_results)
+    if err_occurred:
+      for line in err_str.splitlines():
+        logging.error(line)
+      return 1
+
     return json_results.ExitCodeFromFullResults(full_results)
 
   def RunOneSuite(self, possible_browser, args):
