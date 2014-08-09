@@ -37,7 +37,7 @@ IOS_BROWSERS = {'CriOS': 'ios-chrome', 'Version': 'ios-safari'}
 
 ALL_BROWSER_TYPES = IOS_BROWSERS.values()
 
-DEVICE_LIST_URL = 'http://localhost:9221/json'
+DEVICE_LIST_URL = 'http://127.0.0.1:9221/json'
 
 IOS_WEBKIT_DEBUG_PROXY = 'ios_webkit_debug_proxy'
 
@@ -80,17 +80,18 @@ def FindAllAvailableBrowsers(finder_options):
 
   try:
     # TODO(baxley): Refactor this into a backend file.
-    with contextlib.closing(urllib2.urlopen(DEVICE_LIST_URL)) as device_list:
+    with contextlib.closing(
+        urllib2.urlopen(DEVICE_LIST_URL), timeout=10) as device_list:
       json_urls = device_list.read()
-      device_urls = json.loads(json_urls)
-      if not device_urls:
-        logging.debug('No iOS devices found. Will not try searching for iOS '
-                      'browsers.')
-        return []
+    device_urls = json.loads(json_urls)
+    if not device_urls:
+      logging.debug('No iOS devices found. Will not try searching for iOS '
+                    'browsers.')
+      return []
   except urllib2.URLError as e:
-    logging.debug('Error communicating with devices over %s.'
+    logging.error('Error communicating with devices over %s.'
                   % IOS_WEBKIT_DEBUG_PROXY)
-    logging.debug(str(e))
+    logging.error(str(e))
     return []
 
   # TODO(baxley): Move to ios-webkit-debug-proxy command class, similar
@@ -103,14 +104,14 @@ def FindAllAvailableBrowsers(finder_options):
     def GetData():
       try:
         with contextlib.closing(
-            urllib2.urlopen('http://%s/json' % d['url'])) as f:
+            urllib2.urlopen('http://%s/json' % d['url']), timeout=10) as f:
           json_result = f.read()
-          data = json.loads(json_result)
-          return data
+        data = json.loads(json_result)
+        return data
       except urllib2.URLError as e:
-        logging.debug('Error communicating with device over %s.'
+        logging.error('Error communicating with device over %s.'
                       % IOS_WEBKIT_DEBUG_PROXY)
-        logging.debug(e)
+        logging.error(str(e))
         return False
     try:
       data = util.WaitFor(GetData, 5)

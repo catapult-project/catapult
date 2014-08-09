@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import contextlib
 import httplib
 import json
 import logging
@@ -200,8 +201,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     try:
       proxy_handler = urllib2.ProxyHandler({})  # Bypass any system proxy.
       opener = urllib2.build_opener(proxy_handler)
-      req = opener.open(url, timeout=timeout)
-      return req.read()
+      with contextlib.closing(opener.open(url, timeout=timeout)) as req:
+        return req.read()
     except (socket.error, httplib.BadStatusLine, urllib2.URLError) as e:
       if throw_network_exception:
         raise e

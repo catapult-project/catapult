@@ -221,8 +221,8 @@ class ReplayServer(object):
     if self.replay_process:
       logging.debug('Trying to stop Web-Page-Replay gracefully')
       try:
-        url = 'http://localhost:%s/web-page-replay-command-exit'
-        urllib.urlopen(url % self.http_port, None, {})
+        urllib.urlopen('http://%s:%s/web-page-replay-command-exit' % (
+            self._replay_host, self.http_port), None, {}).close()
       except IOError:
         # IOError is possible because the server might exit without response.
         pass
