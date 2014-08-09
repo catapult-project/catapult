@@ -53,15 +53,24 @@ class WebContents(object):
       util.WaitFor(IsJavaScriptExpressionTrue, timeout)
     except util.TimeoutException as e:
       # Try to make timeouts a little more actionable by dumping |this|.
-      raise util.TimeoutException(e.message + '\n\nJavaScript |this|:\n' +
-                                  self.EvaluateJavaScript("""
+      raise util.TimeoutException(e.message + self.EvaluateJavaScript("""
         (function() {
-          var error = '';
+          var error = '\\n\\nJavaScript |this|:\\n';
           for (name in this) {
             try {
               error += '\\t' + name + ': ' + this[name] + '\\n';
             } catch (e) {
               error += '\\t' + name + ': ???\\n';
+            }
+          }
+          if (window && window.document) {
+            error += '\\n\\nJavaScript window.document:\\n';
+            for (name in window.document) {
+              try {
+                error += '\\t' + name + ': ' + window.document[name] + '\\n';
+              } catch (e) {
+                error += '\\t' + name + ': ???\\n';
+              }
             }
           }
           return error;
