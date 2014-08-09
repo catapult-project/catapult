@@ -5,16 +5,15 @@
 import unittest
 import sys
 
+from telemetry.core import exceptions
 from telemetry.unittest import gtest_progress_reporter
 from telemetry.unittest import simple_mock
 
 
-class DummyException(Exception):
-  pass
 try:
-  raise DummyException('Dummy exception')
-except DummyException:
-  DUMMY_EXCEPTION = sys.exc_info()
+  raise exceptions.IntentionalException()
+except exceptions.IntentionalException:
+  INTENTIONAL_EXCEPTION = sys.exc_info()
 
 
 class TestFoo(unittest.TestCase):
@@ -86,7 +85,7 @@ class GTestProgressReporterTest(unittest.TestCase):
     test = TestFoo(methodName='runTezt')
     self._formatter.StartTest(test)
     self._mock_timer.SetTime(0.042)
-    self._formatter.Failure(test, DUMMY_EXCEPTION)
+    self._formatter.Failure(test, INTENTIONAL_EXCEPTION)
 
     expected = (
         '[ RUN      ] gtest_progress_reporter_unittest.TestFoo.runTezt\n'
@@ -117,7 +116,7 @@ class GTestProgressReporterTest(unittest.TestCase):
     test = TestFoo(methodName='runTezt')
     result = TestResultWithSuccesses()
     result.addSuccess(test)
-    result.addFailure(test, DUMMY_EXCEPTION)
+    result.addFailure(test, INTENTIONAL_EXCEPTION)
     self._formatter.StopTestRun(result)
 
     expected = (
