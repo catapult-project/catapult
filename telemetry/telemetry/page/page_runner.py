@@ -19,7 +19,6 @@ from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
 from telemetry.page import page_filter
-from telemetry.page import page_runner_repeat
 from telemetry.page import page_test
 from telemetry.page.actions import navigate
 from telemetry.page.actions import page_action
@@ -38,7 +37,6 @@ class _RunState(object):
     self._first_browser = True
     self.first_page = collections.defaultdict(lambda: True)
     self.profiler_dir = None
-    self.repeat_state = None
 
   def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
                            credentials_path, archive_path, finder_options):
@@ -269,7 +267,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         state.StartProfiling(page, finder_options)
 
       try:
-        _RunPage(test, page, state, expectation, results, finder_options)
+        _RunPage(test, page, state, expectation, results)
         _CheckThermalThrottling(state.browser.platform)
       except exceptions.TabCrashException as e:
         if test.is_multi_tab_test:
@@ -398,23 +396,19 @@ def Run(test, page_set, expectations, finder_options, results):
 
   try:
     test.WillRunTest(finder_options)
-    state.repeat_state = page_runner_repeat.PageRunnerRepeatState(
-        finder_options)
-
-    state.repeat_state.WillRunPageSet()
-    while state.repeat_state.ShouldRepeatPageSet() and not test.IsExiting():
+    for _ in xrange(0, finder_options.pageset_repeat):
       for page in pages:
-        state.repeat_state.WillRunPage()
+        if test.IsExiting():
+          break
+
         test.WillRunPageRepeats(page)
-        while state.repeat_state.ShouldRepeatPage():
+        for _ in xrange(0, finder_options.page_repeat):
           results.WillRunPage(page)
           try:
             _PrepareAndRunPage(
                 test, page_set, expectations, finder_options, browser_options,
                 page, credentials_path, possible_browser, results, state)
           finally:
-            state.repeat_state.DidRunPage()
-
             discard_run = False
             if state.first_page[page]:
               state.first_page[page] = False
@@ -426,12 +420,9 @@ def Run(test, page_set, expectations, finder_options, results):
             len(results.failures) > test.max_failures):
           logging.error('Too many failures. Aborting.')
           test.RequestExit()
-        if test.IsExiting():
-          break
-      state.repeat_state.DidRunPageSet()
 
-    test.DidRunTest(state.browser, results)
   finally:
+    test.DidRunTest(state.browser, results)
     state.StopBrowser()
 
   return
@@ -507,7 +498,7 @@ def _CheckArchives(page_set, pages, results):
           pages_missing_archive_path + pages_missing_archive_data]
 
 
-def _RunPage(test, page, state, expectation, results, finder_options):
+def _RunPage(test, page, state, expectation, results):
   if expectation == 'skip':
     logging.debug('Skipping test: Skip expectation for %s', page.url)
     results.AddValue(skip.SkipValue(page, 'Skipped by test expectations'))
@@ -527,9 +518,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
 
   try:
     page_state.PreparePage(test)
-    if state.repeat_state.ShouldNavigate(
-        finder_options.skip_navigate_on_repeat):
-      page_state.ImplicitPageNavigation(test)
+    page_state.ImplicitPageNavigation(test)
     test.RunPage(page, page_state.tab, results)
     util.CloseConnections(page_state.tab)
   except page_test.TestNotSupportedOnPlatformFailure:

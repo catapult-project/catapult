@@ -44,7 +44,6 @@ class BrowserFinderOptions(optparse.Values):
 
     self.browser_options = BrowserOptions()
     self.output_file = None
-    self.skip_navigate_on_repeat = False
 
     self.android_rndis = False
 
