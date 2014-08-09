@@ -21,7 +21,6 @@ from telemetry.core.browser import Browser
 from telemetry.core.browser_options import BrowserFinderOptions
 from telemetry.core.tab import Tab
 
-from telemetry.page.page_measurement import PageMeasurement
 from telemetry.page.page_runner import Run as RunPage
 
 

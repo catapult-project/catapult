@@ -10,7 +10,6 @@ from telemetry import benchmark
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import wpr_modes
-from telemetry.page import page_measurement
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
@@ -47,9 +46,9 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
     if self.page_test:
       self.page_test.DidRunActions(page, tab)
 
-  def ValidatePage(self, page, tab, results):
+  def ValidateAndMeasurePage(self, page, tab, results):
     if self.page_test:
-      self.page_test.ValidatePage(page, tab, results)
+      self.page_test.ValidateAndMeasurePage(page, tab, results)
 
   def RunPage(self, page, tab, results):
     tab.WaitForDocumentReadyStateToBeComplete()
@@ -89,9 +88,9 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
 def FindAllActionNames(base_dir):
   """Returns a set of of all action names used in our measurements."""
   action_names = set()
-  # Get all PageMeasurements except for ProfileCreators (see crbug.com/319573)
+  # Get all PageTests except for ProfileCreators (see crbug.com/319573)
   for _, cls in discover.DiscoverClasses(
-      base_dir, base_dir, page_measurement.PageMeasurement).items():
+      base_dir, base_dir, page_test.PageTest).items():
     if not issubclass(cls, profile_creator.ProfileCreator):
       action_name = cls().action_name_to_run
       if action_name:

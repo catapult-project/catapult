@@ -14,7 +14,6 @@ from telemetry.core import exceptions
 from telemetry.core import user_agent
 from telemetry.core import util
 from telemetry.page import page as page_module
-from telemetry.page import page_measurement
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import page_runner
@@ -69,7 +68,7 @@ def GetSuccessfulPageRuns(results):
 
 class PageRunnerTests(unittest.TestCase):
   # TODO(nduca): Move the basic "test failed, test succeeded" tests from
-  # page_measurement_unittest to here.
+  # page_test_unittest to here.
 
   def testHandlingOfCrashedTab(self):
     ps = page_set.PageSet()
@@ -148,9 +147,9 @@ class PageRunnerTests(unittest.TestCase):
     ps.pages.append(page_module.Page(
         'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
 
-    class CrashyMeasurement(page_measurement.PageMeasurement):
+    class CrashyMeasurement(page_test.PageTest):
       has_crashed = False
-      def MeasurePage(self, page, tab, results):
+      def ValidateAndMeasurePage(self, page, tab, results):
         # This value should be discarded on the first run when the
         # browser crashed.
         results.AddValue(
@@ -182,12 +181,12 @@ class PageRunnerTests(unittest.TestCase):
     ps.pages.append(page_module.Page(
         'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
 
-    class Measurement(page_measurement.PageMeasurement):
+    class Measurement(page_test.PageTest):
       @property
       def discard_first_result(self):
         return True
 
-      def MeasurePage(self, page, _, results):
+      def ValidateAndMeasurePage(self, page, _, results):
         results.AddValue(string.StringValue(page, 'test', 't', page.url))
 
     options = options_for_unittests.GetCopy()
@@ -244,9 +243,9 @@ class PageRunnerTests(unittest.TestCase):
     ps.pages.append(page_module.Page(
         'file://green_rect.html', ps, base_dir=util.GetUnittestDataDir()))
 
-    class Measurement(page_measurement.PageMeasurement):
+    class Measurement(page_test.PageTest):
       i = 0
-      def MeasurePage(self, page, _, results):
+      def ValidateAndMeasurePage(self, page, _, results):
         self.i += 1
         results.AddValue(scalar.ScalarValue(
             page, 'metric', 'unit', self.i))
@@ -435,7 +434,7 @@ class PageRunnerTests(unittest.TestCase):
     page.startup_url = 'about:blank'
     ps.pages.append(page)
 
-    class Measurement(page_measurement.PageMeasurement):
+    class Measurement(page_test.PageTest):
       def __init__(self):
         super(Measurement, self).__init__()
         self.browser_restarted = False
@@ -444,7 +443,7 @@ class PageRunnerTests(unittest.TestCase):
         self.browser_restarted = True
         super(Measurement, self).CustomizeBrowserOptionsForSinglePage(ps,
                                                                       options)
-      def MeasurePage(self, page, tab, results):
+      def ValidateAndMeasurePage(self, page, tab, results):
         pass
 
     options = options_for_unittests.GetCopy()
@@ -537,7 +536,7 @@ class PageRunnerTests(unittest.TestCase):
       'file://blank.html', ps, base_dir=ps.base_dir))
     expectations = test_expectations.TestExpectations()
 
-    class ArchiveTest(page_measurement.PageMeasurement):
+    class ArchiveTest(page_test.PageTest):
       def __init__(self):
         super(ArchiveTest, self).__init__()
         self.is_page_from_archive = False
@@ -549,7 +548,7 @@ class PageRunnerTests(unittest.TestCase):
         self.is_page_from_archive = (
           tab.browser._wpr_server is not None) # pylint: disable=W0212
 
-      def MeasurePage(self, _, __, results):
+      def ValidateAndMeasurePage(self, _, __, results):
         pass
 
     test = ArchiveTest()

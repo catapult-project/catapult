@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.page import page_measurement
+from telemetry.page import page_test
 
-class ProfileCreator(page_measurement.PageMeasurement):
+class ProfileCreator(page_test.PageTest):
   """Base class for an object that constructs a Chrome profile."""
 
   def __init__(self):
@@ -15,5 +15,5 @@ class ProfileCreator(page_measurement.PageMeasurement):
   def page_set(self):
     return self._page_set
 
-  def MeasurePage(self, _, tab, results):
+  def ValidateAndMeasurePage(self, _, tab, results):
     pass

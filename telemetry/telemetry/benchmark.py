@@ -36,7 +36,7 @@ class BenchmarkMetadata(object):
 class Benchmark(command_line.Command):
   """Base class for a Telemetry benchmark.
 
-  A test packages a PageTest/PageMeasurement and a PageSet together.
+  A test packages a PageTest and a PageSet together.
   """
   options = {}
 

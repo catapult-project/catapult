@@ -9,7 +9,7 @@ from telemetry.page.actions import action_runner as action_runner_module
 
 
 class Failure(Exception):
-  """Exception that can be thrown from PageMeasurement to indicate an
+  """Exception that can be thrown from PageTest to indicate an
   undesired but designed-for problem."""
 
 

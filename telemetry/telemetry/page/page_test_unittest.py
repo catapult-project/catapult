@@ -18,7 +18,7 @@ from telemetry.value import scalar
 
 
 class PageTestThatFails(page_test.PageTest):
-  def MeasurePage(self, page, tab, results):
+  def ValidateAndMeasurePage(self, page, tab, results):
     raise exceptions.IntentionalException
 
 
@@ -26,7 +26,7 @@ class PageTestThatHasDefaults(page_test.PageTest):
   def AddCommandLineArgs(self, parser):
     parser.add_option('-x', dest='x', default=3)
 
-  def MeasurePage(self, page, tab, results):
+  def ValidateAndMeasurePage(self, page, tab, results):
     if not hasattr(self.options, 'x'):
       raise page_test.MeasurementFailure('Default option was not set.')
     if self.options.x != 3:
@@ -36,7 +36,7 @@ class PageTestThatHasDefaults(page_test.PageTest):
 
 
 class PageTestForBlank(page_test.PageTest):
-  def MeasurePage(self, page, tab, results):
+  def ValidateAndMeasurePage(self, page, tab, results):
     contents = tab.EvaluateJavaScript('document.body.textContent')
     if contents.strip() != 'Hello world':
       raise page_test.MeasurementFailure(
@@ -44,7 +44,7 @@ class PageTestForBlank(page_test.PageTest):
 
 
 class PageTestForReplay(page_test.PageTest):
-  def MeasurePage(self, page, tab, results):
+  def ValidateAndMeasurePage(self, page, tab, results):
     # Web Page Replay returns '404 Not found' if a page is not in the archive.
     contents = tab.EvaluateJavaScript('document.body.textContent')
     if '404 Not Found' in contents.strip():
@@ -52,7 +52,7 @@ class PageTestForReplay(page_test.PageTest):
 
 
 class PageTestQueryParams(page_test.PageTest):
-  def MeasurePage(self, page, tab, results):
+  def ValidateAndMeasurePage(self, page, tab, results):
     query = tab.EvaluateJavaScript('window.location.search')
     expected = '?foo=1'
     if query.strip() != expected:
@@ -64,7 +64,7 @@ class PageTestWithAction(page_test.PageTest):
   def __init__(self):
     super(PageTestWithAction, self).__init__('RunTestAction')
 
-  def MeasurePage(self, page, tab, results):
+  def ValidateAndMeasurePage(self, page, tab, results):
     pass
 
 
