@@ -52,11 +52,10 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
 
     openAsyncSlice: function(thread, category, name, cookie, ts, args) {
       var slice = new tracing.trace_model.AsyncSlice(
-          category, name, tvcm.ui.getStringColorId(name), ts);
+          category, name, tvcm.ui.getStringColorId(name), ts, args);
       var key = category + ':' + name + ':' + cookie;
       slice.id = cookie;
       slice.startThread = thread;
-      slice.args = args;
 
       if (!this.openAsyncSlices) {
         this.openAsyncSlices = { };

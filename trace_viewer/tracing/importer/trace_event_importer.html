@@ -631,14 +631,12 @@ tvcm.exportTo('tracing.importer', function() {
                 events[0].event.cat,
                 name,
                 tvcm.ui.getStringColorId(name),
-                events[0].event.ts / 1000);
-
-            slice.duration = (event.ts / 1000) - (events[0].event.ts / 1000);
-
+                events[0].event.ts / 1000,
+                this.deepCopyIfNeeded_(events[0].event.args),
+                (event.ts - events[0].event.ts) / 1000);
             slice.startThread = events[0].thread;
             slice.endThread = asyncEventState.thread;
             slice.id = id;
-            slice.args = this.deepCopyIfNeeded_(events[0].event.args);
             slice.subSlices = [];
 
             var stepType = events[1].event.ph;
@@ -668,16 +666,13 @@ tvcm.exportTo('tracing.importer', function() {
                   events[0].event.cat,
                   subName,
                   tvcm.ui.getStringColorId(subName + j),
-                  events[j - 1].event.ts / 1000);
-
-              subSlice.duration =
-                  (events[j].event.ts / 1000) - (events[j - 1].event.ts / 1000);
-
+                  events[j - 1].event.ts / 1000,
+                  tvcm.concatenateObjects(events[0].event.args,
+                                          targetEvent.event.args),
+                  (events[j].event.ts - events[j - 1].event.ts) / 1000);
               subSlice.startThread = events[j - 1].thread;
               subSlice.endThread = events[j].thread;
               subSlice.id = id;
-              subSlice.args = tvcm.concatenateObjects(events[0].event.args,
-                                                      targetEvent.event.args);
 
               slice.subSlices.push(subSlice);
 
