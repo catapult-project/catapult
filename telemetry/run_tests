@@ -6,13 +6,13 @@
 import os
 import sys
 
-from telemetry.unittest import gtest_output_formatter
+from telemetry.unittest import gtest_progress_reporter
 from telemetry.unittest import run_tests
 
 
 if __name__ == '__main__':
   base_dir = os.path.dirname(os.path.realpath(__file__))
-  output_formatters = [
-      gtest_output_formatter.GTestOutputFormatter(sys.stdout)]
-  run_tests.config = run_tests.Config(base_dir, [base_dir], output_formatters)
+  progress_reporters = [
+      gtest_progress_reporter.GTestProgressReporter(sys.stdout)]
+  run_tests.config = run_tests.Config(base_dir, [base_dir], progress_reporters)
   sys.exit(run_tests.RunTestsCommand.main())

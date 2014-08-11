@@ -8,7 +8,7 @@ from telemetry.core import util
 from telemetry.unittest import options_for_unittests
 
 
-class OutputFormatter(object):
+class ProgressReporter(object):
   def __init__(self, output_stream):
     self._output_stream = output_stream
 
@@ -55,9 +55,9 @@ class TestSuite(unittest.TestSuite):
 
 
 class TestRunner(object):
-  def run(self, test, output_formatters, repeat_count, args):
+  def run(self, test, progress_reporters, repeat_count, args):
     util.AddDirToPythonPath(util.GetUnittestDataDir())
-    result = TestResult(output_formatters)
+    result = TestResult(progress_reporters)
     result.startTestRun()
     try:
       options_for_unittests.Push(args)
@@ -71,10 +71,10 @@ class TestRunner(object):
 
 
 class TestResult(unittest.TestResult):
-  def __init__(self, output_formatters):
+  def __init__(self, progress_reporters):
     super(TestResult, self).__init__()
     self.successes = []
-    self._output_formatters = output_formatters
+    self._progress_reporters = progress_reporters
 
   @property
   def failures_and_errors(self):
@@ -82,49 +82,49 @@ class TestResult(unittest.TestResult):
 
   def startTest(self, test):
     super(TestResult, self).startTest(test)
-    for output_formatter in self._output_formatters:
-      output_formatter.StartTest(test)
+    for progress_reporter in self._progress_reporters:
+      progress_reporter.StartTest(test)
 
   def startTestSuite(self, suite):
-    for output_formatter in self._output_formatters:
-      output_formatter.StartTestSuite(suite)
+    for progress_reporter in self._progress_reporters:
+      progress_reporter.StartTestSuite(suite)
 
   def startTestRun(self):
     super(TestResult, self).startTestRun()
-    for output_formatter in self._output_formatters:
-      output_formatter.StartTestRun()
+    for progress_reporter in self._progress_reporters:
+      progress_reporter.StartTestRun()
 
   def stopTest(self, test):
     super(TestResult, self).stopTest(test)
-    for output_formatter in self._output_formatters:
-      output_formatter.StopTest(test)
+    for progress_reporter in self._progress_reporters:
+      progress_reporter.StopTest(test)
 
   def stopTestSuite(self, suite):
-    for output_formatter in self._output_formatters:
-      output_formatter.StopTestSuite(suite)
+    for progress_reporter in self._progress_reporters:
+      progress_reporter.StopTestSuite(suite)
 
   def stopTestRun(self):
     super(TestResult, self).stopTestRun()
-    for output_formatter in self._output_formatters:
-      output_formatter.StopTestRun(self)
+    for progress_reporter in self._progress_reporters:
+      progress_reporter.StopTestRun(self)
 
   def addError(self, test, err):
     super(TestResult, self).addError(test, err)
-    for output_formatter in self._output_formatters:
-      output_formatter.Error(test, err)
+    for progress_reporter in self._progress_reporters:
+      progress_reporter.Error(test, err)
 
   def addFailure(self, test, err):
     super(TestResult, self).addFailure(test, err)
-    for output_formatter in self._output_formatters:
-      output_formatter.Failure(test, err)
+    for progress_reporter in self._progress_reporters:
+      progress_reporter.Failure(test, err)
 
   def addSuccess(self, test):
     super(TestResult, self).addSuccess(test)
     self.successes.append(test)
-    for output_formatter in self._output_formatters:
-      output_formatter.Success(test)
+    for progress_reporter in self._progress_reporters:
+      progress_reporter.Success(test)
 
   def addSkip(self, test, reason):
     super(TestResult, self).addSkip(test, reason)
-    for output_formatter in self._output_formatters:
-      output_formatter.Skip(test, reason)
+    for progress_reporter in self._progress_reporters:
+      progress_reporter.Skip(test, reason)
