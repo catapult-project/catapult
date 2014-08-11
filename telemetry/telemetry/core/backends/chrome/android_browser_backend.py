@@ -138,7 +138,7 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, adb, package):
     super(WebviewBackendSettings, self).__init__(
         adb=adb,
-        activity='com.android.webview.chromium.shell.TelemetryActivity',
+        activity='org.chromium.telemetry_shell.TelemetryActivity',
         cmdline_file='/data/local/tmp/webview-command-line',
         package=package,
         pseudo_exec_name='webview',
