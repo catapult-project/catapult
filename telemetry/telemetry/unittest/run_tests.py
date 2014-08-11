@@ -11,14 +11,14 @@ from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import discover
 from telemetry.unittest import json_results
-from telemetry.unittest import progress_reporter
+from telemetry.unittest import output_formatter
 
 
 class Config(object):
-  def __init__(self, top_level_dir, test_dirs, progress_reporters):
+  def __init__(self, top_level_dir, test_dirs, output_formatters):
     self._top_level_dir = top_level_dir
     self._test_dirs = tuple(test_dirs)
-    self._progress_reporters = tuple(progress_reporters)
+    self._output_formatters = tuple(output_formatters)
 
   @property
   def top_level_dir(self):
@@ -29,13 +29,13 @@ class Config(object):
     return self._test_dirs
 
   @property
-  def progress_reporters(self):
-    return self._progress_reporters
+  def output_formatters(self):
+    return self._output_formatters
 
 
 def Discover(start_dir, top_level_dir=None, pattern='test*.py'):
   loader = unittest.defaultTestLoader
-  loader.suiteClass = progress_reporter.TestSuite
+  loader.suiteClass = output_formatter.TestSuite
 
   test_suites = []
   modules = discover.DiscoverModules(start_dir, top_level_dir, pattern)
@@ -82,7 +82,7 @@ def DiscoverTests(search_dirs, top_level_dir, possible_browser,
     method = getattr(test, test._testMethodName)
     return decorators.IsEnabled(method, possible_browser)
 
-  wrapper_suite = progress_reporter.TestSuite()
+  wrapper_suite = output_formatter.TestSuite()
   for search_dir in search_dirs:
     wrapper_suite.addTests(Discover(search_dir, top_level_dir, '*_unittest.py'))
   return FilterSuite(wrapper_suite, IsTestSelected)
@@ -183,8 +183,8 @@ class RunTestsCommand(command_line.OptparseCommand):
     test_suite = DiscoverTests(config.test_dirs, config.top_level_dir,
                                possible_browser, args.positional_args,
                                args.run_disabled_tests)
-    runner = progress_reporter.TestRunner()
-    result = runner.run(test_suite, config.progress_reporters,
+    runner = output_formatter.TestRunner()
+    result = runner.run(test_suite, config.output_formatters,
                         args.repeat_count, args)
     return test_suite, result
 
