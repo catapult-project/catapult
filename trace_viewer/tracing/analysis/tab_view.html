@@ -177,6 +177,10 @@ found in the LICENSE file.
           this.setSelectedTabById_(tabObject.id);
       }
 
+      // This is required because the user might have set the selected
+      // property before we got to process the child.
+      var previousSelected = child.selected;
+
       var tabView = this;
 
       Object.defineProperty(
@@ -198,6 +202,10 @@ found in the LICENSE file.
               return this.hasAttribute('selected');
             }
           });
+
+      if (previousSelected)
+        child.selected = previousSelected;
+
       observer.observe(child, { attributeFilter: ['tab-label', 'selected'] });
 
     },
@@ -321,6 +329,7 @@ found in the LICENSE file.
         this.selectedTab_.observer.observe(
             this.selectedTab_.content,
             { attributeFilter: ['tab-label', 'selected'] });
+        this.selectedTab_ = undefined;
       }
     },
 

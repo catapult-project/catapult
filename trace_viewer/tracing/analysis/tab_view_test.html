@@ -154,5 +154,102 @@ tvcm.unittest.testSuite(function() {
 
     this.addHTMLOutput(tabViewContainer);
   });
+
+  /**
+   * This test checks that if an element has a selected property already set,
+   * before being attached to the tabView, it still gets selected if the
+   * property is true, after it gets attached.
+   */
+  test('instantiateSetSelectedTabAlreadySet', function() {
+    var tabViewContainer = document.createElement('div');
+    tabViewContainer.style.width = '500px';
+    tabViewContainer.style.height = '200px';
+
+    var tabView = new TracingAnalysisTabView();
+
+    var t1 = document.createElement('div');
+    t1.textContent = 'This text should BE visible.';
+    var t2 = document.createElement('div');
+    t2.textContent = 'This text should NOT be visible.';
+    var t3 = document.createElement('div');
+    t3.textContent = 'This text should NOT be visible, also.';
+
+    t1.selected = true;
+    t2.selected = false;
+    t3.selected = false;
+
+    tabView.appendChild(t1);
+    tabView.appendChild(t2);
+    tabView.appendChild(t3);
+
+    t1.setAttribute('tab-label', 'This should be selected');
+    t2.setAttribute('tab-label', 'Not selected');
+    t3.setAttribute('tab-label', 'Not selected');
+
+    tabViewContainer.appendChild(tabView);
+
+    this.addHTMLOutput(tabViewContainer);
+  });
+
+  test('selectingInvalidTabWorks', function() {
+    var tabView = new TracingAnalysisTabView();
+    var t1 = document.createElement('div');
+    var t2 = document.createElement('div');
+    var t3 = document.createElement('div');
+    var invalidChild = document.createElement('div');
+
+    tabView.appendChild(t1);
+    tabView.appendChild(t2);
+    tabView.appendChild(t3);
+
+    tabView.selectedTab = t1;
+
+    assertEquals(tabView.selectedTab, t1);
+
+    // Make sure that selecting an invalid tab does not break the current
+    // selection.
+    tabView.selectedTab = invalidChild;
+    assertEquals(t1, tabView.selectedTab);
+
+    // Also make sure the invalidChild does not influence the tab view when
+    // it has a selected property set.
+    invalidChild.selected = true;
+    tabView.selectedTab = invalidChild;
+    assertEquals(t1, tabView.selectedTab);
+  });
+
+  /**
+   * This test makes sure that removing the selected tab does not select
+   * any other tab.
+   */
+  test('instantiateRemovingSelectedTab', function() {
+    var tabViewContainer = document.createElement('div');
+    tabViewContainer.style.width = '500px';
+    tabViewContainer.style.height = '200px';
+
+    var tabView = new TracingAnalysisTabView();
+
+    var t1 = document.createElement('div');
+    t1.textContent = 'This text should BE visible.';
+    var t2 = document.createElement('div');
+    t2.textContent = 'This text should NOT be visible.';
+    var t3 = document.createElement('div');
+    t3.textContent = 'This text should NOT be visible, also.';
+
+    tabView.appendChild(t1);
+    tabView.appendChild(t2);
+    tabView.appendChild(t3);
+
+    t1.setAttribute('tab-label', 'This should not exist');
+    t2.setAttribute('tab-label', 'Not selected');
+    t3.setAttribute('tab-label', 'Not selected');
+
+    tabView.selectedTab = t1;
+    tabView.removeChild(t1);
+
+    tabViewContainer.appendChild(tabView);
+
+    this.addHTMLOutput(tabViewContainer);
+  });
 });
 </script>
