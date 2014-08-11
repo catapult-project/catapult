@@ -51,7 +51,7 @@ tvcm.exportTo('tracing.analysis', function() {
                                          viewConstructor,
                                          opt_options) {
     if (ObjectInstanceView.typeNameToViewInfoMap[typeName])
-      throw new Error('Handler already registerd for ' + typeName);
+      throw new Error('Handler already registered for ' + typeName);
     var options = opt_options || {
       showInTrackView: true
     };

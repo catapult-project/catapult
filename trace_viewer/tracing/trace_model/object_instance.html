@@ -172,7 +172,7 @@ tvcm.exportTo('tracing.trace_model', function() {
   ObjectInstance.nameToConstructorMap_ = {};
   ObjectInstance.register = function(name, constructor) {
     if (ObjectInstance.nameToConstructorMap_[name])
-      throw new Error('Constructor already registerd for ' + name);
+      throw new Error('Constructor already registered for ' + name);
     ObjectInstance.nameToConstructorMap_[name] = constructor;
   };
 

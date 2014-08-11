@@ -63,7 +63,7 @@ tvcm.exportTo('tracing.trace_model', function() {
   ObjectSnapshot.nameToConstructorMap_ = {};
   ObjectSnapshot.register = function(name, constructor) {
     if (ObjectSnapshot.nameToConstructorMap_[name])
-      throw new Error('Constructor already registerd for ' + name);
+      throw new Error('Constructor already registered for ' + name);
     ObjectSnapshot.nameToConstructorMap_[name] = constructor;
   };
 

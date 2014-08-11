@@ -55,7 +55,7 @@ tvcm.exportTo('tracing.analysis', function() {
   SliceView.titleToViewInfoMap = {};
   SliceView.register = function(title, viewConstructor) {
     if (SliceView.titleToViewInfoMap[title])
-      throw new Error('Handler already registerd for ' + title);
+      throw new Error('Handler already registered for ' + title);
     SliceView.titleToViewInfoMap[title] = {
       constructor: viewConstructor
     };
