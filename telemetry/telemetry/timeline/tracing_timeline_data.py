@@ -14,9 +14,9 @@ class TracingTimelineData(TimelineData):
   def Serialize(self, f):
     """Serializes the trace result to a file-like object"""
     if 'traceEvents' in self._event_data:
-      json.dump(self._event_data, f)
+      json.dump(self._event_data, f, indent=4)
     else:
-      json.dump({'traceEvents' : self._event_data}, f)
+      json.dump({'traceEvents' : self._event_data}, f, indent=4)
 
   def EventData(self):
     return self._event_data
