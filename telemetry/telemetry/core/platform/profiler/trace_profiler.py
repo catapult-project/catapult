@@ -5,6 +5,7 @@
 import codecs
 
 from telemetry.core.platform import profiler
+from telemetry.core.platform import tracing_options
 
 
 class TraceProfiler(profiler.Profiler):
@@ -18,7 +19,10 @@ class TraceProfiler(profiler.Profiler):
     categories_with_flow = 'disabled-by-default-toplevel.flow'
     if categories:
       categories_with_flow = ',%s' % categories
-    self._browser_backend.StartTracing(categories_with_flow, timeout=10)
+    options = tracing_options.TracingOptions()
+    options.enable_chrome_trace = True
+    self._browser_backend.StartTracing(
+        options, categories_with_flow, timeout=10)
 
   @classmethod
   def name(cls):

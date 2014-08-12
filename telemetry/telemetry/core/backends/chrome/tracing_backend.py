@@ -6,6 +6,7 @@ import logging
 
 from telemetry.core.backends.chrome import inspector_websocket
 from telemetry.core.platform import tracing_category_filter
+from telemetry.core.platform import tracing_options
 
 
 class TracingUnsupportedException(Exception):
@@ -17,7 +18,7 @@ class TracingTimeoutException(Exception):
 
 
 class TracingBackend(object):
-  def __init__(self, devtools_port):
+  def __init__(self, devtools_port, chrome_browser_backend):
     self._inspector_websocket = inspector_websocket.InspectorWebsocket(
         self._NotificationHandler,
         self._ErrorHandler)
@@ -28,12 +29,13 @@ class TracingBackend(object):
     self._nesting = 0
     self._tracing_data = []
     self._is_tracing_running = False
+    self._chrome_browser_backend = chrome_browser_backend
 
   @property
   def is_tracing_running(self):
     return self._is_tracing_running
 
-  def StartTracing(self, custom_categories=None, timeout=10):
+  def StartTracing(self, trace_options, custom_categories=None, timeout=10):
     """ Starts tracing on the first nested call and returns True. Returns False
         and does nothing on subsequent nested calls.
     """
@@ -48,11 +50,27 @@ class TracingBackend(object):
                         'StartTracing call is subset of current filter.')
       return False
     self._CheckNotificationSupported()
+    #TODO(nednguyen): remove this when the stable branch pass 2118.
+    if (trace_options.record_mode == tracing_options.RECORD_AS_MUCH_AS_POSSIBLE
+        and self._chrome_browser_backend.chrome_branch_number
+        and self._chrome_browser_backend.chrome_branch_number < 2118):
+      logging.warning(
+          'Cannot use %s tracing mode on chrome browser with branch version %i,'
+          ' (<2118) fallback to use %s tracing mode' % (
+              trace_options.record_mode,
+              self._chrome_browser_backend.chrome_branch_number,
+              tracing_options.RECORD_UNTIL_FULL))
+      trace_options.record_mode = tracing_options.RECORD_UNTIL_FULL
     req = {'method': 'Tracing.start'}
+    req['params'] = {}
+    m = {tracing_options.RECORD_UNTIL_FULL: 'record-until-full',
+         tracing_options.RECORD_AS_MUCH_AS_POSSIBLE:
+         'record-as-much-as-possible'}
+    req['params']['options'] = m[trace_options.record_mode]
     self._category_filter = tracing_category_filter.TracingCategoryFilter(
         filter_string=custom_categories)
     if custom_categories:
-      req['params'] = {'categories': custom_categories}
+      req['params']['categories'] = custom_categories
     self._inspector_websocket.SyncRequest(req, timeout)
     self._is_tracing_running = True
     return True

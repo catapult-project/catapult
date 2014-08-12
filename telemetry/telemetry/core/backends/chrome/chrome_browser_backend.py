@@ -249,17 +249,22 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def supports_tracing(self):
     return True
 
-  def StartTracing(self, custom_categories=None,
+  def StartTracing(self, trace_options, custom_categories=None,
                    timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
-    """ custom_categories is an optional string containing a list of
-    comma separated categories that will be traced instead of the
-    default category set.  Example: use
-    "webkit,cc,disabled-by-default-cc.debug" to trace only those three
-    event categories.
     """
+    Args:
+        trace_options: An tracing_options.TracingOptions instance.
+        custom_categories: An optional string containing a list of
+                         comma separated categories that will be traced
+                         instead of the default category set.  Example: use
+                         "webkit,cc,disabled-by-default-cc.debug" to trace only
+                         those three event categories.
+    """
+    assert trace_options and trace_options.enable_chrome_trace
     if self._tracing_backend is None:
-      self._tracing_backend = tracing_backend.TracingBackend(self._port)
-    return self._tracing_backend.StartTracing(custom_categories, timeout)
+      self._tracing_backend = tracing_backend.TracingBackend(self._port, self)
+    return self._tracing_backend.StartTracing(
+        trace_options, custom_categories, timeout)
 
   @property
   def is_tracing_running(self):

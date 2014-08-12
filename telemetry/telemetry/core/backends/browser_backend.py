@@ -69,7 +69,7 @@ class BrowserBackend(object):
       self._forwarder_factory = do_nothing_forwarder.DoNothingForwarderFactory()
     return self._forwarder_factory
 
-  def StartTracing(self, custom_categories=None,
+  def StartTracing(self, trace_options, custom_categories=None,
                    timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     raise NotImplementedError()
 

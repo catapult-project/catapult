@@ -39,7 +39,7 @@ class TracingControllerBackend(object):
     if trace_options.enable_chrome_trace:
       browser_backend = self.running_browser_backends[0]
       browser_backend.StartTracing(
-          category_filter.filter_string, timeout)
+          trace_options, category_filter.filter_string, timeout)
 
   def Stop(self):
     if not self.is_tracing_running:
