@@ -44,9 +44,4 @@ class TraceViewerProject(project_module.Project):
 
     self.non_module_html_files.extendRel(self.trace_viewer_path, [
       'test_data/android_systrace.html',
-      'third_party/jszip/examples/download-zip-file.html',
-      'third_party/jszip/examples/get-binary-files-xhr2.html',
-      'third_party/jszip/examples/read-local-file-api.html',
-      'third_party/jszip/index.html',
-      'third_party/jszip/test/index.html'
     ])
