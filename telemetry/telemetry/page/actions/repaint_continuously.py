@@ -6,6 +6,7 @@ import time
 
 from telemetry.page.actions import page_action
 
+
 class RepaintContinuouslyAction(page_action.PageAction):
   """ Continuously repaints the visible content by requesting animation frames
   until self.seconds have elapsed AND at least three RAFs have been fired. Times

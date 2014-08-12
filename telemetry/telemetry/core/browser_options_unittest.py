@@ -7,6 +7,7 @@ import unittest
 
 from telemetry.core import browser_options
 
+
 class BrowserOptionsTest(unittest.TestCase):
   def testDefaults(self):
     options = browser_options.BrowserFinderOptions()

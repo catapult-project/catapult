@@ -5,6 +5,7 @@ import unittest
 
 from telemetry.core import gpu_device
 
+
 class TestGPUDevice(unittest.TestCase):
   def testConstruction(self):
     device = gpu_device.GPUDevice(1000, 2000, 'test_vendor', 'test_device')

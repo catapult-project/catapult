@@ -15,7 +15,6 @@ from telemetry.results import json_output_formatter
 from telemetry.results import page_test_results
 from telemetry.results import progress_reporter
 
-
 # Allowed output formats. The default is the first item in the list.
 _OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'block', 'csv', 'gtest',
     'json', 'none')

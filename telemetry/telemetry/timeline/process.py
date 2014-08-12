@@ -7,6 +7,7 @@ import telemetry.timeline.event as event_module
 import telemetry.timeline.event_container as event_container
 import telemetry.timeline.thread as tracing_thread
 
+
 class Process(event_container.TimelineEventContainer):
   ''' The Process represents a single userland process in the trace.
   '''

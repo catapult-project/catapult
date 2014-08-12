@@ -5,6 +5,7 @@ import os
 
 from telemetry.core.backends.chrome import crx_id
 
+
 class ExtensionPathNonExistentException(Exception):
   pass
 

@@ -4,6 +4,7 @@
 
 from telemetry.core import gpu_device
 
+
 class GPUInfo(object):
   """Provides information about the GPUs on the system."""
 

@@ -4,6 +4,7 @@
 
 from telemetry import value as value_module
 
+
 class ListOfStringValues(value_module.Value):
   def __init__(self, page, name, units, values,
                important=True, description=None,

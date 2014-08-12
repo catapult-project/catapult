@@ -7,6 +7,7 @@ import SimpleHTTPServer
 from telemetry.core import local_server
 from telemetry.unittest import tab_test_case
 
+
 class SimpleLocalServerBackendRequestHandler(
     SimpleHTTPServer.SimpleHTTPRequestHandler):
   def do_GET(self):

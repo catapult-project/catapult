@@ -4,6 +4,7 @@
 
 import telemetry.timeline.event as timeline_event
 
+
 class Sample(timeline_event.TimelineEvent):
   ''' A Sample represents a sample taken at an instant in time
   plus parameters associated with that sample.

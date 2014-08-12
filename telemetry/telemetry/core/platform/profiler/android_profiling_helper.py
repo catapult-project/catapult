@@ -11,14 +11,15 @@ import re
 import shutil
 import subprocess
 
+from telemetry.core import util
+from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
+from telemetry.util import support_binaries
+
 try:
   import sqlite3
 except ImportError:
   sqlite3 = None
 
-from telemetry.core import util
-from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
-from telemetry.util import support_binaries
 
 
 _TEXT_SECTION = '.text'

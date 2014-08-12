@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 
 from telemetry.perf_tests_helper import FlattenList
-from telemetry.web_perf.metrics import timeline_based_metric
-from telemetry.web_perf.metrics import rendering_stats
 from telemetry.util import statistics
-from telemetry.value import scalar
 from telemetry.value import list_of_scalar_values
+from telemetry.value import scalar
+from telemetry.web_perf.metrics import rendering_stats
+from telemetry.web_perf.metrics import timeline_based_metric
 
 
 class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):

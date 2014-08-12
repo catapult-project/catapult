@@ -7,6 +7,7 @@ from telemetry.core import gpu_device
 from telemetry.core import gpu_info
 from telemetry.core import system_info
 
+
 class TestSystemInfo(unittest.TestCase):
   def testConstruction(self):
     data = {

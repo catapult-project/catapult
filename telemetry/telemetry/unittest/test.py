@@ -4,6 +4,5 @@
 
 from telemetry import decorators
 
-
 Disabled = decorators.Disabled
 Enabled = decorators.Enabled

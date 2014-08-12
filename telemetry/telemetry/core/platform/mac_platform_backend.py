@@ -5,15 +5,17 @@
 import ctypes
 import os
 import time
-try:
-  import resource  # pylint: disable=F0401
-except ImportError:
-  resource = None  # Not available on all platforms
 
 from telemetry import decorators
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
 from telemetry.core.platform.power_monitor import powermetrics_power_monitor
+
+try:
+  import resource  # pylint: disable=F0401
+except ImportError:
+  resource = None  # Not available on all platforms
+
 
 
 class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):

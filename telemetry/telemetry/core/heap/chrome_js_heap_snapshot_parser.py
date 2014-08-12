@@ -7,6 +7,7 @@ import json
 from telemetry.core.heap import live_heap_object
 from telemetry.core.heap import retaining_edge
 
+
 class ChromeJsHeapSnapshotParser(object):
   """ Parser for the heap snapshot.
 

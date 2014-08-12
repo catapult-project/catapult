@@ -4,6 +4,7 @@
 import json
 import logging
 
+
 class InspectorConsole(object):
   def __init__(self, inspector_backend):
     self._inspector_backend = inspector_backend

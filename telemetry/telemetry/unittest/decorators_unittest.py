@@ -6,7 +6,6 @@ import unittest
 
 from telemetry import decorators
 
-
 _counter = 0
 
 

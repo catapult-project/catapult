@@ -18,6 +18,7 @@ from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.core.platform.profiler import profiler_finder
 
+
 class Browser(object):
   """A running browser instance that can be controlled in a limited way.
 

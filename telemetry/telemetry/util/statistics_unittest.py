@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import unittest
-import random
 import math
+import random
+import unittest
 
 from telemetry.util import statistics
 

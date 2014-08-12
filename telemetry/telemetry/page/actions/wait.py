@@ -4,6 +4,7 @@
 
 from telemetry.page.actions import page_action
 
+
 class WaitForElementAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None,
                timeout_in_seconds=60):

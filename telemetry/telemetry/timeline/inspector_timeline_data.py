@@ -6,6 +6,7 @@ import json
 
 from telemetry.timeline.timeline_data import TimelineData
 
+
 class InspectorTimelineData(TimelineData):
   def __init__(self, event_data):
     super(InspectorTimelineData, self).__init__()

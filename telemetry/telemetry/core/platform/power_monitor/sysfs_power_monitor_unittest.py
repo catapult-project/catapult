@@ -174,4 +174,3 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
       for freq in results[cpu]:
         self.assertAlmostEqual(results[cpu][freq],
                                self.expected_freq_percents[cpu][freq])
-

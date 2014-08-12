@@ -4,8 +4,8 @@
 
 """Finds android browsers that can be controlled by telemetry."""
 
-import os
 import logging as real_logging
+import os
 import re
 import subprocess
 import sys
@@ -13,7 +13,6 @@ import sys
 from telemetry import decorators
 from telemetry.core import browser
 from telemetry.core import platform
-from telemetry.core import platform as platform_module
 from telemetry.core import possible_browser
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
@@ -101,7 +100,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     self._platform_backend = android_platform_backend.AndroidPlatformBackend(
         self._backend_settings.adb.device(),
         self.finder_options.no_performance_mode)
-    self._platform = platform_module.Platform(self._platform_backend)
+    self._platform = platform.Platform(self._platform_backend)
 
   def Create(self):
     self._InitPlatformIfNeeded()

@@ -7,7 +7,6 @@ import unittest
 from telemetry.core.platform.power_monitor import android_temperature_monitor
 from telemetry.unittest import simple_mock
 
-
 _ = simple_mock.DONT_CARE
 
 

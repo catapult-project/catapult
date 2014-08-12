@@ -9,6 +9,7 @@ from telemetry.core import util
 from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.platform import profiler
 
+
 class AndroidScreenRecordingProfiler(profiler.Profiler):
   """Captures a screen recording on Android."""
 

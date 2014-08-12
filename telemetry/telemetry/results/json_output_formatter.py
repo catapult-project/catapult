@@ -6,6 +6,7 @@ import json
 
 from telemetry.results import output_formatter
 
+
 def ResultsAsDict(page_test_results, metadata):
   result_dict = {
     'format_version': '0.2',

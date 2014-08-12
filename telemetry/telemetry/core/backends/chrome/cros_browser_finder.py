@@ -6,11 +6,11 @@
 
 import logging
 
-from telemetry.core import browser
 from telemetry.core import platform as platform_module
+from telemetry.core import browser
 from telemetry.core import possible_browser
-from telemetry.core.backends.chrome import cros_browser_with_oobe
 from telemetry.core.backends.chrome import cros_browser_backend
+from telemetry.core.backends.chrome import cros_browser_with_oobe
 from telemetry.core.backends.chrome import cros_interface
 from telemetry.core.platform import cros_platform_backend
 

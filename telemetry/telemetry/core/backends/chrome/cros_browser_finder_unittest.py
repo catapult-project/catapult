@@ -8,4 +8,3 @@
 # verify that the finder does the right thing. Because the finder delegates most
 # of its work to the CRI, the test code here is going to be comparatively
 # simple.
-

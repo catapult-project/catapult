@@ -4,18 +4,17 @@
 
 import logging
 import os
-
 from collections import defaultdict
+
 from telemetry.core import util
 from telemetry.core.platform import tracing_category_filter
+from telemetry.page import page_test
 from telemetry.timeline import model as model_module
+from telemetry.value import string as string_value_module
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import fast_metric
 from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.web_perf.metrics import smoothness
-from telemetry.page import page_test
-from telemetry.value import string as string_value_module
-
 
 # TimelineBasedMeasurement considers all instrumentation as producing a single
 # timeline. But, depending on the amount of instrumentation that is enabled,

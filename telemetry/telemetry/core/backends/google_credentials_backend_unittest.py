@@ -4,6 +4,7 @@
 from telemetry.core.backends import form_based_credentials_backend_unittest_base
 from telemetry.core.backends import google_credentials_backend
 
+
 class TestGoogleCredentialsBackend(
     form_based_credentials_backend_unittest_base.
     FormBasedCredentialsBackendUnitTestBase):

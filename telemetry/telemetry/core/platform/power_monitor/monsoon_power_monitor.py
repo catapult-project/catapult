@@ -8,8 +8,8 @@ import tempfile
 import time
 
 from telemetry.core import exceptions
+from telemetry.core.platform import power_monitor
 from telemetry.core.platform.profiler import monsoon
-import telemetry.core.platform.power_monitor as power_monitor
 
 
 def _MonitorPower(device, is_collecting, output):

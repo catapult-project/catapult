@@ -4,6 +4,7 @@
 
 from telemetry.core.backends.webdriver import webdriver_tab_backend
 
+
 class WebDriverTabListBackend(object):
   def __init__(self, browser_backend):
     self._browser_backend = browser_backend

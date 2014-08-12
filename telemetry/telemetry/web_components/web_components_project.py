@@ -4,9 +4,9 @@
 
 import os
 
-
 from telemetry.core import util
 from trace_viewer import trace_viewer_project
+
 
 def _FindAllFilesRecursive(source_paths, pred):
   all_filenames = set()

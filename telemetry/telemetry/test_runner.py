@@ -13,8 +13,8 @@ import json
 import os
 import sys
 
-from telemetry import decorators
 from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import command_line

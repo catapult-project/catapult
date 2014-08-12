@@ -4,6 +4,7 @@
 
 import telemetry.timeline.event as timeline_event
 
+
 class Slice(timeline_event.TimelineEvent):
   """A Slice represents an interval of time plus parameters associated
   with that interval.

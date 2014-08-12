@@ -7,6 +7,7 @@ import unittest
 
 from telemetry.core.heap import chrome_js_heap_snapshot_parser
 
+
 class ChromeJsHeapSnapshotParserUnittest(unittest.TestCase):
   def _HeapSnapshotData(self, node_types, edge_types, node_fields, edge_fields,
                         node_list, edge_list, strings):

@@ -1,14 +1,14 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import StringIO
 import csv
 import os
+import StringIO
 import unittest
 
+from telemetry.page import page_set
 from telemetry.results import csv_output_formatter
 from telemetry.results import page_test_results
-from telemetry.page import page_set
 from telemetry.value import histogram
 from telemetry.value import scalar
 

@@ -6,6 +6,7 @@ import json
 from telemetry import value as value_module
 from telemetry import perf_tests_helper
 
+
 class HistogramValueBucket(object):
   def __init__(self, low, high, count=0):
     self.low = low

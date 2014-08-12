@@ -7,6 +7,7 @@ from telemetry.core import browser_options
 from telemetry.core.backends.chrome import desktop_browser_finder
 from telemetry.unittest import system_stub
 
+
 # This file verifies the logic for finding a browser instance on all platforms
 # at once. It does so by providing stubs for the OS/sys/subprocess primitives
 # that the underlying finding logic usually uses to locate a suitable browser.

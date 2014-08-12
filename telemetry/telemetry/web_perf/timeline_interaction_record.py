@@ -4,9 +4,8 @@
 
 import re
 
-from telemetry import decorators
 import telemetry.timeline.bounds as timeline_bounds
-
+from telemetry import decorators
 
 # Enables the fast metric for this interaction
 IS_FAST = 'is_fast'

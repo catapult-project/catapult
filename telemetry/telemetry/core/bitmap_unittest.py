@@ -2,14 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import tempfile
 import os
+import tempfile
 import unittest
 
 from telemetry import benchmark
 from telemetry.core import bitmap
 from telemetry.core import util
-
 
 # This is a simple base64 encoded 2x2 PNG which contains, in order, a single
 # Red, Yellow, Blue, and Green pixel.

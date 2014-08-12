@@ -4,6 +4,7 @@
 
 from telemetry.page.page_set import PageSet
 
+
 class TestSimpleTwoPageSet(PageSet):
   def __init__(self):
     super(TestSimpleTwoPageSet, self).__init__(

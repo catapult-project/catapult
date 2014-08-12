@@ -10,15 +10,15 @@ https://code.google.com/p/trace-viewer/
 from operator import attrgetter
 
 import telemetry.timeline.process as process_module
-from telemetry.timeline import slice as slice_module
 from telemetry.timeline import async_slice as async_slice_module
-
-# Register importers for data
+from telemetry.timeline import slice as slice_module
 from telemetry.timeline import bounds
 from telemetry.timeline import empty_timeline_data_importer
 from telemetry.timeline import event_container
 from telemetry.timeline import inspector_importer
 from telemetry.timeline import trace_event_importer
+
+# Register importers for data
 
 _IMPORTERS = [
     empty_timeline_data_importer.EmptyTimelineDataImporter,

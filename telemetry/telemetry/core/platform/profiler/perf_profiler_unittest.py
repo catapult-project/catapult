@@ -1,14 +1,15 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
 import logging
+import os
 import unittest
 
 from telemetry.core import util
 from telemetry.core.platform.profiler import perf_profiler
 from telemetry.unittest import options_for_unittests
 from telemetry.unittest import simple_mock
+
 
 class TestPerfProfiler(unittest.TestCase):
   def testPerfProfiler(self):

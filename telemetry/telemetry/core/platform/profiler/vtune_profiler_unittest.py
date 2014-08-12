@@ -8,6 +8,7 @@ from telemetry.unittest import options_for_unittests
 from telemetry.unittest import simple_mock
 from telemetry.unittest import tab_test_case
 
+
 class MockPopen(object):
   def __init__(self, returncode, stdout=None, stderr=None):
     self.returncode = returncode

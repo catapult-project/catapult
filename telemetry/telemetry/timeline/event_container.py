@@ -2,9 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.timeline import slice as slice_module
 from telemetry.timeline import async_slice as async_slice_module
 from telemetry.timeline import flow_event as flow_event_module
+from telemetry.timeline import slice as slice_module
+
 
 class TimelineEventContainer(object):
   """Represents a container for events.

@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 from telemetry.core import gpu_info
 
+
 class SystemInfo(object):
   """Provides low-level system information."""
 

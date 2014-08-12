@@ -4,4 +4,3 @@
 WPR_OFF = 'wpr-off'
 WPR_RECORD = 'wpr-record'
 WPR_REPLAY = 'wpr-replay'
-

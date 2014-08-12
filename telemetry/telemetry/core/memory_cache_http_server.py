@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import BaseHTTPServer
-from collections import namedtuple
 import gzip
 import mimetypes
 import os
@@ -12,10 +11,9 @@ import SocketServer
 import StringIO
 import sys
 import urlparse
-
+from collections import namedtuple
 
 from telemetry.core import local_server
-
 
 ByteRange = namedtuple('ByteRange', ['from_byte', 'to_byte'])
 ResourceAndRange = namedtuple('ResourceAndRange', ['resource', 'byte_range'])

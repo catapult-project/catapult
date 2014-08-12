@@ -8,6 +8,7 @@ import unittest
 from telemetry import decorators
 from telemetry.util import support_binaries
 
+
 class SupportBinariesTest(unittest.TestCase):
   @decorators.Enabled('linux')
   def testFindPath(self):

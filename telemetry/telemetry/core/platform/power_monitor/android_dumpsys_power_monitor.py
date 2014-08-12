@@ -2,12 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import telemetry.core.platform.power_monitor as power_monitor
-
-import logging
 import csv
-
+import logging
 from collections import defaultdict
+
+from telemetry.core.platform import power_monitor
 
 
 class DumpsysPowerMonitor(power_monitor.PowerMonitor):

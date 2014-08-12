@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 from telemetry.core import exceptions
 
+
 class InspectorRuntime(object):
   def __init__(self, inspector_backend):
     self._inspector_backend = inspector_backend

@@ -4,6 +4,7 @@
 
 from telemetry.timeline.timeline_data import TimelineData
 
+
 class EmptyTimelineDataImporter(object):
   """Imports empty TimlineData objects."""
   def __init__(self, model, timeline_data, import_priority=0):

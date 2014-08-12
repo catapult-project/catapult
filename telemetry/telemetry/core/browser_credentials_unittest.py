@@ -7,6 +7,7 @@ import unittest
 
 from telemetry.core import browser_credentials
 
+
 SIMPLE_CREDENTIALS_STRING = """
 {
   "google": {

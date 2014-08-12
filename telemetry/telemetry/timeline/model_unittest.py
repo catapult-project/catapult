@@ -7,6 +7,7 @@ import unittest
 from telemetry.timeline import model
 from telemetry.timeline import tracing_timeline_data
 
+
 class TimelineModelUnittest(unittest.TestCase):
   def testEmptyImport(self):
     model.TimelineModel(

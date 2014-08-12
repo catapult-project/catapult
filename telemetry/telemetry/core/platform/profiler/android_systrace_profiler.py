@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 
 import os
-import subprocess
 import StringIO
+import subprocess
 import zipfile
 
 from telemetry.core import util

@@ -4,6 +4,7 @@
 
 import telemetry.timeline.event_container as event_container
 
+
 # Doesn't inherit from TimelineEvent because its only a temporary wrapper of a
 # counter sample into an event. During stable operation, the samples are stored
 # a dense array of values rather than in the long-form done by an Event.

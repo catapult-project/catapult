@@ -6,6 +6,7 @@ import re
 
 from telemetry import decorators
 
+
 class PageActionNotSupported(Exception):
   pass
 

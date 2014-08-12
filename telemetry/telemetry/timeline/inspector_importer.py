@@ -3,10 +3,11 @@
 # found in the LICENSE file.
 '''Imports event data obtained from the inspector's timeline.'''
 
+import telemetry.timeline.slice as tracing_slice
+import telemetry.timeline.thread as timeline_thread
 from telemetry.timeline import importer
 from telemetry.timeline import inspector_timeline_data
-import telemetry.timeline.thread as timeline_thread
-import telemetry.timeline.slice as tracing_slice
+
 
 class InspectorTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, timeline_data):

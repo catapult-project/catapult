@@ -7,9 +7,9 @@ import tempfile
 
 from telemetry import benchmark
 from telemetry.core import bitmap
-from telemetry.core import video
-from telemetry.core import util
 from telemetry.core import exceptions
+from telemetry.core import util
+from telemetry.core import video
 from telemetry.core.platform import tracing_category_filter
 from telemetry.timeline import model
 from telemetry.unittest import tab_test_case

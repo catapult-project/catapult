@@ -10,7 +10,6 @@ import os
 from telemetry import decorators
 from telemetry.util import support_binaries
 
-
 _DEVICE_PROFILER_DIR = '/data/local/tmp/profilers/'
 
 
@@ -30,4 +29,3 @@ def InstallOnDevice(device, profiler_binary):
   device.PushChangedFiles(host_path, device_binary_path)
   device.RunShellCommand('chmod 777 ' + device_binary_path)
   return True
-

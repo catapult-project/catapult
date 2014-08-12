@@ -7,6 +7,7 @@ import tempfile
 
 from telemetry.core.platform import profiler
 
+
 class V8Profiler(profiler.Profiler):
 
   _V8_ARG = '--js-flags=--logfile=%s --prof --log-timer-events'

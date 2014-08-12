@@ -6,9 +6,8 @@ import logging
 import os
 
 from telemetry import decorators
+from telemetry.core.platform import power_monitor
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
-import telemetry.core.platform.power_monitor as power_monitor
-
 
 SAMPLE_RATE_HZ = 2 # The data is collected from the ds2784 fuel gauge chip
                    # that only updates its data every 3.5s.

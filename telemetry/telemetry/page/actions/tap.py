@@ -6,6 +6,7 @@ import os
 
 from telemetry.page.actions import page_action
 
+
 class TapAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_position_percentage=0.5, top_position_percentage=0.5,

@@ -28,6 +28,7 @@ from telemetry.util import exception_formatter
 from telemetry.value import failure
 from telemetry.value import skip
 
+
 class _RunState(object):
   def __init__(self):
     self.browser = None

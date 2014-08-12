@@ -8,6 +8,7 @@ from telemetry import value
 from telemetry.page import page_set
 from telemetry.value import list_of_string_values
 
+
 class TestBase(unittest.TestCase):
   def setUp(self):
     self.page_set = page_set.PageSet(file_path=os.path.dirname(__file__))

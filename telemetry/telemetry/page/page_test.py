@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from telemetry.core import command_line
-
 from telemetry.page import test_expectations
 from telemetry.page.actions import action_runner as action_runner_module
 

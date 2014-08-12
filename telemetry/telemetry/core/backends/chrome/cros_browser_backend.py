@@ -6,7 +6,6 @@ import logging
 import os
 
 from telemetry import decorators
-
 from telemetry.core import exceptions
 from telemetry.core import forwarders
 from telemetry.core import util

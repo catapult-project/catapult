@@ -6,6 +6,7 @@ import numbers
 
 from telemetry import value as value_module
 
+
 def _Mean(values):
   return float(sum(values)) / len(values) if len(values) > 0 else 0.0
 

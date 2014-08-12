@@ -4,6 +4,7 @@
 
 from telemetry.core.heap import chrome_js_heap_snapshot_parser
 
+
 class Model(object):
   """ The heap snapshot model is a set of LiveHeapObjects. The LiveHeapObjects
   contain the RetainingEdge objects describing the relationships between the

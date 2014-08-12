@@ -4,6 +4,7 @@
 
 from telemetry.page import page_test
 
+
 class ProfileCreator(page_test.PageTest):
   """Base class for an object that constructs a Chrome profile."""
 

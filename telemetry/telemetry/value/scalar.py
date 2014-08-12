@@ -7,6 +7,7 @@ import numbers
 from telemetry import value as value_module
 from telemetry.value import list_of_scalar_values
 
+
 class ScalarValue(value_module.Value):
   def __init__(self, page, name, units, value, important=True,
                description=None):

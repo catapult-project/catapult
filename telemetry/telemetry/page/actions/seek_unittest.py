@@ -6,7 +6,6 @@ from telemetry.core import util
 from telemetry.page.actions import seek
 from telemetry.unittest import tab_test_case
 
-
 AUDIO_1_SEEKED_CHECK = 'window.__hasEventCompleted("#audio_1", "seeked");'
 VIDEO_1_SEEKED_CHECK = 'window.__hasEventCompleted("#video_1", "seeked");'
 

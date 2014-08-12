@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import json
 
+
 class InspectorMemoryException(Exception):
   pass
 

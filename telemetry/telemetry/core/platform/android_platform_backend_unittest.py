@@ -73,4 +73,3 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         adb_empty_proc_stat, False)
     cpu_stats = backend.GetCpuStats('7702')
     self.assertEquals(cpu_stats, {})
-

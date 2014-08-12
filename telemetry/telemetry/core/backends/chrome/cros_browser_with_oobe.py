@@ -5,6 +5,7 @@
 from telemetry.core import browser
 from telemetry.core.backends.chrome import cros_browser_backend
 
+
 class CrOSBrowserWithOOBE(browser.Browser):
   """Cros-specific browser."""
   def __init__(self, backend, platform_backend):

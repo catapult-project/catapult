@@ -4,6 +4,7 @@
 
 import telemetry.timeline.event as event
 
+
 class FlowEvent(event.TimelineEvent):
   ''' A FlowEvent represents an interval of time plus parameters associated
   with that interval.

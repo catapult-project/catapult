@@ -17,7 +17,6 @@ import sys
 import time
 import urllib
 
-
 _CHROME_SRC_DIR = os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, os.pardir))
 REPLAY_DIR = os.path.join(

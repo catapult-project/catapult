@@ -5,8 +5,9 @@
 import logging
 
 from telemetry.core import exceptions
-from telemetry.core import web_contents
 from telemetry.core import util
+from telemetry.core import web_contents
+
 
 class Oobe(web_contents.WebContents):
   def __init__(self, inspector_backend, backend_list):

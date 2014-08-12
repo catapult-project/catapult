@@ -7,6 +7,7 @@ from telemetry.core import browser_options
 from telemetry.core.backends.chrome import ios_browser_finder
 from telemetry.unittest import test
 
+
 class IosBrowserFinderUnitTest(unittest.TestCase):
   # TODO(baxley): Currently the tests require a device with Chrome running.
   # This should be stubbed out so it runs on any system, with no device
@@ -21,4 +22,3 @@ class IosBrowserFinderUnitTest(unittest.TestCase):
 
 if __name__ == '__main__':
   unittest.main()
-

@@ -6,7 +6,6 @@ import os
 
 from telemetry.core import util
 
-
 BASE_PROFILE_TYPES = ['clean', 'default']
 
 PROFILE_TYPE_MAPPING = {

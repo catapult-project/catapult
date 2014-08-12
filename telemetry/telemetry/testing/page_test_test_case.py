@@ -9,12 +9,12 @@ import unittest
 from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import util
-from telemetry.page import page_runner
 from telemetry.page import page as page_module
+from telemetry.page import page_runner
 from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
-from telemetry.results import results_options
 from telemetry.page import test_expectations
+from telemetry.results import results_options
 from telemetry.unittest import options_for_unittests
 
 

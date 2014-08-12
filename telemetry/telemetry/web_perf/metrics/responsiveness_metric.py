@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 import logging
 
+from telemetry.value import scalar
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import mainthread_jank_stats
 from telemetry.web_perf.metrics import timeline_based_metric
-from telemetry.value import scalar
 
 
 class ResponsivenessMetric(timeline_based_metric.TimelineBasedMetric):

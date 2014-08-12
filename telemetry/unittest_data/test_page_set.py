@@ -2,10 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.page import page_set
 from telemetry.page import page
-
+from telemetry.page import page_set
 from unittest_data.pages.external_page import ExternalPage
+
 
 class InternalPage(page.Page):
   def __init__(self, ps):

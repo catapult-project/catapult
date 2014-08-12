@@ -7,6 +7,7 @@ import unittest
 from telemetry.core import discover
 from telemetry.core import util
 
+
 class DiscoverTest(unittest.TestCase):
   def setUp(self):
     self._base_dir = util.GetUnittestDataDir()

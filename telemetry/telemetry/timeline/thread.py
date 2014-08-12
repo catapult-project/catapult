@@ -1,11 +1,12 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import telemetry.timeline.event_container as event_container
-import telemetry.timeline.sample as sample_module
 import telemetry.timeline.async_slice as async_slice_module
+import telemetry.timeline.event_container as event_container
 import telemetry.timeline.flow_event as flow_event_module
+import telemetry.timeline.sample as sample_module
 import telemetry.timeline.slice as slice_module
+
 
 class Thread(event_container.TimelineEventContainer):
   ''' A Thread stores all the trace events collected for a particular

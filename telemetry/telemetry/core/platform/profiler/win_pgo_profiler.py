@@ -9,7 +9,6 @@ import sys
 
 from telemetry.core.platform import profiler
 
-
 _PGOSWEEP_EXECUTABLE = 'pgosweep.exe'
 
 

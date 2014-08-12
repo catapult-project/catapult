@@ -11,7 +11,6 @@ from telemetry.page import page as page_module
 from telemetry.page import page_set_archive_info
 from telemetry.util import cloud_storage
 
-
 PUBLIC_BUCKET = cloud_storage.PUBLIC_BUCKET
 PARTNER_BUCKET = cloud_storage.PARTNER_BUCKET
 INTERNAL_BUCKET = cloud_storage.INTERNAL_BUCKET

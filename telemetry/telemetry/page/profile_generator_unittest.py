@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 
 import os
-import socket
 import shutil
+import socket
 import tempfile
 import unittest
 

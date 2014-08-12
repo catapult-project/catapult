@@ -4,6 +4,7 @@
 
 from telemetry.core.backends import form_based_credentials_backend
 
+
 class FacebookCredentialsBackend(
     form_based_credentials_backend.FormBasedCredentialsBackend):
   def IsAlreadyLoggedIn(self, tab):

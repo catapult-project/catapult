@@ -11,7 +11,6 @@ import sys
 
 from telemetry.core import forwarders
 
-
 NamedPort = collections.namedtuple('NamedPort', ['name', 'port'])
 
 

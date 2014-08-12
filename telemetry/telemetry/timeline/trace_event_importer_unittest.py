@@ -5,10 +5,10 @@
 import json
 import unittest
 
-from telemetry.timeline import trace_event_importer
-from telemetry.timeline import tracing_timeline_data
 import telemetry.timeline.counter as tracing_counter
 import telemetry.timeline.model as timeline_model
+from telemetry.timeline import trace_event_importer
+from telemetry.timeline import tracing_timeline_data
 
 
 def FindEventNamed(events, name):

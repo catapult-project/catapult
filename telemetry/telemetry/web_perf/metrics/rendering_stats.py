@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import logging
-
 from operator import attrgetter
+
 from telemetry.page import page_test
 from telemetry.web_perf.metrics import rendering_frame
 

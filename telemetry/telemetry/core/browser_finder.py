@@ -14,7 +14,6 @@ from telemetry.core.backends.chrome import desktop_browser_finder
 from telemetry.core.backends.chrome import ios_browser_finder
 from telemetry.core.backends.webdriver import webdriver_desktop_browser_finder
 
-
 BROWSER_FINDERS = [
   desktop_browser_finder,
   android_browser_finder,

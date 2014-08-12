@@ -8,6 +8,7 @@ from telemetry.value import failure
 from telemetry.value import merge_values
 from telemetry.value import skip
 
+
 class Summary(object):
   """Computes summary values from the per-page-run values produced by a test.
 

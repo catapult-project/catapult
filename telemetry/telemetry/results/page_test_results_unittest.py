@@ -8,9 +8,9 @@ from telemetry.page import page_set
 from telemetry.results import base_test_results_unittest
 from telemetry.results import page_test_results
 from telemetry.value import failure
-from telemetry.value import skip
 from telemetry.value import histogram
 from telemetry.value import scalar
+from telemetry.value import skip
 
 
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):

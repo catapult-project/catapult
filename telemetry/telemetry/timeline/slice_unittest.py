@@ -6,6 +6,7 @@ import unittest
 
 from telemetry.timeline.slice import Slice
 
+
 class SliceTest(unittest.TestCase):
   def testChildrenLogic(self):
     # [      top          ]

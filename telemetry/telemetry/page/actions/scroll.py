@@ -5,6 +5,7 @@ import os
 
 from telemetry.page.actions import page_action
 
+
 class ScrollAction(page_action.PageAction):
   # TODO(chrishenry): Ignore attributes, to be deleted when usage in
   # other repo is cleaned up.

@@ -6,6 +6,7 @@ import urllib2
 
 from telemetry.core.backends.webdriver import webdriver_browser_backend
 
+
 class WebDriverIEBackend(webdriver_browser_backend.WebDriverBrowserBackend):
   # For unsupported functions. pylint: disable=W0223
 

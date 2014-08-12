@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 import unittest
 
-from telemetry.timeline import inspector_timeline_data
 from telemetry.timeline import inspector_importer
+from telemetry.timeline import inspector_timeline_data
 from telemetry.timeline import model
 
 _BACKGROUND_MESSAGE = {

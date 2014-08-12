@@ -8,6 +8,7 @@ import time
 
 from telemetry.core import util
 
+
 class InspectorPage(object):
   def __init__(self, inspector_backend, timeout=60):
     self._inspector_backend = inspector_backend

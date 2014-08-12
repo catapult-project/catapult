@@ -150,4 +150,3 @@ class VTuneProfiler(profiler.Profiler):
     for single_process in self._process_profilers:
       output_files.append(single_process.CollectProfile())
     return output_files
-

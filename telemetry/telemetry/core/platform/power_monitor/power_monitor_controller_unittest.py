@@ -4,8 +4,8 @@
 
 import unittest
 
-from telemetry.core.platform.power_monitor import power_monitor_controller
 import telemetry.core.platform.power_monitor as power_monitor
+from telemetry.core.platform.power_monitor import power_monitor_controller
 
 
 class PowerMonitorControllerTest(unittest.TestCase):

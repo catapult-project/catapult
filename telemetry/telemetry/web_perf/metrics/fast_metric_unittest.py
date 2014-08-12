@@ -6,11 +6,11 @@ import logging
 import StringIO
 import unittest
 
-from telemetry.web_perf.metrics import fast_metric
+from telemetry.results import page_test_results
 from telemetry.timeline import model as model_module
 from telemetry.timeline import async_slice
-from telemetry.results import page_test_results
 from telemetry.web_perf import timeline_interaction_record as tir_module
+from telemetry.web_perf.metrics import fast_metric
 
 
 class RendererThreadHelper(object):

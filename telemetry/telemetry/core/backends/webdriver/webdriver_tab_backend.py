@@ -6,6 +6,7 @@ import logging
 
 from telemetry.core import bitmap
 
+
 class WebDriverTabBackend(object):
   def __init__(self, browser_backend, window_handle):
     self._browser_backend = browser_backend

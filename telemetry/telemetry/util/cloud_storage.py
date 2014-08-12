@@ -17,7 +17,6 @@ import urllib2
 from telemetry.core.backends.chrome import cros_interface
 from telemetry.util import path
 
-
 PUBLIC_BUCKET = 'chromium-telemetry'
 PARTNER_BUCKET = 'chrome-partner-telemetry'
 INTERNAL_BUCKET = 'chrome-telemetry'

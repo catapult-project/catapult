@@ -5,6 +5,7 @@ import unittest
 
 from telemetry.timeline import model as model_module
 
+
 class ThreadUnittest(unittest.TestCase):
 
   def testIterAllSlicesInRange(self):

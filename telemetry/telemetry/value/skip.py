@@ -4,6 +4,7 @@
 
 from telemetry import value as value_module
 
+
 class SkipValue(value_module.Value):
 
   def __init__(self, page, reason, description=None):

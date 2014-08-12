@@ -11,7 +11,6 @@ import tempfile
 from telemetry.core.platform import profiler
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 
-
 _TCP_DUMP_BASE_OPTS = ['-i', 'any', '-p', '-s', '0', '-w']
 
 

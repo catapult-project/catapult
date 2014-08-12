@@ -9,6 +9,7 @@ from telemetry.value import list_of_scalar_values
 from telemetry.value import merge_values
 from telemetry.value import scalar
 
+
 class TestBase(unittest.TestCase):
   def setUp(self):
     self.page_set = page_set.PageSet(file_path=os.path.dirname(__file__))

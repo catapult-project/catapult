@@ -9,7 +9,6 @@ import socket
 import threading
 import unittest
 
-
 from telemetry.core.backends.chrome import websocket
 
 

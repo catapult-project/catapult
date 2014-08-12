@@ -5,6 +5,7 @@
 from telemetry.value import failure
 from telemetry.value import skip
 
+
 def MergeLikeValuesFromSamePage(all_values):
   """Merges values that measure the same thing on the same page.
 

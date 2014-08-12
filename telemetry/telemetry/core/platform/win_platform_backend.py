@@ -9,6 +9,13 @@ import platform
 import re
 import subprocess
 import time
+
+from telemetry import decorators
+from telemetry.core import exceptions
+from telemetry.core.platform import desktop_platform_backend
+from telemetry.core.platform import platform_backend
+from telemetry.core.platform.power_monitor import ippet_power_monitor
+
 try:
   import pywintypes  # pylint: disable=F0401
   import win32api  # pylint: disable=F0401
@@ -26,11 +33,6 @@ except ImportError:
   win32process = None
   win32security = None
 
-from telemetry import decorators
-from telemetry.core import exceptions
-from telemetry.core.platform import desktop_platform_backend
-from telemetry.core.platform import platform_backend
-from telemetry.core.platform.power_monitor import ippet_power_monitor
 
 
 def IsCurrentProcessElevated():

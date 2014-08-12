@@ -5,6 +5,7 @@ import os
 
 from telemetry.page.actions import page_action
 
+
 class PinchAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_anchor_ratio=0.5, top_anchor_ratio=0.5,

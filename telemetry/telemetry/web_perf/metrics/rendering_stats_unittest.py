@@ -5,6 +5,10 @@
 import random
 import unittest
 
+import telemetry.timeline.async_slice as tracing_async_slice
+import telemetry.timeline.bounds as timeline_bounds
+from telemetry.timeline import model
+from telemetry.util.statistics import DivideIfPossibleOrZero
 from telemetry.web_perf.metrics.rendering_stats import (
     UI_COMP_NAME, BEGIN_COMP_NAME, ORIGINAL_COMP_NAME, END_COMP_NAME)
 from telemetry.web_perf.metrics.rendering_stats import ComputeInputEventLatency
@@ -12,10 +16,6 @@ from telemetry.web_perf.metrics.rendering_stats import GetInputLatencyEvents
 from telemetry.web_perf.metrics.rendering_stats import HasRenderingStats
 from telemetry.web_perf.metrics.rendering_stats import NotEnoughFramesError
 from telemetry.web_perf.metrics.rendering_stats import RenderingStats
-from telemetry.util.statistics import DivideIfPossibleOrZero
-import telemetry.timeline.bounds as timeline_bounds
-from telemetry.timeline import model
-import telemetry.timeline.async_slice as tracing_async_slice
 
 
 class MockTimer(object):

@@ -19,7 +19,6 @@ from telemetry.util import bootstrap
 from telemetry.util import cloud_storage
 from telemetry.util import path_set
 
-
 DEPS_FILE = 'bootstrap_deps'
 
 

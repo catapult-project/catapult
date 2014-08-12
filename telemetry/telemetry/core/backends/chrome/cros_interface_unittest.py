@@ -17,7 +17,6 @@ from telemetry.core.forwarders import cros_forwarder
 from telemetry.unittest import options_for_unittests
 
 
-
 class CrOSInterfaceTest(unittest.TestCase):
   @benchmark.Enabled('cros-chrome')
   def testPushContents(self):

@@ -6,6 +6,7 @@ import tempfile
 
 from telemetry.core.platform import profiler
 
+
 class NetLogProfiler(profiler.Profiler):
 
   _NET_LOG_ARG = '--log-net-log='

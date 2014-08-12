@@ -4,8 +4,8 @@
 
 from telemetry import perf_tests_helper
 from telemetry import value as value_module
-from telemetry.value import summary as summary_module
 from telemetry.results import output_formatter
+from telemetry.value import summary as summary_module
 
 
 class BuildbotOutputFormatter(output_formatter.OutputFormatter):

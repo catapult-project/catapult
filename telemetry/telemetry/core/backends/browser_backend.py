@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from telemetry import decorators
-
 from telemetry.core import web_contents
 from telemetry.core.forwarders import do_nothing_forwarder
 

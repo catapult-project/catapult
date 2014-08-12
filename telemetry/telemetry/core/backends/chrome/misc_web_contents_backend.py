@@ -6,6 +6,7 @@ from telemetry.core import exceptions
 from telemetry.core.backends.chrome import inspector_backend_list
 from telemetry.core.backends.chrome import oobe
 
+
 class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
   """A dynamic sequence of web contents not related to tabs and extensions.
 

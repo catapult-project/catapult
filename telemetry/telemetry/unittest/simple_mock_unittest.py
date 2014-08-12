@@ -80,5 +80,3 @@ class SimpleMockUnitTest(unittest.TestCase):
     self.assertRaises(
       Exception,
       lambda: mock.bar.baz()) # pylint: disable=W0108
-
-

@@ -3,8 +3,9 @@
 # found in the LICENSE file.
 import unittest
 
-from telemetry.core import gpu_info
 from telemetry.core import gpu_device
+from telemetry.core import gpu_info
+
 
 class TestGPUInfo(unittest.TestCase):
   def testConstruction(self):

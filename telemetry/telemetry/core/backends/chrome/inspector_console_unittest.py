@@ -29,4 +29,3 @@ class TabConsoleTest(tab_test_case.TabTestCase):
       prefix = 'http://(.+)/page_that_logs_to_console.html:9'
       expected_line = 'At %s: Hello, world' % prefix
       self.assertTrue(re.match(expected_line, line))
-

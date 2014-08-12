@@ -20,7 +20,6 @@ from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.util import cloud_storage
 
-
 Disabled = decorators.Disabled
 Enabled = decorators.Enabled
 

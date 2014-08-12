@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 
 import optparse
-import tvcm
 
+import tvcm
 from telemetry.web_components import web_components_project
 
 
