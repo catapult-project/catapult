@@ -24,7 +24,7 @@ found in the LICENSE file.
         display: flex;
         flex: 0 0 auto;
         flex-flow: row wrap;
-        height: 25px;
+        height: 23px;
         overflow-y: auto;
       }
 
@@ -35,7 +35,7 @@ found in the LICENSE file.
         cursor: pointer;
         display: block;
         flex: 0 0 auto;
-        height: 21px;
+        height: 19px;
         padding: 2px 10px 2px 10px;
       }
 
@@ -44,10 +44,14 @@ found in the LICENSE file.
       }
 
       tabs-content-container {
-        display: block;
+        display: flex;
         flex: 1 1 auto;
         overflow: auto;
         width: 100%;
+      }
+
+      ::content > * {
+        flex: 1 1 auto;
       }
 
       ::content > *:not([selected]) {
