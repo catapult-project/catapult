@@ -58,6 +58,9 @@ tvcm.exportTo('tracing.tracks', function() {
         this.objectSnapshots_.push.apply(
             this.objectSnapshots_, instance.snapshots);
       }, this);
+      this.objectSnapshots_.sort(function(a, b) {
+        return a.ts - b.ts;
+      });
     },
 
     get height() {
