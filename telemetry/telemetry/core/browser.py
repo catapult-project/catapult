@@ -35,7 +35,6 @@ class Browser(object):
 
     self._browser_backend = backend
     self._platform_backend = platform_backend
-    self._http_server = None
     self._wpr_server = None
     self._active_profilers = []
     self._profilers_states = {}
@@ -327,10 +326,6 @@ class Browser(object):
       self._wpr_server.Close()
       self._wpr_server = None
 
-    if self._http_server:
-      self._http_server.Close()
-      self._http_server = None
-
     self._local_server_controller.Close()
     self._browser_backend.Close()
     self.credentials = None
@@ -338,7 +333,7 @@ class Browser(object):
   @property
   def http_server(self):
     return self._local_server_controller.GetRunningServer(
-      memory_cache_http_server.MemoryCacheHTTPServer, None)
+        memory_cache_http_server.MemoryCacheHTTPServer, None)
 
   def SetHTTPServerDirectories(self, paths):
     """Returns True if the HTTP server was started, False otherwise."""
