@@ -1,14 +1,14 @@
-#!/usr/bin/env python
 # Copyright 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import logging
 import sys
-import time
 
 from telemetry import benchmark
 from telemetry.core import browser_options
 from telemetry.core import discover
+from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.page import page_runner
 from telemetry.page import page_set
@@ -52,13 +52,7 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
 
   def RunPage(self, page, tab, results):
     tab.WaitForDocumentReadyStateToBeComplete()
-
-    # When recording, sleep to catch any resources that load post-onload.
-    # TODO(tonyg): This should probably monitor resource timing for activity
-    # and sleep until 2s since the last network event with some timeout like
-    # 20s. We could wrap this up as WaitForNetworkIdle() and share with the
-    # speed index metric.
-    time.sleep(3)
+    util.WaitFor(tab.HasReachedQuiescence, 30)
 
     if self.page_test:
       self._action_name_to_run = self.page_test.action_name_to_run
