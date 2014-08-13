@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/tracks/container_track.html">
+<link rel="import" href="/tvcm/sorted_array_utils.html">
+<link rel="import" href="/tvcm/ui.html">
+
+<script>
+'use strict';
+
+tvcm.exportTo('tracing.tracks', function() {
+  /**
+   * A track that displays a group of objects in multiple rows.
+   * @constructor
+   * @extends {ContainerTrack}
+   */
+  var MultiRowTrack = tvcm.ui.define(
+      'multi-row-track', tracing.tracks.ContainerTrack);
+
+  MultiRowTrack.prototype = {
+
+    __proto__: tracing.tracks.ContainerTrack.prototype,
+
+    decorate: function(viewport) {
+      tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      this.tooltip_ = '';
+      this.heading_ = '';
+      this.itemsGroupedOnLastUpdateContents_ = undefined;
+      this.itemsToGroup_ = undefined;
+      this.currentSubRows_ = [];
+    },
+
+    get itemsToGroup() {
+      return this.itemsToGroup_;
+    },
+
+    set itemsToGroup(itemsToGroup) {
+      this.itemsToGroup_ = itemsToGroup;
+      this.updateContents_();
+    },
+
+    get heading() {
+      return this.heading_;
+    },
+
+    set heading(h) {
+      this.heading_ = h;
+      this.updateContents_();
+    },
+
+    get tooltip() {
+      return this.tooltip_;
+    },
+
+    set tooltip(t) {
+      this.tooltip_ = t;
+      this.updateContents_();
+    },
+
+    get subRows() {
+      return this.currentSubRows_;
+    },
+
+    get hasVisibleContent() {
+      return this.children.length > 0;
+    },
+
+    updateContents_: function() {
+      if (!this.itemsToGroup_) {
+        this.updateHeadingAndTooltip_();
+        this.currentSubRows_ = [];
+        return;
+      }
+
+      if (this.areArrayContentsSame_(this.itemsGroupedOnLastUpdateContents_,
+                                     this.itemsToGroup_)) {
+        this.updateHeadingAndTooltip_();
+        return;
+      }
+
+      this.itemsGroupedOnLastUpdateContents_ = this.itemsToGroup_;
+
+      this.detach();
+      if (!this.itemsToGroup_.length) {
+        this.currentSubRows_ = [];
+        return;
+      }
+      var subRows = this.buildSubRows_(this.itemsToGroup_);
+      this.currentSubRows_ = subRows;
+      for (var srI = 0; srI < subRows.length; srI++) {
+        var subRow = subRows[srI];
+        if (!subRow.length)
+          continue;
+        this.addSubTrack_(subRow);
+      }
+      this.updateHeadingAndTooltip_();
+    },
+
+    updateHeadingAndTooltip_: function() {
+      if (!this.firstChild)
+        return;
+      this.firstChild.heading = this.heading_;
+      this.firstChild.tooltip = this.tooltip_;
+    },
+
+    /**
+     * Breaks up the list of slices into N rows, each of which is a list of
+     * slices that are non overlapping.
+     */
+    buildSubRows_: function(itemsToGroup) {
+      throw new Error('Not implemented');
+    },
+
+    addSubTrack_: function(subRowItems) {
+      throw new Error('Not implemented');
+    },
+
+    areArrayContentsSame_: function(a, b) {
+      if (!a || !b)
+        return false;
+      if (!a.length || !b.length)
+        return false;
+      if (a.length != b.length)
+        return false;
+      for (var i = 0; i < a.length; ++i) {
+        if (a[i] != b[i])
+          return false;
+      }
+      return true;
+    }
+  };
+
+  return {
+    MultiRowTrack: MultiRowTrack
+  };
+});
+</script>

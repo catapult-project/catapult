@@ -241,6 +241,7 @@
       'trace_viewer/tracing/tracks/drawing_container.html',
       'trace_viewer/tracing/tracks/heading_track.html',
       'trace_viewer/tracing/tracks/kernel_track.html',
+      'trace_viewer/tracing/tracks/multi_row_track.html',
       'trace_viewer/tracing/tracks/object_instance_track.html',
       'trace_viewer/tracing/tracks/process_track.html',
       'trace_viewer/tracing/tracks/process_track_base.html',

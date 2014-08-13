@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/tracks/container_track.html">
+<link rel="import" href="/tracing/tracks/multi_row_track.html">
 <link rel="import" href="/tvcm/sorted_array_utils.html">
 <link rel="import" href="/tvcm/ui.html">
 
@@ -19,95 +19,32 @@ tvcm.exportTo('tracing.tracks', function() {
    * @extends {ContainerTrack}
    */
   var SliceGroupTrack = tvcm.ui.define(
-      'slice-group-track', tracing.tracks.ContainerTrack);
+      'slice-group-track', tracing.tracks.MultiRowTrack);
 
   SliceGroupTrack.prototype = {
 
-    __proto__: tracing.tracks.ContainerTrack.prototype,
+    __proto__: tracing.tracks.MultiRowTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      tracing.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
       this.classList.add('slice-group-track');
-      this.tooltip_ = '';
-      this.heading_ = '';
+      this.group_ = undefined;
     },
 
-    get group() {
-      return this.group_;
-    },
-
-    set group(g) {
-      this.group_ = g;
-      this.updateContents_();
-    },
-
-    get heading() {
-      return this.heading_;
-    },
-
-    set heading(h) {
-      this.heading_ = h;
-      this.updateContents_();
-    },
-
-    get tooltip() {
-      return this.tooltip_;
-    },
-
-    set tooltip(t) {
-      this.tooltip_ = t;
-      this.updateContents_();
-    },
-
-    addSliceTrack_: function(slices) {
+    addSubTrack_: function(slices) {
       var track = new tracing.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       this.appendChild(track);
       return track;
     },
 
-    get subRows() {
-      return tvcm.asArray(this.children).map(function(sliceTrack) {
-        return sliceTrack.slices;
-      });
+    get group() {
+      return this.group_;
     },
 
-    get hasVisibleContent() {
-      return this.children.length > 0;
-    },
-
-    updateContents_: function() {
-      if (!this.group_) {
-        this.updateHeadingAndTooltip_();
-        return;
-      }
-
-      var slices = this.group_.slices;
-      if (this.areArrayContentsSame_(this.filteredSlices_, slices)) {
-        this.updateHeadingAndTooltip_();
-        return;
-      }
-
-      this.filteredSlices_ = slices;
-
-      this.detach();
-      if (!slices.length)
-        return;
-      var subRows = this.buildSubRows_(slices);
-      for (var srI = 0; srI < subRows.length; srI++) {
-        var subRow = subRows[srI];
-        if (!subRow.length)
-          continue;
-        this.addSliceTrack_(subRow);
-      }
-      this.updateHeadingAndTooltip_();
-    },
-
-    updateHeadingAndTooltip_: function() {
-      if (!this.firstChild)
-        return;
-      this.firstChild.heading = this.heading_;
-      this.firstChild.tooltip = this.tooltip_;
+    set group(group) {
+      this.group_ = group;
+      this.itemsToGroup = group.slices;
     },
 
     /**
@@ -206,20 +143,6 @@ tvcm.exportTo('tracing.tracks', function() {
       }
 
       return subRows;
-    },
-
-    areArrayContentsSame_: function(a, b) {
-      if (!a || !b)
-        return false;
-      if (!a.length || !b.length)
-        return false;
-      if (a.length != b.length)
-        return false;
-      for (var i = 0; i < a.length; ++i) {
-        if (a[i] != b[i])
-          return false;
-      }
-      return true;
     }
   };
 
