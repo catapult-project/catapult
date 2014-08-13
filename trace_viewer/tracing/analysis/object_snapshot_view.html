@@ -53,7 +53,8 @@ tvcm.exportTo('tracing.analysis', function() {
     if (ObjectSnapshotView.typeNameToViewInfoMap[typeName])
       throw new Error('Handler already registered for ' + typeName);
     var options = opt_options || {
-      showInTrackView: true
+      showInTrackView: true,
+      showInstances: true
     };
     ObjectSnapshotView.typeNameToViewInfoMap[typeName] = {
       constructor: viewConstructor,

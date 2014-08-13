@@ -41,9 +41,9 @@ tvcm.exportTo('cc', function() {
   };
 
   tracing.analysis.ObjectSnapshotView.register(
-      'cc::Picture', PictureSnapshotView);
+      'cc::Picture', PictureSnapshotView, {showInstances: false});
   tracing.analysis.ObjectSnapshotView.register(
-      'cc::LayeredPicture', PictureSnapshotView);
+      'cc::LayeredPicture', PictureSnapshotView, {showInstances: false});
 
   return {
     PictureSnapshotView: PictureSnapshotView
