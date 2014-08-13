@@ -15,6 +15,12 @@ UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT'
 ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT'
 # This is when the input event was sent from browser to renderer.
 BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT'
+# This is when an input event is turned into a scroll update.
+BEGIN_SCROLL_UPDATE_COMP_NAME = (
+    'INPUT_EVENT_LATENCY_BEGIN_SCROLL_UPDATE_MAIN_COMPONENT')
+# This is when a scroll update is forwarded to the main thread.
+FORWARD_SCROLL_UPDATE_COMP_NAME = (
+    'INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT')
 # This is when the input event has reached swap buffer.
 END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT'
 
@@ -52,8 +58,8 @@ def GetInputLatencyEvents(process, timeline_range):
   return input_events
 
 
-def ComputeInputEventLatency(input_events):
-  """ Compute the input event latency.
+def ComputeInputEventLatencies(input_events):
+  """ Compute the input event and scroll update latencies.
 
   Input event latency is the time from when the input event is created to
   when its resulted page is swap buffered.
@@ -64,22 +70,33 @@ def ComputeInputEventLatency(input_events):
   2. INPUT_EVENT_LATENCY_UI_COMPONENT -- when event reaches Chrome
   3. INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT -- when event reaches RenderWidget
 
+  If the latency starts with a
+  INPUT_EVENT_LATENCY_BEGIN_SCROLL_UPDATE_MAIN_COMPONENT component, then it is
+  classified as a scroll update instead of a normal input latency measure.
+
+  Returns:
+    A pair of lists for input and scroll update event latencies.
   """
   input_event_latency = []
+  scroll_update_latency = []
   for event in input_events:
     data = event.args['data']
     if END_COMP_NAME in data:
       end_time = data[END_COMP_NAME]['time']
+      latency_list = input_event_latency
       if ORIGINAL_COMP_NAME in data:
         latency = end_time - data[ORIGINAL_COMP_NAME]['time']
       elif UI_COMP_NAME in data:
         latency = end_time - data[UI_COMP_NAME]['time']
       elif BEGIN_COMP_NAME in data:
         latency = end_time - data[BEGIN_COMP_NAME]['time']
+      elif BEGIN_SCROLL_UPDATE_COMP_NAME in data:
+        latency = end_time - data[BEGIN_SCROLL_UPDATE_COMP_NAME]['time']
+        latency_list = scroll_update_latency
       else:
         raise ValueError, 'LatencyInfo has no begin component'
-      input_event_latency.append(latency / 1000.0)
-  return input_event_latency
+      latency_list.append(latency / 1000.0)
+  return input_event_latency, scroll_update_latency
 
 
 def HasRenderingStats(process):
@@ -131,6 +148,9 @@ class RenderingStats(object):
     # generated to when the its resulted page is swap buffered.
     self.input_event_latency = []
     self.frame_queueing_durations = []
+    # Latency from when a scroll update is sent to the main thread until the
+    # resulting frame is swapped.
+    self.scroll_update_latency = []
 
     for timeline_range in timeline_ranges:
       self.frame_timestamps.append([])
@@ -143,6 +163,7 @@ class RenderingStats(object):
       self.rasterized_pixel_counts.append([])
       self.approximated_pixel_percentages.append([])
       self.input_event_latency.append([])
+      self.scroll_update_latency.append([])
 
       if timeline_range.is_empty:
         continue
@@ -168,7 +189,10 @@ class RenderingStats(object):
     # Plugin input event's latency slice is generated in renderer process.
     latency_events.extend(GetInputLatencyEvents(renderer_process,
                                                 timeline_range))
-    self.input_event_latency[-1] = ComputeInputEventLatency(latency_events)
+    input_event_latency, scroll_update_latency = \
+        ComputeInputEventLatencies(latency_events)
+    self.input_event_latency[-1] = input_event_latency
+    self.scroll_update_latency[-1] = scroll_update_latency
 
   def _GatherEvents(self, event_name, process, timeline_range):
     events = []

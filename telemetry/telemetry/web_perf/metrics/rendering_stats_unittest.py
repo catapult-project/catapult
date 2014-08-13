@@ -10,8 +10,11 @@ import telemetry.timeline.bounds as timeline_bounds
 from telemetry.timeline import model
 from telemetry.util.statistics import DivideIfPossibleOrZero
 from telemetry.web_perf.metrics.rendering_stats import (
-    UI_COMP_NAME, BEGIN_COMP_NAME, ORIGINAL_COMP_NAME, END_COMP_NAME)
-from telemetry.web_perf.metrics.rendering_stats import ComputeInputEventLatency
+    UI_COMP_NAME, BEGIN_COMP_NAME, ORIGINAL_COMP_NAME,
+    BEGIN_SCROLL_UPDATE_COMP_NAME, FORWARD_SCROLL_UPDATE_COMP_NAME,
+    END_COMP_NAME)
+from telemetry.web_perf.metrics.rendering_stats import (
+    ComputeInputEventLatencies)
 from telemetry.web_perf.metrics.rendering_stats import GetInputLatencyEvents
 from telemetry.web_perf.metrics.rendering_stats import HasRenderingStats
 from telemetry.web_perf.metrics.rendering_stats import NotEnoughFramesError
@@ -66,6 +69,7 @@ class ReferenceInputLatencyStats(object):
   def __init__(self):
     self.input_event_latency = []
     self.input_event = []
+    self.scroll_update_latency = []
 
 def AddMainThreadRenderingStats(mock_timer, thread, first_frame,
                                 ref_stats = None):
@@ -163,6 +167,8 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
   ui_comp_time = mock_timer.Get() * 1000.0
   mock_timer.Advance(2, 4)
   begin_comp_time = mock_timer.Get() * 1000.0
+  mock_timer.Advance(2, 4)
+  forward_comp_time = mock_timer.Get() * 1000.0
   mock_timer.Advance(10, 20)
   end_comp_time = mock_timer.Get() * 1000.0
 
@@ -188,12 +194,37 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
   async_slice.end_thread = end_thread
   start_thread.AddAsyncSlice(async_slice)
 
+  # Add scroll update latency info.
+  scroll_update_data = {
+      BEGIN_SCROLL_UPDATE_COMP_NAME: {'time': begin_comp_time},
+      FORWARD_SCROLL_UPDATE_COMP_NAME: {'time': forward_comp_time},
+      END_COMP_NAME: {'time': end_comp_time} }
+
+  scroll_async_slice = tracing_async_slice.AsyncSlice(
+      'benchmark', 'InputLatency', timestamp)
+
+  scroll_async_sub_slice = tracing_async_slice.AsyncSlice(
+      'benchmark', 'InputLatency', timestamp)
+  scroll_async_sub_slice.args = {'data': scroll_update_data}
+  scroll_async_sub_slice.parent_slice = scroll_async_slice
+  scroll_async_sub_slice.start_thread = start_thread
+  scroll_async_sub_slice.end_thread = end_thread
+
+  scroll_async_slice.sub_slices.append(scroll_async_sub_slice)
+  scroll_async_slice.start_thread = start_thread
+  scroll_async_slice.end_thread = end_thread
+  start_thread.AddAsyncSlice(scroll_async_slice)
+
   if not ref_latency_stats:
     return
 
   ref_latency_stats.input_event.append(async_sub_slice)
+  ref_latency_stats.input_event.append(scroll_async_sub_slice)
   ref_latency_stats.input_event_latency.append(
       (data[END_COMP_NAME]['time'] - data[ORIGINAL_COMP_NAME]['time']) / 1000.0)
+  ref_latency_stats.scroll_update_latency.append(
+      (scroll_update_data[END_COMP_NAME]['time'] -
+       scroll_update_data[BEGIN_SCROLL_UPDATE_COMP_NAME]['time']) / 1000.0)
 
 
 class RenderingStatsUnitTest(unittest.TestCase):
@@ -419,5 +450,9 @@ class RenderingStatsUnitTest(unittest.TestCase):
       input_events.extend(GetInputLatencyEvents(browser, timeline_range))
 
     self.assertEquals(input_events, ref_latency.input_event)
-    self.assertEquals(ComputeInputEventLatency(input_events),
+    input_event_latency_result, scroll_update_latency_result = (
+        ComputeInputEventLatencies(input_events))
+    self.assertEquals(input_event_latency_result,
                       ref_latency.input_event_latency)
+    self.assertEquals(scroll_update_latency_result,
+                      ref_latency.scroll_update_latency)

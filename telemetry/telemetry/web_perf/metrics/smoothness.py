@@ -33,6 +33,18 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
       results.AddValue(scalar.ScalarValue(
           results.current_page, 'input_event_latency_discrepancy', 'ms',
           round(input_event_latency_discrepancy, 4)))
+    scroll_update_latency = FlattenList(stats.scroll_update_latency)
+    if scroll_update_latency:
+      mean_scroll_update_latency = statistics.ArithmeticMean(
+        scroll_update_latency)
+      scroll_update_latency_discrepancy = statistics.DurationsDiscrepancy(
+        scroll_update_latency)
+      results.AddValue(scalar.ScalarValue(
+          results.current_page, 'mean_scroll_update_latency', 'ms',
+          round(mean_scroll_update_latency, 3)))
+      results.AddValue(scalar.ScalarValue(
+          results.current_page, 'scroll_update_latency_discrepancy', 'ms',
+          round(scroll_update_latency_discrepancy, 4)))
 
     # List of queueing durations.
     frame_queueing_durations = FlattenList(stats.frame_queueing_durations)
