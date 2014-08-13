@@ -54,7 +54,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
   def testSeekWaitForSeekTimeout(self):
     """Tests that wait_for_seeked timeouts if video does not seek."""
     action = seek.SeekAction(seconds=1, selector='#video_1',
-                             timeout_in_seconds=1)
+                             timeout_in_seconds=0.1)
     action.WillRunAction(self._tab)
     self._tab.EvaluateJavaScript('document.getElementById("video_1").src = ""')
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))

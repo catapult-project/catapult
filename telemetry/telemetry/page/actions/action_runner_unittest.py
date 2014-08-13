@@ -74,13 +74,13 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.Navigate('blank.html')
 
     action_runner.ExecuteJavaScript(
-        'window.setTimeout(function() { window.testing = 101; }, 1000);')
-    action_runner.Wait(2)
+        'window.setTimeout(function() { window.testing = 101; }, 50);')
+    action_runner.Wait(0.1)
     self.assertEqual(101, self._tab.EvaluateJavaScript('window.testing'))
 
     action_runner.ExecuteJavaScript(
-        'window.setTimeout(function() { window.testing = 102; }, 2000);')
-    action_runner.Wait(3)
+        'window.setTimeout(function() { window.testing = 102; }, 100);')
+    action_runner.Wait(0.2)
     self.assertEqual(102, self._tab.EvaluateJavaScript('window.testing'))
 
   def testWaitForJavaScriptCondition(self):
@@ -89,11 +89,11 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
 
     action_runner.ExecuteJavaScript('window.testing = 219;')
     action_runner.WaitForJavaScriptCondition(
-        'window.testing == 219', timeout_in_seconds=1)
+        'window.testing == 219', timeout_in_seconds=0.1)
     action_runner.ExecuteJavaScript(
-        'window.setTimeout(function() { window.testing = 220; }, 1000);')
+        'window.setTimeout(function() { window.testing = 220; }, 50);')
     action_runner.WaitForJavaScriptCondition(
-        'window.testing == 220', timeout_in_seconds=2)
+        'window.testing == 220', timeout_in_seconds=0.1)
     self.assertEqual(220, self._tab.EvaluateJavaScript('window.testing'))
 
   def testWaitForElement(self):
@@ -107,8 +107,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         '  el.textContent = "foo";'
         '  document.body.appendChild(el);'
         '})()')
-    action_runner.WaitForElement('#test1', timeout_in_seconds=1)
-    action_runner.WaitForElement(text='foo', timeout_in_seconds=1)
+    action_runner.WaitForElement('#test1', timeout_in_seconds=0.1)
+    action_runner.WaitForElement(text='foo', timeout_in_seconds=0.1)
     action_runner.WaitForElement(
         element_function='document.getElementById("test1")')
     action_runner.ExecuteJavaScript(
@@ -116,19 +116,19 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         '  var el = document.createElement("div");'
         '  el.id = "test2";'
         '  document.body.appendChild(el);'
-        '}, 500)')
-    action_runner.WaitForElement('#test2', timeout_in_seconds=2)
+        '}, 50)')
+    action_runner.WaitForElement('#test2', timeout_in_seconds=0.1)
     action_runner.ExecuteJavaScript(
         'window.setTimeout(function() {'
         '  document.getElementById("test2").textContent = "bar";'
-        '}, 500)')
-    action_runner.WaitForElement(text='bar', timeout_in_seconds=2)
+        '}, 50)')
+    action_runner.WaitForElement(text='bar', timeout_in_seconds=0.1)
     action_runner.ExecuteJavaScript(
         'window.setTimeout(function() {'
         '  var el = document.createElement("div");'
         '  el.id = "test3";'
         '  document.body.appendChild(el);'
-        '}, 500)')
+        '}, 50)')
     action_runner.WaitForElement(
         element_function='document.getElementById("test3")')
 
@@ -143,9 +143,9 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         '  el.textContent = "foo";'
         '  document.body.appendChild(el);'
         '})()')
-    action_runner.WaitForElement('#test1', timeout_in_seconds=1)
+    action_runner.WaitForElement('#test1', timeout_in_seconds=0.2)
     def WaitForElement():
-      action_runner.WaitForElement(text='oo', timeout_in_seconds=1)
+      action_runner.WaitForElement(text='oo', timeout_in_seconds=0.2)
     self.assertRaises(util.TimeoutException, WaitForElement)
 
   def testClickElement(self):
