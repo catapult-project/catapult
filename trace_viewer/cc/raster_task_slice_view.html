@@ -17,6 +17,20 @@ found in the LICENSE file.
 'use strict';
 
 tvcm.exportTo('cc', function() {
+  function getTileFromRasterTaskSlice(slice) {
+    var tileData;
+    if (slice.args.data)
+      tileData = slice.args.data;
+    else
+      tileData = slice.args.tileData;
+    if (tileData === undefined)
+      return undefined;
+
+    if (tileData.tile_id)
+      return tileData.tile_id;
+    return tileData.tileId;
+  }
+
   /**
    * @constructor
    */
@@ -37,13 +51,8 @@ tvcm.exportTo('cc', function() {
     updateContents: function() {
       this.infoBar_.visible = false;
 
-      if (!this.slice.args.data) {
-        this.infoBar_.visible = true;
-        this.infoBar_.message = 'No data on this raster task.';
-        this.layerTreeView_.style.display = 'none';
-        return;
-      }
-      var tile = this.slice.args.data.tile_id;
+      debugger;
+      var tile = getTileFromRasterTaskSlice(this.slice);
       if (!tile) {
         this.infoBar_.visible = true;
         this.infoBar_.message = 'No tile on this raster task.';
@@ -74,6 +83,8 @@ tvcm.exportTo('cc', function() {
       'RasterTaskImpl::Raster', RasterTaskSliceView);
   tracing.analysis.SliceView.register(
       'cc::RasterTask', RasterTaskSliceView);
+  tracing.analysis.SliceView.register(
+      'RasterTask', RasterTaskSliceView);
 
   tracing.analysis.SliceView.register(
       'TileManager::RunAnalyzeTask', RasterTaskSliceView);
@@ -85,8 +96,11 @@ tvcm.exportTo('cc', function() {
       'RasterTaskImpl::Analyze', RasterTaskSliceView);
   tracing.analysis.SliceView.register(
       'cc::AnalyzeTask', RasterTaskSliceView);
+  tracing.analysis.SliceView.register(
+      'AnalyzeTask', RasterTaskSliceView);
 
   return {
+    getTileFromRasterTaskSlice: getTileFromRasterTaskSlice,
     RasterTaskSliceView: RasterTaskSliceView
   };
 });

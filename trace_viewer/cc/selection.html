@@ -323,7 +323,7 @@ tvcm.exportTo('cc', function() {
     },
 
     get tile() {
-      return this.rasterTask_.args.data.tile_id;
+      return cc.getTileFromRasterTaskSlice(this.rasterTask_);
     },
 
     get associatedLayerId() {
