@@ -343,6 +343,15 @@ tvcm.exportTo('cc', function() {
               bytesToRoundedMegabytes(otherTreeUsageInBytes) +
               'MB on the other tree';
         }
+
+        if (lthi.args.tileManagerBasicState) {
+          var tmgs = lthi.args.tileManagerBasicState.globalState;
+          message += ' (softMax=' +
+            bytesToRoundedMegabytes(tmgs.softMemoryLimitInBytes) +
+            'MB, hardMax=' +
+            bytesToRoundedMegabytes(tmgs.hardMemoryLimitInBytes) + 'MB, ' +
+            tmgs.memoryLimitPolicy + ')';
+        }
         this.quadStackView_.headerText = message;
       } else {
         this.quadStackView_.headerText = undefined;
