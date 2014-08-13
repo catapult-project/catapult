@@ -37,7 +37,8 @@ class AndroidSystraceProfiler(profiler.Profiler):
         ['python', os.path.join(util.GetChromiumSrcDir(), 'tools',
                                 'profile_chrome.py'),
          '--categories', '', '--continuous', '--output',
-         self._systrace_output_path, '--systrace'] + _SYSTRACE_CATEGORIES,
+         self._systrace_output_path, '--json', '--systrace',
+         ','.join(_SYSTRACE_CATEGORIES)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
   @classmethod

@@ -23,8 +23,9 @@ class TestAndroidSystraceProfiler(tab_test_case.TabTestCase):
           os.path.join(out_dir, 'systrace'),
           {})
       result = profiler.CollectProfile()[0]
-      assert zipfile.is_zipfile(result)
+      self.assertTrue(zipfile.is_zipfile(result))
       with zipfile.ZipFile(result) as z:
         self.assertEquals(len(z.namelist()), 2)
+        self.assertIn('sched_wakeup', z.open('systrace').read())
     finally:
       shutil.rmtree(out_dir)
