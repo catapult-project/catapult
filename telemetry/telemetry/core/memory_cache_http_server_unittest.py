@@ -11,8 +11,9 @@ from telemetry.unittest import tab_test_case
 class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
   def setUp(self):
     super(MemoryCacheHTTPServerTest, self).setUp()
-    self.test_file = os.path.join(util.GetUnittestDataDir(), 'bear.webm')
-    self.test_file_size = os.stat(self.test_file).st_size
+    self._test_filename = 'bear.webm'
+    _test_file = os.path.join(util.GetUnittestDataDir(), 'bear.webm')
+    self._test_file_size = os.stat(_test_file).st_size
 
   def testBasicHostingAndRangeRequests(self):
     self.Navigate('blank.html')
@@ -22,7 +23,7 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
     # Test basic html hosting.
     self.assertEquals(x, 'Hello world')
 
-    file_size = self.test_file_size
+    file_size = self._test_file_size
     last_byte = file_size - 1
     # Test byte range request: no end byte.
     self.CheckContentHeaders('0-', '0-%d' % last_byte, file_size)
@@ -55,13 +56,13 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
         xmlhttp.open('GET', "%s?t=" + Date.now(), true);
         xmlhttp.setRequestHeader('Range', 'bytes=%s');
         xmlhttp.send();
-    """ % (self._browser.http_server.UrlOf(self.test_file),
+    """ % (self.UrlOfUnittestFile(self._test_filename),
            content_range_request))
     self._tab.WaitForJavaScriptExpression('loaded', 5)
     content_range = self._tab.EvaluateJavaScript(
         'xmlhttp.getResponseHeader("Content-Range");')
     content_range_response = 'bytes %s/%d' % (
-        content_range_response, self.test_file_size)
+        content_range_response, self._test_file_size)
     self.assertEquals(content_range, content_range_response)
     content_length = self._tab.EvaluateJavaScript(
         'xmlhttp.getResponseHeader("Content-Length");')

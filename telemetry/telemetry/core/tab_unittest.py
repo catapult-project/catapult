@@ -48,14 +48,12 @@ class FakePlatform(object):
 
 
 class TabTest(tab_test_case.TabTestCase):
-  def testNavigateAndWaitToForCompleteState(self):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    self._tab.Navigate(self._browser.http_server.UrlOf('blank.html'))
+  def testNavigateAndWaitForCompleteState(self):
+    self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
-  def testNavigateAndWaitToForInteractiveState(self):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    self._tab.Navigate(self._browser.http_server.UrlOf('blank.html'))
+  def testNavigateAndWaitForInteractiveState(self):
+    self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def testTabBrowserIsRightBrowser(self):
@@ -79,8 +77,9 @@ class TabTest(tab_test_case.TabTestCase):
 
   def testTabUrl(self):
     self.assertEquals(self._tab.url, 'about:blank')
-    self.Navigate('blank.html')
-    self.assertEquals(self._tab.url, self.test_url)
+    url = self.UrlOfUnittestFile('blank.html')
+    self._tab.Navigate(url)
+    self.assertEquals(self._tab.url, url)
 
   def testIsTimelineRecordingRunningTab(self):
     self.assertFalse(self._tab.is_timeline_recording_running)
@@ -164,9 +163,8 @@ class TabTest(tab_test_case.TabTestCase):
 
 class GpuTabTest(tab_test_case.TabTestCase):
   @classmethod
-  def setUpClass(cls):
-    cls._extra_browser_args = ['--enable-gpu-benchmarking']
-    super(GpuTabTest, cls).setUpClass()
+  def CustomizeBrowserOptions(cls, options):
+    options.AppendExtraBrowserArgs('--enable-gpu-benchmarking')
 
   # Test flaky on mac: http://crbug.com/358664
   @benchmark.Disabled('android', 'mac')

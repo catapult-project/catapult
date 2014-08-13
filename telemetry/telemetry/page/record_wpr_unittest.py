@@ -93,9 +93,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
   def setUpClass(cls):
     sys.path.extend([cls._base_dir, cls._test_data_dir])
     super(RecordWprUnitTests, cls).setUpClass()
-    cls._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    blank_html_path = os.path.join(util.GetUnittestDataDir(), 'blank.html')
-    cls._url = cls._browser.http_server.UrlOf(blank_html_path)
+    cls._url = cls.UrlOfUnittestFile('blank.html')
 
   # When the RecorderPageTest is created from a PageSet, we do not have a
   # PageTest to use. In this case, we will record every available action.

@@ -4,30 +4,16 @@
 
 import os
 
-from telemetry.core import util
-from telemetry.page import page as page_module
 from telemetry.page.actions import scroll
 from telemetry.unittest import tab_test_case
 from telemetry.unittest import test
 
 
 class ScrollActionTest(tab_test_case.TabTestCase):
-  def CreateAndNavigateToPageFromUnittestDataDir(
-    self, filename):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    page = page_module.Page(
-      self._browser.http_server.UrlOf(filename),
-      None) # In this test, we don't need a page set.
-
-    self._tab.Navigate(page.url)
-    self._tab.WaitForDocumentReadyStateToBeComplete()
-
-    return page
-
   @test.Disabled  # Disabled due to flakiness: crbug.com/330544
   def testScrollAction(self):
-    page = self.CreateAndNavigateToPageFromUnittestDataDir("blank.html")
-    setattr(page, 'smoothness', {"action": "scroll"})
+    self.Navigate('blank.html')
+
     # Make page bigger than window so it's scrollable.
     self._tab.ExecuteJavaScript("""document.body.style.height =
                               (2 * window.innerHeight + 1) + 'px';""")
@@ -62,7 +48,8 @@ class ScrollActionTest(tab_test_case.TabTestCase):
                             (scroll_position, scroll_height))
 
   def testBoundingClientRect(self):
-    self.CreateAndNavigateToPageFromUnittestDataDir('blank.html')
+    self.Navigate('blank.html')
+
     with open(os.path.join(os.path.dirname(__file__),
                            'gesture_common.js')) as f:
       js = f.read()

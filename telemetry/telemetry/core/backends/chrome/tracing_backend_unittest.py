@@ -8,8 +8,8 @@ import logging
 import unittest
 
 from telemetry.core import util
+from telemetry.timeline import model
 from telemetry.timeline import tracing_timeline_data
-from telemetry.timeline.model import TimelineModel
 from telemetry.unittest import tab_test_case
 
 
@@ -83,5 +83,5 @@ class ChromeTraceResultTest(unittest.TestCase):
         '{"name": "thread_name",'
         '"args": {"name": "CrBrowserMain"},'
         '"pid": 5, "tid": 32578, "ph": "M"}']))
-    model = TimelineModel(ri)
-    self.assertEquals(model.browser_process.pid, 5)
+    timeline_model = model.TimelineModel(ri)
+    self.assertEquals(timeline_model.browser_process.pid, 5)
