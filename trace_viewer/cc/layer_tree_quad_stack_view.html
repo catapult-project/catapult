@@ -332,12 +332,12 @@ tvcm.exportTo('cc', function() {
         this.quadStackView_.quads = this.generateLayerQuads();
 
 
-      var message;
+      var message = '';
       if (lthi.tilesHaveGpuMemoryUsageInfo) {
         var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
         var otherTreeUsageInBytes = lthi.gpuMemoryUsageInBytes -
             thisTreeUsageInBytes;
-        message = bytesToRoundedMegabytes(thisTreeUsageInBytes) +
+        message += bytesToRoundedMegabytes(thisTreeUsageInBytes) +
                 'MB on this tree';
         if (otherTreeUsageInBytes) {
           message += ', ' +
@@ -345,14 +345,21 @@ tvcm.exportTo('cc', function() {
               'MB on the other tree';
         }
       } else {
-        if (this.layerTreeImpl_ &&
-            this.layerTreeImpl_.otherTree === undefined) {
+        if (this.layerTreeImpl_) {
           var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
-          message = bytesToRoundedMegabytes(thisTreeUsageInBytes) +
+          message += bytesToRoundedMegabytes(thisTreeUsageInBytes) +
               'MB on this tree';
-        } else {
-          message = 'Memory usage ambiguous. ' +
-              'Upgrade the chrome where you traced.';
+
+          if (this.layerTreeImpl_.otherTree) {
+            // Older Chromes don't report enough data to know how much memory
+            // is being used across both trees. We know the memory consumed by
+            // each tree, but there is resource sharing *between the trees* so
+            // we can't simply sum up the per-tree costs. We need either the total
+            // plus one tree, to guess the unique on the other tree, etc. Newer
+            // chromes report memory per tile, which allows LTHI to compute the
+            // total tile memory usage, letting us figure things out properly.
+            message += ', ???MB on other tree. ';
+          }
         }
       }
 
@@ -363,8 +370,33 @@ tvcm.exportTo('cc', function() {
           'MB, hardMax=' +
           bytesToRoundedMegabytes(tmgs.hardMemoryLimitInBytes) + 'MB, ' +
           tmgs.memoryLimitPolicy + ')';
+
       } else {
-        /* TODO(nduca): Look for DidCommit record. It has globalState */
+        // Old Chromes do not have a globalState on the LTHI dump.
+        // But they do issue a DidManage event wiht the globalstate. Find that
+        // event so that we show some global state.
+        var thread = lthi.snapshottedOnThread;
+        var didManageTilesSlices = thread.sliceGroup.slices.filter(function(s) {
+          if (s.category !== 'cc')
+            return false;
+          if (s.title !== 'DidManage')
+            return false;
+          if (s.end > lthi.ts)
+            return false;
+          return true;
+        });
+        didManageTilesSlices.sort(function(x, y) {
+          return x.end - y.end;
+        });
+        if (didManageTilesSlices.length > 0) {
+          var newest = didManageTilesSlices[didManageTilesSlices.length - 1];
+          var tmgs = newest.args.state.global_state;
+          message += ' (softMax=' +
+            bytesToRoundedMegabytes(tmgs.soft_memory_limit_in_bytes) +
+            'MB, hardMax=' +
+            bytesToRoundedMegabytes(tmgs.hard_memory_limit_in_bytes) + 'MB, ' +
+            tmgs.memory_limit_policy + ')';
+        }
       }
 
       if (this.layerTreeImpl_.otherTree)

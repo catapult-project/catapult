@@ -857,6 +857,7 @@ tvcm.exportTo('tracing.importer', function() {
             snapshot = process.objects.addSnapshot(
                 event.id, cat, event.name, ts,
                 args, baseTypename);
+            snapshot.snapshottedOnThread = thread;
           } catch (e) {
             this.model_.importWarning({
               type: 'object_parse_error',
@@ -967,6 +968,7 @@ tvcm.exportTo('tracing.importer', function() {
         }
         res.objectInstance.hasImplicitSnapshots = true;
         res.containingSnapshot = containingSnapshot;
+        res.snapshottedOnThread = containingSnapshot.snapshottedOnThread;
         referencingObject[referencingObjectFieldName] = res;
         if (!(res instanceof tracing.trace_model.ObjectSnapshot))
           throw new Error('Created object must be instanceof snapshot');
