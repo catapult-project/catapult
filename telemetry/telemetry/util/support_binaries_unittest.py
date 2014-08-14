@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import stat
 import unittest
 
 from telemetry import decorators
@@ -15,3 +16,5 @@ class SupportBinariesTest(unittest.TestCase):
     md5sum_path = support_binaries.FindPath('md5sum_bin_host', 'linux')
     self.assertNotEquals(md5sum_path, None)
     self.assertTrue(os.path.isabs(md5sum_path))
+    st = os.stat(md5sum_path)
+    self.assertTrue(st.st_mode & stat.S_IXUSR)

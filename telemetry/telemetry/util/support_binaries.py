@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import stat
 
 from telemetry import decorators
 from telemetry.util import cloud_storage
@@ -47,6 +48,11 @@ def FindPath(binary_name, platform_name):
   if not command and _IsInCloudStorage(binary_name, platform_name):
     cloud_storage.GetIfChanged(_GetBinPath(binary_name, platform_name))
     command = _GetBinPath(binary_name, platform_name)
+
+    # Ensure the downloaded file is actually executable.
+    if command and os.path.exists(command):
+      os.chmod(command,
+               stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP)
 
   # Return an absolute path consistently.
   if command:
