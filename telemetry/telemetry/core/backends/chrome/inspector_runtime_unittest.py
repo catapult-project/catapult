@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.unittest import tab_test_case
@@ -34,15 +33,19 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
   def testRuntimeExecuteOfSomethingThatCantJSONize(self):
     self._tab.ExecuteJavaScript('window')
 
-  # TODO(achuith): Fix http://crbug.com/394454 on cros.
-  @decorators.Disabled('android', 'chromeos', 'win')
   def testIFrame(self):
+    starting_contexts = self._tab.EnableAllContexts()
+
     self.Navigate('host.html')
 
     # Access host page.
     test_defined_js = "typeof(testVar) != 'undefined'"
-    self._tab.WaitForJavaScriptExpression(test_defined_js, timeout=30)
-    util.WaitFor(lambda: self._tab.EnableAllContexts() == 4, timeout=30)
+    self._tab.WaitForJavaScriptExpression(test_defined_js, timeout=10)
+
+    expected_contexts = 4 + starting_contexts
+
+    util.WaitFor(lambda: self._tab.EnableAllContexts() == expected_contexts,
+                 timeout=10)
 
     self.assertEquals(self._tab.EvaluateJavaScript('testVar'), 'host')
 
@@ -58,17 +61,20 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     def TestVar(context_id):
       """Waits for testVar and the context to be ready, then returns the value
       of testVar."""
-      util.WaitFor(lambda: TestVarReady(context_id), timeout=30)
+      util.WaitFor(lambda: TestVarReady(context_id), timeout=10)
       return self._tab.EvaluateJavaScriptInContext('testVar', context_id)
 
     # Access parent page using EvaluateJavaScriptInContext.
-    self.assertEquals(TestVar(context_id=1), 'host')
+    self.assertEquals(TestVar(context_id=starting_contexts+1), 'host')
 
     # Access the iframes.
-    self.assertEquals(TestVar(context_id=2), 'iframe1')
-    self.assertTrue(TestVar(context_id=3) in ['iframe2', 'iframe3'])
-    self.assertTrue(TestVar(context_id=4) in ['iframe2', 'iframe3'])
+    self.assertEquals(TestVar(context_id=starting_contexts+2), 'iframe1')
+    self.assertTrue(TestVar(context_id=starting_contexts+3) in ['iframe2',
+                                                                'iframe3'])
+    self.assertTrue(TestVar(context_id=starting_contexts+4) in ['iframe2',
+                                                                'iframe3'])
 
     # Accessing a non-existent iframe throws an exception.
     self.assertRaises(exceptions.EvaluateException,
-        lambda: self._tab.EvaluateJavaScriptInContext('1+1', context_id=5))
+        lambda: self._tab.EvaluateJavaScriptInContext(
+          '1+1', context_id=starting_contexts+5))

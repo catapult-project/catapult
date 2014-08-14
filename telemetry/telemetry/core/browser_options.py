@@ -195,7 +195,7 @@ class BrowserOptions(object):
     self.browser_user_agent_type = None
 
     self.clear_sytem_cache_for_browser_and_profile_on_start = False
-    self.startup_url = None
+    self.startup_url = 'about:blank'
 
     # Background pages of built-in component extensions can interfere with
     # performance measurements.
