@@ -70,6 +70,7 @@ class TracingCategoryFilter(object):
         continue
 
       if category[0] == '-':
+        assert not category[1:] in self._included_categories
         self._excluded_categories.add(category[1:])
         continue
 
@@ -77,7 +78,8 @@ class TracingCategoryFilter(object):
         self._disabled_by_default_categories.add(category)
         continue
 
-      self.included_categories.add(category)
+      assert not category in self._excluded_categories
+      self._included_categories.add(category)
 
   @property
   def included_categories(self):
@@ -122,14 +124,14 @@ class TracingCategoryFilter(object):
   def AddIncludedCategory(self, category_glob):
     """Explicitly enables anything matching category_glob."""
     assert not category_glob.startswith('disabled-by-default-')
-    if category_glob not in self._included_categories:
-      self._included_categories.append(category_glob)
+    assert not category_glob in self._excluded_categories
+    self._included_categories.add(category_glob)
 
   def AddExcludedCategory(self, category_glob):
     """Explicitly disables anything matching category_glob."""
     assert not category_glob.startswith('disabled-by-default-')
-    if category_glob not in self._excluded_categories:
-      self._excluded_categories.append(category_glob)
+    assert not category_glob in self._included_categories
+    self._excluded_categories.add(category_glob)
 
   def AddSyntheticDelay(self, delay):
     assert _delay_re.match(delay)

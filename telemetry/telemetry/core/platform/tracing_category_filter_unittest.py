@@ -24,6 +24,36 @@ class TracingCategoryFilterTests(unittest.TestCase):
 
 
 class CategoryFilterTest(unittest.TestCase):
+  def testAddIncludedCategory(self):
+    a = tracing_category_filter.TracingCategoryFilter()
+    a.AddIncludedCategory('foo')
+    a.AddIncludedCategory('bar')
+    a.AddIncludedCategory('foo')
+    self.assertEquals(a.stable_filter_string, 'bar,foo')
+
+  def testAddExcludedCategory(self):
+    a = tracing_category_filter.TracingCategoryFilter()
+    a.AddExcludedCategory('foo')
+    a.AddExcludedCategory('bar')
+    a.AddExcludedCategory('foo')
+    self.assertEquals(a.stable_filter_string, '-bar,-foo')
+
+  def testIncludeAndExcludeCategoryRaisesAssertion(self):
+    a = tracing_category_filter.TracingCategoryFilter()
+    a.AddIncludedCategory('foo')
+    self.assertRaises(AssertionError, a.AddExcludedCategory, 'foo')
+
+    a = tracing_category_filter.TracingCategoryFilter()
+    a.AddExcludedCategory('foo')
+    self.assertRaises(AssertionError, a.AddIncludedCategory, 'foo')
+
+    self.assertRaises(AssertionError,
+                      tracing_category_filter.TracingCategoryFilter, 'foo,-foo')
+
+    self.assertRaises(AssertionError,
+                      tracing_category_filter.TracingCategoryFilter, '-foo,foo')
+
+
   def testIsSubset(self):
     b = tracing_category_filter.TracingCategoryFilter()
     a = tracing_category_filter.TracingCategoryFilter()
