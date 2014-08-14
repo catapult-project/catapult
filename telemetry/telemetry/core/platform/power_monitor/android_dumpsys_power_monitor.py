@@ -91,7 +91,7 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     uid_entries = {}
     pwi_entries = defaultdict(list)
     for entry in csvreader:
-      if entry[DUMP_VERSION_INDEX] != '8':
+      if entry[DUMP_VERSION_INDEX] not in ['8', '9']:
         # Wrong file version.
         break
       if ROW_TYPE_INDEX >= len(entry):
