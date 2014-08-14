@@ -39,8 +39,13 @@ tvcm.exportTo('cc', function() {
         this.isUsingGpuMemory = this.args.managedState.isUsingGpuMemory;
         this.hasResource = this.args.managedState.hasResource;
         this.scheduledPriority = this.args.managedState.scheduledPriority;
-        this.distanceToVisible =
-            this.args.managedState.distanceToVisibleInPixels;
+        if (this.args.managedState.distanceToVisible !== undefined)
+          this.distanceToVisible =
+              this.args.managedState.distanceToVisible;
+        else {
+          this.distanceToVisible =
+              this.args.managedState.distanceToVisibleInPixels;
+        }
         this.timeToVisible = this.args.managedState.timeToNeededInSeconds;
       } else {
         this.resolution = 'HIGH_RESOLUTION';
