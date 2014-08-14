@@ -20,15 +20,17 @@ class CrosSysfsPlatform(sysfs_platform.SysfsPlatform):
     return self._cri.RunCmdOnDevice(command.split())[0]
 
   @staticmethod
-  def ParseStateSample(sample, time):
+  def ParseStateSample(sample):
     sample_stats = {}
     for cpu in sample:
-      cstates = {'C0': time * 10 ** 6}
       values = sample[cpu].splitlines()
-      num_states = len(values) / 3
+      # There are three values per state after excluding the single time value.
+      num_states = (len(values) - 1) / 3
       names = values[:num_states]
       times = values[num_states:2 * num_states]
       latencies = values[2 * num_states:]
+      # The last line in the sample contains the time.
+      cstates = {'C0': int(values[-1]) * 10 ** 6}
       for i, state in enumerate(names):
         if names[i] == 'POLL' and not int(latencies[i]):
           # C0 state. Kernel stats aren't right, so calculate by

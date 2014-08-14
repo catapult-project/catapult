@@ -36,13 +36,11 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     self._browser = None
     self._cpus = filter(lambda x: re.match(r'^cpu[0-9]+', x),
                         platform.RunShellCommand('ls %s' % CPU_PATH).split())
-    self._end_time = None
     self._final_cstate = None
     self._final_freq = None
     self._initial_cstate = None
     self._initial_freq = None
     self._platform = platform
-    self._start_time = None
 
   @decorators.Cache
   def CanMonitorPower(self):
@@ -52,7 +50,6 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
   def StartMonitoringPower(self, browser):
     assert not self._browser, 'Must call StopMonitoringPower().'
     self._browser = browser
-    self._start_time = int(self._platform.RunShellCommand('date +%s'))
     if self.CanMonitorPower():
       self._initial_freq = self.GetCpuFreq()
       self._initial_cstate = self.GetCpuState()
@@ -60,7 +57,6 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
   def StopMonitoringPower(self):
     assert self._browser, 'StartMonitoringPower() not called.'
     try:
-      self._end_time = int(self._platform.RunShellCommand('date +%s'))
       out = {}
       if self.CanMonitorPower():
         self._final_freq = self.GetCpuFreq()
@@ -68,11 +64,9 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
         frequencies = SysfsPowerMonitor.ComputeCpuStats(
             SysfsPowerMonitor.ParseFreqSample(self._initial_freq),
             SysfsPowerMonitor.ParseFreqSample(self._final_freq))
-        start_cstate = self._platform.ParseStateSample(
-            self._initial_cstate, self._start_time)
-        end_cstate = self._platform.ParseStateSample(
-            self._final_cstate, self._end_time)
-        cstates = SysfsPowerMonitor.ComputeCpuStats(start_cstate, end_cstate)
+        cstates = SysfsPowerMonitor.ComputeCpuStats(
+            self._platform.ParseStateSample(self._initial_cstate),
+            self._platform.ParseStateSample(self._final_cstate))
         for cpu in frequencies:
           out[cpu] = {'frequency_percent': frequencies[cpu]}
           out[cpu]['cstate_residency_percent'] = cstates[cpu]
@@ -90,7 +84,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     for cpu in self._cpus:
       cpu_state_path = os.path.join(CPU_PATH, cpu, 'cpuidle/state*')
       stats[cpu] = self._platform.RunShellCommand(
-          'cat %s %s %s' % (os.path.join(cpu_state_path, 'name'),
+          'cat %s %s %s; date +%%s' % (os.path.join(cpu_state_path, 'name'),
           os.path.join(cpu_state_path, 'time'),
           os.path.join(cpu_state_path, 'latency')))
     return stats

@@ -8,12 +8,11 @@ from telemetry.core.platform.power_monitor import cros_sysfs_platform
 
 
 class CrosSysfsPlatformTest(unittest.TestCase):
-  start_time = 1403211341
   initial_cstate = {
     'cpu0': 'POLL\nC1\nC2\nC3\n0\n138356189\n102416540\n'
-            '17158209182\n0\n1\n500\n1000',
+            '17158209182\n0\n1\n500\n1000\n1403211341',
     'cpu1': 'POLL\nC1\nC2\nC3\n0\n107318149\n81786238\n'
-            '17348563431\n0\n1\n500\n1000'
+            '17348563431\n0\n1\n500\n1000\n1403211341'
   }
   expected_cstate = {
     'cpu0': {
@@ -32,7 +31,7 @@ class CrosSysfsPlatformTest(unittest.TestCase):
   def testCrosParseCpuStates(self):
     # Use mock start and end times to allow for the test to calculate C0.
     results = cros_sysfs_platform.CrosSysfsPlatform.ParseStateSample(
-        self.initial_cstate, self.start_time)
+        self.initial_cstate)
     for cpu in results:
       for state in results[cpu]:
         self.assertAlmostEqual(results[cpu][state],

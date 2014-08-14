@@ -30,7 +30,9 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
         cros_sysfs_platform.CrosSysfsPlatform(cri))
     self._browser = None
     self._cri = cri
+    self._end_time = None
     self._initial_power = None
+    self._start_time = None
 
   @decorators.Cache
   def CanMonitorPower(self):
@@ -39,10 +41,12 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   def StartMonitoringPower(self, browser):
     super(CrosPowerMonitor, self).StartMonitoringPower(browser)
     self._initial_power = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
+    self._start_time = int(self._cri.RunCmdOnDevice(['date', '+%s'])[0])
 
   def StopMonitoringPower(self):
     cpu_stats = super(CrosPowerMonitor, self).StopMonitoringPower()
     final_power = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
+    self._end_time = int(self._cri.RunCmdOnDevice(['date', '+%s'])[0])
     # The length of the test is used to measure energy consumption.
     length_h = (self._end_time - self._start_time) / 3600.0
     power_stats = CrosPowerMonitor.ParsePower(

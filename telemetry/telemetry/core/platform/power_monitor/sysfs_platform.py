@@ -18,15 +18,15 @@ class SysfsPlatform(object):
     raise NotImplementedError()
 
   @staticmethod
-  def ParseStateSample(sample, time):
+  def ParseStateSample(sample):
     """Parse a single c-state residency sample.
 
     Args:
         sample: A sample of c-state residency times to be parsed. Organized as
             a dictionary mapping CPU name to a string containing all c-state
-            names, the times in each state, and the latency of each state all
-            separated by newlines.
-        time: The epoch time at which the sample was taken.
+            names, the times in each state, the latency of each state, and the
+            time at which the sample was taken all separated by newlines.
+            Ex: {'cpu0': 'C0\nC1\n5000\n2000\n20\n30\n1406673171'}
 
     Returns:
         Dictionary associating a c-state with a time.
