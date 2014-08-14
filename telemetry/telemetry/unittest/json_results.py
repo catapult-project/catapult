@@ -80,6 +80,7 @@ def FullResults(args, suite, results):
   full_results['path_delimiter'] = TEST_SEPARATOR
   full_results['version'] = 3
   full_results['seconds_since_epoch'] = time.time()
+  full_results['builder_name'] = args.builder_name or ''
   for md in args.metadata:
     key, val = md.split('=', 1)
     full_results[key] = val
