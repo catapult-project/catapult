@@ -331,30 +331,50 @@ tvcm.exportTo('cc', function() {
       else
         this.quadStackView_.quads = this.generateLayerQuads();
 
+
+      var message;
       if (lthi.tilesHaveGpuMemoryUsageInfo) {
         var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
         var otherTreeUsageInBytes = lthi.gpuMemoryUsageInBytes -
             thisTreeUsageInBytes;
-        var message = bytesToRoundedMegabytes(thisTreeUsageInBytes) +
+        message = bytesToRoundedMegabytes(thisTreeUsageInBytes) +
                 'MB on this tree';
         if (otherTreeUsageInBytes) {
           message += ', ' +
               bytesToRoundedMegabytes(otherTreeUsageInBytes) +
               'MB on the other tree';
         }
-
-        if (lthi.args.tileManagerBasicState) {
-          var tmgs = lthi.args.tileManagerBasicState.globalState;
-          message += ' (softMax=' +
-            bytesToRoundedMegabytes(tmgs.softMemoryLimitInBytes) +
-            'MB, hardMax=' +
-            bytesToRoundedMegabytes(tmgs.hardMemoryLimitInBytes) + 'MB, ' +
-            tmgs.memoryLimitPolicy + ')';
-        }
-        this.quadStackView_.headerText = message;
       } else {
-        this.quadStackView_.headerText = undefined;
+        if (this.layerTreeImpl_ &&
+            this.layerTreeImpl_.otherTree === undefined) {
+          var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
+          message = bytesToRoundedMegabytes(thisTreeUsageInBytes) +
+              'MB on this tree';
+        } else {
+          message = 'Memory usage ambiguous. ' +
+              'Upgrade the chrome where you traced.';
+        }
       }
+
+      if (lthi.args.tileManagerBasicState) {
+        var tmgs = lthi.args.tileManagerBasicState.globalState;
+        message += ' (softMax=' +
+          bytesToRoundedMegabytes(tmgs.softMemoryLimitInBytes) +
+          'MB, hardMax=' +
+          bytesToRoundedMegabytes(tmgs.hardMemoryLimitInBytes) + 'MB, ' +
+          tmgs.memoryLimitPolicy + ')';
+      } else {
+        /* TODO(nduca): Look for DidCommit record. It has globalState */
+      }
+
+      if (this.layerTreeImpl_.otherTree)
+        message += ' (Another tree exists)';
+
+
+      if (message.length)
+        this.quadStackView_.headerText = message;
+      else
+        this.quadStackView_.headerText = undefined;
 
       this.updateInfoBar_(status.messages);
     },
