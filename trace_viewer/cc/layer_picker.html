@@ -86,6 +86,12 @@ tvcm.exportTo('cc', function() {
       tvcm.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
+    get layerTreeImpl() {
+      if (this.lthiSnapshot === undefined)
+        return undefined;
+      return this.lthiSnapshot.getTree(this.whichTree);
+    },
+
     get isRenderPassQuads() {
       return this.renderPassQuads_;
     },

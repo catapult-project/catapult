@@ -40,8 +40,8 @@ tvcm.exportTo('cc', function() {
       this.rootLayer.layerTreeImpl = this;
     },
 
-    otherTree: function() {
-      other = this.whichTree == constants.ACTIVE_TREE ?
+    get otherTree() {
+      var other = this.whichTree == constants.ACTIVE_TREE ?
           constants.PENDING_TREE : constants.ACTIVE_TREE;
       return this.layerTreeHostImpl.getTree(other);
     },

@@ -71,7 +71,6 @@ tvcm.exportTo('cc', function() {
         layerTreeImpl = lthi.getTree(this.layerPicker_.whichTree);
 
       this.layerPicker_.lthiSnapshot = lthi;
-      this.layerView_.whichTree = this.layerPicker_.whichTree;
       this.layerView_.layerTreeImpl = layerTreeImpl;
       this.layerView_.regenerateContent();
 
@@ -93,6 +92,7 @@ tvcm.exportTo('cc', function() {
     onLayerPickerSelectionChanged_: function() {
       this.selection_ = this.layerPicker_.selection;
       this.layerView_.selection = this.selection;
+      this.layerView_.layerTreeImpl = this.layerPicker_.layerTreeImpl;
       this.layerView_.isRenderPassQuads = this.layerPicker_.isRenderPassQuads;
       this.layerView_.regenerateContent();
     },
