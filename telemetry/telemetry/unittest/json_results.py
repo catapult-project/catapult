@@ -108,6 +108,8 @@ def FullResults(args, suite, results):
         'actual': ActualResultsForTest(test_name, sets_of_failing_test_names,
                                        sets_of_passing_test_names)
     }
+    if value['actual'].endswith('FAIL'):
+      value['is_unexpected'] = True
     _AddPathToTrie(full_results['tests'], test_name, value)
 
   return full_results
