@@ -132,18 +132,17 @@ tvcm.exportTo('about_tracing', function() {
       }.bind(this);
 
       window.onUploadError = function(error_message) {
-        this.onUploadStatusUpdate_(
-            true, 'Trace upload failed: ' + error_message);
+        this.onUploadStatusUpdate_('Trace upload failed: ' + error_message);
       }.bind(this);
       window.onUploadProgress = function(percent, currentAsString,
                                          totalAsString) {
         this.onUploadStatusUpdate_(
-            false, 'Upload progress: ' + percent + '% (' + currentAsString +
-            ' of ' + currentAsString + ' bytes)');
+            'Upload progress: ' + percent + '% (' + currentAsString + ' of ' +
+            currentAsString + ' bytes)');
       }.bind(this);
       window.onUploadComplete = function(report_id) {
         this.onUploadStatusUpdate_(
-            true, 'Trace uploaded successfully. Report id: ' + report_id);
+            'Trace uploaded successfully. Report id: ' + report_id);
       }.bind(this);
 
       this.getMonitoringStatus();
@@ -418,24 +417,17 @@ tvcm.exportTo('about_tracing', function() {
       var okButton = document.createElement('button');
       okButton.textContent = 'Ok';
       okButton.addEventListener('click', this.doTraceUpload_.bind(this));
-      this.uploadOverlay_.rightButtons.appendChild(okButton);
+      this.uploadOverlay_.buttons.appendChild(okButton);
 
       var cancelButton = document.createElement('button');
       cancelButton.textContent = 'Cancel';
       cancelButton.addEventListener('click',
                                     this.hideUploadOverlay_.bind(this));
-      this.uploadOverlay_.rightButtons.appendChild(cancelButton);
+      this.uploadOverlay_.buttons.appendChild(cancelButton);
     },
 
-    onUploadStatusUpdate_: function(complete, message) {
+    onUploadStatusUpdate_: function(message) {
       this.setUploadOverlayText_([message]);
-      if (!complete) {
-        return;
-      }
-      var closeButton = document.createElement('button');
-      closeButton.textContent = 'Close';
-      closeButton.addEventListener('click', this.hideUploadOverlay_.bind(this));
-      this.uploadOverlay_.rightButtons.appendChild(closeButton);
     },
 
     setUploadOverlayText_: function(messages) {
@@ -454,7 +446,9 @@ tvcm.exportTo('about_tracing', function() {
 
     doTraceUpload_: function() {
       this.setUploadOverlayText_(['Uploading trace data...']);
-      this.uploadOverlay_.rightButtons.textContent = '';
+      this.uploadOverlay_.buttons.removeChild(
+          this.uploadOverlay_.buttons.firstChild);
+      this.uploadOverlay_.buttons.firstChild.textContent = 'Close';
       chrome.send('doUpload', [this.activeTrace_.data]);
     },
 
