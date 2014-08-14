@@ -30,6 +30,7 @@ class Page(object):
     self.startup_url = page_set.startup_url if page_set else ''
     self.credentials = None
     self.disabled = False
+    self.skip_waits = False
     self.script_to_evaluate_on_commit = None
     self._SchemeErrorCheck()
 
