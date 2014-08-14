@@ -30,11 +30,11 @@ found in the LICENSE file.
 tvcm.exportTo('cc', function() {
 
   var TILE_HEATMAP_TYPE = {};
-  TILE_HEATMAP_TYPE.NONE = 0;
-  TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY = 1;
-  TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE = 2;
-  TILE_HEATMAP_TYPE.TIME_TO_VISIBLE = 3;
-  TILE_HEATMAP_TYPE.USING_GPU_MEMORY = 4;
+  TILE_HEATMAP_TYPE.NONE = 'none';
+  TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY = 'scheduledPriority';
+  TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE = 'distanceToVisible';
+  TILE_HEATMAP_TYPE.TIME_TO_VISIBLE = 'timeToVisible';
+  TILE_HEATMAP_TYPE.USING_GPU_MEMORY = 'usingGpuMemory';
 
   function createTileRectsSelectorBaseOptions() {
     return [{label: 'None', value: 'none'},
@@ -656,7 +656,7 @@ tvcm.exportTo('cc', function() {
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
       var minMax =
           this.getMinMaxForHeatmap_(lthi.tiles, heatmapType);
-      var heatmapColors =
+      var heatmapResult =
           this.computeHeatmapColors_(tiles, minMax, heatmapType);
       var heatIndex = 0;
 
@@ -674,7 +674,7 @@ tvcm.exportTo('cc', function() {
         var type = cc.tileTypes.missing;
         if (tile) {
           type = tile.getTypeForLayer(layer);
-          quad.backgroundColor = heatmapColors[heatIndex];
+          quad.backgroundColor = heatmapResult[heatIndex].color;
           ++heatIndex;
         }
 
@@ -744,11 +744,11 @@ tvcm.exportTo('cc', function() {
 
       for (var i = 0; i < tiles.length; ++i) {
         var value = this.getValueForHeatmap_(tiles[i], heatmapType);
-        if (value == undefined)
+        if (value === undefined)
           continue;
         range.addValue(value);
       }
-      if (range.range == 0)
+      if (range.range === 0)
         range.addValue(1);
       return range;
     },
@@ -768,10 +768,11 @@ tvcm.exportTo('cc', function() {
       for (var i = 0; i < tiles.length; ++i) {
         var tile = tiles[i];
         var value = this.getValueForHeatmap_(tile, heatmapType);
-        if (value !== undefined)
-          values.push(color(value));
-        else
-          values.push(undefined);
+        var res = {
+          value: value,
+          color: value !== undefined ? color(value) : undefined
+        };
+        values.push(res);
       }
 
       return values;
@@ -798,7 +799,7 @@ tvcm.exportTo('cc', function() {
 
       var minMax =
           this.getMinMaxForHeatmap_(lthi.tiles, heatmapType);
-      var heatmapColors =
+      var heatmapResult =
           this.computeHeatmapColors_(tiles, minMax, heatmapType);
 
       for (var i = 0; i < tiles.length; ++i) {
@@ -816,8 +817,13 @@ tvcm.exportTo('cc', function() {
         quad.borderColor = cc.tileBorder[type].color;
         quad.borderWidth = cc.tileBorder[type].width;
 
-        quad.backgroundColor = heatmapColors[i];
-        quad.selectionToSetIfClicked = new cc.TileSelection(tile);
+        quad.backgroundColor = heatmapResult[i].color;
+        var data = {
+          tileType: type,
+        };
+        if (heatmapType !== TILE_HEATMAP_TYPE.NONE)
+          data[heatmapType] = heatmapResult[i].value;
+        quad.selectionToSetIfClicked = new cc.TileSelection(tile, data);
         quads.push(quad);
       }
     },

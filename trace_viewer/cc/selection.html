@@ -193,8 +193,9 @@ tvcm.exportTo('cc', function() {
   /**
    * @constructor
    */
-  function TileSelection(tile) {
+  function TileSelection(tile, opt_data) {
     this.tile_ = tile;
+    this.data_ = opt_data || {};
   }
 
   TileSelection.prototype = {
@@ -216,7 +217,14 @@ tvcm.exportTo('cc', function() {
       var analysis = new GenericObjectViewWithLabel();
       analysis.label = 'Tile ' + this.tile_.objectInstance.id + ' on layer ' +
           this.tile_.layerId;
-      analysis.object = this.tile_.args;
+      if  (this.data_) {
+        analysis.object = {
+          moreInfo: this.data_,
+          tileArgs: this.tile_.args,
+        };
+      } else {
+        analysis.object = this.tile_.args;
+      }
       return analysis;
     },
 
