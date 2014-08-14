@@ -14,8 +14,9 @@ import re
 import signal
 import subprocess
 import sys
-import time
 import urllib
+
+from telemetry.core import util
 
 _CHROME_SRC_DIR = os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, os.pardir))
@@ -150,46 +151,38 @@ class ReplayServer(object):
       os.makedirs(log_dir)
     return open(self.log_path, 'w')
 
-  def WaitForStart(self, timeout):
+  def IsStarted(self):
     """Checks to see if the server is up and running."""
     port_re = re.compile(
         '.*?(?P<protocol>[A-Z]+) server started on (?P<host>.*):(?P<port>\d+)')
 
-    start_time = time.time()
-    elapsed_time = 0
-    while elapsed_time < timeout:
-      if self.replay_process.poll() is not None:
-        break  # The process has exited.
+    if self.replay_process.poll() is not None:
+      return False
 
-      # Read the ports from the WPR log.
-      if not self.http_port or not self.https_port or not self.dns_port:
-        with open(self.log_path) as f:
-          for line in f.readlines():
-            m = port_re.match(line.strip())
-            if m:
-              if not self.http_port and m.group('protocol') == 'HTTP':
-                self.http_port = int(m.group('port'))
-              elif not self.https_port and m.group('protocol') == 'HTTPS':
-                self.https_port = int(m.group('port'))
-              elif not self.dns_port and m.group('protocol') == 'DNS':
-                self.dns_port = int(m.group('port'))
+    # Read the ports from the WPR log.
+    if not self.http_port or not self.https_port or not self.dns_port:
+      with open(self.log_path) as f:
+        for line in f.readlines():
+          m = port_re.match(line.strip())
+          if m:
+            if not self.http_port and m.group('protocol') == 'HTTP':
+              self.http_port = int(m.group('port'))
+            elif not self.https_port and m.group('protocol') == 'HTTPS':
+              self.https_port = int(m.group('port'))
+            elif not self.dns_port and m.group('protocol') == 'DNS':
+              self.dns_port = int(m.group('port'))
 
-      # Try to connect to the WPR ports.
-      if self.http_port and self.https_port:
-        try:
-          up_url = '%s://%s:%s/web-page-replay-generate-200'
-          http_up_url = up_url % ('http', self._replay_host, self.http_port)
-          https_up_url = up_url % ('https', self._replay_host, self.https_port)
-          if (200 == urllib.urlopen(http_up_url, None, {}).getcode() and
-              200 == urllib.urlopen(https_up_url, None, {}).getcode()):
-            return True
-        except IOError:
-          pass
-
-      poll_interval = min(max(elapsed_time / 10., .1), 5)
-      time.sleep(poll_interval)
-      elapsed_time = time.time() - start_time
-
+    # Try to connect to the WPR ports.
+    if self.http_port and self.https_port:
+      try:
+        up_url = '%s://%s:%s/web-page-replay-generate-200'
+        http_up_url = up_url % ('http', self._replay_host, self.http_port)
+        https_up_url = up_url % ('https', self._replay_host, self.https_port)
+        if (200 == urllib.urlopen(http_up_url, None, {}).getcode() and
+            200 == urllib.urlopen(https_up_url, None, {}).getcode()):
+          return True
+      except IOError:
+        pass
     return False
 
   def StartServer(self):
@@ -209,7 +202,9 @@ class ReplayServer(object):
         kwargs['preexec_fn'] = ResetInterruptHandler
       self.replay_process = subprocess.Popen(cmd_line, **kwargs)
 
-    if not self.WaitForStart(30):
+    try:
+      util.WaitFor(self.IsStarted, 30)
+    except util.TimeoutException:
       with open(self.log_path) as f:
         log = f.read()
       raise ReplayNotStartedError(
@@ -217,33 +212,32 @@ class ReplayServer(object):
 
   def StopServer(self):
     """Stop Web Page Replay."""
-    if self.replay_process:
-      logging.debug('Trying to stop Web-Page-Replay gracefully')
-      try:
-        urllib.urlopen('http://%s:%s/web-page-replay-command-exit' % (
-            self._replay_host, self.http_port), None, {}).close()
-      except IOError:
-        # IOError is possible because the server might exit without response.
-        pass
+    if not self.replay_process:
+      return
 
-      start_time = time.time()
-      while time.time() - start_time < 10:  # Timeout after 10 seconds.
-        if self.replay_process.poll() is not None:
-          break
-        time.sleep(1)
-      else:
+    logging.debug('Trying to stop Web-Page-Replay gracefully')
+    try:
+      urllib.urlopen('http://%s:%s/web-page-replay-command-exit' % (
+          self._replay_host, self.http_port), None, {}).close()
+    except IOError:
+      # IOError is possible because the server might exit without response.
+      pass
+
+    try:
+      util.WaitFor(lambda: self.replay_process.poll() is not None, 10)
+    except util.TimeoutException:
+      try:
+        # Use a SIGINT so that it can do graceful cleanup.
+        self.replay_process.send_signal(signal.SIGINT)
+      except:  # pylint: disable=W0702
+        # On Windows, we are left with no other option than terminate().
+        if 'no-dns_forwarding' not in self.replay_options:
+          logging.warning('DNS configuration might not be restored!')
         try:
-          # Use a SIGINT so that it can do graceful cleanup.
-          self.replay_process.send_signal(signal.SIGINT)
+          self.replay_process.terminate()
         except:  # pylint: disable=W0702
-          # On Windows, we are left with no other option than terminate().
-          if 'no-dns_forwarding' not in self.replay_options:
-            logging.warning('DNS configuration might not be restored!')
-          try:
-            self.replay_process.terminate()
-          except:  # pylint: disable=W0702
-            pass
-        self.replay_process.wait()
+          pass
+      self.replay_process.wait()
 
   def __enter__(self):
     """Add support for with-statement."""
