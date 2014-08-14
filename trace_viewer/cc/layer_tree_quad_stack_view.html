@@ -33,7 +33,6 @@ tvcm.exportTo('cc', function() {
   TILE_HEATMAP_TYPE.NONE = 'none';
   TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY = 'scheduledPriority';
   TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE = 'distanceToVisible';
-  TILE_HEATMAP_TYPE.TIME_TO_VISIBLE = 'timeToVisible';
   TILE_HEATMAP_TYPE.USING_GPU_MEMORY = 'usingGpuMemory';
 
   function createTileRectsSelectorBaseOptions() {
@@ -94,8 +93,6 @@ tvcm.exportTo('cc', function() {
             value: TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY},
            {label: 'Distance to Visible',
             value: TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE},
-           {label: 'Time to Visible',
-            value: TILE_HEATMAP_TYPE.TIME_TO_VISIBLE},
            {label: 'Is using GPU memory',
             value: TILE_HEATMAP_TYPE.USING_GPU_MEMORY}
           ]);
@@ -724,9 +721,6 @@ tvcm.exportTo('cc', function() {
             undefined :
             tile.scheduledPriority;
       } else if (heatmapType == TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE) {
-        return tile.distanceToVisible;
-      } else if (heatmapType == TILE_HEATMAP_TYPE.TIME_TO_VISIBLE) {
-        return Math.min(5, tile.timeToVisible);
       } else if (heatmapType == TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
         if (tile.isSolidColor)
           return 0.5;
