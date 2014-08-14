@@ -126,8 +126,8 @@ class RunTestsCommand(command_line.OptparseCommand):
                       dest='run_disabled_tests',
                       action='store_true', default=False,
                       help='Ignore @Disabled and @Enabled restrictions.')
-    parser.add_option('--retry-limit', type='int', default=0,
-                      help='Retry each failure up to N times (default %default)'
+    parser.add_option('--retry-limit', type='int',
+                      help='Retry each failure up to N times'
                            ' to de-flake things.')
     json_results.AddOptions(parser)
 
@@ -135,6 +135,11 @@ class RunTestsCommand(command_line.OptparseCommand):
   def ProcessCommandLineArgs(cls, parser, args):
     if args.verbosity == 0:
       logging.getLogger().setLevel(logging.WARN)
+
+    # We retry failures by default unless we're running a list of tests
+    # explicitly.
+    if args.retry_limit is None and not args.positional_args:
+      args.retry_limit = 3
 
     try:
       possible_browser = browser_finder.FindBrowser(args)
