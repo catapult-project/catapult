@@ -31,8 +31,7 @@ class BuildbotOutputFormatter(output_formatter.OutputFormatter):
     # Print out the list of unique pages.
     perf_tests_helper.PrintPages(
         [page.display_name for page in page_test_results.pages_that_succeeded])
-    summary = summary_module.Summary(page_test_results.all_page_specific_values,
-                                     had_failures)
+    summary = summary_module.Summary(page_test_results.all_page_specific_values)
     for value in summary.interleaved_computed_per_page_values_and_summaries:
       if value.page:
         self._PrintComputedPerPageValue(value)

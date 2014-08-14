@@ -35,7 +35,9 @@ class Summary(object):
       ]
 
   """
-  def __init__(self, all_page_specific_values, had_failures):
+  def __init__(self, all_page_specific_values):
+    had_failures = any(isinstance(v, failure.FailureValue) for v in
+        all_page_specific_values)
     self.had_failures = had_failures
     self._computed_per_page_values = []
     self._computed_summary_values = []
