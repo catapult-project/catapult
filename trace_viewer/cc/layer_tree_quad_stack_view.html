@@ -721,6 +721,7 @@ tvcm.exportTo('cc', function() {
             undefined :
             tile.scheduledPriority;
       } else if (heatmapType == TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE) {
+        return Math.min(3000, tile.distanceToVisible);
       } else if (heatmapType == TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
         if (tile.isSolidColor)
           return 0.5;
