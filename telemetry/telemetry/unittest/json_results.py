@@ -58,6 +58,9 @@ def UploadFullResultsIfNecessary(args, full_results):
   if not args.test_results_server:
     return False, ''
 
+  # TODO(dpranke) crbug.com/403663 disable this temporarily.
+  return False, ''
+
   url = 'http://%s/testfile/upload' % args.test_results_server
   attrs = [('builder', args.builder_name),
            ('master', args.master_name),
