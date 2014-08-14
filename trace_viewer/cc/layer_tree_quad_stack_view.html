@@ -309,8 +309,11 @@ tvcm.exportTo('cc', function() {
     },
 
     updateContents_: function() {
-      if (!this.layerTreeImpl_)
+      if (!this.layerTreeImpl_) {
+        this.quadStackView_.headerText = 'No tree';
+        this.quadStackView_.quads = [];
         return;
+      }
 
 
       var status = this.computePictureLoadingStatus_();
