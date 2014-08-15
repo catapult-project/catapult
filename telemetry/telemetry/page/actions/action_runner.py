@@ -562,7 +562,8 @@ class ActionRunner(object):
     of seconds have elapsed AND at least three RAFs have been
     fired. Times out after max(60, self.seconds), if less than three
     RAFs were fired."""
-    self._RunAction(RepaintContinuouslyAction(seconds=seconds))
+    self._RunAction(RepaintContinuouslyAction(
+        seconds=0 if self._skip_waits else seconds))
 
 class Interaction(object):
 
