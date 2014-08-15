@@ -45,6 +45,12 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
       results.AddValue(scalar.ScalarValue(
           results.current_page, 'scroll_update_latency_discrepancy', 'ms',
           round(scroll_update_latency_discrepancy, 4)))
+    gesture_scroll_update_latency = FlattenList(
+        stats.gesture_scroll_update_latency)
+    if gesture_scroll_update_latency:
+      results.AddValue(scalar.ScalarValue(
+          results.current_page, 'first_gesture_scroll_update_latency', 'ms',
+          round(gesture_scroll_update_latency[0], 4)))
 
     # List of queueing durations.
     frame_queueing_durations = FlattenList(stats.frame_queueing_durations)

@@ -10,9 +10,14 @@ import telemetry.timeline.bounds as timeline_bounds
 from telemetry.timeline import model
 from telemetry.util.statistics import DivideIfPossibleOrZero
 from telemetry.web_perf.metrics.rendering_stats import (
-    UI_COMP_NAME, BEGIN_COMP_NAME, ORIGINAL_COMP_NAME,
-    BEGIN_SCROLL_UPDATE_COMP_NAME, FORWARD_SCROLL_UPDATE_COMP_NAME,
-    END_COMP_NAME)
+    BEGIN_COMP_NAME,
+    BEGIN_SCROLL_UPDATE_COMP_NAME,
+    END_COMP_NAME,
+    FORWARD_SCROLL_UPDATE_COMP_NAME,
+    GESTURE_SCROLL_UPDATE_EVENT_NAME,
+    ORIGINAL_COMP_NAME,
+    SCROLL_UPDATE_EVENT_NAME,
+    UI_COMP_NAME)
 from telemetry.web_perf.metrics.rendering_stats import (
     ComputeInputEventLatencies)
 from telemetry.web_perf.metrics.rendering_stats import GetInputLatencyEvents
@@ -69,7 +74,6 @@ class ReferenceInputLatencyStats(object):
   def __init__(self):
     self.input_event_latency = []
     self.input_event = []
-    self.scroll_update_latency = []
 
 def AddMainThreadRenderingStats(mock_timer, thread, first_frame,
                                 ref_stats = None):
@@ -183,7 +187,7 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
       'benchmark', 'InputLatency', timestamp)
 
   async_sub_slice = tracing_async_slice.AsyncSlice(
-      'benchmark', 'InputLatency', timestamp)
+      'benchmark', GESTURE_SCROLL_UPDATE_EVENT_NAME, timestamp)
   async_sub_slice.args = {'data': data}
   async_sub_slice.parent_slice = async_slice
   async_sub_slice.start_thread = start_thread
@@ -204,7 +208,7 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
       'benchmark', 'InputLatency', timestamp)
 
   scroll_async_sub_slice = tracing_async_slice.AsyncSlice(
-      'benchmark', 'InputLatency', timestamp)
+      'benchmark', SCROLL_UPDATE_EVENT_NAME, timestamp)
   scroll_async_sub_slice.args = {'data': scroll_update_data}
   scroll_async_sub_slice.parent_slice = scroll_async_slice
   scroll_async_sub_slice.start_thread = start_thread
@@ -220,11 +224,14 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
 
   ref_latency_stats.input_event.append(async_sub_slice)
   ref_latency_stats.input_event.append(scroll_async_sub_slice)
-  ref_latency_stats.input_event_latency.append(
-      (data[END_COMP_NAME]['time'] - data[ORIGINAL_COMP_NAME]['time']) / 1000.0)
-  ref_latency_stats.scroll_update_latency.append(
+  ref_latency_stats.input_event_latency.append((
+      GESTURE_SCROLL_UPDATE_EVENT_NAME,
+      (data[END_COMP_NAME]['time'] -
+       data[ORIGINAL_COMP_NAME]['time']) / 1000.0))
+  ref_latency_stats.input_event_latency.append((
+      SCROLL_UPDATE_EVENT_NAME,
       (scroll_update_data[END_COMP_NAME]['time'] -
-       scroll_update_data[BEGIN_SCROLL_UPDATE_COMP_NAME]['time']) / 1000.0)
+       scroll_update_data[BEGIN_SCROLL_UPDATE_COMP_NAME]['time']) / 1000.0))
 
 
 class RenderingStatsUnitTest(unittest.TestCase):
@@ -450,9 +457,6 @@ class RenderingStatsUnitTest(unittest.TestCase):
       input_events.extend(GetInputLatencyEvents(browser, timeline_range))
 
     self.assertEquals(input_events, ref_latency.input_event)
-    input_event_latency_result, scroll_update_latency_result = (
-        ComputeInputEventLatencies(input_events))
+    input_event_latency_result = ComputeInputEventLatencies(input_events)
     self.assertEquals(input_event_latency_result,
                       ref_latency.input_event_latency)
-    self.assertEquals(scroll_update_latency_result,
-                      ref_latency.scroll_update_latency)

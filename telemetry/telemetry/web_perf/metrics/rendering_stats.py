@@ -24,6 +24,11 @@ FORWARD_SCROLL_UPDATE_COMP_NAME = (
 # This is when the input event has reached swap buffer.
 END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT'
 
+# Name for a main thread scroll update latency event.
+SCROLL_UPDATE_EVENT_NAME = 'InputLatency:ScrollUpdate'
+# Name for a gesture scroll update latency event.
+GESTURE_SCROLL_UPDATE_EVENT_NAME  = 'InputLatency:GestureScrollUpdate'
+
 
 class NotEnoughFramesError(page_test.MeasurementFailure):
   def __init__(self, frame_count):
@@ -59,7 +64,7 @@ def GetInputLatencyEvents(process, timeline_range):
 
 
 def ComputeInputEventLatencies(input_events):
-  """ Compute the input event and scroll update latencies.
+  """ Compute input event latencies.
 
   Input event latency is the time from when the input event is created to
   when its resulted page is swap buffered.
@@ -75,28 +80,29 @@ def ComputeInputEventLatencies(input_events):
   classified as a scroll update instead of a normal input latency measure.
 
   Returns:
-    A pair of lists for input and scroll update event latencies.
+    A list sorted by increasing start time of latencies which are tuples of
+    (input_event_name, latency_in_ms).
   """
-  input_event_latency = []
-  scroll_update_latency = []
+  input_event_latencies = []
   for event in input_events:
     data = event.args['data']
     if END_COMP_NAME in data:
       end_time = data[END_COMP_NAME]['time']
-      latency_list = input_event_latency
       if ORIGINAL_COMP_NAME in data:
-        latency = end_time - data[ORIGINAL_COMP_NAME]['time']
+        start_time = data[ORIGINAL_COMP_NAME]['time']
       elif UI_COMP_NAME in data:
-        latency = end_time - data[UI_COMP_NAME]['time']
+        start_time = data[UI_COMP_NAME]['time']
       elif BEGIN_COMP_NAME in data:
-        latency = end_time - data[BEGIN_COMP_NAME]['time']
+        start_time = data[BEGIN_COMP_NAME]['time']
       elif BEGIN_SCROLL_UPDATE_COMP_NAME in data:
-        latency = end_time - data[BEGIN_SCROLL_UPDATE_COMP_NAME]['time']
-        latency_list = scroll_update_latency
+        start_time = data[BEGIN_SCROLL_UPDATE_COMP_NAME]['time']
       else:
         raise ValueError, 'LatencyInfo has no begin component'
-      latency_list.append(latency / 1000.0)
-  return input_event_latency, scroll_update_latency
+      latency = (end_time - start_time) / 1000.0
+      input_event_latencies.append((start_time, event.name, latency))
+
+  input_event_latencies.sort()
+  return [(name, latency) for _, name, latency in input_event_latencies]
 
 
 def HasRenderingStats(process):
@@ -151,6 +157,8 @@ class RenderingStats(object):
     # Latency from when a scroll update is sent to the main thread until the
     # resulting frame is swapped.
     self.scroll_update_latency = []
+    # Latency for a GestureScrollUpdate input event.
+    self.gesture_scroll_update_latency = []
 
     for timeline_range in timeline_ranges:
       self.frame_timestamps.append([])
@@ -164,6 +172,7 @@ class RenderingStats(object):
       self.approximated_pixel_percentages.append([])
       self.input_event_latency.append([])
       self.scroll_update_latency.append([])
+      self.gesture_scroll_update_latency.append([])
 
       if timeline_range.is_empty:
         continue
@@ -189,10 +198,15 @@ class RenderingStats(object):
     # Plugin input event's latency slice is generated in renderer process.
     latency_events.extend(GetInputLatencyEvents(renderer_process,
                                                 timeline_range))
-    input_event_latency, scroll_update_latency = \
-        ComputeInputEventLatencies(latency_events)
-    self.input_event_latency[-1] = input_event_latency
-    self.scroll_update_latency[-1] = scroll_update_latency
+    input_event_latencies = ComputeInputEventLatencies(latency_events)
+    self.input_event_latency[-1] = [
+        latency for name, latency in input_event_latencies]
+    self.scroll_update_latency[-1] = [
+        latency for name, latency in input_event_latencies
+        if name == SCROLL_UPDATE_EVENT_NAME]
+    self.gesture_scroll_update_latency[-1] = [
+        latency for name, latency in input_event_latencies
+        if name == GESTURE_SCROLL_UPDATE_EVENT_NAME]
 
   def _GatherEvents(self, event_name, process, timeline_range):
     events = []
