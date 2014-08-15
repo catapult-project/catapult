@@ -161,11 +161,11 @@ class PerfProfiler(profiler.Profiler):
         browser_backend, platform_backend, output_path, state)
     process_output_file_map = self._GetProcessOutputFileMap()
     self._process_profilers = []
-    self._is_android = platform_backend.GetOSName() == 'android'
+    self._perf_control = None
 
     perf_binary = perfhost_binary = _InstallPerfHost()
     try:
-      if self._is_android:
+      if platform_backend.GetOSName() == 'android':
         device = browser_backend.adb.device()
         perf_binary = android_profiling_helper.PrepareDeviceForPerf(device)
         self._perf_control = perf_control.PerfControl(device)
@@ -181,7 +181,7 @@ class PerfProfiler(profiler.Profiler):
                 pid, output_file, browser_backend, platform_backend,
                 perf_binary, perfhost_binary))
     except:
-      if self._is_android:
+      if self._perf_control:
         self._perf_control.SetDefaultPerfMode()
       raise
 
@@ -205,7 +205,7 @@ class PerfProfiler(profiler.Profiler):
     ])
 
   def CollectProfile(self):
-    if self._is_android:
+    if self._perf_control:
       self._perf_control.SetDefaultPerfMode()
     output_files = []
     for single_process in self._process_profilers:
