@@ -64,5 +64,19 @@ tvcm.unittest.testSuite(function() {
     assertEquals(1, shifted.length);
     assertEquals(t1.sliceGroup.slices[1], shifted[0]);
   });
+
+  test('uniqueContents', function() {
+    var sample1 = {guid:1};
+    var sample2 = {guid:2};
+
+    var selection = new tracing.Selection();
+
+    selection.push(sample1);
+    selection.push(sample2);
+    assertEquals(2, selection.length);
+
+    selection.push(sample1);
+    assertEquals(2, selection.length);
+  });
 });
 </script>
