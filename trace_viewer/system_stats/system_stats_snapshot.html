@@ -16,14 +16,8 @@ tvcm.exportTo('system_stats', function() {
   /**
    * @constructor
    */
-  function SystemStatsSnapshot() {
-    ObjectSnapshot.apply(this, arguments);
-  }
-
-  /**
-   * @constructor
-   */
   function SystemStatsSnapshot(objectInstance, ts, args) {
+    ObjectSnapshot.apply(this, arguments);
     this.objectInstance = objectInstance;
     this.ts = ts;
     this.args = args;
