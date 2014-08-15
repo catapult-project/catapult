@@ -34,10 +34,6 @@ tvcm.exportTo('tracing.analysis', function() {
 
       this.currentView_ = undefined;
       this.currentSelection_ = undefined;
-      this.selections_ = [];
-      this.guid_ = tvcm.GUID.allocate();
-
-      window.addEventListener('popstate', this.onPopState.bind(this));
     },
 
     changeViewType: function(viewType) {
@@ -77,37 +73,7 @@ tvcm.exportTo('tracing.analysis', function() {
     },
 
     set selection(selection) {
-      this.selections_.push(selection);
-
-      var state = {
-        view_guid: this.guid_,
-        selection_guid: selection.guid
-      };
-      window.history.pushState(state);
-
       this.processSelection(selection);
-    },
-
-    clearSelectionHistory: function() {
-      this.selections_ = [];
-    },
-
-    onPopState: function(event) {
-      if ((event.state === null) ||
-          (event.state.view_guid !== this.guid_))
-        return;
-
-      var idx;
-      for (idx = 0; idx < this.selections_.length; ++idx) {
-        if (this.selections_[idx].guid === event.state.selection_guid)
-          break;
-      }
-
-      if (idx >= this.selections_.length)
-        return;
-
-      this.processSelection(this.selections_[idx]);
-      event.stopPropagation();
     },
 
     processSelection: function(selection) {

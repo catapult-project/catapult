@@ -243,6 +243,10 @@ tvcm.exportTo('tracing', function() {
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
 
       this.dragEl_.target = this.analysisEl_;
+
+      // State management on selection change.
+      this.selections_ = {};
+      window.addEventListener('popstate', this.onPopState_.bind(this));
     },
 
     createHelpButton_: function() {
@@ -373,13 +377,13 @@ tvcm.exportTo('tracing', function() {
             'selectionChange', this.onSelectionChanged_);
         this.trackView_.viewport.addEventListener(
             'change', this.onViewportChanged_);
-        this.analysisEl_.clearSelectionHistory();
       }
 
       // Set the model.
       if (modelValid) {
         this.trackView_.model = model;
         this.timelineViewSidePanelContainer_.model = model;
+        this.clearSelectionHistory_();
       }
       tvcm.dispatchSimpleEvent(this, 'modelChange');
 
@@ -469,8 +473,30 @@ tvcm.exportTo('tracing', function() {
     },
 
     onRequestSelectionChange_: function(e) {
+      // Save the selection so that when back button is pressed,
+      // it could be retrieved.
+      this.selections_[e.selection.guid] = e.selection;
+      var state = {
+        selection_guid: e.selection.guid
+      };
+      window.history.pushState(state);
+
       this.trackView_.selection = e.selection;
       e.stopPropagation();
+    },
+
+    onPopState_: function(e) {
+      if (e.state === null)
+        return;
+
+      var selection = this.selections_[e.state.selection_guid];
+      if (selection)
+        this.trackView_.selection = selection;
+      e.stopPropagation();
+    },
+
+    clearSelectionHistory_: function() {
+      this.selections_ = {};
     },
 
     onViewportChanged_: function(e) {

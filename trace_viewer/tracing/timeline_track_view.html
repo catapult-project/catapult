@@ -972,7 +972,9 @@ tvcm.exportTo('tracing', function() {
           loVX, hiVX, loY, hiY, selection);
 
       // Activate the new selection.
-      this.setSelectionAndClearHighlight(selection);
+      var selection_change_event = new tracing.RequestSelectionChangeEvent();
+      selection_change_event.selection = selection;
+      this.dispatchEvent(selection_change_event);
     },
 
     onBeginZoom_: function(e) {
