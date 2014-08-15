@@ -35,8 +35,6 @@ class PossibleIOSBrowser(possible_browser.PossibleBrowser):
 # description of the browser.
 IOS_BROWSERS = {'CriOS': 'ios-chrome', 'Version': 'ios-safari'}
 
-ALL_BROWSER_TYPES = IOS_BROWSERS.values()
-
 DEVICE_LIST_URL = 'http://127.0.0.1:9221/json'
 
 IOS_WEBKIT_DEBUG_PROXY = 'ios_webkit_debug_proxy'
@@ -48,6 +46,10 @@ def SelectDefaultBrowser(_):
 
 def CanFindAvailableBrowsers():
   return False  # TODO(baxley): Implement me.
+
+
+def FindAllBrowserTypes():
+  return IOS_BROWSERS.values()
 
 
 def FindAllAvailableBrowsers(finder_options):

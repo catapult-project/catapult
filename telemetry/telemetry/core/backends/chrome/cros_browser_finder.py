@@ -14,21 +14,15 @@ from telemetry.core.backends.chrome import cros_browser_with_oobe
 from telemetry.core.backends.chrome import cros_interface
 from telemetry.core.platform import cros_platform_backend
 
-ALL_BROWSER_TYPES = [
-    'cros-chrome',
-    'cros-chrome-guest',
-    'system',
-    'system-guest',
-    ]
-
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   """A launchable CrOS browser instance."""
   def __init__(self, browser_type, finder_options, cri, is_guest):
     super(PossibleCrOSBrowser, self).__init__(browser_type, 'cros',
         finder_options, True)
-    assert browser_type in ALL_BROWSER_TYPES, \
-        'Please add %s to ALL_BROWSER_TYPES' % browser_type
+    assert browser_type in FindAllBrowserTypes(), \
+        ('Please add %s to cros_browser_finder.FindAllBrowserTypes()' %
+         browser_type)
     self._cri = cri
     self._is_guest = is_guest
 
@@ -77,6 +71,14 @@ def CanFindAvailableBrowsers(finder_options):
   return (cros_interface.IsRunningOnCrosDevice() or
           finder_options.cros_remote or
           cros_interface.HasSSH())
+
+def FindAllBrowserTypes():
+  return [
+      'cros-chrome',
+      'cros-chrome-guest',
+      'system',
+      'system-guest',
+  ]
 
 def FindAllAvailableBrowsers(finder_options):
   """Finds all available CrOS browsers, locally and remotely."""

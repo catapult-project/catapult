@@ -15,18 +15,6 @@ from telemetry.core.backends.chrome import cros_interface
 from telemetry.core.backends.chrome import desktop_browser_backend
 from telemetry.util import path
 
-ALL_BROWSER_TYPES = [
-    'exact',
-    'release',
-    'release_x64',
-    'debug',
-    'debug_x64',
-    'canary',
-    'content-shell-debug',
-    'content-shell-debug_x64',
-    'content-shell-release',
-    'content-shell-release_x64',
-    'system']
 
 class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   """A desktop browser that can be controlled."""
@@ -36,8 +24,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     target_os = sys.platform.lower()
     super(PossibleDesktopBrowser, self).__init__(browser_type, target_os,
         finder_options, not is_content_shell)
-    assert browser_type in ALL_BROWSER_TYPES, \
-        'Please add %s to ALL_BROWSER_TYPES' % browser_type
+    assert browser_type in FindAllBrowserTypes(), \
+        ('Please add %s to desktop_browser_finder.FindAllBrowserTypes' %
+          browser_type)
     self._local_executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell
@@ -98,6 +87,20 @@ def SelectDefaultBrowser(possible_browsers):
 
 def CanFindAvailableBrowsers():
   return not cros_interface.IsRunningOnCrosDevice()
+
+def FindAllBrowserTypes():
+  return [
+      'exact',
+      'release',
+      'release_x64',
+      'debug',
+      'debug_x64',
+      'canary',
+      'content-shell-debug',
+      'content-shell-debug_x64',
+      'content-shell-release',
+      'content-shell-release_x64',
+      'system']
 
 def FindAllAvailableBrowsers(finder_options):
   """Finds all the desktop browsers available on this machine."""

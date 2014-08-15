@@ -22,16 +22,6 @@ try:
 except ImportError:
   webdriver = None
 
-ALL_BROWSER_TYPES = []
-if webdriver:
-  ALL_BROWSER_TYPES = [
-      'internet-explorer',
-      'internet-explorer-x64']
-else:
-  logging.warning('Webdriver backend is unsupported without selenium pylib. '
-                  'For installation of selenium pylib, please refer to '
-                  'https://code.google.com/p/selenium/wiki/PythonBindings.')
-
 
 class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
   """A browser that can be controlled through webdriver API."""
@@ -40,8 +30,9 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
     target_os = sys.platform.lower()
     super(PossibleWebDriverBrowser, self).__init__(browser_type, target_os,
         finder_options, False)
-    assert browser_type in ALL_BROWSER_TYPES, \
-        'Please add %s to ALL_BROWSER_TYPES' % browser_type
+    assert browser_type in FindAllBrowserTypes(), \
+        ('Please add %s to webdriver_desktop_browser_finder.FindAllBrowserTypes'
+         % browser_type)
 
   def CreateWebDriverBackend(self, platform_backend):
     raise NotImplementedError()
@@ -89,6 +80,17 @@ class PossibleDesktopIE(PossibleWebDriverBrowser):
 
 def SelectDefaultBrowser(_):
   return None
+
+def FindAllBrowserTypes():
+  if webdriver:
+    return [
+        'internet-explorer',
+        'internet-explorer-x64']
+  else:
+    logging.warning('Webdriver backend is unsupported without selenium pylib. '
+                    'For installation of selenium pylib, please refer to '
+                    'https://code.google.com/p/selenium/wiki/PythonBindings.')
+  return []
 
 def FindAllAvailableBrowsers(finder_options):
   """Finds all the desktop browsers available on this machine."""
