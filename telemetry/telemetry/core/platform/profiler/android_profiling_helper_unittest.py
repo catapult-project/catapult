@@ -1,12 +1,14 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import glob
 import os
 import pickle
 import re
 import shutil
 import tempfile
+import unittest
 
 from telemetry import benchmark
 from telemetry.core import util
@@ -27,15 +29,7 @@ def _GetLibrariesMappedIntoProcesses(device, pids):
   return libs
 
 
-class TestAndroidProfilingHelper(tab_test_case.TabTestCase):
-  def setUp(self):
-    super(TestAndroidProfilingHelper, self).setUp()
-    # pylint: disable=W0212
-    browser_backend = self._browser._browser_backend
-    try:
-      self._device = browser_backend.adb.device()
-    except AttributeError:
-      pass
+class TestAndroidProfilingHelper(unittest.TestCase):
 
   def testGetRequiredLibrariesForPerfProfile(self):
     perf_output = os.path.join(
@@ -93,6 +87,18 @@ class TestAndroidProfilingHelper(tab_test_case.TabTestCase):
           '/system/lib/libm.so']))
     finally:
       android_profiling_helper.sqlite3 = real_sqlite3
+
+
+class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
+
+  def setUp(self):
+    super(TestAndroidProfilingHelperTabTestCase, self).setUp()
+    # pylint: disable=W0212
+    browser_backend = self._browser._browser_backend
+    try:
+      self._device = browser_backend.adb.device()
+    except AttributeError:
+      pass
 
   @benchmark.Enabled('android')
   def testCreateSymFs(self):
