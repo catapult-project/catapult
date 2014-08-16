@@ -37,18 +37,25 @@ class TestWebSocket(unittest.TestCase):
     self.assertNotEqual(websocket.WebSocketTimeoutException, None)
 
   def testSockOpts(self):
-    httpd = BaseHTTPServer.HTTPServer(('', 0), _FakeWebSocketHandler)
-    threading.Thread(target=httpd.handle_request).start()
+    httpd = BaseHTTPServer.HTTPServer(('127.0.0.1', 0), _FakeWebSocketHandler)
     ws_url = 'ws://127.0.0.1:%d' % httpd.server_port
+
+    threading.Thread(target=httpd.handle_request).start()
     ws = websocket.create_connection(ws_url)
-    self.assertNotEquals(
-        ws.sock.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR), 0)
+    try:
+      self.assertNotEquals(
+          ws.sock.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR), 0)
+    finally:
+      ws.close()
 
     threading.Thread(target=httpd.handle_request).start()
     ws = websocket.create_connection(
         ws_url,
         sockopt=[(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)])
-    self.assertNotEquals(
-        ws.sock.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR), 0)
-    self.assertNotEquals(
-        ws.sock.getsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY), 0)
+    try:
+      self.assertNotEquals(
+          ws.sock.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR), 0)
+      self.assertNotEquals(
+          ws.sock.getsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY), 0)
+    finally:
+      ws.close()
