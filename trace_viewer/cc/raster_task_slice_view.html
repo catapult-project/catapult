@@ -48,6 +48,10 @@ tvcm.exportTo('cc', function() {
       this.appendChild(this.layerTreeView_);
     },
 
+    get requiresTallView() {
+      return true;
+    },
+
     updateContents: function() {
       this.infoBar_.visible = false;
 
