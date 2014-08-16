@@ -329,13 +329,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Shutdown aggressively if the above failed or if the profile is temporary.
     if self.IsBrowserRunning():
       self._proc.kill()
-
-    try:
-      util.WaitFor(lambda: not self.IsBrowserRunning(), timeout=10)
-    except util.TimeoutException:
-      raise Exception('Could not shutdown the browser.')
-    finally:
-      self._proc = None
+    self._proc = None
 
     if self._crash_service:
       self._crash_service.kill()
