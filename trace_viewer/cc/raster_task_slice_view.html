@@ -51,7 +51,6 @@ tvcm.exportTo('cc', function() {
     updateContents: function() {
       this.infoBar_.visible = false;
 
-      debugger;
       var tile = getTileFromRasterTaskSlice(this.slice);
       if (!tile) {
         this.infoBar_.visible = true;
