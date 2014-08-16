@@ -4,6 +4,7 @@
  */
 .raster-task-slice-view {
   -webkit-flex-direction: column;
+  -webkit-flex: 1 1 auto;
   display: -webkit-flex;
 }
 
