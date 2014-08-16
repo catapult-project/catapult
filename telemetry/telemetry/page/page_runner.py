@@ -296,6 +296,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
       logging.warning(str(e))
 
 
+@decorators.Cache
 def _UpdatePageSetArchivesIfChanged(page_set):
   # Attempt to download the credentials file.
   if page_set.credentials_path:
