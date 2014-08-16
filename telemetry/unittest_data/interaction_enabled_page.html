@@ -50,16 +50,27 @@
     <script>
     'use strict';
     var jankMs = 100;
+    var slowMs = 200;
     window.jankScriptDone = false;
-    function makeJank() {
-      console.time('Interaction.JankThreadJSRun/is_responsive');
+    window.slowScriptDone = false;
+    function waitMs(ms) {
       var startTime = window.performance.now();
       var currTime = startTime;
-      while (currTime - startTime < jankMs) {
+      while (currTime - startTime < ms) {
         var currTime = window.performance.now();
       }
+    }
+    function makeJank() {
+      console.time('Interaction.JankThreadJSRun/is_responsive');
+      waitMs(jankMs);
       console.timeEnd('Interaction.JankThreadJSRun/is_responsive');
       window.jankScriptDone = true;
+    }
+    function makeSlow() {
+      console.time('Interaction.SlowThreadJsRun/is_fast');
+      waitMs(slowMs);
+      console.timeEnd('Interaction.SlowThreadJsRun/is_fast');
+      window.slowScriptDone = true;
     }
     </script>
 
@@ -76,6 +87,9 @@
     </div>
     <button type="button" id="jank-button" onclick="makeJank()">
       Click or tap this to make jank of 100ms (approximately).
+    </div>
+    <button type="button" id="slow-button" onclick="makeSlow()">
+      Click or tap this to make wait 200ms (approximately).
     </div>
 
   </body>

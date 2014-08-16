@@ -6,6 +6,7 @@ import os
 import unittest
 
 from telemetry import benchmark
+from telemetry.core import platform
 from telemetry.core import wpr_modes
 from telemetry.page import page as page_module
 from telemetry.page import page_set
@@ -178,11 +179,12 @@ class TimelineBasedMetricsTests(unittest.TestCase):
 class TestTimelinebasedMeasurementPage(page_module.Page):
 
   def __init__(self, ps, base_dir, trigger_animation=False,
-               trigger_jank=False):
+               trigger_jank=False, trigger_slow=False):
     super(TestTimelinebasedMeasurementPage, self).__init__(
         'file://interaction_enabled_page.html', ps, base_dir)
     self._trigger_animation = trigger_animation
     self._trigger_jank = trigger_jank
+    self._trigger_slow = trigger_slow
 
   def RunSmoothness(self, action_runner):
     if self._trigger_animation:
@@ -191,6 +193,9 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
     if self._trigger_jank:
       action_runner.TapElement('#jank-button')
       action_runner.WaitForJavaScriptCondition('window.jankScriptDone')
+    if self._trigger_slow:
+      action_runner.TapElement('#slow-button')
+      action_runner.WaitForJavaScriptCondition('window.slowScriptDone')
 
 
 class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
@@ -214,6 +219,31 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     v = results.FindAllPageSpecificValuesNamed('DrawerAnimation-jank')
     self.assertEquals(len(v), 1)
 
+  def testFastTimelineBasedMeasurementForSmoke(self):
+    ps = self.CreateEmptyPageSet()
+    ps.AddPage(TestTimelinebasedMeasurementPage(
+        ps, ps.base_dir, trigger_slow=True))
+
+    measurement = tbm_module.TimelineBasedMeasurement()
+    results = self.RunMeasurement(measurement, ps, options=self._options)
+
+    self.assertEquals([], results.failures)
+    expected_names = set([
+        'SlowThreadJsRun-fast-duration',
+        'SlowThreadJsRun-fast-idle_time',
+        ])
+    if platform.GetHostPlatform().GetOSName() != 'win':
+      # CPU metric is only supported non-Windows platforms.
+      expected_names.add('SlowThreadJsRun-fast-cpu_time')
+    self.assertEquals(
+        expected_names, set(v.name for v in results.all_page_specific_values))
+
+    # In interaction_enabled_page.html, the "slow" interaction executes
+    # a loop with window.performance.now() to wait 200ms.
+    # fast-duration measures wall time so its value should be at least 200ms.
+    v = results.FindAllPageSpecificValuesNamed('SlowThreadJsRun-fast-duration')
+    self.assertGreaterEqual(v[0].value, 200.0)
+
   # Disabled since mainthread_jank metric is not supported on windows platform.
   @benchmark.Disabled('win')
   def testMainthreadJankTimelineBasedMeasurement(self):
@@ -228,11 +258,9 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
 
     # In interaction_enabled_page.html, we create a jank loop based on
     # window.performance.now() (basically loop for x milliseconds).
-    # Since window.performance.now() uses wall-time
-    # instead of thread time, we set time to looping to 100ms in
-    # interaction_enabled_page.html and only assert the biggest jank > 50ms here
-    # to  account for the fact that the browser may deschedule during the jank
-    # loop.
+    # Since window.performance.now() uses wall-time instead of thread time,
+    # we only assert the biggest jank > 50ms here to account for the fact
+    # that the browser may deschedule during the jank loop.
     v = results.FindAllPageSpecificValuesNamed(
         'JankThreadJSRun-responsive-biggest_jank_thread_time')
     self.assertGreaterEqual(v[0].value, 50)
