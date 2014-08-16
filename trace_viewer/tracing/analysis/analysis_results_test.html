@@ -18,7 +18,7 @@ tvcm.unittest.testSuite(function() {
     var track = {};
     var linkEl = r.createSelectionChangingLink('hello', function() {
       var selection = new tracing.Selection();
-      selection.push({});
+      selection.push({guid:1});
       return selection;
     });
     var didRequestSelectionChange = false;

@@ -86,20 +86,21 @@ tvcm.unittest.testSuite(function() {
     var controller = new tracing.FindController();
     controller.timeline = timeline;
 
-    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1];
+    var s1 = {guid: 1};
+    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1];
     controller.filterText = 'asdf';
 
     assertArrayShallowEquals([], timeline.selection);
-    assertArrayShallowEquals([1], timeline.highlight);
+    assertArrayShallowEquals([s1], timeline.highlight);
     controller.findNext();
-    assertArrayShallowEquals([1], timeline.selection);
-    assertArrayShallowEquals([1], timeline.highlight);
+    assertArrayShallowEquals([s1], timeline.selection);
+    assertArrayShallowEquals([s1], timeline.highlight);
     controller.findNext();
-    assertArrayShallowEquals([1], timeline.selection);
-    assertArrayShallowEquals([1], timeline.highlight);
+    assertArrayShallowEquals([s1], timeline.selection);
+    assertArrayShallowEquals([s1], timeline.highlight);
     controller.findPrevious();
-    assertArrayShallowEquals([1], timeline.selection);
-    assertArrayShallowEquals([1], timeline.highlight);
+    assertArrayShallowEquals([s1], timeline.selection);
+    assertArrayShallowEquals([s1], timeline.highlight);
   });
 
   test('findControllerMultipleHits', function() {
@@ -107,25 +108,29 @@ tvcm.unittest.testSuite(function() {
     var controller = new tracing.FindController();
     controller.timeline = timeline;
 
-    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1, 2, 3];
+    var s1 = {guid: 1};
+    var s2 = {guid: 2};
+    var s3 = {guid: 3};
+
+    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1, s2, s3];
     controller.filterText = 'asdf';
 
     // Loop through hits then when we wrap, try moving backward.
     assertArrayShallowEquals([], timeline.selection);
-    assertArrayShallowEquals([1, 2, 3], timeline.highlight);
+    assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
     controller.findNext();
-    assertArrayShallowEquals([1], timeline.selection);
+    assertArrayShallowEquals([s1], timeline.selection);
     controller.findNext();
-    assertArrayShallowEquals([2], timeline.selection);
+    assertArrayShallowEquals([s2], timeline.selection);
     controller.findNext();
-    assertArrayShallowEquals([3], timeline.selection);
+    assertArrayShallowEquals([s3], timeline.selection);
     controller.findNext();
-    assertArrayShallowEquals([1], timeline.selection);
+    assertArrayShallowEquals([s1], timeline.selection);
     controller.findPrevious();
-    assertArrayShallowEquals([3], timeline.selection);
+    assertArrayShallowEquals([s3], timeline.selection);
     controller.findPrevious();
-    assertArrayShallowEquals([2], timeline.selection);
-    assertArrayShallowEquals([1, 2, 3], timeline.highlight);
+    assertArrayShallowEquals([s2], timeline.selection);
+    assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
   });
 
   test('findControllerChangeFilterAfterNext', function() {
@@ -133,15 +138,20 @@ tvcm.unittest.testSuite(function() {
     var controller = new tracing.FindController();
     controller.timeline = timeline;
 
-    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1, 2, 3];
+    var s1 = {guid: 1};
+    var s2 = {guid: 2};
+    var s3 = {guid: 3};
+    var s4 = {guid: 4};
+
+    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1, s2, s3];
     controller.filterText = 'asdf';
 
     // Loop through hits then when we wrap, try moving backward.
     controller.findNext();
-    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [4];
+    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s4];
     controller.filterText = 'asdfsf';
     controller.findNext();
-    assertArrayShallowEquals([4], timeline.selection);
+    assertArrayShallowEquals([s4], timeline.selection);
   });
 
   test('findControllerSelectsAllItemsFirst', function() {
@@ -149,15 +159,18 @@ tvcm.unittest.testSuite(function() {
     var controller = new tracing.FindController();
     controller.timeline = timeline;
 
-    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1, 2, 3];
+    var s1 = {guid: 1};
+    var s2 = {guid: 2};
+    var s3 = {guid: 3};
+    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1, s2, s3];
     controller.filterText = 'asdfsf';
     assertArrayShallowEquals([], timeline.selection);
-    assertArrayShallowEquals([1, 2, 3], timeline.highlight);
+    assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
     controller.findNext();
-    assertArrayShallowEquals([1], timeline.selection);
+    assertArrayShallowEquals([s1], timeline.selection);
     controller.findNext();
-    assertArrayShallowEquals([2], timeline.selection);
-    assertArrayShallowEquals([1, 2, 3], timeline.highlight);
+    assertArrayShallowEquals([s2], timeline.selection);
+    assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
   });
 
   test('findControllerWithRealTimeline', function() {
