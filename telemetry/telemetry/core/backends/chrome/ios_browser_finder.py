@@ -11,10 +11,18 @@ import re
 import subprocess
 import urllib2
 
+from telemetry import decorators
 from telemetry.core import platform
 from telemetry.core import possible_browser
 from telemetry.core import util
 from telemetry.core.backends.chrome import inspector_backend
+
+
+# Key matches output from ios-webkit-debug-proxy and the value is a readable
+# description of the browser.
+IOS_BROWSERS = {'CriOS': 'ios-chrome', 'Version': 'ios-safari'}
+DEVICE_LIST_URL = 'http://127.0.0.1:9221/json'
+IOS_WEBKIT_DEBUG_PROXY = 'ios_webkit_debug_proxy'
 
 
 class PossibleIOSBrowser(possible_browser.PossibleBrowser):
@@ -31,54 +39,44 @@ class PossibleIOSBrowser(possible_browser.PossibleBrowser):
   def SupportOptions(self, finder_options):
     raise NotImplementedError()
 
-# Key matches output from ios-webkit-debug-proxy and the value is a readable
-# description of the browser.
-IOS_BROWSERS = {'CriOS': 'ios-chrome', 'Version': 'ios-safari'}
-
-DEVICE_LIST_URL = 'http://127.0.0.1:9221/json'
-
-IOS_WEBKIT_DEBUG_PROXY = 'ios_webkit_debug_proxy'
-
 
 def SelectDefaultBrowser(_):
   return None  # TODO(baxley): Implement me.
 
 
 def CanFindAvailableBrowsers():
-  return False  # TODO(baxley): Implement me.
+  # TODO(baxley): Add support for all platforms possible. Probably Linux,
+  # probably not Windows.
+  return platform.GetHostPlatform().GetOSName() == 'mac'
 
 
 def FindAllBrowserTypes():
   return IOS_BROWSERS.values()
 
 
+@decorators.Cache
+def _IsIosDeviceAttached():
+  devices = subprocess.check_output('system_profiler SPUSBDataType', shell=True)
+  for line in devices.split('\n'):
+    if line and re.match('\s*(iPod|iPhone|iPad):', line):
+      return True
+  return False
+
+
 def FindAllAvailableBrowsers(finder_options):
   """Find all running iOS browsers on connected devices."""
-  ios_device_attached = False
-  host = platform.GetHostPlatform()
-  if host.GetOSName() == 'mac':
-    devices = subprocess.check_output(
-        'system_profiler SPUSBDataType', shell=True)
-    ios_devices = 'iPod|iPhone|iPad'
-    for line in devices.split('\n'):
-      if line:
-        m = re.match('\s*(%s):' % ios_devices, line)
-        if m:
-          ios_device_attached = True
-          break
-  else:
-    # TODO(baxley): Add support for all platforms possible. Probably Linux,
-    # probably not Windows.
+  if not CanFindAvailableBrowsers():
     return []
 
-  if ios_device_attached:
-    # TODO(baxley) Use idevice to wake up device or log debug statement.
-    if not host.IsApplicationRunning(IOS_WEBKIT_DEBUG_PROXY):
-      host.LaunchApplication(IOS_WEBKIT_DEBUG_PROXY)
-      if not host.IsApplicationRunning(IOS_WEBKIT_DEBUG_PROXY):
-        return []
-  else:
+  if not _IsIosDeviceAttached():
     return []
+
+  # TODO(baxley) Use idevice to wake up device or log debug statement.
+  host = platform.GetHostPlatform()
+  if not host.IsApplicationRunning(IOS_WEBKIT_DEBUG_PROXY):
+    host.LaunchApplication(IOS_WEBKIT_DEBUG_PROXY)
+    if not host.IsApplicationRunning(IOS_WEBKIT_DEBUG_PROXY):
+      return []
 
   try:
     # TODO(baxley): Refactor this into a backend file.
