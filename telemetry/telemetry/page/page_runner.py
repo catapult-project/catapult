@@ -85,6 +85,8 @@ class _RunState(object):
                 logging.info('  %s', workaround)
           else:
             logging.info('No GPU devices')
+        else:
+          logging.warning('System info not supported')
     else:
       # Set up WPR path if it changed.
       if page.archive_path and self._last_archive_path != page.archive_path:
