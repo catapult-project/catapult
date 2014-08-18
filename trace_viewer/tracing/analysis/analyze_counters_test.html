@@ -6,15 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/analysis/analysis_view.html">
-<link rel="import" href="/tracing/analysis/stub_analysis_results.html">
 <link rel="import" href="/tracing/analysis/analyze_counters.html">
+<link rel="import" href="/tracing/analysis/stub_analysis_results.html">
 <link rel="import" href="/tracing/test_utils.html">
 <link rel="import" href="/tracing/selection.html">
 <link rel="import" href="/tracing/trace_model/counter.html">
 <link rel="import" href="/tracing/trace_model/counter_series.html">
 
 <script>
-
 'use strict';
 
 tvcm.unittest.testSuite(function() {
@@ -22,7 +21,7 @@ tvcm.unittest.testSuite(function() {
   var CounterSeries = tracing.trace_model.CounterSeries;
 
   var Selection = tracing.Selection;
-  var AnalysisView = tracing.analysis.AnalysisView;
+  var AnalysisView = TracingAnalysisView;
   var StubAnalysisResults = tracing.analysis.StubAnalysisResults;
 
   var createSelectionWithCounters = function(numSamples) {
@@ -158,8 +157,9 @@ tvcm.unittest.testSuite(function() {
   test('analyzeSelectionWithSingleCounter', function() {
     var selection = createSelectionWithCounters(1);
 
+    var view = new MultipleCounterSamplesAnalysisSubView();
     var results = new StubAnalysisResults();
-    tracing.analysis.analyzeSelection(results, selection);
+    view.analyzeCounterSamples_(results, selection);
 
     assertEquals(1, results.tables.length);
     assertEquals('Selected counter:', results.headers[0].label);
@@ -175,8 +175,10 @@ tvcm.unittest.testSuite(function() {
   test('analyzeSelectionWithComplexSeriesTwoCounters', function() {
     var selection = createSelectionWithTwoCountersDiffSeriesDiffEvents();
 
+    var view = new MultipleCounterSamplesAnalysisSubView();
     var results = new StubAnalysisResults();
-    tracing.analysis.analyzeSelection(results, selection);
+    view.analyzeCounterSamples_(results, selection);
+
     assertEquals(2, results.tables.length);
   });
 });

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<!--
+@fileoverview Polymer element for various analysis sub-views.
+-->
+<polymer-element name="tracing-analysis-sub-view"
+    constructor="TracingAnalysisSubView">
+  <template>
+    <content></content>
+  </template>
+  <script>
+  'use strict';
+  Polymer({
+    /**
+     * Each element extending this one must implement
+     * a 'selection' property.
+     */
+    set selection(selection) {
+      throw new Error('Not implemented!');
+    },
+
+    get selection() {
+      throw new Error('Not implemented!');
+    },
+
+    set tabLabel(label) {
+      return this.setAttribute('tab-label', label);
+    },
+
+    get tabLabel() {
+      return this.getAttribute('tab-label');
+    }
+  });
+  </script>
+</polymer-element>

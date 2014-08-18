@@ -18,7 +18,7 @@ tvcm.unittest.testSuite(function() {
   var Model = tracing.TraceModel;
   var Thread = tracing.trace_model.Thread;
   var Selection = tracing.Selection;
-  var AnalysisView = tracing.analysis.AnalysisView;
+  var AnalysisView = TracingAnalysisView;
   var StubAnalysisResults = tracing.analysis.StubAnalysisResults;
   var newSliceNamed = tracing.test_utils.newSliceNamed;
   var newSliceCategory = tracing.test_utils.newSliceCategory;
@@ -108,8 +108,10 @@ tvcm.unittest.testSuite(function() {
   test('analyzeSelectionWithSingleSlice', function() {
     var selection = createSelectionWithSingleSlice();
 
+    var sliceView = new SingleSliceAnalysisSubView();
     var results = new StubAnalysisResults();
-    tracing.analysis.analyzeSelection(results, selection);
+
+    sliceView.analyzeSingleSlice_(results, selection[0], 'Slice');
     assertEquals(1, results.tables.length);
     var table = results.tables[0];
     var header = results.headers[0];
@@ -124,8 +126,10 @@ tvcm.unittest.testSuite(function() {
   test('analyzeSelectionWithSingleSliceCategory', function() {
     var selection = createSelectionWithSingleSlice(true);
 
+    var sliceView = new SingleSliceAnalysisSubView();
     var results = new StubAnalysisResults();
-    tracing.analysis.analyzeSelection(results, selection);
+
+    sliceView.analyzeSingleSlice_(results, selection[0], 'Slice');
     assertEquals(1, results.tables.length);
     var table = results.tables[0];
     var header = results.headers[0];
@@ -141,8 +145,10 @@ tvcm.unittest.testSuite(function() {
   test('analyzeSelectionWithTwoSlices', function() {
     var selection = createSelectionWithTwoSlices();
 
+    var sliceView = new MultipleSlicesAnalysisSubView();
     var results = new StubAnalysisResults();
-    tracing.analysis.analyzeSelection(results, selection);
+
+    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
     assertEquals(1, results.tables.length);
     var table = results.tables[0];
     assertEquals('Slices:', results.headers[0].label);
@@ -174,8 +180,9 @@ tvcm.unittest.testSuite(function() {
   test('analyzeSelectionWithTwoSlicesSameTitle', function() {
     var selection = createSelectionWithTwoSlicesSameTitle();
 
+    var sliceView = new MultipleSlicesAnalysisSubView();
     var results = new StubAnalysisResults();
-    tracing.analysis.analyzeSelection(results, selection);
+    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
     assertEquals(2, results.tables.length);
 
     var t;

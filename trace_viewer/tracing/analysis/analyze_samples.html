@@ -5,38 +5,87 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tracing/analysis/analyze_slices.css">
-
+<link rel="import" href="/tracing/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/analysis/util.html">
+<link rel="import" href="/tracing/side_panel/sampling_summary.html">
 <link rel="import" href="/tvcm/ui.html">
 <link rel="import" href="/tvcm/ui/sortable_table.html">
 
-<script>
+<polymer-element name="single-sample-analysis-sub-view"
+    extends="tracing-analysis-sub-view"
+    constructor="SingleSampleAnalysisSubView">
+  <script>
+  'use strict';
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
 
-'use strict';
+    set selection(selection) {
+      this.currentSelection_ = selection;
+      this.textContent = '';
 
-tvcm.exportTo('tracing.analysis', function() {
-  function analyzeSingleSampleEvent(results, sample, type) {
-    results.appendHeader('Selected ' + type + ':');
-    var table = results.appendTable('analysis-slice-table', 2);
+      if (selection.length === 0)
+        return;
 
-    results.appendInfoRow(table, 'Title', sample.title);
-    results.appendInfoRowTime(table, 'Sample Time', sample.start);
-    results.appendInfoRow(table,
-                          'Stack Trace',
-                          sample.getUserFriendlyStackTrace());
-  }
+      var results = new tracing.analysis.AnalysisResults();
+      this.appendChild(results);
 
-  function analyzeMultipleSampleEvents(results, slices, type) {
-    // TODO (gholap): Move this to a new tab in analysis move.
-    var panel = new tracing.SamplingSummaryPanel();
-    results.appendChild(panel);
-    panel.selection = slices;
-  }
+      this.analyzeSingleSampleEvent_(
+          results, selection[0], 'Sample Event');
+    },
 
-  return {
-    analyzeMultipleSampleEvents: analyzeMultipleSampleEvents,
-    analyzeSingleSampleEvent: analyzeSingleSampleEvent
-  };
-});
-</script>
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    analyzeSingleSampleEvent_: function(results, sample, type) {
+      results.appendHeader('Selected ' + type + ':');
+      var table = results.appendTable('analysis-slice-table', 2);
+
+      results.appendInfoRow(table, 'Title', sample.title);
+      results.appendInfoRowTime(table, 'Sample Time', sample.start);
+      results.appendInfoRow(table,
+                            'Stack Trace',
+                            sample.getUserFriendlyStackTrace());
+    }
+  });
+  </script>
+</polymer-element>
+
+<polymer-element name="multiple-samples-analysis-sub-view"
+    extends="tracing-analysis-sub-view"
+    constructor="MultipleSamplesAnalysisSubView">
+  <script>
+  'use strict';
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    set selection(selection) {
+      this.currentSelection_ = selection;
+      this.textContent = '';
+
+      if (selection.length === 0)
+        return;
+
+      var results = new tracing.analysis.AnalysisResults();
+      this.appendChild(results);
+
+      this.analyzeMultipleSampleEvents_(results, selection);
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    analyzeMultipleSampleEvents_: function(results, slices) {
+      // TODO (gholap): Move this to a new tab in analysis move.
+      var panel = new tracing.SamplingSummaryPanel();
+      results.appendChild(panel);
+      panel.selection = slices;
+    }
+  });
+  </script>
+</polymer-element>

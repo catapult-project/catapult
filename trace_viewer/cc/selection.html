@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/analysis/analyze_slices.html">
 <link rel="import" href="/tracing/analysis/generic_object_view.html">
-<link rel="import" href="/tracing/analysis/analyze_selection.html">
-<link rel="import" href="/tracing/analysis/analysis_results.html">
+
 <script>
 'use strict';
 
@@ -345,8 +345,8 @@ tvcm.exportTo('cc', function() {
     createAnalysis: function() {
       var sel = new tracing.Selection();
       sel.push(this.rasterTask_);
-      var analysis = new tracing.analysis.AnalysisResults();
-      tracing.analysis.analyzeSelection(analysis, sel);
+      var analysis = new SingleSliceAnalysisSubView();
+      analysis.selection = sel;
       return analysis;
     },
 
