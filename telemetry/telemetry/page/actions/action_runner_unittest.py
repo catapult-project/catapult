@@ -24,7 +24,8 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
         ]
 
   def VerifyIssuingInteractionRecords(self, **interaction_kwargs):
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
     self.Navigate('interaction_enabled_page.html')
     action_runner.Wait(1)
     self._browser.StartTracing()
@@ -51,14 +52,16 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
 
 class ActionRunnerTest(tab_test_case.TabTestCase):
   def testExecuteJavaScript(self):
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
     self.Navigate('blank.html')
     action_runner.ExecuteJavaScript('var testing = 42;')
     self.assertEqual(42, self._tab.EvaluateJavaScript('testing'))
 
   def testWaitForNavigate(self):
     self.Navigate('page_with_link.html')
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
     action_runner.ClickElement('#clickme')
     action_runner.WaitForNavigate()
 
@@ -84,7 +87,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertEqual(102, self._tab.EvaluateJavaScript('window.testing'))
 
   def testWaitForJavaScriptCondition(self):
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
     self.Navigate('blank.html')
 
     action_runner.ExecuteJavaScript('window.testing = 219;')
@@ -97,7 +101,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertEqual(220, self._tab.EvaluateJavaScript('window.testing'))
 
   def testWaitForElement(self):
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
     self.Navigate('blank.html')
 
     action_runner.ExecuteJavaScript(
@@ -133,7 +138,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         element_function='document.getElementById("test3")')
 
   def testWaitForElementWithWrongText(self):
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
     self.Navigate('blank.html')
 
     action_runner.ExecuteJavaScript(
@@ -150,7 +156,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
 
   def testClickElement(self):
     self.Navigate('page_with_clickables.html')
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
 
     action_runner.ExecuteJavaScript('valueSettableByTest = 1;')
     action_runner.ClickElement('#test')
@@ -172,7 +179,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
   @benchmark.Disabled('debug')
   def testTapElement(self):
     self.Navigate('page_with_clickables.html')
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
 
     action_runner.ExecuteJavaScript('valueSettableByTest = 1;')
     action_runner.TapElement('#test')
@@ -197,7 +205,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       return
 
     self.Navigate('page_with_swipeables.html')
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
 
     action_runner.ScrollElement(
         selector='#left-right', direction='right', left_start_ratio=0.9)
@@ -219,7 +228,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       return
 
     self.Navigate('page_with_swipeables.html')
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
 
     action_runner.SwipeElement(
         selector='#left-right', direction='left', left_start_ratio=0.9)
