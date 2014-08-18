@@ -83,17 +83,8 @@ x-timeline-view > x-drag-handle {
   -webkit-flex: 0 0 auto;
 }
 
-x-timeline-view > .analysis-view {
-  display: -webkit-flex;
+x-timeline-view > tracing-analysis-view {
   -webkit-flex: 0 0 auto;
-  padding-left: 2px;
-  padding-right: 2px;
-}
-x-timeline-view > .analysis-view:not(.tall-mode) {
-  height: 250px;
-}
-x-timeline-view > .analysis-view.tall-mode {
-  height: 500px;
 }
 
 x-timeline-view .selection {

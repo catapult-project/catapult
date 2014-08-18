@@ -1,135 +1,275 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tracing/analysis/analysis_view.css">
-
 <link rel="import" href="/tracing/analysis/analysis_results.html">
+<link rel="import" href="/tracing/analysis/analyze_counters.html">
+<link rel="import" href="/tracing/analysis/analyze_objects.html">
+<link rel="import" href="/tracing/analysis/analyze_slices.html">
+<link rel="import" href="/tracing/analysis/analyze_samples.html">
 <link rel="import" href="/tracing/analysis/default_object_view.html">
 <link rel="import" href="/tracing/analysis/object_instance_view.html">
 <link rel="import" href="/tracing/analysis/object_snapshot_view.html">
 <link rel="import" href="/tracing/analysis/slice_view.html">
-<link rel="import" href="/tracing/analysis/util.html">
-<link rel="import" href="/tvcm/ui.html">
-<link rel="import" href="/tvcm/guid.html">
+<link rel="import" href="/tracing/analysis/tab_view.html">
+<link rel="import" href="/tracing/trace_model/counter_sample.html">
+<link rel="import" href="/tracing/trace_model/flow_event.html">
+<link rel="import" href="/tracing/trace_model/instant_event.html">
+<link rel="import" href="/tracing/trace_model/object_instance.html">
+<link rel="import" href="/tracing/trace_model/object_snapshot.html">
+<link rel="import" href="/tracing/trace_model/slice.html">
 
-<script>
-'use strict';
-
-/**
- * @fileoverview Displays an analysis of the selection.
- */
-tvcm.exportTo('tracing.analysis', function() {
-  var AnalysisView = tvcm.ui.define('div');
-
-  AnalysisView.prototype = {
-    __proto__: HTMLDivElement.prototype,
-
-    decorate: function() {
-      this.className = 'analysis-view';
-
-      this.currentView_ = undefined;
-      this.currentSelection_ = undefined;
-    },
-
-    changeViewType: function(viewType) {
-      if (this.currentView_ instanceof viewType)
-        return;
-      this.textContent = '';
-      try {
-        this.currentView_ = new viewType();
-        this.appendChild(this.currentView_);
-      } catch (e) {
-        this.currentView_ = undefined;
-        throw e;
+<!--
+@fileoverview A component used to display an analysis of a selection,
+using custom elements specialized for different event types.
+-->
+<polymer-element name="tracing-analysis-view"
+    constructor="TracingAnalysisView">
+  <template>
+    <style>
+      :host {
+        background-color: white;
+        display: flex;
+        flex-direction: column;
+        height: 275px;
+        overflow: auto;
       }
 
-      this.updateClassList_();
-    },
-    updateClassList_: function() {
-      if (this.currentView_ instanceof tracing.analysis.AnalysisResults)
-        this.classList.remove('viewing-old-style-analysis');
-      else
-        this.classList.add('viewing-old-style-analysis');
-
-      if (this.currentView_ &&
-          this.currentView_.requiresTallView) {
-        this.classList.add('tall-mode');
-      } else {
-        this.classList.remove('tall-mode');
-      }
-    },
-
-    get currentView() {
-      return this.currentView_;
-    },
-
-    get selection() {
-      return this.currentSelection_;
-    },
-
-    set selection(selection) {
-      this.processSelection(selection);
-    },
-
-    processSelection: function(selection) {
-      var eventsByType = selection.getEventsOrganizedByType();
-      if (selection.length == 1 &&
-          eventsByType.counterSamples.length == 0) {
-        if (this.tryToProcessSelectionUsingCustomView(selection[0]))
-          return;
+      :host(.tall-mode) {
+        height: 525px;
       }
 
-      this.changeViewType(tracing.analysis.AnalysisResults);
-
-      this.currentView.clear();
-      this.currentSelection_ = selection;
-      tracing.analysis.analyzeEventsByType(this.currentView, eventsByType);
-    },
-
-    tryToProcessSelectionUsingCustomView: function(event) {
-      var obj;
-      var typeName;
-      var viewBaseType;
-      var defaultViewType;
-      var viewProperty;
-      if (event instanceof tracing.trace_model.ObjectSnapshot) {
-        typeName = event.objectInstance.typeName;
-        viewBaseType = tracing.analysis.ObjectSnapshotView;
-        defaultViewType = tracing.analysis.DefaultObjectSnapshotView;
-      } else if (event instanceof tracing.trace_model.ObjectInstance) {
-        typeName = event.typeName;
-        viewBaseType = tracing.analysis.ObjectInstanceView;
-        defaultViewType = tracing.analysis.DefaultObjectInstanceView;
-      } else if (event instanceof tracing.trace_model.Slice) {
-        typeName = event.analysisTypeName;
-        viewBaseType = tracing.analysis.SliceView;
-        defaultViewType = undefined;
-      } else {
-        return false;
+      ::content > * {
+        flex: 1 0 auto;
       }
+    </style>
+    <content></content>
+  </template>
+  <script>
+  'use strict';
+  (function() {
 
-      var customViewInfo = viewBaseType.getViewInfo(typeName);
+    /**
+     * @const
+     *
+     * This data structure is used by the analysis view to determine which
+     * function to call in order to analyze a particular set of events.
+     *
+     * For each new group, validInstances must be an array of types.
+     *
+     * Each group _must_ have one multiple function. The multiple function
+     * gets called to analyze a set of events. The prototype of the function
+     * must only take one parameter, which is the array of events.
+     *
+     * Each group _may_ have a single function. The single function gets called
+     * if there is only one event of that particular type to analyze. The
+     * prototype of that function must take one parameter. The parameter passed
+     * is the event itself.
+     *
+     */
+    var ANALYSIS_OBJECTS_FOR_EVENT_TYPES = {
+      slices: {
+        validInstances: [
+          tracing.trace_model.Slice,
+          tracing.trace_model.FlowEvent,
+          tracing.trace_model.InstantEvent
+        ],
+        single: 'single-slice-analysis-sub-view',
+        multiple: 'multiple-slices-analysis-sub-view',
+      },
+      samples: {
+        validInstances: [tracing.trace_model.Sample],
+        single: 'single-sample-analysis-sub-view',
+        multiple: 'multiple-samples-analysis-sub-view'
+      },
+      counters: {
+        validInstances: [tracing.trace_model.CounterSample],
+        multiple: 'multiple-counter-samples-analysis-sub-view'
+      },
+      objects: {
+        validInstances: [
+          tracing.trace_model.ObjectInstance,
+          tracing.trace_model.ObjectSnapshot
+        ],
+        multiple: 'multiple-objects-analysis-sub-view'
+      }
+    };
 
-      var viewType = customViewInfo ?
-          customViewInfo.constructor : defaultViewType;
-
-      // Some view types don't have default views. In those cases, we fall
-      // back to the standard analysis sytem.
-      if (!viewType)
-        return false;
-
-      this.changeViewType(viewType);
-      this.currentView.modelEvent = event;
-      return true;
+    /**
+     * Utility function used to convert camelCase to Title Case.
+     */
+    function convertEventTypeToTabName(eventType) {
+      var result = eventType.replace(/[A-Z]/g, ' $&');
+      result = result.charAt(0).toUpperCase() + result.slice(1);
+      return result;
     }
-  };
 
-  return {
-    AnalysisView: AnalysisView
-  };
-});
-</script>
+    Polymer({
+      ready: function() {
+        this.currentView_ = undefined;
+        this.currentSelection_ = undefined;
+      },
+
+      set tallMode(value) {
+        if (value)
+          this.classList.add('tall-mode');
+        else
+          this.classList.remove('tall-mode');
+      },
+
+      get tallMode() {
+        return this.classList.contains('tall-mode');
+      },
+
+      get currentView() {
+        return this.currentView_;
+      },
+
+      get selection() {
+        return this.currentSelection_;
+      },
+
+      set selection(selection) {
+        this.processSelection_(selection);
+      },
+
+      processSelection_: function(selection) {
+        this.tallMode = false;
+        this.textContent = '';
+
+        var eventsByType = selection.getEventsOrganizedByType();
+
+        var categoriesToAnalyze = 0;
+        for (var eventType in eventsByType)
+          if (eventsByType[eventType].length > 0)
+            categoriesToAnalyze++;
+
+        var subViewsParent;
+        var usingTabs = false;
+        // If we have to analyze more than one category, we use a tab view
+        // for displaying them.
+        if (categoriesToAnalyze > 1) {
+          usingTabs = true;
+          subViewsParent = new TracingAnalysisTabView();
+          this.appendChild(subViewsParent);
+        } else {
+          subViewsParent = this;
+        }
+
+        for (var eventType in eventsByType) {
+          var currentEvents = eventsByType[eventType];
+          if (currentEvents.length > 0) {
+            var subView = undefined;
+            // If there is only one event of this type, try to get a custom
+            // view for it.
+            if (currentEvents.length === 1) {
+              subView = this.getEventCustomView_(currentEvents[0]);
+              // If found, add it to the subViewsParent and have the
+              // custom view model the event.
+              if (subView) {
+                subViewsParent.appendChild(subView)
+                subView.modelEvent = currentEvents[0];
+              }
+            }
+
+            // If no custom view is found, analyze it using the standard
+            // analysis system.
+            if (!subView) {
+              subView = this.findSubViewForEventsOfSingleType_(
+                            eventsByType[eventType]);
+              subViewsParent.appendChild(subView);
+              subView.selection = eventsByType[eventType];
+             // console.log(subView.getSelection());
+            }
+
+            this.tallMode = this.tallMode || subView.requiresTallView;
+            if (usingTabs) {
+              var tabLabel = convertEventTypeToTabName(eventType);
+              subView.tabLabel = tabLabel;
+            }
+          }
+        }
+
+        if (usingTabs) {
+          subViewsParent.selectedTab = subViewsParent.firstChild;
+          this.currentView_ = subViewsParent
+        } else {
+          this.currentView_ = this.firstChild;
+        }
+      },
+
+      /**
+       * This function returns an instantiated custom view for the event
+       * passed as a parameter.
+       *
+       * @param {TraceEvent} event The event for witch to find the custom view.
+       *
+       * @return The custom view, displaying the event. 'undefined' if no
+       *         custom view is found.
+       */
+      getEventCustomView_: function(event) {
+        var typeName;
+        var viewBaseType;
+        var defaultViewType;
+        if (event instanceof tracing.trace_model.ObjectSnapshot) {
+          typeName = event.objectInstance.typeName;
+          viewBaseType = tracing.analysis.ObjectSnapshotView;
+          defaultViewType = tracing.analysis.DefaultObjectSnapshotView;
+        } else if (event instanceof tracing.trace_model.ObjectInstance) {
+          typeName = event.typeName;
+          viewBaseType = tracing.analysis.ObjectInstanceView;
+          defaultViewType = tracing.analysis.DefaultObjectInstanceView;
+        } else if (event instanceof tracing.trace_model.Slice) {
+          typeName = event.analysisTypeName;
+          viewBaseType = tracing.analysis.SliceView;
+          defaultViewType = undefined;
+        } else {
+          // No event custom view defined for this particular event.
+          return undefined;
+        }
+
+        var customViewInfo = viewBaseType.getViewInfo(typeName);
+
+        var viewConstructor = customViewInfo ?
+            customViewInfo.constructor : defaultViewType;
+
+        // Some view types do not have default views. In those cases, we fall
+        // back to the standard analysis system.
+        if (!viewConstructor)
+          return undefined;
+
+        var resultView = new viewConstructor();
+
+        return resultView;
+      },
+
+      findSubViewForEventsOfSingleType_: function(selection) {
+        var subViewTagName = undefined;
+        for (var type in ANALYSIS_OBJECTS_FOR_EVENT_TYPES) {
+          var analysisOptions = ANALYSIS_OBJECTS_FOR_EVENT_TYPES[type];
+          for (var i = 0; i < analysisOptions.validInstances.length; i++) {
+            if (selection[0] instanceof analysisOptions.validInstances[i]) {
+              // The single variant is optional.
+              if (selection.length === 1 && analysisOptions.single)
+                subViewTagName = analysisOptions.single;
+              else
+                subViewTagName = analysisOptions.multiple;
+            }
+          }
+        }
+
+        // If the events can not be analyzed, throw an error.
+        if (!subViewTagName)
+          throw new Error('Received events that could not be analyzed!');
+
+        // Instantiate the subView
+        var subView = document.createElement(subViewTagName);
+        return subView;
+      }
+    });
+  })();
+  </script>
+</polymer-element>
