@@ -21,11 +21,13 @@ from telemetry.web_perf.metrics import smoothness
 # overhead increases. The user of the measurement must therefore chose between
 # a few levels of instrumentation.
 NO_OVERHEAD_LEVEL = 'no-overhead'
+V8_OVERHEAD_LEVEL = 'v8-overhead'
 MINIMAL_OVERHEAD_LEVEL = 'minimal-overhead'
 DEBUG_OVERHEAD_LEVEL = 'debug-overhead'
 
 ALL_OVERHEAD_LEVELS = [
   NO_OVERHEAD_LEVEL,
+  V8_OVERHEAD_LEVEL,
   MINIMAL_OVERHEAD_LEVEL,
   DEBUG_OVERHEAD_LEVEL
 ]
@@ -156,6 +158,11 @@ class TimelineBasedMeasurement(page_test.PageTest):
     assert self.options.overhead_level in ALL_OVERHEAD_LEVELS
     if self.options.overhead_level == NO_OVERHEAD_LEVEL:
       category_filter = tracing_category_filter.CreateNoOverheadFilter()
+    # TODO(ernstm): Remove this overhead level when benchmark relevant v8 events
+    # become available in the 'benchmark' category.
+    elif self.options.overhead_level == V8_OVERHEAD_LEVEL:
+      category_filter = tracing_category_filter.CreateNoOverheadFilter()
+      category_filter.AddIncludedCategory('v8')
     elif self.options.overhead_level == MINIMAL_OVERHEAD_LEVEL:
       category_filter = tracing_category_filter.CreateMinimalOverheadFilter()
     else:

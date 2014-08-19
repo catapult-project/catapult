@@ -231,6 +231,14 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     expected_names = set([
         'SlowThreadJsRun-fast-duration',
         'SlowThreadJsRun-fast-idle_time',
+        'SlowThreadJsRun-fast-incremental_marking',
+        'SlowThreadJsRun-fast-incremental_marking_outside_idle',
+        'SlowThreadJsRun-fast-mark_compactor',
+        'SlowThreadJsRun-fast-mark_compactor_outside_idle',
+        'SlowThreadJsRun-fast-scavenger',
+        'SlowThreadJsRun-fast-scavenger_outside_idle',
+        'SlowThreadJsRun-fast-total_garbage_collection',
+        'SlowThreadJsRun-fast-total_garbage_collection_outside_idle',
         ])
     if platform.GetHostPlatform().GetOSName() != 'win':
       # CPU metric is only supported non-Windows platforms.
