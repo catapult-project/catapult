@@ -6,6 +6,7 @@ import unittest
 
 from telemetry import value
 from telemetry.page import page_set
+from telemetry.value import none_values
 from telemetry.value import string
 
 
@@ -48,7 +49,7 @@ class StringValueTest(TestBase):
     self.assertEquals(True, vM.important)
     self.assertEquals(['L1', 'L2'], vM.values)
 
-  def testStringDifferentSiteMerging(self):
+  def testStringDifferentPageMerging(self):
     page0 = self.pages[0]
     page1 = self.pages[1]
     v0 = string.StringValue(page0, 'x', 'label', 'L1')
@@ -61,12 +62,44 @@ class StringValueTest(TestBase):
     self.assertEquals(True, vM.important)
     self.assertEquals(['L1', 'L2'], vM.values)
 
+  def testStringWithNoneValueMerging(self):
+    page0 = self.pages[0]
+    v0 = string.StringValue(page0, 'x', 'unit', 'L1')
+    v1 = string.StringValue(page0, 'x', 'unit', None, none_value_reason='n')
+    self.assertTrue(v1.IsMergableWith(v0))
+
+    vM = string.StringValue.MergeLikeValuesFromSamePage([v0, v1])
+    self.assertEquals(None, vM.values)
+    self.assertEquals(none_values.MERGE_FAILURE_REASON,
+                      vM.none_value_reason)
+
+  def testStringWithNoneValueMustHaveNoneReason(self):
+    page0 = self.pages[0]
+    self.assertRaises(none_values.NoneValueMissingReason,
+                      lambda: string.StringValue(page0, 'x', 'unit', None))
+
+  def testStringWithNoneReasonMustHaveNoneValue(self):
+    page0 = self.pages[0]
+    self.assertRaises(none_values.ValueMustHaveNoneValue,
+                      lambda: string.StringValue(page0, 'x', 'unit', 'L1',
+                                                 none_value_reason='n'))
+
   def testAsDict(self):
     v = string.StringValue(None, 'x', 'unit', 'foo', important=False)
     d = v.AsDictWithoutBaseClassEntries()
 
     self.assertEquals(d, {
           'value': 'foo'
+        })
+
+  def testNoneValueAsDict(self):
+    v = string.StringValue(None, 'x', 'unit', None, important=False,
+                           none_value_reason='n')
+    d = v.AsDictWithoutBaseClassEntries()
+
+    self.assertEquals(d, {
+          'value': None,
+          'none_value_reason': 'n'
         })
 
   def testFromDict(self):
@@ -81,3 +114,18 @@ class StringValueTest(TestBase):
 
     self.assertTrue(isinstance(v, string.StringValue))
     self.assertEquals(v.value, 'foo')
+
+  def testFromDictNoneValue(self):
+    d = {
+      'type': 'string',
+      'name': 'x',
+      'units': 'unit',
+      'value': None,
+      'none_value_reason': 'n'
+    }
+
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, string.StringValue))
+    self.assertEquals(v.value, None)
+    self.assertEquals(v.none_value_reason, 'n')

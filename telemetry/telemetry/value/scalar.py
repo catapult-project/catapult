@@ -6,11 +6,12 @@ import numbers
 
 from telemetry import value as value_module
 from telemetry.value import list_of_scalar_values
+from telemetry.value import none_values
 
 
 class ScalarValue(value_module.Value):
   def __init__(self, page, name, units, value, important=True,
-               description=None):
+               description=None, none_value_reason=None):
     """A single value (float or integer) result from a test.
 
     A test that counts the number of DOM elements in a page might produce a
@@ -18,8 +19,10 @@ class ScalarValue(value_module.Value):
        ScalarValue(page, 'num_dom_elements', 'count', num_elements)
     """
     super(ScalarValue, self).__init__(page, name, units, important, description)
-    assert isinstance(value, numbers.Number)
+    assert value is None or isinstance(value, numbers.Number)
+    none_values.ValidateNoneValueReason(value, none_value_reason)
     self.value = value
+    self.none_value_reason = none_value_reason
 
   def __repr__(self):
     if self.page:
@@ -57,6 +60,10 @@ class ScalarValue(value_module.Value):
   def AsDict(self):
     d = super(ScalarValue, self).AsDict()
     d['value'] = self.value
+
+    if self.none_value_reason is not None:
+      d['none_value_reason'] = self.none_value_reason
+
     return d
 
   @staticmethod
@@ -64,27 +71,33 @@ class ScalarValue(value_module.Value):
     kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
     kwargs['value'] = value_dict['value']
 
+    if 'none_value_reason' in value_dict:
+      kwargs['none_value_reason'] = value_dict['none_value_reason']
+
     return ScalarValue(**kwargs)
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
     assert len(values) > 0
     v0 = values[0]
-    return list_of_scalar_values.ListOfScalarValues(
-        v0.page, v0.name, v0.units,
-        [v.value for v in values],
-        important=v0.important)
+    return cls._MergeLikeValues(values, v0.page, v0.name)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values,
                                         group_by_name_suffix=False):
     assert len(values) > 0
     v0 = values[0]
-    if not group_by_name_suffix:
-      name = v0.name
-    else:
-      name = v0.name_suffix
+    name = v0.name_suffix if group_by_name_suffix else v0.name
+    return cls._MergeLikeValues(values, None, name)
+
+  @classmethod
+  def _MergeLikeValues(cls, values, page, name):
+    v0 = values[0]
+    merged_value = [v.value for v in values]
+    none_value_reason = None
+    if None in merged_value:
+      merged_value = None
+      none_value_reason = none_values.MERGE_FAILURE_REASON
     return list_of_scalar_values.ListOfScalarValues(
-        None, name, v0.units,
-        [v.value for v in values],
-        important=v0.important)
+        page, name, v0.units, merged_value, important=v0.important,
+        none_value_reason=none_value_reason)

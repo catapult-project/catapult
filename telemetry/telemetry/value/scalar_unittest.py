@@ -6,6 +6,7 @@ import unittest
 
 from telemetry import value
 from telemetry.page import page_set
+from telemetry.value import none_values
 from telemetry.value import scalar
 
 
@@ -48,7 +49,7 @@ class ValueTest(TestBase):
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2], vM.values)
 
-  def testScalarDifferentSiteMerging(self):
+  def testScalarDifferentPageMerging(self):
     page0 = self.pages[0]
     page1 = self.pages[1]
     v0 = scalar.ScalarValue(page0, 'x', 'unit', 1)
@@ -61,12 +62,44 @@ class ValueTest(TestBase):
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2], vM.values)
 
+  def testScalarWithNoneValueMerging(self):
+    page0 = self.pages[0]
+    v0 = scalar.ScalarValue(page0, 'x', 'unit', 1)
+    v1 = scalar.ScalarValue(page0, 'x', 'unit', None, none_value_reason='n')
+    self.assertTrue(v1.IsMergableWith(v0))
+
+    vM = scalar.ScalarValue.MergeLikeValuesFromSamePage([v0, v1])
+    self.assertEquals(None, vM.values)
+    self.assertEquals(none_values.MERGE_FAILURE_REASON,
+                      vM.none_value_reason)
+
+  def testScalarWithNoneValueMustHaveNoneReason(self):
+    page0 = self.pages[0]
+    self.assertRaises(none_values.NoneValueMissingReason,
+                      lambda: scalar.ScalarValue(page0, 'x', 'unit', None))
+
+  def testScalarWithNoneReasonMustHaveNoneValue(self):
+    page0 = self.pages[0]
+    self.assertRaises(none_values.ValueMustHaveNoneValue,
+                      lambda: scalar.ScalarValue(page0, 'x', 'unit', 1,
+                                                 none_value_reason='n'))
+
   def testAsDict(self):
     v = scalar.ScalarValue(None, 'x', 'unit', 42, important=False)
     d = v.AsDictWithoutBaseClassEntries()
 
     self.assertEquals(d, {
           'value': 42
+        })
+
+  def testNoneValueAsDict(self):
+    v = scalar.ScalarValue(None, 'x', 'unit', None, important=False,
+                           none_value_reason='n')
+    d = v.AsDictWithoutBaseClassEntries()
+
+    self.assertEquals(d, {
+          'value': None,
+          'none_value_reason': 'n'
         })
 
   def testFromDictInt(self):
@@ -94,3 +127,18 @@ class ValueTest(TestBase):
 
     self.assertTrue(isinstance(v, scalar.ScalarValue))
     self.assertEquals(v.value, 42.4)
+
+  def testFromDictNoneValue(self):
+    d = {
+      'type': 'scalar',
+      'name': 'x',
+      'units': 'unit',
+      'value': None,
+      'none_value_reason': 'n'
+    }
+
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, scalar.ScalarValue))
+    self.assertEquals(v.value, None)
+    self.assertEquals(v.none_value_reason, 'n')
