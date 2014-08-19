@@ -133,7 +133,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def HasBrowserFinishedLaunching(self):
     try:
-      self.Request('')
+      self.Request('', timeout=.1)
     except (exceptions.BrowserGoneException,
             exceptions.BrowserConnectionGoneException):
       return False
