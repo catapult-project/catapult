@@ -5,6 +5,8 @@
 from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import util
+from telemetry.core.platform import tracing_category_filter
+from telemetry.core.platform import tracing_options
 from telemetry.page.actions import action_runner as action_runner_module
 from telemetry.page.actions import page_action
 from telemetry.timeline import model
@@ -28,11 +30,14 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
                                                       skip_waits=True)
     self.Navigate('interaction_enabled_page.html')
     action_runner.Wait(1)
-    self._browser.StartTracing()
+    options = tracing_options.TracingOptions()
+    options.enable_chrome_trace = True
+    self._browser.platform.tracing_controller.Start(
+        options, tracing_category_filter.CreateNoOverheadFilter())
     interaction = action_runner.BeginInteraction('InteractionName',
                                                  **interaction_kwargs)
     interaction.End()
-    trace_data = self._browser.StopTracing()
+    trace_data = self._browser.platform.tracing_controller.Stop()
 
     records = self.GetInteractionRecords(trace_data)
     self.assertEqual(

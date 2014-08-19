@@ -8,6 +8,8 @@ from telemetry import benchmark
 from telemetry.core import gpu_device
 from telemetry.core import gpu_info
 from telemetry.core import system_info
+from telemetry.core.platform import tracing_category_filter
+from telemetry.core.platform import tracing_options
 from telemetry.unittest import browser_test_case
 
 
@@ -103,13 +105,17 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     self.assertTrue(self._browser.memory_stats['SystemTotalPhysicalMemory'] > 0)
 
   def testIsTracingRunning(self):
-    if not self._browser.supports_tracing:
+    tracing_controller = self._browser.platform.tracing_controller
+    if not tracing_controller.IsChromeTracingSupported(self._browser):
       return
-    self.assertFalse(self._browser.is_tracing_running)
-    self._browser.StartTracing()
-    self.assertTrue(self._browser.is_tracing_running)
-    self._browser.StopTracing()
-    self.assertFalse(self._browser.is_tracing_running)
+    self.assertFalse(tracing_controller.is_tracing_running)
+    options = tracing_options.TracingOptions()
+    options.enable_chrome_trace = True
+    category_filter = tracing_category_filter.TracingCategoryFilter()
+    tracing_controller.Start(options, category_filter)
+    self.assertTrue(tracing_controller.is_tracing_running)
+    tracing_controller.Stop()
+    self.assertFalse(tracing_controller.is_tracing_running)
 
 
 class CommandLineBrowserTest(browser_test_case.BrowserTestCase):

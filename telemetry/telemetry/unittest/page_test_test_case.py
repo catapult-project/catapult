@@ -85,20 +85,21 @@ class PageTestTestCase(unittest.TestCase):
       def __init__(self, *args, **kwargs):
         measurement_class.__init__(self, *args, **kwargs)
 
-      # Inject fake tracing methods to browser
+      # Inject fake tracing methods to tracing_controller
       def TabForPage(self, page, browser):
-        ActualStartTracing = browser.StartTracing
+        ActualStartTracing = browser.platform.tracing_controller.Start
         def FakeStartTracing(*args, **kwargs):
           ActualStartTracing(*args, **kwargs)
           start_tracing_called[0] = True
           raise exceptions.IntentionalException
         browser.StartTracing = FakeStartTracing
 
-        ActualStopTracing = browser.StopTracing
+        ActualStopTracing = browser.platform.tracing_controller.Stop
         def FakeStopTracing(*args, **kwargs):
-          ActualStopTracing(*args, **kwargs)
+          result = ActualStopTracing(*args, **kwargs)
           stop_tracing_called[0] = True
-        browser.StopTracing = FakeStopTracing
+          return result
+        browser.platform.tracing_controller.Stop = FakeStopTracing
 
         return measurement_class.TabForPage(self, page, browser)
 
