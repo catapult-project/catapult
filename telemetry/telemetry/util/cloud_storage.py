@@ -72,7 +72,7 @@ def _FindExecutableInPath(relative_executable_path, *extra_search_paths):
 
 def _DownloadGsutil():
   logging.info('Downloading gsutil')
-  with contextlib.closing(urllib2.urlopen(_GSUTIL_URL), timeout=60) as response:
+  with contextlib.closing(urllib2.urlopen(_GSUTIL_URL, timeout=60)) as response:
     with tarfile.open(fileobj=cStringIO.StringIO(response.read())) as tar_file:
       tar_file.extractall(os.path.dirname(_DOWNLOAD_PATH))
   logging.info('Downloaded gsutil to %s' % _DOWNLOAD_PATH)
