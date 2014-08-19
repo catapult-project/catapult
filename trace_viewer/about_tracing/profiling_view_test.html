@@ -126,6 +126,64 @@ tvcm.unittest.testSuite(function() {
           reject);
     });
   });
+
+  test('upload', function() {
+    var mock = new about_tracing.MockTracingControllerClient();
+    mock.allowLooping = true;
+    mock.expectRequest('getMonitoringStatus', function() {
+      return btoa(JSON.stringify(monitoringOptions));
+    });
+    var view = new ProfilingView(mock);
+    this.addHTMLOutput(view);
+    var buttons = view.querySelector('x-timeline-view-buttons');
+    var uploadButton = buttons.querySelector('#upload-button');
+    assertNotNull(uploadButton);
+    assertTrue(uploadButton.disabled);
+    assertNull(view.uploadOverlay_);
+
+    view.setActiveTrace('testFile', []);
+    view.activeTrace_.data = ['t', 'e', 's', 't'];
+    assertFalse(uploadButton.disabled);
+
+    var overlay = null;
+    var clickUploadAndVerify = function() {
+      view.onUploadClicked_();
+      assertNotNull(view.uploadOverlay_);
+      assertTrue(view.uploadOverlay_.visible);
+      overlay = view.uploadOverlay_;
+      assertNotEquals('none', view.uploadOverlay_.buttons.style.display);
+      assertEquals(2, view.uploadOverlay_.buttons.childNodes.length);
+    };
+    clickUploadAndVerify();
+
+    var cancelButton = view.uploadOverlay_.buttons.lastChild;
+    assertEquals('Cancel', cancelButton.textContent);
+    cancelButton.click();
+    assertNull(view.uploadOverlay_);
+    assertFalse(overlay.visible);
+
+    clickUploadAndVerify();
+    var okButton = view.uploadOverlay_.buttons.firstChild;
+    assertEquals('Ok', okButton.textContent);
+    var commandSent = null;
+    var dataSent = null;
+    chrome.send = function(command, data) {
+      commandSent = command;
+      dataSent = data;
+    };
+    okButton.click();
+    assertEquals('doUpload', commandSent);
+    assertEquals(view.activeTrace_.data, dataSent[0]);
+
+    assertTrue(view.uploadOverlay_.visible);
+    overlay = view.uploadOverlay_;
+    assertEquals(1, view.uploadOverlay_.buttons.childNodes.length);
+    var closeButton = view.uploadOverlay_.buttons.childNodes[0];
+    assertEquals('Close', closeButton.textContent);
+    closeButton.click();
+    assertNull(view.uploadOverlay_);
+    assertFalse(overlay.visible);
+  });
 });
 </script>
 
