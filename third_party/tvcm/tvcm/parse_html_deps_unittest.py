@@ -3,8 +3,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import re
 import unittest
+import HTMLParser
 
 from tvcm import parse_html_deps
 from tvcm import module as module_module
@@ -298,6 +300,20 @@ class ParseTests(unittest.TestCase):
     def DoIt():
       module = parser.Parse(html)
     self.assertRaises(Exception, DoIt)
+
+  def test_script_with_cdata(self):
+    html = """<script></h2></script>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+
+
+  def test_tvcm_parse(self):
+    basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    tvcm_html_file = os.path.join(basedir, 'src', 'tvcm.html')
+    with open(tvcm_html_file, 'r') as f:
+      tvcm_contents = f.read()
+    parser = parse_html_deps.HTMLModuleParser()
+    parser.Parse(tvcm_contents)
 
 if __name__ == '__main__':
   unittest.main()
