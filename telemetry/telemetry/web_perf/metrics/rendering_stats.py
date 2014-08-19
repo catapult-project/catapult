@@ -199,8 +199,12 @@ class RenderingStats(object):
     latency_events.extend(GetInputLatencyEvents(renderer_process,
                                                 timeline_range))
     input_event_latencies = ComputeInputEventLatencies(latency_events)
+    # Don't include scroll updates in the overall input latency measurement,
+    # because scroll updates can take much more time to process than other
+    # input events and would therefore add noise to overall latency numbers.
     self.input_event_latency[-1] = [
-        latency for name, latency in input_event_latencies]
+        latency for name, latency in input_event_latencies
+        if name != SCROLL_UPDATE_EVENT_NAME]
     self.scroll_update_latency[-1] = [
         latency for name, latency in input_event_latencies
         if name == SCROLL_UPDATE_EVENT_NAME]
