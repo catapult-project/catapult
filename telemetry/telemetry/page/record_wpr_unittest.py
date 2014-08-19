@@ -67,6 +67,11 @@ class MockPageTest(page_test.PageTest):
   def ValidatePage(self, page, tab, results):
     self.func_calls.append('ValidatePage')
 
+  def WillStartBrowser(self, browser):
+    self.func_calls.append('WillStartBrowser')
+
+  def DidStartBrowser(self, browser):
+    self.func_calls.append('DidStartBrowser')
 
 class MockBenchmark(benchmark.Benchmark):
   test = MockPageTest
@@ -188,3 +193,13 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     self.assertTrue('RunFoo' in action_names_to_run)
     self.assertTrue('RunBar' in action_names_to_run)
     self.assertFalse('RunBaz' in action_names_to_run)
+
+  # When the RecorderPageTest WillStartBrowser/DidStartBrowser function is
+  # called, it forwards the call to the PageTest
+  def testRecorderPageTest_BrowserMethods(self):
+    record_page_test = record_wpr.RecorderPageTest([])
+    record_page_test.page_test = MockBenchmark().test()
+    record_page_test.WillStartBrowser(self._tab.browser)
+    record_page_test.DidStartBrowser(self._tab.browser)
+    self.assertTrue('WillStartBrowser' in record_page_test.page_test.func_calls)
+    self.assertTrue('DidStartBrowser' in record_page_test.page_test.func_calls)

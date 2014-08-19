@@ -27,6 +27,14 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
   def CanRunForPage(self, page):
     return page.url.startswith('http')
 
+  def WillStartBrowser(self, browser):
+    if self.page_test:
+      self.page_test.WillStartBrowser(browser)
+
+  def DidStartBrowser(self, browser):
+    if self.page_test:
+      self.page_test.DidStartBrowser(browser)
+
   def WillNavigateToPage(self, page, tab):
     """Override to ensure all resources are fetched from network."""
     tab.ClearCache(force=False)
