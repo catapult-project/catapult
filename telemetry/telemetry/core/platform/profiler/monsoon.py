@@ -19,7 +19,7 @@ from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'pyserial')
 import serial  # pylint: disable=F0401
-import serial.tools.list_ports
+import serial.tools.list_ports  # pylint: disable=F0401
 
 
 Power = collections.namedtuple('Power', ['amps', 'volts'])
