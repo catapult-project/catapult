@@ -128,6 +128,12 @@ using custom elements specialized for different event types.
           if (usingTabs) {
             var tabLabel = convertEventTypeToTabName(eventType);
             subView.tabLabel = tabLabel;
+            // Some subViews are not actually built off analysis-sub-view,
+            // thus they don't all implement the tabLabel property.
+            // This is here in place as a workaround until they are converted
+            // to sub-views.
+            if (!subView.hasAttribute('tab-label'))
+              subView.setAttribute('tab-label', tabLabel);
           }
         }
 
