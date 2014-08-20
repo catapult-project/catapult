@@ -16,6 +16,15 @@ found in the LICENSE file.
   <script>
   'use strict';
 
+  addEventListener('polymer-ready', function() {
+    tracing.registerAnalysisSubViewType(
+        0,
+        function(selection) {
+          return selection[0] instanceof tracing.trace_model.CounterSample;
+        },
+        MultipleCounterSamplesAnalysisSubView);
+  });
+
   (function() {
     var CounterSample = tracing.trace_model.CounterSample;
 

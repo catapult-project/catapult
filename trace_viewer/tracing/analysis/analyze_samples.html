@@ -16,6 +16,25 @@ found in the LICENSE file.
     constructor="SingleSampleAnalysisSubView">
   <script>
   'use strict';
+  addEventListener('polymer-ready', function() {
+    tracing.registerAnalysisSubViewType(
+        0,
+        function(selection) {
+          if (selection.length != 1)
+            return false;
+          return selection[0] instanceof tracing.trace_model.Sample;
+        },
+        SingleSampleAnalysisSubView);
+    tracing.registerAnalysisSubViewType(
+        0,
+        function(selection) {
+          if (selection.length == 1)
+            return false;
+          return selection[0] instanceof tracing.trace_model.Sample;
+        },
+        MultipleSamplesAnalysisSubView);
+  });
+
   Polymer({
     created: function() {
       this.currentSelection_ = undefined;

@@ -52,51 +52,20 @@ using custom elements specialized for different event types.
   'use strict';
   (function() {
 
-    /**
-     * @const
-     *
-     * This data structure is used by the analysis view to determine which
-     * function to call in order to analyze a particular set of events.
-     *
-     * For each new group, validInstances must be an array of types.
-     *
-     * Each group _must_ have one multiple function. The multiple function
-     * gets called to analyze a set of events. The prototype of the function
-     * must only take one parameter, which is the array of events.
-     *
-     * Each group _may_ have a single function. The single function gets called
-     * if there is only one event of that particular type to analyze. The
-     * prototype of that function must take one parameter. The parameter passed
-     * is the event itself.
-     *
+    /*
+     * Subview type registry: individual subviews call this registration
+     * function when they are created. We then consult all the registered
+     * subview types when handling a selection.
      */
-    var ANALYSIS_OBJECTS_FOR_EVENT_TYPES = {
-      slices: {
-        validInstances: [
-          tracing.trace_model.Slice,
-          tracing.trace_model.FlowEvent,
-          tracing.trace_model.InstantEvent
-        ],
-        single: 'single-slice-analysis-sub-view',
-        multiple: 'multiple-slices-analysis-sub-view',
-      },
-      samples: {
-        validInstances: [tracing.trace_model.Sample],
-        single: 'single-sample-analysis-sub-view',
-        multiple: 'multiple-samples-analysis-sub-view'
-      },
-      counters: {
-        validInstances: [tracing.trace_model.CounterSample],
-        multiple: 'multiple-counter-samples-analysis-sub-view'
-      },
-      objects: {
-        validInstances: [
-          tracing.trace_model.ObjectInstance,
-          tracing.trace_model.ObjectSnapshot
-        ],
-        multiple: 'multiple-objects-analysis-sub-view'
-      }
-    };
+    var subViewTypes = [];
+    tracing.registerAnalysisSubViewType = function(
+        importance, supportsSelectionPredicate, viewConstructor) {
+      subViewTypes.push({
+        importance: importance,
+        supportsSelectionPredicate: supportsSelectionPredicate,
+        viewConstructor: viewConstructor
+      });
+    }
 
     /**
      * Utility function used to convert camelCase to Title Case.
@@ -241,27 +210,20 @@ using custom elements specialized for different event types.
       },
 
       findSubViewForEventsOfSingleType_: function(selection) {
-        var subViewTagName = undefined;
-        for (var type in ANALYSIS_OBJECTS_FOR_EVENT_TYPES) {
-          var analysisOptions = ANALYSIS_OBJECTS_FOR_EVENT_TYPES[type];
-          for (var i = 0; i < analysisOptions.validInstances.length; i++) {
-            if (selection[0] instanceof analysisOptions.validInstances[i]) {
-              // The single variant is optional.
-              if (selection.length === 1 && analysisOptions.single)
-                subViewTagName = analysisOptions.single;
-              else
-                subViewTagName = analysisOptions.multiple;
-            }
-          }
-        }
+        var supportedSubViewTypes = subViewTypes.filter(function(subViewTypes) {
+          return subViewTypes.supportsSelectionPredicate(selection);
+        });
 
-        // If the events can not be analyzed, throw an error.
-        if (!subViewTagName)
+        if (supportedSubViewTypes.length == 0)
           throw new Error('Received events that could not be analyzed!');
 
-        // Instantiate the subView
-        var subView = document.createElement(subViewTagName);
-        return subView;
+        // Pick the most important registered type handler.
+        supportedSubViewTypes.sort(function(x,y) {
+          return y.importance - x.importance;
+        });
+        var subViewType = supportedSubViewTypes[0];
+
+        return new subViewType.viewConstructor();
       }
     });
   })();

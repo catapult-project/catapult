@@ -16,6 +16,30 @@ found in the LICENSE file.
     constructor="SingleSliceAnalysisSubView">
   <script>
   'use strict';
+
+  addEventListener('polymer-ready', function() {
+    tracing.registerAnalysisSubViewType(
+        0,
+        function(selection) {
+          if (selection.length != 1)
+            return false;
+          return selection[0] instanceof tracing.trace_model.Slice ||
+              selection[0] instanceof tracing.trace_model.FlowEvent ||
+              selection[0] instanceof tracing.trace_model.InstantEvent;
+        },
+        SingleSliceAnalysisSubView);
+    tracing.registerAnalysisSubViewType(
+        0,
+        function(selection) {
+          if (selection.length <= 1)
+            return false;
+          return selection[0] instanceof tracing.trace_model.Slice ||
+              selection[0] instanceof tracing.trace_model.FlowEvent ||
+              selection[0] instanceof tracing.trace_model.InstantEvent;
+        },
+        MultipleSlicesAnalysisSubView);
+  });
+
   (function() {
     var TYPE_TO_NAME_LIST = [
       {

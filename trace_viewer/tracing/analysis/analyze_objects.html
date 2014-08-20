@@ -12,6 +12,16 @@ found in the LICENSE file.
     constructor="MultipleObjectsAnalysisSubView">
   <script>
   'use strict';
+  addEventListener('polymer-ready', function() {
+    tracing.registerAnalysisSubViewType(
+        0,
+        function(selection) {
+          return selection[0] instanceof tracing.trace_model.ObjectInstance ||
+              selection[0] instanceof tracing.trace_model.ObjectSnapshot;
+        },
+        MultipleObjectsAnalysisSubView);
+  });
+
   Polymer({
     created: function() {
       this.currentSelection_ = undefined;
