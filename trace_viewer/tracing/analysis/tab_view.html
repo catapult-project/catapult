@@ -133,7 +133,7 @@ found in the LICENSE file.
       // label: A string, representing the label printed on the tab button.
       // content: The light-dom child representing the contents of the tab.
       //     The content is appended to this tab-view by the user.
-      // observer: The observer attached to the content node to watch for
+      // observers: The observers attached to the content node to watch for
       //     attribute changes. The attributes of interest are: 'selected',
       //     and 'tab-label'.
       // savedScrollTop/Left: Used to return the scroll position upon switching
@@ -159,13 +159,18 @@ found in the LICENSE file.
      * Function called on light-dom child addition.
      */
     processAddedChild_: function(child) {
-      var observer = new MutationObserver(
+      var observerAttributeSelected = new MutationObserver(
+          this.childAttributesChanged_.bind(this));
+      var observerAttributeTabLabel = new MutationObserver(
           this.childAttributesChanged_.bind(this));
       var tabObject = {
         id: this.tabs_.length,
         content: child,
         label: child.getAttribute('tab-label'),
-        observer: observer,
+        observers: {
+          forAttributeSelected: observerAttributeSelected,
+          forAttributeTabLabel: observerAttributeTabLabel
+        },
         savedScrollTop: 0,
         savedScrollLeft: 0
       };
@@ -210,7 +215,10 @@ found in the LICENSE file.
       if (previousSelected)
         child.selected = previousSelected;
 
-      observer.observe(child, { attributeFilter: ['tab-label', 'selected'] });
+      observerAttributeSelected.observe(child,
+          { attributeFilter: ['selected'] });
+      observerAttributeTabLabel.observe(child,
+          { attributeFilter: ['tab-label'] });
 
     },
 
@@ -222,7 +230,8 @@ found in the LICENSE file.
         // Make sure ids are the same as the tab position after removal.
         this.tabs_[i].id = i;
         if (this.tabs_[i].content === child) {
-          this.tabs_[i].observer.disconnect();
+          this.tabs_[i].observers.forAttributeSelected.disconnect();
+          this.tabs_[i].observers.forAttributeTabLabel.disconnect();
           // The user has removed the currently selected tab.
           if (this.tabs_[i] === this.selectedTab_)
             this.clearSelectedTab_();
@@ -243,11 +252,14 @@ found in the LICENSE file.
     childAttributesChanged_: function(mutations, observer) {
       var tabObject = undefined;
       // First figure out which child has been changed.
-      for (var i = 0; i < this.tabs_.length; i++)
-        if (this.tabs_[i].observer === observer) {
-          var tabObject = this.tabs_[i];
-          break;
+      for (var i = 0; i < this.tabs_.length; i++) {
+        var observers = this.tabs_[i].observers;
+        if (observers.forAttributeSelected === observer ||
+            observers.forAttributeTabLabel === observer) {
+            tabObject = this.tabs_[i];
+            break;
         }
+      }
 
       // This should not happen, unless the user has messed with our internal
       // data structure.
@@ -255,21 +267,23 @@ found in the LICENSE file.
         return;
 
       // Next handle the attribute changes.
-      mutations.forEach(function(mutation) {
+      for (var i = 0; i < mutations.length; i++) {
         var node = tabObject.content;
         // 'tab-label' attribute has been changed.
-        if (mutation.attributeName === 'tab-label')
+        if (mutations[i].attributeName === 'tab-label')
           tabObject.label = node.getAttribute('tab-label');
         // 'selected' attribute has been changed.
-        if (mutation.attributeName === 'selected') {
+        if (mutations[i].attributeName === 'selected') {
+          // The attribute has been set.
+          var nodeIsSelected = node.hasAttribute('selected');
           this.saveCurrentTabScrollPosition_();
           this.clearSelectedTab_();
-          if (node.hasAttribute('selected')) {
+          if (nodeIsSelected) {
             this.setSelectedTabById_(tabObject.id);
             this.restoreCurrentTabScrollPosition_();
           }
         }
-      });
+      }
     },
 
     /**
@@ -293,12 +307,11 @@ found in the LICENSE file.
     setSelectedTabById_: function(id) {
       this.selectedTab_ = this.tabs_[id];
       // Disconnect observer while we mutate the child.
-      this.selectedTab_.observer.disconnect();
+      this.selectedTab_.observers.forAttributeSelected.disconnect();
       this.selectedTab_.content.setAttribute('selected', 'selected');
       // Reconnect the observer to watch for changes in the future.
-      this.selectedTab_.observer.observe(
-          this.selectedTab_.content,
-          { attributeFilter: ['tab-label', 'selected'] });
+      this.selectedTab_.observers.forAttributeSelected.observe(
+          this.selectedTab_.content, { attributeFilter: ['selected'] });
 
     },
 
@@ -327,12 +340,11 @@ found in the LICENSE file.
     clearSelectedTab_: function() {
       if (this.selectedTab_) {
         // Disconnect observer while we mutate the child.
-        this.selectedTab_.observer.disconnect();
+        this.selectedTab_.observers.forAttributeSelected.disconnect();
         this.selectedTab_.content.removeAttribute('selected');
         // Reconnect the observer to watch for changes in the future.
-        this.selectedTab_.observer.observe(
-            this.selectedTab_.content,
-            { attributeFilter: ['tab-label', 'selected'] });
+        this.selectedTab_.observers.forAttributeSelected.observe(
+            this.selectedTab_.content, { attributeFilter: ['selected'] });
         this.selectedTab_ = undefined;
       }
     },
