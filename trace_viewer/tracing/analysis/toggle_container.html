@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<!--
+@fileoverview A basic container that shows and hides itself based on an
+event fired by a specified target.
+-->
+
+<polymer-element name="tracing-analysis-toggle-container"
+    constructor="TracingAnalysisToggleContainer">
+  <template>
+    <style>
+      :host(:[visible]) {
+        display: flex;
+      }
+
+      :host(:not([visible])) {
+        display: none;
+      }
+
+      ::content > * {
+        flex: 0 1 auto;
+      }
+
+    </style>
+    <content></content>
+  </template>
+  <script>
+  'use strict';
+  Polymer({
+    /**
+     * The visible property governs wether the component displays
+     * it's contents or not.
+     */
+    publish: {
+      visible: {
+        value: false,
+        reflect: true
+      }
+    },
+
+    created: function() {
+      this.toggleListeners_ = [];
+    },
+
+    toggleVisible: function() {
+      this.visible = !this.visible;
+    },
+
+    setToggleListener: function(target, eventType) {
+      var listenerFunction = this.toggleVisible.bind(this);
+      target.addEventListener(eventType, listenerFunction, false);
+      this.toggleListeners_.push({
+        target: target,
+        eventType: eventType,
+        listenerFunction: listenerFunction
+      });
+    },
+
+    clearToggleListener: function(target, eventType) {
+      for (var i = 0; i < this.toggleListeners_.length; i++) {
+        var listener = this.toggleListeners_[i];
+        if (listener.target === target && listener.eventType === eventType) {
+          target.removeEventListener(listener.eventType,
+                                     listener.listenerFunction, false);
+          this.toggleListeners_.splice(i, 1);
+          return;
+        }
+      }
+    }
+  });
+  </script>
+</polymer-element>
