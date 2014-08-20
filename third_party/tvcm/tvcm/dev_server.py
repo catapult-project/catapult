@@ -6,6 +6,7 @@ import base64
 import json
 import optparse
 import os
+import socket
 import sys
 import time
 import traceback
