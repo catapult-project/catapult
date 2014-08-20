@@ -140,12 +140,9 @@ using custom elements specialized for different event types.
         this.tallMode = false;
         this.textContent = '';
 
-        var eventsByType = selection.getEventsOrganizedByType();
+        var eventsByType = selection.getEventsOrganizedByType(true);
 
-        var categoriesToAnalyze = 0;
-        for (var eventType in eventsByType)
-          if (eventsByType[eventType].length > 0)
-            categoriesToAnalyze++;
+        var categoriesToAnalyze = tvcm.dictionaryLength(eventsByType)
 
         var subViewsParent;
         var usingTabs = false;
@@ -161,34 +158,32 @@ using custom elements specialized for different event types.
 
         for (var eventType in eventsByType) {
           var currentEvents = eventsByType[eventType];
-          if (currentEvents.length > 0) {
-            var subView = undefined;
-            // If there is only one event of this type, try to get a custom
-            // view for it.
-            if (currentEvents.length === 1) {
-              subView = this.getEventCustomView_(currentEvents[0]);
-              // If found, add it to the subViewsParent and have the
-              // custom view model the event.
-              if (subView) {
-                subViewsParent.appendChild(subView)
-                subView.modelEvent = currentEvents[0];
-              }
+          var subView = undefined;
+          // If there is only one event of this type, try to get a custom
+          // view for it.
+          if (currentEvents.length === 1) {
+            subView = this.getEventCustomView_(currentEvents[0]);
+            // If found, add it to the subViewsParent and have the
+            // custom view model the event.
+            if (subView) {
+              subViewsParent.appendChild(subView)
+              subView.modelEvent = currentEvents[0];
             }
+          }
 
-            // If no custom view is found, analyze it using the standard
-            // analysis system.
-            if (!subView) {
-              subView = this.findSubViewForEventsOfSingleType_(
-                            eventsByType[eventType]);
-              subViewsParent.appendChild(subView);
-              subView.selection = eventsByType[eventType];
-            }
+          // If no custom view is found, analyze it using the standard
+          // analysis system.
+          if (!subView) {
+            subView = this.findSubViewForEventsOfSingleType_(
+                          eventsByType[eventType]);
+            subViewsParent.appendChild(subView);
+            subView.selection = eventsByType[eventType];
+          }
 
-            this.tallMode = this.tallMode || subView.requiresTallView;
-            if (usingTabs) {
-              var tabLabel = convertEventTypeToTabName(eventType);
-              subView.tabLabel = tabLabel;
-            }
+          this.tallMode = this.tallMode || subView.requiresTallView;
+          if (usingTabs) {
+            var tabLabel = convertEventTypeToTabName(eventType);
+            subView.tabLabel = tabLabel;
           }
         }
 

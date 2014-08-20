@@ -146,7 +146,7 @@ tvcm.exportTo('tracing', function() {
       return selection;
     },
 
-    getEventsOrganizedByType: function() {
+    getEventsOrganizedByType: function(opt_pruneEmpty) {
       var events = {};
       EVENT_TYPES.forEach(function(eventType) {
         events[eventType.pluralName] = new Selection();
@@ -158,7 +158,16 @@ tvcm.exportTo('tracing', function() {
             events[eventType.pluralName].push(event);
         });
       }
-      return events;
+      if (opt_pruneEmpty) {
+        var prunedEvents = {}
+        for (var eventType in events) {
+          if (events[eventType].length > 0)
+            prunedEvents[eventType] = events[eventType];
+        }
+        return prunedEvents;
+      } else {
+        return events;
+      }
     },
 
     enumEventsOfType: function(type, func) {
