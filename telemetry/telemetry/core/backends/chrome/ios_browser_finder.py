@@ -4,18 +4,17 @@
 
 """Finds iOS browsers that can be controlled by telemetry."""
 
-import contextlib
-import json
 import logging
 import re
 import subprocess
-import urllib2
 
 from telemetry import decorators
+from telemetry.core import browser
 from telemetry.core import platform
 from telemetry.core import possible_browser
-from telemetry.core import util
 from telemetry.core.backends.chrome import inspector_backend
+from telemetry.core.backends.chrome import ios_browser_backend
+from telemetry.core.platform import ios_platform_backend
 
 
 # Key matches output from ios-webkit-debug-proxy and the value is a readable
@@ -34,11 +33,24 @@ class PossibleIOSBrowser(possible_browser.PossibleBrowser):
 
   # TODO(baxley): Implement the following methods for iOS.
   def Create(self):
-    raise NotImplementedError()
+    backend = ios_browser_backend.IosBrowserBackend(
+        self.finder_options.browser_options)
+    return browser.Browser(backend, self._platform_backend)
 
-  def SupportOptions(self, finder_options):
-    raise NotImplementedError()
+  def SupportsOptions(self, finder_options):
+    #TODO(baxley): Implement me.
+    return True
 
+  def UpdateExecutableIfNeeded(self):
+    #TODO(baxley): Implement me.
+    pass
+
+  def _InitPlatformIfNeeded(self):
+    if self._platform:
+      return
+
+    self._platform_backend = ios_platform_backend.IosPlatformBackend()
+    self._platform = platform.Platform(self._platform_backend)
 
 def SelectDefaultBrowser(_):
   return None  # TODO(baxley): Implement me.
@@ -71,70 +83,39 @@ def FindAllAvailableBrowsers(finder_options):
   if not _IsIosDeviceAttached():
     return []
 
-  # TODO(baxley) Use idevice to wake up device or log debug statement.
+  options = finder_options.browser_options
+
+  options.browser_type = 'ios-chrome'
+  backend = ios_browser_backend.IosBrowserBackend(options)
   host = platform.GetHostPlatform()
+  # TODO(baxley): Use idevice to wake up device or log debug statement.
   if not host.IsApplicationRunning(IOS_WEBKIT_DEBUG_PROXY):
     host.LaunchApplication(IOS_WEBKIT_DEBUG_PROXY)
     if not host.IsApplicationRunning(IOS_WEBKIT_DEBUG_PROXY):
       return []
 
-  try:
-    # TODO(baxley): Refactor this into a backend file.
-    with contextlib.closing(
-        urllib2.urlopen(DEVICE_LIST_URL), timeout=10) as device_list:
-      json_urls = device_list.read()
-    device_urls = json.loads(json_urls)
-    if not device_urls:
-      logging.debug('No iOS devices found. Will not try searching for iOS '
-                    'browsers.')
-      return []
-  except urllib2.URLError as e:
-    logging.error('Error communicating with devices over %s.'
+  device_urls = backend.GetDeviceUrls()
+  if not device_urls:
+    logging.debug('Could not find any devices over %s.'
                   % IOS_WEBKIT_DEBUG_PROXY)
-    logging.error(str(e))
     return []
 
-  # TODO(baxley): Move to ios-webkit-debug-proxy command class, similar
-  # to GetAttachedDevices() in adb_commands.
-  data = []
-  # Loop through all devices.
-  for d in device_urls:
-    # Retry a few times since it can take a few seconds for this API to be
-    # ready, if ios_webkit_debug_proxy is just launched.
-    def GetData():
-      try:
-        with contextlib.closing(
-            urllib2.urlopen('http://%s/json' % d['url']), timeout=10) as f:
-          json_result = f.read()
-        data = json.loads(json_result)
-        return data
-      except urllib2.URLError as e:
-        logging.error('Error communicating with device over %s.'
-                      % IOS_WEBKIT_DEBUG_PROXY)
-        logging.error(str(e))
-        return False
-    try:
-      data = util.WaitFor(GetData, 5)
-    except util.TimeoutException as e:
-      return []
-
-  # Find all running UIWebViews.
-  debug_urls = []
-  for j in data:
-    debug_urls.append(j['webSocketDebuggerUrl'])
+  debug_urls = backend.GetWebSocketDebuggerUrls(device_urls)
 
   # Get the userAgent for each UIWebView to find the browsers.
   browser_pattern = ('\)\s(%s)\/(\d+[\.\d]*)\sMobile'
                      % '|'.join(IOS_BROWSERS.keys()))
-  browsers = []
+  browser_types = set()
   for url in debug_urls:
     context = {'webSocketDebuggerUrl':url , 'id':1}
-    # TODO(baxley): Replace None with ios_browser_backend, once implemented.
-    inspector_alt = inspector_backend.InspectorBackend(None, context)
-    res = inspector_alt.EvaluateJavaScript("navigator.userAgent")
+    inspector = inspector_backend.InspectorBackend(backend, context)
+    res = inspector.EvaluateJavaScript("navigator.userAgent")
     match_browsers = re.search(browser_pattern, res)
     if match_browsers:
-      browsers.append(PossibleIOSBrowser(IOS_BROWSERS[match_browsers.group(1)],
-                                         finder_options))
+      browser_types.add(match_browsers.group(1))
 
-  return browsers
+  browsers = []
+  for browser_type in browser_types:
+    browsers.append(PossibleIOSBrowser(IOS_BROWSERS[browser_type],
+                                       finder_options))
+  return list(browsers)
