@@ -782,7 +782,7 @@ tvcm.exportTo('cc', function() {
         var tile = lthi.tiles[i];
 
         // Don't draw inactive tiles.
-        if (tile.isActiveTile == false)
+        if (tile.isActiveTile === false)
           continue;
 
         if (Math.abs(tile.contentsScale - scale) > 1e-6)
