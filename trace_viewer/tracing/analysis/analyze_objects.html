@@ -15,11 +15,36 @@ found in the LICENSE file.
   addEventListener('polymer-ready', function() {
     tracing.registerAnalysisSubViewType(
         0,
-        function(selection) {
+        function supported(selection) {
           return selection[0] instanceof tracing.trace_model.ObjectInstance ||
               selection[0] instanceof tracing.trace_model.ObjectSnapshot;
         },
-        MultipleObjectsAnalysisSubView);
+        function constructView(selection) {
+          if (selection.length != 1)
+            return new MultipleObjectsAnalysisSubView();
+
+          var event = selection[0];
+          var typeName, viewBaseType, defaultViewConstructor;
+          if (event instanceof tracing.trace_model.ObjectSnapshot) {
+            typeName = event.objectInstance.typeName;
+            viewBaseType = tracing.analysis.ObjectSnapshotView;
+            defaultViewConstructor = tracing.analysis.DefaultObjectSnapshotView;
+          } else if (event instanceof tracing.trace_model.ObjectInstance) {
+            typeName = event.typeName;
+            viewBaseType = tracing.analysis.ObjectInstanceView;
+            defaultViewConstructor = tracing.analysis.DefaultObjectInstanceView;
+          } else {
+            throw new Error('Not recognized');
+          }
+
+          var customViewInfo = viewBaseType.getViewInfo(typeName);
+          if (customViewInfo)
+            return new customViewInfo.constructor();
+          return new defaultViewConstructor();
+        },
+        {
+          passSelectionToConstructor: true
+        });
   });
 
   Polymer({

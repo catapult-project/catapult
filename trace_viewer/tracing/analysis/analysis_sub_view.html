@@ -15,6 +15,35 @@ found in the LICENSE file.
   </template>
   <script>
   'use strict';
+  (function() {
+    /*
+     * Subview type registry: individual subviews call this registration
+     * function when they are created. We then consult all the registered
+     * subview types when handling a selection.
+     */
+    var subViewTypes = [];
+    tracing.registerAnalysisSubViewType = function(
+        importance, supportsSelectionPredicate, viewConstructor, opt_options) {
+      var options;
+      if (opt_options) {
+        options = opt_options;
+      } else {
+        options = {
+          passSelectionToConstructor: false
+        }
+      }
+      subViewTypes.push({
+        importance: importance,
+        supportsSelectionPredicate: supportsSelectionPredicate,
+        viewConstructor: viewConstructor,
+        options: options
+      });
+    }
+    tracing.getAnlysisSubViewTypes = function() {
+      return subViewTypes;
+    }
+  })();
+
   Polymer({
     /**
      * Each element extending this one must implement

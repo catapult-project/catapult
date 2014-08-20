@@ -16,11 +16,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/slice_view.html">
 <link rel="import" href="/tracing/analysis/tab_view.html">
 <link rel="import" href="/tracing/trace_model/counter_sample.html">
-<link rel="import" href="/tracing/trace_model/flow_event.html">
-<link rel="import" href="/tracing/trace_model/instant_event.html">
-<link rel="import" href="/tracing/trace_model/object_instance.html">
-<link rel="import" href="/tracing/trace_model/object_snapshot.html">
-<link rel="import" href="/tracing/trace_model/slice.html">
 
 <!--
 @fileoverview A component used to display an analysis of a selection,
@@ -51,22 +46,6 @@ using custom elements specialized for different event types.
   <script>
   'use strict';
   (function() {
-
-    /*
-     * Subview type registry: individual subviews call this registration
-     * function when they are created. We then consult all the registered
-     * subview types when handling a selection.
-     */
-    var subViewTypes = [];
-    tracing.registerAnalysisSubViewType = function(
-        importance, supportsSelectionPredicate, viewConstructor) {
-      subViewTypes.push({
-        importance: importance,
-        supportsSelectionPredicate: supportsSelectionPredicate,
-        viewConstructor: viewConstructor
-      });
-    }
-
     /**
      * Utility function used to convert camelCase to Title Case.
      */
@@ -128,24 +107,21 @@ using custom elements specialized for different event types.
         for (var eventType in eventsByType) {
           var currentEvents = eventsByType[eventType];
           var subView = undefined;
-          // If there is only one event of this type, try to get a custom
-          // view for it.
-          if (currentEvents.length === 1) {
-            subView = this.getEventCustomView_(currentEvents[0]);
-            // If found, add it to the subViewsParent and have the
-            // custom view model the event.
-            if (subView) {
-              subViewsParent.appendChild(subView)
-              subView.modelEvent = currentEvents[0];
-            }
-          }
 
-          // If no custom view is found, analyze it using the standard
-          // analysis system.
-          if (!subView) {
-            subView = this.findSubViewForEventsOfSingleType_(
-                          eventsByType[eventType]);
-            subViewsParent.appendChild(subView);
+          subView = this.findSubViewForEventsOfSingleType_(
+                        eventsByType[eventType]);
+          subViewsParent.appendChild(subView);
+          // There are some subViews that get configured by 'modelEvent'
+          // instead of selection. We need to move them off of this craziness.
+          // But, cc.LayerTreeHostView has a concept called selection as
+          // well, but its selection is a cc.Selection. So the properties
+          // collide, in a scary way.
+          if (subView.__lookupSetter__('modelEvent')) {
+            if (selection.length != 1)
+              throw new Error('modelEvent-configuration only supported with ' +
+                ' selections of length=1');
+            subView.modelEvent = selection[0];
+          } else {
             subView.selection = eventsByType[eventType];
           }
 
@@ -164,55 +140,11 @@ using custom elements specialized for different event types.
         }
       },
 
-      /**
-       * This function returns an instantiated custom view for the event
-       * passed as a parameter.
-       *
-       * @param {TraceEvent} event The event for witch to find the custom view.
-       *
-       * @return The custom view, displaying the event. 'undefined' if no
-       *         custom view is found.
-       */
-      getEventCustomView_: function(event) {
-        var typeName;
-        var viewBaseType;
-        var defaultViewType;
-        if (event instanceof tracing.trace_model.ObjectSnapshot) {
-          typeName = event.objectInstance.typeName;
-          viewBaseType = tracing.analysis.ObjectSnapshotView;
-          defaultViewType = tracing.analysis.DefaultObjectSnapshotView;
-        } else if (event instanceof tracing.trace_model.ObjectInstance) {
-          typeName = event.typeName;
-          viewBaseType = tracing.analysis.ObjectInstanceView;
-          defaultViewType = tracing.analysis.DefaultObjectInstanceView;
-        } else if (event instanceof tracing.trace_model.Slice) {
-          typeName = event.analysisTypeName;
-          viewBaseType = tracing.analysis.SliceView;
-          defaultViewType = undefined;
-        } else {
-          // No event custom view defined for this particular event.
-          return undefined;
-        }
-
-        var customViewInfo = viewBaseType.getViewInfo(typeName);
-
-        var viewConstructor = customViewInfo ?
-            customViewInfo.constructor : defaultViewType;
-
-        // Some view types do not have default views. In those cases, we fall
-        // back to the standard analysis system.
-        if (!viewConstructor)
-          return undefined;
-
-        var resultView = new viewConstructor();
-
-        return resultView;
-      },
-
       findSubViewForEventsOfSingleType_: function(selection) {
-        var supportedSubViewTypes = subViewTypes.filter(function(subViewTypes) {
-          return subViewTypes.supportsSelectionPredicate(selection);
-        });
+        var supportedSubViewTypes = tracing.getAnlysisSubViewTypes().filter(
+            function(subViewTypes) {
+              return subViewTypes.supportsSelectionPredicate(selection);
+            });
 
         if (supportedSubViewTypes.length == 0)
           throw new Error('Received events that could not be analyzed!');
@@ -223,7 +155,10 @@ using custom elements specialized for different event types.
         });
         var subViewType = supportedSubViewTypes[0];
 
-        return new subViewType.viewConstructor();
+        if (subViewType.options.passSelectionToConstructor)
+          return new subViewType.viewConstructor(selection);
+        else
+          return new subViewType.viewConstructor();
       }
     });
   })();

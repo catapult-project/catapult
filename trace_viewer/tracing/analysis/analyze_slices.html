@@ -20,14 +20,24 @@ found in the LICENSE file.
   addEventListener('polymer-ready', function() {
     tracing.registerAnalysisSubViewType(
         0,
-        function(selection) {
+        function supported(selection) {
           if (selection.length != 1)
             return false;
           return selection[0] instanceof tracing.trace_model.Slice ||
               selection[0] instanceof tracing.trace_model.FlowEvent ||
               selection[0] instanceof tracing.trace_model.InstantEvent;
         },
-        SingleSliceAnalysisSubView);
+        function constructView(selection) {
+          var event = selection[0];
+          var typeName = event.analysisTypeName;
+          var customViewInfo = tracing.analysis.SliceView.getViewInfo(typeName);
+          if (customViewInfo)
+            return new customViewInfo.constructor();
+          return new SingleSliceAnalysisSubView();
+        },
+        {
+          passSelectionToConstructor: true
+        });
     tracing.registerAnalysisSubViewType(
         0,
         function(selection) {
