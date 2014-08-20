@@ -15,7 +15,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/object_snapshot_view.html">
 <link rel="import" href="/tracing/analysis/slice_view.html">
 <link rel="import" href="/tracing/analysis/tab_view.html">
-<link rel="import" href="/tracing/trace_model/counter_sample.html">
 
 <!--
 @fileoverview A component used to display an analysis of a selection,
@@ -117,10 +116,10 @@ using custom elements specialized for different event types.
           // well, but its selection is a cc.Selection. So the properties
           // collide, in a scary way.
           if (subView.__lookupSetter__('modelEvent')) {
-            if (selection.length != 1)
+            if (eventsByType[eventType].length != 1)
               throw new Error('modelEvent-configuration only supported with ' +
                 ' selections of length=1');
-            subView.modelEvent = selection[0];
+            subView.modelEvent = eventsByType[eventType][0];
           } else {
             subView.selection = eventsByType[eventType];
           }
@@ -141,7 +140,7 @@ using custom elements specialized for different event types.
       },
 
       findSubViewForEventsOfSingleType_: function(selection) {
-        var supportedSubViewTypes = tracing.getAnlysisSubViewTypes().filter(
+        var supportedSubViewTypes = tracing.getAnalysisSubViewTypes().filter(
             function(subViewTypes) {
               return subViewTypes.supportsSelectionPredicate(selection);
             });

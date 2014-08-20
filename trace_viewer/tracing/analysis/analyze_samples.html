@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/side_panel/sampling_summary.html">
+<link rel="import" href="/tvcm.html">
 <link rel="import" href="/tvcm/ui.html">
 <link rel="import" href="/tvcm/ui/sortable_table.html">
 
@@ -16,7 +17,7 @@ found in the LICENSE file.
     constructor="SingleSampleAnalysisSubView">
   <script>
   'use strict';
-  addEventListener('polymer-ready', function() {
+  tvcm.onPolymerReady(function() {
     tracing.registerAnalysisSubViewType(
         0,
         function(selection) {

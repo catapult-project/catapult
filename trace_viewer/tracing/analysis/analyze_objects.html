@@ -6,13 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/analysis/analysis_sub_view.html">
+<link rel="import" href="/tvcm.html">
 
 <polymer-element name="multiple-objects-analysis-sub-view"
     extends="tracing-analysis-sub-view"
     constructor="MultipleObjectsAnalysisSubView">
   <script>
   'use strict';
-  addEventListener('polymer-ready', function() {
+  tvcm.onPolymerReady(function() {
     tracing.registerAnalysisSubViewType(
         0,
         function supported(selection) {

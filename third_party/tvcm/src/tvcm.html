@@ -128,6 +128,20 @@ this.tvcm = (function() {
     }
   };
 
+  var pendingCallbacks = [];
+  var polymerReadyFired = false;
+  function onPolymerReady(callback) {
+    pendingCallbacks.push(callback);
+    if (polymerReadyFired) {
+      runPendingCallbacks_();
+    }
+  }
+
+  function runPendingCallbacks_() {
+     for (var i = 0; i < pendingCallbacks.length; i++)
+       setTimeout(pendingCallbacks[i].bind(global), 0);
+     pendingCallbacks = [];
+  }
   /**
    * Initialization which must be deferred until run-time.
    */
@@ -149,6 +163,11 @@ this.tvcm = (function() {
     tvcm.isWindows = /Win/.test(navigator.platform);
     tvcm.isChromeOS = /CrOS/.test(navigator.userAgent);
     tvcm.isLinux = /Linux/.test(navigator.userAgent);
+
+    addEventListener('polymer-ready', function() {
+      polymerReadyFired = true;
+      runPendingCallbacks_();
+    });
   }
 
   return {
@@ -157,7 +176,8 @@ this.tvcm = (function() {
     exportTo: exportTo,
     showPanic: showPanic,
     hasPanic: hasPanic,
-    getPanicText: getPanicText
+    getPanicText: getPanicText,
+    onPolymerReady: onPolymerReady
   };
 })();
 
