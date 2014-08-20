@@ -101,6 +101,8 @@ tvcm.exportTo('cc', function() {
 
       var usage = 0;
       for (var i = 0; i < this.tiles.length; i++) {
+        if (this.tiles[i].isActiveTile === false)
+          continue;
         var u = this.tiles[i].gpuMemoryUsageInBytes;
         if (u !== undefined)
           usage += u;
