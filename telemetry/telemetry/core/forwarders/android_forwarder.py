@@ -78,6 +78,7 @@ class AndroidRndisForwarder(forwarders.Forwarder):
     self._RedirectPorts(port_pairs)
     if port_pairs.dns:
       self._OverrideDns()
+    self._OverrideRoutingPolicy()
     # TODO(tonyg): Verify that each port can connect to host.
 
   @property
@@ -86,6 +87,7 @@ class AndroidRndisForwarder(forwarders.Forwarder):
 
   def Close(self):
     self._SetDns(*self._original_dns)
+    self._RestoreRoutingPolicy()
     super(AndroidRndisForwarder, self).Close()
 
   def _RedirectPorts(self, port_pairs):
@@ -128,10 +130,10 @@ class AndroidRndisForwarder(forwarders.Forwarder):
       self._adb.device().SetProp('net.dnschange', int(dnschange) + 1)
     # Since commit 8b47b3601f82f299bb8c135af0639b72b67230e6 to frameworks/base
     # the net.dns1 properties have been replaced with explicit commands for netd
-    self._adb.RunShellCommand('ndc netd resolver setifdns %s %s %s' %
+    self._adb.RunShellCommand('netd resolver setifdns %s %s %s' %
                               (iface, dns1, dns2))
     # TODO(szym): if we know the package UID, we could setifaceforuidrange
-    self._adb.RunShellCommand('ndc netd resolver setdefaultif %s' % iface)
+    self._adb.RunShellCommand('netd resolver setdefaultif %s' % iface)
 
   def _GetCurrentDns(self):
     """Returns current gateway, dns1, and dns2."""
@@ -143,6 +145,21 @@ class AndroidRndisForwarder(forwarders.Forwarder):
       self._adb.device().GetProp('net.dns1'),
       self._adb.device().GetProp('net.dns2'),
     )
+
+  def _OverrideRoutingPolicy(self):
+    """Override any routing policy that could prevent
+    packets from reaching the rndis interface
+    """
+    policies = self._device.RunShellCommand('ip rule')
+    if len(policies) > 1 and not ('lookup main' in policies[1]):
+      self._device.RunShellCommand('ip rule add prio 1 from all table main')
+      self._device.RunShellCommand('ip route flush cache')
+
+  def _RestoreRoutingPolicy(self):
+    policies = self._adb.RunShellCommand('ip rule')
+    if len(policies) > 1 and re.match("^1:.*lookup main", policies[1]):
+      self._adb.RunShellCommand('ip rule del prio 1')
+      self._adb.RunShellCommand('ip route flush cache')
 
 
 class AndroidRndisConfigurator(object):
