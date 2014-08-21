@@ -35,7 +35,7 @@ var g_catLTHIEvents = [
     'id': 'PICTURE_1'
   },
   {
-    'name': 'TileManager::RunRasterTask',
+    'name': 'RasterTask',
     'args': {
       'data': {
         'source_frame_number': 107,
@@ -53,10 +53,37 @@ var g_catLTHIEvents = [
     'ph': 'B'
   },
   {
-    'name': 'TileManager::RunRasterTask',
+    'name': 'RasterTask',
     'args': {},
     'pid': 1,
     'ts': 150,
+    'cat': 'cc',
+    'tid': 1,
+    'ph': 'E'
+  },
+  {
+    'name': 'RasterTask',
+    'args': {
+      'data': {
+        'source_frame_number': 107,
+        'tile_id': {
+          'id_ref': 'TILE_2'
+        },
+        'resolution': 'HIGH_RESOLUTION',
+        'is_tile_in_pending_tree_now_bin': true
+      }
+    },
+    'pid': 1,
+    'ts': 170,
+    'cat': 'cc',
+    'tid': 1,
+    'ph': 'B'
+  },
+  {
+    'name': 'RasterTask',
+    'args': {},
+    'pid': 1,
+    'ts': 180,
     'cat': 'cc',
     'tid': 1,
     'ph': 'E'
@@ -192,28 +219,49 @@ var g_catLTHIEvents = [
               'distance_to_visible_in_pixels': 3.4028234663852886e+38
             },
             'managed_state': {
-              'bin': {
-                '1': 'NOW_BIN',
-                '0': 'NOW_BIN'
-              },
-              'required_for_activation': true,
               'resolution': 'HIGH_RESOLUTION',
-              'memory_state': 'USING_RELEASABLE_MEMORY',
               'is_solid_color': false,
-              'time_to_needed_in_seconds': 0,
-              'is_transparent': false,
-              'distance_to_visible_in_pixels': 0,
+              'is_using_gpu_memory': true,
               'has_resource': true,
-              'gpu_memmgr_stats_bin': 'NOW_BIN',
-              'is_picture_pile_analyzed': true
+              'scheduled_priority': 10,
+              'distance_to_visible': 0,
+              'gpu_memory_usage': 1024000,
             },
             'layer_id': '6',
             'picture_pile': {
               'id_ref': 'PICTURE_1'
             },
             'contents_scale': 2,
-            'content_rect': [0, 0, 256, 256],
+            'content_rect': [0, 0, 1024, 1024],
             'id': 'cc::Tile/TILE_1'
+          },
+          {
+            'active_priority': {
+              'time_to_visible_in_seconds': 0,
+              'resolution': 'HIGH_RESOLUTION',
+              'distance_to_visible_in_pixels': 0
+            },
+            'pending_priority': {
+              'time_to_visible_in_seconds': 3.4028234663852886e+38,
+              'resolution': 'NON_IDEAL_RESOLUTION',
+              'distance_to_visible_in_pixels': 3.4028234663852886e+38
+            },
+            'managed_state': {
+              'resolution': 'HIGH_RESOLUTION',
+              'is_solid_color': false,
+              'is_using_gpu_memory': true,
+              'has_resource': true,
+              'scheduled_priority': 12,
+              'distance_to_visible': 0,
+              'gpu_memory_usage': 1024000,
+            },
+            'layer_id': '6',
+            'picture_pile': {
+              'id_ref': 'PICTURE_1'
+            },
+            'contents_scale': 2,
+            'content_rect': [0, 1024, 1024, 1024],
+            'id': 'cc::Tile/TILE_2'
           }
         ]
       }

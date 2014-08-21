@@ -176,11 +176,6 @@ tvcm.exportTo('tracing', function() {
           func(this[i]);
     },
 
-    map: function(fn) {
-      for (var i = 0; i < this.length_; i++)
-        fn(this[i]);
-    },
-
     /**
      * Helper for selection previous or next.
      * @param {boolean} offset If positive, select one forward (next).
@@ -220,7 +215,33 @@ tvcm.exportTo('tracing', function() {
       if (newSelection.length == 0)
         return undefined;
       return newSelection;
-    }
+    },
+
+    forEach: function(fn, opt_this) {
+      for (var i = 0; i < this.length; i++)
+        fn.call(opt_this, this[i], i)
+    },
+
+    map: function(fn, opt_this) {
+      var res = [];
+      for (var i = 0; i < this.length; i++)
+        res.push(fn.call(opt_this, this[i], i));
+      return res;
+    },
+
+    every: function(fn, opt_this) {
+      for (var i = 0; i < this.length; i++)
+        if (!fn.call(opt_this, this[i], i))
+          return false;
+      return true;
+    },
+
+    some: function(fn, opt_this) {
+      for (var i = 0; i < this.length; i++)
+        if (fn.call(opt_this, this[i], i))
+          return true;
+      return false;
+    },
   };
 
   return {

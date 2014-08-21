@@ -7,8 +7,9 @@ found in the LICENSE file.
 <link rel="import" href="/cc/tile.html">
 <link rel="import" href="/cc/tile_view.html">
 <link rel="import" href="/cc/layer_tree_host_impl_view.html">
+<link rel="import" href="/cc/raster_task.html">
+<link rel="import" href="/cc/raster_task_selection.html">
 <link rel="import" href="/tracing/analysis/analysis_sub_view.html">
-<link rel="import" href="/tvcm/ui/info_bar.html">
 <style>
 .raster-task-sub-view {
   -webkit-flex-direction: column;
@@ -20,30 +21,20 @@ found in the LICENSE file.
   -webkit-flex: 1 1 auto;
 }
 </style>
-<script>
-'use strict';
-
-(function() {
-  cc.getTileFromRasterTaskSlice = function(slice) {
-    var tileData;
-    if (slice.args.data)
-      tileData = slice.args.data;
-    else
-      tileData = slice.args.tileData;
-    if (tileData === undefined)
-      return undefined;
-
-    if (tileData.tile_id)
-      return tileData.tile_id;
-    return tileData.tileId;
-  }
-})();
-</script>
 <polymer-element name="raster-task-sub-view"
     extends="tracing-analysis-sub-view"
     constructor="RasterTaskSubView">
   <script>
   'use strict';
+  tvcm.onPolymerReady(function() {
+    tracing.registerAnalysisSubViewType(
+      1,
+      function supported(selection) {
+        return cc.RasterTaskSelection.supports(selection);
+      },
+      RasterTaskSubView);
+  });
+
   Polymer({
     created: function() {
       this.classList.add('raster-task-sub-view');
@@ -67,73 +58,31 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
-    get slice() {
-      if (this.selection_ == undefined)
-        return undefined;
-      return this.selection_[0];
-    },
-
     updateContents_: function() {
       this.infoBar_.visible = false;
 
-      var tile;
-      if (this.slice)
-        tile = cc.getTileFromRasterTaskSlice(this.slice);
-      if (!tile) {
-        this.infoBar_.visible = true;
-        this.infoBar_.message = 'No tile on this raster task.';
-        this.layerTreeView_.style.display = 'none';
-        return;
+      var cc_selection, err;
+      if (this.selection_) {
+        try {
+          cc_selection = new cc.RasterTaskSelection(this.selection_);
+        } catch(e) {
+          err = e;
+        }
+      } else {
+        err = 'No selection';
       }
-      if (!(tile instanceof cc.TileSnapshot)) {
+      if (!cc_selection) {
         this.infoBar_.visible = true;
-        this.infoBar_.message = 'This raster task didn\'t get fully traced.';
+        this.infoBar_.message = 'Something went wrong: ' + err;
         this.layerTreeView_.style.display = 'none';
         return;
       }
       this.layerTreeView_.style.display = '';
 
-      var containingSnapshot = tile.containingSnapshot;
+      var containingSnapshot = cc_selection.containingSnapshot;
       this.layerTreeView_.objectSnapshot = containingSnapshot;
-      this.layerTreeView_.selection = new cc.RasterTaskSelection(this.slice);
+      this.layerTreeView_.selection = cc_selection;
     }
   });
   </script>
 </polymer-element>
-<script>
-'use strict';
-
-(function() {
-  var knownRasterTaskNames = [
-      'TileManager::RunRasterTask',
-      'RasterWorkerPoolTaskImpl::RunRasterOnThread',
-      'RasterWorkerPoolTaskImpl::Raster',
-      'RasterTaskImpl::Raster',
-      'cc::RasterTask',
-      'RasterTask',
-
-      'TileManager::RunAnalyzeTask',
-      'RasterWorkerPoolTaskImpl::RunAnalysisOnThread',
-      'RasterWorkerPoolTaskImpl::Analyze',
-      'RasterTaskImpl::Analyze',
-      'cc::AnalyzeTask',
-      'AnalyzeTask'
-  ];
-  function isSliceARasterTask(slice) {
-    return knownRasterTaskNames.indexOf(slice.title) !== -1;
-  }
-
-  tvcm.onPolymerReady(function() {
-    tracing.registerAnalysisSubViewType(
-      1,
-      function supported(selection) {
-        if (selection.length != 1)
-          return false;
-        if (!(selection[0] instanceof tracing.trace_model.Slice))
-          return false;
-        return isSliceARasterTask(selection[0]);
-      },
-      RasterTaskSubView);
-  });
-})();
-</script>

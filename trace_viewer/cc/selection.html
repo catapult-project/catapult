@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/analysis/analyze_slices.html">
 <link rel="import" href="/tracing/analysis/generic_object_view.html">
 
 <script>
@@ -48,30 +47,9 @@ tvcm.exportTo('cc', function() {
       throw new Error('Not implemented');
     },
 
-    /**
-     * If the selected item(s) is visible on the pending tree in a way that
-     * should be highlighted, returns the quad for the item on the pending tree.
-     * Otherwise, returns undefined.
-     */
-    get quadIfPending() {
-      throw new Error('Not implemented');
-    },
 
-    /**
-     * If the selected item(s) is visible on the active tree in a way that
-     * should be highlighted, returns the quad for the item on the active tree.
-     * Otherwise, returns undefined.
-     */
-    get quadIfActive() {
-      throw new Error('Not implemented');
-    },
-
-    /**
-     * A stable string describing what is selected. Used to determine a stable
-     * color of the highlight quads for this selection.
-     */
-    get title() {
-      throw new Error('Not implemented');
+    get highlightsByLayerId() {
+      return {};
     },
 
     /**
@@ -156,14 +134,6 @@ tvcm.exportTo('cc', function() {
       return undefined;
     },
 
-    get quadIfPending() {
-      return undefined;
-    },
-
-    get quadIfActive() {
-      return undefined;
-    },
-
     get layer() {
       return this.layer_;
     },
@@ -209,8 +179,15 @@ tvcm.exportTo('cc', function() {
       return this.tile_.layerId;
     },
 
-    get layerRect() {
-      return this.tile_.layerRect;
+    get highlightsByLayerId() {
+      var highlights = {}
+      highlights[this.tile_.layerId] = [
+        {
+          colorKey: this.tile_.objectInstance.typeName,
+          rect: this.tile_.layerRect
+        }
+      ];
+      return highlights;
     },
 
     createAnalysis: function() {
@@ -226,10 +203,6 @@ tvcm.exportTo('cc', function() {
         analysis.object = this.tile_.args;
       }
       return analysis;
-    },
-
-    get title() {
-      return this.tile_.objectInstance.typeName;
     },
 
     findEquivalent: function(lthi) {
@@ -265,8 +238,16 @@ tvcm.exportTo('cc', function() {
       return this.layer_.layerId;
     },
 
-    get layerRect() {
-      return this.rect_;
+
+    get highlightsByLayerId() {
+      var highlights = {}
+      highlights[this.layer_.layerId] = [
+        {
+          colorKey: this.rectType_,
+          rect: this.rect_
+        }
+      ];
+      return highlights;
     },
 
     createAnalysis: function() {
@@ -274,10 +255,6 @@ tvcm.exportTo('cc', function() {
       analysis.label = this.rectType_ + ' on layer ' + this.layer_.layerId;
       analysis.object = this.data_;
       return analysis;
-    },
-
-    get title() {
-      return this.rectType_;
     },
 
     findEquivalent: function(lthi) {
@@ -309,54 +286,6 @@ tvcm.exportTo('cc', function() {
       analysis.label = 'Animation Bounds of layer ' + this.layer_.layerId;
       analysis.object = this.rect_;
       return analysis;
-    },
-
-    get title() {
-      return 'AnimationRectSelection';
-    }
-  };
-
-  /**
-   * @constructor
-   */
-  function RasterTaskSelection(rasterTask) {
-    this.rasterTask_ = rasterTask;
-  }
-
-  RasterTaskSelection.prototype = {
-    __proto__: Selection.prototype,
-
-    get specicifity() {
-      return 3;
-    },
-
-    get tile() {
-      return cc.getTileFromRasterTaskSlice(this.rasterTask_);
-    },
-
-    get associatedLayerId() {
-      return this.tile.layerId;
-    },
-
-    get layerRect() {
-      return this.tile.layerRect;
-    },
-
-    createAnalysis: function() {
-      var sel = new tracing.Selection();
-      sel.push(this.rasterTask_);
-      var analysis = new SingleSliceAnalysisSubView();
-      analysis.selection = sel;
-      return analysis;
-    },
-
-    get title() {
-      return this.rasterTask_.title;
-    },
-
-    findEquivalent: function(lthi) {
-      // Raster tasks are only valid in one LTHI.
-      return undefined;
     }
   };
 
@@ -367,7 +296,6 @@ tvcm.exportTo('cc', function() {
     TileSelection: TileSelection,
     LayerRectSelection: LayerRectSelection,
     AnimationRectSelection: AnimationRectSelection,
-    RasterTaskSelection: RasterTaskSelection
   };
 });
 </script>

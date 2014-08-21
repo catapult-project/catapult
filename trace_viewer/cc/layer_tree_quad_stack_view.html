@@ -833,25 +833,30 @@ tvcm.exportTo('cc', function() {
       }
     },
 
-    appendSelectionQuads_: function(quads, layer, layerQuad) {
-      var selection = this.selection;
-      var rect = selection.layerRect;
-      if (!rect)
-        return [];
+    maybeAppendSelectionQuadsForLayer_: function(
+        quads, layer, layerQuad, selectionHighlightsByLayerId) {
+      var highlights = selectionHighlightsByLayerId[layer.layerId];
+      if (highlights === undefined)
+        return;
 
-      var unitRect = rect.asUVRectInside(layer.bounds);
-      var quad = layerQuad.projectUnitRect(unitRect);
+      highlights.forEach(function(highlight) {
+        var rect = highlight.rect;
 
-      var colorId = tvcm.ui.getStringColorId(selection.title);
-      colorId += tvcm.ui.getColorPaletteHighlightIdBoost();
+        var unitRect = rect.asUVRectInside(layer.bounds);
+        var quad = layerQuad.projectUnitRect(unitRect);
 
-      var color = tvcm.Color.fromString(tvcm.ui.getColorPalette()[colorId]);
+        var colorId = tvcm.ui.getStringColorId(highlight.colorKey);
+        colorId += tvcm.ui.getColorPaletteHighlightIdBoost();
 
-      var quadForDrawing = quad.clone();
-      quadForDrawing.backgroundColor = color.withAlpha(0.5).toString();
-      quadForDrawing.borderColor = color.withAlpha(1.0).darken().toString();
-      quadForDrawing.stackingGroupId = layerQuad.stackingGroupId;
-      quads.push(quadForDrawing);
+        var color = tvcm.Color.fromString(tvcm.ui.getColorPalette()[colorId]);
+
+        var quadForDrawing = quad.clone();
+        quadForDrawing.backgroundColor = color.withAlpha(0.5).toString();
+        quadForDrawing.borderColor = color.withAlpha(1.0).darken().toString();
+        quadForDrawing.stackingGroupId = layerQuad.stackingGroupId;
+        quads.push(quadForDrawing);
+
+      }, this);
     },
 
     generateRenderPassQuads: function() {
@@ -884,6 +889,13 @@ tvcm.exportTo('cc', function() {
       var quads = [];
       var nextStackingGroupId = 0;
       var alreadyVisitedLayerIds = {};
+
+
+      var selectionHighlightsByLayerId;
+      if (this.selection)
+        selectionHighlightsByLayerId = this.selection.highlightsByLayerId;
+      else
+        selectionHighlightsByLayerId = {};
 
       for (var i = 1; i <= layers.length; i++) {
         // Generate quads back-to-front.
@@ -932,8 +944,9 @@ tvcm.exportTo('cc', function() {
               this.howToShowTiles, this.tileHeatmapType);
         }
 
-        if (this.selectedLayer === layer)
-          this.appendSelectionQuads_(quads, layer, layerQuad);
+        this.maybeAppendSelectionQuadsForLayer_(
+            quads, layer, layerQuad,
+            selectionHighlightsByLayerId);
       }
 
       this.layerTreeImpl.iterLayers(function(layer, depth, isMask, isReplica) {
