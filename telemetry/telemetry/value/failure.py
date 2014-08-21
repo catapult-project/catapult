@@ -58,7 +58,7 @@ class FailureValue(value_module.Value):
   def GetBuildbotValue(self):
     return None
 
-  def GetBuildbotMeasurementAndTraceNameForPerPageResult(self):
+  def GetChartAndTraceNameForPerPageResult(self):
     return None
 
   def GetRepresentativeNumber(self):

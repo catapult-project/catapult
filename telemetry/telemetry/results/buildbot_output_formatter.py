@@ -52,7 +52,7 @@ class BuildbotOutputFormatter(output_formatter.OutputFormatter):
       return
 
     buildbot_measurement_name, buildbot_trace_name = (
-        value.GetBuildbotMeasurementAndTraceNameForPerPageResult())
+        value.GetChartAndTraceNameForPerPageResult())
     self._PrintPerfResult(buildbot_measurement_name,
                           buildbot_trace_name,
                           buildbot_value, value.units, buildbot_data_type)
@@ -71,7 +71,7 @@ class BuildbotOutputFormatter(output_formatter.OutputFormatter):
       return
 
     buildbot_measurement_name, buildbot_trace_name = (
-        value.GetBuildbotMeasurementAndTraceNameForComputedSummaryResult(
+        value.GetChartAndTraceNameForComputedSummaryResult(
             self._trace_tag))
     self._PrintPerfResult(buildbot_measurement_name,
                           buildbot_trace_name,
@@ -87,7 +87,7 @@ class BuildbotOutputFormatter(output_formatter.OutputFormatter):
         buildbot_data_type = value.GetBuildbotDataType(
             output_context=value_module.SUMMARY_RESULT_OUTPUT_CONTEXT)
         buildbot_measurement_name, buildbot_trace_name = (
-            value.GetBuildbotMeasurementAndTraceNameForComputedSummaryResult(
+            value.GetChartAndTraceNameForComputedSummaryResult(
                 self._trace_tag))
         self._PrintPerfResult(
             buildbot_measurement_name,

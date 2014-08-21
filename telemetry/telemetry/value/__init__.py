@@ -130,9 +130,9 @@ class Value(object):
     """Returns the buildbot's equivalent value."""
     raise NotImplementedError()
 
-  def GetBuildbotMeasurementAndTraceNameForPerPageResult(self):
-    measurement, _ = _ConvertValueNameToBuildbotChartAndTraceName(self.name)
-    return measurement, self.page.display_name
+  def GetChartAndTraceNameForPerPageResult(self):
+    chart_name, _ = _ConvertValueNameToChartAndTraceName(self.name)
+    return chart_name, self.page.display_name
 
   @property
   def name_suffix(self):
@@ -142,14 +142,14 @@ class Value(object):
     else:
       return self.name
 
-  def GetBuildbotMeasurementAndTraceNameForComputedSummaryResult(
+  def GetChartAndTraceNameForComputedSummaryResult(
       self, trace_tag):
-    measurement, bb_trace_name = (
-        _ConvertValueNameToBuildbotChartAndTraceName(self.name))
+    chart_name, trace_name = (
+        _ConvertValueNameToChartAndTraceName(self.name))
     if trace_tag:
-      return measurement, bb_trace_name + trace_tag
+      return chart_name, trace_name + trace_tag
     else:
-      return measurement, bb_trace_name
+      return chart_name, trace_name
 
   def GetRepresentativeNumber(self):
     """Gets a single scalar value that best-represents this value.
@@ -290,12 +290,12 @@ def ValueNameFromTraceAndChartName(trace_name, chart_name=None):
         'empty chart_name since this is used to delimit chart_name.trace_name.')
     return trace_name
 
-def _ConvertValueNameToBuildbotChartAndTraceName(value_name):
-  """Converts a value_name into the buildbot equivalent name pair.
+def _ConvertValueNameToChartAndTraceName(value_name):
+  """Converts a value_name into the equivalent chart-trace name pair.
 
   Buildbot represents values by the measurement name and an optional trace name,
   whereas telemetry represents values with a chart_name.trace_name convention,
-  where chart_name is optional.
+  where chart_name is optional. This convention is also used by chart_json.
 
   This converts from the telemetry convention to the buildbot convention,
   returning a 2-tuple (measurement_name, trace_name).

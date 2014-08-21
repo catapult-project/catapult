@@ -29,7 +29,7 @@ class StringValueTest(TestBase):
         value.COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT))
     self.assertEquals(['L1'], v.GetBuildbotValue())
     self.assertEquals(('x', page0.display_name),
-                      v.GetBuildbotMeasurementAndTraceNameForPerPageResult())
+                      v.GetChartAndTraceNameForPerPageResult())
 
     v = string.StringValue(page0, 'x', 'label', 'L1', important=False)
     self.assertEquals(

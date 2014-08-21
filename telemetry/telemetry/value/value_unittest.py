@@ -35,7 +35,7 @@ class ValueForTest(value.Value):
   def GetBuildbotValue(self):
     pass
 
-  def GetBuildbotMeasurementAndTraceNameForComputedSummaryResult(
+  def GetChartAndTraceNameForComputedSummaryResult(
       self, trace_tag):
     pass
 

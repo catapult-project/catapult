@@ -30,7 +30,7 @@ class JsonOutputFormatterTest(unittest.TestCase):
     self._output = StringIO.StringIO()
     self._page_set = _MakePageSet()
     self._formatter = json_output_formatter.JsonOutputFormatter(self._output,
-        benchmark.BenchmarkMetadata('test_name'))
+        benchmark.BenchmarkMetadata('benchmark_name'))
 
   def testOutputAndParse(self):
     results = page_test_results.PageTestResults()
@@ -45,6 +45,14 @@ class JsonOutputFormatterTest(unittest.TestCase):
     self._formatter.Format(results)
     json.loads(self._output.getvalue())
 
+  def testAsDictBaseKeys(self):
+    results = page_test_results.PageTestResults()
+    d = json_output_formatter.ResultsAsDict(results,
+        self._formatter.benchmark_metadata)
+
+    self.assertEquals(d['format_version'], '0.2')
+    self.assertEquals(d['benchmark_name'], 'benchmark_name')
+
   def testAsDictWithOnePage(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self._page_set[0])
@@ -52,7 +60,8 @@ class JsonOutputFormatterTest(unittest.TestCase):
     results.AddValue(v0)
     results.DidRunPage(self._page_set[0])
 
-    d = json_output_formatter.ResultsAsDict(results, self._formatter.metadata)
+    d = json_output_formatter.ResultsAsDict(results,
+        self._formatter.benchmark_metadata)
 
     self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
     self.assertTrue(_HasValueNamed(d['per_page_values'], 'foo'))
@@ -69,7 +78,8 @@ class JsonOutputFormatterTest(unittest.TestCase):
     results.AddValue(v1)
     results.DidRunPage(self._page_set[1])
 
-    d = json_output_formatter.ResultsAsDict(results, self._formatter.metadata)
+    d = json_output_formatter.ResultsAsDict(results,
+        self._formatter.benchmark_metadata)
 
     self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
     self.assertTrue(_HasPage(d['pages'], self._page_set[1]))
@@ -81,7 +91,8 @@ class JsonOutputFormatterTest(unittest.TestCase):
     v = scalar.ScalarValue(None, 'baz', 'seconds', 5)
     results.AddSummaryValue(v)
 
-    d = json_output_formatter.ResultsAsDict(results, self._formatter.metadata)
+    d = json_output_formatter.ResultsAsDict(results,
+        self._formatter.benchmark_metadata)
 
     self.assertFalse(d['pages'])
     self.assertTrue(_HasValueNamed(d['summary_values'], 'baz'))

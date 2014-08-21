@@ -29,7 +29,7 @@ class ValueTest(TestBase):
         value.COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT))
     self.assertEquals([3], v.GetBuildbotValue())
     self.assertEquals(('x', page0.display_name),
-                      v.GetBuildbotMeasurementAndTraceNameForPerPageResult())
+                      v.GetChartAndTraceNameForPerPageResult())
 
     v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=False)
     self.assertEquals(
