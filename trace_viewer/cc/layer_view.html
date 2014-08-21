@@ -37,6 +37,8 @@ tvcm.exportTo('cc', function() {
       this.layerTreeQuadStackView_ = new cc.LayerTreeQuadStackView();
       this.dragBar_ = new tvcm.ui.DragHandle();
       this.analysisEl_ = document.createElement('layer-view-analysis');
+      this.analysisEl_.addEventListener('requestSelectionChange',
+          this.onRequestSelectionChangeFromAnalysisEl_.bind(this));
 
       this.dragBar_.target = this.analysisEl_;
 
@@ -99,6 +101,7 @@ tvcm.exportTo('cc', function() {
         this.layerTreeQuadStackView_.style.height =
             window.getComputedStyle(this).height;
       }
+      tvcm.dispatchSimpleEvent(this, 'selection-change');
     },
 
     createPictureBtn_: function(pictures) {
@@ -117,6 +120,14 @@ tvcm.exportTo('cc', function() {
         return selection;
       };
       return link;
+    },
+
+    onRequestSelectionChangeFromAnalysisEl_: function(e) {
+      if (!(e.selection instanceof cc.Selection))
+        return;
+
+      e.stopPropagation();
+      this.selection = e.selection;
     }
   };
 

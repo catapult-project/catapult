@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/cc/raster_task.html">
+<link rel="import" href="/cc/selection.html">
+<link rel="import" href="/tracing/analysis/analysis_results.html">
+<link rel="import" href="/tracing/analysis/analysis_sub_view.html">
+<link rel="import" href="/tracing/analysis/util.html">
+<link rel="import" href="/tvcm/ui/sortable_table.html">
+
+<polymer-element name="raster-task-analysis-for-tasks-from-same-lthi"
+    constructor="RasterTaskAnalysisForTasksFromSameLTHI">
+  <script>
+  'use strict';
+  Polymer({
+    created: function() {
+      this.selection_ = undefined;
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.textContent = '';
+
+      if (this.selection_.length === 0)
+        return;
+
+      var results = new tracing.analysis.AnalysisResults();
+      this.appendChild(results);
+
+      results.appendHeader('Rasterization costs:');
+
+      // Get costs by layer.
+      var costsByLayerId = {};
+      function getCurrentCostsForLayerId(tile) {
+        var layerId = tile.layerId;
+        var lthi = tile.containingSnapshot;
+        var layer;
+        if (lthi.activeTree)
+          layer = lthi.activeTree.findLayerWithId(layerId);
+        if (layer === undefined && lthi.pendingTree)
+          layer = lthi.pendingTree.findLayerWithId(layerId);
+        if (costsByLayerId[layerId] === undefined) {
+          costsByLayerId[layerId] = {
+            layerId: layerId,
+            layer: layer,
+            numTasks: 0,
+            duration: 0,
+            cpuDuration: 0
+          }
+        }
+        return costsByLayerId[layerId];
+      }
+
+      var totalDuration = 0;
+      var totalCpuDuration = 0;
+      var hadCpuDurations = false;
+
+      this.selection_.forEach(function(slice) {
+        var tile = cc.getTileFromRasterTaskSlice(slice);
+        var curCosts = getCurrentCostsForLayerId(tile);
+        curCosts.numTasks += 1;
+        curCosts.duration += slice.duration;
+        totalDuration += slice.duration;
+        if (slice.cpuDuration !== undefined) {
+          curCosts.cpuDuration += slice.cpuDuration;
+          totalCpuDuration += slice.cpuDuration;
+          hadCpuDurations = true;
+        }
+      });
+
+      // Initial sort.
+      var costs = tvcm.dictionaryValues(costsByLayerId);
+      costs.sort(function(x,y) {
+        if (hadCpuDurations)
+          return y.cpuDuration - x.cpuDuration;
+        return y.duration - x.duration;
+      });
+
+      // Output.
+      var table = results.appendTable(
+          'analyze-rasterizatin-costs-table', hadCpuDurations ? 4 : 3);
+      var hrow = results.appendHeadRow(table);
+      results.appendTableCell(table, hrow, 'Layer');
+      results.appendTableCell(table, hrow, 'Num Tasks');
+      results.appendTableCell(table, hrow, 'Wall Duration (ms)');
+      if (hadCpuDurations)
+        results.appendTableCell(table, hrow, 'CPU Duration (ms)');
+
+
+      // Body.
+      costs.forEach(function(costs) {
+        var layerId = costs.layerId;
+        var row = results.appendBodyRow(table);
+        var layerEl = results.appendTableCell(table, row, 'Layer ' + layerId);
+        if (costs.layer) {
+          layerEl.textContent = '';
+          layerEl.appendChild(results.createSelectionChangingLink(
+              'Layer ' + layerId,
+              function() {
+                return new cc.LayerSelection(costs.layer);
+              }));
+        }
+        results.appendTableCell(table, row,  costs.numTasks);
+        results.appendTableCell(
+            table, row,  tracing.analysis.tsRound(costs.duration) + 'ms');
+        if (hadCpuDurations) {
+          results.appendTableCell(
+              table, row,  tracing.analysis.tsRound(costs.cpuDuration) + 'ms');
+        }
+      });
+
+      // Footer.
+      var frow = results.appendFootRow(table);
+      results.appendTableCell(table, frow, 'Totals')
+      results.appendTableCell(table, frow,  this.selection_.length);
+      results.appendTableCell(
+          table, frow, tracing.analysis.tsRound(totalDuration) + 'ms');
+      if (hadCpuDurations) {
+        results.appendTableCell(
+            table, frow, tracing.analysis.tsRound(totalCpuDuration) + 'ms');
+      }
+
+      tvcm.ui.SortableTable.decorate(table);
+    }
+  });
+  </script>
+</polymer-element>

@@ -36,12 +36,12 @@ tvcm.exportTo('cc', function() {
 
       this.layerPicker_ = new cc.LayerPicker();
       this.layerPicker_.addEventListener(
-          'selection-changed',
+          'selection-change',
           this.onLayerPickerSelectionChanged_.bind(this));
 
       this.layerView_ = new cc.LayerView();
       this.layerView_.addEventListener(
-          'selection-changed',
+          'selection-change',
           this.onLayerViewSelectionChanged_.bind(this));
       this.dragHandle_ = new tvcm.ui.DragHandle();
       this.dragHandle_.horizontal = false;

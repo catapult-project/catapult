@@ -83,7 +83,7 @@ tvcm.exportTo('cc', function() {
       this.whichTree_ = whichTree;
       this.renderPassQuads_ = (whichTree == RENDER_PASS_QUADS);
       this.updateContents_();
-      tvcm.dispatchSimpleEvent(this, 'selection-changed', false);
+      tvcm.dispatchSimpleEvent(this, 'selection-change', false);
     },
 
     get layerTreeImpl() {
@@ -243,8 +243,10 @@ tvcm.exportTo('cc', function() {
         item.layer = layer;
         this.itemList_.appendChild(item);
 
-        if (layer.layerId == selectedLayerId)
+        if (layer.layerId == selectedLayerId) {
           layer.selectionState = tracing.trace_model.SelectionState.SELECTED;
+          item.selected = true;
+        }
       }, this);
     },
 
@@ -263,7 +265,7 @@ tvcm.exportTo('cc', function() {
         this.onRenderPassSelected_(e);
       else
         this.onLayerSelected_(e);
-      tvcm.dispatchSimpleEvent(this, 'selection-changed', false);
+      tvcm.dispatchSimpleEvent(this, 'selection-change', false);
     },
 
     onRenderPassSelected_: function(e) {
