@@ -35,7 +35,7 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     try:
       self.server.ReloadProjectIfNeeded()
     except Exception, ex:
-      send_500(self, "While processing project files", ex)
+      send_500(self, "While processing project files", ex, path=self.path)
       return
 
     if self.do_path_handler('GET'):
@@ -55,7 +55,7 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       try:
         handler(self)
       except Exception, ex:
-        send_500(self, "While parsing %s" % self.path, ex)
+        send_500(self, "While parsing %s" % self.path, ex, path=self.path)
       return True
     return False
 
@@ -111,13 +111,35 @@ def do_GET_json_tests(self):
   self.end_headers()
   self.wfile.write(tests_as_json)
 
-def send_500(self, msg, ex, log_error=True):
-  msg = json.dumps({"details": traceback.format_exc(),
-                    "message": ex.message});
+def send_500(self, msg, ex, log_error=True, path=None):
+  if path == None:
+    is_html_output = False
+  else:
+    path = path.split('?',1)[0]
+    path = path.split('#',1)[0]
+    is_html_output = path.endswith('.html')
+
+
+  if is_html_output:
+    msg = """<!DOCTYPE html>
+    <html>
+    <body>
+    <h1>OMG something is wrong</h1>
+    <b><pre>%s</pre></b></p>
+    <pre>%s</pre>
+    </body>
+    </html>
+""" % (ex.message, traceback.format_exc())
+    ctype = 'text/html'
+  else:
+    msg = json.dumps({"details": traceback.format_exc(),
+                      "message": ex.message});
+    ctype = 'application/json'
+
   if log_error:
     self.log_error('%s: %s', msg, ex.message)
   self.send_response(500)
-  self.send_header('Content-Type', 'application/json')
+  self.send_header('Content-Type', ctype)
   self.send_header('Cache-Control', 'no-cache')
   self.send_header('Content-Length', len(msg))
   self.end_headers()
