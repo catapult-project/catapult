@@ -5,8 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/cc/layer_tree_quad_stack_view.css">
-
 <link rel="import" href="/cc/picture.html">
 <link rel="import" href="/cc/render_pass.html">
 <link rel="import" href="/cc/tile.html">
@@ -20,6 +18,24 @@ found in the LICENSE file.
 <link rel="import" href="/tvcm/ui/quad_stack_view.html">
 <link rel="import" href="/tvcm/ui/info_bar.html">
 
+<style>
+layer-tree-quad-stack-view > top-controls {
+  -webkit-flex: 0 0 auto;
+  background-image: -webkit-gradient(linear,
+                                     0 0, 100% 0,
+                                     from(#E5E5E5),
+                                     to(#D1D1D1));
+  border-bottom: 1px solid #8e8e8e;
+  border-top: 1px solid white;
+  display: inline;
+  font-size:  14px;
+  padding-left: 2px;
+}
+
+layer-tree-quad-stack-view > top-controls input[type='checkbox'] {
+    vertical-align: -2px;
+}
+</style>
 <script>
 'use strict';
 
