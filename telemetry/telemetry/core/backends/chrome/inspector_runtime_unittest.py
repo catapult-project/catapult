@@ -67,12 +67,12 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     # Access parent page using EvaluateJavaScriptInContext.
     self.assertEquals(TestVar(context_id=starting_contexts+1), 'host')
 
-    # Access the iframes.
-    self.assertEquals(TestVar(context_id=starting_contexts+2), 'iframe1')
-    self.assertTrue(TestVar(context_id=starting_contexts+3) in ['iframe2',
-                                                                'iframe3'])
-    self.assertTrue(TestVar(context_id=starting_contexts+4) in ['iframe2',
-                                                                'iframe3'])
+    # Access the iframes without guarantees on which order they loaded.
+    iframe1 = TestVar(context_id=starting_contexts+2)
+    iframe2 = TestVar(context_id=starting_contexts+3)
+    iframe3 = TestVar(context_id=starting_contexts+4)
+    self.assertEqual(set([iframe1, iframe2, iframe3]),
+                     set(['iframe1', 'iframe2', 'iframe3']))
 
     # Accessing a non-existent iframe throws an exception.
     self.assertRaises(exceptions.EvaluateException,
