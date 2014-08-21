@@ -39,6 +39,9 @@ found in the LICENSE file.
     created: function() {
       this.classList.add('raster-task-sub-view');
       this.layerTreeView_ = new cc.LayerTreeHostImplSnapshotView();
+      this.layerTreeView_.addEventListener(
+          'cc-selection-change',
+          this.onLayerTreeViewCCSelectionChange_.bind(this));
       this.infoBar_ = new tvcm.ui.InfoBar();
       this.appendChild(this.infoBar_);
       this.appendChild(this.layerTreeView_);
@@ -84,6 +87,13 @@ found in the LICENSE file.
       this.layerTreeView_.extraHighlightsByLayerId =
           cc_selection.extraHighlightsByLayerId;
       this.layerTreeView_.selection = cc_selection;
+    },
+
+    onLayerTreeViewCCSelectionChange_: function() {
+      if (this.layerTreeView_.selection !== undefined)
+        return;
+      this.layerTreeView_.selection = new cc.RasterTaskSelection(
+          this.selection_);
     }
   });
   </script>
