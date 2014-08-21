@@ -9,7 +9,9 @@ import re
 from telemetry import decorators
 from telemetry.core.platform import power_monitor
 
+
 CPU_PATH = '/sys/devices/system/cpu/'
+
 
 class SysfsPowerMonitor(power_monitor.PowerMonitor):
   """PowerMonitor that relies on sysfs to monitor CPU statistics on several
@@ -34,8 +36,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     """
     super(SysfsPowerMonitor, self).__init__()
     self._browser = None
-    self._cpus = filter(lambda x: re.match(r'^cpu[0-9]+', x),
-                        platform.RunShellCommand('ls %s' % CPU_PATH).split())
+    self._cpus = None
     self._final_cstate = None
     self._final_freq = None
     self._initial_cstate = None
@@ -51,6 +52,9 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     assert not self._browser, 'Must call StopMonitoringPower().'
     self._browser = browser
     if self.CanMonitorPower():
+      self._cpus = filter(
+          lambda x: re.match(r'^cpu[0-9]+', x),
+          self._platform.RunShellCommand('ls %s' % CPU_PATH).split())
       self._initial_freq = self.GetCpuFreq()
       self._initial_cstate = self.GetCpuState()
 
@@ -58,7 +62,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     assert self._browser, 'StartMonitoringPower() not called.'
     try:
       out = {}
-      if self.CanMonitorPower():
+      if SysfsPowerMonitor.CanMonitorPower(self):
         self._final_freq = self.GetCpuFreq()
         self._final_cstate = self.GetCpuState()
         frequencies = SysfsPowerMonitor.ComputeCpuStats(
@@ -162,3 +166,22 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
       average[state] = time / float(count)
     cpu_stats['whole_package'] = average
     return cpu_stats
+
+  @staticmethod
+  def CombineResults(cpu_stats, power_stats):
+    """Add frequency and c-state residency data to the power data.
+
+    Args:
+        cpu_stats: Dictionary containing CPU statistics.
+        power_stats: Dictionary containing power statistics.
+
+    Returns:
+        Dictionary in the format returned by StopMonitoringPower.
+    """
+    if not cpu_stats:
+      return power_stats
+    if 'component_utilization' not in power_stats:
+      power_stats['component_utilization'] = {}
+    for cpu in cpu_stats:
+      power_stats['component_utilization'][cpu] = cpu_stats[cpu]
+    return power_stats

@@ -6,10 +6,9 @@ import collections
 import re
 
 from telemetry import decorators
-from telemetry.core.platform.power_monitor import cros_sysfs_platform
+from telemetry.core.platform import cros_sysfs_platform
 from telemetry.core.platform.power_monitor import sysfs_power_monitor
 
-CPU_PATH = '/sys/devices/system/cpu/'
 
 class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   """PowerMonitor that relies on 'power_supply_info' to monitor power
@@ -22,13 +21,13 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
         cri: Chrome interface.
 
     Attributes:
-        _browser: The browser to monitor.
         _cri: The Chrome interface.
+        _end_time: The epoch time at which the test finishes executing.
         _initial_power: The result of 'power_supply_info' before the test.
+        _start_time: The epoch time at which the test starts executing.
     """
     super(CrosPowerMonitor, self).__init__(
         cros_sysfs_platform.CrosSysfsPlatform(cri))
-    self._browser = None
     self._cri = cri
     self._end_time = None
     self._initial_power = None
@@ -51,7 +50,7 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     length_h = (self._end_time - self._start_time) / 3600.0
     power_stats = CrosPowerMonitor.ParsePower(
         self._initial_power, final_power, length_h)
-    return CrosPowerMonitor.CombineResults(cpu_stats, power_stats)
+    return super(CrosPowerMonitor, self).CombineResults(cpu_stats, power_stats)
 
   @staticmethod
   def IsOnBatteryPower(status, board):
@@ -146,22 +145,3 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     component_utilization['battery'] = battery
     out_dict['component_utilization'] = component_utilization
     return out_dict
-
-  @staticmethod
-  def CombineResults(cpu_stats, power_stats):
-    """Add frequency and c-state residency data to the power data.
-
-    Args:
-        cpu_stats: Dictionary of CPU data gathered from SysfsPowerMonitor.
-        power_stats: Dictionary containing power statistics.
-
-    Returns:
-        Dictionary in the format returned by StopMonitoringPower.
-    """
-    if not cpu_stats:
-      return power_stats
-    comp_util = power_stats['component_utilization']
-    # Add CPU stats to power stat dictionary.
-    for cpu in cpu_stats:
-      comp_util[cpu] = cpu_stats[cpu]
-    return power_stats

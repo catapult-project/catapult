@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.core.platform.power_monitor import cros_sysfs_platform
+from telemetry.core.platform import cros_sysfs_platform
 
 
 class CrosSysfsPlatformTest(unittest.TestCase):

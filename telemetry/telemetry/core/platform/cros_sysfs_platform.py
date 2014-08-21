@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.platform.power_monitor import sysfs_platform
+from telemetry.core.platform import sysfs_platform
 
 
 class CrosSysfsPlatform(sysfs_platform.SysfsPlatform):

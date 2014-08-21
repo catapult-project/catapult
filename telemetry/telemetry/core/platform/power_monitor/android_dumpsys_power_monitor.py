@@ -6,10 +6,11 @@ import csv
 import logging
 from collections import defaultdict
 
-from telemetry.core.platform import power_monitor
+from telemetry.core.platform import android_sysfs_platform
+from telemetry.core.platform.power_monitor import sysfs_power_monitor
 
 
-class DumpsysPowerMonitor(power_monitor.PowerMonitor):
+class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   """PowerMonitor that relies on the dumpsys batterystats to monitor the power
   consumption of a single android application. This measure uses a heuristic
   and is the same information end-users see with the battery application.
@@ -20,37 +21,33 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     Args:
         device: DeviceUtils instance.
     """
-    super(DumpsysPowerMonitor, self).__init__()
+    super(DumpsysPowerMonitor, self).__init__(
+        android_sysfs_platform.AndroidSysfsPlatform(device))
     self._device = device
-    self._browser = None
 
   def CanMonitorPower(self):
     return self._device.old_interface.CanControlUsbCharging()
 
   def StartMonitoringPower(self, browser):
-    assert not self._browser, (
-        'Must call StopMonitoringPower().')
-    self._browser = browser
+    super(DumpsysPowerMonitor, self).StartMonitoringPower(browser)
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
     # charging.
     self._device.old_interface.DisableUsbCharging()
 
   def StopMonitoringPower(self):
-    assert self._browser, (
-        'StartMonitoringPower() not called.')
-    try:
-      self._device.old_interface.EnableUsbCharging()
+    if self._browser:
       # pylint: disable=W0212
       package = self._browser._browser_backend.package
-      # By default, 'dumpsys batterystats' measures power consumption during the
-      # last unplugged period.
-      result = self._device.RunShellCommand(
-          'dumpsys batterystats -c %s' % package)
-      assert result, 'Dumpsys produced no output'
-      return DumpsysPowerMonitor.ParseSamplingOutput(package, result)
-    finally:
-      self._browser = None
+    cpu_stats = super(DumpsysPowerMonitor, self).StopMonitoringPower()
+    self._device.old_interface.EnableUsbCharging()
+    # By default, 'dumpsys batterystats' measures power consumption during the
+    # last unplugged period.
+    result = self._device.RunShellCommand(
+        'dumpsys batterystats -c %s' % package)
+    assert result, 'Dumpsys produced no output'
+    return super(DumpsysPowerMonitor, self).CombineResults(
+        cpu_stats, DumpsysPowerMonitor.ParseSamplingOutput(package, result))
 
   @staticmethod
   def ParseSamplingOutput(package, dumpsys_output):

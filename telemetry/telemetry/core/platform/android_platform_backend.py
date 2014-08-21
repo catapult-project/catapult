@@ -51,7 +51,7 @@ class AndroidPlatformBackend(
     self._can_access_protected_file_contents = \
         self._device.old_interface.CanAccessProtectedFileContents()
     power_controller = power_monitor_controller.PowerMonitorController([
-        monsoon_power_monitor.MonsoonPowerMonitor(),
+        monsoon_power_monitor.MonsoonPowerMonitor(device),
         android_ds2784_power_monitor.DS2784PowerMonitor(device),
         android_dumpsys_power_monitor.DumpsysPowerMonitor(device),
     ])

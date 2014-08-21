@@ -8,7 +8,8 @@ import tempfile
 import time
 
 from telemetry.core import exceptions
-from telemetry.core.platform import power_monitor
+from telemetry.core.platform import android_sysfs_platform
+from telemetry.core.platform.power_monitor import sysfs_power_monitor
 from telemetry.core.platform.profiler import monsoon
 
 
@@ -42,9 +43,10 @@ def _MonitorPower(device, is_collecting, output):
     }
     json.dump(result, output)
 
-class MonsoonPowerMonitor(power_monitor.PowerMonitor):
-  def __init__(self):
-    super(MonsoonPowerMonitor, self).__init__()
+class MonsoonPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
+  def __init__(self, device):
+    super(MonsoonPowerMonitor, self).__init__(
+        android_sysfs_platform.AndroidSysfsPlatform(device))
     self._powermonitor_process = None
     self._powermonitor_output_file = None
     self._is_collecting = None
@@ -65,6 +67,7 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
   def StartMonitoringPower(self, browser):
     assert not self._powermonitor_process, (
         'Must call StopMonitoringPower().')
+    super(MonsoonPowerMonitor, self).StartMonitoringPower(browser)
     self._powermonitor_output_file = tempfile.TemporaryFile()
     self._is_collecting = multiprocessing.Event()
     self._powermonitor_process = multiprocessing.Process(
@@ -81,6 +84,7 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
     assert self._powermonitor_process, (
         'StartMonitoringPower() not called.')
     try:
+      cpu_stats = super(MonsoonPowerMonitor, self).StopMonitoringPower()
       # Tell powermonitor to take an immediate sample and join.
       self._is_collecting.clear()
       self._powermonitor_process.join()
@@ -88,7 +92,9 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
         self._powermonitor_output_file.seek(0)
         powermonitor_output = self._powermonitor_output_file.read()
       assert powermonitor_output, 'PowerMonitor produced no output'
-      return MonsoonPowerMonitor.ParseSamplingOutput(powermonitor_output)
+      power_stats = MonsoonPowerMonitor.ParseSamplingOutput(powermonitor_output)
+      return super(MonsoonPowerMonitor, self).CombineResults(cpu_stats,
+                                                             power_stats)
     finally:
       self._powermonitor_output_file = None
       self._powermonitor_process = None

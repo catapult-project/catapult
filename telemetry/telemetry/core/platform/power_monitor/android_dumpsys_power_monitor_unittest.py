@@ -9,7 +9,7 @@ from telemetry.core.platform.power_monitor import android_dumpsys_power_monitor
 from telemetry.core.util import GetUnittestDataDir
 
 
-class DS2784PowerMonitorMonitorTest(unittest.TestCase):
+class DumpsysPowerMonitorMonitorTest(unittest.TestCase):
   def testEnergyComsumption(self):
     package = 'com.google.android.apps.chrome'
     dumpsys_output = os.path.join(GetUnittestDataDir(), 'batterystats_v8.csv')
