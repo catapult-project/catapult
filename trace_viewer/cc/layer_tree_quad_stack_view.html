@@ -79,6 +79,7 @@ tvcm.exportTo('cc', function() {
       this.quadStackView_ = new tvcm.ui.QuadStackView();
       this.quadStackView_.addEventListener(
           'selectionchange', this.onQuadStackViewSelectionChange_.bind(this));
+      this.extraHighlightsByLayerId_ = undefined;
 
       var m = tvcm.ui.MOUSE_SELECTOR_MODE;
       var mms = this.quadStackView_.mouseModeSelector;
@@ -193,6 +194,15 @@ tvcm.exportTo('cc', function() {
       //             layerTreeImpls.
       this.layerTreeImpl_ = layerTreeImpl;
       this.selection = undefined;
+    },
+
+    get extraHighlightsByLayerId() {
+      return this.extraHighlightsByLayerId_;
+    },
+
+    set extraHighlightsByLayerId(extraHighlightsByLayerId) {
+      this.extraHighlightsByLayerId_ = extraHighlightsByLayerId;
+      this.scheduleUpdateContents_();
     },
 
     get showOtherLayers() {
@@ -852,12 +862,8 @@ tvcm.exportTo('cc', function() {
       }
     },
 
-    maybeAppendSelectionQuadsForLayer_: function(
-        quads, layer, layerQuad, selectionHighlightsByLayerId) {
-      var highlights = selectionHighlightsByLayerId[layer.layerId];
-      if (highlights === undefined)
-        return;
-
+    appendHighlightQuadsForLayer_: function(
+        quads, layer, layerQuad, highlights) {
       highlights.forEach(function(highlight) {
         var rect = highlight.rect;
 
@@ -916,6 +922,8 @@ tvcm.exportTo('cc', function() {
       else
         selectionHighlightsByLayerId = {};
 
+      var extraHighlightsByLayerId = this.extraHighlightsByLayerId || {};
+
       for (var i = 1; i <= layers.length; i++) {
         // Generate quads back-to-front.
         var layer = layers[layers.length - i];
@@ -963,9 +971,18 @@ tvcm.exportTo('cc', function() {
               this.howToShowTiles, this.tileHeatmapType);
         }
 
-        this.maybeAppendSelectionQuadsForLayer_(
-            quads, layer, layerQuad,
-            selectionHighlightsByLayerId);
+        var highlights;
+        highlights = extraHighlightsByLayerId[layer.layerId];
+        if (highlights) {
+          this.appendHighlightQuadsForLayer_(
+              quads, layer, layerQuad, highlights)
+        }
+
+        highlights = selectionHighlightsByLayerId[layer.layerId];
+        if (highlights) {
+          this.appendHighlightQuadsForLayer_(
+              quads, layer, layerQuad, highlights)
+        }
       }
 
       this.layerTreeImpl.iterLayers(function(layer, depth, isMask, isReplica) {

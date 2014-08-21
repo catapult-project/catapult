@@ -100,8 +100,15 @@ tvcm.exportTo('cc', function() {
     onLayerViewSelectionChanged_: function() {
       this.selection_ = this.layerView_.selection;
       this.layerPicker_.selection = this.selection;
-    }
+    },
 
+    get extraHighlightsByLayerId() {
+      return this.layerView_.extraHighlightsByLayerId;
+    },
+
+    set extraHighlightsByLayerId(extraHighlightsByLayerId) {
+      this.layerView_.extraHighlightsByLayerId = extraHighlightsByLayerId;
+    }
   };
 
   tracing.analysis.ObjectSnapshotView.register(

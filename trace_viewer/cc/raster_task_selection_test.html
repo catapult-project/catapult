@@ -26,7 +26,7 @@ tvcm.unittest.testSuite(function() {
 
     assertTrue(cc.RasterTaskSelection.supports(selection));
     var selection = new cc.RasterTaskSelection(selection);
-    var highlights = selection.highlightsByLayerId;
+    var highlights = selection.extraHighlightsByLayerId;
     assertTrue(tvcm.dictionaryLength(highlights), 1);
   });
 });

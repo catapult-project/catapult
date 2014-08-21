@@ -81,6 +81,8 @@ found in the LICENSE file.
 
       var containingSnapshot = cc_selection.containingSnapshot;
       this.layerTreeView_.objectSnapshot = containingSnapshot;
+      this.layerTreeView_.extraHighlightsByLayerId =
+          cc_selection.extraHighlightsByLayerId;
       this.layerTreeView_.selection = cc_selection;
     }
   });

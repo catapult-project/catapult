@@ -128,6 +128,15 @@ tvcm.exportTo('cc', function() {
 
       e.stopPropagation();
       this.selection = e.selection;
+    },
+
+    get extraHighlightsByLayerId() {
+      return this.layerTreeQuadStackView_.extraHighlightsByLayerId;
+    },
+
+    set extraHighlightsByLayerId(extraHighlightsByLayerId) {
+      this.layerTreeQuadStackView_.extraHighlightsByLayerId =
+          extraHighlightsByLayerId;
     }
   };
 

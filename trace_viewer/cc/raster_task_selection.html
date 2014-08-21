@@ -17,9 +17,10 @@ tvcm.exportTo('cc', function() {
    * @constructor
    */
   function RasterTaskSelection(selection) {
+    cc.Selection.call(this);
     var whySupported = RasterTaskSelection.whySuported(selection);
     if (!whySupported.ok)
-      throw new Error('Fail: ' + whyNot.why);
+      throw new Error('Fail: ' + whySupported.why);
     this.slices_ = tvcm.asArray(selection);
     this.tiles_ = this.slices_.map(function(slice) {
       var tile = cc.getTileFromRasterTaskSlice(slice);
@@ -64,7 +65,7 @@ tvcm.exportTo('cc', function() {
   };
 
   RasterTaskSelection.prototype = {
-    __proto__: Selection.prototype,
+    __proto__: cc.Selection.prototype,
 
     get specicifity() {
       return 3;
@@ -80,7 +81,7 @@ tvcm.exportTo('cc', function() {
       return undefined;
     },
 
-    get highlightsByLayerId() {
+    get extraHighlightsByLayerId() {
       var highlights = {};
       this.tiles_.forEach(function(tile, i) {
         if (highlights[tile.layerId] === undefined)
