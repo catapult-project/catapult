@@ -10,13 +10,13 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/analysis_sub_view.html">
 <link rel="import" href="/tvcm/ui/info_bar.html">
 <style>
-.raster-task-slice-view {
+.raster-task-sub-view {
   -webkit-flex-direction: column;
   -webkit-flex: 1 1 auto;
   display: -webkit-flex;
 }
 
-.raster-task-slice-view > object-snapshot-view {
+.raster-task-sub-view > object-snapshot-view {
   -webkit-flex: 1 1 auto;
 }
 </style>
@@ -39,14 +39,14 @@ found in the LICENSE file.
   }
 })();
 </script>
-<polymer-element name="raster-task-slice-view"
+<polymer-element name="raster-task-sub-view"
     extends="tracing-analysis-sub-view"
-    constructor="RasterTaskSliceView">
+    constructor="RasterTaskSubView">
   <script>
   'use strict';
   Polymer({
     created: function() {
-      this.classList.add('raster-task-slice-view');
+      this.classList.add('raster-task-sub-view');
       this.layerTreeView_ = new cc.LayerTreeHostImplSnapshotView();
       this.infoBar_ = new tvcm.ui.InfoBar();
       this.appendChild(this.infoBar_);
@@ -133,7 +133,7 @@ found in the LICENSE file.
           return false;
         return isSliceARasterTask(selection[0]);
       },
-      RasterTaskSliceView);
+      RasterTaskSubView);
   });
 })();
 </script>

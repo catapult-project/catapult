@@ -117,7 +117,7 @@
       'trace_viewer/cc/picture_ops_chart_view.html',
       'trace_viewer/cc/picture_ops_list_view.html',
       'trace_viewer/cc/picture_view.html',
-      'trace_viewer/cc/raster_task_slice_view.html',
+      'trace_viewer/cc/raster_task_sub_view.html',
       'trace_viewer/cc/region.html',
       'trace_viewer/cc/render_pass.html',
       'trace_viewer/cc/selection.html',

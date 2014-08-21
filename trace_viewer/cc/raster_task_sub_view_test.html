@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/cc/raster_task_slice_view.html">
+<link rel="import" href="/cc/raster_task_sub_view.html">
 <link rel="import" href="/tracing/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/trace_model.html">
 
@@ -23,7 +23,7 @@ tvcm.unittest.testSuite(function() {
       return slice.title == 'TileManager::RunRasterTask';
     })[0];
 
-    var view = new RasterTaskSliceView();
+    var view = new RasterTaskSubView();
     view.style.minHeight = '500px';
     var selection = new tracing.Selection();
     selection.push(rasterTask);
