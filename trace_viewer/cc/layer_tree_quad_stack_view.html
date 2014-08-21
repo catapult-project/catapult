@@ -164,6 +164,9 @@ tvcm.exportTo('cc', function() {
     },
 
     set layerTreeImpl(layerTreeImpl) {
+      if (this.layerTreeImpl_ === layerTreeImpl)
+        return;
+
       // FIXME(pdr): We may want to clear pictureAsImageData_ here to save
       //             memory at the cost of performance. Note that
       //             pictureAsImageData_ will be cleared when this is
@@ -265,7 +268,10 @@ tvcm.exportTo('cc', function() {
     },
 
     set selection(selection) {
-      tvcm.setPropertyAndDispatchChange(this, 'selection', selection);
+      if (this.selection == selection)
+        return;
+      this.selection_ = selection;
+      tvcm.dispatchSimpleEvent(this, 'selection-change');
       this.updateContents_();
     },
 

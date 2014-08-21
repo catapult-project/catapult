@@ -299,6 +299,8 @@ tvcm.exportTo('cc', function() {
     },
 
     set selection(selection) {
+      if (this.selection_ == selection)
+        return;
       this.selection_ = selection;
       this.updateContents_();
     }
