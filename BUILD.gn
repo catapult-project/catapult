@@ -22,7 +22,6 @@ tracing_css_files = [
   "trace_viewer/cc/picture_ops_chart_view.css",
   "trace_viewer/cc/picture_ops_list_view.css",
   "trace_viewer/cc/picture_view.css",
-  "trace_viewer/cc/raster_task_slice_view.css",
   "trace_viewer/gpu/state_view.css",
   "trace_viewer/system_stats/system_stats_instance_track.css",
   "trace_viewer/system_stats/system_stats_snapshot_view.css",

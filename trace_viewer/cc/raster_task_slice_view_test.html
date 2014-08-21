@@ -23,9 +23,11 @@ tvcm.unittest.testSuite(function() {
       return slice.title == 'TileManager::RunRasterTask';
     })[0];
 
-    var view = new cc.RasterTaskSliceView();
+    var view = new RasterTaskSliceView();
     view.style.minHeight = '500px';
-    view.slice = rasterTask;
+    var selection = new tracing.Selection();
+    selection.push(rasterTask);
+    view.selection = selection;
     this.addHTMLOutput(view);
   });
 });

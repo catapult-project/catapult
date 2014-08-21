@@ -4,20 +4,27 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-
-<link rel="stylesheet" href="/cc/raster_task_slice_view.css">
-
 <link rel="import" href="/cc/tile.html">
 <link rel="import" href="/cc/tile_view.html">
 <link rel="import" href="/cc/layer_tree_host_impl_view.html">
-<link rel="import" href="/tracing/analysis/slice_view.html">
+<link rel="import" href="/tracing/analysis/analysis_sub_view.html">
 <link rel="import" href="/tvcm/ui/info_bar.html">
+<style>
+.raster-task-slice-view {
+  -webkit-flex-direction: column;
+  -webkit-flex: 1 1 auto;
+  display: -webkit-flex;
+}
 
+.raster-task-slice-view > object-snapshot-view {
+  -webkit-flex: 1 1 auto;
+}
+</style>
 <script>
 'use strict';
 
-tvcm.exportTo('cc', function() {
-  function getTileFromRasterTaskSlice(slice) {
+(function() {
+  cc.getTileFromRasterTaskSlice = function(slice) {
     var tileData;
     if (slice.args.data)
       tileData = slice.args.data;
@@ -30,32 +37,48 @@ tvcm.exportTo('cc', function() {
       return tileData.tile_id;
     return tileData.tileId;
   }
-
-  /**
-   * @constructor
-   */
-  var RasterTaskSliceView = tvcm.ui.define(
-      'raster-task-slice-view', tracing.analysis.SliceView);
-
-  RasterTaskSliceView.prototype = {
-    __proto__: tracing.analysis.SliceView.prototype,
-
-    decorate: function() {
+})();
+</script>
+<polymer-element name="raster-task-slice-view"
+    extends="tracing-analysis-sub-view"
+    constructor="RasterTaskSliceView">
+  <script>
+  'use strict';
+  Polymer({
+    created: function() {
       this.classList.add('raster-task-slice-view');
       this.layerTreeView_ = new cc.LayerTreeHostImplSnapshotView();
       this.infoBar_ = new tvcm.ui.InfoBar();
       this.appendChild(this.infoBar_);
       this.appendChild(this.layerTreeView_);
+      this.selection = undefined;
     },
 
     get requiresTallView() {
       return true;
     },
 
-    updateContents: function() {
+    get selection() {
+      return this.selection_;
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+      this.updateContents_();
+    },
+
+    get slice() {
+      if (this.selection_ == undefined)
+        return undefined;
+      return this.selection_[0];
+    },
+
+    updateContents_: function() {
       this.infoBar_.visible = false;
 
-      var tile = getTileFromRasterTaskSlice(this.slice);
+      var tile;
+      if (this.slice)
+        tile = cc.getTileFromRasterTaskSlice(this.slice);
       if (!tile) {
         this.infoBar_.visible = true;
         this.infoBar_.message = 'No tile on this raster task.';
@@ -74,37 +97,43 @@ tvcm.exportTo('cc', function() {
       this.layerTreeView_.objectSnapshot = containingSnapshot;
       this.layerTreeView_.selection = new cc.RasterTaskSelection(this.slice);
     }
-  };
+  });
+  </script>
+</polymer-element>
+<script>
+'use strict';
 
-  tracing.analysis.SliceView.register(
-      'TileManager::RunRasterTask', RasterTaskSliceView);
-  tracing.analysis.SliceView.register(
-      'RasterWorkerPoolTaskImpl::RunRasterOnThread', RasterTaskSliceView);
-  tracing.analysis.SliceView.register(
-      'RasterWorkerPoolTaskImpl::Raster', RasterTaskSliceView);
-  tracing.analysis.SliceView.register(
-      'RasterTaskImpl::Raster', RasterTaskSliceView);
-  tracing.analysis.SliceView.register(
-      'cc::RasterTask', RasterTaskSliceView);
-  tracing.analysis.SliceView.register(
-      'RasterTask', RasterTaskSliceView);
+(function() {
+  var knownRasterTaskNames = [
+      'TileManager::RunRasterTask',
+      'RasterWorkerPoolTaskImpl::RunRasterOnThread',
+      'RasterWorkerPoolTaskImpl::Raster',
+      'RasterTaskImpl::Raster',
+      'cc::RasterTask',
+      'RasterTask',
 
-  tracing.analysis.SliceView.register(
-      'TileManager::RunAnalyzeTask', RasterTaskSliceView);
-  tracing.analysis.SliceView.register(
-      'RasterWorkerPoolTaskImpl::RunAnalysisOnThread', RasterTaskSliceView);
-  tracing.analysis.SliceView.register(
-      'RasterWorkerPoolTaskImpl::Analyze', RasterTaskSliceView);
-  tracing.analysis.SliceView.register(
-      'RasterTaskImpl::Analyze', RasterTaskSliceView);
-  tracing.analysis.SliceView.register(
-      'cc::AnalyzeTask', RasterTaskSliceView);
-  tracing.analysis.SliceView.register(
-      'AnalyzeTask', RasterTaskSliceView);
+      'TileManager::RunAnalyzeTask',
+      'RasterWorkerPoolTaskImpl::RunAnalysisOnThread',
+      'RasterWorkerPoolTaskImpl::Analyze',
+      'RasterTaskImpl::Analyze',
+      'cc::AnalyzeTask',
+      'AnalyzeTask'
+  ];
+  function isSliceARasterTask(slice) {
+    return knownRasterTaskNames.indexOf(slice.title) !== -1;
+  }
 
-  return {
-    getTileFromRasterTaskSlice: getTileFromRasterTaskSlice,
-    RasterTaskSliceView: RasterTaskSliceView
-  };
-});
+  tvcm.onPolymerReady(function() {
+    tracing.registerAnalysisSubViewType(
+      1,
+      function supported(selection) {
+        if (selection.length != 1)
+          return false;
+        if (!(selection[0] instanceof tracing.trace_model.Slice))
+          return false;
+        return isSliceARasterTask(selection[0]);
+      },
+      RasterTaskSliceView);
+  });
+})();
 </script>
