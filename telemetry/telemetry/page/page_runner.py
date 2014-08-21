@@ -360,6 +360,10 @@ def Run(test, page_set, expectations, finder_options, results):
     logging.warning('Pass --also-run-disabled-tests to squelch this message.')
     return
 
+  if possible_browser.IsRemote():
+    possible_browser.RunRemote()
+    sys.exit(0)
+
   # Reorder page set based on options.
   pages = _ShuffleAndFilterPageSet(page_set, finder_options)
 

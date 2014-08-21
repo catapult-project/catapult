@@ -54,5 +54,14 @@ class PossibleBrowser(object):
     """Tests for extension support."""
     raise NotImplementedError()
 
+  def IsRemote(self):
+    return False
+
+  def RunRemote(self):
+    pass
+
+  def UpdateExecutableIfNeeded(self):
+    pass
+
   def last_modification_time(self):
     return -1

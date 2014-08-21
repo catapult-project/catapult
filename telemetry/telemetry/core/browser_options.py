@@ -63,7 +63,7 @@ class BrowserFinderOptions(optparse.Values):
         default=None,
         help='Browser type to run, '
              'in order of priority. Supported values: list,%s' %
-             ','.join(browser_finder.FindAllBrowserTypes()))
+             ','.join(browser_finder.FindAllBrowserTypes(self)))
     group.add_option('--browser-executable',
         dest='browser_executable',
         help='The exact browser to run.')

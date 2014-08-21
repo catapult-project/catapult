@@ -24,7 +24,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     target_os = sys.platform.lower()
     super(PossibleDesktopBrowser, self).__init__(browser_type, target_os,
         finder_options, not is_content_shell)
-    assert browser_type in FindAllBrowserTypes(), \
+    assert browser_type in FindAllBrowserTypes(finder_options), \
         ('Please add %s to desktop_browser_finder.FindAllBrowserTypes' %
           browser_type)
     self._local_executable = executable
@@ -88,7 +88,7 @@ def SelectDefaultBrowser(possible_browsers):
 def CanFindAvailableBrowsers():
   return not cros_interface.IsRunningOnCrosDevice()
 
-def FindAllBrowserTypes():
+def FindAllBrowserTypes(_):
   return [
       'exact',
       'release',

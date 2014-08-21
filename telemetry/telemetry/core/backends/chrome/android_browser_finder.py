@@ -67,7 +67,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def __init__(self, browser_type, finder_options, backend_settings, apk_name):
     super(PossibleAndroidBrowser, self).__init__(browser_type, 'android',
         finder_options, backend_settings.supports_tab_control)
-    assert browser_type in FindAllBrowserTypes(), \
+    assert browser_type in FindAllBrowserTypes(finder_options), \
         ('Please add %s to android_browser_finder.FindAllBrowserTypes' %
          browser_type)
     self._backend_settings = backend_settings
@@ -177,7 +177,7 @@ def CanFindAvailableBrowsers(logging=real_logging):
   return False
 
 
-def FindAllBrowserTypes():
+def FindAllBrowserTypes(_):
   return CHROME_PACKAGE_NAMES.keys()
 
 

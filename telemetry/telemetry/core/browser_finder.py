@@ -12,6 +12,7 @@ from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.backends.chrome import cros_browser_finder
 from telemetry.core.backends.chrome import desktop_browser_finder
 from telemetry.core.backends.chrome import ios_browser_finder
+from telemetry.core.backends.remote import trybot_browser_finder
 from telemetry.core.backends.webdriver import webdriver_desktop_browser_finder
 
 BROWSER_FINDERS = [
@@ -19,6 +20,7 @@ BROWSER_FINDERS = [
   android_browser_finder,
   cros_browser_finder,
   ios_browser_finder,
+  trybot_browser_finder,
   webdriver_desktop_browser_finder,
   ]
 
@@ -31,10 +33,9 @@ class BrowserFinderException(Exception):
   pass
 
 
-@decorators.Cache
-def FindAllBrowserTypes():
+def FindAllBrowserTypes(options):
   return reduce(operator.add,
-                [bf.FindAllBrowserTypes() for bf in BROWSER_FINDERS])
+                [bf.FindAllBrowserTypes(options) for bf in BROWSER_FINDERS])
 
 
 @decorators.Cache
@@ -69,8 +70,8 @@ def FindBrowser(options):
   browsers = []
   default_browsers = []
   for finder in BROWSER_FINDERS:
-    if (options.browser_type and options.browser_type != 'any' and
-        options.browser_type not in finder.FindAllBrowserTypes()):
+    if(options.browser_type and options.browser_type != 'any' and
+       options.browser_type not in finder.FindAllBrowserTypes(options)):
       continue
     curr_browsers = finder.FindAllAvailableBrowsers(options)
     new_default_browser = finder.SelectDefaultBrowser(curr_browsers)
@@ -99,7 +100,7 @@ def FindBrowser(options):
         '\n'.join(sorted(set([b.browser_type for b in browsers]))))
 
   if options.browser_type == 'any':
-    types = FindAllBrowserTypes()
+    types = FindAllBrowserTypes(options)
     def CompareBrowsersOnTypePriority(x, y):
       x_idx = types.index(x.browser_type)
       y_idx = types.index(y.browser_type)

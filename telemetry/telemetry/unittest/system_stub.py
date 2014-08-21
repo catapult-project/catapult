@@ -139,6 +139,12 @@ class OpenFunctionStub(object):
       else:
         return self._data
 
+    def write(self, data):
+      self._data.write(data)
+
+    def close(self):
+      pass
+
   def __init__(self):
     self.files = {}
 

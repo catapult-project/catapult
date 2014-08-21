@@ -30,7 +30,7 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
     target_os = sys.platform.lower()
     super(PossibleWebDriverBrowser, self).__init__(browser_type, target_os,
         finder_options, False)
-    assert browser_type in FindAllBrowserTypes(), \
+    assert browser_type in FindAllBrowserTypes(finder_options), \
         ('Please add %s to webdriver_desktop_browser_finder.FindAllBrowserTypes'
          % browser_type)
 
@@ -81,7 +81,7 @@ class PossibleDesktopIE(PossibleWebDriverBrowser):
 def SelectDefaultBrowser(_):
   return None
 
-def FindAllBrowserTypes():
+def FindAllBrowserTypes(_):
   if webdriver:
     return [
         'internet-explorer',

@@ -62,7 +62,7 @@ def CanFindAvailableBrowsers():
   return platform.GetHostPlatform().GetOSName() == 'mac'
 
 
-def FindAllBrowserTypes():
+def FindAllBrowserTypes(_):
   return IOS_BROWSERS.values()
 
 
