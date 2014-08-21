@@ -28,7 +28,12 @@ tvcm.unittest.testSuite(function() {
     var selection = new tracing.Selection();
     selection.push(rasterTask);
     view.selection = selection;
+
     this.addHTMLOutput(view);
+
+    var analysisComputedStyle = window.getComputedStyle(
+        view.querySelector('layer-view-analysis'));
+    assertNotEquals(analysisComputedStyle.display, 'none');
   });
 });
 </script>

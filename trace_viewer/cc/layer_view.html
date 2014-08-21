@@ -44,7 +44,7 @@ tvcm.exportTo('cc', function() {
       this.appendChild(this.dragBar_);
       this.appendChild(this.analysisEl_);
 
-      this.layerTreeQuadStackView_.addEventListener('selectionChange',
+      this.layerTreeQuadStackView_.addEventListener('selection-change',
           function() {
             this.layerTreeQuadStackViewSelectionChanged_();
           }.bind(this));

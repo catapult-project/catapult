@@ -268,7 +268,7 @@ tvcm.exportTo('cc', function() {
     },
 
     set selection(selection) {
-      if (this.selection == selection)
+      if (this.selection === selection)
         return;
       this.selection_ = selection;
       tvcm.dispatchSimpleEvent(this, 'selection-change');
