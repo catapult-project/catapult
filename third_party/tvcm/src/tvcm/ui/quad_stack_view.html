@@ -389,6 +389,8 @@ tvcm.exportTo('tvcm.ui', function() {
           'quadStackView.stackingDistance', 45)
       stackingDistanceSlider.addEventListener(
           'change', this.onStackingDistanceChange_.bind(this));
+      stackingDistanceSlider.addEventListener(
+          'input', this.onStackingDistanceChange_.bind(this));
 
       this.trackMouse_();
 
