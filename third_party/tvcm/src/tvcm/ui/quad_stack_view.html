@@ -610,7 +610,7 @@ tvcm.exportTo('tvcm.ui', function() {
     },
 
     trackMouse_: function() {
-      this.mouseModeSelector_ = new tvcm.ui.MouseModeSelector(this);
+      this.mouseModeSelector_ = new tvcm.ui.MouseModeSelector(this.canvas_);
       this.mouseModeSelector_.supportedModeMask =
           tvcm.ui.MOUSE_SELECTOR_MODE.SELECTION |
           tvcm.ui.MOUSE_SELECTOR_MODE.PANSCAN |
