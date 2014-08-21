@@ -31,6 +31,12 @@ quad-stack-view > #header {
   left: 10px;
   width: 800px;
 }
+quad-stack-view > #stacking-distance-slider {
+  position: absolute;
+  font-size: 70%;
+  top: 10px;
+  right: 10px;
+}
 
 quad-stack-view > #chrome-left {
   content: url('../images/chrome-left.png');
@@ -50,6 +56,8 @@ quad-stack-view > #chrome-right {
 
 <template id='quad-stack-view-template'>
   <div id="header"></div>
+  <input id="stacking-distance-slider" type="range" min=1 max=200 step=1>
+  </input>
   <canvas id='canvas'></canvas>
   <img id='chrome-left'/>
   <img id='chrome-mid'/>
@@ -375,6 +383,13 @@ tvcm.exportTo('tvcm.ui', function() {
         right: this.querySelector('#chrome-right')
       };
 
+      var stackingDistanceSlider = this.querySelector(
+          '#stacking-distance-slider');
+      stackingDistanceSlider.value = tvcm.Settings.get(
+          'quadStackView.stackingDistance', 45)
+      stackingDistanceSlider.addEventListener(
+          'change', this.onStackingDistanceChange_.bind(this));
+
       this.trackMouse_();
 
       this.camera_ = new tvcm.ui.Camera(this.mouseModeSelector_);
@@ -385,7 +400,6 @@ tvcm.exportTo('tvcm.ui', function() {
 
       this.viewportRect_ = tvcm.Rect.fromXYWH(0, 0, 0, 0);
 
-      this.stackingDistance_ = 45;
       this.pixelRatio_ = window.devicePixelRatio || 1;
     },
 
@@ -405,9 +419,15 @@ tvcm.exportTo('tvcm.ui', function() {
       this.updateHeaderVisibility_();
     },
 
-    onStackingDistanceChange: function(e) {
-      this.stackingDistance_ = parseInt(e.target.value);
+    onStackingDistanceChange_: function(e) {
+      tvcm.Settings.set('quadStackView.stackingDistance',
+                        this.stackingDistance);
       this.scheduleRender();
+      e.stopPropagation();
+    },
+
+    get stackingDistance() {
+      return this.querySelector('#stacking-distance-slider').value;
     },
 
     get mouseModeSelector() {
@@ -565,8 +585,8 @@ tvcm.exportTo('tvcm.ui', function() {
 
       var mvp = mat4.create();
       this.maxStackingGroupId_ = quadStacks.length;
-      var stackingDistance =
-          this.stackingDistance_ * this.camera_.stackingDistanceDampening;
+      var effectiveStackingDistance =
+          this.stackingDistance * this.camera_.stackingDistanceDampening;
 
       // Draw the quad stacks, raising each subsequent level.
       mat4.multiply(mvp, p, mv);
@@ -575,7 +595,7 @@ tvcm.exportTo('tvcm.ui', function() {
                                  numPasses, handleQuadFunc,
                                  opt_arg1, opt_arg2);
 
-        mat4.translate(mv, mv, [0, 0, stackingDistance]);
+        mat4.translate(mv, mv, [0, 0, effectiveStackingDistance]);
         mat4.multiply(mvp, p, mv);
       }
 
