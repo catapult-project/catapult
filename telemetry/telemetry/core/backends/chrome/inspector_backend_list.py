@@ -45,11 +45,10 @@ class InspectorBackendList(collections.Sequence):
   def __getitem__(self, index):
     self._Update()
     if index >= len(self._inspectable_contexts_dict.keys()):
-      logging.error('About to explode: _inspectable_contexts_dict.keys() = %s',
-                    repr({
-                      "index": index,
-                      "keys": self._inspectable_contexts_dict.keys()
-                    }))
+      raise IndexError(
+          'About to explode: _inspectable_contexts_dict.keys() = %s,'
+          '"index": %i' % (
+              repr(self._inspectable_contexts_dict.keys()), index))
     context_id = self._inspectable_contexts_dict.keys()[index]
     if context_id not in self._inspector_backend_dict:
       backend = inspector_backend.InspectorBackend(

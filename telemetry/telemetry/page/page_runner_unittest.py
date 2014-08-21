@@ -75,6 +75,9 @@ class PageRunnerTests(unittest.TestCase):
     expectations = test_expectations.TestExpectations()
     page1 = page_module.Page('chrome://crash', ps)
     ps.pages.append(page1)
+    page2 = page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
+    ps.pages.append(page2)
 
     class Test(page_test.PageTest):
       def ValidatePage(self, *args):
@@ -86,7 +89,7 @@ class PageRunnerTests(unittest.TestCase):
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     page_runner.Run(Test(), ps, expectations, options, results)
-    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
+    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
 
   def testHandlingOfTestThatRaisesWithNonFatalUnknownExceptions(self):

@@ -85,6 +85,9 @@ class BrowserBackend(object):
   def Start(self):
     raise NotImplementedError()
 
+  def DidStart(self):
+    self.tab_list_backend.DidStartBrowser()
+
   def IsBrowserRunning(self):
     raise NotImplementedError()
 

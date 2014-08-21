@@ -26,6 +26,10 @@ class TabCrashException(NativeBrowserCrashException):
     super(TabCrashException, self).__init__(browser, msg)
 
 
+class TabIndexError(IndexError):
+  """Represents the error of accessing a tab with index out of bound."""
+
+
 class BrowserGoneException(NativeBrowserCrashException):
   """Represents a crash of the entire browser.
 

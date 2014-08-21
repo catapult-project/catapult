@@ -282,6 +282,7 @@ class Browser(object):
 
     self._browser_backend.SetBrowser(self)
     self._browser_backend.Start()
+    self._browser_backend.DidStart()
     self._platform_backend.DidStartBrowser(self, self._browser_backend)
 
   def Close(self):
