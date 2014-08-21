@@ -74,7 +74,7 @@ class BrowserFinderOptions(optparse.Values):
     group.add_option('--device',
         dest='android_device',
         help='The android device ID to use'
-             'If not specified, only 0 or 1 connected devcies are supported.')
+             'If not specified, only 0 or 1 connected devices are supported.')
     group.add_option('--target-arch',
         dest='target_arch',
         help='The target architecture of the browser. Options available are: '
