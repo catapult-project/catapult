@@ -17,7 +17,7 @@ tvcm.unittest.testSuite(function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
     var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
-      return slice.title == 'RasterTask';
+      return slice.title == 'RasterTask' || slice.title == 'AnalyzeTask';
     });
 
     var selection = new tracing.Selection();

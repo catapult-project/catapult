@@ -51,7 +51,8 @@ found in the LICENSE file.
           costsByLayerId[layerId] = {
             layerId: layerId,
             layer: layer,
-            numTasks: 0,
+            numAnalysisTasks: 0,
+            numRasterTasks: 0,
             duration: 0,
             cpuDuration: 0
           }
@@ -66,7 +67,10 @@ found in the LICENSE file.
       this.selection_.forEach(function(slice) {
         var tile = cc.getTileFromRasterTaskSlice(slice);
         var curCosts = getCurrentCostsForLayerId(tile);
-        curCosts.numTasks += 1;
+        if (cc.isSliceDoingAnalysis(slice))
+          curCosts.numAnalysisTasks += 1;
+        else
+          curCosts.numRasterTasks += 1;
         curCosts.duration += slice.duration;
         totalDuration += slice.duration;
         if (slice.cpuDuration !== undefined) {
@@ -86,10 +90,11 @@ found in the LICENSE file.
 
       // Output.
       var table = results.appendTable(
-          'analyze-rasterizatin-costs-table', hadCpuDurations ? 4 : 3);
+          'analyze-rasterizatin-costs-table', hadCpuDurations ? 5 : 4);
       var hrow = results.appendHeadRow(table);
       results.appendTableCell(table, hrow, 'Layer');
-      results.appendTableCell(table, hrow, 'Num Tasks');
+      results.appendTableCell(table, hrow, 'Num Analysis Tasks');
+      results.appendTableCell(table, hrow, 'Num Rasterized Tiles');
       results.appendTableCell(table, hrow, 'Wall Duration (ms)');
       if (hadCpuDurations)
         results.appendTableCell(table, hrow, 'CPU Duration (ms)');
@@ -108,7 +113,8 @@ found in the LICENSE file.
                 return new cc.LayerSelection(costs.layer);
               }));
         }
-        results.appendTableCell(table, row,  costs.numTasks);
+        results.appendTableCell(table, row,  costs.numAnalysisTasks);
+        results.appendTableCell(table, row,  costs.numRasterTasks);
         results.appendTableCell(
             table, row,  tracing.analysis.tsRound(costs.duration) + 'ms');
         if (hadCpuDurations) {

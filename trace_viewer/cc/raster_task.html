@@ -18,8 +18,10 @@ tvcm.exportTo('cc', function() {
       'RasterWorkerPoolTaskImpl::Raster',
       'RasterTaskImpl::Raster',
       'cc::RasterTask',
-      'RasterTask',
+      'RasterTask'
+  ];
 
+  var knownAnalysisTaskNames = [
       'TileManager::RunAnalyzeTask',
       'RasterWorkerPoolTaskImpl::RunAnalysisOnThread',
       'RasterWorkerPoolTaskImpl::Analyze',
@@ -46,12 +48,23 @@ tvcm.exportTo('cc', function() {
   }
 
   function isSliceARasterTask(slice) {
-    return knownRasterTaskNames.indexOf(slice.title) !== -1;
+    if (knownRasterTaskNames.indexOf(slice.title) !== -1)
+      return true;
+    if (knownAnalysisTaskNames.indexOf(slice.title) !== -1)
+      return true;
+    return false;
+  }
+
+  function isSliceDoingAnalysis(slice) {
+    if (knownAnalysisTaskNames.indexOf(slice.title) !== -1)
+      return true;
+    return false;
   }
 
   return {
     getTileFromRasterTaskSlice: getTileFromRasterTaskSlice,
-    isSliceARasterTask: isSliceARasterTask
+    isSliceARasterTask: isSliceARasterTask,
+    isSliceDoingAnalysis: isSliceDoingAnalysis
   };
 });
 </script>
