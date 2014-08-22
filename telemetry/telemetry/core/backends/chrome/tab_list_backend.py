@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import urllib2
 
 from telemetry.core import exceptions
@@ -67,7 +68,16 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
           'Number of opening tabs is %i, whereas number of live tabs is %i, '
           'Tried to get tab at index %i but this may not return the right tab.'
           % (self._num_expected_tabs, len(self), index))
-    assert self._num_expected_tabs == len(self)
+    # TODO(nednguyen): fix this by adding wait in DidStartBrowser to make sure
+    # that all the tabs have been loaded.
+    if self._num_expected_tabs != len(self):
+      logging.warning(
+          'Number of expected tabs was not intialized correctly (Num expected '
+          'tabs is %i, whereas number of live tabs is %i). This is probably due'
+          ' to the browser did not wait long enough for all tabs to be loaded '
+          ' before intializing number of expected tabs.' %
+          (self._num_expected_tabs, len(self)))
+      self._num_expected_tabs = len(self)
 
     return super(TabListBackend, self).__getitem__(index)
 
