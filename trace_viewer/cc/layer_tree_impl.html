@@ -31,13 +31,40 @@ tvcm.exportTo('cc', function() {
       cc.preInitializeObject(this);
       this.layerTreeHostImpl = undefined;
       this.whichTree = undefined;
+      this.sourceFrameNumber = undefined;
     },
 
     initialize: function() {
       cc.moveRequiredFieldsFromArgsToToplevel(
           this, ['rootLayer',
             'renderSurfaceLayerList']);
+      if (this.args.sourceFrameNumber)
+        this.sourceFrameNumber = this.args.sourceFrameNumber;
       this.rootLayer.layerTreeImpl = this;
+    },
+
+    get hasSourceFrameBeenDrawnBefore() {
+      if (this.whichTree == cc.constants.PENDING_TREE)
+        return false;
+
+      // Old chrome's don't produce sourceFrameNumber.
+      if (this.sourceFrameNumber === undefined)
+        return;
+
+      var thisLTHI = this.layerTreeHostImpl;
+      var thisLTHIIndex = thisLTHI.objectInstance.snapshots.indexOf(
+        thisLTHI);
+      var prevLTHIIndex = thisLTHIIndex - 1;
+      if (prevLTHIIndex < 0 && prevLTHIIndex >= thisLTHI.objectInstance.snapshots.length)
+        return false;
+      var prevLTHI = thisLTHI.objectInstance.snapshots[prevLTHIIndex];
+      if (!prevLTHI.activeTree)
+        return false;
+
+      // Old chrome's don't produce sourceFrameNumber.
+      if (prevLTHI.activeTree.sourceFrameNumber === undefined)
+        return;
+      return prevLTHI.activeTree.sourceFrameNumber == this.sourceFrameNumber;
     },
 
     get otherTree() {

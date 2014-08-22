@@ -617,6 +617,9 @@ tvcm.exportTo('cc', function() {
     },
 
     appendInvalidationQuads_: function(quads, layer, layerQuad) {
+      if (layer.layerTreeImpl.hasSourceFrameBeenDrawnBefore)
+        return;
+
       // Generate the invalidation rect quads.
       for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
         var rect = layer.invalidation.rects[ir];
