@@ -35,22 +35,25 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
 
   @decorators.Cache
   def CanMonitorPower(self):
-    return self._IsOnBatteryPower()
+    return super(CrosPowerMonitor, self).CanMonitorPower()
 
   def StartMonitoringPower(self, browser):
     super(CrosPowerMonitor, self).StartMonitoringPower(browser)
-    self._initial_power = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
-    self._start_time = int(self._cri.RunCmdOnDevice(['date', '+%s'])[0])
+    if self._IsOnBatteryPower():
+      self._initial_power = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
+      self._start_time = int(self._cri.RunCmdOnDevice(['date', '+%s'])[0])
 
   def StopMonitoringPower(self):
     cpu_stats = super(CrosPowerMonitor, self).StopMonitoringPower()
-    final_power = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
-    self._end_time = int(self._cri.RunCmdOnDevice(['date', '+%s'])[0])
-    # The length of the test is used to measure energy consumption.
-    length_h = (self._end_time - self._start_time) / 3600.0
-    power_stats = CrosPowerMonitor.ParsePower(
-        self._initial_power, final_power, length_h)
-    return super(CrosPowerMonitor, self).CombineResults(cpu_stats, power_stats)
+    power_stats = {}
+    if self._IsOnBatteryPower():
+      final_power = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
+      self._end_time = int(self._cri.RunCmdOnDevice(['date', '+%s'])[0])
+      # The length of the test is used to measure energy consumption.
+      length_h = (self._end_time - self._start_time) / 3600.0
+      power_stats = CrosPowerMonitor.ParsePower(self._initial_power,
+                                                final_power, length_h)
+    return CrosPowerMonitor.CombineResults(cpu_stats, power_stats)
 
   @staticmethod
   def IsOnBatteryPower(status, board):
