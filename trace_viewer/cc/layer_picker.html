@@ -245,7 +245,9 @@ tvcm.exportTo('cc', function() {
 
         if (layer.layerId == selectedLayerId) {
           layer.selectionState = tracing.trace_model.SelectionState.SELECTED;
+          this.changingItemSelection_ = true;
           item.selected = true;
+          this.changingItemSelection_ = false;
         }
       }, this);
     },
@@ -261,6 +263,8 @@ tvcm.exportTo('cc', function() {
     },
 
     onItemSelectionChanged_: function(e) {
+      if (this.changingItemSelection_)
+        return;
       if (this.renderPassQuads_)
         this.onRenderPassSelected_(e);
       else
