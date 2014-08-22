@@ -212,44 +212,47 @@ tvcm.exportTo('cc', function() {
     },
 
     updateLayerContents_: function() {
-      this.itemList_.clear();
+      this.changingItemSelection_ = true;
+      try {
+        this.itemList_.clear();
 
-      var selectedLayerId;
-      if (this.selection_ && this.selection_.associatedLayerId)
-        selectedLayerId = this.selection_.associatedLayerId;
+        var selectedLayerId;
+        if (this.selection_ && this.selection_.associatedLayerId)
+          selectedLayerId = this.selection_.associatedLayerId;
 
-      var layerInfos = this.getLayerInfos_();
-      layerInfos.forEach(function(layerInfo) {
-        var layer = layerInfo.layer;
-        var id = layer.layerId;
+        var layerInfos = this.getLayerInfos_();
+        layerInfos.forEach(function(layerInfo) {
+          var layer = layerInfo.layer;
+          var id = layer.layerId;
 
-        var item = this.createElementWithDepth_(layerInfo.depth);
-        var labelEl = item.appendChild(tvcm.ui.createSpan());
+          var item = this.createElementWithDepth_(layerInfo.depth);
+          var labelEl = item.appendChild(tvcm.ui.createSpan());
 
-        labelEl.textContent = layerInfo.name + ' ' + id;
+          labelEl.textContent = layerInfo.name + ' ' + id;
 
-        var notesEl = item.appendChild(tvcm.ui.createSpan());
-        if (layerInfo.isMaskLayer)
-          notesEl.textContent += '(mask)';
-        if (layerInfo.isReplicaLayer)
-          notesEl.textContent += '(replica)';
+          var notesEl = item.appendChild(tvcm.ui.createSpan());
+          if (layerInfo.isMaskLayer)
+            notesEl.textContent += '(mask)';
+          if (layerInfo.isReplicaLayer)
+            notesEl.textContent += '(replica)';
 
-        if (layer.gpuMemoryUsageInBytes !== undefined) {
-          var rounded = bytesToRoundedMegabytes(layer.gpuMemoryUsageInBytes);
-          if (rounded !== 0)
-            notesEl.textContent += ' (' + rounded + ' MB)';
-        }
+          if (layer.gpuMemoryUsageInBytes !== undefined) {
+            var rounded = bytesToRoundedMegabytes(layer.gpuMemoryUsageInBytes);
+            if (rounded !== 0)
+              notesEl.textContent += ' (' + rounded + ' MB)';
+          }
 
-        item.layer = layer;
-        this.itemList_.appendChild(item);
+          item.layer = layer;
+          this.itemList_.appendChild(item);
 
-        if (layer.layerId == selectedLayerId) {
-          layer.selectionState = tracing.trace_model.SelectionState.SELECTED;
-          this.changingItemSelection_ = true;
-          item.selected = true;
-          this.changingItemSelection_ = false;
-        }
-      }, this);
+          if (layer.layerId == selectedLayerId) {
+            layer.selectionState = tracing.trace_model.SelectionState.SELECTED;
+            item.selected = true;
+          }
+        }, this);
+      } finally {
+        this.changingItemSelection_ = false;
+      }
     },
 
     createElementWithDepth_: function(depth) {
