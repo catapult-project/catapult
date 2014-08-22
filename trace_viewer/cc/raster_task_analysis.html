@@ -51,6 +51,7 @@ found in the LICENSE file.
           costsByLayerId[layerId] = {
             layerId: layerId,
             layer: layer,
+            numTiles: 0,
             numAnalysisTasks: 0,
             numRasterTasks: 0,
             duration: 0,
@@ -62,15 +63,28 @@ found in the LICENSE file.
 
       var totalDuration = 0;
       var totalCpuDuration = 0;
+      var totalNumAnalyzeTasks = 0;
+      var totalNumRasterizeTasks = 0;
       var hadCpuDurations = false;
+
+      var tilesThatWeHaveSeen = {};
 
       this.selection_.forEach(function(slice) {
         var tile = cc.getTileFromRasterTaskSlice(slice);
         var curCosts = getCurrentCostsForLayerId(tile);
-        if (cc.isSliceDoingAnalysis(slice))
+
+        if (!tilesThatWeHaveSeen[tile.objectInstance.id]) {
+          tilesThatWeHaveSeen[tile.objectInstance.id] = true;
+          curCosts.numTiles += 1;
+        }
+
+        if (cc.isSliceDoingAnalysis(slice)) {
           curCosts.numAnalysisTasks += 1;
-        else
+          totalNumAnalyzeTasks += 1;
+        } else {
           curCosts.numRasterTasks += 1;
+          totalNumRasterizeTasks += 1;
+        }
         curCosts.duration += slice.duration;
         totalDuration += slice.duration;
         if (slice.cpuDuration !== undefined) {
@@ -90,9 +104,10 @@ found in the LICENSE file.
 
       // Output.
       var table = results.appendTable(
-          'analyze-rasterizatin-costs-table', hadCpuDurations ? 5 : 4);
+          'analyze-rasterizatin-costs-table', hadCpuDurations ? 6 : 5);
       var hrow = results.appendHeadRow(table);
       results.appendTableCell(table, hrow, 'Layer');
+      results.appendTableCell(table, hrow, 'Num Tiles');
       results.appendTableCell(table, hrow, 'Num Analysis Tasks');
       results.appendTableCell(table, hrow, 'Num Rasterized Tiles');
       results.appendTableCell(table, hrow, 'Wall Duration (ms)');
@@ -113,6 +128,7 @@ found in the LICENSE file.
                 return new cc.LayerSelection(costs.layer);
               }));
         }
+        results.appendTableCell(table, row,  costs.numTiles);
         results.appendTableCell(table, row,  costs.numAnalysisTasks);
         results.appendTableCell(table, row,  costs.numRasterTasks);
         results.appendTableCell(
@@ -126,7 +142,9 @@ found in the LICENSE file.
       // Footer.
       var frow = results.appendFootRow(table);
       results.appendTableCell(table, frow, 'Totals')
-      results.appendTableCell(table, frow,  this.selection_.length);
+      results.appendTableCell(table, frow,  tvcm.dictionaryLength(tilesThatWeHaveSeen));
+      results.appendTableCell(table, frow,  totalNumAnalyzeTasks);
+      results.appendTableCell(table, frow,  totalNumRasterizeTasks);
       results.appendTableCell(
           table, frow, tracing.analysis.tsRound(totalDuration) + 'ms');
       if (hadCpuDurations) {
