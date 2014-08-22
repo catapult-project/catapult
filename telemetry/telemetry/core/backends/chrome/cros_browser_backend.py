@@ -136,10 +136,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Wait for oobe.
     self._WaitForBrowserToComeUp(wait_for_extensions=False)
     util.WaitFor(lambda: self.oobe_exists, 10)
-    logging.info('Browser is up!')
 
-  def DidStart(self):
-    super(CrOSBrowserBackend, self).DidStart()
     if self.browser_options.auto_login:
       try:
         if self._is_guest:
@@ -157,6 +154,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self._cri.TakeScreenShot('login-screen')
         raise exceptions.LoginException('Timed out going through login screen')
 
+    logging.info('Browser is up!')
 
   def Close(self):
     super(CrOSBrowserBackend, self).Close()
