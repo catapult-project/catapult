@@ -22,14 +22,12 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
 
     Attributes:
         _cri: The Chrome interface.
-        _end_time: The epoch time at which the test finishes executing.
         _initial_power: The result of 'power_supply_info' before the test.
         _start_time: The epoch time at which the test starts executing.
     """
     super(CrosPowerMonitor, self).__init__(
         cros_sysfs_platform.CrosSysfsPlatform(cri))
     self._cri = cri
-    self._end_time = None
     self._initial_power = None
     self._start_time = None
 
@@ -40,20 +38,40 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   def StartMonitoringPower(self, browser):
     super(CrosPowerMonitor, self).StartMonitoringPower(browser)
     if self._IsOnBatteryPower():
-      self._initial_power = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
-      self._start_time = int(self._cri.RunCmdOnDevice(['date', '+%s'])[0])
+      sample = self._cri.RunCmdOnDevice(
+          ['power_supply_info;', 'date', '+%s'])[0]
+      self._initial_power, self._start_time = CrosPowerMonitor.SplitSample(
+          sample)
 
   def StopMonitoringPower(self):
     cpu_stats = super(CrosPowerMonitor, self).StopMonitoringPower()
     power_stats = {}
     if self._IsOnBatteryPower():
-      final_power = self._cri.RunCmdOnDevice(['power_supply_info'])[0]
-      self._end_time = int(self._cri.RunCmdOnDevice(['date', '+%s'])[0])
+      sample = self._cri.RunCmdOnDevice(
+          ['power_supply_info;', 'date', '+%s'])[0]
+      final_power, end_time = CrosPowerMonitor.SplitSample(sample)
       # The length of the test is used to measure energy consumption.
-      length_h = (self._end_time - self._start_time) / 3600.0
+      length_h = (end_time - self._start_time) / 3600.0
       power_stats = CrosPowerMonitor.ParsePower(self._initial_power,
                                                 final_power, length_h)
     return CrosPowerMonitor.CombineResults(cpu_stats, power_stats)
+
+  @staticmethod
+  def SplitSample(sample):
+    """Splits a power and time sample into the two separate values.
+
+    Args:
+        sample: The result of calling 'power_supply_info; date +%s' on the
+            device.
+
+    Returns:
+        A tuple of power sample and epoch time of the sample.
+    """
+    sample = sample.strip()
+    index = sample.rfind('\n')
+    power = sample[:index]
+    time = sample[index + 1:]
+    return power, int(time)
 
   @staticmethod
   def IsOnBatteryPower(status, board):

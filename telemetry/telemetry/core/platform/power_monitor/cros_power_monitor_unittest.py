@@ -197,6 +197,12 @@ Device: Battery
     self.assertAlmostEqual(results['power_samples_mw'][1],
                            self.expected_power['power_samples_mw'][1])
 
+  def testSplitSample(self):
+    sample = self.initial_power + '\n1408739546\n'
+    power, time = cros_power_monitor.CrosPowerMonitor.SplitSample(sample)
+    self.assertEqual(power, self.initial_power)
+    self.assertEqual(time, 1408739546)
+
   def testCombineResults(self):
     result = cros_power_monitor.CrosPowerMonitor.CombineResults(
         self.expected_cpu, self.expected_power)
