@@ -64,23 +64,6 @@ class TabTest(tab_test_case.TabTestCase):
     self.assertRaises(exceptions.TabCrashException,
                       lambda: self._tab.Navigate('chrome://crash',
                                                  timeout=5))
-    super(TabTest, self).tearDownClass()
-    super(TabTest, self).setUpClass()
-
-  def testIndexTab(self):
-    self._browser.tabs.New()
-    self.assertRaises(exceptions.TabCrashException,
-                      lambda: self._tab.Navigate('chrome://crash',
-                                               timeout=5))
-    self.assertRaises(exceptions.TabIndexError,
-                      lambda: self._browser.tabs[2])
-    self.assertRaises(exceptions.TabCrashException,
-                      lambda: self._browser.tabs[0])
-    self.assertRaises(exceptions.TabCrashException,
-                      lambda: self._browser.tabs[1])
-    self._browser.Close()
-    super(TabTest, self).tearDownClass()
-    super(TabTest, self).setUpClass()
 
   @benchmark.Enabled('has tabs')
   def testActivateTab(self):
