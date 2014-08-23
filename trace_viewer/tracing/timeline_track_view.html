@@ -528,12 +528,13 @@ tvcm.exportTo('tracing', function() {
         return;
 
       var worldCenter = bounds.center;
+      var viewCenter = this.modelTrackContainer_.canvas.width / 2;
       var adjustedWorldRange = bounds.range * 1.25;
       var newScale = this.modelTrackContainer_.canvas.width /
           adjustedWorldRange;
       var zoomInRatio = newScale / this.viewport_.currentDisplayTransform.scaleX;
       var animation = new tracing.TimelineDisplayTransformZoomToAnimation(
-          worldCenter, 'center',
+          worldCenter, viewCenter,
           this.viewport_.currentDisplayTransform.panY,
           zoomInRatio);
       this.viewport_.queueDisplayTransformAnimation(animation);
