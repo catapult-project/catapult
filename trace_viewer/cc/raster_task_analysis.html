@@ -35,7 +35,16 @@ found in the LICENSE file.
       var results = new tracing.analysis.AnalysisResults();
       this.appendChild(results);
 
-      results.appendHeader('Rasterization costs:');
+      var headerDiv = results.appendHeader('Rasterization costs in ');
+
+      // LTHI link.
+      var lthi = cc.getTileFromRasterTaskSlice(
+          this.selection_[0]).containingSnapshot;
+      headerDiv.appendChild(results.createSelectionChangingLink(
+        'LayerTreeHostImpl',
+        function() {
+          return new tracing.Selection([lthi]);
+        }));
 
       // Get costs by layer.
       var costsByLayerId = {};
