@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tvcm/utils.html">
+<link rel="import" href="/cc/raster_task_sub_view_for_tasks_from_different_lthi.html">
+<link rel="import" href="/tracing/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/trace_model.html">
+<script src="/cc/layer_tree_host_impl_test_data.js"></script>
+<script>
+'use strict';
+
+tvcm.unittest.testSuite(function() {
+  test('basic' ,function() {
+    var m = new tracing.TraceModel(g_catLTHIEvents);
+    var p = m.processes[1];
+    var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
+      return slice.title == 'RasterTask' || slice.title == 'AnalyzeTask';
+    });
+
+    var selection = new tracing.Selection();
+    selection.push(rasterTasks[0]);
+    selection.push(rasterTasks[1]);
+
+    var view = new RasterTaskSubViewForTasksFromDifferentLTHI();
+    view.selection = selection;
+    this.addHTMLOutput(view);
+  });
+});
+</script>

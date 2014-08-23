@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/cc/raster_task.html">
+<link rel="import" href="/cc/selection.html">
+<link rel="import" href="/tracing/analysis/analysis_results.html">
+<link rel="import" href="/tracing/analysis/analysis_sub_view.html">
+<link rel="import" href="/tracing/analysis/util.html">
+<link rel="import" href="/tvcm/ui/sortable_table.html">
+
+<polymer-element name="raster-task-analysis-for-tasks-from-different-lthi"
+    constructor="RasterTaskSubViewForTasksFromDifferentLTHI">
+  <script>
+  'use strict';
+
+  tvcm.onPolymerReady(function() {
+    tracing.registerAnalysisSubViewType(
+      1,
+      function supported(selection) {
+        if (selection.length === 0)
+          return false;
+
+        var tile0;
+        for (var i = 0; i < selection.length; i++) {
+          var event = selection[i];
+          if (!(event instanceof tracing.trace_model.Slice))
+            return false;
+
+          var tile = cc.getTileFromRasterTaskSlice(selection[i]);
+          if (tile === undefined)
+            return false;
+          if (i === 0) {
+            tile0 = tile;
+          } else {
+            if (tile.containingSnapshot != tile0.containingSnapshot)
+              return true;
+          }
+        }
+        return false;
+      },
+      RasterTaskSubViewForTasksFromDifferentLTHI);
+  });
+
+  Polymer({
+    created: function() {
+      this.selection_ = undefined;
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.textContent = '';
+
+      if (this.selection_.length === 0)
+        return;
+
+      var results = new tracing.analysis.AnalysisResults();
+      this.appendChild(results);
+
+      var headerDiv = results.appendHeader('Multiple frames selected:');
+
+      // Get tasks by lthi id.
+      var costsByLTHI = {};
+      function getCurrentCostsForLTHI(lthi) {
+        var id = lthi.guid;
+        if (costsByLTHI[id] === undefined) {
+          costsByLTHI[id] = {
+            lthi: lthi,
+            tasks: [],
+            numTiles: 0,
+            numAnalysisTasks: 0,
+            numRasterTasks: 0,
+            duration: 0,
+            cpuDuration: 0
+          }
+        }
+        return costsByLTHI[id];
+      }
+
+      var totalDuration = 0;
+      var totalCpuDuration = 0;
+      var totalNumAnalyzeTasks = 0;
+      var totalNumRasterizeTasks = 0;
+      var hadCpuDurations = false;
+
+      var tilesThatWeHaveSeen = {};
+
+      this.selection_.forEach(function(slice) {
+        var tile = cc.getTileFromRasterTaskSlice(slice);
+        var lthi = tile.containingSnapshot;
+        var curCosts = getCurrentCostsForLTHI(lthi);
+        curCosts.tasks.push(slice);
+
+        if (!tilesThatWeHaveSeen[tile.objectInstance.id]) {
+          tilesThatWeHaveSeen[tile.objectInstance.id] = true;
+          curCosts.numTiles += 1;
+        }
+
+        if (cc.isSliceDoingAnalysis(slice)) {
+          curCosts.numAnalysisTasks += 1;
+          totalNumAnalyzeTasks += 1;
+        } else {
+          curCosts.numRasterTasks += 1;
+          totalNumRasterizeTasks += 1;
+        }
+        curCosts.duration += slice.duration;
+        totalDuration += slice.duration;
+        if (slice.cpuDuration !== undefined) {
+          curCosts.cpuDuration += slice.cpuDuration;
+          totalCpuDuration += slice.cpuDuration;
+          hadCpuDurations = true;
+        }
+      });
+
+      // Initial sort.
+      var costs = tvcm.dictionaryValues(costsByLTHI);
+      costs.sort(function(x,y) {
+        if (hadCpuDurations)
+          return y.cpuDuration - x.cpuDuration;
+        return y.duration - x.duration;
+      });
+
+      // Output.
+      var table = results.appendTable(
+          'analyze-rasterizatin-costs-table', hadCpuDurations ? 6 : 5);
+      var hrow = results.appendHeadRow(table);
+      results.appendTableCell(table, hrow, 'Frame');
+      results.appendTableCell(table, hrow, 'Num Tiles');
+      results.appendTableCell(table, hrow, 'Num Analysis Tasks');
+      results.appendTableCell(table, hrow, 'Num Rasterized Tiles');
+      results.appendTableCell(table, hrow, 'Wall Duration (ms)');
+      if (hadCpuDurations)
+        results.appendTableCell(table, hrow, 'CPU Duration (ms)');
+
+
+      // Body.
+      costs.forEach(function(costs) {
+        var row = results.appendBodyRow(table);
+        var lthiEl = results.appendTableCell(table, row, '');
+        lthiEl.textContent = '';
+        lthiEl.appendChild(results.createSelectionChangingLink(
+          costs.lthi.userFriendlyName,
+          function() {
+            return new tracing.Selection(costs.tasks);
+          }));
+
+        results.appendTableCell(table, row,  costs.numTiles);
+        results.appendTableCell(table, row,  costs.numAnalysisTasks);
+        results.appendTableCell(table, row,  costs.numRasterTasks);
+        results.appendTableCell(
+            table, row,  tracing.analysis.tsRound(costs.duration) + 'ms');
+        if (hadCpuDurations) {
+          results.appendTableCell(
+              table, row,  tracing.analysis.tsRound(costs.cpuDuration) + 'ms');
+        }
+      });
+
+      // Footer.
+      var frow = results.appendFootRow(table);
+      results.appendTableCell(table, frow, 'Totals')
+      results.appendTableCell(table, frow,  tvcm.dictionaryLength(tilesThatWeHaveSeen));
+      results.appendTableCell(table, frow,  totalNumAnalyzeTasks);
+      results.appendTableCell(table, frow,  totalNumRasterizeTasks);
+      results.appendTableCell(
+          table, frow, tracing.analysis.tsRound(totalDuration) + 'ms');
+      if (hadCpuDurations) {
+        results.appendTableCell(
+            table, frow, tracing.analysis.tsRound(totalCpuDuration) + 'ms');
+      }
+
+      tvcm.ui.SortableTable.decorate(table);
+    }
+  });
+  </script>
+</polymer-element>
