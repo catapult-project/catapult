@@ -31,6 +31,9 @@ tvcm.exportTo('cc', function() {
   ];
 
   function getTileFromRasterTaskSlice(slice) {
+    if (!(isSliceDoingRasterization(slice) || isSliceDoingAnalysis(slice)))
+      return undefined;
+
     var tileData;
     if (slice.args.data)
       tileData = slice.args.data;
@@ -47,10 +50,8 @@ tvcm.exportTo('cc', function() {
     return tileData.tileId;
   }
 
-  function isSliceARasterTask(slice) {
+  function isSliceDoingRasterization(slice) {
     if (knownRasterTaskNames.indexOf(slice.title) !== -1)
-      return true;
-    if (knownAnalysisTaskNames.indexOf(slice.title) !== -1)
       return true;
     return false;
   }
@@ -63,7 +64,7 @@ tvcm.exportTo('cc', function() {
 
   return {
     getTileFromRasterTaskSlice: getTileFromRasterTaskSlice,
-    isSliceARasterTask: isSliceARasterTask,
+    isSliceDoingRasterization: isSliceDoingRasterization,
     isSliceDoingAnalysis: isSliceDoingAnalysis
   };
 });
