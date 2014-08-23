@@ -41,7 +41,7 @@ found in the LICENSE file.
       var lthi = cc.getTileFromRasterTaskSlice(
           this.selection_[0]).containingSnapshot;
       headerDiv.appendChild(results.createSelectionChangingLink(
-        'LayerTreeHostImpl',
+        lthi.userFriendlyName,
         function() {
           return new tracing.Selection([lthi]);
         }));

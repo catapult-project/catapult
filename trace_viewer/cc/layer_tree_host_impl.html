@@ -108,6 +108,19 @@ tvcm.exportTo('cc', function() {
           usage += u;
       }
       return usage;
+    },
+
+    get userFriendlyName() {
+      var frameNumber;
+      if (!this.activeTree) {
+        frameNumber = this.objectInstance.snapshots.indexOf(this);
+      } else {
+        if (this.activeTree.sourceFrameNumber === undefined)
+          frameNumber = this.objectInstance.snapshots.indexOf(this);
+        else
+          frameNumber = this.activeTree.sourceFrameNumber
+      }
+      return 'cc::LayerTreeHostImpl frame ' + frameNumber;
     }
   };
 

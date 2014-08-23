@@ -124,6 +124,7 @@ var g_catLTHIEvents = [
           'height': 1606
         },
         'active_tree': {
+          'source_frame_number': 7,
           'root_layer': {
             'tilings': [
               {
