@@ -55,7 +55,7 @@ tvcm.exportTo('cc', function() {
       var thisLTHIIndex = thisLTHI.objectInstance.snapshots.indexOf(
         thisLTHI);
       var prevLTHIIndex = thisLTHIIndex - 1;
-      if (prevLTHIIndex < 0 && prevLTHIIndex >= thisLTHI.objectInstance.snapshots.length)
+      if (prevLTHIIndex < 0 || prevLTHIIndex >= thisLTHI.objectInstance.snapshots.length)
         return false;
       var prevLTHI = thisLTHI.objectInstance.snapshots[prevLTHIIndex];
       if (!prevLTHI.activeTree)
