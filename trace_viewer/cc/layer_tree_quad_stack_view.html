@@ -19,6 +19,10 @@ found in the LICENSE file.
 <link rel="import" href="/tvcm/ui/info_bar.html">
 
 <style>
+layer-tree-quad-stack-view {
+  position: relative;
+}
+
 layer-tree-quad-stack-view > top-controls {
   -webkit-flex: 0 0 auto;
   background-image: -webkit-gradient(linear,
@@ -36,8 +40,18 @@ layer-tree-quad-stack-view > top-controls {
 }
 
 layer-tree-quad-stack-view > top-controls input[type='checkbox'] {
-    vertical-align: -2px;
+  vertical-align: -2px;
 }
+
+layer-tree-quad-stack-view > .what-rasterized {
+  color: -webkit-link;
+  cursor: pointer;
+  text-decoration: underline;
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
+
 </style>
 <script>
 'use strict';
@@ -173,6 +187,13 @@ tvcm.exportTo('cc', function() {
       showAnimationBoundsCheckbox.title = 'When checked, show a border around' +
           ' a layer showing the extent of its animation.';
       this.controls_.appendChild(showAnimationBoundsCheckbox);
+
+      this.whatRasterizedLink_ = document.createElement('a');
+      this.whatRasterizedLink_.classList.add('what-rasterized');
+      this.whatRasterizedLink_.textContent = 'What rasterized?';
+      this.whatRasterizedLink_.addEventListener(
+          'click', this.onWhatRasterizedLinkClicked_.bind(this));
+      this.appendChild(this.whatRasterizedLink_);
     },
 
     get layerTreeImpl() {
@@ -363,6 +384,7 @@ tvcm.exportTo('cc', function() {
       else
         this.quadStackView_.quads = this.generateLayerQuads();
 
+      this.updateWhatRasterizedLinkState_();
 
       var message = '';
       if (lthi.tilesHaveGpuMemoryUsageInfo) {
@@ -1030,6 +1052,42 @@ tvcm.exportTo('cc', function() {
         this.infoBar_.message = '';
         this.infoBar_.visible = false;
       }
+    },
+
+    getWhatRasterized_: function() {
+      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
+      var renderProcess = lthi.objectInstance.parent;
+      var tasks = [];
+      renderProcess.iterateAllEvents(function(event) {
+        if (!(event instanceof tracing.trace_model.Slice))
+          return;
+
+        var tile = cc.getTileFromRasterTaskSlice(event);
+        if (tile === undefined)
+          return false;
+
+        if (tile.containingSnapshot == lthi)
+          tasks.push(event)
+      }, this);
+      return tasks;
+    },
+
+    updateWhatRasterizedLinkState_: function() {
+      var tasks = this.getWhatRasterized_();
+      if (tasks.length) {
+        this.whatRasterizedLink_.textContent = tasks.length + ' raster tasks';
+        this.whatRasterizedLink_.style.display = '';
+      } else {
+        this.whatRasterizedLink_.textContent = '';
+        this.whatRasterizedLink_.style.display = 'none';
+      }
+    },
+
+    onWhatRasterizedLinkClicked_: function() {
+      var tasks = this.getWhatRasterized_();
+      var event = new tracing.RequestSelectionChangeEvent();
+      event.selection = new tracing.Selection(tasks);
+      this.dispatchEvent(event);
     }
   };
 
