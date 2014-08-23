@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tvcm.html">
 <link rel="import" href="/cc/raster_task.html">
-<link rel="import" href="/cc/raster_task_analysis.html">
+<link rel="import" href="/cc/raster_task_sub_view_for_tasks_from_same_lthi.html">
 <link rel="import" href="/cc/selection.html">
 <link rel="import" href="/tracing/analysis/analyze_slices.html">
 <script>
@@ -105,7 +105,7 @@ tvcm.exportTo('cc', function() {
       if (sel.length == 1)
         analysis = new SingleSliceAnalysisSubView();
       else
-        analysis = new RasterTaskAnalysisForTasksFromSameLTHI();
+        analysis = new RasterTaskSubViewForTasksFromSameLTHI();
       analysis.selection = sel;
       return analysis;
     },

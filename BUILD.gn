@@ -115,7 +115,7 @@ tracing_js_html_files = [
   "trace_viewer/cc/picture_ops_list_view.html",
   "trace_viewer/cc/picture_view.html",
   "trace_viewer/cc/raster_task.html",
-  "trace_viewer/cc/raster_task_analysis.html",
+  "trace_viewer/cc/raster_task_sub_view_for_tasks_from_same_lthi.html",
   "trace_viewer/cc/raster_task_selection.html",
   "trace_viewer/cc/raster_task_sub_view.html",
   "trace_viewer/cc/region.html",
