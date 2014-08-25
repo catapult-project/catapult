@@ -13,5 +13,6 @@ class TestGoogleCredentialsBackend(
 
   def testLoginUsingMock(self):
     self._LoginUsingMock(google_credentials_backend.GoogleCredentialsBackend(),
-                         'https://accounts.google.com/', 'Email',
-                         'Passwd')
+                         'https://accounts.google.com/', 'Email', 'Passwd',
+                         'gaia_loginform',
+                         'document.getElementById("gb")!== null')

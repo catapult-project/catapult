@@ -6,32 +6,12 @@ import logging
 from telemetry.core import util
 
 
-def _WaitForLoginFormToLoad(backend, login_form_id, tab):
-  def IsFormLoadedOrAlreadyLoggedIn():
-    return (tab.EvaluateJavaScript(
-        'document.querySelector("#%s")!== null' % login_form_id) or
-            backend.IsAlreadyLoggedIn(tab))
-
-  # Wait until the form is submitted and the page completes loading.
-  util.WaitFor(IsFormLoadedOrAlreadyLoggedIn, 60)
-
-def _SubmitFormAndWait(form_id, tab):
-  tab.ExecuteJavaScript(
-      'document.getElementById("%s").submit();' % form_id)
-
-  def FinishedLoading():
-    return not tab.EvaluateJavaScript(
-        'document.querySelector("#%s") !== null' % form_id)
-
-  # Wait until the form is submitted and the page completes loading.
-  util.WaitFor(FinishedLoading, 60)
-
 class FormBasedCredentialsBackend(object):
   def __init__(self):
     self._logged_in = False
 
   def IsAlreadyLoggedIn(self, tab):
-    raise NotImplementedError()
+    return tab.EvaluateJavaScript(self.logged_in_javascript)
 
   @property
   def credentials_type(self):
@@ -46,11 +26,21 @@ class FormBasedCredentialsBackend(object):
     raise NotImplementedError()
 
   @property
+  def login_button_javascript(self):
+    """Some sites have custom JS to log in."""
+    return None
+
+  @property
   def login_input_id(self):
     raise NotImplementedError()
 
   @property
   def password_input_id(self):
+    raise NotImplementedError()
+
+  @property
+  def logged_in_javascript(self):
+    """Evaluates to true iff already logged in."""
     raise NotImplementedError()
 
   def IsLoggedIn(self):
@@ -62,7 +52,31 @@ class FormBasedCredentialsBackend(object):
     """
     self._logged_in = False
 
-  def LoginNeeded(self, tab, config):
+  def _WaitForLoginState(self, action_runner):
+    """Waits until it can detect either the login form, or already logged in."""
+    condition = '(document.querySelector("#%s") !== null) || (%s)' % (
+        self.login_form_id, self.logged_in_javascript)
+    action_runner.WaitForJavaScriptCondition(condition, 60)
+
+  def _SubmitLoginFormAndWait(self, action_runner, tab, username, password):
+    """Submits the login form and waits for the navigation."""
+    tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+    email_id = 'document.querySelector("#%s #%s").value = "%s"; ' % (
+        self.login_form_id, self.login_input_id, username)
+    password = 'document.querySelector("#%s #%s").value = "%s"; ' % (
+        self.login_form_id, self.password_input_id, password)
+    tab.ExecuteJavaScript(email_id)
+    tab.ExecuteJavaScript(password)
+    if self.login_button_javascript:
+      tab.ExecuteJavaScript(self.login_button_javascript)
+    else:
+      tab.ExecuteJavaScript(
+          'document.getElementById("%s").submit();' % self.login_form_id)
+    # Wait for the form element to disappear as confirmation of the navigation.
+    action_runner.WaitForNavigate()
+
+
+  def LoginNeeded(self, tab, action_runner, config):
     """Logs in to a test account.
 
     Raises:
@@ -86,23 +100,14 @@ class FormBasedCredentialsBackend(object):
     try:
       logging.info('Loading %s...', url)
       tab.Navigate(url)
-      _WaitForLoginFormToLoad(self, self.login_form_id, tab)
+      self._WaitForLoginState(action_runner)
 
       if self.IsAlreadyLoggedIn(tab):
         self._logged_in = True
         return True
 
-      tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-      logging.info('Loaded page: %s', url)
-
-      email_id = 'document.querySelector("#%s").%s.value = "%s"; ' % (
-          self.login_form_id, self.login_input_id, config['username'])
-      password = 'document.querySelector("#%s").%s.value = "%s"; ' % (
-          self.login_form_id, self.password_input_id, config['password'])
-      tab.ExecuteJavaScript(email_id)
-      tab.ExecuteJavaScript(password)
-
-      _SubmitFormAndWait(self.login_form_id, tab)
+      self._SubmitLoginFormAndWait(
+          action_runner, tab, config['username'], config['password'])
 
       self._logged_in = True
       return True
