@@ -21,7 +21,8 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     logging.getLogger().addHandler(self.stream_handler)
     self._real_subprocess = trybot_browser_finder.subprocess
     self._real_urllib2 = trybot_browser_finder.urllib2
-    self._stubs = system_stub.Override(trybot_browser_finder, ['sys', 'open'])
+    self._stubs = system_stub.Override(trybot_browser_finder,
+                                       ['sys', 'open', 'os'])
 
   def tearDown(self):
     logging.getLogger().removeHandler(self.stream_handler)
@@ -126,13 +127,17 @@ class TrybotBrowserFinderTest(unittest.TestCase):
         (['git', 'update-index', '--refresh', '-q'], (0, None, None,)),
         (['git', 'diff-index', 'HEAD'], (0, '', None)),
         (['git', 'log', 'origin/master..HEAD'], (0, '', None)),
+        (['git', 'rev-parse', '--abbrev-ref', 'HEAD'], (0, 'br', None)),
+        (['git', 'update-index', '--refresh', '-q'], (0, None, None,)),
+        (['git', 'diff-index', 'HEAD'], (0, '', None)),
+        (['git', 'log', 'origin/master..HEAD'], (0, '', None)),
     ))
 
     browser.RunRemote()
     self.assertEquals(
-        ('No local changes on branch br. browser=trybot-android-nexus4 '
-         'argument sends local changes to the android_nexus4_perf_bisect '
-         'perf trybot.\n'),
+        ('No local changes found in chromium or blink trees. '
+         'browser=trybot-android-nexus4 argument sends local changes to the '
+         'android_nexus4_perf_bisect perf trybot.\n'),
         self.log_output.getvalue())
 
   def test_branch_checkout_fails(self):
@@ -155,11 +160,19 @@ class TrybotBrowserFinderTest(unittest.TestCase):
          'fatal: A branch named \'telemetry-try\' already exists.\n'),
         self.log_output.getvalue())
 
-  def _GetConfigForBrowser(self, name, branch):
+  def _GetConfigForBrowser(self, name, branch, cfg_filename, is_blink=False):
     finder_options = browser_options.BrowserFinderOptions()
     browser = trybot_browser_finder.PossibleTrybotBrowser(name, finder_options)
     bot = '%s_perf_bisect' % name.replace('trybot-', '').replace('-', '_')
-    self._ExpectProcesses((
+    first_processes = ()
+    if is_blink:
+      first_processes = (
+          (['git', 'rev-parse', '--abbrev-ref', 'HEAD'], (0, 'br', None)),
+          (['git', 'update-index', '--refresh', '-q'], (0, None, None,)),
+          (['git', 'diff-index', 'HEAD'], (0, '', None)),
+          (['git', 'log', 'origin/master..HEAD'], (0, '', None))
+      )
+    self._ExpectProcesses(first_processes + (
         (['git', 'rev-parse', '--abbrev-ref', 'HEAD'], (0, branch, None)),
         (['git', 'update-index', '--refresh', '-q'], (0, None, None,)),
         (['git', 'diff-index', 'HEAD'], (0, '', None)),
@@ -179,13 +192,14 @@ class TrybotBrowserFinderTest(unittest.TestCase):
         '--browser=%s' % browser,
         'sunspider']
     cfg = StringIO.StringIO()
-    self._stubs.open.files = {'tools/run-perf-test.cfg': cfg}
+    self._stubs.open.files = {cfg_filename: cfg}
 
     browser.RunRemote()
     return cfg.getvalue()
 
   def test_config_android(self):
-    config = self._GetConfigForBrowser('trybot-android-nexus4', 'somebranch')
+    config = self._GetConfigForBrowser(
+        'trybot-android-nexus4', 'somebranch', 'tools/run-perf-test.cfg')
     self.assertEquals(
         ('config = {\n'
          '  "command": "./tools/perf/run_measurement '
@@ -196,7 +210,20 @@ class TrybotBrowserFinderTest(unittest.TestCase):
          '}'), config)
 
   def test_config_mac(self):
-    config = self._GetConfigForBrowser('trybot-mac-10-9', 'currentwork')
+    config = self._GetConfigForBrowser(
+        'trybot-mac-10-9', 'currentwork', 'tools/run-perf-test.cfg')
+    self.assertEquals(
+        ('config = {\n'
+         '  "command": "./tools/perf/run_measurement '
+         '--browser=release sunspider",\n'
+         '  "max_time_minutes": "120",\n'
+         '  "repeat_count": "1",\n'
+         '  "truncate_percent": "0"\n'
+         '}'), config)
+
+  def test_config_blink(self):
+    config = self._GetConfigForBrowser(
+        'trybot-mac-10-9', 'blinkbranch', 'Tools/run-perf-test.cfg', True)
     self.assertEquals(
         ('config = {\n'
          '  "command": "./tools/perf/run_measurement '

@@ -6,6 +6,7 @@
 
 import json
 import logging
+import os
 import re
 import subprocess
 import sys
@@ -15,8 +16,9 @@ from telemetry import decorators
 from telemetry.core import platform
 from telemetry.core import possible_browser
 
-# TODO(sullivan): Check for blink changes
-CONFIG_FILENAME = 'tools/run-perf-test.cfg'
+CHROMIUM_CONFIG_FILENAME = 'tools/run-perf-test.cfg'
+BLINK_CONFIG_FILENAME = 'Tools/run-perf-test.cfg'
+SUCCESS, NO_CHANGES, ERROR = range(3)
 
 
 class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
@@ -51,20 +53,29 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     returncode = proc.poll()
     return (returncode, out, err)
 
-  def RunRemote(self):
-    """Sends a tryjob to a perf trybot.
+  def _AttemptTryjob(self, cfg_file_path):
+    """Attempts to run a tryjob from the current directory.
 
-    This creates a branch, telemetry-tryjob, switches to that branch, edits
-    the bisect config, commits it, uploads the CL to rietveld, and runs a
-    tryjob on the given bot.
+    This is run once for chromium, and if it returns NO_CHANGES, once for blink.
+
+    Args:
+      cfg_file_path: Path to the config file for the try job.
+
+    Returns:
+      (result, msg) where result is one of:
+          SUCCESS if a tryjob was sent
+          NO_CHANGES if there was nothing to try,
+          ERROR if a tryjob was attempted but an error encountered
+          and msg is an error message if an error was encountered, or rietveld
+          url if success.
     """
     returncode, original_branchname, err = self._RunProcess(
         ['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
     if returncode:
-      logging.error('Must be in a git repository to send changes to trybots.')
+      msg = 'Must be in a git repository to send changes to trybots.'
       if err:
-        logging.error('Git error: %s', err)
-      return
+        msg += '\nGit error: %s' % err
+      return (ERROR, msg)
     original_branchname = original_branchname.strip()
 
     # Check if the tree is dirty: make sure the index is up to date and then
@@ -72,28 +83,23 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     self._RunProcess(['git', 'update-index', '--refresh', '-q'])
     returncode, out, err = self._RunProcess(['git', 'diff-index', 'HEAD'])
     if out:
-      logging.error(
-          'Cannot send a try job with a dirty tree. Commit locally first.')
-      return
+      msg = 'Cannot send a try job with a dirty tree. Commit locally first.'
+      return (ERROR, msg)
 
     # Make sure the tree does have local commits.
     returncode, out, err = self._RunProcess(
         ['git', 'log', 'origin/master..HEAD'])
     if not out:
-      logging.error('No local changes on branch %s. browser=%s argument sends '
-                    'local changes to the %s perf trybot.', original_branchname,
-                    self._browser_type, self._buildername)
-      return
+      return (NO_CHANGES, None)
 
     # Create/check out the telemetry-tryjob branch, and edit the configs
     # for the tryjob there.
     returncode, out, err = self._RunProcess(
         ['git', 'checkout', '-b', 'telemetry-tryjob'])
     if returncode:
-      logging.error('Error creating branch telemetry-tryjob. '
-                    'Please delete it if it exists.')
-      logging.error(err)
-      return
+      msg = ('Error creating branch telemetry-tryjob. '
+             'Please delete it if it exists.\n%s' % err)
+      return (ERROR, msg)
 
     # Generate the command line for the perf trybots
     arguments = sys.argv
@@ -117,18 +123,18 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
         'truncate_percent': '0',
     }
     try:
-      config_file = open(CONFIG_FILENAME, 'w')
+      config_file = open(cfg_file_path, 'w')
     except IOError:
-      logging.error('Cannot find %s. Please run from src dir.', CONFIG_FILENAME)
-      return
+      msg = 'Cannot find %s. Please run from src dir.' % cfg_file_path
+      return (ERROR, msg)
     config_file.write('config = %s' % json.dumps(
         config, sort_keys=True, indent=2, separators=(',', ': ')))
     config_file.close()
     returncode, out, err = self._RunProcess(
         ['git', 'commit', '-a', '-m', 'bisect config'])
     if returncode:
-      logging.error('Could not commit bisect config change, error %s', err)
-      return
+      msg = 'Could not commit bisect config change, error %s' % err
+      return (ERROR, msg)
 
     # Upload the CL to rietveld and run a try job.
     returncode, out, err = self._RunProcess([
@@ -136,34 +142,67 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
         'CL for perf tryjob', 'origin/master'
     ])
     if returncode:
-      logging.error('Could upload to reitveld, error %s', err)
-      return
+      msg = 'Could upload to reitveld, error %s', err
+      return (ERROR, msg)
     match = re.search(r'https://codereview.chromium.org/[\d]+', out)
     if not match:
-      logging.error('Could not upload CL to reitveld! Output %s', out)
-      return
-    print 'Uploaded try job to reitveld. View progress at %s' % match.group(0)
+      msg = 'Could not upload CL to reitveld! Output %s' % out
+      return (ERROR, msg)
+    rietveld_url = match.group(0)
     returncode, out, err = self._RunProcess([
-          'git', 'cl', 'try', '-m', 'tryserver.chromium.perf',
-          '-b', self._buildername])
+        'git', 'cl', 'try', '-m', 'tryserver.chromium.perf', '-b',
+        self._buildername])
     if returncode:
-      logging.error('Could not try CL, error %s', err)
-      return
+      msg = 'Could not try CL, error %s' % err
+      return (ERROR, msg)
 
     # Checkout original branch and delete telemetry-tryjob branch.
     returncode, out, err = self._RunProcess(
         ['git', 'checkout', original_branchname])
     if returncode:
-      logging.error(
+      msg = (
           ('Could not check out %s. Please check it out and manually '
-           'delete the telemetry-tryjob branch. Error message: %s'),
-          original_branchname, err)
-      return
+           'delete the telemetry-tryjob branch. Error message: %s') %
+          (original_branchname, err))
+      return (ERROR, msg)
     returncode, out, err = self._RunProcess(
         ['git', 'branch', '-D', 'telemetry-tryjob'])
     if returncode:
-      logging.error(('Could not delete telemetry-tryjob branch. '
-                     'Please delete it manually. Error %s'), err)
+      msg = (('Could not delete telemetry-tryjob branch. '
+              'Please delete it manually. Error %s'), err)
+      return (ERROR, msg)
+    return (SUCCESS, rietveld_url)
+
+  def RunRemote(self):
+    """Sends a tryjob to a perf trybot.
+
+    This creates a branch, telemetry-tryjob, switches to that branch, edits
+    the bisect config, commits it, uploads the CL to rietveld, and runs a
+    tryjob on the given bot.
+    """
+    # First check if there are chromium changes to upload.
+    status, msg = self._AttemptTryjob(CHROMIUM_CONFIG_FILENAME)
+    if status == SUCCESS:
+      print 'Uploaded chromium try job to reitveld. View progress at %s' % msg
+      return
+    elif status == ERROR:
+      logging.error(msg)
+      return
+
+    # If we got here, there are no chromium changes to upload. Try blink.
+    os.chdir('third_party/WebKit/')
+    status, msg = self._AttemptTryjob(BLINK_CONFIG_FILENAME)
+    os.chdir('../..')
+    if status == SUCCESS:
+      print 'Uploaded blink try job to reitveld. View progress at %s' % msg
+      return
+    elif status == ERROR:
+      logging.error(msg)
+      return
+    else:
+      logging.error('No local changes found in chromium or blink trees. '
+                    'browser=%s argument sends local changes to the %s '
+                    'perf trybot.', self._browser_type, self._buildername)
       return
 
   def _InitPlatformIfNeeded(self):

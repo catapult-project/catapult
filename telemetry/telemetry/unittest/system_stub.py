@@ -233,6 +233,9 @@ class OsModuleStub(object):
       raise NotImplementedError('Unsupported getenv')
     return env if env else value
 
+  def chdir(self, path):
+    pass
+
 
 class PerfControlModuleStub(object):
   class PerfControlStub(object):
