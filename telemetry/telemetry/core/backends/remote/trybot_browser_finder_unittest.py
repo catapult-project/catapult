@@ -167,7 +167,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
         (['git', 'checkout', '-b', 'telemetry-tryjob'], (0, None, None)),
         (['git', 'commit', '-a', '-m', 'bisect config'], (0, None, None)),
         (['git', 'cl', 'upload', '-f', '--bypass-hooks', '-m',
-         'CL for perf tryjob'],
+         'CL for perf tryjob', 'origin/master'],
          (0, 'stuff https://codereview.chromium.org/12345 stuff', None)),
         (['git', 'cl', 'try', '-m', 'tryserver.chromium.perf', '-b', bot],
          (0, None, None)),

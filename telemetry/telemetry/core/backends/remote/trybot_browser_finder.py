@@ -133,7 +133,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     # Upload the CL to rietveld and run a try job.
     returncode, out, err = self._RunProcess([
         'git', 'cl', 'upload', '-f', '--bypass-hooks', '-m',
-        'CL for perf tryjob'
+        'CL for perf tryjob', 'origin/master'
     ])
     if returncode:
       logging.error('Could upload to reitveld, error %s', err)
