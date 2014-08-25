@@ -40,7 +40,6 @@ tvcm.exportTo('tvcm.ui', function() {
       this.radius_ = undefined;
       this.arc_ = undefined;
       this.selectedNode_ = null;
-      this.clickStack_ = undefined;
       this.vis_ = undefined;
       this.nodes_ = undefined;
       this.minX_ = 0.0;
@@ -167,10 +166,7 @@ tvcm.exportTo('tvcm.ui', function() {
     },
 
     zoomOut_: function() {
-      if (this.clickStack_.length > 1) {
-        this.clickStack_.pop();
-        this.selectedNodeID = this.clickStack_[this.clickStack_.length - 1];
-      }
+      window.history.back();
     },
 
     zoomToID_: function(id) {
@@ -225,10 +221,7 @@ tvcm.exportTo('tvcm.ui', function() {
         return;
       }
 
-      if (this.clickStack_[this.clickStack_.length - 1] != d.id) {
-        this.clickStack_.push(d.id);
-        this.selectedNodeID = d.id;
-      }
+      this.selectedNodeID = d.id;
     },
 
     // Given a node in a partition layout, return an array of all of its
@@ -377,8 +370,6 @@ tvcm.exportTo('tvcm.ui', function() {
           'translate(' + width / 2 + ',' + height / 2 + ')');
 
       that.selectedNode_ = null;
-      that.clickStack_ = new Array();
-      that.clickStack_.push(0);
 
       var depth = 1.0 + d3.max(that.nodes_, function(d) { return d.depth; });
       that.yDomainMin_ = 1.0 / depth;
