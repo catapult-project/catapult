@@ -85,28 +85,44 @@ def FullResults(args, suite, results):
     key, val = md.split('=', 1)
     full_results[key] = val
 
-  # TODO(dpranke): Handle skipped tests as well.
-
   all_test_names = AllTestNames(suite)
-  num_failures = NumFailuresAfterRetries(results)
-  full_results['num_failures_by_type'] = {
-      'FAIL': num_failures,
-      'PASS': len(all_test_names) - num_failures,
-  }
-
   sets_of_passing_test_names = map(PassingTestNames, results)
   sets_of_failing_test_names = map(FailedTestNames, results)
+
+  # TODO(crbug.com/405379): This handles tests that are skipped via the
+  # unittest skip decorators (like skipUnless). The tests that are skipped via
+  # telemetry's decorators package are not included in the test suite at all so
+  # we need those to be passed in in order to include them.
+  skipped_tests = (set(all_test_names) - sets_of_passing_test_names[0]
+                                       - sets_of_failing_test_names[0])
+
+  num_tests = len(all_test_names)
+  num_failures = NumFailuresAfterRetries(results)
+  num_skips = len(skipped_tests)
+  num_passes = num_tests - num_failures - num_skips
+  full_results['num_failures_by_type'] = {
+      'FAIL': num_failures,
+      'PASS': num_passes,
+      'SKIP': num_skips,
+  }
 
   full_results['tests'] = {}
 
   for test_name in all_test_names:
-    value = {
-        'expected': 'PASS',
-        'actual': ActualResultsForTest(test_name, sets_of_failing_test_names,
-                                       sets_of_passing_test_names)
-    }
-    if value['actual'].endswith('FAIL'):
-      value['is_unexpected'] = True
+    if test_name in skipped_tests:
+      value = {
+          'expected': 'SKIP',
+          'actual': 'SKIP',
+      }
+    else:
+      value = {
+          'expected': 'PASS',
+          'actual': ActualResultsForTest(test_name,
+                                         sets_of_failing_test_names,
+                                         sets_of_passing_test_names),
+      }
+      if value['actual'].endswith('FAIL'):
+        value['is_unexpected'] = True
     _AddPathToTrie(full_results['tests'], test_name, value)
 
   return full_results
