@@ -7,10 +7,8 @@ import logging
 import os
 
 from telemetry.core import util
-from telemetry.core.backends import codepen_credentials_backend
 from telemetry.core.backends import facebook_credentials_backend
 from telemetry.core.backends import google_credentials_backend
-from telemetry.page.actions import action_runner
 from telemetry.unittest import options_for_unittests
 
 
@@ -26,7 +24,6 @@ class BrowserCredentials(object):
 
     if backends is None:
       backends = [
-        codepen_credentials_backend.CodePenCredentialsBackend(),
         facebook_credentials_backend.FacebookCredentialsBackend(),
         google_credentials_backend.GoogleCredentialsBackend()]
 
@@ -58,9 +55,8 @@ class BrowserCredentials(object):
           'Unrecognized credentials type: %s', credentials_type)
     if credentials_type not in self._credentials:
       return False
-    runner = action_runner.ActionRunner(tab)
     return self._backends[credentials_type].LoginNeeded(
-      tab, runner, self._credentials[credentials_type])
+      tab, self._credentials[credentials_type])
 
   def LoginNoLongerNeeded(self, tab, credentials_type):
     assert credentials_type in self._backends

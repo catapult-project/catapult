@@ -15,6 +15,4 @@ class TestFacebookCredentialsBackend(
   def testLoginUsingMock(self):
     self._LoginUsingMock(
         facebook_credentials_backend.FacebookCredentialsBackend(),
-        'http://www.facebook.com/', 'email', 'pass', 'login_form',
-        ('document.getElementById("fbNotificationsList")!== null || '
-          'document.getElementById("m_home_notice")!== null'))
+        'http://www.facebook.com/', 'email', 'pass')
