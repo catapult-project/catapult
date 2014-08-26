@@ -32,7 +32,7 @@ tvcm.exportTo('cc', function() {
 
     initialize: function() {
       cc.moveOptionalFieldsFromArgsToToplevel(
-          this, ['layerId', 'contentsScale', 'contentRect', 'isActiveTile']);
+          this, ['layerId', 'contentsScale', 'contentRect']);
       if (this.args.managedState) {
         this.resolution = this.args.managedState.resolution;
         this.isSolidColor = this.args.managedState.isSolidColor;

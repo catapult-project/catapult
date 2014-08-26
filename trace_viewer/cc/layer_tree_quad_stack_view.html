@@ -712,7 +712,7 @@ tvcm.exportTo('cc', function() {
 
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
       var minMax =
-          this.getMinMaxForHeatmap_(lthi.tiles, heatmapType);
+          this.getMinMaxForHeatmap_(lthi.activeTiles, heatmapType);
       var heatmapResult =
           this.computeHeatmapColors_(tiles, minMax, heatmapType);
       var heatIndex = 0;
@@ -838,12 +838,8 @@ tvcm.exportTo('cc', function() {
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
 
       var tiles = [];
-      for (var i = 0; i < lthi.tiles.length; ++i) {
-        var tile = lthi.tiles[i];
-
-        // Don't draw inactive tiles.
-        if (tile.isActiveTile === false)
-          continue;
+      for (var i = 0; i < lthi.activeTiles.length; ++i) {
+        var tile = lthi.activeTiles[i];
 
         if (Math.abs(tile.contentsScale - scale) > 1e-6)
           continue;
@@ -857,7 +853,7 @@ tvcm.exportTo('cc', function() {
       }
 
       var minMax =
-          this.getMinMaxForHeatmap_(lthi.tiles, heatmapType);
+          this.getMinMaxForHeatmap_(lthi.activeTiles, heatmapType);
       var heatmapResult =
           this.computeHeatmapColors_(tiles, minMax, heatmapType);
 

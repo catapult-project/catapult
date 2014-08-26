@@ -41,7 +41,7 @@ tvcm.unittest.testSuite(function() {
     var lthi = instance.snapshots[0];
     var numLayers = lthi.activeTree.renderSurfaceLayerList.length;
     var layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
-    var tile = lthi.tiles[0];
+    var tile = lthi.activeTiles[0];
 
     var view = new cc.LayerView();
     view.style.height = '500px';

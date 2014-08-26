@@ -42,11 +42,20 @@ tvcm.exportTo('cc', function() {
           this, ['deviceViewportSize',
             'activeTree']);
       cc.moveOptionalFieldsFromArgsToToplevel(
-          this, ['pendingTree',
-            'tiles']);
+          this, ['pendingTree']);
 
-      if (!this.tiles)
-        this.tiles = [];
+      // Move active_tiles into this.tiles. If that doesn't exist then, then as
+      // a backward compatability move tiles into this.tiles.
+      if (this.args.activeTiles !== undefined) {
+        this.activeTiles = this.args.activeTiles;
+        delete this.args.activeTiles;
+      } else if (this.args.tiles !== undefined) {
+        this.activeTiles = this.args.tiles;
+        delete this.args.tiles;
+      }
+
+      if (!this.activeTiles)
+        this.activeTiles = [];
 
       this.activeTree.layerTreeHostImpl = this;
       this.activeTree.whichTree = constants.ACTIVE_TREE;
@@ -61,8 +70,8 @@ tvcm.exportTo('cc', function() {
      */
     getContentsScaleNames: function() {
       var scales = {};
-      for (var i = 0; i < this.tiles.length; ++i) {
-        var tile = this.tiles[i];
+      for (var i = 0; i < this.activeTiles.length; ++i) {
+        var tile = this.activeTiles[i];
         // Return scale -> scale name mappings.
         // Example:
         //  0.25 -> LOW_RESOLUTION
@@ -85,8 +94,8 @@ tvcm.exportTo('cc', function() {
       if (this.tilesHaveGpuMemoryUsageInfo_ !== undefined)
         return this.tilesHaveGpuMemoryUsageInfo_;
 
-      for (var i = 0; i < this.tiles.length; i++) {
-        if (this.tiles[i].gpuMemoryUsageInBytes === undefined)
+      for (var i = 0; i < this.activeTiles.length; i++) {
+        if (this.activeTiles[i].gpuMemoryUsageInBytes === undefined)
           continue;
         this.tilesHaveGpuMemoryUsageInfo_ = true;
         return true;
@@ -100,10 +109,8 @@ tvcm.exportTo('cc', function() {
         return;
 
       var usage = 0;
-      for (var i = 0; i < this.tiles.length; i++) {
-        if (this.tiles[i].isActiveTile === false)
-          continue;
-        var u = this.tiles[i].gpuMemoryUsageInBytes;
+      for (var i = 0; i < this.activeTiles.length; i++) {
+        var u = this.activeTiles[i].gpuMemoryUsageInBytes;
         if (u !== undefined)
           usage += u;
       }
