@@ -252,13 +252,6 @@ Waiting for device...
       except (psutil.NoSuchProcess, psutil.AccessDenied):
         logging.warn('Failed to set adb process CPU affinity')
 
-  if not os.environ.get('BUILDBOT_BUILDERNAME'):
-    # Killing adbd before running tests has proven to make them less likely to
-    # flake out during the test. We skip this if Telemetry is running under a
-    # buildbot because build/android/test_runner.py wrapper already took care
-    # of it before starting the shards.
-    adb.RestartAdbdOnDevice()
-
   packages = adb.RunShellCommand('pm list packages')
   possible_browsers = []
 
