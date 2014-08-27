@@ -647,8 +647,8 @@ tvcm.exportTo('cc', function() {
         var rect = layer.invalidation.rects[ir];
         var unitRect = rect.asUVRectInside(layer.bounds);
         var iq = layerQuad.projectUnitRect(unitRect);
-        iq.backgroundColor = 'rgba(255, 0, 0, 0.1)';
-        iq.borderColor = 'rgba(255, 0, 0, 1)';
+        iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
+        iq.borderColor = 'rgba(0, 255, 0, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
         iq.selectionToSetIfClicked = new cc.LayerRectSelection(
             layer, 'Invalidation rect', rect, rect);
