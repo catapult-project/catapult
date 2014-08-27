@@ -43,6 +43,7 @@ class MockDevice(object):
   def SetProp(self, property_name, property_value):
     self.old_interface.system_properties[property_name] = property_value
 
+
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):
     self._stubs = system_stub.Override(android_platform_backend,
@@ -73,3 +74,26 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         adb_empty_proc_stat, False)
     cpu_stats = backend.GetCpuStats('7702')
     self.assertEquals(cpu_stats, {})
+
+  def testAndroidParseCpuStates(self):
+    cstate = {
+      'cpu0': 'C0\nC1\n103203424\n5342040\n300\n500\n1403232500',
+      'cpu1': 'C0\n124361858\n300\n1403232500'
+    }
+    expected_cstate = {
+      'cpu0': {
+        'WFI': 103203424,
+        'C0': 1403232391454536,
+        'C1': 5342040
+      },
+      'cpu1': {
+        'WFI': 124361858,
+        'C0': 1403232375638142
+      }
+    }
+    # Use mock start and end times to allow for the test to calculate C0.
+    result = android_platform_backend.AndroidPlatformBackend.ParseCStateSample(
+        cstate)
+    for cpu in result:
+      for state in result[cpu]:
+        self.assertAlmostEqual(result[cpu][state], expected_cstate[cpu][state])

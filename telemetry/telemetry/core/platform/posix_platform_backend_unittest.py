@@ -21,7 +21,7 @@ class TestBackend(posix_platform_backend.PosixPlatformBackend):
   def SetMockPsOutput(self, output):
     self._mock_ps_output = output
 
-  def _GetPsOutput(self, columns, pid=None):
+  def GetPsOutput(self, columns, pid=None):
     return self._mock_ps_output
 
 

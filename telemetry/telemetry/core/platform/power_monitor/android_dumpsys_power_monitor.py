@@ -6,7 +6,6 @@ import csv
 import logging
 from collections import defaultdict
 
-from telemetry.core.platform import android_sysfs_platform
 from telemetry.core.platform.power_monitor import sysfs_power_monitor
 
 
@@ -15,14 +14,14 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   consumption of a single android application. This measure uses a heuristic
   and is the same information end-users see with the battery application.
   """
-  def __init__(self, device):
+  def __init__(self, device, platform_backend):
     """Constructor.
 
     Args:
-        device: DeviceUtils instance.
+        device: A DeviceUtil instance.
+        platform_backend: A LinuxBasedPlatformBackend instance.
     """
-    super(DumpsysPowerMonitor, self).__init__(
-        android_sysfs_platform.AndroidSysfsPlatform(device))
+    super(DumpsysPowerMonitor, self).__init__(platform_backend)
     self._device = device
 
   def CanMonitorPower(self):
@@ -43,8 +42,7 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     self._device.old_interface.EnableUsbCharging()
     # By default, 'dumpsys batterystats' measures power consumption during the
     # last unplugged period.
-    result = self._device.RunShellCommand(
-        'dumpsys batterystats -c %s' % package)
+    result = self._platform.RunCommand('dumpsys batterystats -c %s' % package)
     assert result, 'Dumpsys produced no output'
     return super(DumpsysPowerMonitor, self).CombineResults(
         cpu_stats, DumpsysPowerMonitor.ParseSamplingOutput(package, result))

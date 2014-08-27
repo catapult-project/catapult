@@ -2,13 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.platform import proc_supporting_platform_backend
+from telemetry.core.platform import linux_based_platform_backend
 from telemetry.core.platform import ps_util
 from telemetry.core.platform.power_monitor import cros_power_monitor
 
 
 class CrosPlatformBackend(
-    proc_supporting_platform_backend.ProcSupportingPlatformBackend):
+    linux_based_platform_backend.LinuxBasedPlatformBackend):
 
   def __init__(self, cri):
     super(CrosPlatformBackend, self).__init__()
@@ -30,14 +30,43 @@ class CrosPlatformBackend(
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
 
-  def _RunCommand(self, args):
+  def RunCommand(self, args):
     return self._cri.RunCmdOnDevice(args)[0]
 
-  def _GetFileContents(self, filename):
+  def GetFileContents(self, filename):
     try:
-      return self._cri.RunCmdOnDevice(['cat', filename])[0]
+      return self.RunCommand(['cat', filename])
     except AssertionError:
       return ''
+
+  @staticmethod
+  def ParseCStateSample(sample):
+    sample_stats = {}
+    for cpu in sample:
+      values = sample[cpu].splitlines()
+      # There are three values per state after excluding the single time value.
+      num_states = (len(values) - 1) / 3
+      names = values[:num_states]
+      times = values[num_states:2 * num_states]
+      latencies = values[2 * num_states:]
+      # The last line in the sample contains the time.
+      cstates = {'C0': int(values[-1]) * 10 ** 6}
+      for i, state in enumerate(names):
+        if names[i] == 'POLL' and not int(latencies[i]):
+          # C0 state. Kernel stats aren't right, so calculate by
+          # subtracting all other states from total time (using epoch
+          # timer since we calculate differences in the end anyway).
+          # NOTE: Only x86 lists C0 under cpuidle, ARM does not.
+          continue
+        cstates['C0'] -= int(times[i])
+        if names[i] == '<null>':
+          # Kernel race condition that can happen while a new C-state gets
+          # added (e.g. AC->battery). Don't know the 'name' of the state
+          # yet, but its 'time' would be 0 anyway.
+          continue
+        cstates[state] = int(times[i])
+      sample_stats[cpu] = cstates
+    return sample_stats
 
   def GetIOStats(self, pid):
     # There is no '/proc/<pid>/io' file on CrOS platforms

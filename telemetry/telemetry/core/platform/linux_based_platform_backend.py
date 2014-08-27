@@ -12,14 +12,15 @@ from telemetry.core import exceptions
 from telemetry.core.platform import platform_backend
 
 
-class ProcSupportingPlatformBackend(platform_backend.PlatformBackend):
+class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
 
-  """Represents a platform that supports /proc.
+  """Abstract platform containing functionality shared by all linux based OSes.
 
-  Subclasses must implement _GetFileContents and _GetPsOutput."""
+  Subclasses must implement RunCommand, GetFileContents, GetPsOutput, and
+  ParseCStateSample."""
 
   def GetSystemCommitCharge(self):
-    meminfo_contents = self._GetFileContents('/proc/meminfo')
+    meminfo_contents = self.GetFileContents('/proc/meminfo')
     meminfo = self._GetProcFileDict(meminfo_contents)
     if not meminfo:
       return None
@@ -30,7 +31,7 @@ class ProcSupportingPlatformBackend(platform_backend.PlatformBackend):
 
   @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
-    meminfo_contents = self._GetFileContents('/proc/meminfo')
+    meminfo_contents = self.GetFileContents('/proc/meminfo')
     meminfo = self._GetProcFileDict(meminfo_contents)
     if not meminfo:
       return None
@@ -47,7 +48,7 @@ class ProcSupportingPlatformBackend(platform_backend.PlatformBackend):
     return {'CpuProcessTime': cpu_process_jiffies}
 
   def GetCpuTimestamp(self):
-    timer_list = self._GetFileContents('/proc/timer_list')
+    timer_list = self.GetFileContents('/proc/timer_list')
     total_jiffies = float(self._GetProcJiffies(timer_list))
     return {'TotalTime': total_jiffies}
 
@@ -83,19 +84,38 @@ class ProcSupportingPlatformBackend(platform_backend.PlatformBackend):
             'ReadTransferCount': int(io['rchar']),
             'WriteTransferCount': int(io['wchar'])}
 
-  def _GetFileContents(self, filename):
+  def GetFileContents(self, filename):
     raise NotImplementedError()
 
-  def _GetPsOutput(self, columns, pid=None):
+  def GetPsOutput(self, columns, pid=None):
+    raise NotImplementedError()
+
+  def RunCommand(self, cmd):
+    raise NotImplementedError()
+
+  @staticmethod
+  def ParseCStateSample(sample):
+    """Parse a single c-state residency sample.
+
+    Args:
+        sample: A sample of c-state residency times to be parsed. Organized as
+            a dictionary mapping CPU name to a string containing all c-state
+            names, the times in each state, the latency of each state, and the
+            time at which the sample was taken all separated by newlines.
+            Ex: {'cpu0': 'C0\nC1\n5000\n2000\n20\n30\n1406673171'}
+
+    Returns:
+        Dictionary associating a c-state with a time.
+    """
     raise NotImplementedError()
 
   def _IsPidAlive(self, pid):
     assert pid, 'pid is required'
-    return bool(self._GetPsOutput(['pid'], pid) == str(pid))
+    return bool(self.GetPsOutput(['pid'], pid) == str(pid))
 
   def _GetProcFileForPid(self, pid, filename):
     try:
-      return self._GetFileContents('/proc/%s/%s' % (pid, filename))
+      return self.GetFileContents('/proc/%s/%s' % (pid, filename))
     except IOError:
       if not self._IsPidAlive(pid):
         raise exceptions.ProcessGoneException()

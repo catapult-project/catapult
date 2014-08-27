@@ -8,7 +8,6 @@ import tempfile
 import time
 
 from telemetry.core import exceptions
-from telemetry.core.platform import android_sysfs_platform
 from telemetry.core.platform.power_monitor import sysfs_power_monitor
 from telemetry.core.platform.profiler import monsoon
 
@@ -44,9 +43,8 @@ def _MonitorPower(device, is_collecting, output):
     json.dump(result, output)
 
 class MonsoonPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
-  def __init__(self, device):
-    super(MonsoonPowerMonitor, self).__init__(
-        android_sysfs_platform.AndroidSysfsPlatform(device))
+  def __init__(self, _, platform_backend):
+    super(MonsoonPowerMonitor, self).__init__(platform_backend)
     self._powermonitor_process = None
     self._powermonitor_output_file = None
     self._is_collecting = None

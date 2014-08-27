@@ -18,14 +18,14 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   # This is an abstract class. It is OK to have abstract methods.
   # pylint: disable=W0223
 
-  def _RunCommand(self, args):
+  def RunCommand(self, args):
     return subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
 
-  def _GetFileContents(self, path):
+  def GetFileContents(self, path):
     with open(path, 'r') as f:
       return f.read()
 
-  def _GetPsOutput(self, columns, pid=None):
+  def GetPsOutput(self, columns, pid=None):
     """Returns output of the 'ps' command as a list of lines.
     Subclass should override this function.
 
@@ -38,7 +38,7 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     args.extend(['-p', str(pid)] if pid != None else ['-e'])
     for c in columns:
       args.extend(['-o', c + '='])
-    return self._RunCommand(args).splitlines()
+    return self.RunCommand(args).splitlines()
 
   def _GetTopOutput(self, pid, columns):
     """Returns output of the 'top' command as a list of lines.
@@ -50,11 +50,11 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     args = ['top']
     args.extend(['-pid', str(pid), '-l', '1', '-s', '0', '-stats',
         ','.join(columns)])
-    return self._RunCommand(args).splitlines()
+    return self.RunCommand(args).splitlines()
 
   def GetChildPids(self, pid):
     """Returns a list of child pids of |pid|."""
-    ps_output = self._GetPsOutput(['pid', 'ppid', 'state'])
+    ps_output = self.GetPsOutput(['pid', 'ppid', 'state'])
     ps_line_re = re.compile(
         '\s*(?P<pid>\d+)\s*(?P<ppid>\d+)\s*(?P<state>\S*)\s*')
     processes = []
@@ -65,14 +65,14 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return ps_util.GetChildPids(processes, pid)
 
   def GetCommandLine(self, pid):
-    command = self._GetPsOutput(['command'], pid)
+    command = self.GetPsOutput(['command'], pid)
     return command[0] if command else None
 
   def CanLaunchApplication(self, application):
     return bool(distutils.spawn.find_executable(application))
 
   def IsApplicationRunning(self, application):
-    ps_output = self._GetPsOutput(['command'])
+    ps_output = self.GetPsOutput(['command'])
     application_re = re.compile(
         '(.*%s|^)%s(\s|$)' % (os.path.sep, application))
     return any(application_re.match(cmd) for cmd in ps_output)

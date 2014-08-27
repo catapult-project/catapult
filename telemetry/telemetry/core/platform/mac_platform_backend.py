@@ -100,7 +100,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     return {'TotalTime': time.time()}
 
   def GetSystemCommitCharge(self):
-    vm_stat = self._RunCommand(['vm_stat'])
+    vm_stat = self.RunCommand(['vm_stat'])
     for stat in vm_stat.splitlines():
       key, value = stat.split(':')
       if key == 'Pages active':
@@ -110,14 +110,14 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
   @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
-    return int(self._RunCommand(['sysctl', '-n', 'hw.memsize']))
+    return int(self.RunCommand(['sysctl', '-n', 'hw.memsize']))
 
   def PurgeUnpinnedMemory(self):
     # TODO(pliard): Implement this.
     pass
 
   def GetMemoryStats(self, pid):
-    rss_vsz = self._GetPsOutput(['rss', 'vsz'], pid)
+    rss_vsz = self.GetPsOutput(['rss', 'vsz'], pid)
     if rss_vsz:
       rss, vsz = rss_vsz[0].split()
       return {'VM': 1024 * int(vsz),

@@ -6,11 +6,10 @@ import os
 import unittest
 
 from telemetry.core import util
-from telemetry.core.platform import proc_supporting_platform_backend
+from telemetry.core.platform import linux_based_platform_backend
 
 
-class TestBackend(
-    proc_supporting_platform_backend.ProcSupportingPlatformBackend):
+class TestBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
 
   # pylint: disable=W0223
 
@@ -21,14 +20,14 @@ class TestBackend(
   def SetMockFile(self, filename, output):
     self._mock_files[filename] = output
 
-  def _GetFileContents(self, filename):
+  def GetFileContents(self, filename):
     return self._mock_files[filename]
 
 
-class ProcSupportingPlatformBackendTest(unittest.TestCase):
+class LinuxBasedPlatformBackendTest(unittest.TestCase):
 
   def testGetMemoryStatsBasic(self):
-    if not proc_supporting_platform_backend.resource:
+    if not linux_based_platform_backend.resource:
       logging.warning('Test not supported')
       return
 
@@ -47,7 +46,7 @@ class ProcSupportingPlatformBackendTest(unittest.TestCase):
                                'WorkingSetSizePeak': 144547840})
 
   def testGetMemoryStatsNoHWM(self):
-    if not proc_supporting_platform_backend.resource:
+    if not linux_based_platform_backend.resource:
       logging.warning('Test not supported')
       return
 

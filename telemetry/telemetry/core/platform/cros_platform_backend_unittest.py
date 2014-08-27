@@ -4,10 +4,10 @@
 
 import unittest
 
-from telemetry.core.platform import cros_sysfs_platform
+from telemetry.core.platform import cros_platform_backend
 
 
-class CrosSysfsPlatformTest(unittest.TestCase):
+class CrosPlatformBackendTest(unittest.TestCase):
   initial_cstate = {
     'cpu0': 'POLL\nC1\nC2\nC3\n0\n138356189\n102416540\n'
             '17158209182\n0\n1\n500\n1000\n1403211341',
@@ -30,7 +30,7 @@ class CrosSysfsPlatformTest(unittest.TestCase):
   }
   def testCrosParseCpuStates(self):
     # Use mock start and end times to allow for the test to calculate C0.
-    results = cros_sysfs_platform.CrosSysfsPlatform.ParseStateSample(
+    results = cros_platform_backend.CrosPlatformBackend.ParseCStateSample(
         self.initial_cstate)
     for cpu in results:
       for state in results[cpu]:

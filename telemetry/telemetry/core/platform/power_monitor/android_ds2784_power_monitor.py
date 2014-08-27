@@ -6,7 +6,6 @@ import logging
 import os
 
 from telemetry import decorators
-from telemetry.core.platform import android_sysfs_platform
 from telemetry.core.platform.power_monitor import sysfs_power_monitor
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 
@@ -20,9 +19,8 @@ VOLTAGE = os.path.join(FUEL_GAUGE_PATH, 'voltage_now')
 
 
 class DS2784PowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
-  def __init__(self, device):
-    super(DS2784PowerMonitor, self).__init__(
-        android_sysfs_platform.AndroidSysfsPlatform(device))
+  def __init__(self, device, platform_backend):
+    super(DS2784PowerMonitor, self).__init__(platform_backend)
     self._device = device
     self._powermonitor_process_port = None
     self._file_poller_binary = android_prebuilt_profiler_helper.GetDevicePath(

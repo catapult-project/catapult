@@ -19,7 +19,7 @@ class TestBackend(
   def SetMockFile(self, filename, output):
     self._mock_files[filename] = output
 
-  def _GetFileContents(self, filename):
+  def GetFileContents(self, filename):
     return self._mock_files[filename]
 
   def StartRawDisplayFrameRateMeasurement(self):

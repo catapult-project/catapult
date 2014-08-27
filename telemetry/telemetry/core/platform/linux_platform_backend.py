@@ -8,16 +8,16 @@ import subprocess
 import sys
 
 from telemetry import decorators
+from telemetry.core.platform import linux_based_platform_backend
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
-from telemetry.core.platform import proc_supporting_platform_backend
 from telemetry.util import cloud_storage
 from telemetry.util import support_binaries
 
 
 class LinuxPlatformBackend(
     posix_platform_backend.PosixPlatformBackend,
-    proc_supporting_platform_backend.ProcSupportingPlatformBackend):
+    linux_based_platform_backend.LinuxBasedPlatformBackend):
 
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
@@ -44,7 +44,7 @@ class LinuxPlatformBackend(
 
     codename = None
     version = None
-    for line in self._GetFileContents('/etc/lsb-release').splitlines():
+    for line in self.GetFileContents('/etc/lsb-release').splitlines():
       key, _, value = line.partition('=')
       if key == 'DISTRIB_CODENAME':
         codename = value.strip()

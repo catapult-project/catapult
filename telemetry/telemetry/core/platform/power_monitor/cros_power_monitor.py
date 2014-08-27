@@ -6,7 +6,6 @@ import collections
 import re
 
 from telemetry import decorators
-from telemetry.core.platform import cros_sysfs_platform
 from telemetry.core.platform.power_monitor import sysfs_power_monitor
 
 
@@ -14,20 +13,17 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   """PowerMonitor that relies on 'power_supply_info' to monitor power
   consumption of a single ChromeOS application.
   """
-  def __init__(self, cri):
+  def __init__(self, platform_backend):
     """Constructor.
 
     Args:
-        cri: Chrome interface.
+        platform_backend: A LinuxBasedPlatformBackend object.
 
     Attributes:
-        _cri: The Chrome interface.
         _initial_power: The result of 'power_supply_info' before the test.
         _start_time: The epoch time at which the test starts executing.
     """
-    super(CrosPowerMonitor, self).__init__(
-        cros_sysfs_platform.CrosSysfsPlatform(cri))
-    self._cri = cri
+    super(CrosPowerMonitor, self).__init__(platform_backend)
     self._initial_power = None
     self._start_time = None
 
@@ -38,8 +34,7 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   def StartMonitoringPower(self, browser):
     super(CrosPowerMonitor, self).StartMonitoringPower(browser)
     if self._IsOnBatteryPower():
-      sample = self._cri.RunCmdOnDevice(
-          ['power_supply_info;', 'date', '+%s'])[0]
+      sample = self._platform.RunCommand(['power_supply_info;', 'date', '+%s'])
       self._initial_power, self._start_time = CrosPowerMonitor.SplitSample(
           sample)
 
@@ -47,8 +42,7 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     cpu_stats = super(CrosPowerMonitor, self).StopMonitoringPower()
     power_stats = {}
     if self._IsOnBatteryPower():
-      sample = self._cri.RunCmdOnDevice(
-          ['power_supply_info;', 'date', '+%s'])[0]
+      sample = self._platform.RunCommand(['power_supply_info;', 'date', '+%s'])
       final_power, end_time = CrosPowerMonitor.SplitSample(sample)
       # The length of the test is used to measure energy consumption.
       length_h = (end_time - self._start_time) / 3600.0
@@ -98,8 +92,8 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
         True if the device is on battery power; False otherwise.
     """
     status = CrosPowerMonitor.ParsePowerSupplyInfo(
-        self._cri.RunCmdOnDevice(['power_supply_info'])[0])
-    board_data = self._cri.RunCmdOnDevice(['cat', '/etc/lsb-release'])[0]
+        self._platform.RunCommand(['power_supply_info']))
+    board_data = self._platform.RunCommand(['cat', '/etc/lsb-release'])
     board = re.search('BOARD=(.*)', board_data).group(1)
     return CrosPowerMonitor.IsOnBatteryPower(status, board)
 
