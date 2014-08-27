@@ -100,6 +100,10 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
       msg = ('Error creating branch telemetry-tryjob. '
              'Please delete it if it exists.\n%s' % err)
       return (ERROR, msg)
+    returncode, out, err = self._RunProcess(
+        ['git', 'branch', '--set-upstream-to', 'origin/master'])
+    if returncode:
+      return (ERROR, 'Error in git branch --set-upstream-to: %s' % err)
 
     # Generate the command line for the perf trybots
     arguments = sys.argv
@@ -139,14 +143,14 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     # Upload the CL to rietveld and run a try job.
     returncode, out, err = self._RunProcess([
         'git', 'cl', 'upload', '-f', '--bypass-hooks', '-m',
-        'CL for perf tryjob', 'origin/master'
+        'CL for perf tryjob'
     ])
     if returncode:
-      msg = 'Could upload to reitveld, error %s', err
+      msg = 'Could upload to rietveld, error %s' % err
       return (ERROR, msg)
     match = re.search(r'https://codereview.chromium.org/[\d]+', out)
     if not match:
-      msg = 'Could not upload CL to reitveld! Output %s' % out
+      msg = 'Could not upload CL to rietveld! Output %s' % out
       return (ERROR, msg)
     rietveld_url = match.group(0)
     returncode, out, err = self._RunProcess([
@@ -169,7 +173,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
         ['git', 'branch', '-D', 'telemetry-tryjob'])
     if returncode:
       msg = (('Could not delete telemetry-tryjob branch. '
-              'Please delete it manually. Error %s'), err)
+              'Please delete it manually. Error %s') % err)
       return (ERROR, msg)
     return (SUCCESS, rietveld_url)
 
@@ -183,7 +187,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     # First check if there are chromium changes to upload.
     status, msg = self._AttemptTryjob(CHROMIUM_CONFIG_FILENAME)
     if status == SUCCESS:
-      print 'Uploaded chromium try job to reitveld. View progress at %s' % msg
+      print 'Uploaded chromium try job to rietveld. View progress at %s' % msg
       return
     elif status == ERROR:
       logging.error(msg)
@@ -194,7 +198,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     status, msg = self._AttemptTryjob(BLINK_CONFIG_FILENAME)
     os.chdir('../..')
     if status == SUCCESS:
-      print 'Uploaded blink try job to reitveld. View progress at %s' % msg
+      print 'Uploaded blink try job to rietveld. View progress at %s' % msg
       return
     elif status == ERROR:
       logging.error(msg)
