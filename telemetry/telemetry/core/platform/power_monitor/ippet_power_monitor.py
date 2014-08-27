@@ -11,11 +11,9 @@ import platform
 import re
 import shutil
 import tempfile
-import urllib2
 import zipfile
 
 from telemetry import decorators
-from telemetry.core import util
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import power_monitor
 from telemetry.util import cloud_storage
@@ -30,6 +28,10 @@ except ImportError:
   win32con = None
   win32event = None
   win32process = None
+
+
+START_EVENT = 'ippet_StartEvent'
+QUIT_EVENT = 'ippet_QuitEvent'
 
 
 class IppetError(Exception):
@@ -68,7 +70,6 @@ class IppetPowerMonitor(power_monitor.PowerMonitor):
     super(IppetPowerMonitor, self).__init__()
     self._backend = backend
     self._ippet_handle = None
-    self._ippet_port = None
     self._output_dir = None
 
   def CanMonitorPower(self):
@@ -108,53 +109,63 @@ class IppetPowerMonitor(power_monitor.PowerMonitor):
   def StartMonitoringPower(self, browser):
     assert not self._ippet_handle, 'Called StartMonitoringPower() twice.'
     self._output_dir = tempfile.mkdtemp()
-    self._ippet_port = util.GetUnreservedAvailableLocalPort()
     parameters = ['-log_dir', self._output_dir,
-                  '-web_port', str(self._ippet_port),
-                  '-zip', 'n']
-    self._ippet_handle = self._backend.LaunchApplication(
-        IppetPath(), parameters, elevate_privilege=True)
+                  '-signals', 'START,QUIT',
+                  '-enable_web', 'n', '-zip', 'n']
 
-    def IppetServerIsUp():
-      try:
-        urllib2.urlopen('http://127.0.0.1:%d/ippet' % self._ippet_port,
-                        timeout=1).close()
-      except urllib2.URLError:
-        return False
-      return True
-    util.WaitFor(IppetServerIsUp, timeout=5)
+    try:
+      with contextlib.closing(win32event.CreateEvent(
+          None, True, False, START_EVENT)) as start_event:
+        self._ippet_handle = self._backend.LaunchApplication(
+            IppetPath(), parameters, elevate_privilege=True)
+        wait_code = win32event.WaitForSingleObject(start_event, 5000)
+      if wait_code != win32event.WAIT_OBJECT_0:
+        if wait_code == win32event.WAIT_TIMEOUT:
+          raise IppetError('Timed out waiting for IPPET to start.')
+        else:
+          raise IppetError('Error code %d while waiting for IPPET to start.' %
+                           wait_code)
+
+    except:  # In case of emergency, don't leave IPPET processes hanging around.
+      if self._ippet_handle:
+        try:
+          exit_code = win32process.GetExitCodeProcess(self._ippet_handle)
+          if exit_code == win32con.STILL_ACTIVE:
+            win32process.TerminateProcess(self._ippet_handle, 0)
+        finally:
+          self._ippet_handle.Close()
+          self._ippet_handle = None
+      raise
 
   def StopMonitoringPower(self):
     assert self._ippet_handle, (
         'Called StopMonitoringPower() before StartMonitoringPower().')
-    # Stop IPPET.
     try:
-      ippet_quit_url = 'http://127.0.0.1:%d/ippet?cmd=quit' % self._ippet_port
-      with contextlib.closing(
-          urllib2.urlopen(ippet_quit_url, timeout=5)) as response:
-        quit_output = response.read()
-      if quit_output != 'quiting\r\n':
-        raise IppetError('Failed to quit IPPET: %s' % quit_output.strip())
-      wait_return_code = win32event.WaitForSingleObject(self._ippet_handle,
-                                                        20000)
-      if wait_return_code != win32event.WAIT_OBJECT_0:
-        if wait_return_code == win32event.WAIT_TIMEOUT:
+      # Stop IPPET.
+      with contextlib.closing(win32event.OpenEvent(
+          win32event.EVENT_MODIFY_STATE, False, QUIT_EVENT)) as quit_event:
+        win32event.SetEvent(quit_event)
+
+      # Wait for IPPET process to exit.
+      wait_code = win32event.WaitForSingleObject(self._ippet_handle, 20000)
+      if wait_code != win32event.WAIT_OBJECT_0:
+        if wait_code == win32event.WAIT_TIMEOUT:
           raise IppetError('Timed out waiting for IPPET to close.')
         else:
           raise IppetError('Error code %d while waiting for IPPET to close.' %
-                          wait_return_code)
-    finally:
+                           wait_code)
+
+    finally:  # If we need to, forcefully kill IPPET.
       try:
-        ippet_exit_code = win32process.GetExitCodeProcess(self._ippet_handle)
-        if ippet_exit_code == win32con.STILL_ACTIVE:
-          win32process.TerminateProcess(self._ippet_handle)
+        exit_code = win32process.GetExitCodeProcess(self._ippet_handle)
+        if exit_code == win32con.STILL_ACTIVE:
+          win32process.TerminateProcess(self._ippet_handle, 0)
           raise IppetError('IPPET is still running but should have stopped.')
-        elif ippet_exit_code != 0:
-          raise IppetError('IPPET closed with exit code %d.' % ippet_exit_code)
+        elif exit_code != 0:
+          raise IppetError('IPPET closed with exit code %d.' % exit_code)
       finally:
         self._ippet_handle.Close()
         self._ippet_handle = None
-        self._ippet_port = None
 
     # Read IPPET's log file.
     log_file = os.path.join(self._output_dir, 'ippet_log_processes.xls')
