@@ -150,10 +150,10 @@ class AndroidRndisForwarder(forwarders.Forwarder):
     """Override any routing policy that could prevent
     packets from reaching the rndis interface
     """
-    policies = self._device.RunShellCommand('ip rule')
+    policies = self._adb.RunShellCommand('ip rule')
     if len(policies) > 1 and not ('lookup main' in policies[1]):
-      self._device.RunShellCommand('ip rule add prio 1 from all table main')
-      self._device.RunShellCommand('ip route flush cache')
+      self._adb.RunShellCommand('ip rule add prio 1 from all table main')
+      self._adb.RunShellCommand('ip route flush cache')
 
   def _RestoreRoutingPolicy(self):
     policies = self._adb.RunShellCommand('ip rule')
