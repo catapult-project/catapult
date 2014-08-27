@@ -1,10 +1,8 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import logging
 from operator import attrgetter
 
-from telemetry.page import page_test
 from telemetry.web_perf.metrics import rendering_frame
 
 # These are LatencyInfo component names indicating the various components
@@ -28,19 +26,6 @@ END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT'
 SCROLL_UPDATE_EVENT_NAME = 'InputLatency:ScrollUpdate'
 # Name for a gesture scroll update latency event.
 GESTURE_SCROLL_UPDATE_EVENT_NAME  = 'InputLatency:GestureScrollUpdate'
-
-
-class NotEnoughFramesError(page_test.MeasurementFailure):
-  def __init__(self, frame_count):
-    super(NotEnoughFramesError, self).__init__(
-      'Only %i frame timestamps were collected ' % frame_count +
-      '(at least two are required).\n'
-      'Issues that have caused this in the past:\n' +
-      '- Browser bugs that prevents the page from redrawing\n' +
-      '- Bugs in the synthetic gesture code\n' +
-      '- Page and benchmark out of sync (e.g. clicked element was renamed)\n' +
-      '- Pages that render extremely slow\n' +
-      '- Pages that can\'t be scrolled')
 
 
 def GetInputLatencyEvents(process, timeline_range):
@@ -139,7 +124,11 @@ class RenderingStats(object):
     if HasRenderingStats(browser_process):
       timestamp_process = browser_process
     else:
-      timestamp_process  = renderer_process
+      timestamp_process = renderer_process
+
+    # A lookup from list names below to any errors or exceptions encountered
+    # in attempting to generate that list.
+    self.errors = {}
 
     self.frame_timestamps = []
     self.frame_times = []
@@ -185,12 +174,6 @@ class RenderingStats(object):
           browser_process, renderer_process, timeline_range)
       self._InitFrameQueueingDurationsFromTimeline(
           renderer_process, timeline_range)
-
-    # Check if we have collected at least 2 frames in every range. Otherwise we
-    # can't compute any meaningful metrics.
-    for segment in self.frame_timestamps:
-      if len(segment) < 2:
-        raise NotEnoughFramesError(len(segment))
 
   def _InitInputLatencyStatsFromTimeline(
       self, browser_process, renderer_process, timeline_range):
@@ -271,5 +254,5 @@ class RenderingStats(object):
       new_frame_queueing_durations = [e.queueing_duration for e in events]
       self.frame_queueing_durations.append(new_frame_queueing_durations)
     except rendering_frame.NoBeginFrameIdException:
-      logging.warning('Current chrome version does not support the queueing '
-                      'delay metric.')
+      self.errors['frame_queueing_durations'] = (
+          'Current chrome version does not support the queueing delay metric.')

@@ -23,7 +23,6 @@ from telemetry.web_perf.metrics.rendering_stats import (
     ComputeInputEventLatencies)
 from telemetry.web_perf.metrics.rendering_stats import GetInputLatencyEvents
 from telemetry.web_perf.metrics.rendering_stats import HasRenderingStats
-from telemetry.web_perf.metrics.rendering_stats import NotEnoughFramesError
 from telemetry.web_perf.metrics.rendering_stats import RenderingStats
 
 
@@ -302,8 +301,10 @@ class RenderingStatsUnitTest(unittest.TestCase):
     timeline_markers = timeline.FindTimelineMarkers(['ActionA', 'ActionB'])
     timeline_ranges = [ timeline_bounds.Bounds.CreateFromEvent(marker)
                         for marker in timeline_markers ]
-    self.assertRaises(NotEnoughFramesError, RenderingStats,
-                      renderer, None, timeline_ranges)
+
+    stats = RenderingStats(renderer, None, timeline_ranges)
+    self.assertEquals(0, len(stats.frame_timestamps[1]))
+
 
   def testFromTimeline(self):
     timeline = model.TimelineModel()
