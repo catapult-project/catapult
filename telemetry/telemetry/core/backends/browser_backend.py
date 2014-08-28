@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry import decorators
+from telemetry.core import platform
 from telemetry.core import web_contents
 from telemetry.core.forwarders import do_nothing_forwarder
 
@@ -28,9 +29,10 @@ class BrowserBackend(object):
 
   def SetBrowser(self, browser):
     self._browser = browser
-    if (self.browser_options.netsim and
-        not browser.platform.CanLaunchApplication('ipfw')):
-      browser.platform.InstallApplication('ipfw')
+    if self.browser_options.netsim:
+      host_platform = platform.GetHostPlatform()
+      if not host_platform.CanLaunchApplication('ipfw'):
+        host_platform.InstallApplication('ipfw')
 
   @property
   def browser(self):

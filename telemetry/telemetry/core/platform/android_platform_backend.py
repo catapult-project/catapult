@@ -31,13 +31,6 @@ except Exception:
   surface_stats_collector = None
 
 
-_HOST_APPLICATIONS = [
-    'avconv',
-    'ipfw',
-    'perfhost',
-    ]
-
-
 class AndroidPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
   def __init__(self, device, no_performance_mode):
@@ -189,10 +182,6 @@ class AndroidPlatformBackend(
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
-    if application in _HOST_APPLICATIONS:
-      platform.GetHostPlatform().LaunchApplication(
-          application, parameters, elevate_privilege=elevate_privilege)
-      return
     if elevate_privilege:
       raise NotImplementedError("elevate_privilege isn't supported on android.")
     if not parameters:
@@ -200,19 +189,12 @@ class AndroidPlatformBackend(
     self._device.RunShellCommand('am start ' + parameters + ' ' + application)
 
   def IsApplicationRunning(self, application):
-    if application in _HOST_APPLICATIONS:
-      return platform.GetHostPlatform().IsApplicationRunning(application)
     return len(self._device.GetPids(application)) > 0
 
   def CanLaunchApplication(self, application):
-    if application in _HOST_APPLICATIONS:
-      return platform.GetHostPlatform().CanLaunchApplication(application)
     return True
 
   def InstallApplication(self, application):
-    if application in _HOST_APPLICATIONS:
-      platform.GetHostPlatform().InstallApplication(application)
-      return
     raise NotImplementedError(
         'Please teach Telemetry how to install ' + application)
 
