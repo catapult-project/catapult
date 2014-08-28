@@ -107,8 +107,8 @@ class IppetPowerMonitor(power_monitor.PowerMonitor):
   def StartMonitoringPower(self, browser):
     assert not self._ippet_handle, 'Called StartMonitoringPower() twice.'
     self._output_dir = tempfile.mkdtemp()
-    parameters = ['-log_dir', self._output_dir,
-                  '-signals', 'START,QUIT',
+    parameters = ['-log_dir', self._output_dir, '-signals', 'START,QUIT',
+                  '-battery', 'n', '-disk', 'n', '-gpu', 'n',
                   '-enable_web', 'n', '-zip', 'n']
 
     try:
