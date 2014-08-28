@@ -9,6 +9,7 @@ import time
 from telemetry import decorators
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
+from telemetry.core.platform import process_statistic_timeline_data
 from telemetry.core.platform.power_monitor import powermetrics_power_monitor
 
 try:
@@ -46,13 +47,14 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     # Sometimes top won't return anything here, just ignore such cases -
     # crbug.com/354812 .
     if top_output[-2] != 'IDLEW':
-      return 0
+      return process_statistic_timeline_data.IdleWakeupTimelineData(pid, 0)
     # Numbers reported by top may have a '+' appended.
     wakeup_count = int(top_output[-1].strip('+ '))
-    return wakeup_count
+    return process_statistic_timeline_data.IdleWakeupTimelineData(pid,
+        wakeup_count)
 
   def GetCpuStats(self, pid):
-    """Return current cpu processing time of pid in seconds."""
+    """Returns a dict of cpu statistics for the process represented by |pid|."""
     class ProcTaskInfo(ctypes.Structure):
       """Struct for proc_pidinfo() call."""
       _fields_ = [("pti_virtual_size", ctypes.c_uint64),
