@@ -315,5 +315,11 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParser()
     parser.Parse(tvcm_contents)
 
+  def test_tvcm_parse2(self):
+    html = """<tag name=foo}></tag>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+
+
 if __name__ == '__main__':
   unittest.main()

@@ -2,12 +2,34 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import re
-from HTMLParser import HTMLParser
+import sys
 
 from tvcm import module
 from tvcm import strip_js_comments
 from tvcm import html_generation_controller
+
+
+# Some versions of Python have a busted HTMLParser.
+# For old python versions, use the version of HTMLParser in tvcm/third_party.
+def _SetupImportsForHTMLParser():
+  def IsPythonNewEnough():
+    if sys.version_info.major > 2:
+      return True
+    if sys.version_info.minor > 7:
+      return True
+    if sys.version_info.micro >= 6:
+      return True
+    return False
+  if IsPythonNewEnough():
+    return
+  basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+  path = os.path.join(basedir, 'third_party', 'Python-2.7.6-HTMLParser', 'Lib')
+  if path not in sys.path:
+    sys.path.insert(0, path)
+_SetupImportsForHTMLParser()
+from HTMLParser import HTMLParser
 
 
 CHUNK_TEXT_OP = 'text-op'
@@ -15,10 +37,12 @@ CHUNK_SCRIPT_OP = 'script-op'
 CHUNK_STYLESHEET_OP = 'stylesheet-op'
 CHUNK_INLINE_STYLE_OP = 'inline-style-op'
 
+
 class _Chunk(object):
   def __init__(self, op, data):
     self.op = op
     self.data = data
+
 
 class InlineScript(object):
   def __init__(self, contents, open_tags):
@@ -32,78 +56,6 @@ class InlineScript(object):
       self._stripped_contents = strip_js_comments.StripJSComments(
           self.contents)
     return self._stripped_contents
-
-"""
-Some versions of Python have a busted HTMLParser with-regard-to cdata sections.
-
-This tries to work around that issue.
-"""
-
-def IsHTMLParserCDataSane():
-  tags = []
-  class Parser(HTMLParser):
-    def handle_starttag(self, tag, attrs):
-      tags.append(tag)
-
-    def handle_endtag(self, tag):
-      tags.append('/' + tag)
-
-  parser = Parser()
-  parser.feed("""<script></h2>
-  </script>""")
-  return tags == ['script', '/script']
-
-class SaneHTMLParser(HTMLParser):
-  def __init__(self):
-    HTMLParser.__init__(self)
-    self._use_cdata_fix = IsHTMLParserCDataSane() == False
-    self._handler = None
-
-    self._in_script = False
-
-  def feed(self, handler, html):
-    try:
-      self._handler = handler
-      HTMLParser.feed(self, html)
-    finally:
-      self._handler = None
-
-  def handle_decl(self, decl):
-    self._handler.handle_decl(decl)
-
-  def handle_starttag(self, tag, attrs):
-    if self._use_cdata_fix:
-      if self._in_script:
-        self._handler.handle_data(self.get_starttag_text())
-        return
-      else:
-        if tag == 'script':
-          self._in_script = True
-    return self._handler.handle_starttag(tag, attrs)
-
-  def handle_entityref(self, name):
-    self._handler.handle_entityref(name)
-
-  def handle_charref(self, name):
-    self._handler.handle_charref(name)
-
-  def handle_startendtag(self, tag, attrs):
-    if self._use_cdata_fix and self._in_script:
-      self._handler.handle_data(self.get_starttag_text())
-      return
-    self._handler.handle_startendtag(tag, attrs)
-
-  def handle_endtag(self, tag):
-    if self._use_cdata_fix:
-      if tag == 'script':
-        self._in_script = False
-      if self._in_script:
-        self._handler.handle_data(self.get_starttag_text())
-        return
-    self._handler.handle_endtag(tag)
-
-  def handle_data(self, data):
-    self._handler.handle_data(data)
 
 
 class HTMLModuleParserResults(object):
@@ -169,13 +121,14 @@ class _Tag(object):
     attr_string = ' '.join(['%s="%s"' % (x[0], x[1]) for x in self.attrs])
     return '<%s %s>' % (self.tag, attr_string)
 
-class HTMLModuleParser():
+class HTMLModuleParser(HTMLParser):
   def __init__(self):
+    HTMLParser.__init__(self)
     self.current_results = None
     self.current_inline_script = None
     self._current_inline_style_sheet_contents = None
     self.open_tags = []
-    self._parser = None
+    self = None
 
   def Parse(self, html):
     results = HTMLModuleParserResults()
@@ -184,18 +137,13 @@ class HTMLModuleParser():
     if html.find('< /script>') != -1:
       raise Exception('Escape script tags with <\/script>')
     self.current_results = results
-    self._parser = SaneHTMLParser()
     try:
-      self._parser.feed(self, html)
+      self.feed(html)
     finally:
-      self._parser = None
-    self.current_results = None
+      self.current_results = None
     if len(self.open_tags):
       raise Exception('There were open tags: %s' % ','.join(self.open_tags))
     return results
-
-  def get_starttag_text(self):
-    return self._parser.get_starttag_text()
 
   def handle_decl(self, decl):
     assert self.current_results.has_decl == False, 'Only one doctype decl allowed'

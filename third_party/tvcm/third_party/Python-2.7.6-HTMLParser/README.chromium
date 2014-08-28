@@ -1,0 +1,18 @@
+Name: python 2.7.6
+Short Name: python 2.7.6
+URL: https://www.python.org/download/releases/2.7.6/
+Version: python 2.7.6
+Revision: 2.7.6
+Date: 11/10/2013
+License: Python license
+License File: NOT_SHIPPED
+Security Critical: no
+
+Description:
+A subsettted python 2.7.6 distribution.
+
+Local Modifications:
+Python revs != 2.7.6 ship with a rather broken HTMLParser module that
+doesn't properly handle cdata sections, and doesn't handle malformed
+start tags. This directory brings in Python 2.7.6's HTMLParser file so that we
+can use the "standard" parser.
