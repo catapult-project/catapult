@@ -48,6 +48,7 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
     for attribute_name in interaction_kwargs:
       self.assertTrue(getattr(records[0], attribute_name))
 
+  @benchmark.Disabled('chromeos')
   def testIssuingMultipleMeasurementInteractionRecords(self):
     self.VerifyIssuingInteractionRecords(is_fast=True)
     self.VerifyIssuingInteractionRecords(is_responsive=True)

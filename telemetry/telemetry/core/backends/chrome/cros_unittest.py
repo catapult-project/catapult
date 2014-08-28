@@ -121,7 +121,7 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
     util.WaitFor(lambda: not browser.oobe_exists, 10)
     self.assertFalse(self._IsScreenLocked(browser))
 
-  @benchmark.Enabled('chromeos')
+  @benchmark.Disabled
   def testScreenLock(self):
     """Tests autotestPrivate.screenLock"""
     if self._is_guest:

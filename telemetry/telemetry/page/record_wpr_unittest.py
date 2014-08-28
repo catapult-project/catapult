@@ -6,6 +6,7 @@ import os
 import sys
 
 from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.page import page as page_module
@@ -142,6 +143,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     self.assertEqual('DidRunActions', record_page_test.page_test.func_calls[1])
     self.assertEqual('ValidatePage', record_page_test.page_test.func_calls[2])
 
+  @decorators.Disabled('chromeos') # crbug.com/404868.
   def testWprRecorderWithPageSet(self):
     flags = []
     mock_page_set = MockPageSet(url=self._url)
