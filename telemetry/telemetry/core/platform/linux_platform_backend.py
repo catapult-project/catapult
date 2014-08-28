@@ -96,7 +96,8 @@ class LinuxPlatformBackend(
           ipfw_mod, cloud_storage.INTERNAL_BUCKET)
     except cloud_storage.CloudStorageError, e:
       logging.error(str(e))
-      logging.error('You may proceed by manually installing dummynet. See: '
+      logging.error('You may proceed by manually building and installing'
+                    'dummynet for your kernel. See: '
                     'http://info.iet.unipi.it/~luigi/dummynet/')
       sys.exit(1)
 
@@ -106,7 +107,10 @@ class LinuxPlatformBackend(
       os.chmod(ipfw_bin, 0755)
       subprocess.check_call(['sudo', 'cp', ipfw_bin, '/usr/local/sbin'])
 
-    assert self.CanLaunchApplication('ipfw'), 'Failed to install ipfw'
+    assert self.CanLaunchApplication('ipfw'), 'Failed to install ipfw. ' \
+        'ipfw provided binaries are not supported for linux kernel < 3.13. ' \
+        'You may proceed by manually building and installing dummynet for ' \
+        'your kernel. See: http://info.iet.unipi.it/~luigi/dummynet/'
 
   def _InstallBinary(self, bin_name, fallback_package=None):
     bin_path = support_binaries.FindPath(bin_name, self.GetOSName())
