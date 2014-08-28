@@ -9,7 +9,7 @@ from telemetry.web_components import web_components_project
 from tvcm import module_test_case
 
 
-def load_tests(_, _2, _3):
+def DISABLED_load_tests(_, _2, _3):
   project = web_components_project.WebComponentsProject()
   if os.getenv('NO_TVCM'):
     suite = unittest.TestSuite()
