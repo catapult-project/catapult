@@ -57,7 +57,8 @@ class InspectorWebsocket(object):
     self._next_request_id += 1
     data = json.dumps(req)
     self._socket.send(data)
-    logging.debug('sent [%s]', data)
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+      logging.debug('sent [%s]', json.dumps(req, indent=2, sort_keys=True))
 
   def SyncRequest(self, req, timeout=10):
     self.SendAndIgnoreResponse(req)
@@ -103,7 +104,8 @@ class InspectorWebsocket(object):
       while self._socket:
         data = self._socket.recv()
         res = json.loads(data)
-        logging.debug('got [%s]', data)
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+          logging.debug('got [%s]', json.dumps(res, indent=2, sort_keys=True))
         if 'method' in res and self._notification_handler(res):
           return None
         return res

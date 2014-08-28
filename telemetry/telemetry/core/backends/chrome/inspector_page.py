@@ -1,8 +1,6 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import json
-import logging
 import sys
 import time
 
@@ -26,7 +24,6 @@ class InspectorPage(object):
     self._EnablePageNotifications(timeout=timeout)
 
   def _OnNotification(self, msg):
-    logging.debug('Notification: %s', json.dumps(msg, indent=2))
     if msg['method'] == 'Page.frameNavigated':
       url = msg['params']['frame']['url']
       if not self._navigated_frame_ids == None:

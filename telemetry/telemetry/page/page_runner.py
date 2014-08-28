@@ -512,8 +512,6 @@ def _RunPage(test, page, state, expectation, results):
     results.AddValue(skip.SkipValue(page, 'Skipped by test expectations'))
     return
 
-  logging.info('Running %s', page.url)
-
   page_state = PageState(page, test.TabForPage(page, state.browser))
 
   def ProcessError():

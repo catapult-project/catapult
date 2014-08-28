@@ -239,7 +239,7 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
         import traceback
         traceback.print_exc()
     else:
-      logging.debug('Unhandled inspector message: %s', res)
+      logging.warn('Unhandled inspector message: %s', res)
 
   def _HandleError(self, elapsed_time):
     if self._IsInspectable():
