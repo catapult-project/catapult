@@ -76,10 +76,12 @@ class IppetPowerMonitor(power_monitor.PowerMonitor):
     if not win32event:
       return False
 
-    windows_7_or_later = (
+    # TODO(dtu): This should work on Windows 7, but it's flaky on the bots.
+    # http://crbug.com/336558
+    windows_8_or_later = (
         self._backend.GetOSName() == 'win' and
-        self._backend.GetOSVersionName() >= platform_backend.WIN7)
-    if not windows_7_or_later:
+        self._backend.GetOSVersionName() >= platform_backend.WIN8)
+    if not windows_8_or_later:
       return False
 
     # This check works on Windows only.
