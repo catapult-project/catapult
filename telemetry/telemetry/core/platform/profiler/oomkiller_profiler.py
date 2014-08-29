@@ -36,7 +36,9 @@ class OOMKillerProfiler(profiler.Profiler):
           os.path.join('apks', 'MemConsumer.apk'), 'android')
       assert mem_consumer_path, ('Could not find memconsumer app. Please build '
                                  'memconsumer target.')
-      self._browser_backend.adb.Install(mem_consumer_path)
+      if not self._platform_backend.CanLaunchApplication(
+          'org.chromium.memconsumerg'):
+        self._platform_backend.InstallApplication(mem_consumer_path)
       self._browser_backend.adb.device().GoHome()
       self._platform_backend.LaunchApplication(
           'org.chromium.memconsumer/.MemConsumer',

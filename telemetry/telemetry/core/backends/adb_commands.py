@@ -70,22 +70,6 @@ class AdbCommands(object):
         'forward %s %s' % (local, remote))
     assert ret == ''
 
-  def Install(self, apk_path):
-    """Installs specified package if necessary.
-
-    Args:
-      apk_path: Path to .apk file to install.
-    """
-
-    if (os.path.exists(os.path.join(
-        constants.GetOutDirectory('Release'), 'md5sum_bin_host'))):
-      constants.SetBuildType('Release')
-    elif (os.path.exists(os.path.join(
-        constants.GetOutDirectory('Debug'), 'md5sum_bin_host'))):
-      constants.SetBuildType('Debug')
-
-    self._device.Install(apk_path)
-
   def IsUserBuild(self):
     return self._device.GetProp('ro.build.type') == 'user'
 

@@ -51,6 +51,7 @@ class AndroidPlatformBackend(
     self._power_monitor = android_temperature_monitor.AndroidTemperatureMonitor(
         power_controller, device)
     self._video_recorder = None
+    self._installed_applications = None
     if self._no_performance_mode:
       logging.warning('CPU governor will not be set!')
 
@@ -182,21 +183,36 @@ class AndroidPlatformBackend(
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
+    """Launches the given |application| with a list of |parameters| on the OS.
+
+    Args:
+      application: The full package name string of the application to launch.
+      parameters: A list of parameters to be passed to the ActivityManager.
+      elevate_privilege: Currently unimplemented on Android.
+    """
     if elevate_privilege:
       raise NotImplementedError("elevate_privilege isn't supported on android.")
     if not parameters:
       parameters = ''
-    self._device.RunShellCommand('am start ' + parameters + ' ' + application)
+    result_lines = self._device.RunShellCommand('am start %s %s' %
+                                                (parameters, application))
+    for line in result_lines:
+      if line.startswith('Error: '):
+        raise ValueError('Failed to start "%s" with error\n  %s' %
+                         (application, line))
 
   def IsApplicationRunning(self, application):
     return len(self._device.GetPids(application)) > 0
 
   def CanLaunchApplication(self, application):
-    return True
+    if not self._installed_applications:
+      self._installed_applications = self._device.RunShellCommand(
+          'pm list packages')
+    return 'package:' + application in self._installed_applications
 
   def InstallApplication(self, application):
-    raise NotImplementedError(
-        'Please teach Telemetry how to install ' + application)
+    self._installed_applications = None
+    self._device.Install(application)
 
   @decorators.Cache
   def CanCaptureVideo(self):

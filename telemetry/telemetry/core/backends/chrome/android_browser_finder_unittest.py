@@ -33,7 +33,7 @@ class AndroidBrowserFinderTest(unittest.TestCase):
   def test_no_adb(self):
     finder_options = browser_options.BrowserFinderOptions()
 
-    def NoAdb(*args, **kargs): # pylint: disable=W0613
+    def NoAdb(*args, **kargs):  # pylint: disable=W0613
       raise OSError('not found')
     self._stubs.subprocess.Popen = NoAdb
     browsers = android_browser_finder.FindAllAvailableBrowsers(
@@ -86,7 +86,11 @@ class AndroidBrowserFinderTest(unittest.TestCase):
       return ['package:org.chromium.content_shell_apk',
               'package.com.google.android.setupwizard']
 
+    def OnLs(_):
+      return ['/sys/devices/system/cpu/cpu0']
+
     self._stubs.adb_commands.shell_command_handlers['pm'] = OnPM
+    self._stubs.adb_commands.shell_command_handlers['ls'] = OnLs
 
     browsers = android_browser_finder.FindAllAvailableBrowsers(
         finder_options, self._log_stub)

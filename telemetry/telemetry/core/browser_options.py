@@ -46,6 +46,7 @@ class BrowserFinderOptions(optparse.Values):
     self.output_file = None
 
     self.android_rndis = False
+    self.no_performance_mode = False
 
   def __repr__(self):
     return str(sorted(self.__dict__.items()))

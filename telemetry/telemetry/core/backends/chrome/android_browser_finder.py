@@ -64,12 +64,15 @@ CHROME_PACKAGE_NAMES = {
 
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
-  def __init__(self, browser_type, finder_options, backend_settings, apk_name):
+  def __init__(self, browser_type, finder_options, android_platform,
+               platform_backend, backend_settings, apk_name):
     super(PossibleAndroidBrowser, self).__init__(browser_type, 'android',
         finder_options, backend_settings.supports_tab_control)
     assert browser_type in FindAllBrowserTypes(finder_options), \
         ('Please add %s to android_browser_finder.FindAllBrowserTypes' %
          browser_type)
+    self._platform = android_platform
+    self._platform_backend = platform_backend
     self._backend_settings = backend_settings
     self._local_apk = None
 
@@ -88,18 +91,11 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         newest_apk_path = sorted(candidate_apks)[-1][1]
         self._local_apk = newest_apk_path
 
-
   def __repr__(self):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
 
   def _InitPlatformIfNeeded(self):
-    if self._platform:
-      return
-
-    self._platform_backend = android_platform_backend.AndroidPlatformBackend(
-        self._backend_settings.adb.device(),
-        self.finder_options.no_performance_mode)
-    self._platform = platform.Platform(self._platform_backend)
+    pass
 
   def Create(self):
     self._InitPlatformIfNeeded()
@@ -127,9 +123,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   @decorators.Cache
   def UpdateExecutableIfNeeded(self):
     if self.HaveLocalAPK():
-      real_logging.warn(
-          'Refreshing %s on device if needed.' % self._local_apk)
-      self._backend_settings.adb.Install(self._local_apk)
+      real_logging.warn('Installing %s on device if needed.' % self._local_apk)
+      self.platform.InstallApplication(self._local_apk)
 
   def last_modification_time(self):
     if self.HaveLocalAPK():
@@ -228,16 +223,16 @@ Waiting for device...
     return []
 
   device = devices[0]
-
   adb = adb_commands.AdbCommands(device=device)
+
   # Trying to root the device, if possible.
   if not adb.IsRootEnabled():
     # Ignore result.
     adb.EnableAdbRoot()
 
+  # Host side workaround for crbug.com/268450 (adb instability).
+  # The adb server has a race which is mitigated by binding to a single core.
   if psutil:
-    # Host side workaround for crbug.com/268450 (adb instability).
-    # The adb server has a race which is mitigated by binding to a single core.
     for proc in psutil.process_iter():
       try:
         if 'adb' in proc.name:
@@ -252,18 +247,20 @@ Waiting for device...
       except (psutil.NoSuchProcess, psutil.AccessDenied):
         logging.warn('Failed to set adb process CPU affinity')
 
-  packages = adb.RunShellCommand('pm list packages')
-  possible_browsers = []
+  platform_backend = android_platform_backend.AndroidPlatformBackend(
+      adb.device(), finder_options.no_performance_mode)
+  android_platform = platform.Platform(platform_backend)
 
+  possible_browsers = []
   for name, package_info in CHROME_PACKAGE_NAMES.iteritems():
     [package, backend_settings, local_apk] = package_info
-    b = PossibleAndroidBrowser(
-        name,
-        finder_options,
-        backend_settings(adb, package),
-        local_apk)
-
-    if 'package:' + package in packages or b.HaveLocalAPK():
+    b = PossibleAndroidBrowser(name,
+                               finder_options,
+                               android_platform,
+                               platform_backend,
+                               backend_settings(adb, package),
+                               local_apk)
+    if b.platform.CanLaunchApplication(package) or b.HaveLocalAPK():
       possible_browsers.append(b)
 
   if possible_browsers:
