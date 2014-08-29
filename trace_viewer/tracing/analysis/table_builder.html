@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/analysis/toggle_container.html">
+
+<!--
+@fileoverview A container that constructs a table-like container.
+-->
+
+<polymer-element name="tracing-analysis-nested-table"
+    constructor="TracingAnalysisNestedTable">
+  <template>
+    <style>
+      table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        border-width: 0;
+        font-family: monospace;
+        width: 100%;
+      }
+
+      table > * > tr > td {
+        padding: 2px 4px 2px 4px;
+        vertical-align: text-top;
+      }
+
+      button.toggle-button {
+        height: 15px;
+        line-height: 60%;
+        vertical-align: middle;
+        width: 100%;
+      }
+
+      button > * {
+        height: 15px;
+        vertical-align: middle;
+      }
+
+      td.button-column {
+        width: 30px;
+      }
+
+      table > * > .hidden {
+        display: none;
+      }
+
+      table > thead {
+        background-color: #bbbbbb;
+        font-weight: bold;
+        text-align: left;
+      }
+
+      table > tfoot {
+        background-color: #bbbbbb;
+        font-weight: bold;
+      }
+
+      expand-button {
+        -webkit-user-select: none;
+        display: inline-block;
+        cursor: pointer;
+      }
+
+      .button-expanded {
+        transform: rotate(90deg);
+      }
+    </style>
+    <table>
+      <thead id="head">
+      </thead>
+      <tbody id="body">
+      </tbody>
+      <tfoot id="foot">
+      </tfoot>
+    </table>
+  </template>
+  <script>
+  'use strict';
+  (function () {
+    var RIGHT_ARROW = String.fromCharCode(0x25b6);
+    var UNSORTED_ARROW = String.fromCharCode(0x25BF);
+    var ASCENDING_ARROW = String.fromCharCode(0x25BE);
+    var DESCENDING_ARROW = String.fromCharCode(0x25B4);
+
+
+    Polymer({
+      created: function (){
+        this.tableColumns_ = [];
+        this.tableRows_ = [];
+        this.tableRowsInfo_ = [];
+        this.tableFooterRows_ = [];
+        this.sortColumnIndex_ = undefined;
+        this.sortDescending_ = false;
+        this.columnsWithExpandButtons_ = [];
+        this.headerCells_ = [];
+      },
+
+      clear: function() {
+        this.textContent = '';
+        this.tableColumns_ = [];
+        this.tableRows_ = [];
+        this.tableRowsInfo_ = [];
+        this.tableFooterRows_ = [];
+        this.sortColumnIndex_ = undefined;
+        this.sortDescending_ = false;
+        this.columnsWithExpandButtons_ = [];
+        this.headerCells_ = [];
+      },
+
+      /**
+       * @param {Array} columns An array of objects with the following fields:
+       *   mandatory: title, value
+       *   optional: width {string}, cmp {function}, colSpan {number},
+       *             showExpandButtons {boolean}
+       */
+      set tableColumns(columns) {
+        this.tableColumns_ = columns;
+        this.columnsWithExpandButtons_ = [];
+        for (var i = 0; i < columns.length; i++) {
+          if (columns[i].showExpandButtons)
+            this.columnsWithExpandButtons_.push(i);
+        }
+        // First column if none have specified.
+        if (this.columnsWithExpandButtons_.length === 0)
+          this.columnsWithExpandButtons_ = [0];
+        this.sortColumnIndex = undefined;
+        this.scheduleRebuildHeaders_();
+      },
+
+      get tableColumns() {
+        return this.tableColumns_;
+      },
+
+      /**
+       * @param {Array} rows An array of 'row' objects with the following
+       * fields:
+       *   optional: subRows An array of objects that have the same 'row'
+       *                     structure.
+       */
+      set tableRows(rows) {
+        this.tableRows_ = rows;
+        this.tableRowsInfo_ = [];
+        this.createTableRowsInfo_(rows, this.tableRowsInfo_);
+        if (this.sortColumnIndex_ !== undefined)
+          this.sortTable_();
+        this.scheduleRebuildBody_();
+      },
+
+      get tableRows() {
+        return this.tableRows_;
+      },
+
+      set footerRows(rows) {
+        this.tableFooterRows_ = rows;
+        this.tableFooterRowsInfo_ = [];
+        this.createTableRowsInfo_(rows, this.tableFooterRowsInfo_);
+        this.scheduleRebuildFooter_();
+      },
+
+      get footerRows() {
+        return this.tableFooterRows_;
+      },
+
+      set sortColumnIndex(number) {
+        if (number === undefined) {
+          this.sortColumnIndex_ = undefined;
+          this.updateHeaderArrows_();
+          return;
+        }
+
+        if (this.tableColumns_.length <= number)
+          throw new Error('Column number ' + number + ' is out of bounds.');
+        if (!this.tableColumns_[number].cmp)
+          throw new Error('Column ' + number + ' does not have a comparator.');
+
+        this.sortColumnIndex_ = number;
+        this.updateHeaderArrows_();
+        this.sortTable_();
+      },
+
+      get sortColumnIndex() {
+        return this.sortColumnIndex_;
+      },
+
+      set sortDescending(value) {
+        var newValue = !!value;
+
+        if (newValue !== this.sortDescending_) {
+          this.sortDescending_ = newValue;
+          this.updateHeaderArrows_();
+          if (this.sortColumnIndex_ !== undefined)
+            this.sortTable_();
+        }
+      },
+
+      get sortDescending() {
+        return this.sortDescending_;
+      },
+
+      updateHeaderArrows_: function() {
+        for (var i = 0; i < this.headerCells_.length; i++) {
+          if (!this.tableColumns_[i].cmp) {
+            this.headerCells_[i].sideContent = '';
+            continue;
+          }
+          if (i !== this.sortColumnIndex_) {
+            this.headerCells_[i].sideContent = UNSORTED_ARROW;
+            continue;
+          }
+          this.headerCells_[i].sideContent = this.sortDescending_ ?
+            DESCENDING_ARROW : ASCENDING_ARROW;
+        }
+      },
+
+      sortTable_: function() {
+        this.sortRows_(this.tableRowsInfo_);
+        this.scheduleRebuildBody_();
+      },
+
+      sortRows_: function(rows) {
+        rows.sort(function(rowA, rowB) {
+          if (this.sortDescending_)
+            return this.tableColumns_[this.sortColumnIndex_].cmp(
+                rowB.userRow, rowA.userRow);
+          return this.tableColumns_[this.sortColumnIndex_].cmp(
+                rowA.userRow, rowB.userRow);
+        }.bind(this));
+        // Sort expanded sub rows recursively.
+        for (var i = 0; i < rows.length; i++) {
+          if (rows[i].isExpanded)
+            this.sortRows_(rows[i].subRows);
+        }
+      },
+
+      generateHeaderColumns_: function() {
+        this.headerCells_ = [];
+        var tr = this.appendNewElementAfter_(this.$.head, 'tr');
+        for (var i = 0; i < this.tableColumns_.length; i++) {
+          var td = this.appendNewElementAfter_(tr, 'td');
+          if (this.tableColumns_[i].width)
+            td.style.width = this.tableColumns_[i].width;
+
+          var headerCell = new TracingAnalysisHeaderCell();
+          headerCell.cellTitle = this.tableColumns_[i].title;
+          // If the table can be sorted by this column, attach a tap callback
+          // to the column.
+          if (this.tableColumns_[i].cmp) {
+            headerCell.tapCallback = this.createSortCallback_(i);
+            // Set arrow position, depending on the sortColumnIndex.
+            if (this.sortColumnIndex_ === i)
+              headerCell.sideContent = this.sortDescending_ ?
+                DESCENDING_ARROW : ASCENDING_ARROW;
+            else
+              headerCell.sideContent = UNSORTED_ARROW;
+          }
+
+          td.appendChild(headerCell);
+          this.headerCells_.push(headerCell);
+        }
+      },
+
+      createSortCallback_: function(columnNumber) {
+        return function() {
+          var previousIndex = this.sortColumnIndex;
+          this.sortColumnIndex = columnNumber;
+          if (previousIndex !== columnNumber)
+            this.sortDescending = false;
+          else
+            this.sortDescending = !this.sortDescending;
+        }.bind(this);
+      },
+
+      generateTableRowNodes_: function(tableSection, sectionRows, indentation,
+                                       opt_prevSibling) {
+        var sibling = opt_prevSibling;
+        for (var i = 0; i < sectionRows.length; i++) {
+          var row = sectionRows[i];
+          this.generateRowNode_(tableSection, row, indentation);
+          this.appendElementAfter_(tableSection, row.htmlNode, sibling);
+          if (row.isExpanded) {
+            sibling = this.generateTableRowNodes_(tableSection, row.subRows,
+                          indentation + 1, row.htmlNode);
+          } else {
+            sibling = row.htmlNode;
+          }
+        }
+        return sibling;
+      },
+
+      generateRowNode_: function(tableSection, row, indentation) {
+        if (row.htmlNode)
+          return row.htmlNode;
+
+        var INDENT_SPACE = indentation * 16;
+        var INDENT_SPACE_NO_BUTTON = indentation * 16 + 8;
+        var tr = this.ownerDocument.createElement('tr');
+        row.htmlNode = tr;
+        row.indentation = indentation;
+
+        for (var i = 0; i < this.tableColumns_.length;) {
+          var td = this.appendNewElementAfter_(tr, 'td');
+          var column = this.tableColumns_[i];
+          var value = column.value(row.userRow);
+          var colSpan = column.colSpan ? column.colSpan : 1;
+          td.style.colSpan = colSpan;
+
+          if (this.columnsWithExpandButtons_.indexOf(i) != -1) {
+            if (row.subRows.length > 0) {
+              td.style.paddingLeft = INDENT_SPACE + 'px';
+              var expandButton = this.appendNewElementAfter_(td, 'expand-button');
+              expandButton.textContent = RIGHT_ARROW;
+              this.addToggleListenerForRowToButton_(tableSection, row,
+                  expandButton);
+            } else {
+              td.style.paddingLeft = INDENT_SPACE_NO_BUTTON + 'px';
+            }
+          }
+
+          if (value instanceof HTMLElement)
+            td.appendChild(value);
+          else
+            td.appendChild(this.ownerDocument.createTextNode(value));
+
+          i += colSpan;
+        }
+      },
+
+      addToggleListenerForRowToButton_: function(tableSection, row, button) {
+        button.addEventListener('click', function() {
+          row.isExpanded = !row.isExpanded;
+
+          if (row.isExpanded) {
+            button.classList.add('button-expanded');
+            // Before adding the expanded nodes, sort them if we can.
+            if (this.sortColumnIndex_ !== undefined)
+              this.sortRows_(row.subRows);
+            var sibling = row.htmlNode;
+            this.generateTableRowNodes_(tableSection,
+                row.subRows, row.indentation + 1, sibling);
+          } else {
+            button.classList.remove('button-expanded');
+            this.removeSubNodes_(tableSection, row);
+          }
+        }.bind(this));
+      },
+
+      removeSubNodes_: function(tableSection, row) {
+        for (var i = 0; i < row.subRows.length; i++) {
+          var subNode = row.subRows[i].htmlNode;
+          if (subNode && subNode.parentNode === tableSection) {
+            tableSection.removeChild(row.subRows[i].htmlNode);
+            this.removeSubNodes_(tableSection, row.subRows[i]);
+          }
+        }
+      },
+
+      scheduleRebuildHeaders_: function() {
+        if (this.headerDirty_)
+          return;
+        this.headerDirty_ = true;
+        setTimeout(function() {
+          this.generateHeaderColumns_();
+          this.headerDirty_ = false;
+        }.bind(this), 0);
+      },
+
+      scheduleRebuildBody_: function() {
+        if (this.bodyDirty_)
+          return;
+        this.bodyDirty_ = true;
+        setTimeout(function() {
+          this.generateTableRowNodes_(this.$.body, this.tableRowsInfo_, 0);
+          this.bodyDirty_ = false;
+        }.bind(this), 0);
+      },
+
+      scheduleRebuildFooter_: function() {
+        if (this.footerDirty_)
+          return;
+        this.footerDirty_ = true;
+        setTimeout(function() {
+          this.generateTableRowNodes_(this.$.foot, this.tableFooterRowsInfo_,
+                                      0);
+          this.footerDirty_ = false;
+        }.bind(this), 0);
+      },
+
+      createTableRowsInfo_: function(rows, containerForResults) {
+        for (var i = 0; i < rows.length; i++) {
+          var subRowsArray = [];
+          if (rows[i].subRows)
+            this.createTableRowsInfo_(rows[i].subRows, subRowsArray);
+
+          containerForResults.push({
+            userRow: rows[i],
+            htmlNode: undefined,
+            subRows: subRowsArray,
+            isExpanded: false
+          });
+        }
+      },
+
+      appendElementAfter_: function(parent, element, opt_prevSibling) {
+        var nodeAfter = undefined;
+        if (opt_prevSibling)
+          nodeAfter = opt_prevSibling.nextSibling;
+        parent.insertBefore(element, nodeAfter);
+      },
+
+      appendNewElementAfter_: function(parent, tagName, opt_prevSibling) {
+        var element = parent.ownerDocument.createElement(tagName);
+        this.appendElementAfter_(parent, element, opt_prevSibling);
+        return element;
+      }
+    });
+  })();
+  </script>
+</polymer-element>
+<polymer-element name="tracing-analysis-header-cell"
+    constructor="TracingAnalysisHeaderCell"
+    on-tap="onTap_">
+  <template>
+  <style>
+    :host {
+      -webkit-user-select: none;
+      display: flex;
+    }
+
+    span {
+      flex: 0 1 auto;
+    }
+
+    side-element {
+      -webkit-user-select: none;
+      flex: 1 0 auto;
+      padding-left: 4px;
+      vertical-align: top;
+      font-size: 15px;
+      font-family: sans-serif;
+      display: inline;
+      line-height: 85%;
+    }
+  </style>
+
+    <span>{{ cellTitle_ }}</span><side-element id="side"></side-element>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.tapCallback_ = undefined;
+      this.cellTitle_ = 'No Title';
+    },
+
+    set cellTitle(value) {
+      this.cellTitle_ = value;
+    },
+
+    get cellTitle() {
+      return this.cellTitle_;
+    },
+
+    clearSideContent: function() {
+      this.$.side.textContent = '';
+    },
+
+    set sideContent(content) {
+      this.$.side.textContent = content;
+    },
+
+    get sideContent() {
+      return this.$.side.textContent;
+    },
+
+    set tapCallback(callback) {
+      this.style.cursor = 'pointer';
+      this.tapCallback_ = callback;
+    },
+
+    get tapCallback() {
+      return this.tapCallback_;
+    },
+
+    onTap_: function() {
+      if (this.tapCallback_)
+        this.tapCallback_();
+    }
+  });
+</script>
+</polymer-element>

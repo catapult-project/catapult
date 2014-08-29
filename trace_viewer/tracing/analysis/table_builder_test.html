@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/analysis/table_builder.html">
+
+<script>
+'use strict';
+
+tvcm.unittest.testSuite(function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
+
+  test('instantiateNestedTableNoNests', function() {
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '50%'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; }
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2'
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+
+    var table = new TracingAnalysisNestedTable();
+    table.tableColumns = columns;
+    table.tableRows = rows;
+
+    this.addHTMLOutput(table);
+  });
+
+  test('instantiateNestedTableWithNests', function() {
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '50%'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; },
+        width: '50%'
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2',
+        subRows: [
+          {
+            firstData: 'Sub1 A1',
+            secondData: 'Sub1 A2'
+          },
+          {
+            firstData: 'Sub2 A1',
+            secondData: 'Sub2 A2',
+            subRows: [
+              {
+                firstData: 'SubSub1 A1',
+                secondData: 'SubSub1 A2',
+              },
+              {
+                firstData: 'SubSub2 A1',
+                secondData: 'SubSub2 A2',
+              }
+            ]
+          },
+          {
+            firstData: 'Sub3 A1',
+            secondData: 'Sub3 A2'
+          }
+        ]
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+
+    var table = new TracingAnalysisNestedTable();
+    table.tableColumns = columns;
+    table.tableRows = rows;
+
+    this.addHTMLOutput(table);
+  });
+
+  test('instantiateSortingCallbacksWithNests', function() {
+    var table = new TracingAnalysisNestedTable();
+
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '50%',
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; },
+        width: '50%',
+        cmp: function(rowA, rowB) {
+          return rowA.secondData.toString().localeCompare(
+              rowB.secondData.toString());
+        },
+        showExpandButtons: true
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2',
+        subRows: [
+          {
+            firstData: 'Sub1 A1',
+            secondData: 'Sub1 A2'
+          },
+          {
+            firstData: 'Sub2 A1',
+            secondData: 'Sub2 A2',
+            subRows: [
+              {
+                firstData: 'SubSub1 A1',
+                secondData: 'SubSub1 A2',
+              },
+              {
+                firstData: 'SubSub2 A1',
+                secondData: 'SubSub2 A2',
+              }
+            ]
+          },
+          {
+            firstData: 'Sub3 A1',
+            secondData: 'Sub3 A2'
+          }
+        ]
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+
+    var footerRows = [
+      {
+        firstData: 'F1',
+        secondData: 'F2',
+        subRows: [
+          {
+            firstData: 'Sub1F1',
+            secondData: 'Sub1F2'
+          },
+          {
+            firstData: 'Sub2F1',
+            secondData: 'Sub2F2',
+            subRows: [
+              {
+                firstData: 'SubSub1F1',
+                secondData: 'SubSub1F2',
+              },
+              {
+                firstData: 'SubSub2F1',
+                secondData: 'SubSub2F2',
+              }
+            ]
+          },
+          {
+            firstData: 'Sub3F1',
+            secondData: 'Sub3F2'
+          }
+        ]
+      },
+      {
+        firstData: 'F\'1',
+        secondData: 'F\'2'
+      }
+
+    ];
+
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.footerRows = footerRows;
+    this.addHTMLOutput(table);
+
+    var button = THIS_DOC.createElement('button');
+    button.textContent = 'Sort By Col 0';
+    button.addEventListener('click', function() {
+      table.sortDescending = !table.sortDescending;
+      table.sortColumnIndex = 0;
+    });
+    this.addHTMLOutput(button);
+  });
+});
+</script>
