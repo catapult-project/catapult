@@ -231,7 +231,7 @@ tvcm.exportTo('tracing', function() {
       if (!model)
         throw new Error('Model cannot be null');
 
-      var modelInstanceChanged = this.model_ != model;
+      var modelInstanceChanged = this.model_ !== model;
       this.model_ = model;
       this.modelTrack_.model = model;
 
@@ -247,6 +247,10 @@ tvcm.exportTo('tracing', function() {
     },
 
     setInitialViewport_: function() {
+      // We need the canvas size to be up-to-date at this point. We maybe in
+      // here before the raf fires, so the size may have not been updated since
+      // the canvas was resized.
+      this.modelTrackContainer_.updateCanvasSizeIfNeeded_();
       var w = this.modelTrackContainer_.canvas.width;
 
       var min;
@@ -255,13 +259,14 @@ tvcm.exportTo('tracing', function() {
       if (this.model_.bounds.isEmpty) {
         min = 0;
         range = 1000;
-      } else if (this.model_.bounds.range == 0) {
+      } else if (this.model_.bounds.range === 0) {
         min = this.model_.bounds.min;
         range = 1000;
       } else {
         min = this.model_.bounds.min;
         range = this.model_.bounds.range;
       }
+
       var boost = range * 0.15;
       tempDisplayTransform.set(this.viewport_.currentDisplayTransform);
       tempDisplayTransform.xSetWorldBounds(min - boost,
