@@ -17,7 +17,11 @@ class GoogleCredentialsBackend(
 
   @property
   def url(self):
-    return 'https://accounts.google.com/'
+    # pylint: disable=C0301
+    # WPR doesn't support having 2 responses for the same URL (with/without
+    # session cookie), so after login behaviour differs with/without wpr.
+    # Sign-in URL is specified directly to overcome this.
+    return 'https://accounts.google.com/ServiceLogin?continue=https%3A%2F%2Faccounts.google.com%2FManageAccount'
 
   @property
   def login_form_id(self):
