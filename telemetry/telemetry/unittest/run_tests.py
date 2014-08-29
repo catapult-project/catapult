@@ -168,7 +168,7 @@ class RunTestsCommand(command_line.OptparseCommand):
 
     results = [result]
 
-    failed_tests = json_results.FailedTestNames(result)
+    failed_tests = json_results.FailedTestNames(test_suite, result)
     retry_limit = args.retry_limit
 
     while retry_limit and failed_tests:
@@ -178,7 +178,7 @@ class RunTestsCommand(command_line.OptparseCommand):
       _, result = self.RunOneSuite(possible_browser, args)
       results.append(result)
 
-      failed_tests = json_results.FailedTestNames(result)
+      failed_tests = json_results.FailedTestNames(test_suite, result)
       retry_limit -= 1
 
     full_results = json_results.FullResults(args, test_suite, results)
