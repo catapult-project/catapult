@@ -109,7 +109,7 @@ class IppetPowerMonitor(power_monitor.PowerMonitor):
     self._output_dir = tempfile.mkdtemp()
     parameters = ['-log_dir', self._output_dir, '-signals', 'START,QUIT',
                   '-battery', 'n', '-disk', 'n', '-gpu', 'n',
-                  '-enable_web', 'n', '-zip', 'n']
+                  '-enable_web', 'n', '-zip', 'n', '-i', '0.1']
 
     try:
       with contextlib.closing(win32event.CreateEvent(
