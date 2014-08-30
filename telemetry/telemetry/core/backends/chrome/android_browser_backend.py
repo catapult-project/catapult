@@ -133,12 +133,12 @@ class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
   def GetDevtoolsRemotePort(self):
     return 'localabstract:chrome_shell_devtools_remote'
 
-
 class WebviewBackendSettings(AndroidBrowserBackendSettings):
-  def __init__(self, adb, package):
+  def __init__(self, adb, package,
+               activity='org.chromium.telemetry_shell.TelemetryActivity'):
     super(WebviewBackendSettings, self).__init__(
         adb=adb,
-        activity='org.chromium.telemetry_shell.TelemetryActivity',
+        activity=activity,
         cmdline_file='/data/local/tmp/webview-command-line',
         package=package,
         pseudo_exec_name='webview',
@@ -166,6 +166,12 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
                                               'Timeout waiting for PID.')
     return 'localabstract:webview_devtools_remote_%s' % str(pid)
 
+class WebviewShellBackendSettings(WebviewBackendSettings):
+  def __init__(self, adb, package):
+    super(WebviewShellBackendSettings, self).__init__(
+        adb=adb,
+        activity='org.chromium.android_webview.shell.AwShellActivity',
+        package=package)
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android."""
