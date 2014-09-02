@@ -11,6 +11,8 @@ import re
 import shutil
 import subprocess
 
+from telemetry import decorators
+from telemetry.core import platform as telemetry_platform
 from telemetry.core import util
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.util import support_binaries
@@ -81,6 +83,11 @@ def _FindMatchingUnstrippedLibraryOnHost(device, lib):
   return unstripped_host_lib
 
 
+@decorators.Cache
+def GetPerfhostName():
+  return 'perfhost_' + telemetry_platform.GetHostPlatform().GetOSVersionName()
+
+
 # Ignored directories for libraries that aren't useful for symbolization.
 _IGNORED_LIB_PATHS = [
   '/data/dalvik-cache',
@@ -98,7 +105,7 @@ def GetRequiredLibrariesForPerfProfile(profile_file):
     A set of required library file names.
   """
   with open(os.devnull, 'w') as dev_null:
-    perfhost_path = support_binaries.FindPath('perfhost', 'linux')
+    perfhost_path = support_binaries.FindPath(GetPerfhostName(), 'linux')
     perf = subprocess.Popen([perfhost_path, 'script', '-i', profile_file],
                              stdout=dev_null, stderr=subprocess.PIPE)
     _, output = perf.communicate()

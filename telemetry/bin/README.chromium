@@ -12,3 +12,23 @@ IEDriverServer binary:
 
 ipfw and ipfw_mod.ko:
   Version 20120812
+
+perfhost_trusty:
+  Built from kernel sources following this method:
+  shell> git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/torvalds/linux
+  shell> cd linux
+  shell> git checkout v3.13
+  shell> cd tools/perf
+  shell> make
+  shell> ./perf test
+  Tests should mostly pass, except a few:
+   1: vmlinux symtab matches kallsyms                        : FAILED!
+   2: detect open syscall event                              : FAILED!
+   3: detect open syscall event on all cpus                  : FAILED!
+   4: read samples using the mmap interface                  : FAILED!
+   5: parse events tests                                     : FAILED!
+   [snip]
+   11: Check parsing of sched tracepoints fields              : FAILED!
+   12: Generate and check syscalls:sys_enter_open event fields: FAILED!
+   21: Test object code reading          :[kernel.kallsyms] ... FAILED!
+  shell> mv perf perfhost_trusty

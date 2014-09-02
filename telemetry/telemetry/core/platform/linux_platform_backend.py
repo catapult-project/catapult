@@ -15,6 +15,12 @@ from telemetry.util import cloud_storage
 from telemetry.util import support_binaries
 
 
+_POSSIBLE_PERFHOST_APPLICATIONS = [
+  'perfhost_precise',
+  'perfhost_trusty',
+]
+
+
 class LinuxPlatformBackend(
     posix_platform_backend.PosixPlatformBackend,
     linux_based_platform_backend.LinuxBasedPlatformBackend):
@@ -74,9 +80,9 @@ class LinuxPlatformBackend(
     if application == 'ipfw':
       self._InstallIpfw()
     elif application == 'avconv':
-      self._InstallBinary(application, 'libav-tools')
-    elif application == 'perfhost':
-      self._InstallBinary(application, 'linux-tools')
+      self._InstallBinary(application, fallback_package='libav-tools')
+    elif application in _POSSIBLE_PERFHOST_APPLICATIONS:
+      self._InstallBinary(application)
     else:
       raise NotImplementedError(
           'Please teach Telemetry how to install ' + application)
@@ -114,6 +120,8 @@ class LinuxPlatformBackend(
 
   def _InstallBinary(self, bin_name, fallback_package=None):
     bin_path = support_binaries.FindPath(bin_name, self.GetOSName())
+    if not bin_path:
+      raise Exception('Could not find the binary package %s' % bin_name)
     os.environ['PATH'] += os.pathsep + os.path.dirname(bin_path)
 
     try:
@@ -122,8 +130,8 @@ class LinuxPlatformBackend(
     except cloud_storage.CloudStorageError, e:
       logging.error(str(e))
       if fallback_package:
-        logging.error('You may proceed by manually installing %s via:\n'
-                      'sudo apt-get install %s' % (bin_name, fallback_package))
-      sys.exit(1)
+        raise Exception('You may proceed by manually installing %s via:\n'
+                        'sudo apt-get install %s' %
+                        (bin_name, fallback_package))
 
     assert self.CanLaunchApplication(bin_name), 'Failed to install ' + bin_name
