@@ -33,6 +33,7 @@ tvcm.exportTo('tracing', function() {
     this.nonuniqueKeys_ = [];
     this.buildObjectsByKeyMap_();
     this.removeNonuniqueKeysFromSettings_();
+    this.ephemeralSettingsByGUID_ = {};
   }
 
   TraceModelSettings.prototype = {
@@ -91,7 +92,7 @@ tvcm.exportTo('tracing', function() {
     getSettingFor: function(object, objectLevelKey, defaultValue) {
       var objectKey = object.getSettingsKey();
       if (!objectKey || !this.objectsByKey_[objectKey]) {
-        var ephemeralValue = object.ephemeralSettings[objectLevelKey];
+        var ephemeralValue = this.getEphemeralSettingsFor_(object)[objectLevelKey];
         if (ephemeralValue !== undefined)
           return ephemeralValue;
         return defaultValue;
@@ -109,7 +110,7 @@ tvcm.exportTo('tracing', function() {
     setSettingFor: function(object, objectLevelKey, value) {
       var objectKey = object.getSettingsKey();
       if (!objectKey || !this.objectsByKey_[objectKey]) {
-        object.ephemeralSettings[objectLevelKey] = value;
+        this.getEphemeralSettingsFor_(object)[objectLevelKey] = value;
         return;
       }
 
@@ -118,6 +119,14 @@ tvcm.exportTo('tracing', function() {
         settings[objectKey] = {};
       settings[objectKey][objectLevelKey] = value;
       Settings.set('trace_model_settings', settings);
+    },
+
+    getEphemeralSettingsFor_: function(object) {
+      if (object.guid === undefined)
+        throw new Error('Only objects with GUIDs can be persisted');
+      if (this.ephemeralSettingsByGUID_[object.guid] === undefined)
+        this.ephemeralSettingsByGUID_[object.guid] = {};
+      return this.ephemeralSettingsByGUID_[object.guid];
     }
   };
 
