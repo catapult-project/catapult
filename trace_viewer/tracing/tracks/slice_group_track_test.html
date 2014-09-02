@@ -18,7 +18,9 @@ tvcm.unittest.testSuite(function() {
   var newSliceNamed = tracing.test_utils.newSliceNamed;
 
   test('subRowBuilderBasic', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
     var sA = group.pushSlice(newSliceNamed('a', 1, 2));
     var sB = group.pushSlice(newSliceNamed('a', 3, 1));
 
@@ -33,7 +35,9 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('subRowBuilderBasic2', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
     var sA = group.pushSlice(newSliceNamed('a', 1, 4));
     var sB = group.pushSlice(newSliceNamed('b', 3, 1));
 
@@ -50,7 +54,10 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('subRowBuilderNestedExactly', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
+
     var sB = group.pushSlice(newSliceNamed('b', 1, 4));
     var sA = group.pushSlice(newSliceNamed('a', 1, 4));
 
@@ -67,7 +74,10 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('subRowBuilderInstantEvents', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
+
     var sA = group.pushSlice(newSliceNamed('a', 1, 0));
     var sB = group.pushSlice(newSliceNamed('b', 2, 0));
 
@@ -82,7 +92,10 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('subRowBuilderTwoInstantEvents', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
+
     var sA = group.pushSlice(newSliceNamed('a', 1, 0));
     var sB = group.pushSlice(newSliceNamed('b', 1, 0));
 
@@ -97,7 +110,9 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOutOfOrderAddition', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
 
     // Pattern being tested:
     // [    a     ][   b   ]
@@ -116,7 +131,9 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOutOfOrderAddition2', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
 
     // Pattern being tested:
     // [    a     ]
@@ -138,7 +155,9 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOnNestedZeroLength', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
 
     // Pattern being tested:
     // [    a    ]
@@ -158,7 +177,9 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOnGroup1', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
 
     // Pattern being tested:
     // [    a     ]   [  c   ]
@@ -178,7 +199,9 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOnGroup2', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
 
     // Pattern being tested:
     // [    a     ]   [  d   ]
@@ -201,7 +224,9 @@ tvcm.unittest.testSuite(function() {
   });
 
   test('trackFiltering', function() {
-    var group = new SliceGroup();
+    var m = new tracing.TraceModel();
+    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var group = t1.sliceGroup;
 
     var sA = group.pushSlice(newSliceNamed('a', 1, 3));
     var sB = group.pushSlice(newSliceNamed('b', 1.5, 1));

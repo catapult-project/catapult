@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/trace_model/async_slice.html">
+<link rel="import" href="/tvcm/guid.html">
 <link rel="import" href="/tvcm/range.html">
 
 <script>
@@ -16,16 +17,26 @@ found in the LICENSE file.
  */
 tvcm.exportTo('tracing.trace_model', function() {
   /**
-   * A group of AsyncSlices.
+   * A group of AsyncSlices associated with a thread.
    * @constructor
    */
-  function AsyncSliceGroup() {
+  function AsyncSliceGroup(parentThread) {
+    this.parentThread_ = parentThread;
+    this.guid_ = tvcm.GUID.allocate();
     this.slices = [];
     this.bounds = new tvcm.Range();
   }
 
   AsyncSliceGroup.prototype = {
     __proto__: Object.prototype,
+
+    get guid() {
+      return this.guid_;
+    },
+
+    get parentThread() {
+      return this.parentThread_;
+    },
 
     /**
      * Helper function that pushes the provided slice onto the slices array.
@@ -77,7 +88,7 @@ tvcm.exportTo('tracing.trace_model', function() {
         var slice = this.slices[i];
         var sliceGUID = slice.startThread.guid;
         if (!subGroupsByGUID[sliceGUID])
-          subGroupsByGUID[sliceGUID] = new AsyncSliceGroup();
+          subGroupsByGUID[sliceGUID] = new AsyncSliceGroup(this.parentThread_);
         subGroupsByGUID[sliceGUID].slices.push(slice);
       }
       var groups = [];
@@ -96,6 +107,10 @@ tvcm.exportTo('tracing.trace_model', function() {
         if (slice.subSlices)
           slice.subSlices.forEach(callback, opt_this);
       }
+    },
+
+    toJSON: function() {
+      return {};
     }
   };
 

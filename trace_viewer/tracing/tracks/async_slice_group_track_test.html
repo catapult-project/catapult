@@ -23,7 +23,7 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     var model = new tracing.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
-    var g = new AsyncSliceGroup();
+    var g = new AsyncSliceGroup(t1);
     g.push(newAsyncSlice(0, 1, t1, t1));
     var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
@@ -36,7 +36,7 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     var model = new tracing.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
-    var g = new AsyncSliceGroup();
+    var g = new AsyncSliceGroup(t1);
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(1, 1, t1, t1));
     var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
@@ -52,7 +52,7 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     var model = new tracing.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
-    var g = new AsyncSliceGroup();
+    var g = new AsyncSliceGroup(t1);
 
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(0, 1.5, t1, t1));
@@ -75,7 +75,7 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     var model = new tracing.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
-    var g = new AsyncSliceGroup();
+    var g = new AsyncSliceGroup(t1);
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(0, 1.5, t1, t1));
     g.push(newAsyncSlice(1, 1.5, t1, t1));
@@ -97,7 +97,7 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     var model = new tracing.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
-    var g = new AsyncSliceGroup();
+    var g = new AsyncSliceGroup(t1);
 
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(0, 1.5, t1, t1));

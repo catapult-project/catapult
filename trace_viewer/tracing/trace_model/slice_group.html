@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/trace_model/slice.html">
 <link rel="import" href="/tracing/color_scheme.html">
 <link rel="import" href="/tracing/filter.html">
+<link rel="import" href="/tvcm/guid.html">
 <link rel="import" href="/tvcm/range.html">
 
 <script>
@@ -30,7 +31,11 @@ tvcm.exportTo('tracing.trace_model', function() {
    * @param {function(new:Slice, category, title, colorId, start, args)=}
    *     opt_sliceConstructor The constructor to use when creating slices.
    */
-  function SliceGroup(opt_sliceConstructor) {
+  function SliceGroup(parentThread, opt_sliceConstructor) {
+    this.guid_ = tvcm.GUID.allocate();
+
+    this.parentThread_ = parentThread;
+
     var sliceConstructor = opt_sliceConstructor || Slice;
     this.sliceConstructor = sliceConstructor;
 
@@ -43,6 +48,14 @@ tvcm.exportTo('tracing.trace_model', function() {
 
   SliceGroup.prototype = {
     __proto__: Object.prototype,
+
+    get guid() {
+      return this.guid_;
+    },
+
+    get parentThread() {
+      return this.parentThrad_;
+    },
 
     /**
      * @return {Number} The number of slices in this group.
@@ -230,6 +243,10 @@ tvcm.exportTo('tracing.trace_model', function() {
       this.slices.forEach(callback, opt_this);
     },
 
+    toJSON: function() {
+      return {};
+    },
+
     /**
      * Construct subSlices for this group.
      * Populate the group topLevelSlices, parent slices get a subSlices[],
@@ -356,8 +373,10 @@ tvcm.exportTo('tracing.trace_model', function() {
     if (groupB.openPartialSlices_.length > 0) {
       throw new Error('groupB has open partial slices');
     }
+    if (groupA.parentThread != groupB.parentThread)
+      throw new Error('Different parent threads. Cannot merge');
 
-    var result = new SliceGroup();
+    var result = new SliceGroup(groupA.parentThread);
 
     var slicesA = groupA.slices;
     var slicesB = groupB.slices;
