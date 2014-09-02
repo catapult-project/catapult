@@ -34,11 +34,12 @@ VISTA =        OSVersion('vista',         6.0)
 WIN7 =         OSVersion('win7',          6.1)
 WIN8 =         OSVersion('win8',          6.2)
 
-LEOPARD =      OSVersion('leopard',      10.5)
-SNOWLEOPARD =  OSVersion('snowleopard',  10.6)
-LION =         OSVersion('lion',         10.7)
-MOUNTAINLION = OSVersion('mountainlion', 10.8)
-MAVERICKS =    OSVersion('mavericks',    10.9)
+LEOPARD =      OSVersion('leopard',      105)
+SNOWLEOPARD =  OSVersion('snowleopard',  106)
+LION =         OSVersion('lion',         107)
+MOUNTAINLION = OSVersion('mountainlion', 108)
+MAVERICKS =    OSVersion('mavericks',    109)
+YOSEMITE =     OSVersion('yosemite',     1010)
 
 
 class PlatformBackend(object):

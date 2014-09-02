@@ -12,10 +12,13 @@ from telemetry.core.platform import platform_backend
 
 class MacPlatformBackendTest(unittest.TestCase):
   def testVersionCamparison(self):
+    self.assertGreater(platform_backend.YOSEMITE,
+                       platform_backend.MAVERICKS)
     self.assertGreater(platform_backend.MAVERICKS,
                        platform_backend.SNOWLEOPARD)
     self.assertGreater(platform_backend.LION,
                        platform_backend.LEOPARD)
+    self.assertEqual(platform_backend.YOSEMITE, 'yosemite')
     self.assertEqual(platform_backend.MAVERICKS, 'mavericks')
     self.assertEqual('%s2' % platform_backend.MAVERICKS, 'mavericks2')
     self.assertEqual(''.join([platform_backend.MAVERICKS, '2']),
