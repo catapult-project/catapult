@@ -128,11 +128,6 @@ tvcm.exportTo('tracing.tracks', function() {
         this.canvas_.height = innerHeight * pixelRatio;
         this.canvas_.style.height = innerHeight + 'px';
       }
-
-      var canvasTop =
-          firstChildTrackBounds.top - thisBounds.top + this.scrollTop;
-      if (this.canvas_.style.top + 'px' !== canvasTop)
-        this.canvas_.style.top = canvasTop + 'px';
     },
 
     visibleFilter_: function(element) {
