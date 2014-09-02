@@ -114,6 +114,8 @@ tvcm.exportTo('tracing', function() {
       this.appendChild(this.dragBox_);
       this.hideDragBox_();
 
+      this.initHintText_();
+
       this.bindEventListener_(document, 'keypress', this.onKeypress_, this);
       this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
       this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
@@ -699,6 +701,7 @@ tvcm.exportTo('tracing', function() {
         this.selection_ = new Selection();
 
       tvcm.dispatchSimpleEvent(this, 'selectionChange');
+      this.showHintText_('Press \'m\' to mark current selection');
 
       if (this.selectionOfInterest.length) {
         var track = this.viewport_.trackForEvent(this.selectionOfInterest[0]);
@@ -1066,6 +1069,31 @@ tvcm.exportTo('tracing', function() {
       tempDisplayTransform.panY -= yDelta;
       vp.setDisplayTransformImmediately(tempDisplayTransform);
       this.storeLastTouchPositions_(e);
+    },
+
+    initHintText_: function() {
+      this.hintTextBox_ = this.ownerDocument.createElement('div');
+      this.hintTextBox_.className = 'hint-text';
+      this.hintTextBox_.style.display = 'none';
+      this.appendChild(this.hintTextBox_);
+
+      this.pendingHintTextClearTimeout_ = undefined;
+    },
+
+    showHintText_: function(text) {
+      if (this.pendingHintTextClearTimeout_) {
+        window.clearTimeout(this.pendingHintTextClearTimeout_);
+        this.pendingHintTextClearTimeout_ = undefined;
+      }
+      this.pendingHintTextClearTimeout_ = setTimeout(
+          this.hideHintText_.bind(this), 1000);
+      this.hintTextBox_.textContent = text;
+      this.hintTextBox_.style.display = '';
+    },
+
+    hideHintText_: function() {
+      this.pendingHintTextClearTimeout_ = undefined;
+      this.hintTextBox_.style.display = 'none';
     }
   };
 
