@@ -95,17 +95,22 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
     raise NotImplementedError()
 
   def _LoginUsingMock(self, backend, login_page_url, email_element_id,
-                      password_element_id): # pylint: disable=R0201
+                      password_element_id, form_element_id,
+                      already_logged_in_js): # pylint: disable=R0201
     tab = simple_mock.MockObject()
+    ar = simple_mock.MockObject()
 
     config = {'username': 'blah',
               'password': 'blargh'}
 
     tab.ExpectCall('Navigate', login_page_url)
-    tab.ExpectCall('EvaluateJavaScript', _).WillReturn(False)
-    tab.ExpectCall('EvaluateJavaScript', _).WillReturn(True)
-    tab.ExpectCall('EvaluateJavaScript', _).WillReturn(False)
+    tab.ExpectCall('EvaluateJavaScript', already_logged_in_js).WillReturn(False)
     tab.ExpectCall('WaitForDocumentReadyStateToBeInteractiveOrBetter')
+
+    ar.ExpectCall('WaitForJavaScriptCondition',
+                  '(document.querySelector("#%s") !== null) || (%s)' % (
+                      form_element_id, already_logged_in_js), 60)
+    ar.ExpectCall('WaitForNavigate')
 
     def VerifyEmail(js):
       assert email_element_id in js
@@ -118,10 +123,10 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
     tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifyPw)
 
     def VerifySubmit(js):
-      assert '.submit' in js
+      assert '.submit' in js or '.click' in js
     tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifySubmit)
 
     # Checking for form still up.
     tab.ExpectCall('EvaluateJavaScript', _).WillReturn(False)
 
-    backend.LoginNeeded(tab, config)
+    backend.LoginNeeded(tab, ar, config)

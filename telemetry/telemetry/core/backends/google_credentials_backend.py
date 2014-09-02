@@ -7,9 +7,11 @@ from telemetry.core.backends import form_based_credentials_backend
 
 class GoogleCredentialsBackend(
     form_based_credentials_backend.FormBasedCredentialsBackend):
-  def IsAlreadyLoggedIn(self, tab):
-    return tab.EvaluateJavaScript(
-        'document.getElementById("gb")!== null')
+
+  @property
+  def logged_in_javascript(self):
+    """Evaluates to true iff already logged in."""
+    return 'document.getElementById("gb")!== null'
 
   @property
   def credentials_type(self):
