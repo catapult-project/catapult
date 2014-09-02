@@ -29,6 +29,9 @@ tvcm.exportTo('tracing.tracks', function() {
       tracing.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
       this.classList.add('slice-group-track');
       this.group_ = undefined;
+      // Set the collapse threshold so we don't collapse by default, but the
+      // user can explicitly collapse if they want it.
+      this.defaultToCollapsedWhenSubRowCountMoreThan = 100;
     },
 
     addSubTrack_: function(slices) {
@@ -44,7 +47,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
     set group(group) {
       this.group_ = group;
-      this.itemsToGroup = group.slices;
+      this.setItemsToGroup(this.group_.slices, this.group_);
     },
 
     /**

@@ -31,7 +31,7 @@ tvcm.exportTo('tracing.trace_model', function() {
    * @param {function(new:Slice, category, title, colorId, start, args)=}
    *     opt_sliceConstructor The constructor to use when creating slices.
    */
-  function SliceGroup(parentThread, opt_sliceConstructor) {
+  function SliceGroup(parentThread, opt_sliceConstructor, opt_name) {
     this.guid_ = tvcm.GUID.allocate();
 
     this.parentThread_ = parentThread;
@@ -44,6 +44,7 @@ tvcm.exportTo('tracing.trace_model', function() {
     this.slices = [];
     this.bounds = new tvcm.Range();
     this.topLevelSlices = [];
+    this.name_ = opt_name;
   }
 
   SliceGroup.prototype = {
@@ -55,6 +56,19 @@ tvcm.exportTo('tracing.trace_model', function() {
 
     get parentThread() {
       return this.parentThrad_;
+    },
+
+    get model() {
+      return this.parentThread_.parent.model;
+    },
+
+    getSettingsKey: function() {
+      if (!this.name_)
+        return undefined;
+      var parentKey = this.parentThread_.getSettingsKey();
+      if (!parentKey)
+        return undefined;
+      return parentKey + '.' + this.name;
     },
 
     /**

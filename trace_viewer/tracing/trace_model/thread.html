@@ -83,10 +83,10 @@ tvcm.exportTo('tracing.trace_model', function() {
       __proto__: ThreadSlice.prototype
     };
 
-    this.sliceGroup = new SliceGroup(this, ThreadSliceForThisThread);
+    this.sliceGroup = new SliceGroup(this, ThreadSliceForThisThread, 'slices');
     this.timeSlices = undefined;
-    this.kernelSliceGroup = new SliceGroup(this);
-    this.asyncSliceGroup = new AsyncSliceGroup(this);
+    this.kernelSliceGroup = new SliceGroup(this, undefined, 'kernel-slices');
+    this.asyncSliceGroup = new AsyncSliceGroup(this, 'async-slices');
     this.bounds = new tvcm.Range();
   }
 
@@ -265,6 +265,13 @@ tvcm.exportTo('tracing.trace_model', function() {
 
       if (this.timeSlices && this.timeSlices.length)
         this.timeSlices.forEach(callback, opt_this);
+    },
+
+    iterateAllPersistableObjects: function(cb) {
+      cb(this);
+      if (this.sliceGroup.length)
+        cb(this.sliceGroup);
+      this.asyncSliceGroup.titleSubGroups.forEach(cb);
     },
 
     get samples() {

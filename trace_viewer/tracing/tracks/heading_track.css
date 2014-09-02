@@ -13,14 +13,23 @@
 
 .heading-track > heading {
   -webkit-box-sizing: border-box;
-  background-color: rgba(214, 221, 229, 0.3);
+  background-color: rgb(243, 245, 247);
   border-right: 1px solid #8e8e8e;
   box-sizing: border-box;
-  display: block;
-  overflow: hidden;
-  padding-left: 18px;
+  display: -webkit-flex;
+  -webkit-flex-direction: row;
+  align-items: center;
+  overflow-x: hidden;
   padding-right: 5px;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.heading-track > heading > .heading-arrow {
+  -webkit-flex: 0 0 auto;
+  margin-left: 5px;
+  margin-right: 5px;
+  width: 8px;
+  font-family: sans-serif;
 }

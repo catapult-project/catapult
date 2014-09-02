@@ -40,6 +40,22 @@ tvcm.exportTo('tracing.tracks', function() {
       return this.viewport_;
     },
 
+    get drawingContainer() {
+      var cur = this;
+      while (cur) {
+        if (cur instanceof tracing.tracks.DrawingContainer)
+          return cur;
+        cur = cur.parentElement;
+      }
+      return undefined;
+    },
+
+    invalidateDrawingContainer: function() {
+      var dc = this.drawingContainer;
+      if (dc)
+        dc.invalidate();
+    },
+
     context: function() {
       // This is a little weird here, but we have to be able to walk up the
       // parent tree to get the context.

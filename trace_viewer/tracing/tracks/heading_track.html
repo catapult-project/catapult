@@ -16,6 +16,9 @@ found in the LICENSE file.
 'use strict';
 
 tvcm.exportTo('tracing.tracks', function() {
+  var DOWN_ARROW = String.fromCharCode(0x25BE);
+  var RIGHT_ARROW = String.fromCharCode(0x25B8);
+
   /**
    * A track with a header. Provides the basic heading and tooltip
    * infrastructure. Subclasses must implement drawing code.
@@ -33,7 +36,10 @@ tvcm.exportTo('tracing.tracks', function() {
 
       this.headingDiv_ = document.createElement('heading');
       this.headingDiv_.style.width = tracing.constants.HEADING_WIDTH + 'px';
+      this.headingDiv_.addEventListener(
+          'click', this.onHeadingDivClicked_.bind(this));
       this.heading_ = '';
+      this.expanded_ = undefined;
       this.selectionGenerator_ = undefined;
       this.updateContents_();
     },
@@ -56,7 +62,32 @@ tvcm.exportTo('tracing.tracks', function() {
       this.updateContents_();
     },
 
+    get expanded() {
+      return this.expanded_;
+    },
+
+    set expanded(expanded) {
+      expanded = expanded;
+      if (this.expanded_ == expanded)
+        return;
+      this.expanded_ = expanded;
+      this.expandedStateChanged_();
+    },
+
+    expandedStateChanged_: function() {
+      this.updateHeadigDiv_();
+    },
+
+    onHeadingDivClicked_: function() {
+      var e = new Event('heading-clicked', true, false);
+      this.dispatchEvent(e);
+    },
+
     updateContents_: function() {
+      this.updateHeadigDiv_();
+    },
+
+    updateHeadigDiv_: function() {
       /**
        * If this is a heading track of a sampling thread, we add a link to
        * the heading text ("Sampling Thread"). We associate a selection
@@ -64,6 +95,16 @@ tvcm.exportTo('tracing.tracks', function() {
        * displayed in the bottom frame when you click the link.
        */
       this.headingDiv_.innerHTML = '';
+      var span = document.createElement('span');
+      span.classList.add('heading-arrow');
+      if (this.expanded === true)
+        span.textContent = DOWN_ARROW;
+      else if (this.expanded === false)
+        span.textContent = RIGHT_ARROW;
+      else
+        span.textContent = '';
+      this.headingDiv_.appendChild(span);
+
       if (this.selectionGenerator_) {
         this.headingLink_ = document.createElement('a');
         tracing.analysis.AnalysisLink.decorate(this.headingLink_);
@@ -71,7 +112,9 @@ tvcm.exportTo('tracing.tracks', function() {
         this.headingDiv_.appendChild(this.headingLink_);
         this.headingLink_.appendChild(document.createTextNode(this.heading_));
       } else {
-        this.headingDiv_.appendChild(document.createTextNode(this.heading_));
+        span = document.createElement('span');
+        span.textContent = this.heading_;
+        this.headingDiv_.appendChild(span);
       }
       this.appendChild(this.headingDiv_);
     },

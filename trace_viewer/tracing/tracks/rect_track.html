@@ -51,6 +51,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
     set rects(rects) {
       this.rects_ = rects || [];
+      this.invalidateDrawingContainer();
     },
 
     get height() {
@@ -59,6 +60,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
     set height(height) {
       this.style.height = height;
+      this.invalidateDrawingContainer();
     },
 
     get hasVisibleContent() {
@@ -92,16 +94,26 @@ tvcm.exportTo('tracing.tracks', function() {
           this.asyncStyle_);
       ctx.restore();
 
-      if (bounds.height <= 8)
+      if (bounds.height <= 6)
         return;
 
+      var fontSize, yOffset;
+      if (bounds.height < 15) {
+        fontSize = 6;
+        yOffset = 1.0;
+      } else {
+        fontSize = 10;
+        yOffset = 2.5;
+      }
       tracing.drawLabels(
           ctx,
           this.viewport.currentDisplayTransform,
           viewLWorld,
           viewRWorld,
           this.rects_,
-          this.asyncStyle_);
+          this.asyncStyle_,
+          fontSize,
+          yOffset);
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {

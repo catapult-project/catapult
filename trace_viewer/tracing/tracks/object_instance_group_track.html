@@ -34,11 +34,11 @@ tvcm.exportTo('tracing.tracks', function() {
     },
 
     get objectInstances() {
-      return this.itemsToGroup_;
+      return this.itemsToGroup;
     },
 
     set objectInstances(objectInstances) {
-      this.itemsToGroup = objectInstances;
+      this.setItemsToGroup(objectInstances);
     },
 
     addSubTrack_: function(objectInstances) {

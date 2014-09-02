@@ -38,11 +38,11 @@ tvcm.exportTo('tracing', function() {
 
   TraceModelSettings.prototype = {
     buildObjectsByKeyMap_: function() {
-      var objects = [this.model.kernel];
-      objects.push.apply(objects,
-                         tvcm.dictionaryValues(this.model.processes));
-      objects.push.apply(objects,
-                         this.model.getAllThreads());
+      var objects = [];
+      this.model.iterateAllPersistableObjects(function(o) {
+        objects.push(o);
+      });
+
       var objectsByKey = {};
       var NONUNIQUE_KEY = 'nonuniqueKey';
       for (var i = 0; i < objects.length; i++) {
@@ -117,6 +117,8 @@ tvcm.exportTo('tracing', function() {
       var settings = Settings.get('trace_model_settings', {});
       if (!settings[objectKey])
         settings[objectKey] = {};
+      if (settings[objectKey][objectLevelKey] === value)
+        return;
       settings[objectKey][objectLevelKey] = value;
       Settings.set('trace_model_settings', settings);
     },

@@ -63,17 +63,17 @@ tvcm.exportTo('tracing.tracks', function() {
         return;
       this.rafPending_ = true;
 
-      tvcm.requestPreAnimationFrame(function() {
-        this.rafPending_ = false;
-        this.updateCanvasSizeIfNeeded_();
-
-        tvcm.requestAnimationFrameInThisFrameIfPossible(function() {
-          this.drawTrackContents_();
-        }, this);
-      }, this);
+      tvcm.requestPreAnimationFrame(this.preDraw_, this);
     },
 
-    drawTrackContents_: function() {
+    preDraw_: function() {
+      this.rafPending_ = false;
+      this.updateCanvasSizeIfNeeded_();
+
+      tvcm.requestAnimationFrameInThisFrameIfPossible(this.draw_, this);
+    },
+
+    draw_: function() {
       this.ctx_.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
 
       var typesToDraw = [

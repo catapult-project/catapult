@@ -20,11 +20,13 @@ tvcm.exportTo('tracing.trace_model', function() {
    * A group of AsyncSlices associated with a thread.
    * @constructor
    */
-  function AsyncSliceGroup(parentThread) {
+  function AsyncSliceGroup(parentThread, opt_name) {
     this.parentThread_ = parentThread;
     this.guid_ = tvcm.GUID.allocate();
     this.slices = [];
     this.bounds = new tvcm.Range();
+    this.name_ = opt_name;
+    this.titleSubGroups_ = undefined;
   }
 
   AsyncSliceGroup.prototype = {
@@ -36,6 +38,19 @@ tvcm.exportTo('tracing.trace_model', function() {
 
     get parentThread() {
       return this.parentThread_;
+    },
+
+    get model() {
+      return this.parentThread_.parent.model;
+    },
+
+    getSettingsKey: function() {
+      if (!this.name_)
+        return undefined;
+      var parentKey = this.parentThread_.getSettingsKey();
+      if (!parentKey)
+        return undefined;
+      return parentKey + '.' + this.name_;
     },
 
     /**
@@ -77,27 +92,31 @@ tvcm.exportTo('tracing.trace_model', function() {
     },
 
     /**
-     * Breaks up this group into slices based on start thread.
+     * Gets the sub-groups in this A-S-G defined by the group titles.
      *
      * @return {Array} An array of AsyncSliceGroups where each group has
      * slices that started on the same thread.
      */
-    computeSubGroups: function() {
-      var subGroupsByGUID = {};
-      for (var i = 0; i < this.slices.length; ++i) {
-        var slice = this.slices[i];
-        var sliceGUID = slice.startThread.guid;
-        if (!subGroupsByGUID[sliceGUID])
-          subGroupsByGUID[sliceGUID] = new AsyncSliceGroup(this.parentThread_);
-        subGroupsByGUID[sliceGUID].slices.push(slice);
+    get titleSubGroups() {
+      if (this.titleSubGroups_ === undefined) {
+        var prefix = '';
+        if (this.name !== undefined)
+          prefix = this.name + '.';
+        else
+          prefix = '';
+
+        var subGroupsByTitle = {};
+        for (var i = 0; i < this.slices.length; ++i) {
+          var slice = this.slices[i];
+          if (!subGroupsByTitle[slice.title]) {
+            subGroupsByTitle[slice.title] = new AsyncSliceGroup(
+                this.parentThread_, prefix + slice.title);
+          }
+          subGroupsByTitle[slice.title].slices.push(slice);
+        }
+        this.titleSubGroups_ = tvcm.dictionaryValues(subGroupsByTitle);
       }
-      var groups = [];
-      for (var guid in subGroupsByGUID) {
-        var group = subGroupsByGUID[guid];
-        group.updateBounds();
-        groups.push(group);
-      }
-      return groups;
+      return this.titleSubGroups_;
     },
 
     iterateAllEvents: function(callback, opt_this) {

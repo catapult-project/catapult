@@ -46,7 +46,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
     set group(group) {
       this.group_ = group;
-      this.itemsToGroup = group.slices;
+      this.setItemsToGroup(this.group_.slices, this.group_);
     },
 
     /**

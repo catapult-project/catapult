@@ -538,6 +538,17 @@ tvcm.exportTo('tracing', function() {
         this.processes[pid].iterateAllEvents(callback, opt_this);
 
       this.samples.forEach(callback, opt_this);
+    },
+
+    /**
+     * Some objects in the model can persist their state in TraceModelSettings.
+     *
+     * This iterates through them.
+     */
+    iterateAllPersistableObjects: function(cb) {
+      this.kernel.iterateAllPersistableObjects(cb);
+      for (var pid in this.processes)
+        this.processes[pid].iterateAllPersistableObjects(cb);
     }
   };
 

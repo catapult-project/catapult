@@ -224,6 +224,12 @@ tvcm.exportTo('tracing.trace_model', function() {
         this.counters[id].iterateAllEvents(callback, opt_this);
 
       this.objects.iterateAllEvents(callback, opt_this);
+    },
+
+    iterateAllPersistableObjects: function(cb) {
+      cb(this);
+      for (var tid in this.threads)
+        this.threads[tid].iterateAllPersistableObjects(cb);
     }
   };
 
