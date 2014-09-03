@@ -10,7 +10,15 @@ from telemetry.value import skip
 
 
 class GTestProgressReporter(progress_reporter.ProgressReporter):
-  """A progress reporter that outputs the progress report in gtest style."""
+  """A progress reporter that outputs the progress report in gtest style.
+
+  Be careful each print should only handle one string. Otherwise, the output
+  might be interrupted by Chrome logging, and the output interpretation might
+  be incorrect. For example:
+      print >> self._output_stream, "[ OK ]", testname
+  should be written as
+      print >> self._output_stream, "[ OK ] %s" % testname
+  """
 
   def __init__(self, output_stream, output_skipped_tests_summary=False):
     super(GTestProgressReporter, self).__init__()
@@ -38,7 +46,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
 
   def WillRunPage(self, page_test_results):
     super(GTestProgressReporter, self).WillRunPage(page_test_results)
-    print >> self._output_stream, '[ RUN      ]', (
+    print >> self._output_stream, '[ RUN      ] %s' % (
         page_test_results.current_page.display_name)
     self._output_stream.flush()
     self._timestamp = time.time()
@@ -47,11 +55,11 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     super(GTestProgressReporter, self).DidRunPage(page_test_results)
     page = page_test_results.current_page
     if page_test_results.current_page_run.failed:
-      print >> self._output_stream, '[  FAILED  ]', page.display_name, (
-          '(%0.f ms)' % self._GetMs())
+      print >> self._output_stream, '[  FAILED  ] %s (%0.f ms)' % (
+          page.display_name, self._GetMs())
     else:
-      print >> self._output_stream, '[       OK ]', page.display_name, (
-          '(%0.f ms)' % self._GetMs())
+      print >> self._output_stream, '[       OK ] %s (%0.f ms)' % (
+          page.display_name, self._GetMs())
     self._output_stream.flush()
 
   def WillAttemptPageRun(self, page_test_results, attempt_count, max_attempts):
@@ -77,14 +85,14 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
         successful_runs.append(run)
 
     unit = 'test' if len(successful_runs) == 1 else 'tests'
-    print >> self._output_stream, '[  PASSED  ]', (
-        '%d %s.' % (len(successful_runs), unit))
+    print >> self._output_stream, '[  PASSED  ] %d %s.' % (
+        (len(successful_runs), unit))
     if len(failed_runs) > 0:
       unit = 'test' if len(failed_runs) == 1 else 'tests'
-      print >> self._output_stream, '[  FAILED  ]', (
-          '%d %s, listed below:' % (len(page_test_results.failures), unit))
+      print >> self._output_stream, '[  FAILED  ] %d %s, listed below:' % (
+          (len(page_test_results.failures), unit))
       for failed_run in failed_runs:
-        print >> self._output_stream, '[  FAILED  ] ', (
+        print >> self._output_stream, '[  FAILED  ]  %s' % (
             failed_run.page.display_name)
       print >> self._output_stream
       count = len(failed_runs)
