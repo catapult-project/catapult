@@ -22,6 +22,8 @@ _OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'block', 'csv', 'gtest', 'json',
 
 def AddResultsOptions(parser):
   group = optparse.OptionGroup(parser, 'Results options')
+  group.add_option('--chartjson', action='store_true',
+                   help='Output Chart JSON. Ignores --output-format.')
   group.add_option('--output-format',
                     default=_OUTPUT_FORMAT_CHOICES[0],
                     choices=_OUTPUT_FORMAT_CHOICES,
@@ -46,7 +48,7 @@ def AddResultsOptions(parser):
   parser.add_option_group(group)
 
 
-def CreateResults(metadata, options):
+def CreateResults(benchmark_metadata, options):
   """
   Args:
     options: Contains the options specified in AddResultsOptions.
@@ -73,7 +75,7 @@ def CreateResults(metadata, options):
   output_formatters = []
   output_skipped_tests_summary = True
   reporter = None
-  if options.output_format == 'none':
+  if options.output_format == 'none' or options.chartjson:
     pass
   elif options.output_format == 'csv':
     output_formatters.append(csv_output_formatter.CsvOutputFormatter(
@@ -95,12 +97,13 @@ def CreateResults(metadata, options):
     output_formatters.append(buildbot_output_formatter.BuildbotOutputFormatter(
         sys.stdout, trace_tag=options.output_trace_tag))
     output_formatters.append(html_output_formatter.HtmlOutputFormatter(
-        output_stream, metadata, options.reset_results,
+        output_stream, benchmark_metadata, options.reset_results,
         options.upload_results, options.browser_type,
         options.results_label, trace_tag=options.output_trace_tag))
   elif options.output_format == 'json':
     output_formatters.append(
-        json_output_formatter.JsonOutputFormatter(output_stream, metadata))
+        json_output_formatter.JsonOutputFormatter(output_stream,
+                                                  benchmark_metadata))
   else:
     # Should never be reached. The parser enforces the choices.
     raise Exception('Invalid --output-format "%s". Valid choices are: %s'

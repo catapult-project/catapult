@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import logging
 import optparse
 import os
@@ -17,6 +18,7 @@ from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
+from telemetry.results import chart_json
 from telemetry.results import results_options
 from telemetry.util import cloud_storage
 
@@ -89,13 +91,20 @@ class Benchmark(command_line.Command):
 
     self._DownloadGeneratedProfileArchive(finder_options)
 
-    results = results_options.CreateResults(self.GetMetadata(), finder_options)
+    benchmark_metadata = self.GetMetadata()
+    results = results_options.CreateResults(benchmark_metadata, finder_options)
     try:
       page_runner.Run(pt, ps, expectations, finder_options, results)
     except page_test.TestNotSupportedOnPlatformFailure as failure:
       logging.warning(str(failure))
 
-    results.PrintSummary()
+    if finder_options.chartjson:
+      print json.dumps(chart_json.ResultsAsChartDict(
+          benchmark_metadata,
+          results.all_page_specific_values,
+          results.all_summary_values))
+    else:
+      results.PrintSummary()
     return len(results.failures)
 
   def _DownloadGeneratedProfileArchive(self, options):
