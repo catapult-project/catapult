@@ -581,7 +581,7 @@ class PageRunnerTests(unittest.TestCase):
     SetUpPageRunnerArguments(options)
     self.TestUseLiveSitesFlag(options, expect_from_archive=True)
 
-  def testMaxFailuresOptionIsRespected(self):
+  def _testMaxFailuresOptionIsRespectedAndOverridable(self, max_failures=None):
     class TestPage(page_module.Page):
       def __init__(self, *args, **kwargs):
         super(TestPage, self).__init__(*args, **kwargs)
@@ -597,35 +597,34 @@ class PageRunnerTests(unittest.TestCase):
 
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
-    page1 = TestPage(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
-    ps.pages.append(page1)
-    page2 = TestPage(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
-    ps.pages.append(page2)
-    page3 = TestPage(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
-    ps.pages.append(page3)
-    page4 = TestPage(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
-    ps.pages.append(page4)
-    page5 = TestPage(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
-    ps.pages.append(page5)
+    for ii in range(5):
+      ps.pages.append(TestPage(
+          'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
     options.suppress_gtest_report = True
+    expected_max_failures = 2
+    if not max_failures is None:
+      options.max_failures = max_failures
+      expected_max_failures = max_failures
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(Test(max_failures=2), ps, expectations, options, results)
+    page_runner.Run(Test(max_failures=2),
+                    ps, expectations, options, results)
     self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     # Runs up to max_failures+1 failing tests before stopping, since
     # every tests after max_failures failures have been encountered
     # may all be passing.
-    self.assertEquals(3, len(results.failures))
-    self.assertTrue(page1.was_run)
-    self.assertTrue(page2.was_run)
-    self.assertTrue(page3.was_run)
-    self.assertFalse(page4.was_run)
-    self.assertFalse(page5.was_run)
+    self.assertEquals(expected_max_failures + 1, len(results.failures))
+    for ii in range(len(ps.pages)):
+      if ii <= expected_max_failures:
+        self.assertTrue(ps.pages[ii].was_run)
+      else:
+        self.assertFalse(ps.pages[ii].was_run)
+
+  def testMaxFailuresOptionIsRespected(self):
+    self._testMaxFailuresOptionIsRespectedAndOverridable()
+
+  def testMaxFailuresOptionIsOverridable(self):
+    self._testMaxFailuresOptionIsRespectedAndOverridable(1)

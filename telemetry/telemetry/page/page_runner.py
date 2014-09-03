@@ -205,6 +205,10 @@ def AddCommandLineArgs(parser):
                    'before proceeding with the next page in the pageset.')
   group.add_option('--pageset-repeat', default=1, type='int',
                    help='Number of times to repeat the entire pageset.')
+  group.add_option('--max-failures', default=None, type='int',
+                   help='Maximum number of test failures before aborting '
+                   'the run. Defaults to the number specified by the '
+                   'PageTest.')
   parser.add_option_group(group)
 
   # WPR options
@@ -402,6 +406,13 @@ def Run(test, page_set, expectations, finder_options, results):
   state = _RunState()
   # TODO(dtu): Move results creation and results_for_current_run into RunState.
 
+  max_failures = None
+  if not test.max_failures is None:
+    max_failures = test.max_failures
+  if not finder_options.max_failures is None:
+    # Support overriding this from the command line.
+    max_failures = finder_options.max_failures
+
   try:
     test.WillRunTest(finder_options)
     for _ in xrange(0, finder_options.pageset_repeat):
@@ -424,8 +435,8 @@ def Run(test, page_set, expectations, finder_options, results):
                 discard_run = True
             results.DidRunPage(page, discard_run=discard_run)
         test.DidRunPageRepeats(page)
-        if (not test.max_failures is None and
-            len(results.failures) > test.max_failures):
+        if (not max_failures is None and
+            len(results.failures) > max_failures):
           logging.error('Too many failures. Aborting.')
           test.RequestExit()
 
