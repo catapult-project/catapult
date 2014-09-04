@@ -72,7 +72,7 @@ def WinRing0Path():
 def _Initialize():
   global _winring0
   if not _winring0:
-    winring0 = ctypes.CDLL(WinRing0Path())
+    winring0 = ctypes.WinDLL(WinRing0Path())
     if not winring0.InitializeOls():
       winring0_status = winring0.GetDllStatus()
       raise WinRing0Error(winring0_status,
