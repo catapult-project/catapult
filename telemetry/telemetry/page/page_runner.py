@@ -303,7 +303,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
 
 
 @decorators.Cache
-def _UpdatePageSetArchivesIfChanged(page_set):
+def _UpdateCredentials(page_set):
   # Attempt to download the credentials file.
   if page_set.credentials_path:
     try:
@@ -314,6 +314,9 @@ def _UpdatePageSetArchivesIfChanged(page_set):
       logging.warning('Cannot retrieve credential file %s due to cloud storage '
                       'error %s', page_set.credentials_path, str(e))
 
+
+@decorators.Cache
+def _UpdatePageSetArchivesIfChanged(page_set):
   # Scan every serving directory for .sha1 files
   # and download them from Cloud Storage. Assume all data is public.
   all_serving_dirs = page_set.serving_dirs.copy()
@@ -371,10 +374,11 @@ def Run(test, page_set, expectations, finder_options, results):
   # Reorder page set based on options.
   pages = _ShuffleAndFilterPageSet(page_set, finder_options)
 
-  if (not finder_options.use_live_sites and
-      browser_options.wpr_mode != wpr_modes.WPR_RECORD):
-    _UpdatePageSetArchivesIfChanged(page_set)
-    pages = _CheckArchives(page_set, pages, results)
+  if not finder_options.use_live_sites:
+    _UpdateCredentials(page_set)
+    if browser_options.wpr_mode != wpr_modes.WPR_RECORD:
+      _UpdatePageSetArchivesIfChanged(page_set)
+      pages = _CheckArchives(page_set, pages, results)
 
   # Verify credentials path.
   credentials_path = None

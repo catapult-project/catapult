@@ -146,8 +146,11 @@ class BrowserCredentials(object):
       logging.warning("""
         Credentials for %s were not found. %i pages will not be tested.
 
-        To fix this, either add svn-internal to your .gclient using
-        http://goto/read-src-internal, or add your own credentials to:
+        To fix this, either follow the instructions to authenticate to gsutil
+        here:
+        http://www.chromium.org/developers/telemetry/upload_to_cloud_storage,
+
+        or add your own credentials to:
             %s
         An example credentials file you can copy from is here:
             %s\n""" % (', '.join(missing_credentials),
