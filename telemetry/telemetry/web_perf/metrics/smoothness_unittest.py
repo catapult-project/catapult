@@ -69,14 +69,9 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
   def testComputeLatencyMetricWithMissingData(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,
                                input_event_latency=[[], []])
-    mean_value, discrepancy_value = self.metric._ComputeLatencyMetric(
+    value = self.metric._ComputeLatencyMetric(
         self.page, stats, 'input_event_latency', stats.input_event_latency)
-    self.assertEquals(None, mean_value.value)
-    self.assertEquals('No latency values recorded.',
-                      mean_value.none_value_reason)
-    self.assertEquals(None, discrepancy_value.value)
-    self.assertEquals('No latency values recorded.',
-                      discrepancy_value.none_value_reason)
+    self.assertEquals((), value)
 
   def testComputeLatencyMetricWithNotEnoughFrames(self):
     stats = _MockRenderingStats(
@@ -96,25 +91,23 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
         frame_timestamps=self.good_timestamps,
         gesture_scroll_update_latency=[[10, 20], [30, 40, 50]])
     gesture_value = self.metric._ComputeFirstGestureScrollUpdateLatency(
-        self.page, stats)
+        self.page, stats)[0]
     self.assertEquals(10, gesture_value.value)
 
   def testComputeGestureScrollUpdateLatencyWithMissingData(self):
     stats = _MockRenderingStats(
         frame_timestamps=self.good_timestamps,
         gesture_scroll_update_latency=[[], []])
-    gesture_value = self.metric._ComputeFirstGestureScrollUpdateLatency(
+    value = self.metric._ComputeFirstGestureScrollUpdateLatency(
         self.page, stats)
-    self.assertEquals(None, gesture_value.value)
-    self.assertEquals('No gesture scroll update latency values recorded.',
-                      gesture_value.none_value_reason)
+    self.assertEquals((), value)
 
   def testComputeGestureScrollUpdateLatencyWithNotEnoughFrames(self):
     stats = _MockRenderingStats(
         frame_timestamps=self.not_enough_frames_timestamps,
         gesture_scroll_update_latency=[[10, 20], [30, 40, 50]])
     gesture_value = self.metric._ComputeFirstGestureScrollUpdateLatency(
-        self.page, stats)
+        self.page, stats)[0]
     self.assertEquals(None, gesture_value.value)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
                       gesture_value.none_value_reason)
