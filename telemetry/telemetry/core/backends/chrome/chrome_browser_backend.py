@@ -83,7 +83,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def GetBrowserStartupArgs(self):
     args = []
     args.extend(self.browser_options.extra_browser_args)
-    args.append('--disable-background-networking')
     args.append('--enable-net-benchmarking')
     args.append('--metrics-recording-only')
     args.append('--no-default-browser-check')
@@ -100,6 +99,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     # some other flag indicates a proxy is needed.
     if not '--enable-spdy-proxy-auth' in args:
       args.append('--no-proxy-server')
+
+    if self.browser_options.disable_background_networking:
+      args.append('--disable-background-networking')
 
     if self.browser_options.netsim:
       args.append('--ignore-certificate-errors')

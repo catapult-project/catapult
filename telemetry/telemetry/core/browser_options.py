@@ -192,6 +192,7 @@ class BrowserOptions(object):
     self.wpr_mode = wpr_modes.WPR_OFF
     self.netsim = None
 
+    self.disable_background_networking = True
     self.no_proxy_server = False
     self.browser_user_agent_type = None
 
