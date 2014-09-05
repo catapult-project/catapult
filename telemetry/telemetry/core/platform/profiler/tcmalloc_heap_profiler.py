@@ -122,5 +122,19 @@ class TCMallocHeapProfiler(profiler.Profiler):
     options.AppendExtraBrowserArgs('--no-sandbox')
     options.AppendExtraBrowserArgs('--enable-memory-benchmarking')
 
+  @classmethod
+  def WillCloseBrowser(cls, browser_backend, platform_backend):
+    # The tcmalloc_heap_profiler dumps files at regular
+    # intervals (~20 secs).
+    # This is a minor optimization to ensure it'll dump the last file when
+    # the test completes.
+    for i in xrange(len(browser_backend.browser.tabs)):
+      browser_backend.browser.tabs[i].ExecuteJavaScript("""
+        if (chrome && chrome.memoryBenchmarking) {
+          chrome.memoryBenchmarking.heapProfilerDump('renderer', 'final');
+          chrome.memoryBenchmarking.heapProfilerDump('browser', 'final');
+        }
+      """)
+
   def CollectProfile(self):
     return self._platform_profiler.CollectProfile()
