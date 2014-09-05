@@ -179,6 +179,7 @@ class Value(object):
       'name': self.name,
       'type': self.GetJSONTypeName(),
       'units': self.units,
+      'important': self.important
     }
 
     if self.description:
