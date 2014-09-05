@@ -7,7 +7,6 @@ import ctypes
 import os
 import platform
 import re
-import shutil
 import sys
 import zipfile
 
@@ -33,7 +32,7 @@ WINRING0_STATUS_MESSAGES = (
     'Driver not found',
     'Driver unloaded by other process',
     'Driver not loaded because of executing on Network Drive',
-    'Unkown error',
+    'Unknown error',
 )
 
 
@@ -47,24 +46,30 @@ class WinRing0Error(OSError):
 
 @decorators.Cache
 def WinRing0Path():
-  file_name = 'WinRing0x64' if sys.maxsize > 2 ** 32 else 'WinRing0'
-  winring0_path = os.path.join(path.GetTelemetryDir(), 'bin', 'win', 'winring0')
-  dll_path = os.path.join(winring0_path, file_name + '.dll')
-  driver_path = os.path.join(winring0_path, file_name + '.sys')
+  python_is_64_bit = sys.maxsize > 2 ** 32
+  win_binary_dir = os.path.join(path.GetTelemetryDir(), 'bin', 'win')
+  dll_file_name = 'WinRing0x64.dll' if python_is_64_bit else 'WinRing0.dll'
+  dll_path = os.path.join(win_binary_dir, dll_file_name)
+
+  os_is_64_bit = 'PROGRAMFILES(X86)' in os.environ
+  executable_dir = os.path.dirname(sys.executable)
+  driver_file_name = 'WinRing0x64.sys' if os_is_64_bit else 'WinRing0.sys'
+  driver_path = os.path.join(executable_dir, driver_file_name)
 
   # Check for WinRing0 and download if needed.
   if not (os.path.exists(dll_path) and os.path.exists(driver_path)):
-    zip_path = os.path.join(path.GetTelemetryDir(),
-                            'bin', 'win', 'winring0.zip')
+    zip_path = os.path.join(win_binary_dir, 'winring0.zip')
     cloud_storage.GetIfChanged(zip_path, bucket=cloud_storage.PUBLIC_BUCKET)
-    with zipfile.ZipFile(zip_path, 'r') as zip_file:
-      zip_file.extractall(os.path.dirname(zip_path))
-    os.remove(zip_path)
-
-  # Copy kernel driver to the Python executable's path.
-  executable_dir = os.path.dirname(sys.executable)
-  if not os.path.exists(os.path.join(executable_dir, file_name + '.sys')):
-    shutil.copy(driver_path, executable_dir)
+    try:
+      with zipfile.ZipFile(zip_path, 'r') as zip_file:
+        # Install DLL.
+        if not os.path.exists(dll_path):
+          zip_file.extract(dll_file_name, win_binary_dir)
+        # Install kernel driver.
+        if not os.path.exists(driver_path):
+          zip_file.extract(driver_file_name, executable_dir)
+    finally:
+      os.remove(zip_path)
 
   return dll_path
 
