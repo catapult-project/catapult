@@ -4,6 +4,7 @@
 
 import sys
 
+from telemetry.core.platform import profiling_controller
 from telemetry.core.platform import tracing_controller
 
 
@@ -47,10 +48,16 @@ class Platform(object):
     self._platform_backend.SetPlatform(self)
     self._tracing_controller = tracing_controller.TracingController(
         self._platform_backend.tracing_controller_backend)
+    self._profiling_controller = profiling_controller.ProfilingController(
+        self._platform_backend.profiling_controller_backend)
 
   @property
   def tracing_controller(self):
     return self._tracing_controller
+
+  @property
+  def profiling_controller(self):
+    return self._profiling_controller
 
   def IsRawDisplayFrameRateSupported(self):
     """Platforms may be able to collect GL surface stats."""

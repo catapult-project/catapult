@@ -4,6 +4,7 @@
 
 import weakref
 
+from telemetry.core.platform import profiling_controller_backend
 from telemetry.core.platform import tracing_controller_backend
 
 
@@ -46,8 +47,10 @@ class PlatformBackend(object):
   def __init__(self):
     self._platform = None
     self._running_browser_backends = weakref.WeakSet()
-    self._tracing_controller_backend = \
-        tracing_controller_backend.TracingControllerBackend(self)
+    self._tracing_controller_backend = (
+        tracing_controller_backend.TracingControllerBackend(self))
+    self._profiling_controller_backend = (
+        profiling_controller_backend.ProfilingControllerBackend(self))
 
   def SetPlatform(self, platform):
     assert self._platform == None
@@ -65,6 +68,10 @@ class PlatformBackend(object):
   def tracing_controller_backend(self):
     return self._tracing_controller_backend
 
+  @property
+  def profiling_controller_backend(self):
+    return self._profiling_controller_backend
+
   def DidCreateBrowser(self, browser, browser_backend):
     self.SetFullPerformanceModeEnabled(True)
 
@@ -77,6 +84,8 @@ class PlatformBackend(object):
   def WillCloseBrowser(self, browser, browser_backend):
     self._tracing_controller_backend.WillCloseBrowser(
         browser, browser_backend)
+    self._profiling_controller_backend.WillCloseBrowser(
+        browser_backend)
 
     is_last_browser = len(self._running_browser_backends) == 1
     if is_last_browser:

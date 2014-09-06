@@ -14,7 +14,6 @@ from telemetry.core import tab_list
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
 from telemetry.core.backends import browser_backend
-from telemetry.core.platform.profiler import profiler_finder
 
 
 class Browser(object):
@@ -34,12 +33,9 @@ class Browser(object):
     self._browser_backend = backend
     self._platform_backend = platform_backend
     self._wpr_server = None
-    self._active_profilers = []
-    self._profilers_states = {}
     self._local_server_controller = local_server.LocalServerController(backend)
     self._tabs = tab_list.TabList(backend.tab_list_backend)
     self.credentials = browser_credentials.BrowserCredentials()
-
     self._platform_backend.DidCreateBrowser(self, self._browser_backend)
 
   def __enter__(self):
@@ -92,10 +88,6 @@ class Browser(object):
       raise browser_backend.ExtensionsNotSupportedException(
           'Extensions not supported')
     return extension_dict.ExtensionDict(self._browser_backend.extension_backend)
-
-  def is_profiler_active(self, profiler_name):
-    return profiler_name in [profiler.name() for
-                             profiler in self._active_profilers]
 
   def _GetStatsCommon(self, pid_stats_function):
     browser_pid = self._browser_backend.pid
@@ -238,36 +230,6 @@ class Browser(object):
     del result['ProcessCount']
     return result
 
-  def StartProfiling(self, profiler_name, base_output_file):
-    """Starts profiling using |profiler_name|. Results are saved to
-    |base_output_file|.<process_name>."""
-    assert not self._active_profilers, 'Already profiling. Must stop first.'
-
-    profiler_class = profiler_finder.FindProfiler(profiler_name)
-
-    if not profiler_class.is_supported(self._browser_backend.browser_type):
-      raise Exception('The %s profiler is not '
-                      'supported on this platform.' % profiler_name)
-
-    if not profiler_class in self._profilers_states:
-      self._profilers_states[profiler_class] = {}
-
-    self._active_profilers.append(
-        profiler_class(self._browser_backend, self._platform_backend,
-            base_output_file, self._profilers_states[profiler_class]))
-
-  def StopProfiling(self):
-    """Stops all active profilers and saves their results.
-
-    Returns:
-      A list of filenames produced by the profiler.
-    """
-    output_files = []
-    for profiler in self._active_profilers:
-      output_files.extend(profiler.CollectProfile())
-    self._active_profilers = []
-    return output_files
-
   def Start(self):
     browser_options = self._browser_backend.browser_options
     self.platform.FlushDnsCache()
@@ -286,10 +248,6 @@ class Browser(object):
 
   def Close(self):
     """Closes this browser."""
-    for profiler_class in self._profilers_states:
-      profiler_class.WillCloseBrowser(self._browser_backend,
-                                      self._platform_backend)
-
     if self._browser_backend.IsBrowserRunning():
       self._platform_backend.WillCloseBrowser(self, self._browser_backend)
 

@@ -135,11 +135,12 @@ class _RunState(object):
                     finder_options.pageset_repeat != 1)
     if is_repeating:
       output_file = util.GetSequentialFileName(output_file)
-    self.browser.StartProfiling(finder_options.profiler, output_file)
+    self.browser.platform.profiling_controller.Start(
+        finder_options.profiler, output_file)
 
   def StopProfiling(self):
     if self.browser:
-      self.browser.StopProfiling()
+      self.browser.platform.profiling_controller.Stop()
 
 
 class PageState(object):
