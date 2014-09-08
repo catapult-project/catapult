@@ -14,7 +14,7 @@ from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core.platform import desktop_platform_backend
 from telemetry.core.platform import platform_backend
-from telemetry.core.platform.power_monitor import msr_power_monitor
+from telemetry.core.platform.power_monitor import ippet_power_monitor
 
 try:
   import pywintypes  # pylint: disable=F0401
@@ -46,7 +46,7 @@ def IsCurrentProcessElevated():
 class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def __init__(self):
     super(WinPlatformBackend, self).__init__()
-    self._power_monitor = msr_power_monitor.MsrPowerMonitor(self)
+    self._power_monitor = ippet_power_monitor.IppetPowerMonitor(self)
 
   # pylint: disable=W0613
   def StartRawDisplayFrameRateMeasurement(self):
