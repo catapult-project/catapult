@@ -197,6 +197,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # allocates. Need to fix this.
     self._port = adb_commands.AllocateTestServerPort()
 
+    # Disables android.net SSL certificate check.  This is necessary for
+    # applications using the android.net stack to work with proxy HTTPS server
+    # created by telemetry
+    if self._backend_settings.relax_ssl_check:
+      self._saved_sslflag = self._adb.device().GetProp('socket.relaxsslcheck')
+      self._adb.device().SetProp('socket.relaxsslcheck', 'yes')
+
     # Kill old browser.
     self._adb.device().ForceStop(self._backend_settings.package)
 
@@ -271,13 +278,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Start(self):
     self._SetUpCommandLine()
-
-    # Disables android.net SSL certificate check.  This is necessary for
-    # applications using the android.net stack to work with proxy HTTPS server
-    # created by telemetry
-    if self._backend_settings.relax_ssl_check:
-      self._saved_sslflag = self._adb.device().GetProp('socket.relaxsslcheck')
-      self._adb.device().SetProp('socket.relaxsslcheck', 'yes')
 
     self._adb.device().RunShellCommand('logcat -c')
     if self.browser_options.startup_url:
