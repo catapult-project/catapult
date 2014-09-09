@@ -13,7 +13,7 @@ class CrosPlatformBackend(
   def __init__(self, cri):
     super(CrosPlatformBackend, self).__init__()
     self._cri = cri
-    self._powermonitor = cros_power_monitor.CrosPowerMonitor(cri)
+    self._powermonitor = cros_power_monitor.CrosPowerMonitor(self)
 
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
