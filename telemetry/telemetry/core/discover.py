@@ -9,8 +9,6 @@ import re
 
 from telemetry import decorators
 from telemetry.core import camel_case
-from telemetry.core import util
-from telemetry.page import page_set
 
 
 @decorators.Cache
@@ -123,13 +121,3 @@ _counter = [0]
 def _GetUniqueModuleName():
   _counter[0] += 1
   return "module_" + str(_counter[0])
-
-
-def IsPageSetFile(file_path):
-  root_name, ext_name = os.path.splitext(file_path)
-  if 'unittest' in root_name or 'page_sets/data' in root_name:
-    return False
-  if ext_name != '.py':
-    return False
-  module = util.GetPythonPageSetModule(file_path)
-  return bool(DiscoverClassesInModule(module, page_set.PageSet))

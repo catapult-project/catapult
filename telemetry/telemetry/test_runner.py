@@ -151,19 +151,19 @@ class Run(command_line.OptparseCommand):
         parser.error('Need to specify a page set for "%s".' % test_class.Name())
       if len(args.positional_args) > 2:
         parser.error('Too many arguments.')
-      page_set_path = args.positional_args[1]
-      if not os.path.exists(page_set_path):
-        parser.error('Page set not found.')
-      if not (os.path.isfile(page_set_path) and
-              discover.IsPageSetFile(page_set_path)):
-        parser.error('Unsupported page set file format.')
+      page_set_name = args.positional_args[1]
+      page_set_class = _MatchPageSetName(page_set_name)
+      if page_set_class is None:
+        parser.error(
+            'Page set not found. Please specify the name of a valid page set.')
+        #TODO(ariblue): Print available page sets.
 
       class TestWrapper(benchmark.Benchmark):
         test = test_class
 
         @classmethod
         def CreatePageSet(cls, options):
-          return page_set.PageSet.FromFile(page_set_path)
+          return page_set_class()
 
       test_class = TestWrapper
     else:
@@ -211,6 +211,19 @@ def _Tests():
     tests += [test_class for test_class in page_tests
               if not issubclass(test_class, profile_creator.ProfileCreator)]
   return tests
+
+
+# TODO(ariblue): Use discover.py's abstracted _MatchName class (in pending CL
+# 432543003) and eliminate _MatchPageSetName and _MatchTestName.
+def _MatchPageSetName(input_name):
+  page_sets = []
+  for base_dir in config.base_paths:
+    page_sets += discover.DiscoverClasses(base_dir, base_dir, page_set.PageSet,
+                                          index_by_class_name=True).values()
+  for p in page_sets:
+    if input_name == p.Name():
+      return p
+  return None
 
 
 def _MatchTestName(input_test_name, exact_matches=True):
