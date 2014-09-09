@@ -4,10 +4,12 @@
 
 import collections
 import itertools
+import json
 
+from telemetry.results import output_formatter
 from telemetry.value import summary as summary_module
 
-def ResultsAsChartDict(benchmark_metadata, page_specific_values,
+def _ResultsAsChartDict(benchmark_metadata, page_specific_values,
                        summary_values):
   """Produces a dict for serialization to Chart JSON format from raw values.
 
@@ -55,3 +57,17 @@ def ResultsAsChartDict(benchmark_metadata, page_specific_values,
   }
 
   return result_dict
+
+# TODO(eakuefner): Transition this to translate Telemetry JSON.
+class ChartJsonOutputFormatter(output_formatter.OutputFormatter):
+  def __init__(self, output_stream, benchmark_metadata):
+    super(ChartJsonOutputFormatter, self).__init__(output_stream)
+    self._benchmark_metadata = benchmark_metadata
+
+  def Format(self, page_test_results):
+    json.dump(self._ResultsAsChartDict(
+        self._benchmark_metadata,
+        page_test_results.all_page_specific_values,
+        page_test_results.all_summary_values),
+              self.output_stream)
+    self.output_stream.write('\n')

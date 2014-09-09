@@ -7,7 +7,7 @@ import unittest
 import json
 
 from telemetry import benchmark
-from telemetry.results import chart_json
+from telemetry.results import chart_json_output_formatter
 from telemetry.page import page_set
 from telemetry.value import scalar
 from telemetry.value import list_of_scalar_values
@@ -29,7 +29,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = [v0]
     summary_values = []
 
-    d = chart_json.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -39,7 +39,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = []
     summary_values = []
 
-    d = chart_json.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -53,7 +53,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = [v0, v1]
     summary_values = []
 
-    d = chart_json.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -67,7 +67,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = [v0, v1]
     summary_values = []
 
-    d = chart_json.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -83,7 +83,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = []
     summary_values = [v0]
 
-    d = chart_json.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -96,7 +96,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = []
     summary_values = [v0]
 
-    d = chart_json.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -109,7 +109,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = []
     summary_values = [v0]
 
-    d = chart_json.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)

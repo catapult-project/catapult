@@ -8,6 +8,7 @@ import sys
 
 from telemetry.core import util
 from telemetry.results import buildbot_output_formatter
+from telemetry.results import chart_json_output_formatter
 from telemetry.results import csv_output_formatter
 from telemetry.results import gtest_progress_reporter
 from telemetry.results import html_output_formatter
@@ -17,7 +18,7 @@ from telemetry.results import progress_reporter
 
 # Allowed output formats. The default is the first item in the list.
 _OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'block', 'csv', 'gtest', 'json',
-    'none')
+    'chartjson', 'none')
 
 
 def AddResultsOptions(parser):
@@ -104,6 +105,11 @@ def CreateResults(benchmark_metadata, options):
     output_formatters.append(
         json_output_formatter.JsonOutputFormatter(output_stream,
                                                   benchmark_metadata))
+  elif options.output_format == 'chartjson':
+    output_formatters.append(
+        chart_json_output_formatter.ChartJsonOutputFormatter(
+            output_stream,
+            benchmark_metadata))
   else:
     # Should never be reached. The parser enforces the choices.
     raise Exception('Invalid --output-format "%s". Valid choices are: %s'
