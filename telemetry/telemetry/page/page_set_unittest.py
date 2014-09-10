@@ -6,7 +6,6 @@ import os
 import tempfile
 import unittest
 
-from telemetry.core import util
 from telemetry.page import page
 from telemetry.page import page_set
 from telemetry.util import cloud_storage
@@ -42,45 +41,6 @@ class TestPageSet(unittest.TestCase):
                                               real_absolute_dir]))
     finally:
       os.rmdir(directory_path)
-
-  def testSuccesfulPythonPageSetLoading(self):
-    test_pps_dir = os.path.join(util.GetUnittestDataDir(), 'test_page_set.py')
-    pps = page_set.PageSet.FromFile(test_pps_dir)
-    self.assertEqual('TestPageSet', pps.__class__.__name__)
-    self.assertEqual('A pageset for testing purpose', pps.Description())
-    self.assertEqual('data/test.json', pps.archive_data_file)
-    self.assertEqual('data/credential', pps.credentials_path)
-    self.assertEqual('desktop', pps.user_agent_type)
-    self.assertEqual(test_pps_dir, pps.file_path)
-    self.assertEqual(page_set.PUBLIC_BUCKET, pps.bucket)
-    self.assertEqual(3, len(pps.pages))
-    google_page = pps.pages[0]
-    self.assertEqual('https://www.google.com', google_page.url)
-    self.assertIs(pps, google_page.page_set)
-    self.assertTrue(5, google_page.RunGetActionRunner(action_runner=5))
-
-  def testMultiplePythonPageSetsLoading(self):
-    test_pps_1_dir = os.path.join(util.GetUnittestDataDir(),
-                                'test_simple_one_page_set.py')
-    test_pps_2_dir = os.path.join(util.GetUnittestDataDir(),
-                                'test_simple_two_page_set.py')
-    pps1 = page_set.PageSet.FromFile(test_pps_1_dir)
-    pps2 = page_set.PageSet.FromFile(test_pps_2_dir)
-
-    self.assertEqual('TestSimpleOnePageSet', pps1.__class__.__name__)
-    self.assertEqual('TestSimpleTwoPageSet', pps2.__class__.__name__)
-
-  def testPageFilePath(self):
-    test_pps_dir = os.path.join(util.GetUnittestDataDir(), 'test_page_set.py')
-    pps = page_set.PageSet.FromFile(test_pps_dir)
-    internal_page = pps.pages[1]
-    external_page = pps.pages[2]
-    self.assertEqual(
-      os.path.normpath(os.path.join(
-        util.GetUnittestDataDir(), 'bar.html')), internal_page.file_path)
-    self.assertEqual(
-      os.path.normpath(os.path.join(
-        util.GetUnittestDataDir(), 'pages/foo.html')), external_page.file_path)
 
   def testCloudBucket(self):
     blank_ps = page_set.PageSet()

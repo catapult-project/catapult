@@ -6,7 +6,6 @@ import csv
 import inspect
 import os
 
-from telemetry.core import util
 from telemetry.page import page as page_module
 from telemetry.page import page_set_archive_info
 from telemetry.util import cloud_storage
@@ -76,38 +75,6 @@ class PageSet(object):
     """
     self.AddPage(page_module.Page(
       page_url, self, self.base_dir))
-
-  @staticmethod
-  def FromFile(file_path):
-    _, ext_name = os.path.splitext(file_path)
-    if ext_name == '.py':
-      return PageSet.FromPythonFile(file_path)
-    else:
-      raise PageSetError("Pageset %s has unsupported file type" % file_path)
-
-  @staticmethod
-  def FromPythonFile(file_path):
-    page_set_classes = []
-    module = util.GetPythonPageSetModule(file_path)
-    for m in dir(module):
-      if m.endswith('PageSet') and m != 'PageSet':
-        page_set_classes.append(getattr(module, m))
-    if len(page_set_classes) != 1:
-      raise PageSetError("Pageset file needs to contain exactly 1 pageset class"
-                         " with suffix 'PageSet'")
-    page_set = page_set_classes[0]()
-    for page in page_set.pages:
-      page_class = page.__class__
-
-      for method_name, method in inspect.getmembers(page_class,
-                                                    predicate=inspect.ismethod):
-        if method_name.startswith("Run"):
-          args, _, _, _ = inspect.getargspec(method)
-          if not (args[0] == "self" and args[1] == "action_runner"):
-            raise PageSetError("""Definition of Run<...> method of all
-pages in %s must be in the form of def Run<...>(self, action_runner):"""
-                                     % file_path)
-    return page_set
 
   @staticmethod
   def _IsValidPrivacyBucket(bucket_name):
