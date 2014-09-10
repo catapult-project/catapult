@@ -169,6 +169,19 @@ tvcm.exportTo('tvcm.ui', function() {
       window.history.back();
     },
 
+    // This function assumes that, till the given depth,
+    // the tree is linear. (i.e, a single string with no branches.)
+    zoomToDepth: function(depth) {
+      var node = this.data_.nodes;
+      while (node.depth !== depth) {
+        if (node.children.length !== 1)
+          throw new Error("zoomToDepth requires the tree to be linear " +
+                          "till the specified depth.");
+        node = node.children[0];
+      }
+      return this.zoomToID_(node.id);
+    },
+
     zoomToID_: function(id) {
       var d = this.getNodeById_(id);
 
@@ -222,6 +235,10 @@ tvcm.exportTo('tvcm.ui', function() {
       }
 
       this.selectedNodeID = d.id;
+
+      var e = new Event('node-clicked');
+      e.node = d;
+      this.dispatchEvent(e);
     },
 
     // Given a node in a partition layout, return an array of all of its

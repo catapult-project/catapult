@@ -145,6 +145,17 @@ tvcm.exportTo('tracing', function() {
     this.category = category;
     this.selfTime = 0.0;
     this.children = [];
+
+    // Defined only for leaf nodes, leaf_node_id corresponds to
+    // the id of the leaf stack frame.
+    this.leaf_node_id = undefined;
+  };
+
+  CallTreeNode.prototype = {
+    addChild: function(node) {
+      this.children.push(node);
+      node.parent = this;
+    }
   };
 
   /**
@@ -170,7 +181,7 @@ tvcm.exportTo('tracing', function() {
       // Add node to parent tree node.
       if (stackFrame.parentFrame) {
         var parentNode = this.getCallTreeNode(stackFrame.parentFrame);
-        parentNode.children.push(newNode);
+        parentNode.addChild(newNode);
       } else {
         // Creating a root category node for each category helps group samples
         // that may be missing call stacks.
@@ -178,36 +189,55 @@ tvcm.exportTo('tracing', function() {
         if (!rootCategory) {
           rootCategory =
               new CallTreeNode(stackFrame.category, stackFrame.category);
-          this.rootNode.children.push(rootCategory);
+          this.rootNode.addChild(rootCategory);
           this.rootCategories[stackFrame.category] = rootCategory;
         }
-        rootCategory.children.push(newNode);
+        rootCategory.addChild(newNode);
       }
       return newNode;
     },
 
     addSample: function(sample) {
-      var node = this.getCallTreeNode(sample.leafStackFrame);
-      node.selfTime += sample.weight;
+      var leaf_node = this.getCallTreeNode(sample.leafStackFrame);
+      leaf_node.leaf_node_id = sample.leafStackFrame.id;
+      leaf_node.selfTime += sample.weight;
     }
   };
 
   function genCallTree(node, isRoot) {
     var ret = {
       category: node.category,
-      name: node.name
+      name: node.name,
+      leaf_node_id: node.leaf_node_id
     };
 
     if (isRoot || node.children.length > 0) {
       ret.children = [];
       for (var c = 0; c < node.children.length; c++)
         ret.children.push(genCallTree(node.children[c], false));
-      if (node.selfTime > 0.0)
+      if (node.selfTime > 0.0) {
+        // say, caller (r) calls callee (e) which calls callee2 (2)
+        // and following are the samples
+        // r r r r r r r
+        //   e e e
+        //   2 2 2
+        // In this case, r has a non-zero self time (4 samples to be precise)
+        // The <self> node makes the representation resemble the following
+        // where s denotes the selftime.
+        // r r r r r r r
+        // s e e e s s s
+        //   2 2 2
+        //
+        // Among the obvious visualization benefit, this also creates the
+        // invariance that a node can not simultaneously have samples and children.
         ret.children.push({
           name: '<self>',
           category: ret.category,
-          size: node.selfTime
+          size: node.selfTime,
+          leaf_node_id: node.leaf_node_id
         });
+        delete ret.leaf_node_id;  // ret is not a leaf node anymore.
+      }
     }
     else {
       ret.size = node.selfTime;
@@ -294,6 +324,21 @@ tvcm.exportTo('tracing', function() {
     };
   };
 
+  // Return a dict with keys as stack-frame ids
+  // and values as selection objects which contain all the
+  // samples whose leaf stack-frame id matches the key.
+  function divideSamplesBasedOnLeafStackFrame(selection) {
+    var stackFrameIdToSamples = {};
+    for (var i = 0; i < selection.length; ++i) {
+      var sample = selection[i];
+      var id = sample.leafStackFrame.id;
+      if (!stackFrameIdToSamples[id])
+        stackFrameIdToSamples[id] = new tracing.Selection();
+      stackFrameIdToSamples[id].push(sample);
+    }
+    return stackFrameIdToSamples;
+  }
+
   SamplingSummaryPanel.prototype = {
     __proto__: tracing.TimelineViewSidePanel.prototype,
 
@@ -315,6 +360,7 @@ tvcm.exportTo('tracing', function() {
 
     set selection(selection) {
       this.selection_ = selection;
+      this.stackFrameIdToSamples_ = divideSamplesBasedOnLeafStackFrame(selection);
       this.updateContents_();
     },
 
@@ -423,43 +469,74 @@ tvcm.exportTo('tracing', function() {
       sequenceArea.appendChild(table);
     },
 
+    getSamplesFromNode_: function(node) {
+      // A node has samples associated with it, if it's a leaf node.
+      var selection = new tracing.Selection();
+      if (node.leaf_node_id !== undefined) {
+        selection.addSelection(this.stackFrameIdToSamples_[node.leaf_node_id]);
+      }
+      else if (node.children === undefined ||
+               node.children.length === 0) {
+        throw new Error('A node should either have samples, or children');
+      }
+      else {
+        for (var i = 0; i < node.children.length; ++i)
+          selection.addSelection(this.getSamplesFromNode_(node.children[i]));
+      }
+      return selection;
+    },
+
     updateResultArea_: function() {
-      var that = this;
-      if (that.selection_ === undefined)
+      if (this.selection_ === undefined)
         return;
 
-      var resultArea = that.querySelector('result-area');
-      that.chart_ = undefined;
+      var resultArea = this.querySelector('result-area');
+      this.chart_ = undefined;
       resultArea.textContent = '';
 
       var sunburstData =
-          createSunburstData(that.selection_, that.sampleType_);
-      that.chart_ = new tvcm.ui.SunburstChart();
-      that.chart_.width = 600;
-      that.chart_.height = 600;
-      that.chart_.chartTitle = 'Sampling Summary';
-      that.chart_.addEventListener('node-selected', function(e) {
-        that.updateCallees_(e.node);
-      });
-      that.chart_.addEventListener('node-highlighted', function(e) {
-        that.updateHighlight_(e.node);
-      });
+          createSunburstData(this.selection_, this.sampleType_);
+      this.chart_ = new tvcm.ui.SunburstChart();
+      this.chart_.width = 600;
+      this.chart_.height = 600;
+      this.chart_.chartTitle = 'Sampling Summary';
 
-      that.chart_.data = {
+      this.chart_.addEventListener('node-selected', (function(e) {
+        this.updateCallees_(e.node);
+      }).bind(this));
+
+      this.chart_.addEventListener('node-clicked', (function(e) {
+        var event = new RequestSelectionChangeEvent();
+        var depth = e.node.depth;
+        if (e.node.name === '<self>')
+          depth--;
+        event.selection = this.getSamplesFromNode_(e.node);
+        event.selection.sunburst_zoom_level = depth;
+        this.dispatchEvent(event);
+      }).bind(this));
+
+      this.chart_.addEventListener('node-highlighted', (function(e) {
+        this.updateHighlight_(e.node);
+      }).bind(this));
+
+      this.chart_.data = {
         nodes: sunburstData
       };
 
-      resultArea.appendChild(that.chart_);
-      that.chart_.setSize(that.chart_.getMinSize());
+      resultArea.appendChild(this.chart_);
+      this.chart_.setSize(this.chart_.getMinSize());
+
+      if (this.selection_.sunburst_zoom_level !== undefined) {
+        this.chart_.zoomToDepth(this.selection_.sunburst_zoom_level);
+      }
     },
 
     updateContents_: function() {
-      var that = this;
-      if (that.selection_ === undefined || that.selection_.length == 0)
+      if (this.selection_ === undefined || this.selection_.length == 0)
         return;
 
       // Get available sample types in range.
-      var sampleTypes = getSampleTypes(that.selection_);
+      var sampleTypes = getSampleTypes(this.selection_);
       if (sampleTypes.indexOf(this.sampleType_) == -1)
         this.sampleType_ = sampleTypes[0];
 

@@ -66,6 +66,12 @@ tvcm.exportTo('tracing', function() {
    * @constructor
    */
   function Selection(opt_events) {
+    // sunburst_zoom_level is used by sunburst chart to remember
+    // zoom level across selection changes.
+    // TODO(gholap): get rid of this eventually when
+    //               selections support frames.
+    this.sunburst_zoom_level = undefined;
+
     this.bounds_dirty_ = true;
     this.bounds_ = new tvcm.Range();
     this.length_ = 0;
@@ -109,7 +115,6 @@ tvcm.exportTo('tracing', function() {
         delete this[i];
       this.length_ = 0;
       this.bounds_dirty_ = true;
-      this.pushed_guids_ = {};
     },
 
     // push pushes only unique events.
@@ -150,7 +155,9 @@ tvcm.exportTo('tracing', function() {
       var events = {};
       EVENT_TYPES.forEach(function(eventType) {
         events[eventType.pluralName] = new Selection();
-      });
+        if (this.sunburst_zoom_level !== undefined)
+          events[eventType.pluralName].sunburst_zoom_level = this.sunburst_zoom_level;
+      }, this);
       for (var i = 0; i < this.length_; i++) {
         var event = this[i];
         EVENT_TYPES.forEach(function(eventType) {
