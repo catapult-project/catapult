@@ -102,6 +102,7 @@ class TabTest(tab_test_case.TabTestCase):
     finally:
       self._tab.browser._platform_backend = original_platform_backend
 
+  @benchmark.Disabled('chromeos') # crbug.com/412713.
   def testHighlight(self):
     self.assertEquals(self._tab.url, 'about:blank')
     options = tracing_options.TracingOptions()
@@ -122,6 +123,7 @@ class TabTest(tab_test_case.TabTestCase):
     self.assertTrue(found_video_start_event)
 
   @benchmark.Enabled('has tabs')
+  @benchmark.Disabled('chromeos') # crbug.com/412713.
   def testGetRendererThreadFromTabId(self):
     self.assertEquals(self._tab.url, 'about:blank')
     # Create 3 tabs. The third tab is closed before we call

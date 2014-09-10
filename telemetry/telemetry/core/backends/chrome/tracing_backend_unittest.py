@@ -7,6 +7,7 @@ import json
 import logging
 import unittest
 
+from telemetry import benchmark
 from telemetry.core import util
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
@@ -25,6 +26,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
       return bool(self._tab.EvaluateJavaScript(js_is_done))
     util.WaitFor(_IsDone, 5)
 
+  @benchmark.Disabled('chromeos') # crbug.com/412713.
   def testGotTrace(self):
     tracing_controller = self._browser.platform.tracing_controller
     if not tracing_controller.IsChromeTracingSupported(self._browser):
