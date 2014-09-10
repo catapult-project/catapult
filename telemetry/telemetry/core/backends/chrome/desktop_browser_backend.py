@@ -54,7 +54,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self._browser_directory = browser_directory
     self._port = None
-    self._profile_dir = None
     self._tmp_minidump_dir = tempfile.mkdtemp()
     self._crash_service = None
 
@@ -69,7 +68,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self._tmp_profile_dir = self._output_profile_path
       else:
         self._tmp_profile_dir = tempfile.mkdtemp()
-      profile_dir = self._profile_dir or self.browser_options.profile_dir
+      profile_dir = self.browser_options.profile_dir
       if profile_dir:
         if self._is_content_shell:
           logging.critical('Profiles cannot be used with content shell')
@@ -173,16 +172,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if not self.browser_options.dont_override_profile:
         args.append('--user-data-dir=%s' % self._tmp_profile_dir)
     return args
-
-  def SetProfileDirectory(self, profile_dir):
-    # Make sure _profile_dir hasn't already been set.
-    assert self._profile_dir is None
-
-    if self._is_content_shell:
-      logging.critical('Profile creation cannot be used with content shell')
-      sys.exit(1)
-
-    self._profile_dir = profile_dir
 
   def Start(self):
     assert not self._proc, 'Must call Close() before Start()'
