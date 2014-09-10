@@ -65,7 +65,7 @@ class ChartJsonOutputFormatter(output_formatter.OutputFormatter):
     self._benchmark_metadata = benchmark_metadata
 
   def Format(self, page_test_results):
-    json.dump(self._ResultsAsChartDict(
+    json.dump(_ResultsAsChartDict(
         self._benchmark_metadata,
         page_test_results.all_page_specific_values,
         page_test_results.all_summary_values),
