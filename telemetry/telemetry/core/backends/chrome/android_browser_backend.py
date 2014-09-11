@@ -4,6 +4,7 @@
 
 import logging
 import os
+import pipes
 import re
 import subprocess
 import sys
@@ -238,8 +239,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _SetUpCommandLine(self):
     def QuoteIfNeeded(arg):
-      # Escape 'key=valueA valueB' to 'key="valueA valueB"'
-      # Already quoted values, or values without space are left untouched.
+      # Properly escape "key=valueA valueB" to "key='valueA valueB'"
+      # Values without spaces, or that seem to be quoted are left untouched.
       # This is required so CommandLine.java can parse valueB correctly rather
       # than as a separate switch.
       params = arg.split('=', 1)
@@ -250,38 +251,31 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         return arg
       if values[0] in '"\'' and values[-1] == values[0]:
         return arg
-      return '%s="%s"' % (key, values)
+      return '%s=%s' % (key, pipes.quote(values))
     args = [self._backend_settings.pseudo_exec_name]
     args.extend(self.GetBrowserStartupArgs())
-    args = ' '.join(map(QuoteIfNeeded, args))
+    content = ' '.join(QuoteIfNeeded(arg) for arg in args)
+    cmdline_file = self._backend_settings.cmdline_file
+    as_root = self._adb.device().old_interface.CanAccessProtectedFileContents()
 
-    self._SetCommandLineFile(args)
-
-  def _SetCommandLineFile(self, file_contents):
-    logging.debug('Using command line: ' + file_contents)
-    def IsProtectedFile(name):
-      if self._adb.device().old_interface.FileExistsOnDevice(name):
-        return not self._adb.device().old_interface.IsFileWritableOnDevice(name)
-      else:
-        parent_name = os.path.dirname(name)
-        if parent_name != '':
-          return IsProtectedFile(parent_name)
-        else:
-          return True
-
-    protected = IsProtectedFile(self._backend_settings.cmdline_file)
     try:
-      self._saved_cmdline = ''.join(
-          self._adb.device().ReadFile(
-              self._backend_settings.cmdline_file, as_root=protected)
-          or [])
-      self._adb.device().WriteFile(
-          self._backend_settings.cmdline_file, file_contents,
-          as_root=protected)
+      # Save the current command line to restore later, except if it appears to
+      # be a  Telemetry created one. This is to prevent a common bug where
+      # --host-resolver-rules borks people's browsers if something goes wrong
+      # with Telemetry.
+      self._saved_cmdline = ''.join(self._adb.device().ReadFile(cmdline_file))
+      if '--host-resolver-rules' in self._saved_cmdline:
+        self._saved_cmdline = ''
+      self._adb.device().WriteTextFile(cmdline_file, content, as_root=as_root)
     except device_errors.CommandFailedError:
       logging.critical('Cannot set Chrome command line. '
                        'Fix this by flashing to a userdebug build.')
       sys.exit(1)
+
+  def _RestoreCommandLine(self):
+    as_root = self._adb.device().old_interface.CanAccessProtectedFileContents()
+    self._adb.device().WriteTextFile(self._backend_settings.cmdline_file,
+      self._saved_cmdline, as_root=as_root)
 
   def Start(self):
     self._SetUpCommandLine()
@@ -326,13 +320,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self.Close()
       raise
     finally:
-      # Restore the saved command line if it appears to have come from a user.
-      # If it appears to be a Telemetry created command line, then don't restore
-      # it. This is to prevent a common bug where --host-resolver-rules borks
-      # people's browsers if something goes wrong with Telemetry.
-      self._SetCommandLineFile(
-          self._saved_cmdline
-          if '--host-resolver-rules' not in self._saved_cmdline else '')
+      self._RestoreCommandLine()
 
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
