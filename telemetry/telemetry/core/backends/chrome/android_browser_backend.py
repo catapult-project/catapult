@@ -205,7 +205,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._adb.device().SetProp('socket.relaxsslcheck', 'yes')
 
     # Kill old browser.
-    self._adb.device().ForceStop(self._backend_settings.package)
+    self._KillBrowser()
 
     if self._adb.device().old_interface.CanAccessProtectedFileContents():
       if self.browser_options.profile_dir:
@@ -228,6 +228,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.debug('User build device, setting debug app')
       self._adb.device().RunShellCommand(
           'am set-debug-app --persistent %s' % self._backend_settings.package)
+
+  def _KillBrowser(self):
+    # We use KillAll rather than ForceStop for efficiency reasons.
+    try:
+      self._adb.device().KillAll(self._backend_settings.package, retries=0)
+    except device_errors.CommandFailedError:
+      pass
 
   def _SetUpCommandLine(self):
     def QuoteIfNeeded(arg):
@@ -373,7 +380,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
-    self._adb.device().ForceStop(self._backend_settings.package)
+    self._KillBrowser()
 
     # Restore android.net SSL check
     if self._backend_settings.relax_ssl_check:
