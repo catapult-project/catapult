@@ -21,7 +21,8 @@ class TracingControllerBackend(object):
     assert isinstance(trace_options,
                       tracing_options.TracingOptions)
 
-    if len(self.running_browser_backends) != 1:
+    num_running_browser_backends = len(self.running_browser_backends)
+    if num_running_browser_backends != 1:
       # Note: it is possible to implement tracing for both the case of 0 and >1.
       # For >1, we just need to merge the trace files at StopTracing.
       #
@@ -31,7 +32,9 @@ class TracingControllerBackend(object):
       # the controller add in the trace-startup command, and then when we get
       # the Stop message or the DidStopBrowser(), issue the stop tracing command
       # on the right backend.
-      raise NotImplementedError()
+      raise NotImplementedError(
+          'Start tracing does not support the case of %i running browser '
+          'instances' % num_running_browser_backends)
 
     self._current_trace_options = trace_options
     self._current_category_filter = category_filter
