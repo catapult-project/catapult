@@ -160,9 +160,11 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
            document.readyState == 'interactive')
       """
       for e in self._extensions_to_load:
-        if not e.extension_id in self.extension_backend:
+        try:
+          extension_objects = self.extension_backend[e.extension_id]
+        except KeyError:
           return False
-        for extension_object in self.extension_backend[e.extension_id]:
+        for extension_object in extension_objects:
           try:
             res = extension_object.EvaluateJavaScript(
                 extension_ready_js % e.extension_id)
