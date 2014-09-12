@@ -152,10 +152,8 @@ class PageState(object):
 
   def PreparePage(self, test=None):
     if self.page.is_file:
-      server_started = self.tab.browser.SetHTTPServerDirectories(
-        self.page.page_set.serving_dirs | set([self.page.serving_dir]))
-      if server_started and test:
-        test.DidStartHTTPServer(self.tab)
+      self.tab.browser.SetHTTPServerDirectories(
+          self.page.page_set.serving_dirs | set([self.page.serving_dir]))
 
     if self.page.credentials:
       if not self.tab.browser.credentials.LoginNeeded(
