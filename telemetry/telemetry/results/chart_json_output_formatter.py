@@ -38,16 +38,16 @@ def _ResultsAsChartDict(benchmark_metadata, page_specific_values,
 
   for value in values:
     if value.page:
-      chart_name, trace_name = (
-          value.GetChartAndTraceNameForPerPageResult())
+      chart_name, trace_name = (value.GetChartAndTraceNameForPerPageResult())
     else:
       chart_name, trace_name = (
           value.GetChartAndTraceNameForComputedSummaryResult(None))
       if chart_name == trace_name:
         trace_name = 'summary'
 
-    assert trace_name not in charts[chart_name]
-
+    # This intentionally overwrites the trace if it already exists because this
+    # is expected of output from the buildbots currently.
+    # See: crbug.com/413393
     charts[chart_name][trace_name] = value.AsDict()
 
   result_dict = {

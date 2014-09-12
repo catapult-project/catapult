@@ -80,7 +80,23 @@ class ChartJsonTest(unittest.TestCase):
     self.assertTrue('foo' in d['charts'])
     self.assertTrue('http://www.foo.com/' in d['charts']['foo'])
 
-  def testAsChartDictPageSpecificValuesAndComputedSummary(self):
+  def testAsChartDictPageSpecificValuesAndComputedSummaryWithTraceName(self):
+    v0 = scalar.ScalarValue(self._page_set[0], 'foo.bar', 'seconds', 3)
+    v1 = scalar.ScalarValue(self._page_set[1], 'foo.bar', 'seconds', 4)
+    page_specific_values = [v0, v1]
+    summary_values = []
+
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
+        self._benchmark_metadata,
+        page_specific_values,
+        summary_values)
+
+    self.assertTrue('foo' in d['charts'])
+    self.assertTrue('http://www.foo.com/' in d['charts']['foo'])
+    self.assertTrue('http://www.bar.com/' in d['charts']['foo'])
+    self.assertTrue('bar' in d['charts']['foo'])
+
+  def testAsChartDictPageSpecificValuesAndComputedSummaryWithoutTraceName(self):
     v0 = scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3)
     v1 = scalar.ScalarValue(self._page_set[1], 'foo', 'seconds', 4)
     page_specific_values = [v0, v1]
