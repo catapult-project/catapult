@@ -61,20 +61,20 @@ def GetPlatformForDevice(device, logging=real_logging):
     Args:
       device: a device.Device instance.
   """
-  if device.device_id not in _remote_platforms:
+  if device.guid not in _remote_platforms:
     try:
       if isinstance(device, cros_device.CrOSDevice):
         cri = cros_interface.CrOSInterface(
             device.host_name, device.ssh_identity)
         cri.TryLogin()
-        _remote_platforms[device.device_id] = (
+        _remote_platforms[device.guid] = (
             Platform(cros_platform_backend.CrosPlatformBackend(cri)))
       else:
         raise ValueError('Unsupported device type')
     except:
       logging.error('Fail to create platform instance for %s.', device.name)
       raise
-  return _remote_platforms[device.device_id]
+  return _remote_platforms[device.guid]
 
 
 class Platform(object):

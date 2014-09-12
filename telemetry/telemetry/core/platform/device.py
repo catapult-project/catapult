@@ -11,22 +11,22 @@ class Device(object):
 
   Attributes:
     name: A device name string in human-understandable term.
-    device_id: A unique id of the device. Subclass of device must specify this
+    guid: A unique id of the device. Subclass of device must specify this
       id properly so that device objects to a same actual device must have same
-      device_id.
+      guid.
     """
 
-  def __init__(self, name, device_id):
+  def __init__(self, name, guid):
     self._name = name
-    self._device_id = device_id
+    self._guid = guid
 
   @property
   def name(self):
     return self._name
 
   @property
-  def device_id(self):
-    return self._device_id
+  def guid(self):
+    return self._guid
 
   @classmethod
   def GetAllConnectedDevices(cls, logging=real_logging):
