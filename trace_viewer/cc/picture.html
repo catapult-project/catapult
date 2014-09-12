@@ -22,10 +22,9 @@ tvcm.exportTo('cc', function() {
   var PictureCount = 0;
   var OPS_TIMING_ITERATIONS = 3;
 
-  function Picture(skp64, layerRect, opaqueRect) {
+  function Picture(skp64, layerRect) {
     this.skp64_ = skp64;
     this.layerRect_ = layerRect;
-    this.opaqueRect_ = opaqueRect;
 
     this.guid_ = tvcm.GUID.allocate();
   }
@@ -57,7 +56,6 @@ tvcm.exportTo('cc', function() {
         skp64: this.skp64_,
         params: {
           layer_rect: this.layerRect_.toArray(),
-          opaque_rect: this.opaqueRect_.toArray()
         }
       });
 
@@ -77,7 +75,6 @@ tvcm.exportTo('cc', function() {
         skp64: this.skp64_,
         params: {
           layer_rect: this.layerRect_.toArray(),
-          opaque_rect: this.opaqueRect_.toArray()
         }
       });
 
@@ -139,7 +136,6 @@ tvcm.exportTo('cc', function() {
             skp64: this.skp64_,
             params: {
               layer_rect: this.layerRect_.toArray(),
-              opaque_rect: this.opaqueRect_.toArray()
             }
           },
           {
@@ -367,8 +363,7 @@ tvcm.exportTo('cc', function() {
         throw new Error('Missing layer rect');
 
       this.layerRect_ = this.args.params.layerRect;
-      this.picture_ = new Picture(this.args.skp64,
-          this.args.params.layerRect, this.args.params.opaqueRect);
+      this.picture_ = new Picture(this.args.skp64, this.args.params.layerRect);
     },
 
     set picture(picture) {
