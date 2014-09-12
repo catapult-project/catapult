@@ -15,6 +15,10 @@ class CrosPlatformBackend(
     self._cri = cri
     self._powermonitor = cros_power_monitor.CrosPowerMonitor(self)
 
+  @property
+  def cri(self):
+    return self._cri
+
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
 

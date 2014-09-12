@@ -2,21 +2,41 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging as real_logging
+import os
 import sys
 
+from telemetry.core.platform import cros_device
+from telemetry.core.platform import cros_interface
+from telemetry.core.platform import cros_platform_backend
 from telemetry.core.platform import profiling_controller
 from telemetry.core.platform import tracing_controller
 
 
 _host_platform = None
+# Remote platform is a dictionary from device ids to remote platform instances.
+_remote_platforms = {}
+
+
+def _IsRunningOnCrosDevice():
+  """Returns True if we're on a ChromeOS device."""
+  lsb_release = '/etc/lsb-release'
+  if sys.platform.startswith('linux') and os.path.exists(lsb_release):
+    with open(lsb_release, 'r') as f:
+      res = f.read()
+      if res.count('CHROMEOS_RELEASE_NAME'):
+        return True
+  return False
 
 
 def _InitHostPlatformIfNeeded():
   global _host_platform
   if _host_platform:
     return
-
-  if sys.platform.startswith('linux'):
+  if _IsRunningOnCrosDevice():
+    backend = cros_platform_backend.CrosPlatformBackend(
+        cros_interface.CrOSInterface())
+  elif sys.platform.startswith('linux'):
     from telemetry.core.platform import linux_platform_backend
     backend = linux_platform_backend.LinuxPlatformBackend()
   elif sys.platform == 'darwin':
@@ -34,6 +54,27 @@ def _InitHostPlatformIfNeeded():
 def GetHostPlatform():
   _InitHostPlatformIfNeeded()
   return _host_platform
+
+
+def GetPlatformForDevice(device, logging=real_logging):
+  """ Returns a platform instance for the device.
+    Args:
+      device: a device.Device instance.
+  """
+  if device.device_id not in _remote_platforms:
+    try:
+      if isinstance(device, cros_device.CrOSDevice):
+        cri = cros_interface.CrOSInterface(
+            device.host_name, device.ssh_identity)
+        cri.TryLogin()
+        _remote_platforms[device.device_id] = (
+            Platform(cros_platform_backend.CrosPlatformBackend(cri)))
+      else:
+        raise ValueError('Unsupported device type')
+    except:
+      logging.error('Fail to create platform instance for %s.', device.name)
+      raise
+  return _remote_platforms[device.device_id]
 
 
 class Platform(object):

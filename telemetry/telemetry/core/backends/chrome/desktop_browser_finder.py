@@ -11,7 +11,6 @@ import sys
 from telemetry.core import platform as platform_module
 from telemetry.core import browser
 from telemetry.core import possible_browser
-from telemetry.core.backends.chrome import cros_interface
 from telemetry.core.backends.chrome import desktop_browser_backend
 from telemetry.util import path
 
@@ -86,7 +85,7 @@ def SelectDefaultBrowser(possible_browsers):
   return None
 
 def CanFindAvailableBrowsers():
-  return not cros_interface.IsRunningOnCrosDevice()
+  return not platform_module.GetHostPlatform().GetOSName() == 'chromeos'
 
 def FindAllBrowserTypes(_):
   return [

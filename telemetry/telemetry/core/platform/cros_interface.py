@@ -3,11 +3,10 @@
 # found in the LICENSE file.
 """A wrapper around ssh for common operations on a CrOS-based device"""
 import logging
-import os
 import re
+import os
 import shutil
 import subprocess
-import sys
 import tempfile
 
 # Some developers' workflow includes running the Chrome process from
@@ -15,16 +14,6 @@ import tempfile
 # paths in order to support this workflow.
 _CHROME_PATHS = ['/opt/google/chrome/chrome ',
                 '/usr/local/opt/google/chrome/chrome ']
-
-def IsRunningOnCrosDevice():
-  """Returns True if we're on a ChromeOS device."""
-  lsb_release = '/etc/lsb-release'
-  if sys.platform.startswith('linux') and os.path.exists(lsb_release):
-    with open(lsb_release, 'r') as f:
-      res = f.read()
-      if res.count('CHROMEOS_RELEASE_NAME'):
-        return True
-  return False
 
 def RunCmd(args, cwd=None, quiet=False):
   """Opens a subprocess to execute a program and returns its return value.

@@ -8,7 +8,7 @@ import unittest
 from telemetry.core import browser_finder
 from telemetry.core import extension_to_load
 from telemetry.core import util
-from telemetry.core.backends.chrome import cros_interface
+from telemetry.core.platform import cros_interface
 from telemetry.unittest import options_for_unittests
 
 
