@@ -406,7 +406,7 @@ class PageRunnerTests(unittest.TestCase):
         self._did_call_will_start = False
         self._did_call_did_start = False
 
-      def WillStartBrowser(self, browser):
+      def WillStartBrowser(self, platform):
         self._did_call_will_start = True
         # TODO(simonjam): Test that the profile is available.
 

@@ -54,7 +54,7 @@ class _RunState(object):
                                         page_set.make_javascript_deterministic)
       self._last_archive_path = page.archive_path
 
-      test.WillStartBrowser(self.browser)
+      test.WillStartBrowser(possible_browser.platform)
       self.browser.Start()
       test.DidStartBrowser(self.browser)
 
