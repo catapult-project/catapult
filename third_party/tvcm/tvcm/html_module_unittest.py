@@ -68,8 +68,7 @@ class FakeLoader(object):
 
 class ParseTests(unittest.TestCase):
   def testMissingDocType(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults()
-    parse_results.has_decl = False
+    parse_results = parse_html_deps.HTMLModuleParserResults("")
 
     file_contents = {}
 
@@ -81,9 +80,9 @@ class ParseTests(unittest.TestCase):
     self.assertRaises(Exception, DoIt)
 
   def testValidExternalScriptReferenceToRawScript(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults()
-    parse_results.has_decl = True
-    parse_results.scripts_external.append('../foo.js')
+    parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
+      <script src="../foo.js">
+      """)
 
     file_contents = {}
     file_contents['/tmp/a/foo.js'] = """
@@ -99,9 +98,9 @@ class ParseTests(unittest.TestCase):
 
 
   def testExternalScriptReferenceToModuleOutsideScriptPath(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults()
-    parse_results.has_decl = True
-    parse_results.scripts_external.append('/foo.js')
+    parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
+      <script src="/foo.js">
+      """)
 
     file_contents = {}
     file_contents['/foo.js'] = ''
@@ -114,9 +113,9 @@ class ParseTests(unittest.TestCase):
     self.assertRaises(Exception, DoIt)
 
   def testExternalScriptReferenceToFileThatDoesntExist(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults()
-    parse_results.has_decl = True
-    parse_results.scripts_external.append('/foo.js')
+    parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
+      <script src="/foo.js">
+      """)
 
     file_contents = {}
 
@@ -128,11 +127,11 @@ class ParseTests(unittest.TestCase):
     self.assertRaises(Exception, DoIt)
 
   def testInlineScriptWithoutStrictNote(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults()
-    parse_results.has_decl = True
-    parse_results.inline_scripts.append(parse_html_deps.InlineScript("""
+    parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
+      <script>
 console.log('Logging without strict mode is no fun.');
-""", []))
+      </script>
+      """)
 
     file_contents = {}
     def DoIt():
@@ -143,9 +142,9 @@ console.log('Logging without strict mode is no fun.');
     self.assertRaises(Exception, DoIt)
 
   def testValidImportOfModule(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults()
-    parse_results.has_decl = True
-    parse_results.imports.append('../foo.html')
+    parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
+      <link rel="import" href="../foo.html">
+      """)
 
     file_contents = {}
     file_contents['/tmp/a/foo.html'] = """
@@ -158,9 +157,9 @@ console.log('Logging without strict mode is no fun.');
     self.assertEquals(['a.foo'], metadata.dependent_module_names)
 
   def testStyleSheetImport(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults()
-    parse_results.has_decl = True
-    parse_results.stylesheets.append('../foo.css')
+    parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
+      <link rel="stylesheet" href="../foo.css">
+      """)
 
     file_contents = {}
     file_contents['/tmp/a/foo.css'] = """
@@ -173,9 +172,9 @@ console.log('Logging without strict mode is no fun.');
     self.assertEquals(['a.foo'], metadata.style_sheet_names)
 
   def testUsingAbsoluteHref(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults()
-    parse_results.has_decl = True
-    parse_results.scripts_external.append('/foo.js')
+    parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
+      <script src="/foo.js">
+      """)
 
     file_contents = {}
     file_contents['/src/foo.js'] = ''

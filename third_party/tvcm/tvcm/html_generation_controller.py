@@ -19,9 +19,6 @@ class HTMLGenerationController(object):
   def __init__(self):
     self.current_module = None
 
-  def GetHTMLForScriptHRef(self, href):
-    return None
-
   def GetHTMLForStylesheetHRef(self, href):
     return None
 
