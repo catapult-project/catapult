@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import glob
 import os
 import pickle
 import re
@@ -114,18 +113,20 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
       kallsyms = android_profiling_helper.CreateSymFs(self._device, symfs_dir,
                                                       libs)
 
-      # Make sure we found at least one unstripped library.
-      unstripped_libs = glob.glob(os.path.join(symfs_dir,
-                                               'data', 'app-lib', '*', '*.so'))
-      assert unstripped_libs
-
       # Check that we have kernel symbols.
       assert os.path.exists(kallsyms)
 
+      is_unstripped = re.compile('^/data/app/.*\.so$')
+      has_unstripped = False
+
       # Check that all requested libraries are present.
       for lib in libs:
+        has_unstripped = has_unstripped or is_unstripped.match(lib)
         assert os.path.exists(os.path.join(symfs_dir, lib[1:])), \
             '%s not found in symfs' % lib
+
+      # Make sure we found at least one unstripped library.
+      assert has_unstripped
     finally:
       shutil.rmtree(symfs_dir)
 
