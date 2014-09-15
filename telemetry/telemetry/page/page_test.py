@@ -193,7 +193,7 @@ class PageTest(command_line.Command):
     if page.startup_url:
       options.browser_options.startup_url = page.startup_url
 
-  def WillStartBrowser(self, browser):
+  def WillStartBrowser(self, platform):
     """Override to manipulate the browser environment before it launches."""
 
   def DidStartBrowser(self, browser):
