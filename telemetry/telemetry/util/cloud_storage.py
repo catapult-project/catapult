@@ -17,9 +17,17 @@ import urllib2
 from telemetry.core import platform
 from telemetry.util import path
 
+
 PUBLIC_BUCKET = 'chromium-telemetry'
 PARTNER_BUCKET = 'chrome-partner-telemetry'
 INTERNAL_BUCKET = 'chrome-telemetry'
+
+
+BUCKET_ALIASES = {
+    'public': PUBLIC_BUCKET,
+    'partner': PARTNER_BUCKET,
+    'internal': INTERNAL_BUCKET,
+}
 
 
 _GSUTIL_URL = 'http://storage.googleapis.com/pub/gsutil.tar.gz'
@@ -27,6 +35,7 @@ _DOWNLOAD_PATH = os.path.join(path.GetTelemetryDir(), 'third_party', 'gsutil')
 # TODO(tbarzic): A workaround for http://crbug.com/386416 and
 #     http://crbug.com/359293. See |_RunCommand|.
 _CROS_GSUTIL_HOME_WAR = '/home/chromeos-test/'
+
 
 class CloudStorageError(Exception):
   @staticmethod
@@ -126,6 +135,8 @@ def _RunCommand(args):
     if stderr.startswith((
         'You are attempting to access protected data with no configured',
         'Failure: No handler was ready to authenticate.')):
+      raise CredentialsError(gsutil_path)
+    if 'status=401' in stderr or 'status 401' in stderr:
       raise CredentialsError(gsutil_path)
     if 'status=403' in stderr or 'status 403' in stderr:
       raise PermissionError(gsutil_path)

@@ -123,8 +123,14 @@ class AdbCommandsModuleStub(object):
 
 
 class CloudStorageModuleStub(object):
-  INTERNAL_BUCKET = None
-  PUBLIC_BUCKET = None
+  PUBLIC_BUCKET = 'chromium-telemetry'
+  PARTNER_BUCKET = 'chrome-partner-telemetry'
+  INTERNAL_BUCKET = 'chrome-telemetry'
+  BUCKET_ALIASES = {
+    'public': PUBLIC_BUCKET,
+    'partner': PARTNER_BUCKET,
+    'internal': INTERNAL_BUCKET,
+  }
 
   class CloudStorageError(Exception):
     pass

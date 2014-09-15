@@ -23,28 +23,16 @@ class PageSetArchiveInfo(object):
 
     # Download all .wpr files.
     if not ignore_archive:
-      # TODO(tbarzic): Remove this once http://crbug.com/351143 is diagnosed.
-      log_cloud_storage_exception = True
       for archive_path in data['archives']:
         archive_path = self._WprFileNameToPath(archive_path)
         try:
           cloud_storage.GetIfChanged(archive_path)
-        except (cloud_storage.CredentialsError,
-                cloud_storage.PermissionError) as e:
+        except (cloud_storage.CredentialsError, cloud_storage.PermissionError):
           if os.path.exists(archive_path):
             # If the archive exists, assume the user recorded their own and
             # simply warn.
             logging.warning('Need credentials to update WPR archive: %s',
                             archive_path)
-          elif log_cloud_storage_exception:
-            # Log access errors only once, as they should stay the same in other
-            # iterations.
-            log_cloud_storage_exception = False
-            logging.warning('Error getting WPR archive %s: %s ' %
-                                (archive_path, str(e)))
-            logging.info(
-                'HOME: "%s"; USER: "%s"' %
-                (os.environ.get('HOME', ''), os.environ.get('USER', '')))
 
     # Map from the relative path (as it appears in the metadata file) of the
     # .wpr file to a list of page names it supports.
@@ -66,8 +54,6 @@ class PageSetArchiveInfo(object):
       with open(file_path, 'r') as f:
         data = json.load(f)
         return cls(file_path, data, ignore_archive=ignore_archive)
-    # TODO(tbarzic): Remove this once http://crbug.com/351143 is diagnosed.
-    logging.warning('Page set archives not found: %s' % file_path)
     return cls(file_path, {'archives': {}}, ignore_archive=ignore_archive)
 
   def WprFilePathForPage(self, page):

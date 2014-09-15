@@ -13,13 +13,8 @@ from telemetry.core import command_line
 from telemetry.util import cloud_storage
 
 
-BUCKET_ALIASES = {
-    'public': cloud_storage.PUBLIC_BUCKET,
-    'partner': cloud_storage.PARTNER_BUCKET,
-    'google-only': cloud_storage.INTERNAL_BUCKET,
-}
 BUCKETS = {bucket: easy_bucket_name for easy_bucket_name, bucket
-           in BUCKET_ALIASES.iteritems()}
+           in cloud_storage.BUCKET_ALIASES.iteritems()}
 
 
 def _GetPaths(path):
@@ -116,11 +111,11 @@ class Mv(command_line.Command):
   @classmethod
   def AddCommandLineArgs(cls, parser):
     parser.add_argument('files', nargs='+')
-    parser.add_argument('bucket', choices=BUCKET_ALIASES)
+    parser.add_argument('bucket', choices=cloud_storage.BUCKET_ALIASES)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
-    args.bucket = BUCKET_ALIASES[args.bucket]
+    args.bucket = cloud_storage.BUCKET_ALIASES[args.bucket]
 
   def Run(self, args):
     files = _FindFilesInCloudStorage(args.files)
@@ -166,11 +161,11 @@ class Upload(command_line.Command):
   @classmethod
   def AddCommandLineArgs(cls, parser):
     parser.add_argument('files', nargs='+')
-    parser.add_argument('bucket', choices=BUCKET_ALIASES)
+    parser.add_argument('bucket', choices=cloud_storage.BUCKET_ALIASES)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
-    args.bucket = BUCKET_ALIASES[args.bucket]
+    args.bucket = cloud_storage.BUCKET_ALIASES[args.bucket]
 
     for path in args.files:
       if not os.path.exists(path):
