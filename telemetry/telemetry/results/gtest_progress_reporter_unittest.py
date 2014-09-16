@@ -28,16 +28,14 @@ class GTestProgressReporterTest(
 
   def setUp(self):
     super(GTestProgressReporterTest, self).setUp()
-    self._mock_timer = simple_mock.MockTimer()
-    self._real_progress_reporter_time_time = gtest_progress_reporter.time.time
-    gtest_progress_reporter.time.time = self._mock_timer.GetTime
+    self._mock_timer = simple_mock.MockTimer(gtest_progress_reporter)
 
     self._output_stream = base_test_results_unittest.TestOutputStream()
     self._reporter = gtest_progress_reporter.GTestProgressReporter(
         self._output_stream)
 
   def tearDown(self):
-    gtest_progress_reporter.time.time = self._real_progress_reporter_time_time
+    self._mock_timer.Restore()
 
   def testSingleSuccessPage(self):
     test_page_set = _MakePageSet()

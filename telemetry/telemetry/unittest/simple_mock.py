@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """A very very simple mock object harness."""
+from types import ModuleType
 
 DONT_CARE = ''
 
@@ -99,14 +100,33 @@ class MockObject(object):
 
 
 class MockTimer(object):
-  def __init__(self):
+  """ A mock timer to fake out the timing for a module.
+    Args:
+      module: module to fake out the time
+  """
+  def __init__(self, module=None):
     self._elapsed_time = 0
+    self._module = module
+    self._actual_time = None
+    if module:
+      assert isinstance(module, ModuleType)
+      self._actual_time = module.time
+      self._module.time = self
 
-  def Sleep(self, time):
+  def sleep(self, time):
     self._elapsed_time += time
 
-  def GetTime(self):
+  def time(self):
     return self._elapsed_time
 
   def SetTime(self, time):
     self._elapsed_time = time
+
+  def __del__(self):
+    self.Release()
+
+  def Restore(self):
+    if self._module:
+      self._module.time = self._actual_time
+      self._module = None
+      self._actual_time = None

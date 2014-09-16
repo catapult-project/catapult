@@ -40,6 +40,7 @@ class InspectorWebsocket(object):
     self._next_request_id = 0
     self._notification_handler = notification_handler
     self._error_handler = error_handler
+    self._all_data_received = False
 
   def Connect(self, url, timeout=10):
     assert not self._socket
@@ -75,20 +76,27 @@ class InspectorWebsocket(object):
     """Dispatch notifications until notification_handler return True.
 
     Args:
-      timeout: the total timeout value for dispatching multiple notifications
-      until done.
-    """
+      timeout: a number that respresents the timeout in seconds.
 
+    Raises:
+      DispatchNotificationsUntilDoneTimeoutException if more than |timeout| has
+      seconds has passed since the last time any data is received or since this
+      function is called, whichever happens later, to when the next attempt to
+      receive data fails due to some WebSocketException.
+    """
+    self._all_data_received = False
     if timeout < self._cur_socket_timeout:
       self._SetTimeout(timeout)
-    start_time = time.time()
+    timeout_start_time = time.time()
     while self._socket:
       try:
-        if not self._Receive(timeout):
+        if self._Receive(timeout):
+          timeout_start_time = time.time()
+        if self._all_data_received:
           break
       except websocket.WebSocketTimeoutException:
         pass
-      elapsed_time = time.time() - start_time
+      elapsed_time = time.time() - timeout_start_time
       if elapsed_time > timeout:
         raise DispatchNotificationsUntilDoneTimeoutException(elapsed_time)
 
@@ -101,12 +109,14 @@ class InspectorWebsocket(object):
     self._SetTimeout(timeout)
     start_time = time.time()
     try:
-      while self._socket:
+      if self._socket:
+        self._all_data_received = False
         data = self._socket.recv()
         res = json.loads(data)
         if logging.getLogger().isEnabledFor(logging.DEBUG):
           logging.debug('got [%s]', json.dumps(res, indent=2, sort_keys=True))
         if 'method' in res and self._notification_handler(res):
+          self._all_data_received = True
           return None
         return res
     except (socket.error, websocket.WebSocketException):
