@@ -33,6 +33,10 @@ x-profiling-view .controls #upload-button {
 x-profiling-view > x-timeline-view {
   -webkit-flex: 1 1 auto;
 }
+
+.report-id-message {
+  -webkit-user-select: text; 
+}
 </style>
 
 <template id="profiling-view-template">
@@ -86,6 +90,7 @@ tvcm.exportTo('about_tracing', function() {
    */
   var ProfilingView = tvcm.ui.define('x-profiling-view');
   var THIS_DOC = document.currentScript.ownerDocument;
+  var REPORT_UPLOAD_URL = 'http://crash-staging/';
 
   ProfilingView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -132,17 +137,26 @@ tvcm.exportTo('about_tracing', function() {
       }.bind(this);
 
       window.onUploadError = function(error_message) {
-        this.onUploadStatusUpdate_('Trace upload failed: ' + error_message);
+        this.setUploadOverlayText_(['Trace upload failed: ' + error_message]);
       }.bind(this);
       window.onUploadProgress = function(percent, currentAsString,
                                          totalAsString) {
-        this.onUploadStatusUpdate_(
-            'Upload progress: ' + percent + '% (' + currentAsString + ' of ' +
-            currentAsString + ' bytes)');
+        this.setUploadOverlayText_(
+            ['Upload progress: ' + percent + '% (' + currentAsString + ' of ' +
+            currentAsString + ' bytes)']);
       }.bind(this);
-      window.onUploadComplete = function(report_id) {
-        this.onUploadStatusUpdate_(
-            'Trace uploaded successfully. Report id: ' + report_id);
+      window.onUploadComplete = function(reportId) {
+        var messageDiv = document.createElement('div');
+        var textNode =  document.createTextNode(
+            'Trace uploaded successfully. Report id: ');
+        messageDiv.appendChild(textNode);
+        var reportLink = document.createElement('a');
+        messageDiv.appendChild(reportLink);
+        reportLink.href = REPORT_UPLOAD_URL + reportId;
+        reportLink.text = reportId;
+        reportLink.className = 'report-id-message';
+        reportLink.target = '_blank';
+        this.setUploadOverlayContent_(messageDiv);
       }.bind(this);
 
       this.getMonitoringStatus();
@@ -427,22 +441,23 @@ tvcm.exportTo('about_tracing', function() {
       this.uploadOverlay_.buttons.appendChild(cancelButton);
     },
 
-    onUploadStatusUpdate_: function(message) {
-      this.setUploadOverlayText_([message]);
-    },
-
-    setUploadOverlayText_: function(messages) {
+    setUploadOverlayContent_: function(content) {
       if (!this.uploadOverlay_)
         throw new Error('Not uploading');
 
       this.uploadOverlay_.textContent = '';
+      this.uploadOverlay_.appendChild(content);
+    },
+
+    setUploadOverlayText_: function(messages) {
+      var contentDiv = document.createElement('div');
 
       for (var i = 0; i < messages.length; ++i) {
-        this.uploadOverlay_.msgEl = document.createElement('div');
-        this.uploadOverlay_.appendChild(this.uploadOverlay_.msgEl);
-        this.uploadOverlay_.msgEl.style.margin = '20px';
-        this.uploadOverlay_.msgEl.textContent = messages[i];
+        var messageDiv = document.createElement('div');
+        messageDiv.textContent = messages[i];
+        contentDiv.appendChild(messageDiv);
       }
+      this.setUploadOverlayContent_(contentDiv);
     },
 
     doTraceUpload_: function() {
