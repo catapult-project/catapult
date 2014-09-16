@@ -42,8 +42,6 @@ class InspectorBackendList(collections.Sequence):
     """Override this method to control which contexts are included."""
     return True
 
-  #TODO(nednguyen): Remove this method and turn inspector_backend_list API to
-  # dictionary-like API (crbug.com/398467)
   def __getitem__(self, index):
     self._Update()
     if index >= len(self._inspectable_contexts_dict.keys()):
@@ -53,12 +51,6 @@ class InspectorBackendList(collections.Sequence):
                       "keys": self._inspectable_contexts_dict.keys()
                     }))
     context_id = self._inspectable_contexts_dict.keys()[index]
-    return self.GetBackendFromContextId(context_id)
-
-  def GetBackendFromContextId(self, context_id):
-    self._Update()
-    if context_id not in self._inspectable_contexts_dict:
-      raise KeyError('Cannot find a context with id=%s' % context_id)
     if context_id not in self._inspector_backend_dict:
       backend = inspector_backend.InspectorBackend(
           self._browser_backend,
