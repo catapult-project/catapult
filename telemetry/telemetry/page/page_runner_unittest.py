@@ -81,7 +81,7 @@ class PageRunnerTests(unittest.TestCase):
         pass
 
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
@@ -111,7 +111,7 @@ class PageRunnerTests(unittest.TestCase):
           raise ExpectedException()
 
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     test = Test()
     SetUpPageRunnerArguments(options)
@@ -133,7 +133,7 @@ class PageRunnerTests(unittest.TestCase):
         pass
 
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
@@ -159,7 +159,7 @@ class PageRunnerTests(unittest.TestCase):
           raise exceptions.BrowserGoneException(tab.browser)
 
     options = options_for_unittests.GetCopy()
-    options.output_format = 'csv'
+    options.output_formats = ['csv']
     options.suppress_gtest_report = True
 
     SetUpPageRunnerArguments(options)
@@ -190,7 +190,7 @@ class PageRunnerTests(unittest.TestCase):
         results.AddValue(string.StringValue(page, 'test', 't', page.url))
 
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     options.reset_results = None
     options.upload_results = None
@@ -223,7 +223,7 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(0, len(results.failures))
     self.assertEquals(2, len(results.all_page_specific_values))
 
-    options.output_format = 'html'
+    options.output_formats = ['html']
     options.suppress_gtest_report = True
     options.page_repeat = 1
     options.pageset_repeat = 1
@@ -253,7 +253,7 @@ class PageRunnerTests(unittest.TestCase):
     output_file = tempfile.NamedTemporaryFile(delete=False).name
     try:
       options = options_for_unittests.GetCopy()
-      options.output_format = 'buildbot'
+      options.output_formats = ['buildbot']
       options.output_file = output_file
       options.suppress_gtest_report = True
       options.reset_results = None
@@ -323,7 +323,7 @@ class PageRunnerTests(unittest.TestCase):
 
       test = TestThatInstallsCredentialsBackend(credentials_backend)
       options = options_for_unittests.GetCopy()
-      options.output_format = 'none'
+      options.output_formats = ['none']
       options.suppress_gtest_report = True
       SetUpPageRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
@@ -354,7 +354,7 @@ class PageRunnerTests(unittest.TestCase):
 
     test = TestUserAgent()
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
@@ -385,7 +385,7 @@ class PageRunnerTests(unittest.TestCase):
 
     test = TestOneTab()
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
@@ -419,7 +419,7 @@ class PageRunnerTests(unittest.TestCase):
 
     test = TestBeforeLaunch()
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
@@ -448,7 +448,7 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.page_repeat = 2
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     if not browser_finder.FindBrowser(options):
       return
@@ -481,7 +481,7 @@ class PageRunnerTests(unittest.TestCase):
 
     test = Test()
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
@@ -519,7 +519,7 @@ class PageRunnerTests(unittest.TestCase):
 
     test = Test()
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
@@ -568,7 +568,7 @@ class PageRunnerTests(unittest.TestCase):
 
   def testUseLiveSitesFlagSet(self):
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     options.use_live_sites = True
     SetUpPageRunnerArguments(options)
@@ -576,7 +576,7 @@ class PageRunnerTests(unittest.TestCase):
 
   def testUseLiveSitesFlagUnset(self):
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     SetUpPageRunnerArguments(options)
     self.TestUseLiveSitesFlag(options, expect_from_archive=True)
@@ -602,7 +602,7 @@ class PageRunnerTests(unittest.TestCase):
           'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
 
     options = options_for_unittests.GetCopy()
-    options.output_format = 'none'
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     expected_max_failures = 2
     if not max_failures is None:

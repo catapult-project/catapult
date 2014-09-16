@@ -151,7 +151,7 @@ class WprRecorder(object):
     self._SetArgumentDefaults()
 
   def _SetArgumentDefaults(self):
-    self._parser.set_defaults(**{'output_format': 'none'})
+    self._parser.set_defaults(**{'output_formats': ['none']})
 
   def _ParseArgs(self, args=None):
     args_to_parse = sys.argv[1:] if args is None else args
