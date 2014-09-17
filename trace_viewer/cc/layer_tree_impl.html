@@ -114,8 +114,10 @@ tvcm.exportTo('cc', function() {
           return;
         visitedLayers[layer.layerId] = true;
         func.call(thisArg, layer, depth, isMask, isReplica);
-        for (var i = 0; i < layer.children.length; i++)
-          visitLayer(layer.children[i], depth + 1);
+        if (layer.children) {
+          for (var i = 0; i < layer.children.length; i++)
+            visitLayer(layer.children[i], depth + 1);
+        }
         if (layer.maskLayer)
           visitLayer(layer.maskLayer, depth + 1, true, false);
         if (layer.replicaLayer)

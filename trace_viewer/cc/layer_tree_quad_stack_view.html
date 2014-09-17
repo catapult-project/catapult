@@ -735,6 +735,9 @@ tvcm.exportTo('cc', function() {
         var backgroundColor = borderColor.clone();
         backgroundColor.a = 0.4 * (borderColor.a || 1.0);
 
+        if (!region || !region.rects)
+          return;
+
         for (var ir = 0; ir < region.rects.length; ir++) {
           var rect = region.rects[ir];
           var unitRect = rect.asUVRectInside(layer.bounds);
