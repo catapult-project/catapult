@@ -36,9 +36,10 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     queueing_durations: The queueing delay between compositor & main threads
 
   Note that if any of the interaction records provided to AddResults have less
-  than 2 frames, we will return None values for each of the smoothness metrics.
-  Similarly, older browsers without support for tracking the BeginMainFrame
-  events will report a None value for the queueing duration metric.
+  than 2 frames, we will return telemetry values with None values for each of
+  the smoothness metrics. Similarly, older browsers without support for
+  tracking the BeginMainFrame events will report a ListOfScalarValues with a
+  None value for the queueing duration metric.
   """
 
   def __init__(self):
