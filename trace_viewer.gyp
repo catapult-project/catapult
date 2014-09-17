@@ -100,6 +100,7 @@
       'trace_viewer/about_tracing/tracing_controller_client.html',
       'trace_viewer/about_tracing/xhr_based_tracing_controller_client.html',
       'trace_viewer/cc.html',
+      "trace_viewer/cc/chrome_browser.html",
       'trace_viewer/cc/constants.html',
       'trace_viewer/cc/debug_colors.html',
       'trace_viewer/cc/layer_impl.html',

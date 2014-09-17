@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/cc/chrome_browser.html">
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/side_panel/timeline_view.html">
 <link rel="import" href="/tracing/selection.html">
@@ -65,27 +66,6 @@ tvcm.exportTo('tracing', function() {
     return slicesInFilterRange;
   }
 
-  var BROWSER_PROCESS_NAME = 'CrBrowserMain';
-  var RENDERER_PROCESS_NAME = 'CrRendererMain';
-
-  function findBrowserProcess(model) {
-    var browserProcess;
-    model.getAllProcesses().forEach(function(process) {
-      if (process.findAllThreadsNamed(BROWSER_PROCESS_NAME).length != 0)
-        browserProcess = process;
-    });
-    return browserProcess;
-  }
-
-  function findRendererProcesses(model) {
-    var rendererProcesses = [];
-    model.getAllProcesses().forEach(function(process) {
-      if (process.findAllThreadsNamed(RENDERER_PROCESS_NAME).length != 0)
-        rendererProcesses.push(process);
-    });
-    return rendererProcesses;
-  }
-
   var MAIN_RENDERING_STATS =
       'BenchmarkInstrumentation::MainThreadRenderingStats';
   var IMPL_RENDERING_STATS =
@@ -102,8 +82,9 @@ tvcm.exportTo('tracing', function() {
     if (pid === undefined)
       return frametimeData;
 
-    var rendererProcesses = findRendererProcesses(model);
-    var browserProcess = findBrowserProcess(model);
+    var chromeBrowser = new cc.ChromeBrowser(model);
+    var rendererProcesses = chromeBrowser.rendererProcesses;
+    var browserProcess = chromeBrowser.browserProcess;
     var selectedProcess;
 
     if (browserProcess !== undefined && browserProcess.pid === pid) {
@@ -206,8 +187,9 @@ tvcm.exportTo('tracing', function() {
       };
     }
 
-    if (findBrowserProcess(m) === undefined &&
-        findRendererProcesses(m).length === 0) {
+    var chromeBrowser = new cc.ChromeBrowser(m);
+    if (chromeBrowser.browserProcess === undefined &&
+        chromeBrowser.rendererProcesses.length === 0) {
       return {
         supported: false,
         reason: 'No browser and renderer process found'
@@ -348,8 +330,9 @@ tvcm.exportTo('tracing', function() {
     },
 
     updateToolbar_: function() {
-      var rendererProcesses = findRendererProcesses(this.model_);
-      var browserProcess = findBrowserProcess(this.model_);
+      var chromeBrowser = new cc.ChromeBrowser(this.model_);
+      var rendererProcesses = chromeBrowser.rendererProcesses;
+      var browserProcess = chromeBrowser.browserProcess;
       var labels = [];
 
       if (browserProcess !== undefined) {
