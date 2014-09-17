@@ -70,7 +70,7 @@ tvcm.exportTo('cc', function() {
       if (this.maskLayer)
         this.maskLayer.parentLayer = this;
       if (this.replicaLayer)
-        this.maskLayer.replicaLayer = this;
+        this.replicaLayer.parentLayer = this;
       if (!this.geometryContentsScale)
         this.geometryContentsScale = 1.0;
 
