@@ -268,6 +268,7 @@
       'trace_viewer/images/checkerboard.png',
       'trace_viewer/images/collapse.png',
       'trace_viewer/images/expand.png',
+      'trace_viewer/images/input-event.png',
     ],
     'tracing_files': [
       '<@(tracing_css_files)',

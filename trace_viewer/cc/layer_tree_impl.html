@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/cc/constants.html">
+<link rel="import" href="/cc/chrome_browser.html">
 <link rel="import" href="/cc/layer_impl.html">
 <link rel="import" href="/tracing/trace_model/object_instance.html">
 
@@ -41,6 +42,30 @@ tvcm.exportTo('cc', function() {
       if (this.args.sourceFrameNumber)
         this.sourceFrameNumber = this.args.sourceFrameNumber;
       this.rootLayer.layerTreeImpl = this;
+
+      if (this.args.swapPromiseTraceIds &&
+          this.args.swapPromiseTraceIds.length) {
+        this.tracedInputLatencies = [];
+
+        var ownProcess = this.objectInstance.parent;
+        var traceModel = ownProcess.model;
+        var chromeBrowser = new cc.ChromeBrowser(traceModel);
+        if (chromeBrowser.browserProcess === undefined)
+          return;
+
+        // Convert all ids to InputLatency Async objects.
+        chromeBrowser.browserProcess.iterateAllEvents(function(event) {
+          if (!event.title || event.title.indexOf('InputLatency') !== 0)
+            return;
+          for (var i = 0; i < this.args.swapPromiseTraceIds.length; i++) {
+            if (!event.args.data || !event.args.data.trace_id)
+              continue;
+            if (parseInt(event.args.data.trace_id) ===
+                this.args.swapPromiseTraceIds[i])
+              this.tracedInputLatencies.push(event);
+          }
+        }.bind(this));
+      }
     },
 
     get hasSourceFrameBeenDrawnBefore() {

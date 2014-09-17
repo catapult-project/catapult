@@ -266,6 +266,7 @@ tracing_img_files = [
   "trace_viewer/images/checkerboard.png",
   "trace_viewer/images/collapse.png",
   "trace_viewer/images/expand.png",
+  "trace_viewer/images/input-event.png",
 ]
 
 # TODO: ideally this would go into the target_gen_dir, but this requires some

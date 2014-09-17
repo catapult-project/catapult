@@ -52,7 +52,17 @@ layer-tree-quad-stack-view > .what-rasterized {
   left: 10px;
 }
 
+layer-tree-quad-stack-view > #input-event {
+  content: url('../images/input-event.png');
+  display: none;
+}
+
 </style>
+
+<template id='layer-tree-quad-stack-view-template'>
+  <img id='input-event'/>
+</template>
+
 <script>
 'use strict';
 
@@ -62,6 +72,7 @@ layer-tree-quad-stack-view > .what-rasterized {
  */
 tvcm.exportTo('cc', function() {
 
+  var THIS_DOC = document.currentScript.ownerDocument;
   var TILE_HEATMAP_TYPE = {};
   TILE_HEATMAP_TYPE.NONE = 'none';
   TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY = 'scheduledPriority';
@@ -94,6 +105,7 @@ tvcm.exportTo('cc', function() {
       this.quadStackView_.addEventListener(
           'selectionchange', this.onQuadStackViewSelectionChange_.bind(this));
       this.extraHighlightsByLayerId_ = undefined;
+      this.inputEventImageData_ = undefined;
 
       var m = tvcm.ui.MOUSE_SELECTOR_MODE;
       var mms = this.quadStackView_.mouseModeSelector;
@@ -103,6 +115,9 @@ tvcm.exportTo('cc', function() {
       mms.setKeyCodeForMode(m.ZOOM, 'C'.charCodeAt(0));
       mms.setKeyCodeForMode(m.ROTATE, 'V'.charCodeAt(0));
 
+      var node = tvcm.instantiateTemplate(
+          '#layer-tree-quad-stack-view-template', THIS_DOC);
+      this.appendChild(node);
       this.appendChild(this.controls_);
       this.appendChild(this.infoBar_);
       this.appendChild(this.quadStackView_);
@@ -188,6 +203,14 @@ tvcm.exportTo('cc', function() {
           ' a layer showing the extent of its animation.';
       this.controls_.appendChild(showAnimationBoundsCheckbox);
 
+      var showInputEventsCheckbox = tvcm.ui.createCheckBox(
+          this, 'showInputEvents',
+          'layerView.showInputEvents', true,
+          'Input events');
+      showInputEventsCheckbox.title = 'When checked, input events are ' +
+          'displayed as circles.';
+      this.controls_.appendChild(showInputEventsCheckbox);
+
       this.whatRasterizedLink_ = document.createElement('a');
       this.whatRasterizedLink_.classList.add('what-rasterized');
       this.whatRasterizedLink_.textContent = 'What rasterized?';
@@ -241,6 +264,15 @@ tvcm.exportTo('cc', function() {
 
     set showAnimationBounds(show) {
       this.showAnimationBounds_ = show;
+      this.updateContents_();
+    },
+
+    get showInputEvents() {
+      return this.showInputEvents_;
+    },
+
+    set showInputEvents(show) {
+      this.showInputEvents_ = show;
       this.updateContents_();
     },
 
@@ -328,6 +360,21 @@ tvcm.exportTo('cc', function() {
     regenerateContent: function() {
       this.updateTilesSelector_();
       this.updateContents_();
+    },
+
+    loadDataForImageElement_: function(image, callback) {
+      var imageContent = window.getComputedStyle(image).content;
+      image.src = imageContent.replace(/url\((.*)\)/, '$1');
+      image.onload = function() {
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        ctx.drawImage(image, 0, 0);
+        var imageData = ctx.getImageData(
+            0, 0, canvas.width, canvas.height);
+        callback(imageData);
+      }
     },
 
     onQuadStackViewSelectionChange_: function(e) {
@@ -562,6 +609,18 @@ tvcm.exportTo('cc', function() {
               details: firstPictureError});
           }
         }
+      }
+      if (this.showInputEvents && this.layerTreeImpl.tracedInputLatencies &&
+          this.inputEventImageData_ === undefined) {
+        var image = this.querySelector('#input-event');
+        if (!image.src) {
+          this.loadDataForImageElement_(image, function(imageData) {
+            this.inputEventImageData_ = imageData;
+            this.updateContentsPending_ = false;
+            this.scheduleUpdateContents_();
+          }.bind(this));
+        }
+        status.picturesComplete = false;
       }
       return status;
     },
@@ -1016,6 +1075,23 @@ tvcm.exportTo('cc', function() {
         if (this.showBottlenecks)
           this.appendBottleneckQuads_(quads, layer, layerQuad, stackingGroupId);
       }, this);
+
+      var tracedInputLatencies = this.layerTreeImpl.tracedInputLatencies;
+      if (this.showInputEvents && tracedInputLatencies) {
+        for (var i = 0; i < tracedInputLatencies.length; i++) {
+          var coordinatesArray = tracedInputLatencies[i].args.data.coordinates;
+          for (var j = 0; j < coordinatesArray.length; j++) {
+            var inputQuad = tvcm.Quad.fromXYWH(
+                coordinatesArray[j].x - 25,
+                coordinatesArray[j].y - 25,
+                50,
+                50);
+            inputQuad.borderColor = 'rgba(0, 0, 0, 0)';
+            inputQuad.imageData = this.inputEventImageData_;
+            quads.push(inputQuad);
+          }
+        }
+      }
 
       return quads;
     },
