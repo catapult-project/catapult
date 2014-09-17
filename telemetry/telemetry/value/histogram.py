@@ -5,7 +5,7 @@ import json
 
 from telemetry import value as value_module
 from telemetry import perf_tests_helper
-
+from telemetry.value import histogram_util
 
 class HistogramValueBucket(object):
   def __init__(self, low, high, count=0):
@@ -113,7 +113,8 @@ class HistogramValue(value_module.Value):
     v0 = values[0]
     return HistogramValue(
         v0.page, v0.name, v0.units,
-        raw_value_json=v0.ToJSONString(),
+        raw_value_json=histogram_util.AddHistograms(
+            [v.ToJSONString() for v in values]),
         important=v0.important)
 
   @classmethod
