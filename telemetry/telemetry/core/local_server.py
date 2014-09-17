@@ -10,6 +10,7 @@ import subprocess
 import sys
 
 from telemetry.core import forwarders
+from telemetry.core import util
 
 NamedPort = collections.namedtuple('NamedPort', ['name', 'port'])
 
@@ -58,19 +59,19 @@ class LocalServer(object):
     server_module_name = self._server_backend_class.__module__
 
     self._devnull = open(os.devnull, 'w')
-    cmd = [sys.executable, '-m', __name__]
-    cmd.extend(["run_backend"])
-    cmd.extend([server_module_name, self._server_backend_class.__name__,
-                server_args_as_json])
+    cmd = [
+        sys.executable, '-m', __name__,
+        'run_backend',
+        server_module_name,
+        self._server_backend_class.__name__,
+        server_args_as_json,
+        ]
 
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join(sys.path)
 
-    cwd = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', '..'))
-
     self._subprocess = subprocess.Popen(
-        cmd, cwd=cwd, env=env, stdout=subprocess.PIPE)
+        cmd, cwd=util.GetTelemetryDir(), env=env, stdout=subprocess.PIPE)
 
     named_ports = self._GetNamedPortsFromBackend()
     named_port_pair_map = {'http': None, 'https': None, 'dns': None}
