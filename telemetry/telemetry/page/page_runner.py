@@ -45,17 +45,14 @@ class _RunState(object):
     # Create a browser.
     if not self.browser:
       test.CustomizeBrowserOptionsForSinglePage(page, finder_options)
-      self.browser = possible_browser.Create()
-      self.browser.credentials.credentials_path = credentials_path
-
-      # Set up WPR path on the new browser.
-      self.browser.SetReplayArchivePath(archive_path,
+      possible_browser.SetReplayArchivePath(archive_path,
                                         self._append_to_existing_wpr,
                                         page_set.make_javascript_deterministic)
+      possible_browser.SetCredentialsPath(credentials_path)
       self._last_archive_path = page.archive_path
 
       test.WillStartBrowser(possible_browser.platform)
-      self.browser.Start()
+      self.browser = possible_browser.Create()
       test.DidStartBrowser(self.browser)
 
       if self._first_browser:
