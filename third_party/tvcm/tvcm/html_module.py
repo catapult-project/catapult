@@ -159,9 +159,6 @@ def _HRefToResource(loader, module_name, module_dir_name, href, tag_for_err_msg)
 
 
 def Parse(loader, module_name, module_dir_name, parser_results):
-  if parser_results.has_decl == False:
-    raise Exception('%s must have <!DOCTYPE html>' % module_name)
-
   res = module.ModuleDependencyMetadata()
 
   # External script references..
@@ -185,11 +182,6 @@ def Parse(loader, module_name, module_dir_name, parser_results):
   # Validate the inline scripts.
   for inline_script in parser_results.inline_scripts:
     stripped_text = inline_script.stripped_contents
-    try:
-      js_utils.ValidateUsesStrictMode('_', stripped_text)
-    except:
-      raise Exception('%s has an inline script tag that is missing ' \
-                      'a \'use strict\' directive.' % module_name)
 
   # Style sheets
   for href in parser_results.stylesheets:
