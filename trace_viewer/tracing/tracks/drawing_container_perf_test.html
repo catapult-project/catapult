@@ -44,7 +44,7 @@ tvcm.unittest.testSuite(function() {  // @suppress longLineCheck
       setUpOnce();
       viewportDiv = document.createElement('div');
 
-      if (this.name === 'drawTrackContents_softwareCanvas') {
+      if (this.name === 'draw_softwareCanvas') {
         viewportDiv.width = '200px';
         viewportDiv.style.width = '200px';
       }
@@ -92,9 +92,9 @@ tvcm.unittest.testSuite(function() {  // @suppress longLineCheck
   var n110100 = [1, 10, 100];
   n110100.forEach(function(val) {
     timedDrawingContainerPerfTest(
-        'drawTrackContents_softwareCanvas_' + val,
+        'draw_softwareCanvas_' + val,
         function() {
-          drawingContainer.drawTrackContents_();
+          drawingContainer.draw_();
         }, val);
   });
 });
