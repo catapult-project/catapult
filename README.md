@@ -20,7 +20,7 @@ In any browser, navigate to
 Make sure tests pass before committing.
 
 
-To help out with trace-viewer:
+To help out with trace-viewer
 ===========================================================================
 Check out the [trace-viewer wiki](https://github.com/google/trace-viewer/wiki).
 
