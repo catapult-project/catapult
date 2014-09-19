@@ -207,11 +207,3 @@ class PlatformBackend(object):
 
   def StopMonitoringPower(self):
     raise NotImplementedError()
-
-  def ReadMsr(self, msr_number):
-    """Read a CPU model-specific register (MSR).
-
-    Which MSRs are available depends on the CPU model.
-    On systems with multiple CPUs, this function may run on any CPU.
-    """
-    raise NotImplementedError()
