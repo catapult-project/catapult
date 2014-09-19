@@ -234,6 +234,9 @@ def _GetTrybotList():
   builders = json.loads(f.read()).get('builders', {}).keys()
   builders = ['trybot-%s' % b.replace('_perf_bisect', '').replace('_', '-')
               for b in builders if not b.endswith('_perf_bisect_builder')]
+  # Perf try jobs do not work on Windows XP
+  if 'trybot-win-xp' in builders:
+    builders.remove('trybot-win-xp')
   return builders
 
 
