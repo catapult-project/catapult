@@ -111,15 +111,23 @@ class Run(command_line.OptparseCommand):
   def AddCommandLineArgs(cls, parser):
     benchmark.AddCommandLineArgs(parser)
 
+    # TODO(jbroman): This compensates for the fact that the "run" command
+    # may or may not be given on the command line. It's inelegant.
+    if len(sys.argv) > 2 and 'run'.startswith(sys.argv[1]):
+      test_name = sys.argv[2]
+    elif len(sys.argv) > 1:
+      test_name = sys.argv[1]
+    else:
+      # No arguments, so no more flags needed.
+      return
+
     # Allow tests to add their own command line options.
-    matching_tests = []
-    for arg in sys.argv[1:]:
-      matching_tests += _MatchTestName(arg)
+    matching_tests = _MatchTestName(test_name)
 
     if matching_tests:
       # TODO(dtu): After move to argparse, add command-line args for all tests
       # to subparser. Using subparsers will avoid duplicate arguments.
-      matching_test = matching_tests.pop()
+      matching_test = matching_tests[0]
       matching_test.AddCommandLineArgs(parser)
       # The test's options override the defaults!
       matching_test.SetArgumentDefaults(parser)
@@ -246,6 +254,8 @@ def _MatchTestName(input_test_name, exact_matches=True):
     for test_class in _Tests():
       if exact_match == test_class.Name():
         return [test_class]
+    # TODO(jbroman): [] is the correct result when no exact match is found.
+    # However, some bots rely on this falling through right now.
 
   # Fuzzy matching.
   return [test_class for test_class in _Tests()
