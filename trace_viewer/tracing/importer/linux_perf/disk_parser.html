@@ -110,7 +110,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       var inode = parseInt(event[2]);
       var pos = parseInt(event[3]);
       var len = parseInt(event[4]);
-      var error = parseInt(event[5]) != len;
+      var error = parseInt(event[5]) !== len;
       var key = device + '-' + inode + '-' + pos + '-' + len;
       this.closeAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
           key, {
@@ -146,7 +146,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       var inode = parseInt(event[2]);
       var pos = parseInt(event[3]);
       var len = parseInt(event[4]);
-      var error = parseInt(event[5]) != len;
+      var error = parseInt(event[5]) !== len;
       var key = device + '-' + inode + '-' + pos + '-' + len;
       this.closeAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
           key, {
