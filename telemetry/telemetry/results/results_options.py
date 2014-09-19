@@ -26,8 +26,7 @@ def AddResultsOptions(parser):
   group.add_option('--chartjson', action='store_true',
                    help='Output Chart JSON. Ignores --output-format.')
   group.add_option('--output-format', action='append', dest='output_formats',
-                    default=[_OUTPUT_FORMAT_CHOICES[0]],
-                    choices=_OUTPUT_FORMAT_CHOICES,
+                    choices=_OUTPUT_FORMAT_CHOICES, default=[],
                     help='Output format. Defaults to "%%default". '
                     'Can be %s.' % ', '.join(_OUTPUT_FORMAT_CHOICES))
   group.add_option('-o', '--output',
@@ -78,6 +77,9 @@ def CreateResults(benchmark_metadata, options):
   Args:
     options: Contains the options specified in AddResultsOptions.
   """
+  if not options.output_formats:
+    options.output_formats = [_OUTPUT_FORMAT_CHOICES[0]]
+
   # TODO(chrishenry): It doesn't make sense to have a single output_file flag
   # with multiple output formatters. We should explore other possible options:
   #   - Have an output_file per output formatter
