@@ -1,5 +1,5 @@
-Trace-Viewer is the javascript frontend for Chrome about:tracing and Android
-systrace. It provides rich analysis and visualization capabilities for trace
+Trace-Viewer is the javascript frontend for Chrome [about:tracing](http://dev.chromium.org/developers/how-tos/trace-event-profiling-tool) and [Android
+systrace](http://developer.android.com/tools/help/systrace.html). It provides rich analysis and visualization capabilities for trace
 files, supporting both the linux kernel trace format and Chrome's
 base/trace_event.
 
