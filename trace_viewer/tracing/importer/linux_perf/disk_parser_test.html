@@ -17,6 +17,11 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
       // NB: spliced from different traces; mismatched timestamps don't matter
       'AsyncTask #2-18830 [000] ...1 154578.668286: ext4_sync_file_enter: ' +
           'dev 259,1 ino 81993 parent 81906 datasync 1',
+      'Binder_A-3179 [001] ...1  1354.510088: f2fs_sync_file_enter: ' +
+          'dev = (259,14), ino = 4882, pino = 313, i_mode = 0x81b0, i_size = ' +
+          '25136, i_nlink = 1, i_blocks = 8, i_advise = 0x0',
+      'Binder_A-3179 [001] ...1  1354.514013: f2fs_sync_file_exit: ' +
+          'dev = (259,14), ino = 4882, checkpoint is not needed, datasync = 1, ret = 0',
       'mmcqd/0-81    [000] d..2 154578.668390: block_rq_issue: ' +
           '179,0 WS 0 () 3427120 + 16 [mmcqd/0]',
       'mmcqd/0-81    [000] d..2 154578.669181: block_rq_complete: ' +
@@ -41,6 +46,8 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
 
     var blockThread = undefined;
     var ext4Thread = undefined;
+    var f2fsThread = undefined;
+
     m.getAllThreads().forEach(function(t) {
       switch (t.name) {
         case 'block:mmcqd/0':
@@ -49,12 +56,16 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
         case 'ext4:AsyncTask #2':
           ext4Thread = t;
           break;
+        case 'f2fs:Binder_A':
+          f2fsThread = t;
+          break;
         default:
           throw new unittest.TestError('Unexpected thread named ' + t.name);
       }
     });
     assertNotUndefined(blockThread);
     assertNotUndefined(ext4Thread);
+    assertNotUndefined(f2fsThread);
 
     assertEquals(4, blockThread.asyncSliceGroup.length);
 
@@ -74,6 +85,13 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('259,1', slice.args.device);
     assertEquals(0, slice.args.error);
     assertEquals(81993, slice.args.inode);
+
+    slice = f2fsThread.asyncSliceGroup.slices[0];
+    assertEquals('f2fs', slice.category);
+    assertEquals('fsync', slice.title);
+    assertEquals('259,14', slice.args.device);
+    assertEquals(0, slice.args.error);
+    assertEquals(4882, slice.args.inode);
   });
 });
 </script>
