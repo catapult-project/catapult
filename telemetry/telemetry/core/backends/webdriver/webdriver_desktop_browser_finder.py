@@ -49,12 +49,7 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
   def Create(self):
     self._InitPlatformIfNeeded()
     backend = self.CreateWebDriverBackend(self._platform_backend)
-    return browser.Browser(backend,
-                           self._platform_backend,
-                           self._archive_path,
-                           self._append_to_existing_wpr,
-                           self._make_javascript_deterministic,
-                           self._credentials_path)
+    return browser.Browser(backend, self._platform_backend)
 
   def SupportsOptions(self, finder_options):
     if len(finder_options.extensions_to_load) != 0:
