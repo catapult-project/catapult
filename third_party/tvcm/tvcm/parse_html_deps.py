@@ -16,7 +16,7 @@ def _InitBeautifulSoup():
   bs_path = os.path.join(tvcm_path, 'third_party', 'beautifulsoup')
   if bs_path in sys.path:
     return
-  sys.path.append(bs_path)
+  sys.path.insert(0, bs_path)
 _InitBeautifulSoup()
 import BeautifulSoup
 
