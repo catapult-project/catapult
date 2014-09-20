@@ -85,6 +85,17 @@ found in the LICENSE file.
     border-left: 2px solid #ddd;
   }
 
+  .warning-default-disabled-categories {
+    display: inline-block;
+    font-weight: bold;
+    text-align: center;
+    color: #BD2E2E;
+    width: 2.0ex;
+    height: 2.0ex;
+    border-radius: 2.0ex;
+    border: 1px solid #BD2E2E;
+  }
+
   .categories {
     font-size: 80%;
     padding: 10px;
@@ -124,7 +135,9 @@ found in the LICENSE file.
           <div class="categories"></div>
         </div>
         <div class="default-disabled-categories">
-          <div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories</div>
+          <div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories
+            <a class="warning-default-disabled-categories">!</a>
+          </div>
           <div class="group-selectors">
             Select
             <button class="all-btn">All</button>
@@ -228,6 +241,8 @@ tvcm.exportTo('about_tracing', function() {
           this.querySelector('.default-enabled-categories'));
       this.createGroupSelectButtons_(
           this.querySelector('.default-disabled-categories'));
+      this.createDefaultDisabledWarningDialog_(
+          this.querySelector('.warning-default-disabled-categories'));
 
       // TODO(chrishenry): When used with tvcm.ui.Overlay (such as in
       // chrome://tracing, this does not yet look quite right due to
@@ -503,6 +518,35 @@ tvcm.exportTo('about_tracing', function() {
         flipInputs(false);
         evt.preventDefault();
       };
+    },
+
+    setWarningDialogOverlayText_: function(messages) {
+      var contentDiv = document.createElement('div');
+
+      for (var i = 0; i < messages.length; ++i) {
+        var messageDiv = document.createElement('div');
+        messageDiv.textContent = messages[i];
+        contentDiv.appendChild(messageDiv);
+      }
+      this.warningOverlay_.textContent = '';
+      this.warningOverlay_.appendChild(contentDiv);
+    },
+
+    createDefaultDisabledWarningDialog_: function(warningLink) {
+      function onClickHandler(evt) {
+        this.warningOverlay_ = tvcm.ui.Overlay();
+        this.warningOverlay_.title = 'Enabling Categories Warning...';
+        this.warningOverlay_.userCanClose = true;
+        this.warningOverlay_.visible = true;
+
+        this.setWarningDialogOverlayText_([
+          'Enabling the default disabled categories may have',
+          'performance and memory impact while tracing.'
+        ]);
+
+        evt.preventDefault();
+      }
+      warningLink.onclick = onClickHandler.bind(this);
     }
   };
 
