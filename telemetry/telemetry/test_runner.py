@@ -246,6 +246,7 @@ def _MatchTestName(input_test_name, exact_matches=True):
     for test_class in _Tests():
       if exact_match == test_class.Name():
         return [test_class]
+    return []
 
   # Fuzzy matching.
   return [test_class for test_class in _Tests()
