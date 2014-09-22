@@ -401,7 +401,7 @@ doit &
             subprocess.call(['sudo', '/bin/chmod', '755', interface_conf_dir])
           interface_conf = '\n'.join([
               '# Added by Telemetry for RNDIS forwarding.',
-              'auto %s' % host_iface,
+              'allow-hotplug %s' % host_iface,
               'iface %s inet static' % host_iface,
               '  address 192.168.123.1',
               '  netmask 255.255.255.0',
