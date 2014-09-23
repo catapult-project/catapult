@@ -27,9 +27,7 @@ class GenerateTests(unittest.TestCase):
     self.fs.AddFile('/x/foo/raw/raw_script.js', """
 /* raw script */
 """)
-    self.fs.AddFile('/x/platform.min.js', """
-""")
-    self.fs.AddFile('/x/polymer.min.js', """
+    self.fs.AddFile('/x/polymer.js', """
 """)
 
     self.project = project_module.Project(

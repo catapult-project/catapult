@@ -132,16 +132,30 @@ this.tvcm = (function() {
   var polymerReadyFired = false;
   function onPolymerReady(callback) {
     pendingCallbacks.push(callback);
-    if (polymerReadyFired) {
-      runPendingCallbacks_();
-    }
+    if (polymerReadyFired)
+      scheduleRunPendingCallbacks_();
+  }
+
+  var runScheduled = false;
+  function scheduleRunPendingCallbacks_() {
+    if (runScheduled)
+      return;
+    runScheduled = true;
+    // TODO(nduca): I have no idea why magicDelay is needed. :'(
+    var magicDelay = 32;
+    setTimeout(runPendingCallbacks_, magicDelay);
   }
 
   function runPendingCallbacks_() {
-     for (var i = 0; i < pendingCallbacks.length; i++)
-       setTimeout(pendingCallbacks[i].bind(global), 0);
-     pendingCallbacks = [];
+    runScheduled = false;
+    var pending = pendingCallbacks.slice();
+    pendingCallbacks = [];
+
+    pending.forEach(function(cb) {
+      cb.call(global);
+    });
   }
+
   /**
    * Initialization which must be deferred until run-time.
    */
@@ -166,7 +180,7 @@ this.tvcm = (function() {
 
     addEventListener('polymer-ready', function() {
       polymerReadyFired = true;
-      runPendingCallbacks_();
+      scheduleRunPendingCallbacks_();
     });
   }
 

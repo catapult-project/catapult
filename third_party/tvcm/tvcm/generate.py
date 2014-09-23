@@ -71,10 +71,7 @@ def GenerateJSToFile(f,
 
   loader = load_sequence[0].loader
 
-  platform_script = loader.LoadRawScript('platform.min.js')
-  f.write(platform_script.contents)
-
-  polymer_script = loader.LoadRawScript('polymer.min.js')
+  polymer_script = loader.LoadRawScript('polymer.js')
   f.write(polymer_script.contents)
 
   f.write('\n')
