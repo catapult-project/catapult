@@ -27,7 +27,9 @@ class Browser(object):
     with browser_to_create.Create() as browser:
       ... do all your operations on browser here
   """
-  def __init__(self, backend, platform_backend):
+  def __init__(self, backend, platform_backend, archive_path,
+               append_to_existing_wpr, make_javascript_deterministic,
+               credentials_path):
     assert platform_backend.platform != None
 
     self._browser_backend = backend
@@ -36,10 +38,29 @@ class Browser(object):
     self._local_server_controller = local_server.LocalServerController(backend)
     self._tabs = tab_list.TabList(backend.tab_list_backend)
     self.credentials = browser_credentials.BrowserCredentials()
+    self.credentials.credentials_path = credentials_path
     self._platform_backend.DidCreateBrowser(self, self._browser_backend)
 
+    self.SetReplayArchivePath(archive_path,
+                              append_to_existing_wpr,
+                              make_javascript_deterministic)
+
+    browser_options = self._browser_backend.browser_options
+    self.platform.FlushDnsCache()
+    if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
+      if self.platform.CanFlushIndividualFilesFromSystemCache():
+        self.platform.FlushSystemCacheForDirectory(
+            self._browser_backend.profile_directory)
+        self.platform.FlushSystemCacheForDirectory(
+            self._browser_backend.browser_directory)
+      else:
+        self.platform.FlushEntireSystemCache()
+
+    self._browser_backend.SetBrowser(self)
+    self._browser_backend.Start()
+    self._platform_backend.DidStartBrowser(self, self._browser_backend)
+
   def __enter__(self):
-    self.Start()
     return self
 
   def __exit__(self, *args):
@@ -229,22 +250,6 @@ class Browser(object):
     result = self._GetStatsCommon(self._platform_backend.GetIOStats)
     del result['ProcessCount']
     return result
-
-  def Start(self):
-    browser_options = self._browser_backend.browser_options
-    self.platform.FlushDnsCache()
-    if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
-      if self.platform.CanFlushIndividualFilesFromSystemCache():
-        self.platform.FlushSystemCacheForDirectory(
-            self._browser_backend.profile_directory)
-        self.platform.FlushSystemCacheForDirectory(
-            self._browser_backend.browser_directory)
-      else:
-        self.platform.FlushEntireSystemCache()
-
-    self._browser_backend.SetBrowser(self)
-    self._browser_backend.Start()
-    self._platform_backend.DidStartBrowser(self, self._browser_backend)
 
   def Close(self):
     """Closes this browser."""

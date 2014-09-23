@@ -67,11 +67,11 @@ class BrowserCredentials(object):
     self._backends[credentials_type].LoginNoLongerNeeded(tab)
 
   @property
-  def credentials_path(self):
+  def credentials_path(self):  # pylint: disable=E0202
     return self._credentials_path
 
   @credentials_path.setter
-  def credentials_path(self, credentials_path):
+  def credentials_path(self, credentials_path):  # pylint: disable=E0202
     self._credentials_path = credentials_path
     self._RebuildCredentials()
 
