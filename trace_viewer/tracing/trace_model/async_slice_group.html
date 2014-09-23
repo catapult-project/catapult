@@ -27,6 +27,7 @@ tvcm.exportTo('tracing.trace_model', function() {
     this.bounds = new tvcm.Range();
     this.name_ = opt_name;
     this.titleSubGroups_ = undefined;
+    this.categorySubGroups_ = undefined;
   }
 
   AsyncSliceGroup.prototype = {
@@ -75,8 +76,20 @@ tvcm.exportTo('tracing.trace_model', function() {
       for (var sI = 0; sI < this.slices.length; sI++) {
         var slice = this.slices[sI];
         slice.start = (slice.start + amount);
-        for (var sJ = 0; sJ < slice.subSlices.length; sJ++)
-          slice.subSlices[sJ].start += amount;
+        // Shift all nested subSlices recursively.
+        var children = slice.subSlices;
+        while (children != undefined && children.length > 0) {
+          var newChildren = [];
+          for (var sJ = 0; sJ < children.length; sJ++) {
+            children[sJ].start += amount;
+            if (children[sJ].subSlices != undefined &&
+                children[sJ].subSlices.length > 0) {
+              newChildren = tvcm.concatenateArrays(newChildren,
+                                                   children[sJ].subSlices);
+            }
+          }
+          children = newChildren;
+        }
       }
     },
 
@@ -117,6 +130,28 @@ tvcm.exportTo('tracing.trace_model', function() {
         this.titleSubGroups_ = tvcm.dictionaryValues(subGroupsByTitle);
       }
       return this.titleSubGroups_;
+    },
+
+    /**
+     * Gets the sub-groups in this A-S-G defined by the group categories.
+     *
+     * @return {Array} An array of AsyncSliceGroups where each group has
+     * slices that started on the same thread.
+     */
+    get categorySubGroups() {
+      if (this.categorySubGroups_ === undefined) {
+        var subGroupsByCategory = {};
+        for (var i = 0; i < this.slices.length; ++i) {
+          var slice = this.slices[i];
+          if (!subGroupsByCategory[slice.category]) {
+            subGroupsByCategory[slice.category] = new AsyncSliceGroup(
+                this.parentThread_, slice.category);
+          }
+          subGroupsByCategory[slice.category].slices.push(slice);
+        }
+        this.categorySubGroups_ = tvcm.dictionaryValues(subGroupsByCategory);
+      }
+      return this.categorySubGroups_;
     },
 
     iterateAllEvents: function(callback, opt_this) {

@@ -87,6 +87,7 @@ tvcm.exportTo('tracing.trace_model', function() {
     this.timeSlices = undefined;
     this.kernelSliceGroup = new SliceGroup(this, undefined, 'kernel-slices');
     this.asyncSliceGroup = new AsyncSliceGroup(this, 'async-slices');
+    this.nestableAsyncSliceGroup = new AsyncSliceGroup(this, 'async-slices');
     this.bounds = new tvcm.Range();
   }
 
@@ -135,6 +136,7 @@ tvcm.exportTo('tracing.trace_model', function() {
 
       this.kernelSliceGroup.shiftTimestampsForward(amount);
       this.asyncSliceGroup.shiftTimestampsForward(amount);
+      this.nestableAsyncSliceGroup.shiftTimestampsForward(amount);
     },
 
     /**
@@ -151,6 +153,8 @@ tvcm.exportTo('tracing.trace_model', function() {
       if (this.kernelSliceGroup.length)
         return false;
       if (this.asyncSliceGroup.length)
+        return false;
+      if (this.nestableAsyncSliceGroup.length)
         return false;
       if (this.samples_.length)
         return false;
@@ -173,6 +177,9 @@ tvcm.exportTo('tracing.trace_model', function() {
       this.asyncSliceGroup.updateBounds();
       this.bounds.addRange(this.asyncSliceGroup.bounds);
 
+      this.nestableAsyncSliceGroup.updateBounds();
+      this.bounds.addRange(this.nestableAsyncSliceGroup.bounds);
+
       if (this.timeSlices && this.timeSlices.length) {
         this.bounds.addValue(this.timeSlices[0].start);
         this.bounds.addValue(
@@ -193,6 +200,8 @@ tvcm.exportTo('tracing.trace_model', function() {
         categoriesDict[this.kernelSliceGroup.slices[i].category] = true;
       for (var i = 0; i < this.asyncSliceGroup.length; i++)
         categoriesDict[this.asyncSliceGroup.slices[i].category] = true;
+      for (var i = 0; i < this.nestableAsyncSliceGroup.length; i++)
+        categoriesDict[this.nestableAsyncSliceGroup.slices[i].category] = true;
       if (this.samples_) {
         for (var i = 0; i < this.samples_.length; i++)
           categoriesDict[this.samples_[i].category] = true;
@@ -262,6 +271,7 @@ tvcm.exportTo('tracing.trace_model', function() {
       this.sliceGroup.iterateAllEvents(callback, opt_this);
       this.kernelSliceGroup.iterateAllEvents(callback, opt_this);
       this.asyncSliceGroup.iterateAllEvents(callback, opt_this);
+      this.nestableAsyncSliceGroup.iterateAllEvents(callback, opt_this);
 
       if (this.timeSlices && this.timeSlices.length)
         this.timeSlices.forEach(callback, opt_this);
@@ -272,6 +282,7 @@ tvcm.exportTo('tracing.trace_model', function() {
       if (this.sliceGroup.length)
         cb(this.sliceGroup);
       this.asyncSliceGroup.titleSubGroups.forEach(cb);
+      this.nestableAsyncSliceGroup.categorySubGroups.forEach(cb);
     },
 
     get samples() {

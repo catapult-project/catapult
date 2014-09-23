@@ -12,6 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/trace_model/instant_event.html">
 <link rel="import" href="/tracing/trace_model/flow_event.html">
 <link rel="import" href="/tracing/trace_model/counter_series.html">
+<link rel="import" href="/tracing/trace_model/slice_group.html">
 
 <script>
 'use strict';
@@ -64,6 +65,7 @@ tvcm.exportTo('tracing.importer', function() {
     this.eventsWereFromString_ = false;
     this.softwareMeasuredCpuCount_ = undefined;
     this.allAsyncEvents_ = [];
+    this.allNestableAsyncEvents_ = [];
     this.allFlowEvents_ = [];
     this.allObjectEvents_ = [];
 
@@ -171,6 +173,18 @@ tvcm.exportTo('tracing.importer', function() {
           getOrCreateThread(event.tid);
       this.allAsyncEvents_.push({
         sequenceNumber: this.allAsyncEvents_.length,
+        event: event,
+        thread: thread});
+    },
+
+    /**
+     * Helper to process a nestable async event.
+     */
+    processNestableAsyncEvent: function(event) {
+      var thread = this.model_.getOrCreateProcess(event.pid).
+          getOrCreateThread(event.tid);
+      this.allNestableAsyncEvents_.push({
+        sequenceNumber: this.allNestableAsyncEvents_.length,
         event: event,
         thread: thread});
     },
@@ -413,6 +427,9 @@ tvcm.exportTo('tracing.importer', function() {
                    event.ph === 'p') {
           this.processAsyncEvent(event);
 
+        } else if (event.ph === 'b' || event.ph === 'e' || event.ph === 'n') {
+          this.processNestableAsyncEvent(event);
+
         // Note, I is historic. The instant event marker got changed, but we
         // want to support loading old trace files so we have both I and i.
         } else if (event.ph == 'I' || event.ph == 'i') {
@@ -488,6 +505,7 @@ tvcm.exportTo('tracing.importer', function() {
             this.softwareMeasuredCpuCount_;
       }
       this.createAsyncSlices_();
+      this.createNestableAsyncSlices_();
       this.createFlowSlices_();
       this.createExplicitObjects_();
       this.createImplicitObjects_();
@@ -551,6 +569,131 @@ tvcm.exportTo('tracing.importer', function() {
      */
     joinRefs: function() {
       this.joinObjectRefs_();
+    },
+
+    createNestableAsyncSlices_: function() {
+      if (this.allNestableAsyncEvents_.length === 0)
+        return;
+      this.allNestableAsyncEvents_.sort(function(x, y) {
+        var d = x.event.ts - y.event.ts;
+        if (d != 0)
+          return d;
+        return x.sequenceNumber - y.sequenceNumber;
+      });
+
+      // Group nestable async events by ID. Events with the same ID should
+      // belong to the same parent async event.
+      var nestableAsyncEventsByID = {};
+      for (var i = 0; i < this.allNestableAsyncEvents_.length; i++) {
+        var nestableAsyncEventState = this.allNestableAsyncEvents_[i];
+        var event = nestableAsyncEventState.event;
+        var name = event.name;
+        if (name === undefined) {
+          this.model_.importWarning({
+            type: 'nestable_async_slice_parse_error',
+            message: 'Nestable async events (ph: b, e, or n) require a ' +
+                'name parameter.'
+          });
+          continue;
+        }
+
+        var id = event.id;
+        if (id === undefined) {
+          this.model_.importWarning({
+            type: 'nestable_async_slice_parse_error',
+            message: 'Nestable async events (ph: b, e, or n) require an ' +
+                'id parameter.'
+          });
+          continue;
+        }
+        if (nestableAsyncEventsByID[id] === undefined)
+           nestableAsyncEventsByID[id] = [];
+        nestableAsyncEventsByID[id].push(nestableAsyncEventState);
+      }
+
+      // Parse nestable async events into AsyncSlices.
+      for (var id in nestableAsyncEventsByID) {
+        var eventStateEntries = nestableAsyncEventsByID[id];
+        // Stack of enclosing BEGIN events.
+        var parentStack = [];
+        for (var i = 0; i < eventStateEntries.length; ++i) {
+          var eventStateEntry = eventStateEntries[i];
+          // If this is the end of an event, match it to the start.
+          if (eventStateEntry.event.ph === 'e') {
+            // Walk up the parent stack to find the corresponding BEGIN for
+            // this END.
+            var parentIndex = -1;
+            for (var k = parentStack.length - 1; k >= 0; --k) {
+              if (parentStack[k].event.name === eventStateEntry.event.name) {
+                parentIndex = k;
+                break;
+              }
+            }
+
+            if (parentIndex == -1) {
+              // Unmatched end. Treat as instant event.
+              eventStateEntry.event.ph = 'n';
+            } else {
+              eventStateEntry.event.begin = parentStack[parentIndex];
+              // Consider this as the terminator for all open BEGINs up until
+              // parentIndex.
+              while (parentIndex < parentStack.length) {
+                var p = parentStack.pop();
+                p.end = eventStateEntry;
+              }
+            }
+          }
+          // Inherit the current parent.
+          if (parentStack.length > 0) {
+            eventStateEntry.parentEntry = parentStack[parentStack.length - 1];
+          }
+
+          if (eventStateEntry.event.ph == 'b')
+            parentStack.push(eventStateEntry);
+        }
+
+        for (var i = 0; i < eventStateEntries.length; ++i) {
+          var eventStateEntry = eventStateEntries[i];
+          if (eventStateEntry.event.ph === 'n' ||
+              eventStateEntry.event.ph === 'b') {
+            var endThread;
+            var duration;
+            if (eventStateEntry.event.ph === 'n') {
+                endThread = eventStateEntry.thread;
+                duration = 0;
+            } else if (eventStateEntry.event.ph === 'b') {
+                if (eventStateEntry.end === undefined){
+                  // Unmatched BEGIN. End it when last event with this ID ends.
+                  eventStateEntry.end =
+                      eventStateEntries[eventStateEntries.length - 1];
+                }
+                duration =
+                    eventStateEntry.end.event.ts - eventStateEntry.event.ts;
+            }
+            var slice = new tracing.trace_model.AsyncSlice(
+                eventStateEntry.event.cat,
+                eventStateEntry.event.name,
+                tvcm.ui.getStringColorId(eventStateEntry.event.name),
+                eventStateEntry.event.ts / 1000,
+                eventStateEntry.event.args,
+                duration / 1000);
+
+            slice.startThread = eventStateEntry.thread;
+            slice.endThread = endThread;
+            slice.id = eventStateEntry.event.id;
+            eventStateEntry.slice = slice;
+            // Add slice to parent slice if there is a parent.
+            if (eventStateEntry.parentEntry != undefined &&
+                eventStateEntry.parentEntry.slice != undefined) {
+              if (eventStateEntry.parentEntry.slice.subSlices === undefined)
+                eventStateEntry.parentEntry.slice.subSlices = [];
+              eventStateEntry.parentEntry.slice.subSlices.push(slice);
+            }
+          }
+        }
+        eventStateEntries[0].slice.startThread.nestableAsyncSliceGroup.push(
+            eventStateEntries[0].slice);
+      }
     },
 
     createAsyncSlices_: function() {

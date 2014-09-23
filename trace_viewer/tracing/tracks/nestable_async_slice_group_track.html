@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/tracks/multi_row_track.html">
+<link rel="import" href="/tracing/tracks/slice_track.html">
+<link rel="import" href="/tvcm/ui.html">
+
+<script>
+'use strict';
+
+tvcm.exportTo('tracing.tracks', function() {
+  /**
+   * A track that displays a AsyncSliceGroup.
+   * @constructor
+   * @extends {MultiRowTrack}
+   */
+  var NestableAsyncSliceGroupTrack = tvcm.ui.define(
+      'nestable-async-slice-group-track',
+      tracing.tracks.MultiRowTrack);
+
+  NestableAsyncSliceGroupTrack.prototype = {
+
+    __proto__: tracing.tracks.MultiRowTrack.prototype,
+
+    decorate: function(viewport) {
+      tracing.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
+      this.classList.add('nestable-async-slice-group-track');
+      this.group_ = undefined;
+    },
+
+    addSubTrack_: function(slices) {
+      var track = new tracing.tracks.SliceTrack(this.viewport);
+      track.slices = slices;
+      this.appendChild(track);
+      track.asyncStyle = true;
+      return track;
+    },
+
+    get group() {
+      return this.group_;
+    },
+
+    set group(group) {
+      this.group_ = group;
+      this.setItemsToGroup(this.group_.slices, this.group_);
+    },
+
+    /**
+     * Breaks up the list of slices into N rows, each of which is a list of
+     * slices that are non overlapping.
+     *
+     * It uses a very simple approach: walk through the slices in sorted order
+     * by start time. For each slice, try to fit it in an existing subRow. If
+     * it doesn't fit in any subrow, make another subRow. It then fits nested
+     * subSlices recursively into rows below parent slice according to which
+     * nested level the child is in.
+     */
+    buildSubRows_: function(slices) {
+      slices.sort(function(x, y) {
+        return x.start - y.start;
+      });
+      var subRows = [];
+      for (var i = 0; i < slices.length; i++) {
+        var slice = slices[i];
+        var found = false;
+        var index = subRows.length;
+        for (var j = 0; j < subRows.length; j++) {
+          var subRow = subRows[j];
+          var lastSliceInSubRow = subRow[subRow.length - 1];
+          if (slice.start >= lastSliceInSubRow.end) {
+            found = true;
+            index = j;
+            break;
+          }
+        }
+        if (!found) {
+          subRows.push([]);
+        }
+        subRows[index].push(slice);
+
+        // Fit children recursively into rows below parent.
+        var children = slice.subSlices;
+        var level = index + 1;
+        while (children != undefined && children.length > 0) {
+          if ( level === subRows.length) {
+              subRows.push([]);
+          }
+          var newChildren = [];
+          for (var h = 0; h < children.length; h++) {
+             subRows[level].push(children[h]);
+             if (children[h].subSlices != undefined &&
+                 children[h].subSlices.length > 0) {
+               newChildren = tvcm.concatenateArrays(newChildren,
+                                                    children[h].subSlices);
+             }
+          }
+          children = newChildren;
+          level++;
+        }
+      }
+      return subRows;
+    }
+  };
+
+  return {
+    NestableAsyncSliceGroupTrack: NestableAsyncSliceGroupTrack
+  };
+});
+</script>
