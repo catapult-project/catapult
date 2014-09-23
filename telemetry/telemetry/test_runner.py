@@ -89,8 +89,10 @@ class List(command_line.OptparseCommand):
   def Run(self, args):
     if args.json_output_file:
       possible_browser = browser_finder.FindBrowser(args)
+      has_ref = 'reference' in browser_finder.GetAllAvailableBrowserTypes(args)
       with open(args.json_output_file, 'w') as f:
-        f.write(_GetJsonTestList(possible_browser, args.tests, args.num_shards))
+        f.write(_GetJsonTestList(possible_browser, has_ref, args.tests,
+                                 args.num_shards))
     else:
       _PrintTestList(args.tests)
     return 0
@@ -253,25 +255,23 @@ def _MatchTestName(input_test_name, exact_matches=True):
           if _Matches(input_test_name, test_class.Name())]
 
 
-def _GetJsonTestList(possible_browser, test_classes, num_shards):
+def _GetJsonTestList(possible_browser, has_reference, test_classes, num_shards):
   """Returns a list of all enabled tests in a JSON format expected by buildbots.
 
   JSON format (see build/android/pylib/perf/test_runner.py):
-  { "version": int,
+  { "version": <int>,
     "steps": {
-      "foo": {
-        "device_affinity": int,
-        "cmd": "script_to_execute foo"
+      <string>: {
+        "device_affinity": <int>,
+        "cmd": <string>,
+        "perf_dashboard_id": <string>,
       },
-      "bar": {
-        "device_affinity": int,
-        "cmd": "script_to_execute bar"
-      }
+      ...
     }
   }
   """
   output = {
-    'version': 1,
+    'version': 2,
     'steps': {
     }
   }
@@ -280,18 +280,32 @@ def _GetJsonTestList(possible_browser, test_classes, num_shards):
       continue
     if not decorators.IsEnabled(test_class, possible_browser):
       continue
-    name = test_class.Name()
-    output['steps'][name] = {
-      'cmd': ' '.join([sys.executable, os.path.realpath(sys.argv[0]),
-                       '--browser=%s' % possible_browser.browser_type,
-                       '-v', '--output-format=buildbot', name]),
-      # TODO(tonyg): Currently we set the device affinity to a stable hash of
-      # the test name. This somewhat evenly distributes benchmarks among the
-      # requested number of shards. However, it is far from optimal in terms of
-      # cycle time. We should add a test size decorator (e.g. small, medium,
-      # large) and let that inform sharding.
-      'device_affinity': int(hashlib.sha1(name).hexdigest(), 16) % num_shards
+
+    base_name = test_class.Name()
+    base_cmd = [sys.executable, os.path.realpath(sys.argv[0]),
+                '-v', '--output-format=buildbot', base_name]
+    perf_dashboard_id = base_name
+    # TODO(tonyg): Currently we set the device affinity to a stable hash of the
+    # test name. This somewhat evenly distributes benchmarks among the requested
+    # number of shards. However, it is far from optimal in terms of cycle time.
+    # We should add a test size decorator (e.g. small, medium, large) and let
+    # that inform sharding.
+    device_affinity = int(hashlib.sha1(base_name).hexdigest(), 16) % num_shards
+
+    output['steps'][base_name] = {
+      'cmd': ' '.join(base_cmd + [
+            '--browser=%s' % possible_browser.browser_type]),
+      'device_affinity': device_affinity,
+      'perf_dashboard_id': perf_dashboard_id,
     }
+    if has_reference:
+      output['steps'][base_name + '.reference'] = {
+        'cmd': ' '.join(base_cmd + [
+              '--browser=reference', '--output-trace-tag=_ref']),
+        'device_affinity': device_affinity,
+        'perf_dashboard_id': perf_dashboard_id,
+      }
+
   return json.dumps(output, indent=2, sort_keys=True)
 
 
