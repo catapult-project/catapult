@@ -73,6 +73,8 @@ class MonsoonPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
         args=(self._monsoon,
               self._is_collecting,
               self._powermonitor_output_file))
+    # Ensure child is not left behind: parent kills daemonic children on exit.
+    self._powermonitor_process.daemon = True
     self._powermonitor_process.start()
     if not self._is_collecting.wait(timeout=0.5):
       self._powermonitor_process.terminate()
