@@ -89,8 +89,12 @@ class List(command_line.OptparseCommand):
   def Run(self, args):
     if args.json_output_file:
       possible_browser = browser_finder.FindBrowser(args)
-      args.browser_type = 'reference'
-      possible_reference_browser = browser_finder.FindBrowser(args)
+      if args.browser_type in (
+          'exact', 'release', 'release_x64', 'debug', 'debug_x64', 'canary'):
+        args.browser_type = 'reference'
+        possible_reference_browser = browser_finder.FindBrowser(args)
+      else:
+        possible_reference_browser = None
       with open(args.json_output_file, 'w') as f:
         f.write(_GetJsonTestList(possible_browser, possible_reference_browser,
                                  args.tests, args.num_shards))
