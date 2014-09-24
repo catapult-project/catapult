@@ -51,7 +51,7 @@ def _InstallWinRing0():
   dll_file_name = 'WinRing0x64.dll' if python_is_64_bit else 'WinRing0.dll'
   dll_path = os.path.join(executable_dir, dll_file_name)
 
-  os_is_64_bit = 'PROGRAMFILES(X86)' in os.environ
+  os_is_64_bit = platform.machine().endswith('64')
   driver_file_name = 'WinRing0x64.sys' if os_is_64_bit else 'WinRing0.sys'
   driver_path = os.path.join(executable_dir, driver_file_name)
 
