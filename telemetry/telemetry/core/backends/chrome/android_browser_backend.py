@@ -25,26 +25,27 @@ from pylib.device import intent  # pylint: disable=F0401
 
 class AndroidBrowserBackendSettings(object):
 
-  def __init__(self, adb, activity, cmdline_file, package, pseudo_exec_name,
+  def __init__(self, activity, cmdline_file, package, pseudo_exec_name,
                supports_tab_control, relax_ssl_check=False):
-    self.adb = adb
     self.activity = activity
-    self.cmdline_file = cmdline_file
+    self._cmdline_file = cmdline_file
     self.package = package
     self.pseudo_exec_name = pseudo_exec_name
     self.supports_tab_control = supports_tab_control
     self.relax_ssl_check = relax_ssl_check
 
+  def GetCommandLineFile(self, is_user_debug_build):  # pylint: disable=W0613
+    return self._cmdline_file
+
   def GetDevtoolsRemotePort(self):
     raise NotImplementedError()
 
-  def RemoveProfile(self):
-    files = self.adb.device().RunShellCommand(
+  def RemoveProfile(self, adb):
+    files = adb.device().RunShellCommand(
         'ls "%s"' % self.profile_dir, as_root=True)
     # Don't delete lib, since it is created by the installer.
     paths = ['"%s/%s"' % (self.profile_dir, f) for f in files if f != 'lib']
-    self.adb.device().RunShellCommand('rm -r %s' % ' '.join(paths),
-                                      as_root=True)
+    adb.device().RunShellCommand('rm -r %s' % ' '.join(paths), as_root=True)
 
   def PushProfile(self, _):
     logging.critical('Profiles cannot be overriden with current configuration')
@@ -59,18 +60,16 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
   # Stores a default Preferences file, re-used to speed up "--page-repeat".
   _default_preferences_file = None
 
-  @staticmethod
-  def _GetCommandLineFile(adb):
-    if adb.IsUserBuild():
+  def GetCommandLineFile(self, is_user_debug_build):
+    if is_user_debug_build:
       return '/data/local/tmp/chrome-command-line'
     else:
       return '/data/local/chrome-command-line'
 
-  def __init__(self, adb, package):
+  def __init__(self, package):
     super(ChromeBackendSettings, self).__init__(
-        adb=adb,
         activity='com.google.android.apps.chrome.Main',
-        cmdline_file=ChromeBackendSettings._GetCommandLineFile(adb),
+        cmdline_file=None,
         package=package,
         pseudo_exec_name='chrome',
         supports_tab_control=True)
@@ -108,9 +107,8 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
           'chown %s.%s %s' % (uid, uid, extended_path))
 
 class ContentShellBackendSettings(AndroidBrowserBackendSettings):
-  def __init__(self, adb, package):
+  def __init__(self, package):
     super(ContentShellBackendSettings, self).__init__(
-        adb=adb,
         activity='org.chromium.content_shell_apk.ContentShellActivity',
         cmdline_file='/data/local/tmp/content-shell-command-line',
         package=package,
@@ -122,9 +120,8 @@ class ContentShellBackendSettings(AndroidBrowserBackendSettings):
 
 
 class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
-  def __init__(self, adb, package):
+  def __init__(self, package):
     super(ChromeShellBackendSettings, self).__init__(
-          adb=adb,
           activity='org.chromium.chrome.shell.ChromeShellActivity',
           cmdline_file='/data/local/tmp/chrome-shell-command-line',
           package=package,
@@ -135,10 +132,9 @@ class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
     return 'localabstract:chrome_shell_devtools_remote'
 
 class WebviewBackendSettings(AndroidBrowserBackendSettings):
-  def __init__(self, adb, package,
+  def __init__(self, package,
                activity='org.chromium.telemetry_shell.TelemetryActivity'):
     super(WebviewBackendSettings, self).__init__(
-        adb=adb,
         activity=activity,
         cmdline_file='/data/local/tmp/webview-command-line',
         package=package,
@@ -168,16 +164,16 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
     return 'localabstract:webview_devtools_remote_%s' % str(pid)
 
 class WebviewShellBackendSettings(WebviewBackendSettings):
-  def __init__(self, adb, package):
+  def __init__(self, package):
     super(WebviewShellBackendSettings, self).__init__(
-        adb=adb,
         activity='org.chromium.android_webview.shell.AwShellActivity',
         package=package)
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android."""
   def __init__(self, browser_options, backend_settings, use_rndis_forwarder,
-               output_profile_path, extensions_to_load, target_arch):
+               output_profile_path, extensions_to_load, target_arch,
+               android_platform_backend):
     super(AndroidBrowserBackend, self).__init__(
         supports_tab_control=backend_settings.supports_tab_control,
         supports_extensions=False, browser_options=browser_options,
@@ -188,7 +184,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Android browser does not support extensions.')
 
     # Initialize fields so that an explosion during init doesn't break in Close.
-    self._adb = backend_settings.adb
+    self._android_platform_backend = android_platform_backend
     self._backend_settings = backend_settings
     self._saved_cmdline = ''
     self._target_arch = target_arch
@@ -212,7 +208,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if self.browser_options.profile_dir:
         self._backend_settings.PushProfile(self.browser_options.profile_dir)
       elif not self.browser_options.dont_override_profile:
-        self._backend_settings.RemoveProfile()
+        self._backend_settings.RemoveProfile(self._adb)
 
     self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
         self._adb, use_rndis_forwarder)
@@ -229,6 +225,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.debug('User build device, setting debug app')
       self._adb.device().RunShellCommand(
           'am set-debug-app --persistent %s' % self._backend_settings.package)
+
+  @property
+  def _adb(self):
+    return self._android_platform_backend.adb
 
   def _KillBrowser(self):
     # We use KillAll rather than ForceStop for efficiency reasons.
@@ -255,7 +255,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     args = [self._backend_settings.pseudo_exec_name]
     args.extend(self.GetBrowserStartupArgs())
     content = ' '.join(QuoteIfNeeded(arg) for arg in args)
-    cmdline_file = self._backend_settings.cmdline_file
+    cmdline_file = self._backend_settings.GetCommandLineFile(
+        self._adb.IsUserBuild())
     as_root = self._adb.device().old_interface.CanAccessProtectedFileContents()
 
     try:
@@ -273,9 +274,11 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       sys.exit(1)
 
   def _RestoreCommandLine(self):
+    cmdline_file = self._backend_settings.GetCommandLineFile(
+        self._adb.IsUserBuild())
     as_root = self._adb.device().old_interface.CanAccessProtectedFileContents()
-    self._adb.device().WriteTextFile(self._backend_settings.cmdline_file,
-      self._saved_cmdline, as_root=as_root)
+    self._adb.device().WriteTextFile(cmdline_file, self._saved_cmdline,
+                                     as_root=as_root)
 
   def Start(self):
     self._SetUpCommandLine()

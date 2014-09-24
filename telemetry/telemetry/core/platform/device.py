@@ -1,7 +1,6 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import logging as real_logging
 
 
 class Device(object):
@@ -29,5 +28,5 @@ class Device(object):
     return self._guid
 
   @classmethod
-  def GetAllConnectedDevices(cls, logging=real_logging):
+  def GetAllConnectedDevices(cls):
     raise NotImplementedError()

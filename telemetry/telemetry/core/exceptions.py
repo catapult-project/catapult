@@ -3,6 +3,10 @@
 # found in the LICENSE file.
 
 
+class PlatformError(Exception):
+  """ Represents an exception thrown when constructing platform. """
+
+
 class NativeBrowserCrashException(Exception):
   def __init__(self, browser=None, msg=''):
     super(NativeBrowserCrashException, self).__init__(msg)

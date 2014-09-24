@@ -44,13 +44,31 @@ YOSEMITE =     OSVersion('yosemite',     1010)
 
 
 class PlatformBackend(object):
-  def __init__(self):
+
+  def __init__(self, device=None):
+    """ Initalize an instance of PlatformBackend from a device optionally.
+      Call sites need to use SupportsDevice before intialization to check
+      whether this platform backend supports the device.
+      If device is None, this constructor returns the host platform backend
+      which telemetry is running on.
+
+      Args:
+        device: an instance of telemetry.core.platform.device.Device.
+    """
+    if device and not self.SupportsDevice(device):
+      raise ValueError('Unsupported device: %s' % device.name)
     self._platform = None
     self._running_browser_backends = weakref.WeakSet()
     self._tracing_controller_backend = (
         tracing_controller_backend.TracingControllerBackend(self))
     self._profiling_controller_backend = (
         profiling_controller_backend.ProfilingControllerBackend(self))
+
+  @classmethod
+  def SupportsDevice(cls, device):
+    """ Returns whether this platform backend supports intialization from the
+    device. """
+    return False
 
   def SetPlatform(self, platform):
     assert self._platform == None

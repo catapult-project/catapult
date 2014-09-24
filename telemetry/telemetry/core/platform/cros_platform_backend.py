@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.core.platform import cros_device
+from telemetry.core.platform import cros_interface
 from telemetry.core.platform import linux_based_platform_backend
 from telemetry.core.platform import ps_util
 from telemetry.core.platform.power_monitor import cros_power_monitor
@@ -10,10 +12,19 @@ from telemetry.core.platform.power_monitor import cros_power_monitor
 class CrosPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
 
-  def __init__(self, cri):
-    super(CrosPlatformBackend, self).__init__()
-    self._cri = cri
+  def __init__(self, device):
+    super(CrosPlatformBackend, self).__init__(device)
+    if device:
+      self._cri = cros_interface.CrOSInterface(
+          device.host_name, device.ssh_identity)
+      self._cri.TryLogin()
+    else:
+      self._cri = cros_interface.CrOSInterface()
     self._powermonitor = cros_power_monitor.CrosPowerMonitor(self)
+
+  @classmethod
+  def SupportsDevice(cls, device):
+    return isinstance(device, cros_device.CrOSDevice)
 
   @property
   def cri(self):

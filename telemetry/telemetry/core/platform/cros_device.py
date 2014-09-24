@@ -1,8 +1,6 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import logging as real_logging
-
 from telemetry.core.platform import device
 
 
@@ -16,7 +14,7 @@ class CrOSDevice(device.Device):
     self._ssh_identity = ssh_identity
 
   @classmethod
-  def GetAllConnectedDevices(cls, logging=real_logging):
+  def GetAllConnectedDevices(cls):
     return []
 
   @property

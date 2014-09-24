@@ -6,9 +6,9 @@ import logging as real_logging
 import os
 import sys
 
-from telemetry.core.platform import cros_device
-from telemetry.core.platform import cros_interface
-from telemetry.core.platform import cros_platform_backend
+from telemetry.core import discover
+from telemetry.core import util
+from telemetry.core.platform import platform_backend as platform_backend_module
 from telemetry.core.platform import profiling_controller
 from telemetry.core.platform import tracing_controller
 
@@ -34,8 +34,8 @@ def _InitHostPlatformIfNeeded():
   if _host_platform:
     return
   if _IsRunningOnCrosDevice():
-    backend = cros_platform_backend.CrosPlatformBackend(
-        cros_interface.CrOSInterface())
+    from telemetry.core.platform import cros_platform_backend
+    backend = cros_platform_backend.CrosPlatformBackend()
   elif sys.platform.startswith('linux'):
     from telemetry.core.platform import linux_platform_backend
     backend = linux_platform_backend.LinuxPlatformBackend()
@@ -61,20 +61,22 @@ def GetPlatformForDevice(device, logging=real_logging):
     Args:
       device: a device.Device instance.
   """
-  if device.guid not in _remote_platforms:
-    try:
-      if isinstance(device, cros_device.CrOSDevice):
-        cri = cros_interface.CrOSInterface(
-            device.host_name, device.ssh_identity)
-        cri.TryLogin()
-        _remote_platforms[device.guid] = (
-            Platform(cros_platform_backend.CrosPlatformBackend(cri)))
-      else:
-        raise ValueError('Unsupported device type')
-    except:
-      logging.error('Fail to create platform instance for %s.', device.name)
-      raise
-  return _remote_platforms[device.guid]
+  if device.guid in _remote_platforms:
+    return _remote_platforms[device.guid]
+  try:
+    platform_backend = None
+    platform_dir = os.path.dirname(os.path.realpath(__file__))
+    for platform_backend_class in discover.DiscoverClasses(
+        platform_dir, util.GetTelemetryDir(),
+        platform_backend_module.PlatformBackend).itervalues():
+      if platform_backend_class.SupportsDevice(device):
+        platform_backend = platform_backend_class(device)
+        _remote_platforms[device.guid] = Platform(platform_backend)
+        return _remote_platforms[device.guid]
+    return None
+  except Exception:
+    logging.error('Fail to create platform instance for %s.', device.name)
+    raise
 
 
 class Platform(object):

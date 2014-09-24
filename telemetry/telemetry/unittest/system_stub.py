@@ -24,6 +24,7 @@ class Override(object):
              'subprocess': SubprocessModuleStub,
              'sys': SysModuleStub,
              'thermal_throttle': ThermalThrottleModuleStub,
+             'logging': LoggingStub
     }
     self.adb_commands = None
     self.os = None
@@ -52,27 +53,40 @@ class Override(object):
 
 class AndroidCommands(object):
 
+  def __init__(self):
+    self.can_access_protected_file_contents = False
+
   def CanAccessProtectedFileContents(self):
-    return False
+    return self.can_access_protected_file_contents
 
 
 class AdbDevice(object):
 
-  def __init__(self, shell_command_handlers):
-    self._shell_command_handlers = shell_command_handlers
+  def __init__(self):
+    self.shell_command_handlers = {}
+    self.mock_content = []
+    self.system_properties = {}
+    if self.system_properties.get('ro.product.cpu.abi') == None:
+      self.system_properties['ro.product.cpu.abi'] = 'armeabi-v7a'
+    self.old_interface = AndroidCommands()
 
   def RunShellCommand(self, args):
     if isinstance(args, basestring):
       args = shlex.split(args)
-    handler = self._shell_command_handlers[args[0]]
+    handler = self.shell_command_handlers[args[0]]
     return handler(args)
 
   def FileExists(self, _):
     return False
 
-  @property
-  def old_interface(self):
-    return AndroidCommands()
+  def ReadFile(self, device_path, as_root=False):  # pylint: disable=W0613
+    return self.mock_content
+
+  def GetProp(self, property_name):
+    return self.system_properties[property_name]
+
+  def SetProp(self, property_name, property_value):
+    self.system_properties[property_name] = property_value
 
 
 class AdbCommandsModuleStub(object):
@@ -83,7 +97,7 @@ class AdbCommandsModuleStub(object):
       self._module = module
       self._device = device
       self.is_root_enabled = True
-      self._adb_device = AdbDevice(module.shell_command_handlers)
+      self._adb_device = module.adb_device
 
     def IsRootEnabled(self):
       return self.is_root_enabled
@@ -101,8 +115,8 @@ class AdbCommandsModuleStub(object):
       return self._adb_device
 
   def __init__(self):
-    self.shell_command_handlers = {}
     self.attached_devices = []
+    self.adb_device = AdbDevice()
 
     def AdbCommandsStubConstructor(device=None):
       return AdbCommandsModuleStub.AdbCommandsStub(self, device)
@@ -151,6 +165,17 @@ class CloudStorageModuleStub(object):
 
   def ReadHash(self, hash_path):
     return self.local_hash_files[hash_path]
+
+
+class LoggingStub(object):
+  def __init__(self):
+    self.warnings = []
+
+  def info(self, msg, *args):
+    pass
+
+  def warn(self, msg, *args):
+    self.warnings.append(msg % args)
 
 
 class OpenFunctionStub(object):

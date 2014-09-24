@@ -10,6 +10,8 @@ from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core import video
+from telemetry.core.backends import adb_commands
+from telemetry.core.platform import android_device
 from telemetry.core.platform import linux_based_platform_backend
 from telemetry.core.platform.power_monitor import android_ds2784_power_monitor
 from telemetry.core.platform.power_monitor import android_dumpsys_power_monitor
@@ -33,27 +35,49 @@ except Exception:
 
 class AndroidPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
-  def __init__(self, device, no_performance_mode):
-    super(AndroidPlatformBackend, self).__init__()
-    self._device = device
+  def __init__(self, device):
+    assert device, (
+        'AndroidPlatformBackend can only be initialized from remote device')
+    super(AndroidPlatformBackend, self).__init__(device)
+    self._adb = adb_commands.AdbCommands(device=device.device_id)
+    installed_prebuilt_tools = adb_commands.SetupPrebuiltTools(self._adb)
+    if not installed_prebuilt_tools:
+      logging.error(
+          '%s detected, however prebuilt android tools could not '
+          'be used. To run on Android you must build them first:\n'
+          '  $ ninja -C out/Release android_tools' % device.name)
+      raise exceptions.PlatformError()
+    # Trying to root the device, if possible.
+    if not self._adb.IsRootEnabled():
+      # Ignore result.
+      self._adb.EnableAdbRoot()
+    self._device = self._adb.device()
+    self._enable_performance_mode = device.enable_performance_mode
     self._surface_stats_collector = None
     self._perf_tests_setup = perf_control.PerfControl(self._device)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
-    self._no_performance_mode = no_performance_mode
     self._raw_display_frame_rate_measurements = []
     self._can_access_protected_file_contents = \
         self._device.old_interface.CanAccessProtectedFileContents()
     power_controller = power_monitor_controller.PowerMonitorController([
-        monsoon_power_monitor.MonsoonPowerMonitor(device, self),
-        android_ds2784_power_monitor.DS2784PowerMonitor(device, self),
-        android_dumpsys_power_monitor.DumpsysPowerMonitor(device, self),
+        monsoon_power_monitor.MonsoonPowerMonitor(self._device, self),
+        android_ds2784_power_monitor.DS2784PowerMonitor(self._device, self),
+        android_dumpsys_power_monitor.DumpsysPowerMonitor(self._device, self),
     ])
     self._power_monitor = android_temperature_monitor.AndroidTemperatureMonitor(
-        power_controller, device)
+        power_controller, self._device)
     self._video_recorder = None
     self._installed_applications = None
-    if self._no_performance_mode:
+    if self._enable_performance_mode:
       logging.warning('CPU governor will not be set!')
+
+  @classmethod
+  def SupportsDevice(cls, device):
+    return isinstance(device, android_device.AndroidDevice)
+
+  @property
+  def adb(self):
+    return self._adb
 
   def IsRawDisplayFrameRateSupported(self):
     return True
@@ -84,7 +108,7 @@ class AndroidPlatformBackend(
     return ret
 
   def SetFullPerformanceModeEnabled(self, enabled):
-    if self._no_performance_mode:
+    if not self._enable_performance_mode:
       return
     if enabled:
       self._perf_tests_setup.SetHighPerfMode()
@@ -180,6 +204,13 @@ class AndroidPlatformBackend(
 
   def FlushDnsCache(self):
     self._device.RunShellCommand('ndc resolver flushdefaultif', as_root=True)
+
+  def StopApplication(self, application):
+    """Stop the given |application|.
+       Args:
+       application: The full package name string of the application to launch.
+    """
+    self._adb.device().ForceStop(application)
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
