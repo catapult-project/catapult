@@ -89,10 +89,11 @@ class List(command_line.OptparseCommand):
   def Run(self, args):
     if args.json_output_file:
       possible_browser = browser_finder.FindBrowser(args)
-      has_ref = 'reference' in browser_finder.GetAllAvailableBrowserTypes(args)
+      args.browser_type = 'reference'
+      possible_reference_browser = browser_finder.FindBrowser(args)
       with open(args.json_output_file, 'w') as f:
-        f.write(_GetJsonTestList(possible_browser, has_ref, args.tests,
-                                 args.num_shards))
+        f.write(_GetJsonTestList(possible_browser, possible_reference_browser,
+                                 args.tests, args.num_shards))
     else:
       _PrintTestList(args.tests)
     return 0
@@ -255,7 +256,8 @@ def _MatchTestName(input_test_name, exact_matches=True):
           if _Matches(input_test_name, test_class.Name())]
 
 
-def _GetJsonTestList(possible_browser, has_reference, test_classes, num_shards):
+def _GetJsonTestList(possible_browser, possible_reference_browser,
+                     test_classes, num_shards):
   """Returns a list of all enabled tests in a JSON format expected by buildbots.
 
   JSON format (see build/android/pylib/perf/test_runner.py):
@@ -298,7 +300,8 @@ def _GetJsonTestList(possible_browser, has_reference, test_classes, num_shards):
       'device_affinity': device_affinity,
       'perf_dashboard_id': perf_dashboard_id,
     }
-    if has_reference:
+    if (possible_reference_browser and
+        decorators.IsEnabled(test_class, possible_reference_browser)):
       output['steps'][base_name + '.reference'] = {
         'cmd': ' '.join(base_cmd + [
               '--browser=reference', '--output-trace-tag=_ref']),
