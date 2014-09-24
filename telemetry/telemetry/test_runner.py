@@ -271,7 +271,7 @@ def _GetJsonTestList(possible_browser, has_reference, test_classes, num_shards):
   }
   """
   output = {
-    'version': 2,
+    'version': 1,
     'steps': {
     }
   }
