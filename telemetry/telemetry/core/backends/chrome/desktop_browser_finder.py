@@ -218,12 +218,12 @@ def FindAllAvailableBrowsers(finder_options):
       browsers.append(PossibleDesktopBrowser('system', finder_options,
                                              'google-chrome', None, False,
                                              '/opt/google/chrome'))
-    linux_reference = os.path.join(reference_build_root, 'chrome_linux',
-                                   'chrome')
+    linux_reference_root = os.path.join(reference_build_root, 'chrome_linux')
+    linux_reference = os.path.join(linux_reference_root, 'chrome')
     if path.IsExecutable(linux_reference):
       browsers.append(PossibleDesktopBrowser('reference', finder_options,
-                                             'chrome', None, False,
-                                             linux_reference))
+                                             linux_reference, None, False,
+                                             linux_reference_root))
 
   # Win32-specific options.
   if sys.platform.startswith('win'):
