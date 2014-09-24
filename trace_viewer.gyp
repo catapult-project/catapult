@@ -245,7 +245,6 @@
       'trace_viewer/tracing/tracks/heading_track.html',
       'trace_viewer/tracing/tracks/kernel_track.html',
       'trace_viewer/tracing/tracks/multi_row_track.html',
-      'trace_viewer/tracing/tracks/nestable_async_slice_group_track.html',
       'trace_viewer/tracing/tracks/object_instance_group_track.html',
       'trace_viewer/tracing/tracks/object_instance_track.html',
       'trace_viewer/tracing/tracks/process_track.html',

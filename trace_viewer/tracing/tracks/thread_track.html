@@ -12,7 +12,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/tracks/slice_track.html">
 <link rel="import" href="/tracing/tracks/slice_group_track.html">
 <link rel="import" href="/tracing/tracks/async_slice_group_track.html">
-<link rel="import" href="/tracing/tracks/nestable_async_slice_group_track.html">
 <link rel="import" href="/tracing/filter.html">
 <link rel="import" href="/tvcm/ui.html">
 <link rel="import" href="/tvcm/iteration_helpers.html">
@@ -60,9 +59,6 @@ tvcm.exportTo('tracing.tracks', function() {
       if (this.thread_.asyncSliceGroup.length)
         this.appendAsyncSliceTracks_();
 
-      if (this.thread_.nestableAsyncSliceGroup.length)
-        this.appendNestableAsyncSliceTracks_();
-
       this.appendThreadSamplesTracks_();
 
       if (this.thread_.timeSlices) {
@@ -93,19 +89,6 @@ tvcm.exportTo('tracing.tracks', function() {
         asyncTrack.heading = title;
         if (asyncTrack.hasVisibleContent)
           this.appendChild(asyncTrack);
-      }, this);
-    },
-
-    appendNestableAsyncSliceTracks_: function() {
-      var subGroups = this.thread_.nestableAsyncSliceGroup.categorySubGroups;
-      subGroups.forEach(function(subGroup) {
-        var nestableAsyncTrack =
-            new tracing.tracks.NestableAsyncSliceGroupTrack(this.viewport);
-        var title = subGroup.slices[0].category;
-        nestableAsyncTrack.group = subGroup;
-        nestableAsyncTrack.heading = title;
-        if (nestableAsyncTrack.hasVisibleContent)
-          this.appendChild(nestableAsyncTrack);
       }, this);
     },
 

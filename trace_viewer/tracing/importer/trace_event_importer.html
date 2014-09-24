@@ -178,18 +178,6 @@ tvcm.exportTo('tracing.importer', function() {
     },
 
     /**
-     * Helper to process a nestable async event.
-     */
-    processNestableAsyncEvent: function(event) {
-      var thread = this.model_.getOrCreateProcess(event.pid).
-          getOrCreateThread(event.tid);
-      this.allNestableAsyncEvents_.push({
-        sequenceNumber: this.allNestableAsyncEvents_.length,
-        event: event,
-        thread: thread});
-    },
-
-    /**
      * Helper to process a flow event.
      */
     processFlowEvent: function(event) {
@@ -423,12 +411,10 @@ tvcm.exportTo('tracing.importer', function() {
         } else if (event.ph === 'X') {
           this.processCompleteEvent(event);
 
-        } else if (event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
+        } else if (event.ph === 'b' || event.ph === 'e' || event.ph === 'n' ||
+                   event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
                    event.ph === 'p') {
           this.processAsyncEvent(event);
-
-        } else if (event.ph === 'b' || event.ph === 'e' || event.ph === 'n') {
-          this.processNestableAsyncEvent(event);
 
         // Note, I is historic. The instant event marker got changed, but we
         // want to support loading old trace files so we have both I and i.
@@ -505,7 +491,6 @@ tvcm.exportTo('tracing.importer', function() {
             this.softwareMeasuredCpuCount_;
       }
       this.createAsyncSlices_();
-      this.createNestableAsyncSlices_();
       this.createFlowSlices_();
       this.createExplicitObjects_();
       this.createImplicitObjects_();
@@ -571,24 +556,29 @@ tvcm.exportTo('tracing.importer', function() {
       this.joinObjectRefs_();
     },
 
-    createNestableAsyncSlices_: function() {
-      if (this.allNestableAsyncEvents_.length === 0)
+    createAsyncSlices_: function() {
+      if (this.allAsyncEvents_.length === 0)
         return;
-      this.allNestableAsyncEvents_.sort(function(x, y) {
+      this.allAsyncEvents_.sort(function(x, y) {
         var d = x.event.ts - y.event.ts;
-        if (d != 0)
+        if (d !== 0)
           return d;
         return x.sequenceNumber - y.sequenceNumber;
       });
 
       // Group nestable async events by ID. Events with the same ID should
       // belong to the same parent async event.
+      var legacyEvents = [];
       var nestableAsyncEventsByID = {};
-      for (var i = 0; i < this.allNestableAsyncEvents_.length; i++) {
-        var nestableAsyncEventState = this.allNestableAsyncEvents_[i];
-        var event = nestableAsyncEventState.event;
-        var name = event.name;
-        if (name === undefined) {
+      for (var i = 0; i < this.allAsyncEvents_.length; i++) {
+        var asyncEventState = this.allAsyncEvents_[i];
+        var event = asyncEventState.event;
+        if (event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
+            event.ph === 'p') {
+          legacyEvents.push(asyncEventState);
+          continue;
+        }
+        if (event.name === undefined) {
           this.model_.importWarning({
             type: 'nestable_async_slice_parse_error',
             message: 'Nestable async events (ph: b, e, or n) require a ' +
@@ -608,8 +598,10 @@ tvcm.exportTo('tracing.importer', function() {
         }
         if (nestableAsyncEventsByID[id] === undefined)
            nestableAsyncEventsByID[id] = [];
-        nestableAsyncEventsByID[id].push(nestableAsyncEventState);
+        nestableAsyncEventsByID[id].push(asyncEventState);
       }
+      // Handle legacy async events.
+      this.createLegacyAsyncSlices_(legacyEvents);
 
       // Parse nestable async events into AsyncSlices.
       for (var id in nestableAsyncEventsByID) {
@@ -630,7 +622,7 @@ tvcm.exportTo('tracing.importer', function() {
               }
             }
 
-            if (parentIndex == -1) {
+            if (parentIndex === -1) {
               // Unmatched end. Treat as instant event.
               eventStateEntry.event.ph = 'n';
             } else {
@@ -648,7 +640,7 @@ tvcm.exportTo('tracing.importer', function() {
             eventStateEntry.parentEntry = parentStack[parentStack.length - 1];
           }
 
-          if (eventStateEntry.event.ph == 'b')
+          if (eventStateEntry.event.ph === 'b')
             parentStack.push(eventStateEntry);
         }
 
@@ -662,7 +654,7 @@ tvcm.exportTo('tracing.importer', function() {
                 endThread = eventStateEntry.thread;
                 duration = 0;
             } else if (eventStateEntry.event.ph === 'b') {
-                if (eventStateEntry.end === undefined){
+                if (eventStateEntry.end === undefined) {
                   // Unmatched BEGIN. End it when last event with this ID ends.
                   eventStateEntry.end =
                       eventStateEntries[eventStateEntries.length - 1];
@@ -675,7 +667,8 @@ tvcm.exportTo('tracing.importer', function() {
                 eventStateEntry.event.name,
                 tvcm.ui.getStringColorId(eventStateEntry.event.name),
                 eventStateEntry.event.ts / 1000,
-                eventStateEntry.event.args,
+                tvcm.concatenateObjects(eventStateEntry.event.args,
+                                        eventStateEntry.end.event.args),
                 duration / 1000);
 
             slice.startThread = eventStateEntry.thread;
@@ -683,24 +676,24 @@ tvcm.exportTo('tracing.importer', function() {
             slice.id = eventStateEntry.event.id;
             eventStateEntry.slice = slice;
             // Add slice to parent slice if there is a parent.
-            if (eventStateEntry.parentEntry != undefined &&
-                eventStateEntry.parentEntry.slice != undefined) {
+            if (eventStateEntry.parentEntry !== undefined &&
+                eventStateEntry.parentEntry.slice !== undefined) {
               if (eventStateEntry.parentEntry.slice.subSlices === undefined)
                 eventStateEntry.parentEntry.slice.subSlices = [];
               eventStateEntry.parentEntry.slice.subSlices.push(slice);
             }
           }
         }
-        eventStateEntries[0].slice.startThread.nestableAsyncSliceGroup.push(
+        eventStateEntries[0].slice.startThread.asyncSliceGroup.push(
             eventStateEntries[0].slice);
       }
     },
 
-    createAsyncSlices_: function() {
-      if (this.allAsyncEvents_.length === 0)
+    createLegacyAsyncSlices_: function(legacyEvents) {
+      if (legacyEvents.length === 0)
         return;
 
-      this.allAsyncEvents_.sort(function(x, y) {
+      legacyEvents.sort(function(x, y) {
         var d = x.event.ts - y.event.ts;
         if (d != 0)
           return d;
@@ -709,9 +702,8 @@ tvcm.exportTo('tracing.importer', function() {
 
       var asyncEventStatesByNameThenID = {};
 
-      var allAsyncEvents = this.allAsyncEvents_;
-      for (var i = 0; i < allAsyncEvents.length; i++) {
-        var asyncEventState = allAsyncEvents[i];
+      for (var i = 0; i < legacyEvents.length; i++) {
+        var asyncEventState = legacyEvents[i];
 
         var event = asyncEventState.event;
         var name = event.name;

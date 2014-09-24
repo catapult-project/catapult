@@ -1177,6 +1177,35 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     assertTrue(m.hasImportWarnings);
   });
 
+  test('nestableAsyncBasic', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {x: 1}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'a', args: {}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assertEquals('a', parentSlice.title);
+    assertEquals('foo', parentSlice.category);
+
+    assertNotUndefined(parentSlice.subSlices);
+    assertEquals(1, parentSlice.subSlices.length);
+    var subSlice = parentSlice.subSlices[0];
+    assertEquals(1, subSlice.args['x']);
+    assertEquals(2, subSlice.args['y']);
+    assertUndefined(subSlice.subSlices);
+  });
+
   test('importSamples', function() {
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
