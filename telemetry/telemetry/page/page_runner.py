@@ -423,7 +423,6 @@ def Run(test, page_set, expectations, finder_options, results):
         if test.IsExiting():
           break
 
-        test.WillRunPageRepeats(page)
         for _ in xrange(0, finder_options.page_repeat):
           results.WillRunPage(page)
           try:
@@ -437,7 +436,6 @@ def Run(test, page_set, expectations, finder_options, results):
               if test.discard_first_result:
                 discard_run = True
             results.DidRunPage(page, discard_run=discard_run)
-        test.DidRunPageRepeats(page)
         if (not max_failures is None and
             len(results.failures) > max_failures):
           logging.error('Too many failures. Aborting.')

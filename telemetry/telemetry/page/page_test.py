@@ -216,12 +216,6 @@ class PageTest(command_line.Command):
     """
     self.options = None
 
-  def WillRunPageRepeats(self, page):
-    """Override to do operations before each page is iterated over."""
-
-  def DidRunPageRepeats(self, page):
-    """Override to do operations after each page is iterated over."""
-
   def WillNavigateToPage(self, page, tab):
     """Override to do operations before the page is navigated, notably Telemetry
     will already have performed the following operations on the browser before
