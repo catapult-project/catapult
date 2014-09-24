@@ -15,7 +15,8 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
     'cpu1': '1700000 11491\n1600000 0\n1500000 0\n1400000 248\n1300000 1166\n'
             '1200000 2082\n1100000 2943\n1000000 6560\n900000 12517\n'
             '800000 8690\n700000 5105\n600000 3800\n500000 5131\n400000 5479\n'
-            '300000 7571\n200000 133618'
+            '300000 7571\n200000 133618',
+    'cpu2': '1700000 1131'
   }
   final_freq = {
     'cpu0': '1700000 7159\n1600000 0\n1500000 0\n1400000 68\n1300000 134\n'
@@ -25,7 +26,8 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
     'cpu1': '1700000 12048\n1600000 0\n1500000 0\n1400000 280\n1300000 1267\n'
             '1200000 2272\n1100000 3163\n1000000 7039\n900000 13800\n'
             '800000 9599\n700000 5655\n600000 4144\n500000 5655\n400000 6005\n'
-            '300000 8288\n200000 149724'
+            '300000 8288\n200000 149724',
+    'cpu2': None
   }
   expected_initial_freq = {
     'cpu0': {
@@ -63,6 +65,9 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
       400000000: 5479,
       300000000: 7571,
       200000000: 133618
+    },
+    'cpu2': {
+      1700000000: 1131
     }
   }
   expected_final_freq = {
@@ -101,7 +106,8 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
       400000000: 6005,
       300000000: 8288,
       200000000: 149724
-    }
+    },
+    'cpu2': None
   }
   expected_freq_percents = {
     'whole_package': {
@@ -157,8 +163,12 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
       400000000: 2.3338361877717633,
       300000000: 3.1812938148904073,
       200000000: 71.46153163546012
+    },
+    'cpu2': {
+      1700000000: 0.0,
     }
   }
+
   def testParseCpuFreq(self):
     initial = sysfs_power_monitor.SysfsPowerMonitor.ParseFreqSample(
         self.initial_freq)
@@ -170,7 +180,7 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
   def testComputeCpuStats(self):
     results = sysfs_power_monitor.SysfsPowerMonitor.ComputeCpuStats(
         self.expected_initial_freq, self.expected_final_freq)
-    for cpu in results:
+    for cpu in self.expected_freq_percents:
       for freq in results[cpu]:
         self.assertAlmostEqual(results[cpu][freq],
                                self.expected_freq_percents[cpu][freq])

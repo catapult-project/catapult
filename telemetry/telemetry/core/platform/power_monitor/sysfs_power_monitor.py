@@ -104,7 +104,10 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     for cpu in self._cpus:
       cpu_freq_path = os.path.join(
           CPU_PATH, cpu, 'cpufreq/stats/time_in_state')
-      stats[cpu] = self._platform.RunCommand('cat %s' % cpu_freq_path)
+      try:
+        stats[cpu] = self._platform.GetFileContents(cpu_freq_path)
+      except Exception:
+        stats[cpu] = None
     return stats
 
   @staticmethod
@@ -120,6 +123,9 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     sample_stats = {}
     for cpu in sample:
       frequencies = {}
+      if sample[cpu] is None:
+        sample_stats[cpu] = None
+        continue
       for line in sample[cpu].splitlines():
         pair = line.split()
         freq = int(pair[0]) * 10 ** 3
@@ -152,6 +158,9 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     for cpu in initial:
       current_cpu = {}
       total = 0
+      if initial[cpu] is None or final[cpu] is None:
+        cpu_stats[cpu] = collections.defaultdict(int)
+        continue
       for state in initial[cpu]:
         current_cpu[state] = final[cpu][state] - initial[cpu][state]
         total += current_cpu[state]
