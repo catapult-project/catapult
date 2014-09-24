@@ -190,8 +190,7 @@ def FindAllAvailableBrowsers(finder_options):
     return []
   if finder_options.android_device:
     devices = [android_device.AndroidDevice(finder_options.android_device,
-                                            finder_options.no_performance_mode,
-                                            logging)]
+                                            finder_options.no_performance_mode)]
   else:
     devices = android_device.AndroidDevice.GetAllConnectedDevices()
 
