@@ -46,6 +46,9 @@ tvcm.exportTo('tracing', function() {
     },
 
     onBeginTiming: function(e) {
+      if (!this.isTouchPointInsideTrackBounds_(e.clientX, e.clientY))
+        return;
+
       var pt = this.getSnappedToEventPosition_(e);
       this.mouseDownAt_(pt.x, pt.y);
 
@@ -90,6 +93,20 @@ tvcm.exportTo('tracing', function() {
     },
 
     ////////////////////////////////////////////////////////////////////////////
+
+    isTouchPointInsideTrackBounds_: function (clientX, clientY) {
+      if (!this.viewport_ ||
+          !this.viewport_.modelTrackContainer ||
+          !this.viewport_.modelTrackContainer.canvas)
+        return false;
+
+      var canvasRect = this.viewport_.modelTrackContainer.canvas.getBoundingClientRect();
+      if (clientX >= canvasRect.left && clientX <= canvasRect.right &&
+          clientY >= canvasRect.top && clientY <= canvasRect.bottom)
+        return true;
+
+      return false;
+    },
 
     mouseDownAt_: function(worldX, y) {
       var ir = this.viewport_.interestRange;

@@ -22,6 +22,19 @@ tvcm.exportTo('about_tracing', function() {
     return promise;
   }
 
+  function appendTraceChunksTo(chunks, messageString) {
+    if (typeof messageString !== 'string')
+      throw new Error('Invalid data');
+    var re = /"params":\s*\{\s*"value":\s*\[([^]+)\]\s*\}\s*\}/;
+    var m = re.exec(messageString)
+    if (!m)
+      throw new Error('Malformed response');
+
+    if (chunks.length > 1)
+      chunks.push(',');
+    chunks.push(m[1]);
+  }
+
   /**
    * Controls tracing using the inspector's FrontendAgentHost APIs.
    *
@@ -112,25 +125,7 @@ tvcm.exportTo('about_tracing', function() {
     },
 
     onDataCollected_: function(messageString) {
-      if (typeof messageString !== 'string')
-        throw new Error('Invalid data');
-      var key = '"params": { "value": [ ';
-      var keyBeginIndex = messageString.indexOf(key);
-      if (keyBeginIndex == -1)
-        throw new Error('Malformed response');
-
-      var expectedEndKey = ' ] } }';
-      var actualEndString = messageString.substring(
-          messageString.length - expectedEndKey.length);
-      if (actualEndString !== expectedEndKey)
-        throw new Error('Expected end key not found');
-
-      var dataStartIndex = keyBeginIndex + key.length;
-      var data = messageString.substring(
-          dataStartIndex, messageString.length - expectedEndKey.length);
-      if (this.currentTraceTextChunks_.length > 1)
-        this.currentTraceTextChunks_.push(',');
-      this.currentTraceTextChunks_.push(data);
+      appendTraceChunksTo(this.currentTraceTextChunks_, messageString);
     },
 
     endRecording: function() {
@@ -183,7 +178,8 @@ tvcm.exportTo('about_tracing', function() {
   };
 
   return {
-    InspectorTracingControllerClient: InspectorTracingControllerClient
+    InspectorTracingControllerClient: InspectorTracingControllerClient,
+    appendTraceChunksTo: appendTraceChunksTo
   };
 });
 </script>

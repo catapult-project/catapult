@@ -220,9 +220,7 @@ console.log('inline script for widget.html');
     file_contents['/raw/raw_script.js'] = """
 console.log('/raw/raw_script.js was written');
 """
-    file_contents['/raw/platform.min.js'] = """
-"""
-    file_contents['/raw/polymer.min.js'] = """
+    file_contents['/raw/polymer.js'] = """
 """
 
     with fake_fs.FakeFS(file_contents):
