@@ -35,7 +35,12 @@ class PossibleIOSBrowser(possible_browser.PossibleBrowser):
   def Create(self):
     backend = ios_browser_backend.IosBrowserBackend(
         self.finder_options.browser_options)
-    return browser.Browser(backend, self._platform_backend)
+    return browser.Browser(backend,
+                           self._platform_backend,
+                           self._archive_path,
+                           self._append_to_existing_wpr,
+                           self._make_javascript_deterministic,
+                           self._credentials_path)
 
   def SupportsOptions(self, finder_options):
     #TODO(baxley): Implement me.

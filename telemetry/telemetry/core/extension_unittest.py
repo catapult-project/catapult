@@ -32,7 +32,6 @@ class ExtensionTest(unittest.TestCase):
       # May not find a browser that supports extensions.
       return False
     self._browser = browser_to_create.Create()
-    self._browser.Start()
     self._extension = self._browser.extensions[load_extension]
     self._extension_id = load_extension.extension_id
     self.assertTrue(self._extension)
@@ -124,7 +123,6 @@ class MultipleExtensionTest(unittest.TestCase):
     # May not find a browser that supports extensions.
     if browser_to_create:
       self._browser = browser_to_create.Create()
-      self._browser.Start()
 
   def tearDown(self):
     if self._browser:

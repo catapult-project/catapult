@@ -116,7 +116,12 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         extensions_to_load=self.finder_options.extensions_to_load,
         target_arch=self.finder_options.target_arch,
         android_platform_backend=self._platform_backend)
-    b = browser.Browser(backend, self._platform_backend)
+    b = browser.Browser(backend,
+                        self._platform_backend,
+                        self._archive_path,
+                        self._append_to_existing_wpr,
+                        self._make_javascript_deterministic,
+                        self._credentials_path)
     return b
 
   def SupportsOptions(self, finder_options):
