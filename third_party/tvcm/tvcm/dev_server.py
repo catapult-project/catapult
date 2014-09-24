@@ -125,8 +125,8 @@ def send_500(self, msg, ex, log_error=True, path=None):
     <html>
     <body>
     <h1>OMG something is wrong</h1>
-    <b><pre>%s</pre></b></p>
-    <pre>%s</pre>
+    <b><pre><code>%s</code></pre></b></p>
+    <pre><code>%s</code></pre>
     </body>
     </html>
 """ % (ex.message, traceback.format_exc())

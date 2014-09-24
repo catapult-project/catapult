@@ -115,6 +115,9 @@ class Module(object):
   def filename(self):
     return self.resource.absolute_path
 
+  def isComponent(self):
+    return "/third_party/components/" in self.filename
+
   def Parse(self):
     """Parses self.contents and fills in the module's dependency metadata."""
     raise NotImplementedError()
