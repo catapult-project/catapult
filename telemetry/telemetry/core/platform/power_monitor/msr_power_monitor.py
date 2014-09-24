@@ -23,6 +23,35 @@ def _JoulesToMilliwattHours(value_joules):
   return value_joules * 1000 / 3600.
 
 
+def _IsSandyBridgeOrLater(vendor, family, model):
+  # Model numbers from:
+  # https://software.intel.com/en-us/articles/intel-architecture-and- \
+  # processor-identification-with-cpuid-model-and-family-numbers
+  # http://www.speedtraq.com
+  return ('Intel' in vendor and family == 6 and
+          (model in (0x2A, 0x2D) or model >= 0x30))
+
+
+def _LinuxCheckCPU():
+  vendor = None
+  family = None
+  model = None
+  cpuinfo = open('/proc/cpuinfo').read().splitlines()
+  for line in cpuinfo:
+    if vendor and family and model:
+      break
+    if line.startswith('vendor_id'):
+      vendor = line.split('\t')[1]
+    elif line.startswith('cpu family'):
+      family = int(line.split(' ')[2])
+    elif line.startswith('model\t\t'):
+      model = int(line.split(' ')[1])
+  if not _IsSandyBridgeOrLater(vendor, family, model):
+    logging.info('Cannot monitor power: pre-Sandy Bridge CPU.')
+    return False
+  return True
+
+
 class MsrPowerMonitor(power_monitor.PowerMonitor):
   def __init__(self, backend):
     super(MsrPowerMonitor, self).__init__()
@@ -31,35 +60,11 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
     self._start_temp_c = None
 
   def CanMonitorPower(self):
-    if self._backend.GetOSName() != 'win':
-      return False
-
-    # This check works on Windows only.
-    family, model = map(int, re.match('.+ Family ([0-9]+) Model ([0-9]+)',
-                        platform.processor()).groups())
-    # Model numbers from:
-    # https://software.intel.com/en-us/articles/intel-architecture-and- \
-    # processor-identification-with-cpuid-model-and-family-numbers
-    # http://www.speedtraq.com
-    sandy_bridge_or_later = ('Intel' in platform.processor() and family == 6 and
-                             (model in (0x2A, 0x2D) or model >= 0x30))
-    if not sandy_bridge_or_later:
-      logging.info('Cannot monitor power: pre-Sandy Bridge CPU.')
-      return False
-
-    try:
-      if self._PackageEnergyJoules() <= 0:
-        logging.info('Cannot monitor power: no energy readings.')
-        return False
-
-      if self._TemperatureCelsius() <= 0:
-        logging.info('Cannot monitor power: no temperature readings.')
-        return False
-    except OSError as e:
-      logging.info('Cannot monitor power: %s' % e)
-      return False
-
-    return True
+    if self._backend.GetOSName() == 'win':
+      return self._WinCanMonitorPower()
+    elif self._backend.GetOSName() == 'linux':
+      return self._LinuxCanMonitorPower()
+    return False
 
   def StartMonitoringPower(self, browser):
     assert self._start_energy_j is None and self._start_temp_c is None, (
@@ -105,3 +110,30 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
     package_temp_headroom = (
         self._backend.ReadMsr(IA32_PACKAGE_THERM_STATUS) >> 16 & 0x7f)
     return tcc_activation_temp - package_temp_headroom
+
+  def _CheckMSRs(self):
+    try:
+      if self._PackageEnergyJoules() <= 0:
+        logging.info('Cannot monitor power: no energy readings.')
+        return False
+
+      if self._TemperatureCelsius() <= 0:
+        logging.info('Cannot monitor power: no temperature readings.')
+        return False
+    except OSError as e:
+      logging.info('Cannot monitor power: %s' % e)
+      return False
+
+  def _WinCanMonitorPower(self):
+    family, model = map(int, re.match('.+ Family ([0-9]+) Model ([0-9]+)',
+                        platform.processor()).groups())
+    if not _IsSandyBridgeOrLater(platform.processor(), family, model):
+      logging.info('Cannot monitor power: pre-Sandy Bridge CPU.')
+      return False
+
+    return self._CheckMSRs()
+
+  def _LinuxCanMonitorPower(self):
+    if not _LinuxCheckCPU():
+      return False
+    return self._CheckMSRs()

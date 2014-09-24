@@ -11,6 +11,7 @@ from telemetry import decorators
 from telemetry.core.platform import linux_based_platform_backend
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
+from telemetry.core.platform.power_monitor import msr_power_monitor
 from telemetry.util import cloud_storage
 from telemetry.util import support_binaries
 
@@ -24,6 +25,9 @@ _POSSIBLE_PERFHOST_APPLICATIONS = [
 class LinuxPlatformBackend(
     posix_platform_backend.PosixPlatformBackend,
     linux_based_platform_backend.LinuxBasedPlatformBackend):
+  def __init__(self):
+    super(LinuxPlatformBackend, self).__init__()
+    self._power_monitor = msr_power_monitor.MsrPowerMonitor(self)
 
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
@@ -86,6 +90,31 @@ class LinuxPlatformBackend(
     else:
       raise NotImplementedError(
           'Please teach Telemetry how to install ' + application)
+
+  def CanMonitorPower(self):
+    return self._power_monitor.CanMonitorPower()
+
+  def CanMeasurePerApplicationPower(self):
+    return self._power_monitor.CanMeasurePerApplicationPower()
+
+  def StartMonitoringPower(self, browser):
+    self._power_monitor.StartMonitoringPower(browser)
+
+  def StopMonitoringPower(self):
+    return self._power_monitor.StopMonitoringPower()
+
+  def ReadMsr(self, msr_number):
+    cmd = ['/usr/sbin/rdmsr', '-d', str(msr_number)]
+    (out, err) = subprocess.Popen(cmd,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE).communicate()
+    if err:
+      raise OSError(err)
+    try:
+      result = int(out)
+    except ValueError:
+      raise OSError('Cannot interpret rdmsr output: %s' % out)
+    return result
 
   def _IsIpfwKernelModuleInstalled(self):
     return 'ipfw_mod' in subprocess.Popen(
