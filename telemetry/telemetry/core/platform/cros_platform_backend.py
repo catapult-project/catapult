@@ -12,7 +12,7 @@ from telemetry.core.platform.power_monitor import cros_power_monitor
 class CrosPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
 
-  def __init__(self, device):
+  def __init__(self, device=None):
     super(CrosPlatformBackend, self).__init__(device)
     if device:
       self._cri = cros_interface.CrOSInterface(
