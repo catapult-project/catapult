@@ -1179,7 +1179,6 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('nestableAsyncBasic', function() {
     var events = [
-      // Time is intentionally out of order.
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
         ph: 'b', id: 72},
       {name: 'b', args: {x: 1}, pid: 52, ts: 525, cat: 'foo', tid: 53,
@@ -1204,6 +1203,39 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals(1, subSlice.args['x']);
     assertEquals(2, subSlice.args['y']);
     assertUndefined(subSlice.subSlices);
+  });
+
+  test('nestableAsyncInstantEvent', function() {
+    var events = [
+      {name: 'c', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'n', id: 71},
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'd', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'n', id: 72},
+      {name: 'a', args: {}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    assertEquals(2, t.asyncSliceGroup.slices.length);
+    var instantSlice = t.asyncSliceGroup.slices[0];
+    assertEquals('c', instantSlice.title);
+    assertAlmostEquals(0, instantSlice.start);
+    assertAlmostEquals(0, instantSlice.duration);
+    assertUndefined(instantSlice.subSlices);
+
+    var nestedSlice = t.asyncSliceGroup.slices[1];
+    assertEquals('a', nestedSlice.title);
+    assertAlmostEquals(0, nestedSlice.start);
+    assertAlmostEquals((565-524) / 1000, nestedSlice.duration);
+    assertNotUndefined(nestedSlice.subSlices);
+    assertEquals(1, nestedSlice.subSlices.length);
+    var nestedInstantSlice = nestedSlice.subSlices[0];
+    assertUndefined(nestedInstantSlice.subSlices);
+    assertEquals('d', nestedInstantSlice.title);
   });
 
   test('importSamples', function() {

@@ -650,25 +650,29 @@ tvcm.exportTo('tracing.importer', function() {
               eventStateEntry.event.ph === 'b') {
             var endThread;
             var duration;
+            var sliceArgs;
             if (eventStateEntry.event.ph === 'n') {
-                endThread = eventStateEntry.thread;
-                duration = 0;
-            } else if (eventStateEntry.event.ph === 'b') {
-                if (eventStateEntry.end === undefined) {
-                  // Unmatched BEGIN. End it when last event with this ID ends.
-                  eventStateEntry.end =
-                      eventStateEntries[eventStateEntries.length - 1];
-                }
-                duration =
-                    eventStateEntry.end.event.ts - eventStateEntry.event.ts;
+              endThread = eventStateEntry.thread;
+              duration = 0;
+              sliceArgs = eventStateEntry.event.args;
+            } else {
+              if (eventStateEntry.end === undefined) {
+                // Unmatched BEGIN. End it when last event with this ID ends.
+                eventStateEntry.end =
+                    eventStateEntries[eventStateEntries.length - 1];
+              }
+              duration =
+                  eventStateEntry.end.event.ts - eventStateEntry.event.ts;
+              sliceArgs =
+                  tvcm.concatenateObjects(eventStateEntry.event.args,
+                                          eventStateEntry.end.event.args);
             }
             var slice = new tracing.trace_model.AsyncSlice(
                 eventStateEntry.event.cat,
                 eventStateEntry.event.name,
                 tvcm.ui.getStringColorId(eventStateEntry.event.name),
                 eventStateEntry.event.ts / 1000,
-                tvcm.concatenateObjects(eventStateEntry.event.args,
-                                        eventStateEntry.end.event.args),
+                sliceArgs,
                 duration / 1000);
 
             slice.startThread = eventStateEntry.thread;
