@@ -161,9 +161,8 @@ class Run(command_line.OptparseCommand):
       page_set_name = args.positional_args[1]
       page_set_class = _MatchPageSetName(page_set_name)
       if page_set_class is None:
-        parser.error(
-            'Page set not found. Please specify the name of a valid page set.')
-        #TODO(ariblue): Print available page sets.
+        parser.error("Page set %s not found. Available sets:\n%s" %
+                     (page_set_name, _AvailablePageSetNamesString()))
 
       class TestWrapper(benchmark.Benchmark):
         test = test_class
@@ -231,6 +230,15 @@ def _MatchPageSetName(input_name):
     if input_name == p.Name():
       return p
   return None
+
+
+def _AvailablePageSetNamesString():
+  result = ""
+  for base_dir in config.base_paths:
+    for p in discover.DiscoverClasses(base_dir, base_dir, page_set.PageSet,
+                                      index_by_class_name=True).values():
+      result += p.Name() + "\n"
+  return result
 
 
 def _MatchTestName(input_test_name, exact_matches=True):
