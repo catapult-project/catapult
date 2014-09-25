@@ -13,7 +13,9 @@ class PlatformBackendTest(unittest.TestCase):
   def testPowerMonitoringSync(self):
     # Tests that the act of monitoring power doesn't blow up.
     platform = platform_module.GetHostPlatform()
-    if not platform.CanMonitorPower():
+    can_monitor_power = platform.CanMonitorPower()
+    self.assertIsInstance(can_monitor_power, bool)
+    if not can_monitor_power:
       logging.warning('Test not supported on this platform.')
       return
 

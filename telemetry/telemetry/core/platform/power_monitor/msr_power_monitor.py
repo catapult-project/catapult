@@ -123,6 +123,7 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
     except OSError as e:
       logging.info('Cannot monitor power: %s' % e)
       return False
+    return True
 
   def _WinCanMonitorPower(self):
     family, model = map(int, re.match('.+ Family ([0-9]+) Model ([0-9]+)',
