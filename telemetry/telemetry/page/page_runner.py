@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import collections
 import logging
 import optparse
 import os
@@ -36,7 +35,6 @@ class _RunState(object):
     self._append_to_existing_wpr = False
     self._last_archive_path = None
     self._first_browser = True
-    self.first_page = collections.defaultdict(lambda: True)
     self.profiler_dir = None
 
   def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
@@ -246,7 +244,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
   max_attempts = test.attempts
   attempt_num = 0
   while attempt_num < max_attempts:
-    attempt_num = attempt_num + 1
+    attempt_num += 1
     try:
       results.WillAttemptPageRun(attempt_num, max_attempts)
 
@@ -345,20 +343,16 @@ def Run(test, page_set, expectations, finder_options, results):
     sys.exit(-1)
   if not possible_browser:
     sys.stderr.write(
-        'No browser found. Available browsers:\n' +
-        '\n'.join(browser_finder.GetAllAvailableBrowserTypes(finder_options)) +
-        '\n')
+        'No browser found. Available browsers:\n%s\n' %
+        '\n'.join(browser_finder.GetAllAvailableBrowserTypes(finder_options)))
     sys.exit(-1)
 
   browser_options = possible_browser.finder_options.browser_options
   browser_options.browser_type = possible_browser.browser_type
   test.CustomizeBrowserOptions(browser_options)
 
-  should_run = decorators.IsEnabled(test, possible_browser)
-
-  should_run = should_run or finder_options.run_disabled_tests
-
-  if not should_run:
+  if (not decorators.IsEnabled(test, possible_browser) and
+      not finder_options.run_disabled_tests):
     logging.warning('You are trying to run a disabled test.')
     logging.warning('Pass --also-run-disabled-tests to squelch this message.')
     return
@@ -404,72 +398,54 @@ def Run(test, page_set, expectations, finder_options, results):
     return
 
   state = _RunState()
-  # TODO(dtu): Move results creation and results_for_current_run into RunState.
-
-  max_failures = None
-  if not test.max_failures is None:
-    max_failures = test.max_failures
-  if not finder_options.max_failures is None:
-    # Support overriding this from the command line.
-    max_failures = finder_options.max_failures
+  pages_with_discarded_first_result = set()
+  max_failures = finder_options.max_failures  # command-line gets priority
+  if max_failures is None:
+    max_failures = test.max_failures  # may be None
 
   try:
     test.WillRunTest(finder_options)
-    for _ in xrange(0, finder_options.pageset_repeat):
+    for _ in xrange(finder_options.pageset_repeat):
       for page in pages:
         if test.IsExiting():
           break
-
-        for _ in xrange(0, finder_options.page_repeat):
+        for _ in xrange(finder_options.page_repeat):
           results.WillRunPage(page)
           try:
             _PrepareAndRunPage(
                 test, page_set, expectations, finder_options, browser_options,
                 page, credentials_path, possible_browser, results, state)
           finally:
-            discard_run = False
-            if state.first_page[page]:
-              state.first_page[page] = False
-              if test.discard_first_result:
-                discard_run = True
+            discard_run = (test.discard_first_result and
+                           page not in pages_with_discarded_first_result)
+            if discard_run:
+              pages_with_discarded_first_result.add(page)
             results.DidRunPage(page, discard_run=discard_run)
-        if (not max_failures is None and
-            len(results.failures) > max_failures):
+        if max_failures is not None and len(results.failures) > max_failures:
           logging.error('Too many failures. Aborting.')
           test.RequestExit()
-
   finally:
     test.DidRunTest(state.browser, results)
     state.StopBrowser()
-
-  return
 
 
 def _ShuffleAndFilterPageSet(page_set, finder_options):
   if finder_options.pageset_shuffle_order_file:
     return page_set.ReorderPageSet(finder_options.pageset_shuffle_order_file)
-
   pages = [page for page in page_set.pages[:]
            if not page.disabled and page_filter.PageFilter.IsSelected(page)]
-
   if finder_options.pageset_shuffle:
-    random.Random().shuffle(pages)
-
+    random.shuffle(pages)
   return pages
 
 
 def _CheckArchives(page_set, pages, results):
   """Returns a subset of pages that are local or have WPR archives.
 
-  Logs warnings if any are missing."""
-  page_set_has_live_sites = False
-  for page in pages:
-    if not page.is_local:
-      page_set_has_live_sites = True
-      break
-
-  # Potential problems with the entire page set.
-  if page_set_has_live_sites:
+  Logs warnings if any are missing.
+  """
+  # Warn of any problems with the entire page set.
+  if any(not p.is_local for p in pages):
     if not page_set.archive_data_file:
       logging.warning('The page set is missing an "archive_data_file" '
                       'property. Skipping any live sites. To include them, '
@@ -480,19 +456,17 @@ def _CheckArchives(page_set, pages, results):
                       '.gclient using http://goto/read-src-internal, '
                       'or create a new archive using record_wpr.')
 
-  # Potential problems with individual pages.
+  # Warn of any problems with individual pages and return valid pages.
   pages_missing_archive_path = []
   pages_missing_archive_data = []
-
+  valid_pages = []
   for page in pages:
-    if page.is_local:
-      continue
-
-    if not page.archive_path:
+    if not page.is_local and not page.archive_path:
       pages_missing_archive_path.append(page)
-    elif not os.path.isfile(page.archive_path):
+    elif not page.is_local and not os.path.isfile(page.archive_path):
       pages_missing_archive_data.append(page)
-
+    else:
+      valid_pages.append(page)
   if pages_missing_archive_path:
     logging.warning('The page set archives for some pages do not exist. '
                     'Skipping those pages. To fix this, record those pages '
@@ -504,15 +478,12 @@ def _CheckArchives(page_set, pages, results):
                     'Skipping those pages. To fix this, record those pages '
                     'using record_wpr. To ignore this warning and run '
                     'against live sites, pass the flag --use-live-sites.')
-
   for page in pages_missing_archive_path + pages_missing_archive_data:
     results.WillRunPage(page)
     results.AddValue(failure.FailureValue.FromMessage(
         page, 'Page set archive doesn\'t exist.'))
     results.DidRunPage(page)
-
-  return [page for page in pages if page not in
-          pages_missing_archive_path + pages_missing_archive_data]
+  return valid_pages
 
 
 def _RunPage(test, page, state, expectation, results):
