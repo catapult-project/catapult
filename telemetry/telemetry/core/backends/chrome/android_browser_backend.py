@@ -6,10 +6,8 @@ import logging
 import os
 import pipes
 import re
-import shutil
 import subprocess
 import sys
-import tempfile
 import time
 
 from telemetry.core import exceptions
@@ -23,11 +21,6 @@ from telemetry.core.forwarders import android_forwarder
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import device_errors  # pylint: disable=F0401
 from pylib.device import intent  # pylint: disable=F0401
-
-util.AddDirToPythonPath(util.GetChromiumSrcDir(),
-                        'third_party', 'webpagereplay')
-import adb_install_cert  # pylint: disable=F0401
-import certutils  # pylint: disable=F0401
 
 
 class AndroidBrowserBackendSettings(object):
@@ -196,9 +189,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._saved_cmdline = ''
     self._target_arch = target_arch
     self._saved_sslflag = ''
-    self._use_rndis_forwarder = use_rndis_forwarder
-    self._cert_util = None
-    self._ca_cert_path = os.path.join(tempfile.mkdtemp(), 'testca.pem')
 
     # TODO(tonyg): This is flaky because it doesn't reserve the port that it
     # allocates. Need to fix this.
@@ -210,8 +200,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._backend_settings.relax_ssl_check:
       self._saved_sslflag = self._adb.device().GetProp('socket.relaxsslcheck')
       self._adb.device().SetProp('socket.relaxsslcheck', 'yes')
-
-    self._InstallTestCa()
 
     # Kill old browser.
     self._KillBrowser()
@@ -241,20 +229,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   @property
   def _adb(self):
     return self._android_platform_backend.adb
-
-  def _InstallTestCa(self):
-    certutils.write_dummy_ca_cert(*certutils.generate_dummy_ca_cert(),
-                                  cert_path=self._ca_cert_path)
-    self._cert_util = adb_install_cert.AndroidCertInstaller(
-        self._adb.device_serial(), None, self._ca_cert_path)
-
-    logging.info('Installing test CA')
-    self._cert_util.install_cert(True)
-
-  def _RemoveTestCa(self):
-    self._cert_util.remove_cert()
-    ca_cert_dir = os.path.dirname(self._ca_cert_path)
-    shutil.rmtree(ca_cert_dir)
 
   def _KillBrowser(self):
     # We use KillAll rather than ForceStop for efficiency reasons.
@@ -403,8 +377,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._backend_settings.relax_ssl_check:
       self._adb.device().SetProp('socket.relaxsslcheck', self._saved_sslflag)
 
-    self._RemoveTestCa()
-
     if self._output_profile_path:
       logging.info("Pulling profile directory from device: '%s'->'%s'.",
                    self._backend_settings.profile_dir,
@@ -468,6 +440,3 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       extra_wpr_args.append('--no-dns_forwarding')
     if self.browser_options.netsim:
       extra_wpr_args.append('--net=%s' % self.browser_options.netsim)
-    if self.browser_options.netsim or self._use_rndis_forwarder:
-      extra_wpr_args.append('--should_generate_certs')
-      extra_wpr_args.append('--https_root_ca_cert_path=%s' % self._ca_cert_path)
