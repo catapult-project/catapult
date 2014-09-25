@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import collections
+import logging
 import os
 import re
 
@@ -106,7 +107,10 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
           CPU_PATH, cpu, 'cpufreq/stats/time_in_state')
       try:
         stats[cpu] = self._platform.GetFileContents(cpu_freq_path)
-      except Exception:
+      except Exception as e:
+        logging.warning(
+            'Cannot read cpu frequency times in %s due to error: %s' %
+            (cpu_freq_path, e.message))
         stats[cpu] = None
     return stats
 
