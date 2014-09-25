@@ -59,6 +59,9 @@ class SampleTestExpectations(test_expectations.TestExpectations):
     self.Fail('page9.html', ['imagination'])
     self.Fail('page10.html', [('imagination', 'PowerVR SGX 554')])
     self.Fail('Pages.page_11')
+    self.Fail('page12.html', ['mountainlion'])
+    self.Fail('page13.html', ['mavericks'])
+    self.Fail('page14.html', ['yosemite'])
 
 class TestExpectationsTest(unittest.TestCase):
   def setUp(self):
@@ -189,3 +192,30 @@ class TestExpectationsTest(unittest.TestCase):
     page = page_module.Page('http://test.com/page11.html', ps,
                             name='Pages.page_11')
     self.assertExpectationEquals('fail', page)
+
+  # Verify version-specific Mac expectations.
+  def testMacVersionExpectations(self):
+    ps = page_set.PageSet()
+    page = page_module.Page('http://test.com/page12.html', ps)
+    self.assertExpectationEquals('fail', page,
+                                 StubPlatform('mac', 'mountainlion'))
+    self.assertExpectationEquals('pass', page,
+                                 StubPlatform('mac', 'mavericks'))
+    self.assertExpectationEquals('pass', page,
+                                 StubPlatform('mac', 'yosemite'))
+    ps = page_set.PageSet()
+    page = page_module.Page('http://test.com/page13.html', ps)
+    self.assertExpectationEquals('pass', page,
+                                 StubPlatform('mac', 'mountainlion'))
+    self.assertExpectationEquals('fail', page,
+                                 StubPlatform('mac', 'mavericks'))
+    self.assertExpectationEquals('pass', page,
+                                 StubPlatform('mac', 'yosemite'))
+    ps = page_set.PageSet()
+    page = page_module.Page('http://test.com/page14.html', ps)
+    self.assertExpectationEquals('pass', page,
+                                 StubPlatform('mac', 'mountainlion'))
+    self.assertExpectationEquals('pass', page,
+                                 StubPlatform('mac', 'mavericks'))
+    self.assertExpectationEquals('fail', page,
+                                 StubPlatform('mac', 'yosemite'))

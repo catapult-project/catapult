@@ -6,7 +6,7 @@ import fnmatch
 
 OS_MODIFIERS = ['win', 'xp', 'vista', 'win7',
                 'mac', 'leopard', 'snowleopard', 'lion', 'mountainlion',
-                'linux', 'chromeos', 'android']
+                'mavericks', 'yosemite', 'linux', 'chromeos', 'android']
 GPU_MODIFIERS = ['amd', 'arm', 'broadcom', 'hisilicon', 'intel', 'imagination',
                  'nvidia', 'qualcomm', 'vivante']
 CONFIG_MODIFIERS = ['debug', 'release']
