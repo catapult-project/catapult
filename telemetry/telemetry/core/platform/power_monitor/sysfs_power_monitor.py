@@ -162,7 +162,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     for cpu in initial:
       current_cpu = {}
       total = 0
-      if initial[cpu] is None or final[cpu] is None:
+      if not initial[cpu] or not final[cpu]:
         cpu_stats[cpu] = collections.defaultdict(int)
         continue
       for state in initial[cpu]:
