@@ -587,7 +587,7 @@ class PageRunnerTests(unittest.TestCase):
         super(TestPage, self).__init__(*args, **kwargs)
         self.was_run = False
 
-      def RunNavigateSteps(self, action_runner):
+      def RunNavigateSteps(self, action_runner): # pylint: disable=W0613
         self.was_run = True
         raise Exception('Test exception')
 
