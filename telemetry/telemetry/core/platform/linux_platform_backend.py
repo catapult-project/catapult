@@ -103,7 +103,7 @@ class LinuxPlatformBackend(
   def StopMonitoringPower(self):
     return self._power_monitor.StopMonitoringPower()
 
-  def ReadMsr(self, msr_number):
+  def ReadMsr(self, msr_number, start=0, length=64):
     cmd = ['/usr/sbin/rdmsr', '-d', str(msr_number)]
     (out, err) = subprocess.Popen(cmd,
                                   stdout=subprocess.PIPE,
@@ -114,7 +114,7 @@ class LinuxPlatformBackend(
       result = int(out)
     except ValueError:
       raise OSError('Cannot interpret rdmsr output: %s' % out)
-    return result
+    return result >> start & ((1 << length) - 1)
 
   def _IsIpfwKernelModuleInstalled(self):
     return 'ipfw_mod' in subprocess.Popen(

@@ -78,8 +78,9 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
 
     energy_consumption_j = self._PackageEnergyJoules() - self._start_energy_j
     average_temp_c = (self._TemperatureCelsius() + self._start_temp_c) / 2.
-    assert energy_consumption_j >= 0, ('Negative energy consumption. (Starting '
-                                       'energy was %s.)' % self._start_energy_j)
+    if energy_consumption_j < 0:  # Correct overflow.
+      # The energy portion of the MSR is 4 bytes.
+      energy_consumption_j += 2 ** 32 * self._EnergyMultiplier()
 
     self._start_energy_j = None
     self._start_temp_c = None
@@ -96,19 +97,18 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
 
   @decorators.Cache
   def _EnergyMultiplier(self):
-    return 0.5 ** ((self._backend.ReadMsr(MSR_RAPL_POWER_UNIT) >> 8) & 0x1f)
+    return 0.5 ** self._backend.ReadMsr(MSR_RAPL_POWER_UNIT, 8, 5)
 
   def _PackageEnergyJoules(self):
-    return (self._backend.ReadMsr(MSR_PKG_ENERGY_STATUS) *
+    return (self._backend.ReadMsr(MSR_PKG_ENERGY_STATUS, 0, 32) *
             self._EnergyMultiplier())
 
   def _TemperatureCelsius(self):
-    tcc_activation_temp = (
-        self._backend.ReadMsr(IA32_TEMPERATURE_TARGET) >> 16 & 0x7f)
+    tcc_activation_temp = self._backend.ReadMsr(IA32_TEMPERATURE_TARGET, 16, 7)
     if tcc_activation_temp <= 0:
       tcc_activation_temp = 105
-    package_temp_headroom = (
-        self._backend.ReadMsr(IA32_PACKAGE_THERM_STATUS) >> 16 & 0x7f)
+    package_temp_headroom = self._backend.ReadMsr(
+        IA32_PACKAGE_THERM_STATUS, 16, 7)
     return tcc_activation_temp - package_temp_headroom
 
   def _CheckMSRs(self):

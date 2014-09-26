@@ -346,7 +346,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       self.CloseMsrServer()
     atexit.register(TerminateProcess, self._msr_server_handle)
 
-  def ReadMsr(self, msr_number):
+  def ReadMsr(self, msr_number, start=0, length=64):
     self._StartMsrServerIfNeeded()
     if not self._msr_server_handle:
       raise OSError('Unable to start MSR server.')
@@ -357,4 +357,4 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       response = sock.recv(8)
     finally:
       sock.close()
-    return struct.unpack('Q', response)[0]
+    return struct.unpack('Q', response)[0] >> start & ((1 << length) - 1)
