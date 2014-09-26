@@ -37,7 +37,7 @@ class AndroidBrowserBackendSettings(object):
   def GetCommandLineFile(self, is_user_debug_build):  # pylint: disable=W0613
     return self._cmdline_file
 
-  def GetDevtoolsRemotePort(self):
+  def GetDevtoolsRemotePort(self, adb):
     raise NotImplementedError()
 
   def RemoveProfile(self, adb):
@@ -47,7 +47,7 @@ class AndroidBrowserBackendSettings(object):
     paths = ['"%s/%s"' % (self.profile_dir, f) for f in files if f != 'lib']
     adb.device().RunShellCommand('rm -r %s' % ' '.join(paths), as_root=True)
 
-  def PushProfile(self, _):
+  def PushProfile(self, _new_profile_dir, _adb):
     logging.critical('Profiles cannot be overriden with current configuration')
     sys.exit(1)
 
@@ -74,10 +74,10 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
         pseudo_exec_name='chrome',
         supports_tab_control=True)
 
-  def GetDevtoolsRemotePort(self):
+  def GetDevtoolsRemotePort(self, adb):
     return 'localabstract:chrome_devtools_remote'
 
-  def PushProfile(self, new_profile_dir):
+  def PushProfile(self, new_profile_dir, adb):
     # Pushing the profile is slow, so we don't want to do it every time.
     # Avoid this by pushing to a safe location using PushChangedFiles, and
     # then copying into the correct location on each test run.
@@ -89,21 +89,21 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
       profile_base = os.path.basename(profile_parent)
 
     saved_profile_location = '/sdcard/profile/%s' % profile_base
-    self.adb.device().PushChangedFiles(new_profile_dir, saved_profile_location)
+    adb.device().PushChangedFiles(new_profile_dir, saved_profile_location)
 
-    self.adb.device().old_interface.EfficientDeviceDirectoryCopy(
+    adb.device().old_interface.EfficientDeviceDirectoryCopy(
         saved_profile_location, self.profile_dir)
-    dumpsys = self.adb.device().RunShellCommand(
+    dumpsys = adb.device().RunShellCommand(
         'dumpsys package %s' % self.package)
     id_line = next(line for line in dumpsys if 'userId=' in line)
     uid = re.search('\d+', id_line).group()
-    files = self.adb.device().RunShellCommand(
+    files = adb.device().RunShellCommand(
         'ls "%s"' % self.profile_dir, as_root=True)
     files.remove('lib')
     paths = ['%s/%s' % (self.profile_dir, f) for f in files]
     for path in paths:
       extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)
-      self.adb.device().RunShellCommand(
+      adb.device().RunShellCommand(
           'chown %s.%s %s' % (uid, uid, extended_path))
 
 class ContentShellBackendSettings(AndroidBrowserBackendSettings):
@@ -115,7 +115,7 @@ class ContentShellBackendSettings(AndroidBrowserBackendSettings):
         pseudo_exec_name='content_shell',
         supports_tab_control=False)
 
-  def GetDevtoolsRemotePort(self):
+  def GetDevtoolsRemotePort(self, adb):
     return 'localabstract:content_shell_devtools_remote'
 
 
@@ -128,7 +128,7 @@ class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
           pseudo_exec_name='chrome_shell',
           supports_tab_control=False)
 
-  def GetDevtoolsRemotePort(self):
+  def GetDevtoolsRemotePort(self, adb):
     return 'localabstract:chrome_shell_devtools_remote'
 
 class WebviewBackendSettings(AndroidBrowserBackendSettings):
@@ -141,13 +141,13 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
         pseudo_exec_name='webview',
         supports_tab_control=False)
 
-  def GetDevtoolsRemotePort(self):
+  def GetDevtoolsRemotePort(self, adb):
     # The DevTools socket name for WebView depends on the activity PID's.
     retries = 0
     timeout = 1
     pid = None
     while True:
-      pids = self.adb.ExtractPid(self.package)
+      pids = adb.ExtractPid(self.package)
       if (len(pids) > 0):
         pid = pids[-1]
         break
@@ -206,7 +206,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     if self._adb.device().old_interface.CanAccessProtectedFileContents():
       if self.browser_options.profile_dir:
-        self._backend_settings.PushProfile(self.browser_options.profile_dir)
+        self._backend_settings.PushProfile(self.browser_options.profile_dir,
+                                           self._adb)
       elif not self.browser_options.dont_override_profile:
         self._backend_settings.RemoveProfile(self._adb)
 
@@ -304,7 +305,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         blocking=True)
 
     self._adb.Forward('tcp:%d' % self._port,
-                      self._backend_settings.GetDevtoolsRemotePort())
+                      self._backend_settings.GetDevtoolsRemotePort(self._adb))
 
     try:
       self._WaitForBrowserToComeUp()
