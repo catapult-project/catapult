@@ -82,7 +82,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             # Debug logging.
             '--vmodule=*/chromeos/net/*=2,*/chromeos/login/*=2'])
 
-    if not self.browser_options.gaia_login:
+    # Disable GAIA services unless we're using GAIA login, or if there's an
+    # explicit request for it.
+    if (self.browser_options.disable_gaia_services and
+        not self.browser_options.gaia_login):
       args.append('--disable-gaia-services')
 
     return args
