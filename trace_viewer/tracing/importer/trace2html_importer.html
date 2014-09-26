@@ -17,20 +17,17 @@ tvcm.exportTo('tracing.importer', function() {
 
   function Trace2HTMLImporter(model, events) {
     this.importPriority = 0;
-    this.events_ = events;
   }
 
-  function _extractEventsFromHTML(text, produce_result) {
-    var failure = {ok: false};
-    if (produce_result === undefined)
-      produce_result = true;
+  Trace2HTMLImporter.subtraces_ = [];
 
-    if (/^<!DOCTYPE HTML>/.test(text) == false)
-      return failure;
+  function _extractEventsFromHTML(text) {
+    // Clear the array before pushing data to it.
+    Trace2HTMLImporter.subtraces_ = [];
+
     var r = new tracing.importer.SimpleLineReader(text);
 
     // Try to find viewer-data...
-    var subtraces = [];
     while (true) {
       if (!r.advanceToLineMatching(
           /^<\s*script id="viewer-data" type="application\/json">$/))
@@ -48,25 +45,30 @@ tvcm.exportTo('tracing.importer', function() {
       var buffer = new ArrayBuffer(
           tvcm.Base64.getDecodedBufferLength(data64));
       var len = tvcm.Base64.DecodeToTypedArray(data64, new DataView(buffer));
-      subtraces.push(buffer.slice(0, len));
+      Trace2HTMLImporter.subtraces_.push(buffer.slice(0, len));
     }
-    if (subtraces.length == 0)
-      return failure;
-    return {
-      ok: true,
-      subtraces: produce_result ? subtraces : undefined
-    };
+  }
+
+  function _canImportFromHTML(text) {
+    if (/^<!DOCTYPE HTML>/.test(text) === false)
+      return false;
+
+    // Try to find viewer-data...
+    _extractEventsFromHTML(text);
+    if (Trace2HTMLImporter.subtraces_.length === 0)
+      return false;
+    return true;
   }
 
   Trace2HTMLImporter.canImport = function(events) {
-    return _extractEventsFromHTML(events, false).ok;
+    return _canImportFromHTML(events);
   };
 
   Trace2HTMLImporter.prototype = {
     __proto__: tracing.importer.Importer.prototype,
 
     extractSubtraces: function() {
-      return _extractEventsFromHTML(this.events_, true).subtraces;
+      return Trace2HTMLImporter.subtraces_;
     },
 
     importEvents: function() {
