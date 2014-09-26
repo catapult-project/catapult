@@ -18,6 +18,14 @@ tvcm.exportTo('tracing.importer', function() {
     __proto__: Object.prototype,
 
     /**
+     * Called by the Model to check whether the importer type stores the actual
+     * trace data or just holds it as container for further extraction.
+     */
+    isTraceDataContainer: function() {
+      return false;
+    },
+
+    /**
      * Called by the Model to extract one or more subtraces from the event data.
      */
     extractSubtraces: function() {
