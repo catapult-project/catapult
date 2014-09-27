@@ -69,6 +69,10 @@ class NotFoundError(CloudStorageError):
   pass
 
 
+class ServerError(CloudStorageError):
+  pass
+
+
 # TODO(tonyg/dtu): Can this be replaced with distutils.spawn.find_executable()?
 def _FindExecutableInPath(relative_executable_path, *extra_search_paths):
   search_paths = list(extra_search_paths) + os.environ['PATH'].split(os.pathsep)
@@ -136,13 +140,13 @@ def _RunCommand(args):
         'You are attempting to access protected data with no configured',
         'Failure: No handler was ready to authenticate.')):
       raise CredentialsError(gsutil_path)
-    if 'status=401' in stderr or 'status 401' in stderr:
-      raise CredentialsError(gsutil_path)
     if 'status=403' in stderr or 'status 403' in stderr:
       raise PermissionError(gsutil_path)
     if (stderr.startswith('InvalidUriError') or 'No such object' in stderr or
         'No URLs matched' in stderr):
       raise NotFoundError(stderr)
+    if '500 Internal Server Error' in stderr:
+      raise ServerError(stderr)
     raise CloudStorageError(stderr)
 
   return stdout
@@ -178,7 +182,11 @@ def Delete(bucket, remote_path):
 def Get(bucket, remote_path, local_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
   logging.info('Downloading %s to %s' % (url, local_path))
-  _RunCommand(['cp', url, local_path])
+  try:
+    _RunCommand(['cp', url, local_path])
+  except ServerError:
+    logging.info('Cloud Storage server error, retrying download')
+    _RunCommand(['cp', url, local_path])
 
 
 def Insert(bucket, remote_path, local_path, publicly_readable=False):
@@ -218,9 +226,7 @@ def GetIfChanged(file_path, bucket=None):
 
   for bucket in buckets:
     try:
-      url = 'gs://%s/%s' % (bucket, expected_hash)
-      _RunCommand(['cp', url, file_path])
-      logging.info('Downloaded %s to %s' % (url, file_path))
+      Get(bucket, expected_hash, file_path)
       return True
     except NotFoundError:
       continue
