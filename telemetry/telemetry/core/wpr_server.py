@@ -10,11 +10,6 @@ from telemetry.core import webpagereplay
 # make ReplayServer subclass LocalServer.
 
 
-def GetChromeFlags(replay_host, port_pairs):
-  return webpagereplay.GetChromeFlags(replay_host, port_pairs.http.remote_port,
-                                      port_pairs.https.remote_port)
-
-
 class ReplayServer(object):
   def __init__(self, browser_backend, path, is_record_mode, is_append_mode,
                make_javascript_deterministic):

@@ -328,9 +328,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
-    if self.forwarder_factory.does_forwarder_override_dns:
-      args = [arg for arg in args
-              if not arg.startswith('--host-resolver-rules')]
     args.append('--enable-remote-debugging')
     args.append('--disable-fre')
     args.append('--disable-external-intent-requests')

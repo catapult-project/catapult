@@ -26,17 +26,6 @@ LOG_PATH = os.path.join(
     _CHROME_SRC_DIR, 'webpagereplay_logs', 'logs.txt')
 
 
-# Chrome options to make it work with Web Page Replay.
-def GetChromeFlags(replay_host, http_port, https_port):
-  assert replay_host and http_port and https_port, 'All arguments required'
-  return [
-      '--host-resolver-rules=MAP * %s,EXCLUDE localhost' % replay_host,
-      '--testing-fixed-http-port=%s' % http_port,
-      '--testing-fixed-https-port=%s' % https_port,
-      '--ignore-certificate-errors',
-      ]
-
-
 # Signal masks on Linux are inherited from parent processes.  If anything
 # invoking us accidentally masks SIGINT (e.g. by putting a process in the
 # background from a shell script), sending a SIGINT to the child will fail
