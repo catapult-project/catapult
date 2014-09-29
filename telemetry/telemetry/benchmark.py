@@ -85,7 +85,7 @@ class Benchmark(command_line.Command):
       pt._enabled_strings = self._enabled_strings
 
     ps = self.CreatePageSet(finder_options)
-    expectations = self.CreateExpectations(ps)
+    expectations = self.CreateExpectations()
 
     self._DownloadGeneratedProfileArchive(finder_options)
 
@@ -196,7 +196,7 @@ class Benchmark(command_line.Command):
     return cls.PageSetClass()()
 
   @classmethod
-  def CreateExpectations(cls, ps):  # pylint: disable=W0613
+  def CreateExpectations(cls):  # pylint: disable=W0613
     """Get the expectations this test will run with.
 
     By default, it will create an empty expectations set. Override to generate
