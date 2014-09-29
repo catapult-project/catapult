@@ -348,8 +348,3 @@ class Browser(object):
 
        See the documentation of the SystemInfo class for more details."""
     return self._browser_backend.GetSystemInfo()
-
-  # TODO: Remove after call to Start() has been removed from
-  # related authotest files.
-  def Start(self):
-    pass
