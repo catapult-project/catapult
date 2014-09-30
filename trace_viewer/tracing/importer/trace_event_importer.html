@@ -624,13 +624,6 @@ tvcm.exportTo('tracing.importer', function() {
             if (parentIndex === -1) {
               // Unmatched end.
               eventStateEntry.finished = false;
-              this.model_.importWarning({
-                type: 'async_slice_parse_error',
-                message: 'Nestable async END event at ' +
-                    eventStateEntry.event.ts + ' with name=' +
-                    eventStateEntry.event.name +
-                    ' and id=' + eventStateEntry.event.id + ' was unmatched.'
-              });
             } else {
               parentStack[parentIndex].end = eventStateEntry;
               // Pop off all enclosing unmatched BEGINs util parentIndex.
@@ -665,10 +658,10 @@ tvcm.exportTo('tracing.importer', function() {
           } else if (eventStateEntry.event.ph === 'b'){
             if (eventStateEntry.end === undefined) {
               // Unmatched BEGIN. End it when last event with this ID ends.
-              sliceError =
-                  "Slice has no matching END. End time has been adjusted.";
               eventStateEntry.end =
                   eventStateEntries[eventStateEntries.length - 1];
+              sliceError =
+                  "Slice has no matching END. End time has been adjusted.";
               this.model_.importWarning({
                 type: 'async_slice_parse_error',
                 message: 'Nestable async BEGIN event at ' +
@@ -693,14 +686,20 @@ tvcm.exportTo('tracing.importer', function() {
             startState = eventStateEntry;
             endState = eventStateEntry.end;
           } else {
-            // Unmatched END.
+            // Unmatched END. Start it at the first event with this ID starts.
             sliceError =
                 "Slice has no matching BEGIN. Start time has been adjusted.";
+            this.model_.importWarning({
+              type: 'async_slice_parse_error',
+              message: 'Nestable async END event at ' +
+                  eventStateEntry.event.ts + ' with name=' +
+                  eventStateEntry.event.name +
+                  ' and id=' + eventStateEntry.event.id + ' was unmatched.'
+            });
             startState = eventStateEntries[0];
             endState = eventStateEntry;
             sliceArgs = eventStateEntry.event.args;
           }
-
           var slice = new tracing.trace_model.AsyncSlice(
               eventStateEntry.event.cat,
               eventStateEntry.event.name,
