@@ -3,14 +3,15 @@
 # found in the LICENSE file.
 import inspect
 import os
-import re
 import urlparse
 
-_next_page_id = 0
+from telemetry import user_story
 
-class Page(object):
+
+class Page(user_story.UserStory):
 
   def __init__(self, url, page_set=None, base_dir=None, name=''):
+    super(Page, self).__init__(name)
     self._url = url
     self._page_set = page_set
     # Default value of base_dir is the directory of the file that defines the
@@ -20,9 +21,6 @@ class Page(object):
     self._base_dir = base_dir
     self._name = name
 
-    global _next_page_id
-    self._id = _next_page_id
-    _next_page_id += 1
 
     # These attributes can be set dynamically by the page.
     self.synthetic_delays = dict()
@@ -91,16 +89,8 @@ class Page(object):
     return self._page_set
 
   @property
-  def name(self):
-    return self._name
-
-  @property
   def url(self):
     return self._url
-
-  @property
-  def id(self):
-    return self._id
 
   def GetSyntheticDelayCategories(self):
     result = []
@@ -168,12 +158,6 @@ class Page(object):
       return file_path
     else:
       return os.path.dirname(file_path)
-
-  @property
-  def file_safe_name(self):
-    """A version of display_name that's safe to use as a filename."""
-    # Just replace all special characters in the url with underscore.
-    return re.sub('[^a-zA-Z0-9]', '_', self.display_name)
 
   @property
   def display_name(self):
