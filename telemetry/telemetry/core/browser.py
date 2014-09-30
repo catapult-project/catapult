@@ -319,18 +319,18 @@ class Browser(object):
     if not archive_path:
       return None
 
-    if self._browser_backend.wpr_mode == wpr_modes.WPR_OFF:
+    wpr_mode = self._browser_backend.wpr_mode
+    if wpr_mode == wpr_modes.WPR_OFF:
       return
-
-    use_record_mode = self._browser_backend.wpr_mode == wpr_modes.WPR_RECORD
-    if not use_record_mode:
+    if wpr_mode == wpr_modes.WPR_RECORD and append_to_existing_wpr:
+      wpr_mode = wpr_modes.WPR_APPEND
+    if wpr_mode == wpr_modes.WPR_REPLAY:
       assert os.path.isfile(archive_path)
 
     self._wpr_server = wpr_server.ReplayServer(
         self._browser_backend,
         archive_path,
-        use_record_mode,
-        append_to_existing_wpr,
+        wpr_mode,
         make_javascript_deterministic)
 
   def GetStandardOutput(self):

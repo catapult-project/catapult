@@ -4,6 +4,7 @@
 
 from telemetry.core import forwarders
 from telemetry.core import webpagereplay
+from telemetry.core import wpr_modes
 
 
 # TODO(tonyg): Move webpagereplay.py's guts into this class and
@@ -11,20 +12,17 @@ from telemetry.core import webpagereplay
 
 
 class ReplayServer(object):
-  def __init__(self, browser_backend, path, is_record_mode, is_append_mode,
+  def __init__(self, browser_backend, path, wpr_mode,
                make_javascript_deterministic):
     self._browser_backend = browser_backend
     self._forwarder = None
     self._web_page_replay = None
-    self._is_record_mode = is_record_mode
-    self._is_append_mode = is_append_mode
 
     wpr_args = browser_backend.browser_options.extra_wpr_args
-    if self._is_record_mode:
-      if self._is_append_mode:
-        wpr_args.append('--append')
-      else:
-        wpr_args.append('--record')
+    if wpr_mode == wpr_modes.WPR_APPEND:
+      wpr_args.append('--append')
+    elif wpr_mode == wpr_modes.WPR_RECORD:
+      wpr_args.append('--record')
     if not make_javascript_deterministic:
       wpr_args.append('--inject_scripts=')
     browser_backend.AddReplayServerOptions(wpr_args)
