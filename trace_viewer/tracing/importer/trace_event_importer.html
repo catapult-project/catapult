@@ -65,7 +65,6 @@ tvcm.exportTo('tracing.importer', function() {
     this.eventsWereFromString_ = false;
     this.softwareMeasuredCpuCount_ = undefined;
     this.allAsyncEvents_ = [];
-    this.allNestableAsyncEvents_ = [];
     this.allFlowEvents_ = [];
     this.allObjectEvents_ = [];
 
@@ -580,7 +579,7 @@ tvcm.exportTo('tracing.importer', function() {
         }
         if (event.name === undefined) {
           this.model_.importWarning({
-            type: 'nestable_async_slice_parse_error',
+            type: 'async_slice_parse_error',
             message: 'Nestable async events (ph: b, e, or n) require a ' +
                 'name parameter.'
           });
@@ -590,7 +589,7 @@ tvcm.exportTo('tracing.importer', function() {
         var id = event.id;
         if (id === undefined) {
           this.model_.importWarning({
-            type: 'nestable_async_slice_parse_error',
+            type: 'async_slice_parse_error',
             message: 'Nestable async events (ph: b, e, or n) require an ' +
                 'id parameter.'
           });
@@ -623,15 +622,20 @@ tvcm.exportTo('tracing.importer', function() {
             }
 
             if (parentIndex === -1) {
-              // Unmatched end. Treat as instant event.
-              eventStateEntry.event.ph = 'n';
+              // Unmatched end.
+              eventStateEntry.finished = false;
+              this.model_.importWarning({
+                type: 'async_slice_parse_error',
+                message: 'Nestable async END event at ' +
+                    eventStateEntry.event.ts + ' with name=' +
+                    eventStateEntry.event.name +
+                    ' and id=' + eventStateEntry.event.id + ' was unmatched.'
+              });
             } else {
-              eventStateEntry.event.begin = parentStack[parentIndex];
-              // Consider this as the terminator for all open BEGINs up until
-              // parentIndex.
+              parentStack[parentIndex].end = eventStateEntry;
+              // Pop off all enclosing unmatched BEGINs util parentIndex.
               while (parentIndex < parentStack.length) {
                 var p = parentStack.pop();
-                p.end = eventStateEntry;
               }
             }
           }
@@ -643,53 +647,90 @@ tvcm.exportTo('tracing.importer', function() {
           if (eventStateEntry.event.ph === 'b')
             parentStack.push(eventStateEntry);
         }
-
+        var topLevelSlices = [];
         for (var i = 0; i < eventStateEntries.length; ++i) {
           var eventStateEntry = eventStateEntries[i];
-          if (eventStateEntry.event.ph === 'n' ||
-              eventStateEntry.event.ph === 'b') {
-            var endThread;
-            var duration;
-            var sliceArgs;
-            if (eventStateEntry.event.ph === 'n') {
-              endThread = eventStateEntry.thread;
-              duration = 0;
+          // Skip matched END, as its slice will be created when we
+          // encounter its corresponding BEGIN.
+          if (eventStateEntry.event.ph === 'e' &&
+              eventStateEntry.finished === undefined) {
+            continue;
+          }
+          var startState;
+          var endState;
+          var sliceArgs;
+          var sliceError;
+          if (eventStateEntry.event.ph === 'n') {
+            startState = eventStateEntry;
+            endState = eventStateEntry;
+            sliceArgs = eventStateEntry.event.args;
+          } else if (eventStateEntry.event.ph === 'b'){
+            if (eventStateEntry.end === undefined) {
+              // Unmatched BEGIN. End it when last event with this ID ends.
+              sliceError =
+                  "Slice has no matching END. End time has been adjusted.";
+              eventStateEntry.end =
+                  eventStateEntries[eventStateEntries.length - 1];
+              this.model_.importWarning({
+                type: 'async_slice_parse_error',
+                message: 'Nestable async BEGIN event at ' +
+                    eventStateEntry.event.ts + ' with name=' +
+                    eventStateEntry.event.name +
+                    ' and id=' + eventStateEntry.event.id + ' was unmatched.'
+              });
               sliceArgs = eventStateEntry.event.args;
             } else {
-              if (eventStateEntry.end === undefined) {
-                // Unmatched BEGIN. End it when last event with this ID ends.
-                eventStateEntry.end =
-                    eventStateEntries[eventStateEntries.length - 1];
+              // Include args for both END and BEGIN for a matched pair.
+              var concatenateArguments = function(args1, args2) {
+                if (args1.params === undefined || args1.params === undefined)
+                  return tvcm.concatenateObjects(args1, args2);
+                // Make an argument object to hold the combined params.
+                var args3 = {};
+                args3.params = tvcm.concatenateObjects(args1.params, args2.params);
+                return tvcm.concatenateObjects(args1, args2, args3);
               }
-              duration =
-                  eventStateEntry.end.event.ts - eventStateEntry.event.ts;
-              sliceArgs =
-                  tvcm.concatenateObjects(eventStateEntry.event.args,
-                                          eventStateEntry.end.event.args);
+              sliceArgs = concatenateArguments(eventStateEntry.event.args,
+                                               eventStateEntry.end.event.args);
             }
-            var slice = new tracing.trace_model.AsyncSlice(
-                eventStateEntry.event.cat,
-                eventStateEntry.event.name,
-                tvcm.ui.getStringColorId(eventStateEntry.event.name),
-                eventStateEntry.event.ts / 1000,
-                sliceArgs,
-                duration / 1000);
+            startState = eventStateEntry;
+            endState = eventStateEntry.end;
+          } else {
+            // Unmatched END.
+            sliceError =
+                "Slice has no matching BEGIN. Start time has been adjusted.";
+            startState = eventStateEntries[0];
+            endState = eventStateEntry;
+            sliceArgs = eventStateEntry.event.args;
+          }
 
-            slice.startThread = eventStateEntry.thread;
-            slice.endThread = endThread;
-            slice.id = eventStateEntry.event.id;
-            eventStateEntry.slice = slice;
-            // Add slice to parent slice if there is a parent.
-            if (eventStateEntry.parentEntry !== undefined &&
-                eventStateEntry.parentEntry.slice !== undefined) {
-              if (eventStateEntry.parentEntry.slice.subSlices === undefined)
-                eventStateEntry.parentEntry.slice.subSlices = [];
-              eventStateEntry.parentEntry.slice.subSlices.push(slice);
-            }
+          var slice = new tracing.trace_model.AsyncSlice(
+              eventStateEntry.event.cat,
+              eventStateEntry.event.name,
+              tvcm.ui.getStringColorId(eventStateEntry.event.name),
+              startState.event.ts / 1000,
+              sliceArgs,
+              (endState.event.ts - startState.event.ts) / 1000);
+
+          slice.startThread = startState.thread;
+          slice.endThread = endState.thread;
+          slice.id = id;
+          if (sliceError !== undefined)
+            slice.error = sliceError;
+          eventStateEntry.slice = slice;
+          // Add slice to parent slice if there is a parent. Otherwise threat
+          // it as a top level slice.
+          if (eventStateEntry.parentEntry !== undefined &&
+              eventStateEntry.parentEntry.slice !== undefined) {
+            if (eventStateEntry.parentEntry.slice.subSlices === undefined)
+              eventStateEntry.parentEntry.slice.subSlices = [];
+            eventStateEntry.parentEntry.slice.subSlices.push(slice);
+          } else {
+            topLevelSlices.push(slice);
           }
         }
-        eventStateEntries[0].slice.startThread.asyncSliceGroup.push(
-            eventStateEntries[0].slice);
+        for (var si = 0; si < topLevelSlices.length; si++) {
+          topLevelSlices[si].startThread.asyncSliceGroup.push(topLevelSlices[si]);
+        }
       }
     },
 

@@ -102,6 +102,9 @@ found in the LICENSE file.
         results.appendHeader('Selected ' + type + ':');
         var table = results.appendTable('analysis-slice-table', 2);
 
+        if (slice.error)
+          results.appendInfoRow(table, 'Error', slice.error);
+
         if (slice.title)
           results.appendInfoRow(table, 'Title', slice.title);
 
