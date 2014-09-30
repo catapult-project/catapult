@@ -53,7 +53,7 @@ class ViewerDataScript(generate.ExtraScript):
   def WriteToFile(self, output_file):
     output_file.write('<script id="viewer-data" type="application/json">\n')
 
-    with tempfile.NamedTemporaryFile() as compressed_file:
+    with tempfile.NamedTemporaryFile('w') as compressed_file:
       gzfile = gzip.open(compressed_file.name, 'wb')
       with open(self._filename, 'r') as f:
         shutil.copyfileobj(f, gzfile)
