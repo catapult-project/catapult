@@ -18,6 +18,7 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
   var Process = tracing.trace_model.Process;
   var Thread = tracing.trace_model.Thread;
   var newAsyncSlice = tracing.test_utils.newAsyncSlice;
+  var newAsyncSliceNamed = tracing.test_utils.newAsyncSliceNamed;
 
   test('filterSubRows', function() {
     var model = new tracing.TraceModel();
@@ -37,15 +38,19 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
-    g.push(newAsyncSlice(0, 1, t1, t1));
+    var s1 = newAsyncSlice(0, 1, t1, t1);
+    var subs1 = newAsyncSliceNamed("b", 0, 1, t1, t1);
+    s1.subSlices = [subs1];
+    g.push(s1);
     g.push(newAsyncSlice(1, 1, t1, t1));
     var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
     var subRows = track.subRows;
-    assertEquals(1, subRows.length);
+    assertEquals(2, subRows.length);
     assertEquals(2, subRows[0].length);
-    assertEquals(g.slices[0].subSlices[0], subRows[0][0]);
-    assertEquals(g.slices[1].subSlices[0], subRows[0][1]);
+    assertEquals(1, subRows[1].length);
+    assertEquals(g.slices[0].subSlices[0], subRows[1][0]);
+    assertUndefined(g.slices[1].subSlices);
   });
 
   test('rebuildSubRows_twoOverlappingSlices', function() {
@@ -54,8 +59,15 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
 
-    g.push(newAsyncSlice(0, 1, t1, t1));
-    g.push(newAsyncSlice(0, 1.5, t1, t1));
+    var s1 = newAsyncSlice(0, 1, t1, t1);
+    var subs1 = newAsyncSliceNamed("b", 0, 1, t1, t1);
+    s1.subSlices = [subs1];
+    var s2 = newAsyncSlice(0, 1.5, t1, t1);
+    var subs2 = newAsyncSliceNamed("b", 0, 1, t1, t1);
+    s2.subSlices = [subs2];
+    g.push(s1);
+    g.push(s2);
+
     g.updateBounds();
 
     var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
@@ -63,12 +75,13 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
 
     var subRows = track.subRows;
 
-    assertEquals(2, subRows.length);
+    assertEquals(4, subRows.length);
     assertEquals(1, subRows[0].length);
-    assertEquals(g.slices[0].subSlices[0], subRows[0][0]);
-
     assertEquals(1, subRows[1].length);
-    assertEquals(g.slices[1].subSlices[0], subRows[1][0]);
+    assertEquals(1, subRows[2].length);
+    assertEquals(1, subRows[3].length);
+    assertEquals(g.slices[0].subSlices[0], subRows[1][0]);
+    assertEquals(g.slices[1].subSlices[0], subRows[3][0]);
   });
 
   test('rebuildSubRows_threePartlyOverlappingSlices', function() {
@@ -86,11 +99,13 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
 
     assertEquals(2, subRows.length);
     assertEquals(2, subRows[0].length);
-    assertEquals(g.slices[0].subSlices[0], subRows[0][0]);
-    assertEquals(g.slices[2].subSlices[0], subRows[0][1]);
-
+    assertEquals(g.slices[0], subRows[0][0]);
+    assertEquals(g.slices[2], subRows[0][1]);
+    assertEquals(g.slices[1], subRows[1][0]);
     assertEquals(1, subRows[1].length);
-    assertEquals(g.slices[1].subSlices[0], subRows[1][0]);
+    assertUndefined(g.slices[0].subSlices);
+    assertUndefined(g.slices[1].subSlices);
+    assertUndefined(g.slices[2].subSlices);
   });
 
   test('rebuildSubRows_threeOverlappingSlices', function() {
@@ -110,10 +125,10 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     var subRows = track.subRows;
     assertEquals(2, subRows.length);
     assertEquals(2, subRows[0].length);
-    assertEquals(g.slices[0].subSlices[0], subRows[0][0]);
-    assertEquals(g.slices[2].subSlices[0], subRows[0][1]);
     assertEquals(1, subRows[1].length);
-    assertEquals(g.slices[1].subSlices[0], subRows[1][0]);
+    assertEquals(g.slices[0], subRows[0][0]);
+    assertEquals(g.slices[1], subRows[1][0]);
+    assertEquals(g.slices[2], subRows[0][1]);
   });
 });
 </script>

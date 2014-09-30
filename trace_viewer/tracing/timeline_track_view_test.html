@@ -91,7 +91,7 @@ tvcm.unittest.testSuite(function() {
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;
 
-    var expected = [t1asg.slices[0].subSlices[0],
+    var expected = [t1asg.slices[0],
                     t1.sliceGroup.slices[0]];
     var result = new tracing.Selection();
     timeline.addAllObjectsMatchingFilterToSelection(
@@ -100,7 +100,7 @@ tvcm.unittest.testSuite(function() {
     assertEquals(expected[0], result[0]);
     assertEquals(expected[1], result[1]);
 
-    var expected = [t1asg.slices[1].subSlices[0],
+    var expected = [t1asg.slices[1],
                     t1.sliceGroup.slices[1]];
     var result = new tracing.Selection();
     timeline.addAllObjectsMatchingFilterToSelection(

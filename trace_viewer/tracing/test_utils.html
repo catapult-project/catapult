@@ -26,11 +26,6 @@ tvcm.exportTo('tracing.test_utils', function() {
     s.duration = duration;
     s.startThread = startThread;
     s.endThread = endThread;
-    var subSlice = new tracing.trace_model.AsyncSlice('', name, 0, start);
-    subSlice.duration = duration;
-    subSlice.startThread = startThread;
-    subSlice.endThread = endThread;
-    s.subSlices = [subSlice];
     return s;
   }
 
