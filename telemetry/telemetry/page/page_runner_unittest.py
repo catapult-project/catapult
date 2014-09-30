@@ -20,6 +20,8 @@ from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.unittest import options_for_unittests
+from telemetry.unittest import system_stub
+from telemetry.util import exception_formatter as exception_formatter_module
 from telemetry.value import scalar
 from telemetry.value import string
 
@@ -66,11 +68,36 @@ def GetSuccessfulPageRuns(results):
   return [run for run in results.all_page_runs if run.ok or run.skipped]
 
 
+class FakeExceptionFormatterModule(object):
+  @staticmethod
+  def PrintFormattedException(
+      exception_class=None, exception=None, tb=None, msg=None):
+    pass
+
+
 class PageRunnerTests(unittest.TestCase):
   # TODO(nduca): Move the basic "test failed, test succeeded" tests from
   # page_test_unittest to here.
 
+  def setUp(self):
+    self._page_runner_logging_stub = None
+
+  def SuppressExceptionFormatting(self):
+    page_runner.exception_formatter = FakeExceptionFormatterModule
+    self._page_runner_logging_stub = system_stub.Override(
+      page_runner, ['logging'])
+
+  def RestoreExceptionFormatter(self):
+    page_runner.exception_formatter = exception_formatter_module
+    if self._page_runner_logging_stub:
+      self._page_runner_logging_stub.Restore()
+      self._page_runner_logging_stub = None
+
+  def tearDown(self):
+    self.RestoreExceptionFormatter()
+
   def testHandlingOfCrashedTab(self):
+    self.SuppressExceptionFormatting()
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     page1 = page_module.Page('chrome://crash', ps)
@@ -90,6 +117,7 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(1, len(results.failures))
 
   def testHandlingOfTestThatRaisesWithNonFatalUnknownExceptions(self):
+    self.SuppressExceptionFormatting()
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     ps.pages.append(page_module.Page(
@@ -122,6 +150,7 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(1, len(results.failures))
 
   def testHandlingOfCrashedTabWithExpectedFailure(self):
+    self.SuppressExceptionFormatting()
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     expectations.Fail('chrome://crash')
@@ -142,6 +171,7 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(0, len(results.failures))
 
   def testRetryOnBrowserCrash(self):
+    self.SuppressExceptionFormatting()
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     ps.pages.append(page_module.Page(
@@ -282,6 +312,7 @@ class PageRunnerTests(unittest.TestCase):
       os.remove(output_file)
 
   def testCredentialsWhenLoginFails(self):
+    self.SuppressExceptionFormatting()
     credentials_backend = StubCredentialsBackend(login_return_value=False)
     did_run = self.runCredentialsTest(credentials_backend)
     assert credentials_backend.did_get_login == True
@@ -582,6 +613,7 @@ class PageRunnerTests(unittest.TestCase):
     self.TestUseLiveSitesFlag(options, expect_from_archive=True)
 
   def _testMaxFailuresOptionIsRespectedAndOverridable(self, max_failures=None):
+    self.SuppressExceptionFormatting()
     class TestPage(page_module.Page):
       def __init__(self, *args, **kwargs):
         super(TestPage, self).__init__(*args, **kwargs)

@@ -170,12 +170,19 @@ class CloudStorageModuleStub(object):
 class LoggingStub(object):
   def __init__(self):
     self.warnings = []
+    self.errors = []
 
   def info(self, msg, *args):
     pass
 
-  def warn(self, msg, *args):
+  def error(self, msg, *args):
+    self.errors.append(msg % args)
+
+  def warning(self, msg, *args):
     self.warnings.append(msg % args)
+
+  def warn(self, msg, *args):
+    self.warning(msg, *args)
 
 
 class OpenFunctionStub(object):
