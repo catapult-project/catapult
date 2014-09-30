@@ -53,14 +53,14 @@ class PageSetSmokeTest(unittest.TestCase):
         except browser_credentials.CredentialsError:
           self.fail(fail_message)
 
-  def CheckTypes(self, page_set):
+  def CheckAttributes(self, page_set):
     """Verify that page_set and its page's base attributes have the right types.
     """
-    self.CheckTypesOfPageSetBasicAttributes(page_set)
+    self.CheckAttributesOfPageSetBasicAttributes(page_set)
     for page in page_set.pages:
-      self.CheckTypesOfPageBasicAttributes(page)
+      self.CheckAttributesOfPageBasicAttributes(page)
 
-  def CheckTypesOfPageSetBasicAttributes(self, page_set):
+  def CheckAttributesOfPageSetBasicAttributes(self, page_set):
     if page_set.file_path is not None:
       self.assertTrue(
           isinstance(page_set.file_path, str),
@@ -83,7 +83,8 @@ class PageSetSmokeTest(unittest.TestCase):
         isinstance(page_set.startup_url, str),
         msg='page_set\'s startup_url must have type string')
 
-  def CheckTypesOfPageBasicAttributes(self, page):
+  def CheckAttributesOfPageBasicAttributes(self, page):
+    self.assertTrue(not hasattr(page, 'disabled'))
     self.assertTrue(
        isinstance(page.url, str),
        msg='page %s \'s url must have type string' % page.display_name)
@@ -104,8 +105,11 @@ class PageSetSmokeTest(unittest.TestCase):
     page_sets = discover.DiscoverClasses(page_sets_dir, top_level_dir,
                                          page_set_module.PageSet).values()
     for page_set_class in page_sets:
-      page_set = page_set_class()
+      try:
+        page_set = page_set_class()
+      except TypeError:
+        continue
       logging.info('Testing %s', page_set.file_path)
       self.CheckArchive(page_set)
       self.CheckCredentials(page_set)
-      self.CheckTypes(page_set)
+      self.CheckAttributes(page_set)

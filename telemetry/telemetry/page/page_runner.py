@@ -433,7 +433,7 @@ def _ShuffleAndFilterPageSet(page_set, finder_options):
   if finder_options.pageset_shuffle_order_file:
     return page_set.ReorderPageSet(finder_options.pageset_shuffle_order_file)
   pages = [page for page in page_set.pages[:]
-           if not page.disabled and page_filter.PageFilter.IsSelected(page)]
+           if page_filter.PageFilter.IsSelected(page)]
   if finder_options.pageset_shuffle:
     random.shuffle(pages)
   return pages
