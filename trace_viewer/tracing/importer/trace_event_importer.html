@@ -558,6 +558,7 @@ tvcm.exportTo('tracing.importer', function() {
     createAsyncSlices_: function() {
       if (this.allAsyncEvents_.length === 0)
         return;
+
       this.allAsyncEvents_.sort(function(x, y) {
         var d = x.event.ts - y.event.ts;
         if (d !== 0)
@@ -565,9 +566,9 @@ tvcm.exportTo('tracing.importer', function() {
         return x.sequenceNumber - y.sequenceNumber;
       });
 
+      var legacyEvents = [];
       // Group nestable async events by ID. Events with the same ID should
       // belong to the same parent async event.
-      var legacyEvents = [];
       var nestableAsyncEventsByID = {};
       for (var i = 0; i < this.allAsyncEvents_.length; i++) {
         var asyncEventState = this.allAsyncEvents_[i];
@@ -620,7 +621,6 @@ tvcm.exportTo('tracing.importer', function() {
                 break;
               }
             }
-
             if (parentIndex === -1) {
               // Unmatched end.
               eventStateEntry.finished = false;
@@ -640,10 +640,8 @@ tvcm.exportTo('tracing.importer', function() {
             }
           }
           // Inherit the current parent.
-          if (parentStack.length > 0) {
+          if (parentStack.length > 0)
             eventStateEntry.parentEntry = parentStack[parentStack.length - 1];
-          }
-
           if (eventStateEntry.event.ph === 'b')
             parentStack.push(eventStateEntry);
         }

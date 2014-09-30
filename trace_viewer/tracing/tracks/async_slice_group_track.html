@@ -63,9 +63,11 @@ tvcm.exportTo('tracing.tracks', function() {
       slices.sort(function(x, y) {
         return x.start - y.start;
       });
+
       var subRows = [];
       for (var i = 0; i < slices.length; i++) {
         var slice = slices[i];
+
         var found = false;
         var index = subRows.length;
         for (var j = 0; j < subRows.length; j++) {
@@ -77,18 +79,16 @@ tvcm.exportTo('tracing.tracks', function() {
             break;
           }
         }
-        if (!found) {
+        if (!found)
           subRows.push([]);
-        }
         subRows[index].push(slice);
 
         // Fit subSlices recursively into rows below parent.
         var fitSubSlicesRecursively = function(subSlices, level, rows) {
           if (subSlices === undefined || subSlices.length === 0)
             return;
-          if (level === rows.length) {
+          if (level === rows.length)
             rows.push([]);
-          }
           for (var h = 0; h < subSlices.length; h++) {
              rows[level].push(subSlices[h]);
              fitSubSlicesRecursively(subSlices[h].subSlices, level + 1, rows);
