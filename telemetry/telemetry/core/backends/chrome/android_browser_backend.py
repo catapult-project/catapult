@@ -140,10 +140,11 @@ class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
 
 class WebviewBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, package,
-               activity='org.chromium.telemetry_shell.TelemetryActivity'):
+               activity='org.chromium.telemetry_shell.TelemetryActivity',
+               cmdline_file='/data/local/tmp/webview-command-line'):
     super(WebviewBackendSettings, self).__init__(
         activity=activity,
-        cmdline_file='/data/local/tmp/webview-command-line',
+        cmdline_file=cmdline_file,
         package=package,
         pseudo_exec_name='webview',
         supports_tab_control=False)
@@ -174,6 +175,7 @@ class WebviewShellBackendSettings(WebviewBackendSettings):
   def __init__(self, package):
     super(WebviewShellBackendSettings, self).__init__(
         activity='org.chromium.android_webview.shell.AwShellActivity',
+        cmdline_file='/data/local/tmp/android-webview-command-line',
         package=package)
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
