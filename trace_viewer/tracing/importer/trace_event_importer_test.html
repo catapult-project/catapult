@@ -1208,25 +1208,46 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('nestableAsyncCombinedParams', function() {
     var events = [
-      {name: 'b', args: {x: 1, params: {p1: 'hello', p2: 123}},
+      {name: 'a', args: {x: 1, params: {p1: 'hello', p2: 123}},
         pid: 52, ts: 525, cat: 'foo', tid: 53, ph: 'b', id: 72},
-      {name: 'b', args: {y: 2, params: {p3: 'hi'}}, pid: 52, ts: 560,
-        cat: 'foo', tid: 53, ph: 'e', id: 72}
+      {name: 'a', args: {y: 2, params: {p3: 'hi'}}, pid: 52, ts: 560,
+        cat: 'foo', tid: 53, ph: 'e', id: 72},
+      {name: 'b', args: {params: {p4: 'foo'}},
+        pid: 52, ts: 525, cat: 'foo', tid: 53, ph: 'b', id: 73},
+      {name: 'b', args: {params: ''}, pid: 52, ts: 560,
+        cat: 'foo', tid: 53, ph: 'e', id: 73},
+      {name: 'c', args: {params: {p5: 'bar'}},
+        pid: 52, ts: 525, cat: 'foo', tid: 53, ph: 'b', id: 74},
+      {name: 'c', args: {}, pid: 52, ts: 560,
+        cat: 'foo', tid: 53, ph: 'e', id: 74}
     ];
 
     var m = new tracing.TraceModel(events);
     var t = m.processes[52].threads[53];
     assertNotUndefined(t);
-    assertEquals(1, t.asyncSliceGroup.slices.length);
-    var slice = t.asyncSliceGroup.slices[0];
+    assertEquals(3, t.asyncSliceGroup.slices.length);
+
+    var sliceA = t.asyncSliceGroup.slices[0];
     // Arguments should include both BEGIN and END event.
-    assertEquals(1, slice.args['x']);
-    assertEquals(2, slice.args['y']);
-    var params = slice.args['params'];
-    assertNotUndefined(params);
-    assertEquals('hello', params.p1);
-    assertEquals(123, params.p2);
-    assertEquals('hi', params.p3);
+    assertEquals(1, sliceA.args['x']);
+    assertEquals(2, sliceA.args['y']);
+    var paramsA = sliceA.args['params'];
+    assertNotUndefined(paramsA);
+    assertEquals('hello', paramsA.p1);
+    assertEquals(123, paramsA.p2);
+    assertEquals('hi', paramsA.p3);
+
+    var sliceB = t.asyncSliceGroup.slices[1];
+    // Arguments should include both BEGIN and END event.
+    var paramsB = sliceB.args['params'];
+    assertNotUndefined(paramsB);
+    assertEquals('foo', paramsB.p4);
+
+    var sliceC = t.asyncSliceGroup.slices[2];
+    // Arguments should include both BEGIN and END event.
+    var paramsC = sliceC.args['params'];
+    assertNotUndefined(paramsC);
+    assertEquals('bar', paramsC.p5);
   });
 
   test('nestableAsyncManyLevels', function() {

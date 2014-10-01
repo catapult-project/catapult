@@ -628,7 +628,7 @@ tvcm.exportTo('tracing.importer', function() {
               parentStack[parentIndex].end = eventStateEntry;
               // Pop off all enclosing unmatched BEGINs util parentIndex.
               while (parentIndex < parentStack.length) {
-                var p = parentStack.pop();
+                parentStack.pop();
               }
             }
           }
@@ -673,7 +673,7 @@ tvcm.exportTo('tracing.importer', function() {
             } else {
               // Include args for both END and BEGIN for a matched pair.
               var concatenateArguments = function(args1, args2) {
-                if (args1.params === undefined || args1.params === undefined)
+                if (args1.params === undefined || args2.params === undefined)
                   return tvcm.concatenateObjects(args1, args2);
                 // Make an argument object to hold the combined params.
                 var args3 = {};
