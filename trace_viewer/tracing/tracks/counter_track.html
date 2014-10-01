@@ -20,6 +20,7 @@ tvcm.exportTo('tracing.tracks', function() {
   var SelectionState = tracing.trace_model.SelectionState;
   var EventPresenter = tracing.EventPresenter;
   var LAST_SAMPLE_PIXELS = 8;
+  var VIEWPORT_RELATIVE_MARGIN = 10000;
 
   /**
    * A track that displays a Counter object.
@@ -72,6 +73,9 @@ tvcm.exportTo('tracing.tracks', function() {
       // Drop sampels that are less than skipDistancePix apart.
       var skipDistancePix = 1;
       var skipDistanceWorld = dt.xViewVectorToWorld(skipDistancePix);
+
+      // Width of the viewport.
+      var viewWWorld = viewRWorld - viewRWorld;
 
       // Begin rendering in world space.
       ctx.save();
@@ -132,23 +136,23 @@ tvcm.exportTo('tracing.tracks', function() {
           var y = counter.totals[i * numSeries + seriesIndex];
           var yView = height - (yScale * y);
 
+          // If the sample is to the right of the viewport, we add a fixed
+          // margin to reduce zooming clipping errors.
           if (x > viewRWorld) {
-            ctx.lineTo(x, yLastView);
-            ctx.lineTo(x, height);
+            ctx.lineTo(viewRWorld + VIEWPORT_RELATIVE_MARGIN * viewWWorld,
+                yLastView);
+            ctx.lineTo(viewRWorld + VIEWPORT_RELATIVE_MARGIN * viewWWorld,
+                height);
             break;
           }
 
           if (i + 1 < numSamples) {
             var xNext = timestamps[i + 1];
-            if (xNext - xLast <= skipDistanceWorld && xNext < viewRWorld) {
+            if (xNext - xLast <= skipDistanceWorld && xNext < viewRWorld ||
+                xNext < viewLWorld) {
               iLast = i;
               continue;
             }
-          }
-
-          if (!hasMoved) {
-            ctx.moveTo(viewLWorld, height);
-            hasMoved = true;
           }
 
           if (x - xLast < skipDistanceWorld) {
@@ -158,7 +162,19 @@ tvcm.exportTo('tracing.tracks', function() {
             // zoomed out very far.
             x = xLast + skipDistanceWorld;
           }
-          ctx.lineTo(x, yLastView);
+
+          // If the sample is to the left of the viewport, we add a fixed
+          // margin to reduce zooming clipping errors.
+          if (x < viewLWorld) {
+            x = viewLWorld - VIEWPORT_RELATIVE_MARGIN * viewWWorld;
+          }
+
+          if (!hasMoved) {
+            ctx.moveTo(viewLWorld, yLastView);
+            hasMoved = true;
+          } else {
+            ctx.lineTo(x, yLastView);
+          }
           ctx.lineTo(x, yView);
 
           iLast = i;
