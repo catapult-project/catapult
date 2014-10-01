@@ -75,7 +75,7 @@ tvcm.exportTo('tracing.tracks', function() {
       var skipDistanceWorld = dt.xViewVectorToWorld(skipDistancePix);
 
       // Width of the viewport.
-      var viewWWorld = viewRWorld - viewRWorld;
+      var viewWWorld = viewRWorld - viewLWorld;
 
       // Begin rendering in world space.
       ctx.save();
