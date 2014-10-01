@@ -45,6 +45,10 @@ tvcm.exportTo('tracing.importer', function() {
   ZipImporter.prototype = {
     __proto__: Importer.prototype,
 
+    isTraceDataContainer: function() {
+      return true;
+    },
+
     extractSubtraces: function() {
       var zip = new JSZip(this.eventData_);
       var subtraces = [];
