@@ -78,6 +78,7 @@ class AndroidRndisForwarder(forwarders.Forwarder):
     self._RedirectPorts(port_pairs)
     if port_pairs.dns:
       self._OverrideDns()
+      self._OverrideDefaultGateway()
       # Need to override routing policy again since call to setifdns
       # sometimes resets policy table
       self._rndis_configurator.OverrideRoutingPolicy()
@@ -90,6 +91,7 @@ class AndroidRndisForwarder(forwarders.Forwarder):
   def Close(self):
     self._rndis_configurator.RestoreRoutingPolicy()
     self._SetDns(*self._original_dns)
+    self._RestoreDefaultGateway()
     super(AndroidRndisForwarder, self).Close()
 
   def _RedirectPorts(self, port_pairs):
@@ -107,11 +109,6 @@ class AndroidRndisForwarder(forwarders.Forwarder):
   def _OverrideDns(self):
     """Overrides DNS on device to point at the host."""
     self._original_dns = self._GetCurrentDns()
-    if not self._original_dns[0]:
-      # No default route. Install one via the host. This is needed because
-      # getaddrinfo in bionic uses routes to determine AI_ADDRCONFIG.
-      self._adb.RunShellCommand('route add default gw %s dev %s' %
-                                (self.host_ip, self._device_iface))
     self._SetDns(self._device_iface, self.host_ip, self.host_ip)
 
   def _SetDns(self, iface, dns1, dns2):
@@ -147,6 +144,22 @@ class AndroidRndisForwarder(forwarders.Forwarder):
       self._adb.device().GetProp('net.dns1'),
       self._adb.device().GetProp('net.dns2'),
     )
+
+  def _OverrideDefaultGateway(self):
+    """Force traffic to go through RNDIS interface.
+
+    Override any default gateway route. Without this traffic may go through
+    the wrong interface.
+
+    This introduces the risk that _RestoreDefaultGateway() is not called
+    (e.g. Telemetry crashes). A power cycle or "adb reboot" is a simple
+    workaround around in that case.
+    """
+    self._adb.RunShellCommand('route add default gw %s dev %s' %
+                              (self.host_ip, self._device_iface))
+
+  def _RestoreDefaultGateway(self):
+    self._adb.RunShellCommand('netcfg %s down' % self._device_iface)
 
 
 class AndroidRndisConfigurator(object):
@@ -407,12 +420,7 @@ doit &
               '  netmask 255.255.255.0',
               ])
           self._WriteProtectedFile(interface_conf_file, interface_conf)
-          subprocess.check_call(['sudo', '/etc/init.d/networking', 'restart'])
-        if 'stop/waiting' not in subprocess.check_output(
-            ['status', 'network-manager']):
-          logging.info('Stopping network-manager...')
-          subprocess.call(['sudo', 'stop', 'network-manager'])
-
+          subprocess.check_call(['sudo', 'ifup', host_iface])
       logging.info('Waiting for RNDIS connectivity...')
       util.WaitFor(HasHostAddress, 10)
 
