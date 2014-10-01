@@ -166,9 +166,7 @@ class ReplayServer(object):
       try:
         up_url = '%s://%s:%s/web-page-replay-generate-200'
         http_up_url = up_url % ('http', self._replay_host, self.http_port)
-        https_up_url = up_url % ('https', self._replay_host, self.https_port)
-        if (200 == urllib.urlopen(http_up_url, None, {}).getcode() and
-            200 == urllib.urlopen(https_up_url, None, {}).getcode()):
+        if (200 == urllib.urlopen(http_up_url, None, {}).getcode()):
           return True
       except IOError:
         pass
