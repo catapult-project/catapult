@@ -25,6 +25,11 @@ class ReplayServer(object):
       wpr_args.append('--record')
     if not make_javascript_deterministic:
       wpr_args.append('--inject_scripts=')
+    if browser_backend.wpr_ca_cert_path:
+      wpr_args.extend([
+          '--should_generate_certs',
+          '--https_root_ca_cert_path=%s' % browser_backend.wpr_ca_cert_path,
+          ])
     browser_backend.AddReplayServerOptions(wpr_args)
 
     self._web_page_replay = webpagereplay.ReplayServer(
