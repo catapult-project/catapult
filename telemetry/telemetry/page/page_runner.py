@@ -124,10 +124,7 @@ class _RunState(object):
 
   def StartProfiling(self, page, finder_options):
     if not self.profiler_dir:
-      if finder_options.output_dir:
-        self.profiler_dir = finder_options.output_dir
-      else:
-        self.profiler_dir = tempfile.mkdtemp()
+      self.profiler_dir = tempfile.mkdtemp()
     output_file = os.path.join(self.profiler_dir, page.file_safe_name)
     is_repeating = (finder_options.page_repeat != 1 or
                     finder_options.pageset_repeat != 1)
@@ -222,7 +219,6 @@ def AddCommandLineArgs(parser):
 
 def ProcessCommandLineArgs(parser, args):
   page_filter.PageFilter.ProcessCommandLineArgs(parser, args)
-  results_options.ProcessCommandLineArgs(parser, args)
 
   # Page set options
   if args.pageset_shuffle_order_file and not args.pageset_shuffle:

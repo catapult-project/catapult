@@ -33,8 +33,6 @@ def AddResultsOptions(parser):
                     dest='output_file',
                     default=None,
                     help='Redirects output to a file. Defaults to stdout.')
-  group.add_option('--output-dir', default=None,
-                   help='Where to save output data after the run.')
   group.add_option('--output-trace-tag',
                     default='',
                     help='Append a tag to the key of each result trace.')
@@ -51,19 +49,7 @@ def AddResultsOptions(parser):
   parser.add_option_group(group)
 
 
-def ProcessCommandLineArgs(parser, args):
-  # TODO(chrishenry): It doesn't make sense to have a single output_file flag
-  # with multiple output formatters. We should explore other possible options:
-  #   - Have an output_file per output formatter
-  #   - Have --output-dir instead of --output-file
-  if len(args.output_formats) > 1 and args.output_file:
-    parser.error('Cannot specify --output with multiple --output-format flags.')
-
-  if args.output_dir and args.output_file:
-    parser.error('Cannot specify both --output and --output-dir.')
-
-
-def _GetOutputStream(output_format, output_file, output_dir):
+def _GetOutputStream(output_format, output_file):
   assert output_format in _OUTPUT_FORMAT_CHOICES, 'Must specify a valid format.'
   assert output_format not in ('gtest', 'none'), (
       'Cannot set stream for \'gtest\' or \'none\' output formats.')
@@ -71,8 +57,7 @@ def _GetOutputStream(output_format, output_file, output_dir):
   if output_file is None:
     if output_format != 'html' and output_format != 'json':
       return sys.stdout
-    directory = output_dir if output_dir is not None else util.GetBaseDir()
-    output_file = os.path.join(directory, 'results.' + output_format)
+    output_file = os.path.join(util.GetBaseDir(), 'results.' + output_format)
 
   output_file = os.path.expanduser(output_file)
   open(output_file, 'a').close()  # Create file if it doesn't exist.
@@ -95,13 +80,20 @@ def CreateResults(benchmark_metadata, options):
   if not options.output_formats:
     options.output_formats = [_OUTPUT_FORMAT_CHOICES[0]]
 
+  # TODO(chrishenry): It doesn't make sense to have a single output_file flag
+  # with multiple output formatters. We should explore other possible options:
+  #   - Have an output_file per output formatter
+  #   - Have --output-dir instead of --output-file
+  if len(options.output_formats) != 1 and options.output_file:
+    raise Exception('Cannot specify output_file flag with multiple output '
+                    'formats.')
+
   output_formatters = []
   for output_format in options.output_formats:
     if output_format == 'none' or output_format == "gtest" or options.chartjson:
       continue
 
-    output_stream = _GetOutputStream(
-        output_format, options.output_file, options.output_dir)
+    output_stream = _GetOutputStream(output_format, options.output_file)
     if output_format == 'csv':
       output_formatters.append(csv_output_formatter.CsvOutputFormatter(
           output_stream))
