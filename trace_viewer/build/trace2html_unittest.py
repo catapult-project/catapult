@@ -8,13 +8,8 @@ import os
 from trace_viewer.build import trace2html
 
 class Trace2HTMLTests(unittest.TestCase):
-  def test_smokeTest(self):
-    try:
-      tmpfile = tempfile.NamedTemporaryFile()
+  def test_writeHTMLForTracesToFile(self):
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmpfile:
       big_trace_path = os.path.join(os.path.dirname(__file__),
                                     '..', '..', 'test_data', 'big_trace.json')
-      res = trace2html.Main(
-          ['--output', tmpfile.name, big_trace_path, '--quiet'])
-      assert res == 0
-    finally:
-      tmpfile.close()
+      res = trace2html.WriteHTMLForTracesToFile([big_trace_path], tmpfile)

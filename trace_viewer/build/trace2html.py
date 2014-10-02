@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import base64
-import gzip
 import optparse
 import shutil
 import sys
@@ -52,17 +51,9 @@ class ViewerDataScript(generate.ExtraScript):
 
   def WriteToFile(self, output_file):
     output_file.write('<script id="viewer-data" type="application/json">\n')
-
-    with tempfile.NamedTemporaryFile('w') as compressed_file:
-      gzfile = gzip.open(compressed_file.name, 'wb')
-      with open(self._filename, 'r') as f:
-        shutil.copyfileobj(f, gzfile)
-      gzfile.close()
-
-      with open(compressed_file.name, 'rb') as gzfile:
-        b64_content = base64.b64encode(gzfile.read())
-        output_file.write(b64_content)
-
+    with open(self._filename, 'rb') as trace_file:
+      b64_content = base64.b64encode(trace_file.read())
+      output_file.write(b64_content)
     output_file.write('\n</script>\n')
 
 def WriteHTMLForTracesToFile(trace_filenames, output_file):
