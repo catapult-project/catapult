@@ -111,6 +111,7 @@ class AndroidPlatformBackend(
     if not self._enable_performance_mode:
       return
     if enabled:
+      logging.info('Performance mode is enabled for android platform')
       self._perf_tests_setup.SetHighPerfMode()
     else:
       self._perf_tests_setup.SetDefaultPerfMode()

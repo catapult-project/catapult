@@ -19,7 +19,7 @@ class AndroidDevice(device.Device):
     enable_performance_mode: when this is set to True, android platform will be
     set to high performance mode after browser is started.
   """
-  def __init__(self, device_id, enable_performance_mode=False):
+  def __init__(self, device_id, enable_performance_mode=True):
     super(AndroidDevice, self).__init__(
         name='Android device %s' % device_id, guid=device_id)
     self._device_id = device_id

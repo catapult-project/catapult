@@ -194,8 +194,9 @@ def FindAllAvailableBrowsers(finder_options):
                  'Will not try searching for Android browsers.')
     return []
   if finder_options.android_device:
-    devices = [android_device.AndroidDevice(finder_options.android_device,
-                                            finder_options.no_performance_mode)]
+    devices = [android_device.AndroidDevice(
+        finder_options.android_device,
+        enable_performance_mode=not finder_options.no_performance_mode)]
   else:
     devices = android_device.AndroidDevice.GetAllConnectedDevices()
 
