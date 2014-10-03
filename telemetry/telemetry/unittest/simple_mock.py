@@ -123,7 +123,7 @@ class MockTimer(object):
     self._elapsed_time = time
 
   def __del__(self):
-    self.Release()
+    self.Restore()
 
   def Restore(self):
     if self._module:
