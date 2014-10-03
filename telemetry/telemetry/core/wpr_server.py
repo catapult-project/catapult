@@ -44,24 +44,44 @@ class ReplayServer(object):
       self._web_page_replay.replay_options.remove('--no-dns_forwarding')
     started_ports = self._web_page_replay.StartServer()
 
-    # Setup the local and remote forwarding ports.
-    #     The local host is where Telemetry is run.
-    #     The remote is host where the target application is run.
-    #     The local and remote hosts may be the same (e.g., testing a desktop
-    #     browser), or different (e.g., testing an android browser).
-    local_http_port, local_https_port, local_dns_port = started_ports
-    remote_http_port, remote_https_port, remote_dns_port = (
-        browser_backend.wpr_port_pairs.http.remote_port or local_http_port,
-        browser_backend.wpr_port_pairs.https.remote_port or local_https_port,
-        browser_backend.wpr_port_pairs.https.remote_port or local_dns_port)
-    browser_backend.wpr_port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(local_http_port, remote_http_port),
-        https=forwarders.PortPair(local_https_port, remote_https_port),
-        dns=(forwarders.PortPair(local_dns_port, remote_dns_port)
-             if local_dns_port else None))
-
+    # Assign the forwarder port pairs back to the browser_backend.
+    #     The port pairs are used to set up the application.
+    #     The chrome_browser_backend uses the remote ports to set browser flags.
+    browser_backend.wpr_port_pairs = self._ForwarderPortPairs(
+        started_ports, browser_backend.wpr_port_pairs)
     self._forwarder = browser_backend.forwarder_factory.Create(
         browser_backend.wpr_port_pairs)
+
+  @staticmethod
+  def _ForwarderPortPairs(started_ports, wpr_port_pairs):
+    """Setup the local and remote forwarding ports.
+
+    The local host is where Telemetry is run. The remote is host where
+    the target application is run. The local and remote hosts may be
+    the same (e.g., testing a desktop browser) or different (e.g., testing
+    an android browser).
+
+    Args:
+      started_ports: a tuple of of integer ports from which to forward:
+          (HTTP_PORT, HTTPS_PORT, DNS_PORT)  # DNS_PORT may be None
+      wpr_port_pairs: a forwaders.PortPairs instance where the remote ports,
+          if set, are used.
+    Returns:
+      a forwarders.PortPairs instance used to create the forwarder.
+    """
+    local_http_port, local_https_port, local_dns_port = started_ports
+    remote_http_port = wpr_port_pairs.http.remote_port or local_http_port
+    remote_https_port = wpr_port_pairs.https.remote_port or local_https_port
+    http_port_pair = forwarders.PortPair(local_http_port, remote_http_port)
+    https_port_pair = forwarders.PortPair(local_https_port, remote_https_port)
+    if wpr_port_pairs.dns is None:
+      assert not local_dns_port, 'DNS was not requested, but started anyway.'
+      dns_port_pair = None
+    else:
+      assert local_dns_port, 'DNS was requested, but not started.'
+      remote_dns_port = wpr_port_pairs.dns.remote_port or local_dns_port
+      dns_port_pair = forwarders.PortPair(local_dns_port, remote_dns_port)
+    return forwarders.PortPairs(http_port_pair, https_port_pair, dns_port_pair)
 
   def __enter__(self):
     return self
