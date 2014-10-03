@@ -3,13 +3,13 @@
 # found in the LICENSE file.
 
 import base64
+import gzip
 import optparse
 import shutil
+import os
+import StringIO
 import sys
 import tempfile
-import os
-import gzip
-import StringIO
 
 from trace_viewer import trace_viewer_project
 from tvcm import generate
