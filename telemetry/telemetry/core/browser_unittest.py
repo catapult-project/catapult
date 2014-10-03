@@ -3,14 +3,22 @@
 # found in the LICENSE file.
 
 import logging
+import os
+import shutil
+import tempfile
+import unittest
 
 from telemetry import benchmark
+from telemetry.core import browser_finder
 from telemetry.core import gpu_device
 from telemetry.core import gpu_info
 from telemetry.core import system_info
+from telemetry.core import util
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.unittest import browser_test_case
+from telemetry.unittest import options_for_unittests
+from telemetry.util import path
 
 
 class BrowserTest(browser_test_case.BrowserTestCase):
@@ -141,3 +149,57 @@ class DirtyProfileBrowserTest(browser_test_case.BrowserTestCase):
   @benchmark.Disabled('chromeos')  # crbug.com/243912
   def testDirtyProfileCreation(self):
     self.assertEquals(1, len(self._browser.tabs))
+
+
+def _GenerateBrowserProfile(number_of_tabs):
+  """ Generate a browser profile which browser had |number_of_tabs| number of
+  tabs opened before it was closed.
+      Returns:
+        profile_dir: the directory of profile.
+  """
+  profile_dir = tempfile.mkdtemp()
+  options = options_for_unittests.GetCopy()
+  options.output_profile_path = profile_dir
+  browser_to_create = browser_finder.FindBrowser(options)
+  with browser_to_create.Create() as browser:
+    browser.SetHTTPServerDirectories(path.GetUnittestDataDir())
+    blank_file_path = os.path.join(path.GetUnittestDataDir(), 'blank.html')
+    blank_url = browser.http_server.UrlOf(blank_file_path)
+    browser.foreground_tab.Navigate(blank_url)
+    browser.foreground_tab.WaitForDocumentReadyStateToBeComplete()
+    for _ in xrange(number_of_tabs - 1):
+      tab = browser.tabs.New()
+      tab.Navigate(blank_url)
+      tab.WaitForDocumentReadyStateToBeComplete()
+  return profile_dir
+
+
+class BrowserRestoreSessionTest(unittest.TestCase):
+
+  @classmethod
+  def setUpClass(cls):
+    cls._number_of_tabs = 4
+    cls._profile_dir = _GenerateBrowserProfile(cls._number_of_tabs)
+    options = options_for_unittests.GetCopy()
+    options.browser_options.AppendExtraBrowserArgs(['--restore-last-session'])
+    options.browser_options.profile_dir = cls._profile_dir
+    cls._browser_to_create = browser_finder.FindBrowser(options)
+
+  @benchmark.Enabled('has tabs')
+  @benchmark.Disabled('chromeos', 'win')
+  # TODO(nednguyen): Enable this test on windowsn platform
+  def testRestoreBrowserWithMultipleTabs(self):
+    with self._browser_to_create.Create() as browser:
+      # The number of tabs will be self._number_of_tabs + 1 as it includes the
+      # old tabs and a new blank tab.
+      expected_number_of_tabs = self._number_of_tabs + 1
+      try:
+        util.WaitFor(lambda: len(browser.tabs) == expected_number_of_tabs, 10)
+      except:
+        logging.error('Number of tabs is %s' % len(browser.tabs))
+        raise
+      self.assertEquals(expected_number_of_tabs, len(browser.tabs))
+
+  @classmethod
+  def tearDownClass(cls):
+    shutil.rmtree(cls._profile_dir)
