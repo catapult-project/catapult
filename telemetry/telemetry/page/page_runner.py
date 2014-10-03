@@ -38,12 +38,12 @@ class _RunState(object):
     self.profiler_dir = None
 
   def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
-                           credentials_path, archive_path, finder_options):
+                           credentials_path, finder_options):
     started_browser = not self.browser
     # Create a browser.
     if not self.browser:
       test.CustomizeBrowserOptionsForSinglePage(page, finder_options)
-      possible_browser.SetReplayArchivePath(archive_path,
+      possible_browser.SetReplayArchivePath(page.archive_path,
                                         self._append_to_existing_wpr,
                                         page_set.make_javascript_deterministic)
       possible_browser.SetCredentialsPath(credentials_path)
@@ -253,8 +253,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         # If we are restarting the browser for each page customize the per page
         # options for just the current page before starting the browser.
       state.StartBrowserIfNeeded(test, page_set, page, possible_browser,
-                                 credentials_path, page.archive_path,
-                                 finder_options)
+                                 credentials_path, finder_options)
       if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
         logging.info('Skip test for page %s because browser is not supported.'
                      % page.url)
