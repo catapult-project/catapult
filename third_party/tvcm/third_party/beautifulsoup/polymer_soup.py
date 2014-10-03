@@ -8,4 +8,4 @@ import BeautifulSoup
 class PolymerSoup(BeautifulSoup.BeautifulSoup):
   """Parser for HTML files containing Polymer tags."""
   NESTABLE_TAGS = BeautifulSoup.BeautifulSoup.NESTABLE_TAGS.copy()
-  NESTABLE_TAGS['template'] = ['template']
+  NESTABLE_TAGS['template'] = []
