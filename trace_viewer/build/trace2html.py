@@ -8,6 +8,8 @@ import shutil
 import sys
 import tempfile
 import os
+import gzip
+import StringIO
 
 from trace_viewer import trace_viewer_project
 from tvcm import generate
@@ -51,9 +53,12 @@ class ViewerDataScript(generate.ExtraScript):
 
   def WriteToFile(self, output_file):
     output_file.write('<script id="viewer-data" type="application/json">\n')
-    with open(self._filename, 'rb') as trace_file:
-      b64_content = base64.b64encode(trace_file.read())
-      output_file.write(b64_content)
+    compressed_trace = StringIO.StringIO()
+    with open(self._filename, 'r') as trace_file:
+      with gzip.GzipFile(fileobj=compressed_trace, mode='w') as f:
+        f.write(trace_file.read())
+    b64_content = base64.b64encode(compressed_trace.getvalue())
+    output_file.write(b64_content)
     output_file.write('\n</script>\n')
 
 def WriteHTMLForTracesToFile(trace_filenames, output_file):
