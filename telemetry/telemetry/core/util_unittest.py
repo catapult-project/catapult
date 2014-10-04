@@ -10,7 +10,7 @@ from telemetry.core import util
 
 
 class TestWait(unittest.TestCase):
-  def testNonTimeout(self):  # method could be a function pylint: disable=R0201
+  def testNonTimeout(self):
     def test():
       return True
     util.WaitFor(test, 0.1)
@@ -23,7 +23,7 @@ class TestWait(unittest.TestCase):
   def testCallable(self):
     """Test methods and anonymous functions, functions are tested elsewhere."""
     class Test(object):
-      def Method(self):  # method could be a function pylint: disable=R0201
+      def Method(self):
         return 'test'
     util.WaitFor(Test().Method, 0.1)
 
