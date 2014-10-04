@@ -19,6 +19,7 @@ def _InitBeautifulSoup():
   sys.path.insert(0, bs_path)
 _InitBeautifulSoup()
 import BeautifulSoup
+import polymer_soup
 
 
 class InlineScript(object):
@@ -66,7 +67,7 @@ def _IsDoctype(x):
 
 class HTMLModuleParserResults(object):
   def __init__(self, html):
-    self._soup = BeautifulSoup.BeautifulSoup(html)
+    self._soup = polymer_soup.PolymerSoup(html)
     self._inline_scripts = None
 
   @property
@@ -106,7 +107,7 @@ class HTMLModuleParserResults(object):
     yield self.GenerateHTML(controller)
 
   def GenerateHTML(self, controller):
-    soup = BeautifulSoup.BeautifulSoup(str(self._soup))
+    soup = polymer_soup.PolymerSoup(str(self._soup))
 
     # Remove decl
     for x in soup.contents:
@@ -145,7 +146,7 @@ class HTMLModuleParserResults(object):
     for stylesheet_link in stylesheet_links:
       html = controller.GetHTMLForStylesheetHRef(stylesheet_link['href'])
       if html:
-        tmp = BeautifulSoup.BeautifulSoup(html).findChildren()
+        tmp = polymer_soup.PolymerSoup(html).findChildren()
         assert len(tmp) == 1
         stylesheet_link.replaceWith(tmp[0])
       else:
