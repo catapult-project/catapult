@@ -12,6 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/trace_model/instant_event.html">
 <link rel="import" href="/tracing/trace_model/flow_event.html">
 <link rel="import" href="/tracing/trace_model/counter_series.html">
+<link rel="import" href="/tracing/trace_model/slice_group.html">
 
 <script>
 'use strict';
@@ -409,7 +410,8 @@ tvcm.exportTo('tracing.importer', function() {
         } else if (event.ph === 'X') {
           this.processCompleteEvent(event);
 
-        } else if (event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
+        } else if (event.ph === 'b' || event.ph === 'e' || event.ph === 'n' ||
+                   event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
                    event.ph === 'p') {
           this.processAsyncEvent(event);
 
@@ -559,6 +561,182 @@ tvcm.exportTo('tracing.importer', function() {
 
       this.allAsyncEvents_.sort(function(x, y) {
         var d = x.event.ts - y.event.ts;
+        if (d !== 0)
+          return d;
+        return x.sequenceNumber - y.sequenceNumber;
+      });
+
+      var legacyEvents = [];
+      // Group nestable async events by ID. Events with the same ID should
+      // belong to the same parent async event.
+      var nestableAsyncEventsByID = {};
+      for (var i = 0; i < this.allAsyncEvents_.length; i++) {
+        var asyncEventState = this.allAsyncEvents_[i];
+        var event = asyncEventState.event;
+        if (event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
+            event.ph === 'p') {
+          legacyEvents.push(asyncEventState);
+          continue;
+        }
+        if (event.name === undefined) {
+          this.model_.importWarning({
+            type: 'async_slice_parse_error',
+            message: 'Nestable async events (ph: b, e, or n) require a ' +
+                'name parameter.'
+          });
+          continue;
+        }
+
+        var id = event.id;
+        if (id === undefined) {
+          this.model_.importWarning({
+            type: 'async_slice_parse_error',
+            message: 'Nestable async events (ph: b, e, or n) require an ' +
+                'id parameter.'
+          });
+          continue;
+        }
+        if (nestableAsyncEventsByID[id] === undefined)
+           nestableAsyncEventsByID[id] = [];
+        nestableAsyncEventsByID[id].push(asyncEventState);
+      }
+      // Handle legacy async events.
+      this.createLegacyAsyncSlices_(legacyEvents);
+
+      // Parse nestable async events into AsyncSlices.
+      for (var id in nestableAsyncEventsByID) {
+        var eventStateEntries = nestableAsyncEventsByID[id];
+        // Stack of enclosing BEGIN events.
+        var parentStack = [];
+        for (var i = 0; i < eventStateEntries.length; ++i) {
+          var eventStateEntry = eventStateEntries[i];
+          // If this is the end of an event, match it to the start.
+          if (eventStateEntry.event.ph === 'e') {
+            // Walk up the parent stack to find the corresponding BEGIN for
+            // this END.
+            var parentIndex = -1;
+            for (var k = parentStack.length - 1; k >= 0; --k) {
+              if (parentStack[k].event.name === eventStateEntry.event.name) {
+                parentIndex = k;
+                break;
+              }
+            }
+            if (parentIndex === -1) {
+              // Unmatched end.
+              eventStateEntry.finished = false;
+            } else {
+              parentStack[parentIndex].end = eventStateEntry;
+              // Pop off all enclosing unmatched BEGINs util parentIndex.
+              while (parentIndex < parentStack.length) {
+                parentStack.pop();
+              }
+            }
+          }
+          // Inherit the current parent.
+          if (parentStack.length > 0)
+            eventStateEntry.parentEntry = parentStack[parentStack.length - 1];
+          if (eventStateEntry.event.ph === 'b')
+            parentStack.push(eventStateEntry);
+        }
+        var topLevelSlices = [];
+        for (var i = 0; i < eventStateEntries.length; ++i) {
+          var eventStateEntry = eventStateEntries[i];
+          // Skip matched END, as its slice will be created when we
+          // encounter its corresponding BEGIN.
+          if (eventStateEntry.event.ph === 'e' &&
+              eventStateEntry.finished === undefined) {
+            continue;
+          }
+          var startState;
+          var endState;
+          var sliceArgs;
+          var sliceError;
+          if (eventStateEntry.event.ph === 'n') {
+            startState = eventStateEntry;
+            endState = eventStateEntry;
+            sliceArgs = eventStateEntry.event.args;
+          } else if (eventStateEntry.event.ph === 'b'){
+            if (eventStateEntry.end === undefined) {
+              // Unmatched BEGIN. End it when last event with this ID ends.
+              eventStateEntry.end =
+                  eventStateEntries[eventStateEntries.length - 1];
+              sliceError =
+                  "Slice has no matching END. End time has been adjusted.";
+              this.model_.importWarning({
+                type: 'async_slice_parse_error',
+                message: 'Nestable async BEGIN event at ' +
+                    eventStateEntry.event.ts + ' with name=' +
+                    eventStateEntry.event.name +
+                    ' and id=' + eventStateEntry.event.id + ' was unmatched.'
+              });
+              sliceArgs = eventStateEntry.event.args;
+            } else {
+              // Include args for both END and BEGIN for a matched pair.
+              var concatenateArguments = function(args1, args2) {
+                if (args1.params === undefined || args2.params === undefined)
+                  return tvcm.concatenateObjects(args1, args2);
+                // Make an argument object to hold the combined params.
+                var args3 = {};
+                args3.params = tvcm.concatenateObjects(args1.params, args2.params);
+                return tvcm.concatenateObjects(args1, args2, args3);
+              }
+              sliceArgs = concatenateArguments(eventStateEntry.event.args,
+                                               eventStateEntry.end.event.args);
+            }
+            startState = eventStateEntry;
+            endState = eventStateEntry.end;
+          } else {
+            // Unmatched END. Start it at the first event with this ID starts.
+            sliceError =
+                "Slice has no matching BEGIN. Start time has been adjusted.";
+            this.model_.importWarning({
+              type: 'async_slice_parse_error',
+              message: 'Nestable async END event at ' +
+                  eventStateEntry.event.ts + ' with name=' +
+                  eventStateEntry.event.name +
+                  ' and id=' + eventStateEntry.event.id + ' was unmatched.'
+            });
+            startState = eventStateEntries[0];
+            endState = eventStateEntry;
+            sliceArgs = eventStateEntry.event.args;
+          }
+          var slice = new tracing.trace_model.AsyncSlice(
+              eventStateEntry.event.cat,
+              eventStateEntry.event.name,
+              tvcm.ui.getStringColorId(eventStateEntry.event.name),
+              startState.event.ts / 1000,
+              sliceArgs,
+              (endState.event.ts - startState.event.ts) / 1000);
+
+          slice.startThread = startState.thread;
+          slice.endThread = endState.thread;
+          slice.id = id;
+          if (sliceError !== undefined)
+            slice.error = sliceError;
+          eventStateEntry.slice = slice;
+          // Add slice to parent slice if there is a parent. Otherwise threat
+          // it as a top level slice.
+          if (eventStateEntry.parentEntry !== undefined &&
+              eventStateEntry.parentEntry.slice !== undefined) {
+            if (eventStateEntry.parentEntry.slice.subSlices === undefined)
+              eventStateEntry.parentEntry.slice.subSlices = [];
+            eventStateEntry.parentEntry.slice.subSlices.push(slice);
+          } else {
+            topLevelSlices.push(slice);
+          }
+        }
+        for (var si = 0; si < topLevelSlices.length; si++) {
+          topLevelSlices[si].startThread.asyncSliceGroup.push(topLevelSlices[si]);
+        }
+      }
+    },
+
+    createLegacyAsyncSlices_: function(legacyEvents) {
+      if (legacyEvents.length === 0)
+        return;
+
+      legacyEvents.sort(function(x, y) {
+        var d = x.event.ts - y.event.ts;
         if (d != 0)
           return d;
         return x.sequenceNumber - y.sequenceNumber;
@@ -566,9 +744,8 @@ tvcm.exportTo('tracing.importer', function() {
 
       var asyncEventStatesByNameThenID = {};
 
-      var allAsyncEvents = this.allAsyncEvents_;
-      for (var i = 0; i < allAsyncEvents.length; i++) {
-        var asyncEventState = allAsyncEvents[i];
+      for (var i = 0; i < legacyEvents.length; i++) {
+        var asyncEventState = legacyEvents[i];
 
         var event = asyncEventState.event;
         var name = event.name;

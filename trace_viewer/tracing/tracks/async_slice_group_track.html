@@ -54,8 +54,10 @@ tvcm.exportTo('tracing.tracks', function() {
      * slices that are non overlapping.
      *
      * It uses a very simple approach: walk through the slices in sorted order
-     * by start time. For each slice, try to fit it in an existing subRow. If it
-     * doesn't fit in any subrow, make another subRow.
+     * by start time. For each slice, try to fit it in an existing subRow. If
+     * it doesn't fit in any subrow, make another subRow. It then fits nested
+     * subSlices recursively into rows below parent slice according to which
+     * nested level the child is in.
      */
     buildSubRows_: function(slices) {
       slices.sort(function(x, y) {
@@ -67,29 +69,32 @@ tvcm.exportTo('tracing.tracks', function() {
         var slice = slices[i];
 
         var found = false;
+        var index = subRows.length;
         for (var j = 0; j < subRows.length; j++) {
           var subRow = subRows[j];
           var lastSliceInSubRow = subRow[subRow.length - 1];
           if (slice.start >= lastSliceInSubRow.end) {
             found = true;
-            // Instead of plotting one big slice for the entire
-            // AsyncEvent, we plot each of the subSlices.
-            if (slice.subSlices === undefined || slice.subSlices.length < 1)
-              throw new Error('AsyncEvent missing subSlices: ') +
-                  slice.name;
-            for (var k = 0; k < slice.subSlices.length; k++)
-              subRow.push(slice.subSlices[k]);
+            index = j;
             break;
           }
         }
-        if (!found) {
-          var subRow = [];
-          if (slice.subSlices !== undefined) {
-            for (var k = 0; k < slice.subSlices.length; k++)
-              subRow.push(slice.subSlices[k]);
-            subRows.push(subRow);
+        if (!found)
+          subRows.push([]);
+        subRows[index].push(slice);
+
+        // Fit subSlices recursively into rows below parent.
+        var fitSubSlicesRecursively = function(subSlices, level, rows) {
+          if (subSlices === undefined || subSlices.length === 0)
+            return;
+          if (level === rows.length)
+            rows.push([]);
+          for (var h = 0; h < subSlices.length; h++) {
+             rows[level].push(subSlices[h]);
+             fitSubSlicesRecursively(subSlices[h].subSlices, level + 1, rows);
           }
         }
+        fitSubSlicesRecursively(slice.subSlices, index + 1, subRows);
       }
       return subRows;
     }

@@ -1177,6 +1177,348 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     assertTrue(m.hasImportWarnings);
   });
 
+  test('nestableAsyncBasic', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {x: 1}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'a', args: {}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assertEquals('a', parentSlice.title);
+    assertEquals('foo', parentSlice.category);
+
+    assertNotUndefined(parentSlice.subSlices);
+    assertEquals(1, parentSlice.subSlices.length);
+    var subSlice = parentSlice.subSlices[0];
+    // Arguments should include both BEGIN and END event.
+    assertEquals(1, subSlice.args['x']);
+    assertEquals(2, subSlice.args['y']);
+    assertUndefined(subSlice.subSlices);
+  });
+
+  test('nestableAsyncCombinedParams', function() {
+    var events = [
+      {name: 'a', args: {x: 1, params: {p1: 'hello', p2: 123}},
+        pid: 52, ts: 525, cat: 'foo', tid: 53, ph: 'b', id: 72},
+      {name: 'a', args: {y: 2, params: {p3: 'hi'}}, pid: 52, ts: 560,
+        cat: 'foo', tid: 53, ph: 'e', id: 72},
+      {name: 'b', args: {params: {p4: 'foo'}},
+        pid: 52, ts: 525, cat: 'foo', tid: 53, ph: 'b', id: 73},
+      {name: 'b', args: {params: ''}, pid: 52, ts: 560,
+        cat: 'foo', tid: 53, ph: 'e', id: 73},
+      {name: 'c', args: {params: {p5: 'bar'}},
+        pid: 52, ts: 525, cat: 'foo', tid: 53, ph: 'b', id: 74},
+      {name: 'c', args: {}, pid: 52, ts: 560,
+        cat: 'foo', tid: 53, ph: 'e', id: 74}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    assertEquals(3, t.asyncSliceGroup.slices.length);
+
+    var sliceA = t.asyncSliceGroup.slices[0];
+    // Arguments should include both BEGIN and END event.
+    assertEquals(1, sliceA.args['x']);
+    assertEquals(2, sliceA.args['y']);
+    var paramsA = sliceA.args['params'];
+    assertNotUndefined(paramsA);
+    assertEquals('hello', paramsA.p1);
+    assertEquals(123, paramsA.p2);
+    assertEquals('hi', paramsA.p3);
+
+    var sliceB = t.asyncSliceGroup.slices[1];
+    // Arguments should include both BEGIN and END event.
+    var paramsB = sliceB.args['params'];
+    assertNotUndefined(paramsB);
+    assertEquals('foo', paramsB.p4);
+
+    var sliceC = t.asyncSliceGroup.slices[2];
+    // Arguments should include both BEGIN and END event.
+    var paramsC = sliceC.args['params'];
+    assertNotUndefined(paramsC);
+    assertEquals('bar', paramsC.p5);
+  });
+
+  test('nestableAsyncManyLevels', function() {
+    // There are 5 nested levels.
+    var events = [
+      {name: 'l1', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'l2', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'l3', args: {}, pid: 52, ts: 526, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'l4', args: {}, pid: 52, ts: 527, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'l5', args: {}, pid: 52, ts: 528, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'l5', args: {}, pid: 52, ts: 529, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'l4', args: {}, pid: 52, ts: 530, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'l3', args: {}, pid: 52, ts: 531, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'l2', args: {}, pid: 52, ts: 532, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'l1', args: {}, pid: 52, ts: 533, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    // Perfectly matched events should not produce a warning.
+    assertFalse(m.hasImportWarnings);
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+
+    var l1Slice = t.asyncSliceGroup.slices[0];
+    assertEquals('l1', l1Slice.title);
+    assertAlmostEquals(0, l1Slice.start);
+    assertAlmostEquals(9 / 1000, l1Slice.duration);
+
+    assertNotUndefined(l1Slice.subSlices);
+    assertEquals(1, l1Slice.subSlices.length);
+    var l2Slice = l1Slice.subSlices[0];
+    assertEquals('l2', l2Slice.title);
+    assertAlmostEquals(1 / 1000, l2Slice.start);
+    assertAlmostEquals(7 / 1000, l2Slice.duration);
+
+    assertNotUndefined(l2Slice.subSlices);
+    assertEquals(1, l2Slice.subSlices.length);
+    var l3Slice = l2Slice.subSlices[0];
+    assertEquals('l3', l3Slice.title);
+    assertAlmostEquals(2 / 1000, l3Slice.start);
+    assertAlmostEquals(5 / 1000, l3Slice.duration);
+
+    assertNotUndefined(l3Slice.subSlices);
+    assertEquals(1, l3Slice.subSlices.length);
+    var l4Slice = l3Slice.subSlices[0];
+    assertEquals('l4', l4Slice.title);
+    assertAlmostEquals(3 / 1000, l4Slice.start);
+    assertAlmostEquals(3 / 1000, l4Slice.duration);
+
+    assertNotUndefined(l4Slice.subSlices);
+    assertEquals(1, l4Slice.subSlices.length);
+    var l5Slice = l4Slice.subSlices[0];
+    assertEquals('l5', l5Slice.title);
+    assertAlmostEquals(4 / 1000, l5Slice.start);
+    assertAlmostEquals(1 / 1000, l5Slice.duration);
+  });
+
+  test('nestableAsyncInstantEvent', function() {
+    var events = [
+      {name: 'c', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'n', id: 71},
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'd', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'n', id: 72},
+      {name: 'a', args: {}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    assertEquals(2, t.asyncSliceGroup.slices.length);
+    var instantSlice = t.asyncSliceGroup.slices[0];
+    assertEquals('c', instantSlice.title);
+    assertAlmostEquals(0, instantSlice.start);
+    assertAlmostEquals(0, instantSlice.duration);
+    assertUndefined(instantSlice.subSlices);
+
+    var nestedSlice = t.asyncSliceGroup.slices[1];
+    assertEquals('a', nestedSlice.title);
+    assertAlmostEquals(0, nestedSlice.start);
+    assertAlmostEquals((565-524) / 1000, nestedSlice.duration);
+    assertNotUndefined(nestedSlice.subSlices);
+    assertEquals(1, nestedSlice.subSlices.length);
+    var nestedInstantSlice = nestedSlice.subSlices[0];
+    assertUndefined(nestedInstantSlice.subSlices);
+    assertEquals('d', nestedInstantSlice.title);
+  });
+
+  test('nestableAsyncUnmatchedOuterBeginEvent', function() {
+    var events = [
+      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    // Unmatched BEGIN should produce a warning.
+    assertTrue(m.hasImportWarnings);
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assertEquals('a', parentSlice.title);
+    assertEquals('foo', parentSlice.category);
+    assertAlmostEquals(0, parentSlice.start);
+    // Unmatched BEGIN event ends at the last event of that ID.
+    assertAlmostEquals(36 / 1000, parentSlice.duration);
+    // Arguments should include only include its arguments.
+    assertUndefined(parentSlice.args['y']);
+    assertEquals(1, parentSlice.args['x']);
+    assertNotUndefined(parentSlice.error);
+
+    assertNotUndefined(parentSlice.subSlices);
+    assertEquals(1, parentSlice.subSlices.length);
+    var subSlice = parentSlice.subSlices[0];
+    assertAlmostEquals(1 / 1000, subSlice.start);
+    assertAlmostEquals(35 / 1000, subSlice.duration);
+    assertUndefined(subSlice.subSlices);
+    // Arguments should include those of the END event.
+    assertEquals(2, subSlice.args['y']);
+    assertUndefined(subSlice.subSlices);
+  });
+
+  test('nestableAsyncUnmatchedInnerBeginEvent', function() {
+    var events = [
+      {name: 'a', args: {z: 3}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'c', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'n', id: 72},
+      {name: 'b', args: {x: 1}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'a', args: {y: 2}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    // Unmatched BEGIN should produce a warning.
+    assertTrue(m.hasImportWarnings);
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assertEquals('a', parentSlice.title);
+    assertEquals('foo', parentSlice.category);
+    assertAlmostEquals(0, parentSlice.start);
+    assertAlmostEquals(41 / 1000, parentSlice.duration);
+    // Arguments should include both BEGIN and END event.
+    assertEquals(2, parentSlice.args['y']);
+    assertEquals(3, parentSlice.args['z']);
+    assertUndefined(parentSlice.args['x']);
+
+    assertNotUndefined(parentSlice.subSlices);
+    assertEquals(2, parentSlice.subSlices.length);
+    var subSliceInstant = parentSlice.subSlices[0];
+    var subSliceUnmatched = parentSlice.subSlices[1];
+    assertEquals('c', subSliceInstant.title);
+    assertEquals('b', subSliceUnmatched.title);
+    // Unmatched BEGIN ends at the last event of that ID.
+    assertAlmostEquals(1 / 1000, subSliceUnmatched.start);
+    assertAlmostEquals(40 / 1000, subSliceUnmatched.duration);
+    assertUndefined(subSliceUnmatched.subSlices);
+    assertEquals(1, subSliceUnmatched.args['x']);
+    assertUndefined(subSliceUnmatched['y']);
+    assertNotUndefined(subSliceUnmatched.error);
+    assertAlmostEquals(1 / 1000, subSliceInstant.start);
+    assertAlmostEquals(0, subSliceInstant.duration);
+    assertUndefined(subSliceInstant.subSlices);
+  });
+
+  test('nestableAsyncUnmatchedOuterEndEvent', function() {
+    // Events are intentionally out-of-order.
+    var events = [
+      {name: 'b', args: {x: 1}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'a', args: {z: 3}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    // Unmatched END should produce a warning.
+    assertTrue(m.hasImportWarnings);
+    assertEquals(2, t.asyncSliceGroup.slices.length);
+    var unmatchedSlice = t.asyncSliceGroup.slices[0];
+    var slice = t.asyncSliceGroup.slices[1];
+    assertEquals('a', unmatchedSlice.title);
+    assertAlmostEquals(0, unmatchedSlice.start);
+    // Unmatched END event begins at the first event of that ID. In this
+    // case, the first event happens to be the same unmatched event.
+    assertAlmostEquals(0 / 1000, unmatchedSlice.duration);
+    assertUndefined(unmatchedSlice.args['x']);
+    assertUndefined(unmatchedSlice.args['y']);
+    assertEquals(3, unmatchedSlice.args['z']);
+    assertNotUndefined(unmatchedSlice.error);
+    assertUndefined(unmatchedSlice.subSlices);
+
+    assertEquals('b', slice.title);
+    assertAlmostEquals(1 / 1000, slice.start);
+    assertAlmostEquals(35 / 1000, slice.duration);
+    // Arguments should include both BEGIN and END event.
+    assertEquals(1, slice.args['x']);
+    assertEquals(2, slice.args['y']);
+    assertUndefined(slice.subSlices);
+  });
+
+  test('nestableAsyncUnmatchedInnerEndEvent', function() {
+    var events = [
+      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'c', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'n', id: 72},
+      {name: 'b', args: {z: 3}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'a', args: {y: 2}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    // Unmatched END should produce a warning.
+    assertTrue(m.hasImportWarnings);
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assertEquals('a', parentSlice.title);
+    assertAlmostEquals(0, parentSlice.start);
+    assertAlmostEquals(41 / 1000, parentSlice.duration);
+    // Arguments should include both BEGIN and END event.
+    assertEquals(1, parentSlice.args['x']);
+    assertEquals(2, parentSlice.args['y']);
+
+    assertNotUndefined(parentSlice.subSlices);
+    assertEquals(2, parentSlice.subSlices.length);
+    var subSliceInstant = parentSlice.subSlices[0];
+    var subSliceUnmatched = parentSlice.subSlices[1];
+    assertEquals('c', subSliceInstant.title);
+    assertEquals('b', subSliceUnmatched.title);
+    // Unmatched END begins at the first event of that ID.
+    assertAlmostEquals(0 / 1000, subSliceUnmatched.start);
+    assertAlmostEquals(1 / 1000, subSliceUnmatched.duration);
+    // Arguments should include both BEGIN and END event.
+    assertUndefined(subSliceUnmatched.args['x']);
+    assertUndefined(subSliceUnmatched.args['y']);
+    assertEquals(3, subSliceUnmatched.args['z']);
+    assertNotUndefined(subSliceUnmatched.error);
+
+    assertUndefined(subSliceUnmatched.subSlices);
+    assertAlmostEquals(1 / 1000, subSliceInstant.start);
+    assertAlmostEquals(0, subSliceInstant.duration);
+    assertUndefined(subSliceInstant.subSlices);
+  });
+
   test('importSamples', function() {
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},

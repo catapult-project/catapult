@@ -65,6 +65,10 @@ tvcm.exportTo('tracing.importer', function() {
   Trace2HTMLImporter.prototype = {
     __proto__: tracing.importer.Importer.prototype,
 
+    isTraceDataContainer: function() {
+      return true;
+    },
+
     extractSubtraces: function() {
       return _extractEventsFromHTML(this.events_, true).subtraces;
     },

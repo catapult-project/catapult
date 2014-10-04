@@ -69,14 +69,22 @@ tvcm.exportTo('tracing.trace_model', function() {
 
     /**
      * Shifts all the timestamps inside this group forward by the amount
-     * specified.
+     * specified, including all nested subSlices if there are any.
      */
     shiftTimestampsForward: function(amount) {
       for (var sI = 0; sI < this.slices.length; sI++) {
         var slice = this.slices[sI];
         slice.start = (slice.start + amount);
-        for (var sJ = 0; sJ < slice.subSlices.length; sJ++)
-          slice.subSlices[sJ].start += amount;
+        // Shift all nested subSlices recursively.
+        var shiftSubSlices = function (subSlices) {
+          if (subSlices === undefined || subSlices.length === 0)
+            return;
+          for (var sJ = 0; sJ < subSlices.length; sJ++) {
+            subSlices[sJ].start += amount;
+            shiftSubSlices(subSlices[sJ].subSlices);
+          }
+        };
+        shiftSubSlices(slice.subSlices);
       }
     },
 

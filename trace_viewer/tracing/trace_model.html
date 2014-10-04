@@ -236,6 +236,7 @@ tvcm.exportTo('tracing', function() {
           break;
         }
       }
+      // TODO(kphanee): Throwing same Error at 2 places. Lets try to avoid it!
       if (!importerConstructor)
         throw new Error(
             'Could not find an importer for the provided eventData.');
@@ -318,6 +319,17 @@ tvcm.exportTo('tracing', function() {
       return promise;
     },
 
+    hasEventDataDecoder_: function(importers) {
+      if (importers.length === 0)
+        return false;
+
+      for (var i = 0; i < importers.length; ++i) {
+        if (!importers[i].isTraceDataContainer())
+          return true;
+      }
+      return false;
+    },
+
     /**
      * Creates a task that will import the provided traces into the model,
      * updating the progressMeter as it goes. Parameters are as defined in
@@ -360,10 +372,19 @@ tvcm.exportTo('tracing', function() {
         for (var i = 0; i < importers.length; i++) {
           var subtraces = importers[i].extractSubtraces();
           for (var j = 0; j < subtraces.length; j++) {
-            traces.push(subtraces[j]);
-            importers.push(this.createImporter_(subtraces[j]));
+            try {
+              traces.push(subtraces[j]);
+              importers.push(this.createImporter_(subtraces[j]));
+            } catch (error) {
+              // TODO(kphanee): Log the subtrace file which has failed.
+              console.warn(error.name + ': ' + error.message);
+              continue;
+            }
           }
         }
+
+        if (traces.length && !this.hasEventDataDecoder_(importers))
+          throw new Error('Could not find an importer for the provided eventData.');
 
         // Sort them on priority. This ensures importing happens in a
         // predictable order, e.g. linux_perf_importer before
