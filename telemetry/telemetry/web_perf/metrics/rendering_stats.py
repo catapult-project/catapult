@@ -97,7 +97,7 @@ def HasRenderingStats(process):
   if not process:
     return False
   for event in process.IterAllSlicesOfName(
-      'BenchmarkInstrumentation::MainThreadRenderingStats'):
+      'BenchmarkInstrumentation::DisplayRenderingStats'):
     if 'data' in event.args and event.args['data']['frame_count'] == 1:
       return True
   for event in process.IterAllSlicesOfName(
@@ -106,6 +106,13 @@ def HasRenderingStats(process):
       return True
   return False
 
+def GetTimestampEventName(process):
+  """ Returns the name of the events used to count frame timestamps. """
+  event_name = 'BenchmarkInstrumentation::DisplayRenderingStats'
+  for event in process.IterAllSlicesOfName(event_name):
+    if 'data' in event.args and event.args['data']['frame_count'] == 1:
+      return event_name
+  return 'BenchmarkInstrumentation::ImplThreadRenderingStats'
 
 class RenderingStats(object):
   def __init__(self, renderer_process, browser_process, timeline_ranges):
@@ -125,6 +132,8 @@ class RenderingStats(object):
       timestamp_process = browser_process
     else:
       timestamp_process = renderer_process
+
+    timestamp_event_name = GetTimestampEventName(timestamp_process)
 
     # A lookup from list names below to any errors or exceptions encountered
     # in attempting to generate that list.
@@ -165,7 +174,8 @@ class RenderingStats(object):
 
       if timeline_range.is_empty:
         continue
-      self._InitFrameTimestampsFromTimeline(timestamp_process, timeline_range)
+      self._InitFrameTimestampsFromTimeline(
+          timestamp_process, timestamp_event_name, timeline_range)
       self._InitMainThreadRenderingStatsFromTimeline(
           renderer_process, timeline_range)
       self._InitImplThreadRenderingStatsFromTimeline(
@@ -216,13 +226,10 @@ class RenderingStats(object):
         self.frame_times[-1].append(round(self.frame_timestamps[-1][-1] -
                                           self.frame_timestamps[-1][-2], 2))
 
-  def _InitFrameTimestampsFromTimeline(self, process, timeline_range):
-    event_name = 'BenchmarkInstrumentation::MainThreadRenderingStats'
-    for event in self._GatherEvents(event_name, process, timeline_range):
-      self._AddFrameTimestamp(event)
-
-    event_name = 'BenchmarkInstrumentation::ImplThreadRenderingStats'
-    for event in self._GatherEvents(event_name, process, timeline_range):
+  def _InitFrameTimestampsFromTimeline(
+      self, process, timestamp_event_name, timeline_range):
+    for event in self._GatherEvents(
+        timestamp_event_name, process, timeline_range):
       self._AddFrameTimestamp(event)
 
   def _InitMainThreadRenderingStatsFromTimeline(self, process, timeline_range):
