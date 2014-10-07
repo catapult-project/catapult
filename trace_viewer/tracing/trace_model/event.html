@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tvcm/guid.html">
+<link rel="import" href="/base/guid.html">
 
 <script>
 'use strict';
@@ -13,7 +13,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Event class.
  */
-tvcm.exportTo('tracing.trace_model', function() {
+tv.exportTo('tracing.trace_model', function() {
 
   /**
    * The SelectionState enum defines how Events are displayed in the view.
@@ -32,7 +32,7 @@ tvcm.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function Event() {
-    this.guid_ = tvcm.GUID.allocate();
+    this.guid_ = tv.GUID.allocate();
     this.selectionState = SelectionState.NONE;
   }
 

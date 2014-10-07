@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
   var Cpu = tracing.trace_model.Cpu;
   var CpuTrack = tracing.tracks.cpu_track;
   var ProcessTrackBase = tracing.tracks.ProcessTrackBase;
@@ -21,7 +21,7 @@ tvcm.exportTo('tracing.tracks', function() {
   /**
    * @constructor
    */
-  var KernelTrack = tvcm.ui.define('kernel-track', ProcessTrackBase);
+  var KernelTrack = tv.ui.define('kernel-track', ProcessTrackBase);
 
   KernelTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
@@ -41,7 +41,7 @@ tvcm.exportTo('tracing.tracks', function() {
     },
 
     willAppendTracks_: function() {
-      var cpus = tvcm.dictionaryValues(this.kernel.cpus);
+      var cpus = tv.dictionaryValues(this.kernel.cpus);
       cpus.sort(tracing.trace_model.Cpu.compare);
 
       var didAppendAtLeastOneTrack = false;

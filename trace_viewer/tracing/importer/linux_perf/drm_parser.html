@@ -13,7 +13,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses drm driver events in the Linux event trace format.
  */
-tvcm.exportTo('tracing.importer.linux_perf', function() {
+tv.exportTo('tracing.importer.linux_perf', function() {
 
   var Parser = tracing.importer.linux_perf.Parser;
 
@@ -35,7 +35,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('drm_vblank');
       kthread.openSlice = eventName;
       var slice = new tracing.trace_model.Slice('', kthread.openSlice,
-          tvcm.ui.getStringColorId(kthread.openSlice), ts, args, 0);
+          tv.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
     },

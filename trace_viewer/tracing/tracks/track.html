@@ -4,10 +4,10 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tvcm/ui.html">
 <link rel="stylesheet" href="/tracing/tracks/track.css">
-<link rel="import" href="/tvcm/ui.html">
-<link rel="import" href="/tvcm/ui/container_that_decorates_its_children.html">
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/base/ui/container_that_decorates_its_children.html">
 
 <script>
 'use strict';
@@ -17,18 +17,18 @@ found in the LICENSE file.
  * using a child canvas element. Uses a FastRectRenderer to draw only
  * the visible slices.
  */
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
   /**
    * The base class for all tracks.
    * @constructor
    */
-  var Track = tvcm.ui.define('track',
-                             tvcm.ui.ContainerThatDecoratesItsChildren);
+  var Track = tv.ui.define('track',
+                             tv.ui.ContainerThatDecoratesItsChildren);
   Track.prototype = {
-    __proto__: tvcm.ui.ContainerThatDecoratesItsChildren.prototype,
+    __proto__: tv.ui.ContainerThatDecoratesItsChildren.prototype,
 
     decorate: function(viewport) {
-      tvcm.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
+      tv.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
       if (viewport === undefined)
         throw new Error('viewport is required when creating a Track.');
 
@@ -141,7 +141,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
     addClosestInstantEventToSelection: function(instantEvents, worldX,
                                                 worldMaxDist, selection) {
-      var instantEvent = tvcm.findClosestElementInSortedArray(
+      var instantEvent = tv.findClosestElementInSortedArray(
           instantEvents,
           function(x) { return x.start; },
           worldX,

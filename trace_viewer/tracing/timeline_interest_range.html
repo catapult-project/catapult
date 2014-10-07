@@ -5,12 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tvcm/range.html">
+<link rel="import" href="/base/range.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
   /**
    * @constructor
    */
@@ -27,7 +27,7 @@ tvcm.exportTo('tracing', function() {
   function TimelineInterestRange(vp) {
     this.viewport_ = vp;
 
-    this.range_ = new tvcm.Range();
+    this.range_ = new tv.Range();
 
     this.leftSelected_ = false;
     this.rightSelected_ = false;
@@ -85,7 +85,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     asRangeObject: function() {
-      var range = new tvcm.Range();
+      var range = new tv.Range();
       range.addRange(this.range_);
       return range;
     },

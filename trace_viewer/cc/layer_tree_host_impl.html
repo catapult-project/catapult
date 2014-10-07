@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/cc/constants.html">
 <link rel="import" href="/cc/layer_tree_impl.html">
 <link rel="import" href="/cc/util.html">
-<link rel="import" href="/tvcm/bbox2.html">
+<link rel="import" href="/base/bbox2.html">
 <link rel="import" href="/tracing/trace_model/object_instance.html">
 
 <script>
@@ -17,7 +17,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the LayerTreeHostImpl model-level objects.
  */
-tvcm.exportTo('cc', function() {
+tv.exportTo('cc', function() {
   var constants = cc.constants;
 
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
@@ -154,14 +154,14 @@ tvcm.exportTo('cc', function() {
         var tileHistory = this.allTileHistories_[tileID];
         scales[tileHistory.contentsScale] = true;
       }
-      this.allContentsScales_ = tvcm.dictionaryKeys(scales);
+      this.allContentsScales_ = tv.dictionaryKeys(scales);
       return this.allContentsScales_;
     },
 
     get allLayersBBox() {
       if (this.allLayersBBox_)
         return this.allLayersBBox_;
-      var bbox = new tvcm.BBox2();
+      var bbox = new tv.BBox2();
       function handleTree(tree) {
         tree.renderSurfaceLayerList.forEach(function(layer) {
           bbox.addQuad(layer.layerQuad);

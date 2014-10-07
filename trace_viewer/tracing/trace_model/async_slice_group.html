@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/trace_model/async_slice.html">
-<link rel="import" href="/tvcm/guid.html">
-<link rel="import" href="/tvcm/range.html">
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/range.html">
 
 <script>
 'use strict';
@@ -15,16 +15,16 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the AsyncSliceGroup class.
  */
-tvcm.exportTo('tracing.trace_model', function() {
+tv.exportTo('tracing.trace_model', function() {
   /**
    * A group of AsyncSlices associated with a thread.
    * @constructor
    */
   function AsyncSliceGroup(parentThread, opt_name) {
     this.parentThread_ = parentThread;
-    this.guid_ = tvcm.GUID.allocate();
+    this.guid_ = tv.GUID.allocate();
     this.slices = [];
-    this.bounds = new tvcm.Range();
+    this.bounds = new tv.Range();
     this.name_ = opt_name;
     this.titleSubGroups_ = undefined;
   }
@@ -122,7 +122,7 @@ tvcm.exportTo('tracing.trace_model', function() {
           }
           subGroupsByTitle[slice.title].slices.push(slice);
         }
-        this.titleSubGroups_ = tvcm.dictionaryValues(subGroupsByTitle);
+        this.titleSubGroups_ = tv.dictionaryValues(subGroupsByTitle);
       }
       return this.titleSubGroups_;
     },

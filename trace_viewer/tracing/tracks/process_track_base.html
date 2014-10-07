@@ -14,13 +14,13 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/tracks/thread_track.html">
 <link rel="import" href="/tracing/trace_model_settings.html">
 <link rel="import" href="/tracing/filter.html">
-<link rel="import" href="/tvcm/ui.html">
-<link rel="import" href="/tvcm/ui/dom_helpers.html">
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
 
   var ObjectSnapshotView = tracing.analysis.ObjectSnapshotView;
   var ObjectInstanceView = tracing.analysis.ObjectInstanceView;
@@ -32,7 +32,7 @@ tvcm.exportTo('tracing.tracks', function() {
    * @constructor
    */
   var ProcessTrackBase =
-      tvcm.ui.define('process-track-base', tracing.tracks.ContainerTrack);
+      tv.ui.define('process-track-base', tracing.tracks.ContainerTrack);
 
   ProcessTrackBase.prototype = {
 
@@ -46,10 +46,10 @@ tvcm.exportTo('tracing.tracks', function() {
       this.classList.add('process-track-base');
       this.classList.add('expanded');
 
-      this.processNameEl_ = tvcm.ui.createSpan();
+      this.processNameEl_ = tv.ui.createSpan();
       this.processNameEl_.classList.add('process-track-name');
 
-      this.headerEl_ = tvcm.ui.createDiv({className: 'process-track-header'});
+      this.headerEl_ = tv.ui.createDiv({className: 'process-track-header'});
       this.headerEl_.appendChild(this.processNameEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 
@@ -150,7 +150,7 @@ tvcm.exportTo('tracing.tracks', function() {
     appendObjectInstanceTracks_: function() {
       var instancesByTypeName =
           this.processBase_.objects.getAllInstancesByTypeName();
-      var instanceTypeNames = tvcm.dictionaryKeys(instancesByTypeName);
+      var instanceTypeNames = tv.dictionaryKeys(instancesByTypeName);
       instanceTypeNames.sort();
 
       var didAppendAtLeastOneTrack = false;
@@ -210,7 +210,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
     appendCounterTracks_: function() {
       // Add counter tracks for this process.
-      var counters = tvcm.dictionaryValues(this.processBase.counters);
+      var counters = tv.dictionaryValues(this.processBase.counters);
       counters.sort(tracing.trace_model.Counter.compare);
 
       // Create the counters for this process.
@@ -224,7 +224,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
     appendThreadTracks_: function() {
       // Get a sorted list of threads.
-      var threads = tvcm.dictionaryValues(this.processBase.threads);
+      var threads = tv.dictionaryValues(this.processBase.threads);
       threads.sort(tracing.trace_model.Thread.compare);
 
       // Create the threads.

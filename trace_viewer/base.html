@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<script>
+'use strict';
+
+
+/**
+ * The global object.
+ * @type {!Object}
+ * @const
+ */
+var global = this;
+
+/** Platform, package, object property, and Event support. */
+this.tv = (function() {
+  if (window.tv) {
+    console.warn('Base was multiply initialized. First init wins.');
+    return window.tv;
+  }
+
+  /**
+   * Builds an object structure for the provided namespace path,
+   * ensuring that names that already exist are not overwritten. For
+   * example:
+   * 'a.b.c' -> a = {};a.b={};a.b.c={};
+   * @param {string} name Name of the object that this file defines.
+   * @param {*=} opt_object The object to expose at the end of the path.
+   * @param {Object=} opt_objectToExportTo The object to add the path to;
+   *     default is {@code global}.
+   * @private
+   */
+  function exportPath(name, opt_object, opt_objectToExportTo) {
+    var parts = name.split('.');
+    var cur = opt_objectToExportTo || global;
+
+    for (var part; parts.length && (part = parts.shift());) {
+      if (!parts.length && opt_object !== undefined) {
+        // last part and we have an object; use it
+        cur[part] = opt_object;
+      } else if (part in cur) {
+        cur = cur[part];
+      } else {
+        cur = cur[part] = {};
+      }
+    }
+    return cur;
+  };
+
+  var panicElement = undefined;
+  var rawPanicMessages = [];
+  function showPanicElementIfNeeded() {
+    if (panicElement)
+      return;
+
+    var panicOverlay = document.createElement('div');
+    panicOverlay.style.backgroundColor = 'white';
+    panicOverlay.style.border = '3px solid red';
+    panicOverlay.style.boxSizing = 'border-box';
+    panicOverlay.style.color = 'black';
+    panicOverlay.style.display = '-webkit-flex';
+    panicOverlay.style.height = '100%';
+    panicOverlay.style.left = 0;
+    panicOverlay.style.padding = '8px';
+    panicOverlay.style.position = 'fixed';
+    panicOverlay.style.top = 0;
+    panicOverlay.style.webkitFlexDirection = 'column';
+    panicOverlay.style.width = '100%';
+
+    panicElement = document.createElement('div');
+    panicElement.style.webkitFlex = '1 1 auto';
+    panicElement.style.overflow = 'auto';
+    panicOverlay.appendChild(panicElement);
+
+    if (!document.body) {
+      setTimeout(function() {
+        document.body.appendChild(panicOverlay);
+      }, 150);
+    } else {
+      document.body.appendChild(panicOverlay);
+    }
+  }
+
+  function showPanic(panicTitle, panicDetails) {
+
+    if (panicDetails instanceof Error)
+      panicDetails = panicDetails.stack;
+
+    showPanicElementIfNeeded();
+    var panicMessageEl = document.createElement('div');
+    panicMessageEl.innerHTML =
+        '<h2 id="message"></h2>' +
+        '<pre id="details"></pre>';
+    panicMessageEl.querySelector('#message').textContent = panicTitle;
+    panicMessageEl.querySelector('#details').textContent = panicDetails;
+    panicElement.appendChild(panicMessageEl);
+
+    rawPanicMessages.push({
+      title: panicTitle,
+      details: panicDetails
+    });
+  }
+
+  function hasPanic() {
+    return rawPanicMessages.length !== 0;
+  }
+  function getPanicText() {
+    return rawPanicMessages.map(function(msg) {
+      return msg.title;
+    }).join(', ');
+  }
+
+  function exportTo(namespace, fn) {
+    var obj = exportPath(namespace);
+    var exports = fn();
+
+    for (var propertyName in exports) {
+      // Maybe we should check the prototype chain here? The current usage
+      // pattern is always using an object literal so we only care about own
+      // properties.
+      var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
+                                                               propertyName);
+      if (propertyDescriptor)
+        Object.defineProperty(obj, propertyName, propertyDescriptor);
+    }
+  };
+
+  var pendingCallbacks = [];
+  var polymerReadyFired = false;
+  function onPolymerReady(callback) {
+    pendingCallbacks.push(callback);
+    if (polymerReadyFired)
+      scheduleRunPendingCallbacks_();
+  }
+
+  var runScheduled = false;
+  function scheduleRunPendingCallbacks_() {
+    if (runScheduled)
+      return;
+    runScheduled = true;
+    // TODO(nduca): I have no idea why magicDelay is needed. :'(
+    var magicDelay = 32;
+    setTimeout(runPendingCallbacks_, magicDelay);
+  }
+
+  function runPendingCallbacks_() {
+    runScheduled = false;
+    var pending = pendingCallbacks.slice();
+    pendingCallbacks = [];
+
+    pending.forEach(function(cb) {
+      cb.call(global);
+    });
+  }
+
+  /**
+   * Initialization which must be deferred until run-time.
+   */
+  function initialize() {
+    if (!window._TRACE_VIEWER_IS_COMPILED) {
+      var ver = parseInt(
+          window.navigator.appVersion.match(/Chrome\/(\d+)\./)[1], 10);
+      if (ver < 36) {
+        var msg = 'A Chrome version of 36 or higher is required for ' +
+            'trace-viewer development. Please upgrade your version of Chrome ' +
+            'and try again.';
+        showPanic('Invalid Chrome version', msg);
+      }
+    }
+
+    tv.doc = document;
+
+    tv.isMac = /Mac/.test(navigator.platform);
+    tv.isWindows = /Win/.test(navigator.platform);
+    tv.isChromeOS = /CrOS/.test(navigator.userAgent);
+    tv.isLinux = /Linux/.test(navigator.userAgent);
+
+    addEventListener('polymer-ready', function() {
+      polymerReadyFired = true;
+      scheduleRunPendingCallbacks_();
+    });
+  }
+
+  return {
+    initialize: initialize,
+
+    exportTo: exportTo,
+    showPanic: showPanic,
+    hasPanic: hasPanic,
+    getPanicText: getPanicText,
+    onPolymerReady: onPolymerReady
+  };
+})();
+
+tv.initialize();
+</script>

@@ -10,12 +10,12 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/trace_model/event.html">
 <link rel="import" href="/tracing/tracks/heading_track.html">
 <link rel="import" href="/tracing/color_scheme.html">
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
 
   var SelectionState = tracing.trace_model.SelectionState;
   var EventPresenter = tracing.EventPresenter;
@@ -29,7 +29,7 @@ tvcm.exportTo('tracing.tracks', function() {
    */
 
   var CounterTrack =
-      tvcm.ui.define('counter-track', tracing.tracks.HeadingTrack);
+      tv.ui.define('counter-track', tracing.tracks.HeadingTrack);
 
   CounterTrack.prototype = {
     __proto__: tracing.tracks.HeadingTrack.prototype,
@@ -84,7 +84,7 @@ tvcm.exportTo('tracing.tracks', function() {
       // Figure out where drawing should begin.
       var numSeries = counter.numSeries;
       var numSamples = counter.numSamples;
-      var startIndex = tvcm.findLowIndexInSortedArray(
+      var startIndex = tv.findLowIndexInSortedArray(
           counter.timestamps,
           function(x) { return x; },
           viewLWorld);
@@ -228,11 +228,11 @@ tvcm.exportTo('tracing.tracks', function() {
       }
 
       var counter = this.counter_;
-      var iLo = tvcm.findLowIndexInSortedIntervals(counter.timestamps,
+      var iLo = tv.findLowIndexInSortedIntervals(counter.timestamps,
                                                    function(x) { return x; },
                                                    getSampleWidth.bind(this),
                                                    loWX);
-      var iHi = tvcm.findLowIndexInSortedIntervals(counter.timestamps,
+      var iHi = tv.findLowIndexInSortedIntervals(counter.timestamps,
                                                    function(x) { return x; },
                                                    getSampleWidth.bind(this),
                                                    hiWX);
@@ -276,7 +276,7 @@ tvcm.exportTo('tracing.tracks', function() {
       var stackHeight = 0;
 
       for (var i = 0; i < counter.numSeries; i++) {
-        var counterSample = tvcm.findClosestElementInSortedArray(
+        var counterSample = tv.findClosestElementInSortedArray(
             counter.series_[i].samples_,
             function(x) { return x.timestamp; },
             worldX,

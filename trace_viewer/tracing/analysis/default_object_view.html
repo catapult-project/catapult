@@ -16,14 +16,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.analysis', function() {
+tv.exportTo('tracing.analysis', function() {
   var tsRound = tracing.analysis.tsRound;
 
   /*
    * Displays an object instance in a human readable form.
    * @constructor
    */
-  var DefaultObjectSnapshotView = tvcm.ui.define(
+  var DefaultObjectSnapshotView = tv.ui.define(
       'default-object-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
@@ -53,7 +53,7 @@ tvcm.exportTo('tracing.analysis', function() {
       html += '</table>';
       this.innerHTML = html;
 
-      // TODO(nduca): tvcm.ui.decoreate doesn't work when subclassed. So,
+      // TODO(nduca): tv.ui.decoreate doesn't work when subclassed. So,
       // replace the template element.
       var instanceLinkEl = new tracing.analysis.ObjectInstanceLink();
       instanceLinkEl.objectInstance = instance;
@@ -72,7 +72,7 @@ tvcm.exportTo('tracing.analysis', function() {
    * Displays an object instance in a human readable form.
    * @constructor
    */
-  var DefaultObjectInstanceView = tvcm.ui.define(
+  var DefaultObjectInstanceView = tv.ui.define(
       'default-object-instance-view',
       tracing.analysis.ObjectInstanceView);
 

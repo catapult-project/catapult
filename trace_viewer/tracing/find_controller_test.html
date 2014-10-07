@@ -12,11 +12,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() {
+tv.unittest.testSuite(function() {
   /*
    * Just enough of the Timeline to support the tests below.
    */
-  var FakeTimeline = tvcm.ui.define('div');
+  var FakeTimeline = tv.ui.define('div');
 
   FakeTimeline.prototype = {
     __proto__: HTMLDivElement.prototype,

@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() {
+tv.unittest.testSuite(function() {
   var ThreadSlice = tracing.trace_model.ThreadSlice;
   var TraceModel = tracing.TraceModel;
   var TitleFilter = tracing.TitleFilter;
@@ -147,7 +147,7 @@ tvcm.unittest.testSuite(function() {
 
     var m = new TraceModel();
     m.importTraces([combined]);
-    assertEquals(1, tvcm.dictionaryValues(m.processes).length);
+    assertEquals(1, tv.dictionaryValues(m.processes).length);
 
     var p1 = m.processes[1];
     assertNotUndefined(p1);
@@ -193,7 +193,7 @@ tvcm.unittest.testSuite(function() {
 
     var m = new TraceModel();
     m.importTraces([outerTrace]);
-    assertEquals(1, tvcm.dictionaryValues(m.processes).length);
+    assertEquals(1, tv.dictionaryValues(m.processes).length);
 
     var p1 = m.processes[1];
     assertNotUndefined(p1);

@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() {
+tv.unittest.testSuite(function() {
   var Counter = tracing.trace_model.Counter;
   var Viewport = tracing.TimelineViewport;
   var CounterTrack = tracing.tracks.CounterTrack;
@@ -25,7 +25,7 @@ tvcm.unittest.testSuite(function() {
 
     for (var i = 0; i < n; ++i) {
       ctr.addSeries(new tracing.trace_model.CounterSeries('value' + i,
-          tvcm.ui.getStringColorId('value' + i)));
+          tv.ui.getStringColorId('value' + i)));
     }
 
     for (var i = 0; i < samples.length; ++i) {
@@ -64,9 +64,9 @@ tvcm.unittest.testSuite(function() {
     var ctr = new Counter(undefined, 'testBasicCounter', '',
         'testBasicCounter');
     ctr.addSeries(new tracing.trace_model.CounterSeries('value1',
-        tvcm.ui.getStringColorId('testBasicCounter.value1')));
+        tv.ui.getStringColorId('testBasicCounter.value1')));
     ctr.addSeries(new tracing.trace_model.CounterSeries('value2',
-        tvcm.ui.getStringColorId('testBasicCounter.value2')));
+        tv.ui.getStringColorId('testBasicCounter.value2')));
 
     var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
     var samples = [[0, 3, 1, 2, 3, 1, 3, 3.1],

@@ -4,12 +4,12 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tvcm/raf.html">
+<link rel="import" href="/base/raf.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.importer', function() {
+tv.exportTo('tracing.importer', function() {
   /**
    * A task is a combination of a run callback, a set of subtasks, and an after
    * task.
@@ -116,13 +116,13 @@ tvcm.exportTo('tracing.importer', function() {
         }
 
         if (curTask) {
-          tvcm.requestIdleCallback(runAnother);
+          tv.requestIdleCallback(runAnother);
           return;
         }
 
         resolve();
       }
-      tvcm.requestIdleCallback(runAnother);
+      tv.requestIdleCallback(runAnother);
     });
   }
 

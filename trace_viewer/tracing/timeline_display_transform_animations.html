@@ -4,19 +4,19 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tvcm/utils.html">
-<link rel="import" href="/tvcm/ui/animation.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/base/ui/animation.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
   var kDefaultPanAnimatoinDurationMs = 100.0;
 
   /**
    * Pans a TimelineDisplayTransform by a given amount.
    * @constructor
-   * @extends {tvcm.ui.Animation}
+   * @extends {tv.ui.Animation}
    * @param {Number} deltaX The total amount of change to the transform's panX.
    * @param {Number} deltaY The total amount of change to the transform's panY.
    * @param {Number=} opt_durationMs How long the pan animation should run.
@@ -37,7 +37,7 @@ tvcm.exportTo('tracing', function() {
   }
 
   TimelineDisplayTransformPanAnimation.prototype = {
-    __proto__: tvcm.ui.Animation.prototype,
+    __proto__: tv.ui.Animation.prototype,
 
     get affectsPanY() {
       return this.deltaY !== 0;
@@ -67,11 +67,11 @@ tvcm.exportTo('tracing', function() {
 
     tick: function(timestamp, target) {
       var percentDone = (timestamp - this.startTimeMs) / this.durationMs;
-      percentDone = tvcm.clamp(percentDone, 0, 1);
+      percentDone = tv.clamp(percentDone, 0, 1);
 
-      target.panX = tvcm.lerp(percentDone, this.startPanX, this.goalPanX);
+      target.panX = tv.lerp(percentDone, this.startPanX, this.goalPanX);
       if (this.affectsPanY)
-        target.panY = tvcm.lerp(percentDone, this.startPanY, this.goalPanY);
+        target.panY = tv.lerp(percentDone, this.startPanY, this.goalPanY);
       return timestamp >= this.startTimeMs + this.durationMs;
     },
 
@@ -95,7 +95,7 @@ tvcm.exportTo('tracing', function() {
    * point in addition to the amount by which to zoom.
    *
    * @constructor
-   * @extends {tvcm.ui.Animation}
+   * @extends {tv.ui.Animation}
    * @param {Number} goalFocalPointXWorld The X coordinate in the world which is
    * of interest.
    * @param {Number} goalFocalPointXView Where on the screen the
@@ -128,7 +128,7 @@ tvcm.exportTo('tracing', function() {
   }
 
   TimelineDisplayTransformZoomToAnimation.prototype = {
-    __proto__: tvcm.ui.Animation.prototype,
+    __proto__: tv.ui.Animation.prototype,
 
     get affectsPanY() {
       return this.startPanY != this.goalPanY;
@@ -151,11 +151,11 @@ tvcm.exportTo('tracing', function() {
 
     tick: function(timestamp, target) {
       var percentDone = (timestamp - this.startTimeMs) / this.durationMs;
-      percentDone = tvcm.clamp(percentDone, 0, 1);
+      percentDone = tv.clamp(percentDone, 0, 1);
 
-      target.scaleX = tvcm.lerp(percentDone, this.startScaleX, this.goalScaleX);
+      target.scaleX = tv.lerp(percentDone, this.startScaleX, this.goalScaleX);
       if (this.affectsPanY) {
-        target.panY = tvcm.lerp(
+        target.panY = tv.lerp(
             percentDone, this.startPanY, this.goalFocalPointY);
       }
 

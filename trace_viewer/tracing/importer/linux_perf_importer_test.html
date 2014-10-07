@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() { // @suppress longLineCheck
+tv.unittest.testSuite(function() { // @suppress longLineCheck
   test('lineParserWithLegacyFmt', function() {
     var p = tracing.importer._LinuxPerfImporterTestExports.lineParserWithLegacyFmt; // @suppress longLineCheck
     var x = p('   <idle>-0     [001]  4467.843475: sched_switch: ' +
@@ -342,7 +342,7 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
-    assertEquals(2, tvcm.dictionaryLength(m.kernel.cpus));
+    assertEquals(2, tv.dictionaryLength(m.kernel.cpus));
     assertEquals(2, m.kernel.bestGuessAtCpuCount);
   });
 });

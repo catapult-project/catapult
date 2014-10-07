@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/rect.html">
+<link rel="import" href="/base/quad.html">
+<script>
+'use strict';
+
+tv.unittest.testSuite(function() {
+  test('pointInTri', function() {
+    var res = tv.pointInTriangle2(
+        [0.25, 0.25],
+        [0, 0],
+        [1, 0],
+        [0, 1]);
+    assertTrue(res);
+  });
+
+  test('pointNotInTri', function() {
+    var res = tv.pointInTriangle2(
+        [0.75, 0.75],
+        [0, 0],
+        [1, 0],
+        [0, 1]);
+    assertFalse(res);
+  });
+
+  test('pointInside', function() {
+    var q = tv.Quad.from4Vecs([0, 0],
+                                [1, 0],
+                                [1, 1],
+                                [0, 1]);
+    var res = q.pointInside([0.5, 0.5]);
+    assertTrue(res);
+  });
+
+  test('pointNotInQuad', function() {
+    var q = tv.Quad.from4Vecs([0, 0],
+                                [1, 0],
+                                [1, 1],
+                                [0, 1]);
+    var res = q.pointInside([1.5, 0.5]);
+    assertFalse(res);
+  });
+
+  test('isRectangle', function() {
+    assertTrue(tv.Quad.fromXYWH(0, 0, 10, 10).isRectangle());
+    assertTrue(tv.Quad.fromXYWH(-10, -10, 5, 5).isRectangle());
+    assertTrue(tv.Quad.fromXYWH(-10, -10, 20, 20).isRectangle());
+    assertTrue(tv.Quad.fromXYWH(-10, 10, 5, 5).isRectangle());
+
+    assertFalse(tv.Quad.fromXYWH(0, 0, -10, -10).isRectangle());
+    assertFalse(tv.Quad.from8Array([0, 1, 2, 3, 4, 5, 6, 7]).isRectangle());
+    assertFalse(tv.Quad.from8Array([0, 0, 0, 5, 5, 5, 0, 0]).isRectangle());
+  });
+
+  test('projectUnitRect', function() {
+    var container = tv.Quad.fromXYWH(0, 0, 10, 10);
+    var srcRect = tv.Rect.fromXYWH(0.1, 0.8, 0.8, 0.1);
+    var expectedRect = srcRect.scale(10);
+
+    var q = new tv.Quad();
+    container.projectUnitRectFast(q, srcRect);
+
+    assertQuadEquals(tv.Quad.fromRect(expectedRect), q);
+  });
+
+  test('projectUnitRectOntoUnitQuad', function() {
+    var container = tv.Quad.fromXYWH(0, 0, 1, 1);
+    var srcRect = tv.Rect.fromXYWH(0.0, 0, 1, 1);
+    var expectedRect = srcRect;
+
+    var q = new tv.Quad();
+    container.projectUnitRectFast(q, srcRect);
+
+    assertQuadEquals(tv.Quad.fromRect(expectedRect), q);
+  });
+
+  test('projectUnitRectOntoSizeTwoQuad', function() {
+    var container = tv.Quad.fromXYWH(0, 0, 2, 2);
+    var srcRect = tv.Rect.fromXYWH(0.0, 0, 1, 1);
+    var expectedRect = srcRect.scale(2);
+
+    var q = new tv.Quad();
+    container.projectUnitRectFast(q, srcRect);
+
+    assertQuadEquals(tv.Quad.fromRect(expectedRect), q);
+  });
+
+  test('projectUnitRectOntoTranslatedQuad', function() {
+    var container = tv.Quad.fromXYWH(1, 1, 1, 1);
+    var srcRect = tv.Rect.fromXYWH(0.0, 0, 1, 1);
+    var expectedRect = srcRect.translate([1, 1]);
+
+    var q = new tv.Quad();
+    container.projectUnitRectFast(q, srcRect);
+
+    assertQuadEquals(tv.Quad.fromRect(expectedRect), q);
+  });
+
+  test('projectShrunkUnitRectOntoUnitQuad', function() {
+    var container = tv.Quad.fromXYWH(0, 0, 1, 1);
+    var srcRect = tv.Rect.fromXYWH(0.1, 0.1, 0.8, 0.8);
+    var expectedRect = srcRect;
+
+    var q = new tv.Quad();
+    container.projectUnitRectFast(q, srcRect);
+
+    assertQuadEquals(tv.Quad.fromRect(expectedRect), q);
+  });
+});
+</script>

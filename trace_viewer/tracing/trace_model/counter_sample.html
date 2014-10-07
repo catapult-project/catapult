@@ -6,13 +6,13 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/trace_model/event.html">
-<link rel="import" href="/tvcm/iteration_helpers.html">
-<link rel="import" href="/tvcm/sorted_array_utils.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/base/sorted_array_utils.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.trace_model', function() {
+tv.exportTo('tracing.trace_model', function() {
   function CounterSample(series, timestamp, value) {
     tracing.trace_model.Event.call(this);
     this.series_ = series;
@@ -29,7 +29,7 @@ tvcm.exportTo('tracing.trace_model', function() {
         samplesByTimestamp[ts] = [];
       samplesByTimestamp[ts].push(sample);
     }
-    var timestamps = tvcm.dictionaryKeys(samplesByTimestamp);
+    var timestamps = tv.dictionaryKeys(samplesByTimestamp);
     timestamps.sort();
     var groups = [];
     for (var i = 0; i < timestamps.length; i++) {
@@ -83,7 +83,7 @@ tvcm.exportTo('tracing.trace_model', function() {
     },
 
     getSampleIndex: function() {
-      return tvcm.findLowIndexInSortedArray(
+      return tv.findLowIndexInSortedArray(
           this.series.timestamps,
           function(x) { return x; },
           this.timestamp_);

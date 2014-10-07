@@ -26,7 +26,7 @@ found in the LICENSE file.
     constructor="RasterTaskSubView">
   <script>
   'use strict';
-  tvcm.onPolymerReady(function() {
+  tv.onPolymerReady(function() {
     tracing.registerAnalysisSubViewType(
       1,
       function supported(selection) {
@@ -42,7 +42,7 @@ found in the LICENSE file.
       this.layerTreeView_.addEventListener(
           'cc-selection-change',
           this.onLayerTreeViewCCSelectionChange_.bind(this));
-      this.infoBar_ = new tvcm.ui.InfoBar();
+      this.infoBar_ = new tv.ui.InfoBar();
       this.appendChild(this.infoBar_);
       this.appendChild(this.layerTreeView_);
       this.selection = undefined;

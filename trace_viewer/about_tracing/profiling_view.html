@@ -10,10 +10,10 @@ found in the LICENSE file.
 <link rel="import" href="/about_tracing/xhr_based_tracing_controller_client.html">
 <link rel="import" href="/about_tracing/features.html">
 <link rel="import" href="/tracing/timeline_view.html">
-<link rel="import" href="/tvcm/key_event_manager.html">
-<link rel="import" href="/tvcm/ui.html">
-<link rel="import" href="/tvcm/ui/info_bar.html">
-<link rel="import" href="/tvcm/ui/overlay.html">
+<link rel="import" href="/base/key_event_manager.html">
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/base/ui/info_bar.html">
+<link rel="import" href="/base/ui/overlay.html">
 
 <style>
 x-profiling-view {
@@ -35,7 +35,7 @@ x-profiling-view > x-timeline-view {
 }
 
 .report-id-message {
-  -webkit-user-select: text; 
+  -webkit-user-select: text;
 }
 </style>
 
@@ -63,7 +63,7 @@ x-profiling-view > x-timeline-view {
  * @fileoverview ProfilingView glues the View control to
  * TracingController.
  */
-tvcm.exportTo('about_tracing', function() {
+tv.exportTo('about_tracing', function() {
   function readFile(file) {
     return new Promise(function(resolve, reject) {
       var reader = new FileReader();
@@ -88,7 +88,7 @@ tvcm.exportTo('about_tracing', function() {
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var ProfilingView = tvcm.ui.define('x-profiling-view');
+  var ProfilingView = tv.ui.define('x-profiling-view');
   var THIS_DOC = document.currentScript.ownerDocument;
   var REPORT_UPLOAD_URL = 'http://crash-staging/';
 
@@ -96,14 +96,14 @@ tvcm.exportTo('about_tracing', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function(tracingControllerClient) {
-      this.appendChild(tvcm.instantiateTemplate('#profiling-view-template',
+      this.appendChild(tv.instantiateTemplate('#profiling-view-template',
           THIS_DOC));
 
       this.timelineView_ = this.querySelector('x-timeline-view');
       this.infoBarGroup_ = this.querySelector('x-info-bar-group');
 
-      tvcm.ui.decorate(this.infoBarGroup_, tvcm.ui.InfoBarGroup);
-      tvcm.ui.decorate(this.timelineView_, tracing.TimelineView);
+      tv.ui.decorate(this.infoBarGroup_, tv.ui.InfoBarGroup);
+      tv.ui.decorate(this.timelineView_, tracing.TimelineView);
 
       // Detach the buttons. We will reattach them to the timeline view.
       // TODO(nduca): Make <timeline-view> have a <content select="x-buttons">
@@ -113,7 +113,7 @@ tvcm.exportTo('about_tracing', function() {
       this.timelineView_.leftControls.appendChild(buttons);
       this.initButtons_(buttons);
 
-      tvcm.KeyEventManager.instance.addListener(
+      tv.KeyEventManager.instance.addListener(
           'keypress', this.onKeypress_, this);
 
       this.initDragAndDrop_();
@@ -221,7 +221,7 @@ tvcm.exportTo('about_tracing', function() {
             buttons.querySelector('#monitor-checkbox').disabled = false;
             if (err instanceof about_tracing.UserCancelledError)
               return;
-            tvcm.ui.Overlay.showError('Error while recording', err);
+            tv.ui.Overlay.showError('Error while recording', err);
           }.bind(this));
       return resultPromise;
     },
@@ -240,7 +240,7 @@ tvcm.exportTo('about_tracing', function() {
           function(err) {
             if (err instanceof about_tracing.UserCancelledError)
               return;
-            tvcm.ui.Overlay.showError('Error while monitoring', err);
+            tv.ui.Overlay.showError('Error while monitoring', err);
           }.bind(this));
       return resultPromise;
     },
@@ -259,7 +259,7 @@ tvcm.exportTo('about_tracing', function() {
           function(err) {
             if (err instanceof about_tracing.UserCancelledError)
               return;
-            tvcm.ui.Overlay.showError('Error while monitoring', err);
+            tv.ui.Overlay.showError('Error while monitoring', err);
           }.bind(this));
       return resultPromise;
     },
@@ -276,7 +276,7 @@ tvcm.exportTo('about_tracing', function() {
           function(err) {
             if (err instanceof about_tracing.UserCancelledError)
               return;
-            tvcm.ui.Overlay.showError('Error while monitoring', err);
+            tv.ui.Overlay.showError('Error while monitoring', err);
           }.bind(this));
       return resultPromise;
     },
@@ -291,7 +291,7 @@ tvcm.exportTo('about_tracing', function() {
           function(err) {
             if (err instanceof about_tracing.UserCancelledError)
               return;
-            tvcm.ui.Overlay.showError('Error while updating tracing states',
+            tv.ui.Overlay.showError('Error while updating tracing states',
                                       err);
           }.bind(this));
       return resultPromise;
@@ -349,7 +349,7 @@ tvcm.exportTo('about_tracing', function() {
             this.timelineView_.model = m;
           }.bind(this),
           function(err) {
-            tvcm.ui.Overlay.showError('While importing: ', err);
+            tv.ui.Overlay.showError('While importing: ', err);
           }.bind(this));
     },
 
@@ -420,7 +420,7 @@ tvcm.exportTo('about_tracing', function() {
     },
 
     initUploadStatusOverlay_: function() {
-      this.uploadOverlay_ = tvcm.ui.Overlay();
+      this.uploadOverlay_ = tv.ui.Overlay();
       this.uploadOverlay_.title = 'Uploading trace...';
       this.uploadOverlay_.userCanClose = false;
       this.uploadOverlay_.visible = true;
@@ -495,7 +495,7 @@ tvcm.exportTo('about_tracing', function() {
                   this.setActiveTrace(file.name, data);
                 }.bind(this),
                 function(err) {
-                  tvcm.ui.Overlay.showError('Error while loading file: ' + err);
+                  tv.ui.Overlay.showError('Error while loading file: ' + err);
                 });
           }.bind(this), false);
       inputElement.click();
@@ -537,7 +537,7 @@ tvcm.exportTo('about_tracing', function() {
 
       var files = e.dataTransfer.files;
       if (files.length !== 1) {
-        tvcm.ui.Overlay.showError('1 file supported at a time.');
+        tv.ui.Overlay.showError('1 file supported at a time.');
         return;
       }
 
@@ -546,7 +546,7 @@ tvcm.exportTo('about_tracing', function() {
             this.setActiveTrace(files[0].name, data);
           }.bind(this),
           function(err) {
-            tvcm.ui.Overlay.showError('Error while loading file: ' + err);
+            tv.ui.Overlay.showError('Error while loading file: ' + err);
           });
       return false;
     }

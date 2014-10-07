@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/unittest.html">
+<link rel="import" href="/base/unittest/suite_loader.html">
+<link rel="import" href="/base/unittest/test_runner.html">
+<link rel="import" href="/base/unittest/html_test_results.html">
+<link rel="stylesheet" href="/base/unittest/common.css">
+<style>
+  x-base-interactive-test-runnbase
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+  }
+
+  x-base-interactive-test-runner > * {
+    -webkit-flex: 0 0 auto;
+  }
+  x-base-interactive-test-runner > #title {
+    font-size: 16pt;
+  }
+
+  x-base-interactive-test-runner {
+    font-family: sans-serif;
+  }
+
+  x-base-interactive-test-runner > h1 {
+    margin: 5px 0px 10px 0px;
+  }
+
+  x-base-interactive-test-runner > #stats {
+  }
+
+  x-base-interactive-test-runner > #controls {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  x-base-interactive-test-runner > #controls > ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  x-base-interactive-test-runner > #controls > ul > li {
+    float: left;
+    margin-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  x-base-interactive-test-runner > #shortform-results {
+    word-break: break-all;
+    height; 40px;
+  }
+
+  x-base-interactive-test-runner > #results-container {
+    -webkit-flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 0 4px 0 4px;
+  }
+</style>
+
+<template id="x-base-interactive-test-runner-template">
+  <h1 id="title">Tests</h1>
+  <div id="stats"></div>
+  <div id="controls">
+    <ul id="links">
+    </ul>
+    <div style="clear: both;"></div>
+
+    <div>
+      <span>
+        <input type="radio" name="test-type-to-run" value="unit" />
+        Run unit tests
+      </span>
+      <span>
+        <input type="radio" name="test-type-to-run" value="perf" />
+        Run perf tests
+      </span>
+    </div>
+    <span>
+      <input type="checkbox" id="short-format" /> Short format
+    </span>
+  </div>
+  <div id="shortform-results">
+  </div>
+  <div id="results-container">
+  </div>
+</template>
+
+<script>
+'use strict';
+
+tv.exportTo('tv.unittest', function() {
+  var THIS_DOC = document.currentScript.ownerDocument;
+
+  /**
+   * @constructor
+   */
+  var InteractiveTestRunner = tv.ui.define('x-base-interactive-test-runner');
+
+  InteractiveTestRunner.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.allTests_ = undefined;
+
+      this.suppressStateChange_ = false;
+
+      this.testFilterString_ = '';
+      this.testTypeToRun_ = tv.unittest.TestTypes.UNITTEST;
+      this.shortFormat_ = false;
+      this.testSuiteName_ = '';
+
+      this.rerunPending_ = false;
+      this.runner_ = undefined;
+      this.results_ = undefined;
+
+      this.onResultsStatsChanged_ = this.onResultsStatsChanged_.bind(this);
+      this.onTestFailed_ = this.onTestFailed_.bind(this);
+      this.onTestPassed_ = this.onTestPassed_.bind(this);
+
+
+      this.appendChild(tv.instantiateTemplate(
+          '#x-base-interactive-test-runner-template', THIS_DOC));
+
+      this.querySelector(
+          'input[name=test-type-to-run][value=unit]').checked = true;
+      var testTypeToRunEls = tv.asArray(this.querySelectorAll(
+          'input[name=test-type-to-run]'));
+
+      testTypeToRunEls.forEach(
+          function(inputEl) {
+            inputEl.addEventListener(
+                'click', this.onTestTypeToRunClick_.bind(this));
+          }, this);
+
+      var shortFormatEl = this.querySelector('#short-format');
+      shortFormatEl.checked = this.shortFormat_;
+      shortFormatEl.addEventListener(
+          'click', this.onShortFormatClick_.bind(this));
+      this.updateShortFormResultsDisplay_();
+
+      // Oh, DOM, how I love you. Title is such a convenient property name and I
+      // refuse to change my worldview because of tooltips.
+      this.__defineSetter__(
+          'title',
+          function(title) {
+            this.querySelector('#title').textContent = title;
+          });
+    },
+
+    get allTests() {
+      return this.allTests_;
+    },
+
+    set allTests(allTests) {
+      this.allTests_ = allTests;
+      this.scheduleRerun_();
+    },
+
+    get testLinks() {
+      return this.testLinks_;
+    },
+    set testLinks(testLinks) {
+      this.testLinks_ = testLinks;
+      var linksEl = this.querySelector('#links');
+      linksEl.textContent = '';
+      this.testLinks_.forEach(function(l) {
+        var link = document.createElement('a');
+        link.href = l.linkPath;
+        link.textContent = l.title;
+
+        var li = document.createElement('li');
+        li.appendChild(link);
+
+        linksEl.appendChild(li);
+      }, this);
+    },
+
+    get testFilterString() {
+      return this.testFilterString_;
+    },
+
+    set testFilterString(testFilterString) {
+      this.testFilterString_ = testFilterString;
+      this.scheduleRerun_();
+      if (!this.suppressStateChange_)
+        tv.dispatchSimpleEvent(this, 'statechange');
+    },
+
+    get shortFormat() {
+      return this.shortFormat_;
+    },
+
+    set shortFormat(shortFormat) {
+      this.shortFormat_ = shortFormat;
+      this.querySelector('#short-format').checked = shortFormat;
+      if (this.results_)
+        this.results_.shortFormat = shortFormat;
+      if (!this.suppressStateChange_)
+        tv.dispatchSimpleEvent(this, 'statechange');
+    },
+
+    onShortFormatClick_: function(e) {
+      this.shortFormat_ = this.querySelector('#short-format').checked;
+      this.updateShortFormResultsDisplay_();
+      this.updateResultsGivenShortFormat_();
+      if (!this.suppressStateChange_)
+        tv.dispatchSimpleEvent(this, 'statechange');
+    },
+
+    updateShortFormResultsDisplay_: function() {
+      var display = this.shortFormat_ ? '' : 'none';
+      this.querySelector('#shortform-results').style.display = display;
+    },
+
+    updateResultsGivenShortFormat_: function() {
+      if (!this.results_)
+        return;
+
+      if (this.testFilterString_.length || this.testSuiteName_.length)
+        this.results_.showHTMLOutput = true;
+      else
+        this.results_.showHTMLOutput = false;
+      this.results_.showPendingAndPassedTests = this.shortFormat_;
+    },
+
+    get testTypeToRun() {
+      return this.testTypeToRun_;
+    },
+
+    set testTypeToRun(testTypeToRun) {
+      this.testTypeToRun_ = testTypeToRun;
+      var sel;
+      if (testTypeToRun == tv.unittest.TestTypes.UNITTEST)
+        sel = 'input[name=test-type-to-run][value=unit]';
+      else
+        sel = 'input[name=test-type-to-run][value=perf]';
+      this.querySelector(sel).checked = true;
+      this.scheduleRerun_();
+      if (!this.suppressStateChange_)
+        tv.dispatchSimpleEvent(this, 'statechange');
+    },
+
+    onTestTypeToRunClick_: function(e) {
+      if (e.target.value == 'unit')
+        this.testTypeToRun_ = tv.unittest.TestTypes.UNITTEST;
+      else // e.value == 'perf'
+        this.testTypeToRun_ = tv.unittest.TestTypes.PERFTEST;
+      this.scheduleRerun_();
+      if (!this.suppressStateChange_)
+        tv.dispatchSimpleEvent(this, 'statechange');
+    },
+
+    onTestPassed_: function() {
+      this.querySelector('#shortform-results').textContent += '.';
+    },
+
+    onTestFailed_: function() {
+      this.querySelector('#shortform-results').textContent += 'F';
+    },
+
+    onResultsStatsChanged_: function() {
+      var statsEl = this.querySelector('#stats');
+      var stats = this.results_.getStats();
+      var numTestsOverall = this.runner_.testCases.length;
+      var numTestsThatRan = stats.numTestsThatPassed + stats.numTestsThatFailed;
+      statsEl.innerHTML =
+          '<span>' + numTestsThatRan + '/' + numTestsOverall +
+          '</span> tests run, ' +
+          '<span class="unittest-failed">' + stats.numTestsThatFailed +
+          '</span> failures, ' +
+          ' in ' + stats.totalRunTime.toFixed(2) + 'ms.';
+    },
+
+    scheduleRerun_: function() {
+      if (this.rerunPending_)
+        return;
+      if (this.runner_) {
+        this.rerunPending_ = true;
+        this.runner_.beginToStopRunning();
+        var doRerun = function() {
+          this.rerunPending_ = false;
+          this.scheduleRerun_();
+        }.bind(this);
+        this.runner_.runCompletedPromise.then(
+            doRerun, doRerun);
+        return;
+      }
+      this.beginRunning_();
+    },
+
+    beginRunning_: function() {
+      var resultsContainer = this.querySelector('#results-container');
+      if (this.results_) {
+        this.results_.removeEventListener('testpassed',
+                                          this.onTestPassed_);
+        this.results_.removeEventListener('testfailed',
+                                          this.onTestFailed_);
+        this.results_.removeEventListener('statschange',
+                                          this.onResultsStatsChanged_);
+        delete this.results_.getHRefForTestCase;
+        resultsContainer.removeChild(this.results_);
+      }
+
+      this.results_ = new tv.unittest.HTMLTestResults();
+      this.results_.getHRefForTestCase = this.getHRefForTestCase.bind(this);
+      this.updateResultsGivenShortFormat_();
+
+      this.results_.shortFormat = this.shortFormat_;
+      this.results_.addEventListener('testpassed',
+                                     this.onTestPassed_);
+      this.results_.addEventListener('testfailed',
+                                     this.onTestFailed_);
+      this.results_.addEventListener('statschange',
+                                     this.onResultsStatsChanged_);
+      resultsContainer.appendChild(this.results_);
+
+      var tests = this.allTests_.filter(function(test) {
+        var i = test.fullyQualifiedName.indexOf(this.testFilterString_);
+        if (i == -1)
+          return false;
+        if (test.testType != this.testTypeToRun_)
+          return false;
+        return true;
+      }, this);
+
+      this.runner_ = new tv.unittest.TestRunner(this.results_, tests);
+      this.runner_.beginRunning();
+
+      this.runner_.runCompletedPromise.then(
+          this.runCompleted_.bind(this),
+          this.runCompleted_.bind(this));
+    },
+
+    setState: function(state, opt_suppressStateChange) {
+      this.suppressStateChange_ = true;
+      if (state.testFilterString !== undefined)
+        this.testFilterString = state.testFilterString;
+      else
+        this.testFilterString = '';
+
+      if (state.shortFormat === undefined)
+        this.shortFormat = false;
+      else
+        this.shortFormat = state.shortFormat;
+
+      if (state.testTypeToRun === undefined)
+        this.testTypeToRun = tv.unittest.TestTypes.UNITTEST;
+      else
+        this.testTypeToRun = state.testTypeToRun;
+
+      this.testSuiteName_ = state.testSuiteName || '';
+
+      if (!opt_suppressStateChange)
+        this.suppressStateChange_ = false;
+
+      this.onShortFormatClick_();
+      this.scheduleRerun_();
+      this.suppressStateChange_ = false;
+    },
+
+    getDefaultState: function() {
+      return {
+        testFilterString: '',
+        testSuiteName: '',
+        shortFormat: false,
+        testTypeToRun: tv.unittest.TestTypes.UNITTEST
+      };
+    },
+
+    getState: function() {
+      return {
+        testFilterString: this.testFilterString_,
+        testSuiteName: this.testSuiteName_,
+        shortFormat: this.shortFormat_,
+        testTypeToRun: this.testTypeToRun_
+      };
+    },
+
+    getHRefForTestCase: function(testCases) {
+      return undefined;
+    },
+
+    runCompleted_: function() {
+      this.runner_ = undefined;
+      if (this.results_.getStats().numTestsThatFailed > 0) {
+        this.querySelector('#shortform-results').textContent +=
+            '[THERE WERE FAILURES]';
+      } else {
+        this.querySelector('#shortform-results').textContent += '[DONE]';
+      }
+    }
+  };
+
+  return {
+    InteractiveTestRunner: InteractiveTestRunner
+  };
+});
+</script>

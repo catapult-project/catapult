@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/filter.html">
-<link rel="import" href="/tvcm/utils.html">
-<link rel="import" href="/tvcm/ui/overlay.html">
-<link rel="import" href="/tvcm/ui/dom_helpers.html">
-<link rel="import" href="/tvcm/ui/info_bar.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/base/ui/overlay.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/base/ui/info_bar.html">
 
 <template id="record-selection-dialog-template">
   <style>
@@ -157,9 +157,9 @@ found in the LICENSE file.
  * @fileoverview RecordSelectionDialog presents the available categories
  * to be enabled/disabled during tracing.
  */
-tvcm.exportTo('about_tracing', function() {
+tv.exportTo('about_tracing', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
-  var RecordSelectionDialog = tvcm.ui.define('div');
+  var RecordSelectionDialog = tv.ui.define('div');
 
   var DEFAULT_PRESETS = [
     {title: 'Web developer',
@@ -181,15 +181,15 @@ tvcm.exportTo('about_tracing', function() {
   var DEFAULT_SAMPLING_TRACING = false;
 
   RecordSelectionDialog.prototype = {
-    __proto__: tvcm.ui.Overlay.prototype,
+    __proto__: tv.ui.Overlay.prototype,
 
     decorate: function() {
-      tvcm.ui.Overlay.prototype.decorate.call(this);
+      tv.ui.Overlay.prototype.decorate.call(this);
       this.title = 'Record a new trace...';
 
       this.classList.add('record-dialog-overlay');
 
-      var node = tvcm.instantiateTemplate('#record-selection-dialog-template',
+      var node = tv.instantiateTemplate('#record-selection-dialog-template',
           THIS_DOC);
       this.appendChild(node);
 
@@ -204,7 +204,7 @@ tvcm.exportTo('about_tracing', function() {
 
       this.categoriesView_ = this.querySelector('.categories-column-view');
       this.presetsEl_ = this.querySelector('.category-presets');
-      this.presetsEl_.appendChild(tvcm.ui.createSelector(
+      this.presetsEl_.appendChild(tv.ui.createSelector(
           this, 'currentlyChosenPreset',
           'about_tracing.record_selection_dialog_preset',
           DEFAULT_PRESETS[0].categoryFilter,
@@ -213,15 +213,15 @@ tvcm.exportTo('about_tracing', function() {
           })));
 
 
-      this.continuousTracingBn_ = tvcm.ui.createCheckBox(
+      this.continuousTracingBn_ = tv.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useContinuousTracing', true,
           'Continuous tracing');
-      this.systemTracingBn_ = tvcm.ui.createCheckBox(
+      this.systemTracingBn_ = tv.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useSystemTracing', true,
           'System tracing');
-      this.samplingTracingBn_ = tvcm.ui.createCheckBox(
+      this.samplingTracingBn_ = tv.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useSampling', false,
           'State sampling');
@@ -244,11 +244,11 @@ tvcm.exportTo('about_tracing', function() {
       this.createDefaultDisabledWarningDialog_(
           this.querySelector('.warning-default-disabled-categories'));
 
-      // TODO(chrishenry): When used with tvcm.ui.Overlay (such as in
+      // TODO(chrishenry): When used with tv.ui.Overlay (such as in
       // chrome://tracing, this does not yet look quite right due to
       // the 10px overlay content padding (but it's good enough).
       this.infoBarGroup_ = this.querySelector('x-info-bar-group');
-      tvcm.ui.decorate(this.infoBarGroup_, tvcm.ui.InfoBarGroup);
+      tv.ui.decorate(this.infoBarGroup_, tv.ui.InfoBarGroup);
 
       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
     },
@@ -388,7 +388,7 @@ tvcm.exportTo('about_tracing', function() {
 
     onRecordButtonClicked_: function() {
       this.visible = false;
-      tvcm.dispatchSimpleEvent(this, 'recordclick');
+      tv.dispatchSimpleEvent(this, 'recordclick');
       return false;
     },
 
@@ -430,7 +430,7 @@ tvcm.exportTo('about_tracing', function() {
         inputEl.id = category;
         inputEl.value = category;
 
-        inputEl.checked = tvcm.Settings.get(
+        inputEl.checked = tv.Settings.get(
             category, checkedDefault, this.settings_key_);
         inputEl.onclick = this.updateSetting_.bind(this);
 
@@ -451,7 +451,7 @@ tvcm.exportTo('about_tracing', function() {
       // returned when we query the category list.
       var categorySet = {};
       var allCategories =
-          this.categories_.concat(tvcm.Settings.keys(this.settings_key_));
+          this.categories_.concat(tv.Settings.keys(this.settings_key_));
       var allCategoriesLength = allCategories.length;
       for (var i = 0; i < allCategoriesLength; ++i)
         categorySet[allCategories[i]] = true;
@@ -492,7 +492,7 @@ tvcm.exportTo('about_tracing', function() {
 
     updateSetting_: function(e) {
       var checkbox = e.target;
-      tvcm.Settings.set(checkbox.value, checkbox.checked, this.settings_key_);
+      tv.Settings.set(checkbox.value, checkbox.checked, this.settings_key_);
     },
 
     createGroupSelectButtons_: function(parent) {
@@ -534,7 +534,7 @@ tvcm.exportTo('about_tracing', function() {
 
     createDefaultDisabledWarningDialog_: function(warningLink) {
       function onClickHandler(evt) {
-        this.warningOverlay_ = tvcm.ui.Overlay();
+        this.warningOverlay_ = tv.ui.Overlay();
         this.warningOverlay_.title = 'Enabling Categories Warning...';
         this.warningOverlay_.userCanClose = true;
         this.warningOverlay_.visible = true;

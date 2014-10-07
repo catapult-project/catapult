@@ -8,17 +8,17 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/tracing/analysis/generic_object_view.css">
 
 <link rel="import" href="/tracing/analysis/analysis_link.html">
-<link rel="import" href="/tvcm/utils.html">
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.analysis', function() {
+tv.exportTo('tracing.analysis', function() {
   /**
    * @constructor
    */
-  var GenericObjectView = tvcm.ui.define('x-generic-object-view');
+  var GenericObjectView = tv.ui.define('x-generic-object-view');
 
   GenericObjectView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -97,7 +97,7 @@ tvcm.exportTo('tracing.analysis', function() {
         return;
       }
 
-      if (object instanceof tvcm.Rect) {
+      if (object instanceof tv.Rect) {
         this.appendSimpleText_(label, indent, object.toString(), suffix);
         return;
       }
@@ -136,7 +136,7 @@ tvcm.exportTo('tracing.analysis', function() {
 
     appendElementsForObject_: function(
         label, object, indent, depth, maxDepth, suffix) {
-      var keys = tvcm.dictionaryKeys(object);
+      var keys = tv.dictionaryKeys(object);
       if (keys.length == 0) {
         this.appendSimpleText_(label, indent, '{}', suffix);
         return;
@@ -190,7 +190,7 @@ tvcm.exportTo('tracing.analysis', function() {
   /**
    * @constructor
    */
-  var GenericObjectViewWithLabel = tvcm.ui.define(
+  var GenericObjectViewWithLabel = tv.ui.define(
       'x-generic-object-view-with-label');
 
   GenericObjectViewWithLabel.prototype = {

@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/slice_view.html">
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/analysis/analysis_link.html">
-<link rel="import" href="/tvcm/utils.html">
+<link rel="import" href="/base/utils.html">
 
 <template id="cpu-slice-view-template">
   <table>
@@ -36,14 +36,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.analysis', function() {
+tv.exportTo('tracing.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
   var tsRound = tracing.analysis.tsRound;
 
   /**
    * @constructor
    */
-  var CpuSliceView = tvcm.ui.define('cpu-slice-view',
+  var CpuSliceView = tv.ui.define('cpu-slice-view',
                                     tracing.analysis.SliceView);
 
   CpuSliceView.prototype = {
@@ -56,7 +56,7 @@ tvcm.exportTo('tracing.analysis', function() {
 
     updateContents: function() {
       this.textContent = '';
-      this.appendChild(tvcm.instantiateTemplate('#cpu-slice-view-template',
+      this.appendChild(tv.instantiateTemplate('#cpu-slice-view-template',
           THIS_DOC));
 
       var cpuSlice = this.slice;

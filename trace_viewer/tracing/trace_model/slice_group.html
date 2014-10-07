@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/trace_model/slice.html">
 <link rel="import" href="/tracing/color_scheme.html">
 <link rel="import" href="/tracing/filter.html">
-<link rel="import" href="/tvcm/guid.html">
-<link rel="import" href="/tvcm/range.html">
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/range.html">
 
 <script>
 'use strict';
@@ -17,7 +17,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the SliceGroup class.
  */
-tvcm.exportTo('tracing.trace_model', function() {
+tv.exportTo('tracing.trace_model', function() {
   var Slice = tracing.trace_model.Slice;
 
   /**
@@ -32,7 +32,7 @@ tvcm.exportTo('tracing.trace_model', function() {
    *     opt_sliceConstructor The constructor to use when creating slices.
    */
   function SliceGroup(parentThread, opt_sliceConstructor, opt_name) {
-    this.guid_ = tvcm.GUID.allocate();
+    this.guid_ = tv.GUID.allocate();
 
     this.parentThread_ = parentThread;
 
@@ -42,7 +42,7 @@ tvcm.exportTo('tracing.trace_model', function() {
     this.openPartialSlices_ = [];
 
     this.slices = [];
-    this.bounds = new tvcm.Range();
+    this.bounds = new tv.Range();
     this.topLevelSlices = [];
     this.name_ = opt_name;
   }
@@ -123,7 +123,7 @@ tvcm.exportTo('tracing.trace_model', function() {
           throw new Error('Slices must be added in increasing timestamp order');
       }
 
-      var colorId = tvcm.ui.getStringColorId(title);
+      var colorId = tv.ui.getStringColorId(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {}, null,
                                             opt_tts);
@@ -194,7 +194,7 @@ tvcm.exportTo('tracing.trace_model', function() {
      */
     pushCompleteSlice: function(category, title, ts, duration, tts,
                                 cpuDuration, opt_args) {
-      var colorId = tvcm.ui.getStringColorId(title);
+      var colorId = tv.ui.getStringColorId(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {},
                                             duration, tts, cpuDuration);

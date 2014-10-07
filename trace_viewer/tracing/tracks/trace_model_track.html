@@ -11,19 +11,19 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/tracks/kernel_track.html">
 <link rel="import" href="/tracing/tracks/process_track.html">
 <link rel="import" href="/tracing/draw_helpers.html">
-<link rel="import" href="/tvcm/measuring_stick.html">
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/measuring_stick.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
   /**
    * Visualizes a Model by building ProcessTracks and
    * CpuTracks.
    * @constructor
    */
-  var TraceModelTrack = tvcm.ui.define(
+  var TraceModelTrack = tv.ui.define(
       'trace-model-track', tracing.tracks.ContainerTrack);
 
   TraceModelTrack.prototype = {
@@ -269,7 +269,7 @@ tvcm.exportTo('tracing.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
-      tvcm.iterateOverIntersectingIntervals(this.model_.instantEvents,
+      tv.iterateOverIntersectingIntervals(this.model_.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,

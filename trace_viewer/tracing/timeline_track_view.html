@@ -5,23 +5,23 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tvcm/ui/common.css">
+<link rel="stylesheet" href="/base/ui/common.css">
 <link rel="stylesheet" href="/tracing/timeline_track_view.css">
 
+<link rel="import" href="/base/events.html">
+<link rel="import" href="/base/properties.html">
+<link rel="import" href="/base/settings.html">
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/base/ui/mouse_mode_selector.html">
 <link rel="import" href="/tracing/filter.html">
 <link rel="import" href="/tracing/selection.html">
 <link rel="import" href="/tracing/timeline_viewport.html">
 <link rel="import" href="/tracing/timeline_display_transform_animations.html">
 <link rel="import" href="/tracing/timing_tool.html">
-<link rel="import" href="/tvcm/events.html">
-<link rel="import" href="/tvcm/properties.html">
-<link rel="import" href="/tvcm/settings.html">
 <link rel="import" href="/tracing/trace_model/event.html">
 <link rel="import" href="/tracing/tracks/drawing_container.html">
 <link rel="import" href="/tracing/tracks/trace_model_track.html">
 <link rel="import" href="/tracing/tracks/ruler_track.html">
-<link rel="import" href="/tvcm/ui.html">
-<link rel="import" href="/tvcm/ui/mouse_mode_selector.html">
 
 <script>
 'use strict';
@@ -40,7 +40,7 @@ found in the LICENSE file.
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
   var Selection = tracing.Selection;
   var SelectionState = tracing.trace_model.SelectionState;
   var Viewport = tracing.TimelineViewport;
@@ -71,7 +71,7 @@ tvcm.exportTo('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var TimelineTrackView = tvcm.ui.define('div');
+  var TimelineTrackView = tv.ui.define('div');
 
   TimelineTrackView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -157,7 +157,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     initMouseModeSelector: function() {
-      this.mouseModeSelector_ = new tvcm.ui.MouseModeSelector(this);
+      this.mouseModeSelector_ = new tv.ui.MouseModeSelector(this);
       this.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.addEventListener('beginpan',
@@ -192,7 +192,7 @@ tvcm.exportTo('tracing', function() {
       this.mouseModeSelector_.addEventListener('exittiming',
           this.timingTool_.onExitTiming.bind(this.timingTool_));
 
-      var m = tvcm.ui.MOUSE_SELECTOR_MODE;
+      var m = tv.ui.MOUSE_SELECTOR_MODE;
       this.mouseModeSelector_.supportedModeMask =
           m.SELECTION | m.PANSCAN | m.ZOOM | m.TIMING;
       this.mouseModeSelector_.settingsKey =
@@ -203,11 +203,11 @@ tvcm.exportTo('tracing', function() {
       this.mouseModeSelector_.setKeyCodeForMode(m.TIMING, '4'.charCodeAt(0));
 
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.SELECTION, tvcm.ui.MODIFIER.SHIFT);
+          m.SELECTION, tv.ui.MODIFIER.SHIFT);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.PANSCAN, tvcm.ui.MODIFIER.SPACE);
+          m.PANSCAN, tv.ui.MODIFIER.SPACE);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.ZOOM, tvcm.ui.MODIFIER.CMD_OR_CTRL);
+          m.ZOOM, tv.ui.MODIFIER.CMD_OR_CTRL);
     },
 
     detach: function() {
@@ -241,7 +241,7 @@ tvcm.exportTo('tracing', function() {
       if (modelInstanceChanged)
         this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
 
-      tvcm.setPropertyAndDispatchChange(this, 'model', model);
+      tv.setPropertyAndDispatchChange(this, 'model', model);
     },
 
     get hasVisibleContent() {
@@ -317,7 +317,7 @@ tvcm.exportTo('tracing', function() {
       if (this.focusElement.tabIndex >= 0) {
         if (document.activeElement == this.focusElement)
           return true;
-        return tvcm.ui.elementIsChildOf(document.activeElement,
+        return tv.ui.elementIsChildOf(document.activeElement,
                                         this.focusElement);
       }
       return true;
@@ -463,7 +463,7 @@ tvcm.exportTo('tracing', function() {
 
     onDblClick_: function(e) {
       if (this.mouseModeSelector_.mode !==
-          tvcm.ui.MOUSE_SELECTOR_MODE.SELECTION)
+          tv.ui.MOUSE_SELECTOR_MODE.SELECTION)
         return;
 
       if (!this.selection.length || !this.selection[0].title)
@@ -700,7 +700,7 @@ tvcm.exportTo('tracing', function() {
       } else
         this.selection_ = new Selection();
 
-      tvcm.dispatchSimpleEvent(this, 'selectionChange');
+      tv.dispatchSimpleEvent(this, 'selectionChange');
       this.showHintText_('Press \'m\' to mark current selection');
 
       if (this.selectionOfInterest.length) {
@@ -790,7 +790,7 @@ tvcm.exportTo('tracing', function() {
       var roundedDuration = Math.round((hiWX - loWX) * 100) / 100;
       this.dragBox_.textContent = roundedDuration + 'ms';
 
-      var e = new tvcm.Event('selectionChanging');
+      var e = new tv.Event('selectionChanging');
       e.loWX = loWX;
       e.hiWX = hiWX;
       this.dispatchEvent(e);

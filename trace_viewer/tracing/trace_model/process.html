@@ -13,7 +13,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Process class.
  */
-tvcm.exportTo('tracing.trace_model', function() {
+tv.exportTo('tracing.trace_model', function() {
   var ProcessBase = tracing.trace_model.ProcessBase;
 
   /**
@@ -41,13 +41,13 @@ tvcm.exportTo('tracing.trace_model', function() {
     if (tmp)
       return tmp;
 
-    tmp = tvcm.comparePossiblyUndefinedValues(
+    tmp = tv.comparePossiblyUndefinedValues(
         x.name, y.name,
         function(x, y) { return x.localeCompare(y); });
     if (tmp)
       return tmp;
 
-    tmp = tvcm.compareArrays(x.labels, y.labels,
+    tmp = tv.compareArrays(x.labels, y.labels,
         function(x, y) { return x.localeCompare(y); });
     if (tmp)
       return tmp;

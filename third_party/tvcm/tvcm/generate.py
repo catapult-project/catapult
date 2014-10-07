@@ -71,11 +71,11 @@ def GenerateJSToFile(f,
 
   loader = load_sequence[0].loader
 
-  polymer_script = loader.LoadRawScript('polymer.js')
+  polymer_script = loader.LoadRawScript('components/polymer/polymer.js')
   f.write(polymer_script.contents)
 
   f.write('\n')
-  f.write("window._TVCM_IS_COMPILED = true;\n")
+  f.write("window._TV_IS_COMPILED = true;\n")
 
   for module in load_sequence:
     module.AppendJSContentsToFile(f,

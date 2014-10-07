@@ -8,16 +8,16 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/side_panel/sampling_summary.html">
-<link rel="import" href="/tvcm.html">
-<link rel="import" href="/tvcm/ui.html">
-<link rel="import" href="/tvcm/ui/sortable_table.html">
+<link rel="import" href="/base.html">
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/base/ui/sortable_table.html">
 
 <polymer-element name="single-sample-analysis-sub-view"
     extends="tracing-analysis-sub-view"
     constructor="SingleSampleAnalysisSubView">
   <script>
   'use strict';
-  tvcm.onPolymerReady(function() {
+  tv.onPolymerReady(function() {
     tracing.registerAnalysisSubViewType(
         0,
         function(selection) {

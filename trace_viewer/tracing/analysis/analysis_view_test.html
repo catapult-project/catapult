@@ -13,7 +13,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() {
+tv.unittest.testSuite(function() {
   var TraceModel = tracing.TraceModel;
   var Selection = tracing.Selection;
   var AnalysisView = TracingAnalysisView;
@@ -76,7 +76,7 @@ tvcm.unittest.testSuite(function() {
     var selection = new Selection();
     selection.push(s10);
 
-    var MyView = tvcm.ui.define(
+    var MyView = tv.ui.define(
         'my-view', tracing.analysis.ObjectSnapshotView);
     MyView.prototype = {
       __proto__: tracing.analysis.ObjectSnapshotView.prototype,
@@ -118,7 +118,7 @@ tvcm.unittest.testSuite(function() {
     var selection = new Selection();
     selection.push(i10);
 
-    var MyView = tvcm.ui.define(
+    var MyView = tv.ui.define(
         'my-view', tracing.analysis.ObjectInstanceView);
     MyView.prototype = {
       __proto__: tracing.analysis.ObjectInstanceView.prototype,
@@ -148,7 +148,7 @@ tvcm.unittest.testSuite(function() {
     var selection = new tracing.Selection();
     selection.push(s10);
 
-    var MySlice = tvcm.ui.define(
+    var MySlice = tv.ui.define(
         'my-slice', tracing.analysis.SliceView);
     MySlice.prototype = {
       __proto__: tracing.analysis.SliceView.prototype,

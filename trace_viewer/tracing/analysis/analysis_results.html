@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="stylesheet" href="/tracing/analysis/analysis_results.css">
 
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/ui.html">
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/analysis/analysis_link.html">
 <link rel="import" href="/tracing/analysis/generic_object_view.html">
@@ -14,8 +14,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.analysis', function() {
-  var AnalysisResults = tvcm.ui.define('div');
+tv.exportTo('tracing.analysis', function() {
+  var AnalysisResults = tv.ui.define('div');
 
   AnalysisResults.prototype = {
     __proto__: HTMLDivElement.prototype,

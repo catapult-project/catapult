@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base.html">
+<link rel="import" href="/base/ui.html">
 <link rel="import" href="/tracing/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/analysis/util.html">
-<link rel="import" href="/tvcm.html">
-<link rel="import" href="/tvcm/ui.html">
 <link rel="import" href="/tracing/trace_model/counter_sample.html">
 
 <polymer-element name="multiple-counter-samples-analysis-sub-view"
@@ -17,7 +17,7 @@ found in the LICENSE file.
   <script>
   'use strict';
 
-  tvcm.onPolymerReady(function() {
+  tv.onPolymerReady(function() {
     tracing.registerAnalysisSubViewType(
         0,
         function(selection) {

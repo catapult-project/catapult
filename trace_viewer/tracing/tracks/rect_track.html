@@ -10,20 +10,20 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/tracks/heading_track.html">
 <link rel="import" href="/tracing/fast_rect_renderer.html">
 <link rel="import" href="/tracing/draw_helpers.html">
-<link rel="import" href="/tvcm/sorted_array_utils.html">
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/sorted_array_utils.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
 
   /**
    * A track that displays an array of Rect objects.
    * @constructor
    * @extends {HeadingTrack}
    */
-  var RectTrack = tvcm.ui.define(
+  var RectTrack = tv.ui.define(
       'rect-track', tracing.tracks.HeadingTrack);
 
   RectTrack.prototype = {
@@ -131,7 +131,7 @@ tvcm.exportTo('tracing.tracks', function() {
         this.addRectToSelection(rect, selection);
       }
       onRect = onRect.bind(this);
-      tvcm.iterateOverIntersectingIntervals(this.rects_,
+      tv.iterateOverIntersectingIntervals(this.rects_,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,
@@ -144,7 +144,7 @@ tvcm.exportTo('tracing.tracks', function() {
      * @private
      */
     indexOfRect_: function(rect) {
-      var index = tvcm.findLowIndexInSortedArray(this.rects_,
+      var index = tv.findLowIndexInSortedArray(this.rects_,
           function(x) { return x.start; },
           rect.start);
       while (index < this.rects_.length &&
@@ -187,7 +187,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      var rect = tvcm.findClosestIntervalInSortedIntervals(
+      var rect = tv.findClosestIntervalInSortedIntervals(
           this.rects_,
           function(x) { return x.start; },
           function(x) { return x.end; },

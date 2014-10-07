@@ -7,15 +7,15 @@ found in the LICENSE file.
 
 <link rel="import" href="/cc/picture_as_image_data.html">
 <link rel="import" href="/cc/util.html">
-<link rel="import" href="/tvcm/guid.html">
-<link rel="import" href="/tvcm/rect.html">
-<link rel="import" href="/tvcm/raf.html">
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/rect.html">
+<link rel="import" href="/base/raf.html">
 <link rel="import" href="/tracing/trace_model/object_instance.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('cc', function() {
+tv.exportTo('cc', function() {
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   // Number of pictures created. Used as an uniqueId because we are immutable.
@@ -26,7 +26,7 @@ tvcm.exportTo('cc', function() {
     this.skp64_ = skp64;
     this.layerRect_ = layerRect;
 
-    this.guid_ = tvcm.GUID.allocate();
+    this.guid_ = tv.GUID.allocate();
   }
 
   Picture.prototype = {
@@ -162,7 +162,7 @@ tvcm.exportTo('cc', function() {
   };
 
   function LayeredPicture(pictures) {
-    this.guid_ = tvcm.GUID.allocate();
+    this.guid_ = tv.GUID.allocate();
     this.pictures_ = pictures;
     this.layerRect_ = undefined;
   }

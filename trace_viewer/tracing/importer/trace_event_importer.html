@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/quad.html">
 <link rel="import" href="/tracing/trace_model.html">
 <link rel="import" href="/tracing/color_scheme.html">
 <link rel="import" href="/tracing/importer/importer.html">
-<link rel="import" href="/tvcm/quad.html">
 <link rel="import" href="/tracing/trace_model/instant_event.html">
 <link rel="import" href="/tracing/trace_model/flow_event.html">
 <link rel="import" href="/tracing/trace_model/counter_series.html">
@@ -21,7 +21,7 @@ found in the LICENSE file.
  * @fileoverview TraceEventImporter imports TraceEvent-formatted data
  * into the provided model.
  */
-tvcm.exportTo('tracing.importer', function() {
+tv.exportTo('tracing.importer', function() {
 
   var Importer = tracing.importer.Importer;
 
@@ -207,7 +207,7 @@ tvcm.exportTo('tracing.importer', function() {
       if (ctr.numSeries === 0) {
         for (var seriesName in event.args) {
           ctr.addSeries(new tracing.trace_model.CounterSeries(seriesName,
-              tvcm.ui.getStringColorId(ctr.name + '.' + seriesName)));
+              tv.ui.getStringColorId(ctr.name + '.' + seriesName)));
         }
 
         if (ctr.numSeries === 0) {
@@ -353,7 +353,7 @@ tvcm.exportTo('tracing.importer', function() {
           break;
       }
 
-      var colorId = tvcm.ui.getStringColorId(event.name);
+      var colorId = tv.ui.getStringColorId(event.name);
       var instantEvent = new constructor(event.cat, event.name,
           colorId, event.ts / 1000, this.deepCopyIfNeeded_(event.args));
 
@@ -382,11 +382,11 @@ tvcm.exportTo('tracing.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
 
-      var id = 'te-' + tvcm.GUID.allocate();
+      var id = 'te-' + tv.GUID.allocate();
       var stackFrame = new tracing.trace_model.StackFrame(
           undefined, id,
           event.cat, event.name,
-          tvcm.ui.getStringColorId(event.name));
+          tv.ui.getStringColorId(event.name));
       this.model_.addStackFrame(stackFrame);
 
       var sample = new tracing.trace_model.Sample(
@@ -457,7 +457,7 @@ tvcm.exportTo('tracing.importer', function() {
         var frame = new tracing.trace_model.StackFrame(
             undefined, id,
             event.category, event.name,
-            tvcm.ui.getStringColorId(textForColor));
+            tv.ui.getStringColorId(textForColor));
         m.addStackFrame(frame);
       }
       for (var id in events) {
@@ -674,11 +674,11 @@ tvcm.exportTo('tracing.importer', function() {
               // Include args for both END and BEGIN for a matched pair.
               var concatenateArguments = function(args1, args2) {
                 if (args1.params === undefined || args2.params === undefined)
-                  return tvcm.concatenateObjects(args1, args2);
+                  return tv.concatenateObjects(args1, args2);
                 // Make an argument object to hold the combined params.
                 var args3 = {};
-                args3.params = tvcm.concatenateObjects(args1.params, args2.params);
-                return tvcm.concatenateObjects(args1, args2, args3);
+                args3.params = tv.concatenateObjects(args1.params, args2.params);
+                return tv.concatenateObjects(args1, args2, args3);
               }
               sliceArgs = concatenateArguments(eventStateEntry.event.args,
                                                eventStateEntry.end.event.args);
@@ -703,7 +703,7 @@ tvcm.exportTo('tracing.importer', function() {
           var slice = new tracing.trace_model.AsyncSlice(
               eventStateEntry.event.cat,
               eventStateEntry.event.name,
-              tvcm.ui.getStringColorId(eventStateEntry.event.name),
+              tv.ui.getStringColorId(eventStateEntry.event.name),
               startState.event.ts / 1000,
               sliceArgs,
               (endState.event.ts - startState.event.ts) / 1000);
@@ -807,7 +807,7 @@ tvcm.exportTo('tracing.importer', function() {
             var slice = new tracing.trace_model.AsyncSlice(
                 events[0].event.cat,
                 name,
-                tvcm.ui.getStringColorId(name),
+                tv.ui.getStringColorId(name),
                 events[0].event.ts / 1000,
                 this.deepCopyIfNeeded_(events[0].event.args),
                 (event.ts - events[0].event.ts) / 1000);
@@ -842,9 +842,9 @@ tvcm.exportTo('tracing.importer', function() {
               var subSlice = new tracing.trace_model.AsyncSlice(
                   events[0].event.cat,
                   subName,
-                  tvcm.ui.getStringColorId(subName + j),
+                  tv.ui.getStringColorId(subName + j),
                   events[j - 1].event.ts / 1000,
-                  tvcm.concatenateObjects(events[0].event.args,
+                  tv.concatenateObjects(events[0].event.args,
                                           targetEvent.event.args),
                   (events[j].event.ts - events[j - 1].event.ts) / 1000);
               subSlice.startThread = events[j - 1].thread;
@@ -856,7 +856,7 @@ tvcm.exportTo('tracing.importer', function() {
               if (events[j].event.ph == 'F' && stepType == 'T') {
                 // The args for the finish event go in the last subSlice.
                 var lastSlice = slice.subSlices[slice.subSlices.length - 1];
-                lastSlice.args = tvcm.concatenateObjects(lastSlice.args,
+                lastSlice.args = tv.concatenateObjects(lastSlice.args,
                                                          event.args);
               }
             }
@@ -922,7 +922,7 @@ tvcm.exportTo('tracing.importer', function() {
             event.cat,
             event.id,
             event.name,
-            tvcm.ui.getStringColorId(event.name),
+            tv.ui.getStringColorId(event.name),
             event.ts / 1000,
             this.deepCopyIfNeeded_(event.args));
         thread.sliceGroup.pushSlice(slice);
@@ -1059,7 +1059,7 @@ tvcm.exportTo('tracing.importer', function() {
         }
 
         if (instance)
-          instance.colorId = tvcm.ui.getStringColorId(instance.typeName);
+          instance.colorId = tv.ui.getStringColorId(instance.typeName);
       }
 
       this.allObjectEvents_.sort(function(x, y) {
@@ -1084,7 +1084,7 @@ tvcm.exportTo('tracing.importer', function() {
     },
 
     createImplicitObjects_: function() {
-      tvcm.iterItems(this.model_.processes, function(pid, process) {
+      tv.iterItems(this.model_.processes, function(pid, process) {
         this.createImplicitObjectsForProcess_(process);
       }, this);
     },
@@ -1203,7 +1203,7 @@ tvcm.exportTo('tracing.importer', function() {
     },
 
     joinObjectRefs_: function() {
-      tvcm.iterItems(this.model_.processes, function(pid, process) {
+      tv.iterItems(this.model_.processes, function(pid, process) {
         this.joinObjectRefsForProcess_(process);
       }, this);
     },
@@ -1211,7 +1211,7 @@ tvcm.exportTo('tracing.importer', function() {
     joinObjectRefsForProcess_: function(process) {
       // Iterate the world, looking for id_refs
       var patchupsToApply = [];
-      tvcm.iterItems(process.threads, function(tid, thread) {
+      tv.iterItems(process.threads, function(tid, thread) {
         thread.asyncSliceGroup.slices.forEach(function(item) {
           this.searchItemForIDRefs_(
               patchupsToApply, process.objects, 'start', item);
@@ -1262,7 +1262,7 @@ tvcm.exportTo('tracing.importer', function() {
 
         if ((object instanceof tracing.trace_model.ObjectSnapshot) ||
             (object instanceof Float32Array) ||
-            (object instanceof tvcm.Quad))
+            (object instanceof tv.Quad))
           return;
 
         if (object instanceof Array) {

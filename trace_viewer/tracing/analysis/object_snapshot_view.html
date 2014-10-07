@@ -5,13 +5,13 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.analysis', function() {
-  var ObjectSnapshotView = tvcm.ui.define('object-snapshot-view');
+tv.exportTo('tracing.analysis', function() {
+  var ObjectSnapshotView = tv.ui.define('object-snapshot-view');
 
   ObjectSnapshotView.prototype = {
     __proto__: HTMLDivElement.prototype,

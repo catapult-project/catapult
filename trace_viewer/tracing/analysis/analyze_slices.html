@@ -8,9 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/analysis_results.html">
 <link rel="import" href="/tracing/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/analysis/util.html">
-<link rel="import" href="/tvcm.html">
-<link rel="import" href="/tvcm/ui.html">
-<link rel="import" href="/tvcm/ui/sortable_table.html">
+<link rel="import" href="/base.html">
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/base/ui/sortable_table.html">
 
 <polymer-element name="single-slice-analysis-sub-view"
     extends="tracing-analysis-sub-view"
@@ -18,7 +18,7 @@ found in the LICENSE file.
   <script>
   'use strict';
 
-  tvcm.onPolymerReady(function() {
+  tv.onPolymerReady(function() {
     tracing.registerAnalysisSubViewType(
         0,
         function supported(selection) {
@@ -223,7 +223,7 @@ found in the LICENSE file.
         results.appendTableCell(table, row, 'Args');
 
         var numSlices = 0;
-        tvcm.iterItems(sliceGroup, function(title, slice) {
+        tv.iterItems(sliceGroup, function(title, slice) {
           numSlices++;
           results.appendDetailsRow(table, slice.start, slice.duration,
               slice.selfTime ? slice.selfTime : slice.duration, slice.args,
@@ -232,7 +232,7 @@ found in the LICENSE file.
               }, slice.cpuDuration);
         });
         if (numSlices > 1)
-          tvcm.ui.SortableTable.decorate(table);
+          tv.ui.SortableTable.decorate(table);
       },
 
       analyzeMultipleSlices_: function(results, slices, type) {
@@ -275,7 +275,7 @@ found in the LICENSE file.
         var totalCpuDuration = 0;
         var totalSelfTime = 0;
         var totalCpuSelfTime = 0;
-        tvcm.iterItems(sliceGroups, function(sliceGroupTitle, sliceGroup) {
+        tv.iterItems(sliceGroups, function(sliceGroupTitle, sliceGroup) {
           var duration = 0;
           var cpuDuration = 0;
           var selfTime = 0;
@@ -372,7 +372,7 @@ found in the LICENSE file.
                                 slices.length,
                                 null, null, null, true);
           results.appendSpacingRow(table, true);
-          tvcm.ui.SortableTable.decorate(table);
+          tv.ui.SortableTable.decorate(table);
         }
 
         results.appendInfoRowTime(table, 'Selection start', tsLo, true);

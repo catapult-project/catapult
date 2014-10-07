@@ -11,14 +11,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() {
+tv.unittest.testSuite(function() {
   var TimelineViewSidePanel = tracing.TimelineViewSidePanel;
   var TimelineViewSidePanelContainer = tracing.TimelineViewSidePanelContainer;
 
   /**
    * @constructor
    */
-  var Panel1 = tvcm.ui.define('panel-1', TimelineViewSidePanel);
+  var Panel1 = tv.ui.define('panel-1', TimelineViewSidePanel);
   Panel1.textLabel = 'Panel 1';
   Panel1.supportsModel = function(m) {
     return {
@@ -38,7 +38,7 @@ tvcm.unittest.testSuite(function() {
   /**
    * @constructor
    */
-  var Panel2 = tvcm.ui.define('panel-2', TimelineViewSidePanel);
+  var Panel2 = tv.ui.define('panel-2', TimelineViewSidePanel);
   Panel2.textLabel = 'Panel 2';
   Panel2.supportsModel = function(m) {
     return {

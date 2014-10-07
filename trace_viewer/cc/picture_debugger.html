@@ -10,13 +10,13 @@ found in the LICENSE file.
 <link rel="import" href="/cc/picture_ops_chart_view.html">
 <link rel="import" href="/cc/picture_ops_list_view.html">
 <link rel="import" href="/tracing/analysis/generic_object_view.html">
-<link rel="import" href="/tvcm/key_event_manager.html">
-<link rel="import" href="/tvcm/ui/drag_handle.html">
-<link rel="import" href="/tvcm/ui/info_bar.html">
-<link rel="import" href="/tvcm/ui/list_view.html">
-<link rel="import" href="/tvcm/ui/mouse_mode_selector.html">
-<link rel="import" href="/tvcm/ui/overlay.html">
-<link rel="import" href="/tvcm/utils.html">
+<link rel="import" href="/base/key_event_manager.html">
+<link rel="import" href="/base/ui/drag_handle.html">
+<link rel="import" href="/base/ui/info_bar.html">
+<link rel="import" href="/base/ui/list_view.html">
+<link rel="import" href="/base/ui/mouse_mode_selector.html">
+<link rel="import" href="/base/ui/overlay.html">
+<link rel="import" href="/base/utils.html">
 
 <template id="picture-debugger-template">
   <style>
@@ -103,7 +103,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('cc', function() {
+tv.exportTo('cc', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -112,13 +112,13 @@ tvcm.exportTo('cc', function() {
    *
    * @constructor
    */
-  var PictureDebugger = tvcm.ui.define('picture-debugger');
+  var PictureDebugger = tv.ui.define('picture-debugger');
 
   PictureDebugger.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tvcm.instantiateTemplate('#picture-debugger-template',
+      var node = tv.instantiateTemplate('#picture-debugger-template',
           THIS_DOC);
 
       this.appendChild(node);
@@ -145,12 +145,12 @@ tvcm.exportTo('cc', function() {
 
       this.trackMouse_();
 
-      var overdrawCheckbox = tvcm.ui.createCheckBox(
+      var overdrawCheckbox = tv.ui.createCheckBox(
           this, 'showOverdraw',
           'pictureView.showOverdraw', false,
           'Show overdraw');
 
-      var chartCheckbox = tvcm.ui.createCheckBox(
+      var chartCheckbox = tv.ui.createCheckBox(
           this, 'showSummaryChart',
           'pictureView.showSummaryChart', false,
           'Show timing summary');
@@ -167,7 +167,7 @@ tvcm.exportTo('cc', function() {
       leftPanel.appendChild(this.drawOpsChartSummaryView_);
       leftPanel.appendChild(this.drawOpsView_);
 
-      var middleDragHandle = new tvcm.ui.DragHandle();
+      var middleDragHandle = new tv.ui.DragHandle();
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
@@ -176,14 +176,14 @@ tvcm.exportTo('cc', function() {
           this.drawOpsChartView_,
           rightPanel.querySelector('picture-ops-chart-view'));
 
-      this.infoBar_ = new tvcm.ui.InfoBar();
+      this.infoBar_ = new tv.ui.InfoBar();
       this.rasterArea_.appendChild(this.infoBar_);
 
       this.insertBefore(middleDragHandle, rightPanel);
 
       this.picture_ = undefined;
 
-      tvcm.KeyEventManager.instance.addListener(
+      tv.KeyEventManager.instance.addListener(
           'keypress', this.onKeyPress_, this);
 
       // Add a mutation observer so that when the view is resized we can
@@ -294,7 +294,7 @@ tvcm.exportTo('cc', function() {
       if (this.updateContentsPending_)
         return;
       this.updateContentsPending_ = true;
-      tvcm.requestAnimationFrameInThisFrameIfPossible(
+      tv.requestAnimationFrameInThisFrameIfPossible(
           this.updateContents_.bind(this)
       );
     },
@@ -320,7 +320,7 @@ tvcm.exportTo('cc', function() {
       if (this.pictureAsImageData_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new tvcm.ui.Overlay();
+          var overlay = new tv.ui.Overlay();
           overlay.textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           e.stopPropagation();
@@ -373,7 +373,7 @@ tvcm.exportTo('cc', function() {
         this.selectedOpIndex = 0;
         return;
       }
-      this.selectedOpIndex = tvcm.clamp(
+      this.selectedOpIndex = tv.clamp(
           this.selectedOpIndex + increment,
           0, this.numOps);
     },
@@ -417,13 +417,13 @@ tvcm.exportTo('cc', function() {
     },
 
     trackMouse_: function() {
-      this.mouseModeSelector_ = new tvcm.ui.MouseModeSelector(this.rasterArea_);
+      this.mouseModeSelector_ = new tv.ui.MouseModeSelector(this.rasterArea_);
       this.rasterArea_.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.supportedModeMask =
-          tvcm.ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.mode = tvcm.ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.defaultMode = tvcm.ui.MOUSE_SELECTOR_MODE.ZOOM;
+          tv.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.mode = tv.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.defaultMode = tv.ui.MOUSE_SELECTOR_MODE.ZOOM;
       this.mouseModeSelector_.settingsKey = 'pictureDebugger.mouseModeSelector';
 
       this.mouseModeSelector_.addEventListener('beginzoom',

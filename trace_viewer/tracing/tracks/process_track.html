@@ -11,13 +11,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
   var ProcessTrackBase = tracing.tracks.ProcessTrackBase;
 
   /**
    * @constructor
    */
-  var ProcessTrack = tvcm.ui.define('process-track', ProcessTrackBase);
+  var ProcessTrack = tv.ui.define('process-track', ProcessTrackBase);
 
   ProcessTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
@@ -106,7 +106,7 @@ tvcm.exportTo('tracing.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
-      tvcm.iterateOverIntersectingIntervals(this.processBase.instantEvents,
+      tv.iterateOverIntersectingIntervals(this.processBase.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,

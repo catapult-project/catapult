@@ -5,19 +5,19 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.analysis', function() {
+tv.exportTo('tracing.analysis', function() {
   /**
    * Slice views allow customized visualization of specific slices, indexed by
    * title. If not registered, the default slice viewing logic is used.
    *
    * @constructor
    */
-  var SliceView = tvcm.ui.define('slice-view');
+  var SliceView = tv.ui.define('slice-view');
 
   SliceView.prototype = {
     __proto__: HTMLDivElement.prototype,

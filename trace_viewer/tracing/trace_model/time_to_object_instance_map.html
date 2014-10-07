@@ -4,8 +4,8 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tvcm/range.html">
-<link rel="import" href="/tvcm/sorted_array_utils.html">
+<link rel="import" href="/base/range.html">
+<link rel="import" href="/base/sorted_array_utils.html">
 
 <script>
 'use strict';
@@ -13,7 +13,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the TimeToObjectInstanceMap class.
  */
-tvcm.exportTo('tracing.trace_model', function() {
+tv.exportTo('tracing.trace_model', function() {
   /**
    * Tracks all the instances associated with a given ID over its lifetime.
    *
@@ -57,7 +57,7 @@ tvcm.exportTo('tracing.trace_model', function() {
             this.parent, this.id, category, name, ts, opt_baseTypeName));
       }
 
-      var i = tvcm.findLowIndexInSortedIntervals(
+      var i = tv.findLowIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },
@@ -151,7 +151,7 @@ tvcm.exportTo('tracing.trace_model', function() {
     },
 
     getInstanceAt: function(ts) {
-      var i = tvcm.findLowIndexInSortedIntervals(
+      var i = tv.findLowIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },

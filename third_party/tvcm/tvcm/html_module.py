@@ -36,14 +36,14 @@ class HTMLModule(module.Module):
 
     reachable_names = set([m.name
                            for m in self.all_dependent_modules_recursive])
-    if 'tvcm.exportTo' in self.contents:
-      if 'tvcm' not in reachable_names:
-        raise Exception('%s:7:Does not have a dependency on tvcm' % os.path.relpath(self.resource.absolute_path))
+    if 'tv.exportTo' in self.contents:
+      if 'base' not in reachable_names:
+        raise Exception('%s: Does not have a dependency on base' % os.path.relpath(self.resource.absolute_path))
 
     """
-    if 'tvcm.unittest.testSuite' in self.contents:
-      if 'tvcm.unittest' not in reachable_names:
-        raise Exception('%s:7:Does not have a dependency on tvcm.unittest' % os.path.relpath(self.resource.absolute_path))
+    if 'tv.unittest.testSuite' in self.contents:
+      if 'tv.unittest' not in reachable_names:
+        raise Exception('%s: Does not have a dependency on tv.unittest' % os.path.relpath(self.resource.absolute_path))
     """
 
   def GetTVCMDepsModuleType(self):

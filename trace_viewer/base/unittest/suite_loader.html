@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/event_target.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/base/unittest/test_suite.html">
+<script>
+'use strict';
+
+tv.exportTo('tv.unittest', function() {
+  function getAsync(url, cb) {
+    return new Promise(function(resolve, reject) {
+      var req = new XMLHttpRequest();
+      req.open('GET', url, true);
+      req.onreadystatechange = function(aEvt) {
+        if (req.readyState == 4) {
+          window.setTimeout(function() {
+            if (req.status == 200) {
+              resolve(req.responseText);
+            } else {
+              reject();
+            }
+          }, 0);
+        }
+      };
+      req.send(null);
+    });
+  }
+
+  function TestLink(linkPath, title) {
+    this.linkPath = linkPath;
+    this.title = title;
+  }
+
+  function SuiteLoader(opt_suiteNamesToLoad) {
+    tv.EventTarget.call(this);
+
+    this.testSuiteGUIDs_ = {};
+    this.testSuites = [];
+    this.testLinks = [];
+
+    if (opt_suiteNamesToLoad) {
+      this.allSuitesLoadedPromise = this.beginLoadingModules_(opt_suiteNamesToLoad);
+    } else {
+      var p;
+      p = getAsync('/tv/json/tests');
+      p = p.then(
+          function(data) {
+            var testMetadata = JSON.parse(data);
+            var testModuleNames = testMetadata.test_module_names;
+            return this.beginLoadingModules_(testModuleNames, testMetadata);
+          }.bind(this));
+      this.allSuitesLoadedPromise = p;
+    }
+  }
+
+  function loadModule(moduleName) {
+    return new Promise(function(resolve, reject) {
+      var parts = moduleName.split('.');
+      var href = '/' + parts.join('/') + '.html';
+
+      var importEl = document.createElement('link');
+      importEl.moduleName = moduleName;
+      importEl.setAttribute('rel', 'import');
+      importEl.setAttribute('href', href);
+      tv.doc.head.appendChild(importEl);
+
+      importEl.addEventListener('load', function() {
+        resolve(importEl);
+      });
+      importEl.addEventListener('error', function(e) {
+        reject(e);
+      });
+    });
+  }
+
+  function loadModules(moduleNames) {
+    var promises = moduleNames.map(function(moduleName) {
+      return loadModule(moduleName);
+    });
+
+  }
+
+  SuiteLoader.prototype = {
+    __proto__: tv.EventTarget.prototype,
+
+    beginLoadingModules_: function(testModuleNames, opt_testMetadata) {
+      if (opt_testMetadata) {
+        var testMetadata = opt_testMetadata;
+        for (var i = 0; i < testMetadata.test_links.length; i++) {
+          var tl = testMetadata.test_links[i];
+          this.testLinks.push(new TestLink(tl['path'],
+                                           tl['title']));
+        }
+      }
+
+      // Hooks!
+      this.bindGlobalHooks_();
+
+      // Load the modules.
+      var modulePromises = [];
+      for (var i = 0; i < testModuleNames.length; i++) {
+        var p = loadModule(testModuleNames[i]);
+        p = p.then(
+            function(importEl) {
+              this.didImportElementGetLoaded_(importEl);
+            }.bind(this));
+            p.x = 7;
+        modulePromises.push(p);
+      }
+
+      var allModulesLoadedPromise = new Promise(function(resolve, reject) {
+        var remaining = modulePromises.length;
+        var resolved = false;
+        function oneMoreLoaded() {
+          if (resolved)
+            return;
+          remaining--;
+          if (remaining > 0)
+            return;
+          resolved = true;
+          resolve();
+        }
+
+        function oneRejected(e) {
+          if (resolved)
+            return;
+          resolved = true;
+          reject(e);
+        }
+
+        modulePromises.forEach(function(modulePromise) {
+          modulePromise.then(oneMoreLoaded, oneRejected);
+        });
+      });
+
+      // Script errors errors abort load;
+      var scriptErrorPromise = new Promise(function(xresolve, xreject) {
+        this.scriptErrorPromiseResolver_ = {
+          resolve: xresolve,
+          reject: xreject
+        };
+      }.bind(this));
+      var donePromise = Promise.race([
+        allModulesLoadedPromise,
+        scriptErrorPromise
+      ]);
+
+      // Cleanup.
+      return donePromise.then(
+        function() {
+          this.scriptErrorPromiseResolver_ = undefined;
+          this.unbindGlobalHooks_();
+        }.bind(this),
+        function(e) {
+          this.scriptErrorPromiseResolver_ = undefined;
+          this.unbindGlobalHooks_();
+        }.bind(this));
+    },
+
+    bindGlobalHooks_: function() {
+      this.oldWindowOnError_ = window.onerror;
+      window.onerror = function(errorMsg, url, lineNumber) {
+        this.scriptErrorPromiseResolver_.reject(
+            new Error(errorMsg + '\n' + url + ':' + lineNumber));
+        if (this.oldWindowOnError_)
+          return this.oldWindowOnError_(errorMsg, url, lineNumber);
+        return false;
+      }.bind(this);
+    },
+
+    unbindGlobalHooks_: function() {
+      window.onerror = this.oldWindowOnError_;
+      this.oldWindowOnError_ = undefined;
+    },
+
+    didImportElementGetLoaded_: function(importEl) {
+      // The global tv.testSute function stashes test suites
+      // onto the _tv array.
+      var importDoc = importEl.import;
+      var suites = allTestSuitesByModuleURL[importDoc.URL];
+      suites.forEach(function(testSuite) {
+        if (this.testSuiteGUIDs_[testSuite.guid])
+          return;
+        this.testSuiteGUIDs_[testSuite.guid] = true;
+        this.testSuites.push(testSuite);
+
+        var e = new Event('suite-loaded');
+        e.testSuite = testSuite;
+        this.dispatchEvent(e);
+      }, this);
+    },
+
+    getAllTests: function() {
+      var tests = [];
+      this.testSuites.forEach(function(suite) {
+        tests.push.apply(tests, suite.tests);
+      });
+      return tests;
+    },
+
+    findTestWithFullyQualifiedName: function(fullyQualifiedName) {
+      for (var i = 0; i < this.testSuites.length; i++) {
+        var suite = this.testSuites[i];
+        for (var j = 0; j < suite.tests.length; j++) {
+          var test = suite.tests[j];
+          if (test.fullyQualifiedName == fullyQualifiedName)
+            return test;
+        }
+      }
+      throw new Error('Test ' + fullyQualifiedName + 'not found amongst ' + this.testSuites.length);
+    }
+  };
+
+  var allTestSuitesByModuleURL = [];
+
+  function _guessModuleNameFromURL(url) {
+    var m = /.+?:\/\/.+?(\/.+)/.exec(url);
+    if (!m)
+      throw new Error('Guessing module name failed');
+    var path = m[1];
+    if (path[0] != '/')
+      throw new Error('malformed path');
+    if (path.substring(path.length - 5) != '.html')
+      throw new Error('Cannot define testSuites outside html imports');
+    var parts = path.substring(1, path.length - 5).split('/');
+    return parts.join('.');
+  }
+
+  function testSuite(suiteConstructor) {
+    var linkDoc = document.currentScript.ownerDocument;
+    var url = linkDoc.URL;
+    var name = _guessModuleNameFromURL(url);
+    if (!document.currentScript)
+      throw new Error('Cannot call testSuite except during load.');
+
+    var testSuite = new tv.unittest.TestSuite(
+      name, suiteConstructor);
+
+
+    if (allTestSuitesByModuleURL[url] === undefined)
+      allTestSuitesByModuleURL[url] = [];
+    allTestSuitesByModuleURL[url].push(testSuite);
+  }
+
+  return {
+    SuiteLoader: SuiteLoader,
+    testSuite: testSuite
+  };
+});
+</script>
