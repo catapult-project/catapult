@@ -5,7 +5,6 @@
 import logging
 
 from telemetry.core.backends.chrome import inspector_websocket
-from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 
 
@@ -14,6 +13,9 @@ class TracingUnsupportedException(Exception):
 
 
 class TracingTimeoutException(Exception):
+  pass
+
+class TracingNotRunningException(Exception):
   pass
 
 
@@ -25,8 +27,6 @@ class TracingBackend(object):
 
     self._inspector_websocket.Connect(
         'ws://127.0.0.1:%i/devtools/browser' % devtools_port)
-    self._category_filter = None
-    self._nesting = 0
     self._tracing_data = []
     self._is_tracing_running = False
     self._chrome_browser_backend = chrome_browser_backend
@@ -36,18 +36,10 @@ class TracingBackend(object):
     return self._is_tracing_running
 
   def StartTracing(self, trace_options, custom_categories=None, timeout=10):
-    """ Starts tracing on the first nested call and returns True. Returns False
+    """ Starts tracing on the first call and returns True. Returns False
         and does nothing on subsequent nested calls.
     """
-    self._nesting += 1
     if self.is_tracing_running:
-      new_category_filter = tracing_category_filter.TracingCategoryFilter(
-          filter_string=custom_categories)
-      is_subset = new_category_filter.IsSubset(self._category_filter)
-      assert(is_subset != False)
-      if is_subset == None:
-        logging.warning('Cannot determine if category filter of nested ' +
-                        'StartTracing call is subset of current filter.')
       return False
     self._CheckNotificationSupported()
     #TODO(nednguyen): remove this when the stable branch pass 2118.
@@ -67,8 +59,6 @@ class TracingBackend(object):
          tracing_options.RECORD_AS_MUCH_AS_POSSIBLE:
          'record-as-much-as-possible'}
     req['params']['options'] = m[trace_options.record_mode]
-    self._category_filter = tracing_category_filter.TracingCategoryFilter(
-        filter_string=custom_categories)
     if custom_categories:
       req['params']['categories'] = custom_categories
     self._inspector_websocket.SyncRequest(req, timeout)
@@ -76,41 +66,30 @@ class TracingBackend(object):
     return True
 
   def StopTracing(self, timeout=30):
-    """ Stops tracing on the innermost (!) nested call, because we cannot get
-        results otherwise. Resets _tracing_data on the outermost nested call.
-        Returns the result of the trace, as TracingTimelineData object.
+    """ Stops tracing and returns the raw json trace result. It this is called
+    after tracing has been stopped, empty trace data is returned.
     """
-    self._nesting -= 1
-    assert self._nesting >= 0
-    if self.is_tracing_running:
-      req = {'method': 'Tracing.end'}
-      self._inspector_websocket.SendAndIgnoreResponse(req)
-      # After Tracing.end, chrome browser will send asynchronous notifications
-      # containing trace data. This is until Tracing.tracingComplete is sent,
-      # which means there is no trace buffers pending flush.
-      try:
-        self._inspector_websocket.DispatchNotificationsUntilDone(timeout)
-      except \
-          inspector_websocket.DispatchNotificationsUntilDoneTimeoutException \
-          as err:
-        raise TracingTimeoutException(
-            'Trace data was not fully received due to timeout after %s '
-            'seconds. If the trace data is big, you may want to increase the '
-            'time out amount.' % err.elapsed_time)
-      self._is_tracing_running = False
-    if self._nesting == 0:
-      self._category_filter = None
-      return self._GetTraceResultAndReset()
-    else:
-      return self._GetTraceResult()
-
-  def _GetTraceResult(self):
-    assert not self.is_tracing_running
-    return self._tracing_data
+    if not self.is_tracing_running:
+      raise TracingNotRunningException()
+    req = {'method': 'Tracing.end'}
+    self._inspector_websocket.SendAndIgnoreResponse(req)
+    # After Tracing.end, chrome browser will send asynchronous notifications
+    # containing trace data. This is until Tracing.tracingComplete is sent,
+    # which means there is no trace buffers pending flush.
+    try:
+      self._inspector_websocket.DispatchNotificationsUntilDone(timeout)
+    except \
+        inspector_websocket.DispatchNotificationsUntilDoneTimeoutException \
+        as err:
+      raise TracingTimeoutException(
+          'Trace data was not fully received due to timeout after %s '
+          'seconds. If the trace data is big, you may want to increase the '
+          'time out amount.' % err.elapsed_time)
+    self._is_tracing_running = False
+    return self._GetTraceResultAndReset()
 
   def _GetTraceResultAndReset(self):
-    result = self._GetTraceResult()
-
+    result = self._tracing_data
     self._tracing_data = []
     return result
 

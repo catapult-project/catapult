@@ -4,7 +4,6 @@
 
 import cStringIO
 import json
-import logging
 import unittest
 
 from telemetry import benchmark
@@ -17,29 +16,41 @@ from telemetry.unittest import tab_test_case
 
 
 class TracingBackendTest(tab_test_case.TabTestCase):
+
   def _StartServer(self):
     self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
 
-  def _WaitForAnimationFrame(self):
-    def _IsDone():
-      js_is_done = """done"""
-      return bool(self._tab.EvaluateJavaScript(js_is_done))
-    util.WaitFor(_IsDone, 5)
+  def setUp(self):
+    super(TracingBackendTest, self).setUp()
+    self._tracing_controller = self._browser.platform.tracing_controller
+    if not self._tracing_controller.IsChromeTracingSupported(self._browser):
+      self.skipTest('Browser does not support tracing, skipping test.')
+    self._StartServer()
 
   @benchmark.Disabled('chromeos') # crbug.com/412713.
   def testGotTrace(self):
-    tracing_controller = self._browser.platform.tracing_controller
-    if not tracing_controller.IsChromeTracingSupported(self._browser):
-      logging.warning('Browser does not support tracing, skipping test.')
-      return
-    self._StartServer()
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True
-    tracing_controller.Start(
+    self._tracing_controller.Start(
       options, tracing_category_filter.TracingCategoryFilter())
-    trace_data = tracing_controller.Stop()
+    trace_data = self._tracing_controller.Stop()
     # Test that trace data is parsable
     model.TimelineModel(trace_data)
+
+  @benchmark.Disabled('chromeos') # crbug.com/412713.
+  def testStartAndStopTraceMultipleTimes(self):
+    options = tracing_options.TracingOptions()
+    options.enable_chrome_trace = True
+    self._tracing_controller.Start(
+      options, tracing_category_filter.TracingCategoryFilter())
+    self.assertFalse(self._tracing_controller.Start(
+      options, tracing_category_filter.TracingCategoryFilter()))
+    trace_data = self._tracing_controller.Stop()
+    # Test that trace data is parsable
+    model.TimelineModel(trace_data)
+    self.assertFalse(self._tracing_controller.is_tracing_running)
+    # Calling stop again will raise exception
+    self.assertRaises(Exception, self._tracing_controller.Stop)
 
 
 class ChromeTraceResultTest(unittest.TestCase):
