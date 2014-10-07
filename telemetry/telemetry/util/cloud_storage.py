@@ -96,10 +96,11 @@ def _DownloadGsutil():
 def FindGsutil():
   """Return the gsutil executable path. If we can't find it, download it."""
   # Look for a depot_tools installation.
-  gsutil_path = _FindExecutableInPath(
-      os.path.join('third_party', 'gsutil', 'gsutil'), _DOWNLOAD_PATH)
-  if gsutil_path:
-    return gsutil_path
+  # FIXME: gsutil in depot_tools is not working correctly. crbug.com/413414
+  #gsutil_path = _FindExecutableInPath(
+  #    os.path.join('third_party', 'gsutil', 'gsutil'), _DOWNLOAD_PATH)
+  #if gsutil_path:
+  #  return gsutil_path
 
   # Look for a gsutil installation.
   gsutil_path = _FindExecutableInPath('gsutil', _DOWNLOAD_PATH)
