@@ -95,6 +95,9 @@ class AbsFilenameList(object):
 
 
 class Project(object):
+  third_party_path = os.path.abspath(os.path.join(
+      os.path.dirname(__file__), '..', '..'))
+
   tvcm_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
 
@@ -113,6 +116,8 @@ class Project(object):
     self._frozen = False
     self.source_paths = AbsFilenameList(self._WillPartOfPathChange)
     self.non_module_html_files = AbsFilenameList(self._WillPartOfPathChange)
+
+    self.source_paths.append(self.third_party_path)
 
     if include_tvcm_paths:
       self.source_paths.append(self.tvcm_src_path)

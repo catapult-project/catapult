@@ -121,11 +121,15 @@ class ResourceLoader(object):
       if not resource:
         raise module.DepsException('No resource for module "%s"' % module_name)
 
-    if resource.absolute_path.endswith('.js'):
-      raise Exception(".js modules are deprecated")
     m = html_module.HTMLModule(self, module_name, resource)
-    m.Parse()
     self.loaded_modules[module_name] = m
+
+    # Fake it, this is probably either polymer.js or platform.js which are
+    # actually .js files....
+    if resource.absolute_path.endswith('.js'):
+      return m
+
+    m.Parse()
     m.Load()
     return m
 

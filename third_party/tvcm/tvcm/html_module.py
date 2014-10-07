@@ -24,8 +24,10 @@ class HTMLModule(module.Module):
       parser_results = parse_html_deps.HTMLModuleParser().Parse(self.contents)
     except Exception, ex:
       raise Exception('While parsing %s: %s' % (self.name, str(ex)))
+
     self.dependency_metadata = Parse(self.loader,
                                      self.name, self._module_dir_name,
+                                     self.isComponent(),
                                      parser_results)
     self._parser_results = parser_results
 
@@ -158,11 +160,13 @@ def _HRefToResource(loader, module_name, module_dir_name, href, tag_for_err_msg)
   return resource
 
 
-def Parse(loader, module_name, module_dir_name, parser_results):
+def Parse(loader, module_name, module_dir_name, is_component, parser_results):
+  res = module.ModuleDependencyMetadata()
+  if is_component:
+    return res
+
   if parser_results.has_decl == False:
     raise Exception('%s must have <!DOCTYPE html>' % module_name)
-
-  res = module.ModuleDependencyMetadata()
 
   # External script references..
   for href in parser_results.scripts_external:
