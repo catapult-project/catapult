@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/trace_model/slice.html">
 <link rel="import" href="/tracing/trace_model/counter.html">
-<link rel="import" href="/tvcm/range.html">
+<link rel="import" href="/base/range.html">
 
 <script>
 'use strict';
@@ -15,7 +15,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Cpu class.
  */
-tvcm.exportTo('tracing.trace_model', function() {
+tv.exportTo('tracing.trace_model', function() {
 
   var Counter = tracing.trace_model.Counter;
   var Slice = tracing.trace_model.Slice;
@@ -172,7 +172,7 @@ tvcm.exportTo('tracing.trace_model', function() {
     this.cpuNumber = number;
     this.slices = [];
     this.counters = {};
-    this.bounds = new tvcm.Range();
+    this.bounds = new tv.Range();
     this.samples_ = undefined; // Set during createSubSlices
 
     // Start timestamp of the last active thread.
@@ -271,7 +271,7 @@ tvcm.exportTo('tracing.trace_model', function() {
      * Returns the index of the slice in the CPU's slices, or undefined.
      */
     indexOf: function(cpuSlice) {
-      var i = tvcm.findLowIndexInSortedArray(
+      var i = tv.findLowIndexInSortedArray(
           this.slices,
           function(slice) { return slice.start; },
           cpuSlice.start);
@@ -311,7 +311,7 @@ tvcm.exportTo('tracing.trace_model', function() {
       var duration = end_timestamp - this.lastActiveTimestamp_;
       var slice = new tracing.trace_model.CpuSlice(
           '', this.lastActiveName_,
-          tvcm.ui.getStringColorId(this.lastActiveName_),
+          tv.ui.getStringColorId(this.lastActiveName_),
           this.lastActiveTimestamp_,
           this.lastActiveArgs_,
           duration);

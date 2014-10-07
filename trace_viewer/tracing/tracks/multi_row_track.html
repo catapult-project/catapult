@@ -7,13 +7,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/tracks/container_track.html">
 <link rel="import" href="/tracing/trace_model_settings.html">
-<link rel="import" href="/tvcm/sorted_array_utils.html">
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/sorted_array_utils.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
   var TraceModelSettings = tracing.TraceModelSettings;
 
   /**
@@ -21,7 +21,7 @@ tvcm.exportTo('tracing.tracks', function() {
    * @constructor
    * @extends {ContainerTrack}
    */
-  var MultiRowTrack = tvcm.ui.define(
+  var MultiRowTrack = tv.ui.define(
       'multi-row-track', tracing.tracks.ContainerTrack);
 
   MultiRowTrack.prototype = {

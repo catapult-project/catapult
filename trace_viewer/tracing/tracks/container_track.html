@@ -7,18 +7,18 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/tracks/track.html">
 <link rel="import" href="/tracing/filter.html">
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
 
   /**
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var ContainerTrack = tvcm.ui.define('container-track', tracing.tracks.Track);
+  var ContainerTrack = tv.ui.define('container-track', tracing.tracks.Track);
   ContainerTrack.prototype = {
     __proto__: tracing.tracks.Track.prototype,
 

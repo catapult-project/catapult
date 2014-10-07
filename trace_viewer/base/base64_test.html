@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base64.html">
+<script>
+'use strict';
+
+tv.unittest.testSuite(function() {
+  test('getDecodedLength', function() {
+    assertTrue(tv.Base64.getDecodedBufferLength('YQ==') >= 1);
+    assertTrue(tv.Base64.getDecodedBufferLength('YWJjZA==') >= 4);
+    assertTrue(tv.Base64.getDecodedBufferLength('YWJjZGVm') >= 6);
+  });
+
+  test('DecodeToTypedArray', function() {
+    var buffer = new DataView(new ArrayBuffer(256));
+    tv.Base64.DecodeToTypedArray('YQ==', buffer);
+    assertTrue(buffer.getInt8(0) == 97);
+
+    tv.Base64.DecodeToTypedArray('YWJjZA==', buffer);
+    for (var i = 0; i < 4; i++)
+      assertTrue(buffer.getInt8(i) == 97 + i);
+
+    tv.Base64.DecodeToTypedArray('YWJjZGVm', buffer);
+    for (var i = 0; i < 4; i++)
+      assertTrue(buffer.getInt8(i) == 97 + i);
+  });
+
+  test('DecodeLengthReturn', function() {
+    var buffer = new DataView(new ArrayBuffer(256));
+    var len = tv.Base64.DecodeToTypedArray(btoa('hello'), buffer);
+    assertEquals(5, len);
+  });
+});
+</script>

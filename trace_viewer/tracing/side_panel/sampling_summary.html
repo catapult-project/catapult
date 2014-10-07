@@ -8,12 +8,12 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/selection.html">
 <link rel="import" href="/tracing/side_panel/timeline_view.html">
-<link rel="import" href="/tvcm/iteration_helpers.html">
-<link rel="import" href="/tvcm/statistics.html">
-<link rel="import" href="/tvcm/ui/dom_helpers.html">
-<link rel="import" href="/tvcm/ui/pie_chart.html">
-<link rel="import" href="/tvcm/ui/sortable_table.html">
-<link rel="import" href="/tvcm/ui/sunburst_chart.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/base/ui/pie_chart.html">
+<link rel="import" href="/base/ui/sortable_table.html">
+<link rel="import" href="/base/ui/sunburst_chart.html">
 
 <template id="x-sample-summary-panel-template">
   <style>
@@ -130,11 +130,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   var RequestSelectionChangeEvent = tracing.RequestSelectionChangeEvent;
-  var getColorOfKey = tvcm.ui.getColorOfKey;
+  var getColorOfKey = tv.ui.getColorOfKey;
 
   /**
     * @constructor
@@ -301,7 +301,7 @@ tvcm.exportTo('tracing', function() {
    * @constructor
    */
   var SamplingSummaryPanel =
-      tvcm.ui.define('x-sample-summary-panel',
+      tv.ui.define('x-sample-summary-panel',
                      tracing.TimelineViewSidePanel);
   SamplingSummaryPanel.textLabel = 'Sampling Summary';
   SamplingSummaryPanel.supportsModel = function(m) {
@@ -345,7 +345,7 @@ tvcm.exportTo('tracing', function() {
     decorate: function() {
       tracing.TimelineViewSidePanel.prototype.decorate.call(this);
       this.classList.add('x-sample-summary-panel');
-      this.appendChild(tvcm.instantiateTemplate(
+      this.appendChild(tv.instantiateTemplate(
           '#x-sample-summary-panel-template', THIS_DOC));
 
       this.sampleType_ = undefined;
@@ -419,7 +419,7 @@ tvcm.exportTo('tracing', function() {
       }
 
       // Make it sortable.
-      tvcm.ui.SortableTable.decorate(table);
+      tv.ui.SortableTable.decorate(table);
 
       var calleeArea = that.querySelector('x-callees');
       calleeArea.textContent = '';
@@ -496,7 +496,7 @@ tvcm.exportTo('tracing', function() {
 
       var sunburstData =
           createSunburstData(this.selection_, this.sampleType_);
-      this.chart_ = new tvcm.ui.SunburstChart();
+      this.chart_ = new tv.ui.SunburstChart();
       this.chart_.width = 600;
       this.chart_.height = 600;
       this.chart_.chartTitle = 'Sampling Summary';
@@ -546,7 +546,7 @@ tvcm.exportTo('tracing', function() {
         sampleTypeOptions.push({label: sampleTypes[i], value: sampleTypes[i]});
 
       var toolbarEl = this.querySelector('x-toolbar');
-      this.sampleTypeSelector_ = tvcm.ui.createSelector(
+      this.sampleTypeSelector_ = tv.ui.createSelector(
           this,
           'sampleType',
           'samplingSummaryPanel.sampleType',

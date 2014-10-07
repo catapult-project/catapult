@@ -4,7 +4,7 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tvcm.html">
+<link rel="import" href="/base.html">
 <link rel="import" href="/cc/raster_task.html">
 <link rel="import" href="/cc/raster_task_sub_view_for_tasks_from_same_lthi.html">
 <link rel="import" href="/cc/selection.html">
@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('cc', function() {
+tv.exportTo('cc', function() {
   /**
    * @constructor
    */
@@ -21,7 +21,7 @@ tvcm.exportTo('cc', function() {
     var whySupported = RasterTaskSelection.whySuported(selection);
     if (!whySupported.ok)
       throw new Error('Fail: ' + whySupported.why);
-    this.slices_ = tvcm.asArray(selection);
+    this.slices_ = tv.asArray(selection);
     this.tiles_ = this.slices_.map(function(slice) {
       var tile = cc.getTileFromRasterTaskSlice(slice);
       if (tile === undefined)

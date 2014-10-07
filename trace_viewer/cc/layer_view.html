@@ -10,10 +10,10 @@ found in the LICENSE file.
 <link rel="import" href="/cc/constants.html">
 <link rel="import" href="/cc/layer_tree_quad_stack_view.html">
 <link rel="import" href="/cc/picture.html">
-<link rel="import" href="/tvcm/raf.html">
-<link rel="import" href="/tvcm/settings.html">
+<link rel="import" href="/base/raf.html">
+<link rel="import" href="/base/settings.html">
+<link rel="import" href="/base/ui/drag_handle.html">
 <link rel="import" href="/tracing/analysis/util.html">
-<link rel="import" href="/tvcm/ui/drag_handle.html">
 
 <script>
 'use strict';
@@ -22,20 +22,20 @@ found in the LICENSE file.
  * @fileoverview LayerView coordinates graphical and analysis views of layers.
  */
 
-tvcm.exportTo('cc', function() {
+tv.exportTo('cc', function() {
   var constants = cc.constants;
 
   /**
    * @constructor
    */
-  var LayerView = tvcm.ui.define('layer-view');
+  var LayerView = tv.ui.define('layer-view');
 
   LayerView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
       this.layerTreeQuadStackView_ = new cc.LayerTreeQuadStackView();
-      this.dragBar_ = new tvcm.ui.DragHandle();
+      this.dragBar_ = new tv.ui.DragHandle();
       this.analysisEl_ = document.createElement('layer-view-analysis');
       this.analysisEl_.addEventListener('requestSelectionChange',
           this.onRequestSelectionChangeFromAnalysisEl_.bind(this));
@@ -101,7 +101,7 @@ tvcm.exportTo('cc', function() {
         this.layerTreeQuadStackView_.style.height =
             window.getComputedStyle(this).height;
       }
-      tvcm.dispatchSimpleEvent(this, 'selection-change');
+      tv.dispatchSimpleEvent(this, 'selection-change');
     },
 
     createPictureBtn_: function(pictures) {

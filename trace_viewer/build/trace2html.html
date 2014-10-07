@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', function() {
           g_timelineViewEl.timeline.focusElement = g_timelineViewEl;
       },
       function(err) {
-        var overlay = new tvcm.ui.Overlay();
-        overlay.textContent = tvcm.normalizeException(err).message;
+        var overlay = new tv.ui.Overlay();
+        overlay.textContent = tv.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
       });

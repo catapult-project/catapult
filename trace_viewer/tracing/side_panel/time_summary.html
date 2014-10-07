@@ -8,10 +8,10 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/selection.html">
 <link rel="import" href="/tracing/side_panel/timeline_view.html">
-<link rel="import" href="/tvcm/iteration_helpers.html">
-<link rel="import" href="/tvcm/statistics.html">
-<link rel="import" href="/tvcm/ui/dom_helpers.html">
-<link rel="import" href="/tvcm/ui/pie_chart.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/base/ui/pie_chart.html">
 
 <style>
   .x-time-summary-side-panel {
@@ -41,7 +41,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   var ThreadSlice = tracing.trace_model.ThreadSlice;
@@ -92,7 +92,7 @@ tvcm.exportTo('tracing', function() {
     });
 
     // Figure out total array range.
-    var sum = tvcm.Statistics.sum(groups, getValue);
+    var sum = tv.Statistics.sum(groups, getValue);
     if (opt_extraValue !== undefined)
       sum += opt_extraValue;
 
@@ -129,7 +129,7 @@ tvcm.exportTo('tracing', function() {
 
   function createPieChartFromResultGroups(
       groups, title, getValue, opt_extraData) {
-    var chart = new tvcm.ui.PieChart();
+    var chart = new tv.ui.PieChart();
 
     function pushDataForGroup(data, resultsForGroup, value) {
       data.push({
@@ -180,7 +180,7 @@ tvcm.exportTo('tracing', function() {
 
   ResultsForGroup.prototype = {
     get wallTime() {
-      var wallSum = tvcm.Statistics.sum(
+      var wallSum = tv.Statistics.sum(
           this.topLevelSlices, function(x) { return x.duration; });
       return wallSum;
     },
@@ -240,7 +240,7 @@ tvcm.exportTo('tracing', function() {
   /**
    * @constructor
    */
-  var TimeSummarySidePanel = tvcm.ui.define('x-time-summary-side-panel',
+  var TimeSummarySidePanel = tv.ui.define('x-time-summary-side-panel',
                                             tracing.TimelineViewSidePanel);
   TimeSummarySidePanel.textLabel = 'Thread Times';
   TimeSummarySidePanel.supportsModel = function(m) {
@@ -255,10 +255,10 @@ tvcm.exportTo('tracing', function() {
     decorate: function() {
       tracing.TimelineViewSidePanel.prototype.decorate.call(this);
       this.classList.add('x-time-summary-side-panel');
-      this.appendChild(tvcm.instantiateTemplate(
+      this.appendChild(tv.instantiateTemplate(
           '#x-time-summary-side-panel-template', THIS_DOC));
 
-      this.rangeOfInterest_ = new tvcm.Range();
+      this.rangeOfInterest_ = new tv.Range();
       this.selection_ = undefined;
       this.groupBy_ = GROUP_BY_PROCESS_NAME;
       this.groupingUnit_ = CPU_TIME_GROUPING_UNIT;
@@ -266,7 +266,7 @@ tvcm.exportTo('tracing', function() {
       this.chart_ = undefined;
 
       var toolbarEl = this.querySelector('toolbar');
-      this.groupBySelector_ = tvcm.ui.createSelector(
+      this.groupBySelector_ = tv.ui.createSelector(
           this, 'groupBy',
           'timeSummarySidePanel.groupBy', this.groupBy_,
           [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
@@ -274,7 +274,7 @@ tvcm.exportTo('tracing', function() {
           ]);
       toolbarEl.appendChild(this.groupBySelector_);
 
-      this.groupingUnitSelector_ = tvcm.ui.createSelector(
+      this.groupingUnitSelector_ = tv.ui.createSelector(
           this, 'groupingUnit',
           'timeSummarySidePanel.groupingUnit', this.groupingUnit_,
           [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
@@ -282,7 +282,7 @@ tvcm.exportTo('tracing', function() {
           ]);
       toolbarEl.appendChild(this.groupingUnitSelector_);
 
-      this.showCpuIdleTimeCheckbox_ = tvcm.ui.createCheckBox(
+      this.showCpuIdleTimeCheckbox_ = tv.ui.createCheckBox(
           this, 'showCpuIdleTime',
           'timeSummarySidePanel.showCpuIdleTime', this.showCpuIdleTime_,
           'Show CPU idle time');
@@ -388,10 +388,10 @@ tvcm.exportTo('tracing', function() {
 
       // Create summary.
       var summaryText = document.createElement('div');
-      summaryText.appendChild(tvcm.ui.createSpan({
+      summaryText.appendChild(tv.ui.createSpan({
         textContent: 'Total ' + this.groupingUnit_ + ': ',
         bold: true}));
-      summaryText.appendChild(tvcm.ui.createSpan({
+      summaryText.appendChild(tv.ui.createSpan({
         textContent: tsRound(getValueFromGroup(allGroup)) + 'ms'
       }));
       resultArea.appendChild(summaryText);
@@ -416,13 +416,13 @@ tvcm.exportTo('tracing', function() {
       // Create the actual chart.
       var otherGroup = new ResultsForGroup(this.model_, 'Other');
       var groups = trimPieChartData(
-          tvcm.dictionaryValues(resultsByGroupName),
+          tv.dictionaryValues(resultsByGroupName),
           otherGroup,
           getValueFromGroup,
           extraValue);
 
       if (groups.length == 0) {
-        resultArea.appendChild(tvcm.ui.createSpan({textContent: 'No data'}));
+        resultArea.appendChild(tv.ui.createSpan({textContent: 'No data'}));
         return undefined;
       }
 

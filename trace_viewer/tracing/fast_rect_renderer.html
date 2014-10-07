@@ -4,7 +4,7 @@ Copyright (c) 2012 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tvcm.html">
+<link rel="import" href="/base.html">
 <script>
 'use strict';
 
@@ -31,7 +31,7 @@ found in the LICENSE file.
  * Make sure to flush the trackRenderer before finishing drawing in order
  * to commit any queued drawing operations.
  */
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
 
   /**
    * Creates a fast rect renderer with a specific set of culling rules

@@ -8,9 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/importer/etw/eventtrace_parser.html">
 <link rel="import" href="/tracing/importer/etw/process_parser.html">
 <link rel="import" href="/tracing/importer/etw/thread_parser.html">
-<link rel="import" href="/tvcm/base64.html">
 <link rel="import" href="/tracing/trace_model.html">
 <link rel="import" href="/tracing/importer/importer.html">
+<link rel="import" href="/base/base64.html">
 
 <script>
 /**
@@ -51,7 +51,7 @@ found in the LICENSE file.
  */
 'use strict';
 
-tvcm.exportTo('tracing.importer', function() {
+tv.exportTo('tracing.importer', function() {
   var Importer = tracing.importer.Importer;
 
   // GUID and opcode of a Thread DCStart event, as defined at the link above.
@@ -70,11 +70,11 @@ tvcm.exportTo('tracing.importer', function() {
     __proto__: Object.prototype,
 
     reset: function(base64_payload) {
-      var decoded_size = tvcm.Base64.getDecodedBufferLength(base64_payload);
+      var decoded_size = tv.Base64.getDecodedBufferLength(base64_payload);
       if (decoded_size > this.payload_.byteLength)
         this.payload_ = new DataView(new ArrayBuffer(decoded_size));
 
-      tvcm.Base64.DecodeToTypedArray(base64_payload, this.payload_);
+      tv.Base64.DecodeToTypedArray(base64_payload, this.payload_);
       this.position_ = 0;
     },
 
@@ -381,7 +381,7 @@ tvcm.exportTo('tracing.importer', function() {
           event.hasOwnProperty('payload') &&
           event.guid === kThreadGuid &&
           event.op == kThreadDCStartOpcode) {
-        var decoded_size = tvcm.Base64.getDecodedBufferLength(event.payload);
+        var decoded_size = tv.Base64.getDecodedBufferLength(event.payload);
 
         if (event.ver == 1) {
           if (decoded_size >= 52)

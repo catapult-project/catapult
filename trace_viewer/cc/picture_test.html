@@ -15,10 +15,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() {
+tv.unittest.testSuite(function() {
   test('basic', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
-    var p = tvcm.dictionaryValues(m.processes)[0];
+    var p = tv.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
     var snapshot = instance.snapshots[0];
@@ -29,7 +29,7 @@ tvcm.unittest.testSuite(function() {
 
   test('getOps', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
-    var p = tvcm.dictionaryValues(m.processes)[0];
+    var p = tv.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
     var snapshot = instance.snapshots[0];

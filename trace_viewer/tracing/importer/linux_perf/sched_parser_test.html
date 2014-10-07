@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() { // @suppress longLineCheck
+tv.unittest.testSuite(function() { // @suppress longLineCheck
   test('schedSwitchRE', function() {
     var re = tracing.importer.linux_perf._SchedParserTestExports.schedSwitchRE;
     var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +

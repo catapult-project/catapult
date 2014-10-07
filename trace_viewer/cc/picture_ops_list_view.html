@@ -9,13 +9,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/cc/constants.html">
 <link rel="import" href="/cc/selection.html">
-<link rel="import" href="/tvcm/ui/list_view.html">
-<link rel="import" href="/tvcm/ui/dom_helpers.html">
+<link rel="import" href="/base/ui/list_view.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('cc', function() {
+tv.exportTo('cc', function() {
   var OPS_TIMING_ITERATIONS = 3; // Iterations to average op timing info over.
   var ANNOTATION = 'Comment';
   var BEGIN_ANNOTATION = 'BeginCommentGroup';
@@ -29,13 +29,13 @@ tvcm.exportTo('cc', function() {
   /**
    * @constructor
    */
-  var PictureOpsListView = tvcm.ui.define('picture-ops-list-view');
+  var PictureOpsListView = tv.ui.define('picture-ops-list-view');
 
   PictureOpsListView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.opsList_ = new tvcm.ui.ListView();
+      this.opsList_ = new tv.ui.ListView();
       this.appendChild(this.opsList_);
 
       this.selectedOp_ = undefined;
@@ -136,7 +136,7 @@ tvcm.exportTo('cc', function() {
         }
       }
 
-      tvcm.dispatchSimpleEvent(this, 'selection-changed', false);
+      tv.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     get numOps() {
@@ -157,7 +157,7 @@ tvcm.exportTo('cc', function() {
         if (s < 0) throw new Error('Invalid index');
         if (s >= this.numOps) throw new Error('Invalid index');
         this.opsList_.selectedElement = this.opsList_.getElementByIndex(s + 1);
-        tvcm.scrollIntoViewIfNeeded(this.opsList_.selectedElement);
+        tv.scrollIntoViewIfNeeded(this.opsList_.selectedElement);
       }
     },
 

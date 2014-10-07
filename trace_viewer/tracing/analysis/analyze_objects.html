@@ -6,14 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/analysis/analysis_sub_view.html">
-<link rel="import" href="/tvcm.html">
+<link rel="import" href="/base.html">
 
 <polymer-element name="multiple-objects-analysis-sub-view"
     extends="tracing-analysis-sub-view"
     constructor="MultipleObjectsAnalysisSubView">
   <script>
   'use strict';
-  tvcm.onPolymerReady(function() {
+  tv.onPolymerReady(function() {
     tracing.registerAnalysisSubViewType(
         0,
         function supported(selection) {
@@ -75,8 +75,8 @@ found in the LICENSE file.
      * click-through to the main object's analysis view.
      */
     analyzeObjectEvents_: function(results, objectEvents) {
-      objectEvents = tvcm.asArray(objectEvents).sort(
-          tvcm.Range.compareByMinTimes);
+      objectEvents = tv.asArray(objectEvents).sort(
+          tv.Range.compareByMinTimes);
 
       results.appendHeader('Selected Objects:');
       var table = results.appendTable('analysis-object-sample-table', 2);

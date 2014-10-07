@@ -4,7 +4,11 @@ Copyright (c) 2012 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tvcm.html">
+<link rel="import" href="/base.html">
+<link rel="import" href="/base/range.html">
+<link rel="import" href="/base/events.html">
+<link rel="import" href="/base/interval_tree.html">
+<link rel="import" href="/base/ui/overlay.html">
 <link rel="import" href="/tracing/filter.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/importer/task.html">
@@ -12,10 +16,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/trace_model/process.html">
 <link rel="import" href="/tracing/trace_model/sample.html">
 <link rel="import" href="/tracing/trace_model/stack_frame.html">
-<link rel="import" href="/tvcm/range.html">
-<link rel="import" href="/tvcm/events.html">
-<link rel="import" href="/tvcm/interval_tree.html">
-<link rel="import" href="/tvcm/ui/overlay.html">
 
 <script>
 'use strict';
@@ -36,7 +36,7 @@ found in the LICENSE file.
  * nesting tasks.
  *
  */
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
   var Importer = tracing.importer.Importer;
   var Process = tracing.trace_model.Process;
   var Kernel = tracing.trace_model.Kernel;
@@ -55,14 +55,14 @@ tvcm.exportTo('tracing', function() {
     this.processes = {};
     this.metadata = [];
     this.categories = [];
-    this.bounds = new tvcm.Range();
+    this.bounds = new tv.Range();
     this.instantEvents = [];
     this.flowEvents = [];
 
     this.stackFrames = {};
     this.samples = [];
 
-    this.flowIntervalTree = new tvcm.IntervalTree(
+    this.flowIntervalTree = new tv.IntervalTree(
         function(s) { return s.start; },
         function(e) { return e.start; });
 
@@ -86,7 +86,7 @@ tvcm.exportTo('tracing', function() {
   };
 
   TraceModel.prototype = {
-    __proto__: tvcm.EventTarget.prototype,
+    __proto__: tv.EventTarget.prototype,
 
     get numProcesses() {
       var n = 0;
@@ -201,7 +201,7 @@ tvcm.exportTo('tracing', function() {
     getAllCounters: function() {
       var counters = [];
       counters.push.apply(
-          counters, tvcm.dictionaryValues(this.kernel.counters));
+          counters, tv.dictionaryValues(this.kernel.counters));
       for (var pid in this.processes) {
         var process = this.processes[pid];
         for (var tid in process.counters) {
@@ -292,7 +292,7 @@ tvcm.exportTo('tracing', function() {
                                              opt_shiftWorldToZero,
                                              opt_pruneEmptyContainers,
                                              opt_customizeModelCallback) {
-      var overlay = tvcm.ui.Overlay();
+      var overlay = tv.ui.Overlay();
       overlay.title = 'Importing...';
       overlay.userCanClose = false;
       overlay.msgEl = document.createElement('div');

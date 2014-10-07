@@ -13,11 +13,11 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the CounterSeries class.
  */
-tvcm.exportTo('tracing.trace_model', function() {
+tv.exportTo('tracing.trace_model', function() {
   var CounterSample = tracing.trace_model.CounterSample;
 
   function CounterSeries(name, color) {
-    this.guid_ = tvcm.GUID.allocate();
+    this.guid_ = tv.GUID.allocate();
 
     this.name_ = name;
     this.color_ = color;

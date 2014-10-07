@@ -4,7 +4,7 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tvcm.html">
+<link rel="import" href="/base.html">
 <script>
 
 'use strict';
@@ -13,7 +13,7 @@ found in the LICENSE file.
  * Contains connection code that inspector's embedding framework calls on
  * tracing, and that tracing can use to talk to inspector.
  */
-tvcm.exportTo('about_tracing', function() {
+tv.exportTo('about_tracing', function() {
   // Shim needed to keep the bootup code of chrome://inspect happy.
   window.WebInspector = { };
   window.WebInspector.addExtensions = function() { };

@@ -16,7 +16,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Helper functions for use in tracing tests.
  */
-tvcm.exportTo('tracing.test_utils', function() {
+tv.exportTo('tracing.test_utils', function() {
   function newAsyncSlice(start, duration, startThread, endThread) {
     return newAsyncSliceNamed('a', start, duration, startThread, endThread);
   }
@@ -69,7 +69,7 @@ tvcm.exportTo('tracing.test_utils', function() {
   function newStackTrace(category, titles) {
     var frame = undefined;
     for (var i = 0; i < titles.length; i++)
-      frame = new tracing.trace_model.StackFrame(frame, tvcm.GUID.allocate(),
+      frame = new tracing.trace_model.StackFrame(frame, tv.GUID.allocate(),
                                                  category, titles[i], 7);
     return frame;
   }

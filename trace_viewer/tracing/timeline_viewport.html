@@ -8,9 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/draw_helpers.html">
 <link rel="import" href="/tracing/timeline_interest_range.html">
 <link rel="import" href="/tracing/timeline_display_transform.html">
-<link rel="import" href="/tvcm/events.html">
-<link rel="import" href="/tvcm/ui/animation.html">
-<link rel="import" href="/tvcm/ui/animation_controller.html">
+<link rel="import" href="/base/events.html">
+<link rel="import" href="/base/ui/animation.html">
+<link rel="import" href="/base/ui/animation_controller.html">
 
 <script>
 'use strict';
@@ -18,7 +18,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Code for the viewport.
  */
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
   var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
   var TimelineInterestRange = tracing.TimelineInterestRange;
 
@@ -33,7 +33,7 @@ tvcm.exportTo('tracing', function() {
    * ways.
    *
    * @constructor
-   * @extends {tvcm.EventTarget}
+   * @extends {tv.EventTarget}
    */
   function TimelineViewport(parentEl) {
     this.parentEl_ = parentEl;
@@ -66,7 +66,7 @@ tvcm.exportTo('tracing', function() {
   }
 
   TimelineViewport.prototype = {
-    __proto__: tvcm.EventTarget.prototype,
+    __proto__: tv.EventTarget.prototype,
 
     /**
      * Allows initialization of the viewport when the viewport's parent element
@@ -86,7 +86,7 @@ tvcm.exportTo('tracing', function() {
       // Allow not providing a parent element, used by tests.
       if (this.parentEl_ === undefined)
         return;
-      return tvcm.ui.isElementAttachedToDocument(this.parentEl_);
+      return tv.ui.isElementAttachedToDocument(this.parentEl_);
     },
 
     onResize_: function() {
@@ -133,7 +133,7 @@ tvcm.exportTo('tracing', function() {
      * to redraw when the underlying model has been mutated.
      */
     dispatchChangeEvent: function() {
-      tvcm.dispatchSimpleEvent(this, 'change');
+      tv.dispatchSimpleEvent(this, 'change');
     },
 
     detach: function() {
@@ -148,7 +148,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     initAnimationController_: function() {
-      this.dtAnimationController_ = new tvcm.ui.AnimationController();
+      this.dtAnimationController_ = new tv.ui.AnimationController();
       this.dtAnimationController_.addEventListener(
           'didtick', function(e) {
             this.onCurentDisplayTransformChange_(e.oldTargetState);
@@ -205,15 +205,15 @@ tvcm.exportTo('tracing', function() {
     },
 
     queueDisplayTransformAnimation: function(animation) {
-      if (!(animation instanceof tvcm.ui.Animation))
-        throw new Error('animation must be instanceof tvcm.ui.Animation');
+      if (!(animation instanceof tv.ui.Animation))
+        throw new Error('animation must be instanceof tv.ui.Animation');
       this.dtAnimationController_.queueAnimation(animation);
     },
 
     onCurentDisplayTransformChange_: function(oldDisplayTransform) {
       // Ensure panY stays clamped in the track container's scroll range.
       if (this.modelTrackContainer_) {
-        this.currentDisplayTransform.panY = tvcm.clamp(
+        this.currentDisplayTransform.panY = tv.clamp(
             this.currentDisplayTransform.panY,
             0,
             this.modelTrackContainer_.scrollHeight -

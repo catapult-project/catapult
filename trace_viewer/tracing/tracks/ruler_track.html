@@ -11,18 +11,18 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/tracks/track.html">
 <link rel="import" href="/tracing/tracks/heading_track.html">
 <link rel="import" href="/tracing/draw_helpers.html">
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
   /**
    * A track that displays the ruler.
    * @constructor
    * @extends {HeadingTrack}
    */
-  var RulerTrack = tvcm.ui.define('ruler-track', tracing.tracks.HeadingTrack);
+  var RulerTrack = tv.ui.define('ruler-track', tracing.tracks.HeadingTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {

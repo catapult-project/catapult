@@ -7,18 +7,18 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/tracks/multi_row_track.html">
 <link rel="import" href="/tracing/tracks/slice_track.html">
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
   /**
    * A track that displays a AsyncSliceGroup.
    * @constructor
    * @extends {MultiRowTrack}
    */
-  var AsyncSliceGroupTrack = tvcm.ui.define(
+  var AsyncSliceGroupTrack = tv.ui.define(
       'async-slice-group-track',
       tracing.tracks.MultiRowTrack);
 

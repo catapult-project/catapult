@@ -19,7 +19,7 @@ found in the LICENSE file.
 /**
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
-tvcm.exportTo('tracing.importer', function() {
+tv.exportTo('tracing.importer', function() {
   var Importer = tracing.importer.Importer;
 
   function V8LogImporter(model, eventData) {
@@ -81,7 +81,7 @@ tvcm.exportTo('tracing.importer', function() {
       if (args === undefined) return;
       start /= 1000;  // Convert to milliseconds.
       length /= 1000;
-      var colorId = tvcm.ui.getStringColorId(name);
+      var colorId = tv.ui.getStringColorId(name);
       var slice = new tracing.trace_model.Slice('v8', name, colorId, start,
           args, length);
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
@@ -162,9 +162,9 @@ tvcm.exportTo('tracing.importer', function() {
           if (childFrame === undefined) {
             var entryName = entry ? entry.name : 'Unknown';
             lastStackFrame = new tracing.trace_model.StackFrame(
-                lastStackFrame, 'v8sf-' + tvcm.GUID.allocate(),
+                lastStackFrame, 'v8sf-' + tv.GUID.allocate(),
                 'v8', entryName,
-                tvcm.ui.getStringColorId(entryName));
+                tv.ui.getStringColorId(entryName));
             lastStackFrame.entryID = entryID;
             this.model_.addStackFrame(lastStackFrame);
           } else {
@@ -179,7 +179,7 @@ tvcm.exportTo('tracing.importer', function() {
           lastStackFrame = new tracing.trace_model.StackFrame(
               undefined, pcEntryID,
               'v8', pcEntryName,
-              tvcm.ui.getStringColorId(pcEntryName));
+              tv.ui.getStringColorId(pcEntryName));
           this.model_.addStackFrame(lastStackFrame);
         }
         lastStackFrame = this.model_.stackFrames[pcEntryID];
@@ -269,7 +269,7 @@ tvcm.exportTo('tracing.importer', function() {
         for (var i = 0; i < slices.length; i++) {
           var duration = slices[i].end - slices[i].start;
           var slice = new tracing.trace_model.Slice('v8', slices[i].name,
-              tvcm.ui.getStringColorId(slices[i].name),
+              tv.ui.getStringColorId(slices[i].name),
               slices[i].start, {}, duration);
           thread.sliceGroup.pushSlice(slice);
           addSlices(slices[i].children, thread);

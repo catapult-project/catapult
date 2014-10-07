@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/trace_model/counter_series.html">
-<link rel="import" href="/tvcm/guid.html">
-<link rel="import" href="/tvcm/range.html">
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/range.html">
 
 <script>
 'use strict';
@@ -15,14 +15,14 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Counter class.
  */
-tvcm.exportTo('tracing.trace_model', function() {
+tv.exportTo('tracing.trace_model', function() {
 
   /**
    * Stores all the samples for a given counter.
    * @constructor
    */
   function Counter(parent, id, category, name) {
-    this.guid_ = tvcm.GUID.allocate();
+    this.guid_ = tv.GUID.allocate();
 
     this.parent = parent;
     this.id = id;
@@ -31,7 +31,7 @@ tvcm.exportTo('tracing.trace_model', function() {
 
     this.series_ = [];
     this.totals = [];
-    this.bounds = new tvcm.Range();
+    this.bounds = new tv.Range();
   }
 
   Counter.prototype = {

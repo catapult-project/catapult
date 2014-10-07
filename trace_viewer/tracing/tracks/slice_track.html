@@ -10,13 +10,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
   /**
    * A track that displays an array of Slice objects.
    * @constructor
    * @extends {HeadingTrack}
    */
-  var SliceTrack = tvcm.ui.define(
+  var SliceTrack = tv.ui.define(
       'slice-track', tracing.tracks.RectTrack);
 
   SliceTrack.prototype = {

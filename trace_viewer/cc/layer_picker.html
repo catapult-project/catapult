@@ -13,14 +13,14 @@ found in the LICENSE file.
 <link rel="import" href="/cc/util.html">
 <link rel="import" href="/tracing/analysis/generic_object_view.html">
 <link rel="import" href="/tracing/trace_model/event.html">
-<link rel="import" href="/tvcm/ui/drag_handle.html">
-<link rel="import" href="/tvcm/ui/list_view.html">
-<link rel="import" href="/tvcm/ui/dom_helpers.html">
+<link rel="import" href="/base/ui/drag_handle.html">
+<link rel="import" href="/base/ui/list_view.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('cc', function() {
+tv.exportTo('cc', function() {
   var constants = cc.constants;
   var bytesToRoundedMegabytes = cc.bytesToRoundedMegabytes;
   var RENDER_PASS_QUADS =
@@ -29,7 +29,7 @@ tvcm.exportTo('cc', function() {
   /**
    * @constructor
    */
-  var LayerPicker = tvcm.ui.define('layer-picker');
+  var LayerPicker = tv.ui.define('layer-picker');
 
   LayerPicker.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -40,7 +40,7 @@ tvcm.exportTo('cc', function() {
       this.renderPassQuads_ = false;
 
 
-      this.itemList_ = new tvcm.ui.ListView();
+      this.itemList_ = new tv.ui.ListView();
       this.appendChild(this.controls_);
 
       this.appendChild(this.itemList_);
@@ -48,7 +48,7 @@ tvcm.exportTo('cc', function() {
       this.itemList_.addEventListener(
           'selection-changed', this.onItemSelectionChanged_.bind(this));
 
-      this.controls_.appendChild(tvcm.ui.createSelector(
+      this.controls_.appendChild(tv.ui.createSelector(
           this, 'whichTree',
           'layerPicker.whichTree', constants.ACTIVE_TREE,
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
@@ -56,7 +56,7 @@ tvcm.exportTo('cc', function() {
            {label: 'Render pass quads', value: RENDER_PASS_QUADS}]));
 
       this.showPureTransformLayers_ = false;
-      var showPureTransformLayers = tvcm.ui.createCheckBox(
+      var showPureTransformLayers = tv.ui.createCheckBox(
           this, 'showPureTransformLayers',
           'layerPicker.showPureTransformLayers', false,
           'Transform layers');
@@ -83,7 +83,7 @@ tvcm.exportTo('cc', function() {
       this.whichTree_ = whichTree;
       this.renderPassQuads_ = (whichTree == RENDER_PASS_QUADS);
       this.updateContents_();
-      tvcm.dispatchSimpleEvent(this, 'selection-change', false);
+      tv.dispatchSimpleEvent(this, 'selection-change', false);
     },
 
     get layerTreeImpl() {
@@ -197,7 +197,7 @@ tvcm.exportTo('cc', function() {
         var id = renderPassInfo.id;
 
         var item = this.createElementWithDepth_(renderPassInfo.depth);
-        var labelEl = item.appendChild(tvcm.ui.createSpan());
+        var labelEl = item.appendChild(tv.ui.createSpan());
 
         labelEl.textContent = renderPassInfo.name + ' ' + id;
         item.renderPass = renderPass;
@@ -226,11 +226,11 @@ tvcm.exportTo('cc', function() {
           var id = layer.layerId;
 
           var item = this.createElementWithDepth_(layerInfo.depth);
-          var labelEl = item.appendChild(tvcm.ui.createSpan());
+          var labelEl = item.appendChild(tv.ui.createSpan());
 
           labelEl.textContent = layerInfo.name + ' ' + id;
 
-          var notesEl = item.appendChild(tvcm.ui.createSpan());
+          var notesEl = item.appendChild(tv.ui.createSpan());
           if (layerInfo.isMaskLayer)
             notesEl.textContent += '(mask)';
           if (layerInfo.isReplicaLayer)
@@ -258,7 +258,7 @@ tvcm.exportTo('cc', function() {
     createElementWithDepth_: function(depth) {
       var item = document.createElement('div');
 
-      var indentEl = item.appendChild(tvcm.ui.createSpan());
+      var indentEl = item.appendChild(tv.ui.createSpan());
       indentEl.style.whiteSpace = 'pre';
       for (var i = 0; i < depth; i++)
         indentEl.textContent = indentEl.textContent + ' ';
@@ -272,7 +272,7 @@ tvcm.exportTo('cc', function() {
         this.onRenderPassSelected_(e);
       else
         this.onLayerSelected_(e);
-      tvcm.dispatchSimpleEvent(this, 'selection-change', false);
+      tv.dispatchSimpleEvent(this, 'selection-change', false);
     },
 
     onRenderPassSelected_: function(e) {

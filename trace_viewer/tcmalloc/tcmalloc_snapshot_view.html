@@ -12,14 +12,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('tcmalloc', function() {
+tv.exportTo('tcmalloc', function() {
   var tsRound = tracing.analysis.tsRound;
 
   /*
    * Displays a heap memory snapshot in a human readable form.
    * @constructor
    */
-  var TcmallocSnapshotView = tvcm.ui.define(
+  var TcmallocSnapshotView = tv.ui.define(
       'heap-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 

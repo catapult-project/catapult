@@ -8,13 +8,13 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/tracing/analysis/analysis_link.css">
 
 <link rel="import" href="/tracing/analysis/util.html">
-<link rel="import" href="/tvcm/ui.html">
 <link rel="import" href="/tracing/selection.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.analysis', function() {
+tv.exportTo('tracing.analysis', function() {
   var tsRound = tracing.analysis.tsRound;
 
   var RequestSelectionChangeEvent = tracing.RequestSelectionChangeEvent;
@@ -25,7 +25,7 @@ tvcm.exportTo('tracing.analysis', function() {
    *
    * @constructor
    */
-  var AnalysisLink = tvcm.ui.define('a');
+  var AnalysisLink = tv.ui.define('a');
 
   AnalysisLink.prototype = {
     __proto__: HTMLAnchorElement.prototype,
@@ -44,7 +44,7 @@ tvcm.exportTo('tracing.analysis', function() {
    * Changes the selection to the given ObjectSnapshot when clicked.
    * @constructor
    */
-  var ObjectSnapshotLink = tvcm.ui.define(
+  var ObjectSnapshotLink = tv.ui.define(
       'object-snapshot-link', AnalysisLink);
 
   ObjectSnapshotLink.prototype = {
@@ -71,7 +71,7 @@ tvcm.exportTo('tracing.analysis', function() {
    * Changes the selection to the given ObjectInstance when clicked.
    * @constructor
    */
-  var ObjectInstanceLink = tvcm.ui.define(
+  var ObjectInstanceLink = tv.ui.define(
       'object-instance-link', AnalysisLink);
 
   ObjectInstanceLink.prototype = {

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/unittest/test_case.html">
+<script>
+'use strict';
+
+tv.unittest.testSuite(function() {
+  test('parseFullyQualifiedName', function() {
+    var p = tv.unittest.TestCase.parseFullyQualifiedName('foo.bar');
+    assertEquals(p.suiteName, 'foo');
+    assertEquals(p.testCaseName, 'bar');
+  });
+});
+</script>

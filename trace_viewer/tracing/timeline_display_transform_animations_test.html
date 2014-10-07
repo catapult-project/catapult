@@ -7,12 +7,12 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/timeline_display_transform.html">
 <link rel="import" href="/tracing/timeline_display_transform_animations.html">
-<link rel="import" href="/tvcm/ui/animation_controller.html">
+<link rel="import" href="/base/ui/animation_controller.html">
 
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() { // @suppress longLineCheck
+tv.unittest.testSuite(function() { // @suppress longLineCheck
   var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
   var TimelineDisplayTransformPanAnimation =
       tracing.TimelineDisplayTransformPanAnimation;
@@ -27,13 +27,13 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
 
     var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new tvcm.ui.AnimationController();
+    var controller = new tv.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
-    tvcm.forcePendingRAFTasksToRun(50);
+    tv.forcePendingRAFTasksToRun(50);
     assertTrue(target.panX > 0);
-    tvcm.forcePendingRAFTasksToRun(100);
+    tv.forcePendingRAFTasksToRun(100);
     assertFalse(controller.hasActiveAnimation);
     assertEquals(10, target.panX);
   });
@@ -47,17 +47,17 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     var b = new TimelineDisplayTransformPanAnimation(10, 0, 100);
     var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new tvcm.ui.AnimationController();
+    var controller = new tv.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
-    tvcm.forcePendingRAFTasksToRun(50);
+    tv.forcePendingRAFTasksToRun(50);
     controller.queueAnimation(b, 50);
 
-    tvcm.forcePendingRAFTasksToRun(100);
+    tv.forcePendingRAFTasksToRun(100);
     assertTrue(controller.hasActiveAnimation);
 
-    tvcm.forcePendingRAFTasksToRun(150);
+    tv.forcePendingRAFTasksToRun(150);
     assertFalse(controller.hasActiveAnimation);
     assertEquals(20, target.panX);
   });

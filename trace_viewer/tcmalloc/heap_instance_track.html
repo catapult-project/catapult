@@ -9,13 +9,13 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/tracks/stacked_bars_track.html">
 <link rel="import" href="/tracing/tracks/object_instance_track.html">
 <link rel="import" href="/tracing/color_scheme.html">
-<link rel="import" href="/tvcm/sorted_array_utils.html">
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/sorted_array_utils.html">
+<link rel="import" href="/base/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tcmalloc', function() {
+tv.exportTo('tcmalloc', function() {
   var EventPresenter = tracing.EventPresenter;
 
   /**
@@ -24,7 +24,7 @@ tvcm.exportTo('tcmalloc', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var HeapInstanceTrack = tvcm.ui.define(
+  var HeapInstanceTrack = tv.ui.define(
       'heap-instance-track', tracing.tracks.StackedBarsTrack);
 
   HeapInstanceTrack.prototype = {
@@ -97,7 +97,7 @@ tvcm.exportTo('tcmalloc', function() {
       var maxBytes = this.maxBytes_;
 
       var objectSnapshots = this.objectInstance_.snapshots;
-      var lowIndex = tvcm.findLowIndexInSortedArray(
+      var lowIndex = tv.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts;

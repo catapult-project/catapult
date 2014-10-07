@@ -33,6 +33,12 @@ class TraceViewerProject(project_module.Project):
   jszip_path = os.path.abspath(os.path.join(
       trace_viewer_third_party_path, 'jszip'))
 
+  glmatrix_path = os.path.abspath(os.path.join(
+      trace_viewer_third_party_path, 'gl-matrix', 'src'))
+
+  d3_path = os.path.abspath(os.path.join(
+      trace_viewer_third_party_path, 'd3'))
+
   test_data_path = os.path.join(trace_viewer_path, 'test_data')
   skp_data_path = os.path.join(trace_viewer_path, 'skp_data')
 
@@ -40,8 +46,15 @@ class TraceViewerProject(project_module.Project):
     super(TraceViewerProject, self).__init__(*args, **kwargs)
 
     self.source_paths.append(self.src_path)
+    self.source_paths.append(self.trace_viewer_third_party_path)
     self.source_paths.append(self.jszip_path)
+    self.source_paths.append(self.glmatrix_path)
+    self.source_paths.append(self.d3_path)
 
     self.non_module_html_files.extendRel(self.trace_viewer_path, [
       'test_data/android_systrace.html',
+    ])
+    self.non_module_html_files.extendRel(self.trace_viewer_third_party_path, [
+      'gl-matrix/jsdoc-template/static/header.html',
+      'gl-matrix/jsdoc-template/static/index.html',
     ])

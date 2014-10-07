@@ -8,13 +8,13 @@ found in the LICENSE file.
 <link rel="import" href="/cc/constants.html">
 <link rel="import" href="/cc/region.html">
 <link rel="import" href="/cc/tile_coverage_rect.html">
-<link rel="import" href="/tvcm/rect.html">
+<link rel="import" href="/base/rect.html">
 <link rel="import" href="/tracing/trace_model/object_instance.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('cc', function() {
+tv.exportTo('cc', function() {
   var constants = cc.constants;
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
@@ -54,13 +54,13 @@ tvcm.exportTo('cc', function() {
       this.gpuMemoryUsageInBytes = this.args.gpuMemoryUsage;
 
       // Leave bounds in both places.
-      this.bounds = tvcm.Rect.fromXYWH(
+      this.bounds = tv.Rect.fromXYWH(
           0, 0,
           this.args.bounds.width, this.args.bounds.height);
 
       if (this.args.animationBounds) {
         // AnimationBounds[2] and [5] are the Z-component of the box.
-        this.animationBoundsRect = tvcm.Rect.fromXYWH(
+        this.animationBoundsRect = tv.Rect.fromXYWH(
             this.args.animationBounds[0], this.args.animationBounds[1],
             this.args.animationBounds[3], this.args.animationBounds[4]);
       }

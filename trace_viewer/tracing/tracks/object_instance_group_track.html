@@ -9,18 +9,18 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/analysis/object_instance_view.html">
 <link rel="import" href="/tracing/tracks/multi_row_track.html">
 <link rel="import" href="/tracing/tracks/object_instance_track.html">
-<link rel="import" href="/tvcm/sorted_array_utils.html">
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/sorted_array_utils.html">
+<link rel="import" href="/base/ui.html">
 <script>
 'use strict';
 
-tvcm.exportTo('tracing.tracks', function() {
+tv.exportTo('tracing.tracks', function() {
   /**
    * A track that displays a ObjectInstanceGroup.
    * @constructor
    * @extends {ContainerTrack}
    */
-  var ObjectInstanceGroupTrack = tvcm.ui.define(
+  var ObjectInstanceGroupTrack = tv.ui.define(
       'object-instance-group-track', tracing.tracks.MultiRowTrack);
 
   ObjectInstanceGroupTrack.prototype = {

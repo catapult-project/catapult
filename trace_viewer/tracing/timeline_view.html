@@ -5,20 +5,20 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tvcm/ui/common.css">
+<link rel="stylesheet" href="/base/ui/common.css">
 <link rel="stylesheet" href="/tracing/timeline_view.css">
 
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/base/settings.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/base/ui/overlay.html">
+<link rel="import" href="/base/ui/drag_handle.html">
 <link rel="import" href="/tracing/analysis/analysis_view.html">
 <link rel="import" href="/tracing/analysis/cpu_slice_view.html">
 <link rel="import" href="/tracing/analysis/thread_time_slice_view.html">
 <link rel="import" href="/tracing/find_control.html">
 <link rel="import" href="/tracing/find_controller.html">
 <link rel="import" href="/tracing/timeline_track_view.html">
-<link rel="import" href="/tvcm/utils.html">
-<link rel="import" href="/tvcm/settings.html">
-<link rel="import" href="/tvcm/ui/dom_helpers.html">
-<link rel="import" href="/tvcm/ui/overlay.html">
-<link rel="import" href="/tvcm/ui/drag_handle.html">
 <link rel="import" href="/tracing/side_panel/input_latency.html">
 <link rel="import" href="/tracing/side_panel/sampling_summary.html">
 <link rel="import" href="/tracing/side_panel/time_summary.html">
@@ -192,7 +192,7 @@ found in the LICENSE file.
  * @fileoverview View visualizes TRACE_EVENT events using the
  * tracing.Timeline component and adds in selection summary and control buttons.
  */
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -200,13 +200,13 @@ tvcm.exportTo('tracing', function() {
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var TimelineView = tvcm.ui.define('x-timeline-view');
+  var TimelineView = tv.ui.define('x-timeline-view');
 
   TimelineView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tvcm.instantiateTemplate('#timeline-view-template', THIS_DOC);
+      var node = tv.instantiateTemplate('#timeline-view-template', THIS_DOC);
       this.appendChild(node);
 
       this.titleEl_ = this.querySelector('.title');
@@ -216,7 +216,7 @@ tvcm.exportTo('tracing', function() {
           'x-timeline-view-side-panel-container');
       this.trackViewContainer_ = this.querySelector('track-view-container');
 
-      tvcm.ui.decorate(this.timelineViewSidePanelContainer_,
+      tv.ui.decorate(this.timelineViewSidePanelContainer_,
                        tracing.TimelineViewSidePanelContainer);
 
       this.findCtl_ = new TracingFindControl();
@@ -227,7 +227,7 @@ tvcm.exportTo('tracing', function() {
       this.rightControls.appendChild(this.createHelpButton_());
 
       this.dragEl_ = this.querySelector('x-drag-handle');
-      tvcm.ui.decorate(this.dragEl_, tvcm.ui.DragHandle);
+      tv.ui.decorate(this.dragEl_, tv.ui.DragHandle);
 
       this.analysisEl_ = this.querySelector('#analysis');
 
@@ -248,11 +248,11 @@ tvcm.exportTo('tracing', function() {
     },
 
     createHelpButton_: function() {
-      var node = tvcm.instantiateTemplate('#help-btn-template', THIS_DOC);
+      var node = tv.instantiateTemplate('#help-btn-template', THIS_DOC);
       var showEl = node.querySelector('.view-help-button');
       var helpTextEl = node.querySelector('.view-help-text');
 
-      var dlg = new tvcm.ui.Overlay();
+      var dlg = new tv.ui.Overlay();
       dlg.title = 'chrome://tracing Help';
       dlg.classList.add('view-help-overlay');
       dlg.appendChild(node);
@@ -260,7 +260,7 @@ tvcm.exportTo('tracing', function() {
       function onClick(e) {
         dlg.visible = !dlg.visible;
 
-        var mod = tvcm.isMac ? 'cmd ' : 'ctrl';
+        var mod = tv.isMac ? 'cmd ' : 'ctrl';
         var spans = helpTextEl.querySelectorAll('span.mod');
         for (var i = 0; i < spans.length; i++) {
           spans[i].textContent = mod;
@@ -276,11 +276,11 @@ tvcm.exportTo('tracing', function() {
     },
 
     createMetadataButton_: function() {
-      var node = tvcm.instantiateTemplate('#metadata-btn-template', THIS_DOC);
+      var node = tv.instantiateTemplate('#metadata-btn-template', THIS_DOC);
       var showEl = node.querySelector('.view-metadata-button');
       var textEl = node.querySelector('.info-button-text');
 
-      var dlg = new tvcm.ui.Overlay();
+      var dlg = new tv.ui.Overlay();
       dlg.title = 'Metadata for trace';
       dlg.classList.add('view-metadata-overlay');
       dlg.appendChild(node);
@@ -383,7 +383,7 @@ tvcm.exportTo('tracing', function() {
         this.timelineViewSidePanelContainer_.model = model;
         this.clearSelectionHistory_();
       }
-      tvcm.dispatchSimpleEvent(this, 'modelChange');
+      tv.dispatchSimpleEvent(this, 'modelChange');
 
       // Do things that are selection specific
       if (modelInstanceChanged) {
@@ -398,7 +398,7 @@ tvcm.exportTo('tracing', function() {
 
     get settings() {
       if (!this.settings_)
-        this.settings_ = new tvcm.Settings();
+        this.settings_ = new tv.Settings();
       return this.settings_;
     },
 
@@ -424,7 +424,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     get listenToKeys_() {
-      if (!tvcm.ui.isElementAttachedToDocument(this))
+      if (!tv.ui.isElementAttachedToDocument(this))
         return;
       if (!this.focusElement_)
         return true;

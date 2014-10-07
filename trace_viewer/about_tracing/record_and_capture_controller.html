@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.exportTo('about_tracing', function() {
+tv.exportTo('about_tracing', function() {
   function beginMonitoring(tracingControllerClient) {
     var finalPromiseResolver;
     var finalPromise = new Promise(function(resolve, reject) {
@@ -120,7 +120,7 @@ tvcm.exportTo('about_tracing', function() {
     var progressDlg;
     var bufferPercentFullDiv;
     function startTracing() {
-      progressDlg = new tvcm.ui.Overlay();
+      progressDlg = new tv.ui.Overlay();
       progressDlg.textContent = 'Recording...';
       progressDlg.userCanClose = false;
 

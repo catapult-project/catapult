@@ -6,20 +6,20 @@ found in the LICENSE file.
 -->
 
 <link rel="stylesheet" href="/system_stats/system_stats_instance_track.css">
-<link rel="import" href="/tvcm/sorted_array_utils.html">
+<link rel="import" href="/base/sorted_array_utils.html">
+<link rel="import" href="/base/ui.html">
 <link rel="import" href="/tracing/tracks/stacked_bars_track.html">
 <link rel="import" href="/tracing/tracks/object_instance_track.html">
 <link rel="import" href="/tracing/color_scheme.html">
-<link rel="import" href="/tvcm/ui.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('system_stats', function() {
+tv.exportTo('system_stats', function() {
   var EventPresenter = tracing.EventPresenter;
 
-  var palette = tvcm.ui.getColorPalette();
-  var highlightIdBoost = tvcm.ui.getColorPaletteHighlightIdBoost();
+  var palette = tv.ui.getColorPalette();
+  var highlightIdBoost = tv.ui.getColorPaletteHighlightIdBoost();
 
   var statCount;
 
@@ -49,7 +49,7 @@ tvcm.exportTo('system_stats', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var SystemStatsInstanceTrack = tvcm.ui.define(
+  var SystemStatsInstanceTrack = tv.ui.define(
       'system-stats-instance-track', tracing.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {
@@ -213,7 +213,7 @@ tvcm.exportTo('system_stats', function() {
       var maxStats = this.maxStats_;
 
       var objectSnapshots = this.objectInstance_.snapshots;
-      var lowIndex = tvcm.findLowIndexInSortedArray(
+      var lowIndex = tv.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts;

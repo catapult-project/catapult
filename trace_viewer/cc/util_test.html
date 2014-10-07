@@ -6,14 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/cc/util.html">
-<link rel="import" href="/tvcm/quad.html">
-<link rel="import" href="/tvcm/rect.html">
+<link rel="import" href="/base/quad.html">
+<link rel="import" href="/base/rect.html">
 
 <script>
 
 'use strict';
 
-tvcm.unittest.testSuite(function() {
+tv.unittest.testSuite(function() {
   test('nameConvert', function() {
     assertEquals('_foo', cc.convertNameToJSConvention('_foo'));
     assertEquals('foo_', cc.convertNameToJSConvention('foo_'));
@@ -69,7 +69,7 @@ tvcm.unittest.testSuite(function() {
       }
     };
     cc.preInitializeObject(object);
-    assertTrue(object.args.someQuad instanceof tvcm.Quad);
+    assertTrue(object.args.someQuad instanceof tv.Quad);
   });
 
   test('quadConversionNested', function() {
@@ -82,8 +82,8 @@ tvcm.unittest.testSuite(function() {
       }
     };
     cc.preInitializeObject(object);
-    assertTrue(object.args.nestedField.aQuad instanceof tvcm.Quad);
-    assertTrue(object.args.nonNestedQuad instanceof tvcm.Quad);
+    assertTrue(object.args.nestedField.aQuad instanceof tv.Quad);
+    assertTrue(object.args.nonNestedQuad instanceof tv.Quad);
   });
 
   test('rectCoversion', function() {
@@ -93,7 +93,7 @@ tvcm.unittest.testSuite(function() {
       }
     };
     cc.preInitializeObject(object);
-    assertTrue(object.args.someRect instanceof tvcm.Rect);
+    assertTrue(object.args.someRect instanceof tv.Rect);
   });
 
   test('rectCoversionNested', function() {
@@ -106,8 +106,8 @@ tvcm.unittest.testSuite(function() {
       }
     };
     cc.preInitializeObject(object);
-    assertTrue(object.args.nestedField.aRect instanceof tvcm.Rect);
-    assertTrue(object.args.nonNestedRect instanceof tvcm.Rect);
+    assertTrue(object.args.nestedField.aRect instanceof tv.Rect);
+    assertTrue(object.args.nonNestedRect instanceof tv.Rect);
   });
 });
 </script>

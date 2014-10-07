@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/trace_model/cpu.html">
 <link rel="import" href="/tracing/trace_model/process_base.html">
-<link rel="import" href="/tvcm/iteration_helpers.html">
+<link rel="import" href="/base/iteration_helpers.html">
 
 <script>
 'use strict';
@@ -15,7 +15,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Process class.
  */
-tvcm.exportTo('tracing.trace_model', function() {
+tv.exportTo('tracing.trace_model', function() {
   var Cpu = tracing.trace_model.Cpu;
   var ProcessBase = tracing.trace_model.ProcessBase;
 
@@ -86,7 +86,7 @@ tvcm.exportTo('tracing.trace_model', function() {
      * software measured cpu count.
      */
     get bestGuessAtCpuCount() {
-      var realCpuCount = tvcm.dictionaryLength(this.cpus);
+      var realCpuCount = tv.dictionaryLength(this.cpus);
       if (realCpuCount !== 0)
         return realCpuCount;
       return this.softwareMeasuredCpuCount;

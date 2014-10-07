@@ -9,12 +9,12 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/trace_model/slice.html">
 <link rel="import" href="/tracing/timeline_track_view.html">
 <link rel="import" href="/tracing/draw_helpers.html">
-<link rel="import" href="/tvcm/ui/dom_helpers.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
 
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() {
+tv.unittest.testSuite(function() {
   var Selection = tracing.Selection;
   var RectTrack = tracing.tracks.RectTrack;
   var Slice = tracing.trace_model.Slice;
@@ -136,7 +136,7 @@ tvcm.unittest.testSuite(function() {
 
   test('selectionHitTesting', function() {
     var testEl = document.createElement('div');
-    testEl.appendChild(tvcm.ui.createScopedStyle('heading { width: 100px; }'));
+    testEl.appendChild(tv.ui.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
     this.addHTMLOutput(testEl);
 

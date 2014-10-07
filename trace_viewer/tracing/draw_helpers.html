@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/color_scheme.html">
 <link rel="import" href="/tracing/elided_cache.html">
-<link rel="import" href="/tvcm/sorted_array_utils.html">
+<link rel="import" href="/base/sorted_array_utils.html">
 
 <script>
 'use strict';
@@ -16,9 +16,9 @@ found in the LICENSE file.
  * @fileoverview Provides various helper methods for drawing to a provided
  * canvas.
  */
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
   var elidedTitleCache = new tracing.ElidedTitleCache();
-  var palette = tvcm.ui.getColorPalette();
+  var palette = tv.ui.getColorPalette();
   var EventPresenter = tracing.EventPresenter;
 
   /**
@@ -160,7 +160,7 @@ tvcm.exportTo('tracing', function() {
         ctx, 2 * pixWidth, 2 * pixWidth, palette);
     tr.setYandH(0, height);
 
-    var lowSlice = tvcm.findLowIndexInSortedArray(
+    var lowSlice = tv.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);
@@ -268,7 +268,7 @@ tvcm.exportTo('tracing', function() {
     dt.applyTransformToCanvas(ctx);
     ctx.beginPath();
 
-    var lowSlice = tvcm.findLowIndexInSortedArray(
+    var lowSlice = tv.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start; },
         viewLWorld);
@@ -322,7 +322,7 @@ tvcm.exportTo('tracing', function() {
 
     var cY = yOffset * pixelRatio;
 
-    var lowSlice = tvcm.findLowIndexInSortedArray(
+    var lowSlice = tv.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/color.html">
+<script>
+'use strict';
+
+tv.unittest.testSuite(function() {
+  test('fromRGB', function() {
+    var c = tv.Color.fromString('rgb(1, 2, 3)');
+    assertEquals(1, c.r);
+    assertEquals(2, c.g);
+    assertEquals(3, c.b);
+    assertEquals(undefined, c.a);
+  });
+
+  test('FromRGBA', function() {
+    var c = tv.Color.fromString('rgba(1, 2, 3, 0.5)');
+    assertEquals(1, c.r);
+    assertEquals(2, c.g);
+    assertEquals(3, c.b);
+    assertEquals(0.5, c.a);
+  });
+
+  test('fromHex', function() {
+    var c = tv.Color.fromString('#010203');
+    assertEquals(1, c.r);
+    assertEquals(2, c.g);
+    assertEquals(3, c.b);
+    assertEquals(undefined, c.a);
+  });
+
+  test('toStringRGB', function() {
+    var c = new tv.Color(1, 2, 3);
+    assertEquals('rgb(1,2,3)', c.toString());
+  });
+
+  test('toStringRGBA', function() {
+    var c = new tv.Color(1, 2, 3, 0.5);
+    assertEquals('rgba(1,2,3,0.5)', c.toString());
+  });
+
+  test('lerpRGB', function() {
+    var a = new tv.Color(0, 127, 191);
+    var b = new tv.Color(255, 255, 255);
+    var x = tv.Color.lerpRGB(a, b, 0.25);
+    assertEquals(63, x.r);
+    assertEquals(159, x.g);
+    assertEquals(207, x.b);
+  });
+
+  test('lerpRGBA', function() {
+    var a = new tv.Color(0, 127, 191, 0.5);
+    var b = new tv.Color(255, 255, 255, 1);
+    var x = tv.Color.lerpRGBA(a, b, 0.25);
+    assertEquals(63, x.r);
+    assertEquals(159, x.g);
+    assertEquals(207, x.b);
+    assertEquals(0.625, x.a);
+  });
+});
+</script>

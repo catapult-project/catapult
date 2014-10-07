@@ -6,16 +6,16 @@ found in the LICENSE file.
 -->
 
 <link rel="stylesheet" href="/tracing/side_panel/timeline_view.css">
-<link rel="import" href="/tvcm/range.html">
+<link rel="import" href="/base/range.html">
 
 <script>
 'use strict';
 
-tvcm.exportTo('tracing', function() {
+tv.exportTo('tracing', function() {
   /**
    * @constructor
    */
-  var TimelineViewSidePanel = tvcm.ui.define('x-timeline-view-panel');
+  var TimelineViewSidePanel = tv.ui.define('x-timeline-view-panel');
 
   var panelConstructors = [];
 
@@ -50,7 +50,7 @@ tvcm.exportTo('tracing', function() {
   /**
    * @constructor
    */
-  var TimelineViewSidePanelContainer = tvcm.ui.define(
+  var TimelineViewSidePanelContainer = tv.ui.define(
       'x-timeline-view-side-panel-container');
 
   TimelineViewSidePanelContainer.prototype = {
@@ -63,7 +63,7 @@ tvcm.exportTo('tracing', function() {
       this.appendChild(this.activePanelContainer_);
       this.appendChild(this.tabStrip_);
       this.model_ = undefined;
-      this.rangeOfInterest_ = new tvcm.Range();
+      this.rangeOfInterest_ = new tv.Range();
     },
 
     get model() {

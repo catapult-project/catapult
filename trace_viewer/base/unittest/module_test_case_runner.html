@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+  <title>trace-viewer/module_test_case_backend.html</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+  <script src="/components/platform/platform.js"></script>
+
+  <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/base/unittest.html">
+  <link rel="import" href="/base/unittest/text_test_results.html">
+  <link rel="import" href="/base/unittest/suite_loader.html">
+  <link rel="import" href="/base/unittest/test_runner.html">
+</head>
+<body>
+  <h1 id="status">
+  </h1>
+  <script>
+    'use strict';
+    /**
+     * Polled by tv.module_test_case
+     */
+    window.__readyToRun = false;
+
+    var statusEl = document.querySelector('#status');
+    function discoverTestsInModules(testModuleNames) {
+      statusEl.textContent = 'Discovering tests...';
+      var loader = new tv.unittest.SuiteLoader(testModuleNames);
+      return loader.allSuitesLoadedPromise.then(function() {
+        return loader.getAllTests().filter(function(test) {
+          return test.testType == tv.unittest.TestTypes.UNITTEST;
+        }).map(function(test) {
+          statusEl.textContent = 'Idle';
+          return test.fullyQualifiedName;
+        });
+      });
+    }
+
+    function runTestNamed(fullyQualifiedTestName) {
+      statusEl.textContent = 'Running ' + fullyQualifiedTestName;
+      function cleanup() {
+        statusEl.textContent = '';
+      }
+      return _runTestNamedImpl(fullyQualifiedTestName).then(
+        cleanup, cleanup);
+    }
+
+    function _runTestNamedImpl(fullyQualifiedTestName) {
+      var p = tv.unittest.TestCase.parseFullyQualifiedName(
+          fullyQualifiedTestName);
+      var suiteNameToLoad = p.suiteName;
+      var testCaseNameToRun = p.testCaseName;
+
+      var runTestResolver;
+      var runTestPromise = new Promise(function(resolve, reject) {
+        runTestResolver = {
+          resolve: resolve,
+          reject: reject
+        };
+      });
+
+      var loader = new tv.unittest.SuiteLoader([suiteNameToLoad]);
+      loader.allSuitesLoadedPromise.then(
+        beginRunningTestCase,
+        loadSuiteFailed);
+
+      var results = new tv.unittest.TextTestResults();
+      function loadSuiteFailed(e) {
+        var normalizedException = tv.normalizeException(e);
+        runTestResolver.reject(e);
+      }
+
+      function beginRunningTestCase() {
+        var testCase = loader.findTestWithFullyQualifiedName(
+            fullyQualifiedTestName);
+        var runner = new tv.unittest.TestRunner(results, [testCase]);
+        runner.beginRunning();
+        return runner.runCompletedPromise.then(
+          runTestCaseComplete,
+          runTestCaseComplete);
+      }
+
+      function runTestCaseComplete() {
+        if (results.numTestsThatFailed === 0) {
+          runTestResolver.resolve();
+          return;
+        }
+
+        runTestResolver.reject(results.buffer);
+      }
+      return runTestPromise;
+    }
+
+    window.addEventListener('load', function() {
+      window.__readyToRun = true;
+    });
+  </script>
+</body>
+</html>

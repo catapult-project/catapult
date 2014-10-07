@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tvcm.unittest.testSuite(function() { // @suppress longLineCheck
+tv.unittest.testSuite(function() { // @suppress longLineCheck
   var TestObjectInstance = function(parent, id, category, name, creationTs) {
     tracing.trace_model.ObjectInstance.call(
         this, parent, id, category, name, creationTs);
@@ -98,7 +98,7 @@ tvcm.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('skia', picture.category);
     assertEquals('Picture', picture.name);
 
-    var typeNames = tvcm.dictionaryKeys(collection.getAllInstancesByTypeName());
+    var typeNames = tv.dictionaryKeys(collection.getAllInstancesByTypeName());
     typeNames.sort();
     assertArrayEquals(
         ['Frame', 'Picture'],
