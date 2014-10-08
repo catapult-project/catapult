@@ -236,8 +236,20 @@ class ReplayServer(object):
         self.replay_process.send_signal(signal.SIGINT)
       except:  # pylint: disable=W0702
         # On Windows, we are left with no other option than terminate().
-        if 'no-dns_forwarding' not in self.replay_options:
-          logging.warning('DNS configuration might not be restored!')
+        is_primary_nameserver_changed_by_replay = (
+            self._use_dns_server and self._replay_host == '127.0.0.1')
+        if is_primary_nameserver_changed_by_replay:
+          # Replay changes the DNS nameserver configuration so that DNS
+          # requests are resolved by replay's own DNS server. It resolves
+          # all DNS requests to it own IP address to it can server the
+          # HTTP and HTTPS requests.
+          # If the replay host is not '127.0.0.1', then replay skips the
+          # nameserver change because it assumes a different mechanism
+          # will be used to route DNS requests to replay's DNS server.
+          logging.warning(
+              'Unable to stop Web-Page-Replay gracefully.\n'
+              'Replay changed the DNS nameserver configuration to make replay '
+              'the primary nameserver. That might not be restored!')
         try:
           self.replay_process.terminate()
         except:  # pylint: disable=W0702
