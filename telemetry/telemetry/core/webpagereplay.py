@@ -2,11 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Start and stop Web Page Replay.
-
-Of the public module names, the following one is key:
-  ReplayServer: a class to start/stop Web Page Replay.
-"""
+"""Start and stop Web Page Replay."""
 
 import logging
 import os
@@ -18,12 +14,10 @@ import urllib
 
 from telemetry.core import util
 
-_CHROME_SRC_DIR = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, os.pardir))
-REPLAY_DIR = os.path.join(
-    _CHROME_SRC_DIR, 'third_party', 'webpagereplay')
-LOG_PATH = os.path.join(
-    _CHROME_SRC_DIR, 'webpagereplay_logs', 'logs.txt')
+_REPLAY_DIR = os.path.join(
+    util.GetChromiumSrcDir(), 'third_party', 'webpagereplay')
+_LOG_FILE_PATH = os.path.join(
+    util.GetChromiumSrcDir(), 'webpagereplay_logs', 'logs.txt')
 
 
 # Signal masks on Linux are inherited from parent processes.  If anything
@@ -67,16 +61,10 @@ class ReplayServer(object):
      with ReplayServer(archive_path):
        self.NavigateToURL(start_url)
        self.WaitUntil(...)
-
-  Environment Variables (for development):
-    WPR_ARCHIVE_PATH: path to alternate archive file (e.g. '/tmp/foo.wpr').
-    WPR_RECORD: if set, puts Web Page Replay in record mode instead of replay.
-    WPR_REPLAY_DIR: path to alternate Web Page Replay source.
   """
 
   def __init__(self, archive_path, replay_host, http_port, https_port, dns_port,
-               replay_options=None, replay_dir=None,
-               log_path=None):
+               replay_options):
     """Initialize ReplayServer.
 
     Args:
@@ -90,25 +78,18 @@ class ReplayServer(object):
           to let the OS choose an available port. If None DNS forwarding is
           disabled.
       replay_options: an iterable of options strings to forward to replay.py.
-      replay_dir: directory that has replay.py and related modules.
-      log_path: a path to a log file.
     """
-    self.archive_path = os.environ.get('WPR_ARCHIVE_PATH', archive_path)
-    self.replay_options = list(replay_options or ())
-    self.replay_dir = os.environ.get('WPR_REPLAY_DIR', replay_dir or REPLAY_DIR)
-    self.log_path = log_path or LOG_PATH
+    self.archive_path = archive_path
+    self._log_file_path = _LOG_FILE_PATH
     self._replay_host = replay_host
     self._use_dns_server = dns_port is not None
     self._started_ports = {}  # a dict such as {'http': 80, 'https': 443}
 
-    if 'WPR_RECORD' in os.environ and '--record' not in self.replay_options:
-      self.replay_options.append('--record')
-    self.is_record_mode = '--record' in self.replay_options
-    self._AddDefaultReplayOptions(http_port, https_port, dns_port)
+    self.replay_options = self._GetDefaultReplayOptions(
+        replay_options, self._replay_host, http_port, https_port, dns_port)
 
-    self.replay_py = os.path.join(self.replay_dir, 'replay.py')
-
-    if self.is_record_mode:
+    self.replay_py = os.path.join(_REPLAY_DIR, 'replay.py')
+    if '--record' in self.replay_options:
       self._CheckPath('archive directory', os.path.dirname(self.archive_path))
     elif not os.path.exists(self.archive_path):
       self._CheckPath('archive file', self.archive_path)
@@ -116,20 +97,24 @@ class ReplayServer(object):
 
     self.replay_process = None
 
-  def _AddDefaultReplayOptions(self, http_port, https_port, dns_port):
+  @staticmethod
+  def _GetDefaultReplayOptions(replay_options, host_ip,
+                               http_port, https_port, dns_port):
     """Set WPR command-line options. Can be overridden if needed."""
-    self.replay_options = [
-        '--host=%s' % self._replay_host,
+    options = [
+        '--host=%s' % host_ip,
         '--port=%s' % http_port,
         '--ssl_port=%s' % https_port,
         '--use_closest_match',
         '--no-dns_forwarding',
         '--log_level=warning'
-        ] + self.replay_options
-    if self._use_dns_server:
+        ]
+    options.extend(replay_options)
+    if dns_port is not None:
       # Note that if --host is not '127.0.0.1', Replay will override the local
       # DNS nameserver settings to point to the replay-started DNS server.
-      self.replay_options.append('--dns_port=%s' % dns_port)
+      options.append('--dns_port=%s' % dns_port)
+    return options
 
   def _CheckPath(self, label, path):
     if not os.path.exists(path):
@@ -137,16 +122,16 @@ class ReplayServer(object):
 
   def _OpenLogFile(self):
     """Opens the log file for writing."""
-    log_dir = os.path.dirname(self.log_path)
+    log_dir = os.path.dirname(self._log_file_path)
     if not os.path.exists(log_dir):
       os.makedirs(log_dir)
-    return open(self.log_path, 'w')
+    return open(self._log_file_path, 'w')
 
   def _LogLines(self):
     """Yields the log lines."""
-    if not os.path.isfile(self.log_path):
+    if not os.path.isfile(self._log_file_path):
       return
-    with open(self.log_path) as f:
+    with open(self._log_file_path) as f:
       for line in f:
         yield line
 
@@ -218,7 +203,6 @@ class ReplayServer(object):
       if sys.platform.startswith('linux') or sys.platform == 'darwin':
         kwargs['preexec_fn'] = ResetInterruptHandler
       self.replay_process = subprocess.Popen(cmd_line, **kwargs)
-
     try:
       util.WaitFor(self._IsStarted, 30)
       return (
