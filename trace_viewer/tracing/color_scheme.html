@@ -70,10 +70,13 @@ tv.exportTo('tracing', function() {
       return palette[colorId];
     },
 
-    getCounterSeriesColor: function(colorId, selectionState) {
+    getCounterSeriesColor: function(colorId, selectionState,
+                                    opt_alphaMultiplier) {
+      var event = {selectionState: selectionState};
       return tv.ui.colorToRGBAString(
-          paletteRaw[colorId],
-          this.getAlpha_({selectionState: selectionState}));
+          paletteRaw[colorId + this.getColorIdOffset_(event)],
+          this.getAlpha_(event) *
+              (opt_alphaMultiplier !== undefined ? opt_alphaMultiplier : 1.0));
     },
 
     getBarSnapshotColor: function(snapshot, offset) {
