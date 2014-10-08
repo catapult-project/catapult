@@ -12,21 +12,13 @@ import subprocess
 import sys
 import urllib
 
+from telemetry.core import platform
 from telemetry.core import util
 
 _REPLAY_DIR = os.path.join(
     util.GetChromiumSrcDir(), 'third_party', 'webpagereplay')
 _LOG_FILE_PATH = os.path.join(
     util.GetChromiumSrcDir(), 'webpagereplay_logs', 'logs.txt')
-
-
-# Signal masks on Linux are inherited from parent processes.  If anything
-# invoking us accidentally masks SIGINT (e.g. by putting a process in the
-# background from a shell script), sending a SIGINT to the child will fail
-# to terminate it.  Running this signal handler before execing should fix that
-# problem.
-def ResetInterruptHandler():
-  signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
 class ReplayError(Exception):
@@ -196,13 +188,13 @@ class ReplayServer(object):
     cmd_line = [sys.executable, self.replay_py]
     cmd_line.extend(self.replay_options)
     cmd_line.append(self.archive_path)
+    is_posix = platform.GetHostPlatform().GetOSName() in ('linux', 'mac')
 
     logging.debug('Starting Web-Page-Replay: %s', cmd_line)
     with self._OpenLogFile() as log_fh:
-      kwargs = {'stdout': log_fh, 'stderr': subprocess.STDOUT}
-      if sys.platform.startswith('linux') or sys.platform == 'darwin':
-        kwargs['preexec_fn'] = ResetInterruptHandler
-      self.replay_process = subprocess.Popen(cmd_line, **kwargs)
+      self.replay_process = subprocess.Popen(
+          cmd_line, stdout=log_fh, stderr=subprocess.STDOUT,
+          preexec_fn=(_ResetInterruptHandler if is_posix else None))
     try:
       util.WaitFor(self._IsStarted, 30)
       return (
@@ -280,3 +272,22 @@ class ReplayServer(object):
     url = '%s://%s:%s/%s' % (
         protocol, self._replay_host, self._started_ports[protocol], url_path)
     return urllib.urlopen(url, proxies={})
+
+def _ResetInterruptHandler():
+  """Reset the interrupt handler back to the default.
+
+  The replay process is stopped gracefully by making an HTTP request
+  ('web-page-replay-command-exit'). The graceful exit is important for
+  restoring the DNS configuration. If the HTTP request fails, the fallback
+  is to send SIGINT to the process.
+
+  On posix system, running this function before starting replay fixes a
+  bug that shows up when Telemetry is run as a background command from a
+  script. https://crbug.com/254572.
+
+  Background: Signal masks on Linux are inherited from parent
+  processes. If anything invoking us accidentally masks SIGINT
+  (e.g. by putting a process in the background from a shell script),
+  sending a SIGINT to the child will fail to terminate it.
+  """
+  signal.signal(signal.SIGINT, signal.SIG_DFL)
