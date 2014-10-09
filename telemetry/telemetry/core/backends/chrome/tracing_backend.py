@@ -15,7 +15,7 @@ class TracingUnsupportedException(Exception):
 class TracingTimeoutException(Exception):
   pass
 
-class TracingNotRunningException(Exception):
+class TracingHasNotRunException(Exception):
   pass
 
 
@@ -41,6 +41,8 @@ class TracingBackend(object):
     """
     if self.is_tracing_running:
       return False
+    # Reset collected tracing data from previous tracing calls.
+    self._tracing_data = []
     self._CheckNotificationSupported()
     #TODO(nednguyen): remove this when the stable branch pass 2118.
     if (trace_options.record_mode == tracing_options.RECORD_AS_MUCH_AS_POSSIBLE
@@ -67,10 +69,14 @@ class TracingBackend(object):
 
   def StopTracing(self, timeout=30):
     """ Stops tracing and returns the raw json trace result. It this is called
-    after tracing has been stopped, empty trace data is returned.
+    after tracing has been stopped, trace data from the last tracing run is
+    returned.
     """
     if not self.is_tracing_running:
-      raise TracingNotRunningException()
+      if not self._tracing_data:
+        raise TracingHasNotRunException()
+      else:
+        return self._tracing_data
     req = {'method': 'Tracing.end'}
     self._inspector_websocket.SendAndIgnoreResponse(req)
     # After Tracing.end, chrome browser will send asynchronous notifications
@@ -86,12 +92,7 @@ class TracingBackend(object):
           'seconds. If the trace data is big, you may want to increase the '
           'time out amount.' % err.elapsed_time)
     self._is_tracing_running = False
-    return self._GetTraceResultAndReset()
-
-  def _GetTraceResultAndReset(self):
-    result = self._tracing_data
-    self._tracing_data = []
-    return result
+    return self._tracing_data
 
   def _ErrorHandler(self, elapsed):
     logging.error('Unrecoverable error after %ds reading tracing response.',
