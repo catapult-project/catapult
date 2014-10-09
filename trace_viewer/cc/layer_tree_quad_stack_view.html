@@ -702,16 +702,34 @@ tv.exportTo('cc', function() {
         return;
 
       // Generate the invalidation rect quads.
-      for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
-        var rect = layer.invalidation.rects[ir];
+      for (var ir = 0; ir < layer.annotatedInvalidation.rects.length; ir++) {
+        var rect = layer.annotatedInvalidation.rects[ir];
         var unitRect = rect.asUVRectInside(layer.bounds);
         var iq = layerQuad.projectUnitRect(unitRect);
         iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
+        if (rect.reason === 'renderer insertion')
+            iq.backgroundColor = 'rgba(0, 255, 128, 0.1)';
         iq.borderColor = 'rgba(0, 255, 0, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
         iq.selectionToSetIfClicked = new cc.LayerRectSelection(
-            layer, 'Invalidation rect', rect, rect);
+            layer, 'Invalidation rect (' + rect.reason + ')', rect, rect);
         quads.push(iq);
+      }
+
+      // Show unannotated invalidation rect quads if no annotated rects are
+      // available.
+      if (layer.annotatedInvalidation.rects.length === 0) {
+        for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
+          var rect = layer.invalidation.rects[ir];
+          var unitRect = rect.asUVRectInside(layer.bounds);
+          var iq = layerQuad.projectUnitRect(unitRect);
+          iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
+          iq.borderColor = 'rgba(0, 255, 0, 1)';
+          iq.stackingGroupId = layerQuad.stackingGroupId;
+          iq.selectionToSetIfClicked = new cc.LayerRectSelection(
+              layer, 'Invalidation rect', rect, rect);
+          quads.push(iq);
+        }
       }
     },
 
