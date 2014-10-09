@@ -21,8 +21,7 @@ class PageSetError(Exception):
 
 
 class PageSet(user_story_set.UserStorySet):
-  def __init__(self, file_path=None, archive_data_file='',
-               credentials_path=None, user_agent_type=None,
+  def __init__(self, file_path=None, archive_data_file='', user_agent_type=None,
                make_javascript_deterministic=True, startup_url='',
                serving_dirs=None, bucket=None):
     super(PageSet, self).__init__()
@@ -37,7 +36,6 @@ class PageSet(user_story_set.UserStorySet):
     self.file_path = file_path
     # These attributes can be set dynamically by the page set.
     self.archive_data_file = archive_data_file
-    self.credentials_path = credentials_path
     self.user_agent_type = user_agent_type
     self.make_javascript_deterministic = make_javascript_deterministic
     self._wpr_archive_info = None

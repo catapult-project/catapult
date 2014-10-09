@@ -123,28 +123,18 @@ class BrowserCredentials(object):
       if k in self._extra_credentials:
         self._credentials[k] = self._extra_credentials[k]
 
-  def WarnIfMissingCredentials(self, page_set):
-    num_pages_missing_login = 0
-    missing_credentials = set()
-    for page in page_set:
-      if (page.credentials
-          and not self.CanLogin(page.credentials)):
-        num_pages_missing_login += 1
-        missing_credentials.add(page.credentials)
-
-    if num_pages_missing_login > 0:
+  def WarnIfMissingCredentials(self, page):
+    if (page.credentials and not self.CanLogin(page.credentials)):
       files_to_tweak = []
-      if page_set.credentials_path:
-        files_to_tweak.append(
-          os.path.relpath(os.path.join(os.path.dirname(page_set.file_path),
-                                       page_set.credentials_path)))
+      if page.credentials_path:
+        files_to_tweak.append(page.credentials_path)
       files_to_tweak.append('~/.telemetry-credentials')
 
       example_credentials_file = os.path.join(
           util.GetTelemetryDir(), 'examples', 'credentials_example.json')
 
       logging.warning("""
-        Credentials for %s were not found. %i pages will not be tested.
+        Credentials for %s were not found. page %s will not be tested.
 
         To fix this, either follow the instructions to authenticate to gsutil
         here:
@@ -153,7 +143,5 @@ class BrowserCredentials(object):
         or add your own credentials to:
             %s
         An example credentials file you can copy from is here:
-            %s\n""" % (', '.join(missing_credentials),
-         num_pages_missing_login,
-         ' or '.join(files_to_tweak),
-         example_credentials_file))
+            %s\n""" % (page.credentials, page, ' or '.join(files_to_tweak),
+                       example_credentials_file))

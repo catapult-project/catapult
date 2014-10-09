@@ -126,6 +126,7 @@ def GetBuildDirectories():
     for build_type in build_types:
       yield build_dir, build_type
 
+
 def GetSequentialFileName(base_name):
   """Returns the next sequential file name based on |base_name| and the
   existing files. base_name should not contain extension.

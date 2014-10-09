@@ -329,17 +329,17 @@ class PageRunnerTests(unittest.TestCase):
   def runCredentialsTest(self, credentials_backend):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
-    page = page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
-    page.credentials = "test"
-    ps.pages.append(page)
-
     did_run = [False]
 
     try:
       with tempfile.NamedTemporaryFile(delete=False) as f:
+        page = page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir(),
+        credentials_path=f.name)
+        page.credentials = "test"
+        ps.pages.append(page)
+
         f.write(SIMPLE_CREDENTIALS_STRING)
-        ps.credentials_path = f.name
 
       class TestThatInstallsCredentialsBackend(page_test.PageTest):
         def __init__(self, credentials_backend):

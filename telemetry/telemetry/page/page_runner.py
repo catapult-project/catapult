@@ -38,7 +38,7 @@ class _RunState(object):
     self.profiler_dir = None
 
   def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
-                           credentials_path, finder_options):
+                          finder_options):
     started_browser = not self.browser
     # Create a browser.
     if not self.browser:
@@ -46,7 +46,7 @@ class _RunState(object):
       possible_browser.SetReplayArchivePath(page.archive_path,
                                         self._append_to_existing_wpr,
                                         page_set.make_javascript_deterministic)
-      possible_browser.SetCredentialsPath(credentials_path)
+      possible_browser.SetCredentialsPath(page.credentials_path)
       self._last_archive_path = page.archive_path
 
       test.WillStartBrowser(possible_browser.platform)
@@ -55,7 +55,7 @@ class _RunState(object):
 
       if self._first_browser:
         self._first_browser = False
-        self.browser.credentials.WarnIfMissingCredentials(page_set)
+        self.browser.credentials.WarnIfMissingCredentials(page)
         logging.info('OS: %s %s',
                      self.browser.platform.GetOSName(),
                      self.browser.platform.GetOSVersionName())
@@ -83,6 +83,8 @@ class _RunState(object):
         else:
           logging.warning('System info not supported')
     else:
+      # Set new credential path for browser.
+      self.browser.credentials.credentials_path = page.credentials_path
       # Set up WPR path if it changed.
       if page.archive_path and self._last_archive_path != page.archive_path:
         self.browser.SetReplayArchivePath(
@@ -231,8 +233,7 @@ def ProcessCommandLineArgs(parser, args):
 
 
 def _PrepareAndRunPage(test, page_set, expectations, finder_options,
-                       browser_options, page, credentials_path,
-                       possible_browser, results, state):
+                       browser_options, page, possible_browser, results, state):
   if finder_options.use_live_sites:
     browser_options.wpr_mode = wpr_modes.WPR_OFF
   elif browser_options.wpr_mode != wpr_modes.WPR_RECORD:
@@ -252,8 +253,8 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         state.StopBrowser()
         # If we are restarting the browser for each page customize the per page
         # options for just the current page before starting the browser.
-      state.StartBrowserIfNeeded(test, page_set, page, possible_browser,
-                                 credentials_path, finder_options)
+      state.StartBrowserIfNeeded(
+          test, page_set, page, possible_browser, finder_options)
       if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
         logging.info('Skip test for page %s because browser is not supported.'
                      % page.url)
@@ -293,19 +294,6 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         logging.error('Aborting multi-tab test after browser crashed')
         raise
       logging.warning(str(e))
-
-
-@decorators.Cache
-def _UpdateCredentials(page_set):
-  # Attempt to download the credentials file.
-  if page_set.credentials_path:
-    try:
-      cloud_storage.GetIfChanged(
-          os.path.join(page_set.base_dir, page_set.credentials_path))
-    except (cloud_storage.CredentialsError, cloud_storage.PermissionError,
-            cloud_storage.CloudStorageError) as e:
-      logging.warning('Cannot retrieve credential file %s due to cloud storage '
-                      'error %s', page_set.credentials_path, str(e))
 
 
 @decorators.Cache
@@ -364,18 +352,9 @@ def Run(test, page_set, expectations, finder_options, results):
   pages = _ShuffleAndFilterPageSet(page_set, finder_options)
 
   if not finder_options.use_live_sites:
-    _UpdateCredentials(page_set)
     if browser_options.wpr_mode != wpr_modes.WPR_RECORD:
       _UpdatePageSetArchivesIfChanged(page_set)
       pages = _CheckArchives(page_set, pages, results)
-
-  # Verify credentials path.
-  credentials_path = None
-  if page_set.credentials_path:
-    credentials_path = os.path.join(os.path.dirname(page_set.file_path),
-                                    page_set.credentials_path)
-    if not os.path.exists(credentials_path):
-      credentials_path = None
 
   # Set up user agent.
   browser_options.browser_user_agent_type = page_set.user_agent_type or None
@@ -413,7 +392,7 @@ def Run(test, page_set, expectations, finder_options, results):
           try:
             _PrepareAndRunPage(
                 test, page_set, expectations, finder_options, browser_options,
-                page, credentials_path, possible_browser, results, state)
+                page, possible_browser, results, state)
           finally:
             discard_run = (test.discard_first_result and
                            page not in pages_with_discarded_first_result)
