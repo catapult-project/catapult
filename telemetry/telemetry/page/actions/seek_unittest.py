@@ -18,7 +18,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
 
   def testSeekWithNoSelector(self):
     """Tests that with no selector Seek  action seeks first media element."""
-    action = seek.SeekAction(seconds=1, timeout_in_seconds=10)
+    action = seek.SeekAction(seconds=1, timeout_in_seconds=5)
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
     # Assert only first video has played.
@@ -28,7 +28,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
   def testSeekWithVideoSelector(self):
     """Tests that Seek action seeks video element matching selector."""
     action = seek.SeekAction(seconds=1, selector='#video_1',
-                             timeout_in_seconds=10)
+                             timeout_in_seconds=5)
     action.WillRunAction(self._tab)
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
@@ -41,7 +41,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
   def testSeekWithAllSelector(self):
     """Tests that Seek action seeks all video elements with selector='all'."""
     action = seek.SeekAction(seconds=1, selector='all',
-                             timeout_in_seconds=10)
+                             timeout_in_seconds=5)
     action.WillRunAction(self._tab)
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))

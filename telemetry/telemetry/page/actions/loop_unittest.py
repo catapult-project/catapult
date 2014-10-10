@@ -20,7 +20,8 @@ class LoopActionTest(tab_test_case.TabTestCase):
   @decorators.Disabled('android')
   def testLoopWithNoSelector(self):
     """Tests that with no selector Loop action loops first media element."""
-    action = loop.LoopAction(loop_count=2, selector='#video_1')
+    action = loop.LoopAction(loop_count=2, selector='#video_1',
+                             timeout_in_seconds=10)
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
     # Assert only first video has played.
@@ -30,7 +31,8 @@ class LoopActionTest(tab_test_case.TabTestCase):
   @decorators.Disabled('android')
   def testLoopWithAllSelector(self):
     """Tests that Loop action loops all video elements with selector='all'."""
-    action = loop.LoopAction(loop_count=2, selector='all')
+    action = loop.LoopAction(loop_count=2, selector='all',
+                             timeout_in_seconds=10)
     action.WillRunAction(self._tab)
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
