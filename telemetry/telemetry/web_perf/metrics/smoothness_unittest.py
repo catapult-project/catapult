@@ -153,17 +153,17 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
   def testComputeFrameTimeMetric(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,
                                frame_times=[[10, 20], [30, 40, 50]])
-    frame_times_value, mean_frame_time_value, mostly_smooth_value = (
+    frame_times_value, mean_frame_time_value, percentage_smooth_value = (
         self.metric._ComputeFrameTimeMetric(self.page, stats))
     self.assertEquals([10, 20, 30, 40, 50], frame_times_value.values)
     self.assertEquals(30, mean_frame_time_value.value)
-    self.assertEquals(0, mostly_smooth_value.value)
+    self.assertEquals(20, percentage_smooth_value.value)
 
   def testComputeFrameTimeMetricWithNotEnoughFrames(self):
     stats = _MockRenderingStats(
         frame_timestamps=self.not_enough_frames_timestamps,
         frame_times=[[10, 20], [30, 40, 50]])
-    frame_times_value, mean_frame_time_value, mostly_smooth_value = (
+    frame_times_value, mean_frame_time_value, percentage_smooth_value = (
         self.metric._ComputeFrameTimeMetric(self.page, stats))
     self.assertEquals(None, frame_times_value.values)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
@@ -171,9 +171,9 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
     self.assertEquals(None, mean_frame_time_value.value)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
                       mean_frame_time_value.none_value_reason)
-    self.assertEquals(None, mostly_smooth_value.value)
+    self.assertEquals(None, percentage_smooth_value.value)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
-                      mostly_smooth_value.none_value_reason)
+                      percentage_smooth_value.none_value_reason)
 
   def testComputeFrameTimeDiscrepancy(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps)

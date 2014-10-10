@@ -30,7 +30,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
 
     frame_times: A list of raw frame times
     mean_frame_time: The arithmetic mean of frame times
-    mostly_smooth: Whether we hit 60 fps for 95% of all frames
+    percentage_smooth: Percentage of frames that were hitting 60 FPS.
     jank: The absolute discrepancy of frame timestamps
     mean_pixels_approximated: The mean percentage of pixels approximated
     queueing_durations: The queueing delay between compositor & main threads
@@ -146,19 +146,20 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
   def _ComputeFrameTimeMetric(self, page, stats):
     """Returns Values for the frame time metrics.
 
-    This includes the raw and mean frame times, as well as the mostly_smooth
-    metric which tracks whether we hit 60 fps for 95% of the frames.
+    This includes the raw and mean frame times, as well as the percentage of
+    frames that were hitting 60 fps.
     """
     frame_times = None
     mean_frame_time = None
-    mostly_smooth = None
+    percentage_smooth = None
     none_value_reason = None
     if self._HasEnoughFrames(stats.frame_timestamps):
       frame_times = FlattenList(stats.frame_times)
       mean_frame_time = round(statistics.ArithmeticMean(frame_times), 3)
-      # We use 19ms as a somewhat looser threshold, instead of 1000.0/60.0.
-      percentile_95 = statistics.Percentile(frame_times, 95.0)
-      mostly_smooth = 1.0 if percentile_95 < 19.0 else 0.0
+      # We use 17ms as a somewhat looser threshold, instead of 1000.0/60.0.
+      smooth_threshold = 17.0
+      smooth_count = sum(1 for t in frame_times if t < smooth_threshold)
+      percentage_smooth = float(smooth_count) / len(frame_times) * 100.0
     else:
       none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
     return (
@@ -172,9 +173,8 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
             description='Arithmetic mean of frame times.',
             none_value_reason=none_value_reason),
         scalar.ScalarValue(
-            page, 'mostly_smooth', 'score', mostly_smooth,
-            description='Were 95 percent of the frames hitting 60 fps?'
-                        'boolean value (1/0).',
+            page, 'percentage_smooth', 'score', percentage_smooth,
+            description='Percentage of frames that were hitting 60 fps.',
             none_value_reason=none_value_reason)
     )
 
