@@ -89,7 +89,7 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
       profile_base = os.path.basename(profile_parent)
 
     saved_profile_location = '/sdcard/profile/%s' % profile_base
-    adb.device().PushChangedFiles(new_profile_dir, saved_profile_location)
+    adb.device().PushChangedFiles([(new_profile_dir, saved_profile_location)])
 
     adb.device().old_interface.EfficientDeviceDirectoryCopy(
         saved_profile_location, self.profile_dir)
