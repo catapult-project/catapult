@@ -38,6 +38,7 @@ tv.exportTo('cc', function() {
     initialize: function() {
       // Defaults.
       this.invalidation = new cc.Region();
+      this.annotatedInvalidation = new cc.Region();
       this.unrecordedRegion = new cc.Region();
       this.pictures = [];
 
@@ -124,6 +125,16 @@ tv.exportTo('cc', function() {
       if (this.args.invalidation) {
         this.invalidation = cc.Region.fromArray(this.args.invalidation);
         delete this.args.invalidation;
+      }
+      if (this.args.annotatedInvalidationRects) {
+        this.annotatedInvalidation = new cc.Region();
+        for (var i = 0; i < this.args.annotatedInvalidationRects.length; ++i) {
+          var annotatedRect = this.args.annotatedInvalidationRects[i];
+          var rect = annotatedRect.geometryRect;
+          rect.reason = annotatedRect.reason;
+          this.annotatedInvalidation.addRect(rect);
+        }
+        delete this.args.annotatedInvalidationRects;
       }
       if (this.args.unrecordedRegion) {
         this.unrecordedRegion = cc.Region.fromArray(
