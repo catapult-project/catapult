@@ -104,7 +104,7 @@ class LinuxPlatformBackend(
     return self._power_monitor.StopMonitoringPower()
 
   def ReadMsr(self, msr_number, start=0, length=64):
-    cmd = ['/usr/sbin/rdmsr', '-d', str(msr_number)]
+    cmd = ['rdmsr', '-d', str(msr_number)]
     (out, err) = subprocess.Popen(cmd,
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE).communicate()
