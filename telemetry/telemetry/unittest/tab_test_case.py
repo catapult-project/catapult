@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.core import util
 from telemetry.unittest import browser_test_case
 
 
@@ -14,14 +15,14 @@ class TabTestCase(browser_test_case.BrowserTestCase):
     super(TabTestCase, self).setUp()
 
     if self._browser.supports_tab_control:
-      self._tab = self._browser.tabs.New()
-      while len(self._browser.tabs) > 1:
-        self._browser.tabs[0].Close()
+      try:
+        self._tab = self._browser.tabs.New()
+        while len(self._browser.tabs) > 1:
+          self._browser.tabs[0].Close()
+      except util.TimeoutException:
+        self._RestartBrowser()
     else:
-      if not self._browser.tabs:
-        self.tearDownClass()
-        self.setUpClass()
-      self._tab = self._browser.tabs[0]
+      self._RestartBrowser()
     self._tab.Navigate('about:blank')
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
@@ -33,3 +34,9 @@ class TabTestCase(browser_test_case.BrowserTestCase):
     url = self.UrlOfUnittestFile(filename)
     self._tab.Navigate(url, script_to_evaluate_on_commit)
     self._tab.WaitForDocumentReadyStateToBeComplete()
+
+  def _RestartBrowser(self):
+    if not self._browser.tabs:
+      self.tearDownClass()
+      self.setUpClass()
+    self._tab = self._browser.tabs[0]
