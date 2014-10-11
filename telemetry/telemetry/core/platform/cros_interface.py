@@ -6,6 +6,7 @@ import logging
 import re
 import os
 import shutil
+import stat
 import subprocess
 import tempfile
 
@@ -93,6 +94,7 @@ class CrOSInterface(object):
 
     if ssh_identity:
       self._ssh_identity = os.path.abspath(os.path.expanduser(ssh_identity))
+      os.chmod(self._ssh_identity, stat.S_IREAD)
 
     # Establish master SSH connection using ControlPersist.
     # Since only one test will be run on a remote host at a time,
