@@ -26,6 +26,6 @@ def InstallOnDevice(device, profiler_binary):
     return False
 
   device_binary_path = GetDevicePath(profiler_binary)
-  device.PushChangedFiles(host_path, device_binary_path)
+  device.PushChangedFiles([(host_path, device_binary_path)])
   device.RunShellCommand('chmod 777 ' + device_binary_path)
   return True
