@@ -17,7 +17,7 @@ class LoopActionTest(tab_test_case.TabTestCase):
     tab_test_case.TabTestCase.setUp(self)
     self.Navigate('video_test.html')
 
-  @decorators.Disabled('android')
+  @decorators.Disabled('android', 'linux')  # crbug.com/418577
   def testLoopWithNoSelector(self):
     """Tests that with no selector Loop action loops first media element."""
     action = loop.LoopAction(loop_count=2, selector='#video_1',
@@ -28,7 +28,7 @@ class LoopActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
 
-  @decorators.Disabled('android')
+  @decorators.Disabled('android', 'linux')  # crbug.com/418577
   def testLoopWithAllSelector(self):
     """Tests that Loop action loops all video elements with selector='all'."""
     action = loop.LoopAction(loop_count=2, selector='all',
@@ -42,7 +42,7 @@ class LoopActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
 
-  @decorators.Disabled('android', 'linux')
+  @decorators.Disabled('android', 'linux')  # crbug.com/418577
   def testLoopWaitForLoopTimeout(self):
     """Tests that wait_for_loop timeout_in_secondss if video does not loop."""
     action = loop.LoopAction(loop_count=2, selector='#video_1',
