@@ -13,8 +13,8 @@ class ForwarderPortPairsTest(unittest.TestCase):
   def testNoRemotePortsGivesLocalToLocal(self):
     started_ports = (8080, 8443, None)
     wpr_port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(0, 0),
-        https=forwarders.PortPair(0, 0),
+        http=forwarders.PortPair(0, 8080),
+        https=forwarders.PortPair(0, 8443),
         dns=None)
     expected_port_pairs = forwarders.PortPairs(
         http=forwarders.PortPair(8080, 8080),

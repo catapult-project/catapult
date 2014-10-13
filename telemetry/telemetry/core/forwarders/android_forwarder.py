@@ -54,13 +54,19 @@ class AndroidForwarder(forwarders.Forwarder):
   def __init__(self, adb, port_pairs):
     super(AndroidForwarder, self).__init__(port_pairs)
     self._device = adb.device()
-    forwarder.Forwarder.Map([p for p in port_pairs if p], self._device)
+    forwarder.Forwarder.Map([(p.remote_port, p.local_port)
+                             for p in port_pairs if p], self._device)
+    self._port_pairs = forwarders.PortPairs(*[
+        forwarders.PortPair(
+            p.local_port,
+            forwarder.Forwarder.DevicePortForHostPort(p.local_port))
+        if p else None for p in port_pairs])
     # TODO(tonyg): Verify that each port can connect to host.
 
   def Close(self):
     for port_pair in self._port_pairs:
       if port_pair:
-        forwarder.Forwarder.UnmapDevicePort(port_pair.local_port, self._device)
+        forwarder.Forwarder.UnmapDevicePort(port_pair.remote_port, self._device)
     super(AndroidForwarder, self).Close()
 
 

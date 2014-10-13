@@ -47,10 +47,10 @@ class ReplayServer(object):
     # Assign the forwarder port pairs back to the browser_backend.
     #     The port pairs are used to set up the application.
     #     The chrome_browser_backend uses the remote ports to set browser flags.
-    browser_backend.wpr_port_pairs = self._ForwarderPortPairs(
+    port_pairs = self._ForwarderPortPairs(
         started_ports, browser_backend.wpr_port_pairs)
-    self._forwarder = browser_backend.forwarder_factory.Create(
-        browser_backend.wpr_port_pairs)
+    self._forwarder = browser_backend.forwarder_factory.Create(port_pairs)
+    browser_backend.wpr_port_pairs = self._forwarder.port_pairs
 
   @staticmethod
   def _ForwarderPortPairs(started_ports, wpr_port_pairs):
@@ -70,8 +70,8 @@ class ReplayServer(object):
       a forwarders.PortPairs instance used to create the forwarder.
     """
     local_http_port, local_https_port, local_dns_port = started_ports
-    remote_http_port = wpr_port_pairs.http.remote_port or local_http_port
-    remote_https_port = wpr_port_pairs.https.remote_port or local_https_port
+    remote_http_port = wpr_port_pairs.http.remote_port
+    remote_https_port = wpr_port_pairs.https.remote_port
     http_port_pair = forwarders.PortPair(local_http_port, remote_http_port)
     https_port_pair = forwarders.PortPair(local_https_port, remote_https_port)
     if wpr_port_pairs.dns is None:
