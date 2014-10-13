@@ -13,6 +13,7 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   """PowerMonitor that relies on the dumpsys batterystats to monitor the power
   consumption of a single android application. This measure uses a heuristic
   and is the same information end-users see with the battery application.
+  Available on Android L and higher releases.
   """
   def __init__(self, device, platform_backend):
     """Constructor.

@@ -19,6 +19,11 @@ VOLTAGE = os.path.join(FUEL_GAUGE_PATH, 'voltage_now')
 
 
 class DS2784PowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
+  """PowerMonitor that relies on the ds2784 fuel gauge chip.
+
+  The ds2784 chip is in some Android devices, for example the nexus 10.
+  This gives reliable energy numbers on Android L and higher releases.
+  """
   def __init__(self, device, platform_backend):
     super(DS2784PowerMonitor, self).__init__(platform_backend)
     self._device = device
