@@ -19,7 +19,6 @@ from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
 from telemetry.page import page_filter
 from telemetry.page import page_test
-from telemetry.page.actions import navigate
 from telemetry.page.actions import page_action
 from telemetry.results import results_options
 from telemetry.util import cloud_storage
@@ -140,14 +139,14 @@ class _RunState(object):
       self.browser.platform.profiling_controller.Stop()
 
 
-class PageState(object):
+class _PageState(object):
   def __init__(self, page, tab):
     self.page = page
     self.tab = tab
 
     self._did_login = False
 
-  def PreparePage(self, test=None):
+  def PreparePage(self, test):
     if self.page.is_file:
       self.tab.browser.SetHTTPServerDirectories(
           self.page.page_set.serving_dirs | set([self.page.serving_dir]))
@@ -158,22 +157,17 @@ class PageState(object):
         raise page_test.Failure('Login as ' + self.page.credentials + ' failed')
       self._did_login = True
 
-    if test:
-      if test.clear_cache_before_each_run:
-        self.tab.ClearCache(force=True)
+    if test.clear_cache_before_each_run:
+      self.tab.ClearCache(force=True)
 
-  def ImplicitPageNavigation(self, test=None):
+  def ImplicitPageNavigation(self, test):
     """Executes the implicit navigation that occurs for every page iteration.
 
     This function will be called once per page before any actions are executed.
     """
-    if test:
-      test.WillNavigateToPage(self.page, self.tab)
-      test.RunNavigateSteps(self.page, self.tab)
-      test.DidNavigateToPage(self.page, self.tab)
-    else:
-      i = navigate.NavigateAction()
-      i.RunAction(self.page, self.tab, None)
+    test.WillNavigateToPage(self.page, self.tab)
+    test.RunNavigateSteps(self.page, self.tab)
+    test.DidNavigateToPage(self.page, self.tab)
 
   def CleanUpPage(self, test):
     test.CleanUpAfterPage(self.page, self.tab)
@@ -470,7 +464,7 @@ def _RunPage(test, page, state, expectation, results):
     results.AddValue(skip.SkipValue(page, 'Skipped by test expectations'))
     return
 
-  page_state = PageState(page, test.TabForPage(page, state.browser))
+  page_state = _PageState(page, test.TabForPage(page, state.browser))
 
   def ProcessError():
     if expectation == 'fail':
