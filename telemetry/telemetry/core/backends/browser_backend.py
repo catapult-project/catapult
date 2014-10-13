@@ -7,6 +7,7 @@ import os
 from telemetry import decorators
 from telemetry.core import platform
 from telemetry.core import web_contents
+from telemetry.core.backends import app_backend
 from telemetry.core.forwarders import do_nothing_forwarder
 
 
@@ -14,11 +15,12 @@ class ExtensionsNotSupportedException(Exception):
   pass
 
 
-class BrowserBackend(object):
+class BrowserBackend(app_backend.AppBackend):
   """A base class for browser backends."""
 
   def __init__(self, supports_extensions, browser_options, tab_list_backend):
     assert browser_options.browser_type
+    super(BrowserBackend, self).__init__()
     self.browser_type = browser_options.browser_type
     self._supports_extensions = supports_extensions
     self.browser_options = browser_options

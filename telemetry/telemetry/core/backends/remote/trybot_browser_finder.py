@@ -206,7 +206,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     else:
       logging.error('No local changes found in chromium or blink trees. '
                     'browser=%s argument sends local changes to the %s '
-                    'perf trybot.', self._browser_type, self._buildername)
+                    'perf trybot.', self.browser_type, self._buildername)
       return
 
   def _InitPlatformIfNeeded(self):

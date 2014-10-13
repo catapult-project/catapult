@@ -2,9 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.core import possible_app
 
 
-class PossibleBrowser(object):
+class PossibleBrowser(possible_app.PossibleApp):
   """A browser that can be controlled.
 
   Call Create() to launch the browser and begin manipulating it..
@@ -12,41 +13,25 @@ class PossibleBrowser(object):
 
   def __init__(self, browser_type, target_os, finder_options,
                supports_tab_control):
-    self._browser_type = browser_type
-    self._target_os = target_os
-    self._finder_options = finder_options
+    super(PossibleBrowser, self).__init__(app_type=browser_type,
+                                          target_os=target_os,
+                                          finder_options=finder_options)
     self._supports_tab_control = supports_tab_control
-    self._platform = None
-    self._platform_backend = None
     self._archive_path = None
     self._append_to_existing_wpr = False
     self._make_javascript_deterministic = True
     self._credentials_path = None
 
   def __repr__(self):
-    return 'PossibleBrowser(browser_type=%s)' % self.browser_type
+    return 'PossibleBrowser(app_type=%s)' % self.app_type
 
   @property
   def browser_type(self):
-    return self._browser_type
-
-  @property
-  def target_os(self):
-    """Target OS, the browser will run on."""
-    return self._target_os
-
-  @property
-  def finder_options(self):
-    return self._finder_options
+    return self.app_type
 
   @property
   def supports_tab_control(self):
     return self._supports_tab_control
-
-  @property
-  def platform(self):
-    self._InitPlatformIfNeeded()
-    return self._platform
 
   def _InitPlatformIfNeeded(self):
     raise NotImplementedError()
