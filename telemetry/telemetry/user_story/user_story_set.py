@@ -16,7 +16,7 @@ class UserStorySet(object):
   @classmethod
   def Name(cls):
     """ Returns the string name of this UserStorySet.
-    Note that this should be a classmethod so test_runner script can match
+    Note that this should be a classmethod so benchmark_runner script can match
     user story class with its name specified in the run command:
     'Run <User story test name> <User story class name>'
     """
@@ -26,7 +26,7 @@ class UserStorySet(object):
   def Description(cls):
     """ Return a string explaining in human-understandable terms what this
     user story represents.
-    Note that this should be a classmethod so test_runner script can
+    Note that this should be a classmethod so benchmark_runner script can
     display user stories' names along their descriptions in the list commmand.
     """
     if cls.__doc__:

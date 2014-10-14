@@ -272,7 +272,7 @@ def _GetJsonTestList(possible_browser, possible_reference_browser,
                      test_classes, num_shards):
   """Returns a list of all enabled tests in a JSON format expected by buildbots.
 
-  JSON format (see build/android/pylib/perf/test_runner.py):
+  JSON format (see build/android/pylib/perf/benchmark_runner.py):
   { "version": <int>,
     "steps": {
       <string>: {
