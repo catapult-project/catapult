@@ -233,7 +233,12 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
         "StartMonitoringPower() not called.")
     # Tell powermetrics to take an immediate sample.
     try:
-      self._powermetrics_process.terminate()
+      # Can't use subprocess.terminate() here because when powermetrics does
+      # not have SetUID set, the the call will fail with an OSError.
+      self._backend.LaunchApplication(
+        '/bin/kill',
+        ['-SIGTERM', str(self._powermetrics_process.pid)],
+        elevate_privilege=True)
       (power_stdout, power_stderr) = self._powermetrics_process.communicate()
       returncode = self._powermetrics_process.returncode
       assert returncode in [0, -15], (
