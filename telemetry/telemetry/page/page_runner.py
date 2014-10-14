@@ -28,12 +28,16 @@ from telemetry.value import skip
 
 
 class _RunState(object):
-  def __init__(self):
+  def __init__(self, test):
     self.browser = None
 
     self._append_to_existing_wpr = False
     self._last_archive_path = None
     self._first_browser = True
+    self._test = test
+    self._did_login_for_current_page = False
+    self._current_page = None
+    self._current_tab = None
     self.profiler_dir = None
 
   def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
@@ -113,6 +117,44 @@ class _RunState(object):
       if started_browser:
         self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
 
+  def PreparePage(self, page):
+    self._current_page = page
+    self._current_tab = self._test.TabForPage(page, self.browser)
+    if self._current_page.is_file:
+      self.browser.SetHTTPServerDirectories(
+          self._current_page.page_set.serving_dirs |
+          set([self._current_page.serving_dir]))
+
+    if self._current_page.credentials:
+      if not self.browser.credentials.LoginNeeded(
+          self._current_tab, self._current_page.credentials):
+        raise page_test.Failure('Login as ' + self.page.credentials + ' failed')
+      self._did_login_for_current_page = True
+
+    if self._test.clear_cache_before_each_run:
+      self._current_tab.ClearCache(force=True)
+
+  def ImplicitPageNavigation(self):
+    """Executes the implicit navigation that occurs for every page iteration.
+
+    This function will be called once per page before any actions are executed.
+    """
+    self._test.WillNavigateToPage(self._current_page, self._current_tab)
+    self._test.RunNavigateSteps(self._current_page, self._current_tab)
+    self._test.DidNavigateToPage(self._current_page, self._current_tab)
+
+  def RunPage(self, results):
+    self._test.RunPage(self._current_page, self._current_tab, results)
+    util.CloseConnections(self._current_tab)
+
+  def CleanUpPage(self):
+    self._test.CleanUpAfterPage(self._current_page, self._current_tab)
+    if self._current_page.credentials and self._did_login_for_current_page:
+      self.browser.credentials.LoginNoLongerNeeded(
+          self._current_tab, self._current_page.credentials)
+    self._current_page = None
+    self._current_tab = None
+
   def StopBrowser(self):
     if self.browser:
       self.browser.Close()
@@ -137,43 +179,6 @@ class _RunState(object):
   def StopProfiling(self):
     if self.browser:
       self.browser.platform.profiling_controller.Stop()
-
-
-class _PageState(object):
-  def __init__(self, page, tab):
-    self.page = page
-    self.tab = tab
-
-    self._did_login = False
-
-  def PreparePage(self, test):
-    if self.page.is_file:
-      self.tab.browser.SetHTTPServerDirectories(
-          self.page.page_set.serving_dirs | set([self.page.serving_dir]))
-
-    if self.page.credentials:
-      if not self.tab.browser.credentials.LoginNeeded(
-          self.tab, self.page.credentials):
-        raise page_test.Failure('Login as ' + self.page.credentials + ' failed')
-      self._did_login = True
-
-    if test.clear_cache_before_each_run:
-      self.tab.ClearCache(force=True)
-
-  def ImplicitPageNavigation(self, test):
-    """Executes the implicit navigation that occurs for every page iteration.
-
-    This function will be called once per page before any actions are executed.
-    """
-    test.WillNavigateToPage(self.page, self.tab)
-    test.RunNavigateSteps(self.page, self.tab)
-    test.DidNavigateToPage(self.page, self.tab)
-
-  def CleanUpPage(self, test):
-    test.CleanUpAfterPage(self.page, self.tab)
-    if self.page.credentials and self._did_login:
-      self.tab.browser.credentials.LoginNoLongerNeeded(
-          self.tab, self.page.credentials)
 
 
 def AddCommandLineArgs(parser):
@@ -226,7 +231,7 @@ def ProcessCommandLineArgs(parser, args):
     parser.error('--pageset-repeat must be a positive integer.')
 
 
-def _PrepareAndRunPage(test, page_set, expectations, finder_options,
+def _RunPageAndRetryRunIfNeeded(test, page_set, expectations, finder_options,
                        browser_options, page, possible_browser, results, state):
   if finder_options.use_live_sites:
     browser_options.wpr_mode = wpr_modes.WPR_OFF
@@ -262,7 +267,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         state.StartProfiling(page, finder_options)
 
       try:
-        _RunPage(test, page, state, expectation, results)
+        _RunPageAndProcessErrorIfNeeded(page, state, expectation, results)
         _CheckThermalThrottling(state.browser.platform)
       except exceptions.TabCrashException as e:
         if test.is_multi_tab_test:
@@ -369,7 +374,7 @@ def Run(test, page_set, expectations, finder_options, results):
   if not pages:
     return
 
-  state = _RunState()
+  state = _RunState(test)
   pages_with_discarded_first_result = set()
   max_failures = finder_options.max_failures  # command-line gets priority
   if max_failures is None:
@@ -384,7 +389,7 @@ def Run(test, page_set, expectations, finder_options, results):
         for _ in xrange(finder_options.page_repeat):
           results.WillRunPage(page)
           try:
-            _PrepareAndRunPage(
+            _RunPageAndRetryRunIfNeeded(
                 test, page_set, expectations, finder_options, browser_options,
                 page, possible_browser, results, state)
           finally:
@@ -458,13 +463,11 @@ def _CheckArchives(page_set, pages, results):
   return valid_pages
 
 
-def _RunPage(test, page, state, expectation, results):
+def _RunPageAndProcessErrorIfNeeded(page, state, expectation, results):
   if expectation == 'skip':
     logging.debug('Skipping test: Skip expectation for %s', page.url)
     results.AddValue(skip.SkipValue(page, 'Skipped by test expectations'))
     return
-
-  page_state = _PageState(page, test.TabForPage(page, state.browser))
 
   def ProcessError():
     if expectation == 'fail':
@@ -475,10 +478,9 @@ def _RunPage(test, page, state, expectation, results):
     exception_formatter.PrintFormattedException(msg=msg)
 
   try:
-    page_state.PreparePage(test)
-    page_state.ImplicitPageNavigation(test)
-    test.RunPage(page, page_state.tab, results)
-    util.CloseConnections(page_state.tab)
+    state.PreparePage(page)
+    state.ImplicitPageNavigation()
+    state.RunPage(results)
   except page_test.TestNotSupportedOnPlatformFailure:
     raise
   except page_test.Failure:
@@ -506,7 +508,7 @@ def _RunPage(test, page, state, expectation, results):
     if expectation == 'fail':
       logging.warning('%s was expected to fail, but passed.\n', page.url)
   finally:
-    page_state.CleanUpPage(test)
+    state.CleanUpPage()
 
 
 def _WaitForThermalThrottlingIfNeeded(platform):
