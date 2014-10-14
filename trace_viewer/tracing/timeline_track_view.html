@@ -500,6 +500,10 @@ tv.exportTo('tracing', function() {
      * @param {boolean} Whether to change the zoom level smoothly.
      */
     zoomBy_: function(scale, smooth) {
+      if (scale <= 0) {
+        return;
+      }
+
       smooth = !!smooth;
       var vp = this.viewport_;
       var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
