@@ -24,6 +24,11 @@ Disabled = decorators.Disabled
 Enabled = decorators.Enabled
 
 
+class InvalidOptionsError(Exception):
+  """Raised for invalid benchmark options."""
+  pass
+
+
 class BenchmarkMetadata(object):
   def __init__(self, name):
     self._name = name
@@ -60,6 +65,12 @@ class Benchmark(command_line.Command):
   @classmethod
   def SetArgumentDefaults(cls, parser):
     cls.PageTestClass().SetArgumentDefaults(parser)
+    default_values = parser.get_default_values()
+    invalid_options = [
+        o for o in cls.options if not hasattr(default_values, o)]
+    if invalid_options:
+      raise InvalidOptionsError('Invalid benchmark options: %s',
+                                ', '.join(invalid_options))
     parser.set_defaults(**cls.options)
 
   @classmethod
