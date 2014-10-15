@@ -41,14 +41,9 @@ class PageSet(user_story_set.UserStorySet):
     self._wpr_archive_info = None
     self.startup_url = startup_url
     self.user_stories = []
-    self.serving_dirs = set()
-    serving_dirs = [] if serving_dirs is None else serving_dirs
-    # Makes sure that page_set's serving_dirs are absolute paths
-    for sd in serving_dirs:
-      if os.path.isabs(sd):
-        self.serving_dirs.add(os.path.realpath(sd))
-      else:
-        self.serving_dirs.add(os.path.realpath(os.path.join(self.base_dir, sd)))
+    # Convert any relative serving_dirs to absolute paths.
+    self._serving_dirs = set(os.path.realpath(os.path.join(self.base_dir, d))
+                             for d in serving_dirs or [])
     if self._IsValidPrivacyBucket(bucket):
       self._bucket = bucket
     else:
@@ -83,6 +78,10 @@ class PageSet(user_story_set.UserStorySet):
       return os.path.dirname(self.file_path)
     else:
       return self.file_path
+
+  @property
+  def serving_dirs(self):
+    return self._serving_dirs
 
   @property
   def wpr_archive_info(self):  # pylint: disable=E0202
