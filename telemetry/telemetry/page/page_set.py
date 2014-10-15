@@ -75,11 +75,7 @@ class PageSet(user_story_set.UserStorySet):
 
   @staticmethod
   def _IsValidPrivacyBucket(bucket_name):
-    if not bucket_name:
-      return True
-    if (bucket_name in [PUBLIC_BUCKET, PARTNER_BUCKET, INTERNAL_BUCKET]):
-      return True
-    return False
+    return bucket_name in (None, PUBLIC_BUCKET, PARTNER_BUCKET, INTERNAL_BUCKET)
 
   @property
   def base_dir(self):
