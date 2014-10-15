@@ -188,6 +188,10 @@ class PageRunnerTests(unittest.TestCase):
           self.has_crashed = True
           raise exceptions.BrowserGoneException(tab.browser)
 
+      @property
+      def attempts(self):
+        return 3
+
     options = options_for_unittests.GetCopy()
     options.output_formats = ['csv']
     options.suppress_gtest_report = True
