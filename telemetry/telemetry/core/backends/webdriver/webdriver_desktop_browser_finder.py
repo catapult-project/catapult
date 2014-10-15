@@ -78,7 +78,9 @@ class PossibleDesktopIE(PossibleWebDriverBrowser):
     assert webdriver
     def DriverCreator():
       ie_driver_exe = support_binaries.FindPath(
-          'IEDriverServer_%s' % self._architecture, 'win')
+          'IEDriverServer_%s' % self._architecture,
+          'AMD64',
+          'win')
       return webdriver.Ie(executable_path=ie_driver_exe)
     return webdriver_ie_backend.WebDriverIEBackend(
         platform_backend, DriverCreator, self.finder_options.browser_options)

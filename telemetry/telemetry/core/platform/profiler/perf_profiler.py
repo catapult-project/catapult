@@ -58,7 +58,7 @@ def _InstallPerfHost():
   host = platform.GetHostPlatform()
   if not host.CanLaunchApplication(perfhost_name):
     host.InstallApplication(perfhost_name)
-  return support_binaries.FindPath(perfhost_name, 'linux')
+  return support_binaries.FindPath(perfhost_name, 'x86_64', 'linux')
 
 
 class _SingleProcessPerfProfiler(object):
@@ -75,6 +75,7 @@ class _SingleProcessPerfProfiler(object):
     self._output_file = output_file
     self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
     self._is_android = platform_backend.GetOSName() == 'android'
+    self._perf_binary = perf_binary
     self._perfhost_binary = perfhost_binary
     cmd_prefix = []
     perf_args = ['record', '--pid', str(pid)]
@@ -104,7 +105,8 @@ class _SingleProcessPerfProfiler(object):
     if self._is_android:
       device = self._browser_backend.adb.device()
       try:
-        device.KillAll('perf', signum=signal.SIGINT, blocking=True)
+        binary_name = os.path.basename(self._perf_binary)
+        device.KillAll(binary_name, signum=signal.SIGINT, blocking=True)
       except device_errors.CommandFailedError:
         logging.warning('The perf process could not be killed on the device.')
     self._proc.send_signal(signal.SIGINT)

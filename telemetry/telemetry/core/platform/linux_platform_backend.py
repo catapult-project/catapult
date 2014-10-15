@@ -4,6 +4,7 @@
 
 import logging
 import os
+import platform
 import subprocess
 import sys
 
@@ -43,6 +44,10 @@ class LinuxPlatformBackend(
 
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
+
+  @decorators.Cache
+  def GetArchName(self):
+    return platform.machine()
 
   def GetOSName(self):
     return 'linux'
@@ -121,8 +126,10 @@ class LinuxPlatformBackend(
         ['lsmod'], stdout=subprocess.PIPE).communicate()[0]
 
   def _InstallIpfw(self):
-    ipfw_bin = support_binaries.FindPath('ipfw', self.GetOSName())
-    ipfw_mod = support_binaries.FindPath('ipfw_mod.ko', self.GetOSName())
+    ipfw_bin = support_binaries.FindPath(
+        'ipfw', self.GetArchName(), self.GetOSName())
+    ipfw_mod = support_binaries.FindPath(
+        'ipfw_mod.ko', self.GetArchName(), self.GetOSName())
 
     try:
       changed = cloud_storage.GetIfChanged(
@@ -148,7 +155,8 @@ class LinuxPlatformBackend(
         'your kernel. See: http://info.iet.unipi.it/~luigi/dummynet/'
 
   def _InstallBinary(self, bin_name, fallback_package=None):
-    bin_path = support_binaries.FindPath(bin_name, self.GetOSName())
+    bin_path = support_binaries.FindPath(
+        bin_name, self.GetArchName(), self.GetOSName())
     if not bin_path:
       raise Exception('Could not find the binary package %s' % bin_name)
     os.environ['PATH'] += os.pathsep + os.path.dirname(bin_path)

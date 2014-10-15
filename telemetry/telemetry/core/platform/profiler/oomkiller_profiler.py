@@ -32,8 +32,9 @@ class OOMKillerProfiler(profiler.Profiler):
         browser_backend, platform_backend, output_path, state)
     if not 'mem_consumer_launched' in state:
       state['mem_consumer_launched'] = True
+      arch_name = self._browser_backend.adb.device().GetABI()
       mem_consumer_path = support_binaries.FindPath(
-          os.path.join('apks', 'MemConsumer.apk'), 'android')
+          os.path.join('apks', 'MemConsumer.apk'), arch_name, 'android')
       assert mem_consumer_path, ('Could not find memconsumer app. Please build '
                                  'memconsumer target.')
       if not self._platform_backend.CanLaunchApplication(

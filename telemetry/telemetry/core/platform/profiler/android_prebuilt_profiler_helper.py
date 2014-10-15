@@ -19,7 +19,8 @@ def GetDevicePath(profiler_binary):
 
 @decorators.Cache
 def InstallOnDevice(device, profiler_binary):
-  host_path = support_binaries.FindPath(profiler_binary, 'android')
+  arch_name = device.GetABI()
+  host_path = support_binaries.FindPath(profiler_binary, arch_name, 'android')
   if not host_path:
     logging.error('Profiler binary "%s" not found. Could not be installed',
                   host_path)

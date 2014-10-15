@@ -4,6 +4,7 @@
 
 import ctypes
 import os
+import platform
 import time
 
 from telemetry import decorators
@@ -125,6 +126,10 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       return {'VM': 1024 * int(vsz),
               'WorkingSetSize': 1024 * int(rss)}
     return {}
+
+  @decorators.Cache
+  def GetArchName(self):
+    return platform.machine()
 
   def GetOSName(self):
     return 'mac'

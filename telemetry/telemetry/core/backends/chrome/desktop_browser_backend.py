@@ -98,8 +98,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     os_name = self._browser.platform.GetOSName()
     if os_name != 'win':
       return None
+    arch_name = self._browser.platform.GetArchName()
     return subprocess.Popen([
-        support_binaries.FindPath('crash_service', os_name),
+        support_binaries.FindPath('crash_service', arch_name, os_name),
         '--no-window',
         '--dumps-dir=%s' % self._tmp_minidump_dir,
         '--pipe-name=%s' % self._GetCrashServicePipeName()])
@@ -248,7 +249,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       stack_end = output.find('quit:')
       return output[stack_start:stack_end]
 
-    stackwalk = support_binaries.FindPath('minidump_stackwalk', os_name)
+    arch_name = self._browser.platform.GetArchName()
+    stackwalk = support_binaries.FindPath(
+        'minidump_stackwalk', arch_name, os_name)
     if not stackwalk:
       logging.warning('minidump_stackwalk binary not found.')
       return None

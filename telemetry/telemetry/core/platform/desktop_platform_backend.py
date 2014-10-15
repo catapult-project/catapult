@@ -18,6 +18,7 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
     assert directory and os.path.exists(directory), \
         'Target directory %s must exist' % directory
     flush_command = support_binaries.FindPath('clear_system_cache',
+                                              self.GetArchName(),
                                               self.GetOSName())
     assert flush_command, 'You must build clear_system_cache first'
 

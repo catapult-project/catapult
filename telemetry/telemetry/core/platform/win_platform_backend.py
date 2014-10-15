@@ -211,6 +211,10 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
         return pi['CommandLine']
     raise exceptions.ProcessGoneException()
 
+  @decorators.Cache
+  def GetArchName(self):
+    return platform.machine()
+
   def GetOSName(self):
     return 'win'
 

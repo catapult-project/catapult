@@ -123,7 +123,9 @@ class _BitmapTools(object):
 
   def __init__(self, dimensions, pixels):
     binary = support_binaries.FindPath(
-        'bitmaptools', platform.GetHostPlatform().GetOSName())
+        'bitmaptools',
+        platform.GetHostPlatform().GetArchName(),
+        platform.GetHostPlatform().GetOSName())
     assert binary, 'You must build bitmaptools first!'
 
     self._popen = subprocess.Popen([binary],

@@ -153,6 +153,12 @@ class Platform(object):
     """Returns True if the device has been thermally throttled."""
     return self._platform_backend.HasBeenThermallyThrottled()
 
+  def GetArchName(self):
+    """Returns a string description of the Platform architecture.
+
+    Examples: x86_64 (posix), AMD64 (win), armeabi-v7a, x86"""
+    return self._platform_backend.GetArchName()
+
   def GetOSName(self):
     """Returns a string description of the Platform OS.
 

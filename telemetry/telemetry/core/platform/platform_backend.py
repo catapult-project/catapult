@@ -170,6 +170,9 @@ class PlatformBackend(object):
   def GetCommandLine(self, pid):
     raise NotImplementedError()
 
+  def GetArchName(self):
+    raise NotImplementedError()
+
   def GetOSName(self):
     raise NotImplementedError()
 
