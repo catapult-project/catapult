@@ -131,10 +131,6 @@ class IosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Start(self):
     logging.warn('Not implemented')
 
-  def AddReplayServerOptions(self, extra_wpr_args):
-    logging.warn('Not implemented')
-    return None
-
   def extension_backend(self):
     logging.warn('Not implemented')
     return None

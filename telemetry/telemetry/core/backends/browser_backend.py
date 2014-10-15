@@ -29,9 +29,6 @@ class BrowserBackend(app_backend.AppBackend):
     self._forwarder_factory = None
     self._wpr_ca_cert_path = None
 
-  def AddReplayServerOptions(self, extra_wpr_args):
-    pass
-
   def SetBrowser(self, browser):
     self._browser = browser
     if self.browser_options.netsim:

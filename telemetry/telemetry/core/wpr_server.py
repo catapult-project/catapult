@@ -19,6 +19,8 @@ class ReplayServer(object):
     self._web_page_replay = None
 
     wpr_args = browser_backend.browser_options.extra_wpr_args
+    if browser_backend.browser_options.netsim:
+      wpr_args.append('--net=%s' % browser_backend.browser_options.netsim)
     if wpr_mode == wpr_modes.WPR_APPEND:
       wpr_args.append('--append')
     elif wpr_mode == wpr_modes.WPR_RECORD:
@@ -30,8 +32,6 @@ class ReplayServer(object):
           '--should_generate_certs',
           '--https_root_ca_cert_path=%s' % browser_backend.wpr_ca_cert_path,
           ])
-    browser_backend.AddReplayServerOptions(wpr_args)
-
     self._web_page_replay = webpagereplay.ReplayServer(
         path, self._browser_backend.forwarder_factory.host_ip,
         browser_backend.wpr_port_pairs.http.local_port,
@@ -39,9 +39,6 @@ class ReplayServer(object):
         (browser_backend.wpr_port_pairs.dns.local_port
          if browser_backend.wpr_port_pairs.dns else None),
         wpr_args)
-    # Remove --no-dns_forwarding if it wasn't explicitly requested by backend.
-    if '--no-dns_forwarding' not in wpr_args:
-      self._web_page_replay.replay_options.remove('--no-dns_forwarding')
     started_ports = self._web_page_replay.StartServer()
 
     # Assign the forwarder port pairs back to the browser_backend.

@@ -434,9 +434,3 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                                         self._adb.device_serial()],
                                        stdout=subprocess.PIPE).communicate()[0])
     return ret
-
-  def AddReplayServerOptions(self, extra_wpr_args):
-    if not self.forwarder_factory.does_forwarder_override_dns:
-      extra_wpr_args.append('--no-dns_forwarding')
-    if self.browser_options.netsim:
-      extra_wpr_args.append('--net=%s' % self.browser_options.netsim)

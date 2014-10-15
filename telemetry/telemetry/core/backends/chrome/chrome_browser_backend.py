@@ -66,12 +66,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
                        'such as about:flags settings, cookies, and '
                        'extensions.\n')
 
-  def AddReplayServerOptions(self, extra_wpr_args):
-    if self.browser_options.netsim:
-      extra_wpr_args.append('--net=%s' % self.browser_options.netsim)
-    else:
-      extra_wpr_args.append('--no-dns_forwarding')
-
   @property
   @decorators.Cache
   def extension_backend(self):

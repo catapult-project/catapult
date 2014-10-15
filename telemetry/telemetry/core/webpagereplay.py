@@ -77,36 +77,42 @@ class ReplayServer(object):
     self._use_dns_server = dns_port is not None
     self._started_ports = {}  # a dict such as {'http': 80, 'https': 443}
 
-    self.replay_options = self._GetDefaultReplayOptions(
-        replay_options, self._replay_host, http_port, https_port, dns_port)
+    replay_py = os.path.join(_REPLAY_DIR, 'replay.py')
+    self._cmd_line = self._GetCommandLine(
+        replay_py, self._replay_host, http_port, https_port, dns_port,
+        replay_options, archive_path)
 
-    self.replay_py = os.path.join(_REPLAY_DIR, 'replay.py')
-    if '--record' in self.replay_options:
+    if '--record' in replay_options:
       self._CheckPath('archive directory', os.path.dirname(self.archive_path))
     elif not os.path.exists(self.archive_path):
       self._CheckPath('archive file', self.archive_path)
-    self._CheckPath('replay script', self.replay_py)
+    self._CheckPath('replay script', replay_py)
 
     self.replay_process = None
 
   @staticmethod
-  def _GetDefaultReplayOptions(replay_options, host_ip,
-                               http_port, https_port, dns_port):
+  def _GetCommandLine(replay_py, host_ip, http_port, https_port, dns_port,
+                      replay_options, archive_path):
     """Set WPR command-line options. Can be overridden if needed."""
-    options = [
+    cmd_line = [sys.executable, replay_py]
+    cmd_line.extend([
         '--host=%s' % host_ip,
         '--port=%s' % http_port,
-        '--ssl_port=%s' % https_port,
-        '--use_closest_match',
-        '--no-dns_forwarding',
-        '--log_level=warning'
-        ]
-    options.extend(replay_options)
+        '--ssl_port=%s' % https_port
+        ])
     if dns_port is not None:
       # Note that if --host is not '127.0.0.1', Replay will override the local
       # DNS nameserver settings to point to the replay-started DNS server.
-      options.append('--dns_port=%s' % dns_port)
-    return options
+      cmd_line.append('--dns_port=%s' % dns_port)
+    else:
+      cmd_line.append('--no-dns_forwarding')
+    cmd_line.extend([
+        '--use_closest_match',
+        '--log_level=warning'
+        ])
+    cmd_line.extend(replay_options)
+    cmd_line.append(archive_path)
+    return cmd_line
 
   def _CheckPath(self, label, path):
     if not os.path.exists(path):
@@ -185,15 +191,12 @@ class ReplayServer(object):
     Raises:
       ReplayNotStartedError: if Replay start-up fails.
     """
-    cmd_line = [sys.executable, self.replay_py]
-    cmd_line.extend(self.replay_options)
-    cmd_line.append(self.archive_path)
     is_posix = platform.GetHostPlatform().GetOSName() in ('linux', 'mac')
 
-    logging.debug('Starting Web-Page-Replay: %s', cmd_line)
+    logging.debug('Starting Web-Page-Replay: %s', self._cmd_line)
     with self._OpenLogFile() as log_fh:
       self.replay_process = subprocess.Popen(
-          cmd_line, stdout=log_fh, stderr=subprocess.STDOUT,
+          self._cmd_line, stdout=log_fh, stderr=subprocess.STDOUT,
           preexec_fn=(_ResetInterruptHandler if is_posix else None))
     try:
       util.WaitFor(self._IsStarted, 30)
