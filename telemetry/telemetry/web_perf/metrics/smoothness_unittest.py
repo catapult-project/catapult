@@ -177,16 +177,18 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
 
   def testComputeFrameTimeDiscrepancy(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps)
-    jank_value = self.metric._ComputeFrameTimeDiscrepancy(self.page, stats)
-    self.assertEquals(10, jank_value.value)
+    frame_time_discrepancy_value = self.metric._ComputeFrameTimeDiscrepancy(
+        self.page, stats)
+    self.assertEquals(10, frame_time_discrepancy_value.value)
 
   def testComputeFrameTimeDiscrepancyWithNotEnoughFrames(self):
     stats = _MockRenderingStats(
         frame_timestamps=self.not_enough_frames_timestamps)
-    jank_value = self.metric._ComputeFrameTimeDiscrepancy(self.page, stats)
-    self.assertEquals(None, jank_value.value)
+    frame_time_discrepancy_value = self.metric._ComputeFrameTimeDiscrepancy(
+        self.page, stats)
+    self.assertEquals(None, frame_time_discrepancy_value.value)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
-                      jank_value.none_value_reason)
+                      frame_time_discrepancy_value.none_value_reason)
 
   def testComputeMeanPixelsApproximated(self):
     stats = _MockRenderingStats(

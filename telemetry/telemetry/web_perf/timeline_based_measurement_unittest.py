@@ -214,9 +214,11 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
                                   options=self._options)
 
     self.assertEquals(0, len(results.failures))
-    v = results.FindAllPageSpecificValuesNamed('CenterAnimation-jank')
+    v = results.FindAllPageSpecificValuesNamed(
+        'CenterAnimation-frame_time_discrepancy')
     self.assertEquals(len(v), 1)
-    v = results.FindAllPageSpecificValuesNamed('DrawerAnimation-jank')
+    v = results.FindAllPageSpecificValuesNamed(
+        'DrawerAnimation-frame_time_discrepancy')
     self.assertEquals(len(v), 1)
 
   def testFastTimelineBasedMeasurementForSmoke(self):

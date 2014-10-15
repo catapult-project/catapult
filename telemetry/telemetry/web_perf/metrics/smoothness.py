@@ -31,7 +31,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     frame_times: A list of raw frame times
     mean_frame_time: The arithmetic mean of frame times
     percentage_smooth: Percentage of frames that were hitting 60 FPS.
-    jank: The absolute discrepancy of frame timestamps
+    frame_time_discrepancy: The absolute discrepancy of frame timestamps
     mean_pixels_approximated: The mean percentage of pixels approximated
     queueing_durations: The queueing delay between compositor & main threads
 
@@ -189,7 +189,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     else:
       none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
     return scalar.ScalarValue(
-        page, 'jank', 'ms', frame_discrepancy,
+        page, 'frame_time_discrepancy', 'ms', frame_discrepancy,
         description='Absolute discrepancy of frame time stamps, where '
                     'discrepancy is a measure of irregularity. It quantifies '
                     'the worst jank. For a single pause, discrepancy '
