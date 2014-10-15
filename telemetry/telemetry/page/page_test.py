@@ -54,9 +54,6 @@ class PageTest(command_line.Command):
         subclasses to run.
     discard_first_run: Discard the first run of this page. This is
         usually used with page_repeat and pageset_repeat options.
-    attempts: The number of attempts to run if we encountered
-        infrastructure problems (as opposed to test issues), such as
-        losing a browser.
     max_failures: The number of page failures allowed before we stop
         running other pages.
     is_action_name_to_run_optional: Determines what to do if
@@ -73,7 +70,6 @@ class PageTest(command_line.Command):
                needs_browser_restart_after_each_page=False,
                discard_first_result=False,
                clear_cache_before_each_run=False,
-               attempts=3,
                max_failures=None,
                is_action_name_to_run_optional=False):
     super(PageTest, self).__init__()
@@ -90,10 +86,8 @@ class PageTest(command_line.Command):
     self._discard_first_result = discard_first_result
     self._clear_cache_before_each_run = clear_cache_before_each_run
     self._close_tabs_before_run = True
-    self._attempts = attempts
     self._max_failures = max_failures
     self._is_action_name_to_run_optional = is_action_name_to_run_optional
-    assert self._attempts > 0, 'Test attempts must be greater than 0'
     # If the test overrides the TabForPage method, it is considered a multi-tab
     # test.  The main difference between this and a single-tab test is that we
     # do not attempt recovery for the former if a tab or the browser crashes,
@@ -138,12 +132,8 @@ class PageTest(command_line.Command):
   @property
   def attempts(self):
     """Maximum number of times test will be attempted."""
-    return self._attempts
-
-  @attempts.setter
-  def attempts(self, count):
-    assert self._attempts > 0, 'Test attempts must be greater than 0'
-    self._attempts = count
+    # Do NOT override this method (crbug.com/422339).
+    return 3
 
   @property
   def max_failures(self):
