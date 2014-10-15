@@ -138,7 +138,7 @@ class TimelineBasedMeasurement(page_test.PageTest):
 
   """
   def __init__(self):
-    super(TimelineBasedMeasurement, self).__init__('RunSmoothness')
+    super(TimelineBasedMeasurement, self).__init__('RunPageInteractions')
 
   @classmethod
   def AddCommandLineArgs(cls, parser):

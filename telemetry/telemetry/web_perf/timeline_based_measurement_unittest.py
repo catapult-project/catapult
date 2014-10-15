@@ -186,7 +186,7 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
     self._trigger_jank = trigger_jank
     self._trigger_slow = trigger_slow
 
-  def RunSmoothness(self, action_runner):
+  def RunPageInteractions(self, action_runner):
     if self._trigger_animation:
       action_runner.TapElement('#animating-button')
       action_runner.WaitForJavaScriptCondition('window.animationDone')
