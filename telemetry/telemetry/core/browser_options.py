@@ -203,6 +203,11 @@ class BrowserOptions(object):
     # performance measurements.
     self.disable_component_extensions_with_background_pages = True
 
+    # Whether to use the new code path for choosing an ephemeral port for
+    # DevTools. The bots set this to true. When Chrome 37 reaches stable,
+    # remove this setting and the old code path. http://crbug.com/379980
+    self.use_devtools_active_port = False
+
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
 
@@ -278,6 +283,7 @@ class BrowserOptions(object):
         'profile_type',
         'show_stdout',
         'synthetic_gesture_source_type',
+        'use_devtools_active_port',
         ]
     for o in browser_options_list:
       a = getattr(finder_options, o, None)
