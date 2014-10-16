@@ -11,7 +11,7 @@ from telemetry.core.platform.power_monitor import ippet_power_monitor
 
 
 class IppetPowerMonitorTest(unittest.TestCase):
-  @decorators.Enabled('win')
+  @decorators.Disabled
   def testFindOrInstallIppet(self):
     self.assertTrue(ippet_power_monitor.IppetPath())
 
