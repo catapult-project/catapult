@@ -108,9 +108,9 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     # Generate the command line for the perf trybots
     arguments = sys.argv
     if self._target_os == 'win':
-      arguments[0] = 'python tools\\perf\\run_measurement'
+      arguments[0] = 'python tools\\perf\\run_benchmark'
     else:
-      arguments[0] = './tools/perf/run_measurement'
+      arguments[0] = './tools/perf/run_benchmark'
     for index, arg in enumerate(arguments):
       if arg.startswith('--browser='):
         if self._target_os == 'android':
