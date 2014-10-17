@@ -2,10 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Parses the command line, discovers the appropriate tests, and runs them.
+"""Parses the command line, discovers the appropriate benchmarks, and runs them.
 
-Handles test configuration, but all the logic for
-actually running the test is in Test and PageRunner."""
+Handles benchmark configuration, but all the logic for
+actually running the benchmark is in Benchmark and PageRunner."""
 
 import hashlib
 import inspect
@@ -21,9 +21,6 @@ from telemetry.core import command_line
 from telemetry.core import discover
 from telemetry.core import environment
 from telemetry.core import util
-from telemetry.page import page_set
-from telemetry.page import page_test
-from telemetry.page import profile_creator
 from telemetry.util import find_dependencies
 
 
@@ -62,9 +59,9 @@ class Help(command_line.OptparseCommand):
 
 
 class List(command_line.OptparseCommand):
-  """Lists the available tests"""
+  """Lists the available benchmarks"""
 
-  usage = '[test_name] [<options>]'
+  usage = '[benchmark_name] [<options>]'
 
   @classmethod
   def CreateParser(cls):
@@ -80,11 +77,12 @@ class List(command_line.OptparseCommand):
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
     if not args.positional_args:
-      args.tests = _Tests()
+      args.benchmarks = _Benchmarks()
     elif len(args.positional_args) == 1:
-      args.tests = _MatchTestName(args.positional_args[0], exact_matches=False)
+      args.benchmarks = _MatchBenchmarkName(args.positional_args[0],
+                                            exact_matches=False)
     else:
-      parser.error('Must provide at most one test name.')
+      parser.error('Must provide at most one benchmark name.')
 
   def Run(self, args):
     if args.json_output_file:
@@ -96,17 +94,18 @@ class List(command_line.OptparseCommand):
       else:
         possible_reference_browser = None
       with open(args.json_output_file, 'w') as f:
-        f.write(_GetJsonTestList(possible_browser, possible_reference_browser,
-                                 args.tests, args.num_shards))
+        f.write(_GetJsonBenchmarkList(possible_browser,
+                                      possible_reference_browser,
+                                      args.benchmarks, args.num_shards))
     else:
-      _PrintTestList(args.tests)
+      _PrintBenchmarkList(args.benchmarks)
     return 0
 
 
 class Run(command_line.OptparseCommand):
-  """Run one or more tests (default)"""
+  """Run one or more benchmarks (default)"""
 
-  usage = 'test_name [page_set] [<options>]'
+  usage = 'benchmark_name [page_set] [<options>]'
 
   @classmethod
   def CreateParser(cls):
@@ -118,74 +117,56 @@ class Run(command_line.OptparseCommand):
   def AddCommandLineArgs(cls, parser):
     benchmark.AddCommandLineArgs(parser)
 
-    # Allow tests to add their own command line options.
-    matching_tests = []
+    # Allow benchmarks to add their own command line options.
+    matching_benchmarks = []
     for arg in sys.argv[1:]:
-      matching_tests += _MatchTestName(arg)
+      matching_benchmarks += _MatchBenchmarkName(arg)
 
-    if matching_tests:
-      # TODO(dtu): After move to argparse, add command-line args for all tests
-      # to subparser. Using subparsers will avoid duplicate arguments.
-      matching_test = matching_tests.pop()
-      matching_test.AddCommandLineArgs(parser)
-      # The test's options override the defaults!
-      matching_test.SetArgumentDefaults(parser)
+    if matching_benchmarks:
+      # TODO(dtu): After move to argparse, add command-line args for all
+      # benchmarks to subparser. Using subparsers will avoid duplicate
+      # arguments.
+      matching_benchmark = matching_benchmarks.pop()
+      matching_benchmark.AddCommandLineArgs(parser)
+      # The benchmark's options override the defaults!
+      matching_benchmark.SetArgumentDefaults(parser)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
     if not args.positional_args:
-      _PrintTestList(_Tests())
+      _PrintBenchmarkList(_Benchmarks())
       sys.exit(-1)
 
-    input_test_name = args.positional_args[0]
-    matching_tests = _MatchTestName(input_test_name)
-    if not matching_tests:
-      print >> sys.stderr, 'No test named "%s".' % input_test_name
+    input_benchmark_name = args.positional_args[0]
+    matching_benchmarks = _MatchBenchmarkName(input_benchmark_name)
+    if not matching_benchmarks:
+      print >> sys.stderr, 'No benchmark named "%s".' % input_benchmark_name
       print >> sys.stderr
-      _PrintTestList(_Tests())
+      _PrintBenchmarkList(_Benchmarks())
       sys.exit(-1)
 
-    if len(matching_tests) > 1:
-      print >> sys.stderr, 'Multiple tests named "%s".' % input_test_name
+    if len(matching_benchmarks) > 1:
+      print >> sys.stderr, ('Multiple benchmarks named "%s".' %
+                            input_benchmark_name)
       print >> sys.stderr, 'Did you mean one of these?'
       print >> sys.stderr
-      _PrintTestList(matching_tests)
+      _PrintBenchmarkList(matching_benchmarks)
       sys.exit(-1)
 
-    test_class = matching_tests.pop()
-    if issubclass(test_class, page_test.PageTest):
-      if len(args.positional_args) < 2:
-        parser.error('Need to specify a page set for "%s".' % test_class.Name())
-      if len(args.positional_args) > 2:
-        parser.error('Too many arguments.')
-      page_set_name = args.positional_args[1]
-      page_set_class = _MatchPageSetName(page_set_name)
-      if page_set_class is None:
-        parser.error("Page set %s not found. Available sets:\n%s" %
-                     (page_set_name, _AvailablePageSetNamesString()))
+    benchmark_class = matching_benchmarks.pop()
+    if len(args.positional_args) > 1:
+      parser.error('Too many arguments.')
 
-      class TestWrapper(benchmark.Benchmark):
-        test = test_class
-
-        @classmethod
-        def CreatePageSet(cls, options):
-          return page_set_class()
-
-      test_class = TestWrapper
-    else:
-      if len(args.positional_args) > 1:
-        parser.error('Too many arguments.')
-
-    assert issubclass(test_class, benchmark.Benchmark), (
+    assert issubclass(benchmark_class, benchmark.Benchmark), (
         'Trying to run a non-Benchmark?!')
 
     benchmark.ProcessCommandLineArgs(parser, args)
-    test_class.ProcessCommandLineArgs(parser, args)
+    benchmark_class.ProcessCommandLineArgs(parser, args)
 
-    cls._test = test_class
+    cls._benchmark = benchmark_class
 
   def Run(self, args):
-    return min(255, self._test().Run(args))
+    return min(255, self._benchmark().Run(args))
 
 
 def _ScriptName():
@@ -206,42 +187,16 @@ def _MatchingCommands(string):
          if command.Name().startswith(string)]
 
 @decorators.Cache
-def _Tests():
-  tests = []
+def _Benchmarks():
+  benchmarks = []
+  print config
   for base_dir in config.base_paths:
-    tests += discover.DiscoverClasses(base_dir, base_dir, benchmark.Benchmark,
-                                      index_by_class_name=True).values()
-    page_tests = discover.DiscoverClasses(base_dir, base_dir,
-                                          page_test.PageTest,
-                                          index_by_class_name=True).values()
-    tests += [test_class for test_class in page_tests
-              if not issubclass(test_class, profile_creator.ProfileCreator)]
-  return tests
+    benchmarks += discover.DiscoverClasses(base_dir, base_dir,
+                                           benchmark.Benchmark,
+                                           index_by_class_name=True).values()
+  return benchmarks
 
-
-# TODO(ariblue): Use discover.py's abstracted _MatchName class (in pending CL
-# 432543003) and eliminate _MatchPageSetName and _MatchTestName.
-def _MatchPageSetName(input_name):
-  page_sets = []
-  for base_dir in config.base_paths:
-    page_sets += discover.DiscoverClasses(base_dir, base_dir, page_set.PageSet,
-                                          index_by_class_name=True).values()
-  for p in page_sets:
-    if input_name == p.Name():
-      return p
-  return None
-
-
-def _AvailablePageSetNamesString():
-  result = ""
-  for base_dir in config.base_paths:
-    for p in discover.DiscoverClasses(base_dir, base_dir, page_set.PageSet,
-                                      index_by_class_name=True).values():
-      result += p.Name() + "\n"
-  return result
-
-
-def _MatchTestName(input_test_name, exact_matches=True):
+def _MatchBenchmarkName(input_benchmark_name, exact_matches=True):
   def _Matches(input_string, search_string):
     if search_string.startswith(input_string):
       return True
@@ -253,24 +208,25 @@ def _MatchTestName(input_test_name, exact_matches=True):
   # Exact matching.
   if exact_matches:
     # Don't add aliases to search dict, only allow exact matching for them.
-    if input_test_name in config.test_aliases:
-      exact_match = config.test_aliases[input_test_name]
+    if input_benchmark_name in config.benchmark_aliases:
+      exact_match = config.benchmark_aliases[input_benchmark_name]
     else:
-      exact_match = input_test_name
+      exact_match = input_benchmark_name
 
-    for test_class in _Tests():
-      if exact_match == test_class.Name():
-        return [test_class]
+    for benchmark_class in _Benchmarks():
+      if exact_match == benchmark_class.Name():
+        return [benchmark_class]
     return []
 
   # Fuzzy matching.
-  return [test_class for test_class in _Tests()
-          if _Matches(input_test_name, test_class.Name())]
+  return [benchmark_class for benchmark_class in _Benchmarks()
+          if _Matches(input_benchmark_name, benchmark_class.Name())]
 
 
-def _GetJsonTestList(possible_browser, possible_reference_browser,
-                     test_classes, num_shards):
-  """Returns a list of all enabled tests in a JSON format expected by buildbots.
+def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
+                          benchmark_classes, num_shards):
+  """Returns a list of all enabled benchmarks in a JSON format expected by
+  buildbots.
 
   JSON format (see build/android/pylib/perf/benchmark_runner.py):
   { "version": <int>,
@@ -289,21 +245,21 @@ def _GetJsonTestList(possible_browser, possible_reference_browser,
     'steps': {
     }
   }
-  for test_class in test_classes:
-    if not issubclass(test_class, benchmark.Benchmark):
+  for benchmark_class in benchmark_classes:
+    if not issubclass(benchmark_class, benchmark.Benchmark):
       continue
-    if not decorators.IsEnabled(test_class, possible_browser):
+    if not decorators.IsEnabled(benchmark_class, possible_browser):
       continue
 
-    base_name = test_class.Name()
+    base_name = benchmark_class.Name()
     base_cmd = [sys.executable, os.path.realpath(sys.argv[0]),
                 '-v', '--output-format=buildbot', base_name]
     perf_dashboard_id = base_name
     # TODO(tonyg): Currently we set the device affinity to a stable hash of the
-    # test name. This somewhat evenly distributes benchmarks among the requested
-    # number of shards. However, it is far from optimal in terms of cycle time.
-    # We should add a test size decorator (e.g. small, medium, large) and let
-    # that inform sharding.
+    # benchmark name. This somewhat evenly distributes benchmarks among the
+    # requested number of shards. However, it is far from optimal in terms of
+    # cycle time.  We should add a benchmark size decorator (e.g. small, medium,
+    # large) and let that inform sharding.
     device_affinity = int(hashlib.sha1(base_name).hexdigest(), 16) % num_shards
 
     output['steps'][base_name] = {
@@ -313,7 +269,7 @@ def _GetJsonTestList(possible_browser, possible_reference_browser,
       'perf_dashboard_id': perf_dashboard_id,
     }
     if (possible_reference_browser and
-        decorators.IsEnabled(test_class, possible_reference_browser)):
+        decorators.IsEnabled(benchmark_class, possible_reference_browser)):
       output['steps'][base_name + '.reference'] = {
         'cmd': ' '.join(base_cmd + [
               '--browser=reference', '--output-trace-tag=_ref']),
@@ -324,30 +280,21 @@ def _GetJsonTestList(possible_browser, possible_reference_browser,
   return json.dumps(output, indent=2, sort_keys=True)
 
 
-def _PrintTestList(tests):
-  if not tests:
-    print >> sys.stderr, 'No tests found!'
+def _PrintBenchmarkList(benchmarks):
+  if not benchmarks:
+    print >> sys.stderr, 'No benchmarks found!'
     return
 
-  # Align the test names to the longest one.
-  format_string = '  %%-%ds %%s' % max(len(t.Name()) for t in tests)
+  # Align the benchmark names to the longest one.
+  format_string = '  %%-%ds %%s' % max(len(b.Name()) for b in benchmarks)
 
-  filtered_tests = [test_class for test_class in tests
-                    if issubclass(test_class, benchmark.Benchmark)]
-  if filtered_tests:
-    print >> sys.stderr, 'Available tests are:'
-    for test_class in sorted(filtered_tests, key=lambda t: t.Name()):
+  filtered_benchmarks = [benchmark_class for benchmark_class in benchmarks
+                    if issubclass(benchmark_class, benchmark.Benchmark)]
+  if filtered_benchmarks:
+    print >> sys.stderr, 'Available benchmarks are:'
+    for benchmark_class in sorted(filtered_benchmarks, key=lambda b: b.Name()):
       print >> sys.stderr, format_string % (
-          test_class.Name(), test_class.Description())
-    print >> sys.stderr
-
-  filtered_tests = [test_class for test_class in tests
-                    if issubclass(test_class, page_test.PageTest)]
-  if filtered_tests:
-    print >> sys.stderr, 'Available page tests are:'
-    for test_class in sorted(filtered_tests, key=lambda t: t.Name()):
-      print >> sys.stderr, format_string % (
-          test_class.Name(), test_class.Description())
+          benchmark_class.Name(), benchmark_class.Description())
     print >> sys.stderr
 
 
