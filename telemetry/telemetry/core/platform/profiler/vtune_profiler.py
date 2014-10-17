@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 
+from telemetry.core import exceptions
 from telemetry.core.platform import profiler
 from telemetry.core.platform.profiler import android_profiling_helper
 
@@ -30,11 +31,13 @@ class _SingleProcessVTuneProfiler(object):
         cmd, stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
 
   def CollectProfile(self):
-    if ('renderer' in self._output_file and
-        not self._platform_backend.GetCommandLine(self._pid)):
-      logging.warning('Renderer was swapped out during profiling. '
-                      'To collect a full profile rerun with '
-                      '"--extra-browser-args=--single-process"')
+    if 'renderer' in self._output_file:
+      try:
+        self._platform_backend.GetCommandLine(self._pid)
+      except exceptions.ProcessGoneException:
+        logging.warning('Renderer was swapped out during profiling. '
+                        'To collect a full profile rerun with '
+                        '"--extra-browser-args=--single-process"')
     subprocess.call(['amplxe-cl', '-command', 'stop', '-r', self._output_file])
 
     exit_code = self._proc.wait()
