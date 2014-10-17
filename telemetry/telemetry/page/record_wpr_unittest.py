@@ -145,7 +145,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
 
   @decorators.Disabled('chromeos') # crbug.com/404868.
   def testWprRecorderWithPageSet(self):
-    flags = []
+    flags = ['--browser', self._browser.browser_type]
     mock_page_set = MockPageSet(url=self._url)
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir,
                                           mock_page_set, flags)
@@ -154,7 +154,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     self.assertEqual(set(mock_page_set.pages), results.pages_that_succeeded)
 
   def testWprRecorderWithBenchmark(self):
-    flags = ['--mock-benchmark-url', self._url]
+    flags = ['--mock-benchmark-url', self._url,
+             '--browser', self._browser.browser_type]
     mock_benchmark = MockBenchmark()
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, mock_benchmark,
                                           flags)
