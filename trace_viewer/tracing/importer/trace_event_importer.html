@@ -647,10 +647,10 @@ tv.exportTo('tracing.importer', function() {
               eventStateEntry.finished === undefined) {
             continue;
           }
-          var startState;
-          var endState;
-          var sliceArgs;
-          var sliceError;
+          var startState = undefined;
+          var endState = undefined;
+          var sliceArgs = undefined;
+          var sliceError = undefined;
           if (eventStateEntry.event.ph === 'n') {
             startState = eventStateEntry;
             endState = eventStateEntry;
