@@ -172,6 +172,8 @@ class WprRecorder(object):
     return ps
 
   def Record(self, results):
+    assert self._page_set.wpr_archive_info, (
+      'Pageset archive_data_file path must be specified.')
     self._page_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
     page_runner.Run(self._record_page_test, self._page_set,
