@@ -10,6 +10,7 @@ from telemetry.core import util
 from telemetry.results import buildbot_output_formatter
 from telemetry.results import chart_json_output_formatter
 from telemetry.results import csv_output_formatter
+from telemetry.results import csv_pivot_table_output_formatter
 from telemetry.results import gtest_progress_reporter
 from telemetry.results import html_output_formatter
 from telemetry.results import json_output_formatter
@@ -18,7 +19,7 @@ from telemetry.results import progress_reporter
 
 # Allowed output formats. The default is the first item in the list.
 _OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'block', 'csv', 'gtest', 'json',
-    'chartjson', 'none')
+    'chartjson', 'csv-pivot-table', 'none')
 
 
 def AddResultsOptions(parser):
@@ -35,7 +36,8 @@ def AddResultsOptions(parser):
                     help='Redirects output to a file. Defaults to stdout.')
   group.add_option('--output-trace-tag',
                     default='',
-                    help='Append a tag to the key of each result trace.')
+                    help='Append a tag to the key of each result trace. Use '
+                    'with html, buildbot, csv-pivot-table output formats.')
   group.add_option('--reset-results', action='store_true',
                     help='Delete all stored results.')
   group.add_option('--upload-results', action='store_true',
@@ -97,6 +99,10 @@ def CreateResults(benchmark_metadata, options):
     if output_format == 'csv':
       output_formatters.append(csv_output_formatter.CsvOutputFormatter(
           output_stream))
+    elif output_format == 'csv-pivot-table':
+      output_formatters.append(
+          csv_pivot_table_output_formatter.CsvPivotTableOutputFormatter(
+              output_stream, trace_tag=options.output_trace_tag))
     elif output_format == 'buildbot':
       output_formatters.append(
           buildbot_output_formatter.BuildbotOutputFormatter(
