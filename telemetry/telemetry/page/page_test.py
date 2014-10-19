@@ -133,7 +133,7 @@ class PageTest(command_line.Command):
   def attempts(self):
     """Maximum number of times test will be attempted."""
     # Do NOT override this method (crbug.com/422339).
-    return 3
+    return 1
 
   @property
   def max_failures(self):
