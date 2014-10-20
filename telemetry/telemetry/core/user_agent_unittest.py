@@ -6,7 +6,16 @@ from telemetry.core import user_agent
 from telemetry.unittest import tab_test_case
 
 
-class UserAgentTest(tab_test_case.TabTestCase):
+class MobileUserAgentTest(tab_test_case.TabTestCase):
+  @classmethod
+  def CustomizeBrowserOptions(cls, options):
+    options.browser_user_agent_type = 'mobile'
+
+  def testUserAgent(self):
+    ua = self._tab.EvaluateJavaScript('window.navigator.userAgent')
+    self.assertEquals(ua, user_agent.UA_TYPE_MAPPING['mobile'])
+
+class TabletUserAgentTest(tab_test_case.TabTestCase):
   @classmethod
   def CustomizeBrowserOptions(cls, options):
     options.browser_user_agent_type = 'tablet'
@@ -14,3 +23,12 @@ class UserAgentTest(tab_test_case.TabTestCase):
   def testUserAgent(self):
     ua = self._tab.EvaluateJavaScript('window.navigator.userAgent')
     self.assertEquals(ua, user_agent.UA_TYPE_MAPPING['tablet'])
+
+class DesktopUserAgentTest(tab_test_case.TabTestCase):
+  @classmethod
+  def CustomizeBrowserOptions(cls, options):
+    options.browser_user_agent_type = 'desktop'
+
+  def testUserAgent(self):
+    ua = self._tab.EvaluateJavaScript('window.navigator.userAgent')
+    self.assertEquals(ua, user_agent.UA_TYPE_MAPPING['desktop'])
