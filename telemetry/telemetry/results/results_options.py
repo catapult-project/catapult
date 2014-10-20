@@ -18,8 +18,18 @@ from telemetry.results import page_test_results
 from telemetry.results import progress_reporter
 
 # Allowed output formats. The default is the first item in the list.
-_OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'block', 'csv', 'gtest', 'json',
+_OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'csv', 'gtest', 'json',
     'chartjson', 'csv-pivot-table', 'none')
+
+
+# Filenames to use for given output formats.
+_OUTPUT_FILENAME_LOOKUP = {
+    'html': 'results.html',
+    'csv': 'results.csv',
+    'json': 'results.json',
+    'chartjson': 'results-chart.json',
+    'csv-pivot-table': 'results-pivot-table.csv'
+}
 
 
 def AddResultsOptions(parser):
@@ -34,6 +44,8 @@ def AddResultsOptions(parser):
                     dest='output_file',
                     default=None,
                     help='Redirects output to a file. Defaults to stdout.')
+  group.add_option('--output-dir', default=util.GetBaseDir(),
+                    help='Where to save output data after the run.')
   group.add_option('--output-trace-tag',
                     default='',
                     help='Append a tag to the key of each result trace. Use '
@@ -51,17 +63,33 @@ def AddResultsOptions(parser):
   parser.add_option_group(group)
 
 
-def _GetOutputStream(output_format, output_file):
+def ProcessCommandLineArgs(parser, args):
+  # TODO(ariblue): Delete this flag entirely at some future data, when the
+  # existence of such a flag has been long forgotten.
+  if args.output_file:
+    parser.error('This flag is deprecated. Please use --output-dir instead.')
+
+  try:
+    os.makedirs(args.output_dir)
+  except OSError:
+    # Do nothing if the output directory already exists. Existing files will
+    # get overwritten.
+    pass
+
+  args.output_dir = os.path.expanduser(args.output_dir)
+
+
+def _GetOutputStream(output_format, output_dir):
   assert output_format in _OUTPUT_FORMAT_CHOICES, 'Must specify a valid format.'
   assert output_format not in ('gtest', 'none'), (
       'Cannot set stream for \'gtest\' or \'none\' output formats.')
 
-  if output_file is None:
-    if output_format != 'html' and output_format != 'json':
-      return sys.stdout
-    output_file = os.path.join(util.GetBaseDir(), 'results.' + output_format)
+  if output_format == 'buildbot':
+    return sys.stdout
 
-  output_file = os.path.expanduser(output_file)
+  assert output_format in _OUTPUT_FILENAME_LOOKUP, (
+      'No known filename for the \'%s\' output format' % output_format)
+  output_file = os.path.join(output_dir, _OUTPUT_FILENAME_LOOKUP[output_format])
   open(output_file, 'a').close()  # Create file if it doesn't exist.
   return open(output_file, 'r+')
 
@@ -82,20 +110,12 @@ def CreateResults(benchmark_metadata, options):
   if not options.output_formats:
     options.output_formats = [_OUTPUT_FORMAT_CHOICES[0]]
 
-  # TODO(chrishenry): It doesn't make sense to have a single output_file flag
-  # with multiple output formatters. We should explore other possible options:
-  #   - Have an output_file per output formatter
-  #   - Have --output-dir instead of --output-file
-  if len(options.output_formats) != 1 and options.output_file:
-    raise Exception('Cannot specify output_file flag with multiple output '
-                    'formats.')
-
   output_formatters = []
   for output_format in options.output_formats:
     if output_format == 'none' or output_format == "gtest" or options.chartjson:
       continue
 
-    output_stream = _GetOutputStream(output_format, options.output_file)
+    output_stream = _GetOutputStream(output_format, options.output_dir)
     if output_format == 'csv':
       output_formatters.append(csv_output_formatter.CsvOutputFormatter(
           output_stream))

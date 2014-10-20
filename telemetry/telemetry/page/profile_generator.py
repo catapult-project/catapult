@@ -110,9 +110,6 @@ def AddCommandLineArgs(parser):
       default=None,
       help='Type of profile to generate. '
            'Supported values: %s' % legal_profile_creators)
-  group.add_option('--output-dir',
-      dest='output_dir',
-      help='Generated profile is placed in this directory.')
   parser.add_option_group(group)
 
 

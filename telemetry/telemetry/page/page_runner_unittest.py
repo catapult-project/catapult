@@ -6,6 +6,8 @@ import logging
 import os
 import tempfile
 import unittest
+import StringIO
+import sys
 
 from telemetry import benchmark
 from telemetry import decorators
@@ -284,36 +286,31 @@ class PageRunnerTests(unittest.TestCase):
         results.AddValue(scalar.ScalarValue(
             page, 'metric', 'unit', self.i))
 
-    output_file = tempfile.NamedTemporaryFile(delete=False).name
-    try:
-      options = options_for_unittests.GetCopy()
-      options.output_formats = ['buildbot']
-      options.output_file = output_file
-      options.suppress_gtest_report = True
-      options.reset_results = None
-      options.upload_results = None
-      options.results_label = None
+    options = options_for_unittests.GetCopy()
+    options.output_formats = ['buildbot']
+    options.suppress_gtest_report = True
+    options.reset_results = None
+    options.upload_results = None
+    options.results_label = None
+    options.page_repeat = 1
+    options.pageset_repeat = 2
+    SetUpPageRunnerArguments(options)
 
-      options.page_repeat = 1
-      options.pageset_repeat = 2
-      SetUpPageRunnerArguments(options)
+    output = StringIO.StringIO()
+    real_stdout = sys.stdout
+    sys.stdout = output
+    try:
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
       page_runner.Run(Measurement(), ps, expectations, options, results)
       results.PrintSummary()
+      contents = output.getvalue()
       self.assertEquals(4, len(GetSuccessfulPageRuns(results)))
       self.assertEquals(0, len(results.failures))
-      with open(output_file) as f:
-        stdout = f.read()
-      self.assertIn('RESULT metric: blank.html= [1,3] unit', stdout)
-      self.assertIn('RESULT metric: green_rect.html= [2,4] unit', stdout)
-      self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', stdout)
+      self.assertIn('RESULT metric: blank.html= [1,3] unit', contents)
+      self.assertIn('RESULT metric: green_rect.html= [2,4] unit', contents)
+      self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', contents)
     finally:
-      # TODO(chrishenry): This is a HACK!!1 Really, the right way to
-      # do this is for page_runner (or output formatter) to close any
-      # files it has opened.
-      for formatter in results._output_formatters:  # pylint: disable=W0212
-        formatter.output_stream.close()
-      os.remove(output_file)
+      sys.stdout = real_stdout
 
   def testCredentialsWhenLoginFails(self):
     self.SuppressExceptionFormatting()
