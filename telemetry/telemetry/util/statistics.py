@@ -262,10 +262,7 @@ def Total(data):
 
 def DivideIfPossibleOrZero(numerator, denominator):
   """Returns the quotient, or zero if the denominator is zero."""
-  if not denominator:
-    return 0.0
-  else:
-    return numerator / denominator
+  return (float(numerator) / float(denominator)) if denominator else 0
 
 
 def GeneralizedMean(values, exponent):
