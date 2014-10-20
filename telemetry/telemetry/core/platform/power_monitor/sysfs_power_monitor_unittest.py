@@ -5,6 +5,7 @@
 import unittest
 
 from telemetry.core.platform.power_monitor import sysfs_power_monitor
+from telemetry.core.platform import android_platform_backend
 
 
 class SysfsPowerMonitorMonitorTest(unittest.TestCase):
@@ -193,3 +194,34 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
       for freq in results[cpu]:
         self.assertAlmostEqual(results[cpu][freq],
                                self.expected_freq_percents[cpu][freq])
+
+  def testGetCpuStateForAndroidDevices(self):
+    class PlatformStub(object):
+      def __init__(self, run_command_return_value):
+        self._run_command_return_value = run_command_return_value
+      def RunCommand(self, _cmd):
+        return self._run_command_return_value
+
+    cpu_state_from_samsung_note3 = (
+        "C0\n\nC1\n\nC2\n\nC3\n\n"
+        "53658520886\n1809072\n7073\n1722554\n"
+        "1\n35\n300\n500\n"
+        "1412949256\n")
+    expected_cstate_dict = {
+      'C0': 1412895593940415,
+      'C1': 1809072,
+      'C2': 7073,
+      'C3': 1722554,
+      'WFI': 53658520886
+    }
+    cpus = ["cpu%d" % cpu for cpu in range(2)]
+    expected_result = dict(zip(cpus, [expected_cstate_dict]*len(cpus)))
+
+    sysfsmon = sysfs_power_monitor.SysfsPowerMonitor(
+      PlatformStub(cpu_state_from_samsung_note3))
+    # pylint: disable=W0212
+    sysfsmon._cpus = cpus
+    cstate = sysfsmon.GetCpuState()
+    result = android_platform_backend.AndroidPlatformBackend.ParseCStateSample(
+        cstate)
+    self.assertDictEqual(expected_result, result)

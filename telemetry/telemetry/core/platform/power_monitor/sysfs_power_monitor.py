@@ -89,10 +89,12 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     stats = {}
     for cpu in self._cpus:
       cpu_state_path = os.path.join(CPU_PATH, cpu, 'cpuidle/state*')
-      stats[cpu] = self._platform.RunCommand(
-          'cat %s %s %s; date +%%s' % (os.path.join(cpu_state_path, 'name'),
-          os.path.join(cpu_state_path, 'time'),
-          os.path.join(cpu_state_path, 'latency')))
+      output = self._platform.RunCommand(
+          'cat %s %s %s; date +%%s' % (
+              os.path.join(cpu_state_path, 'name'),
+              os.path.join(cpu_state_path, 'time'),
+              os.path.join(cpu_state_path, 'latency')))
+      stats[cpu] = re.sub('\n\n+', '\n', output)
     return stats
 
   def GetCpuFreq(self):
