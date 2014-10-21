@@ -22,7 +22,10 @@ tv.exportTo('tracing.test_utils', function() {
   }
 
   function newAsyncSliceNamed(name, start, duration, startThread, endThread) {
-    var s = new tracing.trace_model.AsyncSlice('', name, 0, start);
+    var asyncSliceConstructor =
+        tracing.trace_model.AsyncSlice.getConstructor(name);
+
+    var s = new asyncSliceConstructor('', name, 0, start);
     s.duration = duration;
     s.startThread = startThread;
     s.endThread = endThread;

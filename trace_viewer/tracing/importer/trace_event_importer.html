@@ -700,7 +700,11 @@ tv.exportTo('tracing.importer', function() {
             endState = eventStateEntry;
             sliceArgs = eventStateEntry.event.args;
           }
-          var slice = new tracing.trace_model.AsyncSlice(
+
+          var asyncSliceConstructor =
+             tracing.trace_model.AsyncSlice.getConstructor(
+                eventStateEntry.event.name);
+          var slice = new asyncSliceConstructor(
               eventStateEntry.event.cat,
               eventStateEntry.event.name,
               tv.ui.getStringColorId(eventStateEntry.event.name),
@@ -804,7 +808,10 @@ tv.exportTo('tracing.importer', function() {
 
           if (event.ph === 'F') {
             // Create a slice from start to end.
-            var slice = new tracing.trace_model.AsyncSlice(
+            var asyncSliceConstructor =
+               tracing.trace_model.AsyncSlice.getConstructor(
+                  name);
+            var slice = new asyncSliceConstructor(
                 events[0].event.cat,
                 name,
                 tv.ui.getStringColorId(name),
@@ -839,7 +846,10 @@ tv.exportTo('tracing.importer', function() {
               if (targetEvent.event.ph == 'T' || targetEvent.event.ph == 'p')
                 subName = subName + ':' + targetEvent.event.args.step;
 
-              var subSlice = new tracing.trace_model.AsyncSlice(
+              var asyncSliceConstructor =
+                 tracing.trace_model.AsyncSlice.getConstructor(
+                    subName);
+              var subSlice = new asyncSliceConstructor(
                   events[0].event.cat,
                   subName,
                   tv.ui.getStringColorId(subName + j),

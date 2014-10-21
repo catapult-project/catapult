@@ -53,7 +53,10 @@ tv.exportTo('tracing.importer.linux_perf', function() {
     openAsyncSlice: function(ts, category, threadName, pid, key, name) {
       var kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
-      var slice = new tracing.trace_model.AsyncSlice(
+      var asyncSliceConstructor =
+         tracing.trace_model.AsyncSlice.getConstructor(
+            name);
+      var slice = new asyncSliceConstructor(
           category, name, tv.ui.getStringColorId(name), ts);
       slice.startThread = kthread.thread;
 

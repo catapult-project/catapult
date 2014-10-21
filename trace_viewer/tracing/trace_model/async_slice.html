@@ -57,6 +57,8 @@ tv.exportTo('tracing.trace_model', function() {
     }
   };
 
+  tracing.trace_model.Event.decorateSubtype(AsyncSlice);
+
   return {
     AsyncSlice: AsyncSlice
   };
