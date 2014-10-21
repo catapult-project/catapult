@@ -26,7 +26,7 @@ tv.exportTo('tracing.trace_model', function() {
     this.slices = [];
     this.bounds = new tv.Range();
     this.name_ = opt_name;
-    this.titleSubGroups_ = undefined;
+    this.viewSubGroups_ = undefined;
   }
 
   AsyncSliceGroup.prototype = {
@@ -105,8 +105,8 @@ tv.exportTo('tracing.trace_model', function() {
      * @return {Array} An array of AsyncSliceGroups where each group has
      * slices that started on the same thread.
      */
-    get titleSubGroups() {
-      if (this.titleSubGroups_ === undefined) {
+    get viewSubGroups() {
+      if (this.viewSubGroups_ === undefined) {
         var prefix = '';
         if (this.name !== undefined)
           prefix = this.name + '.';
@@ -116,15 +116,16 @@ tv.exportTo('tracing.trace_model', function() {
         var subGroupsByTitle = {};
         for (var i = 0; i < this.slices.length; ++i) {
           var slice = this.slices[i];
-          if (!subGroupsByTitle[slice.title]) {
-            subGroupsByTitle[slice.title] = new AsyncSliceGroup(
-                this.parentThread_, prefix + slice.title);
+          var subGroupTitle = slice.viewSubGroupTitle;
+          if (!subGroupsByTitle[subGroupTitle]) {
+            subGroupsByTitle[subGroupTitle] = new AsyncSliceGroup(
+                this.parentThread_, prefix + subGroupTitle);
           }
-          subGroupsByTitle[slice.title].slices.push(slice);
+          subGroupsByTitle[subGroupTitle].slices.push(slice);
         }
-        this.titleSubGroups_ = tv.dictionaryValues(subGroupsByTitle);
+        this.viewSubGroups_ = tv.dictionaryValues(subGroupsByTitle);
       }
-      return this.titleSubGroups_;
+      return this.viewSubGroups_;
     },
 
     iterateAllEvents: function(callback, opt_this) {

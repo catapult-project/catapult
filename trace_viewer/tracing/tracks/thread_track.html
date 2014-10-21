@@ -81,10 +81,10 @@ tv.exportTo('tracing.tracks', function() {
     },
 
     appendAsyncSliceTracks_: function() {
-      var subGroups = this.thread_.asyncSliceGroup.titleSubGroups;
+      var subGroups = this.thread_.asyncSliceGroup.viewSubGroups;
       subGroups.forEach(function(subGroup) {
         var asyncTrack = new tracing.tracks.AsyncSliceGroupTrack(this.viewport);
-        var title = subGroup.slices[0].title;
+        var title = subGroup.slices[0].viewSubGroupTitle;
         asyncTrack.group = subGroup;
         asyncTrack.heading = title;
         if (asyncTrack.hasVisibleContent)

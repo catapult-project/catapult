@@ -271,7 +271,7 @@ tv.exportTo('tracing.trace_model', function() {
       cb(this);
       if (this.sliceGroup.length)
         cb(this.sliceGroup);
-      this.asyncSliceGroup.titleSubGroups.forEach(cb);
+      this.asyncSliceGroup.viewSubGroups.forEach(cb);
     },
 
     get samples() {

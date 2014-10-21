@@ -50,7 +50,11 @@ tv.exportTo('tracing.trace_model', function() {
 
     endThread: undefined,
 
-    subSlices: undefined
+    subSlices: undefined,
+
+    get viewSubGroupTitle() {
+      return this.title;
+    }
   };
 
   return {
