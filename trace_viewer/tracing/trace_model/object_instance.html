@@ -169,22 +169,7 @@ tv.exportTo('tracing.trace_model', function() {
     }
   };
 
-  ObjectInstance.nameToConstructorMap_ = {};
-  ObjectInstance.register = function(name, constructor) {
-    if (ObjectInstance.nameToConstructorMap_[name])
-      throw new Error('Constructor already registered for ' + name);
-    ObjectInstance.nameToConstructorMap_[name] = constructor;
-  };
-
-  ObjectInstance.unregister = function(name) {
-    delete ObjectInstance.nameToConstructorMap_[name];
-  };
-
-  ObjectInstance.getConstructor = function(name) {
-    if (ObjectInstance.nameToConstructorMap_[name])
-      return ObjectInstance.nameToConstructorMap_[name];
-    return ObjectInstance;
-  };
+  tracing.trace_model.Event.decorateSubtype(ObjectInstance);
 
   return {
     ObjectInstance: ObjectInstance

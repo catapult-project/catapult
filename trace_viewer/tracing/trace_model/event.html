@@ -46,6 +46,31 @@ tv.exportTo('tracing.trace_model', function() {
     }
   };
 
+  Event.decorateSubtype = function(baseConstructor) {
+    if (baseConstructor.register !== undefined ||
+        baseConstructor.unregister !== undefined ||
+        baseConstructor.getConstructor !== undefined) {
+      throw new Error('Already decorated: ' + baseConstructor);
+    }
+
+    baseConstructor.nameToConstructorMap_ = {};
+    baseConstructor.register = function(name, constructor) {
+      if (baseConstructor.nameToConstructorMap_[name])
+        throw new Error('Constructor already registered for ' + name);
+      baseConstructor.nameToConstructorMap_[name] = constructor;
+    };
+
+    baseConstructor.unregister = function(name) {
+      delete baseConstructor.nameToConstructorMap_[name];
+    };
+
+    baseConstructor.getConstructor = function(name) {
+      if (baseConstructor.nameToConstructorMap_[name])
+        return baseConstructor.nameToConstructorMap_[name];
+      return baseConstructor;
+    };
+  };
+
   return {
     Event: Event,
     SelectionState: SelectionState
