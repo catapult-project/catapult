@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/net.html">
+<link rel="import" href="/tracing/trace_model.html">
+<link rel="import" href="/tracing/importer/trace_event_importer.html">
+<script>
+'use strict';
+
+tv.unittest.testSuite(function() {
+  var AsyncSlice = tracing.trace_model.AsyncSlice;
+
+  test('basic', function() {
+    var s = new net.NetAsyncSlice('netlog', 'HTTP_STREAM_JOB', 7, 0, {});
+    s.duration = 100;
+
+    assertEquals(net.NetAsyncSlice,
+                 AsyncSlice.getConstructor('netlog', 'HTTP_STREAM_JOB'));
+    assertEquals('NetLog', s.viewSubGroupTitle);
+  });
+
+  test('import', function() {
+    var events = [
+      {name: 'HTTP_STREAM_JOB', args: {}, pid: 1, ts: 100, cat: 'netlog', tid: 2,
+        ph: 'b', id: 71},
+      {name: 'HTTP_STREAM_JOB', args: {}, pid: 1, ts: 200, cat: 'netlog', tid: 2,
+        ph: 'e', id: 71}
+    ];
+    var m = new tracing.TraceModel(events);
+    var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    assertEquals(1, t2.asyncSliceGroup.length);
+    assertTrue(t2.asyncSliceGroup.slices[0] instanceof net.NetAsyncSlice);
+  });
+});
+</script>
