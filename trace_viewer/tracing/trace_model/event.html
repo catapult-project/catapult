@@ -25,6 +25,27 @@ tv.exportTo('tracing.trace_model', function() {
     DIMMED: 3
   };
 
+  // Cached values for getCategoryParts.
+  var categoryPartsFor = {};
+
+  /**
+   * Categories are stored in comma-separated form, e.g: 'a,b' meaning
+   * that the event is part of the a and b category.
+   *
+   * This function returns the category split by string, caching the
+   * array for performance.
+   *
+   * Do not mutate the returned array!!!!
+   */
+  function getCategoryParts(category) {
+    var parts = categoryPartsFor[category];
+    if (parts !== undefined)
+      return parts;
+    parts = category.split(',');
+    categoryPartsFor[category] = parts;
+    return parts;
+  }
+
   /**
    * An Event is the base type for any non-container, selectable piece
    * of data in the trace model.
@@ -53,7 +74,9 @@ tv.exportTo('tracing.trace_model', function() {
       throw new Error('Already decorated: ' + baseConstructor);
     }
 
+    baseConstructor.categoryToConstructorMap_ = {};
     baseConstructor.nameToConstructorMap_ = {};
+
     baseConstructor.register = function(name, constructor) {
       if (baseConstructor.nameToConstructorMap_[name])
         throw new Error('Constructor already registered for ' + name);
@@ -64,7 +87,22 @@ tv.exportTo('tracing.trace_model', function() {
       delete baseConstructor.nameToConstructorMap_[name];
     };
 
-    baseConstructor.getConstructor = function(name) {
+    baseConstructor.registerCategory = function(category, constructor) {
+      if (baseConstructor.categoryToConstructorMap_[category])
+        throw new Error('Constructor already registered for ' + category);
+      baseConstructor.categoryToConstructorMap_[category] = constructor;
+    };
+    baseConstructor.unregisterCategory = function(category, constructor) {
+      delete baseConstructor.categoryToConstructorMap_[category];
+    };
+
+    baseConstructor.getConstructor = function(category, name) {
+      var categoryParts = getCategoryParts(category);
+      for (var i = 0; i < categoryParts.length; i++) {
+        var categoryPart = categoryParts[i];
+        if (baseConstructor.categoryToConstructorMap_[categoryPart])
+          return baseConstructor.categoryToConstructorMap_[categoryPart];
+      }
       if (baseConstructor.nameToConstructorMap_[name])
         return baseConstructor.nameToConstructorMap_[name];
       return baseConstructor;

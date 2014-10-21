@@ -39,7 +39,8 @@ tv.exportTo('tracing.trace_model', function() {
 
     createObjectInstance_: function(
         parent, id, category, name, creationTs, opt_baseTypeName) {
-      var constructor = tracing.trace_model.ObjectInstance.getConstructor(name);
+      var constructor = tracing.trace_model.ObjectInstance.getConstructor(
+          category, name);
       var instance = new constructor(
           parent, id, category, name, creationTs, opt_baseTypeName);
       var typeName = instance.typeName;

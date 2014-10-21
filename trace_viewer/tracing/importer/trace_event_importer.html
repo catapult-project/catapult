@@ -703,6 +703,7 @@ tv.exportTo('tracing.importer', function() {
 
           var asyncSliceConstructor =
              tracing.trace_model.AsyncSlice.getConstructor(
+                eventStateEntry.event.cat,
                 eventStateEntry.event.name);
           var slice = new asyncSliceConstructor(
               eventStateEntry.event.cat,
@@ -810,6 +811,7 @@ tv.exportTo('tracing.importer', function() {
             // Create a slice from start to end.
             var asyncSliceConstructor =
                tracing.trace_model.AsyncSlice.getConstructor(
+                  events[0].event.cat,
                   name);
             var slice = new asyncSliceConstructor(
                 events[0].event.cat,
@@ -848,6 +850,7 @@ tv.exportTo('tracing.importer', function() {
 
               var asyncSliceConstructor =
                  tracing.trace_model.AsyncSlice.getConstructor(
+                    events[0].event.cat,
                     subName);
               var subSlice = new asyncSliceConstructor(
                   events[0].event.cat,
