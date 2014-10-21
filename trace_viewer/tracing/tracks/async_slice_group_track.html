@@ -64,6 +64,27 @@ tv.exportTo('tracing.tracks', function() {
         return x.start - y.start;
       });
 
+      // Helper function that returns true if it can put the slice on row n.
+      var findLevel = function(sliceToPut, rows, n) {
+        if (n >= rows.length)
+          return true; // We always can make empty rows to put the slice.
+        var subRow = rows[n];
+        var lastSliceInSubRow = subRow[subRow.length - 1];
+        if (sliceToPut.start >= lastSliceInSubRow.end) {
+          if (sliceToPut.subSlices === undefined ||
+              sliceToPut.subSlices.length === 0) {
+            return true;
+          }
+          // Make sure nested sub slices can be fitted in as well.
+          for (var i = 0; i < sliceToPut.subSlices.length; i++) {
+            if (!findLevel(sliceToPut.subSlices[i], rows, n + 1))
+              return false;
+          }
+          return true;
+        }
+        return false;
+      }
+
       var subRows = [];
       for (var i = 0; i < slices.length; i++) {
         var slice = slices[i];
@@ -71,9 +92,7 @@ tv.exportTo('tracing.tracks', function() {
         var found = false;
         var index = subRows.length;
         for (var j = 0; j < subRows.length; j++) {
-          var subRow = subRows[j];
-          var lastSliceInSubRow = subRow[subRow.length - 1];
-          if (slice.start >= lastSliceInSubRow.end) {
+          if (findLevel(slice, subRows, j)) {
             found = true;
             index = j;
             break;
