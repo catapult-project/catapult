@@ -130,6 +130,76 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals(g.slices[1], subRows[1][0]);
     assertEquals(g.slices[2], subRows[0][1]);
   });
+
+  // Tests that no slices and their sub slices overlap.
+  test('rebuildSubRows_NonOverlappingSubSlices', function() {
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
+    var t1 = new Thread(p1, 1);
+    var g = new AsyncSliceGroup(t1);
+
+    var slice1 = newAsyncSlice(0, 5, t1, t1);
+    var slice1Child = newAsyncSlice(1, 2, t1, t1);
+    slice1.subSlices = [slice1Child];
+    var slice2 = newAsyncSlice(3, 5, t1, t1);
+    var slice3 = newAsyncSlice(5, 4, t1, t1);
+    var slice3Child = newAsyncSlice(6, 2, t1, t1);
+    slice3.subSlices = [slice3Child];
+    g.push(slice1);
+    g.push(slice2);
+    g.push(slice3);
+    g.updateBounds();
+
+    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
+    track.group = g;
+
+    var subRows = track.subRows;
+    // Checks each sub row to see that we don't have any overlapping slices.
+    for (var i = 0; i < subRows.length; i++) {
+      var row = subRows[i];
+      for (var j = 0; j < row.length; j++) {
+        for (var k = j + 1; k < row.length; k++) {
+          assertTrue(row[j].end <= row[k].start);
+        }
+      }
+    }
+  });
+
+  test('rebuildSubRows_NonOverlappingSubSlicesThreeNestedLevels', function() {
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
+    var t1 = new Thread(p1, 1);
+    var g = new AsyncSliceGroup(t1);
+
+    var slice1 = newAsyncSlice(0, 4, t1, t1);
+    var slice1Child = newAsyncSlice(1, 2, t1, t1);
+    slice1.subSlices = [slice1Child];
+    var slice2 = newAsyncSlice(2, 7, t1, t1);
+    var slice3 = newAsyncSlice(5, 5, t1, t1);
+    var slice3Child = newAsyncSlice(6, 3, t1, t1);
+    var slice3Child2 = newAsyncSlice(7, 1, t1, t1);
+    slice3.subSlices = [slice3Child];
+    slice3Child.subSlices = [slice3Child2];
+    g.push(slice1);
+    g.push(slice2);
+    g.push(slice3);
+    g.updateBounds();
+
+    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
+    track.group = g;
+
+    var subRows = track.subRows;
+    // Checks each sub row to see that we don't have any overlapping slices.
+    for (var i = 0; i < subRows.length; i++) {
+      var row = subRows[i];
+      for (var j = 0; j < row.length; j++) {
+        for (var k = j + 1; k < row.length; k++) {
+          assertTrue(row[j].end <= row[k].start);
+        }
+      }
+    }
+  });
+
 });
 </script>
 
