@@ -189,7 +189,6 @@ def _MatchingCommands(string):
 @decorators.Cache
 def _Benchmarks():
   benchmarks = []
-  print config
   for base_dir in config.base_paths:
     benchmarks += discover.DiscoverClasses(base_dir, base_dir,
                                            benchmark.Benchmark,
