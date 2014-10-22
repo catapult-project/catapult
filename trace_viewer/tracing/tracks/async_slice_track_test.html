@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/timeline_track_view.html">
+<link rel="import" href="/tracing/trace_model/async_slice.html">
+<link rel="import" href="/tracing/tracks/async_slice_track.html">
+
+<script>
+'use strict';
+
+tv.unittest.testSuite(function() {
+  var AsyncSliceTrack = tracing.tracks.AsyncSliceTrack;
+  var Slice = tracing.trace_model.AsyncSlice;
+
+  test('setRectExposeURLBasic', function() {
+    var track = new AsyncSliceTrack(new tracing.TimelineViewport());
+    var slice = new Slice('', 'a', 0, 1, {params: {url: "https://google.com"}});
+    slice.isTopLevel = true;
+    track.slices = [slice];
+    assertEquals(1, track.slices.length);
+    assertEquals("https://google.com", track.slices[0].title);
+  });
+
+  test('setRectExposeURLNested', function() {
+    var track = new AsyncSliceTrack(new tracing.TimelineViewport());
+    var slice = new Slice('', 'a', 0, 1, {params: {}});
+    slice.isTopLevel = true;
+    var childSlice = new Slice('', 'b', 0, 1,
+                               {params: {url: "http://test.url"}});
+    slice.subSlices = [childSlice];
+    track.slices = [slice, childSlice];
+    assertEquals(2, track.slices.length);
+    assertEquals("http://test.url", track.slices[0].title);
+    assertEquals("b", track.slices[1].title);
+  });
+
+  test('setRectExposeURLNestedNoURL', function() {
+    var track = new AsyncSliceTrack(new tracing.TimelineViewport());
+    var slice = new Slice('', 'a', 0, 1, {params: {}});
+    slice.isTopLevel = true;
+    var childSlice = new Slice('', 'b', 0, 1,
+                               {params: {}});
+    slice.subSlices = [childSlice];
+    track.slices = [slice, childSlice];
+    assertEquals(2, track.slices.length);
+    assertEquals("a", track.slices[0].title);
+    assertEquals("b", track.slices[1].title);
+  });
+
+  test('setRectExposeURLNestedBothChildrenHaveURL', function() {
+    var track = new AsyncSliceTrack(new tracing.TimelineViewport());
+    var slice = new Slice('', 'a', 0, 1, {params: {}});
+    slice.isTopLevel = true;
+    var childSlice1 = new Slice('', 'b', 0, 1,
+                                {params: {url: "http://test.url.net"}});
+    var childSlice2 = new Slice('', 'c', 0, 1,
+                                {params: {url: "http://test.url.com"}});
+
+    slice.subSlices = [childSlice1, childSlice2];
+    track.slices = [slice, childSlice1, childSlice2];
+    assertEquals(3, track.slices.length);
+    // Parent should take the first url param that it finds.
+    assertEquals("http://test.url.net", track.slices[0].title);
+    assertEquals("b", track.slices[1].title);
+    assertEquals("c", track.slices[2].title);
+  });
+
+  test('setRectExposeURLNestedBothParentAndChildHaveURL', function() {
+    var track = new AsyncSliceTrack(new tracing.TimelineViewport());
+    var slice = new Slice('', 'a', 0, 1, {params: {url: "parent123.url.com"}});
+    slice.isTopLevel = true;
+    var childSlice1 = new Slice('', 'b', 0, 1,
+                                {params: {url: "http://test.url.net"}});
+    var childSlice2 = new Slice('', 'c', 0, 1);
+
+    slice.subSlices = [childSlice1, childSlice2];
+    track.slices = [slice, childSlice1, childSlice2];
+    assertEquals(3, track.slices.length);
+    // Parent should take its own url param if there is one.
+    assertEquals("parent123.url.com", track.slices[0].title);
+    assertEquals("b", track.slices[1].title);
+    assertEquals("c", track.slices[2].title);
+  });
+});
+</script>
+
