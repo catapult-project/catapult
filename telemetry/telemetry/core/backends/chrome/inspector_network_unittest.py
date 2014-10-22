@@ -1,6 +1,8 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+from telemetry import benchmark
 from telemetry.core.backends.chrome import inspector_network
 from telemetry.timeline import recording_options
 from telemetry.unittest import tab_test_case
@@ -67,6 +69,9 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
           self.assertFalse('<!DOCTYPE HTML>' in body)
           self.assertTrue(base64_encoded)
 
+  # Flaky on many platforms (at least Win, Linux, and Mac).
+  # http://crbug.com/424706
+  @benchmark.Disabled
   def testCacheableHTTPResponse(self):
     # We know this page has one PNG image and its cacheable.
     events = self._NavigateAndGetHTTPResponseEvents('image_decoding.html')
