@@ -97,17 +97,7 @@ tv.unittest.testSuite(function() {
     timeline.addAllObjectsMatchingFilterToSelection(
         new tracing.TitleFilter('a'), result);
     assertEquals(2, result.length);
-    // Helper function that checks whether two async slices are the same.
-    // Note that this is needed as async_slice_track.html returns a modified
-    // array of slices that is different from the one originally passed in.
-    var assertAsyncSliceEquals = function(s1, s2) {
-       assertEquals(s1.title, s2.title);
-       assertEquals(s1.category, s2.category);
-       assertEquals(s1.start, s2.start);
-       assertEquals(s1.colorId, s2.colorId);
-       assertEquals(s1.guid, s2.guid);
-    }
-    assertAsyncSliceEquals(expected[0], result[0]);
+    assertEquals(expected[0], result[0]);
     assertEquals(expected[1], result[1]);
 
     var expected = [t1asg.slices[1],
@@ -116,7 +106,7 @@ tv.unittest.testSuite(function() {
     timeline.addAllObjectsMatchingFilterToSelection(
         new tracing.TitleFilter('b'), result);
     assertEquals(2, result.length);
-    assertAsyncSliceEquals(expected[0], result[0]);
+    assertEquals(expected[0], result[0]);
     assertEquals(expected[1], result[1]);
   });
 
