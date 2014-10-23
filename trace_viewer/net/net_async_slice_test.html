@@ -13,6 +13,7 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   var AsyncSlice = tracing.trace_model.AsyncSlice;
+  var NetSlice = net.NetAsyncSlice;
 
   test('basic', function() {
     var s = new net.NetAsyncSlice('netlog', 'HTTP_STREAM_JOB', 7, 0, {});
@@ -34,6 +35,58 @@ tv.unittest.testSuite(function() {
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     assertEquals(1, t2.asyncSliceGroup.length);
     assertTrue(t2.asyncSliceGroup.slices[0] instanceof net.NetAsyncSlice);
+  });
+
+  test('ExposeURLBasic', function() {
+    var slice = new NetSlice('', 'a', 0, 1, {params: {url: "https://google.com"}});
+    slice.isTopLevel = true;
+    assertEquals("https://google.com", slice.title);
+  });
+
+  test('ExposeURLNested', function() {
+    var slice = new NetSlice('', 'a', 0, 1, {params: {}});
+    slice.isTopLevel = true;
+    var childSlice = new NetSlice('', 'b', 0, 1, {params: {url: "http://test.url"}});
+    slice.subSlices = [childSlice];
+    assertEquals("http://test.url", slice.title);
+    assertEquals("b", childSlice.title);
+  });
+
+  test('ExposeURLNestedNoURL', function() {
+    var slice = new NetSlice('', 'a', 0, 1, {params: {}});
+    slice.isTopLevel = true;
+    var childSlice = new NetSlice('', 'b', 0, 1,{params: {}});
+    slice.subSlices = [childSlice];
+    assertEquals("a", slice.title);
+    assertEquals("b", childSlice.title);
+  });
+
+  test('ExposeURLNestedBothChildrenHaveURL', function() {
+    var slice = new NetSlice('', 'a', 0, 1, {params: {}});
+    slice.isTopLevel = true;
+    var childSlice1 = new NetSlice('', 'b', 0, 1,
+                                   {params: {url: "http://test.url.net"}});
+    var childSlice2 = new NetSlice('', 'c', 0, 1,
+                                   {params: {url: "http://test.url.com"}});
+    slice.subSlices = [childSlice1, childSlice2];
+    // Parent should take the first url param that it finds.
+    assertEquals("http://test.url.net", slice.title);
+    assertEquals("b", childSlice1.title);
+    assertEquals("c", childSlice2.title);
+  });
+
+  test('ExposeURLNestedBothParentAndChildHaveURL', function() {
+    var slice = new NetSlice('', 'a', 0, 1, {params: {url: "parent123.url.com"}});
+    slice.isTopLevel = true;
+    var childSlice1 = new NetSlice('', 'b', 0, 1,
+                                   {params: {url: "http://test.url.net"}});
+    var childSlice2 = new NetSlice('', 'c', 0, 1);
+
+    slice.subSlices = [childSlice1, childSlice2];
+    // Parent should take its own url param if there is one.
+    assertEquals("parent123.url.com", slice.title);
+    assertEquals("b", childSlice1.title);
+    assertEquals("c", childSlice2.title);
   });
 });
 </script>

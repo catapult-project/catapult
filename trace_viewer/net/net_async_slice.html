@@ -15,11 +15,42 @@ tv.exportTo('net', function() {
   function NetAsyncSlice() {
     AsyncSlice.apply(this, arguments);
   }
+
   NetAsyncSlice.prototype = {
     __proto__: AsyncSlice.prototype,
 
     get viewSubGroupTitle() {
       return 'NetLog';
+    },
+
+    get title() {
+      // A recursive helper function that gets the url param of a slice or its
+      // nested subslices if there is one.
+      var getUrl = function(slice) {
+        if (slice.args !== undefined && slice.args.params !== undefined &&
+            slice.args.params.url !== undefined) {
+          return slice.args.params.url;
+        }
+        if (slice.subSlices === undefined || slice.subSlices.length === 0)
+          return undefined;
+        for (var i = 0; i < slice.subSlices.length; i++) {
+          var result = getUrl(slice.subSlices[i]);
+          if (result !== undefined)
+            return result;
+        }
+        return undefined;
+      };
+
+      if (this.isTopLevel === true) {
+        var url = getUrl(this);
+        if (url !== undefined && url.length > 0)
+          return url;
+      }
+      return this.title_;
+    },
+
+    set title(title) {
+      this.title_ = title;
     }
   };
 
