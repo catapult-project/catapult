@@ -9,6 +9,7 @@ from telemetry.unittest import tab_test_case
 class InspectorMemoryTest(tab_test_case.TabTestCase):
 
   @benchmark.Enabled('has tabs')
+  @benchmark.Disabled  # http://crbug.com/422244
   def testGetDOMStats(self):
     # Due to an issue with CrOS, we create a new tab here rather than
     # using the existing tab to get a consistent starting page on all platforms.
