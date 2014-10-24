@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
   try {
     data = JSON.parse(componentDataScript.textContent);
   } catch (e) {
-    tvcm.showPanic('Could not load data', e.stack || e);
+    tv.showPanic('Could not load data', e.stack || e);
   }
   g_results = new $js_class_name;
   g_results.$data_binding_property = data;

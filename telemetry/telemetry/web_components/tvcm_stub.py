@@ -4,7 +4,10 @@
 
 from telemetry.core import util
 
-# Bring in tvcm module for basic JS components capabilities.
+# Bring in tv module for basic JS components capabilities.
+util.AddDirToPythonPath(
+    util.GetChromiumSrcDir(), 'third_party', 'trace-viewer', 'trace_viewer')
+
 util.AddDirToPythonPath(
     util.GetChromiumSrcDir(),
     'third_party', 'trace-viewer', 'third_party', 'tvcm')

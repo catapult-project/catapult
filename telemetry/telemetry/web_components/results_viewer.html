@@ -4,15 +4,15 @@ Copyright 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tvcm/ui.html">
+<link rel="import" href="/base/ui.html">
 <script>
 'use strict';
 
-tvcm.exportTo('telemetry.web_components', function() {
+tv.exportTo('telemetry.web_components', function() {
   /**
    * @constructor
    */
-  var ResultsViewer = tvcm.ui.define('x-results-viewer');
+  var ResultsViewer = tv.ui.define('x-results-viewer');
 
   ResultsViewer.prototype = {
     __proto__: HTMLUnknownElement.prototype,
