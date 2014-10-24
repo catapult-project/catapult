@@ -598,8 +598,9 @@ function createTable(tests, runs, shouldIgnoreMemory, referenceIndex, useLargeLi
 
     testNames.sort().map(function (testName) {
         var test = tests[testName];
-        if (test.isMemoryTest() != shouldIgnoreMemory)
-            createTableRow(runs, test, referenceIndex, useLargeLinePlots);
+        if (test.isMemoryTest() != shouldIgnoreMemory) {
+            new TableRow(runs, test, referenceIndex, useLargeLinePlots);
+        }
     });
 
     $('.closeButton').click(function(event) {
@@ -682,111 +683,115 @@ var warningSign = '<svg viewBox="0 0 100 100" style="width: 18px; height: 18px; 
     + '<circle cx="50" cy="73" r="6" fill="white" />'
     + '</svg>';
 
-function createTableRow(runs, test, referenceIndex, useLargeLinePlots) {
-    var tableRow = $('<tr><td class="test collapsed"' + (test.isImportant ? ' style="font-weight:bold"' : '') + '>' + test.name() + '</td><td class="unit">' + test.unit() + '</td></tr>');
+function TableRow(runs, test, referenceIndex, useLargeLinePlots) {
+    this.runs = runs;
+    this.test = test;
+    this.referenceIndex = referenceIndex;
+    this.useLargeLinePlots = useLargeLinePlots;
 
-    function markupForRun(result, referenceResult) {
-        var comparisonCell = '';
-        var hiddenValue = '';
-        var shouldCompare = result !== referenceResult;
-        if (shouldCompare && referenceResult) {
-            var percentDifference = referenceResult.percentDifference(result);
-            var better = test.biggerIsBetter() ? percentDifference > 0 : percentDifference < 0;
-            var comparison = '';
-            var className = 'comparison';
-            if (referenceResult.isStatisticallySignificant(result)) {
-                comparison = formatPercentage(Math.abs(percentDifference)) + (better ? ' Better' : ' Worse&nbsp;');
-                className += better ? ' better' : ' worse';
-            }
-            hiddenValue = '<span style="display: none">|' + comparison + '</span>';
-            comparisonCell = '<td class="' + className + '">' + comparison + '</td>';
-        } else if (shouldCompare)
-            comparisonCell = '<td class="comparison"></td>';
-
-        var values = result.values();
-        var warning = '';
-        var regressionAnalysis = '';
-        if (result.histogramValues) {
-            // Don't calculate regression result for histograms.
-        }
-        else if (values && values.length > 3) {
-            regressionResult = linearRegression(values);
-            regressionAnalysis = 'slope=' + toFixedWidthPrecision(regressionResult.slope)
-                + ', R^2=' + toFixedWidthPrecision(regressionResult.rSquared);
-            if (regressionResult.rSquared > 0.6 && Math.abs(regressionResult.slope) > 0.01) {
-                warning = ' <span class="regression-warning" title="Detected a time dependency with ' + regressionAnalysis + '">' + warningSign + ' </span>';
-            }
-        }
-
-        var statistics = '&sigma;=' + toFixedWidthPrecision(result.confidenceIntervalDelta()) + ', min=' + toFixedWidthPrecision(result.min())
-            + ', max=' + toFixedWidthPrecision(result.max()) + '\n' + regressionAnalysis;
-
-        // Tablesorter doesn't know about the second cell so put the comparison in the invisible element.
-        return '<td class="result" title="' + statistics + '">' + toFixedWidthPrecision(result.mean()) + hiddenValue
-            + '</td><td class="confidenceIntervalDelta" title="' + statistics + '">&plusmn; '
-            + formatPercentage(result.confidenceIntervalDeltaRatio()) + warning + '</td>' + comparisonCell;
-    }
-
-    function markupForMissingRun(isReference) {
-        return '<td colspan="' + (isReference ? 2 : 3) + '" class="missing">Missing</td>';
-    }
+    this.tableRow = $('<tr><td class="test collapsed"' + (this.test.isImportant ? ' style="font-weight:bold"' : '') + '>' + this.test.name() + '</td><td class="unit">' + this.test.unit() + '</td></tr>');
 
     var runIndex = 0;
-    var results = test.results();
+    var results = this.test.results();
     var referenceResult = undefined;
     var resultIndexMap = {};
     for (var i = 0; i < results.length; i++) {
-        while (runs[runIndex] !== results[i].run())
+        while (this.runs[runIndex] !== results[i].run())
             runIndex++;
-        if (runIndex == referenceIndex)
+        if (runIndex == this.referenceIndex)
             referenceResult = results[i];
         resultIndexMap[runIndex] = i;
     }
-    for (var i = 0; i < runs.length; i++) {
+    for (var i = 0; i < this.runs.length; i++) {
         var resultIndex = resultIndexMap[i];
         if (resultIndex == undefined)
-            tableRow.append(markupForMissingRun(i == referenceIndex));
+            this.tableRow.append(this.markupForMissingRun(i == this.referenceIndex));
         else
-            tableRow.append(markupForRun(results[resultIndex], referenceResult));
+            this.tableRow.append(this.markupForRun(results[resultIndex], this.referenceResult));
     }
 
-    $('#container').children('tbody').last().append(tableRow);
+    $('#container').children('tbody').last().append(this.tableRow);
 
-    function toggle() {
-        var firstCell = tableRow.children('td').first();
-        if (firstCell.children('section').length) {
-            firstCell.children('section').remove();
-            tableRow.children('td').css({'padding-bottom': ''});
-            tableRow.children('td').first().addClass('collapsed');
-            tableRow.children('td').first().removeClass('expanded');
-        } else {
-            var plot = createPlot(firstCell, test, useLargeLinePlots);
-            plot.css({'position': 'absolute', 'z-index': 2});
-            var offset = tableRow.offset();
-            offset.left += 1;
-            offset.top += tableRow.outerHeight();
-            plot.offset(offset);
-            tableRow.children('td').css({'padding-bottom': plot.outerHeight() + 5});
-            tableRow.children('td').first().removeClass('collapsed');
-            tableRow.children('td').first().addClass('expanded');
-        }
-
-        return false;
-    };
-
-    tableRow.click(function(event) {
-        if (event.target != tableRow[0] && event.target.parentNode != tableRow[0])
-            return;
-
-        event.preventDefault();
-
-        toggle();
-    });
-
-    if (test.isImportant && window.isFirstImportantRow) {
+    if (this.test.isImportant && window.isFirstImportantRow) {
         window.isFirstImportantRow = false;
-        toggle();
+        this.toggle();
     }
+
+    var owningObject = this;
+    this.tableRow.click(function(event) {
+        if (event.target != owningObject.tableRow[0] && event.target.parentNode != owningObject.tableRow[0]) {
+            return;
+        }
+        event.preventDefault();
+        owningObject.toggle();
+    });
+}
+
+TableRow.prototype.markupForRun = function(result, referenceResult) {
+    var comparisonCell = '';
+    var hiddenValue = '';
+    var shouldCompare = result !== referenceResult;
+    if (shouldCompare && referenceResult) {
+        var percentDifference = referenceResult.percentDifference(result);
+        var better = this.test.biggerIsBetter() ? percentDifference > 0 : percentDifference < 0;
+        var comparison = '';
+        var className = 'comparison';
+        if (referenceResult.isStatisticallySignificant(result)) {
+            comparison = formatPercentage(Math.abs(percentDifference)) + (better ? ' Better' : ' Worse&nbsp;');
+            className += better ? ' better' : ' worse';
+        }
+        hiddenValue = '<span style="display: none">|' + comparison + '</span>';
+        comparisonCell = '<td class="' + className + '">' + comparison + '</td>';
+    } else if (shouldCompare)
+        comparisonCell = '<td class="comparison"></td>';
+
+    var values = result.values();
+    var warning = '';
+    var regressionAnalysis = '';
+    if (result.histogramValues) {
+        // Don't calculate regression result for histograms.
+    } else if (values && values.length > 3) {
+        regressionResult = linearRegression(values);
+        regressionAnalysis = 'slope=' + toFixedWidthPrecision(regressionResult.slope)
+            + ', R^2=' + toFixedWidthPrecision(regressionResult.rSquared);
+        if (regressionResult.rSquared > 0.6 && Math.abs(regressionResult.slope) > 0.01) {
+            warning = ' <span class="regression-warning" title="Detected a time dependency with ' + regressionAnalysis + '">' + warningSign + ' </span>';
+        }
+    }
+
+    var statistics = '&sigma;=' + toFixedWidthPrecision(result.confidenceIntervalDelta()) + ', min=' + toFixedWidthPrecision(result.min())
+        + ', max=' + toFixedWidthPrecision(result.max()) + '\n' + regressionAnalysis;
+
+    // Tablesorter doesn't know about the second cell so put the comparison in the invisible element.
+    return '<td class="result" title="' + statistics + '">' + toFixedWidthPrecision(result.mean()) + hiddenValue
+        + '</td><td class="confidenceIntervalDelta" title="' + statistics + '">&plusmn; '
+        + formatPercentage(result.confidenceIntervalDeltaRatio()) + warning + '</td>' + comparisonCell;
+}
+
+TableRow.prototype.markupForMissingRun = function(isReference) {
+    return '<td colspan="' + (isReference ? 2 : 3) + '" class="missing">Missing</td>';
+}
+
+TableRow.prototype.toggle = function() {
+    var firstCell = this.tableRow.children('td').first();
+    if (firstCell.children('section').length) {
+        firstCell.children('section').remove();
+        this.tableRow.children('td').css({'padding-bottom': ''});
+        this.tableRow.children('td').first().addClass('collapsed');
+        this.tableRow.children('td').first().removeClass('expanded');
+    } else {
+        var plot = createPlot(firstCell, this.test, this.useLargeLinePlots);
+        plot.css({'position': 'absolute', 'z-index': 2});
+        var offset = this.tableRow.offset();
+        offset.left += 1;
+        offset.top += this.tableRow.outerHeight();
+        plot.offset(offset);
+        this.tableRow.children('td').css({'padding-bottom': plot.outerHeight() + 5});
+        this.tableRow.children('td').first().removeClass('collapsed');
+        this.tableRow.children('td').first().addClass('expanded');
+    }
+
+    return false;
 }
 
 function init() {
