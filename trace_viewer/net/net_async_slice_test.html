@@ -88,5 +88,25 @@ tv.unittest.testSuite(function() {
     assertEquals("b", childSlice1.title);
     assertEquals("c", childSlice2.title);
   });
+
+  test('ExposeURLDoNotComputeUrlTwice', function() {
+    var slice = new NetSlice('', 'a', 0, 1, {params: {}});
+    slice.isTopLevel = true;
+    var childSlice1 = new NetSlice('', 'b', 0, 1,
+                                   {params: {url: "http://test.url.net"}});
+    var childSlice2 = new NetSlice('', 'c', 0, 1);
+
+    slice.subSlices = [childSlice1, childSlice2];
+    // Parent should take its child's url param.
+    assertEquals("http://test.url.net", slice.title);
+    assertEquals("b", childSlice1.title);
+    assertEquals("c", childSlice2.title);
+    // Now if we change the url param of the child, the parent's title should
+    // remain the same. We do not recompute.
+    childSlice1.args.params.url = "example.com";
+    assertEquals("http://test.url.net", slice.title);
+    assertEquals("b", childSlice1.title);
+    assertEquals("c", childSlice2.title);
+  });
 });
 </script>
