@@ -81,7 +81,7 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
   if results.failures:
     logging.warning('Some pages failed.')
     logging.warning('Failed pages:\n%s',
-                    '\n'.join(results.pages_that_failed))
+                    '\n'.join(map(str, results.pages_that_failed)))
     return 1
 
   # Everything is a-ok, move results to final destination.
