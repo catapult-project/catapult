@@ -14,6 +14,8 @@ tv.exportTo('net', function() {
 
   function NetAsyncSlice() {
     AsyncSlice.apply(this, arguments);
+    // A boolean variable indicates whether we have computed the title.
+    this.isTitleComputed_ = false;
   }
 
   NetAsyncSlice.prototype = {
@@ -24,6 +26,10 @@ tv.exportTo('net', function() {
     },
 
     get title() {
+      if (this.isTitleComputed_ || !this.isTopLevel) {
+        return this.title_;
+      }
+
       // A recursive helper function that gets the url param of a slice or its
       // nested subslices if there is one.
       var getUrl = function(slice) {
@@ -41,11 +47,14 @@ tv.exportTo('net', function() {
         return undefined;
       };
 
-      if (this.isTopLevel === true) {
-        var url = getUrl(this);
-        if (url !== undefined && url.length > 0)
-          return url;
+      var url = getUrl(this);
+      if (url !== undefined && url.length > 0) {
+        // Set the title so we do not have to recompute when it is redrawn.
+        this.title_ = url;
+        this.isTitleComputed_ = true;
+        return url;
       }
+      this.isTitleComputed_ = true;
       return this.title_;
     },
 
