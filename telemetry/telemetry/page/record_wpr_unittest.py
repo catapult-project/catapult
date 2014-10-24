@@ -164,6 +164,20 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     self.assertEqual(set(mock_benchmark.mock_page_set.pages),
                      results.pages_that_succeeded)
 
+  def testPageSetBaseDirFlag(self):
+    flags = [
+       '--page-set-base-dir', self._test_data_dir,
+       '--mock-benchmark-url', self._url,
+       '--browser', self._browser.browser_type,
+    ]
+    mock_benchmark = MockBenchmark()
+    wpr_recorder = record_wpr.WprRecorder(
+        'non-existent-dummy-dir', mock_benchmark, flags)
+    results = wpr_recorder.CreateResults()
+    wpr_recorder.Record(results)
+    self.assertEqual(set(mock_benchmark.mock_page_set.pages),
+                     results.pages_that_succeeded)
+
   def testCommandLineFlags(self):
     flags = [
         '--page-repeat', '2',
