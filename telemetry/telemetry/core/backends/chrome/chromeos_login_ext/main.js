@@ -12,6 +12,7 @@ window.parent.postMessage(msg, PARENT_PAGE);
 var msg = {
   'method': 'completeLogin',
   'email': 'test@test.test',
+  'gaiaId': '12345',
   'password': ''
 };
 window.parent.postMessage(msg, PARENT_PAGE);
