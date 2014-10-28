@@ -30,8 +30,8 @@ class _RunState(object):
   def __init__(self, test):
     self.browser = None
 
+    # TODO(slamm): Remove _append_to_existing_wpr when replay lifetime changes.
     self._append_to_existing_wpr = False
-    self._last_archive_path = None
     self._first_browser = True
     self._test = test
     self._did_login_for_current_page = False
@@ -41,14 +41,25 @@ class _RunState(object):
   def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
                           finder_options):
     started_browser = not self.browser
-    # Create a browser.
-    if not self.browser:
+    wpr_mode = finder_options.browser_options.wpr_mode
+    if self._append_to_existing_wpr and wpr_mode == wpr_modes.WPR_RECORD:
+      wpr_mode = wpr_modes.WPR_APPEND
+    # Replay's life-cycle is tied to the browser. Start and Stop are handled by
+    # platform_backend.DidCreateBrowser and platform_backend.WillCloseBrowser,
+    # respectively.
+    # TODO(slamm): Update life-cycle comment with https://crbug.com/424777 fix.
+    possible_browser.platform.network_controller.SetReplayArgs(
+        page.archive_path, wpr_mode, finder_options.browser_options.netsim,
+        finder_options.browser_options.extra_wpr_args,
+        page_set.make_javascript_deterministic)
+
+    if self.browser:
+      # Set new credential path for browser.
+      self.browser.credentials.credentials_path = page.credentials_path
+      self.browser.platform.network_controller.UpdateReplayForExistingBrowser()
+    else:
       test.CustomizeBrowserOptionsForSinglePage(page, finder_options)
-      possible_browser.SetReplayArchivePath(page.archive_path,
-                                        self._append_to_existing_wpr,
-                                        page_set.make_javascript_deterministic)
       possible_browser.SetCredentialsPath(page.credentials_path)
-      self._last_archive_path = page.archive_path
 
       test.WillStartBrowser(possible_browser.platform)
       self.browser = possible_browser.Create()
@@ -83,16 +94,6 @@ class _RunState(object):
             logging.info('No GPU devices')
         else:
           logging.warning('System info not supported')
-    else:
-      # Set new credential path for browser.
-      self.browser.credentials.credentials_path = page.credentials_path
-      # Set up WPR path if it changed.
-      if page.archive_path and self._last_archive_path != page.archive_path:
-        self.browser.SetReplayArchivePath(
-            page.archive_path,
-            self._append_to_existing_wpr,
-            page_set.make_javascript_deterministic)
-        self._last_archive_path = page.archive_path
 
     if self.browser.supports_tab_control and test.close_tabs_before_run:
       # Create a tab if there's none.

@@ -12,15 +12,14 @@ from telemetry.core import wpr_modes
 
 
 class ReplayServer(object):
-  def __init__(self, browser_backend, path, wpr_mode,
-               make_javascript_deterministic):
-    self._browser_backend = browser_backend
+  def __init__(self, browser_backend, archive_path, wpr_mode, netsim,
+               extra_wpr_args, make_javascript_deterministic):
     self._forwarder = None
     self._web_page_replay = None
 
-    wpr_args = browser_backend.browser_options.extra_wpr_args
-    if browser_backend.browser_options.netsim:
-      wpr_args.append('--net=%s' % browser_backend.browser_options.netsim)
+    wpr_args = list(extra_wpr_args)
+    if netsim:
+      wpr_args.append('--net=%s' % netsim)
     if wpr_mode == wpr_modes.WPR_APPEND:
       wpr_args.append('--append')
     elif wpr_mode == wpr_modes.WPR_RECORD:
@@ -33,7 +32,7 @@ class ReplayServer(object):
           '--https_root_ca_cert_path=%s' % browser_backend.wpr_ca_cert_path,
           ])
     self._web_page_replay = webpagereplay.ReplayServer(
-        path, self._browser_backend.forwarder_factory.host_ip,
+        archive_path, browser_backend.forwarder_factory.host_ip,
         browser_backend.wpr_port_pairs.http.local_port,
         browser_backend.wpr_port_pairs.https.local_port,
         (browser_backend.wpr_port_pairs.dns.local_port

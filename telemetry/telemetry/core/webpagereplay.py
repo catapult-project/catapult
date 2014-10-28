@@ -12,7 +12,6 @@ import subprocess
 import sys
 import urllib
 
-from telemetry.core import platform
 from telemetry.core import util
 
 _REPLAY_DIR = os.path.join(
@@ -191,8 +190,7 @@ class ReplayServer(object):
     Raises:
       ReplayNotStartedError: if Replay start-up fails.
     """
-    is_posix = platform.GetHostPlatform().GetOSName() in ('linux', 'mac')
-
+    is_posix = sys.platform.startswith('linux') or sys.platform == 'darwin'
     logging.debug('Starting Web-Page-Replay: %s', self._cmd_line)
     with self._OpenLogFile() as log_fh:
       self.replay_process = subprocess.Popen(

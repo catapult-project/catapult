@@ -12,8 +12,6 @@ from telemetry.core import extension_dict
 from telemetry.core import local_server
 from telemetry.core import memory_cache_http_server
 from telemetry.core import tab_list
-from telemetry.core import wpr_modes
-from telemetry.core import wpr_server
 from telemetry.core.backends import browser_backend
 
 
@@ -28,23 +26,16 @@ class Browser(app.App):
     with browser_to_create.Create() as browser:
       ... do all your operations on browser here
   """
-  def __init__(self, backend, platform_backend, archive_path,
-               append_to_existing_wpr, make_javascript_deterministic,
-               credentials_path):
+  def __init__(self, backend, platform_backend, credentials_path):
     super(Browser, self).__init__(app_backend=backend,
                                   platform_backend=platform_backend)
     self._browser_backend = backend
     self._platform_backend = platform_backend
-    self._wpr_server = None
     self._local_server_controller = local_server.LocalServerController(backend)
     self._tabs = tab_list.TabList(backend.tab_list_backend)
     self.credentials = browser_credentials.BrowserCredentials()
     self.credentials.credentials_path = credentials_path
     self._platform_backend.DidCreateBrowser(self, self._browser_backend)
-
-    self.SetReplayArchivePath(archive_path,
-                              append_to_existing_wpr,
-                              make_javascript_deterministic)
 
     browser_options = self._browser_backend.browser_options
     self.platform.FlushDnsCache()
@@ -258,10 +249,6 @@ class Browser(app.App):
     if self._browser_backend.IsBrowserRunning():
       self._platform_backend.WillCloseBrowser(self, self._browser_backend)
 
-    if self._wpr_server:
-      self._wpr_server.Close()
-      self._wpr_server = None
-
     self._local_server_controller.Close()
     self._browser_backend.Close()
     self.credentials = None
@@ -311,29 +298,6 @@ class Browser(app.App):
   def local_servers(self):
     """Returns the currently running local servers."""
     return self._local_server_controller.local_servers
-
-  def SetReplayArchivePath(self, archive_path, append_to_existing_wpr=False,
-                           make_javascript_deterministic=True):
-    if self._wpr_server:
-      self._wpr_server.Close()
-      self._wpr_server = None
-
-    if not archive_path:
-      return None
-
-    wpr_mode = self._browser_backend.wpr_mode
-    if wpr_mode == wpr_modes.WPR_OFF:
-      return
-    if wpr_mode == wpr_modes.WPR_RECORD and append_to_existing_wpr:
-      wpr_mode = wpr_modes.WPR_APPEND
-    if wpr_mode == wpr_modes.WPR_REPLAY:
-      assert os.path.isfile(archive_path)
-
-    self._wpr_server = wpr_server.ReplayServer(
-        self._browser_backend,
-        archive_path,
-        wpr_mode,
-        make_javascript_deterministic)
 
   def GetStandardOutput(self):
     return self._browser_backend.GetStandardOutput()

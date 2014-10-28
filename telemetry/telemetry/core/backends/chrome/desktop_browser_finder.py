@@ -60,12 +60,8 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         self._flash_path, self._is_content_shell, self._browser_directory,
         output_profile_path=self.finder_options.output_profile_path,
         extensions_to_load=self.finder_options.extensions_to_load)
-    return browser.Browser(backend,
-                           self._platform_backend,
-                           self._archive_path,
-                           self._append_to_existing_wpr,
-                           self._make_javascript_deterministic,
-                           self._credentials_path)
+    return browser.Browser(
+        backend, self._platform_backend, self._credentials_path)
 
   def SupportsOptions(self, finder_options):
     if (len(finder_options.extensions_to_load) != 0) and self._is_content_shell:

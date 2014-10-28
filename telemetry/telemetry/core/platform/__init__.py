@@ -8,6 +8,7 @@ import sys
 
 from telemetry.core import discover
 from telemetry.core import util
+from telemetry.core.platform import network_controller
 from telemetry.core.platform import platform_backend as platform_backend_module
 from telemetry.core.platform import profiling_controller
 from telemetry.core.platform import tracing_controller
@@ -89,10 +90,17 @@ class Platform(object):
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
     self._platform_backend.SetPlatform(self)
+    self._network_controller = network_controller.NetworkController(
+        self._platform_backend.network_controller_backend)
     self._tracing_controller = tracing_controller.TracingController(
         self._platform_backend.tracing_controller_backend)
     self._profiling_controller = profiling_controller.ProfilingController(
         self._platform_backend.profiling_controller_backend)
+
+  @property
+  def network_controller(self):
+    """Control network settings and servers to simulate the Web."""
+    return self._network_controller
 
   @property
   def tracing_controller(self):

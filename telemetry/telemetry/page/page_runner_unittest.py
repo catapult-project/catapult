@@ -15,6 +15,7 @@ from telemetry.core import browser_finder
 from telemetry.core import exceptions
 from telemetry.core import user_agent
 from telemetry.core import util
+from telemetry.core import wpr_modes
 from telemetry.page import page as page_module
 from telemetry.page import page_runner
 from telemetry.page import page_set
@@ -574,11 +575,13 @@ class PageRunnerTests(unittest.TestCase):
         self.is_page_from_archive = False
         self.archive_path_exist = True
 
+      def WillStartBrowser(self, platform):
+        self.is_page_from_archive = (
+            self.options.browser_options.wpr_mode != wpr_modes.WPR_OFF)
+
       def WillNavigateToPage(self, page, tab):
         self.archive_path_exist = (page.archive_path
                                    and os.path.isfile(page.archive_path))
-        self.is_page_from_archive = (
-          tab.browser._wpr_server is not None) # pylint: disable=W0212
 
       def ValidateAndMeasurePage(self, _, __, results):
         pass

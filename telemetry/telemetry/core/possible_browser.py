@@ -17,9 +17,6 @@ class PossibleBrowser(possible_app.PossibleApp):
                                           target_os=target_os,
                                           finder_options=finder_options)
     self._supports_tab_control = supports_tab_control
-    self._archive_path = None
-    self._append_to_existing_wpr = False
-    self._make_javascript_deterministic = True
     self._credentials_path = None
 
   def __repr__(self):
@@ -54,12 +51,6 @@ class PossibleBrowser(possible_app.PossibleApp):
 
   def last_modification_time(self):
     return -1
-
-  def SetReplayArchivePath(self, archive_path, append_to_existing_wpr,
-                           make_javascript_deterministic):
-    self._archive_path = archive_path
-    self._append_to_existing_wpr = append_to_existing_wpr
-    self._make_javascript_deterministic = make_javascript_deterministic
 
   def SetCredentialsPath(self, credentials_path):
     self._credentials_path = credentials_path

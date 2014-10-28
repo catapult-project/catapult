@@ -4,6 +4,7 @@
 
 import weakref
 
+from telemetry.core.platform import network_controller_backend
 from telemetry.core.platform import profiling_controller_backend
 from telemetry.core.platform import tracing_controller_backend
 
@@ -59,6 +60,8 @@ class PlatformBackend(object):
       raise ValueError('Unsupported device: %s' % device.name)
     self._platform = None
     self._running_browser_backends = weakref.WeakSet()
+    self._network_controller_backend = (
+        network_controller_backend.NetworkControllerBackend(self))
     self._tracing_controller_backend = (
         tracing_controller_backend.TracingControllerBackend(self))
     self._profiling_controller_backend = (
@@ -83,6 +86,10 @@ class PlatformBackend(object):
     return list(self._running_browser_backends)
 
   @property
+  def network_controller_backend(self):
+    return self._network_controller_backend
+
+  @property
   def tracing_controller_backend(self):
     return self._tracing_controller_backend
 
@@ -92,6 +99,10 @@ class PlatformBackend(object):
 
   def DidCreateBrowser(self, browser, browser_backend):
     self.SetFullPerformanceModeEnabled(True)
+
+    # TODO(slamm): Remove this call when replay browser_backend dependencies
+    # get moved to platform. https://crbug.com/423962
+    self._network_controller_backend.UpdateReplay(browser_backend)
 
   def DidStartBrowser(self, browser, browser_backend):
     assert browser not in self._running_browser_backends
@@ -104,6 +115,9 @@ class PlatformBackend(object):
         browser, browser_backend)
     self._profiling_controller_backend.WillCloseBrowser(
         browser_backend)
+    # TODO(slamm): Move this call when replay's life cycle is no longer
+    # tied to the browser. https://crbug.com/424777
+    self._network_controller_backend.StopReplay()
 
     is_last_browser = len(self._running_browser_backends) == 1
     if is_last_browser:
