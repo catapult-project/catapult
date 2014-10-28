@@ -120,6 +120,14 @@ class PageSetSmokeTest(unittest.TestCase):
     self.assertTrue(
        isinstance(page.name, str),
        msg='page %s \'s name field must have type string' % page.display_name)
+    self.assertTrue(
+       isinstance(page.labels, set),
+       msg='page %s \'s labels field must have type set' % page.display_name)
+    for l in page.labels:
+      self.assertTrue(
+         isinstance(l, str),
+         msg='label %s in page %s \'s labels must have type string'
+         % (str(l), page.display_name))
 
   def RunSmokeTest(self, page_sets_dir, top_level_dir):
     """Run smoke test on all page sets in page_sets_dir.

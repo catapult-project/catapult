@@ -8,11 +8,8 @@ import re
 from telemetry.core import command_line
 
 
-def HasLabelIn(obj, labels):
-  for label in labels:
-    if hasattr(obj, label) and getattr(obj, label):
-      return True
-  return False
+def HasLabelIn(page, labels):
+  return bool(page.labels.intersection(labels))
 
 
 class PageFilter(command_line.ArgumentHandlerMixIn):

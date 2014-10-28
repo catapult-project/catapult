@@ -30,12 +30,15 @@ class PageFilterTest(unittest.TestCase):
     ps = page_set.PageSet()
     self.p1 = page.Page(
       'file://conformance/textures/tex-sub-image-2d.html', page_set=ps,
-      name='WebglConformance.conformance_textures_tex_sub_image_2d')
+      name='WebglConformance.conformance_textures_tex_sub_image_2d',
+      labels=['label1', 'label2'])
     self.p2 = page.Page(
       'file://othersuite/textures/tex-sub-image-3d.html', page_set=ps,
-      name='OtherSuite.textures_tex_sub_image_3d')
+      name='OtherSuite.textures_tex_sub_image_3d',
+      labels=['label1'])
     self.p3 = page.Page(
-      'file://othersuite/textures/tex-sub-image-3d.html', page_set=ps)
+      'file://othersuite/textures/tex-sub-image-3d.html', page_set=ps,
+      labels=['label2'])
 
   def testURLPattern(self):
     options = MockUrlFilterOptions('conformance/textures', '')
@@ -78,13 +81,6 @@ class PageFilterTest(unittest.TestCase):
     self.assertFalse(page_filter.PageFilter.IsSelected(self.p3))
 
   def testLabelFilters(self):
-    self.p1.label1 = True
-    self.p2.label1 = True
-    self.p3.label1 = False
-    self.p1.label2 = True
-    self.p2.label2 = False
-    self.p3.label2 = True
-
     # Include both labels
     options = MockLabelFilterOptions('label1,label2', '')
     page_filter.PageFilter.ProcessCommandLineArgs(None, options)
