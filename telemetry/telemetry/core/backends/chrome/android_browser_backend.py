@@ -3,7 +3,10 @@
 # found in the LICENSE file.
 
 import logging
+import os
 import pipes
+import re
+import subprocess
 import sys
 import time
 
@@ -30,7 +33,6 @@ class AndroidBrowserBackendSettings(object):
     self.pseudo_exec_name = pseudo_exec_name
     self.supports_tab_control = supports_tab_control
     self.relax_ssl_check = relax_ssl_check
-    self._profile_ignore_list = ['lib']
 
   def GetCommandLineFile(self, is_user_debug_build):  # pylint: disable=W0613
     return self._cmdline_file
@@ -38,11 +40,20 @@ class AndroidBrowserBackendSettings(object):
   def GetDevtoolsRemotePort(self, adb):
     raise NotImplementedError()
 
+  def RemoveProfile(self, adb):
+    files = adb.device().RunShellCommand(
+        'ls "%s"' % self.profile_dir, as_root=True)
+    # Don't delete lib, since it is created by the installer.
+    paths = ['"%s/%s"' % (self.profile_dir, f) for f in files if f != 'lib']
+    adb.device().RunShellCommand('rm -r %s' % ' '.join(paths), as_root=True)
+
+  def PushProfile(self, _new_profile_dir, _adb):
+    logging.critical('Profiles cannot be overriden with current configuration')
+    sys.exit(1)
+
   @property
-  def profile_ignore_list(self):
-    if not self._profile_ignore_list:
-      return []
-    return self._profile_ignore_list
+  def profile_dir(self):
+    return '/data/data/%s/' % self.package
 
 
 class ChromeBackendSettings(AndroidBrowserBackendSettings):
@@ -66,6 +77,34 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
   def GetDevtoolsRemotePort(self, adb):
     return 'localabstract:chrome_devtools_remote'
 
+  def PushProfile(self, new_profile_dir, adb):
+    # Pushing the profile is slow, so we don't want to do it every time.
+    # Avoid this by pushing to a safe location using PushChangedFiles, and
+    # then copying into the correct location on each test run.
+
+    (profile_parent, profile_base) = os.path.split(new_profile_dir)
+    # If the path ends with a '/' python split will return an empty string for
+    # the base name; so we now need to get the base name from the directory.
+    if not profile_base:
+      profile_base = os.path.basename(profile_parent)
+
+    saved_profile_location = '/sdcard/profile/%s' % profile_base
+    adb.device().PushChangedFiles([(new_profile_dir, saved_profile_location)])
+
+    adb.device().old_interface.EfficientDeviceDirectoryCopy(
+        saved_profile_location, self.profile_dir)
+    dumpsys = adb.device().RunShellCommand(
+        'dumpsys package %s' % self.package)
+    id_line = next(line for line in dumpsys if 'userId=' in line)
+    uid = re.search('\d+', id_line).group()
+    files = adb.device().RunShellCommand(
+        'ls "%s"' % self.profile_dir, as_root=True)
+    files.remove('lib')
+    paths = ['%s/%s' % (self.profile_dir, f) for f in files]
+    for path in paths:
+      extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)
+      adb.device().RunShellCommand(
+          'chown %s.%s %s' % (uid, uid, extended_path))
 
 class ContentShellBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, package):
@@ -91,7 +130,6 @@ class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
 
   def GetDevtoolsRemotePort(self, adb):
     return 'localabstract:chrome_shell_devtools_remote'
-
 
 class WebviewBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, package,
@@ -126,14 +164,12 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
                                               'Timeout waiting for PID.')
     return 'localabstract:webview_devtools_remote_%s' % str(pid)
 
-
 class WebviewShellBackendSettings(WebviewBackendSettings):
   def __init__(self, package):
     super(WebviewShellBackendSettings, self).__init__(
         activity='org.chromium.android_webview.shell.AwShellActivity',
         cmdline_file='/data/local/tmp/android-webview-command-line',
         package=package)
-
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android."""
@@ -164,23 +200,18 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # applications using the android.net stack to work with proxy HTTPS server
     # created by telemetry
     if self._backend_settings.relax_ssl_check:
-      self._saved_sslflag = self._android_platform_backend.SetRelaxSslCheck(
-                                                                        'yes')
-
-    self._android_platform_backend.InstallTestCa()
+      self._saved_sslflag = self._adb.device().GetProp('socket.relaxsslcheck')
+      self._adb.device().SetProp('socket.relaxsslcheck', 'yes')
 
     # Kill old browser.
     self._KillBrowser()
 
     if self._adb.device().old_interface.CanAccessProtectedFileContents():
       if self.browser_options.profile_dir:
-        self._android_platform_backend.PushProfile(
-                                        self._backend_settings.package,
-                                        self.browser_options.profile_dir)
+        self._backend_settings.PushProfile(self.browser_options.profile_dir,
+                                           self._adb)
       elif not self.browser_options.dont_override_profile:
-        self._android_platform_backend.RemoveProfile(
-                                 self._backend_settings.package,
-                                 self._backend_settings.profile_ignore_list)
+        self._backend_settings.RemoveProfile(self._adb)
 
     self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
         self._adb, use_rndis_forwarder)
@@ -193,15 +224,21 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           dns=forwarders.PortPair(0, 53))
 
     # Set the debug app if needed.
-    self._android_platform_backend.SetDebugApp(self._backend_settings.package)
+    if self._adb.IsUserBuild():
+      logging.debug('User build device, setting debug app')
+      self._adb.device().RunShellCommand(
+          'am set-debug-app --persistent %s' % self._backend_settings.package)
 
   @property
   def _adb(self):
     return self._android_platform_backend.adb
 
   def _KillBrowser(self):
-    self._android_platform_backend.KillApplication(
-        self._backend_settings.package)
+    # We use KillAll rather than ForceStop for efficiency reasons.
+    try:
+      self._adb.device().KillAll(self._backend_settings.package, retries=0)
+    except device_errors.CommandFailedError:
+      pass
 
   def _SetUpCommandLine(self):
     def QuoteIfNeeded(arg):
@@ -258,16 +295,18 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # If we have no existing tabs start with a blank page since default
       # startup with the NTP can lead to race conditions with Telemetry
       url = 'about:blank'
-
-    self._android_platform_backend.DismissCrashDialogIfNeeded()
-
+    # Dismiss any error dialogs. Limit the number in case we have an error loop
+    # or we are failing to dismiss.
+    for _ in xrange(10):
+      if not self._adb.device().old_interface.DismissCrashDialogIfNeeded():
+        break
     self._adb.device().StartActivity(
         intent.Intent(package=self._backend_settings.package,
                       activity=self._backend_settings.activity,
                       action=None, data=url, category=None),
         blocking=True)
 
-    self._android_platform_backend.ForwardHostToDevice(self._port,
+    self._adb.Forward('tcp:%d' % self._port,
                       self._backend_settings.GetDevtoolsRemotePort(self._adb))
 
     try:
@@ -332,32 +371,66 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
-
-    self._android_platform_backend.RemoveTestCa()
-
     self._KillBrowser()
 
     # Restore android.net SSL check
     if self._backend_settings.relax_ssl_check:
-      self._android_platform_backend.SetRelaxSslCheck(self._saved_sslflag)
+      self._adb.device().SetProp('socket.relaxsslcheck', self._saved_sslflag)
 
     if self._output_profile_path:
-      self._android_platform_backend.PullProfile(self._backend_settings.package,
-                                                 self._output_profile_path)
+      logging.info("Pulling profile directory from device: '%s'->'%s'.",
+                   self._backend_settings.profile_dir,
+                   self._output_profile_path)
+      # To minimize bandwidth it might be good to look at whether all the data
+      # pulled down is really needed e.g. .pak files.
+      if not os.path.exists(self._output_profile_path):
+        os.makedirs(self._output_profile_pathame)
+      files = self.adb.device().RunShellCommand(
+          'ls "%s"' % self._backend_settings.profile_dir)
+      for f in files:
+        # Don't pull lib, since it is created by the installer.
+        if f != 'lib':
+          source = '%s%s' % (self._backend_settings.profile_dir, f)
+          dest = os.path.join(self._output_profile_path, f)
+          # self._adb.Pull(source, dest) doesn't work because its timeout
+          # is fixed in android's adb_interface at 60 seconds, which may
+          # be too short to pull the cache.
+          cmd = 'pull %s %s' % (source, dest)
+          self._adb.device().old_interface.Adb().SendCommand(
+              cmd, timeout_time=240)
 
   def IsBrowserRunning(self):
-    return self._android_platform_backend.IsAppRunning(
-        self._backend_settings.package)
+    pids = self._adb.ExtractPid(self._backend_settings.package)
+    return len(pids) != 0
 
   def GetRemotePort(self, local_port):
     return local_port
 
   def GetStandardOutput(self):
-    return self._android_platform_backend.GetStandardOutput()
+    return '\n'.join(self._adb.device().RunShellCommand('logcat -d -t 500'))
 
   def GetStackTrace(self):
-    return self._android_platform_backend.GetStackTrace(self._target_arch)
+    def Decorate(title, content):
+      return title + '\n' + content + '\n' + '*' * 80 + '\n'
+    # Get the last lines of logcat (large enough to contain stacktrace)
+    logcat = self.GetStandardOutput()
+    ret = Decorate('Logcat', logcat)
+    stack = os.path.join(util.GetChromiumSrcDir(), 'third_party',
+                         'android_platform', 'development', 'scripts', 'stack')
+    # Try to symbolize logcat.
+    if os.path.exists(stack):
+      cmd = [stack]
+      if self._target_arch:
+        cmd.append('--arch=%s' % self._target_arch)
+      p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+      ret += Decorate('Stack from Logcat', p.communicate(input=logcat)[0])
 
-  @property
-  def wpr_ca_cert_path(self):
-    return self._android_platform_backend.wpr_ca_cert_path
+    # Try to get tombstones.
+    tombstones = os.path.join(util.GetChromiumSrcDir(), 'build', 'android',
+                              'tombstones.py')
+    if os.path.exists(tombstones):
+      ret += Decorate('Tombstones',
+                      subprocess.Popen([tombstones, '-w', '--device',
+                                        self._adb.device_serial()],
+                                       stdout=subprocess.PIPE).communicate()[0])
+    return ret
