@@ -274,6 +274,10 @@ class Value(object):
 
     return d
 
+  def GetAssociatedFileHandle(self):
+    """Returns the file handle associated with this value (may be None)."""
+    return None
+
 def ValueNameFromTraceAndChartName(trace_name, chart_name=None):
   """Mangles a trace name plus optional chart name into a standard string.
 

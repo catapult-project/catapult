@@ -142,7 +142,7 @@ def CreateResults(benchmark_metadata, options):
           options.results_label, trace_tag=options.output_trace_tag))
     elif output_format == 'json':
       output_formatters.append(json_output_formatter.JsonOutputFormatter(
-          output_stream, benchmark_metadata))
+          output_stream, options.output_dir, benchmark_metadata))
     elif output_format == 'chartjson':
       output_formatters.append(
           chart_json_output_formatter.ChartJsonOutputFormatter(

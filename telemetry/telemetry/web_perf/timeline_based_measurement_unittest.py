@@ -241,6 +241,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
         'SlowThreadJsRun-fast-scavenger_outside_idle',
         'SlowThreadJsRun-fast-total_garbage_collection',
         'SlowThreadJsRun-fast-total_garbage_collection_outside_idle',
+        'trace',
         ])
     if platform.GetHostPlatform().GetOSName() != 'win':
       # CPU metric is only supported non-Windows platforms.

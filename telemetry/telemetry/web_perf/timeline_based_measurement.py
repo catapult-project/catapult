@@ -2,16 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
-import os
 from collections import defaultdict
 
-from telemetry.core import util
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.page import page_test
 from telemetry.timeline import model as model_module
-from telemetry.value import string as string_value_module
+from telemetry.value import trace
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import fast_metric
 from telemetry.web_perf.metrics import responsiveness_metric
@@ -147,10 +144,6 @@ class TimelineBasedMeasurement(page_test.PageTest):
         choices=ALL_OVERHEAD_LEVELS,
         default=NO_OVERHEAD_LEVEL,
         help='How much overhead to incur during the measurement.')
-    parser.add_option(
-        '--trace-dir', dest='trace_dir', type='string', default=None,
-        help=('Where to save the trace after the run. If this flag '
-              'is not set, the trace will not be saved.'))
 
   def WillNavigateToPage(self, page, tab):
     if not tab.browser.platform.tracing_controller.IsChromeTracingSupported(
@@ -179,23 +172,13 @@ class TimelineBasedMeasurement(page_test.PageTest):
   def ValidateAndMeasurePage(self, page, tab, results):
     """ Collect all possible metrics and added them to results. """
     trace_result = tab.browser.platform.tracing_controller.Stop()
-    trace_dir = self.options.trace_dir
-    if trace_dir:
-      trace_file_path = util.GetSequentialFileName(
-          os.path.join(trace_dir, 'trace')) + '.json'
-      try:
-        with open(trace_file_path, 'w') as f:
-          trace_result.Serialize(f)
-        results.AddValue(string_value_module.StringValue(
-            page, 'trace_path', 'string', trace_file_path))
-      except IOError, e:
-        logging.error('Cannot open %s. %s' % (trace_file_path, e))
-
+    results.AddValue(trace.TraceValue(results.current_page, trace_result))
     model = model_module.TimelineModel(trace_result)
     renderer_thread = model.GetRendererThreadFromTabId(tab.id)
     meta_metrics = _TimelineBasedMetrics(
         model, renderer_thread, _GetMetricFromMetricType)
     meta_metrics.AddResults(results)
+
 
   def CleanUpAfterPage(self, page, tab):
     if tab.browser.platform.tracing_controller.is_tracing_running:

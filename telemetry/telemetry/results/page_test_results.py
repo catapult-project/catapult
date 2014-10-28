@@ -4,6 +4,7 @@
 
 import collections
 import copy
+import itertools
 import traceback
 
 from telemetry import value as value_module
@@ -60,6 +61,13 @@ class PageTestResults(object):
     if self._current_page_run:
       values += self._current_page_run.values
     return values
+
+  @property
+  def all_file_handles(self):
+    all_values = itertools.chain(
+        self.all_summary_values, self.all_page_specific_values)
+    return [fh for fh in map(lambda v: v.GetAssociatedFileHandle(), all_values)
+            if fh is not None]
 
   @property
   def all_summary_values(self):
