@@ -32,6 +32,8 @@ def RunTestsForChromeOS(browser_type, unit_tests, perf_tests):
 
 
 def _RunOneSetOfTests(browser_type, root_dir, sub_dir, tests, stream):
+  if not tests:
+    return
   top_level_dir = os.path.join(util.GetChromiumSrcDir(), 'tools', root_dir)
   sub_dir = os.path.join(util.GetChromiumSrcDir(), 'tools', sub_dir)
 
