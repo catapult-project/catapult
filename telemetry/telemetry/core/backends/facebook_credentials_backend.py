@@ -33,3 +33,9 @@ class FacebookCredentialsBackend(
   @property
   def password_input_id(self):
     return 'pass'
+
+class FacebookCredentialsBackend2(FacebookCredentialsBackend):
+
+  @property
+  def credentials_type(self):
+    return 'facebook2'
