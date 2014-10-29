@@ -35,7 +35,12 @@ class FacebookCredentialsBackend(
     return 'pass'
 
 class FacebookCredentialsBackend2(FacebookCredentialsBackend):
+  """ Facebook credential backend for https client. """
 
   @property
   def credentials_type(self):
     return 'facebook2'
+
+  @property
+  def url(self):
+    return 'https://www.facebook.com/'
