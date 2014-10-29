@@ -236,21 +236,3 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Wait for extensions to load.
     self._WaitForBrowserToComeUp()
-
-    # Workaround for crbug.com/374462 - the bug doesn't manifest in the guest
-    # session, which also starts with an open browser tab.
-    retries = 3
-    while not self._is_guest and not self.browser_options.gaia_login:
-      try:
-        # Open a new window/tab.
-        tab = self.tab_list_backend.New(timeout=30)
-        tab.Navigate('about:blank', timeout=10)
-        break
-      except (exceptions.TabCrashException, util.TimeoutException,
-              IndexError):
-        retries -= 1
-        logging.warning('TabCrashException/TimeoutException in '
-                        'new tab creation/navigation, '
-                        'remaining retries %d', retries)
-        if not retries:
-          raise
