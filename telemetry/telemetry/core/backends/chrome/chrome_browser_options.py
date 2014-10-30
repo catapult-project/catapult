@@ -36,6 +36,8 @@ class CrosBrowserOptions(ChromeBrowserOptions):
     self.clear_enterprise_policy = True
     # Disable GAIA/enterprise services.
     self.disable_gaia_services = True
+    # Disable default apps.
+    self.disable_default_apps = True
 
     self.auto_login = True
     self.gaia_login = False
