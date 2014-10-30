@@ -33,7 +33,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     backend = android_platform_backend.AndroidPlatformBackend(
         android_device.AndroidDevice('12345'))
     cpu_stats = backend.GetCpuStats('7702')
-    self.assertEquals(cpu_stats, {'CpuProcessTime': 5.0})
+    self.assertEquals(cpu_stats, {'CpuProcessTime': 0.05})
 
   @benchmark.Disabled('chromeos')
   def testGetCpuStatsInvalidPID(self):

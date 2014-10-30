@@ -23,8 +23,35 @@ class TestBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
   def GetFileContents(self, filename):
     return self._mock_files[filename]
 
+  def GetClockTicks(self):
+    return 41
+
 
 class LinuxBasedPlatformBackendTest(unittest.TestCase):
+
+  def SetMockFileInBackend(self, backend, real_file, mock_file):
+    with open(os.path.join(util.GetUnittestDataDir(), real_file)) as f:
+      backend.SetMockFile(mock_file, f.read())
+
+  def testGetCpuStatsBasic(self):
+    if not linux_based_platform_backend.resource:
+      logging.warning('Test not supported')
+      return
+
+    backend = TestBackend()
+    self.SetMockFileInBackend(backend, 'stat', '/proc/1/stat')
+    result = backend.GetCpuStats(1)
+    self.assertEquals(result, {'CpuProcessTime': 22.0})
+
+  def testGetCpuTimestampBasic(self):
+    if not linux_based_platform_backend.resource:
+      logging.warning('Test not supported')
+      return
+
+    backend = TestBackend()
+    self.SetMockFileInBackend(backend, 'timer_list', '/proc/timer_list')
+    result = backend.GetCpuTimestamp()
+    self.assertEquals(result, {'TotalTime': 105054633.0})
 
   def testGetMemoryStatsBasic(self):
     if not linux_based_platform_backend.resource:
@@ -32,12 +59,9 @@ class LinuxBasedPlatformBackendTest(unittest.TestCase):
       return
 
     backend = TestBackend()
-    with open(os.path.join(util.GetUnittestDataDir(), 'stat')) as f:
-      backend.SetMockFile('/proc/1/stat', f.read())
-    with open(os.path.join(util.GetUnittestDataDir(), 'status')) as f:
-      backend.SetMockFile('/proc/1/status', f.read())
-    with open(os.path.join(util.GetUnittestDataDir(), 'smaps')) as f:
-      backend.SetMockFile('/proc/1/smaps', f.read())
+    self.SetMockFileInBackend(backend, 'stat', '/proc/1/stat')
+    self.SetMockFileInBackend(backend, 'status', '/proc/1/status')
+    self.SetMockFileInBackend(backend, 'smaps', '/proc/1/smaps')
     result = backend.GetMemoryStats(1)
     self.assertEquals(result, {'PrivateDirty': 5324800,
                                'VM': 1025978368,
@@ -51,12 +75,9 @@ class LinuxBasedPlatformBackendTest(unittest.TestCase):
       return
 
     backend = TestBackend()
-    with open(os.path.join(util.GetUnittestDataDir(), 'stat')) as f:
-      backend.SetMockFile('/proc/1/stat', f.read())
-    with open(os.path.join(util.GetUnittestDataDir(), 'status_nohwm')) as f:
-      backend.SetMockFile('/proc/1/status', f.read())
-    with open(os.path.join(util.GetUnittestDataDir(), 'smaps')) as f:
-      backend.SetMockFile('/proc/1/smaps', f.read())
+    self.SetMockFileInBackend(backend, 'stat', '/proc/1/stat')
+    self.SetMockFileInBackend(backend, 'status_nohwm', '/proc/1/status')
+    self.SetMockFileInBackend(backend, 'smaps', '/proc/1/smaps')
     result = backend.GetMemoryStats(1)
     self.assertEquals(result, {'PrivateDirty': 5324800,
                                'VM': 1025978368,

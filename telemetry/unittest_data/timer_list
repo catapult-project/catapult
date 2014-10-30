@@ -1,0 +1,62 @@
+Timer List Version: v0.7
+HRTIMER_MAX_CLOCK_BASES: 4
+now at 49390649032656 nsecs
+
+cpu: 0
+ clock 0:
+  .base:       0000000000000000
+  .index:      0
+  .resolution: 1 nsecs
+  .get_time:   ktime_get
+  .offset:     0 nsecs
+active timers:
+ #0: <0000000000000000>, hrtimer_wakeup, S:01, schedule_hrtimeout_range_clock, census_census_h/2343
+ # expires at 49390651724646-49390651774646 nsecs [in 2691990 to 2741990 nsecs]
+ #1: <0000000000000000>, hrtimer_wakeup, S:01, schedule_hrtimeout_range_clock, census_census_h/3680
+ # expires at 49390656983466-49390657033466 nsecs [in 7950810 to 8000810 nsecs]
+ clock 1:
+  .base:       0000000000000000
+  .index:      1
+  .resolution: 1 nsecs
+  .get_time:   ktime_get_real
+  .offset:     1414432541083798144 nsecs
+active timers:
+ #0: <0000000000000000>, hrtimer_wakeup, S:01, hrtimer_start_range_ns, mysqld/27245
+ # expires at 1414481934522781000-1414481934522831000 nsecs [in 1414432543873748344 to 1414432543873798344 nsecs]
+ #1: <0000000000000000>, hrtimer_wakeup, S:01, hrtimer_start_range_ns, DNS Res~ver #14/21520
+ # expires at 1414482222918140000-1414482222918190000 nsecs [in 1414432832269107344 to 1414432832269157344 nsecs]
+ clock 2:
+  .base:       0000000000000000
+  .index:      2
+  .resolution: 1 nsecs
+  .get_time:   ktime_get_boottime
+  .offset:     0 nsecs
+active timers:
+ clock 3:
+  .base:       0000000000000000
+  .index:      3
+  .resolution: 1 nsecs
+  .get_time:   ktime_get_clocktai
+  .offset:     1414432541083798144 nsecs
+active timers:
+  .expires_next   : 49390651774646 nsecs
+  .hres_active    : 1
+  .nr_events      : 9793846
+  .nr_retries     : 580
+  .nr_hangs       : 0
+  .max_hang_time  : 0 nsecs
+  .nohz_mode      : 2
+  .last_tick      : 49390648000000 nsecs
+  .tick_stopped   : 1
+  .idle_jiffies   : 4307239958
+  .idle_calls     : 16879086
+  .idle_sleeps    : 15799778
+  .idle_entrytime : 49390647721066 nsecs
+  .idle_waketime  : 49390647714831 nsecs
+  .idle_exittime  : 49390647489308 nsecs
+  .idle_sleeptime : 44326049938322 nsecs
+  .iowait_sleeptime: 1007311574977 nsecs
+  .last_jiffies   : 4307239958
+  .next_jiffies   : 4307239968
+  .idle_expires   : 49390684000000 nsecs
+jiffies: 4307239953
