@@ -51,8 +51,9 @@ tv.exportTo('net', function() {
       if (url !== undefined && url.length > 0) {
         // Set the title so we do not have to recompute when it is redrawn.
         this.title_ = url;
-        this.isTitleComputed_ = true;
-        return url;
+      } else if (this.args !== undefined && this.args.source_type !== undefined) {
+        // We do not have a URL, use the source type as the title.
+        this.title_ = this.args.source_type;
       }
       this.isTitleComputed_ = true;
       return this.title_;

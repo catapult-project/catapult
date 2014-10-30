@@ -38,13 +38,14 @@ tv.unittest.testSuite(function() {
   });
 
   test('ExposeURLBasic', function() {
-    var slice = new NetSlice('', 'a', 0, 1, {params: {url: "https://google.com"}});
+    var slice = new NetSlice('', 'a', 0, 1, {params: {url: "https://google.com"},
+                                             source_type: "b"});
     slice.isTopLevel = true;
     assertEquals("https://google.com", slice.title);
   });
 
   test('ExposeURLNested', function() {
-    var slice = new NetSlice('', 'a', 0, 1, {params: {}});
+    var slice = new NetSlice('', 'a', 0, 1, {params: {}, source_type: "HELLO"});
     slice.isTopLevel = true;
     var childSlice = new NetSlice('', 'b', 0, 1, {params: {url: "http://test.url"}});
     slice.subSlices = [childSlice];
@@ -105,6 +106,19 @@ tv.unittest.testSuite(function() {
     // remain the same. We do not recompute.
     childSlice1.args.params.url = "example.com";
     assertEquals("http://test.url.net", slice.title);
+    assertEquals("b", childSlice1.title);
+    assertEquals("c", childSlice2.title);
+  });
+
+  test('ExposeSourceTypeAsTitle', function() {
+    var slice = new NetSlice('', 'a', 0, 1, {params: {}, source_type: "UDP_SOCKET"});
+    slice.isTopLevel = true;
+    var childSlice1 = new NetSlice('', 'b', 0, 1, {params: {}, source_type: "SOCKET"});
+    var childSlice2 = new NetSlice('', 'c', 0, 1);
+
+    slice.subSlices = [childSlice1, childSlice2];
+    // Parent should take its own source_type.
+    assertEquals("UDP_SOCKET", slice.title);
     assertEquals("b", childSlice1.title);
     assertEquals("c", childSlice2.title);
   });
