@@ -331,7 +331,7 @@ def Run(test, page_set, expectations, finder_options, results):
         '\n'.join(browser_finder.GetAllAvailableBrowserTypes(finder_options)))
     sys.exit(-1)
 
-  browser_options = possible_browser.finder_options.browser_options
+  browser_options = finder_options.browser_options
   browser_options.browser_type = possible_browser.browser_type
   test.CustomizeBrowserOptions(browser_options)
 
