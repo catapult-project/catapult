@@ -38,21 +38,34 @@ class _RunState(object):
     self._current_page = None
     self._current_tab = None
 
-  def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
-                          finder_options):
-    started_browser = not self.browser
-    wpr_mode = finder_options.browser_options.wpr_mode
-    if self._append_to_existing_wpr and wpr_mode == wpr_modes.WPR_RECORD:
-      wpr_mode = wpr_modes.WPR_APPEND
+  def _PrepareWpr(self, finder_options, network_controller, archive_path,
+                  make_javascript_deterministic):
+    browser_options = finder_options.browser_options
+    if finder_options.use_live_sites:
+      browser_options.wpr_mode = wpr_modes.WPR_OFF
+    elif browser_options.wpr_mode != wpr_modes.WPR_RECORD:
+      browser_options.wpr_mode = (
+          wpr_modes.WPR_REPLAY
+          if archive_path and os.path.isfile(archive_path)
+          else wpr_modes.WPR_OFF)
+
     # Replay's life-cycle is tied to the browser. Start and Stop are handled by
     # platform_backend.DidCreateBrowser and platform_backend.WillCloseBrowser,
     # respectively.
     # TODO(slamm): Update life-cycle comment with https://crbug.com/424777 fix.
-    possible_browser.platform.network_controller.SetReplayArgs(
-        page.archive_path, wpr_mode, finder_options.browser_options.netsim,
-        finder_options.browser_options.extra_wpr_args,
-        page_set.make_javascript_deterministic)
+    wpr_mode = browser_options.wpr_mode
+    if self._append_to_existing_wpr and wpr_mode == wpr_modes.WPR_RECORD:
+      wpr_mode = wpr_modes.WPR_APPEND
+    network_controller.SetReplayArgs(
+        archive_path, wpr_mode, browser_options.netsim,
+        browser_options.extra_wpr_args, make_javascript_deterministic)
 
+  def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
+                          finder_options):
+    started_browser = not self.browser
+    self._PrepareWpr(
+        finder_options, possible_browser.platform.network_controller,
+        page.archive_path, page_set.make_javascript_deterministic)
     if self.browser:
       # Set new credential path for browser.
       self.browser.credentials.credentials_path = page.credentials_path
@@ -230,15 +243,7 @@ def ProcessCommandLineArgs(parser, args):
 
 
 def _RunPageAndRetryRunIfNeeded(test, page_set, expectations, finder_options,
-                       browser_options, page, possible_browser, results, state):
-  if finder_options.use_live_sites:
-    browser_options.wpr_mode = wpr_modes.WPR_OFF
-  elif browser_options.wpr_mode != wpr_modes.WPR_RECORD:
-    browser_options.wpr_mode = (
-        wpr_modes.WPR_REPLAY
-        if page.archive_path and os.path.isfile(page.archive_path)
-        else wpr_modes.WPR_OFF)
-
+                        page, possible_browser, results, state):
   max_attempts = test.attempts
   attempt_num = 0
   while attempt_num < max_attempts:
@@ -388,8 +393,8 @@ def Run(test, page_set, expectations, finder_options, results):
           results.WillRunPage(page)
           try:
             _RunPageAndRetryRunIfNeeded(
-                test, page_set, expectations, finder_options, browser_options,
-                page, possible_browser, results, state)
+                test, page_set, expectations, finder_options, page,
+                possible_browser, results, state)
           finally:
             discard_run = (test.discard_first_result and
                            page not in pages_with_discarded_first_result)

@@ -1,8 +1,0 @@
-{
-    "description": "Describes the Web Page Replay archives for a page set. Don't edit by hand! Use record_wpr for updating.", 
-    "archives": {
-        "archive_blank_000.wpr": [
-            "blank.html"
-        ]
-    }
-}
