@@ -176,7 +176,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def _WaitForBrowserToComeUp(self, wait_for_extensions=True):
     try:
-      util.WaitFor(self.HasBrowserFinishedLaunching, timeout=60)
+      util.WaitFor(self.HasBrowserFinishedLaunching, timeout=30)
     except (util.TimeoutException, exceptions.ProcessGoneException) as e:
       if not self.IsBrowserRunning():
         raise exceptions.BrowserGoneException(self.browser, e)
