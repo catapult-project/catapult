@@ -452,7 +452,7 @@ class AndroidPlatformBackend(
     """
     profile_dir = self._GetProfileDir(package)
     logging.info("Pulling profile directory from device: '%s'->'%s'.",
-                 self._ProfileDir(package), output_profile_path)
+                 self._GetProfileDir(package), output_profile_path)
     # To minimize bandwidth it might be good to look at whether all the data
     # pulled down is really needed e.g. .pak files.
     if not os.path.exists(output_profile_path):
