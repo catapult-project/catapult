@@ -9,7 +9,7 @@
 'use strict';
 
 (function() {
-  var MAX_SCROLL_LENGTH_PIXELS = 5000;
+  var MAX_SCROLL_LENGTH_TIME_MS = 6250;
 
   function ScrollGestureOptions(opt_options) {
     if (opt_options) {
@@ -90,7 +90,9 @@
   ScrollAction.prototype.startGesture_ = function() {
     this.beginMeasuringHook();
 
-    var distance = Math.min(MAX_SCROLL_LENGTH_PIXELS,
+    var max_scroll_length_pixels = (MAX_SCROLL_LENGTH_TIME_MS / 1000) *
+        this.options_.speed_;
+    var distance = Math.min(max_scroll_length_pixels,
                             this.getScrollDistance_());
 
     var rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
