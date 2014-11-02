@@ -69,7 +69,6 @@
       'trace_viewer/base/interval_tree.html',
       'trace_viewer/base/iteration_helpers.html',
       'trace_viewer/base/key_event_manager.html',
-      'trace_viewer/base/measuring_stick.html',
       'trace_viewer/base/properties.html',
       'trace_viewer/base/quad.html',
       'trace_viewer/base/raf.html',
