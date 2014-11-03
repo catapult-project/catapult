@@ -170,6 +170,11 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
       for state in initial[cpu]:
         current_cpu[state] = final[cpu][state] - initial[cpu][state]
         total += current_cpu[state]
+      if total == 0:
+        # Somehow it's possible for initial and final to have the same sum,
+        # but a different distribution, making total == 0. crbug.com/426430
+        cpu_stats[cpu] = collections.defaultdict(int)
+        continue
       for state in current_cpu:
         current_cpu[state] /= (float(total) / 100.0)
         # Calculate the average c-state residency across all CPUs.

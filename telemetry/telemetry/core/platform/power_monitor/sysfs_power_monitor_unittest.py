@@ -195,6 +195,26 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
         self.assertAlmostEqual(results[cpu][freq],
                                self.expected_freq_percents[cpu][freq])
 
+  def testComputeCpuStatsWithMissingData(self):
+    results = sysfs_power_monitor.SysfsPowerMonitor.ComputeCpuStats(
+        {'cpu1': {}}, {'cpu1': {}})
+    self.assertEqual(results['cpu1'][12345], 0)
+
+    results = sysfs_power_monitor.SysfsPowerMonitor.ComputeCpuStats(
+        {'cpu1': {123: 0}}, {'cpu1': {123: 0}})
+    self.assertEqual(results['cpu1'][123], 0)
+
+    results = sysfs_power_monitor.SysfsPowerMonitor.ComputeCpuStats(
+        {'cpu1': {123: 456}}, {'cpu1': {123: 456}})
+    self.assertEqual(results['cpu1'][123], 0)
+
+  def testComputeCpuStatsWithNumberChange(self):
+    results = sysfs_power_monitor.SysfsPowerMonitor.ComputeCpuStats(
+        {'cpu1': {'C0': 10, 'WFI': 20}},
+        {'cpu1': {'C0': 20, 'WFI': 10}})
+    self.assertEqual(results['cpu1']['C0'], 0)
+    self.assertEqual(results['cpu1']['WFI'], 0)
+
   def testGetCpuStateForAndroidDevices(self):
     class PlatformStub(object):
       def __init__(self, run_command_return_value):
