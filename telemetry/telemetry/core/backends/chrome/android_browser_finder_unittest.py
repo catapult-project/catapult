@@ -87,3 +87,32 @@ class AndroidBrowserFinderTest(unittest.TestCase):
 
     browsers = android_browser_finder.FindAllAvailableBrowsers(finder_options)
     self.assertEquals(1, len(browsers))
+
+
+class FakePossibleBrowser(object):
+  def __init__(self, last_modification_time):
+    self._last_modification_time = last_modification_time
+
+  def last_modification_time(self):
+    return self._last_modification_time
+
+
+class SelectDefaultBrowserTest(unittest.TestCase):
+  def testEmptyListGivesNone(self):
+    self.assertIsNone(android_browser_finder.SelectDefaultBrowser([]))
+
+  def testSinglePossibleReturnsSame(self):
+    possible_browsers = [FakePossibleBrowser(last_modification_time=1)]
+    self.assertIs(
+      possible_browsers[0],
+      android_browser_finder.SelectDefaultBrowser(possible_browsers))
+
+  def testListGivesNewest(self):
+    possible_browsers = [
+        FakePossibleBrowser(last_modification_time=2),
+        FakePossibleBrowser(last_modification_time=3),  # newest
+        FakePossibleBrowser(last_modification_time=1),
+        ]
+    self.assertIs(
+      possible_browsers[1],
+      android_browser_finder.SelectDefaultBrowser(possible_browsers))

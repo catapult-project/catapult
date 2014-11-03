@@ -141,13 +141,10 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
 
 def SelectDefaultBrowser(possible_browsers):
-  local_builds_by_date = sorted(possible_browsers,
-                                key=lambda b: b.last_modification_time())
-
-  if local_builds_by_date:
-    newest_browser = local_builds_by_date[-1]
-    return newest_browser
-  return None
+  """Return the newest possible browser."""
+  if not possible_browsers:
+    return None
+  return max(possible_browsers, key=lambda b: b.last_modification_time())
 
 
 def CanFindAvailableBrowsers():
