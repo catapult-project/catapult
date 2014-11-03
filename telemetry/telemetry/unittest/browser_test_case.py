@@ -21,7 +21,7 @@ class BrowserTestCase(unittest.TestCase):
 
     cls._browser = None
     try:
-      cls._browser = browser_to_create.Create()
+      cls._browser = browser_to_create.Create(options)
     except:
       cls.tearDownClass()
       raise

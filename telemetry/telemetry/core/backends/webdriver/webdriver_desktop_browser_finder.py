@@ -46,7 +46,7 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
     # pylint: disable=W0212
     self._platform_backend = self._platform._platform_backend
 
-  def Create(self):
+  def Create(self, finder_options):
     self._InitPlatformIfNeeded()
     backend = self.CreateWebDriverBackend(self._platform_backend)
     return browser.Browser(backend,

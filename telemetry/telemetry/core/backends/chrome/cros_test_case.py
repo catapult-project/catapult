@@ -48,7 +48,7 @@ class CrOSTestCase(unittest.TestCase):
     if password is not None:
       browser_options.password = password
 
-    return browser_to_create.Create()
+    return browser_to_create.Create(options)
 
   def _GetAutotestExtension(self, browser):
     """Returns the autotest extension instance"""

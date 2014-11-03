@@ -9,10 +9,9 @@ class PossibleApp(object):
   Call Create() to launch the app and begin manipulating it.
   """
 
-  def __init__(self, app_type, target_os, finder_options):
+  def __init__(self, app_type, target_os):
     self._app_type = app_type
     self._target_os = target_os
-    self._finder_options = finder_options
     self._platform = None
     self._platform_backend = None
 
@@ -29,10 +28,6 @@ class PossibleApp(object):
     return self._target_os
 
   @property
-  def finder_options(self):
-    return self._finder_options
-
-  @property
   def platform(self):
     self._InitPlatformIfNeeded()
     return self._platform
@@ -40,7 +35,7 @@ class PossibleApp(object):
   def _InitPlatformIfNeeded(self):
     raise NotImplementedError()
 
-  def Create(self):
+  def Create(self, finder_options):
     raise NotImplementedError()
 
   def SupportsOptions(self, finder_options):

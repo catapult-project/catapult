@@ -11,11 +11,9 @@ class PossibleBrowser(possible_app.PossibleApp):
   Call Create() to launch the browser and begin manipulating it..
   """
 
-  def __init__(self, browser_type, target_os, finder_options,
-               supports_tab_control):
+  def __init__(self, browser_type, target_os, supports_tab_control):
     super(PossibleBrowser, self).__init__(app_type=browser_type,
-                                          target_os=target_os,
-                                          finder_options=finder_options)
+                                          target_os=target_os)
     self._supports_tab_control = supports_tab_control
     self._credentials_path = None
 
@@ -33,7 +31,7 @@ class PossibleBrowser(possible_app.PossibleApp):
   def _InitPlatformIfNeeded(self):
     raise NotImplementedError()
 
-  def Create(self):
+  def Create(self, finder_options):
     raise NotImplementedError()
 
   def SupportsOptions(self, finder_options):

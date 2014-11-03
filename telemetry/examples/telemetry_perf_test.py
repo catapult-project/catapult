@@ -20,7 +20,7 @@ def Main(args):
 
   browser_to_create = browser_finder.FindBrowser(options)
   assert browser_to_create
-  with browser_to_create.Create() as b:
+  with browser_to_create.Create(options) as b:
     tab = b.tabs[0]
 
     # Measure round-trip-time for evaluate

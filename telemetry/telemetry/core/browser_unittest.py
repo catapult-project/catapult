@@ -161,7 +161,7 @@ def _GenerateBrowserProfile(number_of_tabs):
   options = options_for_unittests.GetCopy()
   options.output_profile_path = profile_dir
   browser_to_create = browser_finder.FindBrowser(options)
-  with browser_to_create.Create() as browser:
+  with browser_to_create.Create(options) as browser:
     browser.SetHTTPServerDirectories(path.GetUnittestDataDir())
     blank_file_path = os.path.join(path.GetUnittestDataDir(), 'blank.html')
     blank_url = browser.http_server.UrlOf(blank_file_path)
@@ -180,16 +180,17 @@ class BrowserRestoreSessionTest(unittest.TestCase):
   def setUpClass(cls):
     cls._number_of_tabs = 4
     cls._profile_dir = _GenerateBrowserProfile(cls._number_of_tabs)
-    options = options_for_unittests.GetCopy()
-    options.browser_options.AppendExtraBrowserArgs(['--restore-last-session'])
-    options.browser_options.profile_dir = cls._profile_dir
-    cls._browser_to_create = browser_finder.FindBrowser(options)
+    cls._options = options_for_unittests.GetCopy()
+    cls._options.browser_options.AppendExtraBrowserArgs(
+        ['--restore-last-session'])
+    cls._options.browser_options.profile_dir = cls._profile_dir
+    cls._browser_to_create = browser_finder.FindBrowser(cls._options)
 
   @benchmark.Enabled('has tabs')
   @benchmark.Disabled('chromeos', 'win')
   # TODO(nednguyen): Enable this test on windowsn platform
   def testRestoreBrowserWithMultipleTabs(self):
-    with self._browser_to_create.Create() as browser:
+    with self._browser_to_create.Create(self._options) as browser:
       # The number of tabs will be self._number_of_tabs + 1 as it includes the
       # old tabs and a new blank tab.
       expected_number_of_tabs = self._number_of_tabs + 1

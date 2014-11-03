@@ -22,10 +22,9 @@ def _IsRunningOnCrOS():
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   """A launchable CrOS browser instance."""
   def __init__(self, browser_type, finder_options, cros_platform, is_guest):
-    super(PossibleCrOSBrowser, self).__init__(browser_type, 'cros',
-        finder_options, True)
-    assert browser_type in FindAllBrowserTypes(finder_options), \
-        ('Please add %s to cros_browser_finder.FindAllBrowserTypes()' %
+    super(PossibleCrOSBrowser, self).__init__(browser_type, 'cros', True)
+    assert browser_type in FindAllBrowserTypes(finder_options), (
+        'Please add %s to cros_browser_finder.FindAllBrowserTypes()' %
          browser_type)
     self._platform = cros_platform
     self._platform_backend = (
@@ -38,22 +37,22 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   def _InitPlatformIfNeeded(self):
     pass
 
-  def Create(self):
-    if self.finder_options.output_profile_path:
+  def Create(self, finder_options):
+    if finder_options.output_profile_path:
       raise NotImplementedError(
           'Profile generation is not yet supported on CrOS.')
 
-    browser_options = self.finder_options.browser_options
-    backend = cros_browser_backend.CrOSBrowserBackend(
+    browser_options = finder_options.browser_options
+    browser_backend = cros_browser_backend.CrOSBrowserBackend(
         browser_options, self._platform_backend.cri, self._is_guest,
-        extensions_to_load=self.finder_options.extensions_to_load)
+        extensions_to_load=finder_options.extensions_to_load)
     if browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(
-          backend,
+          browser_backend,
           self._platform_backend,
           self._credentials_path)
     return browser.Browser(
-        backend, self._platform_backend, self._credentials_path)
+        browser_backend, self._platform_backend, self._credentials_path)
 
   def SupportsOptions(self, finder_options):
     if (len(finder_options.extensions_to_load) != 0) and self._is_guest:

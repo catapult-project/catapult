@@ -7,7 +7,7 @@ class App(object):
 
   Be sure to clean up after yourself by calling Close() when you are done with
   the app. Or better yet:
-    with possible_app.Create() as app:
+    with possible_app.Create(options) as app:
       ... do all your operations on app here
   """
   def __init__(self, app_backend, platform_backend):

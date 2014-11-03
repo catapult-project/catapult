@@ -36,7 +36,7 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
       return
 
     options = options_for_unittests.GetCopy()
-    with browser_finder.FindBrowser(options).Create() as b:
+    with browser_finder.FindBrowser(options).Create(options) as b:
       b.credentials.credentials_path = credentials_path
       if not b.credentials.CanLogin(self._credentials_type):
         return

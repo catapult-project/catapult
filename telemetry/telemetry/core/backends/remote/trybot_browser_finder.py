@@ -24,14 +24,13 @@ SUCCESS, NO_CHANGES, ERROR = range(3)
 class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
   """A script that sends a job to a trybot."""
 
-  def __init__(self, browser_type, finder_options):
+  def __init__(self, browser_type, _):
     target_os = browser_type.split('-')[1]
     self._buildername = '%s_perf_bisect' % browser_type.replace(
         'trybot-', '').replace('-', '_')
-    super(PossibleTrybotBrowser, self).__init__(browser_type, target_os,
-                                                finder_options, True)
+    super(PossibleTrybotBrowser, self).__init__(browser_type, target_os, True)
 
-  def Create(self):
+  def Create(self, finder_options):
     raise NotImplementedError()
 
   def SupportsOptions(self, finder_options):

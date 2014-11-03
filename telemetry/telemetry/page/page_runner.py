@@ -75,7 +75,7 @@ class _RunState(object):
       possible_browser.SetCredentialsPath(page.credentials_path)
 
       test.WillStartBrowser(possible_browser.platform)
-      self.browser = possible_browser.Create()
+      self.browser = possible_browser.Create(finder_options)
       test.DidStartBrowser(self.browser)
 
       if self._first_browser:

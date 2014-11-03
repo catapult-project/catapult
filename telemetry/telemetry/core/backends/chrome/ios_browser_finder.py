@@ -27,16 +27,15 @@ IOS_WEBKIT_DEBUG_PROXY = 'ios_webkit_debug_proxy'
 class PossibleIOSBrowser(possible_browser.PossibleBrowser):
 
   """A running iOS browser instance."""
-  def __init__(self, browser_type, finder_options):
-    super(PossibleIOSBrowser, self).__init__(browser_type, 'ios',
-        finder_options, True)
+  def __init__(self, browser_type, _):
+    super(PossibleIOSBrowser, self).__init__(browser_type, 'ios', True)
 
   # TODO(baxley): Implement the following methods for iOS.
-  def Create(self):
-    backend = ios_browser_backend.IosBrowserBackend(
-        self.finder_options.browser_options)
+  def Create(self, finder_options):
+    browser_backend = ios_browser_backend.IosBrowserBackend(
+        finder_options.browser_options)
     return browser.Browser(
-        backend, self._platform_backend, self._credentials_path)
+        browser_backend, self._platform_backend, self._credentials_path)
 
   def SupportsOptions(self, finder_options):
     #TODO(baxley): Implement me.

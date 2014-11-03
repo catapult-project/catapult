@@ -10,7 +10,7 @@ class AndroidApp(app.App):
 
   Be sure to clean up after yourself by calling Close() when you are done with
   the app. Or better yet:
-    with possible_android_app.Create() as android_app:
+    with possible_android_app.Create(options) as android_app:
       ... do all your operations on android_app here
   """
   def __init__(self, backend, platform_backend):

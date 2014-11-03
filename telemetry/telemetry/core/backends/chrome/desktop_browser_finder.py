@@ -21,11 +21,11 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   def __init__(self, browser_type, finder_options, executable, flash_path,
                is_content_shell, browser_directory, is_local_build=False):
     target_os = sys.platform.lower()
-    super(PossibleDesktopBrowser, self).__init__(browser_type, target_os,
-        finder_options, not is_content_shell)
-    assert browser_type in FindAllBrowserTypes(finder_options), \
-        ('Please add %s to desktop_browser_finder.FindAllBrowserTypes' %
-          browser_type)
+    super(PossibleDesktopBrowser, self).__init__(
+        browser_type, target_os, not is_content_shell)
+    assert browser_type in FindAllBrowserTypes(finder_options), (
+        'Please add %s to desktop_browser_finder.FindAllBrowserTypes' %
+        browser_type)
     self._local_executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell
@@ -45,7 +45,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     # pylint: disable=W0212
     self._platform_backend = self._platform._platform_backend
 
-  def Create(self):
+  def Create(self, finder_options):
     if self._flash_path and not os.path.exists(self._flash_path):
       logging.warning(
           'Could not find Flash at %s. Continuing without Flash.\n'
@@ -55,13 +55,13 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
     self._InitPlatformIfNeeded()
 
-    backend = desktop_browser_backend.DesktopBrowserBackend(
-        self.finder_options.browser_options, self._local_executable,
+    browser_backend = desktop_browser_backend.DesktopBrowserBackend(
+        finder_options.browser_options, self._local_executable,
         self._flash_path, self._is_content_shell, self._browser_directory,
-        output_profile_path=self.finder_options.output_profile_path,
-        extensions_to_load=self.finder_options.extensions_to_load)
+        output_profile_path=finder_options.output_profile_path,
+        extensions_to_load=finder_options.extensions_to_load)
     return browser.Browser(
-        backend, self._platform_backend, self._credentials_path)
+        browser_backend, self._platform_backend, self._credentials_path)
 
   def SupportsOptions(self, finder_options):
     if (len(finder_options.extensions_to_load) != 0) and self._is_content_shell:
