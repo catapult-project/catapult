@@ -687,9 +687,9 @@ class RunStateTest(unittest.TestCase):
   # pylint: disable=W0212
   def TestUseLiveSitesFlag(self, options, expected_wpr_mode):
     with tempfile.NamedTemporaryFile() as f:
-      run_state = page_runner._RunState(DummyTest())
+      run_state = page_runner._RunState(DummyTest(), options)
       fake_network_controller = FakeNetworkController()
-      run_state._PrepareWpr(options, fake_network_controller, f.name, None)
+      run_state._PrepareWpr(fake_network_controller, f.name, None)
       self.assertEquals(fake_network_controller.wpr_mode, expected_wpr_mode)
       self.assertEquals(fake_network_controller.archive_path, f.name)
 
