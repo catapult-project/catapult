@@ -13,8 +13,7 @@ class _MockRenderingStats(object):
 
   stats = ['frame_timestamps', 'frame_times', 'paint_times',
            'painted_pixel_counts', 'record_times',
-           'recorded_pixel_counts', 'rasterize_times',
-           'rasterized_pixel_counts', 'approximated_pixel_percentages',
+           'recorded_pixel_counts', 'approximated_pixel_percentages',
            'input_event_latency', 'frame_queueing_durations',
            'scroll_update_latency', 'gesture_scroll_update_latency']
 

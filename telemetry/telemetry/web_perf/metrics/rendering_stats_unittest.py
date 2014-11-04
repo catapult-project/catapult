@@ -54,8 +54,6 @@ class ReferenceRenderingStats(object):
     self.painted_pixel_counts = []
     self.record_times = []
     self.recorded_pixel_counts = []
-    self.rasterize_times = []
-    self.rasterized_pixel_counts = []
     self.approximated_pixel_percentages = []
 
   def AppendNewRange(self):
@@ -65,8 +63,6 @@ class ReferenceRenderingStats(object):
     self.painted_pixel_counts.append([])
     self.record_times.append([])
     self.recorded_pixel_counts.append([])
-    self.rasterize_times.append([])
-    self.rasterized_pixel_counts.append([])
     self.approximated_pixel_percentages.append([])
 
 class ReferenceInputLatencyStats(object):
@@ -144,8 +140,6 @@ def AddImplThreadRenderingStats(mock_timer, thread, first_frame,
   """
   # Create randonm data and timestap for impl thread rendering stats.
   data = { 'frame_count': 1,
-           'rasterize_time': mock_timer.Advance(5, 10) / 1000.0,
-           'rasterized_pixel_count': 1280*720,
            'visible_content_area': random.uniform(0, 100),
            'approximated_visible_content_area': random.uniform(0, 5)}
   timestamp = mock_timer.Get()
@@ -168,8 +162,6 @@ def AddImplThreadRenderingStats(mock_timer, thread, first_frame,
       ref_stats.frame_times[-1].append(round(timestamp - prev_timestamp, 2))
     ref_stats.frame_timestamps[-1].append(timestamp)
 
-  ref_stats.rasterize_times[-1].append(data['rasterize_time'] * 1000.0)
-  ref_stats.rasterized_pixel_counts[-1].append(data['rasterized_pixel_count'])
   ref_stats.approximated_pixel_percentages[-1].append(
       round(DivideIfPossibleOrZero(data['approximated_visible_content_area'],
                                    data['visible_content_area']) * 100.0, 3))
@@ -452,9 +444,6 @@ class RenderingStatsUnitTest(unittest.TestCase):
     self.assertEquals(stats.frame_timestamps,
                       browser_ref_stats.frame_timestamps)
     self.assertEquals(stats.frame_times, browser_ref_stats.frame_times)
-    self.assertEquals(stats.rasterize_times, renderer_ref_stats.rasterize_times)
-    self.assertEquals(stats.rasterized_pixel_counts,
-                      renderer_ref_stats.rasterized_pixel_counts)
     self.assertEquals(stats.approximated_pixel_percentages,
                       renderer_ref_stats.approximated_pixel_percentages)
     self.assertEquals(stats.paint_times, renderer_ref_stats.paint_times)

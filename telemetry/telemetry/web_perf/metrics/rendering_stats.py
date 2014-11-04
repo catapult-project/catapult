@@ -145,8 +145,6 @@ class RenderingStats(object):
     self.painted_pixel_counts = []
     self.record_times = []
     self.recorded_pixel_counts = []
-    self.rasterize_times = []
-    self.rasterized_pixel_counts = []
     self.approximated_pixel_percentages = []
     # End-to-end latency for input event - from when input event is
     # generated to when the its resulted page is swap buffered.
@@ -165,8 +163,6 @@ class RenderingStats(object):
       self.painted_pixel_counts.append([])
       self.record_times.append([])
       self.recorded_pixel_counts.append([])
-      self.rasterize_times.append([])
-      self.rasterized_pixel_counts.append([])
       self.approximated_pixel_percentages.append([])
       self.input_event_latency.append([])
       self.scroll_update_latency.append([])
@@ -245,8 +241,6 @@ class RenderingStats(object):
     event_name = 'BenchmarkInstrumentation::ImplThreadRenderingStats'
     for event in self._GatherEvents(event_name, process, timeline_range):
       data = event.args['data']
-      self.rasterize_times[-1].append(1000.0 * data['rasterize_time'])
-      self.rasterized_pixel_counts[-1].append(data['rasterized_pixel_count'])
       if data.get('visible_content_area', 0):
         self.approximated_pixel_percentages[-1].append(
             round(float(data['approximated_visible_content_area']) /
