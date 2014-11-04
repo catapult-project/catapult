@@ -155,6 +155,67 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
 
+  def testRaiseBrowserGoneExceptionFromValidatePage(self):
+    self.SuppressExceptionFormatting()
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+
+    class Test(page_test.PageTest):
+      def __init__(self, *args):
+        super(Test, self).__init__(*args)
+        self.run_count = 0
+      def ValidatePage(self, *_):
+        old_run_count = self.run_count
+        self.run_count += 1
+        if old_run_count == 0:
+          raise exceptions.BrowserGoneException()
+
+    options = options_for_unittests.GetCopy()
+    options.output_formats = ['none']
+    options.suppress_gtest_report = True
+    test = Test()
+    SetUpPageRunnerArguments(options)
+    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    page_runner.Run(test, ps, expectations, options, results)
+    self.assertEquals(2, test.run_count)
+    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
+    self.assertEquals(1, len(results.failures))
+
+  def testRaiseBrowserGoneExceptionFromRestartBrowserBeforeEachPage(self):
+    self.SuppressExceptionFormatting()
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+
+    class Test(page_test.PageTest):
+      def __init__(self, *args):
+        super(Test, self).__init__(*args)
+        self.run_count = 0
+      def RestartBrowserBeforeEachPage(self):
+        old_run_count = self.run_count
+        self.run_count += 1
+        if old_run_count == 0:
+          raise exceptions.BrowserGoneException(None)
+        return self._needs_browser_restart_after_each_page
+
+    options = options_for_unittests.GetCopy()
+    options.output_formats = ['none']
+    options.suppress_gtest_report = True
+    test = Test()
+    SetUpPageRunnerArguments(options)
+    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    page_runner.Run(test, ps, expectations, options, results)
+    self.assertEquals(2, test.run_count)
+    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
+    self.assertEquals(1, len(results.failures))
+
   def testHandlingOfCrashedTabWithExpectedFailure(self):
     self.SuppressExceptionFormatting()
     ps = page_set.PageSet()

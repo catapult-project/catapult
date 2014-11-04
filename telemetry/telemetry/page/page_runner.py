@@ -290,12 +290,13 @@ def _RunPageAndRetryRunIfNeeded(test, page_set, expectations, finder_options,
     except exceptions.BrowserGoneException as e:
       state.StopBrowser()
       if attempt_num == max_attempts:
-        logging.error('Aborting after too many retries')
-        raise
-      if test.is_multi_tab_test:
+        results.AddValue(failure.FailureValue.FromMessage(
+            page, 'Failed to connect to browser after too many retries.'))
+      elif test.is_multi_tab_test:
         logging.error('Aborting multi-tab test after browser crashed')
         raise
-      logging.warning(str(e))
+      else:
+        logging.warning(str(e))
 
 
 @decorators.Cache
