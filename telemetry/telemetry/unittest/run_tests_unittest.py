@@ -4,9 +4,15 @@
 
 import unittest
 
-from telemetry import decorators
 from telemetry.core import util
 from telemetry.unittest import run_tests
+
+
+class MockArgs(object):
+  def __init__(self):
+    self.positional_args = []
+    self.exact_test_filter = True
+    self.run_disabled_tests = False
 
 
 class MockPossibleBrowser(object):
@@ -31,25 +37,19 @@ class MockPlatform(object):
 
 class RunTestsUnitTest(unittest.TestCase):
 
-  def setUp(self):
-    self.suite = unittest.TestSuite()
-    self.suite.addTests(run_tests.Discover(
-        util.GetTelemetryDir(), util.GetTelemetryDir(), 'disabled_cases.py'))
-
   def _GetEnabledTests(self, browser_type, os_name, os_version_name,
                        supports_tab_control):
-    # pylint: disable=W0212
-    def MockPredicate(test):
-      method = getattr(test, test._testMethodName)
-      return decorators.IsEnabled(method, MockPossibleBrowser(
-          browser_type, os_name, os_version_name, supports_tab_control))
 
-    enabled_tests = set()
-    for i in run_tests.FilterSuite(self.suite, MockPredicate)._tests:
-      for j in i:
-        for k in j:
-          enabled_tests.add(k._testMethodName)
-    return enabled_tests
+    runner = run_tests.typ.Runner()
+    host  = runner.host
+    runner.top_level_dir = util.GetTelemetryDir()
+    runner.args.tests = [host.join(util.GetTelemetryDir(),
+        'telemetry', 'unittest', 'disabled_cases.py')]
+    possible_browser = MockPossibleBrowser(
+        browser_type, os_name, os_version_name, supports_tab_control)
+    runner.classifier = run_tests.GetClassifier(MockArgs(), possible_browser)
+    _, test_set = runner.find_tests(runner.args)
+    return set(test.name.split('.')[-1] for test in test_set.parallel_tests)
 
   def testSystemMacMavericks(self):
     self.assertEquals(
