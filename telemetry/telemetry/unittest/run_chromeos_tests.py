@@ -3,7 +3,9 @@
 # found in the LICENSE file.
 import logging
 import os
+import sys
 
+from telemetry.unittest import gtest_progress_reporter
 from telemetry.unittest import run_tests
 from telemetry.core import util
 
@@ -12,29 +14,35 @@ def RunTestsForChromeOS(browser_type, unit_tests, perf_tests):
   stream = _LoggingOutputStream()
   error_string = ''
 
-  if unit_tests:
-    logging.info('Running telemetry unit tests with browser_type "%s".' %
-                browser_type)
-    ret = _RunOneSetOfTests(browser_type, 'telemetry', unit_tests, stream)
-    if ret:
-      error_string += 'The unit tests failed.\n'
+  logging.info('Running telemetry unit tests with browser_type "%s".' %
+               browser_type)
+  ret = _RunOneSetOfTests(browser_type, 'telemetry',
+                          os.path.join('telemetry', 'telemetry'),
+                          unit_tests, stream)
+  if ret:
+    error_string += 'The unit tests failed.\n'
 
-  if perf_tests:
-    logging.info('Running telemetry perf tests with browser_type "%s".' %
-                browser_type)
-    ret = _RunOneSetOfTests(browser_type, 'perf', perf_tests, stream)
-    if ret:
-      error_string = 'The perf tests failed.\n'
+  logging.info('Running telemetry perf tests with browser_type "%s".' %
+               browser_type)
+  ret = _RunOneSetOfTests(browser_type, 'perf', 'perf', perf_tests, stream)
+  if ret:
+    error_string = 'The perf tests failed.\n'
 
   return error_string
 
 
-def _RunOneSetOfTests(browser_type, dir_name, tests, stream):
-  top_level_dir = os.path.join(util.GetChromiumSrcDir(), 'tools', dir_name)
-  args = ['--browser', browser_type,
-          '--top-level-dir', top_level_dir,
-          '--jobs', '1'] + tests
-  return run_tests.RunTestsCommand.main(args, stream=stream)
+def _RunOneSetOfTests(browser_type, root_dir, sub_dir, tests, stream):
+  if not tests:
+    return
+  top_level_dir = os.path.join(util.GetChromiumSrcDir(), 'tools', root_dir)
+  sub_dir = os.path.join(util.GetChromiumSrcDir(), 'tools', sub_dir)
+
+  sys.path.append(top_level_dir)
+
+  output_formatters = [gtest_progress_reporter.GTestProgressReporter(stream)]
+  run_tests.config = run_tests.Config(top_level_dir, [sub_dir],
+                                      output_formatters)
+  return run_tests.RunTestsCommand.main(['--browser', browser_type] + tests)
 
 
 class _LoggingOutputStream(object):

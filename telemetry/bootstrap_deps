@@ -5,23 +5,36 @@
 # This file specifies dependencies required to bootstrap Telemetry. It is in a
 # minimal version of the format used by other DEPS files that gclient can read,
 # but it should only be used to bootstrap Telemetry *outside* of a normal
-# Chrome checkout. In particular, the normal 'value' part of the python
-# dict is not used and hence does not contain real URLs for the repos.
+# Chrome checkout.
 
 deps = {
-    "src/tools/telemetry": "",
-    "src/build/android": "",
-    "src/build/util": "",
-    "src/chrome/test/data/extensions/profiles": "",
-    "src/third_party/android_testrunner": "",
-    "src/third_party/android_tools/sdk/platform-tools": "",
-    "src/third_party/chromite/ssh_keys": "",
-    "src/third_party/flot/jquery.flot.min.js": "",
-    "src/third_party/WebKit/PerformanceTests/resources/jquery.tablesorter.min.js": "",
-    "src/third_party/WebKit/PerformanceTests/resources/statistics.js": "",
-    "src/third_party/webpagereplay": "",
-    "src/third_party/trace-viewer": "",
-    "src/third_party/typ": "",
-    "src/tools/crx_id": "",
-    "src/tools/perf/unit-info.json": "",
+    "src/tools/telemetry":
+        "https://src.chromium.org/chrome/trunk/src/tools/telemetry",
+
+    "src/build/android":
+        "https://src.chromium.org/chrome/trunk/src/build/android",
+    "src/build/util":
+        "https://src.chromium.org/chrome/trunk/src/build/util",
+    "src/chrome/test/data/extensions/profiles":
+        "https://src.chromium.org/chrome/trunk/src/chrome/test/data/extensions/profiles",
+    "src/third_party/android_testrunner":
+        "https://src.chromium.org/chrome/trunk/src/third_party/android_testrunner",
+    "src/third_party/android_tools/sdk/platform-tools":
+        "https://src.chromium.org/chrome/trunk/src/third_party/android_tools/sdk/platform-tools",
+    "src/third_party/chromite/ssh_keys":
+        "https://src.chromium.org/chrome/trunk/src/third_party/chromite/ssh_keys",
+    "src/third_party/flot/jquery.flot.min.js":
+        "https://src.chromium.org/chrome/trunk/src/third_party/flot/jquery.flot.min.js",
+    "src/third_party/WebKit/PerformanceTests/resources/jquery.tablesorter.min.js":
+        "https://src.chromium.org/blink/trunk/PerformanceTests/resources/jquery.tablesorter.min.js",
+    "src/third_party/WebKit/PerformanceTests/resources/statistics.js":
+        "https://src.chromium.org/blink/trunk/PerformanceTests/resources/statistics.js",
+    "src/third_party/webpagereplay":
+        "https://web-page-replay.googlecode.com/svn/trunk",
+    "src/third_party/trace-viewer":
+        "https://trace-viewer.googlecode.com/svn/trunk",
+    "src/tools/crx_id":
+        "https://src.chromium.org/chrome/trunk/src/tools/crx_id",
+    "src/tools/perf/unit-info.json":
+        "https://src.chromium.org/chrome/trunk/src/tools/perf/unit-info.json"
 }

@@ -15,7 +15,6 @@ from telemetry.timeline import model as model_module
 from telemetry.timeline import async_slice
 from telemetry.unittest import options_for_unittests
 from telemetry.unittest import page_test_test_case
-from telemetry.unittest import browser_test_case
 from telemetry.value import scalar
 from telemetry.web_perf import timeline_based_measurement as tbm_module
 from telemetry.web_perf import timeline_interaction_record as tir_module
@@ -202,12 +201,9 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
 class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
 
   def setUp(self):
-    browser_test_case.teardown_browser()
     self._options = options_for_unittests.GetCopy()
     self._options.browser_options.wpr_mode = wpr_modes.WPR_OFF
 
-  # This test is flaky when run in parallel on the mac: crbug.com/426676
-  @benchmark.Disabled('mac')
   def testSmoothnessTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddPage(TestTimelinebasedMeasurementPage(
@@ -225,8 +221,6 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
         'DrawerAnimation-frame_time_discrepancy')
     self.assertEquals(len(v), 1)
 
-  # This test is flaky when run in parallel on the mac: crbug.com/426676
-  @benchmark.Disabled('mac')
   def testFastTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddPage(TestTimelinebasedMeasurementPage(
@@ -262,8 +256,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     self.assertGreaterEqual(v[0].value, 200.0)
 
   # Disabled since mainthread_jank metric is not supported on windows platform.
-  # Also, flaky on the mac when run in parallel: crbug.com/426676
-  @benchmark.Disabled('win', 'mac')
+  @benchmark.Disabled('win')
   def testMainthreadJankTimelineBasedMeasurement(self):
     ps = self.CreateEmptyPageSet()
     ps.AddPage(TestTimelinebasedMeasurementPage(
