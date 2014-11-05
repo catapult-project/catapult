@@ -7,3 +7,4 @@ Failed to open /system/lib/libm.so, continuing without symbols
 Failed to open /tmp/perf-18246.map, continuing without symbols
 Failed to open /system/lib/libart.so, continuing without symbols
 Failed to open /init, continuing without symbols
+Failed to open [vectors], continuing without symbols

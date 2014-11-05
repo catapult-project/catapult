@@ -118,8 +118,9 @@ def GetRequiredLibrariesForPerfProfile(profile_file):
     if lib:
       lib = lib.group(1)
       path = os.path.dirname(lib)
-      if any(path.startswith(ignored_path)
-             for ignored_path in _IGNORED_LIB_PATHS) or path == '/':
+      if (any(path.startswith(ignored_path)
+              for ignored_path in _IGNORED_LIB_PATHS)
+          or path == '/' or not path):
         continue
       libs.add(lib)
   return libs
