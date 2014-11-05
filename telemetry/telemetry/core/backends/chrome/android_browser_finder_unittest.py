@@ -21,11 +21,14 @@ class AndroidBrowserFinderTest(unittest.TestCase):
         android_device, ['adb_commands'])
     self._apb_stub = system_stub.Override(
         android_platform_backend, ['adb_commands'])
+    self._actual_ps_util = android_browser_finder.psutil
+    android_browser_finder.psutil = None
 
   def tearDown(self):
     self._stubs.Restore()
     self._android_device_stub.Restore()
     self._apb_stub.Restore()
+    android_browser_finder.psutil = self._actual_ps_util
 
   def test_no_adb(self):
     finder_options = browser_options.BrowserFinderOptions()
