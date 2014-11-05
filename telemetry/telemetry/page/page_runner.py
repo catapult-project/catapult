@@ -178,7 +178,8 @@ class _RunState(object):
     if self._current_page.credentials:
       if not self.browser.credentials.LoginNeeded(
           self._current_tab, self._current_page.credentials):
-        raise page_test.Failure('Login as ' + self.page.credentials + ' failed')
+        raise page_test.Failure(
+            'Login as ' + self._current_page.credentials + ' failed')
       self._did_login_for_current_page = True
 
     if self._test.clear_cache_before_each_run:
