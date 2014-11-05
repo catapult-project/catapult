@@ -62,9 +62,9 @@ class _RunState(object):
     return possible_browser
 
   def WillRunPage(self, page):
+    self._current_page = page
     if self._finder_options.profiler:
       self._StartProfiling(self._current_page)
-    self._current_page = page
 
   def DidRunPage(self):
     if self._finder_options.profiler:

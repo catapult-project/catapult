@@ -5,6 +5,7 @@
 import os
 import tempfile
 import unittest
+import shutil
 import StringIO
 import sys
 import tempfile
@@ -669,6 +670,35 @@ class PageRunnerTests(unittest.TestCase):
 
   def testMaxFailuresOptionIsOverridable(self):
     self._testMaxFailuresOptionIsRespectedAndOverridable(1)
+
+  def testRunPageWithProfilingFlag(self):
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+
+    class Measurement(page_test.PageTest):
+      pass
+
+    options = options_for_unittests.GetCopy()
+    options.output_formats = ['none']
+    options.suppress_gtest_report = True
+    options.reset_results = None
+    options.upload_results = None
+    options.results_label = None
+    options.output_dir = tempfile.mkdtemp()
+    options.profiler = 'trace'
+    try:
+      SetUpPageRunnerArguments(options)
+      results = results_options.CreateResults(EmptyMetadataForTest(), options)
+      page_runner.Run(Measurement(), ps, expectations, options, results)
+      self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
+      self.assertEquals(0, len(results.failures))
+      self.assertEquals(0, len(results.all_page_specific_values))
+      self.assertTrue(os.path.isfile(
+          os.path.join(options.output_dir, 'blank_html.json')))
+    finally:
+      shutil.rmtree(options.output_dir)
 
 
 class FakeNetworkController(object):
