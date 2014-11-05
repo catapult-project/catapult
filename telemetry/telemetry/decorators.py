@@ -92,6 +92,31 @@ def Enabled(*args):
   return _Enabled
 
 
+# TODO(dpranke): Remove if we don't need this.
+def Isolated(*args):
+  """Decorator for noting that tests must be run in isolation.
+
+  The test will be run by itself (not concurrently with any other tests)
+  if ANY of the args match the browser type, OS name, or OS version."""
+  def _Isolated(func):
+    if not isinstance(func, types.FunctionType):
+      func._isolated_strings = isolated_strings
+      return func
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+      func(*args, **kwargs)
+    wrapper._isolated_strings = isolated_strings
+    return wrapper
+  if len(args) == 1 and callable(args[0]):
+    isolated_strings = []
+    return _Isolated(args[0])
+  isolated_strings = list(args)
+  for isolated_string in isolated_strings:
+    # TODO(tonyg): Validate that these strings are recognized.
+    assert isinstance(isolated_string, str), 'Isolated accepts a list of strs'
+  return _Isolated
+
+
 def IsEnabled(test, possible_browser):
   """Returns True iff |test| is enabled given the |possible_browser|.
 
@@ -102,6 +127,11 @@ def IsEnabled(test, possible_browser):
           _enabled_strings attributes.
     possible_browser: A PossibleBrowser to check whether |test| may run against.
   """
+  should_skip, _ = ShouldSkip(test, possible_browser)
+  return not should_skip
+
+def ShouldSkip(test, possible_browser):
+  """Returns whether the test should be skipped and the reason for it."""
   platform_attributes = [a.lower() for a in [
       possible_browser.browser_type,
       possible_browser.platform.GetOSName(),
@@ -120,28 +150,46 @@ def IsEnabled(test, possible_browser):
   if hasattr(test, '_disabled_strings'):
     disabled_strings = test._disabled_strings
     if not disabled_strings:
-      return False  # No arguments to @Disabled means always disable.
+      return True, ''  # No arguments to @Disabled means always disable.
     for disabled_string in disabled_strings:
       if disabled_string in platform_attributes:
-        print (
-            'Skipping %s because it is disabled for %s. '
-            'You are running %s.' % (name,
-                                     ' and '.join(disabled_strings),
-                                     ' '.join(platform_attributes)))
-        return False
+        return (True,
+                'Skipping %s because it is disabled for %s. '
+                'You are running %s.' % (name,
+                                         ' and '.join(disabled_strings),
+                                         ' '.join(platform_attributes)))
 
   if hasattr(test, '_enabled_strings'):
     enabled_strings = test._enabled_strings
     if not enabled_strings:
-      return True  # No arguments to @Enabled means always enable.
+      return False, None  # No arguments to @Enabled means always enable.
     for enabled_string in enabled_strings:
       if enabled_string in platform_attributes:
-        return True
-    print (
-        'Skipping %s because it is only enabled for %s. '
-        'You are running %s.' % (name,
-                                 ' or '.join(enabled_strings),
-                                 ' '.join(platform_attributes)))
-    return False
+        return False, None
+      return (True,
+              'Skipping %s because it is only enabled for %s. '
+              'You are running %s.' % (name,
+                                       ' or '.join(enabled_strings),
+                                       ' '.join(platform_attributes)))
+    return False, None
 
-  return True
+  return False, None
+
+def ShouldBeIsolated(test, possible_browser):
+  platform_attributes = [a.lower() for a in [
+      possible_browser.browser_type,
+      possible_browser.platform.GetOSName(),
+      possible_browser.platform.GetOSVersionName(),
+      ]]
+  if possible_browser.supports_tab_control:
+    platform_attributes.append('has tabs')
+
+  if hasattr(test, '_isolated_strings'):
+    isolated_strings = test._isolated_strings
+    if not isolated_strings:
+      return True # No arguments to @Isolated means always isolate.
+    for isolated_string in isolated_strings:
+      if isolated_string in platform_attributes:
+        return True
+    return False
+  return False
