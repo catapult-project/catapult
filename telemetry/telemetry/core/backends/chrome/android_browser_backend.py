@@ -23,13 +23,12 @@ from pylib.device import intent  # pylint: disable=F0401
 class AndroidBrowserBackendSettings(object):
 
   def __init__(self, activity, cmdline_file, package, pseudo_exec_name,
-               supports_tab_control, relax_ssl_check=False):
+               supports_tab_control):
     self.activity = activity
     self._cmdline_file = cmdline_file
     self.package = package
     self.pseudo_exec_name = pseudo_exec_name
     self.supports_tab_control = supports_tab_control
-    self.relax_ssl_check = relax_ssl_check
 
   def GetCommandLineFile(self, is_user_debug_build):  # pylint: disable=W0613
     return self._cmdline_file
@@ -158,12 +157,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # allocates. Need to fix this.
     self._port = adb_commands.AllocateTestServerPort()
 
-    # Disables android.net SSL certificate check.  This is necessary for
-    # applications using the android.net stack to work with proxy HTTPS server
-    # created by telemetry
-    if self._backend_settings.relax_ssl_check:
-      self._saved_sslflag = self._android_platform_backend.SetRelaxSslCheck(
-                                                                        'yes')
+    self._is_test_ca_installed = self._android_platform_backend.InstallTestCa()
 
     # Kill old browser.
     self._KillBrowser()
@@ -329,11 +323,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
 
-    self._KillBrowser()
+    if self._is_test_ca_installed:
+      self._android_platform_backend.RemoveTestCa()
 
-    # Restore android.net SSL check
-    if self._backend_settings.relax_ssl_check:
-      self._android_platform_backend.SetRelaxSslCheck(self._saved_sslflag)
+    self._KillBrowser()
 
     if self._output_profile_path:
       self._android_platform_backend.PullProfile(self._backend_settings.package,
@@ -353,5 +346,5 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self._android_platform_backend.GetStackTrace(self._target_arch)
 
   @property
-  def wpr_ca_cert_path(self):
-    return self._android_platform_backend.wpr_ca_cert_path
+  def should_ignore_certificate_errors(self):
+    return not self._is_test_ca_installed

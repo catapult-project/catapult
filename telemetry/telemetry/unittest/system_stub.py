@@ -24,7 +24,8 @@ class Override(object):
              'subprocess': SubprocessModuleStub,
              'sys': SysModuleStub,
              'thermal_throttle': ThermalThrottleModuleStub,
-             'logging': LoggingStub
+             'logging': LoggingStub,
+             'certutils': CertUtilsStub
     }
     self.adb_commands = None
     self.os = None
@@ -113,6 +114,9 @@ class AdbCommandsModuleStub(object):
 
     def device(self):
       return self._adb_device
+
+    def device_serial(self):
+      return self._device
 
   def __init__(self):
     self.attached_devices = []
@@ -451,3 +455,14 @@ class ThermalThrottleModuleStub(object):
 
   def __init__(self):
     self.ThermalThrottle = ThermalThrottleModuleStub.ThermalThrottleStub
+
+class CertUtilsStub(object):
+  openssl_import_error = None
+
+  @staticmethod
+  def write_dummy_ca_cert(_ca_cert_str, _key_str, _cert_path):
+    raise Exception("write_dummy_ca_cert exception")
+
+  @staticmethod
+  def generate_dummy_ca_cert():
+    return '-', '-'

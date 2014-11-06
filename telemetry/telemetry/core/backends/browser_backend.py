@@ -60,6 +60,10 @@ class BrowserBackend(app_backend.AppBackend):
     return self._wpr_ca_cert_path
 
   @property
+  def should_ignore_certificate_errors(self):
+    return True
+
+  @property
   def supports_tab_control(self):
     raise NotImplementedError()
 

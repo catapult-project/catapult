@@ -145,7 +145,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     http_remote_port = self.wpr_port_pairs.http.remote_port
     https_remote_port = self.wpr_port_pairs.https.remote_port
     replay_args = []
-    if not self.wpr_ca_cert_path:
+    if self.should_ignore_certificate_errors:
       # Ignore certificate errors if the browser backend has not created
       # and installed a root certificate. When |self.wpr_ca_cert_path| is
       # set, Web Page Replay uses it to sign HTTPS responses.
