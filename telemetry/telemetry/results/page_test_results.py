@@ -134,23 +134,6 @@ class PageTestResults(object):
       self._all_page_runs.append(self._current_page_run)
     self._current_page_run = None
 
-  def WillAttemptPageRun(self, attempt_count, max_attempts):
-    """To be called when a single attempt on a page run is starting.
-
-    This is called between WillRunPage and DidRunPage and can be
-    called multiple times, one for each attempt.
-
-    Args:
-      attempt_count: The current attempt number, start at 1
-          (attempt_count == 1 for the first attempt, 2 for second
-          attempt, and so on).
-      max_attempts: Maximum number of page run attempts before failing.
-    """
-    self._progress_reporter.WillAttemptPageRun(
-        self, attempt_count, max_attempts)
-    # Clear any values from previous attempts for this page run.
-    self._current_page_run.ClearValues()
-
   def AddValue(self, value):
     assert self._current_page_run, 'Not currently running test.'
     self._ValidateValue(value)

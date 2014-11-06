@@ -23,15 +23,5 @@ class ProgressReporter(object):
   def DidRunPage(self, page_test_results):
     pass
 
-  def WillAttemptPageRun(self, page_test_results, attempt_count, max_attempts):
-    """
-    Args:
-      attempt_count: The current attempt number, start at 1
-          (attempt_count == 1 for the first attempt, 2 for second
-          attempt, and so on).
-      max_attempts: Maximum number of page run attempts before failing.
-    """
-    pass
-
   def DidFinishAllTests(self, page_test_results):
     pass

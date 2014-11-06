@@ -280,53 +280,34 @@ def ProcessCommandLineArgs(parser, args):
     parser.error('--pageset-repeat must be a positive integer.')
 
 
-def _RunPageAndRetryRunIfNeeded(test, page_set, expectations,
-                                page, results, state):
-  max_attempts = test.attempts
-  attempt_num = 0
-  while attempt_num < max_attempts:
-    attempt_num += 1
-    try:
-      results.WillAttemptPageRun(attempt_num, max_attempts)
-
-      if test.RestartBrowserBeforeEachPage() or page.startup_url:
-        state.StopBrowser()
-        # If we are restarting the browser for each page customize the per page
-        # options for just the current page before starting the browser.
-      state.StartBrowserIfNeeded(test, page_set, page)
-      if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
-        logging.info('Skip test for page %s because browser is not supported.'
-                     % page.url)
-        return
-
-      expectation = expectations.GetExpectationForPage(state.browser, page)
-
-      _WaitForThermalThrottlingIfNeeded(state.platform)
-
-      state.WillRunPage(page)
-
-      try:
-        _RunPageAndProcessErrorIfNeeded(page, state, expectation, results)
-        _CheckThermalThrottling(state.platform)
-      except exceptions.TabCrashException as e:
-        if test.is_multi_tab_test:
-          logging.error('Aborting multi-tab test after tab %s crashed',
-                        page.url)
-          raise
-        logging.warning(str(e))
-        state.StopBrowser()
-      state.DidRunPage()
-      return
-    except exceptions.BrowserGoneException as e:
+def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
+                                       page, results, state):
+  try:
+    expectation = None
+    if test.RestartBrowserBeforeEachPage() or page.startup_url:
       state.StopBrowser()
-      if attempt_num == max_attempts:
-        results.AddValue(failure.FailureValue.FromMessage(
-            page, 'Failed to connect to browser after too many retries.'))
-      elif test.is_multi_tab_test:
-        logging.error('Aborting multi-tab test after browser crashed')
-        raise
-      else:
-        logging.warning(str(e))
+      # If we are restarting the browser for each page customize the per page
+      # options for just the current page before starting the browser.
+    state.StartBrowserIfNeeded(test, page_set, page)
+    if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
+      logging.info('Skip test for page %s because browser is not supported.'
+                   % page.url)
+      return
+
+    expectation = expectations.GetExpectationForPage(state.browser, page)
+    _WaitForThermalThrottlingIfNeeded(state.platform)
+    state.WillRunPage(page)
+    _RunPageAndProcessErrorIfNeeded(page, state, expectation, results)
+    _CheckThermalThrottling(state.platform)
+    state.DidRunPage()
+  except (exceptions.BrowserGoneException, exceptions.TabCrashException):
+    state.StopBrowser()
+    if expectation != 'fail' and not results.current_page_run.failed:
+      results.AddValue(failure.FailureValue(page, sys.exc_info()))
+    if test.is_multi_tab_test:
+      logging.error('Aborting multi-tab test after browser or tab crashed at '
+                    'page %s' % page.url)
+      raise
 
 
 @decorators.Cache
@@ -400,7 +381,7 @@ def Run(test, page_set, expectations, finder_options, results):
         for _ in xrange(finder_options.page_repeat):
           results.WillRunPage(page)
           try:
-            _RunPageAndRetryRunIfNeeded(
+            _RunPageAndHandleExceptionIfNeeded(
                 test, page_set, expectations, page, results, state)
           finally:
             discard_run = (test.discard_first_result and

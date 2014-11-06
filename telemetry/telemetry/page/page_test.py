@@ -130,12 +130,6 @@ class PageTest(command_line.Command):
     self._close_tabs_before_run = close_tabs
 
   @property
-  def attempts(self):
-    """Maximum number of times test will be attempted."""
-    # Do NOT override this method (crbug.com/422339).
-    return 1
-
-  @property
   def max_failures(self):
     """Maximum number of failures allowed for the page set."""
     return self._max_failures

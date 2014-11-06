@@ -14,9 +14,6 @@ class PageRun(object):
   def AddValue(self, value):
     self._values.append(value)
 
-  def ClearValues(self):
-    self._values = []
-
   @property
   def page(self):
     return self._page

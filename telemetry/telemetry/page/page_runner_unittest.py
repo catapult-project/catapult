@@ -234,42 +234,6 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
 
-  def testRetryOnBrowserCrash(self):
-    self.SuppressExceptionFormatting()
-    ps = page_set.PageSet()
-    expectations = test_expectations.TestExpectations()
-    ps.pages.append(page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
-
-    class CrashyMeasurement(page_test.PageTest):
-      has_crashed = False
-      def ValidateAndMeasurePage(self, page, tab, results):
-        # This value should be discarded on the first run when the
-        # browser crashed.
-        results.AddValue(
-            string.StringValue(page, 'test', 't', str(self.has_crashed)))
-        if not self.has_crashed:
-          self.has_crashed = True
-          raise exceptions.BrowserGoneException(tab.browser)
-
-      @property
-      def attempts(self):
-        return 3
-
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['csv']
-    options.suppress_gtest_report = True
-
-    SetUpPageRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(CrashyMeasurement(), ps, expectations, options, results)
-
-    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(0, len(results.failures))
-    self.assertEquals(1, len(results.all_page_specific_values))
-    self.assertEquals(
-        'True', results.all_page_specific_values[0].GetRepresentativeString())
-
   @decorators.Disabled('xp')  # Flaky, http://crbug.com/390079.
   def testDiscardFirstResult(self):
     ps = page_set.PageSet()
