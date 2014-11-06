@@ -109,15 +109,14 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
                            finder_options.browser_options.netsim or
                            platform.GetHostPlatform().GetOSName() != 'linux')
     browser_backend = android_browser_backend.AndroidBrowserBackend(
+        self._platform_backend,
         finder_options.browser_options, self._backend_settings,
         use_rndis_forwarder,
         output_profile_path=finder_options.output_profile_path,
         extensions_to_load=finder_options.extensions_to_load,
-        target_arch=finder_options.target_arch,
-        android_platform_backend=self._platform_backend)
+        target_arch=finder_options.target_arch)
     return browser.Browser(
         browser_backend, self._platform_backend, self._credentials_path)
-
 
   def SupportsOptions(self, finder_options):
     if len(finder_options.extensions_to_load) != 0:

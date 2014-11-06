@@ -29,6 +29,7 @@ class TestChromeBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def __init__(self, browser_options, does_forwarder_override_dns=False):
     super(TestChromeBrowserBackend, self).__init__(
+        platform_backend=None,
         supports_tab_control=False,
         supports_extensions=False,
         browser_options=browser_options,

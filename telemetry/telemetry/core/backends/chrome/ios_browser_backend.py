@@ -18,8 +18,9 @@ class IosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   _DEBUGGER_URL_REGEX = 'ws://localhost:(\d+)/devtools/page/(\d+)'
   _DEVICE_LIST_URL = 'http://localhost:9221/json'
 
-  def __init__(self, browser_options):
+  def __init__(self, ios_platform_backend, browser_options):
     super(IosBrowserBackend, self).__init__(
+        ios_platform_backend,
         supports_tab_control=False,
         supports_extensions=False,
         browser_options=browser_options,

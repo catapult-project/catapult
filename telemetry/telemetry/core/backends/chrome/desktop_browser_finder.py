@@ -56,6 +56,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     self._InitPlatformIfNeeded()
 
     browser_backend = desktop_browser_backend.DesktopBrowserBackend(
+        self._platform_backend,
         finder_options.browser_options, self._local_executable,
         self._flash_path, self._is_content_shell, self._browser_directory,
         output_profile_path=finder_options.output_profile_path,

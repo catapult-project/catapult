@@ -33,14 +33,16 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   once a remote-debugger port has been established."""
   # It is OK to have abstract methods. pylint: disable=W0223
 
-  def __init__(self, supports_tab_control, supports_extensions, browser_options,
-               output_profile_path, extensions_to_load):
+  def __init__(self, platform_backend, supports_tab_control,
+               supports_extensions, browser_options, output_profile_path,
+               extensions_to_load):
     super(ChromeBrowserBackend, self).__init__(
         supports_extensions=supports_extensions,
         browser_options=browser_options,
         tab_list_backend=tab_list_backend.TabListBackend)
     self._port = None
 
+    self._platform_backend = platform_backend
     self._supports_tab_control = supports_tab_control
     self._tracing_backend = None
     self._system_info_backend = None

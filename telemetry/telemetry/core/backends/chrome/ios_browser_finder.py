@@ -33,7 +33,7 @@ class PossibleIOSBrowser(possible_browser.PossibleBrowser):
   # TODO(baxley): Implement the following methods for iOS.
   def Create(self, finder_options):
     browser_backend = ios_browser_backend.IosBrowserBackend(
-        finder_options.browser_options)
+        self._platform_backend, finder_options.browser_options)
     return browser.Browser(
         browser_backend, self._platform_backend, self._credentials_path)
 

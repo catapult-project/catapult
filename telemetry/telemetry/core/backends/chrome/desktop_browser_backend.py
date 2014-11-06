@@ -25,9 +25,11 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
   Mac or Windows.
   """
-  def __init__(self, browser_options, executable, flash_path, is_content_shell,
-               browser_directory, output_profile_path, extensions_to_load):
+  def __init__(self, desktop_platform_backend, browser_options, executable,
+               flash_path, is_content_shell, browser_directory,
+               output_profile_path, extensions_to_load):
     super(DesktopBrowserBackend, self).__init__(
+        desktop_platform_backend,
         supports_tab_control=not is_content_shell,
         supports_extensions=not is_content_shell,
         browser_options=browser_options,

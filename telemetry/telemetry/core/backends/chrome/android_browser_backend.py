@@ -13,6 +13,8 @@ from telemetry.core import util
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
+from telemetry.core.platform import android_platform_backend as \
+  android_platform_backend_module
 from telemetry.core.forwarders import android_forwarder
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
@@ -134,10 +136,13 @@ class WebviewShellBackendSettings(WebviewBackendSettings):
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android."""
-  def __init__(self, browser_options, backend_settings, use_rndis_forwarder,
-               output_profile_path, extensions_to_load, target_arch,
-               android_platform_backend):
+  def __init__(self, android_platform_backend, browser_options,
+               backend_settings, use_rndis_forwarder, output_profile_path,
+               extensions_to_load, target_arch):
+    assert isinstance(android_platform_backend,
+                      android_platform_backend_module.AndroidPlatformBackend)
     super(AndroidBrowserBackend, self).__init__(
+        android_platform_backend,
         supports_tab_control=backend_settings.supports_tab_control,
         supports_extensions=False, browser_options=browser_options,
         output_profile_path=output_profile_path,
@@ -147,7 +152,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Android browser does not support extensions.')
 
     # Initialize fields so that an explosion during init doesn't break in Close.
-    self._android_platform_backend = android_platform_backend
     self._backend_settings = backend_settings
     self._saved_cmdline = ''
     self._target_arch = target_arch
@@ -157,20 +161,20 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # allocates. Need to fix this.
     self._port = adb_commands.AllocateTestServerPort()
 
-    self._is_test_ca_installed = self._android_platform_backend.InstallTestCa()
+    self._is_test_ca_installed = self._platform_backend.InstallTestCa()
 
     # Kill old browser.
     self._KillBrowser()
 
     if self._adb.device().old_interface.CanAccessProtectedFileContents():
       if self.browser_options.profile_dir:
-        self._android_platform_backend.PushProfile(
-                                        self._backend_settings.package,
-                                        self.browser_options.profile_dir)
+        self._platform_backend.PushProfile(
+            self._backend_settings.package,
+            self.browser_options.profile_dir)
       elif not self.browser_options.dont_override_profile:
-        self._android_platform_backend.RemoveProfile(
-                                 self._backend_settings.package,
-                                 self._backend_settings.profile_ignore_list)
+        self._platform_backend.RemoveProfile(
+            self._backend_settings.package,
+            self._backend_settings.profile_ignore_list)
 
     self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
         self._adb, use_rndis_forwarder)
@@ -183,15 +187,14 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           dns=forwarders.PortPair(0, 53))
 
     # Set the debug app if needed.
-    self._android_platform_backend.SetDebugApp(self._backend_settings.package)
+    self._platform_backend.SetDebugApp(self._backend_settings.package)
 
   @property
   def _adb(self):
-    return self._android_platform_backend.adb
+    return self._platform_backend.adb
 
   def _KillBrowser(self):
-    self._android_platform_backend.KillApplication(
-        self._backend_settings.package)
+    self._platform_backend.KillApplication(self._backend_settings.package)
 
   def _SetUpCommandLine(self):
     def QuoteIfNeeded(arg):
@@ -249,7 +252,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # startup with the NTP can lead to race conditions with Telemetry
       url = 'about:blank'
 
-    self._android_platform_backend.DismissCrashDialogIfNeeded()
+    self._platform_backend.DismissCrashDialogIfNeeded()
 
     self._adb.device().StartActivity(
         intent.Intent(package=self._backend_settings.package,
@@ -257,8 +260,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                       action=None, data=url, category=None),
         blocking=True)
 
-    self._android_platform_backend.ForwardHostToDevice(self._port,
-                      self._backend_settings.GetDevtoolsRemotePort(self._adb))
+    self._platform_backend.ForwardHostToDevice(
+        self._port, self._backend_settings.GetDevtoolsRemotePort(self._adb))
 
     try:
       self._WaitForBrowserToComeUp()
@@ -324,26 +327,25 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     super(AndroidBrowserBackend, self).Close()
 
     if self._is_test_ca_installed:
-      self._android_platform_backend.RemoveTestCa()
+      self._platform_backend.RemoveTestCa()
 
     self._KillBrowser()
 
     if self._output_profile_path:
-      self._android_platform_backend.PullProfile(self._backend_settings.package,
-                                                 self._output_profile_path)
+      self._platform_backend.PullProfile(
+          self._backend_settings.package, self._output_profile_path)
 
   def IsBrowserRunning(self):
-    return self._android_platform_backend.IsAppRunning(
-        self._backend_settings.package)
+    return self._platform_backend.IsAppRunning(self._backend_settings.package)
 
   def GetRemotePort(self, local_port):
     return local_port
 
   def GetStandardOutput(self):
-    return self._android_platform_backend.GetStandardOutput()
+    return self._platform_backend.GetStandardOutput()
 
   def GetStackTrace(self):
-    return self._android_platform_backend.GetStackTrace(self._target_arch)
+    return self._platform_backend.GetStackTrace(self._target_arch)
 
   @property
   def should_ignore_certificate_errors(self):
