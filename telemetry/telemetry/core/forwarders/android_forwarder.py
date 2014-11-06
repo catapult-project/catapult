@@ -13,8 +13,7 @@ from telemetry.core import forwarders
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
-from telemetry.util import cloud_storage
-from telemetry.util import path
+from telemetry.util import support_binaries
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
@@ -193,7 +192,7 @@ class AndroidRndisConfigurator(object):
     self.device_iface = None
 
     if platform.GetHostPlatform().GetOSName() == 'mac':
-      self._InstallHorndis()
+      self._InstallHorndis(platform.GetHostPlatform().GetArchName())
 
     assert self._IsRndisSupported(), 'Device does not support RNDIS.'
     self._CheckConfigureNetwork()
@@ -242,13 +241,11 @@ class AndroidRndisConfigurator(object):
     subprocess.check_call(
         ['sudo', 'bash', '-c', 'echo -e "%s" > %s' % (contents, file_path)])
 
-  def _InstallHorndis(self):
+  def _InstallHorndis(self, arch_name):
     if 'HoRNDIS' in subprocess.check_output(['kextstat']):
       return
     logging.info('Installing HoRNDIS...')
-    pkg_path = os.path.join(
-        path.GetTelemetryDir(), 'bin', 'mac', 'HoRNDIS-rel5.pkg')
-    cloud_storage.GetIfChanged(pkg_path, bucket=cloud_storage.PUBLIC_BUCKET)
+    pkg_path = support_binaries.FindPath('HoRNDIS-rel5.pkg', arch_name, 'mac')
     subprocess.check_call(
         ['sudo', 'installer', '-pkg', pkg_path, '-target', '/'])
 
