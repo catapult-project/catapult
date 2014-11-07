@@ -50,7 +50,7 @@ def _PrepareHostForPerf():
       with tempfile.NamedTemporaryFile() as zero:
         zero.write('0')
         zero.flush()
-        subprocess.call(['sudo', 'cp', zero.name, kptr_file])
+        subprocess.call(['/usr/bin/sudo', 'cp', zero.name, kptr_file])
 
 
 def _InstallPerfHost():

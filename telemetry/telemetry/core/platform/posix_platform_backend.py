@@ -91,31 +91,40 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       assert isinstance(parameters, list), 'parameters must be a list'
       args += parameters
 
-    def IsSetUID(path):
-      return (os.stat(path).st_mode & stat.S_ISUID) == stat.S_ISUID
+    def CanRunWithSudo(path):
+      if os.stat(path).st_mode & stat.S_ISUID == stat.S_ISUID:
+        return True
+
+      sudoers = subprocess.check_output(['/usr/bin/sudo', '-l'])
+      for line in sudoers.splitlines():
+        if re.match(r'\s*\(.+\) NOPASSWD: %s$' % path, line):
+          return True
+
+      return False
 
     def IsElevated():
       p = subprocess.Popen(
-          ['sudo', '-nv'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-           stderr=subprocess.STDOUT)
+          ['/usr/bin/sudo', '-nv'], stdin=subprocess.PIPE,
+          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
       stdout = p.communicate()[0]
       # Some versions of sudo set the returncode based on whether sudo requires
       # a password currently. Other versions return output when password is
       # required and no output when the user is already authenticated.
       return not p.returncode and not stdout
 
-    if elevate_privilege and not IsSetUID(application):
-      args = ['sudo'] + args
+    if elevate_privilege and not CanRunWithSudo(application):
+      args = ['/usr/bin/sudo'] + args
       if not IsElevated():
         print ('Telemetry needs to run %s under sudo. Please authenticate.' %
                application)
-        subprocess.check_call(['sudo', '-v'])  # Synchronously authenticate.
+        # Synchronously authenticate.
+        subprocess.check_call(['/usr/bin/sudo', '-v'])
 
         prompt = ('Would you like to always allow %s to be run as the current '
                   'user without sudo? If so, Telemetry will '
                   '`sudo chmod +s %s`. (y/N)' % (application, application))
         if raw_input(prompt).lower() == 'y':
-          subprocess.check_call(['sudo', 'chmod', '+s', application])
+          subprocess.check_call(['/usr/bin/sudo', 'chmod', '+s', application])
 
     stderror_destination = subprocess.PIPE
     if logging.getLogger().isEnabledFor(logging.DEBUG):

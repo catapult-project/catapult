@@ -239,7 +239,8 @@ class AndroidRndisConfigurator(object):
 
   def _WriteProtectedFile(self, file_path, contents):
     subprocess.check_call(
-        ['sudo', 'bash', '-c', 'echo -e "%s" > %s' % (contents, file_path)])
+        ['/usr/bin/sudo', 'bash', '-c',
+         'echo -e "%s" > %s' % (contents, file_path)])
 
   def _InstallHorndis(self, arch_name):
     if 'HoRNDIS' in subprocess.check_output(['kextstat']):
@@ -247,7 +248,7 @@ class AndroidRndisConfigurator(object):
     logging.info('Installing HoRNDIS...')
     pkg_path = support_binaries.FindPath('HoRNDIS-rel5.pkg', arch_name, 'mac')
     subprocess.check_call(
-        ['sudo', 'installer', '-pkg', pkg_path, '-target', '/'])
+        ['/usr/bin/sudo', 'installer', '-pkg', pkg_path, '-target', '/'])
 
   def _DisableRndis(self):
     self._device.SetProp('sys.usb.config', 'adb')
@@ -394,10 +395,10 @@ doit &
         if 'Telemetry' not in subprocess.check_output(
             ['networksetup', '-listallnetworkservices']):
           subprocess.check_call(
-              ['sudo', 'networksetup',
+              ['/usr/bin/sudo', 'networksetup',
                '-createnetworkservice', 'Telemetry', host_iface])
           subprocess.check_call(
-              ['sudo', 'networksetup',
+              ['/usr/bin/sudo', 'networksetup',
                '-setmanual', 'Telemetry', '192.168.123.1', '255.255.255.0'])
       elif platform.GetHostPlatform().GetOSName() == 'linux':
         with open(self._NETWORK_INTERFACES) as f:
@@ -413,8 +414,9 @@ doit &
         if not os.path.exists(interface_conf_file):
           interface_conf_dir = os.path.dirname(interface_conf_file)
           if not interface_conf_dir:
-            subprocess.call(['sudo', '/bin/mkdir', interface_conf_dir])
-            subprocess.call(['sudo', '/bin/chmod', '755', interface_conf_dir])
+            subprocess.call(['/usr/bin/sudo', '/bin/mkdir', interface_conf_dir])
+            subprocess.call(
+                ['/usr/bin/sudo', '/bin/chmod', '755', interface_conf_dir])
           interface_conf = '\n'.join([
               '# Added by Telemetry for RNDIS forwarding.',
               'allow-hotplug %s' % host_iface,
@@ -423,7 +425,7 @@ doit &
               '  netmask 255.255.255.0',
               ])
           self._WriteProtectedFile(interface_conf_file, interface_conf)
-          subprocess.check_call(['sudo', 'ifup', host_iface])
+          subprocess.check_call(['/usr/bin/sudo', 'ifup', host_iface])
       logging.info('Waiting for RNDIS connectivity...')
       util.WaitFor(HasHostAddress, 10)
 
