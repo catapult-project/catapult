@@ -5,21 +5,14 @@
 
 import os
 import sys
-import subprocess
+
+from telemetry.unittest import gtest_progress_reporter
+from telemetry.unittest import run_tests
 
 
 if __name__ == '__main__':
-  telemetry_dir = os.path.dirname(os.path.realpath(__file__))
-
-  env = os.environ.copy()
-  if 'PYTHONPATH' in env:
-    env['PYTHONPATH'] = env['PYTHONPATH'] + os.pathsep + telemetry_dir
-  else:
-    env['PYTHONPATH'] = telemetry_dir
-
-  path_to_run_tests = os.path.join(telemetry_dir, 'telemetry', 'unittest',
-                                   'run_tests.py')
-  argv = ['--top-level-dir', telemetry_dir] + sys.argv[1:]
-  ret = subprocess.call([sys.executable, path_to_run_tests] + argv, env=env)
-  print 'run_tests exiting, ret = %d' % ret
-  sys.exit(ret)
+  base_dir = os.path.dirname(os.path.realpath(__file__))
+  progress_reporters = [
+      gtest_progress_reporter.GTestProgressReporter(sys.stdout)]
+  run_tests.config = run_tests.Config(base_dir, [base_dir], progress_reporters)
+  sys.exit(run_tests.RunTestsCommand.main())

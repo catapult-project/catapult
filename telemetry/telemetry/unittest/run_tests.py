@@ -1,29 +1,120 @@
 # Copyright 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import sys
+
+import logging
+import unittest
 
 from telemetry import decorators
 from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import command_line
-from telemetry.core import util
-from telemetry.unittest import options_for_unittests
-from telemetry.unittest import browser_test_case
+from telemetry.core import discover
+from telemetry.unittest import json_results
+from telemetry.unittest import progress_reporter
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'third_party', 'typ')
 
-import typ
+class Config(object):
+  def __init__(self, top_level_dir, test_dirs, progress_reporters):
+    self._top_level_dir = top_level_dir
+    self._test_dirs = tuple(test_dirs)
+    self._progress_reporters = tuple(progress_reporters)
+
+  @property
+  def top_level_dir(self):
+    return self._top_level_dir
+
+  @property
+  def test_dirs(self):
+    return self._test_dirs
+
+  @property
+  def progress_reporters(self):
+    return self._progress_reporters
+
+
+def Discover(start_dir, top_level_dir=None, pattern='test*.py'):
+  loader = unittest.defaultTestLoader
+  loader.suiteClass = progress_reporter.TestSuite
+
+  test_suites = []
+  modules = discover.DiscoverModules(start_dir, top_level_dir, pattern)
+  for module in modules:
+    if hasattr(module, 'suite'):
+      suite = module.suite()
+    else:
+      suite = loader.loadTestsFromModule(module)
+    if suite.countTestCases():
+      test_suites.append(suite)
+  return test_suites
+
+
+def FilterSuite(suite, predicate):
+  new_suite = suite.__class__()
+  for test in suite:
+    if isinstance(test, unittest.TestSuite):
+      subsuite = FilterSuite(test, predicate)
+      if subsuite.countTestCases():
+        new_suite.addTest(subsuite)
+    else:
+      assert isinstance(test, unittest.TestCase)
+      if predicate(test):
+        new_suite.addTest(test)
+
+  return new_suite
+
+
+def DiscoverTests(search_dirs, top_level_dir, possible_browser,
+                  selected_tests=None, selected_tests_are_exact=False,
+                  run_disabled_tests=False):
+  def IsTestSelected(test):
+    if selected_tests:
+      found = False
+      for name in selected_tests:
+        if selected_tests_are_exact:
+          if name == test.id():
+            found = True
+        else:
+          if name in test.id():
+            found = True
+      if not found:
+        return False
+    if run_disabled_tests:
+      return True
+    # pylint: disable=W0212
+    if not hasattr(test, '_testMethodName'):
+      return True
+    method = getattr(test, test._testMethodName)
+    return decorators.IsEnabled(method, possible_browser)
+
+  wrapper_suite = progress_reporter.TestSuite()
+  for search_dir in search_dirs:
+    wrapper_suite.addTests(Discover(search_dir, top_level_dir, '*_unittest.py'))
+  return FilterSuite(wrapper_suite, IsTestSelected)
+
+
+def RestoreLoggingLevel(func):
+  def _LoggingRestoreWrapper(*args, **kwargs):
+    # Cache the current logging level, this needs to be done before calling
+    # parser.parse_args, which changes logging level based on verbosity
+    # setting.
+    logging_level = logging.getLogger().getEffectiveLevel()
+    try:
+      return func(*args, **kwargs)
+    finally:
+      # Restore logging level, which may be changed in parser.parse_args.
+      logging.getLogger().setLevel(logging_level)
+
+  return _LoggingRestoreWrapper
+
+
+config = None
 
 
 class RunTestsCommand(command_line.OptparseCommand):
   """Run unit tests"""
 
   usage = '[test_name ...] [<options>]'
-
-  def __init__(self):
-    super(RunTestsCommand, self).__init__()
-    self.stream = sys.stdout
 
   @classmethod
   def CreateParser(cls):
@@ -40,24 +131,22 @@ class RunTestsCommand(command_line.OptparseCommand):
                       dest='run_disabled_tests',
                       action='store_true', default=False,
                       help='Ignore @Disabled and @Enabled restrictions.')
+    parser.add_option('--retry-limit', type='int',
+                      help='Retry each failure up to N times'
+                           ' to de-flake things.')
     parser.add_option('--exact-test-filter', action='store_true', default=False,
                       help='Treat test filter as exact matches (default is '
                            'substring matches).')
-
-    typ.ArgumentParser.add_option_group(parser,
-                                        "Options for running the tests",
-                                        running=True,
-                                        skip=['-d', '--path', '-v',
-                                              '--verbose'])
-    typ.ArgumentParser.add_option_group(parser,
-                                        "Options for reporting the results",
-                                        reporting=True)
+    json_results.AddOptions(parser)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
+    if args.verbosity == 0:
+      logging.getLogger().setLevel(logging.WARN)
+
     # We retry failures by default unless we're running a list of tests
     # explicitly.
-    if not args.retry_limit and not args.positional_args:
+    if args.retry_limit is None and not args.positional_args:
       args.retry_limit = 3
 
     try:
@@ -70,112 +159,50 @@ class RunTestsCommand(command_line.OptparseCommand):
                    'Re-run with --browser=list to see '
                    'available browser types.' % args.browser_type)
 
-  @classmethod
-  def main(cls, args=None, stream=None):  # pylint: disable=W0221
-    # We override the superclass so that we can hook in the 'stream' arg.
-    parser = cls.CreateParser()
-    cls.AddCommandLineArgs(parser)
-    options, positional_args = parser.parse_args(args)
-    options.positional_args = positional_args
-    cls.ProcessCommandLineArgs(parser, options)
-
-    obj = cls()
-    if stream is not None:
-      obj.stream = stream
-    return obj.Run(options)
+    json_results.ValidateArgs(parser, args)
 
   def Run(self, args):
     possible_browser = browser_finder.FindBrowser(args)
 
-    runner = typ.Runner()
-    if self.stream:
-      runner.host.stdout = self.stream
+    test_suite, result = self.RunOneSuite(possible_browser, args)
 
-    # Telemetry seems to overload the system if we run one test per core,
-    # so we scale things back a fair amount. Many of the telemetry tests
-    # are long-running, so there's a limit to how much parallelism we
-    # can effectively use for now anyway.
-    #
-    # It should be possible to handle multiple devices if we adjust
-    # the browser_finder code properly, but for now we only handle the one
-    # on Android and ChromeOS.
-    if possible_browser.platform.GetOSName() in ('android', 'chromeos'):
-      runner.args.jobs = 1
-    else:
-      runner.args.jobs = max(int(args.jobs) // 4, 1)
+    results = [result]
 
-    runner.args.metadata = args.metadata
-    runner.args.passthrough = args.passthrough
-    runner.args.retry_limit = args.retry_limit
-    runner.args.test_results_server = args.test_results_server
-    runner.args.test_type = args.test_type
-    runner.args.timing = args.timing
-    runner.args.top_level_dir = args.top_level_dir
-    runner.args.verbose = args.verbosity
-    runner.args.write_full_results_to = args.write_full_results_to
-    runner.args.write_trace_to = args.write_trace_to
+    failed_tests = json_results.FailedTestNames(test_suite, result)
+    retry_limit = args.retry_limit
 
-    runner.args.path.append(util.GetUnittestDataDir())
+    while retry_limit and failed_tests:
+      args.positional_args = failed_tests
+      args.exact_test_filter = True
 
-    runner.classifier = GetClassifier(args, possible_browser)
-    runner.context = args
-    runner.setup_fn = _SetUpProcess
-    runner.teardown_fn = _TearDownProcess
-    runner.win_multiprocessing = typ.WinMultiprocessing.importable
-    try:
-      ret, _, _ = runner.run()
-    except KeyboardInterrupt:
-      print >> sys.stderr, "interrupted, exiting"
-      ret = 130
-    return ret
+      _, result = self.RunOneSuite(possible_browser, args)
+      results.append(result)
 
+      failed_tests = json_results.FailedTestNames(test_suite, result)
+      retry_limit -= 1
 
-def GetClassifier(args, possible_browser):
-  def ClassifyTest(test_set, test):
-    name = test.id()
-    if args.positional_args:
-      if _MatchesSelectedTest(name, args.positional_args,
-                              args.exact_test_filter):
-        assert hasattr(test, '_testMethodName')
-        method = getattr(test, test._testMethodName) # pylint: disable=W0212
-        if decorators.ShouldBeIsolated(method, possible_browser):
-          test_set.isolated_tests.append(typ.TestInput(name))
-        else:
-          test_set.parallel_tests.append(typ.TestInput(name))
-    else:
-      assert hasattr(test, '_testMethodName')
-      method = getattr(test, test._testMethodName) # pylint: disable=W0212
-      should_skip, reason = decorators.ShouldSkip(method, possible_browser)
-      if should_skip and not args.run_disabled_tests:
-        test_set.tests_to_skip.append(typ.TestInput(name, msg=reason))
-      elif decorators.ShouldBeIsolated(method, possible_browser):
-        test_set.isolated_tests.append(typ.TestInput(name))
-      else:
-        test_set.parallel_tests.append(typ.TestInput(name))
+    full_results = json_results.FullResults(args, test_suite, results)
+    json_results.WriteFullResultsIfNecessary(args, full_results)
 
-  return ClassifyTest
+    err_occurred, err_str = json_results.UploadFullResultsIfNecessary(
+        args, full_results)
+    if err_occurred:
+      for line in err_str.splitlines():
+        logging.error(line)
+      return 1
 
+    return json_results.ExitCodeFromFullResults(full_results)
 
-def _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact):
-  if not selected_tests:
-    return False
-  if selected_tests_are_exact:
-    return any(name in selected_tests)
-  else:
-    return any(test in name for test in selected_tests)
+  def RunOneSuite(self, possible_browser, args):
+    test_suite = DiscoverTests(config.test_dirs, config.top_level_dir,
+                               possible_browser, args.positional_args,
+                               args.exact_test_filter, args.run_disabled_tests)
+    runner = progress_reporter.TestRunner()
+    result = runner.run(test_suite, config.progress_reporters,
+                        args.repeat_count, args)
+    return test_suite, result
 
-
-def _SetUpProcess(child, context): # pylint: disable=W0613
-  args = context
-  options_for_unittests.Push(args)
-
-
-def _TearDownProcess(child, context): # pylint: disable=W0613
-  browser_test_case.teardown_browser()
-  options_for_unittests.Pop()
-
-
-if __name__ == '__main__':
-  ret_code = RunTestsCommand.main()
-  print 'run_tests.py exiting, ret_code = %d' % ret_code
-  sys.exit(ret_code)
+  @classmethod
+  @RestoreLoggingLevel
+  def main(cls, args=None):
+    return super(RunTestsCommand, cls).main(args)
