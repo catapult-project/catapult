@@ -313,7 +313,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def StopTracing(self):
     """ Stops tracing and returns the result as TimelineData object. """
     tab_ids_list = []
-    for (i, _) in enumerate(self._browser.tabs):
+    for (i, _) in enumerate(self.browser.tabs):
       tab = self.tab_list_backend.Get(i, None)
       if tab:
         success = tab.EvaluateJavaScript(

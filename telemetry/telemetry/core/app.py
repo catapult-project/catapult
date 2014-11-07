@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 class App(object):
   """ A running application instance that can be controlled in a limited way.
 
@@ -17,8 +18,24 @@ class App(object):
     self._platform_backend = platform_backend
 
   @property
+  def app_type(self):
+    return self._app_backend.app_type
+
+  @property
   def platform(self):
     return self._platform_backend.platform
 
+  def __enter__(self):
+    return self
+
+  def __exit__(self, *args):
+    self.Close()
+
   def Close(self):
     raise NotImplementedError()
+
+  def GetStandardOutput(self):
+    return self._app_backend.GetStandardOutput()
+
+  def GetStackTrace(self):
+    return self._app_backend.GetStackTrace()

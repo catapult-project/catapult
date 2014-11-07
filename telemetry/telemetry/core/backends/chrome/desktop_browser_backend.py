@@ -98,10 +98,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return r'\\.\pipe\%s_service' % os.path.basename(self._tmp_minidump_dir)
 
   def _StartCrashService(self):
-    os_name = self._browser.platform.GetOSName()
+    os_name = self.browser.platform.GetOSName()
     if os_name != 'win':
       return None
-    arch_name = self._browser.platform.GetArchName()
+    arch_name = self.browser.platform.GetArchName()
     return subprocess.Popen([
         support_binaries.FindPath('crash_service', arch_name, os_name),
         '--no-window',
@@ -246,7 +246,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return most_recent_dump
 
   def _GetStackFromMinidump(self, minidump):
-    os_name = self._browser.platform.GetOSName()
+    os_name = self.browser.platform.GetOSName()
     if os_name == 'win':
       cdb = self._GetCdbPath()
       if not cdb:
@@ -258,7 +258,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       stack_end = output.find('quit:')
       return output[stack_start:stack_end]
 
-    arch_name = self._browser.platform.GetArchName()
+    arch_name = self.browser.platform.GetArchName()
     stackwalk = support_binaries.FindPath(
         'minidump_stackwalk', arch_name, os_name)
     if not stackwalk:

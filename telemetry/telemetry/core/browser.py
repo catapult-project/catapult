@@ -52,15 +52,9 @@ class Browser(app.App):
     self._browser_backend.Start()
     self._platform_backend.DidStartBrowser(self, self._browser_backend)
 
-  def __enter__(self):
-    return self
-
-  def __exit__(self, *args):
-    self.Close()
-
   @property
   def browser_type(self):
-    return self._browser_backend.browser_type
+    return self.app_type
 
   @property
   def supports_extensions(self):
