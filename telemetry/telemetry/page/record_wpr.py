@@ -54,6 +54,10 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
     if self.page_test:
       self.page_test.DidRunActions(page, tab)
 
+  def CleanUpAfterPage(self, page, tab):
+    if self.page_test:
+      self.page_test.CleanUpAfterPage(page, tab)
+
   def ValidateAndMeasurePage(self, page, tab, results):
     if self.page_test:
       self.page_test.ValidateAndMeasurePage(page, tab, results)
