@@ -9,28 +9,49 @@ from telemetry.core import browser_finder
 from telemetry.unittest import options_for_unittests
 from telemetry.util import path
 
+current_browser_options = None
+current_browser = None
+
+
+def teardown_browser():
+  global current_browser
+  global current_browser_options
+
+  if current_browser:
+    current_browser.Close()
+  current_browser = None
+  current_browser_options = None
+
 
 class BrowserTestCase(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
-    options = options_for_unittests.GetCopy()
-    cls.CustomizeBrowserOptions(options.browser_options)
-    browser_to_create = browser_finder.FindBrowser(options)
-    if not browser_to_create:
-      raise Exception('No browser found, cannot continue test.')
+    global current_browser
+    global current_browser_options
 
-    cls._browser = None
-    try:
-      cls._browser = browser_to_create.Create(options)
-    except:
-      cls.tearDownClass()
-      raise
+    options = options_for_unittests.GetCopy()
+
+    cls.CustomizeBrowserOptions(options.browser_options)
+    if not current_browser or (current_browser_options !=
+                               options.browser_options):
+      if current_browser:
+        teardown_browser()
+
+      browser_to_create = browser_finder.FindBrowser(options)
+      if not browser_to_create:
+        raise Exception('No browser found, cannot continue test.')
+
+      try:
+        current_browser = browser_to_create.Create(options)
+        current_browser_options = options.browser_options
+      except:
+        cls.tearDownClass()
+        raise
+    cls._browser = current_browser
 
   @classmethod
   def tearDownClass(cls):
-    if cls._browser:
-      cls._browser.Close()
-      cls._browser = None
+    pass
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):
