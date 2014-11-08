@@ -10,7 +10,9 @@ from telemetry.core.platform import network_controller_backend
 
 
 class FakePlatformBackend(object):
-  pass
+  @property
+  def wpr_ca_cert_path(self):
+    return None
 
 
 class FakeBrowserBackend(object):
@@ -18,8 +20,9 @@ class FakeBrowserBackend(object):
 
 
 class FakeReplayServer(object):
-  def __init__(self, browser_backend, **replay_args):
+  def __init__(self, browser_backend, platform_backend, **replay_args):
     self.browser_backend = browser_backend
+    self.platform_backend = platform_backend
     self.replay_args = replay_args
     self.is_closed = False
 
@@ -36,8 +39,9 @@ class TestNetworkControllerBackend(
     super(TestNetworkControllerBackend, self).__init__(platform_backend)
     self.fake_replay_server = None
 
-  def _ReplayServer(self, browser_backend, replay_args):
-    self.fake_replay_server = FakeReplayServer(browser_backend, **replay_args)
+  def _ReplayServer(self, browser_backend, platform_backend, replay_args):
+    self.fake_replay_server = FakeReplayServer(
+        browser_backend, platform_backend, **replay_args)
     return self.fake_replay_server
 
 

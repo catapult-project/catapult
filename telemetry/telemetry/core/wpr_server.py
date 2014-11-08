@@ -12,8 +12,8 @@ from telemetry.core import wpr_modes
 
 
 class ReplayServer(object):
-  def __init__(self, browser_backend, archive_path, wpr_mode, netsim,
-               extra_wpr_args, make_javascript_deterministic):
+  def __init__(self, browser_backend, platform_backend, archive_path, wpr_mode,
+               netsim, extra_wpr_args, make_javascript_deterministic):
     self._forwarder = None
     self._web_page_replay = None
 
@@ -26,10 +26,10 @@ class ReplayServer(object):
       wpr_args.append('--record')
     if not make_javascript_deterministic:
       wpr_args.append('--inject_scripts=')
-    if browser_backend.wpr_ca_cert_path:
+    if platform_backend.wpr_ca_cert_path:
       wpr_args.extend([
           '--should_generate_certs',
-          '--https_root_ca_cert_path=%s' % browser_backend.wpr_ca_cert_path,
+          '--https_root_ca_cert_path=%s' % platform_backend.wpr_ca_cert_path,
           ])
     self._web_page_replay = webpagereplay.ReplayServer(
         archive_path, browser_backend.forwarder_factory.host_ip,

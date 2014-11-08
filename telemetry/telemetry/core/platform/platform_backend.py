@@ -256,3 +256,7 @@ class PlatformBackend(object):
       length: The number of bits to read. MSRs are 64 bits, even on 32-bit CPUs.
     """
     raise NotImplementedError()
+
+  @property
+  def wpr_ca_cert_path(self):
+    return None

@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
-
 from telemetry import decorators
 from telemetry.core import platform
 from telemetry.core import web_contents
@@ -25,7 +23,6 @@ class BrowserBackend(app_backend.AppBackend):
     self.browser_options = browser_options
     self._tab_list_backend_class = tab_list_backend
     self._forwarder_factory = None
-    self._wpr_ca_cert_path = None
 
   def SetBrowser(self, browser):
     super(BrowserBackend, self).SetApp(app=browser)
@@ -50,16 +47,6 @@ class BrowserBackend(app_backend.AppBackend):
   @property
   def wpr_mode(self):
     return self.browser_options.wpr_mode
-
-  @property
-  def wpr_ca_cert_path(self):
-    """Path to root certificate installed on browser (or None).
-
-    If this is set, web page replay will use it to sign HTTPS responses.
-    """
-    if self._wpr_ca_cert_path:
-      assert os.path.isfile(self._wpr_ca_cert_path)
-    return self._wpr_ca_cert_path
 
   @property
   def should_ignore_certificate_errors(self):
