@@ -141,10 +141,6 @@ class RenderingStats(object):
 
     self.frame_timestamps = []
     self.frame_times = []
-    self.paint_times = []
-    self.painted_pixel_counts = []
-    self.record_times = []
-    self.recorded_pixel_counts = []
     self.approximated_pixel_percentages = []
     # End-to-end latency for input event - from when input event is
     # generated to when the its resulted page is swap buffered.
@@ -159,10 +155,6 @@ class RenderingStats(object):
     for timeline_range in timeline_ranges:
       self.frame_timestamps.append([])
       self.frame_times.append([])
-      self.paint_times.append([])
-      self.painted_pixel_counts.append([])
-      self.record_times.append([])
-      self.recorded_pixel_counts.append([])
       self.approximated_pixel_percentages.append([])
       self.input_event_latency.append([])
       self.scroll_update_latency.append([])
@@ -172,8 +164,6 @@ class RenderingStats(object):
         continue
       self._InitFrameTimestampsFromTimeline(
           timestamp_process, timestamp_event_name, timeline_range)
-      self._InitMainThreadRenderingStatsFromTimeline(
-          renderer_process, timeline_range)
       self._InitImplThreadRenderingStatsFromTimeline(
           renderer_process, timeline_range)
       self._InitInputLatencyStatsFromTimeline(
@@ -227,15 +217,6 @@ class RenderingStats(object):
     for event in self._GatherEvents(
         timestamp_event_name, process, timeline_range):
       self._AddFrameTimestamp(event)
-
-  def _InitMainThreadRenderingStatsFromTimeline(self, process, timeline_range):
-    event_name = 'BenchmarkInstrumentation::MainThreadRenderingStats'
-    for event in self._GatherEvents(event_name, process, timeline_range):
-      data = event.args['data']
-      self.paint_times[-1].append(1000.0 * data['paint_time'])
-      self.painted_pixel_counts[-1].append(data['painted_pixel_count'])
-      self.record_times[-1].append(1000.0 * data['record_time'])
-      self.recorded_pixel_counts[-1].append(data['recorded_pixel_count'])
 
   def _InitImplThreadRenderingStatsFromTimeline(self, process, timeline_range):
     event_name = 'BenchmarkInstrumentation::ImplThreadRenderingStats'
