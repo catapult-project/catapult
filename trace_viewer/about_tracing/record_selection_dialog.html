@@ -535,7 +535,8 @@ tv.exportTo('about_tracing', function() {
     createDefaultDisabledWarningDialog_: function(warningLink) {
       function onClickHandler(evt) {
         this.warningOverlay_ = tv.ui.Overlay();
-        this.warningOverlay_.title = 'Enabling Categories Warning...';
+        this.warningOverlay_.parentEl_ = this;
+        this.warningOverlay_.title = 'Warning...';
         this.warningOverlay_.userCanClose = true;
         this.warningOverlay_.visible = true;
 
