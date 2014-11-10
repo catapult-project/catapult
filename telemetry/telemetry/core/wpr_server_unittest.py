@@ -10,22 +10,21 @@ from telemetry.core import wpr_server
 
 # pylint: disable=W0212
 class ForwarderPortPairsTest(unittest.TestCase):
-  def testNoRemotePortsGivesLocalToLocal(self):
+  def testZeroIsOkayForRemotePorts(self):
     started_ports = (8080, 8443, None)
     wpr_port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(0, 8080),
-        https=forwarders.PortPair(0, 8443),
+        http=forwarders.PortPair(0, 0),
+        https=forwarders.PortPair(0, 0),
         dns=None)
     expected_port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(8080, 8080),
-        https=forwarders.PortPair(8443, 8443),
+        http=forwarders.PortPair(8080, 0),
+        https=forwarders.PortPair(8443, 0),
         dns=None)
     self.assertEqual(
         expected_port_pairs,
-        wpr_server.ReplayServer._ForwarderPortPairs(started_ports,
-                                                    wpr_port_pairs))
+        wpr_server._ForwarderPortPairs(started_ports, wpr_port_pairs))
 
-  def testNetsimPortsGives(self):
+  def testCombineStartedAndRemotePorts(self):
     started_ports = (8888, 4343, 5353)
     wpr_port_pairs = forwarders.PortPairs(
         http=forwarders.PortPair(0, 80),
@@ -37,5 +36,4 @@ class ForwarderPortPairsTest(unittest.TestCase):
         dns=forwarders.PortPair(5353, 53))
     self.assertEqual(
         expected_port_pairs,
-        wpr_server.ReplayServer._ForwarderPortPairs(started_ports,
-                                                    wpr_port_pairs))
+        wpr_server._ForwarderPortPairs(started_ports, wpr_port_pairs))

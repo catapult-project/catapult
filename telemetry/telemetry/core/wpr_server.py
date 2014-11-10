@@ -43,41 +43,10 @@ class ReplayServer(object):
     # Assign the forwarder port pairs back to the browser_backend.
     #     The port pairs are used to set up the application.
     #     The chrome_browser_backend uses the remote ports to set browser flags.
-    port_pairs = self._ForwarderPortPairs(
+    port_pairs = _ForwarderPortPairs(
         started_ports, browser_backend.wpr_port_pairs)
     self._forwarder = browser_backend.forwarder_factory.Create(port_pairs)
     browser_backend.wpr_port_pairs = self._forwarder.port_pairs
-
-  @staticmethod
-  def _ForwarderPortPairs(started_ports, wpr_port_pairs):
-    """Setup the local and remote forwarding ports.
-
-    The local host is where Telemetry is run. The remote is host where
-    the target application is run. The local and remote hosts may be
-    the same (e.g., testing a desktop browser) or different (e.g., testing
-    an android browser).
-
-    Args:
-      started_ports: a tuple of of integer ports from which to forward:
-          (HTTP_PORT, HTTPS_PORT, DNS_PORT)  # DNS_PORT may be None
-      wpr_port_pairs: a forwaders.PortPairs instance where the remote ports,
-          if set, are used.
-    Returns:
-      a forwarders.PortPairs instance used to create the forwarder.
-    """
-    local_http_port, local_https_port, local_dns_port = started_ports
-    remote_http_port = wpr_port_pairs.http.remote_port
-    remote_https_port = wpr_port_pairs.https.remote_port
-    http_port_pair = forwarders.PortPair(local_http_port, remote_http_port)
-    https_port_pair = forwarders.PortPair(local_https_port, remote_https_port)
-    if wpr_port_pairs.dns is None:
-      assert not local_dns_port, 'DNS was not requested, but started anyway.'
-      dns_port_pair = None
-    else:
-      assert local_dns_port, 'DNS was requested, but not started.'
-      remote_dns_port = wpr_port_pairs.dns.remote_port or local_dns_port
-      dns_port_pair = forwarders.PortPair(local_dns_port, remote_dns_port)
-    return forwarders.PortPairs(http_port_pair, https_port_pair, dns_port_pair)
 
   def __enter__(self):
     return self
@@ -92,3 +61,30 @@ class ReplayServer(object):
     if self._web_page_replay:
       self._web_page_replay.StopServer()
       self._web_page_replay = None
+
+
+def _ForwarderPortPairs(started_ports, wpr_port_pairs):
+  """Return PortPairs with started local ports and requested remote ports.
+
+  The local host is where Telemetry is run. The remote is host where
+  the target application is run. The local and remote hosts may be
+  the same (e.g., testing a desktop browser) or different (e.g., testing
+  an android browser).
+
+  The remote ports may be zero. In that case, the forwarder determines
+  the remote ports.
+
+  Args:
+    started_ports: a tuple of of integer ports from which to forward:
+        (HTTP_PORT, HTTPS_PORT, DNS_PORT)  # DNS_PORT may be None
+    wpr_port_pairs: a forwarders.PortPairs instance where the remote ports,
+        if set, are used.
+  Returns:
+    a forwarders.PortPairs instance used to create the forwarder.
+  """
+  local_http_port, local_https_port, local_dns_port = started_ports
+  return forwarders.PortPairs(
+      forwarders.PortPair(local_http_port, wpr_port_pairs.http.remote_port),
+      forwarders.PortPair(local_https_port, wpr_port_pairs.https.remote_port),
+      (forwarders.PortPair(local_dns_port, wpr_port_pairs.dns.remote_port)
+       if wpr_port_pairs.dns is not None else None))
