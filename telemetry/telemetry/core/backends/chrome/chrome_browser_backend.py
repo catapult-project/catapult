@@ -123,16 +123,16 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
     return args
 
-  @property
-  def _use_host_resolver_rules(self):
-    """Returns True if need --host-resolver-rules to send requests to replay."""
-    if self.browser_options.netsim:
-      # Avoid --host-resolver-rules with netsim because it causes Chrome to
-      # skip DNS requests. With netsim, we want to exercise DNS requests.
-      return False
+  def _UseHostResolverRules(self):
+    """Returns True to add --host-resolver-rules to send requests to replay."""
     if self.forwarder_factory.does_forwarder_override_dns:
-      # Avoid --host-resolver-rules when the forwarder can map DNS requests
-      # from devices to the replay DNS port on the host running Telemetry.
+      # Avoid --host-resolver-rules when the forwarder will map DNS requests
+      # from the target platform to replay (on the host platform).
+      # This allows the browser to exercise DNS requests.
+      return False
+    if self.browser_options.netsim and self._platform_backend.is_host_platform:
+      # Avoid --host-resolver-rules when replay will configure the platform to
+      # resolve hosts to replay.
       # This allows the browser to exercise DNS requests.
       return False
     return True
@@ -151,7 +151,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       # Ignore certificate errors if the platform backend has not created
       # and installed a root certificate.
       replay_args.append('--ignore-certificate-errors')
-    if self._use_host_resolver_rules:
+    if self._UseHostResolverRules():
       replay_args.append('--host-resolver-rules=MAP * %s,EXCLUDE localhost' %
                          self.forwarder_factory.host_ip)  # replay's host_ip
     # Force the browser to send HTTP/HTTPS requests to fixed ports if they

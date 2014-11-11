@@ -82,6 +82,10 @@ class PlatformBackend(object):
     return self._platform
 
   @property
+  def is_host_platform(self):
+    return self._platform.is_host_platform
+
+  @property
   def running_browser_backends(self):
     return list(self._running_browser_backends)
 

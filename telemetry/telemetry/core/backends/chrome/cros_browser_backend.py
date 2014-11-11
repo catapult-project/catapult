@@ -95,11 +95,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return args
 
   @property
-  def _use_host_resolver_rules(self):
-    """Always use the --host-resolver-rules Chrome flag; even for netsim."""
-    return True
-
-  @property
   def pid(self):
     return self._cri.GetChromePid()
 

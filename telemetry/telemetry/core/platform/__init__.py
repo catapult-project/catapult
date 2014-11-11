@@ -98,6 +98,10 @@ class Platform(object):
         self._platform_backend.profiling_controller_backend)
 
   @property
+  def is_host_platform(self):
+    return self == GetHostPlatform()
+
+  @property
   def network_controller(self):
     """Control network settings and servers to simulate the Web."""
     return self._network_controller
