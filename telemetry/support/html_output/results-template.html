@@ -707,7 +707,7 @@ function TableRow(runs, test, referenceIndex, useLargeLinePlots) {
         if (resultIndex == undefined)
             this.tableRow.append(this.markupForMissingRun(i == this.referenceIndex));
         else
-            this.tableRow.append(this.markupForRun(results[resultIndex], this.referenceResult));
+            this.tableRow.append(this.markupForRun(results[resultIndex], referenceResult));
     }
 
     $('#container').children('tbody').last().append(this.tableRow);
