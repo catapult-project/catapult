@@ -818,7 +818,8 @@ tv.exportTo('tracing.importer', function() {
                 name,
                 tv.ui.getStringColorId(name),
                 events[0].event.ts / 1000,
-                this.deepCopyIfNeeded_(events[0].event.args),
+                tv.concatenateObjects(events[0].event.args,
+                                      events[events.length - 1].event.args),
                 (event.ts - events[0].event.ts) / 1000);
             slice.startThread = events[0].thread;
             slice.endThread = asyncEventState.thread;
@@ -828,25 +829,41 @@ tv.exportTo('tracing.importer', function() {
             var stepType = events[1].event.ph;
             var isValid = true;
 
-            // Create subSlices for each step.
-            for (var j = 1; j < events.length; ++j) {
-              var subName = name;
-              if (events[j].event.ph == 'T' || events[j].event.ph == 'p') {
+            // Create subSlices for each step. Skip the start and finish events,
+            // which are always first and last respectively.
+            for (var j = 1; j < events.length - 1; ++j) {
+              if (events[j].event.ph === 'T' || events[j].event.ph === 'p') {
                 isValid = this.assertStepTypeMatches_(stepType, events[j]);
                 if (!isValid)
                   break;
               }
 
-              var targetEvent;
-              if (stepType == 'T') {
-                targetEvent = events[j - 1];
-              } else {
-                targetEvent = events[j];
+              if (events[j].event.ph === 'S') {
+                this.model_.importWarning({
+                  type: 'async_slice_parse_error',
+                  message: 'At ' + event.event.ts + ', a slice named ' +
+                      event.event.name + ' with id=' + event.event.id +
+                      ' had a step before the start event.'
+                })
+                continue;
               }
 
-              var subName = events[0].event.name;
-              if (targetEvent.event.ph == 'T' || targetEvent.event.ph == 'p')
-                subName = subName + ':' + targetEvent.event.args.step;
+              if (events[j].event.ph === 'F') {
+                this.model_.importWarning({
+                  type: 'async_slice_parse_error',
+                  message: 'At ' + event.event.ts + ', a slice named ' +
+                      event.event.name + ' with id=' + event.event.id +
+                      ' had a step after the finish event.'
+                })
+                continue;
+              }
+
+              var startIndex = j + (stepType === 'T' ? 0 : -1);
+              var endIndex = startIndex + 1;
+
+              var subName = events[j].event.name;
+              if (events[j].event.ph === 'T' || events[j].event.ph === 'p')
+                subName = subName + ':' + events[j].event.args.step;
 
               var asyncSliceConstructor =
                  tracing.trace_model.AsyncSlice.getConstructor(
@@ -856,22 +873,15 @@ tv.exportTo('tracing.importer', function() {
                   events[0].event.cat,
                   subName,
                   tv.ui.getStringColorId(subName + j),
-                  events[j - 1].event.ts / 1000,
-                  tv.concatenateObjects(events[0].event.args,
-                                          targetEvent.event.args),
-                  (events[j].event.ts - events[j - 1].event.ts) / 1000);
-              subSlice.startThread = events[j - 1].thread;
-              subSlice.endThread = events[j].thread;
+                  events[startIndex].event.ts / 1000,
+                  this.deepCopyIfNeeded_(events[j].event.args),
+                  (events[endIndex].event.ts - events[startIndex].event.ts) /
+                      1000);
+              subSlice.startThread = events[startIndex].thread;
+              subSlice.endThread = events[endIndex].thread;
               subSlice.id = id;
 
               slice.subSlices.push(subSlice);
-
-              if (events[j].event.ph == 'F' && stepType == 'T') {
-                // The args for the finish event go in the last subSlice.
-                var lastSlice = slice.subSlices[slice.subSlices.length - 1];
-                lastSlice.args = tv.concatenateObjects(lastSlice.args,
-                                                         event.args);
-              }
             }
 
             if (isValid) {
