@@ -61,17 +61,12 @@ class _RunState(object):
       sys.exit(0)
     return possible_browser
 
-  def WillRunPage(self, page):
-    self._current_page = page
-    if self._finder_options.profiler:
-      self._StartProfiling(self._current_page)
-
   def DidRunPage(self):
     if self._finder_options.profiler:
       self._StopProfiling()
 
     if self._test.StopBrowserAfterPage(self.browser, self._current_page):
-      self.StopBrowser()
+      self._StopBrowser()
     self._current_page = None
     self._current_tab = None
 
@@ -101,7 +96,10 @@ class _RunState(object):
         archive_path, wpr_mode, browser_options.netsim,
         browser_options.extra_wpr_args, make_javascript_deterministic)
 
-  def StartBrowserIfNeeded(self, test, page_set, page):
+  def WillRunPage(self, page, page_set):
+    self._current_page = page
+    if self._test.RestartBrowserBeforeEachPage() or page.startup_url:
+      self._StopBrowser()
     started_browser = not self.browser
     self._PrepareWpr(self.platform.network_controller, page.archive_path,
                      page_set.make_javascript_deterministic)
@@ -110,12 +108,13 @@ class _RunState(object):
       self.browser.credentials.credentials_path = page.credentials_path
       self.platform.network_controller.UpdateReplayForExistingBrowser()
     else:
-      test.CustomizeBrowserOptionsForSinglePage(page, self._finder_options)
+      self._test.CustomizeBrowserOptionsForSinglePage(
+          page, self._finder_options)
       self._possible_browser.SetCredentialsPath(page.credentials_path)
 
-      test.WillStartBrowser(self.platform)
+      self._test.WillStartBrowser(self.platform)
       self.browser = self._possible_browser.Create(self._finder_options)
-      test.DidStartBrowser(self.browser)
+      self._test.DidStartBrowser(self.browser)
 
       if self._first_browser:
         self._first_browser = False
@@ -147,13 +146,13 @@ class _RunState(object):
         else:
           logging.warning('System info not supported')
 
-    if self.browser.supports_tab_control and test.close_tabs_before_run:
+    if self.browser.supports_tab_control and self._test.close_tabs_before_run:
       # Create a tab if there's none.
       if len(self.browser.tabs) == 0:
         self.browser.tabs.New()
 
       # Ensure only one tab is open, unless the test is a multi-tab test.
-      if not test.is_multi_tab_test:
+      if not self._test.is_multi_tab_test:
         while len(self.browser.tabs) > 1:
           self.browser.tabs[-1].Close()
 
@@ -167,6 +166,10 @@ class _RunState(object):
       # loading so we'll wait forever.
       if started_browser:
         self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
+
+    # Start profiling if needed.
+    if self._finder_options.profiler:
+      self._StartProfiling(self._current_page)
 
   def PreparePage(self):
     self._current_tab = self._test.TabForPage(self._current_page, self.browser)
@@ -204,7 +207,10 @@ class _RunState(object):
       self.browser.credentials.LoginNoLongerNeeded(
           self._current_tab, self._current_page.credentials)
 
-  def StopBrowser(self):
+  def TearDown(self):
+    self._StopBrowser()
+
+  def _StopBrowser(self):
     if self.browser:
       self.browser.Close()
       self.browser = None
@@ -284,11 +290,7 @@ def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
                                        page, results, state):
   try:
     expectation = None
-    if test.RestartBrowserBeforeEachPage() or page.startup_url:
-      state.StopBrowser()
-      # If we are restarting the browser for each page customize the per page
-      # options for just the current page before starting the browser.
-    state.StartBrowserIfNeeded(test, page_set, page)
+    state.WillRunPage(page, page_set)
     if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
       logging.info('Skip test for page %s because browser is not supported.'
                    % page.url)
@@ -296,18 +298,16 @@ def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
 
     expectation = expectations.GetExpectationForPage(state.browser, page)
     _WaitForThermalThrottlingIfNeeded(state.platform)
-    state.WillRunPage(page)
     _RunPageAndProcessErrorIfNeeded(page, state, expectation, results)
     _CheckThermalThrottling(state.platform)
     state.DidRunPage()
   except (exceptions.BrowserGoneException, exceptions.TabCrashException):
-    state.StopBrowser()
+    state.TearDown()
     if expectation != 'fail' and not results.current_page_run.failed:
       results.AddValue(failure.FailureValue(page, sys.exc_info()))
     if test.is_multi_tab_test:
       logging.error('Aborting multi-tab test after browser or tab crashed at '
                     'page %s' % page.url)
-      raise
 
 
 @decorators.Cache
@@ -383,6 +383,12 @@ def Run(test, page_set, expectations, finder_options, results):
           try:
             _RunPageAndHandleExceptionIfNeeded(
                 test, page_set, expectations, page, results, state)
+          except Exception:
+            # Tear down & restart the state for unhandled exceptions thrown by
+            # _RunPageAndHandleExceptionIfNeeded.
+            results.AddValue(failure.FailureValue(page, sys.exc_info()))
+            state.TearDown()
+            state = _RunState(test, finder_options)
           finally:
             discard_run = (test.discard_first_result and
                            page not in pages_with_discarded_first_result)
@@ -394,7 +400,7 @@ def Run(test, page_set, expectations, finder_options, results):
           test.RequestExit()
   finally:
     test.DidRunTest(state.browser, results)
-    state.StopBrowser()
+    state.TearDown()
 
 
 def _ShuffleAndFilterPageSet(page_set, finder_options):
