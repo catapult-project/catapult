@@ -18,6 +18,7 @@ from telemetry.util import support_binaries
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib import forwarder  # pylint: disable=F0401
+  from pylib.device import device_errors  # pylint: disable=F0401
 except Exception:
   forwarder = None
 
@@ -251,7 +252,11 @@ class AndroidRndisConfigurator(object):
         ['/usr/bin/sudo', 'installer', '-pkg', pkg_path, '-target', '/'])
 
   def _DisableRndis(self):
-    self._device.SetProp('sys.usb.config', 'adb')
+    try:
+      self._device.SetProp('sys.usb.config', 'adb')
+    except device_errors.AdbCommandFailedError:
+      # Ignore exception due to USB connection being reset.
+      pass
     self._WaitForDevice()
 
   def _EnableRndis(self):
