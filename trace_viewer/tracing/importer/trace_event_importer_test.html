@@ -1024,15 +1024,14 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('c', parentSlice.title);
     assertEquals('foo', parentSlice.category);
+    assertEquals(1, parentSlice.args['x']);
+    assertEquals(2, parentSlice.args['y']);
 
     assertNotUndefined(parentSlice.subSlices);
-    assertEquals(1, parentSlice.subSlices.length);
-    var subSlice = parentSlice.subSlices[0];
-    assertEquals(1, subSlice.args['x']);
-    assertEquals(2, subSlice.args['y']);
+    assertEquals(0, parentSlice.subSlices.length);
   });
 
-  test('asyncEndArgOverrwritesOriginalArgValueIfDuplicated', function() {
+  test('asyncEndArgOverwritesOriginalArgValueIfDuplicated', function() {
     var events = [
       // Time is intentionally out of order.
       {name: 'd', args: {z: 4}, pid: 52, ts: 560, cat: 'foo', tid: 53,
@@ -1048,11 +1047,10 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('d', parentSlice.title);
     assertEquals('foo', parentSlice.category);
+    assertEquals(4, parentSlice.args['z']);
 
     assertNotUndefined(parentSlice.subSlices);
-    assertEquals(1, parentSlice.subSlices.length);
-    var subSlice = parentSlice.subSlices[0];
-    assertEquals(4, subSlice.args['z']);
+    assertEquals(0, parentSlice.subSlices.length);
   });
 
   test('asyncStepsInOneThread', function() {
@@ -1071,24 +1069,21 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('a', parentSlice.title);
     assertEquals('foo', parentSlice.category);
     assertEquals(0, parentSlice.start);
+    assertEquals(1, parentSlice.args['x']);
+    assertUndefined(parentSlice.args['y']);
+    assertEquals(3, parentSlice.args['z']);
 
     assertNotUndefined(parentSlice.subSlices);
-    assertEquals(2, parentSlice.subSlices.length);
-    var subSlice = parentSlice.subSlices[0];
-    assertEquals('a', subSlice.title);
-    assertEquals('foo', subSlice.category);
-    assertEquals(0, subSlice.start);
-    assertAlmostEquals((548 - 524) / 1000, subSlice.duration);
-    assertEquals(1, subSlice.args['x']);
+    assertEquals(1, parentSlice.subSlices.length);
 
-    var subSlice = parentSlice.subSlices[1];
+    var subSlice = parentSlice.subSlices[0];
     assertEquals('a:s1', subSlice.title);
     assertEquals('foo', subSlice.category);
     assertAlmostEquals((548 - 524) / 1000, subSlice.start);
     assertAlmostEquals((560 - 548) / 1000, subSlice.duration);
-    assertEquals(1, subSlice.args['x']);
+    assertUndefined(subSlice.args['x']);
     assertEquals(2, subSlice.args['y']);
-    assertEquals(3, subSlice.args['z']);
+    assertUndefined(subSlice.args['z']);
   });
 
   test('asyncStepsMissingStart', function() {
@@ -1138,24 +1133,20 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('a', parentSlice.title);
     assertEquals('foo', parentSlice.category);
     assertEquals(0, parentSlice.start);
+    assertEquals(1, parentSlice.args['x']);
+    assertUndefined(parentSlice.args['y']);
+    assertEquals(3, parentSlice.args['z']);
 
     assertNotUndefined(parentSlice.subSlices);
-    assertEquals(2, parentSlice.subSlices.length);
+    assertEquals(1, parentSlice.subSlices.length);
     var subSlice = parentSlice.subSlices[0];
     assertEquals('a:s1', subSlice.title);
     assertEquals('foo', subSlice.category);
     assertEquals(0, subSlice.start);
     assertAlmostEquals((548 - 524) / 1000, subSlice.duration);
-    assertEquals(1, subSlice.args['x']);
+    assertUndefined(subSlice.args['x']);
     assertEquals(2, subSlice.args['y']);
-
-    var subSlice = parentSlice.subSlices[1];
-    assertEquals('a', subSlice.title);
-    assertEquals('foo', subSlice.category);
-    assertAlmostEquals((548 - 524) / 1000, subSlice.start);
-    assertAlmostEquals((560 - 548) / 1000, subSlice.duration);
-    assertEquals(1, subSlice.args['x']);
-    assertEquals(3, subSlice.args['z']);
+    assertUndefined(subSlice.args['z']);
   });
 
   test('asyncStepMismatch', function() {
@@ -1984,11 +1975,11 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
     assertNotUndefined(parentSlice.subSlices);
     var subSlices = parentSlice.subSlices;
-    assertEquals(1001, subSlices.length);
+    assertEquals(1000, subSlices.length);
     // Slices should be sorted according to 'ts'. And if 'ts' is the same,
     // slices should keep the order that they were recorded.
     for (var i = 0; i < 1000; i++)
-      assertEquals(subSlices[i].args['seq'], i);
+      assertEquals(subSlices[i].args['seq'], i + 1);
   });
 
   test('sampleDataSimple', function() {
