@@ -829,15 +829,16 @@ tv.exportTo('tracing.importer', function() {
             var stepType = events[1].event.ph;
             var isValid = true;
 
-            // Create subSlices for each step.
+            // Create subSlices for each step. Skip the start and finish events,
+            // which are always first and last respectively.
             for (var j = 1; j < events.length - 1; ++j) {
-              if (events[j].event.ph == 'T' || events[j].event.ph == 'p') {
+              if (events[j].event.ph === 'T' || events[j].event.ph === 'p') {
                 isValid = this.assertStepTypeMatches_(stepType, events[j]);
                 if (!isValid)
                   break;
               }
 
-              if (events[j].event.ph == 'S') {
+              if (events[j].event.ph === 'S') {
                 this.model_.importWarning({
                   type: 'async_slice_parse_error',
                   message: 'At ' + event.event.ts + ', a slice named ' +
@@ -847,7 +848,7 @@ tv.exportTo('tracing.importer', function() {
                 continue;
               }
 
-              if (events[j].event.ph == 'F') {
+              if (events[j].event.ph === 'F') {
                 this.model_.importWarning({
                   type: 'async_slice_parse_error',
                   message: 'At ' + event.event.ts + ', a slice named ' +
@@ -857,11 +858,11 @@ tv.exportTo('tracing.importer', function() {
                 continue;
               }
 
-              var startIndex = j + (stepType == 'T' ? 0 : -1);
+              var startIndex = j + (stepType === 'T' ? 0 : -1);
               var endIndex = startIndex + 1;
 
               var subName = events[j].event.name;
-              if (events[j].event.ph == 'T' || events[j].event.ph == 'p')
+              if (events[j].event.ph === 'T' || events[j].event.ph === 'p')
                 subName = subName + ':' + events[j].event.args.step;
 
               var asyncSliceConstructor =
