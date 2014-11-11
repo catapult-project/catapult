@@ -25,8 +25,7 @@ class Override(object):
              'sys': SysModuleStub,
              'thermal_throttle': ThermalThrottleModuleStub,
              'logging': LoggingStub,
-             'certutils': CertUtilsStub,
-             'adb_install_cert': AdbInstallCertStub
+             'certutils': CertUtilsStub
     }
     self.adb_commands = None
     self.os = None
@@ -461,20 +460,9 @@ class CertUtilsStub(object):
   openssl_import_error = None
 
   @staticmethod
-  def write_dummy_ca_cert(_ca_cert_str, _key_str, cert_path):
-    pass
+  def write_dummy_ca_cert(_ca_cert_str, _key_str, _cert_path):
+    raise Exception("write_dummy_ca_cert exception")
 
   @staticmethod
   def generate_dummy_ca_cert():
     return '-', '-'
-
-class AdbInstallCertStub(object):
-  class AndroidCertInstaller(object):
-    def __init__(self, device_id, _cert_name, _cert_path):
-      if device_id == 'success':
-        pass
-      elif device_id == 'failure':
-        raise Exception('Test exception.')
-
-    def install_cert(self, overwrite_cert=False):
-      pass

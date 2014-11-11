@@ -161,8 +161,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # allocates. Need to fix this.
     self._port = adb_commands.AllocateTestServerPort()
 
-    # TODO(wuhu): Move to network controller backend.
-    self._platform_backend.InstallTestCa()
+    self._is_test_ca_installed = self._platform_backend.InstallTestCa()
 
     # Kill old browser.
     self._KillBrowser()
@@ -327,7 +326,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
 
-    self._platform_backend.RemoveTestCa()
+    if self._is_test_ca_installed:
+      self._platform_backend.RemoveTestCa()
 
     self._KillBrowser()
 
@@ -349,4 +349,4 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @property
   def should_ignore_certificate_errors(self):
-    return not self.platform_backend.is_test_ca_installed
+    return not self._is_test_ca_installed
