@@ -148,7 +148,7 @@ tv.exportTo('tracing', function() {
 
     // Helper function that computes the input latency for one async slice.
     function getLatency(event) {
-      if ((!('step' in event.args)) || (!('data' in event.args)))
+      if (!('data' in event.args))
         return;
 
       var data = event.args.data;
