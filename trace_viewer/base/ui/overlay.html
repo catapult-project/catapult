@@ -214,8 +214,8 @@ tv.exportTo('tv.ui', function() {
       this.parentEl_.appendChild(this);
 
       if (this.userCanClose_) {
-        document.addEventListener('keydown', this.onKeyDown_);
-        document.addEventListener('click', this.onDocumentClick_);
+        this.addEventListener('keydown', this.onKeyDown_.bind(this));
+        this.addEventListener('click', this.onDocumentClick_.bind(this));
       }
 
       this.parentEl_.addEventListener('focusin', this.onFocusIn_);
@@ -252,7 +252,8 @@ tv.exportTo('tv.ui', function() {
 
     onClose_: function(e) {
       this.visible = false;
-      if (e.type != 'keydown')
+      if ((e.type != 'keydown') ||
+          (e.type === 'keydown' && e.keyCode === 27))
         e.stopPropagation();
       e.preventDefault();
       tv.dispatchSimpleEvent(this, 'closeclick');
