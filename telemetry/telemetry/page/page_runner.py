@@ -295,11 +295,8 @@ def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
       logging.info('Skip test for page %s because browser is not supported.'
                    % page.url)
       return
-
     expectation = expectations.GetExpectationForPage(state.browser, page)
-    _WaitForThermalThrottlingIfNeeded(state.platform)
     _RunPageAndProcessErrorIfNeeded(page, state, expectation, results)
-    _CheckThermalThrottling(state.platform)
     state.DidRunPage()
   except (exceptions.BrowserGoneException, exceptions.TabCrashException):
     state.TearDown()
@@ -381,6 +378,7 @@ def Run(test, page_set, expectations, finder_options, results):
         for _ in xrange(finder_options.page_repeat):
           results.WillRunPage(page)
           try:
+            _WaitForThermalThrottlingIfNeeded(state.platform)
             _RunPageAndHandleExceptionIfNeeded(
                 test, page_set, expectations, page, results, state)
           except Exception:
@@ -390,6 +388,7 @@ def Run(test, page_set, expectations, finder_options, results):
             state.TearDown()
             state = _RunState(test, finder_options)
           finally:
+            _CheckThermalThrottling(state.platform)
             discard_run = (test.discard_first_result and
                            page not in pages_with_discarded_first_result)
             if discard_run:
