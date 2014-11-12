@@ -163,15 +163,15 @@ tv.exportTo('about_tracing', function() {
 
   var DEFAULT_PRESETS = [
     {title: 'Web developer',
-      categoryFilter: ['blink', 'cc', 'net', 'v8']},
+      categoryFilter: ['blink', 'cc', 'net', 'toplevel', 'v8']},
     {title: 'Input latency',
-      categoryFilter: ['benchmark', 'input']},
+      categoryFilter: ['benchmark', 'input', 'toplevel']},
     {title: 'Rendering',
-      categoryFilter: ['blink', 'cc', 'gpu']},
+      categoryFilter: ['blink', 'cc', 'gpu', 'toplevel']},
     {title: 'Javascript and rendering',
-      categoryFilter: ['blink', 'cc', 'gpu', 'v8']},
+      categoryFilter: ['blink', 'cc', 'gpu', 'v8', 'toplevel']},
     {title: 'Frame Viewer',
-      categoryFilter: ['blink', 'cc', 'gpu', 'v8',
+      categoryFilter: ['blink', 'cc', 'gpu', 'v8', 'toplevel',
         'disabled-by-default-cc.debug']},
     {title: 'Manually select settings',
       categoryFilter: []}
