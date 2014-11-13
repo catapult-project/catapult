@@ -34,7 +34,7 @@ if _TryToImportTelemetry():
   from telemetry.core import browser_finder
   from telemetry.core import browser_options
   from telemetry.core import local_server
-  from telemetry.unittest import options_for_unittests as \
+  from telemetry.unittest_util import options_for_unittests as \
       telemetry_options_for_unittests
 
   class _LocalDevServer(local_server.LocalServer):
