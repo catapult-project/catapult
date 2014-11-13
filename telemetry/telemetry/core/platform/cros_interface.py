@@ -429,10 +429,7 @@ class CrOSInterface(object):
                          (SCREENSHOT_DIR, screenshot_prefix, i, SCREENSHOT_EXT))
       if not self.FileExistsOnDevice(screenshot_file):
         self.RunCmdOnDevice([
-            'DISPLAY=:0.0 XAUTHORITY=/home/chronos/.Xauthority '
-            '/usr/local/bin/import',
-            '-window root',
-            '-depth 8',
+            '/usr/local/autotest/bin/screenshot.py',
             screenshot_file])
         return
     logging.warning('screenshot directory full.')
