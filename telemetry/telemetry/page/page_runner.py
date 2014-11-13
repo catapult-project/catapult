@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import logging
 import optparse
 import os
@@ -220,6 +221,19 @@ class _RunState(object):
       # not overwrite it.
       self._append_to_existing_wpr = True
 
+  def _UploadProfilingResultsToCloudStorage(self, output_files):
+    for output_file_name in output_files:
+      file_path = os.path.abspath(output_file_name)
+      file_name = 'profiling-results/results-%s-%s' % (
+          datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
+          os.path.basename(output_file_name))
+      cloud_storage.Insert(cloud_storage.PUBLIC_BUCKET, file_name, file_path)
+      print
+      print ('View online at '
+          'http://storage.googleapis.com/%s/%s' % (cloud_storage.PUBLIC_BUCKET,
+                                                   file_name))
+      print
+
   def _StartProfiling(self, page):
     output_file = os.path.join(self._finder_options.output_dir,
                                page.file_safe_name)
@@ -232,7 +246,11 @@ class _RunState(object):
 
   def _StopProfiling(self):
     if self.browser:
-      self.platform.profiling_controller.Stop()
+      output_files = self.platform.profiling_controller.Stop()
+
+      if self._finder_options.upload_results:
+        self._UploadProfilingResultsToCloudStorage(output_files)
+
 
 
 def AddCommandLineArgs(parser):
