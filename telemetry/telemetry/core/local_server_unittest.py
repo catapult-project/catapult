@@ -5,7 +5,7 @@ import BaseHTTPServer
 import SimpleHTTPServer
 
 from telemetry.core import local_server
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 class SimpleLocalServerBackendRequestHandler(

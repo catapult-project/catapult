@@ -13,7 +13,7 @@ from telemetry.core import video
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.timeline import model
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 def _IsDocumentVisible(tab):

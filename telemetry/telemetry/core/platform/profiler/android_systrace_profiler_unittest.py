@@ -8,7 +8,7 @@ import zipfile
 
 from telemetry import benchmark
 from telemetry.core.platform.profiler import android_systrace_profiler
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 class TestAndroidSystraceProfiler(tab_test_case.TabTestCase):

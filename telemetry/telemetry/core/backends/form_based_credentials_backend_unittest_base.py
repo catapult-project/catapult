@@ -9,8 +9,8 @@ import unittest
 from telemetry import benchmark
 from telemetry.core import browser_finder
 from telemetry.core import util
-from telemetry.unittest import options_for_unittests
-from telemetry.unittest import simple_mock
+from telemetry.unittest_util import options_for_unittests
+from telemetry.unittest_util import simple_mock
 
 _ = simple_mock.DONT_CARE
 

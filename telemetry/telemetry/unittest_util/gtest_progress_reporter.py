@@ -6,7 +6,7 @@ import logging
 import time
 import unittest
 
-from telemetry.unittest import progress_reporter
+from telemetry.unittest_util import progress_reporter
 from telemetry.util import exception_formatter
 
 

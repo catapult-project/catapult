@@ -6,7 +6,7 @@ import unittest
 
 from telemetry import decorators
 from telemetry.core import util
-from telemetry.unittest import run_tests
+from telemetry.unittest_util import run_tests
 
 
 class MockPossibleBrowser(object):

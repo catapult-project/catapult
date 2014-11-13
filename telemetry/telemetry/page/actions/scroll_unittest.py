@@ -5,8 +5,8 @@
 import os
 
 from telemetry.page.actions import scroll
-from telemetry.unittest import tab_test_case
-from telemetry.unittest import test
+from telemetry.unittest_util import tab_test_case
+from telemetry.unittest_util import test
 
 
 class ScrollActionTest(tab_test_case.TabTestCase):

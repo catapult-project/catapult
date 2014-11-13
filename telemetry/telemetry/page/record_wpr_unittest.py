@@ -13,7 +13,7 @@ from telemetry.page import page as page_module
 from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
 from telemetry.page import record_wpr
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 class MockPage(page_module.Page):

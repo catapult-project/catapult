@@ -6,7 +6,7 @@ import os
 import unittest
 
 PERF_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-from telemetry.unittest import system_stub
+from telemetry.unittest_util import system_stub
 
 
 class CloudStorageTest(unittest.TestCase):

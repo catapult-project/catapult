@@ -23,8 +23,8 @@ from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
-from telemetry.unittest import options_for_unittests
-from telemetry.unittest import system_stub
+from telemetry.unittest_util import options_for_unittests
+from telemetry.unittest_util import system_stub
 from telemetry.util import exception_formatter as exception_formatter_module
 from telemetry.value import scalar
 from telemetry.value import string

@@ -13,8 +13,8 @@ from telemetry.page import page_set
 from telemetry.results import page_test_results
 from telemetry.timeline import model as model_module
 from telemetry.timeline import async_slice
-from telemetry.unittest import options_for_unittests
-from telemetry.unittest import page_test_test_case
+from telemetry.unittest_util import options_for_unittests
+from telemetry.unittest_util import page_test_test_case
 from telemetry.value import scalar
 from telemetry.web_perf import timeline_based_measurement as tbm_module
 from telemetry.web_perf import timeline_interaction_record as tir_module

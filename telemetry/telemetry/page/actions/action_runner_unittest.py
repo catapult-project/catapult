@@ -10,7 +10,7 @@ from telemetry.core.platform import tracing_options
 from telemetry.page.actions import action_runner as action_runner_module
 from telemetry.page.actions import page_action
 from telemetry.timeline import model
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
 

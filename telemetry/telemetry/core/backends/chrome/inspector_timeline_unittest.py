@@ -4,7 +4,7 @@
 
 from telemetry.core import util
 from telemetry.core.backends.chrome import inspector_timeline
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 class InspectorTimelineTabTest(tab_test_case.TabTestCase):

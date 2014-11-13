@@ -5,7 +5,7 @@
 from telemetry import benchmark
 from telemetry.core.backends.chrome import inspector_network
 from telemetry.timeline import recording_options
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 class InspectorNetworkTabTest(tab_test_case.TabTestCase):

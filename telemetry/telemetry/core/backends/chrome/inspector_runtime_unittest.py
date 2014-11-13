@@ -4,7 +4,7 @@
 
 from telemetry.core import exceptions
 from telemetry.core import util
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 class InspectorRuntimeTest(tab_test_case.TabTestCase):

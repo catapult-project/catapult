@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.unittest import test
+from telemetry.unittest_util import test
 
 
 # These are not real unittests.

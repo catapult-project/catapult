@@ -6,7 +6,7 @@ import os
 import unittest
 
 from telemetry.core import browser_finder
-from telemetry.unittest import options_for_unittests
+from telemetry.unittest_util import options_for_unittests
 from telemetry.util import path
 
 

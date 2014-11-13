@@ -9,7 +9,7 @@ from telemetry.core import browser_options
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform_backend
 from telemetry.core.backends.chrome import android_browser_finder
-from telemetry.unittest import system_stub
+from telemetry.unittest_util import system_stub
 
 
 class AndroidBrowserFinderTest(unittest.TestCase):

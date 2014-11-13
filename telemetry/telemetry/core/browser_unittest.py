@@ -16,8 +16,8 @@ from telemetry.core import system_info
 from telemetry.core import util
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
-from telemetry.unittest import browser_test_case
-from telemetry.unittest import options_for_unittests
+from telemetry.unittest_util import browser_test_case
+from telemetry.unittest_util import options_for_unittests
 from telemetry.util import path
 
 

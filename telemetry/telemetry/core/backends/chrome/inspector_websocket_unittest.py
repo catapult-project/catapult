@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.unittest import simple_mock
+from telemetry.unittest_util import simple_mock
 from telemetry.core.backends.chrome import inspector_websocket
 from telemetry.core.backends.chrome import websocket
 

@@ -5,8 +5,8 @@ import logging
 import os
 import sys
 
-from telemetry.unittest import gtest_progress_reporter
-from telemetry.unittest import run_tests
+from telemetry.unittest_util import gtest_progress_reporter
+from telemetry.unittest_util import run_tests
 from telemetry.core import util
 
 

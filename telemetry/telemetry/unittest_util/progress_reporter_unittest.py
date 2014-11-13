@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.unittest import progress_reporter
+from telemetry.unittest_util import progress_reporter
 
 
 class TestFoo(unittest.TestCase):

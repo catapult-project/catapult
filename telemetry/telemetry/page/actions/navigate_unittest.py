@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.page.actions import navigate
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 class NavigateActionTest(tab_test_case.TabTestCase):

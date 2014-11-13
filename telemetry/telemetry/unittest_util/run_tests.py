@@ -10,8 +10,8 @@ from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import discover
-from telemetry.unittest import json_results
-from telemetry.unittest import progress_reporter
+from telemetry.unittest_util import json_results
+from telemetry.unittest_util import progress_reporter
 
 
 class Config(object):

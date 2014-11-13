@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.core import user_agent
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 class MobileUserAgentTest(tab_test_case.TabTestCase):

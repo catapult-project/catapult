@@ -12,7 +12,7 @@ from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.timeline import model
 from telemetry.timeline import tracing_timeline_data
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 class TracingBackendTest(tab_test_case.TabTestCase):

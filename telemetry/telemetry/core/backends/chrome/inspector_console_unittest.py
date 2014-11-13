@@ -6,7 +6,7 @@ import re
 import StringIO
 
 from telemetry.core import util
-from telemetry.unittest import tab_test_case
+from telemetry.unittest_util import tab_test_case
 
 
 class TabConsoleTest(tab_test_case.TabTestCase):

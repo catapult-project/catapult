@@ -6,8 +6,8 @@ import sys
 import unittest
 
 from telemetry.core import exceptions
-from telemetry.unittest import gtest_progress_reporter
-from telemetry.unittest import simple_mock
+from telemetry.unittest_util import gtest_progress_reporter
+from telemetry.unittest_util import simple_mock
 
 
 try:

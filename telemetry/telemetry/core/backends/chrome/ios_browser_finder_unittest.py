@@ -5,7 +5,7 @@ import unittest
 
 from telemetry.core import browser_options
 from telemetry.core.backends.chrome import ios_browser_finder
-from telemetry.unittest import test
+from telemetry.unittest_util import test
 
 
 class IosBrowserFinderUnitTest(unittest.TestCase):

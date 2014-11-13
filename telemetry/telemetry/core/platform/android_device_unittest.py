@@ -5,7 +5,7 @@
 import unittest
 
 from telemetry.core.platform import android_device
-from telemetry.unittest import system_stub
+from telemetry.unittest_util import system_stub
 
 
 class AndroidDeviceTest(unittest.TestCase):
