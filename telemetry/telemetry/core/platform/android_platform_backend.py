@@ -406,7 +406,7 @@ class AndroidPlatformBackend(
     to tweak application network stack.
     """
     if certutils.openssl_import_error:
-      logging.warn(
+      logging.warning(
           'The OpenSSL module is unavailable. '
           'Will fallback to ignoring certificate errors.')
       return
@@ -424,10 +424,9 @@ class AndroidPlatformBackend(
     except Exception:
       # Fallback to ignoring certificate errors.
       self.RemoveTestCa()
-      exception_formatter.PrintFormattedException(
-          msg=('Unable to install test certificate authority on device: %s. '
-               'Will fallback to ignoring certificate errors.'
-               % self._adb.device_serial()))
+      logging.warning('Unable to install test certificate authority on device: '
+                      '%s. Will fallback to ignoring certificate errors.'
+                      % self._adb.device_serial())
 
   @property
   def is_test_ca_installed(self):
