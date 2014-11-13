@@ -89,7 +89,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
      * Parses events and sets up state in the importer.
      */
     f2fsWriteBeginEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev = \((\d+,\d+)\), ino (\d+), pos (\d+), len (\d+), flags (\d+)/.
+      var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), flags = (\d+)/.
           exec(eventBase.details);
       if (!event)
         return false;
@@ -104,7 +104,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
     },
 
     f2fsWriteEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev = \((\d+,\d+)\), ino (\d+), pos (\d+), len (\d+), copied (\d+)/.
+      var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), copied = (\d+)/.
           exec(eventBase.details);
       if (!event)
         return false;
