@@ -26,7 +26,6 @@ from telemetry.value import failure
 from telemetry.value import skip
 
 
-
 def AddCommandLineArgs(parser):
   page_filter.PageFilter.AddCommandLineArgs(parser)
   results_options.AddResultsOptions(parser)
@@ -80,23 +79,56 @@ def ProcessCommandLineArgs(parser, args):
 
 def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
                                        page, results, state):
+  expectation = None
+  def ProcessError():
+    if expectation == 'fail':
+      msg = 'Expected exception while running %s' % page.url
+      exception_formatter.PrintFormattedException(msg=msg)
+    else:
+      msg = 'Exception while running %s' % page.url
+      results.AddValue(failure.FailureValue(page, sys.exc_info()))
+
   try:
-    expectation = None
     state.WillRunPage(page, page_set)
     if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
       logging.info('Skip test for page %s because browser is not supported.'
                    % page.url)
       return
     expectation = expectations.GetExpectationForPage(state.browser, page)
-    _RunPageAndProcessErrorIfNeeded(page, state, expectation, results)
-    state.DidRunPage()
-  except (exceptions.BrowserGoneException, exceptions.TabCrashException):
+
+    if expectation == 'skip':
+      logging.debug('Skipping test: Skip expectation for %s', page.url)
+      results.AddValue(skip.SkipValue(page, 'Skipped by test expectations'))
+      return
+
+    state.PreparePage()
+    state.ImplicitPageNavigation()
+    state.RunPage(results)
+  except page_test.TestNotSupportedOnPlatformFailure:
+    raise
+  except (page_test.Failure, util.TimeoutException, exceptions.LoginException,
+          exceptions.ProfilingException):
+    ProcessError()
+  except (exceptions.TabCrashException, exceptions.BrowserGoneException):
+    ProcessError()
     state.TearDown()
-    if expectation != 'fail' and not results.current_page_run.failed:
-      results.AddValue(failure.FailureValue(page, sys.exc_info()))
     if test.is_multi_tab_test:
       logging.error('Aborting multi-tab test after browser or tab crashed at '
                     'page %s' % page.url)
+      test.RequestExit()
+      return
+  except page_action.PageActionNotSupported as e:
+    results.AddValue(skip.SkipValue(page, 'Unsupported page action: %s' % e))
+  except Exception:
+    exception_formatter.PrintFormattedException(
+        msg='Unhandled exception while running %s' % page.url)
+    results.AddValue(failure.FailureValue(page, sys.exc_info()))
+  else:
+    if expectation == 'fail':
+      logging.warning('%s was expected to fail, but passed.\n', page.url)
+  finally:
+    state.CleanUpPage()
+    state.DidRunPage()
 
 
 @decorators.Cache
@@ -251,52 +283,6 @@ def _CheckArchives(page_set, pages, results):
   return valid_pages
 
 
-def _RunPageAndProcessErrorIfNeeded(page, state, expectation, results):
-  if expectation == 'skip':
-    logging.debug('Skipping test: Skip expectation for %s', page.url)
-    results.AddValue(skip.SkipValue(page, 'Skipped by test expectations'))
-    return
-
-  def ProcessError():
-    if expectation == 'fail':
-      msg = 'Expected exception while running %s' % page.url
-    else:
-      msg = 'Exception while running %s' % page.url
-      results.AddValue(failure.FailureValue(page, sys.exc_info()))
-    exception_formatter.PrintFormattedException(msg=msg)
-
-  try:
-    state.PreparePage()
-    state.ImplicitPageNavigation()
-    state.RunPage(results)
-  except page_test.TestNotSupportedOnPlatformFailure:
-    raise
-  except page_test.Failure:
-    if expectation == 'fail':
-      exception_formatter.PrintFormattedException(
-          msg='Expected failure while running %s' % page.url)
-    else:
-      exception_formatter.PrintFormattedException(
-          msg='Failure while running %s' % page.url)
-      results.AddValue(failure.FailureValue(page, sys.exc_info()))
-  except (util.TimeoutException, exceptions.LoginException,
-          exceptions.ProfilingException):
-    ProcessError()
-  except (exceptions.TabCrashException, exceptions.BrowserGoneException):
-    ProcessError()
-    # Run() catches these exceptions to relaunch the tab/browser, so re-raise.
-    raise
-  except page_action.PageActionNotSupported as e:
-    results.AddValue(skip.SkipValue(page, 'Unsupported page action: %s' % e))
-  except Exception:
-    exception_formatter.PrintFormattedException(
-        msg='Unhandled exception while running %s' % page.url)
-    results.AddValue(failure.FailureValue(page, sys.exc_info()))
-  else:
-    if expectation == 'fail':
-      logging.warning('%s was expected to fail, but passed.\n', page.url)
-  finally:
-    state.CleanUpPage()
 
 
 def _WaitForThermalThrottlingIfNeeded(platform):
