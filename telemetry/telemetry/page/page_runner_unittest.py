@@ -16,7 +16,6 @@ from telemetry.core import browser_finder
 from telemetry.core import exceptions
 from telemetry.core import user_agent
 from telemetry.core import util
-from telemetry.core import wpr_modes
 from telemetry.page import page as page_module
 from telemetry.page import page_runner
 from telemetry.page import page_set
@@ -663,41 +662,3 @@ class PageRunnerTests(unittest.TestCase):
           os.path.join(options.output_dir, 'blank_html.json')))
     finally:
       shutil.rmtree(options.output_dir)
-
-
-class FakeNetworkController(object):
-  def __init__(self):
-    self.archive_path = None
-    self.wpr_mode = None
-
-  def SetReplayArgs(self, archive_path, wpr_mode, _netsim, _extra_wpr_args,
-                    _make_javascript_deterministic=False):
-    self.archive_path = archive_path
-    self.wpr_mode = wpr_mode
-
-
-class RunStateTest(unittest.TestCase):
-
-  # pylint: disable=W0212
-  def TestUseLiveSitesFlag(self, options, expected_wpr_mode):
-    with tempfile.NamedTemporaryFile() as f:
-      run_state = page_runner._RunState(DummyTest(), options)
-      fake_network_controller = FakeNetworkController()
-      run_state._PrepareWpr(fake_network_controller, f.name, None)
-      self.assertEquals(fake_network_controller.wpr_mode, expected_wpr_mode)
-      self.assertEquals(fake_network_controller.archive_path, f.name)
-
-  def testUseLiveSitesFlagSet(self):
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    options.use_live_sites = True
-    SetUpPageRunnerArguments(options)
-    self.TestUseLiveSitesFlag(options, expected_wpr_mode=wpr_modes.WPR_OFF)
-
-  def testUseLiveSitesFlagUnset(self):
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    SetUpPageRunnerArguments(options)
-    self.TestUseLiveSitesFlag(options, expected_wpr_mode=wpr_modes.WPR_REPLAY)

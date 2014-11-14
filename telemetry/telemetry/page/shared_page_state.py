@@ -1,0 +1,221 @@
+#  Copyright 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+import logging
+import os
+import sys
+
+from telemetry import decorators
+from telemetry.core import browser_finder
+from telemetry.core import util
+from telemetry.core import wpr_modes
+from telemetry.page import page_test
+
+
+class SharedPageState(object):
+  def __init__(self, test, finder_options):
+    self.browser = None
+    self._finder_options = finder_options
+    self._possible_browser = self._GetPossibleBrowser(test, finder_options)
+
+    # TODO(slamm): Remove _append_to_existing_wpr when replay lifetime changes.
+    self._append_to_existing_wpr = False
+    self._first_browser = True
+    self._test = test
+    self._did_login_for_current_page = False
+    self._current_page = None
+    self._current_tab = None
+
+  def _GetPossibleBrowser(self, test, finder_options):
+    ''' Return a possible_browser with the given options. '''
+    possible_browser = browser_finder.FindBrowser(finder_options)
+    if not possible_browser:
+      raise browser_finder.BrowserFinderException(
+          'No browser found.\n\nAvailable browsers:\n%s\n' %
+          '\n'.join(browser_finder.GetAllAvailableBrowserTypes(finder_options)))
+    finder_options.browser_options.browser_type = (
+        possible_browser.browser_type)
+
+    if (not decorators.IsEnabled(test, possible_browser) and
+        not finder_options.run_disabled_tests):
+      logging.warning('You are trying to run a disabled test.')
+      logging.warning('Pass --also-run-disabled-tests to squelch this message.')
+      sys.exit(0)
+
+    if possible_browser.IsRemote():
+      possible_browser.RunRemote()
+      sys.exit(0)
+    return possible_browser
+
+  def DidRunPage(self):
+    if self._finder_options.profiler:
+      self._StopProfiling()
+
+    if self._test.StopBrowserAfterPage(self.browser, self._current_page):
+      self._StopBrowser()
+    self._current_page = None
+    self._current_tab = None
+
+  @property
+  def platform(self):
+    return self._possible_browser.platform
+
+  def _PrepareWpr(self, network_controller, archive_path,
+                  make_javascript_deterministic):
+    browser_options = self._finder_options.browser_options
+    if self._finder_options.use_live_sites:
+      browser_options.wpr_mode = wpr_modes.WPR_OFF
+    elif browser_options.wpr_mode != wpr_modes.WPR_RECORD:
+      browser_options.wpr_mode = (
+          wpr_modes.WPR_REPLAY
+          if archive_path and os.path.isfile(archive_path)
+          else wpr_modes.WPR_OFF)
+
+    # Replay's life-cycle is tied to the browser. Start and Stop are handled by
+    # platform_backend.DidCreateBrowser and platform_backend.WillCloseBrowser,
+    # respectively.
+    # TODO(slamm): Update life-cycle comment with https://crbug.com/424777 fix.
+    wpr_mode = browser_options.wpr_mode
+    if self._append_to_existing_wpr and wpr_mode == wpr_modes.WPR_RECORD:
+      wpr_mode = wpr_modes.WPR_APPEND
+    network_controller.SetReplayArgs(
+        archive_path, wpr_mode, browser_options.netsim,
+        browser_options.extra_wpr_args, make_javascript_deterministic)
+
+  def WillRunPage(self, page, page_set):
+    self._current_page = page
+    if self._test.RestartBrowserBeforeEachPage() or page.startup_url:
+      self._StopBrowser()
+    started_browser = not self.browser
+    self._PrepareWpr(self.platform.network_controller, page.archive_path,
+                     page_set.make_javascript_deterministic)
+    if self.browser:
+      # Set new credential path for browser.
+      self.browser.credentials.credentials_path = page.credentials_path
+      self.platform.network_controller.UpdateReplayForExistingBrowser()
+    else:
+      self._test.CustomizeBrowserOptionsForSinglePage(
+          page, self._finder_options)
+      self._possible_browser.SetCredentialsPath(page.credentials_path)
+
+      self._test.WillStartBrowser(self.platform)
+      self.browser = self._possible_browser.Create(self._finder_options)
+      self._test.DidStartBrowser(self.browser)
+
+      if self._first_browser:
+        self._first_browser = False
+        self.browser.credentials.WarnIfMissingCredentials(page)
+        logging.info('OS: %s %s',
+                     self.platform.GetOSName(),
+                     self.platform.GetOSVersionName())
+        if self.browser.supports_system_info:
+          system_info = self.browser.GetSystemInfo()
+          if system_info.model_name:
+            logging.info('Model: %s', system_info.model_name)
+          if system_info.gpu:
+            for i, device in enumerate(system_info.gpu.devices):
+              logging.info('GPU device %d: %s', i, device)
+            if system_info.gpu.aux_attributes:
+              logging.info('GPU Attributes:')
+              for k, v in sorted(system_info.gpu.aux_attributes.iteritems()):
+                logging.info('  %-20s: %s', k, v)
+            if system_info.gpu.feature_status:
+              logging.info('Feature Status:')
+              for k, v in sorted(system_info.gpu.feature_status.iteritems()):
+                logging.info('  %-20s: %s', k, v)
+            if system_info.gpu.driver_bug_workarounds:
+              logging.info('Driver Bug Workarounds:')
+              for workaround in system_info.gpu.driver_bug_workarounds:
+                logging.info('  %s', workaround)
+          else:
+            logging.info('No GPU devices')
+        else:
+          logging.warning('System info not supported')
+
+    if self.browser.supports_tab_control and self._test.close_tabs_before_run:
+      # Create a tab if there's none.
+      if len(self.browser.tabs) == 0:
+        self.browser.tabs.New()
+
+      # Ensure only one tab is open, unless the test is a multi-tab test.
+      if not self._test.is_multi_tab_test:
+        while len(self.browser.tabs) > 1:
+          self.browser.tabs[-1].Close()
+
+      # Must wait for tab to commit otherwise it can commit after the next
+      # navigation has begun and RenderFrameHostManager::DidNavigateMainFrame()
+      # will cancel the next navigation because it's pending. This manifests as
+      # the first navigation in a PageSet freezing indefinitly because the
+      # navigation was silently cancelled when |self.browser.tabs[0]| was
+      # committed. Only do this when we just started the browser, otherwise
+      # there are cases where previous pages in a PageSet never complete
+      # loading so we'll wait forever.
+      if started_browser:
+        self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
+
+    # Start profiling if needed.
+    if self._finder_options.profiler:
+      self._StartProfiling(self._current_page)
+
+  def PreparePage(self):
+    self._current_tab = self._test.TabForPage(self._current_page, self.browser)
+    if self._current_page.is_file:
+      self.browser.SetHTTPServerDirectories(
+          self._current_page.page_set.serving_dirs |
+          set([self._current_page.serving_dir]))
+
+    if self._current_page.credentials:
+      if not self.browser.credentials.LoginNeeded(
+          self._current_tab, self._current_page.credentials):
+        raise page_test.Failure(
+            'Login as ' + self._current_page.credentials + ' failed')
+      self._did_login_for_current_page = True
+
+    if self._test.clear_cache_before_each_run:
+      self._current_tab.ClearCache(force=True)
+
+  def ImplicitPageNavigation(self):
+    """Executes the implicit navigation that occurs for every page iteration.
+
+    This function will be called once per page before any actions are executed.
+    """
+    self._test.WillNavigateToPage(self._current_page, self._current_tab)
+    self._test.RunNavigateSteps(self._current_page, self._current_tab)
+    self._test.DidNavigateToPage(self._current_page, self._current_tab)
+
+  def RunPage(self, results):
+    self._test.RunPage(self._current_page, self._current_tab, results)
+    util.CloseConnections(self._current_tab)
+
+  def CleanUpPage(self):
+    self._test.CleanUpAfterPage(self._current_page, self._current_tab)
+    if self._current_page.credentials and self._did_login_for_current_page:
+      self.browser.credentials.LoginNoLongerNeeded(
+          self._current_tab, self._current_page.credentials)
+
+  def TearDown(self):
+    self._StopBrowser()
+
+  def _StopBrowser(self):
+    if self.browser:
+      self.browser.Close()
+      self.browser = None
+
+      # Restarting the state will also restart the wpr server. If we're
+      # recording, we need to continue adding into the same wpr archive,
+      # not overwrite it.
+      self._append_to_existing_wpr = True
+
+  def _StartProfiling(self, page):
+    output_file = os.path.join(self._finder_options.output_dir,
+                               page.file_safe_name)
+    is_repeating = (self._finder_options.page_repeat != 1 or
+                    self._finder_options.pageset_repeat != 1)
+    if is_repeating:
+      output_file = util.GetSequentialFileName(output_file)
+    self.platform.profiling_controller.Start(
+        self._finder_options.profiler, output_file)
+
+  def _StopProfiling(self):
+    if self.browser:
+      self.platform.profiling_controller.Stop()
