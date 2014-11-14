@@ -19,7 +19,7 @@ util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib import forwarder  # pylint: disable=F0401
   from pylib.device import device_errors  # pylint: disable=F0401
-except Exception:
+except ImportError:
   forwarder = None
 
 
