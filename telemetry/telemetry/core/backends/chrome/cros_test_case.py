@@ -39,7 +39,7 @@ class CrOSTestCase(unittest.TestCase):
 
     browser_to_create = browser_finder.FindBrowser(options)
     self.assertTrue(browser_to_create)
-    browser_options = browser_to_create.finder_options.browser_options
+    browser_options = options.browser_options
     browser_options.create_browser_with_oobe = True
     browser_options.auto_login = auto_login
     browser_options.gaia_login = gaia_login
