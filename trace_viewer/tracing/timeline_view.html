@@ -222,6 +222,12 @@ tv.exportTo('tracing', function() {
       this.findCtl_ = new TracingFindControl();
       this.findCtl_.controller = new tracing.FindController();
 
+      this.showFlowEvents_ = false;
+      this.rightControls.appendChild(tv.ui.createCheckBox(
+          this, 'showFlowEvents',
+          'tracing.TimelineView.showFlowEvents', false,
+          'Flow events'));
+
       this.rightControls.appendChild(this.createMetadataButton_());
       this.rightControls.appendChild(this.findCtl_);
       this.rightControls.appendChild(this.createHelpButton_());
@@ -245,6 +251,17 @@ tv.exportTo('tracing', function() {
       // State management on selection change.
       this.selections_ = {};
       window.addEventListener('popstate', this.onPopState_.bind(this));
+    },
+
+    get showFlowEvents() {
+      return this.showFlowEvents_;
+    },
+
+    set showFlowEvents(showFlowEvents) {
+      this.showFlowEvents_ = showFlowEvents;
+      if (!this.trackView_)
+        return;
+      this.trackView_.viewport.showFlowEvents = showFlowEvents;
     },
 
     createHelpButton_: function() {
@@ -381,6 +398,7 @@ tv.exportTo('tracing', function() {
       if (modelValid) {
         this.trackView_.model = model;
         this.timelineViewSidePanelContainer_.model = model;
+        this.trackView_.viewport.showFlowEvents = this.showFlowEvents;
         this.clearSelectionHistory_();
       }
       tv.dispatchSimpleEvent(this, 'modelChange');
