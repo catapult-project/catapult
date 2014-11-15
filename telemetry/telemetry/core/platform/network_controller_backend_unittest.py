@@ -110,6 +110,19 @@ class NetworkControllerBackendTest(unittest.TestCase):
     b.StopReplay()
     self.assertTrue(b.fake_replay_server.is_closed)
 
+  def testUpdateReplayWithoutArchivePathDoesNotStopReplay(self):
+    b = TestNetworkControllerBackend(FakePlatformBackend())
+    with tempfile.NamedTemporaryFile() as temp_file:
+      archive_file = temp_file.name
+      # Create Replay server.
+      b.SetReplayArgs(archive_file, wpr_modes.WPR_REPLAY, '3g', ['--some-arg'])
+      browser_backend = FakeBrowserBackend()
+      b.UpdateReplay(browser_backend)
+      self.assertFalse(b.fake_replay_server.is_closed)
+    b.SetReplayArgs(None, wpr_modes.WPR_REPLAY, '3g', ['--some-arg'])
+    b.UpdateReplay()
+    self.assertFalse(b.fake_replay_server.is_closed)
+
   def testUpdateReplayWithoutArgsIsOkay(self):
     b = TestNetworkControllerBackend(FakePlatformBackend())
     b.UpdateReplay(FakeBrowserBackend())  # does not raise

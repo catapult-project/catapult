@@ -77,11 +77,17 @@ class NetworkControllerBackend(object):
     if self._pending_replay_args == self._active_replay_args:
       return
 
-    self.StopReplay()
-
     pending_archive_path = self._pending_replay_args['archive_path']
+    # TODO(slamm, tonyg): Ideally, replay mode should be stopped when there is
+    # no archive path. However, in the case replay server already started, and
+    # this is used for file URL, the
+    # telemetry.core.local_server.LocalServerController used the forwarder set
+    # by replay server, hence we need to keep replay server running.
+    if not pending_archive_path:
+      return
+    self.StopReplay()
     pending_wpr_mode = self._pending_replay_args['wpr_mode']
-    if not pending_archive_path or pending_wpr_mode == wpr_modes.WPR_OFF:
+    if pending_wpr_mode == wpr_modes.WPR_OFF:
       return
     if (pending_wpr_mode == wpr_modes.WPR_REPLAY and
         not os.path.exists(pending_archive_path)):
