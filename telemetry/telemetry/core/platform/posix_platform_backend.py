@@ -91,17 +91,6 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       assert isinstance(parameters, list), 'parameters must be a list'
       args += parameters
 
-    def CanRunWithSudo(path):
-      if os.stat(path).st_mode & stat.S_ISUID == stat.S_ISUID:
-        return True
-
-      sudoers = subprocess.check_output(['/usr/bin/sudo', '-l'])
-      for line in sudoers.splitlines():
-        if re.match(r'\s*\(.+\) NOPASSWD: %s$' % path, line):
-          return True
-
-      return False
-
     def IsElevated():
       p = subprocess.Popen(
           ['/usr/bin/sudo', '-nv'], stdin=subprocess.PIPE,
@@ -112,9 +101,20 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       # required and no output when the user is already authenticated.
       return not p.returncode and not stdout
 
-    if elevate_privilege and not CanRunWithSudo(application):
+    def CanRunElevatedWithoutSudo(path):
+      is_setuid = os.stat(path).st_mode & stat.S_ISUID == stat.S_ISUID
+      return IsElevated() or is_setuid
+
+    def CanRunElevatedWithSudo(path):
+      sudoers = subprocess.check_output(['/usr/bin/sudo', '-l'])
+      for line in sudoers.splitlines():
+        if re.match(r'\s*\(.+\) NOPASSWD: %s$' % path, line):
+          return True
+      return False
+
+    if elevate_privilege and not CanRunElevatedWithoutSudo(application):
       args = ['/usr/bin/sudo'] + args
-      if not IsElevated():
+      if not CanRunElevatedWithSudo(application):
         print ('Telemetry needs to run %s under sudo. Please authenticate.' %
                application)
         # Synchronously authenticate.
