@@ -326,3 +326,24 @@ class Platform(object):
       }
     """
     return self._platform_backend.StopMonitoringPower()
+
+  def IsCooperativeShutdownSupported(self):
+    """Indicates whether CooperativelyShutdown, below, is supported.
+    It is not necessary to implement it on all platforms."""
+    return self._platform_backend.IsCooperativeShutdownSupported()
+
+  def CooperativelyShutdown(self, proc, app_name):
+    """Cooperatively shut down the given process from subprocess.Popen.
+
+    Currently this is only implemented on Windows. See
+    crbug.com/424024 for background on why it was added.
+
+    Args:
+      proc: a process object returned from subprocess.Popen.
+      app_name: on Windows, is the prefix of the application's window
+          class name that should be searched for. This helps ensure
+          that only the application's windows are closed.
+
+    Returns True if it is believed the attempt succeeded.
+    """
+    return self._platform_backend.CooperativelyShutdown(proc, app_name)

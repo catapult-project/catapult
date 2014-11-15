@@ -326,8 +326,27 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __del__(self):
     self.Close()
 
+  def _TryCooperativeShutdown(self):
+    if self.browser.platform.IsCooperativeShutdownSupported():
+      # Ideally there would be a portable, cooperative shutdown
+      # mechanism for the browser. This seems difficult to do
+      # correctly for all embedders of the content API. The only known
+      # problem with unclean shutdown of the browser process is on
+      # Windows, where suspended child processes frequently leak. For
+      # now, just solve this particular problem. See Issue 424024.
+      if self.browser.platform.CooperativelyShutdown(self._proc, "chrome"):
+        try:
+          util.WaitFor(lambda: not self.IsBrowserRunning(), timeout=5)
+          logging.info('Successfully shut down browser cooperatively')
+        except util.TimeoutException as e:
+          logging.warning('Failed to cooperatively shutdown. ' +
+                          'Proceeding to terminate: ' + str(e))
+
   def Close(self):
     super(DesktopBrowserBackend, self).Close()
+
+    if self.IsBrowserRunning():
+      self._TryCooperativeShutdown()
 
     # Shutdown politely if the profile may be used again.
     if self._output_profile_path and self.IsBrowserRunning():

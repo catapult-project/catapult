@@ -123,11 +123,11 @@ class PlatformBackend(object):
     # tied to the browser. https://crbug.com/424777
     self._network_controller_backend.StopReplay()
 
-    is_last_browser = len(self._running_browser_backends) == 1
+    is_last_browser = len(self._running_browser_backends) <= 1
     if is_last_browser:
       self.SetFullPerformanceModeEnabled(False)
 
-    self._running_browser_backends.remove(browser_backend)
+    self._running_browser_backends.discard(browser_backend)
 
   def GetBackendForBrowser(self, browser):
     matches = [x for x in self._running_browser_backends
@@ -264,3 +264,24 @@ class PlatformBackend(object):
   @property
   def wpr_ca_cert_path(self):
     return None
+
+  def IsCooperativeShutdownSupported(self):
+    """Indicates whether CooperativelyShutdown, below, is supported.
+    It is not necessary to implement it on all platforms."""
+    return False
+
+  def CooperativelyShutdown(self, proc, app_name):
+    """Cooperatively shut down the given process from subprocess.Popen.
+
+    Currently this is only implemented on Windows. See
+    crbug.com/424024 for background on why it was added.
+
+    Args:
+      proc: a process object returned from subprocess.Popen.
+      app_name: on Windows, is the prefix of the application's window
+          class name that should be searched for. This helps ensure
+          that only the application's windows are closed.
+
+    Returns True if it is believed the attempt succeeded.
+    """
+    raise NotImplementedError()
