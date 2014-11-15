@@ -29,8 +29,8 @@ from telemetry.util import path
 try:
   import pywintypes  # pylint: disable=F0401
   import win32api  # pylint: disable=F0401
-  from win32com.shell import shell  # pylint: disable=F0401
-  from win32com.shell import shellcon  # pylint: disable=F0401
+  from win32com.shell import shell  # pylint: disable=F0401,E0611
+  from win32com.shell import shellcon  # pylint: disable=F0401,E0611
   import win32con  # pylint: disable=F0401
   import win32gui  # pylint: disable=F0401
   import win32process  # pylint: disable=F0401

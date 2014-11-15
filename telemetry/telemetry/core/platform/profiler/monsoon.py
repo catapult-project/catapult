@@ -65,7 +65,7 @@ class Monsoon:
         self._tempfile = open(tmpname, 'w')
         try:  # Use a lockfile to ensure exclusive access.
           # Put the import in here to avoid doing it on unsupported platforms.
-          import fcntl
+          import fcntl  # pylint: disable=F0401
           fcntl.lockf(self._tempfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
           logging.error('device %s is in use', port)
