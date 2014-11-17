@@ -115,13 +115,6 @@ class BrowserFinderOptions(optparse.Values):
     group.add_option('--print-bootstrap-deps',
                      action='store_true',
                      help='Output bootstrap deps list.')
-    group.add_option('--disable-crash-service',
-                     dest='disable_crash_service',
-                     default=False,
-                     action='store_true',
-                     help='Whether to disable crash service. NOTE: this flag '
-                     'is added temporarily for crbug.com/424024, and will be '
-                     'deprecated as soon as the bug is marked fixed.')
     parser.add_option_group(group)
 
     # Platform options
@@ -283,7 +276,6 @@ class BrowserOptions(object):
   def UpdateFromParseResults(self, finder_options):
     """Copies our options from finder_options"""
     browser_options_list = [
-        'disable_crash_service',
         'extra_browser_args_as_string',
         'extra_wpr_args_as_string',
         'netsim',

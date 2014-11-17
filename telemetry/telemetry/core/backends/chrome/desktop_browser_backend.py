@@ -187,9 +187,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
     env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
     env['CHROME_BREAKPAD_PIPE_NAME'] = self._GetCrashServicePipeName()
-    # TODO(nednguyen): maybe remove this after crbug.com/424024 is resolved.
-    if not self.browser_options.disable_crash_service:
-      self._crash_service = self._StartCrashService()
+    self._crash_service = self._StartCrashService()
     logging.debug('Starting Chrome %s', args)
     if not self.browser_options.show_stdout:
       self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
