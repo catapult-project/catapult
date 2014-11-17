@@ -29,11 +29,12 @@ class InspectorException(Exception):
 
 class InspectorBackend(inspector_websocket.InspectorWebsocket):
   def __init__(self, browser_backend, context, timeout=60):
-    super(InspectorBackend, self).__init__(self._HandleError)
-    self.RegisterDomain('Inspector', self._HandleInspectorDomainNotification)
+    super(InspectorBackend, self).__init__(self._HandleNotification,
+                                           self._HandleError)
 
     self._browser_backend = browser_backend
     self._context = context
+    self._domain_handlers = {}
 
     logging.debug('InspectorBackend._Connect() to %s', self.debugger_url)
     try:
@@ -57,6 +58,14 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
 
   def __del__(self):
     self.Disconnect()
+
+  def Disconnect(self):
+    for _, handlers in self._domain_handlers.items():
+      _, will_close_handler = handlers
+      will_close_handler()
+    self._domain_handlers = {}
+
+    super(InspectorBackend, self).Disconnect()
 
   @property
   def browser(self):
@@ -212,13 +221,25 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
     contexts = self._browser_backend.ListInspectableContexts()
     return self._context['id'] in [c['id'] for c in contexts]
 
-  def _HandleInspectorDomainNotification(self, res):
+  def _HandleNotification(self, res):
     if (res['method'] == 'Inspector.detached' and
         res.get('params', {}).get('reason', '') == 'replaced_with_devtools'):
       self._WaitForInspectorToGoAwayAndReconnect()
       return
     if res['method'] == 'Inspector.targetCrashed':
       raise exceptions.TabCrashException(self.browser)
+
+    mname = res['method']
+    dot_pos = mname.find('.')
+    domain_name = mname[:dot_pos]
+    if domain_name in self._domain_handlers:
+      try:
+        self._domain_handlers[domain_name][0](res)
+      except Exception:
+        import traceback
+        traceback.print_exc()
+    else:
+      logging.warn('Unhandled inspector message: %s', res)
 
   def _HandleError(self, elapsed_time):
     if self._IsInspectable():
@@ -249,6 +270,29 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
     util.WaitFor(IsBack, 512)
     sys.stderr.write('\n')
     sys.stderr.write('Inspector\'s UI closed. Telemetry will now resume.\n')
+
+  def RegisterDomain(self,
+      domain_name, notification_handler, will_close_handler):
+    """Registers a given domain for handling notification methods.
+
+    For example, given inspector_backend:
+       def OnConsoleNotification(msg):
+          if msg['method'] == 'Console.messageAdded':
+             print msg['params']['message']
+          return
+       def OnConsoleClose(self):
+          pass
+       inspector_backend.RegisterDomain('Console',
+                                        OnConsoleNotification, OnConsoleClose)
+       """
+    assert domain_name not in self._domain_handlers
+    self._domain_handlers[domain_name] = (notification_handler,
+                                          will_close_handler)
+
+  def UnregisterDomain(self, domain_name):
+    """Unregisters a previously registered domain."""
+    assert domain_name in self._domain_handlers
+    self._domain_handlers.pop(domain_name)
 
   def CollectGarbage(self):
     self._page.CollectGarbage()
