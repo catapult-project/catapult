@@ -284,7 +284,7 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(0, len(results.failures))
     self.assertEquals(2, len(results.all_page_specific_values))
 
-    options.output_formats = ['html']
+    options.output_formats = ['none']
     options.suppress_gtest_report = True
     options.page_repeat = 1
     options.pageset_repeat = 1
