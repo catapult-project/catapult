@@ -7,9 +7,11 @@ import sys
 
 from telemetry import decorators
 from telemetry.core import browser_finder
+from telemetry.core import browser_info
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.page import page_test
+from telemetry.value import skip
 
 
 class SharedPageState(object):
@@ -50,7 +52,11 @@ class SharedPageState(object):
   def DidRunPage(self):
     if self._finder_options.profiler:
       self._StopProfiling()
-
+    util.CloseConnections(self._current_tab)
+    self._test.CleanUpAfterPage(self._current_page, self._current_tab)
+    if self._current_page.credentials and self._did_login_for_current_page:
+      self.browser.credentials.LoginNoLongerNeeded(
+          self._current_tab, self._current_page.credentials)
     if self._test.StopBrowserAfterPage(self.browser, self._current_page):
       self._StopBrowser()
     self._current_page = None
@@ -157,7 +163,23 @@ class SharedPageState(object):
     if self._finder_options.profiler:
       self._StartProfiling(self._current_page)
 
-  def PreparePage(self):
+  def GetPageExpectationAndSkipValue(self, expectations):
+    skip_value = None
+    if not self._current_page.CanRunOnBrowser(
+        browser_info.BrowserInfo(self.browser)):
+      skip_value = skip.SkipValue(
+          self._current_page,
+          'Skipped because browser is not supported '
+          '(page.CanRunOnBrowser() returns False).')
+      return 'skip', skip_value
+    expectation = expectations.GetExpectationForPage(
+        self.browser, self._current_page)
+    if expectation == 'skip':
+      skip_value = skip.SkipValue(
+          self._current_page, 'Skipped by test expectations')
+    return expectation, skip_value
+
+  def _PreparePage(self):
     self._current_tab = self._test.TabForPage(self._current_page, self.browser)
     if self._current_page.is_file:
       self.browser.SetHTTPServerDirectories(
@@ -174,7 +196,7 @@ class SharedPageState(object):
     if self._test.clear_cache_before_each_run:
       self._current_tab.ClearCache(force=True)
 
-  def ImplicitPageNavigation(self):
+  def _ImplicitPageNavigation(self):
     """Executes the implicit navigation that occurs for every page iteration.
 
     This function will be called once per page before any actions are executed.
@@ -184,14 +206,9 @@ class SharedPageState(object):
     self._test.DidNavigateToPage(self._current_page, self._current_tab)
 
   def RunPage(self, results):
+    self._PreparePage()
+    self._ImplicitPageNavigation()
     self._test.RunPage(self._current_page, self._current_tab, results)
-    util.CloseConnections(self._current_tab)
-
-  def CleanUpPage(self):
-    self._test.CleanUpAfterPage(self._current_page, self._current_tab)
-    if self._current_page.credentials and self._did_login_for_current_page:
-      self.browser.credentials.LoginNoLongerNeeded(
-          self._current_tab, self._current_page.credentials)
 
   def TearDown(self):
     self._StopBrowser()

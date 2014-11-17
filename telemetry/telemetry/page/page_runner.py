@@ -10,7 +10,6 @@ import sys
 import time
 
 from telemetry import decorators
-from telemetry.core import browser_info
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import wpr_modes
@@ -90,19 +89,11 @@ def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
 
   try:
     state.WillRunPage(page, page_set)
-    if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
-      logging.info('Skip test for page %s because browser is not supported.'
-                   % page.url)
-      return
-    expectation = expectations.GetExpectationForPage(state.browser, page)
-
+    expectation, skip_value = state.GetPageExpectationAndSkipValue(expectations)
     if expectation == 'skip':
-      logging.debug('Skipping test: Skip expectation for %s', page.url)
-      results.AddValue(skip.SkipValue(page, 'Skipped by test expectations'))
+      assert skip_value
+      results.AddValue(skip_value)
       return
-
-    state.PreparePage()
-    state.ImplicitPageNavigation()
     state.RunPage(results)
   except page_test.TestNotSupportedOnPlatformFailure:
     raise
@@ -127,7 +118,6 @@ def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
     if expectation == 'fail':
       logging.warning('%s was expected to fail, but passed.\n', page.url)
   finally:
-    state.CleanUpPage()
     state.DidRunPage()
 
 
