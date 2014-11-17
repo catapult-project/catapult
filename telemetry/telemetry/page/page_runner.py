@@ -102,7 +102,7 @@ def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
     ProcessError()
   except (exceptions.TabCrashException, exceptions.BrowserGoneException):
     ProcessError()
-    state.TearDown()
+    state.TearDown(results)
     if test.is_multi_tab_test:
       logging.error('Aborting multi-tab test after browser or tab crashed at '
                     'page %s' % page.url)
@@ -199,7 +199,7 @@ def Run(test, page_set, expectations, finder_options, results):
             # Tear down & restart the state for unhandled exceptions thrown by
             # _RunPageAndHandleExceptionIfNeeded.
             results.AddValue(failure.FailureValue(page, sys.exc_info()))
-            state.TearDown()
+            state.TearDown(results)
             state = shared_page_state.SharedPageState(test, finder_options)
           finally:
             _CheckThermalThrottling(state.platform)
@@ -212,8 +212,7 @@ def Run(test, page_set, expectations, finder_options, results):
           logging.error('Too many failures. Aborting.')
           test.RequestExit()
   finally:
-    test.DidRunTest(state.browser, results)
-    state.TearDown()
+    state.TearDown(results)
 
 
 def _ShuffleAndFilterPageSet(page_set, finder_options):

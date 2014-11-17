@@ -210,7 +210,10 @@ class SharedPageState(object):
     self._ImplicitPageNavigation()
     self._test.RunPage(self._current_page, self._current_tab, results)
 
-  def TearDown(self):
+  def TearDown(self, results):
+    # NOTE: this is a HACK to get page_runner to be generic enough for any
+    # user_story. Other SharedUserStory should not call DidRunTest this way.
+    self._test.DidRunTest(self.browser, results)
     self._StopBrowser()
 
   def _StopBrowser(self):
