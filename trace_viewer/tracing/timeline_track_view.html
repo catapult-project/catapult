@@ -402,6 +402,9 @@ tv.exportTo('tracing', function() {
         case 'm'.charCodeAt(0):
           this.setCurrentSelectionAsInterestRange_();
           break;
+        case 118:  // v
+          this.toggleHighlightVSync_();
+          break;
       }
     },
 
@@ -600,6 +603,10 @@ tv.exportTo('tracing', function() {
         this.viewport_.interestRange.reset();
       else
         this.viewport_.interestRange.set(selectionBounds);
+    },
+
+    toggleHighlightVSync_: function() {
+      this.viewport_.highlightVSync = !this.viewport_.highlightVSync;
     },
 
     /**
