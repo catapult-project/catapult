@@ -112,7 +112,7 @@ tv.exportTo('about_tracing', function() {
     },
 
     onBufferUsageUpdateFromInspector_: function(params) {
-      this.bufferUsage_ = params.value;
+      this.bufferUsage_ = params.value || params.percentFull;
     },
 
     beginGetBufferPercentFull: function() {
