@@ -44,6 +44,9 @@ tv.exportTo('tracing', function() {
     // Flow events
     this.showFlowEvents_ = false;
 
+    // Highlights.
+    this.highlightVSync_ = false;
+
     // Grid system.
     this.gridTimebase_ = 0;
     this.gridStep_ = 1000 / 60;
@@ -260,6 +263,15 @@ tv.exportTo('tracing', function() {
 
     set showFlowEvents(showFlowEvents) {
       this.showFlowEvents_ = showFlowEvents;
+      this.dispatchChangeEvent();
+    },
+
+    get highlightVSync() {
+      return this.highlightVSync_;
+    },
+
+    set highlightVSync(highlightVSync) {
+      this.highlightVSync_ = highlightVSync;
       this.dispatchChangeEvent();
     },
 

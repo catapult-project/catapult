@@ -21,7 +21,8 @@ tv.exportTo('tracing.tracks', function() {
     BACKGROUND: 3,
     GRID: 4,
     FLOW_ARROWS: 5,
-    MARKERS: 6
+    MARKERS: 6,
+    HIGHLIGHTS: 7
   };
 
   var DrawingContainer = tv.ui.define('drawing-container',
@@ -78,6 +79,7 @@ tv.exportTo('tracing.tracks', function() {
 
       var typesToDraw = [
         DrawType.BACKGROUND,
+        DrawType.HIGHLIGHTS,
         DrawType.GRID,
         DrawType.INSTANT_EVENT,
         DrawType.SLICE,
