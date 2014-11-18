@@ -141,7 +141,7 @@ def _RunCommand(args):
         'You are attempting to access protected data with no configured',
         'Failure: No handler was ready to authenticate.')):
       raise CredentialsError(gsutil_path)
-    if 'status=403' in stderr or 'status 403' in stderr:
+    if 'status=403' in stderr or 'status 403' or '403 Forbidden' in stderr:
       raise PermissionError(gsutil_path)
     if (stderr.startswith('InvalidUriError') or 'No such object' in stderr or
         'No URLs matched' in stderr):
@@ -191,6 +191,17 @@ def Get(bucket, remote_path, local_path):
 
 
 def Insert(bucket, remote_path, local_path, publicly_readable=False):
+  """ Upload file in |local_path| to cloud storage.
+  Args:
+    bucket: the google cloud storage bucket name.
+    remote_path: the remote file path in |bucket|.
+    local_path: path of the local file to be uploaded.
+    publicly_readable: whether the uploaded file has publicly readable
+    permission.
+
+  Returns:
+    The url where the file is uploaded to.
+  """
   url = 'gs://%s/%s' % (bucket, remote_path)
   command_and_args = ['cp']
   extra_info = ''
@@ -200,6 +211,7 @@ def Insert(bucket, remote_path, local_path, publicly_readable=False):
   command_and_args += [local_path, url]
   logging.info('Uploading %s to %s%s' % (local_path, url, extra_info))
   _RunCommand(command_and_args)
+  return 'http://storage.googleapis.com/%s/%s' % (bucket, remote_path)
 
 
 def GetIfChanged(file_path, bucket=None):

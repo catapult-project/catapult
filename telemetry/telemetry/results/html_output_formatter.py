@@ -126,10 +126,15 @@ class HtmlOutputFormatter(buildbot_output_formatter.BuildbotOutputFormatter):
       file_path = os.path.abspath(self._html_output_stream.name)
       file_name = 'html-results/results-%s' % datetime.datetime.now().strftime(
           '%Y-%m-%d_%H-%M-%S')
-      cloud_storage.Insert(cloud_storage.PUBLIC_BUCKET, file_name, file_path)
-      print
-      print ('View online at '
-          'http://storage.googleapis.com/chromium-telemetry/%s' % file_name)
+      try:
+        cloud_storage.Insert(cloud_storage.PUBLIC_BUCKET, file_name, file_path)
+        print
+        print ('View online at '
+               'http://storage.googleapis.com/chromium-telemetry/%s'
+               % file_name)
+      except cloud_storage.PermissionError as e:
+        logging.error('Cannot upload profiling files to cloud storage due to '
+                      ' permission error: %s' % e.message)
     print
     print 'View result at file://%s' % os.path.abspath(
         self._html_output_stream.name)

@@ -2,9 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
+import logging
+import random
+import sys
 import tempfile
 
 from telemetry import value as value_module
+from telemetry.util import cloud_storage
 from telemetry.util import file_handle
 import telemetry.web_components # pylint: disable=W0611
 from trace_viewer.build import trace2html
@@ -33,6 +38,7 @@ class TraceValue(value_module.Value):
     tf.close()
 
     self._file_handle = file_handle.FromTempFile(tf)
+    self._cloud_url = None
 
   def GetAssociatedFileHandle(self):
     return self._file_handle
@@ -77,3 +83,20 @@ class TraceValue(value_module.Value):
     d = super(TraceValue, self).AsDict()
     d['file_id'] = self._file_handle.id
     return d
+
+  def UploadToCloud(self, bucket):
+    try:
+      remote_path = ('trace-file-id_%s-%s-%d%s' % (
+          self._file_handle.id,
+          datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
+          random.randint(1, 100000),
+          self._file_handle.extension))
+      self._cloud_url = cloud_storage.Insert(
+          bucket, remote_path,
+          self._file_handle.GetAbsPath())
+      sys.stderr.write(
+          'View generated trace files online at %s for page %s\n' %
+          (self._cloud_url, self.page.url if self.page else 'unknown'))
+    except cloud_storage.PermissionError as e:
+      logging.error('Cannot upload trace files to cloud storage due to '
+                    ' permission error: %s' % e.message)

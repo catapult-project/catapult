@@ -107,6 +107,9 @@ class Benchmark(command_line.Command):
     except page_test.TestNotSupportedOnPlatformFailure as failure:
       logging.warning(str(failure))
 
+    bucket = cloud_storage.INTERNAL_BUCKET
+    if finder_options.upload_results:
+      results.UploadTraceFilesToCloud(bucket)
     results.PrintSummary()
     return len(results.failures)
 

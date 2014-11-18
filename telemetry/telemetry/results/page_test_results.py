@@ -12,6 +12,7 @@ from telemetry.results import page_run
 from telemetry.results import progress_reporter as progress_reporter_module
 from telemetry.value import failure
 from telemetry.value import skip
+from telemetry.value import trace
 
 
 class PageTestResults(object):
@@ -172,3 +173,8 @@ class PageTestResults(object):
       if value.name == value_name:
         values.append(value)
     return values
+
+  def UploadTraceFilesToCloud(self, bucket):
+    for value in self.all_page_specific_values:
+      if isinstance(value, trace.TraceValue):
+        value.UploadToCloud(bucket)
