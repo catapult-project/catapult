@@ -22,8 +22,9 @@ class TracingHasNotRunException(Exception):
 class TracingBackend(object):
   def __init__(self, devtools_port, chrome_browser_backend):
     self._inspector_websocket = inspector_websocket.InspectorWebsocket(
-        self._NotificationHandler,
         self._ErrorHandler)
+    self._inspector_websocket.RegisterDomain(
+        'Tracing', self._NotificationHandler)
 
     self._inspector_websocket.Connect(
         'ws://127.0.0.1:%i/devtools/browser' % devtools_port)
