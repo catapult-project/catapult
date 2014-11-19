@@ -109,6 +109,8 @@ class Benchmark(command_line.Command):
     bucket = cloud_storage.INTERNAL_BUCKET
     if finder_options.upload_results:
       results.UploadTraceFilesToCloud(bucket)
+      results.UploadProfilingFilesToCloud(bucket)
+
     results.PrintSummary()
     return len(results.failures)
 

@@ -12,6 +12,7 @@ from telemetry.core import browser_info
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.page import page_test
+from telemetry.util import file_handle
 from telemetry.value import skip
 
 
@@ -50,9 +51,9 @@ class SharedPageState(object):
       sys.exit(0)
     return possible_browser
 
-  def DidRunPage(self):
+  def DidRunPage(self, results):
     if self._finder_options.profiler:
-      self._StopProfiling()
+      self._StopProfiling(results)
     util.CloseConnections(self._current_tab)
     self._test.CleanUpAfterPage(self._current_page, self._current_tab)
     if self._current_page.credentials and self._did_login_for_current_page:
@@ -237,6 +238,10 @@ class SharedPageState(object):
     self.platform.profiling_controller.Start(
         self._finder_options.profiler, output_file)
 
-  def _StopProfiling(self):
+  def _StopProfiling(self, results):
     if self.browser:
-      self.platform.profiling_controller.Stop()
+      profiler_files = self.platform.profiling_controller.Stop()
+      for f in profiler_files:
+        if os.path.isfile(f):
+          results.AddProfilingFile(self._current_page,
+                                   file_handle.FromFilePath(f))

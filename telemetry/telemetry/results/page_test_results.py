@@ -4,12 +4,17 @@
 
 import collections
 import copy
+import datetime
 import itertools
+import logging
+import random
+import sys
 import traceback
 
 from telemetry import value as value_module
 from telemetry.results import page_run
 from telemetry.results import progress_reporter as progress_reporter_module
+from telemetry.util import cloud_storage
 from telemetry.value import failure
 from telemetry.value import skip
 from telemetry.value import trace
@@ -44,6 +49,8 @@ class PageTestResults(object):
     self._all_page_runs = []
     self._representative_value_for_each_value_name = {}
     self._all_summary_values = []
+    self._pages_to_profiling_files = collections.defaultdict(list)
+    self._pages_to_profiling_files_cloud_url = collections.defaultdict(list)
 
   def __copy__(self):
     cls = self.__class__
@@ -53,6 +60,10 @@ class PageTestResults(object):
         v = copy.copy(v)
       setattr(result, k, v)
     return result
+
+  @property
+  def pages_to_profiling_files_cloud_url(self):
+    return self._pages_to_profiling_files_cloud_url
 
   @property
   def all_page_specific_values(self):
@@ -143,6 +154,9 @@ class PageTestResults(object):
     self._current_page_run.AddValue(value)
     self._progress_reporter.DidAddValue(value)
 
+  def AddProfilingFile(self, page, file_handle):
+    self._pages_to_profiling_files[page].append(file_handle)
+
   def AddSummaryValue(self, value):
     assert value.page is None
     self._ValidateValue(value)
@@ -179,3 +193,22 @@ class PageTestResults(object):
     for value in self.all_page_specific_values:
       if isinstance(value, trace.TraceValue):
         value.UploadToCloud(bucket)
+
+  def UploadProfilingFilesToCloud(self, bucket):
+    for page, file_handle_list in self._pages_to_profiling_files.iteritems():
+      for file_handle in file_handle_list:
+        remote_path = ('profiler-file-id_%s-%s%-d%s' % (
+            file_handle.id,
+            datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
+            random.randint(1, 100000),
+            file_handle.extension))
+        try:
+          cloud_url = cloud_storage.Insert(
+              bucket, remote_path, file_handle.GetAbsPath())
+          sys.stderr.write(
+              'View generated profiler files online at %s for page %s\n' %
+              (cloud_url, page.display_name))
+          self._pages_to_profiling_files_cloud_url[page].append(cloud_url)
+        except cloud_storage.PermissionError as e:
+          logging.error('Cannot upload profiling files to cloud storage due to '
+                        ' permission error: %s' % e.message)

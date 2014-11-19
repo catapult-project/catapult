@@ -118,7 +118,7 @@ def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
     if expectation == 'fail':
       logging.warning('%s was expected to fail, but passed.\n', page.url)
   finally:
-    state.DidRunPage()
+    state.DidRunPage(results)
 
 
 @decorators.Cache
