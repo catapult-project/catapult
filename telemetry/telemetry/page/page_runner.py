@@ -13,12 +13,11 @@ from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import wpr_modes
-from telemetry.core.platform.profiler import profiler_finder
 from telemetry.page import shared_page_state
-from telemetry.page import page_filter
 from telemetry.page import page_test
 from telemetry.page.actions import page_action
 from telemetry.results import results_options
+from telemetry.user_story import user_story_filter
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
 from telemetry.value import failure
@@ -26,7 +25,7 @@ from telemetry.value import skip
 
 
 def AddCommandLineArgs(parser):
-  page_filter.PageFilter.AddCommandLineArgs(parser)
+  user_story_filter.UserStoryFilter.AddCommandLineArgs(parser)
   results_options.AddResultsOptions(parser)
 
   # Page set options
@@ -63,7 +62,7 @@ def AddCommandLineArgs(parser):
                     help='Ignore @Disabled and @Enabled restrictions.')
 
 def ProcessCommandLineArgs(parser, args):
-  page_filter.PageFilter.ProcessCommandLineArgs(parser, args)
+  user_story_filter.UserStoryFilter.ProcessCommandLineArgs(parser, args)
   results_options.ProcessCommandLineArgs(parser, args)
 
   # Page set options
@@ -147,24 +146,13 @@ def Run(test, page_set, expectations, finder_options, results):
   """Runs a given test against a given page_set with the given options."""
   test.ValidatePageSet(page_set)
 
-  browser_options = finder_options.browser_options
-  test.CustomizeBrowserOptions(browser_options)
-
   # Reorder page set based on options.
   pages = _ShuffleAndFilterPageSet(page_set, finder_options)
 
   if not finder_options.use_live_sites:
-    if browser_options.wpr_mode != wpr_modes.WPR_RECORD:
+    if finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD:
       _UpdatePageSetArchivesIfChanged(page_set)
       pages = _CheckArchives(page_set, pages, results)
-
-  # Set up user agent.
-  browser_options.browser_user_agent_type = page_set.user_agent_type or None
-
-  if finder_options.profiler:
-    profiler_class = profiler_finder.FindProfiler(finder_options.profiler)
-    profiler_class.CustomizeBrowserOptions(browser_options.browser_type,
-                                           finder_options)
 
   for page in list(pages):
     if not test.CanRunForPage(page):
@@ -177,7 +165,7 @@ def Run(test, page_set, expectations, finder_options, results):
   if not pages:
     return
 
-  state = shared_page_state.SharedPageState(test, finder_options)
+  state = shared_page_state.SharedPageState(test, finder_options, page_set)
   pages_with_discarded_first_result = set()
   max_failures = finder_options.max_failures  # command-line gets priority
   if max_failures is None:
@@ -200,7 +188,8 @@ def Run(test, page_set, expectations, finder_options, results):
             # _RunPageAndHandleExceptionIfNeeded.
             results.AddValue(failure.FailureValue(page, sys.exc_info()))
             state.TearDown(results)
-            state = shared_page_state.SharedPageState(test, finder_options)
+            state = shared_page_state.SharedPageState(
+                test, finder_options, page_set)
           finally:
             _CheckThermalThrottling(state.platform)
             discard_run = (test.discard_first_result and
@@ -219,7 +208,7 @@ def _ShuffleAndFilterPageSet(page_set, finder_options):
   if finder_options.pageset_shuffle_order_file:
     return page_set.ReorderPageSet(finder_options.pageset_shuffle_order_file)
   pages = [page for page in page_set.pages[:]
-           if page_filter.PageFilter.IsSelected(page)]
+           if user_story_filter.UserStoryFilter.IsSelected(page)]
   if finder_options.pageset_shuffle:
     random.shuffle(pages)
   return pages

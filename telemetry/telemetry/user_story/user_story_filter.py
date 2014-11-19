@@ -8,11 +8,11 @@ import re
 from telemetry.core import command_line
 
 
-def HasLabelIn(page, labels):
-  return bool(page.labels.intersection(labels))
+def HasLabelIn(user_story, labels):
+  return bool(user_story.labels.intersection(labels))
 
 
-class PageFilter(command_line.ArgumentHandlerMixIn):
+class UserStoryFilter(command_line.ArgumentHandlerMixIn):
   """Filters pages in the page set based on command-line flags."""
 
   @classmethod
@@ -55,23 +55,26 @@ class PageFilter(command_line.ArgumentHandlerMixIn):
       cls._exclude_labels = args.page_label_filter_exclude.split(',')
 
   @classmethod
-  def IsSelected(cls, page):
+  def IsSelected(cls, user_story):
     # Exclude filters take priority.
-    if cls._exclude_labels and HasLabelIn(page, cls._exclude_labels):
+    if cls._exclude_labels and HasLabelIn(user_story, cls._exclude_labels):
       return False
     if cls._page_exclude_regex:
-      matches_url = cls._page_exclude_regex.search(page.url)
-      matches_name = page.name and cls._page_exclude_regex.search(page.name)
-      if matches_url or matches_name:
+      matches_display_name = cls._page_exclude_regex.search(
+          user_story.display_name)
+      matches_name = user_story.name and cls._page_exclude_regex.search(
+          user_story.name)
+      if matches_display_name or matches_name:
         return False
 
     # Apply all filters.
     filter_result = True
     if cls._include_labels:
-      filter_result = filter_result and HasLabelIn(page, cls._include_labels)
+      filter_result = filter_result and HasLabelIn(
+          user_story, cls._include_labels)
     if cls._page_regex:
-      matches_url = cls._page_regex.search(page.url)
-      matches_name = page.name and cls._page_regex.search(page.name)
-      filter_result = filter_result and (matches_url or matches_name)
+      matches_display_name = cls._page_regex.search(user_story.display_name)
+      matches_name = user_story.name and cls._page_regex.search(user_story.name)
+      filter_result = filter_result and (matches_display_name or matches_name)
 
     return filter_result

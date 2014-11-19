@@ -8,11 +8,22 @@ _next_user_story_id = 0
 
 
 class UserStory(object):
-  def __init__(self, name=''):
+  def __init__(self, name='', labels=None):
     self._name = name
     global _next_user_story_id
     self._id = _next_user_story_id
     _next_user_story_id += 1
+    if labels is None:
+      labels = set([])
+    elif isinstance(labels, list):
+      labels = set(labels)
+    else:
+      assert isinstance(labels, set)
+    self._labels = labels
+
+  @property
+  def labels(self):
+    return self._labels
 
   @property
   def id(self):

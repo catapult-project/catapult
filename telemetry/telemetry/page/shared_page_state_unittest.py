@@ -8,6 +8,7 @@ import unittest
 from telemetry.core import wpr_modes
 from telemetry.page import shared_page_state
 from telemetry.page import page_runner
+from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.unittest_util import options_for_unittests
 
@@ -46,7 +47,8 @@ class SharedPageStateTests(unittest.TestCase):
   # pylint: disable=W0212
   def TestUseLiveSitesFlag(self, expected_wpr_mode):
     with tempfile.NamedTemporaryFile() as f:
-      run_state = shared_page_state.SharedPageState(DummyTest(), self.options)
+      run_state = shared_page_state.SharedPageState(
+          DummyTest(), self.options, page_set.PageSet())
       fake_network_controller = FakeNetworkController()
       run_state._PrepareWpr(fake_network_controller, f.name, None)
       self.assertEquals(fake_network_controller.wpr_mode, expected_wpr_mode)

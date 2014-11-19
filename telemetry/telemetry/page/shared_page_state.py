@@ -14,11 +14,24 @@ from telemetry.core import wpr_modes
 from telemetry.page import page_test
 from telemetry.util import file_handle
 from telemetry.value import skip
+from telemetry.core.platform.profiler import profiler_finder
 
+
+def _PrepareFinderOptions(finder_options, test, page_set):
+  browser_options = finder_options.browser_options
+  # Set up user agent.
+  browser_options.browser_user_agent_type = page_set.user_agent_type or None
+
+  test.CustomizeBrowserOptions(finder_options.browser_options)
+  if finder_options.profiler:
+    profiler_class = profiler_finder.FindProfiler(finder_options.profiler)
+    profiler_class.CustomizeBrowserOptions(browser_options.browser_type,
+                                           finder_options)
 
 class SharedPageState(object):
-  def __init__(self, test, finder_options):
+  def __init__(self, test, finder_options, page_set):
     self.browser = None
+    _PrepareFinderOptions(finder_options, test, page_set)
     self._finder_options = finder_options
     self._possible_browser = self._GetPossibleBrowser(test, finder_options)
 
