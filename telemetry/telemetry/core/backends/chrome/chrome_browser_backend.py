@@ -263,11 +263,11 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     resp = json.loads(data)
     if 'Protocol-Version' in resp:
       if 'Browser' in resp:
-        branch_number_match = re.search('Chrome/\d+\.\d+\.(\d+)\.\d+',
+        branch_number_match = re.search(r'Chrome/\d+\.\d+\.(\d+)\.\d+',
                                         resp['Browser'])
       else:
         branch_number_match = re.search(
-            'Chrome/\d+\.\d+\.(\d+)\.\d+ (Mobile )?Safari',
+            r'Chrome/\d+\.\d+\.(\d+)\.\d+ (Mobile )?Safari',
             resp['User-Agent'])
 
       if branch_number_match:

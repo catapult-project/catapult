@@ -26,10 +26,10 @@ class ValueTest(TestBase):
     page0 = self.pages[0]
     v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [1,2], same_page_merge_policy=value.CONCATENATE)
+        [1, 2], same_page_merge_policy=value.CONCATENATE)
     v1 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [3,4], same_page_merge_policy=value.CONCATENATE)
+        [3, 4], same_page_merge_policy=value.CONCATENATE)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = (list_of_scalar_values.ListOfScalarValues.
@@ -45,10 +45,10 @@ class ValueTest(TestBase):
     page0 = self.pages[0]
     v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [1,2], same_page_merge_policy=value.PICK_FIRST)
+        [1, 2], same_page_merge_policy=value.PICK_FIRST)
     v1 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [3,4], same_page_merge_policy=value.PICK_FIRST)
+        [3, 4], same_page_merge_policy=value.PICK_FIRST)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = (list_of_scalar_values.ListOfScalarValues.

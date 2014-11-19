@@ -7,6 +7,7 @@ import unittest
 
 from telemetry import decorators
 from telemetry.core import browser_finder
+from telemetry.core import browser_finder_exceptions
 from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import discover
@@ -151,7 +152,7 @@ class RunTestsCommand(command_line.OptparseCommand):
 
     try:
       possible_browser = browser_finder.FindBrowser(args)
-    except browser_finder.BrowserFinderException, ex:
+    except browser_finder_exceptions.BrowserFinderException, ex:
       parser.error(ex)
 
     if not possible_browser:

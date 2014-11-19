@@ -9,7 +9,7 @@ from telemetry.core import util
 
 util.AddDirToPythonPath(
     util.GetTelemetryDir(), 'third_party', 'websocket-client')
-# pylint: disable=W0611
+# pylint: disable=import-error
 from websocket import create_connection as _create_connection
 from websocket import WebSocketException
 from websocket import WebSocketTimeoutException

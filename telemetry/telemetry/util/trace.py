@@ -7,4 +7,4 @@ from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(),
                         'third_party', 'py_trace_event', 'src')
-from trace_event import *  # pylint: disable=F0401
+from trace_event import *  # pylint: disable=import-error, wildcard-import

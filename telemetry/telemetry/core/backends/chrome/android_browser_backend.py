@@ -110,7 +110,7 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
     pid = None
     while True:
       pids = adb.ExtractPid(self.package)
-      if (len(pids) > 0):
+      if len(pids) > 0:
         pid = pids[-1]
         break
       time.sleep(timeout)

@@ -1,7 +1,6 @@
 # Copyright 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 import logging as real_logging
 import os
 import sys
@@ -19,22 +18,11 @@ _host_platform = None
 _remote_platforms = {}
 
 
-def _IsRunningOnCrosDevice():
-  """Returns True if we're on a ChromeOS device."""
-  lsb_release = '/etc/lsb-release'
-  if sys.platform.startswith('linux') and os.path.exists(lsb_release):
-    with open(lsb_release, 'r') as f:
-      res = f.read()
-      if res.count('CHROMEOS_RELEASE_NAME'):
-        return True
-  return False
-
-
 def _InitHostPlatformIfNeeded():
   global _host_platform
   if _host_platform:
     return
-  if _IsRunningOnCrosDevice():
+  if util.IsRunningOnCrosDevice():
     from telemetry.core.platform import cros_platform_backend
     backend = cros_platform_backend.CrosPlatformBackend()
   elif sys.platform.startswith('linux'):

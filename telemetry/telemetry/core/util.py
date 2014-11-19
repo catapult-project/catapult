@@ -58,9 +58,9 @@ def WaitFor(condition, timeout):
   Returns:
     Result of |condition| function (if present).
   """
-  min_poll_interval =   0.1
-  max_poll_interval =   5
-  output_interval   = 300
+  min_poll_interval = 0.1
+  max_poll_interval = 5
+  output_interval = 300
 
   def GetConditionString():
     if condition.__name__ == '<lambda>':
@@ -143,3 +143,13 @@ def GetSequentialFileName(base_name):
       break
     index = index + 1
   return output_name
+
+def IsRunningOnCrosDevice():
+  """Returns True if we're on a ChromeOS device."""
+  lsb_release = '/etc/lsb-release'
+  if sys.platform.startswith('linux') and os.path.exists(lsb_release):
+    with open(lsb_release, 'r') as f:
+      res = f.read()
+      if res.count('CHROMEOS_RELEASE_NAME'):
+        return True
+  return False

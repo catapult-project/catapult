@@ -38,7 +38,7 @@ def _DownloadAndImportDAVClientModule():
   exec davclient_src in davclient.__dict__
 
 
-class DAVClientWrapper():
+class DAVClientWrapper(object):
   """Knows how to retrieve subdirectories and files from WebDAV/SVN servers."""
 
   def __init__(self, root_url):

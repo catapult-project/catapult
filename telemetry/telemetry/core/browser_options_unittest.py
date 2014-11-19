@@ -82,7 +82,7 @@ class BrowserOptionsTest(unittest.TestCase):
     parser.parse_args(['--extra-browser-args=--foo --bar'])
 
     self.assertEquals(options.browser_options.extra_browser_args,
-                      set(['--foo','--bar']))
+                      set(['--foo', '--bar']))
 
   def testUseDevToolsActivePort(self):
     options = browser_options.BrowserFinderOptions()

@@ -15,9 +15,8 @@ from telemetry.core import util
 
 def PrintFormattedException(exception_class=None, exception=None, tb=None,
                             msg=None):
-  if not (bool(exception_class) == bool(exception) == bool(tb)):
-    raise ValueError('Must specify all or none of '
-                     'exception_class, exception, and tb')
+  assert bool(exception_class) == bool(exception) == bool(tb), (
+      'Must specify all or none of exception_class, exception, and tb')
 
   if not exception_class:
     exception_class, exception, tb = sys.exc_info()

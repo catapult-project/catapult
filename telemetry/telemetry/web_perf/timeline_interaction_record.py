@@ -156,7 +156,7 @@ class TimelineInteractionRecord(object):
     assert async_event.start_thread == async_event.end_thread, (
         'Start thread of this record\'s async event is not the same as its '
         'end thread')
-    m = re.match('Interaction\.(?P<label>.+?)(/(?P<flags>[^/]+))?$',
+    m = re.match(r'Interaction\.(?P<label>.+?)(/(?P<flags>[^/]+))?$',
                  async_event.name)
     assert m, "Async event is not an interaction record."
     label = m.group('label')

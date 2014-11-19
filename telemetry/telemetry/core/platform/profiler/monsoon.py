@@ -25,7 +25,7 @@ import serial.tools.list_ports  # pylint: disable=F0401,E0611
 Power = collections.namedtuple('Power', ['amps', 'volts'])
 
 
-class Monsoon:
+class Monsoon(object):
   """Provides a simple class to use the power meter.
 
   mon = monsoon.Monsoon()

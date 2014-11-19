@@ -64,7 +64,7 @@ def UploadFullResultsIfNecessary(args, full_results):
   attrs = [('builder', args.builder_name),
            ('master', args.master_name),
            ('testtype', args.test_type)]
-  content_type, data = _EncodeMultiPartFormData(attrs,  full_results)
+  content_type, data = _EncodeMultiPartFormData(attrs, full_results)
   return _UploadData(url, data, content_type)
 
 

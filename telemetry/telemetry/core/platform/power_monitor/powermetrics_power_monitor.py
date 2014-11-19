@@ -17,6 +17,7 @@ from telemetry.core.platform import power_monitor
 
 
 class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
+
   def __init__(self, backend):
     super(PowerMetricsPowerMonitor, self).__init__()
     self._powermetrics_process = None
@@ -30,7 +31,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
 
   def StartMonitoringPower(self, browser):
     assert not self._powermetrics_process, (
-        "Must call StopMonitoringPower().")
+        'Must call StopMonitoringPower().')
     # Empirically powermetrics creates an empty output file immediately upon
     # starting.  We detect file creation as a signal that measurement has
     # started.  In order to avoid various race conditions in tempfile creation
@@ -39,7 +40,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     # name.
     self._output_directory = tempfile.mkdtemp()
     self._output_filename = os.path.join(self._output_directory,
-        'powermetrics.output')
+                                         'powermetrics.output')
     args = ['-f', 'plist',
             '-u', self._output_filename,
             '-i0',
@@ -86,7 +87,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
         if |powermetrics_output| is empty - crbug.com/353250 .
     """
     if len(powermetrics_output) == 0:
-      logging.warning("powermetrics produced zero length output")
+      logging.warning('powermetrics produced zero length output')
       return None
 
     # Container to collect samples for running averages.
@@ -95,17 +96,17 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     #    powermetrics' output.
     def ConstructMetric(out_path, src_path):
       RunningAverage = collections.namedtuple('RunningAverage', [
-        'out_path', 'src_path', 'samples'])
+          'out_path', 'src_path', 'samples'])
       return RunningAverage(out_path, src_path, [])
 
     # List of RunningAverage objects specifying metrics we want to aggregate.
     metrics = [
         ConstructMetric(
             ['component_utilization', 'whole_package', 'average_frequency_hz'],
-            ['processor','freq_hz']),
+            ['processor', 'freq_hz']),
         ConstructMetric(
             ['component_utilization', 'whole_package', 'idle_percent'],
-            ['processor','packages', 0, 'c_state_ratio'])]
+            ['processor', 'packages', 0, 'c_state_ratio'])]
 
     def DataWithMetricKeyPath(metric, powermetrics_output):
       """Retrieve the sample from powermetrics' output for a given metric.
@@ -122,7 +123,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
         out_data = out_data[k]
 
       assert type(out_data) in [int, float], (
-          "Was expecting a number: %s (%s)" % (type(out_data), out_data))
+          'Was expecting a number: %s (%s)' % (type(out_data), out_data))
       return float(out_data)
 
     sample_durations = []
@@ -130,13 +131,13 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     # powermetrics outputs multiple plists separated by null terminators.
     raw_plists = powermetrics_output.split('\0')
     raw_plists = [x for x in raw_plists if len(x) > 0]
-    assert(len(raw_plists) == 1)
+    assert len(raw_plists) == 1
 
     # -------- Examine contents of first plist for systems specs. --------
     plist = PowerMetricsPowerMonitor._ParsePlistString(raw_plists[0])
     if not plist:
-      logging.warning("powermetrics produced invalid output, output length: "
-          "%d" % len(powermetrics_output))
+      logging.warning('powermetrics produced invalid output, output length: '
+                      '%d', len(powermetrics_output))
       return {}
 
     if 'GPU' in plist:
@@ -147,7 +148,6 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
           ConstructMetric(
               ['component_utilization', 'gpu', 'idle_percent'],
               ['GPU', 0, 'c_state_ratio'])])
-
 
     # There's no way of knowing ahead of time how many cpus and packages the
     # current system has. Iterate over cores and cpus - construct metrics for
@@ -174,11 +174,11 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     # -------- Parse Data Out of Plists --------
     plist = PowerMetricsPowerMonitor._ParsePlistString(raw_plists[0])
     if not plist:
-      logging.error("Error parsing plist.")
+      logging.error('Error parsing plist.')
       return {}
 
     # Duration of this sample.
-    sample_duration_ms = int(plist['elapsed_ns']) / 10**6
+    sample_duration_ms = int(plist['elapsed_ns']) / 10 ** 6
     sample_durations.append(sample_duration_ms)
 
     if 'processor' not in plist:
@@ -187,7 +187,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     processor = plist['processor']
 
     total_energy_consumption_mwh = (
-        (float(processor.get('package_joules', 0)) / 3600.) * 10**3 )
+        (float(processor.get('package_joules', 0)) / 3600.) * 10 ** 3)
 
     for m in metrics:
       m.samples.append(DataWithMetricKeyPath(m, plist))
@@ -230,7 +230,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
 
   def StopMonitoringPower(self):
     assert self._powermetrics_process, (
-        "StartMonitoringPower() not called.")
+        'StartMonitoringPower() not called.')
     # Tell powermetrics to take an immediate sample.
     try:
       self._powermetrics_process.terminate()

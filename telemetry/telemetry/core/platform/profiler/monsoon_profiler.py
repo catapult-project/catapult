@@ -53,11 +53,11 @@ def _CollectData(output_path, is_collecting):
   power_samples = [s.amps * s.volts for s in samples]
 
   print 'Monsoon profile power readings in watts:'
-  print ('  Total    = %f' % statistics.TrapezoidalRule(power_samples, 1/5000.))
+  print '  Total    = %f' % statistics.TrapezoidalRule(power_samples, 1/5000.)
   print ('  Average  = %f' % statistics.ArithmeticMean(power_samples) +
          '+-%f' % statistics.StandardDeviation(power_samples))
-  print ('  Peak     = %f' % max(power_samples))
-  print ('  Duration = %f' % (len(power_samples) / 5000.))
+  print '  Peak     = %f' % max(power_samples)
+  print '  Duration = %f' % (len(power_samples) / 5000.)
 
   print 'To view the Monsoon profile, run:'
   print ('  echo "set datafile separator \',\'; plot \'%s\' with lines" | '

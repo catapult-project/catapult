@@ -79,7 +79,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       PROC_PIDTASKINFO = 4
       def __init__(self):
         self.size = ctypes.sizeof(self)
-        super(ProcTaskInfo, self).__init__()
+        super(ProcTaskInfo, self).__init__()  # pylint: disable=bad-super-call
 
     proc_info = ProcTaskInfo()
     if not self.libproc:

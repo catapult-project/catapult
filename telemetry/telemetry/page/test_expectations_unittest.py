@@ -33,8 +33,8 @@ class StubBrowser(object):
       'model_name': '',
       'gpu': {
         'devices': [
-          { 'vendor_id': gpu, 'device_id': device,
-            'vendor_string': vendor_string, 'device_string': device_string },
+          {'vendor_id': gpu, 'device_id': device,
+           'vendor_string': vendor_string, 'device_string': device_string},
         ]
       }
     })

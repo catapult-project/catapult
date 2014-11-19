@@ -250,7 +250,7 @@ class Thread(event_container.TimelineEventContainer):
     # two end=start+duration combos that should be the same will be slightly
     # different. Round back to micros to ensure equality below.
     child_end_micros = round(child.end * 1000)
-    root_end_micros =  round(root.end * 1000)
+    root_end_micros = round(root.end * 1000)
     if child.start >= root.start and child_end_micros <= root_end_micros:
       if len(root.sub_slices) > 0:
         if self._AddSliceIfBounds(root.sub_slices[-1], child):

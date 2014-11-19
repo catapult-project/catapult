@@ -74,7 +74,7 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
     # Parse CSV output into list of lists.
     csv_string = self.Format()
     lines = csv_string.split(self._LINE_SEPARATOR)
-    values = map(lambda s : s.split(','), lines[1:-1])
+    values = [s.split(',') for s in lines[1:-1]]
 
     self.assertEquals(len(values), 4)  # We expect 4 value in total.
     self.assertEquals(len(set((v[1] for v in values))), 2)  # 2 pages.

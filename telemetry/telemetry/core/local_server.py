@@ -131,7 +131,7 @@ class LocalServer(object):
     raise NotImplementedError()
 
 
-class LocalServerController():
+class LocalServerController(object):
   """Manages the list of running servers
 
   This class manages the running servers, but also provides an isolation layer

@@ -115,6 +115,7 @@ class InspectorNetworkResponseData(object):
     params['requestId'] = event.args['requestId']
     params['response'] = event.args['response']
     recorded = InspectorNetworkResponseData(None, params)
+    # pylint: disable=protected-access
     recorded._body = event.args['body']
     recorded._base64_encoded = event.args['base64_encoded_body']
     recorded._served_from_cache = event.args['served_from_cache']
@@ -184,7 +185,7 @@ class InspectorNetwork(object):
 
   def GetHTTPResponseBody(self, request_id, timeout=60):
     try:
-      res =  self._inspector_backend.SyncRequest({
+      res = self._inspector_backend.SyncRequest({
           'method': 'Network.getResponseBody',
           'params': {
               'requestId': request_id,
@@ -204,7 +205,7 @@ class InspectorNetwork(object):
     pass
 
   @property
-  def timeline_recorder (self):
+  def timeline_recorder(self):
     if not self._timeline_recorder:
       self._timeline_recorder = TimelineRecorder(self)
     return self._timeline_recorder

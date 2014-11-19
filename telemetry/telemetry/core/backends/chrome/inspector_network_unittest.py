@@ -10,8 +10,8 @@ from telemetry.unittest_util import tab_test_case
 
 class InspectorNetworkTabTest(tab_test_case.TabTestCase):
   class TestCase(object):
-    def __init__(self, monitoring = False, responses_count = 0,
-                 subresources = None):
+    def __init__(self, monitoring=False, responses_count=0,
+                 subresources=None):
       # Whether to monitor network for this case.
       self.monitoring = monitoring
       # Number of responses expected for this case.

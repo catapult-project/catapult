@@ -119,3 +119,4 @@ class SelectDefaultBrowserTest(unittest.TestCase):
     self.assertIs(
       possible_browsers[1],
       android_browser_finder.SelectDefaultBrowser(possible_browsers))
+

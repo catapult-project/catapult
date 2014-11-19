@@ -53,7 +53,7 @@ class MockTrace(object):
     self.next_call_index = 0
 
 class MockObject(object):
-  def __init__(self, parent_mock = None):
+  def __init__(self, parent_mock=None):
     if parent_mock:
       self._trace = parent_mock._trace # pylint: disable=W0212
     else:

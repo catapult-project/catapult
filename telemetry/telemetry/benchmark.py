@@ -91,8 +91,10 @@ class Benchmark(command_line.Command):
     pt.__name__ = self.__class__.__name__
 
     if hasattr(self, '_disabled_strings'):
+      # pylint: disable=protected-access
       pt._disabled_strings = self._disabled_strings
     if hasattr(self, '_enabled_strings'):
+      # pylint: disable=protected-access
       pt._enabled_strings = self._enabled_strings
 
     expectations = self.CreateExpectations()

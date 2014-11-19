@@ -8,26 +8,27 @@ from telemetry.core import gpu_info
 
 
 class TestGPUInfo(unittest.TestCase):
+
   def testConstruction(self):
     data = {
-      'devices': [
-        { 'vendor_id': 1000, 'device_id': 2000,
-          'vendor_string': 'a', 'device_string': 'b' },
-        { 'vendor_id': 3000, 'device_id': 4000,
-          'vendor_string': 'k', 'device_string': 'l' }
-      ],
-      'aux_attributes': {
-        'optimus': False,
-        'amd_switchable': False,
-        'lenovo_dcute': False,
-        'driver_vendor': 'c',
-        'driver_version': 'd',
-        'driver_date': 'e',
-        'gl_version_string': 'g',
-        'gl_vendor': 'h',
-        'gl_renderer': 'i',
-        'gl_extensions': 'j',
-      }
+        'devices': [
+            {'vendor_id': 1000, 'device_id': 2000,
+             'vendor_string': 'a', 'device_string': 'b'},
+            {'vendor_id': 3000, 'device_id': 4000,
+             'vendor_string': 'k', 'device_string': 'l'}
+        ],
+        'aux_attributes': {
+            'optimus': False,
+            'amd_switchable': False,
+            'lenovo_dcute': False,
+            'driver_vendor': 'c',
+            'driver_version': 'd',
+            'driver_date': 'e',
+            'gl_version_string': 'g',
+            'gl_vendor': 'h',
+            'gl_renderer': 'i',
+            'gl_extensions': 'j',
+        }
     }
     info = gpu_info.GPUInfo.FromDict(data)
     self.assertTrue(len(info.devices) == 2)
@@ -54,8 +55,8 @@ class TestGPUInfo(unittest.TestCase):
 
   def testMissingAttrsFromDict(self):
     data = {
-      'devices': [{ 'vendor_id': 1000, 'device_id': 2000,
-                    'vendor_string': 'a', 'device_string': 'b' }]
+        'devices': [{'vendor_id': 1000, 'device_id': 2000,
+                     'vendor_string': 'a', 'device_string': 'b'}]
     }
 
     for k in data:
@@ -66,12 +67,12 @@ class TestGPUInfo(unittest.TestCase):
         self.fail('Should raise exception if attribute "%s" is missing' % k)
       except AssertionError:
         raise
-      except:
+      except KeyError:
         pass
 
   def testMissingDevices(self):
     data = {
-      'devices': []
+        'devices': []
     }
 
     try:
@@ -79,5 +80,5 @@ class TestGPUInfo(unittest.TestCase):
       self.fail('Should raise exception if devices array is empty')
     except AssertionError:
       raise
-    except:
+    except Exception:
       pass

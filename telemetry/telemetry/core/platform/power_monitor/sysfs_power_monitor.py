@@ -54,7 +54,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     assert not self._browser, 'Must call StopMonitoringPower().'
     self._browser = browser
     if self.CanMonitorPower():
-      self._cpus = filter(
+      self._cpus = filter(  # pylint: disable=deprecated-lambda
           lambda x: re.match(r'^cpu[0-9]+', x),
           self._platform.RunCommand('ls %s' % CPU_PATH).split())
       self._initial_freq = self.GetCpuFreq()

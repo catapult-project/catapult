@@ -76,7 +76,7 @@ class KeylessLoginRequiredException(LoginException):
 
 class CrOSInterface(object):
   # pylint: disable=R0923
-  def __init__(self, hostname = None, ssh_identity = None):
+  def __init__(self, hostname=None, ssh_identity=None):
     self._hostname = hostname
     # List of ports generated from GetRemotePort() that may not be in use yet.
     self._reserved_ports = []
@@ -148,8 +148,9 @@ class CrOSInterface(object):
       A copy of toClean with all the Warning lines removed.
     """
     # Remove the Warning about connecting to a new host for the first time.
-    return re.sub('Warning: Permanently added [^\n]* to the list of known '
-                  'hosts.\s\n', '', toClean)
+    return re.sub(
+        r'Warning: Permanently added [^\n]* to the list of known hosts.\s\n',
+        '', toClean)
 
   def RunCmdOnDevice(self, args, cwd=None, quiet=False):
     stdout, stderr = GetAllCmdOutput(
@@ -210,7 +211,7 @@ class CrOSInterface(object):
         raise OSError('No such file or directory %s' % stderr)
       return
 
-    args = ['scp', '-r' ] + self._ssh_args
+    args = ['scp', '-r'] + self._ssh_args
     if self._ssh_identity:
       args.extend(['-i', self._ssh_identity])
 
@@ -287,7 +288,7 @@ class CrOSInterface(object):
     for l in stdout.split('\n'): # pylint: disable=E1103
       if l == '':
         continue
-      m = re.match('^\s*(\d+)\s+(\d+)\s+(.+)\s+(.+)', l, re.DOTALL)
+      m = re.match(r'^\s*(\d+)\s+(\d+)\s+(.+)\s+(.+)', l, re.DOTALL)
       assert m
       procs.append((int(m.group(1)), m.group(3).rstrip(),
                     int(m.group(2)), m.group(4)))
@@ -439,7 +440,7 @@ class CrOSInterface(object):
     if clear_enterprise_policy:
       self.RunCmdOnDevice(['stop', 'ui'])
       self.RmRF('/var/lib/whitelist/*')
-      self.RmRF('/home/chronos/Local\ State')
+      self.RmRF(r'/home/chronos/Local\ State')
 
     if self.IsServiceRunning('ui'):
       self.RunCmdOnDevice(['restart', 'ui'])

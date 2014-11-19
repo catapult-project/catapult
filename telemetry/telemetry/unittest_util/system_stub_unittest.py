@@ -85,11 +85,11 @@ class CloudStorageTest(unittest.TestCase):
     self.assertTrue(self.cloud_storage.Exists(self.cloud_storage.PARTNER_BUCKET,
                                               'preset_partner_file.wpr'))
     self.assertTrue(self.cloud_storage.Exists(
-      self.cloud_storage.INTERNAL_BUCKET,'preset_internal_file.wpr'))
+      self.cloud_storage.INTERNAL_BUCKET, 'preset_internal_file.wpr'))
     self.assertFalse(self.cloud_storage.Exists(self.cloud_storage.PUBLIC_BUCKET,
                                                'fake_file'))
     self.assertFalse(self.cloud_storage.Exists(
-      self.cloud_storage.PARTNER_BUCKET,'fake_file'))
+      self.cloud_storage.PARTNER_BUCKET, 'fake_file'))
     self.assertFalse(self.cloud_storage.Exists(
       self.cloud_storage.INTERNAL_BUCKET, 'fake_file'))
     # Reset state.

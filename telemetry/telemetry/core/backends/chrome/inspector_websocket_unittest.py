@@ -70,6 +70,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     inspector = inspector_websocket.InspectorWebsocket(
       notification_handler=lambda data: True,
       error_handler=_ReraiseExceptionErrorHandler)
+    # pylint: disable=protected-access
     inspector._socket = FakeSocket(self._mock_timer)
     # The third call to socket.recv() will take 15 seconds without any data
     # received, hence the below call will raise a
@@ -82,6 +83,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     inspector = inspector_websocket.InspectorWebsocket(
       notification_handler=lambda data: True,
       error_handler=_DoNothingExceptionErrorHandler)
+    # pylint: disable=protected-access
     inspector._socket = FakeSocket(self._mock_timer)
     # The third and forth calls to socket.recv() will take 30 seconds without
     # any data received, hence the below call will raise a
@@ -93,7 +95,9 @@ class InspectorWebsocketUnittest(unittest.TestCase):
   def testDispatchNotificationUntilDoneNotTimedOut(self):
     inspector = inspector_websocket.InspectorWebsocket(
     notification_handler=lambda data: True,
+    # pylint: disable=protected-access
     error_handler=_ReraiseExceptionErrorHandler)
+    # pylint: disable=protected-access
     inspector._socket = FakeSocket(self._mock_timer)
     # Even though it takes 70 seconds to receive all the data, the call below
     # will succeed since there are no interval which the previous data package

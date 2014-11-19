@@ -67,6 +67,7 @@ class PageTestResults(object):
   def all_file_handles(self):
     all_values = itertools.chain(
         self.all_summary_values, self.all_page_specific_values)
+    # pylint: disable=deprecated-lambda
     return [fh for fh in map(lambda v: v.GetAssociatedFileHandle(), all_values)
             if fh is not None]
 

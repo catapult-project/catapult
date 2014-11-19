@@ -113,7 +113,7 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
       # Check that we have kernel symbols.
       assert os.path.exists(kallsyms)
 
-      is_unstripped = re.compile('^/data/app/.*\.so$')
+      is_unstripped = re.compile(r'^/data/app/.*\.so$')
       has_unstripped = False
 
       # Check that all requested libraries are present.

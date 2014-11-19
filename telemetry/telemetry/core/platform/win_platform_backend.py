@@ -277,6 +277,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
 
       def __init__(self):
         self.size = ctypes.sizeof(self)
+        # pylint: disable=bad-super-call
         super(PerformanceInfo, self).__init__()
 
     performance_info = PerformanceInfo()

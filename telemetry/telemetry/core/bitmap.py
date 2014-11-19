@@ -111,8 +111,8 @@ class RgbaColor(collections.namedtuple('RgbaColor', ['r', 'g', 'b', 'a'])):
     assert self.IsEqual(RgbaColor(r, g, b, a), tolerance)
 
 
-WEB_PAGE_TEST_ORANGE = RgbaColor(222, 100,  13)
-WHITE =                RgbaColor(255, 255, 255)
+WEB_PAGE_TEST_ORANGE = RgbaColor(222, 100, 13)
+WHITE = RgbaColor(255, 255, 255)
 
 
 class _BitmapTools(object):
@@ -220,6 +220,7 @@ class Bitmap(object):
     """Flat pixel array of the bitmap."""
     if self._crop_box:
       self._pixels = self._PrepareTools().CropPixels()
+      # pylint: disable=unpacking-non-sequence
       _, _, self._width, self._height = self._crop_box
       self._crop_box = None
     if type(self._pixels) is not bytearray:

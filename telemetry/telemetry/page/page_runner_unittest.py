@@ -29,6 +29,8 @@ from telemetry.value import scalar
 from telemetry.value import string
 
 
+# pylint: disable=bad-super-call
+
 SIMPLE_CREDENTIALS_STRING = """
 {
   "test": {

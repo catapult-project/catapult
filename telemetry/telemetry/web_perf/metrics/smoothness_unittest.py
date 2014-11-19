@@ -60,6 +60,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
   def testComputeLatencyMetric(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,
                                input_event_latency=[[10, 20], [30, 40, 50]])
+    # pylint: disable=unbalanced-tuple-unpacking
     mean_value, discrepancy_value = self.metric._ComputeLatencyMetric(
         self.page, stats, 'input_event_latency', stats.input_event_latency)
     self.assertEquals(30, mean_value.value)
@@ -76,6 +77,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
     stats = _MockRenderingStats(
         frame_timestamps=self.not_enough_frames_timestamps,
         input_event_latency=[[], []])
+    # pylint: disable=unbalanced-tuple-unpacking
     mean_value, discrepancy_value = self.metric._ComputeLatencyMetric(
         self.page, stats, 'input_event_latency', stats.input_event_latency)
     self.assertEquals(None, mean_value.value)

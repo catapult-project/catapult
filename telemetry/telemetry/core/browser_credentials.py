@@ -19,7 +19,7 @@ class CredentialsError(Exception):
 
 
 class BrowserCredentials(object):
-  def __init__(self, backends = None):
+  def __init__(self, backends=None):
     self._credentials = {}
     self._credentials_path = None
     self._extra_credentials = {}
@@ -125,7 +125,7 @@ class BrowserCredentials(object):
         self._credentials[k] = self._extra_credentials[k]
 
   def WarnIfMissingCredentials(self, page):
-    if (page.credentials and not self.CanLogin(page.credentials)):
+    if page.credentials and not self.CanLogin(page.credentials):
       files_to_tweak = []
       if page.credentials_path:
         files_to_tweak.append(page.credentials_path)

@@ -8,6 +8,7 @@ import logging
 import operator
 
 from telemetry import decorators
+from telemetry.core import browser_finder_exceptions
 from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.backends.chrome import cros_browser_finder
 from telemetry.core.backends.chrome import desktop_browser_finder
@@ -23,14 +24,6 @@ BROWSER_FINDERS = [
   trybot_browser_finder,
   webdriver_desktop_browser_finder,
   ]
-
-
-class BrowserTypeRequiredException(Exception):
-  pass
-
-
-class BrowserFinderException(Exception):
-  pass
 
 
 def FindAllBrowserTypes(options):
@@ -52,19 +45,19 @@ def FindBrowser(options):
     BrowserFinderException: Options improperly set, or an error occurred.
   """
   if options.browser_type == 'exact' and options.browser_executable == None:
-    raise BrowserFinderException(
+    raise browser_finder_exceptions.BrowserFinderException(
         '--browser=exact requires --browser-executable to be set.')
   if options.browser_type != 'exact' and options.browser_executable != None:
-    raise BrowserFinderException(
+    raise browser_finder_exceptions.BrowserFinderException(
         '--browser-executable requires --browser=exact.')
 
   if options.browser_type == 'cros-chrome' and options.cros_remote == None:
-    raise BrowserFinderException(
+    raise browser_finder_exceptions.BrowserFinderException(
         'browser_type=cros-chrome requires cros_remote be set.')
   if (options.browser_type != 'cros-chrome' and
       options.browser_type != 'cros-chrome-guest' and
       options.cros_remote != None):
-    raise BrowserFinderException(
+    raise browser_finder_exceptions.BrowserFinderException(
         '--remote requires --browser=cros-chrome or cros-chrome-guest.')
 
   browsers = []
@@ -95,7 +88,7 @@ def FindBrowser(options):
       browsers[0].UpdateExecutableIfNeeded()
       return browsers[0]
 
-    raise BrowserTypeRequiredException(
+    raise browser_finder_exceptions.BrowserTypeRequiredException(
         '--browser must be specified. Available browsers:\n%s' %
         '\n'.join(sorted(set([b.browser_type for b in browsers]))))
 

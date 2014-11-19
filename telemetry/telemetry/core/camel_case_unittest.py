@@ -8,6 +8,7 @@ from telemetry.core import camel_case
 
 
 class CamelCaseTest(unittest.TestCase):
+
   def testString(self):
     self.assertEqual(camel_case.ToUnderscore('camelCase'), 'camel_case')
     self.assertEqual(camel_case.ToUnderscore('CamelCase'), 'camel_case')
@@ -22,26 +23,26 @@ class CamelCaseTest(unittest.TestCase):
 
   def testDict(self):
     camel_case_dict = {
-      'gpu': {
-        'vendorId': 1000,
-        'deviceId': 2000,
-        'vendorString': 'aString',
-        'deviceString': 'bString' },
-      'secondaryGpus': [
-        { 'vendorId': 3000, 'deviceId': 4000,
-          'vendorString': 'k', 'deviceString': 'l' }
-      ]
+        'gpu': {
+            'vendorId': 1000,
+            'deviceId': 2000,
+            'vendorString': 'aString',
+            'deviceString': 'bString'},
+        'secondaryGpus': [
+            {'vendorId': 3000, 'deviceId': 4000,
+             'vendorString': 'k', 'deviceString': 'l'}
+        ]
     }
     underscore_dict = {
-      'gpu': {
-        'vendor_id': 1000,
-        'device_id': 2000,
-        'vendor_string': 'aString',
-        'device_string': 'bString' },
-      'secondary_gpus': [
-        { 'vendor_id': 3000, 'device_id': 4000,
-          'vendor_string': 'k', 'device_string': 'l' }
-      ]
+        'gpu': {
+            'vendor_id': 1000,
+            'device_id': 2000,
+            'vendor_string': 'aString',
+            'device_string': 'bString'},
+        'secondary_gpus': [
+            {'vendor_id': 3000, 'device_id': 4000,
+             'vendor_string': 'k', 'device_string': 'l'}
+        ]
     }
     self.assertEqual(camel_case.ToUnderscore(camel_case_dict), underscore_dict)
 

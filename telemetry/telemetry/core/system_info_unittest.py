@@ -9,15 +9,16 @@ from telemetry.core import system_info
 
 
 class TestSystemInfo(unittest.TestCase):
+
   def testConstruction(self):
     data = {
-      'model_name': 'MacBookPro 10.1',
-      'gpu': {
-        'devices': [
-          { 'vendor_id': 1000, 'device_id': 2000,
-            'vendor_string': 'a', 'device_string': 'b' },
-        ]
-      }
+        'model_name': 'MacBookPro 10.1',
+        'gpu': {
+            'devices': [
+                {'vendor_id': 1000, 'device_id': 2000,
+                 'vendor_string': 'a', 'device_string': 'b'},
+            ]
+        }
     }
     info = system_info.SystemInfo.FromDict(data)
     self.assertTrue(isinstance(info, system_info.SystemInfo))
@@ -32,27 +33,27 @@ class TestSystemInfo(unittest.TestCase):
 
   def testEmptyModelName(self):
     data = {
-      'model_name': '',
-      'gpu': {
-        'devices': [
-          { 'vendor_id': 1000, 'device_id': 2000,
-            'vendor_string': 'a', 'device_string': 'b' },
-        ]
-      }
+        'model_name': '',
+        'gpu': {
+            'devices': [
+                {'vendor_id': 1000, 'device_id': 2000,
+                 'vendor_string': 'a', 'device_string': 'b'},
+            ]
+        }
     }
     try:
       info = system_info.SystemInfo.FromDict(data)
       self.assertEquals(info.model_name, '')
     except AssertionError:
       raise
-    except:
+    except Exception:
       self.fail('Should not raise exception for empty model_name string')
 
   def testMissingAttrsFromDict(self):
     data = {
-      'model_name': 'MacBookPro 10.1',
-      'devices': [{ 'vendor_id': 1000, 'device_id': 2000,
-                    'vendor_string': 'a', 'device_string': 'b' }]
+        'model_name': 'MacBookPro 10.1',
+        'devices': [{'vendor_id': 1000, 'device_id': 2000,
+                     'vendor_string': 'a', 'device_string': 'b'}]
     }
 
     for k in data:
@@ -63,5 +64,5 @@ class TestSystemInfo(unittest.TestCase):
         self.fail('Should raise exception if attribute "%s" is missing' % k)
       except AssertionError:
         raise
-      except:
+      except KeyError:
         pass

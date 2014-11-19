@@ -8,6 +8,7 @@ import logging
 
 from telemetry.core import platform as platform_module
 from telemetry.core import browser
+from telemetry.core import browser_finder_exceptions
 from telemetry.core import possible_browser
 from telemetry.core.platform import cros_device
 from telemetry.core.platform import cros_interface
@@ -126,8 +127,7 @@ def FindAllAvailableBrowsers(finder_options):
       logging.warn('There, that was easy!')
       logging.warn('')
       logging.warn('P.S. Please, tell your manager how INANE this is.')
-    from telemetry.core import browser_finder
-    raise browser_finder.BrowserFinderException(str(ex))
+    raise browser_finder_exceptions.BrowserFinderException(str(ex))
 
   return [PossibleCrOSBrowser('cros-chrome', finder_options, platform,
                               is_guest=False),

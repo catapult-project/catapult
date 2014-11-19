@@ -26,10 +26,10 @@ class ListOfStringValuesTest(TestBase):
     page0 = self.pages[0]
     v0 = list_of_string_values.ListOfStringValues(
         page0, 'x', 'label',
-        ['L1','L2'], same_page_merge_policy=value.CONCATENATE)
+        ['L1', 'L2'], same_page_merge_policy=value.CONCATENATE)
     v1 = list_of_string_values.ListOfStringValues(
         page0, 'x', 'label',
-        ['L3','L4'], same_page_merge_policy=value.CONCATENATE)
+        ['L3', 'L4'], same_page_merge_policy=value.CONCATENATE)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = (list_of_string_values.ListOfStringValues.
@@ -45,10 +45,10 @@ class ListOfStringValuesTest(TestBase):
     page0 = self.pages[0]
     v0 = list_of_string_values.ListOfStringValues(
         page0, 'x', 'label',
-        ['L1','L2'], same_page_merge_policy=value.PICK_FIRST)
+        ['L1', 'L2'], same_page_merge_policy=value.PICK_FIRST)
     v1 = list_of_string_values.ListOfStringValues(
         page0, 'x', 'label',
-        ['L3','L4'], same_page_merge_policy=value.PICK_FIRST)
+        ['L3', 'L4'], same_page_merge_policy=value.PICK_FIRST)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = (list_of_string_values.ListOfStringValues.

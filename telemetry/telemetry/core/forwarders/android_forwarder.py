@@ -294,7 +294,7 @@ function doit() {
 
 doit &
     """ % {'dev': self._RNDIS_DEVICE, 'functions': 'rndis,adb',
-           'prefix': script_prefix }
+           'prefix': script_prefix}
     self._device.WriteFile('%s.sh' % script_prefix, script)
     # TODO(szym): run via su -c if necessary.
     self._device.RunShellCommand('rm %s.log' % script_prefix)
@@ -342,13 +342,13 @@ doit &
     for line in interface_list:
       if not line.startswith((' ', '\t')):
         found_iface = iface in line
-      match = re.search('(?<=inet )\S+', line)
+      match = re.search(r'(?<=inet )\S+', line)
       if match:
         address = match.group(0)
         if '/' in address:
           address = self._IpPrefix2AddressMask(address)
         else:
-          match = re.search('(?<=netmask )\S+', line)
+          match = re.search(r'(?<=netmask )\S+', line)
           address = self._Ip2Long(address), int(match.group(0), 16)
         if found_iface:
           assert not iface_address, (
@@ -437,7 +437,7 @@ doit &
     addresses, host_address = self._GetHostAddresses(host_iface)
     assert host_address, 'Interface %s could not be configured.' % host_iface
 
-    host_ip, netmask = host_address
+    host_ip, netmask = host_address  # pylint: disable=unpacking-non-sequence
     network = host_ip & netmask
 
     if not _IsNetworkUnique(network, addresses):
@@ -483,7 +483,7 @@ doit &
     packets from reaching the rndis interface
     """
     policies = self._device.RunShellCommand('ip rule')
-    if len(policies) > 1 and not ('lookup main' in policies[1]):
+    if len(policies) > 1 and not 'lookup main' in policies[1]:
       self._device.RunShellCommand('ip rule add prio 1 from all table main')
       self._device.RunShellCommand('ip route flush cache')
 

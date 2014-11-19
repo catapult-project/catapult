@@ -49,6 +49,7 @@ class AndroidTraceviewProfiler(profiler.Profiler):
     output_files = []
     for pid, trace_file in self._trace_files:
       self._browser_backend.adb.RunShellCommand('am profile %s stop' % pid)
+      # pylint: disable=cell-var-from-loop
       util.WaitFor(lambda: self._FileSize(trace_file) > 0, timeout=10)
       output_files.append(trace_file)
     self._browser_backend.adb.device().old_interface.Adb().Pull(

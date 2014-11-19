@@ -84,7 +84,7 @@ class MockBenchmark(benchmark.Benchmark):
 
   def CreatePageSet(self, options):
     kwargs = {}
-    if (options.mock_benchmark_url):
+    if options.mock_benchmark_url:
       kwargs['url'] = options.mock_benchmark_url
     self.mock_page_set = MockPageSet(**kwargs)
     return self.mock_page_set

@@ -611,7 +611,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'cat': 'foo', 'tid': 1, 'ph': 'C'},
       {'name': 'ctr', 'args': {'value1': 10, 'value2': 4}, 'pid': 1, 'ts': 10,
        'cat': 'foo', 'tid': 1, 'ph': 'C'},
-      {'name': 'ctr', 'args': {'value1': 0, 'value2': 1 }, 'pid': 1, 'ts': 20,
+      {'name': 'ctr', 'args': {'value1': 0, 'value2': 1}, 'pid': 1, 'ts': 20,
        'cat': 'foo', 'tid': 1, 'ph': 'C'}
     ]
     timeline_data = tracing_timeline_data.TracingTimelineData(events)
@@ -633,12 +633,12 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual(14, ctr.max_total)
 
   def testImportObjectInsteadOfArray(self):
-    events = { 'traceEvents': [
+    events = {'traceEvents': [
       {'name': 'a', 'args': {}, 'pid': 52, 'ts': 524, 'cat': 'foo',
        'tid': 53, 'ph': 'B'},
       {'name': 'a', 'args': {}, 'pid': 52, 'ts': 560, 'cat': 'foo',
        'tid': 53, 'ph': 'E'}
-    ] }
+    ]}
 
     timeline_data = tracing_timeline_data.TracingTimelineData(events)
     m = timeline_model.TimelineModel(timeline_data=timeline_data)

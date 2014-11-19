@@ -138,7 +138,7 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
       raise
 
   def _ConvertKbToByte(self, value):
-    return int(value.replace('kB','')) * 1024
+    return int(value.replace('kB', '')) * 1024
 
   def _GetProcFileDict(self, contents):
     retval = {}

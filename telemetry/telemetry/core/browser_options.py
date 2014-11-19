@@ -10,6 +10,8 @@ import shlex
 import sys
 
 from telemetry.core import browser_finder
+from telemetry.core import browser_finder_exceptions
+from telemetry.core import platform
 from telemetry.core import profile_types
 from telemetry.core import util
 from telemetry.core import wpr_modes
@@ -155,7 +157,7 @@ class BrowserFinderOptions(optparse.Values):
       if self.browser_type == 'list':
         try:
           types = browser_finder.GetAllAvailableBrowserTypes(self)
-        except browser_finder.BrowserFinderException, ex:
+        except browser_finder_exceptions.BrowserFinderException, ex:
           sys.stderr.write('ERROR: ' + str(ex))
           sys.exit(1)
         sys.stdout.write('Available browsers:\n')
@@ -211,6 +213,9 @@ class BrowserOptions(object):
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
 
+  def IsCrosBrowserOptions(self):
+    return False
+
   @classmethod
   def AddCommandLineArgs(cls, parser):
 
@@ -261,12 +266,12 @@ class BrowserOptions(object):
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser, 'Synthetic gesture options')
-    synthetic_gesture_source_type_choices = [ 'default', 'mouse', 'touch' ]
+    synthetic_gesture_source_type_choices = ['default', 'mouse', 'touch']
     group.add_option('--synthetic-gesture-source-type',
         dest='synthetic_gesture_source_type',
         default='default', type='choice',
         choices=synthetic_gesture_source_type_choices,
-        help='Specify the source type for synthetic gestures. Note that some ' +
+        help='Specify the source type for synthtic gestures. Note that some ' +
              'actions only support a specific source type. ' +
              'Supported values: ' +
              ', '.join(synthetic_gesture_source_type_choices))
@@ -324,9 +329,7 @@ class BrowserOptions(object):
 
     # This deferred import is necessary because browser_options is imported in
     # telemetry/telemetry/__init__.py.
-    from telemetry.core.backends.chrome import chrome_browser_options
-    finder_options.browser_options = (
-        chrome_browser_options.CreateChromeBrowserOptions(self))
+    finder_options.browser_options = CreateChromeBrowserOptions(self)
 
   @property
   def extra_browser_args(self):
@@ -337,3 +340,45 @@ class BrowserOptions(object):
       self._extra_browser_args.update(args)
     else:
       self._extra_browser_args.add(args)
+
+
+def CreateChromeBrowserOptions(br_options):
+  browser_type = br_options.browser_type
+
+  if (platform.GetHostPlatform().GetOSName() == 'chromeos' or
+      (browser_type and browser_type.startswith('cros'))):
+    return CrosBrowserOptions(br_options)
+
+  return br_options
+
+
+class ChromeBrowserOptions(BrowserOptions):
+  """Chrome-specific browser options."""
+
+  def __init__(self, br_options):
+    super(ChromeBrowserOptions, self).__init__()
+    # Copy to self.
+    self.__dict__.update(br_options.__dict__)
+
+
+class CrosBrowserOptions(ChromeBrowserOptions):
+  """ChromeOS-specific browser options."""
+
+  def __init__(self, br_options):
+    super(CrosBrowserOptions, self).__init__(br_options)
+    # Create a browser with oobe property.
+    self.create_browser_with_oobe = False
+    # Clear enterprise policy before logging in.
+    self.clear_enterprise_policy = True
+    # Disable GAIA/enterprise services.
+    self.disable_gaia_services = True
+    # Disable default apps.
+    self.disable_default_apps = True
+
+    self.auto_login = True
+    self.gaia_login = False
+    self.username = 'test@test.test'
+    self.password = ''
+
+  def IsCrosBrowserOptions(self):
+    return True

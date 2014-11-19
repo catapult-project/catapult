@@ -7,6 +7,7 @@ import sys
 
 from telemetry import decorators
 from telemetry.core import browser_finder
+from telemetry.core import browser_finder_exceptions
 from telemetry.core import browser_info
 from telemetry.core import util
 from telemetry.core import wpr_modes
@@ -32,7 +33,7 @@ class SharedPageState(object):
     ''' Return a possible_browser with the given options. '''
     possible_browser = browser_finder.FindBrowser(finder_options)
     if not possible_browser:
-      raise browser_finder.BrowserFinderException(
+      raise browser_finder_exceptions.BrowserFinderException(
           'No browser found.\n\nAvailable browsers:\n%s\n' %
           '\n'.join(browser_finder.GetAllAvailableBrowserTypes(finder_options)))
     finder_options.browser_options.browser_type = (

@@ -13,7 +13,7 @@ from telemetry.core import util
 from telemetry.core import video
 
 
-class VideoTest(unittest.TestCase) :
+class VideoTest(unittest.TestCase):
 
   @benchmark.Disabled
   def testFramesFromMp4(self):

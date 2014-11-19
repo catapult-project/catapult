@@ -18,7 +18,7 @@ class WebDriverIEBackend(webdriver_browser_backend.WebDriverBrowserBackend):
     self._platform_backend = platform_backend
 
   def GetProcessName(self, cmd_line):
-    if re.search('SCODEF:\d+ CREDAT:\d+', cmd_line, re.IGNORECASE):
+    if re.search(r'SCODEF:\d+ CREDAT:\d+', cmd_line, re.IGNORECASE):
       return 'Content'
     else:
       return 'Manager'
@@ -37,7 +37,7 @@ class WebDriverIEBackend(webdriver_browser_backend.WebDriverBrowserBackend):
     except urllib2.URLError:
       # CTRL + C makes IEDriverServer exits while leaving IE still running.
       for pi in self._platform_backend.GetSystemProcessInfo():
-        if (pi['ParentProcessId'] == self.driver.iedriver.process.pid):
+        if pi['ParentProcessId'] == self.driver.iedriver.process.pid:
           self._platform_backend.KillProcess(pi['ProcessId'], True)
 
   def IsBrowserRunning(self):

@@ -14,7 +14,7 @@ import sys
 import tarfile
 import urllib2
 
-from telemetry.core import platform
+from telemetry.core import util
 from telemetry.util import path
 
 
@@ -43,7 +43,7 @@ class CloudStorageError(Exception):
     if SupportsProdaccess(gsutil_path) and _FindExecutableInPath('prodaccess'):
       return 'Run prodaccess to authenticate.'
     else:
-      if platform.GetHostPlatform().GetOSName() == 'chromeos':
+      if util.IsRunningOnCrosDevice():
         gsutil_path = ('HOME=%s %s' % (_CROS_GSUTIL_HOME_WAR, gsutil_path))
       return ('To configure your credentials:\n'
               '  1. Run "%s config" and follow its instructions.\n'
@@ -127,7 +127,7 @@ def _RunCommand(args):
   # TODO(tbarzic): Figure out a better way to handle gsutil on cros.
   #     http://crbug.com/386416, http://crbug.com/359293.
   gsutil_env = None
-  if platform.GetHostPlatform().GetOSName() == 'chromeos':
+  if util.IsRunningOnCrosDevice():
     gsutil_env = os.environ.copy()
     gsutil_env['HOME'] = _CROS_GSUTIL_HOME_WAR
 

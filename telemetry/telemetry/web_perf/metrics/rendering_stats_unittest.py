@@ -33,6 +33,7 @@ class MockTimer(object):
   durations for stats and consistent timestamps for all mock trace events.
   The unit of time is milliseconds.
   """
+
   def __init__(self):
     self.milliseconds = 0
 
@@ -48,6 +49,7 @@ class MockTimer(object):
 
 class ReferenceRenderingStats(object):
   """ Stores expected data for comparison with actual RenderingStats """
+
   def __init__(self):
     self.frame_timestamps = []
     self.frame_times = []
@@ -58,15 +60,17 @@ class ReferenceRenderingStats(object):
     self.frame_times.append([])
     self.approximated_pixel_percentages.append([])
 
+
 class ReferenceInputLatencyStats(object):
   """ Stores expected data for comparison with actual input latency stats """
+
   def __init__(self):
     self.input_event_latency = []
     self.input_event = []
 
 
 def AddDisplayRenderingStats(mock_timer, thread, first_frame,
-                             ref_stats = None):
+                             ref_stats=None):
   """ Adds a random display rendering stats event.
 
   thread: The timeline model thread to which the event will be added.
@@ -74,7 +78,7 @@ def AddDisplayRenderingStats(mock_timer, thread, first_frame,
   ref_stats: A ReferenceRenderingStats object to record expected values.
   """
   # Create randonm data and timestap for main thread rendering stats.
-  data = { 'frame_count': 1 }
+  data = {'frame_count': 1}
   timestamp = mock_timer.AdvanceAndGet()
 
   # Add a slice with the event data to the given thread.
@@ -96,7 +100,7 @@ def AddDisplayRenderingStats(mock_timer, thread, first_frame,
 
 
 def AddImplThreadRenderingStats(mock_timer, thread, first_frame,
-                                ref_stats = None):
+                                ref_stats=None):
   """ Adds a random impl thread rendering stats event.
 
   thread: The timeline model thread to which the event will be added.
@@ -104,9 +108,9 @@ def AddImplThreadRenderingStats(mock_timer, thread, first_frame,
   ref_stats: A ReferenceRenderingStats object to record expected values.
   """
   # Create randonm data and timestap for impl thread rendering stats.
-  data = { 'frame_count': 1,
-           'visible_content_area': random.uniform(0, 100),
-           'approximated_visible_content_area': random.uniform(0, 5)}
+  data = {'frame_count': 1,
+          'visible_content_area': random.uniform(0, 100),
+          'approximated_visible_content_area': random.uniform(0, 5)}
   timestamp = mock_timer.AdvanceAndGet()
 
   # Add a slice with the event data to the given thread.
@@ -128,12 +132,12 @@ def AddImplThreadRenderingStats(mock_timer, thread, first_frame,
     ref_stats.frame_timestamps[-1].append(timestamp)
 
   ref_stats.approximated_pixel_percentages[-1].append(
-     round(DivideIfPossibleOrZero(data['approximated_visible_content_area'],
-                                  data['visible_content_area']) * 100.0, 3))
+      round(DivideIfPossibleOrZero(data['approximated_visible_content_area'],
+                                   data['visible_content_area']) * 100.0, 3))
 
 
 def AddInputLatencyStats(mock_timer, start_thread, end_thread,
-                         ref_latency_stats = None):
+                         ref_latency_stats=None):
   """ Adds a random input latency stats event.
 
   start_thread: The start thread on which the async slice is added.
@@ -147,10 +151,10 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
   forward_comp_time = mock_timer.AdvanceAndGet(2, 4) * 1000.0
   end_comp_time = mock_timer.AdvanceAndGet(10, 20) * 1000.0
 
-  data = { ORIGINAL_COMP_NAME: {'time': original_comp_time},
-           UI_COMP_NAME: {'time': ui_comp_time},
-           BEGIN_COMP_NAME: {'time': begin_comp_time},
-           END_COMP_NAME: {'time': end_comp_time} }
+  data = {ORIGINAL_COMP_NAME: {'time': original_comp_time},
+          UI_COMP_NAME: {'time': ui_comp_time},
+          BEGIN_COMP_NAME: {'time': begin_comp_time},
+          END_COMP_NAME: {'time': end_comp_time}}
 
   timestamp = mock_timer.AdvanceAndGet(2, 4)
 
@@ -173,7 +177,7 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
   scroll_update_data = {
       BEGIN_SCROLL_UPDATE_COMP_NAME: {'time': begin_comp_time},
       FORWARD_SCROLL_UPDATE_COMP_NAME: {'time': forward_comp_time},
-      END_COMP_NAME: {'time': end_comp_time} }
+      END_COMP_NAME: {'time': end_comp_time}}
 
   scroll_async_slice = tracing_async_slice.AsyncSlice(
       'benchmark', 'InputLatency', timestamp)
@@ -210,25 +214,26 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
 
 
 class RenderingStatsUnitTest(unittest.TestCase):
+
   def testHasRenderingStats(self):
     timeline = model.TimelineModel()
     timer = MockTimer()
 
     # A process without rendering stats
-    process_without_stats = timeline.GetOrCreateProcess(pid = 1)
-    thread_without_stats = process_without_stats.GetOrCreateThread(tid = 11)
+    process_without_stats = timeline.GetOrCreateProcess(pid=1)
+    thread_without_stats = process_without_stats.GetOrCreateThread(tid=11)
     process_without_stats.FinalizeImport()
     self.assertFalse(HasRenderingStats(thread_without_stats))
 
     # A process with rendering stats, but no frames in them
-    process_without_frames = timeline.GetOrCreateProcess(pid = 2)
-    thread_without_frames = process_without_frames.GetOrCreateThread(tid = 21)
+    process_without_frames = timeline.GetOrCreateProcess(pid=2)
+    thread_without_frames = process_without_frames.GetOrCreateThread(tid=21)
     process_without_frames.FinalizeImport()
     self.assertFalse(HasRenderingStats(thread_without_frames))
 
     # A process with rendering stats and frames in them
-    process_with_frames = timeline.GetOrCreateProcess(pid = 3)
-    thread_with_frames = process_with_frames.GetOrCreateThread(tid = 31)
+    process_with_frames = timeline.GetOrCreateProcess(pid=3)
+    thread_with_frames = process_with_frames.GetOrCreateThread(tid=31)
     AddImplThreadRenderingStats(timer, thread_with_frames, True, None)
     process_with_frames.FinalizeImport()
     self.assertTrue(HasRenderingStats(thread_with_frames))
@@ -239,9 +244,9 @@ class RenderingStatsUnitTest(unittest.TestCase):
 
     ref_stats = ReferenceRenderingStats()
     ref_stats.AppendNewRange()
-    renderer = timeline.GetOrCreateProcess(pid = 2)
-    browser = timeline.GetOrCreateProcess(pid = 3)
-    browser_main = browser.GetOrCreateThread(tid = 31)
+    renderer = timeline.GetOrCreateProcess(pid=2)
+    browser = timeline.GetOrCreateProcess(pid=3)
+    browser_main = browser.GetOrCreateThread(tid=31)
     browser_main.BeginSlice('webkit.console', 'ActionA',
                             timer.AdvanceAndGet(2, 4), '')
 
@@ -262,8 +267,8 @@ class RenderingStatsUnitTest(unittest.TestCase):
     browser.FinalizeImport()
     renderer.FinalizeImport()
     timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
-    timeline_ranges = [ timeline_bounds.Bounds.CreateFromEvent(marker)
-                        for marker in timeline_markers ]
+    timeline_ranges = [timeline_bounds.Bounds.CreateFromEvent(marker)
+                       for marker in timeline_markers]
     stats = RenderingStats(renderer, browser, timeline_ranges)
 
     # Compare rendering stats to reference - Only display stats should count
@@ -275,9 +280,9 @@ class RenderingStatsUnitTest(unittest.TestCase):
     timeline = model.TimelineModel()
 
     # Create a renderer process, with a main thread and impl thread.
-    renderer = timeline.GetOrCreateProcess(pid = 2)
-    renderer_main = renderer.GetOrCreateThread(tid = 21)
-    renderer_compositor = renderer.GetOrCreateThread(tid = 22)
+    renderer = timeline.GetOrCreateProcess(pid=2)
+    renderer_main = renderer.GetOrCreateThread(tid=21)
+    renderer_compositor = renderer.GetOrCreateThread(tid=22)
 
     # Create 10 main and impl rendering stats events for Action A.
     renderer_main.BeginSlice('webkit.console', 'ActionA',
@@ -302,23 +307,22 @@ class RenderingStatsUnitTest(unittest.TestCase):
     renderer.FinalizeImport()
 
     timeline_markers = timeline.FindTimelineMarkers(['ActionA', 'ActionB'])
-    timeline_ranges = [ timeline_bounds.Bounds.CreateFromEvent(marker)
-                        for marker in timeline_markers ]
+    timeline_ranges = [timeline_bounds.Bounds.CreateFromEvent(marker)
+                       for marker in timeline_markers]
 
     stats = RenderingStats(renderer, None, timeline_ranges)
     self.assertEquals(0, len(stats.frame_timestamps[1]))
-
 
   def testFromTimeline(self):
     timeline = model.TimelineModel()
 
     # Create a browser process and a renderer process, and a main thread and
     # impl thread for each.
-    browser = timeline.GetOrCreateProcess(pid = 1)
-    browser_compositor = browser.GetOrCreateThread(tid = 12)
-    renderer = timeline.GetOrCreateProcess(pid = 2)
-    renderer_main = renderer.GetOrCreateThread(tid = 21)
-    renderer_compositor = renderer.GetOrCreateThread(tid = 22)
+    browser = timeline.GetOrCreateProcess(pid=1)
+    browser_compositor = browser.GetOrCreateThread(tid=12)
+    renderer = timeline.GetOrCreateProcess(pid=2)
+    renderer_main = renderer.GetOrCreateThread(tid=21)
+    renderer_compositor = renderer.GetOrCreateThread(tid=22)
 
     timer = MockTimer()
     renderer_ref_stats = ReferenceRenderingStats()
@@ -375,8 +379,8 @@ class RenderingStatsUnitTest(unittest.TestCase):
 
     timeline_markers = timeline.FindTimelineMarkers(
         ['ActionA', 'ActionB', 'ActionA'])
-    timeline_ranges = [ timeline_bounds.Bounds.CreateFromEvent(marker)
-                        for marker in timeline_markers ]
+    timeline_ranges = [timeline_bounds.Bounds.CreateFromEvent(marker)
+                       for marker in timeline_markers]
     stats = RenderingStats(renderer, browser, timeline_ranges)
 
     # Compare rendering stats to reference.
@@ -390,10 +394,10 @@ class RenderingStatsUnitTest(unittest.TestCase):
     timeline = model.TimelineModel()
 
     # Create a browser process and a renderer process.
-    browser = timeline.GetOrCreateProcess(pid = 1)
-    browser_main = browser.GetOrCreateThread(tid = 11)
-    renderer = timeline.GetOrCreateProcess(pid = 2)
-    renderer_main = renderer.GetOrCreateThread(tid = 21)
+    browser = timeline.GetOrCreateProcess(pid=1)
+    browser_main = browser.GetOrCreateThread(tid=11)
+    renderer = timeline.GetOrCreateProcess(pid=2)
+    renderer_main = renderer.GetOrCreateThread(tid=21)
 
     timer = MockTimer()
     ref_latency = ReferenceInputLatencyStats()

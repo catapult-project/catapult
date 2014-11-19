@@ -52,7 +52,7 @@ class Counter(event_container.TimelineEventContainer):
   def __init__(self, parent, category, name):
     super(Counter, self).__init__(name, parent)
     self.category = category
-    self.full_name  = category + '.' + name
+    self.full_name = category + '.' + name
     self.samples = []
     self.timestamps = []
     self.series_names = []
@@ -71,7 +71,7 @@ class Counter(event_container.TimelineEventContainer):
     # creating a ton of garbage for rejected samples.
     test_sample = CounterSample(self, 0)
     for i in xrange(len(self.timestamps)):
-      test_sample._sample_index = i
+      test_sample._sample_index = i  # pylint: disable=protected-access
       if event_predicate(test_sample):
         yield CounterSample(self, i)
 

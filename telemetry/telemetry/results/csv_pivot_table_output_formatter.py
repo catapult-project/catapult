@@ -35,7 +35,7 @@ class CsvPivotTableOutputFormatter(output_formatter.OutputFormatter):
 
     # Observe trace_tag. Use comma to split up the trace tag.
     tag_values = self._trace_tag.split(',')
-    tag_values = filter(lambda x: x, tag_values) # filter empty list entries
+    tag_values = [x for x in tag_values if x] # filter empty list entries
     tag_headers = ['trace_tag_%d' % i for i in range(len(tag_values))]
 
     # Write header.

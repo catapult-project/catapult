@@ -64,6 +64,7 @@ class WebComponent(object):
 
     class WebComponentDataScript(generate.ExtraScript):
       def __init__(self, results_component):
+        # pylint: disable=bad-super-call
         super(WebComponentDataScript, self).__init__()
         self._results_component = results_component
 

@@ -10,7 +10,7 @@ from telemetry.page import page_set
 
 class TestBase(unittest.TestCase):
   def setUp(self):
-    self.page_set =  page_set.PageSet(file_path=os.path.dirname(__file__))
+    self.page_set = page_set.PageSet(file_path=os.path.dirname(__file__))
     self.page_set.AddPageWithDefaultRunNavigate("http://www.bar.com/")
     self.page_set.AddPageWithDefaultRunNavigate("http://www.baz.com/")
     self.page_set.AddPageWithDefaultRunNavigate("http://www.foo.com/")

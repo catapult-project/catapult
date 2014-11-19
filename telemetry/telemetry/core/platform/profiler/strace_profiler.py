@@ -16,31 +16,31 @@ from telemetry.timeline import model
 # Parses one line of strace output, for example:
 # 6052  1311456063.159722 read(8, "\1\0\0\0\0\0\0\0", 8) = 8 <0.000022>
 _STRACE_LINE_RE = re.compile(
-    '^(?P<tid>\d+)\s+'
-    '(?P<ts>\d+)'
-    '(?P<micro>.\d+)\s+'
-    '(?P<func>.*?)'
-    '[(](?P<args>.*?)[)]\s+=\s+'
-    '(?P<ret>.*?)\s+'
-    '<(?P<dur>[\d.]+)>$')
+    r'^(?P<tid>\d+)\s+'
+    r'(?P<ts>\d+)'
+    r'(?P<micro>.\d+)\s+'
+    r'(?P<func>.*?)'
+    r'[(](?P<args>.*?)[)]\s+=\s+'
+    r'(?P<ret>.*?)\s+'
+    r'<(?P<dur>[\d.]+)>$')
 
 _UNFINISHED_LINE_RE = re.compile(
-    '^(?P<tid>\d+)\s+'
-    '(?P<line>.*?)'
-    '<unfinished ...>$')
+    r'^(?P<tid>\d+)\s+'
+    r'(?P<line>.*?)'
+    r'<unfinished ...>$')
 
 _RESUMED_LINE_RE = re.compile(
-    '^(?P<tid>\d+)\s+'
-    '(?P<ts>\d+)'
-    '(?P<micro>.\d+)\s+'
-    '<[.][.][.]\s(?P<func>.*?)\sresumed>'
-    '(?P<line>.*?)$')
+    r'^(?P<tid>\d+)\s+'
+    r'(?P<ts>\d+)'
+    r'(?P<micro>.\d+)\s+'
+    r'<[.][.][.]\s(?P<func>.*?)\sresumed>'
+    r'(?P<line>.*?)$')
 
 _KILLED_LINE_RE = re.compile(
-    '^(?P<tid>\d+)\s+'
-    '(?P<ts>\d+)'
-    '(?P<micro>.\d+)\s+'
-    '[+][+][+] killed by SIGKILL [+][+][+]$')
+    r'^(?P<tid>\d+)\s+'
+    r'(?P<ts>\d+)'
+    r'(?P<micro>.\d+)\s+'
+    r'[+][+][+] killed by SIGKILL [+][+][+]$')
 
 
 def _StraceToChromeTrace(pid, infile):

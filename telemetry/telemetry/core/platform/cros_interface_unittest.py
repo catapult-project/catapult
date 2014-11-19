@@ -161,12 +161,12 @@ class CrOSInterfaceTest(unittest.TestCase):
       # Check arguments with no special characters
       stdout, _ = cri.RunCmdOnDevice(['echo', '--arg1=value1', '--arg2=value2',
           '--arg3="value3"'])
-      assert(stdout.strip() == '--arg1=value1 --arg2=value2 --arg3=value3')
+      assert stdout.strip() == '--arg1=value1 --arg2=value2 --arg3=value3'
 
       # Check argument with special characters escaped
       stdout, _ = cri.RunCmdOnDevice(['echo', '--arg=A\\; echo \\"B\\"'])
-      assert(stdout.strip() == '--arg=A; echo "B"')
+      assert stdout.strip() == '--arg=A; echo "B"'
 
       # Check argument with special characters in quotes
       stdout, _ = cri.RunCmdOnDevice(['echo', "--arg='$HOME;;$PATH'"])
-      assert(stdout.strip() == "--arg=$HOME;;$PATH")
+      assert stdout.strip() == "--arg=$HOME;;$PATH"

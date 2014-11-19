@@ -24,6 +24,7 @@ class TestPageSet(page_set.PageSet):
     #top google property; a google tab is often open
     class Google(page.Page):
       def __init__(self, ps):
+        # pylint: disable=bad-super-call
         super(Google, self).__init__('https://www.google.com', page_set=ps)
 
       def RunGetActionRunner(self, action_runner):

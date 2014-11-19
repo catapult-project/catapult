@@ -31,17 +31,17 @@ class OSVersion(str):
     return self._sortable_name >= other._sortable_name
 
 
-XP =           OSVersion('xp',            5.1)
-VISTA =        OSVersion('vista',         6.0)
-WIN7 =         OSVersion('win7',          6.1)
-WIN8 =         OSVersion('win8',          6.2)
+XP = OSVersion('xp', 5.1)
+VISTA = OSVersion('vista', 6.0)
+WIN7 = OSVersion('win7', 6.1)
+WIN8 = OSVersion('win8', 6.2)
 
-LEOPARD =      OSVersion('leopard',      105)
-SNOWLEOPARD =  OSVersion('snowleopard',  106)
-LION =         OSVersion('lion',         107)
+LEOPARD = OSVersion('leopard', 105)
+SNOWLEOPARD = OSVersion('snowleopard', 106)
+LION = OSVersion('lion', 107)
 MOUNTAINLION = OSVersion('mountainlion', 108)
-MAVERICKS =    OSVersion('mavericks',    109)
-YOSEMITE =     OSVersion('yosemite',     1010)
+MAVERICKS = OSVersion('mavericks', 109)
+YOSEMITE = OSVersion('yosemite', 1010)
 
 
 class PlatformBackend(object):

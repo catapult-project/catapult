@@ -31,7 +31,7 @@ class V8Profiler(profiler.Profiler):
   def CollectProfile(self):
     # Find output filename from browser argument.
     for i in self._browser_backend.browser_options.extra_browser_args:
-      match = re.match(self._V8_ARG % '(\S+)', i)
+      match = re.match(self._V8_ARG % r'(\S+)', i)
       if match:
         output_file = match.groups(0)[0]
     assert output_file

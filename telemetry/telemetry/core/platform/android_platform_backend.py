@@ -450,7 +450,7 @@ class AndroidPlatformBackend(
                % self._adb.device_serial()))
       self._is_test_ca_installed = False
 
-    shutil.rmtree(os.path.dirname(self._wpr_ca_cert_path), ignore_errors = True)
+    shutil.rmtree(os.path.dirname(self._wpr_ca_cert_path), ignore_errors=True)
     self._wpr_ca_cert_path = None
     self._device_cert_util = None
 

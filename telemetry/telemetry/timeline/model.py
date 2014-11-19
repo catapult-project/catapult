@@ -211,7 +211,7 @@ class TimelineModel(event_container.TimelineEventContainer):
         raise MarkerMismatchError()
     for i in xrange(0, len(events)):
       for j in xrange(i+1, len(events)):
-        if (events[j].start < events[i].start + events[i].duration):
+        if events[j].start < events[i].start + events[i].duration:
           raise MarkerOverlapError()
 
     return events

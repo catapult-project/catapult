@@ -56,7 +56,7 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     """Returns a list of child pids of |pid|."""
     ps_output = self.GetPsOutput(['pid', 'ppid', 'state'])
     ps_line_re = re.compile(
-        '\s*(?P<pid>\d+)\s*(?P<ppid>\d+)\s*(?P<state>\S*)\s*')
+        r'\s*(?P<pid>\d+)\s*(?P<ppid>\d+)\s*(?P<state>\S*)\s*')
     processes = []
     for pid_ppid_state in ps_output:
       m = ps_line_re.match(pid_ppid_state)
@@ -74,7 +74,7 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def IsApplicationRunning(self, application):
     ps_output = self.GetPsOutput(['command'])
     application_re = re.compile(
-        '(.*%s|^)%s(\s|$)' % (os.path.sep, application))
+        r'(.*%s|^)%s(\s|$)' % (os.path.sep, application))
     return any(application_re.match(cmd) for cmd in ps_output)
 
   def LaunchApplication(

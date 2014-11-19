@@ -25,7 +25,7 @@ END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT'
 # Name for a main thread scroll update latency event.
 SCROLL_UPDATE_EVENT_NAME = 'InputLatency:ScrollUpdate'
 # Name for a gesture scroll update latency event.
-GESTURE_SCROLL_UPDATE_EVENT_NAME  = 'InputLatency:GestureScrollUpdate'
+GESTURE_SCROLL_UPDATE_EVENT_NAME = 'InputLatency:GestureScrollUpdate'
 
 
 def GetInputLatencyEvents(process, timeline_range):
@@ -82,7 +82,7 @@ def ComputeInputEventLatencies(input_events):
       elif BEGIN_SCROLL_UPDATE_COMP_NAME in data:
         start_time = data[BEGIN_SCROLL_UPDATE_COMP_NAME]['time']
       else:
-        raise ValueError, 'LatencyInfo has no begin component'
+        raise ValueError('LatencyInfo has no begin component')
       latency = (end_time - start_time) / 1000.0
       input_event_latencies.append((start_time, event.name, latency))
 
@@ -126,7 +126,7 @@ class RenderingStats(object):
 
     All *_time values are measured in milliseconds.
     """
-    assert(len(timeline_ranges) > 0)
+    assert len(timeline_ranges) > 0
     # Find the top level process with rendering stats (browser or renderer).
     if HasRenderingStats(browser_process):
       timestamp_process = browser_process

@@ -23,7 +23,7 @@ class EmptyTimelineDataImporterTest(unittest.TestCase):
     # We can't import non-empty TimelineData objects
     self.assertFalse(
         empty_timeline_data_importer.EmptyTimelineDataImporter.CanImport(
-            tracing_timeline_data.TracingTimelineData([1,2,3])))
+            tracing_timeline_data.TracingTimelineData([1, 2, 3])))
 
   def testCannotImportEmptyRawData(self):
     # We can't import raw data (not wrapped in a TimelineData object)
