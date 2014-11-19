@@ -72,7 +72,7 @@ class AdbDevice(object):
       self.system_properties['ro.product.cpu.abi'] = 'armeabi-v7a'
     self.old_interface = AndroidCommands()
 
-  def RunShellCommand(self, args):
+  def RunShellCommand(self, args, **_kwargs):
     if isinstance(args, basestring):
       args = shlex.split(args)
     handler = self.shell_command_handlers[args[0]]
