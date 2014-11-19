@@ -22,19 +22,6 @@ class PageTestThatFails(page_test.PageTest):
     raise exceptions.IntentionalException
 
 
-class PageTestThatHasDefaults(page_test.PageTest):
-  def AddCommandLineArgs(self, parser):
-    parser.add_option('-x', dest='x', default=3)
-
-  def ValidateAndMeasurePage(self, page, tab, results):
-    if not hasattr(self.options, 'x'):
-      raise page_test.MeasurementFailure('Default option was not set.')
-    if self.options.x != 3:
-      raise page_test.MeasurementFailure(
-          'Expected x == 3, got x == ' + self.options.x)
-    results.AddValue(scalar.ScalarValue(page, 'x', 'ms', 7))
-
-
 class PageTestForBlank(page_test.PageTest):
   def ValidateAndMeasurePage(self, page, tab, results):
     contents = tab.EvaluateJavaScript('document.body.textContent')
@@ -100,14 +87,6 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
     measurement = PageTestThatFails()
     all_results = self.RunMeasurement(measurement, ps, options=self._options)
     self.assertEquals(1, len(all_results.failures))
-
-  def testDefaults(self):
-    ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
-    measurement = PageTestThatHasDefaults()
-    all_results = self.RunMeasurement(measurement, ps, options=self._options)
-    self.assertEquals(len(all_results.all_page_specific_values), 1)
-    self.assertEquals(
-      all_results.all_page_specific_values[0].value, 7)
 
   # This test is disabled because it runs against live sites, and needs to be
   # fixed. crbug.com/179038

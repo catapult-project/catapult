@@ -134,31 +134,24 @@ class TimelineBasedMeasurement(page_test.PageTest):
   perf.metrics.timeline_interaction_record module.
 
   """
-  def __init__(self):
+  def __init__(self, overhead_level=NO_OVERHEAD_LEVEL):
     super(TimelineBasedMeasurement, self).__init__('RunPageInteractions')
-
-  @classmethod
-  def AddCommandLineArgs(cls, parser):
-    parser.add_option(
-        '--overhead-level', dest='overhead_level', type='choice',
-        choices=ALL_OVERHEAD_LEVELS,
-        default=NO_OVERHEAD_LEVEL,
-        help='How much overhead to incur during the measurement.')
+    self._overhead_level = overhead_level
 
   def WillNavigateToPage(self, page, tab):
     if not tab.browser.platform.tracing_controller.IsChromeTracingSupported(
         tab.browser):
       raise Exception('Not supported')
 
-    assert self.options.overhead_level in ALL_OVERHEAD_LEVELS
-    if self.options.overhead_level == NO_OVERHEAD_LEVEL:
+    assert self._overhead_level in ALL_OVERHEAD_LEVELS
+    if self._overhead_level == NO_OVERHEAD_LEVEL:
       category_filter = tracing_category_filter.CreateNoOverheadFilter()
     # TODO(ernstm): Remove this overhead level when benchmark relevant v8 events
     # become available in the 'benchmark' category.
-    elif self.options.overhead_level == V8_OVERHEAD_LEVEL:
+    elif self._overhead_level == V8_OVERHEAD_LEVEL:
       category_filter = tracing_category_filter.CreateNoOverheadFilter()
       category_filter.AddIncludedCategory('v8')
-    elif self.options.overhead_level == MINIMAL_OVERHEAD_LEVEL:
+    elif self._overhead_level == MINIMAL_OVERHEAD_LEVEL:
       category_filter = tracing_category_filter.CreateMinimalOverheadFilter()
     else:
       category_filter = tracing_category_filter.CreateDebugOverheadFilter()

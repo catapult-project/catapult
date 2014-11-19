@@ -39,7 +39,6 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
     """Override to ensure all resources are fetched from network."""
     tab.ClearCache(force=False)
     if self.page_test:
-      self.page_test.options = self.options
       self.page_test.WillNavigateToPage(page, tab)
 
   def DidNavigateToPage(self, page, tab):

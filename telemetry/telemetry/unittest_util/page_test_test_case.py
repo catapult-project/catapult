@@ -57,8 +57,6 @@ class PageTestTestCase(unittest.TestCase):
     assert options
     temp_parser = options.CreateParser()
     page_runner.AddCommandLineArgs(temp_parser)
-    measurement.AddCommandLineArgs(temp_parser)
-    measurement.SetArgumentDefaults(temp_parser)
     defaults = temp_parser.get_default_values()
     for k, v in defaults.__dict__.items():
       if hasattr(options, k):
@@ -71,7 +69,6 @@ class PageTestTestCase(unittest.TestCase):
     options.suppress_gtest_report = True
     options.output_trace_tag = None
     page_runner.ProcessCommandLineArgs(temp_parser, options)
-    measurement.ProcessCommandLineArgs(temp_parser, options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     page_runner.Run(measurement, ps, expectations, options, results)
     return results
