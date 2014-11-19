@@ -7,41 +7,43 @@ class PlatformError(Exception):
   """ Represents an exception thrown when constructing platform. """
 
 
-class NativeBrowserCrashException(Exception):
-  def __init__(self, browser=None, msg=''):
-    super(NativeBrowserCrashException, self).__init__(msg)
-    self._browser = browser
+class AppCrashException(Exception):
+  def __init__(self, app=None, msg=''):
+    super(AppCrashException, self).__init__(msg)
+    self._app = app
     self._msg = msg
 
   def __str__(self):
-    if not self._browser:
-      return super(NativeBrowserCrashException, self).__str__()
+    if not self._app:
+      return super(AppCrashException, self).__str__()
     divider = '*' * 80
     return '%s\nStack Trace:\n%s\n\t%s\n%s' % (
-        super(NativeBrowserCrashException, self).__str__(), divider,
-        self._browser.GetStackTrace().replace('\n', '\n\t'), divider)
+        super(AppCrashException, self).__str__(), divider,
+        self._app.GetStackTrace().replace('\n', '\n\t'), divider)
 
 
-class TabCrashException(NativeBrowserCrashException):
-  """Represents a crash of the current tab, but not the overall browser.
+class DevtoolsTargetCrashException(AppCrashException):
+  """Represents a crash of the current devtools target but not the overall app.
 
-  In this state, the tab is gone, but the underlying browser is still alive."""
-  def __init__(self, browser, msg='Tab crashed'):
-    super(TabCrashException, self).__init__(browser, msg)
+  This can be a tab or a WebView. In this state, the tab/WebView is
+  gone, but the underlying browser is still alive.
+  """
+  def __init__(self, app, msg='Devtools target crashed'):
+    super(DevtoolsTargetCrashException, self).__init__(app, msg)
 
 
-class BrowserGoneException(NativeBrowserCrashException):
+class BrowserGoneException(AppCrashException):
   """Represents a crash of the entire browser.
 
   In this state, all bets are pretty much off."""
-  def __init__(self, browser, msg='Browser crashed'):
-    super(BrowserGoneException, self).__init__(browser, msg)
+  def __init__(self, app, msg='Browser crashed'):
+    super(BrowserGoneException, self).__init__(app, msg)
 
 
 class BrowserConnectionGoneException(BrowserGoneException):
   """Represents a browser that still exists but cannot be reached."""
-  def __init__(self, browser, msg='Browser exists but the connection is gone'):
-    super(BrowserConnectionGoneException, self).__init__(browser, msg)
+  def __init__(self, app, msg='Browser exists but the connection is gone'):
+    super(BrowserConnectionGoneException, self).__init__(app, msg)
 
 
 class ProcessGoneException(Exception):

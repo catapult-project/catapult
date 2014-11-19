@@ -61,7 +61,7 @@ class TabTest(tab_test_case.TabTestCase):
     self.assertEquals(self._tab.browser, self._browser)
 
   def testRendererCrash(self):
-    self.assertRaises(exceptions.TabCrashException,
+    self.assertRaises(exceptions.DevtoolsTargetCrashException,
                       lambda: self._tab.Navigate('chrome://crash',
                                                  timeout=5))
 

@@ -24,7 +24,7 @@ class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
       return bool(len(self))
     except (exceptions.BrowserGoneException,
             exceptions.BrowserConnectionGoneException,
-            exceptions.TabCrashException):
+            exceptions.DevtoolsTargetCrashException):
       return False
 
   def GetOobe(self):

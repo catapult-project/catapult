@@ -41,12 +41,12 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
       self.Connect(self.debugger_url)
     except (websocket.WebSocketException, util.TimeoutException):
       err_msg = sys.exc_info()[1]
-      if not self._browser_backend.IsBrowserRunning():
-        raise exceptions.BrowserGoneException(self.browser, err_msg)
+      if not self._browser_backend.IsAppRunning():
+        raise exceptions.BrowserGoneException(self.app, err_msg)
       elif not self._browser_backend.HasBrowserFinishedLaunching():
-        raise exceptions.BrowserConnectionGoneException(self.browser, err_msg)
+        raise exceptions.BrowserConnectionGoneException(self.app, err_msg)
       else:
-        raise exceptions.TabCrashException(self.browser, err_msg)
+        raise exceptions.TabCrashException(self.app, err_msg)
 
     self._console = inspector_console.InspectorConsole(self)
     self._memory = inspector_memory.InspectorMemory(self)
@@ -66,6 +66,10 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
     self._domain_handlers = {}
 
     super(InspectorBackend, self).Disconnect()
+
+  @property
+  def app(self):
+    return self._browser_backend.app
 
   @property
   def browser(self):
@@ -91,7 +95,7 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
   @property
   @decorators.Cache
   def screenshot_supported(self):
-    if (self.browser.platform.GetOSName() == 'linux' and (
+    if (self.app.platform.GetOSName() == 'linux' and (
         os.getenv('DISPLAY') not in [':0', ':0.0'])):
       # Displays other than 0 mean we are likely running in something like
       # xvfb where screenshotting doesn't work.
@@ -227,7 +231,7 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
       self._WaitForInspectorToGoAwayAndReconnect()
       return
     if res['method'] == 'Inspector.targetCrashed':
-      raise exceptions.TabCrashException(self.browser)
+      raise exceptions.DevtoolsTargetCrashException(self.app)
 
     mname = res['method']
     dot_pos = mname.find('.')
@@ -247,7 +251,7 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
           'Received a socket error in the browser connection and the tab '
           'still exists, assuming it timed out. '
           'Elapsed=%ds Error=%s' % (elapsed_time, sys.exc_info()[1]))
-    raise exceptions.TabCrashException(self.browser,
+    raise exceptions.DevtoolsTargetCrashException(self.app,
         'Received a socket error in the browser connection and the tab no '
         'longer exists, assuming it crashed. Error=%s' % sys.exc_info()[1])
 
@@ -262,7 +266,7 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
         return False
       try:
         self.Connect(self.debugger_url)
-      except exceptions.TabCrashException, ex:
+      except exceptions.DevtoolsTargetCrashException, ex:
         if ex.message.message.find('Handshake Status 500') == 0:
           return False
         raise

@@ -100,7 +100,7 @@ def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
   except (page_test.Failure, util.TimeoutException, exceptions.LoginException,
           exceptions.ProfilingException):
     ProcessError()
-  except (exceptions.TabCrashException, exceptions.BrowserGoneException):
+  except exceptions.AppCrashException:
     ProcessError()
     state.TearDown(results)
     if test.is_multi_tab_test:
@@ -270,8 +270,6 @@ def _CheckArchives(page_set, pages, results):
         page, 'Page set archive doesn\'t exist.'))
     results.DidRunPage(page)
   return valid_pages
-
-
 
 
 def _WaitForThermalThrottlingIfNeeded(platform):
