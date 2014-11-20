@@ -41,7 +41,7 @@ class RunTestsUnitTest(unittest.TestCase):
                        supports_tab_control):
 
     runner = run_tests.typ.Runner()
-    host  = runner.host
+    host = runner.host
     runner.top_level_dir = util.GetTelemetryDir()
     runner.args.tests = [host.join(util.GetTelemetryDir(),
         'telemetry', 'unittest_util', 'disabled_cases.py')]

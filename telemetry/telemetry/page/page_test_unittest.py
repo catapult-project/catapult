@@ -14,7 +14,6 @@ from telemetry.page import page_set_archive_info
 from telemetry.page import page_test
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import page_test_test_case
-from telemetry.value import scalar
 
 
 class PageTestThatFails(page_test.PageTest):
