@@ -217,7 +217,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     content = ' '.join(QuoteIfNeeded(arg) for arg in args)
     cmdline_file = self._backend_settings.GetCommandLineFile(
         self._adb.IsUserBuild())
-    as_root = self._adb.device().old_interface.CanAccessProtectedFileContents()
 
     try:
       # Save the current command line to restore later, except if it appears to
@@ -227,7 +226,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._saved_cmdline = ''.join(self._adb.device().ReadFile(cmdline_file))
       if '--host-resolver-rules' in self._saved_cmdline:
         self._saved_cmdline = ''
-      self._adb.device().WriteTextFile(cmdline_file, content, as_root=as_root)
+      self._adb.device().WriteFile(cmdline_file, content, as_root=True)
     except device_errors.CommandFailedError:
       logging.critical('Cannot set Chrome command line. '
                        'Fix this by flashing to a userdebug build.')
@@ -236,9 +235,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _RestoreCommandLine(self):
     cmdline_file = self._backend_settings.GetCommandLineFile(
         self._adb.IsUserBuild())
-    as_root = self._adb.device().old_interface.CanAccessProtectedFileContents()
-    self._adb.device().WriteTextFile(cmdline_file, self._saved_cmdline,
-                                     as_root=as_root)
+    self._adb.device().WriteFile(cmdline_file, self._saved_cmdline,
+                                 as_root=True)
 
   def Start(self):
     self._SetUpCommandLine()
