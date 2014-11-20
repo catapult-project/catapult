@@ -7,10 +7,12 @@ import os
 from telemetry.page import page_set
 from telemetry.results import base_test_results_unittest
 from telemetry.results import page_test_results
+from telemetry.timeline import tracing_timeline_data
 from telemetry.value import failure
 from telemetry.value import histogram
 from telemetry.value import scalar
 from telemetry.value import skip
+from telemetry.value import trace
 
 
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
@@ -182,3 +184,20 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
     self.assertEquals(
         [value1, value2, value3], results.all_page_specific_values)
+
+  def testTraceValue(self):
+    results = page_test_results.PageTestResults()
+    results.WillRunPage(self.pages[0])
+    results.AddValue(trace.TraceValue(
+        None, tracing_timeline_data.TracingTimelineData({'test' : 1})))
+    results.DidRunPage(self.pages[0])
+
+    results.WillRunPage(self.pages[1])
+    results.AddValue(trace.TraceValue(
+        None, tracing_timeline_data.TracingTimelineData({'test' : 2})))
+    results.DidRunPage(self.pages[1])
+
+    results.PrintSummary()
+
+    values = results.FindAllTraceValues()
+    self.assertEquals(2, len(values))

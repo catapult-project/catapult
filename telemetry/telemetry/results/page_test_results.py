@@ -189,10 +189,16 @@ class PageTestResults(object):
         values.append(value)
     return values
 
-  def UploadTraceFilesToCloud(self, bucket):
+  def FindAllTraceValues(self):
+    values = []
     for value in self.all_page_specific_values:
       if isinstance(value, trace.TraceValue):
-        value.UploadToCloud(bucket)
+        values.append(value)
+    return values
+
+  def UploadTraceFilesToCloud(self, bucket):
+    for value in self.FindAllTraceValues():
+      value.UploadToCloud(bucket)
 
   def UploadProfilingFilesToCloud(self, bucket):
     for page, file_handle_list in self._pages_to_profiling_files.iteritems():

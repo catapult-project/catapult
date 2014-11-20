@@ -244,6 +244,7 @@ class CloudStorageModuleStub(object):
       raise CloudStorageModuleStub.CloudStorageError(file_path_error)
     self.remote_paths[bucket][remote_path] = (
       CloudStorageModuleStub.CalculateHash(self, local_path))
+    return remote_path
 
   def GetHelper(self, bucket, remote_path, local_path, only_if_changed):
     CloudStorageModuleStub.CheckPermissionLevelForBucket(self, bucket)

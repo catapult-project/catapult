@@ -82,6 +82,8 @@ class TraceValue(value_module.Value):
   def AsDict(self):
     d = super(TraceValue, self).AsDict()
     d['file_id'] = self._file_handle.id
+    if self._cloud_url:
+      d['cloud_url'] = self._cloud_url
     return d
 
   def UploadToCloud(self, bucket):
@@ -97,6 +99,7 @@ class TraceValue(value_module.Value):
       sys.stderr.write(
           'View generated trace files online at %s for page %s\n' %
           (self._cloud_url, self.page.url if self.page else 'unknown'))
+      return self._cloud_url
     except cloud_storage.PermissionError as e:
       logging.error('Cannot upload trace files to cloud storage due to '
                     ' permission error: %s' % e.message)
