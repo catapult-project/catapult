@@ -13,9 +13,10 @@ from telemetry.util import cloud_storage
 
 
 class PageSetArchiveInfo(object):
-  def __init__(self, file_path, data, ignore_archive=False):
+  def __init__(self, file_path, data, bucket, ignore_archive=False):
     self._file_path = file_path
     self._base_dir = os.path.dirname(file_path)
+    self._bucket = bucket
 
     # Ensure directory exists.
     if not os.path.exists(self._base_dir):
@@ -23,16 +24,21 @@ class PageSetArchiveInfo(object):
 
     # Download all .wpr files.
     if not ignore_archive:
-      for archive_path in data['archives']:
-        archive_path = self._WprFileNameToPath(archive_path)
-        try:
-          cloud_storage.GetIfChanged(archive_path)
-        except (cloud_storage.CredentialsError, cloud_storage.PermissionError):
-          if os.path.exists(archive_path):
-            # If the archive exists, assume the user recorded their own and
-            # simply warn.
-            logging.warning('Need credentials to update WPR archive: %s',
-                            archive_path)
+      if not self._bucket:
+        logging.warning('page_set in %s has no bucket specified, and cannot be'
+                        'downloaded from cloud_storage.', file_path)
+      else:
+        for archive_path in data['archives']:
+          archive_path = self._WprFileNameToPath(archive_path)
+          try:
+            cloud_storage.GetIfChanged(archive_path, bucket)
+          except (cloud_storage.CredentialsError,
+                  cloud_storage.PermissionError):
+            if os.path.exists(archive_path):
+              # If the archive exists, assume the user recorded their own and
+              # simply warn.
+              logging.warning('Need credentials to update WPR archive: %s',
+                              archive_path)
 
     # Map from the relative path (as it appears in the metadata file) of the
     # .wpr file to a list of page names it supports.
@@ -49,12 +55,13 @@ class PageSetArchiveInfo(object):
     self.temp_target_wpr_file_path = None
 
   @classmethod
-  def FromFile(cls, file_path, ignore_archive=False):
+  def FromFile(cls, file_path, bucket, ignore_archive=False):
     if os.path.exists(file_path):
       with open(file_path, 'r') as f:
         data = json.load(f)
-        return cls(file_path, data, ignore_archive=ignore_archive)
-    return cls(file_path, {'archives': {}}, ignore_archive=ignore_archive)
+        return cls(file_path, data, bucket, ignore_archive=ignore_archive)
+    return cls(file_path, {'archives': {}}, bucket,
+               ignore_archive=ignore_archive)
 
   def WprFilePathForPage(self, page):
     if self.temp_target_wpr_file_path:

@@ -48,7 +48,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
 
     # Create the PageSetArchiveInfo object to be tested.
     self.archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file)
+        self.page_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
 
   def tearDown(self):
     shutil.rmtree(self.tmp_dir)
@@ -157,7 +157,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
 
     # Create the PageSetArchiveInfo object to be tested.
     self.archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file)
+        self.page_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
 
     # Add a recording for all the pages.
     new_temp_recording = os.path.join(self.tmp_dir, 'recording.wpr')
@@ -181,6 +181,6 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     # Check that the archive info was written correctly.
     self.assertTrue(os.path.exists(self.page_set_archive_info_file))
     read_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file)
+        self.page_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
     self.assertEquals(new_recording,
                       read_archive_info.WprFilePathForPage(page1))

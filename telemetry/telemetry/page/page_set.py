@@ -89,7 +89,7 @@ class PageSet(user_story_set.UserStorySet):
     if self.archive_data_file and not self._wpr_archive_info:
       self._wpr_archive_info = (
           page_set_archive_info.PageSetArchiveInfo.FromFile(
-            os.path.join(self.base_dir, self.archive_data_file)))
+            os.path.join(self.base_dir, self.archive_data_file), self._bucket))
     return self._wpr_archive_info
 
   @property
