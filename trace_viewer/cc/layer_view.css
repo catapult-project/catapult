@@ -30,3 +30,32 @@ layer-view > layer-view-analysis * {
 .labeled-checkbox {
   white-space: nowrap;
 }
+
+.labeled-option-group {
+  -webkit-flex: 0 0 auto;
+  -webkit-flex-direction: column;
+  -webkit-align-items: left;
+  display: -webkit-flex;
+}
+
+.labeled-option {
+  border-top: 5px solid white;
+  border-bottom: 5px solid white;
+}
+
+.edit-categories {
+  padding-left: 6px;
+}
+
+.edit-categories:after {
+  padding-left: 15px;
+  font-size: 125%;
+}
+
+.labeled-option-group:not(.categories-expanded) .edit-categories:after {
+  content: '\25B8'; /* Right triangle */
+}
+
+.labeled-option-group.categories-expanded .edit-categories:after {
+  content: '\25BE'; /* Down triangle */
+}

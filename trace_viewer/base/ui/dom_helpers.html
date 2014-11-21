@@ -44,15 +44,16 @@ tv.exportTo('tv.ui', function() {
     return styleEl;
   }
 
+  function valuesEqual(a, b) {
+    if (a instanceof Array && b instanceof Array)
+      return a.length === b.length && JSON.stringify(a) === JSON.stringify(b);
+    return a === b;
+  }
+
   function createSelector(
       targetEl, targetElProperty,
       settingsKey, defaultValue,
       items, opt_namespace) {
-    function valuesEqual(a, b) {
-      if (a instanceof Array && b instanceof Array)
-        return a.length == b.length && JSON.stringify(a) == JSON.stringify(b);
-      return a == b;
-    }
     var defaultValueIndex;
     for (var i = 0; i < items.length; i++) {
       var item = items[i];
@@ -117,6 +118,79 @@ tv.exportTo('tv.ui', function() {
     return selectorEl;
   }
 
+  function createEditCategorySpan(optionGroupEl, targetEl) {
+    var spanEl = createSpan({className: 'edit-categories'});
+    spanEl.textContent = 'Edit categories';
+    spanEl.classList.add('labeled-option');
+
+    spanEl.addEventListener('click', function() {
+      targetEl.onClickEditCategories();
+    });
+    return spanEl;
+  }
+
+  function createOptionGroup(targetEl, targetElProperty,
+                             settingsKey, defaultValue,
+                             items) {
+    function onChange() {
+      var value = [];
+      if (this.value.length)
+        value = this.value.split(',');
+      tv.Settings.set(settingsKey, value);
+      targetEl[targetElProperty] = value;
+    }
+
+    var optionGroupEl = createSpan({className: 'labeled-option-group'});
+    var initialValue = tv.Settings.get(settingsKey, defaultValue);
+    var didSetInitialValue = false;
+    for (var i = 0; i < items.length; ++i) {
+      var item = items[i];
+      var id = 'category-preset-' + i;
+
+      var radioEl = document.createElement('input');
+      radioEl.type = 'radio';
+      radioEl.setAttribute('id', id);
+      radioEl.setAttribute('name', 'category-presets-group');
+      radioEl.setAttribute('value', item.value);
+      radioEl.addEventListener('change', onChange.bind(radioEl, targetEl,
+                                                       targetElProperty,
+                                                       settingsKey));
+      if (valuesEqual(initialValue, item.value)) {
+        radioEl.checked = true;
+        targetEl[targetElProperty] = initialValue;
+        didSetInitialValue = true;
+      }
+
+      var labelEl = document.createElement('label');
+      labelEl.textContent = item.label;
+      labelEl.setAttribute('for', id);
+
+      var spanEl = createSpan({className: 'labeled-option'});
+      spanEl.appendChild(radioEl);
+      spanEl.appendChild(labelEl);
+
+      spanEl.__defineSetter__('checked', function(opt_bool) {
+        var changed = radioEl.checked !== (!!opt_bool);
+        if (!changed)
+          return;
+
+        radioEl.checked = !!opt_bool;
+        onChange();
+      });
+      spanEl.__defineGetter__('checked', function() {
+        return radioEl.checked;
+      });
+
+      optionGroupEl.appendChild(spanEl);
+    }
+    optionGroupEl.appendChild(createEditCategorySpan(optionGroupEl, targetEl));
+
+    if (!didSetInitialValue)
+      targetEl[targetElProperty] = defaultValue;
+
+    return optionGroupEl;
+  }
+
   var nextCheckboxId = 1;
   function createCheckBox(targetEl, targetElProperty,
                           settingsKey, defaultValue,
@@ -175,6 +249,7 @@ tv.exportTo('tv.ui', function() {
     createDiv: createDiv,
     createScopedStyle: createScopedStyle,
     createSelector: createSelector,
+    createOptionGroup: createOptionGroup,
     createCheckBox: createCheckBox,
     isElementAttachedToDocument: isElementAttachedToDocument
   };
