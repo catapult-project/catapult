@@ -14,6 +14,7 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.page import shared_page_state
+from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
 from telemetry.page.actions import page_action
 from telemetry.results import results_options
@@ -75,25 +76,25 @@ def ProcessCommandLineArgs(parser, args):
     parser.error('--pageset-repeat must be a positive integer.')
 
 
-def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
-                                       page, results, state):
+def _RunUserStoryAndProcessErrorIfNeeded(
+    test, expectations, user_story, results, state):
   expectation = None
   def ProcessError():
     if expectation == 'fail':
-      msg = 'Expected exception while running %s' % page.url
+      msg = 'Expected exception while running %s' % user_story.display_name
       exception_formatter.PrintFormattedException(msg=msg)
     else:
-      msg = 'Exception while running %s' % page.url
-      results.AddValue(failure.FailureValue(page, sys.exc_info()))
+      msg = 'Exception while running %s' % user_story.display_name
+      results.AddValue(failure.FailureValue(user_story, sys.exc_info()))
 
   try:
-    state.WillRunPage(page, page_set)
-    expectation, skip_value = state.GetPageExpectationAndSkipValue(expectations)
+    state.WillRunUserStory(user_story)
+    expectation, skip_value = state.GetTestExpectationAndSkipValue(expectations)
     if expectation == 'skip':
       assert skip_value
       results.AddValue(skip_value)
       return
-    state.RunPage(results)
+    state.RunUserStory(results)
   except page_test.TestNotSupportedOnPlatformFailure:
     raise
   except (page_test.Failure, util.TimeoutException, exceptions.LoginException,
@@ -101,27 +102,29 @@ def _RunPageAndHandleExceptionIfNeeded(test, page_set, expectations,
     ProcessError()
   except exceptions.AppCrashException:
     ProcessError()
-    state.TearDown(results)
+    state.TearDownState(results)
     if test.is_multi_tab_test:
       logging.error('Aborting multi-tab test after browser or tab crashed at '
-                    'page %s' % page.url)
+                    'user story %s' % user_story.display_name)
       test.RequestExit()
       return
   except page_action.PageActionNotSupported as e:
-    results.AddValue(skip.SkipValue(page, 'Unsupported page action: %s' % e))
+    results.AddValue(
+        skip.SkipValue(user_story, 'Unsupported page action: %s' % e))
   except Exception:
     exception_formatter.PrintFormattedException(
-        msg='Unhandled exception while running %s' % page.url)
-    results.AddValue(failure.FailureValue(page, sys.exc_info()))
+        msg='Unhandled exception while running %s' % user_story.display_name)
+    results.AddValue(failure.FailureValue(user_story, sys.exc_info()))
   else:
     if expectation == 'fail':
-      logging.warning('%s was expected to fail, but passed.\n', page.url)
+      logging.warning(
+          '%s was expected to fail, but passed.\n', user_story.display_name)
   finally:
-    state.DidRunPage(results)
+    state.DidRunUserStory(results)
 
 
 @decorators.Cache
-def _UpdatePageSetArchivesIfChanged(page_set):
+def _UpdateUserStoryArchivesIfChanged(page_set):
   # Scan every serving directory for .sha1 files
   # and download them from Cloud Storage. Assume all data is public.
   all_serving_dirs = page_set.serving_dirs.copy()
@@ -142,76 +145,138 @@ def _UpdatePageSetArchivesIfChanged(page_set):
         cloud_storage.GetIfChanged(path, page_set.bucket)
 
 
-def Run(test, page_set, expectations, finder_options, results):
+class UserStoryGroup(object):
+  def __init__(self, shared_user_story_state_class):
+    self._shared_user_story_state_class = shared_user_story_state_class
+    self._user_stories = []
+
+  @property
+  def shared_user_story_state_class(self):
+    return self._shared_user_story_state_class
+
+  @property
+  def user_stories(self):
+    return self._user_stories
+
+  def AddUserStory(self, user_story):
+    assert (user_story.shared_user_story_state_class is
+            self._shared_user_story_state_class)
+    self._user_stories.append(user_story)
+
+
+def GetUserStoryGroupsWithSameSharedUserStoryClass(user_story_set):
+  """ Returns a list of user story groups which each contains user stories with
+  the same shared_user_story_state_class.
+
+  Example:
+    Assume A1, A2, A3 are user stories with same shared user story class, and
+    similar for B1, B2.
+    If their orders in user story set is A1 A2 B1 B2 A3, then the grouping will
+    be [A1 A2] [B1 B2] [A3].
+
+  It's purposefully done this way to make sure that order of user
+  stories are the same of that defined in user_story_set. It's recommended that
+  user stories with the same states should be arranged next to each others in
+  user story sets to reduce the overhead of setting up & tearing down the
+  shared user story state.
+  """
+  user_story_groups = []
+  user_story_groups.append(
+      UserStoryGroup(user_story_set[0].shared_user_story_state_class))
+  for user_story in user_story_set:
+    if (user_story.shared_user_story_state_class is not
+        user_story_groups[-1].shared_user_story_state_class):
+      user_story_groups.append(
+          UserStoryGroup(user_story.shared_user_story_state_class))
+    user_story_groups[-1].AddUserStory(user_story)
+  return user_story_groups
+
+
+def Run(test, user_story_set, expectations, finder_options, results):
   """Runs a given test against a given page_set with the given options."""
-  test.ValidatePageSet(page_set)
+  test.ValidatePageSet(user_story_set)
 
   # Reorder page set based on options.
-  pages = _ShuffleAndFilterPageSet(page_set, finder_options)
+  user_stories = _ShuffleAndFilterUserStorySet(user_story_set, finder_options)
 
-  if not finder_options.use_live_sites:
-    if finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD:
-      _UpdatePageSetArchivesIfChanged(page_set)
-      pages = _CheckArchives(page_set, pages, results)
+  if (not finder_options.use_live_sites and
+      finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD and
+      # TODO(nednguyen): also handle these logic for user_story_set in next
+      # patch.
+      isinstance(user_story_set, page_set_module.PageSet)):
+    _UpdateUserStoryArchivesIfChanged(user_story_set)
+    user_stories = _CheckArchives(user_story_set, user_stories, results)
 
-  for page in list(pages):
-    if not test.CanRunForPage(page):
-      results.WillRunPage(page)
-      logging.debug('Skipping test: it cannot run for %s', page.url)
-      results.AddValue(skip.SkipValue(page, 'Test cannot run'))
-      results.DidRunPage(page)
-      pages.remove(page)
+  for user_story in list(user_stories):
+    if not test.CanRunForPage(user_story):
+      results.WillRunPage(user_story)
+      logging.debug('Skipping test: it cannot run for %s',
+                    user_story.display_name)
+      results.AddValue(skip.SkipValue(user_story, 'Test cannot run'))
+      results.DidRunPage(user_story)
+      user_stories.remove(user_story)
 
-  if not pages:
+  if not user_stories:
     return
 
-  state = shared_page_state.SharedPageState(test, finder_options, page_set)
-  pages_with_discarded_first_result = set()
+  user_story_with_discarded_first_results = set()
   max_failures = finder_options.max_failures  # command-line gets priority
   if max_failures is None:
     max_failures = test.max_failures  # may be None
+  user_story_groups = GetUserStoryGroupsWithSameSharedUserStoryClass(
+      user_stories)
 
-  try:
-    test.WillRunTest(finder_options)
-    for _ in xrange(finder_options.pageset_repeat):
-      for page in pages:
-        if test.IsExiting():
-          break
-        for _ in xrange(finder_options.page_repeat):
-          results.WillRunPage(page)
-          try:
-            _WaitForThermalThrottlingIfNeeded(state.platform)
-            _RunPageAndHandleExceptionIfNeeded(
-                test, page_set, expectations, page, results, state)
-          except Exception:
-            # Tear down & restart the state for unhandled exceptions thrown by
-            # _RunPageAndHandleExceptionIfNeeded.
-            results.AddValue(failure.FailureValue(page, sys.exc_info()))
-            state.TearDown(results)
-            state = shared_page_state.SharedPageState(
-                test, finder_options, page_set)
-          finally:
-            _CheckThermalThrottling(state.platform)
-            discard_run = (test.discard_first_result and
-                           page not in pages_with_discarded_first_result)
-            if discard_run:
-              pages_with_discarded_first_result.add(page)
-            results.DidRunPage(page, discard_run=discard_run)
-        if max_failures is not None and len(results.failures) > max_failures:
-          logging.error('Too many failures. Aborting.')
-          test.RequestExit()
-  finally:
-    state.TearDown(results)
+  test.WillRunTest(finder_options)
+  state = None
+  for _ in xrange(finder_options.pageset_repeat):
+    for group in user_story_groups:
+      try:
+        state = group.shared_user_story_state_class(
+            test, finder_options, user_story_set)
+        for user_story in group.user_stories:
+          if test.IsExiting():
+            break
+          for _ in xrange(finder_options.page_repeat):
+            results.WillRunPage(user_story)
+            try:
+              _WaitForThermalThrottlingIfNeeded(state.platform)
+              _RunUserStoryAndProcessErrorIfNeeded(
+                  test, expectations, user_story, results, state)
+            except Exception:
+              # Tear down & restart the state for unhandled exceptions thrown by
+              # _RunUserStoryAndProcessErrorIfNeeded.
+              results.AddValue(failure.FailureValue(user_story, sys.exc_info()))
+              state.TearDownState(results)
+              state = group.shared_user_story_state_class(
+                  test, finder_options, user_story_set)
+            finally:
+              _CheckThermalThrottling(state.platform)
+              discard_run = (test.discard_first_result and
+                            user_story not in
+                            user_story_with_discarded_first_results)
+              if discard_run:
+                user_story_with_discarded_first_results.add(user_story)
+              results.DidRunPage(user_story, discard_run=discard_run)
+          if max_failures is not None and len(results.failures) > max_failures:
+            logging.error('Too many failures. Aborting.')
+            test.RequestExit()
+      finally:
+        if state:
+          state.TearDownState(results)
 
-
-def _ShuffleAndFilterPageSet(page_set, finder_options):
+def _ShuffleAndFilterUserStorySet(user_story_set, finder_options):
   if finder_options.pageset_shuffle_order_file:
-    return page_set.ReorderPageSet(finder_options.pageset_shuffle_order_file)
-  pages = [page for page in page_set.pages[:]
-           if user_story_filter.UserStoryFilter.IsSelected(page)]
+    if isinstance(user_story_set, page_set_module.PageSet):
+      return page_set_module.ReorderPageSet(
+          finder_options.pageset_shuffle_order_file)
+    else:
+      raise Exception(
+          'pageset-shuffle-order-file flag can only be used with page set')
+  user_stories = [u for u in user_story_set[:]
+                  if user_story_filter.UserStoryFilter.IsSelected(u)]
   if finder_options.pageset_shuffle:
-    random.shuffle(pages)
-  return pages
+    random.shuffle(user_stories)
+  return user_stories
 
 
 def _CheckArchives(page_set, pages, results):

@@ -10,7 +10,6 @@ from telemetry.core import util
 from telemetry.core.backends import codepen_credentials_backend
 from telemetry.core.backends import facebook_credentials_backend
 from telemetry.core.backends import google_credentials_backend
-from telemetry.page.actions import action_runner
 from telemetry.unittest_util import options_for_unittests
 
 
@@ -59,6 +58,7 @@ class BrowserCredentials(object):
           'Unrecognized credentials type: %s', credentials_type)
     if credentials_type not in self._credentials:
       return False
+    from telemetry.page.actions import action_runner
     runner = action_runner.ActionRunner(tab)
     return self._backends[credentials_type].LoginNeeded(
       tab, runner, self._credentials[credentials_type])

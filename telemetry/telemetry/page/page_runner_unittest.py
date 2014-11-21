@@ -17,13 +17,13 @@ from telemetry.core import exceptions
 from telemetry.core import user_agent
 from telemetry.core import util
 from telemetry.page import page as page_module
-from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
+from telemetry.user_story import user_story_runner
 from telemetry.util import exception_formatter as exception_formatter_module
 from telemetry.value import scalar
 from telemetry.value import string
@@ -44,11 +44,11 @@ class DummyTest(page_test.PageTest):
     pass
 
 
-def SetUpPageRunnerArguments(options):
+def SetUpUserStoryRunnerArguments(options):
   parser = options.CreateParser()
-  page_runner.AddCommandLineArgs(parser)
+  user_story_runner.AddCommandLineArgs(parser)
   options.MergeDefaultValues(parser.get_default_values())
-  page_runner.ProcessCommandLineArgs(parser, options)
+  user_story_runner.ProcessCommandLineArgs(parser, options)
 
 class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
   def __init__(self):
@@ -83,23 +83,25 @@ class FakeExceptionFormatterModule(object):
     pass
 
 
+# TODO: remove test cases that use real browsers and replace with a
+# user_story_runner or shared_page_state unittest that tests the same logic.
 class PageRunnerTests(unittest.TestCase):
   # TODO(nduca): Move the basic "test failed, test succeeded" tests from
   # page_test_unittest to here.
 
   def setUp(self):
-    self._page_runner_logging_stub = None
+    self._user_story_runner_logging_stub = None
 
   def SuppressExceptionFormatting(self):
-    page_runner.exception_formatter = FakeExceptionFormatterModule
-    self._page_runner_logging_stub = system_stub.Override(
-      page_runner, ['logging'])
+    user_story_runner.exception_formatter = FakeExceptionFormatterModule
+    self._user_story_runner_logging_stub = system_stub.Override(
+      user_story_runner, ['logging'])
 
   def RestoreExceptionFormatter(self):
-    page_runner.exception_formatter = exception_formatter_module
-    if self._page_runner_logging_stub:
-      self._page_runner_logging_stub.Restore()
-      self._page_runner_logging_stub = None
+    user_story_runner.exception_formatter = exception_formatter_module
+    if self._user_story_runner_logging_stub:
+      self._user_story_runner_logging_stub.Restore()
+      self._user_story_runner_logging_stub = None
 
   def tearDown(self):
     self.RestoreExceptionFormatter()
@@ -118,9 +120,9 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(Test(), ps, expectations, options, results)
+    user_story_runner.Run(Test(), ps, expectations, options, results)
     self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
 
@@ -150,9 +152,9 @@ class PageRunnerTests(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     test = Test()
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(test, ps, expectations, options, results)
+    user_story_runner.Run(test, ps, expectations, options, results)
     self.assertEquals(2, test.run_count)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
@@ -180,9 +182,9 @@ class PageRunnerTests(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     test = Test()
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(test, ps, expectations, options, results)
+    user_story_runner.Run(test, ps, expectations, options, results)
     self.assertEquals(2, test.run_count)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
@@ -211,9 +213,9 @@ class PageRunnerTests(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     test = Test()
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(test, ps, expectations, options, results)
+    user_story_runner.Run(test, ps, expectations, options, results)
     self.assertEquals(2, test.run_count)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
@@ -229,9 +231,9 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(DummyTest(), ps, expectations, options, results)
+    user_story_runner.Run(DummyTest(), ps, expectations, options, results)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
 
@@ -261,27 +263,27 @@ class PageRunnerTests(unittest.TestCase):
 
     options.page_repeat = 1
     options.pageset_repeat = 1
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(Measurement(), ps, expectations, options, results)
+    user_story_runner.Run(Measurement(), ps, expectations, options, results)
     self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
     self.assertEquals(0, len(results.all_page_specific_values))
 
     options.page_repeat = 1
     options.pageset_repeat = 2
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(Measurement(), ps, expectations, options, results)
+    user_story_runner.Run(Measurement(), ps, expectations, options, results)
     self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
     self.assertEquals(2, len(results.all_page_specific_values))
 
     options.page_repeat = 2
     options.pageset_repeat = 1
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(Measurement(), ps, expectations, options, results)
+    user_story_runner.Run(Measurement(), ps, expectations, options, results)
     self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
     self.assertEquals(2, len(results.all_page_specific_values))
@@ -290,9 +292,9 @@ class PageRunnerTests(unittest.TestCase):
     options.suppress_gtest_report = True
     options.page_repeat = 1
     options.pageset_repeat = 1
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(Measurement(), ps, expectations, options, results)
+    user_story_runner.Run(Measurement(), ps, expectations, options, results)
     self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
     self.assertEquals(0, len(results.all_page_specific_values))
@@ -321,14 +323,14 @@ class PageRunnerTests(unittest.TestCase):
     options.results_label = None
     options.page_repeat = 1
     options.pageset_repeat = 2
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
 
     output = StringIO.StringIO()
     real_stdout = sys.stdout
     sys.stdout = output
     try:
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      page_runner.Run(Measurement(), ps, expectations, options, results)
+      user_story_runner.Run(Measurement(), ps, expectations, options, results)
       results.PrintSummary()
       contents = output.getvalue()
       self.assertEquals(4, len(GetSuccessfulPageRuns(results)))
@@ -384,9 +386,9 @@ class PageRunnerTests(unittest.TestCase):
       options = options_for_unittests.GetCopy()
       options.output_formats = ['none']
       options.suppress_gtest_report = True
-      SetUpPageRunnerArguments(options)
+      SetUpUserStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      page_runner.Run(test, ps, expectations, options, results)
+      user_story_runner.Run(test, ps, expectations, options, results)
     finally:
       os.remove(f.name)
 
@@ -415,13 +417,13 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(test, ps, expectations, options, results)
+    user_story_runner.Run(test, ps, expectations, options, results)
 
     self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
 
-  # Ensure that page_runner forces exactly 1 tab before running a page.
+  # Ensure that user_story_runner forces exactly 1 tab before running a page.
   @decorators.Enabled('has tabs')
   def testOneTab(self):
     ps = page_set.PageSet()
@@ -446,12 +448,12 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(test, ps, expectations, options, results)
+    user_story_runner.Run(test, ps, expectations, options, results)
 
-  # Ensure that page_runner allows the test to customize the browser before it
-  # launches.
+  # Ensure that user_story_runner allows the test to customize the browser
+  # before it launches.
   def testBrowserBeforeLaunch(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
@@ -480,9 +482,9 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(test, ps, expectations, options, results)
+    user_story_runner.Run(test, ps, expectations, options, results)
 
   def testRunPageWithStartupUrl(self):
     ps = page_set.PageSet()
@@ -512,13 +514,13 @@ class PageRunnerTests(unittest.TestCase):
     if not browser_finder.FindBrowser(options):
       return
     test = Measurement()
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(test, ps, expectations, options, results)
+    user_story_runner.Run(test, ps, expectations, options, results)
     self.assertEquals('about:blank', options.browser_options.startup_url)
     self.assertTrue(test.browser_restarted)
 
-  # Ensure that page_runner calls cleanUp when a page run fails.
+  # Ensure that user_story_runner calls cleanUp when a page run fails.
   def testCleanUpPage(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
@@ -542,9 +544,9 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(test, ps, expectations, options, results)
+    user_story_runner.Run(test, ps, expectations, options, results)
     assert test.did_call_clean_up
 
   # Ensure skipping the test if page cannot be run on the browser
@@ -580,9 +582,9 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(test, ps, expectations, options, results)
+    user_story_runner.Run(test, ps, expectations, options, results)
     self.assertFalse(test.will_navigate_to_page_called)
     self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
@@ -615,9 +617,9 @@ class PageRunnerTests(unittest.TestCase):
     if not max_failures is None:
       options.max_failures = max_failures
       expected_max_failures = max_failures
-    SetUpPageRunnerArguments(options)
+    SetUpUserStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    page_runner.Run(Test(max_failures=2),
+    user_story_runner.Run(Test(max_failures=2),
                     ps, expectations, options, results)
     self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     # Runs up to max_failures+1 failing tests before stopping, since
@@ -654,9 +656,9 @@ class PageRunnerTests(unittest.TestCase):
     options.output_dir = tempfile.mkdtemp()
     options.profiler = 'trace'
     try:
-      SetUpPageRunnerArguments(options)
+      SetUpUserStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      page_runner.Run(Measurement(), ps, expectations, options, results)
+      user_story_runner.Run(Measurement(), ps, expectations, options, results)
       self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
       self.assertEquals(0, len(results.failures))
       self.assertEquals(0, len(results.all_page_specific_values))

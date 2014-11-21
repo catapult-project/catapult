@@ -7,17 +7,17 @@ import unittest
 
 from telemetry.core import wpr_modes
 from telemetry.page import shared_page_state
-from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.unittest_util import options_for_unittests
+from telemetry.user_story import user_story_runner
 
 
 def SetUpPageRunnerArguments(options):
   parser = options.CreateParser()
-  page_runner.AddCommandLineArgs(parser)
+  user_story_runner.AddCommandLineArgs(parser)
   options.MergeDefaultValues(parser.get_default_values())
-  page_runner.ProcessCommandLineArgs(parser, options)
+  user_story_runner.ProcessCommandLineArgs(parser, options)
 
 
 class DummyTest(page_test.PageTest):
