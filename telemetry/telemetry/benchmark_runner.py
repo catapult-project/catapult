@@ -24,15 +24,6 @@ from telemetry.core import util
 from telemetry.util import find_dependencies
 
 
-class Deps(find_dependencies.FindDependenciesCommand):
-  """Prints all dependencies"""
-
-  def Run(self, args):
-    main_module = sys.modules['__main__']
-    args.positional_args.append(os.path.realpath(main_module.__file__))
-    return super(Deps, self).Run(args)
-
-
 class Help(command_line.OptparseCommand):
   """Display help information about a command"""
 
