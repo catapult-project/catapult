@@ -226,7 +226,7 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
 
   def _HandleError(self, elapsed_time):
     if self._IsInspectable():
-      raise util.TimeoutException(
+      raise exceptions.DevtoolsTargetCrashException(self.app,
           'Received a socket error in the browser connection and the tab '
           'still exists, assuming it timed out. '
           'Elapsed=%ds Error=%s' % (elapsed_time, sys.exc_info()[1]))
