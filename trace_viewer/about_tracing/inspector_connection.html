@@ -14,18 +14,18 @@ found in the LICENSE file.
  * tracing, and that tracing can use to talk to inspector.
  */
 tv.exportTo('about_tracing', function() {
-  // Shim needed to keep the bootup code of chrome://inspect happy.
-  window.WebInspector = { };
-  window.WebInspector.addExtensions = function() { };
-
   // Interface used by inspector when it hands data to us from the backend.
-  window.InspectorFrontendAPI = {
+  window.DevToolsAPI = {
     setToolbarColors: function() { },
+    addExtensions: function() { },
+    setInspectedPageId: function() { },
 
     dispatchMessage: function(payload) {
       throw new Error('Should have been patched by InspectorConnection');
     }
   };
+  // Temporary until inspector backend switches to DevToolsAPI.
+  window.InspectorFrontendAPI = window.DevToolsAPI;
 
   /**
    * @constructor
@@ -38,7 +38,7 @@ tv.exportTo('about_tracing', function() {
     this.pendingRequestResolversId_ = {};
 
     this.notificationListenersByMethodName_ = {};
-    InspectorFrontendAPI.dispatchMessage = this.dispatchMessage_.bind(this);
+    DevToolsAPI.dispatchMessage = this.dispatchMessage_.bind(this);
   }
 
   InspectorConnection.prototype = {
@@ -49,7 +49,7 @@ tv.exportTo('about_tracing', function() {
         method: method,
         params: params
       });
-      InspectorFrontendHost.sendMessageToBackend(msg);
+      DevToolsHost.sendMessageToBackend(msg);
 
       return new Promise(function(resolve, reject) {
         this.pendingRequestResolversId_[id] = {
@@ -103,7 +103,7 @@ tv.exportTo('about_tracing', function() {
     }
   };
 
-  if (window.InspectorFrontendHost)
+  if (window.DevToolsHost)
     InspectorConnection.instance = new InspectorConnection();
   else
     InspectorConnection.instance = undefined;
