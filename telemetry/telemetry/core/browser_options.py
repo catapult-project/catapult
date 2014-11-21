@@ -204,6 +204,8 @@ class BrowserOptions(object):
     # Background pages of built-in component extensions can interfere with
     # performance measurements.
     self.disable_component_extensions_with_background_pages = True
+    # Disable default apps.
+    self.disable_default_apps = True
 
     # Whether to use the new code path for choosing an ephemeral port for
     # DevTools. The bots set this to true. When Chrome 37 reaches stable,
@@ -372,8 +374,6 @@ class CrosBrowserOptions(ChromeBrowserOptions):
     self.clear_enterprise_policy = True
     # Disable GAIA/enterprise services.
     self.disable_gaia_services = True
-    # Disable default apps.
-    self.disable_default_apps = True
 
     self.auto_login = True
     self.gaia_login = False

@@ -121,6 +121,11 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self.browser_options.disable_component_extensions_with_background_pages:
       args.append('--disable-component-extensions-with-background-pages')
 
+    # Disables the start page, as well as other external apps that can
+    # steal focus or make measurements inconsistent.
+    if self.browser_options.disable_default_apps:
+      args.append('--disable-default-apps')
+
     return args
 
   def _UseHostResolverRules(self):
