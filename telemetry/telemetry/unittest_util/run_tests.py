@@ -102,7 +102,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     if possible_browser.platform.GetOSName() in ('android', 'chromeos'):
       runner.args.jobs = 1
     else:
-      runner.args.jobs = max(int(args.jobs) // 4, 1)
+      runner.args.jobs = max(int(args.jobs) // 2, 1)
 
     runner.args.metadata = args.metadata
     runner.args.passthrough = args.passthrough
