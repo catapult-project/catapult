@@ -211,7 +211,8 @@ def Insert(bucket, remote_path, local_path, publicly_readable=False):
   command_and_args += [local_path, url]
   logging.info('Uploading %s to %s%s' % (local_path, url, extra_info))
   _RunCommand(command_and_args)
-  return 'http://storage.googleapis.com/%s/%s' % (bucket, remote_path)
+  return 'https://console.developers.google.com/m/cloudstorage/b/%s/o/%s' % (
+      bucket, remote_path)
 
 
 def GetIfChanged(file_path, bucket=None):
