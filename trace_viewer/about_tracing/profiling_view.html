@@ -120,7 +120,7 @@ tv.exportTo('about_tracing', function() {
 
       if (tracingControllerClient) {
         this.tracingControllerClient_ = tracingControllerClient;
-      } else if (window.InspectorFrontendHost !== undefined) {
+      } else if (window.DevToolsHost !== undefined) {
         this.tracingControllerClient_ =
             new about_tracing.InspectorTracingControllerClient();
       } else {

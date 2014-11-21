@@ -43,7 +43,7 @@ found in the LICENSE file.
   var profilingViewEl;
 
   function onLoad() {
-    if (window.InspectorFrontendHost === undefined) {
+    if (window.DevToolsHost === undefined) {
       tv.showPanic(
           'This page only works when launched from chrome://inspect',
           'Try going to ' +
