@@ -7,7 +7,6 @@ import os
 import urlparse
 
 from telemetry import user_story
-from telemetry.page import shared_page_state
 from telemetry.util import cloud_storage
 from telemetry.util import path
 
@@ -25,7 +24,7 @@ def _UpdateCredentials(credentials_path):
 class Page(user_story.UserStory):
   def __init__(self, url, page_set=None, base_dir=None, name='',
                credentials_path=None, labels=None):
-    super(Page, self).__init__(shared_page_state.SharedPageState, name, labels)
+    super(Page, self).__init__(name, labels)
     self._url = url
     self._page_set = page_set
     # Default value of base_dir is the directory of the file that defines the

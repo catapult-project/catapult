@@ -34,9 +34,6 @@ class UserStorySet(object):
     else:
       return ''
 
-  def ShuffleAndFilterUserStorySet(self, finder_options):
-    pass
-
   def __iter__(self):
     return self.user_stories.__iter__()
 

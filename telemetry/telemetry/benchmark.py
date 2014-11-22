@@ -13,7 +13,7 @@ from telemetry import decorators
 from telemetry.core import browser_finder
 from telemetry.core import command_line
 from telemetry.core import util
-from telemetry.user_story import user_story_runner
+from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
@@ -102,7 +102,7 @@ class Benchmark(command_line.Command):
     benchmark_metadata = self.GetMetadata()
     results = results_options.CreateResults(benchmark_metadata, finder_options)
     try:
-      user_story_runner.Run(pt, us, expectations, finder_options, results)
+      page_runner.Run(pt, us, expectations, finder_options, results)
     except page_test.TestNotSupportedOnPlatformFailure as failure:
       logging.warning(str(failure))
 
@@ -215,8 +215,8 @@ class Benchmark(command_line.Command):
 
 
 def AddCommandLineArgs(parser):
-  user_story_runner.AddCommandLineArgs(parser)
+  page_runner.AddCommandLineArgs(parser)
 
 
 def ProcessCommandLineArgs(parser, args):
-  user_story_runner.ProcessCommandLineArgs(parser, args)
+  page_runner.ProcessCommandLineArgs(parser, args)

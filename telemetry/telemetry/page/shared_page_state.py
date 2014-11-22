@@ -12,7 +12,6 @@ from telemetry.core import browser_info
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.page import page_test
-from telemetry.user_story import shared_user_story_state
 from telemetry.util import file_handle
 from telemetry.value import skip
 from telemetry.core.platform.profiler import profiler_finder
@@ -29,11 +28,10 @@ def _PrepareFinderOptions(finder_options, test, page_set):
     profiler_class.CustomizeBrowserOptions(browser_options.browser_type,
                                            finder_options)
 
-class SharedPageState(shared_user_story_state.SharedUserStoryState):
-  def __init__(self, test, finder_options, user_story_set):
-    super(SharedPageState, self).__init__(test, finder_options, user_story_set)
+class SharedPageState(object):
+  def __init__(self, test, finder_options, page_set):
     self.browser = None
-    _PrepareFinderOptions(finder_options, test, user_story_set)
+    _PrepareFinderOptions(finder_options, test, page_set)
     self._finder_options = finder_options
     self._possible_browser = self._GetPossibleBrowser(test, finder_options)
 
@@ -66,7 +64,7 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
       sys.exit(0)
     return possible_browser
 
-  def DidRunUserStory(self, results):
+  def DidRunPage(self, results):
     if self._finder_options.profiler:
       self._StopProfiling(results)
     util.CloseConnections(self._current_tab)
@@ -105,8 +103,7 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
         archive_path, wpr_mode, browser_options.netsim,
         browser_options.extra_wpr_args, make_javascript_deterministic)
 
-  def WillRunUserStory(self, page):
-    page_set = page.page_set
+  def WillRunPage(self, page, page_set):
     self._current_page = page
     if self._test.RestartBrowserBeforeEachPage() or page.startup_url:
       self._StopBrowser()
@@ -181,7 +178,7 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
     if self._finder_options.profiler:
       self._StartProfiling(self._current_page)
 
-  def GetTestExpectationAndSkipValue(self, expectations):
+  def GetPageExpectationAndSkipValue(self, expectations):
     skip_value = None
     if not self._current_page.CanRunOnBrowser(
         browser_info.BrowserInfo(self.browser)):
@@ -223,15 +220,14 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
     self._test.RunNavigateSteps(self._current_page, self._current_tab)
     self._test.DidNavigateToPage(self._current_page, self._current_tab)
 
-  def RunUserStory(self, results):
+  def RunPage(self, results):
     self._PreparePage()
     self._ImplicitPageNavigation()
     self._test.RunPage(self._current_page, self._current_tab, results)
 
-  def TearDownState(self, results):
-    # NOTE: this is a HACK to get user_story_runner to be generic enough for any
-    # user_story while maintaing existing usecases of page tests. Other
-    # SharedUserStory should not call DidRunTest this way.
+  def TearDown(self, results):
+    # NOTE: this is a HACK to get page_runner to be generic enough for any
+    # user_story. Other SharedUserStory should not call DidRunTest this way.
     self._test.DidRunTest(self.browser, results)
     self._StopBrowser()
 

@@ -16,10 +16,10 @@ from telemetry import benchmark
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import util
+from telemetry.page import page_runner
 from telemetry.page import profile_creator
 from telemetry.page import test_expectations
 from telemetry.results import results_options
-from telemetry.user_story import user_story_runner
 
 
 def _DiscoverProfileCreatorClasses():
@@ -76,7 +76,7 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
 
   results = results_options.CreateResults(
       benchmark.BenchmarkMetadata(test.__class__.__name__), options)
-  user_story_runner.Run(test, test.page_set, expectations, options, results)
+  page_runner.Run(test, test.page_set, expectations, options, results)
 
   if results.failures:
     logging.warning('Some pages failed.')
@@ -100,7 +100,7 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
 
 
 def AddCommandLineArgs(parser):
-  user_story_runner.AddCommandLineArgs(parser)
+  page_runner.AddCommandLineArgs(parser)
 
   profile_creators = _DiscoverProfileCreatorClasses().keys()
   legal_profile_creators = '|'.join(profile_creators)
@@ -114,7 +114,7 @@ def AddCommandLineArgs(parser):
 
 
 def ProcessCommandLineArgs(parser, args):
-  user_story_runner.ProcessCommandLineArgs(parser, args)
+  page_runner.ProcessCommandLineArgs(parser, args)
 
   if not args.profile_type_to_generate:
     parser.error("Must specify --profile-type-to-generate option.")
