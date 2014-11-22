@@ -32,14 +32,10 @@ def _HasValueNamed(values, name):
 class JsonOutputFormatterTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
-    self._ouput_dir = tempfile.mkdtemp()
     self._page_set = _MakePageSet()
     self._formatter = json_output_formatter.JsonOutputFormatter(
-        self._output, self._ouput_dir,
+        self._output,
         benchmark.BenchmarkMetadata('benchmark_name'))
-
-  def tearDown(self):
-    shutil.rmtree(self._ouput_dir)
 
   def testOutputAndParse(self):
     results = page_test_results.PageTestResults()
@@ -57,7 +53,7 @@ class JsonOutputFormatterTest(unittest.TestCase):
   def testAsDictBaseKeys(self):
     results = page_test_results.PageTestResults()
     d = json_output_formatter.ResultsAsDict(results,
-        self._formatter.benchmark_metadata, self._ouput_dir)
+        self._formatter.benchmark_metadata)
 
     self.assertEquals(d['format_version'], '0.2')
     self.assertEquals(d['benchmark_name'], 'benchmark_name')
@@ -70,29 +66,34 @@ class JsonOutputFormatterTest(unittest.TestCase):
     results.DidRunPage(self._page_set[0])
 
     d = json_output_formatter.ResultsAsDict(results,
-        self._formatter.benchmark_metadata, self._ouput_dir)
+        self._formatter.benchmark_metadata)
 
     self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
     self.assertTrue(_HasValueNamed(d['per_page_values'], 'foo'))
 
   def testAsDictWithTraceValue(self):
-    results = page_test_results.PageTestResults()
-    results.WillRunPage(self._page_set[0])
-    v0 = trace.TraceValue(
-        results.current_page,
-        tracing_timeline_data.TracingTimelineData({'event': 'test'}))
-    results.AddValue(v0)
-    results.DidRunPage(self._page_set[0])
+    tempdir = tempfile.mkdtemp()
+    try:
+      results = page_test_results.PageTestResults()
+      results.WillRunPage(self._page_set[0])
+      v0 = trace.TraceValue(
+          results.current_page,
+          tracing_timeline_data.TracingTimelineData({'event': 'test'}))
+      results.AddValue(v0)
+      results.DidRunPage(self._page_set[0])
+      results._SerializeTracesToDirPath(tempdir)
+      d = json_output_formatter.ResultsAsDict(results,
+          self._formatter.benchmark_metadata)
 
-    d = json_output_formatter.ResultsAsDict(results,
-        self._formatter.benchmark_metadata, self._ouput_dir)
+      self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
+      self.assertTrue(_HasValueNamed(d['per_page_values'], 'trace'))
+      self.assertEquals(len(d['files']), 1)
+      output_trace_path = d['files'].values()[0]
+      self.assertTrue(output_trace_path.startswith(tempdir))
+      self.assertTrue(os.path.exists(output_trace_path))
+    finally:
+      shutil.rmtree(tempdir)
 
-    self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
-    self.assertTrue(_HasValueNamed(d['per_page_values'], 'trace'))
-    self.assertEquals(len(d['files']), 1)
-    output_trace_path = d['files'].values()[0]
-    self.assertTrue(output_trace_path.startswith(self._ouput_dir))
-    self.assertTrue(os.path.exists(output_trace_path))
 
 
   def testAsDictWithTwoPages(self):
@@ -108,7 +109,7 @@ class JsonOutputFormatterTest(unittest.TestCase):
     results.DidRunPage(self._page_set[1])
 
     d = json_output_formatter.ResultsAsDict(results,
-        self._formatter.benchmark_metadata, self._ouput_dir)
+        self._formatter.benchmark_metadata)
 
     self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
     self.assertTrue(_HasPage(d['pages'], self._page_set[1]))
@@ -121,7 +122,7 @@ class JsonOutputFormatterTest(unittest.TestCase):
     results.AddSummaryValue(v)
 
     d = json_output_formatter.ResultsAsDict(results,
-        self._formatter.benchmark_metadata, self._ouput_dir)
+        self._formatter.benchmark_metadata)
 
     self.assertFalse(d['pages'])
     self.assertTrue(_HasValueNamed(d['summary_values'], 'baz'))

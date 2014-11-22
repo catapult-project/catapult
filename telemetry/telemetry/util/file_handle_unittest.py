@@ -28,20 +28,3 @@ class FileHandleUnittest(unittest.TestCase):
     fh2 = file_handle.FromFilePath(self.abs_path_html)
     self.assertEquals(fh2.extension, '.html')
     self.assertNotEquals(fh1.id, fh2.id)
-
-  def testOutputFiles(self):
-    fh1 = file_handle.FromTempFile(self.temp_file_txt)
-    fh2 = file_handle.FromFilePath(self.abs_path_html)
-    tmpdir = tempfile.mkdtemp()
-    try:
-      file_ids_to_paths = file_handle.OutputFiles([fh1, fh2], tmpdir)
-      expected_output_file_1_path = os.path.join(tmpdir, str(fh1.id) + '.txt')
-      expected_output_file_2_path = os.path.join(tmpdir, str(fh2.id) + '.html')
-      self.assertEqual(file_ids_to_paths[fh1.id], expected_output_file_1_path)
-      self.assertEqual(file_ids_to_paths[fh2.id], expected_output_file_2_path)
-
-      # Test that the files are actually output.
-      self.assertTrue(os.path.exists(expected_output_file_1_path))
-      self.assertTrue(os.path.exists(expected_output_file_2_path))
-    finally:
-      shutil.rmtree(tmpdir)

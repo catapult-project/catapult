@@ -22,7 +22,7 @@ from telemetry.value import trace
 
 class PageTestResults(object):
   def __init__(self, output_stream=None, output_formatters=None,
-               progress_reporter=None, trace_tag=''):
+               progress_reporter=None, trace_tag='', output_dir=None):
     """
     Args:
       output_stream: The output stream to use to write test results.
@@ -44,11 +44,13 @@ class PageTestResults(object):
     self._output_formatters = (
         output_formatters if output_formatters is not None else [])
     self._trace_tag = trace_tag
+    self._output_dir = output_dir
 
     self._current_page_run = None
     self._all_page_runs = []
     self._representative_value_for_each_value_name = {}
     self._all_summary_values = []
+    self._serialized_trace_file_ids_to_paths = {}
     self._pages_to_profiling_files = collections.defaultdict(list)
     self._pages_to_profiling_files_cloud_url = collections.defaultdict(list)
 
@@ -62,6 +64,10 @@ class PageTestResults(object):
     return result
 
   @property
+  def serialized_trace_file_ids_to_paths(self):
+    return self._serialized_trace_file_ids_to_paths
+
+  @property
   def pages_to_profiling_files_cloud_url(self):
     return self._pages_to_profiling_files_cloud_url
 
@@ -73,14 +79,6 @@ class PageTestResults(object):
     if self._current_page_run:
       values += self._current_page_run.values
     return values
-
-  @property
-  def all_file_handles(self):
-    all_values = itertools.chain(
-        self.all_summary_values, self.all_page_specific_values)
-    # pylint: disable=deprecated-lambda
-    return [fh for fh in map(lambda v: v.GetAssociatedFileHandle(), all_values)
-            if fh is not None]
 
   @property
   def all_summary_values(self):
@@ -172,6 +170,13 @@ class PageTestResults(object):
 
   def PrintSummary(self):
     self._progress_reporter.DidFinishAllTests(self)
+
+    # Only serialize the trace if output_format is json.
+    from telemetry.results import json_output_formatter
+    if (self._output_dir and
+        any(isinstance(o, json_output_formatter.JsonOutputFormatter)
+            for o in self._output_formatters)):
+      self._SerializeTracesToDirPath(self._output_dir)
     for output_formatter in self._output_formatters:
       output_formatter.Format(self)
 
@@ -195,6 +200,13 @@ class PageTestResults(object):
       if isinstance(value, trace.TraceValue):
         values.append(value)
     return values
+
+  def _SerializeTracesToDirPath(self, dir_path):
+    """ Serialize all trace values to files in dir_path and return a list of
+    file handles to those files. """
+    for value in self.FindAllTraceValues():
+      fh = value.Serialize(dir_path)
+      self._serialized_trace_file_ids_to_paths[fh.id] = fh.GetAbsPath()
 
   def UploadTraceFilesToCloud(self, bucket):
     for value in self.FindAllTraceValues():

@@ -9,7 +9,7 @@ from telemetry.results import output_formatter
 from telemetry.util import file_handle
 
 
-def ResultsAsDict(page_test_results, benchmark_metadata, output_dir):
+def ResultsAsDict(page_test_results, benchmark_metadata):
   """Takes PageTestResults to a dict serializable to JSON.
 
   To serialize results as JSON we first convert them to a dict that can be
@@ -20,7 +20,6 @@ def ResultsAsDict(page_test_results, benchmark_metadata, output_dir):
   Args:
     page_test_results: a PageTestResults object
     benchmark_metadata: a benchmark.BenchmarkMetadata object
-    output_dir: the directory that results are being output to.
   """
   result_dict = {
     'format_version': '0.2',
@@ -31,21 +30,9 @@ def ResultsAsDict(page_test_results, benchmark_metadata, output_dir):
                         page_test_results.all_page_specific_values],
     'pages': {p.id: p.AsDict() for p in _GetAllPages(page_test_results)}
   }
-
-  file_ids_to_paths = _OutputTraceFiles(page_test_results, output_dir)
-  if file_ids_to_paths:
-    result_dict['files'] = file_ids_to_paths
+  if page_test_results.serialized_trace_file_ids_to_paths:
+    result_dict['files'] = page_test_results.serialized_trace_file_ids_to_paths
   return result_dict
-
-
-def _OutputTraceFiles(page_test_results, output_dir):
-  file_handles = page_test_results.all_file_handles
-  if not file_handles:
-    return {}
-  trace_dir = os.path.join(output_dir, 'trace_files')
-  if not os.path.isdir(trace_dir):
-    os.makedirs(trace_dir)
-  return file_handle.OutputFiles(file_handles, trace_dir)
 
 
 def _GetAllPages(page_test_results):
@@ -55,10 +42,9 @@ def _GetAllPages(page_test_results):
 
 
 class JsonOutputFormatter(output_formatter.OutputFormatter):
-  def __init__(self, output_stream, output_dir, benchmark_metadata):
+  def __init__(self, output_stream, benchmark_metadata):
     super(JsonOutputFormatter, self).__init__(output_stream)
     self._benchmark_metadata = benchmark_metadata
-    self._output_dir = output_dir
 
   @property
   def benchmark_metadata(self):
@@ -66,7 +52,6 @@ class JsonOutputFormatter(output_formatter.OutputFormatter):
 
   def Format(self, page_test_results):
     json.dump(
-        ResultsAsDict(
-            page_test_results, self.benchmark_metadata, self._output_dir),
+        ResultsAsDict(page_test_results, self.benchmark_metadata),
         self.output_stream)
     self.output_stream.write('\n')

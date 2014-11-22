@@ -72,29 +72,3 @@ def FromFilePath(path):
     A FileHandle referring to the file at the specified path.
   """
   return FileHandle(None, os.path.abspath(path))
-
-
-def OutputFiles(file_handles, dir_name):
-  """Outputs a list of file_handles by ID with a given dir_name and extension.
-
-  For the normal use case where we generate a collection of FileHandles
-  corresponding to temporary files, it is often necessary to collocate the
-  represented files into a single place. This function copies each file
-  referenced by an element of file_handles to a standardized location indicated
-  by dir_name.
-
-  Args:
-    file_handles: A list of file handles
-    dir_name: A string that specifies the directory to output the files.
-  Returns:
-    A dict mapping IDs to output files' paths.
-  """
-  file_ids_to_paths = dict()
-
-  for fh in file_handles:
-    file_name = str(fh.id) + fh.extension
-    file_path = os.path.abspath(os.path.join(dir_name, file_name))
-    shutil.copy(fh.GetAbsPath(), file_path)
-    file_ids_to_paths[fh.id] = file_path
-
-  return file_ids_to_paths
