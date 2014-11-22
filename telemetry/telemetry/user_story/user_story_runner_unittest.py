@@ -3,16 +3,23 @@
 # found in the LICENSE file.
 
 import unittest
+import StringIO
+import sys
 
 from telemetry import benchmark
 from telemetry import user_story
+from telemetry.core import exceptions
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.unittest_util import options_for_unittests
+from telemetry.unittest_util import system_stub
 from telemetry.user_story import shared_user_story_state
 from telemetry.user_story import user_story_runner
 from telemetry.user_story import user_story_set
+from telemetry.util import exception_formatter as exception_formatter_module
+from telemetry.value import scalar
+from telemetry.value import string
 
 
 class FakePlatform(object):
@@ -31,19 +38,22 @@ class TestSharedUserStoryState(shared_user_story_state.SharedUserStoryState):
   def __init__(self, test, options, user_story_setz):
     super(TestSharedUserStoryState, self).__init__(
         test, options, user_story_setz)
+    self._test = test
+    self._current_user_story = None
 
   @property
   def platform(self):
     return self._platform
 
   def WillRunUserStory(self, user_storyz):
-    pass
+    self._current_user_story = user_storyz
 
   def GetTestExpectationAndSkipValue(self, expectations):
     return 'pass', None
 
   def RunUserStory(self, results):
-    pass
+    self._test.RunPage(self._current_user_story, None, results)
+
 
   def DidRunUserStory(self, results):
     pass
@@ -61,7 +71,7 @@ class BarUserStoryState(TestSharedUserStoryState):
 
 
 class DummyTest(page_test.PageTest):
-  def ValidatePage(self, *_):
+  def RunPage(self, *_):
     pass
 
 
@@ -81,6 +91,17 @@ def _GetOptionForUnittest():
   return options
 
 
+class FakeExceptionFormatterModule(object):
+  @staticmethod
+  def PrintFormattedException(
+      exception_class=None, exception=None, tb=None, msg=None):
+    pass
+
+
+def GetNumberOfSuccessfulPageRuns(results):
+  return len([run for run in results.all_page_runs if run.ok or run.skipped])
+
+
 class UserStoryRunnerTest(unittest.TestCase):
 
   def setUp(self):
@@ -88,6 +109,22 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.expectations = test_expectations.TestExpectations()
     self.results = results_options.CreateResults(
         EmptyMetadataForTest(), self.options)
+    self._user_story_runner_logging_stub = None
+
+  def SuppressExceptionFormatting(self):
+    ''' Fake out exception formatter to avoid spamming the unittest stdout. '''
+    user_story_runner.exception_formatter = FakeExceptionFormatterModule
+    self._user_story_runner_logging_stub = system_stub.Override(
+      user_story_runner, ['logging'])
+
+  def RestoreExceptionFormatter(self):
+    user_story_runner.exception_formatter = exception_formatter_module
+    if self._user_story_runner_logging_stub:
+      self._user_story_runner_logging_stub.Restore()
+      self._user_story_runner_logging_stub = None
+
+  def tearDown(self):
+    self.RestoreExceptionFormatter()
 
   def testGetUserStoryGroupsWithSameSharedUserStoryClass(self):
     us = user_story_set.UserStorySet()
@@ -114,4 +151,153 @@ class UserStoryRunnerTest(unittest.TestCase):
     user_story_runner.Run(
         DummyTest(), us, self.expectations, self.options, self.results)
     self.assertEquals(0, len(self.results.failures))
-    self.assertEquals(3, len(self.results.pages_that_succeeded))
+    self.assertEquals(3, GetNumberOfSuccessfulPageRuns(self.results))
+
+  def testHandlingOfCrashedApp(self):
+    self.SuppressExceptionFormatting()
+    us = user_story_set.UserStorySet()
+    class SharedUserStoryThatCausesAppCrash(TestSharedUserStoryState):
+      def WillRunUserStory(self, user_storyz):
+        raise exceptions.AppCrashException()
+
+    us.AddUserStory(user_story.UserStory(SharedUserStoryThatCausesAppCrash))
+    user_story_runner.Run(
+        DummyTest(), us, self.expectations, self.options, self.results)
+    self.assertEquals(1, len(self.results.failures))
+    self.assertEquals(0, GetNumberOfSuccessfulPageRuns(self.results))
+
+  def testHandlingOfTestThatRaisesWithNonFatalUnknownExceptions(self):
+    self.SuppressExceptionFormatting()
+    us = user_story_set.UserStorySet()
+
+    class ExpectedException(Exception):
+        pass
+
+    class Test(page_test.PageTest):
+      def __init__(self, *args):
+        super(Test, self).__init__(*args)  # pylint: disable=bad-super-call
+        self.run_count = 0
+      def RunPage(self, *_):
+        old_run_count = self.run_count
+        self.run_count += 1
+        if old_run_count == 0:
+          raise ExpectedException()
+
+    us.AddUserStory(user_story.UserStory(TestSharedUserStoryState))
+    us.AddUserStory(user_story.UserStory(TestSharedUserStoryState))
+    test = Test()
+    user_story_runner.Run(
+        test, us, self.expectations, self.options, self.results)
+    self.assertEquals(2, test.run_count)
+    self.assertEquals(1, len(self.results.failures))
+    self.assertEquals(1, GetNumberOfSuccessfulPageRuns(self.results))
+
+  def testRaiseBrowserGoneExceptionFromRunPage(self):
+    self.SuppressExceptionFormatting()
+    us = user_story_set.UserStorySet()
+
+    class Test(page_test.PageTest):
+      def __init__(self, *args):
+        super(Test, self).__init__(*args)  # pylint: disable=bad-super-call
+        self.run_count = 0
+      def RunPage(self, *_):
+        old_run_count = self.run_count
+        self.run_count += 1
+        if old_run_count == 0:
+          raise exceptions.BrowserGoneException()
+
+    us.AddUserStory(user_story.UserStory(TestSharedUserStoryState))
+    us.AddUserStory(user_story.UserStory(TestSharedUserStoryState))
+    test = Test()
+    user_story_runner.Run(
+        test, us, self.expectations, self.options, self.results)
+    self.assertEquals(2, test.run_count)
+    self.assertEquals(1, len(self.results.failures))
+    self.assertEquals(1, GetNumberOfSuccessfulPageRuns(self.results))
+
+  def testDiscardFirstResult(self):
+    us = user_story_set.UserStorySet()
+    us.AddUserStory(user_story.UserStory(TestSharedUserStoryState))
+    us.AddUserStory(user_story.UserStory(TestSharedUserStoryState))
+    class Measurement(page_test.PageTest):
+      @property
+      def discard_first_result(self):
+        return True
+
+      def RunPage(self, page, _, results):
+        results.AddValue(string.StringValue(page, 'test', 't', page.name))
+
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
+    user_story_runner.Run(
+        Measurement(), us, self.expectations, self.options, results)
+
+    self.assertEquals(0, GetNumberOfSuccessfulPageRuns(results))
+    self.assertEquals(0, len(results.failures))
+    self.assertEquals(0, len(results.all_page_specific_values))
+
+
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
+    self.options.page_repeat = 1
+    self.options.pageset_repeat = 2
+    user_story_runner.Run(
+        Measurement(), us, self.expectations, self.options, results)
+    self.assertEquals(2, GetNumberOfSuccessfulPageRuns(results))
+    self.assertEquals(0, len(results.failures))
+    self.assertEquals(2, len(results.all_page_specific_values))
+
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
+    self.options.page_repeat = 2
+    self.options.pageset_repeat = 1
+    user_story_runner.Run(
+        Measurement(), us, self.expectations, self.options, results)
+    self.assertEquals(2, GetNumberOfSuccessfulPageRuns(results))
+    self.assertEquals(0, len(results.failures))
+    self.assertEquals(2, len(results.all_page_specific_values))
+
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
+    self.options.page_repeat = 1
+    self.options.pageset_repeat = 1
+    user_story_runner.Run(
+        Measurement(), us, self.expectations, self.options, results)
+    self.assertEquals(0, GetNumberOfSuccessfulPageRuns(results))
+    self.assertEquals(0, len(results.failures))
+    self.assertEquals(0, len(results.all_page_specific_values))
+
+  def testPagesetRepeat(self):
+    us = user_story_set.UserStorySet()
+    us.AddUserStory(user_story.UserStory(
+        TestSharedUserStoryState, name='blank'))
+    us.AddUserStory(user_story.UserStory(
+        TestSharedUserStoryState, name='green'))
+
+    class Measurement(page_test.PageTest):
+      i = 0
+      def RunPage(self, page, _, results):
+        self.i += 1
+        results.AddValue(scalar.ScalarValue(
+            page, 'metric', 'unit', self.i))
+
+    self.options.page_repeat = 1
+    self.options.pageset_repeat = 2
+    self.options.output_formats = ['buildbot']
+    output = StringIO.StringIO()
+    real_stdout = sys.stdout
+    sys.stdout = output
+    try:
+      results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
+      user_story_runner.Run(
+          Measurement(), us, self.expectations, self.options, results)
+      results.PrintSummary()
+      contents = output.getvalue()
+      self.assertEquals(4, GetNumberOfSuccessfulPageRuns(results))
+      self.assertEquals(0, len(results.failures))
+      self.assertIn('RESULT metric: blank= [1,3] unit', contents)
+      self.assertIn('RESULT metric: green= [2,4] unit', contents)
+      self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', contents)
+    finally:
+      sys.stdout = real_stdout

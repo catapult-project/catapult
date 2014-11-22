@@ -111,10 +111,6 @@ def _RunUserStoryAndProcessErrorIfNeeded(
   except page_action.PageActionNotSupported as e:
     results.AddValue(
         skip.SkipValue(user_story, 'Unsupported page action: %s' % e))
-  except Exception:
-    exception_formatter.PrintFormattedException(
-        msg='Unhandled exception while running %s' % user_story.display_name)
-    results.AddValue(failure.FailureValue(user_story, sys.exc_info()))
   else:
     if expectation == 'fail':
       logging.warning(
@@ -245,6 +241,9 @@ def Run(test, user_story_set, expectations, finder_options, results):
             except Exception:
               # Tear down & restart the state for unhandled exceptions thrown by
               # _RunUserStoryAndProcessErrorIfNeeded.
+              exception_formatter.PrintFormattedException(
+                  msg='Unhandled exception while running %s' %
+                  user_story.display_name)
               results.AddValue(failure.FailureValue(user_story, sys.exc_info()))
               state.TearDownState(results)
               state = group.shared_user_story_state_class(
