@@ -688,18 +688,11 @@ tv.exportTo('tracing.importer', function() {
     parseLines: function() {
       var extractResult = LinuxPerfImporter._extractEventsFromSystraceHTML(
           this.events_, true);
-      var lineNumberBase = 0;
-      var lines;
-      if (extractResult.ok) {
-        lineNumberBase = extractResult.events_begin_at_line;
-        lines = extractResult.lines;
-      } else
-        lines = this.events_.split('\n');
+      var lines = extractResult.ok ?
+          extractResult.lines : this.events_.split('\n');
 
       var lineParser = null;
-      for (var lineNumber = lineNumberBase;
-           lineNumber < lines.length;
-          ++lineNumber) {
+      for (var lineNumber = 0; lineNumber < lines.length; ++lineNumber) {
         var line = lines[lineNumber];
         if (line.length == 0 || /^#/.test(line))
           continue;
