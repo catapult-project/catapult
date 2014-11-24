@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/importer.html">
+<link rel="import" href="/tracing/timeline_view.html">
+<link rel="import" href="/tracing/timeline_viewport.html">
+<link rel="import" href="/tracing/trace_model.html">
+
+<script>
+'use strict';
+
+tv.unittest.testSuite(function() {
+  function getSynchronous(url) {
+    var req = new XMLHttpRequest();
+    req.open('GET', url, false);
+    // Without the mime type specified like this, the file's bytes are not
+    // retrieved correctly.
+    req.overrideMimeType('text/plain; charset=x-user-defined');
+    req.send(null);
+    return req.responseText;
+  }
+
+  var ZOOM_STEPS = 10;
+  var ZOOM_COEFFICIENT = 1.2;
+
+  var model = undefined;
+
+  var drawingContainer;
+  var viewportDiv;
+
+  var viewportWidth;
+  var worldMid;
+
+  function timedCounterTrackPerfTest(name, testFn, iterations) {
+
+    function setUpOnce() {
+      if (model !== undefined)
+        return;
+      var fileUrl = '/test_data/android_systrace.html';
+      var events = getSynchronous(fileUrl);
+      model = new tracing.TraceModel();
+      model.importTraces([events], true);
+    }
+
+    function setUp() {
+      setUpOnce();
+      viewportDiv = document.createElement('div');
+
+      if (this.name === 'draw_softwareCanvas') {
+        viewportDiv.width = '200px';
+        viewportDiv.style.width = '200px';
+      }
+
+      this.addHTMLOutput(viewportDiv);
+
+      var viewport = new tracing.TimelineViewport(viewportDiv);
+
+      drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+      viewport.modelTrackContainer = drawingContainer;
+
+      var modelTrack = new tracing.tracks.TraceModelTrack(viewport);
+      drawingContainer.appendChild(modelTrack);
+
+      modelTrack.model = model;
+
+      viewportDiv.appendChild(drawingContainer);
+
+      // Size the canvas.
+      drawingContainer.updateCanvasSizeIfNeeded_();
+
+      // Size the viewport.
+      viewportWidth = drawingContainer.canvas.width;
+      var min = model.bounds.min;
+      var range = model.bounds.range;
+      worldMid = min + range / 2;
+
+      var boost = range * 0.15;
+      var dt = new tracing.TimelineDisplayTransform();
+      dt.xSetWorldBounds(min - boost, min + range + boost, viewportWidth);
+      modelTrack.viewport.setDisplayTransformImmediately(dt);
+    };
+
+    function tearDown() {
+      viewportDiv.innerText = '';
+      drawingContainer = undefined;
+    }
+
+    timedPerfTest(name, testFn, {
+      setUp: setUp,
+      tearDown: tearDown,
+      iterations: iterations
+    });
+  }
+
+  var n110100 = [1, 10, 100];
+  n110100.forEach(function(val) {
+    timedCounterTrackPerfTest(
+        'draw_softwareCanvas_' + val,
+        function() {
+          for (var i = 0; i < ZOOM_STEPS; i++) {
+            var dt = drawingContainer.viewport.currentDisplayTransform.clone();
+            dt.scaleX *= ZOOM_COEFFICIENT;
+            dt.xPanWorldPosToViewPos(worldMid, 'center', viewportWidth);
+            drawingContainer.viewport.setDisplayTransformImmediately(dt);
+            drawingContainer.draw_();
+          }
+        }, val);
+  });
+});
+</script>
+
