@@ -3,12 +3,32 @@
 # found in the LICENSE file.
 
 import re
+from telemetry.user_story import shared_user_story_state
 
 _next_user_story_id = 0
 
 
 class UserStory(object):
-  def __init__(self, name='', labels=None):
+  """A class styled on unittest.TestCase for creating user story tests.
+
+  Test should override Run to maybe start the application and perform actions
+  onto it. To share state between different tests, one can define a
+  shared_user_story_state which contains hooks that will be called before &
+  after mutiple user stories run and in between runs.
+
+  Args:
+    shared_user_story_state_class: subclass of
+      telemetry.user_story.shared_user_story_state.SharedUserStoryState.
+    name: string name of this user story that can be used for identifying user
+      story in results output.
+    labels: A list or set of string labels that are used for filtering. See
+      user_story.user_story_filter for more information.
+  """
+
+  def __init__(self, shared_user_story_state_class, name='', labels=None):
+    assert issubclass(shared_user_story_state_class,
+                      shared_user_story_state.SharedUserStoryState)
+    self._shared_user_story_state_class = shared_user_story_state_class
     self._name = name
     global _next_user_story_id
     self._id = _next_user_story_id
@@ -24,6 +44,10 @@ class UserStory(object):
   @property
   def labels(self):
     return self._labels
+
+  @property
+  def shared_user_story_state_class(self):
+    return self._shared_user_story_state_class
 
   @property
   def id(self):

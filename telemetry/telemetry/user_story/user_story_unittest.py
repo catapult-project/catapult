@@ -5,15 +5,24 @@
 import unittest
 
 from telemetry import user_story
+from telemetry.user_story import shared_user_story_state
+
+
+# pylint: disable=abstract-method
+class SharedUserStoryStateBar(shared_user_story_state.SharedUserStoryState):
+  pass
+
 
 class UserStoryFoo(user_story.UserStory):
-  pass
+  def __init__(self, name='', labels=None):
+    super(UserStoryFoo, self).__init__(
+        SharedUserStoryStateBar, name, labels)
 
 
 class UserStoryTest(unittest.TestCase):
   def testUserStoriesHaveDifferentIds(self):
-    u0 = user_story.UserStory('foo')
-    u1 = user_story.UserStory('bar')
+    u0 = user_story.UserStory(SharedUserStoryStateBar, 'foo')
+    u1 = user_story.UserStory(SharedUserStoryStateBar, 'bar')
     self.assertNotEqual(u0.id, u1.id)
 
   def testNamelessUserStoryDisplayName(self):
@@ -29,13 +38,13 @@ class UserStoryTest(unittest.TestCase):
     self.assertEquals('Foo_Bar_Baz_0', u.file_safe_name)
 
   def testNamelessUserStoryAsDict(self):
-    u = user_story.UserStory()
+    u = user_story.UserStory(SharedUserStoryStateBar)
     u_dict = u.AsDict()
     self.assertEquals(u_dict['id'], u.id)
     self.assertNotIn('name', u_dict)
 
   def testNamedUserStoryAsDict(self):
-    u = user_story.UserStory('Foo')
+    u = user_story.UserStory(SharedUserStoryStateBar, 'Foo')
     u_dict = u.AsDict()
     self.assertEquals(u_dict['id'], u.id)
     self.assertEquals('Foo', u_dict['name'])
