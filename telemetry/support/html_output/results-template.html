@@ -11,10 +11,12 @@ section {
 }
 
 .collapsed:before {
+    color: #ccc;
     content: '\25B8\00A0';
 }
 
 .expanded:before {
+    color: #eee;
     content: '\25BE\00A0';
 }
 
@@ -51,14 +53,16 @@ section {
 }
 
 .closeButton {
-    background: #fff;
-    border: 1px solid black;
-    border-radius: 2px;
     display: inline-block;
+    background: #eee;
+    background: linear-gradient(rgb(220, 220, 220), rgb(255, 255, 255));
+    border: inset 1px #ddd;
+    border-radius: 4px;
     float: right;
-    line-height: 11px;
-    margin-top: 3px;
-    width: 11px;
+    font-size: small;
+    -webkit-user-select: none;
+    font-weight: bold;
+    padding: 1px 4px;
 }
 
 .closeButton:hover {
@@ -103,13 +107,22 @@ table, td, th {
     white-space: nowrap;
 }
 
-tr.even {
-    background: #f6f6f6;
+.highlight:hover {
+   color: #202020;
+   background: #e0e0e0;
+}
+
+.nestedRow {
+    background: #f8f8f8;
+}
+
+.importantNestedRow {
+    background: #e0e0e0;
+    font-weight: bold;
 }
 
 table td {
     position: relative;
-    font-family: monospace;
 }
 
 th, td {
@@ -119,19 +132,15 @@ th, td {
 
 th {
     background: #e6eeee;
-    background: -webkit-gradient(linear, left top, left bottom, from(rgb(244, 244, 244)), to(rgb(217, 217, 217)));
+    background: linear-gradient(rgb(244, 244, 244), rgb(217, 217, 217));
     border: 1px solid #ccc;
 }
 
-th:after {
-    content: ' \25B8';
-}
-
-th.headerSortUp:after {
+th.sortUp:after {
     content: ' \25BE';
 }
 
-th.headerSortDown:after {
+th.sortDown:after {
     content: ' \25B4';
 }
 
@@ -143,19 +152,39 @@ td.better {
     color: #6c6;
 }
 
+td.fadeOut {
+    opacity: 0.5;
+}
+
+td.unknown {
+    color: #ccc;
+}
+
 td.worse {
     color: #c66;
 }
 
+td.reference {
+    font-style: italic;
+    font-weight: bold;
+    color: #444;
+}
+
 td.missing {
-    color: #aaa;
+    color: #ccc;
     text-align: center;
+}
+
+td.missingReference {
+    color: #ccc;
+    text-align: center;
+    font-style: italic;
 }
 
 .checkbox {
     display: inline-block;
     background: #eee;
-    background: -webkit-gradient(linear, left bottom, left top, from(rgb(220, 220, 220)), to(rgb(200, 200, 200)));
+    background: linear-gradient(rgb(220, 220, 220), rgb(200, 200, 200));
     border: inset 1px #ddd;
     border-radius: 5px;
     margin: 10px;
@@ -175,9 +204,45 @@ td.missing {
 
 .checkbox .checked {
     background: #e6eeee;
-    background: -webkit-gradient(linear, left top, left bottom, from(rgb(255, 255, 255)), to(rgb(235, 235, 235)));
+    background: linear-gradient(rgb(255, 255, 255), rgb(235, 235, 235));
     border: outset 1px #eee;
     border-radius: 5px;
+}
+
+.openAllButton {
+    display: inline-block;
+    colour: #6c6
+    background: #eee;
+    background: linear-gradient(rgb(220, 220, 220), rgb(255, 255, 255));
+    border: inset 1px #ddd;
+    border-radius: 5px;
+    float: left;
+    font-size: small;
+    -webkit-user-select: none;
+    font-weight: bold;
+    padding: 1px 4px;
+}
+
+.openAllButton:hover {
+    background: #60f060;
+}
+
+.closeAllButton {
+    display: inline-block;
+    colour: #c66
+    background: #eee;
+    background: linear-gradient(rgb(220, 220, 220),rgb(255, 255, 255));
+    border: inset 1px #ddd;
+    border-radius: 5px;
+    float: left;
+    font-size: small;
+    -webkit-user-select: none;
+    font-weight: bold;
+    padding: 1px 4px;
+}
+
+.closeAllButton:hover {
+    background: #f04040;
 }
 
 </style>
@@ -196,6 +261,24 @@ Run Telemetry with --reset-results to clear all runs
 %plugins%
 </script>
 <script>
+
+var EXPANDED = true;
+var COLLAPSED = false;
+var SMALLEST_PERCENT_DISPLAYED = 0.01;
+var INVISIBLE = false;
+var VISIBLE = true;
+var COMPARISON_SUFFIX = '_compare';
+var SORT_DOWN_CLASS = 'sortDown';
+var SORT_UP_CLASS = 'sortUp';
+var BETTER_CLASS = 'better';
+var WORSE_CLASS = 'worse';
+var UNKNOWN_CLASS = 'unknown'
+// px Indentation for graphs
+var GRAPH_INDENT = 64;
+var PADDING_UNDER_GRAPH = 5;
+// px Indentation for nested children left-margins
+var INDENTATION = 40;
+
 function TestResult(metric, values, associatedRun) {
     if (values[0] instanceof Array) {
         var flattenedValues = [];
@@ -236,8 +319,16 @@ function TestResult(metric, values, associatedRun) {
             Statistics.sum(values), Statistics.squareSum(values));
     }
     this.confidenceIntervalDeltaRatio = function () { return this.confidenceIntervalDelta() / this.mean(); }
-    this.percentDifference = function(other) { return (other.unscaledMean() - this.unscaledMean()) / this.unscaledMean(); }
+    this.percentDifference = function(other) {
+        if (other === undefined) {
+            return undefined;
+        }
+        return (other.unscaledMean() - this.unscaledMean()) / this.unscaledMean();
+    }
     this.isStatisticallySignificant = function (other) {
+        if (other === undefined) {
+            return false;
+        }
         var diff = Math.abs(other.mean() - this.mean());
         return diff > this.confidenceIntervalDelta() && diff > other.confidenceIntervalDelta();
     }
@@ -245,7 +336,7 @@ function TestResult(metric, values, associatedRun) {
 }
 
 function TestRun(entry) {
-    this.id = function() { return entry['buildTime']; }
+    this.id = function() { return entry['buildTime'].replace(/[:.-]/g,''); }
     this.revision = function () { return entry['revision']; }
     this.label = function () {
         if (labelKey in localStorage)
@@ -585,23 +676,113 @@ function formatPercentage(fraction) {
     return (fraction * 100).toFixed(2) + '%';
 }
 
+function setUpSortClicks(runs)
+{
+    $('#nameColumn').click(sortByName);
+
+    $('#unitColumn').click(sortByUnit);
+
+    runs.forEach(function(run) {
+        $('#' + run.id()).click(sortByResult);
+        $('#' + run.id() + COMPARISON_SUFFIX).click(sortByReference);
+     });
+}
+
+var topLevelRows;
+var allTableRows;
+
 function createTable(tests, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots) {
-    $('#container').html('<thead><tr><th class="headerSortDown">Test</th><th>Unit</th>' + runs.map(function (run, index) {
-         return '<th colspan="' + (index == referenceIndex ? 2 : 3) + '" class="{sorter: \'comparison\'}" id="' + run.id() + '" title="' + run.description() + '"><span class="label" title="Edit run label">' + run.label() + '</span><div class="closeButton" title="Delete run">x</div></th>';
-    }).reduce(function (markup, cell) { return markup + cell; }, '') + '</tr></head><tbody></tbody>');
+    var resultHeaders = runs.map(function (run, index) {
+         var header = '<th id="' + run.id() + '" ' +
+                          'colspan=2 ' +
+                          'title="' + run.description() + '">' +
+                      '<span class="label" ' +
+                          'title="Edit run label">' +
+                          run.label() +
+                      '</span>' +
+                      '<div class="closeButton" ' +
+                          'title="Delete run">' +
+                          '&times;' +
+                      '</div>' +
+                  '</th>';
+                if (index !== referenceIndex) {
+                  header += '<th id="' + run.id() + COMPARISON_SUFFIX + '" ' +
+                                'title="Sort by better/worse">' +
+                                '&Delta;' +
+                                '</th>';
+                }
+         return header;
+    });
+
+    resultHeaders = resultHeaders.join('');
+
+    htmlString = '<thead>' +
+                     '<tr>' +
+                         '<th id="nameColumn">' +
+                             '<div class="openAllButton" ' +
+                                  'title="Open all rows or graphs">' +
+                                 'Open All' +
+                              '</div>' +
+                              '<div class="closeAllButton" ' +
+                                   'title="Close all rows">' +
+                                  'Close All' +
+                              '</div>' +
+                              'Test' +
+                          '</th>' +
+                          '<th id="unitColumn">' +
+                              'Unit' +
+                          '</th>' +
+                          resultHeaders +
+                     '</tr>' +
+                 '</head>' +
+                 '<tbody>' +
+                 '</tbody>';
+
+    $('#container').html(htmlString);
 
     var testNames = [];
     for (testName in tests)
         testNames.push(testName);
 
-    window.isFirstImportantRow = true;
-
-    testNames.sort().map(function (testName) {
+    allTableRows = [];
+    testNames.forEach(function(testName) {
         var test = tests[testName];
-        if (test.isMemoryTest() != shouldIgnoreMemory) {
-            new TableRow(runs, test, referenceIndex, useLargeLinePlots);
+        if (test.isMemoryTest() === shouldIgnoreMemory) {
+            return;
         }
+        allTableRows.push(new TableRow(runs, test, referenceIndex, useLargeLinePlots));
     });
+
+    // Build a list of top level rows with attached children
+    topLevelRows = [];
+    allTableRows.forEach(function(row) {
+        // Add us to top level if we are a top-level row...
+        if (row.hasNoURL) {
+            topLevelRows.push(row);
+            // Add a duplicate child row that holds the graph for the parent
+            var graphHolder = new TableRow(runs, row.test, referenceIndex, useLargeLinePlots);
+            graphHolder.isImportant = true;
+            graphHolder.URL = 'Summary';
+            graphHolder.hideRowData();
+            allTableRows.push(graphHolder);
+            row.addNestedChild(graphHolder);
+            return;
+        }
+
+        // ...or add us to our parent if we have one ...
+        for (var i = 0; i < allTableRows.length; i++) {
+            if (allTableRows[i].isParentOf(row)) {
+                allTableRows[i].addNestedChild(row);
+                return;
+            }
+        }
+
+        // ...otherwise this result is orphaned, display it at top level with a graph
+        row.hasGraph = true;
+        topLevelRows.push(row);
+    });
+
+    buildTable(topLevelRows);
 
     $('.closeButton').click(function(event) {
         for (var i = 0; i < runs.length; i++) {
@@ -614,6 +795,22 @@ function createTable(tests, runs, shouldIgnoreMemory, referenceIndex, useLargeLi
         }
         event.stopPropagation();
     });
+
+    $('.closeAllButton').click(function(event) {
+        for (var i = 0; i < allTableRows.length; i++) {
+            allTableRows[i].closeRow();
+        }
+        event.stopPropagation();
+    });
+
+    $('.openAllButton').click(function(event) {
+        for (var i = 0; i < topLevelRows.length; i++) {
+            topLevelRows[i].openRow();
+        }
+        event.stopPropagation();
+    });
+
+    setUpSortClicks(runs);
 
     $('.label').click(function(event) {
         for (var i = 0; i < runs.length; i++) {
@@ -641,8 +838,138 @@ function createTable(tests, runs, shouldIgnoreMemory, referenceIndex, useLargeLi
         }
         event.stopPropagation();
     });
+}
 
-    $('#container').tablesorter({widgets: ['zebra']});
+function validForSorting(row) {
+    return ($.type(row.sortValue) === 'string') || !isNaN(row.sortValue);
+}
+
+var sortDirection = 1;
+
+function sortRows(rows) {
+    rows.sort(
+        function(rowA,rowB) {
+            if (validForSorting(rowA) !== validForSorting(rowB)) {
+                // Sort valid values upwards when compared to invalid
+                if (validForSorting(rowA)) {
+                    return -1;
+                }
+                if (validForSorting(rowB)) {
+                    return 1;
+                }
+            }
+
+            // Some rows always sort to the top
+            if (rowA.isImportant) {
+                return -1;
+            }
+            if (rowB.isImportant) {
+                return 1;
+            }
+
+            if (rowA.sortValue === rowB.sortValue) {
+                // Sort identical values by name to keep the sort stable,
+                // always keep name alphabetical (even if a & b sort values
+                // are invalid)
+                return rowA.test.name() > rowB.test.name() ? 1 : -1;
+            }
+
+            return rowA.sortValue > rowB.sortValue ? sortDirection : -sortDirection;
+         } );
+
+    // Sort the rows' children
+    rows.forEach(function(row) {
+        sortRows(row.children);
+    });
+}
+
+function buildTable(rows) {
+   rows.forEach(function(row) {
+     row.removeFromPage();
+   });
+
+   sortRows(rows);
+
+   rows.forEach(function(row) {
+     row.addToPage();
+   });
+}
+
+var activeSortHeaderElement = undefined;
+var columnSortDirection = {};
+
+function determineColumnSortDirection(element) {
+  columnDirection = columnSortDirection[element.id];
+
+  if (columnDirection === undefined) {
+    // First time we've sorted this row, default to down
+    columnSortDirection[element.id] = SORT_DOWN_CLASS;
+  } else if (element === activeSortHeaderElement) {
+    // Clicking on same header again, swap direction
+    columnSortDirection[element.id] = (columnDirection === SORT_UP_CLASS) ? SORT_DOWN_CLASS : SORT_UP_CLASS;
+  }
+}
+
+function updateSortDirection(element) {
+    // Remove old header's sort arrow
+    if (activeSortHeaderElement !== undefined) {
+        activeSortHeaderElement.classList.remove(columnSortDirection[activeSortHeaderElement.id]);
+    }
+
+    determineColumnSortDirection(element);
+
+    sortDirection = (columnSortDirection[element.id] === SORT_UP_CLASS) ? 1 : -1;
+
+    // Add new header's sort arrow
+    element.classList.add(columnSortDirection[element.id]);
+    activeSortHeaderElement = element;
+}
+
+function sortByName(event) {
+    updateSortDirection(event.toElement);
+
+    allTableRows.forEach(function(row) {
+       row.prepareToSortByName();
+    });
+
+    buildTable(topLevelRows);
+}
+
+function sortByUnit(event) {
+    updateSortDirection(event.toElement);
+
+    allTableRows.forEach(function(row) {
+        row.prepareToSortByUnit();
+    });
+
+    buildTable(topLevelRows);
+}
+
+function sortByResult(event) {
+    updateSortDirection(event.toElement);
+
+    var runId = event.target.id;
+
+    allTableRows.forEach(function(row) {
+        row.prepareToSortByTestResults(runId);
+    });
+
+    buildTable(topLevelRows);
+}
+
+function sortByReference(event) {
+    updateSortDirection(event.toElement);
+
+    // The element ID has _compare appended to allow us to set up a click event
+    // remove the _compare to return a useful Id
+    var runIdWithCompare = event.target.id;
+    var runId = runIdWithCompare.split('_')[0];
+
+    allTableRows.forEach(function(row) {
+        row.prepareToSortRelativeToReference(runId);
+    });
+
+    buildTable(topLevelRows);
 }
 
 function linearRegression(points) {
@@ -688,62 +1015,221 @@ function TableRow(runs, test, referenceIndex, useLargeLinePlots) {
     this.test = test;
     this.referenceIndex = referenceIndex;
     this.useLargeLinePlots = useLargeLinePlots;
+    this.children = [];
 
-    this.tableRow = $('<tr><td class="test collapsed"' + (this.test.isImportant ? ' style="font-weight:bold"' : '') + '>' + this.test.name() + '</td><td class="unit">' + this.test.unit() + '</td></tr>');
+    this.tableRow = $('<tr class="highlight">' +
+                            '<td class="test collapsed" >' +
+                                this.test.name() +
+                            '</td>' +
+                            '<td class="unit">' +
+                                this.test.unit() +
+                            '</td>' +
+                      '</tr>');
 
     var runIndex = 0;
     var results = this.test.results();
     var referenceResult = undefined;
-    var resultIndexMap = {};
+
+    this.resultIndexMap = {};
     for (var i = 0; i < results.length; i++) {
         while (this.runs[runIndex] !== results[i].run())
             runIndex++;
-        if (runIndex == this.referenceIndex)
+        if (runIndex === this.referenceIndex)
             referenceResult = results[i];
-        resultIndexMap[runIndex] = i;
+        this.resultIndexMap[runIndex] = i;
     }
     for (var i = 0; i < this.runs.length; i++) {
-        var resultIndex = resultIndexMap[i];
-        if (resultIndex == undefined)
+        var resultIndex = this.resultIndexMap[i];
+        if (resultIndex === undefined)
             this.tableRow.append(this.markupForMissingRun(i == this.referenceIndex));
         else
             this.tableRow.append(this.markupForRun(results[resultIndex], referenceResult));
     }
 
-    $('#container').children('tbody').last().append(this.tableRow);
+    // Use the test name (without URL) to bind parents and their children
+    var nameAndURL = this.test.name().split('.');
+    var benchmarkName = nameAndURL.shift();
+    this.testName = nameAndURL.shift();
+    this.hasNoURL = (nameAndURL.length === 0);
 
-    if (this.test.isImportant && window.isFirstImportantRow) {
-        window.isFirstImportantRow = false;
-        this.toggle();
+    if (!this.hasNoURL) {
+        // Re-join the URL
+        this.URL = nameAndURL.join('.');
     }
 
-    var owningObject = this;
-    this.tableRow.click(function(event) {
-        if (event.target != owningObject.tableRow[0] && event.target.parentNode != owningObject.tableRow[0]) {
+    this.isImportant = false;
+    this.hasGraph = false;
+    this.currentIndentationClass = ''
+    this.indentLevel = 0;
+    this.setRowNestedState(COLLAPSED);
+    this.setVisibility(VISIBLE);
+    this.prepareToSortByName();
+}
+
+TableRow.prototype.hideRowData = function() {
+    data = this.tableRow.children('td');
+
+    for (index in data) {
+        if (index > 0) {
+            // Blank out everything except the test name
+            data[index].innerHTML = '';
+        }
+    }
+}
+
+TableRow.prototype.prepareToSortByTestResults = function(runId) {
+    var testResults = this.test.results();
+    // Find the column in this row that matches the runId and prepare to
+    // sort by the mean of that test.
+    for (index in testResults) {
+        sourceId = testResults[index].run().id();
+        if (runId === sourceId) {
+            this.sortValue = testResults[index].mean();
             return;
         }
+    }
+    // This row doesn't have any results for the passed runId
+    this.sortValue = undefined;
+}
+
+TableRow.prototype.prepareToSortRelativeToReference = function(runId) {
+    var testResults = this.test.results();
+
+    if (this.resultIndexMap[this.referenceIndex] === undefined) {
+        // This test has no results in the reference run
+        this.sortValue = undefined;
+        return;
+    }
+
+    otherResults = testResults[this.referenceIndex];
+
+    // Find the column in this row that matches the runId and prepare to
+    // sort by the difference from the reference.
+    for (index in testResults) {
+        sourceId = testResults[index].run().id();
+        if (runId === sourceId) {
+            this.sortValue = testResults[index].percentDifference(otherResults);
+            if (this.test.biggerIsBetter()) {
+                // For this test bigger is not better
+                this.sortValue = -this.sortValue;
+            }
+            return;
+        }
+    }
+    // This row doesn't have any results for the passed runId
+    this.sortValue = undefined;
+}
+
+TableRow.prototype.prepareToSortByUnit = function() {
+    this.sortValue = this.test.unit().toLowerCase();
+}
+
+TableRow.prototype.prepareToSortByName = function() {
+    this.sortValue = this.test.name().toLowerCase();
+}
+
+TableRow.prototype.isParentOf = function(row) {
+    return this.hasNoURL && (this.testName === row.testName);
+}
+
+TableRow.prototype.addNestedChild = function(child) {
+    this.children.push(child);
+
+    // Indent child one step in from parent
+    child.indentLevel = this.indentLevel + INDENTATION;
+    child.hasGraph = true;
+    // Start child off as hidden (i.e. collapsed inside parent)
+    child.setVisibility(INVISIBLE);
+    child.updateIndentation();
+    // Show URL in the title column
+    child.tableRow.children()[0].innerHTML = child.URL;
+    // Set up class to change background colour of nested rows
+    if (child.isImportant) {
+        child.tableRow.addClass('importantNestedRow');
+    } else {
+        child.tableRow.addClass('nestedRow');
+    }
+}
+
+TableRow.prototype.setVisibility = function(visibility) {
+     this.visibility = visibility;
+     this.tableRow[0].style.display = (visibility === INVISIBLE) ? 'none' : '';
+}
+
+TableRow.prototype.setRowNestedState = function(newState) {
+    this.rowState = newState;
+    this.updateIndentation();
+}
+
+TableRow.prototype.updateIndentation = function() {
+    var element = this.tableRow.children('td').first();
+
+    element.removeClass(this.currentIndentationClass);
+
+    this.currentIndentationClass = (this.rowState === COLLAPSED) ? 'collapsed' : 'expanded';
+
+    element[0].style.marginLeft = this.indentLevel.toString() + 'px';
+    element[0].style.float = 'left';
+
+    element.addClass(this.currentIndentationClass);
+}
+
+TableRow.prototype.addToPage = function() {
+    $('#container').children('tbody').last().append(this.tableRow);
+
+    // Set up click callback
+    var owningObject = this;
+    this.tableRow.click(function(event) {
         event.preventDefault();
         owningObject.toggle();
     });
+
+    // Add children to the page too
+    this.children.forEach(function(child) {
+        child.addToPage();
+    });
 }
+
+TableRow.prototype.removeFromPage = function() {
+    // Remove children
+    this.children.forEach(function(child) {
+        child.removeFromPage();
+    });
+    // Remove us
+    this.tableRow.remove();
+}
+
 
 TableRow.prototype.markupForRun = function(result, referenceResult) {
     var comparisonCell = '';
-    var hiddenValue = '';
     var shouldCompare = result !== referenceResult;
-    if (shouldCompare && referenceResult) {
-        var percentDifference = referenceResult.percentDifference(result);
-        var better = this.test.biggerIsBetter() ? percentDifference > 0 : percentDifference < 0;
-        var comparison = '';
-        var className = 'comparison';
-        if (referenceResult.isStatisticallySignificant(result)) {
-            comparison = formatPercentage(Math.abs(percentDifference)) + (better ? ' Better' : ' Worse&nbsp;');
-            className += better ? ' better' : ' worse';
+    if (shouldCompare) {
+        var comparisonText = '';
+        var className = '';
+
+        if (referenceResult) {
+            var percentDifference = referenceResult.percentDifference(result);
+            if (isNaN(percentDifference)) {
+                comparisonText = 'Unknown';
+                className = UNKNOWN_CLASS;
+            } else if (Math.abs(percentDifference) < SMALLEST_PERCENT_DISPLAYED) {
+                comparisonText = 'Equal';
+                // Show equal values in green
+                className = BETTER_CLASS;
+            } else {
+                var better = this.test.biggerIsBetter() ? percentDifference > 0 : percentDifference < 0;
+                comparisonText = formatPercentage(Math.abs(percentDifference)) + (better ? ' Better' : ' Worse');
+                className = better ? BETTER_CLASS : WORSE_CLASS;
+            }
+
+            if (!referenceResult.isStatisticallySignificant(result)) {
+                // Put result in brackets and fade if not statistically significant
+                className += ' fadeOut';
+                comparisonText = '(' + comparisonText + ')';
+            }
         }
-        hiddenValue = '<span style="display: none">|' + comparison + '</span>';
-        comparisonCell = '<td class="' + className + '">' + comparison + '</td>';
-    } else if (shouldCompare)
-        comparisonCell = '<td class="comparison"></td>';
+        comparisonCell = '<td class="comparison ' + className + '">' + comparisonText + '</td>';
+    }
 
     var values = result.values();
     var warning = '';
@@ -759,54 +1245,96 @@ TableRow.prototype.markupForRun = function(result, referenceResult) {
         }
     }
 
-    var statistics = '&sigma;=' + toFixedWidthPrecision(result.confidenceIntervalDelta()) + ', min=' + toFixedWidthPrecision(result.min())
-        + ', max=' + toFixedWidthPrecision(result.max()) + '\n' + regressionAnalysis;
+    var referenceClass = shouldCompare ? '' : 'reference';
 
-    // Tablesorter doesn't know about the second cell so put the comparison in the invisible element.
-    return '<td class="result" title="' + statistics + '">' + toFixedWidthPrecision(result.mean()) + hiddenValue
-        + '</td><td class="confidenceIntervalDelta" title="' + statistics + '">&plusmn; '
-        + formatPercentage(result.confidenceIntervalDeltaRatio()) + warning + '</td>' + comparisonCell;
+    var statistics = '&sigma;=' + toFixedWidthPrecision(result.confidenceIntervalDelta()) + ', min=' + toFixedWidthPrecision(result.min())
+     + ', max=' + toFixedWidthPrecision(result.max()) + '\n' + regressionAnalysis;
+
+    var confidence;
+    if (isNaN(result.confidenceIntervalDeltaRatio())) {
+        // Don't bother showing +- Nan as it is meaningless
+        confidence = '';
+    } else { 
+        confidence = '&plusmn; ' + formatPercentage(result.confidenceIntervalDeltaRatio());
+    }
+
+    return '<td class="result ' + referenceClass + '" title="' + statistics + '">' + toFixedWidthPrecision(result.mean())
+        + '</td><td class="confidenceIntervalDelta ' + referenceClass + '" title="' + statistics + '">' + confidence + warning + '</td>' + comparisonCell;
 }
 
 TableRow.prototype.markupForMissingRun = function(isReference) {
-    return '<td colspan="' + (isReference ? 2 : 3) + '" class="missing">Missing</td>';
+    if (isReference) {
+        return '<td colspan=2 class="missingReference">Missing</td>';
+    }
+    return '<td colspan=3 class="missing">Missing</td>';
 }
 
-TableRow.prototype.toggle = function() {
-    var firstCell = this.tableRow.children('td').first();
-    if (firstCell.children('section').length) {
-        firstCell.children('section').remove();
-        this.tableRow.children('td').css({'padding-bottom': ''});
-        this.tableRow.children('td').first().addClass('collapsed');
-        this.tableRow.children('td').first().removeClass('expanded');
-    } else {
+TableRow.prototype.openRow = function() {
+    if (this.rowState === EXPANDED) {
+        // If we're already expanded, open our children instead
+        this.children.forEach(function(child) {
+            child.openRow();
+        });
+        return;
+    }
+
+    this.setRowNestedState(EXPANDED);
+
+    if (this.hasGraph) {
+        var firstCell = this.tableRow.children('td').first();
         var plot = createPlot(firstCell, this.test, this.useLargeLinePlots);
         plot.css({'position': 'absolute', 'z-index': 2});
         var offset = this.tableRow.offset();
-        offset.left += 1;
+        offset.left += GRAPH_INDENT;
         offset.top += this.tableRow.outerHeight();
         plot.offset(offset);
-        this.tableRow.children('td').css({'padding-bottom': plot.outerHeight() + 5});
-        this.tableRow.children('td').first().removeClass('collapsed');
-        this.tableRow.children('td').first().addClass('expanded');
+        this.tableRow.children('td').css({'padding-bottom': plot.outerHeight() + PADDING_UNDER_GRAPH});
     }
 
+    this.children.forEach(function(child) {
+        child.setVisibility(VISIBLE);
+    });
+
+    if (this.children.length === 1) {
+        // If we only have a single child...
+        var child = this.children[0];
+        if (child.isImportant) {
+          // ... and it is important (i.e. the summary row) just open it when
+          // parent is opened to save needless clicking 
+          child.openRow();
+        }
+    }
+}
+
+TableRow.prototype.closeRow = function() {
+    if (this.rowState === COLLAPSED) {
+        return;
+    }
+
+    this.setRowNestedState(COLLAPSED);
+
+    if (this.hasGraph) {
+        var firstCell = this.tableRow.children('td').first();
+        firstCell.children('section').remove();
+        this.tableRow.children('td').css({'padding-bottom': ''});
+    }
+
+    this.children.forEach(function(child) {
+        // Make children invisible, but leave their collapsed status alone
+        child.setVisibility(INVISIBLE);
+    });
+}
+
+TableRow.prototype.toggle = function() {
+    if (this.rowState === EXPANDED) {
+        this.closeRow();
+    } else {
+        this.openRow();
+    }
     return false;
 }
 
 function init() {
-    $.tablesorter.addParser({
-        id: 'comparison',
-        is: function(s) {
-            return s.indexOf('|') >= 0;
-        },
-        format: function(s) {
-            var parsed = parseFloat(s.substring(s.indexOf('|') + 1));
-            return isNaN(parsed) ? 0 : parsed;
-        },
-        type: 'numeric',
-    });
-
     var runs = [];
     var metrics = {};
     var deletedRunsById = {};
@@ -873,11 +1401,13 @@ function init() {
         });
     });
 
-    if (undeleteManager.mostRecentlyDeletedId()) {
-        $('#undelete').html('Undelete ' + deletedRunsById[undeleteManager.mostRecentlyDeletedId()].label());
-        $('#undelete').attr('title', deletedRunsById[undeleteManager.mostRecentlyDeletedId()].description());
+    runToUndelete = deletedRunsById[undeleteManager.mostRecentlyDeletedId()];
+
+    if (runToUndelete) {
+        $('#undelete').html('Undelete ' + runToUndelete.label());
+        $('#undelete').attr('title', runToUndelete.description());
         $('#undelete').click(function (event) {
-            deletedRunsById[undeleteManager.mostRecentlyDeletedId()].show();
+            runToUndelete.show();
             undeleteManager.undeleteMostRecent();
             location.reload();
         });
