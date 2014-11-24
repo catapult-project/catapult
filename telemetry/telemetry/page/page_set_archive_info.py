@@ -81,7 +81,7 @@ class PageSetArchiveInfo(object):
       os.close(temp_wpr_file_handle)
     self.temp_target_wpr_file_path = temp_wpr_file_path
 
-  def AddRecordedPages(self, pages):
+  def AddRecordedPages(self, pages, upload_to_cloud_storage=False):
     if not pages:
       os.remove(self.temp_target_wpr_file_path)
       return
@@ -98,6 +98,19 @@ class PageSetArchiveInfo(object):
 
     self._WriteToFile()
     self._DeleteAbandonedWprFiles()
+
+    # Upload to cloud storage
+    if upload_to_cloud_storage:
+      if not self._bucket:
+        logging.warning('PageSet must have bucket specified to upload pages to'
+                        ' cloud storage.')
+        return
+      try:
+        cloud_storage.Insert(self._bucket, target_wpr_file,
+                             target_wpr_file_path)
+      except cloud_storage.CloudStorageError, e:
+        logging.warning('Failed to upload wpr file %s to cloud storage. '
+                        'Error:%s' % target_wpr_file_path, e)
 
   def _DeleteAbandonedWprFiles(self):
     # Update the metadata so that the abandoned wpr files don't have empty page

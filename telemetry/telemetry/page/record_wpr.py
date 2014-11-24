@@ -158,6 +158,7 @@ class WprRecorder(object):
     if self._benchmark is not None:
       self._benchmark.AddCommandLineArgs(self._parser)
       self._benchmark.SetArgumentDefaults(self._parser)
+    self._parser.add_option('--upload', action='store_true')
     self._SetArgumentDefaults()
 
   def _SetArgumentDefaults(self):
@@ -189,23 +190,32 @@ class WprRecorder(object):
     page_runner.Run(self._record_page_test, self._page_set,
         test_expectations.TestExpectations(), self._options, results)
 
-  def HandleResults(self, results):
+  def HandleResults(self, results, upload_to_cloud_storage):
     if results.failures or results.skipped_values:
       logging.warning('Some pages failed and/or were skipped. The recording '
                       'has not been updated for these pages.')
     results.PrintSummary()
     self._page_set.wpr_archive_info.AddRecordedPages(
-        results.pages_that_succeeded)
+        results.pages_that_succeeded,
+        upload_to_cloud_storage)
 
 
 def Main(base_dir):
-  quick_args = [a for a in sys.argv[1:] if not a.startswith('-')]
+  quick_args = []
+  upload_to_cloud_storage = False
+
+  for a in sys.argv[1:]:
+    if not a.startswith('-'):
+      quick_args.append(a)
+    elif a == '--upload':
+      upload_to_cloud_storage = True
+
   if len(quick_args) != 1:
-    print >> sys.stderr, 'Usage: record_wpr <PageSet|Benchmark>\n'
+    print >> sys.stderr, 'Usage: record_wpr <PageSet|Benchmark> [--upload]\n'
     sys.exit(1)
   target = quick_args.pop()
   wpr_recorder = WprRecorder(base_dir, target)
   results = wpr_recorder.CreateResults()
   wpr_recorder.Record(results)
-  wpr_recorder.HandleResults(results)
+  wpr_recorder.HandleResults(results, upload_to_cloud_storage)
   return min(255, len(results.failures))

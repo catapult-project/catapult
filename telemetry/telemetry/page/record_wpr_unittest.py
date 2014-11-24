@@ -178,6 +178,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     flags = [
         '--page-repeat', '2',
         '--mock-benchmark-url', self._url,
+        '--upload',
     ]
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, MockBenchmark(),
                                           flags)
@@ -185,6 +186,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     self.assertEquals(2, wpr_recorder.options.page_repeat)
     # benchmark command-line args
     self.assertEquals(self._url, wpr_recorder.options.mock_benchmark_url)
+    # record_wpr command-line arg to upload to cloud-storage.
+    self.assertTrue(wpr_recorder.options.upload)
     # invalid command-line args
     self.assertFalse(hasattr(wpr_recorder.options, 'not_a_real_option'))
 

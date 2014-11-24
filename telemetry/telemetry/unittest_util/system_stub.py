@@ -264,10 +264,20 @@ class CloudStorageModuleStub(object):
     return CloudStorageModuleStub.GetHelper(self, bucket, remote_path,
                                             local_path, False)
 
-  def GetIfChanged(self, bucket, local_path):
+  def GetIfChanged(self, local_path, bucket=None):
     remote_path = os.path.basename(local_path)
-    return CloudStorageModuleStub.GetHelper(self, bucket, remote_path,
-                                            local_path, True)
+    if bucket:
+      return CloudStorageModuleStub.GetHelper(self, bucket, remote_path,
+                                              local_path, True)
+    result = CloudStorageModuleStub.GetHelper(
+        self, self.PUBLIC_BUCKET, remote_path, local_path, True)
+    if not result:
+      result = CloudStorageModuleStub.GetHelper(
+          self, self.PARTNER_BUCKET, remote_path, local_path, True)
+    if not result:
+      result = CloudStorageModuleStub.GetHelper(
+          self, self.INTERNAL_BUCKET, remote_path, local_path, True)
+    return result
 
   def CalculateHash(self, file_path):
     return self.local_file_hashes[file_path]

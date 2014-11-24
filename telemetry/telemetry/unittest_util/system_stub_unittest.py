@@ -150,14 +150,14 @@ class CloudStorageTest(unittest.TestCase):
                       self.cloud_storage.PUBLIC_BUCKET, 'success.wpr',
                       '/path/to/success.wpr')
     self.assertFalse(self.cloud_storage.GetIfChanged(
-      self.cloud_storage.PUBLIC_BUCKET, '/path/to/preset_public_file.wpr'))
+      '/path/to/preset_public_file.wpr', self.cloud_storage.PUBLIC_BUCKET))
     self.cloud_storage.ChangeRemoteHashForTesting(
       self.cloud_storage.PUBLIC_BUCKET, 'preset_public_file.wpr',
       CloudStorageTest.UPDATED_HASH)
     self.assertTrue(self.cloud_storage.GetIfChanged(
-      self.cloud_storage.PUBLIC_BUCKET, '/path/to/preset_public_file.wpr'))
+      '/path/to/preset_public_file.wpr', self.cloud_storage.PUBLIC_BUCKET))
     self.assertFalse(self.cloud_storage.GetIfChanged(
-      self.cloud_storage.PUBLIC_BUCKET, '/path/to/preset_public_file.wpr'))
+      '/path/to/preset_public_file.wpr', self.cloud_storage.PUBLIC_BUCKET))
     # Reset state.
     self.cloud_storage.SetRemotePathsForTesting()
 
@@ -180,7 +180,7 @@ class CloudStorageTest(unittest.TestCase):
       '/path/to/preset_internal_file.wpr')
     self.assertRaises(
       self.cloud_storage.PermissionError, self.cloud_storage.GetIfChanged,
-      self.cloud_storage.INTERNAL_BUCKET, '/path/to/preset_internal_file.wpr')
+      '/path/to/preset_internal_file.wpr', self.cloud_storage.INTERNAL_BUCKET)
     self.assertRaises(
       self.cloud_storage.PermissionError, self.cloud_storage.List,
       self.cloud_storage.INTERNAL_BUCKET)
