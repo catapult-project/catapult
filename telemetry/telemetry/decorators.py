@@ -139,6 +139,8 @@ def ShouldSkip(test, possible_browser):
       ]]
   if possible_browser.supports_tab_control:
     platform_attributes.append('has tabs')
+  if 'content-shell' in possible_browser.browser_type:
+    platform_attributes.append('content-shell')
 
   if hasattr(test, '__name__'):
     name = test.__name__
