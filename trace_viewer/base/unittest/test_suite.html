@@ -70,13 +70,16 @@ tv.exportTo('tv.unittest', function() {
 
       var testWrapper = function(results) {
         results = [];
+        var durationSum = 0;
         for (var i = 0; i < options.iterations; ++i) {
           var start = window.performance.now();
           test.call(this);
           var duration = window.performance.now() - start;
+          durationSum += duration;
           results.push(duration.toFixed(2) + 'ms');
         }
-        return results.join(', ');
+        var average = durationSum / options.iterations;
+        return results.join(', ') + ' [avg ' + average.toFixed(2) + 'ms]';
       };
 
       this.addTest(new PerfTestCase(this, name, testWrapper, options));
