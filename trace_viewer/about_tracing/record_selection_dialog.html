@@ -119,7 +119,6 @@ found in the LICENSE file.
   <div class="record-selection-dialog">
     <x-info-bar-group></x-info-bar-group>
     <div class="category-presets">
-      Settings preset:
     </div>
     <div class="category-description"></div>
     <div class="categories-column-view">
@@ -201,10 +200,9 @@ tv.exportTo('about_tracing', function() {
       this.recordButtonEl_.style.fontSize = '110%';
       this.buttons.appendChild(this.recordButtonEl_);
 
-
       this.categoriesView_ = this.querySelector('.categories-column-view');
       this.presetsEl_ = this.querySelector('.category-presets');
-      this.presetsEl_.appendChild(tv.ui.createSelector(
+      this.presetsEl_.appendChild(tv.ui.createOptionGroup(
           this, 'currentlyChosenPreset',
           'about_tracing.record_selection_dialog_preset',
           DEFAULT_PRESETS[0].categoryFilter,
@@ -243,6 +241,7 @@ tv.exportTo('about_tracing', function() {
           this.querySelector('.default-disabled-categories'));
       this.createDefaultDisabledWarningDialog_(
           this.querySelector('.warning-default-disabled-categories'));
+      this.editCategoriesOpened_ = false;
 
       // TODO(chrishenry): When used with tv.ui.Overlay (such as in
       // chrome://tracing, this does not yet look quite right due to
@@ -321,12 +320,38 @@ tv.exportTo('about_tracing', function() {
             ' preset must be an array.');
       this.currentlyChosenPreset_ = preset;
 
-      var classList = this.categoriesView_.classList;
-      if (!this.usingPreset_())
-        classList.remove('categories-column-view-hidden');
-      else if (!classList.contains('categories-column-view-hidden'))
-        classList.add('categories-column-view-hidden');
+      this.updateManualCategorySelectionStatus_();
       this.updatePresetDescription_();
+    },
+
+    updateManualCategorySelectionStatus_: function() {
+      var classList = this.categoriesView_.classList;
+      if (!this.usingPreset_()) {
+        classList.remove('categories-column-view-hidden');
+        this.updateEditCategoriesStatus_(true);
+      } else {
+        if (this.editCategoriesOpened_)
+          classList.remove('categories-column-view-hidden');
+        else
+          classList.add('categories-column-view-hidden');
+      }
+    },
+
+    onClickEditCategories: function() {
+      this.updateEditCategoriesStatus_(!this.editCategoriesOpened_);
+      this.updateManualCategorySelectionStatus_();
+    },
+
+    updateEditCategoriesStatus_: function(editCategoriesState) {
+      var presetOptionsGroup = this.querySelector('.labeled-option-group');
+      if (!presetOptionsGroup)
+        return;
+
+      this.editCategoriesOpened_ = editCategoriesState;
+      if (this.editCategoriesOpened_)
+          presetOptionsGroup.classList.add('categories-expanded');
+      else
+          presetOptionsGroup.classList.remove('categories-expanded');
     },
 
     updatePresetDescription_: function() {
