@@ -6,12 +6,10 @@ import logging
 import time
 import unittest
 
-from telemetry import decorators
 from telemetry.core import platform as platform_module
 
 
 class PlatformBackendTest(unittest.TestCase):
-  @decorators.Disabled('mavericks')  # crbug.com/423688
   def testPowerMonitoringSync(self):
     # Tests that the act of monitoring power doesn't blow up.
     platform = platform_module.GetHostPlatform()

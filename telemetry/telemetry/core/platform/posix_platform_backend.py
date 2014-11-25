@@ -92,6 +92,10 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       args += parameters
 
     def IsElevated():
+      """ Returns True if the current process is elevated via sudo i.e. running
+      sudo will not prompt for a password. Returns False if not authenticated
+      via sudo or if telemetry is run on a non-interactive TTY."""
+      # `sudo -v` will always fail if run from a non-interactive TTY.
       p = subprocess.Popen(
           ['/usr/bin/sudo', '-nv'], stdin=subprocess.PIPE,
           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -101,30 +105,26 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       # required and no output when the user is already authenticated.
       return not p.returncode and not stdout
 
-    def CanRunElevatedWithoutSudo(path):
-      is_setuid = os.stat(path).st_mode & stat.S_ISUID == stat.S_ISUID
-      return IsElevated() or is_setuid
+    def IsSetUID(path):
+      """Returns True if the binary at |path| has the setuid bit set."""
+      return (os.stat(path).st_mode & stat.S_ISUID) == stat.S_ISUID
 
     def CanRunElevatedWithSudo(path):
+      """Returns True if the binary at |path| appears explicitly in the sudoers
+      file and can be run without prompting for a password."""
       sudoers = subprocess.check_output(['/usr/bin/sudo', '-l'])
       for line in sudoers.splitlines():
         if re.match(r'\s*\(.+\) NOPASSWD: %s$' % path, line):
           return True
       return False
 
-    if elevate_privilege and not CanRunElevatedWithoutSudo(application):
+    if elevate_privilege and not IsSetUID(application):
       args = ['/usr/bin/sudo'] + args
-      if not CanRunElevatedWithSudo(application):
+      if not CanRunElevatedWithSudo(application) and not IsElevated():
         print ('Telemetry needs to run %s under sudo. Please authenticate.' %
                application)
         # Synchronously authenticate.
         subprocess.check_call(['/usr/bin/sudo', '-v'])
-
-        prompt = ('Would you like to always allow %s to be run as the current '
-                  'user without sudo? If so, Telemetry will '
-                  '`sudo chmod +s %s`. (y/N)' % (application, application))
-        if raw_input(prompt).lower() == 'y':
-          subprocess.check_call(['/usr/bin/sudo', 'chmod', '+s', application])
 
     stderror_destination = subprocess.PIPE
     if logging.getLogger().isEnabledFor(logging.DEBUG):

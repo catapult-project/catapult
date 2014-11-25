@@ -228,12 +228,23 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
       StoreMetricAverage(m, sample_durations, out_dict)
     return out_dict
 
+  def _KillPowerMetricsProcess(self):
+    """Kill a running powermetrics process."""
+    try:
+      self._powermetrics_process.terminate()
+    except OSError:
+      # terminate() can fail when Powermetrics does not have the SetUID set.
+      self._backend.LaunchApplication(
+        '/usr/bin/pkill',
+        ['-SIGTERM', os.path.basename(self.binary_path)],
+        elevate_privilege=True)
+
   def StopMonitoringPower(self):
     assert self._powermetrics_process, (
         'StartMonitoringPower() not called.')
     # Tell powermetrics to take an immediate sample.
     try:
-      self._powermetrics_process.terminate()
+      self._KillPowerMetricsProcess()
       (power_stdout, power_stderr) = self._powermetrics_process.communicate()
       returncode = self._powermetrics_process.returncode
       assert returncode in [0, -15], (
