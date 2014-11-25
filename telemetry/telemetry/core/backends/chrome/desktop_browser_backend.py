@@ -243,6 +243,17 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.warning('Crash dump is older than 5 minutes. May not be correct.')
     return most_recent_dump
 
+  def _IsExecutableStripped(self):
+    if self.browser.platform.GetOSName() == 'mac':
+      symbols = subprocess.check_output(['/usr/bin/nm', self._executable])
+      num_symbols = len(symbols.splitlines())
+      # We assume that if there are more than 10 symbols the executable is not
+      # stripped.
+      return num_symbols < 10
+    else:
+      return False
+
+
   def _GetStackFromMinidump(self, minidump):
     os_name = self.browser.platform.GetOSName()
     if os_name == 'win':
@@ -287,9 +298,17 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         os.makedirs(symbol_path)
         shutil.copyfile(symbol, os.path.join(symbol_path, binary + '.sym'))
     else:
-      logging.info('Dumping breakpad symbols')
+
+      # On some platforms generating the symbol table can be very time
+      # consuming, skip it if there's nothing to dump.
+      if self._IsExecutableStripped():
+        logging.info('%s appears to be stripped, skipping symbol dump.' % (
+            self._executable))
+        return
+
+      logging.info('Dumping breakpad symbols.')
       generate_breakpad_symbols_path = os.path.join(
-          util.GetChromiumSrcDir(), "components", "breakpad",
+          util.GetChromiumSrcDir(), "components", "crash",
           "tools", "generate_breakpad_symbols.py")
       cmd = [
           sys.executable,
@@ -311,13 +330,14 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetStackTrace(self):
     most_recent_dump = self._GetMostRecentMinidump()
     if not most_recent_dump:
-      logging.warning('No crash dump found. Returning browser stdout.')
-      return self.GetStandardOutput()
+      return 'No crash dump found. Returning browser stdout:\n' + (
+          self.GetStandardOutput())
 
+    logging.info('minidump found: %s' % most_recent_dump)
     stack = self._GetStackFromMinidump(most_recent_dump)
     if not stack:
-      logging.warning('Failed to symbolize minidump. Returning browser stdout.')
-      return self.GetStandardOutput()
+      return 'Failed to symbolize minidump. Returning browser stdout:\n' + (
+          self.GetStandardOutput())
 
     return stack
 
