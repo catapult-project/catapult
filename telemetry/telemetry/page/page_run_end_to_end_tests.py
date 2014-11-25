@@ -6,7 +6,6 @@ import os
 import tempfile
 import unittest
 import shutil
-import StringIO
 import sys
 import tempfile
 
@@ -85,7 +84,7 @@ class FakeExceptionFormatterModule(object):
 
 # TODO: remove test cases that use real browsers and replace with a
 # user_story_runner or shared_page_state unittest that tests the same logic.
-class PageRunnerTests(unittest.TestCase):
+class PageRunEndToEndTests(unittest.TestCase):
   # TODO(nduca): Move the basic "test failed, test succeeded" tests from
   # page_test_unittest to here.
 
@@ -105,89 +104,6 @@ class PageRunnerTests(unittest.TestCase):
 
   def tearDown(self):
     self.RestoreExceptionFormatter()
-
-  def testHandlingOfCrashedTab(self):
-    self.SuppressExceptionFormatting()
-    ps = page_set.PageSet()
-    expectations = test_expectations.TestExpectations()
-    page1 = page_module.Page('chrome://crash', ps)
-    ps.pages.append(page1)
-
-    class Test(page_test.PageTest):
-      def ValidatePage(self, *args):
-        pass
-
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    SetUpUserStoryRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(Test(), ps, expectations, options, results)
-    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(1, len(results.failures))
-
-  def testHandlingOfTestThatRaisesWithNonFatalUnknownExceptions(self):
-    self.SuppressExceptionFormatting()
-    ps = page_set.PageSet()
-    expectations = test_expectations.TestExpectations()
-    ps.pages.append(page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
-    ps.pages.append(page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
-
-    class ExpectedException(Exception):
-      pass
-
-    class Test(page_test.PageTest):
-      def __init__(self, *args):
-        super(Test, self).__init__(*args)
-        self.run_count = 0
-      def ValidatePage(self, *_):
-        old_run_count = self.run_count
-        self.run_count += 1
-        if old_run_count == 0:
-          raise ExpectedException()
-
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    test = Test()
-    SetUpUserStoryRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
-    self.assertEquals(2, test.run_count)
-    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(1, len(results.failures))
-
-  def testRaiseBrowserGoneExceptionFromValidatePage(self):
-    self.SuppressExceptionFormatting()
-    ps = page_set.PageSet()
-    expectations = test_expectations.TestExpectations()
-    ps.pages.append(page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
-    ps.pages.append(page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
-
-    class Test(page_test.PageTest):
-      def __init__(self, *args):
-        super(Test, self).__init__(*args)
-        self.run_count = 0
-      def ValidatePage(self, *_):
-        old_run_count = self.run_count
-        self.run_count += 1
-        if old_run_count == 0:
-          raise exceptions.BrowserGoneException()
-
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    test = Test()
-    SetUpUserStoryRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
-    self.assertEquals(2, test.run_count)
-    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(1, len(results.failures))
 
   def testRaiseBrowserGoneExceptionFromRestartBrowserBeforeEachPage(self):
     self.SuppressExceptionFormatting()
@@ -236,110 +152,6 @@ class PageRunnerTests(unittest.TestCase):
     user_story_runner.Run(DummyTest(), ps, expectations, options, results)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
-
-  @decorators.Disabled('xp')  # Flaky, http://crbug.com/390079.
-  def testDiscardFirstResult(self):
-    ps = page_set.PageSet()
-    expectations = test_expectations.TestExpectations()
-    ps.pages.append(page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
-    ps.pages.append(page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
-
-    class Measurement(page_test.PageTest):
-      @property
-      def discard_first_result(self):
-        return True
-
-      def ValidateAndMeasurePage(self, page, _, results):
-        results.AddValue(string.StringValue(page, 'test', 't', page.url))
-
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    options.reset_results = None
-    options.upload_results = None
-    options.results_label = None
-
-    options.page_repeat = 1
-    options.pageset_repeat = 1
-    SetUpUserStoryRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(Measurement(), ps, expectations, options, results)
-    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(0, len(results.failures))
-    self.assertEquals(0, len(results.all_page_specific_values))
-
-    options.page_repeat = 1
-    options.pageset_repeat = 2
-    SetUpUserStoryRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(Measurement(), ps, expectations, options, results)
-    self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(0, len(results.failures))
-    self.assertEquals(2, len(results.all_page_specific_values))
-
-    options.page_repeat = 2
-    options.pageset_repeat = 1
-    SetUpUserStoryRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(Measurement(), ps, expectations, options, results)
-    self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(0, len(results.failures))
-    self.assertEquals(2, len(results.all_page_specific_values))
-
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    options.page_repeat = 1
-    options.pageset_repeat = 1
-    SetUpUserStoryRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(Measurement(), ps, expectations, options, results)
-    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(0, len(results.failures))
-    self.assertEquals(0, len(results.all_page_specific_values))
-
-  @decorators.Disabled('win')
-  def testPagesetRepeat(self):
-    ps = page_set.PageSet()
-    expectations = test_expectations.TestExpectations()
-    ps.pages.append(page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
-    ps.pages.append(page_module.Page(
-        'file://green_rect.html', ps, base_dir=util.GetUnittestDataDir()))
-
-    class Measurement(page_test.PageTest):
-      i = 0
-      def ValidateAndMeasurePage(self, page, _, results):
-        self.i += 1
-        results.AddValue(scalar.ScalarValue(
-            page, 'metric', 'unit', self.i))
-
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['buildbot']
-    options.suppress_gtest_report = True
-    options.reset_results = None
-    options.upload_results = None
-    options.results_label = None
-    options.page_repeat = 1
-    options.pageset_repeat = 2
-    SetUpUserStoryRunnerArguments(options)
-
-    output = StringIO.StringIO()
-    real_stdout = sys.stdout
-    sys.stdout = output
-    try:
-      results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      user_story_runner.Run(Measurement(), ps, expectations, options, results)
-      results.PrintSummary()
-      contents = output.getvalue()
-      self.assertEquals(4, len(GetSuccessfulPageRuns(results)))
-      self.assertEquals(0, len(results.failures))
-      self.assertIn('RESULT metric: blank.html= [1,3] unit', contents)
-      self.assertIn('RESULT metric: green_rect.html= [2,4] unit', contents)
-      self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', contents)
-    finally:
-      sys.stdout = real_stdout
 
   def testCredentialsWhenLoginFails(self):
     self.SuppressExceptionFormatting()
