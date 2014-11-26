@@ -145,12 +145,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def GetReplayBrowserStartupArgs(self):
     if self.browser_options.wpr_mode == wpr_modes.WPR_OFF:
       return []
-    # Use Chrome's --host-resolver-rules flag if the forwarder does not send
-    # the HTTP requests directly to Replay. Also use --host-resolver-rules
-    # without netsim. With netsim, DNS requests should be sent (to get the
-    # simulated latency), however, the flag causes DNS requests to be skipped.
-    http_remote_port = self.wpr_port_pairs.http.remote_port
-    https_remote_port = self.wpr_port_pairs.https.remote_port
     replay_args = []
     if self.should_ignore_certificate_errors:
       # Ignore certificate errors if the platform backend has not created
@@ -160,15 +154,13 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       replay_args.append('--host-resolver-rules=MAP * %s,EXCLUDE localhost' %
                          self.forwarder_factory.host_ip)  # replay's host_ip
     # Force the browser to send HTTP/HTTPS requests to fixed ports if they
-    # are not the standard defaults.
-    # Backstory:
-    #     That allows Telemetry to pick ports that do not require sudo
-    #     and leaves room for multiple instances running simultaneously.
-    #     The default ports are required for network simulation.
-    if http_remote_port != 80:
-      replay_args.append('--testing-fixed-http-port=%s' % http_remote_port)
-    if https_remote_port != 443:  # check if using the default HTTPS port
-      replay_args.append('--testing-fixed-https-port=%s' % https_remote_port)
+    # are not the standard HTTP/HTTPS ports.
+    http_port = self._platform_backend.wpr_http_device_port
+    https_port = self._platform_backend.wpr_https_device_port
+    if http_port != 80:
+      replay_args.append('--testing-fixed-http-port=%s' % http_port)
+    if https_port != 443:
+      replay_args.append('--testing-fixed-https-port=%s' % https_port)
     return replay_args
 
   def HasBrowserFinishedLaunching(self):

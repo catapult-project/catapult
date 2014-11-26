@@ -137,6 +137,14 @@ class PlatformBackend(object):
     assert len(matches) == 1
     return matches[0]
 
+  @property
+  def wpr_http_device_port(self):
+    return self._network_controller_backend.wpr_http_device_port
+
+  @property
+  def wpr_https_device_port(self):
+    return self._network_controller_backend.wpr_https_device_port
+
   def IsRawDisplayFrameRateSupported(self):
     return False
 
