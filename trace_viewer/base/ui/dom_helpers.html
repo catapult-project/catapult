@@ -142,7 +142,6 @@ tv.exportTo('tv.ui', function() {
 
     var optionGroupEl = createSpan({className: 'labeled-option-group'});
     var initialValue = tv.Settings.get(settingsKey, defaultValue);
-    var didSetInitialValue = false;
     for (var i = 0; i < items.length; ++i) {
       var item = items[i];
       var id = 'category-preset-' + i;
@@ -155,11 +154,8 @@ tv.exportTo('tv.ui', function() {
       radioEl.addEventListener('change', onChange.bind(radioEl, targetEl,
                                                        targetElProperty,
                                                        settingsKey));
-      if (valuesEqual(initialValue, item.value)) {
+      if (valuesEqual(initialValue, item.value))
         radioEl.checked = true;
-        targetEl[targetElProperty] = initialValue;
-        didSetInitialValue = true;
-      }
 
       var labelEl = document.createElement('label');
       labelEl.textContent = item.label;
@@ -184,9 +180,13 @@ tv.exportTo('tv.ui', function() {
       optionGroupEl.appendChild(spanEl);
     }
     optionGroupEl.appendChild(createEditCategorySpan(optionGroupEl, targetEl));
-
-    if (!didSetInitialValue)
-      targetEl[targetElProperty] = defaultValue;
+    // Since this option group element is not yet added to the tree,
+    // querySelector will fail during updateEditCategoriesStatus_ call.
+    // Hence, creating the element with the 'expanded' classlist category
+    // added, if last selected value was 'Manual' selection.
+    if (!initialValue.length)
+      optionGroupEl.classList.add('categories-expanded');
+    targetEl[targetElProperty] = initialValue;
 
     return optionGroupEl;
   }
