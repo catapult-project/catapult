@@ -132,7 +132,7 @@ class AndroidRndisForwarder(forwarders.Forwarder):
     self._adb.device().SetProp('net.dns2', dns2)
     dnschange = self._adb.device().GetProp('net.dnschange')
     if dnschange:
-      self._adb.device().SetProp('net.dnschange', int(dnschange) + 1)
+      self._adb.device().SetProp('net.dnschange', str(int(dnschange) + 1))
     # Since commit 8b47b3601f82f299bb8c135af0639b72b67230e6 to frameworks/base
     # the net.dns1 properties have been replaced with explicit commands for netd
     self._adb.RunShellCommand('netd resolver setifdns %s %s %s' %
