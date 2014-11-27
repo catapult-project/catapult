@@ -135,7 +135,7 @@ class Run(command_line.OptparseCommand):
     if not matching_benchmarks:
       print >> sys.stderr, 'No benchmark named "%s".' % input_benchmark_name
       print >> sys.stderr
-      _PrintBenchmarkList(_Benchmarks(), possible_browser)
+      _PrintBenchmarkList(_Benchmarks(), None)
       sys.exit(-1)
 
     if len(matching_benchmarks) > 1:
@@ -143,7 +143,7 @@ class Run(command_line.OptparseCommand):
                             input_benchmark_name)
       print >> sys.stderr, 'Did you mean one of these?'
       print >> sys.stderr
-      _PrintBenchmarkList(matching_benchmarks, possible_browser)
+      _PrintBenchmarkList(matching_benchmarks, None)
       sys.exit(-1)
 
     benchmark_class = matching_benchmarks.pop()
