@@ -47,6 +47,9 @@ tv.exportTo('tracing', function() {
     // Highlights.
     this.highlightVSync_ = false;
 
+    // High details.
+    this.highDetails_ = false;
+
     // Grid system.
     this.gridTimebase_ = 0;
     this.gridStep_ = 1000 / 60;
@@ -272,6 +275,15 @@ tv.exportTo('tracing', function() {
 
     set highlightVSync(highlightVSync) {
       this.highlightVSync_ = highlightVSync;
+      this.dispatchChangeEvent();
+    },
+
+    get highDetails() {
+      return this.highDetails_;
+    },
+
+    set highDetails(highDetails) {
+      this.highDetails_ = highDetails;
       this.dispatchChangeEvent();
     },
 
