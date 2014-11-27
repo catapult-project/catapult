@@ -207,7 +207,8 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     self._options.browser_options.wpr_mode = wpr_modes.WPR_OFF
 
   # This test is flaky when run in parallel on the mac: crbug.com/426676
-  @benchmark.Disabled('mac')
+  # Also, fails on android: crbug.com/437057
+  @benchmark.Disabled('android', 'mac')
   def testSmoothnessTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddPage(TestTimelinebasedMeasurementPage(
@@ -226,7 +227,8 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(len(v), 1)
 
   # This test is flaky when run in parallel on the mac: crbug.com/426676
-  @benchmark.Disabled('mac')
+  # Also, fails on android: crbug.com/437057
+  @benchmark.Disabled('android', 'mac')
   def testFastTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddPage(TestTimelinebasedMeasurementPage(
@@ -263,7 +265,8 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
 
   # Disabled since mainthread_jank metric is not supported on windows platform.
   # Also, flaky on the mac when run in parallel: crbug.com/426676
-  @benchmark.Disabled('win', 'mac')
+  # Also, fails on android: crbug.com/437057
+  @benchmark.Disabled('android', 'win', 'mac')
   def testMainthreadJankTimelineBasedMeasurement(self):
     ps = self.CreateEmptyPageSet()
     ps.AddPage(TestTimelinebasedMeasurementPage(

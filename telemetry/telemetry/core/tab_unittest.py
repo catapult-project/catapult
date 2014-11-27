@@ -102,7 +102,9 @@ class TabTest(tab_test_case.TabTestCase):
     finally:
       self._tab.browser._platform_backend = original_platform_backend
 
-  @benchmark.Disabled('chromeos') # crbug.com/412713.
+  # Test failing on android: http://crbug.com/437057
+  # Also, for chromeos: http://crbug.com/412713
+  @benchmark.Disabled('android', 'chromeos')
   def testHighlight(self):
     self.assertEquals(self._tab.url, 'about:blank')
     options = tracing_options.TracingOptions()
