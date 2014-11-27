@@ -28,23 +28,10 @@ class CrOsSshForwarder(forwarders.Forwarder):
     super(CrOsSshForwarder, self).__init__(port_pairs)
     self._cri = cri
     self._proc = None
-    self._forwarding_flag = forwarding_flag
-
-    if self._forwarding_flag == 'R':
-      command_line = ['-%s%i:%s:%i' % (self._forwarding_flag,
-                                       port_pair.remote_port,
-                                       self.host_ip,
-                                       port_pair.local_port)
-                      for port_pair in port_pairs if port_pair]
-    else:
-      command_line = ['-%s%i:%s:%i' % (self._forwarding_flag,
-                                       port_pair.local_port,
-                                       self.host_ip,
-                                       port_pair.remote_port)
-                      for port_pair in port_pairs if port_pair]
-      logging.debug('Forwarding to localhost:%d', port_pairs[0].local_port)
+    forwarding_args = self._ForwardingArgs(
+        forwarding_flag, self.host_ip, port_pairs)
     self._proc = subprocess.Popen(
-        self._cri.FormSSHCommandLine(['sleep', '999999999'], command_line),
+        self._cri.FormSSHCommandLine(['sleep', '999999999'], forwarding_args),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         stdin=subprocess.PIPE,
@@ -52,6 +39,16 @@ class CrOsSshForwarder(forwarders.Forwarder):
     util.WaitFor(
         lambda: self._cri.IsHTTPServerRunningOnPort(self.host_port), 60)
     logging.debug('Server started on %s:%d', self.host_ip, self.host_port)
+
+  # pylint: disable=unused-argument
+  @staticmethod
+  def _ForwardingArgs(forwarding_flag, host_ip, port_pairs):
+    assert forwarding_flag in ('-R', '-L'), 'Forwarding flag requires -R or -L.'
+    if forwarding_flag == '-R':
+      arg_format = '-R{pp.remote_port}:{host_ip}:{pp.local_port}'
+    else:
+      arg_format = '-L{pp.local_port}:{host_ip}:{pp.remote_port}'
+    return [arg_format.format(**locals()) for pp in port_pairs if pp]
 
   @property
   def host_port(self):
