@@ -440,12 +440,17 @@ class SubprocessModuleStub(object):
   class PopenStub(object):
     def __init__(self):
       self.communicate_result = ('', '')
+      self.returncode_result = 0
 
     def __call__(self, args, **kwargs):
       return self
 
     def communicate(self):
       return self.communicate_result
+
+    @property
+    def returncode(self):
+      return self.returncode_result
 
   def __init__(self):
     self.Popen = SubprocessModuleStub.PopenStub()

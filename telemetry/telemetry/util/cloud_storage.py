@@ -141,10 +141,11 @@ def _RunCommand(args):
         'You are attempting to access protected data with no configured',
         'Failure: No handler was ready to authenticate.')):
       raise CredentialsError(gsutil_path)
-    if 'status=403' in stderr or 'status 403' or '403 Forbidden' in stderr:
+    if ('status=403' in stderr or 'status 403' in stderr or
+        '403 Forbidden' in stderr):
       raise PermissionError(gsutil_path)
     if (stderr.startswith('InvalidUriError') or 'No such object' in stderr or
-        'No URLs matched' in stderr):
+        'No URLs matched' in stderr or 'One or more URLs matched no' in stderr):
       raise NotFoundError(stderr)
     if '500 Internal Server Error' in stderr:
       raise ServerError(stderr)
