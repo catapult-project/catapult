@@ -183,7 +183,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.ClickElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
-  @benchmark.Disabled('debug')
+  @benchmark.Disabled('android', 'debug') # crbug.com/437068
   def testTapElement(self):
     self.Navigate('page_with_clickables.html')
     action_runner = action_runner_module.ActionRunner(self._tab,
