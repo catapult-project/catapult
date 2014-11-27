@@ -205,6 +205,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.TapElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
+  @benchmark.Disabled('android') # crbug.com/437065.
   def testScroll(self):
     if not page_action.IsGestureSourceTypeSupported(
         self._tab, 'touch'):
@@ -228,6 +229,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertTrue(action_runner.EvaluateJavaScript(
         'document.body.scrollLeft') > 75)
 
+  @benchmark.Disabled('android') # crbug.com/437065.
   def testSwipe(self):
     if not page_action.IsGestureSourceTypeSupported(
         self._tab, 'touch'):
