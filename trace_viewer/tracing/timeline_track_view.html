@@ -405,6 +405,9 @@ tv.exportTo('tracing', function() {
         case 118:  // v
           this.toggleHighlightVSync_();
           break;
+        case 104:  // h
+          this.toggleHighDetails_();
+          break;
       }
     },
 
@@ -607,6 +610,10 @@ tv.exportTo('tracing', function() {
 
     toggleHighlightVSync_: function() {
       this.viewport_.highlightVSync = !this.viewport_.highlightVSync;
+    },
+
+    toggleHighDetails_: function() {
+      this.viewport_.highDetails = !this.viewport_.highDetails;
     },
 
     /**
