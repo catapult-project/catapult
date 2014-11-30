@@ -326,12 +326,6 @@ class AndroidPlatformBackend(
     if pid:
       command += ' -p %d' % pid
     ps = self._device.RunShellCommand(command)[1:]
-
-    # TOOD(jeremy): Remove, debugging code for crbug.com/436601 .
-    if 'missing' in ''.join(ps):
-      logging.info(command)
-      logging.info(ps)
-
     output = []
     for line in ps:
       data = line.split()
