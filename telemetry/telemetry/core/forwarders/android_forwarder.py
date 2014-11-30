@@ -18,9 +18,10 @@ from telemetry.util import support_binaries
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib import forwarder  # pylint: disable=F0401
-  from pylib.device import device_errors  # pylint: disable=F0401
 except ImportError:
   forwarder = None
+
+from pylib.device import device_errors  # pylint: disable=F0401
 
 
 class AndroidForwarderFactory(forwarders.ForwarderFactory):
@@ -243,8 +244,29 @@ class AndroidRndisConfigurator(object):
         ['/usr/bin/sudo', 'bash', '-c',
          'echo -e "%s" > %s' % (contents, file_path)])
 
+  def _LoadInstalledHoRNDIS(self):
+    """Attempt to load HoRNDIS if installed.
+    If kext could not be loaded or if HoRNDIS is not installed, return False.
+    """
+    if not os.path.isdir('/System/Library/Extensions/HoRNDIS.kext'):
+      logging.info('HoRNDIS not present on system.')
+      return False
+
+    def HoRNDISLoaded():
+      return 'HoRNDIS' in subprocess.check_output(['kextstat'])
+
+    if HoRNDISLoaded():
+      return True
+
+    logging.info('HoRNDIS installed but not running, trying to load manually.')
+    subprocess.check_call(
+        ['/usr/bin/sudo', 'kextload', '-b', 'com.joshuawise.kexts.HoRNDIS'])
+
+    return HoRNDISLoaded()
+
   def _InstallHorndis(self, arch_name):
-    if 'HoRNDIS' in subprocess.check_output(['kextstat']):
+    if self._LoadInstalledHoRNDIS():
+      logging.info('HoRNDIS kext loaded successfully.')
       return
     logging.info('Installing HoRNDIS...')
     pkg_path = support_binaries.FindPath('HoRNDIS-rel5.pkg', arch_name, 'mac')
@@ -432,7 +454,7 @@ doit &
           self._WriteProtectedFile(interface_conf_file, interface_conf)
           subprocess.check_call(['/usr/bin/sudo', 'ifup', host_iface])
       logging.info('Waiting for RNDIS connectivity...')
-      util.WaitFor(HasHostAddress, 10)
+      util.WaitFor(HasHostAddress, 30)
 
     addresses, host_address = self._GetHostAddresses(host_iface)
     assert host_address, 'Interface %s could not be configured.' % host_iface
@@ -500,8 +522,10 @@ doit &
       device_iface, host_iface = self._CheckEnableRndis(force)
       self._ConfigureNetwork(device_iface, host_iface)
       self.OverrideRoutingPolicy()
-      if self._TestConnectivity():
-        return
+      # Sometimes the first packet will wake up the connection.
+      for _ in range(3):
+        if self._TestConnectivity():
+          return
       force = True
     self.RestoreRoutingPolicy()
     raise Exception('No connectivity, giving up.')
