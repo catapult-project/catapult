@@ -43,8 +43,8 @@ class CrOsSshForwarder(forwarders.Forwarder):
   # pylint: disable=unused-argument
   @staticmethod
   def _ForwardingArgs(forwarding_flag, host_ip, port_pairs):
-    assert forwarding_flag in ('-R', '-L'), 'Forwarding flag requires -R or -L.'
-    if forwarding_flag == '-R':
+    assert forwarding_flag in ('R', 'L'), 'Forwarding flag requires R or L.'
+    if forwarding_flag == 'R':
       arg_format = '-R{pp.remote_port}:{host_ip}:{pp.local_port}'
     else:
       arg_format = '-L{pp.local_port}:{host_ip}:{pp.remote_port}'
