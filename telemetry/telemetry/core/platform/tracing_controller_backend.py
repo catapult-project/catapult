@@ -21,20 +21,7 @@ class TracingControllerBackend(object):
     assert isinstance(trace_options,
                       tracing_options.TracingOptions)
 
-    num_running_browser_backends = len(self.running_browser_backends)
-    if num_running_browser_backends != 1:
-      # Note: it is possible to implement tracing for both the case of 0 and >1.
-      # For >1, we just need to merge the trace files at StopTracing.
-      #
-      # For 0, we want to modify chrome's trace-startup to support leaving
-      # tracing on indefinitely. Then have the backend notify the platform
-      # and the tracing controller that it is starting a browser, have
-      # the controller add in the trace-startup command, and then when we get
-      # the Stop message or the DidStopBrowser(), issue the stop tracing command
-      # on the right backend.
-      raise NotImplementedError(
-          'Start tracing does not support the case of %i running browser '
-          'instances' % num_running_browser_backends)
+    self._AssertOneBrowserBackend()
 
     self._current_trace_options = trace_options
     self._current_category_filter = category_filter
@@ -45,10 +32,8 @@ class TracingControllerBackend(object):
           trace_options, category_filter.filter_string, timeout)
 
   def Stop(self):
-    if not self.is_tracing_running:
-      raise Exception('Not tracing')
-    if len(self.running_browser_backends) != 1:
-      raise NotImplementedError()
+    assert self.is_tracing_running, 'Can only stop tracing when tracing.'
+    self._AssertOneBrowserBackend()
 
     result = None
     if self._current_trace_options.enable_chrome_trace:
@@ -58,6 +43,20 @@ class TracingControllerBackend(object):
     self._current_trace_options = None
     self._current_category_filter = None
     return result
+
+  def _AssertOneBrowserBackend(self):
+    # Note: it is possible to implement tracing for both the case of 0 and >1.
+    # For >1, we just need to merge the trace files at StopTracing.
+    #
+    # For 0, we want to modify chrome's trace-startup to support leaving
+    # tracing on indefinitely. Then have the backend notify the platform
+    # and the tracing controller that it is starting a browser, have
+    # the controller add in the trace-startup command, and then when we get
+    # the Stop message or the DidStopBrowser(), issue the stop tracing command
+    # on the right backend.
+    num_instances = len(self.running_browser_backends)
+    assert num_instances == 1, (
+        'Tracing only supports one browser instance (not %i).' % num_instances)
 
   def IsChromeTracingSupported(self, browser):
     browser_backend = self._platform_backend.GetBackendForBrowser(browser)
