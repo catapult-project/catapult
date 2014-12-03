@@ -45,7 +45,7 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
       elif not self._browser_backend.HasBrowserFinishedLaunching():
         raise exceptions.BrowserConnectionGoneException(self.app, err_msg)
       else:
-        raise exceptions.TabCrashException(self.app, err_msg)
+        raise exceptions.DevtoolsTargetCrashException(self.app, err_msg)
 
     self._console = inspector_console.InspectorConsole(self)
     self._memory = inspector_memory.InspectorMemory(self)
