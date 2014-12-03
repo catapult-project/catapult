@@ -9,8 +9,10 @@ from telemetry import decorators
 from telemetry.unittest_util import system_stub
 from telemetry.util import cloud_storage
 
+
 def _FakeFindGsutil():
   return 'fake gsutil path'
+
 
 class CloudStorageUnitTest(unittest.TestCase):
 
@@ -18,20 +20,22 @@ class CloudStorageUnitTest(unittest.TestCase):
     pass
 
   def testValidCloudUrl(self):
-    cloud_storage._RunCommand = self._FakeRunCommand
-    remote_path = 'test-remote-path.html'
-    local_path = 'test-local-path.html'
-    cloud_url = cloud_storage.Insert(cloud_storage.PUBLIC_BUCKET,
-                                     remote_path, local_path)
-    self.assertEqual('https://console.developers.google.com/m/cloudstorage'
-                     '/b/chromium-telemetry/o/test-remote-path.html',
-                     cloud_url)
+    orig_run_command = cloud_storage._RunCommand
+    try:
+      cloud_storage._RunCommand = self._FakeRunCommand
+      remote_path = 'test-remote-path.html'
+      local_path = 'test-local-path.html'
+      cloud_url = cloud_storage.Insert(cloud_storage.PUBLIC_BUCKET,
+                                       remote_path, local_path)
+      self.assertEqual('https://console.developers.google.com/m/cloudstorage'
+                       '/b/chromium-telemetry/o/test-remote-path.html',
+                       cloud_url)
+    finally:
+      cloud_storage._RunCommand = orig_run_command
 
-
-  @decorators.Disabled('win')
-  # TODO(kbr): reenable test on windows once harness is fixed. crbug.com/437115
   def testExistsReturnsFalse(self):
     stubs = system_stub.Override(cloud_storage, ['subprocess'])
+    orig_find_gs_util = cloud_storage.FindGsutil
     try:
       stubs.subprocess.Popen.communicate_result = (
         '',
@@ -42,3 +46,4 @@ class CloudStorageUnitTest(unittest.TestCase):
                                             'fake remote path'))
     finally:
       stubs.Restore()
+      cloud_storage.FindGsutil = orig_find_gs_util
