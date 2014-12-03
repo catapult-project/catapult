@@ -5,7 +5,7 @@
 import collections
 import logging
 
-from telemetry.core.backends.chrome import inspector_backend
+from telemetry.core.backends.chrome_inspector import inspector_backend
 
 
 def DebuggerUrlToId(debugger_url):

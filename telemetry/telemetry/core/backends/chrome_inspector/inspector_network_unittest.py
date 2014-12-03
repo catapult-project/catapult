@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry import benchmark
-from telemetry.core.backends.chrome import inspector_network
+from telemetry.core.backends.chrome_inspector import inspector_network
 from telemetry.timeline import recording_options
 from telemetry.unittest_util import tab_test_case
 

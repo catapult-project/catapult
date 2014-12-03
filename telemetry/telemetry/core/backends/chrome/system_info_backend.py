@@ -4,7 +4,7 @@
 
 from telemetry.core import camel_case
 from telemetry.core import system_info
-from telemetry.core.backends.chrome import inspector_websocket
+from telemetry.core.backends.chrome_inspector import inspector_websocket
 
 
 class SystemInfoBackend(object):

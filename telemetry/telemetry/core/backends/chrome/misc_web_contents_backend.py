@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.core import exceptions
-from telemetry.core.backends.chrome import inspector_backend_list
+from telemetry.core.backends.chrome_inspector import inspector_backend_list
 from telemetry.core.backends.chrome import oobe
 
 

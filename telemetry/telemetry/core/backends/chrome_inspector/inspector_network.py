@@ -4,7 +4,7 @@
 import logging
 
 from telemetry.core import util
-from telemetry.core.backends.chrome import timeline_recorder
+from telemetry.core.backends.chrome_inspector import timeline_recorder
 from telemetry.timeline import inspector_timeline_data
 
 

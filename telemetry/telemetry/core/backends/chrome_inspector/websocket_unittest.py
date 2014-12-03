@@ -9,7 +9,7 @@ import socket
 import threading
 import unittest
 
-from telemetry.core.backends.chrome import websocket
+from telemetry.core.backends.chrome_inspector import websocket
 
 
 # Minimal handler for a local websocket server.

@@ -4,7 +4,7 @@
 
 import logging
 
-from telemetry.core.backends.chrome import inspector_websocket
+from telemetry.core.backends.chrome_inspector import inspector_websocket
 from telemetry.core.platform import tracing_options
 
 

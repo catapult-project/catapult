@@ -8,7 +8,7 @@ import logging
 import socket
 import time
 
-from telemetry.core.backends.chrome import websocket
+from telemetry.core.backends.chrome_inspector import websocket
 
 
 _DomainHandler = collections.namedtuple(

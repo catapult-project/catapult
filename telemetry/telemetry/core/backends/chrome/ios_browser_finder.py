@@ -12,7 +12,7 @@ from telemetry import decorators
 from telemetry.core import browser
 from telemetry.core import platform
 from telemetry.core import possible_browser
-from telemetry.core.backends.chrome import inspector_backend
+from telemetry.core.backends.chrome_inspector import inspector_backend
 from telemetry.core.backends.chrome import ios_browser_backend
 from telemetry.core.platform import ios_platform_backend
 

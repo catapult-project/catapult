@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.core import util
-from telemetry.core.backends.chrome import inspector_timeline
+from telemetry.core.backends.chrome_inspector import inspector_timeline
 from telemetry.unittest_util import tab_test_case
 
 

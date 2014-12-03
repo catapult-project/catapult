@@ -6,7 +6,7 @@ import urllib2
 
 from telemetry.core import tab
 from telemetry.core import util
-from telemetry.core.backends.chrome import inspector_backend_list
+from telemetry.core.backends.chrome_inspector import inspector_backend_list
 
 
 class TabListBackend(inspector_backend_list.InspectorBackendList):

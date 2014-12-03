@@ -5,7 +5,7 @@
 import collections
 
 from telemetry.core import extension_page
-from telemetry.core.backends.chrome import inspector_backend_list
+from telemetry.core.backends.chrome_inspector import inspector_backend_list
 
 
 class ExtensionBackendList(inspector_backend_list.InspectorBackendList):

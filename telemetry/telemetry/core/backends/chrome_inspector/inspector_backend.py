@@ -10,14 +10,14 @@ from telemetry import decorators
 from telemetry.core import bitmap
 from telemetry.core import exceptions
 from telemetry.core import util
-from telemetry.core.backends.chrome import inspector_console
-from telemetry.core.backends.chrome import inspector_memory
-from telemetry.core.backends.chrome import inspector_network
-from telemetry.core.backends.chrome import inspector_page
-from telemetry.core.backends.chrome import inspector_runtime
-from telemetry.core.backends.chrome import inspector_timeline
-from telemetry.core.backends.chrome import inspector_websocket
-from telemetry.core.backends.chrome import websocket
+from telemetry.core.backends.chrome_inspector import inspector_console
+from telemetry.core.backends.chrome_inspector import inspector_memory
+from telemetry.core.backends.chrome_inspector import inspector_network
+from telemetry.core.backends.chrome_inspector import inspector_page
+from telemetry.core.backends.chrome_inspector import inspector_runtime
+from telemetry.core.backends.chrome_inspector import inspector_timeline
+from telemetry.core.backends.chrome_inspector import inspector_websocket
+from telemetry.core.backends.chrome_inspector import websocket
 from telemetry.core.heap import model
 from telemetry.timeline import model as timeline_model
 from telemetry.timeline import recording_options
