@@ -16,20 +16,21 @@ class CrOsForwarderFactory(forwarders.ForwarderFactory):
     super(CrOsForwarderFactory, self).__init__()
     self._cri = cri
 
-  def Create(self, port_pairs, forwarding_flag='R'):  # pylint: disable=W0221
+  # pylint: disable=arguments-differ
+  def Create(self, port_pairs, use_remote_port_forwarding=True):
     if self._cri.local:
       return do_nothing_forwarder.DoNothingForwarder(port_pairs)
-    return CrOsSshForwarder(self._cri, forwarding_flag, port_pairs)
+    return CrOsSshForwarder(self._cri, use_remote_port_forwarding, port_pairs)
 
 
 class CrOsSshForwarder(forwarders.Forwarder):
 
-  def __init__(self, cri, forwarding_flag, port_pairs):
+  def __init__(self, cri, use_remote_port_forwarding, port_pairs):
     super(CrOsSshForwarder, self).__init__(port_pairs)
     self._cri = cri
     self._proc = None
     forwarding_args = self._ForwardingArgs(
-        forwarding_flag, self.host_ip, port_pairs)
+        use_remote_port_forwarding, self.host_ip, port_pairs)
     self._proc = subprocess.Popen(
         self._cri.FormSSHCommandLine(['sleep', '999999999'], forwarding_args),
         stdout=subprocess.PIPE,
@@ -42,9 +43,8 @@ class CrOsSshForwarder(forwarders.Forwarder):
 
   # pylint: disable=unused-argument
   @staticmethod
-  def _ForwardingArgs(forwarding_flag, host_ip, port_pairs):
-    assert forwarding_flag in ('R', 'L'), 'Forwarding flag requires R or L.'
-    if forwarding_flag == 'R':
+  def _ForwardingArgs(use_remote_port_forwarding, host_ip, port_pairs):
+    if use_remote_port_forwarding:
       arg_format = '-R{pp.remote_port}:{host_ip}:{pp.local_port}'
     else:
       arg_format = '-L{pp.local_port}:{host_ip}:{pp.remote_port}'

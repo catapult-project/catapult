@@ -128,7 +128,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           forwarders.PortPairs(
               http=forwarders.PortPair(self._port, self._remote_debugging_port),
               https=None,
-              dns=None), forwarding_flag='L')
+              dns=None), use_remote_port_forwarding=False)
 
     # Wait for oobe.
     self._WaitForBrowserToComeUp(wait_for_extensions=False)

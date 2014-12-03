@@ -16,19 +16,16 @@ class ForwardingArgsTest(unittest.TestCase):
 
   def testForwardingArgsReverse(self):
     forwarding_args = cros_forwarder.CrOsSshForwarder._ForwardingArgs(
-        forwarding_flag='R', host_ip='5.5.5.5', port_pairs=self.port_pairs)
+        use_remote_port_forwarding=True, host_ip='5.5.5.5',
+        port_pairs=self.port_pairs)
     self.assertEqual(
         ['-R222:5.5.5.5:111', '-R444:5.5.5.5:333'],
         forwarding_args)
 
   def testForwardingArgs(self):
     forwarding_args = cros_forwarder.CrOsSshForwarder._ForwardingArgs(
-        forwarding_flag='L', host_ip='2.2.2.2', port_pairs=self.port_pairs)
+        use_remote_port_forwarding=False, host_ip='2.2.2.2',
+        port_pairs=self.port_pairs)
     self.assertEqual(
         ['-L111:2.2.2.2:222', '-L333:2.2.2.2:444'],
         forwarding_args)
-
-  def testBadForwardingFlagRaises(self):
-    with self.assertRaises(AssertionError):
-        _ = cros_forwarder.CrOsSshForwarder._ForwardingArgs(
-            '-X', '1.1.1.1', self.port_pairs)
