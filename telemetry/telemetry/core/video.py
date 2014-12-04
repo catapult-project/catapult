@@ -18,9 +18,13 @@ class Video(object):
   """Utilities for storing and interacting with the video capture."""
 
   def __init__(self, video_file_obj):
-    assert video_file_obj.delete
-    assert not video_file_obj.close_called
+    """Initializes the Video object.
+
+    args:
+      video_file: A file-like object."""
+    assert(hasattr(video_file_obj, 'name'))
     self._video_file_obj = video_file_obj
+
     self._tab_contents_bounding_box = None
 
   def UploadToCloudStorage(self, bucket, target_path):
@@ -43,7 +47,7 @@ class Video(object):
         time_ms is milliseconds since navigationStart.
         bitmap is a telemetry.core.Bitmap.
     """
-    frame_generator = self._FramesFromMp4(self._video_file_obj.name)
+    frame_generator = self._FramesFromMp4()
 
     # Flip through frames until we find the initial tab contents flash.
     content_box = None
@@ -113,7 +117,7 @@ class Video(object):
 
     return self._tab_contents_bounding_box
 
-  def _FramesFromMp4(self, mp4_file):
+  def _FramesFromMp4(self):
     host_platform = platform.GetHostPlatform()
     if not host_platform.CanLaunchApplication('avconv'):
       host_platform.InstallApplication('avconv')
@@ -151,14 +155,15 @@ class Video(object):
         if 'pts=' in line:
           return int(1000 * float(line.split('=')[-1]))
 
-    dimensions = GetDimensions(mp4_file)
+    dimensions = GetDimensions(self._video_file_obj.name)
     frame_length = dimensions[0] * dimensions[1] * 3
     frame_data = bytearray(frame_length)
 
     # Use rawvideo so that we don't need any external library to parse frames.
-    proc = subprocess.Popen(['avconv', '-i', mp4_file, '-vcodec',
-                             'rawvideo', '-pix_fmt', 'rgb24', '-dump',
-                             '-loglevel', 'debug', '-f', 'rawvideo', '-'],
+    proc = subprocess.Popen(['avconv', '-i', self._video_file_obj.name,
+                             '-vcodec', 'rawvideo', '-pix_fmt', 'rgb24',
+                             '-dump', '-loglevel', 'debug', '-f', 'rawvideo',
+                             '-'],
                             stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     while True:
       num_read = proc.stdout.readinto(frame_data)
