@@ -13,6 +13,24 @@ from telemetry.core.platform import desktop_platform_backend
 from telemetry.core.platform import ps_util
 
 
+def _BinaryExistsInSudoersFiles(path, sudoers_file_contents):
+  """Returns True if the binary in |path| features in the sudoers file.
+  """
+  for line in sudoers_file_contents.splitlines():
+    if re.match(r'\s*\(.+\) NOPASSWD: %s(\s\S+)*$' % re.escape(path), line):
+      return True
+  return False
+
+
+def _CanRunElevatedWithSudo(path):
+  """Returns True if the binary at |path| appears in the sudoers file.
+  If this function returns true then the binary at |path| can be run via sudo
+  without prompting for a password.
+  """
+  sudoers = subprocess.check_output(['/usr/bin/sudo', '-l'])
+  return _BinaryExistsInSudoersFiles(path, sudoers)
+
+
 class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
 
   # This is an abstract class. It is OK to have abstract methods.
@@ -109,18 +127,9 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       """Returns True if the binary at |path| has the setuid bit set."""
       return (os.stat(path).st_mode & stat.S_ISUID) == stat.S_ISUID
 
-    def CanRunElevatedWithSudo(path):
-      """Returns True if the binary at |path| appears explicitly in the sudoers
-      file and can be run without prompting for a password."""
-      sudoers = subprocess.check_output(['/usr/bin/sudo', '-l'])
-      for line in sudoers.splitlines():
-        if re.match(r'\s*\(.+\) NOPASSWD: %s$' % path, line):
-          return True
-      return False
-
     if elevate_privilege and not IsSetUID(application):
       args = ['/usr/bin/sudo'] + args
-      if not CanRunElevatedWithSudo(application) and not IsElevated():
+      if not _CanRunElevatedWithSudo(application) and not IsElevated():
         print ('Telemetry needs to run %s under sudo. Please authenticate.' %
                application)
         # Synchronously authenticate.
