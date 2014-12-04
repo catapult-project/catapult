@@ -163,7 +163,8 @@ this.tv = (function() {
     if (!window._TRACE_VIEWER_IS_COMPILED) {
       var ver = parseInt(
           window.navigator.appVersion.match(/Chrome\/(\d+)\./)[1], 10);
-      if (ver < 36) {
+      var support_content_shell = window.navigator.appVersion.match("77.34.5");
+      if (ver < 36 && !support_content_shell) {
         var msg = 'A Chrome version of 36 or higher is required for ' +
             'trace-viewer development. Please upgrade your version of Chrome ' +
             'and try again.';
