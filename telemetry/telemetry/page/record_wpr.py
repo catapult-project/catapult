@@ -17,11 +17,16 @@ from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.user_story import user_story_runner
 
+_ACTION_NAMES = [
+   'RunRepaint',
+   'RunSmoothness',
+   'RunPageInteractions',
+   'RunNavigateSteps',
+]
 
 class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
-  def __init__(self, action_names):
+  def __init__(self):
     super(RecorderPageTest, self).__init__()
-    self._action_names = action_names
     self.page_test = None
 
   def CanRunForPage(self, page):
@@ -72,7 +77,7 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
 
     should_reload = False
     # Run the actions on the page for all available measurements.
-    for action_name in self._action_names:
+    for action_name in _ACTION_NAMES:
       # Skip this action if it is not defined
       if not hasattr(page, action_name):
         continue
@@ -90,19 +95,6 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
       super(RecorderPageTest, self).RunNavigateSteps(page, tab)
 
 
-def FindAllActionNames(base_dir):
-  """Returns a set of of all action names used in our measurements."""
-  action_names = set()
-  # Get all PageTests except for ProfileCreators (see crbug.com/319573)
-  for _, cls in discover.DiscoverClasses(
-      base_dir, base_dir, page_test.PageTest).items():
-    if not issubclass(cls, profile_creator.ProfileCreator):
-      action_name = cls().action_name_to_run
-      if action_name:
-        action_names.add(action_name)
-  return action_names
-
-
 def _MaybeGetInstanceOfClass(target, base_dir, cls):
   if isinstance(target, cls):
     return target
@@ -114,8 +106,7 @@ def _MaybeGetInstanceOfClass(target, base_dir, cls):
 class WprRecorder(object):
 
   def __init__(self, base_dir, target, args=None):
-    action_names_to_run = FindAllActionNames(base_dir)
-    self._record_page_test = RecorderPageTest(action_names_to_run)
+    self._record_page_test = RecorderPageTest()
     self._options = self._CreateOptions()
 
     self._benchmark = _MaybeGetInstanceOfClass(target, base_dir,
