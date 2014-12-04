@@ -13,8 +13,10 @@ from telemetry.core.platform import profiler
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib import constants  # pylint: disable=F0401
-except Exception:
+  from pylib.device import device_errors  # pylint: disable=F0401
+except ImportError:
   constants = None
+  device_errors = None
 
 
 class JavaHeapProfiler(profiler.Profiler):
@@ -83,5 +85,7 @@ class JavaHeapProfiler(profiler.Profiler):
     self._run_count += 1
 
   def _FileSize(self, file_name):
-    f = self._browser_backend.adb.device().Ls(file_name)
-    return f.get(os.path.basename(file_name), (0, ))[0]
+    try:
+      return self._browser_backend.adb.device().Stat(file_name).st_size
+    except device_errors.CommandFailedError:
+      return 0
