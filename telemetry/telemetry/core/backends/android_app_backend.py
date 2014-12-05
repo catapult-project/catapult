@@ -8,3 +8,22 @@ from telemetry.core.backends import app_backend
 class AndroidAppBackend(app_backend.AppBackend):
   def __init__(self):
     super(AndroidAppBackend, self).__init__()
+
+  @property
+  def pid(self):
+    raise NotImplementedError
+
+  def Start(self):
+    raise NotImplementedError
+
+  def Close(self):
+    raise NotImplementedError
+
+  def IsAppRunning(self):
+    raise NotImplementedError
+
+  def GetStandardOutput(self):
+    raise NotImplementedError
+
+  def GetStackTrace(self):
+    raise NotImplementedError
