@@ -201,7 +201,10 @@ def Run(test, user_story_set, expectations, finder_options, results):
       # patch.
       isinstance(user_story_set, page_set_module.PageSet)):
     _UpdateUserStoryArchivesIfChanged(user_story_set)
-    user_stories = _CheckArchives(user_story_set, user_stories, results)
+    if not _CheckArchives(
+        user_story_set.archive_data_file, user_story_set.wpr_archive_info,
+        user_story_set.pages):
+      return
 
   for user_story in list(user_stories):
     if not test.CanRunForPage(user_story):
@@ -275,51 +278,57 @@ def _ShuffleAndFilterUserStorySet(user_story_set, finder_options):
   return user_stories
 
 
-def _CheckArchives(page_set, pages, results):
-  """Returns a subset of pages that are local or have WPR archives.
+def _CheckArchives(archive_data_file, wpr_archive_info, pages):
+  """Verifies that all pages are local or have WPR archives.
 
-  Logs warnings if any are missing.
+  Logs warnings and returns False if any are missing.
   """
-  # Warn of any problems with the entire page set.
+  # Report any problems with the entire page set.
   if any(not p.is_local for p in pages):
-    if not page_set.archive_data_file:
-      logging.warning('The page set is missing an "archive_data_file" '
-                      'property. Skipping any live sites. To include them, '
-                      'pass the flag --use-live-sites.')
-    if not page_set.wpr_archive_info:
-      logging.warning('The archive info file is missing. '
-                      'To fix this, either add svn-internal to your '
-                      '.gclient using http://goto/read-src-internal, '
-                      'or create a new archive using record_wpr.')
+    if not archive_data_file:
+      logging.error('The page set is missing an "archive_data_file" '
+                    'property.\nTo run from live sites pass the flag '
+                    '--use-live-sites.\nTo create an archive file add an '
+                    'archive_data_file property to the page set and then '
+                    'run record_wpr.')
+      return False
+    if not wpr_archive_info:
+      logging.error('The archive info file is missing.\n'
+                    'To fix this, either add svn-internal to your '
+                    '.gclient using http://goto/read-src-internal, '
+                    'or create a new archive using record_wpr.')
+      return False
 
-  # Warn of any problems with individual pages and return valid pages.
+  # Report any problems with individual pages.
   pages_missing_archive_path = []
   pages_missing_archive_data = []
-  valid_pages = []
   for page in pages:
     if not page.is_local and not page.archive_path:
       pages_missing_archive_path.append(page)
     elif not page.is_local and not os.path.isfile(page.archive_path):
       pages_missing_archive_data.append(page)
-    else:
-      valid_pages.append(page)
   if pages_missing_archive_path:
-    logging.warning('The page set archives for some pages do not exist. '
-                    'Skipping those pages. To fix this, record those pages '
-                    'using record_wpr. To ignore this warning and run '
-                    'against live sites, pass the flag --use-live-sites.')
+    logging.error('The page set archives for some pages do not exist.\n'
+                  'To fix this, record those pages using record_wpr.\n'
+                  'To ignore this warning and run against live sites, '
+                  'pass the flag --use-live-sites.')
+    logging.error(
+        'Pages without archives: %s',
+        ', '.join(page.display_name for page in pages_missing_archive_path))
   if pages_missing_archive_data:
-    logging.warning('The page set archives for some pages are missing. '
-                    'Someone forgot to check them in, or they were deleted. '
-                    'Skipping those pages. To fix this, record those pages '
-                    'using record_wpr. To ignore this warning and run '
-                    'against live sites, pass the flag --use-live-sites.')
-  for page in pages_missing_archive_path + pages_missing_archive_data:
-    results.WillRunPage(page)
-    results.AddValue(failure.FailureValue.FromMessage(
-        page, 'Page set archive doesn\'t exist.'))
-    results.DidRunPage(page)
-  return valid_pages
+    logging.error('The page set archives for some pages are missing.\n'
+                  'Someone forgot to check them in, uploaded them to the '
+                  'wrong cloud storage bucket, or they were deleted.\n'
+                  'To fix this, record those pages using record_wpr.\n'
+                  'To ignore this warning and run against live sites, '
+                  'pass the flag --use-live-sites.')
+    logging.error(
+        'Pages missing archives: %s',
+        ', '.join(page.display_name for page in pages_missing_archive_data))
+  if pages_missing_archive_path or pages_missing_archive_data:
+    return False
+  # Only run valid pages if no problems with the page set or individual pages.
+  return True
 
 
 def _WaitForThermalThrottlingIfNeeded(platform):
