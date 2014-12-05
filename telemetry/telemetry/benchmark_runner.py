@@ -245,7 +245,8 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
 
     base_name = benchmark_class.Name()
     base_cmd = [sys.executable, os.path.realpath(sys.argv[0]),
-                '-v', '--output-format=buildbot', base_name]
+                '-v', '--output-format=chartjson', '--upload-results',
+                base_name]
     perf_dashboard_id = base_name
     # TODO(tonyg): Currently we set the device affinity to a stable hash of the
     # benchmark name. This somewhat evenly distributes benchmarks among the
