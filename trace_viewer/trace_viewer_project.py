@@ -52,6 +52,8 @@ class TraceViewerProject(project_module.Project):
     self.source_paths.append(self.d3_path)
 
     self.non_module_html_files.extendRel(self.trace_viewer_path, [
+      'bin/index.html',
+      'bin/trace_viewer.html',
       'test_data/android_systrace.html',
     ])
     self.non_module_html_files.extendRel(self.trace_viewer_third_party_path, [

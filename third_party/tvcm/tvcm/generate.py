@@ -111,9 +111,10 @@ def GenerateStandaloneHTMLAsString(*args, **kwargs):
   GenerateStandaloneHTMLToFile(f, *args, **kwargs)
   return f.getvalue()
 
+
 def GenerateStandaloneHTMLToFile(output_file,
                                  load_sequence,
-                                 title,
+                                 title=None,
                                  flattened_js_url=None,
                                  extra_scripts=None):
   extra_scripts = extra_scripts or []
