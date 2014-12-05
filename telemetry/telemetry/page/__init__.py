@@ -24,7 +24,7 @@ def _UpdateCredentials(credentials_path):
 
 class Page(user_story.UserStory):
   def __init__(self, url, page_set=None, base_dir=None, name='',
-               credentials_path=None, labels=None):
+               credentials_path=None, labels=None, startup_url=''):
     super(Page, self).__init__(shared_page_state.SharedPageState, name, labels)
     self._url = url
     self._page_set = page_set
@@ -44,7 +44,7 @@ class Page(user_story.UserStory):
 
     # These attributes can be set dynamically by the page.
     self.synthetic_delays = dict()
-    self.startup_url = page_set.startup_url if page_set else ''
+    self._startup_url = startup_url
     self.credentials = None
     self.skip_waits = False
     self.script_to_evaluate_on_commit = None
@@ -53,6 +53,10 @@ class Page(user_story.UserStory):
   @property
   def credentials_path(self):
     return self._credentials_path
+
+  @property
+  def startup_url(self):
+    return self._startup_url
 
   def _SchemeErrorCheck(self):
     if not self._scheme:
