@@ -96,7 +96,10 @@ class TestVTuneProfiler(unittest.TestCase):
 
 class TestVTuneProfilerTabTestCase(tab_test_case.TabTestCase):
 
-  @benchmark.Disabled('android') # crbug.com/437085
+  # This test is only meant to be run if VTune is installed locally. Please
+  # run it locally if you are modifying related code, but it's disabled on the
+  # bots because they don't have VTune. See crbug.com/437085
+  @benchmark.Disabled
   def testVTuneProfiler(self):
     mock_subprocess = MockSubprocess()
     real_subprocess = vtune_profiler.subprocess
