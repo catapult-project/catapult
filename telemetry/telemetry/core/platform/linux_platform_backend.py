@@ -163,7 +163,7 @@ class LinuxPlatformBackend(
     os.environ['PATH'] += os.pathsep + os.path.dirname(bin_path)
 
     try:
-      cloud_storage.GetIfChanged(bin_path)
+      cloud_storage.GetIfChanged(bin_path, cloud_storage.INTERNAL_BUCKET)
       os.chmod(bin_path, 0755)
     except cloud_storage.CloudStorageError, e:
       logging.error(str(e))
