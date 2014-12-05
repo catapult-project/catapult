@@ -82,14 +82,6 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
             'WorkingSetSize': wss,
             'WorkingSetSizePeak': wss_peak}
 
-  def GetIOStats(self, pid):
-    io_contents = self._GetProcFileForPid(pid, 'io')
-    io = self._GetProcFileDict(io_contents)
-    return {'ReadOperationCount': int(io['syscr']),
-            'WriteOperationCount': int(io['syscw']),
-            'ReadTransferCount': int(io['rchar']),
-            'WriteTransferCount': int(io['wchar'])}
-
   @decorators.Cache
   def GetClockTicks(self):
     """Returns the number of clock ticks per second.

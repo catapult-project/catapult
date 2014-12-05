@@ -178,9 +178,6 @@ class AndroidPlatformBackend(
             'PrivateDirty': memory_usage['Private_Dirty'] * 1024,
             'VMPeak': memory_usage['VmHWM'] * 1024}
 
-  def GetIOStats(self, pid):
-    return {}
-
   def GetChildPids(self, pid):
     child_pids = []
     ps = self.GetPsOutput(['pid', 'name'])

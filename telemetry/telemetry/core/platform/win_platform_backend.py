@@ -148,13 +148,6 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
             'WorkingSetSize': memory_info['WorkingSetSize'],
             'WorkingSetSizePeak': memory_info['PeakWorkingSetSize']}
 
-  def GetIOStats(self, pid):
-    io_stats = self._GetWin32ProcessInfo(win32process.GetProcessIoCounters, pid)
-    return {'ReadOperationCount': io_stats['ReadOperationCount'],
-            'WriteOperationCount': io_stats['WriteOperationCount'],
-            'ReadTransferCount': io_stats['ReadTransferCount'],
-            'WriteTransferCount': io_stats['WriteTransferCount']}
-
   def KillProcess(self, pid, kill_process_tree=False):
     # os.kill for Windows is Python 2.7.
     cmd = ['taskkill', '/F', '/PID', str(pid)]

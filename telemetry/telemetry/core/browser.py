@@ -211,33 +211,6 @@ class Browser(app.App):
       result[process_type].update(cpu_timestamp)
     return result
 
-  @property
-  def io_stats(self):
-    """Returns a dict of IO statistics for the browser:
-    { 'Browser': {
-        'ReadOperationCount': W,
-        'WriteOperationCount': X,
-        'ReadTransferCount': Y,
-        'WriteTransferCount': Z
-      },
-      'Gpu': {
-        'ReadOperationCount': W,
-        'WriteOperationCount': X,
-        'ReadTransferCount': Y,
-        'WriteTransferCount': Z
-      },
-      'Renderer': {
-        'ReadOperationCount': W,
-        'WriteOperationCount': X,
-        'ReadTransferCount': Y,
-        'WriteTransferCount': Z
-      }
-    }
-    """
-    result = self._GetStatsCommon(self._platform_backend.GetIOStats)
-    del result['ProcessCount']
-    return result
-
   def Close(self):
     """Closes this browser."""
     if self._browser_backend.IsBrowserRunning():

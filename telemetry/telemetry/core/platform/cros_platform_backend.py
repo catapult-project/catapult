@@ -83,11 +83,6 @@ class CrosPlatformBackend(
       sample_stats[cpu] = cstates
     return sample_stats
 
-  def GetIOStats(self, pid):
-    # There is no '/proc/<pid>/io' file on CrOS platforms
-    # Returns empty dict as it does in PlatformBackend.
-    return {}
-
   def GetOSName(self):
     return 'chromeos'
 

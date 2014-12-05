@@ -187,9 +187,6 @@ class PlatformBackend(object):
   def GetMemoryStats(self, pid):
     return {}
 
-  def GetIOStats(self, pid):
-    return {}
-
   def GetChildPids(self, pid):
     raise NotImplementedError()
 
