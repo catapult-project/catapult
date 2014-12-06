@@ -203,4 +203,4 @@ class Page(user_story.UserStory):
 
   @property
   def archive_path(self):
-    return self.page_set.WprFilePathForPage(self)
+    return self.page_set.WprFilePathForUserStory(self)

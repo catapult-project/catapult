@@ -59,17 +59,17 @@ class TestPageSetArchiveInfo(unittest.TestCase):
       self.assertEquals(cloud_storage.CalculateHash(file_path), f.read())
 
   def testReadingArchiveInfo(self):
-    self.assertIsNotNone(self.archive_info.WprFilePathForPage(page1))
+    self.assertIsNotNone(self.archive_info.WprFilePathForUserStory(page1))
     self.assertEquals(recording1, os.path.basename(
-        self.archive_info.WprFilePathForPage(page1)))
+        self.archive_info.WprFilePathForUserStory(page1)))
 
-    self.assertIsNotNone(self.archive_info.WprFilePathForPage(page2))
+    self.assertIsNotNone(self.archive_info.WprFilePathForUserStory(page2))
     self.assertEquals(recording1, os.path.basename(
-        self.archive_info.WprFilePathForPage(page2)))
+        self.archive_info.WprFilePathForUserStory(page2)))
 
-    self.assertIsNotNone(self.archive_info.WprFilePathForPage(page3))
+    self.assertIsNotNone(self.archive_info.WprFilePathForUserStory(page3))
     self.assertEquals(recording2, os.path.basename(
-        self.archive_info.WprFilePathForPage(page3)))
+        self.archive_info.WprFilePathForUserStory(page3)))
 
   def testArchiveInfoFileGetsUpdated(self):
     """Ensures that the archive info file is updated correctly."""
@@ -106,11 +106,11 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.archive_info.AddNewTemporaryRecording(new_temp_recording)
 
     self.assertEquals(new_temp_recording,
-                      self.archive_info.WprFilePathForPage(page1))
+                      self.archive_info.WprFilePathForUserStory(page1))
     self.assertEquals(new_temp_recording,
-                      self.archive_info.WprFilePathForPage(page2))
+                      self.archive_info.WprFilePathForUserStory(page2))
     self.assertEquals(new_temp_recording,
-                      self.archive_info.WprFilePathForPage(page3))
+                      self.archive_info.WprFilePathForUserStory(page3))
 
     self.archive_info.AddRecordedPages([page2])
 
@@ -167,7 +167,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.archive_info.AddNewTemporaryRecording(new_temp_recording)
 
     self.assertEquals(new_temp_recording,
-                      self.archive_info.WprFilePathForPage(page1))
+                      self.archive_info.WprFilePathForUserStory(page1))
 
     self.archive_info.AddRecordedPages([page1])
 
@@ -183,4 +183,4 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     read_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
         self.page_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
     self.assertEquals(new_recording,
-                      read_archive_info.WprFilePathForPage(page1))
+                      read_archive_info.WprFilePathForUserStory(page1))

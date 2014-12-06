@@ -35,7 +35,7 @@ class PageSetSmokeTest(unittest.TestCase):
     for page in page_set.pages:
       if not page.url.startswith('http'):
         continue
-      self.assertTrue(wpr_archive_info.WprFilePathForPage(page),
+      self.assertTrue(wpr_archive_info.WprFilePathForUserStory(page),
                       msg='No archive found for %s in %s' % (
                           page.url, page_set.archive_data_file))
 

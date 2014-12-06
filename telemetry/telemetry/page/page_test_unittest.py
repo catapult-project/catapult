@@ -108,7 +108,8 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       # First record an archive with only www.google.com.
       self._options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
 
-      ps.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
+      # pylint: disable=protected-access
+      ps._wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
           '', '', ps.bucket, json.loads(archive_info_template %
                                         (test_archive, google_url)))
       ps.pages = [page_module.Page(google_url, ps)]
@@ -118,14 +119,16 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       # Now replay it and verify that google.com is found but foo.com is not.
       self._options.browser_options.wpr_mode = wpr_modes.WPR_REPLAY
 
-      ps.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
+      # pylint: disable=protected-access
+      ps._wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
           '', '', ps.bucket, json.loads(archive_info_template %
                                         (test_archive, foo_url)))
       ps.pages = [page_module.Page(foo_url, ps)]
       all_results = self.RunMeasurement(measurement, ps, options=self._options)
       self.assertEquals(1, len(all_results.failures))
 
-      ps.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
+      # pylint: disable=protected-access
+      ps._wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
           '', '', ps.bucket, json.loads(archive_info_template %
                                         (test_archive, google_url)))
       ps.pages = [page_module.Page(google_url, ps)]

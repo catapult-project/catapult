@@ -42,25 +42,6 @@ class TestPageSet(unittest.TestCase):
     finally:
       os.rmdir(directory_path)
 
-  def testCloudBucket(self):
-    blank_ps = page_set.PageSet()
-    expected_bucket = None
-    self.assertEqual(blank_ps.bucket, expected_bucket)
-
-    public_ps = page_set.PageSet(bucket=page_set.PUBLIC_BUCKET)
-    expected_bucket = cloud_storage.PUBLIC_BUCKET
-    self.assertEqual(public_ps.bucket, expected_bucket)
-
-    partner_ps = page_set.PageSet(bucket=page_set.PARTNER_BUCKET)
-    expected_bucket = cloud_storage.PARTNER_BUCKET
-    self.assertEqual(partner_ps.bucket, expected_bucket)
-
-    internal_ps = page_set.PageSet(bucket=page_set.INTERNAL_BUCKET)
-    expected_bucket = cloud_storage.INTERNAL_BUCKET
-    self.assertEqual(internal_ps.bucket, expected_bucket)
-
-    self.assertRaises(ValueError, page_set.PageSet, bucket='garbage_bucket')
-
   def testFormingPageSetFromSubPageSet(self):
     page_set_a = page_set.PageSet()
     pages = [

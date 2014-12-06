@@ -2,12 +2,62 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import inspect
+import os
+
 from telemetry import user_story as user_story_module
+from telemetry.page import page_set_archive_info
 
 
 class UserStorySet(object):
-  def __init__(self):
+  """A collection of user story.
+
+  A typical usage of UserStorySet would be to subclass it and then calling
+  AddUserStory for each UserStory..
+  """
+
+  def __init__(self, archive_data_file='', cloud_storage_bucket=None):
+    """Creates a new UserStorySet.
+
+    Args:
+      archive_data_file: The path to Web Page Replay's archive data, relative
+          to self.base_dir.
+      cloud_storage_bucket: The cloud storage bucket used to download
+          Web Page Replay's archive data. Valid values are: None,
+          PUBLIC_BUCKET, PARTNER_BUCKET, or INTERNAL_BUCKET (defined
+          in telemetry.util.cloud_storage).
+    """
     self.user_stories = []
+    self._archive_data_file = archive_data_file
+    self._wpr_archive_info = None
+    page_set_archive_info.AssertValidCloudStorageBucket(cloud_storage_bucket)
+    self._cloud_storage_bucket = cloud_storage_bucket
+    self._base_dir = os.path.dirname(inspect.getfile(self.__class__))
+
+  @property
+  def base_dir(self):
+    """The base directory to resolve archive_data_file.
+
+    This defaults to the directory containing the UserStorySet instance's class.
+    """
+    return self._base_dir
+
+  @property
+  def archive_data_file(self):
+    return self._archive_data_file
+
+  @property
+  def bucket(self):
+    return self._cloud_storage_bucket
+
+  @property
+  def wpr_archive_info(self):
+    """Lazily constructs wpr_archive_info if it's not set and returns it."""
+    if self.archive_data_file and not self._wpr_archive_info:
+      self._wpr_archive_info = (
+          page_set_archive_info.PageSetArchiveInfo.FromFile(
+              os.path.join(self.base_dir, self.archive_data_file), self.bucket))
+    return self._wpr_archive_info
 
   def AddUserStory(self, user_story):
     assert isinstance(user_story, user_story_module.UserStory)
@@ -36,6 +86,11 @@ class UserStorySet(object):
 
   def ShuffleAndFilterUserStorySet(self, finder_options):
     pass
+
+  def WprFilePathForUserStory(self, story):
+    if not self.wpr_archive_info:
+      return None
+    return self.wpr_archive_info.WprFilePathForUserStory(story)
 
   def __iter__(self):
     return self.user_stories.__iter__()

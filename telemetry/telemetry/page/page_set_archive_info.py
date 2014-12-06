@@ -9,11 +9,24 @@ import re
 import shutil
 import tempfile
 
+from telemetry import page as page_module
 from telemetry.util import cloud_storage
 
 
+def AssertValidCloudStorageBucket(bucket):
+  is_valid = bucket in (None,
+                        cloud_storage.PUBLIC_BUCKET,
+                        cloud_storage.PARTNER_BUCKET,
+                        cloud_storage.INTERNAL_BUCKET)
+  if not is_valid:
+    raise ValueError("Cloud storage privacy bucket %s is invalid" % bucket)
+
+
+# TODO(chrishenry): Rename this (and module) to wpr_archive_info.WprArchiveInfo
+# and move to telemetry.user_story or telemetry.wpr or telemetry.core.
 class PageSetArchiveInfo(object):
   def __init__(self, file_path, data, bucket, ignore_archive=False):
+    AssertValidCloudStorageBucket(bucket)
     self._file_path = file_path
     self._base_dir = os.path.dirname(file_path)
     self._bucket = bucket
@@ -63,14 +76,14 @@ class PageSetArchiveInfo(object):
     return cls(file_path, {'archives': {}}, bucket,
                ignore_archive=ignore_archive)
 
-  def WprFilePathForPage(self, page):
+  def WprFilePathForUserStory(self, story):
     if self.temp_target_wpr_file_path:
       return self.temp_target_wpr_file_path
-    wpr_file = self._page_name_to_wpr_file.get(page.display_name, None)
-    if wpr_file is None:
+    wpr_file = self._page_name_to_wpr_file.get(story.display_name, None)
+    if wpr_file is None and isinstance(story, page_module.Page):
       # Some old page sets always use the URL to identify a page rather than the
       # display_name, so try to look for that.
-      wpr_file = self._page_name_to_wpr_file.get(page.url, None)
+      wpr_file = self._page_name_to_wpr_file.get(story.url, None)
     if wpr_file:
       return self._WprFileNameToPath(wpr_file)
     return None

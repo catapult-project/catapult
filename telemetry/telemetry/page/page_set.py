@@ -7,7 +7,6 @@ import inspect
 import os
 
 from telemetry.page import page as page_module
-from telemetry.page import page_set_archive_info
 from telemetry.user_story import user_story_set
 from telemetry.util import cloud_storage
 
@@ -24,9 +23,13 @@ class PageSet(user_story_set.UserStorySet):
   def __init__(self, file_path=None, archive_data_file='', user_agent_type=None,
                make_javascript_deterministic=True, serving_dirs=None,
                bucket=None):
-    super(PageSet, self).__init__()
+    super(PageSet, self).__init__(
+        archive_data_file=archive_data_file, cloud_storage_bucket=bucket)
     # The default value of file_path is location of the file that define this
     # page set instance's class.
+    # TODO(chrishenry): Move this logic to user_story_set. Consider passing
+    # a base_dir directly. Alternatively, kill this and rely on the default
+    # behavior of using the instance's class file location.
     if file_path is None:
       file_path = inspect.getfile(self.__class__)
       # Turn pyc file into py files if we can
@@ -35,17 +38,11 @@ class PageSet(user_story_set.UserStorySet):
 
     self.file_path = file_path
     # These attributes can be set dynamically by the page set.
-    self.archive_data_file = archive_data_file
     self.user_agent_type = user_agent_type
     self.make_javascript_deterministic = make_javascript_deterministic
-    self._wpr_archive_info = None
     # Convert any relative serving_dirs to absolute paths.
     self._serving_dirs = set(os.path.realpath(os.path.join(self.base_dir, d))
                              for d in serving_dirs or [])
-    if self._IsValidPrivacyBucket(bucket):
-      self._bucket = bucket
-    else:
-      raise ValueError("Pageset privacy bucket %s is invalid" % bucket)
 
   @property
   def pages(self):
@@ -66,10 +63,6 @@ class PageSet(user_story_set.UserStorySet):
     self.AddUserStory(page_module.Page(
       page_url, self, self.base_dir))
 
-  @staticmethod
-  def _IsValidPrivacyBucket(bucket_name):
-    return bucket_name in (None, PUBLIC_BUCKET, PARTNER_BUCKET, INTERNAL_BUCKET)
-
   @property
   def base_dir(self):
     if os.path.isfile(self.file_path):
@@ -80,23 +73,6 @@ class PageSet(user_story_set.UserStorySet):
   @property
   def serving_dirs(self):
     return self._serving_dirs
-
-  @property
-  def wpr_archive_info(self):  # pylint: disable=E0202
-    """Lazily constructs wpr_archive_info if it's not set and returns it."""
-    if self.archive_data_file and not self._wpr_archive_info:
-      self._wpr_archive_info = (
-          page_set_archive_info.PageSetArchiveInfo.FromFile(
-            os.path.join(self.base_dir, self.archive_data_file), self._bucket))
-    return self._wpr_archive_info
-
-  @property
-  def bucket(self):
-    return self._bucket
-
-  @wpr_archive_info.setter
-  def wpr_archive_info(self, value):  # pylint: disable=E0202
-    self._wpr_archive_info = value
 
   def ContainsOnlyFileURLs(self):
     for page in self.user_stories:
@@ -127,8 +103,3 @@ class PageSet(user_story_set.UserStorySet):
           raise Exception('Unusable results_file.')
 
     return user_stories
-
-  def WprFilePathForPage(self, page):
-    if not self.wpr_archive_info:
-      return None
-    return self.wpr_archive_info.WprFilePathForPage(page)
