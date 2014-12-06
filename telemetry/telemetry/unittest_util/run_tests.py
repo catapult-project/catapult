@@ -101,8 +101,12 @@ class RunTestsCommand(command_line.OptparseCommand):
     # on Android and ChromeOS.
     if possible_browser.platform.GetOSName() in ('android', 'chromeos'):
       runner.args.jobs = 1
-    else:
+    elif possible_browser.platform.GetOSVersionName() == 'xp':
+      # For an undiagnosed reason, XP falls over with more parallelism.
+      # See crbug.com/388256
       runner.args.jobs = max(int(args.jobs) // 4, 1)
+    else:
+      runner.args.jobs = max(int(args.jobs) // 2, 1)
 
     runner.args.metadata = args.metadata
     runner.args.passthrough = args.passthrough
