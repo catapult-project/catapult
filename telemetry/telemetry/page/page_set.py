@@ -74,12 +74,6 @@ class PageSet(user_story_set.UserStorySet):
   def serving_dirs(self):
     return self._serving_dirs
 
-  def ContainsOnlyFileURLs(self):
-    for page in self.user_stories:
-      if not page.is_file:
-        return False
-    return True
-
   def ReorderPageSet(self, results_file):
     """Reorders this page set based on the results of a past run."""
     page_set_dict = {}
