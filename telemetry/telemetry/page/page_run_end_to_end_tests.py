@@ -39,7 +39,7 @@ SIMPLE_CREDENTIALS_STRING = """
 }
 """
 class DummyTest(page_test.PageTest):
-  def ValidatePage(self, *_):
+  def ValidateAndMeasurePage(self, *_):
     pass
 
 
@@ -118,12 +118,16 @@ class PageRunEndToEndTests(unittest.TestCase):
       def __init__(self, *args):
         super(Test, self).__init__(*args)
         self.run_count = 0
+
       def RestartBrowserBeforeEachPage(self):
         old_run_count = self.run_count
         self.run_count += 1
         if old_run_count == 0:
           raise exceptions.BrowserGoneException(None)
         return self._needs_browser_restart_after_each_page
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
 
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
@@ -191,7 +195,7 @@ class PageRunEndToEndTests(unittest.TestCase):
         def DidStartBrowser(self, browser):
           browser.credentials.AddBackend(self._credentials_backend)
 
-        def ValidatePage(self, *_):
+        def ValidateAndMeasurePage(self, *_):
           did_run[0] = True
 
       test = TestThatInstallsCredentialsBackend(credentials_backend)
@@ -215,7 +219,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     ps.user_agent_type = 'tablet'
 
     class TestUserAgent(page_test.PageTest):
-      def ValidatePage(self, _1, tab, _2):
+      def ValidateAndMeasurePage(self, _1, tab, _2):
         actual_user_agent = tab.EvaluateJavaScript('window.navigator.userAgent')
         expected_user_agent = user_agent.UA_TYPE_MAPPING['tablet']
         assert actual_user_agent.strip() == expected_user_agent
@@ -253,7 +257,7 @@ class PageRunEndToEndTests(unittest.TestCase):
         self._browser = browser
         self._browser.tabs.New()
 
-      def ValidatePage(self, *_):
+      def ValidateAndMeasurePage(self, *_):
         assert len(self._browser.tabs) == 1
 
     test = TestOneTab()
@@ -287,7 +291,7 @@ class PageRunEndToEndTests(unittest.TestCase):
         assert self._did_call_will_start
         self._did_call_did_start = True
 
-      def ValidatePage(self, *_):
+      def ValidateAndMeasurePage(self, *_):
         assert self._did_call_did_start
 
     test = TestBeforeLaunch()
@@ -345,7 +349,7 @@ class PageRunEndToEndTests(unittest.TestCase):
         super(Test, self).__init__()
         self.did_call_clean_up = False
 
-      def ValidatePage(self, *_):
+      def ValidateAndMeasurePage(self, *_):
         raise exceptions.IntentionalException
 
       def CleanUpAfterPage(self, page, tab):
@@ -376,7 +380,7 @@ class PageRunEndToEndTests(unittest.TestCase):
       def CanRunOnBrowser(self, _):
         return False
 
-      def ValidatePage(self, _):
+      def ValidateAndMeasurePage(self, _):
         pass
 
     class Test(page_test.PageTest):
@@ -384,7 +388,7 @@ class PageRunEndToEndTests(unittest.TestCase):
         super(Test, self).__init__(*args, **kwargs)
         self.will_navigate_to_page_called = False
 
-      def ValidatePage(self, *args):
+      def ValidateAndMeasurePage(self, *args):
         pass
 
       def WillNavigateToPage(self, _1, _2):
@@ -413,7 +417,7 @@ class PageRunEndToEndTests(unittest.TestCase):
         raise Exception('Test exception')
 
     class Test(page_test.PageTest):
-      def ValidatePage(self, *args):
+      def ValidateAndMeasurePage(self, *args):
         pass
 
     ps = page_set.PageSet()
@@ -457,7 +461,8 @@ class PageRunEndToEndTests(unittest.TestCase):
         'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
 
     class Measurement(page_test.PageTest):
-      pass
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
 
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']

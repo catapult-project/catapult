@@ -233,16 +233,7 @@ class PageTest(object):
       tab: A telemetry.core.Tab instance.
       results: A telemetry.results.PageTestResults instance.
     """
-    # TODO(chrishenry): Switch to raise NotImplementedError() when
-    # subclasses no longer override ValidatePage/MeasurePage.
-    self.ValidatePage(page, tab, results)
-
-  def ValidatePage(self, page, tab, results):
-    """DEPRECATED: Use ValidateAndMeasurePage instead."""
-    self.MeasurePage(page, tab, results)
-
-  def MeasurePage(self, page, tab, results):
-    """DEPRECATED: Use ValidateAndMeasurePage instead."""
+    raise NotImplementedError
 
   def RunPage(self, page, tab, results):
     # Run actions.

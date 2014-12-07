@@ -79,6 +79,9 @@ class DummyTest(page_test.PageTest):
   def RunPage(self, *_):
     pass
 
+  def ValidateAndMeasurePage(self, page, tab, results):
+    pass
+
 
 class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
   def __init__(self):
@@ -218,11 +221,15 @@ class UserStoryRunnerTest(unittest.TestCase):
       def __init__(self, *args):
         super(Test, self).__init__(*args)
         self.run_count = 0
+
       def RunPage(self, *_):
         old_run_count = self.run_count
         self.run_count += 1
         if old_run_count == 0:
           raise ExpectedException()
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
 
     us.AddUserStory(user_story.UserStory(TestSharedUserStoryState))
     us.AddUserStory(user_story.UserStory(TestSharedUserStoryState))
@@ -241,11 +248,15 @@ class UserStoryRunnerTest(unittest.TestCase):
       def __init__(self, *args):
         super(Test, self).__init__(*args)
         self.run_count = 0
+
       def RunPage(self, *_):
         old_run_count = self.run_count
         self.run_count += 1
         if old_run_count == 0:
           raise exceptions.BrowserGoneException()
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
 
     us.AddUserStory(user_story.UserStory(TestSharedUserStoryState))
     us.AddUserStory(user_story.UserStory(TestSharedUserStoryState))
@@ -267,6 +278,9 @@ class UserStoryRunnerTest(unittest.TestCase):
 
       def RunPage(self, page, _, results):
         results.AddValue(string.StringValue(page, 'test', 't', page.name))
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
 
     results = results_options.CreateResults(
         EmptyMetadataForTest(), self.options)
@@ -321,6 +335,9 @@ class UserStoryRunnerTest(unittest.TestCase):
         self.i += 1
         results.AddValue(scalar.ScalarValue(
             page, 'metric', 'unit', self.i))
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
 
     self.options.page_repeat = 1
     self.options.pageset_repeat = 2

@@ -21,7 +21,7 @@ def SetUpPageRunnerArguments(options):
 
 
 class DummyTest(page_test.PageTest):
-  def ValidatePage(self, *_):
+  def ValidateAndMeasurePage(self, *_):
     pass
 
 
