@@ -17,8 +17,13 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         ['perf_control', 'thermal_throttle', 'adb_commands', 'certutils',
          'adb_install_cert'])
 
+    # Skip _FixPossibleAdbInstability by setting psutil to None.
+    self._actual_ps_util = android_platform_backend.psutil
+    android_platform_backend.psutil = None
+
   def tearDown(self):
     self._stubs.Restore()
+    android_platform_backend.psutil = self._actual_ps_util
 
   @benchmark.Disabled('chromeos')
   def testGetCpuStats(self):

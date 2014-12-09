@@ -44,6 +44,11 @@ try:
 except Exception:
   surface_stats_collector = None
 
+try:
+  import psutil  # pylint: disable=import-error
+except ImportError:
+  psutil = None
+
 
 class AndroidPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
@@ -84,6 +89,8 @@ class AndroidPlatformBackend(
     self._wpr_ca_cert_path = None
     self._device_cert_util = None
     self._is_test_ca_installed = False
+
+    _FixPossibleAdbInstability()
 
   @classmethod
   def SupportsDevice(cls, device):
@@ -592,3 +599,25 @@ class AndroidPlatformBackend(
                                         self._adb.device_serial()],
                                        stdout=subprocess.PIPE).communicate()[0])
     return ret
+
+
+def _FixPossibleAdbInstability():
+  """Host side workaround for crbug.com/268450 (adb instability).
+
+  The adb server has a race which is mitigated by binding to a single core.
+  """
+  if not psutil:
+    return
+  for process in psutil.process_iter():
+    try:
+      if 'adb' in process.name:
+        if 'cpu_affinity' in dir(process):
+          process.cpu_affinity([0])      # New versions of psutil.
+        elif 'set_cpu_affinity' in dir(process):
+          process.set_cpu_affinity([0])  # Older versions.
+        else:
+          logging.warn(
+              'Cannot set CPU affinity due to stale psutil version: %s',
+              '.'.join(str(x) for x in psutil.version_info))
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+      logging.warn('Failed to set adb process CPU affinity')

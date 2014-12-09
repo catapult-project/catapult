@@ -6,24 +6,14 @@
 
 import logging
 import os
-import re
-import subprocess
-import sys
 
 from telemetry import decorators
 from telemetry.core import browser
-from telemetry.core import exceptions
 from telemetry.core import possible_browser
 from telemetry.core import platform
 from telemetry.core import util
-from telemetry.core.backends import adb_commands
 from telemetry.core.platform import android_device
 from telemetry.core.backends.chrome import android_browser_backend
-
-try:
-  import psutil  # pylint: disable=F0401
-except ImportError:
-  psutil = None
 
 
 CHROME_PACKAGE_NAMES = {
@@ -92,7 +82,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
           candidate_apks.append((last_changed, apk_full_name))
 
       if candidate_apks:
-        # Find the canadidate .apk with the latest modification time.
+        # Find the candidate .apk with the latest modification time.
         newest_apk_path = sorted(candidate_apks)[-1][1]
         self._local_apk = newest_apk_path
 
@@ -146,85 +136,20 @@ def SelectDefaultBrowser(possible_browsers):
 
 
 def CanFindAvailableBrowsers():
-  if not adb_commands.IsAndroidSupported():
-    logging.info('Android build commands unavailable on this machine. Have '
-                 'you installed Android build dependencies?')
-    return False
-
-  try:
-    with open(os.devnull, 'w') as devnull:
-      proc = subprocess.Popen(
-          ['adb', 'devices'],
-          stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=devnull)
-      stdout, _ = proc.communicate()
-    if re.search(re.escape('????????????\tno permissions'), stdout) != None:
-      logging.warn('adb devices reported a permissions error. Consider '
-                   'restarting adb as root:')
-      logging.warn('  adb kill-server')
-      logging.warn('  sudo `which adb` devices\n\n')
-    return True
-  except OSError:
-    platform_tools_path = os.path.join(util.GetChromiumSrcDir(),
-        'third_party', 'android_tools', 'sdk', 'platform-tools')
-    if (sys.platform.startswith('linux') and
-        os.path.exists(os.path.join(platform_tools_path, 'adb'))):
-      os.environ['PATH'] = os.pathsep.join([platform_tools_path,
-                                            os.environ['PATH']])
-      return True
-  return False
+  android_device.CanDiscoverDevices()
 
 
 def FindAllBrowserTypes(_options):
   return CHROME_PACKAGE_NAMES.keys()
 
 
-def FindAllAvailableBrowsers(finder_options):
-  """Finds all the desktop browsers available on this machine."""
-  if not CanFindAvailableBrowsers():
-    logging.info('No adb command found. ' +
-                 'Will not try searching for Android browsers.')
+def _FindAllPossibleBrowsers(finder_options, android_platform):
+  """Testable version of FindAllAvailableBrowsers."""
+  if not android_platform:
     return []
-  if finder_options.android_device:
-    devices = [android_device.AndroidDevice(
-        finder_options.android_device,
-        enable_performance_mode=not finder_options.no_performance_mode)]
-  else:
-    devices = android_device.AndroidDevice.GetAllConnectedDevices()
-
-  if len(devices) == 0:
-    logging.info('No android devices found.')
-    return []
-  elif len(devices) > 1:
-    logging.warn(
-        'Multiple devices attached. Please specify one of the following:\n' +
-        '\n'.join(['  --device=%s' % d.device_id for d in devices]))
-    return []
-
-  try:
-    android_platform = platform.GetPlatformForDevice(devices[0])
-  except exceptions.PlatformError:
-    return []
-
-  # Host side workaround for crbug.com/268450 (adb instability).
-  # The adb server has a race which is mitigated by binding to a single core.
-  if psutil:
-    for proc in psutil.process_iter():
-      try:
-        if 'adb' in proc.name:
-          if 'cpu_affinity' in dir(proc):
-            proc.cpu_affinity([0])      # New versions of psutil.
-          elif 'set_cpu_affinity' in dir(proc):
-            proc.set_cpu_affinity([0])  # Older versions.
-          else:
-            logging.warn(
-                'Cannot set CPU affinity due to stale psutil version: %s',
-                '.'.join(str(x) for x in psutil.version_info))
-      except (psutil.NoSuchProcess, psutil.AccessDenied):
-        logging.warn('Failed to set adb process CPU affinity')
-
   possible_browsers = []
   for name, package_info in CHROME_PACKAGE_NAMES.iteritems():
-    [package, backend_settings, local_apk] = package_info
+    package, backend_settings, local_apk = package_info
     b = PossibleAndroidBrowser(name,
                                finder_options,
                                android_platform,
@@ -233,3 +158,16 @@ def FindAllAvailableBrowsers(finder_options):
     if b.platform.CanLaunchApplication(package) or b.HaveLocalAPK():
       possible_browsers.append(b)
   return possible_browsers
+
+
+def FindAllAvailableBrowsers(finder_options):
+  """Finds all the possible browsers on one device.
+
+  The device is either the only device on the host platform,
+  or |finder_options| specifies a particular device.
+  """
+  device = android_device.GetDevice(finder_options)
+  if not device:
+    return []
+  android_platform = platform.GetPlatformForDevice(device)
+  return _FindAllPossibleBrowsers(finder_options, android_platform)

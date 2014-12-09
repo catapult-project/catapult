@@ -13,8 +13,10 @@ class AndroidApp(app.App):
     with possible_android_app.Create(options) as android_app:
       ... do all your operations on android_app here
   """
-  def __init__(self, backend, platform_backend):
-    super(AndroidApp, self).__init__(app_backend=backend,
+  def __init__(self, app_backend, platform_backend):
+    super(AndroidApp, self).__init__(app_backend=app_backend,
                                      platform_backend=platform_backend)
+    self._app_backend.Start()
+
   def Close(self):
-    raise NotImplementedError()
+    self._app_backend.Close()
