@@ -54,6 +54,11 @@ def AddResultsOptions(parser):
                     help='Delete all stored results.')
   group.add_option('--upload-results', action='store_true',
                     help='Upload the results to cloud storage.')
+  group.add_option('--upload-bucket', default='internal',
+                    choices=['public', 'partner', 'internal'],
+                    help='Storage bucket to use for the uploaded results. '
+                    'Defaults to internal. Supported values are: '
+                    'public, partner, internal')
   group.add_option('--results-label',
                     default=None,
                     help='Optional label to use for the results of a run .')
