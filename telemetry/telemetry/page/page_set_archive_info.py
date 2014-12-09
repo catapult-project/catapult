@@ -35,6 +35,9 @@ class PageSetArchiveInfo(object):
     if not os.path.exists(self._base_dir):
       os.makedirs(self._base_dir)
 
+    # TODO(aiolos): We should take this out of init if we reduce the number of
+    # supported code paths/configs using archive_info when switching over to
+    # user_stories.
     # Download all .wpr files.
     if not ignore_archive:
       if not self._bucket:
@@ -52,6 +55,11 @@ class PageSetArchiveInfo(object):
               # simply warn.
               logging.warning('Need credentials to update WPR archive: %s',
                               archive_path)
+            else:
+              logging.error("You either aren't authenticated or don't have "
+                            "permission to use the archives for this page set."
+                            "\nYou may need to run gsutil config")
+              raise
 
     # Map from the relative path (as it appears in the metadata file) of the
     # .wpr file to a list of page names it supports.
