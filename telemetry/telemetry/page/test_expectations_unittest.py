@@ -62,6 +62,18 @@ class SampleTestExpectations(test_expectations.TestExpectations):
     self.Fail('page12.html', ['mountainlion'])
     self.Fail('page13.html', ['mavericks'])
     self.Fail('page14.html', ['yosemite'])
+    self.Fail('page15.html', ['amd', 'valid_condition_matched'])
+    self.Fail('page16.html', ['amd', 'valid_condition_unmatched'])
+
+  def IsValidUserDefinedCondition(self, condition):
+    return condition in ('valid_condition_matched', 'valid_condition_unmatched')
+
+  def ModifiersApply(self, platform, gpu_info, expectation):
+    if not super(SampleTestExpectations,
+        self).ModifiersApply(platform, gpu_info, expectation):
+      return False
+    return ((not expectation.user_defined_conditions) or
+        'valid_condition_matched' in expectation.user_defined_conditions)
 
 class TestExpectationsTest(unittest.TestCase):
   def setUp(self):
@@ -185,6 +197,14 @@ class TestExpectationsTest(unittest.TestCase):
     self.assertExpectationEquals('pass', page,
                                  vendor_string='Acme',
                                  device_string=DEVICE_STRING_SGX)
+
+  # Pages with user-defined expectations.
+  def testUserDefinedExpectations(self):
+    ps = page_set.PageSet()
+    page = page_module.Page('http://test.com/page15.html', ps)
+    self.assertExpectationEquals('fail', page, gpu=VENDOR_AMD)
+    page = page_module.Page('http://test.com/page16.html', ps)
+    self.assertExpectationEquals('pass', page, gpu=VENDOR_AMD)
 
   # Expectations can be set against page names as well as urls
   def testPageNameExpectations(self):
