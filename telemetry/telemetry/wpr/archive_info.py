@@ -22,9 +22,7 @@ def AssertValidCloudStorageBucket(bucket):
     raise ValueError("Cloud storage privacy bucket %s is invalid" % bucket)
 
 
-# TODO(chrishenry): Rename this (and module) to wpr_archive_info.WprArchiveInfo
-# and move to telemetry.user_story or telemetry.wpr or telemetry.core.
-class PageSetArchiveInfo(object):
+class WprArchiveInfo(object):
   def __init__(self, file_path, data, bucket, ignore_archive=False):
     AssertValidCloudStorageBucket(bucket)
     self._file_path = file_path
@@ -41,8 +39,8 @@ class PageSetArchiveInfo(object):
     # Download all .wpr files.
     if not ignore_archive:
       if not self._bucket:
-        logging.warning('page_set in %s has no bucket specified, and cannot be'
-                        'downloaded from cloud_storage.', file_path)
+        logging.warning('User story set in %s has no bucket specified, and '
+                        'cannot be downloaded from cloud_storage.', file_path)
       else:
         for archive_path in data['archives']:
           archive_path = self._WprFileNameToPath(archive_path)
@@ -62,17 +60,17 @@ class PageSetArchiveInfo(object):
               raise
 
     # Map from the relative path (as it appears in the metadata file) of the
-    # .wpr file to a list of page names it supports.
-    self._wpr_file_to_page_names = data['archives']
+    # .wpr file to a list of user story names it supports.
+    self._wpr_file_to_user_story_names = data['archives']
 
-    # Map from the page name to a relative path (as it appears in the metadata
-    # file) of the .wpr file.
-    self._page_name_to_wpr_file = dict()
-    # Find out the wpr file names for each page.
+    # Map from the user_story name to a relative path (as it appears
+    # in the metadata file) of the .wpr file.
+    self._user_story_name_to_wpr_file = dict()
+    # Find out the wpr file names for each user_story.
     for wpr_file in data['archives']:
-      page_names = data['archives'][wpr_file]
-      for page_name in page_names:
-        self._page_name_to_wpr_file[page_name] = wpr_file
+      user_story_names = data['archives'][wpr_file]
+      for user_story_name in user_story_names:
+        self._user_story_name_to_wpr_file[user_story_name] = wpr_file
     self.temp_target_wpr_file_path = None
 
   @classmethod
@@ -87,11 +85,11 @@ class PageSetArchiveInfo(object):
   def WprFilePathForUserStory(self, story):
     if self.temp_target_wpr_file_path:
       return self.temp_target_wpr_file_path
-    wpr_file = self._page_name_to_wpr_file.get(story.display_name, None)
+    wpr_file = self._user_story_name_to_wpr_file.get(story.display_name, None)
     if wpr_file is None and isinstance(story, page_module.Page):
-      # Some old page sets always use the URL to identify a page rather than the
+      # Some old pages always use the URL to identify a page rather than the
       # display_name, so try to look for that.
-      wpr_file = self._page_name_to_wpr_file.get(story.url, None)
+      wpr_file = self._user_story_name_to_wpr_file.get(story.url, None)
     if wpr_file:
       return self._WprFileNameToPath(wpr_file)
     return None
@@ -102,14 +100,14 @@ class PageSetArchiveInfo(object):
       os.close(temp_wpr_file_handle)
     self.temp_target_wpr_file_path = temp_wpr_file_path
 
-  def AddRecordedPages(self, pages, upload_to_cloud_storage=False):
-    if not pages:
+  def AddRecordedUserStories(self, user_stories, upload_to_cloud_storage=False):
+    if not user_stories:
       os.remove(self.temp_target_wpr_file_path)
       return
 
     (target_wpr_file, target_wpr_file_path) = self._NextWprFileName()
-    for page in pages:
-      self._SetWprFileForPage(page.display_name, target_wpr_file)
+    for user_story in user_stories:
+      self._SetWprFileForUserStory(user_story.display_name, target_wpr_file)
     shutil.move(self.temp_target_wpr_file_path, target_wpr_file_path)
 
     # Update the hash file.
@@ -123,8 +121,8 @@ class PageSetArchiveInfo(object):
     # Upload to cloud storage
     if upload_to_cloud_storage:
       if not self._bucket:
-        logging.warning('PageSet must have bucket specified to upload pages to'
-                        ' cloud storage.')
+        logging.warning('UserStorySet must have bucket specified to upload '
+                        'user stories to cloud storage.')
         return
       try:
         cloud_storage.Insert(self._bucket, target_wpr_file,
@@ -134,11 +132,11 @@ class PageSetArchiveInfo(object):
                         'Error:%s' % target_wpr_file_path, e)
 
   def _DeleteAbandonedWprFiles(self):
-    # Update the metadata so that the abandoned wpr files don't have empty page
-    # name arrays.
+    # Update the metadata so that the abandoned wpr files don't have
+    # empty user story name arrays.
     abandoned_wpr_files = self._AbandonedWprFiles()
     for wpr_file in abandoned_wpr_files:
-      del self._wpr_file_to_page_names[wpr_file]
+      del self._wpr_file_to_user_story_names[wpr_file]
       # Don't fail if we're unable to delete some of the files.
       wpr_file_path = self._WprFileNameToPath(wpr_file)
       try:
@@ -148,8 +146,9 @@ class PageSetArchiveInfo(object):
 
   def _AbandonedWprFiles(self):
     abandoned_wpr_files = []
-    for wpr_file, page_names in self._wpr_file_to_page_names.iteritems():
-      if not page_names:
+    for wpr_file, user_story_names in (
+        self._wpr_file_to_user_story_names.iteritems()):
+      if not user_story_names:
         abandoned_wpr_files.append(wpr_file)
     return abandoned_wpr_files
 
@@ -157,9 +156,9 @@ class PageSetArchiveInfo(object):
     """Writes the metadata into the file passed as constructor parameter."""
     metadata = dict()
     metadata['description'] = (
-        'Describes the Web Page Replay archives for a page set. Don\'t edit by '
-        'hand! Use record_wpr for updating.')
-    metadata['archives'] = self._wpr_file_to_page_names.copy()
+        'Describes the Web Page Replay archives for a user story set. '
+        'Don\'t edit by hand! Use record_wpr for updating.')
+    metadata['archives'] = self._wpr_file_to_user_story_names.copy()
     # Don't write data for abandoned archives.
     abandoned_wpr_files = self._AbandonedWprFiles()
     for wpr_file in abandoned_wpr_files:
@@ -177,7 +176,7 @@ class PageSetArchiveInfo(object):
     # The names are of the format "some_thing_number.wpr". Read the numbers.
     highest_number = -1
     base = None
-    for wpr_file in self._wpr_file_to_page_names:
+    for wpr_file in self._wpr_file_to_user_story_names:
       match = re.match(r'(?P<BASE>.*)_(?P<NUMBER>[0-9]+)\.wpr', wpr_file)
       if not match:
         raise Exception('Illegal wpr file name ' + wpr_file)
@@ -188,17 +187,17 @@ class PageSetArchiveInfo(object):
       base = match.groupdict()['BASE']
     if not base:
       # If we're creating a completely new info file, use the base name of the
-      # page set file.
+      # user story set file.
       base = os.path.splitext(os.path.basename(self._file_path))[0]
     new_filename = '%s_%03d.wpr' % (base, highest_number + 1)
     return new_filename, self._WprFileNameToPath(new_filename)
 
-  def _SetWprFileForPage(self, page_name, wpr_file):
+  def _SetWprFileForUserStory(self, user_story_name, wpr_file):
     """For modifying the metadata when we're going to record a new archive."""
-    old_wpr_file = self._page_name_to_wpr_file.get(page_name, None)
+    old_wpr_file = self._user_story_name_to_wpr_file.get(user_story_name, None)
     if old_wpr_file:
-      self._wpr_file_to_page_names[old_wpr_file].remove(page_name)
-    self._page_name_to_wpr_file[page_name] = wpr_file
-    if wpr_file not in self._wpr_file_to_page_names:
-      self._wpr_file_to_page_names[wpr_file] = []
-    self._wpr_file_to_page_names[wpr_file].append(page_name)
+      self._wpr_file_to_user_story_names[old_wpr_file].remove(user_story_name)
+    self._user_story_name_to_wpr_file[user_story_name] = wpr_file
+    if wpr_file not in self._wpr_file_to_user_story_names:
+      self._wpr_file_to_user_story_names[wpr_file] = []
+    self._wpr_file_to_user_story_names[wpr_file].append(user_story_name)

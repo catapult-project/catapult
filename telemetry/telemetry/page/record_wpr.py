@@ -186,7 +186,7 @@ class WprRecorder(object):
       logging.warning('Some pages failed and/or were skipped. The recording '
                       'has not been updated for these pages.')
     results.PrintSummary()
-    self._page_set.wpr_archive_info.AddRecordedPages(
+    self._page_set.wpr_archive_info.AddRecordedUserStories(
         results.pages_that_succeeded,
         upload_to_cloud_storage)
 

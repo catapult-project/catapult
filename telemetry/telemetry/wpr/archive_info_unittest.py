@@ -8,8 +8,8 @@ import tempfile
 import unittest
 
 from telemetry.page import page
-from telemetry.page import page_set_archive_info
 from telemetry.util import cloud_storage
+from telemetry.wpr import archive_info
 
 
 class MockPage(page.Page):
@@ -33,12 +33,13 @@ archive_info_contents = ("""
        page3.display_name))
 
 
-class TestPageSetArchiveInfo(unittest.TestCase):
+class WprArchiveInfoTest(unittest.TestCase):
   def setUp(self):
     self.tmp_dir = tempfile.mkdtemp()
     # Write the metadata.
-    self.page_set_archive_info_file = os.path.join(self.tmp_dir, 'info.json')
-    with open(self.page_set_archive_info_file, 'w') as f:
+    self.user_story_set_archive_info_file = os.path.join(
+        self.tmp_dir, 'info.json')
+    with open(self.user_story_set_archive_info_file, 'w') as f:
       f.write(archive_info_contents)
 
     # Write the existing .wpr files.
@@ -47,8 +48,8 @@ class TestPageSetArchiveInfo(unittest.TestCase):
         f.write(archive_info_contents)
 
     # Create the PageSetArchiveInfo object to be tested.
-    self.archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
+    self.archive_info = archive_info.WprArchiveInfo.FromFile(
+        self.user_story_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
 
   def tearDown(self):
     shutil.rmtree(self.tmp_dir)
@@ -75,8 +76,8 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     """Ensures that the archive info file is updated correctly."""
 
     expected_archive_file_contents = {
-        u'description': (u'Describes the Web Page Replay archives for a page'
-                         u' set. Don\'t edit by hand! Use record_wpr for'
+        u'description': (u'Describes the Web Page Replay archives for a user'
+                         u' story set. Don\'t edit by hand! Use record_wpr for'
                          u' updating.'),
         u'archives': {
             u'data_003.wpr': [u'Bar', u'http://www.baz.com/'],
@@ -88,9 +89,9 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     with open(new_temp_recording, 'w') as f:
       f.write('wpr data')
     self.archive_info.AddNewTemporaryRecording(new_temp_recording)
-    self.archive_info.AddRecordedPages([page2, page3])
+    self.archive_info.AddRecordedUserStories([page2, page3])
 
-    with open(self.page_set_archive_info_file, 'r') as f:
+    with open(self.user_story_set_archive_info_file, 'r') as f:
       archive_file_contents = json.load(f)
       self.assertEquals(expected_archive_file_contents, archive_file_contents)
 
@@ -112,7 +113,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.assertEquals(new_temp_recording,
                       self.archive_info.WprFilePathForUserStory(page3))
 
-    self.archive_info.AddRecordedPages([page2])
+    self.archive_info.AddRecordedUserStories([page2])
 
     self.assertTrue(os.path.exists(new_recording1))
     self.assertFalse(os.path.exists(new_temp_recording))
@@ -126,7 +127,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
       f.write('wpr data')
 
     self.archive_info.AddNewTemporaryRecording(new_temp_recording)
-    self.archive_info.AddRecordedPages([page3])
+    self.archive_info.AddRecordedUserStories([page3])
 
     self.assertTrue(os.path.exists(new_recording2))
     self.assertCorrectHashFile(new_recording2)
@@ -138,7 +139,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
 
   def testCreatingNewArchiveInfo(self):
     # Write only the page set without the corresponding metadata file.
-    page_set_contents = ("""
+    user_story_set_contents = ("""
     {
         archive_data_file": "new_archive_info.json",
         "pages": [
@@ -148,16 +149,16 @@ class TestPageSetArchiveInfo(unittest.TestCase):
         ]
     }""" % page1.url)
 
-    page_set_file = os.path.join(self.tmp_dir, 'new_page_set.json')
-    with open(page_set_file, 'w') as f:
-      f.write(page_set_contents)
+    user_story_set_file = os.path.join(self.tmp_dir, 'new_user_story_set.json')
+    with open(user_story_set_file, 'w') as f:
+      f.write(user_story_set_contents)
 
-    self.page_set_archive_info_file = os.path.join(self.tmp_dir,
+    self.user_story_set_archive_info_file = os.path.join(self.tmp_dir,
                                                    'new_archive_info.json')
 
-    # Create the PageSetArchiveInfo object to be tested.
-    self.archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
+    # Create the WprArchiveInfo object to be tested.
+    self.archive_info = archive_info.WprArchiveInfo.FromFile(
+        self.user_story_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
 
     # Add a recording for all the pages.
     new_temp_recording = os.path.join(self.tmp_dir, 'recording.wpr')
@@ -169,9 +170,9 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.assertEquals(new_temp_recording,
                       self.archive_info.WprFilePathForUserStory(page1))
 
-    self.archive_info.AddRecordedPages([page1])
+    self.archive_info.AddRecordedUserStories([page1])
 
-    # Expected name for the recording (decided by PageSetArchiveInfo).
+    # Expected name for the recording (decided by WprArchiveInfo).
     new_recording = os.path.join(self.tmp_dir, 'new_archive_info_000.wpr')
 
     self.assertTrue(os.path.exists(new_recording))
@@ -179,8 +180,8 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.assertCorrectHashFile(new_recording)
 
     # Check that the archive info was written correctly.
-    self.assertTrue(os.path.exists(self.page_set_archive_info_file))
-    read_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
+    self.assertTrue(os.path.exists(self.user_story_set_archive_info_file))
+    read_archive_info = archive_info.WprArchiveInfo.FromFile(
+        self.user_story_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
     self.assertEquals(new_recording,
                       read_archive_info.WprFilePathForUserStory(page1))

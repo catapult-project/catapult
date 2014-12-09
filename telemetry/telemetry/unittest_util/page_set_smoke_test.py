@@ -9,8 +9,8 @@ import unittest
 from telemetry.core import browser_credentials
 from telemetry.core import discover
 from telemetry.page import page_set as page_set_module
-from telemetry.page import page_set_archive_info
 from telemetry.util import classes
+from telemetry.wpr import archive_info
 
 
 class PageSetSmokeTest(unittest.TestCase):
@@ -30,7 +30,7 @@ class PageSetSmokeTest(unittest.TestCase):
                     msg='Archive data file not found for %s' %
                     page_set.file_path)
 
-    wpr_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
+    wpr_archive_info = archive_info.WprArchiveInfo.FromFile(
         archive_data_file_path, page_set.bucket, ignore_archive=True)
     for page in page_set.pages:
       if not page.url.startswith('http'):

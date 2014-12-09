@@ -10,10 +10,10 @@ from telemetry.core import exceptions
 from telemetry.core import wpr_modes
 from telemetry.page import page as page_module
 from telemetry.page import page_set
-from telemetry.page import page_set_archive_info
 from telemetry.page import page_test
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import page_test_test_case
+from telemetry.wpr import archive_info
 
 
 class PageTestThatFails(page_test.PageTest):
@@ -109,7 +109,7 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       self._options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
 
       # pylint: disable=protected-access
-      ps._wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
+      ps._wpr_archive_info = archive_info.WprArchiveInfo(
           '', '', ps.bucket, json.loads(archive_info_template %
                                         (test_archive, google_url)))
       ps.pages = [page_module.Page(google_url, ps)]
@@ -120,7 +120,7 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       self._options.browser_options.wpr_mode = wpr_modes.WPR_REPLAY
 
       # pylint: disable=protected-access
-      ps._wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
+      ps._wpr_archive_info = archive_info.WprArchiveInfo(
           '', '', ps.bucket, json.loads(archive_info_template %
                                         (test_archive, foo_url)))
       ps.pages = [page_module.Page(foo_url, ps)]
@@ -128,7 +128,7 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       self.assertEquals(1, len(all_results.failures))
 
       # pylint: disable=protected-access
-      ps._wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
+      ps._wpr_archive_info = archive_info.WprArchiveInfo(
           '', '', ps.bucket, json.loads(archive_info_template %
                                         (test_archive, google_url)))
       ps.pages = [page_module.Page(google_url, ps)]

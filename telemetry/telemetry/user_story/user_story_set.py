@@ -6,7 +6,7 @@ import inspect
 import os
 
 from telemetry import user_story as user_story_module
-from telemetry.page import page_set_archive_info
+from telemetry.wpr import archive_info
 
 
 class UserStorySet(object):
@@ -30,7 +30,7 @@ class UserStorySet(object):
     self.user_stories = []
     self._archive_data_file = archive_data_file
     self._wpr_archive_info = None
-    page_set_archive_info.AssertValidCloudStorageBucket(cloud_storage_bucket)
+    archive_info.AssertValidCloudStorageBucket(cloud_storage_bucket)
     self._cloud_storage_bucket = cloud_storage_bucket
     self._base_dir = os.path.dirname(inspect.getfile(self.__class__))
 
@@ -54,9 +54,8 @@ class UserStorySet(object):
   def wpr_archive_info(self):
     """Lazily constructs wpr_archive_info if it's not set and returns it."""
     if self.archive_data_file and not self._wpr_archive_info:
-      self._wpr_archive_info = (
-          page_set_archive_info.PageSetArchiveInfo.FromFile(
-              os.path.join(self.base_dir, self.archive_data_file), self.bucket))
+      self._wpr_archive_info = archive_info.WprArchiveInfo.FromFile(
+          os.path.join(self.base_dir, self.archive_data_file), self.bucket)
     return self._wpr_archive_info
 
   def AddUserStory(self, user_story):
