@@ -13,6 +13,14 @@ from telemetry.core.platform import platform_backend
 from telemetry.core.platform.power_monitor import powermetrics_power_monitor
 
 
+def _parsePowerMetricsDataFromTestFile(output_file):
+  test_data_path = os.path.join(util.GetUnittestDataDir(), output_file)
+  with open(test_data_path, 'r') as f:
+    process_output = f.read()
+  return (powermetrics_power_monitor.PowerMetricsPowerMonitor.
+      ParsePowerMetricsOutput(process_output))
+
+
 class PowerMetricsPowerMonitorTest(unittest.TestCase):
   @benchmark.Enabled('mac')
   def testCanMonitorPowerUsage(self):
@@ -31,14 +39,13 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
         ParsePowerMetricsOutput(''))
 
   @benchmark.Enabled('mac')
-  def testParsePowerMetricsOutput(self):
-    def getOutput(output_file):
-      test_data_path = os.path.join(util.GetUnittestDataDir(), output_file)
-      with open(test_data_path, 'r') as f:
-        process_output = f.read()
-      return (powermetrics_power_monitor.PowerMetricsPowerMonitor.
-          ParsePowerMetricsOutput(process_output))
+  def testParsePowerMetricsOutputFromVM(self):
+    # Don't fail when running on VM - crbug.com/423688.
+    self.assertEquals({},
+        _parsePowerMetricsDataFromTestFile('powermetrics_vmware.output'))
 
+  @benchmark.Enabled('mac')
+  def testParsePowerMetricsOutput(self):
     power_monitor = powermetrics_power_monitor.PowerMetricsPowerMonitor(
         mac_platform_backend.MacPlatformBackend())
     if not power_monitor.CanMonitorPower():
@@ -49,7 +56,7 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
     self.assertFalse(power_monitor.CanMeasurePerApplicationPower())
 
     # Supported hardware reports power samples and energy consumption.
-    result = getOutput('powermetrics_output.output')
+    result = _parsePowerMetricsDataFromTestFile('powermetrics_output.output')
 
     self.assertTrue(result['energy_consumption_mwh'] > 0)
 
@@ -60,5 +67,6 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
       self.assertTrue(component_utilization[k]['idle_percent'] > 0)
 
     # Unsupported hardware doesn't.
-    result = getOutput('powermetrics_output_unsupported_hardware.output')
+    result = _parsePowerMetricsDataFromTestFile(
+        'powermetrics_output_unsupported_hardware.output')
     self.assertNotIn('energy_consumption_mwh', result)

@@ -140,6 +140,11 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
                       '%d', len(powermetrics_output))
       return {}
 
+    # Powermetrics doesn't record power usage when running on a VM.
+    hw_model = plist.get('hw_model')
+    if hw_model and hw_model.startswith('VMware'):
+      return {}
+
     if 'GPU' in plist:
       metrics.extend([
           ConstructMetric(
