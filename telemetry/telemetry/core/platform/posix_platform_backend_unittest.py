@@ -5,9 +5,9 @@ import os
 import sys
 import unittest
 
-from telemetry import benchmark
 from telemetry.core import platform as platform_module
 from telemetry.core.platform import posix_platform_backend
+from telemetry.unittest_util import test
 
 
 class TestBackend(posix_platform_backend.PosixPlatformBackend):
@@ -76,7 +76,7 @@ class PosixPlatformBackendTest(unittest.TestCase):
         posix_platform_backend._BinaryExistsInSudoersFiles(
             binary_path,'     (root) NOPASSWD: /usr/bin/pkill arg1 arg2'))
 
-  @benchmark.Enabled('linux', 'mac')
+  @test.Enabled('linux', 'mac')
   def testIsApplicationRunning(self):
     platform = platform_module.GetHostPlatform()
 

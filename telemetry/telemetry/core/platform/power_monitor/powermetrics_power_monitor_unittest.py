@@ -6,11 +6,11 @@ import logging
 import os
 import unittest
 
-from telemetry import benchmark
 from telemetry.core import util
 from telemetry.core.platform import mac_platform_backend
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform.power_monitor import powermetrics_power_monitor
+from telemetry.unittest_util import test
 
 
 def _parsePowerMetricsDataFromTestFile(output_file):
@@ -22,7 +22,7 @@ def _parsePowerMetricsDataFromTestFile(output_file):
 
 
 class PowerMetricsPowerMonitorTest(unittest.TestCase):
-  @benchmark.Enabled('mac')
+  @test.Enabled('mac')
   def testCanMonitorPowerUsage(self):
     backend = mac_platform_backend.MacPlatformBackend()
     power_monitor = powermetrics_power_monitor.PowerMetricsPowerMonitor(backend)
@@ -32,19 +32,19 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
     self.assertEqual(power_monitor.CanMonitorPower(), mavericks_or_later,
         "Error checking powermetrics availability: '%s'" % '|'.join(os.uname()))
 
-  @benchmark.Enabled('mac')
+  @test.Enabled('mac')
   def testParseEmptyPowerMetricsOutput(self):
     # Important to handle zero length powermetrics outout - crbug.com/353250 .
     self.assertIsNone(powermetrics_power_monitor.PowerMetricsPowerMonitor.
         ParsePowerMetricsOutput(''))
 
-  @benchmark.Enabled('mac')
+  @test.Enabled('mac')
   def testParsePowerMetricsOutputFromVM(self):
     # Don't fail when running on VM - crbug.com/423688.
     self.assertEquals({},
         _parsePowerMetricsDataFromTestFile('powermetrics_vmware.output'))
 
-  @benchmark.Enabled('mac')
+  @test.Enabled('mac')
   def testParsePowerMetricsOutput(self):
     power_monitor = powermetrics_power_monitor.PowerMetricsPowerMonitor(
         mac_platform_backend.MacPlatformBackend())

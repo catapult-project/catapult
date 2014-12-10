@@ -7,9 +7,11 @@ import time
 import unittest
 
 from telemetry.core import platform as platform_module
+from telemetry.unittest_util import test
 
 
 class PlatformBackendTest(unittest.TestCase):
+  @test.Disabled('mac')  # http://crbug.com/440666
   def testPowerMonitoringSync(self):
     # Tests that the act of monitoring power doesn't blow up.
     platform = platform_module.GetHostPlatform()
