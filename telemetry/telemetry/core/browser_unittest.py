@@ -187,7 +187,7 @@ class BrowserRestoreSessionTest(unittest.TestCase):
     cls._browser_to_create = browser_finder.FindBrowser(cls._options)
 
   @benchmark.Enabled('has tabs')
-  @benchmark.Disabled('chromeos', 'win')
+  @benchmark.Disabled('chromeos', 'win', 'mac')
   # TODO(nednguyen): Enable this test on windowsn platform
   def testRestoreBrowserWithMultipleTabs(self):
     with self._browser_to_create.Create(self._options) as browser:
