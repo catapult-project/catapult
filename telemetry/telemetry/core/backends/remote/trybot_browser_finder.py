@@ -47,6 +47,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     return True
 
   def _RunProcess(self, cmd):
+    logging.debug('Running process: "%s"', ' '.join(cmd))
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
     returncode = proc.poll()
