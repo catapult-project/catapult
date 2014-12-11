@@ -242,22 +242,29 @@ tv.exportTo('tracing.tracks', function() {
         // Draw sample points.
         ctx.strokeStyle = EventPresenter.getCounterSeriesColor(
             series.color, SelectionState.NONE);
+        var lastFillStyle = undefined;
         for (var i = startIndex; timestamps[i] < viewRWorld; i++) {
           var x = timestamps[i];
           var y = counter.totals[i * numSeries + seriesIndex];
           var yView = range - yScale * y;
 
           if (series.samples[i].selected) {
-            ctx.fillStyle = EventPresenter.getCounterSeriesColor(
+            var fillStyle = EventPresenter.getCounterSeriesColor(
               series.color, series.samples[i].selectionState);
+            if (fillStyle !== lastFillStyle) {
+              ctx.fillStyle = lastFillStyle = fillStyle;
+            }
             ctx.beginPath();
             ctx.arc(dt.xWorldToView(x), yView, CIRCLE_RADIUS * pixelRatio, 0,
                     2 * Math.PI);
             ctx.fill();
             ctx.stroke();
           } else if (highDetails) {
-            ctx.fillStyle = EventPresenter.getCounterSeriesColor(
+            var fillStyle = EventPresenter.getCounterSeriesColor(
                 series.color, series.samples[i].selectionState, opacity);
+            if (fillStyle !== lastFillStyle) {
+              ctx.fillStyle = lastFillStyle = fillStyle;
+            }
             ctx.fillRect(dt.xWorldToView(x) - (SQUARE_WIDTH / 2) * pixelRatio,
                          yView - (SQUARE_WIDTH / 2) * pixelRatio,
                          SQUARE_WIDTH * pixelRatio, SQUARE_WIDTH * pixelRatio);
