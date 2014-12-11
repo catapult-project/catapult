@@ -20,7 +20,7 @@ def _GetLibrariesMappedIntoProcesses(device, pids):
   libs = set()
   for pid in pids:
     maps_file = '/proc/%d/maps' % pid
-    maps = device.ReadFile(maps_file, as_root=True).splitlines()
+    maps = device.ReadFile(maps_file, as_root=True)
     for map_line in maps:
       lib = re.match(r'.*\s(/.*[.]so)$', map_line)
       if lib:

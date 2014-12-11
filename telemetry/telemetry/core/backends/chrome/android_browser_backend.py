@@ -223,8 +223,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # be a  Telemetry created one. This is to prevent a common bug where
       # --host-resolver-rules borks people's browsers if something goes wrong
       # with Telemetry.
-      self._saved_cmdline = self._adb.device().ReadFile(
-          cmdline_file, as_root=True)
+      self._saved_cmdline = ''.join(self._adb.device().ReadFile(cmdline_file))
       if '--host-resolver-rules' in self._saved_cmdline:
         self._saved_cmdline = ''
       self._adb.device().WriteFile(cmdline_file, content, as_root=True)
