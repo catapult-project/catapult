@@ -136,7 +136,7 @@ def SelectDefaultBrowser(possible_browsers):
 
 
 def CanFindAvailableBrowsers():
-  android_device.CanDiscoverDevices()
+  return android_device.CanDiscoverDevices()
 
 
 def FindAllBrowserTypes(_options):
