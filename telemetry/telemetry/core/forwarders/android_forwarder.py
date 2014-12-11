@@ -231,7 +231,7 @@ class AndroidRndisConfigurator(object):
     """Returns the name of the host-side network interface."""
     interface_list = self._EnumerateHostInterfaces()
     ether_address = self._device.ReadFile(
-        '%s/f_rndis/ethaddr' % self._RNDIS_DEVICE)[0]
+        '%s/f_rndis/ethaddr' % self._RNDIS_DEVICE).strip()
     interface_name = None
     for line in interface_list:
       if not line.startswith((' ', '\t')):
@@ -322,7 +322,7 @@ doit &
     self._device.RunShellCommand('rm %s.log' % script_prefix)
     self._device.RunShellCommand('. %s.sh' % script_prefix)
     self._WaitForDevice()
-    result = self._device.ReadFile('%s.log' % script_prefix)
+    result = self._device.ReadFile('%s.log' % script_prefix).splitlines()
     assert any('DONE' in line for line in result), 'RNDIS script did not run!'
 
   def _CheckEnableRndis(self, force):

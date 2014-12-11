@@ -2,7 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import telemetry.core.platform.power_monitor as power_monitor
+from telemetry.core import util
+from telemetry.core.platform import power_monitor
+
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+try:
+  from pylib.device import device_errors  # pylint: disable=F0401
+except ImportError:
+  device_errors = None
+
 
 _TEMPERATURE_FILE = '/sys/class/thermal/thermal_zone0/temp'
 
@@ -57,7 +65,8 @@ class AndroidTemperatureMonitor(power_monitor.PowerMonitor):
     return power_data
 
   def _GetBoardTemperatureCelsius(self):
-    contents = self._device.ReadFile(_TEMPERATURE_FILE)
-    if len(contents) > 0:
-      return float(contents[0])
-    return None
+    try:
+      contents = self._device.ReadFile(_TEMPERATURE_FILE)
+      return float(contents) if contents else None
+    except device_errors.CommandFailedError:
+      return None
