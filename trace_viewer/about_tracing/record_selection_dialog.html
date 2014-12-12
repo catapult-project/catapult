@@ -320,10 +320,12 @@ tv.exportTo('about_tracing', function() {
             ' preset must be an array.');
       this.currentlyChosenPreset_ = preset;
 
-      if (this.currentlyChosenPreset_.length)
+      if (this.currentlyChosenPreset_.length) {
         this.updateEditCategoriesStatus_(false);
-      else
+      } else {
+        this.updateCategoryColumnView_(true);
         this.updateEditCategoriesStatus_(true);
+      }
       this.updateManualCategorySelectionStatus_();
       this.updatePresetDescription_();
     },
@@ -340,12 +342,35 @@ tv.exportTo('about_tracing', function() {
       }
     },
 
+    updateCategoryColumnView_: function(shouldReadFromSettings) {
+      var categorySet = this.querySelectorAll('.categories');
+      for (var i = 0; i < categorySet.length; ++i) {
+        var categoryGroup = categorySet[i].children;
+        for (var j = 0; j < categoryGroup.length; ++j) {
+          var categoryEl = categoryGroup[j].children[0];
+          categoryEl.checked = shouldReadFromSettings ?
+              tv.Settings.get(categoryEl.value, false, this.settings_key_) :
+              false;
+        }
+      }
+    },
+
     onClickEditCategories: function() {
       if (!this.currentlyChosenPreset_.length)
         return;
 
+      if (!this.editCategoriesOpened_) {
+        this.updateCategoryColumnView_(false);
+        for (var i = 0; i < this.currentlyChosenPreset_.length; ++i) {
+          var categoryEl = document.getElementById(this.currentlyChosenPreset_[i]);
+          categoryEl.checked = true;
+        }
+      }
+
       this.updateEditCategoriesStatus_(!this.editCategoriesOpened_);
       this.updateManualCategorySelectionStatus_();
+
+      this.recordButtonEl_.focus();
     },
 
     updateEditCategoriesStatus_: function(editCategoriesState) {
