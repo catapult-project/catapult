@@ -25,8 +25,12 @@ def _UpdateCredentials(credentials_path):
 class Page(user_story.UserStory):
   def __init__(self, url, page_set=None, base_dir=None, name='',
                credentials_path=None, labels=None, startup_url=''):
-    super(Page, self).__init__(shared_page_state.SharedPageState, name, labels)
     self._url = url
+
+    super(Page, self).__init__(
+        shared_page_state.SharedPageState, name=name, labels=labels,
+        is_local=self._scheme in ['file', 'chrome', 'about'])
+
     self._page_set = page_set
     # Default value of base_dir is the directory of the file that defines the
     # class of this page instance.
@@ -154,11 +158,6 @@ class Page(user_story.UserStory):
     return self._scheme == 'file'
 
   @property
-  def is_local(self):
-    """Returns True iff this URL is local. This includes chrome:// URLs."""
-    return self._scheme in ['file', 'chrome', 'about']
-
-  @property
   def file_path(self):
     """Returns the path of the file, stripping the scheme and query string."""
     assert self.is_file
@@ -200,7 +199,3 @@ class Page(user_story.UserStory):
     all_urls = [p.url.rstrip('/') for p in self.page_set if p.is_file]
     common_prefix = os.path.dirname(os.path.commonprefix(all_urls))
     return self.url[len(common_prefix):].strip('/')
-
-  @property
-  def archive_path(self):
-    return self.page_set.WprFilePathForUserStory(self)

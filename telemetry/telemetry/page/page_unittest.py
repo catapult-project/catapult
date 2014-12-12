@@ -153,3 +153,16 @@ class TestPage(unittest.TestCase):
     self.assertEqual([page_foo, page_baz], page_set_a.pages)
     self.assertEqual([page_bar], page_set_b.pages)
     self.assertIs(page_set_b, page_bar.page_set)
+
+  def testIsLocal(self):
+    p = page.Page('file://foo.html')
+    self.assertTrue(p.is_local)
+
+    p = page.Page('chrome://extensions')
+    self.assertTrue(p.is_local)
+
+    p = page.Page('about:blank')
+    self.assertTrue(p.is_local)
+
+    p = page.Page('http://foo.com')
+    self.assertFalse(p.is_local)

@@ -6,9 +6,10 @@ from telemetry import user_story
 from telemetry.user_story.android import shared_app_state
 
 class AppStory(user_story.UserStory):
-  def __init__(self, start_intent, name='', labels=None):
+  def __init__(self, start_intent, name='', labels=None, is_local=False):
     super(AppStory, self).__init__(
-        shared_app_state.SharedAppState, name, labels)
+        shared_app_state.SharedAppState, name=name, labels=labels,
+        is_local=is_local)
     self.start_intent = start_intent
 
   def RunPageInteractions(self):

@@ -16,7 +16,8 @@ class UserStorySet(object):
   AddUserStory for each UserStory..
   """
 
-  def __init__(self, archive_data_file='', cloud_storage_bucket=None):
+  def __init__(self, archive_data_file='', cloud_storage_bucket=None,
+               serving_dirs=None):
     """Creates a new UserStorySet.
 
     Args:
@@ -33,6 +34,9 @@ class UserStorySet(object):
     archive_info.AssertValidCloudStorageBucket(cloud_storage_bucket)
     self._cloud_storage_bucket = cloud_storage_bucket
     self._base_dir = os.path.dirname(inspect.getfile(self.__class__))
+    # Convert any relative serving_dirs to absolute paths.
+    self._serving_dirs = set(os.path.realpath(os.path.join(self.base_dir, d))
+                             for d in serving_dirs or [])
 
   @property
   def base_dir(self):
@@ -41,6 +45,10 @@ class UserStorySet(object):
     This defaults to the directory containing the UserStorySet instance's class.
     """
     return self._base_dir
+
+  @property
+  def serving_dirs(self):
+    return self._serving_dirs
 
   @property
   def archive_data_file(self):
@@ -87,6 +95,15 @@ class UserStorySet(object):
     pass
 
   def WprFilePathForUserStory(self, story):
+    """Convenient function to retrive WPR archive file path.
+
+    Args:
+      user_story: The UserStory to lookup.
+
+    Returns:
+      The WPR archive file path for the given UserStory, if found.
+      Otherwise, return None.
+    """
     if not self.wpr_archive_info:
       return None
     return self.wpr_archive_info.WprFilePathForUserStory(story)

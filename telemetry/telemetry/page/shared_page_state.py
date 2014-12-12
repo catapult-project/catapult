@@ -11,11 +11,11 @@ from telemetry.core import browser_finder_exceptions
 from telemetry.core import browser_info
 from telemetry.core import util
 from telemetry.core import wpr_modes
+from telemetry.core.platform.profiler import profiler_finder
 from telemetry.page import page_test
 from telemetry.user_story import shared_user_story_state
 from telemetry.util import file_handle
 from telemetry.value import skip
-from telemetry.core.platform.profiler import profiler_finder
 
 
 def _PrepareFinderOptions(finder_options, test, page_set):
@@ -111,7 +111,8 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
     if self._test.RestartBrowserBeforeEachPage() or page.startup_url:
       self._StopBrowser()
     started_browser = not self.browser
-    self._PrepareWpr(self.platform.network_controller, page.archive_path,
+    self._PrepareWpr(self.platform.network_controller,
+                     page_set.WprFilePathForUserStory(page),
                      page_set.make_javascript_deterministic)
     if self.browser:
       # Set new credential path for browser.

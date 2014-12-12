@@ -10,12 +10,13 @@ import sys
 import time
 
 from telemetry import decorators
+from telemetry import page as page_module
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import wpr_modes
-from telemetry.page import shared_page_state
 from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
+from telemetry.page import shared_page_state
 from telemetry.page.actions import page_action
 from telemetry.results import results_options
 from telemetry.user_story import user_story_filter
@@ -120,14 +121,14 @@ def _RunUserStoryAndProcessErrorIfNeeded(
 
 
 @decorators.Cache
-def _UpdateUserStoryArchivesIfChanged(page_set):
+def _UpdateUserStoryArchivesIfChanged(user_story_set):
   # Scan every serving directory for .sha1 files
   # and download them from Cloud Storage. Assume all data is public.
-  all_serving_dirs = page_set.serving_dirs.copy()
+  all_serving_dirs = user_story_set.serving_dirs.copy()
   # Add individual page dirs to all serving dirs.
-  for page in page_set:
-    if page.is_file:
-      all_serving_dirs.add(page.serving_dir)
+  for user_story in user_story_set:
+    if isinstance(user_story, page_module.Page) and user_story.is_file:
+      all_serving_dirs.add(user_story.serving_dir)
   # Scan all serving dirs.
   for serving_dir in all_serving_dirs:
     if os.path.splitdrive(serving_dir)[1] == '/':
@@ -138,7 +139,7 @@ def _UpdateUserStoryArchivesIfChanged(page_set):
             os.path.join(dirpath, filename))
         if extension != '.sha1':
           continue
-        cloud_storage.GetIfChanged(path, page_set.bucket)
+        cloud_storage.GetIfChanged(path, user_story_set.bucket)
 
 
 class UserStoryGroup(object):
@@ -196,14 +197,11 @@ def Run(test, user_story_set, expectations, finder_options, results):
   user_stories = _ShuffleAndFilterUserStorySet(user_story_set, finder_options)
 
   if (not finder_options.use_live_sites and
-      finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD and
-      # TODO(nednguyen): also handle these logic for user_story_set in next
-      # patch.
-      isinstance(user_story_set, page_set_module.PageSet)):
+      finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):
     _UpdateUserStoryArchivesIfChanged(user_story_set)
     if not _CheckArchives(
         user_story_set.archive_data_file, user_story_set.wpr_archive_info,
-        user_story_set.pages):
+        user_stories):
       return
 
   for user_story in list(user_stories):
@@ -278,18 +276,18 @@ def _ShuffleAndFilterUserStorySet(user_story_set, finder_options):
   return user_stories
 
 
-def _CheckArchives(archive_data_file, wpr_archive_info, pages):
-  """Verifies that all pages are local or have WPR archives.
+def _CheckArchives(archive_data_file, wpr_archive_info, filtered_user_stories):
+  """Verifies that all user stories are local or have WPR archives.
 
   Logs warnings and returns False if any are missing.
   """
-  # Report any problems with the entire page set.
-  if any(not p.is_local for p in pages):
+  # Report any problems with the entire user story set.
+  if any(not user_story.is_local for user_story in filtered_user_stories):
     if not archive_data_file:
-      logging.error('The page set is missing an "archive_data_file" '
+      logging.error('The user story set is missing an "archive_data_file" '
                     'property.\nTo run from live sites pass the flag '
                     '--use-live-sites.\nTo create an archive file add an '
-                    'archive_data_file property to the page set and then '
+                    'archive_data_file property to the user story set and then '
                     'run record_wpr.')
       return False
     if not wpr_archive_info:
@@ -299,35 +297,42 @@ def _CheckArchives(archive_data_file, wpr_archive_info, pages):
                     'or create a new archive using record_wpr.')
       return False
 
-  # Report any problems with individual pages.
-  pages_missing_archive_path = []
-  pages_missing_archive_data = []
-  for page in pages:
-    if not page.is_local and not page.archive_path:
-      pages_missing_archive_path.append(page)
-    elif not page.is_local and not os.path.isfile(page.archive_path):
-      pages_missing_archive_data.append(page)
-  if pages_missing_archive_path:
-    logging.error('The page set archives for some pages do not exist.\n'
-                  'To fix this, record those pages using record_wpr.\n'
-                  'To ignore this warning and run against live sites, '
-                  'pass the flag --use-live-sites.')
+  # Report any problems with individual user story.
+  user_stories_missing_archive_path = []
+  user_stories_missing_archive_data = []
+  for user_story in filtered_user_stories:
+    if not user_story.is_local:
+      archive_path = wpr_archive_info.WprFilePathForUserStory(user_story)
+      if not archive_path:
+        user_stories_missing_archive_path.append(user_story)
+      elif not os.path.isfile(archive_path):
+        user_stories_missing_archive_data.append(user_story)
+  if user_stories_missing_archive_path:
     logging.error(
-        'Pages without archives: %s',
-        ', '.join(page.display_name for page in pages_missing_archive_path))
-  if pages_missing_archive_data:
-    logging.error('The page set archives for some pages are missing.\n'
-                  'Someone forgot to check them in, uploaded them to the '
-                  'wrong cloud storage bucket, or they were deleted.\n'
-                  'To fix this, record those pages using record_wpr.\n'
-                  'To ignore this warning and run against live sites, '
-                  'pass the flag --use-live-sites.')
+        'The user story set archives for some user stories do not exist.\n'
+        'To fix this, record those user stories using record_wpr.\n'
+        'To ignore this warning and run against live sites, '
+        'pass the flag --use-live-sites.')
     logging.error(
-        'Pages missing archives: %s',
-        ', '.join(page.display_name for page in pages_missing_archive_data))
-  if pages_missing_archive_path or pages_missing_archive_data:
+        'User stories without archives: %s',
+        ', '.join(user_story.display_name
+                  for user_story in user_stories_missing_archive_path))
+  if user_stories_missing_archive_data:
+    logging.error(
+        'The user story set archives for some user stories are missing.\n'
+        'Someone forgot to check them in, uploaded them to the '
+        'wrong cloud storage bucket, or they were deleted.\n'
+        'To fix this, record those user stories using record_wpr.\n'
+        'To ignore this warning and run against live sites, '
+        'pass the flag --use-live-sites.')
+    logging.error(
+        'User stories missing archives: %s',
+        ', '.join(user_story.display_name
+                  for user_story in user_stories_missing_archive_data))
+  if user_stories_missing_archive_path or user_stories_missing_archive_data:
     return False
-  # Only run valid pages if no problems with the page set or individual pages.
+  # Only run valid user stories if no problems with the user story set or
+  # individual user stories.
   return True
 
 

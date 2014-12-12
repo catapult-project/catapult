@@ -23,8 +23,6 @@ class PageSet(user_story_set.UserStorySet):
   def __init__(self, file_path=None, archive_data_file='', user_agent_type=None,
                make_javascript_deterministic=True, serving_dirs=None,
                bucket=None):
-    super(PageSet, self).__init__(
-        archive_data_file=archive_data_file, cloud_storage_bucket=bucket)
     # The default value of file_path is location of the file that define this
     # page set instance's class.
     # TODO(chrishenry): Move this logic to user_story_set. Consider passing
@@ -35,14 +33,15 @@ class PageSet(user_story_set.UserStorySet):
       # Turn pyc file into py files if we can
       if file_path.endswith('.pyc') and os.path.exists(file_path[:-1]):
         file_path = file_path[:-1]
-
     self.file_path = file_path
+
+    super(PageSet, self).__init__(
+        archive_data_file=archive_data_file, cloud_storage_bucket=bucket,
+        serving_dirs=serving_dirs)
+
     # These attributes can be set dynamically by the page set.
     self.user_agent_type = user_agent_type
     self.make_javascript_deterministic = make_javascript_deterministic
-    # Convert any relative serving_dirs to absolute paths.
-    self._serving_dirs = set(os.path.realpath(os.path.join(self.base_dir, d))
-                             for d in serving_dirs or [])
 
   @property
   def pages(self):
@@ -69,10 +68,6 @@ class PageSet(user_story_set.UserStorySet):
       return os.path.dirname(self.file_path)
     else:
       return self.file_path
-
-  @property
-  def serving_dirs(self):
-    return self._serving_dirs
 
   def ReorderPageSet(self, results_file):
     """Reorders this page set based on the results of a past run."""
