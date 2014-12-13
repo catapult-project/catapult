@@ -307,8 +307,8 @@ class PageRunEndToEndTests(unittest.TestCase):
     expectations = test_expectations.TestExpectations()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
-    page.startup_url = 'about:blank'
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir(),
+        startup_url='about:blank')
     ps.pages.append(page)
 
     class Measurement(page_test.PageTest):
