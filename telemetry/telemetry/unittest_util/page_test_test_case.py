@@ -103,7 +103,7 @@ class PageTestTestCase(unittest.TestCase):
     measurement = BuggyMeasurement()
     try:
       self.RunMeasurement(measurement, ps, options=options)
-    except page_test.TestNotSupportedOnPlatformFailure:
+    except page_test.TestNotSupportedOnPlatformError:
       pass
     if start_tracing_called[0]:
       self.assertTrue(stop_tracing_called[0])

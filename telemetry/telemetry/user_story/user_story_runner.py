@@ -79,7 +79,6 @@ def ProcessCommandLineArgs(parser, args):
 
 def _RunUserStoryAndProcessErrorIfNeeded(
     test, expectations, user_story, results, state):
-  expectation = None
   def ProcessError():
     if expectation == 'fail':
       msg = 'Expected exception while running %s' % user_story.display_name
@@ -87,8 +86,8 @@ def _RunUserStoryAndProcessErrorIfNeeded(
     else:
       msg = 'Exception while running %s' % user_story.display_name
       results.AddValue(failure.FailureValue(user_story, sys.exc_info()))
-
   try:
+    expectation = None
     state.WillRunUserStory(user_story)
     expectation, skip_value = state.GetTestExpectationAndSkipValue(expectations)
     if expectation == 'skip':
@@ -96,19 +95,16 @@ def _RunUserStoryAndProcessErrorIfNeeded(
       results.AddValue(skip_value)
       return
     state.RunUserStory(results)
-  except page_test.TestNotSupportedOnPlatformFailure:
-    raise
   except (page_test.Failure, util.TimeoutException, exceptions.LoginException,
           exceptions.ProfilingException):
     ProcessError()
   except exceptions.AppCrashException:
     ProcessError()
-    state.TearDownState(results)
     if test.is_multi_tab_test:
       logging.error('Aborting multi-tab test after browser or tab crashed at '
                     'user story %s' % user_story.display_name)
       test.RequestExit()
-      return
+    raise
   except page_action.PageActionNotSupported as e:
     results.AddValue(
         skip.SkipValue(user_story, 'Unsupported page action: %s' % e))
@@ -117,8 +113,15 @@ def _RunUserStoryAndProcessErrorIfNeeded(
       logging.warning(
           '%s was expected to fail, but passed.\n', user_story.display_name)
   finally:
-    state.DidRunUserStory(results)
-
+    has_existing_exception = sys.exc_info() is not None
+    try:
+      state.DidRunUserStory(results)
+    except Exception:
+      if not has_existing_exception:
+        raise
+      # Print current exception and propagate existing exception.
+      exception_formatter.PrintFormattedException(
+          msg='Exception from DidRunUserStory: ')
 
 @decorators.Cache
 def _UpdateUserStoryArchivesIfChanged(user_story_set):
@@ -190,7 +193,12 @@ def GetUserStoryGroupsWithSameSharedUserStoryClass(user_story_set):
 
 
 def Run(test, user_story_set, expectations, finder_options, results):
-  """Runs a given test against a given page_set with the given options."""
+  """Runs a given test against a given page_set with the given options.
+
+  Stop execution for unexpected exceptions such as KeyboardInterrupt.
+  We "white list" certain exceptions for which the user story runner
+  can continue running the remaining user stories.
+  """
   test.ValidatePageSet(user_story_set)
 
   # Reorder page set based on options.
@@ -227,39 +235,63 @@ def Run(test, user_story_set, expectations, finder_options, results):
   for group in user_story_groups:
     state = None
     try:
-      state = group.shared_user_story_state_class(
-        test, finder_options, user_story_set)
       for _ in xrange(finder_options.pageset_repeat):
         for user_story in group.user_stories:
-          if test.IsExiting():
-            break
           for _ in xrange(finder_options.page_repeat):
+            if test.IsExiting():
+              break
+            if not state:
+              state = group.shared_user_story_state_class(
+                  test, finder_options, user_story_set)
             results.WillRunPage(user_story)
             try:
               _WaitForThermalThrottlingIfNeeded(state.platform)
               _RunUserStoryAndProcessErrorIfNeeded(
                   test, expectations, user_story, results, state)
-            except Exception:
-              # Tear down & restart the state for unhandled exceptions thrown by
-              # _RunUserStoryAndProcessErrorIfNeeded.
-              results.AddValue(failure.FailureValue(user_story, sys.exc_info()))
-              state.TearDownState(results)
-              state = group.shared_user_story_state_class(
-                  test, finder_options, user_story_set)
+            except exceptions.AppCrashException:
+              # Catch AppCrashException to give the story a chance to retry.
+              # The retry is enabled by tearing down the state and creating
+              # a new state instance in the next iteration.
+              if not test.IsExiting():
+                try:
+                  # If TearDownState raises, do not catch the exception.
+                  # (The AppCrashException was saved as a failure value.)
+                  state.TearDownState(results)
+                finally:
+                  # Later finally-blocks use state, so ensure it is cleared.
+                  state = None
             finally:
-              _CheckThermalThrottling(state.platform)
-              discard_run = (test.discard_first_result and
-                            user_story not in
-                            user_story_with_discarded_first_results)
-              if discard_run:
-                user_story_with_discarded_first_results.add(user_story)
-              results.DidRunPage(user_story, discard_run=discard_run)
+              has_existing_exception = sys.exc_info() is not None
+              try:
+                if state:
+                  _CheckThermalThrottling(state.platform)
+                discard_run = (test.discard_first_result and
+                               user_story not in
+                               user_story_with_discarded_first_results)
+                if discard_run:
+                  user_story_with_discarded_first_results.add(user_story)
+                results.DidRunPage(user_story, discard_run=discard_run)
+              except Exception:
+                if not has_existing_exception:
+                  raise
+                # Print current exception and propagate existing exception.
+                exception_formatter.PrintFormattedException(
+                    msg='Exception from result processing:')
           if max_failures is not None and len(results.failures) > max_failures:
             logging.error('Too many failures. Aborting.')
             test.RequestExit()
     finally:
       if state:
-        state.TearDownState(results)
+        has_existing_exception = sys.exc_info() is not None
+        try:
+          state.TearDownState(results)
+        except Exception:
+          if not has_existing_exception:
+            raise
+          # Print current exception and propagate existing exception.
+          exception_formatter.PrintFormattedException(
+              msg='Exception from TearDownState:')
+
 
 def _ShuffleAndFilterUserStorySet(user_story_set, finder_options):
   if finder_options.pageset_shuffle_order_file:

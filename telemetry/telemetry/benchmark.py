@@ -19,6 +19,7 @@ from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.util import cloud_storage
+from telemetry.util import exception_formatter
 
 Disabled = decorators.Disabled
 Enabled = decorators.Enabled
@@ -81,7 +82,12 @@ class Benchmark(command_line.Command):
     return BenchmarkMetadata(self.Name())
 
   def Run(self, finder_options):
-    """Run this test with the given options."""
+    """Run this test with the given options.
+
+    Returns:
+      The number of failure values (up to 254) or 255 if there is an uncaught
+      exception.
+    """
     self.CustomizeBrowserOptions(finder_options.browser_options)
 
     pt = self.CreatePageTest(finder_options)
@@ -103,8 +109,10 @@ class Benchmark(command_line.Command):
     results = results_options.CreateResults(benchmark_metadata, finder_options)
     try:
       user_story_runner.Run(pt, us, expectations, finder_options, results)
-    except page_test.TestNotSupportedOnPlatformFailure as failure:
-      logging.warning(str(failure))
+      return_code = min(254, len(results.failures))
+    except Exception:
+      exception_formatter.PrintFormattedException()
+      return_code = 255
 
     bucket = cloud_storage.BUCKET_ALIASES[finder_options.upload_bucket]
     if finder_options.upload_results:
@@ -112,7 +120,7 @@ class Benchmark(command_line.Command):
       results.UploadProfilingFilesToCloud(bucket)
 
     results.PrintSummary()
-    return len(results.failures)
+    return return_code
 
   def _DownloadGeneratedProfileArchive(self, options):
     """Download and extract profile directory archive if one exists."""

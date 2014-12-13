@@ -18,7 +18,7 @@ from telemetry.wpr import archive_info
 
 class PageTestThatFails(page_test.PageTest):
   def ValidateAndMeasurePage(self, page, tab, results):
-    raise exceptions.IntentionalException
+    raise page_test.Failure
 
 
 class PageTestForBlank(page_test.PageTest):

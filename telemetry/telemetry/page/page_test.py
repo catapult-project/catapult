@@ -6,20 +6,20 @@ from telemetry.page import test_expectations
 from telemetry.page.actions import action_runner as action_runner_module
 
 
+class TestNotSupportedOnPlatformError(Exception):
+  """PageTest Exception raised when a required feature is unavailable.
+
+  The feature required to run the test could be part of the platform,
+  hardware configuration, or browser.
+  """
+
+
 class Failure(Exception):
-  """Exception that can be thrown from PageTest to indicate an
-  undesired but designed-for problem."""
-
-
-class TestNotSupportedOnPlatformFailure(Failure):
-  """Exception that can be thrown to indicate that a certain feature required
-  to run the test is not available on the platform, hardware configuration, or
-  browser version."""
+  """PageTest Exception raised when an undesired but designed-for problem."""
 
 
 class MeasurementFailure(Failure):
-  """Exception that can be thrown from MeasurePage to indicate an undesired but
-  designed-for problem."""
+  """PageTest Exception raised when an undesired but designed-for problem."""
 
 
 class PageTest(object):

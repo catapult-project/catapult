@@ -13,7 +13,6 @@ from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
-from unittest_data import test_simple_one_page_set
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
 from telemetry.user_story import shared_user_story_state
@@ -161,7 +160,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.assertEqual(story_groups[2].shared_user_story_state_class,
                      FooUserStoryState)
 
-  def testSuccefulUserStoryTest(self):
+  def testSuccessfulUserStoryTest(self):
     us = user_story_set.UserStorySet()
     us.AddUserStory(DummyLocalUserStory(FooUserStoryState))
     us.AddUserStory(DummyLocalUserStory(FooUserStoryState))
@@ -207,7 +206,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.assertEquals(1, barz_init_call_counter[0])
     self.assertEquals(1, barz_tear_down_call_counter[0])
 
-  def testHandlingOfCrashedApp(self):
+  def testAppCrashExceptionCausesFailureValue(self):
     self.SuppressExceptionFormatting()
     us = user_story_set.UserStorySet()
     class SharedUserStoryThatCausesAppCrash(TestSharedUserStoryState):
@@ -220,12 +219,12 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.assertEquals(1, len(self.results.failures))
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(self.results))
 
-  def testHandlingOfTestThatRaisesWithNonFatalUnknownExceptions(self):
+  def testUnknownExceptionIsFatal(self):
     self.SuppressExceptionFormatting()
     us = user_story_set.UserStorySet()
 
-    class ExpectedException(Exception):
-        pass
+    class UnknownException(Exception):
+      pass
 
     class Test(page_test.PageTest):
       def __init__(self, *args):
@@ -236,7 +235,7 @@ class UserStoryRunnerTest(unittest.TestCase):
         old_run_count = self.run_count
         self.run_count += 1
         if old_run_count == 0:
-          raise ExpectedException()
+          raise UnknownException
 
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
@@ -244,11 +243,9 @@ class UserStoryRunnerTest(unittest.TestCase):
     us.AddUserStory(DummyLocalUserStory(TestSharedUserStoryState))
     us.AddUserStory(DummyLocalUserStory(TestSharedUserStoryState))
     test = Test()
-    user_story_runner.Run(
-        test, us, self.expectations, self.options, self.results)
-    self.assertEquals(2, test.run_count)
-    self.assertEquals(1, len(self.results.failures))
-    self.assertEquals(1, GetNumberOfSuccessfulPageRuns(self.results))
+    with self.assertRaises(UnknownException):
+      user_story_runner.Run(
+          test, us, self.expectations, self.options, self.results)
 
   def testRaiseBrowserGoneExceptionFromRunPage(self):
     self.SuppressExceptionFormatting()
@@ -263,7 +260,7 @@ class UserStoryRunnerTest(unittest.TestCase):
         old_run_count = self.run_count
         self.run_count += 1
         if old_run_count == 0:
-          raise exceptions.BrowserGoneException()
+          raise exceptions.BrowserGoneException('i am a browser instance')
 
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
@@ -276,6 +273,48 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.assertEquals(2, test.run_count)
     self.assertEquals(1, len(self.results.failures))
     self.assertEquals(1, GetNumberOfSuccessfulPageRuns(self.results))
+
+  def testAppCrashThenRaiseInTearDownFatal(self):
+    self.SuppressExceptionFormatting()
+    us = user_story_set.UserStorySet()
+
+    class DidRunTestError(Exception):
+      pass
+
+    class TestTearDownSharedUserStoryState(TestSharedUserStoryState):
+      def TearDownState(self, results):
+        self._test.DidRunTest('app', results)
+
+    class Test(page_test.PageTest):
+      def __init__(self, *args):
+        super(Test, self).__init__(*args)
+        self.run_count = 0
+        self._unit_test_events = []  # track what was called when
+
+      def RunPage(self, *_):
+        old_run_count = self.run_count
+        self.run_count += 1
+        if old_run_count == 0:
+          self._unit_test_events.append('app-crash')
+          raise exceptions.AppCrashException
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
+
+      def DidRunTest(self, _, __):
+        self._unit_test_events.append('did-run-test')
+        raise DidRunTestError
+
+    us.AddUserStory(DummyLocalUserStory(TestTearDownSharedUserStoryState))
+    us.AddUserStory(DummyLocalUserStory(TestTearDownSharedUserStoryState))
+    test = Test()
+
+    with self.assertRaises(DidRunTestError):
+      user_story_runner.Run(
+          test, us, self.expectations, self.options, self.results)
+    self.assertEqual(['app-crash', 'did-run-test'], test._unit_test_events)
+    # The AppCrashException gets added as a failure.
+    self.assertEquals(1, len(self.results.failures))
 
   def testDiscardFirstResult(self):
     us = user_story_set.UserStorySet()
