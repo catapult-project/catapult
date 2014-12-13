@@ -43,8 +43,8 @@ class TestPage(unittest.TestCase):
 
   def testSort(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('http://www.foo.com/')
-    ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
+    ps.AddUserStory(page.Page('http://www.foo.com/', ps, ps.base_dir))
+    ps.AddUserStory(page.Page('http://www.bar.com/', ps, ps.base_dir))
 
     pages = [ps.pages[0], ps.pages[1]]
     pages.sort()
@@ -53,66 +53,72 @@ class TestPage(unittest.TestCase):
 
   def testGetUrlBaseDirAndFileForUrlBaseDir(self):
     ps = page_set.PageSet(file_path='basedir/', serving_dirs=['../somedir/'])
-    ps.AddPageWithDefaultRunNavigate('file://../otherdir/file.html')
+    ps.AddUserStory(page.Page('file://../otherdir/file.html', ps, ps.base_dir))
     self.assertPathEqual(ps[0].file_path, 'otherdir/file.html')
 
   def testDisplayUrlForHttp(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('http://www.foo.com/')
-    ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
+    ps.AddUserStory(page.Page('http://www.foo.com/', ps, ps.base_dir))
+    ps.AddUserStory(page.Page('http://www.bar.com/', ps, ps.base_dir))
 
     self.assertEquals(ps[0].display_name, 'http://www.foo.com/')
     self.assertEquals(ps[1].display_name, 'http://www.bar.com/')
 
   def testDisplayUrlForHttps(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('http://www.foo.com/')
-    ps.AddPageWithDefaultRunNavigate('https://www.bar.com/')
+    ps.AddUserStory(page.Page('http://www.foo.com/', ps, ps.base_dir))
+    ps.AddUserStory(page.Page('https://www.bar.com/', ps, ps.base_dir))
 
     self.assertEquals(ps[0].display_name, 'http://www.foo.com/')
     self.assertEquals(ps[1].display_name, 'https://www.bar.com/')
 
   def testDisplayUrlForFile(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('file://../../otherdir/foo.html')
-    ps.AddPageWithDefaultRunNavigate('file://../../otherdir/bar.html')
+    ps.AddUserStory(page.Page(
+        'file://../../otherdir/foo.html', ps, ps.base_dir))
+    ps.AddUserStory(page.Page(
+        'file://../../otherdir/bar.html', ps, ps.base_dir))
 
     self.assertEquals(ps[0].display_name, 'foo.html')
     self.assertEquals(ps[1].display_name, 'bar.html')
 
   def testDisplayUrlForFilesDifferingBySuffix(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('file://../../otherdir/foo.html')
-    ps.AddPageWithDefaultRunNavigate('file://../../otherdir/foo1.html')
+    ps.AddUserStory(page.Page(
+        'file://../../otherdir/foo.html', ps, ps.base_dir))
+    ps.AddUserStory(page.Page(
+        'file://../../otherdir/foo1.html', ps, ps.base_dir))
 
     self.assertEquals(ps[0].display_name, 'foo.html')
     self.assertEquals(ps[1].display_name, 'foo1.html')
 
   def testDisplayUrlForFileOfDifferentPaths(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('file://../../somedir/foo.html')
-    ps.AddPageWithDefaultRunNavigate('file://../../otherdir/bar.html')
+    ps.AddUserStory(page.Page('file://../../somedir/foo.html', ps, ps.base_dir))
+    ps.AddUserStory(page.Page(
+        'file://../../otherdir/bar.html', ps, ps.base_dir))
 
     self.assertEquals(ps[0].display_name, 'somedir/foo.html')
     self.assertEquals(ps[1].display_name, 'otherdir/bar.html')
 
   def testDisplayUrlForFileDirectories(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('file://../../otherdir/foo')
-    ps.AddPageWithDefaultRunNavigate('file://../../otherdir/bar')
+    ps.AddUserStory(page.Page('file://../../otherdir/foo', ps, ps.base_dir))
+    ps.AddUserStory(page.Page('file://../../otherdir/bar', ps, ps.base_dir))
 
     self.assertEquals(ps[0].display_name, 'foo')
     self.assertEquals(ps[1].display_name, 'bar')
 
   def testDisplayUrlForSingleFile(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('file://../../otherdir/foo.html')
+    ps.AddUserStory(page.Page(
+        'file://../../otherdir/foo.html', ps, ps.base_dir))
 
     self.assertEquals(ps[0].display_name, 'foo.html')
 
   def testDisplayUrlForSingleDirectory(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    ps.AddPageWithDefaultRunNavigate('file://../../otherdir/foo')
+    ps.AddUserStory(page.Page('file://../../otherdir/foo', ps, ps.base_dir))
 
     self.assertEquals(ps[0].display_name, 'foo')
 

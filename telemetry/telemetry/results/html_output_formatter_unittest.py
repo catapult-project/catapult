@@ -6,6 +6,7 @@ import StringIO
 import unittest
 
 from telemetry import benchmark
+from telemetry import page as page_module
 from telemetry.page import page_set
 from telemetry.results import html_output_formatter
 from telemetry.results import page_test_results
@@ -14,9 +15,9 @@ from telemetry.value import scalar
 
 def _MakePageSet():
   ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-  ps.AddPageWithDefaultRunNavigate('http://www.foo.com/')
-  ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
-  ps.AddPageWithDefaultRunNavigate('http://www.baz.com/')
+  ps.AddUserStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
+  ps.AddUserStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
+  ps.AddUserStory(page_module.Page('http://www.baz.com/', ps, ps.base_dir))
   return ps
 
 

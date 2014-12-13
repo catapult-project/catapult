@@ -5,6 +5,7 @@
 import os
 import unittest
 
+from telemetry import page as page_module
 from telemetry import value
 from telemetry.page import page_set
 from telemetry.value import skip
@@ -12,8 +13,9 @@ from telemetry.value import skip
 
 class TestBase(unittest.TestCase):
   def setUp(self):
-    self.page_set = page_set.PageSet(file_path=os.path.dirname(__file__))
-    self.page_set.AddPageWithDefaultRunNavigate("http://www.bar.com/")
+    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps.AddUserStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
+    self.page_set = ps
 
   @property
   def pages(self):

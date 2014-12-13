@@ -55,13 +55,6 @@ class PageSet(user_story_set.UserStorySet):
   def AddPage(self, page):
     self.AddUserStory(page)
 
-  def AddPageWithDefaultRunNavigate(self, page_url):
-    """ Add a simple page with url equals to page_url that contains only default
-    RunNavigateSteps.
-    """
-    self.AddUserStory(page_module.Page(
-      page_url, self, self.base_dir))
-
   @property
   def base_dir(self):
     if os.path.isfile(self.file_path):

@@ -7,6 +7,7 @@ import unittest
 import shutil
 import tempfile
 
+from telemetry import page as page_module
 from telemetry.page import page_set
 from telemetry.timeline import tracing_timeline_data
 from telemetry.unittest_util import system_stub
@@ -17,10 +18,11 @@ from telemetry.value import trace
 class TestBase(unittest.TestCase):
 
   def setUp(self):
-    self.page_set = page_set.PageSet(file_path=os.path.dirname(__file__))
-    self.page_set.AddPageWithDefaultRunNavigate('http://www.bar.com/')
-    self.page_set.AddPageWithDefaultRunNavigate('http://www.baz.com/')
-    self.page_set.AddPageWithDefaultRunNavigate('http://www.foo.com/')
+    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps.AddUserStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
+    ps.AddUserStory(page_module.Page('http://www.baz.com/', ps, ps.base_dir))
+    ps.AddUserStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
+    self.page_set = ps
 
     self._cloud_storage_stub = system_stub.Override(trace, ['cloud_storage'])
 

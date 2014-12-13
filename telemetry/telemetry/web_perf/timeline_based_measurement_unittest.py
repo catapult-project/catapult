@@ -92,7 +92,8 @@ class TimelineBasedMetricTestData(object):
     self._metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
         self._model, self._renderer_thread, GetMetricFromMetricType)
     self._ps = page_set.PageSet(file_path=os.path.dirname(__file__))
-    self._ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
+    self._ps.AddUserStory(page_module.Page(
+        'http://www.bar.com/', self._ps, self._ps.base_dir))
     self._results.WillRunPage(self._ps.pages[0])
 
   def AddResults(self):

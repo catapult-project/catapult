@@ -7,6 +7,7 @@ import sys
 import traceback
 import unittest
 
+from telemetry import page as page_module
 from telemetry import value
 from telemetry.page import page_set
 from telemetry.value import failure
@@ -15,7 +16,8 @@ from telemetry.value import failure
 class TestBase(unittest.TestCase):
   def setUp(self):
     self.page_set = page_set.PageSet(file_path=os.path.dirname(__file__))
-    self.page_set.AddPageWithDefaultRunNavigate("http://www.bar.com/")
+    self.page_set.AddUserStory(page_module.Page(
+        'http://www.bar.com/', self.page_set, self.page_set.base_dir))
 
   @property
   def pages(self):
