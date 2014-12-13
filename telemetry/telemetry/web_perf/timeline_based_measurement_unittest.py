@@ -212,7 +212,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
   @benchmark.Disabled('android', 'mac')
   def testSmoothnessTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
-    ps.AddPage(TestTimelinebasedMeasurementPage(
+    ps.AddUserStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_animation=True))
 
     measurement = tbm_module.TimelineBasedMeasurement()
@@ -232,7 +232,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
   @benchmark.Disabled('android', 'mac')
   def testFastTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
-    ps.AddPage(TestTimelinebasedMeasurementPage(
+    ps.AddUserStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_slow=True))
 
     measurement = tbm_module.TimelineBasedMeasurement()
@@ -270,7 +270,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
   @benchmark.Disabled('android', 'win', 'mac')
   def testMainthreadJankTimelineBasedMeasurement(self):
     ps = self.CreateEmptyPageSet()
-    ps.AddPage(TestTimelinebasedMeasurementPage(
+    ps.AddUserStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_jank=True))
 
     measurement = tbm_module.TimelineBasedMeasurement()

@@ -151,9 +151,9 @@ class TestPage(unittest.TestCase):
     page_bar = page.Page('http://bar.com', page_set_a)
     page_baz = page.Page('http://baz.com', page_set_a)
 
-    page_set_a.AddPage(page_foo)
-    page_set_a.AddPage(page_bar)
-    page_set_a.AddPage(page_baz)
+    page_set_a.AddUserStory(page_foo)
+    page_set_a.AddUserStory(page_bar)
+    page_set_a.AddUserStory(page_baz)
 
     page_bar.TransferToPageSet(page_set_b)
     self.assertEqual([page_foo, page_baz], page_set_a.pages)

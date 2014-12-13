@@ -91,7 +91,7 @@ class Page(user_story.UserStory):
       return
     self._page_set.pages.remove(self)
     self._page_set = another_page_set
-    self._page_set.AddPage(self)
+    self._page_set.AddUserStory(self)
 
   def RunNavigateSteps(self, action_runner):
     action_runner.NavigateToPage(self)

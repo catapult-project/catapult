@@ -49,13 +49,13 @@ class TestPageSet(unittest.TestCase):
         page.Page('http://bar.com', page_set_a),
         ]
     for p in pages:
-      page_set_a.AddPage(p)
+      page_set_a.AddUserStory(p)
 
     # Form page_set_b from sub page_set_a.
     page_set_b = page_set.PageSet()
     for p in pages:
       p.TransferToPageSet(page_set_b)
-    page_set_b.AddPage(page.Page('http://baz.com', page_set_b))
+    page_set_b.AddUserStory(page.Page('http://baz.com', page_set_b))
     self.assertEqual(0, len(page_set_a.pages))
     self.assertEqual(
         set(['http://foo.com', 'http://bar.com', 'http://baz.com']),

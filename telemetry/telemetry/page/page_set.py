@@ -80,7 +80,7 @@ class PageSet(user_story_set.UserStorySet):
 
       for csv_row in csv_reader:
         if csv_row[url_index] in page_set_dict:
-          self.AddPage(page_set_dict[csv_row[url_index]])
+          self.AddUserStory(page_set_dict[csv_row[url_index]])
         else:
           raise Exception('Unusable results_file.')
 
