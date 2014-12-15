@@ -307,8 +307,8 @@ class PageRunEndToEndTests(unittest.TestCase):
     expectations = test_expectations.TestExpectations()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
-    page.startup_url = 'about:blank'
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir(),
+        startup_url='about:blank')
     ps.pages.append(page)
 
     class Measurement(page_test.PageTest):
@@ -350,7 +350,7 @@ class PageRunEndToEndTests(unittest.TestCase):
         self.did_call_clean_up = False
 
       def ValidateAndMeasurePage(self, *_):
-        raise exceptions.IntentionalException
+        raise page_test.Failure
 
       def CleanUpAfterPage(self, page, tab):
         self.did_call_clean_up = True
@@ -414,7 +414,7 @@ class PageRunEndToEndTests(unittest.TestCase):
 
       def RunNavigateSteps(self, action_runner): # pylint: disable=W0613
         self.was_run = True
-        raise Exception('Test exception')
+        raise page_test.Failure
 
     class Test(page_test.PageTest):
       def ValidateAndMeasurePage(self, *args):
