@@ -52,9 +52,6 @@ class PageSet(user_story_set.UserStorySet):
     assert user_story.page_set is self
     super(PageSet, self).AddUserStory(user_story)
 
-  def AddPage(self, page):
-    self.AddUserStory(page)
-
   @property
   def base_dir(self):
     if os.path.isfile(self.file_path):
