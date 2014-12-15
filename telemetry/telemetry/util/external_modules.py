@@ -11,9 +11,11 @@ MODULES = {
   'numpy': (version.StrictVersion('1.6.1'), None),
 }
 
-def ImportOptionalModule(module):
+def ImportRequiredModule(module):
   """Tries to import the desired module.
 
+  Returns:
+    The module on success, raises error on failure.
   Raises:
     ImportError: The import failed."""
   versions = MODULES.get(module)
@@ -41,3 +43,13 @@ def ImportOptionalModule(module):
     else:
       raise
   return module
+
+def ImportOptionalModule(module):
+  """Tries to import the desired module.
+
+  Returns:
+    The module if successful, None if not."""
+  try:
+    return ImportRequiredModule(module)
+  except ImportError:
+    return None
