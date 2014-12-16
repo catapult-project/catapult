@@ -15,7 +15,7 @@ from telemetry.util import path
 def _UpdateCredentials(credentials_path):
   # Attempt to download the credentials file.
   try:
-    cloud_storage.GetIfChanged(credentials_path)
+    cloud_storage.GetIfChanged(credentials_path, cloud_storage.PUBLIC_BUCKET)
   except (cloud_storage.CredentialsError, cloud_storage.PermissionError,
           cloud_storage.CloudStorageError) as e:
     logging.warning('Cannot retrieve credential file %s due to cloud storage '
