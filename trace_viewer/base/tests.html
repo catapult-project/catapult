@@ -101,6 +101,7 @@ found in the LICENSE file.
         },
         function(err) {
           tv.showPanic('Module loading failure', err);
+          throw err;
         });
     }
 

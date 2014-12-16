@@ -158,6 +158,7 @@ tv.exportTo('tv.unittest', function() {
         function(e) {
           this.scriptErrorPromiseResolver_ = undefined;
           this.unbindGlobalHooks_();
+          throw e;
         }.bind(this));
     },
 
