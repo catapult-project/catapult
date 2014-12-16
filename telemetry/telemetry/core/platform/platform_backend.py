@@ -129,6 +129,9 @@ class PlatformBackend(object):
 
     self._running_browser_backends.discard(browser_backend)
 
+  def DidLoseBrowser(self, browser, browser_backend):
+    self._network_controller_backend.StopReplay()
+
   def GetBackendForBrowser(self, browser):
     matches = [x for x in self._running_browser_backends
                if x.browser == browser]
