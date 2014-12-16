@@ -39,6 +39,6 @@ trace viewer.""")
 
 def WriteTraceViewer(output_file):
   project = trace_viewer_project.TraceViewerProject()
-  load_sequence = project.CalcLoadSequenceForModuleNames(['build.generate_trace_viewer'])
+  load_sequence = project.CalcLoadSequenceForModuleNames(['build.vulcanize_trace_viewer'])
   generate.GenerateStandaloneHTMLToFile(
     output_file, load_sequence)

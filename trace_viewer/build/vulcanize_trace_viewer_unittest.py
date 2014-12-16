@@ -5,9 +5,9 @@ import unittest
 import tempfile
 import os
 
-from trace_viewer.build import generate_trace_viewer
+from trace_viewer.build import vulcanize_trace_viewer
 
 class Trace2HTMLTests(unittest.TestCase):
   def test_writeHTMLForTracesToFile(self):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.html') as tmpfile:
-      res = generate_trace_viewer.WriteTraceViewer(tmpfile)
+      res = vulcanize_trace_viewer.WriteTraceViewer(tmpfile)
