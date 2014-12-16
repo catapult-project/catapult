@@ -6,17 +6,21 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/ui.html">
+<link rel="import" href="/tracing/analysis/view_base.html">
 
 <script>
 'use strict';
 
 tv.exportTo('tracing.analysis', function() {
-  var ObjectSnapshotView = tv.ui.define('object-snapshot-view');
+  var ObjectSnapshotView = tv.ui.define(
+      'object-snapshot-view',
+      tracing.analysis.ViewBase);
 
   ObjectSnapshotView.prototype = {
-    __proto__: HTMLDivElement.prototype,
+    __proto__: tracing.analysis.ViewBase.prototype,
 
     decorate: function() {
+      tracing.analysis.ViewBase.prototype.decorate.call(this);
       this.objectSnapshot_ = undefined;
     },
 
@@ -46,31 +50,12 @@ tv.exportTo('tracing.analysis', function() {
     }
   };
 
-  ObjectSnapshotView.typeNameToViewInfoMap = {};
-  ObjectSnapshotView.register = function(typeName,
-                                         viewConstructor,
-                                         opt_options) {
-    if (ObjectSnapshotView.typeNameToViewInfoMap[typeName])
-      throw new Error('Handler already registered for ' + typeName);
-    var options = opt_options || {
-      showInTrackView: true,
-      showInstances: true
-    };
-    ObjectSnapshotView.typeNameToViewInfoMap[typeName] = {
-      constructor: viewConstructor,
-      options: options
-    };
-  };
-
-  ObjectSnapshotView.unregister = function(typeName) {
-    if (ObjectSnapshotView.typeNameToViewInfoMap[typeName] === undefined)
-      throw new Error(typeName + ' not registered');
-    delete ObjectSnapshotView.typeNameToViewInfoMap[typeName];
-  };
-
-  ObjectSnapshotView.getViewInfo = function(typeName) {
-    return ObjectSnapshotView.typeNameToViewInfoMap[typeName];
-  };
+  tracing.analysis.ViewBase.decorateSubtype(
+      ObjectSnapshotView,
+      {
+        showInTrackView: true,
+        showInstances: true
+      });
 
   return {
     ObjectSnapshotView: ObjectSnapshotView

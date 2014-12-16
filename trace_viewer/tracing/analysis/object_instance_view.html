@@ -6,17 +6,21 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/ui.html">
+<link rel="import" href="/tracing/analysis/view_base.html">
 
 <script>
 'use strict';
 
 tv.exportTo('tracing.analysis', function() {
-  var ObjectInstanceView = tv.ui.define('object-instance-view');
+  var ObjectInstanceView = tv.ui.define(
+      'object-instance-view',
+      tracing.analysis.ViewBase);
 
   ObjectInstanceView.prototype = {
-    __proto__: HTMLDivElement.prototype,
+    __proto__: tracing.analysis.ViewBase.prototype,
 
     decorate: function() {
+      tracing.analysis.ViewBase.prototype.decorate.call(this);
       this.objectInstance_ = undefined;
     },
 
@@ -46,34 +50,15 @@ tv.exportTo('tracing.analysis', function() {
     }
   };
 
-  ObjectInstanceView.typeNameToViewInfoMap = {};
-  ObjectInstanceView.register = function(typeName,
-                                         viewConstructor,
-                                         opt_options) {
-    if (ObjectInstanceView.typeNameToViewInfoMap[typeName])
-      throw new Error('Handler already registered for ' + typeName);
-    var options = opt_options || {
-      showInTrackView: true
-    };
-    ObjectInstanceView.typeNameToViewInfoMap[typeName] = {
-      constructor: viewConstructor,
-      options: options
-    };
-  };
-
-  ObjectInstanceView.unregister = function(typeName) {
-    if (ObjectInstanceView.typeNameToViewInfoMap[typeName] === undefined)
-      throw new Error(typeName + ' not registered');
-    delete ObjectInstanceView.typeNameToViewInfoMap[typeName];
-  };
-
-  ObjectInstanceView.getViewInfo = function(typeName) {
-    return ObjectInstanceView.typeNameToViewInfoMap[typeName];
-  };
-
+  tracing.analysis.ViewBase.decorateSubtype(
+      ObjectInstanceView,
+      {
+        showInTrackView: true
+      });
 
   return {
     ObjectInstanceView: ObjectInstanceView
   };
+  ViewB
 });
 </script>

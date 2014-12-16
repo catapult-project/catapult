@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/ui.html">
+<link rel="import" href="/tracing/analysis/view_base.html">
 
 <script>
 'use strict';
@@ -17,12 +18,15 @@ tv.exportTo('tracing.analysis', function() {
    *
    * @constructor
    */
-  var SliceView = tv.ui.define('slice-view');
+  var SliceView = tv.ui.define(
+      'slice-view',
+      tracing.analysis.ViewBase);
 
   SliceView.prototype = {
-    __proto__: HTMLDivElement.prototype,
+    __proto__: tracing.analysis.ViewBase.prototype,
 
     decorate: function() {
+      tracing.analysis.ViewBase.prototype.decorate.call(this);
       this.objectInstance_ = undefined;
     },
 
@@ -52,24 +56,10 @@ tv.exportTo('tracing.analysis', function() {
     }
   };
 
-  SliceView.titleToViewInfoMap = {};
-  SliceView.register = function(title, viewConstructor) {
-    if (SliceView.titleToViewInfoMap[title])
-      throw new Error('Handler already registered for ' + title);
-    SliceView.titleToViewInfoMap[title] = {
-      constructor: viewConstructor
-    };
-  };
 
-  SliceView.unregister = function(title) {
-    if (SliceView.titleToViewInfoMap[title] === undefined)
-      throw new Error(title + ' not registered');
-    delete SliceView.titleToViewInfoMap[title];
-  };
-
-  SliceView.getViewInfo = function(title) {
-    return SliceView.titleToViewInfoMap[title];
-  };
+  tracing.analysis.ViewBase.decorateSubtype(
+      SliceView,
+      {});
 
   return {
     SliceView: SliceView
