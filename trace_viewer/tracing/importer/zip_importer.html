@@ -58,7 +58,7 @@ tv.exportTo('tracing.importer', function() {
     }
   };
 
-  tracing.TraceModel.registerImporter(ZipImporter);
+  tracing.importer.Importer.register(ZipImporter);
 
   return {
     ZipImporter: ZipImporter

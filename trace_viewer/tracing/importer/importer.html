@@ -59,6 +59,41 @@ tv.exportTo('tracing.importer', function() {
     }
   };
 
+  Importer.importers_ = [];
+
+  Importer.register = function(importerConstructor,
+                               opt_options) {
+    if (Importer.indexOfImporter_(importerConstructor) !== undefined)
+      throw new Error('Handler already registered for ' + importerConstructor);
+
+    var options = opt_options || {};
+    Importer.importers_.push({
+      constructor: importerConstructor,
+      options: options
+    });
+  };
+
+  Importer.indexOfImporter_ = function(importerConstructor) {
+    for (var i = 0; i < Importer.importers_.length; i++)
+      if (Importer.importers_[i].constructor == importerConstructor)
+        return i;
+    return undefined;
+  };
+
+  Importer.unregister = function(importerConstructor) {
+    var foundIndex = Importer.indexOfImporter_(importerConstructor);
+    if (foundIndex === undefined)
+      throw new Error(typeName + ' not registered');
+    Importer.importers_.splice(foundIndex, 1);
+  };
+
+  Importer.findImporterFor = function(eventData) {
+    for (var i = 0; i < Importer.importers_.length; ++i)
+      if (Importer.importers_[i].constructor.canImport(eventData))
+        return Importer.importers_[i].constructor;
+    return undefined;
+  };
+
   return {
     Importer: Importer
   };

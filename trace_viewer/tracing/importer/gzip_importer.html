@@ -139,7 +139,7 @@ tv.exportTo('tracing.importer', function() {
     }
   };
 
-  tracing.TraceModel.registerImporter(GzipImporter);
+  tracing.importer.Importer.register(GzipImporter);
 
   return {
     GzipImporter: GzipImporter

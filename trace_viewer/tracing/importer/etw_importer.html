@@ -467,7 +467,7 @@ tv.exportTo('tracing.importer', function() {
   };
 
   // Register the EtwImporter to the Importer.
-  tracing.TraceModel.registerImporter(EtwImporter);
+  tracing.importer.Importer.register(EtwImporter);
 
   return {
     EtwImporter: EtwImporter

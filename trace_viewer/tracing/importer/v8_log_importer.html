@@ -279,7 +279,7 @@ tv.exportTo('tracing.importer', function() {
     }
   };
 
-  tracing.TraceModel.registerImporter(V8LogImporter);
+  tracing.importer.Importer.register(V8LogImporter);
 
   return {
     V8LogImporter: V8LogImporter

@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/interval_tree.html">
 <link rel="import" href="/base/ui/overlay.html">
 <link rel="import" href="/tracing/filter.html">
+<link rel="import" href="/tracing/importer/empty_importer.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/importer/task.html">
 <link rel="import" href="/tracing/trace_model/kernel.html">
@@ -72,18 +73,6 @@ tv.exportTo('tracing', function() {
     if (opt_eventData)
       this.importTraces([opt_eventData], opt_shiftWorldToZero);
   }
-
-  TraceModel.importerConstructors_ = [];
-
-  /**
-   * Registers an importer. All registered importers are considered
-   * when processing an import request.
-   *
-   * @param {Function} importerConstructor The importer's constructor function.
-   */
-  TraceModel.registerImporter = function(importerConstructor) {
-    TraceModel.importerConstructors_.push(importerConstructor);
-  };
 
   TraceModel.prototype = {
     __proto__: tv.EventTarget.prototype,
@@ -229,13 +218,9 @@ tv.exportTo('tracing', function() {
     },
 
     createImporter_: function(eventData) {
-      var importerConstructor;
-      for (var i = 0; i < TraceModel.importerConstructors_.length; ++i) {
-        if (TraceModel.importerConstructors_[i].canImport(eventData)) {
-          importerConstructor = TraceModel.importerConstructors_[i];
-          break;
-        }
-      }
+      var importerConstructor = tracing.importer.Importer.findImporterFor(
+          eventData);
+
       // TODO(kphanee): Throwing same Error at 2 places. Lets try to avoid it!
       if (!importerConstructor)
         throw new Error(
@@ -249,7 +234,7 @@ tv.exportTo('tracing', function() {
     /**
      * Imports the provided traces into the model. The eventData type
      * is undefined and will be passed to all the importers registered
-     * via TraceModel.registerImporter. The first importer that returns true
+     * via Importer.register. The first importer that returns true
      * for canImport(events) will be used to import the events.
      *
      * The primary trace is provided via the eventData variable. If multiple
@@ -572,29 +557,6 @@ tv.exportTo('tracing', function() {
         this.processes[pid].iterateAllPersistableObjects(cb);
     }
   };
-
-  /**
-   * Importer for empty strings and arrays.
-   * @constructor
-   */
-  function TraceModelEmptyImporter(events) {
-    this.importPriority = 0;
-  };
-
-  TraceModelEmptyImporter.canImport = function(eventData) {
-    if (eventData instanceof Array && eventData.length == 0)
-      return true;
-    if (typeof(eventData) === 'string' || eventData instanceof String) {
-      return eventData.length == 0;
-    }
-    return false;
-  };
-
-  TraceModelEmptyImporter.prototype = {
-    __proto__: Importer.prototype
-  };
-
-  TraceModel.registerImporter(TraceModelEmptyImporter);
 
   return {
     TraceModel: TraceModel

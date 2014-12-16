@@ -736,7 +736,7 @@ tv.exportTo('tracing.importer', function() {
     }
   };
 
-  tracing.TraceModel.registerImporter(LinuxPerfImporter);
+  tracing.importer.Importer.register(LinuxPerfImporter);
 
   return {
     LinuxPerfImporter: LinuxPerfImporter,

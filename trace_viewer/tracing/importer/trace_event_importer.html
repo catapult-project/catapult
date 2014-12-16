@@ -1307,7 +1307,7 @@ tv.exportTo('tracing.importer', function() {
     }
   };
 
-  tracing.TraceModel.registerImporter(TraceEventImporter);
+  tracing.importer.Importer.register(TraceEventImporter);
 
   return {
     TraceEventImporter: TraceEventImporter
