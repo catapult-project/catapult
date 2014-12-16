@@ -22,6 +22,15 @@ class TestBackend(
   def GetFileContents(self, filename):
     return self._mock_files[filename]
 
+  def StartRawDisplayFrameRateMeasurement(self):
+    raise NotImplementedError()
+
+  def StopRawDisplayFrameRateMeasurement(self):
+    raise NotImplementedError()
+
+  def GetRawDisplayFrameRateMeasurements(self):
+    raise NotImplementedError()
+
   def IsThermallyThrottled(self):
     raise NotImplementedError()
 

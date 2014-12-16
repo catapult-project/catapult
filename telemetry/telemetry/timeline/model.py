@@ -16,7 +16,6 @@ from telemetry.timeline import bounds
 from telemetry.timeline import empty_timeline_data_importer
 from telemetry.timeline import event_container
 from telemetry.timeline import inspector_importer
-from telemetry.timeline import surface_flinger_importer
 from telemetry.timeline import trace_event_importer
 
 # Register importers for data
@@ -24,8 +23,7 @@ from telemetry.timeline import trace_event_importer
 _IMPORTERS = [
     empty_timeline_data_importer.EmptyTimelineDataImporter,
     inspector_importer.InspectorTimelineImporter,
-    trace_event_importer.TraceEventTimelineImporter,
-    surface_flinger_importer.SurfaceFlingerTimelineImporter
+    trace_event_importer.TraceEventTimelineImporter
 ]
 
 
@@ -59,7 +57,6 @@ class TimelineModel(event_container.TimelineEventContainer):
     self._thread_time_bounds = {}
     self._processes = {}
     self._browser_process = None
-    self._surface_flinger_process = None
     self._frozen = False
     self._tab_ids_to_renderer_threads_map = {}
     self.import_errors = []
@@ -98,16 +95,6 @@ class TimelineModel(event_container.TimelineEventContainer):
   #pylint: disable=E0202
   def browser_process(self, browser_process):
     self._browser_process = browser_process
-
-  @property
-  #pylint: disable=E0202
-  def surface_flinger_process(self):
-    return self._surface_flinger_process
-
-  @surface_flinger_process.setter
-  #pylint: disable=E0202
-  def surface_flinger_process(self, surface_flinger_process):
-    self._surface_flinger_process = surface_flinger_process
 
   def AddMappingFromTabIdToRendererThread(self, tab_id, renderer_thread):
     if self._frozen:

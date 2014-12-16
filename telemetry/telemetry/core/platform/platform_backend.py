@@ -145,13 +145,16 @@ class PlatformBackend(object):
   def wpr_https_device_port(self):
     return self._network_controller_backend.wpr_https_device_port
 
-  def IsDisplayTracingSupported(self):
+  def IsRawDisplayFrameRateSupported(self):
     return False
 
-  def StartDisplayTracing(self):
+  def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
 
-  def StopDisplayTracing(self):
+  def StopRawDisplayFrameRateMeasurement(self):
+    raise NotImplementedError()
+
+  def GetRawDisplayFrameRateMeasurements(self):
     raise NotImplementedError()
 
   def SetFullPerformanceModeEnabled(self, enabled):

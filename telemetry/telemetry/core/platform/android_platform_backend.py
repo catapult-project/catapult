@@ -24,7 +24,6 @@ from telemetry.core.platform.power_monitor import android_temperature_monitor
 from telemetry.core.platform.power_monitor import monsoon_power_monitor
 from telemetry.core.platform.power_monitor import power_monitor_controller
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
-from telemetry.timeline import surface_flinger_timeline_data
 from telemetry.util import exception_formatter
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(),
@@ -101,10 +100,10 @@ class AndroidPlatformBackend(
   def adb(self):
     return self._adb
 
-  def IsDisplayTracingSupported(self):
-    return bool(self.GetOSVersionName() >= 'J')
+  def IsRawDisplayFrameRateSupported(self):
+    return True
 
-  def StartDisplayTracing(self):
+  def StartRawDisplayFrameRateMeasurement(self):
     assert not self._surface_stats_collector
     # Clear any leftover data from previous timed out tests
     self._raw_display_frame_rate_measurements = []
@@ -112,15 +111,22 @@ class AndroidPlatformBackend(
         surface_stats_collector.SurfaceStatsCollector(self._device)
     self._surface_stats_collector.Start()
 
-  def StopDisplayTracing(self):
+  def StopRawDisplayFrameRateMeasurement(self):
     if not self._surface_stats_collector:
       return
 
-    refresh_period, timestamps = self._surface_stats_collector.Stop()
-    pid = self._surface_stats_collector.GetSurfaceFlingerPid()
+    self._surface_stats_collector.Stop()
+    for r in self._surface_stats_collector.GetResults():
+      self._raw_display_frame_rate_measurements.append(
+          platform.Platform.RawDisplayFrameRateMeasurement(
+              r.name, r.value, r.unit))
+
     self._surface_stats_collector = None
-    return surface_flinger_timeline_data.SurfaceFlingerTimelineData(
-        pid, refresh_period, timestamps)
+
+  def GetRawDisplayFrameRateMeasurements(self):
+    ret = self._raw_display_frame_rate_measurements
+    self._raw_display_frame_rate_measurements = []
+    return ret
 
   def SetFullPerformanceModeEnabled(self, enabled):
     if not self._enable_performance_mode:

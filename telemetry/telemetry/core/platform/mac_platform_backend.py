@@ -27,6 +27,15 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     self._power_monitor = powermetrics_power_monitor.PowerMetricsPowerMonitor(
         self)
 
+  def StartRawDisplayFrameRateMeasurement(self):
+    raise NotImplementedError()
+
+  def StopRawDisplayFrameRateMeasurement(self):
+    raise NotImplementedError()
+
+  def GetRawDisplayFrameRateMeasurements(self):
+    raise NotImplementedError()
+
   def IsThermallyThrottled(self):
     raise NotImplementedError()
 

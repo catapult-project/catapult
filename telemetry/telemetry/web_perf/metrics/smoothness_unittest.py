@@ -11,7 +11,7 @@ from telemetry.web_perf.metrics import smoothness
 
 class _MockRenderingStats(object):
 
-  stats = ['refresh_period', 'frame_timestamps', 'frame_times', 'paint_times',
+  stats = ['frame_timestamps', 'frame_times', 'paint_times',
            'painted_pixel_counts', 'record_times',
            'recorded_pixel_counts', 'approximated_pixel_percentages',
            'input_event_latency', 'frame_queueing_durations',
@@ -41,7 +41,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
       setattr(stats, stat, [[10, 20], [30, 40, 50]])
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.page)
-    self.metric._PopulateResultsFromStats(results, stats, False)
+    self.metric._PopulateResultsFromStats(results, stats)
     current_page_run = results.current_page_run
     self.assertTrue(current_page_run.ok)
     self.assertEquals(11, len(current_page_run.values))
@@ -56,37 +56,6 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
     has_enough_frames = self.metric._HasEnoughFrames(
         self.not_enough_frames_timestamps)
     self.assertFalse(has_enough_frames)
-
-  def testComputeSurfaceFlingerMetric(self):
-    stats = _MockRenderingStats(refresh_period=10,
-                                frame_timestamps=self.good_timestamps,
-                                frame_times=[[10, 20], [30, 40, 50]])
-    avg_surface_fps, jank_count, max_frame_delay, frame_lengths = (
-        self.metric._ComputeSurfaceFlingerMetric(self.page, stats))
-    self.assertEquals([1, 1, 1, 1], frame_lengths.values)
-    self.assertEquals(1, max_frame_delay.value)
-    self.assertEquals(0, jank_count.value)
-    self.assertEquals(100, avg_surface_fps.value)
-
-  def testComputeFrameTimeMetricWithNotEnoughFrames(self):
-    stats = _MockRenderingStats(
-        refresh_period=10,
-        frame_timestamps=self.not_enough_frames_timestamps,
-        frame_times=[[10, 20], [30, 40, 50]])
-    avg_surface_fps, jank_count, max_frame_delay, frame_lengths = (
-        self.metric._ComputeSurfaceFlingerMetric(self.page, stats))
-    self.assertEquals(None, avg_surface_fps.values)
-    self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
-                      avg_surface_fps.none_value_reason)
-    self.assertEquals(None, jank_count.values)
-    self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
-                      jank_count.none_value_reason)
-    self.assertEquals(None, max_frame_delay.values)
-    self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
-                      max_frame_delay.none_value_reason)
-    self.assertEquals(None, frame_lengths.values)
-    self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
-                      frame_lengths.none_value_reason)
 
   def testComputeLatencyMetric(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,

@@ -102,23 +102,39 @@ class Platform(object):
   def profiling_controller(self):
     return self._profiling_controller
 
-  def IsDisplayTracingSupported(self):
-    """Platforms may be able to gather a trace with frame timestamps close to
-    pysical display"""
-    return self._platform_backend.IsDisplayTracingSupported()
+  def IsRawDisplayFrameRateSupported(self):
+    """Platforms may be able to collect GL surface stats."""
+    return self._platform_backend.IsRawDisplayFrameRateSupported()
 
-  def StartDisplayTracing(self):
-    """Start gathering a trace with frame timestamps close to pysical
-    display."""
-    return self._platform_backend.StartDisplayTracing()
+  def StartRawDisplayFrameRateMeasurement(self):
+    """Start measuring GL surface stats."""
+    return self._platform_backend.StartRawDisplayFrameRateMeasurement()
 
-  def StopDisplayTracing(self):
-    """Stop gathering a trace with frame timestamps close to pysical display.
+  def StopRawDisplayFrameRateMeasurement(self):
+    """Stop measuring GL surface stats."""
+    return self._platform_backend.StopRawDisplayFrameRateMeasurement()
 
-    Returns a TracingTimelineData object for import of the timestamps into
-    timeline model.
-    """
-    return self._platform_backend.StopDisplayTracing()
+  class RawDisplayFrameRateMeasurement(object):
+    def __init__(self, name, value, unit):
+      self._name = name
+      self._value = value
+      self._unit = unit
+
+    @property
+    def name(self):
+      return self._name
+
+    @property
+    def value(self):
+      return self._value
+
+    @property
+    def unit(self):
+      return self._unit
+
+  def GetRawDisplayFrameRateMeasurements(self):
+    """Returns a list of RawDisplayFrameRateMeasurement."""
+    return self._platform_backend.GetRawDisplayFrameRateMeasurements()
 
   def CanMonitorThermalThrottling(self):
     """Platforms may be able to detect thermal throttling.

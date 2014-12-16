@@ -30,6 +30,15 @@ class LinuxPlatformBackend(
     super(LinuxPlatformBackend, self).__init__()
     self._power_monitor = msr_power_monitor.MsrPowerMonitor(self)
 
+  def StartRawDisplayFrameRateMeasurement(self):
+    raise NotImplementedError()
+
+  def StopRawDisplayFrameRateMeasurement(self):
+    raise NotImplementedError()
+
+  def GetRawDisplayFrameRateMeasurements(self):
+    raise NotImplementedError()
+
   def IsThermallyThrottled(self):
     raise NotImplementedError()
 
