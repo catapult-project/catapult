@@ -205,7 +205,7 @@ class PlatformBackend(object):
   def FlushEntireSystemCache(self):
     raise NotImplementedError()
 
-  def FlushSystemCacheForDirectory(self, directory, ignoring=None):
+  def FlushSystemCacheForDirectory(self, directory):
     raise NotImplementedError()
 
   def FlushDnsCache(self):

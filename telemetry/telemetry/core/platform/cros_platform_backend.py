@@ -37,7 +37,10 @@ class CrosPlatformBackend(
     raise NotImplementedError()
 
   def RunCommand(self, args):
-    return self._cri.RunCmdOnDevice(args)[0]
+    stdout, stderr = self._cri.RunCmdOnDevice(args)
+    if stderr:
+      raise RuntimeError(stderr)
+    return stdout
 
   def GetFileContents(self, filename):
     try:
@@ -97,8 +100,11 @@ class CrosPlatformBackend(
   def FlushEntireSystemCache(self):
     raise NotImplementedError()
 
-  def FlushSystemCacheForDirectory(self, directory, ignoring=None):
-    raise NotImplementedError()
+  def FlushSystemCacheForDirectory(self, directory):
+    flush_command = (
+        '/usr/local/telemetry/src/src/out/Release/clear_system_cache')
+    self.RunCommand(['chmod', '+x', flush_command])
+    self.RunCommand([flush_command, '--recurse', directory])
 
   def CanMonitorPower(self):
     return self._powermonitor.CanMonitorPower()

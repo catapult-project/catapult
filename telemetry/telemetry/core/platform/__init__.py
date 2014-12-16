@@ -166,15 +166,14 @@ class Platform(object):
     This function may require root or administrator access."""
     return self._platform_backend.FlushEntireSystemCache()
 
-  def FlushSystemCacheForDirectory(self, directory, ignoring=None):
+  def FlushSystemCacheForDirectory(self, directory):
     """Flushes the OS's file cache for the specified directory.
 
     Any files or directories inside |directory| matching a name in the
     |ignoring| list will be skipped.
 
     This function does not require root or administrator access."""
-    return self._platform_backend.FlushSystemCacheForDirectory(
-        directory, ignoring=ignoring)
+    return self._platform_backend.FlushSystemCacheForDirectory(directory)
 
   def FlushDnsCache(self):
     """Flushes the OS's DNS cache completely.

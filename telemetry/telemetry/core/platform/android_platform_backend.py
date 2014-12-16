@@ -212,7 +212,7 @@ class AndroidPlatformBackend(
     cache = cache_control.CacheControl(self._device)
     cache.DropRamCaches()
 
-  def FlushSystemCacheForDirectory(self, directory, ignoring=None):
+  def FlushSystemCacheForDirectory(self, directory):
     raise NotImplementedError()
 
   def FlushDnsCache(self):
