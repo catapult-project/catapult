@@ -5,7 +5,7 @@
 import logging
 import tempfile
 
-from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import bitmap
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -65,7 +65,7 @@ class TabTest(tab_test_case.TabTestCase):
                       lambda: self._tab.Navigate('chrome://crash',
                                                  timeout=5))
 
-  @benchmark.Enabled('has tabs')
+  @decorators.Enabled('has tabs')
   def testActivateTab(self):
     util.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
     new_tab = self._browser.tabs.New()
@@ -104,7 +104,7 @@ class TabTest(tab_test_case.TabTestCase):
 
   # Test failing on android: http://crbug.com/437057
   # Also, for chromeos: http://crbug.com/412713
-  @benchmark.Disabled('android', 'chromeos')
+  @decorators.Disabled('android', 'chromeos')
   def testHighlight(self):
     self.assertEquals(self._tab.url, 'about:blank')
     options = tracing_options.TracingOptions()
@@ -124,8 +124,8 @@ class TabTest(tab_test_case.TabTestCase):
         break
     self.assertTrue(found_video_start_event)
 
-  @benchmark.Enabled('has tabs')
-  @benchmark.Disabled('chromeos') # crbug.com/412713.
+  @decorators.Enabled('has tabs')
+  @decorators.Disabled('chromeos') # crbug.com/412713.
   def testGetRendererThreadFromTabId(self):
     self.assertEquals(self._tab.url, 'about:blank')
     # Create 3 tabs. The third tab is closed before we call
@@ -177,7 +177,7 @@ class GpuTabTest(tab_test_case.TabTestCase):
     options.AppendExtraBrowserArgs('--enable-gpu-benchmarking')
 
   # Test flaky on mac: http://crbug.com/358664
-  @benchmark.Disabled('android', 'mac')
+  @decorators.Disabled('android', 'mac')
   def testScreenshot(self):
     if not self._tab.screenshot_supported:
       logging.warning('Browser does not support screenshots, skipping test.')

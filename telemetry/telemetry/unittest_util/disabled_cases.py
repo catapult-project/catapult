@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.unittest_util import test
+from telemetry import decorators
 
 
 # These are not real unittests.
@@ -14,50 +14,50 @@ class DisabledCases(unittest.TestCase):
   def testAllEnabled(self):
     pass
 
-  @test.Disabled
+  @decorators.Disabled
   def testAllDisabled(self):
     pass
 
-  @test.Enabled('mavericks')
+  @decorators.Enabled('mavericks')
   def testMavericksOnly(self):
     pass
 
-  @test.Disabled('mavericks')
+  @decorators.Disabled('mavericks')
   def testNoMavericks(self):
     pass
 
-  @test.Enabled('mac')
+  @decorators.Enabled('mac')
   def testMacOnly(self):
     pass
 
-  @test.Disabled('mac')
+  @decorators.Disabled('mac')
   def testNoMac(self):
     pass
 
-  @test.Enabled('chromeos')
+  @decorators.Enabled('chromeos')
   def testChromeOSOnly(self):
     pass
 
-  @test.Disabled('chromeos')
+  @decorators.Disabled('chromeos')
   def testNoChromeOS(self):
     pass
 
-  @test.Enabled('win', 'linux')
+  @decorators.Enabled('win', 'linux')
   def testWinOrLinuxOnly(self):
     pass
 
-  @test.Disabled('win', 'linux')
+  @decorators.Disabled('win', 'linux')
   def testNoWinLinux(self):
     pass
 
-  @test.Enabled('system')
+  @decorators.Enabled('system')
   def testSystemOnly(self):
     pass
 
-  @test.Disabled('system')
+  @decorators.Disabled('system')
   def testNoSystem(self):
     pass
 
-  @test.Enabled('has tabs')
+  @decorators.Enabled('has tabs')
   def testHasTabs(self):
     pass

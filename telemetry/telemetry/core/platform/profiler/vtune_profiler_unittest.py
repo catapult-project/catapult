@@ -5,7 +5,7 @@
 import sys
 import unittest
 
-from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core.platform.profiler import vtune_profiler
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import simple_mock
@@ -99,7 +99,7 @@ class TestVTuneProfilerTabTestCase(tab_test_case.TabTestCase):
   # This test is only meant to be run if VTune is installed locally. Please
   # run it locally if you are modifying related code, but it's disabled on the
   # bots because they don't have VTune. See crbug.com/437085
-  @benchmark.Disabled
+  @decorators.Disabled
   def testVTuneProfiler(self):
     mock_subprocess = MockSubprocess()
     real_subprocess = vtune_profiler.subprocess

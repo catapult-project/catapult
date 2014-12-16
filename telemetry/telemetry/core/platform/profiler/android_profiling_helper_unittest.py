@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import unittest
 
-from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.core.platform.profiler import android_profiling_helper
 from telemetry.unittest_util import simple_mock
@@ -56,7 +56,7 @@ class TestAndroidProfilingHelper(unittest.TestCase):
     finally:
       android_profiling_helper.subprocess = real_subprocess
 
-  @benchmark.Enabled('android')
+  @decorators.Enabled('android')
   def testGetRequiredLibrariesForVTuneProfile(self):
     vtune_db_output = os.path.join(
         util.GetUnittestDataDir(), 'sample_vtune_db_output')
@@ -97,8 +97,8 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
     self._device = browser_backend._adb.device()
 
   # Test fails: crbug.com/437081
-  # @benchmark.Enabled('android')
-  @benchmark.Disabled
+  # @decorators.Enabled('android')
+  @decorators.Disabled
   def testCreateSymFs(self):
     # pylint: disable=W0212
     browser_pid = self._browser._browser_backend.pid
@@ -130,8 +130,8 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
       shutil.rmtree(symfs_dir)
 
   # Test fails: crbug.com/437081
-  # @benchmark.Enabled('android')
-  @benchmark.Disabled
+  # @decorators.Enabled('android')
+  @decorators.Disabled
   def testGetToolchainBinaryPath(self):
     with tempfile.NamedTemporaryFile() as libc:
       self._device.PullFile('/system/lib/libc.so', libc.name)

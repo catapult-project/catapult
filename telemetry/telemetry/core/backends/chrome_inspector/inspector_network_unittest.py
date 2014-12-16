@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core.backends.chrome_inspector import inspector_network
 from telemetry.timeline import recording_options
 from telemetry.unittest_util import tab_test_case
@@ -71,7 +71,7 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
 
   # Flaky on many platforms (at least Win, Linux, and Mac).
   # http://crbug.com/424706
-  @benchmark.Disabled
+  @decorators.Disabled
   def testCacheableHTTPResponse(self):
     # We know this page has one PNG image and its cacheable.
     events = self._NavigateAndGetHTTPResponseEvents('image_decoding.html')

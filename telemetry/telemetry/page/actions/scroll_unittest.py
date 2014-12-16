@@ -4,13 +4,13 @@
 
 import os
 
+from telemetry import decorators
 from telemetry.page.actions import scroll
 from telemetry.unittest_util import tab_test_case
-from telemetry.unittest_util import test
 
 
 class ScrollActionTest(tab_test_case.TabTestCase):
-  @test.Disabled  # Disabled due to flakiness: crbug.com/330544
+  @decorators.Disabled  # Disabled due to flakiness: crbug.com/330544
   def testScrollAction(self):
     self.Navigate('blank.html')
 

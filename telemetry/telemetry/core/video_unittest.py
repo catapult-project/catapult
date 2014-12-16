@@ -6,7 +6,7 @@ import logging
 import os
 import unittest
 
-from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import bitmap
 from telemetry.core import platform
 from telemetry.core import util
@@ -15,7 +15,7 @@ from telemetry.core import video
 
 class VideoTest(unittest.TestCase):
 
-  @benchmark.Disabled
+  @decorators.Disabled
   def testFramesFromMp4(self):
     host_platform = platform.GetHostPlatform()
 

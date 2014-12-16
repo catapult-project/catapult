@@ -6,7 +6,7 @@ import cStringIO
 import json
 import unittest
 
-from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
@@ -27,7 +27,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
       self.skipTest('Browser does not support tracing, skipping test.')
     self._StartServer()
 
-  @benchmark.Disabled('chromeos') # crbug.com/412713.
+  @decorators.Disabled('chromeos') # crbug.com/412713.
   def testGotTrace(self):
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True
@@ -37,7 +37,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     # Test that trace data is parsable
     model.TimelineModel(trace_data)
 
-  @benchmark.Disabled('chromeos') # crbug.com/412713.
+  @decorators.Disabled('chromeos') # crbug.com/412713.
   def testStartAndStopTraceMultipleTimes(self):
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True

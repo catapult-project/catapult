@@ -6,7 +6,7 @@ import os
 import tempfile
 import unittest
 
-from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import bitmap
 from telemetry.core import util
 
@@ -96,7 +96,7 @@ class BitmapTest(unittest.TestCase):
     new_file = bitmap.Bitmap.FromPngFile(temp_file)
     self.assertTrue(orig.IsEqual(new_file))
 
-  @benchmark.Disabled
+  @decorators.Disabled
   def testWriteCroppedBmpToPngFile(self):
     pixels = [255,0,0, 255,255,0, 0,0,0,
               255,255,0, 0,255,0, 0,0,0]
@@ -142,7 +142,7 @@ class BitmapTest(unittest.TestCase):
     diff_bmp.GetPixelColor(2, 1).AssertIsRGB(255, 255, 255)
     diff_bmp.GetPixelColor(2, 2).AssertIsRGB(255, 255, 255)
 
-  @benchmark.Disabled
+  @decorators.Disabled
   def testGetBoundingBox(self):
     pixels = [0,0,0, 0,0,0, 0,0,0, 0,0,0,
               0,0,0, 1,0,0, 1,0,0, 0,0,0,
@@ -156,7 +156,7 @@ class BitmapTest(unittest.TestCase):
     self.assertEquals(box, None)
     self.assertEquals(count, 0)
 
-  @benchmark.Disabled
+  @decorators.Disabled
   def testCrop(self):
     pixels = [0,0,0, 1,0,0, 2,0,0, 3,0,0,
               0,1,0, 1,1,0, 2,1,0, 3,1,0,
@@ -170,7 +170,7 @@ class BitmapTest(unittest.TestCase):
     bmp.GetPixelColor(1, 0).AssertIsRGB(2, 2, 0)
     self.assertEquals(bmp.pixels, bytearray([1,2,0, 2,2,0]))
 
-  @benchmark.Disabled
+  @decorators.Disabled
   def testHistogram(self):
     pixels = [1,2,3, 1,2,3, 1,2,3, 1,2,3,
               1,2,3, 8,7,6, 5,4,6, 1,2,3,
@@ -190,7 +190,7 @@ class BitmapTest(unittest.TestCase):
     self.assertEquals(histogram.b[3], 0)
     self.assertEquals(histogram.b[6], 4)
 
-  @benchmark.Disabled
+  @decorators.Disabled
   def testHistogramIgnoreColor(self):
     pixels = [1,2,3, 1,2,3, 1,2,3, 1,2,3,
               1,2,3, 8,7,6, 5,4,6, 1,2,3,
@@ -207,7 +207,7 @@ class BitmapTest(unittest.TestCase):
     self.assertEquals(histogram.b[3], 0)
     self.assertEquals(histogram.b[6], 4)
 
-  @benchmark.Disabled
+  @decorators.Disabled
   def testHistogramIgnoreColorTolerance(self):
     pixels = [1,2,3, 4,5,6,
               7,8,9, 8,7,6]
@@ -227,7 +227,7 @@ class BitmapTest(unittest.TestCase):
     self.assertEquals(histogram.b[6], 2)
     self.assertEquals(histogram.b[9], 1)
 
-  @benchmark.Disabled
+  @decorators.Disabled
   def testHistogramDistanceIgnoreColor(self):
     pixels = [1,2,3, 1,2,3,
               1,2,3, 1,2,3]

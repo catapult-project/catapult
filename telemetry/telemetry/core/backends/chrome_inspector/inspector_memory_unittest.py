@@ -2,14 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import benchmark
+from telemetry import decorators
 from telemetry.unittest_util import tab_test_case
 
 
 class InspectorMemoryTest(tab_test_case.TabTestCase):
 
-  @benchmark.Enabled('has tabs')
-  @benchmark.Disabled  # http://crbug.com/422244
+  @decorators.Enabled('has tabs')
+  @decorators.Disabled  # http://crbug.com/422244
   def testGetDOMStats(self):
     # Due to an issue with CrOS, we create a new tab here rather than
     # using the existing tab to get a consistent starting page on all platforms.

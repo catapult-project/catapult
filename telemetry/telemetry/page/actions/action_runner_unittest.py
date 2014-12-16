@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.platform import tracing_category_filter
@@ -49,7 +49,7 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
       self.assertTrue(getattr(records[0], attribute_name))
 
   # Test disabled for android: crbug.com/437057
-  @benchmark.Disabled('android', 'chromeos')
+  @decorators.Disabled('android', 'chromeos')
   def testIssuingMultipleMeasurementInteractionRecords(self):
     self.VerifyIssuingInteractionRecords(is_fast=True)
     self.VerifyIssuingInteractionRecords(is_responsive=True)
@@ -183,7 +183,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.ClickElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
-  @benchmark.Disabled('android', 'debug') # crbug.com/437068
+  @decorators.Disabled('android', 'debug') # crbug.com/437068
   def testTapElement(self):
     self.Navigate('page_with_clickables.html')
     action_runner = action_runner_module.ActionRunner(self._tab,
@@ -206,7 +206,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.TapElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
-  @benchmark.Disabled('android') # crbug.com/437065.
+  @decorators.Disabled('android') # crbug.com/437065.
   def testScroll(self):
     if not page_action.IsGestureSourceTypeSupported(
         self._tab, 'touch'):
@@ -230,7 +230,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertTrue(action_runner.EvaluateJavaScript(
         'document.body.scrollLeft') > 75)
 
-  @benchmark.Disabled('android') # crbug.com/437065.
+  @decorators.Disabled('android') # crbug.com/437065.
   def testSwipe(self):
     if not page_action.IsGestureSourceTypeSupported(
         self._tab, 'touch'):

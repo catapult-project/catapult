@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import platform
 from telemetry.core import wpr_modes
 from telemetry.page import page as page_module
@@ -209,7 +209,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
 
   # This test is flaky when run in parallel on the mac: crbug.com/426676
   # Also, fails on android: crbug.com/437057
-  @benchmark.Disabled('android', 'mac')
+  @decorators.Disabled('android', 'mac')
   def testSmoothnessTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddUserStory(TestTimelinebasedMeasurementPage(
@@ -229,7 +229,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
 
   # This test is flaky when run in parallel on the mac: crbug.com/426676
   # Also, fails on android: crbug.com/437057
-  @benchmark.Disabled('android', 'mac')
+  @decorators.Disabled('android', 'mac')
   def testFastTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddUserStory(TestTimelinebasedMeasurementPage(
@@ -267,7 +267,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
   # Disabled since mainthread_jank metric is not supported on windows platform.
   # Also, flaky on the mac when run in parallel: crbug.com/426676
   # Also, fails on android: crbug.com/437057
-  @benchmark.Disabled('android', 'win', 'mac')
+  @decorators.Disabled('android', 'win', 'mac')
   def testMainthreadJankTimelineBasedMeasurement(self):
     ps = self.CreateEmptyPageSet()
     ps.AddUserStory(TestTimelinebasedMeasurementPage(
