@@ -108,14 +108,19 @@ def HasRenderingStats(process):
 
 def GetTimestampEventName(process):
   """ Returns the name of the events used to count frame timestamps. """
+  if process.name == 'SurfaceFlinger':
+    return 'vsync_before'
+
   event_name = 'BenchmarkInstrumentation::DisplayRenderingStats'
   for event in process.IterAllSlicesOfName(event_name):
     if 'data' in event.args and event.args['data']['frame_count'] == 1:
       return event_name
+
   return 'BenchmarkInstrumentation::ImplThreadRenderingStats'
 
 class RenderingStats(object):
-  def __init__(self, renderer_process, browser_process, timeline_ranges):
+  def __init__(self, renderer_process, browser_process, surface_flinger_process,
+               timeline_ranges):
     """
     Utility class for extracting rendering statistics from the timeline (or
     other loggin facilities), and providing them in a common format to classes
@@ -127,8 +132,13 @@ class RenderingStats(object):
     All *_time values are measured in milliseconds.
     """
     assert len(timeline_ranges) > 0
+    self.refresh_period = None
+
     # Find the top level process with rendering stats (browser or renderer).
-    if HasRenderingStats(browser_process):
+    if surface_flinger_process:
+      timestamp_process = surface_flinger_process
+      self._GetRefreshPeriodFromSurfaceFlingerProcess(surface_flinger_process)
+    elif HasRenderingStats(browser_process):
       timestamp_process = browser_process
     else:
       timestamp_process = renderer_process
@@ -170,6 +180,11 @@ class RenderingStats(object):
           browser_process, renderer_process, timeline_range)
       self._InitFrameQueueingDurationsFromTimeline(
           renderer_process, timeline_range)
+
+  def _GetRefreshPeriodFromSurfaceFlingerProcess(self, surface_flinger_process):
+    for event in surface_flinger_process.IterAllEventsOfName('vsync_before'):
+      self.refresh_period = event.args['data']['refresh_period']
+      return
 
   def _InitInputLatencyStatsFromTimeline(
       self, browser_process, renderer_process, timeline_range):

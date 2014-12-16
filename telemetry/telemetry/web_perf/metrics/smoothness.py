@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 from telemetry.perf_tests_helper import FlattenList
 from telemetry.util import statistics
 from telemetry.value import list_of_scalar_values
@@ -49,11 +50,13 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     self.VerifyNonOverlappedRecords(interaction_records)
     renderer_process = renderer_thread.parent
     stats = rendering_stats.RenderingStats(
-      renderer_process, model.browser_process,
+      renderer_process, model.browser_process, model.surface_flinger_process,
       [r.GetBounds() for r in interaction_records])
-    self._PopulateResultsFromStats(results, stats)
+    has_surface_flinger_stats = model.surface_flinger_process is not None
+    self._PopulateResultsFromStats(results, stats, has_surface_flinger_stats)
 
-  def _PopulateResultsFromStats(self, results, stats):
+  def _PopulateResultsFromStats(self, results, stats,
+                                has_surface_flinger_stats):
     page = results.current_page
     values = [
         self._ComputeQueueingDuration(page, stats),
@@ -66,12 +69,78 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
                                          stats.scroll_update_latency)
     values += self._ComputeFirstGestureScrollUpdateLatency(page, stats)
     values += self._ComputeFrameTimeMetric(page, stats)
+    if has_surface_flinger_stats:
+      values += self._ComputeSurfaceFlingerMetric(page, stats)
+
     for v in values:
       results.AddValue(v)
 
   def _HasEnoughFrames(self, list_of_frame_timestamp_lists):
     """Whether we have collected at least two frames in every timestamp list."""
     return all(len(s) >= 2 for s in list_of_frame_timestamp_lists)
+
+  @staticmethod
+  def _GetNormalizedDeltas(data, refresh_period, min_normalized_delta=None):
+    deltas = [t2 - t1 for t1, t2 in zip(data, data[1:])]
+    if min_normalized_delta != None:
+      deltas = [d for d in deltas
+                if d / refresh_period >= min_normalized_delta]
+    return (deltas, [delta / refresh_period for delta in deltas])
+
+  def _ComputeSurfaceFlingerMetric(self, page, stats):
+    jank_count = None
+    avg_surface_fps = None
+    max_frame_delay = None
+    frame_lengths = None
+    none_value_reason = None
+    if self._HasEnoughFrames(stats.frame_timestamps):
+      timestamps = FlattenList(stats.frame_timestamps)
+      frame_count = len(timestamps)
+      milliseconds = timestamps[-1] - timestamps[0]
+      min_normalized_frame_length = 0.5
+
+      frame_lengths, normalized_frame_lengths = \
+          self._GetNormalizedDeltas(timestamps, stats.refresh_period,
+                                    min_normalized_frame_length)
+      if len(frame_lengths) < frame_count - 1:
+        logging.warning('Skipping frame lengths that are too short.')
+        frame_count = len(frame_lengths) + 1
+      if len(frame_lengths) == 0:
+        raise Exception('No valid frames lengths found.')
+      _, normalized_changes = \
+          self._GetNormalizedDeltas(frame_lengths, stats.refresh_period)
+      jankiness = [max(0, round(change)) for change in normalized_changes]
+      pause_threshold = 20
+      jank_count = sum(1 for change in jankiness
+                       if change > 0 and change < pause_threshold)
+      avg_surface_fps = int(round((frame_count - 1) * 1000.0 / milliseconds))
+      max_frame_delay = round(max(normalized_frame_lengths))
+      frame_lengths = normalized_frame_lengths
+    else:
+      none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
+
+    return (
+        scalar.ScalarValue(
+            page, 'avg_surface_fps', 'fps', avg_surface_fps,
+            description='Average frames per second as measured by the '
+                        'platform\'s SurfaceFlinger.',
+            none_value_reason=none_value_reason),
+        scalar.ScalarValue(
+            page, 'jank_count', 'janks', jank_count,
+            description='Number of changes in frame rate as measured by the '
+                        'platform\'s SurfaceFlinger.',
+            none_value_reason=none_value_reason),
+        scalar.ScalarValue(
+            page, 'max_frame_delay', 'vsyncs', max_frame_delay,
+            description='Largest frame time as measured by the platform\'s '
+                        'SurfaceFlinger.',
+            none_value_reason=none_value_reason),
+        list_of_scalar_values.ListOfScalarValues(
+            page, 'frame_lengths', 'vsyncs', frame_lengths,
+            description='Frame time in vsyncs as measured by the platform\'s '
+                        'SurfaceFlinger.',
+            none_value_reason=none_value_reason)
+    )
 
   def _ComputeLatencyMetric(self, page, stats, name, list_of_latency_lists):
     """Returns Values for the mean and discrepancy for given latency stats."""

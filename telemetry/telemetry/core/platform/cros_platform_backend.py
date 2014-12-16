@@ -30,15 +30,6 @@ class CrosPlatformBackend(
   def cri(self):
     return self._cri
 
-  def StartRawDisplayFrameRateMeasurement(self):
-    raise NotImplementedError()
-
-  def StopRawDisplayFrameRateMeasurement(self):
-    raise NotImplementedError()
-
-  def GetRawDisplayFrameRateMeasurements(self):
-    raise NotImplementedError()
-
   def IsThermallyThrottled(self):
     raise NotImplementedError()
 

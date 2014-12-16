@@ -43,9 +43,6 @@ class IosPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def StopMonitoringPower(self):
     raise NotImplementedError()
 
-  def GetRawDisplayFrameRateMeasurements(self):
-    raise NotImplementedError()
-
   def FlushEntireSystemCache(self):
     raise NotImplementedError()
 
@@ -56,12 +53,6 @@ class IosPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     raise NotImplementedError()
 
   def IsThermallyThrottled(self):
-    raise NotImplementedError()
-
-  def StartRawDisplayFrameRateMeasurement(self):
-    raise NotImplementedError()
-
-  def StopRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
 
   def GetSystemTotalPhysicalMemory(self):

@@ -104,16 +104,6 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     self._msr_server_handle = None
     self._msr_server_port = None
 
-  # pylint: disable=W0613
-  def StartRawDisplayFrameRateMeasurement(self):
-    raise NotImplementedError()
-
-  def StopRawDisplayFrameRateMeasurement(self):
-    raise NotImplementedError()
-
-  def GetRawDisplayFrameRateMeasurements(self):
-    raise NotImplementedError()
-
   def IsThermallyThrottled(self):
     raise NotImplementedError()
 
