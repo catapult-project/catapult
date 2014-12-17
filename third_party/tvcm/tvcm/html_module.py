@@ -67,12 +67,12 @@ class HTMLModule(module.Module):
       f.write(js)
       f.write("\n")
 
-  def AppendHTMLContentsToFile(self, f, ctl):
+  def AppendHTMLContentsToFile(self, f, ctl, minify=False):
     super(HTMLModule, self).AppendHTMLContentsToFile(f, ctl)
 
     ctl.current_module = self
     try:
-      for piece in self._parser_results.YieldHTMLInPieces(ctl):
+      for piece in self._parser_results.YieldHTMLInPieces(ctl, minify=minify):
         f.write(piece)
     finally:
       ctl.current_module = None

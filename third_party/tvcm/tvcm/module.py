@@ -140,7 +140,7 @@ class Module(object):
         f.write(js_utils.EscapeJSIfNeeded(dependent_raw_script.contents))
         f.write('\n')
 
-  def AppendHTMLContentsToFile(self, f, ctl):
+  def AppendHTMLContentsToFile(self, f, ctl, minify=False):
     """Appends the html for this module [without links] to the provided file."""
     pass
 

@@ -233,7 +233,7 @@ def GenerateStandaloneHTMLToFile(output_file,
 
   for module in load_sequence:
     ctl = HTMLGenerationController(module)
-    module.AppendHTMLContentsToFile(output_file, ctl)
+    module.AppendHTMLContentsToFile(output_file, ctl, minify=minify)
 
   if flattened_js_url:
     output_file.write('<script src="%s"></script>\n' % flattened_js_url)
