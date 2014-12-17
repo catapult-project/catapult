@@ -3,8 +3,11 @@
 # found in the LICENSE file.
 
 import base64
+import httplib
 import optparse
+import urllib
 import sys
+import json
 import os
 import re
 import StringIO
@@ -49,20 +52,61 @@ css_warning_message = """
  */
 """
 
+def _MinifyJS(input_js):
+  # Define the parameters for the POST request and encode them in
+  # a URL-safe format.
+  params = urllib.urlencode([
+    ('js_code', input_js),
+    ('language', 'ECMASCRIPT5'),
+    ('compilation_level', 'SIMPLE_OPTIMIZATIONS'),
+    ('output_format', 'json'),
+    ('output_info', 'errors'),
+    ('output_info', 'compiled_code'),
+  ])
+
+  # Always use the following value for the Content-type header.
+  headers = { "Content-type": "application/x-www-form-urlencoded" }
+  conn = httplib.HTTPConnection('closure-compiler.appspot.com')
+  conn.request('POST', '/compile', params, headers)
+  response = conn.getresponse()
+  data = response.read()
+  conn.close
+
+  if response.status != 200:
+    raise Exception("error returned from JS compile service: %d" % response.status)
+
+  result = json.loads(data)
+  if 'errors' in result:
+    errors = []
+    for e in result['errors']:
+      filenum = int(e['file'][6:])
+      filename = 'flat_script.js'
+      lineno = e['lineno']
+      charno = e['charno']
+      err = e['error']
+      errors.append('%s:%d:%d: %s' % (filename, lineno, charno, err))
+    raise Exception('Failed to generate %s. Reason: %s' % (output_js_file,
+                                                           '\n'.join(errors)))
+
+  return result['compiledCode']
+
 def GenerateJS(load_sequence,
                use_include_tags_for_scripts=False,
-               dir_for_include_tag_root=None):
+               dir_for_include_tag_root=None,
+               minify=False):
   f = StringIO.StringIO()
   GenerateJSToFile(f,
                    load_sequence,
                    use_include_tags_for_scripts,
-                   dir_for_include_tag_root)
+                   dir_for_include_tag_root,
+                   minify)
   return f.getvalue()
 
 def GenerateJSToFile(f,
                      load_sequence,
                      use_include_tags_for_scripts=False,
-                     dir_for_include_tag_root=None):
+                     dir_for_include_tag_root=None,
+                     minify=False):
   if use_include_tags_for_scripts and dir_for_include_tag_root == None:
     raise Exception('Must provide dir_for_include_tag_root')
 
@@ -77,10 +121,24 @@ def GenerateJSToFile(f,
   f.write('\n')
   f.write("window._TV_IS_COMPILED = true;\n")
 
+  if not minify:
+    flatten_to_file = f
+  else:
+    flatten_to_file = StringIO.StringIO()
+
+
   for module in load_sequence:
-    module.AppendJSContentsToFile(f,
+    module.AppendJSContentsToFile(flatten_to_file,
                                   use_include_tags_for_scripts,
                                   dir_for_include_tag_root)
+
+  if not minify:
+    return
+
+  minified_js = _MinifyJS(flatten_to_file.getvalue())
+  f.write(minified_js)
+  f.write('\n')
+
 
 class ExtraScript(object):
   def __init__(self, script_id=None, text_content=None, content_type=None):
@@ -116,7 +174,8 @@ def GenerateStandaloneHTMLToFile(output_file,
                                  load_sequence,
                                  title=None,
                                  flattened_js_url=None,
-                                 extra_scripts=None):
+                                 extra_scripts=None,
+                                 minify=False):
   extra_scripts = extra_scripts or []
 
   output_file.write("""<!DOCTYPE HTML>
@@ -154,7 +213,7 @@ def GenerateStandaloneHTMLToFile(output_file,
     output_file.write('<script src="%s"></script>\n' % flattened_js_url)
   else:
     output_file.write('<script>\n')
-    output_file.write(GenerateJS(load_sequence))
+    output_file.write(GenerateJS(load_sequence, minify=minify))
     output_file.write('</script>\n')
 
   for extra_script in extra_scripts:

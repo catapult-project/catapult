@@ -17,10 +17,14 @@ def Main(args):
     usage="%prog <options>",
     epilog="""Produces a standalone html import that contains the
 trace viewer.""")
+  parser.add_option('--no-min', dest='no_min', default=False,
+                    action='store_true',
+                    help='skip minification')
   parser.add_option(
       "--output", dest="output",
       help='Where to put the generated result. If not ' +
            'given, $TRACE_VIEWER/bin/trace_viewer.html is used.')
+  parser.add_option
   options, args = parser.parse_args(args)
   if len(args) != 0:
     parser.error('No arguments needed.')
@@ -32,13 +36,15 @@ trace viewer.""")
     output_filename = os.path.join(trace_viewer_dir, 'bin/trace_viewer.html')
 
   with open(output_filename, 'w') as f:
-    WriteTraceViewer(f)
+    WriteTraceViewer(
+        f,
+        minify=not options.no_min)
 
   return 0
 
 
-def WriteTraceViewer(output_file):
+def WriteTraceViewer(output_file, minify=False):
   project = trace_viewer_project.TraceViewerProject()
   load_sequence = project.CalcLoadSequenceForModuleNames(['trace_viewer'])
   generate.GenerateStandaloneHTMLToFile(
-    output_file, load_sequence)
+    output_file, load_sequence, minify=minify)
