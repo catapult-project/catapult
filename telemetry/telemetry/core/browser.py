@@ -215,8 +215,6 @@ class Browser(app.App):
     """Closes this browser."""
     if self._browser_backend.IsBrowserRunning():
       self._platform_backend.WillCloseBrowser(self, self._browser_backend)
-    else:
-      self._platform_backend.DidLoseBrowser(self, self._browser_backend)
 
     self._local_server_controller.Close()
     self._browser_backend.Close()
