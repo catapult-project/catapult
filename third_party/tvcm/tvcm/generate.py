@@ -65,10 +65,8 @@ def _HasLocalClosureCompiler():
   try:
     _MinifyJSLocally('console.log("test");')
     _HasLocalClosureCompilerResult = True
-  finally:
-    pass
-  #except:
-  #  _HasLocalClosureCompilerResult = False
+  except:
+    _HasLocalClosureCompilerResult = False
   return _HasLocalClosureCompilerResult
 
 
