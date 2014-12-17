@@ -187,11 +187,15 @@ def GenerateJSToFile(f,
                                     use_include_tags_for_scripts,
                                     dir_for_include_tag_root)
 
-      # Sizing.
+      # Sizing. Can only show minified sizes if closure-compiler is local.
       js = s.getvalue()
-      min_js = _MinifyJS(js)
+      if _HasLocalClosureCompiler():
+        min_js_size = str(len(_MinifyJS(js)))
+      else:
+        min_js_size = '-'
 
-      # Name this module. There are some simplifciations so pivoting is easier.
+      # Print names for this module. Some domain-specific simplifciations
+      # are included to make pivoting more obvious.
       parts = module.name.split('.')
       if parts[:2] == ['base', 'ui']:
         parts = ['base_ui'] + parts[2:]
@@ -201,7 +205,7 @@ def GenerateJSToFile(f,
       sln = '.'.join(parts[:2])
 
       # Ouptut
-      print '%i\t%i\t%s\t%s\t%s' % (len(js), len(min_js), module.name, tln, sln)
+      print '%i\t%s\t%s\t%s\t%s' % (len(js), min_js_size, module.name, tln, sln)
       sys.stdout.flush()
 
 
