@@ -129,6 +129,8 @@ def _MinifyJSUsingClosureService(input_js):
     raise Exception('Failed to generate %s. Reason: %s' % (output_js_file,
                                                            '\n'.join(errors)))
 
+  if 'compiledCode' not in result:
+    raise Exception('Got %s' % repr(result))
   return result['compiledCode']
 
 def GenerateJS(load_sequence,
