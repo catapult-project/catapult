@@ -24,6 +24,8 @@ import polymer_soup
 
 class InlineScript(object):
   def __init__(self, soup):
+    if not soup:
+      raise module.DepsException('InlineScript created without soup')
     self._soup = soup
     self._stripped_contents = None
     self._open_tags = None

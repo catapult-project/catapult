@@ -4,8 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/standalone_timeline_view.html">
-<link rel="import" href="/about_tracing/features.html">
+<link rel="import" href="/trace_viewer.html">
 <script>
 'use strict';
 
@@ -32,7 +31,7 @@ var g_timelineViewEl;
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
-  g_timelineViewEl = new tracing.TimelineView();
+  g_timelineViewEl = new tracing.TraceViewer();
   g_timelineViewEl.id = 'timeline-view';
   document.body.appendChild(g_timelineViewEl);
 

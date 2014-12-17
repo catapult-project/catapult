@@ -4,14 +4,15 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="stylesheet" href="/base/ui/common.css">
 <link rel="import" href="/base/ui.html">
-<link rel="import" href="/tracing/standalone_timeline_view.html">
-<link rel="import" href="/about_tracing/features.html">
+<link rel="import" href="/tracing/timeline_view.html">
+<link rel="import" href="/tracing/trace_model.html">
 <script>
 'use strict';
 tv.exportTo('tracing', function() {
   /**
-   * Creates a trace viewer and loads the provided URL into it.
+   * Creates a trace viewer and, if given, loads the provided URL.
    *
    * For more advanced usage, consider using TimelineView and TraceModel directly.
    *
@@ -22,8 +23,12 @@ tv.exportTo('tracing', function() {
   TraceViewer.prototype = {
     __proto__: tracing.TimelineView.prototype,
 
-    decorate: function(url) {
+    decorate: function(opt_url) {
       tracing.TimelineView.prototype.decorate.call(this);
+
+      if (opt_url === undefined)
+        return;
+      var url = opt_url;
       var that = this;
 
       var req = new XMLHttpRequest();

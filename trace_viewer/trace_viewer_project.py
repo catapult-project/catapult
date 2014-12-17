@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import sys
 import os
+import re
 
 
 from tvcm import project as project_module
@@ -26,6 +27,8 @@ class TraceViewerProject(project_module.Project):
 
   src_path = os.path.abspath(os.path.join(
       trace_viewer_path, 'trace_viewer'))
+
+  extras_path = os.path.join(src_path, 'extras')
 
   trace_viewer_third_party_path = os.path.abspath(os.path.join(
       trace_viewer_path, 'third_party'))
@@ -53,10 +56,41 @@ class TraceViewerProject(project_module.Project):
 
     self.non_module_html_files.extendRel(self.trace_viewer_path, [
       'bin/index.html',
-      'bin/trace_viewer.html',
       'test_data/android_systrace.html',
     ])
+    for config_name in self.GetConfigNames():
+      self.non_module_html_files.appendRel(self.trace_viewer_path,
+        'bin/trace_viewer_%s.html' % config_name)
+
     self.non_module_html_files.extendRel(self.trace_viewer_third_party_path, [
       'gl-matrix/jsdoc-template/static/header.html',
       'gl-matrix/jsdoc-template/static/index.html',
     ])
+
+  def GetConfigNames(self):
+    config_files = [
+        os.path.join(self.extras_path, x) for x in os.listdir(self.extras_path)
+        if x.endswith('_config.html')
+    ]
+
+    config_files = [x for x in config_files if os.path.isfile(x)]
+
+    config_names = [re.match('.+extras/(.+)_config.html$', x).group(1)
+                    for x in config_files]
+    return config_names
+
+  def GetDefaultConfigName(self):
+    assert 'full' in self.GetConfigNames()
+    return 'full'
+
+  def AddConfigNameOptionToParser(self, parser):
+    choices = self.GetConfigNames()
+    parser.add_option(
+        '--config', dest='config_name',
+        type='choice', choices=choices,
+        default=self.GetDefaultConfigName(),
+        help='Picks a browser config. Valid choices: %s' % ', '.join(choices))
+    return choices
+
+  def GetModuleNameForConfigName(self, config_name):
+    return 'extras.%s_config' % config_name

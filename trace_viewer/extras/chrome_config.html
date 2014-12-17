@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<!--
+The chrome config is heavily used:
+  - chrome://tracing,
+  - trace2html, which in turn implies
+    - adb_profile_chrome
+    - telemetry
+-->
+
+<!-- Chrome also supports systrace & lean config -->
+<link rel="import" href="/extras/systrace_config.html">
+<link rel="import" href="/extras/lean_config.html">
+
+<!-- General importers -->
+<link rel="import" href="/tracing/importer/gzip_importer.html">
+<link rel="import" href="/tracing/importer/zip_importer.html">
+
+<!--- Domain specific importers -->
+<link rel="import" href="/tracing/importer/v8_log_importer.html">
+<link rel="import" href="/tracing/importer/etw_importer.html">
+<link rel="import" href="/tracing/importer/trace2html_importer.html">
+
+<!-- Lots of chrome-specific extras -->
+<link rel="import" href="/cc.html">
+<link rel="import" href="/tcmalloc.html">
+<link rel="import" href="/net.html">
+<link rel="import" href="/system_stats.html">
+<link rel="import" href="/gpu.html">
+

@@ -21,6 +21,10 @@ def Main(args):
     usage="%prog <options> trace_file1 [trace_file2 ...]",
     epilog="""Takes the provided trace file and produces a standalone html
 file that contains both the trace and the trace viewer.""")
+
+  project = trace_viewer_project.TraceViewerProject()
+  project.AddConfigNameOptionToParser(parser)
+
   parser.add_option(
       "--output", dest="output",
       help='Where to put the generated result. If not ' +
@@ -41,7 +45,7 @@ file that contains both the trace and the trace viewer.""")
     output_filename = namepart + '.html'
 
   with open(output_filename, 'w') as f:
-    WriteHTMLForTracesToFile(args, f)
+    WriteHTMLForTracesToFile(args, f, config_name=options.config_name)
 
   if not options.quiet:
     print output_filename
@@ -64,9 +68,22 @@ class ViewerDataScript(generate.ExtraScript):
     output_file.write('\n</script>\n')
 
 
-def WriteHTMLForTraceDataToFile(trace_data_list, title, output_file):
+def WriteHTMLForTraceDataToFile(trace_data_list,
+                                title, output_file,
+                                config_name=None):
   project = trace_viewer_project.TraceViewerProject()
-  load_sequence = project.CalcLoadSequenceForModuleNames(['build.trace2html'])
+
+  if config_name == None:
+    config_name = project.GetDefaultConfigName()
+
+  modules = [
+    'build.trace2html',
+    'tracing.importer.gzip_importer', # Must have this regardless of config.
+    project.GetModuleNameForConfigName(config_name)
+  ]
+
+  load_sequence = project.CalcLoadSequenceForModuleNames(modules)
+
   scripts = []
   for trace_data in trace_data_list:
     # If the object was previously decoded from valid JSON data (e.g., in
@@ -83,7 +100,7 @@ def WriteHTMLForTraceDataToFile(trace_data_list, title, output_file):
     output_file, load_sequence, title, extra_scripts=scripts)
 
 
-def WriteHTMLForTracesToFile(trace_filenames, output_file):
+def WriteHTMLForTracesToFile(trace_filenames, output_file, config_name=None):
   trace_data_list = []
   for filename in trace_filenames:
     with open(filename, 'r') as f:
@@ -95,4 +112,4 @@ def WriteHTMLForTracesToFile(trace_filenames, output_file):
       trace_data_list.append(trace_data)
 
   title = "Trace from %s" % ','.join(trace_filenames)
-  WriteHTMLForTraceDataToFile(trace_data_list, title, output_file)
+  WriteHTMLForTraceDataToFile(trace_data_list, title, output_file, config_name)
