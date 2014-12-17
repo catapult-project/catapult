@@ -72,6 +72,8 @@ class ModuleDependencyMetadata(object):
     self.style_sheet_names += other.style_sheet_names
 
 
+_next_module_id = 1
+
 class Module(object):
   """Represents a javascript module.
 
@@ -86,6 +88,11 @@ class Module(object):
   """
   def __init__(self, loader, name, resource, load_resource=True):
     assert isinstance(name, basestring), 'Got %s instead' % repr(name)
+
+    global _next_module_id
+    self._id = _next_module_id
+    _next_module_id += 1
+
     self.loader = loader
     self.name = name
     self.resource = resource
@@ -110,6 +117,10 @@ class Module(object):
 
   def __repr__(self):
     return '%s(%s)' % (self.__class__.__name__, self.name)
+
+  @property
+  def id(self):
+    return self._id
 
   @property
   def filename(self):

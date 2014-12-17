@@ -28,6 +28,9 @@ trace viewer.""")
   parser.add_option('--report-sizes', dest='report_sizes', default=False,
                     action='store_true',
                     help='Explain what makes trace_viewer big.')
+  parser.add_option('--report-deps', dest='report_deps', default=False,
+                    action='store_true',
+                    help='Print a dot-formatted deps graph.')
   parser.add_option(
       "--output", dest="output",
       help='Where to put the generated result. If not ' +
@@ -49,18 +52,27 @@ trace viewer.""")
         f,
         config_name=options.config_name,
         minify=not options.no_min,
-        report_sizes=options.report_sizes)
+        report_sizes=options.report_sizes,
+        report_deps=options.report_deps)
 
   return 0
 
 
-def WriteTraceViewer(output_file, config_name=None, minify=False, report_sizes=False):
+def WriteTraceViewer(output_file, config_name=None,
+                     minify=False,
+                     report_sizes=False,
+                     report_deps=False):
   project = trace_viewer_project.TraceViewerProject()
 
   if config_name == None:
     config_name = project.GetDefaultConfigName()
 
+  module_names = ['trace_viewer', project.GetModuleNameForConfigName(config_name)]
   load_sequence = project.CalcLoadSequenceForModuleNames(
-    ['trace_viewer', project.GetModuleNameForConfigName(config_name)])
+    module_names)
+
+  if report_deps:
+    sys.stdout.write(project.GetDepsGraphFromModuleNames(module_names))
+
   generate.GenerateStandaloneHTMLToFile(
     output_file, load_sequence, minify=minify, report_sizes=report_sizes)

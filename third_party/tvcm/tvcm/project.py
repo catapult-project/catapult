@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
+import cStringIO
 
 from tvcm import resource as resource_module
 from tvcm import resource_loader
@@ -204,3 +205,39 @@ class Project(object):
     for m in modules:
       m.ComputeLoadSequenceRecursive(load_sequence, already_loaded_set)
     return load_sequence
+
+  def GetDepsGraphFromModuleNames(self, module_names):
+    modules = [self.loader.LoadModule(module_name=name) for
+               name in module_names]
+    return self.GetDepsGraphFromModules(modules)
+
+  def GetDepsGraphFromModules(self, modules):
+    load_sequence = self.CalcLoadSequenceForModules(modules)
+
+    nodes = []
+    edges = []
+
+    for m in load_sequence:
+      f = cStringIO.StringIO()
+      m.AppendJSContentsToFile(f, False, None)
+
+      attrs = {
+        "label": "%s (%i)" % (m.name, f.tell())
+      };
+
+      f.close()
+
+      attr_items = ['%s="%s"' % (x,y) for x,y in attrs.iteritems()]
+      node = "M%i [%s];" % (m.id, ','.join(attr_items))
+      nodes.append(node)
+
+      for dep in m.dependent_modules:
+        edge = "M%i -> M%i;" % (m.id, dep.id);
+        edges.append(edge)
+
+    return """digraph deps {
+%s
+
+%s
+}
+""" % ('\n'.join(nodes), '\n'.join(edges))
