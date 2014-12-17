@@ -5,11 +5,13 @@
 import base64
 import httplib
 import optparse
-import urllib
-import sys
 import json
 import os
 import re
+import sys
+import subprocess
+import tempfile
+import urllib
 import StringIO
 
 from tvcm import js_utils
@@ -164,6 +166,27 @@ class ExtraScript(object):
     output_file.write('</script>\n')
 
 
+_have_printed_yui_missing_warning = False
+
+def _MinifyCSS(css_text):
+  with tempfile.NamedTemporaryFile() as f:
+    yuic_args = ['yui-compressor', '--type', 'css', '-o', f.name]
+    try:
+      p = subprocess.Popen(yuic_args, stdin=subprocess.PIPE)
+    except OSError:
+      global _have_printed_yui_missing_warning
+      if not _have_printed_yui_missing_warning:
+        _have_printed_yui_missing_warning = True
+        sys.stderr.write(
+            'yui-compressor missing. CSS minification will be skipped.\n')
+      return css_text
+    p.communicate(input=css_text)
+    if p.wait() != 0:
+      raise Exception('Failed to generate %s.' % output_css_file)
+    with open(f.name, 'r') as f2:
+      return f2.read()
+
+
 def GenerateStandaloneHTMLAsString(*args, **kwargs):
   f = StringIO.StringIO()
   GenerateStandaloneHTMLToFile(f, *args, **kwargs)
@@ -203,7 +226,10 @@ def GenerateStandaloneHTMLToFile(output_file,
         return None
       written_style_sheets.add(style_sheet)
 
-      return "<style>\n%s\n</style>" % style_sheet.contents_with_inlined_images
+      text = style_sheet.contents_with_inlined_images
+      if minify:
+        text = _MinifyCSS(text)
+      return "<style>\n%s\n</style>" % text
 
   for module in load_sequence:
     ctl = HTMLGenerationController(module)
