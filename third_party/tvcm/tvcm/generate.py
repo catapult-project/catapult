@@ -54,7 +54,46 @@ css_warning_message = """
  */
 """
 
+def CanMinify():
+  return _HasLocalClosureCompiler()
+
+_HasLocalClosureCompilerResult = None
+def _HasLocalClosureCompiler():
+  global _HasLocalClosureCompilerResult
+  if _HasLocalClosureCompilerResult != None:
+    return _HasLocalClosureCompilerResult
+  try:
+    _MinifyJSLocally('console.log("test");')
+    _HasLocalClosureCompilerResult = True
+  finally:
+    pass
+  #except:
+  #  _HasLocalClosureCompilerResult = False
+  return _HasLocalClosureCompilerResult
+
+
 def _MinifyJS(input_js):
+  if _HasLocalClosureCompiler():
+    return _MinifyJSLocally(input_js)
+  return _MinifyJSUsingClosureService(input_js)
+
+
+def _MinifyJSLocally(input_js):
+  with open(os.devnull, 'w') as devnull:
+    with tempfile.NamedTemporaryFile() as f:
+      args = [
+        'closure-compiler',
+        '--compilation_level', 'SIMPLE_OPTIMIZATIONS',
+        '--language_in', 'ECMASCRIPT5',
+        '--warning_level', 'QUIET'
+      ]
+      p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=devnull)
+      res = p.communicate(input=input_js)
+      if p.wait() != 0:
+        raise Exception('Failed to minify, omgah')
+      return res[0]
+
+def _MinifyJSUsingClosureService(input_js):
   # Define the parameters for the POST request and encode them in
   # a URL-safe format.
   params = urllib.urlencode([
