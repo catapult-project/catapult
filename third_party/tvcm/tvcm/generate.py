@@ -136,20 +136,23 @@ def _MinifyJSUsingClosureService(input_js):
 def GenerateJS(load_sequence,
                use_include_tags_for_scripts=False,
                dir_for_include_tag_root=None,
-               minify=False):
+               minify=False,
+               report_sizes=False):
   f = StringIO.StringIO()
   GenerateJSToFile(f,
                    load_sequence,
                    use_include_tags_for_scripts,
                    dir_for_include_tag_root,
-                   minify)
+                   minify=minify,
+                   report_sizes=report_sizes)
   return f.getvalue()
 
 def GenerateJSToFile(f,
                      load_sequence,
                      use_include_tags_for_scripts=False,
                      dir_for_include_tag_root=None,
-                     minify=False):
+                     minify=False,
+                     report_sizes=False):
   if use_include_tags_for_scripts and dir_for_include_tag_root == None:
     raise Exception('Must provide dir_for_include_tag_root')
 
@@ -169,18 +172,39 @@ def GenerateJSToFile(f,
   else:
     flatten_to_file = StringIO.StringIO()
 
-
   for module in load_sequence:
     module.AppendJSContentsToFile(flatten_to_file,
                                   use_include_tags_for_scripts,
                                   dir_for_include_tag_root)
+  if minify:
+    js = flatten_to_file.getvalue()
+    minified_js = _MinifyJS(js)
+    f.write(minified_js)
+    f.write('\n')
 
-  if not minify:
-    return
+  if report_sizes:
+    for module in load_sequence:
+      s = StringIO.StringIO()
+      module.AppendJSContentsToFile(s,
+                                    use_include_tags_for_scripts,
+                                    dir_for_include_tag_root)
 
-  minified_js = _MinifyJS(flatten_to_file.getvalue())
-  f.write(minified_js)
-  f.write('\n')
+      # Sizing.
+      js = s.getvalue()
+      min_js = _MinifyJS(js)
+
+      # Name this module. There are some simplifciations so pivoting is easier.
+      parts = module.name.split('.')
+      if parts[:2] == ['base', 'ui']:
+        parts = ['base_ui'] + parts[2:]
+      if parts[:2] == ['tracing', 'importer']:
+        parts = ['importer'] + parts[2:]
+      tln = parts[0]
+      sln = '.'.join(parts[:2])
+
+      # Ouptut
+      print '%i\t%i\t%s\t%s\t%s' % (len(js), len(min_js), module.name, tln, sln)
+      sys.stdout.flush()
 
 
 class ExtraScript(object):
@@ -239,7 +263,8 @@ def GenerateStandaloneHTMLToFile(output_file,
                                  title=None,
                                  flattened_js_url=None,
                                  extra_scripts=None,
-                                 minify=False):
+                                 minify=False,
+                                 report_sizes=False):
   extra_scripts = extra_scripts or []
 
   output_file.write("""<!DOCTYPE HTML>
@@ -280,7 +305,8 @@ def GenerateStandaloneHTMLToFile(output_file,
     output_file.write('<script src="%s"></script>\n' % flattened_js_url)
   else:
     output_file.write('<script>\n')
-    output_file.write(GenerateJS(load_sequence, minify=minify))
+    output_file.write(
+        GenerateJS(load_sequence, minify=minify, report_sizes=report_sizes))
     output_file.write('</script>\n')
 
   for extra_script in extra_scripts:

@@ -20,6 +20,9 @@ trace viewer.""")
   parser.add_option('--no-min', dest='no_min', default=False,
                     action='store_true',
                     help='skip minification')
+  parser.add_option('--report-sizes', dest='report_sizes', default=False,
+                    action='store_true',
+                    help='Explain what makes trace_viewer big.')
   parser.add_option(
       "--output", dest="output",
       help='Where to put the generated result. If not ' +
@@ -38,13 +41,14 @@ trace viewer.""")
   with open(output_filename, 'w') as f:
     WriteTraceViewer(
         f,
-        minify=not options.no_min)
+        minify=not options.no_min,
+        report_sizes=options.report_sizes)
 
   return 0
 
 
-def WriteTraceViewer(output_file, minify=False):
+def WriteTraceViewer(output_file, minify=False, report_sizes=False):
   project = trace_viewer_project.TraceViewerProject()
   load_sequence = project.CalcLoadSequenceForModuleNames(['trace_viewer'])
   generate.GenerateStandaloneHTMLToFile(
-    output_file, load_sequence, minify=minify)
+    output_file, load_sequence, minify=minify, report_sizes=report_sizes)
