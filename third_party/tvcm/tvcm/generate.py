@@ -266,17 +266,21 @@ def GenerateStandaloneHTMLToFile(output_file,
                                  flattened_js_url=None,
                                  extra_scripts=None,
                                  minify=False,
-                                 report_sizes=False):
+                                 report_sizes=False,
+                                 output_html_head_and_body=True):
   extra_scripts = extra_scripts or []
 
-  output_file.write("""<!DOCTYPE HTML>
+  if output_html_head_and_body:
+    output_file.write("""<!DOCTYPE HTML>
 <html>
   <head i18n-values="dir:textdirection;">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  """)
-  if title:
-    output_file.write("""  <title>%s</title>
-""" % title)
+    """)
+    if title:
+      output_file.write("""  <title>%s</title>
+  """ % title)
+  else:
+    assert title == None
 
   loader = load_sequence[0].loader
 
@@ -314,10 +318,9 @@ def GenerateStandaloneHTMLToFile(output_file,
   for extra_script in extra_scripts:
     extra_script.WriteToFile(output_file)
 
-  output_file.write("""</head>
-<body>
-""")
-
-  output_file.write("""</body>
+  if output_html_head_and_body:
+    output_file.write("""</head>
+  <body>
+  </body>
 </html>
 """)

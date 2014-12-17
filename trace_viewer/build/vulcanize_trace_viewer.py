@@ -58,16 +58,24 @@ trace viewer.""")
   return 0
 
 
-def WriteTraceViewer(output_file, config_name=None,
+def WriteTraceViewer(output_file,
+                     config_name=None,
                      minify=False,
                      report_sizes=False,
-                     report_deps=False):
+                     report_deps=False,
+                     output_html_head_and_body=True,
+                     extra_search_paths=None,
+                     extra_module_names_to_load=None):
   project = trace_viewer_project.TraceViewerProject()
-
+  if extra_search_paths:
+    for p in extra_search_paths:
+      project.source_paths.append(p)
   if config_name == None:
     config_name = project.GetDefaultConfigName()
 
   module_names = ['trace_viewer', project.GetModuleNameForConfigName(config_name)]
+  if extra_module_names_to_load:
+    module_names += extra_module_names_to_load
   load_sequence = project.CalcLoadSequenceForModuleNames(
     module_names)
 
@@ -75,4 +83,6 @@ def WriteTraceViewer(output_file, config_name=None,
     sys.stdout.write(project.GetDepsGraphFromModuleNames(module_names))
 
   generate.GenerateStandaloneHTMLToFile(
-    output_file, load_sequence, minify=minify, report_sizes=report_sizes)
+    output_file, load_sequence,
+    minify=minify, report_sizes=report_sizes,
+    output_html_head_and_body=output_html_head_and_body)
