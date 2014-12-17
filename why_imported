@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+import sys
+import optparse
+
+from trace_viewer import trace_viewer_project
+
+
+
+def Main(args):
+  project = trace_viewer_project.TraceViewerProject()
+
+  parser = optparse.OptionParser(
+    usage="%prog <options> moduleNames",
+    epilog="""Produces a dot file that explains why given module names were included in a trace_viewer config.""")
+  parser.add_option('--config',
+      type='choice', choices=project.GetConfigNames())
+  options, args = parser.parse_args(args)
+
+  if options.config:
+    names = ['trace_viewer',
+               project.GetModuleNameForConfigName(options.config)]
+    load_sequence = project.CalcLoadSequenceForModuleNames(names)
+  else:
+    load_sequence = None
+  print project.GetDominatorGraphForModulesNamed(args, load_sequence)
+
+if __name__ == '__main__':
+  sys.exit(Main(sys.argv[1:]))
