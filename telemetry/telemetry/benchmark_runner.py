@@ -240,7 +240,8 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
   for benchmark_class in benchmark_classes:
     if not issubclass(benchmark_class, benchmark.Benchmark):
       continue
-    if not decorators.IsEnabled(benchmark_class, possible_browser):
+    enabled, _ = decorators.IsEnabled(benchmark_class, possible_browser)
+    if not enabled:
       continue
 
     base_name = benchmark_class.Name()
@@ -261,14 +262,16 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
       'device_affinity': device_affinity,
       'perf_dashboard_id': perf_dashboard_id,
     }
-    if (possible_reference_browser and
-        decorators.IsEnabled(benchmark_class, possible_reference_browser)):
-      output['steps'][base_name + '.reference'] = {
-        'cmd': ' '.join(base_cmd + [
-              '--browser=reference', '--output-trace-tag=_ref']),
-        'device_affinity': device_affinity,
-        'perf_dashboard_id': perf_dashboard_id,
-      }
+    if possible_reference_browser:
+      enabled, _ = decorators.IsEnabled(
+          benchmark_class, possible_reference_browser)
+      if enabled:
+        output['steps'][base_name + '.reference'] = {
+          'cmd': ' '.join(base_cmd + [
+                '--browser=reference', '--output-trace-tag=_ref']),
+          'device_affinity': device_affinity,
+          'perf_dashboard_id': perf_dashboard_id,
+        }
 
   return json.dumps(output, indent=2, sort_keys=True)
 

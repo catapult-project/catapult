@@ -55,8 +55,10 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
     finder_options.browser_options.browser_type = (
         possible_browser.browser_type)
 
-    if (not decorators.IsEnabled(test, possible_browser) and
+    (enabled, msg) = decorators.IsEnabled(test, possible_browser)
+    if (not enabled and
         not finder_options.run_disabled_tests):
+      logging.warning(msg)
       logging.warning('You are trying to run a disabled test.')
       logging.warning('Pass --also-run-disabled-tests to squelch this message.')
       sys.exit(0)

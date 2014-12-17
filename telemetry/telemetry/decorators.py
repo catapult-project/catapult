@@ -84,7 +84,7 @@ def Enabled(*args):
       func(*args, **kwargs)
     wrapper._enabled_strings = enabled_strings
     return wrapper
-  assert args and not callable(args[0]), '@Enabled requires argumentas'
+  assert args and not callable(args[0]), '@Enabled requires arguments'
   enabled_strings = list(args)
   for enabled_string in enabled_strings:
     # TODO(tonyg): Validate that these strings are recognized.
@@ -127,8 +127,8 @@ def IsEnabled(test, possible_browser):
           _enabled_strings attributes.
     possible_browser: A PossibleBrowser to check whether |test| may run against.
   """
-  should_skip, _ = ShouldSkip(test, possible_browser)
-  return not should_skip
+  should_skip, msg = ShouldSkip(test, possible_browser)
+  return (not should_skip, msg)
 
 def ShouldSkip(test, possible_browser):
   """Returns whether the test should be skipped and the reason for it."""
