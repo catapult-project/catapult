@@ -125,11 +125,17 @@ def send_500(self, msg, ex, log_error=True, path=None):
     <html>
     <body>
     <h1>OMG something is wrong</h1>
-    <b><pre><code>%s</code></pre></b></p>
-    <pre><code>%s</code></pre>
+    <b><pre><code id="message"></code></pre></b></p>
+    <pre><code id="details"></code></pre>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelector('#details').textContent = %s;
+      document.querySelector('#message').textContent = %s;
+      });
+    </script>
     </body>
     </html>
-""" % (ex.message, traceback.format_exc())
+""" % (json.dumps(traceback.format_exc()), json.dumps(ex.message))
     ctype = 'text/html'
   else:
     msg = json.dumps({"details": traceback.format_exc(),
