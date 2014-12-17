@@ -263,14 +263,5 @@ class ParseTests(unittest.TestCase):
     self.assertEquals('</h2>', module.inline_scripts[0].contents)
 
 
-
-  def test_tvcm_parse(self):
-    basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    tvcm_html_file = os.path.join(basedir, 'src', 'tvcm.html')
-    with open(tvcm_html_file, 'r') as f:
-      tvcm_contents = f.read()
-    parser = parse_html_deps.HTMLModuleParser()
-    parser.Parse(tvcm_contents)
-
 if __name__ == '__main__':
   unittest.main()

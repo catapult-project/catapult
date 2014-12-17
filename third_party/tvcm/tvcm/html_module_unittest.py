@@ -76,7 +76,8 @@ class ParseTests(unittest.TestCase):
       html_module.Parse(FakeLoader(["/tmp"], file_contents),
                         "a.b.start",
                         "/tmp/a/b/",
-                        parse_results)
+                        is_component=False,
+                        parser_results=parse_results)
     self.assertRaises(Exception, DoIt)
 
   def testValidExternalScriptReferenceToRawScript(self):
@@ -92,7 +93,8 @@ class ParseTests(unittest.TestCase):
     metadata = html_module.Parse(FakeLoader(["/tmp"], file_contents),
                                  "a.b.start",
                                  "/tmp/a/b/",
-                                 parse_results)
+                                 is_component=False,
+                                 parser_results=parse_results)
     self.assertEquals([], metadata.dependent_module_names)
     self.assertEquals(['a/foo.js'], metadata.dependent_raw_script_relative_paths)
 
@@ -109,7 +111,8 @@ class ParseTests(unittest.TestCase):
       html_module.Parse(FakeLoader(["/tmp"], file_contents),
                         "a.b.start",
                         "/tmp/a/b/",
-                        parse_results)
+                        is_component=False,
+                        parser_results=parse_results)
     self.assertRaises(Exception, DoIt)
 
   def testExternalScriptReferenceToFileThatDoesntExist(self):
@@ -123,7 +126,8 @@ class ParseTests(unittest.TestCase):
       html_module.Parse(FakeLoader(["/tmp"], file_contents),
                         "a.b.start",
                         "/tmp/a/b/",
-                        parse_results)
+                        is_component=False,
+                        parser_results=parse_results)
     self.assertRaises(Exception, DoIt)
 
   def testInlineScriptWithoutStrictNote(self):
@@ -138,7 +142,8 @@ console.log('Logging without strict mode is no fun.');
       metadata = html_module.Parse(FakeLoader(["/tmp"], file_contents),
                                    "a.b.start",
                                    "/tmp/a/b/",
-                                   parse_results)
+                                   is_component=False,
+                                   parser_results=parse_results)
     self.assertRaises(Exception, DoIt)
 
   def testValidImportOfModule(self):
@@ -153,7 +158,8 @@ console.log('Logging without strict mode is no fun.');
     metadata = html_module.Parse(FakeLoader(["/tmp"], file_contents),
                                  "a.b.start",
                                  "/tmp/a/b/",
-                                 parse_results)
+                                 is_component=False,
+                                 parser_results=parse_results)
     self.assertEquals(['a.foo'], metadata.dependent_module_names)
 
   def testStyleSheetImport(self):
@@ -167,7 +173,8 @@ console.log('Logging without strict mode is no fun.');
     metadata = html_module.Parse(FakeLoader(["/tmp"], file_contents),
                                  "a.b.start",
                                  "/tmp/a/b/",
-                                 parse_results)
+                                 is_component=False,
+                                 parser_results=parse_results)
     self.assertEquals([], metadata.dependent_module_names)
     self.assertEquals(['a.foo'], metadata.style_sheet_names)
 
@@ -182,7 +189,8 @@ console.log('Logging without strict mode is no fun.');
     metadata = html_module.Parse(FakeLoader(["/tmp", "/src"], file_contents),
                                  "a.b.start",
                                  "/tmp/a/b/",
-                                 parse_results)
+                                 is_component=False,
+                                 parser_results=parse_results)
     self.assertEquals(['foo.js'], metadata.dependent_raw_script_relative_paths)
 
 
@@ -220,7 +228,7 @@ console.log('inline script for widget.html');
     file_contents['/raw/raw_script.js'] = """
 console.log('/raw/raw_script.js was written');
 """
-    file_contents['/raw/polymer.js'] = """
+    file_contents['/raw/components/polymer/polymer.js'] = """
 """
 
     with fake_fs.FakeFS(file_contents):
