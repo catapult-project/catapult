@@ -6,7 +6,8 @@ import logging
 import tempfile
 
 from telemetry import decorators
-from telemetry.core import bitmap
+from telemetry.image_processing import image_util
+from telemetry.image_processing import rgba_color
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import video
@@ -111,8 +112,8 @@ class TabTest(tab_test_case.TabTestCase):
     options.enable_chrome_trace = True
     self._browser.platform.tracing_controller.Start(
         options, tracing_category_filter.CreateNoOverheadFilter())
-    self._tab.Highlight(bitmap.WEB_PAGE_TEST_ORANGE)
-    self._tab.ClearHighlight(bitmap.WEB_PAGE_TEST_ORANGE)
+    self._tab.Highlight(rgba_color.WEB_PAGE_TEST_ORANGE)
+    self._tab.ClearHighlight(rgba_color.WEB_PAGE_TEST_ORANGE)
     trace_data = self._browser.platform.tracing_controller.Stop()
     timeline_model = model.TimelineModel(trace_data)
     renderer_thread = timeline_model.GetRendererThreadFromTabId(
@@ -187,10 +188,13 @@ class GpuTabTest(tab_test_case.TabTestCase):
     pixel_ratio = self._tab.EvaluateJavaScript('window.devicePixelRatio || 1')
 
     screenshot = self._tab.Screenshot(5)
-    assert screenshot
-    screenshot.GetPixelColor(0 * pixel_ratio, 0 * pixel_ratio).AssertIsRGB(
-        0, 255, 0, tolerance=2)
-    screenshot.GetPixelColor(31 * pixel_ratio, 31 * pixel_ratio).AssertIsRGB(
-        0, 255, 0, tolerance=2)
-    screenshot.GetPixelColor(32 * pixel_ratio, 32 * pixel_ratio).AssertIsRGB(
-        255, 255, 255, tolerance=2)
+    assert screenshot is not None
+    image_util.GetPixelColor(
+        screenshot, 0 * pixel_ratio, 0 * pixel_ratio).AssertIsRGB(
+            0, 255, 0, tolerance=2)
+    image_util.GetPixelColor(
+        screenshot, 31 * pixel_ratio, 31 * pixel_ratio).AssertIsRGB(
+            0, 255, 0, tolerance=2)
+    image_util.GetPixelColor(
+        screenshot, 32 * pixel_ratio, 32 * pixel_ratio).AssertIsRGB(
+            255, 255, 255, tolerance=2)
