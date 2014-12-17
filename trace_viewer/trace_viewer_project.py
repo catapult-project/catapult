@@ -37,7 +37,7 @@ class TraceViewerProject(project_module.Project):
       trace_viewer_third_party_path, 'jszip'))
 
   glmatrix_path = os.path.abspath(os.path.join(
-      trace_viewer_third_party_path, 'gl-matrix', 'src'))
+      trace_viewer_third_party_path, 'gl-matrix', 'dist'))
 
   d3_path = os.path.abspath(os.path.join(
       trace_viewer_third_party_path, 'd3'))
