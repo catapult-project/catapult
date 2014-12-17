@@ -113,7 +113,7 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
     started_browser = not self.browser
     self._PrepareWpr(self.platform.network_controller,
                      page_set.WprFilePathForUserStory(page),
-                     page_set.make_javascript_deterministic)
+                     page.make_javascript_deterministic)
     if self.browser:
       # Set new credential path for browser.
       self.browser.credentials.credentials_path = page.credentials_path

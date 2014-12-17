@@ -21,8 +21,7 @@ class PageSetError(Exception):
 
 class PageSet(user_story_set.UserStorySet):
   def __init__(self, file_path=None, archive_data_file='', user_agent_type=None,
-               make_javascript_deterministic=True, serving_dirs=None,
-               bucket=None):
+               serving_dirs=None, bucket=None):
     # The default value of file_path is location of the file that define this
     # page set instance's class.
     # TODO(chrishenry): Move this logic to user_story_set. Consider passing
@@ -41,7 +40,6 @@ class PageSet(user_story_set.UserStorySet):
 
     # These attributes can be set dynamically by the page set.
     self.user_agent_type = user_agent_type
-    self.make_javascript_deterministic = make_javascript_deterministic
 
   @property
   def pages(self):

@@ -24,12 +24,14 @@ def _UpdateCredentials(credentials_path):
 
 class Page(user_story.UserStory):
   def __init__(self, url, page_set=None, base_dir=None, name='',
-               credentials_path=None, labels=None, startup_url=''):
+               credentials_path=None, labels=None, startup_url='',
+               make_javascript_deterministic=True):
     self._url = url
 
     super(Page, self).__init__(
         shared_page_state.SharedPageState, name=name, labels=labels,
-        is_local=self._scheme in ['file', 'chrome', 'about'])
+        is_local=self._scheme in ['file', 'chrome', 'about'],
+        make_javascript_deterministic=make_javascript_deterministic)
 
     self._page_set = page_set
     # Default value of base_dir is the directory of the file that defines the

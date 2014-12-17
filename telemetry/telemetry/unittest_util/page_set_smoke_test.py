@@ -100,10 +100,6 @@ class PageSetSmokeTest(unittest.TestCase):
           isinstance(page_set.user_agent_type, str),
           msg='page_set\'s user_agent_type must have type string')
 
-    self.assertTrue(
-        isinstance(page_set.make_javascript_deterministic, bool),
-        msg='page_set\'s make_javascript_deterministic must have type bool')
-
   def CheckAttributesOfPageBasicAttributes(self, page):
     self.assertTrue(not hasattr(page, 'disabled'))
     self.assertTrue(
@@ -123,6 +119,10 @@ class PageSetSmokeTest(unittest.TestCase):
         isinstance(page.startup_url, str),
         msg=('page %s \'s startup_url field must have type string'
             % page.display_name))
+    self.assertIsInstance(
+        page.make_javascript_deterministic, bool,
+        msg='page %s \'s make_javascript_deterministic must have type bool'
+            % page.display_name)
     for l in page.labels:
       self.assertTrue(
          isinstance(l, str),

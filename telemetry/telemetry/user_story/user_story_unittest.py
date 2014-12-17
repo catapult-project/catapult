@@ -48,3 +48,15 @@ class UserStoryTest(unittest.TestCase):
     u_dict = u.AsDict()
     self.assertEquals(u_dict['id'], u.id)
     self.assertEquals('Foo', u_dict['name'])
+
+  def testMakeJavaScriptDeterministic(self):
+    u = user_story.UserStory(SharedUserStoryStateBar)
+    self.assertTrue(u.make_javascript_deterministic)
+
+    u = user_story.UserStory(
+        SharedUserStoryStateBar, make_javascript_deterministic=False)
+    self.assertFalse(u.make_javascript_deterministic)
+
+    u = user_story.UserStory(
+        SharedUserStoryStateBar, make_javascript_deterministic=True)
+    self.assertTrue(u.make_javascript_deterministic)
