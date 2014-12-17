@@ -123,7 +123,9 @@ def GenerateStandaloneHTMLToFile(output_file,
 <html>
   <head i18n-values="dir:textdirection;">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>%s</title>
+  """)
+  if title:
+    output_file.write("""  <title>%s</title>
 """ % title)
 
   loader = load_sequence[0].loader
