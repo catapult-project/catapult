@@ -60,3 +60,8 @@ class SharedPageStateTests(unittest.TestCase):
 
   def testUseLiveSitesFlagUnset(self):
     self.TestUseLiveSitesFlag(expected_wpr_mode=wpr_modes.WPR_REPLAY)
+
+  def testConstructorCallsSetOptions(self):
+    test = DummyTest()
+    shared_page_state.SharedPageState(test, self.options, page_set.PageSet())
+    self.assertEqual(test.options, self.options)

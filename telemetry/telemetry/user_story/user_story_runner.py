@@ -230,7 +230,6 @@ def Run(test, user_story_set, expectations, finder_options, results,
       user_stories)
   user_story_with_discarded_first_results = set()
 
-  test.WillRunTest(finder_options)
   for group in user_story_groups:
     state = None
     try:

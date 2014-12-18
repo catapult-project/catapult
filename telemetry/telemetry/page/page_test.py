@@ -160,8 +160,8 @@ class PageTest(object):
       return hasattr(page, self._action_name_to_run)
     return True
 
-  def WillRunTest(self, options):
-    """Override to do operations before the page set(s) are navigated."""
+  def SetOptions(self, options):
+    """Sets the BrowserFinderOptions instance to use."""
     self.options = options
 
   def DidRunTest(self, browser, results): # pylint: disable=W0613

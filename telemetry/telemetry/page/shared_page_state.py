@@ -47,6 +47,8 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
     self._current_page = None
     self._current_tab = None
 
+    self._test.SetOptions(self._finder_options)
+
   def _GetPossibleBrowser(self, test, finder_options):
     ''' Return a possible_browser with the given options. '''
     possible_browser = browser_finder.FindBrowser(finder_options)
