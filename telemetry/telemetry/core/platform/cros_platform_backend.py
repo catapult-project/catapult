@@ -37,6 +37,8 @@ class CrosPlatformBackend(
     raise NotImplementedError()
 
   def RunCommand(self, args):
+    if not isinstance(args, list):
+      args = [args]
     stdout, stderr = self._cri.RunCmdOnDevice(args)
     if stderr:
       raise RuntimeError(stderr)

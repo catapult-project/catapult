@@ -99,6 +99,13 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
     raise NotImplementedError()
 
   def RunCommand(self, cmd):
+    """Runs the specified command.
+
+    Args:
+        cmd: A list of program arguments or the path string of the program.
+    Returns:
+        A string whose content is the output of the command.
+    """
     raise NotImplementedError()
 
   @staticmethod
