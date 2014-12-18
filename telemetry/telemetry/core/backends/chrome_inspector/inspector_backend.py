@@ -7,6 +7,7 @@ import os
 import sys
 
 from telemetry import decorators
+from telemetry.core import bitmap
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends.chrome_inspector import inspector_console
@@ -18,7 +19,6 @@ from telemetry.core.backends.chrome_inspector import inspector_timeline
 from telemetry.core.backends.chrome_inspector import inspector_websocket
 from telemetry.core.backends.chrome_inspector import websocket
 from telemetry.core.heap import model
-from telemetry.image_processing import image_util
 from telemetry.timeline import model as timeline_model
 from telemetry.timeline import recording_options
 
@@ -128,7 +128,7 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
       })()
     """)
     if snap:
-      return image_util.FromBase64Png(snap['data'])
+      return bitmap.Bitmap.FromBase64Png(snap['data'])
     return None
 
   # Console public methods.

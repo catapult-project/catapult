@@ -4,12 +4,11 @@
 
 import subprocess
 
+from telemetry.core import bitmap
 from telemetry.core import platform
-from telemetry.image_processing import image_util
-from telemetry.image_processing import rgba_color
 from telemetry.util import cloud_storage
 
-HIGHLIGHT_ORANGE_FRAME = rgba_color.WEB_PAGE_TEST_ORANGE
+HIGHLIGHT_ORANGE_FRAME = bitmap.WEB_PAGE_TEST_ORANGE
 
 class BoundingBoxNotFoundException(Exception):
   pass
@@ -39,11 +38,10 @@ class Video(object):
     tab content boundaries and then omits all frames displaying the flash.
 
     Yields:
-      (time_ms, image) tuples representing each video keyframe. Only the first
-      frame is a run of sequential duplicate bitmaps is typically included.
+      (time_ms, bitmap) tuples representing each video keyframe. Only the first
+      frame in a run of sequential duplicate bitmaps is typically included.
         time_ms is milliseconds since navigationStart.
-        image may be a telemetry.core.Bitmap, or a numpy array depending on
-        whether numpy is installed.
+        bitmap is a telemetry.core.Bitmap.
     """
     frame_generator = self._FramesFromMp4(self._video_file_obj.name)
 
@@ -168,4 +166,4 @@ class Video(object):
         raise StopIteration
       assert num_read == len(frame_data), 'Unexpected frame size: %d' % num_read
       yield (GetFrameTimestampMs(proc.stderr),
-             image_util.FromRGBPixels(dimensions[0], dimensions[1], frame_data))
+             bitmap.Bitmap(3, dimensions[0], dimensions[1], frame_data))
