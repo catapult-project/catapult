@@ -9,11 +9,13 @@ from telemetry import decorators
 from telemetry.core import browser_finder
 from telemetry.core import browser_finder_exceptions
 from telemetry.core import browser_info
+from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
 from telemetry.page import page_test
 from telemetry.user_story import shared_user_story_state
+from telemetry.util import exception_formatter
 from telemetry.util import file_handle
 from telemetry.value import skip
 
@@ -172,7 +174,7 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
       # Must wait for tab to commit otherwise it can commit after the next
       # navigation has begun and RenderFrameHostManager::DidNavigateMainFrame()
       # will cancel the next navigation because it's pending. This manifests as
-      # the first navigation in a PageSet freezing indefinitly because the
+      # the first navigation in a PageSet freezing indefinitely because the
       # navigation was silently cancelled when |self.browser.tabs[0]| was
       # committed. Only do this when we just started the browser, otherwise
       # there are cases where previous pages in a PageSet never complete
@@ -227,13 +229,21 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
     self._test.DidNavigateToPage(self._current_page, self._current_tab)
 
   def RunUserStory(self, results):
-    self._PreparePage()
-    self._ImplicitPageNavigation()
-    self._test.RunPage(self._current_page, self._current_tab, results)
+    try:
+      self._PreparePage()
+      self._ImplicitPageNavigation()
+      self._test.RunPage(self._current_page, self._current_tab, results)
+    except exceptions.AppCrashException:
+      if self._test.is_multi_tab_test:
+        # Avoid trying to recover from an unknown multi-tab state.
+        exception_formatter.PrintFormattedException(
+            msg='AppCrashException during multi tab test:')
+        raise page_test.MultiTabTestAppCrashError
+      raise
 
   def TearDownState(self, results):
     # NOTE: this is a HACK to get user_story_runner to be generic enough for any
-    # user_story while maintaing existing usecases of page tests. Other
+    # user_story while maintaining existing use cases of page tests. Other
     # SharedUserStory should not call DidRunTest this way.
     self._test.DidRunTest(self.browser, results)
     self._StopBrowser()

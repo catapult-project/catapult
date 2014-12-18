@@ -14,6 +14,13 @@ class TestNotSupportedOnPlatformError(Exception):
   """
 
 
+class MultiTabTestAppCrashError(Exception):
+  """PageTest Exception raised after browser or tab crash for multi-tab tests.
+
+  Used to abort the test rather than try to recover from an unknown state.
+  """
+
+
 class Failure(Exception):
   """PageTest Exception raised when an undesired but designed-for problem."""
 
@@ -68,15 +75,17 @@ class PageTest(object):
     self._clear_cache_before_each_run = clear_cache_before_each_run
     self._close_tabs_before_run = True
     self._is_action_name_to_run_optional = is_action_name_to_run_optional
-    # If the test overrides the TabForPage method, it is considered a multi-tab
-    # test.  The main difference between this and a single-tab test is that we
-    # do not attempt recovery for the former if a tab or the browser crashes,
-    # because we don't know the current state of tabs (how many are open, etc.)
-    self.is_multi_tab_test = (self.__class__ is not PageTest and
-                              self.TabForPage.__func__ is not
-                              self.__class__.__bases__[0].TabForPage.__func__)
-    # _exit_requested is set to true when the test requests an early exit.
-    self._exit_requested = False
+
+  @property
+  def is_multi_tab_test(self):
+    """Returns True if the test opens multiple tabs.
+
+    If the test overrides TabForPage, it is deemed a multi-tab test.
+    Multi-tab tests do not retry after tab or browser crashes, whereas,
+    single-tab tests too. That is because the state of multi-tab tests
+    (e.g., how many tabs are open, etc.) is unknown after crashes.
+    """
+    return self.TabForPage.__func__ is not PageTest.TabForPage.__func__
 
   @property
   def discard_first_result(self):
@@ -249,12 +258,6 @@ class PageTest(object):
     action_runner = action_runner_module.ActionRunner(
         tab, skip_waits=page.skip_waits)
     page.RunNavigateSteps(action_runner)
-
-  def IsExiting(self):
-    return self._exit_requested
-
-  def RequestExit(self):
-    self._exit_requested = True
 
   @property
   def action_name_to_run(self):

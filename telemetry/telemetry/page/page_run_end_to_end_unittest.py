@@ -249,18 +249,37 @@ class PageRunEndToEndTests(unittest.TestCase):
     ps.pages.append(page)
 
     class TestOneTab(page_test.PageTest):
-      def __init__(self):
-        super(TestOneTab, self).__init__()
-        self._browser = None
-
       def DidStartBrowser(self, browser):
-        self._browser = browser
-        self._browser.tabs.New()
+        browser.tabs.New()
 
-      def ValidateAndMeasurePage(self, *_):
-        assert len(self._browser.tabs) == 1
+      def ValidateAndMeasurePage(self, _, tab, __):
+        assert len(tab.browser.tabs) == 1
 
     test = TestOneTab()
+    options = options_for_unittests.GetCopy()
+    options.output_formats = ['none']
+    options.suppress_gtest_report = True
+    SetUpUserStoryRunnerArguments(options)
+    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    user_story_runner.Run(test, ps, expectations, options, results)
+
+  # Ensure that user_story_runner allows >1 tab for multi-tab test.
+  @decorators.Enabled('has tabs')
+  def testMultipleTabsOkayForMultiTabTest(self):
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    page = page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
+    ps.AddUserStory(page)
+
+    class TestMultiTabs(page_test.PageTest):
+      def TabForPage(self, _, browser):
+        return browser.tabs.New()
+
+      def ValidateAndMeasurePage(self, _, tab, __):
+        assert len(tab.browser.tabs) == 2
+
+    test = TestMultiTabs()
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
@@ -434,3 +453,48 @@ class PageRunEndToEndTests(unittest.TestCase):
           os.path.join(options.output_dir, 'blank_html.json')))
     finally:
       shutil.rmtree(options.output_dir)
+
+  def _RunPageTestThatRaisesAppCrashException(self, test, max_failures):
+    self.SuppressExceptionFormatting()
+    class TestPage(page_module.Page):
+      def RunNavigateSteps(self, _):
+        raise exceptions.AppCrashException
+
+    ps = page_set.PageSet()
+    for _ in range(5):
+      ps.AddUserStory(
+          TestPage('file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+    expectations = test_expectations.TestExpectations()
+    options = options_for_unittests.GetCopy()
+    options.output_formats = ['none']
+    options.suppress_gtest_report = True
+    SetUpUserStoryRunnerArguments(options)
+    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    user_story_runner.Run(test, ps, expectations, options, results,
+                          max_failures=max_failures)
+    return results
+
+  def testSingleTabMeansCrashWillCauseFailureValue(self):
+    class SingleTabTest(page_test.PageTest):
+      # Test is not multi-tab because it does not override TabForPage.
+      def ValidateAndMeasurePage(self, *_):
+        pass
+
+    test = SingleTabTest()
+    results = self._RunPageTestThatRaisesAppCrashException(test, max_failures=1)
+    self.assertEquals([], GetSuccessfulPageRuns(results))
+    self.assertEquals(2, len(results.failures))  # max_failures + 1
+
+  @decorators.Enabled('has tabs')
+  def testMultipleTabsMeansCrashRaises(self):
+    class MultipleTabsTest(page_test.PageTest):
+      # Test *is* multi-tab because it overrides TabForPage.
+      def TabForPage(self, page, browser):
+        return browser.tabs.New()
+      def ValidateAndMeasurePage(self, *_):
+        pass
+
+    test = MultipleTabsTest()
+    with self.assertRaises(page_test.MultiTabTestAppCrashError):
+      self._RunPageTestThatRaisesAppCrashException(test, max_failures=1)
+
