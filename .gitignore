@@ -5,4 +5,4 @@
 *~
 .project
 .settings
-bin/trace_viewer_*.html
+bin/trace_viewer*.html
