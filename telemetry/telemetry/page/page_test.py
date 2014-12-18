@@ -40,8 +40,6 @@ class PageTest(object):
         subclasses to run.
     discard_first_run: Discard the first run of this page. This is
         usually used with page_repeat and pageset_repeat options.
-    max_failures: The number of page failures allowed before we stop
-        running other pages.
     is_action_name_to_run_optional: Determines what to do if
         action_name_to_run is not empty but the page doesn't have that
         action. The page will run (without any action) if
@@ -54,7 +52,6 @@ class PageTest(object):
                needs_browser_restart_after_each_page=False,
                discard_first_result=False,
                clear_cache_before_each_run=False,
-               max_failures=None,
                is_action_name_to_run_optional=False):
     super(PageTest, self).__init__()
 
@@ -70,7 +67,6 @@ class PageTest(object):
     self._discard_first_result = discard_first_result
     self._clear_cache_before_each_run = clear_cache_before_each_run
     self._close_tabs_before_run = True
-    self._max_failures = max_failures
     self._is_action_name_to_run_optional = is_action_name_to_run_optional
     # If the test overrides the TabForPage method, it is considered a multi-tab
     # test.  The main difference between this and a single-tab test is that we
@@ -108,15 +104,6 @@ class PageTest(object):
   @close_tabs_before_run.setter
   def close_tabs_before_run(self, close_tabs):
     self._close_tabs_before_run = close_tabs
-
-  @property
-  def max_failures(self):
-    """Maximum number of failures allowed for the page set."""
-    return self._max_failures
-
-  @max_failures.setter
-  def max_failures(self, count):
-    self._max_failures = count
 
   def RestartBrowserBeforeEachPage(self):
     """ Should the browser be restarted for the page?

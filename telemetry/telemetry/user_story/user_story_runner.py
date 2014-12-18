@@ -192,7 +192,8 @@ def GetUserStoryGroupsWithSameSharedUserStoryClass(user_story_set):
   return user_story_groups
 
 
-def Run(test, user_story_set, expectations, finder_options, results):
+def Run(test, user_story_set, expectations, finder_options, results,
+        max_failures=None):
   """Runs a given test against a given page_set with the given options.
 
   Stop execution for unexpected exceptions such as KeyboardInterrupt.
@@ -224,12 +225,14 @@ def Run(test, user_story_set, expectations, finder_options, results):
   if not user_stories:
     return
 
-  user_story_with_discarded_first_results = set()
-  max_failures = finder_options.max_failures  # command-line gets priority
-  if max_failures is None:
-    max_failures = test.max_failures  # may be None
+  # Effective max failures gives priority to command-line flag value.
+  effective_max_failures = finder_options.max_failures
+  if effective_max_failures is None:
+    effective_max_failures = max_failures
+
   user_story_groups = GetUserStoryGroupsWithSameSharedUserStoryClass(
       user_stories)
+  user_story_with_discarded_first_results = set()
 
   test.WillRunTest(finder_options)
   for group in user_story_groups:
@@ -277,7 +280,8 @@ def Run(test, user_story_set, expectations, finder_options, results):
                 # Print current exception and propagate existing exception.
                 exception_formatter.PrintFormattedException(
                     msg='Exception from result processing:')
-          if max_failures is not None and len(results.failures) > max_failures:
+          if (effective_max_failures is not None and
+              len(results.failures) > effective_max_failures):
             logging.error('Too many failures. Aborting.')
             test.RequestExit()
     finally:

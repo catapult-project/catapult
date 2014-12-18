@@ -45,6 +45,15 @@ class Benchmark(command_line.Command):
   """
   options = {}
 
+  def __init__(self, max_failures=None):
+    """Creates a new Benchmark.
+
+    Args:
+      max_failures: The number of user story run's failures before bailing
+          from executing subsequent page runs. If None, we never bail.
+    """
+    self._max_failures = max_failures
+
   @classmethod
   def Name(cls):
     name = cls.__module__.split('.')[-1]
@@ -108,7 +117,8 @@ class Benchmark(command_line.Command):
     benchmark_metadata = self.GetMetadata()
     results = results_options.CreateResults(benchmark_metadata, finder_options)
     try:
-      user_story_runner.Run(pt, us, expectations, finder_options, results)
+      user_story_runner.Run(pt, us, expectations, finder_options, results,
+                            max_failures=self._max_failures)
       return_code = min(254, len(results.failures))
     except Exception:
       exception_formatter.PrintFormattedException()

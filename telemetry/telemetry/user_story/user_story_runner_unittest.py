@@ -59,7 +59,6 @@ class TestSharedUserStoryState(shared_user_story_state.SharedUserStoryState):
   def RunUserStory(self, results):
     self._test.RunPage(self._current_user_story, None, results)
 
-
   def DidRunUserStory(self, results):
     pass
 
@@ -412,7 +411,7 @@ class UserStoryRunnerTest(unittest.TestCase):
   def testCheckArchives(self):
     uss = user_story_set.UserStorySet()
     uss.AddUserStory(page_module.Page(
-        'http://www.testurl.com', self, uss.base_dir))
+        'http://www.testurl.com', uss, uss.base_dir))
     # Page set missing archive_data_file.
     self.assertFalse(user_story_runner._CheckArchives(
         uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
@@ -420,7 +419,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     uss = user_story_set.UserStorySet(
         archive_data_file='missing_archive_data_file.json')
     uss.AddUserStory(page_module.Page(
-        'http://www.testurl.com', self, uss.base_dir))
+        'http://www.testurl.com', uss, uss.base_dir))
     # Page set missing json file specified in archive_data_file.
     self.assertFalse(user_story_runner._CheckArchives(
         uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
@@ -429,12 +428,12 @@ class UserStoryRunnerTest(unittest.TestCase):
         archive_data_file='../../unittest_data/test.json',
         cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
     uss.AddUserStory(page_module.Page(
-        'http://www.testurl.com', self, uss.base_dir))
+        'http://www.testurl.com', uss, uss.base_dir))
     # Page set with valid archive_data_file.
     self.assertTrue(user_story_runner._CheckArchives(
         uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
     uss.AddUserStory(page_module.Page(
-        'http://www.google.com', self, uss.base_dir))
+        'http://www.google.com', uss, uss.base_dir))
     # Page set with an archive_data_file which exists but is missing a page.
     self.assertFalse(user_story_runner._CheckArchives(
         uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
@@ -443,10 +442,91 @@ class UserStoryRunnerTest(unittest.TestCase):
         archive_data_file='../../unittest_data/test_missing_wpr_file.json',
         cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
     uss.AddUserStory(page_module.Page(
-        'http://www.testurl.com', self, uss.base_dir))
+        'http://www.testurl.com', uss, uss.base_dir))
     uss.AddUserStory(page_module.Page(
-        'http://www.google.com', self, uss.base_dir))
+        'http://www.google.com', uss, uss.base_dir))
     # Page set with an archive_data_file which exists and contains all pages
     # but fails to find a wpr file.
     self.assertFalse(user_story_runner._CheckArchives(
         uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
+
+
+  def _testMaxFailuresOptionIsRespectedAndOverridable(
+      self, num_failing_user_stories, runner_max_failures, options_max_failures,
+      expected_num_failures):
+    class SimpleSharedUserStoryState(
+        shared_user_story_state.SharedUserStoryState):
+      _fake_platform = FakePlatform()
+      _current_user_story = None
+
+      @property
+      def platform(self):
+        return self._fake_platform
+
+      def WillRunUserStory(self, story):
+        self._current_user_story = story
+
+      def RunUserStory(self, results):
+        self._current_user_story.Run()
+
+      def DidRunUserStory(self, results):
+        pass
+
+      def GetTestExpectationAndSkipValue(self, expectations):
+        return 'pass', None
+
+      def TearDownState(self, results):
+        pass
+
+    class FailingUserStory(user_story.UserStory):
+      def __init__(self):
+        super(FailingUserStory, self).__init__(
+            shared_user_story_state_class=SimpleSharedUserStoryState,
+            is_local=True)
+        self.was_run = False
+
+      def Run(self):
+        self.was_run = True
+        raise page_test.Failure
+
+    self.SuppressExceptionFormatting()
+
+    uss = user_story_set.UserStorySet()
+    for _ in range(num_failing_user_stories):
+      uss.AddUserStory(FailingUserStory())
+
+    options = _GetOptionForUnittest()
+    options.output_formats = ['none']
+    options.suppress_gtest_report = True
+    if options_max_failures:
+      options.max_failures = options_max_failures
+
+    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    user_story_runner.Run(
+        DummyTest(), uss, test_expectations.TestExpectations(), options,
+        results, max_failures=runner_max_failures)
+    self.assertEquals(0, GetNumberOfSuccessfulPageRuns(results))
+    self.assertEquals(expected_num_failures, len(results.failures))
+    for ii, story in enumerate(uss.user_stories):
+      self.assertEqual(story.was_run, ii < expected_num_failures)
+
+  def testMaxFailuresNotSpecified(self):
+    self._testMaxFailuresOptionIsRespectedAndOverridable(
+        num_failing_user_stories=5, runner_max_failures=None,
+        options_max_failures=None, expected_num_failures=5)
+
+  def testMaxFailuresSpecifiedToRun(self):
+    # Runs up to max_failures+1 failing tests before stopping, since
+    # every tests after max_failures failures have been encountered
+    # may all be passing.
+    self._testMaxFailuresOptionIsRespectedAndOverridable(
+        num_failing_user_stories=5, runner_max_failures=3,
+        options_max_failures=None, expected_num_failures=4)
+
+  def testMaxFailuresOption(self):
+    # Runs up to max_failures+1 failing tests before stopping, since
+    # every tests after max_failures failures have been encountered
+    # may all be passing.
+    self._testMaxFailuresOptionIsRespectedAndOverridable(
+        num_failing_user_stories=5, runner_max_failures=3,
+        options_max_failures=1, expected_num_failures=2)

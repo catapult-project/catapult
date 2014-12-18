@@ -405,55 +405,6 @@ class PageRunEndToEndTests(unittest.TestCase):
     self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
 
-  def _testMaxFailuresOptionIsRespectedAndOverridable(self, max_failures=None):
-    self.SuppressExceptionFormatting()
-    class TestPage(page_module.Page):
-      def __init__(self, *args, **kwargs):
-        super(TestPage, self).__init__(*args, **kwargs)
-        self.was_run = False
-
-      def RunNavigateSteps(self, action_runner): # pylint: disable=W0613
-        self.was_run = True
-        raise page_test.Failure
-
-    class Test(page_test.PageTest):
-      def ValidateAndMeasurePage(self, *args):
-        pass
-
-    ps = page_set.PageSet()
-    expectations = test_expectations.TestExpectations()
-    for ii in range(5):
-      ps.pages.append(TestPage(
-          'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
-
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    expected_max_failures = 2
-    if not max_failures is None:
-      options.max_failures = max_failures
-      expected_max_failures = max_failures
-    SetUpUserStoryRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(Test(max_failures=2),
-                    ps, expectations, options, results)
-    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
-    # Runs up to max_failures+1 failing tests before stopping, since
-    # every tests after max_failures failures have been encountered
-    # may all be passing.
-    self.assertEquals(expected_max_failures + 1, len(results.failures))
-    for ii in range(len(ps.pages)):
-      if ii <= expected_max_failures:
-        self.assertTrue(ps.pages[ii].was_run)
-      else:
-        self.assertFalse(ps.pages[ii].was_run)
-
-  def testMaxFailuresOptionIsRespected(self):
-    self._testMaxFailuresOptionIsRespectedAndOverridable()
-
-  def testMaxFailuresOptionIsOverridable(self):
-    self._testMaxFailuresOptionIsRespectedAndOverridable(1)
-
   def testRunPageWithProfilingFlag(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
