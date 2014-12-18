@@ -10,109 +10,17 @@ tools: crop, find bounding box of a color and compute histogram of color values.
 import array
 import base64
 import cStringIO
-import collections
 import struct
 import subprocess
 
 from telemetry.core import util
 from telemetry.core import platform
+from telemetry.image_processing import histogram
+from telemetry.image_processing import rgba_color
 from telemetry.util import support_binaries
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
 import png  # pylint: disable=F0401
-
-
-def HistogramDistance(hist1, hist2):
-  """Earth mover's distance.
-
-  http://en.wikipedia.org/wiki/Earth_mover's_distance
-  First, normalize the two histograms. Then, treat the two histograms as
-  piles of dirt, and calculate the cost of turning one pile into the other.
-
-  To do this, calculate the difference in one bucket between the two
-  histograms. Then carry it over in the calculation for the next bucket.
-  In this way, the difference is weighted by how far it has to move."""
-  if len(hist1) != len(hist2):
-    raise ValueError('Trying to compare histograms '
-      'of different sizes, %s != %s' % (len(hist1), len(hist2)))
-
-  n1 = sum(hist1)
-  n2 = sum(hist2)
-  if n1 == 0:
-    raise ValueError('First histogram has 0 pixels in it.')
-  if n2 == 0:
-    raise ValueError('Second histogram has 0 pixels in it.')
-
-  total = 0
-  remainder = 0
-  for value1, value2 in zip(hist1, hist2):
-    remainder += value1 * n2 - value2 * n1
-    total += abs(remainder)
-  assert remainder == 0, (
-      '%s pixel(s) left over after computing histogram distance.'
-      % abs(remainder))
-  return abs(float(total) / n1 / n2)
-
-
-class ColorHistogram(
-    collections.namedtuple('ColorHistogram', ['r', 'g', 'b', 'default_color'])):
-  # pylint: disable=W0232
-  # pylint: disable=E1002
-
-  def __new__(cls, r, g, b, default_color=None):
-    return super(ColorHistogram, cls).__new__(cls, r, g, b, default_color)
-
-  def Distance(self, other):
-    total = 0
-    for i in xrange(3):
-      hist1 = self[i]
-      hist2 = other[i]
-
-      if sum(self[i]) == 0:
-        if not self.default_color:
-          raise ValueError('Histogram has no data and no default color.')
-        hist1 = [0] * 256
-        hist1[self.default_color[i]] = 1
-      if sum(other[i]) == 0:
-        if not other.default_color:
-          raise ValueError('Histogram has no data and no default color.')
-        hist2 = [0] * 256
-        hist2[other.default_color[i]] = 1
-
-      total += HistogramDistance(hist1, hist2)
-    return total
-
-
-class RgbaColor(collections.namedtuple('RgbaColor', ['r', 'g', 'b', 'a'])):
-  """Encapsulates an RGBA color retreived from a Bitmap"""
-  # pylint: disable=W0232
-  # pylint: disable=E1002
-
-  def __new__(cls, r, g, b, a=255):
-    return super(RgbaColor, cls).__new__(cls, r, g, b, a)
-
-  def __int__(self):
-    return (self.r << 16) | (self.g << 8) | self.b
-
-  def IsEqual(self, expected_color, tolerance=0):
-    """Verifies that the color is within a given tolerance of
-    the expected color"""
-    r_diff = abs(self.r - expected_color.r)
-    g_diff = abs(self.g - expected_color.g)
-    b_diff = abs(self.b - expected_color.b)
-    a_diff = abs(self.a - expected_color.a)
-    return (r_diff <= tolerance and g_diff <= tolerance
-        and b_diff <= tolerance and a_diff <= tolerance)
-
-  def AssertIsRGB(self, r, g, b, tolerance=0):
-    assert self.IsEqual(RgbaColor(r, g, b), tolerance)
-
-  def AssertIsRGBA(self, r, g, b, a, tolerance=0):
-    assert self.IsEqual(RgbaColor(r, g, b, a), tolerance)
-
-
-WEB_PAGE_TEST_ORANGE = RgbaColor(222, 100, 13)
-WHITE = RgbaColor(255, 255, 255)
 
 
 class _BitmapTools(object):
@@ -164,7 +72,8 @@ class _BitmapTools(object):
     out.fromstring(response)
     assert len(out) == 768, (
         'The ColorHistogram has the wrong number of buckets: %s' % len(out))
-    return ColorHistogram(out[:256], out[256:512], out[512:], ignore_color)
+    return histogram.ColorHistogram(out[:256], out[256:512], out[512:],
+                                    ignore_color)
 
   def BoundingBox(self, color, tolerance):
     response = self._RunCommand(_BitmapTools.BOUNDING_BOX, int(color),
@@ -195,17 +104,14 @@ class Bitmap(object):
 
   @property
   def bpp(self):
-    """Bytes per pixel."""
     return self._bpp
 
   @property
   def width(self):
-    """Width of the bitmap."""
     return self._crop_box[2] if self._crop_box else self._width
 
   @property
   def height(self):
-    """Height of the bitmap."""
     return self._crop_box[3] if self._crop_box else self._height
 
   def _PrepareTools(self):
@@ -217,7 +123,6 @@ class Bitmap(object):
 
   @property
   def pixels(self):
-    """Flat pixel array of the bitmap."""
     if self._crop_box:
       self._pixels = self._PrepareTools().CropPixels()
       # pylint: disable=unpacking-non-sequence
@@ -235,18 +140,13 @@ class Bitmap(object):
     return self._metadata
 
   def GetPixelColor(self, x, y):
-    """Returns a RgbaColor for the pixel at (x, y)."""
     pixels = self.pixels
     base = self._bpp * (y * self._width + x)
     if self._bpp == 4:
-      return RgbaColor(pixels[base + 0], pixels[base + 1],
-                       pixels[base + 2], pixels[base + 3])
-    return RgbaColor(pixels[base + 0], pixels[base + 1],
-                     pixels[base + 2])
-
-  def WritePngFile(self, path):
-    with open(path, "wb") as f:
-      png.Writer(**self.metadata).write_array(f, self.pixels)
+      return rgba_color.RgbaColor(pixels[base + 0], pixels[base + 1],
+                                  pixels[base + 2], pixels[base + 3])
+    return rgba_color.RgbaColor(pixels[base + 0], pixels[base + 1],
+                                pixels[base + 2])
 
   @staticmethod
   def FromPng(png_data):
@@ -258,13 +158,11 @@ class Bitmap(object):
     with open(path, "rb") as f:
       return Bitmap.FromPng(f.read())
 
-  @staticmethod
-  def FromBase64Png(base64_png):
-    return Bitmap.FromPng(base64.b64decode(base64_png))
+  def WritePngFile(self, path):
+    with open(path, "wb") as f:
+      png.Writer(**self.metadata).write_array(f, self.pixels)
 
   def IsEqual(self, other, tolerance=0):
-    """Determines whether two Bitmaps are identical within a given tolerance."""
-
     # Dimensions must be equal
     if self.width != other.width or self.height != other.height:
       return False
@@ -283,9 +181,6 @@ class Bitmap(object):
     return True
 
   def Diff(self, other):
-    """Returns a new Bitmap that represents the difference between this image
-    and another Bitmap."""
-
     # Output dimensions will be the maximum of the two input dimensions
     out_width = max(self.width, other.width)
     out_height = max(self.height, other.height)
@@ -298,12 +193,12 @@ class Bitmap(object):
         if x < self.width and y < self.height:
           c0 = self.GetPixelColor(x, y)
         else:
-          c0 = RgbaColor(0, 0, 0, 0)
+          c0 = rgba_color.RgbaColor(0, 0, 0, 0)
 
         if x < other.width and y < other.height:
           c1 = other.GetPixelColor(x, y)
         else:
-          c1 = RgbaColor(0, 0, 0, 0)
+          c1 = rgba_color.RgbaColor(0, 0, 0, 0)
 
         offset = x * 3
         diff[y][offset] = abs(c0.r - c1.r)
@@ -323,13 +218,9 @@ class Bitmap(object):
     return diff
 
   def GetBoundingBox(self, color, tolerance=0):
-    """Finds the minimum box surrounding all occurences of |color|.
-    Returns: (top, left, width, height), match_count
-    Ignores the alpha channel."""
     return self._PrepareTools().BoundingBox(color, tolerance)
 
   def Crop(self, left, top, width, height):
-    """Crops the current bitmap down to the specified box."""
     cur_box = self._crop_box or (0, 0, self._width, self._height)
     cur_left, cur_top, cur_width, cur_height = cur_box
 
@@ -342,12 +233,4 @@ class Bitmap(object):
     return self
 
   def ColorHistogram(self, ignore_color=None, tolerance=0):
-    """Computes a histogram of the pixel colors in this Bitmap.
-    Args:
-      ignore_color: An RgbaColor to exclude from the bucket counts.
-      tolerance: A tolerance for the ignore_color.
-
-    Returns:
-      A ColorHistogram namedtuple with 256 integers in each field: r, g, and b.
-    """
     return self._PrepareTools().Histogram(ignore_color, tolerance)
