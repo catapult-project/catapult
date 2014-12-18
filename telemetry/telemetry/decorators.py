@@ -152,12 +152,13 @@ def ShouldSkip(test, possible_browser):
   if hasattr(test, '_disabled_strings'):
     disabled_strings = test._disabled_strings
     if not disabled_strings:
-      return True, ''  # No arguments to @Disabled means always disable.
+      return True, ('Skipping %s (%s) because it is unconditionally '
+                    'disabled.' % (name, str(test)))
     for disabled_string in disabled_strings:
       if disabled_string in platform_attributes:
         return (True,
-                'Skipping %s because it is disabled for %s. '
-                'You are running %s.' % (name,
+                'Skipping %s (%s) because it is disabled for %s. '
+                'You are running %s.' % (name, str(test),
                                          ' and '.join(disabled_strings),
                                          ' '.join(platform_attributes)))
 
@@ -169,8 +170,8 @@ def ShouldSkip(test, possible_browser):
       if enabled_string in platform_attributes:
         return False, None
       return (True,
-              'Skipping %s because it is only enabled for %s. '
-              'You are running %s.' % (name,
+              'Skipping %s (%s) because it is only enabled for %s. '
+              'You are running %s.' % (name, str(test),
                                        ' or '.join(enabled_strings),
                                        ' '.join(platform_attributes)))
     return False, None
