@@ -47,4 +47,4 @@ class VideoTest(unittest.TestCase):
       self.assertEquals(timestamp, expected_timestamps[i])
       expected_bitmap = image_util.FromPngFile(os.path.join(
           util.GetUnittestDataDir(), 'frame%d.png' % i))
-      self.assertTrue(expected_bitmap.IsEqual(bmp))
+      self.assertTrue(image_util.AreEqual(expected_bitmap, bmp))

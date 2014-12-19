@@ -63,12 +63,12 @@ class Video(object):
     timestamp = 0
     for timestamp, bmp in frame_generator:
       if not self._FindHighlightBoundingBox(bmp, HIGHLIGHT_ORANGE_FRAME):
-        yield 0, bmp.Crop(*content_box)
+        yield 0, image_util.Crop(bmp, *content_box)
         break
 
     start_time = timestamp
     for timestamp, bmp in frame_generator:
-      yield timestamp - start_time, bmp.Crop(*content_box)
+      yield timestamp - start_time, image_util.Crop(bmp, *content_box)
 
   def _FindHighlightBoundingBox(self, bmp, color, bounds_tolerance=8,
                                 color_tolerance=8):
@@ -77,7 +77,7 @@ class Video(object):
     Raises:
       BoundingBoxNotFoundException if the hightlight could not be found.
     """
-    content_box, pixel_count = bmp.GetBoundingBox(color,
+    content_box, pixel_count = image_util.GetBoundingBox(bmp, color,
         tolerance=color_tolerance)
 
     if not content_box:
