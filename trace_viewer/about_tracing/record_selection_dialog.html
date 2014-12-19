@@ -321,16 +321,16 @@ tv.exportTo('about_tracing', function() {
       this.currentlyChosenPreset_ = preset;
 
       if (this.currentlyChosenPreset_.length) {
-        this.updateEditCategoriesStatus_(false);
+        this.changeEditCategoriesState_(false);
       } else {
         this.updateCategoryColumnView_(true);
-        this.updateEditCategoriesStatus_(true);
+        this.changeEditCategoriesState_(true);
       }
-      this.updateManualCategorySelectionStatus_();
+      this.updateManualSelectionView_();
       this.updatePresetDescription_();
     },
 
-    updateManualCategorySelectionStatus_: function() {
+    updateManualSelectionView_: function() {
       var classList = this.categoriesView_.classList;
       if (!this.usingPreset_()) {
         classList.remove('categories-column-view-hidden');
@@ -367,13 +367,12 @@ tv.exportTo('about_tracing', function() {
         }
       }
 
-      this.updateEditCategoriesStatus_(!this.editCategoriesOpened_);
-      this.updateManualCategorySelectionStatus_();
-
+      this.changeEditCategoriesState_(!this.editCategoriesOpened_);
+      this.updateManualSelectionView_();
       this.recordButtonEl_.focus();
     },
 
-    updateEditCategoriesStatus_: function(editCategoriesState) {
+    changeEditCategoriesState_: function(editCategoriesState) {
       var presetOptionsGroup = this.querySelector('.labeled-option-group');
       if (!presetOptionsGroup)
         return;
@@ -549,6 +548,14 @@ tv.exportTo('about_tracing', function() {
     updateSetting_: function(e) {
       var checkbox = e.target;
       tv.Settings.set(checkbox.value, checkbox.checked, this.settings_key_);
+
+      // Change the current record mode to 'Manually select settings' from
+      // preset mode if and only if currently user is in preset record mode
+      // and user selects/deselects any category in 'Edit Categories' mode.
+      if (this.currentlyChosenPreset_.length) {
+        var categoryEl = document.getElementById('category-preset-Manually-select-settings');
+        categoryEl.checked = true;
+      }
     },
 
     createGroupSelectButtons_: function(parent) {
