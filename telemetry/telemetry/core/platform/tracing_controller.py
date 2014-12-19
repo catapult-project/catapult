@@ -35,6 +35,6 @@ class TracingController(object):
   def is_tracing_running(self):
     return self._tracing_controller_backend.is_tracing_running
 
-  def IsChromeTracingSupported(self, browser):
-    """Returns whether chrome tracing is supported on the given browser."""
-    return self._tracing_controller_backend.IsChromeTracingSupported(browser)
+  def IsChromeTracingSupported(self):
+    """Returns whether chrome tracing is supported."""
+    return self._tracing_controller_backend.IsChromeTracingSupported()

@@ -58,8 +58,9 @@ class TracingControllerBackend(object):
     assert num_instances == 1, (
         'Tracing only supports one browser instance (not %i).' % num_instances)
 
-  def IsChromeTracingSupported(self, browser):
-    browser_backend = self._platform_backend.GetBackendForBrowser(browser)
+  def IsChromeTracingSupported(self):
+    self._AssertOneBrowserBackend()
+    browser_backend = self.running_browser_backends[0]
     return browser_backend.supports_tracing
 
   @property

@@ -139,8 +139,7 @@ class TimelineBasedMeasurement(page_test.PageTest):
     self._overhead_level = overhead_level
 
   def WillNavigateToPage(self, page, tab):
-    if not tab.browser.platform.tracing_controller.IsChromeTracingSupported(
-        tab.browser):
+    if not tab.browser.platform.tracing_controller.IsChromeTracingSupported():
       raise Exception('Not supported')
 
     assert self._overhead_level in ALL_OVERHEAD_LEVELS

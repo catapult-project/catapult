@@ -115,7 +115,7 @@ class BrowserTest(browser_test_case.BrowserTestCase):
   @decorators.Disabled('chromeos') # crbug.com/412713.
   def testIsTracingRunning(self):
     tracing_controller = self._browser.platform.tracing_controller
-    if not tracing_controller.IsChromeTracingSupported(self._browser):
+    if not tracing_controller.IsChromeTracingSupported():
       return
     self.assertFalse(tracing_controller.is_tracing_running)
     options = tracing_options.TracingOptions()

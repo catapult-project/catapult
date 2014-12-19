@@ -129,14 +129,6 @@ class PlatformBackend(object):
 
     self._running_browser_backends.discard(browser_backend)
 
-  def GetBackendForBrowser(self, browser):
-    matches = [x for x in self._running_browser_backends
-               if x.browser == browser]
-    if len(matches) == 0:
-      raise Exception('No browser found')
-    assert len(matches) == 1
-    return matches[0]
-
   @property
   def wpr_http_device_port(self):
     return self._network_controller_backend.wpr_http_device_port

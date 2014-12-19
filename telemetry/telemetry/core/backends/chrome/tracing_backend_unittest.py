@@ -23,7 +23,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
   def setUp(self):
     super(TracingBackendTest, self).setUp()
     self._tracing_controller = self._browser.platform.tracing_controller
-    if not self._tracing_controller.IsChromeTracingSupported(self._browser):
+    if not self._tracing_controller.IsChromeTracingSupported():
       self.skipTest('Browser does not support tracing, skipping test.')
     self._StartServer()
 
