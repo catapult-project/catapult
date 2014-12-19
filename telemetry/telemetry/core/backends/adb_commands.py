@@ -66,9 +66,7 @@ class AdbCommands(object):
     return getattr(self._device.old_interface, name)
 
   def Forward(self, local, remote):
-    ret = self._device.old_interface.Adb().SendCommand(
-        'forward %s %s' % (local, remote))
-    assert ret == ''
+    self._device.adb.Forward(local, remote)
 
   def IsUserBuild(self):
     return self._device.GetProp('ro.build.type') == 'user'
