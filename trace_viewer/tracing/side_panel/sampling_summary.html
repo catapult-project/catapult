@@ -301,8 +301,7 @@ tv.exportTo('tracing', function() {
    * @constructor
    */
   var SamplingSummaryPanel =
-      tv.ui.define('x-sample-summary-panel',
-                     tracing.TimelineViewSidePanel);
+      tv.ui.define('x-sample-summary-panel', tracing.TimelineViewSidePanel);
   SamplingSummaryPanel.textLabel = 'Sampling Summary';
   SamplingSummaryPanel.supportsModel = function(m) {
     if (m == undefined) {
