@@ -5,8 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tracing/side_panel/timeline_view.css">
+<link rel="stylesheet" href="/tracing/side_panel/side_panel_container.css">
 <link rel="import" href="/base/range.html">
+<link rel="import" href="/tracing/side_panel/side_panel_registry.html">
 
 <script>
 'use strict';
@@ -15,45 +16,10 @@ tv.exportTo('tracing', function() {
   /**
    * @constructor
    */
-  var TimelineViewSidePanel = tv.ui.define('x-timeline-view-panel');
+  var SidePanelContainer = tv.ui.define(
+      'x-side-panel-container');
 
-  var panelConstructors = [];
-
-  TimelineViewSidePanel.getPanelConstructors = function() {
-    return panelConstructors;
-  };
-
-  TimelineViewSidePanel.registerPanelSubtype = function(panelConstructor) {
-    if (panelConstructor.supportsModel === undefined)
-      throw new Error('Panel constructors must provide a ' +
-                      'supportsModel function');
-    if (panelConstructor.textLabel === undefined)
-      throw new Error('Panel constructors must provide a ' +
-                      'textLabel strig');
-    panelConstructors.push(panelConstructor);
-  };
-
-  TimelineViewSidePanel.unregisterPanelSubtype = function(panelConstructor) {
-    var i = panelConstructors.indexOf(panelConstructor);
-    if (i == -1)
-      throw new Error('Panel not registered');
-    panelConstructors.splice(i, 1);
-  };
-
-  TimelineViewSidePanel.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
-
-    decorate: function() {
-    }
-  };
-
-  /**
-   * @constructor
-   */
-  var TimelineViewSidePanelContainer = tv.ui.define(
-      'x-timeline-view-side-panel-container');
-
-  TimelineViewSidePanelContainer.prototype = {
+  SidePanelContainer.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
@@ -135,7 +101,8 @@ tv.exportTo('tracing', function() {
       this.tabStrip_.textContent = '';
       var supportedPanelConstructors = [];
 
-      panelConstructors.forEach(function(panelConstructor) {
+      var constructors = tracing.SidePanelRegistry.getPanelConstructors();
+      constructors.forEach(function(panelConstructor) {
         var labelEl = document.createElement('tab-strip-label');
         labelEl.textContent = panelConstructor.textLabel;
         labelEl.panelConstructor = panelConstructor;
@@ -194,8 +161,7 @@ tv.exportTo('tracing', function() {
   };
 
   return {
-    TimelineViewSidePanel: TimelineViewSidePanel,
-    TimelineViewSidePanelContainer: TimelineViewSidePanelContainer
+    SidePanelContainer: SidePanelContainer
   };
 });
 </script>

@@ -19,7 +19,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/find_control.html">
 <link rel="import" href="/tracing/find_controller.html">
 <link rel="import" href="/tracing/timeline_track_view.html">
-<link rel="import" href="/tracing/side_panel/timeline_view.html">
+<link rel="import" href="/tracing/side_panel/side_panel_container.html">
 
 <template id="timeline-view-template">
   <div class="control">
@@ -29,7 +29,7 @@ found in the LICENSE file.
   </div>
   <middle-container>
     <track-view-container></track-view-container>
-    <x-timeline-view-side-panel-container></x-timeline-view-side-panel-container>
+    <x-side-panel-container></x-side-panel-container>
   </middle-container>
   <x-drag-handle></x-drag-handle>
   <tracing-analysis-view id="analysis"></tracing-analysis-view>
@@ -219,12 +219,12 @@ tv.exportTo('tracing', function() {
       this.titleEl_ = this.querySelector('.title');
       this.leftControlsEl_ = this.querySelector('#left-controls');
       this.rightControlsEl_ = this.querySelector('#right-controls');
-      this.timelineViewSidePanelContainer_ = this.querySelector(
-          'x-timeline-view-side-panel-container');
+      this.sidePanelContainer_ = this.querySelector(
+          'x-side-panel-container');
       this.trackViewContainer_ = this.querySelector('track-view-container');
 
-      tv.ui.decorate(this.timelineViewSidePanelContainer_,
-                       tracing.TimelineViewSidePanelContainer);
+      tv.ui.decorate(this.sidePanelContainer_,
+                       tracing.SidePanelContainer);
 
       this.findCtl_ = new TracingFindControl();
       this.findCtl_.controller = new tracing.FindController();
@@ -385,7 +385,7 @@ tv.exportTo('tracing', function() {
           this.trackView_ = undefined;
           this.findCtl_.controller.trackView = undefined;
         }
-        this.timelineViewSidePanelContainer_.model = undefined;
+        this.sidePanelContainer_.model = undefined;
       }
 
       // Create new trackView if needed.
@@ -404,7 +404,7 @@ tv.exportTo('tracing', function() {
       // Set the model.
       if (modelValid) {
         this.trackView_.model = model;
-        this.timelineViewSidePanelContainer_.model = model;
+        this.sidePanelContainer_.model = model;
         this.trackView_.viewport.showFlowEvents = this.showFlowEvents;
         this.clearSelectionHistory_();
       }
@@ -492,7 +492,7 @@ tv.exportTo('tracing', function() {
           new tracing.Selection();
       this.analysisEl_.selection = selection;
       this.trackViewContainer_.scrollTop = oldScrollTop;
-      this.timelineViewSidePanelContainer_.selection = selection;
+      this.sidePanelContainer_.selection = selection;
     },
 
     onRequestSelectionChange_: function(e) {
@@ -523,7 +523,7 @@ tv.exportTo('tracing', function() {
     },
 
     onViewportChanged_: function(e) {
-      var spc = this.timelineViewSidePanelContainer_;
+      var spc = this.sidePanelContainer_;
       if (!this.trackView_) {
         spc.rangeOfInterest.reset();
         return;

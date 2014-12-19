@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tracing', function() {
+  /**
+   * @constructor
+   */
+  var panelConstructors_ = [];
+  var SidePanelRegistry = {};
+
+  SidePanelRegistry.getPanelConstructors = function() {
+    return panelConstructors_;
+  };
+
+  SidePanelRegistry.registerPanel = function(panelConstructor) {
+    if (panelConstructor.supportsModel === undefined)
+      throw new Error(
+          'Panel constructor must provide a supportsModel function.');
+    if (panelConstructor.textLabel === undefined)
+      throw new Error(
+          'Panel constructor must provide a textLabel string.');
+    panelConstructors_.push(panelConstructor);
+  };
+
+  SidePanelRegistry.unregisterPanel = function(panelConstructor) {
+    var i = panelConstructors_.indexOf(panelConstructor);
+    if (i == -1)
+      throw new Error('Panel not registered.');
+    panelConstructors_.splice(i, 1);
+  };
+
+  return {
+    SidePanelRegistry: SidePanelRegistry,
+  };
+});
+</script>

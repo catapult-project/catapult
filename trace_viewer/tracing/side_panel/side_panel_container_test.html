@@ -5,20 +5,18 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/side_panel/timeline_view.html">
+<link rel="import" href="/tracing/side_panel/side_panel_registry.html">
+<link rel="import" href="/tracing/side_panel/side_panel_container.html">
 <link rel="import" href="/tracing/trace_model.html">
 
 <script>
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var TimelineViewSidePanel = tracing.TimelineViewSidePanel;
-  var TimelineViewSidePanelContainer = tracing.TimelineViewSidePanelContainer;
-
   /**
    * @constructor
    */
-  var Panel1 = tv.ui.define('panel-1', TimelineViewSidePanel);
+  var Panel1 = tv.ui.define('panel-1');
   Panel1.textLabel = 'Panel 1';
   Panel1.supportsModel = function(m) {
     return {
@@ -28,7 +26,7 @@ tv.unittest.testSuite(function() {
   };
 
   Panel1.prototype = {
-    __proto__: TimelineViewSidePanel.prototype,
+    __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
       this.textContent = 'I am panel 1';
@@ -38,7 +36,7 @@ tv.unittest.testSuite(function() {
   /**
    * @constructor
    */
-  var Panel2 = tv.ui.define('panel-2', TimelineViewSidePanel);
+  var Panel2 = tv.ui.define('panel-2');
   Panel2.textLabel = 'Panel 2';
   Panel2.supportsModel = function(m) {
     return {
@@ -47,7 +45,7 @@ tv.unittest.testSuite(function() {
   };
 
   Panel2.prototype = {
-    __proto__: TimelineViewSidePanel.prototype,
+    __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
       this.textContent = 'I am panel 1';
@@ -55,22 +53,21 @@ tv.unittest.testSuite(function() {
     }
   };
 
-
   function testBasic(name, fn) {
     test(name, function() {
       var registeredPanelConstructors =
-          TimelineViewSidePanel.getPanelConstructors();
+          tracing.SidePanelRegistry.getPanelConstructors();
       var oldConstructors = registeredPanelConstructors.splice(
           0, registeredPanelConstructors.length);
-      TimelineViewSidePanel.registerPanelSubtype(Panel1);
-      TimelineViewSidePanel.registerPanelSubtype(Panel2);
+      tracing.SidePanelRegistry.registerPanelSubtype(Panel1);
+      tracing.SidePanelRegistry.registerPanelSubtype(Panel2);
       try {
         fn.call(this);
       } finally {
-        TimelineViewSidePanel.unregisterPanelSubtype(Panel1);
-        TimelineViewSidePanel.unregisterPanelSubtype(Panel2);
+        tracing.SidePanelRegistry.unregisterPanelSubtype(Panel1);
+        tracing.SidePanelRegistry.unregisterPanelSubtype(Panel2);
         registeredPanelConstructors.push.apply(registeredPanelConstructors,
-                                               oldConstructors);
+            oldConstructors);
       }
     });
   }
@@ -89,21 +86,18 @@ tv.unittest.testSuite(function() {
   }
 
   testBasic('instantiateCollapsed', function() {
-    var container = new TimelineViewSidePanelContainer();
+    var container = new tracing.SidePanelContainer();
     container.model = createModel();
     this.addHTMLOutput(container);
   });
 
   testBasic('instantiateExpanded', function() {
-    var container = new TimelineViewSidePanelContainer();
+    var container = new tracing.SidePanelContainer();
     container.model = createModel();
     container.activePanelConstructor = Panel2;
     container.activePanelConstructor = undefined;
     container.activePanelConstructor = Panel2;
     this.addHTMLOutput(container);
   });
-
-  return {
-  };
 });
 </script>

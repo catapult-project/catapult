@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/analysis/util.html">
 <link rel="import" href="/tracing/selection.html">
-<link rel="import" href="/tracing/side_panel/timeline_view.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
@@ -301,8 +300,7 @@ tv.exportTo('tracing', function() {
    * @constructor
    */
   var SamplingSummaryPanel =
-      tv.ui.define('x-sample-summary-panel',
-                     tracing.TimelineViewSidePanel);
+      tv.ui.define('x-sample-summary-panel');
   SamplingSummaryPanel.textLabel = 'Sampling Summary';
   SamplingSummaryPanel.supportsModel = function(m) {
     if (m == undefined) {
@@ -340,10 +338,9 @@ tv.exportTo('tracing', function() {
   }
 
   SamplingSummaryPanel.prototype = {
-    __proto__: tracing.TimelineViewSidePanel.prototype,
+    __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      tracing.TimelineViewSidePanel.prototype.decorate.call(this);
       this.classList.add('x-sample-summary-panel');
       this.appendChild(tv.instantiateTemplate(
           '#x-sample-summary-panel-template', THIS_DOC));

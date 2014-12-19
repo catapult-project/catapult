@@ -3,22 +3,22 @@
  * found in the LICENSE file.
  */
 
-x-timeline-view-side-panel-container {
+x-side-panel-container {
   align-items: stretch;
   display: -webkit-flex;
 }
 
-x-timeline-view-side-panel-container[expanded] > active-panel-container {
+x-side-panel-container[expanded] > active-panel-container {
   -webkit-flex: 1 1 auto;
   border-left: 1px solid black;
   display: -webkit-flex;
 }
 
-x-timeline-view-side-panel-container:not([expanded]) > active-panel-container {
+x-side-panel-container:not([expanded]) > active-panel-container {
   display: none;
 }
 
-x-timeline-view-side-panel-container > tab-strip {
+x-side-panel-container > tab-strip {
   -webkit-flex: 0 0 auto;
   -webkit-flex-direction: column;
   -webkit-user-select: none;
@@ -30,7 +30,7 @@ x-timeline-view-side-panel-container > tab-strip {
   padding: 10px 0 10px 0;
 }
 
-x-timeline-view-side-panel-container > tab-strip > tab-strip-label {
+x-side-panel-container > tab-strip > tab-strip-label {
   -webkit-writing-mode: vertical-rl;
   display: inline;
   margin-right: 2px;
@@ -38,12 +38,12 @@ x-timeline-view-side-panel-container > tab-strip > tab-strip-label {
   padding: 15px 2px 15px 2px;
 }
 
-x-timeline-view-side-panel-container > tab-strip >
+x-side-panel-container > tab-strip >
     tab-strip-label:not([enabled]) {
   color: rgb(128, 128, 128);
 }
 
-x-timeline-view-side-panel-container > tab-strip > tab-strip-label[selected] {
+x-side-panel-container > tab-strip > tab-strip-label[selected] {
   background-color: white;
   border: 1px solid rgb(163, 163, 163);
   border-left: none;
