@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="stylesheet" href="/tracing/side_panel/side_panel_container.css">
 <link rel="import" href="/base/range.html">
-<link rel="import" href="/tracing/side_panel/timeline_view.html">
+<link rel="import" href="/tracing/side_panel/side_panel_registry.html">
 
 <script>
 'use strict';
@@ -101,7 +101,7 @@ tv.exportTo('tracing', function() {
       this.tabStrip_.textContent = '';
       var supportedPanelConstructors = [];
 
-      var constructors = tracing.TimelineViewSidePanel.getPanelConstructors();
+      var constructors = tracing.SidePanelRegistry.getPanelConstructors();
       constructors.forEach(function(panelConstructor) {
         var labelEl = document.createElement('tab-strip-label');
         labelEl.textContent = panelConstructor.textLabel;
