@@ -144,7 +144,7 @@ tv.exportTo('tv.ui', function() {
     var initialValue = tv.Settings.get(settingsKey, defaultValue);
     for (var i = 0; i < items.length; ++i) {
       var item = items[i];
-      var id = 'category-preset-' + i;
+      var id = 'category-preset-' + item.label.replace(/ /g,'-');
 
       var radioEl = document.createElement('input');
       radioEl.type = 'radio';
