@@ -29,3 +29,19 @@ def GetChildPids(processes, pid):
       queue.extend(children)
       child_ids.extend(children)
   return child_ids
+
+
+def GetPsOutputWithPlatformBackend(platform_backend, columns, pid):
+  """Returns output of the 'ps' command as a list of lines.
+
+  Args:
+    platform_backend: The platform backend (LinuxBasedPlatformBackend or
+        PosixPlatformBackend).
+    columns: A list of require columns, e.g., ['pid', 'pss'].
+    pid: If not None, returns only the information of the process with the pid.
+  """
+  args = ['ps']
+  args.extend(['-p', str(pid)] if pid != None else ['-e'])
+  for c in columns:
+    args.extend(['-o', c + '='])
+  return platform_backend.RunCommand(args).splitlines()

@@ -52,11 +52,7 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       pid: If not None, returns only the information of the process
          with the pid.
     """
-    args = ['ps']
-    args.extend(['-p', str(pid)] if pid != None else ['-e'])
-    for c in columns:
-      args.extend(['-o', c + '='])
-    return self.RunCommand(args).splitlines()
+    return ps_util.GetPsOutputWithPlatformBackend(self, columns, pid)
 
   def _GetTopOutput(self, pid, columns):
     """Returns output of the 'top' command as a list of lines.

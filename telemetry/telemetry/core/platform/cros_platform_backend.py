@@ -41,7 +41,8 @@ class CrosPlatformBackend(
       args = [args]
     stdout, stderr = self._cri.RunCmdOnDevice(args)
     if stderr:
-      raise RuntimeError(stderr)
+      raise IOError('Failed to run: cmd = %s, stderr = %s' %
+                    (str(args), stderr))
     return stdout
 
   def GetFileContents(self, filename):
@@ -49,6 +50,9 @@ class CrosPlatformBackend(
       return self.RunCommand(['cat', filename])
     except AssertionError:
       return ''
+
+  def GetPsOutput(self, columns, pid=None):
+    return ps_util.GetPsOutputWithPlatformBackend(self, columns, pid)
 
   @staticmethod
   def ParseCStateSample(sample):
