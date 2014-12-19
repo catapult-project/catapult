@@ -8,9 +8,9 @@ from telemetry.core import util
 
 
 class InspectorPage(object):
-  def __init__(self, inspector_backend, timeout=60):
-    self._inspector_backend = inspector_backend
-    self._inspector_backend.RegisterDomain(
+  def __init__(self, inspector_websocket, timeout=60):
+    self._inspector_websocket = inspector_websocket
+    self._inspector_websocket.RegisterDomain(
         'Page',
         self._OnNotification,
         self._OnClose)
@@ -59,7 +59,7 @@ class InspectorPage(object):
               'identifier': self._script_to_evaluate_on_commit['id'],
               }
           }
-      self._inspector_backend.SyncRequest(request)
+      self._inspector_websocket.SyncRequest(request)
       self._script_to_evaluate_on_commit = None
     if source:
       request = {
@@ -68,7 +68,7 @@ class InspectorPage(object):
               'scriptSource': source,
               }
           }
-      res = self._inspector_backend.SyncRequest(request)
+      res = self._inspector_websocket.SyncRequest(request)
       self._script_to_evaluate_on_commit = {
           'id': res['result']['identifier'],
           'source': source
@@ -78,7 +78,7 @@ class InspectorPage(object):
     request = {
         'method': 'Page.enable'
         }
-    res = self._inspector_backend.SyncRequest(request, timeout)
+    res = self._inspector_websocket.SyncRequest(request, timeout)
     assert len(res['result'].keys()) == 0
 
   def WaitForNavigate(self, timeout=60):
@@ -93,7 +93,7 @@ class InspectorPage(object):
     try:
       while self._navigation_pending and remaining_time > 0:
         remaining_time = max(timeout - (time.time() - start_time), 0.0)
-        self._inspector_backend.DispatchNotifications(remaining_time)
+        self._inspector_websocket.DispatchNotifications(remaining_time)
     except util.TimeoutException:
       # Since we pass remaining_time to DispatchNotifications, we need to
       # list the full timeout time in this message.
@@ -116,7 +116,7 @@ class InspectorPage(object):
             }
         }
     self._navigated_frame_ids = set()
-    res = self._inspector_backend.SyncRequest(request, timeout)
+    res = self._inspector_websocket.SyncRequest(request, timeout)
     if 'frameId' in res['result']:
       # Modern backends are returning frameId from Page.navigate.
       # Use it here to unblock upon precise navigation.
@@ -136,7 +136,7 @@ class InspectorPage(object):
     request = {
         'method': 'Page.getCookies'
         }
-    res = self._inspector_backend.SyncRequest(request, timeout)
+    res = self._inspector_websocket.SyncRequest(request, timeout)
     cookies = res['result']['cookies']
     for cookie in cookies:
       if cookie['name'] == name:
@@ -147,4 +147,4 @@ class InspectorPage(object):
     request = {
         'method': 'HeapProfiler.CollectGarbage'
         }
-    self._inspector_backend.SyncRequest(request, timeout)
+    self._inspector_websocket.SyncRequest(request, timeout)

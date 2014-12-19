@@ -33,9 +33,9 @@ class InspectorTimeline(timeline_recorder.TimelineRecorder):
     def __exit__(self, *args):
       self._tab.StopTimelineRecording()
 
-  def __init__(self, inspector_backend):
+  def __init__(self, inspector_websocket):
     super(InspectorTimeline, self).__init__()
-    self._inspector_backend = inspector_backend
+    self._inspector_websocket = inspector_websocket
     self._is_recording = False
     self._raw_events = None
 
@@ -48,7 +48,7 @@ class InspectorTimeline(timeline_recorder.TimelineRecorder):
     assert not self._is_recording, 'Start should only be called once.'
     self._raw_events = None
     self._is_recording = True
-    self._inspector_backend.RegisterDomain(
+    self._inspector_websocket.RegisterDomain(
         'Timeline', self._OnNotification, self._OnClose)
     # The 'bufferEvents' parameter below means that events should not be sent
     # individually as messages, but instead all at once when a Timeline.stop
@@ -65,7 +65,7 @@ class InspectorTimeline(timeline_recorder.TimelineRecorder):
       return None
     request = {'method': 'Timeline.stop'}
     result = self._SendSyncRequest(request)
-    self._inspector_backend.UnregisterDomain('Timeline')
+    self._inspector_websocket.UnregisterDomain('Timeline')
     self._is_recording = False
 
     # TODO: Backward compatibility. Needs to be removed when
@@ -93,7 +93,7 @@ class InspectorTimeline(timeline_recorder.TimelineRecorder):
     Raises:
       TabBackendException: The response indicates an error occurred.
     """
-    response = self._inspector_backend.SyncRequest(request, timeout)
+    response = self._inspector_websocket.SyncRequest(request, timeout)
     if 'error' in response:
       raise TabBackendException(response['error']['message'])
     return response['result']

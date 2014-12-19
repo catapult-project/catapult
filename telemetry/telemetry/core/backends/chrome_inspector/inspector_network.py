@@ -124,41 +124,41 @@ class InspectorNetworkResponseData(object):
 
 
 class InspectorNetwork(object):
-  def __init__(self, inspector_backend):
-    self._inspector_backend = inspector_backend
+  def __init__(self, inspector_websocket):
+    self._inspector_websocket = inspector_websocket
     self._http_responses = []
     self._served_from_cache = set()
     self._timeline_recorder = None
 
   def ClearCache(self, timeout=60):
     """Clears the browser's disk and memory cache."""
-    res = self._inspector_backend.SyncRequest({
+    res = self._inspector_websocket.SyncRequest({
         'method': 'Network.canClearBrowserCache'
         }, timeout)
     assert res['result'], 'Cache clearing is not supported by this browser.'
-    self._inspector_backend.SyncRequest({
+    self._inspector_websocket.SyncRequest({
         'method': 'Network.clearBrowserCache'
         }, timeout)
 
   def StartMonitoringNetwork(self):
     """Starts monitoring network notifications and recording HTTP responses."""
     self.ClearResponseData()
-    self._inspector_backend.RegisterDomain(
+    self._inspector_websocket.RegisterDomain(
         'Network',
         self._OnNetworkNotification,
         self._OnClose)
     request = {
         'method': 'Network.enable'
         }
-    self._inspector_backend.SyncRequest(request)
+    self._inspector_websocket.SyncRequest(request)
 
   def StopMonitoringNetwork(self):
     """Stops monitoring network notifications and recording HTTP responses."""
-    self._inspector_backend.UnregisterDomain('Network')
+    self._inspector_websocket.UnregisterDomain('Network')
     request = {
         'method': 'Network.disable'
         }
-    self._inspector_backend.SyncRequest(request)
+    self._inspector_websocket.SyncRequest(request)
 
   def GetResponseData(self):
     """Returns all recorded HTTP responses."""
@@ -185,7 +185,7 @@ class InspectorNetwork(object):
 
   def GetHTTPResponseBody(self, request_id, timeout=60):
     try:
-      res = self._inspector_backend.SyncRequest({
+      res = self._inspector_websocket.SyncRequest({
           'method': 'Network.getResponseBody',
           'params': {
               'requestId': request_id,

@@ -27,17 +27,18 @@ class InspectorException(Exception):
   pass
 
 
-class InspectorBackend(inspector_websocket.InspectorWebsocket):
+class InspectorBackend(object):
   def __init__(self, browser_backend, context, timeout=60):
-    super(InspectorBackend, self).__init__(self._HandleError)
-    self.RegisterDomain('Inspector', self._HandleInspectorDomainNotification)
+    self._websocket = inspector_websocket.InspectorWebsocket(self._HandleError)
+    self._websocket.RegisterDomain(
+        'Inspector', self._HandleInspectorDomainNotification)
 
     self._browser_backend = browser_backend
     self._context = context
 
     logging.debug('InspectorBackend._Connect() to %s', self.debugger_url)
     try:
-      self.Connect(self.debugger_url)
+      self._websocket.Connect(self.debugger_url)
     except (websocket.WebSocketException, util.TimeoutException):
       err_msg = sys.exc_info()[1]
       if not self._browser_backend.IsAppRunning():
@@ -47,16 +48,17 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
       else:
         raise exceptions.DevtoolsTargetCrashException(self.app, err_msg)
 
-    self._console = inspector_console.InspectorConsole(self)
-    self._memory = inspector_memory.InspectorMemory(self)
-    self._page = inspector_page.InspectorPage(self, timeout=timeout)
-    self._runtime = inspector_runtime.InspectorRuntime(self)
-    self._timeline = inspector_timeline.InspectorTimeline(self)
-    self._network = inspector_network.InspectorNetwork(self)
+    self._console = inspector_console.InspectorConsole(self._websocket)
+    self._memory = inspector_memory.InspectorMemory(self._websocket)
+    self._page = inspector_page.InspectorPage(
+        self._websocket, timeout=timeout)
+    self._runtime = inspector_runtime.InspectorRuntime(self._websocket)
+    self._timeline = inspector_timeline.InspectorTimeline(self._websocket)
+    self._network = inspector_network.InspectorNetwork(self._websocket)
     self._timeline_model = None
 
   def __del__(self):
-    self.Disconnect()
+    self._websocket.Disconnect()
 
   @property
   def app(self):
@@ -238,13 +240,13 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
     sys.stderr.write('The connection to Chrome was lost to the Inspector UI.\n')
     sys.stderr.write('Telemetry is waiting for the inspector to be closed...\n')
     super(InspectorBackend, self).Disconnect()
-    self._socket.close()
-    self._socket = None
+    self._websocket._socket.close()
+    self._websocket._socket = None
     def IsBack():
       if not self._IsInspectable():
         return False
       try:
-        self.Connect(self.debugger_url)
+        self._websocket.Connect(self.debugger_url)
       except exceptions.DevtoolsTargetCrashException, ex:
         if ex.message.message.find('Handshake Status 500') == 0:
           return False
@@ -267,12 +269,13 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
     def OnClose():
       pass
 
-    self.RegisterDomain('HeapProfiler', OnNotification, OnClose)
+    self._websocket.RegisterDomain('HeapProfiler', OnNotification, OnClose)
 
-    self.SyncRequest({'method': 'Page.getResourceTree'}, timeout)
-    self.SyncRequest({'method': 'Debugger.enable'}, timeout)
-    self.SyncRequest({'method': 'HeapProfiler.takeHeapSnapshot'}, timeout)
+    self._websocket.SyncRequest({'method': 'Page.getResourceTree'}, timeout)
+    self._websocket.SyncRequest({'method': 'Debugger.enable'}, timeout)
+    self._websocket.SyncRequest(
+        {'method': 'HeapProfiler.takeHeapSnapshot'}, timeout)
     snapshot = ''.join(snapshot)
 
-    self.UnregisterDomain('HeapProfiler')
+    self._websocket.UnregisterDomain('HeapProfiler')
     return model.Model(snapshot)

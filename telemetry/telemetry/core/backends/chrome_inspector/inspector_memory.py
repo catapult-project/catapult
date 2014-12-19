@@ -10,9 +10,9 @@ class InspectorMemoryException(Exception):
 class InspectorMemory(object):
   """Communicates with the remote inspector's Memory domain."""
 
-  def __init__(self, inspector_backend):
-    self._inspector_backend = inspector_backend
-    self._inspector_backend.RegisterDomain(
+  def __init__(self, inspector_websocket):
+    self._inspector_websocket = inspector_websocket
+    self._inspector_websocket.RegisterDomain(
         'Memory',
         self._OnNotification,
         self._OnClose)
@@ -34,7 +34,7 @@ class InspectorMemory(object):
       A dictionary containing the counts associated with "nodes", "documents",
       and "jsEventListeners".
     """
-    res = self._inspector_backend.SyncRequest({
+    res = self._inspector_websocket.SyncRequest({
       'method': 'Memory.getDOMCounters'
     }, timeout)
     if ('result' not in res or

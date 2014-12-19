@@ -5,9 +5,9 @@ from telemetry.core import exceptions
 
 
 class InspectorRuntime(object):
-  def __init__(self, inspector_backend):
-    self._inspector_backend = inspector_backend
-    self._inspector_backend.RegisterDomain(
+  def __init__(self, inspector_websocket):
+    self._inspector_websocket = inspector_websocket
+    self._inspector_websocket.RegisterDomain(
         'Runtime',
         self._OnNotification,
         self._OnClose)
@@ -37,7 +37,7 @@ class InspectorRuntime(object):
     if context_id is not None:
       self.EnableAllContexts()
       request['params']['contextId'] = context_id
-    res = self._inspector_backend.SyncRequest(request, timeout)
+    res = self._inspector_websocket.SyncRequest(request, timeout)
     if 'error' in res:
       raise exceptions.EvaluateException(res['error']['message'])
 
@@ -53,6 +53,6 @@ class InspectorRuntime(object):
     """Allow access to iframes."""
     if not self._contexts_enabled:
       self._contexts_enabled = True
-      self._inspector_backend.SyncRequest({'method': 'Runtime.enable'},
-                                          timeout=30)
+      self._inspector_websocket.SyncRequest({'method': 'Runtime.enable'},
+                                            timeout=30)
     return self._max_context_id
