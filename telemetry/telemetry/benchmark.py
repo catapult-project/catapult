@@ -10,7 +10,6 @@ import sys
 import zipfile
 
 from telemetry import decorators
-from telemetry import page
 from telemetry.core import browser_finder
 from telemetry.core import command_line
 from telemetry.core import util
@@ -112,11 +111,6 @@ class Benchmark(command_line.Command):
 
     expectations = self.CreateExpectations()
     us = self.CreateUserStorySet(finder_options)
-    if isinstance(pt, page_test.PageTest):
-      if any(not isinstance(p, page.Page) for p in us.user_stories):
-        raise Exception(
-            'PageTest must be used with UserStorySet containing only '
-            'telemetry.page.Page user stories.')
 
     self._DownloadGeneratedProfileArchive(finder_options)
 
