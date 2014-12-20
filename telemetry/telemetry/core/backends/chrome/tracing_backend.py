@@ -36,6 +36,10 @@ class TracingBackend(object):
   def is_tracing_running(self):
     return self._is_tracing_running
 
+  @property
+  def _devtools_client(self):
+    return self._chrome_browser_backend.devtools_client
+
   def StartTracing(self, trace_options, custom_categories=None, timeout=10):
     """ Starts tracing on the first call and returns True. Returns False
         and does nothing on subsequent nested calls.
@@ -47,13 +51,13 @@ class TracingBackend(object):
     self._CheckNotificationSupported()
     #TODO(nednguyen): remove this when the stable branch pass 2118.
     if (trace_options.record_mode == tracing_options.RECORD_AS_MUCH_AS_POSSIBLE
-        and self._chrome_browser_backend.chrome_branch_number
-        and self._chrome_browser_backend.chrome_branch_number < 2118):
+        and self._devtools_client.GetChromeBranchNumber()
+        and self._devtools_client.GetChromeBranchNumber() < 2118):
       logging.warning(
           'Cannot use %s tracing mode on chrome browser with branch version %i,'
           ' (<2118) fallback to use %s tracing mode' % (
               trace_options.record_mode,
-              self._chrome_browser_backend.chrome_branch_number,
+              self._devtools_client.GetChromeBranchNumber(),
               tracing_options.RECORD_UNTIL_FULL))
       trace_options.record_mode = tracing_options.RECORD_UNTIL_FULL
     req = {'method': 'Tracing.start'}

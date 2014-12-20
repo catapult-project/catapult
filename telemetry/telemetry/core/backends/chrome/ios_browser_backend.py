@@ -108,7 +108,7 @@ class IosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self._system_info_backend.GetSystemInfo()
 
   def ListInspectableContexts(self):
-    response = json.loads(self.Request(''))
+    response = super(IosBrowserBackend, self).ListInspectableContexts()
     if len(response) != len(self._webviews):
       self.UpdateRunningBrowsersInfo()
     for i in range(len(response)):

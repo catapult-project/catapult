@@ -6,6 +6,7 @@ import urllib2
 
 from telemetry.core import tab
 from telemetry.core import util
+from telemetry.core.backends.chrome_inspector import devtools_http
 from telemetry.core.backends.chrome_inspector import inspector_backend_list
 
 
@@ -16,9 +17,13 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     super(TabListBackend, self).__init__(browser_backend,
                                          backend_wrapper=tab.Tab)
 
+  @property
+  def _devtools_http(self):
+    return self._browser_backend.devtools_client.devtools_http
+
   def New(self, timeout):
     assert self._browser_backend.supports_tab_control
-    self._browser_backend.Request('new', timeout=timeout)
+    self._devtools_http.Request('new', timeout=timeout)
     return self[-1]
 
   def CloseTab(self, debugger_url, timeout=None):
@@ -29,10 +34,9 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     if len(self) <= 1:
       self.New(timeout)
     try:
-      response = self._browser_backend.Request('close/%s' % tab_id,
-                                               timeout=timeout,
-                                               throw_network_exception=True)
-    except urllib2.HTTPError:
+      response = self._devtools_http.Request('close/%s' % tab_id,
+                                             timeout=timeout)
+    except devtools_http.DevToolsClientUrlError:
       raise Exception('Unable to close tab, tab id not found: %s' % tab_id)
     assert response == 'Target is closing'
     util.WaitFor(lambda: tab_id not in self, timeout=5)
@@ -42,10 +46,9 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     tab_id = inspector_backend_list.DebuggerUrlToId(debugger_url)
     assert tab_id in self
     try:
-      response = self._browser_backend.Request('activate/%s' % tab_id,
-                                               timeout=timeout,
-                                               throw_network_exception=True)
-    except urllib2.HTTPError:
+      response = self._devtools_http.Request('activate/%s' % tab_id,
+                                             timeout=timeout)
+    except devtools_http.DevToolsClientUrlError:
       raise Exception('Unable to activate tab, tab id not found: %s' % tab_id)
     assert response == 'Target activated'
 

@@ -28,11 +28,6 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     # Different browsers boot up to different things.
     assert self._browser.tabs[0].url
 
-  def testVersionDetection(self):
-    # pylint: disable=W0212
-    v = self._browser._browser_backend.chrome_branch_number
-    self.assertTrue(v > 0)
-
   @decorators.Enabled('has tabs')
   def testNewCloseTab(self):
     existing_tab = self._browser.tabs[0]

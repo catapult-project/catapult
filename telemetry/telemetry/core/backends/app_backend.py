@@ -27,6 +27,14 @@ class AppBackend(object):
   def pid(self):
     raise NotImplementedError
 
+  @property
+  def devtools_client(self):
+    """Returns the DevToolsClientBackend instance.
+
+    Implementation may return None if no DevTools server is expected.
+    """
+    raise NotImplementedError
+
   def Start(self):
     raise NotImplementedError
 
