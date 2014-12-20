@@ -39,21 +39,21 @@ class BenchmarkTest(unittest.TestCase):
   def testPageTestWithIncompatibleUserStory(self):
     b = TestBenchmark(user_story.UserStory(
         shared_user_story_state_class=shared_page_state.SharedPageState))
-    self.assertRaises(
-        Exception, 'containing only telemetry.page.Page user stories',
-        lambda: b.Run(browser_options.BrowserFinderOptions()))
+    with self.assertRaisesRegexp(
+        Exception, 'containing only telemetry.page.Page user stories'):
+      b.Run(browser_options.BrowserFinderOptions())
 
     state_class = shared_user_story_state.SharedUserStoryState
     b = TestBenchmark(user_story.UserStory(
         shared_user_story_state_class=state_class))
-    self.assertRaises(
-        Exception, 'containing only telemetry.page.Page user stories',
-        lambda: b.Run(browser_options.BrowserFinderOptions()))
+    with self.assertRaisesRegexp(
+        Exception, 'containing only telemetry.page.Page user stories'):
+      b.Run(browser_options.BrowserFinderOptions())
 
     b = TestBenchmark(android.AppStory(start_intent=None))
-    self.assertRaises(
-        Exception, 'containing only telemetry.page.Page user stories',
-        lambda: b.Run(browser_options.BrowserFinderOptions()))
+    with self.assertRaisesRegexp(
+        Exception, 'containing only telemetry.page.Page user stories'):
+      b.Run(browser_options.BrowserFinderOptions())
 
   def testPageTestWithCompatibleUserStory(self):
     original_run_fn = user_story_runner.Run
