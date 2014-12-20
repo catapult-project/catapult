@@ -169,12 +169,11 @@ def ShouldSkip(test, possible_browser):
     for enabled_string in enabled_strings:
       if enabled_string in platform_attributes:
         return False, None
-      return (True,
-              'Skipping %s (%s) because it is only enabled for %s. '
-              'You are running %s.' % (name, str(test),
-                                       ' or '.join(enabled_strings),
-                                       ' '.join(platform_attributes)))
-    return False, None
+    return (True,
+            'Skipping %s (%s) because it is only enabled for %s. '
+            'You are running %s.' % (name, str(test),
+                                     ' or '.join(enabled_strings),
+                                     ' '.join(platform_attributes)))
 
   return False, None
 
