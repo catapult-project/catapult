@@ -23,6 +23,7 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
         platform_backend: A LinuxBasedPlatformBackend instance.
     """
     super(DumpsysPowerMonitor, self).__init__(platform_backend)
+    self._browser = None
     self._device = device
 
   def CanMonitorPower(self):
@@ -30,6 +31,7 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
 
   def StartMonitoringPower(self, browser):
     super(DumpsysPowerMonitor, self).StartMonitoringPower(browser)
+    self._browser = browser
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
     # charging.
@@ -37,8 +39,8 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
 
   def StopMonitoringPower(self):
     if self._browser:
-      # pylint: disable=W0212
       package = self._browser._browser_backend.package
+      self._browser = None
     cpu_stats = super(DumpsysPowerMonitor, self).StopMonitoringPower()
     self._device.old_interface.EnableUsbCharging()
     # By default, 'dumpsys batterystats' measures power consumption during the

@@ -25,7 +25,6 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
         linux_based_platform_backend: A LinuxBasedPlatformBackend object.
 
     Attributes:
-        _browser: The browser to monitor.
         _cpus: A list of the CPUs on the target device.
         _end_time: The time the test stopped monitoring power.
         _final_cstate: The c-state residency times after the test.
@@ -37,7 +36,6 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
         _start_time: The time the test started monitoring power.
     """
     super(SysfsPowerMonitor, self).__init__()
-    self._browser = None
     self._cpus = None
     self._final_cstate = None
     self._final_freq = None
@@ -50,9 +48,9 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     return bool(self._platform.RunCommand(
         'if [ -e %s ]; then echo true; fi' % CPU_PATH))
 
-  def StartMonitoringPower(self, browser):
-    assert not self._browser, 'Must call StopMonitoringPower().'
-    self._browser = browser
+  def StartMonitoringPower(self, _browser):
+    # |_browser| is unused, can be None.
+    assert not self._initial_cstate, 'Must call StopMonitoringPower().'
     if self.CanMonitorPower():
       self._cpus = filter(  # pylint: disable=deprecated-lambda
           lambda x: re.match(r'^cpu[0-9]+', x),
@@ -61,7 +59,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
       self._initial_cstate = self.GetCpuState()
 
   def StopMonitoringPower(self):
-    assert self._browser, 'StartMonitoringPower() not called.'
+    assert self._initial_cstate, 'StartMonitoringPower() not called.'
     try:
       out = {}
       if SysfsPowerMonitor.CanMonitorPower(self):
@@ -78,7 +76,8 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
           out[cpu]['cstate_residency_percent'] = cstates[cpu]
       return out
     finally:
-      self._browser = None
+      self._initial_cstate = None
+      self._initial_freq = None
 
   def GetCpuState(self):
     """Retrieve CPU c-state residency times from the device.
