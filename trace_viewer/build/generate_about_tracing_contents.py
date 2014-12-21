@@ -20,7 +20,7 @@ def main(args):
     parser.print_help()
     return 1
 
-  filenames = ["about_tracing.html"]
+  filenames = ["extras/about_tracing/about_tracing.html"]
   project = trace_viewer_project.TraceViewerProject()
   load_sequence = project.CalcLoadSequenceForModuleFilenames(filenames)
 
