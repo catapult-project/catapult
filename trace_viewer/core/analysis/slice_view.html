@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/core/analysis/view_base.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tracing.analysis', function() {
+  /**
+   * Slice views allow customized visualization of specific slices, indexed by
+   * title. If not registered, the default slice viewing logic is used.
+   *
+   * @constructor
+   */
+  var SliceView = tv.ui.define(
+      'slice-view',
+      tracing.analysis.ViewBase);
+
+  SliceView.prototype = {
+    __proto__: tracing.analysis.ViewBase.prototype,
+
+    decorate: function() {
+      tracing.analysis.ViewBase.prototype.decorate.call(this);
+      this.objectInstance_ = undefined;
+    },
+
+    get requiresTallView() {
+      return false;
+    },
+
+    set modelEvent(obj) {
+      this.slice = obj;
+    },
+
+    get modelEvent() {
+      return this.slice;
+    },
+
+    get slice() {
+      return this.slice_;
+    },
+
+    set slice(s) {
+      this.slice_ = s;
+      this.updateContents();
+    },
+
+    updateContents: function() {
+      throw new Error('Not implemented');
+    }
+  };
+
+
+  tracing.analysis.ViewBase.decorateSubtype(
+      SliceView,
+      {});
+
+  return {
+    SliceView: SliceView
+  };
+});
+</script>

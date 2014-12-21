@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/core/analysis/view_base.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tracing.analysis', function() {
+  var ObjectInstanceView = tv.ui.define(
+      'object-instance-view',
+      tracing.analysis.ViewBase);
+
+  ObjectInstanceView.prototype = {
+    __proto__: tracing.analysis.ViewBase.prototype,
+
+    decorate: function() {
+      tracing.analysis.ViewBase.prototype.decorate.call(this);
+      this.objectInstance_ = undefined;
+    },
+
+    get requiresTallView() {
+      return true;
+    },
+
+    set modelEvent(obj) {
+      this.objectInstance = obj;
+    },
+
+    get modelEvent() {
+      return this.objectInstance;
+    },
+
+    get objectInstance() {
+      return this.objectInstance_;
+    },
+
+    set objectInstance(i) {
+      this.objectInstance_ = i;
+      this.updateContents();
+    },
+
+    updateContents: function() {
+      throw new Error('Not implemented');
+    }
+  };
+
+  tracing.analysis.ViewBase.decorateSubtype(
+      ObjectInstanceView,
+      {
+        showInTrackView: true
+      });
+
+  return {
+    ObjectInstanceView: ObjectInstanceView
+  };
+  ViewB
+});
+</script>

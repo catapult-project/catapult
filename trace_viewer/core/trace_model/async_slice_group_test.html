@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.unittest.testSuite(function() { // @suppress longLineCheck
+  var Process = tracing.trace_model.Process;
+  var Thread = tracing.trace_model.Thread;
+  var AsyncSlice = tracing.trace_model.AsyncSlice;
+  var AsyncSliceGroup = tracing.trace_model.AsyncSliceGroup;
+  var newAsyncSlice = tracing.test_utils.newAsyncSlice;
+
+  test('asyncSliceGroupBounds_Empty', function() {
+    var thread = {};
+    var g = new AsyncSliceGroup(thread);
+    g.updateBounds();
+    assertTrue(g.bounds.isEmpty);
+  });
+
+  test('asyncSliceGroupBounds_Basic', function() {
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
+    var t1 = new Thread(p1, 1);
+    var g = new AsyncSliceGroup(t1);
+    g.push(newAsyncSlice(0, 1, t1, t1));
+    g.push(newAsyncSlice(1, 1.5, t1, t1));
+    assertEquals(2, g.length);
+    g.updateBounds();
+    assertEquals(0, g.bounds.min);
+    assertEquals(2.5, g.bounds.max);
+  });
+});
+</script>
+
