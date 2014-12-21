@@ -72,7 +72,7 @@ tv.exportTo('tv.unittest', function() {
         resolve(importEl);
       });
       importEl.addEventListener('error', function(e) {
-        reject(e);
+        reject('Error loading <link rel="import" href="' + href + '"');
       });
     });
   }
