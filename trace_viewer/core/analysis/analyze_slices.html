@@ -31,7 +31,8 @@ found in the LICENSE file.
         function constructView(selection) {
           var event = selection[0];
           var typeName = event.analysisTypeName;
-          var customViewInfo = tracing.analysis.SliceView.getViewInfo(typeName);
+          var customViewInfo = tracing.analysis.SliceView.getTypeInfo(
+              undefined, typeName);
           if (customViewInfo)
             return new customViewInfo.constructor();
           return new SingleSliceAnalysisSubView();

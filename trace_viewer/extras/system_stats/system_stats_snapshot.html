@@ -42,8 +42,9 @@ tv.exportTo('system_stats', function() {
     }
   };
 
-  ObjectSnapshot.register('base::TraceEventSystemStatsMonitor::SystemStats',
-                          SystemStatsSnapshot);
+  ObjectSnapshot.register(
+    SystemStatsSnapshot,
+    {typeName: 'base::TraceEventSystemStatsMonitor::SystemStats'});
 
   return {
     SystemStatsSnapshot: SystemStatsSnapshot

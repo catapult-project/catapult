@@ -168,7 +168,8 @@ tv.exportTo('tcmalloc', function() {
   };
 
   tracing.analysis.ObjectSnapshotView.register(
-      'memory::Heap', TcmallocSnapshotView);
+      TcmallocSnapshotView,
+      {typeName: 'memory::Heap'});
 
   return {
     TcmallocSnapshotView: TcmallocSnapshotView

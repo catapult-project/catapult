@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="stylesheet" href="/core/tracks/object_instance_track.css">
 
+<link rel="import" href="/base/extension_registry.html">
 <link rel="import" href="/core/trace_model/event.html">
 <link rel="import" href="/core/tracks/heading_track.html">
 <link rel="import" href="/core/color_scheme.html">
@@ -271,17 +272,9 @@ tv.exportTo('tracing.tracks', function() {
     }
   };
 
-  ObjectInstanceTrack.typeNameToTrackConstructorMap = {};
-  ObjectInstanceTrack.register = function(typeName, constructor) {
-    if (ObjectInstanceTrack.typeNameToTrackConstructorMap[typeName])
-      throw new Error('Handler already registered for ' + typeName);
-    ObjectInstanceTrack.typeNameToTrackConstructorMap[typeName] =
-        constructor;
-  };
 
-  ObjectInstanceTrack.getTrackConstructor = function(typeName) {
-    return ObjectInstanceTrack.typeNameToTrackConstructorMap[typeName];
-  };
+  var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
+  tv.decorateExtensionRegistry(ObjectInstanceTrack, options);
 
   return {
     ObjectInstanceTrack: ObjectInstanceTrack

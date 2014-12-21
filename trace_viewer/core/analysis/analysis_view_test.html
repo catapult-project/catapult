@@ -21,13 +21,12 @@ tv.unittest.testSuite(function() {
   var DefaultObjectSnapshotView = tracing.analysis.DefaultObjectSnapshotView;
   var DefaultObjectInstanceView = tracing.analysis.DefaultObjectInstanceView;
 
-  function withRegisteredType(registrar, typeName,
-                              typeConstructor, opt_options, fn) {
-    registrar.register(typeName, typeConstructor, opt_options);
+  function withRegisteredType(registy, typeConstructor, opt_options, fn) {
+    registy.register(typeConstructor, opt_options);
     try {
       fn();
     } finally {
-      registrar.unregister(typeName);
+      registy.unregister(typeConstructor);
     }
   }
 
@@ -91,7 +90,9 @@ tv.unittest.testSuite(function() {
 
     var view = new AnalysisView();
     withRegisteredType(
-        tracing.analysis.ObjectSnapshotView, 'MyView', MyView, undefined,
+        tracing.analysis.ObjectSnapshotView,
+        MyView,
+        {typeName: 'MyView'},
         function() {
           view.selection = selection;
           assertTrue(view.currentView instanceof MyView);
@@ -134,7 +135,9 @@ tv.unittest.testSuite(function() {
     var view = new AnalysisView();
     withRegisteredType(
         tracing.analysis.ObjectInstanceView,
-        'MyView', MyView, undefined, function() {
+        MyView,
+        {typeName: 'MyView'},
+        function() {
           view.selection = selection;
           assertTrue(view.currentView instanceof MyView);
           assertEquals(i10, view.currentView.objectInstance);
@@ -164,7 +167,9 @@ tv.unittest.testSuite(function() {
     var view = new AnalysisView();
     withRegisteredType(
         tracing.analysis.SliceView,
-        'MySlice', MySlice, undefined, function() {
+        MySlice,
+        {typeName: 'MySlice'},
+        function() {
           view.selection = selection;
           assertTrue(view.currentView instanceof MySlice);
           assertEquals(s10, view.currentView.slice);

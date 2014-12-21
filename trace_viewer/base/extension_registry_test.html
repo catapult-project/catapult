@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/extension_registry.html">
+<script>
+'use strict';
+
+tv.unittest.testSuite(function() {
+  test('tberSimpleNamedRegistration', function() {
+    function DummyEvent() {
+    }
+    DummyEvent.prototype = {
+    };
+
+    function DummyEventSubclass() {
+    }
+    DummyEventSubclass.prototype = {
+      __proto__: DummyEvent.prototype
+    };
+
+    var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
+    options.mandatoryBaseClass = DummyEvent;
+    options.defaultConstructor = DummyEvent;
+    tv.decorateExtensionRegistry(
+        DummyEvent, options);
+
+    DummyEvent.register(DummyEventSubclass, {typeName: 'dummy-name'});
+    assertEquals(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
+    assertEquals(DummyEventSubclass,
+                 DummyEvent.getConstructor('dummy', 'dummy-name'));
+    DummyEvent.unregister(DummyEventSubclass);
+    assertEquals(DummyEvent, DummyEvent.getConstructor('dummy', 'dummy-name'));
+  });
+
+  test('tberSimpleCategoryRegistration', function() {
+    function DummyEvent() {
+    }
+    DummyEvent.prototype = {
+    };
+
+    function DummyEventSubclass() {
+    }
+    DummyEventSubclass.prototype = {
+      __proto__: DummyEvent.prototype
+    };
+
+    var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
+    options.mandatoryBaseClass = DummyEvent;
+    options.defaultConstructor = DummyEvent;
+    tv.decorateExtensionRegistry(
+        DummyEvent, options);
+
+    DummyEvent.register(
+      DummyEventSubclass,
+      {categoryParts: ['dummy']
+    });
+    assertEquals(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
+    assertEquals(DummyEventSubclass,
+                 DummyEvent.getConstructor('dummy', 'dummy-name'));
+    DummyEvent.unregister(DummyEventSubclass);
+    assertEquals(DummyEvent, DummyEvent.getConstructor('dummy', 'dummy-name'));
+  });
+
+  test('tberSimpleCompoundCategory', function() {
+    function DummyEvent() {
+    }
+    DummyEvent.prototype = {
+    };
+
+    function DummyEventSubclass() {
+    }
+    DummyEventSubclass.prototype = {
+      __proto__: DummyEvent.prototype
+    };
+
+    var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
+    options.mandatoryBaseClass = DummyEvent;
+    options.defaultConstructor = DummyEvent;
+    tv.decorateExtensionRegistry(
+        DummyEvent, options);
+
+    DummyEvent.register(
+        DummyEventSubclass,
+        {
+          categoryParts: ['dummy']
+        });
+    assertEquals(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
+    assertEquals(DummyEventSubclass,
+                 DummyEvent.getConstructor('dummy,something-else',
+                                           'dummy-name'));
+  });
+
+  test('tberDefaultType', function() {
+    function DummyEvent() {
+    }
+    DummyEvent.prototype = {
+    };
+
+    function DummyEventSubclass() {
+    }
+    DummyEventSubclass.prototype = {
+      __proto__: DummyEvent.prototype
+    };
+
+    var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
+    options.mandatoryBaseClass = DummyEvent;
+    options.defaultConstructor = DummyEvent;
+    tv.decorateExtensionRegistry(
+        DummyEvent, options);
+
+    DummyEvent.register(
+        DummyEventSubclass,
+        {
+          categoryParts: ['dummy']
+        });
+    assertEquals(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
+    assertEquals(DummyEventSubclass,
+                 DummyEvent.getConstructor('dummy,something-else',
+                                           'dummy-name'));
+  });
+
+
+});
+</script>

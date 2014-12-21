@@ -102,7 +102,8 @@ tv.exportTo('tcmalloc', function() {
   };
 
   tracing.analysis.ObjectInstanceView.register(
-      'memory::Heap', TcmallocInstanceView);
+      TcmallocInstanceView,
+      {typeName: 'memory::Heap'});
 
   return {
     TcmallocInstanceView: TcmallocInstanceView

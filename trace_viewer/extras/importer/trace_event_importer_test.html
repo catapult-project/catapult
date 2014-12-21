@@ -1773,10 +1773,10 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     // arguments of the snapshots to be mutated.
     var m = new tracing.TraceModel();
     try {
-      tracing.trace_model.ObjectSnapshot.register('a', ASnapshot);
+      tracing.trace_model.ObjectSnapshot.register(ASnapshot, {typeName: 'a'});
       m.importTraces([events], false);
     } finally {
-      tracing.trace_model.ObjectSnapshot.unregister('a');
+      tracing.trace_model.ObjectSnapshot.unregister(ASnapshot);
     }
     assertFalse(m.hasImportWarnings);
 

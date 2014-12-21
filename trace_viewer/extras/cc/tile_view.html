@@ -44,7 +44,9 @@ tv.exportTo('cc', function() {
   };
 
   tracing.analysis.ObjectSnapshotView.register(
-      'cc::Tile', TileSnapshotView, {
+      TileSnapshotView,
+      {
+        typeName: 'cc::Tile',
         showInTrackView: false
       });
 

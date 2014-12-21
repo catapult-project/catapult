@@ -24,7 +24,9 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   test('objectInstanceSubtype', function() {
     // Register that TestObjects are bound to TestObjectInstance.
     tracing.trace_model.ObjectInstance.register(
-        'TestObject', TestObjectInstance);
+        TestObjectInstance,
+        {typeName: 'TestObject'});
+
     try {
       var collection = new tracing.trace_model.ObjectCollection({ });
       collection.idWasCreated(
@@ -44,7 +46,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       assertTrue(testObject instanceof tracing.trace_model.ObjectInstance);
       assertTrue(testObject instanceof TestObjectInstance);
     } finally {
-      tracing.trace_model.ObjectInstance.unregister('TestObject');
+      tracing.trace_model.ObjectInstance.unregister(TestObjectInstance);
     }
   });
 

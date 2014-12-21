@@ -131,7 +131,7 @@ tv.exportTo('cc', function() {
     }
   };
 
-  ObjectSnapshot.register('cc::LayerTreeHostImpl', LayerTreeHostImplSnapshot);
+  ObjectSnapshot.register(LayerTreeHostImplSnapshot, {typeName: 'cc::LayerTreeHostImpl'});
 
   /**
    * @constructor
@@ -177,7 +177,7 @@ tv.exportTo('cc', function() {
     }
   };
 
-  ObjectInstance.register('cc::LayerTreeHostImpl', LayerTreeHostImplInstance);
+  ObjectInstance.register(LayerTreeHostImplInstance, {typeName: 'cc::LayerTreeHostImpl'});
 
   return {
     LayerTreeHostImplSnapshot: LayerTreeHostImplSnapshot,

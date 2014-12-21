@@ -64,8 +64,11 @@ tv.exportTo('net', function() {
     }
   };
 
-  AsyncSlice.registerCategory('netlog', NetAsyncSlice);
-  AsyncSlice.registerCategory('disabled-by-default-netlog', NetAsyncSlice);
+  AsyncSlice.register(
+    NetAsyncSlice,
+    {
+      categoryParts: ['netlog', 'disabled-by-default-netlog']
+    });
 
   return {
     NetAsyncSlice: NetAsyncSlice

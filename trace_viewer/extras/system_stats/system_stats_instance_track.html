@@ -346,8 +346,8 @@ tv.exportTo('system_stats', function() {
   };
 
   tracing.tracks.ObjectInstanceTrack.register(
-      'base::TraceEventSystemStatsMonitor::SystemStats',
-      SystemStatsInstanceTrack);
+      SystemStatsInstanceTrack,
+      {typeName: 'base::TraceEventSystemStatsMonitor::SystemStats'});
 
   return {
     SystemStatsInstanceTrack: SystemStatsInstanceTrack

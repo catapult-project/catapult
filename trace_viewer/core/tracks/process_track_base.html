@@ -159,11 +159,13 @@ tv.exportTo('tracing.tracks', function() {
 
         // If a object snapshot has a view it will be shown,
         // unless the view asked for it to not be shown.
-        var instanceViewInfo = ObjectInstanceView.getViewInfo(typeName);
-        var snapshotViewInfo = ObjectSnapshotView.getViewInfo(typeName);
-        if (instanceViewInfo && !instanceViewInfo.options.showInTrackView)
+        var instanceViewInfo = ObjectInstanceView.getTypeInfo(
+            undefined, typeName);
+        var snapshotViewInfo = ObjectSnapshotView.getTypeInfo(
+            undefined, typeName);
+        if (instanceViewInfo && !instanceViewInfo.metadata.showInTrackView)
           instanceViewInfo = undefined;
-        if (snapshotViewInfo && !snapshotViewInfo.options.showInTrackView)
+        if (snapshotViewInfo && !snapshotViewInfo.metadata.showInTrackView)
           snapshotViewInfo = undefined;
         var hasViewInfo = instanceViewInfo || snapshotViewInfo;
 
@@ -190,10 +192,12 @@ tv.exportTo('tracing.tracks', function() {
         // Look up the constructor for this track, or use the default
         // constructor if none exists.
         var trackConstructor =
-            tracing.tracks.ObjectInstanceTrack.getTrackConstructor(typeName);
+            tracing.tracks.ObjectInstanceTrack.getConstructor(
+                undefined, typeName);
         if (!trackConstructor) {
-          var snapshotViewInfo = ObjectSnapshotView.getViewInfo(typeName);
-          if (snapshotViewInfo && snapshotViewInfo.options.showInstances) {
+          var snapshotViewInfo = ObjectSnapshotView.getTypeInfo(
+              undefined, typeName);
+          if (snapshotViewInfo && snapshotViewInfo.metadata.showInstances) {
             trackConstructor = tracing.tracks.ObjectInstanceGroupTrack;
           } else {
             trackConstructor = tracing.tracks.ObjectInstanceTrack;

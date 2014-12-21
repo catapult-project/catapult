@@ -162,24 +162,29 @@ tv.exportTo('cc', function() {
     }
   };
 
-  ObjectSnapshot.register('cc::LayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::PictureLayerImpl', PictureLayerImplSnapshot);
+  ObjectSnapshot.register(PictureLayerImplSnapshot, {typeName: 'cc::PictureLayerImpl'});
 
-  ObjectSnapshot.register('cc::DelegatedRendererLayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::HeadsUpDisplayLayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::IOSurfaceLayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::NinePatchLayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::PictureImageLayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::ScrollbarLayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::SolidColorLayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::TextureLayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::TiledLayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::VideoLayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::PaintedScrollbarLayerImpl', LayerImplSnapshot);
-
-  ObjectSnapshot.register('ClankPatchLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('TabBorderLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('CounterLayer', LayerImplSnapshot);
+  ObjectSnapshot.register(
+      LayerImplSnapshot,
+      {
+        typeNames: [
+          'cc::LayerImpl',
+          'cc::DelegatedRendererLayerImpl',
+          'cc::HeadsUpDisplayLayerImpl',
+          'cc::IOSurfaceLayerImpl',
+          'cc::NinePatchLayerImpl',
+          'cc::PictureImageLayerImpl',
+          'cc::ScrollbarLayerImpl',
+          'cc::SolidColorLayerImpl',
+          'cc::TextureLayerImpl',
+          'cc::TiledLayerImpl',
+          'cc::VideoLayerImpl',
+          'cc::PaintedScrollbarLayerImpl',
+          'ClankPatchLayer',
+          'TabBorderLayer',
+          'CounterLayer'
+        ]
+      });
 
   return {
     LayerImplSnapshot: LayerImplSnapshot,

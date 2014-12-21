@@ -117,7 +117,7 @@ tv.exportTo('cc', function() {
   };
 
   tracing.analysis.ObjectSnapshotView.register(
-      'cc::LayerTreeHostImpl', LayerTreeHostImplSnapshotView);
+      LayerTreeHostImplSnapshotView, {typeName: 'cc::LayerTreeHostImpl'});
 
   return {
     LayerTreeHostImplSnapshotView: LayerTreeHostImplSnapshotView

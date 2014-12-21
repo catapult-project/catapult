@@ -67,48 +67,6 @@ tv.exportTo('tracing.trace_model', function() {
     }
   };
 
-  Event.decorateSubtype = function(baseConstructor) {
-    if (baseConstructor.register !== undefined ||
-        baseConstructor.unregister !== undefined ||
-        baseConstructor.getConstructor !== undefined) {
-      throw new Error('Already decorated: ' + baseConstructor);
-    }
-
-    baseConstructor.categoryToConstructorMap_ = {};
-    baseConstructor.nameToConstructorMap_ = {};
-
-    baseConstructor.register = function(name, constructor) {
-      if (baseConstructor.nameToConstructorMap_[name])
-        throw new Error('Constructor already registered for ' + name);
-      baseConstructor.nameToConstructorMap_[name] = constructor;
-    };
-
-    baseConstructor.unregister = function(name) {
-      delete baseConstructor.nameToConstructorMap_[name];
-    };
-
-    baseConstructor.registerCategory = function(category, constructor) {
-      if (baseConstructor.categoryToConstructorMap_[category])
-        throw new Error('Constructor already registered for ' + category);
-      baseConstructor.categoryToConstructorMap_[category] = constructor;
-    };
-    baseConstructor.unregisterCategory = function(category, constructor) {
-      delete baseConstructor.categoryToConstructorMap_[category];
-    };
-
-    baseConstructor.getConstructor = function(category, name) {
-      var categoryParts = getCategoryParts(category);
-      for (var i = 0; i < categoryParts.length; i++) {
-        var categoryPart = categoryParts[i];
-        if (baseConstructor.categoryToConstructorMap_[categoryPart])
-          return baseConstructor.categoryToConstructorMap_[categoryPart];
-      }
-      if (baseConstructor.nameToConstructorMap_[name])
-        return baseConstructor.nameToConstructorMap_[name];
-      return baseConstructor;
-    };
-  };
-
   return {
     Event: Event,
     SelectionState: SelectionState

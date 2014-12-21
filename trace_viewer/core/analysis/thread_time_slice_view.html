@@ -134,7 +134,8 @@ tv.exportTo('tracing.analysis', function() {
   };
 
   tracing.analysis.SliceView.register(
-      'tracing.analysis.ThreadTimeSlice', ThreadTimeSliceView);
+      ThreadTimeSliceView,
+      {typeName: 'tracing.analysis.ThreadTimeSlice'});
 
   return {
     ThreadTimeSliceView: ThreadTimeSliceView

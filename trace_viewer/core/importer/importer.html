@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base.html">
+<link rel="import" href="/base/extension_registry.html">
 <script>
 'use strict';
 
@@ -59,38 +60,18 @@ tv.exportTo('tracing.importer', function() {
     }
   };
 
-  Importer.importers_ = [];
 
-  Importer.register = function(importerConstructor,
-                               opt_options) {
-    if (Importer.indexOfImporter_(importerConstructor) !== undefined)
-      throw new Error('Handler already registered for ' + importerConstructor);
-
-    var options = opt_options || {};
-    Importer.importers_.push({
-      constructor: importerConstructor,
-      options: options
-    });
-  };
-
-  Importer.indexOfImporter_ = function(importerConstructor) {
-    for (var i = 0; i < Importer.importers_.length; i++)
-      if (Importer.importers_[i].constructor == importerConstructor)
-        return i;
-    return undefined;
-  };
-
-  Importer.unregister = function(importerConstructor) {
-    var foundIndex = Importer.indexOfImporter_(importerConstructor);
-    if (foundIndex === undefined)
-      throw new Error(typeName + ' not registered');
-    Importer.importers_.splice(foundIndex, 1);
-  };
+  var options = new tv.ExtensionRegistryOptions(tv.BASIC_REGISTRY_MODE);
+  options.defaultMetadata = {};
+  options.mandatoryBaseClass = Importer;
+  tv.decorateExtensionRegistry(Importer, options);
 
   Importer.findImporterFor = function(eventData) {
-    for (var i = 0; i < Importer.importers_.length; ++i)
-      if (Importer.importers_[i].constructor.canImport(eventData))
-        return Importer.importers_[i].constructor;
+    var typeInfo = Importer.findTypeInfoMatching(function(ti) {
+      return ti.constructor.canImport(eventData);
+    });
+    if (typeInfo)
+      return typeInfo.constructor;
     return undefined;
   };
 

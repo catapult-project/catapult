@@ -37,7 +37,9 @@ tv.exportTo('gpu', function() {
       }
     }
   };
-  tracing.analysis.ObjectSnapshotView.register('gpu::State', StateSnapshotView);
+  tracing.analysis.ObjectSnapshotView.register(
+    StateSnapshotView,
+    {typeName: 'gpu::State'});
 
   return {
     StateSnapshotView: StateSnapshotView

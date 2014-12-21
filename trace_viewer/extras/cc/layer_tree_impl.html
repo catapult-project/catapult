@@ -136,7 +136,7 @@ tv.exportTo('cc', function() {
     }
   };
 
-  ObjectSnapshot.register('cc::LayerTreeImpl', LayerTreeImplSnapshot);
+  ObjectSnapshot.register(LayerTreeImplSnapshot, {typeName: 'cc::LayerTreeImpl'});
 
   return {
     LayerTreeImplSnapshot: LayerTreeImplSnapshot

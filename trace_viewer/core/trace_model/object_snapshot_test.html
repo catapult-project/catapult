@@ -25,12 +25,14 @@ tv.unittest.testSuite(function() {
     var instance = new tracing.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'MySnapshot', 10);
     try {
-      tracing.trace_model.ObjectSnapshot.register('MySnapshot', MySnapshot);
+      tracing.trace_model.ObjectSnapshot.register(
+          MySnapshot,
+          {typeName: 'MySnapshot'});
       var snapshot = instance.addSnapshot(15, {foo: 'bar'});
       assertTrue(snapshot instanceof MySnapshot);
       assertEquals('bar', snapshot.myFoo);
     } finally {
-      tracing.trace_model.ObjectSnapshot.unregister('MySnapshot');
+      tracing.trace_model.ObjectSnapshot.unregister(MySnapshot);
     }
   });
 });

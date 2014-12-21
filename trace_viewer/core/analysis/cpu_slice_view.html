@@ -93,7 +93,8 @@ tv.exportTo('tracing.analysis', function() {
   };
 
   tracing.analysis.SliceView.register(
-      'tracing.analysis.CpuSlice', CpuSliceView);
+      CpuSliceView,
+      {typeName: 'tracing.analysis.CpuSlice'});
 
   return {
     CpuSliceView: CpuSliceView

@@ -90,7 +90,7 @@ tv.exportTo('cc', function() {
     }
   };
 
-  ObjectSnapshot.register('cc::Tile', TileSnapshot);
+  ObjectSnapshot.register(TileSnapshot, {typeName: 'cc::Tile'});
 
   return {
     TileSnapshot: TileSnapshot

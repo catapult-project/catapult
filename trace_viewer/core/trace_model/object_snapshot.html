@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/extension_registry.html">
 <link rel="import" href="/core/trace_model/event.html">
 
 <script>
@@ -60,7 +61,10 @@ tv.exportTo('tracing.trace_model', function() {
     }
   };
 
-  tracing.trace_model.Event.decorateSubtype(ObjectSnapshot);
+  var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
+  options.mandatoryBaseClass = ObjectSnapshot;
+  options.defaultConstructor = ObjectSnapshot;
+  tv.decorateExtensionRegistry(ObjectSnapshot, options);
 
   return {
     ObjectSnapshot: ObjectSnapshot

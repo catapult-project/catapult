@@ -5,22 +5,19 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/extension_registry.html">
 <link rel="import" href="/base/ui.html">
-<link rel="import" href="/core/analysis/view_base.html">
 
 <script>
 'use strict';
 
 tv.exportTo('tracing.analysis', function() {
-  var ObjectInstanceView = tv.ui.define(
-      'object-instance-view',
-      tracing.analysis.ViewBase);
+  var ObjectInstanceView = tv.ui.define('object-instance-view');
 
   ObjectInstanceView.prototype = {
-    __proto__: tracing.analysis.ViewBase.prototype,
+    __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      tracing.analysis.ViewBase.prototype.decorate.call(this);
       this.objectInstance_ = undefined;
     },
 
@@ -50,11 +47,12 @@ tv.exportTo('tracing.analysis', function() {
     }
   };
 
-  tracing.analysis.ViewBase.decorateSubtype(
-      ObjectInstanceView,
-      {
-        showInTrackView: true
-      });
+  var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
+  options.mandatoryBaseClass = ObjectInstanceView;
+  options.defaultMetadata = {
+    showInTrackView: true
+  };
+  tv.decorateExtensionRegistry(ObjectInstanceView, options);
 
   return {
     ObjectInstanceView: ObjectInstanceView

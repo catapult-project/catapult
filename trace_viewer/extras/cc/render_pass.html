@@ -35,7 +35,7 @@ tv.exportTo('cc', function() {
     }
   };
 
-  ObjectSnapshot.register('cc::RenderPass', RenderPassSnapshot);
+  ObjectSnapshot.register(RenderPassSnapshot, {typeName: 'cc::RenderPass'});
 
   return {
     RenderPassSnapshot: RenderPassSnapshot

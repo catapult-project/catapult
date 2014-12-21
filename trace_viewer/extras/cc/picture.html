@@ -403,7 +403,7 @@ tv.exportTo('cc', function() {
     }
   };
 
-  ObjectSnapshot.register('cc::Picture', PictureSnapshot);
+  ObjectSnapshot.register(PictureSnapshot, {typeName: 'cc::Picture'});
 
   return {
     PictureSnapshot: PictureSnapshot,

@@ -41,7 +41,9 @@ tv.exportTo('gpu', function() {
     }
   };
 
-  ObjectSnapshot.register('gpu::State', StateSnapshot);
+  ObjectSnapshot.register(
+    StateSnapshot,
+    {typeName: 'gpu::State'});
 
   return {
     StateSnapshot: StateSnapshot

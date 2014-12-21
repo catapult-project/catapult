@@ -87,7 +87,9 @@ tv.exportTo('tcmalloc', function() {
 
   };
 
-  ObjectSnapshot.register('memory::Heap', HeapSnapshot);
+  ObjectSnapshot.register(
+    HeapSnapshot,
+    {typeName: 'memory::Heap'});
 
   return {
     HeapSnapshot: HeapSnapshot

@@ -74,8 +74,8 @@ tv.exportTo('system_stats', function() {
   };
 
   tracing.analysis.ObjectSnapshotView.register(
-      'base::TraceEventSystemStatsMonitor::SystemStats',
-      SystemStatsSnapshotView);
+      SystemStatsSnapshotView,
+      {typeName: 'base::TraceEventSystemStatsMonitor::SystemStats'});
 
   return {
     SystemStatsSnapshotView: SystemStatsSnapshotView

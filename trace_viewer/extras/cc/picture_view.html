@@ -41,9 +41,11 @@ tv.exportTo('cc', function() {
   };
 
   tracing.analysis.ObjectSnapshotView.register(
-      'cc::Picture', PictureSnapshotView, {showInstances: false});
-  tracing.analysis.ObjectSnapshotView.register(
-      'cc::LayeredPicture', PictureSnapshotView, {showInstances: false});
+      PictureSnapshotView,
+      {
+        typeNames: ['cc::Picture', 'cc::LayeredPicture'],
+        showInstances: false
+      });
 
   return {
     PictureSnapshotView: PictureSnapshotView

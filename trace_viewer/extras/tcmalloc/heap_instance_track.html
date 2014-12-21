@@ -166,7 +166,8 @@ tv.exportTo('tcmalloc', function() {
   };
 
   tracing.tracks.ObjectInstanceTrack.register(
-      'memory::Heap', HeapInstanceTrack);
+      HeapInstanceTrack,
+      {typeName: 'memory::Heap'});
 
   return {
     HeapInstanceTrack: HeapInstanceTrack
