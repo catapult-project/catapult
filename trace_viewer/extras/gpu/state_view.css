@@ -4,7 +4,7 @@
  */
 
 .gpu-state-snapshot-view {
-  background: url('../images/checkerboard.png');
+  background: url('./images/checkerboard.png');
   display: -webkit-flex;
   overflow: auto;
 }
