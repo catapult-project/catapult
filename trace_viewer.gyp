@@ -97,7 +97,7 @@
       'trace_viewer/base/ui/sortable_table.html',
       'trace_viewer/base/ui/sunburst_chart.html',
       'trace_viewer/base/utils.html',
-      'trace_viewer/cc.html',
+      'trace_viewer/cc/cc.html',
       'trace_viewer/cc/chrome_browser.html',
       'trace_viewer/cc/constants.html',
       'trace_viewer/cc/debug_colors.html',
