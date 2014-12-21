@@ -232,8 +232,7 @@ console.log('/raw/raw_script.js was written');
 """
 
     with fake_fs.FakeFS(file_contents):
-      project = project_module.Project(['/tvcm/', '/tmp/', '/components/', '/raw/'],
-                                       include_tvcm_paths=False)
+      project = project_module.Project(['/tvcm/', '/tmp/', '/components/', '/raw/'])
       loader = resource_loader.ResourceLoader(project)
       a_b_start_module = loader.LoadModule(module_name='a.b.start')
       load_sequence = project.CalcLoadSequenceForModules([a_b_start_module])
@@ -279,8 +278,7 @@ console.log('/raw/raw_script.js was written');
 </polymer-element>
 """
     with fake_fs.FakeFS(file_contents):
-      project = project_module.Project(['/tvcm/', '/tmp/'],
-                                       include_tvcm_paths=False)
+      project = project_module.Project(['/tvcm/', '/tmp/'])
       loader = resource_loader.ResourceLoader(project)
       my_component = loader.LoadModule(module_name='a.b.my_component')
 
@@ -311,8 +309,7 @@ console.log('/raw/raw_script.js was written');
 </polymer-element>
 """
     with fake_fs.FakeFS(file_contents):
-      project = project_module.Project(['/tvcm/', '/tmp/'],
-                                       include_tvcm_paths=False)
+      project = project_module.Project(['/tvcm/', '/tmp/'])
       loader = resource_loader.ResourceLoader(project)
       my_component = loader.LoadModule(module_name='a.b.my_component')
 
@@ -341,8 +338,7 @@ console.log('/raw/raw_script.js was written');
 """
     file_contents['/tmp/a/something.jpg'] = 'jpgdata'
     with fake_fs.FakeFS(file_contents):
-      project = project_module.Project(['/tvcm/', '/tmp/'],
-                                       include_tvcm_paths=False)
+      project = project_module.Project(['/tvcm/', '/tmp/'])
       loader = resource_loader.ResourceLoader(project)
       my_component = loader.LoadModule(module_name='a.b.my_component')
 

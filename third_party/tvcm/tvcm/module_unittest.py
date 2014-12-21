@@ -32,8 +32,7 @@ class ModuleIntegrationTests(unittest.TestCase):
 """)
     fs.AddFile('/src/tvcm.html', '<!DOCTYPE html>')
     with fs:
-      project = project_module.Project(['/src/'],
-                                       include_tvcm_paths=False)
+      project = project_module.Project(['/src/'])
       loader = resource_loader.ResourceLoader(project)
       x_module = loader.LoadModule('x')
 
@@ -61,8 +60,7 @@ class ModuleIntegrationTests(unittest.TestCase):
 <!DOCTYPE html>
 });
 """);
-    project = project_module.Project(['/x'],
-                                     include_tvcm_paths=False)
+    project = project_module.Project(['/x'])
     loader = resource_loader.ResourceLoader(project)
     with fs:
       my_module = loader.LoadModule(module_name = 'src.my_module')
@@ -79,8 +77,7 @@ class ModuleIntegrationTests(unittest.TestCase):
 <!DOCTYPE html>
 <link rel="import" href="missing.html">
 """);
-    project = project_module.Project(['/x'],
-                                     include_tvcm_paths=False)
+    project = project_module.Project(['/x'])
     loader = resource_loader.ResourceLoader(project)
     with fs:
       exc = None
@@ -113,8 +110,7 @@ class ModuleIntegrationTests(unittest.TestCase):
 <!DOCTYPE html>
 """);
     fs.AddFile('/x/raw/bar.js', 'hello');
-    project = project_module.Project(['/x/y', '/x/raw/'],
-                                     include_tvcm_paths=False)
+    project = project_module.Project(['/x/y', '/x/raw/'])
     loader = resource_loader.ResourceLoader(project)
     with fs:
       my_module = loader.LoadModule(module_name='z.foo')

@@ -100,10 +100,7 @@ class Project(object):
   tvcm_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
 
-  tvcm_src_path = os.path.abspath(os.path.join(
-      tvcm_path, 'src'))
-
-  def __init__(self, source_paths=None, include_tvcm_paths=True, non_module_html_files=None):
+  def __init__(self, source_paths=None, non_module_html_files=None):
     """
     source_paths: A list of top-level directories in which modules and raw scripts can be found.
         Module paths are relative to these directories.
@@ -112,9 +109,6 @@ class Project(object):
     self._frozen = False
     self.source_paths = AbsFilenameList(self._WillPartOfPathChange)
     self.non_module_html_files = AbsFilenameList(self._WillPartOfPathChange)
-
-    if include_tvcm_paths:
-      self.source_paths.append(self.tvcm_src_path)
 
     if source_paths != None:
       self.source_paths.extend(source_paths)
@@ -133,7 +127,6 @@ class Project(object):
   @staticmethod
   def FromDict(d):
     return Project(d['source_paths'],
-                   include_tvcm_paths=False,
                    non_module_html_files=d.get('non_module_html_files', None))
 
   def AsDict(self):

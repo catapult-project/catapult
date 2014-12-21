@@ -31,8 +31,7 @@ class GenerateTests(unittest.TestCase):
 """)
 
     self.project = project_module.Project(
-        ['/x'],
-        include_tvcm_paths=False)
+        ['/x'])
 
   def testJSGeneration(self):
     with self.fs:

@@ -20,8 +20,7 @@ class StyleSheetUnittest(unittest.TestCase):
 """)
     fs.AddFile('/src/images/bar.jpeg', 'hello world')
     with fs:
-      project = project_module.Project(['/src/'],
-                                       include_tvcm_paths=False)
+      project = project_module.Project(['/src/'])
       loader = resource_loader.ResourceLoader(project)
 
       foo_x = loader.LoadStyleSheet('foo.x')
@@ -47,8 +46,7 @@ class StyleSheetUnittest(unittest.TestCase):
 }
 """)
     with fs:
-      project = project_module.Project(['/src/'],
-                                       include_tvcm_paths=False)
+      project = project_module.Project(['/src/'])
       loader = resource_loader.ResourceLoader(project)
 
       self.assertRaises(module.DepsException,
@@ -60,8 +58,7 @@ class StyleSheetUnittest(unittest.TestCase):
 @import url(awesome.css);
 """)
     with fs:
-      project = project_module.Project(['/src/'],
-                                       include_tvcm_paths=False)
+      project = project_module.Project(['/src/'])
       loader = resource_loader.ResourceLoader(project)
 
       self.assertRaises(Exception,
