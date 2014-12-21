@@ -139,9 +139,9 @@ tracing_js_html_files = [
   "trace_viewer/system_stats/system_stats_instance_track.html",
   "trace_viewer/system_stats/system_stats_snapshot.html",
   "trace_viewer/system_stats/system_stats_snapshot_view.html",
-  "trace_viewer/tcmalloc.html",
   "trace_viewer/tcmalloc/heap.html",
   "trace_viewer/tcmalloc/heap_instance_track.html",
+  "trace_viewer/tcmalloc/tcmalloc.html",
   "trace_viewer/tcmalloc/tcmalloc_instance_view.html",
   "trace_viewer/tcmalloc/tcmalloc_snapshot_view.html",
   "trace_viewer/trace_viewer.html",
@@ -277,8 +277,8 @@ tracing_img_files = [
   "trace_viewer/base/images/ui-states.png",
   "trace_viewer/extras/cc/images/input-event.png",
   "trace_viewer/images/checkerboard.png",
-  "trace_viewer/images/collapse.png",
-  "trace_viewer/images/expand.png",
+  "trace_viewer/tcmalloc/images/collapse.png",
+  "trace_viewer/tcmalloc/images/expand.png",
 ]
 
 # TODO: ideally this would go into the target_gen_dir, but this requires some

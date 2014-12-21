@@ -29,12 +29,12 @@
 
 /* Collapsed state for list element */
 .tcmalloc-snapshot-view .collapsed {
-  background-image: url(../images/expand.png);
+  background-image: url(./images/expand.png);
 }
 
 /* Expanded state for list element. Must be located under the collapsed one. */
 .tcmalloc-snapshot-view .expanded {
-  background-image: url(../images/collapse.png);
+  background-image: url(./images/collapse.png);
 }
 
 /* Allocation size in MB, right-aligned for easier comparison of columns. */
