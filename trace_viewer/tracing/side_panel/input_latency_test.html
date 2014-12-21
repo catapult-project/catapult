@@ -176,14 +176,20 @@ tv.unittest.testSuite(function() {
 
     var selectionChanged = false;
     panel.model = new tracing.TraceModel(events);
-    panel.ownerDocument.addEventListener('requestSelectionChange', function(e) {
+    function listener(e) {
       selectionChanged = true;
       assertEquals(3, e.selection.length);
       assertEquals(20, e.selection[0].start);
       assertEquals(31, e.selection[1].start);
       assertEquals(40, e.selection[2].start);
-    });
-    panel.setBrushedIndices(2, 4);
+    }
+    panel.ownerDocument.addEventListener('requestSelectionChange', listener);
+    try {
+      panel.setBrushedIndices(2, 4);
+    } finally {
+      panel.ownerDocument.removeEventListener(
+          'requestSelectionChange', listener);
+    }
     assertTrue(selectionChanged);
   });
 });
