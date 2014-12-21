@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base.html">
+<link rel="import" href="/base/extension_registry.html">
 <script>
 'use strict';
 
@@ -15,7 +16,7 @@ found in the LICENSE file.
  * Parser to parse event data.  Each subclass corresponds
  * to a group of trace events; e.g. SchedParser implements
  * parsing of sched:* kernel trace events.  Parser subclasses must
- * call Parser.registerSubtype to arrange to be instantiated
+ * call Parser.register to arrange to be instantiated
  * and their constructor must register their event handlers with the
  * importer.  For example,
  *
@@ -30,7 +31,7 @@ found in the LICENSE file.
  *       WorkqueueParser.prototype.executeEndEvent.bind(this));
  * }
  *
- * Parser.registerSubtype(WorkqueueParser);
+ * Parser.register(WorkqueueParser);
  *
  * When a registered event name is found in the data stream the associated
  * event handler is invoked:
@@ -65,23 +66,6 @@ found in the LICENSE file.
  * to regenerate about_tracing.*.
  */
 tv.exportTo('tracing.importer.linux_perf', function() {
-  var subtypeConstructors = [];
-
-  /**
-   * Registers a subclass that will help parse linux perf events.
-   * The importer will call createParsers (below) before importing
-   * data so each subclass can register its handlers.
-   *
-   * @param {Function} subtypeConstructor The subtype's constructor function.
-   */
-  Parser.registerSubtype = function(subtypeConstructor) {
-    subtypeConstructors.push(subtypeConstructor);
-  };
-
-  Parser.getSubtypeConstructors = function() {
-    return subtypeConstructors;
-  };
-
   /**
    * Parses linux perf events.
    * @constructor
@@ -94,6 +78,10 @@ tv.exportTo('tracing.importer.linux_perf', function() {
   Parser.prototype = {
     __proto__: Object.prototype
   };
+
+  var options = new tv.ExtensionRegistryOptions(tv.BASIC_REGISTRY_MODE);
+  options.mandatoryBaseClass = Parser;
+  tv.decorateExtensionRegistry(Parser, options);
 
   return {
     Parser: Parser

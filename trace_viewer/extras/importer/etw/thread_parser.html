@@ -233,7 +233,7 @@ tv.exportTo('tracing.importer.etw', function() {
 
   };
 
-  Parser.registerSubtype(ThreadParser);
+  Parser.register(ThreadParser);
 
   return {
     ThreadParser: ThreadParser

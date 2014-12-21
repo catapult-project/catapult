@@ -103,7 +103,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
     }
   };
 
-  LinuxPerfParser.registerSubtype(KernelFuncParser);
+  LinuxPerfParser.register(KernelFuncParser);
 
   return {
     KernelFuncParser: KernelFuncParser

@@ -100,7 +100,7 @@ tv.exportTo('tracing.importer.etw', function() {
 
   };
 
-  Parser.registerSubtype(EventTraceParser);
+  Parser.register(EventTraceParser);
 
   return {
     EventTraceParser: EventTraceParser

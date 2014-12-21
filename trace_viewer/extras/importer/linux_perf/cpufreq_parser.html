@@ -102,7 +102,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
     }
   };
 
-  Parser.registerSubtype(CpufreqParser);
+  Parser.register(CpufreqParser);
 
   return {
     CpufreqParser: CpufreqParser

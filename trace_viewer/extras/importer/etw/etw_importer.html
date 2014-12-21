@@ -265,7 +265,6 @@ tv.exportTo('tracing.importer', function() {
     this.events_ = events;
     this.handlers_ = {};
     this.decoder_ = new Decoder();
-    this.parsers_ = [];
     this.walltime_ = undefined;
     this.ticks_ = undefined;
     this.is64bit_ = undefined;
@@ -276,11 +275,11 @@ tv.exportTo('tracing.importer', function() {
     this.tidsToPid_ = {};
 
     // Instantiate the parsers; this will register handlers for known events.
-    var constructors = tracing.importer.etw.Parser.getSubtypeConstructors();
-    for (var i = 0; i < constructors.length; ++i) {
-      var parser = constructors[i];
-      this.parsers_.push(new parser(this));
-    }
+    var allTypeInfos = tracing.importer.etw.Parser.getAllRegisteredTypeInfos();
+    this.parsers_ = allTypeInfos.map(
+        function(typeInfo) {
+          return new typeInfo.constructor(this);
+        }, this);
   }
 
   /**

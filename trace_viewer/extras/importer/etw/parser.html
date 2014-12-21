@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base.html">
+<link rel="import" href="/base/extension_registry.html">
 <script>
 'use strict';
 
@@ -15,7 +16,7 @@ found in the LICENSE file.
  * Parser to parse event data.  Each subclass corresponds
  * to a group of trace events; e.g. Thread and Process implements
  * decoding of scheduling events.  Parser subclasses must
- * call Parser.registerSubtype to arrange to be instantiated
+ * call Parser.register to arrange to be instantiated
  * and their constructor must register their event handlers with the
  * importer.  For example,
  *
@@ -30,7 +31,7 @@ found in the LICENSE file.
  *       ThreadParser.prototype.decodeEnd.bind(this));
  * }
  *
- * Parser.registerSubtype(ThreadParser);
+ * Parser.register(ThreadParser);
  *
  * When a registered event is found, the associated event handler is invoked:
  *
@@ -47,23 +48,6 @@ found in the LICENSE file.
  *
  */
 tv.exportTo('tracing.importer.etw', function() {
-  var subtypeConstructors = [];
-
-  /**
-   * Registers a subclass that will help parse Windows ETW events.
-   * The importer will call createParsers (below) before importing
-   * data so each subclass can register its handlers.
-   *
-   * @param {Function} subtypeConstructor The subtype's constructor function.
-   */
-  Parser.registerSubtype = function(subtypeConstructor) {
-    subtypeConstructors.push(subtypeConstructor);
-  };
-
-  Parser.getSubtypeConstructors = function() {
-    return subtypeConstructors;
-  };
-
   /**
    * Parses Windows ETW events.
    * @constructor
@@ -76,6 +60,11 @@ tv.exportTo('tracing.importer.etw', function() {
   Parser.prototype = {
     __proto__: Object.prototype
   };
+
+  var options = new tv.ExtensionRegistryOptions(tv.BASIC_REGISTRY_MODE);
+  options.mandatoryBaseClass = Parser;
+  tv.decorateExtensionRegistry(Parser, options);
+
 
   return {
     Parser: Parser

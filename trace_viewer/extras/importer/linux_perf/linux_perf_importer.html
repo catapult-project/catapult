@@ -331,7 +331,8 @@ tv.exportTo('tracing.importer', function() {
      * Imports the data in this.events_ into model_.
      */
     importEvents: function(isSecondaryImport) {
-      this.createParsers();
+      this.parsers_ = this.createParsers_();
+      this.registerDefaultHandlers_();
       this.parseLines();
       this.importClockSyncRecords();
       var timeShift = this.computeTimeTransform(isSecondaryImport);
@@ -554,15 +555,18 @@ tv.exportTo('tracing.importer', function() {
      * understand.  We also register our own special handlers (for the
      * timestamp synchronization markers).
      */
-    createParsers: function() {
+    createParsers_: function() {
       // Instantiate the parsers; this will register handlers for known events
-      var parserConstructors =
-          tracing.importer.linux_perf.Parser.getSubtypeConstructors();
-      for (var i = 0; i < parserConstructors.length; ++i) {
-        var parserConstructor = parserConstructors[i];
-        this.parsers_.push(new parserConstructor(this));
-      }
+      var allTypeInfos = tracing.importer.linux_perf.Parser.getAllRegisteredTypeInfos();
+      var parsers = allTypeInfos.map(
+          function(typeInfo) {
+            return new typeInfo.constructor(this);
+          }, this);
 
+      return parsers;
+    },
+
+    registerDefaultHandlers_: function() {
       this.registerEventHandler('tracing_mark_write',
           LinuxPerfImporter.prototype.traceMarkingWriteEvent.bind(this));
       // NB: old-style trace markers; deprecated
