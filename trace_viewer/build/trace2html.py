@@ -78,7 +78,7 @@ def WriteHTMLForTraceDataToFile(trace_data_list,
 
   modules = [
     'build.trace2html',
-    'tracing.importer.gzip_importer', # Must have this regardless of config.
+    'extras.importer.gzip_importer', # Must have this regardless of config.
     project.GetModuleNameForConfigName(config_name)
   ]
 
