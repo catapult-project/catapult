@@ -201,7 +201,7 @@ tv.unittest.testSuite(function() {
     var decoder = importer.decoder_;
     decoder.reset('AAECAwQFBgc=');
     var bytes = decoder.decodeBytes(8);
-    for (var i = 0; i < length; ++i)
+    for (var i = 0; i < bytes.length; ++i)
       assertTrue(bytes[i] == i);
   });
 
