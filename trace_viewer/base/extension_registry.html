@@ -130,6 +130,7 @@ tv.exportTo('tv', function() {
   }
 
   function decorateBasicExtensionRegistry(registry, extensionRegistryOptions) {
+    var savedStateStack = [];
     registry.registeredTypeInfos_ = [];
 
     registry.register = function(constructor,
@@ -153,6 +154,15 @@ tv.exportTo('tv', function() {
         metadata));
     };
 
+    registry.pushCleanStateBeforeTest = function() {
+      savedStateStack.push(registry.registeredTypeInfos_);
+      registry.registeredTypeInfos_ = [];
+    };
+    registry.popCleanStateAfterTest = function() {
+      registry.registeredTypeInfos_ = savedStateStack[0];
+      savedStateStack.splice(0,1);
+    };
+
     registry.findIndexOfRegisteredConstructor = function(constructor) {
       for (var i = 0; i < registry.registeredTypeInfos_.length; i++)
         if (registry.registeredTypeInfos_[i].constructor == constructor)
@@ -169,6 +179,13 @@ tv.exportTo('tv', function() {
 
     registry.getAllRegisteredTypeInfos = function() {
       return registry.registeredTypeInfos_;
+    };
+
+    registry.findTypeInfo = function(constructor) {
+      var foundIndex = this.findIndexOfRegisteredConstructor(constructor);
+      if (foundIndex !== undefined)
+        return this.registeredTypeInfos_[foundIndex];
+      return undefined;
     };
 
     registry.findTypeInfoMatching = function(predicate, opt_this) {
@@ -205,6 +222,8 @@ tv.exportTo('tv', function() {
 
   function decorateTypeBasedExtensionRegistry(registry,
                                               extensionRegistryOptions) {
+    var savedStateStack = [];
+
     registry.registeredTypeInfos_ = [];
 
     registry.categoryPartToTypeInfoMap_ = {};
@@ -254,6 +273,26 @@ tv.exportTo('tv', function() {
         registry.categoryPartToTypeInfoMap_[categoryPart] = typeInfo;
       });
       registry.registeredTypeInfos_.push(typeInfo);
+    };
+
+    registry.pushCleanStateBeforeTest = function() {
+      savedStateStack.push({
+        registeredTypeInfos: registry.registeredTypeInfos_,
+        typeNameToTypeInfoMap: registry.typeNameToTypeInfoMap_,
+        categoryPartToTypeInfoMap: registry.categoryPartToTypeInfoMap_
+      });
+      registry.registeredTypeInfos_ = [];
+      registry.typeNameToTypeInfoMap_ = {};
+      registry.categoryPartToTypeInfoMap_ = {};
+    };
+
+    registry.popCleanStateAfterTest = function() {
+      var state = savedStateStack[0];
+      savedStateStack.splice(0,1);
+
+      registry.registeredTypeInfos_ = state.registeredTypeInfos;
+      registry.typeNameToTypeInfoMap_ = state.typeNameToTypeInfoMap;
+      registry.categoryPartToTypeInfoMap_ = state.categoryPartToTypeInfoMap;
     };
 
     registry.unregister = function(constructor) {

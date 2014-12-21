@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="stylesheet" href="/core/side_panel/side_panel_container.css">
 <link rel="import" href="/base/range.html">
-<link rel="import" href="/core/side_panel/side_panel_registry.html">
+<link rel="import" href="/core/side_panel/side_panel.html">
 
 <script>
 'use strict';
@@ -52,70 +52,95 @@ tv.exportTo('tracing', function() {
     },
 
     get activePanelConstructor() {
-      if (this.activePanel)
-        return this.activePanel.constructor;
+      return this.activePanelType ?
+          this.activePanelType.constructor : undefined;
+    },
+
+    set activePanelConstructor(constructor) {
+      var typeInfo;
+      if (constructor) {
+        typeInfo = this.getPanelTypeForConstructor_(constructor);
+        if (typeInfo === undefined)
+          throw new Error('Not registered');
+      } else {
+        typeInfo = undefined;
+      }
+      this.activePanelType = typeInfo;
+    },
+
+    get activePanelType() {
+      if (this.activePanel) {
+        return this.getPanelTypeForConstructor_(this.activePanel.constructor);
+      }
       return undefined;
     },
 
-    set activePanelConstructor(panelConstructor) {
+    set activePanelType(panelType) {
       if (this.model_ === undefined)
         throw new Error('Cannot activate panel without a model');
-      if (panelConstructor && !panelConstructor.supportsModel(this.model_))
+      if (panelType && !panelType.metadata.supportsModel(this.model_))
         throw new Error('Cannot activate panel: it doesn\'t ' +
                         'support this model');
 
-      if (this.activePanelConstructor) {
-        this.getLabelForConstructor_(
-            this.activePanelConstructor).removeAttribute('selected');
+      if (this.activePanelType) {
+        this.getLabelElementForPanelType_(
+            this.activePanelType).removeAttribute('selected');
       }
       this.activePanelContainer_.textContent = '';
 
-      if (panelConstructor === undefined) {
+      if (panelType === undefined) {
         this.removeAttribute('expanded');
         return;
       }
 
-      this.getLabelForConstructor_(
-          panelConstructor).setAttribute('selected', true);
+      this.getLabelElementForPanelType_(
+          panelType).setAttribute('selected', true);
 
       this.setAttribute('expanded', true);
 
-      var panelEl = new panelConstructor();
+      var panelEl = new panelType.constructor();
       this.activePanelContainer_.appendChild(panelEl);
       panelEl.rangeOfInterest = this.rangeOfInterest_;
       panelEl.selection = this.selection_;
       panelEl.model = this.model_;
     },
 
-    getLabelForConstructor_: function(panelConstructor) {
+    getPanelTypeForConstructor_: function(constructor) {
       for (var i = 0; i < this.tabStrip_.children.length; i++) {
-        if (this.tabStrip_.children[i].panelConstructor == panelConstructor)
+        if (this.tabStrip_.children[i].panelType.constructor == constructor)
+          return this.tabStrip_.children[i].panelType;
+      }
+    },
+
+    getLabelElementForPanelType_: function(panelType) {
+      for (var i = 0; i < this.tabStrip_.children.length; i++) {
+        if (this.tabStrip_.children[i].panelType == panelType)
           return this.tabStrip_.children[i];
       }
       return undefined;
     },
 
     updateContents_: function() {
-      var previouslyActivePanelConstructor = this.activePanelConstructor;
+      var previouslyActivePanelType = this.activePanelType;
 
       this.tabStrip_.textContent = '';
-      var supportedPanelConstructors = [];
+      var supportedPanelTypes = [];
 
-      var constructors = tracing.SidePanelRegistry.getPanelConstructors();
-      constructors.forEach(function(panelConstructor) {
+      var panelTypes = tracing.SidePanel.getAllRegisteredTypeInfos();
+      panelTypes.forEach(function(panelType) {
         var labelEl = document.createElement('tab-strip-label');
-        labelEl.textContent = panelConstructor.textLabel;
-        labelEl.panelConstructor = panelConstructor;
+        labelEl.textContent = panelType.metadata.textLabel;
+        labelEl.panelType = panelType;
 
-        var supported = panelConstructor.supportsModel(this.model_);
+        var supported = panelType.metadata.supportsModel(this.model_);
         if (this.model_ && supported.supported) {
-          supportedPanelConstructors.push(panelConstructor);
+          supportedPanelTypes.push(panelType);
           labelEl.setAttribute('enabled', true);
           labelEl.addEventListener('click', function() {
-            if (this.activePanelConstructor === panelConstructor)
-              this.activePanelConstructor = undefined;
+            if (this.activePanelType === panelType)
+              this.activePanelType = undefined;
             else
-              this.activePanelConstructor = panelConstructor;
+              this.activePanelType = panelType;
           }.bind(this));
         } else {
           labelEl.title = 'Not supported for the current trace: ' +
@@ -126,10 +151,10 @@ tv.exportTo('tracing', function() {
 
 
       // Restore the active panel, or collapse
-      if (previouslyActivePanelConstructor &&
-          supportedPanelConstructors.indexOf(
-              previouslyActivePanelConstructor) != -1) {
-        this.activePanelConstructor = previouslyActivePanelConstructor;
+      if (previouslyActivePanelType &&
+          supportedPanelTypes.indexOf(
+              previouslyActivePanelType) != -1) {
+        this.activePanelType = previouslyActivePanelType;
         this.setAttribute('expanded', true);
       } else {
         this.activePanelContainer_.textContent = '';

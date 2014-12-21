@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/analysis/util.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/side_panel/side_panel_registry.html">
+<link rel="import" href="/core/side_panel/side_panel.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
@@ -240,18 +240,14 @@ tv.exportTo('tracing', function() {
   /**
    * @constructor
    */
-  var TimeSummarySidePanel = tv.ui.define('x-time-summary-side-panel');
-  TimeSummarySidePanel.textLabel = 'Thread Times';
-  TimeSummarySidePanel.supportsModel = function(m) {
-    return {
-      supported: true
-    };
-  };
+  var TimeSummarySidePanel = tv.ui.define(
+      'x-time-summary-side-panel', tracing.SidePanel);
 
   TimeSummarySidePanel.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: tracing.SidePanel.prototype,
 
     decorate: function() {
+      tracing.SidePanel.prototype.decorate.call(this);
       this.classList.add('x-time-summary-side-panel');
       this.appendChild(tv.instantiateTemplate(
           '#x-time-summary-side-panel-template', THIS_DOC));
@@ -465,7 +461,11 @@ tv.exportTo('tracing', function() {
     }
   };
 
-  tracing.SidePanelRegistry.registerPanel(TimeSummarySidePanel);
+  tracing.SidePanel.register(
+    TimeSummarySidePanel,
+    {
+      textLabel: 'Thread Times'
+    });
 
   return {
     trimPieChartData: trimPieChartData,

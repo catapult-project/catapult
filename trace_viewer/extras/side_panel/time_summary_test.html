@@ -166,7 +166,6 @@ tv.unittest.testSuite(function() {
 
   test('basicInWallTimeMode', function() {
     var m = createModel();
-    assertTrue(tracing.TimeSummarySidePanel.supportsModel(m).supported);
 
     var panel = new tracing.TimeSummarySidePanel();
     this.addHTMLOutput(panel);
@@ -177,7 +176,6 @@ tv.unittest.testSuite(function() {
 
   test('basicInCpuTimeModeButNoCpuData', function() {
     var m = createModel();
-    assertTrue(tracing.TimeSummarySidePanel.supportsModel(m).supported);
 
     var panel = new tracing.TimeSummarySidePanel();
     this.addHTMLOutput(panel);
@@ -190,7 +188,6 @@ tv.unittest.testSuite(function() {
     var m = createModel({
       provideSoftwareMeasuredCpuCount: true
     });
-    assertTrue(tracing.TimeSummarySidePanel.supportsModel(m).supported);
 
     var panel = new tracing.TimeSummarySidePanel();
     this.addHTMLOutput(panel);

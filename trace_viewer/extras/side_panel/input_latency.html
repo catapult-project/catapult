@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/extras/cc/chrome_browser.html">
 <link rel="import" href="/core/analysis/util.html">
-<link rel="import" href="/core/side_panel/side_panel_registry.html">
+<link rel="import" href="/core/side_panel/side_panel.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
@@ -176,8 +176,9 @@ tv.exportTo('tracing', function() {
   /**
    * @constructor
    */
-  var InputLatencySidePanel = tv.ui.define('x-input-latency-side-panel');
-  InputLatencySidePanel.textLabel = 'Input Latency';
+  var InputLatencySidePanel = tv.ui.define(
+      'x-input-latency-side-panel', tracing.SidePanel);
+
   InputLatencySidePanel.supportsModel = function(m) {
     if (m == undefined) {
       return {
@@ -217,9 +218,10 @@ tv.exportTo('tracing', function() {
   };
 
   InputLatencySidePanel.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: tracing.SidePanel.prototype,
 
     decorate: function() {
+      tracing.SidePanel.prototype.decorate.call(this);
       this.classList.add('x-input-latency-side-panel');
       this.appendChild(tv.instantiateTemplate(
           '#x-input-latency-side-panel-template', THIS_DOC));
@@ -425,7 +427,14 @@ tv.exportTo('tracing', function() {
     }
   };
 
-  tracing.SidePanelRegistry.registerPanel(InputLatencySidePanel);
+
+  tracing.SidePanel.register(
+    InputLatencySidePanel,
+    {
+      textLabel: 'Input Latency',
+      supportsModel: InputLatencySidePanel.supportsModel,
+    });
+
 
   return {
     createLatencyLineChart: createLatencyLineChart,

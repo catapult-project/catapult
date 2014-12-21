@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/base/extension_registry.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tracing', function() {
+  /*
+   * @constructor Base type for side panels.
+   */
+  var SidePanel = tv.ui.define('side-panel');
+  SidePanel.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.objectInstance_ = undefined;
+    },
+
+    get rangeOfInterest() {
+      throw new Error('Not implemented');
+    },
+
+    set rangeOfInterest(rangeOfInterest) {
+      throw new Error('Not implemented');
+    },
+
+    get selection() {
+      throw new Error('Not implemented');
+    },
+
+    set selection(selection) {
+      throw new Error('Not implemented');
+    },
+
+    get model() {
+      throw new Error('Not implemented');
+    },
+
+    set model(model) {
+      throw new Error('Not implemented');
+    }
+  };
+
+  // Type registry.
+  var options = new tv.ExtensionRegistryOptions(tv.BASIC_REGISTRY_MODE);
+  options.mandatoryBaseClass = tracing.SidePanel;
+  options.defaultMetadata = {
+    textLabel: '<Unknown>',
+    supportsModel: function(model) {
+      return {
+        supported: true
+      };
+    }
+  }
+  tv.decorateExtensionRegistry(SidePanel, options);
+
+  return {
+    SidePanel: SidePanel
+  };
+});
+</script>

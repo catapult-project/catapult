@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/side_panel/side_panel_registry.html">
+<link rel="import" href="/core/side_panel/side_panel.html">
 <link rel="import" href="/core/side_panel/side_panel_container.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 
@@ -48,26 +48,62 @@ tv.unittest.testSuite(function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.textContent = 'I am panel 1';
+      this.textContent = 'I am panel 2';
+      this.style.height = '300px';
+    }
+  };
+
+  /**
+   * @constructor
+   */
+  var Panel3 = tv.ui.define('panel-3');
+  Panel3.textLabel = 'Panel 3';
+  Panel3.supportsModel = function(m) {
+    return {
+      supported: true
+    };
+  };
+
+  Panel3.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.textContent = 'I am panel 3';
       this.style.height = '300px';
     }
   };
 
   function testBasic(name, fn) {
     test(name, function() {
-      var registeredPanelConstructors =
-          tracing.SidePanelRegistry.getPanelConstructors();
-      var oldConstructors = registeredPanelConstructors.splice(
-          0, registeredPanelConstructors.length);
-      tracing.SidePanelRegistry.registerPanel(Panel1);
-      tracing.SidePanelRegistry.registerPanel(Panel2);
+      tracing.SidePanel.pushCleanStateBeforeTest();
+
+      tracing.SidePanel.register(
+          Panel1,
+          {
+            textLabel: Panel1.textLabel,
+            supportsModel: Panel1.supportsModel
+          });
+      tracing.SidePanel.register(
+          Panel2,
+          {
+            textLabel: Panel2.textLabel,
+            supportsModel: Panel2.supportsModel
+          });
+      tracing.SidePanel.register(
+          Panel3,
+          {
+            textLabel: Panel3.textLabel,
+            supportsModel: Panel3.supportsModel
+          });
+
       try {
         fn.call(this);
       } finally {
-        tracing.SidePanelRegistry.unregisterPanel(Panel1);
-        tracing.SidePanelRegistry.unregisterPanel(Panel2);
-        registeredPanelConstructors.push.apply(registeredPanelConstructors,
-            oldConstructors);
+        tracing.SidePanel.unregister(Panel1);
+        tracing.SidePanel.unregister(Panel2);
+        tracing.SidePanel.unregister(Panel3);
+
+        tracing.SidePanel.popCleanStateAfterTest();
       }
     });
   }
@@ -99,5 +135,15 @@ tv.unittest.testSuite(function() {
     container.activePanelConstructor = Panel2;
     this.addHTMLOutput(container);
   });
+
+  testBasic('activeAFew', function() {
+    var container = new tracing.SidePanelContainer();
+    container.model = createModel();
+    this.addHTMLOutput(container);
+    container.activePanelConstructor = Panel2;
+    container.activePanelConstructor = Panel3;
+    container.activePanelConstructor = Panel2;
+  });
+
 });
 </script>
