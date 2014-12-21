@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/tracks/highlighter/highlighter.html">
+<link rel="import" href="/tracing/tracks/highlighter.html">
 <link rel="import" href="/tracing/timeline_track_view.html">
 <link rel="import" href="/tracing/timeline_viewport.html">
 <link rel="import" href="/tracing/tracks/trace_model_track.html">
@@ -18,7 +18,7 @@ found in the LICENSE file.
  */
 tv.exportTo('tracing.tracks.highlighter', function() {
 
-  var Highlighter = tracing.tracks.highlighter.Highlighter;
+  var Highlighter = tracing.tracks.Highlighter;
 
   /**
    * Highlights VSync events on the model track (using "zebra" striping).
@@ -164,7 +164,7 @@ tv.exportTo('tracing.tracks.highlighter', function() {
   };
 
   // Register the highlighter.
-  tracing.tracks.TraceModelTrack.registerHighlighter(VSyncHighlighter);
+  tracing.tracks.Highlighter.register(VSyncHighlighter);
 
   return {
     VSyncHighlighter: VSyncHighlighter

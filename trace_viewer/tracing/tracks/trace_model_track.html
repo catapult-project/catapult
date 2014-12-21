@@ -25,15 +25,6 @@ tv.exportTo('tracing.tracks', function() {
   var TraceModelTrack = tv.ui.define(
       'trace-model-track', tracing.tracks.ContainerTrack);
 
-  TraceModelTrack.highlighterConstructors_ = [];
-
-  /**
-   * Register a highlighter constructor.
-   * @param {function()} highlighterConstructor Highlighter constructor.
-   */
-  TraceModelTrack.registerHighlighter = function(highlighterConstructor) {
-    TraceModelTrack.highlighterConstructors_.push(highlighterConstructor);
-  }
 
   TraceModelTrack.prototype = {
 
@@ -43,12 +34,10 @@ tv.exportTo('tracing.tracks', function() {
       tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('model-track');
 
-      this.highlighters_ = [];
-      for (var i = 0; i < TraceModelTrack.highlighterConstructors_.length;
-           i++) {
-        this.highlighters_.push(
-            new TraceModelTrack.highlighterConstructors_[i](viewport));
-      }
+      this.highlighters_ = tracing.tracks.Highlighter.getConstructors().map(
+        function(constructor) {
+          return new constructor(viewport);
+        });
     },
 
     detach: function() {

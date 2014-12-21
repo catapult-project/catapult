@@ -5,5 +5,74 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/tracks/highlighter/vsync_highlighter.html">
+<link rel="import" href="/base.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Allows custom highlighting to be added to the full model track.
+ */
+tv.exportTo('tracing.tracks', function() {
+
+  /**
+   * Highlights cetrain features of the model.
+   * @constructor
+   */
+  function Highlighter(viewport) {
+    if (viewport === undefined) {
+      throw new Error('viewport must be provided');
+    }
+    this.viewport_ = viewport;
+  };
+
+  Highlighter.prototype = {
+    __proto__: Object.prototype,
+
+    processModel: function(model) {
+      throw new Error('processModel implementation missing');
+    },
+
+    drawHighlight: function(ctx, dt, viewLWorld, viewRWorld, viewHeight) {
+      throw new Error('drawHighlight implementation missing');
+    }
+  };
+
+  Highlighter.highlighters_ = [];
+
+  Highlighter.register = function(constructor,
+                                  opt_options) {
+    if (Highlighter.indexOfHighlighter_(constructor) !== undefined)
+      throw new Error('Handler already registered for ' + constructor);
+
+    var options = opt_options || {};
+    Highlighter.highlighters_.push({
+      constructor: constructor,
+      options: options
+    });
+  };
+
+  Highlighter.indexOfHighlighter_ = function(constructor) {
+    for (var i = 0; i < Highlighter.highlighters_.length; i++)
+      if (Highlighter.highlighters_[i].constructor == constructor)
+        return i;
+    return undefined;
+  };
+
+  Highlighter.unregister = function(constructor) {
+    var foundIndex = Highlighter.indexOfHighlighter_(constructor);
+    if (foundIndex === undefined)
+      throw new Error(typeName + ' not registered');
+    Highlighter.highlighters_.splice(foundIndex, 1);
+  };
+
+  Highlighter.getConstructors = function() {
+    return Highlighter.highlighters_.map(function(x) { return x.constructor; });
+  };
+
+  return {
+    Highlighter: Highlighter
+  };
+});
+</script>
 
