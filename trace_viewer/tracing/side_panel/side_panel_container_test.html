@@ -59,13 +59,13 @@ tv.unittest.testSuite(function() {
           tracing.SidePanelRegistry.getPanelConstructors();
       var oldConstructors = registeredPanelConstructors.splice(
           0, registeredPanelConstructors.length);
-      tracing.SidePanelRegistry.registerPanelSubtype(Panel1);
-      tracing.SidePanelRegistry.registerPanelSubtype(Panel2);
+      tracing.SidePanelRegistry.registerPanel(Panel1);
+      tracing.SidePanelRegistry.registerPanel(Panel2);
       try {
         fn.call(this);
       } finally {
-        tracing.SidePanelRegistry.unregisterPanelSubtype(Panel1);
-        tracing.SidePanelRegistry.unregisterPanelSubtype(Panel2);
+        tracing.SidePanelRegistry.unregisterPanel(Panel1);
+        tracing.SidePanelRegistry.unregisterPanel(Panel2);
         registeredPanelConstructors.push.apply(registeredPanelConstructors,
             oldConstructors);
       }
