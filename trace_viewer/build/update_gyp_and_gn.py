@@ -3,9 +3,11 @@
 # found in the LICENSE file.
 
 import collections
+import os
 import re
 
 from trace_viewer.build import check_common
+from trace_viewer import trace_viewer_project
 
 class _Token(object):
   def __init__(self, data, id=None):
@@ -137,11 +139,15 @@ def _UpdateBuildFile(filename, build_file_class):
 
 
 def UpdateGn():
-  _UpdateBuildFile('BUILD.gn', GnFile)
+  tvp = trace_viewer_project.TraceViewerProject()
+  _UpdateBuildFile(
+      os.path.join(tvp.trace_viewer_path, 'BUILD.gn'), GnFile)
 
 
 def UpdateGyp():
-  _UpdateBuildFile('trace_viewer.gyp', GypFile)
+  tvp = trace_viewer_project.TraceViewerProject()
+  _UpdateBuildFile(
+      os.path.join(tvp.trace_viewer_path, 'trace_viewer.gyp'), GypFile)
 
 
 def Update():
