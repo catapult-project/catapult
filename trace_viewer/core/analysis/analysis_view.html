@@ -86,62 +86,51 @@ using custom elements specialized for different event types.
         this.tallMode = false;
         this.textContent = '';
 
-        var eventsByType = selection.getEventsOrganizedByType(true);
+        var eventsByBaseType = selection.getEventsOrganizedByBaseType(true);
 
-        var categoriesToAnalyze = tv.dictionaryLength(eventsByType)
+        var numBaseTypesToAnalyze = tv.dictionaryLength(eventsByBaseType);
 
-        var subViewsParent;
-        var usingTabs = false;
         // If we have to analyze more than one category, we use a tab view
         // for displaying them.
-        if (categoriesToAnalyze > 1) {
-          usingTabs = true;
-          subViewsParent = new TracingAnalysisTabView();
-          this.appendChild(subViewsParent);
-        } else {
-          subViewsParent = this;
-        }
+        var tabView = new TracingAnalysisTabView();
+        tabView.tabsHidden = numBaseTypesToAnalyze <= 1;
+        this.appendChild(tabView);
 
-        for (var eventType in eventsByType) {
-          var currentEvents = eventsByType[eventType];
+        for (var eventType in eventsByBaseType) {
+          var currentEvents = eventsByBaseType[eventType];
           var subView = undefined;
 
           subView = this.findSubViewForEventsOfSingleType_(
-                        eventsByType[eventType]);
-          subViewsParent.appendChild(subView);
+                        eventsByBaseType[eventType]);
+          tabView.appendChild(subView);
           // There are some subViews that get configured by 'modelEvent'
           // instead of selection. We need to move them off of this craziness.
           // But, cc.LayerTreeHostView has a concept called selection as
           // well, but its selection is a cc.Selection. So the properties
           // collide, in a scary way.
           if (subView.__lookupSetter__('modelEvent')) {
-            if (eventsByType[eventType].length != 1)
+            if (eventsByBaseType[eventType].length != 1)
               throw new Error('modelEvent-configuration only supported with ' +
                 ' selections of length=1');
-            subView.modelEvent = eventsByType[eventType][0];
+            subView.modelEvent = eventsByBaseType[eventType][0];
           } else {
-            subView.selection = eventsByType[eventType];
+            subView.selection = eventsByBaseType[eventType];
           }
 
           this.tallMode = this.tallMode || subView.requiresTallView;
-          if (usingTabs) {
-            var tabLabel = convertEventTypeToTabName(eventType);
-            subView.tabLabel = tabLabel;
-            // Some subViews are not actually built off analysis-sub-view,
-            // thus they don't all implement the tabLabel property.
-            // This is here in place as a workaround until they are converted
-            // to sub-views.
-            if (!subView.hasAttribute('tab-label'))
-              subView.setAttribute('tab-label', tabLabel);
-          }
+
+          var tabLabel = convertEventTypeToTabName(eventType);
+          subView.tabLabel = tabLabel;
+          // Some subViews are not actually built off analysis-sub-view,
+          // thus they don't all implement the tabLabel property.
+          // This is here in place as a workaround until they are converted
+          // to sub-views.
+          if (!subView.hasAttribute('tab-label'))
+            subView.setAttribute('tab-label', tabLabel);
         }
 
-        if (usingTabs) {
-          subViewsParent.selectedTab = subViewsParent.firstChild;
-          this.currentView_ = subViewsParent
-        } else {
-          this.currentView_ = this.firstChild;
-        }
+        tabView.selectedTab = tabView.firstChild;
+        this.currentView_ = tabView
       },
 
       findSubViewForEventsOfSingleType_: function(selection) {

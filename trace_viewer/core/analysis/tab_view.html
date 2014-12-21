@@ -16,6 +16,10 @@ found in the LICENSE file.
         overflow: hidden;
       }
 
+      tab-strip[tabs-hidden] {
+        display: none;
+      }
+
       tab-strip {
         background-image: -webkit-gradient(linear, 0 0, 100% 0,
                                            from(#E5E5E5), to(#D1D1D1));
@@ -122,6 +126,19 @@ found in the LICENSE file.
       this.restoreCurrentTabScrollPosition_();
     },
 
+    get tabsHidden() {
+      var ts = this.shadowRoot.querySelector('tab-strip');
+      return ts.hasAttribute('tabs-hidden');
+    },
+
+    set tabsHidden(tabsHidden) {
+      tabsHidden = !!tabsHidden;
+      var ts = this.shadowRoot.querySelector('tab-strip');
+      if (tabsHidden)
+        ts.setAttribute('tabs-hidden', true);
+      else
+        ts.removeAttribute('tabs-hidden');
+    },
 
     ready: function() {
       // A tab is represented by the following tuple:

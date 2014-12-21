@@ -151,7 +151,7 @@ tv.exportTo('tracing', function() {
       return selection;
     },
 
-    getEventsOrganizedByType: function(opt_pruneEmpty) {
+    getEventsOrganizedByBaseType: function(opt_pruneEmpty) {
       var events = {};
       EVENT_TYPES.forEach(function(eventType) {
         events[eventType.pluralName] = new Selection();
