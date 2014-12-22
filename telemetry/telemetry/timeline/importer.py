@@ -3,17 +3,14 @@
 # found in the LICENSE file.
 
 class TimelineImporter(object):
-  """Interface for classes that can add events to
-  a timeline model from an TimelineData."""
-  def __init__(self, model, timeline_data, import_priority=0):
+  """Reads TraceData and populates timeline model with what it finds."""
+  def __init__(self, model, trace_data, import_order):
     self._model = model
-    self._timeline_data = timeline_data
-    self.import_priority = import_priority
+    self._trace_data = trace_data
+    self.import_order = import_order
 
   @staticmethod
-  def CanImport(event_data_wrapper):
-    """Returns true if the importer can process the given event data in the
-    wrapper."""
+  def GetSupportedPart():
     raise NotImplementedError
 
   def ImportEvents(self):

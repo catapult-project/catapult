@@ -4,13 +4,21 @@
 
 import unittest
 
-from telemetry.timeline import model
-from telemetry.timeline import tracing_timeline_data
+from telemetry.timeline import model as model_module
+from telemetry.timeline import trace_data
 
 
 class TimelineModelUnittest(unittest.TestCase):
   def testEmptyImport(self):
-    model.TimelineModel(
-        tracing_timeline_data.TracingTimelineData([]))
-    model.TimelineModel(
-        tracing_timeline_data.TracingTimelineData(''))
+    model_module.TimelineModel(trace_data.TraceData())
+
+  def testBrowserProcess(self):
+    builder = trace_data.TraceDataBuilder()
+    builder.AddEventsTo(trace_data.CHROME_TRACE_PART, [
+      {"name": "process_name", "args": {"name": "Browser"},
+       "pid": 5, "ph": "M"},
+      {"name": "thread_name", "args": {"name": "CrBrowserMain"},
+       "pid": 5, "tid": 32578, "ph": "M"}
+    ])
+    model = model_module.TimelineModel(builder.AsData())
+    self.assertEquals(5, model.browser_process.pid)

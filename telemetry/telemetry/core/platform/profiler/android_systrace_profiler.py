@@ -11,6 +11,7 @@ from telemetry.core import util
 from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.platform import profiler
 from telemetry.core.platform import tracing_options
+from telemetry.timeline import trace_data as trace_data_module
 
 _SYSTRACE_CATEGORIES = [
     'gfx',
@@ -56,7 +57,9 @@ class AndroidSystraceProfiler(profiler.Profiler):
 
   def CollectProfile(self):
     self._profiler.communicate(input='\n')
-    trace_result = self._browser_backend.StopTracing()
+    trace_result_builder = trace_data_module.TraceDataBuilder()
+    self._browser_backend.StopTracing(trace_result_builder)
+    trace_result = trace_result_builder.AsData()
 
     trace_file = StringIO.StringIO()
     trace_result.Serialize(trace_file)

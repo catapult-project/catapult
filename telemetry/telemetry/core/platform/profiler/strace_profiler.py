@@ -12,6 +12,7 @@ import tempfile
 
 from telemetry.core.platform import profiler
 from telemetry.timeline import model
+from telemetry.timeline import trace_data as trace_data_module
 
 # Parses one line of strace output, for example:
 # 6052  1311456063.159722 read(8, "\1\0\0\0\0\0\0\0", 8) = 8 <0.000022>
@@ -202,7 +203,7 @@ class StraceProfiler(profiler.Profiler):
     super(StraceProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)
     assert self._browser_backend.supports_tracing
-    self._browser_backend.StartTracing(None, 10)
+    self._browser_backend.browser.StartTracing(None, timeout=10)
     process_output_file_map = self._GetProcessOutputFileMap()
     self._process_profilers = []
     self._output_file = output_path + '.json'
@@ -241,8 +242,9 @@ class StraceProfiler(profiler.Profiler):
     for single_process in self._process_profilers:
       out_json.extend(single_process.CollectProfile())
 
-    timeline_data = self._browser_backend.StopTracing()
-    timeline_model = model.TimelineModel(timeline_data)
+    trace_data_builder = trace_data_module.TraceDataBuilder()
+    self._browser_backend.browser.StopTracing(trace_data_builder)
+    timeline_model = model.TimelineModel(trace_data_builder.AsData())
     out_json.extend(_GenerateTraceMetadata(timeline_model))
 
     with open(self._output_file, 'w') as f:

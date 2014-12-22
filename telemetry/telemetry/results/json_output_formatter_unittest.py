@@ -15,7 +15,7 @@ from telemetry.results import json_output_formatter
 from telemetry.results import page_test_results
 from telemetry.value import scalar
 from telemetry.value import trace
-from telemetry.timeline import tracing_timeline_data
+from telemetry.timeline import trace_data
 
 
 def _MakePageSet():
@@ -79,7 +79,7 @@ class JsonOutputFormatterTest(unittest.TestCase):
       results.WillRunPage(self._page_set[0])
       v0 = trace.TraceValue(
           results.current_page,
-          tracing_timeline_data.TracingTimelineData({'event': 'test'}))
+          trace_data.TraceData({'event': 'test'}))
       results.AddValue(v0)
       results.DidRunPage(self._page_set[0])
       results._SerializeTracesToDirPath(tempdir)

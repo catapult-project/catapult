@@ -9,7 +9,7 @@ import tempfile
 
 from telemetry import page as page_module
 from telemetry.page import page_set
-from telemetry.timeline import tracing_timeline_data
+from telemetry.timeline import trace_data
 from telemetry.unittest_util import system_stub
 from telemetry.util import file_handle
 from telemetry.value import trace
@@ -66,8 +66,7 @@ class ValueTest(TestBase):
   def testAsDictWhenTraceSerializedAndUploaded(self):
     tempdir = tempfile.mkdtemp()
     try:
-      v = trace.TraceValue(
-          None, tracing_timeline_data.TracingTimelineData({'test': 1}))
+      v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
       fh = v.Serialize(tempdir)
       trace.cloud_storage.SetCalculatedHashesForTesting(
           {fh.GetAbsPath(): 123})
@@ -82,8 +81,7 @@ class ValueTest(TestBase):
   def testAsDictWhenTraceIsNotSerializedAndUploaded(self):
     test_temp_file = tempfile.NamedTemporaryFile(delete=False)
     try:
-      v = trace.TraceValue(
-          None, tracing_timeline_data.TracingTimelineData({'test': 1}))
+      v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
       trace.cloud_storage.SetCalculatedHashesForTesting(
           TestDefaultDict(123))
       bucket = trace.cloud_storage.PUBLIC_BUCKET
@@ -110,8 +108,7 @@ class NoLeakedTempfilesTests(TestBase):
 
   def testNoLeakedTempFileWhenTraceSerialize(self):
     tempdir = tempfile.mkdtemp()
-    v = trace.TraceValue(
-        None, tracing_timeline_data.TracingTimelineData({'test': 1}))
+    v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
     fh = v.Serialize(tempdir)
     try:
       shutil.rmtree(fh.GetAbsPath(), ignore_errors=True)
@@ -121,8 +118,7 @@ class NoLeakedTempfilesTests(TestBase):
       self.assertTrue(_IsEmptyDir(self.temp_test_dir))
 
   def testNoLeakedTempFileWhenUploadingTrace(self):
-    v = trace.TraceValue(
-        None, tracing_timeline_data.TracingTimelineData({'test': 1}))
+    v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
     trace.cloud_storage.SetCalculatedHashesForTesting(
         TestDefaultDict(123))
     bucket = trace.cloud_storage.PUBLIC_BUCKET

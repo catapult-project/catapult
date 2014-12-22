@@ -6,6 +6,7 @@ import logging
 
 from telemetry.core.backends.chrome_inspector import inspector_websocket
 from telemetry.core.platform import tracing_options
+from telemetry.timeline import trace_data as trace_data_module
 
 
 class TracingUnsupportedException(Exception):
@@ -28,7 +29,7 @@ class TracingBackend(object):
 
     self._inspector_websocket.Connect(
         'ws://127.0.0.1:%i/devtools/browser' % devtools_port)
-    self._tracing_data = []
+    self._trace_events = []
     self._is_tracing_running = False
     self._chrome_browser_backend = chrome_browser_backend
 
@@ -47,7 +48,7 @@ class TracingBackend(object):
     if self.is_tracing_running:
       return False
     # Reset collected tracing data from previous tracing calls.
-    self._tracing_data = []
+    self._trace_events = []
     self._CheckNotificationSupported()
     #TODO(nednguyen): remove this when the stable branch pass 2118.
     if (trace_options.record_mode == tracing_options.RECORD_AS_MUCH_AS_POSSIBLE
@@ -72,32 +73,33 @@ class TracingBackend(object):
     self._is_tracing_running = True
     return True
 
-  def StopTracing(self, timeout=30):
-    """ Stops tracing and returns the raw json trace result. It this is called
-    after tracing has been stopped, trace data from the last tracing run is
-    returned.
+  def StopTracing(self, trace_data_builder, timeout=30):
+    """ Stops tracing and pushes results to the supplied TraceDataBuilder.
+
+    If this is called after tracing has been stopped, trace data from the last
+    tracing run is pushed.
     """
     if not self.is_tracing_running:
-      if not self._tracing_data:
+      if not self._trace_events:
         raise TracingHasNotRunException()
-      else:
-        return self._tracing_data
-    req = {'method': 'Tracing.end'}
-    self._inspector_websocket.SendAndIgnoreResponse(req)
-    # After Tracing.end, chrome browser will send asynchronous notifications
-    # containing trace data. This is until Tracing.tracingComplete is sent,
-    # which means there is no trace buffers pending flush.
-    try:
-      self._inspector_websocket.DispatchNotificationsUntilDone(timeout)
-    except \
-        inspector_websocket.DispatchNotificationsUntilDoneTimeoutException \
-        as err:
-      raise TracingTimeoutException(
-          'Trace data was not fully received due to timeout after %s '
-          'seconds. If the trace data is big, you may want to increase the '
-          'time out amount.' % err.elapsed_time)
+    else:
+      req = {'method': 'Tracing.end'}
+      self._inspector_websocket.SendAndIgnoreResponse(req)
+      # After Tracing.end, chrome browser will send asynchronous notifications
+      # containing trace data. This is until Tracing.tracingComplete is sent,
+      # which means there is no trace buffers pending flush.
+      try:
+        self._inspector_websocket.DispatchNotificationsUntilDone(timeout)
+      except \
+          inspector_websocket.DispatchNotificationsUntilDoneTimeoutException \
+          as err:
+        raise TracingTimeoutException(
+            'Trace data was not fully received due to timeout after %s '
+            'seconds. If the trace data is big, you may want to increase the '
+            'time out amount.' % err.elapsed_time)
     self._is_tracing_running = False
-    return self._tracing_data
+    trace_data_builder.AddEventsTo(
+      trace_data_module.CHROME_TRACE_PART, self._trace_events)
 
   def _ErrorHandler(self, elapsed):
     logging.error('Unrecoverable error after %ds reading tracing response.',
@@ -108,9 +110,9 @@ class TracingBackend(object):
     if 'Tracing.dataCollected' == res.get('method'):
       value = res.get('params', {}).get('value')
       if type(value) in [str, unicode]:
-        self._tracing_data.append(value)
+        self._trace_events.append(value)
       elif type(value) is list:
-        self._tracing_data.extend(value)
+        self._trace_events.extend(value)
       else:
         logging.warning('Unexpected type in tracing data')
     elif 'Tracing.tracingComplete' == res.get('method'):

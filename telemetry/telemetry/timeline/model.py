@@ -9,21 +9,22 @@ https://code.google.com/p/trace-viewer/
 
 from operator import attrgetter
 
-import telemetry.timeline.process as process_module
 from telemetry.timeline import async_slice as async_slice_module
-from telemetry.timeline import slice as slice_module
 from telemetry.timeline import bounds
-from telemetry.timeline import empty_timeline_data_importer
 from telemetry.timeline import event_container
 from telemetry.timeline import inspector_importer
+from telemetry.timeline import slice as slice_module
+from telemetry.timeline import process as process_module
 from telemetry.timeline import surface_flinger_importer
+from telemetry.timeline import tab_id_importer
+from telemetry.timeline import trace_data as trace_data_module
 from telemetry.timeline import trace_event_importer
 
 # Register importers for data
 
 _IMPORTERS = [
-    empty_timeline_data_importer.EmptyTimelineDataImporter,
     inspector_importer.InspectorTimelineImporter,
+    tab_id_importer.TabIdImporter,
     trace_event_importer.TraceEventTimelineImporter,
     surface_flinger_importer.SurfaceFlingerTimelineImporter
 ]
@@ -40,6 +41,7 @@ class MarkerOverlapError(Exception):
     super(MarkerOverlapError, self).__init__(
         'Overlapping timeline markers found')
 
+
 def IsSliceOrAsyncSlice(t):
   if t == async_slice_module.AsyncSlice:
     return True
@@ -47,12 +49,13 @@ def IsSliceOrAsyncSlice(t):
 
 
 class TimelineModel(event_container.TimelineEventContainer):
-  def __init__(self, timeline_data=None, shift_world_to_zero=True):
-    """ Initializes a TimelineModel. timeline_data can be a single TimelineData
-    object, a list of TimelineData objects, or None. If timeline_data is not
-    None, all events from it will be imported into the model. The events will
-    be shifted such that the first event starts at time 0, if
-    shift_world_to_zero is True.
+  def __init__(self, trace_data=None, shift_world_to_zero=True):
+    """ Initializes a TimelineModel.
+
+    Args:
+        trace_data: trace_data.TraceData containing events to import
+        shift_world_to_zero: If true, the events will be shifted such that the
+            first event starts at time 0.
     """
     super(TimelineModel, self).__init__(name='TimelineModel', parent=None)
     self._bounds = bounds.Bounds()
@@ -65,8 +68,8 @@ class TimelineModel(event_container.TimelineEventContainer):
     self.import_errors = []
     self.metadata = []
     self.flow_events = []
-    if timeline_data is not None:
-      self.ImportTraces(timeline_data, shift_world_to_zero=shift_world_to_zero)
+    if trace_data is not None:
+      self.ImportTraces(trace_data, shift_world_to_zero=shift_world_to_zero)
 
   def IterChildContainers(self):
     for process in self._processes.itervalues():
@@ -115,22 +118,25 @@ class TimelineModel(event_container.TimelineEventContainer):
                       'trace is imported')
     self._tab_ids_to_renderer_threads_map[tab_id] = renderer_thread
 
-  def ImportTraces(self, timeline_data, shift_world_to_zero=True):
+  def ImportTraces(self, trace_data, shift_world_to_zero=True):
+    """Populates the model with the provided trace data.
+
+    trace_data must be an instance of TraceData.
+
+    Passing shift_world_to_zero=True causes the events to be shifted such that
+    the first event starts at time 0.
+    """
     if self._frozen:
       raise Exception("Cannot add events once trace is imported")
+    assert isinstance(trace_data, trace_data_module.TraceData)
 
-    importers = []
-    if isinstance(timeline_data, list):
-      for item in timeline_data:
-        importers.append(self._CreateImporter(item))
-    else:
-      importers.append(self._CreateImporter(timeline_data))
-
-    importers.sort(cmp=lambda x, y: x.import_priority - y.import_priority)
+    importers = self._CreateImporters(trace_data)
 
     for importer in importers:
       # TODO: catch exceptions here and add it to error list
       importer.ImportEvents()
+    for record in trace_data.metadata_records:
+      self.metadata.append(record)
     self.FinalizeImport(shift_world_to_zero, importers)
 
   def FinalizeImport(self, shift_world_to_zero=False, importers=None):
@@ -238,8 +244,19 @@ class TimelineModel(event_container.TimelineEventContainer):
   def GetRendererThreadFromTabId(self, tab_id):
     return self._tab_ids_to_renderer_threads_map.get(tab_id, None)
 
-  def _CreateImporter(self, event_data):
-    for importer_class in _IMPORTERS:
-      if importer_class.CanImport(event_data):
-        return importer_class(self, event_data)
-    raise ValueError("Could not find an importer for the provided event data")
+  def _CreateImporters(self, trace_data):
+    def FindImporterClassForPart(part):
+      for importer_class in _IMPORTERS:
+        if importer_class.GetSupportedPart() == part:
+          return importer_class
+
+    importers = []
+    for part in trace_data.active_parts:
+      importer_class = FindImporterClassForPart(part)
+      if not importer_class:
+        raise Exception('No importer found for %s' % repr(part))
+      importers.append(importer_class(self, trace_data))
+
+      importers.sort(key=lambda k: k.import_order)
+
+    return importers

@@ -43,7 +43,7 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
     self.assertEqual(
         1, len(records),
         'Failed to issue the interaction record on the tracing timeline.'
-        ' Trace data:\n%s' % repr(trace_data.EventData()))
+        ' Trace data:\n%s' % repr(trace_data._raw_data))
     self.assertEqual('InteractionName', records[0].label)
     for attribute_name in interaction_kwargs:
       self.assertTrue(getattr(records[0], attribute_name))

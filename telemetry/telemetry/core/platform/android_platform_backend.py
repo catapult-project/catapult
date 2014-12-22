@@ -24,7 +24,7 @@ from telemetry.core.platform.power_monitor import android_temperature_monitor
 from telemetry.core.platform.power_monitor import monsoon_power_monitor
 from telemetry.core.platform.power_monitor import power_monitor_controller
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
-from telemetry.timeline import surface_flinger_timeline_data
+from telemetry.timeline import trace_data as trace_data_module
 from telemetry.util import exception_formatter
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(),
@@ -119,8 +119,22 @@ class AndroidPlatformBackend(
     refresh_period, timestamps = self._surface_stats_collector.Stop()
     pid = self._surface_stats_collector.GetSurfaceFlingerPid()
     self._surface_stats_collector = None
-    return surface_flinger_timeline_data.SurfaceFlingerTimelineData(
-        pid, refresh_period, timestamps)
+    # TODO(sullivan): should this code be inline, or live elsewhere?
+    events = []
+    for ts in timestamps:
+      events.append({
+        'cat': 'SurfaceFlinger',
+        'name': 'vsync_before',
+        'ts': ts,
+        'pid': pid,
+        'tid': pid,
+        'args': {'data': {
+          'frame_count': 1,
+          'refresh_period': refresh_period,
+        }}
+      })
+    return trace_data_module.TraceData({
+      trace_data_module.SURFACE_FLINGER_PART.raw_field_name: events})
 
   def SetFullPerformanceModeEnabled(self, enabled):
     if not self._enable_performance_mode:

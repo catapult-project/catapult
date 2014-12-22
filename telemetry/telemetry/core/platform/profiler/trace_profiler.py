@@ -6,6 +6,7 @@ import codecs
 
 from telemetry.core.platform import profiler
 from telemetry.core.platform import tracing_options
+from telemetry.timeline import trace_data as trace_data_module
 
 
 class TraceProfiler(profiler.Profiler):
@@ -35,7 +36,9 @@ class TraceProfiler(profiler.Profiler):
   def CollectProfile(self):
     print 'Processing trace...'
 
-    trace_result = self._browser_backend.StopTracing()
+    trace_result_builder = trace_data_module.TraceDataBuilder()
+    self._browser_backend.StopTracing(trace_result_builder)
+    trace_result = trace_result_builder.AsData()
 
     trace_file = '%s.json' % self._output_path
 

@@ -11,15 +11,16 @@ import sys
 import tempfile
 
 from telemetry import value as value_module
+from telemetry.timeline import trace_data as trace_data_module
 from telemetry.util import cloud_storage
 from telemetry.util import file_handle
 import telemetry.web_components # pylint: disable=W0611
 from trace_viewer.build import trace2html
 
 class TraceValue(value_module.Value):
-  def __init__(self, page, tracing_timeline_data, important=False,
+  def __init__(self, page, trace_data, important=False,
                description=None):
-    """A value that contains a TracingTimelineData object and knows how to
+    """A value that contains a TraceData object and knows how to
     output it.
 
     Adding TraceValues and outputting as JSON will produce a directory full of
@@ -29,7 +30,7 @@ class TraceValue(value_module.Value):
     super(TraceValue, self).__init__(
         page, name='trace', units='', important=important,
         description=description)
-    self._trace_data = tracing_timeline_data
+    self._trace_data = trace_data
     self._cloud_url = None
     self._serialized_file_handle = None
 
@@ -40,7 +41,9 @@ class TraceValue(value_module.Value):
     else:
       title = ''
     trace2html.WriteHTMLForTraceDataToFile(
-        [self._trace_data.EventData()], title, tf)
+        [self._trace_data.GetEventsFor(trace_data_module.CHROME_TRACE_PART)],
+        title,
+        tf)
     tf.close()
     return file_handle.FromTempFile(tf)
 

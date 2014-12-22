@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from telemetry.core.backends.chrome_inspector import timeline_recorder
-from telemetry.timeline import inspector_timeline_data
 
 
 class TabBackendException(Exception):
@@ -75,7 +74,7 @@ class InspectorTimeline(timeline_recorder.TimelineRecorder):
     else:  # In M38 events will arrive via Timeline.stopped event.
       raw_events = self._raw_events
       self._raw_events = None
-    return inspector_timeline_data.InspectorTimelineData(raw_events)
+    return raw_events
 
   def _SendSyncRequest(self, request, timeout=60):
     """Sends a devtools remote debugging protocol request.

@@ -14,93 +14,31 @@ import re
 import telemetry.timeline.async_slice as tracing_async_slice
 import telemetry.timeline.flow_event as tracing_flow_event
 from telemetry.timeline import importer
-from telemetry.timeline import tracing_timeline_data
-
-
-class TraceBufferOverflowException(Exception):
-  pass
+from telemetry.timeline import trace_data as trace_data_module
 
 
 class TraceEventTimelineImporter(importer.TimelineImporter):
-  def __init__(self, model, timeline_data):
+  def __init__(self, model, trace_data):
     super(TraceEventTimelineImporter, self).__init__(
-        model, timeline_data, import_priority=1)
+        model, trace_data, import_order=1)
+    assert isinstance(trace_data, trace_data_module.TraceData)
+    self._trace_data = trace_data
 
-    event_data = timeline_data.EventData()
-
-    self._events_were_from_string = False
     self._all_async_events = []
     self._all_object_events = []
     self._all_flow_events = []
 
-    if type(event_data) is str:
-      # If the event data begins with a [, then we know it should end with a ].
-      # The reason we check for this is because some tracing implementations
-      # cannot guarantee that a ']' gets written to the trace file. So, we are
-      # forgiving and if this is obviously the case, we fix it up before
-      # throwing the string at JSON.parse.
-      if event_data[0] == '[':
-        event_data = re.sub(r'[\r|\n]*$', '', event_data)
-        event_data = re.sub(r'\s*,\s*$', '', event_data)
-        if event_data[-1] != ']':
-          event_data = event_data + ']'
-
-      self._events = json.loads(event_data)
-      self._events_were_from_string = True
-    else:
-      self._events = event_data
-
-    # Some trace_event implementations put the actual trace events
-    # inside a container. E.g { ... , traceEvents: [ ] }
-    # If we see that, just pull out the trace events.
-    if 'traceEvents' in self._events:
-      container = self._events
-      self._events = self._events['traceEvents']
-      for field_name in container:
-        if field_name == 'traceEvents':
-          continue
-
-        # Any other fields in the container should be treated as metadata.
-        self._model.metadata.append({
-            'name' : field_name,
-            'value' : container[field_name]})
+    self._events = trace_data.GetEventsFor(trace_data_module.CHROME_TRACE_PART)
 
   @staticmethod
-  def CanImport(timeline_data):
-    ''' Returns whether obj is a TraceEvent array. '''
-    if not isinstance(timeline_data,
-                      tracing_timeline_data.TracingTimelineData):
-      return False
-
-    event_data = timeline_data.EventData()
-
-    # May be encoded JSON. But we dont want to parse it fully yet.
-    # Use a simple heuristic:
-    #   - event_data that starts with [ are probably trace_event
-    #   - event_data that starts with { are probably trace_event
-    # May be encoded JSON. Treat files that start with { as importable by us.
-    if isinstance(event_data, str):
-      return len(event_data) > 0 and (event_data[0] == '{'
-          or event_data[0] == '[')
-
-    # Might just be an array of events
-    if (isinstance(event_data, list) and len(event_data)
-        and 'ph' in event_data[0]):
-      return True
-
-    # Might be an object with a traceEvents field in it.
-    if 'traceEvents' in event_data:
-      trace_events = event_data.get('traceEvents', None)
-      return (type(trace_events) is list and
-          len(trace_events) > 0 and 'ph' in trace_events[0])
-
-    return False
+  def GetSupportedPart():
+    return trace_data_module.CHROME_TRACE_PART
 
   def _GetOrCreateProcess(self, pid):
     return self._model.GetOrCreateProcess(pid)
 
   def _DeepCopyIfNeeded(self, obj):
-    if self._events_were_from_string:
+    if self._trace_data.events_are_safely_mutable:
       return obj
     return copy.deepcopy(obj)
 
@@ -286,7 +224,6 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     self._SetBrowserProcess()
     self._CreateExplicitObjects()
     self._CreateImplicitObjects()
-    self._CreateTabIdsToThreadsMap()
 
   def _CreateAsyncSlices(self):
     if len(self._all_async_events) == 0:
@@ -458,31 +395,3 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     for thread in self._model.GetAllThreads():
       if thread.name == 'CrBrowserMain':
         self._model.browser_process = thread.parent
-
-  def _CheckTraceBufferOverflow(self):
-    for process in self._model.GetAllProcesses():
-      if process.trace_buffer_did_overflow:
-        raise TraceBufferOverflowException(
-            'Trace buffer of process with pid=%d overflowed at timestamp %d. '
-            'Raw trace data:\n%s' %
-            (process.pid, process.trace_buffer_overflow_event.start,
-             repr(self._events)))
-
-  def _CreateTabIdsToThreadsMap(self):
-    # Since _CreateTabIdsToThreadsMap() relies on markers output on timeline
-    # tracing data, it maynot work in case we have trace events dropped due to
-    # trace buffer overflow.
-    self._CheckTraceBufferOverflow()
-
-    tab_ids_list = []
-    for metadata in self._model.metadata:
-      if metadata['name'] == 'tabIds':
-        tab_ids_list = metadata['value']
-        break
-    for tab_id in tab_ids_list:
-      timeline_markers = self._model.FindTimelineMarkers(tab_id)
-      assert len(timeline_markers) == 1
-      assert(timeline_markers[0].start_thread ==
-             timeline_markers[0].end_thread)
-      self._model.AddMappingFromTabIdToRendererThread(
-          tab_id, timeline_markers[0].start_thread)

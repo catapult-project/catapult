@@ -4,6 +4,7 @@
 
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
+from telemetry.timeline import trace_data as trace_data_module
 
 
 class TracingControllerBackend(object):
@@ -35,14 +36,14 @@ class TracingControllerBackend(object):
     assert self.is_tracing_running, 'Can only stop tracing when tracing.'
     self._AssertOneBrowserBackend()
 
-    result = None
+    trace_data_builder = trace_data_module.TraceDataBuilder()
     if self._current_trace_options.enable_chrome_trace:
       browser_backend = self.running_browser_backends[0]
-      result = browser_backend.StopTracing()
+      browser_backend.StopTracing(trace_data_builder)
 
     self._current_trace_options = None
     self._current_category_filter = None
-    return result
+    return trace_data_builder.AsData()
 
   def _AssertOneBrowserBackend(self):
     # Note: it is possible to implement tracing for both the case of 0 and >1.

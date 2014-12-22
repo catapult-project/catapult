@@ -26,7 +26,7 @@ from telemetry.core.backends.chrome import tab_list_backend
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.core.backends.chrome_inspector import devtools_client_backend
 from telemetry.core.backends.chrome_inspector import devtools_http
-from telemetry.timeline import tracing_timeline_data
+from telemetry.timeline import trace_data as trace_data_module
 from telemetry.unittest_util import options_for_unittests
 
 
@@ -271,9 +271,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return self._tracing_backend.StartTracing(
         trace_options, custom_categories, timeout)
 
-  def StopTracing(self):
-    """ Stops tracing and returns the result as TimelineData object. """
-    tab_ids_list = []
+  def StopTracing(self, trace_data_builder):
     for (i, _) in enumerate(self.browser.tabs):
       tab = self.tab_list_backend.Get(i, None)
       if tab:
@@ -283,11 +281,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
             "console.time.toString().indexOf('[native code]') != -1;")
         if not success:
           raise Exception('Page stomped on console.time')
-        tab_ids_list.append(tab.id)
-    trace_events = self._tracing_backend.StopTracing()
-    # Augment tab_ids data to trace events.
-    event_data = {'traceEvents' : trace_events, 'tabIds': tab_ids_list}
-    return tracing_timeline_data.TracingTimelineData(event_data)
+        trace_data_builder.AddEventsTo(trace_data_module.TAB_ID_PART, [tab.id])
+
+    self._tracing_backend.StopTracing(trace_data_builder)
 
   def GetProcessName(self, cmd_line):
     """Returns a user-friendly name for the process of the given |cmd_line|."""

@@ -17,10 +17,11 @@ from telemetry.core.backends.chrome_inspector import inspector_runtime
 from telemetry.core.backends.chrome_inspector import inspector_timeline
 from telemetry.core.backends.chrome_inspector import inspector_websocket
 from telemetry.core.backends.chrome_inspector import websocket
-from telemetry.core.heap import model
+from telemetry.core.heap import model as heap_model_module
 from telemetry.image_processing import image_util
-from telemetry.timeline import model as timeline_model
+from telemetry.timeline import model as timeline_model_module
 from telemetry.timeline import recording_options
+from telemetry.timeline import trace_data as trace_data_module
 
 
 class InspectorException(Exception):
@@ -190,16 +191,19 @@ class InspectorBackend(object):
       self._network.timeline_recorder.Start()
 
   def StopTimelineRecording(self):
-    data = []
-    timeline_data = self._timeline.Stop()
-    if timeline_data:
-      data.append(timeline_data)
-    network_data = self._network.timeline_recorder.Stop()
-    if network_data:
-      data.append(network_data)
+    builder = trace_data_module.TraceDataBuilder()
+
+    data = self._timeline.Stop()
     if data:
-      self._timeline_model = timeline_model.TimelineModel(
-          timeline_data=data, shift_world_to_zero=False)
+      builder.AddEventsTo(trace_data_module.INSPECTOR_TRACE_PART, data)
+
+    data = self._network.timeline_recorder.Stop()
+    if data:
+      builder.AddEventsTo(trace_data_module.INSPECTOR_TRACE_PART, data)
+
+    if builder.HasEventsFor(trace_data_module.INSPECTOR_TRACE_PART):
+      self._timeline_model = timeline_model_module.TimelineModel(
+          builder.AsData(), shift_world_to_zero=False)
     else:
       self._timeline_model = None
 
@@ -277,5 +281,5 @@ class InspectorBackend(object):
         {'method': 'HeapProfiler.takeHeapSnapshot'}, timeout)
     snapshot = ''.join(snapshot)
 
-    self._websocket.UnregisterDomain('HeapProfiler')
-    return model.Model(snapshot)
+    self.UnregisterDomain('HeapProfiler')
+    return heap_model_module.Model(snapshot)
