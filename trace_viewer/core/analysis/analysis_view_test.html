@@ -64,8 +64,8 @@ tv.unittest.testSuite(function() {
 
     var view = new AnalysisView();
     view.selection = selection;
-    assertTrue(view.currentView instanceof DefaultObjectSnapshotView);
-    assertEquals(s10, view.currentView.objectSnapshot);
+    assertTrue(view.tabView.selectedTab instanceof DefaultObjectSnapshotView);
+    assertEquals(s10, view.tabView.selectedTab.objectSnapshot);
   });
 
   test('analyzeSelectionWithObjectSnapshotKnownType', function() {
@@ -95,9 +95,9 @@ tv.unittest.testSuite(function() {
         {typeName: 'MyView'},
         function() {
           view.selection = selection;
-          assertTrue(view.currentView instanceof MyView);
-          assertEquals(s10, view.currentView.objectSnapshot);
-          assertEquals('hello', view.currentView.textContent);
+          assertTrue(view.tabView.selectedTab instanceof MyView);
+          assertEquals(s10, view.tabView.selectedTab.objectSnapshot);
+          assertEquals('hello', view.tabView.selectedTab.textContent);
         });
   });
 
@@ -109,8 +109,8 @@ tv.unittest.testSuite(function() {
 
     var view = new AnalysisView();
     view.selection = selection;
-    assertTrue(view.currentView instanceof DefaultObjectInstanceView);
-    assertEquals(i10, view.currentView.objectInstance);
+    assertTrue(view.tabView.selectedTab instanceof DefaultObjectInstanceView);
+    assertEquals(i10, view.tabView.selectedTab.objectInstance);
   });
 
   test('analyzeSelectionWithObjectInstanceKnownType', function() {
@@ -139,9 +139,9 @@ tv.unittest.testSuite(function() {
         {typeName: 'MyView'},
         function() {
           view.selection = selection;
-          assertTrue(view.currentView instanceof MyView);
-          assertEquals(i10, view.currentView.objectInstance);
-          assertEquals('hello', view.currentView.textContent);
+          assertTrue(view.tabView.selectedTab instanceof MyView);
+          assertEquals(i10, view.tabView.selectedTab.objectInstance);
+          assertEquals('hello', view.tabView.selectedTab.textContent);
         });
   });
 
@@ -171,9 +171,9 @@ tv.unittest.testSuite(function() {
         {typeName: 'MySlice'},
         function() {
           view.selection = selection;
-          assertTrue(view.currentView instanceof MySlice);
-          assertEquals(s10, view.currentView.slice);
-          assertEquals('hello', view.currentView.textContent);
+          assertTrue(view.tabView.selectedTab instanceof MySlice);
+          assertEquals(s10, view.tabView.selectedTab.slice);
+          assertEquals('hello', view.tabView.selectedTab.textContent);
         });
   });
 });

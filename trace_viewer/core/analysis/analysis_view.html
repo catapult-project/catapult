@@ -55,7 +55,7 @@ using custom elements specialized for different event types.
 
     Polymer({
       ready: function() {
-        this.currentView_ = undefined;
+        this.tabView_ = undefined;
         this.currentSelection_ = undefined;
       },
 
@@ -70,8 +70,8 @@ using custom elements specialized for different event types.
         return this.classList.contains('tall-mode');
       },
 
-      get currentView() {
-        return this.currentView_;
+      get tabView() {
+        return this.tabView_;
       },
 
       get selection() {
@@ -130,7 +130,7 @@ using custom elements specialized for different event types.
         }
 
         tabView.selectedTab = tabView.firstChild;
-        this.currentView_ = tabView
+        this.tabView_ = tabView
       },
 
       findSubViewForEventsOfSingleType_: function(selection) {
