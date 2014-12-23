@@ -15,10 +15,10 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Cpu class.
  */
-tv.exportTo('tracing.trace_model', function() {
+tv.exportTo('tv.core.trace_model', function() {
 
-  var Counter = tracing.trace_model.Counter;
-  var Slice = tracing.trace_model.Slice;
+  var Counter = tv.core.trace_model.Counter;
+  var Slice = tv.core.trace_model.Slice;
 
   /**
    * A CpuSlice represents a slice of time on a CPU.
@@ -35,7 +35,7 @@ tv.exportTo('tracing.trace_model', function() {
     __proto__: Slice.prototype,
 
     get analysisTypeName() {
-      return 'tracing.analysis.CpuSlice';
+      return 'tv.core.analysis.CpuSlice';
     },
 
     toJSON: function() {
@@ -96,7 +96,7 @@ tv.exportTo('tracing.trace_model', function() {
     __proto__: Slice.prototype,
 
     get analysisTypeName() {
-      return 'tracing.analysis.ThreadTimeSlice';
+      return 'tv.core.analysis.ThreadTimeSlice';
     },
 
     toJSON: function() {
@@ -309,7 +309,7 @@ tv.exportTo('tracing.trace_model', function() {
       }
 
       var duration = end_timestamp - this.lastActiveTimestamp_;
-      var slice = new tracing.trace_model.CpuSlice(
+      var slice = new tv.core.trace_model.CpuSlice(
           '', this.lastActiveName_,
           tv.ui.getStringColorId(this.lastActiveName_),
           this.lastActiveTimestamp_,

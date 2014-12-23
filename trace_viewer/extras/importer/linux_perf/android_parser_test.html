@@ -42,7 +42,7 @@ tv.unittest.testSuite(function() {
       'SurfaceFlinger-4831  [001] ...1 80909.599087: tracing_mark_write: E',
       'SurfaceFlinger-4831  [001] ...1 80909.599104: tracing_mark_write: E'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -60,7 +60,7 @@ tv.unittest.testSuite(function() {
       'Surface Flinger -4831  [001] ...1 80909.598590: tracing_mark_write: B|4829|latchBuffer', // @suppress longLineCheck
       'Surface Flinger -4831  [001] ...1 80909.598604: tracing_mark_write: E' // @suppress longLineCheck
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -82,7 +82,7 @@ tv.unittest.testSuite(function() {
           'tracing_mark_write: F|9649|animator:childrenOutlineAlpha|' +
           '1113053968'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -130,7 +130,7 @@ tv.unittest.testSuite(function() {
       'SurfaceFlinger-4831  [001] ...1 80909.599087: 0: E',
       'SurfaceFlinger-4831  [001] ...1 80909.599104: 0: E'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -156,7 +156,7 @@ tv.unittest.testSuite(function() {
       'SandboxedProces-2894  [000] ...1   255.663276: tracing_mark_write: F|2867|async|1113053968|arg3=3|cat1', // @suppress longLineCheck
       'SandboxedProces-2894  [000] ...1   255.663276: tracing_mark_write: trace_event_clock_sync: parent_ts=128' // @suppress longLineCheck
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();

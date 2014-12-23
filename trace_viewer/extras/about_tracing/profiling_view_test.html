@@ -27,10 +27,10 @@ tv.unittest.testSuite(function() {
     useSampling: false
   };
 
-  var ProfilingView = about_tracing.ProfilingView;
+  var ProfilingView = tv.e.about_tracing.ProfilingView;
 
   test('recording', function() {
-    var mock = new about_tracing.MockTracingControllerClient();
+    var mock = new tv.e.about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
     mock.expectRequest('getMonitoringStatus', function() {
       return btoa(JSON.stringify(monitoringOptions));
@@ -74,7 +74,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('monitoring', function() {
-    var mock = new about_tracing.MockTracingControllerClient();
+    var mock = new tv.e.about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
     mock.expectRequest('getMonitoringStatus', function() {
       return btoa(JSON.stringify(monitoringOptions));
@@ -128,7 +128,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('upload', function() {
-    var mock = new about_tracing.MockTracingControllerClient();
+    var mock = new tv.e.about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
     mock.expectRequest('getMonitoringStatus', function() {
       return btoa(JSON.stringify(monitoringOptions));

@@ -17,12 +17,12 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Counter = tracing.trace_model.Counter;
-  var CounterSeries = tracing.trace_model.CounterSeries;
+  var Counter = tv.core.trace_model.Counter;
+  var CounterSeries = tv.core.trace_model.CounterSeries;
 
-  var Selection = tracing.Selection;
+  var Selection = tv.core.Selection;
   var AnalysisView = TracingAnalysisView;
-  var StubAnalysisResults = tracing.analysis.StubAnalysisResults;
+  var StubAnalysisResults = tv.core.analysis.StubAnalysisResults;
 
   var createSelectionWithCounters = function(numSamples) {
     if (numSamples > 2 || numSamples < 1)

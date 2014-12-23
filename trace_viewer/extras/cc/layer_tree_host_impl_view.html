@@ -17,29 +17,29 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('cc', function() {
+tv.exportTo('tv.e.cc', function() {
   /*
    * Displays a LayerTreeHostImpl snapshot in a human readable form.
    * @constructor
    */
   var LayerTreeHostImplSnapshotView = tv.ui.define(
       'layer-tree-host-impl-snapshot-view',
-      tracing.analysis.ObjectSnapshotView);
+      tv.core.analysis.ObjectSnapshotView);
 
   LayerTreeHostImplSnapshotView.prototype = {
-    __proto__: tracing.analysis.ObjectSnapshotView.prototype,
+    __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('lthi-s-view');
 
       this.selection_ = undefined;
 
-      this.layerPicker_ = new cc.LayerPicker();
+      this.layerPicker_ = new tv.e.cc.LayerPicker();
       this.layerPicker_.addEventListener(
           'selection-change',
           this.onLayerPickerSelectionChanged_.bind(this));
 
-      this.layerView_ = new cc.LayerView();
+      this.layerView_ = new tv.e.cc.LayerView();
       this.layerView_.addEventListener(
           'selection-change',
           this.onLayerViewSelectionChanged_.bind(this));
@@ -116,7 +116,7 @@ tv.exportTo('cc', function() {
     }
   };
 
-  tracing.analysis.ObjectSnapshotView.register(
+  tv.core.analysis.ObjectSnapshotView.register(
       LayerTreeHostImplSnapshotView, {typeName: 'cc::LayerTreeHostImpl'});
 
   return {

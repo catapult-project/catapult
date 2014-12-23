@@ -14,9 +14,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('cc', function() {
-  var constants = cc.constants;
-  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
+tv.exportTo('tv.e.cc', function() {
+  var constants = tv.e.cc.constants;
+  var ObjectSnapshot = tv.core.trace_model.ObjectSnapshot;
 
   /**
    * @constructor
@@ -29,7 +29,7 @@ tv.exportTo('cc', function() {
     __proto__: ObjectSnapshot.prototype,
 
     preInitialize: function() {
-      cc.preInitializeObject(this);
+      tv.e.cc.preInitializeObject(this);
 
       this.layerTreeImpl_ = undefined;
       this.parentLayer = undefined;
@@ -37,16 +37,16 @@ tv.exportTo('cc', function() {
 
     initialize: function() {
       // Defaults.
-      this.invalidation = new cc.Region();
-      this.annotatedInvalidation = new cc.Region();
-      this.unrecordedRegion = new cc.Region();
+      this.invalidation = new tv.e.cc.Region();
+      this.annotatedInvalidation = new tv.e.cc.Region();
+      this.unrecordedRegion = new tv.e.cc.Region();
       this.pictures = [];
 
       // Import & validate this.args
-      cc.moveRequiredFieldsFromArgsToToplevel(
+      tv.e.cc.moveRequiredFieldsFromArgsToToplevel(
           this, ['layerId', 'children',
                  'layerQuad']);
-      cc.moveOptionalFieldsFromArgsToToplevel(
+      tv.e.cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['maskLayer', 'replicaLayer',
                  'idealContentsScale', 'geometryContentsScale',
                  'layoutRects', 'usingGpuRasterization']);
@@ -75,11 +75,11 @@ tv.exportTo('cc', function() {
       if (!this.geometryContentsScale)
         this.geometryContentsScale = 1.0;
 
-      this.touchEventHandlerRegion = cc.Region.fromArrayOrUndefined(
+      this.touchEventHandlerRegion = tv.e.cc.Region.fromArrayOrUndefined(
           this.args.touchEventHandlerRegion);
-      this.wheelEventHandlerRegion = cc.Region.fromArrayOrUndefined(
+      this.wheelEventHandlerRegion = tv.e.cc.Region.fromArrayOrUndefined(
           this.args.wheelEventHandlerRegion);
-      this.nonFastScrollableRegion = cc.Region.fromArrayOrUndefined(
+      this.nonFastScrollableRegion = tv.e.cc.Region.fromArrayOrUndefined(
           this.args.nonFastScrollableRegion);
     },
 
@@ -123,11 +123,11 @@ tv.exportTo('cc', function() {
       LayerImplSnapshot.prototype.initialize.call(this);
 
       if (this.args.invalidation) {
-        this.invalidation = cc.Region.fromArray(this.args.invalidation);
+        this.invalidation = tv.e.cc.Region.fromArray(this.args.invalidation);
         delete this.args.invalidation;
       }
       if (this.args.annotatedInvalidationRects) {
-        this.annotatedInvalidation = new cc.Region();
+        this.annotatedInvalidation = new tv.e.cc.Region();
         for (var i = 0; i < this.args.annotatedInvalidationRects.length; ++i) {
           var annotatedRect = this.args.annotatedInvalidationRects[i];
           var rect = annotatedRect.geometryRect;
@@ -137,7 +137,7 @@ tv.exportTo('cc', function() {
         delete this.args.annotatedInvalidationRects;
       }
       if (this.args.unrecordedRegion) {
-        this.unrecordedRegion = cc.Region.fromArray(
+        this.unrecordedRegion = tv.e.cc.Region.fromArray(
             this.args.unrecordedRegion);
         delete this.args.unrecordedRegion;
       }
@@ -155,7 +155,7 @@ tv.exportTo('cc', function() {
         for (var i = 0; i < this.args.coverageTiles.length; ++i) {
           var rect = this.args.coverageTiles[i].geometryRect;
           var tile = this.args.coverageTiles[i].tile;
-          this.tileCoverageRects.push(new cc.TileCoverageRect(rect, tile));
+          this.tileCoverageRects.push(new tv.e.cc.TileCoverageRect(rect, tile));
         }
         delete this.args.coverageTiles;
       }

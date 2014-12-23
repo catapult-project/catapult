@@ -13,10 +13,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('cc', function() {
+tv.exportTo('tv.e.cc', function() {
 
-  var constants = cc.constants;
-  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
+  var constants = tv.e.cc.constants;
+  var ObjectSnapshot = tv.core.trace_model.ObjectSnapshot;
 
   /**
    * @constructor
@@ -29,14 +29,14 @@ tv.exportTo('cc', function() {
     __proto__: ObjectSnapshot.prototype,
 
     preInitialize: function() {
-      cc.preInitializeObject(this);
+      tv.e.cc.preInitializeObject(this);
       this.layerTreeHostImpl = undefined;
       this.whichTree = undefined;
       this.sourceFrameNumber = undefined;
     },
 
     initialize: function() {
-      cc.moveRequiredFieldsFromArgsToToplevel(
+      tv.e.cc.moveRequiredFieldsFromArgsToToplevel(
           this, ['rootLayer',
             'renderSurfaceLayerList']);
       if (this.args.sourceFrameNumber)
@@ -49,7 +49,7 @@ tv.exportTo('cc', function() {
 
         var ownProcess = this.objectInstance.parent;
         var traceModel = ownProcess.model;
-        var chromeBrowser = new cc.ChromeBrowser(traceModel);
+        var chromeBrowser = new tv.e.cc.ChromeBrowser(traceModel);
         if (chromeBrowser.browserProcess === undefined)
           return;
 
@@ -69,7 +69,7 @@ tv.exportTo('cc', function() {
     },
 
     get hasSourceFrameBeenDrawnBefore() {
-      if (this.whichTree == cc.constants.PENDING_TREE)
+      if (this.whichTree == tv.e.cc.constants.PENDING_TREE)
         return false;
 
       // Old chrome's don't produce sourceFrameNumber.

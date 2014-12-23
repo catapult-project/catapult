@@ -9,8 +9,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tcmalloc', function() {
-  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
+tv.exportTo('tv.e.tcmalloc', function() {
+  var ObjectSnapshot = tv.core.trace_model.ObjectSnapshot;
 
   /**
    * @constructor
@@ -23,7 +23,7 @@ tv.exportTo('tcmalloc', function() {
     __proto__: ObjectSnapshot.prototype,
 
     preInitialize: function() {
-      cc.preInitializeObject(this);
+      tv.e.cc.preInitializeObject(this);
 
       // TODO(jamescook): Any generic field setup can go here.
     },

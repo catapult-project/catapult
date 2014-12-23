@@ -14,10 +14,10 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('selectionChangingLink', function() {
-    var r = tracing.analysis.AnalysisResults();
+    var r = tv.core.analysis.AnalysisResults();
     var track = {};
     var linkEl = r.createSelectionChangingLink('hello', function() {
-      var selection = new tracing.Selection();
+      var selection = new tv.core.Selection();
       selection.push({guid:1});
       return selection;
     });
@@ -30,8 +30,8 @@ tv.unittest.testSuite(function() {
   });
 
   test('displayValuesInInfoRow', function() {
-    var r = new tracing.analysis.AnalysisResults();
-    var table = new tracing.analysis.StubAnalysisTable();
+    var r = new tv.core.analysis.AnalysisResults();
+    var table = new tv.core.analysis.StubAnalysisTable();
     var node;
     var sectionNode;
     assertEquals(0, table.nodeCount);

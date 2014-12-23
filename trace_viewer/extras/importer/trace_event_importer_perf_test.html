@@ -59,14 +59,14 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   n110100.forEach(function(val) {
     timedPerfTestWithEvents(TEST_NAMES[0] + '_' + val, function() {
       var events = getEvents(TEST_FILES_PATHS[0]);
-      var m = new tracing.TraceModel();
+      var m = new tv.core.TraceModel();
       m.importTraces([events], false, false);
     }, {iterations: val});
   });
 
   timedPerfTestWithEvents(TEST_NAMES[1] + '_1', function() {
     var events = getEvents(TEST_FILES_PATHS[1]);
-    var m = new tracing.TraceModel();
+    var m = new tv.core.TraceModel();
     m.importTraces([events], false, false);
   }, {iterations: 1});
 });

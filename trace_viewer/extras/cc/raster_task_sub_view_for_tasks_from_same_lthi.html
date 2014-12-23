@@ -32,18 +32,18 @@ found in the LICENSE file.
       if (this.selection_.length === 0)
         return;
 
-      var results = new tracing.analysis.AnalysisResults();
+      var results = new tv.core.analysis.AnalysisResults();
       this.appendChild(results);
 
       var headerDiv = results.appendHeader('Rasterization costs in ');
 
       // LTHI link.
-      var lthi = cc.getTileFromRasterTaskSlice(
+      var lthi = tv.e.cc.getTileFromRasterTaskSlice(
           this.selection_[0]).containingSnapshot;
       headerDiv.appendChild(results.createSelectionChangingLink(
         lthi.userFriendlyName,
         function() {
-          return new tracing.Selection([lthi]);
+          return new tv.core.Selection([lthi]);
         }));
 
       // Get costs by layer.
@@ -79,7 +79,7 @@ found in the LICENSE file.
       var tilesThatWeHaveSeen = {};
 
       this.selection_.forEach(function(slice) {
-        var tile = cc.getTileFromRasterTaskSlice(slice);
+        var tile = tv.e.cc.getTileFromRasterTaskSlice(slice);
         var curCosts = getCurrentCostsForLayerId(tile);
 
         if (!tilesThatWeHaveSeen[tile.objectInstance.id]) {
@@ -87,7 +87,7 @@ found in the LICENSE file.
           curCosts.numTiles += 1;
         }
 
-        if (cc.isSliceDoingAnalysis(slice)) {
+        if (tv.e.cc.isSliceDoingAnalysis(slice)) {
           curCosts.numAnalysisTasks += 1;
           totalNumAnalyzeTasks += 1;
         } else {
@@ -134,17 +134,17 @@ found in the LICENSE file.
           layerEl.appendChild(results.createSelectionChangingLink(
               'Layer ' + layerId,
               function() {
-                return new cc.LayerSelection(costs.layer);
+                return new tv.e.cc.LayerSelection(costs.layer);
               }));
         }
         results.appendTableCell(table, row,  costs.numTiles);
         results.appendTableCell(table, row,  costs.numAnalysisTasks);
         results.appendTableCell(table, row,  costs.numRasterTasks);
         results.appendTableCell(
-            table, row,  tracing.analysis.tsRound(costs.duration) + 'ms');
+            table, row,  tv.core.analysis.tsRound(costs.duration) + 'ms');
         if (hadCpuDurations) {
           results.appendTableCell(
-              table, row,  tracing.analysis.tsRound(costs.cpuDuration) + 'ms');
+              table, row,  tv.core.analysis.tsRound(costs.cpuDuration) + 'ms');
         }
       });
 
@@ -155,10 +155,10 @@ found in the LICENSE file.
       results.appendTableCell(table, frow,  totalNumAnalyzeTasks);
       results.appendTableCell(table, frow,  totalNumRasterizeTasks);
       results.appendTableCell(
-          table, frow, tracing.analysis.tsRound(totalDuration) + 'ms');
+          table, frow, tv.core.analysis.tsRound(totalDuration) + 'ms');
       if (hadCpuDurations) {
         results.appendTableCell(
-            table, frow, tracing.analysis.tsRound(totalCpuDuration) + 'ms');
+            table, frow, tv.core.analysis.tsRound(totalCpuDuration) + 'ms');
       }
 
       tv.ui.SortableTable.decorate(table);

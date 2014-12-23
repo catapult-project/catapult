@@ -16,10 +16,10 @@ found in the LICENSE file.
  * @fileoverview Provides various helper methods for drawing to a provided
  * canvas.
  */
-tv.exportTo('tracing', function() {
-  var elidedTitleCache = new tracing.ElidedTitleCache();
+tv.exportTo('tv.core', function() {
+  var elidedTitleCache = new tv.core.ElidedTitleCache();
   var palette = tv.ui.getColorPalette();
-  var EventPresenter = tracing.EventPresenter;
+  var EventPresenter = tv.core.EventPresenter;
 
   /**
    * This value is used to allow for consistent style UI elements.
@@ -156,7 +156,7 @@ tv.exportTo('tracing', function() {
     ctx.save();
     dt.applyTransformToCanvas(ctx);
 
-    var tr = new tracing.FastRectRenderer(
+    var tr = new tv.core.FastRectRenderer(
         ctx, 2 * pixWidth, 2 * pixWidth, palette);
     tr.setYandH(0, height);
 

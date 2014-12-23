@@ -14,12 +14,12 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var TraceModel = tracing.TraceModel;
-  var Selection = tracing.Selection;
+  var TraceModel = tv.core.TraceModel;
+  var Selection = tv.core.Selection;
   var AnalysisView = TracingAnalysisView;
-  var ObjectInstance = tracing.trace_model.ObjectInstance;
-  var DefaultObjectSnapshotView = tracing.analysis.DefaultObjectSnapshotView;
-  var DefaultObjectInstanceView = tracing.analysis.DefaultObjectInstanceView;
+  var ObjectInstance = tv.core.trace_model.ObjectInstance;
+  var DefaultObjectSnapshotView = tv.core.analysis.DefaultObjectSnapshotView;
+  var DefaultObjectInstanceView = tv.core.analysis.DefaultObjectInstanceView;
 
   function withRegisteredType(registy, typeConstructor, opt_options, fn) {
     registy.register(typeConstructor, opt_options);
@@ -34,14 +34,14 @@ tv.unittest.testSuite(function() {
     var model = new TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var objects = p1.objects;
-    var i10 = objects.idWasCreated('0x1000', 'cc', 'LayerTreeHostImpl', 10);
-    var s10 = objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 10,
+    var i10 = objects.idWasCreated('0x1000', 'tv.e.cc', 'LayerTreeHostImpl', 10);
+    var s10 = objects.addSnapshot('0x1000', 'tv.e.cc', 'LayerTreeHostImpl', 10,
                                   'snapshot-1');
-    var s25 = objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 25,
+    var s25 = objects.addSnapshot('0x1000', 'tv.e.cc', 'LayerTreeHostImpl', 25,
                                   'snapshot-2');
-    var s40 = objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 40,
+    var s40 = objects.addSnapshot('0x1000', 'tv.e.cc', 'LayerTreeHostImpl', 40,
                                   'snapshot-3');
-    objects.idWasDeleted('0x1000', 'cc', 'LayerTreeHostImpl', 45);
+    objects.idWasDeleted('0x1000', 'tv.e.cc', 'LayerTreeHostImpl', 45);
 
     var track = {};
     var selection = new Selection();
@@ -76,9 +76,9 @@ tv.unittest.testSuite(function() {
     selection.push(s10);
 
     var MyView = tv.ui.define(
-        'my-view', tracing.analysis.ObjectSnapshotView);
+        'my-view', tv.core.analysis.ObjectSnapshotView);
     MyView.prototype = {
-      __proto__: tracing.analysis.ObjectSnapshotView.prototype,
+      __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
 
       decorate: function() {
       },
@@ -90,7 +90,7 @@ tv.unittest.testSuite(function() {
 
     var view = new AnalysisView();
     withRegisteredType(
-        tracing.analysis.ObjectSnapshotView,
+        tv.core.analysis.ObjectSnapshotView,
         MyView,
         {typeName: 'MyView'},
         function() {
@@ -120,9 +120,9 @@ tv.unittest.testSuite(function() {
     selection.push(i10);
 
     var MyView = tv.ui.define(
-        'my-view', tracing.analysis.ObjectInstanceView);
+        'my-view', tv.core.analysis.ObjectInstanceView);
     MyView.prototype = {
-      __proto__: tracing.analysis.ObjectInstanceView.prototype,
+      __proto__: tv.core.analysis.ObjectInstanceView.prototype,
 
       decorate: function() {
       },
@@ -134,7 +134,7 @@ tv.unittest.testSuite(function() {
 
     var view = new AnalysisView();
     withRegisteredType(
-        tracing.analysis.ObjectInstanceView,
+        tv.core.analysis.ObjectInstanceView,
         MyView,
         {typeName: 'MyView'},
         function() {
@@ -146,15 +146,15 @@ tv.unittest.testSuite(function() {
   });
 
   test('analyzeSelectionWithSliceKnownType', function() {
-    var s10 = new tracing.trace_model.Slice('cat', 'MySlice', 0, 10, {}, 4);
+    var s10 = new tv.core.trace_model.Slice('cat', 'MySlice', 0, 10, {}, 4);
 
-    var selection = new tracing.Selection();
+    var selection = new tv.core.Selection();
     selection.push(s10);
 
     var MySlice = tv.ui.define(
-        'my-slice', tracing.analysis.SliceView);
+        'my-slice', tv.core.analysis.SliceView);
     MySlice.prototype = {
-      __proto__: tracing.analysis.SliceView.prototype,
+      __proto__: tv.core.analysis.SliceView.prototype,
 
       decorate: function() {
       },
@@ -166,7 +166,7 @@ tv.unittest.testSuite(function() {
 
     var view = new AnalysisView();
     withRegisteredType(
-        tracing.analysis.SliceView,
+        tv.core.analysis.SliceView,
         MySlice,
         {typeName: 'MySlice'},
         function() {

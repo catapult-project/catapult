@@ -14,24 +14,24 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() { // @suppress longLineCheck
   test('instantiate_snapshotView', function() {
-    var i10 = new tracing.trace_model.ObjectInstance(
+    var i10 = new tv.core.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
     i10.updateBounds();
 
-    var view = new tracing.analysis.DefaultObjectSnapshotView();
+    var view = new tv.core.analysis.DefaultObjectSnapshotView();
     view.objectSnapshot = s10;
     this.addHTMLOutput(view);
   });
 
   test('instantiate_instanceView', function() {
-    var i10 = new tracing.trace_model.ObjectInstance(
+    var i10 = new tv.core.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
     var s20 = i10.addSnapshot(20, {foo: 2});
     i10.updateBounds();
 
-    var view = new tracing.analysis.DefaultObjectInstanceView();
+    var view = new tv.core.analysis.DefaultObjectInstanceView();
     view.objectInstance = i10;
     this.addHTMLOutput(view);
   });

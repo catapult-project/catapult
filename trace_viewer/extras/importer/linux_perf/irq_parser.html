@@ -13,9 +13,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses drm driver events in the Linux event trace format.
  */
-tv.exportTo('tracing.importer.linux_perf', function() {
+tv.exportTo('tv.e.importer.linux_perf', function() {
 
-  var Parser = tracing.importer.linux_perf.Parser;
+  var Parser = tv.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux irq trace events.
@@ -77,7 +77,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
 
       if (thread.lastEntryTs !== undefined) {
         var duration = ts - thread.lastEntryTs;
-        var slice = new tracing.trace_model.Slice(
+        var slice = new tv.core.trace_model.Slice(
             '', thread.irqName,
             tv.ui.getStringColorId(event[1]),
             thread.lastEntryTs, { ret: ret },
@@ -114,7 +114,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
 
       if (thread.lastEntryTs !== undefined) {
         var duration = ts - thread.lastEntryTs;
-        var slice = new tracing.trace_model.Slice(
+        var slice = new tv.core.trace_model.Slice(
             '', action,
             tv.ui.getStringColorId(event[1]),
             thread.lastEntryTs, { vec: vec },

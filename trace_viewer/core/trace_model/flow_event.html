@@ -13,7 +13,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Flow class.
  */
-tv.exportTo('tracing.trace_model', function() {
+tv.exportTo('tv.core.trace_model', function() {
   /**
    * A Flow represents an interval of time plus parameters associated
    * with that interval.
@@ -21,7 +21,7 @@ tv.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function FlowEvent(category, id, title, colorId, start, args) {
-    tracing.trace_model.TimedEvent.call(this, start);
+    tv.core.trace_model.TimedEvent.call(this, start);
 
     this.category = category || '';
     this.title = title;
@@ -36,7 +36,7 @@ tv.exportTo('tracing.trace_model', function() {
   }
 
   FlowEvent.prototype = {
-    __proto__: tracing.trace_model.TimedEvent.prototype,
+    __proto__: tv.core.trace_model.TimedEvent.prototype,
 
     set nextFlowEvent(nextFlowEvent) {
       this.nextFlowEvent_ = nextFlowEvent;

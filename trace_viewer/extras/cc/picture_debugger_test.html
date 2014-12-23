@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('instantiate', function() {
-    var picture = new cc.PictureSnapshot({id: '31415'}, 10, {
+    var picture = new tv.e.cc.PictureSnapshot({id: '31415'}, 10, {
       'params': {
         'opaque_rect': [-15, -15, 0, 0],
         'layer_rect': [-15, -15, 46, 833]
@@ -23,7 +23,7 @@ tv.unittest.testSuite(function() {
     picture.preInitialize();
     picture.initialize();
 
-    var dbg = new cc.PictureDebugger();
+    var dbg = new tv.e.cc.PictureDebugger();
     this.addHTMLOutput(dbg);
     dbg.picture = picture;
     dbg.style.border = '1px solid black';

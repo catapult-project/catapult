@@ -18,44 +18,44 @@ found in the LICENSE file.
 /**
  * @fileoverview Code for the viewport.
  */
-tv.exportTo('tracing', function() {
+tv.exportTo('tv.core', function() {
 
   var RequestSelectionChangeEvent = tv.Event.bind(
       undefined, 'requestSelectionChange', true, false);
 
   var EVENT_TYPES = [
     {
-      constructor: tracing.trace_model.Slice,
+      constructor: tv.core.trace_model.Slice,
       name: 'slice',
       pluralName: 'slices'
     },
     {
-      constructor: tracing.trace_model.InstantEvent,
+      constructor: tv.core.trace_model.InstantEvent,
       name: 'instantEvent',
       pluralName: 'instantEvents'
     },
     {
-      constructor: tracing.trace_model.CounterSample,
+      constructor: tv.core.trace_model.CounterSample,
       name: 'counterSample',
       pluralName: 'counterSamples'
     },
     {
-      constructor: tracing.trace_model.ObjectSnapshot,
+      constructor: tv.core.trace_model.ObjectSnapshot,
       name: 'objectSnapshot',
       pluralName: 'objectSnapshots'
     },
     {
-      constructor: tracing.trace_model.ObjectInstance,
+      constructor: tv.core.trace_model.ObjectInstance,
       name: 'objectInstance',
       pluralName: 'objectInstances'
     },
     {
-      constructor: tracing.trace_model.Sample,
+      constructor: tv.core.trace_model.Sample,
       name: 'sample',
       pluralName: 'samples'
     },
     {
-      constructor: tracing.trace_model.FlowEvent,
+      constructor: tv.core.trace_model.FlowEvent,
       name: 'flowEvent',
       pluralName: 'flowEvents'
     }
@@ -204,7 +204,7 @@ tv.exportTo('tracing', function() {
         // If this is a flow event, and we have a next/prev item in the chain
         // then we use that as the item to move too. Otherwise, we let the
         // normal movement for a slice kick in and use that.
-        if (event instanceof tracing.trace_model.FlowEvent) {
+        if (event instanceof tv.core.trace_model.FlowEvent) {
           if ((offset > 0) && event.nextFlowEvent) {
             newSelection.push(event.nextFlowEvent);
             continue;

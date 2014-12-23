@@ -43,7 +43,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '          chrome-1539  [000] 18420.677772: i915_reg_rw: ' +
                  'write reg=0x100030, len=8, val=(0xfca9001, 0xfce8007)'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var i915GemThread = undefined;

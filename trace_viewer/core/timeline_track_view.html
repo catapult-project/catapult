@@ -40,12 +40,12 @@ found in the LICENSE file.
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-tv.exportTo('tracing', function() {
-  var Selection = tracing.Selection;
-  var SelectionState = tracing.trace_model.SelectionState;
-  var Viewport = tracing.TimelineViewport;
+tv.exportTo('tv.core', function() {
+  var Selection = tv.core.Selection;
+  var SelectionState = tv.core.trace_model.SelectionState;
+  var Viewport = tv.core.TimelineViewport;
 
-  var tempDisplayTransform = new tracing.TimelineDisplayTransform();
+  var tempDisplayTransform = new tv.core.TimelineDisplayTransform();
 
   function intersectRect_(r1, r2) {
     var results = new Object;
@@ -86,25 +86,25 @@ tv.exportTo('tracing', function() {
       this.viewportDisplayTransformAtMouseDown_ = null;
 
       this.rulerTrackContainer_ =
-          new tracing.tracks.DrawingContainer(this.viewport_);
+          new tv.core.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.rulerTrackContainer_);
       this.rulerTrackContainer_.invalidate();
 
-      this.rulerTrack_ = new tracing.tracks.RulerTrack(this.viewport_);
+      this.rulerTrack_ = new tv.core.tracks.RulerTrack(this.viewport_);
       this.rulerTrackContainer_.appendChild(this.rulerTrack_);
 
       this.modelTrackContainer_ =
-          new tracing.tracks.DrawingContainer(this.viewport_);
+          new tv.core.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.modelTrackContainer_);
       this.modelTrackContainer_.style.display = 'block';
       this.modelTrackContainer_.invalidate();
 
       this.viewport_.modelTrackContainer = this.modelTrackContainer_;
 
-      this.modelTrack_ = new tracing.tracks.TraceModelTrack(this.viewport_);
+      this.modelTrack_ = new tv.core.tracks.TraceModelTrack(this.viewport_);
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
-      this.timingTool_ = new tracing.TimingTool(this.viewport_,
+      this.timingTool_ = new tv.core.TimingTool(this.viewport_,
                                                 this);
 
       this.initMouseModeSelector();
@@ -476,7 +476,7 @@ tv.exportTo('tracing', function() {
         return;
 
       var selection = new Selection();
-      var filter = new tracing.ExactTitleFilter(this.selection[0].title);
+      var filter = new tv.core.ExactTitleFilter(this.selection[0].title);
       this.addAllObjectsMatchingFilterToSelection(filter, selection);
 
       this.setSelectionAndClearHighlight(selection);
@@ -495,7 +495,7 @@ tv.exportTo('tracing', function() {
     queueSmoothPan_: function(viewDeltaX, deltaY) {
       var deltaX = this.viewport_.currentDisplayTransform.xViewVectorToWorld(
           viewDeltaX);
-      var animation = new tracing.TimelineDisplayTransformPanAnimation(
+      var animation = new tv.core.TimelineDisplayTransformPanAnimation(
           deltaX, deltaY);
       this.viewport_.queueDisplayTransformAnimation(animation);
     },
@@ -519,7 +519,7 @@ tv.exportTo('tracing', function() {
       var goalFocalPointXWorld = vp.currentDisplayTransform.xViewToWorld(
           goalFocalPointXView);
       if (smooth) {
-        var animation = new tracing.TimelineDisplayTransformZoomToAnimation(
+        var animation = new tv.core.TimelineDisplayTransformZoomToAnimation(
             goalFocalPointXWorld, goalFocalPointXView,
             vp.currentDisplayTransform.panY,
             scale);
@@ -550,7 +550,7 @@ tv.exportTo('tracing', function() {
       var newScale = this.modelTrackContainer_.canvas.width /
           adjustedWorldRange;
       var zoomInRatio = newScale / this.viewport_.currentDisplayTransform.scaleX;
-      var animation = new tracing.TimelineDisplayTransformZoomToAnimation(
+      var animation = new tv.core.TimelineDisplayTransformZoomToAnimation(
           worldCenter, viewCenter,
           this.viewport_.currentDisplayTransform.panY,
           zoomInRatio);
@@ -576,7 +576,7 @@ tv.exportTo('tracing', function() {
           tempDisplayTransform.xPanWorldPosToViewPos(
               worldCenter, 'center', viewWidth);
           var deltaX = tempDisplayTransform.panX - dt.panX;
-          var animation = new tracing.TimelineDisplayTransformPanAnimation(
+          var animation = new tv.core.TimelineDisplayTransformPanAnimation(
               deltaX, 0);
           this.viewport_.queueDisplayTransformAnimation(animation);
         }
@@ -589,7 +589,7 @@ tv.exportTo('tracing', function() {
           bounds.max,
           viewWidth);
       var deltaX = tempDisplayTransform.panX - dt.panX;
-      var animation = new tracing.TimelineDisplayTransformPanAnimation(
+      var animation = new tv.core.TimelineDisplayTransformPanAnimation(
           deltaX, 0);
       this.viewport_.queueDisplayTransformAnimation(animation);
     },
@@ -999,7 +999,7 @@ tv.exportTo('tracing', function() {
           loVX, hiVX, loY, hiY, selection);
 
       // Activate the new selection.
-      var selection_change_event = new tracing.RequestSelectionChangeEvent();
+      var selection_change_event = new tv.core.RequestSelectionChangeEvent();
       selection_change_event.selection = selection;
       this.dispatchEvent(selection_change_event);
     },

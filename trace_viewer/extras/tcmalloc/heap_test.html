@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var HeapSnapshot = tcmalloc.HeapSnapshot;
+  var HeapSnapshot = tv.e.tcmalloc.HeapSnapshot;
 
   // Tests total allocation count.
   test('totals', function() {

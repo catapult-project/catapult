@@ -22,8 +22,8 @@ found in the LICENSE file.
  * @fileoverview LayerView coordinates graphical and analysis views of layers.
  */
 
-tv.exportTo('cc', function() {
-  var constants = cc.constants;
+tv.exportTo('tv.e.cc', function() {
+  var constants = tv.e.cc.constants;
 
   /**
    * @constructor
@@ -34,7 +34,7 @@ tv.exportTo('cc', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.layerTreeQuadStackView_ = new cc.LayerTreeQuadStackView();
+      this.layerTreeQuadStackView_ = new tv.e.cc.LayerTreeQuadStackView();
       this.dragBar_ = new tv.ui.DragHandle();
       this.analysisEl_ = document.createElement('layer-view-analysis');
       this.analysisEl_.addEventListener('requestSelectionChange',
@@ -108,14 +108,14 @@ tv.exportTo('cc', function() {
       if (!(pictures instanceof Array))
         pictures = [pictures];
 
-      var link = new tracing.analysis.AnalysisLink();
+      var link = new tv.core.analysis.AnalysisLink();
       link.innerText = 'View in Picture Debugger';
       link.selectionGenerator = function() {
-        var layeredPicture = new cc.LayeredPicture(pictures);
-        var snapshot = new cc.PictureSnapshot(layeredPicture);
+        var layeredPicture = new tv.e.cc.LayeredPicture(pictures);
+        var snapshot = new tv.e.cc.PictureSnapshot(layeredPicture);
         snapshot.picture = layeredPicture;
 
-        var selection = new tracing.Selection();
+        var selection = new tv.core.Selection();
         selection.push(snapshot);
         return selection;
       };
@@ -123,7 +123,7 @@ tv.exportTo('cc', function() {
     },
 
     onRequestSelectionChangeFromAnalysisEl_: function(e) {
-      if (!(e.selection instanceof cc.Selection))
+      if (!(e.selection instanceof tv.e.cc.Selection))
         return;
 
       e.stopPropagation();

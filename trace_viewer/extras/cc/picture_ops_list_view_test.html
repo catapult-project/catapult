@@ -16,12 +16,12 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var PictureOpsListView = cc.PictureOpsListView;
+  var PictureOpsListView = tv.e.cc.PictureOpsListView;
 
   test('instantiate', function() {
-    if (!cc.PictureSnapshot.CanRasterize())
+    if (!tv.e.cc.PictureSnapshot.CanRasterize())
       return;
-    var m = new tracing.TraceModel(g_catLTHIEvents);
+    var m = new tv.core.TraceModel(g_catLTHIEvents);
     var p = tv.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
@@ -33,9 +33,9 @@ tv.unittest.testSuite(function() {
   });
 
   test('selection', function() {
-    if (!cc.PictureSnapshot.CanRasterize())
+    if (!tv.e.cc.PictureSnapshot.CanRasterize())
       return;
-    var m = new tracing.TraceModel(g_catLTHIEvents);
+    var m = new tv.core.TraceModel(g_catLTHIEvents);
     var p = tv.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];

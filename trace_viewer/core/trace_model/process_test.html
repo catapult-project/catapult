@@ -14,16 +14,16 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('getOrCreateCounter', function() {
-    var model = new tracing.TraceModel();
-    var process = new tracing.trace_model.Process(model, 7);
+    var model = new tv.core.TraceModel();
+    var process = new tv.core.trace_model.Process(model, 7);
     var ctrBar = process.getOrCreateCounter('foo', 'bar');
     var ctrBar2 = process.getOrCreateCounter('foo', 'bar');
     assertEquals(ctrBar2, ctrBar);
   });
 
   test('shiftTimestampsForward', function() {
-    var model = new tracing.TraceModel();
-    var process = new tracing.trace_model.Process(model, 7);
+    var model = new tv.core.TraceModel();
+    var process = new tv.core.trace_model.Process(model, 7);
     var ctr = process.getOrCreateCounter('foo', 'bar');
     var thread = process.getOrCreateThread(1);
 
@@ -41,47 +41,47 @@ tv.unittest.testSuite(function() {
   });
 
   test('compareOnPID', function() {
-    var model = new tracing.TraceModel();
-    var p1 = new tracing.trace_model.Process(model, 1);
+    var model = new tv.core.TraceModel();
+    var p1 = new tv.core.trace_model.Process(model, 1);
     p1.name = 'Renderer';
 
-    var model = new tracing.TraceModel();
-    var p2 = new tracing.trace_model.Process(model, 2);
+    var model = new tv.core.TraceModel();
+    var p2 = new tv.core.trace_model.Process(model, 2);
     p2.name = 'Renderer';
 
     assertTrue(p1.compareTo(p2) < 0);
   });
 
   test('compareOnSortIndex', function() {
-    var model = new tracing.TraceModel();
-    var p1 = new tracing.trace_model.Process(model, 1);
+    var model = new tv.core.TraceModel();
+    var p1 = new tv.core.trace_model.Process(model, 1);
     p1.name = 'Renderer';
     p1.sortIndex = 1;
 
-    var p2 = new tracing.trace_model.Process(model, 2);
+    var p2 = new tv.core.trace_model.Process(model, 2);
     p2.name = 'Renderer';
 
     assertTrue(p1.compareTo(p2) > 0);
   });
 
   test('compareOnName', function() {
-    var model = new tracing.TraceModel();
-    var p1 = new tracing.trace_model.Process(model, 1);
+    var model = new tv.core.TraceModel();
+    var p1 = new tv.core.trace_model.Process(model, 1);
     p1.name = 'Browser';
 
-    var p2 = new tracing.trace_model.Process(model, 2);
+    var p2 = new tv.core.trace_model.Process(model, 2);
     p2.name = 'Renderer';
 
     assertTrue(p1.compareTo(p2) < 0);
   });
 
   test('compareOnLabels', function() {
-    var model = new tracing.TraceModel();
-    var p1 = new tracing.trace_model.Process(model, 1);
+    var model = new tv.core.TraceModel();
+    var p1 = new tv.core.trace_model.Process(model, 1);
     p1.name = 'Renderer';
     p1.labels = ['a'];
 
-    var p2 = new tracing.trace_model.Process(model, 2);
+    var p2 = new tv.core.trace_model.Process(model, 2);
     p2.name = 'Renderer';
     p2.labels = ['b'];
 

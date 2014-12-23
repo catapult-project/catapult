@@ -12,9 +12,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.trace_model', function() {
+tv.exportTo('tv.core.trace_model', function() {
   function CounterSample(series, timestamp, value) {
-    tracing.trace_model.Event.call(this);
+    tv.core.trace_model.Event.call(this);
     this.series_ = series;
     this.timestamp_ = timestamp;
     this.value_ = value;
@@ -44,7 +44,7 @@ tv.exportTo('tracing.trace_model', function() {
   }
 
   CounterSample.prototype = {
-    __proto__: tracing.trace_model.Event.prototype,
+    __proto__: tv.core.trace_model.Event.prototype,
 
     get series() {
       return this.series_;

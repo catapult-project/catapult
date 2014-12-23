@@ -27,10 +27,10 @@ found in the LICENSE file.
   <script>
   'use strict';
   tv.onPolymerReady(function() {
-    tracing.registerAnalysisSubViewType(
+    tv.core.registerAnalysisSubViewType(
       1,
       function supported(selection) {
-        return cc.RasterTaskSelection.supports(selection);
+        return tv.e.cc.RasterTaskSelection.supports(selection);
       },
       RasterTaskSubView);
   });
@@ -38,7 +38,7 @@ found in the LICENSE file.
   Polymer({
     created: function() {
       this.classList.add('raster-task-sub-view');
-      this.layerTreeView_ = new cc.LayerTreeHostImplSnapshotView();
+      this.layerTreeView_ = new tv.e.cc.LayerTreeHostImplSnapshotView();
       this.layerTreeView_.addEventListener(
           'cc-selection-change',
           this.onLayerTreeViewCCSelectionChange_.bind(this));
@@ -67,7 +67,7 @@ found in the LICENSE file.
       var cc_selection, err;
       if (this.selection_) {
         try {
-          cc_selection = new cc.RasterTaskSelection(this.selection_);
+          cc_selection = new tv.e.cc.RasterTaskSelection(this.selection_);
         } catch(e) {
           err = e;
         }
@@ -92,7 +92,7 @@ found in the LICENSE file.
     onLayerTreeViewCCSelectionChange_: function() {
       if (this.layerTreeView_.selection !== undefined)
         return;
-      this.layerTreeView_.selection = new cc.RasterTaskSelection(
+      this.layerTreeView_.selection = new tv.e.cc.RasterTaskSelection(
           this.selection_);
     }
   });

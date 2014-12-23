@@ -14,7 +14,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.tracks', function() {
+tv.exportTo('tv.core.tracks', function() {
   var DrawType = {
     SLICE: 1,
     INSTANT_EVENT: 2,
@@ -26,18 +26,18 @@ tv.exportTo('tracing.tracks', function() {
   };
 
   var DrawingContainer = tv.ui.define('drawing-container',
-                                        tracing.tracks.Track);
+                                        tv.core.tracks.Track);
 
   DrawingContainer.prototype = {
-    __proto__: tracing.tracks.Track.prototype,
+    __proto__: tv.core.tracks.Track.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.Track.prototype.decorate.call(this, viewport);
+      tv.core.tracks.Track.prototype.decorate.call(this, viewport);
       this.classList.add('drawing-container');
 
       this.canvas_ = document.createElement('canvas');
       this.canvas_.className = 'drawing-container-canvas';
-      this.canvas_.style.left = tracing.constants.HEADING_WIDTH + 'px';
+      this.canvas_.style.left = tv.core.constants.HEADING_WIDTH + 'px';
       this.appendChild(this.canvas_);
 
       this.ctx_ = this.canvas_.getContext('2d');
@@ -91,7 +91,7 @@ tv.exportTo('tracing.tracks', function() {
 
       for (var idx in typesToDraw) {
         for (var i = 0; i < this.children.length; ++i) {
-          if (!(this.children[i] instanceof tracing.tracks.Track))
+          if (!(this.children[i] instanceof tv.core.tracks.Track))
             continue;
           this.children[i].drawTrack(typesToDraw[idx]);
         }
@@ -119,7 +119,7 @@ tv.exportTo('tracing.tracks', function() {
               getBoundingClientRect();
 
       var innerWidth = firstChildTrackBounds.width -
-          tracing.constants.HEADING_WIDTH;
+          tv.core.constants.HEADING_WIDTH;
       var innerHeight = lastChildTrackBounds.bottom - firstChildTrackBounds.top;
 
       var pixelRatio = window.devicePixelRatio || 1;
@@ -135,7 +135,7 @@ tv.exportTo('tracing.tracks', function() {
     },
 
     visibleFilter_: function(element) {
-      if (!(element instanceof tracing.tracks.Track))
+      if (!(element instanceof tv.core.tracks.Track))
         return false;
       return window.getComputedStyle(element).display !== 'none';
     },
@@ -143,7 +143,7 @@ tv.exportTo('tracing.tracks', function() {
     addClosestEventToSelection: function(
         worldX, worldMaxDist, loY, hiY, selection) {
       for (var i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tracing.tracks.Track))
+        if (!(this.children[i] instanceof tv.core.tracks.Track))
           continue;
         var trackClientRect = this.children[i].getBoundingClientRect();
         var a = Math.max(loY, trackClientRect.top);
@@ -154,13 +154,13 @@ tv.exportTo('tracing.tracks', function() {
         }
       }
 
-      tracing.tracks.Track.prototype.addClosestEventToSelection.
+      tv.core.tracks.Track.prototype.addClosestEventToSelection.
           apply(this, arguments);
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {
       for (var i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tracing.tracks.Track))
+        if (!(this.children[i] instanceof tv.core.tracks.Track))
           continue;
         this.children[i].addEventsToTrackMap(eventToTrackMap);
       }

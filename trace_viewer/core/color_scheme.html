@@ -14,11 +14,11 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides color scheme related functions.
  */
-tv.exportTo('tracing', function() {
+tv.exportTo('tv.core', function() {
   var paletteRaw = tv.ui.getRawColorPalette();
   var palette = tv.ui.getColorPalette();
 
-  var SelectionState = tracing.trace_model.SelectionState;
+  var SelectionState = tv.core.trace_model.SelectionState;
 
   /**
    * Provides methods to get view values for events.

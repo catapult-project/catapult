@@ -17,8 +17,8 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the ObjectCollection class.
  */
-tv.exportTo('tracing.trace_model', function() {
-  var ObjectInstance = tracing.trace_model.ObjectInstance;
+tv.exportTo('tv.core.trace_model', function() {
+  var ObjectInstance = tv.core.trace_model.ObjectInstance;
 
   /**
    * A collection of object instances and their snapshots, accessible by id and
@@ -39,7 +39,7 @@ tv.exportTo('tracing.trace_model', function() {
 
     createObjectInstance_: function(
         parent, id, category, name, creationTs, opt_baseTypeName) {
-      var constructor = tracing.trace_model.ObjectInstance.getConstructor(
+      var constructor = tv.core.trace_model.ObjectInstance.getConstructor(
           category, name);
       var instance = new constructor(
           parent, id, category, name, creationTs, opt_baseTypeName);
@@ -57,7 +57,7 @@ tv.exportTo('tracing.trace_model', function() {
       var instanceMap = this.instanceMapsById_[id];
       if (instanceMap)
         return instanceMap;
-      instanceMap = new tracing.trace_model.TimeToObjectInstanceMap(
+      instanceMap = new tv.core.trace_model.TimeToObjectInstanceMap(
           this.createObjectInstance_, this.parent, id);
       this.instanceMapsById_[id] = instanceMap;
       return instanceMap;

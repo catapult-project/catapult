@@ -12,8 +12,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tcmalloc', function() {
-  var tsRound = tracing.analysis.tsRound;
+tv.exportTo('tv.e.tcmalloc', function() {
+  var tsRound = tv.core.analysis.tsRound;
 
   /**
    * Displays tcmalloc heap memory information over time. A tcmalloc instance
@@ -21,13 +21,13 @@ tv.exportTo('tcmalloc', function() {
    * @constructor
    */
   var TcmallocInstanceView = tv.ui.define(
-      'tcmalloc-instance-view', tracing.analysis.ObjectInstanceView);
+      'tcmalloc-instance-view', tv.core.analysis.ObjectInstanceView);
 
   TcmallocInstanceView.prototype = {
-    __proto__: tracing.analysis.ObjectInstanceView.prototype,
+    __proto__: tv.core.analysis.ObjectInstanceView.prototype,
 
     decorate: function() {
-      tracing.analysis.ObjectInstanceView.prototype.decoreate.apply(this);
+      tv.core.analysis.ObjectInstanceView.prototype.decoreate.apply(this);
       this.classList.add('tcmalloc-instance-view');
     },
 
@@ -79,7 +79,7 @@ tv.exportTo('tcmalloc', function() {
       var row = document.createElement('tr');
       var td = document.createElement('td');
       if (snapshot) {
-        var snapshotLink = new tracing.analysis.ObjectSnapshotLink();
+        var snapshotLink = new tv.core.analysis.ObjectSnapshotLink();
         snapshotLink.objectSnapshot = snapshot;
         td.appendChild(snapshotLink);
       }
@@ -101,7 +101,7 @@ tv.exportTo('tcmalloc', function() {
     }
   };
 
-  tracing.analysis.ObjectInstanceView.register(
+  tv.core.analysis.ObjectInstanceView.register(
       TcmallocInstanceView,
       {typeName: 'memory::Heap'});
 

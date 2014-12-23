@@ -14,7 +14,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.analysis', function() {
+tv.exportTo('tv.core.analysis', function() {
   var AnalysisResults = tv.ui.define('div');
 
   AnalysisResults.prototype = {
@@ -35,7 +35,7 @@ tv.exportTo('tracing.analysis', function() {
     createSelectionChangingLink: function(text, selectionGenerator,
                                           opt_tooltip) {
       var el = this.ownerDocument.createElement('a');
-      tracing.analysis.AnalysisLink.decorate(el);
+      tv.core.analysis.AnalysisLink.decorate(el);
       el.textContent = text;
       el.selectionGenerator = selectionGenerator;
       if (opt_tooltip)
@@ -195,7 +195,7 @@ tv.exportTo('tracing.analysis', function() {
         var row = this.appendBodyRow(table);
       this.appendTableCell_(table, row, 0, label);
       if (opt_value !== undefined) {
-        var objectView = new tracing.analysis.GenericObjectView();
+        var objectView = new tv.core.analysis.GenericObjectView();
         objectView.object = opt_value;
         objectView.classList.add('analysis-table-col-1');
         objectView.style.display = 'table-cell';
@@ -218,7 +218,7 @@ tv.exportTo('tracing.analysis', function() {
         var row = this.appendBodyRow(table);
       this.appendTableCell_(table, row, 0, label);
       this.appendTableCell_(
-          table, row, 1, tracing.analysis.tsRound(time) + ' ms', opt_warning);
+          table, row, 1, tv.core.analysis.tsRound(time) + ' ms', opt_warning);
     },
 
     /**
@@ -237,26 +237,26 @@ tv.exportTo('tracing.analysis', function() {
 
       if (opt_selectionGenerator) {
         var labelEl = this.appendTableCell(table, row,
-                                           tracing.analysis.tsRound(start));
+                                           tv.core.analysis.tsRound(start));
         labelEl.textContent = '';
         labelEl.appendChild(this.createSelectionChangingLink(
-                                    tracing.analysis.tsRound(start),
+                                    tv.core.analysis.tsRound(start),
                                     opt_selectionGenerator, ''));
       } else {
-        this.appendTableCell(table, row, tracing.analysis.tsRound(start));
+        this.appendTableCell(table, row, tv.core.analysis.tsRound(start));
       }
 
       if (duration !== null)
-        this.appendTableCell(table, row, tracing.analysis.tsRound(duration));
+        this.appendTableCell(table, row, tv.core.analysis.tsRound(duration));
 
       if (opt_cpuDuration)
         this.appendTableCell(table, row,
                              opt_cpuDuration != '' ?
-                             tracing.analysis.tsRound(opt_cpuDuration) :
+                             tv.core.analysis.tsRound(opt_cpuDuration) :
                              '');
 
       if (selfTime !== null)
-        this.appendTableCell(table, row, tracing.analysis.tsRound(selfTime));
+        this.appendTableCell(table, row, tv.core.analysis.tsRound(selfTime));
 
       var argsCell = this.appendTableCell(table, row, '');
       var n = 0;
@@ -267,7 +267,7 @@ tv.exportTo('tracing.analysis', function() {
       if (n > 0) {
         for (var argName in args) {
           var argVal = args[argName];
-          var objectView = new tracing.analysis.GenericObjectView();
+          var objectView = new tv.core.analysis.GenericObjectView();
           objectView.object = argVal;
           var argsRow = this.appendElement_(
               this.appendElement_(argsCell, 'table'), 'tr');
@@ -295,27 +295,27 @@ tv.exportTo('tracing.analysis', function() {
       var tooltip = undefined;
       if (opt_statistics) {
         tooltip = 'Min Duration:\u0009' +
-                  tracing.analysis.tsRound(opt_statistics.min) +
+                  tv.core.analysis.tsRound(opt_statistics.min) +
                   ' ms \u000DMax Duration:\u0009' +
-                  tracing.analysis.tsRound(opt_statistics.max) +
+                  tv.core.analysis.tsRound(opt_statistics.max) +
                   ' ms \u000DAvg Duration:\u0009' +
-                  tracing.analysis.tsRound(opt_statistics.avg) +
+                  tv.core.analysis.tsRound(opt_statistics.avg) +
                   ' ms (\u03C3 = ' +
-                  tracing.analysis.tsRound(opt_statistics.avg_stddev) + ')';
+                  tv.core.analysis.tsRound(opt_statistics.avg_stddev) + ')';
 
         if (opt_statistics.start) {
           tooltip += '\u000DStart Time:\u0009' +
-              tracing.analysis.tsRound(opt_statistics.start) + ' ms';
+              tv.core.analysis.tsRound(opt_statistics.start) + ' ms';
         }
         if (opt_statistics.end) {
           tooltip += '\u000DEnd Time:\u0009' +
-              tracing.analysis.tsRound(opt_statistics.end) + ' ms';
+              tv.core.analysis.tsRound(opt_statistics.end) + ' ms';
         }
         if (opt_statistics.frequency && opt_statistics.frequency_stddev) {
           tooltip += '\u000DFrequency:\u0009' +
-              tracing.analysis.tsRound(opt_statistics.frequency) +
+              tv.core.analysis.tsRound(opt_statistics.frequency) +
               ' occurrences/s (\u03C3 = ' +
-              tracing.analysis.tsRound(opt_statistics.frequency_stddev) + ')';
+              tv.core.analysis.tsRound(opt_statistics.frequency_stddev) + ')';
         }
       }
 
@@ -346,7 +346,7 @@ tv.exportTo('tracing.analysis', function() {
                 '[' + opt_duration.join(', ') + ']', tooltip);
           } else {
             this.appendTableCellWithTooltip_(table, row, cellNum,
-                tracing.analysis.tsRound(opt_duration), tooltip);
+                tv.core.analysis.tsRound(opt_duration), tooltip);
           }
         } else {
           this.appendTableCell_(table, row, cellNum, '');
@@ -357,7 +357,7 @@ tv.exportTo('tracing.analysis', function() {
       if (opt_cpuDuration !== null) {
         if (opt_cpuDuration != '') {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tracing.analysis.tsRound(opt_cpuDuration), tooltip);
+              tv.core.analysis.tsRound(opt_cpuDuration), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }
@@ -367,7 +367,7 @@ tv.exportTo('tracing.analysis', function() {
       if (opt_selfTime !== null) {
         if (opt_selfTime) {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tracing.analysis.tsRound(opt_selfTime), tooltip);
+              tv.core.analysis.tsRound(opt_selfTime), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }
@@ -377,7 +377,7 @@ tv.exportTo('tracing.analysis', function() {
       if (opt_cpuSelfTime !== null) {
         if (opt_cpuSelfTime) {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tracing.analysis.tsRound(opt_cpuSelfTime), tooltip);
+              tv.core.analysis.tsRound(opt_cpuSelfTime), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }

@@ -13,8 +13,8 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses drm driver events in the Linux event trace format.
  */
-tv.exportTo('tracing.importer.linux_perf', function() {
-  var Parser = tracing.importer.linux_perf.Parser;
+tv.exportTo('tv.e.importer.linux_perf', function() {
+  var Parser = tv.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux vmscan trace events.
@@ -55,8 +55,8 @@ tv.exportTo('tracing.importer.linux_perf', function() {
     openAsyncSlice: function(ts, category, threadName, pid, key, name) {
       var kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
-      var slice = new tracing.trace_model.AsyncSlice(
-          category, name, tracing.getStringColorId(name), ts);
+      var slice = new tv.core.trace_model.AsyncSlice(
+          category, name, tv.core.getStringColorId(name), ts);
       slice.startThread = kthread.thread;
 
       if (!kthread.openAsyncSlices) {
@@ -75,7 +75,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
           slice.args = args;
           slice.endThread = kthread.thread;
           slice.subSlices = [
-            new tracing.trace_model.Slice(category, slice.title,
+            new tv.core.trace_model.Slice(category, slice.title,
                 slice.colorId, slice.start, slice.args, slice.duration)
           ];
           kthread.thread.asyncSliceGroup.push(slice);
@@ -112,7 +112,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreateKernelThread("kswapd: " + eventBase.threadName,
           pid, pid);
       if (kthread.openSliceTS) {
-        var slice = new tracing.trace_model.Slice('', eventBase.threadName,
+        var slice = new tv.core.trace_model.Slice('', eventBase.threadName,
             tv.ui.getStringColorId(eventBase.threadName),
             kthread.openSliceTS,
             {
@@ -153,7 +153,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreateKernelThread("direct reclaim: " + eventBase.threadName,
           pid, pid);
       if (kthread.openSliceTS !== undefined) {
-        var slice = new tracing.trace_model.Slice(
+        var slice = new tv.core.trace_model.Slice(
             "", "direct reclaim",
             tv.ui.getStringColorId(eventBase.threadName),
             kthread.openSliceTS,

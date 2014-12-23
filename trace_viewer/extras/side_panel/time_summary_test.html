@@ -13,11 +13,11 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var newSliceNamed = tracing.test_utils.newSliceNamed;
+  var newSliceNamed = tv.core.test_utils.newSliceNamed;
 
   function createModel(opt_options) {
     var options = opt_options || {};
-    var m = new tracing.TraceModel();
+    var m = new tv.core.TraceModel();
     m.importTraces([], false, false, function() {
       if (options.provideSoftwareMeasuredCpuCount)
         m.kernel.softwareMeasuredCpuCount = 2;
@@ -43,7 +43,7 @@ tv.unittest.testSuite(function() {
 
   test('group', function() {
     var m = createModel();
-    var group = new tracing.ResultsForGroup(m, 'foo');
+    var group = new tv.e.analysis.ResultsForGroup(m, 'foo');
     group.appendThreadSlices(m.bounds, m.processes[1].threads[2]);
     assertEquals(20, group.wallTime);
     assertEquals(19, group.cpuTime);
@@ -134,11 +134,11 @@ tv.unittest.testSuite(function() {
     ];
 
     var groups = [];
-    var m = new tracing.TraceModel();
+    var m = new tv.core.TraceModel();
     m.importTraces([], false, false, function() {
       var start = 0;
       groupData.forEach(function(groupData) {
-        var group = new tracing.ResultsForGroup(m, groupData.label);
+        var group = new tv.e.analysis.ResultsForGroup(m, groupData.label);
 
         var slice = newSliceNamed(groupData.label, start, groupData.value);
         start += groupData.value;
@@ -152,12 +152,12 @@ tv.unittest.testSuite(function() {
 
     function getValueFromGroup(d) { return d.wallTime; }
 
-    var otherGroup = new tracing.ResultsForGroup(m, 'Other');
-    var newGroups = tracing.trimPieChartData(
+    var otherGroup = new tv.e.analysis.ResultsForGroup(m, 'Other');
+    var newGroups = tv.e.analysis.trimPieChartData(
         groups, otherGroup, getValueFromGroup);
 
     // Visualize the data once its trimmed.
-    var chart = tracing.createPieChartFromResultGroups(
+    var chart = tv.e.analysis.createPieChartFromResultGroups(
         newGroups, 'Trimmed', getValueFromGroup);
     this.addHTMLOutput(chart);
     chart.setSize(chart.getMinSize());
@@ -167,20 +167,20 @@ tv.unittest.testSuite(function() {
   test('basicInWallTimeMode', function() {
     var m = createModel();
 
-    var panel = new tracing.TimeSummarySidePanel();
+    var panel = new tv.e.analysis.TimeSummarySidePanel();
     this.addHTMLOutput(panel);
     panel.model = m;
-    panel.groupingUnit = tracing.WALL_TIME_GROUPING_UNIT;
+    panel.groupingUnit = tv.e.analysis.WALL_TIME_GROUPING_UNIT;
     panel.style.border = '1px solid black';
   });
 
   test('basicInCpuTimeModeButNoCpuData', function() {
     var m = createModel();
 
-    var panel = new tracing.TimeSummarySidePanel();
+    var panel = new tv.e.analysis.TimeSummarySidePanel();
     this.addHTMLOutput(panel);
     panel.model = m;
-    panel.groupingUnit = tracing.CPU_TIME_GROUPING_UNIT;
+    panel.groupingUnit = tv.e.analysis.CPU_TIME_GROUPING_UNIT;
     panel.style.border = '1px solid black';
   });
 
@@ -189,10 +189,10 @@ tv.unittest.testSuite(function() {
       provideSoftwareMeasuredCpuCount: true
     });
 
-    var panel = new tracing.TimeSummarySidePanel();
+    var panel = new tv.e.analysis.TimeSummarySidePanel();
     this.addHTMLOutput(panel);
     panel.model = m;
-    panel.groupingUnit = tracing.CPU_TIME_GROUPING_UNIT;
+    panel.groupingUnit = tv.e.analysis.CPU_TIME_GROUPING_UNIT;
     panel.style.border = '1px solid black';
   });
 });

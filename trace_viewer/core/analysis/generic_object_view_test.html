@@ -12,7 +12,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() { // @suppress longLineCheck
-  var GenericObjectView = tracing.analysis.GenericObjectView;
+  var GenericObjectView = tv.core.analysis.GenericObjectView;
 
   test('undefinedValue', function() {
     var view = new GenericObjectView();
@@ -60,25 +60,25 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   test('objectSnapshotValue', function() {
     var view = new GenericObjectView();
 
-    var i10 = new tracing.trace_model.ObjectInstance(
+    var i10 = new tv.core.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
 
     view.object = s10;
     assertTrue(view.children[0].dataElement instanceof
-               tracing.analysis.ObjectSnapshotLink);
+               tv.core.analysis.ObjectSnapshotLink);
   });
 
   test('objectInstanceValue', function() {
     var view = new GenericObjectView();
 
-    var i10 = new tracing.trace_model.ObjectInstance(
+    var i10 = new tv.core.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
 
     view.object = i10;
     assertTrue(view.children[0].dataElement instanceof
-               tracing.analysis.ObjectInstanceLink);
+               tv.core.analysis.ObjectInstanceLink);
   });
 
   test('instantiate_emptyArrayValue', function() {

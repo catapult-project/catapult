@@ -14,18 +14,18 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('basic' ,function() {
-    var m = new tracing.TraceModel(g_catLTHIEvents);
+    var m = new tv.core.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
     var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
       return slice.title == 'RasterTask';
     });
 
-    var selection = new tracing.Selection();
+    var selection = new tv.core.Selection();
     selection.push(rasterTasks[0]);
     selection.push(rasterTasks[1]);
 
-    assertTrue(cc.RasterTaskSelection.supports(selection));
-    var selection = new cc.RasterTaskSelection(selection);
+    assertTrue(tv.e.cc.RasterTaskSelection.supports(selection));
+    var selection = new tv.e.cc.RasterTaskSelection(selection);
     var highlights = selection.extraHighlightsByLayerId;
     assertTrue(tv.dictionaryLength(highlights), 1);
   });

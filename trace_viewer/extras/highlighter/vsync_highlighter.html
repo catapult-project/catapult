@@ -16,9 +16,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the VSyncHighlighter class.
  */
-tv.exportTo('tracing.tracks.highlighter', function() {
+tv.exportTo('tv.e.highlighter', function() {
 
-  var Highlighter = tracing.tracks.Highlighter;
+  var Highlighter = tv.core.tracks.Highlighter;
 
   /**
    * Highlights VSync events on the model track (using "zebra" striping).
@@ -164,7 +164,7 @@ tv.exportTo('tracing.tracks.highlighter', function() {
   };
 
   // Register the highlighter.
-  tracing.tracks.Highlighter.register(VSyncHighlighter);
+  tv.core.tracks.Highlighter.register(VSyncHighlighter);
 
   return {
     VSyncHighlighter: VSyncHighlighter

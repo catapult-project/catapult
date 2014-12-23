@@ -14,21 +14,21 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.tracks', function() {
+tv.exportTo('tv.core.tracks', function() {
   /**
    * A track that displays a ObjectInstanceGroup.
    * @constructor
    * @extends {ContainerTrack}
    */
   var ObjectInstanceGroupTrack = tv.ui.define(
-      'object-instance-group-track', tracing.tracks.MultiRowTrack);
+      'object-instance-group-track', tv.core.tracks.MultiRowTrack);
 
   ObjectInstanceGroupTrack.prototype = {
 
-    __proto__: tracing.tracks.MultiRowTrack.prototype,
+    __proto__: tv.core.tracks.MultiRowTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
+      tv.core.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
       this.classList.add('object-instance-group-track');
       this.objectInstances_ = undefined;
     },
@@ -43,7 +43,7 @@ tv.exportTo('tracing.tracks', function() {
 
     addSubTrack_: function(objectInstances) {
       var hasMultipleRows = this.subRows.length > 1;
-      var track = new tracing.tracks.ObjectInstanceTrack(this.viewport);
+      var track = new tv.core.tracks.ObjectInstanceTrack(this.viewport);
       track.objectInstances = objectInstances;
       this.appendChild(track);
       return track;

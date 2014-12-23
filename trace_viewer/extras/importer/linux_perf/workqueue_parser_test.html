@@ -23,7 +23,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       ' kworker/1:2-7269  [001]  2784.805975: workqueue_execute_end: ' +
                  'work struct ffff88014fb0f158'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     assertEquals(1, m.processes['6880'].threads['6880'].sliceGroup.length);

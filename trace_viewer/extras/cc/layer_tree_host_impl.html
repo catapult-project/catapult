@@ -17,11 +17,11 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the LayerTreeHostImpl model-level objects.
  */
-tv.exportTo('cc', function() {
-  var constants = cc.constants;
+tv.exportTo('tv.e.cc', function() {
+  var constants = tv.e.cc.constants;
 
-  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
-  var ObjectInstance = tracing.trace_model.ObjectInstance;
+  var ObjectSnapshot = tv.core.trace_model.ObjectSnapshot;
+  var ObjectInstance = tv.core.trace_model.ObjectInstance;
 
   /**
    * @constructor
@@ -34,14 +34,14 @@ tv.exportTo('cc', function() {
     __proto__: ObjectSnapshot.prototype,
 
     preInitialize: function() {
-      cc.preInitializeObject(this);
+      tv.e.cc.preInitializeObject(this);
     },
 
     initialize: function() {
-      cc.moveRequiredFieldsFromArgsToToplevel(
+      tv.e.cc.moveRequiredFieldsFromArgsToToplevel(
           this, ['deviceViewportSize',
             'activeTree']);
-      cc.moveOptionalFieldsFromArgsToToplevel(
+      tv.e.cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['pendingTree']);
 
       // Move active_tiles into this.tiles. If that doesn't exist then, then as

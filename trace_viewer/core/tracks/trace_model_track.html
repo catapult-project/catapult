@@ -17,32 +17,32 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.tracks', function() {
+tv.exportTo('tv.core.tracks', function() {
   /**
    * Visualizes a Model by building ProcessTracks and
    * CpuTracks.
    * @constructor
    */
   var TraceModelTrack = tv.ui.define(
-      'trace-model-track', tracing.tracks.ContainerTrack);
+      'trace-model-track', tv.core.tracks.ContainerTrack);
 
 
   TraceModelTrack.prototype = {
 
-    __proto__: tracing.tracks.ContainerTrack.prototype,
+    __proto__: tv.core.tracks.ContainerTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      tv.core.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('model-track');
 
-      this.highlighters_ = tracing.tracks.Highlighter.getAllRegisteredTypeInfos().map(
+      this.highlighters_ = tv.core.tracks.Highlighter.getAllRegisteredTypeInfos().map(
         function(typeInfo) {
           return new typeInfo.constructor(viewport);
         });
     },
 
     detach: function() {
-      tracing.tracks.ContainerTrack.prototype.detach.call(this);
+      tv.core.tracks.ContainerTrack.prototype.detach.call(this);
     },
 
     get model() {
@@ -67,12 +67,12 @@ tv.exportTo('tracing.tracks', function() {
 
       // Get a sorted list of processes.
       var processes = this.model_.getAllProcesses();
-      processes.sort(tracing.trace_model.Process.compare);
+      processes.sort(tv.core.trace_model.Process.compare);
 
       for (var i = 0; i < processes.length; ++i) {
         var process = processes[i];
 
-        var track = new tracing.tracks.ProcessTrack(this.viewport);
+        var track = new tv.core.tracks.ProcessTrack(this.viewport);
         track.process = process;
         if (!track.hasVisibleContent)
           continue;
@@ -105,7 +105,7 @@ tv.exportTo('tracing.tracks', function() {
 
     appendKernelTrack_: function() {
       var kernel = this.model.kernel;
-      var track = new tracing.tracks.KernelTrack(this.viewport);
+      var track = new tv.core.tracks.KernelTrack(this.viewport);
       track.kernel = this.model.kernel;
       if (!track.hasVisibleContent)
         return;
@@ -127,13 +127,13 @@ tv.exportTo('tracing.tracks', function() {
       var viewRWorld = dt.xViewToWorld(bounds.width * pixelRatio);
 
       switch (type) {
-        case tracing.tracks.DrawType.GRID:
+        case tv.core.tracks.DrawType.GRID:
           this.viewport.drawMajorMarkLines(ctx);
           // The model is the only thing that draws grid lines.
           ctx.restore();
           return;
 
-        case tracing.tracks.DrawType.FLOW_ARROWS:
+        case tv.core.tracks.DrawType.FLOW_ARROWS:
           if (this.model_.flowIntervalTree.size === 0) {
             ctx.restore();
             return;
@@ -143,12 +143,12 @@ tv.exportTo('tracing.tracks', function() {
           ctx.restore();
           return;
 
-        case tracing.tracks.DrawType.INSTANT_EVENT:
+        case tv.core.tracks.DrawType.INSTANT_EVENT:
           if (!this.model_.instantEvents ||
               this.model_.instantEvents.length === 0)
             break;
 
-          tracing.drawInstantSlicesAsLines(
+          tv.core.drawInstantSlicesAsLines(
               ctx,
               this.viewport.currentDisplayTransform,
               viewLWorld,
@@ -159,7 +159,7 @@ tv.exportTo('tracing.tracks', function() {
 
           break;
 
-        case tracing.tracks.DrawType.MARKERS:
+        case tv.core.tracks.DrawType.MARKERS:
           if (!this.viewport.interestRange.isEmpty) {
             this.viewport.interestRange.draw(ctx, viewLWorld, viewRWorld);
             this.viewport.interestRange.drawIndicators(
@@ -168,7 +168,7 @@ tv.exportTo('tracing.tracks', function() {
           ctx.restore();
           return;
 
-        case tracing.tracks.DrawType.HIGHLIGHTS:
+        case tv.core.tracks.DrawType.HIGHLIGHTS:
           for (var i = 0; i < this.highlighters_.length; i++) {
             this.highlighters_[i].drawHighlight(ctx, dt, viewLWorld, viewRWorld,
                 bounds.height);
@@ -178,7 +178,7 @@ tv.exportTo('tracing.tracks', function() {
       }
       ctx.restore();
 
-      tracing.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
+      tv.core.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
     },
 
     drawFlowArrows_: function(viewLWorld, viewRWorld) {
@@ -266,7 +266,7 @@ tv.exportTo('tracing.tracks', function() {
       var tipX = endEvent.start;
       var tipY = pixelEndY;
       var arrowHeight = (endBounds.height / 4) * pixelRatio;
-      tracing.drawTriangle(ctx,
+      tv.core.drawTriangle(ctx,
           tipX, tipY,
           tipX - arrowWidth, tipY - arrowHeight,
           tipX - arrowWidth, tipY + arrowHeight);
@@ -293,7 +293,7 @@ tv.exportTo('tracing.tracks', function() {
           loWX, hiWX,
           onPickHit.bind(this));
 
-      tracing.tracks.ContainerTrack.prototype.
+      tv.core.tracks.ContainerTrack.prototype.
           addIntersectingItemsInRangeToSelectionInWorldSpace.
           apply(this, arguments);
     },
@@ -302,7 +302,7 @@ tv.exportTo('tracing.tracks', function() {
                                          selection) {
       this.addClosestInstantEventToSelection(this.model_.instantEvents,
                                              worldX, worldMaxDist, selection);
-      tracing.tracks.ContainerTrack.prototype.addClosestEventToSelection.
+      tv.core.tracks.ContainerTrack.prototype.addClosestEventToSelection.
           apply(this, arguments);
     }
   };

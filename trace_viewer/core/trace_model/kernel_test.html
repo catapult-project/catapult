@@ -13,14 +13,14 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('bestGuessAtCpuCountWithNoData', function() {
-    var m = new tracing.TraceModel();
+    var m = new tv.core.TraceModel();
     m.importTraces([], false, false, function() {
     });
     assertEquals(undefined, m.kernel.bestGuessAtCpuCount);
   });
 
   test('bestGuessAtCpuCountWithCpuData', function() {
-    var m = new tracing.TraceModel();
+    var m = new tv.core.TraceModel();
     m.importTraces([], false, false, function() {
       var c1 = m.kernel.getOrCreateCpu(1);
       var c2 = m.kernel.getOrCreateCpu(2);
@@ -29,7 +29,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('bestGuessAtCpuCountWithSoftwareCpuCount', function() {
-    var m = new tracing.TraceModel();
+    var m = new tv.core.TraceModel();
     m.importTraces([], false, false, function() {
       m.kernel.softwareMeasuredCpuCount = 2;
     });

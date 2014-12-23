@@ -12,21 +12,21 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.tracks', function() {
+tv.exportTo('tv.core.tracks', function() {
   /**
    * A track that displays a SliceGroup.
    * @constructor
    * @extends {MultiRowTrack}
    */
   var SliceGroupTrack = tv.ui.define(
-      'slice-group-track', tracing.tracks.MultiRowTrack);
+      'slice-group-track', tv.core.tracks.MultiRowTrack);
 
   SliceGroupTrack.prototype = {
 
-    __proto__: tracing.tracks.MultiRowTrack.prototype,
+    __proto__: tv.core.tracks.MultiRowTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
+      tv.core.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
       this.classList.add('slice-group-track');
       this.group_ = undefined;
       // Set the collapse threshold so we don't collapse by default, but the
@@ -35,7 +35,7 @@ tv.exportTo('tracing.tracks', function() {
     },
 
     addSubTrack_: function(slices) {
-      var track = new tracing.tracks.SliceTrack(this.viewport);
+      var track = new tv.core.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       this.appendChild(track);
       return track;

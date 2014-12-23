@@ -12,15 +12,15 @@
 <script>
 'use strict';
 
-tv.exportTo('system_stats', function() {
+tv.exportTo('tv.e.system_stats', function() {
   /*
    * Displays a system stats snapshot in a human readable form. @constructor
    */
   var SystemStatsSnapshotView = tv.ui.define('system-stats-snapshot-view',
-      tracing.analysis.ObjectSnapshotView);
+      tv.core.analysis.ObjectSnapshotView);
 
   SystemStatsSnapshotView.prototype = {
-    __proto__: tracing.analysis.ObjectSnapshotView.prototype,
+    __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('system-stats-snapshot-view');
@@ -73,7 +73,7 @@ tv.exportTo('system_stats', function() {
     }
   };
 
-  tracing.analysis.ObjectSnapshotView.register(
+  tv.core.analysis.ObjectSnapshotView.register(
       SystemStatsSnapshotView,
       {typeName: 'base::TraceEventSystemStatsMonitor::SystemStats'});
 

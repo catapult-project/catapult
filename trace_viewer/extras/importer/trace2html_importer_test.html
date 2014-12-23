@@ -23,10 +23,10 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '</html>'
     ];
     var html_text = html_lines.join('\n');
-    assertTrue(tracing.importer.Trace2HTMLImporter.canImport(html_text));
+    assertTrue(tv.e.importer.Trace2HTMLImporter.canImport(html_text));
 
-    var m = new tracing.TraceModel();
-    var imp = new tracing.importer.Trace2HTMLImporter(m, html_text);
+    var m = new tv.core.TraceModel();
+    var imp = new tv.e.importer.Trace2HTMLImporter(m, html_text);
     var subTracesAsBuffers = imp.extractSubtraces();
     var subTracesAsStrings = subTracesAsBuffers.map(function(buffer) {
       var str = '';

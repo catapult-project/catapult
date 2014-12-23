@@ -12,14 +12,14 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Sample = tracing.trace_model.Sample;
-  var StackFrame = tracing.trace_model.StackFrame;
-  var Thread = tracing.trace_model.Thread;
+  var Sample = tv.core.trace_model.Sample;
+  var StackFrame = tv.core.trace_model.StackFrame;
+  var Thread = tv.core.trace_model.Thread;
 
   test('sampleStackTrace', function() {
     var thread = new Thread({}, 1);
 
-    var fABC = tracing.test_utils.newStackTrace('cat', ['a', 'b', 'c']);
+    var fABC = tv.core.test_utils.newStackTrace('cat', ['a', 'b', 'c']);
 
     var s = new Sample(undefined, thread, 'instructions_retired',
                        10, fABC, 10);

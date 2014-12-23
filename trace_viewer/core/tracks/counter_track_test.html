@@ -12,9 +12,9 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Counter = tracing.trace_model.Counter;
-  var Viewport = tracing.TimelineViewport;
-  var CounterTrack = tracing.tracks.CounterTrack;
+  var Counter = tv.core.trace_model.Counter;
+  var Viewport = tv.core.TimelineViewport;
+  var CounterTrack = tv.core.tracks.CounterTrack;
 
   var runTest = function(timestamps, samples, testFn) {
     var testEl = document.createElement('div');
@@ -24,7 +24,7 @@ tv.unittest.testSuite(function() {
     var n = samples.length;
 
     for (var i = 0; i < n; ++i) {
-      ctr.addSeries(new tracing.trace_model.CounterSeries('value' + i,
+      ctr.addSeries(new tv.core.trace_model.CounterSeries('value' + i,
           tv.ui.getStringColorId('value' + i)));
     }
 
@@ -38,7 +38,7 @@ tv.unittest.testSuite(function() {
 
     var viewport = new Viewport(testEl);
 
-    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tv.core.tracks.DrawingContainer(viewport);
     testEl.appendChild(drawingContainer);
 
     var track = new CounterTrack(viewport);
@@ -53,7 +53,7 @@ tv.unittest.testSuite(function() {
 
     track.heading = ctr.name;
     track.counter = ctr;
-    var dt = new tracing.TimelineDisplayTransform();
+    var dt = new tv.core.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 10, track.clientWidth * pixelRatio);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -63,9 +63,9 @@ tv.unittest.testSuite(function() {
   test('instantiate', function() {
     var ctr = new Counter(undefined, 'testBasicCounter', '',
         'testBasicCounter');
-    ctr.addSeries(new tracing.trace_model.CounterSeries('value1',
+    ctr.addSeries(new tv.core.trace_model.CounterSeries('value1',
         tv.ui.getStringColorId('testBasicCounter.value1')));
-    ctr.addSeries(new tracing.trace_model.CounterSeries('value2',
+    ctr.addSeries(new tv.core.trace_model.CounterSeries('value2',
         tv.ui.getStringColorId('testBasicCounter.value2')));
 
     var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -84,7 +84,7 @@ tv.unittest.testSuite(function() {
 
     var viewport = new Viewport(div);
 
-    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tv.core.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
     drawingContainer.invalidate();
 
@@ -93,7 +93,7 @@ tv.unittest.testSuite(function() {
 
     track.heading = ctr.name;
     track.counter = ctr;
-    var dt = new tracing.TimelineDisplayTransform();
+    var dt = new tv.core.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 7.7, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
@@ -108,7 +108,7 @@ tv.unittest.testSuite(function() {
       var y75 = clientRect.top + (0.75 * clientRect.height);
 
       // In bounds.
-      var sel = new tracing.Selection();
+      var sel = new tv.core.Selection();
       var x = 0.15 * clientRect.width;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
 
@@ -122,12 +122,12 @@ tv.unittest.testSuite(function() {
       assertEquals(1, sel[1].series.seriesIndex);
 
       // Outside bounds.
-      sel = new tracing.Selection();
+      sel = new tv.core.Selection();
       var x = -0.5 * clientRect.width;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
       assertEquals(0, sel.length);
 
-      sel = new tracing.Selection();
+      sel = new tv.core.Selection();
       var x = 0.8 * clientRect.width;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
       assertEquals(0, sel.length);
@@ -141,43 +141,43 @@ tv.unittest.testSuite(function() {
 
     runTest.call(this, timestamps, samples, function(ctr, container, track) {
       // Before with not range.
-      var sel = new tracing.Selection();
+      var sel = new tv.core.Selection();
       track.addClosestEventToSelection(-1, 0, 0, 0, sel);
       assertEquals(0, sel.length);
 
       // Before with negative range.
-      var sel = new tracing.Selection();
+      var sel = new tv.core.Selection();
       track.addClosestEventToSelection(-1, -10, 0, 0, sel);
       assertEquals(0, sel.length);
 
       // Before first sample.
-      var sel = new tracing.Selection();
+      var sel = new tv.core.Selection();
       track.addClosestEventToSelection(-1, 1, 0, 0, sel);
       assertEquals(2, sel.length);
       assertEquals(0, sel[0].getSampleIndex());
 
       // Between and closer to sample before.
-      var sel = new tracing.Selection();
+      var sel = new tv.core.Selection();
       track.addClosestEventToSelection(1.3, 1, 0, 0, sel);
       assertEquals(1, sel[0].getSampleIndex());
 
       // Between samples with bad range.
-      var sel = new tracing.Selection();
+      var sel = new tv.core.Selection();
       track.addClosestEventToSelection(1.45, 0.25, 0, 0, sel);
       assertEquals(0, sel.length);
 
       // Between and closer to next sample.
-      var sel = new tracing.Selection();
+      var sel = new tv.core.Selection();
       track.addClosestEventToSelection(4.7, 6, 0, 0, sel);
       assertEquals(5, sel[0].getSampleIndex());
 
       // After last sample with good range.
-      var sel = new tracing.Selection();
+      var sel = new tv.core.Selection();
       track.addClosestEventToSelection(8.5, 2, 0, 0, sel);
       assertEquals(7, sel[0].getSampleIndex());
 
       // After last sample with bad range.
-      var sel = new tracing.Selection();
+      var sel = new tv.core.Selection();
       track.addClosestEventToSelection(10, 1, 0, 0, sel);
       assertEquals(0, sel.length);
     });

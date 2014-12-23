@@ -103,7 +103,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('cc', function() {
+tv.exportTo('tv.e.cc', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -134,8 +134,8 @@ tv.exportTo('cc', function() {
 
       this.filename_ = this.querySelector('.filename');
 
-      this.drawOpsChartSummaryView_ = new cc.PictureOpsChartSummaryView();
-      this.drawOpsChartView_ = new cc.PictureOpsChartView();
+      this.drawOpsChartSummaryView_ = new tv.e.cc.PictureOpsChartSummaryView();
+      this.drawOpsChartView_ = new tv.e.cc.PictureOpsChartView();
       this.drawOpsChartView_.addEventListener(
           'selection-changed', this.onChartBarClicked_.bind(this));
 
@@ -159,7 +159,7 @@ tv.exportTo('cc', function() {
       pictureInfo.appendChild(overdrawCheckbox);
       pictureInfo.appendChild(chartCheckbox);
 
-      this.drawOpsView_ = new cc.PictureOpsListView();
+      this.drawOpsView_ = new tv.e.cc.PictureOpsListView();
       this.drawOpsView_.addEventListener(
           'selection-changed', this.onChangeDrawOps_.bind(this));
 

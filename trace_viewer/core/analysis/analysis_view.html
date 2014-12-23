@@ -105,8 +105,8 @@ using custom elements specialized for different event types.
           tabView.appendChild(subView);
           // There are some subViews that get configured by 'modelEvent'
           // instead of selection. We need to move them off of this craziness.
-          // But, cc.LayerTreeHostView has a concept called selection as
-          // well, but its selection is a cc.Selection. So the properties
+          // But, tv.e.cc.LayerTreeHostView has a concept called selection as
+          // well, but its selection is a tv.e.cc.Selection. So the properties
           // collide, in a scary way.
           if (subView.__lookupSetter__('modelEvent')) {
             if (eventsByBaseType[eventType].length != 1)
@@ -134,9 +134,9 @@ using custom elements specialized for different event types.
       },
 
       findSubViewForEventsOfSingleType_: function(selection) {
-        var supportedSubViewTypes = tracing.getAnalysisSubViewTypes().filter(
-            function(subViewTypes) {
-              return subViewTypes.supportsSelectionPredicate(selection);
+        var supportedSubViewTypes = tv.core.getAnalysisSubViewTypes().filter(
+            function(subViewType) {
+              return subViewType.supportsSelectionPredicate(selection);
             });
 
         if (supportedSubViewTypes.length == 0)

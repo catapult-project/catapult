@@ -17,7 +17,7 @@ found in the LICENSE file.
   'use strict';
 
   tv.onPolymerReady(function() {
-    tracing.registerAnalysisSubViewType(
+    tv.core.registerAnalysisSubViewType(
       1,
       function supported(selection) {
         if (selection.length === 0)
@@ -26,10 +26,10 @@ found in the LICENSE file.
         var tile0;
         for (var i = 0; i < selection.length; i++) {
           var event = selection[i];
-          if (!(event instanceof tracing.trace_model.Slice))
+          if (!(event instanceof tv.core.trace_model.Slice))
             return false;
 
-          var tile = cc.getTileFromRasterTaskSlice(selection[i]);
+          var tile = tv.e.cc.getTileFromRasterTaskSlice(selection[i]);
           if (tile === undefined)
             return false;
           if (i === 0) {
@@ -61,7 +61,7 @@ found in the LICENSE file.
       if (this.selection_.length === 0)
         return;
 
-      var results = new tracing.analysis.AnalysisResults();
+      var results = new tv.core.analysis.AnalysisResults();
       this.appendChild(results);
 
       var headerDiv = results.appendHeader('Multiple frames selected:');
@@ -93,7 +93,7 @@ found in the LICENSE file.
       var tilesThatWeHaveSeen = {};
 
       this.selection_.forEach(function(slice) {
-        var tile = cc.getTileFromRasterTaskSlice(slice);
+        var tile = tv.e.cc.getTileFromRasterTaskSlice(slice);
         var lthi = tile.containingSnapshot;
         var curCosts = getCurrentCostsForLTHI(lthi);
         curCosts.tasks.push(slice);
@@ -103,7 +103,7 @@ found in the LICENSE file.
           curCosts.numTiles += 1;
         }
 
-        if (cc.isSliceDoingAnalysis(slice)) {
+        if (tv.e.cc.isSliceDoingAnalysis(slice)) {
           curCosts.numAnalysisTasks += 1;
           totalNumAnalyzeTasks += 1;
         } else {
@@ -148,17 +148,17 @@ found in the LICENSE file.
         lthiEl.appendChild(results.createSelectionChangingLink(
           costs.lthi.userFriendlyName,
           function() {
-            return new tracing.Selection(costs.tasks);
+            return new tv.core.Selection(costs.tasks);
           }));
 
         results.appendTableCell(table, row,  costs.numTiles);
         results.appendTableCell(table, row,  costs.numAnalysisTasks);
         results.appendTableCell(table, row,  costs.numRasterTasks);
         results.appendTableCell(
-            table, row,  tracing.analysis.tsRound(costs.duration) + 'ms');
+            table, row,  tv.core.analysis.tsRound(costs.duration) + 'ms');
         if (hadCpuDurations) {
           results.appendTableCell(
-              table, row,  tracing.analysis.tsRound(costs.cpuDuration) + 'ms');
+              table, row,  tv.core.analysis.tsRound(costs.cpuDuration) + 'ms');
         }
       });
 
@@ -169,10 +169,10 @@ found in the LICENSE file.
       results.appendTableCell(table, frow,  totalNumAnalyzeTasks);
       results.appendTableCell(table, frow,  totalNumRasterizeTasks);
       results.appendTableCell(
-          table, frow, tracing.analysis.tsRound(totalDuration) + 'ms');
+          table, frow, tv.core.analysis.tsRound(totalDuration) + 'ms');
       if (hadCpuDurations) {
         results.appendTableCell(
-            table, frow, tracing.analysis.tsRound(totalCpuDuration) + 'ms');
+            table, frow, tv.core.analysis.tsRound(totalCpuDuration) + 'ms');
       }
 
       tv.ui.SortableTable.decorate(table);

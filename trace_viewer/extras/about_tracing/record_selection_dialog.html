@@ -154,9 +154,9 @@ found in the LICENSE file.
 
 /**
  * @fileoverview RecordSelectionDialog presents the available categories
- * to be enabled/disabled during tracing.
+ * to be enabled/disabled during tv.core.
  */
-tv.exportTo('about_tracing', function() {
+tv.exportTo('tv.e.about_tracing', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
   var RecordSelectionDialog = tv.ui.define('div');
 
@@ -605,7 +605,7 @@ tv.exportTo('about_tracing', function() {
 
         this.setWarningDialogOverlayText_([
           'Enabling the default disabled categories may have',
-          'performance and memory impact while tracing.'
+          'performance and memory impact while tv.core.'
         ]);
 
         evt.preventDefault();

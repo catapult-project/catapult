@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('tileCoverageRectCount', function() {
-    var m = new tracing.TraceModel(g_catLTHIEvents);
+    var m = new tv.core.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
 
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
@@ -24,9 +24,9 @@ tv.unittest.testSuite(function() {
     var numLayers = lthi.activeTree.renderSurfaceLayerList.length;
     var layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
 
-    var view = new cc.LayerTreeQuadStackView();
+    var view = new tv.e.cc.LayerTreeQuadStackView();
     view.layerTreeImpl = lthi.activeTree;
-    view.selection = new cc.LayerSelection(layer);
+    view.selection = new tv.e.cc.LayerSelection(layer);
     view.howToShowTiles = 'none';
     view.showInvalidations = false;
     view.showContents = false;

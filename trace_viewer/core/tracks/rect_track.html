@@ -16,7 +16,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.tracks', function() {
+tv.exportTo('tv.core.tracks', function() {
 
   /**
    * A track that displays an array of Rect objects.
@@ -24,14 +24,14 @@ tv.exportTo('tracing.tracks', function() {
    * @extends {HeadingTrack}
    */
   var RectTrack = tv.ui.define(
-      'rect-track', tracing.tracks.HeadingTrack);
+      'rect-track', tv.core.tracks.HeadingTrack);
 
   RectTrack.prototype = {
 
-    __proto__: tracing.tracks.HeadingTrack.prototype,
+    __proto__: tv.core.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tv.core.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('rect-track');
       this.asyncStyle_ = false;
       this.rects_ = null;
@@ -73,7 +73,7 @@ tv.exportTo('tracing.tracks', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tracing.tracks.DrawType.SLICE:
+        case tv.core.tracks.DrawType.SLICE:
           this.drawRects_(viewLWorld, viewRWorld);
           break;
       }
@@ -84,7 +84,7 @@ tv.exportTo('tracing.tracks', function() {
 
       ctx.save();
       var bounds = this.getBoundingClientRect();
-      tracing.drawSlices(
+      tv.core.drawSlices(
           ctx,
           this.viewport.currentDisplayTransform,
           viewLWorld,
@@ -105,7 +105,7 @@ tv.exportTo('tracing.tracks', function() {
         fontSize = 10;
         yOffset = 2.5;
       }
-      tracing.drawLabels(
+      tv.core.drawLabels(
           ctx,
           this.viewport.currentDisplayTransform,
           viewLWorld,

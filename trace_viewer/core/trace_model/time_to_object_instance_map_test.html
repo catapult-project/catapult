@@ -14,12 +14,12 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   var createObjectInstance = function(parent, id, category, name, creationTs) {
-    return new tracing.trace_model.ObjectInstance(
+    return new tv.core.trace_model.ObjectInstance(
         parent, id, category, name, creationTs);
   };
 
   test('timeToObjectInstanceMap', function() {
-    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+    var m = new tv.core.trace_model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
     m.addSnapshot('cat', 'name', 10, 'a1');
     m.addSnapshot('cat', 'name', 20, 'a2');
@@ -63,7 +63,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('timeToObjectInstanceMapsBoundsLogic', function() {
-    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+    var m = new tv.core.trace_model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
     m.addSnapshot('cat', 'name', 10, 'a1');
     m.addSnapshot('cat', 'name', 20, 'a2');
@@ -83,7 +83,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('earlySnapshot', function() {
-    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+    var m = new tv.core.trace_model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
     var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
     m.idWasDeleted('cat', 'name', 20);
@@ -96,7 +96,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('earlySnapshotWithImplicitCreate', function() {
-    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+    var m = new tv.core.trace_model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
     var i10 = m.idWasDeleted('cat', 'name', 20);
     m.addSnapshot('cat', 'name', 5, 'a1');
@@ -105,7 +105,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('getInstanceBeforeCreationImplicitCreate', function() {
-    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+    var m = new tv.core.trace_model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
     var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
     m.idWasDeleted('cat', 'name', 20);
@@ -113,7 +113,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('getInstanceBeforeCreationImplicitCreateWithSnapshot', function() {
-    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+    var m = new tv.core.trace_model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
     var s5 = m.addSnapshot('cat', 'name', 5, 'a1');
     var i10 = m.idWasDeleted('cat', 'name', 20);
@@ -121,7 +121,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('successiveDeletions', function() {
-    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+    var m = new tv.core.trace_model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
     var i20 = m.idWasDeleted('cat', 'name', 20);
     var i30 = m.idWasDeleted('cat', 'name', 30);
@@ -144,7 +144,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('snapshotAfterDeletion', function() {
-    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+    var m = new tv.core.trace_model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
     var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
     m.idWasDeleted('cat', 'name', 20);

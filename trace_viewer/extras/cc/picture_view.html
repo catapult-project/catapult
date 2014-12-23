@@ -16,21 +16,21 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('cc', function() {
+tv.exportTo('tv.e.cc', function() {
   /*
    * Displays a picture snapshot in a human readable form.
    * @constructor
    */
   var PictureSnapshotView = tv.ui.define(
       'picture-snapshot-view',
-      tracing.analysis.ObjectSnapshotView);
+      tv.core.analysis.ObjectSnapshotView);
 
   PictureSnapshotView.prototype = {
-    __proto__: tracing.analysis.ObjectSnapshotView.prototype,
+    __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('picture-snapshot-view');
-      this.pictureDebugger_ = new cc.PictureDebugger();
+      this.pictureDebugger_ = new tv.e.cc.PictureDebugger();
       this.appendChild(this.pictureDebugger_);
     },
 
@@ -40,7 +40,7 @@ tv.exportTo('cc', function() {
     }
   };
 
-  tracing.analysis.ObjectSnapshotView.register(
+  tv.core.analysis.ObjectSnapshotView.register(
       PictureSnapshotView,
       {
         typeNames: ['cc::Picture', 'cc::LayeredPicture'],

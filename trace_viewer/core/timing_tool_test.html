@@ -13,8 +13,8 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   function create100PxWideViewportInto10WideWorld() {
-    var vp = new tracing.TimelineViewport(document.createElement('div'));
-    var tempDisplayTransform = new tracing.TimelineDisplayTransform();
+    var vp = new tv.core.TimelineViewport(document.createElement('div'));
+    var tempDisplayTransform = new tv.core.TimelineDisplayTransform();
     tempDisplayTransform.xSetWorldBounds(0, 10, 100);
     vp.setDisplayTransformImmediately(tempDisplayTransform);
 
@@ -28,7 +28,7 @@ tv.unittest.testSuite(function() {
     var vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tracing.TimingTool(vp);
+    var tool = new tv.core.TimingTool(vp);
 
     tool.mouseDownAt_(1.1, 0);
     assertTrue(vp.interestRange.leftSelected);
@@ -43,7 +43,7 @@ tv.unittest.testSuite(function() {
     var vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tracing.TimingTool(vp);
+    var tool = new tv.core.TimingTool(vp);
 
     tool.mouseDownAt_(9.1, 0);
     assertTrue(vp.interestRange.rightSelected);
@@ -58,7 +58,7 @@ tv.unittest.testSuite(function() {
     var vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tracing.TimingTool(vp);
+    var tool = new tv.core.TimingTool(vp);
 
     tool.mouseDownAt_(5, 0);
     assertTrue(vp.interestRange.rightSelected);

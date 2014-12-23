@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() { // @suppress longLineCheck
   test('schedSwitchRE', function() {
-    var re = tracing.importer.linux_perf._SchedParserTestExports.schedSwitchRE;
+    var re = tv.e.importer.linux_perf._SchedParserTestExports.schedSwitchRE;
     var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
         '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112');
     assertNotNull(x);
@@ -44,7 +44,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('schedWakeupRE', function() {
-    var re = tracing.importer.linux_perf._SchedParserTestExports.schedWakeupRE;
+    var re = tv.e.importer.linux_perf._SchedParserTestExports.schedWakeupRE;
     var x = re.exec(
         'comm=SensorService pid=207 prio=112 success=1 target_cpu=000');
     assertNotNull(x);
@@ -66,7 +66,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ==> next_comm=ndroid.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
     ];
 
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
@@ -108,7 +108,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
     var m;
     assertDoesNotThrow(function() {
-      m = new tracing.TraceModel(lines.join('\n'), false);
+      m = new tv.core.TraceModel(lines.join('\n'), false);
     });
     assertTrue(m.hasImportWarnings);
     assertEquals('Unrecognized sleep state: F|O', m.importWarnings[0].message);
@@ -148,7 +148,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
           '==> next_comm=ndroid.launcher next_pid=584 next_prio=120'
     ];
 
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];

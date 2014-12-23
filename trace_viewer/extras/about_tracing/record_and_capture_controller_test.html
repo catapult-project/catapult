@@ -21,7 +21,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('fullRecording', function() {
     return new Promise(function(resolve, reject) {
-      var mock = new about_tracing.MockTracingControllerClient();
+      var mock = new tv.e.about_tracing.MockTracingControllerClient();
       mock.expectRequest('endRecording', function() {
         return '';
       });
@@ -45,7 +45,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
         return JSON.stringify(testData);
       });
 
-      var recordingPromise = about_tracing.beginRecording(mock);
+      var recordingPromise = tv.e.about_tracing.beginRecording(mock);
 
       return recordingPromise.then(
           function(data) {
@@ -62,7 +62,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('monitoring', function() {
     return new Promise(function(resolve, reject) {
-      var mock = new about_tracing.MockTracingControllerClient();
+      var mock = new tv.e.about_tracing.MockTracingControllerClient();
 
       mock.expectRequest('beginMonitoring', function(monitoringOptions) {
         assertTrue(typeof monitoringOptions.categoryFilter === 'string');
@@ -70,7 +70,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
         assertTrue(typeof monitoringOptions.useSampling === 'boolean');
         assertTrue(typeof monitoringOptions.useContinuousTracing === 'boolean');
         setTimeout(function() {
-          var capturePromise = about_tracing.captureMonitoring(mock);
+          var capturePromise = tv.e.about_tracing.captureMonitoring(mock);
           capturePromise.then(
               function(data) {
                 var testDataString = JSON.stringify(testData);
@@ -85,7 +85,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
       mock.expectRequest('captureMonitoring', function(data) {
         setTimeout(function() {
-          var endPromise = about_tracing.endMonitoring(mock);
+          var endPromise = tv.e.about_tracing.endMonitoring(mock);
           endPromise.then(
               function(data) {
                 mock.assertAllRequestsHandled();
@@ -101,7 +101,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       mock.expectRequest('endMonitoring', function(data) {
       });
 
-      about_tracing.beginMonitoring(mock);
+      tv.e.about_tracing.beginMonitoring(mock);
     });
   });
 });

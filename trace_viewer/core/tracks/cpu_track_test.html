@@ -13,13 +13,13 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Cpu = tracing.trace_model.Cpu;
-  var CpuTrack = tracing.tracks.CpuTrack;
-  var Slice = tracing.trace_model.Slice;
-  var StackFrame = tracing.trace_model.StackFrame;
-  var Sample = tracing.trace_model.Sample;
-  var Thread = tracing.trace_model.Thread;
-  var Viewport = tracing.TimelineViewport;
+  var Cpu = tv.core.trace_model.Cpu;
+  var CpuTrack = tv.core.tracks.CpuTrack;
+  var Slice = tv.core.trace_model.Slice;
+  var StackFrame = tv.core.trace_model.StackFrame;
+  var Sample = tv.core.trace_model.Sample;
+  var Thread = tv.core.trace_model.Thread;
+  var Viewport = tv.core.TimelineViewport;
 
   test('basicCpu', function() {
     var cpu = new Cpu({}, 7);
@@ -32,21 +32,21 @@ tv.unittest.testSuite(function() {
     var testEl = document.createElement('div');
     var viewport = new Viewport(testEl);
 
-    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tv.core.tracks.DrawingContainer(viewport);
 
     var track = new CpuTrack(viewport);
     drawingContainer.appendChild(track);
 
     track.heading = 'CPU ' + cpu.cpuNumber;
     track.cpu = cpu;
-    var dt = new tracing.TimelineDisplayTransform();
+    var dt = new tv.core.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 11.1, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
 
 
   test('withSamples', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var thread;
     var cpu;
     model.importTraces([], false, false, function() {
@@ -80,14 +80,14 @@ tv.unittest.testSuite(function() {
     var testEl = document.createElement('div');
     var viewport = new Viewport(testEl);
 
-    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tv.core.tracks.DrawingContainer(viewport);
 
     var track = new CpuTrack(viewport);
     drawingContainer.appendChild(track);
 
     track.heading = 'CPU ' + cpu.cpuNumber;
     track.cpu = cpu;
-    var dt = new tracing.TimelineDisplayTransform();
+    var dt = new tv.core.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 11.1, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });

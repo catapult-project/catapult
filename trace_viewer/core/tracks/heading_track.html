@@ -15,7 +15,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.tracks', function() {
+tv.exportTo('tv.core.tracks', function() {
   var DOWN_ARROW = String.fromCharCode(0x25BE);
   var RIGHT_ARROW = String.fromCharCode(0x25B8);
 
@@ -25,17 +25,17 @@ tv.exportTo('tracing.tracks', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var HeadingTrack = tv.ui.define('heading-track', tracing.tracks.Track);
+  var HeadingTrack = tv.ui.define('heading-track', tv.core.tracks.Track);
 
   HeadingTrack.prototype = {
-    __proto__: tracing.tracks.Track.prototype,
+    __proto__: tv.core.tracks.Track.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.Track.prototype.decorate.call(this, viewport);
+      tv.core.tracks.Track.prototype.decorate.call(this, viewport);
       this.classList.add('heading-track');
 
       this.headingDiv_ = document.createElement('heading');
-      this.headingDiv_.style.width = tracing.constants.HEADING_WIDTH + 'px';
+      this.headingDiv_.style.width = tv.core.constants.HEADING_WIDTH + 'px';
       this.headingDiv_.addEventListener(
           'click', this.onHeadingDivClicked_.bind(this));
       this.heading_ = '';
@@ -107,7 +107,7 @@ tv.exportTo('tracing.tracks', function() {
 
       if (this.selectionGenerator_) {
         this.headingLink_ = document.createElement('a');
-        tracing.analysis.AnalysisLink.decorate(this.headingLink_);
+        tv.core.analysis.AnalysisLink.decorate(this.headingLink_);
         this.headingLink_.selectionGenerator = this.selectionGenerator_;
         this.headingDiv_.appendChild(this.headingLink_);
         this.headingLink_.appendChild(document.createTextNode(this.heading_));

@@ -20,9 +20,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('cc', function() {
-  var constants = cc.constants;
-  var bytesToRoundedMegabytes = cc.bytesToRoundedMegabytes;
+tv.exportTo('tv.e.cc', function() {
+  var constants = tv.e.cc.constants;
+  var bytesToRoundedMegabytes = tv.e.cc.bytesToRoundedMegabytes;
   var RENDER_PASS_QUADS =
       Math.max(constants.ACTIVE_TREE, constants.PENDING_TREE) + 1;
 
@@ -206,7 +206,7 @@ tv.exportTo('cc', function() {
 
         if (id == selectedRenderPassId) {
           renderPass.selectionState =
-              tracing.trace_model.SelectionState.SELECTED;
+              tv.core.trace_model.SelectionState.SELECTED;
         }
       }, this);
     },
@@ -246,7 +246,7 @@ tv.exportTo('cc', function() {
           this.itemList_.appendChild(item);
 
           if (layer.layerId == selectedLayerId) {
-            layer.selectionState = tracing.trace_model.SelectionState.SELECTED;
+            layer.selectionState = tv.core.trace_model.SelectionState.SELECTED;
             item.selected = true;
           }
         }, this);
@@ -285,7 +285,7 @@ tv.exportTo('cc', function() {
       }
 
       if (selectedRenderPass) {
-        this.selection_ = new cc.RenderPassSelection(
+        this.selection_ = new tv.e.cc.RenderPassSelection(
             selectedRenderPass, selectedRenderPassId);
       } else {
         this.selection_ = undefined;
@@ -298,7 +298,7 @@ tv.exportTo('cc', function() {
         selectedLayer = this.itemList_.selectedElement.layer;
 
       if (selectedLayer)
-        this.selection_ = new cc.LayerSelection(selectedLayer);
+        this.selection_ = new tv.e.cc.LayerSelection(selectedLayer);
       else
         this.selection_ = undefined;
     },

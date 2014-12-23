@@ -13,7 +13,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.importer', function() {
+tv.exportTo('tv.e.importer', function() {
 
   function Trace2HTMLImporter(model, events) {
     this.importPriority = 0;
@@ -25,7 +25,7 @@ tv.exportTo('tracing.importer', function() {
     // Clear the array before pushing data to it.
     Trace2HTMLImporter.subtraces_ = [];
 
-    var r = new tracing.importer.SimpleLineReader(text);
+    var r = new tv.core.importer.SimpleLineReader(text);
 
     // Try to find viewer-data...
     while (true) {
@@ -65,7 +65,7 @@ tv.exportTo('tracing.importer', function() {
   };
 
   Trace2HTMLImporter.prototype = {
-    __proto__: tracing.importer.Importer.prototype,
+    __proto__: tv.core.importer.Importer.prototype,
 
     isTraceDataContainer: function() {
       return true;
@@ -80,7 +80,7 @@ tv.exportTo('tracing.importer', function() {
   };
 
 
-  tracing.importer.Importer.register(Trace2HTMLImporter);
+  tv.core.importer.Importer.register(Trace2HTMLImporter);
 
 
   return {

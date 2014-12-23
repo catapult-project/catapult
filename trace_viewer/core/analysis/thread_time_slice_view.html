@@ -49,21 +49,21 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.analysis', function() {
+tv.exportTo('tv.core.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
-  var tsRound = tracing.analysis.tsRound;
+  var tsRound = tv.core.analysis.tsRound;
 
   /**
    * @constructor
    */
   var ThreadTimeSliceView = tv.ui.define(
-      'thread-time-slice-view', tracing.analysis.SliceView);
+      'thread-time-slice-view', tv.core.analysis.SliceView);
 
   ThreadTimeSliceView.prototype = {
-    __proto__: tracing.analysis.SliceView.prototype,
+    __proto__: tv.core.analysis.SliceView.prototype,
 
     decorate: function() {
-      tracing.analysis.SliceView.prototype.decorate.call(this);
+      tv.core.analysis.SliceView.prototype.decorate.call(this);
       this.classList.add('thread-time-slice-view');
     },
 
@@ -92,11 +92,11 @@ tv.exportTo('tracing.analysis', function() {
       var runningInsteadEl = this.querySelector('#running-instead');
       if (timeSlice.cpuOnWhichThreadWasRunning) {
         runningInsteadEl.parentElement.removeChild(runningInsteadEl);
-        var cpuLink = new tracing.analysis.AnalysisLink();
+        var cpuLink = new tv.core.analysis.AnalysisLink();
         cpuLink.textContent =
             timeSlice.cpuOnWhichThreadWasRunning.userFriendlyName;
         cpuLink.selectionGenerator = function() {
-          var selection = new tracing.Selection();
+          var selection = new tv.core.Selection();
           selection.push(timeSlice.getAssociatedCpuSlice());
           return selection;
         }.bind(this);
@@ -106,13 +106,13 @@ tv.exportTo('tracing.analysis', function() {
 
         var cpuSliceThatTookCpu = timeSlice.getCpuSliceThatTookCpu();
         if (cpuSliceThatTookCpu) {
-          var cpuLink = new tracing.analysis.AnalysisLink();
+          var cpuLink = new tv.core.analysis.AnalysisLink();
           if (cpuSliceThatTookCpu.thread)
             cpuLink.textContent = cpuSliceThatTookCpu.thread.userFriendlyName;
           else
             cpuLink.textContent = cpuSliceThatTookCpu.title;
           cpuLink.selectionGenerator = function() {
-            var selection = new tracing.Selection();
+            var selection = new tv.core.Selection();
             selection.push(cpuSliceThatTookCpu);
             return selection;
           }.bind(this);
@@ -124,7 +124,7 @@ tv.exportTo('tracing.analysis', function() {
 
       var argsEl = this.querySelector('#args');
       if (tv.dictionaryKeys(timeSlice.args).length > 0) {
-        var argsView = new tracing.analysis.GenericObjectView();
+        var argsView = new tv.core.analysis.GenericObjectView();
         argsView.object = timeSlice.args;
         argsEl.appendChild(argsView);
       } else {
@@ -133,9 +133,9 @@ tv.exportTo('tracing.analysis', function() {
     }
   };
 
-  tracing.analysis.SliceView.register(
+  tv.core.analysis.SliceView.register(
       ThreadTimeSliceView,
-      {typeName: 'tracing.analysis.ThreadTimeSlice'});
+      {typeName: 'tv.core.analysis.ThreadTimeSlice'});
 
   return {
     ThreadTimeSliceView: ThreadTimeSliceView

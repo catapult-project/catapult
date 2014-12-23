@@ -15,9 +15,9 @@ found in the LICENSE file.
  * @fileoverview Parses trace_marker events that were inserted in the trace by
  * userland.
  */
-tv.exportTo('tracing.importer.linux_perf', function() {
+tv.exportTo('tv.e.importer.linux_perf', function() {
 
-  var Parser = tracing.importer.linux_perf.Parser;
+  var Parser = tv.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux trace mark events that were inserted in the trace by userland.
@@ -48,7 +48,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
               .getOrCreateCounter(null, name);
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {
-        ctr.addSeries(new tracing.trace_model.CounterSeries('value',
+        ctr.addSeries(new tv.core.trace_model.CounterSeries('value',
             tv.ui.getStringColorId(ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {

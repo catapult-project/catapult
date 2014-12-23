@@ -23,7 +23,7 @@ tv.unittest.testSuite(function() {
       ' kworker/u4:2-31908 (31908) [000] ..s3 14063.477246: ' +
         'softirq_exit: vec=9 [action=RCU]',
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();

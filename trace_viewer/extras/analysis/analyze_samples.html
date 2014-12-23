@@ -18,20 +18,20 @@ found in the LICENSE file.
   <script>
   'use strict';
   tv.onPolymerReady(function() {
-    tracing.registerAnalysisSubViewType(
+    tv.core.registerAnalysisSubViewType(
         0,
         function(selection) {
           if (selection.length != 1)
             return false;
-          return selection[0] instanceof tracing.trace_model.Sample;
+          return selection[0] instanceof tv.core.trace_model.Sample;
         },
         SingleSampleAnalysisSubView);
-    tracing.registerAnalysisSubViewType(
+    tv.core.registerAnalysisSubViewType(
         0,
         function(selection) {
           if (selection.length == 1)
             return false;
-          return selection[0] instanceof tracing.trace_model.Sample;
+          return selection[0] instanceof tv.core.trace_model.Sample;
         },
         MultipleSamplesAnalysisSubView);
   });
@@ -48,7 +48,7 @@ found in the LICENSE file.
       if (selection.length === 0)
         return;
 
-      var results = new tracing.analysis.AnalysisResults();
+      var results = new tv.core.analysis.AnalysisResults();
       this.appendChild(results);
 
       this.analyzeSingleSampleEvent_(
@@ -90,7 +90,7 @@ found in the LICENSE file.
       if (selection.length === 0)
         return;
 
-      var results = new tracing.analysis.AnalysisResults();
+      var results = new tv.core.analysis.AnalysisResults();
       this.appendChild(results);
 
       this.analyzeMultipleSampleEvents_(results, selection);
@@ -101,7 +101,7 @@ found in the LICENSE file.
     },
 
     analyzeMultipleSampleEvents_: function(results, slices) {
-      var panel = new tracing.SamplingSummaryPanel();
+      var panel = new tv.e.analysis.SamplingSummaryPanel();
       results.appendChild(panel);
       panel.selection = slices;
     }

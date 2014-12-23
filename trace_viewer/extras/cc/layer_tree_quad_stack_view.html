@@ -70,7 +70,7 @@ layer-tree-quad-stack-view > #input-event {
  * @fileoverview Graphical view of  LayerTreeImpl, with controls for
  * type of layer content shown and info bar for content-loading warnings.
  */
-tv.exportTo('cc', function() {
+tv.exportTo('tv.e.cc', function() {
 
   var THIS_DOC = document.currentScript.ownerDocument;
   var TILE_HEATMAP_TYPE = {};
@@ -84,7 +84,7 @@ tv.exportTo('cc', function() {
             {label: 'Coverage Rects', value: 'coverage'}];
   }
 
-  var bytesToRoundedMegabytes = cc.bytesToRoundedMegabytes;
+  var bytesToRoundedMegabytes = tv.e.cc.bytesToRoundedMegabytes;
 
 
   /**
@@ -109,7 +109,7 @@ tv.exportTo('cc', function() {
 
       var m = tv.ui.MOUSE_SELECTOR_MODE;
       var mms = this.quadStackView_.mouseModeSelector;
-      mms.settingsKey = 'cc.layerTreeQuadStackView.mouseModeSelector';
+      mms.settingsKey = 'tv.e.cc.layerTreeQuadStackView.mouseModeSelector';
       mms.setKeyCodeForMode(m.SELECTION, 'Z'.charCodeAt(0));
       mms.setKeyCodeForMode(m.PANSCAN, 'X'.charCodeAt(0));
       mms.setKeyCodeForMode(m.ZOOM, 'C'.charCodeAt(0));
@@ -478,7 +478,7 @@ tv.exportTo('cc', function() {
         // event so that we show some global state.
         var thread = lthi.snapshottedOnThread;
         var didManageTilesSlices = thread.sliceGroup.slices.filter(function(s) {
-          if (s.category !== 'cc')
+          if (s.category !== 'tv.e.cc')
             return false;
           if (s.title !== 'DidManage')
             return false;
@@ -567,7 +567,7 @@ tv.exportTo('cc', function() {
             if (!pictureAsImageData) {
               hasPendingRasterizeImage = true;
               this.pictureAsImageData_[picture.guid] =
-                  cc.PictureAsImageData.Pending(this);
+                  tv.e.cc.PictureAsImageData.Pending(this);
               picture.rasterize(
                   {stopIndex: undefined},
                   function(pictureImageData) {
@@ -692,7 +692,7 @@ tv.exportTo('cc', function() {
       abq.borderColor = 'rgba(205,255,0,0.75)';
       abq.borderWidth = 3.0;
       abq.stackingGroupId = layerQuad.stackingGroupId;
-      abq.selectionToSetIfClicked = new cc.AnimationRectSelection(
+      abq.selectionToSetIfClicked = new tv.e.cc.AnimationRectSelection(
           layer, rect);
       quads.push(abq);
     },
@@ -711,7 +711,7 @@ tv.exportTo('cc', function() {
             iq.backgroundColor = 'rgba(0, 255, 128, 0.1)';
         iq.borderColor = 'rgba(0, 255, 0, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
-        iq.selectionToSetIfClicked = new cc.LayerRectSelection(
+        iq.selectionToSetIfClicked = new tv.e.cc.LayerRectSelection(
             layer, 'Invalidation rect (' + rect.reason + ')', rect, rect);
         quads.push(iq);
       }
@@ -726,7 +726,7 @@ tv.exportTo('cc', function() {
           iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
           iq.borderColor = 'rgba(0, 255, 0, 1)';
           iq.stackingGroupId = layerQuad.stackingGroupId;
-          iq.selectionToSetIfClicked = new cc.LayerRectSelection(
+          iq.selectionToSetIfClicked = new tv.e.cc.LayerRectSelection(
               layer, 'Invalidation rect', rect, rect);
           quads.push(iq);
         }
@@ -742,7 +742,7 @@ tv.exportTo('cc', function() {
         iq.backgroundColor = 'rgba(240, 230, 140, 0.3)';
         iq.borderColor = 'rgba(240, 230, 140, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
-        iq.selectionToSetIfClicked = new cc.LayerRectSelection(
+        iq.selectionToSetIfClicked = new tv.e.cc.LayerRectSelection(
             layer, 'Unrecorded area', rect, rect);
         quads.push(iq);
       }
@@ -764,7 +764,7 @@ tv.exportTo('cc', function() {
           iq.borderColor = borderColor.toString();
           iq.borderWidth = 4.0;
           iq.stackingGroupId = stackingGroupId;
-          iq.selectionToSetIfClicked = new cc.LayerRectSelection(
+          iq.selectionToSetIfClicked = new tv.e.cc.LayerRectSelection(
               layer, label, rect, rect);
           quads.push(iq);
         }
@@ -808,21 +808,21 @@ tv.exportTo('cc', function() {
 
         quad.backgroundColor = 'rgba(0, 0, 0, 0)';
         quad.stackingGroupId = layerQuad.stackingGroupId;
-        var type = cc.tileTypes.missing;
+        var type = tv.e.cc.tileTypes.missing;
         if (tile) {
           type = tile.getTypeForLayer(layer);
           quad.backgroundColor = heatmapResult[heatIndex].color;
           ++heatIndex;
         }
 
-        quad.borderColor = cc.tileBorder[type].color;
-        quad.borderWidth = cc.tileBorder[type].width;
+        quad.borderColor = tv.e.cc.tileBorder[type].color;
+        quad.borderWidth = tv.e.cc.tileBorder[type].width;
         var label;
         if (tile)
           label = 'coverageRect';
         else
           label = 'checkerboard coverageRect';
-        quad.selectionToSetIfClicked = new cc.LayerRectSelection(
+        quad.selectionToSetIfClicked = new tv.e.cc.LayerRectSelection(
             layer, label, rect, layer.tileCoverageRects[ct]);
 
         quads.push(quad);
@@ -848,7 +848,7 @@ tv.exportTo('cc', function() {
         quad.borderWidth = 2;
         var label;
         label = 'Layout rect';
-        quad.selectionToSetIfClicked = new cc.LayerRectSelection(
+        quad.selectionToSetIfClicked = new tv.e.cc.LayerRectSelection(
             layer, label, rect);
 
         quads.push(quad);
@@ -949,8 +949,8 @@ tv.exportTo('cc', function() {
         quad.stackingGroupId = layerQuad.stackingGroupId;
 
         var type = tile.getTypeForLayer(layer);
-        quad.borderColor = cc.tileBorder[type].color;
-        quad.borderWidth = cc.tileBorder[type].width;
+        quad.borderColor = tv.e.cc.tileBorder[type].color;
+        quad.borderWidth = tv.e.cc.tileBorder[type].width;
 
         quad.backgroundColor = heatmapResult[i].color;
         var data = {
@@ -958,7 +958,7 @@ tv.exportTo('cc', function() {
         };
         if (heatmapType !== TILE_HEATMAP_TYPE.NONE)
           data[heatmapType] = heatmapResult[i].value;
-        quad.selectionToSetIfClicked = new cc.TileSelection(tile, data);
+        quad.selectionToSetIfClicked = new tv.e.cc.TileSelection(tile, data);
         quads.push(quad);
       }
     },
@@ -1041,7 +1041,7 @@ tv.exportTo('cc', function() {
           layerQuad.borderColor = 'rgba(0,0,0,0.75)';
         }
         layerQuad.stackingGroupId = nextStackingGroupId++;
-        layerQuad.selectionToSetIfClicked = new cc.LayerSelection(layer);
+        layerQuad.selectionToSetIfClicked = new tv.e.cc.LayerSelection(layer);
         layerQuad.layer = layer;
         if (this.showOtherLayers && this.selectedLayer == layer)
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
@@ -1152,10 +1152,10 @@ tv.exportTo('cc', function() {
       var renderProcess = lthi.objectInstance.parent;
       var tasks = [];
       renderProcess.iterateAllEvents(function(event) {
-        if (!(event instanceof tracing.trace_model.Slice))
+        if (!(event instanceof tv.core.trace_model.Slice))
           return;
 
-        var tile = cc.getTileFromRasterTaskSlice(event);
+        var tile = tv.e.cc.getTileFromRasterTaskSlice(event);
         if (tile === undefined)
           return false;
 
@@ -1178,8 +1178,8 @@ tv.exportTo('cc', function() {
 
     onWhatRasterizedLinkClicked_: function() {
       var tasks = this.getWhatRasterized_();
-      var event = new tracing.RequestSelectionChangeEvent();
-      event.selection = new tracing.Selection(tasks);
+      var event = new tv.core.RequestSelectionChangeEvent();
+      event.selection = new tv.core.Selection(tasks);
       this.dispatchEvent(event);
     }
   };

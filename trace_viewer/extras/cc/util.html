@@ -12,7 +12,7 @@ found in the LICENSE file.
 
 'use strict';
 
-tv.exportTo('cc', function() {
+tv.exportTo('tv.e.cc', function() {
   var convertedNameCache = {};
   function convertNameToJSConvention(name) {
     if (name in convertedNameCache)
@@ -98,8 +98,8 @@ tv.exportTo('cc', function() {
     }
 
     if (hasRecursed &&
-        (object instanceof tracing.trace_model.ObjectSnapshot ||
-         object instanceof tracing.trace_model.ObjectInstance))
+        (object instanceof tv.core.trace_model.ObjectSnapshot ||
+         object instanceof tv.core.trace_model.ObjectInstance))
       return;
 
     for (var key in object) {

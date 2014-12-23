@@ -23,7 +23,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     categories.push('first,second,third');
     categories.push('cc,disabled-by-default-cc.debug');
 
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = categories;
     dlg.settings_key = 'key';
     dlg.currentlyChosenPreset = [];
@@ -38,7 +38,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('recordSelectionDialog_splitCategories', function() {
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories =
         ['cc,disabled-by-default-one,cc.debug', 'two,three', 'three'];
     dlg.settings_key = 'key';
@@ -59,7 +59,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('recordSelectionDialog_UpdateForm_NoSettings', function() {
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one', 'two', 'three'];
     dlg.settings_key = 'key';
     dlg.currentlyChosenPreset = [];
@@ -90,7 +90,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     tv.Settings.set('two', true, 'categories');
     tv.Settings.set('three', false, 'categories');
 
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     dlg.currentlyChosenPreset = [];
@@ -118,7 +118,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('recordSelectionDialog_UpdateForm_DisabledByDefault', function() {
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-bar', 'baz'];
     dlg.settings_key = 'categories';
     dlg.currentlyChosenPreset = [];
@@ -139,7 +139,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     tv.Settings.set('two', true, 'categories');
     tv.Settings.set('three', false, 'categories');
 
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     dlg.currentlyChosenPreset = [];
@@ -150,7 +150,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     tv.Settings.set('two', true, 'categories');
     tv.Settings.set('three', false, 'categories');
 
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     dlg.currentlyChosenPreset = [];
@@ -187,7 +187,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     tv.Settings.set('two', true, 'categories');
     tv.Settings.set('three', false, 'categories');
 
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     // Note: currentlyChosenPreset is not set here, so the default is used.
@@ -227,7 +227,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     tv.Settings.set('recordSelectionDialog.useSystemTracing', true);
     tv.Settings.set('recordSelectionDialog.useSampling', false);
 
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     // Note: currentlyChosenPreset is not set here, so the default is used.
@@ -267,10 +267,10 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     tv.Settings.set('recordSelectionDialog.useContinuousTracing', true);
     tv.Settings.set('recordSelectionDialog.useSystemTracing', true);
     tv.Settings.set('recordSelectionDialog.useSampling', true);
-    tv.Settings.set('about_tracing.record_selection_dialog_preset',
+    tv.Settings.set('tv.e.about_tracing.record_selection_dialog_preset',
         ['blink', 'cc', 'renderer', 'cc.debug']);
 
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
     dlg.settings_key = 'categories';
     dlg.updateForm_();
@@ -305,7 +305,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     tv.Settings.set('cc', false, 'categories');
     tv.Settings.set('disabled-by-default-cc.debug', true, 'categories');
 
-    var dlg = new about_tracing.RecordSelectionDialog();
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.settings_key = 'categories';
     dlg.categories = [];
     dlg.currentlyChosenPreset = [];

@@ -197,9 +197,9 @@ found in the LICENSE file.
 
 /**
  * @fileoverview View visualizes TRACE_EVENT events using the
- * tracing.Timeline component and adds in selection summary and control buttons.
+ * tv.core.Timeline component and adds in selection summary and control buttons.
  */
-tv.exportTo('tracing', function() {
+tv.exportTo('tv.core', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -224,15 +224,15 @@ tv.exportTo('tracing', function() {
       this.trackViewContainer_ = this.querySelector('track-view-container');
 
       tv.ui.decorate(this.sidePanelContainer_,
-                       tracing.SidePanelContainer);
+                       tv.core.SidePanelContainer);
 
       this.findCtl_ = new TracingFindControl();
-      this.findCtl_.controller = new tracing.FindController();
+      this.findCtl_.controller = new tv.core.FindController();
 
       this.showFlowEvents_ = false;
       this.rightControls.appendChild(tv.ui.createCheckBox(
           this, 'showFlowEvents',
-          'tracing.TimelineView.showFlowEvents', false,
+          'tv.core.TimelineView.showFlowEvents', false,
           'Flow events'));
 
       this.rightControls.appendChild(this.createMetadataButton_());
@@ -390,7 +390,7 @@ tv.exportTo('tracing', function() {
 
       // Create new trackView if needed.
       if (modelValid && !this.trackView_) {
-        this.trackView_ = new tracing.TimelineTrackView();
+        this.trackView_ = new tv.core.TimelineTrackView();
         this.trackView_.focusElement =
             this.focusElement_ ? this.focusElement_ : this.parentElement;
         this.trackViewContainer_.appendChild(this.trackView_);
@@ -489,7 +489,7 @@ tv.exportTo('tracing', function() {
 
       var selection = this.trackView_ ?
           this.trackView_.selectionOfInterest :
-          new tracing.Selection();
+          new tv.core.Selection();
       this.analysisEl_.selection = selection;
       this.trackViewContainer_.scrollTop = oldScrollTop;
       this.sidePanelContainer_.selection = selection;

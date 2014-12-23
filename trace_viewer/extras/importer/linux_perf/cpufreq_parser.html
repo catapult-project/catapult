@@ -13,9 +13,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses cpufreq events in the Linux event trace format.
  */
-tv.exportTo('tracing.importer.linux_perf', function() {
+tv.exportTo('tv.e.importer.linux_perf', function() {
 
-  var Parser = tracing.importer.linux_perf.Parser;
+  var Parser = tv.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux cpufreq trace events.
@@ -61,7 +61,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
       // TODO(sleffler) should be per-cpu
       var kthread = this.importer.getOrCreatePseudoThread('cpufreq');
       kthread.openSlice = eventName;
-      var slice = new tracing.trace_model.Slice('', kthread.openSlice,
+      var slice = new tv.core.trace_model.Slice('', kthread.openSlice,
           tv.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
@@ -70,7 +70,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
     cpufreqBoostSlice: function(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('cpufreq_boost');
       kthread.openSlice = eventName;
-      var slice = new tracing.trace_model.Slice('', kthread.openSlice,
+      var slice = new tv.core.trace_model.Slice('', kthread.openSlice,
           tv.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);

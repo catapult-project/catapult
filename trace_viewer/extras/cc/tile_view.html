@@ -14,21 +14,21 @@ found in the LICENSE file.
 
 'use strict';
 
-tv.exportTo('cc', function() {
+tv.exportTo('tv.e.cc', function() {
   /*
    * Displays a tile in a human readable form.
    * @constructor
    */
   var TileSnapshotView = tv.ui.define(
       'tile-snapshot-view',
-      tracing.analysis.ObjectSnapshotView);
+      tv.core.analysis.ObjectSnapshotView);
 
   TileSnapshotView.prototype = {
-    __proto__: tracing.analysis.ObjectSnapshotView.prototype,
+    __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('tile-snapshot-view');
-      this.layerTreeView_ = new cc.LayerTreeHostImplSnapshotView();
+      this.layerTreeView_ = new tv.e.cc.LayerTreeHostImplSnapshotView();
       this.appendChild(this.layerTreeView_);
     },
 
@@ -39,11 +39,11 @@ tv.exportTo('cc', function() {
         return;
 
       this.layerTreeView_.objectSnapshot = layerTreeHostImpl;
-      this.layerTreeView_.selection = new cc.TileSelection(tile);
+      this.layerTreeView_.selection = new tv.e.cc.TileSelection(tile);
     }
   };
 
-  tracing.analysis.ObjectSnapshotView.register(
+  tv.core.analysis.ObjectSnapshotView.register(
       TileSnapshotView,
       {
         typeName: 'cc::Tile',

@@ -13,8 +13,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.tracks', function() {
-  var TraceModelSettings = tracing.TraceModelSettings;
+tv.exportTo('tv.core.tracks', function() {
+  var TraceModelSettings = tv.core.TraceModelSettings;
 
   /**
    * A track that displays a group of objects in multiple rows.
@@ -22,14 +22,14 @@ tv.exportTo('tracing.tracks', function() {
    * @extends {ContainerTrack}
    */
   var MultiRowTrack = tv.ui.define(
-      'multi-row-track', tracing.tracks.ContainerTrack);
+      'multi-row-track', tv.core.tracks.ContainerTrack);
 
   MultiRowTrack.prototype = {
 
-    __proto__: tracing.tracks.ContainerTrack.prototype,
+    __proto__: tv.core.tracks.ContainerTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      tv.core.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.tooltip_ = '';
       this.heading_ = '';
 
@@ -138,7 +138,7 @@ tv.exportTo('tracing.tracks', function() {
     },
 
     updateContents_: function() {
-      tracing.tracks.ContainerTrack.prototype.updateContents_.call(this);
+      tv.core.tracks.ContainerTrack.prototype.updateContents_.call(this);
       if (!this.itemsToGroup_) {
         this.updateHeadingAndTooltip_();
         this.currentSubRows_ = [];

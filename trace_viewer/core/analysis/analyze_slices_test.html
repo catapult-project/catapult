@@ -15,13 +15,13 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Model = tracing.TraceModel;
-  var Thread = tracing.trace_model.Thread;
-  var Selection = tracing.Selection;
+  var Model = tv.core.TraceModel;
+  var Thread = tv.core.trace_model.Thread;
+  var Selection = tv.core.Selection;
   var AnalysisView = TracingAnalysisView;
-  var StubAnalysisResults = tracing.analysis.StubAnalysisResults;
-  var newSliceNamed = tracing.test_utils.newSliceNamed;
-  var newSliceCategory = tracing.test_utils.newSliceCategory;
+  var StubAnalysisResults = tv.core.analysis.StubAnalysisResults;
+  var newSliceNamed = tv.core.test_utils.newSliceNamed;
+  var newSliceCategory = tv.core.test_utils.newSliceCategory;
 
   var createSelectionWithSingleSlice = function(withCategory) {
     var model = new Model();

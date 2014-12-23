@@ -15,11 +15,11 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('nameConvert', function() {
-    assertEquals('_foo', cc.convertNameToJSConvention('_foo'));
-    assertEquals('foo_', cc.convertNameToJSConvention('foo_'));
-    assertEquals('foo', cc.convertNameToJSConvention('foo'));
-    assertEquals('fooBar', cc.convertNameToJSConvention('foo_bar'));
-    assertEquals('fooBarBaz', cc.convertNameToJSConvention('foo_bar_baz'));
+    assertEquals('_foo', tv.e.cc.convertNameToJSConvention('_foo'));
+    assertEquals('foo_', tv.e.cc.convertNameToJSConvention('foo_'));
+    assertEquals('foo', tv.e.cc.convertNameToJSConvention('foo'));
+    assertEquals('fooBar', tv.e.cc.convertNameToJSConvention('foo_bar'));
+    assertEquals('fooBarBaz', tv.e.cc.convertNameToJSConvention('foo_bar_baz'));
   });
 
   test('objectConvertNested', function() {
@@ -39,7 +39,7 @@ tv.unittest.testSuite(function() {
         }
       }
     };
-    cc.preInitializeObject(object);
+    tv.e.cc.preInitializeObject(object);
     assertObjectEquals(expected, object);
   });
 
@@ -58,7 +58,7 @@ tv.unittest.testSuite(function() {
         {fooBar: 8}
       ]
     };
-    cc.preInitializeObject(object);
+    tv.e.cc.preInitializeObject(object);
     assertObjectEquals(expected, object);
   });
 
@@ -68,7 +68,7 @@ tv.unittest.testSuite(function() {
         some_quad: [1, 2, 3, 4, 5, 6, 7, 8]
       }
     };
-    cc.preInitializeObject(object);
+    tv.e.cc.preInitializeObject(object);
     assertTrue(object.args.someQuad instanceof tv.Quad);
   });
 
@@ -81,7 +81,7 @@ tv.unittest.testSuite(function() {
         non_nested_quad: [1, 2, 3, 4, 5, 6, 7, 8]
       }
     };
-    cc.preInitializeObject(object);
+    tv.e.cc.preInitializeObject(object);
     assertTrue(object.args.nestedField.aQuad instanceof tv.Quad);
     assertTrue(object.args.nonNestedQuad instanceof tv.Quad);
   });
@@ -92,7 +92,7 @@ tv.unittest.testSuite(function() {
         some_rect: [1, 2, 3, 4]
       }
     };
-    cc.preInitializeObject(object);
+    tv.e.cc.preInitializeObject(object);
     assertTrue(object.args.someRect instanceof tv.Rect);
   });
 
@@ -105,7 +105,7 @@ tv.unittest.testSuite(function() {
         non_nested_rect: [1, 2, 3, 4]
       }
     };
-    cc.preInitializeObject(object);
+    tv.e.cc.preInitializeObject(object);
     assertTrue(object.args.nestedField.aRect instanceof tv.Rect);
     assertTrue(object.args.nonNestedRect instanceof tv.Rect);
   });

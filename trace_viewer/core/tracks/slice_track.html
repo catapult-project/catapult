@@ -10,21 +10,21 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.tracks', function() {
+tv.exportTo('tv.core.tracks', function() {
   /**
    * A track that displays an array of Slice objects.
    * @constructor
    * @extends {HeadingTrack}
    */
   var SliceTrack = tv.ui.define(
-      'slice-track', tracing.tracks.RectTrack);
+      'slice-track', tv.core.tracks.RectTrack);
 
   SliceTrack.prototype = {
 
-    __proto__: tracing.tracks.RectTrack.prototype,
+    __proto__: tv.core.tracks.RectTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.RectTrack.prototype.decorate.call(this, viewport);
+      tv.core.tracks.RectTrack.prototype.decorate.call(this, viewport);
     },
 
     get slices() {

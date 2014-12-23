@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('about_tracing', function() {
+tv.exportTo('tv.e.about_tracing', function() {
   function beginMonitoring(tracingControllerClient) {
     var finalPromiseResolver;
     var finalPromise = new Promise(function(resolve, reject) {
@@ -103,9 +103,9 @@ tv.exportTo('about_tracing', function() {
     // Step 2: Show tracing dialog.
     var selectionDlg;
     function showTracingDialog(categories) {
-      selectionDlg = new about_tracing.RecordSelectionDialog();
+      selectionDlg = new tv.e.about_tracing.RecordSelectionDialog();
       selectionDlg.categories = categories;
-      selectionDlg.settings_key = 'about_tracing.record_selection_dialog';
+      selectionDlg.settings_key = 'tv.e.about_tracing.record_selection_dialog';
       selectionDlg.addEventListener('recordclick', startTracing);
       selectionDlg.addEventListener('closeclick', cancelRecording);
       selectionDlg.visible = true;

@@ -13,20 +13,20 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() { // @suppress longLineCheck
-  var AsyncSliceGroup = tracing.trace_model.AsyncSliceGroup;
-  var AsyncSliceGroupTrack = tracing.tracks.AsyncSliceGroupTrack;
-  var Process = tracing.trace_model.Process;
-  var Thread = tracing.trace_model.Thread;
-  var newAsyncSlice = tracing.test_utils.newAsyncSlice;
-  var newAsyncSliceNamed = tracing.test_utils.newAsyncSliceNamed;
+  var AsyncSliceGroup = tv.core.trace_model.AsyncSliceGroup;
+  var AsyncSliceGroupTrack = tv.core.tracks.AsyncSliceGroupTrack;
+  var Process = tv.core.trace_model.Process;
+  var Thread = tv.core.trace_model.Thread;
+  var newAsyncSlice = tv.core.test_utils.newAsyncSlice;
+  var newAsyncSliceNamed = tv.core.test_utils.newAsyncSliceNamed;
 
   test('filterSubRows', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
     g.push(newAsyncSlice(0, 1, t1, t1));
-    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tv.core.TimelineViewport());
     track.group = g;
 
     assertEquals(1, track.children.length);
@@ -34,7 +34,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('rebuildSubRows_twoNonOverlappingSlices', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -43,7 +43,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     s1.subSlices = [subs1];
     g.push(s1);
     g.push(newAsyncSlice(1, 1, t1, t1));
-    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tv.core.TimelineViewport());
     track.group = g;
     var subRows = track.subRows;
     assertEquals(2, subRows.length);
@@ -54,7 +54,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('rebuildSubRows_twoOverlappingSlices', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -70,7 +70,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
     g.updateBounds();
 
-    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tv.core.TimelineViewport());
     track.group = g;
 
     var subRows = track.subRows;
@@ -85,7 +85,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('rebuildSubRows_threePartlyOverlappingSlices', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -93,7 +93,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     g.push(newAsyncSlice(0, 1.5, t1, t1));
     g.push(newAsyncSlice(1, 1.5, t1, t1));
     g.updateBounds();
-    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tv.core.TimelineViewport());
     track.group = g;
     var subRows = track.subRows;
 
@@ -109,7 +109,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('rebuildSubRows_threeOverlappingSlices', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -119,7 +119,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     g.push(newAsyncSlice(2, 1, t1, t1));
     g.updateBounds();
 
-    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tv.core.TimelineViewport());
     track.group = g;
 
     var subRows = track.subRows;
@@ -133,7 +133,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
   // Tests that no slices and their sub slices overlap.
   test('rebuildSubRows_NonOverlappingSubSlices', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -150,7 +150,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     g.push(slice3);
     g.updateBounds();
 
-    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tv.core.TimelineViewport());
     track.group = g;
 
     var subRows = track.subRows;
@@ -166,7 +166,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('rebuildSubRows_NonOverlappingSubSlicesThreeNestedLevels', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -185,7 +185,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     g.push(slice3);
     g.updateBounds();
 
-    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tv.core.TimelineViewport());
     track.group = g;
 
     var subRows = track.subRows;

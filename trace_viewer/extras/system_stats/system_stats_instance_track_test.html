@@ -16,11 +16,11 @@
 'use strict';
 
 tv.unittest.testSuite(function() { // @suppress longLineCheck
-  var SystemStatsInstanceTrack = system_stats.SystemStatsInstanceTrack;
-  var Viewport = tracing.TimelineViewport;
+  var SystemStatsInstanceTrack = tv.e.system_stats.SystemStatsInstanceTrack;
+  var Viewport = tv.core.TimelineViewport;
 
   var createObjects = function() {
-    var objectInstance = new tracing.trace_model.ObjectInstance({});
+    var objectInstance = new tv.core.trace_model.ObjectInstance({});
     var snapshots = [];
 
     var stats1 = new Object();
@@ -34,10 +34,10 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     stats2['meminfo'] = new Object();
     stats2.meminfo['free'] = 20000;
 
-    snapshots.push(new system_stats.SystemStatsSnapshot(objectInstance,
-                                                        10, stats1));
-    snapshots.push(new system_stats.SystemStatsSnapshot(objectInstance,
-                                                        20, stats2));
+    snapshots.push(new tv.e.system_stats.SystemStatsSnapshot(objectInstance,
+                                                             10, stats1));
+    snapshots.push(new tv.e.system_stats.SystemStatsSnapshot(objectInstance,
+                                                             20, stats2));
 
     objectInstance.snapshots = snapshots;
 
@@ -52,7 +52,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     this.addHTMLOutput(div);
 
     var viewport = new Viewport(div);
-    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tv.core.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = SystemStatsInstanceTrack(viewport);
@@ -61,7 +61,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     drawingContainer.appendChild(track);
 
     track.heading = 'testBasic';
-    var dt = new tracing.TimelineDisplayTransform();
+    var dt = new tv.core.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });

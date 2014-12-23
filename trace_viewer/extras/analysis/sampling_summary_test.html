@@ -13,14 +13,14 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var StackFrame = tracing.trace_model.StackFrame;
-  var Sample = tracing.trace_model.Sample;
+  var StackFrame = tv.core.trace_model.StackFrame;
+  var Sample = tv.core.trace_model.Sample;
 
-  var newSliceNamed = tracing.test_utils.newSliceNamed;
+  var newSliceNamed = tv.core.test_utils.newSliceNamed;
 
   function createSelection() {
-    var selection = new tracing.Selection();
-    var model = new tracing.TraceModel();
+    var selection = new tv.core.Selection();
+    var model = new tv.core.TraceModel();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
 
@@ -102,13 +102,13 @@ tv.unittest.testSuite(function() {
       ]
     };
 
-    var sunburstData = tracing.createSunburstData(s, 'cycles');
+    var sunburstData = tv.e.analysis.createSunburstData(s, 'cycles');
     assertEquals(JSON.stringify(expect), JSON.stringify(sunburstData));
   });
 
   test('processOnlySamples', function() {
-    var selection = new tracing.Selection();
-    var model = new tracing.TraceModel();
+    var selection = new tv.core.Selection();
+    var model = new tv.core.TraceModel();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
 
@@ -159,7 +159,7 @@ tv.unittest.testSuite(function() {
     selection.push(newSliceNamed('a', 1, 2));
     selection.push(newSliceNamed('f', 9, 7));
 
-    var sunburstData = tracing.createSunburstData(selection, 'page_misses');
+    var sunburstData = tv.e.analysis.createSunburstData(selection, 'page_misses');
     assertEquals(JSON.stringify(expect), JSON.stringify(sunburstData));
   });
 
@@ -197,14 +197,14 @@ tv.unittest.testSuite(function() {
       ]
     };
 
-    var sunburstData = tracing.createSunburstData(s, 'page_misses');
+    var sunburstData = tv.e.analysis.createSunburstData(s, 'page_misses');
     assertEquals(JSON.stringify(expect), JSON.stringify(sunburstData));
   });
 
   test('instantiate', function() {
     var s = createSelection();
 
-    var panel = new tracing.SamplingSummaryPanel();
+    var panel = new tv.e.analysis.SamplingSummaryPanel();
     this.addHTMLOutput(panel);
     panel.style.border = '1px solid black';
     panel.selection = s;

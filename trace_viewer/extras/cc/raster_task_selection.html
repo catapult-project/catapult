@@ -12,25 +12,25 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('cc', function() {
+tv.exportTo('tv.e.cc', function() {
   /**
    * @constructor
    */
   function RasterTaskSelection(selection) {
-    cc.Selection.call(this);
+    tv.e.cc.Selection.call(this);
     var whySupported = RasterTaskSelection.whySuported(selection);
     if (!whySupported.ok)
       throw new Error('Fail: ' + whySupported.why);
     this.slices_ = tv.asArray(selection);
     this.tiles_ = this.slices_.map(function(slice) {
-      var tile = cc.getTileFromRasterTaskSlice(slice);
+      var tile = tv.e.cc.getTileFromRasterTaskSlice(slice);
       if (tile === undefined)
         throw new Error('This should never happen due to .supports check.');
       return tile;
     });
   }
   RasterTaskSelection.whySuported = function(selection) {
-    if (!(selection instanceof tracing.Selection))
+    if (!(selection instanceof tv.core.Selection))
       return {ok: false, why: 'Must be selection'};
 
     if (selection.length === 0)
@@ -39,10 +39,10 @@ tv.exportTo('cc', function() {
     var tile0;
     for (var i = 0; i < selection.length; i++) {
       var event = selection[i];
-      if (!(event instanceof tracing.trace_model.Slice))
+      if (!(event instanceof tv.core.trace_model.Slice))
         return {ok: false, why: 'Not a slice'};
 
-      var tile = cc.getTileFromRasterTaskSlice(selection[i]);
+      var tile = tv.e.cc.getTileFromRasterTaskSlice(selection[i]);
       if (tile === undefined)
         return {ok: false, why: 'No tile found'};
 
@@ -65,7 +65,7 @@ tv.exportTo('cc', function() {
   };
 
   RasterTaskSelection.prototype = {
-    __proto__: cc.Selection.prototype,
+    __proto__: tv.e.cc.Selection.prototype,
 
     get specicifity() {
       return 3;
@@ -96,7 +96,7 @@ tv.exportTo('cc', function() {
     },
 
     createAnalysis: function() {
-      var sel = new tracing.Selection();
+      var sel = new tv.core.Selection();
       this.slices_.forEach(function(slice) {
         sel.push(slice);
       });

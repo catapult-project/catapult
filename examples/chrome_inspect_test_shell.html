@@ -55,8 +55,8 @@ found in the LICENSE file.
       return;
     }
 
-    var tracingControllerClient = new about_tracing.InspectorTracingControllerClient();
-    profilingViewEl = new about_tracing.ProfilingView(tracingControllerClient);
+    var tracingControllerClient = new tv.e.about_tracing.InspectorTracingControllerClient();
+    profilingViewEl = new tv.e.about_tracing.ProfilingView(tracingControllerClient);
     document.body.appendChild(profilingViewEl);
   }
   window.addEventListener('load', onLoad);

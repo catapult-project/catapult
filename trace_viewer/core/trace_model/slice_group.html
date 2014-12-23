@@ -17,8 +17,8 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the SliceGroup class.
  */
-tv.exportTo('tracing.trace_model', function() {
-  var Slice = tracing.trace_model.Slice;
+tv.exportTo('tv.core.trace_model', function() {
+  var Slice = tv.core.trace_model.Slice;
 
   /**
    * A group of Slices, plus code to create them from B/E events, as
@@ -97,7 +97,7 @@ tv.exportTo('tracing.trace_model', function() {
 
     /**
      * Push an instant event into the slice list.
-     * @param {tracing.trace_model.InstantEvent} instantEvent The instantEvent.
+     * @param {tv.core.trace_model.InstantEvent} instantEvent The instantEvent.
      */
     pushInstantEvent: function(instantEvent) {
       this.slices.push(instantEvent);

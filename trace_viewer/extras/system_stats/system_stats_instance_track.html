@@ -15,8 +15,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('system_stats', function() {
-  var EventPresenter = tracing.EventPresenter;
+tv.exportTo('tv.e.system_stats', function() {
+  var EventPresenter = tv.core.EventPresenter;
 
   var palette = tv.ui.getColorPalette();
   var highlightIdBoost = tv.ui.getColorPaletteHighlightIdBoost();
@@ -50,14 +50,14 @@ tv.exportTo('system_stats', function() {
    */
 
   var SystemStatsInstanceTrack = tv.ui.define(
-      'system-stats-instance-track', tracing.tracks.StackedBarsTrack);
+      'system-stats-instance-track', tv.core.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {
 
-    __proto__: tracing.tracks.StackedBarsTrack.prototype,
+    __proto__: tv.core.tracks.StackedBarsTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
+      tv.core.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
       this.classList.add('system-stats-instance-track');
       this.objectInstance_ = null;
     },
@@ -192,7 +192,7 @@ tv.exportTo('system_stats', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tracing.tracks.DrawType.SLICE:
+        case tv.core.tracks.DrawType.SLICE:
           this.drawStatBars_(viewLWorld, viewRWorld);
           break;
       }
@@ -345,7 +345,7 @@ tv.exportTo('system_stats', function() {
     }
   };
 
-  tracing.tracks.ObjectInstanceTrack.register(
+  tv.core.tracks.ObjectInstanceTrack.register(
       SystemStatsInstanceTrack,
       {typeName: 'base::TraceEventSystemStatsMonitor::SystemStats'});
 

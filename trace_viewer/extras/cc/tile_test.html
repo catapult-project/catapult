@@ -18,12 +18,12 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('basic', function() {
-    var m = new tracing.TraceModel(g_catLTHIEvents);
+    var m = new tv.core.TraceModel(g_catLTHIEvents);
     var p = tv.dictionaryValues(m.processes)[0];
     var instance = p.objects.getAllInstancesNamed('cc::Tile')[0];
     var snapshot = instance.snapshots[0];
 
-    assertTrue(snapshot instanceof cc.TileSnapshot);
+    assertTrue(snapshot instanceof tv.e.cc.TileSnapshot);
   });
 });
 </script>

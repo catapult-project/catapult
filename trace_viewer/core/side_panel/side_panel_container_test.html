@@ -75,21 +75,21 @@ tv.unittest.testSuite(function() {
 
   function testBasic(name, fn) {
     test(name, function() {
-      tracing.SidePanel.pushCleanStateBeforeTest();
+      tv.core.SidePanel.pushCleanStateBeforeTest();
 
-      tracing.SidePanel.register(
+      tv.core.SidePanel.register(
           Panel1,
           {
             textLabel: Panel1.textLabel,
             supportsModel: Panel1.supportsModel
           });
-      tracing.SidePanel.register(
+      tv.core.SidePanel.register(
           Panel2,
           {
             textLabel: Panel2.textLabel,
             supportsModel: Panel2.supportsModel
           });
-      tracing.SidePanel.register(
+      tv.core.SidePanel.register(
           Panel3,
           {
             textLabel: Panel3.textLabel,
@@ -99,17 +99,17 @@ tv.unittest.testSuite(function() {
       try {
         fn.call(this);
       } finally {
-        tracing.SidePanel.unregister(Panel1);
-        tracing.SidePanel.unregister(Panel2);
-        tracing.SidePanel.unregister(Panel3);
+        tv.core.SidePanel.unregister(Panel1);
+        tv.core.SidePanel.unregister(Panel2);
+        tv.core.SidePanel.unregister(Panel3);
 
-        tracing.SidePanel.popCleanStateAfterTest();
+        tv.core.SidePanel.popCleanStateAfterTest();
       }
     });
   }
 
   function createModel() {
-    var m = new tracing.TraceModel();
+    var m = new tv.core.TraceModel();
     m.importTraces([], false, false, function() {
       var browserProcess = m.getOrCreateProcess(1);
       var browserMain = browserProcess.getOrCreateThread(2);
@@ -122,13 +122,13 @@ tv.unittest.testSuite(function() {
   }
 
   testBasic('instantiateCollapsed', function() {
-    var container = new tracing.SidePanelContainer();
+    var container = new tv.core.SidePanelContainer();
     container.model = createModel();
     this.addHTMLOutput(container);
   });
 
   testBasic('instantiateExpanded', function() {
-    var container = new tracing.SidePanelContainer();
+    var container = new tv.core.SidePanelContainer();
     container.model = createModel();
     container.activePanelConstructor = Panel2;
     container.activePanelConstructor = undefined;
@@ -137,7 +137,7 @@ tv.unittest.testSuite(function() {
   });
 
   testBasic('activeAFew', function() {
-    var container = new tracing.SidePanelContainer();
+    var container = new tv.core.SidePanelContainer();
     container.model = createModel();
     this.addHTMLOutput(container);
     container.activePanelConstructor = Panel2;

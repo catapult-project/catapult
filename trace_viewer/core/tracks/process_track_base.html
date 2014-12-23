@@ -20,26 +20,26 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.tracks', function() {
+tv.exportTo('tv.core.tracks', function() {
 
-  var ObjectSnapshotView = tracing.analysis.ObjectSnapshotView;
-  var ObjectInstanceView = tracing.analysis.ObjectInstanceView;
-  var TraceModelSettings = tracing.TraceModelSettings;
-  var SpacingTrack = tracing.tracks.SpacingTrack;
+  var ObjectSnapshotView = tv.core.analysis.ObjectSnapshotView;
+  var ObjectInstanceView = tv.core.analysis.ObjectInstanceView;
+  var TraceModelSettings = tv.core.TraceModelSettings;
+  var SpacingTrack = tv.core.tracks.SpacingTrack;
 
   /**
    * Visualizes a Process by building ThreadTracks and CounterTracks.
    * @constructor
    */
   var ProcessTrackBase =
-      tv.ui.define('process-track-base', tracing.tracks.ContainerTrack);
+      tv.ui.define('process-track-base', tv.core.tracks.ContainerTrack);
 
   ProcessTrackBase.prototype = {
 
-    __proto__: tracing.tracks.ContainerTrack.prototype,
+    __proto__: tv.core.tracks.ContainerTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      tv.core.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
 
       this.processBase_ = undefined;
 
@@ -192,15 +192,15 @@ tv.exportTo('tracing.tracks', function() {
         // Look up the constructor for this track, or use the default
         // constructor if none exists.
         var trackConstructor =
-            tracing.tracks.ObjectInstanceTrack.getConstructor(
+            tv.core.tracks.ObjectInstanceTrack.getConstructor(
                 undefined, typeName);
         if (!trackConstructor) {
           var snapshotViewInfo = ObjectSnapshotView.getTypeInfo(
               undefined, typeName);
           if (snapshotViewInfo && snapshotViewInfo.metadata.showInstances) {
-            trackConstructor = tracing.tracks.ObjectInstanceGroupTrack;
+            trackConstructor = tv.core.tracks.ObjectInstanceGroupTrack;
           } else {
-            trackConstructor = tracing.tracks.ObjectInstanceTrack;
+            trackConstructor = tv.core.tracks.ObjectInstanceTrack;
           }
         }
         var track = new trackConstructor(this.viewport);
@@ -215,11 +215,11 @@ tv.exportTo('tracing.tracks', function() {
     appendCounterTracks_: function() {
       // Add counter tracks for this process.
       var counters = tv.dictionaryValues(this.processBase.counters);
-      counters.sort(tracing.trace_model.Counter.compare);
+      counters.sort(tv.core.trace_model.Counter.compare);
 
       // Create the counters for this process.
       counters.forEach(function(counter) {
-        var track = new tracing.tracks.CounterTrack(this.viewport);
+        var track = new tv.core.tracks.CounterTrack(this.viewport);
         track.counter = counter;
         this.appendChild(track);
         this.appendChild(new SpacingTrack(this.viewport));
@@ -229,11 +229,11 @@ tv.exportTo('tracing.tracks', function() {
     appendThreadTracks_: function() {
       // Get a sorted list of threads.
       var threads = tv.dictionaryValues(this.processBase.threads);
-      threads.sort(tracing.trace_model.Thread.compare);
+      threads.sort(tv.core.trace_model.Thread.compare);
 
       // Create the threads.
       threads.forEach(function(thread) {
-        var track = new tracing.tracks.ThreadTrack(this.viewport);
+        var track = new tv.core.tracks.ThreadTrack(this.viewport);
         track.thread = thread;
         if (!track.hasVisibleContent)
           return;

@@ -61,7 +61,7 @@ x-profiling-view > x-timeline-view {
  * @fileoverview ProfilingView glues the View control to
  * TracingController.
  */
-tv.exportTo('about_tracing', function() {
+tv.exportTo('tv.e.about_tracing', function() {
   function readFile(file) {
     return new Promise(function(resolve, reject) {
       var reader = new FileReader();
@@ -101,7 +101,7 @@ tv.exportTo('about_tracing', function() {
       this.infoBarGroup_ = this.querySelector('x-info-bar-group');
 
       tv.ui.decorate(this.infoBarGroup_, tv.ui.InfoBarGroup);
-      tv.ui.decorate(this.timelineView_, tracing.TimelineView);
+      tv.ui.decorate(this.timelineView_, tv.core.TimelineView);
 
       // Detach the buttons. We will reattach them to the timeline view.
       // TODO(nduca): Make <timeline-view> have a <content select="x-buttons">
@@ -120,10 +120,10 @@ tv.exportTo('about_tracing', function() {
         this.tracingControllerClient_ = tracingControllerClient;
       } else if (window.DevToolsHost !== undefined) {
         this.tracingControllerClient_ =
-            new about_tracing.InspectorTracingControllerClient();
+            new tv.e.about_tracing.InspectorTracingControllerClient();
       } else {
         this.tracingControllerClient_ =
-            new about_tracing.XhrBasedTracingControllerClient();
+            new tv.e.about_tracing.XhrBasedTracingControllerClient();
       }
 
       this.isRecording_ = false;
@@ -182,7 +182,7 @@ tv.exportTo('about_tracing', function() {
 
     updateTracingControllerSpecificState_: function() {
       var isInspector = this.tracingControllerClient_ instanceof
-          about_tracing.InspectorTracingControllerClient;
+          tv.e.about_tracing.InspectorTracingControllerClient;
 
       if (isInspector) {
         this.infoBarGroup_.addMessage(
@@ -206,7 +206,7 @@ tv.exportTo('about_tracing', function() {
       var buttons = this.querySelector('x-timeline-view-buttons');
       buttons.querySelector('#monitor-checkbox').disabled = true;
       buttons.querySelector('#monitor-checkbox').checked = false;
-      var resultPromise = about_tracing.beginRecording(
+      var resultPromise = tv.e.about_tracing.beginRecording(
           this.tracingControllerClient_);
       resultPromise.then(
           function(data) {
@@ -217,7 +217,7 @@ tv.exportTo('about_tracing', function() {
           function(err) {
             this.isRecording_ = false;
             buttons.querySelector('#monitor-checkbox').disabled = false;
-            if (err instanceof about_tracing.UserCancelledError)
+            if (err instanceof tv.e.about_tracing.UserCancelledError)
               return;
             tv.ui.Overlay.showError('Error while recording', err);
           }.bind(this));
@@ -231,12 +231,12 @@ tv.exportTo('about_tracing', function() {
         throw new Error('Already monitoring');
       var buttons = this.querySelector('x-timeline-view-buttons');
       var resultPromise =
-          about_tracing.beginMonitoring(this.tracingControllerClient_);
+          tv.e.about_tracing.beginMonitoring(this.tracingControllerClient_);
       resultPromise.then(
           function() {
           }.bind(this),
           function(err) {
-            if (err instanceof about_tracing.UserCancelledError)
+            if (err instanceof tv.e.about_tracing.UserCancelledError)
               return;
             tv.ui.Overlay.showError('Error while monitoring', err);
           }.bind(this));
@@ -250,12 +250,12 @@ tv.exportTo('about_tracing', function() {
         throw new Error('Monitoring is disabled');
       var buttons = this.querySelector('x-timeline-view-buttons');
       var resultPromise =
-          about_tracing.endMonitoring(this.tracingControllerClient_);
+          tv.e.about_tracing.endMonitoring(this.tracingControllerClient_);
       resultPromise.then(
           function() {
           }.bind(this),
           function(err) {
-            if (err instanceof about_tracing.UserCancelledError)
+            if (err instanceof tv.e.about_tracing.UserCancelledError)
               return;
             tv.ui.Overlay.showError('Error while monitoring', err);
           }.bind(this));
@@ -266,13 +266,13 @@ tv.exportTo('about_tracing', function() {
       if (!this.isMonitoring_)
         throw new Error('Monitoring is disabled');
       var resultPromise =
-          about_tracing.captureMonitoring(this.tracingControllerClient_);
+          tv.e.about_tracing.captureMonitoring(this.tracingControllerClient_);
       resultPromise.then(
           function(data) {
             this.setActiveTrace('trace.json', data, true);
           }.bind(this),
           function(err) {
-            if (err instanceof about_tracing.UserCancelledError)
+            if (err instanceof tv.e.about_tracing.UserCancelledError)
               return;
             tv.ui.Overlay.showError('Error while monitoring', err);
           }.bind(this));
@@ -281,13 +281,13 @@ tv.exportTo('about_tracing', function() {
 
     getMonitoringStatus: function() {
       var resultPromise =
-          about_tracing.getMonitoringStatus(this.tracingControllerClient_);
+          tv.e.about_tracing.getMonitoringStatus(this.tracingControllerClient_);
       resultPromise.then(
           function(status) {
             this.onMonitoringStateChanged_(status.isMonitoring);
           }.bind(this),
           function(err) {
-            if (err instanceof about_tracing.UserCancelledError)
+            if (err instanceof tv.e.about_tracing.UserCancelledError)
               return;
             tv.ui.Overlay.showError('Error while updating tracing states',
                                       err);
@@ -340,7 +340,7 @@ tv.exportTo('about_tracing', function() {
       this.uploadButton_.disabled = false;
       this.timelineView_.viewTitle = filename;
 
-      var m = new tracing.TraceModel();
+      var m = new tv.core.TraceModel();
       var p = m.importTracesWithProgressDialog([data], true);
       p.then(
           function() {

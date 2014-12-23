@@ -25,7 +25,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ==> next_comm=Android.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
     ];
 
-    return new tracing.TraceModel(lines.join('\n'), false);
+    return new tv.core.TraceModel(lines.join('\n'), false);
   }
 
   test('runningSlice', function() {
@@ -40,7 +40,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
 
-    var view = new tracing.analysis.ThreadTimeSliceView();
+    var view = new tv.core.analysis.ThreadTimeSliceView();
     view.modelEvent = thread.timeSlices[0];
     this.addHTMLOutput(view);
 
@@ -67,7 +67,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
 
-    var view = new tracing.analysis.ThreadTimeSliceView();
+    var view = new tv.core.analysis.ThreadTimeSliceView();
     view.modelEvent = thread.timeSlices[1];
     this.addHTMLOutput(view);
 

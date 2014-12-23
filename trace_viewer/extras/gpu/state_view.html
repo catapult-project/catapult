@@ -12,17 +12,17 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('gpu', function() {
+tv.exportTo('tv.e.gpu', function() {
   /*
    * Displays a GPU state snapshot in a human readable form.
    * @constructor
    */
   var StateSnapshotView = tv.ui.define(
       'gpu-state-snapshot-view',
-      tracing.analysis.ObjectSnapshotView);
+      tv.core.analysis.ObjectSnapshotView);
 
   StateSnapshotView.prototype = {
-    __proto__: tracing.analysis.ObjectSnapshotView.prototype,
+    __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('gpu-state-snapshot-view');
@@ -37,7 +37,7 @@ tv.exportTo('gpu', function() {
       }
     }
   };
-  tracing.analysis.ObjectSnapshotView.register(
+  tv.core.analysis.ObjectSnapshotView.register(
     StateSnapshotView,
     {typeName: 'gpu::State'});
 

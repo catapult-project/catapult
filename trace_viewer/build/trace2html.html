@@ -31,7 +31,7 @@ var g_timelineViewEl;
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
-  g_timelineViewEl = new tracing.TraceViewer();
+  g_timelineViewEl = new tv.TraceViewer();
   g_timelineViewEl.id = 'timeline-view';
   document.body.appendChild(g_timelineViewEl);
 
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     traces.push(atob(text));
   }
 
-  var m = new tracing.TraceModel();
+  var m = new tv.core.TraceModel();
   var p = m.importTracesWithProgressDialog(traces, true);
   p.then(
       function() {

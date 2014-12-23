@@ -24,7 +24,7 @@ tv.unittest.testSuite(function() {
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ==> next_comm=Android.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
     ];
 
-    return new tracing.TraceModel(lines.join('\n'), false);
+    return new tv.core.TraceModel(lines.join('\n'), false);
   }
 
   test('cpuSliceView_withCpuSliceOnExistingThread', function() {
@@ -39,7 +39,7 @@ tv.unittest.testSuite(function() {
     assertNotUndefined(thread);
     assertEquals(cpuSlice.threadThatWasRunning, thread);
 
-    var view = new tracing.analysis.CpuSliceView();
+    var view = new tv.core.analysis.CpuSliceView();
     view.modelEvent = cpuSlice;
     this.addHTMLOutput(view);
 
@@ -63,7 +63,7 @@ tv.unittest.testSuite(function() {
     assertEquals('Android.launcher', cpuSlice.title);
     assertUndefined(cpuSlice.thread);
 
-    var view = new tracing.analysis.CpuSliceView();
+    var view = new tv.core.analysis.CpuSliceView();
     view.modelEvent = cpuSlice;
     this.addHTMLOutput(view);
   });

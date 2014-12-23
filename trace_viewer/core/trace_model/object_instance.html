@@ -17,8 +17,8 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the ObjectSnapshot and ObjectHistory classes.
  */
-tv.exportTo('tracing.trace_model', function() {
-  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
+tv.exportTo('tv.core.trace_model', function() {
+  var ObjectSnapshot = tv.core.trace_model.ObjectSnapshot;
 
   /**
    * An object with a specific id, whose state has been snapshotted several
@@ -28,7 +28,7 @@ tv.exportTo('tracing.trace_model', function() {
    */
   function ObjectInstance(
       parent, id, category, name, creationTs, opt_baseTypeName) {
-    tracing.trace_model.Event.call(this);
+    tv.core.trace_model.Event.call(this);
     this.parent = parent;
     this.id = id;
     this.category = category;
@@ -45,7 +45,7 @@ tv.exportTo('tracing.trace_model', function() {
   }
 
   ObjectInstance.prototype = {
-    __proto__: tracing.trace_model.Event.prototype,
+    __proto__: tv.core.trace_model.Event.prototype,
 
     get typeName() {
       return this.name;
@@ -84,7 +84,7 @@ tv.exportTo('tracing.trace_model', function() {
       }
 
       var snapshotConstructor =
-          tracing.trace_model.ObjectSnapshot.getConstructor(
+          tv.core.trace_model.ObjectSnapshot.getConstructor(
               this.category, this.name);
       var snapshot = new snapshotConstructor(this, ts, args);
       this.snapshots.push(snapshot);

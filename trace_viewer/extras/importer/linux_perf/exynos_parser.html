@@ -13,9 +13,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses exynos events in the Linux event trace format.
  */
-tv.exportTo('tracing.importer.linux_perf', function() {
+tv.exportTo('tv.e.importer.linux_perf', function() {
 
-  var Parser = tracing.importer.linux_perf.Parser;
+  var Parser = tv.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux exynos trace events.
@@ -40,7 +40,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
       var targetCpu = this.importer.getOrCreateCpu(0);
       var counter = targetCpu.getOrCreateCounter('', name);
       if (counter.numSeries === 0) {
-        counter.addSeries(new tracing.trace_model.CounterSeries('frequency',
+        counter.addSeries(new tv.core.trace_model.CounterSeries('frequency',
             tv.ui.getStringColorId(counter.name + '.' + 'frequency')));
       }
       counter.series.forEach(function(series) {
@@ -83,7 +83,7 @@ tv.exportTo('tracing.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread(
           'exynos_flip_state (pipe:' + pipe + ', fb:' + fb + ')');
       if (kthread.openSlice) {
-        var slice = new tracing.trace_model.Slice('', kthread.openSlice,
+        var slice = new tv.core.trace_model.Slice('', kthread.openSlice,
             tv.ui.getStringColorId(kthread.openSlice),
             kthread.openSliceTS,
             args,

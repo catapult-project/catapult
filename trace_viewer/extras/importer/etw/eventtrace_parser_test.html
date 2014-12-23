@@ -39,9 +39,9 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('DecodeFields', function() {
 
-    var importer = new tracing.importer.EtwImporter('dummy', []);
+    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
-    var parser = new tracing.importer.etw.EventTraceParser(importer);
+    var parser = new tv.e.importer.etw.EventTraceParser(importer);
     var header;
     var fields;
 

@@ -16,13 +16,13 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('basic', function() {
-    var m = new tracing.TraceModel(g_gpu_state_trace);
+    var m = new tv.core.TraceModel(g_gpu_state_trace);
     var p = tv.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('gpu::State')[0];
     var snapshot = instance.snapshots[0];
 
-    assertTrue(snapshot instanceof gpu.StateSnapshot);
+    assertTrue(snapshot instanceof tv.e.gpu.StateSnapshot);
     assertEquals(typeof(snapshot.screenshot), 'string');
     instance.wasDeleted(150);
   });

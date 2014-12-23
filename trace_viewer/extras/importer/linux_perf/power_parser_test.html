@@ -21,7 +21,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       ' kworker/1:2-7269  [001]  2784.993120: power_frequency: ' +
                  'type=2 state=1300000 cpu_id=1'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
@@ -44,7 +44,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '     kworker/0:2-7972  [000] 15051.020304: cpu_frequency: ' +
                      'state=800000 cpu_id=0'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
@@ -71,7 +71,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '          <idle>-0     [001] 15050.993457: cpu_idle: ' +
           'state=4294967295 cpu_id=1'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];

@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.trace_model', function() {
+tv.exportTo('tv.core.trace_model', function() {
   /**
    * A snapshot of an object instance, at a given moment in time.
    *
@@ -35,14 +35,14 @@ tv.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function ObjectSnapshot(objectInstance, ts, args) {
-    tracing.trace_model.Event.call(this);
+    tv.core.trace_model.Event.call(this);
     this.objectInstance = objectInstance;
     this.ts = ts;
     this.args = args;
   }
 
   ObjectSnapshot.prototype = {
-    __proto__: tracing.trace_model.Event.prototype,
+    __proto__: tv.core.trace_model.Event.prototype,
 
     /**
      * See ObjectSnapshot constructor notes on object initialization.

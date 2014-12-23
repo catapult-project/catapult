@@ -14,25 +14,25 @@ found in the LICENSE file.
 tv.unittest.testSuite(function() {
   test('snapshotTypeRegistry', function() {
     function MySnapshot() {
-      tracing.trace_model.ObjectSnapshot.apply(this, arguments);
+      tv.core.trace_model.ObjectSnapshot.apply(this, arguments);
       this.myFoo = this.args.foo;
     }
 
     MySnapshot.prototype = {
-      __proto__: tracing.trace_model.ObjectSnapshot.prototype
+      __proto__: tv.core.trace_model.ObjectSnapshot.prototype
     };
 
-    var instance = new tracing.trace_model.ObjectInstance(
+    var instance = new tv.core.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'MySnapshot', 10);
     try {
-      tracing.trace_model.ObjectSnapshot.register(
+      tv.core.trace_model.ObjectSnapshot.register(
           MySnapshot,
           {typeName: 'MySnapshot'});
       var snapshot = instance.addSnapshot(15, {foo: 'bar'});
       assertTrue(snapshot instanceof MySnapshot);
       assertEquals('bar', snapshot.myFoo);
     } finally {
-      tracing.trace_model.ObjectSnapshot.unregister(MySnapshot);
+      tv.core.trace_model.ObjectSnapshot.unregister(MySnapshot);
     }
   });
 });

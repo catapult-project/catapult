@@ -12,11 +12,11 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() { // @suppress longLineCheck
-  var Process = tracing.trace_model.Process;
-  var Thread = tracing.trace_model.Thread;
-  var AsyncSlice = tracing.trace_model.AsyncSlice;
-  var AsyncSliceGroup = tracing.trace_model.AsyncSliceGroup;
-  var newAsyncSlice = tracing.test_utils.newAsyncSlice;
+  var Process = tv.core.trace_model.Process;
+  var Thread = tv.core.trace_model.Thread;
+  var AsyncSlice = tv.core.trace_model.AsyncSlice;
+  var AsyncSliceGroup = tv.core.trace_model.AsyncSliceGroup;
+  var newAsyncSlice = tv.core.test_utils.newAsyncSlice;
 
   test('asyncSliceGroupBounds_Empty', function() {
     var thread = {};
@@ -26,7 +26,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('asyncSliceGroupBounds_Basic', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);

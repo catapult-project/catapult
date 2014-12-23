@@ -14,12 +14,12 @@ found in the LICENSE file.
 /**
  * @fileoverview FindController.
  */
-tv.exportTo('tracing', function() {
+tv.exportTo('tv.core', function() {
   function FindController() {
     this.timeline_ = undefined;
     this.model_ = undefined;
     this.filterText_ = '';
-    this.filterHits_ = new tracing.Selection();
+    this.filterHits_ = new tv.core.Selection();
     this.filterHitsDirty_ = true;
     this.currentHitIndex_ = -1;
   };
@@ -55,11 +55,11 @@ tv.exportTo('tracing', function() {
     get filterHits() {
       if (this.filterHitsDirty_) {
         this.filterHitsDirty_ = false;
-        this.filterHits_ = new tracing.Selection();
+        this.filterHits_ = new tv.core.Selection();
         this.currentHitIndex_ = -1;
 
         if (this.timeline_ && this.filterText.length) {
-          var filter = new tracing.TitleFilter(this.filterText);
+          var filter = new tv.core.TitleFilter(this.filterText);
           this.timeline.addAllObjectsMatchingFilterToSelection(
               filter, this.filterHits_);
         }

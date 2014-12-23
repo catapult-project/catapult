@@ -13,11 +13,11 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() { // @suppress longLineCheck
-  var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
+  var TimelineDisplayTransform = tv.core.TimelineDisplayTransform;
   var TimelineDisplayTransformPanAnimation =
-      tracing.TimelineDisplayTransformPanAnimation;
+      tv.core.TimelineDisplayTransformPanAnimation;
   var TimelineDisplayTransformZoomToAnimation =
-      tracing.TimelineDisplayTransformZoomToAnimation;
+      tv.core.TimelineDisplayTransformZoomToAnimation;
 
   test('panBasic', function() {
     var target = new TimelineDisplayTransform();

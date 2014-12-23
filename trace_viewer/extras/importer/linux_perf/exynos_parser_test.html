@@ -23,7 +23,7 @@ tv.unittest.testSuite(function() {
       '     kworker/1:0-4177  [001] ....  2805.729039: ' +
           'exynos_busfreq_target_mif: frequency=200000'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
@@ -51,7 +51,7 @@ tv.unittest.testSuite(function() {
       '     kworker/0:1-25931 [000] .... 1000.000007: ' +
           'exynos_page_flip_state: pipe=0, fb=25, state=flipped'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -98,7 +98,7 @@ tv.unittest.testSuite(function() {
       '          <idle>-0     [000] d.h. 1000.000011: ' +
           'exynos_page_flip_state: pipe=0, fb=26, state=wait_apply'
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();

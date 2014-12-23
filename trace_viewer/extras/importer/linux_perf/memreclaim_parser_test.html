@@ -24,7 +24,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       ' kswapd0-33    (   33) [001] ...1 12838.529770: mm_vmscan_kswapd_wake: nid=0 order=2',
       ' kswapd0-33    (   33) [001] ...1 12840.545737: mm_vmscan_kswapd_sleep: nid=0',
     ];
-    var m = new tracing.TraceModel(lines.join('\n'), false);
+    var m = new tv.core.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     assertEquals(1, m.processes['1155'].threads['1155'].sliceGroup.length);

@@ -41,17 +41,17 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing', function() {
+tv.exportTo('tv.e.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
-  var ThreadSlice = tracing.trace_model.ThreadSlice;
+  var ThreadSlice = tv.core.trace_model.ThreadSlice;
 
   var OVERHEAD_TRACE_CATEGORY = 'trace_event_overhead';
   var OVERHEAD_TRACE_NAME = 'overhead';
 
-  var tsRound = tracing.analysis.tsRound;
+  var tsRound = tv.core.analysis.tsRound;
 
-  var RequestSelectionChangeEvent = tracing.RequestSelectionChangeEvent;
+  var RequestSelectionChangeEvent = tv.core.RequestSelectionChangeEvent;
 
   function getWallTimeOverheadForEvent(event) {
     if (event.category == OVERHEAD_TRACE_CATEGORY &&
@@ -144,8 +144,8 @@ tv.exportTo('tracing', function() {
       if (resultsForGroup === undefined)
         return;
 
-      var event = new tracing.RequestSelectionChangeEvent();
-      event.selection = new tracing.Selection(resultsForGroup.allSlices);
+      var event = new tv.core.RequestSelectionChangeEvent();
+      event.selection = new tv.core.Selection(resultsForGroup.allSlices);
       event.selection.timeSummaryGroupName = resultsForGroup.name;
       chart.dispatchEvent(event);
     });
@@ -241,13 +241,13 @@ tv.exportTo('tracing', function() {
    * @constructor
    */
   var TimeSummarySidePanel = tv.ui.define(
-      'x-time-summary-side-panel', tracing.SidePanel);
+      'x-time-summary-side-panel', tv.core.SidePanel);
 
   TimeSummarySidePanel.prototype = {
-    __proto__: tracing.SidePanel.prototype,
+    __proto__: tv.core.SidePanel.prototype,
 
     decorate: function() {
-      tracing.SidePanel.prototype.decorate.call(this);
+      tv.core.SidePanel.prototype.decorate.call(this);
       this.classList.add('x-time-summary-side-panel');
       this.appendChild(tv.instantiateTemplate(
           '#x-time-summary-side-panel-template', THIS_DOC));
@@ -426,8 +426,8 @@ tv.exportTo('tracing', function() {
           getValueFromGroup, extraData);
       resultArea.appendChild(this.chart_);
       this.chart_.addEventListener('click', function() {
-        var event = new tracing.RequestSelectionChangeEvent();
-        event.selection = new tracing.Selection([]);
+        var event = new tv.core.RequestSelectionChangeEvent();
+        event.selection = new tv.core.Selection([]);
         this.dispatchEvent(event);
       });
       this.chart_.setSize(this.chart_.getMinSize());
@@ -461,7 +461,7 @@ tv.exportTo('tracing', function() {
     }
   };
 
-  tracing.SidePanel.register(
+  tv.core.SidePanel.register(
     TimeSummarySidePanel,
     {
       textLabel: 'Thread Times'

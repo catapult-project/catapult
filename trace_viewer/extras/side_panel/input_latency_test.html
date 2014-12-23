@@ -31,8 +31,8 @@ tv.unittest.testSuite(function() {
       events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : end_ts, 'ph' : 'F', 'name' : 'InputLatency', 'args' : {'data' : {'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT' : {'time' : start_ts}, 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT' : {'time' : end_ts}}}, 'id' : i}); // @suppress longLineCheck
     }
 
-    var m = new tracing.TraceModel(events);
-    var latencyData = tracing.getLatencyData(m, m.bounds);
+    var m = new tv.core.TraceModel(events);
+    var latencyData = tv.e.analysis.getLatencyData(m, m.bounds);
     assertEquals(10, latencyData.length);
     for (var i = 0; i < latencyData.length; i++) {
       assertEquals(i % 2, latencyData[i].latency);
@@ -71,44 +71,44 @@ tv.unittest.testSuite(function() {
       frame_ts += 16000 + 1000 * (i % 2);
     }
 
-    var m = new tracing.TraceModel(events);
-    var panel = new tracing.InputLatencySidePanel();
+    var m = new tv.core.TraceModel(events);
+    var panel = new tv.e.analysis.InputLatencySidePanel();
 
     // Testing browser impl and main rendering stats.
     var frametime_data =
-        tracing.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3507);
+        tv.e.analysis.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3507);
     assertEquals(9, frametime_data.length);
     for (var i = 0; i < frametime_data.length; i++) {
       assertEquals(16 + i % 2, frametime_data[i].frametime);
     }
     // No main rendering stats.
     frametime_data =
-        tracing.getFrametimeData(m, 'main_frametime_type', m.bounds, 3507);
+        tv.e.analysis.getFrametimeData(m, 'main_frametime_type', m.bounds, 3507);
     assertEquals(0, frametime_data.length);
 
 
     // Testing renderer 3508 impl and main rendering stats.
     frametime_data =
-        tracing.getFrametimeData(m, 'main_frametime_type', m.bounds, 3508);
+        tv.e.analysis.getFrametimeData(m, 'main_frametime_type', m.bounds, 3508);
     assertEquals(9, frametime_data.length);
     for (var i = 0; i < frametime_data.length; i++) {
       assertEquals(16 + i % 2, frametime_data[i].frametime);
     }
     // No impl rendering stats.
     frametime_data =
-        tracing.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3508);
+        tv.e.analysis.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3508);
     assertEquals(0, frametime_data.length);
 
 
     // Testing renderer 3509 impl and main rendering stats.
     frametime_data =
-        tracing.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3509);
+        tv.e.analysis.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3509);
     assertEquals(9, frametime_data.length);
     for (var i = 0; i < frametime_data.length; i++) {
       assertEquals(16 + i % 2, frametime_data[i].frametime);
     }
     frametime_data =
-        tracing.getFrametimeData(m, 'main_frametime_type', m.bounds, 3509);
+        tv.e.analysis.getFrametimeData(m, 'main_frametime_type', m.bounds, 3509);
     assertEquals(9, frametime_data.length);
     for (var i = 0; i < frametime_data.length; i++) {
       assertEquals(16 + i % 2, frametime_data[i].frametime);
@@ -135,7 +135,7 @@ tv.unittest.testSuite(function() {
         latency: 23
       }
     ];
-    var latencyChart = tracing.createLatencyLineChart(latencyData, 'latency');
+    var latencyChart = tv.e.analysis.createLatencyLineChart(latencyData, 'latency');
     this.addHTMLOutput(latencyChart);
 
     var frametimeData = [
@@ -156,7 +156,7 @@ tv.unittest.testSuite(function() {
         frametime: 23
       }
     ];
-    var frametimeChart = tracing.createLatencyLineChart(frametimeData,
+    var frametimeChart = tv.e.analysis.createLatencyLineChart(frametimeData,
                                                         'frametime');
     this.addHTMLOutput(frametimeChart);
   });
@@ -171,11 +171,11 @@ tv.unittest.testSuite(function() {
       events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : end_ts, 'ph' : 'F', 'name' : 'InputLatency', 'args' : {'data' : {'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT' : {'time' : start_ts}, 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT' : {'time' : end_ts}}}, 'id': i}); // @suppress longLineCheck
     }
 
-    var panel = new tracing.InputLatencySidePanel();
+    var panel = new tv.e.analysis.InputLatencySidePanel();
     this.addHTMLOutput(panel);
 
     var selectionChanged = false;
-    panel.model = new tracing.TraceModel(events);
+    panel.model = new tv.core.TraceModel(events);
     function listener(e) {
       selectionChanged = true;
       assertEquals(3, e.selection.length);

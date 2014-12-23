@@ -42,7 +42,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing', function() {
+tv.exportTo('tv.e.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   function createLatencyLineChart(data, title) {
@@ -82,7 +82,7 @@ tv.exportTo('tracing', function() {
     if (pid === undefined)
       return frametimeData;
 
-    var chromeBrowser = new cc.ChromeBrowser(model);
+    var chromeBrowser = new tv.e.cc.ChromeBrowser(model);
     var rendererProcesses = chromeBrowser.rendererProcesses;
     var browserProcess = chromeBrowser.browserProcess;
     var selectedProcess;
@@ -177,7 +177,7 @@ tv.exportTo('tracing', function() {
    * @constructor
    */
   var InputLatencySidePanel = tv.ui.define(
-      'x-input-latency-side-panel', tracing.SidePanel);
+      'x-input-latency-side-panel', tv.core.SidePanel);
 
   InputLatencySidePanel.supportsModel = function(m) {
     if (m == undefined) {
@@ -187,7 +187,7 @@ tv.exportTo('tracing', function() {
       };
     }
 
-    var chromeBrowser = new cc.ChromeBrowser(m);
+    var chromeBrowser = new tv.e.cc.ChromeBrowser(m);
     if (chromeBrowser.browserProcess === undefined &&
         chromeBrowser.rendererProcesses.length === 0) {
       return {
@@ -218,10 +218,10 @@ tv.exportTo('tracing', function() {
   };
 
   InputLatencySidePanel.prototype = {
-    __proto__: tracing.SidePanel.prototype,
+    __proto__: tv.core.SidePanel.prototype,
 
     decorate: function() {
-      tracing.SidePanel.prototype.decorate.call(this);
+      tv.core.SidePanel.prototype.decorate.call(this);
       this.classList.add('x-input-latency-side-panel');
       this.appendChild(tv.instantiateTemplate(
           '#x-input-latency-side-panel-template', THIS_DOC));
@@ -304,8 +304,8 @@ tv.exportTo('tracing', function() {
       });
       latencySlices = getSlicesIntersectingRange(r, latencySlices);
 
-      var event = new tracing.RequestSelectionChangeEvent();
-      event.selection = new tracing.Selection(latencySlices);
+      var event = new tv.core.RequestSelectionChangeEvent();
+      event.selection = new tv.core.Selection(latencySlices);
       this.latencyChart_.dispatchEvent(event);
     },
 
@@ -330,7 +330,7 @@ tv.exportTo('tracing', function() {
     },
 
     updateToolbar_: function() {
-      var chromeBrowser = new cc.ChromeBrowser(this.model_);
+      var chromeBrowser = new tv.e.cc.ChromeBrowser(this.model_);
       var rendererProcesses = chromeBrowser.rendererProcesses;
       var browserProcess = chromeBrowser.browserProcess;
       var labels = [];
@@ -428,7 +428,7 @@ tv.exportTo('tracing', function() {
   };
 
 
-  tracing.SidePanel.register(
+  tv.core.SidePanel.register(
     InputLatencySidePanel,
     {
       textLabel: 'Input Latency',

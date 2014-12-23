@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/trace_model.html">
 <script>
 'use strict';
-tv.exportTo('tracing', function() {
+tv.exportTo('tv', function() {
   /**
    * Creates a trace viewer and, if given, loads the provided URL.
    *
@@ -18,13 +18,13 @@ tv.exportTo('tracing', function() {
    *
    * Returns an HTMLElement that is the trace-viwer.
    */
-  var TraceViewer = tv.ui.define('trace-viewer', tracing.TimelineView);
+  var TraceViewer = tv.ui.define('trace-viewer', tv.core.TimelineView);
 
   TraceViewer.prototype = {
-    __proto__: tracing.TimelineView.prototype,
+    __proto__: tv.core.TimelineView.prototype,
 
     decorate: function(opt_url) {
-      tracing.TimelineView.prototype.decorate.call(this);
+      tv.core.TimelineView.prototype.decorate.call(this);
 
       if (opt_url === undefined)
         return;
@@ -59,7 +59,7 @@ tv.exportTo('tracing', function() {
 
       var model;
       function onResult(result) {
-        model = new tracing.TraceModel();
+        model = new tv.core.TraceModel();
         var p = model.importTracesWithProgressDialog([result], true);
         p.then(onModelLoaded, onImportFail);
       }

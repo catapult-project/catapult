@@ -16,8 +16,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tracing.analysis', function() {
-  var tsRound = tracing.analysis.tsRound;
+tv.exportTo('tv.core.analysis', function() {
+  var tsRound = tv.core.analysis.tsRound;
 
   /*
    * Displays an object instance in a human readable form.
@@ -25,13 +25,13 @@ tv.exportTo('tracing.analysis', function() {
    */
   var DefaultObjectSnapshotView = tv.ui.define(
       'default-object-snapshot-view',
-      tracing.analysis.ObjectSnapshotView);
+      tv.core.analysis.ObjectSnapshotView);
 
   DefaultObjectSnapshotView.prototype = {
-    __proto__: tracing.analysis.ObjectSnapshotView.prototype,
+    __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
-      tracing.analysis.ObjectSnapshotView.prototype.decorate.apply(this);
+      tv.core.analysis.ObjectSnapshotView.prototype.decorate.apply(this);
       this.classList.add('default-object-view');
       this.classList.add('default-object-snapshot-view');
     },
@@ -55,14 +55,14 @@ tv.exportTo('tracing.analysis', function() {
 
       // TODO(nduca): tv.ui.decoreate doesn't work when subclassed. So,
       // replace the template element.
-      var instanceLinkEl = new tracing.analysis.ObjectInstanceLink();
+      var instanceLinkEl = new tv.core.analysis.ObjectInstanceLink();
       instanceLinkEl.objectInstance = instance;
       var tmp = this.querySelector('#instance-link');
       tmp.parentElement.replaceChild(instanceLinkEl, tmp);
 
       var argsEl = this.querySelector('#args');
       argsEl.textContent = '';
-      var objectView = tracing.analysis.GenericObjectView();
+      var objectView = tv.core.analysis.GenericObjectView();
       objectView.object = snapshot.args;
       argsEl.appendChild(objectView);
     }
@@ -74,13 +74,13 @@ tv.exportTo('tracing.analysis', function() {
    */
   var DefaultObjectInstanceView = tv.ui.define(
       'default-object-instance-view',
-      tracing.analysis.ObjectInstanceView);
+      tv.core.analysis.ObjectInstanceView);
 
   DefaultObjectInstanceView.prototype = {
-    __proto__: tracing.analysis.ObjectInstanceView.prototype,
+    __proto__: tv.core.analysis.ObjectInstanceView.prototype,
 
     decorate: function() {
-      tracing.analysis.ObjectInstanceView.prototype.decorate.apply(this);
+      tv.core.analysis.ObjectInstanceView.prototype.decorate.apply(this);
       this.classList.add('default-object-view');
       this.classList.add('default-object-instance-view');
     },
@@ -111,7 +111,7 @@ tv.exportTo('tracing.analysis', function() {
       this.innerHTML = html;
       var snapshotsEl = this.querySelector('#snapshots');
       instance.snapshots.forEach(function(snapshot) {
-        var snapshotLink = new tracing.analysis.ObjectSnapshotLink();
+        var snapshotLink = new tv.core.analysis.ObjectSnapshotLink();
         snapshotLink.objectSnapshot = snapshot;
         snapshotsEl.appendChild(snapshotLink);
       });

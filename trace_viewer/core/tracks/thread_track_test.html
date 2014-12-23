@@ -15,21 +15,21 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var HighlightInstantEvent = tracing.trace_model.ThreadHighlightInstantEvent;
-  var Process = tracing.trace_model.Process;
-  var Selection = tracing.Selection;
-  var StackFrame = tracing.trace_model.StackFrame;
-  var Sample = tracing.trace_model.Sample;
-  var Thread = tracing.trace_model.Thread;
-  var ThreadSlice = tracing.trace_model.ThreadSlice;
-  var ThreadTrack = tracing.tracks.ThreadTrack;
-  var Viewport = tracing.TimelineViewport;
-  var newAsyncSlice = tracing.test_utils.newAsyncSlice;
-  var newAsyncSliceNamed = tracing.test_utils.newAsyncSliceNamed;
-  var newSliceNamed = tracing.test_utils.newSliceNamed;
+  var HighlightInstantEvent = tv.core.trace_model.ThreadHighlightInstantEvent;
+  var Process = tv.core.trace_model.Process;
+  var Selection = tv.core.Selection;
+  var StackFrame = tv.core.trace_model.StackFrame;
+  var Sample = tv.core.trace_model.Sample;
+  var Thread = tv.core.trace_model.Thread;
+  var ThreadSlice = tv.core.trace_model.ThreadSlice;
+  var ThreadTrack = tv.core.tracks.ThreadTrack;
+  var Viewport = tv.core.TimelineViewport;
+  var newAsyncSlice = tv.core.test_utils.newAsyncSlice;
+  var newAsyncSliceNamed = tv.core.test_utils.newAsyncSliceNamed;
+  var newSliceNamed = tv.core.test_utils.newSliceNamed;
 
   test('selectionHitTestingWithThreadTrack', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
     t1.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
@@ -40,7 +40,7 @@ tv.unittest.testSuite(function() {
     testEl.style.width = '600px';
 
     var viewport = new Viewport(testEl);
-    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tv.core.tracks.DrawingContainer(viewport);
     testEl.appendChild(drawingContainer);
 
     var track = new ThreadTrack(viewport);
@@ -52,7 +52,7 @@ tv.unittest.testSuite(function() {
     var h = track.getBoundingClientRect().height;
     var wW = 10;
     var vW = drawingContainer.canvas.getBoundingClientRect().width;
-    var dt = new tracing.TimelineDisplayTransform();
+    var dt = new tv.core.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, wW, vW);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -69,21 +69,21 @@ tv.unittest.testSuite(function() {
   });
 
   test('filterThreadSlices', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var thread = new Thread(new Process(model, 7), 1);
     thread.sliceGroup.pushSlice(newSliceNamed('a', 0, 0));
     thread.asyncSliceGroup.push(newAsyncSliceNamed('a', 0, 5, t, t));
 
-    var t = new ThreadTrack(new tracing.TimelineViewport());
+    var t = new ThreadTrack(new tv.core.TimelineViewport());
     t.thread = thread;
 
     assertEquals(t.tracks_.length, 2);
-    assertTrue(t.tracks_[0] instanceof tracing.tracks.AsyncSliceGroupTrack);
-    assertTrue(t.tracks_[1] instanceof tracing.tracks.SliceGroupTrack);
+    assertTrue(t.tracks_[0] instanceof tv.core.tracks.AsyncSliceGroupTrack);
+    assertTrue(t.tracks_[1] instanceof tv.core.tracks.SliceGroupTrack);
   });
 
   test('sampleThreadSlices', function() {
-    var model = new tracing.TraceModel();
+    var model = new tv.core.TraceModel();
     var thread;
     var cpu;
     model.importTraces([], false, false, function() {
@@ -114,23 +114,23 @@ tv.unittest.testSuite(function() {
                                     35, fAD, 10));
     });
 
-    var t = new ThreadTrack(new tracing.TimelineViewport());
+    var t = new ThreadTrack(new tv.core.TimelineViewport());
     t.thread = thread;
     assertEquals(2, t.tracks_.length);
 
     // Instructions retired
     var t0 = t.tracks_[0];
     assertTrue(t0.heading.indexOf('instructions_retired') != -1);
-    assertTrue(t0 instanceof tracing.tracks.SampleTrack);
+    assertTrue(t0 instanceof tv.core.tracks.SampleTrack);
     assertTrue(4, t0.samples.length);
     t0.samples.forEach(function(s) {
-      assertTrue(s instanceof tracing.trace_model.Sample);
+      assertTrue(s instanceof tv.core.trace_model.Sample);
     });
 
     // page_fault
     var t1 = t.tracks_[1];
     assertTrue(t1.heading.indexOf('page_fault') != -1);
-    assertTrue(t1 instanceof tracing.tracks.SampleTrack);
+    assertTrue(t1 instanceof tv.core.tracks.SampleTrack);
     assertTrue(2, t1.samples.length);
   });
 });

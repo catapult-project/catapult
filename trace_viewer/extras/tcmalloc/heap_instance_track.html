@@ -15,8 +15,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tcmalloc', function() {
-  var EventPresenter = tracing.EventPresenter;
+tv.exportTo('tv.e.tcmalloc', function() {
+  var EventPresenter = tv.core.EventPresenter;
 
   /**
    * A track that displays heap memory data.
@@ -25,14 +25,14 @@ tv.exportTo('tcmalloc', function() {
    */
 
   var HeapInstanceTrack = tv.ui.define(
-      'heap-instance-track', tracing.tracks.StackedBarsTrack);
+      'heap-instance-track', tv.core.tracks.StackedBarsTrack);
 
   HeapInstanceTrack.prototype = {
 
-    __proto__: tracing.tracks.StackedBarsTrack.prototype,
+    __proto__: tv.core.tracks.StackedBarsTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
+      tv.core.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
       this.classList.add('heap-instance-track');
       this.objectInstance_ = null;
     },
@@ -76,7 +76,7 @@ tv.exportTo('tcmalloc', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tracing.tracks.DrawType.SLICE:
+        case tv.core.tracks.DrawType.SLICE:
           this.drawSlices_(viewLWorld, viewRWorld);
           break;
       }
@@ -165,7 +165,7 @@ tv.exportTo('tcmalloc', function() {
     }
   };
 
-  tracing.tracks.ObjectInstanceTrack.register(
+  tv.core.tracks.ObjectInstanceTrack.register(
       HeapInstanceTrack,
       {typeName: 'memory::Heap'});
 

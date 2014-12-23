@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var findSliceNamed = tracing.test_utils.findSliceNamed;
+  var findSliceNamed = tv.core.test_utils.findSliceNamed;
   var original_data =
       '[{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo","tid":53,' +
       '"ph":"B"},{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo",' +
@@ -24,15 +24,15 @@ tv.unittest.testSuite(function() {
       'EH+QAAAA';
 
   test('failImportEmpty', function() {
-    self.assertFalse(tracing.importer.GzipImporter.canImport([]));
-    self.assertFalse(tracing.importer.GzipImporter.canImport(''));
+    self.assertFalse(tv.e.importer.GzipImporter.canImport([]));
+    self.assertFalse(tv.e.importer.GzipImporter.canImport(''));
   });
 
   test('inflateString', function() {
     // Test inflating the data from a string.
     var gzip_data = atob(gzip_data_base64);
-    var importer = new tracing.importer.GzipImporter(null, gzip_data);
-    self.assertTrue(tracing.importer.GzipImporter.canImport(gzip_data));
+    var importer = new tv.e.importer.GzipImporter(null, gzip_data);
+    self.assertTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
     self.assertEquals(original_data, importer.extractSubtraces()[0]);
   });
 
@@ -43,16 +43,16 @@ tv.unittest.testSuite(function() {
     var view = new Uint8Array(buffer);
     for (var i = 0; i < gzip_data.length; i++)
       view[i] = gzip_data.charCodeAt(i);
-    var importer = new tracing.importer.GzipImporter(null, buffer);
-    self.assertTrue(tracing.importer.GzipImporter.canImport(buffer));
+    var importer = new tv.e.importer.GzipImporter(null, buffer);
+    self.assertTrue(tv.e.importer.GzipImporter.canImport(buffer));
     self.assertEquals(original_data, importer.extractSubtraces()[0]);
   });
 
   test('import', function() {
     var gzip_data = atob(gzip_data_base64);
-    self.assertTrue(tracing.importer.GzipImporter.canImport(gzip_data));
+    self.assertTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
 
-    var model = new tracing.TraceModel(gzip_data);
+    var model = new tv.core.TraceModel(gzip_data);
     var threads = model.getAllThreads();
     self.assertEquals(threads.length, 1);
 
@@ -67,9 +67,9 @@ tv.unittest.testSuite(function() {
     req.overrideMimeType('text/plain; charset=x-user-defined');
     req.send(null);
     var gzip_data = req.responseText;
-    self.assertTrue(tracing.importer.GzipImporter.canImport(gzip_data));
+    self.assertTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
 
-    var model = new tracing.TraceModel(gzip_data);
+    var model = new tv.core.TraceModel(gzip_data);
     var threads = model.getAllThreads();
     self.assertEquals(threads.length, 2);
 
