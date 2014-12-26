@@ -99,7 +99,7 @@ tv.unittest.testSuite(function() {
       '<...>-1837  [000] ...1 875292.795231: tracing_mark_write: ' +
           'log: end: LogHardwareState'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
     var threads = m.getAllThreads();
     assertEquals(1, threads.length);
@@ -172,7 +172,7 @@ tv.unittest.testSuite(function() {
       'X-30368 [000] ...1 1819362.482053: tracing_mark_write: ' +
           'log: end: TimerLogOutputs'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
     var threads = m.getAllThreads();
     assertEquals(1, threads.length);
@@ -197,7 +197,7 @@ tv.unittest.testSuite(function() {
       'X-30368 [000] ...1 1819362.481988: tracing_mark_write: ' +
           'HandleTimer: end: IntegralGestureFilterInterpreter'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertTrue(m.hasImportWarnings);
     assertEquals(7, m.importWarnings.length);
   });

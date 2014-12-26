@@ -37,10 +37,10 @@ found in the LICENSE file.
  * nesting tasks.
  *
  */
-tv.exportTo('tv.core', function() {
-  var Importer = tv.core.importer.Importer;
-  var Process = tv.core.trace_model.Process;
-  var Kernel = tv.core.trace_model.Kernel;
+tv.exportTo('tv.c', function() {
+  var Importer = tv.c.importer.Importer;
+  var Process = tv.c.trace_model.Process;
+  var Kernel = tv.c.trace_model.Kernel;
 
   /**
    * Builds a model from an array of TraceEvent objects.
@@ -218,7 +218,7 @@ tv.exportTo('tv.core', function() {
     },
 
     createImporter_: function(eventData) {
-      var importerConstructor = tv.core.importer.Importer.findImporterFor(
+      var importerConstructor = tv.c.importer.Importer.findImporterFor(
           eventData);
 
       // TODO(kphanee): Throwing same Error at 2 places. Lets try to avoid it!
@@ -265,7 +265,7 @@ tv.exportTo('tv.core', function() {
           opt_shiftWorldToZero,
           opt_pruneEmptyContainers,
           opt_customizeModelCallback);
-      tv.core.importer.Task.RunSynchronously(task);
+      tv.c.importer.Task.RunSynchronously(task);
     },
 
     /**
@@ -294,7 +294,7 @@ tv.exportTo('tv.core', function() {
           opt_shiftWorldToZero,
           opt_pruneEmptyContainers,
           opt_customizeModelCallback);
-      var promise = tv.core.importer.Task.RunWhenIdle(task);
+      var promise = tv.c.importer.Task.RunWhenIdle(task);
       promise.then(
           function() {
             overlay.visible = false;
@@ -336,7 +336,7 @@ tv.exportTo('tv.core', function() {
       // Just some simple setup. It is useful to have a nop first
       // task so that we can set up the lastTask = lastTask.after()
       // pattern that follows.
-      var importTask = new tv.core.importer.Task(function() {
+      var importTask = new tv.c.importer.Task(function() {
         progressMeter.update('I will now import your traces for you...');
       }, this);
       var lastTask = importTask;

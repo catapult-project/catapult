@@ -12,10 +12,10 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Slice = tv.core.trace_model.Slice;
-  var SliceGroup = tv.core.trace_model.SliceGroup;
-  var newSlice = tv.core.test_utils.newSlice;
-  var newSliceNamed = tv.core.test_utils.newSliceNamed;
+  var Slice = tv.c.trace_model.Slice;
+  var SliceGroup = tv.c.trace_model.SliceGroup;
+  var newSlice = tv.c.test_utils.newSlice;
+  var newSliceNamed = tv.c.test_utils.newSliceNamed;
 
   test('basicBeginEnd', function() {
     var group = new SliceGroup({});

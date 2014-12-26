@@ -17,9 +17,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the TimingTool class.
  */
-tv.exportTo('tv.core', function() {
+tv.exportTo('tv.c', function() {
 
-  var constants = tv.core.constants;
+  var constants = tv.c.constants;
 
   /**
    * Tool for taking time measurements in the TimelineTrackView using
@@ -60,9 +60,9 @@ tv.exportTo('tv.core', function() {
         return;
       var ir = this.viewport_.interestRange;
       if (ir.min === pt.x)
-        ir.leftSnapIndicator = new tv.core.SnapIndicator(pt.y, pt.height);
+        ir.leftSnapIndicator = new tv.c.SnapIndicator(pt.y, pt.height);
       if (ir.max === pt.x)
-        ir.rightSnapIndicator = new tv.core.SnapIndicator(pt.y, pt.height);
+        ir.rightSnapIndicator = new tv.c.SnapIndicator(pt.y, pt.height);
     },
 
     onUpdateTiming: function(e) {
@@ -250,7 +250,7 @@ tv.exportTo('tv.core', function() {
       var worldX = this.getWorldXFromEvent_(e);
       var mouseY = e.clientY;
 
-      var selection = new tv.core.Selection();
+      var selection = new tv.c.Selection();
 
       // Look at the track under mouse position first for better performance.
       modelTrackContainer.addClosestEventToSelection(

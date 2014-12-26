@@ -30,7 +30,7 @@ tv.exportTo('tv.e.cc', function() {
     });
   }
   RasterTaskSelection.whySuported = function(selection) {
-    if (!(selection instanceof tv.core.Selection))
+    if (!(selection instanceof tv.c.Selection))
       return {ok: false, why: 'Must be selection'};
 
     if (selection.length === 0)
@@ -39,7 +39,7 @@ tv.exportTo('tv.e.cc', function() {
     var tile0;
     for (var i = 0; i < selection.length; i++) {
       var event = selection[i];
-      if (!(event instanceof tv.core.trace_model.Slice))
+      if (!(event instanceof tv.c.trace_model.Slice))
         return {ok: false, why: 'Not a slice'};
 
       var tile = tv.e.cc.getTileFromRasterTaskSlice(selection[i]);
@@ -96,7 +96,7 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     createAnalysis: function() {
-      var sel = new tv.core.Selection();
+      var sel = new tv.c.Selection();
       this.slices_.forEach(function(slice) {
         sel.push(slice);
       });

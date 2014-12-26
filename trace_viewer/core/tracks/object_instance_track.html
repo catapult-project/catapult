@@ -17,10 +17,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.core.tracks', function() {
+tv.exportTo('tv.c.tracks', function() {
 
-  var SelectionState = tv.core.trace_model.SelectionState;
-  var EventPresenter = tv.core.EventPresenter;
+  var SelectionState = tv.c.trace_model.SelectionState;
+  var EventPresenter = tv.c.EventPresenter;
 
   /**
    * A track that displays an array of Slice objects.
@@ -29,13 +29,13 @@ tv.exportTo('tv.core.tracks', function() {
    */
 
   var ObjectInstanceTrack = tv.ui.define(
-      'object-instance-track', tv.core.tracks.HeadingTrack);
+      'object-instance-track', tv.c.tracks.HeadingTrack);
 
   ObjectInstanceTrack.prototype = {
-    __proto__: tv.core.tracks.HeadingTrack.prototype,
+    __proto__: tv.c.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tv.core.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('object-instance-track');
       this.objectInstances_ = [];
       this.objectSnapshots_ = [];
@@ -78,7 +78,7 @@ tv.exportTo('tv.core.tracks', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.core.tracks.DrawType.SLICE:
+        case tv.c.tracks.DrawType.SLICE:
           this.drawSlices_(viewLWorld, viewRWorld);
           break;
       }
@@ -234,9 +234,9 @@ tv.exportTo('tv.core.tracks', function() {
      */
     addItemNearToProvidedEventToSelection: function(event, offset, selection) {
       var events;
-      if (event instanceof tv.core.trace_model.ObjectSnapshot)
+      if (event instanceof tv.c.trace_model.ObjectSnapshot)
         events = this.objectSnapshots_;
-      else if (event instanceof tv.core.trace_model.ObjectInstance)
+      else if (event instanceof tv.c.trace_model.ObjectInstance)
         events = this.objectInstances_;
       else
         throw new Error('Unrecognized event');

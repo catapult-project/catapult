@@ -17,10 +17,10 @@
 
 tv.unittest.testSuite(function() { // @suppress longLineCheck
   var SystemStatsInstanceTrack = tv.e.system_stats.SystemStatsInstanceTrack;
-  var Viewport = tv.core.TimelineViewport;
+  var Viewport = tv.c.TimelineViewport;
 
   var createObjects = function() {
-    var objectInstance = new tv.core.trace_model.ObjectInstance({});
+    var objectInstance = new tv.c.trace_model.ObjectInstance({});
     var snapshots = [];
 
     var stats1 = new Object();
@@ -52,7 +52,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     this.addHTMLOutput(div);
 
     var viewport = new Viewport(div);
-    var drawingContainer = new tv.core.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = SystemStatsInstanceTrack(viewport);
@@ -61,7 +61,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     drawingContainer.appendChild(track);
 
     track.heading = 'testBasic';
-    var dt = new tv.core.TimelineDisplayTransform();
+    var dt = new tv.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });

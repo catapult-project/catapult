@@ -48,7 +48,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
               .getOrCreateCounter(null, name);
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {
-        ctr.addSeries(new tv.core.trace_model.CounterSeries('value',
+        ctr.addSeries(new tv.c.trace_model.CounterSeries('value',
             tv.ui.getStringColorId(ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {

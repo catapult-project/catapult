@@ -18,16 +18,16 @@ found in the LICENSE file.
   'use strict';
 
   tv.onPolymerReady(function() {
-    tv.core.registerAnalysisSubViewType(
+    tv.c.registerAnalysisSubViewType(
         0,
         function(selection) {
-          return selection[0] instanceof tv.core.trace_model.CounterSample;
+          return selection[0] instanceof tv.c.trace_model.CounterSample;
         },
         MultipleCounterSamplesAnalysisSubView);
   });
 
   (function() {
-    var CounterSample = tv.core.trace_model.CounterSample;
+    var CounterSample = tv.c.trace_model.CounterSample;
 
     Polymer({
       created: function() {
@@ -38,7 +38,7 @@ found in the LICENSE file.
         this.currentSelection_ = selection;
         this.textContent = '';
 
-        var results = new tv.core.analysis.AnalysisResults();
+        var results = new tv.c.analysis.AnalysisResults();
         this.appendChild(results);
         this.analyzeCounterSamples_(results, selection);
       },

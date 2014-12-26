@@ -14,11 +14,11 @@ found in the LICENSE file.
   <script>
   'use strict';
   tv.onPolymerReady(function() {
-    tv.core.registerAnalysisSubViewType(
+    tv.c.registerAnalysisSubViewType(
         0,
         function supported(selection) {
-          return selection[0] instanceof tv.core.trace_model.ObjectInstance ||
-              selection[0] instanceof tv.core.trace_model.ObjectSnapshot;
+          return selection[0] instanceof tv.c.trace_model.ObjectInstance ||
+              selection[0] instanceof tv.c.trace_model.ObjectSnapshot;
         },
         function constructView(selection) {
           if (selection.length != 1)
@@ -26,14 +26,14 @@ found in the LICENSE file.
 
           var event = selection[0];
           var typeName, viewBaseType, defaultViewConstructor;
-          if (event instanceof tv.core.trace_model.ObjectSnapshot) {
+          if (event instanceof tv.c.trace_model.ObjectSnapshot) {
             typeName = event.objectInstance.typeName;
-            viewBaseType = tv.core.analysis.ObjectSnapshotView;
-            defaultViewConstructor = tv.core.analysis.DefaultObjectSnapshotView;
-          } else if (event instanceof tv.core.trace_model.ObjectInstance) {
+            viewBaseType = tv.c.analysis.ObjectSnapshotView;
+            defaultViewConstructor = tv.c.analysis.DefaultObjectSnapshotView;
+          } else if (event instanceof tv.c.trace_model.ObjectInstance) {
             typeName = event.typeName;
-            viewBaseType = tv.core.analysis.ObjectInstanceView;
-            defaultViewConstructor = tv.core.analysis.DefaultObjectInstanceView;
+            viewBaseType = tv.c.analysis.ObjectInstanceView;
+            defaultViewConstructor = tv.c.analysis.DefaultObjectInstanceView;
           } else {
             throw new Error('Not recognized');
           }
@@ -60,7 +60,7 @@ found in the LICENSE file.
       if (selection.length === 0)
         return;
 
-      var results = new tv.core.analysis.AnalysisResults();
+      var results = new tv.c.analysis.AnalysisResults();
       this.appendChild(results);
 
       this.analyzeObjectEvents_(results, selection);
@@ -86,13 +86,13 @@ found in the LICENSE file.
         var ts;
         var objectText;
         var selectionGenerator;
-        if (event instanceof tv.core.trace_model.ObjectSnapshot) {
+        if (event instanceof tv.c.trace_model.ObjectSnapshot) {
           var objectSnapshot = event;
-          ts = tv.core.analysis.tsRound(objectSnapshot.ts);
+          ts = tv.c.analysis.tsRound(objectSnapshot.ts);
           objectText = objectSnapshot.objectInstance.typeName + ' ' +
               objectSnapshot.objectInstance.id;
           selectionGenerator = function() {
-            var selection = new tv.core.Selection();
+            var selection = new tv.c.Selection();
             selection.push(objectSnapshot);
             return selection;
           };
@@ -100,15 +100,15 @@ found in the LICENSE file.
           var objectInstance = event;
 
           var deletionTs = objectInstance.deletionTs == Number.MAX_VALUE ?
-              '' : tv.core.analysis.tsRound(objectInstance.deletionTs);
-          ts = tv.core.analysis.tsRound(objectInstance.creationTs) +
+              '' : tv.c.analysis.tsRound(objectInstance.deletionTs);
+          ts = tv.c.analysis.tsRound(objectInstance.creationTs) +
               '-' + deletionTs;
 
           objectText = objectInstance.typeName + ' ' +
               objectInstance.id;
 
           selectionGenerator = function() {
-            var selection = new tv.core.Selection();
+            var selection = new tv.c.Selection();
             selection.push(objectInstance);
             return selection;
           };

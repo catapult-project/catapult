@@ -132,7 +132,7 @@ found in the LICENSE file.
 tv.exportTo('tv.e.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
-  var RequestSelectionChangeEvent = tv.core.RequestSelectionChangeEvent;
+  var RequestSelectionChangeEvent = tv.c.RequestSelectionChangeEvent;
   var getColorOfKey = tv.ui.getColorOfKey;
 
   /**
@@ -331,7 +331,7 @@ tv.exportTo('tv.e.analysis', function() {
       var sample = selection[i];
       var id = sample.leafStackFrame.id;
       if (!stackFrameIdToSamples[id])
-        stackFrameIdToSamples[id] = new tv.core.Selection();
+        stackFrameIdToSamples[id] = new tv.c.Selection();
       stackFrameIdToSamples[id].push(sample);
     }
     return stackFrameIdToSamples;
@@ -468,7 +468,7 @@ tv.exportTo('tv.e.analysis', function() {
 
     getSamplesFromNode_: function(node) {
       // A node has samples associated with it, if it's a leaf node.
-      var selection = new tv.core.Selection();
+      var selection = new tv.c.Selection();
       if (node.leaf_node_id !== undefined) {
         selection.addSelection(this.stackFrameIdToSamples_[node.leaf_node_id]);
       }

@@ -19,10 +19,10 @@ tv.exportTo('tv.e.gpu', function() {
    */
   var StateSnapshotView = tv.ui.define(
       'gpu-state-snapshot-view',
-      tv.core.analysis.ObjectSnapshotView);
+      tv.c.analysis.ObjectSnapshotView);
 
   StateSnapshotView.prototype = {
-    __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
+    __proto__: tv.c.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('gpu-state-snapshot-view');
@@ -37,7 +37,7 @@ tv.exportTo('tv.e.gpu', function() {
       }
     }
   };
-  tv.core.analysis.ObjectSnapshotView.register(
+  tv.c.analysis.ObjectSnapshotView.register(
     StateSnapshotView,
     {typeName: 'gpu::State'});
 

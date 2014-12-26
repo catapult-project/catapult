@@ -14,12 +14,12 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Selection = tv.core.Selection;
-  var SliceTrack = tv.core.tracks.SliceTrack;
-  var Slice = tv.core.trace_model.Slice;
+  var Selection = tv.c.Selection;
+  var SliceTrack = tv.c.tracks.SliceTrack;
+  var Slice = tv.c.trace_model.Slice;
 
   test('addRectToSelectionTesting', function() {
-    var track = new SliceTrack(new tv.core.TimelineViewport());
+    var track = new SliceTrack(new tv.c.TimelineViewport());
     var slice = new Slice('', 'a', 0, 1, {}, 1);
     track.slices = [slice];
     var sel = new Selection();

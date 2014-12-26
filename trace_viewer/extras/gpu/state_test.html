@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('basic', function() {
-    var m = new tv.core.TraceModel(g_gpu_state_trace);
+    var m = new tv.c.TraceModel(g_gpu_state_trace);
     var p = tv.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('gpu::State')[0];

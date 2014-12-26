@@ -17,12 +17,12 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() { // @suppress longLineCheck
-  var Selection = tv.core.Selection;
-  var ObjectInstanceTrack = tv.core.tracks.ObjectInstanceTrack;
-  var Viewport = tv.core.TimelineViewport;
+  var Selection = tv.c.Selection;
+  var ObjectInstanceTrack = tv.c.tracks.ObjectInstanceTrack;
+  var Viewport = tv.c.TimelineViewport;
 
   var createObjects = function() {
-    var objects = new tv.core.trace_model.ObjectCollection({});
+    var objects = new tv.c.trace_model.ObjectCollection({});
     objects.idWasCreated('0x1000', 'tv.e.cc', 'Frame', 10);
     objects.addSnapshot('0x1000', 'tv.e.cc', 'Frame', 10, 'snapshot-1');
     objects.addSnapshot('0x1000', 'tv.e.cc', 'Frame', 25, 'snapshot-2');
@@ -39,13 +39,13 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     var objects = createObjects();
     var frames = objects.getAllInstancesByTypeName()['Frame'];
     frames[0].snapshots[1].selectionState =
-        tv.core.trace_model.SelectionState.SELECTED;
+        tv.c.trace_model.SelectionState.SELECTED;
 
     var div = document.createElement('div');
     this.addHTMLOutput(div);
 
     var viewport = new Viewport(div);
-    var drawingContainer = new tv.core.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = ObjectInstanceTrack(viewport);
@@ -54,7 +54,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
     track.heading = 'testBasic';
     track.objectInstances = frames;
-    var dt = new tv.core.TimelineDisplayTransform();
+    var dt = new tv.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
@@ -77,14 +77,14 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
         9.98, 9.99, 0.1, selection);
     assertEquals(1, selection.length);
-    assertTrue(selection[0] instanceof tv.core.trace_model.ObjectSnapshot);
+    assertTrue(selection[0] instanceof tv.c.trace_model.ObjectSnapshot);
 
     // Hit the instance, between the 1st and 2nd snapshots
     selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
         20, 20.1, 0.1, selection);
     assertEquals(1, selection.length);
-    assertTrue(selection[0] instanceof tv.core.trace_model.ObjectInstance);
+    assertTrue(selection[0] instanceof tv.c.trace_model.ObjectInstance);
   });
 
   test('addItemNearToProvidedEventToSelection', function() {
@@ -94,7 +94,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     var track = ObjectInstanceTrack(new Viewport());
     track.objectInstances = frames;
 
-    var instance = new tv.core.trace_model.ObjectInstance(
+    var instance = new tv.c.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);
 
     assertDoesNotThrow(function() {

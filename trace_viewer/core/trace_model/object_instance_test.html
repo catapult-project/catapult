@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('getSnapshotAtWithImplicitCreation', function() {
-    var instance = new tv.core.trace_model.ObjectInstance(
+    var instance = new tv.c.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);
     var s10 = instance.addSnapshot(10, 'a');
     instance.addSnapshot(40, 'b');
@@ -33,7 +33,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('getSnapshotAtWithExplicitCreation', function() {
-    var instance = new tv.core.trace_model.ObjectInstance(
+    var instance = new tv.c.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);
     instance.creationTsWasExplicit = true;
     instance.addSnapshot(10, 'a');
@@ -49,7 +49,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('getSnapshotBeforeFirstSnapshot', function() {
-    var instance = new tv.core.trace_model.ObjectInstance(
+    var instance = new tv.c.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);
     var s15 = instance.addSnapshot(15, 'a');
     instance.wasDeleted(40);
@@ -58,7 +58,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('getSnapshotAfterLastSnapshot', function() {
-    var instance = new tv.core.trace_model.ObjectInstance(
+    var instance = new tv.c.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);
     var s15 = instance.addSnapshot(15, 'a');
     instance.wasDeleted(40);

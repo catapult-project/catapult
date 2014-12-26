@@ -18,10 +18,10 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the ProcessBase class.
  */
-tv.exportTo('tv.core.trace_model', function() {
+tv.exportTo('tv.c.trace_model', function() {
 
-  var Thread = tv.core.trace_model.Thread;
-  var Counter = tv.core.trace_model.Counter;
+  var Thread = tv.c.trace_model.Thread;
+  var Counter = tv.c.trace_model.Counter;
 
   /**
    * The ProcessBase is a partial base class, upon which Kernel
@@ -36,7 +36,7 @@ tv.exportTo('tv.core.trace_model', function() {
     this.model = model;
     this.threads = {};
     this.counters = {};
-    this.objects = new tv.core.trace_model.ObjectCollection(this);
+    this.objects = new tv.c.trace_model.ObjectCollection(this);
     this.bounds = new tv.Range();
     this.sortIndex = 0;
   };

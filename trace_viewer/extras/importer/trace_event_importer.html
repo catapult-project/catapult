@@ -23,7 +23,7 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.e.importer', function() {
 
-  var Importer = tv.core.importer.Importer;
+  var Importer = tv.c.importer.Importer;
 
   function deepCopy(value) {
     if (!(value instanceof Object)) {
@@ -206,7 +206,7 @@ tv.exportTo('tv.e.importer', function() {
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {
         for (var seriesName in event.args) {
-          ctr.addSeries(new tv.core.trace_model.CounterSeries(seriesName,
+          ctr.addSeries(new tv.c.trace_model.CounterSeries(seriesName,
               tv.ui.getStringColorId(ctr.name + '.' + seriesName)));
         }
 
@@ -340,16 +340,16 @@ tv.exportTo('tv.e.importer', function() {
       var constructor;
       switch (event.s) {
         case 'g':
-          constructor = tv.core.trace_model.GlobalInstantEvent;
+          constructor = tv.c.trace_model.GlobalInstantEvent;
           break;
         case 'p':
-          constructor = tv.core.trace_model.ProcessInstantEvent;
+          constructor = tv.c.trace_model.ProcessInstantEvent;
           break;
         case 't':
           // fall through
         default:
           // Default to thread to support old style input files.
-          constructor = tv.core.trace_model.ThreadInstantEvent;
+          constructor = tv.c.trace_model.ThreadInstantEvent;
           break;
       }
 
@@ -358,16 +358,16 @@ tv.exportTo('tv.e.importer', function() {
           colorId, event.ts / 1000, this.deepCopyIfNeeded_(event.args));
 
       switch (instantEvent.type) {
-        case tv.core.trace_model.InstantEventType.GLOBAL:
+        case tv.c.trace_model.InstantEventType.GLOBAL:
           this.model_.pushInstantEvent(instantEvent);
           break;
 
-        case tv.core.trace_model.InstantEventType.PROCESS:
+        case tv.c.trace_model.InstantEventType.PROCESS:
           var process = this.model_.getOrCreateProcess(event.pid);
           process.pushInstantEvent(instantEvent);
           break;
 
-        case tv.core.trace_model.InstantEventType.THREAD:
+        case tv.c.trace_model.InstantEventType.THREAD:
           var thread = this.model_.getOrCreateProcess(event.pid)
               .getOrCreateThread(event.tid);
           thread.sliceGroup.pushInstantEvent(instantEvent);
@@ -383,13 +383,13 @@ tv.exportTo('tv.e.importer', function() {
         .getOrCreateThread(event.tid);
 
       var id = 'te-' + tv.GUID.allocate();
-      var stackFrame = new tv.core.trace_model.StackFrame(
+      var stackFrame = new tv.c.trace_model.StackFrame(
           undefined, id,
           event.cat, event.name,
           tv.ui.getStringColorId(event.name));
       this.model_.addStackFrame(stackFrame);
 
-      var sample = new tv.core.trace_model.Sample(
+      var sample = new tv.c.trace_model.Sample(
           undefined, thread, 'TRACE_EVENT_SAMPLE',
           event.ts / 1000, stackFrame, 1,
           this.deepCopyIfNeeded_(event.args));
@@ -454,7 +454,7 @@ tv.exportTo('tv.e.importer', function() {
       for (var id in events) {
         var event = events[id];
         var textForColor = event.category ? event.category : event.name;
-        var frame = new tv.core.trace_model.StackFrame(
+        var frame = new tv.c.trace_model.StackFrame(
             undefined, id,
             event.category, event.name,
             tv.ui.getStringColorId(textForColor));
@@ -538,7 +538,7 @@ tv.exportTo('tv.e.importer', function() {
           continue;
         }
 
-        var sample = new tv.core.trace_model.Sample(
+        var sample = new tv.c.trace_model.Sample(
             cpu, thread,
             event.name, event.ts / 1000,
             stackFrame,
@@ -702,7 +702,7 @@ tv.exportTo('tv.e.importer', function() {
           }
 
           var asyncSliceConstructor =
-             tv.core.trace_model.AsyncSlice.getConstructor(
+             tv.c.trace_model.AsyncSlice.getConstructor(
                 eventStateEntry.event.cat,
                 eventStateEntry.event.name);
           var slice = new asyncSliceConstructor(
@@ -810,7 +810,7 @@ tv.exportTo('tv.e.importer', function() {
           if (event.ph === 'F') {
             // Create a slice from start to end.
             var asyncSliceConstructor =
-               tv.core.trace_model.AsyncSlice.getConstructor(
+               tv.c.trace_model.AsyncSlice.getConstructor(
                   events[0].event.cat,
                   name);
             var slice = new asyncSliceConstructor(
@@ -866,7 +866,7 @@ tv.exportTo('tv.e.importer', function() {
                 subName = subName + ':' + events[j].event.args.step;
 
               var asyncSliceConstructor =
-                 tv.core.trace_model.AsyncSlice.getConstructor(
+                 tv.c.trace_model.AsyncSlice.getConstructor(
                     events[0].event.cat,
                     subName);
               var subSlice = new asyncSliceConstructor(
@@ -941,7 +941,7 @@ tv.exportTo('tv.e.importer', function() {
           continue;
         }
 
-        var slice = new tv.core.trace_model.FlowEvent(
+        var slice = new tv.c.trace_model.FlowEvent(
             event.cat,
             event.id,
             event.name,
@@ -1125,7 +1125,7 @@ tv.exportTo('tv.e.importer', function() {
           return;
 
         if (referencingObjectFieldValue instanceof
-            tv.core.trace_model.ObjectSnapshot)
+            tv.c.trace_model.ObjectSnapshot)
           return null;
         if (referencingObjectFieldValue.id === undefined)
           return;
@@ -1170,7 +1170,7 @@ tv.exportTo('tv.e.importer', function() {
         res.containingSnapshot = containingSnapshot;
         res.snapshottedOnThread = containingSnapshot.snapshottedOnThread;
         referencingObject[referencingObjectFieldName] = res;
-        if (!(res instanceof tv.core.trace_model.ObjectSnapshot))
+        if (!(res instanceof tv.c.trace_model.ObjectSnapshot))
           throw new Error('Created object must be instanceof snapshot');
         return res.args;
       }
@@ -1283,7 +1283,7 @@ tv.exportTo('tv.e.importer', function() {
         if (!(object instanceof Object))
           return;
 
-        if ((object instanceof tv.core.trace_model.ObjectSnapshot) ||
+        if ((object instanceof tv.c.trace_model.ObjectSnapshot) ||
             (object instanceof Float32Array) ||
             (object instanceof tv.Quad))
           return;
@@ -1307,7 +1307,7 @@ tv.exportTo('tv.e.importer', function() {
     }
   };
 
-  tv.core.importer.Importer.register(TraceEventImporter);
+  tv.c.importer.Importer.register(TraceEventImporter);
 
   return {
     TraceEventImporter: TraceEventImporter

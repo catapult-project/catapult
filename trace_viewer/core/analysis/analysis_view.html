@@ -134,7 +134,7 @@ using custom elements specialized for different event types.
       },
 
       findSubViewForEventsOfSingleType_: function(selection) {
-        var supportedSubViewTypes = tv.core.getAnalysisSubViewTypes().filter(
+        var supportedSubViewTypes = tv.c.getAnalysisSubViewTypes().filter(
             function(subViewType) {
               return subViewType.supportsSelectionPredicate(selection);
             });

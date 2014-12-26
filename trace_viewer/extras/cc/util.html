@@ -98,8 +98,8 @@ tv.exportTo('tv.e.cc', function() {
     }
 
     if (hasRecursed &&
-        (object instanceof tv.core.trace_model.ObjectSnapshot ||
-         object instanceof tv.core.trace_model.ObjectInstance))
+        (object instanceof tv.c.trace_model.ObjectSnapshot ||
+         object instanceof tv.c.trace_model.ObjectInstance))
       return;
 
     for (var key in object) {

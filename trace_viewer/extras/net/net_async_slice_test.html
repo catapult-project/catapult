@@ -12,7 +12,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var AsyncSlice = tv.core.trace_model.AsyncSlice;
+  var AsyncSlice = tv.c.trace_model.AsyncSlice;
   var NetAsyncSlice = tv.e.net.NetAsyncSlice;
 
   test('basic', function() {
@@ -31,7 +31,7 @@ tv.unittest.testSuite(function() {
       {name: 'HTTP_STREAM_JOB', args: {}, pid: 1, ts: 200, cat: 'netlog', tid: 2,
         ph: 'e', id: 71}
     ];
-    var m = new tv.core.TraceModel(events);
+    var m = new tv.c.TraceModel(events);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     assertEquals(1, t2.asyncSliceGroup.length);
     assertTrue(t2.asyncSliceGroup.slices[0] instanceof NetAsyncSlice);

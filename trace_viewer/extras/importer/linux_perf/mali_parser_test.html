@@ -181,9 +181,9 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
           'gles/src/dispatch/mali_gles_dispatch_entrypoints.c@992'
     ];
     var traceNoThread =
-        new tv.core.TraceModel(linesNoThread.join('\n'), false);
+        new tv.c.TraceModel(linesNoThread.join('\n'), false);
     var traceWithThread =
-        new tv.core.TraceModel(linesWithThread.join('\n'), false);
+        new tv.c.TraceModel(linesWithThread.join('\n'), false);
     assertFalse(traceNoThread.hasImportWarnings);
     assertFalse(traceWithThread.hasImportWarnings);
 
@@ -207,7 +207,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '     kworker/u:0-5     [000] ....  1183.840486: mali_dvfs_set_clock: ' +
                      'frequency=400'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
@@ -225,7 +225,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '    kworker/u:0-5     [000] ....  1183.840009: mali_dvfs_set_voltage: ' +
                      'voltage=1100000'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
@@ -243,7 +243,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '     kworker/u:0-5     [000] ....  1183.840486: mali_dvfs_event: ' +
                      'utilization=37'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
@@ -463,7 +463,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '     kworker/u:0-5     [000] ....    79.046851: ' +
                      'mali_hwc_VCACHE_MISS: val=70'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();

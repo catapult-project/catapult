@@ -68,7 +68,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
           pid, pid);
       if (kthread.openSlice) {
-        var slice = new tv.core.trace_model.Slice('', kthread.openSlice,
+        var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
             tv.ui.getStringColorId(kthread.openSlice),
             kthread.openSliceTS,
             {},

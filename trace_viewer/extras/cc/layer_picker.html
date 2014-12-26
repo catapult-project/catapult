@@ -206,7 +206,7 @@ tv.exportTo('tv.e.cc', function() {
 
         if (id == selectedRenderPassId) {
           renderPass.selectionState =
-              tv.core.trace_model.SelectionState.SELECTED;
+              tv.c.trace_model.SelectionState.SELECTED;
         }
       }, this);
     },
@@ -246,7 +246,7 @@ tv.exportTo('tv.e.cc', function() {
           this.itemList_.appendChild(item);
 
           if (layer.layerId == selectedLayerId) {
-            layer.selectionState = tv.core.trace_model.SelectionState.SELECTED;
+            layer.selectionState = tv.c.trace_model.SelectionState.SELECTED;
             item.selected = true;
           }
         }, this);

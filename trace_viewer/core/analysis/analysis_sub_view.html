@@ -22,7 +22,7 @@ found in the LICENSE file.
      * subview types when handling a selection.
      */
     var subViewTypes = [];
-    tv.core.registerAnalysisSubViewType = function(
+    tv.c.registerAnalysisSubViewType = function(
         importance, supportsSelectionPredicate, viewConstructor, opt_options) {
       var options;
       if (opt_options) {
@@ -39,7 +39,7 @@ found in the LICENSE file.
         options: options
       });
     }
-    tv.core.getAnalysisSubViewTypes = function() {
+    tv.c.getAnalysisSubViewTypes = function() {
       return subViewTypes;
     }
   })();

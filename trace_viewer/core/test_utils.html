@@ -16,14 +16,14 @@ found in the LICENSE file.
 /**
  * @fileoverview Helper functions for use in tracing tests.
  */
-tv.exportTo('tv.core.test_utils', function() {
+tv.exportTo('tv.c.test_utils', function() {
   function newAsyncSlice(start, duration, startThread, endThread) {
     return newAsyncSliceNamed('a', start, duration, startThread, endThread);
   }
 
   function newAsyncSliceNamed(name, start, duration, startThread, endThread) {
     var asyncSliceConstructor =
-        tv.core.trace_model.AsyncSlice.getConstructor('', name);
+        tv.c.trace_model.AsyncSlice.getConstructor('', name);
 
     var s = new asyncSliceConstructor('', name, 0, start);
     s.duration = duration;
@@ -37,12 +37,12 @@ tv.exportTo('tv.core.test_utils', function() {
   }
 
   function newCounterNamed(parent, name) {
-    var s = new tv.core.trace_model.Counter(parent, name, null, name);
+    var s = new tv.c.trace_model.Counter(parent, name, null, name);
     return s;
   }
 
   function newCounterCategory(parent, category, name) {
-    var s = new tv.core.trace_model.Counter(parent, name, category, name);
+    var s = new tv.c.trace_model.Counter(parent, name, category, name);
     return s;
   }
 
@@ -51,12 +51,12 @@ tv.exportTo('tv.core.test_utils', function() {
   }
 
   function newSliceNamed(name, start, duration) {
-    var s = new tv.core.trace_model.Slice('', name, 0, start, {}, duration);
+    var s = new tv.c.trace_model.Slice('', name, 0, start, {}, duration);
     return s;
   }
 
   function newSampleNamed(thread, sampleName, category, frameNames, start) {
-    var s = new tv.core.trace_model.Sample(undefined, thread,
+    var s = new tv.c.trace_model.Sample(undefined, thread,
                                            sampleName, start,
                                            newStackTrace(category, frameNames),
                                            1);
@@ -64,7 +64,7 @@ tv.exportTo('tv.core.test_utils', function() {
   }
 
   function newSliceCategory(category, name, start, duration) {
-    var s = new tv.core.trace_model.Slice(
+    var s = new tv.c.trace_model.Slice(
         category, name, 0, start, {}, duration);
     return s;
   }
@@ -72,13 +72,13 @@ tv.exportTo('tv.core.test_utils', function() {
   function newStackTrace(category, titles) {
     var frame = undefined;
     for (var i = 0; i < titles.length; i++)
-      frame = new tv.core.trace_model.StackFrame(frame, tv.GUID.allocate(),
+      frame = new tv.c.trace_model.StackFrame(frame, tv.GUID.allocate(),
                                                  category, titles[i], 7);
     return frame;
   }
 
   function findSliceNamed(slices, name) {
-    if (slices instanceof tv.core.trace_model.SliceGroup)
+    if (slices instanceof tv.c.trace_model.SliceGroup)
       slices = slices.slices;
     for (var i = 0; i < slices.length; i++)
       if (slices[i].title == name)

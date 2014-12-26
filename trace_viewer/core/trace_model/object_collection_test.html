@@ -13,22 +13,22 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() { // @suppress longLineCheck
   var TestObjectInstance = function(parent, id, category, name, creationTs) {
-    tv.core.trace_model.ObjectInstance.call(
+    tv.c.trace_model.ObjectInstance.call(
         this, parent, id, category, name, creationTs);
   };
 
   TestObjectInstance.prototype = {
-    __proto__: tv.core.trace_model.ObjectInstance.prototype
+    __proto__: tv.c.trace_model.ObjectInstance.prototype
   };
 
   test('objectInstanceSubtype', function() {
     // Register that TestObjects are bound to TestObjectInstance.
-    tv.core.trace_model.ObjectInstance.register(
+    tv.c.trace_model.ObjectInstance.register(
         TestObjectInstance,
         {typeName: 'TestObject'});
 
     try {
-      var collection = new tv.core.trace_model.ObjectCollection({ });
+      var collection = new tv.c.trace_model.ObjectCollection({ });
       collection.idWasCreated(
           '0x1000', 'tv.e.cc', 'Frame', 10);
       collection.idWasDeleted(
@@ -39,19 +39,19 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
           '0x1000', 'skia', 'TestObject', 25);
 
       var testFrame = collection.getObjectInstanceAt('0x1000', 10);
-      assertTrue(testFrame instanceof tv.core.trace_model.ObjectInstance);
+      assertTrue(testFrame instanceof tv.c.trace_model.ObjectInstance);
       assertFalse(testFrame instanceof TestObjectInstance);
 
       var testObject = collection.getObjectInstanceAt('0x1000', 20);
-      assertTrue(testObject instanceof tv.core.trace_model.ObjectInstance);
+      assertTrue(testObject instanceof tv.c.trace_model.ObjectInstance);
       assertTrue(testObject instanceof TestObjectInstance);
     } finally {
-      tv.core.trace_model.ObjectInstance.unregister(TestObjectInstance);
+      tv.c.trace_model.ObjectInstance.unregister(TestObjectInstance);
     }
   });
 
   test('twoSnapshots', function() {
-    var collection = new tv.core.trace_model.ObjectCollection({});
+    var collection = new tv.c.trace_model.ObjectCollection({});
     collection.idWasCreated(
         '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
@@ -82,7 +82,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('twoObjectsSharingOneID', function() {
-    var collection = new tv.core.trace_model.ObjectCollection({});
+    var collection = new tv.c.trace_model.ObjectCollection({});
     collection.idWasCreated(
         '0x1000', 'tv.e.cc', 'Frame', 10);
     collection.idWasDeleted(
@@ -114,7 +114,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('createSnapDelete', function() {
-    var collection = new tv.core.trace_model.ObjectCollection({});
+    var collection = new tv.c.trace_model.ObjectCollection({});
     collection.idWasCreated(
         '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
@@ -133,7 +133,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('boundsOnUndeletedObject', function() {
-    var collection = new tv.core.trace_model.ObjectCollection({});
+    var collection = new tv.c.trace_model.ObjectCollection({});
     collection.idWasCreated(
         '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
@@ -145,7 +145,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('snapshotWithCustomBaseTypeThenDelete', function() {
-    var collection = new tv.core.trace_model.ObjectCollection({});
+    var collection = new tv.c.trace_model.ObjectCollection({});
     var s10 = collection.addSnapshot(
         '0x1000', 'cat', 'cc::PictureLayerImpl', 10, {}, 'cc::LayerImpl');
     collection.idWasDeleted(
@@ -158,7 +158,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('newWithSnapshotThatChangesBaseType', function() {
-    var collection = new tv.core.trace_model.ObjectCollection({});
+    var collection = new tv.c.trace_model.ObjectCollection({});
     var i10 = collection.idWasCreated(
         '0x1000', 'cat', 'cc::LayerImpl', 10);
     var s15 = collection.addSnapshot(
@@ -172,7 +172,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('deleteThenSnapshotWithCustomBase', function() {
-    var collection = new tv.core.trace_model.ObjectCollection({});
+    var collection = new tv.c.trace_model.ObjectCollection({});
     collection.idWasDeleted(
         '0x1000', 'cat', 'cc::LayerImpl', 10);
     var s15 = collection.addSnapshot(
@@ -184,7 +184,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('autoDelete', function() {
-    var collection = new tv.core.trace_model.ObjectCollection({});
+    var collection = new tv.c.trace_model.ObjectCollection({});
     collection.idWasCreated(
         '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(

@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.core', function() {
+tv.exportTo('tv.c', function() {
   /*
    * @constructor Base type for side panels.
    */
@@ -50,7 +50,7 @@ tv.exportTo('tv.core', function() {
 
   // Type registry.
   var options = new tv.ExtensionRegistryOptions(tv.BASIC_REGISTRY_MODE);
-  options.mandatoryBaseClass = tv.core.SidePanel;
+  options.mandatoryBaseClass = tv.c.SidePanel;
   options.defaultMetadata = {
     textLabel: '<Unknown>',
     supportsModel: function(model) {

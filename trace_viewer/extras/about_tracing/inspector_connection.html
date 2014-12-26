@@ -64,11 +64,11 @@ tv.exportTo('tv.e.about_tracing', function() {
     },
 
     dispatchMessage_: function(payload) {
-      // Special handling for tv.core.dataCollected because it is high
+      // Special handling for tv.c.dataCollected because it is high
       // bandwidth.
-      if (payload.indexOf('"method": "tv.core.dataCollected"') !== -1) {
+      if (payload.indexOf('"method": "tv.c.dataCollected"') !== -1) {
         var listener = this.notificationListenersByMethodName_[
-            'tv.core.dataCollected'];
+            'tv.c.dataCollected'];
         if (listener) {
           listener(payload);
           return;

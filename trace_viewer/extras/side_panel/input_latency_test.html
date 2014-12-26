@@ -31,7 +31,7 @@ tv.unittest.testSuite(function() {
       events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : end_ts, 'ph' : 'F', 'name' : 'InputLatency', 'args' : {'data' : {'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT' : {'time' : start_ts}, 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT' : {'time' : end_ts}}}, 'id' : i}); // @suppress longLineCheck
     }
 
-    var m = new tv.core.TraceModel(events);
+    var m = new tv.c.TraceModel(events);
     var latencyData = tv.e.analysis.getLatencyData(m, m.bounds);
     assertEquals(10, latencyData.length);
     for (var i = 0; i < latencyData.length; i++) {
@@ -71,7 +71,7 @@ tv.unittest.testSuite(function() {
       frame_ts += 16000 + 1000 * (i % 2);
     }
 
-    var m = new tv.core.TraceModel(events);
+    var m = new tv.c.TraceModel(events);
     var panel = new tv.e.analysis.InputLatencySidePanel();
 
     // Testing browser impl and main rendering stats.
@@ -175,7 +175,7 @@ tv.unittest.testSuite(function() {
     this.addHTMLOutput(panel);
 
     var selectionChanged = false;
-    panel.model = new tv.core.TraceModel(events);
+    panel.model = new tv.c.TraceModel(events);
     function listener(e) {
       selectionChanged = true;
       assertEquals(3, e.selection.length);

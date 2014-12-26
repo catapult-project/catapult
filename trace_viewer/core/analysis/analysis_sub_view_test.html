@@ -17,7 +17,7 @@ tv.unittest.testSuite(function() {
 
     var errorCaught = false;
     try {
-      subView.selection = new tv.core.Selection();
+      subView.selection = new tv.c.Selection();
     } catch(error) {
       if (error.message === 'Not implemented!')
         errorCaught = true;

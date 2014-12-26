@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     traces.push(atob(text));
   }
 
-  var m = new tv.core.TraceModel();
+  var m = new tv.c.TraceModel();
   var p = m.importTracesWithProgressDialog(traces, true);
   p.then(
       function() {

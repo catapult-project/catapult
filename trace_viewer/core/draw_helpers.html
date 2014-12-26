@@ -16,10 +16,10 @@ found in the LICENSE file.
  * @fileoverview Provides various helper methods for drawing to a provided
  * canvas.
  */
-tv.exportTo('tv.core', function() {
-  var elidedTitleCache = new tv.core.ElidedTitleCache();
+tv.exportTo('tv.c', function() {
+  var elidedTitleCache = new tv.c.ElidedTitleCache();
   var palette = tv.ui.getColorPalette();
-  var EventPresenter = tv.core.EventPresenter;
+  var EventPresenter = tv.c.EventPresenter;
 
   /**
    * This value is used to allow for consistent style UI elements.
@@ -156,7 +156,7 @@ tv.exportTo('tv.core', function() {
     ctx.save();
     dt.applyTransformToCanvas(ctx);
 
-    var tr = new tv.core.FastRectRenderer(
+    var tr = new tv.c.FastRectRenderer(
         ctx, 2 * pixWidth, 2 * pixWidth, palette);
     tr.setYandH(0, height);
 

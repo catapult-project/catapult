@@ -83,7 +83,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     i915FlipCloseSlice: function(ts, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_flip');
       if (kthread.openSlice) {
-        var slice = new tv.core.trace_model.Slice('', kthread.openSlice,
+        var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
             tv.ui.getStringColorId(kthread.openSlice),
             kthread.openSliceTS,
             args,
@@ -97,7 +97,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     i915GemObjectSlice: function(ts, eventName, obj, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem');
       kthread.openSlice = eventName + ':' + obj;
-      var slice = new tv.core.trace_model.Slice('', kthread.openSlice,
+      var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
           tv.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
@@ -106,7 +106,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     i915GemRingSlice: function(ts, eventName, dev, ring, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem_ring');
       kthread.openSlice = eventName + ':' + dev + '.' + ring;
-      var slice = new tv.core.trace_model.Slice('', kthread.openSlice,
+      var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
           tv.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
@@ -115,7 +115,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     i915RegSlice: function(ts, eventName, reg, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_reg');
       kthread.openSlice = eventName + ':' + reg;
-      var slice = new tv.core.trace_model.Slice('', kthread.openSlice,
+      var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
           tv.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);

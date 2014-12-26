@@ -13,14 +13,14 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var StackFrame = tv.core.trace_model.StackFrame;
-  var Sample = tv.core.trace_model.Sample;
+  var StackFrame = tv.c.trace_model.StackFrame;
+  var Sample = tv.c.trace_model.Sample;
 
-  var newSliceNamed = tv.core.test_utils.newSliceNamed;
+  var newSliceNamed = tv.c.test_utils.newSliceNamed;
 
   function createSelection() {
-    var selection = new tv.core.Selection();
-    var model = new tv.core.TraceModel();
+    var selection = new tv.c.Selection();
+    var model = new tv.c.TraceModel();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
 
@@ -107,8 +107,8 @@ tv.unittest.testSuite(function() {
   });
 
   test('processOnlySamples', function() {
-    var selection = new tv.core.Selection();
-    var model = new tv.core.TraceModel();
+    var selection = new tv.c.Selection();
+    var model = new tv.c.TraceModel();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
 

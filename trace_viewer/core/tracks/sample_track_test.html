@@ -15,13 +15,13 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Selection = tv.core.Selection;
-  var SampleTrack = tv.core.tracks.SampleTrack;
-  var Sample = tv.core.trace_model.Sample;
-  var StackFrame = tv.core.trace_model.StackFrame;
+  var Selection = tv.c.Selection;
+  var SampleTrack = tv.c.tracks.SampleTrack;
+  var Sample = tv.c.trace_model.Sample;
+  var StackFrame = tv.c.trace_model.StackFrame;
 
   test('addRectToSelectionTesting', function() {
-    var track = new SampleTrack(new tv.core.TimelineViewport());
+    var track = new SampleTrack(new tv.c.TimelineViewport());
     var fA = new StackFrame(undefined, 1, 'cat', 'a', 7);
     var sample = new Sample(undefined, undefined, 'instructions_retired',
                             10, fA, 10);

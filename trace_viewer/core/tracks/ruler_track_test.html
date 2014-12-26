@@ -18,15 +18,15 @@ tv.unittest.testSuite(function() {
     var div = document.createElement('div');
     this.addHTMLOutput(div);
 
-    var viewport = new tv.core.TimelineViewport(div);
-    var drawingContainer = new tv.core.tracks.DrawingContainer(viewport);
+    var viewport = new tv.c.TimelineViewport(div);
+    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
-    var track = tv.core.tracks.RulerTrack(viewport);
+    var track = tv.c.tracks.RulerTrack(viewport);
     drawingContainer.appendChild(track);
     drawingContainer.invalidate();
 
-    var dt = new tv.core.TimelineDisplayTransform();
+    var dt = new tv.c.TimelineDisplayTransform();
     dt.setPanAndScale(0, track.clientWidth / 1000);
     track.viewport.setDisplayTransformImmediately(dt);
   });

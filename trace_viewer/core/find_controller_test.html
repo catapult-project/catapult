@@ -24,8 +24,8 @@ tv.unittest.testSuite(function() {
     decorate: function() {
       this.addAllObjectsMatchingFilterToSelectionReturnValue = [];
 
-      this.selection = new tv.core.Selection();
-      this.highlight = new tv.core.Selection();
+      this.selection = new tv.c.Selection();
+      this.highlight = new tv.c.Selection();
       this.keyHelp = '<keyHelp>';
 
       // Put some simple UI in for testing purposes.
@@ -61,18 +61,18 @@ tv.unittest.testSuite(function() {
   };
 
   test('findControllerNoTimeline', function() {
-    var controller = new tv.core.FindController();
+    var controller = new tv.c.FindController();
     controller.findNext();
     controller.findPrevious();
   });
 
   test('findControllerEmptyHit', function() {
     var timeline = new FakeTimeline();
-    var controller = new tv.core.FindController();
+    var controller = new tv.c.FindController();
     controller.timeline = timeline;
 
-    timeline.selection = new tv.core.Selection();
-    timeline.highlight = new tv.core.Selection();
+    timeline.selection = new tv.c.Selection();
+    timeline.highlight = new tv.c.Selection();
     controller.findNext();
     assertArrayShallowEquals([], timeline.selection);
     assertArrayShallowEquals([], timeline.highlight);
@@ -83,7 +83,7 @@ tv.unittest.testSuite(function() {
 
   test('findControllerOneHit', function() {
     var timeline = new FakeTimeline();
-    var controller = new tv.core.FindController();
+    var controller = new tv.c.FindController();
     controller.timeline = timeline;
 
     var s1 = {guid: 1};
@@ -105,7 +105,7 @@ tv.unittest.testSuite(function() {
 
   test('findControllerMultipleHits', function() {
     var timeline = new FakeTimeline();
-    var controller = new tv.core.FindController();
+    var controller = new tv.c.FindController();
     controller.timeline = timeline;
 
     var s1 = {guid: 1};
@@ -135,7 +135,7 @@ tv.unittest.testSuite(function() {
 
   test('findControllerChangeFilterAfterNext', function() {
     var timeline = new FakeTimeline();
-    var controller = new tv.core.FindController();
+    var controller = new tv.c.FindController();
     controller.timeline = timeline;
 
     var s1 = {guid: 1};
@@ -156,7 +156,7 @@ tv.unittest.testSuite(function() {
 
   test('findControllerSelectsAllItemsFirst', function() {
     var timeline = new FakeTimeline();
-    var controller = new tv.core.FindController();
+    var controller = new tv.c.FindController();
     controller.timeline = timeline;
 
     var s1 = {guid: 1};
@@ -174,16 +174,16 @@ tv.unittest.testSuite(function() {
   });
 
   test('findControllerWithRealTimeline', function() {
-    var model = new tv.core.TraceModel();
+    var model = new tv.c.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
-    t1.sliceGroup.pushSlice(new tv.core.trace_model.ThreadSlice(
+    t1.sliceGroup.pushSlice(new tv.c.trace_model.ThreadSlice(
         '', 'a', 0, 1, {}, 3));
 
-    var timeline = new tv.core.TimelineTrackView();
+    var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
-    var controller = new tv.core.FindController();
+    var controller = new tv.c.FindController();
     controller.timeline = timeline;
 
     // Test find with no filterText.

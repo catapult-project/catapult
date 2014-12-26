@@ -18,9 +18,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Code for the viewport.
  */
-tv.exportTo('tv.core', function() {
-  var TimelineDisplayTransform = tv.core.TimelineDisplayTransform;
-  var TimelineInterestRange = tv.core.TimelineInterestRange;
+tv.exportTo('tv.c', function() {
+  var TimelineDisplayTransform = tv.c.TimelineDisplayTransform;
+  var TimelineInterestRange = tv.c.TimelineInterestRange;
 
   /**
    * The TimelineViewport manages the transform used for navigating
@@ -327,7 +327,7 @@ tv.exportTo('tv.core', function() {
       ctx.beginPath();
       for (var idx in this.majorMarkPositions) {
         var x = Math.floor(this.majorMarkPositions[idx]);
-        tv.core.drawLine(ctx, x, 0, x, ctx.canvas.height);
+        tv.c.drawLine(ctx, x, 0, x, ctx.canvas.height);
       }
       ctx.strokeStyle = '#ddd';
       ctx.stroke();
@@ -353,7 +353,7 @@ tv.exportTo('tv.core', function() {
           // Do conversion to viewspace here rather than on
           // x to avoid precision issues.
           var vx = Math.floor(dt.xWorldToView(x));
-          tv.core.drawLine(ctx, vx, 0, vx, ctx.canvas.height);
+          tv.c.drawLine(ctx, vx, 0, vx, ctx.canvas.height);
         }
 
         x += this.gridStep;

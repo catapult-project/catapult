@@ -101,7 +101,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       this.infoBarGroup_ = this.querySelector('x-info-bar-group');
 
       tv.ui.decorate(this.infoBarGroup_, tv.ui.InfoBarGroup);
-      tv.ui.decorate(this.timelineView_, tv.core.TimelineView);
+      tv.ui.decorate(this.timelineView_, tv.c.TimelineView);
 
       // Detach the buttons. We will reattach them to the timeline view.
       // TODO(nduca): Make <timeline-view> have a <content select="x-buttons">
@@ -340,7 +340,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       this.uploadButton_.disabled = false;
       this.timelineView_.viewTitle = filename;
 
-      var m = new tv.core.TraceModel();
+      var m = new tv.c.TraceModel();
       var p = m.importTracesWithProgressDialog([data], true);
       p.then(
           function() {

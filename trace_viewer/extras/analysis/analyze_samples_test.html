@@ -15,11 +15,11 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Model = tv.core.TraceModel;
-  var Selection = tv.core.Selection;
+  var Model = tv.c.TraceModel;
+  var Selection = tv.c.Selection;
   var AnalysisView = TracingAnalysisView;
-  var StubAnalysisResults = tv.core.analysis.StubAnalysisResults;
-  var newSampleNamed = tv.core.test_utils.newSampleNamed;
+  var StubAnalysisResults = tv.c.analysis.StubAnalysisResults;
+  var newSampleNamed = tv.c.test_utils.newSampleNamed;
 
   var createSelectionWithSingleSample = function() {
     var model = new Model();

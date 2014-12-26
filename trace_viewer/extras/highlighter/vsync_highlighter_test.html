@@ -19,7 +19,7 @@ tv.unittest.testSuite(function() {
   var VIEW_R_WORLD = 1000;
 
   function buildModel(slices) {
-    var model = new tv.core.TraceModel();
+    var model = new tv.c.TraceModel();
     var process = model.getOrCreateProcess(0);
     for (var i = 0; i < slices.length; i++) {
       var thread = process.getOrCreateThread(i);
@@ -31,7 +31,7 @@ tv.unittest.testSuite(function() {
   }
 
   function buildSlice(title, time) {
-    return new tv.core.trace_model.ThreadSlice('', title, 0, time, {});
+    return new tv.c.trace_model.ThreadSlice('', title, 0, time, {});
   }
 
   function testFindVSyncTimes(slices, expectedTimes) {

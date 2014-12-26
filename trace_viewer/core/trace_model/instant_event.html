@@ -13,7 +13,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the InstantEvent class.
  */
-tv.exportTo('tv.core.trace_model', function() {
+tv.exportTo('tv.c.trace_model', function() {
   var InstantEventType = {
     GLOBAL: 1,
     PROCESS: 2,
@@ -21,7 +21,7 @@ tv.exportTo('tv.core.trace_model', function() {
   };
 
   function InstantEvent(category, title, colorId, start, args) {
-    tv.core.trace_model.TimedEvent.call(this);
+    tv.c.trace_model.TimedEvent.call(this);
 
     this.category = category || '';
     this.title = title;
@@ -33,7 +33,7 @@ tv.exportTo('tv.core.trace_model', function() {
   };
 
   InstantEvent.prototype = {
-    __proto__: tv.core.trace_model.TimedEvent.prototype,
+    __proto__: tv.c.trace_model.TimedEvent.prototype,
 
     selected: false
   };

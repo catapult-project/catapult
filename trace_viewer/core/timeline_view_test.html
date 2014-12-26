@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var newSliceNamed = tv.core.test_utils.newSliceNamed;
+  var newSliceNamed = tv.c.test_utils.newSliceNamed;
 
   var createFullyPopulatedModel = function(opt_withError, opt_withMetadata) {
     var withError = opt_withError !== undefined ? opt_withError : true;
@@ -24,20 +24,20 @@ tv.unittest.testSuite(function() {
     var testIndex = 0;
     var startTime = 0;
 
-    var model = new tv.core.TraceModel();
+    var model = new tv.c.TraceModel();
     for (testIndex = 0; testIndex < num_tests; ++testIndex) {
       var process = model.getOrCreateProcess(10000 + testIndex);
       if (testIndex % 2 == 0) {
         var thread = process.getOrCreateThread('Thread Name Here');
-        thread.sliceGroup.pushSlice(new tv.core.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tv.c.trace_model.Slice(
             'foo', 'a', 0, startTime, {}, 1));
-        thread.sliceGroup.pushSlice(new tv.core.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tv.c.trace_model.Slice(
             'bar', 'b', 0, startTime + 23, {}, 10));
       } else {
         var thread = process.getOrCreateThread('Name');
-        thread.sliceGroup.pushSlice(new tv.core.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tv.c.trace_model.Slice(
             'foo', 'a', 0, startTime + 4, {}, 11));
-        thread.sliceGroup.pushSlice(new tv.core.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tv.c.trace_model.Slice(
             'bar', 'b', 0, startTime + 22, {}, 14));
       }
     }
@@ -87,10 +87,10 @@ tv.unittest.testSuite(function() {
   };
 
   var buildView = function() {
-    var view = new tv.core.TimelineView();
+    var view = new tv.c.TimelineView();
     view.model = createFullyPopulatedModel();
 
-    var selection = new tv.core.Selection();
+    var selection = new tv.c.Selection();
     view.timeline.addAllObjectsMatchingFilterToSelection({
       matchSlice: function() { return true; }
     }, selection);
@@ -103,7 +103,7 @@ tv.unittest.testSuite(function() {
     var model00 = createFullyPopulatedModel(false, false);
     var model11 = createFullyPopulatedModel(true, true);
 
-    var view = new tv.core.TimelineView();
+    var view = new tv.c.TimelineView();
     view.style.height = '400px';
     view.model = model00;
     view.model = undefined;
@@ -115,7 +115,7 @@ tv.unittest.testSuite(function() {
     var model = createFullyPopulatedModel(false, false);
 
     // Create a view with am model.
-    var view = new tv.core.TimelineView();
+    var view = new tv.c.TimelineView();
     view.style.height = '400px';
     view.model = model;
 
@@ -125,8 +125,8 @@ tv.unittest.testSuite(function() {
     view.model = model;
 
     // Verify that the new bits of the model show up in the view.
-    var selection = new tv.core.Selection();
-    var filter = new tv.core.TitleFilter('somethingUnusual');
+    var selection = new tv.c.Selection();
+    var filter = new tv.c.TitleFilter('somethingUnusual');
     view.timeline.addAllObjectsMatchingFilterToSelection(filter, selection);
     assertEquals(selection.length, 1);
   });

@@ -36,21 +36,21 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.core.analysis', function() {
+tv.exportTo('tv.c.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
-  var tsRound = tv.core.analysis.tsRound;
+  var tsRound = tv.c.analysis.tsRound;
 
   /**
    * @constructor
    */
   var CpuSliceView = tv.ui.define('cpu-slice-view',
-                                    tv.core.analysis.SliceView);
+                                    tv.c.analysis.SliceView);
 
   CpuSliceView.prototype = {
-    __proto__: tv.core.analysis.SliceView.prototype,
+    __proto__: tv.c.analysis.SliceView.prototype,
 
     decorate: function() {
-      tv.core.analysis.SliceView.prototype.decorate.call(this);
+      tv.c.analysis.SliceView.prototype.decorate.call(this);
       this.classList.add('cpu-slice-view');
     },
 
@@ -80,10 +80,10 @@ tv.exportTo('tv.core.analysis', function() {
       if (!timeSlice) {
         runningThreadEl.parentElement.style.display = 'none';
       } else {
-        var threadLink = new tv.core.analysis.AnalysisLink();
+        var threadLink = new tv.c.analysis.AnalysisLink();
         threadLink.textContent = 'Click to select';
         threadLink.selectionGenerator = function() {
-          var selection = new tv.core.Selection();
+          var selection = new tv.c.Selection();
           selection.push(timeSlice);
           return selection;
         }.bind(this);
@@ -92,9 +92,9 @@ tv.exportTo('tv.core.analysis', function() {
     }
   };
 
-  tv.core.analysis.SliceView.register(
+  tv.c.analysis.SliceView.register(
       CpuSliceView,
-      {typeName: 'tv.core.analysis.CpuSlice'});
+      {typeName: 'tv.c.analysis.CpuSlice'});
 
   return {
     CpuSliceView: CpuSliceView

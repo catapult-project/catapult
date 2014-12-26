@@ -20,7 +20,7 @@ found in the LICENSE file.
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
 tv.exportTo('tv.e.importer.v8', function() {
-  var Importer = tv.core.importer.Importer;
+  var Importer = tv.c.importer.Importer;
 
   function V8LogImporter(model, eventData) {
     this.importPriority = 3;
@@ -32,7 +32,7 @@ tv.exportTo('tv.e.importer.v8', function() {
     this.v8_timer_thread_ = undefined;
     this.v8_thread_ = undefined;
 
-    this.root_stack_frame_ = new tv.core.trace_model.StackFrame(
+    this.root_stack_frame_ = new tv.c.trace_model.StackFrame(
         undefined, 'v8-root-stack-frame',
         'v8-root-stack-frame', 'v8-root-stack-frame', 0);
 
@@ -82,7 +82,7 @@ tv.exportTo('tv.e.importer.v8', function() {
       start /= 1000;  // Convert to milliseconds.
       length /= 1000;
       var colorId = tv.ui.getStringColorId(name);
-      var slice = new tv.core.trace_model.Slice('v8', name, colorId, start,
+      var slice = new tv.c.trace_model.Slice('v8', name, colorId, start,
           args, length);
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
     },
@@ -161,7 +161,7 @@ tv.exportTo('tv.e.importer.v8', function() {
           var childFrame = findChildWithEntryID(lastStackFrame, entryID);
           if (childFrame === undefined) {
             var entryName = entry ? entry.name : 'Unknown';
-            lastStackFrame = new tv.core.trace_model.StackFrame(
+            lastStackFrame = new tv.c.trace_model.StackFrame(
                 lastStackFrame, 'v8sf-' + tv.GUID.allocate(),
                 'v8', entryName,
                 tv.ui.getStringColorId(entryName));
@@ -176,7 +176,7 @@ tv.exportTo('tv.e.importer.v8', function() {
         var pcEntryID = 'v8pc-' + (pcEntry ? pcEntry.id : 'Unknown');
         if (this.model_.stackFrames[pcEntryID] === undefined) {
           var pcEntryName = pcEntry ? pcEntry.name : 'Unknown';
-          lastStackFrame = new tv.core.trace_model.StackFrame(
+          lastStackFrame = new tv.c.trace_model.StackFrame(
               undefined, pcEntryID,
               'v8', pcEntryName,
               tv.ui.getStringColorId(pcEntryName));
@@ -185,7 +185,7 @@ tv.exportTo('tv.e.importer.v8', function() {
         lastStackFrame = this.model_.stackFrames[pcEntryID];
       }
 
-      var sample = new tv.core.trace_model.Sample(
+      var sample = new tv.c.trace_model.Sample(
           undefined, this.v8_thread_, 'V8 PC',
           start, lastStackFrame, 1);
       this.model_.samples.push(sample);
@@ -268,7 +268,7 @@ tv.exportTo('tv.e.importer.v8', function() {
       function addSlices(slices, thread) {
         for (var i = 0; i < slices.length; i++) {
           var duration = slices[i].end - slices[i].start;
-          var slice = new tv.core.trace_model.Slice('v8', slices[i].name,
+          var slice = new tv.c.trace_model.Slice('v8', slices[i].name,
               tv.ui.getStringColorId(slices[i].name),
               slices[i].start, {}, duration);
           thread.sliceGroup.pushSlice(slice);
@@ -279,7 +279,7 @@ tv.exportTo('tv.e.importer.v8', function() {
     }
   };
 
-  tv.core.importer.Importer.register(V8LogImporter);
+  tv.c.importer.Importer.register(V8LogImporter);
 
   return {
     V8LogImporter: V8LogImporter

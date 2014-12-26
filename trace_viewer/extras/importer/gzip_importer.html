@@ -17,7 +17,7 @@ found in the LICENSE file.
  * to an actual importer.
  */
 tv.exportTo('tv.e.importer', function() {
-  var Importer = tv.core.importer.Importer;
+  var Importer = tv.c.importer.Importer;
 
   var GZIP_MEMBER_HEADER_ID_SIZE = 3;
 
@@ -139,7 +139,7 @@ tv.exportTo('tv.e.importer', function() {
     }
   };
 
-  tv.core.importer.Importer.register(GzipImporter);
+  tv.c.importer.Importer.register(GzipImporter);
 
   return {
     GzipImporter: GzipImporter

@@ -83,7 +83,7 @@ found in the LICENSE file.
   }
 
   function createViewFromTraces(filenames, traces) {
-    var m = new tv.core.TraceModel();
+    var m = new tv.c.TraceModel();
     var p = m.importTracesWithProgressDialog(traces, true);
     p.then(
       function() {

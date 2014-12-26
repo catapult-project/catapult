@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.e.tcmalloc', function() {
-  var tsRound = tv.core.analysis.tsRound;
+  var tsRound = tv.c.analysis.tsRound;
 
   /*
    * Displays a heap memory snapshot in a human readable form.
@@ -21,10 +21,10 @@ tv.exportTo('tv.e.tcmalloc', function() {
    */
   var TcmallocSnapshotView = tv.ui.define(
       'heap-snapshot-view',
-      tv.core.analysis.ObjectSnapshotView);
+      tv.c.analysis.ObjectSnapshotView);
 
   TcmallocSnapshotView.prototype = {
-    __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
+    __proto__: tv.c.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('tcmalloc-snapshot-view');
@@ -167,7 +167,7 @@ tv.exportTo('tv.e.tcmalloc', function() {
     }
   };
 
-  tv.core.analysis.ObjectSnapshotView.register(
+  tv.c.analysis.ObjectSnapshotView.register(
       TcmallocSnapshotView,
       {typeName: 'memory::Heap'});
 

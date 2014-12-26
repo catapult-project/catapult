@@ -213,7 +213,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
@@ -239,7 +239,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
@@ -254,7 +254,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     var lines = [
       ''
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'));
+    var m = new tv.c.TraceModel(lines.join('\n'));
     assertFalse(m.hasImportWarnings);
   });
 
@@ -292,7 +292,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '</body>',
       '</html>'
      ];
-     var m = new tv.core.TraceModel(lines.join('\n'), false);
+     var m = new tv.c.TraceModel(lines.join('\n'), false);
      assertFalse(m.hasImportWarnings);
 
      assertNotUndefined(m.processes[124]);
@@ -322,7 +322,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       '     kworker/u:2-2844  [001]  4467.843000: 0: ' +
           'trace_event_clock_sync: parent_ts=0.1'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
@@ -347,7 +347,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       'systrace.sh-8182  [000] 15186.203900: tracing_mark_write: ' +
           'trace_event_clock_sync: parent_ts=0'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
@@ -363,7 +363,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
       'systrace.sh-8182  [002] ...1 2068991.686415: tracing_mark_write: E\\n\\'
     ];
 
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var c = m.processes[9304].threads[8182].sliceGroup;
@@ -387,7 +387,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
           'next_comm=dbus-daemon next_pid=510 next_prio=120'
     ];
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     assertEquals(2, tv.dictionaryLength(m.kernel.cpus));

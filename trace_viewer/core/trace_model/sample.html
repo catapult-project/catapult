@@ -13,7 +13,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Sample class.
  */
-tv.exportTo('tv.core.trace_model', function() {
+tv.exportTo('tv.c.trace_model', function() {
   /**
    * A Sample represents a sample taken at an instant in time, plus its stack
    * frame and parameters associated with that sample.
@@ -22,7 +22,7 @@ tv.exportTo('tv.core.trace_model', function() {
    */
   function Sample(cpu, thread, title, start, leafStackFrame,
                   opt_weight, opt_args) {
-    tv.core.trace_model.TimedEvent.call(this, start);
+    tv.c.trace_model.TimedEvent.call(this, start);
 
     this.title = title;
     this.cpu = cpu;
@@ -33,7 +33,7 @@ tv.exportTo('tv.core.trace_model', function() {
   }
 
   Sample.prototype = {
-    __proto__: tv.core.trace_model.TimedEvent.prototype,
+    __proto__: tv.c.trace_model.TimedEvent.prototype,
 
     get colorId() {
       return this.leafStackFrame.colorId;

@@ -18,13 +18,13 @@ tv.exportTo('tv', function() {
    *
    * Returns an HTMLElement that is the trace-viwer.
    */
-  var TraceViewer = tv.ui.define('trace-viewer', tv.core.TimelineView);
+  var TraceViewer = tv.ui.define('trace-viewer', tv.c.TimelineView);
 
   TraceViewer.prototype = {
-    __proto__: tv.core.TimelineView.prototype,
+    __proto__: tv.c.TimelineView.prototype,
 
     decorate: function(opt_url) {
-      tv.core.TimelineView.prototype.decorate.call(this);
+      tv.c.TimelineView.prototype.decorate.call(this);
 
       if (opt_url === undefined)
         return;
@@ -59,7 +59,7 @@ tv.exportTo('tv', function() {
 
       var model;
       function onResult(result) {
-        model = new tv.core.TraceModel();
+        model = new tv.c.TraceModel();
         var p = model.importTracesWithProgressDialog([result], true);
         p.then(onModelLoaded, onImportFail);
       }

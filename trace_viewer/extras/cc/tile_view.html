@@ -21,10 +21,10 @@ tv.exportTo('tv.e.cc', function() {
    */
   var TileSnapshotView = tv.ui.define(
       'tile-snapshot-view',
-      tv.core.analysis.ObjectSnapshotView);
+      tv.c.analysis.ObjectSnapshotView);
 
   TileSnapshotView.prototype = {
-    __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
+    __proto__: tv.c.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('tile-snapshot-view');
@@ -43,7 +43,7 @@ tv.exportTo('tv.e.cc', function() {
     }
   };
 
-  tv.core.analysis.ObjectSnapshotView.register(
+  tv.c.analysis.ObjectSnapshotView.register(
       TileSnapshotView,
       {
         typeName: 'cc::Tile',

@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var findSliceNamed = tv.core.test_utils.findSliceNamed;
+  var findSliceNamed = tv.c.test_utils.findSliceNamed;
   var original_data =
       '[{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo","tid":53,' +
       '"ph":"B"},{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo",' +
@@ -52,7 +52,7 @@ tv.unittest.testSuite(function() {
     var gzip_data = atob(gzip_data_base64);
     self.assertTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
 
-    var model = new tv.core.TraceModel(gzip_data);
+    var model = new tv.c.TraceModel(gzip_data);
     var threads = model.getAllThreads();
     self.assertEquals(threads.length, 1);
 
@@ -69,7 +69,7 @@ tv.unittest.testSuite(function() {
     var gzip_data = req.responseText;
     self.assertTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
 
-    var model = new tv.core.TraceModel(gzip_data);
+    var model = new tv.c.TraceModel(gzip_data);
     var threads = model.getAllThreads();
     self.assertEquals(threads.length, 2);
 

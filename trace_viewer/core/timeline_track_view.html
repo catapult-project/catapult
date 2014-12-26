@@ -40,12 +40,12 @@ found in the LICENSE file.
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-tv.exportTo('tv.core', function() {
-  var Selection = tv.core.Selection;
-  var SelectionState = tv.core.trace_model.SelectionState;
-  var Viewport = tv.core.TimelineViewport;
+tv.exportTo('tv.c', function() {
+  var Selection = tv.c.Selection;
+  var SelectionState = tv.c.trace_model.SelectionState;
+  var Viewport = tv.c.TimelineViewport;
 
-  var tempDisplayTransform = new tv.core.TimelineDisplayTransform();
+  var tempDisplayTransform = new tv.c.TimelineDisplayTransform();
 
   function intersectRect_(r1, r2) {
     var results = new Object;
@@ -86,25 +86,25 @@ tv.exportTo('tv.core', function() {
       this.viewportDisplayTransformAtMouseDown_ = null;
 
       this.rulerTrackContainer_ =
-          new tv.core.tracks.DrawingContainer(this.viewport_);
+          new tv.c.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.rulerTrackContainer_);
       this.rulerTrackContainer_.invalidate();
 
-      this.rulerTrack_ = new tv.core.tracks.RulerTrack(this.viewport_);
+      this.rulerTrack_ = new tv.c.tracks.RulerTrack(this.viewport_);
       this.rulerTrackContainer_.appendChild(this.rulerTrack_);
 
       this.modelTrackContainer_ =
-          new tv.core.tracks.DrawingContainer(this.viewport_);
+          new tv.c.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.modelTrackContainer_);
       this.modelTrackContainer_.style.display = 'block';
       this.modelTrackContainer_.invalidate();
 
       this.viewport_.modelTrackContainer = this.modelTrackContainer_;
 
-      this.modelTrack_ = new tv.core.tracks.TraceModelTrack(this.viewport_);
+      this.modelTrack_ = new tv.c.tracks.TraceModelTrack(this.viewport_);
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
-      this.timingTool_ = new tv.core.TimingTool(this.viewport_,
+      this.timingTool_ = new tv.c.TimingTool(this.viewport_,
                                                 this);
 
       this.initMouseModeSelector();
@@ -476,7 +476,7 @@ tv.exportTo('tv.core', function() {
         return;
 
       var selection = new Selection();
-      var filter = new tv.core.ExactTitleFilter(this.selection[0].title);
+      var filter = new tv.c.ExactTitleFilter(this.selection[0].title);
       this.addAllObjectsMatchingFilterToSelection(filter, selection);
 
       this.setSelectionAndClearHighlight(selection);
@@ -495,7 +495,7 @@ tv.exportTo('tv.core', function() {
     queueSmoothPan_: function(viewDeltaX, deltaY) {
       var deltaX = this.viewport_.currentDisplayTransform.xViewVectorToWorld(
           viewDeltaX);
-      var animation = new tv.core.TimelineDisplayTransformPanAnimation(
+      var animation = new tv.c.TimelineDisplayTransformPanAnimation(
           deltaX, deltaY);
       this.viewport_.queueDisplayTransformAnimation(animation);
     },
@@ -519,7 +519,7 @@ tv.exportTo('tv.core', function() {
       var goalFocalPointXWorld = vp.currentDisplayTransform.xViewToWorld(
           goalFocalPointXView);
       if (smooth) {
-        var animation = new tv.core.TimelineDisplayTransformZoomToAnimation(
+        var animation = new tv.c.TimelineDisplayTransformZoomToAnimation(
             goalFocalPointXWorld, goalFocalPointXView,
             vp.currentDisplayTransform.panY,
             scale);
@@ -550,7 +550,7 @@ tv.exportTo('tv.core', function() {
       var newScale = this.modelTrackContainer_.canvas.width /
           adjustedWorldRange;
       var zoomInRatio = newScale / this.viewport_.currentDisplayTransform.scaleX;
-      var animation = new tv.core.TimelineDisplayTransformZoomToAnimation(
+      var animation = new tv.c.TimelineDisplayTransformZoomToAnimation(
           worldCenter, viewCenter,
           this.viewport_.currentDisplayTransform.panY,
           zoomInRatio);
@@ -576,7 +576,7 @@ tv.exportTo('tv.core', function() {
           tempDisplayTransform.xPanWorldPosToViewPos(
               worldCenter, 'center', viewWidth);
           var deltaX = tempDisplayTransform.panX - dt.panX;
-          var animation = new tv.core.TimelineDisplayTransformPanAnimation(
+          var animation = new tv.c.TimelineDisplayTransformPanAnimation(
               deltaX, 0);
           this.viewport_.queueDisplayTransformAnimation(animation);
         }
@@ -589,7 +589,7 @@ tv.exportTo('tv.core', function() {
           bounds.max,
           viewWidth);
       var deltaX = tempDisplayTransform.panX - dt.panX;
-      var animation = new tv.core.TimelineDisplayTransformPanAnimation(
+      var animation = new tv.c.TimelineDisplayTransformPanAnimation(
           deltaX, 0);
       this.viewport_.queueDisplayTransformAnimation(animation);
     },
@@ -999,7 +999,7 @@ tv.exportTo('tv.core', function() {
           loVX, hiVX, loY, hiY, selection);
 
       // Activate the new selection.
-      var selection_change_event = new tv.core.RequestSelectionChangeEvent();
+      var selection_change_event = new tv.c.RequestSelectionChangeEvent();
       selection_change_event.selection = selection;
       this.dispatchEvent(selection_change_event);
     },

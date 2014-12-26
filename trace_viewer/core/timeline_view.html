@@ -197,9 +197,9 @@ found in the LICENSE file.
 
 /**
  * @fileoverview View visualizes TRACE_EVENT events using the
- * tv.core.Timeline component and adds in selection summary and control buttons.
+ * tv.c.Timeline component and adds in selection summary and control buttons.
  */
-tv.exportTo('tv.core', function() {
+tv.exportTo('tv.c', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -224,15 +224,15 @@ tv.exportTo('tv.core', function() {
       this.trackViewContainer_ = this.querySelector('track-view-container');
 
       tv.ui.decorate(this.sidePanelContainer_,
-                       tv.core.SidePanelContainer);
+                       tv.c.SidePanelContainer);
 
       this.findCtl_ = new TracingFindControl();
-      this.findCtl_.controller = new tv.core.FindController();
+      this.findCtl_.controller = new tv.c.FindController();
 
       this.showFlowEvents_ = false;
       this.rightControls.appendChild(tv.ui.createCheckBox(
           this, 'showFlowEvents',
-          'tv.core.TimelineView.showFlowEvents', false,
+          'tv.c.TimelineView.showFlowEvents', false,
           'Flow events'));
 
       this.rightControls.appendChild(this.createMetadataButton_());
@@ -390,7 +390,7 @@ tv.exportTo('tv.core', function() {
 
       // Create new trackView if needed.
       if (modelValid && !this.trackView_) {
-        this.trackView_ = new tv.core.TimelineTrackView();
+        this.trackView_ = new tv.c.TimelineTrackView();
         this.trackView_.focusElement =
             this.focusElement_ ? this.focusElement_ : this.parentElement;
         this.trackViewContainer_.appendChild(this.trackView_);
@@ -489,7 +489,7 @@ tv.exportTo('tv.core', function() {
 
       var selection = this.trackView_ ?
           this.trackView_.selectionOfInterest :
-          new tv.core.Selection();
+          new tv.c.Selection();
       this.analysisEl_.selection = selection;
       this.trackViewContainer_.scrollTop = oldScrollTop;
       this.sidePanelContainer_.selection = selection;

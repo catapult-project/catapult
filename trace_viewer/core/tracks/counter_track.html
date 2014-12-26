@@ -15,10 +15,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.core.tracks', function() {
+tv.exportTo('tv.c.tracks', function() {
 
-  var SelectionState = tv.core.trace_model.SelectionState;
-  var EventPresenter = tv.core.EventPresenter;
+  var SelectionState = tv.c.trace_model.SelectionState;
+  var EventPresenter = tv.c.EventPresenter;
   var LAST_SAMPLE_PIXELS = 8;
 
   var LINE_WIDTH = 1;
@@ -38,13 +38,13 @@ tv.exportTo('tv.core.tracks', function() {
    */
 
   var CounterTrack =
-      tv.ui.define('counter-track', tv.core.tracks.HeadingTrack);
+      tv.ui.define('counter-track', tv.c.tracks.HeadingTrack);
 
   CounterTrack.prototype = {
-    __proto__: tv.core.tracks.HeadingTrack.prototype,
+    __proto__: tv.c.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tv.core.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('counter-track');
     },
 
@@ -59,7 +59,7 @@ tv.exportTo('tv.core.tracks', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.core.tracks.DrawType.SLICE:
+        case tv.c.tracks.DrawType.SLICE:
           this.drawSlices_(viewLWorld, viewRWorld);
           break;
       }

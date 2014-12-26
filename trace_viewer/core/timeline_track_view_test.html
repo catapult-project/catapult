@@ -13,8 +13,8 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Selection = tv.core.Selection;
-  var SelectionState = tv.core.trace_model.SelectionState;
+  var Selection = tv.c.Selection;
+  var SelectionState = tv.c.trace_model.SelectionState;
 
   function contains(array, element) {
     for (var i = 0; i < array.length; i++) {
@@ -48,7 +48,7 @@ tv.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var model = new tv.core.TraceModel();
+    var model = new tv.c.TraceModel();
     var num_threads = 500;
     model.importTraces([], false, false, function() {
       var p100 = model.getOrCreateProcess(100);
@@ -64,7 +64,7 @@ tv.unittest.testSuite(function() {
       }
     });
 
-    var timeline = new tv.core.TimelineTrackView();
+    var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
     timeline.focusElement = timeline;
     timeline.tabIndex = 0;
@@ -73,100 +73,100 @@ tv.unittest.testSuite(function() {
   });
 
   test('addAllObjectsMatchingFilterToSelection', function() {
-    var model = new tv.core.TraceModel();
+    var model = new tv.c.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
 
     t1.sliceGroup.pushSlice(
-        new tv.core.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
+        new tv.c.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
     t1.sliceGroup.pushSlice(
-        new tv.core.trace_model.ThreadSlice('', 'b', 0, 1.1, {}, 2.8));
+        new tv.c.trace_model.ThreadSlice('', 'b', 0, 1.1, {}, 2.8));
 
     var t1asg = t1.asyncSliceGroup;
     t1asg.slices.push(
-        tv.core.test_utils.newAsyncSliceNamed('a', 0, 1, t1, t1));
+        tv.c.test_utils.newAsyncSliceNamed('a', 0, 1, t1, t1));
     t1asg.slices.push(
-        tv.core.test_utils.newAsyncSliceNamed('b', 1, 2, t1, t1));
+        tv.c.test_utils.newAsyncSliceNamed('b', 1, 2, t1, t1));
 
-    var timeline = new tv.core.TimelineTrackView();
+    var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
     var expected = [t1asg.slices[0],
                     t1.sliceGroup.slices[0]];
-    var result = new tv.core.Selection();
+    var result = new tv.c.Selection();
     timeline.addAllObjectsMatchingFilterToSelection(
-        new tv.core.TitleFilter('a'), result);
+        new tv.c.TitleFilter('a'), result);
     assertEquals(2, result.length);
     assertEquals(expected[0], result[0]);
     assertEquals(expected[1], result[1]);
 
     var expected = [t1asg.slices[1],
                     t1.sliceGroup.slices[1]];
-    var result = new tv.core.Selection();
+    var result = new tv.c.Selection();
     timeline.addAllObjectsMatchingFilterToSelection(
-        new tv.core.TitleFilter('b'), result);
+        new tv.c.TitleFilter('b'), result);
     assertEquals(2, result.length);
     assertEquals(expected[0], result[0]);
     assertEquals(expected[1], result[1]);
   });
 
   test('emptyThreadsDeleted', function() {
-    var model = new tv.core.TraceModel();
+    var model = new tv.c.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
 
-    var timeline = new tv.core.TimelineTrackView();
+    var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
     assertFalse(timeline.hasVisibleContent);
   });
 
   test('filteredCounters', function() {
-    var model = new tv.core.TraceModel();
+    var model = new tv.c.TraceModel();
     var c1 = model.kernel.getOrCreateCpu(0);
     c1.getOrCreateCounter('', 'b');
 
     var p1 = model.getOrCreateProcess(1);
     var ctr = p1.getOrCreateCounter('', 'a');
-    var series = new tv.core.trace_model.CounterSeries('a', 0);
+    var series = new tv.c.trace_model.CounterSeries('a', 0);
     series.addCounterSample(0, 1);
     ctr.addSeries(series);
 
-    var timeline = new tv.core.TimelineTrackView();
+    var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
     assertTrue(timeline.hasVisibleContent);
   });
 
   test('filteredCpus', function() {
-    var model = new tv.core.TraceModel();
+    var model = new tv.c.TraceModel();
     var c1 = model.kernel.getOrCreateCpu(1);
     c1.getOrCreateCounter('', 'a');
 
-    var timeline = new tv.core.TimelineTrackView();
+    var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
     assertTrue(timeline.hasVisibleContent);
   });
 
   test('filteredProcesses', function() {
-    var model = new tv.core.TraceModel();
+    var model = new tv.c.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     p1.getOrCreateCounter('', 'a');
 
-    var timeline = new tv.core.TimelineTrackView();
+    var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
     assertTrue(timeline.hasVisibleContent);
   });
 
   test('filteredThreads', function() {
-    var model = new tv.core.TraceModel();
+    var model = new tv.c.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(2);
-    t1.sliceGroup.pushSlice(tv.core.test_utils.newSlice(0, 1));
+    t1.sliceGroup.pushSlice(tv.c.test_utils.newSlice(0, 1));
 
-    var timeline = new tv.core.TimelineTrackView();
+    var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
     assertTrue(timeline.hasVisibleContent);
@@ -180,17 +180,17 @@ tv.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'B'}
     ];
-    var model = new tv.core.TraceModel(events);
-    var timeline = new tv.core.TimelineTrackView();
+    var model = new tv.c.TraceModel(events);
+    var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
     var selection = new Selection();
     timeline.addAllObjectsMatchingFilterToSelection(
-        new tv.core.TitleFilter('a'), selection);
+        new tv.c.TitleFilter('a'), selection);
 
     var highlight = new Selection();
     timeline.addAllObjectsMatchingFilterToSelection(
-        new tv.core.TitleFilter('b'), highlight);
+        new tv.c.TitleFilter('b'), highlight);
 
     // Test for faulty input.
     assertThrows(function() {
@@ -265,8 +265,8 @@ tv.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = new tv.core.TraceModel(events);
-    var trackView = new tv.core.TimelineTrackView();
+    var model = new tv.c.TraceModel(events);
+    var trackView = new tv.c.TimelineTrackView();
     trackView.model = model;
     this.addHTMLOutput(trackView);
 
@@ -283,8 +283,8 @@ tv.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = new tv.core.TraceModel(events);
-    var trackView = new tv.core.TimelineTrackView();
+    var model = new tv.c.TraceModel(events);
+    var trackView = new tv.c.TimelineTrackView();
     trackView.model = model;
     this.addHTMLOutput(trackView);
     trackView.viewport.interestRange.reset();
@@ -300,8 +300,8 @@ tv.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = new tv.core.TraceModel(events);
-    var trackView = new tv.core.TimelineTrackView();
+    var model = new tv.c.TraceModel(events);
+    var trackView = new tv.c.TimelineTrackView();
     trackView.model = model;
     this.addHTMLOutput(trackView);
     trackView.viewport.interestRange.reset();

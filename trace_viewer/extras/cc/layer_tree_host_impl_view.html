@@ -24,10 +24,10 @@ tv.exportTo('tv.e.cc', function() {
    */
   var LayerTreeHostImplSnapshotView = tv.ui.define(
       'layer-tree-host-impl-snapshot-view',
-      tv.core.analysis.ObjectSnapshotView);
+      tv.c.analysis.ObjectSnapshotView);
 
   LayerTreeHostImplSnapshotView.prototype = {
-    __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
+    __proto__: tv.c.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('lthi-s-view');
@@ -116,7 +116,7 @@ tv.exportTo('tv.e.cc', function() {
     }
   };
 
-  tv.core.analysis.ObjectSnapshotView.register(
+  tv.c.analysis.ObjectSnapshotView.register(
       LayerTreeHostImplSnapshotView, {typeName: 'cc::LayerTreeHostImpl'});
 
   return {

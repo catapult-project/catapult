@@ -13,9 +13,9 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var Counter = tv.core.trace_model.Counter;
-  var CounterSeries = tv.core.trace_model.CounterSeries;
-  var CounterSample = tv.core.trace_model.CounterSample;
+  var Counter = tv.c.trace_model.Counter;
+  var CounterSeries = tv.c.trace_model.CounterSeries;
+  var CounterSample = tv.c.trace_model.CounterSample;
 
   var createCounterWithTwoSeries = function() {
     var ctr = new Counter(null, 0, '', 'myCounter');

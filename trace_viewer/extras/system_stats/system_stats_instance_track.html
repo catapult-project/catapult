@@ -16,7 +16,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.e.system_stats', function() {
-  var EventPresenter = tv.core.EventPresenter;
+  var EventPresenter = tv.c.EventPresenter;
 
   var palette = tv.ui.getColorPalette();
   var highlightIdBoost = tv.ui.getColorPaletteHighlightIdBoost();
@@ -50,14 +50,14 @@ tv.exportTo('tv.e.system_stats', function() {
    */
 
   var SystemStatsInstanceTrack = tv.ui.define(
-      'system-stats-instance-track', tv.core.tracks.StackedBarsTrack);
+      'system-stats-instance-track', tv.c.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {
 
-    __proto__: tv.core.tracks.StackedBarsTrack.prototype,
+    __proto__: tv.c.tracks.StackedBarsTrack.prototype,
 
     decorate: function(viewport) {
-      tv.core.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
+      tv.c.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
       this.classList.add('system-stats-instance-track');
       this.objectInstance_ = null;
     },
@@ -192,7 +192,7 @@ tv.exportTo('tv.e.system_stats', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.core.tracks.DrawType.SLICE:
+        case tv.c.tracks.DrawType.SLICE:
           this.drawStatBars_(viewLWorld, viewRWorld);
           break;
       }
@@ -345,7 +345,7 @@ tv.exportTo('tv.e.system_stats', function() {
     }
   };
 
-  tv.core.tracks.ObjectInstanceTrack.register(
+  tv.c.tracks.ObjectInstanceTrack.register(
       SystemStatsInstanceTrack,
       {typeName: 'base::TraceEventSystemStatsMonitor::SystemStats'});
 

@@ -13,8 +13,8 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Process class.
  */
-tv.exportTo('tv.core.trace_model', function() {
-  var ProcessBase = tv.core.trace_model.ProcessBase;
+tv.exportTo('tv.c.trace_model', function() {
+  var ProcessBase = tv.c.trace_model.ProcessBase;
 
   /**
    * The Process represents a single userland process in the
@@ -26,7 +26,7 @@ tv.exportTo('tv.core.trace_model', function() {
       throw new Error('model must be provided');
     if (pid === undefined)
       throw new Error('pid must be provided');
-    tv.core.trace_model.ProcessBase.call(this, model);
+    tv.c.trace_model.ProcessBase.call(this, model);
     this.pid = pid;
     this.name = undefined;
     this.labels = [];
@@ -37,7 +37,7 @@ tv.exportTo('tv.core.trace_model', function() {
    * Comparison between processes that orders by pid.
    */
   Process.compare = function(x, y) {
-    var tmp = tv.core.trace_model.ProcessBase.compare(x, y);
+    var tmp = tv.c.trace_model.ProcessBase.compare(x, y);
     if (tmp)
       return tmp;
 
@@ -56,7 +56,7 @@ tv.exportTo('tv.core.trace_model', function() {
   };
 
   Process.prototype = {
-    __proto__: tv.core.trace_model.ProcessBase.prototype,
+    __proto__: tv.c.trace_model.ProcessBase.prototype,
 
     compareTo: function(that) {
       return Process.compare(this, that);
@@ -103,7 +103,7 @@ tv.exportTo('tv.core.trace_model', function() {
       for (var id in this.instantEvents)
         this.instantEvents[id].start += amount;
 
-      tv.core.trace_model.ProcessBase.prototype
+      tv.c.trace_model.ProcessBase.prototype
           .shiftTimestampsForward.apply(this, arguments);
     },
 

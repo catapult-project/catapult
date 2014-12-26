@@ -13,11 +13,11 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var newSliceNamed = tv.core.test_utils.newSliceNamed;
+  var newSliceNamed = tv.c.test_utils.newSliceNamed;
 
   function createModel(opt_options) {
     var options = opt_options || {};
-    var m = new tv.core.TraceModel();
+    var m = new tv.c.TraceModel();
     m.importTraces([], false, false, function() {
       if (options.provideSoftwareMeasuredCpuCount)
         m.kernel.softwareMeasuredCpuCount = 2;
@@ -134,7 +134,7 @@ tv.unittest.testSuite(function() {
     ];
 
     var groups = [];
-    var m = new tv.core.TraceModel();
+    var m = new tv.c.TraceModel();
     m.importTraces([], false, false, function() {
       var start = 0;
       groupData.forEach(function(groupData) {

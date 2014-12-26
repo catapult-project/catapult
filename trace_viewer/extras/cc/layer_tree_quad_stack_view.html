@@ -1152,7 +1152,7 @@ tv.exportTo('tv.e.cc', function() {
       var renderProcess = lthi.objectInstance.parent;
       var tasks = [];
       renderProcess.iterateAllEvents(function(event) {
-        if (!(event instanceof tv.core.trace_model.Slice))
+        if (!(event instanceof tv.c.trace_model.Slice))
           return;
 
         var tile = tv.e.cc.getTileFromRasterTaskSlice(event);
@@ -1178,8 +1178,8 @@ tv.exportTo('tv.e.cc', function() {
 
     onWhatRasterizedLinkClicked_: function() {
       var tasks = this.getWhatRasterized_();
-      var event = new tv.core.RequestSelectionChangeEvent();
-      event.selection = new tv.core.Selection(tasks);
+      var event = new tv.c.RequestSelectionChangeEvent();
+      event.selection = new tv.c.Selection(tasks);
       this.dispatchEvent(event);
     }
   };

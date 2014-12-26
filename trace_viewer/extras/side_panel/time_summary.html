@@ -44,14 +44,14 @@ found in the LICENSE file.
 tv.exportTo('tv.e.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
-  var ThreadSlice = tv.core.trace_model.ThreadSlice;
+  var ThreadSlice = tv.c.trace_model.ThreadSlice;
 
   var OVERHEAD_TRACE_CATEGORY = 'trace_event_overhead';
   var OVERHEAD_TRACE_NAME = 'overhead';
 
-  var tsRound = tv.core.analysis.tsRound;
+  var tsRound = tv.c.analysis.tsRound;
 
-  var RequestSelectionChangeEvent = tv.core.RequestSelectionChangeEvent;
+  var RequestSelectionChangeEvent = tv.c.RequestSelectionChangeEvent;
 
   function getWallTimeOverheadForEvent(event) {
     if (event.category == OVERHEAD_TRACE_CATEGORY &&
@@ -144,8 +144,8 @@ tv.exportTo('tv.e.analysis', function() {
       if (resultsForGroup === undefined)
         return;
 
-      var event = new tv.core.RequestSelectionChangeEvent();
-      event.selection = new tv.core.Selection(resultsForGroup.allSlices);
+      var event = new tv.c.RequestSelectionChangeEvent();
+      event.selection = new tv.c.Selection(resultsForGroup.allSlices);
       event.selection.timeSummaryGroupName = resultsForGroup.name;
       chart.dispatchEvent(event);
     });
@@ -241,13 +241,13 @@ tv.exportTo('tv.e.analysis', function() {
    * @constructor
    */
   var TimeSummarySidePanel = tv.ui.define(
-      'x-time-summary-side-panel', tv.core.SidePanel);
+      'x-time-summary-side-panel', tv.c.SidePanel);
 
   TimeSummarySidePanel.prototype = {
-    __proto__: tv.core.SidePanel.prototype,
+    __proto__: tv.c.SidePanel.prototype,
 
     decorate: function() {
-      tv.core.SidePanel.prototype.decorate.call(this);
+      tv.c.SidePanel.prototype.decorate.call(this);
       this.classList.add('x-time-summary-side-panel');
       this.appendChild(tv.instantiateTemplate(
           '#x-time-summary-side-panel-template', THIS_DOC));
@@ -426,8 +426,8 @@ tv.exportTo('tv.e.analysis', function() {
           getValueFromGroup, extraData);
       resultArea.appendChild(this.chart_);
       this.chart_.addEventListener('click', function() {
-        var event = new tv.core.RequestSelectionChangeEvent();
-        event.selection = new tv.core.Selection([]);
+        var event = new tv.c.RequestSelectionChangeEvent();
+        event.selection = new tv.c.Selection([]);
         this.dispatchEvent(event);
       });
       this.chart_.setSize(this.chart_.getMinSize());
@@ -461,7 +461,7 @@ tv.exportTo('tv.e.analysis', function() {
     }
   };
 
-  tv.core.SidePanel.register(
+  tv.c.SidePanel.register(
     TimeSummarySidePanel,
     {
       textLabel: 'Thread Times'

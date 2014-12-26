@@ -177,7 +177,7 @@ tv.exportTo('tv.e.analysis', function() {
    * @constructor
    */
   var InputLatencySidePanel = tv.ui.define(
-      'x-input-latency-side-panel', tv.core.SidePanel);
+      'x-input-latency-side-panel', tv.c.SidePanel);
 
   InputLatencySidePanel.supportsModel = function(m) {
     if (m == undefined) {
@@ -218,10 +218,10 @@ tv.exportTo('tv.e.analysis', function() {
   };
 
   InputLatencySidePanel.prototype = {
-    __proto__: tv.core.SidePanel.prototype,
+    __proto__: tv.c.SidePanel.prototype,
 
     decorate: function() {
-      tv.core.SidePanel.prototype.decorate.call(this);
+      tv.c.SidePanel.prototype.decorate.call(this);
       this.classList.add('x-input-latency-side-panel');
       this.appendChild(tv.instantiateTemplate(
           '#x-input-latency-side-panel-template', THIS_DOC));
@@ -304,8 +304,8 @@ tv.exportTo('tv.e.analysis', function() {
       });
       latencySlices = getSlicesIntersectingRange(r, latencySlices);
 
-      var event = new tv.core.RequestSelectionChangeEvent();
-      event.selection = new tv.core.Selection(latencySlices);
+      var event = new tv.c.RequestSelectionChangeEvent();
+      event.selection = new tv.c.Selection(latencySlices);
       this.latencyChart_.dispatchEvent(event);
     },
 
@@ -428,7 +428,7 @@ tv.exportTo('tv.e.analysis', function() {
   };
 
 
-  tv.core.SidePanel.register(
+  tv.c.SidePanel.register(
     InputLatencySidePanel,
     {
       textLabel: 'Input Latency',

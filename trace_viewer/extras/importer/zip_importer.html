@@ -18,7 +18,7 @@ found in the LICENSE file.
  * to an actual importer.
  */
 tv.exportTo('tv.e.importer', function() {
-  var Importer = tv.core.importer.Importer;
+  var Importer = tv.c.importer.Importer;
 
   function ZipImporter(model, eventData) {
     if (eventData instanceof ArrayBuffer)
@@ -58,7 +58,7 @@ tv.exportTo('tv.e.importer', function() {
     }
   };
 
-  tv.core.importer.Importer.register(ZipImporter);
+  tv.c.importer.Importer.register(ZipImporter);
 
   return {
     ZipImporter: ZipImporter

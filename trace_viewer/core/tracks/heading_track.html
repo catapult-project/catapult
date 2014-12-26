@@ -15,7 +15,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.core.tracks', function() {
+tv.exportTo('tv.c.tracks', function() {
   var DOWN_ARROW = String.fromCharCode(0x25BE);
   var RIGHT_ARROW = String.fromCharCode(0x25B8);
 
@@ -25,17 +25,17 @@ tv.exportTo('tv.core.tracks', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var HeadingTrack = tv.ui.define('heading-track', tv.core.tracks.Track);
+  var HeadingTrack = tv.ui.define('heading-track', tv.c.tracks.Track);
 
   HeadingTrack.prototype = {
-    __proto__: tv.core.tracks.Track.prototype,
+    __proto__: tv.c.tracks.Track.prototype,
 
     decorate: function(viewport) {
-      tv.core.tracks.Track.prototype.decorate.call(this, viewport);
+      tv.c.tracks.Track.prototype.decorate.call(this, viewport);
       this.classList.add('heading-track');
 
       this.headingDiv_ = document.createElement('heading');
-      this.headingDiv_.style.width = tv.core.constants.HEADING_WIDTH + 'px';
+      this.headingDiv_.style.width = tv.c.constants.HEADING_WIDTH + 'px';
       this.headingDiv_.addEventListener(
           'click', this.onHeadingDivClicked_.bind(this));
       this.heading_ = '';
@@ -107,7 +107,7 @@ tv.exportTo('tv.core.tracks', function() {
 
       if (this.selectionGenerator_) {
         this.headingLink_ = document.createElement('a');
-        tv.core.analysis.AnalysisLink.decorate(this.headingLink_);
+        tv.c.analysis.AnalysisLink.decorate(this.headingLink_);
         this.headingLink_.selectionGenerator = this.selectionGenerator_;
         this.headingDiv_.appendChild(this.headingLink_);
         this.headingLink_.appendChild(document.createTextNode(this.heading_));

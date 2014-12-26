@@ -14,13 +14,13 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('basic' ,function() {
-    var m = new tv.core.TraceModel(g_catLTHIEvents);
+    var m = new tv.c.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
     var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
       return slice.title == 'RasterTask';
     });
 
-    var selection = new tv.core.Selection();
+    var selection = new tv.c.Selection();
     selection.push(rasterTasks[0]);
     selection.push(rasterTasks[1]);
 

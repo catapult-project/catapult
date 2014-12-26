@@ -43,7 +43,7 @@ tv.unittest.testSuite(function() {
         return;
       var fileUrl = '/test_data/counter_tracks.html';
       var events = getSynchronous(fileUrl);
-      model = new tv.core.TraceModel();
+      model = new tv.c.TraceModel();
       model.importTraces([events], true);
     }
 
@@ -58,12 +58,12 @@ tv.unittest.testSuite(function() {
 
       this.addHTMLOutput(viewportDiv);
 
-      var viewport = new tv.core.TimelineViewport(viewportDiv);
+      var viewport = new tv.c.TimelineViewport(viewportDiv);
 
-      drawingContainer = new tv.core.tracks.DrawingContainer(viewport);
+      drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
       viewport.modelTrackContainer = drawingContainer;
 
-      var modelTrack = new tv.core.tracks.TraceModelTrack(viewport);
+      var modelTrack = new tv.c.tracks.TraceModelTrack(viewport);
       drawingContainer.appendChild(modelTrack);
 
       modelTrack.model = model;
@@ -80,7 +80,7 @@ tv.unittest.testSuite(function() {
       worldMid = min + range / 2;
 
       var boost = range * 0.15;
-      var dt = new tv.core.TimelineDisplayTransform();
+      var dt = new tv.c.TimelineDisplayTransform();
       dt.xSetWorldBounds(min - boost, min + range + boost, viewportWidth);
       modelTrack.viewport.setDisplayTransformImmediately(dt);
       startScale = dt.scaleX;
@@ -95,7 +95,7 @@ tv.unittest.testSuite(function() {
             for (var j = Math.floor(samples.length / 2); j < samples.length;
                  j++) {
               samples[j].selectionState =
-                  tv.core.trace_model.SelectionState.SELECTED;
+                  tv.c.trace_model.SelectionState.SELECTED;
             }
           }
         }

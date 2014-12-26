@@ -46,7 +46,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.e.importer.linux_perf', function() {
-  var Importer = tv.core.importer.Importer;
+  var Importer = tv.c.importer.Importer;
 
   /**
    * Imports linux perf events into a specified model.
@@ -207,7 +207,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
 
     if (/^<!DOCTYPE HTML>/.test(incoming_events) == false)
       return failure;
-    var r = new tv.core.importer.SimpleLineReader(incoming_events);
+    var r = new tv.c.importer.SimpleLineReader(incoming_events);
 
     // Try to find the data...
     if (!r.advanceToLineMatching(/^  <script>$/))
@@ -416,12 +416,12 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
             var wakeup = wakeups.shift();
             var wakeupDuration = slice.start - wakeup.ts;
             var args = {'wakeup from tid': wakeup.fromTid};
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread, '', 'Runnable', runnableId,
                 wakeup.ts, args, wakeupDuration));
           }
 
-          var runningSlice = new tv.core.trace_model.ThreadTimeSlice(
+          var runningSlice = new tv.c.trace_model.ThreadTimeSlice(
               thread, '', 'Running', runningId,
               slice.start, {}, slice.duration);
           runningSlice.cpuOnWhichThreadWasRunning = slice.cpu;
@@ -446,13 +446,13 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
             if (wakeup !== undefined) {
               midDuration = wakeup.ts - prevSlice.end;
             }
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread,
                 '', title, id, prevSlice.end, {}, midDuration));
             if (wakeup !== undefined) {
               var wakeupDuration = nextSlice.start - wakeup.ts;
               var args = {'wakeup from tid': wakeup.fromTid};
-              slices.push(new tv.core.trace_model.ThreadTimeSlice(
+              slices.push(new tv.c.trace_model.ThreadTimeSlice(
                   thread,
                   '', 'Runnable', runnableId, wakeup.ts, args, wakeupDuration));
               wakeup = undefined;
@@ -463,37 +463,37 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
             pushSleep('Sleeping', sleepingId);
           } else if (prevSlice.args.stateWhenDescheduled == 'R' ||
                      prevSlice.args.stateWhenDescheduled == 'R+') {
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread,
                 '', 'Runnable', runnableId, prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D') {
             pushSleep('Uninterruptible Sleep', ioWaitId);
           } else if (prevSlice.args.stateWhenDescheduled == 'T') {
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread, '', '__TASK_STOPPED', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 't') {
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread, '', 'debug', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'Z') {
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread, '', 'Zombie', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'X') {
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread, '', 'Exit Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'x') {
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread, '', 'Task Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'K') {
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread, '', 'Wakekill', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'W') {
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread, '', 'Waking', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D|K') {
@@ -501,7 +501,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
           } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
             pushSleep('Uninterruptible Sleep | Waking', ioWaitId);
           } else {
-            slices.push(new tv.core.trace_model.ThreadTimeSlice(
+            slices.push(new tv.c.trace_model.ThreadTimeSlice(
                 thread, '', 'UNKNOWN', ioWaitId,
                 prevSlice.end, {}, midDuration));
             this.model_.importWarning({
@@ -511,7 +511,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
             });
           }
 
-          var runningSlice = new tv.core.trace_model.ThreadTimeSlice(
+          var runningSlice = new tv.c.trace_model.ThreadTimeSlice(
               thread, '', 'Running', runningId,
               nextSlice.start, {}, nextSlice.duration);
           runningSlice.cpuOnWhichThreadWasRunning = prevSlice.cpu;
@@ -742,7 +742,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     }
   };
 
-  tv.core.importer.Importer.register(LinuxPerfImporter);
+  tv.c.importer.Importer.register(LinuxPerfImporter);
 
   return {
     LinuxPerfImporter: LinuxPerfImporter,

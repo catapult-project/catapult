@@ -17,7 +17,7 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('basic', function() {
-    var m = new tv.core.TraceModel(g_catLTHIEvents);
+    var m = new tv.c.TraceModel(g_catLTHIEvents);
     var p = tv.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
@@ -28,7 +28,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('getOps', function() {
-    var m = new tv.core.TraceModel(g_catLTHIEvents);
+    var m = new tv.c.TraceModel(g_catLTHIEvents);
     var p = tv.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];

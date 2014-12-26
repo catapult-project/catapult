@@ -17,7 +17,7 @@ found in the LICENSE file.
  * using a child canvas element. Uses a FastRectRenderer to draw only
  * the visible slices.
  */
-tv.exportTo('tv.core.tracks', function() {
+tv.exportTo('tv.c.tracks', function() {
   /**
    * The base class for all tracks.
    * @constructor
@@ -43,7 +43,7 @@ tv.exportTo('tv.core.tracks', function() {
     get drawingContainer() {
       var cur = this;
       while (cur) {
-        if (cur instanceof tv.core.tracks.DrawingContainer)
+        if (cur instanceof tv.c.tracks.DrawingContainer)
           return cur;
         cur = cur.parentElement;
       }

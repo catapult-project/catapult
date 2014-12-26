@@ -45,7 +45,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
           'fout_apll state=500000000 cpu_id=0'
     ];
 
-    var m = new tv.core.TraceModel(lines.join('\n'), false);
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();

@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.core', function() {
+tv.exportTo('tv.c', function() {
   /**
    * @constructor
    */
@@ -126,7 +126,7 @@ tv.exportTo('tv.core', function() {
       this.tabStrip_.textContent = '';
       var supportedPanelTypes = [];
 
-      var panelTypes = tv.core.SidePanel.getAllRegisteredTypeInfos();
+      var panelTypes = tv.c.SidePanel.getAllRegisteredTypeInfos();
       panelTypes.forEach(function(panelType) {
         var labelEl = document.createElement('tab-strip-label');
         labelEl.textContent = panelType.metadata.textLabel;

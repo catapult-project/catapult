@@ -14,10 +14,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.core.analysis', function() {
-  var tsRound = tv.core.analysis.tsRound;
+tv.exportTo('tv.c.analysis', function() {
+  var tsRound = tv.c.analysis.tsRound;
 
-  var RequestSelectionChangeEvent = tv.core.RequestSelectionChangeEvent;
+  var RequestSelectionChangeEvent = tv.c.RequestSelectionChangeEvent;
 
   /**
    * A clickable link that requests a change of selection to the return value of
@@ -60,7 +60,7 @@ tv.exportTo('tv.core.analysis', function() {
           snapshot.objectInstance.id + ' @ ' +
           tsRound(snapshot.ts) + ' ms';
       this.selectionGenerator = function() {
-        var selection = new tv.core.Selection();
+        var selection = new tv.c.Selection();
         selection.push(snapshot);
         return selection;
       }.bind(this);
@@ -84,7 +84,7 @@ tv.exportTo('tv.core.analysis', function() {
     set objectInstance(instance) {
       this.textContent = instance.typeName + ' ' + instance.id;
       this.selectionGenerator = function() {
-        var selection = new tv.core.Selection();
+        var selection = new tv.c.Selection();
         selection.push(instance);
         return selection;
       }.bind(this);

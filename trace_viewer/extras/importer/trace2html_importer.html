@@ -25,7 +25,7 @@ tv.exportTo('tv.e.importer', function() {
     // Clear the array before pushing data to it.
     Trace2HTMLImporter.subtraces_ = [];
 
-    var r = new tv.core.importer.SimpleLineReader(text);
+    var r = new tv.c.importer.SimpleLineReader(text);
 
     // Try to find viewer-data...
     while (true) {
@@ -65,7 +65,7 @@ tv.exportTo('tv.e.importer', function() {
   };
 
   Trace2HTMLImporter.prototype = {
-    __proto__: tv.core.importer.Importer.prototype,
+    __proto__: tv.c.importer.Importer.prototype,
 
     isTraceDataContainer: function() {
       return true;
@@ -80,7 +80,7 @@ tv.exportTo('tv.e.importer', function() {
   };
 
 
-  tv.core.importer.Importer.register(Trace2HTMLImporter);
+  tv.c.importer.Importer.register(Trace2HTMLImporter);
 
 
   return {

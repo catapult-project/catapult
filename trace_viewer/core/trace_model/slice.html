@@ -13,7 +13,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Slice class.
  */
-tv.exportTo('tv.core.trace_model', function() {
+tv.exportTo('tv.c.trace_model', function() {
   /**
    * A Slice represents an interval of time plus parameters associated
    * with that interval.
@@ -22,7 +22,7 @@ tv.exportTo('tv.core.trace_model', function() {
    */
   function Slice(category, title, colorId, start, args, opt_duration,
                  opt_cpuStart, opt_cpuDuration) {
-    tv.core.trace_model.TimedEvent.call(this, start);
+    tv.c.trace_model.TimedEvent.call(this, start);
 
     this.category = category || '';
     this.title = title;
@@ -41,7 +41,7 @@ tv.exportTo('tv.core.trace_model', function() {
   }
 
   Slice.prototype = {
-    __proto__: tv.core.trace_model.TimedEvent.prototype,
+    __proto__: tv.c.trace_model.TimedEvent.prototype,
 
     get analysisTypeName() {
       return this.title;

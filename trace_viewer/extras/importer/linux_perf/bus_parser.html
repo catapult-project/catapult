@@ -57,7 +57,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var ctr = this.model_.getOrCreateProcess(0)
               .getOrCreateCounter(null, 'bus ' + name + ' read');
       if (ctr.numSeries === 0) {
-        ctr.addSeries(new tv.core.trace_model.CounterSeries('value',
+        ctr.addSeries(new tv.c.trace_model.CounterSeries('value',
             tv.ui.getStringColorId(ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
@@ -67,7 +67,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       ctr = this.model_.getOrCreateProcess(0)
               .getOrCreateCounter(null, 'bus ' + name + ' write');
       if (ctr.numSeries === 0) {
-        ctr.addSeries(new tv.core.trace_model.CounterSeries('value',
+        ctr.addSeries(new tv.c.trace_model.CounterSeries('value',
             tv.ui.getStringColorId(ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {

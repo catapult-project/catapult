@@ -14,12 +14,12 @@ found in the LICENSE file.
 'use strict';
 
 tv.unittest.testSuite(function() {
-  var TraceModel = tv.core.TraceModel;
-  var Selection = tv.core.Selection;
+  var TraceModel = tv.c.TraceModel;
+  var Selection = tv.c.Selection;
   var AnalysisView = TracingAnalysisView;
-  var ObjectInstance = tv.core.trace_model.ObjectInstance;
-  var DefaultObjectSnapshotView = tv.core.analysis.DefaultObjectSnapshotView;
-  var DefaultObjectInstanceView = tv.core.analysis.DefaultObjectInstanceView;
+  var ObjectInstance = tv.c.trace_model.ObjectInstance;
+  var DefaultObjectSnapshotView = tv.c.analysis.DefaultObjectSnapshotView;
+  var DefaultObjectInstanceView = tv.c.analysis.DefaultObjectInstanceView;
 
   function withRegisteredType(registy, typeConstructor, opt_options, fn) {
     registy.register(typeConstructor, opt_options);
@@ -76,9 +76,9 @@ tv.unittest.testSuite(function() {
     selection.push(s10);
 
     var MyView = tv.ui.define(
-        'my-view', tv.core.analysis.ObjectSnapshotView);
+        'my-view', tv.c.analysis.ObjectSnapshotView);
     MyView.prototype = {
-      __proto__: tv.core.analysis.ObjectSnapshotView.prototype,
+      __proto__: tv.c.analysis.ObjectSnapshotView.prototype,
 
       decorate: function() {
       },
@@ -90,7 +90,7 @@ tv.unittest.testSuite(function() {
 
     var view = new AnalysisView();
     withRegisteredType(
-        tv.core.analysis.ObjectSnapshotView,
+        tv.c.analysis.ObjectSnapshotView,
         MyView,
         {typeName: 'MyView'},
         function() {
@@ -120,9 +120,9 @@ tv.unittest.testSuite(function() {
     selection.push(i10);
 
     var MyView = tv.ui.define(
-        'my-view', tv.core.analysis.ObjectInstanceView);
+        'my-view', tv.c.analysis.ObjectInstanceView);
     MyView.prototype = {
-      __proto__: tv.core.analysis.ObjectInstanceView.prototype,
+      __proto__: tv.c.analysis.ObjectInstanceView.prototype,
 
       decorate: function() {
       },
@@ -134,7 +134,7 @@ tv.unittest.testSuite(function() {
 
     var view = new AnalysisView();
     withRegisteredType(
-        tv.core.analysis.ObjectInstanceView,
+        tv.c.analysis.ObjectInstanceView,
         MyView,
         {typeName: 'MyView'},
         function() {
@@ -146,15 +146,15 @@ tv.unittest.testSuite(function() {
   });
 
   test('analyzeSelectionWithSliceKnownType', function() {
-    var s10 = new tv.core.trace_model.Slice('cat', 'MySlice', 0, 10, {}, 4);
+    var s10 = new tv.c.trace_model.Slice('cat', 'MySlice', 0, 10, {}, 4);
 
-    var selection = new tv.core.Selection();
+    var selection = new tv.c.Selection();
     selection.push(s10);
 
     var MySlice = tv.ui.define(
-        'my-slice', tv.core.analysis.SliceView);
+        'my-slice', tv.c.analysis.SliceView);
     MySlice.prototype = {
-      __proto__: tv.core.analysis.SliceView.prototype,
+      __proto__: tv.c.analysis.SliceView.prototype,
 
       decorate: function() {
       },
@@ -166,7 +166,7 @@ tv.unittest.testSuite(function() {
 
     var view = new AnalysisView();
     withRegisteredType(
-        tv.core.analysis.SliceView,
+        tv.c.analysis.SliceView,
         MySlice,
         {typeName: 'MySlice'},
         function() {

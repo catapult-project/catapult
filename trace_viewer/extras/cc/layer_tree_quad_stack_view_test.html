@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tv.unittest.testSuite(function() {
   test('tileCoverageRectCount', function() {
-    var m = new tv.core.TraceModel(g_catLTHIEvents);
+    var m = new tv.c.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
 
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];

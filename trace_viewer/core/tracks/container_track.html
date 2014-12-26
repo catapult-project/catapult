@@ -12,18 +12,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.core.tracks', function() {
+tv.exportTo('tv.c.tracks', function() {
 
   /**
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var ContainerTrack = tv.ui.define('container-track', tv.core.tracks.Track);
+  var ContainerTrack = tv.ui.define('container-track', tv.c.tracks.Track);
   ContainerTrack.prototype = {
-    __proto__: tv.core.tracks.Track.prototype,
+    __proto__: tv.c.tracks.Track.prototype,
 
     decorate: function(viewport) {
-      tv.core.tracks.Track.prototype.decorate.call(this, viewport);
+      tv.c.tracks.Track.prototype.decorate.call(this, viewport);
     },
 
     detach: function() {
@@ -41,7 +41,7 @@ tv.exportTo('tv.core.tracks', function() {
 
     drawTrack: function(type) {
       for (var i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tv.core.tracks.Track))
+        if (!(this.children[i] instanceof tv.c.tracks.Track))
           continue;
         this.children[i].drawTrack(type);
       }
@@ -70,7 +70,7 @@ tv.exportTo('tv.core.tracks', function() {
               loVX, hiVX, loY, hiY, selection);
       }
 
-      tv.core.tracks.Track.prototype.addIntersectingItemsInRangeToSelection.
+      tv.c.tracks.Track.prototype.addIntersectingItemsInRangeToSelection.
           apply(this, arguments);
     },
 
@@ -97,7 +97,7 @@ tv.exportTo('tv.core.tracks', function() {
         }
       }
 
-      tv.core.tracks.Track.prototype.addClosestEventToSelection.
+      tv.c.tracks.Track.prototype.addClosestEventToSelection.
           apply(this, arguments);
     }
   };

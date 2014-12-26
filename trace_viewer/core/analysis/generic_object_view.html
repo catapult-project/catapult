@@ -14,7 +14,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.core.analysis', function() {
+tv.exportTo('tv.c.analysis', function() {
   /**
    * @constructor
    */
@@ -83,15 +83,15 @@ tv.exportTo('tv.core.analysis', function() {
         }
       }
 
-      if (object instanceof tv.core.trace_model.ObjectSnapshot) {
-        var link = new tv.core.analysis.ObjectSnapshotLink(object);
+      if (object instanceof tv.c.trace_model.ObjectSnapshot) {
+        var link = new tv.c.analysis.ObjectSnapshotLink(object);
         link.objectSnapshot = object;
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }
 
-      if (object instanceof tv.core.trace_model.ObjectInstance) {
-        var link = new tv.core.analysis.ObjectInstanceLink(object);
+      if (object instanceof tv.c.trace_model.ObjectInstance) {
+        var link = new tv.c.analysis.ObjectInstanceLink(object);
         link.objectInstance = object;
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
@@ -198,7 +198,7 @@ tv.exportTo('tv.core.analysis', function() {
 
     decorate: function() {
       this.labelEl_ = document.createElement('div');
-      this.genericObjectView_ = new tv.core.analysis.GenericObjectView();
+      this.genericObjectView_ = new tv.c.analysis.GenericObjectView();
       this.appendChild(this.labelEl_);
       this.appendChild(this.genericObjectView_);
     },
