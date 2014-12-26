@@ -97,7 +97,9 @@ found in the LICENSE file.
       var loader = new tv.b.unittest.SuiteLoader(suiteNamesToLoad);
       return loader.allSuitesLoadedPromise.then(
         function() {
-          runTests(loader, state);
+          Polymer.whenReady(function() {
+            runTests(loader, state);
+          });
         },
         function(err) {
           tv.showPanic('Module loading failure', err);
