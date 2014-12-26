@@ -18,7 +18,6 @@ tv.b.unittest.testSuite(function() {
   var Model = tv.c.TraceModel;
   var Thread = tv.c.trace_model.Thread;
   var Selection = tv.c.Selection;
-  var AnalysisView = TracingAnalysisView;
   var StubAnalysisResults = tv.c.analysis.StubAnalysisResults;
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
   var newSliceCategory = tv.c.test_utils.newSliceCategory;
@@ -76,7 +75,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_withSingleSlice', function() {
     var selection = createSelectionWithSingleSlice();
 
-    var analysisEl = new AnalysisView();
+    var analysisEl = new TracingAnalysisView();
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -84,7 +83,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_withSingleSliceCategory', function() {
     var selection = createSelectionWithSingleSlice(true);
 
-    var analysisEl = new AnalysisView();
+    var analysisEl = new TracingAnalysisView();
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -92,7 +91,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_withMultipleSlices', function() {
     var selection = createSelectionWithTwoSlices();
 
-    var analysisEl = new AnalysisView();
+    var analysisEl = new TracingAnalysisView();
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -100,7 +99,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_withMultipleSlicesSameTitle', function() {
     var selection = createSelectionWithTwoSlicesSameTitle();
 
-    var analysisEl = new AnalysisView();
+    var analysisEl = new TracingAnalysisView();
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -244,7 +243,7 @@ tv.b.unittest.testSuite(function() {
     selection.push(t1.sliceGroup.slices[0]);
     assertEquals(1, selection.length);
 
-    var analysisEl = new AnalysisView();
+    var analysisEl = new TracingAnalysisView();
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });

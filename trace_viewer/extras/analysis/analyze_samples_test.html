@@ -17,7 +17,6 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var Model = tv.c.TraceModel;
   var Selection = tv.c.Selection;
-  var AnalysisView = TracingAnalysisView;
   var StubAnalysisResults = tv.c.analysis.StubAnalysisResults;
   var newSampleNamed = tv.c.test_utils.newSampleNamed;
 
@@ -69,7 +68,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_withSingleSample', function() {
     var selection = createSelectionWithSingleSample();
 
-    var analysisEl = new AnalysisView();
+    var analysisEl = new TracingAnalysisView();
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -77,7 +76,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_withMultipleSamples', function() {
     var selection = createSelectionWithMultipleSamples();
 
-    var analysisEl = new AnalysisView();
+    var analysisEl = new TracingAnalysisView();
     this.addHTMLOutput(analysisEl);
     analysisEl.selection = selection;
   });

@@ -21,7 +21,6 @@ tv.b.unittest.testSuite(function() {
   var CounterSeries = tv.c.trace_model.CounterSeries;
 
   var Selection = tv.c.Selection;
-  var AnalysisView = TracingAnalysisView;
   var StubAnalysisResults = tv.c.analysis.StubAnalysisResults;
 
   var createSelectionWithCounters = function(numSamples) {
@@ -141,7 +140,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_singleCounterWithTwoSeries', function() {
     var selection = createSelectionWithTwoSeriesSingleCounter();
 
-    var analysisEl = new AnalysisView();
+    var analysisEl = new TracingAnalysisView();
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -149,7 +148,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_twoCountersWithTwoSeries', function() {
     var selection = createSelectionWithTwoSeriesTwoCounters();
 
-    var analysisEl = new AnalysisView();
+    var analysisEl = new TracingAnalysisView();
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });

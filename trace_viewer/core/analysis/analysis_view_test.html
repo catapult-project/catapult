@@ -16,7 +16,6 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var TraceModel = tv.c.TraceModel;
   var Selection = tv.c.Selection;
-  var AnalysisView = TracingAnalysisView;
   var ObjectInstance = tv.c.trace_model.ObjectInstance;
   var DefaultObjectSnapshotView = tv.c.analysis.DefaultObjectSnapshotView;
   var DefaultObjectInstanceView = tv.c.analysis.DefaultObjectInstanceView;
@@ -50,7 +49,7 @@ tv.b.unittest.testSuite(function() {
     selection.push(s25);
     selection.push(s40);
 
-    var analysisEl = new AnalysisView();
+    var analysisEl = new TracingAnalysisView();
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -62,7 +61,7 @@ tv.b.unittest.testSuite(function() {
     var selection = new Selection();
     selection.push(s10);
 
-    var view = new AnalysisView();
+    var view = new TracingAnalysisView();
     view.selection = selection;
     assertTrue(view.tabView.selectedTab instanceof DefaultObjectSnapshotView);
     assertEquals(s10, view.tabView.selectedTab.objectSnapshot);
@@ -88,7 +87,7 @@ tv.b.unittest.testSuite(function() {
       }
     };
 
-    var view = new AnalysisView();
+    var view = new TracingAnalysisView();
     withRegisteredType(
         tv.c.analysis.ObjectSnapshotView,
         MyView,
@@ -107,7 +106,7 @@ tv.b.unittest.testSuite(function() {
     var selection = new Selection();
     selection.push(i10);
 
-    var view = new AnalysisView();
+    var view = new TracingAnalysisView();
     view.selection = selection;
     assertTrue(view.tabView.selectedTab instanceof DefaultObjectInstanceView);
     assertEquals(i10, view.tabView.selectedTab.objectInstance);
@@ -132,7 +131,7 @@ tv.b.unittest.testSuite(function() {
       }
     };
 
-    var view = new AnalysisView();
+    var view = new TracingAnalysisView();
     withRegisteredType(
         tv.c.analysis.ObjectInstanceView,
         MyView,
@@ -164,7 +163,7 @@ tv.b.unittest.testSuite(function() {
       }
     };
 
-    var view = new AnalysisView();
+    var view = new TracingAnalysisView();
     withRegisteredType(
         tv.c.analysis.SliceView,
         MySlice,
