@@ -32,7 +32,7 @@ tv.exportTo('tv.c.trace_model', function() {
    *     opt_sliceConstructor The constructor to use when creating slices.
    */
   function SliceGroup(parentThread, opt_sliceConstructor, opt_name) {
-    this.guid_ = tv.GUID.allocate();
+    this.guid_ = tv.b.GUID.allocate();
 
     this.parentThread_ = parentThread;
 
@@ -42,7 +42,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.openPartialSlices_ = [];
 
     this.slices = [];
-    this.bounds = new tv.Range();
+    this.bounds = new tv.b.Range();
     this.topLevelSlices = [];
     this.name_ = opt_name;
   }
@@ -123,7 +123,7 @@ tv.exportTo('tv.c.trace_model', function() {
           throw new Error('Slices must be added in increasing timestamp order');
       }
 
-      var colorId = tv.ui.getStringColorId(title);
+      var colorId = tv.b.ui.getStringColorId(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {}, null,
                                             opt_tts);
@@ -194,7 +194,7 @@ tv.exportTo('tv.c.trace_model', function() {
      */
     pushCompleteSlice: function(category, title, ts, duration, tts,
                                 cpuDuration, opt_args) {
-      var colorId = tv.ui.getStringColorId(title);
+      var colorId = tv.b.ui.getStringColorId(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {},
                                             duration, tts, cpuDuration);

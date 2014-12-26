@@ -17,7 +17,7 @@ tv.exportTo('tv.c.trace_model', function() {
   var CounterSample = tv.c.trace_model.CounterSample;
 
   function CounterSeries(name, color) {
-    this.guid_ = tv.GUID.allocate();
+    this.guid_ = tv.b.GUID.allocate();
 
     this.name_ = name;
     this.color_ = color;

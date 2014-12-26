@@ -8,9 +8,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() {
+tv.b.unittest.testSuite(function() {
   test('parseFullyQualifiedName', function() {
-    var p = tv.unittest.TestCase.parseFullyQualifiedName('foo.bar');
+    var p = tv.b.unittest.TestCase.parseFullyQualifiedName('foo.bar');
     assertEquals(p.suiteName, 'foo');
     assertEquals(p.testCaseName, 'bar');
   });

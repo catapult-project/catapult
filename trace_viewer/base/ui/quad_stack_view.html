@@ -71,7 +71,7 @@ quad-stack-view > #chrome-right {
  * @fileoverview QuadStackView controls the content and viewing angle a
  * QuadStack.
  */
-tv.exportTo('tv.ui', function() {
+tv.exportTo('tv.b.ui', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   var constants = {};
@@ -250,7 +250,7 @@ tv.exportTo('tv.ui', function() {
       quadCanvas.width = quad.imageData.width;
       quadCanvas.height = quad.imageData.height;
       quadCanvas.getContext('2d').putImageData(quad.imageData, 0, 0);
-      var quadBBox = new tv.BBox2();
+      var quadBBox = new tv.b.BBox2();
       quadBBox.addQuad(quad);
       var iw = quadCanvas.width;
       var ih = quadCanvas.height;
@@ -364,7 +364,7 @@ tv.exportTo('tv.ui', function() {
   /**
    * @constructor
    */
-  var QuadStackView = tv.ui.define('quad-stack-view');
+  var QuadStackView = tv.b.ui.define('quad-stack-view');
 
   QuadStackView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -372,7 +372,7 @@ tv.exportTo('tv.ui', function() {
     decorate: function() {
       this.className = 'quad-stack-view';
 
-      var node = tv.instantiateTemplate('#quad-stack-view-template',
+      var node = tv.b.instantiateTemplate('#quad-stack-view-template',
                                           THIS_DOC);
       this.appendChild(node);
       this.updateHeaderVisibility_();
@@ -385,7 +385,7 @@ tv.exportTo('tv.ui', function() {
 
       var stackingDistanceSlider = this.querySelector(
           '#stacking-distance-slider');
-      stackingDistanceSlider.value = tv.Settings.get(
+      stackingDistanceSlider.value = tv.b.Settings.get(
           'quadStackView.stackingDistance', 45)
       stackingDistanceSlider.addEventListener(
           'change', this.onStackingDistanceChange_.bind(this));
@@ -394,13 +394,13 @@ tv.exportTo('tv.ui', function() {
 
       this.trackMouse_();
 
-      this.camera_ = new tv.ui.Camera(this.mouseModeSelector_);
+      this.camera_ = new tv.b.ui.Camera(this.mouseModeSelector_);
       this.camera_.addEventListener('renderrequired',
           this.onRenderRequired_.bind(this));
       this.cameraWasReset_ = false;
       this.camera_.canvas = this.canvas_;
 
-      this.viewportRect_ = tv.Rect.fromXYWH(0, 0, 0, 0);
+      this.viewportRect_ = tv.b.Rect.fromXYWH(0, 0, 0, 0);
 
       this.pixelRatio_ = window.devicePixelRatio || 1;
     },
@@ -422,7 +422,7 @@ tv.exportTo('tv.ui', function() {
     },
 
     onStackingDistanceChange_: function(e) {
-      tv.Settings.set('quadStackView.stackingDistance',
+      tv.b.Settings.set('quadStackView.stackingDistance',
                         this.stackingDistance);
       this.scheduleRender();
       e.stopPropagation();
@@ -460,7 +460,7 @@ tv.exportTo('tv.ui', function() {
 
       var width = parseInt(window.getComputedStyle(this.offsetParent).width);
       var height = parseInt(window.getComputedStyle(this.offsetParent).height);
-      var rect = tv.Rect.fromXYWH(0, 0, width, height);
+      var rect = tv.b.Rect.fromXYWH(0, 0, width, height);
 
       if (rect.equalTo(this.viewportRect_))
         return false;
@@ -539,12 +539,12 @@ tv.exportTo('tv.ui', function() {
           this.chromeImages_.right, leftWidth + s * midWidth, 0);
 
       // Construct the quad.
-      var chromeRect = tv.Rect.fromXYWH(
+      var chromeRect = tv.b.Rect.fromXYWH(
           this.deviceRect_.x,
           this.deviceRect_.y - offsetY,
           this.deviceRect_.width,
           this.deviceRect_.height + offsetY);
-      var chromeQuad = tv.Quad.fromRect(chromeRect);
+      var chromeQuad = tv.b.Quad.fromRect(chromeRect);
       chromeQuad.stackingGroupId = this.maxStackingGroupId_ + 1;
       chromeQuad.imageData = chromeCtx.getImageData(
           0, 0, chromeCanvas.width, chromeCanvas.height);
@@ -559,7 +559,7 @@ tv.exportTo('tv.ui', function() {
       if (this.redrawScheduled_)
         return false;
       this.redrawScheduled_ = true;
-      tv.requestAnimationFrame(this.render, this);
+      tv.b.requestAnimationFrame(this.render, this);
     },
 
     onRenderRequired_: function(e) {
@@ -571,7 +571,7 @@ tv.exportTo('tv.ui', function() {
       var mv = this.camera_.modelViewMatrix;
       var p = this.camera_.projectionMatrix;
 
-      var viewport = tv.Rect.fromXYWH(
+      var viewport = tv.b.Rect.fromXYWH(
           0, 0, this.canvas_.width, this.canvas_.height);
 
       // Calculate the quad stacks.
@@ -632,24 +632,24 @@ tv.exportTo('tv.ui', function() {
     },
 
     trackMouse_: function() {
-      this.mouseModeSelector_ = new tv.ui.MouseModeSelector(this.canvas_);
+      this.mouseModeSelector_ = new tv.b.ui.MouseModeSelector(this.canvas_);
       this.mouseModeSelector_.supportedModeMask =
-          tv.ui.MOUSE_SELECTOR_MODE.SELECTION |
-          tv.ui.MOUSE_SELECTOR_MODE.PANSCAN |
-          tv.ui.MOUSE_SELECTOR_MODE.ZOOM |
-          tv.ui.MOUSE_SELECTOR_MODE.ROTATE;
-      this.mouseModeSelector_.mode = tv.ui.MOUSE_SELECTOR_MODE.PANSCAN;
+          tv.b.ui.MOUSE_SELECTOR_MODE.SELECTION |
+          tv.b.ui.MOUSE_SELECTOR_MODE.PANSCAN |
+          tv.b.ui.MOUSE_SELECTOR_MODE.ZOOM |
+          tv.b.ui.MOUSE_SELECTOR_MODE.ROTATE;
+      this.mouseModeSelector_.mode = tv.b.ui.MOUSE_SELECTOR_MODE.PANSCAN;
       this.mouseModeSelector_.pos = {x: 0, y: 100};
       this.appendChild(this.mouseModeSelector_);
       this.mouseModeSelector_.settingsKey =
           'quadStackView.mouseModeSelector';
 
       this.mouseModeSelector_.setModifierForAlternateMode(
-          tv.ui.MOUSE_SELECTOR_MODE.ROTATE, tv.ui.MODIFIER.SHIFT);
+          tv.b.ui.MOUSE_SELECTOR_MODE.ROTATE, tv.b.ui.MODIFIER.SHIFT);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          tv.ui.MOUSE_SELECTOR_MODE.PANSCAN, tv.ui.MODIFIER.SPACE);
+          tv.b.ui.MOUSE_SELECTOR_MODE.PANSCAN, tv.b.ui.MODIFIER.SPACE);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          tv.ui.MOUSE_SELECTOR_MODE.ZOOM, tv.ui.MODIFIER.CMD_OR_CTRL);
+          tv.b.ui.MOUSE_SELECTOR_MODE.ZOOM, tv.b.ui.MODIFIER.CMD_OR_CTRL);
 
       this.mouseModeSelector_.addEventListener('updateselection',
           this.onSelectionUpdate_.bind(this));
@@ -669,7 +669,7 @@ tv.exportTo('tv.ui', function() {
       var mousePos = this.extractRelativeMousePosition_(e);
       var res = [];
       function handleQuad(passNumber, quad, p1, p2, p3, p4) {
-        if (tv.pointInImplicitQuad(mousePos, p1, p2, p3, p4))
+        if (tv.b.pointInImplicitQuad(mousePos, p1, p2, p3, p4))
           res.push(quad);
       }
       this.stackTransformAndProcessQuads_(1, handleQuad, false);

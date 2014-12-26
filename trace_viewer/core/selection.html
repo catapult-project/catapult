@@ -20,7 +20,7 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.c', function() {
 
-  var RequestSelectionChangeEvent = tv.Event.bind(
+  var RequestSelectionChangeEvent = tv.b.Event.bind(
       undefined, 'requestSelectionChange', true, false);
 
   var EVENT_TYPES = [
@@ -73,9 +73,9 @@ tv.exportTo('tv.c', function() {
     this.sunburst_zoom_level = undefined;
 
     this.bounds_dirty_ = true;
-    this.bounds_ = new tv.Range();
+    this.bounds_ = new tv.b.Range();
     this.length_ = 0;
-    this.guid_ = tv.GUID.allocate();
+    this.guid_ = tv.b.GUID.allocate();
     this.pushed_guids_ = {};
 
     if (opt_events) {

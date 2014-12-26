@@ -33,7 +33,7 @@ tv.exportTo('tv.c', function() {
    * ways.
    *
    * @constructor
-   * @extends {tv.EventTarget}
+   * @extends {tv.b.EventTarget}
    */
   function TimelineViewport(parentEl) {
     this.parentEl_ = parentEl;
@@ -75,7 +75,7 @@ tv.exportTo('tv.c', function() {
   }
 
   TimelineViewport.prototype = {
-    __proto__: tv.EventTarget.prototype,
+    __proto__: tv.b.EventTarget.prototype,
 
     /**
      * Allows initialization of the viewport when the viewport's parent element
@@ -95,7 +95,7 @@ tv.exportTo('tv.c', function() {
       // Allow not providing a parent element, used by tests.
       if (this.parentEl_ === undefined)
         return;
-      return tv.ui.isElementAttachedToDocument(this.parentEl_);
+      return tv.b.ui.isElementAttachedToDocument(this.parentEl_);
     },
 
     onResize_: function() {
@@ -142,7 +142,7 @@ tv.exportTo('tv.c', function() {
      * to redraw when the underlying model has been mutated.
      */
     dispatchChangeEvent: function() {
-      tv.dispatchSimpleEvent(this, 'change');
+      tv.b.dispatchSimpleEvent(this, 'change');
     },
 
     detach: function() {
@@ -157,7 +157,7 @@ tv.exportTo('tv.c', function() {
     },
 
     initAnimationController_: function() {
-      this.dtAnimationController_ = new tv.ui.AnimationController();
+      this.dtAnimationController_ = new tv.b.ui.AnimationController();
       this.dtAnimationController_.addEventListener(
           'didtick', function(e) {
             this.onCurentDisplayTransformChange_(e.oldTargetState);
@@ -214,15 +214,15 @@ tv.exportTo('tv.c', function() {
     },
 
     queueDisplayTransformAnimation: function(animation) {
-      if (!(animation instanceof tv.ui.Animation))
-        throw new Error('animation must be instanceof tv.ui.Animation');
+      if (!(animation instanceof tv.b.ui.Animation))
+        throw new Error('animation must be instanceof tv.b.ui.Animation');
       this.dtAnimationController_.queueAnimation(animation);
     },
 
     onCurentDisplayTransformChange_: function(oldDisplayTransform) {
       // Ensure panY stays clamped in the track container's scroll range.
       if (this.modelTrackContainer_) {
-        this.currentDisplayTransform.panY = tv.clamp(
+        this.currentDisplayTransform.panY = tv.b.clamp(
             this.currentDisplayTransform.panY,
             0,
             this.modelTrackContainer_.scrollHeight -

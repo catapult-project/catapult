@@ -133,7 +133,7 @@ tv.exportTo('tv.e.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   var RequestSelectionChangeEvent = tv.c.RequestSelectionChangeEvent;
-  var getColorOfKey = tv.ui.getColorOfKey;
+  var getColorOfKey = tv.b.ui.getColorOfKey;
 
   /**
     * @constructor
@@ -300,7 +300,7 @@ tv.exportTo('tv.e.analysis', function() {
    * @constructor
    */
   var SamplingSummaryPanel =
-      tv.ui.define('x-sample-summary-panel');
+      tv.b.ui.define('x-sample-summary-panel');
   SamplingSummaryPanel.textLabel = 'Sampling Summary';
   SamplingSummaryPanel.supportsModel = function(m) {
     if (m == undefined) {
@@ -342,7 +342,7 @@ tv.exportTo('tv.e.analysis', function() {
 
     decorate: function() {
       this.classList.add('x-sample-summary-panel');
-      this.appendChild(tv.instantiateTemplate(
+      this.appendChild(tv.b.instantiateTemplate(
           '#x-sample-summary-panel-template', THIS_DOC));
 
       this.sampleType_ = undefined;
@@ -416,7 +416,7 @@ tv.exportTo('tv.e.analysis', function() {
       }
 
       // Make it sortable.
-      tv.ui.SortableTable.decorate(table);
+      tv.b.ui.SortableTable.decorate(table);
 
       var calleeArea = that.querySelector('x-callees');
       calleeArea.textContent = '';
@@ -493,7 +493,7 @@ tv.exportTo('tv.e.analysis', function() {
 
       var sunburstData =
           createSunburstData(this.selection_, this.sampleType_);
-      this.chart_ = new tv.ui.SunburstChart();
+      this.chart_ = new tv.b.ui.SunburstChart();
       this.chart_.width = 600;
       this.chart_.height = 600;
       this.chart_.chartTitle = 'Sampling Summary';
@@ -543,7 +543,7 @@ tv.exportTo('tv.e.analysis', function() {
         sampleTypeOptions.push({label: sampleTypes[i], value: sampleTypes[i]});
 
       var toolbarEl = this.querySelector('x-toolbar');
-      this.sampleTypeSelector_ = tv.ui.createSelector(
+      this.sampleTypeSelector_ = tv.b.ui.createSelector(
           this,
           'sampleType',
           'samplingSummaryPanel.sampleType',

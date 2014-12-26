@@ -23,7 +23,7 @@ tv.exportTo('tv.c.tracks', function() {
    * @constructor
    * @extends {HeadingTrack}
    */
-  var RectTrack = tv.ui.define(
+  var RectTrack = tv.b.ui.define(
       'rect-track', tv.c.tracks.HeadingTrack);
 
   RectTrack.prototype = {
@@ -131,7 +131,7 @@ tv.exportTo('tv.c.tracks', function() {
         this.addRectToSelection(rect, selection);
       }
       onRect = onRect.bind(this);
-      tv.iterateOverIntersectingIntervals(this.rects_,
+      tv.b.iterateOverIntersectingIntervals(this.rects_,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,
@@ -144,7 +144,7 @@ tv.exportTo('tv.c.tracks', function() {
      * @private
      */
     indexOfRect_: function(rect) {
-      var index = tv.findLowIndexInSortedArray(this.rects_,
+      var index = tv.b.findLowIndexInSortedArray(this.rects_,
           function(x) { return x.start; },
           rect.start);
       while (index < this.rects_.length &&
@@ -187,7 +187,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      var rect = tv.findClosestIntervalInSortedIntervals(
+      var rect = tv.b.findClosestIntervalInSortedIntervals(
           this.rects_,
           function(x) { return x.start; },
           function(x) { return x.end; },

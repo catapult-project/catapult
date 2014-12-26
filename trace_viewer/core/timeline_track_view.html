@@ -71,7 +71,7 @@ tv.exportTo('tv.c', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var TimelineTrackView = tv.ui.define('div');
+  var TimelineTrackView = tv.b.ui.define('div');
 
   TimelineTrackView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -157,7 +157,7 @@ tv.exportTo('tv.c', function() {
     },
 
     initMouseModeSelector: function() {
-      this.mouseModeSelector_ = new tv.ui.MouseModeSelector(this);
+      this.mouseModeSelector_ = new tv.b.ui.MouseModeSelector(this);
       this.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.addEventListener('beginpan',
@@ -192,7 +192,7 @@ tv.exportTo('tv.c', function() {
       this.mouseModeSelector_.addEventListener('exittiming',
           this.timingTool_.onExitTiming.bind(this.timingTool_));
 
-      var m = tv.ui.MOUSE_SELECTOR_MODE;
+      var m = tv.b.ui.MOUSE_SELECTOR_MODE;
       this.mouseModeSelector_.supportedModeMask =
           m.SELECTION | m.PANSCAN | m.ZOOM | m.TIMING;
       this.mouseModeSelector_.settingsKey =
@@ -203,11 +203,11 @@ tv.exportTo('tv.c', function() {
       this.mouseModeSelector_.setKeyCodeForMode(m.TIMING, '4'.charCodeAt(0));
 
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.SELECTION, tv.ui.MODIFIER.SHIFT);
+          m.SELECTION, tv.b.ui.MODIFIER.SHIFT);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.PANSCAN, tv.ui.MODIFIER.SPACE);
+          m.PANSCAN, tv.b.ui.MODIFIER.SPACE);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.ZOOM, tv.ui.MODIFIER.CMD_OR_CTRL);
+          m.ZOOM, tv.b.ui.MODIFIER.CMD_OR_CTRL);
     },
 
     detach: function() {
@@ -241,7 +241,7 @@ tv.exportTo('tv.c', function() {
       if (modelInstanceChanged)
         this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
 
-      tv.setPropertyAndDispatchChange(this, 'model', model);
+      tv.b.setPropertyAndDispatchChange(this, 'model', model);
     },
 
     get hasVisibleContent() {
@@ -317,7 +317,7 @@ tv.exportTo('tv.c', function() {
       if (this.focusElement.tabIndex >= 0) {
         if (document.activeElement == this.focusElement)
           return true;
-        return tv.ui.elementIsChildOf(document.activeElement,
+        return tv.b.ui.elementIsChildOf(document.activeElement,
                                         this.focusElement);
       }
       return true;
@@ -469,7 +469,7 @@ tv.exportTo('tv.c', function() {
 
     onDblClick_: function(e) {
       if (this.mouseModeSelector_.mode !==
-          tv.ui.MOUSE_SELECTOR_MODE.SELECTION)
+          tv.b.ui.MOUSE_SELECTOR_MODE.SELECTION)
         return;
 
       if (!this.selection.length || !this.selection[0].title)
@@ -718,7 +718,7 @@ tv.exportTo('tv.c', function() {
       } else
         this.selection_ = new Selection();
 
-      tv.dispatchSimpleEvent(this, 'selectionChange');
+      tv.b.dispatchSimpleEvent(this, 'selectionChange');
       this.showHintText_('Press \'m\' to mark current selection');
 
       if (this.selectionOfInterest.length) {
@@ -808,7 +808,7 @@ tv.exportTo('tv.c', function() {
       var roundedDuration = Math.round((hiWX - loWX) * 100) / 100;
       this.dragBox_.textContent = roundedDuration + 'ms';
 
-      var e = new tv.Event('selectionChanging');
+      var e = new tv.b.Event('selectionChanging');
       e.loWX = loWX;
       e.hiWX = hiWX;
       this.dispatchEvent(e);

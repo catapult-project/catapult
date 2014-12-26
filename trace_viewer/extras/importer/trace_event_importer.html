@@ -207,7 +207,7 @@ tv.exportTo('tv.e.importer', function() {
       if (ctr.numSeries === 0) {
         for (var seriesName in event.args) {
           ctr.addSeries(new tv.c.trace_model.CounterSeries(seriesName,
-              tv.ui.getStringColorId(ctr.name + '.' + seriesName)));
+              tv.b.ui.getStringColorId(ctr.name + '.' + seriesName)));
         }
 
         if (ctr.numSeries === 0) {
@@ -353,7 +353,7 @@ tv.exportTo('tv.e.importer', function() {
           break;
       }
 
-      var colorId = tv.ui.getStringColorId(event.name);
+      var colorId = tv.b.ui.getStringColorId(event.name);
       var instantEvent = new constructor(event.cat, event.name,
           colorId, event.ts / 1000, this.deepCopyIfNeeded_(event.args));
 
@@ -382,11 +382,11 @@ tv.exportTo('tv.e.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
 
-      var id = 'te-' + tv.GUID.allocate();
+      var id = 'te-' + tv.b.GUID.allocate();
       var stackFrame = new tv.c.trace_model.StackFrame(
           undefined, id,
           event.cat, event.name,
-          tv.ui.getStringColorId(event.name));
+          tv.b.ui.getStringColorId(event.name));
       this.model_.addStackFrame(stackFrame);
 
       var sample = new tv.c.trace_model.Sample(
@@ -457,7 +457,7 @@ tv.exportTo('tv.e.importer', function() {
         var frame = new tv.c.trace_model.StackFrame(
             undefined, id,
             event.category, event.name,
-            tv.ui.getStringColorId(textForColor));
+            tv.b.ui.getStringColorId(textForColor));
         m.addStackFrame(frame);
       }
       for (var id in events) {
@@ -674,11 +674,11 @@ tv.exportTo('tv.e.importer', function() {
               // Include args for both END and BEGIN for a matched pair.
               var concatenateArguments = function(args1, args2) {
                 if (args1.params === undefined || args2.params === undefined)
-                  return tv.concatenateObjects(args1, args2);
+                  return tv.b.concatenateObjects(args1, args2);
                 // Make an argument object to hold the combined params.
                 var args3 = {};
-                args3.params = tv.concatenateObjects(args1.params, args2.params);
-                return tv.concatenateObjects(args1, args2, args3);
+                args3.params = tv.b.concatenateObjects(args1.params, args2.params);
+                return tv.b.concatenateObjects(args1, args2, args3);
               }
               sliceArgs = concatenateArguments(eventStateEntry.event.args,
                                                eventStateEntry.end.event.args);
@@ -708,7 +708,7 @@ tv.exportTo('tv.e.importer', function() {
           var slice = new asyncSliceConstructor(
               eventStateEntry.event.cat,
               eventStateEntry.event.name,
-              tv.ui.getStringColorId(eventStateEntry.event.name),
+              tv.b.ui.getStringColorId(eventStateEntry.event.name),
               startState.event.ts / 1000,
               sliceArgs,
               (endState.event.ts - startState.event.ts) / 1000);
@@ -816,9 +816,9 @@ tv.exportTo('tv.e.importer', function() {
             var slice = new asyncSliceConstructor(
                 events[0].event.cat,
                 name,
-                tv.ui.getStringColorId(name),
+                tv.b.ui.getStringColorId(name),
                 events[0].event.ts / 1000,
-                tv.concatenateObjects(events[0].event.args,
+                tv.b.concatenateObjects(events[0].event.args,
                                       events[events.length - 1].event.args),
                 (event.ts - events[0].event.ts) / 1000);
             slice.startThread = events[0].thread;
@@ -872,7 +872,7 @@ tv.exportTo('tv.e.importer', function() {
               var subSlice = new asyncSliceConstructor(
                   events[0].event.cat,
                   subName,
-                  tv.ui.getStringColorId(subName + j),
+                  tv.b.ui.getStringColorId(subName + j),
                   events[startIndex].event.ts / 1000,
                   this.deepCopyIfNeeded_(events[j].event.args),
                   (events[endIndex].event.ts - events[startIndex].event.ts) /
@@ -945,7 +945,7 @@ tv.exportTo('tv.e.importer', function() {
             event.cat,
             event.id,
             event.name,
-            tv.ui.getStringColorId(event.name),
+            tv.b.ui.getStringColorId(event.name),
             event.ts / 1000,
             this.deepCopyIfNeeded_(event.args));
         thread.sliceGroup.pushSlice(slice);
@@ -1082,7 +1082,7 @@ tv.exportTo('tv.e.importer', function() {
         }
 
         if (instance)
-          instance.colorId = tv.ui.getStringColorId(instance.typeName);
+          instance.colorId = tv.b.ui.getStringColorId(instance.typeName);
       }
 
       this.allObjectEvents_.sort(function(x, y) {
@@ -1107,7 +1107,7 @@ tv.exportTo('tv.e.importer', function() {
     },
 
     createImplicitObjects_: function() {
-      tv.iterItems(this.model_.processes, function(pid, process) {
+      tv.b.iterItems(this.model_.processes, function(pid, process) {
         this.createImplicitObjectsForProcess_(process);
       }, this);
     },
@@ -1226,7 +1226,7 @@ tv.exportTo('tv.e.importer', function() {
     },
 
     joinObjectRefs_: function() {
-      tv.iterItems(this.model_.processes, function(pid, process) {
+      tv.b.iterItems(this.model_.processes, function(pid, process) {
         this.joinObjectRefsForProcess_(process);
       }, this);
     },
@@ -1234,7 +1234,7 @@ tv.exportTo('tv.e.importer', function() {
     joinObjectRefsForProcess_: function(process) {
       // Iterate the world, looking for id_refs
       var patchupsToApply = [];
-      tv.iterItems(process.threads, function(tid, thread) {
+      tv.b.iterItems(process.threads, function(tid, thread) {
         thread.asyncSliceGroup.slices.forEach(function(item) {
           this.searchItemForIDRefs_(
               patchupsToApply, process.objects, 'start', item);
@@ -1285,7 +1285,7 @@ tv.exportTo('tv.e.importer', function() {
 
         if ((object instanceof tv.c.trace_model.ObjectSnapshot) ||
             (object instanceof Float32Array) ||
-            (object instanceof tv.Quad))
+            (object instanceof tv.b.Quad))
           return;
 
         if (object instanceof Array) {

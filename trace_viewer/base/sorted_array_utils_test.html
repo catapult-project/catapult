@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() {
+tv.b.unittest.testSuite(function() {
   var ArrayOfIntervals = function(array) {
     this.array = array;
   }
@@ -20,14 +20,14 @@ tv.unittest.testSuite(function() {
     },
 
     findLowElementIndex: function(ts) {
-      return tv.findLowIndexInSortedArray(
+      return tv.b.findLowIndexInSortedArray(
           this.array,
           function(x) { return x.lo; },
           ts);
     },
 
     findLowIntervalIndex: function(ts) {
-      return tv.findLowIndexInSortedIntervals(
+      return tv.b.findLowIndexInSortedIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi - x.lo; },
@@ -37,7 +37,7 @@ tv.unittest.testSuite(function() {
     findIntersectingIntervals: function(tsA, tsB) {
       var array = this.array;
       var result = [];
-      tv.iterateOverIntersectingIntervals(
+      tv.b.iterateOverIntersectingIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi - x.lo; },
@@ -48,7 +48,7 @@ tv.unittest.testSuite(function() {
     },
 
     findClosestElement: function(ts, tsDiff) {
-      return tv.findClosestElementInSortedArray(
+      return tv.b.findClosestElementInSortedArray(
           this.array,
           function(x) { return x.lo; },
           ts,
@@ -56,7 +56,7 @@ tv.unittest.testSuite(function() {
     },
 
     findClosestInterval: function(ts, tsDiff) {
-      return tv.findClosestIntervalInSortedIntervals(
+      return tv.b.findClosestIntervalInSortedIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi; },

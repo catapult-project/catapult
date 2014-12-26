@@ -24,7 +24,7 @@ tv.exportTo('tv.c.tracks', function() {
    * Visualizes a Thread using a series of of SliceTracks.
    * @constructor
    */
-  var ThreadTrack = tv.ui.define('thread-track',
+  var ThreadTrack = tv.b.ui.define('thread-track',
                                    tv.c.tracks.ContainerTrack);
   ThreadTrack.prototype = {
     __proto__: tv.c.tracks.ContainerTrack.prototype,
@@ -103,7 +103,7 @@ tv.exportTo('tv.c.tracks', function() {
         samplesByTitle[sample.title].push(sample);
       });
 
-      var sampleTitles = tv.dictionaryKeys(samplesByTitle);
+      var sampleTitles = tv.b.dictionaryKeys(samplesByTitle);
       sampleTitles.sort();
 
       sampleTitles.forEach(function(sampleTitle) {

@@ -75,8 +75,8 @@ found in the LICENSE file.
      * click-through to the main object's analysis view.
      */
     analyzeObjectEvents_: function(results, objectEvents) {
-      objectEvents = tv.asArray(objectEvents).sort(
-          tv.Range.compareByMinTimes);
+      objectEvents = tv.b.asArray(objectEvents).sort(
+          tv.b.Range.compareByMinTimes);
 
       results.appendHeader('Selected Objects:');
       var table = results.appendTable('analysis-object-sample-table', 2);

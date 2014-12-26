@@ -94,7 +94,7 @@ found in the LICENSE file.
         suiteNamesToLoad.push(state.testSuiteName);
       }
 
-      var loader = new tv.unittest.SuiteLoader(suiteNamesToLoad);
+      var loader = new tv.b.unittest.SuiteLoader(suiteNamesToLoad);
       return loader.allSuitesLoadedPromise.then(
         function() {
           runTests(loader, state);
@@ -129,7 +129,7 @@ found in the LICENSE file.
     }
 
     function runTests(loader, state) {
-      var runner = new tv.unittest.InteractiveTestRunner();
+      var runner = new tv.b.unittest.InteractiveTestRunner();
       runner.testLinks = loader.testLinks;
       runner.allTests = loader.getAllTests();
       document.body.appendChild(runner);

@@ -21,7 +21,7 @@ tv.exportTo('tv.c.tracks', function() {
    * @constructor
    */
   var CpuTrack =
-      tv.ui.define('cpu-track', tv.c.tracks.ContainerTrack);
+      tv.b.ui.define('cpu-track', tv.c.tracks.ContainerTrack);
   CpuTrack.prototype = {
     __proto__: tv.c.tracks.ContainerTrack.prototype,
 
@@ -87,7 +87,7 @@ tv.exportTo('tv.c.tracks', function() {
         samplesByTitle[sample.title].push(sample);
       });
 
-      var sampleTitles = tv.dictionaryKeys(samplesByTitle);
+      var sampleTitles = tv.b.dictionaryKeys(samplesByTitle);
       sampleTitles.sort();
 
       sampleTitles.forEach(function(sampleTitle) {

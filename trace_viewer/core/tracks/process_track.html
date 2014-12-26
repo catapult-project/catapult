@@ -17,7 +17,7 @@ tv.exportTo('tv.c.tracks', function() {
   /**
    * @constructor
    */
-  var ProcessTrack = tv.ui.define('process-track', ProcessTrackBase);
+  var ProcessTrack = tv.b.ui.define('process-track', ProcessTrackBase);
 
   ProcessTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
@@ -106,7 +106,7 @@ tv.exportTo('tv.c.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
-      tv.iterateOverIntersectingIntervals(this.processBase.instantEvents,
+      tv.b.iterateOverIntersectingIntervals(this.processBase.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,

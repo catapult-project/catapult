@@ -46,7 +46,7 @@ tv.exportTo('tv.e.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   function createLatencyLineChart(data, title) {
-    var chart = new tv.ui.LineChart();
+    var chart = new tv.b.ui.LineChart();
     var width = 600;
     if (document.body.clientWidth != undefined)
       width = document.body.clientWidth * 0.5;
@@ -176,7 +176,7 @@ tv.exportTo('tv.e.analysis', function() {
   /**
    * @constructor
    */
-  var InputLatencySidePanel = tv.ui.define(
+  var InputLatencySidePanel = tv.b.ui.define(
       'x-input-latency-side-panel', tv.c.SidePanel);
 
   InputLatencySidePanel.supportsModel = function(m) {
@@ -223,10 +223,10 @@ tv.exportTo('tv.e.analysis', function() {
     decorate: function() {
       tv.c.SidePanel.prototype.decorate.call(this);
       this.classList.add('x-input-latency-side-panel');
-      this.appendChild(tv.instantiateTemplate(
+      this.appendChild(tv.b.instantiateTemplate(
           '#x-input-latency-side-panel-template', THIS_DOC));
 
-      this.rangeOfInterest_ = new tv.Range();
+      this.rangeOfInterest_ = new tv.b.Range();
       this.frametimeType_ = IMPL_FRAMETIME_TYPE;
       this.latencyChart_ = undefined;
       this.frametimeChart_ = undefined;
@@ -284,7 +284,7 @@ tv.exportTo('tv.e.analysis', function() {
       if (this.latencyChart_ === undefined)
         return;
 
-      var r = new tv.Range();
+      var r = new tv.b.Range();
       if (this.mouseDownIndex_ === undefined) {
         this.latencyChart_.brushedRange = r;
         return;
@@ -350,13 +350,13 @@ tv.exportTo('tv.e.analysis', function() {
 
       this.selectedProcess_ = labels[0].value;
       var toolbarEl = this.querySelector('toolbar');
-      toolbarEl.appendChild(tv.ui.createSelector(
+      toolbarEl.appendChild(tv.b.ui.createSelector(
           this, 'frametimeType',
           'inputLatencySidePanel.frametimeType', this.frametimeType_,
           [{label: 'Main Thread Frame Times', value: MAIN_FRAMETIME_TYPE},
            {label: 'Impl Thread Frame Times', value: IMPL_FRAMETIME_TYPE}
           ]));
-      toolbarEl.appendChild(tv.ui.createSelector(
+      toolbarEl.appendChild(tv.b.ui.createSelector(
           this, 'selectedProcess',
           'inputLatencySidePanel.selectedProcess',
           this.selectedProcess_,
@@ -382,22 +382,22 @@ tv.exportTo('tv.e.analysis', function() {
                                            this.frametimeType,
                                            rangeOfInterest,
                                            this.selectedProcess_);
-      var averageFrametime = tv.Statistics.mean(frametimeData, function(d) {
+      var averageFrametime = tv.b.Statistics.mean(frametimeData, function(d) {
         return d.frametime});
 
       var latencyData = getLatencyData(this.model_, rangeOfInterest);
-      var averageLatency = tv.Statistics.mean(latencyData, function(d) {
+      var averageLatency = tv.b.Statistics.mean(latencyData, function(d) {
         return d.latency});
 
       // Create summary.
       var latencySummaryText = document.createElement('div');
-      latencySummaryText.appendChild(tv.ui.createSpan({
+      latencySummaryText.appendChild(tv.b.ui.createSpan({
         textContent: 'Average Latency ' + averageLatency + 'ms',
         bold: true}));
       resultArea.appendChild(latencySummaryText);
 
       var frametimeSummaryText = document.createElement('div');
-      frametimeSummaryText.appendChild(tv.ui.createSpan({
+      frametimeSummaryText.appendChild(tv.b.ui.createSpan({
         textContent: 'Average Frame Time ' + averageFrametime + 'ms',
         bold: true}));
       resultArea.appendChild(frametimeSummaryText);

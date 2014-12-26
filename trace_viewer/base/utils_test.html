@@ -32,27 +32,27 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() {
+tv.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
 
   test('clamping', function() {
-    assertEquals(2, tv.clamp(2, 1, 3));
-    assertEquals(1, tv.clamp(1, 1, 3));
-    assertEquals(1, tv.clamp(0, 1, 3));
-    assertEquals(3, tv.clamp(3, 1, 3));
-    assertEquals(3, tv.clamp(4, 1, 3));
+    assertEquals(2, tv.b.clamp(2, 1, 3));
+    assertEquals(1, tv.b.clamp(1, 1, 3));
+    assertEquals(1, tv.b.clamp(0, 1, 3));
+    assertEquals(3, tv.b.clamp(3, 1, 3));
+    assertEquals(3, tv.b.clamp(4, 1, 3));
   });
 
   test('getUsingPath', function() {
-    var z = tv.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
+    var z = tv.b.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
     assertEquals(3, z);
 
-    var w = tv.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
+    var w = tv.b.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
     assertEquals(undefined, w);
   });
 
   test('instantiateTemplatePolymer', function() {
-    var e = tv.instantiateTemplate(
+    var e = tv.b.instantiateTemplate(
                 '#instantiate-template-polymer-test',
                 THIS_DOC);
     assertEquals(e.children.length, 1);
@@ -60,7 +60,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('instantiateTemplateMultipleTemplates', function() {
-    var outerElement = tv.instantiateTemplate(
+    var outerElement = tv.b.instantiateTemplate(
                            '#multiple-template-test',
                            THIS_DOC);
     assertEquals(2, outerElement.children.length);

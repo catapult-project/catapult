@@ -25,7 +25,7 @@ tv.exportTo('tv.c.tracks', function() {
     HIGHLIGHTS: 7
   };
 
-  var DrawingContainer = tv.ui.define('drawing-container',
+  var DrawingContainer = tv.b.ui.define('drawing-container',
                                         tv.c.tracks.Track);
 
   DrawingContainer.prototype = {
@@ -64,14 +64,14 @@ tv.exportTo('tv.c.tracks', function() {
         return;
       this.rafPending_ = true;
 
-      tv.requestPreAnimationFrame(this.preDraw_, this);
+      tv.b.requestPreAnimationFrame(this.preDraw_, this);
     },
 
     preDraw_: function() {
       this.rafPending_ = false;
       this.updateCanvasSizeIfNeeded_();
 
-      tv.requestAnimationFrameInThisFrameIfPossible(this.draw_, this);
+      tv.b.requestAnimationFrameInThisFrameIfPossible(this.draw_, this);
     },
 
     draw_: function() {
@@ -109,7 +109,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     updateCanvasSizeIfNeeded_: function() {
       var visibleChildTracks =
-          tv.asArray(this.children).filter(this.visibleFilter_);
+          tv.b.asArray(this.children).filter(this.visibleFilter_);
 
       var thisBounds = this.getBoundingClientRect();
 

@@ -29,13 +29,13 @@ tv.exportTo('tv.e.cc', function() {
   /**
    * @constructor
    */
-  var PictureOpsListView = tv.ui.define('picture-ops-list-view');
+  var PictureOpsListView = tv.b.ui.define('picture-ops-list-view');
 
   PictureOpsListView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.opsList_ = new tv.ui.ListView();
+      this.opsList_ = new tv.b.ui.ListView();
       this.appendChild(this.opsList_);
 
       this.selectedOp_ = undefined;
@@ -136,7 +136,7 @@ tv.exportTo('tv.e.cc', function() {
         }
       }
 
-      tv.dispatchSimpleEvent(this, 'selection-changed', false);
+      tv.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     get numOps() {
@@ -157,7 +157,7 @@ tv.exportTo('tv.e.cc', function() {
         if (s < 0) throw new Error('Invalid index');
         if (s >= this.numOps) throw new Error('Invalid index');
         this.opsList_.selectedElement = this.opsList_.getElementByIndex(s + 1);
-        tv.scrollIntoViewIfNeeded(this.opsList_.selectedElement);
+        tv.b.scrollIntoViewIfNeeded(this.opsList_.selectedElement);
       }
     },
 

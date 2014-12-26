@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.unittest', function() {
+tv.exportTo('tv.b.unittest', function() {
   function getAsync(url, cb) {
     return new Promise(function(resolve, reject) {
       var req = new XMLHttpRequest();
@@ -36,7 +36,7 @@ tv.exportTo('tv.unittest', function() {
   }
 
   function SuiteLoader(opt_suiteNamesToLoad) {
-    tv.EventTarget.call(this);
+    tv.b.EventTarget.call(this);
 
     this.testSuiteGUIDs_ = {};
     this.testSuites = [];
@@ -85,7 +85,7 @@ tv.exportTo('tv.unittest', function() {
   }
 
   SuiteLoader.prototype = {
-    __proto__: tv.EventTarget.prototype,
+    __proto__: tv.b.EventTarget.prototype,
 
     beginLoadingModules_: function(testModuleNames, opt_testMetadata) {
       if (opt_testMetadata) {
@@ -238,7 +238,7 @@ tv.exportTo('tv.unittest', function() {
     if (!document.currentScript)
       throw new Error('Cannot call testSuite except during load.');
 
-    var testSuite = new tv.unittest.TestSuite(
+    var testSuite = new tv.b.unittest.TestSuite(
       name, suiteConstructor);
 
 

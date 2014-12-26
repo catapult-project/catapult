@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() { // @suppress longLineCheck
+tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   var TimelineDisplayTransform = tv.c.TimelineDisplayTransform;
   var TimelineDisplayTransformPanAnimation =
       tv.c.TimelineDisplayTransformPanAnimation;
@@ -27,13 +27,13 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
     var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new tv.ui.AnimationController();
+    var controller = new tv.b.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
-    tv.forcePendingRAFTasksToRun(50);
+    tv.b.forcePendingRAFTasksToRun(50);
     assertTrue(target.panX > 0);
-    tv.forcePendingRAFTasksToRun(100);
+    tv.b.forcePendingRAFTasksToRun(100);
     assertFalse(controller.hasActiveAnimation);
     assertEquals(10, target.panX);
   });
@@ -47,17 +47,17 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     var b = new TimelineDisplayTransformPanAnimation(10, 0, 100);
     var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new tv.ui.AnimationController();
+    var controller = new tv.b.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
-    tv.forcePendingRAFTasksToRun(50);
+    tv.b.forcePendingRAFTasksToRun(50);
     controller.queueAnimation(b, 50);
 
-    tv.forcePendingRAFTasksToRun(100);
+    tv.b.forcePendingRAFTasksToRun(100);
     assertTrue(controller.hasActiveAnimation);
 
-    tv.forcePendingRAFTasksToRun(150);
+    tv.b.forcePendingRAFTasksToRun(150);
     assertFalse(controller.hasActiveAnimation);
     assertEquals(20, target.panX);
   });

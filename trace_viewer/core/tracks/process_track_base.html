@@ -32,7 +32,7 @@ tv.exportTo('tv.c.tracks', function() {
    * @constructor
    */
   var ProcessTrackBase =
-      tv.ui.define('process-track-base', tv.c.tracks.ContainerTrack);
+      tv.b.ui.define('process-track-base', tv.c.tracks.ContainerTrack);
 
   ProcessTrackBase.prototype = {
 
@@ -46,10 +46,10 @@ tv.exportTo('tv.c.tracks', function() {
       this.classList.add('process-track-base');
       this.classList.add('expanded');
 
-      this.processNameEl_ = tv.ui.createSpan();
+      this.processNameEl_ = tv.b.ui.createSpan();
       this.processNameEl_.classList.add('process-track-name');
 
-      this.headerEl_ = tv.ui.createDiv({className: 'process-track-header'});
+      this.headerEl_ = tv.b.ui.createDiv({className: 'process-track-header'});
       this.headerEl_.appendChild(this.processNameEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 
@@ -150,7 +150,7 @@ tv.exportTo('tv.c.tracks', function() {
     appendObjectInstanceTracks_: function() {
       var instancesByTypeName =
           this.processBase_.objects.getAllInstancesByTypeName();
-      var instanceTypeNames = tv.dictionaryKeys(instancesByTypeName);
+      var instanceTypeNames = tv.b.dictionaryKeys(instancesByTypeName);
       instanceTypeNames.sort();
 
       var didAppendAtLeastOneTrack = false;
@@ -214,7 +214,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     appendCounterTracks_: function() {
       // Add counter tracks for this process.
-      var counters = tv.dictionaryValues(this.processBase.counters);
+      var counters = tv.b.dictionaryValues(this.processBase.counters);
       counters.sort(tv.c.trace_model.Counter.compare);
 
       // Create the counters for this process.
@@ -228,7 +228,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     appendThreadTracks_: function() {
       // Get a sorted list of threads.
-      var threads = tv.dictionaryValues(this.processBase.threads);
+      var threads = tv.b.dictionaryValues(this.processBase.threads);
       threads.sort(tv.c.trace_model.Thread.compare);
 
       // Create the threads.

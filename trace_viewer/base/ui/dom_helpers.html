@@ -9,7 +9,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.ui', function() {
+tv.exportTo('tv.b.ui', function() {
 
   function createSpan(opt_dictionary) {
     var spanEl = document.createElement('span');
@@ -76,7 +76,7 @@ tv.exportTo('tv.ui', function() {
     }
     function onChange(e) {
       var value = selectorEl.selectedOptions[0].targetPropertyValue;
-      tv.Settings.set(settingsKey, value, opt_namespace);
+      tv.b.Settings.set(settingsKey, value, opt_namespace);
       targetEl[targetElProperty] = value;
     }
     var oldSetter = targetEl.__lookupSetter__('selectedIndex');
@@ -98,7 +98,7 @@ tv.exportTo('tv.ui', function() {
       throw new Error('Not a valid value');
     });
 
-    var initialValue = tv.Settings.get(
+    var initialValue = tv.b.Settings.get(
         settingsKey, defaultValue, opt_namespace);
     var didSet = false;
     for (var i = 0; i < selectorEl.children.length; i++) {
@@ -136,12 +136,12 @@ tv.exportTo('tv.ui', function() {
       var value = [];
       if (this.value.length)
         value = this.value.split(',');
-      tv.Settings.set(settingsKey, value);
+      tv.b.Settings.set(settingsKey, value);
       targetEl[targetElProperty] = value;
     }
 
     var optionGroupEl = createSpan({className: 'labeled-option-group'});
-    var initialValue = tv.Settings.get(settingsKey, defaultValue);
+    var initialValue = tv.b.Settings.get(settingsKey, defaultValue);
     for (var i = 0; i < items.length; ++i) {
       var item = items[i];
       var id = 'category-preset-' + item.label.replace(/ /g,'-');
@@ -198,13 +198,13 @@ tv.exportTo('tv.ui', function() {
     var buttonEl = document.createElement('input');
     buttonEl.type = 'checkbox';
 
-    var initialValue = tv.Settings.get(settingsKey, defaultValue);
+    var initialValue = tv.b.Settings.get(settingsKey, defaultValue);
     buttonEl.checked = !!initialValue;
     if (targetEl)
       targetEl[targetElProperty] = initialValue;
 
     function onChange() {
-      tv.Settings.set(settingsKey, buttonEl.checked);
+      tv.b.Settings.set(settingsKey, buttonEl.checked);
       if (targetEl)
         targetEl[targetElProperty] = buttonEl.checked;
     }

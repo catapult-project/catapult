@@ -22,7 +22,7 @@ tv.exportTo('tv.c.trace_model', function() {
    * @constructor
    */
   function Counter(parent, id, category, name) {
-    this.guid_ = tv.GUID.allocate();
+    this.guid_ = tv.b.GUID.allocate();
 
     this.parent = parent;
     this.id = id;
@@ -31,7 +31,7 @@ tv.exportTo('tv.c.trace_model', function() {
 
     this.series_ = [];
     this.totals = [];
-    this.bounds = new tv.Range();
+    this.bounds = new tv.b.Range();
   }
 
   Counter.prototype = {

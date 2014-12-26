@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() {
+tv.b.unittest.testSuite(function() {
   test('basic' ,function() {
     var m = new tv.c.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
@@ -27,7 +27,7 @@ tv.unittest.testSuite(function() {
     assertTrue(tv.e.cc.RasterTaskSelection.supports(selection));
     var selection = new tv.e.cc.RasterTaskSelection(selection);
     var highlights = selection.extraHighlightsByLayerId;
-    assertTrue(tv.dictionaryLength(highlights), 1);
+    assertTrue(tv.b.dictionaryLength(highlights), 1);
   });
 });
 </script>

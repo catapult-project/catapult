@@ -8,12 +8,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() {
+tv.b.unittest.testSuite(function() {
   test('UVRectBasic', function() {
-    var container = tv.Rect.fromXYWH(0, 0, 10, 10);
-    var inner = tv.Rect.fromXYWH(1, 1, 8, 8);
+    var container = tv.b.Rect.fromXYWH(0, 0, 10, 10);
+    var inner = tv.b.Rect.fromXYWH(1, 1, 8, 8);
     var uv = inner.asUVRectInside(container);
-    assertRectEquals(uv, tv.Rect.fromXYWH(0.1, 0.1, .8, .8));
+    assertRectEquals(uv, tv.b.Rect.fromXYWH(0.1, 0.1, .8, .8));
     assertEquals(container.size().width, 10);
     assertEquals(container.size().height, 10);
   });

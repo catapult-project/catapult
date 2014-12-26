@@ -224,7 +224,7 @@ found in the LICENSE file.
         results.appendTableCell(table, row, 'Args');
 
         var numSlices = 0;
-        tv.iterItems(sliceGroup, function(title, slice) {
+        tv.b.iterItems(sliceGroup, function(title, slice) {
           numSlices++;
           results.appendDetailsRow(table, slice.start, slice.duration,
               slice.selfTime ? slice.selfTime : slice.duration, slice.args,
@@ -233,7 +233,7 @@ found in the LICENSE file.
               }, slice.cpuDuration);
         });
         if (numSlices > 1)
-          tv.ui.SortableTable.decorate(table);
+          tv.b.ui.SortableTable.decorate(table);
       },
 
       analyzeMultipleSlices_: function(results, slices, type) {
@@ -276,7 +276,7 @@ found in the LICENSE file.
         var totalCpuDuration = 0;
         var totalSelfTime = 0;
         var totalCpuSelfTime = 0;
-        tv.iterItems(sliceGroups, function(sliceGroupTitle, sliceGroup) {
+        tv.b.iterItems(sliceGroups, function(sliceGroupTitle, sliceGroup) {
           var duration = 0;
           var cpuDuration = 0;
           var selfTime = 0;
@@ -373,7 +373,7 @@ found in the LICENSE file.
                                 slices.length,
                                 null, null, null, true);
           results.appendSpacingRow(table, true);
-          tv.ui.SortableTable.decorate(table);
+          tv.b.ui.SortableTable.decorate(table);
         }
 
         results.appendInfoRowTime(table, 'Selection start', tsLo, true);

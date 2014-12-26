@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 'use strict';
 
-tv.unittest.testSuite(function() {
+tv.b.unittest.testSuite(function() {
   test('nameConvert', function() {
     assertEquals('_foo', tv.e.cc.convertNameToJSConvention('_foo'));
     assertEquals('foo_', tv.e.cc.convertNameToJSConvention('foo_'));
@@ -69,7 +69,7 @@ tv.unittest.testSuite(function() {
       }
     };
     tv.e.cc.preInitializeObject(object);
-    assertTrue(object.args.someQuad instanceof tv.Quad);
+    assertTrue(object.args.someQuad instanceof tv.b.Quad);
   });
 
   test('quadConversionNested', function() {
@@ -82,8 +82,8 @@ tv.unittest.testSuite(function() {
       }
     };
     tv.e.cc.preInitializeObject(object);
-    assertTrue(object.args.nestedField.aQuad instanceof tv.Quad);
-    assertTrue(object.args.nonNestedQuad instanceof tv.Quad);
+    assertTrue(object.args.nestedField.aQuad instanceof tv.b.Quad);
+    assertTrue(object.args.nonNestedQuad instanceof tv.b.Quad);
   });
 
   test('rectCoversion', function() {
@@ -93,7 +93,7 @@ tv.unittest.testSuite(function() {
       }
     };
     tv.e.cc.preInitializeObject(object);
-    assertTrue(object.args.someRect instanceof tv.Rect);
+    assertTrue(object.args.someRect instanceof tv.b.Rect);
   });
 
   test('rectCoversionNested', function() {
@@ -106,8 +106,8 @@ tv.unittest.testSuite(function() {
       }
     };
     tv.e.cc.preInitializeObject(object);
-    assertTrue(object.args.nestedField.aRect instanceof tv.Rect);
-    assertTrue(object.args.nonNestedRect instanceof tv.Rect);
+    assertTrue(object.args.nestedField.aRect instanceof tv.b.Rect);
+    assertTrue(object.args.nonNestedRect instanceof tv.b.Rect);
   });
 });
 </script>

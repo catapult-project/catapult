@@ -22,9 +22,9 @@ tv.exportTo('tv.c.trace_model', function() {
    */
   function AsyncSliceGroup(parentThread, opt_name) {
     this.parentThread_ = parentThread;
-    this.guid_ = tv.GUID.allocate();
+    this.guid_ = tv.b.GUID.allocate();
     this.slices = [];
-    this.bounds = new tv.Range();
+    this.bounds = new tv.b.Range();
     this.name_ = opt_name;
     this.viewSubGroups_ = undefined;
   }
@@ -123,7 +123,7 @@ tv.exportTo('tv.c.trace_model', function() {
           }
           subGroupsByTitle[subGroupTitle].slices.push(slice);
         }
-        this.viewSubGroups_ = tv.dictionaryValues(subGroupsByTitle);
+        this.viewSubGroups_ = tv.b.dictionaryValues(subGroupsByTitle);
       }
       return this.viewSubGroups_;
     },

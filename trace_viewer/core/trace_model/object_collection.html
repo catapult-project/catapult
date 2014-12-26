@@ -28,7 +28,7 @@ tv.exportTo('tv.c.trace_model', function() {
    */
   function ObjectCollection(parent) {
     this.parent = parent;
-    this.bounds = new tv.Range();
+    this.bounds = new tv.b.Range();
     this.instanceMapsById_ = {}; // id -> TimeToObjectInstanceMap
     this.instancesByTypeName_ = {};
     this.createObjectInstance_ = this.createObjectInstance_.bind(this);
@@ -116,7 +116,7 @@ tv.exportTo('tv.c.trace_model', function() {
     },
 
     autoDeleteObjects: function(maxTimestamp) {
-      tv.iterItems(this.instanceMapsById_, function(id, i2imap) {
+      tv.b.iterItems(this.instanceMapsById_, function(id, i2imap) {
         var lastInstance = i2imap.lastInstance;
         if (lastInstance.deletionTs != Number.MAX_VALUE)
           return;
@@ -144,7 +144,7 @@ tv.exportTo('tv.c.trace_model', function() {
 
     iterObjectInstances: function(iter, opt_this) {
       opt_this = opt_this || this;
-      tv.iterItems(this.instanceMapsById_, function(id, i2imap) {
+      tv.b.iterItems(this.instanceMapsById_, function(id, i2imap) {
         i2imap.instances.forEach(iter, opt_this);
       });
     },

@@ -24,7 +24,7 @@ tv.exportTo('tv.e.tcmalloc', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var HeapInstanceTrack = tv.ui.define(
+  var HeapInstanceTrack = tv.b.ui.define(
       'heap-instance-track', tv.c.tracks.StackedBarsTrack);
 
   HeapInstanceTrack.prototype = {
@@ -97,7 +97,7 @@ tv.exportTo('tv.e.tcmalloc', function() {
       var maxBytes = this.maxBytes_;
 
       var objectSnapshots = this.objectInstance_.snapshots;
-      var lowIndex = tv.findLowIndexInSortedArray(
+      var lowIndex = tv.b.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts;

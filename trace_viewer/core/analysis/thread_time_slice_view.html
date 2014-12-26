@@ -56,7 +56,7 @@ tv.exportTo('tv.c.analysis', function() {
   /**
    * @constructor
    */
-  var ThreadTimeSliceView = tv.ui.define(
+  var ThreadTimeSliceView = tv.b.ui.define(
       'thread-time-slice-view', tv.c.analysis.SliceView);
 
   ThreadTimeSliceView.prototype = {
@@ -70,14 +70,14 @@ tv.exportTo('tv.c.analysis', function() {
     updateContents: function() {
       this.textContent = '';
       this.appendChild(
-      tv.instantiateTemplate('#thread-time-slice-view-template',
+      tv.b.instantiateTemplate('#thread-time-slice-view-template',
           THIS_DOC));
 
       var timeSlice = this.slice;
       var thread = timeSlice.thread;
 
       this.querySelector('#state').textContent = timeSlice.title;
-      var stateColor = tv.ui.getColorPalette()[timeSlice.colorId];
+      var stateColor = tv.b.ui.getColorPalette()[timeSlice.colorId];
       this.querySelector('#state').style.backgroundColor = stateColor;
 
       this.querySelector('#process-name').textContent =
@@ -123,7 +123,7 @@ tv.exportTo('tv.c.analysis', function() {
       }
 
       var argsEl = this.querySelector('#args');
-      if (tv.dictionaryKeys(timeSlice.args).length > 0) {
+      if (tv.b.dictionaryKeys(timeSlice.args).length > 0) {
         var argsView = new tv.c.analysis.GenericObjectView();
         argsView.object = timeSlice.args;
         argsEl.appendChild(argsView);

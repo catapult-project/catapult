@@ -18,8 +18,8 @@ found in the LICENSE file.
 tv.exportTo('tv.e.system_stats', function() {
   var EventPresenter = tv.c.EventPresenter;
 
-  var palette = tv.ui.getColorPalette();
-  var highlightIdBoost = tv.ui.getColorPaletteHighlightIdBoost();
+  var palette = tv.b.ui.getColorPalette();
+  var highlightIdBoost = tv.b.ui.getColorPaletteHighlightIdBoost();
 
   var statCount;
 
@@ -49,7 +49,7 @@ tv.exportTo('tv.e.system_stats', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var SystemStatsInstanceTrack = tv.ui.define(
+  var SystemStatsInstanceTrack = tv.b.ui.define(
       'system-stats-instance-track', tv.c.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {
@@ -213,7 +213,7 @@ tv.exportTo('tv.e.system_stats', function() {
       var maxStats = this.maxStats_;
 
       var objectSnapshots = this.objectInstance_.snapshots;
-      var lowIndex = tv.findLowIndexInSortedArray(
+      var lowIndex = tv.b.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts;

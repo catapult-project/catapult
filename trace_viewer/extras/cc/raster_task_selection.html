@@ -21,7 +21,7 @@ tv.exportTo('tv.e.cc', function() {
     var whySupported = RasterTaskSelection.whySuported(selection);
     if (!whySupported.ok)
       throw new Error('Fail: ' + whySupported.why);
-    this.slices_ = tv.asArray(selection);
+    this.slices_ = tv.b.asArray(selection);
     this.tiles_ = this.slices_.map(function(slice) {
       var tile = tv.e.cc.getTileFromRasterTaskSlice(slice);
       if (tile === undefined)

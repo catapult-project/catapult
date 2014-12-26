@@ -79,9 +79,9 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     __proto__: Object.prototype
   };
 
-  var options = new tv.ExtensionRegistryOptions(tv.BASIC_REGISTRY_MODE);
+  var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
   options.mandatoryBaseClass = Parser;
-  tv.decorateExtensionRegistry(Parser, options);
+  tv.b.decorateExtensionRegistry(Parser, options);
 
   return {
     Parser: Parser

@@ -113,7 +113,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
           pid, pid);
       if (kthread.openSliceTS) {
         var slice = new tv.c.trace_model.Slice('', eventBase.threadName,
-            tv.ui.getStringColorId(eventBase.threadName),
+            tv.b.ui.getStringColorId(eventBase.threadName),
             kthread.openSliceTS,
             {
                 order: kthread.order,
@@ -155,7 +155,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       if (kthread.openSliceTS !== undefined) {
         var slice = new tv.c.trace_model.Slice(
             "", "direct reclaim",
-            tv.ui.getStringColorId(eventBase.threadName),
+            tv.b.ui.getStringColorId(eventBase.threadName),
             kthread.openSliceTS,
             {
                 order: kthread.order,

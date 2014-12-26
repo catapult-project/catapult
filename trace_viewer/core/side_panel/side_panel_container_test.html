@@ -12,11 +12,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() {
+tv.b.unittest.testSuite(function() {
   /**
    * @constructor
    */
-  var Panel1 = tv.ui.define('panel-1');
+  var Panel1 = tv.b.ui.define('panel-1');
   Panel1.textLabel = 'Panel 1';
   Panel1.supportsModel = function(m) {
     return {
@@ -36,7 +36,7 @@ tv.unittest.testSuite(function() {
   /**
    * @constructor
    */
-  var Panel2 = tv.ui.define('panel-2');
+  var Panel2 = tv.b.ui.define('panel-2');
   Panel2.textLabel = 'Panel 2';
   Panel2.supportsModel = function(m) {
     return {
@@ -56,7 +56,7 @@ tv.unittest.testSuite(function() {
   /**
    * @constructor
    */
-  var Panel3 = tv.ui.define('panel-3');
+  var Panel3 = tv.b.ui.define('panel-3');
   Panel3.textLabel = 'Panel 3';
   Panel3.supportsModel = function(m) {
     return {

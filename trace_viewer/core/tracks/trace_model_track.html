@@ -23,7 +23,7 @@ tv.exportTo('tv.c.tracks', function() {
    * CpuTracks.
    * @constructor
    */
-  var TraceModelTrack = tv.ui.define(
+  var TraceModelTrack = tv.b.ui.define(
       'trace-model-track', tv.c.tracks.ContainerTrack);
 
 
@@ -287,7 +287,7 @@ tv.exportTo('tv.c.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
-      tv.iterateOverIntersectingIntervals(this.model_.instantEvents,
+      tv.b.iterateOverIntersectingIntervals(this.model_.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,

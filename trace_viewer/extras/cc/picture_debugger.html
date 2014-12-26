@@ -112,13 +112,13 @@ tv.exportTo('tv.e.cc', function() {
    *
    * @constructor
    */
-  var PictureDebugger = tv.ui.define('picture-debugger');
+  var PictureDebugger = tv.b.ui.define('picture-debugger');
 
   PictureDebugger.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tv.instantiateTemplate('#picture-debugger-template',
+      var node = tv.b.instantiateTemplate('#picture-debugger-template',
           THIS_DOC);
 
       this.appendChild(node);
@@ -145,12 +145,12 @@ tv.exportTo('tv.e.cc', function() {
 
       this.trackMouse_();
 
-      var overdrawCheckbox = tv.ui.createCheckBox(
+      var overdrawCheckbox = tv.b.ui.createCheckBox(
           this, 'showOverdraw',
           'pictureView.showOverdraw', false,
           'Show overdraw');
 
-      var chartCheckbox = tv.ui.createCheckBox(
+      var chartCheckbox = tv.b.ui.createCheckBox(
           this, 'showSummaryChart',
           'pictureView.showSummaryChart', false,
           'Show timing summary');
@@ -167,7 +167,7 @@ tv.exportTo('tv.e.cc', function() {
       leftPanel.appendChild(this.drawOpsChartSummaryView_);
       leftPanel.appendChild(this.drawOpsView_);
 
-      var middleDragHandle = new tv.ui.DragHandle();
+      var middleDragHandle = new tv.b.ui.DragHandle();
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
@@ -176,14 +176,14 @@ tv.exportTo('tv.e.cc', function() {
           this.drawOpsChartView_,
           rightPanel.querySelector('picture-ops-chart-view'));
 
-      this.infoBar_ = new tv.ui.InfoBar();
+      this.infoBar_ = new tv.b.ui.InfoBar();
       this.rasterArea_.appendChild(this.infoBar_);
 
       this.insertBefore(middleDragHandle, rightPanel);
 
       this.picture_ = undefined;
 
-      tv.KeyEventManager.instance.addListener(
+      tv.b.KeyEventManager.instance.addListener(
           'keypress', this.onKeyPress_, this);
 
       // Add a mutation observer so that when the view is resized we can
@@ -294,7 +294,7 @@ tv.exportTo('tv.e.cc', function() {
       if (this.updateContentsPending_)
         return;
       this.updateContentsPending_ = true;
-      tv.requestAnimationFrameInThisFrameIfPossible(
+      tv.b.requestAnimationFrameInThisFrameIfPossible(
           this.updateContents_.bind(this)
       );
     },
@@ -320,7 +320,7 @@ tv.exportTo('tv.e.cc', function() {
       if (this.pictureAsImageData_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new tv.ui.Overlay();
+          var overlay = new tv.b.ui.Overlay();
           overlay.textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           e.stopPropagation();
@@ -373,7 +373,7 @@ tv.exportTo('tv.e.cc', function() {
         this.selectedOpIndex = 0;
         return;
       }
-      this.selectedOpIndex = tv.clamp(
+      this.selectedOpIndex = tv.b.clamp(
           this.selectedOpIndex + increment,
           0, this.numOps);
     },
@@ -417,13 +417,13 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     trackMouse_: function() {
-      this.mouseModeSelector_ = new tv.ui.MouseModeSelector(this.rasterArea_);
+      this.mouseModeSelector_ = new tv.b.ui.MouseModeSelector(this.rasterArea_);
       this.rasterArea_.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.supportedModeMask =
-          tv.ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.mode = tv.ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.defaultMode = tv.ui.MOUSE_SELECTOR_MODE.ZOOM;
+          tv.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.mode = tv.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.defaultMode = tv.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
       this.mouseModeSelector_.settingsKey = 'pictureDebugger.mouseModeSelector';
 
       this.mouseModeSelector_.addEventListener('beginzoom',

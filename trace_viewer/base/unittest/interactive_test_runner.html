@@ -95,13 +95,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.unittest', function() {
+tv.exportTo('tv.b.unittest', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
    * @constructor
    */
-  var InteractiveTestRunner = tv.ui.define('x-base-interactive-test-runner');
+  var InteractiveTestRunner = tv.b.ui.define('x-base-interactive-test-runner');
 
   InteractiveTestRunner.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -112,7 +112,7 @@ tv.exportTo('tv.unittest', function() {
       this.suppressStateChange_ = false;
 
       this.testFilterString_ = '';
-      this.testTypeToRun_ = tv.unittest.TestTypes.UNITTEST;
+      this.testTypeToRun_ = tv.b.unittest.TestTypes.UNITTEST;
       this.shortFormat_ = false;
       this.testSuiteName_ = '';
 
@@ -125,12 +125,12 @@ tv.exportTo('tv.unittest', function() {
       this.onTestPassed_ = this.onTestPassed_.bind(this);
 
 
-      this.appendChild(tv.instantiateTemplate(
+      this.appendChild(tv.b.instantiateTemplate(
           '#x-base-interactive-test-runner-template', THIS_DOC));
 
       this.querySelector(
           'input[name=test-type-to-run][value=unit]').checked = true;
-      var testTypeToRunEls = tv.asArray(this.querySelectorAll(
+      var testTypeToRunEls = tv.b.asArray(this.querySelectorAll(
           'input[name=test-type-to-run]'));
 
       testTypeToRunEls.forEach(
@@ -190,7 +190,7 @@ tv.exportTo('tv.unittest', function() {
       this.testFilterString_ = testFilterString;
       this.scheduleRerun_();
       if (!this.suppressStateChange_)
-        tv.dispatchSimpleEvent(this, 'statechange');
+        tv.b.dispatchSimpleEvent(this, 'statechange');
     },
 
     get shortFormat() {
@@ -203,7 +203,7 @@ tv.exportTo('tv.unittest', function() {
       if (this.results_)
         this.results_.shortFormat = shortFormat;
       if (!this.suppressStateChange_)
-        tv.dispatchSimpleEvent(this, 'statechange');
+        tv.b.dispatchSimpleEvent(this, 'statechange');
     },
 
     onShortFormatClick_: function(e) {
@@ -211,7 +211,7 @@ tv.exportTo('tv.unittest', function() {
       this.updateShortFormResultsDisplay_();
       this.updateResultsGivenShortFormat_();
       if (!this.suppressStateChange_)
-        tv.dispatchSimpleEvent(this, 'statechange');
+        tv.b.dispatchSimpleEvent(this, 'statechange');
     },
 
     updateShortFormResultsDisplay_: function() {
@@ -237,24 +237,24 @@ tv.exportTo('tv.unittest', function() {
     set testTypeToRun(testTypeToRun) {
       this.testTypeToRun_ = testTypeToRun;
       var sel;
-      if (testTypeToRun == tv.unittest.TestTypes.UNITTEST)
+      if (testTypeToRun == tv.b.unittest.TestTypes.UNITTEST)
         sel = 'input[name=test-type-to-run][value=unit]';
       else
         sel = 'input[name=test-type-to-run][value=perf]';
       this.querySelector(sel).checked = true;
       this.scheduleRerun_();
       if (!this.suppressStateChange_)
-        tv.dispatchSimpleEvent(this, 'statechange');
+        tv.b.dispatchSimpleEvent(this, 'statechange');
     },
 
     onTestTypeToRunClick_: function(e) {
       if (e.target.value == 'unit')
-        this.testTypeToRun_ = tv.unittest.TestTypes.UNITTEST;
+        this.testTypeToRun_ = tv.b.unittest.TestTypes.UNITTEST;
       else // e.value == 'perf'
-        this.testTypeToRun_ = tv.unittest.TestTypes.PERFTEST;
+        this.testTypeToRun_ = tv.b.unittest.TestTypes.PERFTEST;
       this.scheduleRerun_();
       if (!this.suppressStateChange_)
-        tv.dispatchSimpleEvent(this, 'statechange');
+        tv.b.dispatchSimpleEvent(this, 'statechange');
     },
 
     onTestPassed_: function() {
@@ -308,7 +308,7 @@ tv.exportTo('tv.unittest', function() {
         resultsContainer.removeChild(this.results_);
       }
 
-      this.results_ = new tv.unittest.HTMLTestResults();
+      this.results_ = new tv.b.unittest.HTMLTestResults();
       this.results_.getHRefForTestCase = this.getHRefForTestCase.bind(this);
       this.updateResultsGivenShortFormat_();
 
@@ -330,7 +330,7 @@ tv.exportTo('tv.unittest', function() {
         return true;
       }, this);
 
-      this.runner_ = new tv.unittest.TestRunner(this.results_, tests);
+      this.runner_ = new tv.b.unittest.TestRunner(this.results_, tests);
       this.runner_.beginRunning();
 
       this.runner_.runCompletedPromise.then(
@@ -351,7 +351,7 @@ tv.exportTo('tv.unittest', function() {
         this.shortFormat = state.shortFormat;
 
       if (state.testTypeToRun === undefined)
-        this.testTypeToRun = tv.unittest.TestTypes.UNITTEST;
+        this.testTypeToRun = tv.b.unittest.TestTypes.UNITTEST;
       else
         this.testTypeToRun = state.testTypeToRun;
 
@@ -370,7 +370,7 @@ tv.exportTo('tv.unittest', function() {
         testFilterString: '',
         testSuiteName: '',
         shortFormat: false,
-        testTypeToRun: tv.unittest.TestTypes.UNITTEST
+        testTypeToRun: tv.b.unittest.TestTypes.UNITTEST
       };
     },
 

@@ -26,7 +26,7 @@ tv.exportTo('tv.e.cc', function() {
     this.skp64_ = skp64;
     this.layerRect_ = layerRect;
 
-    this.guid_ = tv.GUID.allocate();
+    this.guid_ = tv.b.GUID.allocate();
   }
 
   Picture.prototype = {
@@ -162,7 +162,7 @@ tv.exportTo('tv.e.cc', function() {
   };
 
   function LayeredPicture(pictures) {
-    this.guid_ = tv.GUID.allocate();
+    this.guid_ = tv.b.GUID.allocate();
     this.pictures_ = pictures;
     this.layerRect_ = undefined;
   }

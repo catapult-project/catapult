@@ -40,10 +40,10 @@ tv.exportTo('tv.c.tracks', function() {
   };
 
 
-  var options = new tv.ExtensionRegistryOptions(tv.BASIC_REGISTRY_MODE);
+  var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
   options.defaultMetadata = {};
   options.mandatoryBaseClass = Highlighter;
-  tv.decorateExtensionRegistry(Highlighter, options);
+  tv.b.decorateExtensionRegistry(Highlighter, options);
 
   return {
     Highlighter: Highlighter

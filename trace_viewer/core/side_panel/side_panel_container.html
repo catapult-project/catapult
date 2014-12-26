@@ -16,7 +16,7 @@ tv.exportTo('tv.c', function() {
   /**
    * @constructor
    */
-  var SidePanelContainer = tv.ui.define(
+  var SidePanelContainer = tv.b.ui.define(
       'x-side-panel-container');
 
   SidePanelContainer.prototype = {
@@ -29,7 +29,7 @@ tv.exportTo('tv.c', function() {
       this.appendChild(this.activePanelContainer_);
       this.appendChild(this.tabStrip_);
       this.model_ = undefined;
-      this.rangeOfInterest_ = new tv.Range();
+      this.rangeOfInterest_ = new tv.b.Range();
     },
 
     get model() {

@@ -27,7 +27,7 @@ tv.exportTo('tv.c', function() {
   function TimelineInterestRange(vp) {
     this.viewport_ = vp;
 
-    this.range_ = new tv.Range();
+    this.range_ = new tv.b.Range();
 
     this.leftSelected_ = false;
     this.rightSelected_ = false;
@@ -85,7 +85,7 @@ tv.exportTo('tv.c', function() {
     },
 
     asRangeObject: function() {
-      var range = new tv.Range();
+      var range = new tv.b.Range();
       range.addRange(this.range_);
       return range;
     },

@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() { // @suppress longLineCheck
+tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   var findSliceNamed = tv.c.test_utils.findSliceNamed;
 
   test('canImportEmpty', function() {
@@ -392,7 +392,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   test('taskColoring', function() {
     // The test below depends on hashing of 'a' != 'b'. Fail early if that
     // assumption is incorrect.
-    assertNotEquals(tv.ui.getStringHash('a'), tv.ui.getStringHash('b'));
+    assertNotEquals(tv.b.ui.getStringHash('a'), tv.b.ui.getStringHash('b'));
 
     var events = [
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
@@ -687,7 +687,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals(1, ctr.numSeries);
 
     assertEquals('value', ctr.series[0].name);
-    assertEquals(tv.ui.getStringColorId('ctr.value'), ctr.series[0].color);
+    assertEquals(tv.b.ui.getStringColorId('ctr.value'), ctr.series[0].color);
 
     assertArrayEquals([0, 0.01, 0.02], ctr.timestamps);
 
@@ -818,8 +818,8 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
 
     assertEquals('value1', ctr.series[0].name);
     assertEquals('value2', ctr.series[1].name);
-    assertEquals(tv.ui.getStringColorId('ctr.value1'), ctr.series[0].color);
-    assertEquals(tv.ui.getStringColorId('ctr.value2'), ctr.series[1].color);
+    assertEquals(tv.b.ui.getStringColorId('ctr.value1'), ctr.series[0].color);
+    assertEquals(tv.b.ui.getStringColorId('ctr.value2'), ctr.series[1].color);
 
     assertArrayEquals([0, 0.01, 0.02], ctr.timestamps);
     var samples = [];
@@ -2025,7 +2025,7 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     assertNotUndefined(m.kernel.cpus[0]);
     assertEquals(1, m.getAllThreads().length);
 
-    assertEquals(4, tv.dictionaryKeys(m.stackFrames).length);
+    assertEquals(4, tv.b.dictionaryKeys(m.stackFrames).length);
     assertEquals(3, m.samples.length);
 
     var t1 = m.processes[1].threads[1];

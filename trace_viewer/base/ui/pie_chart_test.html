@@ -8,9 +8,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() {
+tv.b.unittest.testSuite(function() {
   test('simple', function() {
-    var chart = new tv.ui.PieChart();
+    var chart = new tv.b.ui.PieChart();
     chart.width = 400;
     chart.height = 200;
     assertEquals('400', chart.getAttribute('width'));
@@ -32,7 +32,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('withValueText', function() {
-    var chart = new tv.ui.PieChart();
+    var chart = new tv.b.ui.PieChart();
     chart.width = 400;
     chart.height = 200;
     chart.chartTitle = 'Chart title';
@@ -46,7 +46,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('clickEvent', function() {
-    var chart = new tv.ui.PieChart();
+    var chart = new tv.b.ui.PieChart();
     chart.width = 400;
     chart.height = 200;
     chart.chartTitle = 'Chart title';
@@ -64,12 +64,12 @@ tv.unittest.testSuite(function() {
     });
 
     var arc0 = chart.querySelectorAll('.paths > path')[1];
-    tv.dispatchSimpleEvent(arc0, 'click');
+    tv.b.dispatchSimpleEvent(arc0, 'click');
     assertTrue(didGetClick);
   });
 
   test('lotsOfValues', function() {
-    var chart = new tv.ui.PieChart();
+    var chart = new tv.b.ui.PieChart();
     chart.chartTitle = 'Chart title';
     var data = [
       {label: 'a', value: 100},
@@ -93,7 +93,7 @@ tv.unittest.testSuite(function() {
   });
 
   test('denseValues', function() {
-    var chart = new tv.ui.PieChart();
+    var chart = new tv.b.ui.PieChart();
     chart.chartTitle = 'Chart title';
     var data = [
       {

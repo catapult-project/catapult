@@ -15,7 +15,7 @@ tv.exportTo('tv.c', function() {
   /*
    * @constructor Base type for side panels.
    */
-  var SidePanel = tv.ui.define('side-panel');
+  var SidePanel = tv.b.ui.define('side-panel');
   SidePanel.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
@@ -49,7 +49,7 @@ tv.exportTo('tv.c', function() {
   };
 
   // Type registry.
-  var options = new tv.ExtensionRegistryOptions(tv.BASIC_REGISTRY_MODE);
+  var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
   options.mandatoryBaseClass = tv.c.SidePanel;
   options.defaultMetadata = {
     textLabel: '<Unknown>',
@@ -59,7 +59,7 @@ tv.exportTo('tv.c', function() {
       };
     }
   }
-  tv.decorateExtensionRegistry(SidePanel, options);
+  tv.b.decorateExtensionRegistry(SidePanel, options);
 
   return {
     SidePanel: SidePanel

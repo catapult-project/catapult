@@ -18,7 +18,7 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.c', function() {
   var elidedTitleCache = new tv.c.ElidedTitleCache();
-  var palette = tv.ui.getColorPalette();
+  var palette = tv.b.ui.getColorPalette();
   var EventPresenter = tv.c.EventPresenter;
 
   /**
@@ -160,7 +160,7 @@ tv.exportTo('tv.c', function() {
         ctx, 2 * pixWidth, 2 * pixWidth, palette);
     tr.setYandH(0, height);
 
-    var lowSlice = tv.findLowIndexInSortedArray(
+    var lowSlice = tv.b.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);
@@ -268,7 +268,7 @@ tv.exportTo('tv.c', function() {
     dt.applyTransformToCanvas(ctx);
     ctx.beginPath();
 
-    var lowSlice = tv.findLowIndexInSortedArray(
+    var lowSlice = tv.b.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start; },
         viewLWorld);
@@ -322,7 +322,7 @@ tv.exportTo('tv.c', function() {
 
     var cY = yOffset * pixelRatio;
 
-    var lowSlice = tv.findLowIndexInSortedArray(
+    var lowSlice = tv.b.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);

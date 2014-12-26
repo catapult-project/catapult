@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() { // @suppress longLineCheck
+tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('instantitate', function() {
     var categories = [];
     for (var i = 0; i < 30; i++)
@@ -87,8 +87,8 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('recordSelectionDialog_UpdateForm_Settings', function() {
-    tv.Settings.set('two', true, 'categories');
-    tv.Settings.set('three', false, 'categories');
+    tv.b.Settings.set('two', true, 'categories');
+    tv.b.Settings.set('three', false, 'categories');
 
     var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
@@ -132,12 +132,12 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('disabled-by-default-bar', dlg.categoryFilter());
 
     assertEquals(false,
-        tv.Settings.get('disabled-by-default-foo', false, 'categories'));
+        tv.b.Settings.get('disabled-by-default-foo', false, 'categories'));
   });
 
   test('selectAll', function() {
-    tv.Settings.set('two', true, 'categories');
-    tv.Settings.set('three', false, 'categories');
+    tv.b.Settings.set('two', true, 'categories');
+    tv.b.Settings.set('three', false, 'categories');
 
     var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
@@ -147,8 +147,8 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('selectNone', function() {
-    tv.Settings.set('two', true, 'categories');
-    tv.Settings.set('three', false, 'categories');
+    tv.b.Settings.set('two', true, 'categories');
+    tv.b.Settings.set('three', false, 'categories');
 
     var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
@@ -159,13 +159,13 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     // Enables the three option, two already enabled.
     dlg.querySelector('.default-enabled-categories .all-btn').click();
     assertEquals('', dlg.categoryFilter());
-    assertEquals(true, tv.Settings.get('three', false, 'categories'));
+    assertEquals(true, tv.b.Settings.get('three', false, 'categories'));
 
     // Disables three and two.
     dlg.querySelector('.default-enabled-categories .none-btn').click();
     assertEquals('-three,-two', dlg.categoryFilter());
-    assertEquals(false, tv.Settings.get('two', false, 'categories'));
-    assertEquals(false, tv.Settings.get('three', false, 'categories'));
+    assertEquals(false, tv.b.Settings.get('two', false, 'categories'));
+    assertEquals(false, tv.b.Settings.get('three', false, 'categories'));
 
     // Turn categories back on so they can be ignored.
     dlg.querySelector('.default-enabled-categories .all-btn').click();
@@ -174,18 +174,18 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.querySelector('.default-disabled-categories .all-btn').click();
     assertEquals('disabled-by-default-one', dlg.categoryFilter());
     assertEquals(true,
-        tv.Settings.get('disabled-by-default-one', false, 'categories'));
+        tv.b.Settings.get('disabled-by-default-one', false, 'categories'));
 
     // Turn disabled by default back off.
     dlg.querySelector('.default-disabled-categories .none-btn').click();
     assertEquals('', dlg.categoryFilter());
     assertEquals(false,
-        tv.Settings.get('disabled-by-default-one', false, 'categories'));
+        tv.b.Settings.get('disabled-by-default-one', false, 'categories'));
   });
 
   test('recordSelectionDialog_defaultPreset', function() {
-    tv.Settings.set('two', true, 'categories');
-    tv.Settings.set('three', false, 'categories');
+    tv.b.Settings.set('two', true, 'categories');
+    tv.b.Settings.set('three', false, 'categories');
 
     var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
@@ -220,12 +220,12 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('recordSelectionDialog_changePresets', function() {
-    tv.Settings.set('two', true, 'categories');
-    tv.Settings.set('three', false, 'categories');
-    tv.Settings.set('disabled-by-default-cc.debug', true, 'categories');
-    tv.Settings.set('recordSelectionDialog.useContinuousTracing', false);
-    tv.Settings.set('recordSelectionDialog.useSystemTracing', true);
-    tv.Settings.set('recordSelectionDialog.useSampling', false);
+    tv.b.Settings.set('two', true, 'categories');
+    tv.b.Settings.set('three', false, 'categories');
+    tv.b.Settings.set('disabled-by-default-cc.debug', true, 'categories');
+    tv.b.Settings.set('recordSelectionDialog.useContinuousTracing', false);
+    tv.b.Settings.set('recordSelectionDialog.useSystemTracing', true);
+    tv.b.Settings.set('recordSelectionDialog.useSampling', false);
 
     var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
@@ -262,12 +262,12 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('recordSelectionDialog_savedPreset', function() {
-    tv.Settings.set('two', true, 'categories');
-    tv.Settings.set('three', false, 'categories');
-    tv.Settings.set('recordSelectionDialog.useContinuousTracing', true);
-    tv.Settings.set('recordSelectionDialog.useSystemTracing', true);
-    tv.Settings.set('recordSelectionDialog.useSampling', true);
-    tv.Settings.set('tv.e.about_tracing.record_selection_dialog_preset',
+    tv.b.Settings.set('two', true, 'categories');
+    tv.b.Settings.set('three', false, 'categories');
+    tv.b.Settings.set('recordSelectionDialog.useContinuousTracing', true);
+    tv.b.Settings.set('recordSelectionDialog.useSystemTracing', true);
+    tv.b.Settings.set('recordSelectionDialog.useSampling', true);
+    tv.b.Settings.set('tv.e.about_tracing.record_selection_dialog_preset',
         ['blink', 'cc', 'renderer', 'cc.debug']);
 
     var dlg = new tv.e.about_tracing.RecordSelectionDialog();
@@ -297,13 +297,13 @@ tv.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('recordSelectionDialog_categoryFilters', function() {
-    tv.Settings.set('default1', true, 'categories');
-    tv.Settings.set('disabled1', false, 'categories');
-    tv.Settings.set('disabled-by-default-cc.disabled2', false, 'categories');
-    tv.Settings.set('input', true, 'categories');
-    tv.Settings.set('blink', true, 'categories');
-    tv.Settings.set('cc', false, 'categories');
-    tv.Settings.set('disabled-by-default-cc.debug', true, 'categories');
+    tv.b.Settings.set('default1', true, 'categories');
+    tv.b.Settings.set('disabled1', false, 'categories');
+    tv.b.Settings.set('disabled-by-default-cc.disabled2', false, 'categories');
+    tv.b.Settings.set('input', true, 'categories');
+    tv.b.Settings.set('blink', true, 'categories');
+    tv.b.Settings.set('cc', false, 'categories');
+    tv.b.Settings.set('disabled-by-default-cc.debug', true, 'categories');
 
     var dlg = new tv.e.about_tracing.RecordSelectionDialog();
     dlg.settings_key = 'categories';

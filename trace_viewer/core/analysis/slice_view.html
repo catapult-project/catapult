@@ -18,7 +18,7 @@ tv.exportTo('tv.c.analysis', function() {
    *
    * @constructor
    */
-  var SliceView = tv.ui.define('slice-view');
+  var SliceView = tv.b.ui.define('slice-view');
 
   SliceView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -53,10 +53,10 @@ tv.exportTo('tv.c.analysis', function() {
     }
   };
 
-  var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
+  var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = SliceView;
   options.defaultConstructor = undefined;
-  tv.decorateExtensionRegistry(SliceView, options);
+  tv.b.decorateExtensionRegistry(SliceView, options);
 
   return {
     SliceView: SliceView

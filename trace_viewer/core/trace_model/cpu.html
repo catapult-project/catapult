@@ -172,7 +172,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.cpuNumber = number;
     this.slices = [];
     this.counters = {};
-    this.bounds = new tv.Range();
+    this.bounds = new tv.b.Range();
     this.samples_ = undefined; // Set during createSubSlices
 
     // Start timestamp of the last active thread.
@@ -271,7 +271,7 @@ tv.exportTo('tv.c.trace_model', function() {
      * Returns the index of the slice in the CPU's slices, or undefined.
      */
     indexOf: function(cpuSlice) {
-      var i = tv.findLowIndexInSortedArray(
+      var i = tv.b.findLowIndexInSortedArray(
           this.slices,
           function(slice) { return slice.start; },
           cpuSlice.start);
@@ -311,7 +311,7 @@ tv.exportTo('tv.c.trace_model', function() {
       var duration = end_timestamp - this.lastActiveTimestamp_;
       var slice = new tv.c.trace_model.CpuSlice(
           '', this.lastActiveName_,
-          tv.ui.getStringColorId(this.lastActiveName_),
+          tv.b.ui.getStringColorId(this.lastActiveName_),
           this.lastActiveTimestamp_,
           this.lastActiveArgs_,
           duration);

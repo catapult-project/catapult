@@ -92,7 +92,7 @@ tv.exportTo('tv.e.analysis', function() {
     });
 
     // Figure out total array range.
-    var sum = tv.Statistics.sum(groups, getValue);
+    var sum = tv.b.Statistics.sum(groups, getValue);
     if (opt_extraValue !== undefined)
       sum += opt_extraValue;
 
@@ -129,7 +129,7 @@ tv.exportTo('tv.e.analysis', function() {
 
   function createPieChartFromResultGroups(
       groups, title, getValue, opt_extraData) {
-    var chart = new tv.ui.PieChart();
+    var chart = new tv.b.ui.PieChart();
 
     function pushDataForGroup(data, resultsForGroup, value) {
       data.push({
@@ -180,7 +180,7 @@ tv.exportTo('tv.e.analysis', function() {
 
   ResultsForGroup.prototype = {
     get wallTime() {
-      var wallSum = tv.Statistics.sum(
+      var wallSum = tv.b.Statistics.sum(
           this.topLevelSlices, function(x) { return x.duration; });
       return wallSum;
     },
@@ -240,7 +240,7 @@ tv.exportTo('tv.e.analysis', function() {
   /**
    * @constructor
    */
-  var TimeSummarySidePanel = tv.ui.define(
+  var TimeSummarySidePanel = tv.b.ui.define(
       'x-time-summary-side-panel', tv.c.SidePanel);
 
   TimeSummarySidePanel.prototype = {
@@ -249,10 +249,10 @@ tv.exportTo('tv.e.analysis', function() {
     decorate: function() {
       tv.c.SidePanel.prototype.decorate.call(this);
       this.classList.add('x-time-summary-side-panel');
-      this.appendChild(tv.instantiateTemplate(
+      this.appendChild(tv.b.instantiateTemplate(
           '#x-time-summary-side-panel-template', THIS_DOC));
 
-      this.rangeOfInterest_ = new tv.Range();
+      this.rangeOfInterest_ = new tv.b.Range();
       this.selection_ = undefined;
       this.groupBy_ = GROUP_BY_PROCESS_NAME;
       this.groupingUnit_ = CPU_TIME_GROUPING_UNIT;
@@ -260,7 +260,7 @@ tv.exportTo('tv.e.analysis', function() {
       this.chart_ = undefined;
 
       var toolbarEl = this.querySelector('toolbar');
-      this.groupBySelector_ = tv.ui.createSelector(
+      this.groupBySelector_ = tv.b.ui.createSelector(
           this, 'groupBy',
           'timeSummarySidePanel.groupBy', this.groupBy_,
           [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
@@ -268,7 +268,7 @@ tv.exportTo('tv.e.analysis', function() {
           ]);
       toolbarEl.appendChild(this.groupBySelector_);
 
-      this.groupingUnitSelector_ = tv.ui.createSelector(
+      this.groupingUnitSelector_ = tv.b.ui.createSelector(
           this, 'groupingUnit',
           'timeSummarySidePanel.groupingUnit', this.groupingUnit_,
           [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
@@ -276,7 +276,7 @@ tv.exportTo('tv.e.analysis', function() {
           ]);
       toolbarEl.appendChild(this.groupingUnitSelector_);
 
-      this.showCpuIdleTimeCheckbox_ = tv.ui.createCheckBox(
+      this.showCpuIdleTimeCheckbox_ = tv.b.ui.createCheckBox(
           this, 'showCpuIdleTime',
           'timeSummarySidePanel.showCpuIdleTime', this.showCpuIdleTime_,
           'Show CPU idle time');
@@ -382,10 +382,10 @@ tv.exportTo('tv.e.analysis', function() {
 
       // Create summary.
       var summaryText = document.createElement('div');
-      summaryText.appendChild(tv.ui.createSpan({
+      summaryText.appendChild(tv.b.ui.createSpan({
         textContent: 'Total ' + this.groupingUnit_ + ': ',
         bold: true}));
-      summaryText.appendChild(tv.ui.createSpan({
+      summaryText.appendChild(tv.b.ui.createSpan({
         textContent: tsRound(getValueFromGroup(allGroup)) + 'ms'
       }));
       resultArea.appendChild(summaryText);
@@ -410,13 +410,13 @@ tv.exportTo('tv.e.analysis', function() {
       // Create the actual chart.
       var otherGroup = new ResultsForGroup(this.model_, 'Other');
       var groups = trimPieChartData(
-          tv.dictionaryValues(resultsByGroupName),
+          tv.b.dictionaryValues(resultsByGroupName),
           otherGroup,
           getValueFromGroup,
           extraValue);
 
       if (groups.length == 0) {
-        resultArea.appendChild(tv.ui.createSpan({textContent: 'No data'}));
+        resultArea.appendChild(tv.b.ui.createSpan({textContent: 'No data'}));
         return undefined;
       }
 

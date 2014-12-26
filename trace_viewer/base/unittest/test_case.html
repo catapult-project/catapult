@@ -9,11 +9,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.unittest', function() {
-  var TestTypes = tv.unittest.TestTypes;
+tv.exportTo('tv.b.unittest', function() {
+  var TestTypes = tv.b.unittest.TestTypes;
 
   function TestCase(suite, testType, name, test, options) {
-    this.guid_ = tv.GUID.allocate();
+    this.guid_ = tv.b.GUID.allocate();
     this.suite_ = suite;
     this.testType_ = testType;
     this.name_ = name;
@@ -67,7 +67,7 @@ tv.exportTo('tv.unittest', function() {
     // TODO(nduca): The routing of this is a bit awkward. Probably better
     // to install a global function.
     addHTMLOutput: function(element) {
-      tv.unittest.addHTMLOutputForCurrentTest(element);
+      tv.b.unittest.addHTMLOutputForCurrentTest(element);
     }
   };
 

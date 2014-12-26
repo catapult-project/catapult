@@ -86,7 +86,7 @@ tv.exportTo('tv.c.trace_model', function() {
      * software measured cpu count.
      */
     get bestGuessAtCpuCount() {
-      var realCpuCount = tv.dictionaryLength(this.cpus);
+      var realCpuCount = tv.b.dictionaryLength(this.cpus);
       if (realCpuCount !== 0)
         return realCpuCount;
       return this.softwareMeasuredCpuCount;

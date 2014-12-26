@@ -29,7 +29,7 @@ tv.exportTo('tv.c.trace_model', function() {
         samplesByTimestamp[ts] = [];
       samplesByTimestamp[ts].push(sample);
     }
-    var timestamps = tv.dictionaryKeys(samplesByTimestamp);
+    var timestamps = tv.b.dictionaryKeys(samplesByTimestamp);
     timestamps.sort();
     var groups = [];
     for (var i = 0; i < timestamps.length; i++) {
@@ -83,7 +83,7 @@ tv.exportTo('tv.c.trace_model', function() {
     },
 
     getSampleIndex: function() {
-      return tv.findLowIndexInSortedArray(
+      return tv.b.findLowIndexInSortedArray(
           this.series.timestamps,
           function(x) { return x; },
           this.timestamp_);

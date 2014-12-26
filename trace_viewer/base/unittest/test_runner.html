@@ -8,14 +8,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.unittest', function() {
+tv.exportTo('tv.b.unittest', function() {
   var realTvOnAnimationFrameError;
   var realWindowOnError;
   var realWindowHistoryPushState;
 
   function installGlobalTestHooks(runner) {
-    realTvOnAnimationFrameError = tv.onAnimationFrameError;
-    tv.onAnimationFrameError = function(error) {
+    realTvOnAnimationFrameError = tv.b.onAnimationFrameError;
+    tv.b.onAnimationFrameError = function(error) {
       runner.results.addErrorForCurrentTest(error);
     }
 
@@ -32,7 +32,7 @@ tv.exportTo('tv.unittest', function() {
     window.history.pushState = function() {
     };
 
-    tv.unittest.addHTMLOutputForCurrentTest = function(element) {
+    tv.b.unittest.addHTMLOutputForCurrentTest = function(element) {
       runner.results.addHTMLOutputForCurrentTest(element);
     }
 
@@ -45,13 +45,13 @@ tv.exportTo('tv.unittest', function() {
     window.onerror = realWindowOnError;
     realWindowOnError = undefined;
 
-    tv.onAnimationFrameError = realTvOnAnimationFrameError;
+    tv.b.onAnimationFrameError = realTvOnAnimationFrameError;
     realTvOnAnimationFrameError = undefined;
 
     window.history.pushState = realWindowHistoryPushState;
     realWindowHistoryPushState = undefined;
 
-    tv.unittest.addHTMLOutputForCurrentTest = undefined;
+    tv.b.unittest.addHTMLOutputForCurrentTest = undefined;
   }
 
 
@@ -108,7 +108,7 @@ tv.exportTo('tv.unittest', function() {
       if (this.runOneTestCaseScheduled_)
         return;
       this.runOneTestCaseScheduled_ = true;
-      tv.requestIdleCallback(this.runOneTestCase_, this);
+      tv.b.requestIdleCallback(this.runOneTestCase_, this);
     },
 
     runOneTestCase_: function() {

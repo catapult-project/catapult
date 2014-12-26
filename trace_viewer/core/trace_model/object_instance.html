@@ -39,7 +39,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.deletionTs = Number.MAX_VALUE;
     this.deletionTsWasExplicit = false;
     this.colorId = 0;
-    this.bounds = new tv.Range();
+    this.bounds = new tv.b.Range();
     this.snapshots = [];
     this.hasImplicitSnapshots = false;
   }
@@ -130,7 +130,7 @@ tv.exportTo('tv.c.trace_model', function() {
         throw new Error('ts must be within lifetime of this instance');
 
       var snapshots = this.snapshots;
-      var i = tv.findLowIndexInSortedIntervals(
+      var i = tv.b.findLowIndexInSortedIntervals(
           snapshots,
           function(snapshot) { return snapshot.ts; },
           function(snapshot, i) {
@@ -171,10 +171,10 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
-  var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
+  var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = ObjectInstance;
   options.defaultConstructor = ObjectInstance;
-  tv.decorateExtensionRegistry(ObjectInstance, options);
+  tv.b.decorateExtensionRegistry(ObjectInstance, options);
 
   return {
     ObjectInstance: ObjectInstance

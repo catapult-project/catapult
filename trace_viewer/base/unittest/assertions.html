@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.unittest', function() {
+tv.exportTo('tv.b.unittest', function() {
   function forAllAssertMethodsIn_(prototype, fn) {
     for (var fieldName in prototype) {
       if (fieldName.indexOf('assert') != 0)
@@ -28,49 +28,49 @@ tv.exportTo('tv.unittest', function() {
       if (a)
         return;
       var message = opt_message || 'Expected true, got ' + a;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertFalse: function(a, opt_message) {
       if (!a)
         return;
       var message = opt_message || 'Expected false, got ' + a;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertUndefined: function(a, opt_message) {
       if (a === undefined)
         return;
       var message = opt_message || 'Expected undefined, got ' + a;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertNotUndefined: function(a, opt_message) {
       if (a !== undefined)
         return;
       var message = opt_message || 'Expected not undefined, got ' + a;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertNull: function(a, opt_message) {
       if (a === null)
         return;
       var message = opt_message || 'Expected null, got ' + a;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertNotNull: function(a, opt_message) {
       if (a !== null)
         return;
       var message = opt_message || 'Expected non-null, got ' + a;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertEquals: function(a, b, opt_message) {
       if (a === b)
         return;
       if (opt_message)
-        throw new tv.unittest.TestError(opt_message);
+        throw new tv.b.unittest.TestError(opt_message);
 
       var message = 'Expected\n"';
       if (typeof(a) === 'string' || a instanceof String)
@@ -95,14 +95,14 @@ tv.exportTo('tv.unittest', function() {
       }
 
       message += '"';
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertNotEquals: function(a, b, opt_message) {
       if (a !== b)
         return;
       var message = opt_message || 'Expected something not equal to ' + b;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertArrayEquals: function(a, b, opt_message) {
@@ -116,7 +116,7 @@ tv.exportTo('tv.unittest', function() {
       }
 
       var message = opt_message || 'Expected array ' + a + ', got array ' + b;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertArrayShallowEquals: function(a, b, opt_message) {
@@ -130,7 +130,7 @@ tv.exportTo('tv.unittest', function() {
       }
 
       var message = opt_message || 'Expected array ' + b + ', got array ' + a;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertArrayBufferEquals: function(a, b, opt_message) {
@@ -146,14 +146,14 @@ tv.exportTo('tv.unittest', function() {
       }
 
       var message = opt_message || 'Array buffers mismatch';
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertAlmostEquals: function(a, b, opt_message) {
       if (Math.abs(a - b) < 0.00001)
         return;
       var message = opt_message || 'Expected almost ' + a + ', got ' + b;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertVec2Equals: function(a, b, opt_message) {
@@ -162,7 +162,7 @@ tv.exportTo('tv.unittest', function() {
         return;
       var message = opt_message || 'Expected (' + a[0] + ',' + a[1] +
           ') but got (' + b[0] + ',' + b[1] + ')';
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertVec3Equals: function(a, b, opt_message) {
@@ -172,7 +172,7 @@ tv.exportTo('tv.unittest', function() {
         return;
       var message = opt_message || 'Expected ' + vec3.toString(a) +
           ' but got ' + vec3.toString(b);
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertQuadEquals: function(a, b, opt_message) {
@@ -185,7 +185,7 @@ tv.exportTo('tv.unittest', function() {
         return;
       var message = opt_message || 'Expected "' + a.toString() +
           '", got "' + b.toString() + '"';
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertRectEquals: function(a, b, opt_message) {
@@ -197,7 +197,7 @@ tv.exportTo('tv.unittest', function() {
 
       var message = opt_message || 'Expected "' + a.toString() +
           '", got "' + b.toString() + '"';
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertObjectEquals: function(a, b, opt_message) {
@@ -206,7 +206,7 @@ tv.exportTo('tv.unittest', function() {
       if (a_json === b_json)
         return;
       var message = opt_message || 'Expected ' + a_json + ', got ' + b_json;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertThrows: function(fn, opt_message) {
@@ -216,7 +216,7 @@ tv.exportTo('tv.unittest', function() {
         return;
       }
       var message = opt_message || 'Expected throw from ' + fn;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertDoesNotThrow: function(fn, opt_message) {
@@ -225,7 +225,7 @@ tv.exportTo('tv.unittest', function() {
       } catch (e) {
         var message = opt_message || 'Expected to not throw from ' + fn +
             ' but got: ' + e;
-        throw new tv.unittest.TestError(message);
+        throw new tv.b.unittest.TestError(message);
       }
     },
 
@@ -240,12 +240,12 @@ tv.exportTo('tv.unittest', function() {
         return;
       var message = opt_message || 'Expect ' + a + ' and ' + b +
           ' to be within ' + epsilon + ' was ' + relative_error;
-      throw new tv.unittest.TestError(message);
+      throw new tv.b.unittest.TestError(message);
     },
 
     assertVisible: function(elt) {
       if (!elt.offsetHeight || !elt.offsetWidth)
-        throw new tv.unittest.TestError('Expected element to be visible');
+        throw new tv.b.unittest.TestError('Expected element to be visible');
     }
   };
 

@@ -18,7 +18,7 @@ tv.exportTo('tv', function() {
    *
    * Returns an HTMLElement that is the trace-viwer.
    */
-  var TraceViewer = tv.ui.define('trace-viewer', tv.c.TimelineView);
+  var TraceViewer = tv.b.ui.define('trace-viewer', tv.c.TimelineView);
 
   TraceViewer.prototype = {
     __proto__: tv.c.TimelineView.prototype,
@@ -51,7 +51,7 @@ tv.exportTo('tv', function() {
       req.send(null);
 
       function onResultFail(err) {
-        var overlay = new tv.ui.Overlay();
+        var overlay = new tv.b.ui.Overlay();
         overlay.textContent = err + ': ' + url + ' could not be loaded';
         overlay.title = 'Failed to fetch data';
         overlay.visible = true;
@@ -72,8 +72,8 @@ tv.exportTo('tv', function() {
       }
 
       function onImportFail() {
-        var overlay = new tv.ui.Overlay();
-        overlay.textContent = tv.normalizeException(err).message;
+        var overlay = new tv.b.ui.Overlay();
+        overlay.textContent = tv.b.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
       }

@@ -385,10 +385,10 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       }
 
       // Create slices for when the thread is not running.
-      var runningId = tv.ui.getColorIdByName('running');
-      var runnableId = tv.ui.getColorIdByName('runnable');
-      var sleepingId = tv.ui.getColorIdByName('sleeping');
-      var ioWaitId = tv.ui.getColorIdByName('iowait');
+      var runningId = tv.b.ui.getColorIdByName('running');
+      var runnableId = tv.b.ui.getColorIdByName('runnable');
+      var sleepingId = tv.b.ui.getColorIdByName('sleeping');
+      var ioWaitId = tv.b.ui.getColorIdByName('iowait');
       this.model_.getAllThreads().forEach(function(thread) {
         if (thread.tempCpuSlices === undefined)
           return;

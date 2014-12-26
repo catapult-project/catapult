@@ -12,16 +12,16 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.ui', function() {
-  var ChartBase = tv.ui.ChartBase;
-  var getColorOfKey = tv.ui.getColorOfKey;
+tv.exportTo('tv.b.ui', function() {
+  var ChartBase = tv.b.ui.ChartBase;
+  var getColorOfKey = tv.b.ui.getColorOfKey;
 
   var MIN_RADIUS = 100;
 
   /**
    * @constructor
    */
-  var SunburstChart = tv.ui.define('sunburst-chart', ChartBase);
+  var SunburstChart = tv.b.ui.define('sunburst-chart', ChartBase);
 
   SunburstChart.prototype = {
     __proto__: ChartBase.prototype,
@@ -100,7 +100,7 @@ tv.exportTo('tv.ui', function() {
     },
 
     getMinSize: function() {
-      if (!tv.ui.isElementAttachedToDocument(this))
+      if (!tv.b.ui.isElementAttachedToDocument(this))
         throw new Error('Cannot measure when unattached');
       this.updateContents_();
 

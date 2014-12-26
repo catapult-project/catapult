@@ -10,12 +10,12 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui.html">
 <link rel="stylesheet" href="/base/unittest/common.css">
 <style>
-  x-tv.unittest-test-resultsbase
+  x-tv.b.unittest-test-resultsbase
     display: -webkit-flex;
     -webkit-flex-direction: column;
   }
 
-  x-tv.unittest-test-results > x-html-test-case-result.dark {
+  x-tv.b.unittest-test-results > x-html-test-case-result.dark {
     background-color: #eee;
   }
 
@@ -59,22 +59,22 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-tv.exportTo('tv.unittest', function() {
+tv.exportTo('tv.b.unittest', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
-  var TestStatus = tv.unittest.TestStatus;
-  var TestTypes = tv.unittest.TestTypes;
+  var TestStatus = tv.b.unittest.TestStatus;
+  var TestTypes = tv.b.unittest.TestTypes;
 
   /**
    * @constructor
    */
-  var HTMLTestCaseResult = tv.ui.define('x-html-test-case-result');
+  var HTMLTestCaseResult = tv.b.ui.define('x-html-test-case-result');
 
   HTMLTestCaseResult.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.appendChild(tv.instantiateTemplate(
+      this.appendChild(tv.b.instantiateTemplate(
           '#x-html-test-case-result-template', THIS_DOC));
       this.testCase_ = undefined;
       this.testCaseHRef_ = undefined;
@@ -128,7 +128,7 @@ tv.exportTo('tv.unittest', function() {
 
     addError: function(normalizedException) {
       var errorEl = document.createElement('x-html-test-case-error');
-      errorEl.appendChild(tv.instantiateTemplate(
+      errorEl.appendChild(tv.b.instantiateTemplate(
           '#x-html-test-case-error-template', THIS_DOC));
       errorEl.querySelector('#stack').textContent = normalizedException.stack;
       this.querySelector('#details').appendChild(errorEl);
@@ -217,7 +217,7 @@ tv.exportTo('tv.unittest', function() {
   /**
    * @constructor
    */
-  var HTMLTestResults = tv.ui.define('x-tv.unittest-test-results');
+  var HTMLTestResults = tv.b.ui.define('x-tv.b.unittest-test-results');
 
   HTMLTestResults.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -321,7 +321,7 @@ tv.exportTo('tv.unittest', function() {
     addErrorForCurrentTest: function(error) {
       this.log_('\n');
 
-      var normalizedException = tv.normalizeException(error);
+      var normalizedException = tv.b.normalizeException(error);
       this.log_('Exception: ' + normalizedException.message + '\n' +
           normalizedException.stack);
 
@@ -348,11 +348,11 @@ tv.exportTo('tv.unittest', function() {
       if (testCaseResult.hadErrors) {
         this.log_('[FAILED]\n');
         this.numTestsThatFailed_ += 1;
-        tv.dispatchSimpleEvent(this, 'testfailed');
+        tv.b.dispatchSimpleEvent(this, 'testfailed');
       } else {
         this.log_('[PASSED]\n');
         this.numTestsThatPassed_ += 1;
-        tv.dispatchSimpleEvent(this, 'testpassed');
+        tv.b.dispatchSimpleEvent(this, 'testpassed');
       }
 
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
@@ -373,7 +373,7 @@ tv.exportTo('tv.unittest', function() {
 
     log_: function(msg) {
       //this.textContent += msg;
-      tv.dispatchSimpleEvent(this, 'statschange');
+      tv.b.dispatchSimpleEvent(this, 'statschange');
     }
   };
 

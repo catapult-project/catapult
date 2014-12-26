@@ -18,7 +18,7 @@ tv.exportTo('tv.c.tracks', function() {
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var ContainerTrack = tv.ui.define('container-track', tv.c.tracks.Track);
+  var ContainerTrack = tv.b.ui.define('container-track', tv.c.tracks.Track);
   ContainerTrack.prototype = {
     __proto__: tv.c.tracks.Track.prototype,
 

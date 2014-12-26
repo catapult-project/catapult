@@ -11,13 +11,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() {
+tv.b.unittest.testSuite(function() {
   function assertionTestSetup() {
     global.rawAssertThrows = function(fn) {
       try {
         fn();
       } catch (e) {
-        if (e instanceof tv.unittest.TestError)
+        if (e instanceof tv.b.unittest.TestError)
           return;
         throw new Error('Unexpected error from <' + fn + '>: ' + e);
       }
@@ -111,7 +111,7 @@ tv.unittest.testSuite(function() {
       var f = {};
       f.foo = f;
       assertEquals(1, f);
-      throw new tv.unittest.TestError('Failed to throw');
+      throw new tv.b.unittest.TestError('Failed to throw');
     } catch (e) {
       assertNotEquals('Converting circular structure to JSON', e.message);
     }
@@ -120,7 +120,7 @@ tv.unittest.testSuite(function() {
       var f = {};
       f.foo = f;
       assertEquals(f, 1);
-      throw new tv.unittest.TestError('Failed to throw');
+      throw new tv.b.unittest.TestError('Failed to throw');
     } catch (e) {
       assertNotEquals('Converting circular structure to JSON', e.message);
     }
@@ -208,22 +208,22 @@ tv.unittest.testSuite(function() {
   assertionTest('assertQuadEquals', function() {
     rawAssertThrows(function() {
       assertQuadEquals(
-          tv.Quad.fromXYWH(1, 1, 2, 2), tv.Quad.fromXYWH(1, 1, 2, 3));
+          tv.b.Quad.fromXYWH(1, 1, 2, 2), tv.b.Quad.fromXYWH(1, 1, 2, 3));
     });
     rawAssertNotThrows(function() {
       assertQuadEquals(
-          tv.Quad.fromXYWH(1, 1, 2, 2), tv.Quad.fromXYWH(1, 1, 2, 2));
+          tv.b.Quad.fromXYWH(1, 1, 2, 2), tv.b.Quad.fromXYWH(1, 1, 2, 2));
     });
   });
 
   assertionTest('assertRectEquals', function() {
     rawAssertThrows(function() {
       assertRectEquals(
-          tv.Rect.fromXYWH(1, 1, 2, 2), tv.Rect.fromXYWH(1, 1, 2, 3));
+          tv.b.Rect.fromXYWH(1, 1, 2, 2), tv.b.Rect.fromXYWH(1, 1, 2, 3));
     });
     rawAssertNotThrows(function() {
       assertRectEquals(
-          tv.Rect.fromXYWH(1, 1, 2, 2), tv.Rect.fromXYWH(1, 1, 2, 2));
+          tv.b.Rect.fromXYWH(1, 1, 2, 2), tv.b.Rect.fromXYWH(1, 1, 2, 2));
     });
   });
 

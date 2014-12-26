@@ -18,7 +18,7 @@ tv.exportTo('tv.c.tracks', function() {
    * @constructor
    * @extends {HeadingTrack}
    */
-  var StackedBarsTrack = tv.ui.define(
+  var StackedBarsTrack = tv.b.ui.define(
       'stacked-bars-track', tv.c.tracks.HeadingTrack);
 
   StackedBarsTrack.prototype = {
@@ -50,7 +50,7 @@ tv.exportTo('tv.c.tracks', function() {
       var snapshots = this.objectInstance_.snapshots;
       var maxBounds = this.objectInstance_.parent.model.bounds.max;
 
-      tv.iterateOverIntersectingIntervals(
+      tv.b.iterateOverIntersectingIntervals(
           snapshots,
           function(x) { return x.ts; },
           function(x, i) {
@@ -95,7 +95,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      var snapshot = tv.findClosestElementInSortedArray(
+      var snapshot = tv.b.findClosestElementInSortedArray(
           this.objectInstance_.snapshots,
           function(x) { return x.ts; },
           worldX,

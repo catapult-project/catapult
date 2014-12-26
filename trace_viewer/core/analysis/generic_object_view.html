@@ -18,7 +18,7 @@ tv.exportTo('tv.c.analysis', function() {
   /**
    * @constructor
    */
-  var GenericObjectView = tv.ui.define('x-generic-object-view');
+  var GenericObjectView = tv.b.ui.define('x-generic-object-view');
 
   GenericObjectView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -97,7 +97,7 @@ tv.exportTo('tv.c.analysis', function() {
         return;
       }
 
-      if (object instanceof tv.Rect) {
+      if (object instanceof tv.b.Rect) {
         this.appendSimpleText_(label, indent, object.toString(), suffix);
         return;
       }
@@ -136,7 +136,7 @@ tv.exportTo('tv.c.analysis', function() {
 
     appendElementsForObject_: function(
         label, object, indent, depth, maxDepth, suffix) {
-      var keys = tv.dictionaryKeys(object);
+      var keys = tv.b.dictionaryKeys(object);
       if (keys.length == 0) {
         this.appendSimpleText_(label, indent, '{}', suffix);
         return;
@@ -190,7 +190,7 @@ tv.exportTo('tv.c.analysis', function() {
   /**
    * @constructor
    */
-  var GenericObjectViewWithLabel = tv.ui.define(
+  var GenericObjectViewWithLabel = tv.b.ui.define(
       'x-generic-object-view-with-label');
 
   GenericObjectViewWithLabel.prototype = {

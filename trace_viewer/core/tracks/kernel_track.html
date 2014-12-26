@@ -21,7 +21,7 @@ tv.exportTo('tv.c.tracks', function() {
   /**
    * @constructor
    */
-  var KernelTrack = tv.ui.define('kernel-track', ProcessTrackBase);
+  var KernelTrack = tv.b.ui.define('kernel-track', ProcessTrackBase);
 
   KernelTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
@@ -41,7 +41,7 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     willAppendTracks_: function() {
-      var cpus = tv.dictionaryValues(this.kernel.cpus);
+      var cpus = tv.b.dictionaryValues(this.kernel.cpus);
       cpus.sort(tv.c.trace_model.Cpu.compare);
 
       var didAppendAtLeastOneTrack = false;

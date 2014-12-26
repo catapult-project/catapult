@@ -33,7 +33,7 @@ tv.exportTo('tv.e.cc', function() {
    *
    * @constructor
    */
-  var PictureOpsChartView = tv.ui.define('picture-ops-chart-view');
+  var PictureOpsChartView = tv.b.ui.define('picture-ops-chart-view');
 
   PictureOpsChartView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -63,7 +63,7 @@ tv.exportTo('tv.e.cc', function() {
       this.chart_.addEventListener('mousemove', this.onMouseMove_.bind(this));
 
       this.usePercentileScale_ = false;
-      this.usePercentileScaleCheckbox_ = tv.ui.createCheckBox(
+      this.usePercentileScaleCheckbox_ = tv.b.ui.createCheckBox(
           this, 'usePercentileScale',
           'PictureOpsChartView.usePercentileScale', false,
           'Limit to 95%-ile');
@@ -161,7 +161,7 @@ tv.exportTo('tv.e.cc', function() {
       index = Math.floor((x - chartLeft) / totalBarWidth *
           this.pictureOps_.length);
 
-      index = tv.clamp(index, 0, this.pictureOps_.length - 1);
+      index = tv.b.clamp(index, 0, this.pictureOps_.length - 1);
 
       return index;
     },
@@ -181,7 +181,7 @@ tv.exportTo('tv.e.cc', function() {
 
       e.preventDefault();
 
-      tv.dispatchSimpleEvent(this, 'selection-changed', false);
+      tv.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     onMouseMove_: function(e) {

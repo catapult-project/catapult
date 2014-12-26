@@ -58,10 +58,10 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
-  var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
+  var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = AsyncSlice;
   options.defaultConstructor = AsyncSlice;
-  tv.decorateExtensionRegistry(AsyncSlice, options);
+  tv.b.decorateExtensionRegistry(AsyncSlice, options);
 
   return {
     AsyncSlice: AsyncSlice

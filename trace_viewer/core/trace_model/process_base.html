@@ -32,12 +32,12 @@ tv.exportTo('tv.c.trace_model', function() {
   function ProcessBase(model) {
     if (!model)
       throw new Error('Must provide a model');
-    this.guid_ = tv.GUID.allocate();
+    this.guid_ = tv.b.GUID.allocate();
     this.model = model;
     this.threads = {};
     this.counters = {};
     this.objects = new tv.c.trace_model.ObjectCollection(this);
-    this.bounds = new tv.Range();
+    this.bounds = new tv.b.Range();
     this.sortIndex = 0;
   };
 

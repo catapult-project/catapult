@@ -15,8 +15,8 @@ found in the LICENSE file.
  * @fileoverview Provides color scheme related functions.
  */
 tv.exportTo('tv.c', function() {
-  var paletteRaw = tv.ui.getRawColorPalette();
-  var palette = tv.ui.getColorPalette();
+  var paletteRaw = tv.b.ui.getRawColorPalette();
+  var palette = tv.b.ui.getColorPalette();
 
   var SelectionState = tv.c.trace_model.SelectionState;
 
@@ -32,7 +32,7 @@ tv.exportTo('tv.c', function() {
 
     getColorIdOffset_: function(event) {
       if (event.selectionState === SelectionState.SELECTED)
-        return tv.ui.paletteProperties.highlightIdBoost;
+        return tv.b.ui.paletteProperties.highlightIdBoost;
       return 0;
     },
 
@@ -55,13 +55,13 @@ tv.exportTo('tv.c', function() {
 
     getInstantSliceColor: function(instant) {
       var colorId = instant.colorId + this.getColorIdOffset_(instant);
-      return tv.ui.colorToRGBAString(paletteRaw[colorId],
+      return tv.b.ui.colorToRGBAString(paletteRaw[colorId],
                                        this.getAlpha_(instant));
     },
 
     getObjectInstanceColor: function(instance) {
       var colorId = instance.colorId + this.getColorIdOffset_(instance);
-      return tv.ui.colorToRGBAString(paletteRaw[colorId], 0.25);
+      return tv.b.ui.colorToRGBAString(paletteRaw[colorId], 0.25);
     },
 
     getObjectSnapshotColor: function(snapshot) {
@@ -73,7 +73,7 @@ tv.exportTo('tv.c', function() {
     getCounterSeriesColor: function(colorId, selectionState,
                                     opt_alphaMultiplier) {
       var event = {selectionState: selectionState};
-      return tv.ui.colorToRGBAString(
+      return tv.b.ui.colorToRGBAString(
           paletteRaw[colorId + this.getColorIdOffset_(event)],
           this.getAlpha_(event) *
               (opt_alphaMultiplier !== undefined ? opt_alphaMultiplier : 1.0));
@@ -82,9 +82,9 @@ tv.exportTo('tv.c', function() {
     getBarSnapshotColor: function(snapshot, offset) {
       var colorId =
           (snapshot.objectInstance.colorId + offset) %
-          tv.ui.paletteProperties.numRegularColorIds;
+          tv.b.ui.paletteProperties.numRegularColorIds;
       colorId += this.getColorIdOffset_(snapshot);
-      return tv.ui.colorToRGBAString(paletteRaw[colorId],
+      return tv.b.ui.colorToRGBAString(paletteRaw[colorId],
                                        this.getAlpha_(snapshot));
     }
   };

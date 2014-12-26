@@ -14,7 +14,7 @@ found in the LICENSE file.
 /**
  * @fileoverview 2D bounding box computations.
  */
-tv.exportTo('tv', function() {
+tv.exportTo('tv.b', function() {
 
   /**
    * Tracks a 2D bounding box.
@@ -142,7 +142,7 @@ tv.exportTo('tv', function() {
     },
 
     asRect: function() {
-      return tv.Rect.fromXYWH(
+      return tv.b.Rect.fromXYWH(
           this.min_[0],
           this.min_[1],
           this.max_[0] - this.min_[0],

@@ -14,7 +14,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.unittest.testSuite(function() {
+tv.b.unittest.testSuite(function() {
   var Selection = tv.c.Selection;
   var RectTrack = tv.c.tracks.RectTrack;
   var Slice = tv.c.trace_model.Slice;
@@ -136,7 +136,7 @@ tv.unittest.testSuite(function() {
 
   test('selectionHitTesting', function() {
     var testEl = document.createElement('div');
-    testEl.appendChild(tv.ui.createScopedStyle('heading { width: 100px; }'));
+    testEl.appendChild(tv.b.ui.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
     this.addHTMLOutput(testEl);
 

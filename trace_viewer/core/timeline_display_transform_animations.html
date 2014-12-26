@@ -16,7 +16,7 @@ tv.exportTo('tv.c', function() {
   /**
    * Pans a TimelineDisplayTransform by a given amount.
    * @constructor
-   * @extends {tv.ui.Animation}
+   * @extends {tv.b.ui.Animation}
    * @param {Number} deltaX The total amount of change to the transform's panX.
    * @param {Number} deltaY The total amount of change to the transform's panY.
    * @param {Number=} opt_durationMs How long the pan animation should run.
@@ -37,7 +37,7 @@ tv.exportTo('tv.c', function() {
   }
 
   TimelineDisplayTransformPanAnimation.prototype = {
-    __proto__: tv.ui.Animation.prototype,
+    __proto__: tv.b.ui.Animation.prototype,
 
     get affectsPanY() {
       return this.deltaY !== 0;
@@ -67,11 +67,11 @@ tv.exportTo('tv.c', function() {
 
     tick: function(timestamp, target) {
       var percentDone = (timestamp - this.startTimeMs) / this.durationMs;
-      percentDone = tv.clamp(percentDone, 0, 1);
+      percentDone = tv.b.clamp(percentDone, 0, 1);
 
-      target.panX = tv.lerp(percentDone, this.startPanX, this.goalPanX);
+      target.panX = tv.b.lerp(percentDone, this.startPanX, this.goalPanX);
       if (this.affectsPanY)
-        target.panY = tv.lerp(percentDone, this.startPanY, this.goalPanY);
+        target.panY = tv.b.lerp(percentDone, this.startPanY, this.goalPanY);
       return timestamp >= this.startTimeMs + this.durationMs;
     },
 
@@ -95,7 +95,7 @@ tv.exportTo('tv.c', function() {
    * point in addition to the amount by which to zoom.
    *
    * @constructor
-   * @extends {tv.ui.Animation}
+   * @extends {tv.b.ui.Animation}
    * @param {Number} goalFocalPointXWorld The X coordinate in the world which is
    * of interest.
    * @param {Number} goalFocalPointXView Where on the screen the
@@ -128,7 +128,7 @@ tv.exportTo('tv.c', function() {
   }
 
   TimelineDisplayTransformZoomToAnimation.prototype = {
-    __proto__: tv.ui.Animation.prototype,
+    __proto__: tv.b.ui.Animation.prototype,
 
     get affectsPanY() {
       return this.startPanY != this.goalPanY;
@@ -151,11 +151,11 @@ tv.exportTo('tv.c', function() {
 
     tick: function(timestamp, target) {
       var percentDone = (timestamp - this.startTimeMs) / this.durationMs;
-      percentDone = tv.clamp(percentDone, 0, 1);
+      percentDone = tv.b.clamp(percentDone, 0, 1);
 
-      target.scaleX = tv.lerp(percentDone, this.startScaleX, this.goalScaleX);
+      target.scaleX = tv.b.lerp(percentDone, this.startScaleX, this.goalScaleX);
       if (this.affectsPanY) {
-        target.panY = tv.lerp(
+        target.panY = tv.b.lerp(
             percentDone, this.startPanY, this.goalFocalPointY);
       }
 

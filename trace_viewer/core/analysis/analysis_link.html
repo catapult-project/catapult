@@ -25,7 +25,7 @@ tv.exportTo('tv.c.analysis', function() {
    *
    * @constructor
    */
-  var AnalysisLink = tv.ui.define('a');
+  var AnalysisLink = tv.b.ui.define('a');
 
   AnalysisLink.prototype = {
     __proto__: HTMLAnchorElement.prototype,
@@ -44,7 +44,7 @@ tv.exportTo('tv.c.analysis', function() {
    * Changes the selection to the given ObjectSnapshot when clicked.
    * @constructor
    */
-  var ObjectSnapshotLink = tv.ui.define(
+  var ObjectSnapshotLink = tv.b.ui.define(
       'object-snapshot-link', AnalysisLink);
 
   ObjectSnapshotLink.prototype = {
@@ -71,7 +71,7 @@ tv.exportTo('tv.c.analysis', function() {
    * Changes the selection to the given ObjectInstance when clicked.
    * @constructor
    */
-  var ObjectInstanceLink = tv.ui.define(
+  var ObjectInstanceLink = tv.b.ui.define(
       'object-instance-link', AnalysisLink);
 
   ObjectInstanceLink.prototype = {

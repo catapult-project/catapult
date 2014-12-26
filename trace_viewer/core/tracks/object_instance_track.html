@@ -28,7 +28,7 @@ tv.exportTo('tv.c.tracks', function() {
    * @extends {HeadingTrack}
    */
 
-  var ObjectInstanceTrack = tv.ui.define(
+  var ObjectInstanceTrack = tv.b.ui.define(
       'object-instance-track', tv.c.tracks.HeadingTrack);
 
   ObjectInstanceTrack.prototype = {
@@ -105,7 +105,7 @@ tv.exportTo('tv.c.tracks', function() {
 
       // Instances
       var objectInstances = this.objectInstances_;
-      var loI = tv.findLowIndexInSortedArray(
+      var loI = tv.b.findLowIndexInSortedArray(
           objectInstances,
           function(instance) {
             return instance.deletionTs;
@@ -127,7 +127,7 @@ tv.exportTo('tv.c.tracks', function() {
 
       // Snapshots. Has to run in worldspace because ctx.arc gets transformed.
       var objectSnapshots = this.objectSnapshots_;
-      loI = tv.findLowIndexInSortedArray(
+      loI = tv.b.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts + snapshotRadiusWorld;
@@ -204,7 +204,7 @@ tv.exportTo('tv.c.tracks', function() {
       }
       var snapshotRadiusView = this.snapshotRadiusView;
       var snapshotRadiusWorld = viewPixWidthWorld * snapshotRadiusView;
-      tv.iterateOverIntersectingIntervals(
+      tv.b.iterateOverIntersectingIntervals(
           this.objectSnapshots_,
           function(x) { return x.ts - snapshotRadiusWorld; },
           function(x) { return 2 * snapshotRadiusWorld; },
@@ -214,7 +214,7 @@ tv.exportTo('tv.c.tracks', function() {
         return;
 
       // Try picking instances.
-      tv.iterateOverIntersectingIntervals(
+      tv.b.iterateOverIntersectingIntervals(
           this.objectInstances_,
           function(x) { return x.creationTs; },
           function(x) { return x.deletionTs - x.creationTs; },
@@ -255,7 +255,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      var snapshot = tv.findClosestElementInSortedArray(
+      var snapshot = tv.b.findClosestElementInSortedArray(
           this.objectSnapshots_,
           function(x) { return x.ts; },
           worldX,
@@ -273,8 +273,8 @@ tv.exportTo('tv.c.tracks', function() {
   };
 
 
-  var options = new tv.ExtensionRegistryOptions(tv.TYPE_BASED_REGISTRY_MODE);
-  tv.decorateExtensionRegistry(ObjectInstanceTrack, options);
+  var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
+  tv.b.decorateExtensionRegistry(ObjectInstanceTrack, options);
 
   return {
     ObjectInstanceTrack: ObjectInstanceTrack

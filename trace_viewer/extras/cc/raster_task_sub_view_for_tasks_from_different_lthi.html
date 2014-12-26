@@ -120,7 +120,7 @@ found in the LICENSE file.
       });
 
       // Initial sort.
-      var costs = tv.dictionaryValues(costsByLTHI);
+      var costs = tv.b.dictionaryValues(costsByLTHI);
       costs.sort(function(x,y) {
         if (hadCpuDurations)
           return y.cpuDuration - x.cpuDuration;
@@ -165,7 +165,7 @@ found in the LICENSE file.
       // Footer.
       var frow = results.appendFootRow(table);
       results.appendTableCell(table, frow, 'Totals')
-      results.appendTableCell(table, frow,  tv.dictionaryLength(tilesThatWeHaveSeen));
+      results.appendTableCell(table, frow,  tv.b.dictionaryLength(tilesThatWeHaveSeen));
       results.appendTableCell(table, frow,  totalNumAnalyzeTasks);
       results.appendTableCell(table, frow,  totalNumRasterizeTasks);
       results.appendTableCell(
@@ -175,7 +175,7 @@ found in the LICENSE file.
             table, frow, tv.c.analysis.tsRound(totalCpuDuration) + 'ms');
       }
 
-      tv.ui.SortableTable.decorate(table);
+      tv.b.ui.SortableTable.decorate(table);
     }
   });
   </script>

@@ -10,18 +10,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.ui', function() {
+tv.exportTo('tv.b.ui', function() {
   /**
    * @constructor
    */
-  var InfoBar = tv.ui.define('x-info-bar');
+  var InfoBar = tv.b.ui.define('x-info-bar');
 
   InfoBar.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      this.messageEl_ = tv.ui.createSpan({className: 'message'});
-      this.buttonsEl_ = tv.ui.createSpan({className: 'buttons'});
+      this.messageEl_ = tv.b.ui.createSpan({className: 'message'});
+      this.buttonsEl_ = tv.b.ui.createSpan({className: 'buttons'});
 
       this.appendChild(this.messageEl_);
       this.appendChild(this.buttonsEl_);
@@ -64,7 +64,7 @@ tv.exportTo('tv.ui', function() {
   /**
    * @constructor
    */
-  var InfoBarGroup = tv.ui.define('x-info-bar-group');
+  var InfoBarGroup = tv.b.ui.define('x-info-bar-group');
 
   InfoBarGroup.prototype = {
     __proto__: HTMLUnknownElement.prototype,

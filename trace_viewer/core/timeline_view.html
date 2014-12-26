@@ -207,13 +207,13 @@ tv.exportTo('tv.c', function() {
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var TimelineView = tv.ui.define('x-timeline-view');
+  var TimelineView = tv.b.ui.define('x-timeline-view');
 
   TimelineView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tv.instantiateTemplate('#timeline-view-template', THIS_DOC);
+      var node = tv.b.instantiateTemplate('#timeline-view-template', THIS_DOC);
       this.appendChild(node);
 
       this.titleEl_ = this.querySelector('.title');
@@ -223,14 +223,14 @@ tv.exportTo('tv.c', function() {
           'x-side-panel-container');
       this.trackViewContainer_ = this.querySelector('track-view-container');
 
-      tv.ui.decorate(this.sidePanelContainer_,
+      tv.b.ui.decorate(this.sidePanelContainer_,
                        tv.c.SidePanelContainer);
 
       this.findCtl_ = new TracingFindControl();
       this.findCtl_.controller = new tv.c.FindController();
 
       this.showFlowEvents_ = false;
-      this.rightControls.appendChild(tv.ui.createCheckBox(
+      this.rightControls.appendChild(tv.b.ui.createCheckBox(
           this, 'showFlowEvents',
           'tv.c.TimelineView.showFlowEvents', false,
           'Flow events'));
@@ -240,7 +240,7 @@ tv.exportTo('tv.c', function() {
       this.rightControls.appendChild(this.createHelpButton_());
 
       this.dragEl_ = this.querySelector('x-drag-handle');
-      tv.ui.decorate(this.dragEl_, tv.ui.DragHandle);
+      tv.b.ui.decorate(this.dragEl_, tv.b.ui.DragHandle);
 
       this.analysisEl_ = this.querySelector('#analysis');
 
@@ -272,11 +272,11 @@ tv.exportTo('tv.c', function() {
     },
 
     createHelpButton_: function() {
-      var node = tv.instantiateTemplate('#help-btn-template', THIS_DOC);
+      var node = tv.b.instantiateTemplate('#help-btn-template', THIS_DOC);
       var showEl = node.querySelector('.view-help-button');
       var helpTextEl = node.querySelector('.view-help-text');
 
-      var dlg = new tv.ui.Overlay();
+      var dlg = new tv.b.ui.Overlay();
       dlg.title = 'chrome://tracing Help';
       dlg.classList.add('view-help-overlay');
       dlg.appendChild(node);
@@ -300,11 +300,11 @@ tv.exportTo('tv.c', function() {
     },
 
     createMetadataButton_: function() {
-      var node = tv.instantiateTemplate('#metadata-btn-template', THIS_DOC);
+      var node = tv.b.instantiateTemplate('#metadata-btn-template', THIS_DOC);
       var showEl = node.querySelector('.view-metadata-button');
       var textEl = node.querySelector('.info-button-text');
 
-      var dlg = new tv.ui.Overlay();
+      var dlg = new tv.b.ui.Overlay();
       dlg.title = 'Metadata for trace';
       dlg.classList.add('view-metadata-overlay');
       dlg.appendChild(node);
@@ -408,7 +408,7 @@ tv.exportTo('tv.c', function() {
         this.trackView_.viewport.showFlowEvents = this.showFlowEvents;
         this.clearSelectionHistory_();
       }
-      tv.dispatchSimpleEvent(this, 'modelChange');
+      tv.b.dispatchSimpleEvent(this, 'modelChange');
 
       // Do things that are selection specific
       if (modelInstanceChanged) {
@@ -423,7 +423,7 @@ tv.exportTo('tv.c', function() {
 
     get settings() {
       if (!this.settings_)
-        this.settings_ = new tv.Settings();
+        this.settings_ = new tv.b.Settings();
       return this.settings_;
     },
 
@@ -449,7 +449,7 @@ tv.exportTo('tv.c', function() {
     },
 
     get listenToKeys_() {
-      if (!tv.ui.isElementAttachedToDocument(this))
+      if (!tv.b.ui.isElementAttachedToDocument(this))
         return;
       if (!this.focusElement_)
         return true;

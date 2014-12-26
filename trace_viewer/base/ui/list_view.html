@@ -15,18 +15,18 @@ found in the LICENSE file.
 /**
  * @fileoverview Simple list view.
  */
-tv.exportTo('tv.ui', function() {
+tv.exportTo('tv.b.ui', function() {
   /**
    * @constructor
    */
-  var ListView = tv.ui.define(
-      'x-list-view', tv.ui.ContainerThatDecoratesItsChildren);
+  var ListView = tv.b.ui.define(
+      'x-list-view', tv.b.ui.ContainerThatDecoratesItsChildren);
 
   ListView.prototype = {
-    __proto__: tv.ui.ContainerThatDecoratesItsChildren.prototype,
+    __proto__: tv.b.ui.ContainerThatDecoratesItsChildren.prototype,
 
     decorate: function() {
-      tv.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
+      tv.b.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
 
       this.classList.add('x-list-view');
       this.onItemClicked_ = this.onItemClicked_.bind(this);
@@ -56,7 +56,7 @@ tv.exportTo('tv.ui', function() {
                 this.removeAttribute('selected');
               var newSelection = listView.selectedElement;
               if (newSelection != oldSelection)
-                tv.dispatchSimpleEvent(listView, 'selection-changed', false);
+                tv.b.dispatchSimpleEvent(listView, 'selection-changed', false);
             },
             get: function() {
               return this.hasAttribute('selected');
@@ -78,7 +78,7 @@ tv.exportTo('tv.ui', function() {
 
     doneDecoratingForNow_: function() {
       if (this.selectionChanged_)
-        tv.dispatchSimpleEvent(this, 'selection-changed', false);
+        tv.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     get selectedElement() {
@@ -107,9 +107,9 @@ tv.exportTo('tv.ui', function() {
 
     clear: function() {
       var changed = this.selectedElement !== undefined;
-      tv.ui.ContainerThatDecoratesItsChildren.prototype.clear.call(this);
+      tv.b.ui.ContainerThatDecoratesItsChildren.prototype.clear.call(this);
       if (changed)
-        tv.dispatchSimpleEvent(this, 'selection-changed', false);
+        tv.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     onItemClicked_: function(e) {
@@ -120,7 +120,7 @@ tv.exportTo('tv.ui', function() {
       while (element.parentElement != this)
         element = element.parentElement;
       element.setAttribute('selected', 'selected');
-      tv.dispatchSimpleEvent(this, 'selection-changed', false);
+      tv.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     onKeyDown_: function(e) {
@@ -131,7 +131,7 @@ tv.exportTo('tv.ui', function() {
         var prev = this.selectedElement.previousSibling;
         if (prev) {
           prev.selected = true;
-          tv.scrollIntoViewIfNeeded(prev);
+          tv.b.scrollIntoViewIfNeeded(prev);
           e.preventDefault();
           return true;
         }
@@ -139,7 +139,7 @@ tv.exportTo('tv.ui', function() {
         var next = this.selectedElement.nextSibling;
         if (next) {
           next.selected = true;
-          tv.scrollIntoViewIfNeeded(next);
+          tv.b.scrollIntoViewIfNeeded(next);
           e.preventDefault();
           return true;
         }

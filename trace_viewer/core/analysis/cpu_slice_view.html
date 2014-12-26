@@ -43,7 +43,7 @@ tv.exportTo('tv.c.analysis', function() {
   /**
    * @constructor
    */
-  var CpuSliceView = tv.ui.define('cpu-slice-view',
+  var CpuSliceView = tv.b.ui.define('cpu-slice-view',
                                     tv.c.analysis.SliceView);
 
   CpuSliceView.prototype = {
@@ -56,7 +56,7 @@ tv.exportTo('tv.c.analysis', function() {
 
     updateContents: function() {
       this.textContent = '';
-      this.appendChild(tv.instantiateTemplate('#cpu-slice-view-template',
+      this.appendChild(tv.b.instantiateTemplate('#cpu-slice-view-template',
           THIS_DOC));
 
       var cpuSlice = this.slice;

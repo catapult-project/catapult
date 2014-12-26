@@ -41,13 +41,13 @@ tv.exportTo('tv.c.trace_model', function() {
     if (tmp)
       return tmp;
 
-    tmp = tv.comparePossiblyUndefinedValues(
+    tmp = tv.b.comparePossiblyUndefinedValues(
         x.name, y.name,
         function(x, y) { return x.localeCompare(y); });
     if (tmp)
       return tmp;
 
-    tmp = tv.compareArrays(x.labels, y.labels,
+    tmp = tv.b.compareArrays(x.labels, y.labels,
         function(x, y) { return x.localeCompare(y); });
     if (tmp)
       return tmp;

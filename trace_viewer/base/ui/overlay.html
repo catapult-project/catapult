@@ -120,7 +120,7 @@ found in the LICENSE file.
  * restores its original parentage.
  *
  */
-tv.exportTo('tv.ui', function() {
+tv.exportTo('tv.b.ui', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -128,7 +128,7 @@ tv.exportTo('tv.ui', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var Overlay = tv.ui.define('overlay');
+  var Overlay = tv.b.ui.define('overlay');
 
   Overlay.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -151,13 +151,13 @@ tv.exportTo('tv.ui', function() {
       this.onClose_ = this.onClose_.bind(this);
 
       this.addEventListener('visibleChange',
-          tv.ui.Overlay.prototype.onVisibleChange_.bind(this), true);
+          tv.b.ui.Overlay.prototype.onVisibleChange_.bind(this), true);
 
       // Setup the shadow root
       var createShadowRoot = this.createShadowRoot ||
           this.webkitCreateShadowRoot;
       this.shadow_ = createShadowRoot.call(this);
-      this.shadow_.appendChild(tv.instantiateTemplate('#overlay-template',
+      this.shadow_.appendChild(tv.b.instantiateTemplate('#overlay-template',
                                                         THIS_DOC));
 
       this.closeBtn_ = this.shadow_.querySelector('close-button');
@@ -203,7 +203,7 @@ tv.exportTo('tv.ui', function() {
       if (this.visible_ === newValue)
         return;
 
-      tv.setPropertyAndDispatchChange(this, 'visible', newValue);
+      tv.b.setPropertyAndDispatchChange(this, 'visible', newValue);
     },
 
     onVisibleChange_: function() {
@@ -256,7 +256,7 @@ tv.exportTo('tv.ui', function() {
           (e.type === 'keydown' && e.keyCode === 27))
         e.stopPropagation();
       e.preventDefault();
-      tv.dispatchSimpleEvent(this, 'closeclick');
+      tv.b.dispatchSimpleEvent(this, 'closeclick');
     },
 
     onFocusIn_: function(e) {
@@ -308,7 +308,7 @@ tv.exportTo('tv.ui', function() {
     o.title = 'Error';
     o.textContent = msg;
     if (opt_err) {
-      var e = tv.normalizeException(opt_err);
+      var e = tv.b.normalizeException(opt_err);
 
       var stackDiv = document.createElement('pre');
       stackDiv.textContent = e.stack;

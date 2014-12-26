@@ -84,7 +84,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('i915_flip');
       if (kthread.openSlice) {
         var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-            tv.ui.getStringColorId(kthread.openSlice),
+            tv.b.ui.getStringColorId(kthread.openSlice),
             kthread.openSliceTS,
             args,
             ts - kthread.openSliceTS);
@@ -98,7 +98,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem');
       kthread.openSlice = eventName + ':' + obj;
       var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-          tv.ui.getStringColorId(kthread.openSlice), ts, args, 0);
+          tv.b.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
     },
@@ -107,7 +107,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem_ring');
       kthread.openSlice = eventName + ':' + dev + '.' + ring;
       var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-          tv.ui.getStringColorId(kthread.openSlice), ts, args, 0);
+          tv.b.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
     },
@@ -116,7 +116,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('i915_reg');
       kthread.openSlice = eventName + ':' + reg;
       var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-          tv.ui.getStringColorId(kthread.openSlice), ts, args, 0);
+          tv.b.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
     },

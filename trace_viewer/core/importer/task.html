@@ -116,13 +116,13 @@ tv.exportTo('tv.c.importer', function() {
         }
 
         if (curTask) {
-          tv.requestIdleCallback(runAnother);
+          tv.b.requestIdleCallback(runAnother);
           return;
         }
 
         resolve();
       }
-      tv.requestIdleCallback(runAnother);
+      tv.b.requestIdleCallback(runAnother);
     });
   }
 

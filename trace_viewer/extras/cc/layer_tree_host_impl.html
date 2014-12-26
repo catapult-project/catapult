@@ -154,14 +154,14 @@ tv.exportTo('tv.e.cc', function() {
         var tileHistory = this.allTileHistories_[tileID];
         scales[tileHistory.contentsScale] = true;
       }
-      this.allContentsScales_ = tv.dictionaryKeys(scales);
+      this.allContentsScales_ = tv.b.dictionaryKeys(scales);
       return this.allContentsScales_;
     },
 
     get allLayersBBox() {
       if (this.allLayersBBox_)
         return this.allLayersBBox_;
-      var bbox = new tv.BBox2();
+      var bbox = new tv.b.BBox2();
       function handleTree(tree) {
         tree.renderSurfaceLayerList.forEach(function(layer) {
           bbox.addQuad(layer.layerQuad);

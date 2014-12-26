@@ -9,7 +9,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv', function() {
+tv.exportTo('tv.b', function() {
   var tmpVec2s = [];
   for (var i = 0; i < 8; i++)
     tmpVec2s[i] = vec2.create();
@@ -97,7 +97,7 @@ tv.exportTo('tv', function() {
       var x1 = Math.max(this.p1[0], this.p2[0], this.p3[0], this.p4[0]);
       var y1 = Math.max(this.p1[1], this.p2[1], this.p3[1], this.p4[1]);
 
-      return new tv.Rect.fromXYWH(x0, y0, x1 - x0, y1 - y0);
+      return new tv.b.Rect.fromXYWH(x0, y0, x1 - x0, y1 - y0);
     },
 
     clone: function() {

@@ -30,10 +30,10 @@ found in the LICENSE file.
     var statusEl = document.querySelector('#status');
     function discoverTestsInModules(testModuleNames) {
       statusEl.textContent = 'Discovering tests...';
-      var loader = new tv.unittest.SuiteLoader(testModuleNames);
+      var loader = new tv.b.unittest.SuiteLoader(testModuleNames);
       return loader.allSuitesLoadedPromise.then(function() {
         return loader.getAllTests().filter(function(test) {
-          return test.testType == tv.unittest.TestTypes.UNITTEST;
+          return test.testType == tv.b.unittest.TestTypes.UNITTEST;
         }).map(function(test) {
           statusEl.textContent = 'Idle';
           return test.fullyQualifiedName;
@@ -51,7 +51,7 @@ found in the LICENSE file.
     }
 
     function _runTestNamedImpl(fullyQualifiedTestName) {
-      var p = tv.unittest.TestCase.parseFullyQualifiedName(
+      var p = tv.b.unittest.TestCase.parseFullyQualifiedName(
           fullyQualifiedTestName);
       var suiteNameToLoad = p.suiteName;
       var testCaseNameToRun = p.testCaseName;
@@ -64,21 +64,21 @@ found in the LICENSE file.
         };
       });
 
-      var loader = new tv.unittest.SuiteLoader([suiteNameToLoad]);
+      var loader = new tv.b.unittest.SuiteLoader([suiteNameToLoad]);
       loader.allSuitesLoadedPromise.then(
         beginRunningTestCase,
         loadSuiteFailed);
 
-      var results = new tv.unittest.TextTestResults();
+      var results = new tv.b.unittest.TextTestResults();
       function loadSuiteFailed(e) {
-        var normalizedException = tv.normalizeException(e);
+        var normalizedException = tv.b.normalizeException(e);
         runTestResolver.reject(e);
       }
 
       function beginRunningTestCase() {
         var testCase = loader.findTestWithFullyQualifiedName(
             fullyQualifiedTestName);
-        var runner = new tv.unittest.TestRunner(results, [testCase]);
+        var runner = new tv.b.unittest.TestRunner(results, [testCase]);
         runner.beginRunning();
         return runner.runCompletedPromise.then(
           runTestCaseComplete,

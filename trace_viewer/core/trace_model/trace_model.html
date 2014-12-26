@@ -56,14 +56,14 @@ tv.exportTo('tv.c', function() {
     this.processes = {};
     this.metadata = [];
     this.categories = [];
-    this.bounds = new tv.Range();
+    this.bounds = new tv.b.Range();
     this.instantEvents = [];
     this.flowEvents = [];
 
     this.stackFrames = {};
     this.samples = [];
 
-    this.flowIntervalTree = new tv.IntervalTree(
+    this.flowIntervalTree = new tv.b.IntervalTree(
         function(s) { return s.start; },
         function(e) { return e.start; });
 
@@ -75,7 +75,7 @@ tv.exportTo('tv.c', function() {
   }
 
   TraceModel.prototype = {
-    __proto__: tv.EventTarget.prototype,
+    __proto__: tv.b.EventTarget.prototype,
 
     get numProcesses() {
       var n = 0;
@@ -190,7 +190,7 @@ tv.exportTo('tv.c', function() {
     getAllCounters: function() {
       var counters = [];
       counters.push.apply(
-          counters, tv.dictionaryValues(this.kernel.counters));
+          counters, tv.b.dictionaryValues(this.kernel.counters));
       for (var pid in this.processes) {
         var process = this.processes[pid];
         for (var tid in process.counters) {
@@ -277,7 +277,7 @@ tv.exportTo('tv.c', function() {
                                              opt_shiftWorldToZero,
                                              opt_pruneEmptyContainers,
                                              opt_customizeModelCallback) {
-      var overlay = tv.ui.Overlay();
+      var overlay = tv.b.ui.Overlay();
       overlay.title = 'Importing...';
       overlay.userCanClose = false;
       overlay.msgEl = document.createElement('div');

@@ -28,14 +28,14 @@ tv.exportTo('tv.e.cc', function() {
   /**
    * @constructor
    */
-  var LayerView = tv.ui.define('layer-view');
+  var LayerView = tv.b.ui.define('layer-view');
 
   LayerView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
       this.layerTreeQuadStackView_ = new tv.e.cc.LayerTreeQuadStackView();
-      this.dragBar_ = new tv.ui.DragHandle();
+      this.dragBar_ = new tv.b.ui.DragHandle();
       this.analysisEl_ = document.createElement('layer-view-analysis');
       this.analysisEl_.addEventListener('requestSelectionChange',
           this.onRequestSelectionChangeFromAnalysisEl_.bind(this));
@@ -101,7 +101,7 @@ tv.exportTo('tv.e.cc', function() {
         this.layerTreeQuadStackView_.style.height =
             window.getComputedStyle(this).height;
       }
-      tv.dispatchSimpleEvent(this, 'selection-change');
+      tv.b.dispatchSimpleEvent(this, 'selection-change');
     },
 
     createPictureBtn_: function(pictures) {

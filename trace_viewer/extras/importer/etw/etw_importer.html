@@ -70,11 +70,11 @@ tv.exportTo('tv.e.importer.etw', function() {
     __proto__: Object.prototype,
 
     reset: function(base64_payload) {
-      var decoded_size = tv.Base64.getDecodedBufferLength(base64_payload);
+      var decoded_size = tv.b.Base64.getDecodedBufferLength(base64_payload);
       if (decoded_size > this.payload_.byteLength)
         this.payload_ = new DataView(new ArrayBuffer(decoded_size));
 
-      tv.Base64.DecodeToTypedArray(base64_payload, this.payload_);
+      tv.b.Base64.DecodeToTypedArray(base64_payload, this.payload_);
       this.position_ = 0;
     },
 
@@ -380,7 +380,7 @@ tv.exportTo('tv.e.importer.etw', function() {
           event.hasOwnProperty('payload') &&
           event.guid === kThreadGuid &&
           event.op == kThreadDCStartOpcode) {
-        var decoded_size = tv.Base64.getDecodedBufferLength(event.payload);
+        var decoded_size = tv.b.Base64.getDecodedBufferLength(event.payload);
 
         if (event.ver == 1) {
           if (decoded_size >= 52)

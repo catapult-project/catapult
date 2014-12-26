@@ -38,7 +38,7 @@ tv.exportTo('tv.c.tracks', function() {
    */
 
   var CounterTrack =
-      tv.ui.define('counter-track', tv.c.tracks.HeadingTrack);
+      tv.b.ui.define('counter-track', tv.c.tracks.HeadingTrack);
 
   CounterTrack.prototype = {
     __proto__: tv.c.tracks.HeadingTrack.prototype,
@@ -89,7 +89,7 @@ tv.exportTo('tv.c.tracks', function() {
       // Figure out where drawing should begin.
       var numSeries = counter.numSeries;
       var numSamples = counter.numSamples;
-      var startIndex = tv.findLowIndexInSortedArray(
+      var startIndex = tv.b.findLowIndexInSortedArray(
           counter.timestamps,
           function(x) { return x; },
           viewLWorld);
@@ -221,7 +221,7 @@ tv.exportTo('tv.c.tracks', function() {
         }
 
         // Calculate point density and, consequently, opacity of sample points.
-        var endIndex = tv.findLowIndexInSortedArray(
+        var endIndex = tv.b.findLowIndexInSortedArray(
             counter.timestamps, function(x) { return x; }, viewRWorld);
         if (counter.timestamps[endIndex] == viewRWorld) {
           endIndex++;
@@ -234,7 +234,7 @@ tv.exportTo('tv.c.tracks', function() {
                             viewRWorld - viewLWorld : maxVisible - minVisible);
 
         var density = (endIndex - startIndex) / (dt.scaleX * rangeVisible);
-        var clampedDensity = tv.clamp(density, POINT_DENSITY_OPAQUE,
+        var clampedDensity = tv.b.clamp(density, POINT_DENSITY_OPAQUE,
                                       POINT_DENSITY_TRANSPARENT);
         var opacity =
             (POINT_DENSITY_TRANSPARENT - clampedDensity) / POINT_DENSITY_RANGE;
@@ -295,11 +295,11 @@ tv.exportTo('tv.c.tracks', function() {
       }
 
       var counter = this.counter_;
-      var iLo = tv.findLowIndexInSortedIntervals(counter.timestamps,
+      var iLo = tv.b.findLowIndexInSortedIntervals(counter.timestamps,
                                                    function(x) { return x; },
                                                    getSampleWidth.bind(this),
                                                    loWX);
-      var iHi = tv.findLowIndexInSortedIntervals(counter.timestamps,
+      var iHi = tv.b.findLowIndexInSortedIntervals(counter.timestamps,
                                                    function(x) { return x; },
                                                    getSampleWidth.bind(this),
                                                    hiWX);
@@ -343,7 +343,7 @@ tv.exportTo('tv.c.tracks', function() {
       var stackHeight = 0;
 
       for (var i = 0; i < counter.numSeries; i++) {
-        var counterSample = tv.findClosestElementInSortedArray(
+        var counterSample = tv.b.findClosestElementInSortedArray(
             counter.series_[i].samples_,
             function(x) { return x.timestamp; },
             worldX,
