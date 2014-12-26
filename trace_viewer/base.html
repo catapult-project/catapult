@@ -128,34 +128,6 @@ this.tv = (function() {
     }
   };
 
-  var pendingCallbacks = [];
-  var polymerReadyFired = false;
-  function onPolymerReady(callback) {
-    pendingCallbacks.push(callback);
-    if (polymerReadyFired)
-      scheduleRunPendingCallbacks_();
-  }
-
-  var runScheduled = false;
-  function scheduleRunPendingCallbacks_() {
-    if (runScheduled)
-      return;
-    runScheduled = true;
-    // TODO(nduca): I have no idea why magicDelay is needed. :'(
-    var magicDelay = 32;
-    setTimeout(runPendingCallbacks_, magicDelay);
-  }
-
-  function runPendingCallbacks_() {
-    runScheduled = false;
-    var pending = pendingCallbacks.slice();
-    pendingCallbacks = [];
-
-    pending.forEach(function(cb) {
-      cb.call(global);
-    });
-  }
-
   /**
    * Initialization which must be deferred until run-time.
    */
@@ -178,11 +150,6 @@ this.tv = (function() {
     tv.isWindows = /Win/.test(navigator.platform);
     tv.isChromeOS = /CrOS/.test(navigator.userAgent);
     tv.isLinux = /Linux/.test(navigator.userAgent);
-
-    addEventListener('polymer-ready', function() {
-      polymerReadyFired = true;
-      scheduleRunPendingCallbacks_();
-    });
   }
 
   return {
@@ -192,7 +159,6 @@ this.tv = (function() {
     showPanic: showPanic,
     hasPanic: hasPanic,
     getPanicText: getPanicText,
-    onPolymerReady: onPolymerReady
   };
 })();
 
