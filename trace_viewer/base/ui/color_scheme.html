@@ -163,15 +163,17 @@ tv.exportTo('tv.ui', function() {
     return stringColorIdCache[string];
   }
 
+  var paletteProperties = {
+    numRegularColorIds: numRegularColorIds,
+    highlightIdBoost: highlightIdBoost
+  };
+
   return {
     colorToRGBString: colorToRGBString,
     colorToRGBAString: colorToRGBAString,
     getRawColorPalette: getRawColorPalette,
     getColorPalette: getColorPalette,
-    paletteProperties: {
-      numRegularColorIds: numRegularColorIds,
-      highlightIdBoost: highlightIdBoost
-    },
+    paletteProperties: paletteProperties,
     getColorPaletteHighlightIdBoost: getColorPaletteHighlightIdBoost,
     getColorIdByName: getColorIdByName,
     getStringHash: getStringHash,
