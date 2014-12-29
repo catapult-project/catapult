@@ -18,10 +18,14 @@ class ProfilingControllerBackend(object):
     browser_backend = None
     # Note that many profilers doesn't rely on browser_backends, so the number
     # of running_browser_backends may not matter for them.
-    if len(self._platform_backend.running_browser_backends) == 1:
+    num_running_browser_backends = len(
+        self._platform_backend.running_browser_backends)
+    if num_running_browser_backends == 1:
       browser_backend = self._platform_backend.running_browser_backends[0]
     else:
-      raise NotImplementedError()
+      raise NotImplementedError(
+          'Profiling does not support %i browser instances at the same time' %
+          num_running_browser_backends)
 
     profiler_class = profiler_finder.FindProfiler(profiler_name)
 
