@@ -9,8 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/base/guid.html">
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
-<link rel="import" href="/core/trace_model/instant_event.html">
-<link rel="import" href="/core/trace_model/flow_event.html">
 
 <script>
 'use strict';
@@ -23,43 +21,89 @@ tv.exportTo('tv.c', function() {
   var RequestSelectionChangeEvent = tv.b.Event.bind(
       undefined, 'requestSelectionChange', true, false);
 
-  var EVENT_TYPES = [
+    /**
+   * All event types and their metadata.
+   */
+  var ALL_EVENT_TYPES = [
     {
       constructor: tv.c.trace_model.Slice,
       name: 'slice',
-      pluralName: 'slices'
+      pluralName: 'slices',
+      singleViewElementName: 'tv-c-single-slice-sub-view',
+      multiViewElementName: 'tv-c-multi-slice-sub-view'
     },
+    {
+      constructor: tv.c.trace_model.AsyncSlice,
+      name: 'asyncSlice',
+      pluralName: 'asyncSlices',
+      singleViewElementName: 'tv-c-single-slice-sub-view',
+      multiViewElementName: 'tv-c-multi-slice-sub-view'
+    },
+    {
+      constructor: tv.c.trace_model.CpuSlice,
+      name: 'cpuSlice',
+      pluralName: 'cpuSlices',
+      singleViewElementName: 'tv-c-single-cpu-slice-sub-view',
+      multiViewElementName: 'tv-c-multi-slice-sub-view'
+    },
+    {
+      constructor: tv.c.trace_model.ThreadTimeSlice,
+      name: 'threadTimeSlice',
+      pluralName: 'threadTimeSlices',
+      singleViewElementName: 'tv-c-single-thread-time-slice-sub-view',
+      multiViewElementName: 'tv-c-multi-slice-sub-view'
+    },
+
     {
       constructor: tv.c.trace_model.InstantEvent,
       name: 'instantEvent',
-      pluralName: 'instantEvents'
+      pluralName: 'instantEvents',
+      singleViewElementName: 'tv-c-single-instant-event-sub-view',
+      multiViewElementName: 'tv-c-multi-instant-event-sub-view'
     },
     {
       constructor: tv.c.trace_model.CounterSample,
       name: 'counterSample',
-      pluralName: 'counterSamples'
+      pluralName: 'counterSamples',
+      singleViewElementName: 'tv-c-counter-sample-sub-view',
+      multiViewElementName: 'tv-c-counter-sample-sub-view'
     },
     {
       constructor: tv.c.trace_model.ObjectSnapshot,
       name: 'objectSnapshot',
-      pluralName: 'objectSnapshots'
+      pluralName: 'objectSnapshots',
+      singleViewElementName: 'tv-c-single-object-snapshot-sub-view',
+      multiViewElementName: 'tv-c-multi-object-sub-view'
     },
     {
       constructor: tv.c.trace_model.ObjectInstance,
       name: 'objectInstance',
-      pluralName: 'objectInstances'
+      pluralName: 'objectInstances',
+      singleViewElementName: 'tv-c-single-object-instance-sub-view',
+      multiViewElementName: 'tv-c-multi-object-sub-view'
     },
     {
       constructor: tv.c.trace_model.Sample,
       name: 'sample',
-      pluralName: 'samples'
+      pluralName: 'samples',
+      singleViewElementName: 'tv-c-single-sample-sub-view',
+      multiViewElementName: 'tv-c-multi-sample-sub-view'
     },
     {
       constructor: tv.c.trace_model.FlowEvent,
       name: 'flowEvent',
-      pluralName: 'flowEvents'
+      pluralName: 'flowEvents',
+      singleViewElementName: 'tv-c-single-flow-event-sub-view',
+      multiViewElementName: 'tv-c-multi-flow-event-sub-view'
     }
   ];
+
+  var ALL_EVENT_TYPES_BY_NAME = {};
+  ALL_EVENT_TYPES.forEach(function(eventType) {
+    if (ALL_EVENT_TYPES_BY_NAME[eventType.name])
+      throw new Error('name collision');
+    ALL_EVENT_TYPES_BY_NAME[eventType.name] = eventType;
+  });
 
   /**
    * Represents a selection within a  and its associated set of tracks.
@@ -153,18 +197,27 @@ tv.exportTo('tv.c', function() {
 
     getEventsOrganizedByBaseType: function(opt_pruneEmpty) {
       var events = {};
-      EVENT_TYPES.forEach(function(eventType) {
-        events[eventType.pluralName] = new Selection();
+      ALL_EVENT_TYPES.forEach(function(eventType) {
+        events[eventType.name] = new Selection();
         if (this.sunburst_zoom_level !== undefined)
-          events[eventType.pluralName].sunburst_zoom_level = this.sunburst_zoom_level;
+          events[eventType.name].sunburst_zoom_level = this.sunburst_zoom_level;
       }, this);
-      for (var i = 0; i < this.length_; i++) {
-        var event = this[i];
-        EVENT_TYPES.forEach(function(eventType) {
-          if (event instanceof eventType.constructor)
-            events[eventType.pluralName].push(event);
+
+      this.forEach(function(event, i) {
+        var maxEventIndex = -1;
+        var maxEventType = undefined;
+        ALL_EVENT_TYPES.forEach(function(eventType, eventIndex) {
+          if (!(event instanceof eventType.constructor))
+            return;
+          if (eventIndex > maxEventIndex) {
+            maxEventIndex = eventIndex;
+            maxEventType = eventType;
+          }
         });
-      }
+        if (maxEventIndex == -1)
+          throw new Error('Unrecgonized event type');
+        events[maxEventType.name].push(event);
+      });
       if (opt_pruneEmpty) {
         var prunedEvents = {}
         for (var eventType in events) {
@@ -252,6 +305,8 @@ tv.exportTo('tv.c', function() {
   };
 
   return {
+    ALL_EVENT_TYPES: ALL_EVENT_TYPES,
+    ALL_EVENT_TYPES_BY_NAME: ALL_EVENT_TYPES_BY_NAME,
     Selection: Selection,
     RequestSelectionChangeEvent: RequestSelectionChangeEvent
   };

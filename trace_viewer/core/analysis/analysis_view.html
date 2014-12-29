@@ -5,15 +5,31 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/analysis/analysis_results.html">
-<link rel="import" href="/core/analysis/analyze_counters.html">
-<link rel="import" href="/core/analysis/analyze_objects.html">
-<link rel="import" href="/core/analysis/analyze_slices.html">
-<link rel="import" href="/core/analysis/default_object_view.html">
-<link rel="import" href="/core/analysis/object_instance_view.html">
-<link rel="import" href="/core/analysis/object_snapshot_view.html">
-<link rel="import" href="/core/analysis/slice_view.html">
+<link rel="import" href="/base/polymer_utils.html">
 <link rel="import" href="/core/analysis/tab_view.html">
+<link rel="import" href="/core/analysis/analysis_sub_view.html">
+
+<!-- Sub Views. -->
+<link rel="import" href="/core/analysis/single_slice_sub_view.html">
+<link rel="import" href="/core/analysis/multi_slice_sub_view.html">
+
+<link rel="import" href="/core/analysis/single_thread_time_slice_sub_view.html">
+<link rel="import" href="/core/analysis/single_cpu_slice_sub_view.html">
+
+<link rel="import" href="/core/analysis/single_instant_event_sub_view.html">
+<link rel="import" href="/core/analysis/multi_instant_event_sub_view.html">
+
+<link rel="import" href="/core/analysis/counter_sample_sub_view.html">
+
+<link rel="import" href="/core/analysis/single_flow_event_sub_view.html">
+<link rel="import" href="/core/analysis/multi_flow_event_sub_view.html">
+
+<link rel="import" href="/core/analysis/single_object_instance_sub_view.html">
+<link rel="import" href="/core/analysis/single_object_snapshot_sub_view.html">
+<link rel="import" href="/core/analysis/multi_object_sub_view.html">
+
+<link rel="import" href="/core/analysis/single_sample_sub_view.html">
+<link rel="import" href="/core/analysis/multi_sample_sub_view.html">
 
 <!--
 @fileoverview A component used to display an analysis of a selection,
@@ -47,8 +63,8 @@ using custom elements specialized for different event types.
     /**
      * Utility function used to convert camelCase to Title Case.
      */
-    function convertEventTypeToTabName(eventType) {
-      var result = eventType.replace(/[A-Z]/g, ' $&');
+    function convertCamelCaseToTitleCase(name) {
+      var result = name.replace(/[A-Z]/g, ' $&');
       result = result.charAt(0).toUpperCase() + result.slice(1);
       return result;
     }
@@ -86,72 +102,56 @@ using custom elements specialized for different event types.
         this.tallMode = false;
         this.textContent = '';
 
-        var eventsByBaseType = selection.getEventsOrganizedByBaseType(true);
+        var eventsByBaseTypeName = selection.getEventsOrganizedByBaseType(true);
 
-        var numBaseTypesToAnalyze = tv.b.dictionaryLength(eventsByBaseType);
+        var numBaseTypesToAnalyze = tv.b.dictionaryLength(eventsByBaseTypeName);
 
         // If we have to analyze more than one category, we use a tab view
         // for displaying them.
         var tabView = new TracingAnalysisTabView();
-        tabView.tabsHidden = numBaseTypesToAnalyze <= 1;
         this.appendChild(tabView);
 
-        for (var eventType in eventsByBaseType) {
-          var currentEvents = eventsByBaseType[eventType];
-          var subView = undefined;
-
-          subView = this.findSubViewForEventsOfSingleType_(
-                        eventsByBaseType[eventType]);
+        for (var eventTypeName in eventsByBaseTypeName) {
+          var subSelection = eventsByBaseTypeName[eventTypeName];
+          var subView = this.createSubViewForSelection_(
+            eventTypeName, subSelection);
           tabView.appendChild(subView);
-          // There are some subViews that get configured by 'modelEvent'
-          // instead of selection. We need to move them off of this craziness.
-          // But, tv.e.cc.LayerTreeHostView has a concept called selection as
-          // well, but its selection is a tv.e.cc.Selection. So the properties
-          // collide, in a scary way.
-          if (subView.__lookupSetter__('modelEvent')) {
-            if (eventsByBaseType[eventType].length != 1)
-              throw new Error('modelEvent-configuration only supported with ' +
-                ' selections of length=1');
-            subView.modelEvent = eventsByBaseType[eventType][0];
-          } else {
-            subView.selection = eventsByBaseType[eventType];
-          }
+
+          subView.selection = subSelection;
 
           this.tallMode = this.tallMode || subView.requiresTallView;
-
-          var tabLabel = convertEventTypeToTabName(eventType);
-          subView.tabLabel = tabLabel;
-          // Some subViews are not actually built off analysis-sub-view,
-          // thus they don't all implement the tabLabel property.
-          // This is here in place as a workaround until they are converted
-          // to sub-views.
-          if (!subView.hasAttribute('tab-label'))
-            subView.setAttribute('tab-label', tabLabel);
         }
 
         tabView.selectedTab = tabView.firstChild;
         this.tabView_ = tabView
       },
 
-      findSubViewForEventsOfSingleType_: function(selection) {
-        var supportedSubViewTypes = tv.c.getAnalysisSubViewTypes().filter(
-            function(subViewType) {
-              return subViewType.supportsSelectionPredicate(selection);
-            });
-
-        if (supportedSubViewTypes.length == 0)
-          throw new Error('Received events that could not be analyzed!');
-
-        // Pick the most important registered type handler.
-        supportedSubViewTypes.sort(function(x,y) {
-          return y.importance - x.importance;
-        });
-        var subViewType = supportedSubViewTypes[0];
-
-        if (subViewType.options.passSelectionToConstructor)
-          return new subViewType.viewConstructor(selection);
+      createSubViewForSelection_: function(eventTypeName, subSelection) {
+        // Find.
+        var eventTypeInfo = tv.c.ALL_EVENT_TYPES_BY_NAME[eventTypeName];
+        var singleMode = subSelection.length == 1;
+        var tagName;
+        if (subSelection.length === 1)
+          tagName = tv.c.ALL_EVENT_TYPES_BY_NAME[eventTypeName].singleViewElementName;
         else
-          return new subViewType.viewConstructor();
+          tagName = tv.c.ALL_EVENT_TYPES_BY_NAME[eventTypeName].multiViewElementName;
+
+        if (!tv.b.getPolymerElementNamed(tagName))
+          throw new Error('Element not registered: ' + tagName);
+
+        // Create.
+        var subView = document.createElement(tagName);
+
+        // Set label.
+        var camelLabel;
+        if (subSelection.length === 1)
+          camelLabel = eventTypeInfo.name;
+        else
+          camelLabel = eventTypeInfo.pluralName;
+
+        subView.tabLabel = convertCamelCaseToTitleCase(camelLabel);
+
+        return subView;
       }
     });
   })();

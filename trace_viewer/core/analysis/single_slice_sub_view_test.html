@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_view.html">
+<link rel="import" href="/core/analysis/stub_analysis_results.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Model = tv.c.TraceModel;
+  var Thread = tv.c.trace_model.Thread;
+  var Selection = tv.c.Selection;
+  var StubAnalysisResults = tv.c.analysis.StubAnalysisResults;
+  var newSliceNamed = tv.c.test_utils.newSliceNamed;
+  var newSliceCategory = tv.c.test_utils.newSliceCategory;
+
+  var createSelectionWithSingleSlice = function(withCategory) {
+    var model = new Model();
+    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    if (withCategory)
+      t53.sliceGroup.pushSlice(newSliceCategory('foo', 'b', 0, 0.002));
+    else
+      t53.sliceGroup.pushSlice(newSliceNamed('b', 0, 0.002));
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new Selection();
+    selection.push(t53.sliceGroup.slices[0]);
+    assertEquals(1, selection.length);
+
+    return selection;
+  };
+
+  test('instantiate_withSingleSlice', function() {
+    var selection = createSelectionWithSingleSlice();
+
+    var analysisEl = new TracingAnalysisView();
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  test('instantiate_withSingleSliceCategory', function() {
+    var selection = createSelectionWithSingleSlice(true);
+
+    var analysisEl = new TracingAnalysisView();
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  test('analyzeSelectionWithSingleSlice', function() {
+    var selection = createSelectionWithSingleSlice();
+
+    var subView = document.createElement('tv-c-single-slice-sub-view');
+    var results = new StubAnalysisResults();
+
+    subView.analyzeSingleSlice_(results, selection[0], 'Slice');
+    assertEquals(1, results.tables.length);
+    var table = results.tables[0];
+    assertEquals(3, table.rows.length);
+
+    assertEquals('b', table.rows[0].text);
+    assertEquals(0, table.rows[1].time);
+    assertAlmostEquals(0.002, table.rows[2].time);
+  });
+
+  test('analyzeSelectionWithSingleSliceCategory', function() {
+    var selection = createSelectionWithSingleSlice(true);
+
+    var subView = document.createElement('tv-c-single-slice-sub-view');
+    var results = new StubAnalysisResults();
+
+    subView.analyzeSingleSlice_(results, selection[0], 'Slice');
+    assertEquals(1, results.tables.length);
+    var table = results.tables[0];
+    assertEquals(4, table.rows.length);
+
+    assertEquals('b', table.rows[0].text);
+    assertEquals('foo', table.rows[1].text);
+    assertEquals(0, table.rows[2].time);
+    assertAlmostEquals(0.002, table.rows[3].time);
+  });
+
+  test('instantiate_withSingleSliceContainingIDRef', function() {
+    var model = new Model();
+    var p1 = model.getOrCreateProcess(1);
+    var myObjectSlice = p1.objects.addSnapshot(
+        '0x1000', 'cat', 'my_object', 0);
+
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(newSliceCategory('cat', 'b', 0, 2));
+    t1.sliceGroup.slices[0].args.my_object = myObjectSlice;
+
+    var t1track = {};
+    t1track.thread = t1;
+
+    var selection = new Selection();
+    selection.push(t1.sliceGroup.slices[0]);
+    assertEquals(1, selection.length);
+
+    var analysisEl = new TracingAnalysisView();
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+});
+</script>

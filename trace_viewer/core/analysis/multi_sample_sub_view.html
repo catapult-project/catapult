@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_sub_view.html">
+
+<polymer-element name="tv-c-multi-sample-sub-view"
+    extends="tracing-analysis-sub-view">
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    get requiresTallView() {
+      return true;
+    },
+
+    set selection(selection) {
+
+      this.textContent = '';
+      this.currentSelection_ = selection;
+
+      if (tv.isDefined('tv.e.analysis.SamplingSummaryPanel')) {
+        var panel = new tv.e.analysis.SamplingSummaryPanel();
+        this.appendChild(panel);
+        panel.selection = selection;
+      } else {
+        this.textContent = 'SamplingSummaryPanel not installed. :(';
+      }
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    }
+  });
+  </script>
+</polymer>

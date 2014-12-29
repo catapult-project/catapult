@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_view.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Model = tv.c.TraceModel;
+  var Selection = tv.c.Selection;
+  var trace_model = tv.c.trace_model;
+
+  test('analyzeSelectionWithSingleEvent', function() {
+    var model = new Model();
+
+    var fe1 = new trace_model.FlowEvent('cat', 1234, 'title', 7, 10, {});
+    var fe2 = new trace_model.FlowEvent('cat', 1234, 'title', 8, 20, {});
+    model.flowEvents.push(fe1);
+    model.flowEvents.push(fe2);
+
+
+    var selection = new Selection();
+    selection.push(fe1);
+    selection.push(fe2);
+    assertEquals(2, selection.length);
+
+    var subView = document.createElement('tv-c-multi-flow-event-sub-view');
+    subView.selection = selection;
+
+    this.addHTMLOutput(subView);
+
+    assertEquals(1, subView.children.length);
+  });
+});
+</script>

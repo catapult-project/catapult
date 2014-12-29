@@ -1,73 +1,36 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/analysis/analysis_results.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
-<link rel="import" href="/base.html">
+<link rel="import" href="/core/analysis/util.html">
 
-<polymer-element name="multiple-objects-analysis-sub-view"
-    extends="tracing-analysis-sub-view"
-    constructor="MultipleObjectsAnalysisSubView">
+<polymer-element name="tv-c-multi-object-sub-view"
+    extends="tracing-analysis-sub-view">
   <script>
   'use strict';
-  Polymer.whenReady(function() {
-    tv.c.registerAnalysisSubViewType(
-        0,
-        function supported(selection) {
-          return selection[0] instanceof tv.c.trace_model.ObjectInstance ||
-              selection[0] instanceof tv.c.trace_model.ObjectSnapshot;
-        },
-        function constructView(selection) {
-          if (selection.length != 1)
-            return new MultipleObjectsAnalysisSubView();
-
-          var event = selection[0];
-          var typeName, viewBaseType, defaultViewConstructor;
-          if (event instanceof tv.c.trace_model.ObjectSnapshot) {
-            typeName = event.objectInstance.typeName;
-            viewBaseType = tv.c.analysis.ObjectSnapshotView;
-            defaultViewConstructor = tv.c.analysis.DefaultObjectSnapshotView;
-          } else if (event instanceof tv.c.trace_model.ObjectInstance) {
-            typeName = event.typeName;
-            viewBaseType = tv.c.analysis.ObjectInstanceView;
-            defaultViewConstructor = tv.c.analysis.DefaultObjectInstanceView;
-          } else {
-            throw new Error('Not recognized');
-          }
-
-          var customViewInfo = viewBaseType.getTypeInfo(undefined, typeName);
-          if (customViewInfo)
-            return new customViewInfo.constructor();
-          return new defaultViewConstructor();
-        },
-        {
-          passSelectionToConstructor: true
-        });
-  });
 
   Polymer({
     created: function() {
       this.currentSelection_ = undefined;
     },
 
+    get selection() {
+      return this.currentSelection_;
+    },
+
     set selection(selection) {
       this.currentSelection_ = selection;
       this.textContent = '';
-
-      if (selection.length === 0)
-        return;
 
       var results = new tv.c.analysis.AnalysisResults();
       this.appendChild(results);
 
       this.analyzeObjectEvents_(results, selection);
-    },
-
-    get selection() {
-      return this.currentSelection_;
     },
 
     /**
@@ -78,7 +41,6 @@ found in the LICENSE file.
       objectEvents = tv.b.asArray(objectEvents).sort(
           tv.b.Range.compareByMinTimes);
 
-      results.appendHeader('Selected Objects:');
       var table = results.appendTable('analysis-object-sample-table', 2);
 
       objectEvents.forEach(function(event) {
@@ -124,4 +86,4 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>
+</polymer>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/multi_slice_sub_view.html">
+
+<polymer-element name="tv-c-multi-instant-event-sub-view"
+    extends="tracing-analysis-sub-view">
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    set selection(selection) {
+
+      this.textContent = '';
+      var realView = document.createElement('tv-c-multi-slice-sub-view');
+
+      this.appendChild(realView);
+      realView.setSelectionWithoutErrorChecks(selection);
+
+      this.currentSelection_ = selection;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    }
+  });
+  </script>
+</polymer>

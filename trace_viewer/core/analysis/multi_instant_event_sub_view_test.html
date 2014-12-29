@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_view.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Model = tv.c.TraceModel;
+  var Selection = tv.c.Selection;
+  var trace_model = tv.c.trace_model;
+
+  test('analyzeSelectionWithSingleEvent', function() {
+    var model = new Model();
+    var p52 = model.getOrCreateProcess(52);
+    var t53 = p52.getOrCreateThread(53);
+
+    var ie1 = new trace_model.ProcessInstantEvent('cat', 'title', 7, 10, {});
+    ie1.duration = 20;
+    var ie2 = new trace_model.ProcessInstantEvent('cat', 'title', 7, 20, {});
+    ie2.duration = 30;
+    p52.instantEvents.push(ie1);
+    p52.instantEvents.push(ie2);
+
+
+    var selection = new Selection();
+    selection.push(ie1);
+    selection.push(ie2);
+    assertEquals(2, selection.length);
+
+    var subView = document.createElement('tv-c-multi-instant-event-sub-view');
+    subView.selection = selection;
+
+    this.addHTMLOutput(subView);
+
+    assertEquals(1, subView.children.length);
+  });
+});
+</script>

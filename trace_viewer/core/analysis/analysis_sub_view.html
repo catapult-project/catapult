@@ -10,41 +10,21 @@ found in the LICENSE file.
 -->
 <polymer-element name="tracing-analysis-sub-view"
     constructor="TracingAnalysisSubView">
-  <template>
-    <content></content>
-  </template>
   <script>
   'use strict';
-  (function() {
-    /*
-     * Subview type registry: individual subviews call this registration
-     * function when they are created. We then consult all the registered
-     * subview types when handling a selection.
-     */
-    var subViewTypes = [];
-    tv.c.registerAnalysisSubViewType = function(
-        importance, supportsSelectionPredicate, viewConstructor, opt_options) {
-      var options;
-      if (opt_options) {
-        options = opt_options;
-      } else {
-        options = {
-          passSelectionToConstructor: false
-        }
-      }
-      subViewTypes.push({
-        importance: importance,
-        supportsSelectionPredicate: supportsSelectionPredicate,
-        viewConstructor: viewConstructor,
-        options: options
-      });
-    }
-    tv.c.getAnalysisSubViewTypes = function() {
-      return subViewTypes;
-    }
-  })();
-
   Polymer({
+    set tabLabel(label) {
+      return this.setAttribute('tab-label', label);
+    },
+
+    get tabLabel() {
+      return this.getAttribute('tab-label');
+    },
+
+    get requiresTallView() {
+      return false;
+    },
+
     /**
      * Each element extending this one must implement
      * a 'selection' property.
@@ -55,14 +35,6 @@ found in the LICENSE file.
 
     get selection() {
       throw new Error('Not implemented!');
-    },
-
-    set tabLabel(label) {
-      return this.setAttribute('tab-label', label);
-    },
-
-    get tabLabel() {
-      return this.getAttribute('tab-label');
     }
   });
   </script>

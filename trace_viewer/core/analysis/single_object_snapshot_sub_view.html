@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_link.html">
+<link rel="import" href="/core/analysis/analysis_results.html">
+<link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/generic_object_view.html">
+<link rel="import" href="/core/analysis/object_instance_view.html">
+<link rel="import" href="/core/analysis/single_slice_sub_view.html">
+<link rel="import" href="/core/analysis/util.html">
+
+<polymer-element name="tv-c-single-object-snapshot-sub-view"
+    extends="tracing-analysis-sub-view">
+  <template>
+    <style>
+    #args {
+      white-space: pre;
+    }
+
+    :host {
+      overflow: auto;
+      display: flex;
+    }
+
+    * {
+      -webkit-user-select: text;
+    }
+
+    .title {
+      border-bottom: 1px solid rgb(128, 128, 128);
+      font-size: 110%;
+      font-weight: bold;
+    }
+
+    td, th {
+      font-family: monospace;
+      vertical-align: top;
+    }
+    </style>
+    <content></content>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    get requiresTallView() {
+      if (this.children.length === 0)
+        return false;
+      if (this.children[0] instanceof tv.c.analysis.ObjectSnapshotView)
+        return this.children[0].requiresTallView;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    set selection(selection) {
+      if (selection.length !== 1)
+        throw new Error('Only supports single item selections');
+      if (!(selection[0] instanceof tv.c.trace_model.ObjectSnapshot))
+        throw new Error('Only supports object instances');
+
+      this.textContent = '';
+      this.currentSelection_ = selection;
+
+      var snapshot = selection[0];
+
+      var typeInfo = tv.c.analysis.ObjectSnapshotView.getTypeInfo(
+          snapshot.objectInstance.category, snapshot.objectInstance.typeName);
+      if (typeInfo) {
+        var customView = new typeInfo.constructor();
+        this.appendChild(customView);
+        customView.modelEvent = snapshot;
+      } else {
+        this.appendGenericAnalysis_(snapshot);
+      }
+    },
+
+    appendGenericAnalysis_: function(snapshot) {
+      var instance = snapshot.objectInstance;
+
+      var html = '';
+      html += '<div class="title">Snapshot of <a id="instance-link"></a> @ ' +
+          tv.c.analysis.tsRound(snapshot.ts) + 'ms</div>\n';
+      html += '<table>';
+      html += '<tr>';
+      html += '<tr><td>args:</td><td id="args"></td></tr>\n';
+      html += '</table>';
+      this.innerHTML = html;
+
+      // TODO(nduca): tv.ui.decoreate doesn't work when subclassed. So,
+      // replace the template element.
+      var instanceLinkEl = new tv.c.analysis.ObjectInstanceLink();
+      instanceLinkEl.objectInstance = instance;
+      var tmp = this.querySelector('#instance-link');
+      tmp.parentElement.replaceChild(instanceLinkEl, tmp);
+
+      var argsEl = this.querySelector('#args');
+      argsEl.textContent = '';
+      var objectView = tv.c.analysis.GenericObjectView();
+      objectView.object = snapshot.args;
+      argsEl.appendChild(objectView);
+    }
+  });
+  </script>
+</polymer>

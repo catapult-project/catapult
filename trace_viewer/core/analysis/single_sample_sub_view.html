@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/analysis_results.html">
+
+<polymer-element name="tv-c-single-sample-sub-view"
+    extends="tracing-analysis-sub-view">
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    set selection(selection) {
+
+      this.textContent = '';
+      this.currentSelection_ = selection;
+
+      var results = new tv.c.analysis.AnalysisResults();
+      this.appendChild(results);
+
+      this.analyzeSingleSampleEvent_(
+          results, selection[0], 'Sample Event');
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    analyzeSingleSampleEvent_: function(results, sample, type) {
+      results.appendHeader('Selected ' + type + ':');
+      var table = results.appendTable('analysis-slice-table', 2);
+
+      results.appendInfoRow(table, 'Title', sample.title);
+      results.appendInfoRowTime(table, 'Sample Time', sample.start);
+      results.appendInfoRow(table,
+                            'Stack Trace',
+                            sample.getUserFriendlyStackTrace());
+    }
+  });
+  </script>
+</polymer>

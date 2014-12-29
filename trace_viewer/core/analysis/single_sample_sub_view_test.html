@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/analysis/analysis_view.html">
+<link rel="import" href="/core/analysis/single_sample_sub_view.html">
 <link rel="import" href="/core/analysis/stub_analysis_results.html">
-<link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 
 <script>
@@ -41,50 +41,19 @@ tv.b.unittest.testSuite(function() {
     return selection;
   };
 
-  var createSelectionWithMultipleSamples = function() {
-    var model = new Model();
-    var t53;
-    model.importTraces([], false, false, function() {
-      t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['BBB'], 0));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.02));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.04));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['Sleeping'], 0.06));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['BBB'], 0.08));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.10));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['CCC'], 0.12));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['Sleeping'], 0.14));
-    });
-
-    var t53track = {};
-    t53track.thread = t53;
-
-    var selection = new Selection();
-    for (var i = 0; i < t53.samples.length; i++)
-      selection.push(t53.samples[i]);
-    return selection;
-  };
-
   test('instantiate_withSingleSample', function() {
     var selection = createSelectionWithSingleSample();
 
-    var analysisEl = new TracingAnalysisView();
-    analysisEl.selection = selection;
-    this.addHTMLOutput(analysisEl);
-  });
-
-  test('instantiate_withMultipleSamples', function() {
-    var selection = createSelectionWithMultipleSamples();
-
-    var analysisEl = new TracingAnalysisView();
-    this.addHTMLOutput(analysisEl);
-    analysisEl.selection = selection;
+    var view = document.createElement('tv-c-single-sample-sub-view');
+    view.selection = selection;
+    this.addHTMLOutput(view);
   });
 
   test('analyzeSelectionWithSingleSample', function() {
     var selection = createSelectionWithSingleSample();
 
-    var view = new SingleSampleAnalysisSubView();
+    var view = document.createElement('tv-c-single-sample-sub-view');
+
     var results = new StubAnalysisResults();
     view.analyzeSingleSampleEvent_(results, selection[0], 'Sample Event');
     assertEquals(1, results.tables.length);

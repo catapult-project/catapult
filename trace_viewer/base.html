@@ -50,6 +50,21 @@ this.tv = (function() {
     return cur;
   };
 
+  function isDefined(name, opt_globalObject) {
+    var parts = name.split('.');
+
+    var curObject = opt_globalObject || global;
+
+    for (var i = 0 ; i < parts.length; i++) {
+      var partName = parts[i];
+      var nextObject = curObject[partName];
+      if (nextObject === undefined)
+        return false;
+      curObject = nextObject;
+    }
+    return true;
+  }
+
   var panicElement = undefined;
   var rawPanicMessages = [];
   function showPanicElementIfNeeded() {
@@ -156,6 +171,8 @@ this.tv = (function() {
     initialize: initialize,
 
     exportTo: exportTo,
+    isDefined: isDefined,
+
     showPanic: showPanic,
     hasPanic: hasPanic,
     getPanicText: getPanicText,

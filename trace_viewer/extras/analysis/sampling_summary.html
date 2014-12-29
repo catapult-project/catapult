@@ -248,7 +248,7 @@ tv.exportTo('tv.e.analysis', function() {
 
   function getSampleTypes(selection) {
     var sampleDict = {};
-    var samples = selection.getEventsOrganizedByBaseType().samples;
+    var samples = selection.getEventsOrganizedByBaseType().sample;
     for (var i = 0; i < samples.length; i++) {
       sampleDict[samples[i].title] = null;
     }
@@ -270,7 +270,7 @@ tv.exportTo('tv.e.analysis', function() {
     }
 
     // Process samples.
-    var samples = selection.getEventsOrganizedByBaseType().samples;
+    var samples = selection.getEventsOrganizedByBaseType().sample;
     for (var i = 0; i < samples.length; i++) {
       var sample = samples[i];
       if (sample.title == sampleType)

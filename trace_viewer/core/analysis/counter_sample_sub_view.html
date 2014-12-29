@@ -5,27 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base.html">
-<link rel="import" href="/base/ui.html">
-<link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/util.html">
+<link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/analysis_results.html">
 <link rel="import" href="/core/trace_model/counter_sample.html">
 
-<polymer-element name="multiple-counter-samples-analysis-sub-view"
-    extends="tracing-analysis-sub-view"
-    constructor="MultipleCounterSamplesAnalysisSubView">
+<polymer-element name="tv-c-counter-sample-sub-view"
+    extends="tracing-analysis-sub-view">
   <script>
   'use strict';
-
-  Polymer.whenReady(function() {
-    tv.c.registerAnalysisSubViewType(
-        0,
-        function(selection) {
-          return selection[0] instanceof tv.c.trace_model.CounterSample;
-        },
-        MultipleCounterSamplesAnalysisSubView);
-  });
-
   (function() {
     var CounterSample = tv.c.trace_model.CounterSample;
 
@@ -34,17 +22,14 @@ found in the LICENSE file.
         this.currentSelection_ = undefined;
       },
 
-      set selection(selection) {
-        this.currentSelection_ = selection;
-        this.textContent = '';
+      get selection() {
+        return this.currentSelection_;
+      },
 
+      set selection(selection) {
         var results = new tv.c.analysis.AnalysisResults();
         this.appendChild(results);
         this.analyzeCounterSamples_(results, selection);
-      },
-
-      get selection() {
-        return this.currentSelection_;
       },
 
       analyzeCounterSamples_: function(results, allSamples) {
@@ -113,4 +98,4 @@ found in the LICENSE file.
     });
   })();
   </script>
-</polymer-element>
+</polymer>

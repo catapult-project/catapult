@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/single_object_instance_sub_view.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var TraceModel = tv.c.TraceModel;
+  var Selection = tv.c.Selection;
+  var ObjectInstance = tv.c.trace_model.ObjectInstance;
+
+  test('analyzeSelectionWithObjectInstanceUnknownType', function() {
+    var i10 = new ObjectInstance({}, '0x1000', 'cat', 'someUnhandledName', 10);
+    var s10 = i10.addSnapshot(10, {foo: 1});
+    var s20 = i10.addSnapshot(20, {foo: 2});
+
+    var selection = new Selection();
+    selection.push(i10);
+
+    var view = document.createElement('tv-c-single-object-instance-sub-view');
+    view.selection = selection;
+    this.addHTMLOutput(view);
+  });
+
+});
+</script>
