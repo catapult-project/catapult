@@ -12,8 +12,8 @@ found in the LICENSE file.
       :host {
         display: flex;
         flex-flow: column nowrap;
-        height: 100%;
         overflow: hidden;
+        box-sizing: border-box;
       }
 
       tab-strip[tabs-hidden] {
@@ -21,30 +21,28 @@ found in the LICENSE file.
       }
 
       tab-strip {
-        background-image: -webkit-gradient(linear, 0 0, 100% 0,
-                                           from(#E5E5E5), to(#D1D1D1));
+        background-color: rgb(236, 236, 236);
         border-bottom: 1px solid #8e8e8e;
-        border-top: 1px solid #fff;
         display: flex;
         flex: 0 0 auto;
-        flex-flow: row wrap;
-        height: 23px;
-        overflow-y: auto;
+        flex-flow: row;
+        overflow-x: auto;
+        padding: 0 10px 0 10px;
+        font-size: 12px;
       }
 
       tab-button {
-        /* By default, a tab is not selected, its background color is
-         * transparent, so this button has no background color set. */
-        border-right: 1px solid #8e8e8e;
-        cursor: pointer;
         display: block;
         flex: 0 0 auto;
-        height: 19px;
-        padding: 2px 10px 2px 10px;
+        padding: 4px 15px 1px 15px;
+        margin-top: 2px;
       }
 
-      tab-button[selected='true'] {
-        background-color: #aaa;
+      tab-button[selected=true] {
+        background-color: white;
+        border: 1px solid rgb(163, 163, 163);
+        border-bottom: none;
+        padding: 3px 14px 1px 14px;
       }
 
       tabs-content-container {
@@ -64,9 +62,6 @@ found in the LICENSE file.
 
       button-label {
         display: inline;
-        font-size: 12px;
-        font-weight: bold;
-        vertical-align: middle;
       }
     </style>
 

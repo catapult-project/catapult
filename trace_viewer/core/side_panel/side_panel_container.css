@@ -26,16 +26,17 @@ x-side-panel-container > tab-strip {
   border-left: 1px solid black;
   cursor: default;
   display: -webkit-flex;
-  min-width: 22px; /* workaround for flexbox and writing-mode mixing bug */
+  min-width: 18px; /* workaround for flexbox and writing-mode mixing bug */
   padding: 10px 0 10px 0;
+  font-size: 12px;
 }
 
 x-side-panel-container > tab-strip > tab-strip-label {
   -webkit-writing-mode: vertical-rl;
   display: inline;
-  margin-right: 2px;
+  margin-right: 1px;
   min-height: 20px;
-  padding: 15px 2px 15px 2px;
+  padding: 15px 3px 15px 1px;
 }
 
 x-side-panel-container > tab-strip >
@@ -47,5 +48,5 @@ x-side-panel-container > tab-strip > tab-strip-label[selected] {
   background-color: white;
   border: 1px solid rgb(163, 163, 163);
   border-left: none;
-  padding: 14px 1px 14px 2px;
+  padding: 14px 2px 14px 1px;
 }
