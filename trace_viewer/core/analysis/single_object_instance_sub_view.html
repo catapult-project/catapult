@@ -15,31 +15,33 @@ found in the LICENSE file.
 
 <polymer-element name="tv-c-single-object-instance-sub-view"
     extends="tracing-analysis-sub-view">
-  <style>
-  #snapshots > * {
-    display: block;
-  }
+  <template>
+    <style>
+    #snapshots > * {
+      display: block;
+    }
 
-  :host {
-    overflow: auto;
-    display: block;
-  }
+    :host {
+      overflow: auto;
+      display: block;
+    }
 
-  * {
-    -webkit-user-select: text;
-  }
+    * {
+      -webkit-user-select: text;
+    }
 
-  .title {
-    border-bottom: 1px solid rgb(128, 128, 128);
-    font-size: 110%;
-    font-weight: bold;
-  }
+    .title {
+      border-bottom: 1px solid rgb(128, 128, 128);
+      font-size: 110%;
+      font-weight: bold;
+    }
 
-  td, th {
-    font-family: monospace;
-    vertical-align: top;
-  }
-  </style>
+    td, th {
+      font-family: monospace;
+      vertical-align: top;
+    }
+    </style>
+  </template>
   <script>
   'use strict';
 
