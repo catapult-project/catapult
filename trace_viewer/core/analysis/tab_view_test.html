@@ -218,6 +218,29 @@ tv.b.unittest.testSuite(function() {
     assertEquals(t1, tabView.selectedTab);
   });
 
+  test('changeTabCausesEvent', function() {
+    var tabView = new TracingAnalysisTabView();
+    var t1 = document.createElement('div');
+    var t2 = document.createElement('div');
+    var invalidChild = document.createElement('div');
+
+    tabView.appendChild(t1);
+    tabView.appendChild(t2);
+
+    var numChangeEvents = 0;
+    tabView.addEventListener('selected-tab-change', function() {
+        numChangeEvents++;
+    });
+    tabView.selectedTab = t1;
+    assertEquals(numChangeEvents, 1);
+    tabView.selectedTab = t1;
+    assertEquals(numChangeEvents, 1);
+    tabView.selectedTab = t2;
+    assertEquals(numChangeEvents, 2);
+    tabView.selectedTab = undefined;
+    assertEquals(numChangeEvents, 3);
+  });
+
   /**
    * This test makes sure that removing the selected tab does not select
    * any other tab.

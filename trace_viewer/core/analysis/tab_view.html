@@ -95,12 +95,16 @@ found in the LICENSE file.
     },
 
     set selectedTab(content) {
-      if (!content)
-        return;
       // Make sure we process any pending children additions / removals, before
       // trying to select a tab. Otherwise, we might not find some children.
       this.childrenUpdated_(
         this.childrenObserver_.takeRecords(), this.childrenObserver_);
+
+      if (content === undefined) {
+        this.changeSelectedTabById_(undefined);
+        return;
+      }
+
       // Search for the specific node in our tabs list.
       // If it is not there print a warning.
       var contentTabId = undefined;
@@ -115,10 +119,7 @@ found in the LICENSE file.
         return;
       }
 
-      this.saveCurrentTabScrollPosition_();
-      this.clearSelectedTab_();
-      this.setSelectedTabById_(contentTabId);
-      this.restoreCurrentTabScrollPosition_();
+      this.changeSelectedTabById_(contentTabId);
     },
 
     get tabsHidden() {
@@ -210,14 +211,13 @@ found in the LICENSE file.
             configurable: true,
             set: function(value) {
               if (value) {
-                tabView.saveCurrentTabScrollPosition_();
-                tabView.clearSelectedTab_();
-                tabView.setSelectedTabById_(tabObject.id);
-                tabView.restoreCurrentTabScrollPosition_();
-              } else if (tabView.selectedTab_ === tabObject) {
-                tabView.saveCurrentTabScrollPosition_();
-                tabView.clearSelectedTab_();
+                tabView.changeSelectedTabById_(tabObject.id);
+                return;
               }
+
+              var wasSelected = tabView.selectedTab_ === tabObject;
+              if (wasSelected)
+                tabView.changeSelectedTabById_(undefined);
             },
             get: function() {
               return this.hasAttribute('selected');
@@ -288,12 +288,10 @@ found in the LICENSE file.
         if (mutations[i].attributeName === 'selected') {
           // The attribute has been set.
           var nodeIsSelected = node.hasAttribute('selected');
-          this.saveCurrentTabScrollPosition_();
-          this.clearSelectedTab_();
-          if (nodeIsSelected) {
-            this.setSelectedTabById_(tabObject.id);
-            this.restoreCurrentTabScrollPosition_();
-          }
+          if (nodeIsSelected)
+            this.changeSelectedTabById_(tabObject.id);
+          else
+            this.changeSelectedTabById_(undefined);
         }
       }
     },
@@ -311,6 +309,29 @@ found in the LICENSE file.
       }, this);
     },
 
+    /**
+     * Handler called when a click event happens on any of the tab buttons.
+     */
+    tabButtonSelectHandler_: function(event, detail, sender) {
+      this.changeSelectedTabById_(sender.getAttribute('button-id'));
+    },
+
+    /**
+     * This does the actual work. :)
+     */
+    changeSelectedTabById_: function(id) {
+      var newTab = id !== undefined ? this.tabs_[id] : undefined;
+      var changed = this.selectedTab_ !== newTab;
+      this.saveCurrentTabScrollPosition_();
+      this.clearSelectedTab_();
+      if (id !== undefined) {
+        this.setSelectedTabById_(id);
+        this.restoreCurrentTabScrollPosition_();
+      }
+
+      if (changed)
+        this.fire('selected-tab-change');
+    },
 
     /**
      * This function updates the currently selected tab based on its internal
@@ -359,17 +380,7 @@ found in the LICENSE file.
             this.selectedTab_.content, { attributeFilter: ['selected'] });
         this.selectedTab_ = undefined;
       }
-    },
-
-    /**
-     * Handler called when a click event happens on any of the tab buttons.
-     */
-    tabButtonSelectHandler_: function(event, detail, sender) {
-      this.saveCurrentTabScrollPosition_();
-      this.clearSelectedTab_();
-      this.setSelectedTabById_(sender.getAttribute('button-id'));
-      this.restoreCurrentTabScrollPosition_();
-    },
+    }
   });
   </script>
 </polymer-element>
