@@ -71,7 +71,12 @@ using custom elements specialized for different event types.
 
     Polymer({
       ready: function() {
-        this.tabView_ = undefined;
+        this.tabView_ = document.createElement(
+            'tracing-analysis-tab-view');
+        this.tabView_.addEventListener(
+          'selected-tab-change',
+          this.onSelectedTabChange_.bind(this));
+        this.appendChild(this.tabView_);
         this.currentSelection_ = undefined;
       },
 
@@ -95,35 +100,25 @@ using custom elements specialized for different event types.
       },
 
       set selection(selection) {
-        this.processSelection_(selection);
-      },
-
-      processSelection_: function(selection) {
         this.tallMode = false;
-        this.textContent = '';
+        this.tabView_.textContent = '';
 
         var eventsByBaseTypeName = selection.getEventsOrganizedByBaseType(true);
 
         var numBaseTypesToAnalyze = tv.b.dictionaryLength(eventsByBaseTypeName);
 
-        // If we have to analyze more than one category, we use a tab view
-        // for displaying them.
-        var tabView = new TracingAnalysisTabView();
-        this.appendChild(tabView);
-
         for (var eventTypeName in eventsByBaseTypeName) {
           var subSelection = eventsByBaseTypeName[eventTypeName];
           var subView = this.createSubViewForSelection_(
             eventTypeName, subSelection);
-          tabView.appendChild(subView);
+          this.tabView_.appendChild(subView);
 
           subView.selection = subSelection;
-
-          this.tallMode = this.tallMode || subView.requiresTallView;
         }
 
-        tabView.selectedTab = tabView.firstChild;
-        this.tabView_ = tabView
+        // TODO(nduca): This should restore the tab type that was previously
+        // selected.
+        this.tabView_.selectedTab = this.tabView_.firstChild;
       },
 
       createSubViewForSelection_: function(eventTypeName, subSelection) {
@@ -152,7 +147,14 @@ using custom elements specialized for different event types.
         subView.tabLabel = convertCamelCaseToTitleCase(camelLabel);
 
         return subView;
-      }
+      },
+
+      onSelectedTabChange_: function() {
+        if (this.tabView_.selectedTab)
+          this.tallMode = this.tabView_.selectedTab.requiresTallView;
+        else
+          this.tallMode = false;
+      },
     });
   })();
   </script>
