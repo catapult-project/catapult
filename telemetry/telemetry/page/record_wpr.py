@@ -18,8 +18,6 @@ from telemetry.results import results_options
 from telemetry.user_story import user_story_runner
 
 _ACTION_NAMES = [
-   'RunRepaint',
-   'RunSmoothness',
    'RunPageInteractions',
    'RunNavigateSteps',
 ]
