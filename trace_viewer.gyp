@@ -48,7 +48,7 @@
       'trace_viewer/extras/tcmalloc/tcmalloc_snapshot_view.css',
     ],
     'tracing_js_html_files': [
-      'trace_viewer/base.html',
+      'trace_viewer/base/base.html',
       'trace_viewer/base/base64.html',
       'trace_viewer/base/bbox2.html',
       'trace_viewer/base/category_util.html',

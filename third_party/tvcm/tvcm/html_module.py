@@ -37,7 +37,7 @@ class HTMLModule(module.Module):
     reachable_names = set([m.name
                            for m in self.all_dependent_modules_recursive])
     if 'tv.exportTo' in self.contents:
-      if 'base' not in reachable_names:
+      if 'base.base' not in reachable_names:
         raise Exception('%s: Does not have a dependency on base' % os.path.relpath(self.resource.absolute_path))
 
     """
