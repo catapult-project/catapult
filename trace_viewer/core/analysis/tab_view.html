@@ -100,7 +100,7 @@ found in the LICENSE file.
       this.childrenUpdated_(
         this.childrenObserver_.takeRecords(), this.childrenObserver_);
 
-      if (content === undefined) {
+      if (content === undefined || content === null) {
         this.changeSelectedTabById_(undefined);
         return;
       }
