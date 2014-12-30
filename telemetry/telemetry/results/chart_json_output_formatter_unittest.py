@@ -26,7 +26,8 @@ class ChartJsonTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
     self._page_set = _MakePageSet()
-    self._benchmark_metadata = benchmark.BenchmarkMetadata('benchmark_name')
+    self._benchmark_metadata = benchmark.BenchmarkMetadata(
+        'benchmark_name', 'benchmark_description')
     self._formatter = chart_json_output_formatter.ChartJsonOutputFormatter(
         self._output, self._benchmark_metadata)
 
@@ -66,6 +67,18 @@ class ChartJsonTest(unittest.TestCase):
 
     self.assertEquals(d['format_version'], '0.1')
     self.assertEquals(d['benchmark_name'], 'benchmark_name')
+    self.assertEquals(d['benchmark_description'], 'benchmark_description')
+
+  def testAsChartDictNoDescription(self):
+    page_specific_values = []
+    summary_values = []
+
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
+        benchmark.BenchmarkMetadata('benchmark_name', ''),
+        page_specific_values,
+        summary_values)
+
+    self.assertEquals('', d['benchmark_description'])
 
   def testAsChartDictPageSpecificValuesSamePage(self):
     v0 = scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3)

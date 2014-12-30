@@ -53,7 +53,8 @@ def _ResultsAsChartDict(benchmark_metadata, page_specific_values,
   result_dict = {
     'format_version': '0.1',
     'benchmark_name': benchmark_metadata.name,
-    'charts': charts
+    'benchmark_description': benchmark_metadata.description,
+    'charts': charts,
   }
 
   return result_dict

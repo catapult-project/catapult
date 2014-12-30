@@ -32,12 +32,18 @@ class InvalidOptionsError(Exception):
 
 
 class BenchmarkMetadata(object):
-  def __init__(self, name):
+  def __init__(self, name, description=''):
     self._name = name
+    self._description = description
 
   @property
   def name(self):
     return self._name
+
+  @property
+  def description(self):
+      return self._description
+
 
 class Benchmark(command_line.Command):
   """Base class for a Telemetry benchmark.
@@ -89,7 +95,7 @@ class Benchmark(command_line.Command):
     """Add browser options that are required by this benchmark."""
 
   def GetMetadata(self):
-    return BenchmarkMetadata(self.Name())
+    return BenchmarkMetadata(self.Name(), self.__doc__)
 
   def Run(self, finder_options):
     """Run this test with the given options.
