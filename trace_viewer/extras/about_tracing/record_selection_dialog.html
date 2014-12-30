@@ -555,6 +555,9 @@ tv.exportTo('tv.e.about_tracing', function() {
       if (this.currentlyChosenPreset_.length) {
         var categoryEl = document.getElementById('category-preset-Manually-select-settings');
         categoryEl.checked = true;
+        var description = this.querySelector('.category-description');
+        description.innerText = '';
+        description.classList.add('category-description-hidden');
       }
     },
 
