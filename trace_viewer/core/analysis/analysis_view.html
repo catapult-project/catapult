@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/polymer_utils.html">
+<link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/core/analysis/tab_view.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 
@@ -100,6 +101,13 @@ using custom elements specialized for different event types.
       },
 
       set selection(selection) {
+        var lastSelectedTabTagName;
+        var lastSelectedTabTypeName;
+        if (this.tabView_.selectedTab) {
+          lastSelectedTabTagName = this.tabView_.selectedTab.tagName;
+          lastSelectedTabTypeName = this.tabView_.selectedTab._eventTypeName;
+        }
+
         this.tallMode = false;
         this.tabView_.textContent = '';
 
@@ -111,14 +119,29 @@ using custom elements specialized for different event types.
           var subSelection = eventsByBaseTypeName[eventTypeName];
           var subView = this.createSubViewForSelection_(
             eventTypeName, subSelection);
+          // Store the eventTypeName for future tab restoration.
+          subView._eventTypeName = eventTypeName;
           this.tabView_.appendChild(subView);
 
           subView.selection = subSelection;
         }
 
-        // TODO(nduca): This should restore the tab type that was previously
-        // selected.
-        this.tabView_.selectedTab = this.tabView_.firstChild;
+        // Restore the tab type that was previously selected. First try by tag
+        // name.
+        var tab;
+        if (lastSelectedTabTagName)
+          tab = this.tabView_.querySelector(lastSelectedTabTagName);
+
+        // If that fails, look for a tab with that typeName.
+        if (!tab && lastSelectedTabTypeName) {
+          var tab = tv.b.findFirstInArray(this.tabView_.children, function(tab) {
+            return tab._eventTypeName === lastSelectedTabTypeName;
+          });
+        }
+        // If all else fails, pick the first tab.
+        if (!tab)
+          tab = this.tabView_.firstChild;
+        this.tabView_.selectedTab = tab;
       },
 
       createSubViewForSelection_: function(eventTypeName, subSelection) {
