@@ -74,6 +74,7 @@ using custom elements specialized for different event types.
       ready: function() {
         this.tabView_ = document.createElement(
             'tracing-analysis-tab-view');
+        this.tabView_.style.flex = '1 1 auto';
         this.tabView_.addEventListener(
           'selected-tab-change',
           this.onSelectedTabChange_.bind(this));
