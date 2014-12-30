@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
@@ -41,7 +41,8 @@ def do_GET_json_examples_skp(request):
   request.end_headers()
   request.wfile.write(files_as_json)
 
-def Main(port, args):
+def Main(args):
+  port = 8003
   project = trace_viewer_project.TraceViewerProject()
 
   server = tvcm.DevServer(port=port, project=project)
@@ -52,6 +53,3 @@ def Main(port, args):
   server.AddTestLink('/examples/skia_debugger.html', 'Skia Debugger')
   server.AddTestLink('/examples/trace_viewer.html', 'Trace File Viewer')
   server.serve_forever()
-
-if __name__ == '__main__':
-  sys.exit(Main(port=8003, args=sys.argv[1:]))
