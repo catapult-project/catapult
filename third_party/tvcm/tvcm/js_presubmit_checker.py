@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import os
 import sys
+import re
 
 class JSChecker(object):
   def __init__(self, input_api, output_api, file_filter=None):
@@ -21,7 +22,7 @@ class JSChecker(object):
            const foo = bar();
            ^^^^^
     """
-    match = self.input_api.re.search(regex, line)
+    match = re.search(regex, line)
     if match:
       assert len(match.groups()) == 1
       start = match.start(1)
@@ -35,7 +36,7 @@ class JSChecker(object):
 
   def ConstCheck(self, i, line):
     """Check for use of the 'const' keyword."""
-    if self.input_api.re.search(r'\*\s+@const', line):
+    if re.search(r'\*\s+@const', line):
       # Probably a JsDoc line
       return ''
 
@@ -118,13 +119,13 @@ class JSChecker(object):
     results = []
 
     try:
-      affected_files = self.input_api.change.AffectedFiles(
+      affected_files = self.input_api.AffectedFiles(
           file_filter=self.file_filter,
           include_deletes=False)
     except:
       affected_files = []
 
-    affected_js_files = filter(lambda f: f.LocalPath().endswith('.js'),
+    affected_js_files = filter(lambda f: f.filename.endswith('.js'),
                                affected_files)
     for f in affected_js_files:
       error_lines = []
@@ -140,8 +141,8 @@ class JSChecker(object):
       error_handler = ErrorHandlerImpl(self.input_api.re)
       js_checker = checker.JavaScriptStyleChecker(error_handler)
       js_checker.Check(self.input_api.os_path.join(
-          self.input_api.change.RepositoryRoot(),
-          f.LocalPath()))
+          self.input_api.repository_root,
+          f.filename))
 
       for error in error_handler.GetErrors():
         highlight = self.error_highlight(
@@ -157,9 +158,9 @@ class JSChecker(object):
       if error_lines:
         error_lines = [
             'Found JavaScript style violations in %s:' %
-            f.LocalPath()] + error_lines
+            f.filename] + error_lines
         results.append(self._makeErrorOrWarning(
-            '\n'.join(error_lines), f.AbsoluteLocalPath()))
+            '\n'.join(error_lines), f.filename))
 
     if results:
       results.append(self.output_api.PresubmitNotifyResult(

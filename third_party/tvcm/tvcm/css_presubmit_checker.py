@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import re
 
 class CSSChecker(object):
   def __init__(self, input_api, output_api, file_filter=None):
@@ -10,8 +11,6 @@ class CSSChecker(object):
 
   def RunChecks(self):
     # We use this a lot, so make a nick name variable.
-    re = self.input_api.re
-
     def _collapseable_hex(s):
       return (len(s) == 6 and s[0] == s[1] and s[2] == s[3] and s[4] == s[5])
 
@@ -178,17 +177,14 @@ class CSSChecker(object):
     ]
 
     results = []
-    try: # Workaround AffectedFiles exploding on deleted files.
-      affected_files = self.input_api.AffectedFiles(include_deletes=False,
-                                                    file_filter=self.file_filter)
-    except:
-      affected_files = []
+    affected_files = self.input_api.AffectedFiles(include_deletes=False,
+                                                  file_filter=self.file_filter)
     files = []
     for f in affected_files:
       # Remove all /*comments*/, @at-keywords, and grit <if|include> tags; we're
       # not using a real parser. TODO(dbeam): Check alpha in <if> blocks.
-      file_contents = _remove_all('\n'.join(f.NewContents()))
-      files.append((f.LocalPath(), file_contents))
+      file_contents = _remove_all('\n'.join(f.new_contents))
+      files.append((f.filename, file_contents))
 
     # Only look at CSS files for now.
     for f in filter(lambda f: f[0].endswith('.css'), files):

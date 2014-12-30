@@ -7,14 +7,13 @@ from tvcm import css_presubmit_checker
 
 
 class PresubmitChecker(object):
-  def __init__(self, input_api, output_api):
+  def __init__(self, input_api):
     self.input_api = input_api
-    self.output_api = output_api
+    self.output_api = None
 
   def RunChecks(self):
     results = []
-    def IsResource(maybe_resource):
-      f = maybe_resource.AbsoluteLocalPath()
+    def IsResource(f):
       if not f.endswith(('.css', '.html', '.js')):
         return False
       if f.endswith('js'):
