@@ -5,7 +5,9 @@
 
 import sys
 
+from hooks import install
 from trace_viewer.build import trace_viewer_dev_server
 
 if __name__ == '__main__':
+  install.InstallHooks()
   sys.exit(trace_viewer_dev_server.Main(sys.argv[1:]))

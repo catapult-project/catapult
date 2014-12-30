@@ -5,12 +5,16 @@
 
 import sys
 
+from hooks import install
+
 import trace_viewer # Brings in tvcm bindings.
 from tvcm import test_runner
 import tvcm
 
 
 if __name__ == '__main__':
+  install.InstallHooks()
+
   runner = test_runner.TestRunner()
   runner.AddModule(tvcm)
   runner.AddModule(trace_viewer)
