@@ -264,7 +264,7 @@ tv.exportTo('tv.c', function() {
 
     // Begin rendering in world space.
     ctx.save();
-    ctx.lineWidth = pixWidth * lineWidthInPixels;
+    ctx.lineWidth = pixWidth * lineWidthInPixels * pixelRatio;
     dt.applyTransformToCanvas(ctx);
     ctx.beginPath();
 
