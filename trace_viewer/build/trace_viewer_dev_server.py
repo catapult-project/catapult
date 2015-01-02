@@ -9,8 +9,10 @@ import json
 from trace_viewer import trace_viewer_project
 import tvcm
 
+_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
 def do_GET_json_examples(request):
-  test_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'test_data'))
+  test_data_path = os.path.abspath(os.path.join(_ROOT_PATH, 'test_data'))
   data_files = []
   for dirpath, dirnames, filenames in os.walk(test_data_path):
     for f in filenames:
@@ -26,7 +28,7 @@ def do_GET_json_examples(request):
   request.wfile.write(files_as_json)
 
 def do_GET_json_examples_skp(request):
-  skp_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'skp_data'))
+  skp_data_path = os.path.abspath(os.path.join(_ROOT_PATH, 'skp_data'))
   data_files = []
   for dirpath, dirnames, filenames in os.walk(skp_data_path):
     for f in filenames:
