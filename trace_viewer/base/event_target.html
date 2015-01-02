@@ -21,6 +21,16 @@ tv.exportTo('tv.b', function() {
    */
   function EventTarget() {
   }
+  EventTarget.decorate = function(target) {
+    for (var k in EventTarget.prototype) {
+      if (k == 'decorate')
+        continue;
+      var v = EventTarget.prototype[k];
+      if (typeof v !== 'function')
+        continue;
+      target[k] = v;
+    }
+  };
 
   EventTarget.prototype = {
 

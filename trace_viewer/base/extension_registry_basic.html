@@ -33,18 +33,33 @@ tv.exportTo('tv.b', function() {
           metadata[k] = opt_metadata[k];
       }
 
-      registry.registeredTypeInfos_.push(new RegisteredTypeInfo(
-        constructor,
-        metadata));
+      var typeInfo = new RegisteredTypeInfo(
+          constructor,
+          metadata);
+
+      var e =  new Event('will-register');
+      e.typeInfo = typeInfo;
+      registry.dispatchEvent(e);
+
+      registry.registeredTypeInfos_.push(typeInfo);
+
+      e = new Event('registry-changed');
+      registry.dispatchEvent(e);
     };
 
     registry.pushCleanStateBeforeTest = function() {
       savedStateStack.push(registry.registeredTypeInfos_);
       registry.registeredTypeInfos_ = [];
+
+      var e = new Event('registry-changed');
+      registry.dispatchEvent(e);
     };
     registry.popCleanStateAfterTest = function() {
       registry.registeredTypeInfos_ = savedStateStack[0];
       savedStateStack.splice(0,1);
+
+      var e = new Event('registry-changed');
+      registry.dispatchEvent(e);
     };
 
     registry.findIndexOfRegisteredConstructor = function(constructor) {
@@ -59,6 +74,9 @@ tv.exportTo('tv.b', function() {
       if (foundIndex === undefined)
         throw new Error(constructor + ' not registered');
       registry.registeredTypeInfos_.splice(foundIndex, 1);
+
+      var e = new Event('registry-changed');
+      registry.dispatchEvent(e);
     };
 
     registry.getAllRegisteredTypeInfos = function() {

@@ -61,6 +61,10 @@ tv.exportTo('tv.b', function() {
           throw new Error('categoryPart ' + categoryPart + ' already registered');
       });
 
+      var e =  new Event('will-register');
+      e.typeInfo = typeInfo;
+      registry.dispatchEvent(e);
+
       // Actual registration.
       typeInfo.typeNames.forEach(function(typeName) {
         registry.typeNameToTypeInfoMap_[typeName] = typeInfo;
@@ -69,6 +73,9 @@ tv.exportTo('tv.b', function() {
         registry.categoryPartToTypeInfoMap_[categoryPart] = typeInfo;
       });
       registry.registeredTypeInfos_.push(typeInfo);
+
+      var e = new Event('registry-changed');
+      registry.dispatchEvent(e);
     };
 
     registry.pushCleanStateBeforeTest = function() {
@@ -80,6 +87,8 @@ tv.exportTo('tv.b', function() {
       registry.registeredTypeInfos_ = [];
       registry.typeNameToTypeInfoMap_ = {};
       registry.categoryPartToTypeInfoMap_ = {};
+      var e = new Event('registry-changed');
+      registry.dispatchEvent(e);
     };
 
     registry.popCleanStateAfterTest = function() {
@@ -89,6 +98,8 @@ tv.exportTo('tv.b', function() {
       registry.registeredTypeInfos_ = state.registeredTypeInfos;
       registry.typeNameToTypeInfoMap_ = state.typeNameToTypeInfoMap;
       registry.categoryPartToTypeInfoMap_ = state.categoryPartToTypeInfoMap;
+      var e = new Event('registry-changed');
+      registry.dispatchEvent(e);
     };
 
     registry.unregister = function(constructor) {
@@ -110,6 +121,8 @@ tv.exportTo('tv.b', function() {
       typeInfo.categoryParts.forEach(function(categoryPart) {
         delete registry.categoryPartToTypeInfoMap_[categoryPart];
       });
+      var e = new Event('registry-changed');
+      registry.dispatchEvent(e);
     };
 
     registry.getTypeInfo = function(category, typeName) {
