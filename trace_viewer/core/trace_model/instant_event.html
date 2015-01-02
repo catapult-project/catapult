@@ -56,16 +56,6 @@ tv.exportTo('tv.c.trace_model', function() {
     __proto__: InstantEvent.prototype
   };
 
-  function ThreadInstantEvent(category, title, colorId, start, args) {
-    InstantEvent.apply(this, arguments);
-    this.type = InstantEventType.THREAD;
-  };
-
-  ThreadInstantEvent.prototype = {
-    __proto__: InstantEvent.prototype
-  };
-
-
   tv.c.trace_model.EventRegistry.register(
       InstantEvent,
       {
@@ -78,7 +68,6 @@ tv.exportTo('tv.c.trace_model', function() {
   return {
     GlobalInstantEvent: GlobalInstantEvent,
     ProcessInstantEvent: ProcessInstantEvent,
-    ThreadInstantEvent: ThreadInstantEvent,
 
     InstantEventType: InstantEventType,
     InstantEvent: InstantEvent

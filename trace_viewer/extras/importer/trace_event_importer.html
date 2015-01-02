@@ -254,6 +254,17 @@ tv.exportTo('tv.e.importer', function() {
         thread.sliceGroup.beginSlice(event.cat, event.name, event.ts / 1000,
                                      this.deepCopyIfNeeded_(event.args),
                                      event.tts / 1000);
+
+      } else if (event.ph == 'I' || event.ph == 'i') {
+        if (event.s !== undefined  && event.s !== 't')
+          throw new Error('This should never happen');
+
+        thread.sliceGroup.beginSlice(event.cat, event.name, event.ts / 1000,
+                                     this.deepCopyIfNeeded_(event.args),
+                                     event.tts / 1000);
+        thread.sliceGroup.endSlice(event.ts / 1000,
+                                   event.tts / 1000);
+
       } else {
         if (!thread.sliceGroup.openSliceCount) {
           this.model_.importWarning({
@@ -334,9 +345,13 @@ tv.exportTo('tv.e.importer', function() {
       }
     },
 
-    // Treat an Instant event as a duration 0 slice.
-    // SliceTrack's redraw() knows how to handle this.
     processInstantEvent: function(event) {
+      // Thread-level instant events are treated as zero-duration slices.
+      if (event.s == 't' || event.s === undefined) {
+        this.processDurationEvent(event);
+        return;
+      }
+
       var constructor;
       switch (event.s) {
         case 'g':
@@ -345,12 +360,12 @@ tv.exportTo('tv.e.importer', function() {
         case 'p':
           constructor = tv.c.trace_model.ProcessInstantEvent;
           break;
-        case 't':
-          // fall through
         default:
-          // Default to thread to support old style input files.
-          constructor = tv.c.trace_model.ThreadInstantEvent;
-          break;
+          this.model_.importWarning({
+            type: 'instant_parse_error',
+            message: 'I phase event with unknown "s" field value.'
+          });
+          return;
       }
 
       var colorId = tv.b.ui.getStringColorId(event.name);
@@ -365,12 +380,6 @@ tv.exportTo('tv.e.importer', function() {
         case tv.c.trace_model.InstantEventType.PROCESS:
           var process = this.model_.getOrCreateProcess(event.pid);
           process.pushInstantEvent(instantEvent);
-          break;
-
-        case tv.c.trace_model.InstantEventType.THREAD:
-          var thread = this.model_.getOrCreateProcess(event.pid)
-              .getOrCreateThread(event.tid);
-          thread.sliceGroup.pushInstantEvent(instantEvent);
           break;
 
         default:

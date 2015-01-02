@@ -96,14 +96,6 @@ tv.exportTo('tv.c.trace_model', function() {
     },
 
     /**
-     * Push an instant event into the slice list.
-     * @param {tv.c.trace_model.InstantEvent} instantEvent The instantEvent.
-     */
-    pushInstantEvent: function(instantEvent) {
-      this.slices.push(instantEvent);
-    },
-
-    /**
      * Opens a new slice in the group's slices.
      *
      * Calls to beginSlice and
