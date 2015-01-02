@@ -98,6 +98,15 @@ class Page(user_story.UserStory):
   def RunNavigateSteps(self, action_runner):
     action_runner.NavigateToPage(self)
 
+  def RunPageInteractions(self, action_runner):
+    """Override this to define custom interactions with the page.
+    e.g:
+      def RunPageInteractions(self, action_runner):
+        action_runner.ScrollPage()
+        action_runner.TapElement(text='Next')
+    """
+    pass
+
   def CanRunOnBrowser(self, browser_info):
     """Override this to returns whether this page can be run on specific
     browser.
