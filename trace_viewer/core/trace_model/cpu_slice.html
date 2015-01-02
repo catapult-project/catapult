@@ -69,6 +69,15 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  tv.c.trace_model.EventRegistry.register(
+      CpuSlice,
+      {
+        name: 'cpuSlice',
+        pluralName: 'cpuSlices',
+        singleViewElementName: 'tv-c-single-cpu-slice-sub-view',
+        multiViewElementName: 'tv-c-multi-slice-sub-view'
+      });
+
   return {
     CpuSlice: CpuSlice
   };

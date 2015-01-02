@@ -90,6 +90,16 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+
+  tv.c.trace_model.EventRegistry.register(
+      CounterSample,
+      {
+        name: 'counterSample',
+        pluralName: 'counterSamples',
+        singleViewElementName: 'tv-c-counter-sample-sub-view',
+        multiViewElementName: 'tv-c-counter-sample-sub-view'
+      });
+
   return {
     CounterSample: CounterSample
   };

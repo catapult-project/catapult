@@ -61,6 +61,15 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  tv.c.trace_model.EventRegistry.register(
+      Sample,
+      {
+        name: 'sample',
+        pluralName: 'samples',
+        singleViewElementName: 'tv-c-single-sample-sub-view',
+        multiViewElementName: 'tv-c-multi-sample-sub-view'
+      });
+
   return {
     Sample: Sample
   };

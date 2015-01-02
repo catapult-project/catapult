@@ -61,6 +61,15 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  tv.c.trace_model.EventRegistry.register(
+      ObjectSnapshot,
+      {
+        name: 'objectSnapshot',
+        pluralName: 'objectSnapshots',
+        singleViewElementName: 'tv-c-single-object-snapshot-sub-view',
+        multiViewElementName: 'tv-c-multi-object-sub-view'
+      });
+
   var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = ObjectSnapshot;
   options.defaultConstructor = ObjectSnapshot;

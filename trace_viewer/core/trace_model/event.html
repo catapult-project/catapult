@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/extension_registry.html">
 
 <script>
 'use strict';
@@ -67,8 +68,53 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  // Create the type registry.
+  function EventRegistry() {
+  }
+  var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
+  options.mandatoryBaseType = Event;
+  tv.b.decorateExtensionRegistry(EventRegistry, options);
+
+  // Enforce all options objects have the right fields.
+  EventRegistry.addEventListener('will-register', function(e) {
+    var metadata = e.typeInfo.metadata;
+
+    if (metadata.name === undefined)
+      throw new Error('Registered events must provide name metadata');
+    var i = tv.b.findFirstInArray(
+      EventRegistry.getAllRegisteredTypeInfos(),
+      function(x) { return x.metadata.name === metadata.name; });
+    if (i !== undefined)
+      throw new Error('Event type with that name already registered');
+
+    if (metadata.pluralName === undefined)
+      throw new Error('Registered events must provide pluralName metadata');
+    if (metadata.singleViewElementName === undefined)
+      throw new Error('Registered events must provide singleViewElementName metadata');
+    if (metadata.multiViewElementName === undefined)
+      throw new Error('Registered events must provide multiViewElementName metadata');
+  });
+
+  // Helper: lookup Events indexed by type name.
+  var eventsByTypeName = undefined;
+  EventRegistry.getEventTypeInfoByTypeName = function(typeName) {
+    if (eventsByTypeName === undefined) {
+      eventsByTypeName = {};
+      EventRegistry.getAllRegisteredTypeInfos().forEach(function(typeInfo) {
+        eventsByTypeName[typeInfo.metadata.name] = typeInfo;
+      });
+    }
+    return eventsByTypeName[typeName];
+  }
+
+  // Ensure eventsByTypeName stays current.
+  EventRegistry.addEventListener('registry-changed', function() {
+    eventsByTypeName = undefined;
+  });
+
   return {
     Event: Event,
+    EventRegistry: EventRegistry,
     SelectionState: SelectionState
   };
 });

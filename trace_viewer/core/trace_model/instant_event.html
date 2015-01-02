@@ -65,6 +65,16 @@ tv.exportTo('tv.c.trace_model', function() {
     __proto__: InstantEvent.prototype
   };
 
+
+  tv.c.trace_model.EventRegistry.register(
+      InstantEvent,
+      {
+        name: 'instantEvent',
+        pluralName: 'instantEvents',
+        singleViewElementName: 'tv-c-single-instant-event-sub-view',
+        multiViewElementName: 'tv-c-multi-instant-event-sub-view'
+      });
+
   return {
     GlobalInstantEvent: GlobalInstantEvent,
     ProcessInstantEvent: ProcessInstantEvent,

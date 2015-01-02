@@ -18,92 +18,10 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.c', function() {
 
+  var EventRegistry = tv.c.trace_model.EventRegistry;
+
   var RequestSelectionChangeEvent = tv.b.Event.bind(
       undefined, 'requestSelectionChange', true, false);
-
-    /**
-   * All event types and their metadata.
-   */
-  var ALL_EVENT_TYPES = [
-    {
-      constructor: tv.c.trace_model.Slice,
-      name: 'slice',
-      pluralName: 'slices',
-      singleViewElementName: 'tv-c-single-slice-sub-view',
-      multiViewElementName: 'tv-c-multi-slice-sub-view'
-    },
-    {
-      constructor: tv.c.trace_model.AsyncSlice,
-      name: 'asyncSlice',
-      pluralName: 'asyncSlices',
-      singleViewElementName: 'tv-c-single-slice-sub-view',
-      multiViewElementName: 'tv-c-multi-slice-sub-view'
-    },
-    {
-      constructor: tv.c.trace_model.CpuSlice,
-      name: 'cpuSlice',
-      pluralName: 'cpuSlices',
-      singleViewElementName: 'tv-c-single-cpu-slice-sub-view',
-      multiViewElementName: 'tv-c-multi-slice-sub-view'
-    },
-    {
-      constructor: tv.c.trace_model.ThreadTimeSlice,
-      name: 'threadTimeSlice',
-      pluralName: 'threadTimeSlices',
-      singleViewElementName: 'tv-c-single-thread-time-slice-sub-view',
-      multiViewElementName: 'tv-c-multi-slice-sub-view'
-    },
-
-    {
-      constructor: tv.c.trace_model.InstantEvent,
-      name: 'instantEvent',
-      pluralName: 'instantEvents',
-      singleViewElementName: 'tv-c-single-instant-event-sub-view',
-      multiViewElementName: 'tv-c-multi-instant-event-sub-view'
-    },
-    {
-      constructor: tv.c.trace_model.CounterSample,
-      name: 'counterSample',
-      pluralName: 'counterSamples',
-      singleViewElementName: 'tv-c-counter-sample-sub-view',
-      multiViewElementName: 'tv-c-counter-sample-sub-view'
-    },
-    {
-      constructor: tv.c.trace_model.ObjectSnapshot,
-      name: 'objectSnapshot',
-      pluralName: 'objectSnapshots',
-      singleViewElementName: 'tv-c-single-object-snapshot-sub-view',
-      multiViewElementName: 'tv-c-multi-object-sub-view'
-    },
-    {
-      constructor: tv.c.trace_model.ObjectInstance,
-      name: 'objectInstance',
-      pluralName: 'objectInstances',
-      singleViewElementName: 'tv-c-single-object-instance-sub-view',
-      multiViewElementName: 'tv-c-multi-object-sub-view'
-    },
-    {
-      constructor: tv.c.trace_model.Sample,
-      name: 'sample',
-      pluralName: 'samples',
-      singleViewElementName: 'tv-c-single-sample-sub-view',
-      multiViewElementName: 'tv-c-multi-sample-sub-view'
-    },
-    {
-      constructor: tv.c.trace_model.FlowEvent,
-      name: 'flowEvent',
-      pluralName: 'flowEvents',
-      singleViewElementName: 'tv-c-single-flow-event-sub-view',
-      multiViewElementName: 'tv-c-multi-flow-event-sub-view'
-    }
-  ];
-
-  var ALL_EVENT_TYPES_BY_NAME = {};
-  ALL_EVENT_TYPES.forEach(function(eventType) {
-    if (ALL_EVENT_TYPES_BY_NAME[eventType.name])
-      throw new Error('name collision');
-    ALL_EVENT_TYPES_BY_NAME[eventType.name] = eventType;
-  });
 
   /**
    * Represents a selection within a  and its associated set of tracks.
@@ -197,26 +115,27 @@ tv.exportTo('tv.c', function() {
 
     getEventsOrganizedByBaseType: function(opt_pruneEmpty) {
       var events = {};
-      ALL_EVENT_TYPES.forEach(function(eventType) {
-        events[eventType.name] = new Selection();
+      var allTypeInfos = EventRegistry.getAllRegisteredTypeInfos();
+      allTypeInfos.forEach(function(eventTypeInfo) {
+        events[eventTypeInfo.metadata.name] = new Selection();
         if (this.sunburst_zoom_level !== undefined)
-          events[eventType.name].sunburst_zoom_level = this.sunburst_zoom_level;
+          events[eventTypeInfo.metadata.name].sunburst_zoom_level = this.sunburst_zoom_level;
       }, this);
 
       this.forEach(function(event, i) {
         var maxEventIndex = -1;
-        var maxEventType = undefined;
-        ALL_EVENT_TYPES.forEach(function(eventType, eventIndex) {
-          if (!(event instanceof eventType.constructor))
+        var maxEventTypeInfo = undefined;
+        allTypeInfos.forEach(function(eventTypeInfo, eventIndex) {
+          if (!(event instanceof eventTypeInfo.constructor))
             return;
           if (eventIndex > maxEventIndex) {
             maxEventIndex = eventIndex;
-            maxEventType = eventType;
+            maxEventTypeInfo = eventTypeInfo;
           }
         });
         if (maxEventIndex == -1)
           throw new Error('Unrecgonized event type');
-        events[maxEventType.name].push(event);
+        events[maxEventTypeInfo.metadata.name].push(event);
       });
       if (opt_pruneEmpty) {
         var prunedEvents = {}
@@ -305,8 +224,6 @@ tv.exportTo('tv.c', function() {
   };
 
   return {
-    ALL_EVENT_TYPES: ALL_EVENT_TYPES,
-    ALL_EVENT_TYPES_BY_NAME: ALL_EVENT_TYPES_BY_NAME,
     Selection: Selection,
     RequestSelectionChangeEvent: RequestSelectionChangeEvent
   };

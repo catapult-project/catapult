@@ -171,6 +171,15 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  tv.c.trace_model.EventRegistry.register(
+    ObjectInstance,
+    {
+      name: 'objectInstance',
+      pluralName: 'objectInstances',
+      singleViewElementName: 'tv-c-single-object-instance-sub-view',
+      multiViewElementName: 'tv-c-multi-object-sub-view'
+    });
+
   var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = ObjectInstance;
   options.defaultConstructor = ObjectInstance;

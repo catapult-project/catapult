@@ -48,6 +48,15 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  tv.c.trace_model.EventRegistry.register(
+      Slice,
+      {
+        name: 'slice',
+        pluralName: 'slices',
+        singleViewElementName: 'tv-c-single-slice-sub-view',
+        multiViewElementName: 'tv-c-multi-slice-sub-view'
+      });
+
   return {
     Slice: Slice
   };

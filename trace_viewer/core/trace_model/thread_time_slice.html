@@ -104,6 +104,16 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  tv.c.trace_model.EventRegistry.register(
+      ThreadTimeSlice,
+      {
+        name: 'threadTimeSlice',
+        pluralName: 'threadTimeSlices',
+        singleViewElementName: 'tv-c-single-thread-time-slice-sub-view',
+        multiViewElementName: 'tv-c-multi-slice-sub-view'
+      });
+
+
   return {
     ThreadTimeSlice: ThreadTimeSlice
   };

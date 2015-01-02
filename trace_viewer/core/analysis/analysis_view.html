@@ -61,6 +61,8 @@ using custom elements specialized for different event types.
   <script>
   'use strict';
   (function() {
+    var EventRegistry = tv.c.trace_model.EventRegistry;
+
     /**
      * Utility function used to convert camelCase to Title Case.
      */
@@ -147,13 +149,13 @@ using custom elements specialized for different event types.
 
       createSubViewForSelection_: function(eventTypeName, subSelection) {
         // Find.
-        var eventTypeInfo = tv.c.ALL_EVENT_TYPES_BY_NAME[eventTypeName];
+        var eventTypeInfo = EventRegistry.getEventTypeInfoByTypeName(eventTypeName);
         var singleMode = subSelection.length == 1;
         var tagName;
         if (subSelection.length === 1)
-          tagName = tv.c.ALL_EVENT_TYPES_BY_NAME[eventTypeName].singleViewElementName;
+          tagName = eventTypeInfo.metadata.singleViewElementName;
         else
-          tagName = tv.c.ALL_EVENT_TYPES_BY_NAME[eventTypeName].multiViewElementName;
+          tagName = eventTypeInfo.metadata.multiViewElementName;
 
         if (!tv.b.getPolymerElementNamed(tagName))
           throw new Error('Element not registered: ' + tagName);
@@ -164,9 +166,9 @@ using custom elements specialized for different event types.
         // Set label.
         var camelLabel;
         if (subSelection.length === 1)
-          camelLabel = eventTypeInfo.name;
+          camelLabel = eventTypeInfo.metadata.name;
         else
-          camelLabel = eventTypeInfo.pluralName;
+          camelLabel = eventTypeInfo.metadata.pluralName;
 
         subView.tabLabel = convertCamelCaseToTitleCase(camelLabel);
 

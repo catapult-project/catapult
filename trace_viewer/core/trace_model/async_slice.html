@@ -58,6 +58,16 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  tv.c.trace_model.EventRegistry.register(
+      AsyncSlice,
+      {
+        name: 'asyncSlice',
+        pluralName: 'asyncSlices',
+        singleViewElementName: 'tv-c-single-slice-sub-view',
+        multiViewElementName: 'tv-c-multi-slice-sub-view'
+      });
+
+
   var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = AsyncSlice;
   options.defaultConstructor = AsyncSlice;

@@ -55,6 +55,15 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  tv.c.trace_model.EventRegistry.register(
+      FlowEvent,
+      {
+        name: 'flowEvent',
+        pluralName: 'flowEvents',
+        singleViewElementName: 'tv-c-single-flow-event-sub-view',
+        multiViewElementName: 'tv-c-multi-flow-event-sub-view'
+      });
+
   return {
     FlowEvent: FlowEvent
   };
