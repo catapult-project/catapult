@@ -4,6 +4,9 @@
   {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 826, "ph": "B",
       "name": "A long name that doesnt fit but is exceedingly informative",
       "args": {"name_false": false, "value_true": true}},
+  {"cat": "PERF", "pid": 22630, "ts": 835, "ph": "I", "s": "p",
+      "name": "ProcessWideEvent1", "args": {}},
+
   {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 827, "ph": "B",
       "name": "Asub with a name that wont fit", "args": {}},
   {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 828, "ph": "E",
@@ -24,9 +27,13 @@
       "name": "", "args": {}},
 
   {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 835, "ph": "I",
-      "name": "I1", "args": {}},
+      "name": "ThreadLevelI1", "args": {}},
+
+  {"cat": "PERF", "ts": 880, "ph": "I", "s": "g", "name": "GlobalEvent1",
+      "args": {}},
+
   {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 837, "ph": "I",
-      "name": "I2", "args": {}},
+      "name": "ThreadLevelI2", "args": {}},
 
   {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 839, "ph": "C",
       "name": "counter", "args": {"value": 5}},
@@ -47,9 +54,9 @@
   {"cat": "PERF", "pid": 22630, "tid": 22631, "ts": 827, "ph": "B",
       "name": "A", "args": {}},
   {"cat": "PERF", "pid": 22630, "tid": 22631, "ts": 835, "ph": "I",
-      "name": "Immediate Three", "args": {}},
+      "name": "ThreadLevelImmediate Three", "args": {}},
   {"cat": "PERF", "pid": 22630, "tid": 22631, "ts": 845, "ph": "I",
-      "name": "I4", "args": {}},
+      "name": "ThreadLevelImmediate4", "args": {}},
   {"cat": "PERF", "pid": 22630, "tid": 22631, "ts": 854, "ph": "E",
       "name": "A", "args": {}},
 
