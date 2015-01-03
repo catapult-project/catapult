@@ -21,7 +21,7 @@ class TracingHasNotRunException(Exception):
 
 
 class TracingBackend(object):
-  def __init__(self, devtools_port, chrome_browser_backend):
+  def __init__(self, devtools_port):
     self._inspector_websocket = inspector_websocket.InspectorWebsocket(
         self._ErrorHandler)
     self._inspector_websocket.RegisterDomain(
@@ -31,42 +31,33 @@ class TracingBackend(object):
         'ws://127.0.0.1:%i/devtools/browser' % devtools_port)
     self._trace_events = []
     self._is_tracing_running = False
-    self._chrome_browser_backend = chrome_browser_backend
 
   @property
   def is_tracing_running(self):
     return self._is_tracing_running
 
-  @property
-  def _devtools_client(self):
-    return self._chrome_browser_backend.devtools_client
-
   def StartTracing(self, trace_options, custom_categories=None, timeout=10):
-    """ Starts tracing on the first call and returns True. Returns False
-        and does nothing on subsequent nested calls.
+    """When first called, starts tracing, and returns True.
+
+    If called during tracing, tracing is unchanged, and it returns False.
     """
     if self.is_tracing_running:
       return False
     # Reset collected tracing data from previous tracing calls.
     self._trace_events = []
     self._CheckNotificationSupported()
-    #TODO(nednguyen): remove this when the stable branch pass 2118.
-    if (trace_options.record_mode == tracing_options.RECORD_AS_MUCH_AS_POSSIBLE
-        and self._devtools_client.GetChromeBranchNumber()
-        and self._devtools_client.GetChromeBranchNumber() < 2118):
-      logging.warning(
-          'Cannot use %s tracing mode on chrome browser with branch version %i,'
-          ' (<2118) fallback to use %s tracing mode' % (
-              trace_options.record_mode,
-              self._devtools_client.GetChromeBranchNumber(),
-              tracing_options.RECORD_UNTIL_FULL))
-      trace_options.record_mode = tracing_options.RECORD_UNTIL_FULL
-    req = {'method': 'Tracing.start'}
-    req['params'] = {}
+    # Map telemetry's tracing record_mode to the DevTools API string.
+    # (The keys happen to be the same as the values.)
     m = {tracing_options.RECORD_UNTIL_FULL: 'record-until-full',
          tracing_options.RECORD_AS_MUCH_AS_POSSIBLE:
          'record-as-much-as-possible'}
-    req['params']['options'] = m[trace_options.record_mode]
+    # DevTools started supporting RECORD_AS_MUCH_AS_POSSIBLE in Chrome 2118.
+    # However, we send it for earlier versions as well because Chrome ignores
+    # the unknown value and falls back to RECORD_UNTIL_FULL.
+    req = {
+        'method': 'Tracing.start',
+        'params': {'options': m[trace_options.record_mode]}
+        }
     if custom_categories:
       req['params']['categories'] = custom_categories
     self._inspector_websocket.SyncRequest(req, timeout)
@@ -74,7 +65,7 @@ class TracingBackend(object):
     return True
 
   def StopTracing(self, trace_data_builder, timeout=30):
-    """ Stops tracing and pushes results to the supplied TraceDataBuilder.
+    """Stops tracing and pushes results to the supplied TraceDataBuilder.
 
     If this is called after tracing has been stopped, trace data from the last
     tracing run is pushed.

@@ -267,7 +267,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     """
     assert trace_options and trace_options.enable_chrome_trace
     if self._tracing_backend is None:
-      self._tracing_backend = tracing_backend.TracingBackend(self._port, self)
+      self._tracing_backend = tracing_backend.TracingBackend(self._port)
     return self._tracing_backend.StartTracing(
         trace_options, custom_categories, timeout)
 
