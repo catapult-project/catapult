@@ -1095,13 +1095,16 @@ TableRow.prototype.prepareToSortByTestResults = function(runId) {
 TableRow.prototype.prepareToSortRelativeToReference = function(runId) {
     var testResults = this.test.results();
 
-    if (this.resultIndexMap[this.referenceIndex] === undefined) {
-        // This test has no results in the reference run
+    // Get index of test results that correspond to the reference column.
+    var remappedReferenceIndex = this.resultIndexMap[this.referenceIndex];
+
+    if (remappedReferenceIndex === undefined) {
+        // This test has no results in the reference run.
         this.sortValue = undefined;
         return;
     }
 
-    otherResults = testResults[this.referenceIndex];
+    otherResults = testResults[remappedReferenceIndex];
 
     // Find the column in this row that matches the runId and prepare to
     // sort by the difference from the reference.
