@@ -29,7 +29,14 @@ tv.exportTo('tv.e.highlighter', function() {
     this.times_ = [];
   }
 
-  VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR = 'rgba(0, 0, 255, 0.1)';
+  VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR = {r: 0, g: 0, b: 255};
+  VSyncHighlighter.VSYNC_HIGHLIGHT_ALPHA = 0.1;
+
+  VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT = 0.20;
+  VSyncHighlighter.VSYNC_DENSITY_OPAQUE = 0.10;
+  VSyncHighlighter.VSYNC_DENSITY_RANGE =
+      VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT -
+      VSyncHighlighter.VSYNC_DENSITY_OPAQUE;
 
   VSyncHighlighter.VSYNC_COUNTER_PRECISIONS = {
     // Android. Seems to appear in sample systrace only.
@@ -149,12 +156,30 @@ tv.exportTo('tv.e.highlighter', function() {
         return;
       }
 
-      var pixelRatio = window.devicePixelRatio || 1;
-      var height = viewHeight * pixelRatio;
-      ctx.fillStyle = VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR;
-
       var stripes = VSyncHighlighter.generateStripes(
           this.times_, viewLWorld, viewRWorld);
+      if (stripes.length == 0) {
+        return;
+      }
+
+      var stripeRange = stripes[stripes.length - 1][1] - stripes[0][0];
+      var stripeDensity = stripes.length / (dt.scaleX * stripeRange);
+      var clampedStripeDensity = tv.b.clamp(stripeDensity,
+          VSyncHighlighter.VSYNC_DENSITY_OPAQUE,
+          VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT);
+      var opacity =
+          (VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT - clampedStripeDensity) /
+          VSyncHighlighter.VSYNC_DENSITY_RANGE;
+      if (opacity == 0) {
+        return;
+      }
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var height = viewHeight * pixelRatio;
+      ctx.fillStyle = tv.b.ui.colorToRGBAString(
+          VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR,
+          VSyncHighlighter.VSYNC_HIGHLIGHT_ALPHA * opacity);
+
       for (var i = 0; i < stripes.length; i++) {
         var xLeftView = dt.xWorldToView(stripes[i][0]);
         var xRightView = dt.xWorldToView(stripes[i][1]);
