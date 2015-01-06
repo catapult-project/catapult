@@ -75,8 +75,9 @@ class TraceViewerProject(project_module.Project):
 
     config_files = [x for x in config_files if os.path.isfile(x)]
 
-    config_names = [re.match('.+extras/(.+)_config.html$', x).group(1)
-                    for x in config_files]
+    config_basenames = [os.path.basename(x) for x in config_files]
+    config_names = [re.match('(.+)_config.html$', x).group(1)
+                    for x in config_basenames]
     return config_names
 
   def GetDefaultConfigName(self):
