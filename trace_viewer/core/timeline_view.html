@@ -232,6 +232,12 @@ tv.exportTo('tv.c', function() {
           this, 'showFlowEvents',
           'tv.c.TimelineView.showFlowEvents', false,
           'Flow events'));
+      this.highlightVSync_ = false;
+      this.highlightVSyncCheckbox_ = tv.b.ui.createCheckBox(
+          this, 'highlightVSync',
+          'tv.c.TimelineView.highlightVSync', false,
+          'Highlight VSync');
+      this.rightControls.appendChild(this.highlightVSyncCheckbox_);
 
       this.rightControls.appendChild(this.createMetadataButton_());
       this.rightControls.appendChild(this.findCtl_);
@@ -267,6 +273,17 @@ tv.exportTo('tv.c', function() {
       if (!this.trackView_)
         return;
       this.trackView_.viewport.showFlowEvents = showFlowEvents;
+    },
+
+    get highlightVSync() {
+      return this.highlightVSync_;
+    },
+
+    set highlightVSync(highlightVSync) {
+      this.highlightVSync_ = highlightVSync;
+      if (!this.trackView_)
+        return;
+      this.trackView_.viewport.highlightVSync = highlightVSync;
     },
 
     createHelpButton_: function() {
@@ -404,6 +421,7 @@ tv.exportTo('tv.c', function() {
         this.trackView_.model = model;
         this.sidePanelContainer_.model = model;
         this.trackView_.viewport.showFlowEvents = this.showFlowEvents;
+        this.trackView_.viewport.highlightVSync = this.highlightVSync;
         this.clearSelectionHistory_();
       }
       tv.b.dispatchSimpleEvent(this, 'modelChange');
@@ -470,15 +488,22 @@ tv.exportTo('tv.c', function() {
       if (!this.listenToKeys_)
         return;
 
-      if (e.keyCode === '/'.charCodeAt(0)) {
-        if (this.findCtl_.hasFocus())
-          this.focus();
-        else
-          this.findCtl_.focus();
-        e.preventDefault();
-      } else if (e.keyCode === '?'.charCodeAt(0)) {
-        this.querySelector('.view-help-button').click();
-        e.preventDefault();
+      switch (e.keyCode) {
+        case 47:  // /
+          if (this.findCtl_.hasFocus())
+            this.focus();
+          else
+            this.findCtl_.focus();
+          e.preventDefault();
+          break;
+        case 63:  // ?
+          this.querySelector('.view-help-button').click();
+          e.preventDefault();
+          break;
+        case 118:  // v
+          this.toggleHighlightVSync_();
+          e.preventDefault();
+          break;
       }
     },
 
@@ -530,6 +555,11 @@ tv.exportTo('tv.c', function() {
       var vr = this.trackView_.viewport.interestRange.asRangeObject();
       if (!spc.rangeOfInterest.equals(vr))
         spc.rangeOfInterest = vr;
+    },
+
+    toggleHighlightVSync_: function() {
+      this.highlightVSyncCheckbox_.checked =
+          !this.highlightVSyncCheckbox_.checked;
     }
   };
 

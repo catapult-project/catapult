@@ -402,9 +402,6 @@ tv.exportTo('tv.c', function() {
         case 'm'.charCodeAt(0):
           this.setCurrentSelectionAsInterestRange_();
           break;
-        case 118:  // v
-          this.toggleHighlightVSync_();
-          break;
         case 104:  // h
           this.toggleHighDetails_();
           break;
@@ -606,10 +603,6 @@ tv.exportTo('tv.c', function() {
         this.viewport_.interestRange.reset();
       else
         this.viewport_.interestRange.set(selectionBounds);
-    },
-
-    toggleHighlightVSync_: function() {
-      this.viewport_.highlightVSync = !this.viewport_.highlightVSync;
     },
 
     toggleHighDetails_: function() {
