@@ -196,7 +196,9 @@ def Run(test, user_story_set, expectations, finder_options, results,
   We "white list" certain exceptions for which the user story runner
   can continue running the remaining user stories.
   """
-  test.ValidatePageSet(user_story_set)
+  # TODO(slamm): Remove special-case for PageTest. https://crbug.com/440101
+  if isinstance(test, page_test.PageTest):
+    test.ValidatePageSet(user_story_set)
 
   # Reorder page set based on options.
   user_stories = _ShuffleAndFilterUserStorySet(user_story_set, finder_options)
@@ -209,14 +211,16 @@ def Run(test, user_story_set, expectations, finder_options, results,
         user_stories):
       return
 
-  for user_story in list(user_stories):
-    if not test.CanRunForPage(user_story):
-      results.WillRunPage(user_story)
-      logging.debug('Skipping test: it cannot run for %s',
-                    user_story.display_name)
-      results.AddValue(skip.SkipValue(user_story, 'Test cannot run'))
-      results.DidRunPage(user_story)
-      user_stories.remove(user_story)
+  # TODO(slamm): Remove special-case for PageTest. https://crbug.com/440101
+  if isinstance(test, page_test.PageTest):
+    for user_story in list(user_stories):
+      if not test.CanRunForPage(user_story):
+        results.WillRunPage(user_story)
+        logging.debug('Skipping test: it cannot run for %s',
+                      user_story.display_name)
+        results.AddValue(skip.SkipValue(user_story, 'Test cannot run'))
+        results.DidRunPage(user_story)
+        user_stories.remove(user_story)
 
   if not user_stories:
     return
@@ -260,12 +264,14 @@ def Run(test, user_story_set, expectations, finder_options, results,
               try:
                 if state:
                   _CheckThermalThrottling(state.platform)
-                discard_run = (test.discard_first_result and
-                               user_story not in
-                               user_story_with_discarded_first_results)
-                if discard_run:
+                # TODO(slamm): Make discard_first_result part of user_story API.
+                # https://crbug.com/440101
+                discard_current_run = (
+                    getattr(test, 'discard_first_result', False) and
+                    user_story not in user_story_with_discarded_first_results)
+                if discard_current_run:
                   user_story_with_discarded_first_results.add(user_story)
-                results.DidRunPage(user_story, discard_run=discard_run)
+                results.DidRunPage(user_story, discard_run=discard_current_run)
               except Exception:
                 if not has_existing_exception:
                   raise

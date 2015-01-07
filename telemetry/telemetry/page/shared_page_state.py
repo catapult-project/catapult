@@ -18,6 +18,7 @@ from telemetry.user_story import shared_user_story_state
 from telemetry.util import exception_formatter
 from telemetry.util import file_handle
 from telemetry.value import skip
+from telemetry.web_perf import timeline_based_measurement
 
 
 def _PrepareFinderOptions(finder_options, test, page_set):
@@ -34,15 +35,19 @@ def _PrepareFinderOptions(finder_options, test, page_set):
 class SharedPageState(shared_user_story_state.SharedUserStoryState):
   def __init__(self, test, finder_options, user_story_set):
     super(SharedPageState, self).__init__(test, finder_options, user_story_set)
+    if isinstance(test, timeline_based_measurement.TimelineBasedMeasurement):
+      self._test = timeline_based_measurement.TimelineBasedPageTest(test)
+    else:
+      self._test = test
+    _PrepareFinderOptions(finder_options, self._test, user_story_set)
     self.browser = None
-    _PrepareFinderOptions(finder_options, test, user_story_set)
     self._finder_options = finder_options
-    self._possible_browser = self._GetPossibleBrowser(test, finder_options)
+    self._possible_browser = self._GetPossibleBrowser(
+        self._test, finder_options)
 
     # TODO(slamm): Remove _append_to_existing_wpr when replay lifetime changes.
     self._append_to_existing_wpr = False
     self._first_browser = True
-    self._test = test
     self._did_login_for_current_page = False
     self._current_page = None
     self._current_tab = None

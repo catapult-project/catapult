@@ -22,6 +22,7 @@ from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter as exception_formatter_module
 from telemetry.value import scalar
 from telemetry.value import string
+from telemetry.web_perf import timeline_based_measurement
 
 # This linter complains if we define classes nested inside functions.
 # pylint: disable=bad-super-call
@@ -57,7 +58,7 @@ class TestSharedUserStoryState(shared_user_story_state.SharedUserStoryState):
     return 'pass', None
 
   def RunUserStory(self, results):
-    self._test.RunPage(self._current_user_story, None, results)
+    raise NotImplementedError
 
   def DidRunUserStory(self, results):
     pass
@@ -66,11 +67,16 @@ class TestSharedUserStoryState(shared_user_story_state.SharedUserStoryState):
     pass
 
 
-class FooUserStoryState(TestSharedUserStoryState):
+class TestSharedPageState(TestSharedUserStoryState):
+  def RunUserStory(self, results):
+    self._test.RunPage(self._current_user_story, None, results)
+
+
+class FooUserStoryState(TestSharedPageState):
   pass
 
 
-class BarUserStoryState(TestSharedUserStoryState):
+class BarUserStoryState(TestSharedPageState):
   pass
 
 
@@ -128,7 +134,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     self._user_story_runner_logging_stub = None
 
   def SuppressExceptionFormatting(self):
-    ''' Fake out exception formatter to avoid spamming the unittest stdout. '''
+    """Fake out exception formatter to avoid spamming the unittest stdout."""
     user_story_runner.exception_formatter = FakeExceptionFormatterModule
     self._user_story_runner_logging_stub = system_stub.Override(
       user_story_runner, ['logging'])
@@ -149,8 +155,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     us.AddUserStory(DummyLocalUserStory(BarUserStoryState))
     us.AddUserStory(DummyLocalUserStory(FooUserStoryState))
     story_groups = (
-        user_story_runner.GetUserStoryGroupsWithSameSharedUserStoryClass(
-            us))
+        user_story_runner.GetUserStoryGroupsWithSameSharedUserStoryClass(us))
     self.assertEqual(len(story_groups), 3)
     self.assertEqual(story_groups[0].shared_user_story_state_class,
                      FooUserStoryState)
@@ -160,12 +165,34 @@ class UserStoryRunnerTest(unittest.TestCase):
                      FooUserStoryState)
 
   def testSuccessfulUserStoryTest(self):
+    test = DummyTest()
     us = user_story_set.UserStorySet()
     us.AddUserStory(DummyLocalUserStory(FooUserStoryState))
     us.AddUserStory(DummyLocalUserStory(FooUserStoryState))
     us.AddUserStory(DummyLocalUserStory(BarUserStoryState))
     user_story_runner.Run(
-        DummyTest(), us, self.expectations, self.options, self.results)
+        test, us, self.expectations, self.options, self.results)
+    self.assertEquals(0, len(self.results.failures))
+    self.assertEquals(3, GetNumberOfSuccessfulPageRuns(self.results))
+
+  def testSuccessfulTimelineBasedMeasurementTest(self):
+    """Check that PageTest is not required for user_story_runner.Run.
+
+    Any PageTest related calls or attributes need to only be called
+    for PageTest tests.
+    """
+    class TestSharedTbmState(TestSharedUserStoryState):
+      def RunUserStory(self, results):
+        pass
+
+    test = timeline_based_measurement.TimelineBasedMeasurement(
+        timeline_based_measurement.Options())
+    us = user_story_set.UserStorySet()
+    us.AddUserStory(DummyLocalUserStory(TestSharedTbmState))
+    us.AddUserStory(DummyLocalUserStory(TestSharedTbmState))
+    us.AddUserStory(DummyLocalUserStory(TestSharedTbmState))
+    user_story_runner.Run(
+        test, us, self.expectations, self.options, self.results)
     self.assertEquals(0, len(self.results.failures))
     self.assertEquals(3, GetNumberOfSuccessfulPageRuns(self.results))
 
@@ -208,7 +235,7 @@ class UserStoryRunnerTest(unittest.TestCase):
   def testAppCrashExceptionCausesFailureValue(self):
     self.SuppressExceptionFormatting()
     us = user_story_set.UserStorySet()
-    class SharedUserStoryThatCausesAppCrash(TestSharedUserStoryState):
+    class SharedUserStoryThatCausesAppCrash(TestSharedPageState):
       def WillRunUserStory(self, user_storyz):
         raise exceptions.AppCrashException()
 
@@ -239,8 +266,8 @@ class UserStoryRunnerTest(unittest.TestCase):
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
 
-    us.AddUserStory(DummyLocalUserStory(TestSharedUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(TestSharedUserStoryState))
+    us.AddUserStory(DummyLocalUserStory(TestSharedPageState))
+    us.AddUserStory(DummyLocalUserStory(TestSharedPageState))
     test = Test()
     with self.assertRaises(UnknownException):
       user_story_runner.Run(
@@ -264,8 +291,8 @@ class UserStoryRunnerTest(unittest.TestCase):
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
 
-    us.AddUserStory(DummyLocalUserStory(TestSharedUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(TestSharedUserStoryState))
+    us.AddUserStory(DummyLocalUserStory(TestSharedPageState))
+    us.AddUserStory(DummyLocalUserStory(TestSharedPageState))
     test = Test()
     user_story_runner.Run(
         test, us, self.expectations, self.options, self.results)
@@ -280,7 +307,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     class DidRunTestError(Exception):
       pass
 
-    class TestTearDownSharedUserStoryState(TestSharedUserStoryState):
+    class TestTearDownSharedUserStoryState(TestSharedPageState):
       def TearDownState(self, results):
         self._test.DidRunTest('app', results)
 
@@ -317,8 +344,8 @@ class UserStoryRunnerTest(unittest.TestCase):
 
   def testDiscardFirstResult(self):
     us = user_story_set.UserStorySet()
-    us.AddUserStory(DummyLocalUserStory(TestSharedUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(TestSharedUserStoryState))
+    us.AddUserStory(DummyLocalUserStory(TestSharedPageState))
+    us.AddUserStory(DummyLocalUserStory(TestSharedPageState))
     class Measurement(page_test.PageTest):
       @property
       def discard_first_result(self):
@@ -372,10 +399,8 @@ class UserStoryRunnerTest(unittest.TestCase):
 
   def testPagesetRepeat(self):
     us = user_story_set.UserStorySet()
-    us.AddUserStory(DummyLocalUserStory(
-        TestSharedUserStoryState, name='blank'))
-    us.AddUserStory(DummyLocalUserStory(
-        TestSharedUserStoryState, name='green'))
+    us.AddUserStory(DummyLocalUserStory(TestSharedPageState, name='blank'))
+    us.AddUserStory(DummyLocalUserStory(TestSharedPageState, name='green'))
 
     class Measurement(page_test.PageTest):
       i = 0

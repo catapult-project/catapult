@@ -215,7 +215,8 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     ps.AddUserStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_animation=True))
 
-    measurement = tbm_module.TimelineBasedMeasurement()
+    tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
+    measurement = tbm_module.TimelineBasedPageTest(tbm)
     results = self.RunMeasurement(measurement, ps,
                                   options=self._options)
 
@@ -235,7 +236,8 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     ps.AddUserStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_slow=True))
 
-    measurement = tbm_module.TimelineBasedMeasurement()
+    tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
+    measurement = tbm_module.TimelineBasedPageTest(tbm)
     results = self.RunMeasurement(measurement, ps, options=self._options)
 
     self.assertEquals([], results.failures)
@@ -273,7 +275,8 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     ps.AddUserStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_jank=True))
 
-    measurement = tbm_module.TimelineBasedMeasurement()
+    tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
+    measurement = tbm_module.TimelineBasedPageTest(tbm)
     results = self.RunMeasurement(measurement, ps,
                                   options=self._options)
     self.assertEquals(0, len(results.failures))

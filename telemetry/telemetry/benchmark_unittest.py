@@ -14,6 +14,7 @@ from telemetry.user_story import android
 from telemetry.user_story import shared_user_story_state
 from telemetry.user_story import user_story_runner
 from telemetry.user_story import user_story_set
+from telemetry.web_perf import timeline_based_measurement
 
 
 class DummyPageTest(page_test.PageTest):
@@ -76,3 +77,53 @@ class BenchmarkTest(unittest.TestCase):
       user_story_runner.Run = original_run_fn
 
     self.assertTrue(was_run[0])
+
+  def testOverriddenTbmOptionsAndPageTestRaises(self):
+    class FakeTimelineBasedMeasurementOptions(object):
+      pass
+
+    class OverrideBothBenchmark(benchmark.Benchmark):
+      def CreatePageTest(self, _):
+        return DummyPageTest()
+      def CreateTimelineBasedMeasurementOptions(self):
+        return FakeTimelineBasedMeasurementOptions()
+
+    assertion_regex = (
+        'Cannot override both CreatePageTest and '
+        'CreateTimelineBasedMeasurementOptions')
+    with self.assertRaisesRegexp(AssertionError, assertion_regex):
+      OverrideBothBenchmark()
+
+  def testBenchmarkMakesTbmTestByDefault(self):
+    class DefaultTbmBenchmark(benchmark.Benchmark):
+      pass
+
+    self.assertIsInstance(
+        DefaultTbmBenchmark().CreatePageTest(options=None),
+        timeline_based_measurement.TimelineBasedMeasurement)
+
+  def testUnknownTestTypeRaises(self):
+    class UnknownTestType(object):
+      pass
+    class UnknownTestTypeBenchmark(benchmark.Benchmark):
+      test = UnknownTestType
+
+    type_error_regex = (
+        '"UnknownTestType" is not a PageTest or a TimelineBasedMeasurement')
+    with self.assertRaisesRegexp(TypeError, type_error_regex):
+      UnknownTestTypeBenchmark().CreatePageTest(options=None)
+
+  def testOverriddenTbmOptionsAndPageTestTestAttributeRaises(self):
+    class FakeTimelineBasedMeasurementOptions(object):
+      pass
+
+    class OverrideOptionsOnPageTestBenchmark(benchmark.Benchmark):
+      test = DummyPageTest
+      def CreateTimelineBasedMeasurementOptions(self):
+        return FakeTimelineBasedMeasurementOptions()
+
+    assertion_regex = (
+        'Cannot override CreateTimelineBasedMeasurementOptions '
+        'with a PageTest')
+    with self.assertRaisesRegexp(AssertionError, assertion_regex):
+      OverrideOptionsOnPageTestBenchmark().CreatePageTest(options=None)

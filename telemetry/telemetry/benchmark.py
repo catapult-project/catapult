@@ -21,6 +21,7 @@ from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
+from telemetry.web_perf import timeline_based_measurement
 
 Disabled = decorators.Disabled
 Enabled = decorators.Enabled
@@ -48,9 +49,14 @@ class BenchmarkMetadata(object):
 class Benchmark(command_line.Command):
   """Base class for a Telemetry benchmark.
 
-  A test packages a PageTest and a PageSet together.
+  A benchmark packages a measurement and a PageSet together.
+  Benchmarks default to using TBM unless you override the value of
+  Benchmark.test, or override the CreatePageTest method.
+
+  New benchmarks should override CreateUserStorySet.
   """
   options = {}
+  test = timeline_based_measurement.TimelineBasedMeasurement
 
   def __init__(self, max_failures=None):
     """Creates a new Benchmark.
@@ -60,6 +66,14 @@ class Benchmark(command_line.Command):
           from executing subsequent page runs. If None, we never bail.
     """
     self._max_failures = max_failures
+    self._has_original_tbm_options = (
+        self.CreateTimelineBasedMeasurementOptions.__func__ ==
+        Benchmark.CreateTimelineBasedMeasurementOptions.__func__)
+    has_original_create_page_test = (
+        self.CreatePageTest.__func__ == Benchmark.CreatePageTest.__func__)
+    assert self._has_original_tbm_options or has_original_create_page_test, (
+        'Cannot override both CreatePageTest and '
+        'CreateTimelineBasedMeasurementOptions.')
 
   @classmethod
   def Name(cls):
@@ -207,19 +221,42 @@ class Benchmark(command_line.Command):
         extracted_profile_dir_path)
     options.browser_options.profile_dir = extracted_profile_dir_path
 
-  def CreatePageTest(self, options):  # pylint: disable=W0613
-    """Get the PageTest for this Benchmark.
+  def CreateTimelineBasedMeasurementOptions(self):
+    """Return the TimelineBasedMeasurementOptions for this Benchmark.
 
-    By default, it will create a page test from the test's test attribute.
-    Override to generate a custom page test.
+    Override this method to configure a TimelineBasedMeasurement benchmark.
+    Otherwise, override CreatePageTest for PageTest tests. Do not override
+    both methods.
     """
-    if not hasattr(self, 'test'):
-      raise NotImplementedError('This test has no "test" attribute.')
-    if not issubclass(self.test, page_test.PageTest):
-      raise TypeError('"%s" is not a PageTest.' % self.test.__name__)
-    return self.test()
+    return timeline_based_measurement.Options()
 
-  def CreatePageSet(self, options):  # pylint: disable=W0613
+  def CreatePageTest(self, options):  # pylint: disable=unused-argument
+    """Return the PageTest for this Benchmark.
+
+    Override this method for PageTest tests.
+    Override, override CreateTimelineBasedMeasurementOptions to configure
+    TimelineBasedMeasurement tests. Do not override both methods.
+
+    Args:
+      options: a browser_options.BrowserFinderOptions instance
+    Returns:
+      |test()| if |test| is a PageTest class.
+      Otherwise, a TimelineBasedMeasurement instance.
+    """
+    is_page_test = issubclass(self.test, page_test.PageTest)
+    is_tbm = self.test == timeline_based_measurement.TimelineBasedMeasurement
+    if not is_page_test and not is_tbm:
+      raise TypeError('"%s" is not a PageTest or a TimelineBasedMeasurement.' %
+                      self.test.__name__)
+    if is_page_test:
+      assert self._has_original_tbm_options, (
+          'Cannot override CreateTimelineBasedMeasurementOptions '
+          'with a PageTest.')
+      return self.test()  # pylint: disable=no-value-for-parameter
+    return timeline_based_measurement.TimelineBasedMeasurement(
+        self.CreateTimelineBasedMeasurementOptions())
+
+  def CreatePageSet(self, options):  # pylint: disable=unused-argument
     """Get the page set this test will run on.
 
     By default, it will create a page set from the this test's page_set
