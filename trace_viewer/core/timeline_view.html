@@ -488,6 +488,7 @@ tv.exportTo('tv.c', function() {
       if (!this.listenToKeys_)
         return;
 
+      // Shortcuts that *can* steal focus from the filter text box.
       switch (e.keyCode) {
         case 47:  // /
           if (this.findCtl_.hasFocus())
@@ -500,6 +501,13 @@ tv.exportTo('tv.c', function() {
           this.querySelector('.view-help-button').click();
           e.preventDefault();
           break;
+      }
+
+      if (this.findCtl_.hasFocus())
+        return;
+
+      // Shortcuts that *can't* steal focus from the filter text box.
+      switch (e.keyCode) {
         case 118:  // v
           this.toggleHighlightVSync_();
           e.preventDefault();
