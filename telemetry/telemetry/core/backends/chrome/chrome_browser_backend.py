@@ -23,7 +23,6 @@ from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import extension_backend
 from telemetry.core.backends.chrome import system_info_backend
 from telemetry.core.backends.chrome import tab_list_backend
-from telemetry.core.backends.chrome import tracing_backend
 from telemetry.core.backends.chrome_inspector import devtools_client_backend
 from telemetry.core.backends.chrome_inspector import devtools_http
 from telemetry.timeline import trace_data as trace_data_module
@@ -47,7 +46,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._platform_backend = platform_backend
     self._supports_tab_control = supports_tab_control
     self._devtools_client = None
-    self._tracing_backend = None
     self._system_info_backend = None
 
     self._output_profile_path = output_profile_path
@@ -265,10 +263,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
                          "webkit,cc,disabled-by-default-cc.debug" to trace only
                          those three event categories.
     """
-    assert trace_options and trace_options.enable_chrome_trace
-    if self._tracing_backend is None:
-      self._tracing_backend = tracing_backend.TracingBackend(self._port)
-    return self._tracing_backend.StartTracing(
+    return self.devtools_client.StartChromeTracing(
         trace_options, custom_categories, timeout)
 
   def StopTracing(self, trace_data_builder):
@@ -283,7 +278,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           raise Exception('Page stomped on console.time')
         trace_data_builder.AddEventsTo(trace_data_module.TAB_ID_PART, [tab.id])
 
-    self._tracing_backend.StopTracing(trace_data_builder)
+    self.devtools_client.StopChromeTracing(trace_data_builder)
 
   def GetProcessName(self, cmd_line):
     """Returns a user-friendly name for the process of the given |cmd_line|."""
@@ -301,9 +296,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return m.group(1)
 
   def Close(self):
-    if self._tracing_backend:
-      self._tracing_backend.Close()
-      self._tracing_backend = None
+    if self._devtools_client:
+      self._devtools_client.Close()
+      self._devtools_client = None
 
   @property
   def supports_system_info(self):

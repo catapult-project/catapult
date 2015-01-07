@@ -4,6 +4,7 @@
 
 import logging
 
+from telemetry import decorators
 from telemetry.core.backends.chrome_inspector import inspector_websocket
 from telemetry.core.platform import tracing_options
 from telemetry.timeline import trace_data as trace_data_module
@@ -45,7 +46,11 @@ class TracingBackend(object):
       return False
     # Reset collected tracing data from previous tracing calls.
     self._trace_events = []
-    self._CheckNotificationSupported()
+
+    if not self.IsTracingSupported():
+      raise TracingUnsupportedException(
+          'Chrome tracing not supported for this app.')
+
     # Map telemetry's tracing record_mode to the DevTools API string.
     # (The keys happen to be the same as the values.)
     m = {tracing_options.RECORD_UNTIL_FULL: 'record-until-full',
@@ -112,12 +117,8 @@ class TracingBackend(object):
   def Close(self):
     self._inspector_websocket.Disconnect()
 
-  def _CheckNotificationSupported(self):
-    """Ensures we're running against a compatible version of chrome."""
+  @decorators.Cache
+  def IsTracingSupported(self):
     req = {'method': 'Tracing.hasCompleted'}
     res = self._inspector_websocket.SyncRequest(req)
-    if res.get('response'):
-      raise TracingUnsupportedException(
-          'Tracing not supported for this browser')
-    elif 'error' in res:
-      return
+    return not res.get('response')

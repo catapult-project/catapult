@@ -6,6 +6,7 @@ import re
 
 from telemetry import decorators
 from telemetry.core.backends.chrome_inspector import devtools_http
+from telemetry.core.backends.chrome_inspector import tracing_backend
 
 
 class DevToolsClientBackend(object):
@@ -28,6 +29,11 @@ class DevToolsClientBackend(object):
       return False
     else:
       return True
+
+  def Close(self):
+    if self._tracing_backend:
+      self._tracing_backend.Close()
+      self._tracing_backend = None
 
   @decorators.Cache
   def GetChromeBranchNumber(self):
@@ -55,3 +61,32 @@ class DevToolsClientBackend(object):
   # equivalent. crbug.com/423954.
   def ListInspectableContexts(self):
     return self._devtools_http.RequestJson('')
+
+  def _CreateTracingBackendIfNeeded(self):
+    if not self._tracing_backend:
+      self._tracing_backend = tracing_backend.TracingBackend(
+          self._devtools_port)
+
+  def IsChromeTracingSupported(self):
+    self._CreateTracingBackendIfNeeded()
+    return self._tracing_backend.IsTracingSupported()
+
+  def StartChromeTracing(
+      self, trace_options, custom_categories=None, timeout=10):
+    """
+    Args:
+        trace_options: An tracing_options.TracingOptions instance.
+        custom_categories: An optional string containing a list of
+                         comma separated categories that will be traced
+                         instead of the default category set.  Example: use
+                         "webkit,cc,disabled-by-default-cc.debug" to trace only
+                         those three event categories.
+    """
+    assert trace_options and trace_options.enable_chrome_trace
+    self._CreateTracingBackendIfNeeded()
+    return self._tracing_backend.StartTracing(
+        trace_options, custom_categories, timeout)
+
+  def StopChromeTracing(self, timeout=30):
+    assert self._tracing_backend
+    return self._tracing_backend.StopTracing(timeout)

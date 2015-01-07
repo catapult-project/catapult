@@ -62,7 +62,7 @@ class TracingControllerBackend(object):
   def IsChromeTracingSupported(self):
     self._AssertOneBrowserBackend()
     browser_backend = self.running_browser_backends[0]
-    return browser_backend.supports_tracing
+    return browser_backend.devtools_client.IsChromeTracingSupported()
 
   @property
   def is_tracing_running(self):
