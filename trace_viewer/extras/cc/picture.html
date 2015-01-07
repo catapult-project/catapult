@@ -403,7 +403,9 @@ tv.exportTo('tv.e.cc', function() {
     }
   };
 
-  ObjectSnapshot.register(PictureSnapshot, {typeName: 'cc::Picture'});
+  ObjectSnapshot.register(
+      PictureSnapshot,
+      {typeNames: ['cc::Picture', 'cc::DisplayItemList']});
 
   return {
     PictureSnapshot: PictureSnapshot,
