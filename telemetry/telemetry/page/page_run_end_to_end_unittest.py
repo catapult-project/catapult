@@ -450,7 +450,7 @@ class PageRunEndToEndTests(unittest.TestCase):
       self.assertEquals(0, len(results.failures))
       self.assertEquals(0, len(results.all_page_specific_values))
       self.assertTrue(os.path.isfile(
-          os.path.join(options.output_dir, 'blank_html.json')))
+          os.path.join(options.output_dir, 'blank_html.zip')))
     finally:
       shutil.rmtree(options.output_dir)
 
