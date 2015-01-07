@@ -14,8 +14,7 @@ class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
   """
 
   def __init__(self, browser_backend):
-    super(MiscWebContentsBackend, self).__init__(
-        browser_backend, backend_wrapper=oobe.Oobe)
+    super(MiscWebContentsBackend, self).__init__(browser_backend)
 
   @property
   def oobe_exists(self):
@@ -34,3 +33,6 @@ class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
 
   def ShouldIncludeContext(self, context):
     return context.get('url').startswith('chrome://oobe')
+
+  def CreateWrapper(self, inspector_backend):
+    return oobe.Oobe(inspector_backend)

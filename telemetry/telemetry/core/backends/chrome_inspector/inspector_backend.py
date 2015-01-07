@@ -66,10 +66,6 @@ class InspectorBackend(object):
     return self._browser_backend.app
 
   @property
-  def browser(self):
-    return self._browser_backend.browser
-
-  @property
   def url(self):
     for c in self._browser_backend.ListInspectableContexts():
       if c['id'] == self._context['id']:

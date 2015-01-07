@@ -15,25 +15,18 @@ def DebuggerUrlToId(debugger_url):
 class InspectorBackendList(collections.Sequence):
   """A dynamic sequence of active InspectorBackends."""
 
-  def __init__(self, browser_backend, backend_wrapper):
+  def __init__(self, browser_backend):
     """Constructor.
 
     Args:
       browser_backend: The BrowserBackend instance to query for
           InspectorBackends.
-      backend_wrapper: A public interface for wrapping each
-          InspectorBackend. It must accept an argument of the
-          InspectorBackend to wrap, and an argument of the
-          InspectorBackendList, and may expose whatever methods
-          are desired on top of that backend.
     """
     self._browser_backend = browser_backend
     # A ordered mapping of context IDs to inspectable contexts.
     self._inspectable_contexts_dict = collections.OrderedDict()
     # A cache of inspector backends, by context ID.
     self._inspector_backend_dict = {}
-    # A wrapper class for InspectorBackends.
-    self._backend_wrapper = backend_wrapper
 
   def GetContextInfo(self, context_id):
     return self._inspectable_contexts_dict[context_id]
@@ -41,6 +34,14 @@ class InspectorBackendList(collections.Sequence):
   def ShouldIncludeContext(self, _context):
     """Override this method to control which contexts are included."""
     return True
+
+  def CreateWrapper(self, inspector_backend_instance):
+    """Override to return the wrapper API over InspectorBackend.
+
+    The wrapper API is the public interface for InspectorBackend. It
+    may expose whatever methods are desired on top of that backend.
+    """
+    raise NotImplementedError
 
   #TODO(nednguyen): Remove this method and turn inspector_backend_list API to
   # dictionary-like API (crbug.com/398467)
@@ -63,7 +64,7 @@ class InspectorBackendList(collections.Sequence):
       backend = inspector_backend.InspectorBackend(
           self._browser_backend,
           self._inspectable_contexts_dict[context_id])
-      backend = self._backend_wrapper(backend, self)
+      backend = self.CreateWrapper(backend)
       self._inspector_backend_dict[context_id] = backend
     return self._inspector_backend_dict[context_id]
 

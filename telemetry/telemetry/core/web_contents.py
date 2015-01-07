@@ -12,9 +12,8 @@ DEFAULT_WEB_CONTENTS_TIMEOUT = 90
 # independent of Tab.
 class WebContents(object):
   """Represents web contents in the browser"""
-  def __init__(self, inspector_backend, backend_list):
+  def __init__(self, inspector_backend):
     self._inspector_backend = inspector_backend
-    self._backend_list = backend_list
 
     with open(os.path.join(os.path.dirname(__file__),
         'network_quiescence.js')) as f:

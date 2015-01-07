@@ -19,13 +19,15 @@ class Tab(web_contents.WebContents):
       # Evaluates 1+1 in the tab's JavaScript context.
       tab.Evaluate('1+1')
   """
-  def __init__(self, inspector_backend, backend_list):
-    super(Tab, self).__init__(inspector_backend, backend_list)
+  def __init__(self, inspector_backend, tab_list_backend, browser):
+    super(Tab, self).__init__(inspector_backend)
+    self._tab_list_backend = tab_list_backend
+    self._browser = browser
 
   @property
   def browser(self):
     """The browser in which this tab resides."""
-    return self._inspector_backend.browser
+    return self._browser
 
   @property
   def url(self):
@@ -59,14 +61,14 @@ class Tab(web_contents.WebContents):
     and the page's documentVisibilityState becoming 'visible', and yet more
     delay until the actual tab is visible to the user. None of these delays
     are included in this call."""
-    self._backend_list.ActivateTab(self._inspector_backend.debugger_url)
+    self._tab_list_backend.ActivateTab(self._inspector_backend.debugger_url)
 
   def Close(self):
     """Closes this tab.
 
     Not all browsers or browser versions support this method.
     Be sure to check browser.supports_tab_control."""
-    self._backend_list.CloseTab(self._inspector_backend.debugger_url)
+    self._tab_list_backend.CloseTab(self._inspector_backend.debugger_url)
 
   @property
   def screenshot_supported(self):

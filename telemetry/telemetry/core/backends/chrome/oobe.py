@@ -10,8 +10,8 @@ from telemetry.core import web_contents
 
 
 class Oobe(web_contents.WebContents):
-  def __init__(self, inspector_backend, backend_list):
-    super(Oobe, self).__init__(inspector_backend, backend_list)
+  def __init__(self, inspector_backend):
+    super(Oobe, self).__init__(inspector_backend)
 
   def _GaiaLoginContext(self):
     max_context_id = self.EnableAllContexts()

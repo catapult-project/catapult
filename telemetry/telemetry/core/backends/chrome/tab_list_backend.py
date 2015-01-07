@@ -14,8 +14,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
   """A dynamic sequence of tab.Tabs in UI order."""
 
   def __init__(self, browser_backend):
-    super(TabListBackend, self).__init__(browser_backend,
-                                         backend_wrapper=tab.Tab)
+    super(TabListBackend, self).__init__(browser_backend)
 
   @property
   def _devtools_http(self):
@@ -70,3 +69,6 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     # TODO: For compatibility with Chrome before r177683.
     # This check is not completely correct, see crbug.com/190592.
     return not context['url'].startswith('chrome-extension://')
+
+  def CreateWrapper(self, inspector_backend):
+    return tab.Tab(inspector_backend, self, self._browser_backend.browser)
