@@ -102,24 +102,6 @@ class Platform(object):
   def profiling_controller(self):
     return self._profiling_controller
 
-  def IsDisplayTracingSupported(self):
-    """Platforms may be able to gather a trace with frame timestamps close to
-    pysical display"""
-    return self._platform_backend.IsDisplayTracingSupported()
-
-  def StartDisplayTracing(self):
-    """Start gathering a trace with frame timestamps close to pysical
-    display."""
-    return self._platform_backend.StartDisplayTracing()
-
-  def StopDisplayTracing(self):
-    """Stop gathering a trace with frame timestamps close to pysical display.
-
-    Returns a TracingTimelineData object for import of the timestamps into
-    timeline model.
-    """
-    return self._platform_backend.StopDisplayTracing()
-
   def CanMonitorThermalThrottling(self):
     """Platforms may be able to detect thermal throttling.
 

@@ -32,6 +32,9 @@ class TracingControllerBackend(object):
       browser_backend.StartTracing(
           trace_options, category_filter.filter_string, timeout)
 
+    if trace_options.enable_platform_display_trace:
+      self._platform_backend.StartDisplayTracing()
+
   def Stop(self):
     assert self.is_tracing_running, 'Can only stop tracing when tracing.'
     self._AssertOneBrowserBackend()
@@ -40,6 +43,11 @@ class TracingControllerBackend(object):
     if self._current_trace_options.enable_chrome_trace:
       browser_backend = self.running_browser_backends[0]
       browser_backend.StopTracing(trace_data_builder)
+
+    if self._current_trace_options.enable_platform_display_trace:
+      surface_flinger_trace_data = self._platform_backend.StopDisplayTracing()
+      trace_data_builder.AddEventsTo(
+          trace_data_module.SURFACE_FLINGER_PART, surface_flinger_trace_data)
 
     self._current_trace_options = None
     self._current_category_filter = None
@@ -63,6 +71,9 @@ class TracingControllerBackend(object):
     self._AssertOneBrowserBackend()
     browser_backend = self.running_browser_backends[0]
     return browser_backend.devtools_client.IsChromeTracingSupported()
+
+  def IsDisplayTracingSupported(self):
+    return self._platform_backend.IsDisplayTracingSupported()
 
   @property
   def is_tracing_running(self):
