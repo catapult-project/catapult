@@ -9,9 +9,11 @@ import os
 
 from telemetry import decorators
 from telemetry.core import browser
+from telemetry.core import exceptions
 from telemetry.core import possible_browser
 from telemetry.core import platform
 from telemetry.core import util
+from telemetry.core.backends import adb_commands
 from telemetry.core.platform import android_device
 from telemetry.core.backends.chrome import android_browser_backend
 
@@ -71,8 +73,14 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     self._backend_settings = backend_settings
     self._local_apk = None
 
-    chrome_root = util.GetChromiumSrcDir()
-    if apk_name:
+    if browser_type == 'exact':
+      if not os.path.exists(apk_name):
+        raise exceptions.PathMissingError(
+            'Unable to find exact apk %s specified by --browser-executable' %
+            apk_name)
+      self._local_apk = apk_name
+    elif apk_name:
+      chrome_root = util.GetChromiumSrcDir()
       candidate_apks = []
       for build_dir, build_type in util.GetBuildDirectories():
         apk_full_name = os.path.join(chrome_root, build_dir, build_type, 'apks',
@@ -139,8 +147,12 @@ def CanFindAvailableBrowsers():
   return android_device.CanDiscoverDevices()
 
 
+def CanPossiblyHandlePath(target_path):
+  return os.path.splitext(target_path.lower())[1] == '.apk'
+
+
 def FindAllBrowserTypes(_options):
-  return CHROME_PACKAGE_NAMES.keys()
+  return CHROME_PACKAGE_NAMES.keys() + ['exact']
 
 
 def _FindAllPossibleBrowsers(finder_options, android_platform):
@@ -148,6 +160,34 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
   if not android_platform:
     return []
   possible_browsers = []
+
+  # Add the exact APK if given.
+  if (finder_options.browser_executable and
+      CanPossiblyHandlePath(finder_options.browser_executable)):
+    normalized_path = os.path.expanduser(finder_options.browser_executable)
+
+    exact_package = adb_commands.GetPackageName(normalized_path)
+    if not exact_package:
+      raise exceptions.PackageDetectionError(
+          'Unable to find package for %s specified by --browser-executable' %
+          normalized_path)
+
+    package_info = next((info for info in CHROME_PACKAGE_NAMES.itervalues()
+                         if info[0] == exact_package), None)
+    if package_info:
+      [package, backend_settings, _] = package_info
+      possible_browsers.append(
+          PossibleAndroidBrowser(
+            'exact',
+            finder_options,
+            android_platform,
+            backend_settings(package),
+            normalized_path))
+    else:
+      raise exceptions.UnknownPackageError(
+          '%s specified by --browser-executable has an unknown package: %s' %
+          (normalized_path, exact_package))
+
   for name, package_info in CHROME_PACKAGE_NAMES.iteritems():
     package, backend_settings, local_apk = package_info
     b = PossibleAndroidBrowser(name,

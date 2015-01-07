@@ -10,6 +10,7 @@ import sys
 
 from telemetry.core import platform as platform_module
 from telemetry.core import browser
+from telemetry.core import exceptions
 from telemetry.core import possible_browser
 from telemetry.core.backends.chrome import desktop_browser_backend
 from telemetry.util import path
@@ -89,6 +90,14 @@ def SelectDefaultBrowser(possible_browsers):
 def CanFindAvailableBrowsers():
   return not platform_module.GetHostPlatform().GetOSName() == 'chromeos'
 
+def CanPossiblyHandlePath(target_path):
+  _, extension = os.path.splitext(target_path.lower())
+  if sys.platform == 'darwin' or sys.platform.startswith('linux'):
+    return not extension
+  elif sys.platform.startswith('win'):
+    return extension == '.exe'
+  return False
+
 def FindAllBrowserTypes(_):
   return [
       'exact',
@@ -148,8 +157,9 @@ def FindAllAvailableBrowsers(finder_options):
   else:
     raise Exception('Platform not recognized')
 
-  # Add the explicit browser executable if given.
-  if finder_options.browser_executable:
+  # Add the explicit browser executable if given and we can handle it.
+  if (finder_options.browser_executable and
+      CanPossiblyHandlePath(finder_options.browser_executable)):
     normalized_executable = os.path.expanduser(
         finder_options.browser_executable)
     if path.IsExecutable(normalized_executable):
@@ -158,8 +168,9 @@ def FindAllAvailableBrowsers(finder_options):
                                              normalized_executable, flash_path,
                                              False, browser_directory))
     else:
-      raise Exception('%s specified by --browser-executable does not exist',
-                      normalized_executable)
+      raise exceptions.PathMissingError(
+          '%s specified by --browser-executable does not exist',
+          normalized_executable)
 
   def AddIfFound(browser_type, build_dir, type_dir, app_name, content_shell):
     browser_directory = os.path.join(chrome_root, build_dir, type_dir)

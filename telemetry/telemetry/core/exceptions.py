@@ -64,3 +64,15 @@ class EvaluateException(Exception):
 
 class ProfilingException(Exception):
   pass
+
+
+class PathMissingError(Exception):
+  """ Represents an exception thrown when an expected path doesn't exist. """
+
+
+class UnknownPackageError(Exception):
+  """ Represents an exception when encountering an unsupported Android APK. """
+
+
+class PackageDetectionError(Exception):
+  """ Represents an error when parsing an Android APK's package. """

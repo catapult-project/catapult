@@ -121,6 +121,7 @@ class AdbCommandsModuleStub(object):
 
   def __init__(self):
     self.attached_devices = []
+    self.apk_package_name = None
     self.adb_device = AdbDevice()
 
     def AdbCommandsStubConstructor(device=None):
@@ -130,6 +131,9 @@ class AdbCommandsModuleStub(object):
   @staticmethod
   def IsAndroidSupported():
     return True
+
+  def GetPackageName(self, _):
+    return self.apk_package_name
 
   def GetAttachedDevices(self):
     return self.attached_devices
