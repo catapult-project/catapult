@@ -5,6 +5,7 @@
 import ctypes
 import os
 import platform
+import sys
 import time
 
 from telemetry import decorators
@@ -26,6 +27,10 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     self.libproc = None
     self._power_monitor = powermetrics_power_monitor.PowerMetricsPowerMonitor(
         self)
+
+  @classmethod
+  def IsPlatformBackendForHost(cls):
+    return sys.platform == 'darwin'
 
   def IsThermallyThrottled(self):
     raise NotImplementedError()

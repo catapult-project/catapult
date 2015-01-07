@@ -68,10 +68,20 @@ class PlatformBackend(object):
         profiling_controller_backend.ProfilingControllerBackend(self))
 
   @classmethod
+  def IsPlatformBackendForHost(cls):
+    """ Returns whether this platform backend is the platform backend to be used
+    for the host device which telemetry is running on. """
+    return False
+
+  @classmethod
   def SupportsDevice(cls, device):
     """ Returns whether this platform backend supports intialization from the
     device. """
     return False
+
+  @classmethod
+  def CreatePlatformForDevice(cls, device):
+    raise NotImplementedError
 
   def SetPlatform(self, platform):
     assert self._platform == None

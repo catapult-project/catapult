@@ -90,6 +90,10 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     self._msr_server_port = None
     self._power_monitor = msr_power_monitor.MsrPowerMonitor(self)
 
+  @classmethod
+  def IsPlatformBackendForHost(cls):
+    return sys.platform == 'win32'
+
   def __del__(self):
     self.close()
 

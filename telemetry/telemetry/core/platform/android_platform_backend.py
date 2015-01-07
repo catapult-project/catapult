@@ -12,11 +12,11 @@ import time
 
 from telemetry import decorators
 from telemetry.core import exceptions
-from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core import video
 from telemetry.core.backends import adb_commands
 from telemetry.core.platform import android_device
+from telemetry.core.platform import android_platform
 from telemetry.core.platform import linux_based_platform_backend
 from telemetry.core.platform.power_monitor import android_ds2784_power_monitor
 from telemetry.core.platform.power_monitor import android_dumpsys_power_monitor
@@ -95,6 +95,11 @@ class AndroidPlatformBackend(
   @classmethod
   def SupportsDevice(cls, device):
     return isinstance(device, android_device.AndroidDevice)
+
+  @classmethod
+  def CreatePlatformForDevice(cls, device):
+    assert cls.SupportsDevice(device)
+    return android_platform.AndroidPlatform(AndroidPlatformBackend(device))
 
   @property
   def adb(self):

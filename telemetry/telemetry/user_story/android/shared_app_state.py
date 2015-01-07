@@ -3,10 +3,9 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.core import android_app
 from telemetry.core import platform
+from telemetry.core.platform import android_platform
 from telemetry.core import wpr_modes
-from telemetry.core.backends import android_app_backend
 from telemetry.core.platform import android_device
 from telemetry.user_story import shared_user_story_state
 from telemetry.web_perf import timeline_based_measurement
@@ -38,29 +37,22 @@ class SharedAppState(shared_user_story_state.SharedUserStoryState):
     self._finder_options = finder_options
     self._android_app = None
     self._current_user_story = None
-    self._platform = platform.GetPlatformForDevice(
+    self._android_platform = platform.GetPlatformForDevice(
         android_device.GetDevice(finder_options))
-    assert self._platform, 'Unable to create android platform.'
+    assert self._android_platform, 'Unable to create android platform.'
+    assert isinstance(
+        self._android_platform, android_platform.AndroidPlatform)
 
   @property
   def platform(self):
-    return self._platform
-
-  @property
-  def _platform_backend(self):
-    # TODO(slamm): Remove this interface violation. Do not copy this pattern.
-    return self._platform._platform_backend  # pylint: disable=protected-access
+    return self._android_platform
 
   def WillRunUserStory(self, user_story):
     assert not self._android_app
     self._current_user_story = user_story
-
     self._platform_backend.DismissCrashDialogIfNeeded()
-
-    app_backend = android_app_backend.AndroidAppBackend(
-        self._platform_backend, user_story.start_intent)
-    self._android_app = android_app.AndroidApp(
-        app_backend, self._platform_backend)
+    self._android_app = self._android_platform.LaunchAndroidApplication(
+        user_story.start_intent)
 
   def RunUserStory(self, results):
     # TODO(chrishenry): Implement this properly.

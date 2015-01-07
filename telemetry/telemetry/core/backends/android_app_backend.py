@@ -5,15 +5,11 @@
 import time
 
 from telemetry.core.backends import app_backend
-from telemetry.core.platform import android_platform_backend as \
-  android_platform_backend_module
 
 
 class AndroidAppBackend(app_backend.AppBackend):
   def __init__(self, android_platform_backend, start_intent):
     super(AndroidAppBackend, self).__init__(app_type=start_intent.package)
-    assert isinstance(android_platform_backend,
-                      android_platform_backend_module.AndroidPlatformBackend)
     self._android_platform_backend = android_platform_backend
     self._start_intent = start_intent
     self._is_running = False
