@@ -22,42 +22,21 @@ def AssertValidCloudStorageBucket(bucket):
     raise ValueError("Cloud storage privacy bucket %s is invalid" % bucket)
 
 
+class ArchiveError(Exception):
+  pass
+
+
 class WprArchiveInfo(object):
-  def __init__(self, file_path, data, bucket, ignore_archive=False):
+  def __init__(self, file_path, data, bucket):
     AssertValidCloudStorageBucket(bucket)
     self._file_path = file_path
     self._base_dir = os.path.dirname(file_path)
+    self._data = data
     self._bucket = bucket
 
     # Ensure directory exists.
     if not os.path.exists(self._base_dir):
       os.makedirs(self._base_dir)
-
-    # TODO(aiolos): We should take this out of init if we reduce the number of
-    # supported code paths/configs using archive_info when switching over to
-    # user_stories.
-    # Download all .wpr files.
-    if not ignore_archive:
-      if not self._bucket:
-        logging.warning('User story set in %s has no bucket specified, and '
-                        'cannot be downloaded from cloud_storage.', file_path)
-      else:
-        for archive_path in data['archives']:
-          archive_path = self._WprFileNameToPath(archive_path)
-          try:
-            cloud_storage.GetIfChanged(archive_path, bucket)
-          except (cloud_storage.CredentialsError,
-                  cloud_storage.PermissionError):
-            if os.path.exists(archive_path):
-              # If the archive exists, assume the user recorded their own and
-              # simply warn.
-              logging.warning('Need credentials to update WPR archive: %s',
-                              archive_path)
-            else:
-              logging.error("You either aren't authenticated or don't have "
-                            "permission to use the archives for this page set."
-                            "\nYou may need to run gsutil config")
-              raise
 
     # Map from the relative path (as it appears in the metadata file) of the
     # .wpr file to a list of user story names it supports.
@@ -74,13 +53,47 @@ class WprArchiveInfo(object):
     self.temp_target_wpr_file_path = None
 
   @classmethod
-  def FromFile(cls, file_path, bucket, ignore_archive=False):
+  def FromFile(cls, file_path, bucket):
     if os.path.exists(file_path):
       with open(file_path, 'r') as f:
         data = json.load(f)
-        return cls(file_path, data, bucket, ignore_archive=ignore_archive)
-    return cls(file_path, {'archives': {}}, bucket,
-               ignore_archive=ignore_archive)
+        return cls(file_path, data, bucket)
+    return cls(file_path, {'archives': {}}, bucket)
+
+  def DownloadArchivesIfNeeded(self):
+    """Downloads archives iff the Archive has a bucket parameter and the user
+    has permission to access the bucket.
+
+    Raises cloud storage Permissions or Credentials error when there is no
+    local copy of the archive and the user doesn't have permission to access
+    the archive's bucket.
+
+    Warns when a bucket is not specified or when the user doesn't have
+    permission to access the archive's bucket but a local copy of the archive
+    exists.
+    """
+    # Download all .wpr files.
+    if self._data:
+      return
+    if not self._bucket:
+      logging.warning('User story set in %s has no bucket specified, and '
+                      'cannot be downloaded from cloud_storage.', )
+
+    for archive_path in self._data['archives']:
+      archive_path = self._WprFileNameToPath(archive_path)
+      try:
+        cloud_storage.GetIfChanged(archive_path, self._bucket)
+      except (cloud_storage.CredentialsError, cloud_storage.PermissionError):
+        if os.path.exists(archive_path):
+          # If the archive exists, assume the user recorded their own and
+          # simply warn.
+          logging.warning('Need credentials to update WPR archive: %s',
+                          archive_path)
+        else:
+          logging.error("You either aren't authenticated or don't have "
+                        "permission to use the archives for this page set."
+                        "\nYou may need to run gsutil config.")
+          raise
 
   def WprFilePathForUserStory(self, story):
     if self.temp_target_wpr_file_path:

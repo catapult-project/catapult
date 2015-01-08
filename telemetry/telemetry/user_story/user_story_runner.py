@@ -206,7 +206,7 @@ def Run(test, user_story_set, expectations, finder_options, results,
   if (not finder_options.use_live_sites and
       finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):
     _UpdateUserStoryArchivesIfChanged(user_story_set)
-    if not _CheckArchives(
+    if not _UpdateAndCheckArchives(
         user_story_set.archive_data_file, user_story_set.wpr_archive_info,
         user_stories):
       return
@@ -310,7 +310,8 @@ def _ShuffleAndFilterUserStorySet(user_story_set, finder_options):
   return user_stories
 
 
-def _CheckArchives(archive_data_file, wpr_archive_info, filtered_user_stories):
+def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
+                            filtered_user_stories):
   """Verifies that all user stories are local or have WPR archives.
 
   Logs warnings and returns False if any are missing.
@@ -330,6 +331,7 @@ def _CheckArchives(archive_data_file, wpr_archive_info, filtered_user_stories):
                     '.gclient using http://goto/read-src-internal, '
                     'or create a new archive using record_wpr.')
       return False
+    wpr_archive_info.DownloadArchivesIfNeeded()
 
   # Report any problems with individual user story.
   user_stories_missing_archive_path = []

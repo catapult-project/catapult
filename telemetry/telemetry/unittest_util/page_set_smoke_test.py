@@ -31,7 +31,7 @@ class PageSetSmokeTest(unittest.TestCase):
                     page_set.file_path)
 
     wpr_archive_info = archive_info.WprArchiveInfo.FromFile(
-        archive_data_file_path, page_set.bucket, ignore_archive=True)
+        archive_data_file_path, page_set.bucket)
     for page in page_set.pages:
       if not page.url.startswith('http'):
         continue
