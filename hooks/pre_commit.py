@@ -23,13 +23,12 @@ class AffectedFile(object):
 
   @property
   def contents(self):
-    with open(self._filename, 'rb') as f:
-      return f.read()
+    return self._input_api._git(['show', ':%s' % self._filename])
 
   @property
   def new_contents(self):
-    with open(self._filename, 'rb') as f:
-      return f.read()
+    # TODO(nduca): This should only be new lines.
+    return self.contents
 
 class InputAPI(object):
   def __init__(self, tvp):
