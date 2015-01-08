@@ -87,6 +87,6 @@ class DevToolsClientBackend(object):
     return self._tracing_backend.StartTracing(
         trace_options, custom_categories, timeout)
 
-  def StopChromeTracing(self, timeout=30):
+  def StopChromeTracing(self, trace_data_builder, timeout=30):
     assert self._tracing_backend
-    return self._tracing_backend.StopTracing(timeout)
+    return self._tracing_backend.StopTracing(trace_data_builder, timeout)
