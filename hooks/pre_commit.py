@@ -1,4 +1,4 @@
-# Copyright (c) 2014 The Chromium Authors. All rights reserved.
+# Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
@@ -7,20 +7,28 @@ import subprocess
 import sys
 
 from trace_viewer import trace_viewer_project
-
+from hooks import pre_commit_checks
 
 class AffectedFile(object):
   def __init__(self, input_api, filename):
     self._filename = filename
     self._input_api = input_api
 
+  def __repr__(self):
+    return self._filename
+
   @property
   def filename(self):
     return self._filename
 
   @property
+  def contents(self):
+    with open(self._filename, 'rb') as f:
+      return f.read()
+
+  @property
   def new_contents(self):
-    with open(self._filename, 'r') as f:
+    with open(self._filename, 'rb') as f:
       return f.read()
 
 class InputAPI(object):
@@ -85,6 +93,8 @@ def RunChecks(input_api):
   from tvcm import presubmit_checker
   checker = presubmit_checker.PresubmitChecker(input_api)
   results += checker.RunChecks()
+
+  results += pre_commit_checks.RunChecks(input_api)
 
   return results
 
