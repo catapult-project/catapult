@@ -13,6 +13,9 @@ class AffectedFile(object):
   def __init__(self, input_api, filename):
     self._filename = filename
     self._input_api = input_api
+    self._cached_contents = None
+    self._cached_changed_contents = None
+    self._cached_new_contents = None
 
   def __repr__(self):
     return self._filename
@@ -23,12 +26,53 @@ class AffectedFile(object):
 
   @property
   def contents(self):
-    return self._input_api._git(['show', ':%s' % self._filename])
+    if self._cached_contents is None:
+      self._cached_contents = self._input_api._git(
+          ['show', ':%s' % self._filename])
+    return self._cached_contents
 
   @property
-  def new_contents(self):
-    # TODO(nduca): This should only be new lines.
-    return self.contents
+  def contents_as_lines(self):
+    """Returns an iterator over the lines in the new version of file.
+
+    The new version is the file in the user's workspace, i.e. the "right hand
+    side".
+
+    Contents will be empty if the file is a directory or does not exist.
+    Note: The carriage returns (LF or CR) are stripped off.
+    """
+    if self._cached_new_contents is None:
+      self._cached_new_contents = self.contents.splitlines()
+    return self._cached_new_contents[:]
+
+  @property
+  def changed_lines(self):
+    """Returns a list of tuples (line number, line text) of all new lines.
+
+     This relies on the scm diff output describing each changed code section
+     with a line of the form
+
+     ^@@ <old line num>,<old size> <new line num>,<new size> @@$
+    """
+    if self._cached_changed_contents is not None:
+      return self._cached_changed_contents[:]
+    self._cached_changed_contents = []
+    line_num = 0
+
+    for line in self.GenerateDiff().splitlines():
+      m = re.match(r'^@@ [0-9\,\+\-]+ \+([0-9]+)\,[0-9]+ @@', line)
+      if m:
+        line_num = int(m.groups(1)[0])
+        continue
+      if line.startswith('+') and not line.startswith('++'):
+        self._cached_changed_contents.append((line_num, line[1:]))
+      if not line.startswith('-'):
+        line_num += 1
+    return self._cached_changed_contents[:]
+
+  def GenerateDiff(self):
+    return self._input_api._git(['diff', '--cached', self.filename])
+
 
 class InputAPI(object):
   def __init__(self, tvp):
@@ -102,7 +146,7 @@ def Main(args):
   tvp = trace_viewer_project.TraceViewerProject()
   input_api = InputAPI(tvp)
   results = RunChecks(input_api)
-  print '\n'.join(results)
+  print '\n\n'.join(results)
 
   if len(results):
     return 255
