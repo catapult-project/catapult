@@ -63,28 +63,37 @@ class _ResultsWrapper(object):
     value.name = self._GetResultName(value.name)
     self._results.AddValue(value)
 
+def _GetRendererThreadsToInteractionRecordsMap(model):
+  threads_to_records_map = defaultdict(list)
+  interaction_labels_of_previous_threads = set()
+  for curr_thread in model.GetAllThreads():
+    for event in curr_thread.async_slices:
+      # TODO(nduca): Add support for page-load interaction record.
+      if tir_module.IsTimelineInteractionRecord(event.name):
+        interaction = tir_module.TimelineInteractionRecord.FromAsyncEvent(event)
+        threads_to_records_map[curr_thread].append(interaction)
+        if interaction.label in interaction_labels_of_previous_threads:
+          raise InvalidInteractions(
+            'Interaction record label %s is duplicated on different '
+            'threads' % interaction.label)
+    if curr_thread in threads_to_records_map:
+      interaction_labels_of_previous_threads.update(
+        r.label for r in threads_to_records_map[curr_thread])
+
+  return threads_to_records_map
+
 class _TimelineBasedMetrics(object):
-  def __init__(self, model, renderer_thread,
+  def __init__(self, model, renderer_thread, interaction_records,
                get_metric_from_metric_type_callback):
     self._model = model
     self._renderer_thread = renderer_thread
+    self._interaction_records = interaction_records
     self._get_metric_from_metric_type_callback = \
         get_metric_from_metric_type_callback
 
-  def FindTimelineInteractionRecords(self):
-    # TODO(nduca): Add support for page-load interaction record.
-    return [tir_module.TimelineInteractionRecord.FromAsyncEvent(event) for
-            event in self._renderer_thread.async_slices
-            if tir_module.IsTimelineInteractionRecord(event.name)]
-
   def AddResults(self, results):
-    all_interactions = self.FindTimelineInteractionRecords()
-    if len(all_interactions) == 0:
-      raise InvalidInteractions('Expected at least one interaction record on '
-                                'the page')
-
     interactions_by_label = defaultdict(list)
-    for i in all_interactions:
+    for i in self._interaction_records:
       interactions_by_label[i.label].append(i)
 
     for label, interactions in interactions_by_label.iteritems():
@@ -192,15 +201,17 @@ class TimelineBasedMeasurement(object):
       options.enable_platform_display_trace = True
     tracing_controller.Start(options, category_filter)
 
-  def Measure(self, tracing_controller, renderer_thread_tab_id, results):
+  def Measure(self, tracing_controller, results):
     """Collect all possible metrics and added them to results."""
     trace_result = tracing_controller.Stop()
     results.AddValue(trace.TraceValue(results.current_page, trace_result))
     model = model_module.TimelineModel(trace_result)
-    renderer_thread = model.GetRendererThreadFromTabId(renderer_thread_tab_id)
-    meta_metrics = _TimelineBasedMetrics(
-        model, renderer_thread, _GetMetricFromMetricType)
-    meta_metrics.AddResults(results)
+    threads_to_records_map = _GetRendererThreadsToInteractionRecordsMap(model)
+    for renderer_thread, interaction_records in (
+        threads_to_records_map.iteritems()):
+      meta_metrics = _TimelineBasedMetrics(
+          model, renderer_thread, interaction_records, _GetMetricFromMetricType)
+      meta_metrics.AddResults(results)
 
   def DidRunUserStory(self, tracing_controller):
     if tracing_controller.is_tracing_running:
@@ -225,7 +236,7 @@ class TimelineBasedPageTest(page_test.PageTest):
   def ValidateAndMeasurePage(self, page, tab, results):
     """Collect all possible metrics and added them to results."""
     tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.Measure(tracing_controller, tab.id, results)
+    self._measurement.Measure(tracing_controller, results)
 
   def CleanUpAfterPage(self, page, tab):
     tracing_controller = tab.browser.platform.tracing_controller
