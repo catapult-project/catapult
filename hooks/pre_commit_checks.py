@@ -136,6 +136,9 @@ def CheckLongLines(input_api, maxlen=80):
     if '<include' in line and file_extension in ('css', 'html', 'js'):
       return True
 
+    if '@suppress longLineCheck' in line:
+      return True
+
     return re.match(
         r'.*[A-Za-z][A-Za-z_0-9]{%d,}.*' % long_symbol, line)
 
