@@ -13,6 +13,7 @@ class AndroidPlatform(platform.Platform):
     super(AndroidPlatform, self).__init__(platform_backend)
 
   def LaunchAndroidApplication(self, start_intent):
+    self._platform_backend.DismissCrashDialogIfNeeded()
     app_backend = android_app_backend.AndroidAppBackend(
         self._platform_backend, start_intent)
     return android_app.AndroidApp(app_backend, self._platform_backend)

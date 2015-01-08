@@ -50,7 +50,6 @@ class SharedAppState(shared_user_story_state.SharedUserStoryState):
   def WillRunUserStory(self, user_story):
     assert not self._android_app
     self._current_user_story = user_story
-    self._platform_backend.DismissCrashDialogIfNeeded()
     self._android_app = self._android_platform.LaunchAndroidApplication(
         user_story.start_intent)
 
