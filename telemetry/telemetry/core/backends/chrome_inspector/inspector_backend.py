@@ -29,25 +29,20 @@ class InspectorException(Exception):
 
 
 class InspectorBackend(object):
-  def __init__(self, browser_backend, context, timeout=60):
+  def __init__(self, app, devtools_client, context, timeout=60):
     self._websocket = inspector_websocket.InspectorWebsocket(self._HandleError)
     self._websocket.RegisterDomain(
         'Inspector', self._HandleInspectorDomainNotification)
 
-    self._browser_backend = browser_backend
+    self._app = app
+    self._devtools_client = devtools_client
     self._context = context
 
     logging.debug('InspectorBackend._Connect() to %s', self.debugger_url)
     try:
       self._websocket.Connect(self.debugger_url)
-    except (websocket.WebSocketException, util.TimeoutException):
-      err_msg = sys.exc_info()[1]
-      if not self._browser_backend.IsAppRunning():
-        raise exceptions.BrowserGoneException(self.app, err_msg)
-      elif not self._browser_backend.HasBrowserFinishedLaunching():
-        raise exceptions.BrowserConnectionGoneException(self.app, err_msg)
-      else:
-        raise exceptions.DevtoolsTargetCrashException(self.app, err_msg)
+    except (websocket.WebSocketException, util.TimeoutException) as e:
+      raise InspectorException(e.msg)
 
     self._console = inspector_console.InspectorConsole(self._websocket)
     self._memory = inspector_memory.InspectorMemory(self._websocket)
@@ -63,11 +58,11 @@ class InspectorBackend(object):
 
   @property
   def app(self):
-    return self._browser_backend.app
+    return self._app
 
   @property
   def url(self):
-    for c in self._browser_backend.ListInspectableContexts():
+    for c in self._devtools_client.ListInspectableContexts():
       if c['id'] == self._context['id']:
         return c['url']
     return None
@@ -215,7 +210,7 @@ class InspectorBackend(object):
   # Methods used internally by other backends.
 
   def _IsInspectable(self):
-    contexts = self._browser_backend.ListInspectableContexts()
+    contexts = self._devtools_client.ListInspectableContexts()
     return self._context['id'] in [c['id'] for c in contexts]
 
   def _HandleInspectorDomainNotification(self, res):

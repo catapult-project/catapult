@@ -108,7 +108,8 @@ def FindAllAvailableBrowsers(finder_options):
   browser_types = set()
   for url in debug_urls:
     context = {'webSocketDebuggerUrl': url, 'id': 1}
-    inspector = inspector_backend.InspectorBackend(backend, context)
+    inspector = inspector_backend.InspectorBackend(
+        backend.app, backend.devtools_client, context)
     res = inspector.EvaluateJavaScript("navigator.userAgent")
     match_browsers = re.search(browser_pattern, res)
     if match_browsers:

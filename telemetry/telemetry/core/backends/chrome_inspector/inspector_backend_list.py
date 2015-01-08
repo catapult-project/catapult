@@ -4,7 +4,9 @@
 
 import collections
 import logging
+import sys
 
+from telemetry.core import exceptions
 from telemetry.core.backends.chrome_inspector import inspector_backend
 
 
@@ -27,6 +29,10 @@ class InspectorBackendList(collections.Sequence):
     self._inspectable_contexts_dict = collections.OrderedDict()
     # A cache of inspector backends, by context ID.
     self._inspector_backend_dict = {}
+
+  @property
+  def app(self):
+    return self._browser_backend.app
 
   def GetContextInfo(self, context_id):
     return self._inspectable_contexts_dict[context_id]
@@ -61,9 +67,14 @@ class InspectorBackendList(collections.Sequence):
     if context_id not in self._inspectable_contexts_dict:
       raise KeyError('Cannot find a context with id=%s' % context_id)
     if context_id not in self._inspector_backend_dict:
-      backend = inspector_backend.InspectorBackend(
-          self._browser_backend,
-          self._inspectable_contexts_dict[context_id])
+      try:
+        backend = inspector_backend.InspectorBackend(
+            self._browser_backend.app,
+            self._browser_backend.devtools_client,
+            self._inspectable_contexts_dict[context_id])
+      except inspector_backend.InspectorException:
+        err_msg = sys.exc_info()[1]
+        self._HandleDevToolsConnectionError(err_msg)
       backend = self.CreateWrapper(backend)
       self._inspector_backend_dict[context_id] = backend
     return self._inspector_backend_dict[context_id]
@@ -106,3 +117,11 @@ class InspectorBackendList(collections.Sequence):
     for context_id in self._inspector_backend_dict.keys():
       if context_id not in self._inspectable_contexts_dict:
         del self._inspector_backend_dict[context_id]
+
+  def _HandleDevToolsConnectionError(self, err_msg):
+    """Call when handling errors in connecting to the DevTools websocket.
+
+    This can be overwritten by sub-classes to further specify the exceptions
+    which should be thrown.
+    """
+    raise exceptions.DevtoolsTargetCrashException(self.app, err_msg)

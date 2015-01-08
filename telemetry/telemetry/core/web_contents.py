@@ -136,6 +136,25 @@ class WebContents(object):
     """
     return self._inspector_backend.EnableAllContexts()
 
+  def WaitForNavigate(self, timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
+    """Waits for the navigation to complete.
+
+    The current page is expect to be in a navigation.
+    This function returns when the navigation is complete or when
+    the timeout has been exceeded.
+    """
+    self._inspector_backend.WaitForNavigate(timeout)
+
+  def Navigate(self, url, script_to_evaluate_on_commit=None,
+               timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
+    """Navigates to url.
+
+    If |script_to_evaluate_on_commit| is given, the script source string will be
+    evaluated when the navigation is committed. This is after the context of
+    the page exists, but before any script on the page itself has executed.
+    """
+    self._inspector_backend.Navigate(url, script_to_evaluate_on_commit, timeout)
+
   @property
   def message_output_stream(self):
     return self._inspector_backend.message_output_stream

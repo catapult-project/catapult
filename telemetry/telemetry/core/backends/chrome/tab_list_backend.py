@@ -4,6 +4,7 @@
 
 import urllib2
 
+from telemetry.core import exceptions
 from telemetry.core import tab
 from telemetry.core import util
 from telemetry.core.backends.chrome_inspector import devtools_http
@@ -72,3 +73,11 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
 
   def CreateWrapper(self, inspector_backend):
     return tab.Tab(inspector_backend, self, self._browser_backend.browser)
+
+  def _HandleDevToolsConnectionError(self, err_msg):
+    if not self._browser_backend.IsAppRunning():
+      raise exceptions.BrowserGoneException(self.app, err_msg)
+    elif not self._browser_backend.HasBrowserFinishedLaunching():
+      raise exceptions.BrowserConnectionGoneException(self.app, err_msg)
+    else:
+      raise exceptions.DevtoolsTargetCrashException(self.app, err_msg)

@@ -164,25 +164,6 @@ class Tab(web_contents.WebContents):
     """
     return self.browser.platform.StopVideoCapture()
 
-  def WaitForNavigate(self, timeout=DEFAULT_TAB_TIMEOUT):
-    """Waits for the navigation to complete.
-
-    The current page is expect to be in a navigation.
-    This function returns when the navigation is complete or when
-    the timeout has been exceeded.
-    """
-    self._inspector_backend.WaitForNavigate(timeout)
-
-  def Navigate(self, url, script_to_evaluate_on_commit=None,
-               timeout=DEFAULT_TAB_TIMEOUT):
-    """Navigates to url.
-
-    If |script_to_evaluate_on_commit| is given, the script source string will be
-    evaluated when the navigation is committed. This is after the context of
-    the page exists, but before any script on the page itself has executed.
-    """
-    self._inspector_backend.Navigate(url, script_to_evaluate_on_commit, timeout)
-
   def GetCookieByName(self, name, timeout=DEFAULT_TAB_TIMEOUT):
     """Returns the value of the cookie by the given |name|."""
     return self._inspector_backend.GetCookieByName(name, timeout)
