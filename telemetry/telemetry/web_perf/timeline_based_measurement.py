@@ -170,7 +170,6 @@ class TimelineBasedMeasurement(object):
     """
     if not tracing_controller.IsChromeTracingSupported():
       raise Exception('Not supported')
-
     assert self._overhead_level in ALL_OVERHEAD_LEVELS
     if self._overhead_level == NO_OVERHEAD_LEVEL:
       category_filter = tracing_category_filter.CreateNoOverheadFilter()
@@ -189,6 +188,8 @@ class TimelineBasedMeasurement(object):
       category_filter.AddSyntheticDelay(delay)
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True
+    if tracing_controller.IsDisplayTracingSupported():
+      options.enable_platform_display_trace = True
     tracing_controller.Start(options, category_filter)
 
   def Measure(self, tracing_controller, renderer_thread_tab_id, results):
