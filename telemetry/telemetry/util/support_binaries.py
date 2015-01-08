@@ -48,7 +48,8 @@ def FindPath(binary_name, arch_name, platform_name):
   command = FindLocallyBuiltPath(binary_name)
   if not command and _IsInCloudStorage(binary_name, arch_name, platform_name):
     cloud_storage.GetIfChanged(
-        _GetBinPath(binary_name, arch_name, platform_name))
+        _GetBinPath(binary_name, arch_name, platform_name),
+                    cloud_storage.PUBLIC_BUCKET)
     command = _GetBinPath(binary_name, arch_name, platform_name)
 
     # Ensure the downloaded file is actually executable.
