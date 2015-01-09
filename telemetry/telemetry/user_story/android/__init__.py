@@ -12,10 +12,6 @@ class AppStory(user_story.UserStory):
         is_local=is_local)
     self.start_intent = start_intent
 
-  def RunPageInteractions(self):
-    # TODO(chrishenry): Remove method once TimelineBasedMeasurement calls Run().
-    self.Run()
-
-  def Run(self):
+  def Run(self, shared_user_story_state):
     """Execute the interactions with the applications."""
     raise NotImplementedError
