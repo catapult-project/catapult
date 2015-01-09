@@ -104,7 +104,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       tv.b.ui.decorate(this.timelineView_, tv.c.TimelineView);
 
       // Detach the buttons. We will reattach them to the timeline view.
-      // TODO(nduca): Make <timeline-view> have a <content select="x-buttons">
+      // TODO(nduca): Make timeline-view have a content select="x-buttons"
       // that pulls in any buttons.
       var buttons = this.querySelector('x-timeline-view-buttons');
       buttons.parentElement.removeChild(buttons);
@@ -145,7 +145,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       }.bind(this);
       window.onUploadComplete = function(reportId) {
         var messageDiv = document.createElement('div');
-        var textNode =  document.createTextNode(
+        var textNode = document.createTextNode(
             'Trace uploaded successfully. Report id: ');
         messageDiv.appendChild(textNode);
         var reportLink = document.createElement('a');

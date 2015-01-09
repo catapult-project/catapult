@@ -70,7 +70,8 @@ tv.exportTo('tv.c.trace_model', function() {
         multiViewElementName: 'tv-c-multi-object-sub-view'
       });
 
-  var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
+  var options = new tv.b.ExtensionRegistryOptions(
+      tv.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = ObjectSnapshot;
   options.defaultConstructor = ObjectSnapshot;
   tv.b.decorateExtensionRegistry(ObjectSnapshot, options);
@@ -80,4 +81,3 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 });
 </script>
-

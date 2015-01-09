@@ -125,13 +125,15 @@ tv.exportTo('tv.e.cc', function() {
         if (this.activeTree.sourceFrameNumber === undefined)
           frameNumber = this.objectInstance.snapshots.indexOf(this);
         else
-          frameNumber = this.activeTree.sourceFrameNumber
+          frameNumber = this.activeTree.sourceFrameNumber;
       }
       return 'cc::LayerTreeHostImpl frame ' + frameNumber;
     }
   };
 
-  ObjectSnapshot.register(LayerTreeHostImplSnapshot, {typeName: 'cc::LayerTreeHostImpl'});
+  ObjectSnapshot.register(
+      LayerTreeHostImplSnapshot,
+      {typeName: 'cc::LayerTreeHostImpl'});
 
   /**
    * @constructor
@@ -177,7 +179,9 @@ tv.exportTo('tv.e.cc', function() {
     }
   };
 
-  ObjectInstance.register(LayerTreeHostImplInstance, {typeName: 'cc::LayerTreeHostImpl'});
+  ObjectInstance.register(
+      LayerTreeHostImplInstance,
+      {typeName: 'cc::LayerTreeHostImpl'});
 
   return {
     LayerTreeHostImplSnapshot: LayerTreeHostImplSnapshot,

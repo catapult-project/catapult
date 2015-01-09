@@ -88,14 +88,15 @@ tv.exportTo('tv.b', function() {
       if (!ok)
         throw new Error(constructor + 'must be subclass of ' + registry);
     }
-  }
+  };
 
   return {
     BASIC_REGISTRY_MODE: BASIC_REGISTRY_MODE,
     TYPE_BASED_REGISTRY_MODE: TYPE_BASED_REGISTRY_MODE,
 
     ExtensionRegistryOptions: ExtensionRegistryOptions,
-    RegisteredTypeInfo: RegisteredTypeInfo,
-  }
+    RegisteredTypeInfo: RegisteredTypeInfo
+  };
 });
+
 </script>

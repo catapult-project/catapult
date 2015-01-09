@@ -162,7 +162,11 @@ tv.exportTo('tv.e.cc', function() {
     }
   };
 
-  ObjectSnapshot.register(PictureLayerImplSnapshot, {typeName: 'cc::PictureLayerImpl'});
+  ObjectSnapshot.register(
+      PictureLayerImplSnapshot,
+      {
+        typeName: 'cc::PictureLayerImpl'
+      });
 
   ObjectSnapshot.register(
       LayerImplSnapshot,

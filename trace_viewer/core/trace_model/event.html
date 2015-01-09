@@ -89,10 +89,14 @@ tv.exportTo('tv.c.trace_model', function() {
 
     if (metadata.pluralName === undefined)
       throw new Error('Registered events must provide pluralName metadata');
-    if (metadata.singleViewElementName === undefined)
-      throw new Error('Registered events must provide singleViewElementName metadata');
-    if (metadata.multiViewElementName === undefined)
-      throw new Error('Registered events must provide multiViewElementName metadata');
+    if (metadata.singleViewElementName === undefined) {
+      throw new Error('Registered events must provide ' +
+                      'singleViewElementName metadata');
+    }
+    if (metadata.multiViewElementName === undefined) {
+      throw new Error('Registered events must provide ' +
+                      'multiViewElementName metadata');
+    }
   });
 
   // Helper: lookup Events indexed by type name.

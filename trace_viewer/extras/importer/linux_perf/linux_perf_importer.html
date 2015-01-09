@@ -557,7 +557,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
      */
     createParsers_: function() {
       // Instantiate the parsers; this will register handlers for known events
-      var allTypeInfos = tv.e.importer.linux_perf.Parser.getAllRegisteredTypeInfos();
+      var allTypeInfos = tv.e.importer.linux_perf.
+          Parser.getAllRegisteredTypeInfos();
       var parsers = allTypeInfos.map(
           function(typeInfo) {
             return new typeInfo.constructor(this);

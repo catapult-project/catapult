@@ -164,7 +164,7 @@ found in the LICENSE file.
       // any child mutations.
       this.childrenObserver_ = new MutationObserver(
           this.childrenUpdated_.bind(this));
-      this.childrenObserver_.observe(this, { childList : 'true' });
+      this.childrenObserver_.observe(this, { childList: 'true' });
     },
 
 
@@ -301,7 +301,7 @@ found in the LICENSE file.
      * tab-view component.
      */
     childrenUpdated_: function(mutations, observer) {
-      mutations.forEach(function (mutation) {
+      mutations.forEach(function(mutation) {
         for (var i = 0; i < mutation.removedNodes.length; i++)
           this.processRemovedChild_(mutation.removedNodes[i]);
         for (var i = 0; i < mutation.addedNodes.length; i++)

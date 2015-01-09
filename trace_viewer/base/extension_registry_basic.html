@@ -37,7 +37,7 @@ tv.exportTo('tv.b', function() {
           constructor,
           metadata);
 
-      var e =  new Event('will-register');
+      var e = new Event('will-register');
       e.typeInfo = typeInfo;
       registry.dispatchEvent(e);
 
@@ -56,7 +56,7 @@ tv.exportTo('tv.b', function() {
     };
     registry.popCleanStateAfterTest = function() {
       registry.registeredTypeInfos_ = savedStateStack[0];
-      savedStateStack.splice(0,1);
+      savedStateStack.splice(0, 1);
 
       var e = new Event('registry-changed');
       registry.dispatchEvent(e);
@@ -103,6 +103,6 @@ tv.exportTo('tv.b', function() {
 
   return {
     _decorateBasicExtensionRegistry: decorateBasicExtensionRegistry
-  }
+  };
 });
 </script>

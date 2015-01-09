@@ -119,7 +119,8 @@ tv.exportTo('tv.c', function() {
       allTypeInfos.forEach(function(eventTypeInfo) {
         events[eventTypeInfo.metadata.name] = new Selection();
         if (this.sunburst_zoom_level !== undefined)
-          events[eventTypeInfo.metadata.name].sunburst_zoom_level = this.sunburst_zoom_level;
+          events[eventTypeInfo.metadata.name].sunburst_zoom_level =
+              this.sunburst_zoom_level;
       }, this);
 
       this.forEach(function(event, i) {
@@ -138,7 +139,7 @@ tv.exportTo('tv.c', function() {
         events[maxEventTypeInfo.metadata.name].push(event);
       });
       if (opt_pruneEmpty) {
-        var prunedEvents = {}
+        var prunedEvents = {};
         for (var eventType in events) {
           if (events[eventType].length > 0)
             prunedEvents[eventType] = events[eventType];
@@ -198,7 +199,7 @@ tv.exportTo('tv.c', function() {
 
     forEach: function(fn, opt_this) {
       for (var i = 0; i < this.length; i++)
-        fn.call(opt_this, this[i], i)
+        fn.call(opt_this, this[i], i);
     },
 
     map: function(fn, opt_this) {
@@ -220,7 +221,7 @@ tv.exportTo('tv.c', function() {
         if (fn.call(opt_this, this[i], i))
           return true;
       return false;
-    },
+    }
   };
 
   return {

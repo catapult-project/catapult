@@ -36,7 +36,6 @@ tv.exportTo('tv.b.ui', function() {
    * the component.
    *
    * tv class:
-   * <pre>
    * var List = tv.b.ui.define('list');
    * List.prototype = {
    *   __proto__: HTMLUListElement.prototype,
@@ -45,10 +44,8 @@ tv.exportTo('tv.b.ui', function() {
    *   },
    *   ...
    * };
-   * </pre>
    *
    * Derived class:
-   * <pre>
    * var CustomList = tv.b.ui.define('custom-list', List);
    * CustomList.prototype = {
    *   __proto__: List.prototype,
@@ -57,7 +54,6 @@ tv.exportTo('tv.b.ui', function() {
    *   },
    *   ...
    * };
-   * </pre>
    *
    * @param {string} className The className of the newly created subtype. If
    *     subclassing by passing in opt_parentConstructor, this is used for

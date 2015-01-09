@@ -94,13 +94,14 @@ tv.exportTo('tv.c', function() {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    isTouchPointInsideTrackBounds_: function (clientX, clientY) {
+    isTouchPointInsideTrackBounds_: function(clientX, clientY) {
       if (!this.viewport_ ||
           !this.viewport_.modelTrackContainer ||
           !this.viewport_.modelTrackContainer.canvas)
         return false;
 
-      var canvasRect = this.viewport_.modelTrackContainer.canvas.getBoundingClientRect();
+      var canvas = this.viewport_.modelTrackContainer.canvas;
+      var canvasRect = canvas.getBoundingClientRect();
       if (clientX >= canvasRect.left && clientX <= canvasRect.right &&
           clientY >= canvasRect.top && clientY <= canvasRect.bottom)
         return true;

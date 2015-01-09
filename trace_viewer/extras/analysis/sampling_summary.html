@@ -228,7 +228,8 @@ tv.exportTo('tv.e.analysis', function() {
         //   2 2 2
         //
         // Among the obvious visualization benefit, this also creates the
-        // invariance that a node can not simultaneously have samples and children.
+        // invariance that a node can not simultaneously have samples and
+        // children.
         ret.children.push({
           name: '<self>',
           category: ret.category,
@@ -357,7 +358,8 @@ tv.exportTo('tv.e.analysis', function() {
 
     set selection(selection) {
       this.selection_ = selection;
-      this.stackFrameIdToSamples_ = divideSamplesBasedOnLeafStackFrame(selection);
+      this.stackFrameIdToSamples_ = divideSamplesBasedOnLeafStackFrame(
+          selection);
       this.updateContents_();
     },
 

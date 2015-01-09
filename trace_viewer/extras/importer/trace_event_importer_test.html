@@ -1332,7 +1332,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var nestedSlice = t.asyncSliceGroup.slices[1];
     assertEquals('a', nestedSlice.title);
     assertAlmostEquals(0, nestedSlice.start);
-    assertAlmostEquals((565-524) / 1000, nestedSlice.duration);
+    assertAlmostEquals((565 - 524) / 1000, nestedSlice.duration);
     assertNotUndefined(nestedSlice.subSlices);
     assertEquals(1, nestedSlice.subSlices.length);
     var nestedInstantSlice = nestedSlice.subSlices[0];
@@ -2051,4 +2051,3 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
 });
 </script>
-

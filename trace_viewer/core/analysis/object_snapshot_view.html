@@ -47,7 +47,8 @@ tv.exportTo('tv.c.analysis', function() {
     }
   };
 
-  var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
+  var options = new tv.b.ExtensionRegistryOptions(
+      tv.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = ObjectSnapshotView;
   options.defaultMetadata = {
     showInstances: true,

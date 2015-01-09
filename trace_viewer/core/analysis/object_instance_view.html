@@ -47,7 +47,8 @@ tv.exportTo('tv.c.analysis', function() {
     }
   };
 
-  var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
+  var options = new tv.b.ExtensionRegistryOptions(
+      tv.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = ObjectInstanceView;
   options.defaultMetadata = {
     showInTrackView: true
@@ -57,6 +58,5 @@ tv.exportTo('tv.c.analysis', function() {
   return {
     ObjectInstanceView: ObjectInstanceView
   };
-  ViewB
 });
 </script>

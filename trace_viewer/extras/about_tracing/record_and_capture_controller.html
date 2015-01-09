@@ -205,7 +205,10 @@ tv.exportTo('tv.e.about_tracing', function() {
       document.title = 'tracing: ' + percent_full + '%';
       if (toggleRecordingIndicator)
         document.title = document.title + ' \u25AA';
-      toggleRecordingIndicator = percent_full < 100 ? !toggleRecordingIndicator : false;
+      if (percent_full < 100)
+          toggleRecordingIndicator = !toggleRecordingIndicator;
+      else
+          toggleRecordingIndicator = false;
 
       window.setTimeout(getBufferPercentFull, 500);
     }
@@ -235,4 +238,3 @@ tv.exportTo('tv.e.about_tracing', function() {
   };
 });
 </script>
-

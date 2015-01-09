@@ -92,7 +92,8 @@ tv.exportTo('tv.c', function() {
     getSettingFor: function(object, objectLevelKey, defaultValue) {
       var objectKey = object.getSettingsKey();
       if (!objectKey || !this.objectsByKey_[objectKey]) {
-        var ephemeralValue = this.getEphemeralSettingsFor_(object)[objectLevelKey];
+        var settings = this.getEphemeralSettingsFor_(object);
+        var ephemeralValue = settings[objectLevelKey];
         if (ephemeralValue !== undefined)
           return ephemeralValue;
         return defaultValue;

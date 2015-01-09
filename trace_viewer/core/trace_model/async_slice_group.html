@@ -76,7 +76,7 @@ tv.exportTo('tv.c.trace_model', function() {
         var slice = this.slices[sI];
         slice.start = (slice.start + amount);
         // Shift all nested subSlices recursively.
-        var shiftSubSlices = function (subSlices) {
+        var shiftSubSlices = function(subSlices) {
           if (subSlices === undefined || subSlices.length === 0)
             return;
           for (var sJ = 0; sJ < subSlices.length; sJ++) {

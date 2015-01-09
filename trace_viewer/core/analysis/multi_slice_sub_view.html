@@ -130,8 +130,10 @@ found in the LICENSE file.
                                                slice.cpuDuration;
           }
           selfTime += slice.selfTime ? slice.selfTime : slice.duration;
-          startOfFirstOccurrence = Math.min(slice.start, startOfFirstOccurrence);
-          startOfLastOccurrence = Math.max(slice.start, startOfLastOccurrence);
+          startOfFirstOccurrence = Math.min(
+              slice.start, startOfFirstOccurrence);
+          startOfLastOccurrence = Math.max(
+              slice.start, startOfLastOccurrence);
           min = Math.min(slice.duration, min);
           max = Math.max(slice.duration, max);
         }

@@ -35,7 +35,8 @@ tv.exportTo('tv.c.tracks', function() {
       tv.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('model-track');
 
-      this.highlighters_ = tv.c.tracks.Highlighter.getAllRegisteredTypeInfos().map(
+      var typeInfos = tv.c.tracks.Highlighter.getAllRegisteredTypeInfos();
+      this.highlighters_ = typeInfos.map(
         function(typeInfo) {
           return new typeInfo.constructor(viewport);
         });

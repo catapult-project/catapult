@@ -362,7 +362,8 @@ tv.exportTo('tv.e.about_tracing', function() {
       if (!this.editCategoriesOpened_) {
         this.updateCategoryColumnView_(false);
         for (var i = 0; i < this.currentlyChosenPreset_.length; ++i) {
-          var categoryEl = document.getElementById(this.currentlyChosenPreset_[i]);
+          var categoryEl = document.getElementById(
+              this.currentlyChosenPreset_[i]);
           categoryEl.checked = true;
         }
       }
@@ -553,7 +554,8 @@ tv.exportTo('tv.e.about_tracing', function() {
       // preset mode if and only if currently user is in preset record mode
       // and user selects/deselects any category in 'Edit Categories' mode.
       if (this.currentlyChosenPreset_.length) {
-        var categoryEl = document.getElementById('category-preset-Manually-select-settings');
+        var categoryEl = document.getElementById(
+            'category-preset-Manually-select-settings');
         categoryEl.checked = true;
         var description = this.querySelector('.category-description');
         description.innerText = '';

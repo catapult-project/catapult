@@ -137,7 +137,8 @@ using custom elements specialized for different event types.
 
         // If that fails, look for a tab with that typeName.
         if (!tab && lastSelectedTabTypeName) {
-          var tab = tv.b.findFirstInArray(this.tabView_.children, function(tab) {
+          var tab = tv.b.findFirstInArray(
+              this.tabView_.children, function(tab) {
             return tab._eventTypeName === lastSelectedTabTypeName;
           });
         }
@@ -149,7 +150,8 @@ using custom elements specialized for different event types.
 
       createSubViewForSelection_: function(eventTypeName, subSelection) {
         // Find.
-        var eventTypeInfo = EventRegistry.getEventTypeInfoByTypeName(eventTypeName);
+        var eventTypeInfo = EventRegistry.getEventTypeInfoByTypeName(
+            eventTypeName);
         var singleMode = subSelection.length == 1;
         var tagName;
         if (subSelection.length === 1)
@@ -180,7 +182,7 @@ using custom elements specialized for different event types.
           this.tallMode = this.tabView_.selectedTab.requiresTallView;
         else
           this.tallMode = false;
-      },
+      }
     });
   })();
   </script>

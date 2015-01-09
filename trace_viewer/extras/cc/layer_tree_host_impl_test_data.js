@@ -34,7 +34,7 @@ var g_catLTHIEvents = [
     'ph': 'O',
     'id': 'PICTURE_1'
   },
-    {
+  {
     'name': 'AnalyzeTask',
     'args': {
       'data': {
@@ -253,7 +253,7 @@ var g_catLTHIEvents = [
               'has_resource': true,
               'scheduled_priority': 10,
               'distance_to_visible': 0,
-              'gpu_memory_usage': 1024000,
+              'gpu_memory_usage': 1024000
             },
             'layer_id': '6',
             'picture_pile': {
@@ -281,7 +281,7 @@ var g_catLTHIEvents = [
               'has_resource': true,
               'scheduled_priority': 12,
               'distance_to_visible': 0,
-              'gpu_memory_usage': 1024000,
+              'gpu_memory_usage': 1024000
             },
             'layer_id': '6',
             'picture_pile': {

@@ -57,11 +57,13 @@ tv.exportTo('tv.b', function() {
           throw new Error('typeName ' + typeName + ' already registered');
       });
       typeInfo.categoryParts.forEach(function(categoryPart) {
-        if (registry.categoryPartToTypeInfoMap_[categoryPart])
-          throw new Error('categoryPart ' + categoryPart + ' already registered');
+        if (registry.categoryPartToTypeInfoMap_[categoryPart]) {
+          throw new Error('categoryPart ' + categoryPart +
+                          ' already registered');
+        }
       });
 
-      var e =  new Event('will-register');
+      var e = new Event('will-register');
       e.typeInfo = typeInfo;
       registry.dispatchEvent(e);
 
@@ -93,7 +95,7 @@ tv.exportTo('tv.b', function() {
 
     registry.popCleanStateAfterTest = function() {
       var state = savedStateStack[0];
-      savedStateStack.splice(0,1);
+      savedStateStack.splice(0, 1);
 
       registry.registeredTypeInfos_ = state.registeredTypeInfos;
       registry.typeNameToTypeInfoMap_ = state.typeNameToTypeInfoMap;
@@ -151,6 +153,6 @@ tv.exportTo('tv.b', function() {
 
   return {
     _decorateTypeBasedExtensionRegistry: decorateTypeBasedExtensionRegistry
-  }
+  };
 });
 </script>

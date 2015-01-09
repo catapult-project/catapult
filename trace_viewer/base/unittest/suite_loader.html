@@ -43,7 +43,8 @@ tv.exportTo('tv.b.unittest', function() {
     this.testLinks = [];
 
     if (opt_suiteNamesToLoad) {
-      this.allSuitesLoadedPromise = this.beginLoadingModules_(opt_suiteNamesToLoad);
+      this.allSuitesLoadedPromise = this.beginLoadingModules_(
+          opt_suiteNamesToLoad);
     } else {
       var p;
       p = getAsync('/tv/json/tests');
@@ -72,7 +73,7 @@ tv.exportTo('tv.b.unittest', function() {
         resolve(importEl);
       });
       importEl.addEventListener('error', function(e) {
-        reject('Error loading <link rel="import" href="' + href + '"');
+        reject('Error loading &#60;link rel="import" href="' + href + '"');
       });
     });
   }
@@ -212,7 +213,8 @@ tv.exportTo('tv.b.unittest', function() {
             return test;
         }
       }
-      throw new Error('Test ' + fullyQualifiedName + 'not found amongst ' + this.testSuites.length);
+      throw new Error('Test ' + fullyQualifiedName +
+                      'not found amongst ' + this.testSuites.length);
     }
   };
 

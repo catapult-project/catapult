@@ -273,7 +273,8 @@ tv.exportTo('tv.c.tracks', function() {
   };
 
 
-  var options = new tv.b.ExtensionRegistryOptions(tv.b.TYPE_BASED_REGISTRY_MODE);
+  var options = new tv.b.ExtensionRegistryOptions(
+      tv.b.TYPE_BASED_REGISTRY_MODE);
   tv.b.decorateExtensionRegistry(ObjectInstanceTrack, options);
 
   return {

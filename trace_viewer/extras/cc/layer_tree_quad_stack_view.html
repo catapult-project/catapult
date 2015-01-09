@@ -452,10 +452,10 @@ tv.exportTo('tv.e.cc', function() {
               'MB on this tree';
 
           if (this.layerTreeImpl_.otherTree) {
-            // Older Chromes don't report enough data to know how much memory
-            // is being used across both trees. We know the memory consumed by
-            // each tree, but there is resource sharing *between the trees* so
-            // we can't simply sum up the per-tree costs. We need either the total
+            // Older Chromes don't report enough data to know how much memory is
+            // being used across both trees. We know the memory consumed by each
+            // tree, but there is resource sharing *between the trees* so we
+            // can't simply sum up the per-tree costs. We need either the total
             // plus one tree, to guess the unique on the other tree, etc. Newer
             // chromes report memory per tile, which allows LTHI to compute the
             // total tile memory usage, letting us figure things out properly.
@@ -954,7 +954,7 @@ tv.exportTo('tv.e.cc', function() {
 
         quad.backgroundColor = heatmapResult[i].color;
         var data = {
-          tileType: type,
+          tileType: type
         };
         if (heatmapType !== TILE_HEATMAP_TYPE.NONE)
           data[heatmapType] = heatmapResult[i].value;
@@ -1076,13 +1076,13 @@ tv.exportTo('tv.e.cc', function() {
         highlights = extraHighlightsByLayerId[layer.layerId];
         if (highlights) {
           this.appendHighlightQuadsForLayer_(
-              quads, layer, layerQuad, highlights)
+              quads, layer, layerQuad, highlights);
         }
 
         highlights = selectionHighlightsByLayerId[layer.layerId];
         if (highlights) {
           this.appendHighlightQuadsForLayer_(
-              quads, layer, layerQuad, highlights)
+              quads, layer, layerQuad, highlights);
         }
       }
 
@@ -1160,7 +1160,7 @@ tv.exportTo('tv.e.cc', function() {
           return false;
 
         if (tile.containingSnapshot == lthi)
-          tasks.push(event)
+          tasks.push(event);
       }, this);
       return tasks;
     },

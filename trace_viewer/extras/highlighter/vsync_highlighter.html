@@ -40,7 +40,7 @@ tv.exportTo('tv.e.highlighter', function() {
 
   VSyncHighlighter.VSYNC_COUNTER_PRECISIONS = {
     // Android. Seems to appear in sample systrace only.
-    'android.VSYNC': 15,
+    'android.VSYNC': 15
   };
 
   VSyncHighlighter.VSYNC_SLICE_PRECISIONS = {
@@ -60,7 +60,7 @@ tv.exportTo('tv.e.highlighter', function() {
   /**
    * Find the most precise VSync event times in a model.
    */
-  VSyncHighlighter.findVSyncTimes = function (model) {
+  VSyncHighlighter.findVSyncTimes = function(model) {
     var times = [];
 
     // Only keep the most precise VSync data.
@@ -71,9 +71,9 @@ tv.exportTo('tv.e.highlighter', function() {
         var precision = precisions[title];
         if (precision === undefined || precision <= maxPrecision) {
           if (precision === maxPrecision) {
-            console.warn('Encountered two different VSync events ('
-                + maxTitle + ', ' + title + ') with the same precision, '
-                + 'ignoring the newer one (' + title + ')');
+            console.warn('Encountered two different VSync events (' +
+                maxTitle + ', ' + title + ') with the same precision, ' +
+                'ignoring the newer one (' + title + ')');
           }
           return false;
         }
@@ -196,4 +196,3 @@ tv.exportTo('tv.e.highlighter', function() {
   };
 });
 </script>
-

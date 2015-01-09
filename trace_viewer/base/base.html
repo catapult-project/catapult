@@ -55,7 +55,7 @@ this.tv = (function() {
 
     var curObject = opt_globalObject || global;
 
-    for (var i = 0 ; i < parts.length; i++) {
+    for (var i = 0; i < parts.length; i++) {
       var partName = parts[i];
       var nextObject = curObject[partName];
       if (nextObject === undefined)
@@ -150,7 +150,7 @@ this.tv = (function() {
     if (!window._TRACE_VIEWER_IS_COMPILED) {
       var ver = parseInt(
           window.navigator.appVersion.match(/Chrome\/(\d+)\./)[1], 10);
-      var support_content_shell = window.navigator.appVersion.match("77.34.5");
+      var support_content_shell = window.navigator.appVersion.match('77.34.5');
       if (ver < 36 && !support_content_shell) {
         var msg = 'A Chrome version of 36 or higher is required for ' +
             'trace-viewer development. Please upgrade your version of Chrome ' +
@@ -175,7 +175,7 @@ this.tv = (function() {
 
     showPanic: showPanic,
     hasPanic: hasPanic,
-    getPanicText: getPanicText,
+    getPanicText: getPanicText
   };
 })();
 

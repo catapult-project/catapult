@@ -175,8 +175,8 @@ tv.exportTo('tv.b.ui', function() {
       var node = this.data_.nodes;
       while (node.depth !== depth) {
         if (node.children.length !== 1)
-          throw new Error("zoomToDepth requires the tree to be linear " +
-                          "till the specified depth.");
+          throw new Error('zoomToDepth requires the tree to be linear ' +
+                          'till the specified depth.');
         node = node.children[0];
       }
       return this.zoomToID_(node.id);

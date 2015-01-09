@@ -159,7 +159,8 @@ tv.b.unittest.testSuite(function() {
     selection.push(newSliceNamed('a', 1, 2));
     selection.push(newSliceNamed('f', 9, 7));
 
-    var sunburstData = tv.e.analysis.createSunburstData(selection, 'page_misses');
+    var sunburstData = tv.e.analysis.createSunburstData(
+        selection, 'page_misses');
     assertEquals(JSON.stringify(expect), JSON.stringify(sunburstData));
   });
 

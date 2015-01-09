@@ -39,7 +39,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
     var s1 = newAsyncSlice(0, 1, t1, t1);
-    var subs1 = newAsyncSliceNamed("b", 0, 1, t1, t1);
+    var subs1 = newAsyncSliceNamed('b', 0, 1, t1, t1);
     s1.subSlices = [subs1];
     g.push(s1);
     g.push(newAsyncSlice(1, 1, t1, t1));
@@ -60,10 +60,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var g = new AsyncSliceGroup(t1);
 
     var s1 = newAsyncSlice(0, 1, t1, t1);
-    var subs1 = newAsyncSliceNamed("b", 0, 1, t1, t1);
+    var subs1 = newAsyncSliceNamed('b', 0, 1, t1, t1);
     s1.subSlices = [subs1];
     var s2 = newAsyncSlice(0, 1.5, t1, t1);
-    var subs2 = newAsyncSliceNamed("b", 0, 1, t1, t1);
+    var subs2 = newAsyncSliceNamed('b', 0, 1, t1, t1);
     s2.subSlices = [subs2];
     g.push(s1);
     g.push(s2);
@@ -202,4 +202,3 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
 });
 </script>
-

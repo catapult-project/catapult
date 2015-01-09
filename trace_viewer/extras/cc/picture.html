@@ -55,7 +55,7 @@ tv.exportTo('tv.e.cc', function() {
       var ops = window.chrome.skiaBenchmarking.getOps({
         skp64: this.skp64_,
         params: {
-          layer_rect: this.layerRect_.toArray(),
+          layer_rect: this.layerRect_.toArray()
         }
       });
 
@@ -74,7 +74,7 @@ tv.exportTo('tv.e.cc', function() {
       var opTimings = window.chrome.skiaBenchmarking.getOpTimings({
         skp64: this.skp64_,
         params: {
-          layer_rect: this.layerRect_.toArray(),
+          layer_rect: this.layerRect_.toArray()
         }
       });
 
@@ -121,8 +121,8 @@ tv.exportTo('tv.e.cc', function() {
      *     rasterize up to. If not defined, the entire SkPicture is rasterized.
      * @param {{opt_showOverdraw: bool, params}} Defines whether pixel overdraw
            should be visualized in the image.
-     * @param {function(tv.e.cc.PictureAsImageData)} The callback function that is
-     *     called after rasterization is complete or fails.
+     * @param {function(tv.e.cc.PictureAsImageData)} The callback function that
+     *     is called after rasterization is complete or fails.
      */
     rasterize: function(params, rasterCompleteCallback) {
       if (!PictureSnapshot.CanRasterize() || !PictureSnapshot.CanGetOps()) {
@@ -135,7 +135,7 @@ tv.exportTo('tv.e.cc', function() {
           {
             skp64: this.skp64_,
             params: {
-              layer_rect: this.layerRect_.toArray(),
+              layer_rect: this.layerRect_.toArray()
             }
           },
           {

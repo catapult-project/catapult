@@ -26,7 +26,7 @@ tv.exportTo('tv.e.about_tracing', function() {
     if (typeof messageString !== 'string')
       throw new Error('Invalid data');
     var re = /"params":\s*\{\s*"value":\s*\[([^]+)\]\s*\}\s*\}/;
-    var m = re.exec(messageString)
+    var m = re.exec(messageString);
     if (!m)
       throw new Error('Malformed response');
 

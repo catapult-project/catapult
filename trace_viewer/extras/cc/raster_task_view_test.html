@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.b.unittest.testSuite(function() {
-  test('basic' ,function() {
+  test('basic', function() {
     var m = new tv.c.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
     var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {

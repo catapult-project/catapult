@@ -180,7 +180,7 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     get highlightsByLayerId() {
-      var highlights = {}
+      var highlights = {};
       highlights[this.tile_.layerId] = [
         {
           colorKey: this.tile_.objectInstance.typeName,
@@ -194,10 +194,10 @@ tv.exportTo('tv.e.cc', function() {
       var analysis = new GenericObjectViewWithLabel();
       analysis.label = 'Tile ' + this.tile_.objectInstance.id + ' on layer ' +
           this.tile_.layerId;
-      if  (this.data_) {
+      if (this.data_) {
         analysis.object = {
           moreInfo: this.data_,
-          tileArgs: this.tile_.args,
+          tileArgs: this.tile_.args
         };
       } else {
         analysis.object = this.tile_.args;
@@ -240,7 +240,7 @@ tv.exportTo('tv.e.cc', function() {
 
 
     get highlightsByLayerId() {
-      var highlights = {}
+      var highlights = {};
       highlights[this.layer_.layerId] = [
         {
           colorKey: this.rectType_,
@@ -295,7 +295,7 @@ tv.exportTo('tv.e.cc', function() {
     LayerSelection: LayerSelection,
     TileSelection: TileSelection,
     LayerRectSelection: LayerRectSelection,
-    AnimationRectSelection: AnimationRectSelection,
+    AnimationRectSelection: AnimationRectSelection
   };
 });
 </script>

@@ -75,40 +75,40 @@ tv.b.unittest.testSuite(function() {
     var panel = new tv.e.analysis.InputLatencySidePanel();
 
     // Testing browser impl and main rendering stats.
-    var frametime_data =
-        tv.e.analysis.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3507);
+    var frametime_data = tv.e.analysis.getFrametimeData(
+        m, 'impl_frametime_type', m.bounds, 3507);
     assertEquals(9, frametime_data.length);
     for (var i = 0; i < frametime_data.length; i++) {
       assertEquals(16 + i % 2, frametime_data[i].frametime);
     }
     // No main rendering stats.
-    frametime_data =
-        tv.e.analysis.getFrametimeData(m, 'main_frametime_type', m.bounds, 3507);
+    frametime_data = tv.e.analysis.getFrametimeData(
+        m, 'main_frametime_type', m.bounds, 3507);
     assertEquals(0, frametime_data.length);
 
 
     // Testing renderer 3508 impl and main rendering stats.
-    frametime_data =
-        tv.e.analysis.getFrametimeData(m, 'main_frametime_type', m.bounds, 3508);
+    frametime_data = tv.e.analysis.getFrametimeData(
+        m, 'main_frametime_type', m.bounds, 3508);
     assertEquals(9, frametime_data.length);
     for (var i = 0; i < frametime_data.length; i++) {
       assertEquals(16 + i % 2, frametime_data[i].frametime);
     }
     // No impl rendering stats.
-    frametime_data =
-        tv.e.analysis.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3508);
+    frametime_data = tv.e.analysis.getFrametimeData(
+        m, 'impl_frametime_type', m.bounds, 3508);
     assertEquals(0, frametime_data.length);
 
 
     // Testing renderer 3509 impl and main rendering stats.
-    frametime_data =
-        tv.e.analysis.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3509);
+    frametime_data = tv.e.analysis.getFrametimeData(
+        m, 'impl_frametime_type', m.bounds, 3509);
     assertEquals(9, frametime_data.length);
     for (var i = 0; i < frametime_data.length; i++) {
       assertEquals(16 + i % 2, frametime_data[i].frametime);
     }
-    frametime_data =
-        tv.e.analysis.getFrametimeData(m, 'main_frametime_type', m.bounds, 3509);
+    frametime_data = tv.e.analysis.getFrametimeData(
+        m, 'main_frametime_type', m.bounds, 3509);
     assertEquals(9, frametime_data.length);
     for (var i = 0; i < frametime_data.length; i++) {
       assertEquals(16 + i % 2, frametime_data[i].frametime);
@@ -135,7 +135,8 @@ tv.b.unittest.testSuite(function() {
         latency: 23
       }
     ];
-    var latencyChart = tv.e.analysis.createLatencyLineChart(latencyData, 'latency');
+    var latencyChart = tv.e.analysis.createLatencyLineChart(
+        latencyData, 'latency');
     this.addHTMLOutput(latencyChart);
 
     var frametimeData = [

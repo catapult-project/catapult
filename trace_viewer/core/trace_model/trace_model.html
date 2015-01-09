@@ -370,8 +370,10 @@ tv.exportTo('tv.c', function() {
           }
         }
 
-        if (traces.length && !this.hasEventDataDecoder_(importers))
-          throw new Error('Could not find an importer for the provided eventData.');
+        if (traces.length && !this.hasEventDataDecoder_(importers)) {
+          throw new Error('Could not find an importer for ' +
+                          'the provided eventData.');
+        }
 
         // Sort them on priority. This ensures importing happens in a
         // predictable order, e.g. linux_perf_importer before

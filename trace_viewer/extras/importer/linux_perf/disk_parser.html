@@ -89,7 +89,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
      * Parses events and sets up state in the importer.
      */
     f2fsWriteBeginEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), flags = (\d+)/.
+      var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), flags = (\d+)/. // @suppress longLineCheck
           exec(eventBase.details);
       if (!event)
         return false;
@@ -98,13 +98,13 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var pos = parseInt(event[3]);
       var len = parseInt(event[4]);
       var key = device + '-' + inode + '-' + pos + '-' + len;
-      this.openAsyncSlice(ts, "f2fs", eventBase.threadName, eventBase.pid,
-          key, "f2fs_write");
+      this.openAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
+          key, 'f2fs_write');
       return true;
     },
 
     f2fsWriteEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), copied = (\d+)/.
+      var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), copied = (\d+)/. // @suppress longLineCheck
           exec(eventBase.details);
       if (!event)
         return false;
@@ -134,8 +134,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var pos = parseInt(event[3]);
       var len = parseInt(event[4]);
       var key = device + '-' + inode + '-' + pos + '-' + len;
-      this.openAsyncSlice(ts, "ext4", eventBase.threadName, eventBase.pid,
-          key, "ext4_write");
+      this.openAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
+          key, 'ext4_write');
       return true;
     },
 
@@ -162,8 +162,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
 
     f2fsSyncFileEnterEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = new RegExp(
-          'dev = \\((\\d+,\\d+)\\), ino = (\\d+), pino = (\\d+), i_mode = (\\S+), ' +
-          'i_size = (\\d+), i_nlink = (\\d+), i_blocks = (\\d+), i_advise = (\\d+)').
+          'dev = \\((\\d+,\\d+)\\), ino = (\\d+), pino = (\\d+), i_mode = (\\S+), ' + // @suppress longLineCheck
+          'i_size = (\\d+), i_nlink = (\\d+), i_blocks = (\\d+), i_advise = (\\d+)'). // @suppress longLineCheck
           exec(eventBase.details);
       if (!event)
         return false;
@@ -177,9 +177,9 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     },
 
     f2fsSyncFileExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = new RegExp('dev = \\((\\d+,\\d+)\\), ino = (\\d+), checkpoint is (\\S+), ' +
+      var event = new RegExp('dev = \\((\\d+,\\d+)\\), ino = (\\d+), checkpoint is (\\S+), ' + // @suppress longLineCheck
           'datasync = (\\d+), ret = (\\d+)').
-          exec(eventBase.details.replace("not needed", "not_needed"));
+          exec(eventBase.details.replace('not needed', 'not_needed'));
       if (!event)
         return false;
 
@@ -308,4 +308,3 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
   };
 });
 </script>
-

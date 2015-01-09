@@ -101,7 +101,8 @@ tv.exportTo('tv.c.tracks', function() {
       if (this.groupingSource_) {
         var modelSettings = new TraceModelSettings(
             this.groupingSource_.model);
-        modelSettings.setSettingFor(this.groupingSource_, 'expanded', this.expanded);
+        modelSettings.setSettingFor(this.groupingSource_, 'expanded',
+                                    this.expanded);
       }
 
       e.stopPropagation();

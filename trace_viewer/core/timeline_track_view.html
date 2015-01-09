@@ -546,7 +546,9 @@ tv.exportTo('tv.c', function() {
       var adjustedWorldRange = bounds.range * 1.25;
       var newScale = this.modelTrackContainer_.canvas.width /
           adjustedWorldRange;
-      var zoomInRatio = newScale / this.viewport_.currentDisplayTransform.scaleX;
+      var zoomInRatio = newScale /
+          this.viewport_.currentDisplayTransform.scaleX;
+
       var animation = new tv.c.TimelineDisplayTransformZoomToAnimation(
           worldCenter, viewCenter,
           this.viewport_.currentDisplayTransform.panY,

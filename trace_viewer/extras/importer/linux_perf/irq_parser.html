@@ -59,7 +59,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var irq = parseInt(event[1]);
       var name = event[2];
 
-      var thread = this.importer.getOrCreatePseudoThread("irqs cpu " + cpuNumber);
+      var thread = this.importer.getOrCreatePseudoThread(
+          'irqs cpu ' + cpuNumber);
       thread.lastEntryTs = ts;
       thread.irqName = name;
 
@@ -73,7 +74,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
 
       var irq = parseInt(event[1]);
       var ret = event[2];
-      var thread = this.importer.getOrCreatePseudoThread("irqs cpu " + cpuNumber);
+      var thread = this.importer.getOrCreatePseudoThread(
+          'irqs cpu ' + cpuNumber);
 
       if (thread.lastEntryTs !== undefined) {
         var duration = ts - thread.lastEntryTs;
@@ -89,7 +91,9 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       return true;
     },
 
-    softirqRaiseEvent: function(eventName, cpuNumber, pid, ts, eventBase) {return true},
+    softirqRaiseEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      return true;
+    },
 
     softirqEntryEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = softirqRE.exec(eventBase.details);
@@ -97,7 +101,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
         return false;
 
       var action = event[2];
-      var thread = this.importer.getOrCreatePseudoThread("softirq cpu " + cpuNumber);
+      var thread = this.importer.getOrCreatePseudoThread(
+          'softirq cpu ' + cpuNumber);
       thread.lastEntryTs = ts;
 
       return true;
@@ -110,7 +115,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
 
       var vec = parseInt(event[1]);
       var action = event[2];
-      var thread = this.importer.getOrCreatePseudoThread("softirq cpu " + cpuNumber);
+      var thread = this.importer.getOrCreatePseudoThread(
+          'softirq cpu ' + cpuNumber);
 
       if (thread.lastEntryTs !== undefined) {
         var duration = ts - thread.lastEntryTs;
@@ -129,8 +135,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
   Parser.register(IrqParser);
 
   return {
-    IrqParser: IrqParser,
+    IrqParser: IrqParser
   };
 });
 </script>
-

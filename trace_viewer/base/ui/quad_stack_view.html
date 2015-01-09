@@ -386,7 +386,7 @@ tv.exportTo('tv.b.ui', function() {
       var stackingDistanceSlider = this.querySelector(
           '#stacking-distance-slider');
       stackingDistanceSlider.value = tv.b.Settings.get(
-          'quadStackView.stackingDistance', 45)
+          'quadStackView.stackingDistance', 45);
       stackingDistanceSlider.addEventListener(
           'change', this.onStackingDistanceChange_.bind(this));
       stackingDistanceSlider.addEventListener(
