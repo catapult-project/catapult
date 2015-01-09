@@ -1,4 +1,4 @@
-# Copyright (c) 2014 The Chromium Authors. All rights reserved.
+# Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -8,15 +8,15 @@
 import os
 import sys
 
-from tvcm import project as project_module
+from trace_viewer import trace_viewer_project
 
 def Main(paths_to_lint):
-  project = project_module.Project()
+  project = trace_viewer_project.TraceViewerProject()
   new_paths = [
     os.path.abspath(os.path.join(
-      project.tvcm_third_party_path, 'python_gflags')),
+      project.trace_viewer_third_party_path, 'python_gflags')),
     os.path.abspath(os.path.join(
-      project.tvcm_third_party_path, 'closure_linter'))
+      project.trace_viewer_third_party_path, 'closure_linter'))
   ]
   sys.path += new_paths
   try:

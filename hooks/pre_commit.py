@@ -7,7 +7,6 @@ import subprocess
 import sys
 
 from trace_viewer import trace_viewer_project
-from hooks import pre_commit_checks
 
 class AffectedFile(object):
   def __init__(self, input_api, filename):
@@ -123,17 +122,18 @@ class InputAPI(object):
 
 def RunChecks(input_api):
   results = []
+
+  from hooks import pre_commit_checks
+  results += pre_commit_checks.RunChecks(input_api)
+
   from trace_viewer.build import check_gyp
-  gyp_result = check_gyp.GypCheck()
-  if len(gyp_result) > 0:
-    results += [gyp_result]
+  results += check_gyp.GypCheck()
 
   from trace_viewer.build import check_gn
-  gn_result = check_gn.GnCheck()
-  if len(gn_result) > 0:
-    results += [gn_result]
+  results += check_gn.GnCheck()
 
-  results += pre_commit_checks.RunChecks(input_api)
+  from hooks import js_checks
+  results += js_checks.RunChecks(input_api)
 
   return results
 
@@ -147,4 +147,3 @@ def Main(args):
   if len(results):
     return 255
   return 0
-  # TODO(nduca): Add pre-commit checks here.
