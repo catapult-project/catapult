@@ -12,8 +12,8 @@ from telemetry.core.backends import app_backend
 
 class AndroidAppBackend(app_backend.AppBackend):
   def __init__(self, android_platform_backend, start_intent):
-    super(AndroidAppBackend, self).__init__(app_type=start_intent.package)
-    self._android_platform_backend = android_platform_backend
+    super(AndroidAppBackend, self).__init__(
+        start_intent.package, android_platform_backend)
     self._default_process_name = start_intent.package
     self._start_intent = start_intent
     self._is_running = False
@@ -21,7 +21,7 @@ class AndroidAppBackend(app_backend.AppBackend):
 
   @property
   def _adb(self):
-    return self._android_platform_backend.adb
+    return self.platform_backend.adb
 
   def Start(self):
     """Start an Android app and wait for it to finish launching.
@@ -37,7 +37,7 @@ class AndroidAppBackend(app_backend.AppBackend):
 
   def Close(self):
     self._is_running = False
-    self._android_platform_backend.KillApplication(self._start_intent.package)
+    self.platform_backend.KillApplication(self._start_intent.package)
 
   def IsAppRunning(self):
     return self._is_running
@@ -53,7 +53,7 @@ class AndroidAppBackend(app_backend.AppBackend):
       process_filter = lambda n: re.match('^' + self._default_process_name, n)
 
     processes = set()
-    ps_output = self._android_platform_backend.GetPsOutput(['pid', 'name'])
+    ps_output = self.platform_backend.GetPsOutput(['pid', 'name'])
     for pid, name in ps_output:
       if not process_filter(name):
         continue

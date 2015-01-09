@@ -4,10 +4,11 @@
 
 
 class AppBackend(object):
-  def __init__(self, app_type):
+  def __init__(self, app_type, platform_backend):
     super(AppBackend, self).__init__()
     self._app = None
     self._app_type = app_type
+    self._platform_backend = platform_backend
 
   def __del__(self):
     self.Close()
@@ -28,12 +29,8 @@ class AppBackend(object):
     raise NotImplementedError
 
   @property
-  def devtools_client(self):
-    """Returns the DevToolsClientBackend instance.
-
-    Implementation may return None if no DevTools server is expected.
-    """
-    raise NotImplementedError
+  def platform_backend(self):
+    return self._platform_backend
 
   def Start(self):
     raise NotImplementedError

@@ -16,9 +16,11 @@ class ExtensionsNotSupportedException(Exception):
 class BrowserBackend(app_backend.AppBackend):
   """A base class for browser backends."""
 
-  def __init__(self, supports_extensions, browser_options, tab_list_backend):
+  def __init__(self, platform_backend, supports_extensions, browser_options,
+               tab_list_backend):
     assert browser_options.browser_type
-    super(BrowserBackend, self).__init__(app_type=browser_options.browser_type)
+    super(BrowserBackend, self).__init__(
+        browser_options.browser_type, platform_backend)
     self._supports_extensions = supports_extensions
     self.browser_options = browser_options
     self._tab_list_backend_class = tab_list_backend

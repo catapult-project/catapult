@@ -29,6 +29,7 @@ class IosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._webviews = []
     self._port = None
     self._page = None
+    self._system_info_backend = None
     self.UpdateRunningBrowsersInfo()
 
   def UpdateRunningBrowsersInfo(self):

@@ -37,12 +37,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
                supports_extensions, browser_options, output_profile_path,
                extensions_to_load):
     super(ChromeBrowserBackend, self).__init__(
+        platform_backend=platform_backend,
         supports_extensions=supports_extensions,
         browser_options=browser_options,
         tab_list_backend=tab_list_backend.TabListBackend)
     self._port = None
 
-    self._platform_backend = platform_backend
     self._supports_tab_control = supports_tab_control
     self._devtools_client = None
     self._system_info_backend = None
@@ -143,7 +143,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       # from the target platform to replay (on the host platform).
       # This allows the browser to exercise DNS requests.
       return False
-    if self.browser_options.netsim and self._platform_backend.is_host_platform:
+    if self.browser_options.netsim and self.platform_backend.is_host_platform:
       # Avoid --host-resolver-rules when replay will configure the platform to
       # resolve hosts to replay.
       # This allows the browser to exercise DNS requests.
@@ -163,8 +163,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
                          self.forwarder_factory.host_ip)  # replay's host_ip
     # Force the browser to send HTTP/HTTPS requests to fixed ports if they
     # are not the standard HTTP/HTTPS ports.
-    http_port = self._platform_backend.wpr_http_device_port
-    https_port = self._platform_backend.wpr_https_device_port
+    http_port = self.platform_backend.wpr_http_device_port
+    https_port = self.platform_backend.wpr_https_device_port
     if http_port != 80:
       replay_args.append('--testing-fixed-http-port=%s' % http_port)
     if https_port != 443:
