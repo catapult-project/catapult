@@ -133,10 +133,6 @@ def RunChecks(input_api):
   if len(gn_result) > 0:
     results += [gn_result]
 
-  from tvcm import presubmit_checker
-  checker = presubmit_checker.PresubmitChecker(input_api)
-  results += checker.RunChecks()
-
   results += pre_commit_checks.RunChecks(input_api)
 
   return results

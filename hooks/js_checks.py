@@ -6,10 +6,12 @@ import sys
 import re
 
 class JSChecker(object):
-  def __init__(self, input_api, output_api, file_filter=None):
+  def __init__(self, input_api, file_filter=None):
     self.input_api = input_api
-    self.output_api = output_api
-    self.file_filter = file_filter
+    if file_filter:
+      self.file_filter = file_filter
+    else:
+      self.file_filter = lambda x: True
 
   def RegexCheck(self, line_number, line, regex, message):
     """Searches for |regex| in |line| to check for a particular style
@@ -50,7 +52,7 @@ class JSChecker(object):
     return start * ' ' + length * '^'
 
   def _makeErrorOrWarning(self, error_text, filename):
-    return self.output_api.PresubmitError(error_text)
+    return error_text
 
   def RunChecks(self):
     """Check for violations of the Chromium JavaScript style guide. See
@@ -63,12 +65,12 @@ class JSChecker(object):
     old_filters = warnings.filters
 
     try:
-      tvcm_path = os.path.abspath(os.path.join(
+      base_path = os.path.abspath(os.path.join(
           os.path.dirname(__file__), '..'))
       closure_linter_path = os.path.join(
-          tvcm_path, 'third_party', 'closure_linter')
+          base_path, 'third_party', 'closure_linter')
       gflags_path = os.path.join(
-          tvcm_path, 'third_party', 'python_gflags')
+          base_path, 'third_party', 'python_gflags')
       sys.path.insert(0, closure_linter_path)
       sys.path.insert(0, gflags_path)
 
@@ -84,9 +86,8 @@ class JSChecker(object):
     class ErrorHandlerImpl(errorhandler.ErrorHandler):
       """Filters out errors that don't apply to Chromium JavaScript code."""
 
-      def __init__(self, re):
+      def __init__(self):
         self._errors = []
-        self.re = re
 
       def HandleFile(self, filename, first_token):
         self._filename = filename
@@ -108,7 +109,7 @@ class JSChecker(object):
         """
 
         is_grit_statement = bool(
-            self.re.search("</?(include|if)", error.token.line))
+            re.search("</?(include|if)", error.token.line))
 
         return not is_grit_statement and error.code not in [
             errors.JSDOC_ILLEGAL_QUESTION_WITH_PIPE,
@@ -125,12 +126,18 @@ class JSChecker(object):
     except:
       affected_files = []
 
-    affected_js_files = filter(lambda f: f.filename.endswith('.js'),
-                               affected_files)
+    def ShouldCheck(f):
+      if f.filename.endswith('.js'):
+        return True
+      if f.filename.endswith('.html'):
+        return True
+      return False
+
+    affected_js_files = filter(ShouldCheck, affected_files)
     for f in affected_js_files:
       error_lines = []
 
-      for i, line in enumerate(f.NewContents(), start=1):
+      for i, line in enumerate(f.contents_as_lines, start=1):
         error_lines += filter(None, [
             self.ConstCheck(i, line),
         ])
@@ -138,9 +145,9 @@ class JSChecker(object):
       # Use closure_linter to check for several different errors
       import gflags as flags
       flags.FLAGS.strict = True
-      error_handler = ErrorHandlerImpl(self.input_api.re)
+      error_handler = ErrorHandlerImpl()
       js_checker = checker.JavaScriptStyleChecker(error_handler)
-      js_checker.Check(self.input_api.os_path.join(
+      js_checker.Check(os.path.join(
           self.input_api.repository_root,
           f.filename))
 
@@ -162,9 +169,8 @@ class JSChecker(object):
         results.append(self._makeErrorOrWarning(
             '\n'.join(error_lines), f.filename))
 
-    if results:
-      results.append(self.output_api.PresubmitNotifyResult(
-          'See the JavaScript style guide at '
-          'http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml'))
-
     return results
+
+
+def RunChecks(input_api):
+  return JSChecker(input_api).RunChecks()
