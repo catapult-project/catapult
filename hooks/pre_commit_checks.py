@@ -124,6 +124,9 @@ def CheckLongLines(input_api, maxlen=80):
     if line_len <= file_maxlen:
       return True
 
+    if '@suppress longLineCheck' in line:
+      return True
+
     if line_len > extra_maxlen:
       return False
 
@@ -134,9 +137,6 @@ def CheckLongLines(input_api, maxlen=80):
       return True
 
     if '<include' in line and file_extension in ('css', 'html', 'js'):
-      return True
-
-    if '@suppress longLineCheck' in line:
       return True
 
     return re.match(
@@ -159,4 +159,3 @@ def RunChecks(input_api):
   results += CheckCopyright(input_api)
   results += CheckLongLines(input_api)
   return results
-
