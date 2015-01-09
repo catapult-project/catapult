@@ -12,7 +12,6 @@ from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.page import page_set
 from telemetry.page import page_test
-from telemetry.page import profile_creator
 from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.user_story import user_story_runner

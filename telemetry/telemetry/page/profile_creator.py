@@ -4,17 +4,22 @@
 
 from telemetry.page import page_test
 
+class ProfileCreator(object):
+  """Abstract base class for an object that constructs a Chrome profile."""
 
-class ProfileCreator(page_test.PageTest):
-  """Base class for an object that constructs a Chrome profile."""
+  def Run(self, options):
+    """Creates the profile.
 
-  def __init__(self):
-    super(ProfileCreator, self).__init__()
-    self._page_set = None
+    |options| is an instance of BrowserFinderOptions. When subclass
+    implementations of this method inevitably attempt to find and launch a
+    browser, they should pass |options| to the relevant methods.
 
-  @property
-  def page_set(self):
-    return self._page_set
-
-  def ValidateAndMeasurePage(self, _, tab, results):
-    pass
+    Several properties of |options| might require direct manipulation by
+    subclasses. These are:
+      |options.output_profile_path|: The path at which the profile should be
+      created.
+      |options.browser_options.profile_dir|: If this property is None, then a
+      new profile is created. Otherwise, the existing profile is appended on
+      to.
+    """
+    raise NotImplementedError()

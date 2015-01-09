@@ -66,23 +66,20 @@ def _IsPseudoFile(directory, paths):
 
   return ignore_list
 
+
 def GenerateProfiles(profile_creator_class, profile_creator_name, options):
   """Generate a profile"""
-  expectations = test_expectations.TestExpectations()
-  test = profile_creator_class()
 
   temp_output_directory = tempfile.mkdtemp()
   options.output_profile_path = temp_output_directory
 
-  results = results_options.CreateResults(
-      benchmark.BenchmarkMetadata(test.__class__.__name__), options)
-  user_story_runner.Run(test, test.page_set, expectations, options, results)
-
-  if results.failures:
-    logging.warning('Some pages failed.')
-    logging.warning('Failed pages:\n%s',
-                    '\n'.join(map(str, results.pages_that_failed)))
-    return 1
+  profile_creator_instance = profile_creator_class()
+  try:
+    profile_creator_instance.Run(options)
+  except Exception as e:
+    logging.exception('Profile creation failed.')
+    shutil.rmtree(temp_output_directory)
+    raise e
 
   # Everything is a-ok, move results to final destination.
   generated_profiles_dir = os.path.abspath(options.output_dir)
