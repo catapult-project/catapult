@@ -450,7 +450,7 @@ class UserStoryRunnerTest(unittest.TestCase):
         uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
 
     uss = user_story_set.UserStorySet(
-        archive_data_file='../../unittest_data/test.json',
+        archive_data_file='../../unittest_data/archive_files/test.json',
         cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
     uss.AddUserStory(page_module.Page(
         'http://www.testurl.com', uss, uss.base_dir))

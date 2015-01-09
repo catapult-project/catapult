@@ -8,6 +8,6 @@ from telemetry.page.page_set import PageSet
 class TestSimpleTwoPageSet(PageSet):
   def __init__(self):
     super(TestSimpleTwoPageSet, self).__init__(
-      archive_data_file='data/test.json',
+      archive_data_file='data/archive_files/test.json',
       credentials_path='data/credential',
       user_agent_type='desktop')
