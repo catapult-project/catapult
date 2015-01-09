@@ -36,6 +36,10 @@ class InspectorBackend(object):
 
     self._app = app
     self._devtools_client = devtools_client
+    # Be careful when using the context object, since the data may be
+    # outdated since this is never updated once InspectorBackend is
+    # created. Consider an updating strategy for this. (For an example
+    # of the subtlety, see the logic for self.url property.)
     self._context = context
 
     logging.debug('InspectorBackend._Connect() to %s', self.debugger_url)
@@ -67,6 +71,8 @@ class InspectorBackend(object):
         return c['url']
     return None
 
+  # TODO(chrishenry): Is this intentional? Shouldn't this return
+  # self._context['id'] instead?
   @property
   def id(self):
     return self.debugger_url

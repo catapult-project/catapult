@@ -37,7 +37,7 @@ class AndroidProcess(object):
       self._app_backend._android_platform_backend.ForwardHostToDevice(
           self._local_port, self._webview_port)
       candidate_devtools_client = devtools_client_backend.DevToolsClientBackend(
-          self._local_port)
+          self._local_port, self._app_backend)
       # TODO(ariblue): Don't create a DevToolsClientBackend before confirming
       # that a devtools agent exists. This involves a minor refactor of IsAlive.
       if candidate_devtools_client.IsAlive():
@@ -47,8 +47,9 @@ class AndroidProcess(object):
     webviews = []
     self._UpdateDevToolsClient()
     if self._devtools_client is not None:
-      for context in self._devtools_client.ListInspectableContexts():
-        inspector = inspector_backend.InspectorBackend(
-            self._app_backend.app, self._devtools_client, context)
-        webviews.append(web_contents.WebContents(inspector))
+      devtools_context_map = (
+          self._devtools_client.GetUpdatedInspectableContexts())
+      for context in devtools_context_map.contexts:
+        webviews.append(web_contents.WebContents(
+            devtools_context_map.GetInspectorBackend(context['id'])))
     return webviews

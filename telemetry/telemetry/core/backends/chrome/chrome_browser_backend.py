@@ -25,7 +25,6 @@ from telemetry.core.backends.chrome import system_info_backend
 from telemetry.core.backends.chrome import tab_list_backend
 from telemetry.core.backends.chrome_inspector import devtools_client_backend
 from telemetry.core.backends.chrome_inspector import devtools_http
-from telemetry.timeline import trace_data as trace_data_module
 from telemetry.unittest_util import options_for_unittests
 
 
@@ -74,7 +73,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if not self._devtools_client:
       assert self._port, 'No DevTools port info available.'
       self._devtools_client = devtools_client_backend.DevToolsClientBackend(
-          self._port)
+          self._port, self)
     return self._devtools_client
 
   @property
@@ -267,17 +266,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         trace_options, custom_categories, timeout)
 
   def StopTracing(self, trace_data_builder):
-    for (i, _) in enumerate(self.browser.tabs):
-      tab = self.tab_list_backend.Get(i, None)
-      if tab:
-        success = tab.EvaluateJavaScript(
-            "console.time('" + tab.id + "');" +
-            "console.timeEnd('" + tab.id + "');" +
-            "console.time.toString().indexOf('[native code]') != -1;")
-        if not success:
-          raise Exception('Page stomped on console.time')
-        trace_data_builder.AddEventsTo(trace_data_module.TAB_ID_PART, [tab.id])
-
     self.devtools_client.StopChromeTracing(trace_data_builder)
 
   def GetProcessName(self, cmd_line):
