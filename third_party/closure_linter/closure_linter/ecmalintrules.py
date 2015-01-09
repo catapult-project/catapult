@@ -755,7 +755,7 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
   def Finalize(self, state, tokenizer_mode):
     last_non_space_token = state.GetLastNonSpaceToken()
     # Check last line for ending with newline.
-    if state.GetLastLine() and not (state.GetLastLine().isspace() or
+    if False and state.GetLastLine() and not (state.GetLastLine().isspace() or
         state.GetLastLine().rstrip('\n\r\f') != state.GetLastLine()):
       self._HandleError(
           errors.FILE_MISSING_NEWLINE,
