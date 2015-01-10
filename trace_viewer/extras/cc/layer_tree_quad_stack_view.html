@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2013 The Chromium Authors. All rights reserved.
-Use of this source code is governed by a BSD-style license that can be
-found in the LICENSE file.
+ Copyright (c) 2015 The Chromium Authors. All rights reserved.
+ Use of this source code is governed by a BSD-style license that can be
+ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/cc/picture.html">
@@ -76,7 +76,6 @@ tv.exportTo('tv.e.cc', function() {
   var TILE_HEATMAP_TYPE = {};
   TILE_HEATMAP_TYPE.NONE = 'none';
   TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY = 'scheduledPriority';
-  TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE = 'distanceToVisible';
   TILE_HEATMAP_TYPE.USING_GPU_MEMORY = 'usingGpuMemory';
 
   function createTileRectsSelectorBaseOptions() {
@@ -140,8 +139,6 @@ tv.exportTo('tv.e.cc', function() {
             value: TILE_HEATMAP_TYPE.NONE},
            {label: 'Scheduled Priority',
             value: TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY},
-           {label: 'Distance to Visible',
-            value: TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE},
            {label: 'Is using GPU memory',
             value: TILE_HEATMAP_TYPE.USING_GPU_MEMORY}
           ]);
@@ -860,8 +857,6 @@ tv.exportTo('tv.e.cc', function() {
         return tile.scheduledPriority == 0 ?
             undefined :
             tile.scheduledPriority;
-      } else if (heatmapType == TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE) {
-        return Math.min(3000, tile.distanceToVisible);
       } else if (heatmapType == TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
         if (tile.isSolidColor)
           return 0.5;
