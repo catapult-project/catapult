@@ -13,9 +13,9 @@ class App(object):
   """
   def __init__(self, app_backend, platform_backend):
     assert platform_backend.platform != None
-
     self._app_backend = app_backend
     self._platform_backend = platform_backend
+    self._app_backend.SetApp(self)
 
   @property
   def app_type(self):

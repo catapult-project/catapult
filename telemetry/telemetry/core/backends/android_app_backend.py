@@ -6,22 +6,29 @@ import re
 import time
 
 from telemetry.core import android_process
+from telemetry.core import util
 from telemetry.core import web_contents
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends import app_backend
 
+
 class AndroidAppBackend(app_backend.AppBackend):
-  def __init__(self, android_platform_backend, start_intent):
+  def __init__(self, android_platform_backend, start_intent,
+               is_app_ready_predicate=None):
     super(AndroidAppBackend, self).__init__(
         start_intent.package, android_platform_backend)
     self._default_process_name = start_intent.package
     self._start_intent = start_intent
+    self._is_app_ready_predicate = is_app_ready_predicate
     self._is_running = False
     self._existing_processes_by_pid = {}
 
   @property
   def _adb(self):
     return self.platform_backend.adb
+
+  def _IsAppReady(self):
+    return self._is_app_ready_predicate(self.app)
 
   def Start(self):
     """Start an Android app and wait for it to finish launching.
@@ -32,7 +39,7 @@ class AndroidAppBackend(app_backend.AppBackend):
     # TODO(slamm): check if can use "blocking=True" instead of needing to sleep.
     # If "blocking=True" does not work, switch sleep to "ps" check.
     self._adb.device().StartActivity(self._start_intent, blocking=False)
-    time.sleep(9)
+    util.WaitFor(self._IsAppReady, timeout=60)
     self._is_running = True
 
   def Close(self):

@@ -55,7 +55,7 @@ class SharedAppState(shared_user_story_state.SharedUserStoryState):
     assert not self._android_app
     self._current_user_story = user_story
     self._android_app = self._android_platform.LaunchAndroidApplication(
-        user_story.start_intent)
+        user_story.start_intent, user_story.is_app_ready_predicate)
 
   def RunUserStory(self, results):
     self._current_user_story.Run(self)
