@@ -64,14 +64,13 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _SetupProfile(self):
     if not self.browser_options.dont_override_profile:
       if self._output_profile_path:
-        # If both |_output_profile_path| and |profile_dir| are specified then
-        # the calling code will throw an exception, so we don't need to worry
-        # about that case here.
         self._tmp_profile_dir = self._output_profile_path
       else:
         self._tmp_profile_dir = tempfile.mkdtemp()
+
       profile_dir = self.browser_options.profile_dir
       if profile_dir:
+        assert self._tmp_profile_dir != profile_dir
         if self._is_content_shell:
           logging.critical('Profiles cannot be used with content shell')
           sys.exit(1)
