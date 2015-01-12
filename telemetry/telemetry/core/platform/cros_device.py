@@ -5,12 +5,13 @@ from telemetry.core.platform import device
 
 
 class CrOSDevice(device.Device):
-  def __init__(self, host_name, ssh_identity=None):
+  def __init__(self, host_name, ssh_port, ssh_identity=None):
     super(CrOSDevice, self).__init__(
         name='ChromeOs with host %s' % host_name,
         guid='cros:%s' % host_name)
-    assert host_name
+    assert host_name and ssh_port
     self._host_name = host_name
+    self._ssh_port = ssh_port
     self._ssh_identity = ssh_identity
 
   @classmethod
@@ -20,6 +21,10 @@ class CrOSDevice(device.Device):
   @property
   def host_name(self):
     return self._host_name
+
+  @property
+  def ssh_port(self):
+    return self._ssh_port
 
   @property
   def ssh_identity(self):

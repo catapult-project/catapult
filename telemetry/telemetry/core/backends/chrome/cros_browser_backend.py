@@ -44,9 +44,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     for e in extensions_to_load:
       extension_dir = cri.RunCmdOnDevice(
           ['mktemp', '-d', '/tmp/extension_XXXXX'])[0].rstrip()
+      e.local_path = os.path.join(extension_dir, os.path.basename(e.path))
       cri.PushFile(e.path, extension_dir)
       cri.Chown(extension_dir)
-      e.local_path = os.path.join(extension_dir, os.path.basename(e.path))
 
     self._cri.RestartUI(self.browser_options.clear_enterprise_policy)
     util.WaitFor(self.IsBrowserRunning, 20)

@@ -6,6 +6,7 @@ import logging
 import re
 import os
 import shutil
+import socket
 import stat
 import subprocess
 import tempfile
@@ -76,8 +77,10 @@ class KeylessLoginRequiredException(LoginException):
 
 class CrOSInterface(object):
   # pylint: disable=R0923
-  def __init__(self, hostname=None, ssh_identity=None):
+  def __init__(self, hostname=None, ssh_port=None, ssh_identity=None):
     self._hostname = hostname
+    self._ssh_port = ssh_port
+
     # List of ports generated from GetRemotePort() that may not be in use yet.
     self._reserved_ports = []
 
@@ -118,7 +121,13 @@ class CrOSInterface(object):
   def hostname(self):
     return self._hostname
 
+  @property
+  def ssh_port(self):
+    return self._ssh_port
+
   def FormSSHCommandLine(self, args, extra_ssh_args=None):
+    """Constructs a subprocess-suitable command line for `ssh'.
+    """
     if self.local:
       # We run the command through the shell locally for consistency with
       # how commands are run through SSH (crbug.com/239161). This work
@@ -135,8 +144,40 @@ class CrOSInterface(object):
     if extra_ssh_args:
       full_args.extend(extra_ssh_args)
     full_args.append('root@%s' % self._hostname)
+    full_args.append('-p%d' % self._ssh_port)
     full_args.extend(args)
     return full_args
+
+  def _FormSCPCommandLine(self, src, dst, extra_scp_args=None):
+    """Constructs a subprocess-suitable command line for `scp'.
+
+    Note: this function is not designed to work with IPv6 addresses, which need
+    to have their addresses enclosed in brackets and a '-6' flag supplied
+    in order to be properly parsed by `scp'.
+    """
+    assert not self.local, "Cannot use SCP on local target."
+
+    args = ['scp',
+            '-P', str(self._ssh_port)] + self._ssh_args
+    if self._ssh_identity:
+      args.extend(['-i', self._ssh_identity])
+    if extra_scp_args:
+      args.extend(extra_scp_args)
+    args += [src, dst]
+    return args
+
+  def _FormSCPToRemote(self, source, remote_dest, extra_scp_args=None,
+                      user='root'):
+    return self._FormSCPCommandLine(source,
+                                    '%s@%s:%s' % (user, self._hostname,
+                                                  remote_dest),
+                                    extra_scp_args=extra_scp_args)
+
+  def _FormSCPFromRemote(self, remote_source, dest, extra_scp_args=None,
+                        user='root'):
+    return self._FormSCPCommandLine('%s@%s:%s' % (user, self._hostname,
+                                                  remote_source),
+                                    dest, extra_scp_args=extra_scp_args)
 
   def _RemoveSSHWarnings(self, toClean):
     """Removes specific ssh warning lines from a string.
@@ -211,12 +252,8 @@ class CrOSInterface(object):
         raise OSError('No such file or directory %s' % stderr)
       return
 
-    args = ['scp', '-r'] + self._ssh_args
-    if self._ssh_identity:
-      args.extend(['-i', self._ssh_identity])
-
-    args.extend([os.path.abspath(filename),
-                 'root@%s:%s' % (self._hostname, remote_filename)])
+    args = self._FormSCPToRemote(os.path.abspath(filename), remote_filename,
+                                 extra_scp_args=['-r'])
 
     stdout, stderr = GetAllCmdOutput(args, quiet=True)
     stderr = self._RemoveSSHWarnings(stderr)
@@ -247,12 +284,8 @@ class CrOSInterface(object):
 
     if destfile is None:
       destfile = os.path.basename(filename)
-    args = ['scp'] + self._ssh_args
-    if self._ssh_identity:
-      args.extend(['-i', self._ssh_identity])
+    args = self._FormSCPFromRemote(filename, os.path.abspath(destfile))
 
-    args.extend(['root@%s:%s' % (self._hostname, filename),
-                 os.path.abspath(destfile)])
     stdout, stderr = GetAllCmdOutput(args, quiet=True)
     stderr = self._RemoveSSHWarnings(stderr)
     if stderr != '':

@@ -20,8 +20,9 @@ from telemetry.unittest_util import options_for_unittests
 class CrOSInterfaceTest(unittest.TestCase):
   def _GetCRI(self):
     remote = options_for_unittests.GetCopy().cros_remote
+    remote_ssh_port = options_for_unittests.GetCopy().cros_remote_ssh_port
     return cros_interface.CrOSInterface(
-        remote,
+        remote, remote_ssh_port,
         options_for_unittests.GetCopy().cros_ssh_identity)
 
   @decorators.Enabled('cros-chrome')
@@ -154,9 +155,10 @@ class CrOSInterfaceTest(unittest.TestCase):
     interface should follow bash syntax. This test needs to run on remotely
     and locally on the device to check for consistency.
     '''
+    options = options_for_unittests.GetCopy()
     with cros_interface.CrOSInterface(
-        options_for_unittests.GetCopy().cros_remote,
-        options_for_unittests.GetCopy().cros_ssh_identity) as cri:
+        options.cros_remote, options.cros_remote_ssh_port,
+        options.cros_ssh_identity) as cri:
 
       # Check arguments with no special characters
       stdout, _ = cri.RunCmdOnDevice(['echo', '--arg1=value1', '--arg2=value2',

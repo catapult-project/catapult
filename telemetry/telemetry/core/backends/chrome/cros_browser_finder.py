@@ -102,7 +102,8 @@ def FindAllAvailableBrowsers(finder_options):
     logging.debug('ssh not found. Cannot talk to CrOS devices.')
     return []
   device = cros_device.CrOSDevice(
-      finder_options.cros_remote, finder_options.cros_ssh_identity)
+      finder_options.cros_remote, finder_options.cros_remote_ssh_port,
+      finder_options.cros_ssh_identity)
   # Check ssh
   try:
     platform = platform_module.GetPlatformForDevice(device)

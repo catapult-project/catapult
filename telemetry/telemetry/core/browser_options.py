@@ -7,6 +7,7 @@ import logging
 import optparse
 import os
 import shlex
+import socket
 import sys
 
 from telemetry.core import browser_finder
@@ -86,7 +87,13 @@ class BrowserFinderOptions(optparse.Values):
     group.add_option(
         '--remote',
         dest='cros_remote',
-        help='The IP address of a remote ChromeOS device to use.')
+        help='The hostname of a remote ChromeOS device to use.')
+    group.add_option(
+        '--remote-ssh-port',
+        type=int,
+        default=socket.getservbyname('ssh'),
+        dest='cros_remote_ssh_port',
+        help='The SSH port of the remote ChromeOS device (requires --remote).')
     identity = None
     testing_rsa = os.path.join(
         util.GetChromiumSrcDir(),

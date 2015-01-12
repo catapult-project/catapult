@@ -17,7 +17,7 @@ class CrosPlatformBackend(
     super(CrosPlatformBackend, self).__init__(device)
     if device:
       self._cri = cros_interface.CrOSInterface(
-          device.host_name, device.ssh_identity)
+          device.host_name, device.ssh_port, device.ssh_identity)
       self._cri.TryLogin()
     else:
       self._cri = cros_interface.CrOSInterface()
