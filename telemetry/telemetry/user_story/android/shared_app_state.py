@@ -11,8 +11,6 @@ from telemetry.user_story import shared_user_story_state
 from telemetry.web_perf import timeline_based_measurement
 
 
-# TODO(slamm): Interact with TimelineBasedMeasurement when it no longer
-# depends on browser logic.
 class SharedAppState(shared_user_story_state.SharedUserStoryState):
   """Manage test state/transitions across multiple android.UserStory's.
 
@@ -34,6 +32,7 @@ class SharedAppState(shared_user_story_state.SharedUserStoryState):
         raise ValueError(
             'SharedAppState only accepts TimelineBasedMeasurement tests'
             ' (not %s).' % test.__class__)
+    self._test = test
     self._finder_options = finder_options
     self._android_app = None
     self._current_user_story = None
@@ -53,21 +52,28 @@ class SharedAppState(shared_user_story_state.SharedUserStoryState):
 
   def WillRunUserStory(self, user_story):
     assert not self._android_app
+    self._test.WillRunUserStory(self._android_platform.tracing_controller)
     self._current_user_story = user_story
     self._android_app = self._android_platform.LaunchAndroidApplication(
         user_story.start_intent, user_story.is_app_ready_predicate)
 
   def RunUserStory(self, results):
     self._current_user_story.Run(self)
+    self._test.Measure(self._android_platform.tracing_controller, results)
 
   def DidRunUserStory(self, results):
+    self._test.DidRunUserStory(self._android_platform.tracing_controller)
     if self._android_app:
       self._android_app.Close()
       self._android_app = None
 
   def GetTestExpectationAndSkipValue(self, expectations):
-    # TODO(chrishenry): Implement this properly.
+    """This does not apply to android app user stories."""
     return 'pass', None
 
   def TearDownState(self, results):
+    """Tear down anything created in the __init__ method that is not needed.
+
+    Currently, there is no clean-up needed from SharedAppState.__init__.
+    """
     pass
