@@ -5,7 +5,6 @@
 from telemetry.core import web_contents
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends.chrome_inspector import devtools_client_backend
-from telemetry.core.backends.chrome_inspector import inspector_backend
 
 class WebViewNotFoundException(Exception):
   pass
@@ -29,19 +28,16 @@ class AndroidProcess(object):
     return self._name
 
   @property
-  def _webview_port(self):
+  def _remote_devtools_port(self):
     return 'localabstract:webview_devtools_remote_%s' % str(self.pid)
 
   def _UpdateDevToolsClient(self):
     if self._devtools_client is None:
-      self._app_backend._android_platform_backend.ForwardHostToDevice(
-          self._local_port, self._webview_port)
-      candidate_devtools_client = devtools_client_backend.DevToolsClientBackend(
-          self._local_port, self._app_backend)
-      # TODO(ariblue): Don't create a DevToolsClientBackend before confirming
-      # that a devtools agent exists. This involves a minor refactor of IsAlive.
-      if candidate_devtools_client.IsAlive():
-        self._devtools_client = candidate_devtools_client
+      self._app_backend.platform_backend.ForwardHostToDevice(
+          self._local_port, self._remote_devtools_port)
+      if devtools_client_backend.IsDevToolsAgentAvailable(self._local_port):
+        self._devtools_client = devtools_client_backend.DevToolsClientBackend(
+            self._local_port, self._remote_devtools_port, self._app_backend)
 
   def GetWebViews(self):
     webviews = []

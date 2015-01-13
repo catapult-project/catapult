@@ -70,10 +70,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   @property
   def devtools_client(self):
-    if not self._devtools_client:
-      assert self._port, 'No DevTools port info available.'
-      self._devtools_client = devtools_client_backend.DevToolsClientBackend(
-          self._port, self)
     return self._devtools_client
 
   @property
@@ -172,11 +168,19 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return replay_args
 
   def HasBrowserFinishedLaunching(self):
-    return self.devtools_client.IsAlive()
+    assert self._port, 'No DevTools port info available.'
+    return devtools_client_backend.IsDevToolsAgentAvailable(self._port)
 
-  def _WaitForBrowserToComeUp(self, wait_for_extensions=True):
+  def _WaitForBrowserToComeUp(
+      self, remote_devtools_port=None, wait_for_extensions=True):
+    """
+    Args:
+      remote_devtools_port: The remote devtools port, if
+          any. Otherwise assumed to be the same as self._port."""
     try:
       util.WaitFor(self.HasBrowserFinishedLaunching, timeout=30)
+      self._devtools_client = devtools_client_backend.DevToolsClientBackend(
+          self._port, remote_devtools_port or self._port, self)
     except (util.TimeoutException, exceptions.ProcessGoneException) as e:
       if not self.IsBrowserRunning():
         raise exceptions.BrowserGoneException(self.browser, e)

@@ -24,13 +24,6 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
   def testIsAlive(self):
     self.assertTrue(self._devtools_client.IsAlive())
 
-  def testIsNotAlive(self):
-    client = devtools_client_backend.DevToolsClientBackend(1000, None)
-    def StubRequest(*_, **__):
-      raise devtools_http.DevToolsClientConnectionError
-    client._devtools_http.Request = StubRequest
-    self.assertFalse(client.IsAlive())
-
   def testGetUpdatedInspectableContexts(self):
     self._browser.tabs.New()
     c1 = self._devtools_client.GetUpdatedInspectableContexts()

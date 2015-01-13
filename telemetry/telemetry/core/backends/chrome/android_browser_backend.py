@@ -259,11 +259,12 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                       action=None, data=url, category=None),
         blocking=True)
 
-    self.platform_backend.ForwardHostToDevice(
-        self._port, self._backend_settings.GetDevtoolsRemotePort(self._adb))
+    remote_devtools_port = self._backend_settings.GetDevtoolsRemotePort(
+        self._adb)
+    self.platform_backend.ForwardHostToDevice(self._port, remote_devtools_port)
 
     try:
-      self._WaitForBrowserToComeUp()
+      self._WaitForBrowserToComeUp(remote_devtools_port=remote_devtools_port)
     except exceptions.BrowserGoneException:
       logging.critical('Failed to connect to browser.')
       if not self._adb.device().old_interface.CanAccessProtectedFileContents():
