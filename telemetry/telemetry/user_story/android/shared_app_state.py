@@ -52,10 +52,10 @@ class SharedAppState(shared_user_story_state.SharedUserStoryState):
 
   def WillRunUserStory(self, user_story):
     assert not self._android_app
-    self._test.WillRunUserStory(self._android_platform.tracing_controller)
     self._current_user_story = user_story
     self._android_app = self._android_platform.LaunchAndroidApplication(
         user_story.start_intent, user_story.is_app_ready_predicate)
+    self._test.WillRunUserStory(self._android_platform.tracing_controller)
 
   def RunUserStory(self, results):
     self._current_user_story.Run(self)
