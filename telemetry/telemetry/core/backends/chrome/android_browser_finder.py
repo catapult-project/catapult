@@ -14,46 +14,47 @@ from telemetry.core import possible_browser
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
-from telemetry.core.platform import android_device
+from telemetry.core.backends import android_browser_backend_settings
 from telemetry.core.backends.chrome import android_browser_backend
+from telemetry.core.platform import android_device
 
 
 CHROME_PACKAGE_NAMES = {
   'android-content-shell':
       ['org.chromium.content_shell_apk',
-       android_browser_backend.ContentShellBackendSettings,
+       android_browser_backend_settings.ContentShellBackendSettings,
        'ContentShell.apk'],
   'android-chrome-shell':
       ['org.chromium.chrome.shell',
-       android_browser_backend.ChromeShellBackendSettings,
+       android_browser_backend_settings.ChromeShellBackendSettings,
        'ChromeShell.apk'],
   'android-webview':
       ['org.chromium.telemetry_shell',
-       android_browser_backend.WebviewBackendSettings,
+       android_browser_backend_settings.WebviewBackendSettings,
        None],
   'android-webview-shell':
       ['org.chromium.android_webview.shell',
-       android_browser_backend.WebviewShellBackendSettings,
+       android_browser_backend_settings.WebviewShellBackendSettings,
        'AndroidWebView.apk'],
   'android-chrome':
       ['com.google.android.apps.chrome',
-       android_browser_backend.ChromeBackendSettings,
+       android_browser_backend_settings.ChromeBackendSettings,
        'Chrome.apk'],
   'android-chrome-beta':
       ['com.chrome.beta',
-       android_browser_backend.ChromeBackendSettings,
+       android_browser_backend_settings.ChromeBackendSettings,
        None],
   'android-chrome-dev':
       ['com.google.android.apps.chrome_dev',
-       android_browser_backend.ChromeBackendSettings,
+       android_browser_backend_settings.ChromeBackendSettings,
        None],
   'android-chrome-canary':
       ['com.chrome.canary',
-       android_browser_backend.ChromeBackendSettings,
+       android_browser_backend_settings.ChromeBackendSettings,
        None],
   'android-jb-system-chrome':
       ['com.android.chrome',
-       android_browser_backend.ChromeBackendSettings,
+       android_browser_backend_settings.ChromeBackendSettings,
        None]
 }
 

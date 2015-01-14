@@ -11,6 +11,7 @@ from telemetry.core import exceptions
 from telemetry.core import forwarders
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
+from telemetry.core.backends import android_command_line_backend
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core.platform import android_platform_backend as \
@@ -20,118 +21,6 @@ from telemetry.core.forwarders import android_forwarder
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import device_errors  # pylint: disable=F0401
 from pylib.device import intent  # pylint: disable=F0401
-
-
-class AndroidBrowserBackendSettings(object):
-
-  def __init__(self, activity, cmdline_file, package, pseudo_exec_name,
-               supports_tab_control):
-    self.activity = activity
-    self._cmdline_file = cmdline_file
-    self.package = package
-    self.pseudo_exec_name = pseudo_exec_name
-    self.supports_tab_control = supports_tab_control
-
-  def GetCommandLineFile(self, is_user_debug_build):  # pylint: disable=W0613
-    return self._cmdline_file
-
-  def GetDevtoolsRemotePort(self, adb):
-    raise NotImplementedError()
-
-  @property
-  def profile_ignore_list(self):
-    # Don't delete lib, since it is created by the installer.
-    return ['lib']
-
-
-class ChromeBackendSettings(AndroidBrowserBackendSettings):
-  # Stores a default Preferences file, re-used to speed up "--page-repeat".
-  _default_preferences_file = None
-
-  def GetCommandLineFile(self, is_user_debug_build):
-    if is_user_debug_build:
-      return '/data/local/tmp/chrome-command-line'
-    else:
-      return '/data/local/chrome-command-line'
-
-  def __init__(self, package):
-    super(ChromeBackendSettings, self).__init__(
-        activity='com.google.android.apps.chrome.Main',
-        cmdline_file=None,
-        package=package,
-        pseudo_exec_name='chrome',
-        supports_tab_control=True)
-
-  def GetDevtoolsRemotePort(self, adb):
-    return 'localabstract:chrome_devtools_remote'
-
-
-class ContentShellBackendSettings(AndroidBrowserBackendSettings):
-  def __init__(self, package):
-    super(ContentShellBackendSettings, self).__init__(
-        activity='org.chromium.content_shell_apk.ContentShellActivity',
-        cmdline_file='/data/local/tmp/content-shell-command-line',
-        package=package,
-        pseudo_exec_name='content_shell',
-        supports_tab_control=False)
-
-  def GetDevtoolsRemotePort(self, adb):
-    return 'localabstract:content_shell_devtools_remote'
-
-
-class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
-  def __init__(self, package):
-    super(ChromeShellBackendSettings, self).__init__(
-          activity='org.chromium.chrome.shell.ChromeShellActivity',
-          cmdline_file='/data/local/tmp/chrome-shell-command-line',
-          package=package,
-          pseudo_exec_name='chrome_shell',
-          supports_tab_control=False)
-
-  def GetDevtoolsRemotePort(self, adb):
-    return 'localabstract:chrome_shell_devtools_remote'
-
-
-class WebviewBackendSettings(AndroidBrowserBackendSettings):
-  def __init__(self, package,
-               activity='org.chromium.telemetry_shell.TelemetryActivity',
-               cmdline_file='/data/local/tmp/webview-command-line'):
-    super(WebviewBackendSettings, self).__init__(
-        activity=activity,
-        cmdline_file=cmdline_file,
-        package=package,
-        pseudo_exec_name='webview',
-        supports_tab_control=False)
-
-  def GetDevtoolsRemotePort(self, adb):
-    # The DevTools socket name for WebView depends on the activity PID's.
-    retries = 0
-    timeout = 1
-    pid = None
-    while True:
-      pids = adb.ExtractPid(self.package)
-      if len(pids) > 0:
-        pid = pids[-1]
-        break
-      time.sleep(timeout)
-      retries += 1
-      timeout *= 2
-      if retries == 4:
-        logging.critical('android_browser_backend: Timeout while waiting for '
-                         'activity %s:%s to come up',
-                         self.package,
-                         self.activity)
-        raise exceptions.BrowserGoneException(self.browser,
-                                              'Timeout waiting for PID.')
-    return 'localabstract:webview_devtools_remote_%s' % str(pid)
-
-
-class WebviewShellBackendSettings(WebviewBackendSettings):
-  def __init__(self, package):
-    super(WebviewShellBackendSettings, self).__init__(
-        activity='org.chromium.android_webview.shell.AwShellActivity',
-        cmdline_file='/data/local/tmp/android-webview-command-line',
-        package=package)
 
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
@@ -153,7 +42,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._backend_settings = backend_settings
-    self._saved_cmdline = ''
     self._target_arch = target_arch
     self._saved_sslflag = ''
 
@@ -197,50 +85,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _KillBrowser(self):
     self.platform_backend.KillApplication(self._backend_settings.package)
 
-  def _SetUpCommandLine(self):
-    def QuoteIfNeeded(arg):
-      # Properly escape "key=valueA valueB" to "key='valueA valueB'"
-      # Values without spaces, or that seem to be quoted are left untouched.
-      # This is required so CommandLine.java can parse valueB correctly rather
-      # than as a separate switch.
-      params = arg.split('=', 1)
-      if len(params) != 2:
-        return arg
-      key, values = params
-      if ' ' not in values:
-        return arg
-      if values[0] in '"\'' and values[-1] == values[0]:
-        return arg
-      return '%s=%s' % (key, pipes.quote(values))
-    args = [self._backend_settings.pseudo_exec_name]
-    args.extend(self.GetBrowserStartupArgs())
-    content = ' '.join(QuoteIfNeeded(arg) for arg in args)
-    cmdline_file = self._backend_settings.GetCommandLineFile(
-        self._adb.IsUserBuild())
-
-    try:
-      # Save the current command line to restore later, except if it appears to
-      # be a  Telemetry created one. This is to prevent a common bug where
-      # --host-resolver-rules borks people's browsers if something goes wrong
-      # with Telemetry.
-      self._saved_cmdline = ''.join(self._adb.device().ReadFile(cmdline_file))
-      if '--host-resolver-rules' in self._saved_cmdline:
-        self._saved_cmdline = ''
-      self._adb.device().WriteFile(cmdline_file, content, as_root=True)
-    except device_errors.CommandFailedError:
-      logging.critical('Cannot set Chrome command line. '
-                       'Fix this by flashing to a userdebug build.')
-      sys.exit(1)
-
-  def _RestoreCommandLine(self):
-    cmdline_file = self._backend_settings.GetCommandLineFile(
-        self._adb.IsUserBuild())
-    self._adb.device().WriteFile(cmdline_file, self._saved_cmdline,
-                                 as_root=True)
-
   def Start(self):
-    self._SetUpCommandLine()
-
     self._adb.device().RunShellCommand('logcat -c')
     if self.browser_options.startup_url:
       url = self.browser_options.startup_url
@@ -253,34 +98,36 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self.platform_backend.DismissCrashDialogIfNeeded()
 
-    self._adb.device().StartActivity(
-        intent.Intent(package=self._backend_settings.package,
-                      activity=self._backend_settings.activity,
-                      action=None, data=url, category=None),
-        blocking=True)
-
     remote_devtools_port = self._backend_settings.GetDevtoolsRemotePort(
         self._adb)
     self.platform_backend.ForwardHostToDevice(self._port, remote_devtools_port)
 
-    try:
-      self._WaitForBrowserToComeUp(remote_devtools_port=remote_devtools_port)
-    except exceptions.BrowserGoneException:
-      logging.critical('Failed to connect to browser.')
-      if not self._adb.device().old_interface.CanAccessProtectedFileContents():
-        logging.critical(
-          'Resolve this by either: '
-          '(1) Flashing to a userdebug build OR '
-          '(2) Manually enabling web debugging in Chrome at '
-          'Settings > Developer tools > Enable USB Web debugging.')
-      sys.exit(1)
-    except:
-      import traceback
-      traceback.print_exc()
-      self.Close()
-      raise
-    finally:
-      self._RestoreCommandLine()
+    browser_startup_args = self.GetBrowserStartupArgs()
+    with android_command_line_backend.SetUpCommandLineFlags(
+        self._adb, self._backend_settings, browser_startup_args):
+      self._adb.device().StartActivity(
+          intent.Intent(package=self._backend_settings.package,
+                        activity=self._backend_settings.activity,
+                        action=None, data=url, category=None),
+          blocking=True)
+
+      try:
+        self._WaitForBrowserToComeUp(remote_devtools_port=remote_devtools_port)
+      except exceptions.BrowserGoneException:
+        logging.critical('Failed to connect to browser.')
+        device = self._adb.device()
+        if not device.old_interface.CanAccessProtectedFileContents():
+          logging.critical(
+            'Resolve this by either: '
+            '(1) Flashing to a userdebug build OR '
+            '(2) Manually enabling web debugging in Chrome at '
+            'Settings > Developer tools > Enable USB Web debugging.')
+        sys.exit(1)
+      except:
+        import traceback
+        traceback.print_exc()
+        self.Close()
+        raise
 
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()

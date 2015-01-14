@@ -10,9 +10,12 @@ from telemetry.core import util
 from telemetry.core import web_contents
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends import app_backend
+from telemetry.core.backends import android_browser_backend_settings
+from telemetry.core.backends import android_command_line_backend
 
 
 class AndroidAppBackend(app_backend.AppBackend):
+
   def __init__(self, android_platform_backend, start_intent,
                is_app_ready_predicate=None):
     super(AndroidAppBackend, self).__init__(
@@ -36,10 +39,15 @@ class AndroidAppBackend(app_backend.AppBackend):
     AppStory derivations can customize the wait-for-ready-state to wait
     for a more specific event if needed.
     """
-    # TODO(slamm): check if can use "blocking=True" instead of needing to sleep.
-    # If "blocking=True" does not work, switch sleep to "ps" check.
-    self._adb.device().StartActivity(self._start_intent, blocking=False)
-    util.WaitFor(self._IsAppReady, timeout=60)
+    webview_startup_args = self.GetWebviewStartupArgs()
+    backend_settings = android_browser_backend_settings.WebviewBackendSettings(
+        'android-webview')
+    with android_command_line_backend.SetUpCommandLineFlags(
+        self._adb, backend_settings, webview_startup_args):
+      # TODO(slamm): check if can use "blocking=True" instead of needing to
+      # sleep. If "blocking=True" does not work, switch sleep to "ps" check.
+      self._adb.device().StartActivity(self._start_intent, blocking=False)
+      util.WaitFor(self._IsAppReady, timeout=60)
     self._is_running = True
 
   def Close(self):
@@ -81,3 +89,15 @@ class AndroidAppBackend(app_backend.AppBackend):
     for process in self.GetProcesses():
       webviews.update(process.GetWebViews())
     return webviews
+
+  def GetWebviewStartupArgs(self):
+    args = []
+
+    # Turn on GPU benchmarking extension for all runs. The only side effect of
+    # the extension being on is that render stats are tracked. This is believed
+    # to be effectively free. And, by doing so here, it avoids us having to
+    # programmatically inspect a pageset's actions in order to determine if it
+    # might eventually scroll.
+    args.append('--enable-gpu-benchmarking')
+
+    return args
