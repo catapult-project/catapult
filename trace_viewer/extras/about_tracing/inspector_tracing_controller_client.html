@@ -73,7 +73,7 @@ tv.exportTo('tv.e.about_tracing', function() {
     },
 
     getCategories: function() {
-      var res = this.conn_.req('tv.c.getCategories', {});
+      var res = this.conn_.req('Tracing.getCategories', {});
       return res.then(function(result) {
         return result.categories;
       }, function(err) {
@@ -86,7 +86,7 @@ tv.exportTo('tv.e.about_tracing', function() {
         throw new Error('Already recording');
       this.recording_ = 'starting';
       var res = this.conn_.req(
-          'tv.c.start',
+          'Tracing.start',
           {
             categories: recordingOptions.categoryFilter,
             options:
@@ -101,7 +101,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       res = res.then(
           function ok() {
             this.conn_.setNotificationListener(
-                'tv.c.bufferUsage',
+                'Tracing.bufferUsage',
                 this.onBufferUsageUpdateFromInspector_.bind(this));
             this.recording_ = true;
           }.bind(this),
@@ -137,15 +137,15 @@ tv.exportTo('tv.e.about_tracing', function() {
 
       this.currentTraceTextChunks_ = ['['];
       this.conn_.setNotificationListener(
-          'tv.c.dataCollected', this.onDataCollected_.bind(this));
+          'Tracing.dataCollected', this.onDataCollected_.bind(this));
 
       var clearListeners = function() {
         this.conn_.setNotificationListener(
-            'tv.c.bufferUsage', undefined);
+            'Tracing.bufferUsage', undefined);
         this.conn_.setNotificationListener(
-            'tv.c.tracingComplete', undefined);
+            'Tracing.tracingComplete', undefined);
         this.conn_.setNotificationListener(
-            'tv.c.dataCollected', undefined);
+            'Tracing.dataCollected', undefined);
       }.bind(this);
 
       this.recording_ = 'stopping';
@@ -166,11 +166,11 @@ tv.exportTo('tv.e.about_tracing', function() {
         }
 
         this.conn_.setNotificationListener(
-            'tv.c.tracingComplete', tracingComplete.bind(this));
-        this.conn_.req('tv.c.end', {}).then(
+            'Tracing.tracingComplete', tracingComplete.bind(this));
+        this.conn_.req('Tracing.end', {}).then(
             function end() {
               // Nothing happens here. We're really waiting for
-              // tv.c.tracingComplete.
+              // Tracing.tracingComplete.
             }.bind(this),
             tracingFailed.bind(this));
       }.bind(this));
