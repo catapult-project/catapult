@@ -222,6 +222,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     self._CreateAsyncSlices()
     self._CreateFlowSlices()
     self._SetBrowserProcess()
+    self._SetGpuProcess()
     self._CreateExplicitObjects()
     self._CreateImplicitObjects()
 
@@ -395,3 +396,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     for thread in self._model.GetAllThreads():
       if thread.name == 'CrBrowserMain':
         self._model.browser_process = thread.parent
+
+  def _SetGpuProcess(self):
+    for thread in self._model.GetAllThreads():
+      if thread.name == 'CrGpuMain':
+        self._model.gpu_process = thread.parent
