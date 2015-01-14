@@ -73,12 +73,9 @@ class WprArchiveInfo(object):
     exists.
     """
     # Download all .wpr files.
-    if self._data:
-      return
     if not self._bucket:
       logging.warning('User story set in %s has no bucket specified, and '
                       'cannot be downloaded from cloud_storage.', )
-
     for archive_path in self._data['archives']:
       archive_path = self._WprFileNameToPath(archive_path)
       try:

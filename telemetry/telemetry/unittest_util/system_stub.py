@@ -182,6 +182,7 @@ class CloudStorageModuleStub(object):
     self.local_file_hashes = {}
     self.local_hash_files = {}
     self.permission_level = CloudStorageModuleStub.INTERNAL_PERMISSION
+    self.downloaded_files = []
 
   def SetPermissionLevelForTesting(self, permission_level):
     self.permission_level = permission_level
@@ -260,6 +261,7 @@ class CloudStorageModuleStub(object):
     local_hash = self.local_file_hashes[local_path]
     if only_if_changed and remote_hash == local_hash:
       return False
+    self.downloaded_files.append(remote_path)
     self.local_file_hashes[local_path] = remote_hash
     self.local_hash_files[local_path + '.sha1'] = remote_hash
     return remote_hash
