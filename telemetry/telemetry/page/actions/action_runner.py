@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 import time
+import logging
+import urlparse
 
 from telemetry.page.actions.javascript_click import ClickElementAction
 from telemetry.page.actions.loop import LoopAction
@@ -94,12 +96,13 @@ class ActionRunner(object):
                                  is_responsive, repeatable)
 
   def NavigateToPage(self, page, timeout_in_seconds=60):
-    """Navigate to the given page.
+    """Navigates to the given page.
 
-    Args:
-      page: page is an instance of page.Page
-      timeout_in_seconds: The timeout in seconds (default to 60).
+    TODO(ariblue): Remove this sometime in/after Feb 2015. NavigateToPage has
+    been deprecated since action_runner will support arbitrary user stories
+    and web contents.
     """
+    logging.warn('NavigateToPage is deprecated. Please use Navigate instead.')
     if page.is_file:
       target_side_url = self._tab.browser.http_server.UrlOf(page.file_path_url)
     else:
@@ -107,6 +110,22 @@ class ActionRunner(object):
     self._RunAction(NavigateAction(
         url=target_side_url,
         script_to_evaluate_on_commit=page.script_to_evaluate_on_commit,
+        timeout_in_seconds=timeout_in_seconds))
+
+  def Navigate(self, url, script_to_evaluate_on_commit=None,
+               timeout_in_seconds=60):
+    """Navigates to url.
+
+    If |script_to_evaluate_on_commit| is given, the script source string will be
+    evaluated when the navigation is committed. This is after the context of
+    the page exists, but before any script on the page itself has executed.
+    """
+    if urlparse.urlparse(url).scheme == 'file':
+      url = self._tab.browser.http_server.UrlOf(url[7:])
+
+    self._RunAction(NavigateAction(
+        url=url,
+        script_to_evaluate_on_commit=script_to_evaluate_on_commit,
         timeout_in_seconds=timeout_in_seconds))
 
   def WaitForNavigate(self, timeout_in_seconds_seconds=60):

@@ -96,7 +96,9 @@ class Page(user_story.UserStory):
     self._page_set.AddUserStory(self)
 
   def RunNavigateSteps(self, action_runner):
-    action_runner.NavigateToPage(self)
+    url = self.file_path_url_with_scheme if self.is_file else self.url
+    action_runner.Navigate(
+        url, script_to_evaluate_on_commit=self.script_to_evaluate_on_commit)
 
   def RunPageInteractions(self, action_runner):
     """Override this to define custom interactions with the page.
@@ -192,6 +194,10 @@ class Page(user_story.UserStory):
     if self.url.endswith('/'):
       file_path_url += os.sep
     return file_path_url
+
+  @property
+  def file_path_url_with_scheme(self):
+    return 'file://' + self.file_path_url
 
   @property
   def serving_dir(self):
