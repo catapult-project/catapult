@@ -64,18 +64,26 @@ tv.exportTo('tv.e.about_tracing', function() {
     },
 
     dispatchMessage_: function(payload) {
+      var isStringPayload = typeof payload === 'string';
       // Special handling for Tracing.dataCollected because it is high
       // bandwidth.
-      if (payload.indexOf('"method": "Tracing.dataCollected"') !== -1) {
+      var isDataCollectedMessage = isStringPayload ?
+          payload.indexOf('"method": "Tracing.dataCollected"') !== -1 :
+          payload.method === 'Tracing.dataCollected';
+      if (isDataCollectedMessage) {
         var listener = this.notificationListenersByMethodName_[
             'Tracing.dataCollected'];
         if (listener) {
-          listener(payload);
+          // FIXME(loislo): trace viewer should be able to process
+          // raw message object because string based version a few times
+          // slower on the browser side.
+          // see https://codereview.chromium.org/784513002.
+          listener(isStringPayload ? payload : JSON.stringify(payload));
           return;
         }
       }
 
-      var message = JSON.parse(payload);
+      var message = isStringPayload ? JSON.parse(payload) : payload;
       if (message.id) {
         var resolver = this.pendingRequestResolversId_[message.id];
         if (resolver === undefined) {
