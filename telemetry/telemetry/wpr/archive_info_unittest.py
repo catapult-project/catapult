@@ -8,6 +8,7 @@ import tempfile
 import unittest
 
 from telemetry.page import page
+from telemetry.unittest_util import system_stub
 from telemetry.util import cloud_storage
 from telemetry.wpr import archive_info
 
@@ -58,6 +59,23 @@ class WprArchiveInfoTest(unittest.TestCase):
     self.assertTrue(os.path.exists(file_path + '.sha1'))
     with open(file_path + '.sha1', 'rb') as f:
       self.assertEquals(cloud_storage.CalculateHash(file_path), f.read())
+
+  def testDownloadArchivesIfNeeded(self):
+    overrides = system_stub.Override(archive_info, ['cloud_storage'])
+    try:
+      cloud_storage_stub = overrides.cloud_storage
+      # Second hash doesn't match, need to fetch it.
+      cloud_storage_stub.SetRemotePathsForTesting(
+          {cloud_storage.PUBLIC_BUCKET: {recording1: "dummyhash",
+                                         recording2: "dummyhash22"}})
+      cloud_storage_stub.SetCalculatedHashesForTesting(
+          {os.path.join(self.tmp_dir, recording1): "dummyhash",
+           os.path.join(self.tmp_dir, recording2): "dummyhash2",})
+      self.archive_info.DownloadArchivesIfNeeded()
+      self.assertEquals(len(cloud_storage_stub.downloaded_files), 1)
+      self.assertEquals(cloud_storage_stub.downloaded_files[0], recording2)
+    finally:
+      overrides.Restore()
 
   def testReadingArchiveInfo(self):
     self.assertIsNotNone(self.archive_info.WprFilePathForUserStory(page1))
