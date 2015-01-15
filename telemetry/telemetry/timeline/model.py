@@ -62,6 +62,7 @@ class TimelineModel(event_container.TimelineEventContainer):
     self._thread_time_bounds = {}
     self._processes = {}
     self._browser_process = None
+    self._gpu_process = None
     self._surface_flinger_process = None
     self._frozen = False
     self._tab_ids_to_renderer_threads_map = {}
@@ -101,6 +102,16 @@ class TimelineModel(event_container.TimelineEventContainer):
   #pylint: disable=E0202
   def browser_process(self, browser_process):
     self._browser_process = browser_process
+
+  @property
+  #pylint: disable=E0202
+  def gpu_process(self):
+    return self._gpu_process
+
+  @gpu_process.setter
+  #pylint: disable=E0202
+  def gpu_process(self, gpu_process):
+    self._gpu_process = gpu_process
 
   @property
   #pylint: disable=E0202
