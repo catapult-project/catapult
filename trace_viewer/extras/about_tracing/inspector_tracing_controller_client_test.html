@@ -65,5 +65,17 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals(1, chunks.length);
     JSON.parse('[' + chunks.join('') + ']');
   });
+
+  test('stringAndObjectPayload', function() {
+    var connection = new tv.e.about_tracing.InspectorConnection();
+    connection.setNotificationListener('Tracing.dataCollected',
+        function(message) {
+          assertEquals(typeof message, 'string');
+          JSON.parse(message);
+        }
+    );
+    connection.dispatchMessage_('{ "method": "Tracing.dataCollected", "params": { "value": [] } }'); // @suppress longLineCheck
+    connection.dispatchMessage_({'method': 'Tracing.dataCollected', 'params': {'value': [] } }); // @suppress longLineCheck
+  });
 });
 </script>
