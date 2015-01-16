@@ -6,6 +6,7 @@ from telemetry import decorators
 from telemetry.core import platform
 from telemetry.core import web_contents
 from telemetry.core.backends import app_backend
+from telemetry.core.forwarders import do_nothing_forwarder
 
 
 class ExtensionsNotSupportedException(Exception):
@@ -23,6 +24,7 @@ class BrowserBackend(app_backend.AppBackend):
     self._supports_extensions = supports_extensions
     self.browser_options = browser_options
     self._tab_list_backend_class = tab_list_backend
+    self._forwarder_factory = None
 
   def SetBrowser(self, browser):
     super(BrowserBackend, self).SetApp(app=browser)
@@ -69,12 +71,21 @@ class BrowserBackend(app_backend.AppBackend):
   def supports_system_info(self):
     return False
 
+  @property
+  def forwarder_factory(self):
+    if not self._forwarder_factory:
+      self._forwarder_factory = do_nothing_forwarder.DoNothingForwarderFactory()
+    return self._forwarder_factory
+
   def StartTracing(self, trace_options, custom_categories=None,
                    timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     raise NotImplementedError()
 
   def StopTracing(self, trace_data_builder):
     raise NotImplementedError()
+
+  def GetRemotePort(self, port):
+    return port
 
   def Start(self):
     raise NotImplementedError()

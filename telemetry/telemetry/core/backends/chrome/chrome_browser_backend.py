@@ -134,7 +134,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def _UseHostResolverRules(self):
     """Returns True to add --host-resolver-rules to send requests to replay."""
-    if self._platform_backend.forwarder_factory.does_forwarder_override_dns:
+    if self.forwarder_factory.does_forwarder_override_dns:
       # Avoid --host-resolver-rules when the forwarder will map DNS requests
       # from the target platform to replay (on the host platform).
       # This allows the browser to exercise DNS requests.
@@ -155,9 +155,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       # and installed a root certificate.
       replay_args.append('--ignore-certificate-errors')
     if self._UseHostResolverRules():
-      # Force hostnames to resolve to the replay's host_ip.
       replay_args.append('--host-resolver-rules=MAP * %s,EXCLUDE localhost' %
-                         self._platform_backend.forwarder_factory.host_ip)
+                         self.forwarder_factory.host_ip)  # replay's host_ip
     # Force the browser to send HTTP/HTTPS requests to fixed ports if they
     # are not the standard HTTP/HTTPS ports.
     http_port = self.platform_backend.wpr_http_device_port

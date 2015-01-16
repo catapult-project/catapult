@@ -75,7 +75,7 @@ class NetworkControllerBackend(object):
     TODO(slamm): Update replay in SetReplayArgs once the browser_backend
         dependencies move to platform. https://crbug.com/423962
         browser_backend properties used:
-          - Input: wpr_port_pairs
+          - Input: forwarder_factory, wpr_port_pairs
           - Output: wpr_port_pairs (browser uses for --testing-fixed-* flags).
     Args:
       browser_backend: instance of telemetry.core.backends.browser_backend
@@ -129,12 +129,12 @@ class NetworkControllerBackend(object):
         wpr_mode, netsim, extra_wpr_args, make_javascript_deterministic,
         self._platform_backend.wpr_ca_cert_path)
     self._wpr_server = self._ReplayServer(
-        archive_path, self._platform_backend.forwarder_factory.host_ip,
+        archive_path, self._browser_backend.forwarder_factory.host_ip,
         wpr_http_port, wpr_https_port, wpr_dns_port, wpr_args)
     started_ports = self._wpr_server.StartServer()
 
     if not self._forwarder:
-      self._forwarder = self._platform_backend.forwarder_factory.Create(
+      self._forwarder = self._browser_backend.forwarder_factory.Create(
           _ForwarderPortPairs(started_ports, wpr_port_pairs))
 
     self._active_replay_args = self._pending_replay_args

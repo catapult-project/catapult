@@ -10,16 +10,10 @@ from telemetry.core.backends.chrome import chrome_browser_backend
 
 class FakePlatformBackend(object):
   def __init__(self, wpr_http_device_port, wpr_https_device_port,
-               is_host_platform, does_forwarder_override_dns):
+               is_host_platform):
     self.wpr_http_device_port = wpr_http_device_port
     self.wpr_https_device_port = wpr_https_device_port
-    self.does_forwarder_override_dns = does_forwarder_override_dns
     self.is_host_platform = is_host_platform
-
-  @property
-  def forwarder_factory(self):
-    return FakeForwarderFactory(self.does_forwarder_override_dns)
-
 
 class FakeBrowserOptions(object):
   def __init__(self, netsim=False, wpr_mode=wpr_modes.WPR_OFF):
@@ -44,13 +38,13 @@ class TestChromeBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                is_running_locally=False):
     super(TestChromeBrowserBackend, self).__init__(
         platform_backend=FakePlatformBackend(
-            wpr_http_device_port, wpr_https_device_port, is_running_locally,
-            does_forwarder_override_dns),
+            wpr_http_device_port, wpr_https_device_port, is_running_locally),
         supports_tab_control=False,
         supports_extensions=False,
         browser_options=browser_options,
         output_profile_path=None,
         extensions_to_load=None)
+    self._forwarder_factory = FakeForwarderFactory(does_forwarder_override_dns)
 
 
 class ReplayStartupArgsTest(unittest.TestCase):
