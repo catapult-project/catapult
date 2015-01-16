@@ -16,7 +16,6 @@ from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core.platform import android_platform_backend as \
   android_platform_backend_module
-from telemetry.core.forwarders import android_forwarder
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import device_errors  # pylint: disable=F0401
@@ -65,8 +64,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             self._backend_settings.package,
             self._backend_settings.profile_ignore_list)
 
-    self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
-        self._adb, use_rndis_forwarder)
+    # Configure platform to use the rndis forwarder.
+    # TODO(ariblue): Move this setting out of a browser-specific path, since
+    # apps may want to use the forwarder, as well.
+    self._platform_backend.SetRndisForwarder(use_rndis_forwarder)
 
     if self.browser_options.netsim or use_rndis_forwarder:
       assert use_rndis_forwarder, 'Netsim requires RNDIS forwarding.'
@@ -137,10 +138,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return args
 
   @property
-  def forwarder_factory(self):
-    return self._forwarder_factory
-
-  @property
   def adb(self):
     return self._adb
 
@@ -183,9 +180,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def IsBrowserRunning(self):
     return self.platform_backend.IsAppRunning(self._backend_settings.package)
-
-  def GetRemotePort(self, local_port):
-    return local_port
 
   def GetStandardOutput(self):
     return self.platform_backend.GetStandardOutput()

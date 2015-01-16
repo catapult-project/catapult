@@ -15,6 +15,10 @@ class FakePlatformBackend(object):
   def wpr_ca_cert_path(self):
     return None
 
+  @property
+  def forwarder_factory(self):
+    return FakeForwarderFactory()
+
 
 class FakeForwarderFactory(object):
   def __init__(self):
@@ -31,7 +35,6 @@ class FakeBrowserBackend(object):
       http=forwarders.PortPair(*http_ports),
       https=forwarders.PortPair(*https_ports),
       dns=forwarders.PortPair(*dns_ports) if dns_ports else None)
-    self.forwarder_factory = FakeForwarderFactory()
 
 
 class FakeReplayServer(object):

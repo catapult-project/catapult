@@ -4,6 +4,7 @@
 
 import weakref
 
+from telemetry.core.forwarders import do_nothing_forwarder
 from telemetry.core.platform import network_controller_backend
 from telemetry.core.platform import profiling_controller_backend
 from telemetry.core.platform import tracing_controller_backend
@@ -66,6 +67,7 @@ class PlatformBackend(object):
         tracing_controller_backend.TracingControllerBackend(self))
     self._profiling_controller_backend = (
         profiling_controller_backend.ProfilingControllerBackend(self))
+    self._forwarder_factory = None
 
   @classmethod
   def IsPlatformBackendForHost(cls):
@@ -110,6 +112,15 @@ class PlatformBackend(object):
   @property
   def profiling_controller_backend(self):
     return self._profiling_controller_backend
+
+  @property
+  def forwarder_factory(self):
+    if not self._forwarder_factory:
+      self._forwarder_factory = do_nothing_forwarder.DoNothingForwarderFactory()
+    return self._forwarder_factory
+
+  def GetRemotePort(self, port):
+    return port
 
   def DidCreateBrowser(self, browser, browser_backend):
     self.SetFullPerformanceModeEnabled(True)

@@ -15,6 +15,7 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import video
 from telemetry.core.backends import adb_commands
+from telemetry.core.forwarders import android_forwarder
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform
 from telemetry.core.platform import linux_based_platform_backend
@@ -89,6 +90,7 @@ class AndroidPlatformBackend(
     self._wpr_ca_cert_path = None
     self._device_cert_util = None
     self._is_test_ca_installed = False
+    self._use_rndis_forwarder = False
 
     _FixPossibleAdbInstability()
 
@@ -100,6 +102,19 @@ class AndroidPlatformBackend(
   def CreatePlatformForDevice(cls, device):
     assert cls.SupportsDevice(device)
     return android_platform.AndroidPlatform(AndroidPlatformBackend(device))
+
+  @property
+  def forwarder_factory(self):
+    if not self._forwarder_factory:
+      self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
+          self._adb, self._use_rndis_forwarder)
+
+    return self._forwarder_factory
+
+  def SetRndisForwarder(self, use_rndis_forwarder):
+    assert self._forwarder_factory is None, (
+        'Cannot switch to use rndis forwarding after forwarder is created.')
+    self._use_rndis_forwarder = use_rndis_forwarder
 
   @property
   def adb(self):

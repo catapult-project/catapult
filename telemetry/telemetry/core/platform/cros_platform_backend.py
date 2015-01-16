@@ -4,6 +4,7 @@
 
 from telemetry.core import platform
 from telemetry.core import util
+from telemetry.core.forwarders import cros_forwarder
 from telemetry.core.platform import cros_device
 from telemetry.core.platform import cros_interface
 from telemetry.core.platform import linux_based_platform_backend
@@ -39,6 +40,17 @@ class CrosPlatformBackend(
   @property
   def cri(self):
     return self._cri
+
+  @property
+  def forwarder_factory(self):
+    if not self._forwarder_factory:
+      self._forwarder_factory = cros_forwarder.CrOsForwarderFactory(self._cri)
+    return self._forwarder_factory
+
+  def GetRemotePort(self, port):
+    if self._cri.local:
+      return port
+    return self._cri.GetRemotePort()
 
   def IsThermallyThrottled(self):
     raise NotImplementedError()
