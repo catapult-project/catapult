@@ -31,7 +31,8 @@ class Browser(app.App):
                                   platform_backend=platform_backend)
     self._browser_backend = backend
     self._platform_backend = platform_backend
-    self._local_server_controller = local_server.LocalServerController(backend)
+    self._local_server_controller = local_server.LocalServerController(
+        platform_backend)
     self._tabs = tab_list.TabList(backend.tab_list_backend)
     self.credentials = browser_credentials.BrowserCredentials()
     self.credentials.credentials_path = credentials_path

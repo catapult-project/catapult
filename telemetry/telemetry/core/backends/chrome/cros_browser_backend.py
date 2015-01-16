@@ -11,7 +11,6 @@ from telemetry.core import forwarders
 from telemetry.core import util
 from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core.backends.chrome import misc_web_contents_backend
-from telemetry.core.forwarders import cros_forwarder
 
 
 class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
@@ -29,10 +28,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._forwarder = None
     self.wpr_port_pairs = forwarders.PortPairs(
         http=forwarders.PortPair(self.wpr_port_pairs.http.local_port,
-                                 self.GetRemotePort(
+                                 self._platform_backend.GetRemotePort(
                                      self.wpr_port_pairs.http.local_port)),
         https=forwarders.PortPair(self.wpr_port_pairs.https.local_port,
-                                  self.GetRemotePort(
+                                  self._platform_backend.GetRemotePort(
                                       self.wpr_port_pairs.http.local_port)),
         dns=None)
     self._remote_debugging_port = self._cri.GetRemotePort()
@@ -99,11 +98,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def profile_directory(self):
     return '/home/chronos/Default'
 
-  def GetRemotePort(self, port):
-    if self._cri.local:
-      return port
-    return self._cri.GetRemotePort()
-
   def __del__(self):
     self.Close()
 
@@ -124,7 +118,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     if not self._cri.local:
       self._port = util.GetUnreservedAvailableLocalPort()
-      self._forwarder = self.forwarder_factory.Create(
+      self._forwarder = self._platform_backend.forwarder_factory.Create(
           forwarders.PortPairs(
               http=forwarders.PortPair(self._port, self._remote_debugging_port),
               https=None,
@@ -173,11 +167,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self._cri.RmRF(os.path.dirname(e.local_path))
 
     self._cri = None
-
-  @property
-  @decorators.Cache
-  def forwarder_factory(self):
-    return cros_forwarder.CrOsForwarderFactory(self._cri)
 
   def IsBrowserRunning(self):
     return bool(self.pid)
