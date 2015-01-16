@@ -85,9 +85,3 @@ class TracingControllerBackend(object):
   @property
   def is_tracing_running(self):
     return self._current_trace_options != None
-
-  def DidStartBrowser(self, browser, browser_backend):
-    pass
-
-  def WillCloseBrowser(self, browser, browser_backend):
-    pass

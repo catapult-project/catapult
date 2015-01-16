@@ -121,12 +121,8 @@ class PlatformBackend(object):
   def DidStartBrowser(self, browser, browser_backend):
     assert browser not in self._running_browser_backends
     self._running_browser_backends.add(browser_backend)
-    self._tracing_controller_backend.DidStartBrowser(
-        browser, browser_backend)
 
   def WillCloseBrowser(self, browser, browser_backend):
-    self._tracing_controller_backend.WillCloseBrowser(
-        browser, browser_backend)
     self._profiling_controller_backend.WillCloseBrowser(
         browser_backend)
     # TODO(slamm): Move this call when replay's life cycle is no longer
