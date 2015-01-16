@@ -52,7 +52,7 @@ def CheckCopyright(input_api):
   project_name = 'Chromium'
 
   current_year = int(time.strftime('%Y'))
-  allow_old_years=False
+  allow_old_years=True
   if allow_old_years:
     allowed_years = (str(s) for s in reversed(xrange(2006, current_year + 1)))
   else:
