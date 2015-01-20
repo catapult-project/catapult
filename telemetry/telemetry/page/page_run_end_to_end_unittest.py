@@ -424,7 +424,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
 
-  @decorators.Disabled('mavericks')  # crbug.com/449970.
+  @decorators.Disabled('mac')  # crbug.com/449970.
   def testRunPageWithProfilingFlag(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
