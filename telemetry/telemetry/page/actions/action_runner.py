@@ -8,6 +8,7 @@ import urlparse
 
 from telemetry.page.actions.javascript_click import ClickElementAction
 from telemetry.page.actions.loop import LoopAction
+from telemetry.page.actions.mouse_click import MouseClickAction
 from telemetry.page.actions.navigate import NavigateAction
 from telemetry.page.actions.pinch import PinchAction
 from telemetry.page.actions.play import PlayAction
@@ -437,6 +438,14 @@ class ActionRunner(object):
         direction=direction, distance=distance,
         overscroll=overscroll, repeat_count=repeat_count,
         speed_in_pixels_per_second=speed_in_pixels_per_second))
+
+  def MouseClick(self, selector=None):
+    """Mouse click the given element.
+
+    Args:
+      selector: A CSS selector describing the element.
+    """
+    self._RunAction(MouseClickAction(selector=selector))
 
   def SwipePage(self, left_start_ratio=0.5, top_start_ratio=0.5,
                 direction='left', distance=100, speed_in_pixels_per_second=800):
