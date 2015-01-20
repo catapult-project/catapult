@@ -62,6 +62,10 @@ class TraceViewerProject(project_module.Project):
       self.non_module_html_files.appendRel(self.trace_viewer_path,
         'bin/trace_viewer_%s.html' % config_name)
 
+    # Igore the old viewer if it still exists.
+    self.non_module_html_files.appendRel(self.trace_viewer_path,
+      'bin/trace_viewer.html')
+
     self.non_module_html_files.extendRel(self.trace_viewer_third_party_path, [
       'gl-matrix/jsdoc-template/static/header.html',
       'gl-matrix/jsdoc-template/static/index.html',
