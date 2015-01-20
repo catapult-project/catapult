@@ -149,6 +149,7 @@ tv.exportTo('tv.b.ui', function() {
           'keydown', this.onKeyDown_, this);
       tv.b.KeyEventManager.instance.addListener(
           'keyup', this.onKeyUp_, this);
+      this.keyCodeCondition = undefined;
 
       this.mode_ = undefined;
       this.modeToKeyCodeMap_ = {};
@@ -327,6 +328,10 @@ tv.exportTo('tv.b.ui', function() {
       }
     },
 
+    setKeyCodeCondition: function(callback) {
+      this.keyCodeCondition = callback;
+    },
+
     setCurrentMousePosFromEvent_: function(e) {
       this.mousePos_.x = e.clientX;
       this.mousePos_.y = e.clientY;
@@ -419,6 +424,12 @@ tv.exportTo('tv.b.ui', function() {
     onKeyUp_: function(e) {
       if (e.keyCode === ' '.charCodeAt(0))
         this.spacePressed_ = false;
+
+      if (this.keyCodeCondition != undefined && !this.keyCodeCondition()) {
+        // If keyCodeCondition is false when the FindControl is active,
+        // ignore the keyUp event.
+        return;
+      }
 
       var didHandleKey = false;
       tv.b.iterItems(this.modeToKeyCodeMap_, function(modeStr, keyCode) {
