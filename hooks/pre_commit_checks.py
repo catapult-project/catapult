@@ -47,8 +47,6 @@ def _FindNewViolationsOfRule(callable_rule, input_api,
   return errors
 
 def CheckCopyright(input_api):
-  sources = input_api.AffectedFiles(include_deletes=False)
-
   project_name = 'Chromium'
 
   current_year = int(time.strftime('%Y'))
@@ -60,7 +58,7 @@ def CheckCopyright(input_api):
   years_re = '(' + '|'.join(allowed_years) + ')'
 
   # The (c) is deprecated, but tolerate it until it's removed from all files.
-  license_header = (
+  non_html_license_header = (
       r'.*? Copyright (\(c\) )?%(year)s The %(project)s Authors\. '
         r'All rights reserved\.\n'
       r'.*? Use of this source code is governed by a BSD-style license that '
@@ -70,7 +68,33 @@ def CheckCopyright(input_api):
       'year': years_re,
       'project': project_name,
   }
-  license_re = re.compile(license_header, re.MULTILINE)
+  non_html_license_re = re.compile(non_html_license_header, re.MULTILINE)
+
+  html_license_header = (
+      r'^Copyright (\(c\) )?%(year)s The %(project)s Authors\. '
+        r'All rights reserved\.\n'
+      r'Use of this source code is governed by a BSD-style license that '
+        r'can be\n'
+      r'found in the LICENSE file\.(?: \*/)?\n'
+  ) % {
+      'year': years_re,
+      'project': project_name,
+  }
+  html_license_re = re.compile(html_license_header, re.MULTILINE)
+
+  sources = list(input_api.AffectedFiles(include_deletes=False))
+
+  html_sources = [f for f in sources
+                  if os.path.splitext(f.filename)[1] == '.html']
+  non_html_sources = [f for f in sources
+                      if os.path.splitext(f.filename)[1] != '.html']
+
+  results = []
+  results += _Check(html_license_re, html_sources)
+  results += _Check(non_html_license_re, non_html_sources)
+  return results
+
+def _Check(license_re, sources):
   bad_files = []
   for f in sources:
     contents = f.contents
