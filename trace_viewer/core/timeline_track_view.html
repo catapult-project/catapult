@@ -202,6 +202,12 @@ tv.exportTo('tv.c', function() {
       this.mouseModeSelector_.setKeyCodeForMode(m.ZOOM, '3'.charCodeAt(0));
       this.mouseModeSelector_.setKeyCodeForMode(m.TIMING, '4'.charCodeAt(0));
 
+      this.mouseModeSelector_.setKeyCodeCondition(function() {
+        // Return false when FindControl is active so that MouseMode keyboard
+        // shortcuts are ignored.
+        return this.listenToKeys_;
+      }.bind(this));
+
       this.mouseModeSelector_.setModifierForAlternateMode(
           m.SELECTION, tv.b.ui.MODIFIER.SHIFT);
       this.mouseModeSelector_.setModifierForAlternateMode(
@@ -301,7 +307,7 @@ tv.exportTo('tv.c', function() {
 
     /**
      * Sets the element whose focus state will determine whether
-     * to respond to keybaord input.
+     * to respond to keyboard input.
      */
     set focusElement(value) {
       this.focusElement_ = value;
@@ -310,7 +316,7 @@ tv.exportTo('tv.c', function() {
     get listenToKeys_() {
       if (!this.viewport_.isAttachedToDocumentOrInTestMode)
         return false;
-      if (this.activeElement instanceof TracingFindControl)
+      if (document.activeElement instanceof TracingFindControl)
         return false;
       if (!this.focusElement_)
         return true;
