@@ -13,6 +13,7 @@ from telemetry.core import local_server
 from telemetry.core import memory_cache_http_server
 from telemetry.core import tab_list
 from telemetry.core.backends import browser_backend
+from telemetry.core.platform import profiling_controller
 
 
 class Browser(app.App):
@@ -52,6 +53,12 @@ class Browser(app.App):
     self._browser_backend.SetBrowser(self)
     self._browser_backend.Start()
     self._platform_backend.DidStartBrowser(self, self._browser_backend)
+    self._profiling_controller = profiling_controller.ProfilingController(
+        self._browser_backend.profiling_controller_backend)
+
+  @property
+  def profiling_controller(self):
+    return self._profiling_controller
 
   @property
   def browser_type(self):
@@ -218,6 +225,7 @@ class Browser(app.App):
       self._platform_backend.WillCloseBrowser(self, self._browser_backend)
 
     self._local_server_controller.Close()
+    self._browser_backend.profiling_controller_backend.WillCloseBrowser()
     self._browser_backend.Close()
     self.credentials = None
 

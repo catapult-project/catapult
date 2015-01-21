@@ -6,7 +6,6 @@ import weakref
 
 from telemetry.core.forwarders import do_nothing_forwarder
 from telemetry.core.platform import network_controller_backend
-from telemetry.core.platform import profiling_controller_backend
 from telemetry.core.platform import tracing_controller_backend
 
 
@@ -65,8 +64,6 @@ class PlatformBackend(object):
         network_controller_backend.NetworkControllerBackend(self))
     self._tracing_controller_backend = (
         tracing_controller_backend.TracingControllerBackend(self))
-    self._profiling_controller_backend = (
-        profiling_controller_backend.ProfilingControllerBackend(self))
     self._forwarder_factory = None
 
   @classmethod
@@ -110,10 +107,6 @@ class PlatformBackend(object):
     return self._tracing_controller_backend
 
   @property
-  def profiling_controller_backend(self):
-    return self._profiling_controller_backend
-
-  @property
   def forwarder_factory(self):
     if not self._forwarder_factory:
       self._forwarder_factory = do_nothing_forwarder.DoNothingForwarderFactory()
@@ -134,8 +127,6 @@ class PlatformBackend(object):
     self._running_browser_backends.add(browser_backend)
 
   def WillCloseBrowser(self, browser, browser_backend):
-    self._profiling_controller_backend.WillCloseBrowser(
-        browser_backend)
     # TODO(slamm): Move this call when replay's life cycle is no longer
     # tied to the browser. https://crbug.com/424777
     self._network_controller_backend.StopReplay()

@@ -9,7 +9,6 @@ from telemetry.core import discover
 from telemetry.core import util
 from telemetry.core.platform import network_controller
 from telemetry.core.platform import platform_backend as platform_backend_module
-from telemetry.core.platform import profiling_controller
 from telemetry.core.platform import tracing_controller
 
 
@@ -77,8 +76,6 @@ class Platform(object):
         self._platform_backend.network_controller_backend)
     self._tracing_controller = tracing_controller.TracingController(
         self._platform_backend.tracing_controller_backend)
-    self._profiling_controller = profiling_controller.ProfilingController(
-        self._platform_backend.profiling_controller_backend)
 
   @property
   def is_host_platform(self):
@@ -92,10 +89,6 @@ class Platform(object):
   @property
   def tracing_controller(self):
     return self._tracing_controller
-
-  @property
-  def profiling_controller(self):
-    return self._profiling_controller
 
   def CanMonitorThermalThrottling(self):
     """Platforms may be able to detect thermal throttling.

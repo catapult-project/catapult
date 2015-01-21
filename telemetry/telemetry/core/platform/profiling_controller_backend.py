@@ -5,8 +5,9 @@ from telemetry.core.platform.profiler import profiler_finder
 
 
 class ProfilingControllerBackend(object):
-  def __init__(self, platform_backend):
+  def __init__(self, platform_backend, browser_backend):
     self._platform_backend = platform_backend
+    self._browser_backend = browser_backend
     self._active_profilers = []
     self._profilers_states = {}
 
@@ -15,21 +16,9 @@ class ProfilingControllerBackend(object):
     |base_output_file|.<process_name>."""
     assert not self._active_profilers, 'Already profiling. Must stop first.'
 
-    browser_backend = None
-    # Note that many profilers doesn't rely on browser_backends, so the number
-    # of running_browser_backends may not matter for them.
-    num_running_browser_backends = len(
-        self._platform_backend.running_browser_backends)
-    if num_running_browser_backends == 1:
-      browser_backend = self._platform_backend.running_browser_backends[0]
-    else:
-      raise NotImplementedError(
-          'Profiling does not support %i browser instances at the same time' %
-          num_running_browser_backends)
-
     profiler_class = profiler_finder.FindProfiler(profiler_name)
 
-    if not profiler_class.is_supported(browser_backend.browser_type):
+    if not profiler_class.is_supported(self._browser_backend.browser_type):
       raise Exception('The %s profiler is not '
                       'supported on this platform.' % profiler_name)
 
@@ -37,7 +26,7 @@ class ProfilingControllerBackend(object):
       self._profilers_states[profiler_class] = {}
 
     self._active_profilers.append(
-        profiler_class(browser_backend, self._platform_backend,
+        profiler_class(self._browser_backend, self._platform_backend,
             base_output_file, self._profilers_states[profiler_class]))
 
   def Stop(self):
@@ -52,6 +41,7 @@ class ProfilingControllerBackend(object):
     self._active_profilers = []
     return output_files
 
-  def WillCloseBrowser(self, browser_backend):
+  def WillCloseBrowser(self):
     for profiler_class in self._profilers_states:
-      profiler_class.WillCloseBrowser(browser_backend, self._platform_backend)
+      profiler_class.WillCloseBrowser(
+        self._browser_backend, self._platform_backend)

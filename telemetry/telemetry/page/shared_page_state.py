@@ -272,12 +272,12 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
                     self._finder_options.pageset_repeat != 1)
     if is_repeating:
       output_file = util.GetSequentialFileName(output_file)
-    self.platform.profiling_controller.Start(
+    self.browser.profiling_controller.Start(
         self._finder_options.profiler, output_file)
 
   def _StopProfiling(self, results):
     if self.browser:
-      profiler_files = self.platform.profiling_controller.Stop()
+      profiler_files = self.browser.profiling_controller.Stop()
       for f in profiler_files:
         if os.path.isfile(f):
           results.AddProfilingFile(self._current_page,
