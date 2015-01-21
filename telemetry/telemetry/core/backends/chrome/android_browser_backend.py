@@ -99,10 +99,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self.platform_backend.DismissCrashDialogIfNeeded()
 
-    remote_devtools_port = self._backend_settings.GetDevtoolsRemotePort(
-        self._adb)
-    self.platform_backend.ForwardHostToDevice(self._port, remote_devtools_port)
-
     browser_startup_args = self.GetBrowserStartupArgs()
     with android_command_line_backend.SetUpCommandLineFlags(
         self._adb, self._backend_settings, browser_startup_args):
@@ -112,6 +108,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                         action=None, data=url, category=None),
           blocking=True)
 
+      remote_devtools_port = self._backend_settings.GetDevtoolsRemotePort(
+          self._adb)
+      self.platform_backend.ForwardHostToDevice(self._port,
+                                                remote_devtools_port)
       try:
         self._WaitForBrowserToComeUp(remote_devtools_port=remote_devtools_port)
       except exceptions.BrowserGoneException:
