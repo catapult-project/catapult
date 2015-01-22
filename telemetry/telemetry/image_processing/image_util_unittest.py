@@ -51,6 +51,12 @@ class ImageUtilTest(unittest.TestCase):
     new_file = image_util.FromPngFile(temp_file)
     self.assertTrue(image_util.AreEqual(orig, new_file, likely_equal=True))
 
+  def testWritePngWithoutPngSuffixThrows(self):
+    orig = image_util.FromPngFile(test_png_path)
+    temp_file = tempfile.NamedTemporaryFile().name
+    self.assertRaises(AssertionError, image_util.WritePngFile,
+                      orig, temp_file)
+
   def testWriteCroppedBmpToPngFile(self):
     pixels = [255,0,0, 255,255,0, 0,0,0,
               255,255,0, 0,255,0, 0,0,0]

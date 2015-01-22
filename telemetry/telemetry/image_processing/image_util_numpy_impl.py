@@ -33,7 +33,6 @@ def GetPixelColor(image, x, y):
   return rgba_color.RgbaColor(bgr[2], bgr[1], bgr[0])
 
 def WritePngFile(image, path):
-  assert(path.endswith('png'))
   if cv2 is not None:
     cv2.imwrite(path, image)
   else:

@@ -46,6 +46,13 @@ def GetPixelColor(image, x, y):
   return impl.GetPixelColor(image, x, y)
 
 def WritePngFile(image, path):
+  """Write an image to a PNG file.
+
+  Args:
+    image: an image object.
+    path: The path to the PNG file. Must end in 'png' or an
+          AssertionError will be raised."""
+  assert(path.endswith('png'))
   return impl.WritePngFile(image, path)
 
 def FromRGBPixels(width, height, pixels, bpp=3):
