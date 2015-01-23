@@ -77,12 +77,7 @@ class Benchmark(command_line.Command):
 
   @classmethod
   def Name(cls):
-    name = cls.__module__.split('.')[-1]
-    if hasattr(cls, 'tag'):
-      name += '.' + cls.tag
-    if hasattr(cls, 'page_set'):
-      name += '.' + cls.page_set.Name()
-    return name
+    return '%s.%s' % (cls.__module__.split('.')[-1], cls.__name__)
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
