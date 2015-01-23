@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/extras/audits/utils.html">
+<link rel="import" href="/extras/audits/chrome_audit.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Base class for trace data Auditors.
+ */
+tv.exportTo('tv.e.audits', function() {
+  var Auditor = tv.c.Auditor;
+
+  /**
+   * Auditor for Chrome-specific traces.
+   * @constructor
+   */
+  function ChromeAuditor(model) {
+    this.model = model;
+    if (tv.e.audits.ChromeAudit.supportsModel(this.model)) {
+      var audit = new tv.e.audits.ChromeAudit(this.model);
+
+      // Must be a browser in order to do audits.
+      if (audit.browser === undefined)
+        this.audit = undefined;
+      else
+        this.audit = audit;
+    } else {
+      this.audit = undefined;
+    }
+  };
+
+  ChromeAuditor.prototype = {
+    __proto__: Auditor.prototype,
+
+    runAudit: function() {
+      if (!this.audit)
+        return;
+
+      // ChromeAuditor is disabled when used directly inside about://tracing,
+      // for now.
+      if (window.profilingView)
+        return;
+
+      var allLoadAndNetEvents = this.getAllLoadAndNetEvents();
+      var allFrameEvents = this.getAllFrameEvents();
+      var allLatencyEvents = this.getAllLatencyEvents();
+      var allFrameAndLatencyEvents = [];
+      allFrameAndLatencyEvents.push.apply(allFrameAndLatencyEvents,
+                                          allFrameEvents);
+      allFrameAndLatencyEvents.push.apply(allFrameAndLatencyEvents,
+                                          allLatencyEvents);
+
+      function mergeEventsIntoIR(title, colorId, events) {
+        var e0 = events[0];
+        var eN = events[events.length - 1];
+        var ir = new tv.c.trace_model.InteractionRecord(
+            title, colorId,
+            e0.start, eN.end - e0.start);
+        ir.events = events;
+        return ir;
+      }
+
+      var addIRs = function(records) {
+        records.forEach(function(ir) {
+          this.model.addInteractionRecord(ir);
+        }, this);
+      }.bind(this);
+
+      var mergedLoadIRs = tv.e.audits.mergeEvents(
+          allLoadAndNetEvents, 300,
+          mergeEventsIntoIR.bind(
+              undefined, 'Loading/Net',
+              tv.b.ui.getColorIdForGeneralPurposeString('mt_loading')));
+      addIRs(mergedLoadIRs);
+
+      var mergedFrameIRs = tv.e.audits.mergeEvents(
+          allFrameEvents, 150,
+          mergeEventsIntoIR.bind(
+              undefined, 'Rendering',
+              tv.b.ui.getColorIdForGeneralPurposeString('mt_rendering')));
+      addIRs(mergedFrameIRs);
+
+      var mergedLatencyIRs = tv.e.audits.mergeEvents(
+          allLatencyEvents, 150,
+          mergeEventsIntoIR.bind(
+              undefined, 'Input',
+              tv.b.ui.getColorIdForGeneralPurposeString('mt_input')));
+      addIRs(mergedLatencyIRs);
+    },
+
+    getAllLoadAndNetEvents: function() {
+      var model = this.model;
+      if (this.audit.browser === undefined)
+        return;
+      var browser = this.audit.browser;
+
+      var events = [];
+      events.push.apply(
+          events, browser.getLoadingEventsInRange(model.bounds));
+      events.push.apply(
+          events, browser.getAllNetworkEventsInRange(model.bounds));
+      return events;
+    },
+
+    getAllFrameEvents: function() {
+      var model = this.model;
+      var frameEvents = [];
+      if (this.audit.browser) {
+        var fe = this.audit.browser.getFrameEventsInRange(
+            tv.e.audits.IMPL_FRAMETIME_TYPE,
+            model.bounds);
+        frameEvents.push.apply(frameEvents, fe);
+      }
+      tv.b.iterItems(this.audit.renderers, function(pid, renderer) {
+        var fe = renderer.getFrameEventsInRange(tv.e.audits.IMPL_FRAMETIME_TYPE,
+                                       model.bounds);
+        frameEvents.push.apply(frameEvents, fe);
+      }, this);
+      frameEvents.sort(function(x, y) { return x.start - y.start; });
+      return frameEvents;
+    },
+
+    getAllLatencyEvents: function() {
+      if (!this.audit.browser)
+        return [];
+      return this.audit.browser.getLatencyEventsInRange(this.model.bounds);
+    }
+  };
+
+  Auditor.register(ChromeAuditor);
+
+  return {
+    ChromeAuditor: ChromeAuditor
+  };
+});
+</script>

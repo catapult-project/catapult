@@ -27,8 +27,14 @@ tv.exportTo('tv.c.tracks', function() {
   function HackyMultiRowTrack(viewport, model) {
     var mrt = new tv.c.tracks.MultiRowTrack(viewport);
     mrt.buildSubRows_ = function(slices) {
+      slices.sort(function(x, y) {
+        var r = x.title.localeCompare(y.title);
+        if (r)
+          return r;
+        return x.start - y.start;
+      });
       return tv.c.tracks.AsyncSliceGroupTrack.prototype.buildSubRows_.call(
-          {}, slices);
+          {}, slices, true);
     };
     mrt.addSubTrack_ = function(slices) {
       var track = new tv.c.tracks.SliceTrack(this.viewport);
@@ -38,7 +44,11 @@ tv.exportTo('tv.c.tracks', function() {
     };
 
     mrt.setItemsToGroup(model.interaction_records, {
-      model: model
+      guid: tv.b.GUID.allocate(),
+      model: model,
+      getSettingsKey: function() {
+        return undefined;
+      }
     });
 
     return mrt;

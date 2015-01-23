@@ -25,6 +25,19 @@ tv.exportTo('tv.e.audits', function() {
   ChromeBrowserAudit.prototype = {
     __proto__: tv.e.audits.ChromeProcessAudit.prototype,
 
+    getLoadingEventsInRange: function(rangeOfInterest) {
+      var loadingEvents = [];
+      tv.b.iterItems(this.process.threads, function(tid, thread) {
+        thread.iterateAllEvents(function(event) {
+          if (event.title.indexOf('WebContentsImpl Loading') !== 0)
+            return;
+          if (rangeOfInterest.intersectsExplicitRange(event.start, event.end))
+            loadingEvents.push(event);
+        });
+      });
+      return loadingEvents;
+    },
+
     get hasLatencyEvents() {
       var hasLatency = false;
       this.audit.model.getAllThreads().forEach(function(thread) {
@@ -86,6 +99,27 @@ tv.exportTo('tv.e.audits', function() {
       });
       latencyData.sort(function(a, b) {return a.x - b.x});
       return latencyData;
+    },
+
+    getAllNetworkEventsInRange: function(rangeOfInterest) {
+      var networkEvents = [];
+      this.audit.model.getAllThreads().forEach(function(thread) {
+        thread.asyncSliceGroup.slices.forEach(function(slice) {
+          var match = false;
+          if (slice.cat == 'net' || // old-style URLRequest/Resource slices.
+              slice.cat == 'disabled-by-default-netlog' || // early netlog.
+              slice.cat == 'netlog') {
+            match = true;
+          }
+
+          if (!match)
+            return;
+
+          if (rangeOfInterest.intersectsExplicitRange(slice.start, slice.end))
+            networkEvents.push(slice);
+        });
+      });
+      return networkEvents;
     }
   };
 

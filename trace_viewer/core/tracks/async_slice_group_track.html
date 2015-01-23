@@ -67,10 +67,12 @@ tv.exportTo('tv.c.tracks', function() {
      * subSlices recursively into rows below parent slice according to which
      * nested level the child is in.
      */
-    buildSubRows_: function(slices) {
-      slices.sort(function(x, y) {
-        return x.start - y.start;
-      });
+    buildSubRows_: function(slices, opt_skipSort) {
+      if (!opt_skipSort) {
+        slices.sort(function(x, y) {
+          return x.start - y.start;
+        });
+      }
 
       // Helper function that returns true if it can put the slice on row n.
       var findLevel = function(sliceToPut, rows, n) {
