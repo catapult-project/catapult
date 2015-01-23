@@ -64,7 +64,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             self._backend_settings.package,
             self._backend_settings.profile_ignore_list)
 
-    if self.browser_options.netsim or self.platform_backend.use_rndis_forwarder:
+    if self.browser_options.netsim:
       assert self.platform_backend.use_rndis_forwarder, (
           'Netsim requires RNDIS forwarding.')
       self.wpr_port_pairs = forwarders.PortPairs(
