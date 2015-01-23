@@ -15,8 +15,8 @@ from telemetry.timeline import trace_data as trace_data_module
 
 
 def _IterAllTracingAgentClasses():
-  tracing_agent_dir = os.path.dirname(os.path.join(
-      os.path.realpath(__file__), 'tracing_agent'))
+  tracing_agent_dir = os.path.join(
+      os.path.dirname(os.path.realpath(__file__)), 'tracing_agent')
   return discover.DiscoverClasses(
       tracing_agent_dir, util.GetTelemetryDir(),
       tracing_agent.TracingAgent).itervalues()

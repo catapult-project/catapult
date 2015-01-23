@@ -60,11 +60,15 @@ class PlatformBackend(object):
       raise ValueError('Unsupported device: %s' % device.name)
     self._platform = None
     self._running_browser_backends = weakref.WeakSet()
+    self._network_controller_backend = None
+    self._tracing_controller_backend = None
+    self._forwarder_factory = None
+
+  def InitPlatformBackend(self):
     self._network_controller_backend = (
         network_controller_backend.NetworkControllerBackend(self))
     self._tracing_controller_backend = (
         tracing_controller_backend.TracingControllerBackend(self))
-    self._forwarder_factory = None
 
   @classmethod
   def IsPlatformBackendForHost(cls):

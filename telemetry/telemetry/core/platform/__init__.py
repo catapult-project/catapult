@@ -71,6 +71,7 @@ class Platform(object):
   """
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
+    self._platform_backend.InitPlatformBackend()
     self._platform_backend.SetPlatform(self)
     self._network_controller = network_controller.NetworkController(
         self._platform_backend.network_controller_backend)

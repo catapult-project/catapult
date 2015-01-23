@@ -20,7 +20,6 @@ class DisplayTracingAgent(tracing_agent.TracingAgent):
       return True
 
   def Stop(self, trace_data_builder):
-    assert self._is_tracing_running
     surface_flinger_trace_data = self._platform_backend.StopDisplayTracing()
     trace_data_builder.AddEventsTo(
           trace_data.SURFACE_FLINGER_PART, surface_flinger_trace_data)
