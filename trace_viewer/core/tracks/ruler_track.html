@@ -73,9 +73,10 @@ tv.exportTo('tv.c.tracks', function() {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 
-      var bounds = ctx.canvas.getBoundingClientRect();
-      var width = bounds.width * pixelRatio;
-      var height = bounds.height * pixelRatio;
+      var canvasBounds = ctx.canvas.getBoundingClientRect();
+      var trackBounds = this.getBoundingClientRect();
+      var width = canvasBounds.width * pixelRatio;
+      var height = trackBounds.height * pixelRatio;
 
       var hasInterestRange = !this.viewport.interestRange.isEmpty;
 
