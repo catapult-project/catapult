@@ -140,6 +140,37 @@ class PageRunEndToEndTests(unittest.TestCase):
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
 
+  def testNeedsBrowserRestartAfterEachPage(self):
+    self.SuppressExceptionFormatting()
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+
+    class Test(page_test.PageTest):
+      def __init__(self, *args, **kwargs):
+        super(Test, self).__init__(*args, **kwargs)
+        self.browser_starts = 0
+
+      def DidStartBrowser(self, *args):
+        super(Test, self).DidStartBrowser(*args)
+        self.browser_starts += 1
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
+
+    options = options_for_unittests.GetCopy()
+    options.output_formats = ['none']
+    options.suppress_gtest_report = True
+    test = Test(needs_browser_restart_after_each_page=True)
+    SetUpUserStoryRunnerArguments(options)
+    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    user_story_runner.Run(test, ps, expectations, options, results)
+    self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
+    self.assertEquals(2, test.browser_starts)
+
   def testHandlingOfCrashedTabWithExpectedFailure(self):
     self.SuppressExceptionFormatting()
     ps = page_set.PageSet()

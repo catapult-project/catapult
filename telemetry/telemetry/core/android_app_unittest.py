@@ -16,11 +16,11 @@ from telemetry.unittest_util import options_for_unittests
 
 class AndroidAppTest(unittest.TestCase):
   def setUp(self):
-    options = options_for_unittests.GetCopy()
-    self._device = android_device.GetDevice(options)
+    self._options = options_for_unittests.GetCopy()
+    self._device = android_device.GetDevice(self._options)
 
   def CreateAndroidApp(self, start_intent):
-    platform = platform_module.GetPlatformForDevice(self._device)
+    platform = platform_module.GetPlatformForDevice(self._device, self._options)
     platform_backend = platform._platform_backend
     app_backend = android_app_backend.AndroidAppBackend(
         platform_backend, start_intent)

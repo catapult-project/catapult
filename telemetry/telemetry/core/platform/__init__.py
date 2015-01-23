@@ -43,7 +43,7 @@ def _IterAllPlatformBackendClasses():
       platform_backend_module.PlatformBackend).itervalues()
 
 
-def GetPlatformForDevice(device, logging=real_logging):
+def GetPlatformForDevice(device, finder_options, logging=real_logging):
   """ Returns a platform instance for the device.
     Args:
       device: a device.Device instance.
@@ -54,7 +54,8 @@ def GetPlatformForDevice(device, logging=real_logging):
     for platform_backend_class in _IterAllPlatformBackendClasses():
       if platform_backend_class.SupportsDevice(device):
         _remote_platforms[device.guid] = (
-            platform_backend_class.CreatePlatformForDevice(device))
+            platform_backend_class.CreatePlatformForDevice(device,
+                                                           finder_options))
         return _remote_platforms[device.guid]
     return None
   except Exception:

@@ -37,7 +37,7 @@ class SharedAppState(shared_user_story_state.SharedUserStoryState):
     self._android_app = None
     self._current_user_story = None
     self._android_platform = platform.GetPlatformForDevice(
-        android_device.GetDevice(finder_options))
+        android_device.GetDevice(finder_options), finder_options)
     assert self._android_platform, 'Unable to create android platform.'
     assert isinstance(
         self._android_platform, android_platform.AndroidPlatform)

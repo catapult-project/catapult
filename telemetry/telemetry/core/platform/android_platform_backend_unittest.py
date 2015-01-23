@@ -8,10 +8,12 @@ from telemetry import decorators
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform_backend
 from telemetry.unittest_util import system_stub
+from telemetry.unittest_util import options_for_unittests
 
 
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):
+    self._options = options_for_unittests.GetCopy()
     self._stubs = system_stub.Override(
         android_platform_backend,
         ['perf_control', 'thermal_throttle', 'adb_commands', 'certutils',
@@ -37,7 +39,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     old_interface = self._stubs.adb_commands.adb_device.old_interface
     old_interface.can_access_protected_file_contents = True
     backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('12345'))
+        android_device.AndroidDevice('12345'), self._options)
     cpu_stats = backend.GetCpuStats('7702')
     self.assertEquals(cpu_stats, {'CpuProcessTime': 0.05})
 
@@ -45,7 +47,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
   def testGetCpuStatsInvalidPID(self):
     # Mock an empty /proc/pid/stat.
     backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('1234'))
+        android_device.AndroidDevice('1234'), self._options)
     cpu_stats = backend.GetCpuStats('7702')
     self.assertEquals(cpu_stats, {})
 
@@ -74,12 +76,12 @@ class AndroidPlatformBackendTest(unittest.TestCase):
 
   def testInstallTestCaFailure(self):
     backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('failure'))
+        android_device.AndroidDevice('failure'), self._options)
     backend.InstallTestCa()
     self.assertFalse(backend.is_test_ca_installed)
 
   def testInstallTestCaSuccess(self):
     backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('success'))
+        android_device.AndroidDevice('success'), self._options)
     backend.InstallTestCa()
     self.assertTrue(backend.is_test_ca_installed)

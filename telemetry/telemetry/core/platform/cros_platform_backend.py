@@ -33,7 +33,7 @@ class CrosPlatformBackend(
     return isinstance(device, cros_device.CrOSDevice)
 
   @classmethod
-  def CreatePlatformForDevice(cls, device):
+  def CreatePlatformForDevice(cls, device, finder_options):
     assert cls.SupportsDevice(device)
     return platform.Platform(CrosPlatformBackend(device))
 

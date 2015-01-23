@@ -83,7 +83,7 @@ class PlatformBackend(object):
     return False
 
   @classmethod
-  def CreatePlatformForDevice(cls, device):
+  def CreatePlatformForDevice(cls, device, finder_options):
     raise NotImplementedError
 
   def SetPlatform(self, platform):

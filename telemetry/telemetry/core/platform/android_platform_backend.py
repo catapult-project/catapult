@@ -16,6 +16,7 @@ from telemetry.core import util
 from telemetry.core import video
 from telemetry.core.backends import adb_commands
 from telemetry.core.forwarders import android_forwarder
+from telemetry.core import platform
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform
 from telemetry.core.platform import linux_based_platform_backend
@@ -53,7 +54,7 @@ except ImportError:
 
 class AndroidPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
-  def __init__(self, device):
+  def __init__(self, device, finder_options):
     assert device, (
         'AndroidPlatformBackend can only be initialized from remote device')
     super(AndroidPlatformBackend, self).__init__(device)
@@ -90,7 +91,11 @@ class AndroidPlatformBackend(
     self._wpr_ca_cert_path = None
     self._device_cert_util = None
     self._is_test_ca_installed = False
-    self._use_rndis_forwarder = False
+
+    self._use_rndis_forwarder = (
+        finder_options.android_rndis or
+        finder_options.browser_options.netsim or
+        platform.GetHostPlatform().GetOSName() != 'linux')
 
     _FixPossibleAdbInstability()
 
@@ -99,9 +104,10 @@ class AndroidPlatformBackend(
     return isinstance(device, android_device.AndroidDevice)
 
   @classmethod
-  def CreatePlatformForDevice(cls, device):
+  def CreatePlatformForDevice(cls, device, finder_options):
     assert cls.SupportsDevice(device)
-    return android_platform.AndroidPlatform(AndroidPlatformBackend(device))
+    platform_backend = AndroidPlatformBackend(device, finder_options)
+    return android_platform.AndroidPlatform(platform_backend)
 
   @property
   def forwarder_factory(self):
@@ -111,10 +117,9 @@ class AndroidPlatformBackend(
 
     return self._forwarder_factory
 
-  def SetRndisForwarder(self, use_rndis_forwarder):
-    assert self._forwarder_factory is None, (
-        'Cannot switch to use rndis forwarding after forwarder is created.')
-    self._use_rndis_forwarder = use_rndis_forwarder
+  @property
+  def use_rndis_forwarder(self):
+    return self._use_rndis_forwarder
 
   @property
   def adb(self):

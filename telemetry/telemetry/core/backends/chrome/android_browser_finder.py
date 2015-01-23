@@ -107,14 +107,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   def Create(self, finder_options):
     self._InitPlatformIfNeeded()
-
-    use_rndis_forwarder = (finder_options.android_rndis or
-                           finder_options.browser_options.netsim or
-                           platform.GetHostPlatform().GetOSName() != 'linux')
     browser_backend = android_browser_backend.AndroidBrowserBackend(
         self._platform_backend,
         finder_options.browser_options, self._backend_settings,
-        use_rndis_forwarder,
         output_profile_path=finder_options.output_profile_path,
         extensions_to_load=finder_options.extensions_to_load,
         target_arch=finder_options.target_arch)
@@ -214,5 +209,5 @@ def FindAllAvailableBrowsers(finder_options):
   device = android_device.GetDevice(finder_options)
   if not device:
     return []
-  android_platform = platform.GetPlatformForDevice(device)
+  android_platform = platform.GetPlatformForDevice(device, finder_options)
   return _FindAllPossibleBrowsers(finder_options, android_platform)

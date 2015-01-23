@@ -25,8 +25,8 @@ from pylib.device import intent  # pylint: disable=F0401
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android."""
   def __init__(self, android_platform_backend, browser_options,
-               backend_settings, use_rndis_forwarder, output_profile_path,
-               extensions_to_load, target_arch):
+               backend_settings, output_profile_path, extensions_to_load,
+               target_arch):
     assert isinstance(android_platform_backend,
                       android_platform_backend_module.AndroidPlatformBackend)
     super(AndroidBrowserBackend, self).__init__(
@@ -64,13 +64,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             self._backend_settings.package,
             self._backend_settings.profile_ignore_list)
 
-    # Configure platform to use the rndis forwarder.
-    # TODO(ariblue): Move this setting out of a browser-specific path, since
-    # apps may want to use the forwarder, as well.
-    self._platform_backend.SetRndisForwarder(use_rndis_forwarder)
-
-    if self.browser_options.netsim or use_rndis_forwarder:
-      assert use_rndis_forwarder, 'Netsim requires RNDIS forwarding.'
+    if self.browser_options.netsim or self.platform_backend.use_rndis_forwarder:
+      assert self.platform_backend.use_rndis_forwarder, (
+          'Netsim requires RNDIS forwarding.')
       self.wpr_port_pairs = forwarders.PortPairs(
           http=forwarders.PortPair(0, 80),
           https=forwarders.PortPair(0, 443),
