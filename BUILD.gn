@@ -28,7 +28,6 @@ tracing_css_files = [
   "trace_viewer/core/tracks/ruler_track.css",
   "trace_viewer/core/tracks/spacing_track.css",
   "trace_viewer/core/tracks/thread_track.css",
-  "trace_viewer/core/tracks/trace_model_track.css",
   "trace_viewer/core/tracks/track.css",
   "trace_viewer/extras/about_tracing/common.css",
   "trace_viewer/extras/cc/display_item_view.css",
