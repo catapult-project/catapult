@@ -197,8 +197,7 @@ class TimelineBasedMeasurement(object):
       category_filter.AddSyntheticDelay(delay)
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True
-    if tracing_controller.IsDisplayTracingSupported():
-      options.enable_platform_display_trace = True
+    options.enable_platform_display_trace = True
     tracing_controller.Start(options, category_filter)
 
   def Measure(self, tracing_controller, results):

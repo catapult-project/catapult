@@ -6,10 +6,11 @@ import logging
 import re
 
 from telemetry import decorators
+from telemetry.timeline import trace_data as trace_data_module
 from telemetry.core.backends.chrome_inspector import devtools_http
 from telemetry.core.backends.chrome_inspector import inspector_backend
 from telemetry.core.backends.chrome_inspector import tracing_backend
-from telemetry.timeline import trace_data as trace_data_module
+from telemetry.core.platform.tracing_agent import chrome_tracing_agent
 
 
 def IsDevToolsAgentAvailable(port):
@@ -48,10 +49,10 @@ class DevToolsClientBackend(object):
     self._devtools_context_map_backend = _DevToolsContextMapBackend(
         self._app_backend, self)
 
-    tracing_controller_backend = (
-        self._app_backend.platform_backend.tracing_controller_backend)
-    tracing_controller_backend.RegisterDevToolsClient(self)
+    chrome_tracing_agent.ChromeTracingAgent.RegisterDevToolsClient(
+      self, self._app_backend.platform_backend)
 
+  @property
   def remote_port(self):
     return self._remote_devtools_port
 
