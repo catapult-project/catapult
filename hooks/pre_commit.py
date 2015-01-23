@@ -127,10 +127,14 @@ def RunChecks(input_api):
   results += pre_commit_checks.RunChecks(input_api)
 
   from trace_viewer.build import check_gyp
-  results += check_gyp.GypCheck()
+  err = check_gyp.GypCheck()
+  if err:
+    results += [err]
 
   from trace_viewer.build import check_gn
-  results += check_gn.GnCheck()
+  err = check_gn.GnCheck()
+  if err:
+    results += [err]
 
   from hooks import js_checks
   results += js_checks.RunChecks(input_api)
