@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/trace_model/slice.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the Thread class.
+ */
+tv.exportTo('tv.c.trace_model', function() {
+  var Slice = tv.c.trace_model.Slice;
+
+  /**
+   * A ThreadSlice represents an interval of time on a thread resource
+   * with associated nestinged slice information.
+   *
+   * ThreadSlices are typically associated with a specific trace event pair on a
+   * specific thread.
+   * For example,
+   *   TRACE_EVENT_BEGIN1("x","myArg", 7) at time=0.1ms
+   *   TRACE_EVENT_END0()                 at time=0.3ms
+   * This results in a single slice from 0.1 with duration 0.2 on a
+   * specific thread.
+   *
+   * @constructor
+   */
+  function ThreadSlice(cat, title, colorId, start, args, opt_duration,
+                       opt_cpuStart, opt_cpuDuration) {
+    Slice.call(this, cat, title, colorId, start, args, opt_duration,
+               opt_cpuStart, opt_cpuDuration);
+    // Do not modify this directly.
+    // subSlices is configured by SliceGroup.rebuildSubRows_.
+    this.subSlices = [];
+  }
+
+  ThreadSlice.prototype = {
+    __proto__: Slice.prototype
+  };
+  return {
+    ThreadSlice: ThreadSlice
+  };
+});
+</script>

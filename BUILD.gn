@@ -158,6 +158,7 @@ tracing_js_html_files = [
   "trace_viewer/core/trace_model/slice_group.html",
   "trace_viewer/core/trace_model/stack_frame.html",
   "trace_viewer/core/trace_model/thread.html",
+  "trace_viewer/core/trace_model/thread_slice.html",
   "trace_viewer/core/trace_model/thread_time_slice.html",
   "trace_viewer/core/trace_model/time_to_object_instance_map.html",
   "trace_viewer/core/trace_model/timed_event.html",

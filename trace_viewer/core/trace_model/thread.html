@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/trace_model/slice.html">
+<link rel="import" href="/core/trace_model/thread_slice.html">
 <link rel="import" href="/core/trace_model/slice_group.html">
 <link rel="import" href="/core/trace_model/async_slice_group.html">
 <link rel="import" href="/base/guid.html">
@@ -22,6 +22,7 @@ tv.exportTo('tv.c.trace_model', function() {
   var SliceGroup = tv.c.trace_model.SliceGroup;
   var AsyncSlice = tv.c.trace_model.AsyncSlice;
   var AsyncSliceGroup = tv.c.trace_model.AsyncSliceGroup;
+  var ThreadSlice = tv.c.trace_model.ThreadSlice;
 
   /**
    * A ThreadSlice represents an interval of time on a thread resource
@@ -302,7 +303,6 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   return {
-    ThreadSlice: ThreadSlice,
     Thread: Thread
   };
 });
