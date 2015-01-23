@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/extension_registry.html">
+<script>
+'use strict';
+
+/**
+ * @fileoverview Base class for auditors.
+ */
+tv.exportTo('tv.c', function() {
+  function Auditor(model) {
+  }
+
+  Auditor.prototype = {
+    __proto__: Object.prototype,
+
+    /**
+     * Called by the Model after importing. Should not modify model, except
+     * for adding interaction ranges and audits.
+     */
+    runAudit: function() {
+    }
+  };
+
+  var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
+  options.defaultMetadata = {};
+  options.mandatoryBaseClass = Auditor;
+  tv.b.decorateExtensionRegistry(Auditor, options);
+
+  return {
+    Auditor: Auditor
+  };
+});
+</script>

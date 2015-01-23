@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/core/trace_model/timed_event.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c.trace_model', function() {
+  function InteractionRecord(title, colorId, start, duration) {
+    tv.c.trace_model.TimedEvent.call(this, start);
+    this.title = title;
+    this.colorId = colorId;
+    this.duration = duration;
+  }
+  InteractionRecord.prototype = {
+    __proto__: tv.c.trace_model.TimedEvent.prototype,
+
+    get subSlices() {
+      return [];
+    }
+  };
+
+  tv.c.trace_model.EventRegistry.register(
+      InteractionRecord,
+      {
+        name: 'interactionRange',
+        pluralName: 'interactionRanges',
+        singleViewElementName: 'tv-c-single-interaction-range-sub-view',
+        multiViewElementName: 'tv-c-multi-interaction-range-sub-view'
+      });
+
+  return {
+    InteractionRecord: InteractionRecord
+  };
+});
+</script>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/core/trace_model/timed_event.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c.trace_model', function() {
+
+  var ALERT_SEVERITY = {
+    CRITICAL: 'high',
+    WARNING: 'warning'
+  };
+
+  function Alert(title, colorId, severity, start, args, opt_duration) {
+    tv.c.trace_model.TimedEvent.call(this, start);
+    this.title = title;
+    this.colorId = colorId;
+    this.severity = severity;
+    this.args = args;
+
+    if (opt_duration !== undefined)
+      this.duration = opt_duration;
+  }
+  Alert.prototype = {
+    __proto__: tv.c.trace_model.TimedEvent.prototype
+  };
+
+  tv.c.trace_model.EventRegistry.register(
+      Alert,
+      {
+        name: 'alert',
+        pluralName: 'alerts',
+        singleViewElementName: 'tv-c-single-alert-sub-view',
+        multiViewElementName: 'tv-c-multi-alert-sub-view'
+      });
+
+  return {
+    Alert: Alert,
+    ALERT_SEVERITY: ALERT_SEVERITY
+  };
+});
+</script>
