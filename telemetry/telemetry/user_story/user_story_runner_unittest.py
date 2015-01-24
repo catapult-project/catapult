@@ -438,16 +438,20 @@ class UserStoryRunnerTest(unittest.TestCase):
     uss.AddUserStory(page_module.Page(
         'http://www.testurl.com', uss, uss.base_dir))
     # Page set missing archive_data_file.
-    self.assertFalse(user_story_runner._UpdateAndCheckArchives(
-        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
+    self.assertRaises(
+        user_story_runner.ArchiveError,
+        user_story_runner._UpdateAndCheckArchives,
+        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
 
     uss = user_story_set.UserStorySet(
         archive_data_file='missing_archive_data_file.json')
     uss.AddUserStory(page_module.Page(
         'http://www.testurl.com', uss, uss.base_dir))
     # Page set missing json file specified in archive_data_file.
-    self.assertFalse(user_story_runner._UpdateAndCheckArchives(
-        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
+    self.assertRaises(
+        user_story_runner.ArchiveError,
+        user_story_runner._UpdateAndCheckArchives,
+        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
 
     uss = user_story_set.UserStorySet(
         archive_data_file='../../unittest_data/archive_files/test.json',
@@ -460,8 +464,10 @@ class UserStoryRunnerTest(unittest.TestCase):
     uss.AddUserStory(page_module.Page(
         'http://www.google.com', uss, uss.base_dir))
     # Page set with an archive_data_file which exists but is missing a page.
-    self.assertFalse(user_story_runner._UpdateAndCheckArchives(
-        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
+    self.assertRaises(
+        user_story_runner.ArchiveError,
+        user_story_runner._UpdateAndCheckArchives,
+        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
 
     uss = user_story_set.UserStorySet(
         archive_data_file='../../unittest_data/test_missing_wpr_file.json',
@@ -472,8 +478,10 @@ class UserStoryRunnerTest(unittest.TestCase):
         'http://www.google.com', uss, uss.base_dir))
     # Page set with an archive_data_file which exists and contains all pages
     # but fails to find a wpr file.
-    self.assertFalse(user_story_runner._UpdateAndCheckArchives(
-        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
+    self.assertRaises(
+        user_story_runner.ArchiveError,
+        user_story_runner._UpdateAndCheckArchives,
+        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
 
 
   def _testMaxFailuresOptionIsRespectedAndOverridable(

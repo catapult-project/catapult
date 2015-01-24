@@ -26,6 +26,10 @@ from telemetry.value import failure
 from telemetry.value import skip
 
 
+class ArchiveError(Exception):
+  pass
+
+
 def AddCommandLineArgs(parser):
   user_story_filter.UserStoryFilter.AddCommandLineArgs(parser)
   results_options.AddResultsOptions(parser)
@@ -324,13 +328,13 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
                     '--use-live-sites.\nTo create an archive file add an '
                     'archive_data_file property to the user story set and then '
                     'run record_wpr.')
-      return False
+      raise ArchiveError('No archive data file.')
     if not wpr_archive_info:
       logging.error('The archive info file is missing.\n'
                     'To fix this, either add svn-internal to your '
                     '.gclient using http://goto/read-src-internal, '
                     'or create a new archive using record_wpr.')
-      return False
+      raise ArchiveError('No archive info file.')
     wpr_archive_info.DownloadArchivesIfNeeded()
 
   # Report any problems with individual user story.
@@ -366,7 +370,7 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
         ', '.join(user_story.display_name
                   for user_story in user_stories_missing_archive_data))
   if user_stories_missing_archive_path or user_stories_missing_archive_data:
-    return False
+    raise ArchiveError('Archive file is missing user stories.')
   # Only run valid user stories if no problems with the user story set or
   # individual user stories.
   return True
