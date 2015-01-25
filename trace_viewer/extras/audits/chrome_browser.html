@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/iteration_helpers.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Utilities for accessing trace data about the Chrome browser.
+ */
+tv.exportTo('tv.e.audits', function() {
+  var BROWSER_PROCESS_NAME = 'CrBrowserMain';
+  var RENDERER_PROCESS_NAME = 'CrRendererMain';
+
+  /**
+   * @constructor
+   */
+  function ChromeBrowser(traceModel) {
+    this.traceModel = traceModel;
+  }
+
+  ChromeBrowser.prototype = {
+    get browserProcess() {
+      var browserProcess = undefined;
+      this.traceModel.getAllProcesses().forEach(function(process) {
+        if (process.findAllThreadsNamed(BROWSER_PROCESS_NAME).length !== 0)
+          browserProcess = process;
+      });
+      return browserProcess;
+    },
+
+    get rendererProcesses() {
+      var rendererProcesses = [];
+      this.traceModel.getAllProcesses().forEach(function(process) {
+        if (process.findAllThreadsNamed(RENDERER_PROCESS_NAME).length !== 0)
+          rendererProcesses.push(process);
+      });
+      return rendererProcesses;
+    }
+  };
+
+
+  function getSlicesIntersectingRange(rangeOfInterest, slices) {
+    var slicesInFilterRange = [];
+    for (var i = 0; i < slices.length; i++) {
+      var slice = slices[i];
+      if (rangeOfInterest.intersectsExplicitRange(slice.start, slice.end))
+        slicesInFilterRange.push(slice);
+    }
+    return slicesInFilterRange;
+  }
+
+  var MAIN_RENDERING_STATS =
+      'BenchmarkInstrumentation::MainThreadRenderingStats';
+  var IMPL_RENDERING_STATS =
+      'BenchmarkInstrumentation::ImplThreadRenderingStats';
+
+  var MAIN_FRAMETIME_TYPE = 'main_frametime_type';
+  var IMPL_FRAMETIME_TYPE = 'impl_frametime_type';
+
+  function getFrametimeData(model, frametimeType, rangeOfInterest, pid) {
+    var mainRenderingSlices = [];
+    var implRenderingSlices = [];
+    var frametimeData = [];
+
+    if (pid === undefined)
+      return frametimeData;
+
+    var chromeBrowser = new ChromeBrowser(model);
+    var rendererProcesses = chromeBrowser.rendererProcesses;
+    var browserProcess = chromeBrowser.browserProcess;
+    var selectedProcess;
+
+    if (browserProcess !== undefined && browserProcess.pid === pid) {
+      selectedProcess = browserProcess;
+    } else {
+      for (var i = 0; i < rendererProcesses.length; i++) {
+        if (rendererProcesses[i].pid === pid) {
+          selectedProcess = rendererProcesses[i];
+          break;
+        }
+      }
+    }
+
+    if (selectedProcess === undefined)
+      return frametimeData;
+
+    selectedProcess.iterateAllEvents(function(event) {
+      if (event.title === MAIN_RENDERING_STATS)
+        mainRenderingSlices.push(event);
+      if (event.title === IMPL_RENDERING_STATS)
+        implRenderingSlices.push(event);
+    });
+
+    var renderingSlices = [];
+    if (frametimeType === MAIN_FRAMETIME_TYPE) {
+      renderingSlices = getSlicesIntersectingRange(rangeOfInterest,
+                                                   mainRenderingSlices);
+    } else if (frametimeType === IMPL_FRAMETIME_TYPE) {
+      renderingSlices = getSlicesIntersectingRange(rangeOfInterest,
+                                                   implRenderingSlices);
+    }
+
+    renderingSlices.sort(function(a, b) {return a.start - b.start});
+    for (var i = 1; i < renderingSlices.length; i++) {
+      var diff = renderingSlices[i].start - renderingSlices[i - 1].start;
+      frametimeData.push({'x': renderingSlices[i].start, 'frametime': diff});
+    }
+    return frametimeData;
+  }
+
+  var UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT';
+  var ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT';
+  var BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT';
+  var END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT';
+
+  function getLatencyData(model, rangeOfInterest) {
+    var latencySlices = [];
+    model.getAllThreads().forEach(function(thread) {
+      thread.iterateAllEvents(function(event) {
+        if (event.title.indexOf('InputLatency') === 0) {
+          latencySlices.push(event);
+        }
+      });
+    });
+
+    latencySlices = getSlicesIntersectingRange(rangeOfInterest,
+                                               latencySlices);
+    var latencyData = [];
+    var latency = 0;
+    var averageLatency = 0;
+
+    // Helper function that computes the input latency for one async slice.
+    function getLatency(event) {
+      if (!('data' in event.args))
+        return;
+
+      var data = event.args.data;
+      if (!(END_COMP_NAME in data))
+        return;
+
+      var endTime = data[END_COMP_NAME].time;
+      if (ORIGINAL_COMP_NAME in data) {
+        latency = endTime - data[ORIGINAL_COMP_NAME].time;
+      } else if (UI_COMP_NAME in data) {
+        latency = endTime - data[UI_COMP_NAME].time;
+      } else if (BEGIN_COMP_NAME in data) {
+        latency = endTime - data[BEGIN_COMP_NAME].time;
+      } else {
+        throw new Error('No valid begin latency component');
+      }
+      latencyData.push({'x': event.start, 'latency': latency / 1000.0});
+    };
+
+    latencySlices.forEach(getLatency);
+    latencyData.sort(function(a, b) {return a.x - b.x});
+    return latencyData;
+  }
+
+  return {
+    ChromeBrowser: ChromeBrowser,
+
+    MAIN_FRAMETIME_TYPE: MAIN_FRAMETIME_TYPE,
+    IMPL_FRAMETIME_TYPE: IMPL_FRAMETIME_TYPE,
+
+    getSlicesIntersectingRange: getSlicesIntersectingRange,
+    getFrametimeData: getFrametimeData,
+    getLatencyData: getLatencyData
+  };
+});
+</script>

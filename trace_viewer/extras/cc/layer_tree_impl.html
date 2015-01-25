@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/extras/audits/chrome_browser.html">
 <link rel="import" href="/extras/cc/constants.html">
-<link rel="import" href="/extras/cc/chrome_browser.html">
 <link rel="import" href="/extras/cc/layer_impl.html">
 <link rel="import" href="/core/trace_model/object_instance.html">
 
@@ -49,7 +49,7 @@ tv.exportTo('tv.e.cc', function() {
 
         var ownProcess = this.objectInstance.parent;
         var traceModel = ownProcess.model;
-        var chromeBrowser = new tv.e.cc.ChromeBrowser(traceModel);
+        var chromeBrowser = new tv.e.audits.ChromeBrowser(traceModel);
         if (chromeBrowser.browserProcess === undefined)
           return;
 

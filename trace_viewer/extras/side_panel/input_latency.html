@@ -5,11 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/cc/chrome_browser.html">
-<link rel="import" href="/core/analysis/util.html">
+<link rel="import" href="/extras/audits/chrome_browser.html">
 <link rel="import" href="/core/side_panel/side_panel.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
 <link rel="import" href="/base/ui/line_chart.html">
@@ -56,123 +54,6 @@ tv.exportTo('tv.e.analysis', function() {
     return chart;
   }
 
-  function getSlicesIntersectingRange(rangeOfInterest, slices) {
-    var slicesInFilterRange = [];
-    for (var i = 0; i < slices.length; i++) {
-      var slice = slices[i];
-      if (rangeOfInterest.intersectsExplicitRange(slice.start, slice.end))
-        slicesInFilterRange.push(slice);
-    }
-    return slicesInFilterRange;
-  }
-
-  var MAIN_RENDERING_STATS =
-      'BenchmarkInstrumentation::MainThreadRenderingStats';
-  var IMPL_RENDERING_STATS =
-      'BenchmarkInstrumentation::ImplThreadRenderingStats';
-
-  var MAIN_FRAMETIME_TYPE = 'main_frametime_type';
-  var IMPL_FRAMETIME_TYPE = 'impl_frametime_type';
-
-  function getFrametimeData(model, frametimeType, rangeOfInterest, pid) {
-    var mainRenderingSlices = [];
-    var implRenderingSlices = [];
-    var frametimeData = [];
-
-    if (pid === undefined)
-      return frametimeData;
-
-    var chromeBrowser = new tv.e.cc.ChromeBrowser(model);
-    var rendererProcesses = chromeBrowser.rendererProcesses;
-    var browserProcess = chromeBrowser.browserProcess;
-    var selectedProcess;
-
-    if (browserProcess !== undefined && browserProcess.pid === pid) {
-      selectedProcess = browserProcess;
-    } else {
-      for (var i = 0; i < rendererProcesses.length; i++) {
-        if (rendererProcesses[i].pid === pid) {
-          selectedProcess = rendererProcesses[i];
-          break;
-        }
-      }
-    }
-
-    if (selectedProcess === undefined)
-      return frametimeData;
-
-    selectedProcess.iterateAllEvents(function(event) {
-      if (event.title === MAIN_RENDERING_STATS)
-        mainRenderingSlices.push(event);
-      if (event.title === IMPL_RENDERING_STATS)
-        implRenderingSlices.push(event);
-    });
-
-    var renderingSlices = [];
-    if (frametimeType === MAIN_FRAMETIME_TYPE) {
-      renderingSlices = getSlicesIntersectingRange(rangeOfInterest,
-                                                   mainRenderingSlices);
-    } else if (frametimeType === IMPL_FRAMETIME_TYPE) {
-      renderingSlices = getSlicesIntersectingRange(rangeOfInterest,
-                                                   implRenderingSlices);
-    }
-
-    renderingSlices.sort(function(a, b) {return a.start - b.start});
-    for (var i = 1; i < renderingSlices.length; i++) {
-      var diff = renderingSlices[i].start - renderingSlices[i - 1].start;
-      frametimeData.push({'x': renderingSlices[i].start, 'frametime': diff});
-    }
-    return frametimeData;
-  }
-
-  var UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT';
-  var ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT';
-  var BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT';
-  var END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT';
-
-  function getLatencyData(model, rangeOfInterest) {
-    var latencySlices = [];
-    model.getAllThreads().forEach(function(thread) {
-      thread.iterateAllEvents(function(event) {
-        if (event.title.indexOf('InputLatency') === 0) {
-          latencySlices.push(event);
-        }
-      });
-    });
-
-    latencySlices = getSlicesIntersectingRange(rangeOfInterest,
-                                               latencySlices);
-    var latencyData = [];
-    var latency = 0;
-    var averageLatency = 0;
-
-    // Helper function that computes the input latency for one async slice.
-    function getLatency(event) {
-      if (!('data' in event.args))
-        return;
-
-      var data = event.args.data;
-      if (!(END_COMP_NAME in data))
-        return;
-
-      var endTime = data[END_COMP_NAME].time;
-      if (ORIGINAL_COMP_NAME in data) {
-        latency = endTime - data[ORIGINAL_COMP_NAME].time;
-      } else if (UI_COMP_NAME in data) {
-        latency = endTime - data[UI_COMP_NAME].time;
-      } else if (BEGIN_COMP_NAME in data) {
-        latency = endTime - data[BEGIN_COMP_NAME].time;
-      } else {
-        throw new Error('No valid begin latency component');
-      }
-      latencyData.push({'x': event.start, 'latency': latency / 1000.0});
-    };
-
-    latencySlices.forEach(getLatency);
-    latencyData.sort(function(a, b) {return a.x - b.x});
-    return latencyData;
-  }
-
   /**
    * @constructor
    */
@@ -187,7 +68,7 @@ tv.exportTo('tv.e.analysis', function() {
       };
     }
 
-    var chromeBrowser = new tv.e.cc.ChromeBrowser(m);
+    var chromeBrowser = new tv.e.audits.ChromeBrowser(m);
     if (chromeBrowser.browserProcess === undefined &&
         chromeBrowser.rendererProcesses.length === 0) {
       return {
@@ -227,7 +108,7 @@ tv.exportTo('tv.e.analysis', function() {
           '#x-input-latency-side-panel-template', THIS_DOC));
 
       this.rangeOfInterest_ = new tv.b.Range();
-      this.frametimeType_ = IMPL_FRAMETIME_TYPE;
+      this.frametimeType_ = tv.e.audits.IMPL_FRAMETIME_TYPE;
       this.latencyChart_ = undefined;
       this.frametimeChart_ = undefined;
       this.selectedProcess_ = undefined;
@@ -302,7 +183,7 @@ tv.exportTo('tv.e.analysis', function() {
             latencySlices.push(event);
         });
       });
-      latencySlices = getSlicesIntersectingRange(r, latencySlices);
+      latencySlices = tv.e.audits.getSlicesIntersectingRange(r, latencySlices);
 
       var event = new tv.c.RequestSelectionChangeEvent();
       event.selection = new tv.c.Selection(latencySlices);
@@ -330,7 +211,7 @@ tv.exportTo('tv.e.analysis', function() {
     },
 
     updateToolbar_: function() {
-      var chromeBrowser = new tv.e.cc.ChromeBrowser(this.model_);
+      var chromeBrowser = new tv.e.audits.ChromeBrowser(this.model_);
       var rendererProcesses = chromeBrowser.rendererProcesses;
       var browserProcess = chromeBrowser.browserProcess;
       var labels = [];
@@ -353,8 +234,10 @@ tv.exportTo('tv.e.analysis', function() {
       toolbarEl.appendChild(tv.b.ui.createSelector(
           this, 'frametimeType',
           'inputLatencySidePanel.frametimeType', this.frametimeType_,
-          [{label: 'Main Thread Frame Times', value: MAIN_FRAMETIME_TYPE},
-           {label: 'Impl Thread Frame Times', value: IMPL_FRAMETIME_TYPE}
+          [{label: 'Main Thread Frame Times',
+            value: tv.e.audits.MAIN_FRAMETIME_TYPE},
+           {label: 'Impl Thread Frame Times',
+            value: tv.e.audits.IMPL_FRAMETIME_TYPE}
           ]));
       toolbarEl.appendChild(tv.b.ui.createSelector(
           this, 'selectedProcess',
@@ -378,14 +261,18 @@ tv.exportTo('tv.e.analysis', function() {
       else
         rangeOfInterest = this.rangeOfInterest_;
 
-      var frametimeData = getFrametimeData(this.model_,
-                                           this.frametimeType,
-                                           rangeOfInterest,
-                                           this.selectedProcess_);
+      var frametimeData = tv.e.audits.getFrametimeData(
+          this.model_,
+          this.frametimeType,
+          rangeOfInterest,
+          this.selectedProcess_);
+
       var averageFrametime = tv.b.Statistics.mean(frametimeData, function(d) {
         return d.frametime});
 
-      var latencyData = getLatencyData(this.model_, rangeOfInterest);
+      var latencyData = tv.e.audits.getLatencyData(
+          this.model_, rangeOfInterest);
+
       var averageLatency = tv.b.Statistics.mean(latencyData, function(d) {
         return d.latency});
 
@@ -438,8 +325,6 @@ tv.exportTo('tv.e.analysis', function() {
 
   return {
     createLatencyLineChart: createLatencyLineChart,
-    getLatencyData: getLatencyData,
-    getFrametimeData: getFrametimeData,
     InputLatencySidePanel: InputLatencySidePanel
   };
 });
