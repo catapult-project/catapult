@@ -306,7 +306,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
           getOrCreateCounter('DVFS', counterName);
       if (counter.numSeries === 0) {
         counter.addSeries(new tv.c.trace_model.CounterSeries(seriesName,
-            tv.b.ui.getStringColorId(counter.name)));
+            tv.b.ui.getColorIdForGeneralPurposeString(counter.name)));
       }
       counter.series.forEach(function(series) {
         series.addCounterSample(ts, value);
@@ -350,7 +350,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
           getOrCreateCounter(cat, counterName);
       if (counter.numSeries === 0) {
         counter.addSeries(new tv.c.trace_model.CounterSeries(seriesName,
-            tv.b.ui.getStringColorId(counter.name)));
+            tv.b.ui.getColorIdForGeneralPurposeString(counter.name)));
       }
       counter.series.forEach(function(series) {
         series.addCounterSample(ts, value);

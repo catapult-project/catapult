@@ -57,7 +57,9 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
          tv.c.trace_model.AsyncSlice.getConstructor(
             category, name);
       var slice = new asyncSliceConstructor(
-          category, name, tv.b.ui.getStringColorId(name), ts);
+          category, name,
+          tv.b.ui.getColorIdForGeneralPurposeString(name),
+          ts);
       slice.startThread = kthread.thread;
 
       if (!kthread.openAsyncSlices) {

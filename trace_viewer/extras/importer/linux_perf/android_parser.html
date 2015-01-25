@@ -55,7 +55,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
          tv.c.trace_model.AsyncSlice.getConstructor(
             category, name);
       var slice = new asyncSliceConstructor(
-          category, name, tv.b.ui.getStringColorId(name), ts, args);
+          category, name,
+          tv.b.ui.getColorIdForGeneralPurposeString(name), ts, args);
       var key = category + ':' + name + ':' + cookie;
       slice.id = cookie;
       slice.startThread = thread;
@@ -171,7 +172,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
           // Initialize the counter's series fields if needed.
           if (ctr.numSeries === 0) {
             ctr.addSeries(new tv.c.trace_model.CounterSeries(value,
-                tv.b.ui.getStringColorId(ctr.name + '.' + 'value')));
+                tv.b.ui.getColorIdForGeneralPurposeString(
+                    ctr.name + '.' + 'value')));
           }
 
           ctr.series.forEach(function(series) {

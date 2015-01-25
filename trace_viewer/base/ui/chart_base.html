@@ -47,7 +47,7 @@ tv.exportTo('tv.b.ui', function() {
   var highlightIdBoost = tv.b.ui.getColorPaletteHighlightIdBoost();
 
   function getColorOfKey(key, selected) {
-    var id = tv.b.ui.getStringColorId(key);
+    var id = tv.b.ui.getColorIdForGeneralPurposeString(key);
     if (selected)
       id += highlightIdBoost;
     return tv.b.ui.getColorPalette()[id];

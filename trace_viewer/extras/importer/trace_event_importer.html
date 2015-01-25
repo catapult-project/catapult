@@ -213,8 +213,10 @@ tv.exportTo('tv.e.importer', function() {
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {
         for (var seriesName in event.args) {
-          ctr.addSeries(new tv.c.trace_model.CounterSeries(seriesName,
-              tv.b.ui.getStringColorId(ctr.name + '.' + seriesName)));
+          ctr.addSeries(new tv.c.trace_model.CounterSeries(
+              seriesName,
+              tv.b.ui.getColorIdForGeneralPurposeString(
+                  ctr.name + '.' + seriesName)));
         }
 
         if (ctr.numSeries === 0) {
@@ -381,7 +383,7 @@ tv.exportTo('tv.e.importer', function() {
           return;
       }
 
-      var colorId = tv.b.ui.getStringColorId(event.name);
+      var colorId = tv.b.ui.getColorIdForGeneralPurposeString(event.name);
       var instantEvent = new constructor(event.cat, event.name,
           colorId, event.ts / 1000, this.deepCopyIfNeeded_(event.args));
 
@@ -410,7 +412,7 @@ tv.exportTo('tv.e.importer', function() {
         stackFrame = new tv.c.trace_model.StackFrame(
             undefined, id,
             event.cat, event.name,
-            tv.b.ui.getStringColorId(event.name));
+            tv.b.ui.getColorIdForGeneralPurposeString(event.name));
         this.model_.addStackFrame(stackFrame);
       }
 
@@ -524,7 +526,7 @@ tv.exportTo('tv.e.importer', function() {
         var frame = new tv.c.trace_model.StackFrame(
             undefined, 'g' + id,
             event.category, event.name,
-            tv.b.ui.getStringColorId(textForColor));
+            tv.b.ui.getColorIdForGeneralPurposeString(textForColor));
         m.addStackFrame(frame);
       }
       for (var id in events) {
@@ -815,7 +817,8 @@ tv.exportTo('tv.e.importer', function() {
           var slice = new asyncSliceConstructor(
               eventStateEntry.event.cat,
               eventStateEntry.event.name,
-              tv.b.ui.getStringColorId(eventStateEntry.event.name),
+              tv.b.ui.getColorIdForGeneralPurposeString(
+                  eventStateEntry.event.name),
               startState.event.ts / 1000,
               sliceArgs,
               (endState.event.ts - startState.event.ts) / 1000);
@@ -924,7 +927,7 @@ tv.exportTo('tv.e.importer', function() {
             var slice = new asyncSliceConstructor(
                 events[0].event.cat,
                 name,
-                tv.b.ui.getStringColorId(name),
+                tv.b.ui.getColorIdForGeneralPurposeString(name),
                 events[0].event.ts / 1000,
                 tv.b.concatenateObjects(events[0].event.args,
                                       events[events.length - 1].event.args),
@@ -980,7 +983,7 @@ tv.exportTo('tv.e.importer', function() {
               var subSlice = new asyncSliceConstructor(
                   events[0].event.cat,
                   subName,
-                  tv.b.ui.getStringColorId(subName + j),
+                  tv.b.ui.getColorIdForGeneralPurposeString(subName + j),
                   events[startIndex].event.ts / 1000,
                   this.deepCopyIfNeeded_(events[j].event.args),
                   (events[endIndex].event.ts - events[startIndex].event.ts) /
@@ -1053,7 +1056,7 @@ tv.exportTo('tv.e.importer', function() {
             event.cat,
             event.id,
             event.name,
-            tv.b.ui.getStringColorId(event.name),
+            tv.b.ui.getColorIdForGeneralPurposeString(event.name),
             event.ts / 1000,
             this.deepCopyIfNeeded_(event.args));
         thread.sliceGroup.pushSlice(slice);
@@ -1189,8 +1192,10 @@ tv.exportTo('tv.e.importer', function() {
           }
         }
 
-        if (instance)
-          instance.colorId = tv.b.ui.getStringColorId(instance.typeName);
+        if (instance) {
+          instance.colorId = tv.b.ui.getColorIdForGeneralPurposeString(
+              instance.typeName);
+        }
       }
 
       this.allObjectEvents_.sort(function(x, y) {

@@ -81,7 +81,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
         var duration = ts - thread.lastEntryTs;
         var slice = new tv.c.trace_model.Slice(
             '', thread.irqName,
-            tv.b.ui.getStringColorId(event[1]),
+            tv.b.ui.getColorIdForGeneralPurposeString(event[1]),
             thread.lastEntryTs, { ret: ret },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);
@@ -122,7 +122,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
         var duration = ts - thread.lastEntryTs;
         var slice = new tv.c.trace_model.Slice(
             '', action,
-            tv.b.ui.getStringColorId(event[1]),
+            tv.b.ui.getColorIdForGeneralPurposeString(event[1]),
             thread.lastEntryTs, { vec: vec },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);

@@ -35,7 +35,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('drm_vblank');
       kthread.openSlice = eventName;
       var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-          tv.b.ui.getStringColorId(kthread.openSlice), ts, args, 0);
+          tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+          ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
     },

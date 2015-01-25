@@ -41,7 +41,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var counter = targetCpu.getOrCreateCounter('', name);
       if (counter.numSeries === 0) {
         counter.addSeries(new tv.c.trace_model.CounterSeries('frequency',
-            tv.b.ui.getStringColorId(counter.name + '.' + 'frequency')));
+            tv.b.ui.getColorIdForGeneralPurposeString(
+                counter.name + '.' + 'frequency')));
       }
       counter.series.forEach(function(series) {
         series.addCounterSample(ts, frequency);
@@ -84,7 +85,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
           'exynos_flip_state (pipe:' + pipe + ', fb:' + fb + ')');
       if (kthread.openSlice) {
         var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-            tv.b.ui.getStringColorId(kthread.openSlice),
+            tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             args,
             ts - kthread.openSliceTS);

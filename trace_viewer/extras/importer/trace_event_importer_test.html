@@ -687,7 +687,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals(1, ctr.numSeries);
 
     assertEquals('value', ctr.series[0].name);
-    assertEquals(tv.b.ui.getStringColorId('ctr.value'), ctr.series[0].color);
+    assertEquals(tv.b.ui.getColorIdForGeneralPurposeString('ctr.value'),
+                 ctr.series[0].color);
 
     assertArrayEquals([0, 0.01, 0.02], ctr.timestamps);
 
@@ -818,8 +819,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     assertEquals('value1', ctr.series[0].name);
     assertEquals('value2', ctr.series[1].name);
-    assertEquals(tv.b.ui.getStringColorId('ctr.value1'), ctr.series[0].color);
-    assertEquals(tv.b.ui.getStringColorId('ctr.value2'), ctr.series[1].color);
+    assertEquals(tv.b.ui.getColorIdForGeneralPurposeString('ctr.value1'),
+                 ctr.series[0].color);
+    assertEquals(tv.b.ui.getColorIdForGeneralPurposeString('ctr.value2'),
+                 ctr.series[1].color);
 
     assertArrayEquals([0, 0.01, 0.02], ctr.timestamps);
     var samples = [];

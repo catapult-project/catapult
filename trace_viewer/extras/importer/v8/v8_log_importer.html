@@ -81,7 +81,7 @@ tv.exportTo('tv.e.importer.v8', function() {
       if (args === undefined) return;
       start /= 1000;  // Convert to milliseconds.
       length /= 1000;
-      var colorId = tv.b.ui.getStringColorId(name);
+      var colorId = tv.b.ui.getColorIdForGeneralPurposeString(name);
       var slice = new tv.c.trace_model.Slice('v8', name, colorId, start,
           args, length);
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
@@ -164,7 +164,7 @@ tv.exportTo('tv.e.importer.v8', function() {
             lastStackFrame = new tv.c.trace_model.StackFrame(
                 lastStackFrame, 'v8sf-' + tv.b.GUID.allocate(),
                 'v8', entryName,
-                tv.b.ui.getStringColorId(entryName));
+                tv.b.ui.getColorIdForGeneralPurposeString(entryName));
             lastStackFrame.entryID = entryID;
             this.model_.addStackFrame(lastStackFrame);
           } else {
@@ -179,7 +179,7 @@ tv.exportTo('tv.e.importer.v8', function() {
           lastStackFrame = new tv.c.trace_model.StackFrame(
               undefined, pcEntryID,
               'v8', pcEntryName,
-              tv.b.ui.getStringColorId(pcEntryName));
+              tv.b.ui.getColorIdForGeneralPurposeString(pcEntryName));
           this.model_.addStackFrame(lastStackFrame);
         }
         lastStackFrame = this.model_.stackFrames[pcEntryID];
@@ -269,7 +269,7 @@ tv.exportTo('tv.e.importer.v8', function() {
         for (var i = 0; i < slices.length; i++) {
           var duration = slices[i].end - slices[i].start;
           var slice = new tv.c.trace_model.Slice('v8', slices[i].name,
-              tv.b.ui.getStringColorId(slices[i].name),
+              tv.b.ui.getColorIdForGeneralPurposeString(slices[i].name),
               slices[i].start, {}, duration);
           thread.sliceGroup.pushSlice(slice);
           addSlices(slices[i].children, thread);

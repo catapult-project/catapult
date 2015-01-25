@@ -173,7 +173,7 @@ tv.exportTo('tv.c.trace_model', function() {
       var duration = end_timestamp - this.lastActiveTimestamp_;
       var slice = new tv.c.trace_model.CpuSlice(
           '', this.lastActiveName_,
-          tv.b.ui.getStringColorId(this.lastActiveName_),
+          tv.b.ui.getColorIdForGeneralPurposeString(this.lastActiveName_),
           this.lastActiveTimestamp_,
           this.lastActiveArgs_,
           duration);

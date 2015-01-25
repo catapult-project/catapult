@@ -151,7 +151,7 @@ tv.exportTo('tv.b.ui', function() {
    * the getStringHash method. The color ID will be chosen from the general
    * puporse ID space only, e.g. no reserved ID will be used.
    */
-  function getStringColorId(string) {
+  function getColorIdForGeneralPurposeString(string) {
     if (stringColorIdCache[string] === undefined) {
       var hash = getStringHash(string);
       stringColorIdCache[string] = hash % numGeneralPurposeColorIds;
@@ -171,7 +171,7 @@ tv.exportTo('tv.b.ui', function() {
     getColorPaletteHighlightIdBoost: getColorPaletteHighlightIdBoost,
     getColorIdForReservedName: getColorIdForReservedName,
     getStringHash: getStringHash,
-    getStringColorId: getStringColorId
+    getColorIdForGeneralPurposeString: getColorIdForGeneralPurposeString
   };
 });
 </script>

@@ -69,7 +69,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
           pid, pid);
       if (kthread.openSlice) {
         var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-            tv.b.ui.getStringColorId(kthread.openSlice),
+            tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             {},
             ts - kthread.openSliceTS);

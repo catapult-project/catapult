@@ -61,7 +61,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
           value = ' ';
         var slice = new tv.c.trace_model.Slice(
             '', value,
-            tv.b.ui.getStringColorId(value),
+            tv.b.ui.getColorIdForGeneralPurposeString(value),
             thread.lastActiveTs, {},
             duration);
         thread.thread.sliceGroup.pushSlice(slice);

@@ -966,7 +966,8 @@ tv.exportTo('tv.e.cc', function() {
         var unitRect = rect.asUVRectInside(layer.bounds);
         var quad = layerQuad.projectUnitRect(unitRect);
 
-        var colorId = tv.b.ui.getStringColorId(highlight.colorKey);
+        var colorId = tv.b.ui.getColorIdForGeneralPurposeString(
+            highlight.colorKey);
         colorId += tv.b.ui.getColorPaletteHighlightIdBoost();
 
         var color = tv.b.Color.fromString(tv.b.ui.getColorPalette()[colorId]);
