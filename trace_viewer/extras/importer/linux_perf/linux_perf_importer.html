@@ -385,10 +385,13 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       }
 
       // Create slices for when the thread is not running.
-      var runningId = tv.b.ui.getColorIdByName('running');
-      var runnableId = tv.b.ui.getColorIdByName('runnable');
-      var sleepingId = tv.b.ui.getColorIdByName('sleeping');
-      var ioWaitId = tv.b.ui.getColorIdByName('iowait');
+      var getColorIdForReservedName = tv.b.ui.getColorIdForReservedName;
+      var runningId = getColorIdForReservedName('thread_state_running');
+      var runnableId = getColorIdForReservedName('thread_state_runnable');
+      var sleepingId = getColorIdForReservedName('thread_state_sleeping');
+      var ioWaitId = getColorIdForReservedName('thread_state_iowait');
+      var unknownStateId = getColorIdForReservedName('thread_state_unknown');
+
       this.model_.getAllThreads().forEach(function(thread) {
         if (thread.tempCpuSlices === undefined)
           return;
@@ -502,7 +505,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
             pushSleep('Uninterruptible Sleep | Waking', ioWaitId);
           } else {
             slices.push(new tv.c.trace_model.ThreadTimeSlice(
-                thread, '', 'UNKNOWN', ioWaitId,
+                thread, '', 'UNKNOWN', unknownStateId,
                 prevSlice.end, {}, midDuration));
             this.model_.importWarning({
               type: 'parse_error',

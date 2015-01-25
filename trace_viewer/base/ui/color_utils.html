@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides color scheme related functions.
+ */
+tv.exportTo('tv.b.ui', function() {
+
+  function brightenColor(c) {
+    var k;
+    if (c.r >= 240 && c.g >= 240 && c.b >= 240)
+      k = -0.20;
+    else
+      k = 0.45;
+
+    return {r: Math.min(255, c.r + Math.floor(c.r * k)),
+      g: Math.min(255, c.g + Math.floor(c.g * k)),
+      b: Math.min(255, c.b + Math.floor(c.b * k))};
+  }
+  function colorToRGBString(c) {
+    return 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')';
+  }
+  function colorToRGBAString(c, a) {
+    return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')';
+  }
+
+  return {
+    brightenColor: brightenColor,
+    colorToRGBString: colorToRGBString,
+    colorToRGBAString: colorToRGBAString
+  };
+});
+</script>

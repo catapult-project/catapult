@@ -82,7 +82,7 @@ tv.exportTo('tv.c', function() {
     getBarSnapshotColor: function(snapshot, offset) {
       var colorId =
           (snapshot.objectInstance.colorId + offset) %
-          tv.b.ui.paletteProperties.numRegularColorIds;
+          tv.b.ui.paletteProperties.numGeneralPurposeColorIds;
       colorId += this.getColorIdOffset_(snapshot);
       return tv.b.ui.colorToRGBAString(paletteRaw[colorId],
                                        this.getAlpha_(snapshot));

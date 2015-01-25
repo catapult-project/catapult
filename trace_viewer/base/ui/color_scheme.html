@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/base.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/base/ui/color_utils.html">
 <script>
 'use strict';
 
@@ -12,20 +14,12 @@ found in the LICENSE file.
  * @fileoverview Provides color scheme related functions.
  */
 tv.exportTo('tv.b.ui', function() {
+  var colorToRGBString = tv.b.ui.colorToRGBString;
+  var colorToRGBAString = tv.b.ui.colorToRGBAString;
 
-  // The color palette is split in half, with the upper
-  // half of the palette being the "highlighted" verison
-  // of the base color. So, color 7's highlighted form is
-  // 7 + (palette.length / 2).
-  //
-  // These bright versions of colors are automatically generated
-  // from the base colors.
-  //
-  // Within the color palette, there are "regular" colors,
-  // which can be used for random color selection, and
-  // reserved colors, which are used when specific colors
-  // need to be used, e.g. where red is desired.
-  var paletteBase = [
+  // Basic constants...
+
+  var generalPurposeColors = [
     {r: 138, g: 113, b: 152},
     {r: 175, g: 112, b: 133},
     {r: 127, g: 135, b: 225},
@@ -55,44 +49,53 @@ tv.exportTo('tv.b.ui', function() {
     {r: 126, g: 186, b: 148},
     {r: 112, g: 198, b: 205},
     {r: 180, g: 122, b: 195},
-    {r: 203, g: 144, b: 152},
-    // Reserved Entires
-    {r: 182, g: 125, b: 143},
-    {r: 126, g: 200, b: 148},
-    {r: 133, g: 160, b: 210},
-    {r: 240, g: 240, b: 240},
-    {r: 199, g: 155, b: 125}];
+    {r: 203, g: 144, b: 152}];
 
-  // Make sure this number tracks the number of reserved entries in the
-  // palette.
-  var numReservedColorIds = 5;
+  var reservedColorsByName = {
+    thread_state_iowait: {r: 182, g: 125, b: 143},
+    thread_state_running: {r: 126, g: 200, b: 148},
+    thread_state_runnable: {r: 133, g: 160, b: 210},
+    thread_state_sleeping: {r: 240, g: 240, b: 240},
+    thread_state_unknown: {r: 199, g: 155, b: 125}
+  };
 
-  function brighten(c) {
-    var k;
-    if (c.r >= 240 && c.g >= 240 && c.b >= 240)
-      k = -0.20;
-    else
-      k = 0.45;
+  // Some constants we'll need for later lookups.
+  var numGeneralPurposeColorIds = generalPurposeColors.length;
+  var numReservedColorIds = tv.b.dictionaryLength(reservedColorsByName);
 
-    return {r: Math.min(255, c.r + Math.floor(c.r * k)),
-      g: Math.min(255, c.g + Math.floor(c.g * k)),
-      b: Math.min(255, c.b + Math.floor(c.b * k))};
-  }
-  function colorToRGBString(c) {
-    return 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')';
-  }
-  function colorToRGBAString(c, a) {
-    return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')';
-  }
-
-  /**
-   * The number of color IDs that getStringColorId can choose from.
-   */
-  var numRegularColorIds = paletteBase.length - numReservedColorIds;
-  var highlightIdBoost = paletteBase.length;
-
-  var paletteRaw = paletteBase.concat(paletteBase.map(brighten));
+  // The color palette is split in half, with the upper
+  // half of the palette being the "highlighted" verison
+  // of the base color. So, color 7's highlighted form is
+  // 7 + (palette.length / 2).
+  //
+  // These bright versions of colors are automatically generated
+  // from the base colors.
+  //
+  // Within the color palette, there are "general purpose" colors,
+  // which can be used for random color selection, and
+  // reserved colors, which are used when specific colors
+  // need to be used, e.g. where red is desired.
+  var paletteRaw = (function() {
+    var paletteBase = [];
+    paletteBase.push.apply(paletteBase, generalPurposeColors);
+    paletteBase.push.apply(paletteBase,
+                           tv.b.dictionaryValues(reservedColorsByName));
+    return paletteBase.concat(paletteBase.map(tv.b.ui.brightenColor));
+  })();
   var palette = paletteRaw.map(colorToRGBString);
+
+  var highlightIdBoost = palette.length;
+
+  // Build reservedColorNameToIdMap.
+  var reservedColorNameToIdMap = (function() {
+    var m = {};
+    var i = generalPurposeColors.length;
+    tv.b.iterItems(reservedColorsByName, function(key, value) {
+      m[key] = i++;
+    });
+    return m;
+  })();
+
   /**
    * Computes a simplistic hashcode of the provide name. Used to chose colors
    * for slices.
@@ -132,18 +135,11 @@ tv.exportTo('tv.b.ui', function() {
    * @param {String} name The color name.
    * @return {Number} The color ID for the given color name.
    */
-  function getColorIdByName(name) {
-    if (name == 'iowait')
-      return numRegularColorIds;
-    if (name == 'running')
-      return numRegularColorIds + 1;
-    if (name == 'runnable')
-      return numRegularColorIds + 2;
-    if (name == 'sleeping')
-      return numRegularColorIds + 3;
-    if (name == 'UNKNOWN')
-      return numRegularColorIds + 4;
-    throw new Error('Unrecognized color ') + name;
+  function getColorIdForReservedName(name) {
+    var id = reservedColorNameToIdMap[name];
+    if (id === undefined)
+      throw new Error('Unrecognized color ') + name;
+    return id;
   }
 
   // Previously computed string color IDs. They are based on a stable hash, so
@@ -152,30 +148,28 @@ tv.exportTo('tv.b.ui', function() {
 
   /**
    * @return {Number} A color ID that is stably associated to the provided via
-   * the getStringHash method. The color ID will be chosen from the regular
-   * ID space only, e.g. no reserved ID will be used.
+   * the getStringHash method. The color ID will be chosen from the general
+   * puporse ID space only, e.g. no reserved ID will be used.
    */
   function getStringColorId(string) {
     if (stringColorIdCache[string] === undefined) {
       var hash = getStringHash(string);
-      stringColorIdCache[string] = hash % numRegularColorIds;
+      stringColorIdCache[string] = hash % numGeneralPurposeColorIds;
     }
     return stringColorIdCache[string];
   }
 
   var paletteProperties = {
-    numRegularColorIds: numRegularColorIds,
+    numGeneralPurposeColorIds: numGeneralPurposeColorIds,
     highlightIdBoost: highlightIdBoost
   };
 
   return {
-    colorToRGBString: colorToRGBString,
-    colorToRGBAString: colorToRGBAString,
     getRawColorPalette: getRawColorPalette,
     getColorPalette: getColorPalette,
     paletteProperties: paletteProperties,
     getColorPaletteHighlightIdBoost: getColorPaletteHighlightIdBoost,
-    getColorIdByName: getColorIdByName,
+    getColorIdForReservedName: getColorIdForReservedName,
     getStringHash: getStringHash,
     getStringColorId: getStringColorId
   };

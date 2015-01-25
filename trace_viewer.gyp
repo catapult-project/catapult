@@ -80,6 +80,7 @@
       'trace_viewer/base/ui/camera.html',
       'trace_viewer/base/ui/chart_base.html',
       'trace_viewer/base/ui/color_scheme.html',
+      'trace_viewer/base/ui/color_utils.html',
       'trace_viewer/base/ui/container_that_decorates_its_children.html',
       'trace_viewer/base/ui/d3.html',
       'trace_viewer/base/ui/dom_helpers.html',
