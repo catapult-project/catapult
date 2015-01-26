@@ -99,6 +99,16 @@ tv.b.unittest.testSuite(function() {
     return view;
   };
 
+  test('instantiate', function() {
+    var model11 = createFullyPopulatedModel(true, true);
+
+    var view = new tv.c.TimelineView();
+    view.style.height = '400px';
+    view.style.border = '1px solid black';
+    view.model = model11;
+    this.addHTMLOutput(view);
+  });
+
   test('changeModelToSomethingDifferent', function() {
     var model00 = createFullyPopulatedModel(false, false);
     var model11 = createFullyPopulatedModel(true, true);
