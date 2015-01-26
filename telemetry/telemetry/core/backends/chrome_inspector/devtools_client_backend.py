@@ -18,9 +18,11 @@ def IsDevToolsAgentAvailable(port):
   return _IsDevToolsAgentAvailable(devtools_http.DevToolsHttp(port))
 
 
+# TODO(nednguyen): Find a more reliable way to check whether the devtool agent
+# is still alive.
 def _IsDevToolsAgentAvailable(devtools_http_instance):
   try:
-    devtools_http_instance.Request('', timeout=.1)
+    devtools_http_instance.Request('')
   except devtools_http.DevToolsClientConnectionError:
     return False
   else:
