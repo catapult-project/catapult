@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/audits/chrome_browser.html">
+<link rel="import" href="/extras/audits/chrome_audit.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
@@ -22,17 +22,19 @@ tv.b.unittest.testSuite(function() {
       var end_ts = i * 10000 + 1000 * (i % 2);
 
       // Non Input latency related slices
-      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : start_ts, 'ph' : 'S', 'name' : 'Test', 'id' : i}); // @suppress longLineCheck
-      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : end_ts, 'ph' : 'F', 'name' : 'Test', 'id' : i}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid': 3507, 'ts' : start_ts, 'ph' : 'S', 'name' : 'Test', 'id' : i}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid': 3507, 'ts' : end_ts, 'ph' : 'F', 'name' : 'Test', 'id' : i}); // @suppress longLineCheck
 
       // Input latency sclices
-      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : start_ts, 'ph' : 'S', 'name' : 'InputLatency', 'id' : i}); // @suppress longLineCheck
-      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : end_ts, 'ph' : 'T', 'name' : 'InputLatency', 'args' : {'step' : 'GestureScrollUpdate'}, 'id' : i}); // @suppress longLineCheck
-      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : end_ts, 'ph' : 'F', 'name' : 'InputLatency', 'args' : {'data' : {'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT' : {'time' : start_ts}, 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT' : {'time' : end_ts}}}, 'id' : i}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid': 3507, 'ts' : start_ts, 'ph' : 'S', 'name' : 'InputLatency', 'id' : i}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid': 3507, 'ts' : end_ts, 'ph' : 'T', 'name' : 'InputLatency', 'args' : {'step' : 'GestureScrollUpdate'}, 'id' : i}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid': 3507, 'ts' : end_ts, 'ph' : 'F', 'name' : 'InputLatency', 'args' : {'data' : {'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT' : {'time' : start_ts}, 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT' : {'time' : end_ts}}}, 'id' : i}); // @suppress longLineCheck
     }
+    events.push({'cat' : '__metadata', 'pid' : 3507, 'tid' : 3507, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'CrBrowserMain'}}); // @suppress longLineCheck
 
     var m = new tv.c.TraceModel(events);
-    var latencyData = tv.e.audits.getLatencyData(m, m.bounds);
+    var audit = new tv.e.audits.ChromeAudit(m);
+    var latencyData = audit.browser.getLatencyDataInRange(m.bounds);
     assertEquals(10, latencyData.length);
     for (var i = 0; i < latencyData.length; i++) {
       assertEquals(i % 2, latencyData[i].latency);
@@ -72,45 +74,52 @@ tv.b.unittest.testSuite(function() {
     }
 
     var m = new tv.c.TraceModel(events);
+    var audit = new tv.e.audits.ChromeAudit(m);
 
     // Testing browser impl and main rendering stats.
-    var frametime_data = tv.e.audits.getFrametimeData(
-        m, 'impl_frametime_type', m.bounds, 3507);
-    assertEquals(9, frametime_data.length);
-    for (var i = 0; i < frametime_data.length; i++) {
-      assertEquals(16 + i % 2, frametime_data[i].frametime);
+    var frameEvents = audit.browser.getFrameEventsInRange(
+        tv.e.audits.IMPL_FRAMETIME_TYPE, m.bounds);
+    var frametimeData = tv.e.audits.getFrametimeDataFromEvents(frameEvents);
+    assertEquals(9, frametimeData.length);
+    for (var i = 0; i < frametimeData.length; i++) {
+      assertEquals(16 + i % 2, frametimeData[i].frametime);
     }
     // No main rendering stats.
-    frametime_data = tv.e.audits.getFrametimeData(
-        m, 'main_frametime_type', m.bounds, 3507);
-    assertEquals(0, frametime_data.length);
+    frameEvents = audit.browser.getFrameEventsInRange(
+        tv.e.audits.MAIN_FRAMETIME_TYPE, m.bounds);
+    assertEquals(0, frameEvents.length);
 
 
     // Testing renderer 3508 impl and main rendering stats.
-    frametime_data = tv.e.audits.getFrametimeData(
-        m, 'main_frametime_type', m.bounds, 3508);
-    assertEquals(9, frametime_data.length);
-    for (var i = 0; i < frametime_data.length; i++) {
-      assertEquals(16 + i % 2, frametime_data[i].frametime);
+    frameEvents = audit.renderers[3508].getFrameEventsInRange(
+        tv.e.audits.MAIN_FRAMETIME_TYPE, m.bounds);
+    frametimeData = tv.e.audits.getFrametimeDataFromEvents(frameEvents);
+    assertEquals(9, frametimeData.length);
+    for (var i = 0; i < frametimeData.length; i++) {
+      assertEquals(16 + i % 2, frametimeData[i].frametime);
     }
+
     // No impl rendering stats.
-    frametime_data = tv.e.audits.getFrametimeData(
-        m, 'impl_frametime_type', m.bounds, 3508);
-    assertEquals(0, frametime_data.length);
+    frameEvents = audit.renderers[3508].getFrameEventsInRange(
+        tv.e.audits.IMPL_FRAMETIME_TYPE, m.bounds);
+    assertEquals(0, frameEvents.length);
 
 
     // Testing renderer 3509 impl and main rendering stats.
-    frametime_data = tv.e.audits.getFrametimeData(
-        m, 'impl_frametime_type', m.bounds, 3509);
-    assertEquals(9, frametime_data.length);
-    for (var i = 0; i < frametime_data.length; i++) {
-      assertEquals(16 + i % 2, frametime_data[i].frametime);
+    frameEvents = audit.renderers[3509].getFrameEventsInRange(
+        tv.e.audits.IMPL_FRAMETIME_TYPE, m.bounds);
+    frametimeData = tv.e.audits.getFrametimeDataFromEvents(frameEvents);
+    assertEquals(9, frametimeData.length);
+    for (var i = 0; i < frametimeData.length; i++) {
+      assertEquals(16 + i % 2, frametimeData[i].frametime);
     }
-    frametime_data = tv.e.audits.getFrametimeData(
-        m, 'main_frametime_type', m.bounds, 3509);
-    assertEquals(9, frametime_data.length);
-    for (var i = 0; i < frametime_data.length; i++) {
-      assertEquals(16 + i % 2, frametime_data[i].frametime);
+
+    frameEvents = audit.renderers[3509].getFrameEventsInRange(
+        tv.e.audits.MAIN_FRAMETIME_TYPE, m.bounds);
+    frametimeData = tv.e.audits.getFrametimeDataFromEvents(frameEvents);
+    assertEquals(9, frametimeData.length);
+    for (var i = 0; i < frametimeData.length; i++) {
+      assertEquals(16 + i % 2, frametimeData[i].frametime);
     }
 
   });

@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/audits/chrome_browser.html">
+<link rel="import" href="/extras/audits/chrome_audit.html">
 <link rel="import" href="/core/side_panel/side_panel.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/base/statistics.html">
@@ -68,24 +68,15 @@ tv.exportTo('tv.e.analysis', function() {
       };
     }
 
-    var chromeBrowser = new tv.e.audits.ChromeBrowser(m);
-    if (chromeBrowser.browserProcess === undefined &&
-        chromeBrowser.rendererProcesses.length === 0) {
+    if (!tv.e.audits.ChromeAudit.supportsModel(m)) {
       return {
         supported: false,
-        reason: 'No browser and renderer process found'
+        reason: 'No Chrome browser or renderer process found'
       };
     }
 
-    var hasLatencyInfo = false;
-    m.getAllThreads().forEach(function(thread) {
-      thread.iterateAllEvents(function(event) {
-        if (event.title.indexOf('InputLatency') === 0)
-          hasLatencyInfo = true;
-      });
-    });
-
-    if (hasLatencyInfo) {
+    var audit = new tv.e.audits.ChromeAudit(m);
+    if (audit.browser && audit.browser.hasLatencyEvents) {
       return {
         supported: true
       };
@@ -111,7 +102,7 @@ tv.exportTo('tv.e.analysis', function() {
       this.frametimeType_ = tv.e.audits.IMPL_FRAMETIME_TYPE;
       this.latencyChart_ = undefined;
       this.frametimeChart_ = undefined;
-      this.selectedProcess_ = undefined;
+      this.selectedProcessId_ = undefined;
       this.mouseDownIndex_ = undefined;
       this.curMouseIndex_ = undefined;
     },
@@ -122,6 +113,11 @@ tv.exportTo('tv.e.analysis', function() {
 
     set model(model) {
       this.model_ = model;
+      if (this.model_)
+        this.audit_ = new tv.e.audits.ChromeAudit(model);
+      else
+        this.audit_ = undefined;
+
       this.updateToolbar_();
       this.updateContents_();
     },
@@ -137,14 +133,14 @@ tv.exportTo('tv.e.analysis', function() {
       this.updateContents_();
     },
 
-    get selectedProcess() {
-      return this.selectedProcess_;
+    get selectedProcessId() {
+      return this.selectedProcessId_;
     },
 
-    set selectedProcess(process) {
-      if (this.selectedProcess_ === process)
+    set selectedProcessId(process) {
+      if (this.selectedProcessId_ === process)
         return;
-      this.selectedProcess_ = process;
+      this.selectedProcessId_ = process;
       this.updateContents_();
     },
 
@@ -211,9 +207,8 @@ tv.exportTo('tv.e.analysis', function() {
     },
 
     updateToolbar_: function() {
-      var chromeBrowser = new tv.e.audits.ChromeBrowser(this.model_);
-      var rendererProcesses = chromeBrowser.rendererProcesses;
-      var browserProcess = chromeBrowser.browserProcess;
+      var rendererProcesses = this.audit_.rendererProcesses;
+      var browserProcess = this.audit_.browserProcess;
       var labels = [];
 
       if (browserProcess !== undefined) {
@@ -229,7 +224,7 @@ tv.exportTo('tv.e.analysis', function() {
       if (labels.length === 0)
         return;
 
-      this.selectedProcess_ = labels[0].value;
+      this.selectedProcessId_ = labels[0].value;
       var toolbarEl = this.querySelector('toolbar');
       toolbarEl.appendChild(tv.b.ui.createSelector(
           this, 'frametimeType',
@@ -240,10 +235,17 @@ tv.exportTo('tv.e.analysis', function() {
             value: tv.e.audits.IMPL_FRAMETIME_TYPE}
           ]));
       toolbarEl.appendChild(tv.b.ui.createSelector(
-          this, 'selectedProcess',
-          'inputLatencySidePanel.selectedProcess',
-          this.selectedProcess_,
+          this, 'selectedProcessId',
+          'inputLatencySidePanel.selectedProcessId',
+          this.selectedProcessId_,
           labels));
+    },
+
+    get currentRangeOfInterest() {
+      if (this.rangeOfInterest_.isEmpty)
+        return this.model_.bounds;
+      else
+        return this.rangeOfInterest_;
     },
 
     updateContents_: function() {
@@ -252,26 +254,28 @@ tv.exportTo('tv.e.analysis', function() {
       this.frametimeChart_ = undefined;
       resultArea.textContent = '';
 
-      if (this.model_ === undefined)
+      if (this.audit_ === undefined)
         return;
 
-      var rangeOfInterest;
-      if (this.rangeOfInterest_.isEmpty)
-        rangeOfInterest = this.model_.bounds;
-      else
-        rangeOfInterest = this.rangeOfInterest_;
+      var rangeOfInterest = this.currentRangeOfInterest;
 
-      var frametimeData = tv.e.audits.getFrametimeData(
-          this.model_,
-          this.frametimeType,
-          rangeOfInterest,
-          this.selectedProcess_);
+      var chromeProcess;
+      if (this.audit_.renderers[this.selectedProcessId_]) {
+        chromeProcess = this.audit_.renderers[this.selectedProcessId_];
+      } else {
+        chromeProcess = this.audit_.browser;
+      }
+
+      var frameEvents = chromeProcess.getFrameEventsInRange(
+            this.frametimeType, rangeOfInterest);
+
+      var frametimeData = tv.e.audits.getFrametimeDataFromEvents(frameEvents);
 
       var averageFrametime = tv.b.Statistics.mean(frametimeData, function(d) {
         return d.frametime});
 
-      var latencyData = tv.e.audits.getLatencyData(
-          this.model_, rangeOfInterest);
+      var latencyData = this.audit_.browser.getLatencyDataInRange(
+          rangeOfInterest);
 
       var averageLatency = tv.b.Statistics.mean(latencyData, function(d) {
         return d.latency});

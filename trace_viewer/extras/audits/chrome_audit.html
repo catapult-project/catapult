@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/extras/audits/chrome_browser_audit.html">
+<link rel="import" href="/extras/audits/chrome_renderer_audit.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Utilities for accessing trace data about the Chrome browser.
+ */
+tv.exportTo('tv.e.audits', function() {
+  var BROWSER_PROCESS_NAME = 'CrBrowserMain';
+  var RENDERER_PROCESS_NAME = 'CrRendererMain';
+
+  function findChromeBrowserProcess(model) {
+    var browsers = [];
+    model.getAllProcesses().forEach(function(process) {
+      if (process.findAllThreadsNamed(BROWSER_PROCESS_NAME).length !== 0)
+        browsers.push(process);
+    }, this);
+    if (browsers.length === 0)
+      return undefined;
+    if (browsers.length > 1)
+      return undefined;
+    return browsers[0];
+  }
+
+  function findChromeRenderProcesses(model) {
+    var rendererProcesses = [];
+    model.getAllProcesses().forEach(function(process) {
+      if (process.findAllThreadsNamed(RENDERER_PROCESS_NAME).length !== 0)
+        rendererProcesses.push(process);
+    });
+    return rendererProcesses;
+  }
+
+  /**
+   * @constructor
+   */
+  function ChromeAudit(model) {
+    this.model_ = model;
+
+    // Find browser.
+    this.browserProcess_ = findChromeBrowserProcess(model);
+    if (this.browserProcess_) {
+      this.browser_ = new tv.e.audits.ChromeBrowserAudit(
+          this, this.browserProcess_);
+    } else {
+      this.browser_ = undefined;
+    }
+
+    // Find renderers.
+    this.rendererProcesses_ = findChromeRenderProcesses(model);
+
+    this.renderers_ = {};
+    this.rendererProcesses_.forEach(function(renderProcess) {
+      var renderer = new tv.e.audits.ChromeRendererAudit(this, renderProcess);
+      this.renderers_[renderer.pid] = renderer;
+    }, this);
+  }
+
+  ChromeAudit.supportsModel = function(model) {
+    if (findChromeBrowserProcess(model) !== undefined)
+      return true;
+    if (findChromeRenderProcesses(model).length)
+      return true;
+    return false;
+  }
+
+  ChromeAudit.prototype = {
+    get pid() {
+      throw new Error('woah');
+    },
+
+    get process() {
+      throw new Error('woah');
+    },
+
+    get model() {
+      return this.model_;
+    },
+
+    get browserProcess() {
+      return this.browserProcess_;
+    },
+
+    get browser() {
+      return this.browser_;
+    },
+
+    get rendererProcesses() {
+      return this.rendererProcesses_;
+    },
+
+    get renderers() {
+      return this.renderers_;
+    }
+  };
+
+  return {
+    ChromeAudit: ChromeAudit
+  };
+});
+</script>

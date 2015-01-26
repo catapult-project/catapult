@@ -65,10 +65,11 @@ tv.b.unittest.testSuite(function() {
     for (var i = 0; i < 10; i++) {
       var start_ts = i * 10000;
       var end_ts = start_ts + 1000 * (i % 2);
-      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : start_ts, 'ph' : 'S', 'name' : 'InputLatency', 'id' : i}); // @suppress longLineCheck
-      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : end_ts, 'ph' : 'T', 'name' : 'InputLatency', 'args' : {'step' : 'GestureScrollUpdate'}, 'id' : i}); // @suppress longLineCheck
-      events.push({'cat' : 'benchmark', 'pid' : 3507, 'ts' : end_ts, 'ph' : 'F', 'name' : 'InputLatency', 'args' : {'data' : {'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT' : {'time' : start_ts}, 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT' : {'time' : end_ts}}}, 'id': i}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid': 3507, 'ts' : start_ts, 'ph' : 'S', 'name' : 'InputLatency', 'id' : i}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid': 3507, 'ts' : end_ts, 'ph' : 'T', 'name' : 'InputLatency', 'args' : {'step' : 'GestureScrollUpdate'}, 'id' : i}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid': 3507, 'ts' : end_ts, 'ph' : 'F', 'name' : 'InputLatency', 'args' : {'data' : {'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT' : {'time' : start_ts}, 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT' : {'time' : end_ts}}}, 'id': i}); // @suppress longLineCheck
     }
+    events.push({'cat' : '__metadata', 'pid' : 3507, 'tid' : 3507, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'CrBrowserMain'}}); // @suppress longLineCheck
 
     var panel = new tv.e.analysis.InputLatencySidePanel();
     this.addHTMLOutput(panel);

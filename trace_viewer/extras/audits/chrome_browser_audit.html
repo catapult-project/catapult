@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/extras/audits/chrome_process_audit.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Utilities for accessing trace data about the Chrome browser.
+ */
+tv.exportTo('tv.e.audits', function() {
+  var UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT';
+  var ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT';
+  var BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT';
+  var END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT';
+
+  function ChromeBrowserAudit(audit, process) {
+    tv.e.audits.ChromeProcessAudit.call(this, audit, process);
+  }
+
+  ChromeBrowserAudit.prototype = {
+    __proto__: tv.e.audits.ChromeProcessAudit.prototype,
+
+    get hasLatencyEvents() {
+      var hasLatency = false;
+      this.audit.model.getAllThreads().forEach(function(thread) {
+        thread.iterateAllEvents(function(event) {
+          if (event.title.indexOf('InputLatency') === 0)
+            hasLatency = true;
+        });
+      });
+      return hasLatency;
+    },
+
+    getLatencyEventsInRange: function(rangeOfInterest) {
+      var latencyEvents = [];
+      this.audit.model.getAllThreads().forEach(function(thread) {
+        thread.iterateAllEvents(function(event) {
+          if (event.title.indexOf('InputLatency') !== 0)
+            return;
+          if (rangeOfInterest.intersectsExplicitRange(event.start, event.end))
+            latencyEvents.push(event);
+        });
+      });
+      return latencyEvents;
+    },
+
+    getLatencyDataInRange: function(rangeOfInterest) {
+      var latencyEvents = this.getLatencyEventsInRange(rangeOfInterest);
+
+      // Helper function that computes the input latency for one async slice.
+      function maybeEventToLatencyDatum(event) {
+        if (!('data' in event.args))
+          return;
+
+        var data = event.args.data;
+        if (!(END_COMP_NAME in data))
+          return;
+
+        var latency = 0;
+        var endTime = data[END_COMP_NAME].time;
+        if (ORIGINAL_COMP_NAME in data) {
+          latency = endTime - data[ORIGINAL_COMP_NAME].time;
+        } else if (UI_COMP_NAME in data) {
+          latency = endTime - data[UI_COMP_NAME].time;
+        } else if (BEGIN_COMP_NAME in data) {
+          latency = endTime - data[BEGIN_COMP_NAME].time;
+        } else {
+          throw new Error('No valid begin latency component');
+        }
+        return {
+          'x': event.start,
+          'latency': latency / 1000.0
+        };
+      };
+
+      var latencyData = [];
+      latencyEvents.forEach(function(event) {
+        var latencyDatum = maybeEventToLatencyDatum(event);
+        if (latencyDatum)
+          latencyData.push(latencyDatum);
+      });
+      latencyData.sort(function(a, b) {return a.x - b.x});
+      return latencyData;
+    }
+  };
+
+  return {
+    ChromeBrowserAudit: ChromeBrowserAudit
+  };
+});
+</script>
