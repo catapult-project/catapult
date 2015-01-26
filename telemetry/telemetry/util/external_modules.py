@@ -9,6 +9,7 @@ from distutils import version
 MODULES = {
   'cv2': (version.StrictVersion('2.4.8'), version.StrictVersion('3.0.0')),
   'numpy': (version.StrictVersion('1.6.1'), None),
+  'psutil': (version.StrictVersion('0.5.0'), None),
 }
 
 def ImportRequiredModule(module):

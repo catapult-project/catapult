@@ -27,7 +27,9 @@ from telemetry.core.platform.power_monitor import monsoon_power_monitor
 from telemetry.core.platform.power_monitor import power_monitor_controller
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.util import exception_formatter
+from telemetry.util import external_modules
 
+psutil = external_modules.ImportOptionalModule('psutil')
 util.AddDirToPythonPath(util.GetChromiumSrcDir(),
                         'third_party', 'webpagereplay')
 import adb_install_cert  # pylint: disable=F0401
@@ -45,11 +47,6 @@ try:
   from pylib.perf import surface_stats_collector  # pylint: disable=F0401
 except Exception:
   surface_stats_collector = None
-
-try:
-  import psutil  # pylint: disable=import-error
-except ImportError:
-  psutil = None
 
 
 class AndroidPlatformBackend(
@@ -642,13 +639,9 @@ def _FixPossibleAdbInstability():
   for process in psutil.process_iter():
     try:
       if 'adb' in process.name:
-        if 'cpu_affinity' in dir(process):
-          process.cpu_affinity([0])      # New versions of psutil.
-        elif 'set_cpu_affinity' in dir(process):
+        if 'set_cpu_affinity' in dir(process):
           process.set_cpu_affinity([0])  # Older versions.
         else:
-          logging.warn(
-              'Cannot set CPU affinity due to stale psutil version: %s',
-              '.'.join(str(x) for x in psutil.version_info))
+          process.cpu_affinity([0])  # New versions of psutil.
     except (psutil.NoSuchProcess, psutil.AccessDenied):
       logging.warn('Failed to set adb process CPU affinity')
