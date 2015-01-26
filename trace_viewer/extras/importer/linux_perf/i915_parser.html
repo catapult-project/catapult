@@ -68,6 +68,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
         I915Parser.prototype.flipEvent.bind(this));
     importer.registerEventHandler('i915_flip_complete',
         I915Parser.prototype.flipEvent.bind(this));
+    importer.registerEventHandler('intel_gpu_freq_change',
+        I915Parser.prototype.gpuFrequency.bind(this));
   }
 
   I915Parser.prototype = {
@@ -115,6 +117,15 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     i915RegSlice: function(ts, eventName, reg, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_reg');
       kthread.openSlice = eventName + ':' + reg;
+      var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
+          tv.b.ui.getStringColorId(kthread.openSlice), ts, args, 0);
+
+      kthread.thread.sliceGroup.pushSlice(slice);
+    },
+
+    i915FreqChangeSlice: function(ts, eventName, args) {
+      var kthread = this.importer.getOrCreatePseudoThread('i915_gpu_freq');
+      kthread.openSlice = eventName;
       var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
           tv.b.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
@@ -329,6 +340,18 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
               obj: obj,
               plane: plane
             });
+      return true;
+    },
+
+    gpuFrequency: function(eventName, cpuNumver, pid, ts, eventBase) {
+      var event = /new_freq=(\d+)/.exec(eventBase.details);
+      if (!event)
+        return false;
+      var freq = parseInt(event[1]);
+
+      this.i915FreqChangeSlice(ts, eventName, {
+            freq: freq
+          });
       return true;
     }
   };

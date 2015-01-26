@@ -41,7 +41,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       '          chrome-1539  [000] 18422.955660: i915_gem_ring_dispatch: ' +
                  'dev=0, ring=1, seqno=1178364',
       '          chrome-1539  [000] 18420.677772: i915_reg_rw: ' +
-                 'write reg=0x100030, len=8, val=(0xfca9001, 0xfce8007)'
+              'write reg=0x100030, len=8, val=(0xfca9001, 0xfce8007)',
+      '          kworker/u16:2-13998 [005] 1577664.436065: ' +
+              'intel_gpu_freq_change: new_freq=350'
+
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
     assertFalse(m.hasImportWarnings);
@@ -50,6 +53,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var i915FlipThread = undefined;
     var i915GemRingThread = undefined;
     var i915RegThread = undefined;
+    var i915GpuFreqThread = undefined;
     m.getAllThreads().forEach(function(t) {
       switch (t.name) {
         case 'i915_gem':
@@ -64,6 +68,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         case 'i915_reg':
           i915RegThread = t;
           break;
+        case 'i915_gpu_freq':
+          i915GpuFreqThread = t;
+          break;
         default:
           throw new unittest.TestError('Unexpected thread named ' + t.name);
       }
@@ -72,6 +79,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertNotUndefined(i915FlipThread);
     assertNotUndefined(i915GemRingThread);
     assertNotUndefined(i915RegThread);
+    assertNotUndefined(i915GpuFreqThread);
 
     assertEquals(3, i915GemThread.sliceGroup.length);
 
@@ -84,6 +92,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     assertEquals(7, i915GemRingThread.sliceGroup.length);
     assertEquals(1, i915RegThread.sliceGroup.length);
+    assertEquals(1, i915GpuFreqThread.sliceGroup.length);
   });
 });
 </script>
