@@ -58,6 +58,10 @@ tv.exportTo('tv.c.trace_model', function() {
   Process.prototype = {
     __proto__: tv.c.trace_model.ProcessBase.prototype,
 
+    get stableId() {
+      return this.pid;
+    },
+
     compareTo: function(that) {
       return Process.compare(this, that);
     },

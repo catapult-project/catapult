@@ -28,6 +28,7 @@ tv.exportTo('tv.c.trace_model', function() {
    * and Process are built.
    *
    * @constructor
+   * @extends {tv.c.trace_model.EventContainer}
    */
   function ProcessBase(model) {
     if (!model)
@@ -46,11 +47,17 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   ProcessBase.prototype = {
+    __proto__: tv.c.trace_model.EventContainer.prototype,
+
     /*
      * @return {Number} A globally unique identifier for this counter.
      */
     get guid() {
       return this.guid_;
+    },
+
+    get stableId() {
+      throw new Error('Not implemented');
     },
 
     /**

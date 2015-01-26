@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/trace_model/event_container.html">
 <link rel="import" href="/core/trace_model/thread_slice.html">
 <link rel="import" href="/core/trace_model/slice_group.html">
 <link rel="import" href="/core/trace_model/async_slice_group.html">
@@ -61,6 +62,7 @@ tv.exportTo('tv.c.trace_model', function() {
    * ThreadSlice.
    *
    * @constructor
+   * @extends {tv.c.trace_model.EventContainer}
    */
   function Thread(parent, tid) {
     this.guid_ = tv.b.GUID.allocate();
@@ -92,12 +94,17 @@ tv.exportTo('tv.c.trace_model', function() {
   }
 
   Thread.prototype = {
+    __proto__: tv.c.trace_model.EventContainer.prototype,
 
     /*
      * @return {Number} A globally unique identifier for this counter.
      */
     get guid() {
       return this.guid_;
+    },
+
+    get stableId() {
+      return this.parent.stableId + '.' + this.tid;
     },
 
     compareTo: function(that) {

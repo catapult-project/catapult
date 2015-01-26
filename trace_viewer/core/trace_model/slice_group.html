@@ -30,6 +30,7 @@ tv.exportTo('tv.c.trace_model', function() {
    * @constructor
    * @param {function(new:Slice, category, title, colorId, start, args)=}
    *     opt_sliceConstructor The constructor to use when creating slices.
+   * @extends {tv.c.trace_model.EventContainer}
    */
   function SliceGroup(parentThread, opt_sliceConstructor, opt_name) {
     this.guid_ = tv.b.GUID.allocate();
@@ -48,18 +49,22 @@ tv.exportTo('tv.c.trace_model', function() {
   }
 
   SliceGroup.prototype = {
-    __proto__: Object.prototype,
+    __proto__: tv.c.trace_model.EventContainer.prototype,
 
     get guid() {
       return this.guid_;
     },
 
     get parentThread() {
-      return this.parentThrad_;
+      return this.parentThread_;
     },
 
     get model() {
       return this.parentThread_.parent.model;
+    },
+
+    get stableId() {
+      return this.parentThread_.stableId + '.SliceGroup';
     },
 
     getSettingsKey: function() {

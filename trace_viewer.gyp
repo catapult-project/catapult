@@ -147,6 +147,7 @@
       'trace_viewer/core/trace_model/cpu.html',
       'trace_viewer/core/trace_model/cpu_slice.html',
       'trace_viewer/core/trace_model/event.html',
+      'trace_viewer/core/trace_model/event_container.html',
       'trace_viewer/core/trace_model/flow_event.html',
       'trace_viewer/core/trace_model/instant_event.html',
       'trace_viewer/core/trace_model/kernel.html',
