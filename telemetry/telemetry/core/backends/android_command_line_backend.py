@@ -63,7 +63,7 @@ class _AndroidCommandLineBackend(object):
     self._adb = adb
     self._backend_settings = backend_settings
     self._startup_args = startup_args
-    self._saved_command_line_file_contents = ''
+    self._saved_command_line_file_contents = None
 
   @property
   def command_line_file(self):
@@ -79,20 +79,32 @@ class _AndroidCommandLineBackend(object):
       # be a  Telemetry created one. This is to prevent a common bug where
       # --host-resolver-rules borks people's browsers if something goes wrong
       # with Telemetry.
-      self._saved_command_line_file_contents = ''.join(self._ReadFile())
+      self._saved_command_line_file_contents = self._ReadFile()
       if '--host-resolver-rules' in self._saved_command_line_file_contents:
-        self._saved_command_line_file_contents = ''
-      self._WriteFile(content)
+        self._saved_command_line_file_contents = None
     except device_errors.CommandFailedError:
+      self._saved_command_line_file_contents = None
+
+    try:
+      self._WriteFile(content)
+    except device_errors.CommandFailedError as exc:
+      logging.critical(exc)
       logging.critical('Cannot set Chrome command line. '
                        'Fix this by flashing to a userdebug build.')
       sys.exit(1)
 
   def RestoreCommandLineFlags(self):
-    self._WriteFile(self._saved_command_line_file_contents)
+    if self._saved_command_line_file_contents is None:
+      self._RemoveFile()
+    else:
+      self._WriteFile(self._saved_command_line_file_contents)
 
   def _ReadFile(self):
-    return self._adb.device().ReadFile(self.command_line_file)
+    return self._adb.device().ReadFile(self.command_line_file, as_root=True)
 
   def _WriteFile(self, contents):
     self._adb.device().WriteFile(self.command_line_file, contents, as_root=True)
+
+  def _RemoveFile(self):
+    self._adb.device().RunShellCommand(['rm', '-f', self.command_line_file],
+                                       as_root=True, check_return=True)
