@@ -33,9 +33,10 @@ class InvalidOptionsError(Exception):
 
 
 class BenchmarkMetadata(object):
-  def __init__(self, name, description=''):
+  def __init__(self, name, description='', rerun_options=None):
     self._name = name
     self._description = description
+    self._rerun_options = rerun_options
 
   @property
   def name(self):
@@ -44,6 +45,10 @@ class BenchmarkMetadata(object):
   @property
   def description(self):
       return self._description
+
+  @property
+  def rerun_options(self):
+      return self._rerun_options
 
 
 class Benchmark(command_line.Command):
@@ -81,10 +86,43 @@ class Benchmark(command_line.Command):
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
+    group = optparse.OptionGroup(parser, '%s test options' % cls.Name())
     if hasattr(cls, 'AddBenchmarkCommandLineArgs'):
-      group = optparse.OptionGroup(parser, '%s test options' % cls.Name())
       cls.AddBenchmarkCommandLineArgs(group)
+
+    if cls.HasTraceRerunDebugOption():
+      group.add_option(
+          '--rerun-with-debug-trace',
+          action='store_true',
+          help='Rerun option that enables more extensive tracing.')
+
+    if group.option_list:
       parser.add_option_group(group)
+
+  @classmethod
+  def HasTraceRerunDebugOption(cls):
+    if hasattr(cls, 'HasBenchmarkTraceRerunDebugOption'):
+      if cls.HasBenchmarkTraceRerunDebugOption():
+        return True
+    return False
+
+  def GetTraceRerunCommands(self):
+    if self.HasTraceRerunDebugOption():
+      return [['Debug Trace', '--rerun-with-debug-trace']]
+    return []
+
+  def SetupTraceRerunOptions(self, browser_options, tbm_options):
+    if self.HasTraceRerunDebugOption():
+      if browser_options.rerun_with_debug_trace:
+        self.SetupBenchmarkDebugTraceRerunOptions(tbm_options)
+      else:
+        self.SetupBenchmarkDefaultTraceRerunOptions(tbm_options)
+
+  def SetupBenchmarkDefaultTraceRerunOptions(self, tbm_options):
+    """Setup tracing categories associated with default trace option."""
+
+  def SetupBenchmarkDebugTraceRerunOptions(self, tbm_options):
+    """Setup tracing categories associated with debug trace option."""
 
   @classmethod
   def SetArgumentDefaults(cls, parser):
@@ -104,7 +142,8 @@ class Benchmark(command_line.Command):
     """Add browser options that are required by this benchmark."""
 
   def GetMetadata(self):
-    return BenchmarkMetadata(self.Name(), self.__doc__)
+    return BenchmarkMetadata(
+        self.Name(), self.__doc__, self.GetTraceRerunCommands())
 
   def Run(self, finder_options):
     """Run this test with the given options.
@@ -248,8 +287,10 @@ class Benchmark(command_line.Command):
           'Cannot override CreateTimelineBasedMeasurementOptions '
           'with a PageTest.')
       return self.test()  # pylint: disable=no-value-for-parameter
-    return timeline_based_measurement.TimelineBasedMeasurement(
-        self.CreateTimelineBasedMeasurementOptions())
+
+    opts = self.CreateTimelineBasedMeasurementOptions()
+    self.SetupTraceRerunOptions(options, opts)
+    return timeline_based_measurement.TimelineBasedMeasurement(opts)
 
   def CreatePageSet(self, options):  # pylint: disable=unused-argument
     """Get the page set this test will run on.

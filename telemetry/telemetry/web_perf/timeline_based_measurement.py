@@ -139,6 +139,10 @@ class Options(object):
         The v8 overhead level is a temporary solution that may be removed.
     """
     self._overhead_level = overhead_level
+    self._category_filters = []
+
+  def ExtendTraceCategoryFilters(self, filters):
+    self._category_filters.extend(filters)
 
 
 class TimelineBasedMeasurement(object):
@@ -165,6 +169,7 @@ class TimelineBasedMeasurement(object):
   """
   def __init__(self, options):
     self._overhead_level = options._overhead_level
+    self._category_filters = options._category_filters
 
   def WillRunUserStory(self, tracing_controller,
                        synthetic_delay_categories=None):
@@ -191,6 +196,9 @@ class TimelineBasedMeasurement(object):
       category_filter = tracing_category_filter.CreateMinimalOverheadFilter()
     else:
       category_filter = tracing_category_filter.CreateDebugOverheadFilter()
+
+    for new_category_filter in self._category_filters:
+      category_filter.AddIncludedCategory(new_category_filter)
 
     # TODO(slamm): Move synthetic_delay_categories to the TBM options.
     for delay in synthetic_delay_categories or []:
