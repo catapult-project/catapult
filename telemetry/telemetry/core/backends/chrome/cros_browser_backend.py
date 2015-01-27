@@ -156,7 +156,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.RestartUI(False) # Logs out.
       self._cri.CloseConnection()
 
-    util.WaitFor(lambda: not self._IsCryptohomeMounted(), 30)
+    util.WaitFor(lambda: not self._IsCryptohomeMounted(), 180)
 
     if self._forwarder:
       self._forwarder.Close()
