@@ -47,19 +47,13 @@ class PageTest(object):
         subclasses to run.
     discard_first_run: Discard the first run of this page. This is
         usually used with page_repeat and pageset_repeat options.
-    is_action_name_to_run_optional: Determines what to do if
-        action_name_to_run is not empty but the page doesn't have that
-        action. The page will run (without any action) if
-        is_action_name_to_run_optional is True, otherwise the page
-        will fail.
   """
 
   def __init__(self,
                action_name_to_run='',
                needs_browser_restart_after_each_page=False,
                discard_first_result=False,
-               clear_cache_before_each_run=False,
-               is_action_name_to_run_optional=False):
+               clear_cache_before_each_run=False):
     super(PageTest, self).__init__()
 
     self.options = None
@@ -74,7 +68,6 @@ class PageTest(object):
     self._discard_first_result = discard_first_result
     self._clear_cache_before_each_run = clear_cache_before_each_run
     self._close_tabs_before_run = True
-    self._is_action_name_to_run_optional = is_action_name_to_run_optional
 
   @property
   def is_multi_tab_test(self):
@@ -156,7 +149,7 @@ class PageTest(object):
 
   def CanRunForPage(self, page):  # pylint: disable=W0613
     """Override to customize if the test can be ran for the given page."""
-    if self._action_name_to_run and not self._is_action_name_to_run_optional:
+    if self._action_name_to_run:
       return hasattr(page, self._action_name_to_run)
     return True
 
