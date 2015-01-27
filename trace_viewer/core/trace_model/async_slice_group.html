@@ -19,6 +19,7 @@ tv.exportTo('tv.c.trace_model', function() {
   /**
    * A group of AsyncSlices associated with a thread.
    * @constructor
+   * @extends {tv.c.trace_model.EventContainer}
    */
   function AsyncSliceGroup(parentThread, opt_name) {
     this.parentThread_ = parentThread;
@@ -30,7 +31,7 @@ tv.exportTo('tv.c.trace_model', function() {
   }
 
   AsyncSliceGroup.prototype = {
-    __proto__: Object.prototype,
+    __proto__: tv.c.trace_model.EventContainer.prototype,
 
     get guid() {
       return this.guid_;
@@ -42,6 +43,10 @@ tv.exportTo('tv.c.trace_model', function() {
 
     get model() {
       return this.parentThread_.parent.model;
+    },
+
+    get stableId() {
+      return this.parentThread_.stableId + '.AsyncSliceGroup';
     },
 
     getSettingsKey: function() {
