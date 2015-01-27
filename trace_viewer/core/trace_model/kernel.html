@@ -134,6 +134,10 @@ tv.exportTo('tv.c.trace_model', function() {
         this.cpus[cpuNumber].iterateAllEvents(callback, opt_this);
 
       ProcessBase.prototype.iterateAllEvents.call(this, callback, opt_this);
+    },
+
+    iterateAllEventContainers: function(callback) {
+      callback(this);
     }
   };
 
