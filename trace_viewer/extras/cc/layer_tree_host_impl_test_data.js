@@ -300,5 +300,31 @@ var g_catLTHIEvents = [
     'tid': 28163,
     'ph': 'O',
     'id': 'LTHI_1'
+  },
+  {
+    'name': 'cc::DisplayItemList',
+    'args': {
+      'snapshot': {
+        'params': {
+          'layer_rect': [
+            -15,
+            -15,
+            1260,
+            1697
+          ],
+          'items': [
+            'BeginClipDisplayItem',
+            'EndClipDisplayItem'
+          ]
+        },
+        'skp64': '[base 64 encoded skia picture]'
+      }
+    },
+    'pid': 1,
+    'ts': 300,
+    'cat': 'disabled-by-default-cc.debug',
+    'tid': 1,
+    'ph': 'O',
+    'id': 'PICTURE_3'
   }
 ];

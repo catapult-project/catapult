@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/cc/display_item_list.html">
+<link rel="import" href="/extras/cc/display_item_debugger.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  test('instantiate', function() {
+    var displayItemList = new tv.e.cc.DisplayItemListSnapshot(
+      {id: '31415'},
+      10,
+      {
+        'params': {
+          'layer_rect': [-15, -15, 46, 833],
+          'items': [
+            'BeginClipDisplayItem',
+            'EndClipDisplayItem'
+          ]
+        },
+        'skp64': '[another skia picture in base64]'});
+    displayItemList.preInitialize();
+    displayItemList.initialize();
+
+    var dbg = new tv.e.cc.DisplayItemDebugger();
+    this.addHTMLOutput(dbg);
+    assertEquals(dbg.displayItemList_, undefined);
+    assertEquals(dbg.picture_, undefined);
+    dbg.displayItemList = displayItemList;
+    assertTrue(dbg.displayItemList_ !== undefined);
+    assertTrue(dbg.picture_ !== undefined);
+    assertEquals(dbg.displayItemList_.items.length, 2);
+    dbg.style.border = '1px solid black';
+  });
+
+  test('selections', function() {
+    var displayItemList = new tv.e.cc.DisplayItemListSnapshot(
+      {id: '31415'},
+      10,
+      {
+        'params': {
+          'layer_rect': [-15, -15, 46, 833],
+          'items': [
+            'BeginClipDisplayItem',
+            'TransformDisplayItem',
+            {'name': 'DrawingDisplayItem', 'skp64': '[skia picture in base64]'},
+            'EndTransformDisplayItem',
+            'EndClipDisplayItem'
+          ]
+        },
+        'skp64': '[another skia picture in base64]'});
+    displayItemList.preInitialize();
+    displayItemList.initialize();
+
+    var dbg = new tv.e.cc.DisplayItemDebugger();
+    this.addHTMLOutput(dbg);
+    dbg.displayItemList = displayItemList;
+    assertTrue(dbg.displayItemList_ !== undefined);
+    assertTrue(dbg.picture_ !== undefined);
+    assertEquals(dbg.displayItemList_.items.length, 5);
+
+    var initialPicture = dbg.picture_;
+    assertTrue(initialPicture.guid > 0);
+
+    // Select the drawing display item and make sure the picture updates.
+    var listView = dbg.displayItemListView_;
+    listView.selectedElement = listView.getElementByIndex(3);
+    var updatedPicture = dbg.picture_;
+    assertTrue(updatedPicture.guid > 0);
+    assertNotEquals(initialPicture.guid, updatedPicture.guid);
+
+    // Select the TransformDisplayItem and make sure the picture switches
+    // back to the initial picture.
+    listView.selectedElement = listView.getElementByIndex(2);
+    updatedPicture = dbg.picture_;
+    assertTrue(updatedPicture.guid > 0);
+    assertEquals(initialPicture.guid, updatedPicture.guid);
+
+    dbg.style.border = '1px solid black';
+  });
+});
+</script>
