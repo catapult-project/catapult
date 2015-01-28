@@ -31,6 +31,8 @@ class AndroidAppBackend(app_backend.AppBackend):
     return self.platform_backend.adb
 
   def _IsAppReady(self):
+    if self._is_app_ready_predicate is None:
+      return True
     return self._is_app_ready_predicate(self.app)
 
   def Start(self):

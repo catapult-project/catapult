@@ -19,7 +19,8 @@ class AndroidPlatform(platform.Platform):
       start_intent: The intent to use to start the app.
       is_app_ready_predicate: A predicate function to determine
           whether the app is ready. This is a function that takes an
-          AndroidApp instance and return a boolean.
+          AndroidApp instance and return a boolean. When it is not passed in,
+          the app is ready by default.
     """
     self._platform_backend.DismissCrashDialogIfNeeded()
     app_backend = android_app_backend.AndroidAppBackend(
