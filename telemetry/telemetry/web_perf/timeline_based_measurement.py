@@ -30,19 +30,24 @@ ALL_OVERHEAD_LEVELS = [
   DEBUG_OVERHEAD_LEVEL
 ]
 
+DEFAULT_METRICS = {
+  tir_module.IS_FAST: fast_metric.FastMetric,
+  tir_module.IS_SMOOTH: smoothness.SmoothnessMetric,
+  tir_module.IS_RESPONSIVE: responsiveness_metric.ResponsivenessMetric,
+}
 
 class InvalidInteractions(Exception):
   pass
 
 
-def _GetMetricFromMetricType(metric_type):
-  if metric_type == tir_module.IS_FAST:
-    return fast_metric.FastMetric()
-  if metric_type == tir_module.IS_SMOOTH:
-    return smoothness.SmoothnessMetric()
-  if metric_type == tir_module.IS_RESPONSIVE:
-    return responsiveness_metric.ResponsivenessMetric()
-  raise Exception('Unrecognized metric type: %s' % metric_type)
+def _GetMetricsFromFlags(record_custom_flags):
+  flags_set = set(record_custom_flags)
+  unknown_flags = flags_set.difference(DEFAULT_METRICS)
+  if unknown_flags:
+    raise Exception("Unknown metric flags: %s" % sorted(unknown_flags))
+
+  return [metric() for flag, metric in DEFAULT_METRICS.iteritems()
+          if flag in flags_set]
 
 
 # TODO(nednguyen): Get rid of this results wrapper hack after we add interaction
@@ -63,6 +68,7 @@ class _ResultsWrapper(object):
     value.name = self._GetResultName(value.name)
     self._results.AddValue(value)
 
+
 def _GetRendererThreadsToInteractionRecordsMap(model):
   threads_to_records_map = defaultdict(list)
   interaction_labels_of_previous_threads = set()
@@ -82,14 +88,15 @@ def _GetRendererThreadsToInteractionRecordsMap(model):
 
   return threads_to_records_map
 
+
 class _TimelineBasedMetrics(object):
   def __init__(self, model, renderer_thread, interaction_records,
-               get_metric_from_metric_type_callback):
+               get_metrics_from_flags_callback):
     self._model = model
     self._renderer_thread = renderer_thread
     self._interaction_records = interaction_records
-    self._get_metric_from_metric_type_callback = \
-        get_metric_from_metric_type_callback
+    self._get_metrics_from_flags_callback = \
+        get_metrics_from_flags_callback
 
   def AddResults(self, results):
     interactions_by_label = defaultdict(list)
@@ -105,17 +112,18 @@ class _TimelineBasedMetrics(object):
       self.UpdateResultsByMetric(interactions, wrapped_results)
 
   def UpdateResultsByMetric(self, interactions, wrapped_results):
-    for metric_type in tir_module.METRICS:
-      # For each metric type, either all or none of the interactions should
-      # have that metric.
-      interactions_with_metric = [i for i in interactions if
-                                  i.HasMetric(metric_type)]
-      if not interactions_with_metric:
-        continue
-      if len(interactions_with_metric) != len(interactions):
+    if not interactions:
+      return
+
+    # Either all or none of the interactions should have that metric flags.
+    records_custom_flags = set(interactions[0].GetUserDefinedFlags())
+    for interaction in interactions[1:]:
+      if records_custom_flags != set(interaction.GetUserDefinedFlags()):
         raise InvalidInteractions('Interaction records with the same logical '
                                   'name must have the same flags.')
-      metric = self._get_metric_from_metric_type_callback(metric_type)
+
+    metrics_list = self._get_metrics_from_flags_callback(records_custom_flags)
+    for metric in metrics_list:
       metric.AddResults(self._model, self._renderer_thread,
                         interactions, wrapped_results)
 
@@ -127,22 +135,45 @@ class Options(object):
   Benchmark.CreateTimelineBasedMeasurementOptions.
   """
 
-  def __init__(self, overhead_level=NO_OVERHEAD_LEVEL):
-    """Save the overhead level.
-
-    As the amount of instrumentation increases, so does the overhead.
+  def __init__(self, overhead_level=NO_OVERHEAD_LEVEL,
+               get_metrics_from_flags_callback=_GetMetricsFromFlags):
+    """As the amount of instrumentation increases, so does the overhead.
     The user of the measurement chooses the overhead level that is appropriate,
     and the tracing is filtered accordingly.
 
-    overhead_level: one of NO_OVERHEAD_LEVEL, V8_OVERHEAD_LEVEL,
-        MINIMAL_OVERHEAD_LEVEL, or DEBUG_OVERHEAD_LEVEL.
-        The v8 overhead level is a temporary solution that may be removed.
+    overhead_level: Can either be a custom TracingCategoryFilter object or
+        one of NO_OVERHEAD_LEVEL, V8_OVERHEAD_LEVEL, MINIMAL_OVERHEAD_LEVEL,
+        or DEBUG_OVERHEAD_LEVEL. The v8 overhead level is a temporary solution
+        that may be removed.
+    get_metrics_from_flags_callback: Callback function which returns a
+        a list of metrics based on timeline record flags. See the default
+        _GetMetricsFromFlags() as an example.
     """
+    if (not isinstance(overhead_level,
+                       tracing_category_filter.TracingCategoryFilter) and
+        overhead_level not in ALL_OVERHEAD_LEVELS):
+      raise Exception("Overhead level must be a TracingCategoryFilter object"
+                      " or valid overhead level string."
+                      " Given overhead level: %s" % overhead_level)
+
     self._overhead_level = overhead_level
-    self._category_filters = []
+    self._extra_category_filters = []
+    self._get_metrics_from_flags_callback = get_metrics_from_flags_callback
 
   def ExtendTraceCategoryFilters(self, filters):
-    self._category_filters.extend(filters)
+    self._extra_category_filters.extend(filters)
+
+  @property
+  def extra_category_filters(self):
+    return self._extra_category_filters
+
+  @property
+  def overhead_level(self):
+    return self._overhead_level
+
+  @property
+  def get_metrics_from_flags_callback(self):
+    return self._get_metrics_from_flags_callback
 
 
 class TimelineBasedMeasurement(object):
@@ -168,8 +199,7 @@ class TimelineBasedMeasurement(object):
   perf.metrics.timeline_interaction_record module.
   """
   def __init__(self, options):
-    self._overhead_level = options._overhead_level
-    self._category_filters = options._category_filters
+    self._tbm_options = options
 
   def WillRunUserStory(self, tracing_controller,
                        synthetic_delay_categories=None):
@@ -184,20 +214,27 @@ class TimelineBasedMeasurement(object):
     """
     if not tracing_controller.IsChromeTracingSupported():
       raise Exception('Not supported')
-    assert self._overhead_level in ALL_OVERHEAD_LEVELS
-    if self._overhead_level == NO_OVERHEAD_LEVEL:
-      category_filter = tracing_category_filter.CreateNoOverheadFilter()
-    # TODO(ernstm): Remove this overhead level when benchmark relevant v8 events
-    # become available in the 'benchmark' category.
-    elif self._overhead_level == V8_OVERHEAD_LEVEL:
-      category_filter = tracing_category_filter.CreateNoOverheadFilter()
-      category_filter.AddIncludedCategory('v8')
-    elif self._overhead_level == MINIMAL_OVERHEAD_LEVEL:
-      category_filter = tracing_category_filter.CreateMinimalOverheadFilter()
-    else:
-      category_filter = tracing_category_filter.CreateDebugOverheadFilter()
 
-    for new_category_filter in self._category_filters:
+    if isinstance(self._tbm_options.overhead_level,
+                  tracing_category_filter.TracingCategoryFilter):
+      category_filter = self._tbm_options.overhead_level
+    else:
+      assert self._tbm_options.overhead_level in ALL_OVERHEAD_LEVELS, (
+          "Invalid TBM Overhead Level: %s" % self._tbm_options.overhead_level)
+
+      if self._tbm_options.overhead_level == NO_OVERHEAD_LEVEL:
+        category_filter = tracing_category_filter.CreateNoOverheadFilter()
+      # TODO(ernstm): Remove this overhead level when benchmark relevant v8
+      # events become available in the 'benchmark' category.
+      elif self._tbm_options.overhead_level == V8_OVERHEAD_LEVEL:
+        category_filter = tracing_category_filter.CreateNoOverheadFilter()
+        category_filter.AddIncludedCategory('v8')
+      elif self._tbm_options.overhead_level == MINIMAL_OVERHEAD_LEVEL:
+        category_filter = tracing_category_filter.CreateMinimalOverheadFilter()
+      else:
+        category_filter = tracing_category_filter.CreateDebugOverheadFilter()
+
+    for new_category_filter in self._tbm_options.extra_category_filters:
       category_filter.AddIncludedCategory(new_category_filter)
 
     # TODO(slamm): Move synthetic_delay_categories to the TBM options.
@@ -217,7 +254,8 @@ class TimelineBasedMeasurement(object):
     for renderer_thread, interaction_records in (
         threads_to_records_map.iteritems()):
       meta_metrics = _TimelineBasedMetrics(
-          model, renderer_thread, interaction_records, _GetMetricFromMetricType)
+          model, renderer_thread, interaction_records,
+          self._tbm_options.get_metrics_from_flags_callback)
       meta_metrics.AddResults(results)
 
   def DidRunUserStory(self, tracing_controller):

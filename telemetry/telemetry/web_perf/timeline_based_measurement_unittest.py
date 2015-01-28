@@ -52,14 +52,21 @@ class FakeLoadingMetric(timeline_based_metric.TimelineBasedMetric):
         len(interaction_records)))
 
 
-def GetMetricFromMetricType(metric_type):
-  if metric_type == tir_module.IS_FAST:
-    return FakeFastMetric()
-  if metric_type == tir_module.IS_SMOOTH:
-    return FakeSmoothMetric()
-  if metric_type == tir_module.IS_RESPONSIVE:
-    return FakeLoadingMetric()
-  raise Exception('Unrecognized metric type: %s' % metric_type)
+FAKE_METRICS_METRICS = {
+  tir_module.IS_FAST: FakeFastMetric,
+  tir_module.IS_SMOOTH: FakeSmoothMetric,
+  tir_module.IS_RESPONSIVE: FakeLoadingMetric,
+}
+
+
+def GetMetricFromFlags(record_custom_flags):
+  flags_set = set(record_custom_flags)
+  unknown_flags = flags_set.difference(FAKE_METRICS_METRICS)
+  if unknown_flags:
+    raise Exception("Unknown metric flags: %s" % sorted(unknown_flags))
+
+  return [metric() for flag, metric in FAKE_METRICS_METRICS.iteritems()
+          if flag in flags_set]
 
 
 class TimelineBasedMetricTestData(object):
@@ -115,7 +122,7 @@ class TimelineBasedMetricTestData(object):
   def AddResults(self):
     for thread, records in self._threads_to_records_map.iteritems():
       metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
-        self._model, thread, records, GetMetricFromMetricType)
+        self._model, thread, records, GetMetricFromFlags)
       metric.AddResults(self._results)
     self._results.DidRunPage(self._ps.pages[0])
 

@@ -176,6 +176,10 @@ class TimelineInteractionRecord(object):
                            'interaction record: %s' % metric_type)
     return metric_type in self._flags
 
+  def GetUserDefinedFlags(self):
+    return [metric_type for metric_type in METRICS
+            if metric_type in self._flags]
+
   def GetOverlappedThreadTimeForSlice(self, timeline_slice):
     """Get the thread duration of timeline_slice that overlaps with this record.
 
