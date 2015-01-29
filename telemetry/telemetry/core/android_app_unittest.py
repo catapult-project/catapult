@@ -14,6 +14,10 @@ from telemetry.core.platform import android_device
 from telemetry.unittest_util import options_for_unittests
 
 
+def _IsAppReady(app):
+  return len(app.GetProcess(':search').GetWebViews()) > 0
+
+
 class AndroidAppTest(unittest.TestCase):
   def setUp(self):
     self._options = options_for_unittests.GetCopy()
@@ -23,7 +27,7 @@ class AndroidAppTest(unittest.TestCase):
     platform = platform_module.GetPlatformForDevice(self._device, self._options)
     platform_backend = platform._platform_backend
     app_backend = android_app_backend.AndroidAppBackend(
-        platform_backend, start_intent)
+        platform_backend, start_intent, is_app_ready_predicate=_IsAppReady)
     return android_app.AndroidApp(app_backend, platform_backend)
 
   def testWebView(self):
