@@ -14,10 +14,6 @@ from telemetry.core.platform import android_device
 from telemetry.unittest_util import options_for_unittests
 
 
-def _IsAppReady(app):
-  return len(app.GetProcess(':search').GetWebViews()) > 0
-
-
 class AndroidAppTest(unittest.TestCase):
   def setUp(self):
     self._options = options_for_unittests.GetCopy()
@@ -27,7 +23,7 @@ class AndroidAppTest(unittest.TestCase):
     platform = platform_module.GetPlatformForDevice(self._device, self._options)
     platform_backend = platform._platform_backend
     app_backend = android_app_backend.AndroidAppBackend(
-        platform_backend, start_intent, is_app_ready_predicate=_IsAppReady)
+        platform_backend, start_intent)
     return android_app.AndroidApp(app_backend, platform_backend)
 
   def testWebView(self):
@@ -43,6 +39,16 @@ class AndroidAppTest(unittest.TestCase):
         extras={'query': 'google'},
         category=None)
     search_app = self.CreateAndroidApp(start_intent)
+    search_process = search_app.GetProcess(':search')
+    search_process._UpdateDevToolsClient()
+
+    # TODO(ariblue): Replace the app used in this test with one in which the
+    # setWebContentsDebuggingEnabled method is called on the WebView class.
+    # This will configure webviews for debugging with chrome devtools inspector
+    # and allow us to remove this check.
+    if search_process._devtools_client is None:
+      return
+
     webview = search_app.GetProcess(':search').GetWebViews().pop()
     webview.Navigate('https://www.google.com/search?q=flowers')
     time.sleep(5)
