@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/base/properties.html">
 <link rel="import" href="/base/settings.html">
+<link rel="import" href="/base/task.html">
 <link rel="import" href="/base/ui.html">
 <link rel="import" href="/base/ui/mouse_mode_selector.html">
 <link rel="import" href="/core/filter.html">
@@ -286,11 +287,10 @@ tv.exportTo('tv.c', function() {
     /**
      * @param {Filter} filter The filter to use for finding matches.
      * @param {Selection} selection The selection to add matches to.
-     * @return {Array} An array of objects that match the provided
-     * TitleFilter.
+     * @return {Task} which performs the filtering.
      */
-    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
-      this.modelTrack_.addAllObjectsMatchingFilterToSelection(
+    addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
+      return this.modelTrack_.addAllObjectsMatchingFilterToSelectionAsTask(
           filter, selection);
     },
 
