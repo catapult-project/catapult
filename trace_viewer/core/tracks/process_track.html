@@ -101,6 +101,10 @@ tv.exportTo('tv.c.tracks', function() {
       return this.processBase;
     },
 
+    get eventContainer() {
+      return this.process;
+    },
+
     addContainersToTrackMap: function(containerToTrackMap) {
       containerToTrackMap.addContainer(this.process, this);
       this.tracks_.forEach(function(track) {

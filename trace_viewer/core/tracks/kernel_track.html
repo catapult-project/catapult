@@ -40,6 +40,10 @@ tv.exportTo('tv.c.tracks', function() {
       return this.processBase;
     },
 
+    get eventContainer() {
+      return this.kernel;
+    },
+
     addContainersToTrackMap: function(containerToTrackMap) {
       containerToTrackMap.addContainer(this.kernel, this);
     },

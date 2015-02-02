@@ -49,6 +49,10 @@ tv.exportTo('tv.c.tracks', function() {
       this.setItemsToGroup(this.group_.slices, this.group_);
     },
 
+    get eventContainer() {
+      return this.group;
+    },
+
     addContainersToTrackMap: function(containerToTrackMap) {
       containerToTrackMap.addContainer(this.group, this);
     },
