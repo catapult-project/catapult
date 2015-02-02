@@ -47,6 +47,12 @@ tv.exportTo('tv.c.tracks', function() {
       return this.tracks_.length > 0;
     },
 
+    addContainersToTrackMap: function(containerToTrackMap) {
+      containerToTrackMap.addContainer(this.thread, this);
+      for (var i = 0; i < this.childNodes.length; ++i)
+        this.childNodes[i].addContainersToTrackMap(containerToTrackMap);
+    },
+
     updateContents_: function() {
       this.detach();
 

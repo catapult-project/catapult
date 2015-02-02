@@ -101,6 +101,13 @@ tv.exportTo('tv.c.tracks', function() {
       return this.processBase;
     },
 
+    addContainersToTrackMap: function(containerToTrackMap) {
+      containerToTrackMap.addContainer(this.process, this);
+      this.tracks_.forEach(function(track) {
+        track.addContainersToTrackMap(containerToTrackMap);
+      });
+    },
+
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onPickHit(instantEvent) {

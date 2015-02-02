@@ -81,6 +81,7 @@ tv.exportTo('tv.c.tracks', function() {
         this.appendChild(track);
       }
       this.viewport_.rebuildEventToTrackMap();
+      this.viewport_.rebuildContainerToTrackMap();
 
       for (var i = 0; i < this.highlighters_.length; i++) {
         this.highlighters_[i].processModel(this.model_);
@@ -102,6 +103,12 @@ tv.exportTo('tv.c.tracks', function() {
       this.instantEvents.forEach(function(ev) {
         eventToTrackMap.addEvent(ev, this);
       }.bind(this));
+    },
+
+    addContainersToTrackMap: function(containerToTrackMap) {
+      var tracks = this.children;
+      for (var i = 0; i < tracks.length; ++i)
+        tracks[i].addContainersToTrackMap(containerToTrackMap);
     },
 
     appendKernelTrack_: function() {

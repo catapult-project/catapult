@@ -40,6 +40,10 @@ tv.exportTo('tv.c.tracks', function() {
       return this.processBase;
     },
 
+    addContainersToTrackMap: function(containerToTrackMap) {
+      containerToTrackMap.addContainer(this.kernel, this);
+    },
+
     willAppendTracks_: function() {
       var cpus = tv.b.dictionaryValues(this.kernel.cpus);
       cpus.sort(tv.c.trace_model.Cpu.compare);
