@@ -76,6 +76,9 @@ class WprArchiveInfo(object):
     if not self._bucket:
       logging.warning('User story set in %s has no bucket specified, and '
                       'cannot be downloaded from cloud_storage.', )
+      return
+    assert 'archives' in self._data, 'Invalid data format in %s. \'archives\'' \
+                                     ' field is needed' % self._file_path
     for archive_path in self._data['archives']:
       archive_path = self._WprFileNameToPath(archive_path)
       try:
