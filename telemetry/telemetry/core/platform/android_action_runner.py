@@ -1,0 +1,115 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import time
+
+
+class ActionNotSupported(Exception):
+  pass
+
+
+class AndroidActionRunner(object):
+  """Provides an API for interacting with an android device.
+
+  This makes use of functionality provided by the android input command. None
+  of the gestures here are guaranteed to be performant for telemetry tests and
+  there is no official support for this API.
+
+  TODO(ariblue): Replace this API with a better implementation for interacting
+  with native components.
+  """
+
+  def __init__(self, platform_backend):
+    self._platform_backend = platform_backend
+
+  def SmoothScrollBy(self, left_start_coord, top_start_coord, direction,
+                     scroll_distance):
+    """Perfrom gesture to scroll down on the android device.
+    """
+    if direction not in ['down', 'up', 'left', 'right']:
+      raise ActionNotSupported('Invalid scroll direction: %s' % direction)
+
+    # This velocity is slower so that the exact distance we specify is the
+    # distance the page travels.
+    duration = scroll_distance
+
+    # Note that the default behavior is swiping up for scrolling down.
+    if direction == 'down':
+      left_end_coord = left_start_coord
+      top_end_coord = top_start_coord - scroll_distance
+    elif direction == 'up':
+      left_end_coord = left_start_coord
+      top_end_coord = top_start_coord + scroll_distance
+    elif direction == 'right':
+      left_end_coord = left_start_coord - scroll_distance
+      top_end_coord = top_start_coord
+    elif direction == 'left':
+      left_end_coord = left_start_coord + scroll_distance
+      top_end_coord = top_start_coord
+
+    self.InputSwipe(left_start_coord, top_start_coord, left_end_coord,
+                    top_end_coord, duration)
+
+  def Wait(self, seconds):
+    """Wait for the number of seconds specified.
+
+    Args:
+      seconds: The number of seconds to wait.
+    """
+    time.sleep(seconds)
+
+  def InputText(self, string):
+    """Convert the characters of the string into key events and send to device.
+
+    Args:
+      string: The string to send to the device.
+    """
+    self._platform_backend.adb.RunShellCommand('input text %s' % string)
+
+  def InputKeyEvent(self, key):
+    """Send a single key input to the device.
+
+    Args:
+      key: A key code number or name that will be sent to the device
+    """
+    self._platform_backend.adb.RunShellCommand('input keyevent %s' % key)
+
+  def InputTap(self, x_coord, y_coord):
+    """Perform a tap input at the given coordinates.
+
+    Args:
+      x_coord: The x coordinate of the tap event.
+      y_coord: The y coordinate of the tap event.
+    """
+    self._platform_backend.adb.RunShellCommand('input tap %s %s' % (x_coord,
+                                                                    y_coord))
+
+  def InputSwipe(self, left_start_coord, top_start_coord, left_end_coord,
+                 top_end_coord, duration):
+    """Perform a swipe input.
+
+    Args:
+      left_start_coord: The horizontal starting coordinate of the gesture
+      top_start_coord: The vertical starting coordinate of the gesture
+      left_end_coord: The horizontal ending coordinate of the gesture
+      top_end_coord: The vertical ending coordinate of the gesture
+      duration: The length of time of the swipe in milliseconds
+    """
+    self._platform_backend.adb.RunShellCommand(
+        'input swipe %s %s %s %s %s' % (left_start_coord, top_start_coord,
+                                        left_end_coord, top_end_coord,
+                                        duration))
+
+  def InputPress(self):
+    """Perform a press input."""
+    self._platform_backend.adb.RunShellCommand('input press')
+
+  def InputRoll(self, dx, dy):
+    """Perform a roll input. This sends a simple zero-pressure move event.
+
+    Args:
+      dx: Change in the x coordinate due to move.
+      dy: Change in the y coordinate due to move.
+    """
+    self._platform_backend.adb.RunShellCommand('input roll %s %s' % (dx, dy))

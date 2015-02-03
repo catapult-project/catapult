@@ -6,11 +6,18 @@
 from telemetry.core import android_app
 from telemetry.core import platform
 from telemetry.core.backends import android_app_backend
+from telemetry.core.platform import android_action_runner
 
 class AndroidPlatform(platform.Platform):
 
   def __init__(self, platform_backend):
     super(AndroidPlatform, self).__init__(platform_backend)
+    self._android_action_runner = android_action_runner.AndroidActionRunner(
+        platform_backend)
+
+  @property
+  def android_action_runner(self):
+    return self._android_action_runner
 
   def LaunchAndroidApplication(self, start_intent, is_app_ready_predicate=None):
     """Launches an Android application given the intent.
