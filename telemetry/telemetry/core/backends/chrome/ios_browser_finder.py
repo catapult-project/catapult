@@ -14,6 +14,7 @@ from telemetry.core import platform
 from telemetry.core import possible_browser
 from telemetry.core.backends.chrome_inspector import inspector_backend
 from telemetry.core.backends.chrome import ios_browser_backend
+from telemetry.core.platform import ios_device
 from telemetry.core.platform import ios_platform_backend
 
 
@@ -66,21 +67,12 @@ def FindAllBrowserTypes(_):
   return IOS_BROWSERS.values()
 
 
-@decorators.Cache
-def _IsIosDeviceAttached():
-  devices = subprocess.check_output('system_profiler SPUSBDataType', shell=True)
-  for line in devices.split('\n'):
-    if line and re.match(r'\s*(iPod|iPhone|iPad):', line):
-      return True
-  return False
-
-
-def FindAllAvailableBrowsers(finder_options):
+def FindAllAvailableBrowsers(finder_options, device):
   """Find all running iOS browsers on connected devices."""
-  if not CanFindAvailableBrowsers():
+  if not isinstance(device, ios_device.IOSDevice):
     return []
 
-  if not _IsIosDeviceAttached():
+  if not CanFindAvailableBrowsers():
     return []
 
   options = finder_options.browser_options

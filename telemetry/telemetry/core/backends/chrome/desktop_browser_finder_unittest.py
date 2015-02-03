@@ -5,6 +5,7 @@ import unittest
 
 from telemetry.core import browser_options
 from telemetry.core.backends.chrome import desktop_browser_finder
+from telemetry.core.platform import desktop_device
 from telemetry.unittest_util import system_stub
 
 
@@ -32,7 +33,8 @@ class FindTestBase(unittest.TestCase):
     return self._path_stubs.os.path.files
 
   def DoFindAll(self):
-    return desktop_browser_finder.FindAllAvailableBrowsers(self._finder_options)
+    return desktop_browser_finder.FindAllAvailableBrowsers(
+      self._finder_options, desktop_device.DesktopDevice())
 
   def DoFindAllTypes(self):
     browsers = self.DoFindAll()

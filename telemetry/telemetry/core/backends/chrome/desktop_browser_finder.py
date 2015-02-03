@@ -13,6 +13,7 @@ from telemetry.core import browser
 from telemetry.core import exceptions
 from telemetry.core import possible_browser
 from telemetry.core.backends.chrome import desktop_browser_backend
+from telemetry.core.platform import desktop_device
 from telemetry.util import path
 
 
@@ -113,8 +114,11 @@ def FindAllBrowserTypes(_):
       'content-shell-release_x64',
       'system']
 
-def FindAllAvailableBrowsers(finder_options):
+def FindAllAvailableBrowsers(finder_options, device):
   """Finds all the desktop browsers available on this machine."""
+  if not isinstance(device, desktop_device.DesktopDevice):
+    return []
+
   browsers = []
 
   if not CanFindAvailableBrowsers():

@@ -200,14 +200,13 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
   return possible_browsers
 
 
-def FindAllAvailableBrowsers(finder_options):
+def FindAllAvailableBrowsers(finder_options, device):
   """Finds all the possible browsers on one device.
 
   The device is either the only device on the host platform,
   or |finder_options| specifies a particular device.
   """
-  device = android_device.GetDevice(finder_options)
-  if not device:
+  if not isinstance(device, android_device.AndroidDevice):
     return []
   android_platform = platform.GetPlatformForDevice(device, finder_options)
   return _FindAllPossibleBrowsers(finder_options, android_platform)

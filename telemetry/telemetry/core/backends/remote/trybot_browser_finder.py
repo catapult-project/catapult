@@ -15,10 +15,12 @@ import urllib2
 from telemetry import decorators
 from telemetry.core import platform
 from telemetry.core import possible_browser
+from telemetry.core.platform import trybot_device
 
 CHROMIUM_CONFIG_FILENAME = 'tools/run-perf-test.cfg'
 BLINK_CONFIG_FILENAME = 'Tools/run-perf-test.cfg'
 SUCCESS, NO_CHANGES, ERROR = range(3)
+
 
 
 class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
@@ -34,7 +36,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     raise NotImplementedError()
 
   def SupportsOptions(self, finder_options):
-    if (finder_options.android_device or
+    if ((finder_options.device and finder_options.device != 'trybot') or
         finder_options.chrome_root or
         finder_options.cros_remote or
         finder_options.extensions_to_load or
@@ -250,7 +252,10 @@ def FindAllBrowserTypes(finder_options):
   return []
 
 
-def FindAllAvailableBrowsers(finder_options):
+def FindAllAvailableBrowsers(finder_options, device):
   """Find all perf trybots on tryserver.chromium.perf."""
+  if not isinstance(device, trybot_device.TrybotDevice):
+    return []
+
   return [PossibleTrybotBrowser(b, finder_options) for b in
           FindAllBrowserTypes(finder_options)]

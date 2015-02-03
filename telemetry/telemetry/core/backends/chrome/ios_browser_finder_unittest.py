@@ -6,6 +6,7 @@ import unittest
 from telemetry import decorators
 from telemetry.core import browser_options
 from telemetry.core.backends.chrome import ios_browser_finder
+from telemetry.core.platform import ios_device
 
 
 class IosBrowserFinderUnitTest(unittest.TestCase):
@@ -15,7 +16,8 @@ class IosBrowserFinderUnitTest(unittest.TestCase):
   @decorators.Enabled('ios')
   def testFindIosChrome(self):
     finder_options = browser_options.BrowserFinderOptions()
-    browsers = ios_browser_finder.FindAllAvailableBrowsers(finder_options)
+    browsers = ios_browser_finder.FindAllAvailableBrowsers(
+      finder_options, ios_device.IOSDevice())
     self.assertTrue(browsers)
     for browser in browsers:
       self.assertEqual('ios-chrome', browser.browser_type)

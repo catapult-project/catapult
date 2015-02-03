@@ -83,7 +83,7 @@ class GetDeviceTest(unittest.TestCase):
 
   def testAdbPickOneDeviceReturnsDeviceInstance(self):
     finder_options = browser_options.BrowserFinderOptions()
-    finder_options.android_device = '555d14fecddddddd'  # pick one
+    finder_options.device = '555d14fecddddddd'  # pick one
     self._android_device_stub.adb_commands.attached_devices = [
         '015d14fec128220c', '555d14fecddddddd']
     device = android_device.GetDevice(finder_options)
@@ -97,3 +97,44 @@ class GetDeviceTest(unittest.TestCase):
     device = android_device.GetDevice(finder_options)
     self.assertEquals([], self._android_device_stub.logging.warnings)
     self.assertEquals('015d14fec128220c', device.device_id)
+
+
+class FindAllAvailableDevicesTest(unittest.TestCase):
+  def setUp(self):
+    self._android_device_stub = system_stub.Override(
+        android_device, ['adb_commands', 'os', 'subprocess', 'logging'])
+    self._apb_stub = system_stub.Override(
+        android_platform_backend, ['adb_commands'])
+
+  def tearDown(self):
+    self._android_device_stub.Restore()
+    self._apb_stub.Restore()
+
+  def testAdbNoDeviceReturnsEmptyList(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    devices = android_device.FindAllAvailableDevices(finder_options)
+    self.assertEquals([], self._android_device_stub.logging.warnings)
+    self.assertIsNotNone(devices)
+    self.assertEquals(len(devices), 0)
+
+  def testAdbOneDeviceReturnsListWithOneDeviceInstance(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._android_device_stub.adb_commands.attached_devices = (
+        ['015d14fec128220c'])
+    devices = android_device.FindAllAvailableDevices(finder_options)
+    self.assertEquals([], self._android_device_stub.logging.warnings)
+    self.assertIsNotNone(devices)
+    self.assertEquals(len(devices), 1)
+    self.assertEquals('015d14fec128220c', devices[0].device_id)
+
+  def testAdbMultipleDevicesReturnsListWithAllDeviceInstances(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._android_device_stub.adb_commands.attached_devices = [
+        '015d14fec128220c', '015d14fec128220d', '015d14fec128220e']
+    devices = android_device.FindAllAvailableDevices(finder_options)
+    self.assertEquals([], self._android_device_stub.logging.warnings)
+    self.assertIsNotNone(devices)
+    self.assertEquals(len(devices), 3)
+    self.assertEquals(devices[0].guid, '015d14fec128220c')
+    self.assertEquals(devices[1].guid, '015d14fec128220d')
+    self.assertEquals(devices[2].guid, '015d14fec128220e')

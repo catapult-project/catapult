@@ -31,31 +31,7 @@ class AndroidDevice(device.Device):
 
   @classmethod
   def GetAllConnectedDevices(cls):
-    device_serials = adb_commands.GetAttachedDevices()
-    # The monsoon provides power for the device, so for devices with no
-    # real battery, we need to turn them on after the monsoon enables voltage
-    # output to the device.
-    if not device_serials:
-      try:
-        m = monsoon.Monsoon(wait=False)
-        m.SetUsbPassthrough(1)
-        m.SetVoltage(3.8)
-        m.SetMaxCurrent(8)
-        logging.warn("""
-Monsoon power monitor detected, but no Android devices.
-
-The Monsoon's power output has been enabled. Please now ensure that:
-
-  1. The Monsoon's front and back USB are connected to the host.
-  2. The device is connected to the Monsoon's main and USB channels.
-  3. The device is turned on.
-
-Waiting for device...
-""")
-        util.WaitFor(adb_commands.GetAttachedDevices, 600)
-        device_serials = adb_commands.GetAttachedDevices()
-      except IOError:
-        return []
+    device_serials = GetDeviceSerials()
     return [cls(s) for s in device_serials]
 
   @property
@@ -67,6 +43,35 @@ Waiting for device...
     return self._enable_performance_mode
 
 
+def GetDeviceSerials():
+  device_serials = adb_commands.GetAttachedDevices()
+  # The monsoon provides power for the device, so for devices with no
+  # real battery, we need to turn them on after the monsoon enables voltage
+  # output to the device.
+  if not device_serials:
+    try:
+      m = monsoon.Monsoon(wait=False)
+      m.SetUsbPassthrough(1)
+      m.SetVoltage(3.8)
+      m.SetMaxCurrent(8)
+      logging.warn("""
+Monsoon power monitor detected, but no Android devices.
+
+The Monsoon's power output has been enabled. Please now ensure that:
+
+  1. The Monsoon's front and back USB are connected to the host.
+  2. The device is connected to the Monsoon's main and USB channels.
+  3. The device is turned on.
+
+Waiting for device...
+""")
+      util.WaitFor(adb_commands.GetAttachedDevices, 600)
+      device_serials = adb_commands.GetAttachedDevices()
+    except IOError:
+      return []
+  return device_serials
+
+
 def GetDevice(finder_options):
   """Return a Platform instance for the device specified by |finder_options|."""
   if not CanDiscoverDevices():
@@ -74,9 +79,9 @@ def GetDevice(finder_options):
         'No adb command found. Will not try searching for Android browsers.')
     return None
 
-  if finder_options.android_device:
+  if finder_options.device and finder_options.device in GetDeviceSerials():
     return AndroidDevice(
-        finder_options.android_device,
+        finder_options.device,
         enable_performance_mode=not finder_options.no_performance_mode)
 
   devices = AndroidDevice.GetAllConnectedDevices()
@@ -121,3 +126,11 @@ def CanDiscoverDevices():
     return True
   return False
 
+
+def FindAllAvailableDevices(_):
+  """Returns a list of available devices.
+  """
+  if not CanDiscoverDevices():
+    return []
+  else:
+    return AndroidDevice.GetAllConnectedDevices()

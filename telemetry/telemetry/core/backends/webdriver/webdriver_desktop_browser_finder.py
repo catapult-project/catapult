@@ -12,6 +12,7 @@ from telemetry.core import platform as platform_module
 from telemetry.core import possible_browser
 from telemetry.core import util
 from telemetry.core.backends.webdriver import webdriver_ie_backend
+from telemetry.core.platform import desktop_device
 from telemetry.util import support_binaries
 
 # Try to import the selenium python lib which may be not available.
@@ -96,8 +97,11 @@ def FindAllBrowserTypes(_):
                     'https://code.google.com/p/selenium/wiki/PythonBindings.')
   return []
 
-def FindAllAvailableBrowsers(finder_options):
+def FindAllAvailableBrowsers(finder_options, device):
   """Finds all the desktop browsers available on this machine."""
+  if not isinstance(device, desktop_device.DesktopDevice):
+    return []
+
   browsers = []
   if not webdriver:
     return browsers

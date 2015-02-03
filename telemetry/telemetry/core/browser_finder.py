@@ -9,6 +9,7 @@ import operator
 
 from telemetry import decorators
 from telemetry.core import browser_finder_exceptions
+from telemetry.core import device_finder
 from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.backends.chrome import cros_browser_finder
 from telemetry.core.backends.chrome import desktop_browser_finder
@@ -60,17 +61,24 @@ def FindBrowser(options):
     raise browser_finder_exceptions.BrowserFinderException(
         '--remote requires --browser=cros-chrome or cros-chrome-guest.')
 
+  devices = []
+  if options.device and options.device != 'list':
+    devices = device_finder.GetSpecifiedDevices(options)
+  else:
+    devices = device_finder.GetAllAvailableDevices(options)
+
   browsers = []
   default_browsers = []
-  for finder in BROWSER_FINDERS:
-    if(options.browser_type and options.browser_type != 'any' and
-       options.browser_type not in finder.FindAllBrowserTypes(options)):
-      continue
-    curr_browsers = finder.FindAllAvailableBrowsers(options)
-    new_default_browser = finder.SelectDefaultBrowser(curr_browsers)
-    if new_default_browser:
-      default_browsers.append(new_default_browser)
-    browsers.extend(curr_browsers)
+  for device in devices:
+    for finder in BROWSER_FINDERS:
+      if(options.browser_type and options.browser_type != 'any' and
+         options.browser_type not in finder.FindAllBrowserTypes(options)):
+        continue
+      curr_browsers = finder.FindAllAvailableBrowsers(options, device)
+      new_default_browser = finder.SelectDefaultBrowser(curr_browsers)
+      if new_default_browser:
+        default_browsers.append(new_default_browser)
+      browsers.extend(curr_browsers)
 
   if options.browser_type == None:
     if default_browsers:
@@ -125,6 +133,29 @@ def FindBrowser(options):
 
 
 @decorators.Cache
+def GetAllAvailableBrowsers(options, device):
+  """Returns a list of available browsers on the device.
+
+  Args:
+    options: A BrowserOptions object.
+    device: The target device, which can be None.
+
+  Returns:
+    A list of browser instances.
+
+  Raises:
+    BrowserFinderException: Options are improperly set, or an error occurred.
+  """
+  if not device:
+    return []
+  possible_browsers = []
+  for browser_finder in BROWSER_FINDERS:
+    possible_browsers.extend(
+      browser_finder.FindAllAvailableBrowsers(options, device))
+  return possible_browsers
+
+
+@decorators.Cache
 def GetAllAvailableBrowserTypes(options):
   """Returns a list of available browser types.
 
@@ -137,11 +168,11 @@ def GetAllAvailableBrowserTypes(options):
   Raises:
     BrowserFinderException: Options are improperly set, or an error occurred.
   """
-  browsers = []
-  for finder in BROWSER_FINDERS:
-    browsers.extend(finder.FindAllAvailableBrowsers(options))
-
-  type_list = set([browser.browser_type for browser in browsers])
+  devices = device_finder.GetAllAvailableDevices(options)
+  possible_browsers = []
+  for device in devices:
+    possible_browsers.extend(GetAllAvailableBrowsers(options, device))
+  type_list = set([browser.browser_type for browser in possible_browsers])
   type_list = list(type_list)
   type_list.sort()
   return type_list
