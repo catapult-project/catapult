@@ -50,6 +50,9 @@ tv.exportTo('tv.c.tracks', function() {
       return undefined;
     },
 
+    get eventContainer() {
+    },
+
     invalidateDrawingContainer: function() {
       var dc = this.drawingContainer;
       if (dc)
@@ -99,6 +102,9 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {
+    },
+
+    addContainersToTrackMap: function(containerToTrackMap) {
     },
 
     addIntersectingItemsInRangeToSelection: function(

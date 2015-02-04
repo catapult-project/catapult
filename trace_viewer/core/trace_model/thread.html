@@ -282,6 +282,17 @@ tv.exportTo('tv.c.trace_model', function() {
       this.asyncSliceGroup.viewSubGroups.forEach(cb);
     },
 
+    iterateAllEventContainers: function(callback) {
+      callback(this);
+
+      if (this.sliceGroup.length)
+        this.sliceGroup.iterateAllEventContainers(callback);
+      if (this.kernelSliceGroup.length)
+        this.kernelSliceGroup.iterateAllEventContainers(callback);
+      if (this.asyncSliceGroup.length)
+        this.asyncSliceGroup.iterateAllEventContainers(callback);
+    },
+
     get samples() {
       return this.samples_;
     }

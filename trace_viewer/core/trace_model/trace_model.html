@@ -94,6 +94,8 @@ tv.exportTo('tv.c', function() {
     this.stackFrames = {};
     this.samples = [];
 
+    this.eventContainerByStableId_ = {}; // stableId -> EventContainer
+
     this.flowIntervalTree = new tv.b.IntervalTree(
         function(s) { return s.start; },
         function(e) { return e.start; });
@@ -132,6 +134,14 @@ tv.exportTo('tv.c', function() {
       if (!this.processes[pid])
         this.processes[pid] = new Process(this, pid);
       return this.processes[pid];
+    },
+
+    /**
+     * @return {Process} Gets an EventContainer for a specified stableId.
+     * Returns undefined if the stableId doesn't exist.
+     */
+    getEventContainerByStableId: function(stableId) {
+      return this.eventContainerByStableId_[stableId];
     },
 
     pushInstantEvent: function(instantEvent) {
@@ -451,6 +461,13 @@ tv.exportTo('tv.c', function() {
         }, this);
       }, this);
 
+      // Build map between stableId and EventContainer.
+      lastTask = lastTask.after(function(task) {
+        this.iterateAllEventContainers(function(obj) {
+          this.eventContainerByStableId_[obj.stableId] = obj;
+        }.bind(this));
+      }, this);
+
       // Run preinit.
       lastTask = lastTask.after(function() {
         progressMeter.update('Initializing objects (step 1/2)...');
@@ -573,6 +590,12 @@ tv.exportTo('tv.c', function() {
       this.kernel.iterateAllPersistableObjects(cb);
       for (var pid in this.processes)
         this.processes[pid].iterateAllPersistableObjects(cb);
+    },
+
+    iterateAllEventContainers: function(cb) {
+      this.kernel.iterateAllEventContainers(cb);
+      for (var pid in this.processes)
+        this.processes[pid].iterateAllEventContainers(cb);
     }
   };
 

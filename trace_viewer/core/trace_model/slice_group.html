@@ -254,6 +254,10 @@ tv.exportTo('tv.c.trace_model', function() {
       this.slices.forEach(callback, opt_this);
     },
 
+    iterateAllEventContainers: function(callback) {
+      callback(this);
+    },
+
     toJSON: function() {
       return {};
     },

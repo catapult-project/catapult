@@ -115,6 +115,12 @@ tv.exportTo('tv.c.trace_model', function() {
       this.instantEvents.forEach(callback, opt_this);
 
       ProcessBase.prototype.iterateAllEvents.call(this, callback, opt_this);
+    },
+
+    iterateAllEventContainers: function(callback) {
+      callback(this);
+      for (var tid in this.threads)
+        this.threads[tid].iterateAllEventContainers(callback);
     }
   };
 

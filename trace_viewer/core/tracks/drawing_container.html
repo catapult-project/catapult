@@ -164,6 +164,14 @@ tv.exportTo('tv.c.tracks', function() {
           continue;
         this.children[i].addEventsToTrackMap(eventToTrackMap);
       }
+    },
+
+    addContainersToTrackMap: function(containerToTrackMap) {
+      for (var i = 0; i < this.children.length; ++i) {
+        if (!(this.children[i] instanceof tv.c.tracks.Track))
+          continue;
+        this.children[i].addContainersToTrackMap(containerToTrackMap);
+      }
     }
   };
 
