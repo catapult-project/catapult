@@ -4,13 +4,16 @@
 
 from telemetry import decorators
 from telemetry.core.backends.chrome_inspector import inspector_network
+from telemetry.timeline import recording_options
 from telemetry.unittest_util import tab_test_case
 
 
 class InspectorNetworkTabTest(tab_test_case.TabTestCase):
   class TestCase(object):
-    def __init__(self, responses_count=0,
+    def __init__(self, monitoring=False, responses_count=0,
                  subresources=None):
+      # Whether to monitor network for this case.
+      self.monitoring = monitoring
       # Number of responses expected for this case.
       self.responses_count = responses_count
       # List of subresource links for this case.
@@ -19,8 +22,10 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
   def __init__(self, *args):
     super(InspectorNetworkTabTest, self).__init__(*args)
 
-  def _NavigateAndGetHTTPResponseEvents(self, page):
-    self._tab.StartTimelineRecording()
+  def _NavigateAndGetHTTPResponseEvents(self, page, record_network=True):
+    opts = recording_options.TimelineRecordingOptions()
+    opts.record_network = record_network
+    self._tab.StartTimelineRecording(opts)
     self.Navigate(page)
     self._tab.StopTimelineRecording()
 
@@ -31,14 +36,17 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
   @decorators.Disabled('mac', 'android', 'win')
   def testHTTPResponseTimelineRecorder(self):
     tests = {
-        'blank.html': InspectorNetworkTabTest.TestCase(responses_count=1),
-        'green_rect.html': InspectorNetworkTabTest.TestCase(responses_count=1),
+        'blank.html': InspectorNetworkTabTest.TestCase(),
+        'green_rect.html': InspectorNetworkTabTest.TestCase(
+            monitoring=True, responses_count=1),
         'image_decoding.html': InspectorNetworkTabTest.TestCase(
-            responses_count=2, subresources=['image.png']),
+            monitoring=True, responses_count=2, subresources=['image.png']),
         }
     for page, test in tests.iteritems():
-      events = self._NavigateAndGetHTTPResponseEvents(page)
+      events = self._NavigateAndGetHTTPResponseEvents(page, test.monitoring)
       self.assertEqual(test.responses_count, len(events))
+      if not test.monitoring:
+        continue
 
       # Verify required event fields
       for event in events:

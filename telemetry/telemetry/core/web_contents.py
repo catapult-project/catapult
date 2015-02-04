@@ -167,8 +167,12 @@ class WebContents(object):
   def timeline_model(self):
     return self._inspector_backend.timeline_model
 
-  def StartTimelineRecording(self):
-    self._inspector_backend.StartTimelineRecording()
+  def StartTimelineRecording(self, options=None):
+    self._inspector_backend.StartTimelineRecording(options)
+
+  @property
+  def is_timeline_recording_running(self):
+    return self._inspector_backend.is_timeline_recording_running
 
   def StopTimelineRecording(self):
     self._inspector_backend.StopTimelineRecording()
