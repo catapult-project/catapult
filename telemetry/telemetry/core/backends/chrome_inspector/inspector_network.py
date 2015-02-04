@@ -4,7 +4,6 @@
 import logging
 
 from telemetry.core import util
-from telemetry.core.backends.chrome_inspector import timeline_recorder
 
 
 class InspectorNetworkException(Exception):
@@ -210,9 +209,8 @@ class InspectorNetwork(object):
     return self._timeline_recorder
 
 
-class TimelineRecorder(timeline_recorder.TimelineRecorder):
+class TimelineRecorder(object):
   def __init__(self, inspector_network):
-    super(TimelineRecorder, self).__init__()
     self._inspector_network = inspector_network
     self._is_recording = False
 

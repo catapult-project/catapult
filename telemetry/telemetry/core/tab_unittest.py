@@ -83,13 +83,6 @@ class TabTest(tab_test_case.TabTestCase):
     self._tab.Navigate(url)
     self.assertEquals(self._tab.url, url)
 
-  def testIsTimelineRecordingRunningTab(self):
-    self.assertFalse(self._tab.is_timeline_recording_running)
-    self._tab.StartTimelineRecording()
-    self.assertTrue(self._tab.is_timeline_recording_running)
-    self._tab.StopTimelineRecording()
-    self.assertFalse(self._tab.is_timeline_recording_running)
-
   #pylint: disable=W0212
   def testIsVideoCaptureRunning(self):
     original_platform_backend = self._tab.browser._platform_backend
