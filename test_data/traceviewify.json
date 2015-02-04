@@ -1,0 +1,1434 @@
+{
+  "traceEvents": [
+    {
+      "name": "uv__io_poll",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "uv__stream_io",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "node::StreamWrapCallbacks::DoRead(uv_stream_s*, long, uv_buf_t const*, uv_handle_type)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "node::AsyncWrap::MakeCallback(v8::Handle<v8::Function>, int, v8::Handle<v8::Value>*)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~onread net.js:487",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~Readable.push _stream_readable.js:95",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~readableAddChunk _stream_readable.js:119",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~socketOnData _http_server.js:321",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::Execute(v8::FunctionCallbackInfo<v8::Value> const&)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "http_parser_execute",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::on_headers_complete_()",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~parserOnHeadersComplete _http_common.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~parserOnIncoming _http_server.js:401",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~onRequest /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:27",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~cal_arrayConcat /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:41",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "~reduce native array.js:1082",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "*ArrayConcatJS native array.js:366",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012120240,
+      "args": {}
+    },
+    {
+      "name": "*ArrayConcatJS native array.js:366",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012292557.4468,
+      "args": {}
+    },
+    {
+      "name": "~reduce native array.js:1082",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012292557.4468,
+      "args": {}
+    },
+    {
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012292557.4468,
+      "args": {}
+    },
+    {
+      "name": "~reduce native array.js:1082",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012378716.17023,
+      "args": {}
+    },
+    {
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012378716.17023,
+      "args": {}
+    },
+    {
+      "name": "*ArrayConcatJS native array.js:366",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181012378716.17023,
+      "args": {}
+    },
+    {
+      "name": "v8::internal::Heap::Scavenge()",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013067985.95746,
+      "args": {}
+    },
+    {
+      "name": "v8::internal::Heap::Scavenge()",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "uv__stream_io",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "node::StreamWrapCallbacks::DoRead(uv_stream_s*, long, uv_buf_t const*, uv_handle_type)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "node::AsyncWrap::MakeCallback(v8::Handle<v8::Function>, int, v8::Handle<v8::Value>*)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~onread net.js:487",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~Readable.push _stream_readable.js:95",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~readableAddChunk _stream_readable.js:119",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~socketOnData _http_server.js:321",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::Execute(v8::FunctionCallbackInfo<v8::Value> const&)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "http_parser_execute",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::on_headers_complete_()",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~parserOnHeadersComplete _http_common.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~parserOnIncoming _http_server.js:401",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~onRequest /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:27",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~cal_arrayConcat /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:41",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "~reduce native array.js:1082",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "*ArrayConcatJS native array.js:366",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68088,
+      "args": {}
+    },
+    {
+      "name": "libsystem_kernel.dylib`read",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013154144.68085,
+      "args": {}
+    },
+    {
+      "name": "libsystem_kernel.dylib`read",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "uv__stream_io",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "node::StreamWrapCallbacks::DoRead(uv_stream_s*, long, uv_buf_t const*, uv_handle_type)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "node::AsyncWrap::MakeCallback(v8::Handle<v8::Function>, int, v8::Handle<v8::Value>*)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~onread net.js:487",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~Readable.push _stream_readable.js:95",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~readableAddChunk _stream_readable.js:119",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~socketOnData _http_server.js:321",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::Execute(v8::FunctionCallbackInfo<v8::Value> const&)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "http_parser_execute",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::on_headers_complete_()",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~parserOnHeadersComplete _http_common.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~parserOnIncoming _http_server.js:401",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~onRequest /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:27",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~cal_arrayConcat /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:41",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "~reduce native array.js:1082",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "*ArrayConcatJS native array.js:366",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181013240303.40427,
+      "args": {}
+    },
+    {
+      "name": "*ArrayConcatJS native array.js:366",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181014274208.0851,
+      "args": {}
+    },
+    {
+      "name": "~reduce native array.js:1082",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181014274208.0851,
+      "args": {}
+    },
+    {
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181014274208.0851,
+      "args": {}
+    },
+    {
+      "name": "~reduce native array.js:1082",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181014360366.8085,
+      "args": {}
+    },
+    {
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181014360366.8085,
+      "args": {}
+    },
+    {
+      "name": "*ArrayConcatJS native array.js:366",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181014360366.8085,
+      "args": {}
+    },
+    {
+      "name": "v8::internal::Heap::Scavenge()",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015049636.59573,
+      "args": {}
+    },
+    {
+      "name": "v8::internal::Heap::Scavenge()",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "uv__stream_io",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "node::StreamWrapCallbacks::DoRead(uv_stream_s*, long, uv_buf_t const*, uv_handle_type)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "node::AsyncWrap::MakeCallback(v8::Handle<v8::Function>, int, v8::Handle<v8::Value>*)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~onread net.js:487",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~Readable.push _stream_readable.js:95",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~readableAddChunk _stream_readable.js:119",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~socketOnData _http_server.js:321",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::Execute(v8::FunctionCallbackInfo<v8::Value> const&)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "http_parser_execute",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::on_headers_complete_()",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~parserOnHeadersComplete _http_common.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~parserOnIncoming _http_server.js:401",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~onRequest /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:27",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~cal_arrayConcat /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:41",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "~reduce native array.js:1082",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "*ArrayConcatJS native array.js:366",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "libsystem_kernel.dylib`read",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015135795.31915,
+      "args": {}
+    },
+    {
+      "name": "libsystem_kernel.dylib`read",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04257,
+      "args": {}
+    },
+    {
+      "name": "uv__stream_io",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "node::StreamWrapCallbacks::DoRead(uv_stream_s*, long, uv_buf_t const*, uv_handle_type)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "node::AsyncWrap::MakeCallback(v8::Handle<v8::Function>, int, v8::Handle<v8::Value>*)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~onread net.js:487",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~Readable.push _stream_readable.js:95",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~readableAddChunk _stream_readable.js:119",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~socketOnData _http_server.js:321",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::Execute(v8::FunctionCallbackInfo<v8::Value> const&)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "http_parser_execute",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::on_headers_complete_()",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~parserOnHeadersComplete _http_common.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~parserOnIncoming _http_server.js:401",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~onRequest /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:27",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~cal_arrayConcat /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:41",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "~reduce native array.js:1082",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "*ArrayConcatJS native array.js:366",
+      "cat": "iojs - profile-1ms:",
+      "ph": "B",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181015221954.04254,
+      "args": {}
+    },
+    {
+      "name": "uv__io_poll",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "uv__stream_io",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "node::StreamWrapCallbacks::DoRead(uv_stream_s*, long, uv_buf_t const*, uv_handle_type)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "node::AsyncWrap::MakeCallback(v8::Handle<v8::Function>, int, v8::Handle<v8::Value>*)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~onread net.js:487",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~Readable.push _stream_readable.js:95",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~readableAddChunk _stream_readable.js:119",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~socketOnData _http_server.js:321",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::Execute(v8::FunctionCallbackInfo<v8::Value> const&)",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "http_parser_execute",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "node::Parser::on_headers_complete_()",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~parserOnHeadersComplete _http_common.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~parserOnIncoming _http_server.js:401",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~emit events.js:56",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~onRequest /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:27",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~cal_arrayConcat /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:41",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "~reduce native array.js:1082",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    },
+    {
+      "name": "*ArrayConcatJS native array.js:366",
+      "cat": "iojs - profile-1ms:",
+      "ph": "E",
+      "pid": 0,
+      "tid": 0,
+      "ts": 181016169700,
+      "args": {}
+    }
+  ],
+  "stackFrames": {
+    "9999": {
+      "category": "iojs - profile-1ms:",
+      "name": "uv_run"
+    },
+    "1": {
+      "category": "iojs - profile-1ms:",
+      "name": "uv__io_poll",
+      "parent": 9999
+    },
+    "2": {
+      "category": "iojs - profile-1ms:",
+      "name": "uv__stream_io",
+      "parent": 1
+    },
+    "3": {
+      "category": "iojs - profile-1ms:",
+      "name": "node::StreamWrapCallbacks::DoRead(uv_stream_s*, long, uv_buf_t const*, uv_handle_type)",
+      "parent": 2
+    },
+    "4": {
+      "category": "iojs - profile-1ms:",
+      "name": "node::AsyncWrap::MakeCallback(v8::Handle<v8::Function>, int, v8::Handle<v8::Value>*)",
+      "parent": 3
+    },
+    "5": {
+      "category": "iojs - profile-1ms:",
+      "name": "~onread net.js:487",
+      "parent": 4
+    },
+    "6": {
+      "category": "iojs - profile-1ms:",
+      "name": "~Readable.push _stream_readable.js:95",
+      "parent": 5
+    },
+    "7": {
+      "category": "iojs - profile-1ms:",
+      "name": "~readableAddChunk _stream_readable.js:119",
+      "parent": 6
+    },
+    "8": {
+      "category": "iojs - profile-1ms:",
+      "name": "~emit events.js:56",
+      "parent": 7
+    },
+    "9": {
+      "category": "iojs - profile-1ms:",
+      "name": "~socketOnData _http_server.js:321",
+      "parent": 8
+    },
+    "10": {
+      "category": "iojs - profile-1ms:",
+      "name": "node::Parser::Execute(v8::FunctionCallbackInfo<v8::Value> const&)",
+      "parent": 9
+    },
+    "11": {
+      "category": "iojs - profile-1ms:",
+      "name": "http_parser_execute",
+      "parent": 10
+    },
+    "12": {
+      "category": "iojs - profile-1ms:",
+      "name": "node::Parser::on_headers_complete_()",
+      "parent": 11
+    },
+    "13": {
+      "category": "iojs - profile-1ms:",
+      "name": "~parserOnHeadersComplete _http_common.js:43",
+      "parent": 12
+    },
+    "14": {
+      "category": "iojs - profile-1ms:",
+      "name": "~parserOnIncoming _http_server.js:401",
+      "parent": 13
+    },
+    "15": {
+      "category": "iojs - profile-1ms:",
+      "name": "~emit events.js:56",
+      "parent": 14
+    },
+    "16": {
+      "category": "iojs - profile-1ms:",
+      "name": "~onRequest /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:27",
+      "parent": 15
+    },
+    "17": {
+      "category": "iojs - profile-1ms:",
+      "name": "~cal_arrayConcat /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:41",
+      "parent": 16
+    },
+    "18": {
+      "category": "iojs - profile-1ms:",
+      "name": "~reduce native array.js:1082",
+      "parent": 17
+    },
+    "19": {
+      "category": "iojs - profile-1ms:",
+      "name": "*toFib /Volumes/d/dev/js/projects/cpuprofilify/example/fibonacci.js:43",
+      "parent": 18
+    },
+    "20": {
+      "category": "iojs - profile-1ms:",
+      "name": "*ArrayConcatJS native array.js:366",
+      "parent": 19
+    },
+    "21": {
+      "category": "iojs - profile-1ms:",
+      "name": "v8::internal::Heap::Scavenge()",
+      "parent": 20
+    },
+    "22": {
+      "category": "iojs - profile-1ms:",
+      "name": "libsystem_kernel.dylib`read",
+      "parent": 1
+    }
+  },
+  "samples": [
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 172317.44680851063,
+      "ts": 181012120240,
+      "sf": 20,
+      "tid": 0,
+      "cpu": 0
+    },
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 86158.72340425532,
+      "ts": 181012292557.4468,
+      "sf": 17,
+      "tid": 0,
+      "cpu": 0
+    },
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 689269.7872340425,
+      "ts": 181012378716.17023,
+      "sf": 20,
+      "tid": 0,
+      "cpu": 0
+    },
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 86158.72340425532,
+      "ts": 181013067985.95746,
+      "sf": 21,
+      "tid": 0,
+      "cpu": 0
+    },
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 86158.72340425532,
+      "ts": 181013154144.68085,
+      "sf": 22,
+      "tid": 0,
+      "cpu": 0
+    },
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 1033904.6808510638,
+      "ts": 181013240303.40427,
+      "sf": 20,
+      "tid": 0,
+      "cpu": 0
+    },
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 86158.72340425532,
+      "ts": 181014274208.0851,
+      "sf": 17,
+      "tid": 0,
+      "cpu": 0
+    },
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 689269.7872340425,
+      "ts": 181014360366.8085,
+      "sf": 20,
+      "tid": 0,
+      "cpu": 0
+    },
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 86158.72340425532,
+      "ts": 181015049636.59573,
+      "sf": 21,
+      "tid": 0,
+      "cpu": 0
+    },
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 86158.72340425532,
+      "ts": 181015135795.31915,
+      "sf": 22,
+      "tid": 0,
+      "cpu": 0
+    },
+    {
+      "name": "iojs - profile-1ms:",
+      "weight": 947745.9574468085,
+      "ts": 181015221954.04254,
+      "sf": 20,
+      "tid": 0,
+      "cpu": 0
+    }
+  ]
+}
