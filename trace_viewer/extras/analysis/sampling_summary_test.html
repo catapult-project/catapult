@@ -24,10 +24,10 @@ tv.b.unittest.testSuite(function() {
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
 
-    var fA = new StackFrame(undefined, 1, 'Chrome', 'a', 7);
-    var fAB = new StackFrame(fA, 2, 'Chrome', 'b', 7);
-    var fABC = new StackFrame(fAB, 3, 'Chrome', 'c', 7);
-    var fAD = new StackFrame(fA, 4, 'GPU Driver', 'd', 7);
+    var fA = new StackFrame(undefined, 0, 'Chrome', 'a', 7);
+    var fAB = new StackFrame(fA, 1, 'Chrome', 'b', 7);
+    var fABC = new StackFrame(fAB, 2, 'Chrome', 'c', 7);
+    var fAD = new StackFrame(fA, 3, 'GPU Driver', 'd', 7);
 
     selection.push(new Sample(undefined, thread, 'cycles',
                               10, fABC, 10));
@@ -76,21 +76,21 @@ tv.b.unittest.testSuite(function() {
                         {
                           category: 'Chrome',
                           name: 'c',
-                          leaf_node_id: 3,
+                          leaf_node_id: 2,
                           size: 10
                         },
                         {
                           name: '<self>',
                           category: 'Chrome',
                           size: 30,
-                          leaf_node_id: 2
+                          leaf_node_id: 1
                         }
                       ]
                     },
                     {
                       category: 'GPU Driver',
                       name: 'd',
-                      leaf_node_id: 4,
+                      leaf_node_id: 3,
                       size: 20
                     }
                   ]
@@ -186,7 +186,7 @@ tv.b.unittest.testSuite(function() {
                     {
                       category: 'GPU Driver',
                       name: 'd',
-                      leaf_node_id: 4,
+                      leaf_node_id: 3,
                       size: 16
                     }
                   ]

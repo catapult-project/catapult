@@ -165,7 +165,7 @@ tv.exportTo('tv.e.analysis', function() {
     this.rootNode = new CallTreeNode('root', 'root');
     this.rootCategories = {};
     this.sfToNode = {};
-    this.sfToNode[0] = self.rootNode;
+    this.sfToNode['__root'] = self.rootNode;
   };
 
   Thread.prototype = {
@@ -180,6 +180,7 @@ tv.exportTo('tv.e.analysis', function() {
       // Add node to parent tree node.
       if (stackFrame.parentFrame) {
         var parentNode = this.getCallTreeNode(stackFrame.parentFrame);
+
         parentNode.addChild(newNode);
       } else {
         // Creating a root category node for each category helps group samples
