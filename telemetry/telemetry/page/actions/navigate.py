@@ -1,6 +1,9 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import time
+
 from telemetry.page.actions import page_action
 
 
@@ -14,7 +17,13 @@ class NavigateAction(page_action.PageAction):
     self._timeout_in_seconds = timeout_in_seconds
 
   def RunAction(self, tab):
+    start_time = time.time()
     tab.Navigate(self._url,
                  self._script_to_evaluate_on_commit,
                  self._timeout_in_seconds)
-    tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+
+    time_left_in_seconds = (start_time + self._timeout_in_seconds
+        - time.time())
+    time_left_in_seconds = max(0, time_left_in_seconds)
+    tab.WaitForDocumentReadyStateToBeInteractiveOrBetter(
+        time_left_in_seconds)

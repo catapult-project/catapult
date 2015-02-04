@@ -130,8 +130,14 @@ class ActionRunner(object):
         timeout_in_seconds=timeout_in_seconds))
 
   def WaitForNavigate(self, timeout_in_seconds_seconds=60):
+    start_time = time.time()
     self._tab.WaitForNavigate(timeout_in_seconds_seconds)
-    self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+
+    time_left_in_seconds = (start_time + timeout_in_seconds_seconds
+        - time.time())
+    time_left_in_seconds = max(0, time_left_in_seconds)
+    self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter(
+        time_left_in_seconds)
 
   def ReloadPage(self):
     """Reloads the page."""
