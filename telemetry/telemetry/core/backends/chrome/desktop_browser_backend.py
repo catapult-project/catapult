@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import glob
 import heapq
 import logging
@@ -17,6 +18,7 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
+from telemetry.util import cloud_storage
 from telemetry.util import path
 from telemetry.util import support_binaries
 
@@ -326,6 +328,19 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return subprocess.check_output([stackwalk, minidump, symbols_path],
                                    stderr=open(os.devnull, 'w'))
 
+  def _UploadMinidumpToCloudStorage(self, minidump_path):
+    os_name = self.browser.platform.GetOSName()
+    if os_name == 'win':
+      try:
+        remote_path = ('minidump-%s.dmp' % (
+            datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')))
+        cloud_url = cloud_storage.Insert(
+            cloud_storage.INTERNAL_BUCKET, remote_path, minidump_path)
+        print 'View minidump online at %s\n' % cloud_url
+      except cloud_storage.PermissionError as e:
+        logging.error('Cannot upload minidump to cloud storage due to'
+                      ' permission error: %s' % e.message)
+
   def GetStackTrace(self):
     most_recent_dump = self._GetMostRecentMinidump()
     if not most_recent_dump:
@@ -333,6 +348,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           self.GetStandardOutput())
 
     logging.info('minidump found: %s' % most_recent_dump)
+
+    self._UploadMinidumpToCloudStorage(most_recent_dump)
+
     stack = self._GetStackFromMinidump(most_recent_dump)
     if not stack:
       return 'Failed to symbolize minidump. Returning browser stdout:\n' + (
