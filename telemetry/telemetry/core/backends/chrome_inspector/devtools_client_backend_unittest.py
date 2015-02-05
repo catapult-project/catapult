@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
 from telemetry.core.backends.chrome_inspector import devtools_client_backend
 from telemetry.core.backends.chrome_inspector import devtools_http
 from telemetry.unittest_util import browser_test_case
@@ -24,6 +25,7 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
   def testIsAlive(self):
     self.assertTrue(self._devtools_client.IsAlive())
 
+  @decorators.Enabled('has tabs')
   def testGetUpdatedInspectableContexts(self):
     self._browser.tabs.New()
     c1 = self._devtools_client.GetUpdatedInspectableContexts()
