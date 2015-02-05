@@ -51,10 +51,9 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
   # Test disabled for android: crbug.com/437057
   @decorators.Disabled('android', 'chromeos')
   def testIssuingMultipleMeasurementInteractionRecords(self):
-    self.VerifyIssuingInteractionRecords(is_fast=True)
     self.VerifyIssuingInteractionRecords(is_responsive=True)
     self.VerifyIssuingInteractionRecords(is_smooth=True)
-    self.VerifyIssuingInteractionRecords(is_fast=True, is_smooth=True)
+    self.VerifyIssuingInteractionRecords(is_responsive=True, is_smooth=True)
 
 
 class ActionRunnerTest(tab_test_case.TabTestCase):

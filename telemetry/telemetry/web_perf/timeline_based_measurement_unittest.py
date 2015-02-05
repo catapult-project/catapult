@@ -22,16 +22,6 @@ from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import timeline_based_metric
 
 
-class FakeFastMetric(timeline_based_metric.TimelineBasedMetric):
-
-  def AddResults(self, model, renderer_thread, interaction_records, results):
-    results.AddValue(scalar.ScalarValue(
-        results.current_page, 'FakeFastMetric', 'ms', 1))
-    results.AddValue(scalar.ScalarValue(
-        results.current_page, 'FastMetricRecords', 'count',
-        len(interaction_records)))
-
-
 class FakeSmoothMetric(timeline_based_metric.TimelineBasedMetric):
 
   def AddResults(self, model, renderer_thread, interaction_records, results):
@@ -53,7 +43,6 @@ class FakeLoadingMetric(timeline_based_metric.TimelineBasedMetric):
 
 
 FAKE_METRICS_METRICS = {
-  tir_module.IS_FAST: FakeFastMetric,
   tir_module.IS_SMOOTH: FakeSmoothMetric,
   tir_module.IS_RESPONSIVE: FakeLoadingMetric,
 }
@@ -137,7 +126,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     d.AddInteraction(d.renderer_thread, ts=25, duration=5,
                      marker='Interaction.LogicalName2/is_responsive')
     d.AddInteraction(d.foo_thread, ts=50, duration=15,
-                     marker='Interaction.LogicalName3/is_fast')
+                     marker='Interaction.LogicalName3/is_smooth')
     d.FinalizeImport()
 
     self.assertEquals(2, len(d.threads_to_records_map))
@@ -158,7 +147,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     self.assertIn(d.foo_thread, d.threads_to_records_map)
     interactions = d.threads_to_records_map[d.foo_thread]
     self.assertEquals(1, len(interactions))
-    self.assertTrue(interactions[0].is_fast)
+    self.assertTrue(interactions[0].is_smooth)
     self.assertEquals(50, interactions[0].start)
     self.assertEquals(65, interactions[0].end)
 
@@ -168,16 +157,12 @@ class TimelineBasedMetricsTests(unittest.TestCase):
                      marker='Interaction.LogicalName1/is_smooth')
     d.AddInteraction(d.foo_thread, ts=25, duration=5,
                      marker='Interaction.LogicalName2/is_responsive')
-    d.AddInteraction(d.renderer_thread, ts=50, duration=15,
-                     marker='Interaction.LogicalName3/is_fast')
     d.FinalizeImport()
     d.AddResults()
     self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
         'LogicalName1-FakeSmoothMetric')))
     self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
         'LogicalName2-FakeLoadingMetric')))
-    self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
-        'LogicalName3-FakeFastMetric')))
 
   def testDuplicateInteractionsInDifferentThreads(self):
     d = TimelineBasedMetricTestData()
@@ -276,44 +261,6 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     v = results.FindAllPageSpecificValuesNamed(
         'DrawerAnimation-frame_time_discrepancy')
     self.assertEquals(len(v), 1)
-
-  # This test is flaky when run in parallel on the mac: crbug.com/426676
-  # Also, fails on android: crbug.com/437057
-  @decorators.Disabled('android', 'mac')
-  def testFastTimelineBasedMeasurementForSmoke(self):
-    ps = self.CreateEmptyPageSet()
-    ps.AddUserStory(TestTimelinebasedMeasurementPage(
-        ps, ps.base_dir, trigger_slow=True))
-
-    tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
-    measurement = tbm_module.TimelineBasedPageTest(tbm)
-    results = self.RunMeasurement(measurement, ps, options=self._options)
-
-    self.assertEquals([], results.failures)
-    expected_names = set([
-        'SlowThreadJsRun-fast-duration',
-        'SlowThreadJsRun-fast-idle_time',
-        'SlowThreadJsRun-fast-incremental_marking',
-        'SlowThreadJsRun-fast-incremental_marking_outside_idle',
-        'SlowThreadJsRun-fast-mark_compactor',
-        'SlowThreadJsRun-fast-mark_compactor_outside_idle',
-        'SlowThreadJsRun-fast-scavenger',
-        'SlowThreadJsRun-fast-scavenger_outside_idle',
-        'SlowThreadJsRun-fast-total_garbage_collection',
-        'SlowThreadJsRun-fast-total_garbage_collection_outside_idle',
-        'trace',
-        ])
-    if platform.GetHostPlatform().GetOSName() != 'win':
-      # CPU metric is only supported non-Windows platforms.
-      expected_names.add('SlowThreadJsRun-fast-cpu_time')
-    self.assertEquals(
-        expected_names, set(v.name for v in results.all_page_specific_values))
-
-    # In interaction_enabled_page.html, the "slow" interaction executes
-    # a loop with window.performance.now() to wait 200ms.
-    # fast-duration measures wall time so its value should be at least 200ms.
-    v = results.FindAllPageSpecificValuesNamed('SlowThreadJsRun-fast-duration')
-    self.assertGreaterEqual(v[0].value, 200.0)
 
   # Disabled since mainthread_jank metric is not supported on windows platform.
   # Also, flaky on the mac when run in parallel: crbug.com/426676
