@@ -37,7 +37,7 @@ tv.exportTo('tv.b', function() {
    * @constructor
    */
   function Task(runCb, thisArg) {
-    if (thisArg === undefined)
+    if (runCb !== undefined && thisArg === undefined)
       throw new Error('Almost certainly, you meant to pass a thisArg.');
     this.runCb_ = runCb;
     this.thisArg_ = thisArg;
@@ -61,7 +61,8 @@ tv.exportTo('tv.b', function() {
      * Runs the current task and returns the task that should be executed next.
      */
     run: function() {
-      this.runCb_.call(this.thisArg_, this);
+      if (this.runCb_ !== undefined)
+        this.runCb_.call(this.thisArg_, this);
       var subTasks = this.subTasks_;
       this.subTasks_ = undefined; // Prevent more subTasks from being posted.
 

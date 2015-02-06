@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/task.html">
 <link rel="import" href="/core/find_controller.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_track_view.html">
@@ -13,6 +14,8 @@ found in the LICENSE file.
 'use strict';
 
 tv.b.unittest.testSuite(function() {
+  var Task = tv.b.Task;
+
   /*
    * Just enough of the Timeline to support the tests below.
    */
@@ -47,12 +50,14 @@ tv.b.unittest.testSuite(function() {
       this.statusEl_.textContent = status;
     },
 
-    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
-      var n = this.addAllObjectsMatchingFilterToSelectionReturnValue.length;
-      for (var i = 0; i < n; i++) {
-        selection.push(
-            this.addAllObjectsMatchingFilterToSelectionReturnValue[i]);
-      }
+    addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
+      return new Task(function() {
+        var n = this.addAllObjectsMatchingFilterToSelectionReturnValue.length;
+        for (var i = 0; i < n; i++) {
+          selection.push(
+              this.addAllObjectsMatchingFilterToSelectionReturnValue[i]);
+        }
+      }, this);
     },
 
     setHighlightAndClearSelection: function(highlight) {
@@ -89,18 +94,21 @@ tv.b.unittest.testSuite(function() {
     var s1 = {guid: 1};
     timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1];
     controller.filterText = 'asdf';
-
-    assertArrayShallowEquals([], timeline.selection);
-    assertArrayShallowEquals([s1], timeline.highlight);
-    controller.findNext();
-    assertArrayShallowEquals([s1], timeline.selection);
-    assertArrayShallowEquals([s1], timeline.highlight);
-    controller.findNext();
-    assertArrayShallowEquals([s1], timeline.selection);
-    assertArrayShallowEquals([s1], timeline.highlight);
-    controller.findPrevious();
-    assertArrayShallowEquals([s1], timeline.selection);
-    assertArrayShallowEquals([s1], timeline.highlight);
+    var promise = controller.updateFilterHits();
+    promise.then(function() {
+      assertArrayShallowEquals([], timeline.selection);
+      assertArrayShallowEquals([s1], timeline.highlight);
+      controller.findNext();
+      assertArrayShallowEquals([s1], timeline.selection);
+      assertArrayShallowEquals([s1], timeline.highlight);
+      controller.findNext();
+      assertArrayShallowEquals([s1], timeline.selection);
+      assertArrayShallowEquals([s1], timeline.highlight);
+      controller.findPrevious();
+      assertArrayShallowEquals([s1], timeline.selection);
+      assertArrayShallowEquals([s1], timeline.highlight);
+    });
+    return promise;
   });
 
   test('findControllerMultipleHits', function() {
@@ -114,23 +122,26 @@ tv.b.unittest.testSuite(function() {
 
     timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1, s2, s3];
     controller.filterText = 'asdf';
-
-    // Loop through hits then when we wrap, try moving backward.
-    assertArrayShallowEquals([], timeline.selection);
-    assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
-    controller.findNext();
-    assertArrayShallowEquals([s1], timeline.selection);
-    controller.findNext();
-    assertArrayShallowEquals([s2], timeline.selection);
-    controller.findNext();
-    assertArrayShallowEquals([s3], timeline.selection);
-    controller.findNext();
-    assertArrayShallowEquals([s1], timeline.selection);
-    controller.findPrevious();
-    assertArrayShallowEquals([s3], timeline.selection);
-    controller.findPrevious();
-    assertArrayShallowEquals([s2], timeline.selection);
-    assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+    var promise = controller.updateFilterHits();
+    promise.then(function() {
+      // Loop through hits then when we wrap, try moving backward.
+      assertArrayShallowEquals([], timeline.selection);
+      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+      controller.findNext();
+      assertArrayShallowEquals([s1], timeline.selection);
+      controller.findNext();
+      assertArrayShallowEquals([s2], timeline.selection);
+      controller.findNext();
+      assertArrayShallowEquals([s3], timeline.selection);
+      controller.findNext();
+      assertArrayShallowEquals([s1], timeline.selection);
+      controller.findPrevious();
+      assertArrayShallowEquals([s3], timeline.selection);
+      controller.findPrevious();
+      assertArrayShallowEquals([s2], timeline.selection);
+      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+    });
+    return promise;
   });
 
   test('findControllerChangeFilterAfterNext', function() {
@@ -145,13 +156,20 @@ tv.b.unittest.testSuite(function() {
 
     timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1, s2, s3];
     controller.filterText = 'asdf';
+    var promise = controller.updateFilterHits();
+    promise.then(function() {
+      // Loop through hits then when we wrap, try moving backward.
+      controller.findNext();
+      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s4];
 
-    // Loop through hits then when we wrap, try moving backward.
-    controller.findNext();
-    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s4];
-    controller.filterText = 'asdfsf';
-    controller.findNext();
-    assertArrayShallowEquals([s4], timeline.selection);
+      controller.filterText = 'asdfsf';
+      var nextPromise = controller.updateFilterHits();
+      nextPromise.then(function() {
+        controller.findNext();
+        assertArrayShallowEquals([s4], timeline.selection);
+      });
+    });
+    return promise;
   });
 
   test('findControllerSelectsAllItemsFirst', function() {
@@ -164,13 +182,17 @@ tv.b.unittest.testSuite(function() {
     var s3 = {guid: 3};
     timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1, s2, s3];
     controller.filterText = 'asdfsf';
-    assertArrayShallowEquals([], timeline.selection);
-    assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
-    controller.findNext();
-    assertArrayShallowEquals([s1], timeline.selection);
-    controller.findNext();
-    assertArrayShallowEquals([s2], timeline.selection);
-    assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+    var promise = controller.updateFilterHits();
+    promise.then(function() {
+      assertArrayShallowEquals([], timeline.selection);
+      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+      controller.findNext();
+      assertArrayShallowEquals([s1], timeline.selection);
+      controller.findNext();
+      assertArrayShallowEquals([s2], timeline.selection);
+      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+    });
+    return promise;
   });
 
   test('findControllerWithRealTimeline', function() {
@@ -191,20 +213,28 @@ tv.b.unittest.testSuite(function() {
 
     // Test find with filter txt.
     controller.filterText = 'a';
-    assertArrayEquals([], timeline.selection);
-    assertArrayEquals(t1.sliceGroup.slices, timeline.highlight);
+    var promise = controller.updateFilterHits();
+    promise.then(function() {
+      assertArrayEquals([], timeline.selection);
+      assertArrayEquals(t1.sliceGroup.slices, timeline.highlight);
 
-    controller.findNext();
-    assertEquals(1, timeline.selection.length);
-    assertEquals(t1.sliceGroup.slices[0], timeline.selection[0]);
+      controller.findNext();
+      assertEquals(1, timeline.selection.length);
+      assertEquals(t1.sliceGroup.slices[0], timeline.selection[0]);
 
-    controller.filterText = 'xxx';
-    assertEquals(0, timeline.highlight.length);
-    assertEquals(0, timeline.selection.length);
-    controller.findNext();
-    assertEquals(0, timeline.selection.length);
-    controller.findNext();
-    assertEquals(0, timeline.selection.length);
+      controller.filterText = 'xxx';
+      var nextPromise = controller.updateFilterHits();
+      nextPromise.then(function() {
+        assertEquals(0, timeline.highlight.length);
+        assertEquals(0, timeline.selection.length);
+        controller.findNext();
+        assertEquals(0, timeline.selection.length);
+        controller.findNext();
+        assertEquals(0, timeline.selection.length);
+      });
+      return nextPromise;
+    });
+    return promise;
   });
 });
 </script>

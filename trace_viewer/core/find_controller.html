@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/task.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/selection.html">
 
@@ -15,6 +16,8 @@ found in the LICENSE file.
  * @fileoverview FindController.
  */
 tv.exportTo('tv.c', function() {
+  var Task = tv.b.Task;
+
   function FindController() {
     this.timeline_ = undefined;
     this.model_ = undefined;
@@ -45,25 +48,43 @@ tv.exportTo('tv.c', function() {
         return;
       this.filterText_ = f;
       this.filterHitsDirty_ = true;
-
-      if (!this.timeline)
-        return;
-
-      this.timeline.setHighlightAndClearSelection(this.filterHits);
     },
 
-    get filterHits() {
-      if (this.filterHitsDirty_) {
-        this.filterHitsDirty_ = false;
-        this.filterHits_ = new tv.c.Selection();
-        this.currentHitIndex_ = -1;
+    /**
+     * Updates the filter hits based on the current filtering settings. Returns
+     * a promise which resolves when |filterHits| has been refreshed.
+     */
+    updateFilterHits: function() {
+      var promise = Promise.resolve();
 
-        if (this.timeline_ && this.filterText.length) {
-          var filter = new tv.c.TitleFilter(this.filterText);
-          this.timeline.addAllObjectsMatchingFilterToSelection(
-              filter, this.filterHits_);
-        }
+      if (!this.filterHitsDirty_)
+        return promise;
+
+      this.filterHits_ = new tv.c.Selection();
+      this.currentHitIndex_ = -1;
+
+      if (this.timeline_ && this.filterText.length) {
+        var filter = new tv.c.TitleFilter(this.filterText);
+        var filterHits = new tv.c.Selection();
+        var filterTask =
+            this.timeline.addAllObjectsMatchingFilterToSelectionAsTask(
+                filter, filterHits);
+        promise = Task.RunWhenIdle(filterTask);
+        promise.then(function() {
+          this.filterHitsDirty_ = false;
+          this.filterHits_ = filterHits;
+          this.timeline.setHighlightAndClearSelection(filterHits);
+        }.bind(this));
       }
+      return promise;
+    },
+
+    /**
+     * Returns the most recent filter hits as a tv.c.Selection. Call
+     * |updateFilterHits| to ensure this is up to date after the filter
+     * settings have been changed.
+     */
+    get filterHits() {
       return this.filterHits_;
     },
 

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/task.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_track_view.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
@@ -15,6 +16,7 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var Selection = tv.c.Selection;
   var SelectionState = tv.c.trace_model.SelectionState;
+  var Task = tv.b.Task;
 
   function contains(array, element) {
     for (var i = 0; i < array.length; i++) {
@@ -72,7 +74,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(timeline);
   });
 
-  test('addAllObjectsMatchingFilterToSelection', function() {
+  test('addAllObjectsMatchingFilterToSelectionAsTask', function() {
     var model = new tv.c.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
@@ -94,8 +96,9 @@ tv.b.unittest.testSuite(function() {
     var expected = [t1asg.slices[0],
                     t1.sliceGroup.slices[0]];
     var result = new tv.c.Selection();
-    timeline.addAllObjectsMatchingFilterToSelection(
+    var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
         new tv.c.TitleFilter('a'), result);
+    Task.RunSynchronously(filterTask);
     assertEquals(2, result.length);
     assertEquals(expected[0], result[0]);
     assertEquals(expected[1], result[1]);
@@ -103,8 +106,9 @@ tv.b.unittest.testSuite(function() {
     var expected = [t1asg.slices[1],
                     t1.sliceGroup.slices[1]];
     var result = new tv.c.Selection();
-    timeline.addAllObjectsMatchingFilterToSelection(
+    var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
         new tv.c.TitleFilter('b'), result);
+    Task.RunSynchronously(filterTask);
     assertEquals(2, result.length);
     assertEquals(expected[0], result[0]);
     assertEquals(expected[1], result[1]);
@@ -185,12 +189,14 @@ tv.b.unittest.testSuite(function() {
     timeline.model = model;
 
     var selection = new Selection();
-    timeline.addAllObjectsMatchingFilterToSelection(
+    var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
         new tv.c.TitleFilter('a'), selection);
+    Task.RunSynchronously(filterTask);
 
     var highlight = new Selection();
-    timeline.addAllObjectsMatchingFilterToSelection(
+    var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
         new tv.c.TitleFilter('b'), highlight);
+    Task.RunSynchronously(filterTask);
 
     // Test for faulty input.
     assertThrows(function() {

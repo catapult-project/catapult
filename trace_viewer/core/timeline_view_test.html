@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/task.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_view.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
@@ -14,6 +15,7 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
+  var Task = tv.b.Task;
 
   var createFullyPopulatedModel = function(opt_withError, opt_withMetadata) {
     var withError = opt_withError !== undefined ? opt_withError : true;
@@ -86,19 +88,6 @@ tv.b.unittest.testSuite(function() {
     });
   };
 
-  var buildView = function() {
-    var view = new tv.c.TimelineView();
-    view.model = createFullyPopulatedModel();
-
-    var selection = new tv.c.Selection();
-    view.timeline.addAllObjectsMatchingFilterToSelection({
-      matchSlice: function() { return true; }
-    }, selection);
-    view.timeline.selection = selection;
-
-    return view;
-  };
-
   test('instantiate', function() {
     var model11 = createFullyPopulatedModel(true, true);
 
@@ -137,7 +126,9 @@ tv.b.unittest.testSuite(function() {
     // Verify that the new bits of the model show up in the view.
     var selection = new tv.c.Selection();
     var filter = new tv.c.TitleFilter('somethingUnusual');
-    view.timeline.addAllObjectsMatchingFilterToSelection(filter, selection);
+    var filterTask = view.timeline.addAllObjectsMatchingFilterToSelectionAsTask(
+        filter, selection);
+    Task.RunSynchronously(filterTask);
     assertEquals(selection.length, 1);
   });
 });
