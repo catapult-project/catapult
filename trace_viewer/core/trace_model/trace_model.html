@@ -5,14 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/base.html">
-<link rel="import" href="/base/range.html">
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/base/interval_tree.html">
+<link rel="import" href="/base/range.html">
+<link rel="import" href="/base/task.html">
 <link rel="import" href="/base/ui/overlay.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/importer/empty_importer.html">
 <link rel="import" href="/core/importer/importer.html">
-<link rel="import" href="/core/importer/task.html">
 <link rel="import" href="/core/trace_model/kernel.html">
 <link rel="import" href="/core/trace_model/process.html">
 <link rel="import" href="/core/trace_model/sample.html">
@@ -298,7 +298,7 @@ tv.exportTo('tv.c', function() {
           progressMeter,
           traces,
           options);
-      tv.c.importer.Task.RunSynchronously(task);
+      tv.b.Task.RunSynchronously(task);
     },
 
     /**
@@ -324,7 +324,7 @@ tv.exportTo('tv.c', function() {
           overlay,
           traces,
           options);
-      var promise = tv.c.importer.Task.RunWhenIdle(task);
+      var promise = tv.b.Task.RunWhenIdle(task);
       promise.then(
           function() {
             overlay.visible = false;
@@ -362,7 +362,7 @@ tv.exportTo('tv.c', function() {
       // Just some simple setup. It is useful to have a nop first
       // task so that we can set up the lastTask = lastTask.after()
       // pattern that follows.
-      var importTask = new tv.c.importer.Task(function() {
+      var importTask = new tv.b.Task(function() {
         progressMeter.update('I will now import your traces for you...');
       }, this);
       var lastTask = importTask;
