@@ -19,6 +19,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/stack_frame.html">
 <link rel="import" href="/core/trace_model/instant_event.html">
 <link rel="import" href="/core/trace_model/flow_event.html">
+<link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/trace_model/process_memory_dump.html">
 
 <script>
 'use strict';
@@ -100,6 +102,8 @@ tv.exportTo('tv.c', function() {
         function(s) { return s.start; },
         function(e) { return e.start; });
 
+    this.globalMemoryDumps = [];
+
     this.importWarnings_ = [];
     this.reportedImportWarnings_ = {};
 
@@ -180,6 +184,9 @@ tv.exportTo('tv.c', function() {
         this.processes[pid].updateBounds();
         this.bounds.addRange(this.processes[pid].bounds);
       }
+
+      for (var i = 0; i < this.globalMemoryDumps.length; i++)
+        this.globalMemoryDumps[i].addBoundsToRange(this.bounds);
     },
 
     shiftWorldToZero: function() {
@@ -198,6 +205,9 @@ tv.exportTo('tv.c', function() {
         var sample = this.samples[i];
         sample.start -= timeBase;
       }
+
+      for (var i = 0; i < this.globalMemoryDumps.length; i++)
+        this.globalMemoryDumps[i].shiftTimestampsForward(-timeBase);
 
       this.updateBounds();
     },
@@ -526,6 +536,16 @@ tv.exportTo('tv.c', function() {
           this.processes[pid].autoDeleteObjects(this.bounds.max);
       }, this);
 
+      // Sort global and process memory dumps.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Sorting memory dumps...');
+        this.globalMemoryDumps.sort(function(x, y) {
+          return x.start - y.start;
+        });
+        for (var pid in this.processes)
+          this.processes[pid].sortMemoryDumps();
+      }, this);
+
       // Run initializers.
       lastTask = lastTask.after(function() {
         progressMeter.update('Initializing objects (step 2/2)...');
@@ -579,6 +599,8 @@ tv.exportTo('tv.c', function() {
         this.processes[pid].iterateAllEvents(callback, opt_this);
 
       this.samples.forEach(callback, opt_this);
+
+      this.globalMemoryDumps.forEach(callback, opt_this);
     },
 
     /**

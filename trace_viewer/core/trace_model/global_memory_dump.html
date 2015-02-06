@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/trace_model/timed_event.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the GlobalMemoryDump class.
+ */
+tv.exportTo('tv.c.trace_model', function() {
+  /**
+   * The GlobalMemoryDump represents a simultaneous memory dump of all
+   * processes.
+   * @constructor
+   */
+  function GlobalMemoryDump(model, start) {
+    tv.c.trace_model.TimedEvent.call(this, start);
+    this.model = model;
+    this.processMemoryDumps = {};
+  };
+
+  GlobalMemoryDump.prototype = {
+    __proto__: tv.c.trace_model.TimedEvent.prototype,
+
+    shiftTimestampsForward: function(amount) {
+      this.start += amount;
+    },
+
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof this[key] == 'function')
+          continue;
+        if (key == 'model')
+          continue;
+        if (key == 'processMemoryDumps')
+          continue;
+        obj[key] = this[key];
+      }
+      return obj;
+    }
+  };
+
+  return {
+    GlobalMemoryDump: GlobalMemoryDump
+  };
+});
+</script>
