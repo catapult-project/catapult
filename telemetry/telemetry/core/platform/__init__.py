@@ -128,6 +128,12 @@ class Platform(object):
     Examples: VISTA, WIN7, LION, MOUNTAINLION"""
     return self._platform_backend.GetOSVersionName()
 
+  def GetOSVersionNumber(self):
+    """Returns an integer description of the Platform OS major version.
+
+    Examples: On Mac, 13 for Mavericks, 14 for Yosemite."""
+    return self._platform_backend.GetOSVersionNumber()
+
   def CanFlushIndividualFilesFromSystemCache(self):
     """Returns true if the disk cache can be flushed for specific files."""
     return self._platform_backend.CanFlushIndividualFilesFromSystemCache()
