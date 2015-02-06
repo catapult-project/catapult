@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="stylesheet" href="/extras/cc/display_item_view.css">
+
+<link rel="import" href="/extras/cc/display_item_list.html">
+<link rel="import" href="/extras/cc/display_item_debugger.html">
+<link rel="import" href="/core/analysis/generic_object_view.html">
+<link rel="import" href="/core/analysis/object_snapshot_view.html">
+<link rel="import" href="/core/analysis/util.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.e.cc', function() {
+  /*
+   * Displays a display item snapshot in a human readable form.
+   * @constructor
+   */
+  var DisplayItemSnapshotView = tv.b.ui.define(
+      'display-item-snapshot-view',
+      tv.c.analysis.ObjectSnapshotView);
+
+  DisplayItemSnapshotView.prototype = {
+    __proto__: tv.c.analysis.ObjectSnapshotView.prototype,
+
+    decorate: function() {
+      this.classList.add('display-item-view');
+      this.displayItemDebugger_ = new tv.e.cc.DisplayItemDebugger();
+      this.appendChild(this.displayItemDebugger_);
+    },
+
+    updateContents: function() {
+      if (this.objectSnapshot_ && this.displayItemDebugger_)
+        this.displayItemDebugger_.displayItemList = this.objectSnapshot_;
+    }
+  };
+
+  tv.c.analysis.ObjectSnapshotView.register(
+      DisplayItemSnapshotView,
+      {
+        typeNames: ['cc::DisplayItemList'],
+        showInstances: false
+      });
+
+  return {
+    DisplayItemSnapshotView: DisplayItemSnapshotView
+  };
+});
+</script>

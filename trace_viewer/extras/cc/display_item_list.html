@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/cc/picture.html">
+<link rel="import" href="/core/trace_model/object_instance.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.e.cc', function() {
+  var ObjectSnapshot = tv.c.trace_model.ObjectSnapshot;
+
+  function DisplayItemList(skp64, layerRect) {
+    tv.e.cc.Picture.apply(this, arguments);
+  }
+
+  DisplayItemList.prototype = {
+    __proto__: tv.e.cc.Picture.prototype
+  };
+
+  /**
+   * @constructor
+   */
+  function DisplayItemListSnapshot() {
+    tv.e.cc.PictureSnapshot.apply(this, arguments);
+  }
+
+  DisplayItemListSnapshot.prototype = {
+    __proto__: tv.e.cc.PictureSnapshot.prototype,
+
+    initialize: function() {
+      tv.e.cc.PictureSnapshot.prototype.initialize.call(this);
+      this.displayItems_ = this.args.params.items;
+    },
+
+    get items() {
+      return this.displayItems_;
+    }
+  };
+
+  ObjectSnapshot.register(
+      DisplayItemListSnapshot,
+      {typeNames: ['cc::DisplayItemList']});
+
+  return {
+    DisplayItemListSnapshot: DisplayItemListSnapshot,
+    DisplayItemList: DisplayItemList
+  };
+});
+</script>
