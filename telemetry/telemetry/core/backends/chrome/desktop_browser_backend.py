@@ -7,6 +7,7 @@ import heapq
 import logging
 import os
 import os.path
+import re
 import shutil
 import subprocess as subprocess
 import sys
@@ -262,7 +263,13 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         return None
       output = subprocess.check_output([cdb, '-y', self._browser_directory,
                                         '-c', '.ecxr;k30;q', '-z', minidump])
-      stack_start = output.find('ChildEBP')
+      # cdb output can start the stack with "ChildEBP", "Child-SP", and possibly
+      # other things we haven't seen yet. If we can't find the start of the
+      # stack, include output from the beginning.
+      stack_start = 0
+      stack_start_match = re.search("^Child(?:EBP|-SP)", output, re.MULTILINE)
+      if stack_start_match:
+        stack_start = stack_start_match.start()
       stack_end = output.find('quit:')
       return output[stack_start:stack_end]
 
