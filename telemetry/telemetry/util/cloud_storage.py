@@ -216,7 +216,7 @@ def Insert(bucket, remote_path, local_path, publicly_readable=False):
       bucket, remote_path)
 
 
-def GetIfChanged(file_path, bucket=None):
+def GetIfChanged(file_path, bucket):
   """Gets the file at file_path if it has a hash file that doesn't match.
 
   If the file is not in Cloud Storage, log a warning instead of raising an
@@ -224,6 +224,10 @@ def GetIfChanged(file_path, bucket=None):
 
   Returns:
     True if the binary was changed.
+  Raises:
+    CredentialsError if the user has no configured credentials.
+    PermissionError if the user does not have permission to access the bucket.
+    NotFoundError if the file is not in the given bucket in cloud_storage.
   """
   hash_path = file_path + '.sha1'
   if not os.path.exists(hash_path):
@@ -234,20 +238,8 @@ def GetIfChanged(file_path, bucket=None):
   if os.path.exists(file_path) and CalculateHash(file_path) == expected_hash:
     return False
 
-  if bucket:
-    buckets = [bucket]
-  else:
-    buckets = [PUBLIC_BUCKET, PARTNER_BUCKET, INTERNAL_BUCKET]
-
-  for bucket in buckets:
-    try:
-      Get(bucket, expected_hash, file_path)
-      return True
-    except NotFoundError:
-      continue
-
-  logging.warning('Unable to find file in Cloud Storage: %s', file_path)
-  return False
+  Get(bucket, expected_hash, file_path)
+  return True
 
 
 def CalculateHash(file_path):
