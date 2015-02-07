@@ -23,20 +23,15 @@ found in the LICENSE file.
     display: -webkit-flex;
   }
 
-  display-item-debugger > x-generic-object-view {
-    -webkit-flex-direction: column;
-    display: -webkit-flex;
-    width: 400px;
-  }
-
   display-item-debugger > left-panel {
     -webkit-flex-direction: column;
     display: -webkit-flex;
     min-width: 300px;
+    overflow-y: auto;
   }
 
   display-item-debugger > left-panel > display-item-info {
-    -webkit-flex: 0 0 auto;
+    -webkit-flex: 1 1 auto;
     padding-top: 2px;
   }
 
@@ -84,6 +79,7 @@ found in the LICENSE file.
 
   display-item-debugger > right-panel > picture-ops-list-view {
     display: none;
+    overflow-y: auto;
   }
 
   display-item-debugger > right-panel > x-drag-handle {
@@ -146,11 +142,14 @@ tv.exportTo('tv.e.cc', function() {
 
       this.trackMouse_();
 
-      var displayItemInfo = this.querySelector('display-item-info');
+      this.displayItemInfo_ = this.querySelector('display-item-info');
+      this.displayItemInfo_.addEventListener(
+          'click', this.onDisplayItemInfoClick_.bind(this), false);
+
       this.displayItemListView_ = new tv.b.ui.ListView();
       this.displayItemListView_.addEventListener('selection-changed',
           this.onDisplayItemListSelection_.bind(this));
-      displayItemInfo.appendChild(this.displayItemListView_);
+      this.displayItemInfo_.appendChild(this.displayItemListView_);
 
       var leftPanel = this.querySelector('left-panel');
 
@@ -198,8 +197,8 @@ tv.exportTo('tv.e.cc', function() {
       this.picture_ = picture;
 
       // Hide the ops list if we are showing the "main" display item list.
-      var displayItemListPicture = this.picture_ === this.displayItemList_;
-      this.updateDrawOpsList_(displayItemListPicture);
+      var showOpsList = picture && picture !== this.displayItemList_;
+      this.updateDrawOpsList_(showOpsList);
 
       if (picture) {
         var size = this.getRasterCanvasSize_();
@@ -221,10 +220,12 @@ tv.exportTo('tv.e.cc', function() {
 
     getRasterCanvasSize_: function() {
       var style = window.getComputedStyle(this.rasterArea_);
-      var width =
-          Math.max(parseInt(style.width), this.picture_.layerRect.width);
-      var height =
-          Math.max(parseInt(style.height), this.picture_.layerRect.height);
+      var width = parseInt(style.width);
+      var height = parseInt(style.height);
+      if (this.picture_) {
+        width = Math.max(width, this.picture_.layerRect.width);
+        height = Math.max(height, this.picture_.layerRect.height);
+      }
 
       return {
         width: width,
@@ -280,7 +281,7 @@ tv.exportTo('tv.e.cc', function() {
 
       this.rasterCtx_.clearRect(0, 0, size.width, size.height);
 
-      if (!this.pictureAsImageData_.imageData)
+      if (!this.picture_ || !this.pictureAsImageData_.imageData)
         return;
 
       var imgCanvas = this.pictureAsImageData_.asCanvas();
@@ -308,6 +309,12 @@ tv.exportTo('tv.e.cc', function() {
 
     onDisplayItemListSelection_: function(e) {
       var selected = this.displayItemListView_.selectedElement;
+
+      if (!selected) {
+        this.picture = this.displayItemList_;
+        return;
+      }
+
       var index = Array.prototype.indexOf.call(
           this.displayItemListView_.children, selected);
       var displayItem = this.displayItemList_.items[index];
@@ -315,19 +322,25 @@ tv.exportTo('tv.e.cc', function() {
         this.picture = new tv.e.cc.Picture(
             displayItem.skp64, this.displayItemList_.layerRect);
       else
-        this.picture = this.displayItemList_;
+        this.picture = undefined;
     },
 
-    updateDrawOpsList_: function(hideOpsList) {
-      if (hideOpsList) {
-        this.pictureOpsListView_.classList.remove('hasPictureOps');
-        this.pictureOpsListDragHandle_.classList.remove('hasPictureOps');
-      } else {
+    onDisplayItemInfoClick_: function(e) {
+      if (e && e.target == this.displayItemInfo_) {
+        this.displayItemListView_.selectedElement = undefined;
+      }
+    },
+
+    updateDrawOpsList_: function(showOpsList) {
+      if (showOpsList) {
         this.pictureOpsListView_.picture = this.picture_;
         if (this.pictureOpsListView_.numOps > 0) {
           this.pictureOpsListView_.classList.add('hasPictureOps');
           this.pictureOpsListDragHandle_.classList.add('hasPictureOps');
         }
+      } else {
+        this.pictureOpsListView_.classList.remove('hasPictureOps');
+        this.pictureOpsListDragHandle_.classList.remove('hasPictureOps');
       }
     },
 

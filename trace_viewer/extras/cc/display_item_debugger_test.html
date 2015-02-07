@@ -75,9 +75,12 @@ tv.b.unittest.testSuite(function() {
     assertTrue(updatedPicture.guid > 0);
     assertNotEquals(initialPicture.guid, updatedPicture.guid);
 
-    // Select the TransformDisplayItem and make sure the picture switches
-    // back to the initial picture.
+    // Select the TransformDisplayItem and make sure the picture is blank.
     listView.selectedElement = listView.getElementByIndex(2);
+    assertTrue(dbg.picture_ === undefined);
+
+    // Deselect a list item and make sure the picture is reset to the original.
+    listView.selectedElement = undefined;
     updatedPicture = dbg.picture_;
     assertTrue(updatedPicture.guid > 0);
     assertEquals(initialPicture.guid, updatedPicture.guid);
