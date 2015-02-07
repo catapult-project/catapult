@@ -211,7 +211,7 @@ def Run(test, user_story_set, expectations, finder_options, results,
   # Reorder page set based on options.
   user_stories = _ShuffleAndFilterUserStorySet(user_story_set, finder_options)
 
-  if (not finder_options.use_live_sites and
+  if (not finder_options.use_live_sites and user_story_set.bucket and
       finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):
     _UpdateUserStoryArchivesIfChanged(user_story_set)
     if not _UpdateAndCheckArchives(

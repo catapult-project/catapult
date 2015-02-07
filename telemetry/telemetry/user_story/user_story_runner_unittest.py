@@ -23,6 +23,7 @@ from telemetry.util import exception_formatter as exception_formatter_module
 from telemetry.value import scalar
 from telemetry.value import string
 from telemetry.web_perf import timeline_based_measurement
+from telemetry.wpr import archive_info
 
 # This linter complains if we define classes nested inside functions.
 # pylint: disable=bad-super-call
@@ -440,54 +441,60 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', contents)
 
   def testUpdateAndCheckArchives(self):
-    uss = user_story_set.UserStorySet()
-    uss.AddUserStory(page_module.Page(
-        'http://www.testurl.com', uss, uss.base_dir))
-    # Page set missing archive_data_file.
-    self.assertRaises(
-        user_story_runner.ArchiveError,
-        user_story_runner._UpdateAndCheckArchives,
-        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
+    usr_stub = system_stub.Override(user_story_runner, ['cloud_storage'])
+    wpr_stub = system_stub.Override(archive_info, ['cloud_storage'])
+    try:
+      uss = user_story_set.UserStorySet()
+      uss.AddUserStory(page_module.Page(
+          'http://www.testurl.com', uss, uss.base_dir))
+      # Page set missing archive_data_file.
+      self.assertRaises(
+          user_story_runner.ArchiveError,
+          user_story_runner._UpdateAndCheckArchives,
+          uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
 
-    uss = user_story_set.UserStorySet(
-        archive_data_file='missing_archive_data_file.json')
-    uss.AddUserStory(page_module.Page(
-        'http://www.testurl.com', uss, uss.base_dir))
-    # Page set missing json file specified in archive_data_file.
-    self.assertRaises(
-        user_story_runner.ArchiveError,
-        user_story_runner._UpdateAndCheckArchives,
-        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
+      uss = user_story_set.UserStorySet(
+          archive_data_file='missing_archive_data_file.json')
+      uss.AddUserStory(page_module.Page(
+          'http://www.testurl.com', uss, uss.base_dir))
+      # Page set missing json file specified in archive_data_file.
+      self.assertRaises(
+          user_story_runner.ArchiveError,
+          user_story_runner._UpdateAndCheckArchives,
+          uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
 
-    uss = user_story_set.UserStorySet(
-        archive_data_file='../../unittest_data/archive_files/test.json',
-        cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
-    uss.AddUserStory(page_module.Page(
-        'http://www.testurl.com', uss, uss.base_dir))
-    # Page set with valid archive_data_file.
-    self.assertTrue(user_story_runner._UpdateAndCheckArchives(
-        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
-    uss.AddUserStory(page_module.Page(
-        'http://www.google.com', uss, uss.base_dir))
-    # Page set with an archive_data_file which exists but is missing a page.
-    self.assertRaises(
-        user_story_runner.ArchiveError,
-        user_story_runner._UpdateAndCheckArchives,
-        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
+      uss = user_story_set.UserStorySet(
+          archive_data_file='../../unittest_data/archive_files/test.json',
+          cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
+      uss.AddUserStory(page_module.Page(
+          'http://www.testurl.com', uss, uss.base_dir))
+      # Page set with valid archive_data_file.
+      self.assertTrue(user_story_runner._UpdateAndCheckArchives(
+          uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
+      uss.AddUserStory(page_module.Page(
+          'http://www.google.com', uss, uss.base_dir))
+      # Page set with an archive_data_file which exists but is missing a page.
+      self.assertRaises(
+          user_story_runner.ArchiveError,
+          user_story_runner._UpdateAndCheckArchives,
+          uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
 
-    uss = user_story_set.UserStorySet(
-        archive_data_file='../../unittest_data/test_missing_wpr_file.json',
-        cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
-    uss.AddUserStory(page_module.Page(
-        'http://www.testurl.com', uss, uss.base_dir))
-    uss.AddUserStory(page_module.Page(
-        'http://www.google.com', uss, uss.base_dir))
-    # Page set with an archive_data_file which exists and contains all pages
-    # but fails to find a wpr file.
-    self.assertRaises(
-        user_story_runner.ArchiveError,
-        user_story_runner._UpdateAndCheckArchives,
-        uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
+      uss = user_story_set.UserStorySet(
+          archive_data_file='../../unittest_data/test_missing_wpr_file.json',
+          cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
+      uss.AddUserStory(page_module.Page(
+          'http://www.testurl.com', uss, uss.base_dir))
+      uss.AddUserStory(page_module.Page(
+          'http://www.google.com', uss, uss.base_dir))
+      # Page set with an archive_data_file which exists and contains all pages
+      # but fails to find a wpr file.
+      self.assertRaises(
+          user_story_runner.ArchiveError,
+          user_story_runner._UpdateAndCheckArchives,
+          uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
+    finally:
+      usr_stub.Restore()
+      wpr_stub.Restore()
 
 
   def _testMaxFailuresOptionIsRespectedAndOverridable(
