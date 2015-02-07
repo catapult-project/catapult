@@ -32,23 +32,36 @@ tv.b.unittest.testSuite(function() {
     assertTrue(i3.hasAttribute('selected'));
   });
 
-  test('selectionEvents', function() {
+  test('clickSelection', function() {
     var view = new ListView();
-    var didSelectionChange = 0;
+    var didFireSelectionChange = false;
     view.addEventListener('selection-changed', function() {
-      didSelectionChange = true;
+      didFireSelectionChange = true;
     });
     var i1 = view.addItem('item 1');
     var i2 = view.addItem('item 2');
     var i3 = view.addItem('item 3');
 
-    didSelectionChange = false;
-    i2.selected = true;
-    assertTrue(didSelectionChange);
+    didFireSelectionChange = false;
+    i2.click();
+    assertTrue(didFireSelectionChange);
+    assertEquals(i2, view.selectedElement);
 
-    didSelectionChange = false;
-    view.removeChild(i2);
-    assertTrue(didSelectionChange);
+    didFireSelectionChange = false;
+    i3.click();
+    assertTrue(didFireSelectionChange);
+    assertEquals(i3, view.selectedElement);
+
+    // Click the same target again.
+    didFireSelectionChange = false;
+    i3.click();
+    assertTrue(didFireSelectionChange);
+    assertEquals(undefined, view.selectedElement);
+
+    didFireSelectionChange = false;
+    i1.click();
+    assertTrue(didFireSelectionChange);
+    assertEquals(i1, view.selectedElement);
   });
 });
 </script>

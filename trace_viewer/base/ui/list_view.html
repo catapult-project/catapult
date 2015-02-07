@@ -119,7 +119,8 @@ tv.exportTo('tv.b.ui', function() {
       var element = e.target;
       while (element.parentElement != this)
         element = element.parentElement;
-      element.setAttribute('selected', 'selected');
+      if (element !== currentSelectedElement)
+        element.setAttribute('selected', 'selected');
       tv.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
