@@ -2056,6 +2056,52 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals(1, m.samples[0].weight);
   });
 
+  test('importMemoryDumps', function() {
+    var events = [
+      // 2 process memory dump events without a global memory dump event.
+      {name: 'a', pid: 42, ts: 10, cat: 'test', tid: 53, ph: 'u', 'id': 'dump1', args: {}},  // @suppress longLineCheck
+      {name: 'b', pid: 43, ts: 11, cat: 'test', tid: 54, ph: 'u', 'id': 'dump1', args: {}},  // @suppress longLineCheck
+      // 1 global memory dump event and 1 process memory dump event.
+      {name: 'c', pid: 44, ts: 12, cat: 'test', tid: 55, ph: 'U', 'id': 'dump2', args: {}},  // @suppress longLineCheck
+      {name: 'd', pid: 42, ts: 13, cat: 'test', tid: 56, ph: 'u', 'id': 'dump2', args: {}}  // @suppress longLineCheck
+    ];
+    var m = new tv.c.TraceModel(events, false);
+    var p1 = m.getProcess(42);
+    var p2 = m.getProcess(43);
+    assertNotUndefined(p1);
+    assertNotUndefined(p2);
+
+    // Check that TraceModel and Process objects contain the right dumps.
+    assertEquals(2, m.globalMemoryDumps.length);
+    assertEquals(2, p1.memoryDumps.length);
+    assertEquals(1, p2.memoryDumps.length);
+
+    assertEquals(10, m.globalMemoryDumps[0].start);
+    assertEquals(10, p1.memoryDumps[0].start);
+    assertEquals(11, p2.memoryDumps[0].start);
+    assertEquals(1, m.globalMemoryDumps[0].duration);
+    assertEquals(0, p1.memoryDumps[0].duration);
+    assertEquals(0, p2.memoryDumps[0].duration);
+
+    assertEquals(12, m.globalMemoryDumps[1].start);
+    assertEquals(13, p1.memoryDumps[1].start);
+    assertEquals(1, m.globalMemoryDumps[1].duration);
+    assertEquals(0, p1.memoryDumps[1].duration);
+
+    // Check that GlobalMemoryDump and ProcessMemoryDump objects are
+    // interconnected correctly.
+    assertEquals(m.globalMemoryDumps[0].processMemoryDumps[42],
+        p1.memoryDumps[0]);
+    assertEquals(m.globalMemoryDumps[0].processMemoryDumps[43],
+        p2.memoryDumps[0]);
+    assertEquals(m.globalMemoryDumps[0], p1.memoryDumps[0].globalMemoryDump);
+    assertEquals(m.globalMemoryDumps[0], p2.memoryDumps[0].globalMemoryDump);
+
+    assertEquals(m.globalMemoryDumps[1].processMemoryDumps[42],
+        p1.memoryDumps[1]);
+    assertEquals(m.globalMemoryDumps[1], p1.memoryDumps[1].globalMemoryDump);
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
 

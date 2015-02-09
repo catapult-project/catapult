@@ -19,10 +19,11 @@ tv.exportTo('tv.c.trace_model', function() {
    * processes.
    * @constructor
    */
-  function GlobalMemoryDump(model, start) {
+  function GlobalMemoryDump(model, start, opt_args) {
     tv.c.trace_model.TimedEvent.call(this, start);
     this.model = model;
     this.processMemoryDumps = {};
+    this.args = opt_args;
   };
 
   GlobalMemoryDump.prototype = {

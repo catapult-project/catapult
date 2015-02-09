@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/quad.html">
+<link rel="import" href="/base/range.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/core/color_scheme.html">
 <link rel="import" href="/core/importer/importer.html">
@@ -13,6 +14,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/flow_event.html">
 <link rel="import" href="/core/trace_model/counter_series.html">
 <link rel="import" href="/core/trace_model/slice_group.html">
+<link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/trace_model/process_memory_dump.html">
 
 <script>
 'use strict';
@@ -67,6 +70,9 @@ tv.exportTo('tv.e.importer', function() {
     this.allAsyncEvents_ = [];
     this.allFlowEvents_ = [];
     this.allObjectEvents_ = [];
+
+    // Dump ID -> {global: (event | undefined), process: [events]}
+    this.allMemoryDumpEvents_ = {};
 
     if (typeof(eventData) === 'string' || eventData instanceof String) {
       eventData = eventData.trim();
@@ -406,6 +412,44 @@ tv.exportTo('tv.e.importer', function() {
       this.model_.samples.push(sample);
     },
 
+    getOrCreateMemoryDumpEvents_: function(dumpId) {
+      if (this.allMemoryDumpEvents_[dumpId] === undefined) {
+        this.allMemoryDumpEvents_[dumpId] = {
+          global: undefined,
+          process: []
+        };
+      }
+      return this.allMemoryDumpEvents_[dumpId];
+    },
+
+    processMemoryDumpEvent: function(event) {
+      if (event.id === undefined) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: event.ph + ' phase event without a dump ID.'
+        });
+        return;
+      }
+      var events = this.getOrCreateMemoryDumpEvents_(event.id);
+
+      if (event.ph === 'u') {
+        // Add a process memory dump.
+        events.process.push(event);
+      } else if (event.ph === 'U') {
+        // Add a global memory dump (unless already present).
+        if (events.global !== undefined) {
+          this.model_.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'Multiple U phase events with the same dump ID.'
+          });
+          return;
+        }
+        events.global = event;
+      } else {
+        throw new Error('Invalid memory dump event phase "' + event.ph + '".');
+      }
+    },
+
     /**
      * Walks through the events_ list and outputs the structures discovered to
      * model_.
@@ -444,6 +488,9 @@ tv.exportTo('tv.e.importer', function() {
 
         } else if (event.ph === 's' || event.ph === 't' || event.ph === 'f') {
           this.processFlowEvent(event);
+
+        } else if (event.ph === 'u' || event.ph === 'U') {
+          this.processMemoryDumpEvent(event);
 
         } else {
           this.model_.importWarning({
@@ -503,6 +550,7 @@ tv.exportTo('tv.e.importer', function() {
       this.createFlowSlices_();
       this.createExplicitObjects_();
       this.createImplicitObjects_();
+      this.createMemoryDumps_();
     },
 
     importSampleData: function() {
@@ -1234,6 +1282,52 @@ tv.exportTo('tv.e.importer', function() {
             throw new Error('args cannot have an id field inside it');
           iterObject(snapshot.args, processField, snapshot, this);
         }, this);
+      }, this);
+    },
+
+    createMemoryDumps_: function() {
+      tv.b.iterItems(this.allMemoryDumpEvents_, function(id, events) {
+        // Calculate the range of the global memory dump.
+        var range = new tv.b.Range();
+        if (events.global !== undefined)
+          range.addValue(events.global.ts);
+        for (var i = 0; i < events.process.length; i++)
+          range.addValue(events.process[i].ts);
+
+        // Create the global memory dump.
+        var globalMemoryDump = new tv.c.trace_model.GlobalMemoryDump(
+            this.model_, range.min, this.deepCopyIfNeeded_(events.global));
+        globalMemoryDump.duration = range.range;
+        this.model_.globalMemoryDumps.push(globalMemoryDump);
+
+        // Create individual process memory dumps.
+        if (events.process.length === 0) {
+          this.model_.importWarning({
+              type: 'memory_dump_parse_error',
+              message: 'No process memory dumps associated with global memory' +
+                  ' dump ' + id + '.'
+          });
+        }
+
+        for (var i = 0; i < events.process.length; i++) {
+          var processEvent = events.process[i];
+          var pid = processEvent.pid;
+          if (pid in globalMemoryDump.processMemoryDumps) {
+            this.model_.importWarning({
+              type: 'memory_dump_parse_error',
+              message: 'Multiple process memory dumps with pid=' + pid +
+                  ' for dump id ' + id + '.'
+            });
+            continue;
+          }
+
+          var process = this.model_.getOrCreateProcess(pid);
+          var processMemoryDump = new tv.c.trace_model.ProcessMemoryDump(
+              globalMemoryDump, process, processEvent.ts,
+              this.deepCopyIfNeeded_(processEvent.args));
+          process.memoryDumps.push(processMemoryDump);
+          globalMemoryDump.processMemoryDumps[pid] = processMemoryDump;
+        }
       }, this);
     },
 
