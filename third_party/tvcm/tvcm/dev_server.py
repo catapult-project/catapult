@@ -175,7 +175,8 @@ def do_GET_root(request):
 
 class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def __init__(self, port, quiet=False, project=None):
-    BaseHTTPServer.HTTPServer.__init__(self, ('', port), DevServerHandler)
+    BaseHTTPServer.HTTPServer.__init__(
+        self, ('localhost', port), DevServerHandler)
     self._quiet = quiet
     if port == 0:
       port = self.server_address[1]
