@@ -31,6 +31,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.name = undefined;
     this.labels = [];
     this.instantEvents = [];
+    this.memoryDumps = [];
   };
 
   /**
@@ -107,12 +108,24 @@ tv.exportTo('tv.c.trace_model', function() {
       for (var id in this.instantEvents)
         this.instantEvents[id].start += amount;
 
+      for (var i = 0; i < this.memoryDumps.length; i++)
+        this.memoryDumps[i].shiftTimestampsForward(amount);
+
       tv.c.trace_model.ProcessBase.prototype
           .shiftTimestampsForward.apply(this, arguments);
     },
 
+    updateBounds: function() {
+      tv.c.trace_model.ProcessBase.prototype.updateBounds.apply(this);
+
+      for (var i = 0; i < this.memoryDumps.length; i++)
+        this.memoryDumps[i].addBoundsToRange(this.bounds);
+    },
+
     iterateAllEvents: function(callback, opt_this) {
       this.instantEvents.forEach(callback, opt_this);
+
+      this.memoryDumps.forEach(callback, opt_this);
 
       ProcessBase.prototype.iterateAllEvents.call(this, callback, opt_this);
     },
@@ -121,6 +134,12 @@ tv.exportTo('tv.c.trace_model', function() {
       callback(this);
       for (var tid in this.threads)
         this.threads[tid].iterateAllEventContainers(callback);
+    },
+
+    sortMemoryDumps: function() {
+      this.memoryDumps.sort(function(x, y) {
+        return x.start - y.start;
+      });
     }
   };
 
