@@ -490,6 +490,10 @@ class CertUtilsStub(object):
   def generate_dummy_ca_cert():
     return '-', '-'
 
+  @staticmethod
+  def has_sni():
+    return True
+
 class AdbInstallCertStub(object):
   class AndroidCertInstaller(object):
     def __init__(self, device_id, _cert_name, _cert_path):

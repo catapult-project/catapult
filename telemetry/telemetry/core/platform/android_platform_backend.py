@@ -437,12 +437,19 @@ class AndroidPlatformBackend(
     This allows transparent HTTPS testing with WPR server without need
     to tweak application network stack.
     """
+    # TODO(slamm): Move certificate creation related to webpagereplay.py.
+    # The only code that needs to be in platform backend is installing the cert.
     if certutils.openssl_import_error:
       logging.warning(
           'The OpenSSL module is unavailable. '
           'Will fallback to ignoring certificate errors.')
       return
-
+    if not certutils.has_sni():
+      logging.warning(
+          'Web Page Replay requires SNI support (pyOpenSSL 0.13 or greater) '
+          'to generate certificates from a test CA. '
+          'Will fallback to ignoring certificate errors.')
+      return
     try:
       self._wpr_ca_cert_path = os.path.join(tempfile.mkdtemp(), 'testca.pem')
       certutils.write_dummy_ca_cert(*certutils.generate_dummy_ca_cert(),
@@ -453,12 +460,13 @@ class AndroidPlatformBackend(
                    self._adb.device_serial())
       self._device_cert_util.install_cert(overwrite_cert=True)
       self._is_test_ca_installed = True
-    except Exception:
+    except Exception as e:
       # Fallback to ignoring certificate errors.
       self.RemoveTestCa()
-      logging.warning('Unable to install test certificate authority on device: '
-                      '%s. Will fallback to ignoring certificate errors.'
-                      % self._adb.device_serial())
+      logging.warning(
+          'Unable to install test certificate authority on device: %s. '
+          'Will fallback to ignoring certificate errors. Install error: %s',
+          self._adb.device_serial(), e)
 
   @property
   def is_test_ca_installed(self):
