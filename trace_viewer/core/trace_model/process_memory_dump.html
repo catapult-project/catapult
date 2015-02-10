@@ -48,6 +48,15 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  tv.c.trace_model.EventRegistry.register(
+      ProcessMemoryDump,
+      {
+        name: 'processMemoryDump',
+        pluralName: 'processMemoryDumps',
+        singleViewElementName: 'tv-c-single-process-memory-dump-sub-view',
+        multiViewElementName: 'tv-c-multi-process-memory-dump-sub-view'
+      });
+
   return {
     ProcessMemoryDump: ProcessMemoryDump
   };

@@ -49,6 +49,15 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  tv.c.trace_model.EventRegistry.register(
+      GlobalMemoryDump,
+      {
+        name: 'globalMemoryDump',
+        pluralName: 'globalMemoryDumps',
+        singleViewElementName: 'tv-c-single-global-memory-dump-sub-view',
+        multiViewElementName: 'tv-c-multi-global-memory-dump-sub-view'
+      });
+
   return {
     GlobalMemoryDump: GlobalMemoryDump
   };
