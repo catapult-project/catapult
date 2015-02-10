@@ -10,7 +10,6 @@ from telemetry.page import page_test
 from telemetry.timeline import model as model_module
 from telemetry.value import trace
 from telemetry.web_perf import timeline_interaction_record as tir_module
-from telemetry.web_perf.metrics import fast_metric
 from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.web_perf.metrics import smoothness
 
@@ -19,19 +18,16 @@ from telemetry.web_perf.metrics import smoothness
 # overhead increases. The user of the measurement must therefore chose between
 # a few levels of instrumentation.
 NO_OVERHEAD_LEVEL = 'no-overhead'
-V8_OVERHEAD_LEVEL = 'v8-overhead'
 MINIMAL_OVERHEAD_LEVEL = 'minimal-overhead'
 DEBUG_OVERHEAD_LEVEL = 'debug-overhead'
 
 ALL_OVERHEAD_LEVELS = [
   NO_OVERHEAD_LEVEL,
-  V8_OVERHEAD_LEVEL,
   MINIMAL_OVERHEAD_LEVEL,
   DEBUG_OVERHEAD_LEVEL
 ]
 
 DEFAULT_METRICS = {
-  tir_module.IS_FAST: fast_metric.FastMetric,
   tir_module.IS_SMOOTH: smoothness.SmoothnessMetric,
   tir_module.IS_RESPONSIVE: responsiveness_metric.ResponsivenessMetric,
 }
@@ -142,9 +138,8 @@ class Options(object):
     and the tracing is filtered accordingly.
 
     overhead_level: Can either be a custom TracingCategoryFilter object or
-        one of NO_OVERHEAD_LEVEL, V8_OVERHEAD_LEVEL, MINIMAL_OVERHEAD_LEVEL,
-        or DEBUG_OVERHEAD_LEVEL. The v8 overhead level is a temporary solution
-        that may be removed.
+        one of NO_OVERHEAD_LEVEL, MINIMAL_OVERHEAD_LEVEL or
+        DEBUG_OVERHEAD_LEVEL.
     get_metrics_from_flags_callback: Callback function which returns a
         a list of metrics based on timeline record flags. See the default
         _GetMetricsFromFlags() as an example.
@@ -224,11 +219,6 @@ class TimelineBasedMeasurement(object):
 
       if self._tbm_options.overhead_level == NO_OVERHEAD_LEVEL:
         category_filter = tracing_category_filter.CreateNoOverheadFilter()
-      # TODO(ernstm): Remove this overhead level when benchmark relevant v8
-      # events become available in the 'benchmark' category.
-      elif self._tbm_options.overhead_level == V8_OVERHEAD_LEVEL:
-        category_filter = tracing_category_filter.CreateNoOverheadFilter()
-        category_filter.AddIncludedCategory('v8')
       elif self._tbm_options.overhead_level == MINIMAL_OVERHEAD_LEVEL:
         category_filter = tracing_category_filter.CreateMinimalOverheadFilter()
       else:
