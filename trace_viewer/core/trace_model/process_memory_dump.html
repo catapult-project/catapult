@@ -18,10 +18,11 @@ tv.exportTo('tv.c.trace_model', function() {
    * The ProcessMemoryDump represents a memory dump of a single process.
    * @constructor
    */
-  function ProcessMemoryDump(globalMemoryDump, process, start) {
+  function ProcessMemoryDump(globalMemoryDump, process, start, opt_args) {
     tv.c.trace_model.TimedEvent.call(this, start);
     this.process = process;
     this.globalMemoryDump = globalMemoryDump;
+    this.args = opt_args;
   };
 
   ProcessMemoryDump.prototype = {
