@@ -27,10 +27,6 @@ layer-view > layer-view-analysis * {
   -webkit-user-select: text;
 }
 
-.labeled-checkbox {
-  white-space: nowrap;
-}
-
 .labeled-option-group {
   -webkit-flex: 0 0 auto;
   -webkit-flex-direction: column;

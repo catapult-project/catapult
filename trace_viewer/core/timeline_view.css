@@ -17,10 +17,11 @@ x-timeline-view > .control > .title {
   padding-left: 2px;
   padding-right: 8px;
   padding-top: 2px;
+  flex: 1 0 auto;
 }
 
 x-timeline-view > .control {
-  -webkit-flex: 0 0 auto;
+  flex: 0 0 auto;
   background-color: #e6e6e6;
   background-image: -webkit-gradient(linear,
                                      0 0,
@@ -28,8 +29,12 @@ x-timeline-view > .control {
                                      from(#E5E5E5),
                                      to(#D1D1D1));
   border-bottom: 1px solid #8e8e8e;
-  display: -webkit-flex;
+  display: flex;
   padding-top: 1px;
+  overflow-x: auto;
+}
+x-timeline-view > .control::-webkit-scrollbar{
+  height: 0px;
 }
 
 x-timeline-view > .control > #right-controls {
@@ -38,6 +43,7 @@ x-timeline-view > .control > #right-controls {
 
 x-timeline-view > .control > .controls {
   display: -webkit-flex;
+  flex: 0 0 auto;
 }
 
 x-timeline-view > .control > span {
