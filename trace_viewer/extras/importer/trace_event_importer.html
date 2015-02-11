@@ -508,11 +508,12 @@ tv.exportTo('tv.e.importer', function() {
     importStackFrames_: function() {
       var m = this.model_;
       var events = this.stackFrameEvents_;
+
       for (var id in events) {
         var event = events[id];
         var textForColor = event.category ? event.category : event.name;
         var frame = new tv.c.trace_model.StackFrame(
-            undefined, id,
+            undefined, 'g' + id,
             event.category, event.name,
             tv.b.ui.getStringColorId(textForColor));
         m.addStackFrame(frame);
@@ -522,14 +523,14 @@ tv.exportTo('tv.e.importer', function() {
         if (event.parent === undefined)
           continue;
 
-        var frame = m.stackFrames[id];
+        var frame = m.stackFrames['g' + id];
         if (frame === undefined)
           throw new Error('omg');
         var parentFrame;
         if (event.parent === undefined) {
           parentFrame = undefined;
         } else {
-          parentFrame = m.stackFrames[event.parent];
+          parentFrame = m.stackFrames['g' + event.parent];
           if (parentFrame === undefined)
             throw new Error('omg');
         }
@@ -587,7 +588,7 @@ tv.exportTo('tv.e.importer', function() {
         if (event.cpu !== undefined)
           cpu = m.kernel.getOrCreateCpu(event.cpu);
 
-        var stackFrame = m.stackFrames[event.sf];
+        var stackFrame = m.stackFrames['g' + event.sf];
         if (stackFrame === undefined) {
           m.importWarning({
             type: 'sample_import_error',
