@@ -230,8 +230,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     if len(self._all_async_events) == 0:
       return
 
-    self._all_async_events.sort(
-        cmp=lambda x, y: int(x['event']['ts'] - y['event']['ts']))
+    self._all_async_events.sort(key=lambda x: x['event']['ts'])
 
     async_event_states_by_name_then_id = {}
 
@@ -346,8 +345,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     if len(self._all_flow_events) == 0:
       return
 
-    self._all_flow_events.sort(
-        cmp=lambda x, y: int(x['event']['ts'] - y['event']['ts']))
+    self._all_flow_events.sort(key=lambda x: x['event']['ts'])
 
     flow_id_to_event = {}
     for data in self._all_flow_events:
