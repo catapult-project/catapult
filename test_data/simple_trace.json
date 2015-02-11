@@ -15,7 +15,7 @@
     {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 829, "ph": "B",
         "name": "Asub", "args": {}},
     {"cat": "PREF", "pid": 22630, "tid": 22630, "dur": 15, "ts": 820, "ph": "X",
-        "name": "Long X type", "args": {}},
+        "name": "Long X type", "args": {}, "sf": 7, "esf": 8},
     {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 832, "ph": "E",
         "name": "Asub", "args": {}},
     {"cat": "PREF", "pid": 22630, "tid": 22630, "dur": 2, "ts": 818, "ph": "X",
@@ -76,8 +76,8 @@
         "name": "SampleA", "args": {}},
     {"cat": "SAMPLE", "pid": 22630, "tid": 22631, "ts": 875, "ph": "P",
         "name": "SampleB", "args": {}},
-    {"cat": "SAMPLE", "pid": 22630, "tid": 22631, "ts": 880, "ph": "P",
-        "name": "SampleC", "args": {}},
+    {"cat": "SAMPLE", "pid": 22630, "tid": 22631, "ts": 878, "ph": "P",
+        "name": "SampleC", "args": {}, "sf": 8},
 
     {"cat": "__metadata", "pid": 22630, "tid": 22630, "ts": 0, "ph": "M",
         "name": "thread_name", "args": {"name": "threadA"}},
@@ -87,6 +87,19 @@
         "name": "thread_name", "args": {"name": "threadC"}}
   ],
   "stackFrames": {
-
+    "1": {
+      "category": "m1",
+      "name": "main"
+    },
+    "7": {
+      "category": "m2",
+      "name": "frame7",
+      "parent": "1"
+    },
+    "8": {
+      "category": "m2",
+      "name": "frame8",
+      "parent": "1"
+    }
   }
 }
