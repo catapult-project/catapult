@@ -17,4 +17,4 @@ We welcome contributions! To hack on this code, from toplevel:
 In any browser, navigate to
   http://localhost:8003/
 
-Make sure tests pass before sending us a PR. For more details, check out the [trace viewer wiki](https://github.com/google/trace-viewer/wiki).
+Make sure tests pass before sending us a PR. For more details, [read our contributing guide](https://github.com/google/trace-viewer/wiki/Contributing) or check out the [trace viewer wiki](https://github.com/google/trace-viewer/wiki).
