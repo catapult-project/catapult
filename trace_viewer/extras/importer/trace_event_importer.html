@@ -455,6 +455,9 @@ tv.exportTo('tv.e.importer', function() {
      * model_.
      */
     importEvents: function() {
+      if (this.stackFrameEvents_)
+        this.importStackFrames_();
+
       var events = this.events_;
       for (var eI = 0; eI < events.length; eI++) {
         var event = events[eI];
@@ -500,9 +503,6 @@ tv.exportTo('tv.e.importer', function() {
           });
         }
       }
-
-      if (this.stackFrameEvents_)
-        this.importStackFrames_();
     },
 
     importStackFrames_: function() {
