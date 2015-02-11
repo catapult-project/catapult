@@ -19,7 +19,8 @@ tv.b.unittest.testSuite(function() {
   test('sampleStackTrace', function() {
     var thread = new Thread({}, 1);
 
-    var fABC = tv.c.test_utils.newStackTrace('cat', ['a', 'b', 'c']);
+    var model = new tv.c.TraceModel();
+    var fABC = tv.c.test_utils.newStackTrace(model, 'cat', ['a', 'b', 'c']);
 
     var s = new Sample(undefined, thread, 'instructions_retired',
                        10, fABC, 10);

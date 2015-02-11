@@ -69,11 +69,13 @@ tv.exportTo('tv.c.test_utils', function() {
     return s;
   }
 
-  function newStackTrace(category, titles) {
+  function newStackTrace(model, category, titles) {
     var frame = undefined;
-    for (var i = 0; i < titles.length; i++)
+    for (var i = 0; i < titles.length; i++) {
       frame = new tv.c.trace_model.StackFrame(frame, tv.b.GUID.allocate(),
                                                  category, titles[i], 7);
+      model.addStackFrame(frame);
+    }
     return frame;
   }
 

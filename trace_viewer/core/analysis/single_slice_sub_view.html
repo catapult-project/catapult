@@ -83,6 +83,33 @@ found in the LICENSE file.
                                   slice.durationInUserTime);
       }
 
+      if (slice.startStackFrame && slice.endStackFrame) {
+        if (slice.startStackFrame === slice.endStackFrame) {
+          results.appendInfoRow(
+              table,
+              'Start+End Stack Trace',
+              slice.startStackFrame.getUserFriendlyStackTrace());
+        } else {
+          results.appendInfoRow(
+              table,
+              'Start Stack Trace',
+              slice.startStackFrame.getUserFriendlyStackTrace());
+          results.appendInfoRow(
+              table,
+              'End Stack Trace',
+              slice.endStackFrame.getUserFriendlyStackTrace());
+        }
+      } else if (slice.startStackFrame) {
+          results.appendInfoRow(
+              table,
+              'Start Stack Trace',
+              slice.startStackFrame.getUserFriendlyStackTrace());
+      } else if (slice.endStackFrame) {
+        results.appendInfoRow(table,
+                              'End Stack Trace',
+                              slice.endStackFrame.getUserFriendlyStackTrace());
+      }
+
       var n = 0;
       for (var argName in slice.args) {
         n += 1;

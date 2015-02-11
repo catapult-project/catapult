@@ -55,6 +55,23 @@ tv.exportTo('tv.c.trace_model', function() {
 
     toJSON: function() {
       return {};
+    },
+
+    get stackTrace() {
+      var stack = [];
+      var cur = this;
+      while (cur) {
+        stack.push(cur);
+        cur = cur.parentFrame;
+      }
+      stack.reverse();
+      return stack;
+    },
+
+    getUserFriendlyStackTrace: function() {
+      return this.stackTrace.map(function(x) {
+        return x.category + ': ' + x.title;
+      });
     }
   };
 
