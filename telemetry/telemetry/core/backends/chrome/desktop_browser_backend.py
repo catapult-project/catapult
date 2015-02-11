@@ -197,6 +197,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     try:
       self._WaitForBrowserToComeUp()
+      self._InitDevtoolsClientBackend()
+      if self._supports_extensions:
+        self._WaitForExtensionsToLoad()
     except:
       self.Close()
       raise

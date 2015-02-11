@@ -125,9 +125,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
               dns=None), use_remote_port_forwarding=False)
 
     # Wait for oobe.
-    self._WaitForBrowserToComeUp(
-        remote_devtools_port=self._remote_debugging_port,
-        wait_for_extensions=False)
+    self._WaitForBrowserToComeUp()
+    self._InitDevtoolsClientBackend(
+        remote_devtools_port=self._remote_debugging_port)
     util.WaitFor(lambda: self.oobe_exists, 10)
 
     if self.browser_options.auto_login:
@@ -214,5 +214,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Wait for cryptohome to mount.
     util.WaitFor(self._IsLoggedIn, 60)
 
-    # Wait for extensions to load.
+    # For incognito mode, the session manager actually relaunches chrome with
+    # new arguments, so we have to wait for the browser to come up.
     self._WaitForBrowserToComeUp()
+
+    # Wait for extensions to load.
+    if self._supports_extensions:
+      self._WaitForExtensionsToLoad()

@@ -109,7 +109,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self.platform_backend.ForwardHostToDevice(self._port,
                                                 remote_devtools_port)
       try:
-        self._WaitForBrowserToComeUp(remote_devtools_port=remote_devtools_port)
+        self._WaitForBrowserToComeUp()
+        self._InitDevtoolsClientBackend(remote_devtools_port)
       except exceptions.BrowserGoneException:
         logging.critical('Failed to connect to browser.')
         device = self._adb.device()
