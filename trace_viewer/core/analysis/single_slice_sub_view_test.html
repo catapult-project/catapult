@@ -22,17 +22,24 @@ tv.b.unittest.testSuite(function() {
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
   var newSliceCategory = tv.c.test_utils.newSliceCategory;
 
-  var createSelectionWithSingleSlice = function(withCategory) {
+  var createSelectionWithSingleSlice = function(opt_options) {
+    var options = opt_options || {};
+
     var model = new Model();
-    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-    if (withCategory)
-      t53.sliceGroup.pushSlice(newSliceCategory('foo', 'b', 0, 0.002));
-    else
-      t53.sliceGroup.pushSlice(newSliceNamed('b', 0, 0.002));
+    var importOptions = new tv.c.ImportOptions();
+    importOptions.customizeModelCallback = function() {
+      var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+      if (options.withCategory)
+        t53.sliceGroup.pushSlice(newSliceCategory('foo', 'b', 0, 0.002));
+      else
+        t53.sliceGroup.pushSlice(newSliceNamed('b', 0, 0.002));
 
-    var t53track = {};
-    t53track.thread = t53;
+      var t53track = {};
+      t53track.thread = t53;
+    }
+    model.importTraces([], importOptions);
 
+    var t53 = model.processes[52].threads[53];
     var selection = new Selection();
     selection.push(t53.sliceGroup.slices[0]);
     assertEquals(1, selection.length);
@@ -49,7 +56,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('instantiate_withSingleSliceCategory', function() {
-    var selection = createSelectionWithSingleSlice(true);
+    var selection = createSelectionWithSingleSlice({withCategory: true});
 
     var analysisEl = new TracingAnalysisView();
     analysisEl.selection = selection;
@@ -73,7 +80,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('analyzeSelectionWithSingleSliceCategory', function() {
-    var selection = createSelectionWithSingleSlice(true);
+    var selection = createSelectionWithSingleSlice({withCategory: true});
 
     var subView = document.createElement('tv-c-single-slice-sub-view');
     var results = new StubAnalysisResults();
