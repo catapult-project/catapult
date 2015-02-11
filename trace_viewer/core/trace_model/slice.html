@@ -28,6 +28,8 @@ tv.exportTo('tv.c.trace_model', function() {
     this.title = title;
     this.colorId = colorId;
     this.args = args;
+    this.startStackFrame = undefined;
+    this.endStackFrame = undefined;
     this.didNotFinish = false;
 
     if (opt_duration !== undefined)

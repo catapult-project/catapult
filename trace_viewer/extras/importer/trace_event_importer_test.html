@@ -1541,6 +1541,37 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertFalse(m.hasImportWarnings);
   });
 
+  test('importSamplesWithStackFrames', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'P', sf: 7 } // @suppress longLineCheck
+      ],
+      stackFrames: {
+        '1': {
+          category: 'm1',
+          name: 'main'
+        },
+        '7': {
+          category: 'm2',
+          name: 'frame7',
+          parent: '1'
+        }
+      }
+    };
+
+    var options = new tv.c.ImportOptions();
+    options.shiftWorldToZero = false;
+    var m = new tv.c.TraceModel(eventData, options);
+
+    var p = m.processes[1];
+    var t = p.threads[2];
+
+    assertEquals(1, t.samples.length);
+    assertEquals(0.0, t.samples_[0].start);
+    assertEquals('frame7', t.samples_[0].leafStackFrame.title);
+    assertFalse(m.hasImportWarnings);
+  });
+
   test('importSamplesMissingArgs', function() {
     var events = [
       {name: 'a', pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
@@ -1964,6 +1995,54 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertTrue(sB.parentSlice == sA);
   });
 
+
+  test('importCompleteEventWithStackFrame', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, dur: 1, cat: 'baz', tid: 2, ph: 'X', sf: 7 }, // @suppress longLineCheck
+        { name: 'b', args: {}, pid: 1, ts: 5, dur: 1, cat: 'baz', tid: 2, ph: 'X', sf: 8, esf: 9 } // @suppress longLineCheck
+      ],
+      stackFrames: {
+        '1': {
+          category: 'm1',
+          name: 'main'
+        },
+        '7': {
+          category: 'm2',
+          name: 'frame7',
+          parent: '1'
+        },
+        '8': {
+          category: 'm2',
+          name: 'frame8',
+          parent: '1'
+        },
+        '9': {
+          category: 'm2',
+          name: 'frame9',
+          parent: '1'
+        }
+      }
+    };
+
+    var options = new tv.c.ImportOptions();
+    options.shiftWorldToZero = false;
+    var m = new tv.c.TraceModel(eventData, options);
+
+    var p = m.processes[1];
+    var t = p.threads[2];
+    assertNotUndefined(t);
+    assertEquals(2, t.sliceGroup.slices.length);
+
+    var s0 = t.sliceGroup.slices[0];
+    assertEquals('frame7', s0.startStackFrame.title);
+    assertUndefined(s0.endStackFrame);
+
+    var s1 = t.sliceGroup.slices[1];
+    assertEquals('frame8', s1.startStackFrame.title);
+    assertEquals('frame9', s1.endStackFrame.title);
+  });
+
   test('importAsyncEventWithSameTimestamp', function() {
     var events = [];
     // Events are added with ts 0, 1, 1, 2, 2, 3, 3 ...500, 500, 1000
@@ -2100,6 +2179,76 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals(m.globalMemoryDumps[1].processMemoryDumps[42],
         p1.memoryDumps[1]);
     assertEquals(m.globalMemoryDumps[1], p1.memoryDumps[1].globalMemoryDump);
+  });
+
+  test('importThreadInstantSliceWithStackFrame', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'baz', tid: 2, ph: 'I', s: 't', sf: 7 } // @suppress longLineCheck
+      ],
+      stackFrames: {
+        '1': {
+          category: 'm1',
+          name: 'main'
+        },
+        '7': {
+          category: 'm2',
+          name: 'frame7',
+          parent: '1'
+        }
+      }
+    };
+
+    var options = new tv.c.ImportOptions();
+    options.shiftWorldToZero = false;
+    var m = new tv.c.TraceModel(eventData, options);
+
+    var p = m.processes[1];
+    var t = p.threads[2];
+    assertNotUndefined(t);
+    assertEquals(1, t.sliceGroup.slices.length);
+
+    var s0 = t.sliceGroup.slices[0];
+    assertEquals('frame7', s0.startStackFrame.title);
+    assertUndefined(s0.endStackFrame);
+  });
+
+  test('importDurationEventsWithStackFrames', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'baz', tid: 2, ph: 'B', sf: 7 }, // @suppress longLineCheck
+        { name: 'b', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 2, ph: 'E', sf: 8 } // @suppress longLineCheck
+      ],
+      stackFrames: {
+        '1': {
+          category: 'm1',
+          name: 'main'
+        },
+        '7': {
+          category: 'm2',
+          name: 'frame7',
+          parent: '1'
+        },
+        '8': {
+          category: 'm2',
+          name: 'frame8',
+          parent: '1'
+        }
+      }
+    };
+
+    var options = new tv.c.ImportOptions();
+    options.shiftWorldToZero = false;
+    var m = new tv.c.TraceModel(eventData, options);
+
+    var p = m.processes[1];
+    var t = p.threads[2];
+    assertNotUndefined(t);
+    assertEquals(1, t.sliceGroup.slices.length);
+
+    var s0 = t.sliceGroup.slices[0];
+    assertEquals('frame7', s0.startStackFrame.title);
+    assertEquals('frame8', s0.endStackFrame.title);
   });
 
   // TODO(nduca): one slice, two threads

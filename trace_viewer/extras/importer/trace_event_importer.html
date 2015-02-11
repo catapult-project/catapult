@@ -258,10 +258,11 @@ tv.exportTo('tv.e.importer', function() {
       }
 
       if (event.ph == 'B') {
-        thread.sliceGroup.beginSlice(event.cat, event.name, event.ts / 1000,
-                                     this.deepCopyIfNeeded_(event.args),
-                                     event.tts / 1000);
-
+        var slice = thread.sliceGroup.beginSlice(
+            event.cat, event.name, event.ts / 1000,
+            this.deepCopyIfNeeded_(event.args),
+            event.tts / 1000);
+        slice.startStackFrame = this.getStackFrameForEvent_(event);
       } else if (event.ph == 'I' || event.ph == 'i') {
         if (event.s !== undefined && event.s !== 't')
           throw new Error('This should never happen');
@@ -269,9 +270,10 @@ tv.exportTo('tv.e.importer', function() {
         thread.sliceGroup.beginSlice(event.cat, event.name, event.ts / 1000,
                                      this.deepCopyIfNeeded_(event.args),
                                      event.tts / 1000);
-        thread.sliceGroup.endSlice(event.ts / 1000,
+        var slice = thread.sliceGroup.endSlice(event.ts / 1000,
                                    event.tts / 1000);
-
+        slice.startStackFrame = this.getStackFrameForEvent_(event);
+        slice.endStackFrame = undefined;
       } else {
         if (!thread.sliceGroup.openSliceCount) {
           this.model_.importWarning({
@@ -291,6 +293,8 @@ tv.exportTo('tv.e.importer', function() {
                 event.name + ' in endSlice'
           });
         }
+        slice.endStackFrame = this.getStackFrameForEvent_(event);
+
         for (var arg in event.args) {
           if (slice.args[arg] !== undefined) {
             this.model_.importWarning({
@@ -308,12 +312,14 @@ tv.exportTo('tv.e.importer', function() {
     processCompleteEvent: function(event) {
       var thread = this.model_.getOrCreateProcess(event.pid)
           .getOrCreateThread(event.tid);
-      thread.sliceGroup.pushCompleteSlice(event.cat, event.name,
+      var slice = thread.sliceGroup.pushCompleteSlice(event.cat, event.name,
           event.ts / 1000,
           event.dur === undefined ? undefined : event.dur / 1000,
           event.tts === undefined ? undefined : event.tts / 1000,
           event.tdur === undefined ? undefined : event.tdur / 1000,
           this.deepCopyIfNeeded_(event.args));
+      slice.startStackFrame = this.getStackFrameForEvent_(event);
+      slice.endStackFrame = this.getStackFrameForEvent_(event, true);
     },
 
     processMetadataEvent: function(event) {
@@ -398,12 +404,15 @@ tv.exportTo('tv.e.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
 
-      var id = 'te-' + tv.b.GUID.allocate();
-      var stackFrame = new tv.c.trace_model.StackFrame(
-          undefined, id,
-          event.cat, event.name,
-          tv.b.ui.getStringColorId(event.name));
-      this.model_.addStackFrame(stackFrame);
+      var stackFrame = this.getStackFrameForEvent_(event);
+      if (stackFrame === undefined) {
+        var id = 'te-' + tv.b.GUID.allocate();
+        stackFrame = new tv.c.trace_model.StackFrame(
+            undefined, id,
+            event.cat, event.name,
+            tv.b.ui.getStringColorId(event.name));
+        this.model_.addStackFrame(stackFrame);
+      }
 
       var sample = new tv.c.trace_model.Sample(
           undefined, thread, 'TRACE_EVENT_SAMPLE',
@@ -554,6 +563,51 @@ tv.exportTo('tv.e.importer', function() {
       this.createMemoryDumps_();
     },
 
+    /* Events can have one or more stack frames associated with them, but
+     * that frame might be encoded either as a stack trace of program counters,
+     * or as a direct stack frame reference. This handles either case and
+     * if found, returns the stackframe.
+     */
+    getStackFrameForEvent_: function(event, opt_lookForEndEvent) {
+      var sf;
+      var stack;
+      if (opt_lookForEndEvent) {
+        sf = event.esf;
+        stack = event.estack;
+      } else {
+        sf = event.sf;
+        stack = event.stack;
+      }
+      if (stack !== undefined && sf !== undefined) {
+        this.model_.importWarning({
+          type: 'stack_frame_and_stack_error',
+          message: 'Event at ' + event.ts +
+              ' cannot have both a stack and a stackframe.'
+        });
+        return undefined;
+      }
+
+      if (stack !== undefined)
+        return this.model_.resolveStackToStackFrame_(event.pid, stack);
+      if (sf === undefined)
+        return undefined;
+
+      var stackFrame = this.model_.stackFrames['g' + sf];
+      if (stackFrame === undefined) {
+        this.model_.importWarning({
+          type: 'sample_import_error',
+          message: 'No frame for ' + sf
+        });
+        return;
+      }
+      return stackFrame;
+    },
+
+    resolveStackToStackFrame_: function(pid, stack) {
+      // TODO(alph,fmeawad): Add codemap resolution code here.
+      return undefined;
+    },
+
     importSampleData: function() {
       if (!this.sampleEvents_)
         return;
@@ -588,14 +642,7 @@ tv.exportTo('tv.e.importer', function() {
         if (event.cpu !== undefined)
           cpu = m.kernel.getOrCreateCpu(event.cpu);
 
-        var stackFrame = m.stackFrames['g' + event.sf];
-        if (stackFrame === undefined) {
-          m.importWarning({
-            type: 'sample_import_error',
-            message: 'No frame for ' + event.sf
-          });
-          continue;
-        }
+        var stackFrame = this.getStackFrameForEvent_(event);
 
         var sample = new tv.c.trace_model.Sample(
             cpu, thread,
