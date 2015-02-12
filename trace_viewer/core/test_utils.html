@@ -56,10 +56,16 @@ tv.exportTo('tv.c.test_utils', function() {
   }
 
   function newSampleNamed(thread, sampleName, category, frameNames, start) {
+    var model;
+    if (thread.parent)
+      model = thread.parent.model;
+    else
+      model = undefined;
+    var sf = newStackTrace(model, category, frameNames);
     var s = new tv.c.trace_model.Sample(undefined, thread,
-                                           sampleName, start,
-                                           newStackTrace(category, frameNames),
-                                           1);
+                                        sampleName, start,
+                                        sf,
+                                        1);
     return s;
   }
 
@@ -74,7 +80,8 @@ tv.exportTo('tv.c.test_utils', function() {
     for (var i = 0; i < titles.length; i++) {
       frame = new tv.c.trace_model.StackFrame(frame, tv.b.GUID.allocate(),
                                                  category, titles[i], 7);
-      model.addStackFrame(frame);
+      if (model)
+        model.addStackFrame(frame);
     }
     return frame;
   }
