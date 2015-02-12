@@ -31,6 +31,10 @@ class AffectedFile(object):
     return self._cached_contents
 
   @property
+  def is_added(self):
+    return self.fileame in self._input_api.added_files
+
+  @property
   def contents_as_lines(self):
     """Returns an iterator over the lines in the new version of file.
 
@@ -75,8 +79,10 @@ class AffectedFile(object):
 
 class InputAPI(object):
   def __init__(self, tvp):
-    self._tvp = tvp
     self.DEFAULT_BLACK_LIST = []
+    self._tvp = tvp
+    self._filename_statuses = None
+    self._added_files = None
 
   def _git(self, args):
     assert isinstance(args, list)
@@ -95,12 +101,36 @@ class InputAPI(object):
     return self._tvp.trace_viewer_path
 
   @property
+  def added_files(self):
+    if not self._added_files:
+      self._added_files = set()
+      for filename, status_char in filename_statuses:
+        if status_char == 'A':
+          self._added_files.Add(filename)
+    return self._added_files
+
+  @property
   def affected_files(self):
     return self.AffectedFiles(include_deletes=True)
 
   def AffectedFiles(self,
                     include_deletes=False,
                     file_filter=lambda t: True):
+    filename_statuses = self._GetFilenameStatuses()
+    for filename, status_char in filename_statuses:
+      if status_char == 'D':
+        if include_deletes:
+          if file_filter(filename):
+            yield AffectedFile(self, filename)
+      else:
+        if file_filter(filename):
+          yield AffectedFile(self, filename)
+
+  def _GetFilenameStatuses(self):
+    if self._filename_statuses != None:
+      return self._filename_statuses
+
+    self._filename_statuses = []
     stdout = self._git(['diff', '--cached', '--name-status'])
     for line in stdout.split('\n'):
       line = line.strip()
@@ -110,14 +140,11 @@ class InputAPI(object):
       if not m:
         import pdb; pdb.set_trace()
         assert m
+
+      status_char = m.group(1)
       filename = m.group(2)
-      if m.group(1) == 'D':
-        if include_deletes:
-          if file_filter(filename):
-            yield AffectedFile(self, filename)
-      else:
-        if file_filter(filename):
-          yield AffectedFile(self, filename)
+      self._filename_statuses.append((filename, status_char))
+    return self._filename_statuses
 
 
 def RunChecks(input_api):
