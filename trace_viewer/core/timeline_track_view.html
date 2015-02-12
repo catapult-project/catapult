@@ -94,6 +94,10 @@ tv.exportTo('tv.c', function() {
       this.rulerTrack_ = new tv.c.tracks.RulerTrack(this.viewport_);
       this.rulerTrackContainer_.appendChild(this.rulerTrack_);
 
+      this.upperModelTrack_ = new tv.c.tracks.TraceModelTrack(this.viewport_);
+      this.upperModelTrack_.upperMode = true;
+      this.rulerTrackContainer_.appendChild(this.upperModelTrack_);
+
       this.modelTrackContainer_ =
           new tv.c.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.modelTrackContainer_);
@@ -219,6 +223,7 @@ tv.exportTo('tv.c', function() {
 
     detach: function() {
       this.modelTrack_.detach();
+      this.upperModelTrack_.detach();
 
       for (var i = 0; i < this.boundListeners_.length; i++) {
         var binding = this.boundListeners_[i];
@@ -243,6 +248,7 @@ tv.exportTo('tv.c', function() {
       var modelInstanceChanged = this.model_ !== model;
       this.model_ = model;
       this.modelTrack_.model = model;
+      this.upperModelTrack_.model = model;
 
       // Set up a reasonable viewport.
       if (modelInstanceChanged)
@@ -252,7 +258,8 @@ tv.exportTo('tv.c', function() {
     },
 
     get hasVisibleContent() {
-      return this.modelTrack_.hasVisibleContent;
+      return this.modelTrack_.hasVisibleContent ||
+          this.upperModelTrack_.hasVisibleContent;
     },
 
     setInitialViewport_: function() {
@@ -291,6 +298,8 @@ tv.exportTo('tv.c', function() {
      */
     addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
       return this.modelTrack_.addAllObjectsMatchingFilterToSelectionAsTask(
+          filter, selection);
+      this.upperModelTrack_.addAllObjectsMatchingFilterToSelection(
           filter, selection);
     },
 

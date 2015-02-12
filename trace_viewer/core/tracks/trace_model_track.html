@@ -22,6 +22,29 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.c.tracks', function() {
+
+  // TODO(nduca): Move this elsewhere and make it non-hacky.
+  function HackyMultiRowTrack() {
+    var mrt = new tv.c.tracks.MultiRowTrack(this.viewport_);
+    mrt.buildSubRows_ = function(slices) {
+      return tv.c.tracks.AsyncSliceGroupTrack.prototype.buildSubRows_.call(
+          {}, slices);
+    };
+    mrt.addSubTrack_ = function(slices) {
+      var track = new tv.c.tracks.SliceTrack(this.viewport);
+      track.slices = slices;
+      this.appendChild(track);
+      return track;
+    };
+
+    var that = this;
+    mrt.setItemsToGroup(this.model_.interaction_records, {
+      model: this.model
+    });
+
+    return mrt;
+  }
+
   /**
    * Visualizes a Model by building ProcessTracks and
    * CpuTracks.
@@ -44,6 +67,18 @@ tv.exportTo('tv.c.tracks', function() {
         function(typeInfo) {
           return new typeInfo.constructor(viewport);
         });
+
+      this.upperMode_ = false;
+    },
+
+    // upperMode is true if the track is being used on the ruler.
+    get upperMode() {
+      return this.upperMode_;
+    },
+
+    set upperMode(upperMode) {
+      this.upperMode_ = upperMode;
+      this.updateContents_();
     },
 
     detach: function() {
@@ -68,6 +103,20 @@ tv.exportTo('tv.c.tracks', function() {
       if (!this.model_)
         return;
 
+      if (this.upperMode_)
+        this.updateContentsForUpperMode_();
+      else
+        this.updateContentsForLowerMode_();
+    },
+
+    updateContentsForUpperMode_: function() {
+      if (this.model_.interaction_records.length) {
+        var mrt = new HackyMultiRowTrack();
+        this.appendChild(mrt);
+      }
+    },
+
+    updateContentsForLowerMode_: function() {
       this.appendKernelTrack_();
 
       // Get a sorted list of processes.
