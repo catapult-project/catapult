@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/tracks/track.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c', function() {
+  /**
+   * YComponent is a class that handles storing the stableId and the percentage
+   * offset in the y direction of all tracks within a specific viewX and viewY
+   * coordinate.
+   * @constructor
+   */
+  function YComponent(stableId, yPercentOffset) {
+    this.stableId = stableId;
+    this.yPercentOffset = yPercentOffset;
+  }
+
+  YComponent.prototype = {
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof this[key] === 'function')
+          continue;
+        obj[key] = this[key];
+      }
+      return obj;
+    }
+  };
+
+  /**
+   * Location is a class that represents a spatial location on the timeline
+   * that is specified by percent offsets within tracks rather than specific
+   * points.
+   *
+   * @constructor
+   */
+  function Location(viewport) {
+    this.viewport_ = viewport;
+
+    this.xWorld_ = undefined;
+    this.yComponents_ = undefined;
+  };
+
+  Location.prototype = {
+    fromViewCoordinates: function(viewX, viewY) {
+      var dt = this.viewport_.currentDisplayTransform;
+      this.xWorld_ = Math.round(dt.xViewToWorld(viewX));
+
+      // Build yComponents by calculating percentage offset with respect to
+      // each parent track.
+      this.yComponents_ = [];
+      var elem = document.elementFromPoint(viewX, viewY);
+      while (elem instanceof tv.c.tracks.Track) {
+        if (elem.eventContainer) {
+          var boundRect = elem.getBoundingClientRect();
+          var yPercentOffset = (viewY - boundRect.top) / boundRect.height;
+          this.yComponents_.push(
+              new YComponent(elem.eventContainer.stableId, yPercentOffset));
+        }
+
+        elem = elem.parentElement;
+      }
+    },
+
+    toViewCoordinates: function() {
+      var dt = this.viewport_.currentDisplayTransform;
+      var containerToTrack = this.viewport_.containerToTrackObj;
+      var viewX = Math.round(dt.xWorldToView(this.xWorld_));
+
+      var viewY = -1;
+      for (var index in this.yComponents_) {
+        var yComponent = this.yComponents_[index];
+        var track = containerToTrack.getTrackByStableId(yComponent.stableId);
+        if (track !== undefined) {
+          var boundRect = track.getBoundingClientRect();
+          viewY = yComponent.yPercentOffset * boundRect.height + boundRect.top;
+          break;
+        }
+      }
+
+      return {
+        viewX: viewX,
+        viewY: viewY
+      };
+    },
+
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof this[key] === 'function' || key === 'viewport_')
+          continue;
+        obj[key] = this[key];
+      }
+      return obj;
+    }
+  };
+
+  return {
+    Location: Location
+  };
+});
+</script>
