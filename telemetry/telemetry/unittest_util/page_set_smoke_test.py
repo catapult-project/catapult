@@ -103,7 +103,7 @@ class PageSetSmokeTest(unittest.TestCase):
   def CheckAttributesOfPageBasicAttributes(self, page):
     self.assertTrue(not hasattr(page, 'disabled'))
     self.assertTrue(
-       isinstance(page.url, str),
+       isinstance(page.url, basestring),
        msg='page %s \'s url must have type string' % page.display_name)
     self.assertTrue(
        isinstance(page.page_set, page_set_module.PageSet),
