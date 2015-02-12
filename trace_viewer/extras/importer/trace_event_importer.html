@@ -441,15 +441,15 @@ tv.exportTo('tv.e.importer', function() {
       }
       var events = this.getOrCreateMemoryDumpEvents_(event.id);
 
-      if (event.ph === 'u') {
+      if (event.ph === 'v') {
         // Add a process memory dump.
         events.process.push(event);
-      } else if (event.ph === 'U') {
+      } else if (event.ph === 'V') {
         // Add a global memory dump (unless already present).
         if (events.global !== undefined) {
           this.model_.importWarning({
             type: 'memory_dump_parse_error',
-            message: 'Multiple U phase events with the same dump ID.'
+            message: 'Multiple V phase events with the same dump ID.'
           });
           return;
         }
@@ -501,7 +501,7 @@ tv.exportTo('tv.e.importer', function() {
         } else if (event.ph === 's' || event.ph === 't' || event.ph === 'f') {
           this.processFlowEvent(event);
 
-        } else if (event.ph === 'u' || event.ph === 'U') {
+        } else if (event.ph === 'v' || event.ph === 'V') {
           this.processMemoryDumpEvent(event);
 
         } else {
