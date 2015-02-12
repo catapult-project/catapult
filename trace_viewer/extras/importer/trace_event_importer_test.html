@@ -2138,11 +2138,11 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('importMemoryDumps', function() {
     var events = [
       // 2 process memory dump events without a global memory dump event.
-      {name: 'a', pid: 42, ts: 10, cat: 'test', tid: 53, ph: 'u', 'id': 'dump1', args: {}},  // @suppress longLineCheck
-      {name: 'b', pid: 43, ts: 11, cat: 'test', tid: 54, ph: 'u', 'id': 'dump1', args: {}},  // @suppress longLineCheck
+      {name: 'a', pid: 42, ts: 10, cat: 'test', tid: 53, ph: 'v', 'id': 'dump1', args: {}},  // @suppress longLineCheck
+      {name: 'b', pid: 43, ts: 11, cat: 'test', tid: 54, ph: 'v', 'id': 'dump1', args: {}},  // @suppress longLineCheck
       // 1 global memory dump event and 1 process memory dump event.
-      {name: 'c', pid: 44, ts: 12, cat: 'test', tid: 55, ph: 'U', 'id': 'dump2', args: {}},  // @suppress longLineCheck
-      {name: 'd', pid: 42, ts: 13, cat: 'test', tid: 56, ph: 'u', 'id': 'dump2', args: {}}  // @suppress longLineCheck
+      {name: 'c', pid: 44, ts: 12, cat: 'test', tid: 55, ph: 'V', 'id': 'dump2', args: {}},  // @suppress longLineCheck
+      {name: 'd', pid: 42, ts: 13, cat: 'test', tid: 56, ph: 'v', 'id': 'dump2', args: {}}  // @suppress longLineCheck
     ];
     var m = new tv.c.TraceModel(events, false);
     var p1 = m.getProcess(42);
