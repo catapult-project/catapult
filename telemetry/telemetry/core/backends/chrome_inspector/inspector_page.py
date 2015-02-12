@@ -121,7 +121,7 @@ class InspectorPage(object):
       # Modern backends are returning frameId from Page.navigate.
       # Use it here to unblock upon precise navigation.
       frame_id = res['result']['frameId']
-      if frame_id in self._navigated_frame_ids:
+      if self._navigated_frame_ids and frame_id in self._navigated_frame_ids:
         self._navigated_frame_ids = None
         return
       self._navigation_frame_id = frame_id
