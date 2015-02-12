@@ -24,8 +24,8 @@ found in the LICENSE file.
 tv.exportTo('tv.c.tracks', function() {
 
   // TODO(nduca): Move this elsewhere and make it non-hacky.
-  function HackyMultiRowTrack() {
-    var mrt = new tv.c.tracks.MultiRowTrack(this.viewport_);
+  function HackyMultiRowTrack(viewport, model) {
+    var mrt = new tv.c.tracks.MultiRowTrack(viewport);
     mrt.buildSubRows_ = function(slices) {
       return tv.c.tracks.AsyncSliceGroupTrack.prototype.buildSubRows_.call(
           {}, slices);
@@ -37,9 +37,8 @@ tv.exportTo('tv.c.tracks', function() {
       return track;
     };
 
-    var that = this;
-    mrt.setItemsToGroup(this.model_.interaction_records, {
-      model: this.model
+    mrt.setItemsToGroup(model.interaction_records, {
+      model: model
     });
 
     return mrt;
@@ -111,7 +110,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     updateContentsForUpperMode_: function() {
       if (this.model_.interaction_records.length) {
-        var mrt = new HackyMultiRowTrack();
+        var mrt = new HackyMultiRowTrack(this.viewport_, this.model_);
         this.appendChild(mrt);
       }
     },
