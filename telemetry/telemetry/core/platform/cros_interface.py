@@ -14,8 +14,8 @@ import tempfile
 # Some developers' workflow includes running the Chrome process from
 # /usr/local/... instead of the default location. We have to check for both
 # paths in order to support this workflow.
-_CHROME_PATHS = ['/opt/google/chrome/chrome ',
-                '/usr/local/opt/google/chrome/chrome ']
+_CHROME_PROCESS_REGEX = [re.compile(r'^/opt/google/chrome/chrome '),
+                         re.compile(r'^/usr/local/?.*/chrome/chrome ')]
 
 def RunCmd(args, cwd=None, quiet=False):
   """Opens a subprocess to execute a program and returns its return value.
@@ -358,9 +358,10 @@ class CrOSInterface(object):
     for pid, process, ppid, _ in procs:
       if ppid != session_manager_pid:
         continue
-      for path in _CHROME_PATHS:
-        if process.startswith(path):
-          return {'pid': pid, 'path': path, 'args': process}
+      for regex in _CHROME_PROCESS_REGEX:
+        path_match = re.match(regex, process)
+        if path_match is not None:
+          return {'pid': pid, 'path': path_match.group(), 'args': process}
     return None
 
   def GetChromePid(self):
