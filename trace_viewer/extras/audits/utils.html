@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides color scheme related functions.
+ */
+tv.exportTo('tv.e.audits', function() {
+  function mergeEvents(inEvents, mergeThreshold, mergeFunction) {
+    var remainingEvents = inEvents.slice();
+    remainingEvents.sort(function(x, y) {
+      return x.start - y.start;
+    });
+
+    if (remainingEvents.length <= 1)
+      return remainingEvents;
+
+    var mergedEvents = [];
+
+    var currentMergeBuffer = [];
+    var rightEdge;
+    function beginMerging() {
+      currentMergeBuffer.push(remainingEvents[0]);
+      remainingEvents.splice(0, 1);
+      rightEdge = currentMergeBuffer[0].end;
+    }
+
+    function flushCurrentMergeBuffer() {
+      if (currentMergeBuffer.length == 0)
+        return;
+
+      mergedEvents.push(mergeFunction(currentMergeBuffer));
+      currentMergeBuffer = [];
+
+      // Refill merge buffer if needed.
+      if (remainingEvents.length != 0)
+        beginMerging();
+    }
+
+    beginMerging();
+
+    while (remainingEvents.length) {
+      var currentEvent = remainingEvents[0];
+
+      var distanceFromRightEdge = currentEvent.start - rightEdge;
+      if (distanceFromRightEdge < mergeThreshold) {
+        rightEdge = Math.max(rightEdge, currentEvent.end);
+        remainingEvents.splice(0, 1);
+        currentMergeBuffer.push(currentEvent);
+        continue;
+      }
+
+      // Too big a gap.
+      flushCurrentMergeBuffer();
+    }
+    flushCurrentMergeBuffer();
+
+    return mergedEvents;
+  }
+
+  return {
+    mergeEvents: mergeEvents
+  };
+});
+</script>

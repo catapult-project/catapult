@@ -209,6 +209,7 @@
       'trace_viewer/extras/audits/chrome_browser_audit.html',
       'trace_viewer/extras/audits/chrome_process_audit.html',
       'trace_viewer/extras/audits/chrome_renderer_audit.html',
+      'trace_viewer/extras/audits/utils.html',
       'trace_viewer/extras/cc/cc.html',
       'trace_viewer/extras/cc/constants.html',
       'trace_viewer/extras/cc/debug_colors.html',

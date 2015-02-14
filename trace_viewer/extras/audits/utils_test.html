@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/audits/utils.html">
+<link rel="import" href="/core/test_utils.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  function simpleMerger(events) {
+    return {
+      start: events[0].start,
+      end: events[events.length - 1].end
+    };
+  }
+  test('simple', function() {
+    var inEvents = [
+      {start: 0, end: 100},
+      {start: 100, end: 120},
+      {start: 200, end: 220}
+    ];
+
+    var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
+
+    assertEquals(2, merged.length);
+    assertObjectEquals({start: 0, end: 120}, merged[0]);
+    assertObjectEquals({start: 200, end: 220}, merged[1]);
+  });
+
+  test('overlapping', function() {
+    var inEvents = [
+      {start: 0, end: 100},
+      {start: 80, end: 120},
+      {start: 200, end: 220}
+    ];
+
+    var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
+
+    assertEquals(2, merged.length);
+    assertObjectEquals({start: 0, end: 120}, merged[0]);
+    assertObjectEquals({start: 200, end: 220}, merged[1]);
+  });
+
+  test('middleOneIsSmall', function() {
+    var inEvents = [
+      {start: 0, end: 100},
+      {start: 40, end: 50},
+      {start: 100, end: 120}
+    ];
+
+    var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
+
+    assertEquals(1, merged.length);
+    assertObjectEquals({start: 0, end: 120}, merged[0]);
+  });
+
+  test('firstEventIsSplitPoint', function() {
+    var inEvents = [
+      {start: 0, end: 100},
+      {start: 150, end: 200}
+    ];
+
+    var merged = tv.e.audits.mergeEvents(inEvents, 25, simpleMerger);
+
+    assertEquals(2, merged.length);
+    assertObjectEquals({start: 0, end: 100}, merged[0]);
+    assertObjectEquals({start: 150, end: 200}, merged[1]);
+  });
+
+
+});
+</script>
