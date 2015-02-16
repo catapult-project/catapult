@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
+from telemetry.image_processing import image_util
 from telemetry.unittest_util import tab_test_case
 
 
@@ -32,3 +34,12 @@ class InspectorPageTest(tab_test_case.TabTestCase):
                   script_to_evaluate_on_commit='var foo = "bar";')
     self._tab.WaitForDocumentReadyStateToBeComplete()
     self.assertEquals(self._tab.EvaluateJavaScript('foo'), 'bar')
+
+  def testCaptureScreenshot(self):
+    if not self._tab.screenshot_supported:
+      return
+    self.Navigate('green_rect.html')
+    res = image_util.Pixels(self._tab.Screenshot())
+    self.assertEquals(0x00, res[0])
+    self.assertEquals(0xFF, res[1])
+    self.assertEquals(0x00, res[2])

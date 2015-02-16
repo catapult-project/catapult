@@ -5,6 +5,7 @@ import sys
 import time
 
 from telemetry.core import util
+from telemetry.image_processing import image_util
 
 
 class InspectorPage(object):
@@ -141,6 +142,15 @@ class InspectorPage(object):
     for cookie in cookies:
       if cookie['name'] == name:
         return cookie['value']
+    return None
+
+  def CaptureScreenshot(self, timeout=60):
+    request = {
+        'method': 'Page.captureScreenshot'
+        }
+    res = self._inspector_websocket.SyncRequest(request, timeout)
+    if res and ('result' in res) and ('data' in res['result']):
+      return image_util.FromBase64Png(res['result']['data'])
     return None
 
   def CollectGarbage(self, timeout=60):

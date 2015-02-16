@@ -88,45 +88,11 @@ class InspectorBackend(object):
       # Displays other than 0 mean we are likely running in something like
       # xvfb where screenshotting doesn't work.
       return False
-    return not self.EvaluateJavaScript("""
-        window.chrome.gpuBenchmarking === undefined ||
-        window.chrome.gpuBenchmarking.beginWindowSnapshotPNG === undefined
-      """)
+    return True
 
   def Screenshot(self, timeout):
     assert self.screenshot_supported, 'Browser does not support screenshotting'
-
-    self.EvaluateJavaScript("""
-        if(!window.__telemetry) {
-          window.__telemetry = {}
-        }
-        window.__telemetry.snapshotComplete = false;
-        window.__telemetry.snapshotData = null;
-        window.chrome.gpuBenchmarking.beginWindowSnapshotPNG(
-          function(snapshot) {
-            window.__telemetry.snapshotData = snapshot;
-            window.__telemetry.snapshotComplete = true;
-          }
-        );
-    """)
-
-    def IsSnapshotComplete():
-      return self.EvaluateJavaScript(
-          'window.__telemetry.snapshotComplete')
-
-    util.WaitFor(IsSnapshotComplete, timeout)
-
-    snap = self.EvaluateJavaScript("""
-      (function() {
-        var data = window.__telemetry.snapshotData;
-        delete window.__telemetry.snapshotComplete;
-        delete window.__telemetry.snapshotData;
-        return data;
-      })()
-    """)
-    if snap:
-      return image_util.FromBase64Png(snap['data'])
-    return None
+    return self._page.CaptureScreenshot(timeout)
 
   # Console public methods.
 
