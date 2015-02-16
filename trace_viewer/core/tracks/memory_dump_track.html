@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="stylesheet" href="/core/tracks/memory_dump_track.css">
+
+<link rel="import" href="/base/extension_registry.html">
+<link rel="import" href="/core/trace_model/event.html">
+<link rel="import" href="/core/tracks/heading_track.html">
+<link rel="import" href="/core/color_scheme.html">
+<link rel="import" href="/base/sorted_array_utils.html">
+<link rel="import" href="/base/ui.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c.tracks', function() {
+  var SelectionState = tv.c.trace_model.SelectionState;
+  var EventPresenter = tv.c.EventPresenter;
+
+  /**
+   * A track that displays an array of memoryDump objects.
+   * @constructor
+   * @extends {HeadingTrack}
+   */
+  var MemoryDumpTrack = tv.b.ui.define(
+      'memory-dump-track', tv.c.tracks.HeadingTrack);
+
+  MemoryDumpTrack.prototype = {
+    __proto__: tv.c.tracks.HeadingTrack.prototype,
+
+    decorate: function(viewport) {
+      tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      this.classList.add('memory-dump-track');
+      this.heading = 'Memory dumps';
+      this.memoryDumps = [];
+    },
+
+    get height() {
+      return window.getComputedStyle(this).height;
+    },
+
+    set height(height) {
+      this.style.height = height;
+    },
+
+    get dumpRadiusView() {
+      return 7 * (window.devicePixelRatio || 1);
+    },
+
+    draw: function(type, viewLWorld, viewRWorld) {
+      switch (type) {
+        case tv.c.tracks.DrawType.SLICE:
+          this.drawSlices_(viewLWorld, viewRWorld);
+          break;
+      }
+    },
+
+    drawSlices_: function(viewLWorld, viewRWorld) {
+      var ctx = this.context();
+      var pixelRatio = window.devicePixelRatio || 1;
+
+      var bounds = this.getBoundingClientRect();
+      var height = bounds.height * pixelRatio;
+      var halfHeight = height * 0.5;
+      var twoPi = Math.PI * 2;
+
+      // Culling parameters.
+      var dt = this.viewport.currentDisplayTransform;
+      var dumpRadiusView = this.dumpRadiusView;
+      var memoryDumpRadiusWorld = dt.xViewVectorToWorld(height);
+
+      // Draw the memory dumps.
+      var memoryDumps = this.memoryDumps;
+      var loI = tv.b.findLowIndexInSortedArray(
+          memoryDumps,
+          function(memoryDump) { return memoryDump.start; },
+          viewLWorld);
+
+      ctx.strokeStyle = 'rgb(0,0,0)';
+      for (var i = loI; i < memoryDumps.length; ++i) {
+        var memoryDump = memoryDumps[i];
+        var x = memoryDump.start;
+        if (x - memoryDumpRadiusWorld > viewRWorld)
+          break;
+        var xView = dt.xWorldToView(x);
+
+        ctx.fillStyle = 'rgb(0,0,180)';
+        ctx.beginPath();
+        ctx.arc(xView, halfHeight, dumpRadiusView + 0.5, 0, twoPi);
+        ctx.fill();
+        if (memoryDump.selected) {
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = 'rgb(100,100,0)';
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(xView, halfHeight, dumpRadiusView, 0, twoPi);
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgb(255,255,0)';
+          ctx.stroke();
+        } else {
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgb(0,0,0)';
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = 'rgb(255, 255, 255)';
+        ctx.font = '400 9px Arial';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillText('M', xView, halfHeight);
+      }
+      ctx.lineWidth = 1;
+
+      // For performance reasons we only check the SelectionState of the first
+      // memory dump. If it's DIMMED we assume that all are DIMMED.
+      // TODO(petrcermak): Allow partial highlight.
+      var selectionState = SelectionState.NONE;
+      if (memoryDumps.length &&
+          memoryDumps[0].selectionState === SelectionState.DIMMED) {
+        selectionState = SelectionState.DIMMED;
+      }
+
+      // Dim the track when there is an active highlight.
+      if (selectionState === SelectionState.DIMMED) {
+        var width = bounds.width * pixelRatio;
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillRect(0, 0, width, height);
+      }
+    },
+
+    addEventsToTrackMap: function(eventToTrackMap) {
+      this.memoryDumps.forEach(function(obj) {
+        eventToTrackMap.addEvent(obj, this);
+      }, this);
+    },
+
+    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+        loWX, hiWX, viewPixWidthWorld, selection) {
+      var memoryDumpRadiusWorld = viewPixWidthWorld * this.dumpRadiusView;
+      tv.b.iterateOverIntersectingIntervals(
+          this.memoryDumps,
+          function(x) { return x.start - memoryDumpRadiusWorld; },
+          function(x) { return 2 * memoryDumpRadiusWorld; },
+          loWX, hiWX,
+          selection.push.bind(selection));
+    },
+
+    /**
+     * Add the item to the left or right of the provided event, if any, to the
+     * selection.
+     * @param {event} The current event item.
+     * @param {Number} offset Number of slices away from the event to look.
+     * @param {Selection} selection The selection to add an event to,
+     * if found.
+     * @return {boolean} Whether an event was found.
+     * @private
+     */
+    addItemNearToProvidedEventToSelection: function(event, offset, selection) {
+      var events = this.memoryDumps;
+      var index = events.indexOf(event);
+      var newIndex = index + offset;
+      if (newIndex >= 0 && newIndex < events.length) {
+        selection.push(events[newIndex]);
+        return true;
+      }
+      return false;
+    },
+
+    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+    },
+
+    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+                                         selection) {
+      var memoryDump = tv.b.findClosestElementInSortedArray(
+          this.memoryDumps,
+          function(x) { return x.start; },
+          worldX,
+          worldMaxDist);
+
+      if (!memoryDump)
+        return;
+
+      selection.push(memoryDump);
+    }
+  };
+
+  return {
+    MemoryDumpTrack: MemoryDumpTrack
+  };
+});
+</script>
