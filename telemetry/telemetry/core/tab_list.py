@@ -16,3 +16,8 @@ class TabList(object):
 
   def __getitem__(self, index):
     return self._tab_list_backend.__getitem__(index)
+
+  def GetTabById(self, identifier):
+    """The identifier of a tab can be accessed with tab.id."""
+    return self._tab_list_backend.GetTabById(identifier)
+

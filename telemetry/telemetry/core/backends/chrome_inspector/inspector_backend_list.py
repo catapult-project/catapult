@@ -67,6 +67,10 @@ class InspectorBackendList(collections.Sequence):
     context_id = self._filtered_context_ids[index]
     return self.GetBackendFromContextId(context_id)
 
+  def GetTabById(self, identifier):
+    self._Update()
+    return self.GetBackendFromContextId(identifier)
+
   def GetBackendFromContextId(self, context_id):
     self._Update()
     if context_id not in self._wrapper_dict:

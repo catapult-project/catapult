@@ -68,11 +68,9 @@ class InspectorBackend(object):
         return c['url']
     return None
 
-  # TODO(chrishenry): Is this intentional? Shouldn't this return
-  # self._context['id'] instead?
   @property
   def id(self):
-    return self.debugger_url
+    return self._context['id']
 
   @property
   def debugger_url(self):
