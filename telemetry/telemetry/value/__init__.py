@@ -57,6 +57,16 @@ class Value(object):
       description: A string explaining in human-understandable terms what this
           value represents.
     """
+    # TODO(eakuefner): Check user story here after migration (crbug.com/442036)
+    if not isinstance(name, basestring):
+      raise ValueError('name field of Value must be string.')
+    if not isinstance(units, basestring):
+      raise ValueError('units field of Value must be string.')
+    if not isinstance(important, bool):
+      raise ValueError('important field of Value must be bool.')
+    if not ((description is None) or isinstance(description, basestring)):
+      raise ValueError('description field of Value must absent or string.')
+
     self.page = page
     self.name = name
     self.units = units

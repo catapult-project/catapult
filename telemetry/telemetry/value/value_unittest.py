@@ -91,6 +91,22 @@ class ValueTest(TestBase):
     b = ValueForTest(page0, 'x', 'unit', important=True, description=None)
     self.assertFalse(b.IsMergableWith(a))
 
+  def testNameMustBeString(self):
+    with self.assertRaises(ValueError):
+      value.Value(None, 42, 'unit', important=False, description=None)
+
+  def testUnitsMustBeString(self):
+    with self.assertRaises(ValueError):
+      value.Value(None, 'x', 42, important=False, description=None)
+
+  def testImportantMustBeBool(self):
+    with self.assertRaises(ValueError):
+      value.Value(None, 'x', 'unit', important='foo', description=None)
+
+  def testDescriptionMustBeStringOrNone(self):
+    with self.assertRaises(ValueError):
+      value.Value(None, 'x', 'unit', important=False, description=42)
+
   def testAsDictBaseKeys(self):
     v = ValueForAsDictTest(None, 'x', 'unit', important=True, description=None)
     d = v.AsDict()
