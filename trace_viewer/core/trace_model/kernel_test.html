@@ -35,6 +35,13 @@ tv.b.unittest.testSuite(function() {
     });
     assertEquals(2, m.kernel.bestGuessAtCpuCount);
   });
+
+  test('kernelStableId', function() {
+    var model = new tv.c.TraceModel();
+
+    assertEquals('Kernel', model.kernel.stableId);
+  });
+
 });
 </script>
 

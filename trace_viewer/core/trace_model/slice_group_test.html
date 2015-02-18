@@ -622,6 +622,17 @@ tv.b.unittest.testSuite(function() {
     assertFalse(group.slices[1].didNotFinish);
     assertEquals(3, group.slices[1].duration);
   });
+
+  test('sliceGroupStableId', function() {
+    var model = new tv.c.TraceModel();
+    var process = model.getOrCreateProcess(123);
+    var thread = process.getOrCreateThread(456);
+    var group = new SliceGroup(thread);
+
+    assertEquals(123, process.stableId);
+    assertEquals('123.456', thread.stableId);
+    assertEquals('123.456.SliceGroup', group.stableId);
+  });
 });
 </script>
 

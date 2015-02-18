@@ -16,7 +16,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   var AsyncSliceGroup = tv.c.trace_model.AsyncSliceGroup;
   var AsyncSliceGroupTrack = tv.c.tracks.AsyncSliceGroupTrack;
   var Process = tv.c.trace_model.Process;
+  var ProcessTrack = tv.c.tracks.ProcessTrack;
   var Thread = tv.c.trace_model.Thread;
+  var ThreadTrack = tv.c.tracks.ThreadTrack;
   var newAsyncSlice = tv.c.test_utils.newAsyncSlice;
   var newAsyncSliceNamed = tv.c.test_utils.newAsyncSliceNamed;
 
@@ -200,5 +202,51 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     }
   });
 
+  test('asyncSliceGroupContainerMap', function() {
+    var vp = new tv.c.TimelineViewport();
+    var containerToTrack = vp.containerToTrackObj;
+    var model = new tv.c.TraceModel();
+    var process = model.getOrCreateProcess(123);
+    var thread = process.getOrCreateThread(456);
+    var group = new AsyncSliceGroup(thread);
+
+    var processTrack = new ProcessTrack(vp);
+    var threadTrack = new ThreadTrack(vp);
+    var groupTrack = new AsyncSliceGroupTrack(vp);
+    processTrack.process = process;
+    threadTrack.thread = thread;
+    groupTrack.group = group;
+    processTrack.appendChild(threadTrack);
+    threadTrack.appendChild(groupTrack);
+
+    assertEquals(process, processTrack.eventContainer);
+    assertEquals(thread, threadTrack.eventContainer);
+    assertEquals(group, groupTrack.eventContainer);
+
+    assertUndefined(containerToTrack.getTrackByStableId('123'));
+    assertUndefined(containerToTrack.getTrackByStableId('123.456'));
+    assertUndefined(
+        containerToTrack.getTrackByStableId('123.456.AsyncSliceGroup'));
+
+    vp.modelTrackContainer = {
+      addContainersToTrackMap: function(containerToTrackObj) {
+        processTrack.addContainersToTrackMap(containerToTrackObj);
+      },
+      addEventListener: function() {}
+    };
+    vp.rebuildContainerToTrackMap();
+
+    // Check that all tracks call childs' addContainersToTrackMap()
+    // by checking the resulting map.
+    assertEquals(processTrack, containerToTrack.getTrackByStableId('123'));
+    assertEquals(threadTrack, containerToTrack.getTrackByStableId('123.456'));
+    assertEquals(groupTrack,
+        containerToTrack.getTrackByStableId('123.456.AsyncSliceGroup'));
+
+    // Check the track's eventContainer getter.
+    assertEquals(process, processTrack.eventContainer);
+    assertEquals(thread, threadTrack.eventContainer);
+    assertEquals(group, groupTrack.eventContainer);
+  });
 });
 </script>

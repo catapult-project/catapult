@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/location.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Location = tv.c.Location;
+  var Model = tv.c.TraceModel;
+
+  test('locationObj', function() {
+    var model = new tv.c.TraceModel();
+    var process = model.getOrCreateProcess(123);
+    var thread = process.getOrCreateThread(456);
+
+    model.importTraces([], false, false, function() {
+      thread.asyncSliceGroup.push(
+        tv.c.test_utils.newAsyncSliceNamed('a', 80, 20, thread, thread));
+      thread.asyncSliceGroup.push(
+        tv.c.test_utils.newAsyncSliceNamed('a', 85, 10, thread, thread));
+    });
+
+    var timeline = new tv.c.TimelineTrackView();
+    var vp = new tv.c.TimelineViewport(timeline);
+    timeline.model = model;
+    timeline.focusElement = timeline;
+    timeline.tabIndex = 0;
+    timeline.style.maxHeight = '600px';
+    this.addHTMLOutput(timeline);
+
+    // Our stableId to track map is not automatically built. We need to
+    // search for the tracks and manually build the stableId map here.
+    var processTracks = document.getElementsByClassName('process-track-base');
+    vp.modelTrackContainer = {
+      addContainersToTrackMap: function(containerToTrackObj) {
+        // Invoking the process track's addContainersToTrackMap is enough to
+        // build the map for all childrens (ie. Threads, AsyncSliceGroups)
+        // as well.
+        for (var i = 0; i < processTracks.length; i++)
+          processTracks[i].addContainersToTrackMap(containerToTrackObj);
+      },
+      addEventListener: function() {}
+    };
+    vp.rebuildContainerToTrackMap();
+
+    var asyncTrack =
+        vp.containerToTrackObj.getTrackByStableId('123.456.AsyncSliceGroup');
+    assertNotNull(asyncTrack);
+    assertFalse(asyncTrack.expanded); // Make sure this starts unexpanded.
+
+    // Hack to allow Location to find the element we're looking for.
+    // This ensures the correct behaviour of document.elementFrompoint(x,y) of
+    // an originally off-screen element.
+    asyncTrack.scrollIntoView();
+
+    var location = new Location(vp);
+    assertObjectEquals({ viewX: null, viewY: -1 },
+                       location.toViewCoordinates());
+    var boundRect = asyncTrack.getBoundingClientRect();
+    var viewX = boundRect.left + tv.c.constants.HEADING_WIDTH;
+    var viewY = boundRect.top + boundRect.height / 2;
+    location.fromViewCoordinates(viewX, viewY);
+    assertObjectEquals({ viewX: viewX, viewY: viewY },
+                       location.toViewCoordinates());
+
+    // Try expanding the multi-row track so that the dimensions of the thread
+    // track changes.
+    asyncTrack.expanded = true;
+    // Expanding the track causes the height to double. We can calculate the new
+    // viewY with respect to the track's old boundRect. ViewX remains unchanged.
+    var expandedViewY = boundRect.top + boundRect.height;
+    assertObjectEquals({ viewX: viewX, viewY: expandedViewY },
+                       location.toViewCoordinates());
+
+    // Undo scroll.
+    document.getElementById('results-container').scrollTop = 0;
+  });
+});
+</script>
