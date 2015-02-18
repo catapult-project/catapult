@@ -155,6 +155,7 @@ class InspectorPage(object):
 
   def CollectGarbage(self, timeout=60):
     request = {
-        'method': 'HeapProfiler.CollectGarbage'
+        'method': 'HeapProfiler.collectGarbage'
         }
-    self._inspector_websocket.SyncRequest(request, timeout)
+    res = self._inspector_websocket.SyncRequest(request, timeout)
+    assert 'result' in res
