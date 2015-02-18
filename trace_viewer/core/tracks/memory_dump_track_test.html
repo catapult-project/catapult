@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/event.html">
+<link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/core/tracks/drawing_container.html">
+<link rel="import" href="/core/tracks/memory_dump_track.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var MemoryDumpTrack = tv.c.tracks.MemoryDumpTrack;
+  var Selection = tv.c.Selection;
+  var SelectionState = tv.c.trace_model.SelectionState;
+  var Viewport = tv.c.TimelineViewport;
+
+  var createDumps = function() {
+    var m = new tv.c.TraceModel();
+    var dumps = [
+      new tv.c.trace_model.GlobalMemoryDump(m, 5),
+      new tv.c.trace_model.GlobalMemoryDump(m, 20),
+      new tv.c.trace_model.GlobalMemoryDump(m, 35),
+      new tv.c.trace_model.GlobalMemoryDump(m, 50)
+    ];
+    return dumps;
+  };
+
+  test('instantiate', function() {
+    var dumps = createDumps();
+    dumps[1].selectionState = SelectionState.SELECTED;
+
+    var div = document.createElement('div');
+    this.addHTMLOutput(div);
+
+    var viewport = new Viewport(div);
+    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = MemoryDumpTrack(viewport);
+    drawingContainer.invalidate();
+    drawingContainer.appendChild(track);
+
+    track.memoryDumps = dumps;
+    var dt = new tv.c.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 50, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+  });
+
+  test('selectionHitTesting', function() {
+    var dumps = createDumps();
+
+    var track = new MemoryDumpTrack(new Viewport());
+    track.memoryDumps = dumps;
+
+    // Hit outside range
+    var selection = new Selection();
+    track.addIntersectingItemsInRangeToSelectionInWorldSpace(
+        3, 4, 0.1, selection);
+    assertEquals(0, selection.length);
+
+    // Hit the first dump, via pixel-nearness.
+    selection = new Selection();
+    track.addIntersectingItemsInRangeToSelectionInWorldSpace(
+        19.98, 19.99, 0.1, selection);
+    assertEquals(1, selection.length);
+    assertTrue(selection[0] instanceof tv.c.trace_model.GlobalMemoryDump);
+
+    // Hit the instance, between the 1st and 2nd snapshots
+    selection = new Selection();
+    track.addIntersectingItemsInRangeToSelectionInWorldSpace(
+        30, 50, 0.1, selection);
+    assertEquals(2, selection.length);
+    assertTrue(selection[0] instanceof tv.c.trace_model.GlobalMemoryDump);
+    assertTrue(selection[1] instanceof tv.c.trace_model.GlobalMemoryDump);
+  });
+});
+</script>
+
