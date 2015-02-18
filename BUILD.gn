@@ -307,7 +307,7 @@ output_resource_dir = "$root_gen_dir/content/browser/tracing"
 action("generate_about_tracing") {
   script = "trace_viewer/build/generate_about_tracing_contents"
 
-  source_prereqs = tracing_css_files + tracing_js_html_files +
+  inputs = tracing_css_files + tracing_js_html_files +
     tracing_img_files
   outputs = [
     "$output_resource_dir/about_tracing.js",
