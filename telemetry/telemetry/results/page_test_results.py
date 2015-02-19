@@ -22,7 +22,8 @@ from telemetry.value import trace
 
 class PageTestResults(object):
   def __init__(self, output_stream=None, output_formatters=None,
-               progress_reporter=None, trace_tag='', output_dir=None):
+               progress_reporter=None, trace_tag='', output_dir=None,
+               value_can_be_added_predicate=lambda v: True):
     """
     Args:
       output_stream: The output stream to use to write test results.
@@ -31,8 +32,13 @@ class PageTestResults(object):
           as CsvOutputFormatter, which output the test results as CSV.
       progress_reporter: An instance of progress_reporter.ProgressReporter,
           to be used to output test status/results progressively.
-      trace_tag: A string to append to the buildbot trace
-      name. Currently only used for buildbot.
+      trace_tag: A string to append to the buildbot trace name. Currently only
+          used for buildbot.
+      output_dir: A string specified the directory where to store the test
+          artifacts, e.g: trace, videos,...
+      value_can_be_added_predicate: A function that takes an value.Value
+          instance as input. It returns True if the value can be added to the
+          test results and False otherwise.
     """
     # TODO(chrishenry): Figure out if trace_tag is still necessary.
 
@@ -45,6 +51,7 @@ class PageTestResults(object):
         output_formatters if output_formatters is not None else [])
     self._trace_tag = trace_tag
     self._output_dir = output_dir
+    self._value_can_be_added_predicate = value_can_be_added_predicate
 
     self._current_page_run = None
     self._all_page_runs = []
@@ -148,6 +155,8 @@ class PageTestResults(object):
   def AddValue(self, value):
     assert self._current_page_run, 'Not currently running test.'
     self._ValidateValue(value)
+    if not self._value_can_be_added_predicate(value):
+      return
     # TODO(eakuefner/chrishenry): Add only one skip per pagerun assert here
     self._current_page_run.AddValue(value)
     self._progress_reporter.DidAddValue(value)

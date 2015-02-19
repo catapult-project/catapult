@@ -107,7 +107,8 @@ def _GetProgressReporter(output_skipped_tests_summary, suppress_gtest_report):
       sys.stdout, output_skipped_tests_summary=output_skipped_tests_summary)
 
 
-def CreateResults(benchmark_metadata, options):
+def CreateResults(benchmark_metadata, options,
+                  value_can_be_added_predicate=lambda v: True):
   """
   Args:
     options: Contains the options specified in AddResultsOptions.
@@ -166,4 +167,5 @@ def CreateResults(benchmark_metadata, options):
                                   options.suppress_gtest_report)
   return page_test_results.PageTestResults(
       output_formatters=output_formatters, progress_reporter=reporter,
-      output_dir=options.output_dir)
+      output_dir=options.output_dir,
+      value_can_be_added_predicate=value_can_be_added_predicate)

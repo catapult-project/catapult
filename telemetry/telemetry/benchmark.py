@@ -138,6 +138,20 @@ class Benchmark(command_line.Command):
   def ProcessCommandLineArgs(cls, parser, args):
     pass
 
+  @classmethod
+  def ValueCanBeAddedPredicate(cls, value):  # pylint: disable=unused-argument
+    """ Returns whether |value| can be added to the test results.
+    Override this method to customize the logic of adding values to test
+    results.
+
+    Args:
+        value: a value.Value instance.
+
+    Returns: a boolean. True if value should be added to the test results and
+        False otherwise.
+    """
+    return True
+
   def CustomizeBrowserOptions(self, options):
     """Add browser options that are required by this benchmark."""
 
@@ -175,7 +189,8 @@ class Benchmark(command_line.Command):
     self._DownloadGeneratedProfileArchive(finder_options)
 
     benchmark_metadata = self.GetMetadata()
-    results = results_options.CreateResults(benchmark_metadata, finder_options)
+    results = results_options.CreateResults(
+        benchmark_metadata, finder_options, self.ValueCanBeAddedPredicate)
     try:
       user_story_runner.Run(pt, us, expectations, finder_options, results,
                             max_failures=self._max_failures)

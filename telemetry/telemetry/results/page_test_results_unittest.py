@@ -45,6 +45,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertTrue(results.all_page_runs[0].failed)
     self.assertTrue(results.all_page_runs[1].ok)
 
+
   def testSkips(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
@@ -83,6 +84,38 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
     values = results.FindAllPageSpecificValuesNamed('a')
     assert len(values) == 2
+
+  def testResultsFiltering(self):
+    def AcceptValueNamed_a(value):
+      return value.name == 'a'
+    results = page_test_results.PageTestResults(
+        value_can_be_added_predicate=AcceptValueNamed_a)
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'b', 'seconds', 3))
+    results.DidRunPage(self.pages[0])
+
+    results.WillRunPage(self.pages[1])
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 3))
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'd', 'seconds', 3))
+    results.DidRunPage(self.pages[1])
+
+    results.PrintSummary()
+
+    values = results.FindPageSpecificValuesForPage(self.pages[0], 'a')
+    self.assertEquals(1, len(values))
+    v = values[0]
+    self.assertEquals(v.name, 'a')
+    self.assertEquals(v.page, self.pages[0])
+
+    values = results.FindPageSpecificValuesForPage(self.pages[0], 'b')
+    self.assertEquals(0, len(values))
+
+    values = results.FindAllPageSpecificValuesNamed('a')
+    self.assertEquals(len(values), 2)
+
+    values = results.all_page_specific_values
+    self.assertEquals(len(values), 2)
 
   def testUrlIsInvalidValue(self):
     results = page_test_results.PageTestResults()
