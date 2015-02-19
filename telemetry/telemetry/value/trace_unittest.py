@@ -106,23 +106,14 @@ class NoLeakedTempfilesTests(TestBase):
     self.actual_tempdir = trace.tempfile.tempdir
     trace.tempfile.tempdir = self.temp_test_dir
 
-  def testNoLeakedTempFileWhenTraceSerialize(self):
-    tempdir = tempfile.mkdtemp()
-    v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
-    fh = v.Serialize(tempdir)
-    try:
-      shutil.rmtree(fh.GetAbsPath(), ignore_errors=True)
-      self.assertTrue(tempdir)
-    finally:
-      shutil.rmtree(tempdir)
-      self.assertTrue(_IsEmptyDir(self.temp_test_dir))
+  def testNoLeakedTempFileOnImplicitCleanUp(self):
+    with trace.TraceValue(None, trace_data.TraceData({'test': 1})):
+      pass
+    self.assertTrue(_IsEmptyDir(self.temp_test_dir))
 
   def testNoLeakedTempFileWhenUploadingTrace(self):
     v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
-    trace.cloud_storage.SetCalculatedHashesForTesting(
-        TestDefaultDict(123))
-    bucket = trace.cloud_storage.PUBLIC_BUCKET
-    v.UploadToCloud(bucket)
+    v.CleanUp()
     self.assertTrue(_IsEmptyDir(self.temp_test_dir))
 
   def tearDown(self):

@@ -15,7 +15,6 @@ from telemetry.value import scalar
 from telemetry.value import skip
 from telemetry.value import trace
 
-
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def setUp(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
@@ -234,3 +233,36 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
     values = results.FindAllTraceValues()
     self.assertEquals(2, len(values))
+
+  def testCleanUpCleansUpTraceValues(self):
+    results = page_test_results.PageTestResults()
+    v0 = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
+    v1 = trace.TraceValue(None, trace_data.TraceData({'test': 2}))
+
+    results.WillRunPage(self.pages[0])
+    results.AddValue(v0)
+    results.DidRunPage(self.pages[0])
+
+    results.WillRunPage(self.pages[1])
+    results.AddValue(v1)
+    results.DidRunPage(self.pages[1])
+
+    results.CleanUp()
+    self.assertTrue(v0.cleaned_up)
+    self.assertTrue(v1.cleaned_up)
+
+  def testNoTracesLeftAfterCleanUp(self):
+    results = page_test_results.PageTestResults()
+    v0 = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
+    v1 = trace.TraceValue(None, trace_data.TraceData({'test': 2}))
+
+    results.WillRunPage(self.pages[0])
+    results.AddValue(v0)
+    results.DidRunPage(self.pages[0])
+
+    results.WillRunPage(self.pages[1])
+    results.AddValue(v1)
+    results.DidRunPage(self.pages[1])
+
+    results.CleanUp()
+    self.assertFalse(results.FindAllTraceValues())

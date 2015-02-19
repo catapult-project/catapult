@@ -189,22 +189,22 @@ class Benchmark(command_line.Command):
     self._DownloadGeneratedProfileArchive(finder_options)
 
     benchmark_metadata = self.GetMetadata()
-    results = results_options.CreateResults(
-        benchmark_metadata, finder_options, self.ValueCanBeAddedPredicate)
-    try:
-      user_story_runner.Run(pt, us, expectations, finder_options, results,
-                            max_failures=self._max_failures)
-      return_code = min(254, len(results.failures))
-    except Exception:
-      exception_formatter.PrintFormattedException()
-      return_code = 255
+    with results_options.CreateResults(benchmark_metadata,
+                                       finder_options) as results:
+      try:
+        user_story_runner.Run(pt, us, expectations, finder_options, results,
+                              max_failures=self._max_failures)
+        return_code = min(254, len(results.failures))
+      except Exception:
+        exception_formatter.PrintFormattedException()
+        return_code = 255
 
-    bucket = cloud_storage.BUCKET_ALIASES[finder_options.upload_bucket]
-    if finder_options.upload_results:
-      results.UploadTraceFilesToCloud(bucket)
-      results.UploadProfilingFilesToCloud(bucket)
+      bucket = cloud_storage.BUCKET_ALIASES[finder_options.upload_bucket]
+      if finder_options.upload_results:
+        results.UploadTraceFilesToCloud(bucket)
+        results.UploadProfilingFilesToCloud(bucket)
 
-    results.PrintSummary()
+      results.PrintSummary()
     return return_code
 
   def _DownloadGeneratedProfileArchive(self, options):

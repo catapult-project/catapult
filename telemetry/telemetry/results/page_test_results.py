@@ -134,6 +134,20 @@ class PageTestResults(object):
   def _GetStringFromExcInfo(self, err):
     return ''.join(traceback.format_exception(*err))
 
+  def CleanUp(self):
+    """Clean up any TraceValues contained within this results object."""
+    for run in self._all_page_runs:
+      for v in run.values:
+        if isinstance(v, trace.TraceValue):
+          v.CleanUp()
+          run.values.remove(v)
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, _, __, ___):
+    self.CleanUp()
+
   def WillRunPage(self, page):
     assert not self._current_page_run, 'Did not call DidRunPage.'
     self._current_page_run = page_run.PageRun(page)
