@@ -90,12 +90,13 @@ tv.exportTo('tv.e.cc', function() {
           item.appendChild(elementInfo);
         }
 
-        // Display each of the Skia ops.
-        op.info.forEach(function(info) {
+        // Display the Skia params.
+        // FIXME: now that we have structured data, we should format it.
+        if (op.info.length > 0) {
           var infoItem = document.createElement('div');
-          infoItem.textContent = info;
+          infoItem.textContent = JSON.stringify(op.info);
           item.appendChild(infoItem);
-        });
+        }
 
         // Display the op timing, if available.
         if (op.cmd_time && op.cmd_time >= 0.0001) {
