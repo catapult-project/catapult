@@ -71,5 +71,5 @@ class ChartJsonOutputFormatter(output_formatter.OutputFormatter):
         self._benchmark_metadata,
         page_test_results.all_page_specific_values,
         page_test_results.all_summary_values),
-              self.output_stream)
+              self.output_stream, indent=2)
     self.output_stream.write('\n')

@@ -53,5 +53,5 @@ class JsonOutputFormatter(output_formatter.OutputFormatter):
   def Format(self, page_test_results):
     json.dump(
         ResultsAsDict(page_test_results, self.benchmark_metadata),
-        self.output_stream)
+        self.output_stream, indent=2)
     self.output_stream.write('\n')
