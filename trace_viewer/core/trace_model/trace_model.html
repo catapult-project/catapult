@@ -104,8 +104,6 @@ tv.exportTo('tv.c', function() {
     this.stackFrames = {};
     this.samples = [];
 
-    this.eventContainerByStableId_ = {}; // stableId -> EventContainer
-
     this.alerts = [];
     this.interaction_records = [];
 
@@ -149,14 +147,6 @@ tv.exportTo('tv.c', function() {
       if (!this.processes[pid])
         this.processes[pid] = new Process(this, pid);
       return this.processes[pid];
-    },
-
-    /**
-     * @return {Process} Gets an EventContainer for a specified stableId.
-     * Returns undefined if the stableId doesn't exist.
-     */
-    getEventContainerByStableId: function(stableId) {
-      return this.eventContainerByStableId_[stableId];
     },
 
     pushInstantEvent: function(instantEvent) {
@@ -499,13 +489,6 @@ tv.exportTo('tv.c', function() {
               'Finalizing import ' + (index + 1) + '/' + importers.length);
           importer.finalizeImport();
         }, this);
-      }, this);
-
-      // Build map between stableId and EventContainer.
-      lastTask = lastTask.after(function(task) {
-        this.iterateAllEventContainers(function(obj) {
-          this.eventContainerByStableId_[obj.stableId] = obj;
-        }.bind(this));
       }, this);
 
       // Run preinit.

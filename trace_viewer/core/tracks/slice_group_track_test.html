@@ -13,6 +13,8 @@ found in the LICENSE file.
 'use strict';
 
 tv.b.unittest.testSuite(function() {
+  var ProcessTrack = tv.c.tracks.ProcessTrack;
+  var ThreadTrack = tv.c.tracks.ThreadTrack;
   var SliceGroup = tv.c.trace_model.SliceGroup;
   var SliceGroupTrack = tv.c.tracks.SliceGroupTrack;
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
@@ -236,6 +238,53 @@ tv.b.unittest.testSuite(function() {
 
     assertEquals(2, track.subRows.length);
     assertTrue(track.hasVisibleContent);
+  });
+
+test('sliceGroupContainerMap', function() {
+    var vp = new tv.c.TimelineViewport();
+    var containerToTrack = vp.containerToTrackObj;
+    var model = new tv.c.TraceModel();
+    var process = model.getOrCreateProcess(123);
+    var thread = process.getOrCreateThread(456);
+    var group = new SliceGroup(thread);
+
+    var processTrack = new ProcessTrack(vp);
+    var threadTrack = new ThreadTrack(vp);
+    var groupTrack = new SliceGroupTrack(vp);
+    processTrack.process = process;
+    threadTrack.thread = thread;
+    groupTrack.group = group;
+    processTrack.appendChild(threadTrack);
+    threadTrack.appendChild(groupTrack);
+
+    assertEquals(process, processTrack.eventContainer);
+    assertEquals(thread, threadTrack.eventContainer);
+    assertEquals(group, groupTrack.eventContainer);
+
+    assertUndefined(containerToTrack.getTrackByStableId('123'));
+    assertUndefined(containerToTrack.getTrackByStableId('123.456'));
+    assertUndefined(
+        containerToTrack.getTrackByStableId('123.456.SliceGroup'));
+
+    vp.modelTrackContainer = {
+      addContainersToTrackMap: function(containerToTrackObj) {
+        processTrack.addContainersToTrackMap(containerToTrackObj);
+      },
+      addEventListener: function() {}
+    };
+    vp.rebuildContainerToTrackMap();
+
+    // Check that all tracks call childs' addContainersToTrackMap()
+    // by checking the resulting map.
+    assertEquals(processTrack, containerToTrack.getTrackByStableId('123'));
+    assertEquals(threadTrack, containerToTrack.getTrackByStableId('123.456'));
+    assertEquals(groupTrack,
+        containerToTrack.getTrackByStableId('123.456.SliceGroup'));
+
+    // Check the track's eventContainer getter.
+    assertEquals(process, processTrack.eventContainer);
+    assertEquals(thread, threadTrack.eventContainer);
+    assertEquals(group, groupTrack.eventContainer);
   });
 });
 </script>

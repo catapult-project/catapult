@@ -37,6 +37,17 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals(0, g.bounds.min);
     assertEquals(2.5, g.bounds.max);
   });
+
+  test('asyncSliceGroupStableId', function() {
+    var model = new tv.c.TraceModel();
+    var process = model.getOrCreateProcess(123);
+    var thread = process.getOrCreateThread(456);
+    var group = new AsyncSliceGroup(thread);
+
+    assertEquals(123, process.stableId);
+    assertEquals('123.456', thread.stableId);
+    assertEquals('123.456.AsyncSliceGroup', group.stableId);
+  });
 });
 </script>
 
