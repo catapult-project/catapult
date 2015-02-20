@@ -37,10 +37,8 @@ class HistogramValue(value_module.Value):
              'Don\'t specify both raw_value and raw_value_json'
       raw_value = json.loads(raw_value_json)
     if raw_value:
-      assert 'buckets' in raw_value
-      assert isinstance(raw_value['buckets'], list)
       self.buckets = []
-      for bucket in raw_value['buckets']:
+      for bucket in histogram_util.GetHistogramBucketsFromRawValue(raw_value):
         self.buckets.append(HistogramValueBucket(
           low=bucket['low'],
           high=bucket['high'],
