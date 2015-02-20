@@ -54,7 +54,7 @@ def _ResultsAsChartDict(benchmark_metadata, page_specific_values,
     'format_version': '0.1',
     'benchmark_name': benchmark_metadata.name,
     'benchmark_description': benchmark_metadata.description,
-    'benchmark_rerun_options': benchmark_metadata.rerun_options,
+    'trace_rerun_options': benchmark_metadata.rerun_options,
     'charts': charts,
   }
 
