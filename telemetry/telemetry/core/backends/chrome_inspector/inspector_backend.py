@@ -76,6 +76,10 @@ class InspectorBackend(object):
   def debugger_url(self):
     return self._context['webSocketDebuggerUrl']
 
+  def IsInspectable(self):
+    contexts = self._devtools_client.ListInspectableContexts()
+    return self._context['id'] in [c['id'] for c in contexts]
+
   # Public methods implemented in JavaScript.
 
   @property
@@ -159,10 +163,6 @@ class InspectorBackend(object):
 
   # Methods used internally by other backends.
 
-  def _IsInspectable(self):
-    contexts = self._devtools_client.ListInspectableContexts()
-    return self._context['id'] in [c['id'] for c in contexts]
-
   def _HandleInspectorDomainNotification(self, res):
     if (res['method'] == 'Inspector.detached' and
         res.get('params', {}).get('reason', '') == 'replaced_with_devtools'):
@@ -172,7 +172,7 @@ class InspectorBackend(object):
       raise exceptions.DevtoolsTargetCrashException(self.app)
 
   def _HandleError(self, elapsed_time):
-    if self._IsInspectable():
+    if self.IsInspectable():
       raise exceptions.DevtoolsTargetCrashException(self.app,
           'Received a socket error in the browser connection and the tab '
           'still exists, assuming it timed out. '
@@ -188,7 +188,7 @@ class InspectorBackend(object):
     self._websocket._socket.close()
     self._websocket._socket = None
     def IsBack():
-      if not self._IsInspectable():
+      if not self.IsInspectable():
         return False
       try:
         self._websocket.Connect(self.debugger_url)

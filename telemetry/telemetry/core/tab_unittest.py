@@ -164,6 +164,17 @@ class TabTest(tab_test_case.TabTestCase):
     # renderer_thread corresponding to it in the the trace.
     self.assertIs(None, timeline_model.GetRendererThreadFromTabId(third_tab.id))
 
+  def testTabIsAlive(self):
+    self.assertEquals(self._tab.url, 'about:blank')
+    self.assertTrue(self._tab.IsAlive())
+
+    self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
+    self.assertTrue(self._tab.IsAlive())
+
+    self.assertRaises(exceptions.DevtoolsTargetCrashException,
+        lambda: self._tab.Navigate(self.UrlOfUnittestFile('chrome://crash')))
+    self.assertFalse(self._tab.IsAlive())
+
 
 class GpuTabTest(tab_test_case.TabTestCase):
   @classmethod

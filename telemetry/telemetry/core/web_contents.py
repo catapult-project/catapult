@@ -175,3 +175,14 @@ class WebContents(object):
 
   def TakeJSHeapSnapshot(self, timeout=120):
     return self._inspector_backend.TakeJSHeapSnapshot(timeout)
+
+  def IsAlive(self):
+    """Whether the WebContents is still operating normally.
+
+    Since WebContents function asynchronously, this method does not guarantee
+    that the WebContents will still be alive at any point in the future.
+
+    Returns:
+      A boolean indicating whether the WebContents is opearting normally.
+    """
+    return self._inspector_backend.IsInspectable()
