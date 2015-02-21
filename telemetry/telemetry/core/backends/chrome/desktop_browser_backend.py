@@ -102,8 +102,13 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if os_name != 'win':
       return None
     arch_name = self.browser.platform.GetArchName()
+    command = support_binaries.FindPath('crash_service', arch_name, os_name)
+    if not command:
+      logging.warning('crash_service.exe not found for %s %s',
+                      arch_name, os_name)
+      return None
     return subprocess.Popen([
-        support_binaries.FindPath('crash_service', arch_name, os_name),
+        command,
         '--no-window',
         '--dumps-dir=%s' % self._tmp_minidump_dir,
         '--pipe-name=%s' % self._GetCrashServicePipeName()])
