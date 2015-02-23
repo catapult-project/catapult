@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import inspect
 import os
 import unittest
 
@@ -52,9 +53,11 @@ class TestPage(unittest.TestCase):
                       pages)
 
   def testGetUrlBaseDirAndFileForUrlBaseDir(self):
-    ps = page_set.PageSet(file_path='basedir/', serving_dirs=['../somedir/'])
+    base_dir = os.path.dirname(__file__)
+    file_path = os.path.dirname(base_dir) + '/otherdir/file.html'
+    ps = page_set.PageSet(file_path=base_dir, serving_dirs=['../somedir/'])
     ps.AddUserStory(page.Page('file://../otherdir/file.html', ps, ps.base_dir))
-    self.assertPathEqual(ps[0].file_path, 'otherdir/file.html')
+    self.assertPathEqual(ps[0].file_path, file_path)
 
   def testDisplayUrlForHttp(self):
     ps = page_set.PageSet(file_path=os.path.dirname(__file__))
