@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import inspect
 import os
 import unittest
 
@@ -13,11 +12,6 @@ from telemetry.util import cloud_storage
 class UserStorySetFoo(user_story_set.UserStorySet):
   """ UserStorySetFoo is a user story created for testing purpose. """
   pass
-
-
-class MockUserStorySet(user_story_set.UserStorySet):
-  def __init__(self):
-    super(MockUserStorySet, self).__init__()
 
 
 class UserStorySetTest(unittest.TestCase):
@@ -35,11 +29,6 @@ class UserStorySetTest(unittest.TestCase):
     base_dir = uss.base_dir
     self.assertTrue(os.path.isdir(base_dir))
     self.assertEqual(base_dir, os.path.dirname(__file__))
-
-  def testFilePath(self):
-      uss = MockUserStorySet()
-      self.assertEqual(os.path.abspath(__file__),
-                       uss.file_path)
 
   def testCloudBucket(self):
     blank_uss = user_story_set.UserStorySet()
