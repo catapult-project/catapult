@@ -211,10 +211,7 @@ class InspectorBackend(object):
       if res['method'] == 'HeapProfiler.addHeapSnapshotChunk':
         snapshot.append(res['params']['chunk'])
 
-    def OnClose():
-      pass
-
-    self._websocket.RegisterDomain('HeapProfiler', OnNotification, OnClose)
+    self._websocket.RegisterDomain('HeapProfiler', OnNotification)
 
     self._websocket.SyncRequest({'method': 'Page.getResourceTree'}, timeout)
     self._websocket.SyncRequest({'method': 'Debugger.enable'}, timeout)

@@ -7,10 +7,7 @@ from telemetry.core import exceptions
 class InspectorRuntime(object):
   def __init__(self, inspector_websocket):
     self._inspector_websocket = inspector_websocket
-    self._inspector_websocket.RegisterDomain(
-        'Runtime',
-        self._OnNotification,
-        self._OnClose)
+    self._inspector_websocket.RegisterDomain('Runtime', self._OnNotification)
     self._contexts_enabled = False
     self._max_context_id = None
 
@@ -19,9 +16,6 @@ class InspectorRuntime(object):
         msg['method'] == 'Runtime.executionContextCreated'):
       self._max_context_id = max(self._max_context_id,
                                  msg['params']['context']['id'])
-
-  def _OnClose(self):
-    pass
 
   def Execute(self, expr, context_id, timeout):
     self.Evaluate(expr + '; 0;', context_id, timeout)

@@ -66,7 +66,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     def OnTestEvent(result):
       results.append(result)
 
-    inspector.RegisterDomain('Test', OnTestEvent, _DoNothingHandler)
+    inspector.RegisterDomain('Test', OnTestEvent)
     fake_socket.AddResponse('{"method": "Test.foo"}', 5)
     inspector.DispatchNotifications()
     self.assertEqual(1, len(results))
@@ -83,7 +83,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     def OnTestEvent(result):
       results.append(result)
 
-    inspector.RegisterDomain('Test', OnTestEvent, _DoNothingHandler)
+    inspector.RegisterDomain('Test', OnTestEvent)
     fake_socket.AddResponse('{"method": "Test.foo"}', 11)
     with self.assertRaises(
         websocket.WebSocketTimeoutException):
@@ -100,7 +100,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     def OnTestEvent(result):
       results.append(result)
 
-    inspector.RegisterDomain('Test', OnTestEvent, _DoNothingHandler)
+    inspector.RegisterDomain('Test', OnTestEvent)
     # The third call to socket.recv() will take 15 seconds without any data
     # received, hence the below call will raise a
     # DispatchNotificationsUntilDoneTimeoutException.
@@ -124,7 +124,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
       results.append(result)
       return len(results) > 2
 
-    inspector.RegisterDomain('Test', OnTestEvent, _DoNothingHandler)
+    inspector.RegisterDomain('Test', OnTestEvent)
     # Even though it takes 70 seconds to receive all the data, the call below
     # will succeed since there are no interval which the previous data package
     # received and the next failed data receiving attempt was greater than
@@ -150,7 +150,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     def OnTestEvent(result):
       results.append(result)
 
-    inspector.RegisterDomain('Test', OnTestEvent, _DoNothingHandler)
+    inspector.RegisterDomain('Test', OnTestEvent)
     fake_socket.AddResponse('{"method": "Test.foo"}', 5)
     fake_socket.AddResponse('{"method": "Test.bar"}', 16)
     fake_socket.AddResponse('{"method": "Test.baz"}', 20)
@@ -170,8 +170,8 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     def OnTestEvent(result):
       results.append(result)
 
-    inspector.RegisterDomain('Test', OnTestEvent, _DoNothingHandler)
-    inspector.RegisterDomain('Test2', OnTestEvent, _DoNothingHandler)
+    inspector.RegisterDomain('Test', OnTestEvent)
+    inspector.RegisterDomain('Test2', OnTestEvent)
     inspector.UnregisterDomain('Test')
 
     fake_socket.AddResponse('{"method": "Test.foo"}', 5)
@@ -189,21 +189,3 @@ class InspectorWebsocketUnittest(unittest.TestCase):
         error_handler=_ReraiseExceptionErrorHandler)
     with self.assertRaises(AssertionError):
       inspector.UnregisterDomain('Test')
-
-  def testRegisterDomainWillCloseHandler(self):
-    inspector = inspector_websocket.InspectorWebsocket(
-        error_handler=_ReraiseExceptionErrorHandler)
-
-    results = []
-    def OnClose():
-      results.append(1)
-    results2 = []
-    def OnClose2():
-      results2.append(1)
-
-    inspector.RegisterDomain('Test', _DoNothingHandler, OnClose)
-    inspector.RegisterDomain('Test2', _DoNothingHandler, OnClose2)
-    inspector.RegisterDomain('Test3', _DoNothingHandler)
-    inspector.Disconnect()
-    self.assertEqual(1, len(results))
-    self.assertEqual(1, len(results2))

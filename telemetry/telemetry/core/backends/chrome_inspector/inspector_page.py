@@ -11,10 +11,7 @@ from telemetry.image_processing import image_util
 class InspectorPage(object):
   def __init__(self, inspector_websocket, timeout=60):
     self._inspector_websocket = inspector_websocket
-    self._inspector_websocket.RegisterDomain(
-        'Page',
-        self._OnNotification,
-        self._OnClose)
+    self._inspector_websocket.RegisterDomain('Page', self._OnNotification)
 
     self._navigation_pending = False
     self._navigation_url = ''  # Support for legacy backends.
@@ -44,9 +41,6 @@ class InspectorPage(object):
         # Marks the navigation as complete and unblocks the
         # WaitForNavigate call.
         self._navigation_pending = False
-
-  def _OnClose(self):
-    pass
 
   def _SetScriptToEvaluateOnCommit(self, source):
     existing_source = (self._script_to_evaluate_on_commit and

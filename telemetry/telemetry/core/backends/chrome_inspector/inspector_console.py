@@ -6,10 +6,7 @@
 class InspectorConsole(object):
   def __init__(self, inspector_websocket):
     self._inspector_websocket = inspector_websocket
-    self._inspector_websocket.RegisterDomain(
-        'Console',
-        self._OnNotification,
-        self._OnClose)
+    self._inspector_websocket.RegisterDomain('Console', self._OnNotification)
     self._message_output_stream = None
     self._last_message = None
     self._console_enabled = False
@@ -30,9 +27,6 @@ class InspectorConsole(object):
       if self._message_output_stream:
         self._message_output_stream.write(
           '%s\n' % self._last_message)
-
-  def _OnClose(self):
-    pass
 
   # False positive in PyLint 0.25.1: http://www.logilab.org/89092
   @property

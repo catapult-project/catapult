@@ -11,10 +11,6 @@ import time
 from telemetry.core.backends.chrome_inspector import websocket
 
 
-_DomainHandler = collections.namedtuple(
-    'DomainHandler', ['notification_handler', 'will_close_handler'])
-
-
 class DispatchNotificationsUntilDoneTimeoutException(Exception):
   """Exception that can be thrown from DispatchNotificationsUntilDone to
   indicate timeout exception of the function.
@@ -42,8 +38,7 @@ class InspectorWebsocket(object):
     self._all_data_received = False
     self._domain_handlers = {}
 
-  def RegisterDomain(
-      self, domain_name, notification_handler, will_close_handler=None):
+  def RegisterDomain(self, domain_name, notification_handler):
     """Registers a given domain for handling notification methods.
 
     When used as handler for DispatchNotificationsUntilDone,
@@ -55,10 +50,7 @@ class InspectorWebsocket(object):
           if msg['method'] == 'Console.messageAdded':
              print msg['params']['message']
           return True
-       def OnConsoleClose(self):
-          pass
-       inspector_backend.RegisterDomain(
-           'Console', OnConsoleNotification, OnConsoleClose)
+       inspector_backend.RegisterDomain('Console', OnConsoleNotification)
 
     Args:
       domain_name: The devtools domain name. E.g., 'Tracing', 'Memory', 'Page'.
@@ -67,16 +59,14 @@ class InspectorWebsocket(object):
           (via DispatchNotifications and DispatchNotificationsUntilDone).
           The handler accepts a single paramater: the JSON object representing
           the notification.
-      will_close_handler: Handler to be called from Disconnect().
     """
     assert domain_name not in self._domain_handlers
-    self._domain_handlers[domain_name] = _DomainHandler(
-        notification_handler, will_close_handler)
+    self._domain_handlers[domain_name] = notification_handler
 
   def UnregisterDomain(self, domain_name):
     """Unregisters a previously registered domain."""
     assert domain_name in self._domain_handlers
-    self._domain_handlers.pop(domain_name)
+    del self._domain_handlers[domain_name]
 
   def Connect(self, url, timeout=10):
     assert not self._socket
@@ -85,14 +75,7 @@ class InspectorWebsocket(object):
     self._next_request_id = 0
 
   def Disconnect(self):
-    """Disconnects the inspector websocket.
-
-    All existing domain handlers will also be unregistered.
-    """
-    for _, handler in self._domain_handlers.items():
-      if handler.will_close_handler:
-        handler.will_close_handler()
-
+    """Disconnects the inspector websocket."""
     if self._socket:
       self._socket.close()
       self._socket = None
@@ -177,7 +160,7 @@ class InspectorWebsocket(object):
     dot_pos = mname.find('.')
     domain_name = mname[:dot_pos]
     if domain_name in self._domain_handlers:
-      return self._domain_handlers[domain_name].notification_handler(result)
+      return self._domain_handlers[domain_name](result)
 
     logging.warn('Unhandled inspector message: %s', result)
     return False

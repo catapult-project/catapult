@@ -143,8 +143,7 @@ class InspectorNetwork(object):
     self.ClearResponseData()
     self._inspector_websocket.RegisterDomain(
         'Network',
-        self._OnNetworkNotification,
-        self._OnClose)
+        self._OnNetworkNotification)
     request = {
         'method': 'Network.enable'
         }
@@ -198,9 +197,6 @@ class InspectorNetwork(object):
 
   def HTTPResponseServedFromCache(self, request_id):
     return request_id and request_id in self._served_from_cache
-
-  def _OnClose(self):
-    pass
 
   @property
   def timeline_recorder(self):
