@@ -40,3 +40,7 @@ class TabTestCase(browser_test_case.BrowserTestCase):
       self.tearDownClass()
       self.setUpClass()
     self._tab = self._browser.tabs[0]
+
+  @property
+  def tabs(self):
+    return self._browser.tabs
