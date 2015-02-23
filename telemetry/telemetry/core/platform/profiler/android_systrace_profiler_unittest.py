@@ -21,7 +21,8 @@ class TestAndroidSystraceProfiler(tab_test_case.TabTestCase):
           self._browser._browser_backend,
           self._browser._platform_backend,
           os.path.join(out_dir, 'systrace'),
-          {})
+          {},
+          self._device)
       result = profiler.CollectProfile()[0]
       self.assertTrue(zipfile.is_zipfile(result))
       with zipfile.ZipFile(result) as z:

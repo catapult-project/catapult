@@ -24,7 +24,8 @@ _SYSTRACE_CATEGORIES = [
 class AndroidSystraceProfiler(profiler.Profiler):
   """Collects a Systrace on Android."""
 
-  def __init__(self, browser_backend, platform_backend, output_path, state):
+  def __init__(self, browser_backend, platform_backend, output_path, state,
+               device=None):
     super(AndroidSystraceProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)
     assert self._browser_backend.supports_tracing
@@ -37,13 +38,15 @@ class AndroidSystraceProfiler(profiler.Profiler):
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True
     self._browser_backend.StartTracing(options, timeout=10)
-    self._profiler = subprocess.Popen(
-        ['python', os.path.join(util.GetChromiumSrcDir(), 'tools',
-                                'profile_chrome.py'),
-         '--categories', '', '--continuous', '--output',
-         self._systrace_output_path, '--json', '--systrace',
-         ','.join(_SYSTRACE_CATEGORIES)],
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    command = ['python', os.path.join(util.GetChromiumSrcDir(), 'tools',
+                                      'profile_chrome.py'),
+               '--categories', '', '--continuous', '--output',
+               self._systrace_output_path, '--json', '--systrace',
+               ','.join(_SYSTRACE_CATEGORIES)]
+    if device:
+      command.extend(['--device', device])
+    self._profiler = subprocess.Popen(command, stdin=subprocess.PIPE,
+                                      stdout=subprocess.PIPE)
 
   @classmethod
   def name(cls):

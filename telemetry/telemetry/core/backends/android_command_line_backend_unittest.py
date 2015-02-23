@@ -8,6 +8,7 @@ import unittest
 from telemetry import benchmark
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends import android_command_line_backend
+from telemetry.unittest_util import options_for_unittests
 
 class _MockBackendSettings(object):
   pseudo_exec_name = 'chrome'
@@ -48,7 +49,9 @@ class AndroidCommandLineBackendTest(unittest.TestCase):
 
     Requires a device connected to the host.
     """
-    serial = adb_commands.GetAttachedDevices()[0]
+    serial = options_for_unittests.GetCopy().device
+    if not serial:
+      serial = adb_commands.GetAttachedDevices()[0]
     cmd_file = '/data/local/tmp/test_cmd'
     adb = adb_commands.AdbCommands(device=serial)
     backend_settings = _MockBackendSettings('/data/local/tmp/test_cmd')
@@ -69,7 +72,9 @@ class AndroidCommandLineBackendTest(unittest.TestCase):
 
     Requires a device connected to the host.
     """
-    serial = adb_commands.GetAttachedDevices()[0]
+    serial = options_for_unittests.GetCopy().device
+    if not serial:
+      serial = adb_commands.GetAttachedDevices()[0]
     cmd_file = '/data/local/tmp/test_cmd'
     adb = adb_commands.AdbCommands(device=serial)
     backend_settings = _MockBackendSettings('/data/local/tmp/test_cmd')

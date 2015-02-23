@@ -61,12 +61,7 @@ def FindBrowser(options):
     raise browser_finder_exceptions.BrowserFinderException(
         '--remote requires --browser=cros-chrome or cros-chrome-guest.')
 
-  devices = []
-  if options.device and options.device != 'list':
-    devices = device_finder.GetSpecifiedDevices(options)
-  else:
-    devices = device_finder.GetAllAvailableDevices(options)
-
+  devices = device_finder.GetDevicesMatchingOptions(options)
   browsers = []
   default_browsers = []
   for device in devices:
@@ -168,7 +163,7 @@ def GetAllAvailableBrowserTypes(options):
   Raises:
     BrowserFinderException: Options are improperly set, or an error occurred.
   """
-  devices = device_finder.GetAllAvailableDevices(options)
+  devices = device_finder.GetDevicesMatchingOptions(options)
   possible_browsers = []
   for device in devices:
     possible_browsers.extend(GetAllAvailableBrowsers(options, device))

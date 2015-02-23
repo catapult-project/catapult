@@ -21,25 +21,24 @@ DEVICES = [
 ]
 
 
-def GetAllAvailableDevices(options):
+def _GetAllAvailableDevices(options):
   """Returns a list of all available devices."""
   devices = []
   for device in DEVICES:
     devices.extend(device.FindAllAvailableDevices(options))
-  devices.sort(key=lambda device: device.name)
   return devices
 
 
-def GetAllAvailableDeviceNames(options):
-  """Returns a list of all available device names."""
-  devices = GetAllAvailableDevices(options)
-  device_names = [device.name for device in devices]
-  return device_names
+def GetDevicesMatchingOptions(options):
+  """Returns a list of devices matching the options."""
+  devices = []
+  if not options.device or options.device == 'list':
+    devices = _GetAllAvailableDevices(options)
+  elif options.device == 'android':
+    devices = android_device.FindAllAvailableDevices(options)
+  else:
+    devices = _GetAllAvailableDevices(options)
+    devices = [d for d in devices if d.guid == options.device]
 
-
-def GetSpecifiedDevices(options):
-  """Returns the specified devices."""
-  assert options.device and options.device != 'list'
-  devices = GetAllAvailableDevices(options)
-  devices = [d for d in devices if d.guid == options.device]
+  devices.sort(key=lambda device: device.name)
   return devices

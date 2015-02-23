@@ -8,6 +8,7 @@ from telemetry.core import browser_finder
 from telemetry.core import browser_finder_exceptions
 from telemetry.core import browser_options
 from telemetry.core import command_line
+from telemetry.core import device_finder
 from telemetry.core import util
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import browser_test_case
@@ -96,11 +97,13 @@ class RunTestsCommand(command_line.OptparseCommand):
     # are long-running, so there's a limit to how much parallelism we
     # can effectively use for now anyway.
     #
-    # It should be possible to handle multiple devices if we adjust
-    # the browser_finder code properly, but for now we only handle the one
-    # on Android and ChromeOS.
-    if possible_browser.platform.GetOSName() in ('android', 'chromeos'):
+    # It should be possible to handle multiple devices if we adjust the
+    # browser_finder code properly, but for now we only handle one on ChromeOS.
+    if possible_browser.platform.GetOSName() == 'chromeos':
       runner.args.jobs = 1
+    elif possible_browser.platform.GetOSName() == 'android':
+      runner.args.jobs = len(device_finder.GetDevicesMatchingOptions(args))
+      print 'Running tests with %d Android device(s).' % runner.args.jobs
     elif possible_browser.platform.GetOSVersionName() == 'xp':
       # For an undiagnosed reason, XP falls over with more parallelism.
       # See crbug.com/388256
@@ -172,6 +175,9 @@ def _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact):
 
 def _SetUpProcess(child, context): # pylint: disable=W0613
   args = context
+  if args.device and args.device == 'android':
+    android_devices = device_finder.GetDevicesMatchingOptions(args)
+    args.device = android_devices[child.worker_num-1].guid
   options_for_unittests.Push(args)
 
 

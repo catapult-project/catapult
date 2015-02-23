@@ -48,6 +48,7 @@ class BrowserTestCase(unittest.TestCase):
         cls.tearDownClass()
         raise
     cls._browser = current_browser
+    cls._device = options.device
 
   @classmethod
   def tearDownClass(cls):

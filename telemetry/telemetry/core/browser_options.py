@@ -79,7 +79,8 @@ class BrowserFinderOptions(optparse.Values):
     group.add_option('--device',
         dest='device',
         help='The device ID to use.'
-             'If not specified, only 0 or 1 connected devices are supported.')
+             'If not specified, only 0 or 1 connected devices are supported. If'
+             'specified as "android", all available Android devices are used.')
     group.add_option('--target-arch',
         dest='target_arch',
         help='The target architecture of the browser. Options available are: '
@@ -161,20 +162,16 @@ class BrowserFinderOptions(optparse.Values):
         logging.getLogger().setLevel(logging.WARNING)
 
       if self.device == 'list':
-        devices = device_finder.GetAllAvailableDeviceNames(self)
+        devices = device_finder.GetDevicesMatchingOptions(self)
         print 'Available devices:'
         for device in devices:
-          print ' ', device
+          print ' ', device.name
         sys.exit(0)
 
       if self.browser_executable and not self.browser_type:
         self.browser_type = 'exact'
       if self.browser_type == 'list':
-        devices = []
-        if self.device and self.device != 'list':
-          devices = device_finder.GetSpecifiedDevices(self)
-        else:
-          devices = device_finder.GetAllAvailableDevices(self)
+        devices = device_finder.GetDevicesMatchingOptions(self)
         if not devices:
           sys.exit(0)
         browser_types = {}
