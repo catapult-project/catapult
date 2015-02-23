@@ -84,7 +84,7 @@ tv.exportTo('tv.b.ui', function() {
   })();
   var palette = paletteRaw.map(colorToRGBString);
 
-  var highlightIdBoost = palette.length;
+  var highlightIdBoost = palette.length / 2;
 
   // Build reservedColorNameToIdMap.
   var reservedColorNameToIdMap = (function() {
