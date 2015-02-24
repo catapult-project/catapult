@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_results.html">
+<link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/util.html">
+
+<polymer-element name="tv-c-multi-global-memory-dump-sub-view"
+    extends="tracing-analysis-sub-view">
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    set selection(selection) {
+      this.currentSelection_ = selection;
+      this.textContent = '';
+
+      selection = tv.b.asArray(selection).sort(
+          tv.b.Range.compareByMinTimes);
+
+      var results = new tv.c.analysis.AnalysisResults();
+      this.appendChild(results);
+
+      var table = results.appendTable('analysis-global-memory-dump-table', 1);
+
+      selection.forEach(function(dump) {
+        var row = results.appendBodyRow(table);
+        var linkContainer = results.appendTableCell(table, row, '');
+        var label = 'Dump at ' + tv.c.analysis.tsRound(dump.start) + ' ms';
+        var selectionGenerator = function() {
+          var selection = new tv.c.Selection();
+          selection.push(dump);
+          return selection;
+        }
+        linkContainer.appendChild(results.createSelectionChangingLink(
+            label, selectionGenerator));
+      });
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    }
+  });
+  </script>
+</polymer>
