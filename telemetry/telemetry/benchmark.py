@@ -189,8 +189,9 @@ class Benchmark(command_line.Command):
     self._DownloadGeneratedProfileArchive(finder_options)
 
     benchmark_metadata = self.GetMetadata()
-    with results_options.CreateResults(benchmark_metadata,
-                                       finder_options) as results:
+    with results_options.CreateResults(
+        benchmark_metadata, finder_options,
+        self.ValueCanBeAddedPredicate) as results:
       try:
         user_story_runner.Run(pt, us, expectations, finder_options, results,
                               max_failures=self._max_failures)

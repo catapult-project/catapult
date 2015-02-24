@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import optparse
 import unittest
 
 from telemetry import benchmark
@@ -13,7 +14,7 @@ from telemetry.page import shared_page_state
 from telemetry.user_story import android
 from telemetry.user_story import shared_user_story_state
 from telemetry.user_story import user_story_runner
-from telemetry.user_story import user_story_set
+from telemetry.user_story import user_story_set as user_story_set_module
 from telemetry.web_perf import timeline_based_measurement
 
 
@@ -25,7 +26,7 @@ class DummyPageTest(page_test.PageTest):
 class TestBenchmark(benchmark.Benchmark):
   def __init__(self, story):
     super(TestBenchmark, self).__init__()
-    self._uss = user_story_set.UserStorySet()
+    self._uss = user_story_set_module.UserStorySet()
     self._uss.AddUserStory(story)
 
   def CreatePageTest(self, _):
@@ -67,7 +68,7 @@ class BenchmarkTest(unittest.TestCase):
       options = browser_options.BrowserFinderOptions()
       options.output_formats = ['none']
       options.suppress_gtest_report = True
-      parser = options.CreateParser()
+      parser = optparse.OptionParser()
       benchmark.AddCommandLineArgs(parser)
       options.MergeDefaultValues(parser.get_default_values())
 
@@ -127,3 +128,35 @@ class BenchmarkTest(unittest.TestCase):
         'with a PageTest')
     with self.assertRaisesRegexp(AssertionError, assertion_regex):
       OverrideOptionsOnPageTestBenchmark().CreatePageTest(options=None)
+
+  def testBenchmarkPredicate(self):
+    class PredicateBenchmark(TestBenchmark):
+      @classmethod
+      def ValueCanBeAddedPredicate(cls, value):
+        return False
+
+    original_run_fn = user_story_runner.Run
+    validPredicate = [False]
+
+    def RunStub(test, user_story_set, expectations, finder_options, results,
+                **args): # pylint: disable=unused-argument
+      predicate = results._value_can_be_added_predicate
+      valid = predicate == PredicateBenchmark.ValueCanBeAddedPredicate
+      validPredicate[0] = valid
+
+    user_story_runner.Run = RunStub
+
+    try:
+      options = browser_options.BrowserFinderOptions()
+      options.output_formats = ['none']
+      options.suppress_gtest_report = True
+      parser = optparse.OptionParser()
+      benchmark.AddCommandLineArgs(parser)
+      options.MergeDefaultValues(parser.get_default_values())
+
+      b = PredicateBenchmark(page.Page(url='about:blank'))
+      b.Run(options)
+    finally:
+      user_story_runner.Run = original_run_fn
+
+    self.assertTrue(validPredicate[0])
