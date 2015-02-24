@@ -134,6 +134,8 @@ class DevToolsClientBackend(object):
   def StopChromeTracing(self, trace_data_builder, timeout=30):
     context_map = self.GetUpdatedInspectableContexts()
     for context in context_map.contexts:
+      if context['type'] not in ['iframe', 'page', 'webview']:
+        continue
       context_id = context['id']
       backend = context_map.GetInspectorBackend(context_id)
       success = backend.EvaluateJavaScript(
