@@ -127,7 +127,7 @@ class Run(command_line.OptparseCommand):
     if not args.positional_args:
       possible_browser = (
           browser_finder.FindBrowser(args) if args.browser_type else None)
-      _PrintBenchmarkList(_Benchmarks(), possible_browser)
+      _PrintBenchmarkList(_Benchmarks(), possible_browser, sys.stderr)
       sys.exit(-1)
 
     input_benchmark_name = args.positional_args[0]
@@ -135,7 +135,7 @@ class Run(command_line.OptparseCommand):
     if not matching_benchmarks:
       print >> sys.stderr, 'No benchmark named "%s".' % input_benchmark_name
       print >> sys.stderr
-      _PrintBenchmarkList(_Benchmarks(), None)
+      _PrintBenchmarkList(_Benchmarks(), None, sys.stderr)
       sys.exit(-1)
 
     if len(matching_benchmarks) > 1:
@@ -143,7 +143,7 @@ class Run(command_line.OptparseCommand):
                             input_benchmark_name)
       print >> sys.stderr, 'Did you mean one of these?'
       print >> sys.stderr
-      _PrintBenchmarkList(matching_benchmarks, None)
+      _PrintBenchmarkList(matching_benchmarks, None, sys.stderr)
       sys.exit(-1)
 
     benchmark_class = matching_benchmarks.pop()
@@ -276,9 +276,9 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
   return json.dumps(output, indent=2, sort_keys=True)
 
 
-def _PrintBenchmarkList(benchmarks, possible_browser):
+def _PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
   if not benchmarks:
-    print >> sys.stderr, 'No benchmarks found!'
+    print >> output_pipe, 'No benchmarks found!'
     return
 
   # Align the benchmark names to the longest one.
@@ -288,26 +288,26 @@ def _PrintBenchmarkList(benchmarks, possible_browser):
                          if issubclass(benchmark_class, benchmark.Benchmark)]
   disabled_benchmarks = []
   if filtered_benchmarks:
-    print >> sys.stderr, 'Available benchmarks %sare:' % (
+    print >> output_pipe, 'Available benchmarks %sare:' % (
         'for %s ' %possible_browser.browser_type if possible_browser else '')
     for benchmark_class in sorted(filtered_benchmarks, key=lambda b: b.Name()):
       if possible_browser and not decorators.IsEnabled(benchmark_class,
                                                        possible_browser):
         disabled_benchmarks.append(benchmark_class)
         continue
-      print >> sys.stderr, format_string % (
+      print >> output_pipe, format_string % (
           benchmark_class.Name(), benchmark_class.Description())
 
     if disabled_benchmarks:
-      print >> sys.stderr, (
+      print >> output_pipe, (
           'Disabled benchmarks for %s are (force run with -d): ' %
           possible_browser.browser_type)
       for benchmark_class in disabled_benchmarks:
-        print >> sys.stderr, format_string % (
+        print >> output_pipe, format_string % (
             benchmark_class.Name(), benchmark_class.Description())
-    print >> sys.stderr, (
+    print >> output_pipe, (
         'Pass --browser to list benchmarks for another browser.')
-    print >> sys.stderr
+    print >> output_pipe
 
 
 config = environment.Environment([util.GetBaseDir()])
