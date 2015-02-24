@@ -13,7 +13,7 @@ class UserStorySet(object):
   """A collection of user story.
 
   A typical usage of UserStorySet would be to subclass it and then calling
-  AddUserStory for each UserStory..
+  AddUserStory for each UserStory.
   """
 
   def __init__(self, archive_data_file='', cloud_storage_bucket=None,
@@ -70,9 +70,16 @@ class UserStorySet(object):
     assert isinstance(user_story, user_story_module.UserStory)
     self.user_stories.append(user_story)
 
+  def RemoveUserStory(self, user_story):
+    """Removes a UserStory.
+
+    Allows the user stories to be filtered.
+    """
+    self.user_stories.remove(user_story)
+
   @classmethod
   def Name(cls):
-    """ Returns the string name of this UserStorySet.
+    """Returns the string name of this UserStorySet.
     Note that this should be a classmethod so benchmark_runner script can match
     user story class with its name specified in the run command:
     'Run <User story test name> <User story class name>'
@@ -81,10 +88,10 @@ class UserStorySet(object):
 
   @classmethod
   def Description(cls):
-    """ Return a string explaining in human-understandable terms what this
+    """Return a string explaining in human-understandable terms what this
     user story represents.
     Note that this should be a classmethod so benchmark_runner script can
-    display user stories' names along their descriptions in the list commmand.
+    display user stories' names along their descriptions in the list command.
     """
     if cls.__doc__:
       return cls.__doc__.splitlines()[0]
@@ -95,7 +102,7 @@ class UserStorySet(object):
     pass
 
   def WprFilePathForUserStory(self, story):
-    """Convenient function to retrive WPR archive file path.
+    """Convenient function to retrieve WPR archive file path.
 
     Args:
       user_story: The UserStory to lookup.
