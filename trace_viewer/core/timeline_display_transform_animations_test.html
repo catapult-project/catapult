@@ -25,17 +25,37 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       return this.clone();
     };
 
-    var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
+    var a = new TimelineDisplayTransformPanAnimation(10, 20, 100);
 
     var controller = new tv.b.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
+    assertTrue(a.affectsPanY);
     tv.b.forcePendingRAFTasksToRun(50);
     assertTrue(target.panX > 0);
     tv.b.forcePendingRAFTasksToRun(100);
     assertFalse(controller.hasActiveAnimation);
     assertEquals(10, target.panX);
+    assertEquals(20, target.panY);
+  });
+
+  test('zoomBasic', function() {
+    var target = new TimelineDisplayTransform();
+    target.panY = 30;
+    target.cloneAnimationState = function() {
+      return this.clone();
+    };
+
+    var a = new TimelineDisplayTransformZoomToAnimation(10, 20, 30, 5, 100);
+
+    var controller = new tv.b.ui.AnimationController();
+    controller.target = target;
+    controller.queueAnimation(a, 0);
+
+    assertFalse(a.affectsPanY);
+    tv.b.forcePendingRAFTasksToRun(100);
+    assertEquals(5, target.scaleX);
   });
 
   test('panTakeover', function() {

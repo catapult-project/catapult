@@ -124,14 +124,13 @@ tv.exportTo('tv.c', function() {
     this.startScaleX = undefined;
     this.goalScaleX = undefined;
     this.startPanY = undefined;
-    this.goalPanY = undefined;
   }
 
   TimelineDisplayTransformZoomToAnimation.prototype = {
     __proto__: tv.b.ui.Animation.prototype,
 
     get affectsPanY() {
-      return this.startPanY != this.goalPanY;
+      return this.startPanY != this.goalFocalPointY;
     },
 
     canTakeOverFor: function(existingAnimation) {
