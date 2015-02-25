@@ -219,17 +219,6 @@ def Run(test, user_story_set, expectations, finder_options, results,
         user_stories):
       return
 
-  # TODO(slamm): Remove special-case for PageTest. https://crbug.com/440101
-  if isinstance(test, page_test.PageTest):
-    for user_story in list(user_stories):
-      if not test.CanRunForPage(user_story):
-        results.WillRunPage(user_story)
-        logging.debug('Skipping test: it cannot run for %s',
-                      user_story.display_name)
-        results.AddValue(skip.SkipValue(user_story, 'Test cannot run'))
-        results.DidRunPage(user_story)
-        user_stories.remove(user_story)
-
   if not user_stories:
     return
 

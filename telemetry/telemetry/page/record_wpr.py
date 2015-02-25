@@ -26,9 +26,6 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
     super(RecorderPageTest, self).__init__()
     self.page_test = None
 
-  def CanRunForPage(self, page):
-    return page.url.startswith('http')
-
   def WillStartBrowser(self, browser):
     if self.page_test:
       self.page_test.WillStartBrowser(browser)
