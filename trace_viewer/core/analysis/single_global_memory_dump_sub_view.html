@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/generic_object_view.html">
+
+<polymer-element name="tv-c-single-global-memory-dump-sub-view"
+    extends="tracing-analysis-sub-view">
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    set selection(selection) {
+      if (selection.length !== 1)
+        throw new Error('Only supports a single global memory dump');
+      if (!(selection[0] instanceof tv.c.trace_model.GlobalMemoryDump))
+        throw new Error('Only supports global memory dumps');
+      this.setSelectionWithoutErrorChecks(selection);
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    setSelectionWithoutErrorChecks: function(selection) {
+      this.currentSelection_ = selection;
+      this.textContent = '';
+
+      var pidToProcessMemoryMap = {};
+      var gd = this.currentSelection_[0];
+      for (var pid in gd.processMemoryDumps) {
+        var pd = gd.processMemoryDumps[pid];
+        pidToProcessMemoryMap[pid] = pd.args;
+      }
+
+      var objectView = tv.c.analysis.GenericObjectView();
+      objectView.object = pidToProcessMemoryMap;
+      this.appendChild(objectView);
+    }
+  });
+  </script>
+</polymer>
