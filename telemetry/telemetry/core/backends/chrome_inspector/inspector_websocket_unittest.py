@@ -39,10 +39,6 @@ class FakeSocket(object):
     self._timeout = timeout
 
 
-def _ReraiseExceptionErrorHandler(_elapsed_time):
-  raise
-
-
 def _DoNothingHandler(_elapsed_time):
   pass
 
@@ -56,8 +52,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     self._mock_timer.Restore()
 
   def testDispatchNotification(self):
-    inspector = inspector_websocket.InspectorWebsocket(
-        error_handler=_ReraiseExceptionErrorHandler)
+    inspector = inspector_websocket.InspectorWebsocket()
     fake_socket = FakeSocket(self._mock_timer)
     # pylint: disable=protected-access
     inspector._socket = fake_socket
@@ -73,8 +68,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     self.assertEqual('Test.foo', results[0]['method'])
 
   def testDispatchNotificationTimedOut(self):
-    inspector = inspector_websocket.InspectorWebsocket(
-        error_handler=_ReraiseExceptionErrorHandler)
+    inspector = inspector_websocket.InspectorWebsocket()
     fake_socket = FakeSocket(self._mock_timer)
     # pylint: disable=protected-access
     inspector._socket = fake_socket
@@ -90,78 +84,8 @@ class InspectorWebsocketUnittest(unittest.TestCase):
       inspector.DispatchNotifications(timeout=10)
     self.assertEqual(0, len(results))
 
-  def testDispatchNotificationUntilDoneTimedOut2(self):
-    inspector = inspector_websocket.InspectorWebsocket(
-        error_handler=_ReraiseExceptionErrorHandler)
-    fake_socket = FakeSocket(self._mock_timer)
-    inspector._socket = fake_socket # pylint: disable=W0212
-
-    results = []
-    def OnTestEvent(result):
-      results.append(result)
-
-    inspector.RegisterDomain('Test', OnTestEvent)
-    # The third call to socket.recv() will take 15 seconds without any data
-    # received, hence the below call will raise a
-    # DispatchNotificationsUntilDoneTimeoutException.
-    fake_socket.AddResponse('{"method": "Test.foo"}', 10)
-    fake_socket.AddResponse('{"method": "Test.bar"}', 20)
-    fake_socket.AddResponse('{"method": "Test.baz"}', 35)
-    with self.assertRaises(
-        inspector_websocket.DispatchNotificationsUntilDoneTimeoutException):
-      inspector.DispatchNotificationsUntilDone(12)
-    self.assertEqual(2, len(results))
-
-  def testDispatchNotificationsUntilDone(self):
-    inspector = inspector_websocket.InspectorWebsocket(
-        error_handler=_ReraiseExceptionErrorHandler)
-    fake_socket = FakeSocket(self._mock_timer)
-    # pylint: disable=protected-access
-    inspector._socket = fake_socket
-
-    results = []
-    def OnTestEvent(result):
-      results.append(result)
-      return len(results) > 2
-
-    inspector.RegisterDomain('Test', OnTestEvent)
-    # Even though it takes 70 seconds to receive all the data, the call below
-    # will succeed since there are no interval which the previous data package
-    # received and the next failed data receiving attempt was greater than
-    # 30 seconds.
-    fake_socket.AddResponse('{"method": "Test.foo"}', 10)
-    fake_socket.AddResponse('{"method": "Test.bar"}', 20)
-    fake_socket.AddResponse('{"method": "Test.baz"}', 35)
-    fake_socket.AddResponse('{"method": "Test.qux"}', 50)
-    fake_socket.AddResponse('{"method": "Test.baz"}', 60)
-    fake_socket.AddResponse('{"method": "Test.foo"}', 70)
-    inspector.DispatchNotificationsUntilDone(31)
-    self.assertEqual(3, len(results))
-    self.assertEqual('Test.baz', results[2]['method'])
-
-  def testDispatchNotificationsUntilDoneTimedOut(self):
-    inspector = inspector_websocket.InspectorWebsocket(
-        error_handler=_ReraiseExceptionErrorHandler)
-    fake_socket = FakeSocket(self._mock_timer)
-    # pylint: disable=protected-access
-    inspector._socket = fake_socket
-
-    results = []
-    def OnTestEvent(result):
-      results.append(result)
-
-    inspector.RegisterDomain('Test', OnTestEvent)
-    fake_socket.AddResponse('{"method": "Test.foo"}', 5)
-    fake_socket.AddResponse('{"method": "Test.bar"}', 16)
-    fake_socket.AddResponse('{"method": "Test.baz"}', 20)
-    with self.assertRaises(
-        inspector_websocket.DispatchNotificationsUntilDoneTimeoutException):
-      inspector.DispatchNotificationsUntilDone(10)
-    self.assertEqual(1, len(results))
-
   def testUnregisterDomain(self):
-    inspector = inspector_websocket.InspectorWebsocket(
-        error_handler=_ReraiseExceptionErrorHandler)
+    inspector = inspector_websocket.InspectorWebsocket()
     fake_socket = FakeSocket(self._mock_timer)
     # pylint: disable=protected-access
     inspector._socket = fake_socket
@@ -185,7 +109,6 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     self.assertEqual('Test2.foo', results[0]['method'])
 
   def testUnregisterDomainWithUnregisteredDomain(self):
-    inspector = inspector_websocket.InspectorWebsocket(
-        error_handler=_ReraiseExceptionErrorHandler)
+    inspector = inspector_websocket.InspectorWebsocket()
     with self.assertRaises(AssertionError):
       inspector.UnregisterDomain('Test')

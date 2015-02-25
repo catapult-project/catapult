@@ -11,54 +11,30 @@ import time
 from telemetry.core.backends.chrome_inspector import websocket
 
 
-class DispatchNotificationsUntilDoneTimeoutException(Exception):
-  """Exception that can be thrown from DispatchNotificationsUntilDone to
-  indicate timeout exception of the function.
-  """
-
-  def __init__(self, elapsed_time):
-    super(DispatchNotificationsUntilDoneTimeoutException, self).__init__()
-    self.elapsed_time = elapsed_time
-
-
 class InspectorWebsocket(object):
 
-  def __init__(self, error_handler=None):
-    """Create a websocket handler for communicating with Inspectors.
-
-    Args:
-      error_handler: A callback for errors in communicating with the Inspector.
-        Must accept a single numeric parameter indicated the time elapsed before
-        the error.
-    """
+  def __init__(self):
+    """Create a websocket handler for communicating with Inspectors."""
     self._socket = None
     self._cur_socket_timeout = 0
     self._next_request_id = 0
-    self._error_handler = error_handler
-    self._all_data_received = False
     self._domain_handlers = {}
 
   def RegisterDomain(self, domain_name, notification_handler):
     """Registers a given domain for handling notification methods.
 
-    When used as handler for DispatchNotificationsUntilDone,
-    notification handler should return a boolean, where True indicates
-    that we should stop listening for more notifications.
-
     For example, given inspector_backend:
        def OnConsoleNotification(msg):
           if msg['method'] == 'Console.messageAdded':
              print msg['params']['message']
-          return True
        inspector_backend.RegisterDomain('Console', OnConsoleNotification)
 
     Args:
       domain_name: The devtools domain name. E.g., 'Tracing', 'Memory', 'Page'.
       notification_handler: Handler for devtools notification. Will be
           called if a devtools notification with matching domain is received
-          (via DispatchNotifications and DispatchNotificationsUntilDone).
-          The handler accepts a single paramater: the JSON object representing
-          the notification.
+          via DispatchNotifications. The handler accepts a single paramater:
+          the JSON object representing the notification.
     """
     assert domain_name not in self._domain_handlers
     self._domain_handlers[domain_name] = notification_handler
@@ -99,38 +75,6 @@ class InspectorWebsocket(object):
   def DispatchNotifications(self, timeout=10):
     self._Receive(timeout)
 
-  def DispatchNotificationsUntilDone(self, timeout):
-    """Dispatch notifications until notification_handler return True.
-
-    Args:
-      timeout: a number that respresents the timeout in seconds.
-
-    Raises:
-      DispatchNotificationsUntilDoneTimeoutException if more than |timeout| has
-      seconds has passed since the last time any data is received or since this
-      function is called, whichever happens later, to when the next attempt to
-      receive data fails due to some WebSocketException.
-    """
-    self._all_data_received = False
-    if timeout < self._cur_socket_timeout:
-      self._SetTimeout(timeout)
-    timeout_start_time = time.time()
-    while self._socket:
-      try:
-        if self._Receive(timeout):
-          timeout_start_time = time.time()
-        if self._all_data_received:
-          break
-      except websocket.WebSocketTimeoutException:
-        # TODO(chrishenry): Since we always call settimeout in
-        # _Receive, we should be able to rip manual logic of tracking
-        # elapsed time and simply throw
-        # DispatchNotificationsUntilDoneTimeoutException from here.
-        pass
-      elapsed_time = time.time() - timeout_start_time
-      if elapsed_time > timeout:
-        raise DispatchNotificationsUntilDoneTimeoutException(elapsed_time)
-
   def _SetTimeout(self, timeout):
     if self._cur_socket_timeout != timeout:
       self._socket.settimeout(timeout)
@@ -138,29 +82,22 @@ class InspectorWebsocket(object):
 
   def _Receive(self, timeout=10):
     self._SetTimeout(timeout)
-    start_time = time.time()
-    try:
-      if self._socket:
-        self._all_data_received = False
-        data = self._socket.recv()
-        result = json.loads(data)
-        if logging.getLogger().isEnabledFor(logging.DEBUG):
-          logging.debug(
-              'got [%s]', json.dumps(result, indent=2, sort_keys=True))
-        if 'method' in result and self._HandleNotification(result):
-          self._all_data_received = True
-          return None
-        return result
-    except (socket.error, websocket.WebSocketException):
-      elapsed_time = time.time() - start_time
-      self._error_handler(elapsed_time)
+    if not self._socket:
+      return None
+    data = self._socket.recv()
+    result = json.loads(data)
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+      logging.debug(
+          'got [%s]', json.dumps(result, indent=2, sort_keys=True))
+    if 'method' in result:
+      self._HandleNotification(result)
+    return result
 
   def _HandleNotification(self, result):
     mname = result['method']
     dot_pos = mname.find('.')
     domain_name = mname[:dot_pos]
     if domain_name in self._domain_handlers:
-      return self._domain_handlers[domain_name](result)
+      self._domain_handlers[domain_name](result)
 
     logging.warn('Unhandled inspector message: %s', result)
-    return False

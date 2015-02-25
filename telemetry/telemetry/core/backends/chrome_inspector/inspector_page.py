@@ -9,6 +9,12 @@ from telemetry.image_processing import image_util
 
 
 class InspectorPage(object):
+  """Class that controls a page connected by an inspector_websocket.
+
+  This class provides utility methods for controlling a page connected by an
+  inspector_websocket. It does not perform any exception handling. All
+  inspector_websocket exceptions must be handled by the caller.
+  """
   def __init__(self, inspector_websocket, timeout=60):
     self._inspector_websocket = inspector_websocket
     self._inspector_websocket.RegisterDomain('Page', self._OnNotification)
@@ -85,15 +91,9 @@ class InspectorPage(object):
     start_time = time.time()
     remaining_time = timeout
     self._navigation_pending = True
-    try:
-      while self._navigation_pending and remaining_time > 0:
-        remaining_time = max(timeout - (time.time() - start_time), 0.0)
-        self._inspector_websocket.DispatchNotifications(remaining_time)
-    except util.TimeoutException:
-      # Since we pass remaining_time to DispatchNotifications, we need to
-      # list the full timeout time in this message.
-      raise util.TimeoutException('Timed out while waiting %ds for navigation. '
-                                  'Error=%s' % (timeout, sys.exc_info()[1]))
+    while self._navigation_pending and remaining_time > 0:
+      remaining_time = max(timeout - (time.time() - start_time), 0.0)
+      self._inspector_websocket.DispatchNotifications(remaining_time)
 
   def Navigate(self, url, script_to_evaluate_on_commit=None, timeout=60):
     """Navigates to |url|.
