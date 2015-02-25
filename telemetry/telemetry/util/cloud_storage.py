@@ -5,6 +5,7 @@
 """Wrappers for gsutil, for basic interaction with Google Cloud Storage."""
 
 import contextlib
+import collections
 import cStringIO
 import hashlib
 import logging
@@ -23,11 +24,13 @@ PARTNER_BUCKET = 'chrome-partner-telemetry'
 INTERNAL_BUCKET = 'chrome-telemetry'
 
 
-BUCKET_ALIASES = {
-    'public': PUBLIC_BUCKET,
-    'partner': PARTNER_BUCKET,
-    'internal': INTERNAL_BUCKET,
-}
+# Uses ordered dict to make sure that bucket's key-value items are ordered from
+# the most open to the most restrictive.
+BUCKET_ALIASES = collections.OrderedDict((
+    ('public', PUBLIC_BUCKET),
+    ('partner', PARTNER_BUCKET),
+    ('internal', INTERNAL_BUCKET),
+))
 
 
 _GSUTIL_URL = 'http://storage.googleapis.com/pub/gsutil.tar.gz'
