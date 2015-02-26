@@ -59,23 +59,27 @@ tv.b.unittest.testSuite(function() {
     var track = new MemoryDumpTrack(new Viewport());
     track.memoryDumps = dumps;
 
+    // Fake a view pixel size.
+    var devicePixelRatio = window.devicePixelRatio || 1;
+    var viewPixWidthWorld = 0.1 / devicePixelRatio;
+
     // Hit outside range
     var selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
-        3, 4, 0.1, selection);
+        3, 4, viewPixWidthWorld, selection);
     assertEquals(0, selection.length);
 
     // Hit the first dump, via pixel-nearness.
     selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
-        19.98, 19.99, 0.1, selection);
+        19.98, 19.99, viewPixWidthWorld, selection);
     assertEquals(1, selection.length);
     assertTrue(selection[0] instanceof tv.c.trace_model.GlobalMemoryDump);
 
     // Hit the instance, between the 1st and 2nd snapshots
     selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
-        30, 50, 0.1, selection);
+        30, 50, viewPixWidthWorld, selection);
     assertEquals(2, selection.length);
     assertTrue(selection[0] instanceof tv.c.trace_model.GlobalMemoryDump);
     assertTrue(selection[1] instanceof tv.c.trace_model.GlobalMemoryDump);
