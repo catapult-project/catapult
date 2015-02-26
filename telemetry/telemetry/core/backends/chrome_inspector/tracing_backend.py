@@ -3,12 +3,9 @@
 # found in the LICENSE file.
 
 import logging
-import socket
-import time
 
 from telemetry import decorators
 from telemetry.core.backends.chrome_inspector import inspector_websocket
-from telemetry.core.backends.chrome_inspector import websocket
 from telemetry.core.platform import tracing_options
 from telemetry.timeline import trace_data as trace_data_module
 
@@ -20,18 +17,14 @@ class TracingUnsupportedException(Exception):
 class TracingTimeoutException(Exception):
   pass
 
-
-class TracingUnrecoverableException(Exception):
-  pass
-
-
 class TracingHasNotRunException(Exception):
   pass
 
 
 class TracingBackend(object):
   def __init__(self, devtools_port):
-    self._inspector_websocket = inspector_websocket.InspectorWebsocket()
+    self._inspector_websocket = inspector_websocket.InspectorWebsocket(
+        self._ErrorHandler)
     self._inspector_websocket.RegisterDomain(
         'Tracing', self._NotificationHandler)
 
@@ -39,7 +32,6 @@ class TracingBackend(object):
         'ws://127.0.0.1:%i/devtools/browser' % devtools_port)
     self._trace_events = []
     self._is_tracing_running = False
-    self._has_received_all_tracing_data = False
 
   @property
   def is_tracing_running(self):
@@ -92,42 +84,23 @@ class TracingBackend(object):
       # After Tracing.end, chrome browser will send asynchronous notifications
       # containing trace data. This is until Tracing.tracingComplete is sent,
       # which means there is no trace buffers pending flush.
-      self._CollectTracingData(timeout)
+      try:
+        self._inspector_websocket.DispatchNotificationsUntilDone(timeout)
+      except \
+          inspector_websocket.DispatchNotificationsUntilDoneTimeoutException \
+          as err:
+        raise TracingTimeoutException(
+            'Trace data was not fully received due to timeout after %s '
+            'seconds. If the trace data is big, you may want to increase the '
+            'time out amount.' % err.elapsed_time)
     self._is_tracing_running = False
     trace_data_builder.AddEventsTo(
       trace_data_module.CHROME_TRACE_PART, self._trace_events)
 
-  def _CollectTracingData(self, timeout):
-    """Collects tracing data. Assumes that Tracing.end has already been sent.
-
-    Args:
-      timeout: The timeout in seconds.
-
-    Raises:
-      TracingTimeoutException: If more than |timeout| seconds has passed
-      since the last time any data is received.
-      TracingUnrecoverableException: If there is a websocket error.
-    """
-    self._has_received_all_tracing_data = False
-    start_time = time.time()
-    while True:
-      try:
-        self._inspector_websocket.DispatchNotifications(timeout)
-        start_time = time.time()
-      except websocket.WebSocketTimeoutException:
-        pass
-      except (socket.error, websocket.WebSocketException):
-        raise TracingUnrecoverableException
-
-      if self._has_received_all_tracing_data:
-        break
-
-      elapsed_time = time.time() - start_time
-      if elapsed_time > timeout:
-        raise TracingTimeoutException(
-            'Only received partial trace data due to timeout after %s seconds. '
-            'If the trace data is big, you may want to increase the timeout '
-            'amount.' % elapsed_time)
+  def _ErrorHandler(self, elapsed):
+    logging.error('Unrecoverable error after %ds reading tracing response.',
+                  elapsed)
+    raise
 
   def _NotificationHandler(self, res):
     if 'Tracing.dataCollected' == res.get('method'):
@@ -139,7 +112,6 @@ class TracingBackend(object):
       else:
         logging.warning('Unexpected type in tracing data')
     elif 'Tracing.tracingComplete' == res.get('method'):
-      self._has_received_all_tracing_data = True
       return True
 
   def Close(self):

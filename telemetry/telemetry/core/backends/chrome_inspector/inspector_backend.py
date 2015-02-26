@@ -4,7 +4,6 @@
 
 import logging
 import os
-import socket
 import sys
 
 from telemetry import decorators
@@ -29,7 +28,7 @@ class InspectorException(Exception):
 
 class InspectorBackend(object):
   def __init__(self, app, devtools_client, context, timeout=60):
-    self._websocket = inspector_websocket.InspectorWebsocket()
+    self._websocket = inspector_websocket.InspectorWebsocket(self._HandleError)
     self._websocket.RegisterDomain(
         'Inspector', self._HandleInspectorDomainNotification)
 
@@ -95,10 +94,7 @@ class InspectorBackend(object):
 
   def Screenshot(self, timeout):
     assert self.screenshot_supported, 'Browser does not support screenshotting'
-    try:
-      return self._page.CaptureScreenshot(timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    return self._page.CaptureScreenshot(timeout)
 
   # Console public methods.
 
@@ -113,10 +109,7 @@ class InspectorBackend(object):
   # Memory public methods.
 
   def GetDOMStats(self, timeout):
-    try:
-      dom_counters = self._memory.GetDOMCounters(timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    dom_counters = self._memory.GetDOMCounters(timeout)
     return {
       'document_count': dom_counters['documents'],
       'node_count': dom_counters['nodes'],
@@ -126,42 +119,24 @@ class InspectorBackend(object):
   # Page public methods.
 
   def WaitForNavigate(self, timeout):
-    try:
-      self._page.WaitForNavigate(timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._page.WaitForNavigate(timeout)
 
   def Navigate(self, url, script_to_evaluate_on_commit, timeout):
-    try:
-      self._page.Navigate(url, script_to_evaluate_on_commit, timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._page.Navigate(url, script_to_evaluate_on_commit, timeout)
 
   def GetCookieByName(self, name, timeout):
-    try:
-      return self._page.GetCookieByName(name, timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    return self._page.GetCookieByName(name, timeout)
 
   # Runtime public methods.
 
   def ExecuteJavaScript(self, expr, context_id=None, timeout=60):
-    try:
-      self._runtime.Execute(expr, context_id, timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._runtime.Execute(expr, context_id, timeout)
 
   def EvaluateJavaScript(self, expr, context_id=None, timeout=60):
-    try:
-      return self._runtime.Evaluate(expr, context_id, timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    return self._runtime.Evaluate(expr, context_id, timeout)
 
   def EnableAllContexts(self):
-    try:
-      return self._runtime.EnableAllContexts()
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    return self._runtime.EnableAllContexts()
 
   # Timeline public methods.
 
@@ -170,18 +145,12 @@ class InspectorBackend(object):
     return self._timeline_model
 
   def StartTimelineRecording(self):
-    try:
-      self._network.timeline_recorder.Start()
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._network.timeline_recorder.Start()
 
   def StopTimelineRecording(self):
     builder = trace_data_module.TraceDataBuilder()
 
-    try:
-      data = self._network.timeline_recorder.Stop()
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    data = self._network.timeline_recorder.Stop()
     if data:
       builder.AddEventsTo(trace_data_module.INSPECTOR_TRACE_PART, data)
     self._timeline_model = timeline_model_module.TimelineModel(
@@ -190,10 +159,7 @@ class InspectorBackend(object):
   # Network public methods.
 
   def ClearCache(self):
-    try:
-      self._network.ClearCache()
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._network.ClearCache()
 
   # Methods used internally by other backends.
 
@@ -205,15 +171,15 @@ class InspectorBackend(object):
     if res['method'] == 'Inspector.targetCrashed':
       raise exceptions.DevtoolsTargetCrashException(self.app)
 
-  def _HandleError(self, error):
+  def _HandleError(self, elapsed_time):
     if self.IsInspectable():
       raise exceptions.DevtoolsTargetCrashException(self.app,
           'Received a socket error in the browser connection and the tab '
           'still exists, assuming it timed out. '
-          'Error=%s' % error)
+          'Elapsed=%ds Error=%s' % (elapsed_time, sys.exc_info()[1]))
     raise exceptions.DevtoolsTargetCrashException(self.app,
         'Received a socket error in the browser connection and the tab no '
-        'longer exists, assuming it crashed. Error=%s' % error)
+        'longer exists, assuming it crashed. Error=%s' % sys.exc_info()[1])
 
   def _WaitForInspectorToGoAwayAndReconnect(self):
     sys.stderr.write('The connection to Chrome was lost to the Inspector UI.\n')
@@ -236,10 +202,7 @@ class InspectorBackend(object):
     sys.stderr.write('Inspector\'s UI closed. Telemetry will now resume.\n')
 
   def CollectGarbage(self):
-    try:
-      self._page.CollectGarbage()
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._page.CollectGarbage()
 
   def TakeJSHeapSnapshot(self, timeout=120):
     snapshot = []
@@ -248,16 +211,12 @@ class InspectorBackend(object):
       if res['method'] == 'HeapProfiler.addHeapSnapshotChunk':
         snapshot.append(res['params']['chunk'])
 
-    try:
-      self._websocket.RegisterDomain('HeapProfiler', OnNotification)
+    self._websocket.RegisterDomain('HeapProfiler', OnNotification)
 
-      self._websocket.SyncRequest({'method': 'Page.getResourceTree'}, timeout)
-      self._websocket.SyncRequest({'method': 'Debugger.enable'}, timeout)
-      self._websocket.SyncRequest(
-          {'method': 'HeapProfiler.takeHeapSnapshot'}, timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
-
+    self._websocket.SyncRequest({'method': 'Page.getResourceTree'}, timeout)
+    self._websocket.SyncRequest({'method': 'Debugger.enable'}, timeout)
+    self._websocket.SyncRequest(
+        {'method': 'HeapProfiler.takeHeapSnapshot'}, timeout)
     snapshot = ''.join(snapshot)
 
     self.UnregisterDomain('HeapProfiler')
