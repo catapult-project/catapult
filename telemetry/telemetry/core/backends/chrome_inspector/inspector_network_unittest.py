@@ -28,7 +28,7 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
     return self._tab.timeline_model.GetAllEventsOfName('HTTPResponse')
 
   # crbug.com/449979, crbug.com/452279, crbug.com/455269
-  @decorators.Disabled('mac', 'android', 'win')
+  @decorators.Disabled('mac', 'android', 'win', 'linux')
   def testHTTPResponseTimelineRecorder(self):
     tests = {
         'blank.html': InspectorNetworkTabTest.TestCase(responses_count=1),
