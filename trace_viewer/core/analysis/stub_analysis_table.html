@@ -27,7 +27,7 @@ tv.exportTo('tv.c.analysis', function() {
               node.tagName == 'TBODY') {
         node.__proto__ = StubAnalysisTable.prototype;
         node.nodes_ = [];
-        this.ownerDocument_ = document;
+        node.ownerDocument_ = document;
       }
       this.nodes_.push(node);
     },
