@@ -227,7 +227,7 @@ class FindDependenciesCommand(command_line.OptparseCommand):
   """Prints all dependencies"""
 
   @classmethod
-  def AddCommandLineArgs(cls, parser, _):
+  def AddCommandLineArgs(cls, parser):
     parser.add_option(
         '-v', '--verbose', action='count', dest='verbosity',
         help='Increase verbosity level (repeat as needed).')
@@ -245,7 +245,7 @@ class FindDependenciesCommand(command_line.OptparseCommand):
         help='Store files in a zip archive at ZIP.')
 
   @classmethod
-  def ProcessCommandLineArgs(cls, parser, args, _):
+  def ProcessCommandLineArgs(cls, parser, args):
     if args.verbosity >= 2:
       logging.getLogger().setLevel(logging.DEBUG)
     elif args.verbosity:

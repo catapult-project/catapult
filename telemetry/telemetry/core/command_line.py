@@ -64,16 +64,6 @@ class OptparseCommand(Command):
     return optparse.OptionParser('%%prog %s %s' % (cls.Name(), cls.usage),
                                  description=cls.Description())
 
-  @classmethod
-  def AddCommandLineArgs(cls, parser, environment):
-    # pylint: disable=arguments-differ
-    pass
-
-  @classmethod
-  def ProcessCommandLineArgs(cls, parser, args, environment):
-    # pylint: disable=arguments-differ
-    pass
-
   def Run(self, args):
     raise NotImplementedError()
 

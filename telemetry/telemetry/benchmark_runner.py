@@ -19,42 +19,9 @@ from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import discover
+from telemetry.core import environment
 from telemetry.core import util
 from telemetry.util import find_dependencies
-
-
-class Environment(object):
-  """Contains information about the benchmark runtime environment.
-
-  Attributes:
-    top_level_dir: A dir that contains benchmark, page test, and/or user story
-        set dirs and associated artifacts.
-    benchmark_dirs: A list of dirs containing benchmarks.
-    benchmark_aliases: A dict of name:alias string pairs to be matched against
-        exactly during benchmark selection.
-  """
-  def __init__(self, top_level_dir, benchmark_dirs=None,
-               benchmark_aliases=None):
-    self._top_level_dir = top_level_dir
-    self._benchmark_dirs = benchmark_dirs or []
-    self._benchmark_aliases = benchmark_aliases or dict()
-
-    if benchmark_aliases:
-      self._benchmark_aliases = benchmark_aliases
-    else:
-      self._benchmark_aliases = {}
-
-  @property
-  def top_level_dir(self):
-    return self._top_level_dir
-
-  @property
-  def benchmark_dirs(self):
-    return self._benchmark_dirs
-
-  @property
-  def benchmark_aliases(self):
-    return self._benchmark_aliases
 
 
 class Help(command_line.OptparseCommand):
@@ -94,17 +61,17 @@ class List(command_line.OptparseCommand):
     return parser
 
   @classmethod
-  def AddCommandLineArgs(cls, parser, _):
+  def AddCommandLineArgs(cls, parser):
     parser.add_option('-j', '--json-output-file', type='string')
     parser.add_option('-n', '--num-shards', type='int', default=1)
 
   @classmethod
-  def ProcessCommandLineArgs(cls, parser, args, environment):
+  def ProcessCommandLineArgs(cls, parser, args):
     if not args.positional_args:
-      args.benchmarks = _Benchmarks(environment)
+      args.benchmarks = _Benchmarks()
     elif len(args.positional_args) == 1:
       args.benchmarks = _MatchBenchmarkName(args.positional_args[0],
-                                            environment, exact_matches=False)
+                                            exact_matches=False)
     else:
       parser.error('Must provide at most one benchmark name.')
 
@@ -138,13 +105,13 @@ class Run(command_line.OptparseCommand):
     return parser
 
   @classmethod
-  def AddCommandLineArgs(cls, parser, environment):
+  def AddCommandLineArgs(cls, parser):
     benchmark.AddCommandLineArgs(parser)
 
     # Allow benchmarks to add their own command line options.
     matching_benchmarks = []
     for arg in sys.argv[1:]:
-      matching_benchmarks += _MatchBenchmarkName(arg, environment)
+      matching_benchmarks += _MatchBenchmarkName(arg)
 
     if matching_benchmarks:
       # TODO(dtu): After move to argparse, add command-line args for all
@@ -156,19 +123,19 @@ class Run(command_line.OptparseCommand):
       matching_benchmark.SetArgumentDefaults(parser)
 
   @classmethod
-  def ProcessCommandLineArgs(cls, parser, args, environment):
+  def ProcessCommandLineArgs(cls, parser, args):
     if not args.positional_args:
       possible_browser = (
           browser_finder.FindBrowser(args) if args.browser_type else None)
-      _PrintBenchmarkList(_Benchmarks(environment), possible_browser)
+      _PrintBenchmarkList(_Benchmarks(), possible_browser, sys.stderr)
       sys.exit(-1)
 
     input_benchmark_name = args.positional_args[0]
-    matching_benchmarks = _MatchBenchmarkName(input_benchmark_name, environment)
+    matching_benchmarks = _MatchBenchmarkName(input_benchmark_name)
     if not matching_benchmarks:
       print >> sys.stderr, 'No benchmark named "%s".' % input_benchmark_name
       print >> sys.stderr
-      _PrintBenchmarkList(_Benchmarks(environment), None, sys.stderr)
+      _PrintBenchmarkList(_Benchmarks(), None, sys.stderr)
       sys.exit(-1)
 
     if len(matching_benchmarks) > 1:
@@ -213,16 +180,15 @@ def _MatchingCommands(string):
          if command.Name().startswith(string)]
 
 @decorators.Cache
-def _Benchmarks(environment):
+def _Benchmarks():
   benchmarks = []
-  for search_dir in environment.benchmark_dirs:
-    benchmarks += discover.DiscoverClasses(search_dir,
-                                           environment.top_level_dir,
+  for base_dir in config.base_paths:
+    benchmarks += discover.DiscoverClasses(base_dir, base_dir,
                                            benchmark.Benchmark,
                                            index_by_class_name=True).values()
   return benchmarks
 
-def _MatchBenchmarkName(input_benchmark_name, environment, exact_matches=True):
+def _MatchBenchmarkName(input_benchmark_name, exact_matches=True):
   def _Matches(input_string, search_string):
     if search_string.startswith(input_string):
       return True
@@ -234,18 +200,18 @@ def _MatchBenchmarkName(input_benchmark_name, environment, exact_matches=True):
   # Exact matching.
   if exact_matches:
     # Don't add aliases to search dict, only allow exact matching for them.
-    if input_benchmark_name in environment.benchmark_aliases:
-      exact_match = environment.benchmark_aliases[input_benchmark_name]
+    if input_benchmark_name in config.benchmark_aliases:
+      exact_match = config.benchmark_aliases[input_benchmark_name]
     else:
       exact_match = input_benchmark_name
 
-    for benchmark_class in _Benchmarks(environment):
+    for benchmark_class in _Benchmarks():
       if exact_match == benchmark_class.Name():
         return [benchmark_class]
     return []
 
   # Fuzzy matching.
-  return [benchmark_class for benchmark_class in _Benchmarks(environment)
+  return [benchmark_class for benchmark_class in _Benchmarks()
           if _Matches(input_benchmark_name, benchmark_class.Name())]
 
 
@@ -344,7 +310,10 @@ def _PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
     print >> output_pipe
 
 
-def main(environment):
+config = environment.Environment([util.GetBaseDir()])
+
+
+def main():
   # Get the command name from the command line.
   if len(sys.argv) > 1 and sys.argv[1] == '--help':
     sys.argv[1] = 'help'
@@ -371,10 +340,10 @@ def main(environment):
 
   # Parse and run the command.
   parser = command.CreateParser()
-  command.AddCommandLineArgs(parser, environment)
+  command.AddCommandLineArgs(parser)
   options, args = parser.parse_args()
   if commands:
     args = args[1:]
   options.positional_args = args
-  command.ProcessCommandLineArgs(parser, options, environment)
+  command.ProcessCommandLineArgs(parser, options)
   return command().Run(options)
