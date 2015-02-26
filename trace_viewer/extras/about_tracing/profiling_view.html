@@ -409,9 +409,11 @@ tv.exportTo('tv.e.about_tracing', function() {
       var controlRe = /[\x00-\x1f\x80-\x9f]/g;
       var reservedRe = /^\.+$/;
 
+      var filename;
       var defaultName = this.activeTrace_.filename;
       var custom = prompt('Filename? (.json appended) Or leave blank:');
-      var filename;
+      if (custom === null)
+        return false;
 
       if (custom) {
         filename = defaultName.replace(/\.json$/, ' ' + custom) + '.json';
@@ -439,7 +441,8 @@ tv.exportTo('tv.e.about_tracing', function() {
       var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
       link.href = blobUrl;
       link.download = this.requestFilename_();
-      link.click();
+      if (link.download)
+        link.click();
     },
 
     onUploadClicked_: function() {
