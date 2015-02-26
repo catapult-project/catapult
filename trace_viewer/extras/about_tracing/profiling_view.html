@@ -402,6 +402,33 @@ tv.exportTo('tv.e.about_tracing', function() {
       this.uploadOverlay_ = null;
     },
 
+    requestFilename_: function() {
+
+      // unsafe filename patterns:
+      var illegalRe = /[\/\?<>\\:\*\|":]/g;
+      var controlRe = /[\x00-\x1f\x80-\x9f]/g;
+      var reservedRe = /^\.+$/;
+
+      var defaultName = this.activeTrace_.filename;
+      var custom = prompt('Filename? (.json appended) Or leave blank:');
+      var filename;
+
+      if (custom) {
+        filename = defaultName.replace(/\.json$/, ' ' + custom) + '.json';
+      }
+      else {
+        var date = new Date();
+        var dateText = ' ' + date.toDateString() +
+                       ' ' + date.toLocaleTimeString();
+        filename = defaultName.replace(/\.json$/, dateText + '.json');
+      }
+
+      return filename
+              .replace(illegalRe, '.')
+              .replace(controlRe, '•')
+              .replace(reservedRe, '');
+    },
+
     onSaveClicked_: function() {
       // Create a blob URL from the binary array.
       var blob = new Blob([this.activeTrace_.data],
@@ -411,7 +438,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       // Create a link and click on it. BEST API EVAR!
       var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
       link.href = blobUrl;
-      link.download = this.activeTrace_.filename;
+      link.download = this.requestFilename_();
       link.click();
     },
 
