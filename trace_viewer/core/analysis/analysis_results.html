@@ -228,24 +228,30 @@ tv.exportTo('tv.c.analysis', function() {
      * the third.
      *
      * @param {object=} opt_statistics May be undefined, or an object which
-     *          contains calculated staistics containing min/max/avg for slices,
-     *          or min/max/avg/start/end for counters.
+     *          contains calculated statistics containing min/max/avg for
+     *          slices, or min/max/avg/start/end for counters.
      */
     appendDetailsRow: function(table, start, duration, selfTime, args,
-        opt_selectionGenerator, opt_cpuDuration) {
-      var row = this.appendBodyRow(table);
-
-      if (opt_selectionGenerator) {
-        var labelEl = this.appendTableCell(table, row,
-                                           tv.c.analysis.tsRound(start));
-        labelEl.textContent = '';
-        labelEl.appendChild(this.createSelectionChangingLink(
-                                    tv.c.analysis.tsRound(start),
-                                    opt_selectionGenerator, ''));
-      } else {
-        this.appendTableCell(table, row, tv.c.analysis.tsRound(start));
+        opt_selectionGenerator, opt_cpuDuration, opt_inFoot) {
+      if (opt_inFoot) {
+        // If inFoot is true, then we're reporting Totals.
+        var row = this.appendFootRow(table);
+        this.appendTableCell(table, row, 'Totals');
       }
+      else {
+        var row = this.appendBodyRow(table);
 
+        if (opt_selectionGenerator) {
+          var labelEl = this.appendTableCell(table, row,
+                                             tv.c.analysis.tsRound(start));
+          labelEl.textContent = '';
+          labelEl.appendChild(this.createSelectionChangingLink(
+                                      tv.c.analysis.tsRound(start),
+                                      opt_selectionGenerator, ''));
+        } else {
+          this.appendTableCell(table, row, tv.c.analysis.tsRound(start));
+        }
+      }
       if (duration !== null)
         this.appendTableCell(table, row, tv.c.analysis.tsRound(duration));
 
@@ -284,7 +290,7 @@ tv.exportTo('tv.c.analysis', function() {
      * |occurrences| in the third.
      *
      * @param {object=} opt_statistics May be undefined, or an object which
-     *          contains calculated staistics containing min/max/avg for slices,
+     *          contains calculated statistics containing min/max/avg for slices,
      *          or min/max/avg/start/end for counters.
      */
     appendDataRow: function(table, label, opt_duration, opt_cpuDuration,
