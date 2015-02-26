@@ -21,6 +21,7 @@ tv.b.unittest.testSuite(function() {
   var StubAnalysisResults = tv.c.analysis.StubAnalysisResults;
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
   var newSliceCategory = tv.c.test_utils.newSliceCategory;
+  var Slice = tv.c.trace_model.Slice;
 
   var createSelectionWithTwoSlices = function() {
     var model = new Model();
@@ -54,7 +55,90 @@ tv.b.unittest.testSuite(function() {
     return selection;
   };
 
-    test('instantiate_withMultipleSlices', function() {
+  var createSelectionWithOneArg = function() {
+    var model = new Model();
+    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.0, {'arg1': 3.14}, 0.04));
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.12, {'arg1': 6.28}, 0.06));
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new Selection();
+    selection.push(t53.sliceGroup.slices[0]);
+    selection.push(t53.sliceGroup.slices[1]);
+
+    return selection;
+  };
+
+  var createSelectionWithOneNumberOneTextArg = function() {
+    var model = new Model();
+    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.0,
+        {'arg1': 3.14, 'arg2': 'text1'}, 0.04));
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.12,
+        {'arg1': 6.28, 'arg2': 'text2'}, 0.06));
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new Selection();
+    selection.push(t53.sliceGroup.slices[0]);
+    selection.push(t53.sliceGroup.slices[1]);
+
+    return selection;
+  };
+
+  var createSelectionWithTwoNumberArgs = function() {
+    var model = new Model();
+    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.0,
+        {'arg1': 3.14, 'arg2': 200.0}, 0.04));
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.12,
+        {'arg1': 6.28, 'arg2': 100.0}, 0.06));
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new Selection();
+    selection.push(t53.sliceGroup.slices[0]);
+    selection.push(t53.sliceGroup.slices[1]);
+
+    return selection;
+  };
+
+  var createSelectionWithMismatchedArgs = function() {
+    var model = new Model();
+    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    // Two numbers
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.0,
+        {'arg1': 3.14, 'arg2': 200.0}, 0.04));
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.12,
+        {'arg1': 6.28, 'arg2': 100.0}, 0.06));
+    // One number, missing arg1.
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.14,
+        {'arg2': 50.0}, 0.08));
+    // One number, arg2 is not numeric.
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.17,
+        {'arg1': 1.0, 'arg2': 'text'}, 0.1));
+    // Missing both args.
+    t53.sliceGroup.pushSlice(new Slice('', 'c', 0, 0.19,
+        {}, 0.12));
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new Selection();
+    selection.push(t53.sliceGroup.slices[0]);
+    selection.push(t53.sliceGroup.slices[1]);
+    selection.push(t53.sliceGroup.slices[2]);
+    selection.push(t53.sliceGroup.slices[3]);
+    selection.push(t53.sliceGroup.slices[4]);
+
+    return selection;
+  };
+
+  test('instantiate_withMultipleSlices', function() {
     var selection = createSelectionWithTwoSlices();
 
     var analysisEl = new TracingAnalysisView();
@@ -70,6 +154,37 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(analysisEl);
   });
 
+  test('instantiate_withMultipleSlicesOneArg', function() {
+    var selection = createSelectionWithOneArg();
+
+    var analysisEl = new TracingAnalysisView();
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  test('instantiate_withMultipleSlicesOneNumberOneTextArg', function() {
+    var selection = createSelectionWithOneNumberOneTextArg();
+
+    var analysisEl = new TracingAnalysisView();
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  test('instantiate_withMultipleSlicesTwoNumberArgs', function() {
+    var selection = createSelectionWithTwoNumberArgs();
+
+    var analysisEl = new TracingAnalysisView();
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  test('instantiate_withMultipleSlicesMismatchedArgs', function() {
+    var selection = createSelectionWithMismatchedArgs();
+
+    var analysisEl = new TracingAnalysisView();
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
 
   test('analyzeSelectionWithTwoSlices', function() {
     var selection = createSelectionWithTwoSlices();
@@ -152,6 +267,84 @@ tv.b.unittest.testSuite(function() {
           args: {}
         },
         t.rows[1]);
+    assertObjectEquals(
+        { duration: 0.1,
+          selfTime: 0.1,
+          args: {}
+        },
+        t.rows[2]);
+  });
+
+  test('analyzeSelectionTotalWithOneArg', function() {
+    var selection = createSelectionWithOneArg();
+
+    var sliceView = document.createElement('tv-c-multi-slice-sub-view');
+    var results = new StubAnalysisResults();
+    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
+    assertEquals(2, results.tables.length);
+
+    var t = results.tables[1];
+
+    assertObjectEquals(
+        { duration: 0.1,
+          selfTime: 0.1,
+          args: { 'arg1': 9.42 }
+        },
+        t.rows[2]);
+  });
+
+  test('analyzeSelectionTotalWithOneNumberOneTextArg', function() {
+    var selection = createSelectionWithOneNumberOneTextArg();
+
+    var sliceView = document.createElement('tv-c-multi-slice-sub-view');
+    var results = new StubAnalysisResults();
+    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
+    assertEquals(2, results.tables.length);
+
+    var t = results.tables[1];
+
+    assertObjectEquals(
+        { duration: 0.1,
+          selfTime: 0.1,
+          args: { 'arg1': 9.42 }
+        },
+        t.rows[2]);
+  });
+
+  test('analyzeSelectionTotalWithTwoNumberArgs', function() {
+    var selection = createSelectionWithTwoNumberArgs();
+
+    var sliceView = document.createElement('tv-c-multi-slice-sub-view');
+    var results = new StubAnalysisResults();
+    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
+    assertEquals(2, results.tables.length);
+
+    var t = results.tables[1];
+
+    assertObjectEquals(
+        { duration: 0.1,
+          selfTime: 0.1,
+          args: { 'arg1': 9.42, 'arg2': 300.0 }
+        },
+        t.rows[2]);
+  });
+
+  test('analyzeSelectionTotalWithMismatchedArgs', function() {
+    var selection = createSelectionWithMismatchedArgs();
+
+    var sliceView = document.createElement('tv-c-multi-slice-sub-view');
+    var results = new StubAnalysisResults();
+    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
+    assertEquals(2, results.tables.length);
+
+    var t = results.tables[1];
+
+    assertObjectEquals(
+        { duration: 0.4,
+          selfTime: 0.4,
+          args: { 'arg1': 10.42, 'arg2': 350.0 }
+        },
+        t.rows[5]);
   });
 });
 </script>

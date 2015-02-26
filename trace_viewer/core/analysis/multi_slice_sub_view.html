@@ -86,16 +86,40 @@ found in the LICENSE file.
       results.appendTableCell(table, row, 'Args');
 
       var numSlices = 0;
+      var totalArg = {};
+      var totalDuration = 0;
+      var totalSelfTime = 0;
+      var totalCpuDuration = 0;
       tv.b.iterItems(sliceGroup, function(title, slice) {
         numSlices++;
         results.appendDetailsRow(table, slice.start, slice.duration,
             slice.selfTime ? slice.selfTime : slice.duration, slice.args,
             function() {
               return new tv.c.Selection([slice]);
-            }, slice.cpuDuration);
+            }, slice.cpuDuration, false);
+
+        // Track numeric totals to report at the foot.
+        totalDuration += slice.duration;
+        totalSelfTime += slice.selfTime ? slice.selfTime : slice.duration;
+        if (hasCpuDuration)
+          totalCpuDuration += slice.cpuDuration;
+        for (var argName in slice.args) {
+          var argVal = slice.args[argName];
+          var type = (typeof argVal);
+          if (type == 'number') {
+            if (totalArg[argName] == null)
+              totalArg[argName] = 0;
+            totalArg[argName] += argVal;
+          }
+        }
+
       });
-      if (numSlices > 1)
+      if (numSlices > 1) {
+        results.appendDetailsRow(table, undefined, totalDuration, totalSelfTime,
+            totalArg, undefined, hasCpuDuration ? totalCpuDuration : undefined,
+            true);
         tv.b.ui.SortableTable.decorate(table);
+      }
     },
 
     analyzeMultipleSlices_: function(results, slices) {
