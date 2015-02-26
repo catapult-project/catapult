@@ -127,7 +127,8 @@ class Module(object):
     return self.resource.absolute_path
 
   def isComponent(self):
-    return "/third_party/components/" in self.filename
+    ref = os.path.join('third_party', 'components')
+    return ref in self.filename
 
   def Parse(self):
     """Parses self.contents and fills in the module's dependency metadata."""
