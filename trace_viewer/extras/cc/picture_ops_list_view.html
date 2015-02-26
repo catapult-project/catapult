@@ -92,6 +92,7 @@ tv.exportTo('tv.e.cc', function() {
 
         // Display the Skia params.
         // FIXME: now that we have structured data, we should format it.
+        // (https://github.com/google/trace-viewer/issues/782)
         if (op.info.length > 0) {
           var infoItem = document.createElement('div');
           infoItem.textContent = JSON.stringify(op.info);
