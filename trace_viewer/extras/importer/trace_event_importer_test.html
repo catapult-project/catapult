@@ -1523,6 +1523,39 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertUndefined(subSliceInstant.subSlices);
   });
 
+  test('nestableAsyncSameIDDifferentCategory', function() {
+    // Events with the same ID, but different categories should not be
+    // considered as nested.
+    var events = [
+      {name: 'EVENT_A', args: {}, pid: 52, ts: 500, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'EVENT_B', args: {y: 2}, pid: 52, ts: 550, cat: 'bar', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'EVENT_B', args: {}, pid: 52, ts: 600, cat: 'bar', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'EVENT_A', args: {x: 1}, pid: 52, ts: 650, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tv.c.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    assertEquals(2, t.asyncSliceGroup.slices.length);
+    var eventASlice = t.asyncSliceGroup.slices[0];
+    assertEquals('EVENT_A', eventASlice.title);
+    assertEquals('foo', eventASlice.category);
+    assertEquals('foo:72', eventASlice.id);
+    assertEquals(1, eventASlice.args['x']);
+    assertUndefined(eventASlice.subSlices);
+
+    var eventBSlice = t.asyncSliceGroup.slices[1];
+    assertEquals('EVENT_B', eventBSlice.title);
+    assertEquals('bar', eventBSlice.category);
+    assertEquals('bar:72', eventBSlice.id);
+    assertEquals(2, eventBSlice.args['y']);
+    assertUndefined(eventBSlice.subSlices);
+  });
+
   test('importSamples', function() {
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},

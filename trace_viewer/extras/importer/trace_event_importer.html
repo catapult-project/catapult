@@ -677,7 +677,7 @@ tv.exportTo('tv.e.importer', function() {
       var legacyEvents = [];
       // Group nestable async events by ID. Events with the same ID should
       // belong to the same parent async event.
-      var nestableAsyncEventsByID = {};
+      var nestableAsyncEventsByKey = {};
       for (var i = 0; i < this.allAsyncEvents_.length; i++) {
         var asyncEventState = this.allAsyncEvents_[i];
         var event = asyncEventState.event;
@@ -686,6 +686,15 @@ tv.exportTo('tv.e.importer', function() {
           legacyEvents.push(asyncEventState);
           continue;
         }
+        if (event.cat === undefined) {
+          this.model_.importWarning({
+            type: 'async_slice_parse_error',
+            message: 'Nestable async events (ph: b, e, or n) require a ' +
+                'cat parameter.'
+          });
+          continue;
+        }
+
         if (event.name === undefined) {
           this.model_.importWarning({
             type: 'async_slice_parse_error',
@@ -695,8 +704,7 @@ tv.exportTo('tv.e.importer', function() {
           continue;
         }
 
-        var id = event.id;
-        if (id === undefined) {
+        if (event.id === undefined) {
           this.model_.importWarning({
             type: 'async_slice_parse_error',
             message: 'Nestable async events (ph: b, e, or n) require an ' +
@@ -704,16 +712,17 @@ tv.exportTo('tv.e.importer', function() {
           });
           continue;
         }
-        if (nestableAsyncEventsByID[id] === undefined)
-           nestableAsyncEventsByID[id] = [];
-        nestableAsyncEventsByID[id].push(asyncEventState);
+        var key = event.cat + ':' + event.id;
+        if (nestableAsyncEventsByKey[key] === undefined)
+           nestableAsyncEventsByKey[key] = [];
+        nestableAsyncEventsByKey[key].push(asyncEventState);
       }
       // Handle legacy async events.
       this.createLegacyAsyncSlices_(legacyEvents);
 
       // Parse nestable async events into AsyncSlices.
-      for (var id in nestableAsyncEventsByID) {
-        var eventStateEntries = nestableAsyncEventsByID[id];
+      for (var key in nestableAsyncEventsByKey) {
+        var eventStateEntries = nestableAsyncEventsByKey[key];
         // Stack of enclosing BEGIN events.
         var parentStack = [];
         for (var i = 0; i < eventStateEntries.length; ++i) {
@@ -825,7 +834,7 @@ tv.exportTo('tv.e.importer', function() {
 
           slice.startThread = startState.thread;
           slice.endThread = endState.thread;
-          slice.id = id;
+          slice.id = key;
           if (sliceError !== undefined)
             slice.error = sliceError;
           eventStateEntry.slice = slice;
