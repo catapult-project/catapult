@@ -17,7 +17,7 @@ class UserStorySet(object):
   """
 
   def __init__(self, archive_data_file='', cloud_storage_bucket=None,
-               serving_dirs=None):
+               base_dir=None, serving_dirs=None):
     """Creates a new UserStorySet.
 
     Args:
@@ -33,10 +33,20 @@ class UserStorySet(object):
     self._wpr_archive_info = None
     archive_info.AssertValidCloudStorageBucket(cloud_storage_bucket)
     self._cloud_storage_bucket = cloud_storage_bucket
-    self._base_dir = os.path.dirname(inspect.getfile(self.__class__))
+    if base_dir:
+      if not os.path.isdir(base_dir):
+        raise ValueError('Must provide valid directory path for base_dir.')
+      self._base_dir = base_dir
+    else:
+      self._base_dir = os.path.dirname(inspect.getfile(self.__class__))
     # Convert any relative serving_dirs to absolute paths.
     self._serving_dirs = set(os.path.realpath(os.path.join(self.base_dir, d))
                              for d in serving_dirs or [])
+
+
+  @property
+  def file_path(self):
+    return inspect.getfile(self.__class__).replace('.pyc', '.py')
 
   @property
   def base_dir(self):

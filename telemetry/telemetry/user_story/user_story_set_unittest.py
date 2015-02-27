@@ -43,6 +43,11 @@ class UserStorySetTest(unittest.TestCase):
     self.assertTrue(os.path.isdir(base_dir))
     self.assertEqual(base_dir, os.path.dirname(__file__))
 
+  def testFilePath(self):
+      uss = UserStorySetFoo()
+      self.assertEqual(os.path.abspath(__file__).replace('.pyc', '.py'),
+                       uss.file_path)
+
   def testCloudBucket(self):
     blank_uss = user_story_set.UserStorySet()
     self.assertEqual(blank_uss.bucket, None)

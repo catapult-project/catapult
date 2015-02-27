@@ -24,19 +24,16 @@ class PageSet(user_story_set.UserStorySet):
                serving_dirs=None, bucket=None):
     # The default value of file_path is location of the file that define this
     # page set instance's class.
-    # TODO(chrishenry): Move this logic to user_story_set. Consider passing
-    # a base_dir directly. Alternatively, kill this and rely on the default
-    # behavior of using the instance's class file location.
-    if file_path is None:
-      file_path = inspect.getfile(self.__class__)
-      # Turn pyc file into py files if we can
-      if file_path.endswith('.pyc') and os.path.exists(file_path[:-1]):
-        file_path = file_path[:-1]
-    self.file_path = file_path
+    # TODO(aiolos): When migrating page_sets over to user_story_sets, make
+    # sure that we are passing a valid directory path in to base_dir, and not
+    # a file path like we curerntly do in some cases for file_path.
+    dir_name = file_path
+    if file_path and os.path.isfile(file_path):
+      dir_name = os.path.dirname(file_path)
 
     super(PageSet, self).__init__(
         archive_data_file=archive_data_file, cloud_storage_bucket=bucket,
-        serving_dirs=serving_dirs)
+        base_dir=dir_name, serving_dirs=serving_dirs)
 
     # These attributes can be set dynamically by the page set.
     self.user_agent_type = user_agent_type
@@ -49,10 +46,3 @@ class PageSet(user_story_set.UserStorySet):
     assert isinstance(user_story, page_module.Page)
     assert user_story.page_set is self
     super(PageSet, self).AddUserStory(user_story)
-
-  @property
-  def base_dir(self):
-    if os.path.isfile(self.file_path):
-      return os.path.dirname(self.file_path)
-    else:
-      return self.file_path

@@ -86,10 +86,10 @@ class PageSetSmokeTest(unittest.TestCase):
                        page, page_set.file_path)))
 
   def CheckAttributesOfPageSetBasicAttributes(self, page_set):
-    if page_set.file_path is not None:
+    if page_set.base_dir is not None:
       self.assertTrue(
-          isinstance(page_set.file_path, str),
-          msg='page_set %\'s file_path must have type string')
+          isinstance(page_set.base_dir, str),
+          msg='page_set %\'s base_dir must have type string')
 
     self.assertTrue(
         isinstance(page_set.archive_data_file, str),
