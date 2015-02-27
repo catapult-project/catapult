@@ -369,7 +369,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         try:
           util.WaitFor(lambda: not self.IsBrowserRunning(), timeout=5)
           logging.info('Successfully shut down browser cooperatively')
-        except util.TimeoutException as e:
+        except exceptions.TimeoutException as e:
           logging.warning('Failed to cooperatively shutdown. ' +
                           'Proceeding to terminate: ' + str(e))
 
@@ -385,7 +385,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       try:
         util.WaitFor(lambda: not self.IsBrowserRunning(), timeout=5)
         self._proc = None
-      except util.TimeoutException:
+      except exceptions.TimeoutException:
         logging.warning('Failed to gracefully shutdown. Proceeding to kill.')
 
     # Shutdown aggressively if the above failed or if the profile is temporary.

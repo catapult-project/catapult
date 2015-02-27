@@ -143,7 +143,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         else:
           self.oobe.NavigateFakeLogin(self._username, self._password)
         self._WaitForLogin()
-      except util.TimeoutException:
+      except exceptions.TimeoutException:
         self._cri.TakeScreenShot('login-screen')
         raise exceptions.LoginException('Timed out going through login screen')
 

@@ -12,6 +12,7 @@ import subprocess
 import sys
 import urllib
 
+from telemetry.core import exceptions
 from telemetry.core import util
 
 _REPLAY_DIR = os.path.join(
@@ -203,7 +204,7 @@ class ReplayServer(object):
           self._started_ports['https'],
           self._started_ports.get('dns'),  # None if unused
           )
-    except util.TimeoutException:
+    except exceptions.TimeoutException:
       raise ReplayNotStartedError(
           'Web Page Replay failed to start. Log output:\n%s' %
           ''.join(self._LogLines()))
@@ -223,7 +224,7 @@ class ReplayServer(object):
 
     try:
       util.WaitFor(lambda: self.replay_process.poll() is not None, 10)
-    except util.TimeoutException:
+    except exceptions.TimeoutException:
       try:
         # Use a SIGINT so that it can do graceful cleanup.
         self.replay_process.send_signal(signal.SIGINT)

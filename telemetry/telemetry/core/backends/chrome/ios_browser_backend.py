@@ -8,6 +8,7 @@ import logging
 import re
 import urllib2
 
+from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core.backends.chrome import system_info_backend
@@ -90,7 +91,7 @@ class IosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         # Retry a few times since it can take a few seconds for this API to be
         # ready, if ios_webkit_debug_proxy is just launched.
         data = util.WaitFor(GetData, 5)
-      except util.TimeoutException as e:
+      except exceptions.TimeoutException as e:
         logging.debug('Timeout retrieving data from iOS device')
         logging.debug(e)
         return []

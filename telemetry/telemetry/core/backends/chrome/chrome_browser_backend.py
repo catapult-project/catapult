@@ -189,7 +189,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     """ Wait for browser to come up. """
     try:
       util.WaitFor(self.HasBrowserFinishedLaunching, timeout=30)
-    except (util.TimeoutException, exceptions.ProcessGoneException) as e:
+    except (exceptions.TimeoutException, exceptions.ProcessGoneException) as e:
       if not self.IsBrowserRunning():
         raise exceptions.BrowserGoneException(self.browser, e)
       raise exceptions.BrowserConnectionGoneException(self.browser, e)
@@ -204,7 +204,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         'Waiting for extensions required devtool client to be initiated first')
     try:
       util.WaitFor(self._AllExtensionsLoaded, timeout=60)
-    except util.TimeoutException:
+    except exceptions.TimeoutException:
       logging.error('ExtensionsToLoad: ' +
           repr([e.extension_id for e in self._extensions_to_load]))
       logging.error('Extension list: ' +

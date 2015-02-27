@@ -4,6 +4,7 @@
 
 import os
 
+from telemetry.core import exceptions
 from telemetry.core import util
 
 DEFAULT_WEB_CONTENTS_TIMEOUT = 90
@@ -43,16 +44,16 @@ class WebContents(object):
     def IsJavaScriptExpressionTrue():
       try:
         return bool(self.EvaluateJavaScript(expr))
-      except util.TimeoutException:
+      except exceptions.TimeoutException:
         # If the main thread is busy for longer than Evaluate's timeout, we
         # may time out here early. Instead, we want to wait for the full
         # timeout of this method.
         return False
     try:
       util.WaitFor(IsJavaScriptExpressionTrue, timeout)
-    except util.TimeoutException as e:
+    except exceptions.TimeoutException as e:
       # Try to make timeouts a little more actionable by dumping |this|.
-      raise util.TimeoutException(e.message + self.EvaluateJavaScript("""
+      raise exceptions.TimeoutException(e.message + self.EvaluateJavaScript("""
         (function() {
           var error = '\\n\\nJavaScript |this|:\\n';
           for (name in this) {

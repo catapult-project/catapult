@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry import decorators
-from telemetry.core import util
+from telemetry.core import exceptions
 from telemetry.page.actions import seek
 from telemetry.unittest_util import tab_test_case
 
@@ -63,4 +63,4 @@ class SeekActionTest(tab_test_case.TabTestCase):
     action.WillRunAction(self._tab)
     self._tab.EvaluateJavaScript('document.getElementById("video_1").src = ""')
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
-    self.assertRaises(util.TimeoutException, action.RunAction, self._tab)
+    self.assertRaises(exceptions.TimeoutException, action.RunAction, self._tab)

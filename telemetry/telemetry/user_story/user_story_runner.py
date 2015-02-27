@@ -12,7 +12,6 @@ import time
 from telemetry import decorators
 from telemetry import page as page_module
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
@@ -98,8 +97,8 @@ def _RunUserStoryAndProcessErrorIfNeeded(expectations, user_story, results,
       results.AddValue(skip_value)
       return
     state.RunUserStory(results)
-  except (page_test.Failure, util.TimeoutException, exceptions.LoginException,
-          exceptions.ProfilingException):
+  except (page_test.Failure, exceptions.TimeoutException,
+          exceptions.LoginException, exceptions.ProfilingException):
     ProcessError()
   except exceptions.AppCrashException:
     ProcessError()

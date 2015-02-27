@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry import decorators
-from telemetry.core import util
+from telemetry.core import exceptions
 from telemetry.page.actions import loop
 from telemetry.unittest_util import tab_test_case
 
@@ -49,4 +49,4 @@ class LoopActionTest(tab_test_case.TabTestCase):
                              timeout_in_seconds=1)
     action.WillRunAction(self._tab)
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
-    self.assertRaises(util.TimeoutException, action.RunAction, self._tab)
+    self.assertRaises(exceptions.TimeoutException, action.RunAction, self._tab)

@@ -61,7 +61,7 @@ class FindDependenciesTest(unittest.TestCase):
         #  util.WaitFor(gsutil_process.poll, timeout=0.5)
         #  self.assertEqual(gsutil_process.returncode, 0,
         #                   msg='gsutil config failed.')
-        #except util.TimeoutException:
+        #except exceptions.TimeoutException:
         #  gsutil_process.terminate()
         #  gsutil_process.wait()
     finally:

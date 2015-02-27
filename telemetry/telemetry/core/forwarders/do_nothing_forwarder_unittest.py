@@ -4,8 +4,8 @@
 
 import unittest
 
+from telemetry.core import exceptions
 from telemetry.core import forwarders
-from telemetry.core import util
 from telemetry.core.forwarders import do_nothing_forwarder
 
 
@@ -24,7 +24,7 @@ class TestErrorDoNothingForwarder(do_nothing_forwarder.DoNothingForwarder):
   """Simulate a connection error."""
 
   def _WaitForConnectionEstablished(self, address, timeout):
-    raise util.TimeoutException
+    raise exceptions.TimeoutException
 
 
 class CheckPortPairsTest(unittest.TestCase):

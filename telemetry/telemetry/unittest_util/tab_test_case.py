@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import util
+from telemetry.core import exceptions
 from telemetry.unittest_util import browser_test_case
 
 
@@ -19,7 +19,7 @@ class TabTestCase(browser_test_case.BrowserTestCase):
         self._tab = self._browser.tabs.New()
         while len(self._browser.tabs) > 1:
           self._browser.tabs[0].Close()
-      except util.TimeoutException:
+      except exceptions.TimeoutException:
         self._RestartBrowser()
     else:
       self._RestartBrowser()

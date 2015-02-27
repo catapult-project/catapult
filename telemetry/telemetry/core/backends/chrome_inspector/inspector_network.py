@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import logging
 
-from telemetry.core import util
+from telemetry.core import exceptions
 
 
 class InspectorNetworkException(Exception):
@@ -188,7 +188,7 @@ class InspectorNetwork(object):
               'requestId': request_id,
               }
           }, timeout)
-    except util.TimeoutException:
+    except exceptions.TimeoutException:
       logging.warning('Timeout during fetching body for %s' % request_id)
       return None, False
     if 'error' in res:

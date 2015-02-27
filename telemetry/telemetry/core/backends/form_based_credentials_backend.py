@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import logging
 
-from telemetry.core import util
+from telemetry.core import exceptions
 
 
 class FormBasedCredentialsBackend(object):
@@ -111,7 +111,7 @@ class FormBasedCredentialsBackend(object):
 
       self._logged_in = True
       return True
-    except util.TimeoutException:
+    except exceptions.TimeoutException:
       logging.warning('Timed out while loading: %s', url)
       return False
 

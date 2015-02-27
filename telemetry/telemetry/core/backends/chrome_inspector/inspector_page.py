@@ -4,7 +4,6 @@
 import sys
 import time
 
-from telemetry.core import util
 from telemetry.image_processing import image_util
 
 

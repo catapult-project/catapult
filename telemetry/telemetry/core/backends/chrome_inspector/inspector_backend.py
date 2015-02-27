@@ -44,7 +44,7 @@ class InspectorBackend(object):
     logging.debug('InspectorBackend._Connect() to %s', self.debugger_url)
     try:
       self._websocket.Connect(self.debugger_url)
-    except (websocket.WebSocketException, util.TimeoutException) as e:
+    except (websocket.WebSocketException, exceptions.TimeoutException) as e:
       raise InspectorException(e.msg)
 
     self._console = inspector_console.InspectorConsole(self._websocket)

@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry import decorators
-from telemetry.core import util
+from telemetry.core import exceptions
 from telemetry.page.actions import play
 from telemetry.unittest_util import tab_test_case
 
@@ -68,7 +68,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     action.WillRunAction(self._tab)
     self._tab.EvaluateJavaScript('document.getElementById("video_1").src = ""')
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
-    self.assertRaises(util.TimeoutException, action.RunAction, self._tab)
+    self.assertRaises(exceptions.TimeoutException, action.RunAction, self._tab)
 
   @decorators.Disabled('android', 'linux')  # crbug.com/418577
   def testPlayWaitForEnded(self):
@@ -105,6 +105,6 @@ class PlayActionTest(tab_test_case.TabTestCase):
     # Assert video not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_ENDED_CHECK))
-    self.assertRaises(util.TimeoutException, action.RunAction, self._tab)
+    self.assertRaises(exceptions.TimeoutException, action.RunAction, self._tab)
     # Assert video did not end.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_ENDED_CHECK))

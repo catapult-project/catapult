@@ -7,6 +7,10 @@ class PlatformError(Exception):
   """ Represents an exception thrown when constructing platform. """
 
 
+class TimeoutException(Exception):
+  pass
+
+
 class AppCrashException(Exception):
   def __init__(self, app=None, msg=''):
     super(AppCrashException, self).__init__(msg)

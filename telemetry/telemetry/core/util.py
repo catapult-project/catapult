@@ -10,9 +10,7 @@ import socket
 import sys
 import time
 
-
-class TimeoutException(Exception):
-  pass
+from telemetry.core import exceptions
 
 
 def GetBaseDir():
@@ -80,8 +78,8 @@ def WaitFor(condition, timeout):
     elapsed_time = now - start_time
     last_output_elapsed_time = now - last_output_time
     if elapsed_time > timeout:
-      raise TimeoutException('Timed out while waiting %ds for %s.' %
-                             (timeout, GetConditionString()))
+      raise exceptions.TimeoutException('Timed out while waiting %ds for %s.' %
+                                        (timeout, GetConditionString()))
     if last_output_elapsed_time > output_interval:
       logging.info('Continuing to wait %ds for %s. Elapsed: %ds.',
                    timeout, GetConditionString(), elapsed_time)

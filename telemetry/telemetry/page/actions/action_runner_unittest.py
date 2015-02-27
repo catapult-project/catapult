@@ -4,7 +4,6 @@
 
 from telemetry import decorators
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.page.actions import action_runner as action_runner_module
@@ -158,7 +157,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.WaitForElement('#test1', timeout_in_seconds=0.2)
     def WaitForElement():
       action_runner.WaitForElement(text='oo', timeout_in_seconds=0.2)
-    self.assertRaises(util.TimeoutException, WaitForElement)
+    self.assertRaises(exceptions.TimeoutException, WaitForElement)
 
   def testClickElement(self):
     self.Navigate('page_with_clickables.html')

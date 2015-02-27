@@ -6,6 +6,7 @@ import contextlib
 import logging
 import socket
 
+from telemetry.core import exceptions
 from telemetry.core import forwarders
 from telemetry.core import util
 
@@ -63,7 +64,7 @@ class DoNothingForwarder(forwarders.Forwarder):
         logging.debug(
             'Connection test succeeded for %s: %s:%d',
             protocol.upper(), self.host_ip, local_port)
-      except util.TimeoutException:
+      except exceptions.TimeoutException:
         raise ConnectionError(
             'Unable to connect to %s address: %s:%d',
             protocol.upper(), self.host_ip, local_port)
