@@ -64,6 +64,16 @@ class OptparseCommand(Command):
     return optparse.OptionParser('%%prog %s %s' % (cls.Name(), cls.usage),
                                  description=cls.Description())
 
+  @classmethod
+  def AddCommandLineArgs(cls, parser, environment):
+    # pylint: disable=arguments-differ
+    pass
+
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args, environment):
+    # pylint: disable=arguments-differ
+    pass
+
   def Run(self, args):
     raise NotImplementedError()
 
@@ -71,10 +81,10 @@ class OptparseCommand(Command):
   def main(cls, args=None):
     """Main method to run this command as a standalone script."""
     parser = cls.CreateParser()
-    cls.AddCommandLineArgs(parser)
+    cls.AddCommandLineArgs(parser, None)
     options, args = parser.parse_args(args=args)
     options.positional_args = args
-    cls.ProcessCommandLineArgs(parser, options)
+    cls.ProcessCommandLineArgs(parser, options, None)
     return min(cls().Run(options), 255)
 
 

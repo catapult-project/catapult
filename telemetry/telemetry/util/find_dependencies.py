@@ -77,7 +77,7 @@ def FindPageSetDependencies(base_dir):
 
     # Ensure the test's default options are set if needed.
     parser = optparse.OptionParser()
-    test_obj.AddCommandLineArgs(parser)
+    test_obj.AddCommandLineArgs(parser, None)
     options = optparse.Values()
     for k, v in parser.get_default_values().__dict__.iteritems():
       options.ensure_value(k, v)
@@ -227,7 +227,7 @@ class FindDependenciesCommand(command_line.OptparseCommand):
   """Prints all dependencies"""
 
   @classmethod
-  def AddCommandLineArgs(cls, parser):
+  def AddCommandLineArgs(cls, parser, _):
     parser.add_option(
         '-v', '--verbose', action='count', dest='verbosity',
         help='Increase verbosity level (repeat as needed).')
@@ -245,7 +245,7 @@ class FindDependenciesCommand(command_line.OptparseCommand):
         help='Store files in a zip archive at ZIP.')
 
   @classmethod
-  def ProcessCommandLineArgs(cls, parser, args):
+  def ProcessCommandLineArgs(cls, parser, args, _):
     if args.verbosity >= 2:
       logging.getLogger().setLevel(logging.DEBUG)
     elif args.verbosity:

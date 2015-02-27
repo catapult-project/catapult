@@ -35,7 +35,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     return parser
 
   @classmethod
-  def AddCommandLineArgs(cls, parser):
+  def AddCommandLineArgs(cls, parser, _):
     parser.add_option('--repeat-count', type='int', default=1,
                       help='Repeats each a provided number of times.')
     parser.add_option('-d', '--also-run-disabled-tests',
@@ -55,7 +55,7 @@ class RunTestsCommand(command_line.OptparseCommand):
                                         reporting=True)
 
   @classmethod
-  def ProcessCommandLineArgs(cls, parser, args):
+  def ProcessCommandLineArgs(cls, parser, args, _):
     # We retry failures by default unless we're running a list of tests
     # explicitly.
     if not args.retry_limit and not args.positional_args:
@@ -75,10 +75,10 @@ class RunTestsCommand(command_line.OptparseCommand):
   def main(cls, args=None, stream=None):  # pylint: disable=W0221
     # We override the superclass so that we can hook in the 'stream' arg.
     parser = cls.CreateParser()
-    cls.AddCommandLineArgs(parser)
+    cls.AddCommandLineArgs(parser, None)
     options, positional_args = parser.parse_args(args)
     options.positional_args = positional_args
-    cls.ProcessCommandLineArgs(parser, options)
+    cls.ProcessCommandLineArgs(parser, options, None)
 
     obj = cls()
     if stream is not None:
