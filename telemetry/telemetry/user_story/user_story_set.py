@@ -98,9 +98,6 @@ class UserStorySet(object):
     else:
       return ''
 
-  def ShuffleAndFilterUserStorySet(self, finder_options):
-    pass
-
   def WprFilePathForUserStory(self, story):
     """Convenient function to retrieve WPR archive file path.
 

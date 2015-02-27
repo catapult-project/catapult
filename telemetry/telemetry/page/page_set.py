@@ -56,27 +56,3 @@ class PageSet(user_story_set.UserStorySet):
       return os.path.dirname(self.file_path)
     else:
       return self.file_path
-
-  def ReorderPageSet(self, results_file):
-    """Reorders this page set based on the results of a past run."""
-    page_set_dict = {}
-    for page in self.user_stories:
-      page_set_dict[page.url] = page
-
-    user_stories = []
-    with open(results_file, 'rb') as csv_file:
-      csv_reader = csv.reader(csv_file)
-      csv_header = csv_reader.next()
-
-      if 'url' not in csv_header:
-        raise Exception('Unusable results_file.')
-
-      url_index = csv_header.index('url')
-
-      for csv_row in csv_reader:
-        if csv_row[url_index] in page_set_dict:
-          self.AddUserStory(page_set_dict[csv_row[url_index]])
-        else:
-          raise Exception('Unusable results_file.')
-
-    return user_stories

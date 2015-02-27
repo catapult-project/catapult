@@ -33,15 +33,7 @@ def AddCommandLineArgs(parser):
   results_options.AddResultsOptions(parser)
 
   # Page set options
-  group = optparse.OptionGroup(parser, 'Page set ordering and repeat options')
-  group.add_option('--pageset-shuffle', action='store_true',
-      dest='pageset_shuffle',
-      help='Shuffle the order of pages within a pageset.')
-  group.add_option('--pageset-shuffle-order-file',
-      dest='pageset_shuffle_order_file', default=None,
-      help='Filename of an output of a previously run test on the current '
-      'pageset. The tests will run in the same order again, overriding '
-      'what is specified by --page-repeat and --pageset-repeat.')
+  group = optparse.OptionGroup(parser, 'Page set repeat options')
   group.add_option('--page-repeat', default=1, type='int',
                    help='Number of times to repeat each individual page '
                    'before proceeding with the next page in the pageset.')
@@ -70,9 +62,6 @@ def ProcessCommandLineArgs(parser, args):
   results_options.ProcessCommandLineArgs(parser, args)
 
   # Page set options
-  if args.pageset_shuffle_order_file and not args.pageset_shuffle:
-    parser.error('--pageset-shuffle-order-file requires --pageset-shuffle.')
-
   if args.page_repeat < 1:
     parser.error('--page-repeat must be a positive integer.')
   if args.pageset_repeat < 1:
@@ -207,8 +196,9 @@ def Run(test, user_story_set, expectations, finder_options, results,
   if isinstance(test, page_test.PageTest):
     test.ValidatePageSet(user_story_set)
 
-  # Reorder page set based on options.
-  user_stories = _ShuffleAndFilterUserStorySet(user_story_set, finder_options)
+  # Filter page set based on options.
+  user_stories = filter(user_story_filter.UserStoryFilter.IsSelected,
+                        user_story_set)
 
   if (not finder_options.use_live_sites and user_story_set.bucket and
       finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):
@@ -289,21 +279,6 @@ def Run(test, user_story_set, expectations, finder_options, results,
           # Print current exception and propagate existing exception.
           exception_formatter.PrintFormattedException(
               msg='Exception from TearDownState:')
-
-
-def _ShuffleAndFilterUserStorySet(user_story_set, finder_options):
-  if finder_options.pageset_shuffle_order_file:
-    if isinstance(user_story_set, page_set_module.PageSet):
-      return page_set_module.ReorderPageSet(
-          finder_options.pageset_shuffle_order_file)
-    else:
-      raise Exception(
-          'pageset-shuffle-order-file flag can only be used with page set')
-  user_stories = [u for u in user_story_set[:]
-                  if user_story_filter.UserStoryFilter.IsSelected(u)]
-  if finder_options.pageset_shuffle:
-    random.shuffle(user_stories)
-  return user_stories
 
 
 def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
