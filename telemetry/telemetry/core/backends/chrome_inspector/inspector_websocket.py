@@ -45,18 +45,35 @@ class InspectorWebsocket(object):
     del self._domain_handlers[domain_name]
 
   def Connect(self, url, timeout=10):
+    """Connects the websocket.
+
+    Raises:
+      websocket.WebSocketException
+      socket.error
+    """
     assert not self._socket
     self._socket = websocket.create_connection(url, timeout=timeout)
     self._cur_socket_timeout = 0
     self._next_request_id = 0
 
   def Disconnect(self):
-    """Disconnects the inspector websocket."""
+    """Disconnects the inspector websocket.
+
+    Raises:
+      websocket.WebSocketException
+      socket.error
+    """
     if self._socket:
       self._socket.close()
       self._socket = None
 
   def SendAndIgnoreResponse(self, req):
+    """Sends a request without waiting for a response.
+
+    Raises:
+      websocket.WebSocketException
+      socket.error
+    """
     req['id'] = self._next_request_id
     self._next_request_id += 1
     data = json.dumps(req)
@@ -65,6 +82,12 @@ class InspectorWebsocket(object):
       logging.debug('sent [%s]', json.dumps(req, indent=2, sort_keys=True))
 
   def SyncRequest(self, req, timeout=10):
+    """Sends a request and waits for a response.
+
+    Raises:
+      websocket.WebSocketException
+      socket.error
+    """
     self.SendAndIgnoreResponse(req)
 
     while self._socket:
@@ -73,6 +96,12 @@ class InspectorWebsocket(object):
         return res
 
   def DispatchNotifications(self, timeout=10):
+    """Waits for responses from the websocket, dispatching them as necessary.
+
+    Raises:
+      websocket.WebSocketException
+      socket.error
+    """
     self._Receive(timeout)
 
   def _SetTimeout(self, timeout):
