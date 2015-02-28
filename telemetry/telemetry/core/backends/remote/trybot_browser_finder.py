@@ -117,9 +117,14 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
       if arg.startswith('--browser='):
         if self._target_os == 'android':
           arguments[index] = '--browser=android-chrome-shell'
+        elif 'x64' in self._buildername:
+          arguments[index] = '--browser=release_x64'
         else:
           arguments[index] = '--browser=release'
     command = ' '.join(arguments)
+
+    # Set target architecture to build 32 or 64 bit binaries.
+    target_arch = 'x64' if 'x64' in self._buildername else 'ia32'
 
     # Add the correct command to the config file and commit it.
     config = {
@@ -127,6 +132,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
         'repeat_count': '1',
         'max_time_minutes': '120',
         'truncate_percent': '0',
+        'target_arch': target_arch,
     }
     try:
       config_file = open(cfg_file_path, 'w')
