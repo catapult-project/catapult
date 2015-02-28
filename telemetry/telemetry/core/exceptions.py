@@ -3,15 +3,25 @@
 # found in the LICENSE file.
 
 
-class PlatformError(Exception):
-  """ Represents an exception thrown when constructing platform. """
-
-
-class TimeoutException(Exception):
+class Error(Exception):
+  """Base class for Telemetry exceptions."""
   pass
 
 
-class AppCrashException(Exception):
+class PlatformError(Error):
+  """ Represents an exception thrown when constructing platform. """
+
+
+class TimeoutException(Error):
+  """The operation failed to complete because of a timeout.
+
+  It is possible that waiting for a longer period of time would result in a
+  successful operation.
+  """
+  pass
+
+
+class AppCrashException(Error):
   def __init__(self, app=None, msg=''):
     super(AppCrashException, self).__init__(msg)
     self._app = app
@@ -50,33 +60,33 @@ class BrowserConnectionGoneException(BrowserGoneException):
     super(BrowserConnectionGoneException, self).__init__(app, msg)
 
 
-class ProcessGoneException(Exception):
+class ProcessGoneException(Error):
   """Represents a process that no longer exists for an unknown reason."""
 
 
-class IntentionalException(Exception):
+class IntentionalException(Error):
   """Represent an exception raised by a unittest which is not printed."""
 
 
-class LoginException(Exception):
+class LoginException(Error):
   pass
 
 
-class EvaluateException(Exception):
+class EvaluateException(Error):
   pass
 
 
-class ProfilingException(Exception):
+class ProfilingException(Error):
   pass
 
 
-class PathMissingError(Exception):
+class PathMissingError(Error):
   """ Represents an exception thrown when an expected path doesn't exist. """
 
 
-class UnknownPackageError(Exception):
+class UnknownPackageError(Error):
   """ Represents an exception when encountering an unsupported Android APK. """
 
 
-class PackageDetectionError(Exception):
+class PackageDetectionError(Error):
   """ Represents an error when parsing an Android APK's package. """
