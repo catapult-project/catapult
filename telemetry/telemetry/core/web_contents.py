@@ -174,9 +174,6 @@ class WebContents(object):
   def StopTimelineRecording(self):
     self._inspector_backend.StopTimelineRecording()
 
-  def TakeJSHeapSnapshot(self, timeout=120):
-    return self._inspector_backend.TakeJSHeapSnapshot(timeout)
-
   def IsAlive(self):
     """Whether the WebContents is still operating normally.
 

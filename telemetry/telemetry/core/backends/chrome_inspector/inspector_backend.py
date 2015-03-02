@@ -17,7 +17,6 @@ from telemetry.core.backends.chrome_inspector import inspector_page
 from telemetry.core.backends.chrome_inspector import inspector_runtime
 from telemetry.core.backends.chrome_inspector import inspector_websocket
 from telemetry.core.backends.chrome_inspector import websocket
-from telemetry.core.heap import model as heap_model_module
 from telemetry.image_processing import image_util
 from telemetry.timeline import model as timeline_model_module
 from telemetry.timeline import trace_data as trace_data_module
@@ -240,25 +239,3 @@ class InspectorBackend(object):
       self._page.CollectGarbage()
     except (socket.error, websocket.WebSocketException) as e:
       self._HandleError(e)
-
-  def TakeJSHeapSnapshot(self, timeout=120):
-    snapshot = []
-
-    def OnNotification(res):
-      if res['method'] == 'HeapProfiler.addHeapSnapshotChunk':
-        snapshot.append(res['params']['chunk'])
-
-    try:
-      self._websocket.RegisterDomain('HeapProfiler', OnNotification)
-
-      self._websocket.SyncRequest({'method': 'Page.getResourceTree'}, timeout)
-      self._websocket.SyncRequest({'method': 'Debugger.enable'}, timeout)
-      self._websocket.SyncRequest(
-          {'method': 'HeapProfiler.takeHeapSnapshot'}, timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
-
-    snapshot = ''.join(snapshot)
-
-    self.UnregisterDomain('HeapProfiler')
-    return heap_model_module.Model(snapshot)
