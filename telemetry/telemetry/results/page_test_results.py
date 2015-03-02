@@ -12,8 +12,8 @@ import sys
 import traceback
 
 from telemetry import value as value_module
-from telemetry.results import page_run
 from telemetry.results import progress_reporter as progress_reporter_module
+from telemetry.results import user_story_run
 from telemetry.util import cloud_storage
 from telemetry.value import failure
 from telemetry.value import skip
@@ -94,7 +94,7 @@ class PageTestResults(object):
   @property
   def current_page(self):
     assert self._current_page_run, 'Not currently running test.'
-    return self._current_page_run.page
+    return self._current_page_run.user_story
 
   @property
   def current_page_run(self):
@@ -108,7 +108,7 @@ class PageTestResults(object):
   @property
   def pages_that_succeeded(self):
     """Returns the set of pages that succeeded."""
-    pages = set(run.page for run in self.all_page_runs)
+    pages = set(run.user_story for run in self.all_page_runs)
     pages.difference_update(self.pages_that_failed)
     return pages
 
@@ -118,7 +118,7 @@ class PageTestResults(object):
     failed_pages = set()
     for run in self.all_page_runs:
       if run.failed:
-        failed_pages.add(run.page)
+        failed_pages.add(run.user_story)
     return failed_pages
 
   @property
@@ -150,7 +150,7 @@ class PageTestResults(object):
 
   def WillRunPage(self, page):
     assert not self._current_page_run, 'Did not call DidRunPage.'
-    self._current_page_run = page_run.PageRun(page)
+    self._current_page_run = user_story_run.UserStoryRun(page)
     self._progress_reporter.WillRunPage(self)
 
   def DidRunPage(self, page, discard_run=False):  # pylint: disable=W0613

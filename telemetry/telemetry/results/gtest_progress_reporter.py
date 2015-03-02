@@ -81,7 +81,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
           (len(page_test_results.failures), unit))
       for failed_run in failed_runs:
         print >> self._output_stream, '[  FAILED  ]  %s' % (
-            failed_run.page.display_name)
+            failed_run.user_story.display_name)
       print >> self._output_stream
       count = len(failed_runs)
       unit = 'TEST' if count == 1 else 'TESTS'

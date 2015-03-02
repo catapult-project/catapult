@@ -55,7 +55,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[1])
 
     self.assertTrue(results.all_page_runs[0].skipped)
-    self.assertEqual(self.pages[0], results.all_page_runs[0].page)
+    self.assertEqual(self.pages[0], results.all_page_runs[0].user_story)
     self.assertEqual(set([self.pages[0], self.pages[1]]),
                      results.pages_that_succeeded)
 

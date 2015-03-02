@@ -36,7 +36,7 @@ def ResultsAsDict(page_test_results, benchmark_metadata):
 
 
 def _GetAllPages(page_test_results):
-  pages = set(page_run.page for page_run in
+  pages = set(page_run.user_story for page_run in
               page_test_results.all_page_runs)
   return pages
 

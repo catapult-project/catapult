@@ -45,8 +45,8 @@ class CsvPivotTableOutputFormatter(output_formatter.OutputFormatter):
     for run in page_test_results.all_page_runs:
       run_index = page_test_results.all_page_runs.index(run)
       page_dict = {
-          'page': run.page.display_name,
-          'page_set': run.page.page_set.Name(),
+          'page': run.user_story.display_name,
+          'page_set': run.user_story.page_set.Name(),
           'run_index': run_index,
       }
       for value in run.values:

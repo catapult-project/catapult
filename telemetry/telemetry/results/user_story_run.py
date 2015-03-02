@@ -1,4 +1,4 @@
-# Copyright 2014 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -6,21 +6,21 @@ from telemetry.value import failure
 from telemetry.value import skip
 
 
-class PageRun(object):
-  def __init__(self, page):
-    self._page = page
+class UserStoryRun(object):
+  def __init__(self, user_story):
+    self._user_story = user_story
     self._values = []
 
   def AddValue(self, value):
     self._values.append(value)
 
   @property
-  def page(self):
-    return self._page
+  def user_story(self):
+    return self._user_story
 
   @property
   def values(self):
-    """The values that correspond to this page run."""
+    """The values that correspond to this user_story run."""
     return self._values
 
   @property
