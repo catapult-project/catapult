@@ -141,16 +141,9 @@ class RunTestsCommand(command_line.OptparseCommand):
 def GetClassifier(args, possible_browser):
   def ClassifyTest(test_set, test):
     name = test.id()
-    if args.positional_args:
-      if _MatchesSelectedTest(name, args.positional_args,
-                              args.exact_test_filter):
-        assert hasattr(test, '_testMethodName')
-        method = getattr(test, test._testMethodName) # pylint: disable=W0212
-        if decorators.ShouldBeIsolated(method, possible_browser):
-          test_set.isolated_tests.append(typ.TestInput(name))
-        else:
-          test_set.parallel_tests.append(typ.TestInput(name))
-    else:
+    if (not args.positional_args
+        or _MatchesSelectedTest(name, args.positional_args,
+                                args.exact_test_filter)):
       assert hasattr(test, '_testMethodName')
       method = getattr(test, test._testMethodName) # pylint: disable=W0212
       should_skip, reason = decorators.ShouldSkip(method, possible_browser)
