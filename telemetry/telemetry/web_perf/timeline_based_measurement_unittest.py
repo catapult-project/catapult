@@ -42,22 +42,6 @@ class FakeLoadingMetric(timeline_based_metric.TimelineBasedMetric):
         len(interaction_records)))
 
 
-FAKE_METRICS_METRICS = {
-  tir_module.IS_SMOOTH: FakeSmoothMetric,
-  tir_module.IS_RESPONSIVE: FakeLoadingMetric,
-}
-
-
-def GetMetricFromFlags(record_custom_flags):
-  flags_set = set(record_custom_flags)
-  unknown_flags = flags_set.difference(FAKE_METRICS_METRICS)
-  if unknown_flags:
-    raise Exception("Unknown metric flags: %s" % sorted(unknown_flags))
-
-  return [metric() for flag, metric in FAKE_METRICS_METRICS.iteritems()
-          if flag in flags_set]
-
-
 class TimelineBasedMetricTestData(object):
 
   def __init__(self):
@@ -111,12 +95,20 @@ class TimelineBasedMetricTestData(object):
   def AddResults(self):
     for thread, records in self._threads_to_records_map.iteritems():
       metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
-        self._model, thread, records, GetMetricFromFlags)
+        self._model, thread, records)
       metric.AddResults(self._results)
     self._results.DidRunPage(self._ps.pages[0])
 
 
 class TimelineBasedMetricsTests(unittest.TestCase):
+
+  def setUp(self):
+    self.actual_get_all_tbm_metrics = tbm_module._GetAllTimelineBasedMetrics
+    fake_tbm_metrics = (FakeSmoothMetric(), FakeLoadingMetric())
+    tbm_module._GetAllTimelineBasedMetrics = lambda: fake_tbm_metrics
+
+  def tearDown(self):
+    tbm_module._GetAllTimelineBasedMetrics = self.actual_get_all_tbm_metrics
 
   def testGetRendererThreadsToInteractionRecordsMap(self):
     d = TimelineBasedMetricTestData()
