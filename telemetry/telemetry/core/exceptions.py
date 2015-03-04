@@ -2,10 +2,39 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import sys
+
 
 class Error(Exception):
   """Base class for Telemetry exceptions."""
-  pass
+  def __init__(self, msg=''):
+    super(Error, self).__init__(msg)
+    self._debugging_messages = []
+
+  def AddDebuggingMessage(self, msg):
+    """Adds a message to the description of the exception.
+
+    Many Telemetry exceptions arise from failures in another application. These
+    failures are difficult to pinpoint. This method allows Telemetry classes to
+    append useful debugging information to the exception. This method also logs
+    information about the location from where it was called.
+    """
+    frame = sys._getframe(1)
+    line_number = frame.f_lineno
+    file_name = frame.f_code.co_filename
+    function_name = frame.f_code.co_name
+    call_site = '%s:%s %s' % (file_name, line_number, function_name)
+    annotated_message = '(%s) %s' % (call_site, msg)
+
+    self._debugging_messages.append(annotated_message)
+
+  def __str__(self):
+    divider = '\n' + '*' * 80 + '\n'
+    output = super(Error, self).__str__()
+    for message in self._debugging_messages:
+      output += divider
+      output += message
+    return output
 
 
 class PlatformError(Error):
