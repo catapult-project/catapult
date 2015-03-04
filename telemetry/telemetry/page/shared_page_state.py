@@ -240,11 +240,11 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
       self._PreparePage()
       self._ImplicitPageNavigation()
       self._test.RunPage(self._current_page, self._current_tab, results)
-    except exceptions.AppCrashException:
+    except exceptions.Error:
       if self._test.is_multi_tab_test:
         # Avoid trying to recover from an unknown multi-tab state.
         exception_formatter.PrintFormattedException(
-            msg='AppCrashException during multi tab test:')
+            msg='Telemetry Error during multi tab test:')
         raise page_test.MultiTabTestAppCrashError
       raise
 

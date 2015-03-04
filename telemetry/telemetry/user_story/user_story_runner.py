@@ -89,7 +89,7 @@ def _RunUserStoryAndProcessErrorIfNeeded(expectations, user_story, results,
   except (page_test.Failure, exceptions.TimeoutException,
           exceptions.LoginException, exceptions.ProfilingException):
     ProcessError()
-  except exceptions.AppCrashException:
+  except exceptions.Error:
     ProcessError()
     raise
   except page_action.PageActionNotSupported as e:
@@ -233,13 +233,13 @@ def Run(test, user_story_set, expectations, finder_options, results,
               _WaitForThermalThrottlingIfNeeded(state.platform)
               _RunUserStoryAndProcessErrorIfNeeded(
                   expectations, user_story, results, state)
-            except exceptions.AppCrashException:
-              # Catch AppCrashException to give the story a chance to retry.
+            except exceptions.Error:
+              # Catch all Telemetry errors to give the story a chance to retry.
               # The retry is enabled by tearing down the state and creating
               # a new state instance in the next iteration.
               try:
                 # If TearDownState raises, do not catch the exception.
-                # (The AppCrashException was saved as a failure value.)
+                # (The Error was saved as a failure value.)
                 state.TearDownState(results)
               finally:
                 # Later finally-blocks use state, so ensure it is cleared.

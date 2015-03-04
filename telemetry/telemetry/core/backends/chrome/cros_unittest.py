@@ -62,7 +62,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
         extension.ExecuteJavaScript('chrome.autotestPrivate.logout();')
       # TODO(chrishenry): crbug.com/450278. DevToolsClientConnectionError
       # should probably be caught at a lower-level.
-      except (exceptions.AppCrashException,
+      except (exceptions.Error,
               devtools_http.DevToolsClientConnectionError):
         pass
       util.WaitFor(lambda: not self._IsCryptohomeMounted(), 20)

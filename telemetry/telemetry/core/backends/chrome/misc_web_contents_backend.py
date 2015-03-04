@@ -22,7 +22,7 @@ class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
     """Lightweight property to determine if the oobe webui is visible."""
     try:
       return bool(len(self))
-    except (exceptions.AppCrashException,
+    except (exceptions.Error,
             devtools_http.DevToolsClientConnectionError):
       return False
 
