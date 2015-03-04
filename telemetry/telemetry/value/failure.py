@@ -10,7 +10,7 @@ from telemetry import value as value_module
 
 class FailureValue(value_module.Value):
 
-  def __init__(self, page, exc_info, description=None):
+  def __init__(self, page, exc_info, description=None, interaction_record=None):
     """A value representing a failure when running the page.
 
     Args:
@@ -19,7 +19,8 @@ class FailureValue(value_module.Value):
           this failure.
     """
     exc_type = exc_info[0].__name__
-    super(FailureValue, self).__init__(page, exc_type, '', True, description)
+    super(FailureValue, self).__init__(page, exc_type, '', True, description,
+                                       interaction_record)
     self._exc_info = exc_info
 
   @classmethod
@@ -81,8 +82,7 @@ class FailureValue(value_module.Value):
     kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
     del kwargs['name']
     del kwargs['units']
-    important = kwargs.get('important', None)
-    if important != None:
+    if 'important' in kwargs:
       del kwargs['important']
     kwargs['exc_info'] = FailureValue._GetExcInfoFromMessage(
         value_dict['value'])

@@ -8,10 +8,11 @@ from telemetry.value import none_values
 
 class ListOfStringValues(value_module.Value):
   def __init__(self, page, name, units, values,
-               important=True, description=None, none_value_reason=None,
+               important=True, description=None,
+               interaction_record=None, none_value_reason=None,
                same_page_merge_policy=value_module.CONCATENATE):
     super(ListOfStringValues, self).__init__(page, name, units, important,
-                                             description)
+                                             description, interaction_record)
     if values is not None:
       assert isinstance(values, list)
       assert len(values) > 0
@@ -30,15 +31,17 @@ class ListOfStringValues(value_module.Value):
       merge_policy = 'CONCATENATE'
     else:
       merge_policy = 'PICK_FIRST'
-    return ('ListOfStringValues(%s, %s, %s, %s, ' +
-            'important=%s, description=%s, same_page_merge_policy=%s)') % (
-              page_name,
-              self.name,
-              self.units,
-              repr(self.values),
-              self.important,
-              self.description,
-              merge_policy)
+    return ('ListOfStringValues(%s, %s, %s, %s, '
+            'important=%s, description=%s, interaction_record=%s, '
+            'same_page_merge_policy=%s)') % (
+                page_name,
+                self.name,
+                self.units,
+                repr(self.values),
+                self.important,
+                self.description,
+                self.interaction_record,
+                merge_policy)
 
   def GetBuildbotDataType(self, output_context):
     if self._IsImportantGivenOutputIntent(output_context):
@@ -78,6 +81,8 @@ class ListOfStringValues(value_module.Value):
 
     if 'none_value_reason' in value_dict:
       kwargs['none_value_reason'] = value_dict['none_value_reason']
+    if 'interaction_record' in value_dict:
+      kwargs['interaction_record'] = value_dict['interaction_record']
 
     return ListOfStringValues(**kwargs)
 
@@ -95,7 +100,7 @@ class ListOfStringValues(value_module.Value):
           none_value_reason=v0.none_value_reason)
 
     assert v0.same_page_merge_policy == value_module.CONCATENATE
-    return cls._MergeLikeValues(values, v0.page, v0.name)
+    return cls._MergeLikeValues(values, v0.page, v0.name, v0.interaction_record)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values,
@@ -103,10 +108,10 @@ class ListOfStringValues(value_module.Value):
     assert len(values) > 0
     v0 = values[0]
     name = v0.name_suffix if group_by_name_suffix else v0.name
-    return cls._MergeLikeValues(values, None, name)
+    return cls._MergeLikeValues(values, None, name, v0.interaction_record)
 
   @classmethod
-  def _MergeLikeValues(cls, values, page, name):
+  def _MergeLikeValues(cls, values, page, name, interaction_record):
     v0 = values[0]
     merged_values = []
     none_value_reason = None
@@ -120,5 +125,6 @@ class ListOfStringValues(value_module.Value):
         page, name, v0.units,
         merged_values,
         important=v0.important,
+        interaction_record=interaction_record,
         same_page_merge_policy=v0.same_page_merge_policy,
         none_value_reason=none_value_reason)

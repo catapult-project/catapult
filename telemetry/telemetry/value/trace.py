@@ -28,7 +28,7 @@ class TraceValue(value_module.Value):
     """
     super(TraceValue, self).__init__(
         page, name='trace', units='', important=important,
-        description=description)
+        description=description, interaction_record=None)
     self._temp_file = self._GetTempFileHandle(trace_data)
     self._cloud_url = None
     self._serialized_file_handle = None

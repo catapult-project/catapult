@@ -42,7 +42,8 @@ SUMMARY_RESULT_OUTPUT_CONTEXT = 'summary-result-output-context'
 class Value(object):
   """An abstract value produced by a telemetry page test.
   """
-  def __init__(self, page, name, units, important, description):
+  def __init__(self, page, name, units, important, description,
+               interaction_record):
     """A generic Value object.
 
     Args:
@@ -56,6 +57,8 @@ class Value(object):
           by default in downstream UIs.
       description: A string explaining in human-understandable terms what this
           value represents.
+      interaction_record: The string label of the TimelineInteractionRecord with
+          which this value is associated.
     """
     # TODO(eakuefner): Check user story here after migration (crbug.com/442036)
     if not isinstance(name, basestring):
@@ -66,17 +69,23 @@ class Value(object):
       raise ValueError('important field of Value must be bool.')
     if not ((description is None) or isinstance(description, basestring)):
       raise ValueError('description field of Value must absent or string.')
+    if not ((interaction_record is None) or
+            isinstance(interaction_record, basestring)):
+      raise ValueError('interaction_record field of Value must absent or '
+                       'string.')
 
     self.page = page
     self.name = name
     self.units = units
     self.important = important
     self.description = description
+    self.interaction_record = interaction_record
 
   def IsMergableWith(self, that):
     return (self.units == that.units and
             type(self) == type(that) and
-            self.important == that.important)
+            self.important == that.important and
+            self.interaction_record == that.interaction_record)
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
@@ -196,6 +205,9 @@ class Value(object):
     if self.description:
       d['description'] = self.description
 
+    if self.interaction_record:
+      d['interaction_record'] = self.interaction_record
+
     if self.page:
       d['page_id'] = self.page.id
 
@@ -281,6 +293,12 @@ class Value(object):
       d['page'] = None
 
     d['important'] = False
+
+    interaction_record = value_dict.get('interaction_record', None)
+    if interaction_record:
+      d['interaction_record'] = interaction_record
+    else:
+      d['interaction_record'] = None
 
     return d
 

@@ -60,6 +60,18 @@ class MergeValueTest(TestBase):
     self.assertEquals(all_values[0].name, merged_values[0].name)
     self.assertEquals(all_values[0].units, merged_values[0].units)
 
+  def testSamePageMergeWithInteractionRecord(self):
+    page0 = self.pages[0]
+
+    all_values = [scalar.ScalarValue(page0, 'foo-x', 'units', 1,
+                                     interaction_record='foo'),
+                  scalar.ScalarValue(page0, 'foo-x', 'units', 4,
+                                     interaction_record='foo')]
+
+    merged_values = merge_values.MergeLikeValuesFromSamePage(all_values)
+    self.assertEquals(1, len(merged_values))
+    self.assertEquals('foo', merged_values[0].interaction_record)
+
   def testDifferentPageMergeBasic(self):
     page0 = self.pages[0]
     page1 = self.pages[1]
