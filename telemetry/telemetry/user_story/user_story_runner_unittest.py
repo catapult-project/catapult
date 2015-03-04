@@ -355,61 +355,6 @@ class UserStoryRunnerTest(unittest.TestCase):
     # The AppCrashException gets added as a failure.
     self.assertEquals(1, len(self.results.failures))
 
-  def testDiscardFirstResult(self):
-    us = user_story_set.UserStorySet()
-    us.AddUserStory(DummyLocalUserStory(TestSharedPageState))
-    us.AddUserStory(DummyLocalUserStory(TestSharedPageState))
-    class Measurement(page_test.PageTest):
-      @property
-      def discard_first_result(self):
-        return True
-
-      def RunPage(self, page, _, results):
-        results.AddValue(string.StringValue(page, 'test', 't', page.name))
-
-      def ValidateAndMeasurePage(self, page, tab, results):
-        pass
-
-    results = results_options.CreateResults(
-        EmptyMetadataForTest(), self.options)
-    user_story_runner.Run(
-        Measurement(), us, self.expectations, self.options, results)
-
-    self.assertEquals(0, GetNumberOfSuccessfulPageRuns(results))
-    self.assertEquals(0, len(results.failures))
-    self.assertEquals(0, len(results.all_page_specific_values))
-
-
-    results = results_options.CreateResults(
-        EmptyMetadataForTest(), self.options)
-    self.options.page_repeat = 1
-    self.options.pageset_repeat = 2
-    user_story_runner.Run(
-        Measurement(), us, self.expectations, self.options, results)
-    self.assertEquals(2, GetNumberOfSuccessfulPageRuns(results))
-    self.assertEquals(0, len(results.failures))
-    self.assertEquals(2, len(results.all_page_specific_values))
-
-    results = results_options.CreateResults(
-        EmptyMetadataForTest(), self.options)
-    self.options.page_repeat = 2
-    self.options.pageset_repeat = 1
-    user_story_runner.Run(
-        Measurement(), us, self.expectations, self.options, results)
-    self.assertEquals(2, GetNumberOfSuccessfulPageRuns(results))
-    self.assertEquals(0, len(results.failures))
-    self.assertEquals(2, len(results.all_page_specific_values))
-
-    results = results_options.CreateResults(
-        EmptyMetadataForTest(), self.options)
-    self.options.page_repeat = 1
-    self.options.pageset_repeat = 1
-    user_story_runner.Run(
-        Measurement(), us, self.expectations, self.options, results)
-    self.assertEquals(0, GetNumberOfSuccessfulPageRuns(results))
-    self.assertEquals(0, len(results.failures))
-    self.assertEquals(0, len(results.all_page_specific_values))
-
   def testPagesetRepeat(self):
     us = user_story_set.UserStorySet()
     us.AddUserStory(DummyLocalUserStory(TestSharedPageState, name='blank'))

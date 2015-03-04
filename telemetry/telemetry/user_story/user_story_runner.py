@@ -218,7 +218,6 @@ def Run(test, user_story_set, expectations, finder_options, results,
 
   user_story_groups = GetUserStoryGroupsWithSameSharedUserStoryClass(
       user_stories)
-  user_story_with_discarded_first_results = set()
 
   for group in user_story_groups:
     state = None
@@ -250,14 +249,7 @@ def Run(test, user_story_set, expectations, finder_options, results,
               try:
                 if state:
                   _CheckThermalThrottling(state.platform)
-                # TODO(slamm): Make discard_first_result part of user_story API.
-                # https://crbug.com/440101
-                discard_current_run = (
-                    getattr(test, 'discard_first_result', False) and
-                    user_story not in user_story_with_discarded_first_results)
-                if discard_current_run:
-                  user_story_with_discarded_first_results.add(user_story)
-                results.DidRunPage(user_story, discard_run=discard_current_run)
+                results.DidRunPage(user_story)
               except Exception:
                 if not has_existing_exception:
                   raise

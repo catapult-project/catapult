@@ -132,7 +132,7 @@ class BenchmarkTest(unittest.TestCase):
   def testBenchmarkPredicate(self):
     class PredicateBenchmark(TestBenchmark):
       @classmethod
-      def ValueCanBeAddedPredicate(cls, value):
+      def ValueCanBeAddedPredicate(cls, value, is_first_result):
         return False
 
     original_run_fn = user_story_runner.Run

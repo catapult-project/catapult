@@ -138,17 +138,22 @@ class Benchmark(command_line.Command):
   def ProcessCommandLineArgs(cls, parser, args):
     pass
 
+  # pylint: disable=unused-argument
   @classmethod
-  def ValueCanBeAddedPredicate(cls, value):  # pylint: disable=unused-argument
-    """ Returns whether |value| can be added to the test results.
+  def ValueCanBeAddedPredicate(cls, value, is_first_result):
+    """Returns whether |value| can be added to the test results.
+
     Override this method to customize the logic of adding values to test
     results.
 
     Args:
         value: a value.Value instance.
+        is_first_result: True if |value| is the first result for its
+            corresponding user story.
 
-    Returns: a boolean. True if value should be added to the test results and
-        False otherwise.
+    Returns:
+        True if |value| should be added to the test results.
+        Otherwise, it returns False.
     """
     return True
 

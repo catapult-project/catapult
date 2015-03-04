@@ -108,7 +108,7 @@ def _GetProgressReporter(output_skipped_tests_summary, suppress_gtest_report):
 
 
 def CreateResults(benchmark_metadata, options,
-                  value_can_be_added_predicate=lambda v: True):
+                  value_can_be_added_predicate=lambda v, is_first: True):
   """
   Args:
     options: Contains the options specified in AddResultsOptions.

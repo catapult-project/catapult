@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import unittest
 
 from telemetry import page as page_module
 from telemetry.page import page_set
@@ -44,7 +45,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertTrue(results.all_page_runs[0].failed)
     self.assertTrue(results.all_page_runs[1].ok)
 
-
   def testSkips(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
@@ -83,38 +83,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
     values = results.FindAllPageSpecificValuesNamed('a')
     assert len(values) == 2
-
-  def testResultsFiltering(self):
-    def AcceptValueNamed_a(value):
-      return value.name == 'a'
-    results = page_test_results.PageTestResults(
-        value_can_be_added_predicate=AcceptValueNamed_a)
-    results.WillRunPage(self.pages[0])
-    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
-    results.AddValue(scalar.ScalarValue(self.pages[0], 'b', 'seconds', 3))
-    results.DidRunPage(self.pages[0])
-
-    results.WillRunPage(self.pages[1])
-    results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 3))
-    results.AddValue(scalar.ScalarValue(self.pages[1], 'd', 'seconds', 3))
-    results.DidRunPage(self.pages[1])
-
-    results.PrintSummary()
-
-    values = results.FindPageSpecificValuesForPage(self.pages[0], 'a')
-    self.assertEquals(1, len(values))
-    v = values[0]
-    self.assertEquals(v.name, 'a')
-    self.assertEquals(v.page, self.pages[0])
-
-    values = results.FindPageSpecificValuesForPage(self.pages[0], 'b')
-    self.assertEquals(0, len(values))
-
-    values = results.FindAllPageSpecificValuesNamed('a')
-    self.assertEquals(len(values), 2)
-
-    values = results.all_page_specific_values
-    self.assertEquals(len(values), 2)
 
   def testUrlIsInvalidValue(self):
     results = page_test_results.PageTestResults()
@@ -266,3 +234,69 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
     results.CleanUp()
     self.assertFalse(results.FindAllTraceValues())
+
+
+class PageTestResultsFilterTest(unittest.TestCase):
+  def setUp(self):
+    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps.AddUserStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
+    ps.AddUserStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
+    self.page_set = ps
+
+  @property
+  def pages(self):
+    return self.page_set.pages
+
+  def testFilterValue(self):
+    def AcceptValueNamed_a(value, _):
+      return value.name == 'a'
+    results = page_test_results.PageTestResults(
+        value_can_be_added_predicate=AcceptValueNamed_a)
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'b', 'seconds', 3))
+    results.DidRunPage(self.pages[0])
+
+    results.WillRunPage(self.pages[1])
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 3))
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'd', 'seconds', 3))
+    results.DidRunPage(self.pages[1])
+    results.PrintSummary()
+    self.assertEquals(
+        [('a', 'http://www.foo.com/'), ('a', 'http://www.bar.com/')],
+        [(v.name, v.page.url) for v in results.all_page_specific_values])
+
+  def testFilterIsFirstResult(self):
+    def AcceptSecondValues(_, is_first_result):
+      return not is_first_result
+    results = page_test_results.PageTestResults(
+        value_can_be_added_predicate=AcceptSecondValues)
+
+    # First results (filtered out)
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 7))
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'b', 'seconds', 8))
+    results.DidRunPage(self.pages[0])
+    results.WillRunPage(self.pages[1])
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 5))
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'd', 'seconds', 6))
+    results.DidRunPage(self.pages[1])
+
+    # Second results
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'b', 'seconds', 4))
+    results.DidRunPage(self.pages[0])
+    results.WillRunPage(self.pages[1])
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'a', 'seconds', 1))
+    results.AddValue(scalar.ScalarValue(self.pages[1], 'd', 'seconds', 2))
+    results.DidRunPage(self.pages[1])
+    results.PrintSummary()
+    expected_values = [
+        ('a', 'http://www.foo.com/', 3),
+        ('b', 'http://www.foo.com/', 4),
+        ('a', 'http://www.bar.com/', 1),
+        ('d', 'http://www.bar.com/', 2)]
+    actual_values = [(v.name, v.page.url, v.value)
+                     for v in results.all_page_specific_values]
+    self.assertEquals(expected_values, actual_values)
