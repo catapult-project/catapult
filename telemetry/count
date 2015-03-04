@@ -1,0 +1,40 @@
+#! /usr/bin/env python
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import imp
+import inspect
+import os
+
+from telemetry.util import path
+
+
+def IncludeDir(dir_name):
+  return (dir_name[0] != '.' and dir_name[0] != '_' and
+      not dir_name.startswith('internal') and not dir_name == 'third_party')
+
+
+def IncludeFile(file_name):
+  root, ext = os.path.splitext(file_name)
+  return (file_name[0] != '.' and
+      not root.endswith('_unittest') and ext == '.py')
+
+
+def ListFiles(directory):
+  matching_files = []
+  for root, dirs, files in os.walk(directory):
+    dirs[:] = [dir_name for dir_name in dirs if IncludeDir(dir_name)]
+    matching_files += [
+        os.path.relpath(os.path.join(root, file_name), directory)
+        for file_name in files if IncludeFile(file_name)]
+  return sorted(matching_files)
+
+
+def main():
+  modules = ListFiles(path.GetTelemetryDir())
+  print len(modules)
+
+
+if __name__ == '__main__':
+  main()
