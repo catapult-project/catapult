@@ -22,10 +22,6 @@ from telemetry.timeline import model as timeline_model_module
 from telemetry.timeline import trace_data as trace_data_module
 
 
-class InspectorException(Exception):
-  pass
-
-
 class InspectorBackend(object):
   def __init__(self, app, devtools_client, context, timeout=60):
     self._websocket = inspector_websocket.InspectorWebsocket()
@@ -44,7 +40,7 @@ class InspectorBackend(object):
     try:
       self._websocket.Connect(self.debugger_url)
     except (websocket.WebSocketException, exceptions.TimeoutException) as e:
-      raise InspectorException(e.msg)
+      self._HandleError(e)
 
     self._console = inspector_console.InspectorConsole(self._websocket)
     self._memory = inspector_memory.InspectorMemory(self._websocket)

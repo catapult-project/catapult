@@ -74,10 +74,12 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
   def CreateWrapper(self, inspector_backend):
     return tab.Tab(inspector_backend, self, self._browser_backend.browser)
 
-  def _HandleDevToolsConnectionError(self, err_msg):
+  def _HandleDevToolsConnectionError(self, error):
     if not self._browser_backend.IsAppRunning():
-      raise exceptions.BrowserGoneException(self.app, err_msg)
+      error.AddDebuggingMessage('The browser is not running. It probably '
+                                'crashed.')
     elif not self._browser_backend.HasBrowserFinishedLaunching():
-      raise exceptions.BrowserConnectionGoneException(self.app, err_msg)
+      error.AddDebuggingMessage('The browser exists but cannot be reached.')
     else:
-      raise exceptions.DevtoolsTargetCrashException(self.app, err_msg)
+      error.AddDebuggingMessage('The browser exists and can be reached. '
+                                'The devtools target probably crashed.')

@@ -77,9 +77,9 @@ class InspectorBackendList(collections.Sequence):
       try:
         backend = self._devtools_context_map_backend.GetInspectorBackend(
             context_id)
-      except inspector_backend.InspectorException:
-        err_msg = sys.exc_info()[1]
-        self._HandleDevToolsConnectionError(err_msg)
+      except exceptions.Error as e:
+        self._HandleDevToolsConnectionError(e)
+        raise e
       # Propagate KeyError from GetInspectorBackend call.
 
       wrapper = self.CreateWrapper(backend)
@@ -114,10 +114,10 @@ class InspectorBackendList(collections.Sequence):
       if context_id not in self._filtered_context_ids:
         del self._wrapper_dict[context_id]
 
-  def _HandleDevToolsConnectionError(self, err_msg):
-    """Call when handling errors in connecting to the DevTools websocket.
+  def _HandleDevToolsConnectionError(self, error):
+    """Called when handling errors in connecting to the DevTools websocket.
 
-    This can be overwritten by sub-classes to further specify the exceptions
-    which should be thrown.
+    This can be overwritten by sub-classes to add more debugging information to
+    errors.
     """
-    raise exceptions.DevtoolsTargetCrashException(self.app, err_msg)
+    pass
