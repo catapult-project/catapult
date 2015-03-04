@@ -1,11 +1,14 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.unittest_util import tab_test_case
 
 
 class TabListBackendTest(tab_test_case.TabTestCase):
+  @decorators.Enabled('has tabs')
   def testTabIdMatchesContextId(self):
     # Ensure that there are two tabs.
     while len(self.tabs) < 2:
@@ -18,6 +21,7 @@ class TabListBackendTest(tab_test_case.TabTestCase):
       self.assertEquals(tab.id, context_id)
       tabs.append(self.tabs.GetTabById(context_id))
 
+  @decorators.Enabled('has tabs')
   def testTabIdStableAfterTabCrash(self):
     # Ensure that there are two tabs.
     while len(self.tabs) < 2:
