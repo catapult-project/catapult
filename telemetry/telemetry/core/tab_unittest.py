@@ -164,6 +164,7 @@ class TabTest(tab_test_case.TabTestCase):
     # renderer_thread corresponding to it in the the trace.
     self.assertIs(None, timeline_model.GetRendererThreadFromTabId(third_tab.id))
 
+  @decorators.Disabled('android') # https://crbug.com/463933
   def testTabIsAlive(self):
     self.assertEquals(self._tab.url, 'about:blank')
     self.assertTrue(self._tab.IsAlive())
