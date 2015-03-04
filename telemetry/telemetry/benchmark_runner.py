@@ -68,7 +68,7 @@ class Help(command_line.OptparseCommand):
       if len(commands) == 1:
         command = commands[0]
         parser = command.CreateParser()
-        command.AddCommandLineArgs(parser)
+        command.AddCommandLineArgs(parser, None)
         parser.print_help()
         return 0
 
