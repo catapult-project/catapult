@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/extras/audits/chrome_process_audit.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Utilities for accessing trace data about the Chrome browser.
+ */
+tv.exportTo('tv.e.audits', function() {
+  function ChromeRendererAudit(audit, process) {
+    tv.e.audits.ChromeProcessAudit.call(this, audit, process);
+  }
+
+  ChromeRendererAudit.prototype = {
+    __proto__: tv.e.audits.ChromeProcessAudit.prototype
+  };
+
+  return {
+    ChromeRendererAudit: ChromeRendererAudit
+  };
+});
+</script>

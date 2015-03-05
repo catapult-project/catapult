@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/extras/audits/chrome_audit.html">
 <link rel="import" href="/extras/cc/constants.html">
-<link rel="import" href="/extras/cc/chrome_browser.html">
 <link rel="import" href="/extras/cc/layer_impl.html">
 <link rel="import" href="/core/trace_model/object_instance.html">
 
@@ -49,23 +49,29 @@ tv.exportTo('tv.e.cc', function() {
 
         var ownProcess = this.objectInstance.parent;
         var traceModel = ownProcess.model;
-        var chromeBrowser = new tv.e.cc.ChromeBrowser(traceModel);
-        if (chromeBrowser.browserProcess === undefined)
-          return;
-
-        // Convert all ids to InputLatency Async objects.
-        chromeBrowser.browserProcess.iterateAllEvents(function(event) {
-          if (!event.title || event.title.indexOf('InputLatency') !== 0)
-            return;
-          for (var i = 0; i < this.args.swapPromiseTraceIds.length; i++) {
-            if (!event.args.data || !event.args.data.trace_id)
-              continue;
-            if (parseInt(event.args.data.trace_id) ===
-                this.args.swapPromiseTraceIds[i])
-              this.tracedInputLatencies.push(event);
-          }
-        }.bind(this));
+        if (tv.e.audits.ChromeAudit.supportsModel(traceModel))
+          this._initializeTracedInputLatencies(traceModel);
       }
+    },
+
+    _initializeTracedInputLatencies: function(tracemodel) {
+      var audit = new tv.e.audits.ChromeAudit(traceModel);
+      if (!audit.browser)
+        return;
+
+      var latencyEvents = audit.browser.getLatencyEventsInRange(
+          traceModel.range);
+
+      // Convert all ids to InputLatency Async objects.
+      latencyEvents.forEach(function(event) {
+        for (var i = 0; i < this.args.swapPromiseTraceIds.length; i++) {
+          if (!event.args.data || !event.args.data.trace_id)
+            continue;
+          if (parseInt(event.args.data.trace_id) ===
+              this.args.swapPromiseTraceIds[i])
+            this.tracedInputLatencies.push(event);
+        }
+      }, this);
     },
 
     get hasSourceFrameBeenDrawnBefore() {
