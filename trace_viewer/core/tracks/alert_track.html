@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/tracks/letter_dot_track.html">
+<link rel="import" href="/core/color_scheme.html">
+<script>
+'use strict';
+
+tv.exportTo('tv.c.tracks', function() {
+  /**
+   * A track that displays an array of alert objects.
+   * @constructor
+   * @extends {HeadingTrack}
+   */
+  var AlertTrack = tv.b.ui.define(
+      'alert-track', tv.c.tracks.LetterDotTrack);
+
+  AlertTrack.prototype = {
+    __proto__: tv.c.tracks.LetterDotTrack.prototype,
+
+    decorate: function(viewport) {
+      tv.c.tracks.LetterDotTrack.prototype.decorate.call(this, viewport);
+      this.heading = 'Alerts';
+      this.alerts_ = undefined;
+    },
+
+    get alerts() {
+      return this.alerts_;
+    },
+
+    set alerts(alerts) {
+      this.alerts_ = alerts;
+      if (alerts === undefined) {
+        this.items = undefined;
+        return;
+      }
+      this.items = this.alerts_.map(function(alert) {
+        return {
+          start: alert.start,
+          get selected() {
+            return this.alert.selected;
+          },
+          dotLetter: String.fromCharCode(9888),
+          alert: alert
+        };
+      });
+    },
+
+    getModelEventFromItem: function(item) {
+      return item.alert;
+    }
+  };
+
+  return {
+    AlertTrack: AlertTrack
+  };
+});
+</script>

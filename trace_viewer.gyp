@@ -179,6 +179,7 @@
       'trace_viewer/core/trace_model/timed_event.html',
       'trace_viewer/core/trace_model/trace_model.html',
       'trace_viewer/core/trace_model/trace_model_settings.html',
+      'trace_viewer/core/tracks/alert_track.html',
       'trace_viewer/core/tracks/async_slice_group_track.html',
       'trace_viewer/core/tracks/container_track.html',
       'trace_viewer/core/tracks/counter_track.html',
