@@ -94,17 +94,48 @@ found in the LICENSE file.
         suiteNamesToLoad.push(state.testSuiteName);
       }
 
+      showLoadingOverlay();
       var loader = new tv.b.unittest.SuiteLoader(suiteNamesToLoad);
       return loader.allSuitesLoadedPromise.then(
         function() {
+          hideLoadingOverlay();
           Polymer.whenReady(function() {
             runTests(loader, state);
           });
         },
         function(err) {
+          hideLoadingOverlay();
           tv.showPanic('Module loading failure', err);
           throw err;
         });
+    }
+
+    function showLoadingOverlay() {
+      var overlay = document.createElement('div');
+      overlay.id = 'tests-loading-overlay';
+      overlay.style.backgroundColor = 'white';
+      overlay.style.boxSizing = 'border-box';
+      overlay.style.color = 'black';
+      overlay.style.display = '-webkit-flex';
+      overlay.style.height = '100%';
+      overlay.style.left = 0;
+      overlay.style.padding = '8px';
+      overlay.style.position = 'fixed';
+      overlay.style.top = 0;
+      overlay.style.webkitFlexDirection = 'column';
+      overlay.style.width = '100%';
+
+      var element = document.createElement('div');
+      element.style.webkitFlex = '1 1 auto';
+      element.style.overflow = 'auto';
+      overlay.appendChild(element);
+
+      element.textContent = 'Loading tests...';
+      document.body.appendChild(overlay);
+    }
+    function hideLoadingOverlay() {
+      var overlay = document.body.querySelector('#tests-loading-overlay');
+      document.body.removeChild(overlay);
     }
 
     function updateTitle(state) {
