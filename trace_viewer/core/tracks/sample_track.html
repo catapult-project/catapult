@@ -35,8 +35,8 @@ tv.exportTo('tv.c.tracks', function() {
       this.rects = samples;
     },
 
-    addRectToSelection: function(sample, selection) {
-      selection.push(sample);
+    getModelEventFromItem: function(sample) {
+      return sample;
     }
   };
 

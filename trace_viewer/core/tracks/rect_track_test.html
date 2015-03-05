@@ -21,8 +21,8 @@ tv.b.unittest.testSuite(function() {
   var Viewport = tv.c.TimelineViewport;
 
   var monkeyPatchTrack = function(track) {
-    track.addRectToSelection = function(rect, selection) {
-      selection.push(rect);
+    track.getModelEventFromItem = function(rect) {
+      return rect;
     };
     return track;
   };

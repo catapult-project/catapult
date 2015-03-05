@@ -35,8 +35,8 @@ tv.exportTo('tv.c.tracks', function() {
       this.rects = slices;
     },
 
-    addRectToSelection: function(slice, selection) {
-      selection.push(slice);
+    getModelEventFromItem: function(slice) {
+      return slice;
     }
   };
 

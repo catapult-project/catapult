@@ -18,14 +18,13 @@ tv.b.unittest.testSuite(function() {
   var SliceTrack = tv.c.tracks.SliceTrack;
   var Slice = tv.c.trace_model.Slice;
 
-  test('addRectToSelectionTesting', function() {
+  test('getModelEventFromItem', function() {
     var track = new SliceTrack(new tv.c.TimelineViewport());
     var slice = new Slice('', 'a', 0, 1, {}, 1);
     track.slices = [slice];
     var sel = new Selection();
-    track.addRectToSelection(track.slices[0], sel);
-    assertEquals(1, sel.length);
-    assertEquals(slice, sel[0]);
+    var me0 = track.getModelEventFromItem(track.slices[0]);
+    assertEquals(slice, me0);
   });
 });
 </script>

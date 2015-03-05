@@ -20,16 +20,14 @@ tv.b.unittest.testSuite(function() {
   var Sample = tv.c.trace_model.Sample;
   var StackFrame = tv.c.trace_model.StackFrame;
 
-  test('addRectToSelectionTesting', function() {
+  test('getModelEventFromItemTest', function() {
     var track = new SampleTrack(new tv.c.TimelineViewport());
     var fA = new StackFrame(undefined, 1, 'cat', 'a', 7);
     var sample = new Sample(undefined, undefined, 'instructions_retired',
                             10, fA, 10);
     track.samples = [sample];
-    var sel = new Selection();
-    track.addRectToSelection(track.samples[0], sel);
-    assertEquals(1, sel.length);
-    assertEquals(sample, sel[0]);
+    var me0 = track.getModelEventFromItem(track.samples[0]);
+    assertEquals(sample, me0);
   });
 });
 </script>

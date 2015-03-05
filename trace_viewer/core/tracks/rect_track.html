@@ -67,7 +67,7 @@ tv.exportTo('tv.c.tracks', function() {
       return this.rects_.length > 0;
     },
 
-    addRectToSelection: function(rect, selection) {
+    getModelEventFromItem: function(rect) {
       throw new Error('Not implemented.');
     },
 
@@ -121,14 +121,18 @@ tv.exportTo('tv.c.tracks', function() {
         return;
 
       this.rects_.forEach(function(rect) {
-        eventToTrackMap.addEvent(rect, this);
+        var event = this.getModelEventFromItem(rect);
+        if (event)
+          eventToTrackMap.addEvent(event, this);
       }, this);
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onRect(rect) {
-        this.addRectToSelection(rect, selection);
+        var event = this.getModelEventFromItem(rect);
+        if (event)
+          selection.push(event);
       }
       onRect = onRect.bind(this);
       tv.b.iterateOverIntersectingIntervals(this.rects_,
@@ -174,14 +178,19 @@ tv.exportTo('tv.c.tracks', function() {
       if (newIndex < 0 || newIndex >= this.rects_.length)
         return false;
 
-      this.addRectToSelection(this.rects_[newIndex], selection);
+      var event = this.rects_[newIndex];
+      if (event)
+        selection.push(event);
       return true;
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
       for (var i = 0; i < this.rects_.length; ++i) {
-        if (filter.matchSlice(this.rects_[i]))
-          this.addRectToSelection(this.rects_[i], selection);
+        if (filter.matchSlice(this.rects_[i])) {
+          var event = this.getModelEventFromItem(this.rects_[i]);
+          if (event)
+            selection.push(event);
+        }
       }
     },
 
@@ -194,8 +203,11 @@ tv.exportTo('tv.c.tracks', function() {
           worldX,
           worldMaxDist);
 
-      if (rect)
-        this.addRectToSelection(rect, selection);
+      if (rect) {
+        var event = this.getModelEventFromItem(rect);
+        if (event)
+          selection.push(event);
+      }
     }
   };
 
