@@ -120,13 +120,14 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     updateContentsForUpperMode_: function() {
+    },
+
+    updateContentsForLowerMode_: function() {
       if (this.model_.interaction_records.length) {
         var mrt = new HackyMultiRowTrack(this.viewport_, this.model_);
         this.appendChild(mrt);
       }
-    },
 
-    updateContentsForLowerMode_: function() {
       if (this.model_.globalMemoryDumps.length) {
         var mdt = new tv.c.tracks.MemoryDumpTrack(this.viewport_);
         mdt.memoryDumps = this.model_.globalMemoryDumps;
