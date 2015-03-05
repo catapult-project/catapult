@@ -11,15 +11,27 @@ import tvcm
 
 _ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+def getFilesIn(basedir):
+  data_files = []
+  for dirpath, dirnames, filenames in os.walk(basedir, followlinks=True):
+    new_dirnames = [d for d in dirnames if not d.startswith('.')]
+    del dirnames[:]
+    dirnames += new_dirnames
+
+    for f in filenames:
+      if f.startswith('.'):
+        continue
+      full_f = os.path.join(dirpath, f)
+      rel_f = os.path.relpath(full_f, basedir)
+      data_files.append(rel_f)
+
+  data_files.sort()
+  return data_files
+
 
 def do_GET_json_examples(request):
   test_data_path = os.path.abspath(os.path.join(_ROOT_PATH, 'test_data'))
-  data_files = []
-  for dirpath, dirnames, filenames in os.walk(test_data_path):
-    for f in filenames:
-      data_files.append(f)
-
-  data_files.sort()
+  data_files = getFilesIn(test_data_path)
   files_as_json = json.dumps(data_files)
 
   request.send_response(200)
@@ -30,12 +42,7 @@ def do_GET_json_examples(request):
 
 def do_GET_json_examples_skp(request):
   skp_data_path = os.path.abspath(os.path.join(_ROOT_PATH, 'skp_data'))
-  data_files = []
-  for dirpath, dirnames, filenames in os.walk(skp_data_path):
-    for f in filenames:
-      data_files.append(f)
-
-  data_files.sort()
+  data_files = getFilesIn(skp_data_path)
   files_as_json = json.dumps(data_files)
 
   request.send_response(200)
