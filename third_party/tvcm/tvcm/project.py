@@ -26,22 +26,6 @@ def _IsFilenameAModule(loader, x):
     return False
 
 
-def _IsFilenameATest(loader, x):
-  if x.endswith('_test.js'):
-    return True
-
-  if x.endswith('_test.html'):
-    return True
-
-  if x.endswith('_unittest.js'):
-    return True
-
-  if x.endswith('_unittest.html'):
-    return True
-
-  # TODO(nduca): Add content test?
-  return False
-
 class AbsFilenameList(object):
   def __init__(self, willDirtyCallback):
     self._willDirtyCallback = willDirtyCallback
@@ -155,23 +139,6 @@ class Project(object):
     return [x for x in all_filenames if
             x not in self.non_module_html_files and
             _IsFilenameAModule(self.loader, x)]
-
-  def _FindTestModuleFilenames(self, source_paths):
-    all_filenames = _FindAllFilesRecursive(source_paths)
-    return [x for x in all_filenames if
-            x not in self.non_module_html_files and
-            _IsFilenameATest(self.loader, x)]
-
-  def FindAllTestModuleResources(self, start_path=None):
-    if start_path == None:
-      test_module_filenames = self._FindTestModuleFilenames(self.source_paths)
-    else:
-      test_module_filenames = self._FindTestModuleFilenames([start_path])
-    test_module_filenames.sort()
-
-    # Find the equivalent resources.
-    return [self.loader.FindResourceGivenAbsolutePath(x)
-            for x in test_module_filenames]
 
   def FindAllModuleFilenames(self):
     return self._FindAllModuleFilenames(self.source_paths)

@@ -16,15 +16,3 @@ class DevServerTests(unittest.TestCase):
 
   def tearDown(self):
     self.server.Close()
-
-  def testTests(self):
-    # Just smoke test for a known test to see if things worked.
-    resp_str = self.server.Get('/tv/json/tests')
-    resp = json.loads(resp_str)
-    self.assertTrue('test_module_names' in resp)
-
-  def testTestsWithFilter(self):
-    self.server.CallOnServer('SetTestFilterToAllowOnlyFilenamesMatching', 'bbox2_test')
-    resp_str = self.server.Get('/tv/json/tests')
-    resp = json.loads(resp_str)
-    test_module_names = resp['test_module_names']

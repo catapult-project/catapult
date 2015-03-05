@@ -92,25 +92,6 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         # the local error ECONNABORTED.
         pass
 
-def do_GET_json_tests(self):
-  test_module_resources = self.server.project.FindAllTestModuleResources()
-  if self.server.test_module_resource_filter:
-    cur_filter = self.server.test_module_resource_filter
-  else:
-    cur_filter = lambda x: True
-
-  test_module_names = [x.name for x in test_module_resources if cur_filter(x)]
-
-  tests = {'test_module_names': test_module_names,
-           'test_links': self.server.test_links}
-  tests_as_json = json.dumps(tests);
-
-  self.send_response(200)
-  self.send_header('Content-Type', 'application/json')
-  self.send_header('Content-Length', len(tests_as_json))
-  self.end_headers()
-  self.wfile.write(tests_as_json)
-
 def send_500(self, msg, ex, log_error=True, path=None):
   if path == None:
     is_html_output = False
@@ -189,7 +170,6 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
       self._project = project_module.Project([])
 
     self._next_reload_check = -1
-    self.test_module_resource_filter = None
 
     self.AddPathHandler('/', do_GET_root)
     self.AddPathHandler('', do_GET_root)
@@ -199,7 +179,6 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     self.AddPathHandler('/tvcm/tests.html', do_GET_root)
     self.AddPathHandler('/tests.html', do_GET_root)
 
-    self.AddPathHandler('/tv/json/tests', do_GET_json_tests)
 
   def AddPathHandler(self, path, handler, supports_get=True, supports_post=False):
     self._path_handlers.append(PathHandler(path, handler, supports_get, supports_post))
@@ -209,11 +188,6 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
       if h.CanHandle(path, method):
         return h.handler
     return None
-
-  def SetTestFilterToAllowOnlyFilenamesMatching(self, x):
-    def FilterOnX(r):
-      return x in r.name
-    self.test_module_resource_filter = FilterOnX
 
   def AddSourcePathMapping(self, file_system_path):
     self._project.AddSourcePath(file_system_path)
@@ -253,4 +227,7 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def serve_forever(self):
     if not self._quiet:
       sys.stderr.write("Now running on http://localhost:%i\n" % self._port)
-    BaseHTTPServer.HTTPServer.serve_forever(self)
+    try:
+      BaseHTTPServer.HTTPServer.serve_forever(self)
+    except KeyboardInterrupt:
+      sys.exit(0)

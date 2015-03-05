@@ -20,6 +20,21 @@ def _FindAllFilesRecursive(source_paths):
         all_filenames.add(x)
   return all_filenames
 
+def _IsFilenameATest(loader, x):
+  if x.endswith('_test.js'):
+    return True
+
+  if x.endswith('_test.html'):
+    return True
+
+  if x.endswith('_unittest.js'):
+    return True
+
+  if x.endswith('_unittest.html'):
+    return True
+
+  # TODO(nduca): Add content test?
+  return False
 
 class TraceViewerProject(project_module.Project):
   trace_viewer_path = os.path.abspath(os.path.join(
@@ -70,6 +85,16 @@ class TraceViewerProject(project_module.Project):
       'gl-matrix/jsdoc-template/static/header.html',
       'gl-matrix/jsdoc-template/static/index.html',
     ])
+
+  def FindAllTestModuleResources(self):
+    all_filenames = _FindAllFilesRecursive([self.src_path])
+    test_module_filenames = [x for x in all_filenames if
+                             _IsFilenameATest(self.loader, x)]
+    test_module_filenames.sort()
+
+    # Find the equivalent resources.
+    return [self.loader.FindResourceGivenAbsolutePath(x)
+            for x in test_module_filenames]
 
   def GetConfigNames(self):
     config_files = [

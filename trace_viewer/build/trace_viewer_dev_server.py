@@ -11,6 +11,7 @@ import tvcm
 
 _ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+
 def do_GET_json_examples(request):
   test_data_path = os.path.abspath(os.path.join(_ROOT_PATH, 'test_data'))
   data_files = []
@@ -43,12 +44,28 @@ def do_GET_json_examples_skp(request):
   request.end_headers()
   request.wfile.write(files_as_json)
 
+def do_GET_json_tests(self):
+  test_module_resources = self.server.project.FindAllTestModuleResources()
+
+  test_module_names = [x.name for x in test_module_resources]
+
+  tests = {'test_module_names': test_module_names,
+           'test_links': self.server.test_links}
+  tests_as_json = json.dumps(tests);
+
+  self.send_response(200)
+  self.send_header('Content-Type', 'application/json')
+  self.send_header('Content-Length', len(tests_as_json))
+  self.end_headers()
+  self.wfile.write(tests_as_json)
+
 def Main(args):
   port = 8003
   project = trace_viewer_project.TraceViewerProject()
 
   server = tvcm.DevServer(port=port, project=project)
   server.AddPathHandler('/json/examples', do_GET_json_examples)
+  server.AddPathHandler('/tv/json/tests', do_GET_json_tests)
   server.AddPathHandler('/json/examples/skp', do_GET_json_examples_skp)
 
   server.AddSourcePathMapping(project.trace_viewer_path)
