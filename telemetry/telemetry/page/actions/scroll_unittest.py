@@ -10,7 +10,6 @@ from telemetry.unittest_util import tab_test_case
 
 
 class ScrollActionTest(tab_test_case.TabTestCase):
-  @decorators.Disabled  # Disabled due to flakiness: crbug.com/330544
   def testScrollAction(self):
     self.Navigate('blank.html')
 
@@ -37,15 +36,10 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didBeginMeasuring'))
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didEndMeasuring'))
 
-    # Allow for roundoff error in scaled viewport.
     scroll_position = self._tab.EvaluateJavaScript(
-        """(document.documentElement.scrollTop || document.body.scrollTop)
-        + window.innerHeight""")
-    scroll_height = self._tab.EvaluateJavaScript('document.body.scrollHeight')
-    difference = scroll_position - scroll_height
-    self.assertTrue(abs(difference) <= 1,
-                    msg='scroll_position=%d; scroll_height=%d' %
-                            (scroll_position, scroll_height))
+        '(document.documentElement.scrollTop || document.body.scrollTop)')
+    self.assertTrue(scroll_position != 0,
+                    msg='scroll_position=%d;' % (scroll_position))
 
   def testBoundingClientRect(self):
     self.Navigate('blank.html')
