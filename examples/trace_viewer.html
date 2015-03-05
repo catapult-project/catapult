@@ -95,7 +95,7 @@ found in the LICENSE file.
       },
       function(err) {
         var overlay = new tv.b.ui.Overlay();
-        overlay.textContent = tv.normalizeException(err).message;
+        overlay.textContent = tv.b.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
       });
