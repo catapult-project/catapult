@@ -198,17 +198,52 @@ class InspectorBackend(object):
       self._WaitForInspectorToGoAwayAndReconnect()
       return
     if res['method'] == 'Inspector.targetCrashed':
-      raise exceptions.DevtoolsTargetCrashException(self.app)
+      exception = exceptions.DevtoolsTargetCrashException(self.app)
+      self._AddDebuggingInformation(exception)
+      raise exception
 
   def _HandleError(self, error):
+    """Converts a websocket Exception into a Telemetry exception.
+
+    This method always raises a Telemetry exception. It appends debugging
+    information.
+
+    Args:
+      error: An instance of socket.error or websocket.WebSocketException.
+    Raises:
+      exception.TimeoutException: A timeout occured.
+      exception.DevtoolsTargetCrashException: On any other error, the most
+        likely explanation is that the devtool's target crashed.
+    """
+    if isinstance(error, websocket.WebSocketTimeoutException):
+      new_error = exceptions.TimeoutException()
+    else:
+      new_error = exceptions.DevtoolsTargetCrashException(self.app)
+
+    original_error_msg = 'Original exception:\n' + str(error)
+    new_error.AddDebuggingMessage(original_error_msg)
+    self._AddDebuggingInformation(new_error)
+
+    raise new_error
+
+  def _AddDebuggingInformation(self, error):
+    """Adds debugging information to error.
+
+    Args:
+      error: An instance of exceptions.Error.
+    """
     if self.IsInspectable():
-      raise exceptions.DevtoolsTargetCrashException(self.app,
+      msg = (
           'Received a socket error in the browser connection and the tab '
-          'still exists, assuming it timed out. '
-          'Error=%s' % error)
-    raise exceptions.DevtoolsTargetCrashException(self.app,
-        'Received a socket error in the browser connection and the tab no '
-        'longer exists, assuming it crashed. Error=%s' % error)
+          'still exists. The operation probably timed out.'
+      )
+    else:
+      msg = (
+          'Received a socket error in the browser connection and the tab no '
+          'longer exists. The tab probably crashed.'
+      )
+    error.AddDebuggingMessage(msg)
+    error.AddDebuggingMessage('Debugger url: %s' % self.debugger_url)
 
   def _WaitForInspectorToGoAwayAndReconnect(self):
     sys.stderr.write('The connection to Chrome was lost to the Inspector UI.\n')
