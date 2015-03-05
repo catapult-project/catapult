@@ -8,8 +8,10 @@ import json
 import socket
 import urllib2
 
+from telemetry.core import exceptions
 
-class DevToolsClientConnectionError(Exception):
+
+class DevToolsClientConnectionError(exceptions.Error):
   pass
 
 
