@@ -82,6 +82,8 @@ tv.exportTo('tv.c.tracks', function() {
       var height = bounds.height * pixelRatio;
       var halfHeight = height * 0.5;
       var twoPi = Math.PI * 2;
+      var palette = tv.b.ui.getColorPalette();
+      var highlightIdBoost = tv.b.ui.paletteProperties.highlightIdBoost;
 
       // Culling parameters.
       var dt = this.viewport.currentDisplayTransform;
@@ -107,7 +109,10 @@ tv.exportTo('tv.c.tracks', function() {
           break;
         var xView = dt.xWorldToView(x);
 
-        ctx.fillStyle = 'rgb(0,0,180)';
+        if (item.selected)
+          ctx.fillStyle = palette[item.colorId + highlightIdBoost];
+        else
+          ctx.fillStyle = palette[item.colorId];
         ctx.beginPath();
         ctx.arc(xView, halfHeight, dumpRadiusView + 0.5, 0, twoPi);
         ctx.fill();

@@ -40,12 +40,14 @@ tv.exportTo('tv.c.tracks', function() {
         this.items = undefined;
         return;
       }
+      var memoryColorId = tv.b.ui.getColorIdForReservedName('memory_dump');
       this.items = this.memoryDumps_.map(function(memoryDump) {
         return {
           start: memoryDump.start,
           get selected() {
             return this.memoryDump.selected;
           },
+          colorId: memoryColorId,
           dotLetter: 'M',
           memoryDump: memoryDump
         };
