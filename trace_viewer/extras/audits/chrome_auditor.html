@@ -94,6 +94,30 @@ tv.exportTo('tv.e.audits', function() {
               undefined, 'Input',
               tv.b.ui.getColorIdForGeneralPurposeString('mt_input')));
       addIRs(mergedLatencyIRs);
+
+      this.addBigTaskAlerts();
+    },
+
+    addBigTaskAlerts: function() {
+      var model = this.model;
+      tv.b.iterItems(this.audit.renderers, function(pid, renderer) {
+        var slices = renderer.mainThread.sliceGroup.slices;
+        slices.forEach(function(slice) {
+          if (slice.category != 'toplevel')
+            return;
+          if (slice.duration > 75.0) {
+            var center = slice.start + 0.5 * slice.duration;
+
+            var title = 'Task is too long: tasks should be <75ms!';
+            var colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
+            var alert = new tv.c.trace_model.Alert(
+                title, colorId,
+                tv.c.trace_model.ALERT_SEVERITY.CRITICAL,
+                center, {/* explanatory data goes here */});
+            model.alerts.push(alert);
+          }
+        });
+      });
     },
 
     getAllLoadAndNetEvents: function() {

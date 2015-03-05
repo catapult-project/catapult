@@ -16,13 +16,14 @@ found in the LICENSE file.
  * @fileoverview Utilities for accessing trace data about the Chrome browser.
  */
 tv.exportTo('tv.e.audits', function() {
-  var BROWSER_PROCESS_NAME = 'CrBrowserMain';
-  var RENDERER_PROCESS_NAME = 'CrRendererMain';
+  var CHROME_BROWSER_MAIN_THREAD_NAME = 'CrBrowserMain';
+  var CHROME_RENDERER_THREAD_NAME = 'CrRendererMain';
 
   function findChromeBrowserProcess(model) {
     var browsers = [];
     model.getAllProcesses().forEach(function(process) {
-      if (process.findAllThreadsNamed(BROWSER_PROCESS_NAME).length !== 0)
+      if (process.findAllThreadsNamed(
+              CHROME_BROWSER_MAIN_THREAD_NAME).length !== 0)
         browsers.push(process);
     }, this);
     if (browsers.length === 0)
@@ -35,7 +36,7 @@ tv.exportTo('tv.e.audits', function() {
   function findChromeRenderProcesses(model) {
     var rendererProcesses = [];
     model.getAllProcesses().forEach(function(process) {
-      if (process.findAllThreadsNamed(RENDERER_PROCESS_NAME).length !== 0)
+      if (process.findAllThreadsNamed(CHROME_RENDERER_THREAD_NAME).length !== 0)
         rendererProcesses.push(process);
     });
     return rendererProcesses;
@@ -105,6 +106,7 @@ tv.exportTo('tv.e.audits', function() {
   };
 
   return {
+    CHROME_RENDERER_THREAD_NAME: CHROME_RENDERER_THREAD_NAME,
     ChromeAudit: ChromeAudit
   };
 });
