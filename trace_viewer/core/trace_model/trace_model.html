@@ -577,6 +577,13 @@ tv.exportTo('tv.c', function() {
           auditor.runAudit();
         });
 
+        this.interaction_records.sort(function(x, y) {
+          return x.start - y.start;
+        });
+        this.alerts.sort(function(x, y) {
+          return x.start - y.start;
+        });
+
         this.updateBounds();
       }, this);
 
