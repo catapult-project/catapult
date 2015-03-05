@@ -163,6 +163,11 @@ def RunChecks(input_api):
   if err:
     results += [err]
 
+  from trace_viewer.build import check_modules
+  err = check_modules.CheckModules()
+  if err:
+    results += [err]
+
   from hooks import js_checks
   results += js_checks.RunChecks(input_api)
 

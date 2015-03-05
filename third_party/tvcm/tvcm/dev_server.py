@@ -20,7 +20,6 @@ import SimpleHTTPServer
 import StringIO
 import BaseHTTPServer
 
-RELOAD_CHECK_DELAY = 30
 
 class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def __init__(self, *args, **kwargs):
@@ -32,12 +31,6 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       self.send_header('Cache-Control', 'no-cache')
 
   def do_GET(self):
-    try:
-      self.server.ReloadProjectIfNeeded()
-    except Exception, ex:
-      send_500(self, "While processing project files", ex, path=self.path)
-      return
-
     if self.do_path_handler('GET'):
       return
 
@@ -169,8 +162,6 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     else:
       self._project = project_module.Project([])
 
-    self._next_reload_check = -1
-
     self.AddPathHandler('/', do_GET_root)
     self.AddPathHandler('', do_GET_root)
     self.default_path = '/base/tests.html'
@@ -207,18 +198,6 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   @property
   def loader(self):
     return self._project.loader
-
-  def ReloadProjectIfNeeded(self):
-    current_time = time.time()
-    if self._next_reload_check >= current_time:
-      return
-
-    if not self._quiet:
-      sys.stderr.write('Reloading project to check for errors...\n')
-
-    self.project.ResetLoader()
-    load_sequence = self.project.CalcLoadSequenceForAllModules()
-    self._next_reload_check = current_time + RELOAD_CHECK_DELAY
 
   @property
   def port(self):
