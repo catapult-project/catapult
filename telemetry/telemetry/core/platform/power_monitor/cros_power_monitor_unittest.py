@@ -30,6 +30,14 @@ battery_energy 31.83
 battery_energy_rate 12.80
 battery_voltage 12.24
 battery_discharging 1''')
+  incomplete_final_power = ('''line_power_connected 0
+battery_present 1
+battery_percent 70.20
+battery_charge 2.83
+battery_charge_full 4.03
+battery_charge_full_design 4.03
+battery_energy_rate 12.80
+battery_discharging 1''')
   expected_power = {
     'energy_consumption_mwh': 2558.0,
     'power_samples_mw': [12780.0, 12800.0],
@@ -42,6 +50,18 @@ battery_discharging 1''')
         'energy': 31.83,
         'energy_rate': 12.80,
         'voltage_now': 12.24
+      }
+    }
+  }
+  expected_incomplete_power = {
+    'energy_consumption_mwh': 2558.0,
+    'power_samples_mw': [12780.0, 12800.0],
+    'component_utilization': {
+      'battery': {
+        'charge_full': 4.03,
+        'charge_full_design': 4.03,
+        'charge_now': 2.83,
+        'energy_rate': 12.80,
       }
     }
   }
@@ -125,19 +145,37 @@ battery_discharging 1''')
       }
     }
   }
+
+  def _assertPowerEqual(self, results, expected):
+    battery = results['component_utilization']['battery']
+    expected_battery = expected['component_utilization']['battery']
+    self.assertItemsEqual(battery.keys(), expected_battery.keys())
+    for value in battery:
+      self.assertAlmostEqual(battery[value], expected_battery[value])
+
+    self.assertAlmostEqual(results['energy_consumption_mwh'],
+                           expected['energy_consumption_mwh'])
+    self.assertAlmostEqual(results['power_samples_mw'][0],
+                           expected['power_samples_mw'][0])
+    self.assertAlmostEqual(results['power_samples_mw'][1],
+                           expected['power_samples_mw'][1])
+
   def testParsePower(self):
     results = cros_power_monitor.CrosPowerMonitor.ParsePower(
         self.initial_power, self.final_power, 0.2)
-    for value in results['component_utilization']['battery']:
-      self.assertAlmostEqual(
-          results['component_utilization']['battery'][value],
-          self.expected_power['component_utilization']['battery'][value])
-    self.assertAlmostEqual(results['energy_consumption_mwh'],
-                           self.expected_power['energy_consumption_mwh'])
-    self.assertAlmostEqual(results['power_samples_mw'][0],
-                           self.expected_power['power_samples_mw'][0])
-    self.assertAlmostEqual(results['power_samples_mw'][1],
-                           self.expected_power['power_samples_mw'][1])
+    self._assertPowerEqual(results, self.expected_power)
+
+  def testParseIncompletePowerState(self):
+    """Test the case where dump_power_status only outputs partial fields.
+
+    CrosPowerMonitor hard-coded expected fields from dump_power_status,
+    this test ensures it parses successfully when expected fields does not
+    exist. It's mainly for backward compatibility.
+    """
+    results = cros_power_monitor.CrosPowerMonitor.ParsePower(
+        self.initial_power, self.incomplete_final_power, 0.2)
+    self._assertPowerEqual(results, self.expected_incomplete_power)
+
 
   def testSplitSample(self):
     sample = self.initial_power + '\n1408739546\n'

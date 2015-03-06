@@ -138,16 +138,22 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     average_power_mw = (initial_power_mw + final_power_mw) / 2.0
     out_dict['power_samples_mw'] = [initial_power_mw, final_power_mw]
     out_dict['energy_consumption_mwh'] = average_power_mw * length_h
+
     # Duplicating CrOS battery fields where applicable.
+    def CopyFinalState(field, key):
+      """Copy fields from battery final state."""
+      if field in final:
+        battery[key] = float(final[field])
+
     battery = {}
-    battery['charge_full'] = float(final['battery_charge_full'])
-    battery['charge_full_design'] = (
-        float(final['battery_charge_full_design']))
-    battery['charge_now'] = float(final['battery_charge'])
-    battery['current_now'] = float(final['battery_current'])
-    battery['energy'] = float(final['battery_energy'])
-    battery['energy_rate'] = float(final['battery_energy_rate'])
-    battery['voltage_now'] = float(final['battery_voltage'])
+    CopyFinalState('battery_charge_full', 'charge_full')
+    CopyFinalState('battery_charge_full_design', 'charge_full_design')
+    CopyFinalState('battery_charge', 'charge_now')
+    CopyFinalState('battery_current', 'current_now')
+    CopyFinalState('battery_energy', 'energy')
+    CopyFinalState('battery_energy_rate', 'energy_rate')
+    CopyFinalState('battery_voltage', 'voltage_now')
+
     component_utilization['battery'] = battery
     out_dict['component_utilization'] = component_utilization
     return out_dict
