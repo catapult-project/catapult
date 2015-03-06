@@ -113,9 +113,9 @@ found in the LICENSE file.
           thread.userFriendlyName;
 
       shadowRoot.querySelector('#start').textContent =
-          tv.c.analysis.tsRound(timeSlice.start) + 'ms';
+          tv.c.analysis.tsString(timeSlice.start);
       shadowRoot.querySelector('#duration').textContent =
-          tv.c.analysis.tsRound(timeSlice.duration) + 'ms';
+          tv.c.analysis.tsString(timeSlice.duration);
       var onCpuEl = shadowRoot.querySelector('#on-cpu');
       onCpuEl.textContent = '';
       var runningInsteadEl = shadowRoot.querySelector('#running-instead');

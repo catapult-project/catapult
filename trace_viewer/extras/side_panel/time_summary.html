@@ -49,7 +49,7 @@ tv.exportTo('tv.e.analysis', function() {
   var OVERHEAD_TRACE_CATEGORY = 'trace_event_overhead';
   var OVERHEAD_TRACE_NAME = 'overhead';
 
-  var tsRound = tv.c.analysis.tsRound;
+  var tsString = tv.c.analysis.tsString;
 
   var RequestSelectionChangeEvent = tv.c.RequestSelectionChangeEvent;
 
@@ -135,7 +135,7 @@ tv.exportTo('tv.e.analysis', function() {
       data.push({
         label: resultsForGroup.name,
         value: value,
-        valueText: tsRound(value) + 'ms',
+        valueText: tsString(value),
         resultsForGroup: resultsForGroup
       });
     }
@@ -386,8 +386,7 @@ tv.exportTo('tv.e.analysis', function() {
         textContent: 'Total ' + this.groupingUnit_ + ': ',
         bold: true}));
       summaryText.appendChild(tv.b.ui.createSpan({
-        textContent: tsRound(getValueFromGroup(allGroup)) + 'ms'
-      }));
+        textContent: tsString(getValueFromGroup(allGroup))}));
       resultArea.appendChild(summaryText);
 
       // If needed, add in the idle time.
@@ -402,7 +401,7 @@ tv.exportTo('tv.e.analysis', function() {
         extraData.push({
           label: 'CPU Idle',
           value: idleTime,
-          valueText: tsRound(idleTime) + 'ms'
+          valueText: tsString(idleTime)
         });
         extraValue += idleTime;
       }

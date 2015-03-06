@@ -34,7 +34,7 @@ found in the LICENSE file.
       selection.forEach(function(dump) {
         var row = results.appendBodyRow(table);
         var linkContainer = results.appendTableCell(table, row, '');
-        var label = 'Dump at ' + tv.c.analysis.tsRound(dump.start) + ' ms';
+        var label = 'Dump at ' + tv.c.analysis.tsString(dump.start);
         var selectionGenerator = function() {
           var selection = new tv.c.Selection();
           selection.push(dump);

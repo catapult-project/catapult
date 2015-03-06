@@ -12,11 +12,16 @@ found in the LICENSE file.
  * @fileoverview Helper functions for use in selection_analysis files.
  */
 tv.exportTo('tv.c.analysis', function() {
+  function tsString(ts) {
+    return Number(parseFloat(tsRound(ts)).toFixed(3)).toLocaleString() + ' ms';
+  }
+
   function tsRound(ts) {
     return Math.round(ts * 1000.0) / 1000.0;
   }
 
   return {
+    tsString: tsString,
     tsRound: tsRound
   };
 });

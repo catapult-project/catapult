@@ -95,10 +95,10 @@ found in the LICENSE file.
         shadowRoot.querySelector('#thread-name').textContent = cpuSlice.title;
       }
       shadowRoot.querySelector('#start').textContent =
-          tv.c.analysis.tsRound(cpuSlice.start) + 'ms';
+          tv.c.analysis.tsString(cpuSlice.start);
 
       shadowRoot.querySelector('#duration').textContent =
-          tv.c.analysis.tsRound(cpuSlice.duration) + 'ms';
+          tv.c.analysis.tsString(cpuSlice.duration);
       var runningThreadEl = shadowRoot.querySelector('#running-thread');
 
       var timeSlice = cpuSlice.getAssociatedTimeslice();
