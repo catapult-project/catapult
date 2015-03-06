@@ -13,7 +13,7 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.c.analysis', function() {
   function tsRound(ts) {
-    return Math.round(ts * 1000.0) / 1000.0;
+    return Number(parseFloat(Math.round(ts * 1000.0) / 1000.0).toFixed(3)).toLocaleString();
   }
 
   return {
