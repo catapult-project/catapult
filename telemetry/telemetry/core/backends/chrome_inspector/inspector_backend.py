@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import functools
 import logging
 import os
 import socket
@@ -22,6 +23,23 @@ from telemetry.timeline import model as timeline_model_module
 from telemetry.timeline import trace_data as trace_data_module
 
 
+def _HandleInspectorWebSocketExceptions(func):
+  """Decorator for converting inspector_websocket exceptions.
+
+  When an inspector_websocket exception is thrown in the original function,
+  this decorator converts it into a telemetry exception and adds debugging
+  information.
+  """
+  @functools.wraps(func)
+  def inner(inspector_backend, *args, **kwargs):
+    try:
+      return func(inspector_backend, *args, **kwargs)
+    except (socket.error, websocket.WebSocketException) as e:
+      inspector_backend._ConvertExceptionFromInspectorWebsocket(e)
+
+  return inner
+
+
 class InspectorBackend(object):
   def __init__(self, app, devtools_client, context, timeout=60):
     self._websocket = inspector_websocket.InspectorWebsocket()
@@ -40,7 +58,7 @@ class InspectorBackend(object):
     try:
       self._websocket.Connect(self.debugger_url)
     except (websocket.WebSocketException, exceptions.TimeoutException) as e:
-      self._HandleError(e)
+      self._ConvertExceptionFromInspectorWebsocket(e)
 
     self._console = inspector_console.InspectorConsole(self._websocket)
     self._memory = inspector_memory.InspectorMemory(self._websocket)
@@ -88,12 +106,10 @@ class InspectorBackend(object):
       return False
     return True
 
+  @_HandleInspectorWebSocketExceptions
   def Screenshot(self, timeout):
     assert self.screenshot_supported, 'Browser does not support screenshotting'
-    try:
-      return self._page.CaptureScreenshot(timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    return self._page.CaptureScreenshot(timeout)
 
   # Console public methods.
 
@@ -107,11 +123,9 @@ class InspectorBackend(object):
 
   # Memory public methods.
 
+  @_HandleInspectorWebSocketExceptions
   def GetDOMStats(self, timeout):
-    try:
-      dom_counters = self._memory.GetDOMCounters(timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    dom_counters = self._memory.GetDOMCounters(timeout)
     return {
       'document_count': dom_counters['documents'],
       'node_count': dom_counters['nodes'],
@@ -120,43 +134,31 @@ class InspectorBackend(object):
 
   # Page public methods.
 
+  @_HandleInspectorWebSocketExceptions
   def WaitForNavigate(self, timeout):
-    try:
-      self._page.WaitForNavigate(timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._page.WaitForNavigate(timeout)
 
+  @_HandleInspectorWebSocketExceptions
   def Navigate(self, url, script_to_evaluate_on_commit, timeout):
-    try:
-      self._page.Navigate(url, script_to_evaluate_on_commit, timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._page.Navigate(url, script_to_evaluate_on_commit, timeout)
 
+  @_HandleInspectorWebSocketExceptions
   def GetCookieByName(self, name, timeout):
-    try:
-      return self._page.GetCookieByName(name, timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    return self._page.GetCookieByName(name, timeout)
 
   # Runtime public methods.
 
+  @_HandleInspectorWebSocketExceptions
   def ExecuteJavaScript(self, expr, context_id=None, timeout=60):
-    try:
-      self._runtime.Execute(expr, context_id, timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._runtime.Execute(expr, context_id, timeout)
 
+  @_HandleInspectorWebSocketExceptions
   def EvaluateJavaScript(self, expr, context_id=None, timeout=60):
-    try:
-      return self._runtime.Evaluate(expr, context_id, timeout)
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    return self._runtime.Evaluate(expr, context_id, timeout)
 
+  @_HandleInspectorWebSocketExceptions
   def EnableAllContexts(self):
-    try:
-      return self._runtime.EnableAllContexts()
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    return self._runtime.EnableAllContexts()
 
   # Timeline public methods.
 
@@ -164,19 +166,15 @@ class InspectorBackend(object):
   def timeline_model(self):
     return self._timeline_model
 
+  @_HandleInspectorWebSocketExceptions
   def StartTimelineRecording(self):
-    try:
-      self._network.timeline_recorder.Start()
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._network.timeline_recorder.Start()
 
+  @_HandleInspectorWebSocketExceptions
   def StopTimelineRecording(self):
     builder = trace_data_module.TraceDataBuilder()
 
-    try:
-      data = self._network.timeline_recorder.Stop()
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    data = self._network.timeline_recorder.Stop()
     if data:
       builder.AddEventsTo(trace_data_module.INSPECTOR_TRACE_PART, data)
     self._timeline_model = timeline_model_module.TimelineModel(
@@ -184,11 +182,9 @@ class InspectorBackend(object):
 
   # Network public methods.
 
+  @_HandleInspectorWebSocketExceptions
   def ClearCache(self):
-    try:
-      self._network.ClearCache()
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._network.ClearCache()
 
   # Methods used internally by other backends.
 
@@ -202,11 +198,11 @@ class InspectorBackend(object):
       self._AddDebuggingInformation(exception)
       raise exception
 
-  def _HandleError(self, error):
-    """Converts a websocket Exception into a Telemetry exception.
+  def _ConvertExceptionFromInspectorWebsocket(self, error):
+    """Converts an Exception from inspector_websocket.
 
     This method always raises a Telemetry exception. It appends debugging
-    information.
+    information. The exact exception raised depends on |error|.
 
     Args:
       error: An instance of socket.error or websocket.WebSocketException.
@@ -265,8 +261,6 @@ class InspectorBackend(object):
     sys.stderr.write('\n')
     sys.stderr.write('Inspector\'s UI closed. Telemetry will now resume.\n')
 
+  @_HandleInspectorWebSocketExceptions
   def CollectGarbage(self):
-    try:
-      self._page.CollectGarbage()
-    except (socket.error, websocket.WebSocketException) as e:
-      self._HandleError(e)
+    self._page.CollectGarbage()
