@@ -188,10 +188,6 @@ class PageTest(object):
     create a new tab for every page, return browser.tabs.New()."""
     return browser.tabs[0]
 
-  def ValidatePageSet(self, page_set):
-    """Override to examine the page set before the test run.  Useful for
-    example to validate that the pageset can be used with the test."""
-
   def ValidateAndMeasurePage(self, page, tab, results):
     """Override to check test assertions and perform measurement.
 

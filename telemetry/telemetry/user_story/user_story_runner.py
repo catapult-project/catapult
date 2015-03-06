@@ -192,10 +192,6 @@ def Run(test, user_story_set, expectations, finder_options, results,
   We "white list" certain exceptions for which the user story runner
   can continue running the remaining user stories.
   """
-  # TODO(slamm): Remove special-case for PageTest. https://crbug.com/440101
-  if isinstance(test, page_test.PageTest):
-    test.ValidatePageSet(user_story_set)
-
   # Filter page set based on options.
   user_stories = filter(user_story_filter.UserStoryFilter.IsSelected,
                         user_story_set)
