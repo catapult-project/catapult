@@ -124,6 +124,8 @@
       'trace_viewer/core/analysis/single_slice_sub_view.html',
       'trace_viewer/core/analysis/single_thread_time_slice_sub_view.html',
       'trace_viewer/core/analysis/tab_view.html',
+      'trace_viewer/core/analysis/table_builder.html',
+      'trace_viewer/core/analysis/toggle_container.html',
       'trace_viewer/core/analysis/util.html',
       'trace_viewer/core/auditor.html',
       'trace_viewer/core/color_scheme.html',

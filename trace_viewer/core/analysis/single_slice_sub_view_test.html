@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_view.html">
-<link rel="import" href="/core/analysis/stub_analysis_results.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
@@ -18,7 +17,6 @@ tv.b.unittest.testSuite(function() {
   var Model = tv.c.TraceModel;
   var Thread = tv.c.trace_model.Thread;
   var Selection = tv.c.Selection;
-  var StubAnalysisResults = tv.c.analysis.StubAnalysisResults;
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
   var newSliceCategory = tv.c.test_utils.newSliceCategory;
 
@@ -117,35 +115,26 @@ tv.b.unittest.testSuite(function() {
 
   test('analyzeSelectionWithSingleSlice', function() {
     var selection = createSelectionWithSingleSlice();
-
     var subView = document.createElement('tv-c-single-slice-sub-view');
-    var results = new StubAnalysisResults();
+    var table = subView.analyzeSingleSlice_(selection[0], 'Slice');
 
-    subView.analyzeSingleSlice_(results, selection[0], 'Slice');
-    assertEquals(1, results.tables.length);
-    var table = results.tables[0];
-    assertEquals(3, table.rows.length);
-
-    assertEquals('b', table.rows[0].text);
-    assertEquals(0, table.rows[1].time);
-    assertAlmostEquals(0.002, table.rows[2].time);
+    assertEquals(3, table.tableRows.length);
+    assertEquals('b', table.tableRows[0].value);
+    assertEquals('0 ms', table.tableRows[1].value);
+    assertEquals('0.002 ms', table.tableRows[2].value);
   });
 
   test('analyzeSelectionWithSingleSliceCategory', function() {
     var selection = createSelectionWithSingleSlice({withCategory: true});
 
     var subView = document.createElement('tv-c-single-slice-sub-view');
-    var results = new StubAnalysisResults();
+    var table = subView.analyzeSingleSlice_(selection[0], 'Slice');
 
-    subView.analyzeSingleSlice_(results, selection[0], 'Slice');
-    assertEquals(1, results.tables.length);
-    var table = results.tables[0];
-    assertEquals(4, table.rows.length);
-
-    assertEquals('b', table.rows[0].text);
-    assertEquals('foo', table.rows[1].text);
-    assertEquals(0, table.rows[2].time);
-    assertAlmostEquals(0.002, table.rows[3].time);
+    assertEquals(4, table.tableRows.length);
+    assertEquals('b', table.tableRows[0].value);
+    assertEquals('foo', table.tableRows[1].value);
+    assertEquals('0 ms', table.tableRows[2].value);
+    assertEquals('0.002 ms', table.tableRows[3].value);
   });
 
   test('instantiate_withSingleSliceContainingIDRef', function() {

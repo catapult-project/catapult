@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/analysis/analysis_results.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/table_builder.html">
 <link rel="import" href="/core/analysis/util.html">
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/base/ui.html">
@@ -37,77 +37,82 @@ found in the LICENSE file.
     setSelectionWithoutErrorChecks: function(selection) {
       this.currentSelection_ = selection;
       this.textContent = '';
-
-      var results = new tv.c.analysis.AnalysisResults();
-      this.appendChild(results);
-
-      this.analyzeSingleSlice_(results, selection[0]);
+      this.appendChild(this.analyzeSingleSlice_(selection[0]));
     },
 
-    analyzeSingleSlice_: function(results, slice) {
-      var table = results.appendTable('analysis-slice-table', 2);
+    analyzeSingleSlice_: function(slice) {
+      var columns = [
+        {
+          title: '',
+          value: function(row) { return row.name; },
+          width: '15%'
+        },
+        {
+          title: '',
+          value: function(row) { return row.value; }
+        }
+      ];
+      var rows = [];
 
       if (slice.error)
-        results.appendInfoRow(table, 'Error', slice.error);
+        rows.push({ name: 'Error', value: slice.error });
 
       if (slice.title)
-        results.appendInfoRow(table, 'Title', slice.title);
+        rows.push({ name: 'Title', value: slice.title });
 
       if (slice.category)
-        results.appendInfoRow(table, 'Category', slice.category);
+        rows.push({ name: 'Category', value: slice.category });
 
-      results.appendInfoRowTime(table, 'Start', slice.start);
-      results.appendInfoRowTime(table, 'Wall Duration', slice.duration);
+      rows.push({ name: 'Start', value: tv.c.analysis.tsString(slice.start) });
+      rows.push({ name: 'Wall Duration',
+          value: tv.c.analysis.tsString(slice.duration) });
 
-      if (slice.cpuDuration)
-        results.appendInfoRowTime(table, 'CPU Duration', slice.cpuDuration);
+      if (slice.cpuDuration) {
+        rows.push({ name: 'CPU Duration',
+            value: tv.c.analysis.tsString(slice.cpuDuration) });
+      }
 
-      if (slice.selfTime)
-        results.appendInfoRowTime(table, 'Self Time', slice.selfTime);
+      if (slice.selfTime) {
+        rows.push({ name: 'Self Time',
+            value: tv.c.analysis.tsString(slice.selfTime) });
+      }
 
       if (slice.cpuSelfTime) {
         var warning;
         if (slice.cpuSelfTime > slice.selfTime) {
           warning =
-              'Note that CPU Self Time is larger than Self Time. ' +
+              ' Note that CPU Self Time is larger than Self Time. ' +
               'This is a known limitation of this system, which occurs ' +
-              'due to several subslices, rounding issues, and inprecise ' +
+              'due to several subslices, rounding issues, and imprecise ' +
               'time at which we get cpu- and real-time.';
         }
-        results.appendInfoRowTime(table, 'CPU Self Time', slice.cpuSelfTime,
-                                  false, warning);
+        rows.push({ name: 'CPU Self Time',
+            value: tv.c.analysis.tsString(slice.cpuSelfTime) + warning });
       }
 
       if (slice.durationInUserTime) {
-        results.appendInfoRowTime(table, 'Duration (U)',
-                                  slice.durationInUserTime);
+        rows.push({ name: 'Duration (U)',
+            value: tv.c.analysis.tsString(slice.durationInUserTime) });
       }
 
       if (slice.startStackFrame && slice.endStackFrame) {
         if (slice.startStackFrame === slice.endStackFrame) {
-          results.appendInfoRow(
-              table,
-              'Start+End Stack Trace',
-              slice.startStackFrame.getUserFriendlyStackTrace());
+          rows.push({ name: 'Start+End Stack Trace',
+              value: slice.startStackFrame.getUserFriendlyStackTrace() });
+
         } else {
-          results.appendInfoRow(
-              table,
-              'Start Stack Trace',
-              slice.startStackFrame.getUserFriendlyStackTrace());
-          results.appendInfoRow(
-              table,
-              'End Stack Trace',
-              slice.endStackFrame.getUserFriendlyStackTrace());
+          rows.push({ name: 'Start Stack Trace',
+              value: slice.startStackFrame.getUserFriendlyStackTrace() });
+          rows.push({ name: 'End Stack Trace',
+              value: slice.endStackFrame.getUserFriendlyStackTrace() });
         }
       } else if (slice.startStackFrame) {
-          results.appendInfoRow(
-              table,
-              'Start Stack Trace',
-              slice.startStackFrame.getUserFriendlyStackTrace());
+        rows.push({ name: 'Start Stack Trace',
+            value: slice.startStackFrame.getUserFriendlyStackTrace() });
+
       } else if (slice.endStackFrame) {
-        results.appendInfoRow(table,
-                              'End Stack Trace',
-                              slice.endStackFrame.getUserFriendlyStackTrace());
+        rows.push({ name: 'End Stack Trace',
+            value: slice.endStackFrame.getUserFriendlyStackTrace() });
       }
 
       var n = 0;
@@ -115,13 +120,17 @@ found in the LICENSE file.
         n += 1;
       }
       if (n > 0) {
-        results.appendInfoRow(table, 'Args');
+        rows.push({ name: 'Args', value: '' });
         for (var argName in slice.args) {
-          var argVal = slice.args[argName];
-          // TODO(sleffler) use span instead?
-          results.appendInfoRow(table, ' ' + argName, argVal);
+          rows.push({ name: '',
+              value: ' ' + argName + ': ' + slice.args[argName] });
         }
       }
+
+      var table = new TracingAnalysisNestedTable();
+      table.tableColumns = columns;
+      table.tableRows = rows;
+      return table;
     }
   });
   </script>
