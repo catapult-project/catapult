@@ -50,7 +50,7 @@ found in the LICENSE file.
         var selectionGenerator;
         if (event instanceof tv.c.trace_model.ObjectSnapshot) {
           var objectSnapshot = event;
-          ts = tv.c.analysis.tsRound(objectSnapshot.ts);
+          ts = tv.c.analysis.tsString(objectSnapshot.ts);
           objectText = objectSnapshot.objectInstance.typeName + ' ' +
               objectSnapshot.objectInstance.id;
           selectionGenerator = function() {
@@ -62,9 +62,9 @@ found in the LICENSE file.
           var objectInstance = event;
 
           var deletionTs = objectInstance.deletionTs == Number.MAX_VALUE ?
-              '' : tv.c.analysis.tsRound(objectInstance.deletionTs);
-          ts = tv.c.analysis.tsRound(objectInstance.creationTs) +
-              '-' + deletionTs;
+              '' : tv.c.analysis.tsString(objectInstance.deletionTs);
+          ts = tv.c.analysis.tsString(objectInstance.creationTs) +
+              ' - ' + deletionTs;
 
           objectText = objectInstance.typeName + ' ' +
               objectInstance.id;

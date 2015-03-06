@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.c.analysis', function() {
-  var tsRound = tv.c.analysis.tsRound;
+  var tsString = tv.c.analysis.tsString;
 
   var RequestSelectionChangeEvent = tv.c.RequestSelectionChangeEvent;
 
@@ -58,7 +58,7 @@ tv.exportTo('tv.c.analysis', function() {
       this.textContent =
           snapshot.objectInstance.typeName + ' ' +
           snapshot.objectInstance.id + ' @ ' +
-          tsRound(snapshot.ts) + ' ms';
+          tsString(snapshot.ts);
       this.selectionGenerator = function() {
         var selection = new tv.c.Selection();
         selection.push(snapshot);

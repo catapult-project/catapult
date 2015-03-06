@@ -141,10 +141,10 @@ found in the LICENSE file.
         results.appendTableCell(table, row, costs.numAnalysisTasks);
         results.appendTableCell(table, row, costs.numRasterTasks);
         results.appendTableCell(
-            table, row, tv.c.analysis.tsRound(costs.duration) + 'ms');
+            table, row, tv.c.analysis.tsString(costs.duration));
         if (hadCpuDurations) {
           results.appendTableCell(
-              table, row, tv.c.analysis.tsRound(costs.cpuDuration) + 'ms');
+              table, row, tv.c.analysis.tsString(costs.cpuDuration));
         }
       });
 
@@ -156,10 +156,10 @@ found in the LICENSE file.
       results.appendTableCell(table, frow, totalNumAnalyzeTasks);
       results.appendTableCell(table, frow, totalNumRasterizeTasks);
       results.appendTableCell(
-          table, frow, tv.c.analysis.tsRound(totalDuration) + 'ms');
+          table, frow, tv.c.analysis.tsString(totalDuration));
       if (hadCpuDurations) {
         results.appendTableCell(
-            table, frow, tv.c.analysis.tsRound(totalCpuDuration) + 'ms');
+            table, frow, tv.c.analysis.tsString(totalCpuDuration));
       }
 
       tv.b.ui.SortableTable.decorate(table);
