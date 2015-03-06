@@ -6,6 +6,7 @@ import time
 import logging
 import urlparse
 
+from telemetry.page.actions.drag import DragAction
 from telemetry.page.actions.javascript_click import ClickElementAction
 from telemetry.page.actions.loop import LoopAction
 from telemetry.page.actions.mouse_click import MouseClickAction
@@ -238,6 +239,35 @@ class ActionRunner(object):
     """
     self._RunAction(ClickElementAction(
         selector=selector, text=text, element_function=element_function))
+
+  def DragPage(self, left_start_ratio, top_start_ratio, left_end_ratio,
+               top_end_ratio, speed_in_pixels_per_second=800, use_touch=False):
+    """Perform a drag gesture on the page.
+
+    You should specify a start and an end point in ratios of page width and
+    height (see drag.js for full implementation).
+
+    Args:
+      left_start_ratio: The horizontal starting coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          document.body.
+      top_start_ratio: The vertical starting coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          document.body.
+      left_end_ratio: The horizontal ending coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          document.body.
+      top_end_ratio: The vertical ending coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          document.body.
+      speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
+      use_touch: Whether dragging should be done with touch input.
+    """
+    self._RunAction(DragAction(
+        left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
+        left_end_ratio=left_end_ratio, top_end_ratio=top_end_ratio,
+        speed_in_pixels_per_second=speed_in_pixels_per_second,
+        use_touch=use_touch))
 
   def PinchPage(self, left_anchor_ratio=0.5, top_anchor_ratio=0.5,
                 scale_factor=None, speed_in_pixels_per_second=800):
