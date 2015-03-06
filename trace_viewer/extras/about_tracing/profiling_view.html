@@ -427,7 +427,8 @@ tv.exportTo('tv.e.about_tracing', function() {
       return filename
               .replace(illegalRe, '.')
               .replace(controlRe, '•')
-              .replace(reservedRe, '');
+              .replace(reservedRe, '')
+              .replace(/\s+/g,'_');
     },
 
     onSaveClicked_: function() {
