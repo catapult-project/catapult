@@ -141,9 +141,12 @@ class InspectorPage(object):
     request = {
         'method': 'Page.captureScreenshot'
         }
-    res = self._inspector_websocket.SyncRequest(request, timeout)
-    if res and ('result' in res) and ('data' in res['result']):
-      return image_util.FromBase64Png(res['result']['data'])
+    # "Google API are missing..." infobar might cause a viewport resize
+    # which invalidates screenshot request. See crbug.com/459820.
+    for _ in range(2):
+      res = self._inspector_websocket.SyncRequest(request, timeout)
+      if res and ('result' in res) and ('data' in res['result']):
+        return image_util.FromBase64Png(res['result']['data'])
     return None
 
   def CollectGarbage(self, timeout=60):
