@@ -192,7 +192,7 @@ tv.b.unittest.testSuite(function() {
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
 
-    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
+    sliceView.analyze_(results, selection);
     assertEquals(1, results.tables.length);
     var table = results.tables[0];
     assertEquals(6, table.rows.length);
@@ -225,7 +225,7 @@ tv.b.unittest.testSuite(function() {
 
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
-    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
+    sliceView.analyze_(results, selection);
     assertEquals(2, results.tables.length);
 
     var t;
@@ -280,7 +280,7 @@ tv.b.unittest.testSuite(function() {
 
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
-    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
+    sliceView.analyze_(results, selection);
     assertEquals(2, results.tables.length);
 
     var t = results.tables[1];
@@ -298,7 +298,7 @@ tv.b.unittest.testSuite(function() {
 
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
-    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
+    sliceView.analyze_(results, selection);
     assertEquals(2, results.tables.length);
 
     var t = results.tables[1];
@@ -316,7 +316,7 @@ tv.b.unittest.testSuite(function() {
 
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
-    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
+    sliceView.analyze_(results, selection);
     assertEquals(2, results.tables.length);
 
     var t = results.tables[1];
@@ -334,7 +334,7 @@ tv.b.unittest.testSuite(function() {
 
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
-    sliceView.analyzeMultipleSlices_(results, selection, 'Slices');
+    sliceView.analyze_(results, selection);
     assertEquals(2, results.tables.length);
 
     var t = results.tables[1];
