@@ -54,7 +54,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var w_bw = w_bytes * 1000000000 / ns;
       w_bw /= 1024 * 1024;
 
-      var ctr = this.model_.getOrCreateProcess(0)
+      var ctr = this.model_.kernel
               .getOrCreateCounter(null, 'bus ' + name + ' read');
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tv.c.trace_model.CounterSeries('value',
@@ -65,7 +65,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
         series.addCounterSample(ts, r_bw);
       });
 
-      ctr = this.model_.getOrCreateProcess(0)
+      ctr = this.model_.kernel
               .getOrCreateCounter(null, 'bus ' + name + ' write');
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tv.c.trace_model.CounterSeries('value',

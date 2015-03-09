@@ -302,7 +302,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
 
     dvfsSample: function(counterName, seriesName, ts, s) {
       var value = parseInt(s);
-      var counter = this.model_.getOrCreateProcess(0).
+      var counter = this.model_.kernel.
           getOrCreateCounter('DVFS', counterName);
       if (counter.numSeries === 0) {
         counter.addSeries(new tv.c.trace_model.CounterSeries(seriesName,
@@ -346,7 +346,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
         return false;
       var value = parseInt(event[1]);
 
-      var counter = this.model_.getOrCreateProcess(0).
+      var counter = this.model_.kernel.
           getOrCreateCounter(cat, counterName);
       if (counter.numSeries === 0) {
         counter.addSeries(new tv.c.trace_model.CounterSeries(seriesName,

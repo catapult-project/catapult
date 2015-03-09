@@ -44,7 +44,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var name = event[1];
       var rate = parseInt(event[2]);
 
-      var ctr = this.model_.getOrCreateProcess(0)
+      var ctr = this.model_.kernel
               .getOrCreateCounter(null, name);
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {
