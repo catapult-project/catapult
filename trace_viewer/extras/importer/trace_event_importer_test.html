@@ -1560,20 +1560,22 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
       {name: 'b', args: {}, pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
-      {name: 'c', args: {}, pid: 52, ts: 558, cat: 'test', tid: 53, ph: 'P'}
+      {name: 'c', args: {}, pid: 52, ts: 558, cat: 'test', tid: 53, ph: 'P'},
+      {name: 'a', args: {}, pid: 52, ts: 568, cat: 'test', tid: 53, ph: 'P'}
     ];
     var m = new tv.c.TraceModel(events);
     var p = m.processes[52];
     assertNotUndefined(p);
     var t = p.threads[53];
     assertNotUndefined(t);
-    assertEquals(3, t.samples_.length);
+    assertEquals(4, t.samples_.length);
     assertEquals(0.0, t.samples_[0].start);
     assertEquals(0.0, t.samples_[1].start);
     assertApproxEquals(0.01, t.samples_[2].start);
     assertEquals('a', t.samples_[0].leafStackFrame.title);
     assertEquals('b', t.samples_[1].leafStackFrame.title);
     assertEquals('c', t.samples_[2].leafStackFrame.title);
+    assertEquals(t.samples[0].leafStackFrame, t.samples_[3].leafStackFrame);
     assertFalse(m.hasImportWarnings);
   });
 

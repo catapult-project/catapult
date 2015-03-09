@@ -70,9 +70,11 @@ tv.exportTo('tv.e.importer', function() {
     this.allAsyncEvents_ = [];
     this.allFlowEvents_ = [];
     this.allObjectEvents_ = [];
+    this.traceEventSampleStackFramesByName_ = {};
 
     // Dump ID -> {global: (event | undefined), process: [events]}
     this.allMemoryDumpEvents_ = {};
+
 
     if (typeof(eventData) === 'string' || eventData instanceof String) {
       eventData = eventData.trim();
@@ -408,12 +410,17 @@ tv.exportTo('tv.e.importer', function() {
 
       var stackFrame = this.getStackFrameForEvent_(event);
       if (stackFrame === undefined) {
+        stackFrame = this.traceEventSampleStackFramesByName_[
+            event.name];
+      }
+      if (stackFrame === undefined) {
         var id = 'te-' + tv.b.GUID.allocate();
         stackFrame = new tv.c.trace_model.StackFrame(
             undefined, id,
             event.cat, event.name,
             tv.b.ui.getColorIdForGeneralPurposeString(event.name));
         this.model_.addStackFrame(stackFrame);
+        this.traceEventSampleStackFramesByName_[event.name] = stackFrame;
       }
 
       var sample = new tv.c.trace_model.Sample(
