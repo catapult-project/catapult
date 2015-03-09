@@ -32,9 +32,7 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   InstantEvent.prototype = {
-    __proto__: tv.c.trace_model.TimedEvent.prototype,
-
-    selected: false
+    __proto__: tv.c.trace_model.TimedEvent.prototype
   };
 
   function GlobalInstantEvent(category, title, colorId, start, args) {
