@@ -241,7 +241,8 @@ class ActionRunner(object):
         selector=selector, text=text, element_function=element_function))
 
   def DragPage(self, left_start_ratio, top_start_ratio, left_end_ratio,
-               top_end_ratio, speed_in_pixels_per_second=800, use_touch=False):
+               top_end_ratio, speed_in_pixels_per_second=800, use_touch=False,
+               selector=None, text=None, element_function=None):
     """Perform a drag gesture on the page.
 
     You should specify a start and an end point in ratios of page width and
@@ -267,7 +268,8 @@ class ActionRunner(object):
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         left_end_ratio=left_end_ratio, top_end_ratio=top_end_ratio,
         speed_in_pixels_per_second=speed_in_pixels_per_second,
-        use_touch=use_touch))
+        use_touch=use_touch, selector=selector, text=text,
+        element_function=element_function))
 
   def PinchPage(self, left_anchor_ratio=0.5, top_anchor_ratio=0.5,
                 scale_factor=None, speed_in_pixels_per_second=800):
