@@ -182,6 +182,17 @@ tv.exportTo('tv.c', function() {
       var alpha = EventPresenter.getSliceAlpha(slice, async);
       var lightAlpha = alpha * 0.70;
 
+      // Shift the top level slice down, make it shorter, and draw a top border
+      // in order to visually separate the slice from events above it.
+      // See https://github.com/google/trace-viewer/issues/725.
+      if (slice.isTopLevel) {
+        ctx.beginPath();
+        drawLine(ctx, x, 2, w + x, 2);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        tr.setYandH(3, height - 3);
+      }
+
       // If cpuDuration is available, draw rectangles proportional to the
       // amount of cpu time taken.
       if (!slice.cpuDuration) {

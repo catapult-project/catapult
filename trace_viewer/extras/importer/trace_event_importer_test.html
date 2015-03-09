@@ -966,6 +966,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals(1, t.asyncSliceGroup.slices.length);
     assertEquals('a', t.asyncSliceGroup.slices[0].title);
     assertEquals('cat', t.asyncSliceGroup.slices[0].category);
+    assertEquals(true, t.asyncSliceGroup.slices[0].isTopLevel);
     assertEquals(72, t.asyncSliceGroup.slices[0].id);
     assertEquals('bar', t.asyncSliceGroup.slices[0].args.foo);
     assertEquals(0, t.asyncSliceGroup.slices[0].start);
@@ -1037,6 +1038,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('c', parentSlice.title);
     assertEquals('foo', parentSlice.category);
+    assertEquals(true, parentSlice.isTopLevel);
     assertEquals(1, parentSlice.args['x']);
     assertEquals(2, parentSlice.args['y']);
 
@@ -1060,6 +1062,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('d', parentSlice.title);
     assertEquals('foo', parentSlice.category);
+    assertEquals(true, parentSlice.isTopLevel);
     assertEquals(4, parentSlice.args['z']);
 
     assertNotUndefined(parentSlice.subSlices);
@@ -1081,6 +1084,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('a', parentSlice.title);
     assertEquals('foo', parentSlice.category);
+    assertEquals(true, parentSlice.isTopLevel);
     assertEquals(0, parentSlice.start);
     assertEquals(1, parentSlice.args['x']);
     assertUndefined(parentSlice.args['y']);
@@ -1092,6 +1096,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var subSlice = parentSlice.subSlices[0];
     assertEquals('a:s1', subSlice.title);
     assertEquals('foo', subSlice.category);
+    assertEquals(false, subSlice.isTopLevel);
     assertAlmostEquals((548 - 524) / 1000, subSlice.start);
     assertAlmostEquals((560 - 548) / 1000, subSlice.duration);
     assertUndefined(subSlice.args['x']);
@@ -1145,6 +1150,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('a', parentSlice.title);
     assertEquals('foo', parentSlice.category);
+    assertEquals(true, parentSlice.isTopLevel);
     assertEquals(0, parentSlice.start);
     assertEquals(1, parentSlice.args['x']);
     assertUndefined(parentSlice.args['y']);
@@ -1155,6 +1161,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var subSlice = parentSlice.subSlices[0];
     assertEquals('a:s1', subSlice.title);
     assertEquals('foo', subSlice.category);
+    assertEquals(false, subSlice.isTopLevel);
     assertEquals(0, subSlice.start);
     assertAlmostEquals((548 - 524) / 1000, subSlice.duration);
     assertUndefined(subSlice.args['x']);
@@ -1200,10 +1207,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('a', parentSlice.title);
     assertEquals('foo', parentSlice.category);
+    assertEquals(true, parentSlice.isTopLevel);
 
     assertNotUndefined(parentSlice.subSlices);
     assertEquals(1, parentSlice.subSlices.length);
     var subSlice = parentSlice.subSlices[0];
+    assertEquals(false, subSlice.isTopLevel);
     // Arguments should include both BEGIN and END event.
     assertEquals(1, subSlice.args['x']);
     assertEquals(2, subSlice.args['y']);
@@ -1240,18 +1249,21 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('hello', paramsA.p1);
     assertEquals(123, paramsA.p2);
     assertEquals('hi', paramsA.p3);
+    assertEquals(true, sliceA.isTopLevel);
 
     var sliceB = t.asyncSliceGroup.slices[1];
     // Arguments should include both BEGIN and END event.
     var paramsB = sliceB.args['params'];
     assertNotUndefined(paramsB);
     assertEquals('foo', paramsB.p4);
+    assertEquals(true, sliceB.isTopLevel);
 
     var sliceC = t.asyncSliceGroup.slices[2];
     // Arguments should include both BEGIN and END event.
     var paramsC = sliceC.args['params'];
     assertNotUndefined(paramsC);
     assertEquals('bar', paramsC.p5);
+    assertEquals(true, sliceC.isTopLevel);
   });
 
   test('nestableAsyncManyLevels', function() {
@@ -1290,6 +1302,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('l1', l1Slice.title);
     assertAlmostEquals(0, l1Slice.start);
     assertAlmostEquals(9 / 1000, l1Slice.duration);
+    assertEquals(true, l1Slice.isTopLevel);
 
     assertNotUndefined(l1Slice.subSlices);
     assertEquals(1, l1Slice.subSlices.length);
@@ -1297,6 +1310,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('l2', l2Slice.title);
     assertAlmostEquals(1 / 1000, l2Slice.start);
     assertAlmostEquals(7 / 1000, l2Slice.duration);
+    assertEquals(false, l2Slice.isTopLevel);
 
     assertNotUndefined(l2Slice.subSlices);
     assertEquals(1, l2Slice.subSlices.length);
@@ -1304,6 +1318,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('l3', l3Slice.title);
     assertAlmostEquals(2 / 1000, l3Slice.start);
     assertAlmostEquals(5 / 1000, l3Slice.duration);
+    assertEquals(false, l3Slice.isTopLevel);
 
     assertNotUndefined(l3Slice.subSlices);
     assertEquals(1, l3Slice.subSlices.length);
@@ -1311,6 +1326,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('l4', l4Slice.title);
     assertAlmostEquals(3 / 1000, l4Slice.start);
     assertAlmostEquals(3 / 1000, l4Slice.duration);
+    assertEquals(false, l4Slice.isTopLevel);
 
     assertNotUndefined(l4Slice.subSlices);
     assertEquals(1, l4Slice.subSlices.length);
@@ -1318,6 +1334,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('l5', l5Slice.title);
     assertAlmostEquals(4 / 1000, l5Slice.start);
     assertAlmostEquals(1 / 1000, l5Slice.duration);
+    assertEquals(false, l5Slice.isTopLevel);
   });
 
   test('nestableAsyncInstantEvent', function() {
@@ -1341,16 +1358,19 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertAlmostEquals(0, instantSlice.start);
     assertAlmostEquals(0, instantSlice.duration);
     assertUndefined(instantSlice.subSlices);
+    assertEquals(true, instantSlice.isTopLevel);
 
     var nestedSlice = t.asyncSliceGroup.slices[1];
     assertEquals('a', nestedSlice.title);
     assertAlmostEquals(0, nestedSlice.start);
     assertAlmostEquals((565 - 524) / 1000, nestedSlice.duration);
+    assertEquals(true, nestedSlice.isTopLevel);
     assertNotUndefined(nestedSlice.subSlices);
     assertEquals(1, nestedSlice.subSlices.length);
     var nestedInstantSlice = nestedSlice.subSlices[0];
     assertUndefined(nestedInstantSlice.subSlices);
     assertEquals('d', nestedInstantSlice.title);
+    assertEquals(false, nestedInstantSlice.isTopLevel);
   });
 
   test('nestableAsyncUnmatchedOuterBeginEvent', function() {
@@ -1372,6 +1392,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('a', parentSlice.title);
     assertEquals('foo', parentSlice.category);
+    assertEquals(true, parentSlice.isTopLevel);
     assertAlmostEquals(0, parentSlice.start);
     // Unmatched BEGIN event ends at the last event of that ID.
     assertAlmostEquals(36 / 1000, parentSlice.duration);
@@ -1383,6 +1404,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertNotUndefined(parentSlice.subSlices);
     assertEquals(1, parentSlice.subSlices.length);
     var subSlice = parentSlice.subSlices[0];
+    assertEquals(false, subSlice.isTopLevel);
     assertAlmostEquals(1 / 1000, subSlice.start);
     assertAlmostEquals(35 / 1000, subSlice.duration);
     assertUndefined(subSlice.subSlices);
@@ -1412,6 +1434,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('a', parentSlice.title);
     assertEquals('foo', parentSlice.category);
+    assertEquals(true, parentSlice.isTopLevel);
     assertAlmostEquals(0, parentSlice.start);
     assertAlmostEquals(41 / 1000, parentSlice.duration);
     // Arguments should include both BEGIN and END event.
@@ -1424,7 +1447,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var subSliceInstant = parentSlice.subSlices[0];
     var subSliceUnmatched = parentSlice.subSlices[1];
     assertEquals('c', subSliceInstant.title);
+    assertEquals(false, subSliceInstant.isTopLevel);
     assertEquals('b', subSliceUnmatched.title);
+    assertEquals(false, subSliceUnmatched.isTopLevel);
     // Unmatched BEGIN ends at the last event of that ID.
     assertAlmostEquals(1 / 1000, subSliceUnmatched.start);
     assertAlmostEquals(40 / 1000, subSliceUnmatched.duration);
@@ -1458,6 +1483,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var slice = t.asyncSliceGroup.slices[1];
     assertEquals('a', unmatchedSlice.title);
     assertAlmostEquals(0, unmatchedSlice.start);
+    assertEquals(true, unmatchedSlice.isTopLevel);
     // Unmatched END event begins at the first event of that ID. In this
     // case, the first event happens to be the same unmatched event.
     assertAlmostEquals(0 / 1000, unmatchedSlice.duration);
@@ -1468,6 +1494,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertUndefined(unmatchedSlice.subSlices);
 
     assertEquals('b', slice.title);
+    assertEquals(true, slice.isTopLevel);
     assertAlmostEquals(1 / 1000, slice.start);
     assertAlmostEquals(35 / 1000, slice.duration);
     // Arguments should include both BEGIN and END event.
@@ -1496,6 +1523,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals(1, t.asyncSliceGroup.slices.length);
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('a', parentSlice.title);
+    assertEquals(true, parentSlice.isTopLevel);
     assertAlmostEquals(0, parentSlice.start);
     assertAlmostEquals(41 / 1000, parentSlice.duration);
     // Arguments should include both BEGIN and END event.
@@ -1507,7 +1535,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var subSliceInstant = parentSlice.subSlices[0];
     var subSliceUnmatched = parentSlice.subSlices[1];
     assertEquals('c', subSliceInstant.title);
+    assertEquals(false, subSliceInstant.isTopLevel);
     assertEquals('b', subSliceUnmatched.title);
+    assertEquals(false, subSliceUnmatched.isTopLevel);
     // Unmatched END begins at the first event of that ID.
     assertAlmostEquals(0 / 1000, subSliceUnmatched.start);
     assertAlmostEquals(1 / 1000, subSliceUnmatched.duration);
@@ -1545,6 +1575,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('EVENT_A', eventASlice.title);
     assertEquals('foo', eventASlice.category);
     assertEquals('foo:72', eventASlice.id);
+    assertEquals(true, eventASlice.isTopLevel);
     assertEquals(1, eventASlice.args['x']);
     assertUndefined(eventASlice.subSlices);
 
@@ -1552,6 +1583,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('EVENT_B', eventBSlice.title);
     assertEquals('bar', eventBSlice.category);
     assertEquals('bar:72', eventBSlice.id);
+    assertEquals(true, eventBSlice.isTopLevel);
     assertEquals(2, eventBSlice.args['y']);
     assertUndefined(eventBSlice.subSlices);
   });
@@ -2097,14 +2129,17 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('a', parentSlice.title);
     assertEquals('foo', parentSlice.category);
+    assertEquals(true, parentSlice.isTopLevel);
 
     assertNotUndefined(parentSlice.subSlices);
     var subSlices = parentSlice.subSlices;
     assertEquals(1000, subSlices.length);
     // Slices should be sorted according to 'ts'. And if 'ts' is the same,
     // slices should keep the order that they were recorded.
-    for (var i = 0; i < 1000; i++)
+    for (var i = 0; i < 1000; i++) {
       assertEquals(subSlices[i].args['seq'], i + 1);
+      assertEquals(false, subSlices[i].isTopLevel);
+    }
   });
 
   test('sampleDataSimple', function() {

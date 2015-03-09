@@ -22,8 +22,11 @@ tv.exportTo('tv.c.trace_model', function() {
    *
    * @constructor
    */
-  function AsyncSlice(category, title, colorId, start, args) {
-    tv.c.trace_model.Slice.apply(this, arguments);
+  function AsyncSlice(category, title, colorId, start, args, duration,
+                      opt_isTopLevel) {
+    tv.c.trace_model.Slice.call(this, category, title, colorId, start, args,
+                                duration);
+    this.isTopLevel = (opt_isTopLevel === true);
   };
 
   AsyncSlice.prototype = {
