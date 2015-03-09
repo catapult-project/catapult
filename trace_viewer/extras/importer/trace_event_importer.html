@@ -826,6 +826,7 @@ tv.exportTo('tv.e.importer', function() {
             sliceArgs = eventStateEntry.event.args;
           }
 
+          var isTopLevel = (eventStateEntry.parentEntry === undefined);
           var asyncSliceConstructor =
              tv.c.trace_model.AsyncSlice.getConstructor(
                 eventStateEntry.event.cat,
@@ -837,7 +838,8 @@ tv.exportTo('tv.e.importer', function() {
                   eventStateEntry.event.name),
               startState.event.ts / 1000,
               sliceArgs,
-              (endState.event.ts - startState.event.ts) / 1000);
+              (endState.event.ts - startState.event.ts) / 1000,
+              isTopLevel);
 
           slice.startThread = startState.thread;
           slice.endThread = endState.thread;
@@ -845,15 +847,14 @@ tv.exportTo('tv.e.importer', function() {
           if (sliceError !== undefined)
             slice.error = sliceError;
           eventStateEntry.slice = slice;
-          // Add slice to parent slice if there is a parent. Otherwise threat
-          // it as a top level slice.
-          if (eventStateEntry.parentEntry !== undefined &&
-              eventStateEntry.parentEntry.slice !== undefined) {
+          // Add the slice to the topLevelSlices array if there is no parent.
+          // Otherwise, add the slice to the subSlices of its parent.
+          if (isTopLevel) {
+            topLevelSlices.push(slice);
+          } else if (eventStateEntry.parentEntry.slice !== undefined) {
             if (eventStateEntry.parentEntry.slice.subSlices === undefined)
               eventStateEntry.parentEntry.slice.subSlices = [];
             eventStateEntry.parentEntry.slice.subSlices.push(slice);
-          } else {
-            topLevelSlices.push(slice);
           }
         }
         for (var si = 0; si < topLevelSlices.length; si++) {
@@ -947,7 +948,8 @@ tv.exportTo('tv.e.importer', function() {
                 events[0].event.ts / 1000,
                 tv.b.concatenateObjects(events[0].event.args,
                                       events[events.length - 1].event.args),
-                (event.ts - events[0].event.ts) / 1000);
+                (event.ts - events[0].event.ts) / 1000,
+                true);
             slice.startThread = events[0].thread;
             slice.endThread = asyncEventState.thread;
             slice.id = id;

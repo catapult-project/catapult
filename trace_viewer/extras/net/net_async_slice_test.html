@@ -38,39 +38,50 @@ tv.b.unittest.testSuite(function() {
   test('ExposeURLBasic', function() {
     var slice = new NetAsyncSlice('', 'a', 0, 1,
                                   {params: {url: 'https://google.com'},
-                                   source_type: 'b'});
-    slice.isTopLevel = true;
+                                   source_type: 'b'}, 0, true);
+    // Make sure isTopLevel is populated in the constructor.
+    assertEquals(true, slice.isTopLevel);
+    // URL is exposed as the title of the parent slice.
     assertEquals('https://google.com', slice.title);
   });
 
   test('ExposeURLNested', function() {
     var slice = new NetAsyncSlice(
-        '', 'a', 0, 1, {params: {}, source_type: 'HELLO'});
-    slice.isTopLevel = true;
+        '', 'a', 0, 1, {params: {}, source_type: 'HELLO'}, 1, true);
     var childSlice = new NetAsyncSlice('', 'b', 0, 1,
                                        {params: {url: 'http://test.url'}});
     slice.subSlices = [childSlice];
+    // Make sure isTopLevel is populated in the constructor.
+    assertEquals(true, slice.isTopLevel);
+    assertEquals(false, childSlice.isTopLevel);
+    // URL is exposed as the title of the parent slice.
     assertEquals('http://test.url', slice.title);
     assertEquals('b', childSlice.title);
   });
 
   test('ExposeURLNestedNoURL', function() {
-    var slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}});
-    slice.isTopLevel = true;
+    var slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}}, 1, true);
     var childSlice = new NetAsyncSlice('', 'b', 0, 1, {params: {}});
     slice.subSlices = [childSlice];
+    // Make sure isTopLevel is populated in the constructor.
+    assertEquals(true, slice.isTopLevel);
+    assertEquals(false, childSlice.isTopLevel);
+    // URL is exposed as the title of the parent slice.
     assertEquals('a', slice.title);
     assertEquals('b', childSlice.title);
   });
 
   test('ExposeURLNestedBothChildrenHaveURL', function() {
-    var slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}});
-    slice.isTopLevel = true;
+    var slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}}, 1, true);
     var childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
                                    {params: {url: 'http://test.url.net'}});
     var childSlice2 = new NetAsyncSlice('', 'c', 0, 1,
                                    {params: {url: 'http://test.url.com'}});
     slice.subSlices = [childSlice1, childSlice2];
+    // Make sure isTopLevel is populated in the constructor.
+    assertEquals(true, slice.isTopLevel);
+    assertEquals(false, childSlice1.isTopLevel);
+    assertEquals(false, childSlice2.isTopLevel);
     // Parent should take the first url param that it finds.
     assertEquals('http://test.url.net', slice.title);
     assertEquals('b', childSlice1.title);
@@ -79,13 +90,17 @@ tv.b.unittest.testSuite(function() {
 
   test('ExposeURLNestedBothParentAndChildHaveURL', function() {
     var slice = new NetAsyncSlice('', 'a', 0, 1,
-                                  {params: {url: 'parent123.url.com'}});
-    slice.isTopLevel = true;
+                                  {params: {url: 'parent123.url.com'}}, 1,
+                                  true);
     var childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
                                         {params: {url: 'http://test.url.net'}});
     var childSlice2 = new NetAsyncSlice('', 'c', 0, 1);
 
     slice.subSlices = [childSlice1, childSlice2];
+    // Make sure isTopLevel is populated in the constructor.
+    assertEquals(true, slice.isTopLevel);
+    assertEquals(false, childSlice1.isTopLevel);
+    assertEquals(false, childSlice2.isTopLevel);
     // Parent should take its own url param if there is one.
     assertEquals('parent123.url.com', slice.title);
     assertEquals('b', childSlice1.title);
@@ -93,13 +108,16 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('ExposeURLDoNotComputeUrlTwice', function() {
-    var slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}});
-    slice.isTopLevel = true;
+    var slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}}, 1, true);
     var childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
                                         {params: {url: 'http://test.url.net'}});
     var childSlice2 = new NetAsyncSlice('', 'c', 0, 1);
 
     slice.subSlices = [childSlice1, childSlice2];
+    // Make sure isTopLevel is populated in the constructor.
+    assertEquals(true, slice.isTopLevel);
+    assertEquals(false, childSlice1.isTopLevel);
+    assertEquals(false, childSlice2.isTopLevel);
     // Parent should take its child's url param.
     assertEquals('http://test.url.net', slice.title);
     assertEquals('b', childSlice1.title);
@@ -114,13 +132,17 @@ tv.b.unittest.testSuite(function() {
 
   test('ExposeSourceTypeAsTitle', function() {
     var slice = new NetAsyncSlice('', 'a', 0, 1,
-                                  {params: {}, source_type: 'UDP_SOCKET'});
-    slice.isTopLevel = true;
+                                  {params: {}, source_type: 'UDP_SOCKET'}, 1,
+                                  true);
     var childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
                                         {params: {}, source_type: 'SOCKET'});
     var childSlice2 = new NetAsyncSlice('', 'c', 0, 1);
 
     slice.subSlices = [childSlice1, childSlice2];
+    // Make sure isTopLevel is populated in the constructor.
+    assertEquals(true, slice.isTopLevel);
+    assertEquals(false, childSlice1.isTopLevel);
+    assertEquals(false, childSlice2.isTopLevel);
     // Parent should take its own source_type.
     assertEquals('UDP_SOCKET', slice.title);
     assertEquals('b', childSlice1.title);
