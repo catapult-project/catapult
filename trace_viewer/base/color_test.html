@@ -61,5 +61,15 @@ tv.b.unittest.testSuite(function() {
     assertEquals(207, x.b);
     assertEquals(0.625, x.a);
   });
+
+  test('blendRGBA', function() {
+    var red = new tv.b.Color(255, 0, 0, 0.5);
+    var white = new tv.b.Color(255, 255, 255, 1);
+    var x = red.blendOver(white);
+    assertEquals(255, x.r);
+    assertEquals(127, x.g);
+    assertEquals(127, x.b);
+    assertEquals(1, x.a);
+  });
 });
 </script>

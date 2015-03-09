@@ -82,6 +82,17 @@ tv.exportTo('tv.b', function() {
       return c;
     },
 
+    blendOver: function(bgColor) {
+      var oneMinusThisAlpha = 1 - this.a;
+      var outA = this.a + bgColor.a * oneMinusThisAlpha;
+      var bgBlend = (bgColor.a * oneMinusThisAlpha) / bgColor.a;
+      return new Color(
+          this.r * this.a + bgColor.r * bgBlend,
+          this.g * this.a + bgColor.g * bgBlend,
+          this.b * this.a + bgColor.b * bgBlend,
+          outA);
+    },
+
     brighten: function(opt_k) {
       var k;
       k = opt_k || 0.45;
