@@ -30,6 +30,11 @@ def _IsDevToolsAgentAvailable(devtools_http_instance):
 
 
 class DevToolsClientBackend(object):
+  """An object that communicates with Chrome's devtools.
+
+  This class owns a map of InspectorBackends. It is responsible for creating
+  them and destroying them.
+  """
   def __init__(self, devtools_port, remote_devtools_port, app_backend):
     """Creates a new DevToolsClientBackend.
 
@@ -194,6 +199,8 @@ class _DevToolsContextMapBackend(object):
     context_ids = [context['id'] for context in contexts]
     for context_id in self._inspector_backends_dict.keys():
       if context_id not in context_ids:
+        backend = self._inspector_backends_dict[context_id]
+        backend.Disconnect()
         del self._inspector_backends_dict[context_id]
 
     valid_contexts = []

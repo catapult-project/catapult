@@ -8,7 +8,12 @@ import logging
 import socket
 import time
 
+from telemetry.core import exceptions
 from telemetry.core.backends.chrome_inspector import websocket
+
+class WebSocketDisconnected(exceptions.Error):
+  """An attempt was made to use a web socket after it had been disconnected."""
+  pass
 
 
 class InspectorWebsocket(object):
@@ -71,9 +76,12 @@ class InspectorWebsocket(object):
     """Sends a request without waiting for a response.
 
     Raises:
-      websocket.WebSocketException
-      socket.error
+      websocket.WebSocketException: Error from websocket library.
+      socket.error: Error from websocket library.
+      exceptions.WebSocketDisconnected: The socket was disconnected.
     """
+    if not self._socket:
+      raise WebSocketDisconnected()
     req['id'] = self._next_request_id
     self._next_request_id += 1
     data = json.dumps(req)
@@ -85,12 +93,13 @@ class InspectorWebsocket(object):
     """Sends a request and waits for a response.
 
     Raises:
-      websocket.WebSocketException
-      socket.error
+      websocket.WebSocketException: Error from websocket library.
+      socket.error: Error from websocket library.
+      exceptions.WebSocketDisconnected: The socket was disconnected.
     """
     self.SendAndIgnoreResponse(req)
 
-    while self._socket:
+    while True:
       res = self._Receive(timeout)
       if 'id' in res and res['id'] == req['id']:
         return res
@@ -99,8 +108,9 @@ class InspectorWebsocket(object):
     """Waits for responses from the websocket, dispatching them as necessary.
 
     Raises:
-      websocket.WebSocketException
-      socket.error
+      websocket.WebSocketException: Error from websocket library.
+      socket.error: Error from websocket library.
+      exceptions.WebSocketDisconnected: The socket was disconnected.
     """
     self._Receive(timeout)
 
@@ -110,9 +120,10 @@ class InspectorWebsocket(object):
       self._cur_socket_timeout = timeout
 
   def _Receive(self, timeout=10):
-    self._SetTimeout(timeout)
     if not self._socket:
-      return None
+      raise WebSocketDisconnected()
+
+    self._SetTimeout(timeout)
     data = self._socket.recv()
     result = json.loads(data)
     if logging.getLogger().isEnabledFor(logging.DEBUG):

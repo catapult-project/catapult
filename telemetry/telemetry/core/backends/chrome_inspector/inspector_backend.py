@@ -34,13 +34,19 @@ def _HandleInspectorWebSocketExceptions(func):
   def inner(inspector_backend, *args, **kwargs):
     try:
       return func(inspector_backend, *args, **kwargs)
-    except (socket.error, websocket.WebSocketException) as e:
+    except (socket.error, websocket.WebSocketException,
+            inspector_websocket.WebSocketDisconnected) as e:
       inspector_backend._ConvertExceptionFromInspectorWebsocket(e)
 
   return inner
 
 
 class InspectorBackend(object):
+  """Class for communicating with a devtools client.
+
+  The owner of an instance of this class is responsible for calling
+  Disconnect() before disposing of the instance.
+  """
   def __init__(self, app, devtools_client, context, timeout=60):
     self._websocket = inspector_websocket.InspectorWebsocket()
     self._websocket.RegisterDomain(
@@ -68,8 +74,17 @@ class InspectorBackend(object):
     self._network = inspector_network.InspectorNetwork(self._websocket)
     self._timeline_model = None
 
+  def Disconnect(self):
+    """Disconnects the inspector websocket.
+
+    This method intentionally leaves the self._websocket object around, so that
+    future calls it to it will fail with a relevant error.
+    """
+    if self._websocket:
+      self._websocket.Disconnect()
+
   def __del__(self):
-    self._websocket.Disconnect()
+    self.Disconnect()
 
   @property
   def app(self):
