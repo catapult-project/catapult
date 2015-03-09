@@ -96,7 +96,9 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
     browser_backend = self._browser._browser_backend
     self._device = browser_backend._adb.device()
 
-  @decorators.Enabled('android')
+  # Test fails: crbug.com/437081
+  # @decorators.Enabled('android')
+  @decorators.Disabled
   def testCreateSymFs(self):
     # pylint: disable=W0212
     browser_pid = self._browser._browser_backend.pid
@@ -127,7 +129,9 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
     finally:
       shutil.rmtree(symfs_dir)
 
-  @decorators.Enabled('android')
+  # Test fails: crbug.com/437081
+  # @decorators.Enabled('android')
+  @decorators.Disabled
   def testGetToolchainBinaryPath(self):
     with tempfile.NamedTemporaryFile() as libc:
       self._device.PullFile('/system/lib/libc.so', libc.name)
