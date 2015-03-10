@@ -15,7 +15,11 @@ from telemetry.core.platform.tracing_agent import chrome_tracing_agent
 
 def IsDevToolsAgentAvailable(port):
   """Returns True if a DevTools agent is available on the given port."""
-  return _IsDevToolsAgentAvailable(devtools_http.DevToolsHttp(port))
+  devtools_http_instance = devtools_http.DevToolsHttp(port)
+  try:
+    return _IsDevToolsAgentAvailable(devtools_http.DevToolsHttp(port))
+  finally:
+    devtools_http_instance.Disconnect()
 
 
 # TODO(nednguyen): Find a more reliable way to check whether the devtool agent

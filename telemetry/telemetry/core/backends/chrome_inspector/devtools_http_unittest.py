@@ -10,44 +10,13 @@ import urllib2
 from telemetry.core.backends.chrome_inspector import devtools_http
 
 
-_original_proxy_handler = urllib2.ProxyHandler
-
 class DevToolsHttpTest(unittest.TestCase):
 
   def testUrlError(self):
-    class FakeProxyHandler(object):
-      def __init__(self, *_, **__):
-        raise urllib2.URLError('Test')
-
-    urllib2.ProxyHandler = FakeProxyHandler
-    try:
-      with self.assertRaises(devtools_http.DevToolsClientUrlError):
-        devtools_http.DevToolsHttp(1000).Request('')
-    finally:
-      urllib2.ProxyHandler = _original_proxy_handler
+    with self.assertRaises(devtools_http.DevToolsClientUrlError):
+      devtools_http.DevToolsHttp(1000).Request('')
 
   def testSocketError(self):
-    class FakeProxyHandler(object):
-      def __init__(self, *_, **__):
-        raise socket.error
-
-    urllib2.ProxyHandler = FakeProxyHandler
-    try:
-      with self.assertRaises(devtools_http.DevToolsClientConnectionError) as e:
-        devtools_http.DevToolsHttp(1000).Request('')
-      self.assertNotIsInstance(e, devtools_http.DevToolsClientUrlError)
-    finally:
-      urllib2.ProxyHandler = _original_proxy_handler
-
-  def testBadStatusLine(self):
-    class FakeProxyHandler(object):
-      def __init__(self, *_, **__):
-        raise httplib.BadStatusLine('Test')
-
-    urllib2.ProxyHandler = FakeProxyHandler
-    try:
-      with self.assertRaises(devtools_http.DevToolsClientConnectionError) as e:
-        devtools_http.DevToolsHttp(1000).Request('')
-      self.assertNotIsInstance(e, devtools_http.DevToolsClientUrlError)
-    finally:
-      urllib2.ProxyHandler = _original_proxy_handler
+    with self.assertRaises(devtools_http.DevToolsClientConnectionError) as e:
+      devtools_http.DevToolsHttp(1000).Request('')
+      self.assertnotisinstance(e, devtools_http.devtoolsclienturlerror)
