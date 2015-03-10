@@ -235,7 +235,7 @@ class InspectorBackend(object):
     new_error.AddDebuggingMessage(original_error_msg)
     self._AddDebuggingInformation(new_error)
 
-    raise new_error
+    raise new_error, None, sys.exc_info()[2]
 
   def _AddDebuggingInformation(self, error):
     """Adds debugging information to error.
