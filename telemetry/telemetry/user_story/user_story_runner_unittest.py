@@ -103,6 +103,20 @@ class DummyLocalUserStory(user_story.UserStory):
   def is_local(self):
     return True
 
+class MixedStateStorySet(user_story_set.UserStorySet):
+  @property
+  def allow_mixed_story_states(self):
+    return True
+
+def SetupUserStorySet(allow_multiple_user_story_states, user_story_state_list):
+  if allow_multiple_user_story_states:
+    us = MixedStateStorySet()
+  else:
+    us = user_story_set.UserStorySet()
+  for user_story_state in user_story_state_list:
+    us.AddUserStory(DummyLocalUserStory(user_story_state))
+  return us
+
 def _GetOptionForUnittest():
   options = options_for_unittests.GetCopy()
   options.output_formats = ['none']
@@ -153,14 +167,27 @@ class UserStoryRunnerTest(unittest.TestCase):
     sys.stdout = self.actual_stdout
     self.RestoreExceptionFormatter()
 
-  def testGetUserStoryGroupsWithSameSharedUserStoryClass(self):
-    us = user_story_set.UserStorySet()
-    us.AddUserStory(DummyLocalUserStory(FooUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(FooUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(BarUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(FooUserStoryState))
+  def testStoriesGroupedByStateClass(self):
+    foo_states = [FooUserStoryState, FooUserStoryState, FooUserStoryState,
+                  FooUserStoryState, FooUserStoryState]
+    mixed_states = [FooUserStoryState, FooUserStoryState, FooUserStoryState,
+                    BarUserStoryState, FooUserStoryState]
+    # UserStorySet's are only allowed to have one SharedUserStoryState.
+    us = SetupUserStorySet(False, foo_states)
     story_groups = (
-        user_story_runner.GetUserStoryGroupsWithSameSharedUserStoryClass(us))
+        user_story_runner.StoriesGroupedByStateClass(
+            us, False))
+    self.assertEqual(len(story_groups), 1)
+    us = SetupUserStorySet(False, mixed_states)
+    self.assertRaises(
+        ValueError,
+        user_story_runner.StoriesGroupedByStateClass,
+        us, False)
+    # BaseUserStorySets are allowed to have multiple SharedUserStoryStates.
+    bus = SetupUserStorySet(True, mixed_states)
+    story_groups = (
+        user_story_runner.StoriesGroupedByStateClass(
+            bus, True))
     self.assertEqual(len(story_groups), 3)
     self.assertEqual(story_groups[0].shared_user_story_state_class,
                      FooUserStoryState)
@@ -169,16 +196,27 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.assertEqual(story_groups[2].shared_user_story_state_class,
                      FooUserStoryState)
 
-  def testSuccessfulUserStoryTest(self):
+  def RunUserStoryTest(self, us, expected_successes):
     test = DummyTest()
-    us = user_story_set.UserStorySet()
-    us.AddUserStory(DummyLocalUserStory(FooUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(FooUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(BarUserStoryState))
     user_story_runner.Run(
         test, us, self.expectations, self.options, self.results)
     self.assertEquals(0, len(self.results.failures))
-    self.assertEquals(3, GetNumberOfSuccessfulPageRuns(self.results))
+    self.assertEquals(expected_successes,
+                      GetNumberOfSuccessfulPageRuns(self.results))
+
+  def testUserStoryTest(self):
+    all_foo = [FooUserStoryState, FooUserStoryState, FooUserStoryState]
+    one_bar = [FooUserStoryState, FooUserStoryState, BarUserStoryState]
+    us = SetupUserStorySet(True, one_bar)
+    self.RunUserStoryTest(us, 3)
+    us = SetupUserStorySet(True, all_foo)
+    self.RunUserStoryTest(us, 6)
+    us = SetupUserStorySet(False, all_foo)
+    self.RunUserStoryTest(us, 9)
+    us = SetupUserStorySet(False, one_bar)
+    test = DummyTest()
+    self.assertRaises(ValueError, user_story_runner.Run, test, us,
+                      self.expectations, self.options, self.results)
 
   def testSuccessfulTimelineBasedMeasurementTest(self):
     """Check that PageTest is not required for user_story_runner.Run.
@@ -203,7 +241,6 @@ class UserStoryRunnerTest(unittest.TestCase):
 
   def testTearDownIsCalledOnceForEachUserStoryGroupWithPageSetRepeat(self):
     self.options.pageset_repeat = 3
-    us = user_story_set.UserStorySet()
     fooz_init_call_counter = [0]
     fooz_tear_down_call_counter = [0]
     barz_init_call_counter = [0]
@@ -223,19 +260,29 @@ class UserStoryRunnerTest(unittest.TestCase):
         barz_init_call_counter[0] += 1
       def TearDownState(self, _results):
         barz_tear_down_call_counter[0] += 1
+    def AssertAndCleanUpFoo():
+      self.assertEquals(1, fooz_init_call_counter[0])
+      self.assertEquals(1, fooz_tear_down_call_counter[0])
+      fooz_init_call_counter[0] = 0
+      fooz_tear_down_call_counter[0] = 0
 
-    us.AddUserStory(DummyLocalUserStory(FoozUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(FoozUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(BarzUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(BarzUserStoryState))
-    user_story_runner.Run(
-        DummyTest(), us, self.expectations, self.options, self.results)
-    self.assertEquals(0, len(self.results.failures))
-    self.assertEquals(12, GetNumberOfSuccessfulPageRuns(self.results))
-    self.assertEquals(1, fooz_init_call_counter[0])
-    self.assertEquals(1, fooz_tear_down_call_counter[0])
+    uss1_list = [FoozUserStoryState, FoozUserStoryState, FoozUserStoryState,
+                 BarzUserStoryState, BarzUserStoryState]
+    uss1 = SetupUserStorySet(True, uss1_list)
+    self.RunUserStoryTest(uss1, 15)
+    AssertAndCleanUpFoo()
     self.assertEquals(1, barz_init_call_counter[0])
     self.assertEquals(1, barz_tear_down_call_counter[0])
+    barz_init_call_counter[0] = 0
+    barz_tear_down_call_counter[0] = 0
+
+    uss2_list = [FoozUserStoryState, FoozUserStoryState, FoozUserStoryState,
+                 FoozUserStoryState]
+    uss2 = SetupUserStorySet(False, uss2_list)
+    self.RunUserStoryTest(uss2, 27)
+    AssertAndCleanUpFoo()
+    self.assertEquals(0, barz_init_call_counter[0])
+    self.assertEquals(0, barz_tear_down_call_counter[0])
 
   def testAppCrashExceptionCausesFailureValue(self):
     self.SuppressExceptionFormatting()

@@ -43,6 +43,19 @@ class UserStorySet(object):
     self._serving_dirs = set(os.path.realpath(os.path.join(self.base_dir, d))
                              for d in serving_dirs or [])
 
+  @property
+  def allow_mixed_story_states(self):
+    """True iff UserStories are allowed to have different StoryState classes.
+
+    There are no checks in place for determining if SharedUserStoryStates are
+    being assigned correctly to all UserStorys in a given UserStorySet. The
+    majority of test cases should not need the ability to have multiple
+    ShareduserStoryStates, and usually implies you should be writing multiple
+    benchmarks instead. We provide errors to avoid accidentally assigning
+    or defaulting to the wrong SharedUserStoryState.
+    Override at your own risk. Here be dragons.
+    """
+    return False
 
   @property
   def file_path(self):

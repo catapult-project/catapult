@@ -18,6 +18,7 @@ from telemetry.page import page_test
 from telemetry.page.actions import page_action
 from telemetry.results import results_options
 from telemetry.user_story import user_story_filter
+from telemetry.user_story import user_story_set as user_story_set_module
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
 from telemetry.value import failure
@@ -156,7 +157,7 @@ class UserStoryGroup(object):
     self._user_stories.append(user_story)
 
 
-def GetUserStoryGroupsWithSameSharedUserStoryClass(user_story_set):
+def StoriesGroupedByStateClass(user_story_set, allow_multiple_groups):
   """ Returns a list of user story groups which each contains user stories with
   the same shared_user_story_state_class.
 
@@ -178,6 +179,14 @@ def GetUserStoryGroupsWithSameSharedUserStoryClass(user_story_set):
   for user_story in user_story_set:
     if (user_story.shared_user_story_state_class is not
         user_story_groups[-1].shared_user_story_state_class):
+      if not allow_multiple_groups:
+        raise ValueError('This UserStorySet is only allowed to have one '
+                         'SharedUserStoryState but contains the following '
+                         'SharedUserStoryState classes: %s, %s.\n Either '
+                         'remove the extra SharedUserStoryStates or override '
+                         'allow_mixed_story_states.' % (
+                         user_story_groups[-1].shared_user_story_state_class,
+                         user_story.shared_user_story_state_class))
       user_story_groups.append(
           UserStoryGroup(user_story.shared_user_story_state_class))
     user_story_groups[-1].AddUserStory(user_story)
@@ -212,8 +221,9 @@ def Run(test, user_story_set, expectations, finder_options, results,
   if effective_max_failures is None:
     effective_max_failures = max_failures
 
-  user_story_groups = GetUserStoryGroupsWithSameSharedUserStoryClass(
-      user_stories)
+  user_story_groups = StoriesGroupedByStateClass(
+      user_stories,
+      user_story_set.allow_mixed_story_states)
 
   for group in user_story_groups:
     state = None
