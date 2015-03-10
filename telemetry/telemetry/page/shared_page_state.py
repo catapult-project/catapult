@@ -21,10 +21,10 @@ from telemetry.value import skip
 from telemetry.web_perf import timeline_based_measurement
 
 
-def _PrepareFinderOptions(finder_options, test, page_set):
+def _PrepareFinderOptions(finder_options, test, device_type):
   browser_options = finder_options.browser_options
   # Set up user agent.
-  browser_options.browser_user_agent_type = page_set.user_agent_type or None
+  browser_options.browser_user_agent_type = device_type
 
   test.CustomizeBrowserOptions(finder_options.browser_options)
   if finder_options.profiler:
@@ -33,13 +33,17 @@ def _PrepareFinderOptions(finder_options, test, page_set):
                                            finder_options)
 
 class SharedPageState(shared_user_story_state.SharedUserStoryState):
+
+  _device_type = None
+
   def __init__(self, test, finder_options, user_story_set):
     super(SharedPageState, self).__init__(test, finder_options, user_story_set)
     if isinstance(test, timeline_based_measurement.TimelineBasedMeasurement):
       self._test = timeline_based_measurement.TimelineBasedPageTest(test)
     else:
       self._test = test
-    _PrepareFinderOptions(finder_options, self._test, user_story_set)
+    device_type = self._device_type or user_story_set.user_agent_type
+    _PrepareFinderOptions(finder_options, self._test, device_type)
     self.browser = None
     self._finder_options = finder_options
     self._possible_browser = self._GetPossibleBrowser(
@@ -282,3 +286,19 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
         if os.path.isfile(f):
           results.AddProfilingFile(self._current_page,
                                    file_handle.FromFilePath(f))
+
+
+class SharedMobilePageState(SharedPageState):
+  _device_type = 'mobile'
+
+
+class SharedDesktopPageState(SharedPageState):
+  _device_type = 'desktop'
+
+
+class SharedTabletPageState(SharedPageState):
+  _device_type = 'tablet'
+
+
+class Shared10InchTabletPageState(SharedPageState):
+  _device_type = 'tablet_10_inch'
