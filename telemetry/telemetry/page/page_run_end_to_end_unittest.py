@@ -16,7 +16,6 @@ from telemetry.core import util
 from telemetry.page import page as page_module
 from telemetry.page import page_set
 from telemetry.page import page_test
-from telemetry.page import shared_page_state
 from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.unittest_util import options_for_unittests
@@ -244,9 +243,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
-        'file://blank.html', ps, base_dir=util.GetUnittestDataDir(),
-        shared_page_state_class=shared_page_state.SharedTabletPageState)
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
     ps.pages.append(page)
+    ps.user_agent_type = 'tablet'
 
     class TestUserAgent(page_test.PageTest):
       def ValidateAndMeasurePage(self, _1, tab, _2):
