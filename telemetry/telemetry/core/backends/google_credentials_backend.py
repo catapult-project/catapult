@@ -36,3 +36,11 @@ class GoogleCredentialsBackend(
   @property
   def password_input_id(self):
     return 'Passwd'
+
+
+class GoogleCredentialsBackend2(GoogleCredentialsBackend):
+  """ Google credential backend for google2 credential. """
+
+  @property
+  def credentials_type(self):
+    return 'google2'

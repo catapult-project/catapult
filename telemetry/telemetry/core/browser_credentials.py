@@ -28,7 +28,8 @@ class BrowserCredentials(object):
         codepen_credentials_backend.CodePenCredentialsBackend(),
         facebook_credentials_backend.FacebookCredentialsBackend(),
         facebook_credentials_backend.FacebookCredentialsBackend2(),
-        google_credentials_backend.GoogleCredentialsBackend()]
+        google_credentials_backend.GoogleCredentialsBackend(),
+        google_credentials_backend.GoogleCredentialsBackend2()]
 
     self._backends = {}
     for backend in backends:
