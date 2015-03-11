@@ -6,7 +6,12 @@ import inspect
 import os
 
 from telemetry import user_story as user_story_module
+from telemetry.util import cloud_storage
 from telemetry.wpr import archive_info
+
+PUBLIC_BUCKET = cloud_storage.PUBLIC_BUCKET
+PARTNER_BUCKET = cloud_storage.PARTNER_BUCKET
+INTERNAL_BUCKET = cloud_storage.INTERNAL_BUCKET
 
 
 class UserStorySet(object):
