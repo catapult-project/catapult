@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/time_span.html">
 <link rel="import" href="/core/analysis/table_builder.html">
 <link rel="import" href="/core/analysis/util.html">
 <link rel="import" href="/base/base.html">
@@ -78,16 +79,17 @@ found in the LICENSE file.
       }
 
       if (slice.cpuSelfTime) {
-        var warning;
+        var cpuSelfTimeEl = document.createElement('tv-c-a-time-span');
+        cpuSelfTimeEl.duration = slice.cpuSelfTime;
         if (slice.cpuSelfTime > slice.selfTime) {
-          warning =
+          cpuSelfTimeEl.warning =
               ' Note that CPU Self Time is larger than Self Time. ' +
               'This is a known limitation of this system, which occurs ' +
               'due to several subslices, rounding issues, and imprecise ' +
               'time at which we get cpu- and real-time.';
         }
-        rows.push({ name: 'CPU Self Time',
-            value: tv.c.analysis.tsString(slice.cpuSelfTime) + warning });
+        rows.push({name: 'CPU Self Time',
+                   value: cpuSelfTimeEl});
       }
 
       if (slice.durationInUserTime) {

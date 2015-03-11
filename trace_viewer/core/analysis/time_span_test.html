@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/core/analysis/time_span.html">
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  test('instantiate', function() {
+    var timeSpan = document.createElement('tv-c-a-time-span');
+    timeSpan.duration = 73;
+    this.addHTMLOutput(timeSpan);
+  });
+  test('instantiateWithWarning', function() {
+    var timeSpan = document.createElement('tv-c-a-time-span');
+    timeSpan.duration = 400;
+    timeSpan.warning = 'there is a problem with this time';
+    this.addHTMLOutput(timeSpan);
+  });
+
+  test('warningAndNonWarningHaveSimilarHeights', function() {
+    var spanA = document.createElement('tv-c-a-time-span');
+    spanA.duration = 400;
+
+    var spanB = document.createElement('tv-c-a-time-span');
+    spanB.duration = 400;
+    spanB.warning = 'there is a problem with this time';
+
+    var overall = document.createElement('div');
+    overall.style.display = 'flex';
+    overall.appendChild(spanA);
+    spanB.style.marginLeft = '4px';
+    overall.appendChild(spanB);
+    this.addHTMLOutput(overall);
+  });
+});
+</script>

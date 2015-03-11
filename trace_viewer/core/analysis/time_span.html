@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/core/analysis/util.html">
+
+<polymer-element name="tv-c-a-time-span">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+    #warning {
+      margin-left: 4px;
+      font-size: 66%;
+    }
+    </style>
+    <span id="content">
+    </span>
+    <span id="warning" style="display:none">
+    </span>
+  </template>
+  <script>
+  Polymer({
+    ready: function() {
+      this.duration_ = undefined;
+      this.warning_ = undefined;
+      this.$.warning.textContent = String.fromCharCode(9888);
+    },
+
+    get duration() {
+      return this.duration_;
+    },
+
+    set duration(duration) {
+      this.duration_ = duration;
+      this.$.content.textContent = tv.c.analysis.tsString(duration);
+    },
+
+    get warning() {
+      return this.warning_;
+    },
+
+    set warning(warning) {
+      this.warning_ = warning;
+      var warningEl = this.$.warning;
+      if (this.warning_) {
+        warningEl.title = warning;
+        warningEl.style.display = '';
+      } else {
+        warningEl.title = '';
+        warningEl.style.display = 'none';
+      }
+    }
+  });
+  </script>
+</polymer>
