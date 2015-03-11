@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/extras/audits/utils.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Base class for trace data Auditors.
+ */
+tv.exportTo('tv.e.audits', function() {
+  var UI_THREAD_DRAW_NAME = 'performTraversals';
+  var RENDER_THREAD_DRAW_NAME = 'DrawFrame';
+  var THREAD_SYNC_NAME = 'syncFrameState';
+  // TODO: extract from VSYNC, since not all devices have vsync near 60fps
+  var EXPECTED_FRAME_TIME = 16.67;
+
+  var Auditor = tv.c.Auditor;
+
+  function getDrawingUiThread(process) {
+    var uiThread = process.getThread(process.pid);
+    if (!uiThread) return false;
+
+    var slices = uiThread.sliceGroup.slices;
+    for (var i = 0; i < slices.length; i++) {
+      var slice = slices[i];
+      if (slice.category == 'android' &&
+          slice.title == UI_THREAD_DRAW_NAME) {
+        return uiThread;
+      }
+    }
+    return false;
+  }
+
+  function getDrawingRenderThread(process) {
+    var threads = process.findAllThreadsNamed('RenderThread');
+    if (!threads || threads.length != 1) return false;
+    return threads[0];
+  }
+
+  function getDrawingApps(model) {
+    var drawingApps = [];
+    model.getAllProcesses().forEach(function(process) {
+      var uiThread = getDrawingUiThread(process);
+      var renderThread = getDrawingRenderThread(process);
+      if (uiThread || renderThread) {
+        drawingApps.push({
+          'uiThread' : uiThread,
+          'renderThread' : renderThread
+        });
+      }
+    });
+    return drawingApps;
+  }
+
+  /**
+   * Auditor for Android-specific traces.
+   * @constructor
+   */
+  function AndroidAuditor(model) {
+    this.drawingApps = getDrawingApps(model);
+    this.model = model;
+  };
+
+  AndroidAuditor.prototype = {
+    __proto__: Auditor.prototype,
+
+    runAudit: function() {
+      this.drawingApps.forEach(function(drawingApp) {
+        this.getFrameTimingAlerts(drawingApp.uiThread, drawingApp.renderThread);
+        this.addSaveLayerAlerts(drawingApp.renderThread);
+      }, this);
+    },
+
+    getFrameTimingAlerts: function(uiThread, renderThread) {
+      if (!uiThread)
+        return;
+
+
+      var findOverlappingDrawFrame = function(renderThread, time) {
+        if (!renderThread)
+          return false;
+
+        var slices = renderThread.sliceGroup.slices;
+        for (var i = 0; i < slices.length; i++) {
+          var slice = slices[i];
+          if (slice.title == RENDER_THREAD_DRAW_NAME &&
+              slice.start <= time &&
+              time <= slice.end) {
+            return slice;
+          }
+        }
+        return false;
+      }
+
+      var findContainedSync = function(renderThreadDrawSlice) {
+        if (!renderThreadDrawSlice)
+          return false;
+
+        // TODO: isSubSlices good enough?
+        var slices = renderThreadDrawSlice.subSlices;
+        for (var i = 0; i < slices.length; i++) {
+          if (slices[i].title == THREAD_SYNC_NAME) {
+            return slices[i];
+          }
+        }
+        return false;
+      }
+
+      uiThread.sliceGroup.slices.forEach(function(slice) {
+        if (slice.title == UI_THREAD_DRAW_NAME) {
+          var totalTime = slice.duration;
+
+          // on SDK 22+ devices with renderthread,
+          // account for time taken on both threads
+          var rtDrawSlice = findOverlappingDrawFrame(renderThread, slice.end);
+          if (rtDrawSlice) {
+            // account for draw time on RenderThread, if present
+            totalTime += rtDrawSlice.duration;
+          }
+          var rtSyncSlice = findContainedSync(rtDrawSlice);
+          if (rtSyncSlice) {
+            // avoid double-counting time during thread sync
+            totalTime -= rtSyncSlice.duration;
+          }
+        }
+
+        /*
+        * Currently, we create alerts for these, but really we should
+        * highlight frame-production-performance isolated per app,
+        * without alerts.
+        *
+        * Consider highlighting process background green when frames
+        * take < 16.6ms, yellow when double buffered but not dropping
+        * frames, red when actively janking.
+        */
+        if (totalTime > EXPECTED_FRAME_TIME) {
+          var title = 'Frame took too long!';
+          var colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
+          var alert = new tv.c.trace_model.Alert(
+              title, colorId,
+              tv.c.trace_model.ALERT_SEVERITY.WARNING,
+              slice.start, {/* explanatory data goes here */});
+          alert.duration = totalTime;
+          this.model.alerts.push(alert);
+        }
+      }, this);
+    },
+
+    addSaveLayerAlerts: function(renderThread) {
+      var saveLayerRegEx = /caused (unclipped )?saveLayer (\d+)x(\d+)/;
+      renderThread.sliceGroup.slices.forEach(function(slice) {
+        var match = saveLayerRegEx.exec(slice.title);
+        if (match) {
+          var args = { 'width' : parseInt(match[2]),
+                       'height' : parseInt(match[3]) };
+          var title = 'SaveLayer of size observed!';
+          var colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
+          var alert = new tv.c.trace_model.Alert(
+              title, colorId,
+              tv.c.trace_model.ALERT_SEVERITY.WARNING,
+              slice.start, args);
+          this.model.alerts.push(alert);
+          console.log(alert);
+        }
+        // TODO: also do something reasonable with standalone saveLayer commands
+      }, this);
+    }
+  };
+
+  Auditor.register(AndroidAuditor);
+
+  return {
+    AndroidAuditor: AndroidAuditor
+  };
+});
+</script>
