@@ -7,7 +7,7 @@ import unittest
 
 PERF_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 from telemetry.unittest_util import system_stub
-
+from unittest_data import system_stub_test_module
 
 class CloudStorageTest(unittest.TestCase):
   SUCCESS_FILE_HASH = 'success'.zfill(40)
@@ -216,3 +216,15 @@ class CloudStorageTest(unittest.TestCase):
       '/path/to/success.wpr')
     # Reset state.
     self.cloud_storage.SetRemotePathsForTesting()
+
+  def testOpenRestoresCorrectly(self):
+    file_path = os.path.realpath(__file__)
+    stubs = system_stub.Override(system_stub_test_module, ['open'])
+    stubs.open.files = {file_path:'contents'}
+    f = system_stub_test_module.SystemStubTest.TestOpen(file_path)
+    self.assertEqual(type(f), system_stub.OpenFunctionStub.FileStub)
+    stubs.open.files = {}
+    stubs.Restore()
+    # This will throw an error if the open stub wasn't restored correctly.
+    f = system_stub_test_module.SystemStubTest.TestOpen(file_path)
+    self.assertEqual(type(f), file)

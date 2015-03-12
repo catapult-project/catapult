@@ -49,7 +49,13 @@ class Override(object):
 
   def Restore(self):
     for module_name, original_module in self._overrides.iteritems():
-      setattr(self._base_module, module_name, original_module)
+      if original_module is None:
+        # This will happen when we override built-in functions, like open.
+        # If we don't delete the attribute, we will shadow the built-in
+        # function with an attribute set to None.
+        delattr(self._base_module, module_name)
+      else:
+        setattr(self._base_module, module_name, original_module)
     self._overrides = {}
 
 
