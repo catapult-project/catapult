@@ -42,6 +42,22 @@ tv.b.unittest.testSuite(function() {
     assertEquals('Kernel', model.kernel.stableId);
   });
 
+  test('kernelTimeShifting', function() {
+    var importOptions = new tv.c.ImportOptions();
+    importOptions.shiftWorldToZero = true;
+    importOptions.pruneEmptyContainers = false;
+    importOptions.customizeModelCallback = function(m) {
+      var ctr = m.kernel.getOrCreateCounter('cat', 'ctr');
+      var c0 = new tv.c.trace_model.CounterSeries('a', 0);
+      ctr.addSeries(c0);
+      c0.addCounterSample(100, 5);
+      c0.addCounterSample(200, 5);
+    };
+    var m = new tv.c.TraceModel([], importOptions);
+    var ctr = m.kernel.counters['cat.ctr'];
+    assertEquals(0, ctr.series[0].samples[0].timestamp);
+    ctr.series[0].samples[0].ts == 100;
+  });
 });
 </script>
 

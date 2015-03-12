@@ -97,7 +97,7 @@ tv.exportTo('tv.c.trace_model', function() {
     },
 
     shiftTimestampsForward: function(amount) {
-      ProcessBase.prototype.shiftTimestampsForward.call(this);
+      ProcessBase.prototype.shiftTimestampsForward.call(this, amount);
       for (var cpuNumber in this.cpus)
         this.cpus[cpuNumber].shiftTimestampsForward(amount);
     },
