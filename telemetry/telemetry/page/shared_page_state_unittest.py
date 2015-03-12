@@ -5,12 +5,16 @@
 import tempfile
 import unittest
 
+from telemetry.core import browser_finder
 from telemetry.core import wpr_modes
+from telemetry.page import page
 from telemetry.page import shared_page_state
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.unittest_util import options_for_unittests
+from telemetry import user_story
 from telemetry.user_story import user_story_runner
+from telemetry.user_story import user_story_set
 
 
 def SetUpPageRunnerArguments(options):
@@ -65,3 +69,26 @@ class SharedPageStateTests(unittest.TestCase):
     test = DummyTest()
     shared_page_state.SharedPageState(test, self.options, page_set.PageSet())
     self.assertEqual(test.options, self.options)
+
+  def assertUserAgentSetCorrectly(
+      self, shared_page_state_class, expected_user_agent):
+    us = page.Page(
+        'http://www.google.com',
+        shared_page_state_class=shared_page_state_class)
+    test = DummyTest()
+    uss = user_story_set.UserStorySet()
+    uss.AddUserStory(us)
+    us.shared_user_story_state_class(test, self.options, uss)
+    browser_options = self.options.browser_options
+    actual_user_agent = browser_options.browser_user_agent_type
+    self.assertEqual(expected_user_agent, actual_user_agent)
+
+  def testPageStatesUserAgentType(self):
+    self.assertUserAgentSetCorrectly(
+        shared_page_state.SharedMobilePageState, 'mobile')
+    self.assertUserAgentSetCorrectly(
+        shared_page_state.SharedDesktopPageState, 'desktop')
+    self.assertUserAgentSetCorrectly(
+        shared_page_state.SharedTabletPageState, 'tablet')
+    self.assertUserAgentSetCorrectly(
+        shared_page_state.Shared10InchTabletPageState, 'tablet_10_inch')
