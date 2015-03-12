@@ -50,7 +50,7 @@ class Link(object):
     os.symlink(src_path_rel, full_dst_path)
 
 def InstallHooks():
-  if 'win' in sys.platform:
+  if sys.platform == 'win32':
     return
 
   links = []
