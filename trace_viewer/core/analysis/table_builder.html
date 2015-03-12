@@ -362,34 +362,44 @@ found in the LICENSE file.
       },
 
       scheduleRebuildHeaders_: function() {
-        if (this.headerDirty_)
-          return;
         this.headerDirty_ = true;
-        setTimeout(function() {
-          this.generateHeaderColumns_();
-          this.headerDirty_ = false;
-        }.bind(this), 0);
+        this.scheduleRebuild_();
       },
 
       scheduleRebuildBody_: function() {
-        if (this.bodyDirty_)
-          return;
         this.bodyDirty_ = true;
-        setTimeout(function() {
-          this.generateTableRowNodes_(this.$.body, this.tableRowsInfo_, 0);
-          this.bodyDirty_ = false;
-        }.bind(this), 0);
+        this.scheduleRebuild_();
       },
 
       scheduleRebuildFooter_: function() {
-        if (this.footerDirty_)
-          return;
         this.footerDirty_ = true;
+        this.scheduleRebuild_();
+      },
+
+      scheduleRebuild_: function() {
+        if (this.rebuildPending_)
+          return;
+        this.rebuildPending_ = true;
         setTimeout(function() {
+          this.rebuildPending_ = false;
+          this.rebuild();
+        }.bind(this), 0);
+      },
+
+      rebuild: function() {
+        if (this.headerDirty_) {
+          this.generateHeaderColumns_();
+          this.headerDirty_ = false;
+        }
+        if (this.bodyDirty_) {
+          this.generateTableRowNodes_(this.$.body, this.tableRowsInfo_, 0);
+          this.bodyDirty_ = false;
+        }
+        if (this.footerDirty_) {
           this.generateTableRowNodes_(this.$.foot, this.tableFooterRowsInfo_,
                                       0);
           this.footerDirty_ = false;
-        }.bind(this), 0);
+        }
       },
 
       createTableRowsInfo_: function(rows, containerForResults) {
