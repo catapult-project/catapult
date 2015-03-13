@@ -202,6 +202,8 @@ class Page(user_story.UserStory):
 
   @property
   def serving_dir(self):
+    if not self.is_file:
+      return None
     file_path = os.path.realpath(self.file_path)
     if os.path.isdir(file_path):
       return file_path
