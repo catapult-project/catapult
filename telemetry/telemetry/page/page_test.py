@@ -50,18 +50,16 @@ class PageTest(object):
   """
 
   def __init__(self,
-               action_name_to_run='',
+               action_name_to_run='RunPageInteractions',
                needs_browser_restart_after_each_page=False,
                discard_first_result=False,
                clear_cache_before_each_run=False):
     super(PageTest, self).__init__()
 
     self.options = None
-    if action_name_to_run:
-      assert action_name_to_run.startswith('Run') \
-          and '_' not in action_name_to_run, \
-          ('Wrong way of naming action_name_to_run. By new convention,'
-           'action_name_to_run must start with Run- prefix and in CamelCase.')
+    assert action_name_to_run == 'RunPageInteractions', (
+        'action_name_to_run can only be \'RunPageInteractions\', see '
+        'crbug.com/418375')
     self._action_name_to_run = action_name_to_run
     self._needs_browser_restart_after_each_page = (
         needs_browser_restart_after_each_page)
