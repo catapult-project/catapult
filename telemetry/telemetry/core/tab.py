@@ -60,15 +60,28 @@ class Tab(web_contents.WebContents):
     Please note: this is asynchronous. There is a delay between this call
     and the page's documentVisibilityState becoming 'visible', and yet more
     delay until the actual tab is visible to the user. None of these delays
-    are included in this call."""
-    self._tab_list_backend.ActivateTab(self._inspector_backend.debugger_url)
+    are included in this call.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+      devtools_client_backend.TabNotFoundError
+      tab_list_backend.TabUnexpectedResponseException
+    """
+    self._tab_list_backend.ActivateTab(self.id)
 
   def Close(self):
     """Closes this tab.
 
     Not all browsers or browser versions support this method.
-    Be sure to check browser.supports_tab_control."""
-    self._tab_list_backend.CloseTab(self._inspector_backend.debugger_url)
+    Be sure to check browser.supports_tab_control.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+      devtools_client_backend.TabNotFoundError
+      tab_list_backend.TabUnexpectedResponseException
+      exceptions.TimeoutException
+    """
+    self._tab_list_backend.CloseTab(self.id)
 
   @property
   def screenshot_supported(self):

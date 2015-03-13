@@ -4,13 +4,19 @@
 
 import logging
 import re
+import sys
 
 from telemetry import decorators
-from telemetry.timeline import trace_data as trace_data_module
+from telemetry.core import exceptions
 from telemetry.core.backends.chrome_inspector import devtools_http
 from telemetry.core.backends.chrome_inspector import inspector_backend
 from telemetry.core.backends.chrome_inspector import tracing_backend
 from telemetry.core.platform.tracing_agent import chrome_tracing_agent
+from telemetry.timeline import trace_data as trace_data_module
+
+
+class TabNotFoundError(exceptions.Error):
+  pass
 
 
 def IsDevToolsAgentAvailable(port):
@@ -67,15 +73,9 @@ class DevToolsClientBackend(object):
   def remote_port(self):
     return self._remote_devtools_port
 
-  # TODO(chrishenry): This is temporarily exposed during DevTools code
-  # refactoring. Please do not introduce new usage! crbug.com/423954
-  @property
-  def devtools_http(self):
-    return self._devtools_http
-
   def IsAlive(self):
     """Whether the DevTools server is available and connectable."""
-    return _IsDevToolsAgentAvailable(self.devtools_http)
+    return _IsDevToolsAgentAvailable(self._devtools_http)
 
   def Close(self):
     if self._tracing_backend:
@@ -108,6 +108,44 @@ class DevToolsClientBackend(object):
   # equivalent. crbug.com/423954.
   def ListInspectableContexts(self):
     return self._devtools_http.RequestJson('')
+
+  def CreateNewTab(self, timeout):
+    """Creates a new tab.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+    """
+    self._devtools_http.Request('new', timeout=timeout)
+
+  def CloseTab(self, tab_id, timeout):
+    """Closes the tab with the given id.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+      TabNotFoundError
+    """
+    try:
+      return self._devtools_http.Request('close/%s' % tab_id,
+                                         timeout=timeout)
+    except devtools_http.DevToolsClientUrlError:
+      error = TabNotFoundError(
+          'Unable to close tab, tab id not found: %s' % tab_id)
+      raise error, None, sys.exc_info()[2]
+
+  def ActivateTab(self, tab_id, timeout):
+    """Activates the tab with the given id.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+      TabNotFoundError
+    """
+    try:
+      return self._devtools_http.Request('activate/%s' % tab_id,
+                                         timeout=timeout)
+    except devtools_http.DevToolsClientUrlError:
+      error = TabNotFoundError(
+          'Unable to activate tab, tab id not found: %s' % tab_id)
+      raise error, None, sys.exc_info()[2]
 
   def GetUpdatedInspectableContexts(self):
     """Returns an updated instance of _DevToolsContextMapBackend."""
