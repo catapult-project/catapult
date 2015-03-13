@@ -86,7 +86,8 @@ found in the LICENSE file.
         results.appendInfo('Title: ', sliceGroup.slices[0].title);
         results.appendInfo('Category: ', sliceGroup.slices[0].category);
 
-        var single_type_info = this.analyzeSingleTypeSlices_(results, sliceGroup,
+        var single_type_info = this.analyzeSingleTypeSlices_(
+            results, sliceGroup,
             info.hasCpuDuration);
 
         if (info.sliceGroups[keys[0]].slices.length > 1) {
@@ -254,7 +255,8 @@ found in the LICENSE file.
             Math.sqrt(sumOfSquaredDistancesToMean / (slices.length - 1));
 
         // We require at least 3 samples to compute the stddev.
-        var elapsed = sliceGroup.startOfLastOccurrence - sliceGroup.startOfFirstOccurrence;
+        var elapsed = sliceGroup.startOfLastOccurrence -
+            sliceGroup.startOfFirstOccurrence;
         if (slices.length > 2 && elapsed > 0) {
           var numDistances = slices.length - 1;
           statistics.frequency = (1000 * numDistances) / elapsed;
