@@ -192,10 +192,16 @@ found in the LICENSE file.
 
       runner.getHRefForTestCase = function(testCase) {
         var state = runner.getState();
-        state.testSuiteName = testCase.suite.name;
-        state.testFilterString = testCase.name;
-        state.shortFormat = false;
-
+        if (state.testFilterString === '' &&
+            state.testSuiteName === '') {
+          state.testSuiteName = testCase.suite.name;
+          state.testFilterString = '';
+          state.shortFormat = false;
+        } else {
+          state.testSuiteName = testCase.suite.name;
+          state.testFilterString = testCase.name;
+          state.shortFormat = false;
+        }
         var stateString = stateToSearchString(runner.getDefaultState(),
                                               state);
         if (stateString.length > 0)
