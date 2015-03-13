@@ -52,7 +52,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       assertEquals(binderSlice, e.selection[0]);
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('.analysis-link').click();
+    view.shadowRoot.querySelector('tv-c-analysis-link').click();
     assertTrue(didSelectionChangeHappen);
   });
 
@@ -81,7 +81,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       assertEquals(launcherSlice, e.selection[0]);
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('.analysis-link').click();
+    view.shadowRoot.querySelector('tv-c-analysis-link').click();
     assertTrue(didSelectionChangeHappen);
   });
 });

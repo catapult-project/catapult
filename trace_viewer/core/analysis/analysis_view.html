@@ -77,15 +77,6 @@ using custom elements specialized for different event types.
   (function() {
     var EventRegistry = tv.c.trace_model.EventRegistry;
 
-    /**
-     * Utility function used to convert camelCase to Title Case.
-     */
-    function convertCamelCaseToTitleCase(name) {
-      var result = name.replace(/[A-Z]/g, ' $&');
-      result = result.charAt(0).toUpperCase() + result.slice(1);
-      return result;
-    }
-
     Polymer({
       ready: function() {
         this.tabView_ = document.createElement(
@@ -182,11 +173,10 @@ using custom elements specialized for different event types.
         // Set label.
         var camelLabel;
         if (subSelection.length === 1)
-          camelLabel = eventTypeInfo.metadata.name;
+          camelLabel = EventRegistry.getUserFriendlySingularName(eventTypeName);
         else
-          camelLabel = eventTypeInfo.metadata.pluralName;
-
-        subView.tabLabel = convertCamelCaseToTitleCase(camelLabel);
+          camelLabel = EventRegistry.getUserFriendlyPluralName(eventTypeName);
+        subView.tabLabel = camelLabel;
 
         return subView;
       },

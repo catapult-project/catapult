@@ -34,10 +34,12 @@ tv.exportTo('tv.c.analysis', function() {
 
     createSelectionChangingLink: function(text, selectionGenerator,
                                           opt_tooltip) {
-      var el = this.ownerDocument.createElement('a');
-      tv.c.analysis.AnalysisLink.decorate(el);
-      el.textContent = text;
-      el.selectionGenerator = selectionGenerator;
+      var el = this.ownerDocument.createElement('tv-c-analysis-link');
+      function wrap() {
+        return selectionGenerator();
+      }
+      wrap.userFriendlyName = text;
+      el.selection = wrap;
       if (opt_tooltip)
         el.title = opt_tooltip;
       return el;
@@ -290,8 +292,8 @@ tv.exportTo('tv.c.analysis', function() {
      * |occurrences| in the third.
      *
      * @param {object=} opt_statistics May be undefined, or an object which
-     *          contains calculated statistics containing min/max/avg for slices,
-     *          or min/max/avg/start/end for counters.
+     *          contains calculated statistics containing min/max/avg for
+     *          slices, or min/max/avg/start/end for counters.
      */
     appendDataRow: function(table, label, opt_duration, opt_cpuDuration,
                             opt_selfTime, opt_cpuSelfTime, opt_occurences,

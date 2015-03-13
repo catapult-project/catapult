@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/tracks/slice_track.html">
+<link rel="import" href="/core/tracks/drawing_container.html">
 
 <script>
 'use strict';
@@ -78,5 +79,51 @@ tv.b.unittest.testSuite(function() {
     selection.push(sample1);
     assertEquals(2, selection.length);
   });
+
+  test('userFriendlyNameSingular', function() {
+    var model = new tv.c.TraceModel();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tv.c.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    var seleciton = new tv.c.Selection(t1.sliceGroup.slices[0]);
+    assertNotUndefined(seleciton.userFriendlyName);
+  });
+
+  test('userFriendlyNamePlural', function() {
+    var model = new tv.c.TraceModel();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tv.c.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tv.c.trace_model.ThreadSlice('', 'a', 0, 2, {}, 3));
+    var seleciton = new tv.c.Selection([
+        t1.sliceGroup.slices[0],
+        t1.sliceGroup.slices[1]
+    ]);
+    assertNotUndefined(seleciton.userFriendlyName);
+  });
+
+  test('userFriendlyNameMixedPlural', function() {
+    var model = new tv.c.TraceModel();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tv.c.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tv.c.trace_model.ThreadSlice('', 'a', 0, 2, {}, 3));
+
+    var i10 = new tv.c.trace_model.ObjectInstance(
+    {}, '0x1000', 'cat', 'name', 10);
+    var s10 = i10.addSnapshot(10, {foo: 1});
+
+    var seleciton = new tv.c.Selection([
+        t1.sliceGroup.slices[0],
+        s10
+    ]);
+    assertNotUndefined(seleciton.userFriendlyName);
+  });
+
 });
 </script>

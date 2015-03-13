@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/core/trace_model/timed_event.html">
+<link rel="import" href="/core/analysis/util.html">
 
 <script>
 'use strict';
@@ -21,6 +22,11 @@ tv.exportTo('tv.c.trace_model', function() {
 
     get subSlices() {
       return [];
+    },
+
+    get userFriendlyName() {
+      return this.title + ' interaction at ' +
+          tv.c.analysis.tsString(this.start);
     }
   };
 

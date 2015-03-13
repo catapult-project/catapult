@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/extension_registry.html">
+<link rel="import" href="/core/analysis/util.html">
 <link rel="import" href="/core/trace_model/event.html">
 
 <script>
@@ -58,6 +59,13 @@ tv.exportTo('tv.c.trace_model', function() {
 
     addBoundsToRange: function(range) {
       range.addValue(this.ts);
+    },
+
+    get userFriendlyName() {
+      return 'Snapshot of ' +
+             this.objectInstance.typeName + ' ' +
+             this.objectInstance.id + ' @ ' +
+             tv.c.analysis.tsString(this.ts);
     }
   };
 

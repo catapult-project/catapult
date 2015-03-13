@@ -108,9 +108,8 @@ tv.exportTo('tv.e.cc', function() {
       if (!(pictures instanceof Array))
         pictures = [pictures];
 
-      var link = new tv.c.analysis.AnalysisLink();
-      link.innerText = 'View in Picture Debugger';
-      link.selectionGenerator = function() {
+      var link = document.createElement('tv-c-analysis-link');
+      link.selection = function() {
         var layeredPicture = new tv.e.cc.LayeredPicture(pictures);
         var snapshot = new tv.e.cc.PictureSnapshot(layeredPicture);
         snapshot.picture = layeredPicture;
@@ -119,6 +118,7 @@ tv.exportTo('tv.e.cc', function() {
         selection.push(snapshot);
         return selection;
       };
+      link.textContent = 'View in Picture Debugger';
       return link;
     },
 

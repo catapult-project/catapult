@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/trace_model/timed_event.html">
+<link rel="import" href="/core/analysis/util.html">
 
 <script>
 'use strict';
@@ -52,8 +53,13 @@ tv.exportTo('tv.c.trace_model', function() {
 
     get previousFlowEvent() {
       return this.previousFlowEvent_;
+    },
+
+    get userFriendlyName() {
+      return 'Flow event named ' + this.title + ' at ' +
+          tv.c.analysis.tsString(this.timestamp);
     }
-  };
+};
 
   tv.c.trace_model.EventRegistry.register(
       FlowEvent,

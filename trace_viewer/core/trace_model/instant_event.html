@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/trace_model/timed_event.html">
+<link rel="import" href="/core/analysis/util.html">
 
 <script>
 'use strict';
@@ -41,7 +42,11 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   GlobalInstantEvent.prototype = {
-    __proto__: InstantEvent.prototype
+    __proto__: InstantEvent.prototype,
+    get userFriendlyName() {
+      return 'Global instant event ' + this.title + ' @ ' +
+          this.tsString(start);
+    }
   };
 
   function ProcessInstantEvent(category, title, colorId, start, args) {
@@ -50,7 +55,12 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   ProcessInstantEvent.prototype = {
-    __proto__: InstantEvent.prototype
+    __proto__: InstantEvent.prototype,
+
+    get userFriendlyName() {
+      return 'Process-level instant event ' + this.title + ' @ ' +
+          this.tsString(start);
+    }
   };
 
   tv.c.trace_model.EventRegistry.register(

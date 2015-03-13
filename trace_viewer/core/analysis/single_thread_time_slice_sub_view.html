@@ -121,30 +121,24 @@ found in the LICENSE file.
       var runningInsteadEl = shadowRoot.querySelector('#running-instead');
       if (timeSlice.cpuOnWhichThreadWasRunning) {
         runningInsteadEl.parentElement.removeChild(runningInsteadEl);
-        var cpuLink = new tv.c.analysis.AnalysisLink();
+
+        var cpuLink = document.createElement('tv-c-analysis-link');
+        cpuLink.selection = new tv.c.Selection(
+            timeSlice.getAssociatedCpuSlice());
         cpuLink.textContent =
             timeSlice.cpuOnWhichThreadWasRunning.userFriendlyName;
-        cpuLink.selectionGenerator = function() {
-          var selection = new tv.c.Selection();
-          selection.push(timeSlice.getAssociatedCpuSlice());
-          return selection;
-        }.bind(this);
         onCpuEl.appendChild(cpuLink);
       } else {
         onCpuEl.parentElement.removeChild(onCpuEl);
 
         var cpuSliceThatTookCpu = timeSlice.getCpuSliceThatTookCpu();
         if (cpuSliceThatTookCpu) {
-          var cpuLink = new tv.c.analysis.AnalysisLink();
+          var cpuLink = document.createElement('tv-c-analysis-link');
+          cpuLink.selection = new tv.c.Selection(cpuSliceThatTookCpu);
           if (cpuSliceThatTookCpu.thread)
             cpuLink.textContent = cpuSliceThatTookCpu.thread.userFriendlyName;
           else
             cpuLink.textContent = cpuSliceThatTookCpu.title;
-          cpuLink.selectionGenerator = function() {
-            var selection = new tv.c.Selection();
-            selection.push(cpuSliceThatTookCpu);
-            return selection;
-          }.bind(this);
           runningInsteadEl.appendChild(cpuLink);
         } else {
           runningInsteadEl.parentElement.removeChild(runningInsteadEl);

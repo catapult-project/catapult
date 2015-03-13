@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/trace_model/event.html">
 <link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/core/analysis/util.html">
 <link rel="import" href="/base/sorted_array_utils.html">
 
 <script>
@@ -87,6 +88,11 @@ tv.exportTo('tv.c.trace_model', function() {
           this.series.timestamps,
           function(x) { return x; },
           this.timestamp_);
+    },
+
+    get userFriendlyName() {
+      return 'Counter sample from ' + this.series_.title + ' at ' +
+          tv.c.analysis.tsString(this.timestamp);
     }
   };
 

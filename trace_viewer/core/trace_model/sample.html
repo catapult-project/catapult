@@ -49,6 +49,11 @@ tv.exportTo('tv.c.trace_model', function() {
 
     getUserFriendlyStackTrace: function() {
       return this.leafStackFrame.getUserFriendlyStackTrace();
+    },
+
+    get userFriendlyName() {
+      return 'Sample ' + ' at ' +
+          tv.c.analysis.tsString(this.start);
     }
   };
 

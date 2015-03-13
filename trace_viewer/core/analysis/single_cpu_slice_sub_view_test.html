@@ -52,7 +52,7 @@ tv.b.unittest.testSuite(function() {
       assertEquals(thread.timeSlices[0], e.selection[0]);
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('.analysis-link').click();
+    view.shadowRoot.querySelector('tv-c-analysis-link').click();
     assertTrue(didSelectionChangeHappen);
   });
 

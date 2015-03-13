@@ -84,15 +84,15 @@ tv.exportTo('tv.c.analysis', function() {
       }
 
       if (object instanceof tv.c.trace_model.ObjectSnapshot) {
-        var link = new tv.c.analysis.ObjectSnapshotLink(object);
-        link.objectSnapshot = object;
+        var link = document.createElement('tv-c-analysis-link');
+        link.selection = new tv.c.Selection(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }
 
       if (object instanceof tv.c.trace_model.ObjectInstance) {
-        var link = new tv.c.analysis.ObjectInstanceLink(object);
-        link.objectInstance = object;
+        var link = document.createElement('tv-c-analysis-link');
+        link.selection = new tv.c.Selection(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/core/trace_model/timed_event.html">
+<link rel="import" href="/core/analysis/util.html">
 
 <script>
 'use strict';
@@ -28,7 +29,12 @@ tv.exportTo('tv.c.trace_model', function() {
     this.duration = 0;
   }
   Alert.prototype = {
-    __proto__: tv.c.trace_model.TimedEvent.prototype
+    __proto__: tv.c.trace_model.TimedEvent.prototype,
+
+    get userFriendlyName() {
+      return 'Alert ' + this.title + ' at ' +
+          tv.c.analysis.tsString(this.start);
+    }
   };
 
   tv.c.trace_model.EventRegistry.register(

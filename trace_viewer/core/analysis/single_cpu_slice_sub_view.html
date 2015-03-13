@@ -105,13 +105,9 @@ found in the LICENSE file.
       if (!timeSlice) {
         runningThreadEl.parentElement.style.display = 'none';
       } else {
-        var threadLink = new tv.c.analysis.AnalysisLink();
+        var threadLink = document.createElement('tv-c-analysis-link');
+        threadLink.selection = new tv.c.Selection(timeSlice);
         threadLink.textContent = 'Click to select';
-        threadLink.selectionGenerator = function() {
-          var selection = new tv.c.Selection();
-          selection.push(timeSlice);
-          return selection;
-        }.bind(this);
         runningThreadEl.parentElement.style.display = '';
         runningThreadEl.textContent = '';
         runningThreadEl.appendChild(threadLink);

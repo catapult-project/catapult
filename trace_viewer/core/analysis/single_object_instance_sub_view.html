@@ -102,8 +102,8 @@ found in the LICENSE file.
       this.innerHTML = html;
       var snapshotsEl = this.querySelector('#snapshots');
       instance.snapshots.forEach(function(snapshot) {
-        var snapshotLink = new tv.c.analysis.ObjectSnapshotLink();
-        snapshotLink.objectSnapshot = snapshot;
+        var snapshotLink = document.createElement('tv-c-analysis-link');
+        snapshotLink.selection = new tv.c.Selection(snapshot);
         snapshotsEl.appendChild(snapshotLink);
       });
     }

@@ -96,10 +96,11 @@ found in the LICENSE file.
       html += '</table>';
       this.innerHTML = html;
 
+      var instanceLinkEl = document.createElement('tv-c-analysis-link');
+      instanceLinkEl.selection = new tv.c.Selection(instance);
+
       // TODO(nduca): tv.ui.decoreate doesn't work when subclassed. So,
       // replace the template element.
-      var instanceLinkEl = new tv.c.analysis.ObjectInstanceLink();
-      instanceLinkEl.objectInstance = instance;
       var tmp = this.querySelector('#instance-link');
       tmp.parentElement.replaceChild(instanceLinkEl, tmp);
 

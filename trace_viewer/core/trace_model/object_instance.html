@@ -168,6 +168,10 @@ tv.exportTo('tv.c.trace_model', function() {
       this.snapshots.forEach(function(snapshot) {
         snapshot.ts += amount;
       });
+    },
+
+    get userFriendlyName() {
+      return this.typeName + ' object ' + this.id;
     }
   };
 
