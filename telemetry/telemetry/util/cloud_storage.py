@@ -15,7 +15,6 @@ import sys
 import tarfile
 import urllib2
 
-from telemetry import decorators
 from telemetry.core import util
 from telemetry.util import path
 
@@ -221,8 +220,10 @@ def Insert(bucket, remote_path, local_path, publicly_readable=False):
 
 
 def GetIfChanged(file_path, bucket):
-  """Gets the file at file_path if it has a hash file that doesn't match or
-  if there is no local copy of file_path, but there is a hash file for it.
+  """Gets the file at file_path if it has a hash file that doesn't match.
+
+  If the file is not in Cloud Storage, log a warning instead of raising an
+  exception. We assume that the user just hasn't uploaded the file yet.
 
   Returns:
     True if the binary was changed.
@@ -243,25 +244,6 @@ def GetIfChanged(file_path, bucket):
   Get(bucket, expected_hash, file_path)
   return True
 
-# TODO(aiolos): remove @decorators.Cache for http://crbug.com/459787
-@decorators.Cache
-def GetFilesInDirectoryIfChanged(directory, bucket):
-  """ Scan the directory for .sha1 files, and download them from the given
-  bucket in cloud storage if the local and remote hash don't match or
-  there is no local copy.
-  """
-  if not os.path.isdir(directory):
-    raise ValueError('Must provide a valid directory.')
-  # Don't allow the root directory to be a serving_dir.
-  if directory == os.path.abspath(os.sep):
-    raise ValueError('Trying to serve root directory from HTTP server.')
-  for dirpath, _, filenames in os.walk(directory):
-    for filename in filenames:
-      path_name, extension = os.path.splitext(
-          os.path.join(dirpath, filename))
-      if extension != '.sha1':
-        continue
-      GetIfChanged(path_name, bucket)
 
 def CalculateHash(file_path):
   """Calculates and returns the hash of the file at file_path."""

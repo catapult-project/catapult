@@ -32,9 +32,6 @@ class UserStorySet(object):
           Web Page Replay's archive data. Valid values are: None,
           PUBLIC_BUCKET, PARTNER_BUCKET, or INTERNAL_BUCKET (defined
           in telemetry.util.cloud_storage).
-      serving_dirs: A set of paths, relative to self.base_dir, to directories
-          containing hash files for non-wpr archive data stored in cloud
-          storage.
     """
     self.user_stories = []
     self._archive_data_file = archive_data_file
@@ -79,11 +76,7 @@ class UserStorySet(object):
 
   @property
   def serving_dirs(self):
-    all_serving_dirs = self._serving_dirs.copy()
-    for user_story in self.user_stories:
-      if user_story.serving_dir:
-        all_serving_dirs.add(user_story.serving_dir)
-    return all_serving_dirs
+    return self._serving_dirs
 
   @property
   def archive_data_file(self):

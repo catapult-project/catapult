@@ -24,9 +24,7 @@ class TestPageSet(unittest.TestCase):
       os.rmdir(directory_path)
 
     real_directory_path = os.path.realpath(directory_path)
-    expected_serving_dirs = set([os.path.join(real_directory_path, 'a', 'b'),
-                                 os.path.join(real_directory_path, 'c'),
-                                 os.path.join(real_directory_path, 'd')])
+    expected_serving_dirs = set([os.path.join(real_directory_path, 'a', 'b')])
     self.assertEquals(ps.serving_dirs, expected_serving_dirs)
     self.assertEquals(ps[0].serving_dir, os.path.join(real_directory_path, 'c'))
     self.assertEquals(ps[2].serving_dir, os.path.join(real_directory_path, 'd'))

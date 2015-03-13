@@ -91,6 +91,9 @@ def FindPageSetDependencies(base_dir):
     # Add all of its serving_dirs as dependencies.
     for serving_dir in page_set.serving_dirs:
       yield serving_dir
+    for page in page_set:
+      if page.is_file:
+        yield page.serving_dir
 
 
 def FindExcludedFiles(files, options):
