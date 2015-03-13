@@ -17,13 +17,16 @@ found in the LICENSE file.
       color: -webkit-link;
       cursor: pointer;
       text-decoration: underline;
-    }
-
-    :host:hover {
+      /* TODO(nduca): Whitespace is forced to normal here because the
+         analysis_results.css forces everything under it to pre. This is insane.
+         When that horrible evil class dies, then we can rip this white-space
+         restriction out.
+       */
+      white-space: normal;
       cursor: pointer;
     }
     </style>
-    <content>
+    <content></content>
   </template>
   <script>
   'use strict';
