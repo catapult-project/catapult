@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/core/analysis/table_builder.html">
 
 <script>
@@ -205,5 +206,57 @@ tv.b.unittest.testSuite(function() {
     });
     this.addHTMLOutput(button);
   });
+
+
+  test('instantiateNestedTableAlreadyExpanded', function() {
+    var columns = [
+      {
+        title: 'a',
+        value: function(row) { return row.a; },
+        width: '50%'
+      },
+      {
+        title: 'a',
+        value: function(row) { return row.b; },
+        width: '50%'
+      }
+    ];
+
+    var rows = [
+      {
+        a: 'aToplevel',
+        b: 'bToplevel',
+        isExpanded: true,
+        subRows: [
+          {
+            a: 'a1',
+            b: 'b1'
+          }
+        ]
+      }
+    ];
+
+    var table = new TracingAnalysisNestedTable();
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+    this.addHTMLOutput(table);
+
+    var a1El = tv.b.findDeepElementMatchingPredicate(table, function(element) {
+      return element.textContent == 'a1';
+    });
+    assertNotUndefined(a1El);
+
+    var bToplevelEl = tv.b.findDeepElementMatchingPredicate(
+        table,
+        function(element) {
+          return element.textContent == 'bToplevel';
+        });
+    assertNotUndefined(bToplevelEl);
+    var expandButton = bToplevelEl.parentElement.querySelector('expand-button');
+    assertTrue(expandButton.classList.contains('button-expanded'));
+  });
+
+
 });
 </script>

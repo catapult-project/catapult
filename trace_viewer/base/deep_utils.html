@@ -29,10 +29,10 @@ tv.exportTo('tv.b', function() {
     _iterateElementDeeplyImpl(element, cb, thisArg, false);
   }
 
-  function findDeepElementMatching(element, selector) {
+  function findDeepElementMatchingPredicate(element, predicate) {
     var foundElement = undefined;
     function matches(element) {
-      var match = element.matches(selector);
+      var match = predicate(element);
       if (!match)
         return false;
       foundElement = element;
@@ -41,9 +41,16 @@ tv.exportTo('tv.b', function() {
     iterateElementDeeply(element, matches);
     return foundElement;
   }
+
+  function findDeepElementMatching(element, selector) {
+    return findDeepElementMatchingPredicate(element, function(element) {
+      return element.matches(selector);
+    });
+  }
   return {
     iterateElementDeeply: iterateElementDeeply,
-    findDeepElementMatching: findDeepElementMatching
+    findDeepElementMatching: findDeepElementMatching,
+    findDeepElementMatchingPredicate: findDeepElementMatchingPredicate
   };
 });
 </script>
