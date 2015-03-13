@@ -123,13 +123,17 @@ found in the LICENSE file.
         n += 1;
       }
       if (n > 0) {
-        rows.push({ name: 'Args', value: '' });
+        var subRows = [];
         for (var argName in slice.args) {
           var argView = new tv.c.analysis.GenericObjectView();
           argView.object = slice.args[argName];
-          rows.push({ name: argName,
+          subRows.push({ name: argName,
                       value: argView});
         }
+        rows.push({
+          name: 'Args', value: '',
+          isExpanded: true, subRows: subRows
+        });
       }
 
       var table = new TracingAnalysisNestedTable();
