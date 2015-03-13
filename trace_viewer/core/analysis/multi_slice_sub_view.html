@@ -47,7 +47,7 @@ found in the LICENSE file.
 
       // TODO(nduca): This is a gross hack for cc Frame Viewer, but its only
       // the frame viewer that needs this feature, so ~shrug~.
-      if (RasterTaskView !== undefined) { // May not have been imported.
+      if (window.RasterTaskView !== undefined) { // May not have been imported.
         if (tv.e.cc.RasterTaskSelection.supports(selection)) {
           var ltvSelection = new tv.e.cc.RasterTaskSelection(selection);
 
