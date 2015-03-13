@@ -336,7 +336,7 @@ found in the LICENSE file.
       },
 
       addToggleListenerForRowToButton_: function(tableSection, row, button) {
-        button.addEventListener('click', function() {
+        button.parentElement.addEventListener('click', function() {
           row.isExpanded = !row.isExpanded;
 
           if (row.isExpanded) {
