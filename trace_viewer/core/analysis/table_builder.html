@@ -54,6 +54,13 @@ found in the LICENSE file.
         text-align: left;
       }
 
+      table > thead.hidden {
+        height: 0px;
+      }
+      table > thead.hidden > tr > td {
+        padding: 0;
+      }
+
       table > tfoot {
         background-color: #bbbbbb;
         font-weight: bold;
@@ -110,6 +117,18 @@ found in the LICENSE file.
         this.sortDescending_ = false;
         this.columnsWithExpandButtons_ = [];
         this.headerCells_ = [];
+      },
+
+      get showHeader() {
+        return !this.$.head.classList.contains('hidden');
+      },
+
+      set showHeader(showHeader) {
+        if (showHeader)
+          this.$.head.classList.remove('hidden');
+        else
+          this.$.head.classList.add('hidden');
+        this.scheduleRebuildHeaders_();
       },
 
       /**
@@ -248,7 +267,10 @@ found in the LICENSE file.
             td.style.width = this.tableColumns_[i].width;
 
           var headerCell = new TracingAnalysisHeaderCell();
-          headerCell.cellTitle = this.tableColumns_[i].title;
+          if (this.showHeader)
+            headerCell.cellTitle = this.tableColumns_[i].title;
+          else
+            headerCell.cellTitle = '';
           // If the table can be sorted by this column, attach a tap callback
           // to the column.
           if (this.tableColumns_[i].cmp) {
@@ -471,7 +493,7 @@ found in the LICENSE file.
   Polymer({
     created: function() {
       this.tapCallback_ = undefined;
-      this.cellTitle_ = 'No Title';
+      this.cellTitle_ = '';
     },
 
     set cellTitle(value) {

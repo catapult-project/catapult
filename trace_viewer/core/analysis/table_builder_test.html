@@ -258,5 +258,38 @@ tv.b.unittest.testSuite(function() {
   });
 
 
+  test('instantiateTableWithHiddenHeader', function() {
+    var columns = [
+      {
+        title: 'a',
+        value: function(row) { return row.a; },
+        width: '50%'
+      },
+      {
+        title: 'a',
+        value: function(row) { return row.b; },
+        width: '50%'
+      }
+    ];
+
+    var rows = [
+      {
+        a: 'aToplevel',
+        b: 'bToplevel'
+      }
+    ];
+
+    var table = new TracingAnalysisNestedTable();
+    table.showHeader = false;
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+    this.addHTMLOutput(table);
+
+    var tHead = table.$.head;
+    assertEquals(0, tHead.getBoundingClientRect().height);
+  });
+
+
 });
 </script>

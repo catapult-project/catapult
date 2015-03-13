@@ -45,12 +45,12 @@ found in the LICENSE file.
     analyzeSingleSlice_: function(slice) {
       var columns = [
         {
-          title: '',
+          title: 'Label',
           value: function(row) { return row.name; },
           width: '150px'
         },
         {
-          title: '',
+          title: 'Value',
           value: function(row) { return row.value; }
         }
       ];
@@ -137,6 +137,7 @@ found in the LICENSE file.
       }
 
       var table = new TracingAnalysisNestedTable();
+      table.showHeader = false;
       table.tableColumns = columns;
       table.tableRows = rows;
       table.rebuild();
