@@ -8,8 +8,7 @@ from telemetry.core.platform import tracing_options
 from telemetry.unittest_util import tab_test_case
 
 class TracingControllerTest(tab_test_case.TabTestCase):
-  # Disabled due to http://crbug.com/459807
-  @decorators.Disabled
+
   @decorators.Isolated
   def testModifiedConsoleTime(self):
     category_filter = tracing_category_filter.TracingCategoryFilter()

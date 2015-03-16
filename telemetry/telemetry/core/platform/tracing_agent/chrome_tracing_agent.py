@@ -1,11 +1,17 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import sys
+import traceback
 
 from telemetry.core.platform import tracing_agent
 
 
 class ChromeTracingStartedError(Exception):
+  pass
+
+
+class ChromeTracingStoppedError(Exception):
   pass
 
 
@@ -90,9 +96,21 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
   def Stop(self, trace_data_builder):
     devtools_clients_map = (
       self._platform_backends_to_devtools_clients_maps[self._platform_backend])
-    for _, devtools_client in devtools_clients_map.iteritems():
+    raised_execption_messages = []
+    for devtools_port, devtools_client in devtools_clients_map.iteritems():
       # We do not check for stale DevTools client, so that we get an
       # exception if there is a stale client. This is because we
       # will potentially lose data if there is a stale client.
-      devtools_client.StopChromeTracing(trace_data_builder)
+      try:
+        devtools_client.StopChromeTracing(trace_data_builder)
+      except Exception:
+        raised_execption_messages.append(
+          'Error when trying to stop tracing on devtools at port %s:\n%s'
+          % (devtools_port,
+             ''.join(traceback.format_exception(*sys.exc_info()))))
+
     self._is_active = False
+    if raised_execption_messages:
+      raise ChromeTracingStoppedError(
+          'Exceptions raised when trying to stop devtool tracing\n:' +
+          '\n'.join(raised_execption_messages))

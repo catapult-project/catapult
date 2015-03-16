@@ -16,6 +16,7 @@ class FakeDevtoolsClient(object):
     self.is_alive = True
     self.tracing_started = False
     self.remote_port = remote_port
+    self.will_raise_exception_in_stop_tracing = False
 
   def IsAlive(self):
     return self.is_alive
@@ -25,6 +26,8 @@ class FakeDevtoolsClient(object):
 
   def StopChromeTracing(self, _trace_data_builder):
     self.tracing_started = False
+    if self.will_raise_exception_in_stop_tracing:
+      raise Exception
 
   def IsChromeTracingSupported(self):
     return True
@@ -142,3 +145,31 @@ class ChromeTracingAgentUnittest(unittest.TestCase):
     self.assertTrue(devtool4.tracing_started)
     self.StopTracing(tracing_agent2)
     self.assertFalse(devtool4.tracing_started)
+
+  def testExceptionRaisedInStopTracing(self):
+    devtool1 = FakeDevtoolsClient(1)
+    devtool2 = FakeDevtoolsClient(2)
+    # Register devtools 1, 2 on platform 1
+    chrome_tracing_agent.ChromeTracingAgent.RegisterDevToolsClient(
+        devtool1, self.platform1)
+    chrome_tracing_agent.ChromeTracingAgent.RegisterDevToolsClient(
+        devtool2, self.platform1)
+    tracing_agent1 = self.StartTracing(self.platform1)
+
+    self.assertTrue(devtool1.tracing_started)
+    self.assertTrue(devtool2.tracing_started)
+
+    devtool2.will_raise_exception_in_stop_tracing = True
+    with self.assertRaises(chrome_tracing_agent.ChromeTracingStoppedError):
+      self.StopTracing(tracing_agent1)
+
+    devtool1.is_alive = False
+    devtool2.is_alive = False
+    # Register devtools 3 on platform 1 should not raise any exception.
+    devtool3 = FakeDevtoolsClient(3)
+    chrome_tracing_agent.ChromeTracingAgent.RegisterDevToolsClient(
+        devtool3, self.platform1)
+
+    # Start & Stop tracing on platform 1 should work just fine.
+    tracing_agent2 = self.StartTracing(self.platform1)
+    self.StopTracing(tracing_agent2)
