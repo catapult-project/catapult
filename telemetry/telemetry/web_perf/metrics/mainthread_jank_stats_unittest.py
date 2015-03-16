@@ -15,7 +15,7 @@ class MainthreadJankTests(unittest.TestCase):
   def CreateTestRecord(self, name, start, end, thread_start, thread_end,
                        parent_thread):
     s = async_slice.AsyncSlice(
-        'cat', 'Interaction.%s/is_responsive' % name,
+        'cat', 'Interaction.%s' % name,
         timestamp=start, duration=end - start, start_thread=parent_thread,
         end_thread=parent_thread, thread_start=thread_start,
         thread_duration=thread_end - thread_start)

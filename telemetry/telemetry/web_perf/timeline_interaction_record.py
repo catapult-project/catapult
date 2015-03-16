@@ -7,15 +7,12 @@ import re
 import telemetry.timeline.bounds as timeline_bounds
 from telemetry import decorators
 
-# Enables the responsiveness metric for this interaction
-IS_RESPONSIVE = 'is_responsive'
 # Enables the smoothness metric for this interaction
 IS_SMOOTH = 'is_smooth'
 # Allows multiple duplicate interactions of the same type
 REPEATABLE = 'repeatable'
 
 METRICS = [
-    IS_RESPONSIVE,
     IS_SMOOTH
 ]
 FLAGS = METRICS + [REPEATABLE]
@@ -85,7 +82,7 @@ class TimelineInteractionRecord(object):
   is currently done by pushing markers into the console.time/timeEnd API: this
   for instance can be issued in JS:
 
-     var str = 'Interaction.SendEmail/is_smooth,is_responsive';
+     var str = 'Interaction.SendEmail/is_smooth';
      console.time(str);
      setTimeout(function() {
        console.timeEnd(str);
@@ -97,7 +94,6 @@ class TimelineInteractionRecord(object):
   time-range.
 
   The valid interaction flags are:
-     * is_responsive: Enables the responsiveness metric
      * is_smooth: Enables the smoothness metric
      * repeatable: Allows other interactions to use the same label
   """
@@ -122,10 +118,6 @@ class TimelineInteractionRecord(object):
   @property
   def end(self):
     return self._end
-
-  @property
-  def is_responsive(self):
-    return IS_RESPONSIVE in self._flags
 
   @property
   def is_smooth(self):

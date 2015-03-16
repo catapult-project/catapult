@@ -116,7 +116,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     d.AddInteraction(d.renderer_thread, ts=0, duration=20,
                      marker='Interaction.LogicalName1/is_smooth')
     d.AddInteraction(d.renderer_thread, ts=25, duration=5,
-                     marker='Interaction.LogicalName2/is_responsive')
+                     marker='Interaction.LogicalName2/')
     d.AddInteraction(d.foo_thread, ts=50, duration=15,
                      marker='Interaction.LogicalName3/is_smooth')
     d.FinalizeImport()
@@ -131,7 +131,6 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     self.assertEquals(0, interactions[0].start)
     self.assertEquals(20, interactions[0].end)
 
-    self.assertTrue(interactions[1].is_responsive)
     self.assertEquals(25, interactions[1].start)
     self.assertEquals(30, interactions[1].end)
 
@@ -148,7 +147,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     d.AddInteraction(d.renderer_thread, ts=0, duration=20,
                      marker='Interaction.LogicalName1/is_smooth')
     d.AddInteraction(d.foo_thread, ts=25, duration=5,
-                     marker='Interaction.LogicalName2/is_responsive')
+                     marker='Interaction.LogicalName2')
     d.FinalizeImport()
     d.AddResults()
     self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
@@ -195,7 +194,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
   def testDuplicateRepeatableInteractionsWithDifferentMetrics(self):
     d = TimelineBasedMetricTestData()
 
-    responsive_marker = 'Interaction.LogicalName/is_responsive,repeatable'
+    responsive_marker = 'Interaction.LogicalName/repeatable'
     d.AddInteraction(
       d.renderer_thread, ts=10, duration=5, marker=responsive_marker)
     smooth_marker = 'Interaction.LogicalName/is_smooth,repeatable'

@@ -34,8 +34,7 @@ class ActionRunner(object):
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
 
-  def BeginInteraction(self, label, is_smooth=False, is_responsive=False,
-                       repeatable=False):
+  def BeginInteraction(self, label, is_smooth=False, repeatable=False):
     """Marks the beginning of an interaction record.
 
     An interaction record is a labeled time period containing
@@ -48,8 +47,6 @@ class ActionRunner(object):
       label: A label for this particular interaction. This can be any
           user-defined string, but must not contain '/'.
       is_smooth: Whether to check for smoothness metrics for this interaction.
-      is_responsive: Whether to check for responsiveness metrics for
-          this interaction.
       repeatable: Whether other interactions may use the same logical name
           as this interaction. All interactions with the same logical name must
           have the same flags.
@@ -57,8 +54,6 @@ class ActionRunner(object):
     flags = []
     if is_smooth:
       flags.append(timeline_interaction_record.IS_SMOOTH)
-    if is_responsive:
-      flags.append(timeline_interaction_record.IS_RESPONSIVE)
     if repeatable:
       flags.append(timeline_interaction_record.REPEATABLE)
 
@@ -66,8 +61,7 @@ class ActionRunner(object):
     interaction.Begin()
     return interaction
 
-  def BeginGestureInteraction(self, label, is_smooth=False, is_responsive=False,
-                              repeatable=False):
+  def BeginGestureInteraction(self, label, is_smooth=False, repeatable=False):
     """Marks the beginning of a gesture-based interaction record.
 
     This is similar to normal interaction record, but it will
@@ -82,14 +76,11 @@ class ActionRunner(object):
       label: A label for this particular interaction. This can be any
           user-defined string, but must not contain '/'.
       is_smooth: Whether to check for smoothness metrics for this interaction.
-      is_responsive: Whether to check for responsiveness metrics for
-          this interaction.
       repeatable: Whether other interactions may use the same logical name
           as this interaction. All interactions with the same logical name must
           have the same flags.
     """
-    return self.BeginInteraction('Gesture_' + label, is_smooth, is_responsive,
-                                 repeatable)
+    return self.BeginInteraction('Gesture_' + label, is_smooth, repeatable)
 
   def NavigateToPage(self, page, timeout_in_seconds=60):
     """Navigates to the given page.

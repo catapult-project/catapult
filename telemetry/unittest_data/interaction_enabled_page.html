@@ -61,15 +61,15 @@
       }
     }
     function makeJank() {
-      console.time('Interaction.JankThreadJSRun/is_responsive');
+      console.time('Interaction.JankThreadJSRun');
       waitMs(jankMs);
-      console.timeEnd('Interaction.JankThreadJSRun/is_responsive');
+      console.timeEnd('Interaction.JankThreadJSRun');
       window.jankScriptDone = true;
     }
     function makeSlow() {
-      console.time('Interaction.SlowThreadJsRun/is_fast');
+      console.time('Interaction.SlowThreadJsRun');
       waitMs(slowMs);
-      console.timeEnd('Interaction.SlowThreadJsRun/is_fast');
+      console.timeEnd('Interaction.SlowThreadJsRun');
       window.slowScriptDone = true;
     }
     </script>
