@@ -273,7 +273,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       assertNotUndefined(m.processes[360]);
 
       assertNotUndefined(m.processes[124].counters['android.StatusBar']);
-      assertEquals(m.processes[124].counters['android.StatusBar'].numSamples, 1);
+      assertEquals(m.processes[124].counters['android.StatusBar'].numSamples,
+                   1);
       assertNotUndefined(m.processes[124].counters['android.VSYNC']);
       assertEquals(m.processes[124].counters['android.VSYNC'].numSamples, 2);
       assertNotUndefined(m.processes[360].counters['android.iq']);
