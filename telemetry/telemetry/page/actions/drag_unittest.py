@@ -1,10 +1,12 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 import math
 import os
 
 from telemetry.page.actions import drag
+from telemetry.page.actions import page_action
 from telemetry.unittest_util import tab_test_case
 
 
@@ -28,7 +30,13 @@ class DragActionTest(tab_test_case.TabTestCase):
 
     i = drag.DragAction(left_start_ratio=0.5, top_start_ratio=0.5,
             left_end_ratio=0.25, top_end_ratio=0.25)
-    i.WillRunAction(self._tab)
+    try:
+      i.WillRunAction(self._tab)
+    except page_action.PageActionNotSupported:
+      logging.warning('This browser does not support drag gesture. Please try'
+                      ' updating chrome.')
+      return
+
     self._tab.ExecuteJavaScript('''
         window.__dragAction.beginMeasuringHook = function() {
             window.__didBeginMeasuring = true;
