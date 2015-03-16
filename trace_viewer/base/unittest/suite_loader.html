@@ -5,31 +5,13 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/event_target.html">
+<link rel="import" href="/base/xhr.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/unittest/test_suite.html">
 <script>
 'use strict';
 
 tv.exportTo('tv.b.unittest', function() {
-  function getAsync(url, cb) {
-    return new Promise(function(resolve, reject) {
-      var req = new XMLHttpRequest();
-      req.open('GET', url, true);
-      req.onreadystatechange = function(aEvt) {
-        if (req.readyState == 4) {
-          window.setTimeout(function() {
-            if (req.status == 200) {
-              resolve(req.responseText);
-            } else {
-              reject();
-            }
-          }, 0);
-        }
-      };
-      req.send(null);
-    });
-  }
-
   function TestLink(linkPath, title) {
     this.linkPath = linkPath;
     this.title = title;
@@ -47,7 +29,7 @@ tv.exportTo('tv.b.unittest', function() {
           opt_suiteNamesToLoad);
     } else {
       var p;
-      p = getAsync('/tv/json/tests');
+      p = tv.b.getAsync('/tv/json/tests');
       p = p.then(
           function(data) {
             var testMetadata = JSON.parse(data);

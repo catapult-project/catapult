@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.b', function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
+
+  function getAsync(url, cb) {
+    return new Promise(function(resolve, reject) {
+      var req = new XMLHttpRequest();
+      req.open('GET', url, true);
+      req.onreadystatechange = function(aEvt) {
+        if (req.readyState == 4) {
+          window.setTimeout(function() {
+            if (req.status == 200) {
+              resolve(req.responseText);
+            } else {
+              reject(new Error('XHR failed with status ' + req.status));
+            }
+          }, 0);
+        }
+      };
+      req.send(null);
+    });
+  }
+
+  return {
+    getAsync: getAsync
+  };
+});
+</script>
