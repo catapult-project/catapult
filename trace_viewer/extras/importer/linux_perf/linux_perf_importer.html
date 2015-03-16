@@ -47,6 +47,7 @@ found in the LICENSE file.
 
 tv.exportTo('tv.e.importer.linux_perf', function() {
   var Importer = tv.c.importer.Importer;
+  var ClockSyncRecord = tv.c.ClockSyncRecord;
 
   /**
    * Imports linux perf events into a specified model.
@@ -56,7 +57,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     this.importPriority = 2;
     this.model_ = model;
     this.events_ = events;
-    this.clockSyncRecords_ = [];
+    this.newlyAddedClockSyncRecords_ = [];
     this.wakeups_ = [];
     this.kernelThreadStates_ = {};
     this.buildMapFromLinuxPidsToThreads();
@@ -146,6 +147,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
   //  0: trace_event_clock_sync: parent_ts=19581477508
   var traceEventClockSyncRE = /trace_event_clock_sync: parent_ts=(\d+\.?\d*)/;
   TestExports.traceEventClockSyncRE = traceEventClockSyncRE;
+
+  var genericClockSyncRE = /trace_event_clock_sync: name=(\w+)/;
 
   // Some kernel trace events are manually classified in slices and
   // hand-assigned a pseudo PID.
@@ -343,6 +346,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
         });
         return;
       }
+      this.shiftNewlyAddedClockSyncRecords(timeShift);
       this.importCpuData(timeShift);
       this.buildMapFromLinuxPidsToThreads();
       this.buildPerThreadCpuSlicesFromCpuState();
@@ -536,15 +540,16 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
      * the necessary sync records were not found.
      */
     computeTimeTransform: function(isSecondaryImport) {
+      var mSyncs = this.model_.getClockSyncRecordsNamed('monotonic');
       // If this is a secondary import, and no clock syncing records were
       // found, then abort the import. Otherwise, just skip clock alignment.
-      if (this.clockSyncRecords_.length == 0)
+      if (mSyncs.length == 0)
         return isSecondaryImport ? undefined : 0;
 
       // Shift all the slice times based on the sync record.
       // TODO(skyostil): Compute a scaling factor if we have multiple clock sync
       // records.
-      var sync = this.clockSyncRecords_[0];
+      var sync = mSyncs[0].args;
       // NB: parentTS of zero denotes no times-shift; this is
       // used when user and kernel event clocks are identical.
       if (sync.parentTS == 0 || sync.parentTS == sync.perfTS)
@@ -607,14 +612,33 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
      * Processes a trace_event_clock_sync event.
      */
     traceClockSyncEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /parent_ts=(\d+\.?\d*)/.exec(eventBase.details);
+      // Check for new-style clock sync records.
+      var event = /name=(\w+?)\s(.+)/.exec(eventBase.details);
+      if (event) {
+        var name = event[1];
+        var pieces = event[2].split(' ');
+        var args = {
+          perfTS: ts
+        };
+        for (var i = 0; i < pieces.length; i++) {
+          var parts = pieces[i].split('=');
+          if (parts.length != 2)
+            throw new Error('omgbbq');
+          args[parts[0]] = parts[1];
+        }
+        this.addClockSyncRecord(new ClockSyncRecord(name, ts, args));
+        return true;
+      }
+
+      // Old-style clock sync records from chromium
+      event = /parent_ts=(\d+\.?\d*)/.exec(eventBase.details);
       if (!event)
         return false;
 
-      this.clockSyncRecords_.push({
+      this.addClockSyncRecord(new ClockSyncRecord('monotonic', ts, {
         perfTS: ts,
         parentTS: event[1] * 1000
-      });
+      }));
       return true;
     },
 
@@ -656,16 +680,28 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     },
 
     /**
-     * Populates this.clockSyncRecords_ with found clock sync markers.
+     * Populates model clockSyncRecords with found clock sync markers.
      */
     importClockSyncRecords: function() {
       this.forEachLine(function(text, eventBase, cpuNumber, pid, ts) {
         var eventName = eventBase.eventName;
-        if ((eventName !== 'tracing_mark_write' && eventName !== '0') ||
-            !traceEventClockSyncRE.exec(eventBase.details))
+        if (eventName !== 'tracing_mark_write' && eventName !== '0')
           return;
-        this.traceClockSyncEvent(eventName, cpuNumber, pid, ts, eventBase);
+        if (traceEventClockSyncRE.exec(eventBase.details))
+          this.traceClockSyncEvent(eventName, cpuNumber, pid, ts, eventBase);
+        if (genericClockSyncRE.exec(eventBase.details))
+          this.traceClockSyncEvent(eventName, cpuNumber, pid, ts, eventBase);
       }.bind(this));
+    },
+    addClockSyncRecord: function(csr) {
+      this.newlyAddedClockSyncRecords_.push(csr);
+      this.model_.clockSyncRecords.push(csr);
+    },
+
+    shiftNewlyAddedClockSyncRecords: function(timeShift) {
+      this.newlyAddedClockSyncRecords_.forEach(function(csr) {
+        csr.ts += timeShift;
+      });
     },
 
     /**

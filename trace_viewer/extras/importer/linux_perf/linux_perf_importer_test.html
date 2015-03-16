@@ -121,6 +121,24 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assertEquals('123.456', x[1]);
   });
 
+  test('genericClockSync', function() {
+    var lines = [
+      '# tracer: nop',
+      '#',
+      '#           TASK-PID    CPU#    TIMESTAMP  FUNCTION',
+      '#              | |       |          |         |',
+      'sh-26121 [000] ...1 107464.0: tracing_mark_write: trace_event_clock_sync: name=battor regulator=8941_smbb_boost' // @suppress longLineCheck
+    ];
+    var m = new tv.c.TraceModel(lines.join('\n'), false);
+    assertFalse(m.hasImportWarnings);
+
+    var battorSyncs = m.getClockSyncRecordsNamed('battor');
+    assertEquals(1, battorSyncs.length);
+    assertEquals(107464000.0, battorSyncs[0].ts);
+    assertEquals(107464000.0, battorSyncs[0].args.perfTS);
+    assertEquals('8941_smbb_boost', battorSyncs[0].args.regulator);
+  });
+
   test('canImport', function() {
     var lines = [
       '# tracer: nop',

@@ -84,6 +84,12 @@ tv.exportTo('tv.c', function() {
     return options;
   }
 
+  function ClockSyncRecord(name, ts, args) {
+    this.name = name;
+    this.ts = ts;
+    this.args = args;
+  }
+
   /**
    * Builds a model from an array of TraceEvent objects.
    * @param {Object=} opt_eventData Data from a single trace to be imported into
@@ -100,6 +106,7 @@ tv.exportTo('tv.c', function() {
     this.bounds = new tv.b.Range();
     this.instantEvents = [];
     this.flowEvents = [];
+    this.clockSyncRecords = [];
 
     this.stackFrames = {};
     this.samples = [];
@@ -162,6 +169,12 @@ tv.exportTo('tv.c', function() {
 
     addInteractionRecord: function(ir1) {
       this.interaction_records.push(ir1);
+    },
+
+    getClockSyncRecordsNamed: function(name) {
+      return this.clockSyncRecords.filter(function(x) {
+        return x.name === name;
+      });
     },
 
     /**
@@ -657,6 +670,7 @@ tv.exportTo('tv.c', function() {
 
   return {
     ImportOptions: ImportOptions,
+    ClockSyncRecord: ClockSyncRecord,
     TraceModel: TraceModel
   };
 });
