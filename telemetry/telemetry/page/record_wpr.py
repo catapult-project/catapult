@@ -16,11 +16,6 @@ from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.user_story import user_story_runner
 
-_ACTION_NAMES = [
-   'RunPageInteractions',
-   'RunNavigateSteps',
-]
-
 class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
   def __init__(self):
     super(RecorderPageTest, self).__init__()
@@ -65,22 +60,10 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
     util.WaitFor(tab.HasReachedQuiescence, 30)
 
     if self.page_test:
-      self._action_name_to_run = self.page_test.action_name_to_run
       self.page_test.RunPage(page, tab, results)
       return
 
-    should_reload = False
-    # Run the actions on the page for all available measurements.
-    for action_name in _ACTION_NAMES:
-      # Skip this action if it is not defined
-      if not hasattr(page, action_name):
-        continue
-      # Reload the page between actions to start with a clean slate.
-      if should_reload:
-        self.RunNavigateSteps(page, tab)
-      self._action_name_to_run = action_name
-      super(RecorderPageTest, self).RunPage(page, tab, results)
-      should_reload = True
+    super(RecorderPageTest, self).RunPage(page, tab, results)
 
   def RunNavigateSteps(self, page, tab):
     if self.page_test:

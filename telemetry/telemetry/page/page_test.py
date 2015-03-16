@@ -43,24 +43,17 @@ class PageTest(object):
              page, 'body_children', 'count', body_child_count))
 
   Args:
-    action_name_to_run: This is the method name in telemetry.page.Page
-        subclasses to run.
     discard_first_run: Discard the first run of this page. This is
         usually used with page_repeat and pageset_repeat options.
   """
 
   def __init__(self,
-               action_name_to_run='RunPageInteractions',
                needs_browser_restart_after_each_page=False,
                discard_first_result=False,
                clear_cache_before_each_run=False):
     super(PageTest, self).__init__()
 
     self.options = None
-    assert action_name_to_run == 'RunPageInteractions', (
-        'action_name_to_run can only be \'RunPageInteractions\', see '
-        'crbug.com/418375')
-    self._action_name_to_run = action_name_to_run
     self._needs_browser_restart_after_each_page = (
         needs_browser_restart_after_each_page)
     self._discard_first_result = discard_first_result
@@ -221,15 +214,9 @@ class PageTest(object):
     if interactive:
       action_runner.PauseInteractive()
     else:
-      self._RunMethod(page, self._action_name_to_run, action_runner)
+      page.RunPageInteractions(action_runner)
     self.DidRunActions(page, tab)
-
     self.ValidateAndMeasurePage(page, tab, results)
-
-  def _RunMethod(self, page, method_name, action_runner):
-    if hasattr(page, method_name):
-      run_method = getattr(page, method_name)
-      run_method(action_runner)
 
   def RunNavigateSteps(self, page, tab):
     """Navigates the tab to the page URL attribute.
@@ -239,7 +226,3 @@ class PageTest(object):
     action_runner = action_runner_module.ActionRunner(
         tab, skip_waits=page.skip_waits)
     page.RunNavigateSteps(action_runner)
-
-  @property
-  def action_name_to_run(self):
-    return self._action_name_to_run

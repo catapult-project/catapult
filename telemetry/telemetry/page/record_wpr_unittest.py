@@ -99,9 +99,12 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
   def testRunPage_AllActions(self):
     record_page_test = record_wpr.RecorderPageTest()
     page = MockPage(page_set=MockPageSet(url=self._url), url=self._url)
+
+    record_page_test.RunNavigateSteps(page, self._tab)
+    self.assertTrue('RunNavigateSteps' in page.func_calls)
+
     record_page_test.RunPage(page, self._tab, results=None)
     self.assertTrue('RunPageInteractions' in page.func_calls)
-    self.assertTrue('RunNavigateSteps' in page.func_calls)
 
   # When the RecorderPageTest is created from a Benchmark, the benchmark will
   # have a PageTest, specified by its test attribute.
