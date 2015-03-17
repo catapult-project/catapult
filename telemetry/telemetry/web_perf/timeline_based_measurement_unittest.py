@@ -114,11 +114,11 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     d = TimelineBasedMetricTestData()
     # Insert 2 interaction records to renderer_thread and 1 to foo_thread
     d.AddInteraction(d.renderer_thread, ts=0, duration=20,
-                     marker='Interaction.LogicalName1/is_smooth')
+                     marker='Interaction.LogicalName1')
     d.AddInteraction(d.renderer_thread, ts=25, duration=5,
-                     marker='Interaction.LogicalName2/')
+                     marker='Interaction.LogicalName2')
     d.AddInteraction(d.foo_thread, ts=50, duration=15,
-                     marker='Interaction.LogicalName3/is_smooth')
+                     marker='Interaction.LogicalName3')
     d.FinalizeImport()
 
     self.assertEquals(2, len(d.threads_to_records_map))
@@ -127,7 +127,6 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     self.assertIn(d.renderer_thread, d.threads_to_records_map)
     interactions = d.threads_to_records_map[d.renderer_thread]
     self.assertEquals(2, len(interactions))
-    self.assertTrue(interactions[0].is_smooth)
     self.assertEquals(0, interactions[0].start)
     self.assertEquals(20, interactions[0].end)
 
@@ -138,14 +137,13 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     self.assertIn(d.foo_thread, d.threads_to_records_map)
     interactions = d.threads_to_records_map[d.foo_thread]
     self.assertEquals(1, len(interactions))
-    self.assertTrue(interactions[0].is_smooth)
     self.assertEquals(50, interactions[0].start)
     self.assertEquals(65, interactions[0].end)
 
   def testAddResults(self):
     d = TimelineBasedMetricTestData()
     d.AddInteraction(d.renderer_thread, ts=0, duration=20,
-                     marker='Interaction.LogicalName1/is_smooth')
+                     marker='Interaction.LogicalName1')
     d.AddInteraction(d.foo_thread, ts=25, duration=5,
                      marker='Interaction.LogicalName2')
     d.FinalizeImport()
@@ -158,50 +156,38 @@ class TimelineBasedMetricsTests(unittest.TestCase):
   def testDuplicateInteractionsInDifferentThreads(self):
     d = TimelineBasedMetricTestData()
     d.AddInteraction(d.renderer_thread, ts=10, duration=5,
-                     marker='Interaction.LogicalName/is_smooth,repeatable')
+                     marker='Interaction.LogicalName/repeatable')
     d.AddInteraction(d.foo_thread, ts=20, duration=5,
-                     marker='Interaction.LogicalName/is_smooth')
+                     marker='Interaction.LogicalName')
     self.assertRaises(tbm_module.InvalidInteractions, d.FinalizeImport)
 
   def testDuplicateRepeatableInteractionsInDifferentThreads(self):
     d = TimelineBasedMetricTestData()
     d.AddInteraction(d.renderer_thread, ts=10, duration=5,
-                     marker='Interaction.LogicalName/is_smooth,repeatable')
+                     marker='Interaction.LogicalName/repeatable')
     d.AddInteraction(d.foo_thread, ts=20, duration=5,
-                     marker='Interaction.LogicalName/is_smooth,repeatable')
+                     marker='Interaction.LogicalName/repeatable')
     self.assertRaises(tbm_module.InvalidInteractions, d.FinalizeImport)
 
 
   def testDuplicateUnrepeatableInteractionsInSameThread(self):
     d = TimelineBasedMetricTestData()
     d.AddInteraction(d.renderer_thread, ts=10, duration=5,
-                     marker='Interaction.LogicalName/is_smooth')
+                     marker='Interaction.LogicalName')
     d.AddInteraction(d.renderer_thread, ts=20, duration=5,
-                     marker='Interaction.LogicalName/is_smooth')
+                     marker='Interaction.LogicalName')
     d.FinalizeImport()
     self.assertRaises(tbm_module.InvalidInteractions, d.AddResults)
 
   def testDuplicateRepeatableInteractions(self):
     d = TimelineBasedMetricTestData()
     d.AddInteraction(d.renderer_thread, ts=10, duration=5,
-                     marker='Interaction.LogicalName/is_smooth,repeatable')
+                     marker='Interaction.LogicalName/repeatable')
     d.AddInteraction(d.renderer_thread, ts=20, duration=5,
-                     marker='Interaction.LogicalName/is_smooth,repeatable')
+                     marker='Interaction.LogicalName/repeatable')
     d.FinalizeImport()
     d.AddResults()
     self.assertEquals(1, len(d.results.pages_that_succeeded))
-
-  def testDuplicateRepeatableInteractionsWithDifferentMetrics(self):
-    d = TimelineBasedMetricTestData()
-
-    responsive_marker = 'Interaction.LogicalName/repeatable'
-    d.AddInteraction(
-      d.renderer_thread, ts=10, duration=5, marker=responsive_marker)
-    smooth_marker = 'Interaction.LogicalName/is_smooth,repeatable'
-    d.AddInteraction(d.renderer_thread, ts=20, duration=5, marker=smooth_marker)
-    d.FinalizeImport()
-    self.assertRaises(tbm_module.InvalidInteractions, d.AddResults)
-
 
 class TestTimelinebasedMeasurementPage(page_module.Page):
 

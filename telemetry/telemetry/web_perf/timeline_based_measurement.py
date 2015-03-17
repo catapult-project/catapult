@@ -104,13 +104,6 @@ class _TimelineBasedMetrics(object):
     if not interactions:
       return
 
-    # Either all or none of the interactions should have that metric flags.
-    records_custom_flags = set(interactions[0].GetUserDefinedFlags())
-    for interaction in interactions[1:]:
-      if records_custom_flags != set(interaction.GetUserDefinedFlags()):
-        raise InvalidInteractions('Interaction records with the same logical '
-                                  'name must have the same flags.')
-
     for metric in _GetAllTimelineBasedMetrics():
       metric.AddResults(self._model, self._renderer_thread,
                         interactions, wrapped_results)

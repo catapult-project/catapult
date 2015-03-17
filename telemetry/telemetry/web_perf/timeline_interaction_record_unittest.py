@@ -39,29 +39,21 @@ class TimelineInteractionRecordTests(unittest.TestCase):
   def testCreate(self):
     r = self.CreateSimpleRecordWithName('Interaction.LogicalName')
     self.assertEquals('LogicalName', r.label)
-    self.assertEquals(False, r.is_smooth)
+    self.assertEquals(False, r.repeatable)
 
-    r = self.CreateSimpleRecordWithName('Interaction.LogicalName/is_smooth')
+    r = self.CreateSimpleRecordWithName('Interaction.LogicalName/repeatable')
     self.assertEquals('LogicalName', r.label)
-    self.assertEquals(True, r.is_smooth)
+    self.assertEquals(True, r.repeatable)
 
     r = self.CreateSimpleRecordWithName(
-        'Interaction.LogicalNameWith/Slash/is_smooth')
+        'Interaction.LogicalNameWith/Slash/repeatable')
     self.assertEquals('LogicalNameWith/Slash', r.label)
-    self.assertEquals(True, r.is_smooth)
-
-    r = self.CreateSimpleRecordWithName(
-        'Interaction.LogicalNameWith/Slash/is_smooth')
-    self.assertEquals('LogicalNameWith/Slash', r.label)
-    self.assertEquals(True, r.is_smooth)
+    self.assertEquals(True, r.repeatable)
 
   def testGetJavaScriptMarker(self):
-    smooth_marker = tir_module.GetJavaScriptMarker(
-        'MyLabel', [tir_module.IS_SMOOTH])
-    self.assertEquals('Interaction.MyLabel/is_smooth', smooth_marker)
-    slr_marker = tir_module.GetJavaScriptMarker(
-        'MyLabel', [tir_module.IS_SMOOTH])
-    self.assertEquals('Interaction.MyLabel/is_smooth', slr_marker)
+    repeatable_marker = tir_module.GetJavaScriptMarker(
+        'MyLabel', [tir_module.REPEATABLE])
+    self.assertEquals('Interaction.MyLabel/repeatable', repeatable_marker)
 
   def testGetOverlappedThreadTimeForSliceInSameThread(self):
     # Create a renderer thread.
@@ -71,7 +63,7 @@ class TimelineInteractionRecordTests(unittest.TestCase):
 
    # Make a record that starts at 30ms and ends at 60ms in thread time.
     s = async_slice.AsyncSlice(
-        'cat', 'Interaction.Test/is_smooth',
+        'cat', 'Interaction.Test',
         timestamp=0, duration=200, start_thread=renderer_main,
         end_thread=renderer_main, thread_start=30, thread_duration=30)
     record = tir_module.TimelineInteractionRecord.FromAsyncEvent(s)
@@ -103,14 +95,14 @@ class TimelineInteractionRecordTests(unittest.TestCase):
     model.FinalizeImport()
 
     s = async_slice.AsyncSlice(
-        'cat', 'Interaction.Test/is_smooth',
+        'cat', 'Interaction.Test/repeatable',
         timestamp=0, duration=200, start_thread=renderer_main,
         end_thread=renderer_main, thread_start=30, thread_duration=30)
     record = tir_module.TimelineInteractionRecord.FromAsyncEvent(s)
     expected_repr = (
         'TimelineInteractionRecord(label=\'Test\', '
-        'start=0.000000, end=200.000000, flags=is_smooth, '
-        'async_event=TimelineEvent(name=\'Interaction.Test/is_smooth\','
+        'start=0.000000, end=200.000000, flags=repeatable, '
+        'async_event=TimelineEvent(name=\'Interaction.Test/repeatable\','
         ' start=0.000000, duration=200, thread_start=30, thread_duration=30))')
     self.assertEquals(expected_repr, repr(record))
 
@@ -125,7 +117,7 @@ class TimelineInteractionRecordTests(unittest.TestCase):
    # Make a record that starts at 50ms and ends at 150ms in wall time, and is
    # scheduled 75% of the time (hence thread_duration = 100ms*75% = 75ms).
     s = async_slice.AsyncSlice(
-        'cat', 'Interaction.Test/is_smooth',
+        'cat', 'Interaction.Test',
         timestamp=50, duration=100, start_thread=renderer_main,
         end_thread=renderer_main, thread_start=55, thread_duration=75)
     record = tir_module.TimelineInteractionRecord.FromAsyncEvent(s)

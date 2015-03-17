@@ -33,14 +33,14 @@
     function makeAnimation() {
       var centerEl = document.querySelector('#center');
       centerEl.style.webkitTransform = 'scale(1.0, 1.0)';
-      console.time('Interaction.CenterAnimation/is_smooth');
+      console.time('Interaction.CenterAnimation');
       centerEl.addEventListener('transitionend', function() {
-        console.timeEnd('Interaction.CenterAnimation/is_smooth');
+        console.timeEnd('Interaction.CenterAnimation');
         var drawerEl = document.querySelector('#drawer');
         drawerEl.style.webkitTransform = 'translate3D(0, 0, 0)';
-        console.time('Interaction.DrawerAnimation/is_smooth');
+        console.time('Interaction.DrawerAnimation');
         drawerEl.addEventListener('transitionend', function() {
-          console.timeEnd('Interaction.DrawerAnimation/is_smooth');
+          console.timeEnd('Interaction.DrawerAnimation');
           window.animationDone = true;
         });
       });
