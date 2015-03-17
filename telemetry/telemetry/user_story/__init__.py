@@ -99,5 +99,13 @@ class UserStory(object):
     return self._is_local
 
   @property
+  def serving_dir(self):
+    """Returns the absolute path to a directory with hash files to data that
+       should be updated from cloud storage, or None if no files need to be
+       updated.
+    """
+    return None
+
+  @property
   def make_javascript_deterministic(self):
     return self._make_javascript_deterministic

@@ -9,7 +9,6 @@ import random
 import sys
 import time
 
-from telemetry import decorators
 from telemetry import page as page_module
 from telemetry.core import exceptions
 from telemetry.core import wpr_modes
@@ -116,28 +115,6 @@ def _RunUserStoryAndProcessErrorIfNeeded(expectations, user_story, results,
       exception_formatter.PrintFormattedException(
           msg='Exception from DidRunUserStory: ')
 
-@decorators.Cache
-def _UpdateUserStoryArchivesIfChanged(user_story_set):
-  # Scan every serving directory for .sha1 files
-  # and download them from Cloud Storage. Assume all data is public.
-  all_serving_dirs = user_story_set.serving_dirs.copy()
-  # Add individual page dirs to all serving dirs.
-  for user_story in user_story_set:
-    if isinstance(user_story, page_module.Page) and user_story.is_file:
-      all_serving_dirs.add(user_story.serving_dir)
-  # Scan all serving dirs.
-  for serving_dir in all_serving_dirs:
-    if os.path.splitdrive(serving_dir)[1] == '/':
-      raise ValueError('Trying to serve root directory from HTTP server.')
-    for dirpath, _, filenames in os.walk(serving_dir):
-      for filename in filenames:
-        path, extension = os.path.splitext(
-            os.path.join(dirpath, filename))
-        if extension != '.sha1':
-          continue
-        cloud_storage.GetIfChanged(path, user_story_set.bucket)
-
-
 class UserStoryGroup(object):
   def __init__(self, shared_user_story_state_class):
     self._shared_user_story_state_class = shared_user_story_state_class
@@ -207,7 +184,10 @@ def Run(test, user_story_set, expectations, finder_options, results,
 
   if (not finder_options.use_live_sites and user_story_set.bucket and
       finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):
-    _UpdateUserStoryArchivesIfChanged(user_story_set)
+    serving_dirs = user_story_set.serving_dirs
+    for directory in serving_dirs:
+      cloud_storage.GetFilesInDirectoryIfChanged(directory,
+                                                 user_story_set.bucket)
     if not _UpdateAndCheckArchives(
         user_story_set.archive_data_file, user_story_set.wpr_archive_info,
         user_stories):
