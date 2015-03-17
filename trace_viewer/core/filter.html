@@ -40,23 +40,25 @@ tv.exportTo('tv.c', function() {
   };
 
   /**
-   * @constructor A filter that matches objects by their name case insensitive.
+   * @constructor A filter that matches objects by their name or category
+   * case insensitive.
    * .findAllObjectsMatchingFilter
    */
-  function TitleFilter(text) {
+  function TitleOrCategoryFilter(text) {
     Filter.call(this);
     this.text_ = text.toLowerCase();
 
     if (!text.length)
       throw new Error('Filter text is empty.');
   }
-  TitleFilter.prototype = {
+  TitleOrCategoryFilter.prototype = {
     __proto__: Filter.prototype,
 
     matchSlice: function(slice) {
-      if (slice.title === undefined)
+      if (slice.title === undefined && slice.category === undefined)
         return false;
-      return slice.title.toLowerCase().indexOf(this.text_) !== -1;
+      return slice.title.toLowerCase().indexOf(this.text_) !== -1 ||
+             slice.category.toLowerCase().indexOf(this.text_) !== -1;
     }
   };
 
@@ -79,7 +81,7 @@ tv.exportTo('tv.c', function() {
   };
 
   return {
-    TitleFilter: TitleFilter,
+    TitleOrCategoryFilter: TitleOrCategoryFilter,
     ExactTitleFilter: ExactTitleFilter
   };
 });

@@ -97,7 +97,7 @@ tv.b.unittest.testSuite(function() {
                     t1.sliceGroup.slices[0]];
     var result = new tv.c.Selection();
     var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
-        new tv.c.TitleFilter('a'), result);
+        new tv.c.TitleOrCategoryFilter('a'), result);
     Task.RunSynchronously(filterTask);
     assertEquals(2, result.length);
     assertEquals(expected[0], result[0]);
@@ -107,7 +107,7 @@ tv.b.unittest.testSuite(function() {
                     t1.sliceGroup.slices[1]];
     var result = new tv.c.Selection();
     var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
-        new tv.c.TitleFilter('b'), result);
+        new tv.c.TitleOrCategoryFilter('b'), result);
     Task.RunSynchronously(filterTask);
     assertEquals(2, result.length);
     assertEquals(expected[0], result[0]);
@@ -190,12 +190,12 @@ tv.b.unittest.testSuite(function() {
 
     var selection = new Selection();
     var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
-        new tv.c.TitleFilter('a'), selection);
+        new tv.c.TitleOrCategoryFilter('a'), selection);
     Task.RunSynchronously(filterTask);
 
     var highlight = new Selection();
     var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
-        new tv.c.TitleFilter('b'), highlight);
+        new tv.c.TitleOrCategoryFilter('b'), highlight);
     Task.RunSynchronously(filterTask);
 
     // Test for faulty input.

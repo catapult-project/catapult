@@ -127,7 +127,7 @@ tv.b.unittest.testSuite(function() {
     ];
     var selection = new Selection();
     track.addAllObjectsMatchingFilterToSelection(
-        new tv.c.TitleFilter('b'), selection);
+        new tv.c.TitleOrCategoryFilter('b'), selection);
 
     assertEquals(2, selection.length);
     assertEquals(track.rects[1], selection[0]);
@@ -273,7 +273,7 @@ tv.b.unittest.testSuite(function() {
     ];
     var sel = new Selection();
     track.addAllObjectsMatchingFilterToSelection(
-        new tv.c.TitleFilter('b'), sel);
+        new tv.c.TitleOrCategoryFilter('b'), sel);
     var ret;
 
     // Select to the right of B.
@@ -305,7 +305,7 @@ tv.b.unittest.testSuite(function() {
     // Select A and then select left.
     var sel = new Selection();
     track.addAllObjectsMatchingFilterToSelection(
-        new tv.c.TitleFilter('a'), sel);
+        new tv.c.TitleOrCategoryFilter('a'), sel);
     var ret;
 
     selNone = new Selection();
