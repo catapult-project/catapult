@@ -122,6 +122,7 @@
       'trace_viewer/core/analysis/single_sample_sub_view.html',
       'trace_viewer/core/analysis/single_slice_sub_view.html',
       'trace_viewer/core/analysis/single_thread_time_slice_sub_view.html',
+      'trace_viewer/core/analysis/stack_frame.html',
       'trace_viewer/core/analysis/tab_view.html',
       'trace_viewer/core/analysis/table_builder.html',
       'trace_viewer/core/analysis/time_span.html',

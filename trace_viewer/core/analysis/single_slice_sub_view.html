@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/time_span.html">
+<link rel="import" href="/core/analysis/stack_frame.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
 <link rel="import" href="/core/analysis/table_builder.html">
 <link rel="import" href="/core/analysis/util.html">
@@ -98,24 +99,29 @@ found in the LICENSE file.
             value: tv.c.analysis.tsString(slice.durationInUserTime) });
       }
 
+      function createStackFrameEl(sf) {
+        var sfEl = document.createElement('tv-c-a-stack-frame');
+        sfEl.stackFrame = sf;
+        return sfEl;
+      }
       if (slice.startStackFrame && slice.endStackFrame) {
         if (slice.startStackFrame === slice.endStackFrame) {
-          rows.push({ name: 'Start+End Stack Trace',
-              value: slice.startStackFrame.getUserFriendlyStackTrace() });
+          rows.push({name: 'Start+End Stack Trace',
+              value: createStackFrameEl(slice.startStackFrame)});
 
         } else {
           rows.push({ name: 'Start Stack Trace',
-              value: slice.startStackFrame.getUserFriendlyStackTrace() });
+              value: createStackFrameEl(slice.startStackFrame)});
           rows.push({ name: 'End Stack Trace',
-              value: slice.endStackFrame.getUserFriendlyStackTrace() });
+              value: createStackFrameEl(slice.endStackFrame)});
         }
       } else if (slice.startStackFrame) {
         rows.push({ name: 'Start Stack Trace',
-            value: slice.startStackFrame.getUserFriendlyStackTrace() });
+            value: createStackFrameEl(slice.startStackFrame)});
 
       } else if (slice.endStackFrame) {
         rows.push({ name: 'End Stack Trace',
-            value: slice.endStackFrame.getUserFriendlyStackTrace() });
+            value: createStackFrameEl(slice.endStackFrame)});
       }
 
       var n = 0;

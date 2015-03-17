@@ -115,6 +115,7 @@ tv.b.unittest.testSuite(function() {
     var e = tv.b.findDeepElementWithTextContent(
         analysisEl, /Start Stack Trace/);
     assertNotUndefined(e);
+    assertNotUndefined(e.nextSibling.children[0].stackFrame);
   });
 
   test('instantiate_withSingleEndStackFrame', function() {
@@ -128,6 +129,8 @@ tv.b.unittest.testSuite(function() {
     var e = tv.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assertNotUndefined(e);
+    assertNotUndefined(e.nextSibling.children[0].stackFrame);
+    assertEquals('b2', e.nextSibling.children[0].stackFrame.title);
   });
 
   test('instantiate_withDifferentStartAndEndStackFrames', function() {
@@ -139,12 +142,17 @@ tv.b.unittest.testSuite(function() {
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    var e = tv.b.findDeepElementWithTextContent(
+    var eA = tv.b.findDeepElementWithTextContent(
         analysisEl, /Start Stack Trace/);
-    assertNotUndefined(e);
-    e = tv.b.findDeepElementWithTextContent(
+    assertNotUndefined(eA);
+    assertNotUndefined(eA.nextSibling.children[0].stackFrame);
+    assertEquals('a2', eA.nextSibling.children[0].stackFrame.title);
+
+    var eB = tv.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
-    assertNotUndefined(e);
+    assertNotUndefined(eB);
+    assertNotUndefined(eB.nextSibling.children[0].stackFrame);
+    assertEquals('b2', eB.nextSibling.children[0].stackFrame.title);
   });
 
   test('instantiate_withSameStartAndEndStackFrames', function() {
@@ -159,6 +167,8 @@ tv.b.unittest.testSuite(function() {
     var e = tv.b.findDeepElementWithTextContent(
         analysisEl, /Start\+End Stack Trace/);
     assertNotUndefined(e);
+    assertNotUndefined(e.nextSibling.children[0].stackFrame);
+    assertEquals('a2', e.nextSibling.children[0].stackFrame.title);
   });
 
   test('analyzeSelectionWithSingleSlice', function() {
