@@ -92,10 +92,12 @@ class InspectorBackend(object):
 
   @property
   def url(self):
-    for c in self._devtools_client.ListInspectableContexts():
-      if c['id'] == self._context['id']:
-        return c['url']
-    return None
+    """Returns the URL of the tab, as reported by devtools.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+    """
+    return self._devtools_client.GetUrl(self.id)
 
   @property
   def id(self):
@@ -106,8 +108,12 @@ class InspectorBackend(object):
     return self._context['webSocketDebuggerUrl']
 
   def IsInspectable(self):
-    contexts = self._devtools_client.ListInspectableContexts()
-    return self._context['id'] in [c['id'] for c in contexts]
+    """Whether the tab is inspectable, as reported by devtools.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+    """
+    return self._devtools_client.IsInspectable(self.id)
 
   # Public methods implemented in JavaScript.
 

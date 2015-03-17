@@ -246,14 +246,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           return False
     return True
 
-  def ListInspectableContexts(self):
-    try:
-      return self._devtools_client.ListInspectableContexts()
-    except devtools_http.DevToolsClientConnectionError as e:
-      if not self.IsBrowserRunning():
-        raise exceptions.BrowserGoneException(self.browser, e)
-      raise exceptions.BrowserConnectionGoneException(self.browser, e)
-
   @property
   def browser_directory(self):
     raise NotImplementedError()

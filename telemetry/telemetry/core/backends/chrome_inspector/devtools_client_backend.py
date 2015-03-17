@@ -103,10 +103,7 @@ class DevToolsClientBackend(object):
     # Branch number can't be determined, so fail any branch number checks.
     return 0
 
-  # TODO(chrishenry): This is exposed tempoarily during DevTools code
-  # refactoring. Instead, we should expose InspectorBackendList or
-  # equivalent. crbug.com/423954.
-  def ListInspectableContexts(self):
+  def _ListInspectableContexts(self):
     return self._devtools_http.RequestJson('')
 
   def CreateNewTab(self, timeout):
@@ -147,9 +144,29 @@ class DevToolsClientBackend(object):
           'Unable to activate tab, tab id not found: %s' % tab_id)
       raise error, None, sys.exc_info()[2]
 
+  def GetUrl(self, tab_id):
+    """Returns the URL of the tab with |tab_id|, as reported by devtools.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+    """
+    for c in self._ListInspectableContexts():
+      if c['id'] == tab_id:
+        return c['url']
+    return None
+
+  def IsInspectable(self, tab_id):
+    """Whether the tab with |tab_id| is inspectable, as reported by devtools.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+    """
+    contexts  = self._ListInspectableContexts()
+    return tab_id in [c['id'] for c in contexts]
+
   def GetUpdatedInspectableContexts(self):
     """Returns an updated instance of _DevToolsContextMapBackend."""
-    contexts = self.ListInspectableContexts()
+    contexts = self._ListInspectableContexts()
     self._devtools_context_map_backend._Update(contexts)
     return self._devtools_context_map_backend
 
