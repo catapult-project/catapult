@@ -47,10 +47,18 @@ tv.exportTo('tv.b', function() {
       return element.matches(selector);
     });
   }
+  function findDeepElementWithTextContent(element, re) {
+    return findDeepElementMatchingPredicate(element, function(element) {
+      if (element.children.length !== 0)
+        return false;
+      return re.test(element.textContent);
+    });
+  }
   return {
     iterateElementDeeply: iterateElementDeeply,
     findDeepElementMatching: findDeepElementMatching,
-    findDeepElementMatchingPredicate: findDeepElementMatchingPredicate
+    findDeepElementMatchingPredicate: findDeepElementMatchingPredicate,
+    findDeepElementWithTextContent: findDeepElementWithTextContent
   };
 });
 </script>

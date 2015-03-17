@@ -60,7 +60,7 @@ tv.b.unittest.testSuite(function() {
         slice.startStackFrame = options.withStartStackFrame === 'a' ? fA : fB;
 
       if (options.withEndStackFrame)
-        slice.startStackFrame = options.withEndStackFrame === 'a' ? fA : fB;
+        slice.endStackFrame = options.withEndStackFrame === 'a' ? fA : fB;
 
       t53.sliceGroup.pushSlice(slice);
     });
@@ -111,15 +111,23 @@ tv.b.unittest.testSuite(function() {
     var analysisEl = document.createElement('tv-c-single-slice-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
+
+    var e = tv.b.findDeepElementWithTextContent(
+        analysisEl, /Start Stack Trace/);
+    assertNotUndefined(e);
   });
 
   test('instantiate_withSingleEndStackFrame', function() {
     var selection = createSelectionWithSingleSlice(
-        {withStartEndStackFrame: 'b'});
+        {withEndStackFrame: 'b'});
 
     var analysisEl = document.createElement('tv-c-single-slice-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
+
+    var e = tv.b.findDeepElementWithTextContent(
+        analysisEl, /End Stack Trace/);
+    assertNotUndefined(e);
   });
 
   test('instantiate_withDifferentStartAndEndStackFrames', function() {
@@ -130,6 +138,13 @@ tv.b.unittest.testSuite(function() {
     var analysisEl = document.createElement('tv-c-single-slice-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
+
+    var e = tv.b.findDeepElementWithTextContent(
+        analysisEl, /Start Stack Trace/);
+    assertNotUndefined(e);
+    e = tv.b.findDeepElementWithTextContent(
+        analysisEl, /End Stack Trace/);
+    assertNotUndefined(e);
   });
 
   test('instantiate_withSameStartAndEndStackFrames', function() {
@@ -140,6 +155,10 @@ tv.b.unittest.testSuite(function() {
     var analysisEl = document.createElement('tv-c-single-slice-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
+
+    var e = tv.b.findDeepElementWithTextContent(
+        analysisEl, /Start\+End Stack Trace/);
+    assertNotUndefined(e);
   });
 
   test('analyzeSelectionWithSingleSlice', function() {
