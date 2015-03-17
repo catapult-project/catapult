@@ -37,9 +37,10 @@ class PageTestResults(object):
       output_dir: A string specified the directory where to store the test
           artifacts, e.g: trace, videos,...
       value_can_be_added_predicate: A function that takes two arguments:
-          a value.Value instance and a boolean (True when the value is part
-          of the first result for the user story). It returns True if the value
-          can be added to the test results and False otherwise.
+          a value.Value instance (except value.FailureValue & value.SkipValue)
+          and a boolean (True when the value is part of the first result for
+          the user story). It returns True if the value can be added to the
+          test results and False otherwise.
     """
     # TODO(chrishenry): Figure out if trace_tag is still necessary.
 
@@ -171,7 +172,9 @@ class PageTestResults(object):
     self._ValidateValue(value)
     is_first_result = (
       self._current_page_run.user_story not in self._all_user_stories)
-    if not self._value_can_be_added_predicate(value, is_first_result):
+    if not (isinstance(value, skip.SkipValue) or
+            isinstance(value, failure.FailureValue) or
+            self._value_can_be_added_predicate(value, is_first_result)):
       return
     # TODO(eakuefner/chrishenry): Add only one skip per pagerun assert here
     self._current_page_run.AddValue(value)

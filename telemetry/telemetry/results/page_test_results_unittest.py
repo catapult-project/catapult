@@ -300,3 +300,37 @@ class PageTestResultsFilterTest(unittest.TestCase):
     actual_values = [(v.name, v.page.url, v.value)
                      for v in results.all_page_specific_values]
     self.assertEquals(expected_values, actual_values)
+
+  def testFailureValueCannotBeFiltered(self):
+    def AcceptValueNamed_a(value, _):
+      return value.name == 'a'
+    results = page_test_results.PageTestResults(
+        value_can_be_added_predicate=AcceptValueNamed_a)
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'b', 'seconds', 8))
+    failure_value = failure.FailureValue.FromMessage(self.pages[0], 'failure')
+    results.AddValue(failure_value)
+    results.DidRunPage(self.pages[0])
+    results.PrintSummary()
+
+    # Although predicate says only accept values named 'a', the failure value is
+    # added anyway.
+    self.assertEquals(len(results.all_page_specific_values), 1)
+    self.assertIn(failure_value, results.all_page_specific_values)
+
+  def testSkipValueCannotBeFiltered(self):
+    def AcceptValueNamed_a(value, _):
+      return value.name == 'a'
+    results = page_test_results.PageTestResults(
+        value_can_be_added_predicate=AcceptValueNamed_a)
+    results.WillRunPage(self.pages[0])
+    skip_value = skip.SkipValue(self.pages[0], 'skip for testing')
+    results.AddValue(scalar.ScalarValue(self.pages[0], 'b', 'seconds', 8))
+    results.AddValue(skip_value)
+    results.DidRunPage(self.pages[0])
+    results.PrintSummary()
+
+    # Although predicate says only accept value with named 'a', skip value is
+    # added anyway.
+    self.assertEquals(len(results.all_page_specific_values), 1)
+    self.assertIn(skip_value, results.all_page_specific_values)
