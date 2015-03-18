@@ -61,30 +61,6 @@ class PageSetSmokeTest(unittest.TestCase):
     for page in page_set.pages:
       self.CheckAttributesOfPageBasicAttributes(page)
 
-  def CheckNoMixedInBetweenLegacyRunMethodsAndRunPageInteractions(
-      self, page_set):
-    # This test is to make sure that page has been converted to use single
-    # RunPageInteractions does not contain legacy run method.
-    # For more context see: crbug.com/418375
-    # TODO(nednguyen, ernstm): remove this test when crbug.com/418375 is marked
-    # fixed.
-    LEGACY_RUN_METHODS = [
-        'RunMediaMetrics',
-        'RunNoOp',
-        'RunRepaint',
-        'RunPrepareForScreenShot',
-        'RunSmoothness',
-        'RunWebrtc'
-        ]
-    for page in page_set.pages:
-      if hasattr(page, 'RunPageInteractions'):
-        for legacy_run_method in LEGACY_RUN_METHODS:
-          self.assertTrue(
-              not hasattr(page, legacy_run_method),
-              msg=('page %s in page_set %s has both legacy Run.. methods and '
-                   'RunPageInteractions defined. ' % (
-                       page, page_set.file_path)))
-
   def CheckAttributesOfPageSetBasicAttributes(self, page_set):
     if page_set.base_dir is not None:
       self.assertTrue(
@@ -149,4 +125,3 @@ class PageSetSmokeTest(unittest.TestCase):
       self.CheckArchive(page_set)
       self.CheckCredentials(page_set)
       self.CheckAttributes(page_set)
-      self.CheckNoMixedInBetweenLegacyRunMethodsAndRunPageInteractions(page_set)
