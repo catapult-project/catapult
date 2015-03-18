@@ -97,6 +97,12 @@ class WebContents(object):
     """Executes statement in JavaScript. Does not return the result.
 
     If the statement failed to evaluate, EvaluateException will be raised.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
     """
     return self.ExecuteJavaScriptInContext(
         statement, context_id=None, timeout=timeout)
@@ -112,6 +118,12 @@ class WebContents(object):
 
     If the result of the evaluation cannot be JSONized, then an
     EvaluationException will be raised.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
     """
     return self.EvaluateJavaScriptInContext(
         expr, context_id=None, timeout=timeout)
@@ -120,6 +132,12 @@ class WebContents(object):
                                  timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     """Similar to ExecuteJavaScript, except context_id can refer to an iframe.
     The main page has context_id=1, the first iframe context_id=2, etc.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
     """
     return self._inspector_backend.ExecuteJavaScript(
         expr, context_id=context_id, timeout=timeout)
@@ -128,12 +146,23 @@ class WebContents(object):
                                   timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     """Similar to ExecuteJavaScript, except context_id can refer to an iframe.
     The main page has context_id=1, the first iframe context_id=2, etc.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
     """
     return self._inspector_backend.EvaluateJavaScript(
         expr, context_id=context_id, timeout=timeout)
 
   def EnableAllContexts(self):
     """Enable all contexts in a page. Returns the number of available contexts.
+
+    Raises:
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
     """
     return self._inspector_backend.EnableAllContexts()
 

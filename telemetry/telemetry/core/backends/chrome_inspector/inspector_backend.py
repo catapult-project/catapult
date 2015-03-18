@@ -171,14 +171,37 @@ class InspectorBackend(object):
 
   @_HandleInspectorWebSocketExceptions
   def ExecuteJavaScript(self, expr, context_id=None, timeout=60):
+    """Executes a javascript expression without returning the result.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
     self._runtime.Execute(expr, context_id, timeout)
 
   @_HandleInspectorWebSocketExceptions
   def EvaluateJavaScript(self, expr, context_id=None, timeout=60):
+    """Evaluates a javascript expression and returns the result.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
     return self._runtime.Evaluate(expr, context_id, timeout)
 
   @_HandleInspectorWebSocketExceptions
   def EnableAllContexts(self):
+    """Allows access to iframes.
+
+    Raises:
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
     return self._runtime.EnableAllContexts()
 
   # Timeline public methods.
@@ -228,8 +251,8 @@ class InspectorBackend(object):
     Args:
       error: An instance of socket.error or websocket.WebSocketException.
     Raises:
-      exception.TimeoutException: A timeout occured.
-      exception.DevtoolsTargetCrashException: On any other error, the most
+      exceptions.TimeoutException: A timeout occured.
+      exceptions.DevtoolsTargetCrashException: On any other error, the most
         likely explanation is that the devtool's target crashed.
     """
     if isinstance(error, websocket.WebSocketTimeoutException):

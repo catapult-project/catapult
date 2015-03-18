@@ -21,6 +21,17 @@ class InspectorRuntime(object):
     self.Evaluate(expr + '; 0;', context_id, timeout)
 
   def Evaluate(self, expr, context_id, timeout):
+    """Evaluates a javascript expression and returns the result.
+
+    |context_id| can refer to an iframe. The main page has context_id=1, the
+    first iframe context_id=2, etc.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      websocket.WebSocketException
+      socket.error
+    """
     request = {
       'method': 'Runtime.evaluate',
       'params': {
@@ -44,7 +55,13 @@ class InspectorRuntime(object):
     return res['result']['result']['value']
 
   def EnableAllContexts(self):
-    """Allow access to iframes."""
+    """Allow access to iframes.
+
+    Raises:
+      exceptions.WebSocketDisconnected
+      websocket.WebSocketException
+      socket.error
+    """
     if not self._contexts_enabled:
       self._contexts_enabled = True
       self._inspector_websocket.SyncRequest({'method': 'Runtime.enable'},
