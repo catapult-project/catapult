@@ -8,7 +8,7 @@ import sys
 from telemetry import decorators
 from telemetry.core import browser_finder
 from telemetry.core import browser_finder_exceptions
-from telemetry.core import browser_info
+from telemetry.core import browser_info as browser_info_module
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import wpr_modes
@@ -199,8 +199,16 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
 
   def GetTestExpectationAndSkipValue(self, expectations):
     skip_value = None
+    if not self.CanRunOnBrowser(browser_info_module.BrowserInfo(self.browser)):
+      skip_value = skip.SkipValue(
+          self._current_page,
+          'Skipped because browser is not supported '
+          '(page.CanRunOnBrowser() returns False).')
+      return 'skip', skip_value
+    #TODO(nednguyen): Remove this code block when page.CanRunOnBrowser hook is
+    # removed. (crbug.com/468085)
     if not self._current_page.CanRunOnBrowser(
-        browser_info.BrowserInfo(self.browser)):
+        browser_info_module.BrowserInfo(self.browser)):
       skip_value = skip.SkipValue(
           self._current_page,
           'Skipped because browser is not supported '
@@ -212,6 +220,15 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
       skip_value = skip.SkipValue(
           self._current_page, 'Skipped by test expectations')
     return expectation, skip_value
+
+  def CanRunOnBrowser(self, browser_info):  # pylint: disable=unused-argument
+    """Override this to returns whether the browser brought up by this state
+    instance is suitable for test runs.
+
+    Args:
+      browser_info: an instance of telemetry.core.browser_info.BrowserInfo
+    """
+    return True
 
   def _PreparePage(self):
     self._current_tab = self._test.TabForPage(self._current_page, self.browser)

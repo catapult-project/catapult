@@ -110,6 +110,7 @@ class Page(user_story.UserStory):
     """
     pass
 
+  # Deprecated. Do not use this hook. (crbug.com/468085)
   def CanRunOnBrowser(self, browser_info):
     """Override this to returns whether this page can be run on specific
     browser.
