@@ -16,7 +16,9 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.e.audits', function() {
   var UI_THREAD_DRAW_NAME = 'performTraversals';
+  var UI_THREAD_INPUT_NAME = 'deliverInputEvent';
   var RENDER_THREAD_DRAW_NAME = 'DrawFrame';
+  var RENDER_THREAD_INDEP_DRAW_NAME = 'doFrame';
   var THREAD_SYNC_NAME = 'syncFrameState';
   // TODO: extract from VSYNC, since not all devices have vsync near 60fps
   var EXPECTED_FRAME_TIME = 16.67;
@@ -25,7 +27,8 @@ tv.exportTo('tv.e.audits', function() {
 
   function getDrawingUiThread(process) {
     var uiThread = process.getThread(process.pid);
-    if (!uiThread) return false;
+    if (!uiThread)
+      return undefined;
 
     var slices = uiThread.sliceGroup.slices;
     for (var i = 0; i < slices.length; i++) {
@@ -35,12 +38,14 @@ tv.exportTo('tv.e.audits', function() {
         return uiThread;
       }
     }
-    return false;
+    return undefined;
   }
 
   function getDrawingRenderThread(process) {
     var threads = process.findAllThreadsNamed('RenderThread');
-    if (!threads || threads.length != 1) return false;
+    if (!threads || threads.length != 1)
+      return undefined;
+
     return threads[0];
   }
 
@@ -59,6 +64,125 @@ tv.exportTo('tv.e.audits', function() {
     return drawingApps;
   }
 
+  function findOverlappingDrawFrame(renderThread, time) {
+    if (!renderThread)
+      return undefined;
+
+    var slices = renderThread.sliceGroup.slices;
+    for (var i = 0; i < slices.length; i++) {
+      var slice = slices[i];
+      if (slice.title == RENDER_THREAD_DRAW_NAME &&
+          slice.start <= time &&
+          time <= slice.end) {
+        return slice;
+      }
+    }
+    return undefined;
+  }
+
+  function findInputSlice(uiThread, approxEndTime) {
+    // in SDK 21, input was moved to async. Check both for simplicity.
+    var sliceGroups = [uiThread.asyncSliceGroup, uiThread.sliceGroup];
+    for (var i = 0; i < sliceGroups.length; i++) {
+      var slices = sliceGroups[i].slices;
+      for (var j = 0; j < slices.length; j++) {
+        var slice = slices[j];
+        if (slice.title != UI_THREAD_INPUT_NAME)
+          continue;
+        if (slice.end <= approxEndTime &&
+          (approxEndTime - slice.end) < 0.5) {
+          // input slice ends within 0.5ms of perform traversals
+          return slice;
+        }
+      }
+    }
+  }
+
+  function getUiThreadDrivenFrames(uiThread, renderThread) {
+    if (!uiThread)
+      return [];
+
+    var frames = [];
+    uiThread.sliceGroup.slices.forEach(function(slice) {
+      if (slice.title != UI_THREAD_DRAW_NAME)
+        return;
+
+      var frame = {
+          'start' : slice.start,
+          'end' : slice.end,
+          'totalDuration' : undefined,
+          'uiInputSlice' : undefined,
+          'uiDrawSlice' : slice,
+          'rtDrawSlice' : undefined,
+          'rtSyncSlice' : undefined
+        };
+
+      var totalDuration = slice.duration;
+
+      frame.uiInputSlice = findInputSlice(uiThread, slice.start);
+      if (frame.uiInputSlice) {
+        // input handling observed, consider frame to start at this time
+        totalDuration = frame.uiDrawSlice.end - frame.uiInputSlice.start;
+        frame.start = frame.uiInputSlice.start;
+      }
+
+      // on SDK 21+ devices with renderthread,
+      // account for time taken on both threads
+      frame.rtDrawSlice = findOverlappingDrawFrame(renderThread, slice.end);
+      if (frame.rtDrawSlice) {
+        // account for draw time on RenderThread, if present
+        totalDuration += frame.rtDrawSlice.duration;
+        frame.end = frame.rtDrawSlice.end;
+        frame.rtSyncSlice = frame.rtDrawSlice.findDescendentSlice(
+            THREAD_SYNC_NAME);
+
+        if (frame.rtSyncSlice) {
+          // avoid double-counting time during thread sync
+          totalDuration -= frame.rtSyncSlice.duration;
+        }
+      }
+
+      frame.totalDuration = totalDuration;
+      frames.push(frame);
+    });
+    return frames;
+  }
+
+  function getRenderThreadDrivenFrames(renderThread) {
+    if (!renderThread)
+      return [];
+
+    var frames = [];
+    renderThread.sliceGroup.slices.forEach(function(slice) {
+      if (slice.title == RENDER_THREAD_INDEP_DRAW_NAME) {
+        frames.push({
+          'start' : slice.start,
+          'end' : slice.end,
+          'totalDuration' : slice.duration,
+          'uiInputSlice' : undefined,
+          'uiDrawSlice' : undefined,
+          'rtDrawSlice' : slice,
+          'rtSyncSlice' : undefined
+        });
+      }
+    });
+    return frames;
+  }
+
+  /**
+   * Builds a list of all frames in the trace for the app
+   */
+  function getFrames(uiThread, renderThread) {
+    var uiFrames = getUiThreadDrivenFrames(uiThread, renderThread);
+    var rtFrames = getRenderThreadDrivenFrames(renderThread);
+    var frames = uiFrames.concat(rtFrames);
+
+    // merge frames by sorting by end timestamp
+    frames.sort(function(a, b) { a.end - b.end });
+
+    return frames;
+  }
+
   /**
    * Auditor for Android-specific traces.
    * @constructor
@@ -73,87 +197,39 @@ tv.exportTo('tv.e.audits', function() {
 
     runAudit: function() {
       this.drawingApps.forEach(function(drawingApp) {
-        this.getFrameTimingAlerts(drawingApp.uiThread, drawingApp.renderThread);
+        // per frame alerts
+        var frames = getFrames(drawingApp.uiThread, drawingApp.renderThread);
+        frames.forEach(this.getFrameTimingAlerts, this);
+
+        // general alerts
         this.addSaveLayerAlerts(drawingApp.renderThread);
       }, this);
     },
 
-    getFrameTimingAlerts: function(uiThread, renderThread) {
-      if (!uiThread)
-        return;
-
-
-      var findOverlappingDrawFrame = function(renderThread, time) {
-        if (!renderThread)
-          return false;
-
-        var slices = renderThread.sliceGroup.slices;
-        for (var i = 0; i < slices.length; i++) {
-          var slice = slices[i];
-          if (slice.title == RENDER_THREAD_DRAW_NAME &&
-              slice.start <= time &&
-              time <= slice.end) {
-            return slice;
-          }
-        }
-        return false;
+    getFrameTimingAlerts: function(frame) {
+      /*
+      * Currently, we create alerts for these, but really we should
+      * highlight frame-production-performance isolated per app,
+      * without alerts.
+      *
+      * Consider highlighting process background green when frames
+      * take < 16.6ms, yellow when double buffered but not dropping
+      * frames, red when actively janking.
+      */
+      if (frame.totalDuration > EXPECTED_FRAME_TIME) {
+        var title = 'Frame took too long!';
+        var colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
+        var alert = new tv.c.trace_model.Alert(
+            title, colorId,
+            tv.c.trace_model.ALERT_SEVERITY.WARNING,
+            frame.start, { 'totalDuration' : frame.totalDuration });
+        this.model.alerts.push(alert);
       }
-
-      var findContainedSync = function(renderThreadDrawSlice) {
-        if (!renderThreadDrawSlice)
-          return false;
-
-        // TODO: isSubSlices good enough?
-        var slices = renderThreadDrawSlice.subSlices;
-        for (var i = 0; i < slices.length; i++) {
-          if (slices[i].title == THREAD_SYNC_NAME) {
-            return slices[i];
-          }
-        }
-        return false;
-      }
-
-      uiThread.sliceGroup.slices.forEach(function(slice) {
-        if (slice.title == UI_THREAD_DRAW_NAME) {
-          var totalTime = slice.duration;
-
-          // on SDK 22+ devices with renderthread,
-          // account for time taken on both threads
-          var rtDrawSlice = findOverlappingDrawFrame(renderThread, slice.end);
-          if (rtDrawSlice) {
-            // account for draw time on RenderThread, if present
-            totalTime += rtDrawSlice.duration;
-          }
-          var rtSyncSlice = findContainedSync(rtDrawSlice);
-          if (rtSyncSlice) {
-            // avoid double-counting time during thread sync
-            totalTime -= rtSyncSlice.duration;
-          }
-        }
-
-        /*
-        * Currently, we create alerts for these, but really we should
-        * highlight frame-production-performance isolated per app,
-        * without alerts.
-        *
-        * Consider highlighting process background green when frames
-        * take < 16.6ms, yellow when double buffered but not dropping
-        * frames, red when actively janking.
-        */
-        if (totalTime > EXPECTED_FRAME_TIME) {
-          var title = 'Frame took too long!';
-          var colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
-          var alert = new tv.c.trace_model.Alert(
-              title, colorId,
-              tv.c.trace_model.ALERT_SEVERITY.WARNING,
-              slice.start, {/* explanatory data goes here */});
-          alert.duration = totalTime;
-          this.model.alerts.push(alert);
-        }
-      }, this);
     },
 
     addSaveLayerAlerts: function(renderThread) {
+      if (!renderThread)
+        return;
       var saveLayerRegEx = /caused (unclipped )?saveLayer (\d+)x(\d+)/;
       renderThread.sliceGroup.slices.forEach(function(slice) {
         var match = saveLayerRegEx.exec(slice.title);
@@ -167,7 +243,6 @@ tv.exportTo('tv.e.audits', function() {
               tv.c.trace_model.ALERT_SEVERITY.WARNING,
               slice.start, args);
           this.model.alerts.push(alert);
-          console.log(alert);
         }
         // TODO: also do something reasonable with standalone saveLayer commands
       }, this);

@@ -53,6 +53,19 @@ tv.exportTo('tv.c.trace_model', function() {
     get userFriendlyName() {
       return 'Slice ' + this.title + ' at ' +
           tv.c.analysis.tsString(this.start);
+    },
+
+    findDescendentSlice: function(targetTitle) {
+      if (!this.subSlices)
+        return undefined;
+
+      for (var i = 0; i < this.subSlices.length; i++) {
+        if (this.subSlices[i].title == targetTitle)
+          return this.subSlices[i];
+        var slice = this.subSlices[i].findDescendentSlice(targetTitle);
+        if (slice) return slice;
+      }
+      return undefined;
     }
   };
 

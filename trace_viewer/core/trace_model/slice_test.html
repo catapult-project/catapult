@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/slice_group.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Slice = tv.c.trace_model.Slice;
+  var SliceGroup = tv.c.trace_model.SliceGroup;
+  var newSlice = tv.c.test_utils.newSlice;
+  var newSliceNamed = tv.c.test_utils.newSliceNamed;
+
+  test('findDescendentSlice', function() {
+    var group = new SliceGroup({});
+
+    var sA = group.pushSlice(newSliceNamed('a', 1, 10));
+    var sB = group.pushSlice(newSliceNamed('b', 2, 8));
+    var sC = group.pushSlice(newSliceNamed('c', 3, 6));
+
+    group.createSubSlices();
+
+    self.assertEquals(sB, sA.findDescendentSlice('b'));
+    self.assertEquals(sC, sA.findDescendentSlice('c'));
+    self.assertEquals(undefined, sA.findDescendentSlice('d'));
+  });
+});
+</script>
