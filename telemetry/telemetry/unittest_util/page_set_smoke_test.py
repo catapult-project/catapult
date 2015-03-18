@@ -15,6 +15,11 @@ from telemetry.wpr import archive_info
 
 class PageSetSmokeTest(unittest.TestCase):
 
+  def setUp(self):
+    # Make sure the added failure message is appended to the default failure
+    # message.
+    self.longMessage = True
+
   def CheckArchive(self, page_set):
     """Verify that all URLs of pages in page_set have an associated archive. """
     # TODO: Eventually these should be fatal.
@@ -107,6 +112,19 @@ class PageSetSmokeTest(unittest.TestCase):
          msg='label %s in page %s \'s labels must have type string'
          % (str(l), page.display_name))
 
+  def CheckSharedStates(self, page_set):
+    if not page_set.allow_mixed_story_states:
+      shared_user_story_state_class = (
+          page_set.user_stories[0].shared_user_story_state_class)
+      for p in page_set:
+        self.assertIs(
+            shared_user_story_state_class,
+            p.shared_user_story_state_class,
+            msg='page %s\'s shared_user_story_state_class field is different '
+            'from other pages\'s shared_user_story_state_class whereas '
+            'page set %s disallow having mixed states' %
+            (p, page_set))
+
   def RunSmokeTest(self, page_sets_dir, top_level_dir):
     """Run smoke test on all page sets in page_sets_dir.
 
@@ -125,3 +143,4 @@ class PageSetSmokeTest(unittest.TestCase):
       self.CheckArchive(page_set)
       self.CheckCredentials(page_set)
       self.CheckAttributes(page_set)
+      self.CheckSharedStates(page_set)
