@@ -179,6 +179,24 @@ def Move(bucket1, bucket2, remote_path):
   _RunCommand(['mv', url1, url2])
 
 
+def Copy(bucket_from, bucket_to, remote_path_from, remote_path_to):
+  """Copy a file from one location in CloudStorage to another.
+
+  Args:
+      bucket_from: The cloud storage bucket where the file is currently located.
+      bucket_to: The cloud storage bucket it is being copied to.
+      remote_path_from: The file path where the file is located in bucket_from.
+      remote_path_to: The file path it is being copied to in bucket_to.
+
+  It should: cause no changes locally or to the starting file, and will
+  overwrite any existing files in the destination location.
+  """
+  url1 = 'gs://%s/%s' % (bucket_from, remote_path_from)
+  url2 = 'gs://%s/%s' % (bucket_to, remote_path_to)
+  logging.info('Copying %s to %s' % (url1, url2))
+  _RunCommand(['cp', url1, url2])
+
+
 def Delete(bucket, remote_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
   logging.info('Deleting %s' % url)

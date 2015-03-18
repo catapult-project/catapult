@@ -153,3 +153,15 @@ class CloudStorageUnitTest(unittest.TestCase):
     finally:
       cloud_storage.GetIfChanged = orig_get_if_changed
       stubs.Restore()
+
+  def testCopy(self):
+    orig_run_command = cloud_storage._RunCommand
+    def AssertCorrectRunCommandArgs(args):
+      self.assertEqual(expected_args, args)
+    cloud_storage._RunCommand = AssertCorrectRunCommandArgs
+    expected_args = ['cp', 'gs://bucket1/remote_path1',
+                     'gs://bucket2/remote_path2']
+    try:
+      cloud_storage.Copy('bucket1', 'bucket2', 'remote_path1', 'remote_path2')
+    finally:
+      cloud_storage._RunCommand = orig_run_command
