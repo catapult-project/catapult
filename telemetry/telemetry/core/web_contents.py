@@ -27,11 +27,24 @@ class WebContents(object):
 
   def WaitForDocumentReadyStateToBeComplete(self,
       timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
+    """Waits for the document to finish loading.
+
+    Raises:
+      exceptions.Error: See WaitForJavaScriptExpression() for a detailed list
+      of possible exceptions.
+    """
+
     self.WaitForJavaScriptExpression(
         'document.readyState == "complete"', timeout)
 
   def WaitForDocumentReadyStateToBeInteractiveOrBetter(self,
       timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
+    """Waits for the document to be interactive.
+
+    Raises:
+      exceptions.Error: See WaitForJavaScriptExpression() for a detailed list
+      of possible exceptions.
+    """
     self.WaitForJavaScriptExpression(
         'document.readyState == "interactive" || '
         'document.readyState == "complete"', timeout)
@@ -47,6 +60,11 @@ class WebContents(object):
       timeout: The number of seconds to wait for the expression to be True.
       dump_page_state_on_timeout: Whether to provide additional information on
           the page state if a TimeoutException is thrown.
+
+    Raises:
+      exceptions.TimeoutException: On a timeout.
+      exceptions.Error: See EvaluateJavaScript() for a detailed list of
+      possible exceptions.
     """
     def IsJavaScriptExpressionTrue():
       try:
@@ -92,7 +110,11 @@ class WebContents(object):
 
     Returns:
       True if 2 seconds have passed since last resource received, false
-      otherwise."""
+      otherwise.
+    Raises:
+      exceptions.Error: See EvaluateJavaScript() for a detailed list of
+      possible exceptions.
+    """
 
     # Inclusion of the script that provides
     # window.__telemetry_testHasReachedNetworkQuiescence()
@@ -109,10 +131,8 @@ class WebContents(object):
     If the statement failed to evaluate, EvaluateException will be raised.
 
     Raises:
-      exceptions.EvaluateException
-      exceptions.WebSocketDisconnected
-      exceptions.TimeoutException
-      exceptions.DevtoolsTargetCrashException
+      exceptions.Error: See ExecuteJavaScriptInContext() for a detailed list of
+      possible exceptions.
     """
     return self.ExecuteJavaScriptInContext(
         statement, context_id=None, timeout=timeout)
@@ -130,10 +150,8 @@ class WebContents(object):
     EvaluationException will be raised.
 
     Raises:
-      exceptions.EvaluateException
-      exceptions.WebSocketDisconnected
-      exceptions.TimeoutException
-      exceptions.DevtoolsTargetCrashException
+      exceptions.Error: See EvaluateJavaScriptInContext() for a detailed list
+      of possible exceptions.
     """
     return self.EvaluateJavaScriptInContext(
         expr, context_id=None, timeout=timeout)
@@ -182,6 +200,10 @@ class WebContents(object):
     The current page is expect to be in a navigation.
     This function returns when the navigation is complete or when
     the timeout has been exceeded.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
     """
     self._inspector_backend.WaitForNavigate(timeout)
 
@@ -192,6 +214,10 @@ class WebContents(object):
     If |script_to_evaluate_on_commit| is given, the script source string will be
     evaluated when the navigation is committed. This is after the context of
     the page exists, but before any script on the page itself has executed.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
     """
     self._inspector_backend.Navigate(url, script_to_evaluate_on_commit, timeout)
 
@@ -208,9 +234,21 @@ class WebContents(object):
     return self._inspector_backend.timeline_model
 
   def StartTimelineRecording(self):
+    """Starts timeline recording.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
     self._inspector_backend.StartTimelineRecording()
 
   def StopTimelineRecording(self):
+    """Stops timeline recording.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
     self._inspector_backend.StopTimelineRecording()
 
   def IsAlive(self):

@@ -11,6 +11,7 @@ import sys
 from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core import util
+from telemetry.core.backends.chrome_inspector import devtools_http
 from telemetry.core.backends.chrome_inspector import inspector_console
 from telemetry.core.backends.chrome_inspector import inspector_memory
 from telemetry.core.backends.chrome_inspector import inspector_network
@@ -108,12 +109,11 @@ class InspectorBackend(object):
     return self._context['webSocketDebuggerUrl']
 
   def IsInspectable(self):
-    """Whether the tab is inspectable, as reported by devtools.
-
-    Raises:
-      devtools_http.DevToolsClientConnectionError
-    """
-    return self._devtools_client.IsInspectable(self.id)
+    """Whether the tab is inspectable, as reported by devtools."""
+    try:
+      return self._devtools_client.IsInspectable(self.id)
+    except devtools_http.DevToolsClientConnectionError:
+      return False
 
   # Public methods implemented in JavaScript.
 
@@ -146,6 +146,13 @@ class InspectorBackend(object):
 
   @_HandleInspectorWebSocketExceptions
   def GetDOMStats(self, timeout):
+    """Gets memory stats from the DOM.
+
+    Raises:
+      inspector_memory.InspectorMemoryException
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
     dom_counters = self._memory.GetDOMCounters(timeout)
     return {
       'document_count': dom_counters['documents'],

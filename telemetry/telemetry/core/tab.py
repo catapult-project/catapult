@@ -31,6 +31,11 @@ class Tab(web_contents.WebContents):
 
   @property
   def url(self):
+    """Returns the URL of the tab, as reported by devtools.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+    """
     return self._inspector_backend.url
 
   @property
@@ -43,6 +48,11 @@ class Tab(web_contents.WebContents):
       'node_count': integer,
       'event_listener_count': integer
     }
+
+    Raises:
+      inspector_memory.InspectorMemoryException
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
     """
     dom_counters = self._inspector_backend.GetDOMStats(
         timeout=DEFAULT_TAB_TIMEOUT)
@@ -93,6 +103,10 @@ class Tab(web_contents.WebContents):
 
     Returns:
       A telemetry.core.Bitmap.
+    Raises:
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
     """
     return self._inspector_backend.Screenshot(timeout)
 
@@ -106,6 +120,12 @@ class Tab(web_contents.WebContents):
 
     TODO(tonyg): It is possible that the z-index hack here might not work for
     all pages. If this happens, DevTools also provides a method for this.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
     """
     self.ExecuteJavaScript("""
       (function() {
@@ -129,7 +149,14 @@ class Tab(web_contents.WebContents):
         '!!window.__telemetry_screen_%d' % int(color), 5)
 
   def ClearHighlight(self, color):
-    """Clears a highlight of the given bitmap.RgbaColor."""
+    """Clears a highlight of the given bitmap.RgbaColor.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
     self.ExecuteJavaScript("""
       (function() {
         document.body.removeChild(window.__telemetry_screen_%d);
@@ -157,6 +184,13 @@ class Tab(web_contents.WebContents):
       min_bitrate_mbps: The minimum caputre bitrate in MegaBits Per Second.
           The platform is free to deliver a higher bitrate if it can do so
           without increasing overhead.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+      ValueError: If the required |min_bitrate_mbps| can't be achieved.
     """
     self.Highlight(highlight_bitmap)
     self.browser.platform.StartVideoCapture(min_bitrate_mbps)
@@ -178,10 +212,23 @@ class Tab(web_contents.WebContents):
     return self.browser.platform.StopVideoCapture()
 
   def GetCookieByName(self, name, timeout=DEFAULT_TAB_TIMEOUT):
-    """Returns the value of the cookie by the given |name|."""
+    """Returns the value of the cookie by the given |name|.
+
+    Raises:
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
     return self._inspector_backend.GetCookieByName(name, timeout)
 
   def CollectGarbage(self):
+    """Forces a garbage collection.
+
+    Raises:
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
     self._inspector_backend.CollectGarbage()
 
   def ClearCache(self, force):
@@ -191,6 +238,13 @@ class Tab(web_contents.WebContents):
       force: Iff true, navigates to about:blank which destroys the previous
           renderer, ensuring that even "live" resources in the memory cache are
           cleared.
+
+    Raises:
+      exceptions.EvaluateException
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+      errors.DeviceUnresponsiveError
     """
     self.browser.platform.FlushDnsCache()
     self.ExecuteJavaScript("""
