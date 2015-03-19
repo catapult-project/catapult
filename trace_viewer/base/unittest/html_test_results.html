@@ -230,6 +230,15 @@ tv.exportTo('tv.b.unittest', function() {
       this.showHTMLOutput_ = false;
       this.showPendingAndPassedTests_ = false;
       this.linkifyCallback_ = undefined;
+      this.headless_ = false;
+    },
+
+    get headless() {
+      return this.headless_;
+    },
+
+    set headless(headless) {
+      this.headless_ = headless;
     },
 
     getHRefForTestCase: function(testCase) {
@@ -327,6 +336,8 @@ tv.exportTo('tv.b.unittest', function() {
 
       this.currentTestCaseResult_.addError(normalizedException);
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
+      if (this.headless_)
+        this.notifyTestResultToDevServer_('EXCEPT', normalizedException.stack);
     },
 
     addHTMLOutputForCurrentTest: function(element) {
@@ -355,12 +366,19 @@ tv.exportTo('tv.b.unittest', function() {
         tv.b.dispatchSimpleEvent(this, 'testpassed');
       }
 
+      if (this.headless_) {
+        this.notifyTestResultToDevServer_(testCaseResult.hadErrors ?
+                                          'FAILED' : 'PASSED');
+      }
+
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
       this.currentTestCaseResult_ = undefined;
     },
 
     didRunTests: function() {
       this.log_('[DONE]\n');
+      if (this.headless_)
+        this.notifyTestCompletionToDevServer_();
     },
 
     getStats: function() {
@@ -369,6 +387,25 @@ tv.exportTo('tv.b.unittest', function() {
         numTestsThatFailed: this.numTestsThatFailed_,
         totalRunTime: this.totalRunTime_
       };
+    },
+
+    notifyTestResultToDevServer_: function(result, extra_msg) {
+      var req = new XMLHttpRequest();
+      var testName = this.currentTestCaseResult_.testCase.fullyQualifiedName;
+      req.open('POST', '/test_automation/notify_test_result', true);
+      req.send(result + '  ' + testName + ' ' + (extra_msg || ''));
+    },
+
+    notifyTestCompletionToDevServer_: function() {
+      if (this.numTestsThatPassed_ + this.numTestsThatFailed_ == 0)
+        return;
+      var data = this.numTestsThatFailed_ == 0 ? 'ALL_PASSED' : 'HAD_FAILURES';
+      data += '\nPassed tests: ' + this.numTestsThatPassed_ +
+              '  Failed tests: ' + this.numTestsThatFailed_;
+
+      var req = new XMLHttpRequest();
+      req.open('POST', '/test_automation/notify_completion', true);
+      req.send(data);
     },
 
     log_: function(msg) {

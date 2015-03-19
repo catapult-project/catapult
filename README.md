@@ -1,3 +1,9 @@
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
+[![Build Status](https://travis-ci.org/google/trace-viewer.svg?branch=master)](https://travis-ci.org/google/trace-viewer)
+
 Trace-Viewer is the javascript frontend for Chrome [about:tracing](http://dev.chromium.org/developers/how-tos/trace-event-profiling-tool) and [Android
 systrace](http://developer.android.com/tools/help/systrace.html).
 
