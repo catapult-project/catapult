@@ -2,12 +2,20 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import re
 import subprocess
 
 from telemetry.core import platform
 from telemetry.core.platform import device
+from telemetry.util import path
 
+
+IOSSIM_BUILD_DIRECTORIES = [
+    'Debug-iphonesimulator',
+    'Profile-iphonesimulator',
+    'Release-iphonesimulator'
+]
 
 class IOSDevice(device.Device):
   def __init__(self):
@@ -25,6 +33,25 @@ def _IsIosDeviceAttached():
       return True
   return False
 
+def _IsIosSimulatorAvailable():
+  """Determines whether an iOS simulator is present in the local checkout.
+
+  Assumes the iOS simulator (iossim) and Chromium have already been built.
+
+  Returns:
+    True if at least one simulator is found, otherwise False.
+  """
+  for build_dir in IOSSIM_BUILD_DIRECTORIES:
+    iossim_path = os.path.join(
+        path.GetChromiumSrcDir(), 'out', build_dir, 'iossim')
+    chromium_path = os.path.join(
+        path.GetChromiumSrcDir(), 'out', build_dir, 'Chromium.app')
+
+    # If the iOS simulator and Chromium app are present, return True
+    if os.path.exists(iossim_path) and os.path.exists(chromium_path):
+      return True
+
+  return False
 
 def FindAllAvailableDevices(_):
   """Returns a list of available devices.
@@ -34,7 +61,7 @@ def FindAllAvailableDevices(_):
   if platform.GetHostPlatform().GetOSName() != 'mac':
     return []
 
-  if not _IsIosDeviceAttached():
+  if not _IsIosDeviceAttached() and not _IsIosSimulatorAvailable():
     return []
 
   return [IOSDevice()]
