@@ -36,10 +36,17 @@ class WebContents(object):
         'document.readyState == "interactive" || '
         'document.readyState == "complete"', timeout)
 
-  def WaitForJavaScriptExpression(self, expr, timeout):
+  def WaitForJavaScriptExpression(self, expr, timeout,
+                                  dump_page_state_on_timeout=True):
     """Waits for the given JavaScript expression to be True.
 
     This method is robust against any given Evaluation timing out.
+
+    Args:
+      expr: The expression to evaluate.
+      timeout: The number of seconds to wait for the expression to be True.
+      dump_page_state_on_timeout: Whether to provide additional information on
+          the page state if a TimeoutException is thrown.
     """
     def IsJavaScriptExpressionTrue():
       try:
@@ -52,6 +59,9 @@ class WebContents(object):
     try:
       util.WaitFor(IsJavaScriptExpressionTrue, timeout)
     except exceptions.TimeoutException as e:
+      if not dump_page_state_on_timeout:
+        raise
+
       # Try to make timeouts a little more actionable by dumping |this|.
       raise exceptions.TimeoutException(e.message + self.EvaluateJavaScript("""
         (function() {
