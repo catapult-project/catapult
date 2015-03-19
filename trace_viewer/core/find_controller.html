@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/ui_state.html">
 
 <script>
 'use strict';
@@ -20,7 +21,6 @@ tv.exportTo('tv.c', function() {
 
   function FindController() {
     this.timeline_ = undefined;
-    this.model_ = undefined;
     this.filterText_ = '';
     this.filterHits_ = new tv.c.Selection();
     this.filterHitsDirty_ = true;
@@ -29,6 +29,12 @@ tv.exportTo('tv.c', function() {
 
   FindController.prototype = {
     __proto__: Object.prototype,
+
+    get model() {
+      if (!this.timeline_)
+        return;
+      return this.timeline_.model;
+    },
 
     get timeline() {
       return this.timeline_;
@@ -50,6 +56,29 @@ tv.exportTo('tv.c', function() {
       this.filterHitsDirty_ = true;
     },
 
+    getFilterPromise_: function(filterText) {
+      if (!this.timeline_)
+        return;
+      var promise = Promise.resolve();
+
+      var filter = new tv.c.TitleOrCategoryFilter(filterText);
+      var filterHits = new tv.c.Selection();
+      var filterTask =
+          this.timeline.addAllObjectsMatchingFilterToSelectionAsTask(
+              filter, filterHits);
+      promise = Task.RunWhenIdle(filterTask);
+      promise.then(function() {
+        this.filterHitsDirty_ = false;
+        this.filterHits_ = filterHits;
+        this.timeline.setHighlightAndClearSelection(filterHits);
+      }.bind(this));
+      return promise;
+    },
+
+    clearFindSelections_: function() {
+      this.timeline.setHighlightAndClearSelection(new tv.c.Selection());
+    },
+
     /**
      * Updates the filter hits based on the current filtering settings. Returns
      * a promise which resolves when |filterHits| has been refreshed.
@@ -63,18 +92,30 @@ tv.exportTo('tv.c', function() {
       this.filterHits_ = new tv.c.Selection();
       this.currentHitIndex_ = -1;
 
-      if (this.timeline_ && this.filterText.length) {
-        var filter = new tv.c.TitleOrCategoryFilter(this.filterText);
-        var filterHits = new tv.c.Selection();
-        var filterTask =
-            this.timeline.addAllObjectsMatchingFilterToSelectionAsTask(
-                filter, filterHits);
-        promise = Task.RunWhenIdle(filterTask);
-        promise.then(function() {
-          this.filterHitsDirty_ = false;
-          this.filterHits_ = filterHits;
-          this.timeline.setHighlightAndClearSelection(filterHits);
-        }.bind(this));
+      // Try constructing a UIState from the filterText.
+      // UIState.fromUserFriendlyString will throw an error only if the string
+      // is syntactically correct to a UI state string but with invalid values.
+      // It will return undefined if there is no syntactic match.
+      var stateFromString;
+      try {
+        stateFromString = tv.c.UIState.fromUserFriendlyString(
+          this.model, this.timeline.viewport, this.filterText);
+      } catch (e) {
+        var overlay = new tv.b.ui.Overlay();
+        overlay.textContent = e.message;
+        overlay.title = 'UI State Navigation Error';
+        overlay.visible = true;
+        return promise;
+      }
+
+      if (stateFromString !== undefined) {
+        this.timeline.navToPosition(stateFromString);
+      } else {
+        // filterText is not a navString here -- proceed with find and filter.
+        if (this.filterText.length === 0)
+          this.clearFindSelections_();
+        else
+          promise = this.getFilterPromise_(this.filterText);
       }
       return promise;
     },

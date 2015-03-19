@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/location.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c', function() {
+  var Location = tv.c.Location;
+
+  /**
+   * UIState is a class that represents the current state of the timeline by
+   * the Location of the point of interest and the current scaleX of the
+   * timeline.
+   *
+   * @constructor
+   */
+  function UIState(location, scaleX) {
+    this.location_ = location;
+    this.scaleX_ = scaleX;
+  };
+
+  /**
+   * Accepts a UIState string in the format of (timestamp)@(pid).(tid)x(scaleX)
+   * Returns undefined if string is not in this format, or throws an Error if
+   * variables in a syntactically-correct stateString does not produce a valid
+   * UIState. Otherwise returns a constructed UIState instance.
+   */
+  UIState.fromUserFriendlyString = function(model, viewport, stateString) {
+    var navByFinderPattern = /^(-?\d+(\.\d+)?)@(\d+)\.(\d+)x(\d+(\.\d+)?)$/g;
+    var match = navByFinderPattern.exec(stateString);
+    if (!match)
+      return;
+
+    var timestamp = parseFloat(match[1]);
+    var pid = match[3];
+    var tid = match[4];
+    var scaleX = parseFloat(match[5]);
+
+    if (scaleX <= 0)
+      throw new Error('Invalid ScaleX value in UI State string.');
+
+    var processFromModel = model.processes[pid];
+    if (!processFromModel)
+      throw new Error('Invalid PID value in UI State string.');
+    var threadFromModel = processFromModel.threads[tid];
+    if (!threadFromModel)
+      throw new Error('Invalid TID value in UI State string.');
+
+    var loc = tv.c.Location.fromStableIdAndTimestamp(
+        viewport, threadFromModel.stableId, timestamp);
+    return new UIState(loc, scaleX);
+  }
+
+  UIState.prototype = {
+
+    get location() {
+      return this.location_;
+    },
+
+    get scaleX() {
+      return this.scaleX_;
+    },
+
+    toUserFriendlyString: function() {
+      var timestamp = this.location_.xWorld;
+      var stableId = this.location_.containingTrack.eventContainer.stableId;
+      var scaleX = this.scaleX_;
+      return timestamp + '@' + stableId + 'x' + scaleX;
+    },
+
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof this[key] === 'function')
+          continue;
+        obj[key] = this[key];
+      }
+      return obj;
+    }
+  };
+
+  return {
+    UIState: UIState
+  };
+});
+</script>

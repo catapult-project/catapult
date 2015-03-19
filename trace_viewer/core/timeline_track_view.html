@@ -608,6 +608,27 @@ tv.exportTo('tv.c', function() {
       this.viewport_.queueDisplayTransformAnimation(animation);
     },
 
+    navToPosition: function(uiState) {
+      var location = uiState.location;
+      var scaleX = uiState.scaleX;
+      var track = location.containingTrack;
+
+      var worldCenter = location.xWorld;
+      var viewCenter = this.modelTrackContainer_.canvas.width / 5;
+      var zoomInRatio = scaleX /
+          this.viewport_.currentDisplayTransform.scaleX;
+
+      // Vertically scroll so track is in view.
+      track.scrollIntoViewIfNeeded();
+
+      // Perform zoom and panX animation.
+      var animation = new tv.c.TimelineDisplayTransformZoomToAnimation(
+          worldCenter, viewCenter,
+          this.viewport_.currentDisplayTransform.panY,
+          zoomInRatio);
+      this.viewport_.queueDisplayTransformAnimation(animation);
+    },
+
     setCurrentSelectionAsInterestRange_: function() {
       var selectionBounds = this.selection.bounds;
       if (selectionBounds.empty) {

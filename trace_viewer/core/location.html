@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/base.html">
-<link rel="import" href="/core/tracks/track.html">
 
 <script>
 'use strict';
@@ -44,38 +43,87 @@ tv.exportTo('tv.c', function() {
    *
    * @constructor
    */
-  function Location(viewport) {
+  function Location(viewport, xWorld, yComponents) {
     this.viewport_ = viewport;
 
-    this.xWorld_ = undefined;
-    this.yComponents_ = undefined;
+    this.xWorld_ = xWorld;
+    this.yComponents_ = yComponents;
   };
 
+  Location.fromViewCoordinates = function(viewport, viewX, viewY) {
+    var dt = viewport.currentDisplayTransform;
+    var xWorld = dt.xViewToWorld(viewX);
+    var yComponents = [];
+
+    // Build yComponents by calculating percentage offset with respect to
+    // each parent track.
+    var elem = document.elementFromPoint(viewX, viewY);
+    while (elem instanceof tv.c.tracks.Track) {
+      if (elem.eventContainer) {
+        var boundRect = elem.getBoundingClientRect();
+        var yPercentOffset = (viewY - boundRect.top) / boundRect.height;
+        yComponents.push(
+            new YComponent(elem.eventContainer.stableId, yPercentOffset));
+      }
+      elem = elem.parentElement;
+    }
+
+    if (yComponents.length == 0)
+      return;
+    return new Location(viewport, xWorld, yComponents);
+  }
+
+  Location.fromStableIdAndTimestamp = function(viewport, stableId, ts) {
+    var xWorld = ts;
+    var yComponents = [];
+
+    // The y components' percentage offsets will be calculated with respect to
+    // the boundingRect's top of containing track.
+    var containerToTrack = viewport.containerToTrackObj;
+    var elem = containerToTrack.getTrackByStableId(stableId);
+    if (!elem)
+      return;
+
+    var firstY = elem.getBoundingClientRect().top;
+    while (elem instanceof tv.c.tracks.Track) {
+      if (elem.eventContainer) {
+        var boundRect = elem.getBoundingClientRect();
+        var yPercentOffset = (firstY - boundRect.top) / boundRect.height;
+        yComponents.push(
+            new YComponent(elem.eventContainer.stableId, yPercentOffset));
+      }
+      elem = elem.parentElement;
+    }
+
+    if (yComponents.length == 0)
+      return;
+    return new Location(viewport, xWorld, yComponents);
+  }
+
   Location.prototype = {
-    fromViewCoordinates: function(viewX, viewY) {
-      var dt = this.viewport_.currentDisplayTransform;
-      this.xWorld_ = Math.round(dt.xViewToWorld(viewX));
 
-      // Build yComponents by calculating percentage offset with respect to
-      // each parent track.
-      this.yComponents_ = [];
-      var elem = document.elementFromPoint(viewX, viewY);
-      while (elem instanceof tv.c.tracks.Track) {
-        if (elem.eventContainer) {
-          var boundRect = elem.getBoundingClientRect();
-          var yPercentOffset = (viewY - boundRect.top) / boundRect.height;
-          this.yComponents_.push(
-              new YComponent(elem.eventContainer.stableId, yPercentOffset));
-        }
+    get xWorld() {
+      return this.xWorld_;
+    },
 
-        elem = elem.parentElement;
+    /**
+     * Returns the first valid containing track based on the
+     * internal yComponents.
+     */
+    get containingTrack() {
+      var containerToTrack = this.viewport_.containerToTrackObj;
+      for (var i in this.yComponents_) {
+        var yComponent = this.yComponents_[i];
+        var track = containerToTrack.getTrackByStableId(yComponent.stableId);
+        if (track !== undefined)
+          return track;
       }
     },
 
     toViewCoordinates: function() {
       var dt = this.viewport_.currentDisplayTransform;
       var containerToTrack = this.viewport_.containerToTrackObj;
-      var viewX = Math.round(dt.xWorldToView(this.xWorld_));
+      var viewX = dt.xWorldToView(this.xWorld_);
 
       var viewY = -1;
       for (var index in this.yComponents_) {

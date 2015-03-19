@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/tracks/track.html">
+<link rel="import" href="/core/ui_state.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var UIState = tv.c.UIState;
+
+  function FakeModel() {
+    this.processes = { 1: { threads: { 2: { stableId: '1.2' } } } };
+  }
+
+  // FakeTrack needs to be an instance of tv.c.tracks.Track because a
+  // location is constructed in terms of Track instances.
+  function FakeTrack() { }
+  FakeTrack.prototype = {
+    __proto__: tv.c.tracks.Track.prototype,
+
+    get eventContainer() {
+      return { stableId: '1.2' };
+    },
+
+    getBoundingClientRect: function() {
+      return { top: 5, height: 2 };
+    }
+  };
+
+  function FakeViewPort() {
+    this.containerToTrackObj = {
+      // "1.2" is the only valid stableId this test function accepts.
+      getTrackByStableId: function(stableId) {
+        if (stableId === '1.2')
+          return new FakeTrack;
+        return undefined;
+      }
+    };
+  }
+
+  test('invalidStableId', function() {
+    var vp = new FakeViewPort;
+    assertThrows(UIState.fromUserFriendlyString(vp, '15@1.3x6'));
+    assertThrows(UIState.fromUserFriendlyString(vp, '15@2.2x6'));
+  });
+
+  test('invalidScaleX', function() {
+    var vp = new FakeViewPort;
+    assertUndefined(UIState.fromUserFriendlyString(vp, '1@1.2x-1'));
+    assertThrows(UIState.fromUserFriendlyString(vp, '1@1.2x0'));
+  });
+
+  test('invalidSyntax', function() {
+    var vp = new FakeViewPort;
+    assertUndefined(UIState.fromUserFriendlyString(vp, '5'));
+    assertUndefined(UIState.fromUserFriendlyString(vp, '505@1x5'));
+    assertUndefined(UIState.fromUserFriendlyString(vp, '505@1.x5'));
+    assertUndefined(UIState.fromUserFriendlyString(vp, '5@x5'));
+    assertUndefined(UIState.fromUserFriendlyString(vp, '1@1.2.3x5'));
+    assertUndefined(UIState.fromUserFriendlyString(vp, 'ab@1.2x5'));
+  });
+
+  test('validString', function() {
+    var model = new FakeModel;
+    var vp = new FakeViewPort;
+    var str = '-50125.512@1.2x1.1';
+    var uiState = UIState.fromUserFriendlyString(model, vp, str);
+
+    assertNotUndefined(uiState);
+    assertEquals(-50125.512, uiState.location.xWorld);
+    assertEquals('1.2',
+        uiState.location.containingTrack.eventContainer.stableId);
+    assertEquals(1.1, uiState.scaleX);
+
+    assertEquals(str, uiState.toUserFriendlyString());
+  });
+});
+</script>
