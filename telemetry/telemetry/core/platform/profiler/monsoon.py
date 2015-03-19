@@ -156,12 +156,19 @@ class Monsoon(object):
     else:
       self._SendStruct('BBB', 0x01, 0x01, int((v - 2.0) * 100))
 
+  def SetStartupCurrent(self, a):
+    """Set the max startup output current. the unit of |a| : Amperes """
+    assert a >= 0 and a <= 8
 
-  def SetMaxCurrent(self, i):
-    """Set the max output current."""
-    assert i >= 0 and i <= 8
+    val = 1023 - int((a/8.0)*1023)
+    self._SendStruct('BBB', 0x01, 0x08, val & 0xff)
+    self._SendStruct('BBB', 0x01, 0x09, val >> 8)
 
-    val = 1023 - int((i/8)*1023)
+  def SetMaxCurrent(self, a):
+    """Set the max output current. the unit of |a| : Amperes """
+    assert a >= 0 and a <= 8
+
+    val = 1023 - int((a/8.0)*1023)
     self._SendStruct('BBB', 0x01, 0x0a, val & 0xff)
     self._SendStruct('BBB', 0x01, 0x0b, val >> 8)
 
