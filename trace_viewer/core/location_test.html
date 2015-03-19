@@ -49,7 +49,11 @@ tv.b.unittest.testSuite(function() {
         for (var i = 0; i < processTracks.length; i++)
           processTracks[i].addContainersToTrackMap(containerToTrackObj);
       },
-      addEventListener: function() {}
+      addEventListener: function() {},
+      canvas: {
+        offsetLeft: tv.c.constants.HEADING_WIDTH,
+        offsetTop: 0
+      }
     };
     vp.rebuildContainerToTrackMap();
 
@@ -64,7 +68,7 @@ tv.b.unittest.testSuite(function() {
     asyncTrack.scrollIntoView();
 
     var boundRect = asyncTrack.getBoundingClientRect();
-    var viewX = boundRect.left + tv.c.constants.HEADING_WIDTH;
+    var viewX = boundRect.left;
     var viewY = boundRect.top + boundRect.height / 2;
     var location = Location.fromViewCoordinates(vp, viewX, viewY);
     assertEquals(asyncTrack, location.containingTrack);

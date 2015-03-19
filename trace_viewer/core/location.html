@@ -50,14 +50,22 @@ tv.exportTo('tv.c', function() {
     this.yComponents_ = yComponents;
   };
 
+  /**
+   * Returns a new Location given by x and y coordinates with respect to
+   * the timeline's drawing canvas.
+   */
   Location.fromViewCoordinates = function(viewport, viewX, viewY) {
     var dt = viewport.currentDisplayTransform;
     var xWorld = dt.xViewToWorld(viewX);
     var yComponents = [];
 
+    // Since we're given coordinates within the timeline canvas, we need to
+    // convert them to document coordinates to get the element.
+    var elem = document.elementFromPoint(
+          viewX + viewport.modelTrackContainer.canvas.offsetLeft,
+          viewY + viewport.modelTrackContainer.canvas.offsetTop);
     // Build yComponents by calculating percentage offset with respect to
     // each parent track.
-    var elem = document.elementFromPoint(viewX, viewY);
     while (elem instanceof tv.c.tracks.Track) {
       if (elem.eventContainer) {
         var boundRect = elem.getBoundingClientRect();
@@ -120,6 +128,10 @@ tv.exportTo('tv.c', function() {
       }
     },
 
+    /**
+     * Calculates and returns x and y coordinates of the current location with
+     * respect to the timeline's canvas.
+     */
     toViewCoordinates: function() {
       var dt = this.viewport_.currentDisplayTransform;
       var containerToTrack = this.viewport_.containerToTrackObj;
