@@ -414,31 +414,29 @@ class PageRunEndToEndTests(unittest.TestCase):
     user_story_runner.Run(test, ps, expectations, options, results)
     assert test.did_call_clean_up
 
-  # Ensure skipping the test if page cannot be run on the browser
-  def testPageCannotRunOnBrowser(self):
+  # Ensure skipping the test if shared state cannot be run on the browser.
+  def testSharedPageStateCannotRunOnBrowser(self):
     ps = page_set.PageSet()
-    expectations = test_expectations.TestExpectations()
 
-    class PageThatCannotRunOnBrowser(page_module.Page):
-
-      def __init__(self):
-        super(PageThatCannotRunOnBrowser, self).__init__(
-            url='file://blank.html', page_set=ps,
-            base_dir=util.GetUnittestDataDir())
-
+    class UnrunnableSharedState(shared_page_state.SharedPageState):
       def CanRunOnBrowser(self, _):
         return False
-
       def ValidateAndMeasurePage(self, _):
         pass
+
+    ps.AddUserStory(page_module.Page(
+        url='file://blank.html', page_set=ps,
+        base_dir=util.GetUnittestDataDir(),
+        shared_page_state_class=UnrunnableSharedState))
+    expectations = test_expectations.TestExpectations()
 
     class Test(page_test.PageTest):
       def __init__(self, *args, **kwargs):
         super(Test, self).__init__(*args, **kwargs)
         self.will_navigate_to_page_called = False
 
-      def ValidateAndMeasurePage(self, *args):
-        pass
+      def ValidateAndMeasurePage(self, *_args):
+        raise Exception('Exception should not be thrown')
 
       def WillNavigateToPage(self, _1, _2):
         self.will_navigate_to_page_called = True
@@ -451,7 +449,8 @@ class PageRunEndToEndTests(unittest.TestCase):
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     user_story_runner.Run(test, ps, expectations, options, results)
     self.assertFalse(test.will_navigate_to_page_called)
-    self.assertEquals(0, len(GetSuccessfulPageRuns(results)))
+    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
+    self.assertEquals(1, len(results.skipped_values))
     self.assertEquals(0, len(results.failures))
 
   def testRunPageWithProfilingFlag(self):

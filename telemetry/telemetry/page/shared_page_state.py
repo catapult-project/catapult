@@ -205,15 +205,6 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
           'Skipped because browser is not supported '
           '(page.CanRunOnBrowser() returns False).')
       return 'skip', skip_value
-    #TODO(nednguyen): Remove this code block when page.CanRunOnBrowser hook is
-    # removed. (crbug.com/468085)
-    if not self._current_page.CanRunOnBrowser(
-        browser_info_module.BrowserInfo(self.browser)):
-      skip_value = skip.SkipValue(
-          self._current_page,
-          'Skipped because browser is not supported '
-          '(page.CanRunOnBrowser() returns False).')
-      return 'skip', skip_value
     expectation = expectations.GetExpectationForPage(
         self.browser, self._current_page)
     if expectation == 'skip':
