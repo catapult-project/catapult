@@ -54,7 +54,7 @@ tv.exportTo('tv.e.cc', function() {
       }
     },
 
-    _initializeTracedInputLatencies: function(tracemodel) {
+    _initializeTracedInputLatencies: function(traceModel) {
       var audit = new tv.e.audits.ChromeAudit(traceModel);
       if (!audit.browser)
         return;
