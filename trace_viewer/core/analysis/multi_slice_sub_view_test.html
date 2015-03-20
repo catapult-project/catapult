@@ -198,17 +198,17 @@ tv.b.unittest.testSuite(function() {
     assertEquals(6, table.rows.length);
 
     assertEquals('a', table.rows[0].label);
-    assertEquals(1, table.rows[0].occurences);
+    assertEquals(1, table.rows[0].occurrences);
     assertAlmostEquals(0.04, table.rows[0].duration);
     assertAlmostEquals(0.04, table.rows[0].selfTime);
     assertEquals(null, table.rows[0].cpuDuration);
     assertEquals('aa', table.rows[1].label);
-    assertEquals(1, table.rows[1].occurences);
+    assertEquals(1, table.rows[1].occurrences);
     assertAlmostEquals(0.06, table.rows[1].duration);
     assertAlmostEquals(0.06, table.rows[1].selfTime);
     assertEquals(null, table.rows[1].cpuDuration);
     assertEquals('Totals', table.rows[2].label);
-    assertEquals(2, table.rows[2].occurences);
+    assertEquals(2, table.rows[2].occurrences);
     assertAlmostEquals(0.1, table.rows[2].duration);
     assertAlmostEquals(0.1, table.rows[2].selfTime);
     assertEquals(null, table.rows[2].cpuDuration);
@@ -237,7 +237,7 @@ tv.b.unittest.testSuite(function() {
       cpuDuration: null,
       selfTime: 0.1,
       cpuSelfTime: null,
-      occurences: 2,
+      occurrences: 2,
       percentage: null,
       details: {
         min: 0.04, max: 0.06, avg: 0.05,

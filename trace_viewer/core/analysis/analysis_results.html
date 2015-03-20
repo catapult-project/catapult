@@ -296,7 +296,7 @@ tv.exportTo('tv.c.analysis', function() {
      *          slices, or min/max/avg/start/end for counters.
      */
     appendDataRow: function(table, label, opt_duration, opt_cpuDuration,
-                            opt_selfTime, opt_cpuSelfTime, opt_occurences,
+                            opt_selfTime, opt_cpuSelfTime, opt_occurrences,
                             opt_percentage, opt_statistics,
                             opt_selectionGenerator, opt_inFoot) {
 
@@ -402,9 +402,9 @@ tv.exportTo('tv.c.analysis', function() {
         cellNum++;
       }
 
-      if (opt_occurences) {
+      if (opt_occurrences) {
         this.appendTableCellWithTooltip_(table, row, cellNum,
-            String(opt_occurences), tooltip);
+            String(opt_occurrences), tooltip);
       } else {
         this.appendTableCell_(table, row, cellNum, '');
       }
