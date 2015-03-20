@@ -258,6 +258,16 @@ tv.exportTo('tv.c.trace_model', function() {
       callback(this);
     },
 
+    getSlicesOfName: function(title) {
+      var slices = [];
+      for (var i = 0; i < this.slices.length; i++) {
+        if (this.slices[i].title == title) {
+          slices.push(this.slices[i]);
+        }
+      }
+      return slices;
+    },
+
     toJSON: function() {
       return {};
     },

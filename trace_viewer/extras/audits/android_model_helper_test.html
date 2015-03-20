@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/audits/android_auditor.html">
+<link rel="import" href="/extras/importer/linux_perf/linux_perf_importer.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
+  var TraceModel = tv.c.TraceModel;
+
+  var TEST_FRAME_UI_ONLY = [
+    'com.test.app-1880  [000] ...1   849.000000: tracing_mark_write: B|1880|performTraversals', // @suppress longLineCheck
+    'com.test.app-1880  [000] ...1   849.080000: tracing_mark_write: E'
+  ].join('\n');
+
+  var TEST_FRAME_RT_ONLY = [
+    'RenderThread-2000  [000] ...1   849.000000: tracing_mark_write: B|1880|doFrame', // @suppress longLineCheck
+    'RenderThread-2000  [000] ...1   849.080000: tracing_mark_write: E'
+  ].join('\n');
+
+  var TEST_FRAME_BOTH_THREADS = [
+    'com.test.app-1880  [000] ...1   849.000000: tracing_mark_write: S|1880|deliverInputEvent|100', // @suppress longLineCheck
+    'com.test.app-1880  [000] ...1   849.009900: tracing_mark_write: F|1880|deliverInputEvent|100', // @suppress longLineCheck
+    'com.test.app-1880  [000] ...1   849.010000: tracing_mark_write: B|1880|performTraversals', // @suppress longLineCheck
+    'com.test.app-1880  [000] ...1   849.010000: tracing_mark_write: B|1880|draw', // @suppress longLineCheck
+    'com.test.app-1880  [000] ...1   849.010000: tracing_mark_write: B|1880|Record View#draw()', // @suppress longLineCheck
+    'com.test.app-1880  [000] ...1   849.018000: tracing_mark_write: E',
+    'com.test.app-1880  [000] ...1   849.018000: tracing_mark_write: E',
+    'RenderThread-2000  [000] ...1   849.019000: tracing_mark_write: B|1880|DrawFrame', // @suppress longLineCheck
+    'RenderThread-2000  [000] ...1   849.019000: tracing_mark_write: B|1880|syncFrameState', // @suppress longLineCheck
+    'RenderThread-2000  [000] ...1   849.020000: tracing_mark_write: E',
+    'com.test.app-1880  [000] ...1   849.020000: tracing_mark_write: E',
+    'RenderThread-2000  [000] ...1   849.080000: tracing_mark_write: E'
+  ].join('\n');
+
+  test('getThreads', function() {
+    var model = new TraceModel(TEST_FRAME_UI_ONLY);
+    var helper = new AndroidModelHelper(model);
+    assertEquals(1, model.getAllProcesses().length);
+    var process = model.getAllProcesses()[0];
+    assertEquals(process.getThread(1880), helper.apps[0].uiThread);
+    assertEquals(undefined, helper.apps[0].renderThread);
+
+    var model = new TraceModel(TEST_FRAME_RT_ONLY);
+    var helper = new AndroidModelHelper(model);
+    assertEquals(1, model.getAllProcesses().length);
+    var process = model.getAllProcesses()[0];
+    assertEquals(undefined, helper.apps[0].uiThread);
+    assertEquals(process.getThread(2000), helper.apps[0].renderThread);
+  });
+
+  test('getFrames', function() {
+    [
+      TEST_FRAME_UI_ONLY, TEST_FRAME_RT_ONLY, TEST_FRAME_BOTH_THREADS
+    ].forEach(function(data) {
+      var helper = new AndroidModelHelper(new TraceModel(TEST_FRAME_UI_ONLY));
+      assertEquals(1, helper.apps.length);
+
+      var frames = helper.apps[0].getFrames();
+      assertEquals(1, frames.length);
+      assertAlmostEquals(80, frames[0].totalDuration);
+    });
+  });
+});
+</script>

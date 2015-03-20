@@ -11,46 +11,23 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-//
+
 tv.b.unittest.testSuite(function() {
   test('longframe', function() {
-    [
-      [
-        // simple UI thread only frame
-        'com.test.app-1880  [000] ...1   849.000000: tracing_mark_write: B|1880|performTraversals', // @suppress longLineCheck
-        'com.test.app-1880  [000] ...1   849.080000: tracing_mark_write: E'
-      ],
-      [
-        // simple RT only frame
-        'RenderThread-2000  [000] ...1   849.000000: tracing_mark_write: B|1880|doFrame', // @suppress longLineCheck
-        'RenderThread-2000  [000] ...1   849.080000: tracing_mark_write: E'
-      ],
-      [
-        // complicated multi-threaded frame
-        'com.test.app-1880  [000] ...1   849.000000: tracing_mark_write: S|1880|deliverInputEvent|100', // @suppress longLineCheck
-        'com.test.app-1880  [000] ...1   849.009900: tracing_mark_write: F|1880|deliverInputEvent|100', // @suppress longLineCheck
-        'com.test.app-1880  [000] ...1   849.010000: tracing_mark_write: B|1880|performTraversals', // @suppress longLineCheck
-        'com.test.app-1880  [000] ...1   849.010000: tracing_mark_write: B|1880|draw', // @suppress longLineCheck
-        'com.test.app-1880  [000] ...1   849.010000: tracing_mark_write: B|1880|Record View#draw()', // @suppress longLineCheck
-        'com.test.app-1880  [000] ...1   849.018000: tracing_mark_write: E',
-        'com.test.app-1880  [000] ...1   849.018000: tracing_mark_write: E',
-        'RenderThread-2000  [000] ...1   849.019000: tracing_mark_write: B|1880|DrawFrame', // @suppress longLineCheck
-        'RenderThread-2000  [000] ...1   849.019000: tracing_mark_write: B|1880|syncFrameState', // @suppress longLineCheck
-        'RenderThread-2000  [000] ...1   849.020000: tracing_mark_write: E',
-        'com.test.app-1880  [000] ...1   849.020000: tracing_mark_write: E',
-        'RenderThread-2000  [000] ...1   849.080000: tracing_mark_write: E'
-      ]
-    ].forEach(function(lines) {
-      var io = new tv.c.ImportOptions();
-      io.auditorConstructors = [tv.e.audits.AndroidAuditor];
+    var lines = [
+      'com.test.app-1880  [000] ...1   849.000000: tracing_mark_write: B|1880|performTraversals', // @suppress longLineCheck
+      'com.test.app-1880  [000] ...1   849.080000: tracing_mark_write: E'
+    ];
 
-      var m = new tv.c.TraceModel(lines.join('\n'), io);
-      assertFalse(m.hasImportWarnings);
-      assertEquals(1, m.alerts.length);
+    var io = new tv.c.ImportOptions();
+    io.auditorConstructors = [tv.e.audits.AndroidAuditor];
 
-      var alert = m.alerts[0];
-      assertAlmostEquals(80, alert.args.totalDuration);
-    });
+    var m = new tv.c.TraceModel(lines.join('\n'), io);
+    assertFalse(m.hasImportWarnings);
+    assertEquals(1, m.alerts.length);
+
+    var alert = m.alerts[0];
+    assertAlmostEquals(80, alert.args.totalDuration);
   });
 
   test('savelayer', function() {

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/extras/audits/android_app.html">
+<link rel="import" href="/extras/audits/utils.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Class for managing android-specific model meta data,
+ * such as rendering apps, and frames rendered.
+ */
+tv.exportTo('tv.e.audits', function() {
+  var AndroidApp = tv.e.audits.AndroidApp;
+
+  /**
+   * Model for Android-specific data.
+   * @constructor
+   */
+  function AndroidModelHelper(model) {
+    this.model = model;
+    this.apps = [];
+    model.getAllProcesses().forEach(function(process) {
+      var app = AndroidApp.createForProcessIfPossible(process);
+      if (app)
+        this.apps.push(app);
+    }, this);
+  };
+
+  return {
+    AndroidModelHelper: AndroidModelHelper
+  };
+});
+</script>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/extras/audits/android_frame.html">
+<link rel="import" href="/extras/audits/utils.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Class for managing android-specific model meta data,
+ * such as rendering apps, and frames rendered.
+ */
+tv.exportTo('tv.e.audits', function() {
+  var AndroidFrame = tv.e.audits.AndroidFrame;
+
+  var UI_THREAD_DRAW_NAME = 'performTraversals';
+  var UI_THREAD_INPUT_NAME = 'deliverInputEvent';
+  var RENDER_THREAD_DRAW_NAME = 'DrawFrame';
+  var RENDER_THREAD_INDEP_DRAW_NAME = 'doFrame';
+  var THREAD_SYNC_NAME = 'syncFrameState';
+
+  function findOverlappingDrawFrame(renderThread, time) {
+    if (!renderThread)
+      return undefined;
+
+    var slices = renderThread.sliceGroup.slices;
+    for (var i = 0; i < slices.length; i++) {
+      var slice = slices[i];
+      if (slice.title == RENDER_THREAD_DRAW_NAME &&
+          slice.start <= time &&
+          time <= slice.end) {
+        return slice;
+      }
+    }
+    return undefined;
+  }
+
+  function findInputSlice(uiThread, approxEndTime) {
+    // in SDK 21, input was moved to async. Check both for simplicity.
+    for (var sliceGroup in [uiThread.asyncSliceGroup, uiThread.sliceGroup]) {
+      for (var slice in sliceGroup.slices) {
+        if (slice.title == UI_THREAD_INPUT_NAME &&
+            slice.end <= approxEndTime &&
+            (approxEndTime - slice.end) < 0.5) {
+          // input slice ends within 0.5ms of perform traversals
+          return slice;
+        }
+      }
+    }
+  }
+
+  function getUiThreadDrivenFrames(app) {
+    if (!app.uiThread)
+      return [];
+
+    var frames = [];
+    app.uiThread.sliceGroup.getSlicesOfName(UI_THREAD_DRAW_NAME)
+        .forEach(function(slice) {
+      var frame = new AndroidFrame(slice);
+      var uiInputSlice = findInputSlice(app.uiThread, slice.start);
+      if (uiInputSlice) {
+        // input handling observed, consider frame to start at this time
+        frame.start = uiInputSlice.start;
+        frame.totalDuration = slice.end - uiInputSlice.start;
+      }
+
+      // on SDK 21+ devices with renderthread,
+      // account for time taken on both threads
+      var rtDrawSlice = findOverlappingDrawFrame(app.renderThread, slice.end);
+      if (rtDrawSlice) {
+        // account for draw time on RenderThread, if present
+        frame.totalDuration += rtDrawSlice.duration;
+        frame.end = rtDrawSlice.end;
+        var rtSyncSlice = rtDrawSlice.findDescendentSlice(THREAD_SYNC_NAME);
+
+        if (rtSyncSlice) {
+          // avoid double-counting time during thread sync
+          frame.totalDuration -= rtSyncSlice.duration;
+        }
+      }
+      frames.push(frame);
+    });
+    return frames;
+  }
+
+  function getRenderThreadDrivenFrames(app) {
+    if (!app.renderThread)
+      return [];
+    var rtSliceGroup = app.renderThread.sliceGroup;
+
+    var frames = [];
+    rtSliceGroup.getSlicesOfName(RENDER_THREAD_INDEP_DRAW_NAME)
+        .forEach(function(slice) {
+      frames.push(new AndroidFrame(slice));
+    });
+    return frames;
+  }
+
+  function hasUiDraw(uiThread) {
+    var slices = uiThread.sliceGroup.slices;
+    for (var i = 0; i < slices.length; i++) {
+      var slice = slices[i];
+      if (slice.category == 'android' &&
+          slice.title == UI_THREAD_DRAW_NAME) {
+        return uiThread;
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Model for Android-specific data.
+   * @constructor
+   */
+  function AndroidApp(uiThread, renderThread) {
+    this.uiThread = uiThread;
+    this.renderThread = renderThread;
+  };
+
+  AndroidApp.createForProcessIfPossible = function(process) {
+    var uiThread = process.getThread(process.pid);
+    if (uiThread && !hasUiDraw(uiThread)) {
+      uiThread = undefined;
+    }
+    var renderThreads = process.findAllThreadsNamed('RenderThread');
+    var renderThread = renderThreads.length == 1 ? renderThreads[0] : undefined;
+
+    if (uiThread || renderThread) {
+      return new AndroidApp(uiThread, renderThread);
+    }
+  }
+
+  AndroidApp.prototype = {
+  /**
+   * Returns a list of all frames in the trace for the app,
+   * constructed on first query.
+   */
+    getFrames: function() {
+      if (!this.frames_) {
+        var uiFrames = getUiThreadDrivenFrames(this);
+        var rtFrames = getRenderThreadDrivenFrames(this);
+        this.frames_ = uiFrames.concat(rtFrames);
+
+        // merge frames by sorting by end timestamp
+        this.frames_.sort(function(a, b) { a.end - b.end });
+      }
+      return this.frames_;
+    }
+  };
+
+  return {
+    AndroidApp: AndroidApp
+  };
+});
+</script>

@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/trace_model/slice_group.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
 
 <script>
 'use strict';
@@ -632,6 +633,20 @@ tv.b.unittest.testSuite(function() {
     assertEquals(123, process.stableId);
     assertEquals('123.456', thread.stableId);
     assertEquals('123.456.SliceGroup', group.stableId);
+  });
+
+  test('getSlicesOfName', function() {
+    var group = new SliceGroup({});
+    var expected = [];
+
+    for (var i = 0; i < 10; i++) {
+      var aSlice = newSliceNamed('a', i, i + 1);
+      group.pushSlice(aSlice);
+      group.pushSlice(newSliceNamed('b', i + 1, i + 2));
+      expected.push(aSlice);
+    }
+
+    assertArrayEquals(expected, group.getSlicesOfName('a'));
   });
 });
 </script>

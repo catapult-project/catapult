@@ -6,203 +6,41 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/auditor.html">
+<link rel="import" href="/extras/audits/android_model_helper.html">
 <link rel="import" href="/extras/audits/utils.html">
 
 <script>
 'use strict';
 
 /**
- * @fileoverview Base class for trace data Auditors.
+ * @fileoverview Class for Android-specific Auditing
  */
 tv.exportTo('tv.e.audits', function() {
-  var UI_THREAD_DRAW_NAME = 'performTraversals';
-  var UI_THREAD_INPUT_NAME = 'deliverInputEvent';
-  var RENDER_THREAD_DRAW_NAME = 'DrawFrame';
-  var RENDER_THREAD_INDEP_DRAW_NAME = 'doFrame';
-  var THREAD_SYNC_NAME = 'syncFrameState';
   // TODO: extract from VSYNC, since not all devices have vsync near 60fps
   var EXPECTED_FRAME_TIME = 16.67;
 
   var Auditor = tv.c.Auditor;
-
-  function getDrawingUiThread(process) {
-    var uiThread = process.getThread(process.pid);
-    if (!uiThread)
-      return undefined;
-
-    var slices = uiThread.sliceGroup.slices;
-    for (var i = 0; i < slices.length; i++) {
-      var slice = slices[i];
-      if (slice.category == 'android' &&
-          slice.title == UI_THREAD_DRAW_NAME) {
-        return uiThread;
-      }
-    }
-    return undefined;
-  }
-
-  function getDrawingRenderThread(process) {
-    var threads = process.findAllThreadsNamed('RenderThread');
-    if (!threads || threads.length != 1)
-      return undefined;
-
-    return threads[0];
-  }
-
-  function getDrawingApps(model) {
-    var drawingApps = [];
-    model.getAllProcesses().forEach(function(process) {
-      var uiThread = getDrawingUiThread(process);
-      var renderThread = getDrawingRenderThread(process);
-      if (uiThread || renderThread) {
-        drawingApps.push({
-          'uiThread' : uiThread,
-          'renderThread' : renderThread
-        });
-      }
-    });
-    return drawingApps;
-  }
-
-  function findOverlappingDrawFrame(renderThread, time) {
-    if (!renderThread)
-      return undefined;
-
-    var slices = renderThread.sliceGroup.slices;
-    for (var i = 0; i < slices.length; i++) {
-      var slice = slices[i];
-      if (slice.title == RENDER_THREAD_DRAW_NAME &&
-          slice.start <= time &&
-          time <= slice.end) {
-        return slice;
-      }
-    }
-    return undefined;
-  }
-
-  function findInputSlice(uiThread, approxEndTime) {
-    // in SDK 21, input was moved to async. Check both for simplicity.
-    var sliceGroups = [uiThread.asyncSliceGroup, uiThread.sliceGroup];
-    for (var i = 0; i < sliceGroups.length; i++) {
-      var slices = sliceGroups[i].slices;
-      for (var j = 0; j < slices.length; j++) {
-        var slice = slices[j];
-        if (slice.title != UI_THREAD_INPUT_NAME)
-          continue;
-        if (slice.end <= approxEndTime &&
-          (approxEndTime - slice.end) < 0.5) {
-          // input slice ends within 0.5ms of perform traversals
-          return slice;
-        }
-      }
-    }
-  }
-
-  function getUiThreadDrivenFrames(uiThread, renderThread) {
-    if (!uiThread)
-      return [];
-
-    var frames = [];
-    uiThread.sliceGroup.slices.forEach(function(slice) {
-      if (slice.title != UI_THREAD_DRAW_NAME)
-        return;
-
-      var frame = {
-          'start' : slice.start,
-          'end' : slice.end,
-          'totalDuration' : undefined,
-          'uiInputSlice' : undefined,
-          'uiDrawSlice' : slice,
-          'rtDrawSlice' : undefined,
-          'rtSyncSlice' : undefined
-        };
-
-      var totalDuration = slice.duration;
-
-      frame.uiInputSlice = findInputSlice(uiThread, slice.start);
-      if (frame.uiInputSlice) {
-        // input handling observed, consider frame to start at this time
-        totalDuration = frame.uiDrawSlice.end - frame.uiInputSlice.start;
-        frame.start = frame.uiInputSlice.start;
-      }
-
-      // on SDK 21+ devices with renderthread,
-      // account for time taken on both threads
-      frame.rtDrawSlice = findOverlappingDrawFrame(renderThread, slice.end);
-      if (frame.rtDrawSlice) {
-        // account for draw time on RenderThread, if present
-        totalDuration += frame.rtDrawSlice.duration;
-        frame.end = frame.rtDrawSlice.end;
-        frame.rtSyncSlice = frame.rtDrawSlice.findDescendentSlice(
-            THREAD_SYNC_NAME);
-
-        if (frame.rtSyncSlice) {
-          // avoid double-counting time during thread sync
-          totalDuration -= frame.rtSyncSlice.duration;
-        }
-      }
-
-      frame.totalDuration = totalDuration;
-      frames.push(frame);
-    });
-    return frames;
-  }
-
-  function getRenderThreadDrivenFrames(renderThread) {
-    if (!renderThread)
-      return [];
-
-    var frames = [];
-    renderThread.sliceGroup.slices.forEach(function(slice) {
-      if (slice.title == RENDER_THREAD_INDEP_DRAW_NAME) {
-        frames.push({
-          'start' : slice.start,
-          'end' : slice.end,
-          'totalDuration' : slice.duration,
-          'uiInputSlice' : undefined,
-          'uiDrawSlice' : undefined,
-          'rtDrawSlice' : slice,
-          'rtSyncSlice' : undefined
-        });
-      }
-    });
-    return frames;
-  }
-
-  /**
-   * Builds a list of all frames in the trace for the app
-   */
-  function getFrames(uiThread, renderThread) {
-    var uiFrames = getUiThreadDrivenFrames(uiThread, renderThread);
-    var rtFrames = getRenderThreadDrivenFrames(renderThread);
-    var frames = uiFrames.concat(rtFrames);
-
-    // merge frames by sorting by end timestamp
-    frames.sort(function(a, b) { a.end - b.end });
-
-    return frames;
-  }
+  var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
 
   /**
    * Auditor for Android-specific traces.
    * @constructor
    */
   function AndroidAuditor(model) {
-    this.drawingApps = getDrawingApps(model);
     this.model = model;
+    this.helper = new AndroidModelHelper(model);
   };
 
   AndroidAuditor.prototype = {
     __proto__: Auditor.prototype,
 
     runAudit: function() {
-      this.drawingApps.forEach(function(drawingApp) {
+      this.helper.apps.forEach(function(app) {
         // per frame alerts
-        var frames = getFrames(drawingApp.uiThread, drawingApp.renderThread);
-        frames.forEach(this.getFrameTimingAlerts, this);
+        app.getFrames().forEach(this.getFrameTimingAlerts, this);
 
         // general alerts
-        this.addSaveLayerAlerts(drawingApp.renderThread);
+        this.addSaveLayerAlerts(app.renderThread);
       }, this);
     },
 
