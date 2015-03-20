@@ -17,7 +17,7 @@ We welcome contributions! To hack on this code, from toplevel:
 In any browser, navigate to
   http://localhost:8003/
 
-Make sure tests pass before sending us changelist. **We use retiveld for codereview**. For more details, esp on retiveld, [read our contributing guide](https://github.com/google/trace-viewer/wiki/Contributing) or check out the [trace viewer wiki](https://github.com/google/trace-viewer/wiki).
+Make sure tests pass before sending us changelist. **We use rietveld for codereview**. For more details, esp on rietveld, [read our contributing guide](https://github.com/google/trace-viewer/wiki/Contributing) or check out the [trace viewer wiki](https://github.com/google/trace-viewer/wiki).
 
 Contact Us
 ===========================================================================
