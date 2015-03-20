@@ -61,7 +61,7 @@ tv.exportTo('tv.b.ui', function() {
         col: colIndex,
         sortDirection: sortDirection
       };
-      window.history.pushState(currentState);
+      window.history.pushState(currentState, '');
     },
 
     sort: function(colIndex, opt_sortDirection) {

@@ -533,7 +533,7 @@ tv.exportTo('tv.c', function() {
       var state = {
         selection_guid: e.selection.guid
       };
-      window.history.pushState(state);
+      window.history.pushState(state, '');
 
       this.trackView_.selection = e.selection;
       e.stopPropagation();
