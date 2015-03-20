@@ -57,6 +57,12 @@ class TraceViewerProject(project_module.Project):
   d3_path = os.path.abspath(os.path.join(
       trace_viewer_third_party_path, 'd3'))
 
+  chai_path = os.path.abspath(os.path.join(
+      trace_viewer_third_party_path, 'chai'))
+
+  mocha_path = os.path.abspath(os.path.join(
+      trace_viewer_third_party_path, 'mocha'))
+
   test_data_path = os.path.join(trace_viewer_path, 'test_data')
   skp_data_path = os.path.join(trace_viewer_path, 'skp_data')
 
@@ -68,6 +74,8 @@ class TraceViewerProject(project_module.Project):
     self.source_paths.append(self.jszip_path)
     self.source_paths.append(self.glmatrix_path)
     self.source_paths.append(self.d3_path)
+    self.source_paths.append(self.chai_path)
+    self.source_paths.append(self.mocha_path)
 
     self.non_module_html_files.extendRel(self.trace_viewer_path, [
       'bin/index.html',
