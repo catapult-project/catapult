@@ -33,12 +33,12 @@ tv.exportTo('tv.e.audits', function() {
   }
 
 
-  function ChromeProcessAudit(audit, process) {
-    this.audit = audit;
+  function ChromeProcessHelper(modelHelper, process) {
+    this.modelHelper = modelHelper;
     this.process = process;
   }
 
-  ChromeProcessAudit.prototype = {
+  ChromeProcessHelper.prototype = {
     get pid() {
       return this.process.pid;
     },
@@ -77,7 +77,7 @@ tv.exportTo('tv.e.audits', function() {
   }
 
   return {
-    ChromeProcessAudit: ChromeProcessAudit,
+    ChromeProcessHelper: ChromeProcessHelper,
 
     MAIN_FRAMETIME_TYPE: MAIN_FRAMETIME_TYPE,
     IMPL_FRAMETIME_TYPE: IMPL_FRAMETIME_TYPE,

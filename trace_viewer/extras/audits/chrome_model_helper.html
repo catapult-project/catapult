@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/base/iteration_helpers.html">
-<link rel="import" href="/extras/audits/chrome_browser_audit.html">
-<link rel="import" href="/extras/audits/chrome_renderer_audit.html">
+<link rel="import" href="/extras/audits/chrome_browser_helper.html">
+<link rel="import" href="/extras/audits/chrome_renderer_helper.html">
 
 <script>
 'use strict';
@@ -45,13 +45,13 @@ tv.exportTo('tv.e.audits', function() {
   /**
    * @constructor
    */
-  function ChromeAudit(model) {
+  function ChromeModelHelper(model) {
     this.model_ = model;
 
     // Find browser.
     this.browserProcess_ = findChromeBrowserProcess(model);
     if (this.browserProcess_) {
-      this.browser_ = new tv.e.audits.ChromeBrowserAudit(
+      this.browser_ = new tv.e.audits.ChromeBrowserHelper(
           this, this.browserProcess_);
     } else {
       this.browser_ = undefined;
@@ -62,12 +62,12 @@ tv.exportTo('tv.e.audits', function() {
 
     this.renderers_ = {};
     this.rendererProcesses_.forEach(function(renderProcess) {
-      var renderer = new tv.e.audits.ChromeRendererAudit(this, renderProcess);
+      var renderer = new tv.e.audits.ChromeRendererHelper(this, renderProcess);
       this.renderers_[renderer.pid] = renderer;
     }, this);
   }
 
-  ChromeAudit.supportsModel = function(model) {
+  ChromeModelHelper.supportsModel = function(model) {
     if (findChromeBrowserProcess(model) !== undefined)
       return true;
     if (findChromeRenderProcesses(model).length)
@@ -75,7 +75,7 @@ tv.exportTo('tv.e.audits', function() {
     return false;
   }
 
-  ChromeAudit.prototype = {
+  ChromeModelHelper.prototype = {
     get pid() {
       throw new Error('woah');
     },
@@ -107,7 +107,7 @@ tv.exportTo('tv.e.audits', function() {
 
   return {
     CHROME_RENDERER_THREAD_NAME: CHROME_RENDERER_THREAD_NAME,
-    ChromeAudit: ChromeAudit
+    ChromeModelHelper: ChromeModelHelper
   };
 });
 </script>

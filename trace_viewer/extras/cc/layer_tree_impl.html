@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/audits/chrome_audit.html">
+<link rel="import" href="/extras/audits/chrome_model_helper.html">
 <link rel="import" href="/extras/cc/constants.html">
 <link rel="import" href="/extras/cc/layer_impl.html">
 <link rel="import" href="/core/trace_model/object_instance.html">
@@ -55,11 +55,11 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     _initializeTracedInputLatencies: function(traceModel) {
-      var audit = new tv.e.audits.ChromeAudit(traceModel);
-      if (!audit.browser)
+      var modelHelper = new tv.e.audits.ChromeModelHelper(traceModel);
+      if (!modelHelper.browser)
         return;
 
-      var latencyEvents = audit.browser.getLatencyEventsInRange(
+      var latencyEvents = modelHelper.browser.getLatencyEventsInRange(
           traceModel.range);
 
       // Convert all ids to InputLatency Async objects.

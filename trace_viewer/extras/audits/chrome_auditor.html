@@ -7,7 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/auditor.html">
 <link rel="import" href="/extras/audits/utils.html">
-<link rel="import" href="/extras/audits/chrome_audit.html">
+<link rel="import" href="/extras/audits/chrome_model_helper.html">
 
 <script>
 'use strict';
@@ -24,16 +24,16 @@ tv.exportTo('tv.e.audits', function() {
    */
   function ChromeAuditor(model) {
     this.model = model;
-    if (tv.e.audits.ChromeAudit.supportsModel(this.model)) {
-      var audit = new tv.e.audits.ChromeAudit(this.model);
+    if (tv.e.audits.ChromeModelHelper.supportsModel(this.model)) {
+      var modelHelper = new tv.e.audits.ChromeModelHelper(this.model);
 
       // Must be a browser in order to do audits.
-      if (audit.browser === undefined)
-        this.audit = undefined;
+      if (modelHelper.browser === undefined)
+        this.modelHelper = undefined;
       else
-        this.audit = audit;
+        this.modelHelper = modelHelper;
     } else {
-      this.audit = undefined;
+      this.modelHelper = undefined;
     }
   };
 
@@ -41,7 +41,7 @@ tv.exportTo('tv.e.audits', function() {
     __proto__: Auditor.prototype,
 
     runAudit: function() {
-      if (!this.audit)
+      if (!this.modelHelper)
         return;
 
       // ChromeAuditor is disabled when used directly inside about://tracing,
@@ -100,7 +100,7 @@ tv.exportTo('tv.e.audits', function() {
 
     addBigTaskAlerts: function() {
       var model = this.model;
-      tv.b.iterItems(this.audit.renderers, function(pid, renderer) {
+      tv.b.iterItems(this.modelHelper.renderers, function(pid, renderer) {
         var slices = renderer.mainThread.sliceGroup.slices;
         slices.forEach(function(slice) {
           if (slice.category != 'toplevel')
@@ -122,9 +122,9 @@ tv.exportTo('tv.e.audits', function() {
 
     getAllLoadAndNetEvents: function() {
       var model = this.model;
-      if (this.audit.browser === undefined)
+      if (this.modelHelper.browser === undefined)
         return;
-      var browser = this.audit.browser;
+      var browser = this.modelHelper.browser;
 
       var events = [];
       events.push.apply(
@@ -137,13 +137,13 @@ tv.exportTo('tv.e.audits', function() {
     getAllFrameEvents: function() {
       var model = this.model;
       var frameEvents = [];
-      if (this.audit.browser) {
-        var fe = this.audit.browser.getFrameEventsInRange(
+      if (this.modelHelper.browser) {
+        var fe = this.modelHelper.browser.getFrameEventsInRange(
             tv.e.audits.IMPL_FRAMETIME_TYPE,
             model.bounds);
         frameEvents.push.apply(frameEvents, fe);
       }
-      tv.b.iterItems(this.audit.renderers, function(pid, renderer) {
+      tv.b.iterItems(this.modelHelper.renderers, function(pid, renderer) {
         var fe = renderer.getFrameEventsInRange(tv.e.audits.IMPL_FRAMETIME_TYPE,
                                        model.bounds);
         frameEvents.push.apply(frameEvents, fe);
@@ -153,9 +153,10 @@ tv.exportTo('tv.e.audits', function() {
     },
 
     getAllLatencyEvents: function() {
-      if (!this.audit.browser)
+      if (!this.modelHelper.browser)
         return [];
-      return this.audit.browser.getLatencyEventsInRange(this.model.bounds);
+      return this.modelHelper.browser.getLatencyEventsInRange(
+          this.model.bounds);
     }
   };
 

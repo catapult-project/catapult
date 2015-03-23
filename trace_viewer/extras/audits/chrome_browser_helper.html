@@ -4,7 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/extras/audits/chrome_process_audit.html">
+<link rel="import" href="/extras/audits/chrome_process_helper.html">
 
 <script>
 'use strict';
@@ -18,12 +18,12 @@ tv.exportTo('tv.e.audits', function() {
   var BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT';
   var END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT';
 
-  function ChromeBrowserAudit(audit, process) {
-    tv.e.audits.ChromeProcessAudit.call(this, audit, process);
+  function ChromeBrowserHelper(modelHelper, process) {
+    tv.e.audits.ChromeProcessHelper.call(this, modelHelper, process);
   }
 
-  ChromeBrowserAudit.prototype = {
-    __proto__: tv.e.audits.ChromeProcessAudit.prototype,
+  ChromeBrowserHelper.prototype = {
+    __proto__: tv.e.audits.ChromeProcessHelper.prototype,
 
     getLoadingEventsInRange: function(rangeOfInterest) {
       var loadingEvents = [];
@@ -40,7 +40,7 @@ tv.exportTo('tv.e.audits', function() {
 
     get hasLatencyEvents() {
       var hasLatency = false;
-      this.audit.model.getAllThreads().forEach(function(thread) {
+      this.modelHelper.model.getAllThreads().forEach(function(thread) {
         thread.iterateAllEvents(function(event) {
           if (event.title.indexOf('InputLatency') === 0)
             hasLatency = true;
@@ -51,7 +51,7 @@ tv.exportTo('tv.e.audits', function() {
 
     getLatencyEventsInRange: function(rangeOfInterest) {
       var latencyEvents = [];
-      this.audit.model.getAllThreads().forEach(function(thread) {
+      this.modelHelper.model.getAllThreads().forEach(function(thread) {
         thread.iterateAllEvents(function(event) {
           if (event.title.indexOf('InputLatency') !== 0)
             return;
@@ -103,7 +103,7 @@ tv.exportTo('tv.e.audits', function() {
 
     getAllNetworkEventsInRange: function(rangeOfInterest) {
       var networkEvents = [];
-      this.audit.model.getAllThreads().forEach(function(thread) {
+      this.modelHelper.model.getAllThreads().forEach(function(thread) {
         thread.asyncSliceGroup.slices.forEach(function(slice) {
           var match = false;
           if (slice.cat == 'net' || // old-style URLRequest/Resource slices.
@@ -124,7 +124,7 @@ tv.exportTo('tv.e.audits', function() {
   };
 
   return {
-    ChromeBrowserAudit: ChromeBrowserAudit
+    ChromeBrowserHelper: ChromeBrowserHelper
   };
 });
 </script>
