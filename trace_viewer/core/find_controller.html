@@ -77,6 +77,7 @@ tv.exportTo('tv.c', function() {
 
     clearFindSelections_: function() {
       this.timeline.setHighlightAndClearSelection(new tv.c.Selection());
+      this.timeline.removeXNavStringMarker();
     },
 
     /**

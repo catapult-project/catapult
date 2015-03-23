@@ -20,6 +20,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/timeline_display_transform_animations.html">
 <link rel="import" href="/core/timing_tool.html">
 <link rel="import" href="/core/trace_model/event.html">
+<link rel="import" href="/core/trace_model/x_marker_annotation.html">
 <link rel="import" href="/core/tracks/drawing_container.html">
 <link rel="import" href="/core/tracks/trace_model_track.html">
 <link rel="import" href="/core/tracks/ruler_track.html">
@@ -627,6 +628,17 @@ tv.exportTo('tv.c', function() {
           this.viewport_.currentDisplayTransform.panY,
           zoomInRatio);
       this.viewport_.queueDisplayTransformAnimation(animation);
+
+      // Add an X Marker Annotation at the specified timestamp.
+      if (this.xNavStringMarker_)
+        this.model.removeAnnotation(this.xNavStringMarker_);
+      this.xNavStringMarker_ = new tv.c.trace_model.XMarkerAnnotation(
+          this.viewport_, worldCenter);
+      this.model.addAnnotation(this.xNavStringMarker_);
+    },
+
+    removeXNavStringMarker: function() {
+      this.model.removeAnnotation(this.xNavStringMarker_);
     },
 
     setCurrentSelectionAsInterestRange_: function() {
