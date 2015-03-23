@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/location.html">
+<link rel="import" href="/core/trace_model/rect_annotation.html">
+<link rel="import" href="/core/trace_model/x_marker_annotation.html">
+<link rel="import" href="/core/test_utils.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+
+  test('rectAnnotation', function() {
+    var vp = undefined;
+
+    var fakeYComponents = [{stableId: '1.2', yPercentOffset: 0.5}];
+    var start = new tv.c.Location(vp, 50, fakeYComponents);
+    var end = new tv.c.Location(vp, 70, fakeYComponents);
+    var rectAnnotation = new tv.c.trace_model.RectAnnotation(vp, start, end);
+    assertEquals(start, rectAnnotation.startLocation);
+    assertEquals(end, rectAnnotation.endLocation);
+  });
+
+  test('xMarkerAnnotation', function() {
+    var vp = undefined;
+
+    var xMarkerAnnotation = new tv.c.trace_model.XMarkerAnnotation(vp, 2000);
+    assertEquals(2000, xMarkerAnnotation.timestamp);
+  });
+});
+</script>

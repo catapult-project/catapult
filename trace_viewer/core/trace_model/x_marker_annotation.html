@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/trace_model/annotation.html">
+<link rel="import" href="/core/tracks/x_marker_annotation_view.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c.trace_model', function() {
+
+  function XMarkerAnnotation(viewport, timestamp) {
+    tv.c.trace_model.Annotation.apply(this, arguments);
+
+    this.timestamp_ = timestamp; // Location of top-left corner.
+    this.strokeStyle = 'rgba(0, 0, 255, 0.5)';
+  }
+
+  XMarkerAnnotation.prototype = {
+    __proto__: tv.c.trace_model.Annotation.prototype,
+
+    get timestamp() {
+      return this.timestamp_;
+    },
+
+    createView_: function() {
+      return new tv.c.annotations.XMarkerAnnotationView(this.viewport_, this);
+    }
+  };
+
+  return {
+    XMarkerAnnotation: XMarkerAnnotation
+  };
+});
+</script>

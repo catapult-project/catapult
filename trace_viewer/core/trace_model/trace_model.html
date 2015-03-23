@@ -120,6 +120,8 @@ tv.exportTo('tv.c', function() {
 
     this.globalMemoryDumps = [];
 
+    this.annotationsByGuid_ = {};
+
     this.importWarnings_ = [];
     this.reportedImportWarnings_ = {};
 
@@ -283,6 +285,27 @@ tv.exportTo('tv.c', function() {
         }
       }
       return counters;
+    },
+
+    getAnnotationByGUID: function(guid) {
+      return this.annotationsByGuid_[guid];
+    },
+
+    addAnnotation: function(annotation) {
+      if (!annotation.guid)
+        throw new Error('Annotation with undefined guid given');
+
+      this.annotationsByGuid_[annotation.guid] = annotation;
+      tv.b.dispatchSimpleEvent(this, 'annotationChange');
+    },
+
+    removeAnnotation: function(annotation) {
+      delete this.annotationsByGuid_[annotation.guid];
+      tv.b.dispatchSimpleEvent(this, 'annotationChange');
+    },
+
+    getAllAnnotations: function() {
+      return tv.b.dictionaryValues(this.annotationsByGuid_);
     },
 
     /**

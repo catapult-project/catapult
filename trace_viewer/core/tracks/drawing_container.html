@@ -22,7 +22,8 @@ tv.exportTo('tv.c.tracks', function() {
     GRID: 4,
     FLOW_ARROWS: 5,
     MARKERS: 6,
-    HIGHLIGHTS: 7
+    HIGHLIGHTS: 7,
+    ANNOTATIONS: 8
   };
 
   var DrawingContainer = tv.b.ui.define('drawing-container',
@@ -83,7 +84,8 @@ tv.exportTo('tv.c.tracks', function() {
         DrawType.GRID,
         DrawType.INSTANT_EVENT,
         DrawType.SLICE,
-        DrawType.MARKERS
+        DrawType.MARKERS,
+        DrawType.ANNOTATIONS
       ];
 
       if (this.viewport.showFlowEvents)

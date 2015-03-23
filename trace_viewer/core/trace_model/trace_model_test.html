@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/annotation.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/extras/full_config.html">
 
@@ -353,6 +354,26 @@ tv.b.unittest.testSuite(function() {
     assertEquals(0, p.memoryDumps[0].start);
     assertEquals(2, p.memoryDumps[1].start);
     assertEquals(4, p.memoryDumps[2].start);
+  });
+
+  test('traceModel_annotationAddRemove', function() {
+    var m = new tv.c.TraceModel();
+    var a1 = new tv.c.trace_model.Annotation();
+    var a2 = new tv.c.trace_model.Annotation();
+
+    assertEquals(0, m.getAllAnnotations().length);
+    m.addAnnotation(a1);
+    assertEquals(1, m.getAllAnnotations().length);
+    m.addAnnotation(a2);
+    assertEquals(2, m.getAllAnnotations().length);
+
+    assertEquals(a1, m.getAnnotationByGUID(a1.guid));
+    assertEquals(a2, m.getAnnotationByGUID(a2.guid));
+
+    m.removeAnnotation(a1);
+    assertUndefined(m.getAnnotationByGUID(a1.guid));
+    assertEquals(a2, m.getAnnotationByGUID(a2.guid));
+    assertEquals(1, m.getAllAnnotations().length);
   });
 });
 </script>

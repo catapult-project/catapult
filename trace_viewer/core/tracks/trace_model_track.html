@@ -81,6 +81,7 @@ tv.exportTo('tv.c.tracks', function() {
         });
 
       this.upperMode_ = false;
+      this.annotationViews_ = [];
     },
 
     // upperMode is true if the track is being used on the ruler.
@@ -104,6 +105,9 @@ tv.exportTo('tv.c.tracks', function() {
     set model(model) {
       this.model_ = model;
       this.updateContents_();
+
+      this.model_.addEventListener('annotationChange',
+          this.updateAnnotations_.bind(this));
     },
 
     get hasVisibleContent() {
@@ -163,6 +167,16 @@ tv.exportTo('tv.c.tracks', function() {
 
       for (var i = 0; i < this.highlighters_.length; i++) {
         this.highlighters_[i].processModel(this.model_);
+      }
+
+      this.updateAnnotations_();
+    },
+
+    updateAnnotations_: function() {
+      this.annotationViews_ = [];
+      var annotations = this.model_.getAllAnnotations();
+      for (var i = 0; i < annotations.length; i++) {
+        this.annotationViews_.push(annotations[i].view);
       }
     },
 
@@ -258,6 +272,13 @@ tv.exportTo('tv.c.tracks', function() {
           for (var i = 0; i < this.highlighters_.length; i++) {
             this.highlighters_[i].drawHighlight(ctx, dt, viewLWorld, viewRWorld,
                 bounds.height);
+          }
+          ctx.restore();
+          return;
+
+        case tv.c.tracks.DrawType.ANNOTATIONS:
+          for (var i = 0; i < this.annotationViews_.length; i++) {
+            this.annotationViews_[i].draw(this.context());
           }
           ctx.restore();
           return;

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/guid.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c.trace_model', function() {
+  /**
+   * Annotation is a base class that represents all annotation objects that
+   * can be drawn on the timeline.
+   *
+   * @constructor
+   */
+  function Annotation(viewport) {
+    this.guid_ = tv.b.GUID.allocate();
+    this.viewport_ = viewport;
+    this.view_ = undefined;
+  };
+
+  Annotation.prototype = {
+    get guid() {
+      return this.guid_;
+    },
+
+    get view() {
+      if (!this.view_)
+        this.view_ = this.createView_(this.viewport_);
+      return this.view_;
+    },
+
+    createView_: function() {
+      throw new Error('Not implemented');
+    }
+  };
+
+  return {
+    Annotation: Annotation
+  };
+});
+</script>
