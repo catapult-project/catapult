@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/core/importer/importer.html">
+
+<script>
+/**
+ * @fileoverview Blah
+ */
+'use strict';
+
+tv.exportTo('tv.e.importer.ddms', function() {
+  var Importer = tv.c.importer.Importer;
+
+  /**
+   * Imports Windows ETW kernel events into a specified model.
+   * @constructor
+   */
+  function DdmsImporter(model, data) {
+    this.importPriority = 3;
+    this.model_ = model;
+    this.events_ = data;
+  }
+
+  /**
+   * Guesses whether the provided events is from a Windows ETW trace.
+   * The object must has a property named 'name' with the value 'ETW' and
+   * a property 'content' with all the undecoded events.
+   *
+   * @return {boolean} True when events is a Windows ETW array.
+   */
+  DdmsImporter.canImport = function(data) {
+    /* key bit */
+    return false;
+  };
+
+  DdmsImporter.prototype = {
+    __proto__: Importer.prototype,
+
+    get model() {
+      return this.model_;
+    },
+
+    /**
+     * Imports the data in this.events_ into this.model_.
+     */
+    importEvents: function(isSecondaryImport) {
+      /// todo
+    }
+  };
+
+  // Register the EtwImporter to the Importer.
+  tv.c.importer.Importer.register(DdmsImporter);
+
+  return {
+    DdmsImporter: DdmsImporter
+  };
+});
+</script>
