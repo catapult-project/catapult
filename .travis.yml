@@ -1,0 +1,36 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+language: python
+
+python:
+  - "2.7"
+
+before_install:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - export CHROME_DEV_VER=$(
+    curl -s http://omahaproxy.appspot.com/all | grep linux,dev | cut -d, -f3)
+  - echo "Downloading Chrome dev channel ($CHROME_DEV_VER)"
+  - GCS="https://commondatastorage.googleapis.com/chrome-unsigned"
+  - curl -s $GCS/desktop-W15K3Y/$CHROME_DEV_VER/precise64/chrome-precise64.zip
+    -o /tmp/chrome.zip
+  - unzip -q /tmp/chrome.zip -d /tmp
+
+script:
+# Run first the python tests.
+ - ./run_tests
+
+# Then the interactive tests in headless mode.
+ - (sleep 5 &&
+    /tmp/chrome-precise64/chrome --no-sandbox -no-experiments --no-first-run
+    --noerrdialogs "http://localhost:8003/base/tests.html?headless=true")&
+
+# The individual test results will be communicated back to the server together
+# final test outcome ("all passed" or not), which will determine the exit code
+# of the dev server.
+ - ./run_dev_server
+
+# Kill Chrome.
+ - kill %1 && true

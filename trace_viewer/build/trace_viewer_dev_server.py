@@ -2,9 +2,9 @@
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import json
 import os
 import sys
-import json
 
 from trace_viewer import trace_viewer_project
 import tvcm
@@ -66,6 +66,22 @@ def do_GET_json_tests(self):
   self.end_headers()
   self.wfile.write(tests_as_json)
 
+def do_POST_report_test_results(request):
+  request.send_response(200)
+  request.send_header('Content-Length', '0')
+  request.end_headers()
+  msg = request.rfile.read()
+  ostream = sys.stdout if 'PASSED' in msg else sys.stderr
+  ostream.write(msg + '\n')
+
+def do_POST_report_test_completion(request):
+  request.send_response(200)
+  request.send_header('Content-Length', '0')
+  request.end_headers()
+  msg = request.rfile.read()
+  sys.stdout.write(msg + '\n')
+  request.server.RequestShutdown(exit_code=(0 if 'ALL_PASSED' in msg else 1))
+
 def Main(args):
   port = 8003
   project = trace_viewer_project.TraceViewerProject()
@@ -78,4 +94,11 @@ def Main(args):
   server.AddSourcePathMapping(project.trace_viewer_path)
   server.AddTestLink('/examples/skia_debugger.html', 'Skia Debugger')
   server.AddTestLink('/examples/trace_viewer.html', 'Trace File Viewer')
+
+  server.AddPathHandler('/test_automation/notify_test_result',
+                        do_POST_report_test_results, supports_post=True)
+  server.AddPathHandler('/test_automation/notify_completion',
+                        do_POST_report_test_completion, supports_post=True)
+
+
   server.serve_forever()

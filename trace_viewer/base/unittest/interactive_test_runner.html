@@ -119,6 +119,7 @@ tv.exportTo('tv.b.unittest', function() {
       this.rerunPending_ = false;
       this.runner_ = undefined;
       this.results_ = undefined;
+      this.headless_ = false;
 
       this.onResultsStatsChanged_ = this.onResultsStatsChanged_.bind(this);
       this.onTestFailed_ = this.onTestFailed_.bind(this);
@@ -309,6 +310,7 @@ tv.exportTo('tv.b.unittest', function() {
       }
 
       this.results_ = new tv.b.unittest.HTMLTestResults();
+      this.results_.headless = this.headless_;
       this.results_.getHRefForTestCase = this.getHRefForTestCase.bind(this);
       this.updateResultsGivenShortFormat_();
 
@@ -356,6 +358,7 @@ tv.exportTo('tv.b.unittest', function() {
         this.testTypeToRun = state.testTypeToRun;
 
       this.testSuiteName_ = state.testSuiteName || '';
+      this.headless_ = state.headless || false;
 
       if (!opt_suppressStateChange)
         this.suppressStateChange_ = false;

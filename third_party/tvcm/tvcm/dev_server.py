@@ -151,6 +151,7 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def __init__(self, port, quiet=False, project=None):
     BaseHTTPServer.HTTPServer.__init__(
         self, ('localhost', port), DevServerHandler)
+    self._shutdown_request = None
     self._quiet = quiet
     if port == 0:
       port = self.server_address[1]
@@ -187,6 +188,9 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     self._test_links.append({'path': path,
                              'title': title})
 
+  def RequestShutdown(self, exit_code):
+    self._shutdown_request = exit_code
+
   @property
   def test_links(self):
     return self._test_links
@@ -207,6 +211,10 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     if not self._quiet:
       sys.stderr.write("Now running on http://localhost:%i\n" % self._port)
     try:
-      BaseHTTPServer.HTTPServer.serve_forever(self)
+      self.timeout = 0.5
+      while True:
+        BaseHTTPServer.HTTPServer.handle_request(self)
+        if self._shutdown_request is not None:
+          sys.exit(self._shutdown_request)
     except KeyboardInterrupt:
       sys.exit(0)
