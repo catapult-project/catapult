@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -18,7 +18,7 @@ tv.exportTo('tv.e.importer.ddms', function() {
   var Importer = tv.c.importer.Importer;
 
   /**
-   * Imports Windows ETW kernel events into a specified model.
+   * Imports DDMS events into a specified model.
    * @constructor
    */
   function DdmsImporter(model, data) {
@@ -28,11 +28,8 @@ tv.exportTo('tv.e.importer.ddms', function() {
   }
 
   /**
-   * Guesses whether the provided events is from a Windows ETW trace.
-   * The object must has a property named 'name' with the value 'ETW' and
-   * a property 'content' with all the undecoded events.
-   *
-   * @return {boolean} True when events is a Windows ETW array.
+   * Guesses whether the provided events is a DDMS trace.
+   * @return {boolean} True when events are a DDMS trace.
    */
   DdmsImporter.canImport = function(data) {
     /* key bit */
