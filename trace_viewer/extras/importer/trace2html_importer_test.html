@@ -23,7 +23,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       '</html>'
     ];
     var html_text = html_lines.join('\n');
-    assertTrue(tv.e.importer.Trace2HTMLImporter.canImport(html_text));
+    assert.isTrue(tv.e.importer.Trace2HTMLImporter.canImport(html_text));
 
     var m = new tv.c.TraceModel();
     var imp = new tv.e.importer.Trace2HTMLImporter(m, html_text);
@@ -35,7 +35,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         str += String.fromCharCode(ary[i]);
       return str;
     });
-    assertArrayEquals(['hello', 'world'], subTracesAsStrings);
+    assert.deepEqual(['hello', 'world'], subTracesAsStrings);
   });
 });
 </script>
