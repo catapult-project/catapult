@@ -293,6 +293,7 @@
       'trace_viewer/extras/importer/linux_perf/memreclaim_parser.html',
       'trace_viewer/extras/importer/linux_perf/parser.html',
       'trace_viewer/extras/importer/linux_perf/power_parser.html',
+      'trace_viewer/extras/importer/linux_perf/regulator_parser.html',
       'trace_viewer/extras/importer/linux_perf/sched_parser.html',
       'trace_viewer/extras/importer/linux_perf/sync_parser.html',
       'trace_viewer/extras/importer/linux_perf/workqueue_parser.html',
