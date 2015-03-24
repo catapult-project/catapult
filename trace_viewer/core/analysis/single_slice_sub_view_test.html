@@ -179,7 +179,7 @@ tv.b.unittest.testSuite(function() {
     assertEquals(3, table.tableRows.length);
     assertEquals('b', table.tableRows[0].value);
     assertEquals('0 ms', table.tableRows[1].value);
-    assertEquals('0.002 ms', table.tableRows[2].value);
+    assertEquals(0.002, table.tableRows[2].value.duration);
   });
 
   test('analyzeSelectionWithSingleSliceCategory', function() {
@@ -192,7 +192,7 @@ tv.b.unittest.testSuite(function() {
     assertEquals('b', table.tableRows[0].value);
     assertEquals('foo', table.tableRows[1].value);
     assertEquals('0 ms', table.tableRows[2].value);
-    assertEquals('0.002 ms', table.tableRows[3].value);
+    assertEquals(0.002, table.tableRows[3].value.duration);
   });
 
   test('instantiate_withSingleSliceContainingIDRef', function() {
