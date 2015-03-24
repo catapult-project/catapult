@@ -16,7 +16,6 @@
       'trace_viewer/base/ui/sunburst_chart.css',
       'trace_viewer/base/ui/tool_button.css',
       'trace_viewer/core/analysis/analysis_results.css',
-      'trace_viewer/core/analysis/generic_object_view.css',
       'trace_viewer/core/side_panel/side_panel_container.css',
       'trace_viewer/core/timeline_track_view.css',
       'trace_viewer/core/timeline_view.css',

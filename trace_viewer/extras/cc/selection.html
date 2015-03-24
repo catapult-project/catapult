@@ -11,8 +11,6 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.e.cc', function() {
-  var GenericObjectViewWithLabel = tv.c.analysis.GenericObjectViewWithLabel;
-
   function Selection() {
     this.selectionToSetIfClicked = undefined;
   };
@@ -97,7 +95,8 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     createAnalysis: function() {
-      var dataView = new GenericObjectViewWithLabel();
+      var dataView = document.createElement(
+          'tv-c-analysis-generic-object-view-with-label');
       dataView.label = 'RenderPass ' + this.renderPassId_;
       dataView.object = this.renderPass_.args;
       return dataView;
@@ -137,7 +136,8 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     createAnalysis: function() {
-      var dataView = new GenericObjectViewWithLabel();
+      var dataView = document.createElement(
+          'tv-c-analysis-generic-object-view-with-label');
       dataView.label = 'Layer ' + this.layer_.layerId;
       if (this.layer_.usingGpuRasterization)
         dataView.label += ' (GPU-rasterized)';
@@ -189,7 +189,8 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     createAnalysis: function() {
-      var analysis = new GenericObjectViewWithLabel();
+      var analysis = document.createElement(
+          'tv-c-analysis-generic-object-view-with-label');
       analysis.label = 'Tile ' + this.tile_.objectInstance.id + ' on layer ' +
           this.tile_.layerId;
       if (this.data_) {
@@ -249,7 +250,8 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     createAnalysis: function() {
-      var analysis = new GenericObjectViewWithLabel();
+      var analysis = document.createElement(
+          'tv-c-analysis-generic-object-view-with-label');
       analysis.label = this.rectType_ + ' on layer ' + this.layer_.layerId;
       analysis.object = this.data_;
       return analysis;
@@ -280,7 +282,8 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     createAnalysis: function() {
-      var analysis = new GenericObjectViewWithLabel();
+      var analysis = document.createElement(
+          'tv-c-analysis-generic-object-view-with-label');
       analysis.label = 'Animation Bounds of layer ' + this.layer_.layerId;
       analysis.object = this.rect_;
       return analysis;

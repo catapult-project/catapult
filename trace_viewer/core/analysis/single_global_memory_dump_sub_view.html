@@ -41,7 +41,8 @@ found in the LICENSE file.
         pidToProcessMemoryMap[pid] = pd.args;
       }
 
-      var objectView = tv.c.analysis.GenericObjectView();
+      var objectView =
+          document.createElement('tv-c-analysis-generic-object-view');
       objectView.object = pidToProcessMemoryMap;
       this.appendChild(objectView);
     }

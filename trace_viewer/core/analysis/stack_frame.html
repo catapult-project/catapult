@@ -15,14 +15,14 @@ found in the LICENSE file.
       align-items: center;
     }
     </style>
-    <x-generic-object-view id="ov"></x-generic-object-view>
+    <tv-c-analysis-generic-object-view id="ov">
+    </tv-c-analysis-generic-object-view>
   </template>
   <script>
   'use strict';
 
   Polymer({
     ready: function() {
-      tv.b.ui.decorate(this.$.ov, tv.c.analysis.GenericObjectView);
       this.stackFrame_ = undefined;
     },
 

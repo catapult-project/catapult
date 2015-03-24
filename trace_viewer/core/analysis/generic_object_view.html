@@ -5,25 +5,26 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/core/analysis/generic_object_view.css">
-
 <link rel="import" href="/core/analysis/analysis_link.html">
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/ui.html">
 
-<script>
-'use strict';
+<polymer-element name="tv-c-analysis-generic-object-view"
+    is="HTMLUnknownElement">
+  <template>
+    <style>
+    :host {
+      display: block;
+      font-family: monospace;
+    }
+    </style>
+  </template>
 
-tv.exportTo('tv.c.analysis', function() {
-  /**
-   * @constructor
-   */
-  var GenericObjectView = tv.b.ui.define('x-generic-object-view');
+  <script>
+  'use strict';
 
-  GenericObjectView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
-
-    decorate: function() {
+  Polymer({
+    ready: function() {
       this.object_ = undefined;
     },
 
@@ -184,21 +185,28 @@ tv.exportTo('tv.c.analysis', function() {
       this.appendElementWithLabel_(label, indent, el, suffix);
       return el;
     }
+  });
+  </script>
+</polymer-element>
 
-  };
+<polymer-element name="tv-c-analysis-generic-object-view-with-label"
+    is="HTMLUnknownElement">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    </style>
+  </template>
 
-  /**
-   * @constructor
-   */
-  var GenericObjectViewWithLabel = tv.b.ui.define(
-      'x-generic-object-view-with-label');
+  <script>
+  'use strict';
 
-  GenericObjectViewWithLabel.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
-
-    decorate: function() {
+  Polymer({
+    ready: function() {
       this.labelEl_ = document.createElement('div');
-      this.genericObjectView_ = new tv.c.analysis.GenericObjectView();
+      this.genericObjectView_ =
+          document.createElement('tv-c-analysis-generic-object-view');
       this.appendChild(this.labelEl_);
       this.appendChild(this.genericObjectView_);
     },
@@ -218,11 +226,6 @@ tv.exportTo('tv.c.analysis', function() {
     set object(object) {
       this.genericObjectView_.object = object;
     }
-  };
-
-  return {
-    GenericObjectView: GenericObjectView,
-    GenericObjectViewWithLabel: GenericObjectViewWithLabel
-  };
-});
-</script>
+  });
+  </script>
+</polymer-element>

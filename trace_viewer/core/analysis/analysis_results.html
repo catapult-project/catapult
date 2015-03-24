@@ -197,7 +197,8 @@ tv.exportTo('tv.c.analysis', function() {
         var row = this.appendBodyRow(table);
       this.appendTableCell_(table, row, 0, label);
       if (opt_value !== undefined) {
-        var objectView = new tv.c.analysis.GenericObjectView();
+        var objectView =
+            document.createElement('tv-c-analysis-generic-object-view');
         objectView.object = opt_value;
         objectView.classList.add('analysis-table-col-1');
         objectView.style.display = 'table-cell';
@@ -275,7 +276,8 @@ tv.exportTo('tv.c.analysis', function() {
       if (n > 0) {
         for (var argName in args) {
           var argVal = args[argName];
-          var objectView = new tv.c.analysis.GenericObjectView();
+          var objectView =
+              document.createElement('tv-c-analysis-generic-object-view');
           objectView.object = argVal;
           var argsRow = this.appendElement_(
               this.appendElement_(argsCell, 'table'), 'tr');

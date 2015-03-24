@@ -107,7 +107,8 @@ found in the LICENSE file.
 
       var argsEl = this.querySelector('#args');
       argsEl.textContent = '';
-      var objectView = tv.c.analysis.GenericObjectView();
+      var objectView =
+          document.createElement('tv-c-analysis-generic-object-view');
       objectView.object = snapshot.args;
       argsEl.appendChild(objectView);
     }

@@ -147,7 +147,8 @@ found in the LICENSE file.
 
       var argsEl = shadowRoot.querySelector('#args');
       if (tv.b.dictionaryKeys(timeSlice.args).length > 0) {
-        var argsView = new tv.c.analysis.GenericObjectView();
+        var argsView =
+            document.createElement('tv-c-analysis-generic-object-view');
         argsView.object = timeSlice.args;
 
         argsEl.parentElement.style.display = '';

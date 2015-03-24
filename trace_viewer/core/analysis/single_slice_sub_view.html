@@ -139,7 +139,8 @@ found in the LICENSE file.
       if (n > 0) {
         var subRows = [];
         for (var argName in slice.args) {
-          var argView = new tv.c.analysis.GenericObjectView();
+          var argView =
+              document.createElement('tv-c-analysis-generic-object-view');
           argView.object = slice.args[argName];
           subRows.push({ name: argName,
                       value: argView});
