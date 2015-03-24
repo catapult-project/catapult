@@ -77,7 +77,6 @@ class TracingBackendTest(tab_test_case.TabTestCase):
       self.skipTest('Browser does not support tracing, skipping test.')
     self._StartServer()
 
-  @decorators.Disabled('chromeos') # crbug.com/412713.
   def testGotTrace(self):
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True
@@ -89,7 +88,6 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     model = model_module.TimelineModel(trace_data)
     assert len(model.processes) > 0
 
-  @decorators.Disabled('chromeos') # crbug.com/412713.
   def testStartAndStopTraceMultipleTimes(self):
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True

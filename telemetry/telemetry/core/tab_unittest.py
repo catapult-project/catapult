@@ -97,7 +97,6 @@ class TabTest(tab_test_case.TabTestCase):
       self._tab.browser._platform_backend = original_platform_backend
 
   # Test failing on android: http://crbug.com/437057
-  # Also for chromeos: http://crbug.com/412713
   # and mac: http://crbug.com/468675
   @decorators.Disabled('android', 'chromeos', 'mac')
   def testHighlight(self):
@@ -120,7 +119,6 @@ class TabTest(tab_test_case.TabTestCase):
     self.assertTrue(found_video_start_event)
 
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos') # crbug.com/412713.
   def testGetRendererThreadFromTabId(self):
     self.assertEquals(self._tab.url, 'about:blank')
     # Create 3 tabs. The third tab is closed before we call
