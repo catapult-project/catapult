@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-gCopyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -57,28 +57,21 @@ tv.exportTo('tv.b', function() {
 
     buildElementMapsIfNeeded();
 
-    element = getPolymerElementNamed(tagName);
+    var element = getPolymerElementNamed(tagName);
     if (!element)
       throw new Error(tagName + ' is not a polymer element');
 
-    opt_includeSelf = !!opt_includeSelf;
-
     if (elementSubclasses[tagName] === undefined) {
-
-      immediateSubElements = elementsThatExtend[polymerElement];
-      var allSubElements;
-      if (immediateSubElements.length) {
+      var immediateSubElements = elementsThatExtend[element.name];
+      var allSubElements = [];
+      if (immediateSubElements !== undefined && immediateSubElements.length) {
         immediateSubElements.forEach(function(subElement) {
           allSubElements.push.apply(
-            allSubElements,
-            getPolymerElementsThatSubclass(subElement.name));
+            allSubElements, getPolymerElementsThatSubclass(subElement));
         });
-      } else {
-        elementSubclasses[tagName] = immediateSubElements;
       }
       elementSubclasses[tagName] = allSubElements;
     }
-
     return elementSubclasses[tagName];
   }
 
