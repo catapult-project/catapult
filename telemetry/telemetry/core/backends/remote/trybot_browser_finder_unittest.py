@@ -42,35 +42,52 @@ class TrybotBrowserFinderTest(unittest.TestCase):
           'Popen').WithArgs(arg[0]).WillReturn(mock_popen)
     trybot_browser_finder.subprocess = mock_subprocess
 
-  def test_find_all_browser_types_list(self):
-    finder_options = browser_options.BrowserFinderOptions(browser_type='list')
+  def _MockTryserverJson(self, bots_dict):
     trybot_browser_finder.urllib2 = simple_mock.MockObject()
     trybot_browser_finder.urllib2.ExpectCall('urlopen').WithArgs(
         'http://build.chromium.org/p/tryserver.chromium.perf/json').WillReturn(
-            StringIO.StringIO(json.dumps({'builders': {
-                'android_nexus4_perf_bisect': 'stuff',
-                'mac_10_9_perf_bisect': 'otherstuff',
-                'win_perf_bisect_builder': 'not a trybot',
-            }})))
+            StringIO.StringIO(json.dumps({'builders': bots_dict})))
+
+  def test_find_all_browser_types_list(self):
+    finder_options = browser_options.BrowserFinderOptions(browser_type='list')
+    self._MockTryserverJson({
+        'android_nexus4_perf_bisect': 'stuff',
+        'mac_10_9_perf_bisect': 'otherstuff',
+        'win_perf_bisect_builder': 'not a trybot',
+    })
+    expected_trybots_list = [
+        'trybot-all',
+        'trybot-all-android',
+        'trybot-all-linux',
+        'trybot-all-mac',
+        'trybot-all-win',
+        'trybot-android-nexus4',
+        'trybot-mac-10-9'
+    ]
+
     self.assertEquals(
-        ['trybot-android-nexus4', 'trybot-mac-10-9'],
-        # pylint: disable=W0212
+        expected_trybots_list,
         sorted(trybot_browser_finder.FindAllBrowserTypes(finder_options)))
 
   def test_find_all_browser_types_trybot(self):
     finder_options = browser_options.BrowserFinderOptions(
         browser_type='trybot-win')
-    trybot_browser_finder.urllib2 = simple_mock.MockObject()
-    trybot_browser_finder.urllib2.ExpectCall('urlopen').WithArgs(
-        'http://build.chromium.org/p/tryserver.chromium.perf/json').WillReturn(
-            StringIO.StringIO(json.dumps({'builders': {
-                'android_nexus4_perf_bisect': 'stuff',
-                'mac_10_9_perf_bisect': 'otherstuff',
-                'win_perf_bisect_builder': 'not a trybot',
-            }})))
+    self._MockTryserverJson({
+        'android_nexus4_perf_bisect': 'stuff',
+        'mac_10_9_perf_bisect': 'otherstuff',
+        'win_perf_bisect_builder': 'not a trybot',
+    })
+    expected_trybots_list = [
+        'trybot-all',
+        'trybot-all-android',
+        'trybot-all-linux',
+        'trybot-all-mac',
+        'trybot-all-win',
+        'trybot-android-nexus4',
+        'trybot-mac-10-9'
+    ]
     self.assertEquals(
-        ['trybot-android-nexus4', 'trybot-mac-10-9'],
-        # pylint: disable=W0212
+        expected_trybots_list,
         sorted(trybot_browser_finder.FindAllBrowserTypes(finder_options)))
 
   def test_find_all_browser_types_non_trybot_browser(self):
@@ -84,15 +101,134 @@ class TrybotBrowserFinderTest(unittest.TestCase):
 
   def test_constructor(self):
     finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({
+        'android_nexus4_perf_bisect': 'stuff',
+        'mac_10_9_perf_bisect': 'otherstuff',
+        'win_perf_bisect_builder': 'not a trybot',
+    })
     browser = trybot_browser_finder.PossibleTrybotBrowser(
         'trybot-android-nexus4', finder_options)
+    self.assertEquals('android', browser.target_os)
     # pylint: disable=W0212
-    self.assertEquals('android', browser._target_os)
+    self.assertTrue('android' in browser._builder_names)
+    self.assertEquals(['android_nexus4_perf_bisect'],
+                      browser._builder_names.get('android'))
+
+  def test_constructor_trybot_all(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({
+        'android_nexus4_perf_bisect': 'stuff',
+        'android_nexus5_perf_bisect': 'stuff2',
+        'mac_10_9_perf_bisect': 'otherstuff',
+        'mac_perf_bisect': 'otherstuff1',
+        'win_perf_bisect': 'otherstuff2',
+        'linux_perf_bisect': 'otherstuff3',
+        'win_x64_perf_bisect': 'otherstuff4',
+        'win_perf_bisect_builder': 'not a trybot',
+    })
+    browser = trybot_browser_finder.PossibleTrybotBrowser(
+        'trybot-all', finder_options)
+    self.assertEquals('all', browser.target_os)
     # pylint: disable=W0212
-    self.assertEquals('android_nexus4_perf_bisect', browser._buildername)
+    self.assertEquals(
+        ['android', 'linux', 'mac', 'win', 'win-x64'],
+        sorted(browser._builder_names))
+    self.assertEquals(
+        ['android_nexus4_perf_bisect', 'android_nexus5_perf_bisect'],
+        sorted(browser._builder_names.get('android')))
+    self.assertEquals(
+        ['mac_10_9_perf_bisect', 'mac_perf_bisect'],
+        sorted(browser._builder_names.get('mac')))
+    self.assertEquals(
+        ['linux_perf_bisect'], sorted(browser._builder_names.get('linux')))
+    self.assertEquals(
+        ['win_perf_bisect'], sorted(browser._builder_names.get('win')))
+    self.assertEquals(
+        ['win_x64_perf_bisect'], sorted(browser._builder_names.get('win-x64')))
+
+  def test_constructor_trybot_all_win(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({
+        'android_nexus4_perf_bisect': 'stuff',
+        'android_nexus5_perf_bisect': 'stuff2',
+        'win_8_perf_bisect': 'otherstuff',
+        'win_perf_bisect': 'otherstuff2',
+        'linux_perf_bisect': 'otherstuff3',
+        'win_x64_perf_bisect': 'otherstuff4',
+        'win_perf_bisect_builder': 'not a trybot',
+    })
+    browser = trybot_browser_finder.PossibleTrybotBrowser(
+        'trybot-all-win', finder_options)
+    self.assertEquals('all', browser.target_os)
+    # pylint: disable=W0212
+    self.assertEquals(
+        ['win', 'win-x64'],
+        sorted(browser._builder_names))
+    self.assertEquals(
+        ['win_8_perf_bisect', 'win_perf_bisect'],
+        sorted(browser._builder_names.get('win')))
+    self.assertEquals(
+        ['win_x64_perf_bisect'], sorted(browser._builder_names.get('win-x64')))
+
+  def test_constructor_trybot_all_android(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({
+        'android_nexus4_perf_bisect': 'stuff',
+        'android_nexus5_perf_bisect': 'stuff2',
+        'win_8_perf_bisect': 'otherstuff',
+        'win_perf_bisect': 'otherstuff2',
+        'linux_perf_bisect': 'otherstuff3',
+        'win_x64_perf_bisect': 'otherstuff4',
+        'win_perf_bisect_builder': 'not a trybot',
+    })
+    browser = trybot_browser_finder.PossibleTrybotBrowser(
+        'trybot-all-android', finder_options)
+    self.assertEquals(
+        ['android_nexus4_perf_bisect', 'android_nexus5_perf_bisect'],
+        sorted(browser._builder_names.get('android')))
+
+  def test_constructor_trybot_all_mac(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({
+        'android_nexus4_perf_bisect': 'stuff',
+        'win_8_perf_bisect': 'otherstuff',
+        'mac_perf_bisect': 'otherstuff2',
+        'win_perf_bisect_builder': 'not a trybot',
+    })
+    browser = trybot_browser_finder.PossibleTrybotBrowser(
+        'trybot-all-mac', finder_options)
+    self.assertEquals('all', browser.target_os)
+    # pylint: disable=W0212
+    self.assertEquals(
+        ['mac'],
+        sorted(browser._builder_names))
+    self.assertEquals(
+        ['mac_perf_bisect'],
+        sorted(browser._builder_names.get('mac')))
+
+  def test_constructor_trybot_all_linux(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({
+        'android_nexus4_perf_bisect': 'stuff',
+        'linux_perf_bisect': 'stuff1',
+        'win_8_perf_bisect': 'otherstuff',
+        'mac_perf_bisect': 'otherstuff2',
+        'win_perf_bisect_builder': 'not a trybot',
+    })
+    browser = trybot_browser_finder.PossibleTrybotBrowser(
+        'trybot-all-linux', finder_options)
+    self.assertEquals('all', browser.target_os)
+    # pylint: disable=W0212
+    self.assertEquals(
+        ['linux'],
+        sorted(browser._builder_names))
+    self.assertEquals(
+        ['linux_perf_bisect'],
+        sorted(browser._builder_names.get('linux')))
 
   def test_no_git(self):
     finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({'android_nexus4_perf_bisect': 'stuff'})
     browser = trybot_browser_finder.PossibleTrybotBrowser(
         'trybot-android-nexus4', finder_options)
     self._ExpectProcesses((
@@ -105,6 +241,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
 
   def test_dirty_tree(self):
     finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({'android_nexus4_perf_bisect': 'stuff'})
     browser = trybot_browser_finder.PossibleTrybotBrowser(
         'trybot-android-nexus4', finder_options)
     self._ExpectProcesses((
@@ -120,6 +257,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
 
   def test_no_local_commits(self):
     finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({'android_nexus4_perf_bisect': 'stuff'})
     browser = trybot_browser_finder.PossibleTrybotBrowser(
         'trybot-android-nexus4', finder_options)
     self._ExpectProcesses((
@@ -137,11 +275,13 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     self.assertEquals(
         ('No local changes found in chromium or blink trees. '
          'browser=trybot-android-nexus4 argument sends local changes to the '
-         'android_nexus4_perf_bisect perf trybot.\n'),
+         'perf trybot(s): '
+         '[[\'android_nexus4_perf_bisect\']].\n'),
         self.log_output.getvalue())
 
   def test_branch_checkout_fails(self):
     finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({'android_nexus4_perf_bisect': 'stuff'})
     browser = trybot_browser_finder.PossibleTrybotBrowser(
         'trybot-android-nexus4', finder_options)
     self._ExpectProcesses((
@@ -160,10 +300,12 @@ class TrybotBrowserFinderTest(unittest.TestCase):
          'fatal: A branch named \'telemetry-try\' already exists.\n'),
         self.log_output.getvalue())
 
-  def _GetConfigForBrowser(self, name, branch, cfg_filename, is_blink=False):
+  def _GetConfigForBrowser(self, name, platform, branch, cfg_filename,
+                           is_blink=False):
     finder_options = browser_options.BrowserFinderOptions()
-    browser = trybot_browser_finder.PossibleTrybotBrowser(name, finder_options)
     bot = '%s_perf_bisect' % name.replace('trybot-', '').replace('-', '_')
+    self._MockTryserverJson({bot: 'stuff'})
+    browser = trybot_browser_finder.PossibleTrybotBrowser(name, finder_options)
     first_processes = ()
     if is_blink:
       first_processes = (
@@ -180,9 +322,10 @@ class TrybotBrowserFinderTest(unittest.TestCase):
         (['git', 'checkout', '-b', 'telemetry-tryjob'], (0, None, None)),
         (['git', 'branch', '--set-upstream-to', 'origin/master'],
          (0, None, None)),
-        (['git', 'commit', '-a', '-m', 'bisect config'], (0, None, None)),
+        (['git', 'commit', '-a', '-m', 'bisect config: %s' % platform],
+         (0, None, None)),
         (['git', 'cl', 'upload', '-f', '--bypass-hooks', '-m',
-         'CL for perf tryjob'],
+         'CL for perf tryjob on %s' % platform],
          (0, 'stuff https://codereview.chromium.org/12345 stuff', None)),
         (['git', 'cl', 'try', '-m', 'tryserver.chromium.perf', '-b', bot],
          (0, None, None)),
@@ -201,7 +344,8 @@ class TrybotBrowserFinderTest(unittest.TestCase):
 
   def test_config_android(self):
     config = self._GetConfigForBrowser(
-        'trybot-android-nexus4', 'somebranch', 'tools/run-perf-test.cfg')
+        'trybot-android-nexus4', 'android','somebranch',
+        'tools/run-perf-test.cfg')
     self.assertEquals(
         ('config = {\n'
          '  "command": "./tools/perf/run_benchmark '
@@ -214,7 +358,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
 
   def test_config_mac(self):
     config = self._GetConfigForBrowser(
-        'trybot-mac-10-9', 'currentwork', 'tools/run-perf-test.cfg')
+        'trybot-mac-10-9', 'mac', 'currentwork', 'tools/run-perf-test.cfg')
     self.assertEquals(
         ('config = {\n'
          '  "command": "./tools/perf/run_benchmark '
@@ -227,7 +371,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
 
   def test_config_win_x64(self):
     config = self._GetConfigForBrowser(
-        'trybot-win-x64', 'currentwork', 'tools/run-perf-test.cfg')
+        'trybot-win-x64', 'win-x64', 'currentwork', 'tools/run-perf-test.cfg')
     self.assertEquals(
         ('config = {\n'
          '  "command": "python tools\\\\perf\\\\run_benchmark '
@@ -240,7 +384,8 @@ class TrybotBrowserFinderTest(unittest.TestCase):
 
   def test_config_blink(self):
     config = self._GetConfigForBrowser(
-        'trybot-mac-10-9', 'blinkbranch', 'Tools/run-perf-test.cfg', True)
+        'trybot-mac-10-9', 'mac', 'blinkbranch',
+        'Tools/run-perf-test.cfg', True)
     self.assertEquals(
         ('config = {\n'
          '  "command": "./tools/perf/run_benchmark '
@@ -250,3 +395,96 @@ class TrybotBrowserFinderTest(unittest.TestCase):
          '  "target_arch": "ia32",\n'
          '  "truncate_percent": "0"\n'
          '}'), config)
+
+  def test_update_config_git_commit_tryboterror(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({'android_nexus4_perf_bisect': 'stuff'})
+    browser = trybot_browser_finder.PossibleTrybotBrowser(
+        'trybot-android-nexus4', finder_options)
+    self._ExpectProcesses((
+        (['git', 'commit', '-a', '-m', 'bisect config: android'],
+         (128, 'None', 'commit failed')),
+        (['git', 'cl', 'upload', '-f', '--bypass-hooks', '-m',
+         'CL for perf tryjob on android'],
+         (0, 'stuff https://codereview.chromium.org/12345 stuff', None)),
+        (['git', 'cl', 'try', '-m', 'tryserver.chromium.perf', '-b',
+          'android_nexus4_perf_bisect'], (0, None, None))))
+    self._stubs.sys.argv = [
+      'tools/perf/run_benchmark',
+      '--browser=%s' % browser,
+      'sunspider']
+    cfg_filename = 'tools/run-perf-test.cfg'
+    cfg = StringIO.StringIO()
+    self._stubs.open.files = {cfg_filename: cfg}
+    self.assertRaises(trybot_browser_finder.TrybotError,
+        browser._UpdateConfigAndRunTryjob, 'android', cfg_filename)
+
+  def test_update_config_git_upload_tryboterror(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({'android_nexus4_perf_bisect': 'stuff'})
+    browser = trybot_browser_finder.PossibleTrybotBrowser(
+        'trybot-android-nexus4', finder_options)
+    self._ExpectProcesses((
+        (['git', 'commit', '-a', '-m', 'bisect config: android'],
+         (0, 'None', None)),
+        (['git', 'cl', 'upload', '-f', '--bypass-hooks', '-m',
+         'CL for perf tryjob on android'],
+         (128, None, 'error')),
+        (['git', 'cl', 'try', '-m', 'tryserver.chromium.perf', '-b',
+          'android_nexus4_perf_bisect'], (0, None, None))))
+    self._stubs.sys.argv = [
+      'tools/perf/run_benchmark',
+      '--browser=%s' % browser,
+      'sunspider']
+    cfg_filename = 'tools/run-perf-test.cfg'
+    cfg = StringIO.StringIO()
+    self._stubs.open.files = {cfg_filename: cfg}
+    self.assertRaises(trybot_browser_finder.TrybotError,
+        browser._UpdateConfigAndRunTryjob, 'android', cfg_filename)
+
+  def test_update_config_git_try_tryboterror(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({'android_nexus4_perf_bisect': 'stuff'})
+    browser = trybot_browser_finder.PossibleTrybotBrowser(
+        'trybot-android-nexus4', finder_options)
+    self._ExpectProcesses((
+        (['git', 'commit', '-a', '-m', 'bisect config: android'],
+         (0, 'None', None)),
+        (['git', 'cl', 'upload', '-f', '--bypass-hooks', '-m',
+         'CL for perf tryjob on android'],
+         (0, 'stuff https://codereview.chromium.org/12345 stuff', None)),
+        (['git', 'cl', 'try', '-m', 'tryserver.chromium.perf', '-b',
+          'android_nexus4_perf_bisect'], (128, None, None))))
+    self._stubs.sys.argv = [
+      'tools/perf/run_benchmark',
+      '--browser=%s' % browser,
+      'sunspider']
+    cfg_filename = 'tools/run-perf-test.cfg'
+    cfg = StringIO.StringIO()
+    self._stubs.open.files = {cfg_filename: cfg}
+    self.assertRaises(trybot_browser_finder.TrybotError,
+        browser._UpdateConfigAndRunTryjob, 'android', cfg_filename)
+
+  def test_update_config_git_try(self):
+    finder_options = browser_options.BrowserFinderOptions()
+    self._MockTryserverJson({'android_nexus4_perf_bisect': 'stuff'})
+    browser = trybot_browser_finder.PossibleTrybotBrowser(
+        'trybot-android-nexus4', finder_options)
+    self._ExpectProcesses((
+        (['git', 'commit', '-a', '-m', 'bisect config: android'],
+         (0, 'None', None)),
+        (['git', 'cl', 'upload', '-f', '--bypass-hooks', '-m',
+         'CL for perf tryjob on android'],
+         (0, 'stuff https://codereview.chromium.org/12345 stuff', None)),
+        (['git', 'cl', 'try', '-m', 'tryserver.chromium.perf', '-b',
+          'android_nexus4_perf_bisect'], (0, None, None))))
+    self._stubs.sys.argv = [
+      'tools/perf/run_benchmark',
+      '--browser=%s' % browser,
+      'sunspider']
+    cfg_filename = 'tools/run-perf-test.cfg'
+    cfg = StringIO.StringIO()
+    self._stubs.open.files = {cfg_filename: cfg}
+    self.assertEquals((0, 'https://codereview.chromium.org/12345'),
+        browser._UpdateConfigAndRunTryjob('android', cfg_filename))
+
