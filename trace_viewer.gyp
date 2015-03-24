@@ -141,6 +141,7 @@
       'trace_viewer/core/importer/importer.html',
       'trace_viewer/core/importer/simple_line_reader.html',
       'trace_viewer/core/location.html',
+      'trace_viewer/core/scripting_control.html',
       'trace_viewer/core/selection.html',
       'trace_viewer/core/side_panel/side_panel.html',
       'trace_viewer/core/side_panel/side_panel_container.html',

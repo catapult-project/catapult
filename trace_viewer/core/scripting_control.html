@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/timeline_track_view.html">
+
+<polymer-element
+    name="tracing-scripting-control" constructor="TracingScriptingControl">
+  <template>
+    <style>
+      :host {
+        flex: 1 1 auto;
+      }
+      .root {
+        font-family: monospace;
+        cursor: text;
+
+        padding: 2px;
+        margin: 2px;
+        border: 1px solid rgba(0, 0, 0, 0.5);
+        background: white;
+
+        height: 100px;
+        overflow-y: auto;
+      }
+      .hidden {
+        margin: 0px;
+        padding: 0px;
+        height: 0px;
+        visibility: hidden;
+      }
+      #history {
+        -webkit-user-select: text;
+        color: #777;
+      }
+      #prompt {
+        -webkit-user-select: text;
+        -webkit-user-modify: read-write-plaintext-only;
+        text-overflow: clip !important;
+        text-decoration: none !important;
+      }
+      #prompt:focus {
+        outline: none;
+      }
+      #prompt br {
+        display: none;
+      }
+      #prompt ::before {
+        content: ">";
+        color: #468;
+      }
+    </style>
+
+    <div class="root hidden" tabindex="0"
+         on-focus="{{ onConsoleFocus }}">
+      <div id='history'></div>
+      <div id='prompt'
+          on-keypress="{{ promptKeyPress }}"
+          on-keydown="{{ promptKeyDown }}"></div>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    _isEnterKey: function(event) {
+      // Check if in IME.
+      return event.keyCode !== 229 && event.keyIdentifier === 'Enter';
+    },
+
+    onConsoleFocus: function(e) {
+      e.stopPropagation();
+      var promptEl = this.$.prompt;
+      promptEl.focus();
+    },
+
+    promptKeyDown: function(e) {
+      e.stopPropagation();
+      if (!this._isEnterKey(e))
+        return;
+      var historyEl = this.$.history;
+      var promptEl = this.$.prompt;
+      var command = promptEl.innerText;
+      if (command.length === 0)
+        return;
+      if (historyEl.innerText.length !== 0)
+        historyEl.innerText += '\n';
+      historyEl.innerText += command;
+      promptEl.innerText = '';
+    },
+
+    promptKeyPress: function(e) {
+      e.stopPropagation();
+    }
+  });
+  </script>
+</polymer-element>

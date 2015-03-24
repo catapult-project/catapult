@@ -21,44 +21,50 @@ x-timeline-view > .control > .title {
 }
 
 x-timeline-view > .control {
-  flex: 0 0 auto;
   background-color: #e6e6e6;
   background-image: -webkit-gradient(linear,
                                      0 0,
                                      0 100%,
                                      from(#E5E5E5),
                                      to(#D1D1D1));
-  border-bottom: 1px solid #8e8e8e;
-  display: flex;
-  padding-top: 1px;
+  flex: 0 0 auto;
   overflow-x: auto;
 }
+
+x-timeline-view > .control > .bar {
+  display: flex;
+}
+
 x-timeline-view > .control::-webkit-scrollbar{
   height: 0px;
 }
 
-x-timeline-view > .control > #right-controls {
+x-timeline-view > .control > .bar > #right-controls {
   margin-left: auto;
 }
 
-x-timeline-view > .control > .controls {
+x-timeline-view > .control > #collapsing-controls {
+  display: -webkit-flex;
+}
+
+x-timeline-view > .control .controls {
   display: -webkit-flex;
   flex: 0 0 auto;
 }
 
-x-timeline-view > .control > span {
+x-timeline-view > .control > .bar > span {
   padding-left: 5px;
   padding-right: 10px;
 }
 
-x-timeline-view > .control > .controls button,
-x-timeline-view > .control > .controls label {
+x-timeline-view > .control > .bar > .controls button,
+x-timeline-view > .control > .bar > .controls label {
   font-size: 14px;
   height: 22px;
   margin: 1px 2px 1px 2px;
 }
 
-x-timeline-view > .control > .spacer {
+x-timeline-view > .control > .bar > .spacer {
   -webkit-flex: 1 1 auto;
 }
 

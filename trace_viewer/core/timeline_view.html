@@ -17,13 +17,17 @@ found in the LICENSE file.
 <link rel="import" href="/core/find_control.html">
 <link rel="import" href="/core/find_controller.html">
 <link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/core/scripting_control.html">
 <link rel="import" href="/core/side_panel/side_panel_container.html">
 
 <template id="timeline-view-template">
   <div class="control">
-    <div id="left-controls" class="controls"></div>
-    <div class="title">^_^</div>
-    <div id="right-controls" class="controls"></div>
+    <div class="bar">
+      <div id="left-controls" class="controls"></div>
+      <div class="title">^_^</div>
+      <div id="right-controls" class="controls"></div>
+    </div>
+    <div id="collapsing-controls" class="controls"></div>
   </div>
   <middle-container>
     <track-view-container></track-view-container>
@@ -217,6 +221,7 @@ tv.exportTo('tv.c', function() {
       this.titleEl_ = this.querySelector('.title');
       this.leftControlsEl_ = this.querySelector('#left-controls');
       this.rightControlsEl_ = this.querySelector('#right-controls');
+      this.collapsingControlsEl_ = this.querySelector('#collapsing-controls');
       this.sidePanelContainer_ = this.querySelector(
           'x-side-panel-container');
       this.trackViewContainer_ = this.querySelector('track-view-container');
@@ -226,6 +231,7 @@ tv.exportTo('tv.c', function() {
 
       this.findCtl_ = new TracingFindControl();
       this.findCtl_.controller = new tv.c.FindController();
+      this.scriptingCtl_ = new TracingScriptingControl();
 
       this.showFlowEvents_ = false;
       this.rightControls.appendChild(tv.b.ui.createCheckBox(
@@ -242,6 +248,7 @@ tv.exportTo('tv.c', function() {
       this.rightControls.appendChild(this.createMetadataButton_());
       this.rightControls.appendChild(this.findCtl_);
       this.rightControls.appendChild(this.createHelpButton_());
+      this.collapsingControls.appendChild(this.scriptingCtl_);
 
       this.dragEl_ = this.querySelector('x-drag-handle');
       tv.b.ui.decorate(this.dragEl_, tv.b.ui.DragHandle);
@@ -361,6 +368,10 @@ tv.exportTo('tv.c', function() {
 
     get rightControls() {
       return this.rightControlsEl_;
+    },
+
+    get collapsingControls() {
+      return this.collapsingControlsEl_;
     },
 
     get viewTitle() {
