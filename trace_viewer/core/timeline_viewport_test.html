@@ -24,10 +24,10 @@ tv.b.unittest.testSuite(function() {
       addEventListener: function() {}
     };
 
-    assertUndefined(vp.trackForEvent(slice));
+    assert.isUndefined(vp.trackForEvent(slice));
     vp.rebuildEventToTrackMap();
 
-    assertEquals('track', vp.trackForEvent(slice));
+    assert.equal('track', vp.trackForEvent(slice));
   });
 });
 </script>

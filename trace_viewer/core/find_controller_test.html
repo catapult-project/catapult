@@ -79,11 +79,11 @@ tv.b.unittest.testSuite(function() {
     timeline.selection = new tv.c.Selection();
     timeline.highlight = new tv.c.Selection();
     controller.findNext();
-    assertArrayShallowEquals([], timeline.selection);
-    assertArrayShallowEquals([], timeline.highlight);
+    assert.deepEqual([], timeline.selection);
+    assert.deepEqual([], timeline.highlight);
     controller.findPrevious();
-    assertArrayShallowEquals([], timeline.selection);
-    assertArrayShallowEquals([], timeline.highlight);
+    assert.deepEqual([], timeline.selection);
+    assert.deepEqual([], timeline.highlight);
   });
 
   test('findControllerOneHit', function() {
@@ -96,17 +96,17 @@ tv.b.unittest.testSuite(function() {
     controller.filterText = 'asdf';
     var promise = controller.updateFilterHits();
     promise.then(function() {
-      assertArrayShallowEquals([], timeline.selection);
-      assertArrayShallowEquals([s1], timeline.highlight);
+      assert.deepEqual([], timeline.selection);
+      assert.deepEqual([s1], timeline.highlight);
       controller.findNext();
-      assertArrayShallowEquals([s1], timeline.selection);
-      assertArrayShallowEquals([s1], timeline.highlight);
+      assert.deepEqual([s1], timeline.selection);
+      assert.deepEqual([s1], timeline.highlight);
       controller.findNext();
-      assertArrayShallowEquals([s1], timeline.selection);
-      assertArrayShallowEquals([s1], timeline.highlight);
+      assert.deepEqual([s1], timeline.selection);
+      assert.deepEqual([s1], timeline.highlight);
       controller.findPrevious();
-      assertArrayShallowEquals([s1], timeline.selection);
-      assertArrayShallowEquals([s1], timeline.highlight);
+      assert.deepEqual([s1], timeline.selection);
+      assert.deepEqual([s1], timeline.highlight);
     });
     return promise;
   });
@@ -125,21 +125,21 @@ tv.b.unittest.testSuite(function() {
     var promise = controller.updateFilterHits();
     promise.then(function() {
       // Loop through hits then when we wrap, try moving backward.
-      assertArrayShallowEquals([], timeline.selection);
-      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+      assert.deepEqual([], timeline.selection);
+      assert.deepEqual([s1, s2, s3], timeline.highlight);
       controller.findNext();
-      assertArrayShallowEquals([s1], timeline.selection);
+      assert.deepEqual([s1], timeline.selection);
       controller.findNext();
-      assertArrayShallowEquals([s2], timeline.selection);
+      assert.deepEqual([s2], timeline.selection);
       controller.findNext();
-      assertArrayShallowEquals([s3], timeline.selection);
+      assert.deepEqual([s3], timeline.selection);
       controller.findNext();
-      assertArrayShallowEquals([s1], timeline.selection);
+      assert.deepEqual([s1], timeline.selection);
       controller.findPrevious();
-      assertArrayShallowEquals([s3], timeline.selection);
+      assert.deepEqual([s3], timeline.selection);
       controller.findPrevious();
-      assertArrayShallowEquals([s2], timeline.selection);
-      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+      assert.deepEqual([s2], timeline.selection);
+      assert.deepEqual([s1, s2, s3], timeline.highlight);
     });
     return promise;
   });
@@ -166,7 +166,7 @@ tv.b.unittest.testSuite(function() {
       var nextPromise = controller.updateFilterHits();
       nextPromise.then(function() {
         controller.findNext();
-        assertArrayShallowEquals([s4], timeline.selection);
+        assert.deepEqual([s4], timeline.selection);
       });
     });
     return promise;
@@ -184,13 +184,13 @@ tv.b.unittest.testSuite(function() {
     controller.filterText = 'asdfsf';
     var promise = controller.updateFilterHits();
     promise.then(function() {
-      assertArrayShallowEquals([], timeline.selection);
-      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+      assert.deepEqual([], timeline.selection);
+      assert.deepEqual([s1, s2, s3], timeline.highlight);
       controller.findNext();
-      assertArrayShallowEquals([s1], timeline.selection);
+      assert.deepEqual([s1], timeline.selection);
       controller.findNext();
-      assertArrayShallowEquals([s2], timeline.selection);
-      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+      assert.deepEqual([s2], timeline.selection);
+      assert.deepEqual([s1, s2, s3], timeline.highlight);
     });
     return promise;
   });

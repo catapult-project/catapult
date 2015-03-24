@@ -51,24 +51,24 @@ tv.b.unittest.testSuite(function() {
 
   test('invalidStableId', function() {
     var vp = new FakeViewPort;
-    assertThrows(UIState.fromUserFriendlyString(vp, '15@1.3x6'));
-    assertThrows(UIState.fromUserFriendlyString(vp, '15@2.2x6'));
+    assert.isUndefined(UIState.fromUserFriendlyString(vp, '15@1.3x6'));
+    assert.isUndefined(UIState.fromUserFriendlyString(vp, '15@2.2x6'));
   });
 
   test('invalidScaleX', function() {
     var vp = new FakeViewPort;
-    assertUndefined(UIState.fromUserFriendlyString(vp, '1@1.2x-1'));
-    assertThrows(UIState.fromUserFriendlyString(vp, '1@1.2x0'));
+    assert.isUndefined(UIState.fromUserFriendlyString(vp, '1@1.2x-1'));
+    assert.isUndefined(UIState.fromUserFriendlyString(vp, '1@1.2x0'));
   });
 
   test('invalidSyntax', function() {
     var vp = new FakeViewPort;
-    assertUndefined(UIState.fromUserFriendlyString(vp, '5'));
-    assertUndefined(UIState.fromUserFriendlyString(vp, '505@1x5'));
-    assertUndefined(UIState.fromUserFriendlyString(vp, '505@1.x5'));
-    assertUndefined(UIState.fromUserFriendlyString(vp, '5@x5'));
-    assertUndefined(UIState.fromUserFriendlyString(vp, '1@1.2.3x5'));
-    assertUndefined(UIState.fromUserFriendlyString(vp, 'ab@1.2x5'));
+    assert.isUndefined(UIState.fromUserFriendlyString(vp, '5'));
+    assert.isUndefined(UIState.fromUserFriendlyString(vp, '505@1x5'));
+    assert.isUndefined(UIState.fromUserFriendlyString(vp, '505@1.x5'));
+    assert.isUndefined(UIState.fromUserFriendlyString(vp, '5@x5'));
+    assert.isUndefined(UIState.fromUserFriendlyString(vp, '1@1.2.3x5'));
+    assert.isUndefined(UIState.fromUserFriendlyString(vp, 'ab@1.2x5'));
   });
 
   test('validString', function() {
@@ -77,13 +77,13 @@ tv.b.unittest.testSuite(function() {
     var str = '-50125.512@1.2x1.1';
     var uiState = UIState.fromUserFriendlyString(model, vp, str);
 
-    assertNotUndefined(uiState);
-    assertEquals(-50125.512, uiState.location.xWorld);
-    assertEquals('1.2',
+    assert.isDefined(uiState);
+    assert.equal(-50125.512, uiState.location.xWorld);
+    assert.equal('1.2',
         uiState.location.containingTrack.eventContainer.stableId);
-    assertEquals(1.1, uiState.scaleX);
+    assert.equal(1.1, uiState.scaleX);
 
-    assertEquals(str, uiState.toUserFriendlyString());
+    assert.equal(str, uiState.toUserFriendlyString());
   });
 });
 </script>
