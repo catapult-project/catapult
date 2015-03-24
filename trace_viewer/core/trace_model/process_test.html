@@ -18,7 +18,7 @@ tv.b.unittest.testSuite(function() {
     var process = new tv.c.trace_model.Process(model, 7);
     var ctrBar = process.getOrCreateCounter('foo', 'bar');
     var ctrBar2 = process.getOrCreateCounter('foo', 'bar');
-    assertEquals(ctrBar2, ctrBar);
+    assert.equal(ctrBar2, ctrBar);
   });
 
   test('shiftTimestampsForward', function() {
@@ -37,7 +37,7 @@ tv.b.unittest.testSuite(function() {
         shiftCount++;
     };
     process.shiftTimestampsForward(0.32);
-    assertEquals(2, shiftCount);
+    assert.equal(2, shiftCount);
   });
 
   test('compareOnPID', function() {
@@ -49,7 +49,7 @@ tv.b.unittest.testSuite(function() {
     var p2 = new tv.c.trace_model.Process(model, 2);
     p2.name = 'Renderer';
 
-    assertTrue(p1.compareTo(p2) < 0);
+    assert.isBelow(p1.compareTo(p2), 0);
   });
 
   test('compareOnSortIndex', function() {
@@ -61,7 +61,7 @@ tv.b.unittest.testSuite(function() {
     var p2 = new tv.c.trace_model.Process(model, 2);
     p2.name = 'Renderer';
 
-    assertTrue(p1.compareTo(p2) > 0);
+    assert.isAbove(p1.compareTo(p2), 0);
   });
 
   test('compareOnName', function() {
@@ -72,7 +72,7 @@ tv.b.unittest.testSuite(function() {
     var p2 = new tv.c.trace_model.Process(model, 2);
     p2.name = 'Renderer';
 
-    assertTrue(p1.compareTo(p2) < 0);
+    assert.isBelow(p1.compareTo(p2), 0);
   });
 
   test('compareOnLabels', function() {
@@ -85,7 +85,7 @@ tv.b.unittest.testSuite(function() {
     p2.name = 'Renderer';
     p2.labels = ['b'];
 
-    assertTrue(p1.compareTo(p2) < 0);
+    assert.isBelow(p1.compareTo(p2), 0);
   });
 });
 </script>

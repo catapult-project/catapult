@@ -41,68 +41,68 @@ tv.b.unittest.testSuite(function() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([0]);
 
-    assertEquals(5, ret[0].min);
-    assertEquals(5, ret[0].max);
-    assertEquals(5, ret[0].avg);
-    assertEquals(5, ret[0].start);
-    assertEquals(5, ret[0].end);
+    assert.equal(5, ret[0].min);
+    assert.equal(5, ret[0].max);
+    assert.equal(5, ret[0].avg);
+    assert.equal(5, ret[0].start);
+    assert.equal(5, ret[0].end);
 
-    assertEquals(10, ret[1].min);
-    assertEquals(10, ret[1].max);
-    assertEquals(10, ret[1].avg);
-    assertEquals(10, ret[1].start);
-    assertEquals(10, ret[1].end);
+    assert.equal(10, ret[1].min);
+    assert.equal(10, ret[1].max);
+    assert.equal(10, ret[1].avg);
+    assert.equal(10, ret[1].start);
+    assert.equal(10, ret[1].end);
   });
 
   test('getSampleStatisticsWithMultipleSelections', function() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([0, 1]);
 
-    assertEquals(5, ret[0].min);
-    assertEquals(6, ret[0].max);
-    assertEquals((5 + 6) / 2, ret[0].avg);
-    assertEquals(5, ret[0].start);
-    assertEquals(6, ret[0].end);
+    assert.equal(5, ret[0].min);
+    assert.equal(6, ret[0].max);
+    assert.equal((5 + 6) / 2, ret[0].avg);
+    assert.equal(5, ret[0].start);
+    assert.equal(6, ret[0].end);
 
-    assertEquals(10, ret[1].min);
-    assertEquals(15, ret[1].max);
-    assertEquals((10 + 15) / 2, ret[1].avg);
-    assertEquals(10, ret[1].start);
-    assertEquals(15, ret[1].end);
+    assert.equal(10, ret[1].min);
+    assert.equal(15, ret[1].max);
+    assert.equal((10 + 15) / 2, ret[1].avg);
+    assert.equal(10, ret[1].start);
+    assert.equal(15, ret[1].end);
   });
 
   test('getSampleStatisticsWithOutofOrderIndices', function() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([1, 0]);
 
-    assertEquals(5, ret[0].min);
-    assertEquals(6, ret[0].max);
-    assertEquals((5 + 6) / 2, ret[0].avg);
-    assertEquals(5, ret[0].start);
-    assertEquals(6, ret[0].end);
+    assert.equal(5, ret[0].min);
+    assert.equal(6, ret[0].max);
+    assert.equal((5 + 6) / 2, ret[0].avg);
+    assert.equal(5, ret[0].start);
+    assert.equal(6, ret[0].end);
 
-    assertEquals(10, ret[1].min);
-    assertEquals(15, ret[1].max);
-    assertEquals((10 + 15) / 2, ret[1].avg);
-    assertEquals(10, ret[1].start);
-    assertEquals(15, ret[1].end);
+    assert.equal(10, ret[1].min);
+    assert.equal(15, ret[1].max);
+    assert.equal((10 + 15) / 2, ret[1].avg);
+    assert.equal(10, ret[1].start);
+    assert.equal(15, ret[1].end);
   });
 
   test('getSampleStatisticsWithAllSelections', function() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([1, 0, 2, 3]);
 
-    assertEquals(5, ret[0].min);
-    assertEquals(7, ret[0].max);
-    assertEquals((5 + 6 + 5 + 7) / 4, ret[0].avg);
-    assertEquals(5, ret[0].start);
-    assertEquals(7, ret[0].end);
+    assert.equal(5, ret[0].min);
+    assert.equal(7, ret[0].max);
+    assert.equal((5 + 6 + 5 + 7) / 4, ret[0].avg);
+    assert.equal(5, ret[0].start);
+    assert.equal(7, ret[0].end);
 
-    assertEquals(10, ret[1].min);
-    assertEquals(16, ret[1].max);
-    assertEquals((10 + 15 + 12 + 16) / 4, ret[1].avg);
-    assertEquals(10, ret[1].start);
-    assertEquals(16, ret[1].end);
+    assert.equal(10, ret[1].min);
+    assert.equal(16, ret[1].max);
+    assert.equal((10 + 15 + 12 + 16) / 4, ret[1].avg);
+    assert.equal(10, ret[1].start);
+    assert.equal(16, ret[1].end);
   });
 });
 </script>

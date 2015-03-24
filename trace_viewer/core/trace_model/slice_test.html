@@ -26,9 +26,9 @@ tv.b.unittest.testSuite(function() {
 
     group.createSubSlices();
 
-    self.assertEquals(sB, sA.findDescendentSlice('b'));
-    self.assertEquals(sC, sA.findDescendentSlice('c'));
-    self.assertEquals(undefined, sA.findDescendentSlice('d'));
+    assert.equal(sB, sA.findDescendentSlice('b'));
+    assert.equal(sC, sA.findDescendentSlice('c'));
+    assert.isUndefined(sA.findDescendentSlice('d'));
   });
 });
 </script>

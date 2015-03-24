@@ -16,7 +16,7 @@ tv.b.unittest.testSuite(function() {
     var model = new tv.c.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var settings = new tv.c.TraceModelSettings(model);
-    assertFalse(settings.hasUniqueSettingKey(p1));
+    assert.isFalse(settings.hasUniqueSettingKey(p1));
   });
 
   test('process_name_uniqueness_1', function() {
@@ -24,7 +24,7 @@ tv.b.unittest.testSuite(function() {
     var p1 = model.getOrCreateProcess(1);
     p1.name = 'Browser';
     var settings = new tv.c.TraceModelSettings(model);
-    assertTrue(settings.hasUniqueSettingKey(p1));
+    assert.isTrue(settings.hasUniqueSettingKey(p1));
   });
 
   test('process_name_uniqueness_2', function() {
@@ -34,8 +34,8 @@ tv.b.unittest.testSuite(function() {
     p1.name = 'Renderer';
     p2.name = 'Renderer';
     var settings = new tv.c.TraceModelSettings(model);
-    assertFalse(settings.hasUniqueSettingKey(p1));
-    assertFalse(settings.hasUniqueSettingKey(p2));
+    assert.isFalse(settings.hasUniqueSettingKey(p1));
+    assert.isFalse(settings.hasUniqueSettingKey(p2));
   });
 
   test('process_name_uniqueness_3', function() {
@@ -46,8 +46,8 @@ tv.b.unittest.testSuite(function() {
     p1.labels.push('Google Search');
     p2.name = 'Renderer';
     var settings = new tv.c.TraceModelSettings(model);
-    assertTrue(settings.hasUniqueSettingKey(p1));
-    assertTrue(settings.hasUniqueSettingKey(p2));
+    assert.isTrue(settings.hasUniqueSettingKey(p1));
+    assert.isTrue(settings.hasUniqueSettingKey(p2));
   });
 
   test('thread_name_uniqueness_0', function() {
@@ -61,8 +61,8 @@ tv.b.unittest.testSuite(function() {
     t1.name = 'Main';
     t2.name = 'Main';
     var settings = new tv.c.TraceModelSettings(model);
-    assertTrue(settings.hasUniqueSettingKey(t1));
-    assertTrue(settings.hasUniqueSettingKey(t2));
+    assert.isTrue(settings.hasUniqueSettingKey(t1));
+    assert.isTrue(settings.hasUniqueSettingKey(t2));
   });
 
   test('thread_name_uniqueness_1', function() {
@@ -76,24 +76,24 @@ tv.b.unittest.testSuite(function() {
     t1.name = 'Main';
     t2.name = 'Main';
     var settings = new tv.c.TraceModelSettings(model);
-    assertFalse(settings.hasUniqueSettingKey(t1));
-    assertFalse(settings.hasUniqueSettingKey(t2));
+    assert.isFalse(settings.hasUniqueSettingKey(t1));
+    assert.isFalse(settings.hasUniqueSettingKey(t2));
   });
 
   test('process_persistence_when_not_unique', function() {
     var model = new tv.c.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var settings = new tv.c.TraceModelSettings(model);
-    assertTrue(settings.getSettingFor(p1, 'true_by_default', true));
+    assert.isTrue(settings.getSettingFor(p1, 'true_by_default', true));
 
     settings.setSettingFor(p1, 'true_by_default', false);
-    assertFalse(settings.getSettingFor(p1, 'true_by_default', true));
+    assert.isFalse(settings.getSettingFor(p1, 'true_by_default', true));
 
     // Now, clobber the model, and verify that it didn't persist.
     model = new tv.c.TraceModel();
     p1 = model.getOrCreateProcess(1);
     settings = new tv.c.TraceModelSettings(model);
-    assertTrue(settings.getSettingFor(p1, 'true_by_default', true));
+    assert.isTrue(settings.getSettingFor(p1, 'true_by_default', true));
   });
 
   test('process_persistence_when_not_unique_with_name', function() {
@@ -101,17 +101,17 @@ tv.b.unittest.testSuite(function() {
     var p1 = model.getOrCreateProcess(1);
     p1.name = 'Browser';
     var settings = new tv.c.TraceModelSettings(model);
-    assertTrue(settings.getSettingFor(p1, 'true_by_default', true));
+    assert.isTrue(settings.getSettingFor(p1, 'true_by_default', true));
 
     settings.setSettingFor(p1, 'true_by_default', false);
-    assertFalse(settings.getSettingFor(p1, 'true_by_default', true));
+    assert.isFalse(settings.getSettingFor(p1, 'true_by_default', true));
 
     // Now, clobber the model, and verify that it persisted.
     model = new tv.c.TraceModel();
     p1 = model.getOrCreateProcess(1);
     p1.name = 'Browser';
     settings = new tv.c.TraceModelSettings(model);
-    assertFalse(settings.getSettingFor(p1, 'true_by_default', true));
+    assert.isFalse(settings.getSettingFor(p1, 'true_by_default', true));
   });
 
   test('thread_persistence_when_not_unique', function() {
@@ -125,10 +125,10 @@ tv.b.unittest.testSuite(function() {
     t1.name = 'Main';
     t2.name = 'Main';
     var settings = new tv.c.TraceModelSettings(model);
-    assertTrue(settings.getSettingFor(t1, 'true_by_default', true));
+    assert.isTrue(settings.getSettingFor(t1, 'true_by_default', true));
 
     settings.setSettingFor(t1, 'true_by_default', false);
-    assertFalse(settings.getSettingFor(t1, 'true_by_default', true));
+    assert.isFalse(settings.getSettingFor(t1, 'true_by_default', true));
 
     // Now, clobber the model, and verify that it persisted.
     model = new tv.c.TraceModel();
@@ -141,7 +141,7 @@ tv.b.unittest.testSuite(function() {
     t1.name = 'Main';
     t2.name = 'Main';
     settings = new tv.c.TraceModelSettings(model);
-    assertTrue(settings.getSettingFor(t1, 'true_by_default', true));
+    assert.isTrue(settings.getSettingFor(t1, 'true_by_default', true));
   });
 
   test('thread_persistence_when_unique', function() {
@@ -155,10 +155,10 @@ tv.b.unittest.testSuite(function() {
     t1.name = 'Main';
     t2.name = 'Main';
     var settings = new tv.c.TraceModelSettings(model);
-    assertTrue(settings.getSettingFor(t1, 'true_by_default', true));
+    assert.isTrue(settings.getSettingFor(t1, 'true_by_default', true));
 
     settings.setSettingFor(t1, 'true_by_default', false);
-    assertFalse(settings.getSettingFor(t1, 'true_by_default', true));
+    assert.isFalse(settings.getSettingFor(t1, 'true_by_default', true));
 
     // Now, clobber the model, and verify that it persisted.
     model = new tv.c.TraceModel();
@@ -171,7 +171,7 @@ tv.b.unittest.testSuite(function() {
     t1.name = 'Main';
     t2.name = 'Main';
     settings = new tv.c.TraceModelSettings(model);
-    assertFalse(settings.getSettingFor(t1, 'true_by_default', true));
+    assert.isFalse(settings.getSettingFor(t1, 'true_by_default', true));
   });
 });
 </script>
