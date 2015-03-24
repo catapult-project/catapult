@@ -30,10 +30,10 @@ tv.b.unittest.testSuite(function() {
     track.group = group;
     var subRows = track.subRows;
 
-    assertEquals(0, track.badSlices_.length);
-    assertEquals(1, subRows.length);
-    assertEquals(2, subRows[0].length);
-    assertArrayEquals([sA, sB], subRows[0]);
+    assert.equal(0, track.badSlices_.length);
+    assert.equal(1, subRows.length);
+    assert.equal(2, subRows[0].length);
+    assert.deepEqual([sA, sB], subRows[0]);
   });
 
   test('subRowBuilderBasic2', function() {
@@ -47,12 +47,12 @@ tv.b.unittest.testSuite(function() {
     track.group = group;
     var subRows = track.subRows;
 
-    assertEquals(0, track.badSlices_.length);
-    assertEquals(2, subRows.length);
-    assertEquals(1, subRows[0].length);
-    assertEquals(1, subRows[1].length);
-    assertArrayEquals([sA], subRows[0]);
-    assertArrayEquals([sB], subRows[1]);
+    assert.equal(0, track.badSlices_.length);
+    assert.equal(2, subRows.length);
+    assert.equal(1, subRows[0].length);
+    assert.equal(1, subRows[1].length);
+    assert.deepEqual([sA], subRows[0]);
+    assert.deepEqual([sB], subRows[1]);
   });
 
   test('subRowBuilderNestedExactly', function() {
@@ -67,12 +67,12 @@ tv.b.unittest.testSuite(function() {
     track.group = group;
     var subRows = track.subRows;
 
-    assertEquals(0, track.badSlices_.length);
-    assertEquals(2, subRows.length);
-    assertEquals(1, subRows[0].length);
-    assertEquals(1, subRows[1].length);
-    assertArrayEquals([sB], subRows[0]);
-    assertArrayEquals([sA], subRows[1]);
+    assert.equal(0, track.badSlices_.length);
+    assert.equal(2, subRows.length);
+    assert.equal(1, subRows[0].length);
+    assert.equal(1, subRows[1].length);
+    assert.deepEqual([sB], subRows[0]);
+    assert.deepEqual([sA], subRows[1]);
   });
 
   test('subRowBuilderInstantEvents', function() {
@@ -87,10 +87,10 @@ tv.b.unittest.testSuite(function() {
     track.group = group;
     var subRows = track.subRows;
 
-    assertEquals(0, track.badSlices_.length);
-    assertEquals(1, subRows.length);
-    assertEquals(2, subRows[0].length);
-    assertArrayEquals([sA, sB], subRows[0]);
+    assert.equal(0, track.badSlices_.length);
+    assert.equal(1, subRows.length);
+    assert.equal(2, subRows[0].length);
+    assert.deepEqual([sA, sB], subRows[0]);
   });
 
   test('subRowBuilderTwoInstantEvents', function() {
@@ -105,10 +105,10 @@ tv.b.unittest.testSuite(function() {
     track.group = group;
     var subRows = track.subRows;
 
-    assertEquals(0, track.badSlices_.length);
-    assertEquals(2, subRows.length);
-    assertArrayEquals([sA], subRows[0]);
-    assertArrayEquals([sB], subRows[1]);
+    assert.equal(0, track.badSlices_.length);
+    assert.equal(2, subRows.length);
+    assert.deepEqual([sA], subRows[0]);
+    assert.deepEqual([sB], subRows[1]);
   });
 
   test('subRowBuilderOutOfOrderAddition', function() {
@@ -126,10 +126,10 @@ tv.b.unittest.testSuite(function() {
     track.group = group;
     var subRows = track.subRows;
 
-    assertEquals(0, track.badSlices_.length);
-    assertEquals(1, subRows.length);
-    assertEquals(2, subRows[0].length);
-    assertArrayEquals([sA, sB], subRows[0]);
+    assert.equal(0, track.badSlices_.length);
+    assert.equal(1, subRows.length);
+    assert.equal(2, subRows[0].length);
+    assert.deepEqual([sA, sB], subRows[0]);
   });
 
   test('subRowBuilderOutOfOrderAddition2', function() {
@@ -148,12 +148,12 @@ tv.b.unittest.testSuite(function() {
     track.group = group;
     var subRows = track.subRows;
 
-    assertEquals(0, track.badSlices_.length);
-    assertEquals(2, subRows.length);
-    assertEquals(1, subRows[0].length);
-    assertEquals(1, subRows[1].length);
-    assertArrayEquals([sA], subRows[0]);
-    assertArrayEquals([sB], subRows[1]);
+    assert.equal(0, track.badSlices_.length);
+    assert.equal(2, subRows.length);
+    assert.equal(1, subRows[0].length);
+    assert.equal(1, subRows[1].length);
+    assert.deepEqual([sA], subRows[0]);
+    assert.deepEqual([sB], subRows[1]);
   });
 
   test('subRowBuilderOnNestedZeroLength', function() {
@@ -172,10 +172,10 @@ tv.b.unittest.testSuite(function() {
     track.group = group;
     var subRows = track.subRows;
 
-    assertEquals(0, track.badSlices_.length);
-    assertEquals(2, subRows.length);
-    assertArrayEquals([sA], subRows[0]);
-    assertArrayEquals([sB1, sB2], subRows[1]);
+    assert.equal(0, track.badSlices_.length);
+    assert.equal(2, subRows.length);
+    assert.deepEqual([sA], subRows[0]);
+    assert.deepEqual([sB1, sB2], subRows[1]);
   });
 
   test('subRowBuilderOnGroup1', function() {
@@ -194,10 +194,10 @@ tv.b.unittest.testSuite(function() {
     track.group = group;
     var subRows = track.subRows;
 
-    assertEquals(0, track.badSlices_.length);
-    assertEquals(2, subRows.length);
-    assertArrayEquals([sA, sC], subRows[0]);
-    assertArrayEquals([sB], subRows[1]);
+    assert.equal(0, track.badSlices_.length);
+    assert.equal(2, subRows.length);
+    assert.deepEqual([sA, sC], subRows[0]);
+    assert.deepEqual([sB], subRows[1]);
   });
 
   test('subRowBuilderOnGroup2', function() {
@@ -218,11 +218,11 @@ tv.b.unittest.testSuite(function() {
     track.group = group;
 
     var subRows = track.subRows;
-    assertEquals(0, track.badSlices_.length);
-    assertEquals(3, subRows.length);
-    assertArrayEquals([sA, sD], subRows[0]);
-    assertArrayEquals([sB], subRows[1]);
-    assertArrayEquals([sC], subRows[2]);
+    assert.equal(0, track.badSlices_.length);
+    assert.equal(3, subRows.length);
+    assert.deepEqual([sA, sD], subRows[0]);
+    assert.deepEqual([sB], subRows[1]);
+    assert.deepEqual([sC], subRows[2]);
   });
 
   test('trackFiltering', function() {
@@ -236,8 +236,8 @@ tv.b.unittest.testSuite(function() {
     var track = new SliceGroupTrack(new tv.c.TimelineViewport());
     track.group = group;
 
-    assertEquals(2, track.subRows.length);
-    assertTrue(track.hasVisibleContent);
+    assert.equal(2, track.subRows.length);
+    assert.isTrue(track.hasVisibleContent);
   });
 
 test('sliceGroupContainerMap', function() {
@@ -257,13 +257,13 @@ test('sliceGroupContainerMap', function() {
     processTrack.appendChild(threadTrack);
     threadTrack.appendChild(groupTrack);
 
-    assertEquals(process, processTrack.eventContainer);
-    assertEquals(thread, threadTrack.eventContainer);
-    assertEquals(group, groupTrack.eventContainer);
+    assert.equal(process, processTrack.eventContainer);
+    assert.equal(thread, threadTrack.eventContainer);
+    assert.equal(group, groupTrack.eventContainer);
 
-    assertUndefined(containerToTrack.getTrackByStableId('123'));
-    assertUndefined(containerToTrack.getTrackByStableId('123.456'));
-    assertUndefined(
+    assert.isUndefined(containerToTrack.getTrackByStableId('123'));
+    assert.isUndefined(containerToTrack.getTrackByStableId('123.456'));
+    assert.isUndefined(
         containerToTrack.getTrackByStableId('123.456.SliceGroup'));
 
     vp.modelTrackContainer = {
@@ -276,15 +276,15 @@ test('sliceGroupContainerMap', function() {
 
     // Check that all tracks call childs' addContainersToTrackMap()
     // by checking the resulting map.
-    assertEquals(processTrack, containerToTrack.getTrackByStableId('123'));
-    assertEquals(threadTrack, containerToTrack.getTrackByStableId('123.456'));
-    assertEquals(groupTrack,
+    assert.equal(processTrack, containerToTrack.getTrackByStableId('123'));
+    assert.equal(threadTrack, containerToTrack.getTrackByStableId('123.456'));
+    assert.equal(groupTrack,
         containerToTrack.getTrackByStableId('123.456.SliceGroup'));
 
     // Check the track's eventContainer getter.
-    assertEquals(process, processTrack.eventContainer);
-    assertEquals(thread, threadTrack.eventContainer);
-    assertEquals(group, groupTrack.eventContainer);
+    assert.equal(process, processTrack.eventContainer);
+    assert.equal(thread, threadTrack.eventContainer);
+    assert.equal(group, groupTrack.eventContainer);
   });
 });
 </script>

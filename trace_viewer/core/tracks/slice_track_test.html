@@ -24,7 +24,7 @@ tv.b.unittest.testSuite(function() {
     track.slices = [slice];
     var sel = new Selection();
     var me0 = track.getModelEventFromItem(track.slices[0]);
-    assertEquals(slice, me0);
+    assert.equal(slice, me0);
   });
 });
 </script>

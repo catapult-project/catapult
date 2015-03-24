@@ -31,8 +31,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var track = new AsyncSliceGroupTrack(new tv.c.TimelineViewport());
     track.group = g;
 
-    assertEquals(1, track.children.length);
-    assertTrue(track.hasVisibleContent);
+    assert.equal(1, track.children.length);
+    assert.isTrue(track.hasVisibleContent);
   });
 
   test('rebuildSubRows_twoNonOverlappingSlices', function() {
@@ -48,11 +48,11 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var track = new AsyncSliceGroupTrack(new tv.c.TimelineViewport());
     track.group = g;
     var subRows = track.subRows;
-    assertEquals(2, subRows.length);
-    assertEquals(2, subRows[0].length);
-    assertEquals(1, subRows[1].length);
-    assertEquals(g.slices[0].subSlices[0], subRows[1][0]);
-    assertUndefined(g.slices[1].subSlices);
+    assert.equal(2, subRows.length);
+    assert.equal(2, subRows[0].length);
+    assert.equal(1, subRows[1].length);
+    assert.equal(g.slices[0].subSlices[0], subRows[1][0]);
+    assert.isUndefined(g.slices[1].subSlices);
   });
 
   test('rebuildSubRows_twoOverlappingSlices', function() {
@@ -77,13 +77,13 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var subRows = track.subRows;
 
-    assertEquals(4, subRows.length);
-    assertEquals(1, subRows[0].length);
-    assertEquals(1, subRows[1].length);
-    assertEquals(1, subRows[2].length);
-    assertEquals(1, subRows[3].length);
-    assertEquals(g.slices[0].subSlices[0], subRows[1][0]);
-    assertEquals(g.slices[1].subSlices[0], subRows[3][0]);
+    assert.equal(4, subRows.length);
+    assert.equal(1, subRows[0].length);
+    assert.equal(1, subRows[1].length);
+    assert.equal(1, subRows[2].length);
+    assert.equal(1, subRows[3].length);
+    assert.equal(g.slices[0].subSlices[0], subRows[1][0]);
+    assert.equal(g.slices[1].subSlices[0], subRows[3][0]);
   });
 
   test('rebuildSubRows_threePartlyOverlappingSlices', function() {
@@ -99,15 +99,15 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     track.group = g;
     var subRows = track.subRows;
 
-    assertEquals(2, subRows.length);
-    assertEquals(2, subRows[0].length);
-    assertEquals(g.slices[0], subRows[0][0]);
-    assertEquals(g.slices[2], subRows[0][1]);
-    assertEquals(g.slices[1], subRows[1][0]);
-    assertEquals(1, subRows[1].length);
-    assertUndefined(g.slices[0].subSlices);
-    assertUndefined(g.slices[1].subSlices);
-    assertUndefined(g.slices[2].subSlices);
+    assert.equal(2, subRows.length);
+    assert.equal(2, subRows[0].length);
+    assert.equal(g.slices[0], subRows[0][0]);
+    assert.equal(g.slices[2], subRows[0][1]);
+    assert.equal(g.slices[1], subRows[1][0]);
+    assert.equal(1, subRows[1].length);
+    assert.isUndefined(g.slices[0].subSlices);
+    assert.isUndefined(g.slices[1].subSlices);
+    assert.isUndefined(g.slices[2].subSlices);
   });
 
   test('rebuildSubRows_threeOverlappingSlices', function() {
@@ -125,12 +125,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     track.group = g;
 
     var subRows = track.subRows;
-    assertEquals(2, subRows.length);
-    assertEquals(2, subRows[0].length);
-    assertEquals(1, subRows[1].length);
-    assertEquals(g.slices[0], subRows[0][0]);
-    assertEquals(g.slices[1], subRows[1][0]);
-    assertEquals(g.slices[2], subRows[0][1]);
+    assert.equal(2, subRows.length);
+    assert.equal(2, subRows[0].length);
+    assert.equal(1, subRows[1].length);
+    assert.equal(g.slices[0], subRows[0][0]);
+    assert.equal(g.slices[1], subRows[1][0]);
+    assert.equal(g.slices[2], subRows[0][1]);
   });
 
   // Tests that no slices and their sub slices overlap.
@@ -161,7 +161,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       var row = subRows[i];
       for (var j = 0; j < row.length; j++) {
         for (var k = j + 1; k < row.length; k++) {
-          assertTrue(row[j].end <= row[k].start);
+          assert.isTrue(row[j].end <= row[k].start);
         }
       }
     }
@@ -196,7 +196,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       var row = subRows[i];
       for (var j = 0; j < row.length; j++) {
         for (var k = j + 1; k < row.length; k++) {
-          assertTrue(row[j].end <= row[k].start);
+          assert.isTrue(row[j].end <= row[k].start);
         }
       }
     }
@@ -219,13 +219,13 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     processTrack.appendChild(threadTrack);
     threadTrack.appendChild(groupTrack);
 
-    assertEquals(process, processTrack.eventContainer);
-    assertEquals(thread, threadTrack.eventContainer);
-    assertEquals(group, groupTrack.eventContainer);
+    assert.equal(process, processTrack.eventContainer);
+    assert.equal(thread, threadTrack.eventContainer);
+    assert.equal(group, groupTrack.eventContainer);
 
-    assertUndefined(containerToTrack.getTrackByStableId('123'));
-    assertUndefined(containerToTrack.getTrackByStableId('123.456'));
-    assertUndefined(
+    assert.isUndefined(containerToTrack.getTrackByStableId('123'));
+    assert.isUndefined(containerToTrack.getTrackByStableId('123.456'));
+    assert.isUndefined(
         containerToTrack.getTrackByStableId('123.456.AsyncSliceGroup'));
 
     vp.modelTrackContainer = {
@@ -238,15 +238,15 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Check that all tracks call childs' addContainersToTrackMap()
     // by checking the resulting map.
-    assertEquals(processTrack, containerToTrack.getTrackByStableId('123'));
-    assertEquals(threadTrack, containerToTrack.getTrackByStableId('123.456'));
-    assertEquals(groupTrack,
+    assert.equal(processTrack, containerToTrack.getTrackByStableId('123'));
+    assert.equal(threadTrack, containerToTrack.getTrackByStableId('123.456'));
+    assert.equal(groupTrack,
         containerToTrack.getTrackByStableId('123.456.AsyncSliceGroup'));
 
     // Check the track's eventContainer getter.
-    assertEquals(process, processTrack.eventContainer);
-    assertEquals(thread, threadTrack.eventContainer);
-    assertEquals(group, groupTrack.eventContainer);
+    assert.equal(process, processTrack.eventContainer);
+    assert.equal(thread, threadTrack.eventContainer);
+    assert.equal(group, groupTrack.eventContainer);
   });
 });
 </script>

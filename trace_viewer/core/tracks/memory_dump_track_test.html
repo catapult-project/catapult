@@ -62,7 +62,7 @@ tv.b.unittest.testSuite(function() {
     track.memoryDumps = dumps;
 
     var d0 = track.getModelEventFromItem(track.items[0]);
-    assertTrue(d0 == dumps[0]);
+    assert.equal(d0, dumps[0]);
   });
 });
 </script>

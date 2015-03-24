@@ -67,22 +67,22 @@ tv.b.unittest.testSuite(function() {
     var selection = [];
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
         3, 4, viewPixWidthWorld, selection);
-    assertEquals(0, selection.length);
+    assert.equal(0, selection.length);
 
     // Hit the first item, via pixel-nearness.
     selection = [];
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
         19.98, 19.99, viewPixWidthWorld, selection);
-    assertEquals(1, selection.length);
-    assertEquals(selection[0], items[1]);
+    assert.equal(1, selection.length);
+    assert.equal(selection[0], items[1]);
 
     // Hit the instance, between the 1st and 2nd snapshots
     selection = [];
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
         30, 50, viewPixWidthWorld, selection);
-    assertEquals(2, selection.length);
-    assertEquals(selection[0], items[2]);
-    assertEquals(selection[1], items[3]);
+    assert.equal(2, selection.length);
+    assert.equal(selection[0], items[2]);
+    assert.equal(selection[1], items[3]);
   });
 });
 </script>

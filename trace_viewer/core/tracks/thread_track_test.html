@@ -59,13 +59,13 @@ tv.b.unittest.testSuite(function() {
     var selection = new Selection();
     var x = (1.5 / wW) * vW;
     track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
-    assertEquals(t1.sliceGroup.slices[0], selection[0]);
+    assert.equal(t1.sliceGroup.slices[0], selection[0]);
 
     var selection = new Selection();
     track.addIntersectingItemsInRangeToSelection(
         (1.5 / wW) * vW, (1.8 / wW) * vW,
         y, y + h, selection);
-    assertEquals(t1.sliceGroup.slices[0], selection[0]);
+    assert.equal(t1.sliceGroup.slices[0], selection[0]);
   });
 
   test('filterThreadSlices', function() {
@@ -77,9 +77,9 @@ tv.b.unittest.testSuite(function() {
     var t = new ThreadTrack(new tv.c.TimelineViewport());
     t.thread = thread;
 
-    assertEquals(t.tracks_.length, 2);
-    assertTrue(t.tracks_[0] instanceof tv.c.tracks.AsyncSliceGroupTrack);
-    assertTrue(t.tracks_[1] instanceof tv.c.tracks.SliceGroupTrack);
+    assert.equal(t.tracks_.length, 2);
+    assert.instanceOf(t.tracks_[0], tv.c.tracks.AsyncSliceGroupTrack);
+    assert.instanceOf(t.tracks_[1], tv.c.tracks.SliceGroupTrack);
   });
 
   test('sampleThreadSlices', function() {
@@ -116,22 +116,22 @@ tv.b.unittest.testSuite(function() {
 
     var t = new ThreadTrack(new tv.c.TimelineViewport());
     t.thread = thread;
-    assertEquals(2, t.tracks_.length);
+    assert.equal(2, t.tracks_.length);
 
     // Instructions retired
     var t0 = t.tracks_[0];
-    assertTrue(t0.heading.indexOf('instructions_retired') != -1);
-    assertTrue(t0 instanceof tv.c.tracks.SampleTrack);
+    assert.notEqual(t0.heading.indexOf('instructions_retired'), -1);
+    assert.instanceOf(t0, tv.c.tracks.SampleTrack);
     assertTrue(4, t0.samples.length);
     t0.samples.forEach(function(s) {
-      assertTrue(s instanceof tv.c.trace_model.Sample);
+      assert.instanceOf(s, tv.c.trace_model.Sample);
     });
 
     // page_fault
     var t1 = t.tracks_[1];
-    assertTrue(t1.heading.indexOf('page_fault') != -1);
-    assertTrue(t1 instanceof tv.c.tracks.SampleTrack);
-    assertTrue(2, t1.samples.length);
+    assert.notEqual(t1.heading.indexOf('page_fault'), -1);
+    assert.instanceOf(t1, tv.c.tracks.SampleTrack);
+    assert.equal(2, t1.samples.length);
   });
 });
 </script>
