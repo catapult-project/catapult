@@ -2,7 +2,8 @@
   "name": "core-component-page",
   "private": true,
   "dependencies": {
-    "platform": "Polymer/platform#^0.4.0",
-    "polymer": "Polymer/polymer#^0.4.0"
-  }
+    "webcomponentsjs": "Polymer/webcomponentsjs#^0.5",
+    "polymer": "Polymer/polymer#^0.5"
+  },
+  "version": "0.5.5"
 }
