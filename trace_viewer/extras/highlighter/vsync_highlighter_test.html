@@ -35,7 +35,7 @@ tv.b.unittest.testSuite(function() {
   }
 
   function testFindVSyncTimes(slices, expectedTimes) {
-    assertArrayEquals(
+    assert.deepEqual(
         expectedTimes, VSyncHighlighter.findVSyncTimes(buildModel(slices)));
   }
 
@@ -45,9 +45,9 @@ tv.b.unittest.testSuite(function() {
     ranges.sort();
     expectedRanges.sort();
 
-    assertEquals(expectedRanges.length, ranges.length);
+    assert.equal(expectedRanges.length, ranges.length);
     for (var i = 0; i < expectedRanges.length; i++) {
-      assertArrayEquals(expectedRanges[i], ranges[i]);
+      assert.deepEqual(expectedRanges[i], ranges[i]);
     }
   }
 
