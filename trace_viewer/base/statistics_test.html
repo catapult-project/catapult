@@ -14,6 +14,7 @@ tv.b.unittest.testSuite(function() {
   test('sumBasic', function() {
     assertEquals(6, Statistics.sum([1, 2, 3]));
   });
+
   test('sumWithFunctor', function() {
     var ctx = {};
     var ary = [1, 2, 3];
@@ -46,22 +47,46 @@ tv.b.unittest.testSuite(function() {
     assertEquals(Infinity, Statistics.min([]));
   });
 
-  test('mean', function() {
+  test('meanBasic', function() {
     assertEquals(2, Statistics.mean([1, 2, 3]));
   });
 
-  test('varianceAndStdDev', function() {
+  test('varianceBasic', function() {
+    // In [2, 4, 4, 2], all items have a deviation of 1.0 from the mean so the
+    // population variance is 4.0 / 4 = 1.0, but the sample variance is 4.0 / 3.
+    assertEquals(4.0 / 3, Statistics.variance([2, 4, 4, 2]));
+
+    // In [1, 2, 3], the squared deviations are 1.0, 0.0 and 1.0 respectively;
+    // population variance 2.0 / 3 but sample variance is 2.0 / 2 = 1.0.
+    assertEquals(1.0, Statistics.variance([1, 2, 3]));
+  });
+
+  test('varianceWithFunctor', function() {
     var ctx = {};
     var ary = [{x: 2},
                {x: 4},
                {x: 4},
                {x: 2}];
-    var v = Statistics.mean(ary,
-                            function(d) {
-                              assertEquals(ctx, this);
-                              return d.x;
-                            }, ctx);
-    assertEquals(3, v);
+    assertEquals(4.0 / 3, Statistics.variance(ary, function(d) {
+      assertEquals(ctx, this);
+      return d.x;
+    }, ctx));
+  });
+
+  test('stddevBasic', function() {
+    assertEquals(Math.sqrt(4.0 / 3), Statistics.stddev([2, 4, 4, 2]));
+  });
+
+  test('stddevWithFunctor', function() {
+    var ctx = {};
+    var ary = [{x: 2},
+               {x: 4},
+               {x: 4},
+               {x: 2}];
+    assertEquals(Math.sqrt(4.0 / 3), Statistics.stddev(ary, function(d) {
+      assertEquals(ctx, this);
+      return d.x;
+    }, ctx));
   });
 
   test('percentile', function() {
