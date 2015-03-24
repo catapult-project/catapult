@@ -51,6 +51,23 @@ tv.b.unittest.testSuite(function() {
     assertEquals(undefined, w);
   });
 
+  test('sizeStrings', function() {
+    var f = tv.b.sizeString;
+
+    assertEquals(f(0), '0.0 B');
+    assertEquals(f(1), '1.0 B');
+    assertEquals(f(1023), '1023.0 B');
+    assertEquals(f(1024), '1.0 KiB');
+    assertEquals(f(1536), '1.5 KiB');
+    assertEquals(f(1023898), '999.9 KiB');
+    assertEquals(f(1024 * 1023), '1023.0 KiB');
+    assertEquals(f(1024 * 1024), '1.0 MiB');
+    assertEquals(f(424.2 * 1024 * 1024), '424.2 MiB');
+    assertEquals(f(5 * 1024 * 1024 * 1024), '5.0 GiB');
+    assertEquals(f(1023 * 1024 * 1024 * 1024 * 1024), '1023.0 TiB');
+    assertEquals(f(1025 * 1024 * 1024 * 1024 * 1024), '1025.0 TiB');
+  });
+
   test('instantiateTemplatePolymer', function() {
     var e = tv.b.instantiateTemplate(
                 '#instantiate-template-polymer-test',
