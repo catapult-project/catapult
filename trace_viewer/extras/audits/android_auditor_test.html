@@ -13,41 +13,39 @@ found in the LICENSE file.
 'use strict';
 
 tv.b.unittest.testSuite(function() {
-  test('longframe', function() {
-    var lines = [
-      'com.test.app-1880  [000] ...1   849.000000: tracing_mark_write: B|1880|performTraversals', // @suppress longLineCheck
-      'com.test.app-1880  [000] ...1   849.080000: tracing_mark_write: E'
-    ];
+  var newSliceNamed = tv.c.test_utils.newSliceNamed;
 
+  test('longframe', function() {
     var io = new tv.c.ImportOptions();
     io.auditorConstructors = [tv.e.audits.AndroidAuditor];
+    io.customizeModelCallback = function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 80));
+    };
 
-    var m = new tv.c.TraceModel(lines.join('\n'), io);
-    assert.isFalse(m.hasImportWarnings);
-    assert.equal(1, m.alerts.length);
+    var model = new tv.c.TraceModel([], io);
+    assert.isFalse(model.hasImportWarnings);
+    assert.equal(1, model.alerts.length);
 
-    var alert = m.alerts[0];
+    var alert = model.alerts[0];
     assert.closeTo(80, alert.args.totalDuration, 1e-5);
   });
 
   test('savelayer', function() {
-    var lines = [
-      'RenderThread-2000  [000] ...1   849.910100: tracing_mark_write: B|1880|DrawFrame', // @suppress longLineCheck
-      'RenderThread-2000  [000] ...1   849.910200: tracing_mark_write: B|1880|syncFrameState', // @suppress longLineCheck
-      'RenderThread-2000  [000] ...1   849.910300: tracing_mark_write: E',
-      'RenderThread-2000  [000] ...1   849.910400: tracing_mark_write: B|1880|AlphaView alpha caused saveLayer 480x320', // @suppress longLineCheck
-      'RenderThread-2000  [000] ...1   849.910500: tracing_mark_write: E',
-      'RenderThread-2000  [000] ...1   849.910600: tracing_mark_write: E'
-    ];
-
     var io = new tv.c.ImportOptions();
     io.auditorConstructors = [tv.e.audits.AndroidAuditor];
+    io.customizeModelCallback = function(model) {
+      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('DrawFrame', 200, 5));
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'BadAlphaView alpha caused saveLayer 480x320', 203, 1));
+    };
+    var model = new tv.c.TraceModel([], io);
+    assert.isFalse(model.hasImportWarnings);
+    assert.equal(1, model.alerts.length);
 
-    var m = new tv.c.TraceModel(lines.join('\n'), io);
-    assert.isFalse(m.hasImportWarnings);
-    assert.equal(1, m.alerts.length);
-
-    var alert = m.alerts[0];
+    var alert = model.alerts[0];
     assert.equal(480, alert.args.width);
     assert.equal(320, alert.args.height);
   });

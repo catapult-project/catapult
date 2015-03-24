@@ -15,53 +15,71 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
   var TraceModel = tv.c.TraceModel;
+  var newAsyncSliceNamed = tv.c.test_utils.newAsyncSliceNamed;
+  var newSliceNamed = tv.c.test_utils.newSliceNamed;
 
-  var TEST_FRAME_UI_ONLY = [
-    'com.test.app-1880  [000] ...1   849.000000: tracing_mark_write: B|1880|performTraversals', // @suppress longLineCheck
-    'com.test.app-1880  [000] ...1   849.080000: tracing_mark_write: E'
-  ].join('\n');
+  function createSingleFrameModel(customizeModelCallback) {
+    var io = new tv.c.ImportOptions();
+    io.customizeModelCallback = customizeModelCallback;
+    return new TraceModel([], io);
+  }
 
-  var TEST_FRAME_RT_ONLY = [
-    'RenderThread-2000  [000] ...1   849.000000: tracing_mark_write: B|1880|doFrame', // @suppress longLineCheck
-    'RenderThread-2000  [000] ...1   849.080000: tracing_mark_write: E'
-  ].join('\n');
+  /*
+   * List of customizeModelCallbacks which produce different 80ms frames
+   */
+  var SINGLE_FRAME_CUSTOM_MODELS = [
+    function(model) {
+      // UI thread only
+      var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 80));
 
-  var TEST_FRAME_BOTH_THREADS = [
-    'com.test.app-1880  [000] ...1   849.000000: tracing_mark_write: S|1880|deliverInputEvent|100', // @suppress longLineCheck
-    'com.test.app-1880  [000] ...1   849.009900: tracing_mark_write: F|1880|deliverInputEvent|100', // @suppress longLineCheck
-    'com.test.app-1880  [000] ...1   849.010000: tracing_mark_write: B|1880|performTraversals', // @suppress longLineCheck
-    'com.test.app-1880  [000] ...1   849.010000: tracing_mark_write: B|1880|draw', // @suppress longLineCheck
-    'com.test.app-1880  [000] ...1   849.010000: tracing_mark_write: B|1880|Record View#draw()', // @suppress longLineCheck
-    'com.test.app-1880  [000] ...1   849.018000: tracing_mark_write: E',
-    'com.test.app-1880  [000] ...1   849.018000: tracing_mark_write: E',
-    'RenderThread-2000  [000] ...1   849.019000: tracing_mark_write: B|1880|DrawFrame', // @suppress longLineCheck
-    'RenderThread-2000  [000] ...1   849.019000: tracing_mark_write: B|1880|syncFrameState', // @suppress longLineCheck
-    'RenderThread-2000  [000] ...1   849.020000: tracing_mark_write: E',
-    'com.test.app-1880  [000] ...1   849.020000: tracing_mark_write: E',
-    'RenderThread-2000  [000] ...1   849.080000: tracing_mark_write: E'
-  ].join('\n');
+      model.uiThread = uiThread;
+    },
+
+    function(model) {
+      // RenderThread only
+      var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 0, 80));
+
+      model.renderThread = renderThread;
+    },
+
+    function(model) {
+      var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
+
+      // UI thread time - 20 (from 0 to 20)
+      console.log(uiThread);
+      uiThread.asyncSliceGroup.push(
+        newAsyncSliceNamed('deliverInputEvent', 0, 9, uiThread, uiThread));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 10));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('draw', 10, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('Record View#draw()', 10, 8));
+
+      // RenderThread time - 61 (from 19 to 80), but minus 1 from total for sync
+      var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('DrawFrame', 19, 71));
+      renderThread.sliceGroup.pushSlice(newSliceNamed('syncFrameState', 19, 1));
+
+      model.uiThread = uiThread;
+      model.renderThread = renderThread;
+    }
+  ];
 
   test('getThreads', function() {
-    var model = new TraceModel(TEST_FRAME_UI_ONLY);
-    var helper = new AndroidModelHelper(model);
-    assert.equal(1, model.getAllProcesses().length);
-    var process = model.getAllProcesses()[0];
-    assert.equal(process.getThread(1880), helper.apps[0].uiThread);
-    assert.isUndefined(helper.apps[0].renderThread);
-
-    var model = new TraceModel(TEST_FRAME_RT_ONLY);
-    var helper = new AndroidModelHelper(model);
-    assert.equal(1, model.getAllProcesses().length);
-    var process = model.getAllProcesses()[0];
-    assert.isUndefined(helper.apps[0].uiThread);
-    assert.equal(process.getThread(2000), helper.apps[0].renderThread);
+    SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
+      var model = createSingleFrameModel(customizeModelCallback);
+      var helper = new AndroidModelHelper(model);
+      assert.equal(model.uiThread, helper.apps[0].uiThread);
+      assert.equal(model.renderThread, helper.apps[0].renderThread);
+    });
   });
 
   test('getFrames', function() {
-    [
-      TEST_FRAME_UI_ONLY, TEST_FRAME_RT_ONLY, TEST_FRAME_BOTH_THREADS
-    ].forEach(function(data) {
-      var helper = new AndroidModelHelper(new TraceModel(TEST_FRAME_UI_ONLY));
+    SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
+      var model = createSingleFrameModel(customizeModelCallback);
+      var helper = new AndroidModelHelper(model);
       assert.equal(1, helper.apps.length);
 
       var frames = helper.apps[0].getFrames();

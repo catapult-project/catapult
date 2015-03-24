@@ -106,8 +106,7 @@ tv.exportTo('tv.e.audits', function() {
     var slices = uiThread.sliceGroup.slices;
     for (var i = 0; i < slices.length; i++) {
       var slice = slices[i];
-      if (slice.category == 'android' &&
-          slice.title == UI_THREAD_DRAW_NAME) {
+      if (slice.title == UI_THREAD_DRAW_NAME) {
         return uiThread;
       }
     }
