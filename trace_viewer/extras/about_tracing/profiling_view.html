@@ -413,7 +413,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       var defaultName = this.activeTrace_.filename;
       var custom = prompt('Filename? (.json appended) Or leave blank:');
       if (custom === null)
-        return false;
+        return undefined;
 
       if (custom) {
         filename = defaultName.replace(/\.json$/, ' ' + custom) + '.json';
@@ -428,7 +428,7 @@ tv.exportTo('tv.e.about_tracing', function() {
               .replace(illegalRe, '.')
               .replace(controlRe, '•')
               .replace(reservedRe, '')
-              .replace(/\s+/g,'_');
+              .replace(/\s+/g, '_');
     },
 
     onSaveClicked_: function() {
@@ -440,9 +440,11 @@ tv.exportTo('tv.e.about_tracing', function() {
       // Create a link and click on it. BEST API EVAR!
       var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
       link.href = blobUrl;
-      link.download = this.requestFilename_();
-      if (link.download)
+      var filename = this.requestFilename_();
+      if (filename) {
+        link.download = filename;
         link.click();
+      }
     },
 
     onUploadClicked_: function() {
