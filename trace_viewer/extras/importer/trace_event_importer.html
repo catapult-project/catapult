@@ -17,6 +17,9 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/global_memory_dump.html">
 <link rel="import" href="/core/trace_model/process_memory_dump.html">
 
+<link rel="import" href="/core/trace_model/x_marker_annotation.html">
+<link rel="import" href="/core/trace_model/rect_annotation.html">
+
 <script>
 'use strict';
 
@@ -94,6 +97,8 @@ tv.exportTo('tv.e.importer', function() {
       this.events_ = eventData;
     }
 
+    this.traceAnnotations_ = this.events_.traceAnnotations;
+
     // Some trace_event implementations put the actual trace events
     // inside a container. E.g { ... , traceEvents: [ ] }
     // If we see that, just pull out the trace events.
@@ -113,7 +118,8 @@ tv.exportTo('tv.e.importer', function() {
       // Any other fields in the container should be treated as metadata.
       for (var fieldName in container) {
         if (fieldName === 'traceEvents' || fieldName === 'systemTraceEvents' ||
-            fieldName === 'samples' || fieldName === 'stackFrames')
+            fieldName === 'samples' || fieldName === 'stackFrames' ||
+            fieldName === 'traceAnnotations')
           continue;
         this.model_.metadata.push({name: fieldName,
           value: container[fieldName]});
@@ -476,6 +482,9 @@ tv.exportTo('tv.e.importer', function() {
       if (this.stackFrameEvents_)
         this.importStackFrames_();
 
+      if (this.traceAnnotations_)
+        this.importAnnotations_();
+
       var events = this.events_;
       for (var eI = 0; eI < events.length; eI++) {
         var event = events[eI];
@@ -553,6 +562,22 @@ tv.exportTo('tv.e.importer', function() {
             throw new Error('omg');
         }
         frame.parentFrame = parentFrame;
+      }
+    },
+
+    importAnnotations_: function() {
+      for (var id in this.traceAnnotations_) {
+        var annotation = tv.c.trace_model.Annotation.fromDictIfPossible(
+           this.traceAnnotations_[id]);
+        if (!annotation) {
+          this.model_.importWarning({
+            type: 'annotation_warning',
+            message: 'Unrecognized traceAnnotation typeName \"' +
+                this.traceAnnotations_[id].typeName + '\"'
+          });
+          continue;
+        }
+        this.model_.addAnnotation(annotation);
       }
     },
 

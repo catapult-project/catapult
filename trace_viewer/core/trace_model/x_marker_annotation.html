@@ -20,6 +20,10 @@ tv.exportTo('tv.c.trace_model', function() {
     this.strokeStyle = 'rgba(0, 0, 255, 0.5)';
   }
 
+  XMarkerAnnotation.fromDict = function(dict) {
+    return new XMarkerAnnotation(dict.args.timestamp);
+  }
+
   XMarkerAnnotation.prototype = {
     __proto__: tv.c.trace_model.Annotation.prototype,
 
@@ -27,10 +31,22 @@ tv.exportTo('tv.c.trace_model', function() {
       return this.timestamp_;
     },
 
+    toDict: function() {
+      return {
+        typeName: 'xmarker',
+        args: {
+          timestamp: this.timestamp
+        }
+      };
+    },
+
     createView_: function(viewport) {
       return new tv.c.annotations.XMarkerAnnotationView(viewport, this);
     }
   };
+
+  tv.c.trace_model.Annotation.register(
+      XMarkerAnnotation, {typeName: 'xmarker'});
 
   return {
     XMarkerAnnotation: XMarkerAnnotation

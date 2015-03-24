@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/extension_registry.html">
 <link rel="import" href="/base/guid.html">
 
 <script>
@@ -22,9 +23,31 @@ tv.exportTo('tv.c.trace_model', function() {
     this.view_ = undefined;
   };
 
+  Annotation.fromDictIfPossible = function(args) {
+    if (args.typeName === undefined)
+      throw new Error('Missing typeName argument');
+
+    var typeInfo = Annotation.findTypeInfoMatching(function(typeInfo) {
+      return typeInfo.metadata.typeName === args.typeName;
+    });
+
+    if (typeInfo === undefined)
+      return undefined;
+
+    return typeInfo.constructor.fromDict(args);
+  };
+
+  Annotation.fromDict = function() {
+    throw new Error('Not implemented');
+  }
+
   Annotation.prototype = {
     get guid() {
       return this.guid_;
+    },
+
+    toDict: function() {
+      throw new Error('Not implemented');
     },
 
     getOrCreateView: function(viewport) {
@@ -37,6 +60,18 @@ tv.exportTo('tv.c.trace_model', function() {
       throw new Error('Not implemented');
     }
   };
+
+  var options = new tv.b.ExtensionRegistryOptions(tv.b. BASIC_REGISTRY_MODE);
+  options.mandatoryBaseType = Annotation;
+  tv.b.decorateExtensionRegistry(Annotation, options);
+
+  Annotation.addEventListener('will-register', function(e) {
+    if (!e.typeInfo.constructor.hasOwnProperty('fromDict'))
+      throw new Error('Must have fromDict method');
+
+    if (!e.typeInfo.metadata.typeName)
+      throw new Error('Registered Annotations must provide typeName');
+  });
 
   return {
     Annotation: Annotation

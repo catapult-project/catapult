@@ -21,6 +21,15 @@ tv.exportTo('tv.c.trace_model', function() {
     this.fillStyle = 'rgba(255, 180, 0, 0.3)';
   }
 
+  RectAnnotation.fromDict = function(dict) {
+    var args = dict.args;
+    var startLoc =
+        new tv.c.Location(args.start.xWorld, args.start.yComponents);
+    var endLoc =
+        new tv.c.Location(args.end.xWorld, args.end.yComponents);
+    return new tv.c.trace_model.RectAnnotation(startLoc, endLoc);
+  }
+
   RectAnnotation.prototype = {
     __proto__: tv.c.trace_model.Annotation.prototype,
 
@@ -32,10 +41,22 @@ tv.exportTo('tv.c.trace_model', function() {
       return this.endLocation_;
     },
 
+    toDict: function() {
+      return {
+        typeName: 'rect',
+        args: {
+          start: this.startLocation,
+          end: this.endLocation
+        }
+      };
+    },
+
     createView_: function(viewport) {
       return new tv.c.annotations.RectAnnotationView(viewport, this);
     }
   };
+
+  tv.c.trace_model.Annotation.register(RectAnnotation, {typeName: 'rect'});
 
   return {
     RectAnnotation: RectAnnotation
