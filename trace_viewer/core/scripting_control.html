@@ -25,12 +25,21 @@ found in the LICENSE file.
 
         height: 100px;
         overflow-y: auto;
+
+        transition-property: opacity, height, padding, margin;
+        transition-duration: .2s;
+        transition-timing-function: ease-out;
       }
       .hidden {
-        margin: 0px;
-        padding: 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        padding-top: 0px;
+        padding-bottom: 0px;
         height: 0px;
-        visibility: hidden;
+        opacity: 0;
+      }
+      .focused {
+        outline: auto 5px -webkit-focus-ring-color;
       }
       #history {
         -webkit-user-select: text;
@@ -54,12 +63,13 @@ found in the LICENSE file.
       }
     </style>
 
-    <div class="root hidden" tabindex="0"
+    <div id="root" class="root hidden" tabindex="0"
          on-focus="{{ onConsoleFocus }}">
       <div id='history'></div>
       <div id='prompt'
-          on-keypress="{{ promptKeyPress }}"
-          on-keydown="{{ promptKeyDown }}"></div>
+           on-keypress="{{ promptKeyPress }}"
+           on-keydown="{{ promptKeyDown }}"
+           on-blur="{{ onConsoleBlur }}">
   </template>
 
   <script>
@@ -71,10 +81,36 @@ found in the LICENSE file.
       return event.keyCode !== 229 && event.keyIdentifier === 'Enter';
     },
 
+    _setFocused: function(focused) {
+      var promptEl = this.$.prompt;
+      if (focused) {
+        promptEl.focus();
+        this.$.root.classList.add('focused');
+        // Move cursor to the end of any existing text.
+        if (promptEl.innerText.length > 0) {
+          var sel = window.getSelection();
+          sel.collapse(promptEl.firstChild, promptEl.innerText.length);
+        }
+      } else {
+        promptEl.blur();
+        this.$.root.classList.remove('focused');
+        // Workaround for crbug.com/89026 to ensure the prompt doesn't retain
+        // keyboard focus.
+        var dummyInput = document.createElement('input');
+        dummyInput.focus();
+        dummyInput.setSelectionRange(0, 0);
+        dummyInput.blur();
+      }
+    },
+
     onConsoleFocus: function(e) {
       e.stopPropagation();
-      var promptEl = this.$.prompt;
-      promptEl.focus();
+      this._setFocused(true);
+    },
+
+    onConsoleBlur: function(e) {
+      e.stopPropagation();
+      this._setFocused(false);
     },
 
     promptKeyDown: function(e) {
@@ -94,6 +130,26 @@ found in the LICENSE file.
 
     promptKeyPress: function(e) {
       e.stopPropagation();
+    },
+
+    toggleVisibility: function() {
+      var root = this.$.root;
+      if (!this.visible) {
+        root.classList.remove('hidden');
+        this._setFocused(true);
+      } else {
+        root.classList.add('hidden');
+        this._setFocused(false);
+      }
+    },
+
+    get hasFocus() {
+      return this === document.activeElement;
+    },
+
+    get visible() {
+      var root = this.$.root;
+      return !root.classList.contains('hidden');
     }
   });
   </script>

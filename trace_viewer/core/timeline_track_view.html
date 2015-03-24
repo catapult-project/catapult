@@ -328,6 +328,8 @@ tv.exportTo('tv.c', function() {
         return false;
       if (document.activeElement instanceof TracingFindControl)
         return false;
+      if (document.activeElement instanceof TracingScriptingControl)
+        return false;
       if (!this.focusElement_)
         return true;
       if (this.focusElement.tabIndex >= 0) {

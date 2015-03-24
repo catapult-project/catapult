@@ -182,6 +182,11 @@ found in the LICENSE file.
       </div>
 
       <div class='pair'>
+        <div class='command'>`</div>
+        <div class='action'>Show or hide the scripting console</div>
+      </div>
+
+      <div class='pair'>
         <div class='command'>?</div>
         <div class='action'>Show help</div>
       </div>
@@ -192,6 +197,10 @@ found in the LICENSE file.
 <template id="metadata-btn-template">
   <div class="button view-metadata-button view-info-button">Metadata</div>
   <div class="info-button-text metadata-dialog-text"></div>
+</template>
+
+<template id="console-btn-template">
+  <div class="button view-console-button">&#187;</div>
 </template>
 
 <script>
@@ -247,6 +256,7 @@ tv.exportTo('tv.c', function() {
 
       this.rightControls.appendChild(this.createMetadataButton_());
       this.rightControls.appendChild(this.findCtl_);
+      this.rightControls.appendChild(this.createConsoleButton_());
       this.rightControls.appendChild(this.createHelpButton_());
       this.collapsingControls.appendChild(this.scriptingCtl_);
 
@@ -319,6 +329,20 @@ tv.exportTo('tv.c', function() {
       showEl.addEventListener('click', onClick.bind(this));
 
       return showEl;
+    },
+
+    createConsoleButton_: function() {
+      var node = tv.b.instantiateTemplate('#console-btn-template', THIS_DOC);
+      var toggleEl = node.querySelector('.view-console-button');
+
+      function onClick(e) {
+        this.scriptingCtl_.toggleVisibility();
+        e.stopPropagation();
+        return false;
+      }
+      toggleEl.addEventListener('click', onClick.bind(this));
+
+      return toggleEl;
     },
 
     createMetadataButton_: function() {
@@ -499,27 +523,42 @@ tv.exportTo('tv.c', function() {
       if (!this.listenToKeys_)
         return;
 
+      // Shortcuts that *can* steal focus from the console and the filter text
+      // box.
+      switch (e.keyCode) {
+        case '`'.charCodeAt(0):
+          this.scriptingCtl_.toggleVisibility();
+          if (!this.scriptingCtl_.hasFocus)
+            this.focus();
+          e.preventDefault();
+          break;
+      }
+
+      if (this.scriptingCtl_.hasFocus)
+        return;
+
       // Shortcuts that *can* steal focus from the filter text box.
       switch (e.keyCode) {
-        case 47:  // /
-          if (this.findCtl_.hasFocus())
+        case '/'.charCodeAt(0):
+          if (this.findCtl_.hasFocus)
             this.focus();
           else
             this.findCtl_.focus();
           e.preventDefault();
           break;
-        case 63:  // ?
+        case '?'.charCodeAt(0):
           this.querySelector('.view-help-button').click();
           e.preventDefault();
           break;
       }
 
-      if (this.findCtl_.hasFocus())
+      if (this.findCtl_.hasFocus)
         return;
 
-      // Shortcuts that *can't* steal focus from the filter text box.
+      // Shortcuts that *can't* steal focus from the filter text box or the
+      // console.
       switch (e.keyCode) {
-        case 118:  // v
+        case 'v'.charCodeAt(0):
           this.toggleHighlightVSync_();
           e.preventDefault();
           break;

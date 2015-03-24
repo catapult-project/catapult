@@ -134,7 +134,7 @@ found in the LICENSE file.
       this.$.filter.focus();
     },
 
-    hasFocus: function() {
+    get hasFocus() {
       return this === document.activeElement;
     },
 
@@ -161,7 +161,7 @@ found in the LICENSE file.
     },
 
     updateHitCountEl: function() {
-      if (!this.controller || !this.hasFocus()) {
+      if (!this.controller || !this.hasFocus) {
         this.$.hitCount.textContent = '';
         return;
       }
