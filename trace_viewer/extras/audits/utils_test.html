@@ -27,9 +27,9 @@ tv.b.unittest.testSuite(function() {
 
     var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
 
-    assertEquals(2, merged.length);
-    assertObjectEquals({start: 0, end: 120}, merged[0]);
-    assertObjectEquals({start: 200, end: 220}, merged[1]);
+    assert.equal(2, merged.length);
+    assert.deepEqual({start: 0, end: 120}, merged[0]);
+    assert.deepEqual({start: 200, end: 220}, merged[1]);
   });
 
   test('overlapping', function() {
@@ -41,9 +41,9 @@ tv.b.unittest.testSuite(function() {
 
     var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
 
-    assertEquals(2, merged.length);
-    assertObjectEquals({start: 0, end: 120}, merged[0]);
-    assertObjectEquals({start: 200, end: 220}, merged[1]);
+    assert.equal(2, merged.length);
+    assert.deepEqual({start: 0, end: 120}, merged[0]);
+    assert.deepEqual({start: 200, end: 220}, merged[1]);
   });
 
   test('middleOneIsSmall', function() {
@@ -55,8 +55,8 @@ tv.b.unittest.testSuite(function() {
 
     var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
 
-    assertEquals(1, merged.length);
-    assertObjectEquals({start: 0, end: 120}, merged[0]);
+    assert.equal(1, merged.length);
+    assert.deepEqual({start: 0, end: 120}, merged[0]);
   });
 
   test('firstEventIsSplitPoint', function() {
@@ -67,9 +67,9 @@ tv.b.unittest.testSuite(function() {
 
     var merged = tv.e.audits.mergeEvents(inEvents, 25, simpleMerger);
 
-    assertEquals(2, merged.length);
-    assertObjectEquals({start: 0, end: 100}, merged[0]);
-    assertObjectEquals({start: 150, end: 200}, merged[1]);
+    assert.equal(2, merged.length);
+    assert.deepEqual({start: 0, end: 100}, merged[0]);
+    assert.deepEqual({start: 150, end: 200}, merged[1]);
   });
 
 

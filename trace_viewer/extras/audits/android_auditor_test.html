@@ -23,11 +23,11 @@ tv.b.unittest.testSuite(function() {
     io.auditorConstructors = [tv.e.audits.AndroidAuditor];
 
     var m = new tv.c.TraceModel(lines.join('\n'), io);
-    assertFalse(m.hasImportWarnings);
-    assertEquals(1, m.alerts.length);
+    assert.isFalse(m.hasImportWarnings);
+    assert.equal(1, m.alerts.length);
 
     var alert = m.alerts[0];
-    assertAlmostEquals(80, alert.args.totalDuration);
+    assert.closeTo(80, alert.args.totalDuration, 1e-5);
   });
 
   test('savelayer', function() {
@@ -44,12 +44,12 @@ tv.b.unittest.testSuite(function() {
     io.auditorConstructors = [tv.e.audits.AndroidAuditor];
 
     var m = new tv.c.TraceModel(lines.join('\n'), io);
-    assertFalse(m.hasImportWarnings);
-    assertEquals(1, m.alerts.length);
+    assert.isFalse(m.hasImportWarnings);
+    assert.equal(1, m.alerts.length);
 
     var alert = m.alerts[0];
-    assertEquals(480, alert.args.width);
-    assertEquals(320, alert.args.height);
+    assert.equal(480, alert.args.width);
+    assert.equal(320, alert.args.height);
   });
 });
 </script>

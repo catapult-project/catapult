@@ -44,17 +44,17 @@ tv.b.unittest.testSuite(function() {
   test('getThreads', function() {
     var model = new TraceModel(TEST_FRAME_UI_ONLY);
     var helper = new AndroidModelHelper(model);
-    assertEquals(1, model.getAllProcesses().length);
+    assert.equal(1, model.getAllProcesses().length);
     var process = model.getAllProcesses()[0];
-    assertEquals(process.getThread(1880), helper.apps[0].uiThread);
-    assertEquals(undefined, helper.apps[0].renderThread);
+    assert.equal(process.getThread(1880), helper.apps[0].uiThread);
+    assert.isUndefined(helper.apps[0].renderThread);
 
     var model = new TraceModel(TEST_FRAME_RT_ONLY);
     var helper = new AndroidModelHelper(model);
-    assertEquals(1, model.getAllProcesses().length);
+    assert.equal(1, model.getAllProcesses().length);
     var process = model.getAllProcesses()[0];
-    assertEquals(undefined, helper.apps[0].uiThread);
-    assertEquals(process.getThread(2000), helper.apps[0].renderThread);
+    assert.isUndefined(helper.apps[0].uiThread);
+    assert.equal(process.getThread(2000), helper.apps[0].renderThread);
   });
 
   test('getFrames', function() {
@@ -62,11 +62,11 @@ tv.b.unittest.testSuite(function() {
       TEST_FRAME_UI_ONLY, TEST_FRAME_RT_ONLY, TEST_FRAME_BOTH_THREADS
     ].forEach(function(data) {
       var helper = new AndroidModelHelper(new TraceModel(TEST_FRAME_UI_ONLY));
-      assertEquals(1, helper.apps.length);
+      assert.equal(1, helper.apps.length);
 
       var frames = helper.apps[0].getFrames();
-      assertEquals(1, frames.length);
-      assertAlmostEquals(80, frames[0].totalDuration);
+      assert.equal(1, frames.length);
+      assert.closeTo(80, frames[0].totalDuration, 1e-5);
     });
   });
 });
