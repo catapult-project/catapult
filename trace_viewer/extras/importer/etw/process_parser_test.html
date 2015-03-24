@@ -60,25 +60,25 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     decoder.reset(kProcessStartPayload32bitV1);
     fields = parser.decodeFields(header, decoder);
 
-    assertTrue(fields.pageDirectoryBase == 0);
-    assertTrue(fields.processId == 1776);
-    assertTrue(fields.parentId == 988);
-    assertTrue(fields.sessionId == 1);
-    assertTrue(fields.exitStatus == 259);
-    assertTrue(fields.imageFileName === 'notepad.exe');
+    assert.equal(fields.pageDirectoryBase, 0);
+    assert.equal(fields.processId, 1776);
+    assert.equal(fields.parentId, 988);
+    assert.equal(fields.sessionId, 1);
+    assert.equal(fields.exitStatus, 259);
+    assert.strictEqual(fields.imageFileName, 'notepad.exe');
 
     // Validate a version 2 32-bit payload.
     header = { guid: guid, opcode: kProcessStartOpcode, version: 2, is64: 0 };
     decoder.reset(kProcessStartPayload32bitV2);
     fields = parser.decodeFields(header, decoder);
 
-    assertTrue(fields.uniqueProcessKey == 0);
-    assertTrue(fields.processId == 1776);
-    assertTrue(fields.parentId == 988);
-    assertTrue(fields.sessionId == 1);
-    assertTrue(fields.exitStatus == 259);
-    assertTrue(fields.imageFileName === 'notepad.exe');
-    assertTrue(fields.commandLine ===
+    assert.equal(fields.uniqueProcessKey, 0);
+    assert.equal(fields.processId, 1776);
+    assert.equal(fields.parentId, 988);
+    assert.equal(fields.sessionId, 1);
+    assert.equal(fields.exitStatus, 259);
+    assert.strictEqual(fields.imageFileName, 'notepad.exe');
+    assert.strictEqual(fields.commandLine,
                '\"C:\\Windows\\system32\\notepad.exe\" ');
 
     // Validate a version 3 32-bit payload.
@@ -86,14 +86,14 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     decoder.reset(kProcessStartPayload32bitV3);
     fields = parser.decodeFields(header, decoder);
 
-    assertTrue(fields.uniqueProcessKey == 0);
-    assertTrue(fields.processId == 1776);
-    assertTrue(fields.parentId == 988);
-    assertTrue(fields.sessionId == 1);
-    assertTrue(fields.exitStatus == 259);
-    assertTrue(fields.directoryTableBase == 0);
-    assertTrue(fields.imageFileName === 'notepad.exe');
-    assertTrue(fields.commandLine ===
+    assert.equal(fields.uniqueProcessKey, 0);
+    assert.equal(fields.processId, 1776);
+    assert.equal(fields.parentId, 988);
+    assert.equal(fields.sessionId, 1);
+    assert.equal(fields.exitStatus, 259);
+    assert.equal(fields.directoryTableBase, 0);
+    assert.strictEqual(fields.imageFileName, 'notepad.exe');
+    assert.strictEqual(fields.commandLine,
                '\"C:\\Windows\\system32\\notepad.exe\" ');
 
     // Validate a version 3 64-bit payload.
@@ -101,49 +101,49 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     decoder.reset(kProcessStartPayload64bitV3);
     fields = parser.decodeFields(header, decoder);
 
-    assertTrue(fields.uniqueProcessKey === 'fffffa800f628060');
-    assertTrue(fields.processId == 6656);
-    assertTrue(fields.parentId == 7328);
-    assertTrue(fields.sessionId == 1);
-    assertTrue(fields.exitStatus == 259);
-    assertTrue(fields.directoryTableBase === '000000011d43f000');
-    assertTrue(fields.imageFileName === 'xperf.exe');
-    assertTrue(fields.commandLine === 'xperf  -d out.etl');
+    assert.strictEqual(fields.uniqueProcessKey, 'fffffa800f628060');
+    assert.equal(fields.processId, 6656);
+    assert.equal(fields.parentId, 7328);
+    assert.equal(fields.sessionId, 1);
+    assert.equal(fields.exitStatus, 259);
+    assert.strictEqual(fields.directoryTableBase, '000000011d43f000');
+    assert.strictEqual(fields.imageFileName, 'xperf.exe');
+    assert.strictEqual(fields.commandLine, 'xperf  -d out.etl');
 
     // Validate a version 4 64-bit payload.
     header = { guid: guid, opcode: kProcessStartOpcode, version: 4, is64: 1 };
     decoder.reset(kProcessStartPayload64bitV4);
     fields = parser.decodeFields(header, decoder);
 
-    assertTrue(fields.uniqueProcessKey == 'ffffe0001afc4080');
-    assertTrue(fields.processId == 2700);
-    assertTrue(fields.parentId == 5896);
-    assertTrue(fields.sessionId == 5);
-    assertTrue(fields.exitStatus == 259);
-    assertTrue(fields.directoryTableBase == '00000000a3a2b000');
-    assertTrue(fields.flags == 0);
-    assertTrue(fields.imageFileName === 'xperf.exe');
-    assertTrue(fields.commandLine === 'xperf  -stop');
-    assertTrue(fields.packageFullName === '');
-    assertTrue(fields.applicationId === '');
+    assert.equal(fields.uniqueProcessKey, 'ffffe0001afc4080');
+    assert.equal(fields.processId, 2700);
+    assert.equal(fields.parentId, 5896);
+    assert.equal(fields.sessionId, 5);
+    assert.equal(fields.exitStatus, 259);
+    assert.equal(fields.directoryTableBase, '00000000a3a2b000');
+    assert.equal(fields.flags, 0);
+    assert.strictEqual(fields.imageFileName, 'xperf.exe');
+    assert.strictEqual(fields.commandLine, 'xperf  -stop');
+    assert.strictEqual(fields.packageFullName, '');
+    assert.strictEqual(fields.applicationId, '');
 
     // Validate a version 5 64-bit payload.
     header = { guid: guid, opcode: kProcessDefunctOpcode, version: 5, is64: 1 };
     decoder.reset(kProcessDefunctPayload64bitV5);
     fields = parser.decodeFields(header, decoder);
 
-    assertTrue(fields.uniqueProcessKey === 'ffffe00006f2c5c0');
-    assertTrue(fields.processId == 6472);
-    assertTrue(fields.parentId == 2064);
-    assertTrue(fields.sessionId == 1);
-    assertTrue(fields.exitStatus == 0);
-    assertTrue(fields.directoryTableBase === '000000004fcb6000');
-    assertTrue(fields.flags == 0);
-    assertTrue(fields.imageFileName === 'chrome.exe');
-    assertTrue(fields.commandLine === '');
-    assertTrue(fields.packageFullName === '');
-    assertTrue(fields.applicationId === '');
-    assertTrue(fields.exitTime === '01cefaecf9a2498d');
+    assert.strictEqual(fields.uniqueProcessKey, 'ffffe00006f2c5c0');
+    assert.equal(fields.processId, 6472);
+    assert.equal(fields.parentId, 2064);
+    assert.equal(fields.sessionId, 1);
+    assert.equal(fields.exitStatus, 0);
+    assert.strictEqual(fields.directoryTableBase, '000000004fcb6000');
+    assert.equal(fields.flags, 0);
+    assert.strictEqual(fields.imageFileName, 'chrome.exe');
+    assert.strictEqual(fields.commandLine, '');
+    assert.strictEqual(fields.packageFullName, '');
+    assert.strictEqual(fields.applicationId, '');
+    assert.strictEqual(fields.exitTime, '01cefaecf9a2498d');
   });
 });
 </script>

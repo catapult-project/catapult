@@ -52,29 +52,31 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     decoder.reset(kEventTraceHeaderPayload32bitV2);
     fields = parser.decodeFields(header, decoder);
 
-    assertTrue(fields.bufferSize == 65536);
-    assertTrue(fields.version == 83951878);
-    assertTrue(fields.providerVersion == 7600);
-    assertTrue(fields.numberOfProcessors == 16);
-    assertTrue(fields.endTime === '01cc08c861d52c11');
-    assertTrue(fields.timerResolution == 156001);
-    assertTrue(fields.maxFileSize == 100);
-    assertTrue(fields.logFileMode == 1);
-    assertTrue(fields.buffersWritten == 3);
-    assertTrue(fields.startBuffers == 1);
-    assertTrue(fields.pointerSize == 4);
-    assertTrue(fields.eventsLost == 0);
-    assertTrue(fields.cpuSpeed == 2394);
-    assertTrue(fields.loggerName == 5);
-    assertTrue(fields.logFileName == 6);
-    assertTrue(fields.timeZoneInformation.standardName === '@tzres.dll,-112');
-    assertTrue(fields.timeZoneInformation.daylightName === '@tzres.dll,-111');
-    assertTrue(fields.bootTime === '01cc05afdf9b437f');
-    assertTrue(fields.perfFreq === '000000000023ac9d');
-    assertTrue(fields.startTime === '01cc08c860a3342c');
-    assertTrue(fields.reservedFlags == 1);
-    assertTrue(fields.buffersLost == 0);
-    assertTrue(fields.sessionNameString === 'Make Test Data Session');
+    assert.equal(fields.bufferSize, 65536);
+    assert.equal(fields.version, 83951878);
+    assert.equal(fields.providerVersion, 7600);
+    assert.equal(fields.numberOfProcessors, 16);
+    assert.strictEqual(fields.endTime, '01cc08c861d52c11');
+    assert.equal(fields.timerResolution, 156001);
+    assert.equal(fields.maxFileSize, 100);
+    assert.equal(fields.logFileMode, 1);
+    assert.equal(fields.buffersWritten, 3);
+    assert.equal(fields.startBuffers, 1);
+    assert.equal(fields.pointerSize, 4);
+    assert.equal(fields.eventsLost, 0);
+    assert.equal(fields.cpuSpeed, 2394);
+    assert.equal(fields.loggerName, 5);
+    assert.equal(fields.logFileName, 6);
+    assert.strictEqual(fields.timeZoneInformation.standardName,
+        '@tzres.dll,-112');
+    assert.strictEqual(fields.timeZoneInformation.daylightName,
+        '@tzres.dll,-111');
+    assert.strictEqual(fields.bootTime, '01cc05afdf9b437f');
+    assert.strictEqual(fields.perfFreq, '000000000023ac9d');
+    assert.strictEqual(fields.startTime, '01cc08c860a3342c');
+    assert.equal(fields.reservedFlags, 1);
+    assert.equal(fields.buffersLost, 0);
+    assert.strictEqual(fields.sessionNameString, 'Make Test Data Session');
     assertTrue(fields.logFileNameString ===
                'c:\\src\\sawbuck\\trunk\\src\\sawbuck\\log_lib\\' +
                'test_data\\image_data_32_v0.etl');
@@ -86,30 +88,32 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     decoder.reset(kEventTraceHeaderPayload64bitV2);
     fields = parser.decodeFields(header, decoder);
 
-    assertTrue(fields.bufferSize == 65536);
-    assertTrue(fields.version == 83951878);
-    assertTrue(fields.providerVersion == 7601);
-    assertTrue(fields.numberOfProcessors == 4);
-    assertTrue(fields.endTime === '01cf2c5814cd2e3b');
-    assertTrue(fields.timerResolution == 156001);
-    assertTrue(fields.maxFileSize == 0);
-    assertTrue(fields.logFileMode == 0x10001);
-    assertTrue(fields.buffersWritten == 438);
-    assertTrue(fields.startBuffers == 1);
-    assertTrue(fields.pointerSize == 8);
-    assertTrue(fields.eventsLost == 31);
-    assertTrue(fields.cpuSpeed == 1696);
-    assertTrue(fields.loggerName == 0);
-    assertTrue(fields.logFileName == 0);
-    assertTrue(fields.timeZoneInformation.standardName === '@tzres.dll,-112');
-    assertTrue(fields.timeZoneInformation.daylightName === '@tzres.dll,-111');
-    assertTrue(fields.bootTime === '01cf2bc0a2254359');
-    assertTrue(fields.perfFreq === '000000000019467d');
-    assertTrue(fields.startTime === '01cf2c580499642d');
-    assertTrue(fields.reservedFlags == 1);
-    assertTrue(fields.buffersLost == 0);
-    assertTrue(fields.sessionNameString === 'Relogger');
-    assertTrue(fields.logFileNameString === 'C:\\kernel.etl');
+    assert.equal(fields.bufferSize, 65536);
+    assert.equal(fields.version, 83951878);
+    assert.equal(fields.providerVersion, 7601);
+    assert.equal(fields.numberOfProcessors, 4);
+    assert.strictEqual(fields.endTime, '01cf2c5814cd2e3b');
+    assert.equal(fields.timerResolution, 156001);
+    assert.equal(fields.maxFileSize, 0);
+    assert.equal(fields.logFileMode, 0x10001);
+    assert.equal(fields.buffersWritten, 438);
+    assert.equal(fields.startBuffers, 1);
+    assert.equal(fields.pointerSize, 8);
+    assert.equal(fields.eventsLost, 31);
+    assert.equal(fields.cpuSpeed, 1696);
+    assert.equal(fields.loggerName, 0);
+    assert.equal(fields.logFileName, 0);
+    assert.strictEqual(fields.timeZoneInformation.standardName,
+        '@tzres.dll,-112');
+    assert.strictEqual(fields.timeZoneInformation.daylightName,
+        '@tzres.dll,-111');
+    assert.strictEqual(fields.bootTime, '01cf2bc0a2254359');
+    assert.strictEqual(fields.perfFreq, '000000000019467d');
+    assert.strictEqual(fields.startTime, '01cf2c580499642d');
+    assert.equal(fields.reservedFlags, 1);
+    assert.equal(fields.buffersLost, 0);
+    assert.strictEqual(fields.sessionNameString, 'Relogger');
+    assert.strictEqual(fields.logFileNameString, 'C:\\kernel.etl');
   });
 });
 </script>
