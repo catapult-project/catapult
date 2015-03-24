@@ -14,40 +14,40 @@ tv.b.unittest.testSuite(function() {
 
   test('comparePossiblyUndefinedValues', function() {
     function cmp(x, y) {
-      assertNotUndefined(x);
-      assertNotUndefined(y);
+      assert.isDefined(x);
+      assert.isDefined(y);
       return x - y;
     }
 
-    assertTrue(comparePossiblyUndefinedValues(0, 1, cmp) < 0);
-    assertTrue(comparePossiblyUndefinedValues(1, 0, cmp) > 0);
-    assertTrue(comparePossiblyUndefinedValues(1, 1, cmp) == 0);
+    assert.isBelow(comparePossiblyUndefinedValues(0, 1, cmp), 0);
+    assert.isAbove(comparePossiblyUndefinedValues(1, 0, cmp), 0);
+    assert.equal(comparePossiblyUndefinedValues(1, 1, cmp), 0);
 
-    assertTrue(comparePossiblyUndefinedValues(0, undefined, cmp) < 0);
-    assertTrue(comparePossiblyUndefinedValues(undefined, 0, cmp) > 0);
-    assertTrue(comparePossiblyUndefinedValues(undefined, undefined, cmp) == 0);
+    assert.isBelow(comparePossiblyUndefinedValues(0, undefined, cmp), 0);
+    assert.isAbove(comparePossiblyUndefinedValues(undefined, 0, cmp), 0);
+    assert.equal(comparePossiblyUndefinedValues(undefined, undefined, cmp), 0);
   });
 
   test('compareArrays', function() {
     function cmp(x, y) {
-      assertNotUndefined(x);
-      assertNotUndefined(y);
+      assert.isDefined(x);
+      assert.isDefined(y);
       return x - y;
     }
 
-    assertTrue(compareArrays([1], [2], cmp) < 0);
-    assertTrue(compareArrays([2], [1], cmp) > 0);
+    assert.isBelow(compareArrays([1], [2], cmp), 0);
+    assert.isAbove(compareArrays([2], [1], cmp), 0);
 
-    assertTrue(compareArrays([1], [1, 2], cmp) < 0);
-    assertTrue(compareArrays([1, 2], [1], cmp) > 0);
+    assert.isBelow(compareArrays([1], [1, 2], cmp), 0);
+    assert.isAbove(compareArrays([1, 2], [1], cmp), 0);
 
-    assertTrue(compareArrays([], [1], cmp) < 0);
-    assertTrue(compareArrays([1], [], cmp) > 0);
+    assert.isBelow(compareArrays([], [1], cmp), 0);
+    assert.isAbove(compareArrays([1], [], cmp), 0);
 
-    assertTrue(compareArrays([2], [1], cmp) > 0);
+    assert.isAbove(compareArrays([2], [1], cmp), 0);
 
-    assertTrue(compareArrays([], [], cmp) == 0);
-    assertTrue(compareArrays([1], [1], cmp) == 0);
+    assert.equal(compareArrays([], [], cmp), 0);
+    assert.equal(compareArrays([1], [1], cmp), 0);
   });
 });
 </script>

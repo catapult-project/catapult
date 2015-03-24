@@ -11,16 +11,16 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   test('addValue', function() {
     var range = new tv.b.Range();
-    assertTrue(range.isEmpty);
+    assert.isTrue(range.isEmpty);
     range.addValue(1);
-    assertFalse(range.isEmpty);
-    assertEquals(range.min, 1);
-    assertEquals(range.max, 1);
+    assert.isFalse(range.isEmpty);
+    assert.equal(range.min, 1);
+    assert.equal(range.max, 1);
 
     range.addValue(2);
-    assertFalse(range.isEmpty);
-    assertEquals(range.min, 1);
-    assertEquals(range.max, 2);
+    assert.isFalse(range.isEmpty);
+    assert.equal(range.min, 1);
+    assert.equal(range.max, 2);
   });
 
   test('addNonEmptyRange', function() {
@@ -30,8 +30,8 @@ tv.b.unittest.testSuite(function() {
 
     var r = new tv.b.Range();
     r.addRange(r1);
-    assertEquals(r.min, 1);
-    assertEquals(r.max, 2);
+    assert.equal(r.min, 1);
+    assert.equal(r.max, 2);
   });
 
   test('addEmptyRange', function() {
@@ -39,9 +39,9 @@ tv.b.unittest.testSuite(function() {
 
     var r = new tv.b.Range();
     r.addRange(r1);
-    assertTrue(r.isEmpty);
-    assertEquals(r.min, undefined);
-    assertEquals(r.max, undefined);
+    assert.isTrue(r.isEmpty);
+    assert.isUndefined(r.min);
+    assert.isUndefined(r.max);
   });
 
   test('addRangeToRange', function() {
@@ -53,9 +53,9 @@ tv.b.unittest.testSuite(function() {
     r.addValue(3);
     r.addRange(r1);
 
-    assertFalse(r.isEmpty);
-    assertEquals(r.min, 1);
-    assertEquals(r.max, 3);
+    assert.isFalse(r.isEmpty);
+    assert.equal(r.min, 1);
+    assert.equal(r.max, 3);
   });
 });
 </script>

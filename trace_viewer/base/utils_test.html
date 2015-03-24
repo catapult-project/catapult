@@ -36,61 +36,61 @@ tv.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
 
   test('clamping', function() {
-    assertEquals(2, tv.b.clamp(2, 1, 3));
-    assertEquals(1, tv.b.clamp(1, 1, 3));
-    assertEquals(1, tv.b.clamp(0, 1, 3));
-    assertEquals(3, tv.b.clamp(3, 1, 3));
-    assertEquals(3, tv.b.clamp(4, 1, 3));
+    assert.equal(2, tv.b.clamp(2, 1, 3));
+    assert.equal(1, tv.b.clamp(1, 1, 3));
+    assert.equal(1, tv.b.clamp(0, 1, 3));
+    assert.equal(3, tv.b.clamp(3, 1, 3));
+    assert.equal(3, tv.b.clamp(4, 1, 3));
   });
 
   test('getUsingPath', function() {
     var z = tv.b.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
-    assertEquals(3, z);
+    assert.equal(3, z);
 
     var w = tv.b.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
-    assertEquals(undefined, w);
+    assert.equal(undefined, w);
   });
 
   test('sizeStrings', function() {
     var f = tv.b.sizeString;
 
-    assertEquals(f(0), '0.0 B');
-    assertEquals(f(1), '1.0 B');
-    assertEquals(f(1023), '1023.0 B');
-    assertEquals(f(1024), '1.0 KiB');
-    assertEquals(f(1536), '1.5 KiB');
-    assertEquals(f(1023898), '999.9 KiB');
-    assertEquals(f(1024 * 1023), '1023.0 KiB');
-    assertEquals(f(1024 * 1024), '1.0 MiB');
-    assertEquals(f(424.2 * 1024 * 1024), '424.2 MiB');
-    assertEquals(f(5 * 1024 * 1024 * 1024), '5.0 GiB');
-    assertEquals(f(1023 * 1024 * 1024 * 1024 * 1024), '1023.0 TiB');
-    assertEquals(f(1025 * 1024 * 1024 * 1024 * 1024), '1025.0 TiB');
+    assert.equal(f(0), '0.0 B');
+    assert.equal(f(1), '1.0 B');
+    assert.equal(f(1023), '1023.0 B');
+    assert.equal(f(1024), '1.0 KiB');
+    assert.equal(f(1536), '1.5 KiB');
+    assert.equal(f(1023898), '999.9 KiB');
+    assert.equal(f(1024 * 1023), '1023.0 KiB');
+    assert.equal(f(1024 * 1024), '1.0 MiB');
+    assert.equal(f(424.2 * 1024 * 1024), '424.2 MiB');
+    assert.equal(f(5 * 1024 * 1024 * 1024), '5.0 GiB');
+    assert.equal(f(1023 * 1024 * 1024 * 1024 * 1024), '1023.0 TiB');
+    assert.equal(f(1025 * 1024 * 1024 * 1024 * 1024), '1025.0 TiB');
   });
 
   test('instantiateTemplatePolymer', function() {
     var e = tv.b.instantiateTemplate(
                 '#instantiate-template-polymer-test',
                 THIS_DOC);
-    assertEquals(e.children.length, 1);
-    assertEquals(e.children[0].testProperty, 'Test');
+    assert.equal(e.children.length, 1);
+    assert.equal(e.children[0].testProperty, 'Test');
   });
 
   test('instantiateTemplateMultipleTemplates', function() {
     var outerElement = tv.b.instantiateTemplate(
                            '#multiple-template-test',
                            THIS_DOC);
-    assertEquals(2, outerElement.children.length);
-    assertEquals('Test', outerElement.children[1].testProperty);
+    assert.equal(2, outerElement.children.length);
+    assert.equal('Test', outerElement.children[1].testProperty);
 
     // Make sure we can still instantiate inner templates, if we need them.
     var innerElement = outerElement.children[0].createInstance();
-    assertEquals(2, innerElement.children.length);
-    assertEquals('Test', innerElement.children[0].testProperty);
-    assertEquals(
+    assert.equal(2, innerElement.children.length);
+    assert.equal('Test', innerElement.children[0].testProperty);
+    assert.equal(
         'TestAttribute',
         innerElement.children[1].getAttribute('test-attribute'));
-    assertEquals('Foo', innerElement.children[1].textContent);
+    assert.equal('Foo', innerElement.children[1].textContent);
   });
 });
 </script>

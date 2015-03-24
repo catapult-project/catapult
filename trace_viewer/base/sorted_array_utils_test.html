@@ -71,17 +71,17 @@ tv.b.unittest.testSuite(function() {
       {lo: 20, hi: 30}
     ]);
 
-    assertEquals(0, array.findLowElementIndex(-100));
-    assertEquals(0, array.findLowElementIndex(0));
-    assertEquals(0, array.findLowElementIndex(10));
+    assert.equal(0, array.findLowElementIndex(-100));
+    assert.equal(0, array.findLowElementIndex(0));
+    assert.equal(0, array.findLowElementIndex(10));
 
-    assertEquals(1, array.findLowElementIndex(10.1));
-    assertEquals(1, array.findLowElementIndex(15));
-    assertEquals(1, array.findLowElementIndex(20));
+    assert.equal(1, array.findLowElementIndex(10.1));
+    assert.equal(1, array.findLowElementIndex(15));
+    assert.equal(1, array.findLowElementIndex(20));
 
-    assertEquals(2, array.findLowElementIndex(20.1));
-    assertEquals(2, array.findLowElementIndex(21));
-    assertEquals(2, array.findLowElementIndex(100));
+    assert.equal(2, array.findLowElementIndex(20.1));
+    assert.equal(2, array.findLowElementIndex(21));
+    assert.equal(2, array.findLowElementIndex(100));
   });
 
   test('findLowIntervalIndex', function() {
@@ -90,24 +90,24 @@ tv.b.unittest.testSuite(function() {
       {lo: 20, hi: 30}
     ]);
 
-    assertEquals(-1, array.findLowIntervalIndex(0));
-    assertEquals(-1, array.findLowIntervalIndex(9.9));
+    assert.equal(-1, array.findLowIntervalIndex(0));
+    assert.equal(-1, array.findLowIntervalIndex(9.9));
 
-    assertEquals(0, array.findLowIntervalIndex(10));
-    assertEquals(0, array.findLowIntervalIndex(12));
-    assertEquals(0, array.findLowIntervalIndex(14.9));
+    assert.equal(0, array.findLowIntervalIndex(10));
+    assert.equal(0, array.findLowIntervalIndex(12));
+    assert.equal(0, array.findLowIntervalIndex(14.9));
 
     // These two are a little odd... the return is correct in that
     // it was not found, but its neither below, nor above. Whatever.
-    assertEquals(2, array.findLowIntervalIndex(15));
-    assertEquals(2, array.findLowIntervalIndex(19.9));
+    assert.equal(2, array.findLowIntervalIndex(15));
+    assert.equal(2, array.findLowIntervalIndex(19.9));
 
-    assertEquals(1, array.findLowIntervalIndex(20));
-    assertEquals(1, array.findLowIntervalIndex(21));
-    assertEquals(1, array.findLowIntervalIndex(29.99));
+    assert.equal(1, array.findLowIntervalIndex(20));
+    assert.equal(1, array.findLowIntervalIndex(21));
+    assert.equal(1, array.findLowIntervalIndex(29.99));
 
-    assertEquals(2, array.findLowIntervalIndex(30));
-    assertEquals(2, array.findLowIntervalIndex(40));
+    assert.equal(2, array.findLowIntervalIndex(30));
+    assert.equal(2, array.findLowIntervalIndex(40));
   });
 
   test('findIntersectingIntervals', function() {
@@ -116,22 +116,22 @@ tv.b.unittest.testSuite(function() {
       {lo: 20, hi: 30}
     ]);
 
-    assertArrayEquals([], array.findIntersectingIntervals(0, 0));
-    assertArrayEquals([], array.findIntersectingIntervals(100, 0));
-    assertArrayEquals([], array.findIntersectingIntervals(0, 10));
+    assert.deepEqual([], array.findIntersectingIntervals(0, 0));
+    assert.deepEqual([], array.findIntersectingIntervals(100, 0));
+    assert.deepEqual([], array.findIntersectingIntervals(0, 10));
 
-    assertArrayEquals([0], array.findIntersectingIntervals(0, 10.1));
-    assertArrayEquals([0], array.findIntersectingIntervals(5, 15));
-    assertArrayEquals([0], array.findIntersectingIntervals(15, 20));
+    assert.deepEqual([0], array.findIntersectingIntervals(0, 10.1));
+    assert.deepEqual([0], array.findIntersectingIntervals(5, 15));
+    assert.deepEqual([0], array.findIntersectingIntervals(15, 20));
 
-    assertArrayEquals([], array.findIntersectingIntervals(15.1, 20));
+    assert.deepEqual([], array.findIntersectingIntervals(15.1, 20));
 
-    assertArrayEquals([1], array.findIntersectingIntervals(15.1, 20.1));
-    assertArrayEquals([1], array.findIntersectingIntervals(20, 30));
-    assertArrayEquals([1], array.findIntersectingIntervals(30, 100));
+    assert.deepEqual([1], array.findIntersectingIntervals(15.1, 20.1));
+    assert.deepEqual([1], array.findIntersectingIntervals(20, 30));
+    assert.deepEqual([1], array.findIntersectingIntervals(30, 100));
 
-    assertArrayEquals([0, 1], array.findIntersectingIntervals(0, 100));
-    assertArrayEquals([0, 1], array.findIntersectingIntervals(15, 20.1));
+    assert.deepEqual([0, 1], array.findIntersectingIntervals(0, 100));
+    assert.deepEqual([0, 1], array.findIntersectingIntervals(15, 20.1));
   });
 
   test('findClosestElement', function() {
@@ -141,29 +141,29 @@ tv.b.unittest.testSuite(function() {
     ]);
 
     // Test the helper method first.
-    assertEquals(array.get(-1), undefined);
-    assertEquals(array.get(0), array.array[0]);
-    assertEquals(array.get(1), array.array[1]);
-    assertEquals(array.get(2), undefined);
+    assert.isUndefined(array.get(-1));
+    assert.equal(array.get(0), array.array[0]);
+    assert.equal(array.get(1), array.array[1]);
+    assert.isUndefined(array.get(2));
 
-    assertEquals(null, array.findClosestElement(0, 0));
-    assertEquals(null, array.findClosestElement(0, 9.9));
-    assertEquals(null, array.findClosestElement(10, -10));
+    assert.isNull(array.findClosestElement(0, 0));
+    assert.isNull(array.findClosestElement(0, 9.9));
+    assert.isNull(array.findClosestElement(10, -10));
 
-    assertEquals(array.get(0), array.findClosestElement(0, 10));
-    assertEquals(array.get(0), array.findClosestElement(8, 5));
-    assertEquals(array.get(0), array.findClosestElement(10, 0));
-    assertEquals(array.get(0), array.findClosestElement(12, 2));
+    assert.equal(array.get(0), array.findClosestElement(0, 10));
+    assert.equal(array.get(0), array.findClosestElement(8, 5));
+    assert.equal(array.get(0), array.findClosestElement(10, 0));
+    assert.equal(array.get(0), array.findClosestElement(12, 2));
 
-    assertEquals(null, array.findClosestElement(15, 3));
-    assertNotEquals(null, array.findClosestElement(15, 5));
+    assert.isNull(array.findClosestElement(15, 3));
+    assert.isNotNull(array.findClosestElement(15, 5));
 
-    assertEquals(array.get(1), array.findClosestElement(19, 1));
-    assertEquals(array.get(1), array.findClosestElement(20, 0));
-    assertEquals(array.get(1), array.findClosestElement(30, 15));
+    assert.equal(array.get(1), array.findClosestElement(19, 1));
+    assert.equal(array.get(1), array.findClosestElement(20, 0));
+    assert.equal(array.get(1), array.findClosestElement(30, 15));
 
-    assertEquals(null, array.findClosestElement(30, 9.9));
-    assertEquals(null, array.findClosestElement(100, 50));
+    assert.isNull(array.findClosestElement(30, 9.9));
+    assert.isNull(array.findClosestElement(100, 50));
   });
 
   test('findClosestInterval', function() {
@@ -172,36 +172,36 @@ tv.b.unittest.testSuite(function() {
       {lo: 20, hi: 30}
     ]);
 
-    assertEquals(null, array.findClosestInterval(0, 0));
-    assertEquals(null, array.findClosestInterval(0, 9.9));
-    assertEquals(null, array.findClosestInterval(0, -100));
+    assert.isNull(array.findClosestInterval(0, 0));
+    assert.isNull(array.findClosestInterval(0, 9.9));
+    assert.isNull(array.findClosestInterval(0, -100));
 
-    assertEquals(array.get(0), array.findClosestInterval(0, 10));
-    assertEquals(array.get(0), array.findClosestInterval(10, 0));
-    assertEquals(array.get(0), array.findClosestInterval(12, 3));
-    assertEquals(array.get(0), array.findClosestInterval(12, 100));
+    assert.equal(array.get(0), array.findClosestInterval(0, 10));
+    assert.equal(array.get(0), array.findClosestInterval(10, 0));
+    assert.equal(array.get(0), array.findClosestInterval(12, 3));
+    assert.equal(array.get(0), array.findClosestInterval(12, 100));
 
-    assertEquals(array.get(0), array.findClosestInterval(13, 3));
-    assertEquals(array.get(0), array.findClosestInterval(13, 20));
-    assertEquals(array.get(0), array.findClosestInterval(15, 0));
+    assert.equal(array.get(0), array.findClosestInterval(13, 3));
+    assert.equal(array.get(0), array.findClosestInterval(13, 20));
+    assert.equal(array.get(0), array.findClosestInterval(15, 0));
 
-    assertEquals(null, array.findClosestInterval(17.5, 0));
-    assertEquals(null, array.findClosestInterval(17.5, 2.4));
-    assertNotEquals(null, array.findClosestInterval(17.5, 2.5));
-    assertNotEquals(null, array.findClosestInterval(17.5, 10));
+    assert.isNull(array.findClosestInterval(17.5, 0));
+    assert.isNull(array.findClosestInterval(17.5, 2.4));
+    assert.isNotNull(array.findClosestInterval(17.5, 2.5));
+    assert.isNotNull(array.findClosestInterval(17.5, 10));
 
-    assertEquals(array.get(1), array.findClosestInterval(19, 2));
-    assertEquals(array.get(1), array.findClosestInterval(20, 0));
-    assertEquals(array.get(1), array.findClosestInterval(24, 100));
-    assertEquals(array.get(1), array.findClosestInterval(26, 100));
+    assert.equal(array.get(1), array.findClosestInterval(19, 2));
+    assert.equal(array.get(1), array.findClosestInterval(20, 0));
+    assert.equal(array.get(1), array.findClosestInterval(24, 100));
+    assert.equal(array.get(1), array.findClosestInterval(26, 100));
 
-    assertEquals(array.get(1), array.findClosestInterval(30, 0));
-    assertEquals(array.get(1), array.findClosestInterval(35, 10));
-    assertEquals(array.get(1), array.findClosestInterval(50, 100));
+    assert.equal(array.get(1), array.findClosestInterval(30, 0));
+    assert.equal(array.get(1), array.findClosestInterval(35, 10));
+    assert.equal(array.get(1), array.findClosestInterval(50, 100));
 
-    assertEquals(null, array.findClosestInterval(50, 19));
-    assertEquals(null, array.findClosestInterval(100, 50));
-    assertEquals(null, array.findClosestInterval(50, -100));
+    assert.isNull(array.findClosestInterval(50, 19));
+    assert.isNull(array.findClosestInterval(100, 50));
+    assert.isNull(array.findClosestInterval(50, -100));
   });
 });
 </script>

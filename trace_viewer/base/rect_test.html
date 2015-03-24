@@ -10,12 +10,22 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   test('UVRectBasic', function() {
+    function assertRectEquals(a, b, opt_message) {
+      var ok = true;
+      if (a.x === b.x && a.y === b.y &&
+          a.width === b.width && a.height === b.height) {
+        return;
+      }
+      var message = opt_message || 'Expected "' + a.toString() +
+          '", got "' + b.toString() + '"';
+      throw new tv.b.unittest.TestError(message);
+    }
     var container = tv.b.Rect.fromXYWH(0, 0, 10, 10);
     var inner = tv.b.Rect.fromXYWH(1, 1, 8, 8);
     var uv = inner.asUVRectInside(container);
     assertRectEquals(uv, tv.b.Rect.fromXYWH(0.1, 0.1, .8, .8));
-    assertEquals(container.size().width, 10);
-    assertEquals(container.size().height, 10);
+    assert.equal(container.size().width, 10);
+    assert.equal(container.size().height, 10);
   });
 });
 </script>

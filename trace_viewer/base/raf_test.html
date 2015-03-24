@@ -34,10 +34,10 @@ tv.b.unittest.testSuite(function() {
       });
       fakeNow = 0;
       tv.b.forcePendingRAFTasksToRun(fakeNow);
-      assertFalse(idleRan);
-      assertTrue(rafRan);
+      assert.isFalse(idleRan);
+      assert.isTrue(rafRan);
       tv.b.forcePendingRAFTasksToRun(fakeNow);
-      assertTrue(idleRan);
+      assert.isTrue(idleRan);
     });
   });
 
@@ -57,8 +57,8 @@ tv.b.unittest.testSuite(function() {
       });
       fakeNow = 0;
       tv.b.forcePendingRAFTasksToRun(fakeNow);
-      assertTrue(idle1Ran);
-      assertTrue(idle2Ran);
+      assert.isTrue(idle1Ran);
+      assert.isTrue(idle2Ran);
     });
   });
 
@@ -79,16 +79,16 @@ tv.b.unittest.testSuite(function() {
       });
       fakeNow = 0;
       tv.b.forcePendingRAFTasksToRun(fakeNow);
-      assertTrue(idle1Ran);
-      assertFalse(idle2Ran);
+      assert.isTrue(idle1Ran);
+      assert.isFalse(idle2Ran);
 
       // Reset idle1Ran to verify that it dosn't run again.
       idle1Ran = false;
 
       // Now run. idle2 should now run.
       tv.b.forcePendingRAFTasksToRun(fakeNow);
-      assertFalse(idle1Ran);
-      assertTrue(idle2Ran);
+      assert.isFalse(idle1Ran);
+      assert.isTrue(idle2Ran);
     });
   });
 
@@ -108,16 +108,16 @@ tv.b.unittest.testSuite(function() {
       });
       fakeNow = 10000;
       tv.b.forcePendingRAFTasksToRun(0);
-      assertTrue(idle1Ran);
-      assertFalse(idle2Ran);
+      assert.isTrue(idle1Ran);
+      assert.isFalse(idle2Ran);
 
       // Reset idle1Ran to verify that it dosn't run again.
       idle1Ran = false;
 
       // Now run. idle2 should now run.
       tv.b.forcePendingRAFTasksToRun(0);
-      assertFalse(idle1Ran);
-      assertTrue(idle2Ran);
+      assert.isFalse(idle1Ran);
+      assert.isTrue(idle2Ran);
     });
   });
 

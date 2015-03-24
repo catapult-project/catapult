@@ -10,29 +10,29 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   test('getDecodedLength', function() {
-    assertTrue(tv.b.Base64.getDecodedBufferLength('YQ==') >= 1);
-    assertTrue(tv.b.Base64.getDecodedBufferLength('YWJjZA==') >= 4);
-    assertTrue(tv.b.Base64.getDecodedBufferLength('YWJjZGVm') >= 6);
+    assert.isTrue(tv.b.Base64.getDecodedBufferLength('YQ==') >= 1);
+    assert.isTrue(tv.b.Base64.getDecodedBufferLength('YWJjZA==') >= 4);
+    assert.isTrue(tv.b.Base64.getDecodedBufferLength('YWJjZGVm') >= 6);
   });
 
   test('DecodeToTypedArray', function() {
     var buffer = new DataView(new ArrayBuffer(256));
     tv.b.Base64.DecodeToTypedArray('YQ==', buffer);
-    assertTrue(buffer.getInt8(0) == 97);
+    assert.equal(buffer.getInt8(0), 97);
 
     tv.b.Base64.DecodeToTypedArray('YWJjZA==', buffer);
     for (var i = 0; i < 4; i++)
-      assertTrue(buffer.getInt8(i) == 97 + i);
+      assert.equal(buffer.getInt8(i), 97 + i);
 
     tv.b.Base64.DecodeToTypedArray('YWJjZGVm', buffer);
     for (var i = 0; i < 4; i++)
-      assertTrue(buffer.getInt8(i) == 97 + i);
+      assert.equal(buffer.getInt8(i), 97 + i);
   });
 
   test('DecodeLengthReturn', function() {
     var buffer = new DataView(new ArrayBuffer(256));
     var len = tv.b.Base64.DecodeToTypedArray(btoa('hello'), buffer);
-    assertEquals(5, len);
+    assert.equal(5, len);
   });
 });
 </script>

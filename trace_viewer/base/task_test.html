@@ -31,8 +31,7 @@ tv.b.unittest.testSuite(function() {
     }, this);
 
     Task.RunSynchronously(startingTask);
-    assertArrayEquals(['a', 'a/1', 'a/2', 'b', 'c'],
-                      results);
+    assert.deepEqual(['a', 'a/1', 'a/2', 'b', 'c'], results);
   });
 
   test('basicAllStepsPassAsync', function() {
@@ -55,8 +54,7 @@ tv.b.unittest.testSuite(function() {
 
     var promise = Task.RunWhenIdle(startingTask);
     promise.then(function() {
-      assertArrayEquals(['a', 'a/1', 'a/2', 'b', 'c'],
-                        results);
+      assert.deepEqual(['a', 'a/1', 'a/2', 'b', 'c'], results);
     });
     return promise;
   });

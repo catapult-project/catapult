@@ -41,17 +41,17 @@ tv.b.unittest.testSuite(function() {
       stateChanges.push(event.oldValue + ' to ' + event.newValue);
     });
 
-    assertFalse(aSpan.prop);
+    assert.isFalse(aSpan.prop);
 
     aSpan.prop = true;
-    assertTrue(aSpan.prop);
-    assertTrue(stateChanges.length === 2);
-    assertTrue(stateChanges[0] === 'Internal false to true');
-    assertTrue(stateChanges[1] === 'false to true');
+    assert.isTrue(aSpan.prop);
+    assert.strictEqual(stateChanges.length, 2);
+    assert.strictEqual(stateChanges[0], 'Internal false to true');
+    assert.strictEqual(stateChanges[1], 'false to true');
 
     aSpan.prop = false;
-    assertFalse(aSpan.prop);
-    assertTrue(stateChanges[3] === 'true to false');
+    assert.isFalse(aSpan.prop);
+    assert.strictEqual(stateChanges[3], 'true to false');
   });
 });
 

@@ -43,14 +43,14 @@ tv.b.unittest.testSuite(function() {
     });
 
     var expected = [[1, 3], [1, 5], [2, 6], [3, 5], [3, 5], [3, 6]];
-    assertEquals(6, values.length);
-    assertEquals(JSON.stringify(expected), JSON.stringify(values));
+    assert.equal(6, values.length);
+    assert.deepEqual(expected, values);
   });
 
   test('findIntersection_noMatching', function() {
     var tree = buildSimpleTree();
     var intersect = tree.findIntersection(9, 10);
-    assertArrayEquals([], intersect);
+    assert.deepEqual([], intersect);
   });
 
   test('findIntersection_emptyTree', function() {
@@ -58,20 +58,20 @@ tv.b.unittest.testSuite(function() {
     tree.updateHighValues();
 
     var intersect = tree.findIntersection(2, 4);
-    assertArrayEquals([], intersect);
+    assert.deepEqual([], intersect);
   });
 
   test('findIntersection_emptyInterval', function() {
     var tree = new tv.b.IntervalTree();
     tree.updateHighValues();
 
-    assertThrows(function() {
+    assert.throws(function() {
       tree.findIntersection();
     });
-    assertThrows(function() {
+    assert.throws(function() {
       tree.findIntersection(1);
     });
-    assertThrows(function() {
+    assert.throws(function() {
       tree.findIntersection('a', 'b');
     });
   });
@@ -81,7 +81,7 @@ tv.b.unittest.testSuite(function() {
         function(s) { return s.start; },
         function(e) { return e.end; });
 
-    assertEquals(0, tree.size);
+    assert.equal(0, tree.size);
 
     tree.insert({start: 1}, {end: 4});
     tree.insert({start: 3}, {end: 5});
@@ -94,8 +94,8 @@ tv.b.unittest.testSuite(function() {
       'node': [3, 5]
     };
 
-    assertEquals(2, tree.size);
-    assertEquals(JSON.stringify(outTree), JSON.stringify(tree.dump_()));
+    assert.equal(2, tree.size);
+    assert.deepEqual(outTree, tree.dump_());
   });
 
   test('insert_withoutEnd', function() {
@@ -103,7 +103,7 @@ tv.b.unittest.testSuite(function() {
         function(s) { return s.start; },
         function(e) { return e.end; });
 
-    assertEquals(0, tree.size);
+    assert.equal(0, tree.size);
 
     tree.insert({start: 3, end: 5});
     tree.insert({start: 1, end: 4});
@@ -116,8 +116,8 @@ tv.b.unittest.testSuite(function() {
       'node': [3, 5]
     };
 
-    assertEquals(2, tree.size);
-    assertEquals(JSON.stringify(outTree), JSON.stringify(tree.dump_()));
+    assert.equal(2, tree.size);
+    assert.deepEqual(outTree, tree.dump_());
   });
 
   test('insert_balancesTree', function() {
@@ -125,7 +125,7 @@ tv.b.unittest.testSuite(function() {
         function(s) { return s.start; },
         function(e) { return e.end; });
 
-    assertEquals(0, tree.size);
+    assert.equal(0, tree.size);
 
     for (var i = 0; i < 10; ++i)
       tree.insert({start: i, end: 5});
@@ -162,8 +162,7 @@ tv.b.unittest.testSuite(function() {
       }
     };
 
-    assertEquals(JSON.stringify(outTree, null, ' '),
-        JSON.stringify(tree.dump_(), null, ' '));
+    assert.deepEqual(outTree, tree.dump_());
   });
 
   test('insert_withDuplicateIntervals', function() {
@@ -171,7 +170,7 @@ tv.b.unittest.testSuite(function() {
         function(s) { return s.start; },
         function(e) { return e.end; });
 
-    assertEquals(0, tree.size);
+    assert.equal(0, tree.size);
 
     tree.insert({start: 1}, {end: 4});
     tree.insert({start: 3}, {end: 5});
@@ -186,8 +185,8 @@ tv.b.unittest.testSuite(function() {
       'node': [[3, 5], [3, 5], [3, 6]]
     };
 
-    assertEquals(4, tree.size);
-    assertEquals(JSON.stringify(outTree), JSON.stringify(tree.dump_()));
+    assert.equal(4, tree.size);
+    assert.deepEqual(outTree, tree.dump_());
   });
 
   test('insert_updatesHighValues', function() {
@@ -213,7 +212,7 @@ tv.b.unittest.testSuite(function() {
     }
     walk(tree.root);
 
-    assertEquals(JSON.stringify(expected), JSON.stringify(result));
+    assert.deepEqual(expected, result);
   });
 });
 </script>

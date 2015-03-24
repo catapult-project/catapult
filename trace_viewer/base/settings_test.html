@@ -10,7 +10,7 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   function assertSettingIs(expectedValue, key) {
-    assertEquals(expectedValue, tv.b.Settings.get('my_key'),
+    assert.equal(expectedValue, tv.b.Settings.get('my_key'),
                  'Expected Settings.' + key + ' to be ' + expectedValue);
   }
 
@@ -21,15 +21,15 @@ tv.b.unittest.testSuite(function() {
     var storage = tv.b.Settings.getAlternativeStorageInstance();
     storage.setItem(tv.b.Settings.namespace_('key'), 'hello world');
 
-    assertEquals('value', tv.b.Settings.get('key', 'value'));
+    assert.equal('value', tv.b.Settings.get('key', 'value'));
   });
 
   test('setGetString', function() {
     var settings = new tv.b.Settings();
     settings.set('my_key', 'my_val');
-    assertEquals('my_val', settings.get('my_key'));
+    assert.equal('my_val', settings.get('my_key'));
     // tv.b.Settings() is a singleton
-    assertEquals('my_val', tv.b.Settings().get('my_key'));
+    assert.equal('my_val', tv.b.Settings().get('my_key'));
   });
 
   test('setGetNumber', function() {
@@ -47,21 +47,21 @@ tv.b.unittest.testSuite(function() {
   test('setGetObject', function() {
     var settings = new tv.b.Settings();
     settings.set('my_key', {'hello': 5});
-    assertObjectEquals({'hello': 5}, settings.get('my_key'));
+    assert.deepEqual({'hello': 5}, settings.get('my_key'));
   });
 
   test('setInvalidObject', function() {
     var settings = new tv.b.Settings();
     var obj = {'hello': undefined};
     obj.hello = obj;
-    assertThrows(function() {
+    assert.throws(function() {
       settings.set('my_key', obj);
     });
   });
 
   test('setUndefined', function() {
     var settings = new tv.b.Settings();
-    assertThrows(function() {
+    assert.throws(function() {
       settings.set('my_key', undefined);
     });
   });
@@ -75,16 +75,16 @@ tv.b.unittest.testSuite(function() {
   test('getDefault', function() {
     var settings = new tv.b.Settings();
     // default_val should be returned if value isn't set.
-    assertEquals('default_val', settings.get('my_key', 'default_val'));
+    assert.equal('default_val', settings.get('my_key', 'default_val'));
   });
 
   test('setGetPrefix', function() {
     var settings = new tv.b.Settings();
     settings.set('key_a', 'foo', 'my_prefix');
-    assertEquals('foo', settings.get('key_a', undefined, 'my_prefix'));
-    assertEquals('foo', settings.get('key_a', 'bar', 'my_prefix'));
-    assertEquals(undefined, settings.get('key_a'));
-    assertEquals('bar', settings.get('key_a', 'bar'));
+    assert.equal('foo', settings.get('key_a', undefined, 'my_prefix'));
+    assert.equal('foo', settings.get('key_a', 'bar', 'my_prefix'));
+    assert.isUndefined(settings.get('key_a'));
+    assert.equal('bar', settings.get('key_a', 'bar'));
   });
 
   test('keys', function() {
@@ -92,7 +92,7 @@ tv.b.unittest.testSuite(function() {
     settings.set('key_a', 'foo');
     settings.set('key_b', 'bar');
     settings.set('key_c', 'baz');
-    assertArrayEquals(['key_a', 'key_b', 'key_c'], settings.keys());
+    assert.deepEqual(['key_a', 'key_b', 'key_c'], settings.keys());
   });
 
   test('keysPrefix', function() {
@@ -103,9 +103,9 @@ tv.b.unittest.testSuite(function() {
     settings.set('key_a', 'foo', 'prefix2');
     settings.set('key_b', 'bar', 'prefix2');
     settings.set('key_C', 'baz', 'prefix2');
-    assertArrayEquals(['key_a', 'key_b', 'key_c'], settings.keys('prefix1'));
-    assertArrayEquals(['key_C', 'key_a', 'key_b'], settings.keys('prefix2'));
-    assertArrayEquals(
+    assert.deepEqual(['key_a', 'key_b', 'key_c'], settings.keys('prefix1'));
+    assert.deepEqual(['key_C', 'key_a', 'key_b'], settings.keys('prefix2'));
+    assert.deepEqual(
         ['prefix1.key_a', 'prefix1.key_b', 'prefix1.key_c',
          'prefix2.key_C', 'prefix2.key_a', 'prefix2.key_b'],
         settings.keys());

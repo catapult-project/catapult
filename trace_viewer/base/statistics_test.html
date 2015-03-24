@@ -12,15 +12,15 @@ tv.b.unittest.testSuite(function() {
   var Statistics = tv.b.Statistics;
 
   test('sumBasic', function() {
-    assertEquals(6, Statistics.sum([1, 2, 3]));
+    assert.equal(6, Statistics.sum([1, 2, 3]));
   });
 
   test('sumWithFunctor', function() {
     var ctx = {};
     var ary = [1, 2, 3];
-    assertEquals(12, Statistics.sum(ary, function(x, i) {
-      assertEquals(this, ctx);
-      assertEquals(ary[i], x);
+    assert.equal(12, Statistics.sum(ary, function(x, i) {
+      assert.equal(this, ctx);
+      assert.equal(ary[i], x);
       return x * 2;
     }, ctx));
   });
@@ -29,36 +29,36 @@ tv.b.unittest.testSuite(function() {
     var ctx = {};
     var ary = [1, 2, 3];
     function func(x, i) {
-      assertEquals(this, ctx);
-      assertEquals(ary[i], x);
+      assert.equal(this, ctx);
+      assert.equal(ary[i], x);
       return x;
     }
-    assertEquals(3, Statistics.max(ary, func, ctx));
-    assertEquals(1, Statistics.min(ary, func, ctx));
+    assert.equal(3, Statistics.max(ary, func, ctx));
+    assert.equal(1, Statistics.min(ary, func, ctx));
 
     var range = Statistics.range(ary, func, ctx);
     assertFalse(range.isEmpty);
-    assertEquals(1, range.min);
-    assertEquals(3, range.max);
+    assert.equal(1, range.min);
+    assert.equal(3, range.max);
   });
 
   test('maxExtrema', function() {
-    assertEquals(-Infinity, Statistics.max([]));
-    assertEquals(Infinity, Statistics.min([]));
+    assert.equal(-Infinity, Statistics.max([]));
+    assert.equal(Infinity, Statistics.min([]));
   });
 
   test('meanBasic', function() {
-    assertEquals(2, Statistics.mean([1, 2, 3]));
+    assert.equal(2, Statistics.mean([1, 2, 3]));
   });
 
   test('varianceBasic', function() {
     // In [2, 4, 4, 2], all items have a deviation of 1.0 from the mean so the
     // population variance is 4.0 / 4 = 1.0, but the sample variance is 4.0 / 3.
-    assertEquals(4.0 / 3, Statistics.variance([2, 4, 4, 2]));
+    assert.equal(4.0 / 3, Statistics.variance([2, 4, 4, 2]));
 
     // In [1, 2, 3], the squared deviations are 1.0, 0.0 and 1.0 respectively;
     // population variance 2.0 / 3 but sample variance is 2.0 / 2 = 1.0.
-    assertEquals(1.0, Statistics.variance([1, 2, 3]));
+    assert.equal(1.0, Statistics.variance([1, 2, 3]));
   });
 
   test('varianceWithFunctor', function() {
@@ -67,14 +67,14 @@ tv.b.unittest.testSuite(function() {
                {x: 4},
                {x: 4},
                {x: 2}];
-    assertEquals(4.0 / 3, Statistics.variance(ary, function(d) {
-      assertEquals(ctx, this);
+    assert.equal(4.0 / 3, Statistics.variance(ary, function(d) {
+      assert.equal(ctx, this);
       return d.x;
     }, ctx));
   });
 
   test('stddevBasic', function() {
-    assertEquals(Math.sqrt(4.0 / 3), Statistics.stddev([2, 4, 4, 2]));
+    assert.equal(Math.sqrt(4.0 / 3), Statistics.stddev([2, 4, 4, 2]));
   });
 
   test('stddevWithFunctor', function() {
@@ -83,8 +83,8 @@ tv.b.unittest.testSuite(function() {
                {x: 4},
                {x: 4},
                {x: 2}];
-    assertEquals(Math.sqrt(4.0 / 3), Statistics.stddev(ary, function(d) {
-      assertEquals(ctx, this);
+    assert.equal(Math.sqrt(4.0 / 3), Statistics.stddev(ary, function(d) {
+      assert.equal(ctx, this);
       return d.x;
     }, ctx));
   });
@@ -102,13 +102,13 @@ tv.b.unittest.testSuite(function() {
                {x: 8},
                {x: 9}];
     function func(d, i) {
-      assertEquals(ctx, this);
+      assert.equal(ctx, this);
       return d.x;
     }
-    assertEquals(0, Statistics.percentile(ary, 0, func, ctx));
-    assertEquals(4, Statistics.percentile(ary, .5, func, ctx));
-    assertEquals(6, Statistics.percentile(ary, .75, func, ctx));
-    assertEquals(9, Statistics.percentile(ary, 1, func, ctx));
+    assert.equal(0, Statistics.percentile(ary, 0, func, ctx));
+    assert.equal(4, Statistics.percentile(ary, .5, func, ctx));
+    assert.equal(6, Statistics.percentile(ary, .75, func, ctx));
+    assert.equal(9, Statistics.percentile(ary, 1, func, ctx));
   });
 
 });

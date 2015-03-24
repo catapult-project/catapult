@@ -9,6 +9,19 @@ found in the LICENSE file.
 <script>
 'use strict';
 
+function assertQuadEquals(a, b, opt_message) {
+  var ok = true;
+  ok &= a.p1[0] === b.p1[0] && a.p1[1] === b.p1[1];
+  ok &= a.p2[0] === b.p2[0] && a.p2[1] === b.p2[1];
+  ok &= a.p3[0] === b.p3[0] && a.p3[1] === b.p3[1];
+  ok &= a.p4[0] === b.p4[0] && a.p4[1] === b.p4[1];
+  if (ok)
+    return;
+  var message = opt_message || 'Expected "' + a.toString() +
+      '", got "' + b.toString() + '"';
+  throw new tv.b.unittest.TestError(message);
+}
+
 tv.b.unittest.testSuite(function() {
   test('pointInTri', function() {
     var res = tv.b.pointInTriangle2(
@@ -16,7 +29,7 @@ tv.b.unittest.testSuite(function() {
         [0, 0],
         [1, 0],
         [0, 1]);
-    assertTrue(res);
+    assert.isTrue(res);
   });
 
   test('pointNotInTri', function() {
@@ -25,7 +38,7 @@ tv.b.unittest.testSuite(function() {
         [0, 0],
         [1, 0],
         [0, 1]);
-    assertFalse(res);
+    assert.isFalse(res);
   });
 
   test('pointInside', function() {
@@ -34,7 +47,7 @@ tv.b.unittest.testSuite(function() {
                                 [1, 1],
                                 [0, 1]);
     var res = q.pointInside([0.5, 0.5]);
-    assertTrue(res);
+    assert.isTrue(res);
   });
 
   test('pointNotInQuad', function() {
@@ -43,18 +56,20 @@ tv.b.unittest.testSuite(function() {
                                 [1, 1],
                                 [0, 1]);
     var res = q.pointInside([1.5, 0.5]);
-    assertFalse(res);
+    assert.isFalse(res);
   });
 
   test('isRectangle', function() {
-    assertTrue(tv.b.Quad.fromXYWH(0, 0, 10, 10).isRectangle());
-    assertTrue(tv.b.Quad.fromXYWH(-10, -10, 5, 5).isRectangle());
-    assertTrue(tv.b.Quad.fromXYWH(-10, -10, 20, 20).isRectangle());
-    assertTrue(tv.b.Quad.fromXYWH(-10, 10, 5, 5).isRectangle());
+    assert.isTrue(tv.b.Quad.fromXYWH(0, 0, 10, 10).isRectangle());
+    assert.isTrue(tv.b.Quad.fromXYWH(-10, -10, 5, 5).isRectangle());
+    assert.isTrue(tv.b.Quad.fromXYWH(-10, -10, 20, 20).isRectangle());
+    assert.isTrue(tv.b.Quad.fromXYWH(-10, 10, 5, 5).isRectangle());
 
-    assertFalse(tv.b.Quad.fromXYWH(0, 0, -10, -10).isRectangle());
-    assertFalse(tv.b.Quad.from8Array([0, 1, 2, 3, 4, 5, 6, 7]).isRectangle());
-    assertFalse(tv.b.Quad.from8Array([0, 0, 0, 5, 5, 5, 0, 0]).isRectangle());
+    assert.isFalse(tv.b.Quad.fromXYWH(0, 0, -10, -10).isRectangle());
+    assert.isFalse(
+        tv.b.Quad.from8Array([0, 1, 2, 3, 4, 5, 6, 7]).isRectangle());
+    assert.isFalse(
+        tv.b.Quad.from8Array([0, 0, 0, 5, 5, 5, 0, 0]).isRectangle());
   });
 
   test('projectUnitRect', function() {

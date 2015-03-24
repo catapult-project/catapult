@@ -33,15 +33,15 @@ tv.b.unittest.testSuite(function() {
     // Send an event while its attached to the document.
     withElementAttachedToChild(div, function() {
       var ret = kem.dispatchFakeEvent('keydown', {keyCode: 73});
-      assertTrue(ret == undefined);
-      assertEquals(1, fireCount);
+      assert.isUndefined(ret);
+      assert.equal(1, fireCount);
     });
     fireCount = 0;
 
     // Send an event while it is detached.
     var ret = kem.dispatchFakeEvent('keydown', {keyCode: 73});
-    assertTrue(ret == undefined);
-    assertEquals(0, fireCount);
+    assert.isUndefined(ret);
+    assert.equal(0, fireCount);
   });
 
   test('preventDefault', function() {
@@ -56,8 +56,8 @@ tv.b.unittest.testSuite(function() {
 
     withElementAttachedToChild(div, function() {
       var ret = kem.dispatchFakeEvent('keydown', {keyCode: 73});
-      assertTrue(ret == false);
-      assertEquals(1, fireCount);
+      assert.isFalse(ret);
+      assert.equal(1, fireCount);
     });
 
   });
@@ -78,7 +78,7 @@ tv.b.unittest.testSuite(function() {
     withElementAttachedToChild(div1, function() {
       withElementAttachedToChild(div2, function() {
         var ret = kem.dispatchFakeEvent('keydown', {keyCode: 73});
-        assertTrue(ret == undefined);
+        assert.isUndefined(ret);
       });
     });
   });
@@ -93,11 +93,11 @@ tv.b.unittest.testSuite(function() {
     }
     kem.addListener('keydown', handler, div);
     kem.removeListener('keydown', handler, div);
-    assertEquals(div.className, '');
+    assert.equal(div.className, '');
 
     withElementAttachedToChild(div, function() {
       var ret = kem.dispatchFakeEvent('keydown', {keyCode: 73});
-      assertFalse(handlerFired);
+      assert.isFalse(handlerFired);
     });
   });
 
@@ -116,12 +116,12 @@ tv.b.unittest.testSuite(function() {
     kem.addListener('keydown', handlerA, div);
     kem.addListener('keydown', handlerB, div);
     kem.removeListener('keydown', handlerA, div);
-    assertTrue(div.classList.contains('key-event-manager-target'));
+    assert.isTrue(div.classList.contains('key-event-manager-target'));
 
     withElementAttachedToChild(div, function() {
       var ret = kem.dispatchFakeEvent('keydown', {keyCode: 73});
-      assertFalse(handlerAFired);
-      assertTrue(handlerBFired);
+      assert.isFalse(handlerAFired);
+      assert.isTrue(handlerBFired);
     });
   });
 

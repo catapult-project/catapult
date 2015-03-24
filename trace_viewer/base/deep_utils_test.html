@@ -29,7 +29,7 @@ tv.b.unittest.testSuite(function() {
     b_.appendChild(createElement('c', 'x'));
 
     var m = tv.b.findDeepElementMatching(a, 'c.x');
-    assertEquals(m, b_.children[0]);
+    assert.equal(m, b_.children[0]);
   });
 });
 </script>

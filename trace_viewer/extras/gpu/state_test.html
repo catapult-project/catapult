@@ -22,8 +22,8 @@ tv.b.unittest.testSuite(function() {
     var instance = p.objects.getAllInstancesNamed('gpu::State')[0];
     var snapshot = instance.snapshots[0];
 
-    assertTrue(snapshot instanceof tv.e.gpu.StateSnapshot);
-    assertEquals(typeof(snapshot.screenshot), 'string');
+    assert.instanceOf(snapshot, tv.e.gpu.StateSnapshot);
+    assert.typeOf(snapshot.screenshot, 'string');
     instance.wasDeleted(150);
   });
 });
