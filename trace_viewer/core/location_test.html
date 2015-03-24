@@ -44,7 +44,7 @@ tv.b.unittest.testSuite(function() {
     vp.modelTrackContainer = {
       addContainersToTrackMap: function(containerToTrackObj) {
         // Invoking the process track's addContainersToTrackMap is enough to
-        // build the map for all childrens (ie. Threads, AsyncSliceGroups)
+        // build the map for all children (i.e. Threads, AsyncSliceGroups)
         // as well.
         for (var i = 0; i < processTracks.length; i++)
           processTracks[i].addContainersToTrackMap(containerToTrackObj);
@@ -59,8 +59,8 @@ tv.b.unittest.testSuite(function() {
 
     var asyncTrack =
         vp.containerToTrackObj.getTrackByStableId('123.456.AsyncSliceGroup');
-    assertNotNull(asyncTrack);
-    assertFalse(asyncTrack.expanded); // Make sure this starts unexpanded.
+    assert.isNotNull(asyncTrack);
+    assert.isFalse(asyncTrack.expanded); // Make sure this starts unexpanded.
 
     // Hack to allow Location to find the element we're looking for.
     // This ensures the correct behaviour of document.elementFrompoint(x,y) of
@@ -71,9 +71,9 @@ tv.b.unittest.testSuite(function() {
     var viewX = boundRect.left;
     var viewY = boundRect.top + boundRect.height / 2;
     var location = Location.fromViewCoordinates(vp, viewX, viewY);
-    assertEquals(asyncTrack, location.getContainingTrack(vp));
-    assertObjectEquals({ viewX: viewX, viewY: viewY },
-                       location.toViewCoordinates(vp));
+    assert.equal(asyncTrack, location.getContainingTrack(vp));
+    assert.deepEqual({ viewX: viewX, viewY: viewY },
+                     location.toViewCoordinates(vp));
 
     // Try expanding the multi-row track so that the dimensions of the thread
     // track changes.
@@ -81,8 +81,8 @@ tv.b.unittest.testSuite(function() {
     // Expanding the track causes the height to double. We can calculate the new
     // viewY with respect to the track's old boundRect. ViewX remains unchanged.
     var expandedViewY = boundRect.top + boundRect.height;
-    assertObjectEquals({ viewX: viewX, viewY: expandedViewY },
-                       location.toViewCoordinates(vp));
+    assert.deepEqual({ viewX: viewX, viewY: expandedViewY },
+                     location.toViewCoordinates(vp));
 
     // Test the functionality of fromStableIdAndTimestamp.
     var locationFromCoord =
@@ -90,7 +90,7 @@ tv.b.unittest.testSuite(function() {
     var locationFromStableId =
         Location.fromStableIdAndTimestamp(vp, '123.456.AsyncSliceGroup',
                                           location.xWorld);
-    assertObjectEquals(locationFromCoord, locationFromStableId);
+    assert.deepEqual(locationFromCoord, locationFromStableId);
 
     // Undo scroll.
     document.getElementById('results-container').scrollTop = 0;

@@ -24,16 +24,16 @@ tv.b.unittest.testSuite(function() {
     b.panY = 0;
     b.scaleX = 1;
 
-    assertFalse(a.equals(b));
-    assertFalse(a.almostEquals(b));
+    assert.isFalse(a.equals(b));
+    assert.isFalse(a.almostEquals(b));
 
     var c = b.clone();
-    assertTrue(b.equals(c));
-    assertTrue(b.almostEquals(c));
+    assert.isTrue(b.equals(c));
+    assert.isTrue(b.almostEquals(c));
 
     c.set(a);
-    assertTrue(a.equals(c));
-    assertTrue(a.almostEquals(c));
+    assert.isTrue(a.equals(c));
+    assert.isTrue(a.almostEquals(c));
   });
 });
 </script>

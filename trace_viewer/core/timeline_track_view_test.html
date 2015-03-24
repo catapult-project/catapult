@@ -31,21 +31,25 @@ tv.b.unittest.testSuite(function() {
     selection = selection || [];
     highlight = highlight || [];
 
-    assertEquals(selection.length, timeline.selection.length);
-    assertEquals(highlight.length, timeline.highlight.length);
-
-    assertArrayEquals(selection, timeline.selection);
-    assertArrayEquals(highlight, timeline.highlight);
+    // The objects timeline.selection and timeline.highlight are not actually
+    // Arrays, they are Selection objects. Here we are not checking the other
+    // properties of the selection and highlight, only the numbered properties.
+    assert.equal(selection.length, timeline.selection.length);
+    assert.equal(highlight.length, timeline.highlight.length);
+    for (var i = 0; i < selection.length; i++)
+      assert.strictEqual(selection[i], timeline.selection[i]);
+    for (var i = 0; i < highlight.length; i++)
+      assert.strictEqual(highlight[i], timeline.highlight[i]);
 
     timeline.model.iterateAllEvents(function(event) {
       if (contains(selection, event))
-        assertEquals(SelectionState.SELECTED, event.selectionState);
+        assert.equal(SelectionState.SELECTED, event.selectionState);
       else if (contains(highlight, event))
-        assertEquals(SelectionState.HIGHLIGHTED, event.selectionState);
+        assert.equal(SelectionState.HIGHLIGHTED, event.selectionState);
       else if (highlight.length)
-        assertEquals(SelectionState.DIMMED, event.selectionState);
+        assert.equal(SelectionState.DIMMED, event.selectionState);
       else
-        assertEquals(SelectionState.NONE, event.selectionState);
+        assert.equal(SelectionState.NONE, event.selectionState);
     });
   };
 
@@ -99,9 +103,9 @@ tv.b.unittest.testSuite(function() {
     var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
         new tv.c.TitleOrCategoryFilter('a'), result);
     Task.RunSynchronously(filterTask);
-    assertEquals(2, result.length);
-    assertEquals(expected[0], result[0]);
-    assertEquals(expected[1], result[1]);
+    assert.equal(2, result.length);
+    assert.equal(expected[0], result[0]);
+    assert.equal(expected[1], result[1]);
 
     var expected = [t1asg.slices[1],
                     t1.sliceGroup.slices[1]];
@@ -109,9 +113,9 @@ tv.b.unittest.testSuite(function() {
     var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
         new tv.c.TitleOrCategoryFilter('b'), result);
     Task.RunSynchronously(filterTask);
-    assertEquals(2, result.length);
-    assertEquals(expected[0], result[0]);
-    assertEquals(expected[1], result[1]);
+    assert.equal(2, result.length);
+    assert.equal(expected[0], result[0]);
+    assert.equal(expected[1], result[1]);
   });
 
   test('emptyThreadsDeleted', function() {
@@ -122,7 +126,7 @@ tv.b.unittest.testSuite(function() {
     var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
-    assertFalse(timeline.hasVisibleContent);
+    assert.isFalse(timeline.hasVisibleContent);
   });
 
   test('filteredCounters', function() {
@@ -139,7 +143,7 @@ tv.b.unittest.testSuite(function() {
     var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
-    assertTrue(timeline.hasVisibleContent);
+    assert.isTrue(timeline.hasVisibleContent);
   });
 
   test('filteredCpus', function() {
@@ -150,7 +154,7 @@ tv.b.unittest.testSuite(function() {
     var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
-    assertTrue(timeline.hasVisibleContent);
+    assert.isTrue(timeline.hasVisibleContent);
   });
 
   test('filteredProcesses', function() {
@@ -161,7 +165,7 @@ tv.b.unittest.testSuite(function() {
     var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
-    assertTrue(timeline.hasVisibleContent);
+    assert.isTrue(timeline.hasVisibleContent);
   });
 
   test('filteredThreads', function() {
@@ -173,7 +177,7 @@ tv.b.unittest.testSuite(function() {
     var timeline = new tv.c.TimelineTrackView();
     timeline.model = model;
 
-    assertTrue(timeline.hasVisibleContent);
+    assert.isTrue(timeline.hasVisibleContent);
   });
 
   test('selectionAndHighlight', function() {
@@ -199,15 +203,15 @@ tv.b.unittest.testSuite(function() {
     Task.RunSynchronously(filterTask);
 
     // Test for faulty input.
-    assertThrows(function() {
+    assert.throw(function() {
       timeline.selection = 'selection';
     });
 
-    assertThrows(function() {
+    assert.throw(function() {
       timeline.highlight = 1;
     });
 
-    assertThrows(function() {
+    assert.throw(function() {
       timeline.setSelectionAndHighlight(0, false);
     });
 
@@ -217,22 +221,22 @@ tv.b.unittest.testSuite(function() {
 
     // Add selection only.
     timeline.selection = selection;
-    assertEquals(selection, timeline.selection);
+    assert.equal(selection, timeline.selection);
     checkSelectionStates(timeline, selection, null);
 
     // Reset selection.
     timeline.selection = null;
-    assertEquals(0, timeline.selection.length);
+    assert.equal(0, timeline.selection.length);
     checkSelectionStates(timeline, null, null);
 
     // Add highlight only.
     timeline.highlight = highlight;
-    assertEquals(highlight, timeline.highlight);
+    assert.equal(highlight, timeline.highlight);
     checkSelectionStates(timeline, null, highlight);
 
     // Reset highlight
     timeline.highlight = null;
-    assertEquals(0, timeline.highlight.length);
+    assert.equal(0, timeline.highlight.length);
     checkSelectionStates(timeline, null, null);
 
     // Add selection and highlight.

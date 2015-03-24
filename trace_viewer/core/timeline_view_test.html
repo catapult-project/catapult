@@ -129,7 +129,7 @@ tv.b.unittest.testSuite(function() {
     var filterTask = view.timeline.addAllObjectsMatchingFilterToSelectionAsTask(
         filter, selection);
     Task.RunSynchronously(filterTask);
-    assertEquals(selection.length, 1);
+    assert.equal(selection.length, 1);
   });
 });
 </script>

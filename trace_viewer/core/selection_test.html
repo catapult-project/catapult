@@ -28,17 +28,17 @@ tv.b.unittest.testSuite(function() {
     var sel = new tv.c.Selection();
     sel.push(t1.sliceGroup.slices[0]);
 
-    assertEquals(1, sel.bounds.min);
-    assertEquals(4, sel.bounds.max);
-    assertEquals(t1.sliceGroup.slices[0], sel[0]);
+    assert.equal(1, sel.bounds.min);
+    assert.equal(4, sel.bounds.max);
+    assert.equal(t1.sliceGroup.slices[0], sel[0]);
 
     sel.push(t1.sliceGroup.slices[1]);
-    assertEquals(1, sel.bounds.min);
-    assertEquals(6, sel.bounds.max);
-    assertEquals(t1.sliceGroup.slices[1], sel[1]);
+    assert.equal(1, sel.bounds.min);
+    assert.equal(6, sel.bounds.max);
+    assert.equal(t1.sliceGroup.slices[1], sel[1]);
 
     sel.clear();
-    assertEquals(0, sel.length);
+    assert.equal(0, sel.length);
   });
 
   test('shiftedSelection', function() {
@@ -62,8 +62,8 @@ tv.b.unittest.testSuite(function() {
     sel.push(t1.sliceGroup.slices[0]);
 
     var shifted = sel.getShiftedSelection(track.viewport, 1);
-    assertEquals(1, shifted.length);
-    assertEquals(t1.sliceGroup.slices[1], shifted[0]);
+    assert.equal(1, shifted.length);
+    assert.equal(t1.sliceGroup.slices[1], shifted[0]);
   });
 
   test('uniqueContents', function() {
@@ -74,10 +74,10 @@ tv.b.unittest.testSuite(function() {
 
     selection.push(sample1);
     selection.push(sample2);
-    assertEquals(2, selection.length);
+    assert.equal(2, selection.length);
 
     selection.push(sample1);
-    assertEquals(2, selection.length);
+    assert.equal(2, selection.length);
   });
 
   test('userFriendlyNameSingular', function() {
@@ -87,7 +87,7 @@ tv.b.unittest.testSuite(function() {
     t1.sliceGroup.pushSlice(
         new tv.c.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
     var seleciton = new tv.c.Selection(t1.sliceGroup.slices[0]);
-    assertNotUndefined(seleciton.userFriendlyName);
+    assert.isDefined(seleciton.userFriendlyName);
   });
 
   test('userFriendlyNamePlural', function() {
@@ -102,7 +102,7 @@ tv.b.unittest.testSuite(function() {
         t1.sliceGroup.slices[0],
         t1.sliceGroup.slices[1]
     ]);
-    assertNotUndefined(seleciton.userFriendlyName);
+    assert.isDefined(seleciton.userFriendlyName);
   });
 
   test('userFriendlyNameMixedPlural', function() {
@@ -122,7 +122,7 @@ tv.b.unittest.testSuite(function() {
         t1.sliceGroup.slices[0],
         s10
     ]);
-    assertNotUndefined(seleciton.userFriendlyName);
+    assert.isDefined(seleciton.userFriendlyName);
   });
 
 });
