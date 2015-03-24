@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/time_span.html">
+<link rel="import" href="/core/analysis/time_stamp.html">
 <link rel="import" href="/core/analysis/stack_frame.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
 <link rel="import" href="/core/analysis/table_builder.html">
@@ -66,14 +67,17 @@ found in the LICENSE file.
       if (slice.category)
         rows.push({ name: 'Category', value: slice.category });
 
-      rows.push({ name: 'Start', value: tv.c.analysis.tsString(slice.start) });
+      var startEl = document.createElement('tv-c-a-time-stamp');
+      startEl.timestamp = slice.start;
+      rows.push({ name: 'Start', value: startEl });
+
       var wallDurationEl = document.createElement('tv-c-a-time-span');
-      wallDurationEl.duration = slice.duration
+      wallDurationEl.duration = slice.duration;
       rows.push({ name: 'Wall Duration', value: wallDurationEl });
 
       if (slice.cpuDuration) {
         var cpuDurationEl = document.createElement('tv-c-a-time-span');
-        cpuDurationEl.duration = slice.cpuDuration
+        cpuDurationEl.duration = slice.cpuDuration;
         rows.push({ name: 'CPU Duration', value: cpuDurationEl });
       }
 

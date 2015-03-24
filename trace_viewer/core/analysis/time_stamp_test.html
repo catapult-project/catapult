@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/core/analysis/time_stamp.html">
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  test('instantiate', function() {
+    var timeStamp = document.createElement('tv-c-a-time-stamp');
+    timeStamp.timestamp = 73;
+    this.addHTMLOutput(timeStamp);
+  });
+});
+</script>
