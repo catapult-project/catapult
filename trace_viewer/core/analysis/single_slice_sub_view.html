@@ -67,17 +67,20 @@ found in the LICENSE file.
         rows.push({ name: 'Category', value: slice.category });
 
       rows.push({ name: 'Start', value: tv.c.analysis.tsString(slice.start) });
-      rows.push({ name: 'Wall Duration',
-          value: tv.c.analysis.tsString(slice.duration) });
+      var wallDurationEl = document.createElement('tv-c-a-time-span');
+      wallDurationEl.duration = slice.duration
+      rows.push({ name: 'Wall Duration', value: wallDurationEl });
 
       if (slice.cpuDuration) {
-        rows.push({ name: 'CPU Duration',
-            value: tv.c.analysis.tsString(slice.cpuDuration) });
+        var cpuDurationEl = document.createElement('tv-c-a-time-span');
+        cpuDurationEl.duration = slice.cpuDuration
+        rows.push({ name: 'CPU Duration', value: cpuDurationEl });
       }
 
       if (slice.selfTime) {
-        rows.push({ name: 'Self Time',
-            value: tv.c.analysis.tsString(slice.selfTime) });
+        var selfTimeEl = document.createElement('tv-c-a-time-slice');
+        selfTimeEL.duration = slice.selfTime;
+        rows.push({ name: 'Self Time', value: selfTimeEl });
       }
 
       if (slice.cpuSelfTime) {
@@ -95,8 +98,9 @@ found in the LICENSE file.
       }
 
       if (slice.durationInUserTime) {
-        rows.push({ name: 'Duration (U)',
-            value: tv.c.analysis.tsString(slice.durationInUserTime) });
+        var durationInUserTimeEl = document.createElement('tv-c-a-time-span');
+        durationInUserTimeEl.duration = slice.durationInUserTime;
+        rows.push({ name: 'Duration (U)', value: durationInUserTimeEl });
       }
 
       function createStackFrameEl(sf) {
