@@ -26,12 +26,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     __proto__: tv.b.ui.ContainerThatDecoratesItsChildren.prototype,
 
     decorateChild_: function(child) {
-      assertFalse(child.decorated);
+      assert.isFalse(child.decorated);
       child.decorated = true;
     },
 
     undecorateChild_: function(child) {
-      assertTrue(child.decorated);
+      assert.isTrue(child.decorated);
       child.decorated = false;
     }
   };
@@ -41,9 +41,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     container.appendChild(createChild());
     container.appendChild(createChild());
     container.appendChild(createChild());
-    assertTrue(container.children[0].decorated);
-    assertTrue(container.children[1].decorated);
-    assertTrue(container.children[2].decorated);
+    assert.isTrue(container.children[0].decorated);
+    assert.isTrue(container.children[1].decorated);
+    assert.isTrue(container.children[2].decorated);
   });
 
   test('clearUsingTextContent', function() {
@@ -51,7 +51,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var container = new SimpleContainer();
     container.appendChild(c0);
     container.textContent = '';
-    assertFalse(c0.decorated);
+    assert.isFalse(c0.decorated);
   });
 
   test('clear', function() {
@@ -59,7 +59,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var container = new SimpleContainer();
     container.appendChild(c0);
     container.clear();
-    assertFalse(c0.decorated);
+    assert.isFalse(c0.decorated);
   });
 
   test('insertNewBefore', function() {
@@ -68,8 +68,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var container = new SimpleContainer();
     container.appendChild(c1);
     container.insertBefore(c0, c1);
-    assertTrue(c0.decorated);
-    assertTrue(c1.decorated);
+    assert.isTrue(c0.decorated);
+    assert.isTrue(c1.decorated);
   });
 
   test('insertExistingBefore', function() {
@@ -79,8 +79,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     container.appendChild(c1);
     container.appendChild(c0);
     container.insertBefore(c0, c1);
-    assertTrue(c0.decorated);
-    assertTrue(c1.decorated);
+    assert.isTrue(c0.decorated);
+    assert.isTrue(c1.decorated);
   });
 
   test('testReplace', function() {
@@ -89,8 +89,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var container = new SimpleContainer();
     container.appendChild(c0);
     container.replaceChild(c1, c0);
-    assertFalse(c0.decorated);
-    assertTrue(c1.decorated);
+    assert.isFalse(c0.decorated);
+    assert.isTrue(c1.decorated);
   });
 
 });

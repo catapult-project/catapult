@@ -61,10 +61,10 @@ tv.b.unittest.testSuite(function() {
     controller.queueAnimation(animation);
 
     tv.b.forcePendingRAFTasksToRun(0);
-    assertEquals(1, animation.tickCount);
+    assert.equal(1, animation.tickCount);
     controller.cancelActiveAnimation();
-    assertFalse(controller.hasActiveAnimation);
-    assertTrue(animation.didStopEarlyCalled);
+    assert.isFalse(controller.hasActiveAnimation);
+    assert.isTrue(animation.didStopEarlyCalled);
   });
 
   test('simple', function() {
@@ -80,12 +80,12 @@ tv.b.unittest.testSuite(function() {
     controller.queueAnimation(animation);
 
     tv.b.forcePendingRAFTasksToRun(0);
-    assertEquals(1, animation.tickCount);
-    assertTrue(controller.hasActiveAnimation);
+    assert.equal(1, animation.tickCount);
+    assert.isTrue(controller.hasActiveAnimation);
 
     tv.b.forcePendingRAFTasksToRun(100);
-    assertEquals(2, animation.tickCount);
-    assertFalse(controller.hasActiveAnimation);
+    assert.equal(2, animation.tickCount);
+    assert.isFalse(controller.hasActiveAnimation);
   });
 
   test('queueTwo', function() {
@@ -103,14 +103,14 @@ tv.b.unittest.testSuite(function() {
     var a1 = new SimpleAnimation({stopTime: 100});
     var a2 = new SimpleAnimation({stopTime: 100});
     controller.queueAnimation(a1, 0);
-    assertTrue(a1.startCalled);
+    assert.isTrue(a1.startCalled);
     controller.queueAnimation(a2, 50);
-    assertTrue(a1.didStopEarlyCalled);
-    assertTrue(a2.startCalled);
+    assert.isTrue(a1.didStopEarlyCalled);
+    assert.isTrue(a2.startCalled);
 
     tv.b.forcePendingRAFTasksToRun(150);
-    assertFalse(controller.hasActiveAnimation);
-    assertTrue(a2.tickCount > 0);
+    assert.isFalse(controller.hasActiveAnimation);
+    assert.isAbove(a2.tickCount, 0);
   });
 
   /**
@@ -149,18 +149,18 @@ tv.b.unittest.testSuite(function() {
     var a1 = new SimpleAnimation({stopTime: 100});
     var a2 = new AnimationThatCanTakeOverForSimpleAnimation();
     controller.queueAnimation(a1, 0);
-    assertTrue(a1.startCalled);
-    assertEquals(0, a1.tickCount);
+    assert.isTrue(a1.startCalled);
+    assert.equal(0, a1.tickCount);
     controller.queueAnimation(a2, 10);
-    assertTrue(a1.didStopEarlyCalled);
-    assertTrue(a1.wasTakenOver);
-    assertEquals(1, a1.tickCount);
+    assert.isTrue(a1.didStopEarlyCalled);
+    assert.isTrue(a1.wasTakenOver);
+    assert.equal(1, a1.tickCount);
 
-    assertEquals(a2.takeOverForAnimation, a1);
-    assertTrue(a2.startCalled);
+    assert.equal(a2.takeOverForAnimation, a1);
+    assert.isTrue(a2.startCalled);
 
     controller.cancelActiveAnimation();
-    assertFalse(controller.hasActiveAnimation);
+    assert.isFalse(controller.hasActiveAnimation);
   });
 });
 </script>

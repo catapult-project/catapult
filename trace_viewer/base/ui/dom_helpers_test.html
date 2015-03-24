@@ -21,21 +21,21 @@ tv.b.unittest.testSuite(function() {
       parent: divEl
     });
     var eltInDocument = document.querySelector('.a-div-class>.a-span-class');
-    assertEquals(eltInDocument.textContent, testText);
+    assert.equal(eltInDocument.textContent, testText);
     eltInDocument.parentElement.removeChild(eltInDocument);
   });
 
   test('checkboxFromDefaults', function() {
     var target = {foo: undefined};
     var cb = tv.b.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
-    assertEquals(false, target.foo);
+    assert.isFalse(target.foo);
   });
 
   test('checkboxFromSettings', function() {
     tv.b.Settings.set('myCheckBox', true);
     var target = {foo: undefined};
     var cb = tv.b.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
-    assertEquals(true, target.foo);
+    assert.isTrue(target.foo);
   });
 
   test('checkboxChanged', function() {
@@ -43,8 +43,8 @@ tv.b.unittest.testSuite(function() {
     var cb = tv.b.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
     cb.checked = true;
 
-    assertEquals(true, tv.b.Settings.get('myCheckBox', undefined));
-    assertEquals(true, target.foo);
+    assert.isTrue(tv.b.Settings.get('myCheckBox', undefined));
+    assert.isTrue(target.foo);
   });
 
   test('selectorSettingsAlreaySet', function() {
@@ -65,8 +65,8 @@ tv.b.unittest.testSuite(function() {
          {label: '100%', value: 1},
          {label: '200%', value: 2}
         ]);
-    assertEquals(0.25, target.scale);
-    assertEquals(2, sel.selectedIndex);
+    assert.equal(0.25, target.scale);
+    assert.equal(2, sel.selectedIndex);
   });
 
   test('selectorSettingsDefault', function() {
@@ -85,8 +85,8 @@ tv.b.unittest.testSuite(function() {
          {label: '100%', value: 1},
          {label: '200%', value: 2}
         ]);
-    assertEquals(0.375, target.scale);
-    assertEquals(3, sel.selectedIndex);
+    assert.equal(0.375, target.scale);
+    assert.equal(3, sel.selectedIndex);
   });
 
   test('selectorSettingsChanged', function() {
@@ -105,11 +105,11 @@ tv.b.unittest.testSuite(function() {
          {label: '100%', value: 1},
          {label: '200%', value: 2}
         ]);
-    assertEquals(0.375, sel.selectedValue);
+    assert.equal(0.375, sel.selectedValue);
     sel.selectedValue = 0.75;
-    assertEquals(0.75, target.scale);
-    assertEquals(0.75, sel.selectedValue);
-    assertEquals(0.75, tv.b.Settings.get('myScale', undefined));
+    assert.equal(0.75, target.scale);
+    assert.equal(0.75, sel.selectedValue);
+    assert.equal(0.75, tv.b.Settings.get('myScale', undefined));
   });
 });
 </script>

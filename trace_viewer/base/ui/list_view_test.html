@@ -26,10 +26,10 @@ tv.b.unittest.testSuite(function() {
     var i3 = view.addItem('item 3');
 
     i2.selected = true;
-    assertTrue(i2.hasAttribute('selected'));
+    assert.isTrue(i2.hasAttribute('selected'));
     i3.selected = true;
-    assertFalse(i2.hasAttribute('selected'));
-    assertTrue(i3.hasAttribute('selected'));
+    assert.isFalse(i2.hasAttribute('selected'));
+    assert.isTrue(i3.hasAttribute('selected'));
   });
 
   test('clickSelection', function() {
@@ -44,24 +44,24 @@ tv.b.unittest.testSuite(function() {
 
     didFireSelectionChange = false;
     i2.click();
-    assertTrue(didFireSelectionChange);
-    assertEquals(i2, view.selectedElement);
+    assert.isTrue(didFireSelectionChange);
+    assert.equal(i2, view.selectedElement);
 
     didFireSelectionChange = false;
     i3.click();
-    assertTrue(didFireSelectionChange);
-    assertEquals(i3, view.selectedElement);
+    assert.isTrue(didFireSelectionChange);
+    assert.equal(i3, view.selectedElement);
 
     // Click the same target again.
     didFireSelectionChange = false;
     i3.click();
-    assertTrue(didFireSelectionChange);
-    assertEquals(undefined, view.selectedElement);
+    assert.isTrue(didFireSelectionChange);
+    assert.isUndefined(view.selectedElement);
 
     didFireSelectionChange = false;
     i1.click();
-    assertTrue(didFireSelectionChange);
-    assertEquals(i1, view.selectedElement);
+    assert.isTrue(didFireSelectionChange);
+    assert.equal(i1, view.selectedElement);
   });
 });
 </script>

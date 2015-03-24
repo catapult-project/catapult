@@ -25,7 +25,7 @@ tv.b.unittest.testSuite(function() {
       didClick = true;
     });
     button.click();
-    assertTrue(didClick);
+    assert.isTrue(didClick);
     this.addHTMLOutput(infoBar);
   });
 
@@ -49,7 +49,7 @@ tv.b.unittest.testSuite(function() {
         'Message 2',
         [{buttonText: 'button 2', onClick: function() {}}]);
     infoBarGroup.clearMessages();
-    assertEquals(0, infoBarGroup.children.length);
+    assert.equal(0, infoBarGroup.children.length);
   });
 
   test('group-populate-clear-repopulate', function() {

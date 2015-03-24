@@ -21,7 +21,7 @@ tv.b.unittest.testSuite(function() {
   test('changeMaskWithUnsupportedMode', function() {
     var sel = new tv.b.ui.MouseModeSelector();
     sel.mode = MOUSE_SELECTOR_MODE.SELECTION;
-    assertThrows(function() {
+    assert.throw(function() {
       sel.supportedModeMask = MOUSE_SELECTOR_MODE.ZOOM;
     });
   });
@@ -30,13 +30,13 @@ tv.b.unittest.testSuite(function() {
     var sel1 = new tv.b.ui.MouseModeSelector();
     sel1.defaultMode_ = MOUSE_SELECTOR_MODE.ZOOM;
     sel1.settingsKey = 'foo';
-    assertEquals(MOUSE_SELECTOR_MODE.ZOOM, sel1.mode);
+    assert.equal(MOUSE_SELECTOR_MODE.ZOOM, sel1.mode);
 
     sel1.mode = MOUSE_SELECTOR_MODE.PANSCAN;
 
     var sel2 = new tv.b.ui.MouseModeSelector();
     sel2.settingsKey = 'foo';
-    assertEquals(MOUSE_SELECTOR_MODE.PANSCAN, sel2.mode);
+    assert.equal(MOUSE_SELECTOR_MODE.PANSCAN, sel2.mode);
   });
 
 });

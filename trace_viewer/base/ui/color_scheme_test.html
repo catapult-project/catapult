@@ -18,13 +18,13 @@ tv.b.unittest.testSuite(function() {
     var rawPalette = tv.b.ui.getRawColorPalette();
     var highlightOffset = tv.b.ui.getColorPaletteHighlightIdBoost();
 
-    assertTrue(palette.length === rawPalette.length);
-    assertEquals(0, palette.length % 2);
-    assertEquals(palette.length / 2, highlightOffset);
+    assert.strictEqual(palette.length, rawPalette.length);
+    assert.equal(0, palette.length % 2);
+    assert.equal(palette.length / 2, highlightOffset);
 
     for (var i = 0; i < rawPalette.length / 2; i++)
-      assertObjectEquals(brighten(rawPalette[i]),
-                         rawPalette[i + highlightOffset]);
+      assert.deepEqual(brighten(rawPalette[i]),
+                       rawPalette[i + highlightOffset]);
   });
 });
 </script>
