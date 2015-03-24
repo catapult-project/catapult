@@ -109,46 +109,46 @@ tv.b.unittest.testSuite(function() {
     tabView.appendChild(t2);
     tabView.appendChild(t3);
 
-    assertEquals(tabView.selectedTab, undefined);
+    assert.equal(tabView.selectedTab, undefined);
     tabView.selectedTab = t1;
 
-    assertTrue(t1.hasAttribute('selected'));
-    assertFalse(t2.hasAttribute('selected'));
-    assertFalse(t3.hasAttribute('selected'));
-    assertTrue(Object.is(t1, tabView.selectedTab));
+    assert.isTrue(t1.hasAttribute('selected'));
+    assert.isFalse(t2.hasAttribute('selected'));
+    assert.isFalse(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t1, tabView.selectedTab));
 
     tabView.selectedTab = t2;
-    assertFalse(t1.hasAttribute('selected'));
-    assertTrue(t2.hasAttribute('selected'));
-    assertFalse(t3.hasAttribute('selected'));
-    assertTrue(Object.is(t2, tabView.selectedTab));
+    assert.isFalse(t1.hasAttribute('selected'));
+    assert.isTrue(t2.hasAttribute('selected'));
+    assert.isFalse(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t2, tabView.selectedTab));
 
     tabView.selectedTab = t3;
-    assertFalse(t1.hasAttribute('selected'));
-    assertFalse(t2.hasAttribute('selected'));
-    assertTrue(t3.hasAttribute('selected'));
-    assertTrue(Object.is(t3, tabView.selectedTab));
+    assert.isFalse(t1.hasAttribute('selected'));
+    assert.isFalse(t2.hasAttribute('selected'));
+    assert.isTrue(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t3, tabView.selectedTab));
 
     t1.selected = true;
-    assertTrue(t1.hasAttribute('selected'));
-    assertFalse(t2.hasAttribute('selected'));
-    assertFalse(t3.hasAttribute('selected'));
-    assertTrue(Object.is(t1, tabView.selectedTab));
+    assert.isTrue(t1.hasAttribute('selected'));
+    assert.isFalse(t2.hasAttribute('selected'));
+    assert.isFalse(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t1, tabView.selectedTab));
 
     // Make sure just randomly setting a tab as not selected does not
     // break the existing selection.
     t2.selected = false;
     t3.selected = false;
-    assertTrue(t1.hasAttribute('selected'));
-    assertFalse(t2.hasAttribute('selected'));
-    assertFalse(t3.hasAttribute('selected'));
-    assertTrue(Object.is(t1, tabView.selectedTab));
+    assert.isTrue(t1.hasAttribute('selected'));
+    assert.isFalse(t2.hasAttribute('selected'));
+    assert.isFalse(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t1, tabView.selectedTab));
 
     t3.selected = true;
-    assertFalse(t1.hasAttribute('selected'));
-    assertFalse(t2.hasAttribute('selected'));
-    assertTrue(t3.hasAttribute('selected'));
-    assertTrue(Object.is(t3, tabView.selectedTab));
+    assert.isFalse(t1.hasAttribute('selected'));
+    assert.isFalse(t2.hasAttribute('selected'));
+    assert.isTrue(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t3, tabView.selectedTab));
 
     tabViewContainer.appendChild(tabView);
 
@@ -204,18 +204,18 @@ tv.b.unittest.testSuite(function() {
 
     tabView.selectedTab = t1;
 
-    assertEquals(tabView.selectedTab, t1);
+    assert.equal(tabView.selectedTab, t1);
 
     // Make sure that selecting an invalid tab does not break the current
     // selection.
     tabView.selectedTab = invalidChild;
-    assertEquals(t1, tabView.selectedTab);
+    assert.equal(t1, tabView.selectedTab);
 
     // Also make sure the invalidChild does not influence the tab view when
     // it has a selected property set.
     invalidChild.selected = true;
     tabView.selectedTab = invalidChild;
-    assertEquals(t1, tabView.selectedTab);
+    assert.equal(t1, tabView.selectedTab);
   });
 
   test('changeTabCausesEvent', function() {
@@ -232,13 +232,13 @@ tv.b.unittest.testSuite(function() {
         numChangeEvents++;
     });
     tabView.selectedTab = t1;
-    assertEquals(numChangeEvents, 1);
+    assert.equal(numChangeEvents, 1);
     tabView.selectedTab = t1;
-    assertEquals(numChangeEvents, 1);
+    assert.equal(numChangeEvents, 1);
     tabView.selectedTab = t2;
-    assertEquals(numChangeEvents, 2);
+    assert.equal(numChangeEvents, 2);
     tabView.selectedTab = undefined;
-    assertEquals(numChangeEvents, 3);
+    assert.equal(numChangeEvents, 3);
   });
 
   /**

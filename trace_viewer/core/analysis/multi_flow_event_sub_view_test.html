@@ -30,14 +30,14 @@ tv.b.unittest.testSuite(function() {
     var selection = new Selection();
     selection.push(fe1);
     selection.push(fe2);
-    assertEquals(2, selection.length);
+    assert.equal(2, selection.length);
 
     var subView = document.createElement('tv-c-multi-flow-event-sub-view');
     subView.selection = selection;
 
     this.addHTMLOutput(subView);
 
-    assertEquals(1, subView.children.length);
+    assert.equal(1, subView.children.length);
   });
 });
 </script>

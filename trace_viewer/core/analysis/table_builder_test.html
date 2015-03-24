@@ -245,16 +245,16 @@ tv.b.unittest.testSuite(function() {
     var a1El = tv.b.findDeepElementMatchingPredicate(table, function(element) {
       return element.textContent == 'a1';
     });
-    assertNotUndefined(a1El);
+    assert.isDefined(a1El);
 
     var bToplevelEl = tv.b.findDeepElementMatchingPredicate(
         table,
         function(element) {
           return element.textContent == 'bToplevel';
         });
-    assertNotUndefined(bToplevelEl);
+    assert.isDefined(bToplevelEl);
     var expandButton = bToplevelEl.parentElement.querySelector('expand-button');
-    assertTrue(expandButton.classList.contains('button-expanded'));
+    assert.isTrue(expandButton.classList.contains('button-expanded'));
   });
 
 
@@ -287,7 +287,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
 
     var tHead = table.$.head;
-    assertEquals(0, tHead.getBoundingClientRect().height);
+    assert.equal(0, tHead.getBoundingClientRect().height);
   });
 
 

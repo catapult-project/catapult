@@ -34,9 +34,9 @@ tv.b.unittest.testSuite(function() {
 
     var selection = new Selection();
 
-    assertEquals(0, selection.length);
+    assert.equal(0, selection.length);
     selection.push(t53.samples[0]);
-    assertEquals(1, selection.length);
+    assert.equal(1, selection.length);
 
     return selection;
   };
@@ -56,17 +56,17 @@ tv.b.unittest.testSuite(function() {
 
     var results = new StubAnalysisResults();
     view.analyzeSingleSampleEvent_(results, selection[0], 'Sample Event');
-    assertEquals(1, results.tables.length);
+    assert.equal(1, results.tables.length);
     var table = results.tables[0];
     var header = results.headers[0];
-    assertEquals('Selected Sample Event:', header.label);
-    assertEquals(3, table.rows.length);
+    assert.equal('Selected Sample Event:', header.label);
+    assert.equal(3, table.rows.length);
 
-    assertEquals('X', table.rows[0].text);
-    assertEquals(0.184, table.rows[1].time);
-    assertEquals('my-category: a', table.rows[2].text[0]);
-    assertEquals('my-category: b', table.rows[2].text[1]);
-    assertEquals('my-category: c', table.rows[2].text[2]);
+    assert.equal('X', table.rows[0].text);
+    assert.equal(0.184, table.rows[1].time);
+    assert.equal('my-category: a', table.rows[2].text[0]);
+    assert.equal('my-category: b', table.rows[2].text[1]);
+    assert.equal('my-category: c', table.rows[2].text[2]);
   });
 });
 </script>

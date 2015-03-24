@@ -25,10 +25,10 @@ tv.b.unittest.testSuite(function() {
     var didRSC = false;
     link.addEventListener('requestSelectionChange', function(e) {
       didRSC = true;
-      assertEquals(e.selection[0], s10);
+      assert.equal(e.selection[0], s10);
     });
     link.click();
-    assertTrue(didRSC);
+    assert.isTrue(didRSC);
   });
 
   test('testGeneratorVersion', function() {
@@ -47,11 +47,11 @@ tv.b.unittest.testSuite(function() {
 
     var didRSC = false;
     link.addEventListener('requestSelectionChange', function(e) {
-      assertEquals(e.selection[0], s10);
+      assert.equal(e.selection[0], s10);
       didRSC = true;
     });
     link.click();
-    assertTrue(didRSC);
+    assert.isTrue(didRSC);
   });
 
 });

@@ -69,15 +69,15 @@ tv.b.unittest.testSuite(function() {
   test('visiblePropertyReflection', function() {
     var toggleContainer = new TracingAnalysisToggleContainer();
 
-    assertFalse(toggleContainer.hasAttribute('visible'));
+    assert.isFalse(toggleContainer.hasAttribute('visible'));
     toggleContainer.visible = true;
-    assertTrue(toggleContainer.hasAttribute('visible'));
+    assert.isTrue(toggleContainer.hasAttribute('visible'));
     toggleContainer.visible = false;
-    assertFalse(toggleContainer.hasAttribute('visible'));
+    assert.isFalse(toggleContainer.hasAttribute('visible'));
     toggleContainer.setAttribute('visible', 'true');
-    assertTrue(toggleContainer.visible);
+    assert.isTrue(toggleContainer.visible);
     toggleContainer.removeAttribute('visible');
-    assertFalse(toggleContainer.visible);
+    assert.isFalse(toggleContainer.visible);
   });
 
   test('setAndClearToggleListener', function() {
@@ -96,40 +96,40 @@ tv.b.unittest.testSuite(function() {
     });
 
     firstTarget.dispatchEvent(clickEvent);
-    assertTrue(toggleContainer.visible);
+    assert.isTrue(toggleContainer.visible);
 
     firstTarget.dispatchEvent(clickEvent);
-    assertFalse(toggleContainer.visible);
+    assert.isFalse(toggleContainer.visible);
 
     secondTarget.dispatchEvent(clickEvent);
-    assertTrue(toggleContainer.visible);
+    assert.isTrue(toggleContainer.visible);
 
     secondTarget.dispatchEvent(clickEvent);
-    assertFalse(toggleContainer.visible);
+    assert.isFalse(toggleContainer.visible);
 
     toggleContainer.clearToggleListener(firstTarget, 'click');
     firstTarget.dispatchEvent(clickEvent);
     // This event should not toggle the state.
-    assertFalse(toggleContainer.visible);
+    assert.isFalse(toggleContainer.visible);
 
     secondTarget.dispatchEvent(clickEvent);
     // This event should toggle the state.
-    assertTrue(toggleContainer.visible);
+    assert.isTrue(toggleContainer.visible);
 
     toggleContainer.clearToggleListener(invalidTarget, 'click');
     secondTarget.dispatchEvent(clickEvent);
     // This event should toggle the state.
-    assertFalse(toggleContainer.visible);
+    assert.isFalse(toggleContainer.visible);
 
     toggleContainer.clearToggleListener(secondTarget, 'invalidEventName');
     secondTarget.dispatchEvent(clickEvent);
     // This event should toggle the state.
-    assertTrue(toggleContainer.visible);
+    assert.isTrue(toggleContainer.visible);
 
     toggleContainer.clearToggleListener(secondTarget, 'click');
     secondTarget.dispatchEvent(clickEvent);
     // This event should not toggle the state as we've removed the listener.
-    assertTrue(toggleContainer.visible);
+    assert.isTrue(toggleContainer.visible);
   });
 });
 </script>

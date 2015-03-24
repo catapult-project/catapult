@@ -31,13 +31,13 @@ tv.b.unittest.testSuite(function() {
     var m = createBasicModel();
 
     var cpu = m.kernel.cpus[1];
-    assertNotUndefined(cpu);
+    assert.isDefined(cpu);
     var cpuSlice = cpu.slices[0];
-    assertEquals('Binder_1', cpuSlice.title);
+    assert.equal('Binder_1', cpuSlice.title);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
-    assertNotUndefined(thread);
-    assertEquals(cpuSlice.threadThatWasRunning, thread);
+    assert.isDefined(thread);
+    assert.equal(cpuSlice.threadThatWasRunning, thread);
 
     var view = document.createElement('tv-c-single-cpu-slice-sub-view');
     var selection = new tv.c.Selection();
@@ -48,22 +48,22 @@ tv.b.unittest.testSuite(function() {
     // Clicking the analysis link should focus the Binder1's timeslice.
     var didSelectionChangeHappen = false;
     view.addEventListener('requestSelectionChange', function(e) {
-      assertEquals(1, e.selection.length);
-      assertEquals(thread.timeSlices[0], e.selection[0]);
+      assert.equal(1, e.selection.length);
+      assert.equal(thread.timeSlices[0], e.selection[0]);
       didSelectionChangeHappen = true;
     });
     view.shadowRoot.querySelector('tv-c-analysis-link').click();
-    assertTrue(didSelectionChangeHappen);
+    assert.isTrue(didSelectionChangeHappen);
   });
 
   test('cpuSliceViewWithCpuSliceOnMissingThread', function() {
     var m = createBasicModel();
 
     var cpu = m.kernel.cpus[1];
-    assertNotUndefined(cpu);
+    assert.isDefined(cpu);
     var cpuSlice = cpu.slices[1];
-    assertEquals('Android.launcher', cpuSlice.title);
-    assertUndefined(cpuSlice.thread);
+    assert.equal('Android.launcher', cpuSlice.title);
+    assert.isUndefined(cpuSlice.thread);
 
     var selection = new tv.c.Selection();
     selection.push(cpuSlice);

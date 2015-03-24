@@ -17,44 +17,44 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('undefinedValue', function() {
     var view = new GenericObjectView();
     view.object = undefined;
-    assertEquals('undefined', view.children[0].dataElement.textContent);
+    assert.equal('undefined', view.children[0].dataElement.textContent);
   });
 
   test('nullValue', function() {
     var view = new GenericObjectView();
     view.object = null;
-    assertEquals('null', view.children[0].dataElement.textContent);
+    assert.equal('null', view.children[0].dataElement.textContent);
   });
 
   test('stringValue', function() {
     var view = new GenericObjectView();
     view.object = 'string value';
-    assertEquals('"string value"', view.children[0].textContent);
+    assert.equal('"string value"', view.children[0].textContent);
   });
 
   test('jsonObjectStringValue', function() {
     var view = new GenericObjectView();
     view.object = '{"x": 1}';
-    assertEquals(1, view.children.length);
-    assertEquals(4, view.children[0].children.length);
+    assert.equal(1, view.children.length);
+    assert.equal(4, view.children[0].children.length);
   });
 
   test('jsonArraStringValue', function() {
     var view = new GenericObjectView();
     view.object = '[1,2,3]';
-    assertEquals(3, view.children.length);
+    assert.equal(3, view.children.length);
   });
 
   test('booleanValue', function() {
     var view = new GenericObjectView();
     view.object = false;
-    assertEquals('false', view.children[0].dataElement.textContent);
+    assert.equal('false', view.children[0].dataElement.textContent);
   });
 
   test('numberValue', function() {
     var view = new GenericObjectView();
     view.object = 3.14159;
-    assertEquals('3.14159', view.children[0].textContent);
+    assert.equal('3.14159', view.children[0].textContent);
   });
 
   test('objectSnapshotValue', function() {
@@ -66,8 +66,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     view.object = s10;
     this.addHTMLOutput(view);
-    assertTrue(view.children[0].dataElement.tagName ===
-               'TV-C-ANALYSIS-LINK');
+    assert.strictEqual(
+        'TV-C-ANALYSIS-LINK',
+        view.children[0].dataElement.tagName);
   });
 
   test('objectInstanceValue', function() {
@@ -78,8 +79,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var s10 = i10.addSnapshot(10, {foo: 1});
 
     view.object = i10;
-    assertTrue(view.children[0].dataElement.tagName ===
-               'TV-C-ANALYSIS-LINK');
+    assert.strictEqual(
+        'TV-C-ANALYSIS-LINK',
+        view.children[0].dataElement.tagName);
   });
 
   test('instantiate_emptyArrayValue', function() {

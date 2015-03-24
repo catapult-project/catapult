@@ -15,31 +15,21 @@ tv.b.unittest.testSuite(function() {
   test('subViewThrowsNotImplementedErrors', function() {
     var subView = new TracingAnalysisSubView();
 
-    var errorCaught = false;
-    try {
+    assert.throw(function() {
       subView.selection = new tv.c.Selection();
-    } catch (error) {
-      if (error.message === 'Not implemented!')
-        errorCaught = true;
-    }
-    assertTrue(errorCaught);
+    }, 'Not implemented!');
 
-    errorCaught = false;
-    try {
+    assert.throw(function() {
       var viewSelection = subView.selection;
-    } catch (error) {
-      if (error.message === 'Not implemented!')
-        errorCaught = true;
-    }
-    assertTrue(errorCaught);
+    }, 'Not implemented!');
 
     subView.tabLabel = 'Tab Label';
-    assertEquals('Tab Label', subView.getAttribute('tab-label'));
-    assertEquals('Tab Label', subView.tabLabel);
+    assert.equal('Tab Label', subView.getAttribute('tab-label'));
+    assert.equal('Tab Label', subView.tabLabel);
 
     subView.tabLabel = 'New Label';
-    assertEquals('New Label', subView.getAttribute('tab-label'));
-    assertEquals('New Label', subView.tabLabel);
+    assert.equal('New Label', subView.getAttribute('tab-label'));
+    assert.equal('New Label', subView.tabLabel);
   });
 });
 </script>
