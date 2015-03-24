@@ -24,16 +24,16 @@ tv.b.unittest.testSuite(function() {
       'EH+QAAAA';
 
   test('failImportEmpty', function() {
-    self.assertFalse(tv.e.importer.GzipImporter.canImport([]));
-    self.assertFalse(tv.e.importer.GzipImporter.canImport(''));
+    assert.isFalse(tv.e.importer.GzipImporter.canImport([]));
+    assert.isFalse(tv.e.importer.GzipImporter.canImport(''));
   });
 
   test('inflateString', function() {
     // Test inflating the data from a string.
     var gzip_data = atob(gzip_data_base64);
     var importer = new tv.e.importer.GzipImporter(null, gzip_data);
-    self.assertTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
-    self.assertEquals(original_data, importer.extractSubtraces()[0]);
+    assert.isTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
+    assert.equal(original_data, importer.extractSubtraces()[0]);
   });
 
   test('inflateArrayBuffer', function() {
@@ -44,20 +44,20 @@ tv.b.unittest.testSuite(function() {
     for (var i = 0; i < gzip_data.length; i++)
       view[i] = gzip_data.charCodeAt(i);
     var importer = new tv.e.importer.GzipImporter(null, buffer);
-    self.assertTrue(tv.e.importer.GzipImporter.canImport(buffer));
-    self.assertEquals(original_data, importer.extractSubtraces()[0]);
+    assert.isTrue(tv.e.importer.GzipImporter.canImport(buffer));
+    assert.equal(original_data, importer.extractSubtraces()[0]);
   });
 
   test('import', function() {
     var gzip_data = atob(gzip_data_base64);
-    self.assertTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
+    assert.isTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
 
     var model = new tv.c.TraceModel(gzip_data);
     var threads = model.getAllThreads();
-    self.assertEquals(threads.length, 1);
+    assert.equal(threads.length, 1);
 
     var slice = findSliceNamed(threads[0].sliceGroup, 'a');
-    self.assertEquals(slice.category, 'foo');
+    assert.equal(slice.category, 'foo');
   });
 
   test('importXMLHttpRequest', function() {
@@ -67,14 +67,14 @@ tv.b.unittest.testSuite(function() {
     req.overrideMimeType('text/plain; charset=x-user-defined');
     req.send(null);
     var gzip_data = req.responseText;
-    self.assertTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
+    assert.isTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
 
     var model = new tv.c.TraceModel(gzip_data);
     var threads = model.getAllThreads();
-    self.assertEquals(threads.length, 2);
+    assert.equal(threads.length, 2);
 
     var slice = findSliceNamed(threads[0].sliceGroup, 'B');
-    self.assertEquals(slice.category, 'PERF');
+    assert.equal(slice.category, 'PERF');
 
   });
 });
