@@ -35,14 +35,14 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
     # charging.
-    self._device.old_interface.DisableUsbCharging()
+    self._device.DisableBatteryUpdates()
 
   def StopMonitoringPower(self):
     if self._browser:
       package = self._browser._browser_backend.package
       self._browser = None
     cpu_stats = super(DumpsysPowerMonitor, self).StopMonitoringPower()
-    self._device.old_interface.EnableUsbCharging()
+    self._device.EnableBatteryUpdates()
     # By default, 'dumpsys batterystats' measures power consumption during the
     # last unplugged period.
     result = self._platform.RunCommand('dumpsys batterystats -c %s' % package)
