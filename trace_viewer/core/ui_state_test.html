@@ -80,10 +80,10 @@ tv.b.unittest.testSuite(function() {
     assert.isDefined(uiState);
     assert.equal(-50125.512, uiState.location.xWorld);
     assert.equal('1.2',
-        uiState.location.containingTrack.eventContainer.stableId);
+        uiState.location.getContainingTrack(vp).eventContainer.stableId);
     assert.equal(1.1, uiState.scaleX);
 
-    assert.equal(str, uiState.toUserFriendlyString());
+    assert.equal(str, uiState.toUserFriendlyString(vp));
   });
 });
 </script>

@@ -27,8 +27,10 @@ tv.exportTo('tv.c.annotations', function() {
 
     draw: function(ctx) {
       var dt = this.viewport_.currentDisplayTransform;
-      var startCoords = this.annotation_.startLocation.toViewCoordinates();
-      var endCoords = this.annotation_.endLocation.toViewCoordinates();
+      var startCoords =
+          this.annotation_.startLocation.toViewCoordinates(this.viewport_);
+      var endCoords =
+          this.annotation_.endLocation.toViewCoordinates(this.viewport_);
 
       // Prevent drawing into the ruler track by clamping the initial Y
       // point and the rect's Y size.

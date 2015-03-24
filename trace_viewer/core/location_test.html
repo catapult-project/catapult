@@ -71,9 +71,9 @@ tv.b.unittest.testSuite(function() {
     var viewX = boundRect.left;
     var viewY = boundRect.top + boundRect.height / 2;
     var location = Location.fromViewCoordinates(vp, viewX, viewY);
-    assertEquals(asyncTrack, location.containingTrack);
+    assertEquals(asyncTrack, location.getContainingTrack(vp));
     assertObjectEquals({ viewX: viewX, viewY: viewY },
-                       location.toViewCoordinates());
+                       location.toViewCoordinates(vp));
 
     // Try expanding the multi-row track so that the dimensions of the thread
     // track changes.
@@ -82,7 +82,7 @@ tv.b.unittest.testSuite(function() {
     // viewY with respect to the track's old boundRect. ViewX remains unchanged.
     var expandedViewY = boundRect.top + boundRect.height;
     assertObjectEquals({ viewX: viewX, viewY: expandedViewY },
-                       location.toViewCoordinates());
+                       location.toViewCoordinates(vp));
 
     // Test the functionality of fromStableIdAndTimestamp.
     var locationFromCoord =

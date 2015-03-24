@@ -614,7 +614,7 @@ tv.exportTo('tv.c', function() {
     navToPosition: function(uiState) {
       var location = uiState.location;
       var scaleX = uiState.scaleX;
-      var track = location.containingTrack;
+      var track = location.getContainingTrack(this.viewport_);
 
       var worldCenter = location.xWorld;
       var viewCenter = this.modelTrackContainer_.canvas.width / 5;

@@ -43,9 +43,7 @@ tv.exportTo('tv.c', function() {
    *
    * @constructor
    */
-  function Location(viewport, xWorld, yComponents) {
-    this.viewport_ = viewport;
-
+  function Location(xWorld, yComponents) {
     this.xWorld_ = xWorld;
     this.yComponents_ = yComponents;
   };
@@ -78,7 +76,7 @@ tv.exportTo('tv.c', function() {
 
     if (yComponents.length == 0)
       return;
-    return new Location(viewport, xWorld, yComponents);
+    return new Location(xWorld, yComponents);
   }
 
   Location.fromStableIdAndTimestamp = function(viewport, stableId, ts) {
@@ -105,7 +103,7 @@ tv.exportTo('tv.c', function() {
 
     if (yComponents.length == 0)
       return;
-    return new Location(viewport, xWorld, yComponents);
+    return new Location(xWorld, yComponents);
   }
 
   Location.prototype = {
@@ -118,8 +116,8 @@ tv.exportTo('tv.c', function() {
      * Returns the first valid containing track based on the
      * internal yComponents.
      */
-    get containingTrack() {
-      var containerToTrack = this.viewport_.containerToTrackObj;
+    getContainingTrack: function(viewport) {
+      var containerToTrack = viewport.containerToTrackObj;
       for (var i in this.yComponents_) {
         var yComponent = this.yComponents_[i];
         var track = containerToTrack.getTrackByStableId(yComponent.stableId);
@@ -132,9 +130,9 @@ tv.exportTo('tv.c', function() {
      * Calculates and returns x and y coordinates of the current location with
      * respect to the timeline's canvas.
      */
-    toViewCoordinates: function() {
-      var dt = this.viewport_.currentDisplayTransform;
-      var containerToTrack = this.viewport_.containerToTrackObj;
+    toViewCoordinates: function(viewport) {
+      var dt = viewport.currentDisplayTransform;
+      var containerToTrack = viewport.containerToTrackObj;
       var viewX = dt.xWorldToView(this.xWorld_);
 
       var viewY = -1;

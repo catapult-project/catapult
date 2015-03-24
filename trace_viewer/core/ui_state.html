@@ -67,9 +67,10 @@ tv.exportTo('tv.c', function() {
       return this.scaleX_;
     },
 
-    toUserFriendlyString: function() {
+    toUserFriendlyString: function(viewport) {
       var timestamp = this.location_.xWorld;
-      var stableId = this.location_.containingTrack.eventContainer.stableId;
+      var stableId =
+          this.location_.getContainingTrack(viewport).eventContainer.stableId;
       var scaleX = this.scaleX_;
       return timestamp + '@' + stableId + 'x' + scaleX;
     },

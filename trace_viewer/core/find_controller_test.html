@@ -252,6 +252,14 @@ tv.b.unittest.testSuite(function() {
     timeline.style.maxHeight = '600px';
     this.addHTMLOutput(timeline);
 
+    vp.containerToTrackObj = {
+      getTrackByStableId: function(stableId) {
+        if (stableId === '1.2')
+          return { eventContainer: { stableId: '1.2' } };
+        return undefined;
+      }
+    };
+
     var controller = new tv.c.FindController();
     controller.timeline = timeline;
     controller.filterText = '2000@1.2x7';
@@ -260,7 +268,7 @@ tv.b.unittest.testSuite(function() {
     timeline.navToPosition = function(uiState) {
       assertEquals(2000, uiState.location.xWorld);
       assertEquals('1.2',
-          uiState.location.containingTrack.eventContainer.stableId);
+          uiState.location.getContainingTrack(vp).eventContainer.stableId);
       assertEquals(7, uiState.scaleX);
       cbCalls++;
     };
