@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tv.exportTo('tv.c.trace_model', function() {
 
-  function XMarkerAnnotation(viewport, timestamp) {
+  function XMarkerAnnotation(timestamp) {
     tv.c.trace_model.Annotation.apply(this, arguments);
 
     this.timestamp_ = timestamp; // Location of top-left corner.
@@ -27,8 +27,8 @@ tv.exportTo('tv.c.trace_model', function() {
       return this.timestamp_;
     },
 
-    createView_: function() {
-      return new tv.c.annotations.XMarkerAnnotationView(this.viewport_, this);
+    createView_: function(viewport) {
+      return new tv.c.annotations.XMarkerAnnotationView(viewport, this);
     }
   };
 

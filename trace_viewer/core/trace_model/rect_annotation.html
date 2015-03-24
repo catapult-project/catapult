@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tv.exportTo('tv.c.trace_model', function() {
 
-  function RectAnnotation(viewport, start, end) {
+  function RectAnnotation(start, end) {
     tv.c.trace_model.Annotation.apply(this, arguments);
 
     this.startLocation_ = start; // Location of top-left corner.
@@ -32,8 +32,8 @@ tv.exportTo('tv.c.trace_model', function() {
       return this.endLocation_;
     },
 
-    createView_: function() {
-      return new tv.c.annotations.RectAnnotationView(this.viewport_, this);
+    createView_: function(viewport) {
+      return new tv.c.annotations.RectAnnotationView(viewport, this);
     }
   };
 

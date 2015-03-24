@@ -632,8 +632,8 @@ tv.exportTo('tv.c', function() {
       // Add an X Marker Annotation at the specified timestamp.
       if (this.xNavStringMarker_)
         this.model.removeAnnotation(this.xNavStringMarker_);
-      this.xNavStringMarker_ = new tv.c.trace_model.XMarkerAnnotation(
-          this.viewport_, worldCenter);
+      this.xNavStringMarker_ =
+          new tv.c.trace_model.XMarkerAnnotation(worldCenter);
       this.model.addAnnotation(this.xNavStringMarker_);
     },
 

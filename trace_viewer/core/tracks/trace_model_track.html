@@ -176,7 +176,8 @@ tv.exportTo('tv.c.tracks', function() {
       this.annotationViews_ = [];
       var annotations = this.model_.getAllAnnotations();
       for (var i = 0; i < annotations.length; i++) {
-        this.annotationViews_.push(annotations[i].view);
+        this.annotationViews_.push(
+            annotations[i].getOrCreateView(this.viewport_));
       }
     },
 

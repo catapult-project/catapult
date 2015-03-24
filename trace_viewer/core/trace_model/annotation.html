@@ -17,9 +17,8 @@ tv.exportTo('tv.c.trace_model', function() {
    *
    * @constructor
    */
-  function Annotation(viewport) {
+  function Annotation() {
     this.guid_ = tv.b.GUID.allocate();
-    this.viewport_ = viewport;
     this.view_ = undefined;
   };
 
@@ -28,9 +27,9 @@ tv.exportTo('tv.c.trace_model', function() {
       return this.guid_;
     },
 
-    get view() {
+    getOrCreateView: function(viewport) {
       if (!this.view_)
-        this.view_ = this.createView_(this.viewport_);
+        this.view_ = this.createView_(viewport);
       return this.view_;
     },
 

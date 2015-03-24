@@ -16,20 +16,18 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
 
   test('rectAnnotation', function() {
-    var vp = undefined;
+    var vp = 0; // Dummy viewport.
 
     var fakeYComponents = [{stableId: '1.2', yPercentOffset: 0.5}];
     var start = new tv.c.Location(vp, 50, fakeYComponents);
     var end = new tv.c.Location(vp, 70, fakeYComponents);
-    var rectAnnotation = new tv.c.trace_model.RectAnnotation(vp, start, end);
+    var rectAnnotation = new tv.c.trace_model.RectAnnotation(start, end);
     assertEquals(start, rectAnnotation.startLocation);
     assertEquals(end, rectAnnotation.endLocation);
   });
 
   test('xMarkerAnnotation', function() {
-    var vp = undefined;
-
-    var xMarkerAnnotation = new tv.c.trace_model.XMarkerAnnotation(vp, 2000);
+    var xMarkerAnnotation = new tv.c.trace_model.XMarkerAnnotation(2000);
     assertEquals(2000, xMarkerAnnotation.timestamp);
   });
 });
