@@ -16,43 +16,43 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var re = tv.e.importer.linux_perf._SchedParserTestExports.schedSwitchRE;
     var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
         '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112');
-    assertNotNull(x);
-    assertEquals('swapper', x[1]);
-    assertEquals('0', x[2]);
-    assertEquals('120', x[3]);
-    assertEquals('R', x[4]);
-    assertEquals('SurfaceFlinger', x[5]);
-    assertEquals('178', x[6]);
-    assertEquals('112', x[7]);
+    assert.isNotNull(x);
+    assert.equal('swapper', x[1]);
+    assert.equal('0', x[2]);
+    assert.equal('120', x[3]);
+    assert.equal('R', x[4]);
+    assert.equal('SurfaceFlinger', x[5]);
+    assert.equal('178', x[6]);
+    assert.equal('112', x[7]);
 
     var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 prev_state=R ==> next_comm=Binder Thread # next_pid=195 next_prio=120'); // @suppress longLineCheck
-    assertNotNull(x);
-    assertEquals('.android.chrome', x[1]);
-    assertEquals('Binder Thread #', x[5]);
+    assert.isNotNull(x);
+    assert.equal('.android.chrome', x[1]);
+    assert.equal('Binder Thread #', x[5]);
 
     var x = re.exec('prev_comm=Binder Thread # prev_pid=1562 prev_prio=120 prev_state=R ==> next_comm=.android.chrome next_pid=195 next_prio=120'); // @suppress longLineCheck
-    assertNotNull(x);
-    assertEquals('Binder Thread #', x[1]);
-    assertEquals('.android.chrome', x[5]);
+    assert.isNotNull(x);
+    assert.equal('Binder Thread #', x[1]);
+    assert.equal('.android.chrome', x[5]);
 
-    // explict test for prev_state of D|W
+    // explicit test for prev_state of D|W
     var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 ' +
         'prev_state=D|W ==> next_comm=Binder Thread # next_pid=195 ' +
         'next_prio=120');
-    assertNotNull(x);
-    assertEquals('D|W', x[4]);
+    assert.isNotNull(x);
+    assert.equal('D|W', x[4]);
   });
 
   test('schedWakeupRE', function() {
     var re = tv.e.importer.linux_perf._SchedParserTestExports.schedWakeupRE;
     var x = re.exec(
         'comm=SensorService pid=207 prio=112 success=1 target_cpu=000');
-    assertNotNull(x);
-    assertEquals('SensorService', x[1]);
-    assertEquals('207', x[2]);
-    assertEquals('112', x[3]);
-    assertEquals('1', x[4]);
-    assertEquals('000', x[5]);
+    assert.isNotNull(x);
+    assert.equal('SensorService', x[1]);
+    assert.equal('207', x[2]);
+    assert.equal('112', x[3]);
+    assert.equal('1', x[4]);
+    assert.equal('000', x[5]);
   });
 
   test('importOneSequenceWithSchedWakeUp', function() {
@@ -67,32 +67,32 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
 
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var timeSlices = thread.timeSlices;
-    assertEquals(4, timeSlices.length);
+    assert.equal(4, timeSlices.length);
 
     var runningSlice = timeSlices[0];
-    assertEquals('Running', runningSlice.title);
-    assertAlmostEquals(12622506.890, runningSlice.start);
-    assertAlmostEquals(.918 - .890, runningSlice.duration);
+    assert.equal('Running', runningSlice.title);
+    assert.closeTo(12622506.890, runningSlice.start, 1e-5);
+    assert.closeTo(.918 - .890, runningSlice.duration, 1e-5);
 
     var sleepSlice = timeSlices[1];
-    assertEquals('Uninterruptible Sleep', sleepSlice.title);
-    assertAlmostEquals(12622506.918, sleepSlice.start);
-    assertAlmostEquals(.936 - .918, sleepSlice.duration);
+    assert.equal('Uninterruptible Sleep', sleepSlice.title);
+    assert.closeTo(12622506.918, sleepSlice.start, 1e-5);
+    assert.closeTo(.936 - .918, sleepSlice.duration, 1e-5);
 
     var wakeupSlice = timeSlices[2];
-    assertEquals('Runnable', wakeupSlice.title);
-    assertAlmostEquals(12622506.936, wakeupSlice.start);
-    assertAlmostEquals(.950 - .936, wakeupSlice.duration);
-    assertEquals(584, wakeupSlice.args['wakeup from tid']);
+    assert.equal('Runnable', wakeupSlice.title);
+    assert.closeTo(12622506.936, wakeupSlice.start, 1e-5);
+    assert.closeTo(.950 - .936, wakeupSlice.duration, 1e-5);
+    assert.equal(584, wakeupSlice.args['wakeup from tid']);
 
     var runningSlice2 = timeSlices[3];
-    assertEquals('Running', runningSlice2.title);
-    assertAlmostEquals(12622506.950, runningSlice2.start);
-    assertAlmostEquals(7.253 - 6.950, runningSlice2.duration);
+    assert.equal('Running', runningSlice2.title);
+    assert.closeTo(12622506.950, runningSlice2.start, 1e-5);
+    assert.closeTo(7.253 - 6.950, runningSlice2.duration, 1e-5);
   });
 
   test('importWithUnknownSleepState', function() {
@@ -107,16 +107,16 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
 
     var m;
-    assertDoesNotThrow(function() {
+    assert.doesNotThrow(function() {
       m = new tv.c.TraceModel(lines.join('\n'), false);
     });
-    assertTrue(m.hasImportWarnings);
-    assertEquals('Unrecognized sleep state: F|O', m.importWarnings[0].message);
+    assert.isTrue(m.hasImportWarnings);
+    assert.equal('Unrecognized sleep state: F|O', m.importWarnings[0].message);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var timeSlices = thread.timeSlices;
 
-    assertEquals('UNKNOWN', timeSlices[1].title);
+    assert.equal('UNKNOWN', timeSlices[1].title);
   });
 
   test('importWithUninterruptibleSleep', function() {
@@ -149,16 +149,16 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
 
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var timeSlices = thread.timeSlices;
-    assertEquals(4, timeSlices.length);
+    assert.equal(4, timeSlices.length);
 
     var wakeKillSlice = timeSlices[1];
-    assertEquals('Uninterruptible Sleep | WakeKill', wakeKillSlice.title);
-    assertAlmostEquals(12622506.918, wakeKillSlice.start);
-    assertAlmostEquals(.936 - .918, wakeKillSlice.duration);
+    assert.equal('Uninterruptible Sleep | WakeKill', wakeKillSlice.title);
+    assert.closeTo(12622506.918, wakeKillSlice.start, 1e-5);
+    assert.closeTo(.936 - .918, wakeKillSlice.duration, 1e-5);
   });
 });
 </script>

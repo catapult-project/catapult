@@ -21,58 +21,58 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var x = p('   <idle>-0     [001]  4467.843475: sched_switch: ' +
         'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
         'next_comm=SurfaceFlinger next_pid=178 next_prio=112');
-    assertNotNull(x);
-    assertEquals('<idle>', x.threadName);
-    assertEquals('0', x.pid);
-    assertEquals('001', x.cpuNumber);
-    assertEquals('4467.843475', x.timestamp);
-    assertEquals('sched_switch', x.eventName);
-    assertEquals('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R' +
+    assert.isNotNull(x);
+    assert.equal('<idle>', x.threadName);
+    assert.equal('0', x.pid);
+    assert.equal('001', x.cpuNumber);
+    assert.equal('4467.843475', x.timestamp);
+    assert.equal('sched_switch', x.eventName);
+    assert.equal('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R' +
         ' ==> next_comm=SurfaceFlinger next_pid=178 next_prio=112', x.details);
 
     var x = p('Binder-Thread #-647   [001]   260.464294: sched_switch: ' +
         'prev_comm=Binder Thread # prev_pid=647 prev_prio=120 prev_state=D ' +
         ' ==> next_comm=.android.chrome next_pid=1562 next_prio=120');
-    assertNotNull(x);
-    assertEquals('Binder-Thread #', x.threadName);
-    assertEquals('647', x.pid);
+    assert.isNotNull(x);
+    assert.equal('Binder-Thread #', x.threadName);
+    assert.equal('647', x.pid);
   });
 
   test('lineParserWithIRQInfo', function() {
     var p = LinuxPerfImporterTestExports.lineParserWithIRQInfo; // @suppress longLineCheck
     var x = p('     systrace.sh-5441  [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
-    assertNotNull(x);
-    assertEquals('systrace.sh', x.threadName);
-    assertEquals('5441', x.pid);
-    assertEquals('001', x.cpuNumber);
-    assertEquals('1031.091570', x.timestamp);
-    assertEquals('sched_wakeup', x.eventName);
-    assertEquals('comm=debugd pid=4978 prio=120 success=1 target_cpu=000', x.details); // @suppress longLineCheck
+    assert.isNotNull(x);
+    assert.equal('systrace.sh', x.threadName);
+    assert.equal('5441', x.pid);
+    assert.equal('001', x.cpuNumber);
+    assert.equal('1031.091570', x.timestamp);
+    assert.equal('sched_wakeup', x.eventName);
+    assert.equal('comm=debugd pid=4978 prio=120 success=1 target_cpu=000', x.details); // @suppress longLineCheck
   });
 
   test('lineParserWithTGID', function() {
     var p = LinuxPerfImporterTestExports.lineParserWithTGID;
     var x = p('     systrace.sh-5441  (54321) [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
-    assertNotNull(x);
-    assertEquals('systrace.sh', x.threadName);
-    assertEquals('5441', x.pid);
-    assertEquals('54321', x.tgid);
-    assertEquals('001', x.cpuNumber);
-    assertEquals('1031.091570', x.timestamp);
-    assertEquals('sched_wakeup', x.eventName);
-    assertEquals('comm=debugd pid=4978 prio=120 success=1 target_cpu=000', x.details); // @suppress longLineCheck
+    assert.isNotNull(x);
+    assert.equal('systrace.sh', x.threadName);
+    assert.equal('5441', x.pid);
+    assert.equal('54321', x.tgid);
+    assert.equal('001', x.cpuNumber);
+    assert.equal('1031.091570', x.timestamp);
+    assert.equal('sched_wakeup', x.eventName);
+    assert.equal('comm=debugd pid=4978 prio=120 success=1 target_cpu=000', x.details); // @suppress longLineCheck
 
     var x = p('     systrace.sh-5441  (  321) [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
-    assertNotNull(x);
-    assertEquals('321', x.tgid);
+    assert.isNotNull(x);
+    assert.equal('321', x.tgid);
 
     var x = p('     systrace.sh-5441  (-----) [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
-    assertNotNull(x);
-    assertEquals(undefined, x.tgid);
+    assert.isNotNull(x);
+    assert.equal(undefined, x.tgid);
   });
 
   test('autodetectLineCornerCases', function() {
@@ -91,7 +91,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
         'next_prio=120';
     var detected = detectParser(lineWithLegacyFmt);
-    assertEquals(detected, lineParserWithLegacyFmt);
+    assert.equal(detected, lineParserWithLegacyFmt);
 
     var lineWithIRQInfo =
         'systrace.sh-8170  [001] d... 15180.978813: sched_switch: ' +
@@ -99,7 +99,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
         'next_prio=120';
     var detected = detectParser(lineWithIRQInfo);
-    assertEquals(detected, lineParserWithIRQInfo);
+    assert.equal(detected, lineParserWithIRQInfo);
 
     var lineWithTGID =
         'systrace.sh-8170  (54321) [001] d... 15180.978813: sched_switch: ' +
@@ -107,18 +107,18 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
         'next_prio=120';
     var detected = detectParser(lineWithTGID);
-    assertEquals(detected, lineParserWithTGID);
+    assert.equal(detected, lineParserWithTGID);
   });
 
   test('traceEventClockSyncRE', function() {
     var re = LinuxPerfImporterTestExports.traceEventClockSyncRE; // @suppress longLineCheck
     var x = re.exec('trace_event_clock_sync: parent_ts=19581477508');
-    assertNotNull(x);
-    assertEquals('19581477508', x[1]);
+    assert.isNotNull(x);
+    assert.equal('19581477508', x[1]);
 
     var x = re.exec('trace_event_clock_sync: parent_ts=123.456');
-    assertNotNull(x);
-    assertEquals('123.456', x[1]);
+    assert.isNotNull(x);
+    assert.equal('123.456', x[1]);
   });
 
   test('genericClockSync', function() {
@@ -130,13 +130,13 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       'sh-26121 [000] ...1 107464.0: tracing_mark_write: trace_event_clock_sync: name=battor regulator=8941_smbb_boost' // @suppress longLineCheck
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var battorSyncs = m.getClockSyncRecordsNamed('battor');
-    assertEquals(1, battorSyncs.length);
-    assertEquals(107464000.0, battorSyncs[0].ts);
-    assertEquals(107464000.0, battorSyncs[0].args.perfTS);
-    assertEquals('8941_smbb_boost', battorSyncs[0].args.regulator);
+    assert.equal(1, battorSyncs.length);
+    assert.equal(107464000.0, battorSyncs[0].ts);
+    assert.equal(107464000.0, battorSyncs[0].args.perfTS);
+    assert.equal('8941_smbb_boost', battorSyncs[0].args.regulator);
   });
 
   test('canImport', function() {
@@ -161,14 +161,14 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
           'next_comm=kworker/u:2 next_pid=2844 next_prio=120'
     ];
-    assertTrue(LinuxPerfImporter.canImport(lines.join('\n')));
+    assert.isTrue(LinuxPerfImporter.canImport(lines.join('\n')));
 
     var lines = [
       '          <idle>-0     [001]  4467.843475: sched_switch: ' +
           'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
               'next_comm=SurfaceFlinger next_pid=178 next_prio=112'
     ];
-    assertTrue(LinuxPerfImporter.canImport(lines.join('\n')));
+    assert.isTrue(LinuxPerfImporter.canImport(lines.join('\n')));
 
     var lines = [
       '          <idle>-0     [001]  4467.843475: sched_switch: ' +
@@ -180,13 +180,13 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
           'next_prio=120'
     ];
-    assertTrue(LinuxPerfImporter.canImport(lines.join('\n')));
+    assert.isTrue(LinuxPerfImporter.canImport(lines.join('\n')));
 
     var lines = [
       'SomeRandomText',
       'More random text'
     ];
-    assertFalse(LinuxPerfImporter.canImport(lines.join('\n')));
+    assert.isFalse(LinuxPerfImporter.canImport(lines.join('\n')));
   });
 
   test('canImport34AndLater', function() {
@@ -208,7 +208,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_comm=systrace.sh prev_pid=5441 prev_prio=120 prev_state=x ' +
           '==> next_comm=chrome next_pid=5418 next_prio=120'
     ];
-    assertTrue(LinuxPerfImporter.canImport(lines.join('\n')));
+    assert.isTrue(LinuxPerfImporter.canImport(lines.join('\n')));
 
     var lines = [
       '     systrace.sh-5441  [001] d...  1031.091570: sched_wakeup: ' +
@@ -217,7 +217,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_comm=systrace.sh prev_pid=5441 prev_prio=120 prev_state=x ' +
           '==> next_comm=chrome next_pid=5418 next_prio=120'
     ];
-    assertTrue(LinuxPerfImporter.canImport(lines.join('\n')));
+    assert.isTrue(LinuxPerfImporter.canImport(lines.join('\n')));
   });
 
   test('importOneSequence', function() {
@@ -236,14 +236,14 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
-    assertEquals(2, c.slices.length);
+    assert.equal(2, c.slices.length);
 
-    assertEquals('SurfaceFlinger', c.slices[0].title);
-    assertEquals(4467843.475, c.slices[0].start);
-    assertAlmostEquals(.536 - .475, c.slices[0].duration);
+    assert.equal('SurfaceFlinger', c.slices[0].title);
+    assert.equal(4467843.475, c.slices[0].start);
+    assert.closeTo(.536 - .475, c.slices[0].duration, 1e-5);
   });
 
   test('importOneSequenceWithSpacyThreadName', function() {
@@ -262,14 +262,14 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
-    assertEquals(2, c.slices.length);
+    assert.equal(2, c.slices.length);
 
-    assertEquals('Surface Flinger ', c.slices[0].title);
-    assertEquals(4467843.475, c.slices[0].start);
-    assertAlmostEquals(.536 - .475, c.slices[0].duration);
+    assert.equal('Surface Flinger ', c.slices[0].title);
+    assert.equal(4467843.475, c.slices[0].start);
+    assert.closeTo(.536 - .475, c.slices[0].duration, 1e-5);
   });
 
   test('importWithNewline', function() {
@@ -277,7 +277,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       ''
     ];
     var m = new tv.c.TraceModel(lines.join('\n'));
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
   });
 
   test('importHtml', function() {
@@ -285,18 +285,18 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         '/extras/importer/linux_perf/linux_perf_importer_test_data.html');
     return p.then(function(data) {
       var m = new tv.c.TraceModel(data, false);
-      assertFalse(m.hasImportWarnings);
+      assert.isFalse(m.hasImportWarnings);
 
-      assertNotUndefined(m.processes[124]);
-      assertNotUndefined(m.processes[360]);
+      assert.isDefined(m.processes[124]);
+      assert.isDefined(m.processes[360]);
 
-      assertNotUndefined(m.processes[124].counters['android.StatusBar']);
-      assertEquals(m.processes[124].counters['android.StatusBar'].numSamples,
+      assert.isDefined(m.processes[124].counters['android.StatusBar']);
+      assert.equal(m.processes[124].counters['android.StatusBar'].numSamples,
                    1);
-      assertNotUndefined(m.processes[124].counters['android.VSYNC']);
-      assertEquals(m.processes[124].counters['android.VSYNC'].numSamples, 2);
-      assertNotUndefined(m.processes[360].counters['android.iq']);
-      assertEquals(m.processes[360].counters['android.iq'].numSamples, 1);
+      assert.isDefined(m.processes[124].counters['android.VSYNC']);
+      assert.equal(m.processes[124].counters['android.VSYNC'].numSamples, 2);
+      assert.isDefined(m.processes[360].counters['android.iq']);
+      assert.equal(m.processes[360].counters['android.iq'].numSamples, 1);
     }, function(err) {
       throw err;
     });
@@ -319,13 +319,15 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           'trace_event_clock_sync: parent_ts=0.1'
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
-    assertEquals(2, c.slices.length);
+    assert.equal(2, c.slices.length);
 
-    assertAlmostEquals((467.843475 - (467.843 - 0.1)) * 1000,
-                       c.slices[0].start);
+    assert.closeTo(
+        (467.843475 - (467.843 - 0.1)) * 1000,
+        c.slices[0].start,
+        1e-5);
   });
 
   test('clockSyncMarkWrite', function() {
@@ -344,12 +346,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           'trace_event_clock_sync: parent_ts=0'
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
-    assertEquals(2, c.slices.length);
+    assert.equal(2, c.slices.length);
 
-    assertAlmostEquals((15180.978813 - 0) * 1000, c.slices[0].start);
+    assert.closeTo((15180.978813 - 0) * 1000, c.slices[0].start, 1e-5);
   });
 
   test('tracingMarkWriteEOLCleanup', function() {
@@ -360,14 +362,16 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
 
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var c = m.processes[9304].threads[8182].sliceGroup;
-    assertEquals(1, c.slices.length);
+    assert.equal(1, c.slices.length);
 
-    assertAlmostEquals((2068001.677892 - 0) * 1000, c.slices[0].start);
-    assertAlmostEquals((2068991.686415 - 2068001.677892) * 1000,
-        c.slices[0].duration);
+    assert.closeTo((2068001.677892 - 0) * 1000, c.slices[0].start, 1e-5);
+    assert.closeTo(
+        (2068991.686415 - 2068001.677892) * 1000,
+        c.slices[0].duration,
+        1e-5);
   });
 
   test('cpuCount', function() {
@@ -384,10 +388,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           'next_comm=dbus-daemon next_pid=510 next_prio=120'
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
-    assertEquals(2, tv.b.dictionaryLength(m.kernel.cpus));
-    assertEquals(2, m.kernel.bestGuessAtCpuCount);
+    assert.equal(2, tv.b.dictionaryLength(m.kernel.cpus));
+    assert.equal(2, m.kernel.bestGuessAtCpuCount);
   });
 });
 </script>

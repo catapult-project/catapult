@@ -100,24 +100,24 @@ tv.b.unittest.testSuite(function() {
           'log: end: LogHardwareState'
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
     var threads = m.getAllThreads();
-    assertEquals(1, threads.length);
+    assert.equal(1, threads.length);
 
     var gestureThread = threads[0];
-    assertEquals('gesture', gestureThread.name);
-    assertEquals(21, gestureThread.sliceGroup.length);
-    assertEquals('touchpad_gesture',
+    assert.equal('gesture', gestureThread.name);
+    assert.equal(21, gestureThread.sliceGroup.length);
+    assert.equal('touchpad_gesture',
                  gestureThread.sliceGroup.slices[0].category);
-    assertEquals('GestureLog',
+    assert.equal('GestureLog',
                  gestureThread.sliceGroup.slices[0].title);
-    assertEquals('touchpad_gesture',
+    assert.equal('touchpad_gesture',
                  gestureThread.sliceGroup.slices[2].category);
-    assertEquals('HandleTimer',
+    assert.equal('HandleTimer',
                  gestureThread.sliceGroup.slices[2].title);
-    assertEquals('touchpad_gesture',
+    assert.equal('touchpad_gesture',
                  gestureThread.sliceGroup.slices[14].category);
-    assertEquals('SyncInterpret',
+    assert.equal('SyncInterpret',
                  gestureThread.sliceGroup.slices[14].title);
   });
 
@@ -173,9 +173,9 @@ tv.b.unittest.testSuite(function() {
           'log: end: TimerLogOutputs'
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
     var threads = m.getAllThreads();
-    assertEquals(1, threads.length);
+    assert.equal(1, threads.length);
   });
 
   test('importError', function() {
@@ -198,8 +198,8 @@ tv.b.unittest.testSuite(function() {
           'HandleTimer: end: IntegralGestureFilterInterpreter'
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertTrue(m.hasImportWarnings);
-    assertEquals(7, m.importWarnings.length);
+    assert.isTrue(m.hasImportWarnings);
+    assert.equal(7, m.importWarnings.length);
   });
 });
 </script>

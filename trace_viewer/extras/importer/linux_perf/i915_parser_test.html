@@ -47,7 +47,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var i915GemThread = undefined;
     var i915FlipThread = undefined;
@@ -75,24 +75,28 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           throw new unittest.TestError('Unexpected thread named ' + t.name);
       }
     });
-    assertNotUndefined(i915GemThread);
-    assertNotUndefined(i915FlipThread);
-    assertNotUndefined(i915GemRingThread);
-    assertNotUndefined(i915RegThread);
-    assertNotUndefined(i915GpuFreqThread);
+    assert.isDefined(i915GemThread);
+    assert.isDefined(i915FlipThread);
+    assert.isDefined(i915GemRingThread);
+    assert.isDefined(i915RegThread);
+    assert.isDefined(i915GpuFreqThread);
 
-    assertEquals(3, i915GemThread.sliceGroup.length);
+    assert.equal(3, i915GemThread.sliceGroup.length);
 
-    assertEquals(1, i915FlipThread.sliceGroup.length);
+    assert.equal(1, i915FlipThread.sliceGroup.length);
 
-    assertAlmostEquals(2784.774864 * 1000.0,
-        i915FlipThread.sliceGroup.slices[0].start);
-    assertAlmostEquals((2784.788644 - 2784.774864) * 1000.0,
-        i915FlipThread.sliceGroup.slices[0].duration);
+    assert.closeTo(
+        2784.774864 * 1000.0,
+        i915FlipThread.sliceGroup.slices[0].start,
+        1e-5);
+    assert.closeTo(
+        (2784.788644 - 2784.774864) * 1000.0,
+        i915FlipThread.sliceGroup.slices[0].duration,
+        1e-5);
 
-    assertEquals(7, i915GemRingThread.sliceGroup.length);
-    assertEquals(1, i915RegThread.sliceGroup.length);
-    assertEquals(1, i915GpuFreqThread.sliceGroup.length);
+    assert.equal(7, i915GemRingThread.sliceGroup.length);
+    assert.equal(1, i915RegThread.sliceGroup.length);
+    assert.equal(1, i915GpuFreqThread.sliceGroup.length);
   });
 });
 </script>

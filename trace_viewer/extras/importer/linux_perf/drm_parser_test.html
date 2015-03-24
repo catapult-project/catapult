@@ -18,14 +18,14 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       ' <idle>-0     [000]    71.669851: drm_vblank_event: crtc=0, seq=4234'
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assertEquals(1, threads.length);
+    assert.equal(1, threads.length);
 
     var vblankThread = threads[0];
-    assertEquals('drm_vblank', vblankThread.name);
-    assertEquals(2, vblankThread.sliceGroup.length);
+    assert.equal('drm_vblank', vblankThread.name);
+    assert.equal(2, vblankThread.sliceGroup.length);
   });
 });
 </script>

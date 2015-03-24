@@ -24,10 +24,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                  'work struct ffff88014fb0f158'
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
-    assertEquals(1, m.processes['6880'].threads['6880'].sliceGroup.length);
-    assertEquals(1, m.processes['7269'].threads['7269'].sliceGroup.length);
+    assert.equal(1, m.processes['6880'].threads['6880'].sliceGroup.length);
+    assert.equal(1, m.processes['7269'].threads['7269'].sliceGroup.length);
   });
 });
 </script>

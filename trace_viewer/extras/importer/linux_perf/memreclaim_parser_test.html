@@ -25,10 +25,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       ' kswapd0-33    (   33) [001] ...1 12840.545737: mm_vmscan_kswapd_sleep: nid=0' // @suppress longLineCheck
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
-    assertEquals(1, m.processes['1155'].threads['1155'].sliceGroup.length);
-    assertEquals(1, m.processes['33'].threads['33'].sliceGroup.length);
+    assert.equal(1, m.processes['1155'].threads['1155'].sliceGroup.length);
+    assert.equal(1, m.processes['33'].threads['33'].sliceGroup.length);
   });
 });
 </script>
