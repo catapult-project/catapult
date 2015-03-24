@@ -55,7 +55,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     }
     results = results.sort();
 
-    assertArrayEquals(expected, results);
+    assert.deepEqual(expected, results);
   });
 
   test('recordSelectionDialog_UpdateForm_NoSettings', function() {
@@ -66,24 +66,24 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.updateForm_();
 
     var checkboxes = dlg.querySelectorAll('.categories input');
-    assertEquals(3, checkboxes.length);
-    assertEquals('three', checkboxes[0].id);
-    assertEquals('three', checkboxes[0].value);
-    assertEquals(true, checkboxes[0].checked);
-    assertEquals('two', checkboxes[1].id);
-    assertEquals('two', checkboxes[1].value);
-    assertEquals(true, checkboxes[1].checked);
-    assertEquals('disabled-by-default-one', checkboxes[2].id);
-    assertEquals('disabled-by-default-one', checkboxes[2].value);
-    assertEquals(false, checkboxes[2].checked);
+    assert.equal(3, checkboxes.length);
+    assert.equal('three', checkboxes[0].id);
+    assert.equal('three', checkboxes[0].value);
+    assert.isTrue(checkboxes[0].checked);
+    assert.equal('two', checkboxes[1].id);
+    assert.equal('two', checkboxes[1].value);
+    assert.isTrue(checkboxes[1].checked);
+    assert.equal('disabled-by-default-one', checkboxes[2].id);
+    assert.equal('disabled-by-default-one', checkboxes[2].value);
+    assert.isFalse(checkboxes[2].checked);
 
-    assertEquals('', dlg.categoryFilter());
+    assert.equal('', dlg.categoryFilter());
 
     var labels = dlg.querySelectorAll('.categories label');
-    assertEquals(3, labels.length);
-    assertEquals('three', labels[0].textContent);
-    assertEquals('two', labels[1].textContent);
-    assertEquals('one', labels[2].textContent);
+    assert.equal(3, labels.length);
+    assert.equal('three', labels[0].textContent);
+    assert.equal('two', labels[1].textContent);
+    assert.equal('one', labels[2].textContent);
   });
 
   test('recordSelectionDialog_UpdateForm_Settings', function() {
@@ -97,24 +97,24 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.updateForm_();
 
     var checkboxes = dlg.querySelectorAll('.categories input');
-    assertEquals(3, checkboxes.length);
-    assertEquals('three', checkboxes[0].id);
-    assertEquals('three', checkboxes[0].value);
-    assertEquals(false, checkboxes[0].checked);
-    assertEquals('two', checkboxes[1].id);
-    assertEquals('two', checkboxes[1].value);
-    assertEquals(true, checkboxes[1].checked);
-    assertEquals('disabled-by-default-one', checkboxes[2].id);
-    assertEquals('disabled-by-default-one', checkboxes[2].value);
-    assertEquals(false, checkboxes[2].checked);
+    assert.equal(3, checkboxes.length);
+    assert.equal('three', checkboxes[0].id);
+    assert.equal('three', checkboxes[0].value);
+    assert.isFalse(checkboxes[0].checked);
+    assert.equal('two', checkboxes[1].id);
+    assert.equal('two', checkboxes[1].value);
+    assert.isTrue(checkboxes[1].checked);
+    assert.equal('disabled-by-default-one', checkboxes[2].id);
+    assert.equal('disabled-by-default-one', checkboxes[2].value);
+    assert.isFalse(checkboxes[2].checked);
 
-    assertEquals('-three', dlg.categoryFilter());
+    assert.equal('-three', dlg.categoryFilter());
 
     var labels = dlg.querySelectorAll('.categories label');
-    assertEquals(3, labels.length);
-    assertEquals('three', labels[0].textContent);
-    assertEquals('two', labels[1].textContent);
-    assertEquals('one', labels[2].textContent);
+    assert.equal(3, labels.length);
+    assert.equal('three', labels[0].textContent);
+    assert.equal('two', labels[1].textContent);
+    assert.equal('one', labels[2].textContent);
   });
 
   test('recordSelectionDialog_UpdateForm_DisabledByDefault', function() {
@@ -124,14 +124,14 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
-    assertEquals('', dlg.categoryFilter());
+    assert.equal('', dlg.categoryFilter());
 
     var inputs =
         dlg.querySelector('input#disabled-by-default-bar').click();
 
-    assertEquals('disabled-by-default-bar', dlg.categoryFilter());
+    assert.equal('disabled-by-default-bar', dlg.categoryFilter());
 
-    assertEquals(false,
+    assert.isFalse(
         tv.b.Settings.get('disabled-by-default-foo', false, 'categories'));
   });
 
@@ -158,28 +158,28 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Enables the three option, two already enabled.
     dlg.querySelector('.default-enabled-categories .all-btn').click();
-    assertEquals('', dlg.categoryFilter());
-    assertEquals(true, tv.b.Settings.get('three', false, 'categories'));
+    assert.equal('', dlg.categoryFilter());
+    assert.isTrue(tv.b.Settings.get('three', false, 'categories'));
 
     // Disables three and two.
     dlg.querySelector('.default-enabled-categories .none-btn').click();
-    assertEquals('-three,-two', dlg.categoryFilter());
-    assertEquals(false, tv.b.Settings.get('two', false, 'categories'));
-    assertEquals(false, tv.b.Settings.get('three', false, 'categories'));
+    assert.equal('-three,-two', dlg.categoryFilter());
+    assert.isFalse(tv.b.Settings.get('two', false, 'categories'));
+    assert.isFalse(tv.b.Settings.get('three', false, 'categories'));
 
     // Turn categories back on so they can be ignored.
     dlg.querySelector('.default-enabled-categories .all-btn').click();
 
     // Enables disabled category.
     dlg.querySelector('.default-disabled-categories .all-btn').click();
-    assertEquals('disabled-by-default-one', dlg.categoryFilter());
-    assertEquals(true,
+    assert.equal('disabled-by-default-one', dlg.categoryFilter());
+    assert.isTrue(
         tv.b.Settings.get('disabled-by-default-one', false, 'categories'));
 
     // Turn disabled by default back off.
     dlg.querySelector('.default-disabled-categories .none-btn').click();
-    assertEquals('', dlg.categoryFilter());
-    assertEquals(false,
+    assert.equal('', dlg.categoryFilter());
+    assert.isFalse(
         tv.b.Settings.get('disabled-by-default-one', false, 'categories'));
   });
 
@@ -194,29 +194,29 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.updateForm_();
 
     // Make sure the default filter is returned.
-    assertEquals('-three,-two', dlg.categoryFilter());
+    assert.equal('-three,-two', dlg.categoryFilter());
 
     // Make sure the default tracing types are returned.
-    assertEquals(true, dlg.useContinuousTracing);
-    assertEquals(false, dlg.useSystemTracing);
-    assertEquals(false, dlg.useSampling);
+    assert.isTrue(dlg.useContinuousTracing);
+    assert.isFalse(dlg.useSystemTracing);
+    assert.isFalse(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
     var classList = dlg.categoriesView_.classList;
-    assertEquals(true, classList.contains('categories-column-view-hidden'));
+    assert.isTrue(classList.contains('categories-column-view-hidden'));
 
     // Verify manual settings do not modify the checkboxes.
     var checkboxes = dlg.querySelectorAll('.categories input');
-    assertEquals(3, checkboxes.length);
-    assertEquals('three', checkboxes[0].id);
-    assertEquals('three', checkboxes[0].value);
-    assertEquals(false, checkboxes[0].checked);
-    assertEquals('two', checkboxes[1].id);
-    assertEquals('two', checkboxes[1].value);
-    assertEquals(true, checkboxes[1].checked);
-    assertEquals('disabled-by-default-one', checkboxes[2].id);
-    assertEquals('disabled-by-default-one', checkboxes[2].value);
-    assertEquals(false, checkboxes[2].checked);
+    assert.equal(3, checkboxes.length);
+    assert.equal('three', checkboxes[0].id);
+    assert.equal('three', checkboxes[0].value);
+    assert.isFalse(checkboxes[0].checked);
+    assert.equal('two', checkboxes[1].id);
+    assert.equal('two', checkboxes[1].value);
+    assert.isTrue(checkboxes[1].checked);
+    assert.equal('disabled-by-default-one', checkboxes[2].id);
+    assert.equal('disabled-by-default-one', checkboxes[2].value);
+    assert.isFalse(checkboxes[2].checked);
   });
 
   test('recordSelectionDialog_changePresets', function() {
@@ -234,30 +234,30 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.updateForm_();
 
     // Make sure the default filter is returned.
-    assertEquals('-three,-two',
+    assert.equal('-three,-two',
         dlg.categoryFilter());
 
     // Make sure the default tracing types are returned.
-    assertEquals(true, dlg.useContinuousTracing);
-    assertEquals(false, dlg.useSystemTracing);
-    assertEquals(false, dlg.useSampling);
+    assert.isTrue(dlg.useContinuousTracing);
+    assert.isFalse(dlg.useSystemTracing);
+    assert.isFalse(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
     var classList = dlg.categoriesView_.classList;
-    assertEquals(true, classList.contains('categories-column-view-hidden'));
+    assert.isTrue(classList.contains('categories-column-view-hidden'));
 
     // Switch to manual settings and verify the default values are not returned.
     dlg.currentlyChosenPreset = [];
-    assertEquals('-three,disabled-by-default-cc.debug', dlg.categoryFilter());
-    assertEquals(false, dlg.useContinuousTracing);
-    assertEquals(true, dlg.useSystemTracing);
-    assertEquals(false, dlg.useSampling);
-    assertEquals(false, classList.contains('categories-column-view-hidden'));
+    assert.equal('-three,disabled-by-default-cc.debug', dlg.categoryFilter());
+    assert.isFalse(dlg.useContinuousTracing);
+    assert.isTrue(dlg.useSystemTracing);
+    assert.isFalse(dlg.useSampling);
+    assert.isFalse(classList.contains('categories-column-view-hidden'));
 
     // Switch to the graphics, rendering, and rasterization preset.
     dlg.currentlyChosenPreset = ['blink', 'cc', 'renderer',
       'disabled-by-default-cc.debug'];
-    assertEquals('disabled-by-default-cc.debug,-three,-two',
+    assert.equal('disabled-by-default-cc.debug,-three,-two',
         dlg.categoryFilter());
   });
 
@@ -276,24 +276,24 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.updateForm_();
 
     // Make sure the correct filter is returned.
-    assertEquals('-three,-two', dlg.categoryFilter());
+    assert.equal('-three,-two', dlg.categoryFilter());
 
     // Make sure the correct tracing types are returned.
-    assertEquals(true, dlg.useContinuousTracing);
-    assertEquals(false, dlg.useSystemTracing);
-    assertEquals(false, dlg.useSampling);
+    assert.isTrue(dlg.useContinuousTracing);
+    assert.isFalse(dlg.useSystemTracing);
+    assert.isFalse(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
     var classList = dlg.categoriesView_.classList;
-    assertEquals(true, classList.contains('categories-column-view-hidden'));
+    assert.isTrue(classList.contains('categories-column-view-hidden'));
 
     // Switch to manual settings and verify the default values are not returned.
     dlg.currentlyChosenPreset = [];
-    assertEquals('-three', dlg.categoryFilter());
-    assertEquals(true, dlg.useContinuousTracing);
-    assertEquals(true, dlg.useSystemTracing);
-    assertEquals(true, dlg.useSampling);
-    assertEquals(false, classList.contains('categories-column-view-hidden'));
+    assert.equal('-three', dlg.categoryFilter());
+    assert.isTrue(dlg.useContinuousTracing);
+    assert.isTrue(dlg.useSystemTracing);
+    assert.isTrue(dlg.useSampling);
+    assert.isFalse(classList.contains('categories-column-view-hidden'));
   });
 
   test('recordSelectionDialog_categoryFilters', function() {
@@ -311,13 +311,13 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
-    assertEquals('-cc,-disabled1,disabled-by-default-cc.debug',
+    assert.equal('-cc,-disabled1,disabled-by-default-cc.debug',
         dlg.categoryFilter());
 
     // Switch to the graphics, rendering, and rasterization preset.
     dlg.currentlyChosenPreset = ['blink', 'cc', 'renderer',
       'disabled-by-default-cc.debug'];
-    assertEquals('-default1,disabled-by-default-cc.debug,-disabled1,-input',
+    assert.equal('-default1,disabled-by-default-cc.debug,-disabled1,-input',
         dlg.categoryFilter());
   });
 });

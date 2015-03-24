@@ -97,26 +97,26 @@ tv.b.unittest.testSuite(function() {
 
     return new Promise(function(resolve, reject) {
       var buttons = view.querySelector('x-timeline-view-buttons');
-      assertEquals(buttons.querySelector('#monitor-checkbox').checked, false);
+      assert.isFalse(buttons.querySelector('#monitor-checkbox').checked);
 
       function beginMonitoring() {
         // Since we don't fall back to TracingController when testing,
         // we cannot rely on TracingController to invoke a callback to change
         // view.isMonitoring_. Thus we change view.isMonitoring_ manually.
         view.onMonitoringStateChanged_(true);
-        assertEquals(buttons.querySelector('#monitor-checkbox').checked, true);
+        assert.isTrue(buttons.querySelector('#monitor-checkbox').checked);
         setTimeout(captureMonitoring, 60);
       }
 
       function captureMonitoring() {
-        assertEquals(buttons.querySelector('#monitor-checkbox').checked, true);
+        assert.isTrue(buttons.querySelector('#monitor-checkbox').checked);
         buttons.querySelector('#capture-button').click();
         setTimeout(endMonitoring, 60);
       }
       function endMonitoring() {
-        assertEquals(buttons.querySelector('#monitor-checkbox').checked, true);
+        assert.isTrue(buttons.querySelector('#monitor-checkbox').checked);
         buttons.querySelector('#monitor-checkbox').click();
-        assertEquals(buttons.querySelector('#monitor-checkbox').checked, false);
+        assert.isFalse(buttons.querySelector('#monitor-checkbox').checked);
       }
 
       var monitoringPromise = view.beginMonitoring();
@@ -138,34 +138,34 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(view);
     var buttons = view.querySelector('x-timeline-view-buttons');
     var uploadButton = buttons.querySelector('#upload-button');
-    assertNotNull(uploadButton);
-    assertTrue(uploadButton.disabled);
-    assertNull(view.uploadOverlay_);
+    assert.isNotNull(uploadButton);
+    assert.isTrue(uploadButton.disabled);
+    assert.isNull(view.uploadOverlay_);
 
     view.setActiveTrace('testFile', []);
     view.activeTrace_.data = ['t', 'e', 's', 't'];
-    assertFalse(uploadButton.disabled);
+    assert.isFalse(uploadButton.disabled);
 
     var overlay = null;
     var clickUploadAndVerify = function() {
       view.onUploadClicked_();
-      assertNotNull(view.uploadOverlay_);
-      assertTrue(view.uploadOverlay_.visible);
+      assert.isNotNull(view.uploadOverlay_);
+      assert.isTrue(view.uploadOverlay_.visible);
       overlay = view.uploadOverlay_;
-      assertNotEquals('none', view.uploadOverlay_.buttons.style.display);
-      assertEquals(2, view.uploadOverlay_.buttons.childNodes.length);
+      assert.notEqual('none', view.uploadOverlay_.buttons.style.display);
+      assert.equal(2, view.uploadOverlay_.buttons.childNodes.length);
     };
     clickUploadAndVerify();
 
     var cancelButton = view.uploadOverlay_.buttons.lastChild;
-    assertEquals('Cancel', cancelButton.textContent);
+    assert.equal('Cancel', cancelButton.textContent);
     cancelButton.click();
-    assertNull(view.uploadOverlay_);
-    assertFalse(overlay.visible);
+    assert.isNull(view.uploadOverlay_);
+    assert.isFalse(overlay.visible);
 
     clickUploadAndVerify();
     var okButton = view.uploadOverlay_.buttons.firstChild;
-    assertEquals('Ok', okButton.textContent);
+    assert.equal('Ok', okButton.textContent);
     var commandSent = null;
     var dataSent = null;
     chrome.send = function(command, data) {
@@ -173,17 +173,17 @@ tv.b.unittest.testSuite(function() {
       dataSent = data;
     };
     okButton.click();
-    assertEquals('doUpload', commandSent);
-    assertEquals(view.activeTrace_.data, dataSent[0]);
+    assert.equal('doUpload', commandSent);
+    assert.equal(view.activeTrace_.data, dataSent[0]);
 
-    assertTrue(view.uploadOverlay_.visible);
+    assert.isTrue(view.uploadOverlay_.visible);
     overlay = view.uploadOverlay_;
-    assertEquals(1, view.uploadOverlay_.buttons.childNodes.length);
+    assert.equal(1, view.uploadOverlay_.buttons.childNodes.length);
     var closeButton = view.uploadOverlay_.buttons.childNodes[0];
-    assertEquals('Close', closeButton.textContent);
+    assert.equal('Close', closeButton.textContent);
     closeButton.click();
-    assertNull(view.uploadOverlay_);
-    assertFalse(overlay.visible);
+    assert.isNull(view.uploadOverlay_);
+    assert.isFalse(overlay.visible);
   });
 });
 </script>

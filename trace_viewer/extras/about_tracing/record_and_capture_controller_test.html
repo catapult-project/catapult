@@ -32,10 +32,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         return JSON.stringify(['a', 'b', 'c']);
       });
       mock.expectRequest('beginRecording', function(recordingOptions) {
-        assertTrue(typeof recordingOptions.categoryFilter === 'string');
-        assertTrue(typeof recordingOptions.useSystemTracing === 'boolean');
-        assertTrue(typeof recordingOptions.useSampling === 'boolean');
-        assertTrue(typeof recordingOptions.useContinuousTracing === 'boolean');
+        assert.typeOf(recordingOptions.categoryFilter, 'string');
+        assert.typeOf(recordingOptions.useSystemTracing, 'boolean');
+        assert.typeOf(recordingOptions.useSampling, 'boolean');
+        assert.typeOf(recordingOptions.useContinuousTracing, 'boolean');
         setTimeout(function() {
           recordingPromise.progressDlg.clickStopButton();
         }, 10);
@@ -51,7 +51,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           function(data) {
             mock.assertAllRequestsHandled();
             var testDataString = JSON.stringify(testData);
-            assertEquals(testDataString, data);
+            assert.equal(testDataString, data);
             resolve();
           },
           function(error) {
@@ -65,16 +65,16 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       var mock = new tv.e.about_tracing.MockTracingControllerClient();
 
       mock.expectRequest('beginMonitoring', function(monitoringOptions) {
-        assertTrue(typeof monitoringOptions.categoryFilter === 'string');
-        assertTrue(typeof monitoringOptions.useSystemTracing === 'boolean');
-        assertTrue(typeof monitoringOptions.useSampling === 'boolean');
-        assertTrue(typeof monitoringOptions.useContinuousTracing === 'boolean');
+        assert.typeOf(monitoringOptions.categoryFilter, 'string');
+        assert.typeOf(monitoringOptions.useSystemTracing, 'boolean');
+        assert.typeOf(monitoringOptions.useSampling, 'boolean');
+        assert.typeOf(monitoringOptions.useContinuousTracing, 'boolean');
         setTimeout(function() {
           var capturePromise = tv.e.about_tracing.captureMonitoring(mock);
           capturePromise.then(
               function(data) {
                 var testDataString = JSON.stringify(testData);
-                assertEquals(testDataString, data);
+                assert.equal(testDataString, data);
               },
               function(error) {
                 reject();
