@@ -1458,8 +1458,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(1, subSliceUnmatched.args['x']);
     assert.isUndefined(subSliceUnmatched['y']);
     assert.isDefined(subSliceUnmatched.error);
-    assertAlmostEquals(1 / 1000, subSliceInstant.start);
-    assertAlmostEquals(0, subSliceInstant.duration);
+    assert.closeTo(1 / 1000, subSliceInstant.start, 1e-5);
+    assert.closeTo(0, subSliceInstant.duration, 1e-5);
     assert.isUndefined(subSliceInstant.subSlices);
   });
 
