@@ -1,11 +1,11 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-'''A container for timeline-based events and traces and can handle importing
+"""A container for timeline-based events and traces and can handle importing
 raw event data from different sources. This model closely resembles that in the
 trace_viewer project:
 https://code.google.com/p/trace-viewer/
-'''
+"""
 
 from operator import attrgetter
 

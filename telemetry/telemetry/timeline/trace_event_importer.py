@@ -1,11 +1,11 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-''' TraceEventImporter imports TraceEvent-formatted data
+"""TraceEventImporter imports TraceEvent-formatted data
 into the provided model.
 This is a port of the trace event importer from
 https://code.google.com/p/trace-viewer/
-'''
+"""
 
 import copy
 import json
@@ -43,9 +43,9 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     return copy.deepcopy(obj)
 
   def _ProcessAsyncEvent(self, event):
-    '''Helper to process an 'async finish' event, which will close an
+    """Helper to process an 'async finish' event, which will close an
     open slice.
-    '''
+    """
     thread = (self._GetOrCreateProcess(event['pid'])
         .GetOrCreateThread(event['tid']))
     self._all_async_events.append({
@@ -53,9 +53,9 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         'thread': thread})
 
   def _ProcessCounterEvent(self, event):
-    '''Helper that creates and adds samples to a Counter object based on
+    """Helper that creates and adds samples to a Counter object based on
     'C' phase events.
-    '''
+    """
     if 'id' in event:
       ctr_name = event['name'] + '[' + str(event['id']) + ']'
     else:
@@ -181,9 +181,9 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         'thread': thread})
 
   def ImportEvents(self):
-    ''' Walks through the events_ list and outputs the structures discovered to
+    """Walks through the events_ list and outputs the structures discovered to
     model_.
-    '''
+    """
     for event in self._events:
       phase = event.get('ph', None)
       if phase == 'B' or phase == 'E':
@@ -213,8 +213,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     return self._model
 
   def FinalizeImport(self):
-    '''Called by the Model after all other importers have imported their
-    events.'''
+    """Called by the Model after all other importers have imported their
+    events."""
     self._model.UpdateBounds()
 
     # We need to reupdate the bounds in case the minimum start time changes

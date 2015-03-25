@@ -9,8 +9,8 @@ import telemetry.timeline.thread as tracing_thread
 
 
 class Process(event_container.TimelineEventContainer):
-  ''' The Process represents a single userland process in the trace.
-  '''
+  """The Process represents a single userland process in the trace.
+  """
   def __init__(self, parent, pid):
     super(Process, self).__init__('process %s' % pid, parent)
     self.pid = pid

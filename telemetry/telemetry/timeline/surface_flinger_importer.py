@@ -30,7 +30,7 @@ class SurfaceFlingerTimelineImporter(importer.TimelineImporter):
       thread.EndSlice(event['ts'])
 
   def FinalizeImport(self):
-    '''Called by the Model after all other importers have imported their
-    events.'''
+    """Called by the Model after all other importers have imported their
+    events."""
     self._model.UpdateBounds()
     self._model.surface_flinger_process = self._surface_flinger_process

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 class TimelineImporter(object):
   """Reads TraceData and populates timeline model with what it finds."""
   def __init__(self, model, trace_data, import_order):

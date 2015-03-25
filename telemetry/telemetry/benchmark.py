@@ -147,13 +147,13 @@ class Benchmark(command_line.Command):
     results.
 
     Args:
-        value: a value.Value instance.
-        is_first_result: True if |value| is the first result for its
-            corresponding user story.
+      value: a value.Value instance.
+      is_first_result: True if |value| is the first result for its
+          corresponding user story.
 
     Returns:
-        True if |value| should be added to the test results.
-        Otherwise, it returns False.
+      True if |value| should be added to the test results.
+      Otherwise, it returns False.
     """
     return True
 

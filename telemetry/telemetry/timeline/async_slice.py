@@ -6,10 +6,10 @@ import telemetry.timeline.event as event
 
 
 class AsyncSlice(event.TimelineEvent):
-  ''' A AsyncSlice represents an interval of time during which an
+  """An AsyncSlice represents an interval of time during which an
   asynchronous operation is in progress. An AsyncSlice consumes no CPU time
   itself and so is only associated with Threads at its start and end point.
-  '''
+  """
   def __init__(self, category, name, timestamp, args=None,
                duration=0, start_thread=None, end_thread=None,
                thread_start=None, thread_duration=None):

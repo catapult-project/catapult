@@ -5,12 +5,12 @@
 class TimelineEvent(object):
   """Represents a timeline event.
 
-     thread_start, thread_duration and thread_end are the start time, duration
-     and end time of this event as measured by the thread-specific CPU clock
-     (ticking when the thread is actually scheduled). Thread time is optional
-     on trace events and the corresponding attributes in TimelineEvent will be
-     set to None (not 0) if not present. Users of this class need to properly
-     handle this case.
+  thread_start, thread_duration and thread_end are the start time, duration
+  and end time of this event as measured by the thread-specific CPU clock
+  (ticking when the thread is actually scheduled). Thread time is optional
+  on trace events and the corresponding attributes in TimelineEvent will be
+  set to None (not 0) if not present. Users of this class need to properly
+  handle this case.
   """
   def __init__(self, category, name, start, duration, thread_start=None,
                thread_duration=None, args=None):
@@ -34,7 +34,7 @@ class TimelineEvent(object):
   def thread_end(self):
     """Thread-specific CPU time when this event ended.
 
-       May be None if the trace event didn't have thread time data.
+    May be None if the trace event didn't have thread time data.
     """
     if self.thread_start == None or self.thread_duration == None:
       return None

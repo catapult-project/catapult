@@ -151,10 +151,10 @@ class CrOSInterfaceTest(unittest.TestCase):
   # that need to be run locally based on the platform of the system browser.
   @decorators.Enabled('linux')
   def testEscapeCmdArguments(self):
-    ''' Commands and their arguments that are executed through the cros
+    """Commands and their arguments that are executed through the cros
     interface should follow bash syntax. This test needs to run on remotely
     and locally on the device to check for consistency.
-    '''
+    """
     options = options_for_unittests.GetCopy()
     with cros_interface.CrOSInterface(
         options.cros_remote, options.cros_remote_ssh_port,

@@ -693,11 +693,11 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual(4, slice_event.args['z'])
 
   def testSliceHierarchy(self):
-    ''' The slice hierarchy should look something like this:
+    """The slice hierarchy should look something like this:
            [            a            ]
               [      b      ]  [ d ]
               [ c ]     [ e ]
-    '''
+    """
     events = [
       {'name': 'a', 'args': {}, 'pid': 52, 'ts': 100, 'cat': 'foo',
        'tid': 53, 'ph': 'B'},

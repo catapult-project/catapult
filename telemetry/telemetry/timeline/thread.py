@@ -9,11 +9,11 @@ import telemetry.timeline.slice as slice_module
 
 
 class Thread(event_container.TimelineEventContainer):
-  ''' A Thread stores all the trace events collected for a particular
+  """A Thread stores all the trace events collected for a particular
   thread. We organize the synchronous slices on a thread by "subrows," where
   subrow 0 has all the root slices, subrow 1 those nested 1 deep, and so on.
   The asynchronous slices are stored in an AsyncSliceGroup object.
-  '''
+  """
   def __init__(self, process, tid):
     super(Thread, self).__init__('thread %s' % tid, parent=process)
     self.tid = tid
@@ -182,7 +182,7 @@ class Thread(event_container.TimelineEventContainer):
     self._BuildSliceSubRows()
 
   def _BuildSliceSubRows(self):
-    '''This function works by walking through slices by start time.
+    """This function works by walking through slices by start time.
 
      The basic idea here is to insert each slice as deep into the subrow
      list as it can go such that every subslice is fully contained by its
@@ -211,7 +211,7 @@ class Thread(event_container.TimelineEventContainer):
      it to row 0 (a root slice):
       0:  [    a       ]  [f]
       1:    [  b  ][e]
-    '''
+    """
     def CompareSlices(s1, s2):
       if s1.start == s2.start:
         # Break ties by having the slice with the greatest
@@ -237,14 +237,14 @@ class Thread(event_container.TimelineEventContainer):
 
 
   def _AddSliceIfBounds(self, root, child):
-    ''' Adds a child slice to a root slice its proper row.
+    """Adds a child slice to a root slice its proper row.
     Return False if the child slice is not in the bounds
     of the root slice.
 
     Because we know that the start time of child is >= the start time
     of all other slices seen so far, we can just check the last slice
     of each row for bounding.
-    '''
+    """
     # The source trace data is in microseconds but we store it as milliseconds
     # in floating-point. Since we can't represent micros as millis perfectly,
     # two end=start+duration combos that should be the same will be slightly
