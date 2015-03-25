@@ -23,16 +23,11 @@ tv.exportTo('tv.c', function() {
   }
 
   YComponent.prototype = {
-    toJSON: function() {
-      var obj = new Object();
-      var keys = Object.keys(this);
-      for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        if (typeof this[key] === 'function')
-          continue;
-        obj[key] = this[key];
-      }
-      return obj;
+    toDict: function() {
+      return {
+        stableId: this.stableId,
+        yPercentOffset: this.yPercentOffset
+      };
     }
   };
 
@@ -152,16 +147,11 @@ tv.exportTo('tv.c', function() {
       };
     },
 
-    toJSON: function() {
-      var obj = new Object();
-      var keys = Object.keys(this);
-      for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        if (typeof this[key] === 'function' || key === 'viewport_')
-          continue;
-        obj[key] = this[key];
-      }
-      return obj;
+    toDict: function() {
+      return {
+        xWorld: this.xWorld_,
+        yComponents: this.yComponents_
+      };
     }
   };
 

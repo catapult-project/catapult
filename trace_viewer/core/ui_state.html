@@ -75,16 +75,11 @@ tv.exportTo('tv.c', function() {
       return timestamp + '@' + stableId + 'x' + scaleX;
     },
 
-    toJSON: function() {
-      var obj = new Object();
-      var keys = Object.keys(this);
-      for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        if (typeof this[key] === 'function')
-          continue;
-        obj[key] = this[key];
-      }
-      return obj;
+    toDict: function() {
+      return {
+        location: this.location_.toDict(),
+        scaleX: this.scaleX_
+      };
     }
   };
 

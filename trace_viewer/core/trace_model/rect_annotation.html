@@ -45,8 +45,8 @@ tv.exportTo('tv.c.trace_model', function() {
       return {
         typeName: 'rect',
         args: {
-          start: this.startLocation,
-          end: this.endLocation
+          start: this.startLocation.toDict(),
+          end: this.endLocation.toDict()
         }
       };
     },
