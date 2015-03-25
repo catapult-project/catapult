@@ -87,17 +87,6 @@ tv.exportTo('tv.b', function() {
     return (Math.PI * deg) / 180.0;
   }
 
-  var SIZE_PREFIXES = ['', 'Ki', 'Mi', 'Gi', 'Ti'];
-
-  function sizeString(size) {
-    var i = 0;
-    while (size >= 1024 && i < SIZE_PREFIXES.length - 1) {
-      size /= 1024;
-      i++;
-    }
-    return size.toFixed(1) + ' ' + SIZE_PREFIXES[i] + 'B';
-  };
-
   function scrollIntoViewIfNeeded(el) {
     var pr = el.parentElement.getBoundingClientRect();
     var cr = el.getBoundingClientRect();
@@ -139,7 +128,6 @@ tv.exportTo('tv.b', function() {
     clamp: clamp,
     lerp: lerp,
     deg2rad: deg2rad,
-    sizeString: sizeString,
 
     getUsingPath: getUsingPath
   };

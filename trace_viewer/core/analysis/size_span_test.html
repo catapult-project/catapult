@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/core/analysis/size_span.html">
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+
+  test('instantiate', function() {
+    var timeSpan = document.createElement('tv-c-a-size-span');
+    timeSpan.numBytes = 5 * 1024;
+    assert.equal(5 * 1024, timeSpan.numBytes);
+    this.addHTMLOutput(timeSpan);
+  });
+
+  test('sizeStrings', function() {
+    var el = document.createElement('tv-c-a-size-span');
+
+    el.numBytes = 0;
+    assert.equal('0.0 B', el.stringContent);
+
+    el.numBytes = 1;
+    assert.equal('1.0 B', el.stringContent);
+
+    el.numBytes = 1536;
+    assert.equal('1.5 KiB', el.stringContent);
+
+    el.numBytes = 424.2 * 1024 * 1024;
+    assert.equal('424.2 MiB', el.stringContent);
+
+    el.numBytes = 5 * 1024 * 1024 * 1024;
+    assert.equal('5.0 GiB', el.stringContent);
+
+    el.numBytes = 1025 * 1024 * 1024 * 1024 * 1024;
+    assert.equal('1025.0 TiB', el.stringContent);
+    this.addHTMLOutput(el);
+  });
+
+});
+</script>
