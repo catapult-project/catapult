@@ -12,4 +12,4 @@ Description:
 BDD / TDD assertion framework for node.js and the browser that can be paired with any testing framework.
 
 Local Modifications:
-Took only the JS file and copied license text out of README.md.
+Copied license text out of README.md. Unminified chai.js and ripped out parts pertaining to Buffer because we're not using node and don't want could-not-require exceptions to be thrown. Reminified to prevent jslint from complaining.
