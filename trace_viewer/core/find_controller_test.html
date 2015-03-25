@@ -65,6 +65,20 @@ tv.b.unittest.testSuite(function() {
     }
   };
 
+  function assertArrayShallowEquals(a, b, opt_message) {
+    if (a.length === b.length) {
+      var ok = true;
+      for (var i = 0; i < a.length; i++) {
+        ok &= (a[i] === b[i]);
+      }
+      if (ok)
+        return;
+    }
+
+    var message = opt_message || 'Expected array ' + a + ', got array ' + b;
+    throw new tv.b.unittest.TestError(message);
+  };
+
   test('findControllerNoTimeline', function() {
     var controller = new tv.c.FindController();
     controller.findNext();
@@ -215,22 +229,22 @@ tv.b.unittest.testSuite(function() {
     controller.filterText = 'a';
     var promise = controller.updateFilterHits();
     promise.then(function() {
-      assertArrayEquals([], timeline.selection);
-      assertArrayEquals(t1.sliceGroup.slices, timeline.highlight);
+      assert.deepEqual([], timeline.selection);
+      assert.deepEqual(t1.sliceGroup.slices, timeline.highlight);
 
       controller.findNext();
-      assertEquals(1, timeline.selection.length);
-      assertEquals(t1.sliceGroup.slices[0], timeline.selection[0]);
+      assert.equal(1, timeline.selection.length);
+      assert.equal(t1.sliceGroup.slices[0], timeline.selection[0]);
 
       controller.filterText = 'xxx';
       var nextPromise = controller.updateFilterHits();
       nextPromise.then(function() {
-        assertEquals(0, timeline.highlight.length);
-        assertEquals(0, timeline.selection.length);
+        assert.equal(0, timeline.highlight.length);
+        assert.equal(0, timeline.selection.length);
         controller.findNext();
-        assertEquals(0, timeline.selection.length);
+        assert.equal(0, timeline.selection.length);
         controller.findNext();
-        assertEquals(0, timeline.selection.length);
+        assert.equal(0, timeline.selection.length);
       });
       return nextPromise;
     });
@@ -266,14 +280,14 @@ tv.b.unittest.testSuite(function() {
 
     var cbCalls = 0;
     timeline.navToPosition = function(uiState) {
-      assertEquals(2000, uiState.location.xWorld);
-      assertEquals('1.2',
+      assert.equal(2000, uiState.location.xWorld);
+      assert.equal('1.2',
           uiState.location.getContainingTrack(vp).eventContainer.stableId);
-      assertEquals(7, uiState.scaleX);
+      assert.equal(7, uiState.scaleX);
       cbCalls++;
     };
     controller.updateFilterHits();
-    assertEquals(1, cbCalls);
+    assert.equal(1, cbCalls);
   });
 });
 </script>
