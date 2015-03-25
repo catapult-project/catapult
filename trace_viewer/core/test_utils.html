@@ -95,6 +95,12 @@ tv.exportTo('tv.c.test_utils', function() {
       return undefined;
   }
 
+  function newModel(customizeModelCallback) {
+    var io = new tv.c.ImportOptions();
+    io.customizeModelCallback = customizeModelCallback;
+    return new tv.c.TraceModel([], io);
+  }
+
   return {
     newAsyncSlice: newAsyncSlice,
     newAsyncSliceNamed: newAsyncSliceNamed,
@@ -106,6 +112,7 @@ tv.exportTo('tv.c.test_utils', function() {
     newSampleNamed: newSampleNamed,
     newSliceCategory: newSliceCategory,
     newStackTrace: newStackTrace,
+    newModel: newModel,
     findSliceNamed: findSliceNamed
   };
 });

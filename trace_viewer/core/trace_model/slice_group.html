@@ -45,6 +45,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.slices = [];
     this.bounds = new tv.b.Range();
     this.topLevelSlices = [];
+    this.haveTopLevelSlicesBeenBuilt = false;
     this.name_ = opt_name;
   }
 
@@ -88,6 +89,7 @@ tv.exportTo('tv.c.trace_model', function() {
      * @param {Slice} slice The slice to be added to the slices array.
      */
     pushSlice: function(slice) {
+      this.haveTopLevelSlicesBeenBuilt = false;
       this.slices.push(slice);
       return slice;
     },
@@ -97,6 +99,7 @@ tv.exportTo('tv.c.trace_model', function() {
      * @param {Array.<Slice>} slices An array of slices to be added.
      */
     pushSlices: function(slices) {
+      this.haveTopLevelSlicesBeenBuilt = false;
       this.slices.push.apply(this.slices, slices);
     },
 
@@ -279,6 +282,8 @@ tv.exportTo('tv.c.trace_model', function() {
      * reference.
      */
     createSubSlices: function() {
+      this.haveTopLevelSlicesBeenBuilt = true;
+
       function addSliceIfBounds(root, child) {
         // Because we know that the start time of child is >= the start time
         // of all other slices seen so far, we can just check the last slice
