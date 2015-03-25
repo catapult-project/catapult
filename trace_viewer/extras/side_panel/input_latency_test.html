@@ -33,8 +33,8 @@ tv.b.unittest.testSuite(function() {
         latency: 23
       }
     ];
-    var latencyChart = tv.e.analysis.createLatencyLineChart(
-        latencyData, 'latency');
+    var lc = document.createElement('tv-e-side-panel-input-latency');
+    var latencyChart = lc.createLatencyLineChart(latencyData, 'latency');
     this.addHTMLOutput(latencyChart);
 
     var frametimeData = [
@@ -55,8 +55,8 @@ tv.b.unittest.testSuite(function() {
         frametime: 23
       }
     ];
-    var frametimeChart = tv.e.analysis.createLatencyLineChart(frametimeData,
-                                                        'frametime');
+    var lc = document.createElement('tv-e-side-panel-input-latency');
+    var frametimeChart = lc.createLatencyLineChart(frametimeData, 'frametime');
     this.addHTMLOutput(frametimeChart);
   });
 
@@ -115,7 +115,7 @@ tv.b.unittest.testSuite(function() {
       'name': 'thread_name',
       'args': {'name': 'CrBrowserMain'}});
 
-    var panel = new tv.e.analysis.InputLatencySidePanel();
+    var panel = document.createElement('tv-e-side-panel-input-latency');
     this.addHTMLOutput(panel);
 
     var selectionChanged = false;

@@ -42,8 +42,9 @@ tv.b.unittest.testSuite(function() {
   }
 
   test('group', function() {
+    var ts = document.createElement('tv-e-side-panel-time-summary');
     var m = createModel();
-    var group = new tv.e.analysis.ResultsForGroup(m, 'foo');
+    var group = ts.generateResultsForGroup(m, 'foo');
     group.appendThreadSlices(m.bounds, m.processes[1].threads[2]);
     assert.equal(20, group.wallTime);
     assert.equal(19, group.cpuTime);
@@ -133,12 +134,14 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
+    var ts = document.createElement('tv-e-side-panel-time-summary');
+
     var groups = [];
     var m = new tv.c.TraceModel();
     m.importTraces([], false, false, function() {
       var start = 0;
       groupData.forEach(function(groupData) {
-        var group = new tv.e.analysis.ResultsForGroup(m, groupData.label);
+        var group = ts.generateResultsForGroup(m, groupData.label);
 
         var slice = newSliceNamed(groupData.label, start, groupData.value);
         start += groupData.value;
@@ -149,38 +152,36 @@ tv.b.unittest.testSuite(function() {
       });
     });
 
-
     function getValueFromGroup(d) { return d.wallTime; }
 
-    var otherGroup = new tv.e.analysis.ResultsForGroup(m, 'Other');
-    var newGroups = tv.e.analysis.trimPieChartData(
-        groups, otherGroup, getValueFromGroup);
+    var otherGroup = ts.generateResultsForGroup(m, 'Other');
+    var newGroups = ts.trimPieChartData(groups, otherGroup, getValueFromGroup);
 
     // Visualize the data once its trimmed.
-    var chart = tv.e.analysis.createPieChartFromResultGroups(
+    var ce = document.createElement('tv-e-side-panel-time-summary');
+    var chart = ce.createPieChartFromResultGroups(
         newGroups, 'Trimmed', getValueFromGroup);
     this.addHTMLOutput(chart);
     chart.setSize(chart.getMinSize());
   });
 
-
   test('basicInWallTimeMode', function() {
     var m = createModel();
 
-    var panel = new tv.e.analysis.TimeSummarySidePanel();
+    var panel = document.createElement('tv-e-side-panel-time-summary');
     this.addHTMLOutput(panel);
     panel.model = m;
-    panel.groupingUnit = tv.e.analysis.WALL_TIME_GROUPING_UNIT;
+    panel.groupingUnit = 'Wall time';
     panel.style.border = '1px solid black';
   });
 
   test('basicInCpuTimeModeButNoCpuData', function() {
     var m = createModel();
 
-    var panel = new tv.e.analysis.TimeSummarySidePanel();
+    var panel = document.createElement('tv-e-side-panel-time-summary');
     this.addHTMLOutput(panel);
     panel.model = m;
-    panel.groupingUnit = tv.e.analysis.CPU_TIME_GROUPING_UNIT;
+    panel.groupingUnit = 'CPU time';
     panel.style.border = '1px solid black';
   });
 
@@ -189,10 +190,10 @@ tv.b.unittest.testSuite(function() {
       provideSoftwareMeasuredCpuCount: true
     });
 
-    var panel = new tv.e.analysis.TimeSummarySidePanel();
+    var panel = document.createElement('tv-e-side-panel-time-summary');
     this.addHTMLOutput(panel);
     panel.model = m;
-    panel.groupingUnit = tv.e.analysis.CPU_TIME_GROUPING_UNIT;
+    panel.groupingUnit = 'CPU time';
     panel.style.border = '1px solid black';
   });
 });

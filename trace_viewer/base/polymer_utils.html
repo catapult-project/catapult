@@ -61,11 +61,15 @@ tv.exportTo('tv.b', function() {
     if (!element)
       throw new Error(tagName + ' is not a polymer element');
 
+    if (elementSubclasses === undefined)
+      elementSubclasses = {};
+
     if (elementSubclasses[tagName] === undefined) {
       var immediateSubElements = elementsThatExtend[element.name];
       var allSubElements = [];
       if (immediateSubElements !== undefined && immediateSubElements.length) {
         immediateSubElements.forEach(function(subElement) {
+          allSubElements.push(subElement);
           allSubElements.push.apply(
             allSubElements, getPolymerElementsThatSubclass(subElement));
         });

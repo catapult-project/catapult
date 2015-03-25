@@ -31,7 +31,7 @@ found in the LICENSE file.
   </div>
   <middle-container>
     <track-view-container></track-view-container>
-    <x-side-panel-container></x-side-panel-container>
+    <tv-c-side-panel-container></tv-c-side-panel-container>
   </middle-container>
   <x-drag-handle></x-drag-handle>
   <tracing-analysis-view id="analysis"></tracing-analysis-view>
@@ -232,11 +232,9 @@ tv.exportTo('tv.c', function() {
       this.rightControlsEl_ = this.querySelector('#right-controls');
       this.collapsingControlsEl_ = this.querySelector('#collapsing-controls');
       this.sidePanelContainer_ = this.querySelector(
-          'x-side-panel-container');
+          'tv-c-side-panel-container');
       this.trackViewContainer_ = this.querySelector('track-view-container');
 
-      tv.b.ui.decorate(this.sidePanelContainer_,
-                       tv.c.SidePanelContainer);
 
       this.findCtl_ = new TracingFindControl();
       this.findCtl_.controller = new tv.c.FindController();

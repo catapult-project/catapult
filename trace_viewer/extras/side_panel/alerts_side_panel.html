@@ -12,54 +12,26 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/dom_helpers.html">
 <link rel="import" href="/base/ui/line_chart.html">
 
-<style>
-  .x-alerts-side-panel {
-    -webkit-flex-direction: column;
-    display: -webkit-flex;
-    width: 250px;
-  }
-</style>
-
-<template id="x-alerts-side-panel-template">
-  <toolbar>
-  </toolbar>
-  <result-area>
-  </result-area>
-</template>
-
-<script>
-'use strict';
-
-tv.exportTo('tv.e.analysis', function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
-
-  /**
-   * @constructor
-   */
-  var AlertsSidePanel = tv.b.ui.define(
-      'x-alerts-side-panel', tv.c.SidePanel);
-
-  AlertsSidePanel.supportsModel = function(m) {
-    if (m == undefined) {
-      return {
-        supported: false,
-        reason: 'Unknown tracing model'
-      };
+<polymer-element name='tv-e-analysis-side-panel-alerts'
+    extends='tv-c-side-panel'>
+  <template>
+    <style>
+    :host {
+      flex-direction: column;
+      display: flex;
+      width: 250px;
     }
-    return {
-      supported: true
-    };
-  };
+    </style>
 
-  AlertsSidePanel.prototype = {
-    __proto__: tv.c.SidePanel.prototype,
+    <toolbar id='toolbar'></toolbar>
+    <result-area id='result_area'></result-area>
+  </template>
 
-    decorate: function() {
-      tv.c.SidePanel.prototype.decorate.call(this);
-      this.classList.add('x-alerts-side-panel');
-      this.appendChild(tv.b.instantiateTemplate(
-          '#x-alerts-side-panel-template', THIS_DOC));
+  <script>
+  'use strict';
 
+  Polymer({
+    ready: function() {
       // TODO(charliea): Do stuff here.
       this.rangeOfInterest_ = new tv.b.Range();
       this.selection_ = undefined;
@@ -95,30 +67,33 @@ tv.exportTo('tv.e.analysis', function() {
     },
 
     updateContents_: function() {
-      this.textContent = '';
+      this.$.result_area.textContent = '';
       if (this.model_ === undefined)
         return;
 
       var rangeOfInterest = this.currentRangeOfInterest;
       var alerts = this.model_.alerts.filter(function(alert) {
-        return rangeOfInterest.containsExplicitRange(alert.start,
-                                                     alert.start);
+        return rangeOfInterest.containsExplicitRange(alert.start, alert.start);
       });
 
       // TODO(charliea): Do something better.
-      this.textContent = 'You have ' + alerts.length + ' alerts';
-    }
-  };
+      this.$.result_area.textContent = 'You have ' + alerts.length + ' alerts';
+    },
 
-  tv.c.SidePanel.register(
-    AlertsSidePanel,
-    {
-      textLabel: 'Alerts',
-      supportsModel: AlertsSidePanel.supportsModel
-    });
+    supportsModel: function(m) {
+      if (m == undefined) {
+        return {
+          supported: false,
+          reason: 'Unknown tracing model'
+        };
+      }
 
-  return {
-    AlertsSidePanel: AlertsSidePanel
-  };
-});
-</script>
+      return {
+        supported: true
+      };
+    },
+
+    textLabel: 'Alerts'
+  });
+  </script>
+</polymer-element>

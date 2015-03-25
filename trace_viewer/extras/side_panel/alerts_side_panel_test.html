@@ -30,7 +30,7 @@ tv.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var panel = new tv.e.analysis.AlertsSidePanel();
+    var panel = document.createElement('tv-e-analysis-side-panel-alerts');
     this.addHTMLOutput(panel);
 
     panel.model = createModelWithAlerts();

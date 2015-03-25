@@ -5,29 +5,74 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/core/side_panel/side_panel_container.css">
+<link rel='import' href='/base/polymer_utils.html'>
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/core/side_panel/side_panel.html">
 
-<script>
-'use strict';
+<polymer-element name='tv-c-side-panel-container' is='HTMLUnknownElement'>
+  <template>
+    <style>
+    :host {
+      align-items: stretch;
+      display: -webkit-flex;
+    }
 
-tv.exportTo('tv.c', function() {
-  /**
-   * @constructor
-   */
-  var SidePanelContainer = tv.b.ui.define(
-      'x-side-panel-container');
+    :host[expanded] > active-panel-container {
+      -webkit-flex: 1 1 auto;
+      border-left: 1px solid black;
+      display: -webkit-flex;
+    }
 
-  SidePanelContainer.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    :host:not([expanded]) > active-panel-container {
+      display: none;
+    }
 
-    decorate: function() {
-      this.activePanelContainer_ = document.createElement(
-          'active-panel-container');
-      this.tabStrip_ = document.createElement('tab-strip');
-      this.appendChild(this.activePanelContainer_);
-      this.appendChild(this.tabStrip_);
+    tab-strip {
+      -webkit-flex: 0 0 auto;
+      -webkit-flex-direction: column;
+      -webkit-user-select: none;
+      background-color: rgb(236, 236, 236);
+      border-left: 1px solid black;
+      cursor: default;
+      display: -webkit-flex;
+      min-width: 18px; /* workaround for flexbox and writing-mode mixing bug */
+      padding: 10px 0 10px 0;
+      font-size: 12px;
+    }
+
+    tab-strip > tab-strip-label {
+      -webkit-writing-mode: vertical-rl;
+      display: inline;
+      margin-right: 1px;
+      min-height: 20px;
+      padding: 15px 3px 15px 1px;
+    }
+
+    tab-strip >
+        tab-strip-label:not([enabled]) {
+      color: rgb(128, 128, 128);
+    }
+
+    tab-strip > tab-strip-label[selected] {
+      background-color: white;
+      border: 1px solid rgb(163, 163, 163);
+      border-left: none;
+      padding: 14px 2px 14px 1px;
+    }
+    </style>
+
+    <active-panel-container id='active_panel_container'>
+    </active-panel-container>
+    <tab-strip id='tab_strip'></tab-strip>
+  </template>
+
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.activePanelContainer_ = this.$.active_panel_container;
+      this.tabStrip_ = this.$.tab_strip;
+
       this.model_ = undefined;
       this.rangeOfInterest_ = new tv.b.Range();
     },
@@ -38,6 +83,7 @@ tv.exportTo('tv.c', function() {
 
     set model(model) {
       this.model_ = model;
+      this.activePanelType_ = undefined;
       this.updateContents_();
     },
 
@@ -51,36 +97,20 @@ tv.exportTo('tv.c', function() {
       return this.activePanelContainer_.children[0];
     },
 
-    get activePanelConstructor() {
-      return this.activePanelType ?
-          this.activePanelType.constructor : undefined;
-    },
-
-    set activePanelConstructor(constructor) {
-      var typeInfo;
-      if (constructor) {
-        typeInfo = this.getPanelTypeForConstructor_(constructor);
-        if (typeInfo === undefined)
-          throw new Error('Not registered');
-      } else {
-        typeInfo = undefined;
-      }
-      this.activePanelType = typeInfo;
-    },
-
     get activePanelType() {
-      if (this.activePanel) {
-        return this.getPanelTypeForConstructor_(this.activePanel.constructor);
-      }
-      return undefined;
+      return this.activePanelType_;
     },
 
     set activePanelType(panelType) {
       if (this.model_ === undefined)
         throw new Error('Cannot activate panel without a model');
-      if (panelType && !panelType.metadata.supportsModel(this.model_))
-        throw new Error('Cannot activate panel: it doesn\'t ' +
-                        'support this model');
+
+      var panel = undefined;
+      if (panelType)
+          panel = document.createElement(panelType);
+
+      if (panel !== undefined && !panel.supportsModel(this.model_))
+        throw new Error('Cannot activate panel: does not support this model');
 
       if (this.activePanelType) {
         this.getLabelElementForPanelType_(
@@ -90,19 +120,20 @@ tv.exportTo('tv.c', function() {
 
       if (panelType === undefined) {
         this.removeAttribute('expanded');
+        this.activePanelType_ = undefined;
         return;
       }
 
-      this.getLabelElementForPanelType_(
-          panelType).setAttribute('selected', true);
-
+      this.getLabelElementForPanelType_(panelType).
+          setAttribute('selected', true);
       this.setAttribute('expanded', true);
 
-      var panelEl = new panelType.constructor();
-      this.activePanelContainer_.appendChild(panelEl);
-      panelEl.rangeOfInterest = this.rangeOfInterest_;
-      panelEl.selection = this.selection_;
-      panelEl.model = this.model_;
+      this.activePanelContainer_.appendChild(panel);
+      panel.rangeOfInterest = this.rangeOfInterest_;
+      panel.selection = this.selection_;
+      panel.model = this.model_;
+
+      this.activePanelType_ = panelType;
     },
 
     getPanelTypeForConstructor_: function(constructor) {
@@ -126,21 +157,21 @@ tv.exportTo('tv.c', function() {
       this.tabStrip_.textContent = '';
       var supportedPanelTypes = [];
 
-      var panelTypes = tv.c.SidePanel.getAllRegisteredTypeInfos();
+      var panelTypes = tv.b.getPolymerElementsThatSubclass('tv-c-side-panel');
       panelTypes.forEach(function(panelType) {
         var labelEl = document.createElement('tab-strip-label');
-        labelEl.textContent = panelType.metadata.textLabel;
+        var panel = document.createElement(panelType);
+
+        labelEl.textContent = panel.textLabel;
         labelEl.panelType = panelType;
 
-        var supported = panelType.metadata.supportsModel(this.model_);
+        var supported = panel.supportsModel(this.model_);
         if (this.model_ && supported.supported) {
           supportedPanelTypes.push(panelType);
           labelEl.setAttribute('enabled', true);
           labelEl.addEventListener('click', function() {
-            if (this.activePanelType === panelType)
-              this.activePanelType = undefined;
-            else
-              this.activePanelType = panelType;
+            this.activePanelType =
+                this.activePanelType === panelType ? undefined : panelType;
           }.bind(this));
         } else {
           labelEl.title = 'Not supported for the current trace: ' +
@@ -149,11 +180,9 @@ tv.exportTo('tv.c', function() {
         this.tabStrip_.appendChild(labelEl);
       }, this);
 
-
       // Restore the active panel, or collapse
       if (previouslyActivePanelType &&
-          supportedPanelTypes.indexOf(
-              previouslyActivePanelType) != -1) {
+          supportedPanelTypes.indexOf(previouslyActivePanelType) != -1) {
         this.activePanelType = previouslyActivePanelType;
         this.setAttribute('expanded', true);
       } else {
@@ -183,10 +212,7 @@ tv.exportTo('tv.c', function() {
       if (this.activePanel)
         this.activePanel.rangeOfInterest = range;
     }
-  };
+  });
+  </script>
+</polymer-element>
 
-  return {
-    SidePanelContainer: SidePanelContainer
-  };
-});
-</script>

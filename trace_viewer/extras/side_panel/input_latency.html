@@ -12,92 +12,35 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/dom_helpers.html">
 <link rel="import" href="/base/ui/line_chart.html">
 
-<style>
-  .x-input-latency-side-panel {
-    -webkit-flex-direction: column;
-    display: -webkit-flex;
-  }
-  .x-input-latency-side-panel > toolbar {
-    -webkit-flex: 0 0 auto;
-    border-bottom: 1px solid black;
-    display: -webkit-flex;
-  }
-  .x-input-latency-side-panel > result-area {
-    -webkit-flex: 1 1 auto;
-    display: block;
-    min-height: 0;
-    overflow-y: auto;
-  }
-</style>
-
-<template id="x-input-latency-side-panel-template">
-  <toolbar>
-  </toolbar>
-  <result-area>
-  </result-area>
-</template>
-
-<script>
-'use strict';
-
-tv.exportTo('tv.e.analysis', function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
-
-  function createLatencyLineChart(data, title) {
-    var chart = new tv.b.ui.LineChart();
-    var width = 600;
-    if (document.body.clientWidth != undefined)
-      width = document.body.clientWidth * 0.5;
-    chart.setSize({width: width, height: chart.height});
-    chart.chartTitle = title;
-    chart.data = data;
-    return chart;
-  }
-
-  /**
-   * @constructor
-   */
-  var InputLatencySidePanel = tv.b.ui.define(
-      'x-input-latency-side-panel', tv.c.SidePanel);
-
-  InputLatencySidePanel.supportsModel = function(m) {
-    if (m == undefined) {
-      return {
-        supported: false,
-        reason: 'Unknown tracing model'
-      };
+<polymer-element name='tv-e-side-panel-input-latency' extends='tv-c-side-panel'>
+  <template>
+    <style>
+    :host {
+      flex-direction: column;
+      display: flex;
     }
-
-    if (!tv.e.audits.ChromeModelHelper.supportsModel(m)) {
-      return {
-        supported: false,
-        reason: 'No Chrome browser or renderer process found'
-      };
+    toolbar {
+      flex: 0 0 auto;
+      border-bottom: 1px solid black;
+      display: flex;
     }
-
-    var modelHelper = new tv.e.audits.ChromeModelHelper(m);
-    if (modelHelper.browser && modelHelper.browser.hasLatencyEvents) {
-      return {
-        supported: true
-      };
+    result-area {
+      flex: 1 1 auto;
+      display: block;
+      min-height: 0;
+      overflow-y: auto;
     }
+    </style>
 
-    return {
-      supported: false,
-      reason: 'No InputLatency events trace. Consider enabling ' +
-          'benchmark" and "input" category when recording the trace'
-    };
-  };
+    <toolbar id='toolbar'></toolbar>
+    <result-area id='result_area'></result-area>
+  </template>
 
-  InputLatencySidePanel.prototype = {
-    __proto__: tv.c.SidePanel.prototype,
+  <script>
+  'use strict';
 
-    decorate: function() {
-      tv.c.SidePanel.prototype.decorate.call(this);
-      this.classList.add('x-input-latency-side-panel');
-      this.appendChild(tv.b.instantiateTemplate(
-          '#x-input-latency-side-panel-template', THIS_DOC));
-
+  Polymer({
+    ready: function() {
       this.rangeOfInterest_ = new tv.b.Range();
       this.frametimeType_ = tv.e.audits.IMPL_FRAMETIME_TYPE;
       this.latencyChart_ = undefined;
@@ -166,8 +109,8 @@ tv.exportTo('tv.e.analysis', function() {
         this.latencyChart_.brushedRange = r;
         return;
       }
-      r = this.latencyChart_.computeBrushRangeFromIndices(this.mouseDownIndex_,
-                                                          this.curMouseIndex_);
+      r = this.latencyChart_.computeBrushRangeFromIndices(
+          this.mouseDownIndex_, this.curMouseIndex_);
       this.latencyChart_.brushedRange = r;
 
       // Based on the brushed range, update the selection of LatencyInfo in
@@ -225,7 +168,7 @@ tv.exportTo('tv.e.analysis', function() {
         return;
 
       this.selectedProcessId_ = labels[0].value;
-      var toolbarEl = this.querySelector('toolbar');
+      var toolbarEl = this.$.toolbar;
       toolbarEl.appendChild(tv.b.ui.createSelector(
           this, 'frametimeType',
           'inputLatencySidePanel.frametimeType', this.frametimeType_,
@@ -248,8 +191,19 @@ tv.exportTo('tv.e.analysis', function() {
         return this.rangeOfInterest_;
     },
 
+    createLatencyLineChart: function(data, title) {
+      var chart = new tv.b.ui.LineChart();
+      var width = 600;
+      if (document.body.clientWidth != undefined)
+        width = document.body.clientWidth * 0.5;
+      chart.setSize({width: width, height: chart.height});
+      chart.chartTitle = title;
+      chart.data = data;
+      return chart;
+    },
+
     updateContents_: function() {
-      var resultArea = this.querySelector('result-area');
+      var resultArea = this.$.result_area;
       this.latencyChart_ = undefined;
       this.frametimeChart_ = undefined;
       resultArea.textContent = '';
@@ -260,49 +214,49 @@ tv.exportTo('tv.e.analysis', function() {
       var rangeOfInterest = this.currentRangeOfInterest;
 
       var chromeProcess;
-      if (this.modelHelper_.renderers[this.selectedProcessId_]) {
+      if (this.modelHelper_.renderers[this.selectedProcessId_])
         chromeProcess = this.modelHelper_.renderers[this.selectedProcessId_];
-      } else {
+      else
         chromeProcess = this.modelHelper_.browser;
-      }
 
       var frameEvents = chromeProcess.getFrameEventsInRange(
-            this.frametimeType, rangeOfInterest);
+          this.frametimeType, rangeOfInterest);
 
       var frametimeData = tv.e.audits.getFrametimeDataFromEvents(frameEvents);
-
       var averageFrametime = tv.b.Statistics.mean(frametimeData, function(d) {
-        return d.frametime});
+        return d.frametime;
+      });
 
       var latencyData = this.modelHelper_.browser.getLatencyDataInRange(
           rangeOfInterest);
 
       var averageLatency = tv.b.Statistics.mean(latencyData, function(d) {
-        return d.latency});
+        return d.latency;
+      });
 
       // Create summary.
       var latencySummaryText = document.createElement('div');
       latencySummaryText.appendChild(tv.b.ui.createSpan({
-        textContent: 'Average Latency ' + averageLatency + 'ms',
+        textContent: 'Average Latency ' + averageLatency + ' ms',
         bold: true}));
       resultArea.appendChild(latencySummaryText);
 
       var frametimeSummaryText = document.createElement('div');
       frametimeSummaryText.appendChild(tv.b.ui.createSpan({
-        textContent: 'Average Frame Time ' + averageFrametime + 'ms',
+        textContent: 'Average Frame Time ' + averageFrametime + ' ms',
         bold: true}));
       resultArea.appendChild(frametimeSummaryText);
 
-      if (latencyData.length != 0) {
-        this.latencyChart_ = createLatencyLineChart(latencyData,
-                                                    'Latency Over Time');
+      if (latencyData.length !== 0) {
+        this.latencyChart_ = this.createLatencyLineChart(
+            latencyData, 'Latency Over Time');
         this.registerMouseEventForLatencyChart_();
         resultArea.appendChild(this.latencyChart_);
       }
 
       if (frametimeData.length != 0) {
-        this.frametimeChart_ = createLatencyLineChart(frametimeData,
-                                                      'Frame Times');
+        this.frametimeChart_ = this.createLatencyLineChart(
+            frametimeData, 'Frame Times');
         this.frametimeChart_.style.display = 'block';
         resultArea.appendChild(this.frametimeChart_);
       }
@@ -315,21 +269,38 @@ tv.exportTo('tv.e.analysis', function() {
     set rangeOfInterest(rangeOfInterest) {
       this.rangeOfInterest_ = rangeOfInterest;
       this.updateContents_();
-    }
-  };
+    },
 
+    supportsModel: function(m) {
+      if (m == undefined) {
+        return {
+          supported: false,
+          reason: 'Unknown tracing model'
+        };
+      }
 
-  tv.c.SidePanel.register(
-    InputLatencySidePanel,
-    {
-      textLabel: 'Input Latency',
-      supportsModel: InputLatencySidePanel.supportsModel
-    });
+      if (!tv.e.audits.ChromeModelHelper.supportsModel(m)) {
+        return {
+          supported: false,
+          reason: 'No Chrome browser or renderer process found'
+        };
+      }
 
+      var modelHelper = new tv.e.audits.ChromeModelHelper(m);
+      if (modelHelper.browser && modelHelper.browser.hasLatencyEvents) {
+        return {
+          supported: true
+        };
+      }
 
-  return {
-    createLatencyLineChart: createLatencyLineChart,
-    InputLatencySidePanel: InputLatencySidePanel
-  };
-});
-</script>
+      return {
+        supported: false,
+        reason: 'No InputLatency events trace. Consider enabling ' +
+            'benchmark" and "input" category when recording the trace'
+      };
+    },
+
+    textLabel: 'Input Latency'
+  });
+  </script>
+</polymer-element>

@@ -9,18 +9,18 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/d3.html">
 
 <style>
-  .chart-base #title {
+  * /deep/ .chart-base #title {
     font-size: 16pt;
   }
 
-  .chart-base {
+  * /deep/ .chart-base {
     font-size: 12pt;
     -webkit-user-select: none;
     cursor: default;
   }
 
-  .chart-base .axis path,
-  .chart-base .axis line {
+  * /deep/ .chart-base .axis path,
+  * /deep/ .chart-base .axis line {
     fill: none;
     shape-rendering: crispEdges;
     stroke: #000;

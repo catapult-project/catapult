@@ -3,10 +3,11 @@
  * found in the LICENSE file.
  */
 
-.line-chart .line {
+* /deep/ .line-chart .line {
   fill: none;
   stroke-width: 1.5px;
 }
-.line-chart #brushes > rect {
+
+* /deep/ .line-chart #brushes > rect {
   fill: rgb(192, 192, 192);
 }

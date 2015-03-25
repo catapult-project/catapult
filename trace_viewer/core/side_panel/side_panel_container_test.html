@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/side_panel/side_panel.html">
+<link rel="import" href="/extras/side_panel/time_summary.html">
 <link rel="import" href="/core/side_panel/side_panel_container.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 
@@ -13,101 +14,6 @@ found in the LICENSE file.
 'use strict';
 
 tv.b.unittest.testSuite(function() {
-  /**
-   * @constructor
-   */
-  var Panel1 = tv.b.ui.define('panel-1');
-  Panel1.textLabel = 'Panel 1';
-  Panel1.supportsModel = function(m) {
-    return {
-      supported: false,
-      reason: 'Explanation'
-    };
-  };
-
-  Panel1.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
-
-    decorate: function() {
-      this.textContent = 'I am panel 1';
-    }
-  };
-
-  /**
-   * @constructor
-   */
-  var Panel2 = tv.b.ui.define('panel-2');
-  Panel2.textLabel = 'Panel 2';
-  Panel2.supportsModel = function(m) {
-    return {
-      supported: true
-    };
-  };
-
-  Panel2.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
-
-    decorate: function() {
-      this.textContent = 'I am panel 2';
-      this.style.height = '300px';
-    }
-  };
-
-  /**
-   * @constructor
-   */
-  var Panel3 = tv.b.ui.define('panel-3');
-  Panel3.textLabel = 'Panel 3';
-  Panel3.supportsModel = function(m) {
-    return {
-      supported: true
-    };
-  };
-
-  Panel3.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
-
-    decorate: function() {
-      this.textContent = 'I am panel 3';
-      this.style.height = '300px';
-    }
-  };
-
-  function testBasic(name, fn) {
-    test(name, function() {
-      tv.c.SidePanel.pushCleanStateBeforeTest();
-
-      tv.c.SidePanel.register(
-          Panel1,
-          {
-            textLabel: Panel1.textLabel,
-            supportsModel: Panel1.supportsModel
-          });
-      tv.c.SidePanel.register(
-          Panel2,
-          {
-            textLabel: Panel2.textLabel,
-            supportsModel: Panel2.supportsModel
-          });
-      tv.c.SidePanel.register(
-          Panel3,
-          {
-            textLabel: Panel3.textLabel,
-            supportsModel: Panel3.supportsModel
-          });
-
-      try {
-        fn.call(this);
-      } finally {
-        tv.c.SidePanel.unregister(Panel1);
-        tv.c.SidePanel.unregister(Panel2);
-        tv.c.SidePanel.unregister(Panel3);
-
-        tv.c.SidePanel.popCleanStateAfterTest();
-      }
-    });
-  }
-
   function createModel() {
     var m = new tv.c.TraceModel();
     m.importTraces([], false, false, function() {
@@ -121,29 +27,10 @@ tv.b.unittest.testSuite(function() {
     return m;
   }
 
-  testBasic('instantiateCollapsed', function() {
-    var container = new tv.c.SidePanelContainer();
+  test('instantiateCollapsed', function() {
+    var container = document.createElement('tv-c-side-panel-container');
     container.model = createModel();
     this.addHTMLOutput(container);
   });
-
-  testBasic('instantiateExpanded', function() {
-    var container = new tv.c.SidePanelContainer();
-    container.model = createModel();
-    container.activePanelConstructor = Panel2;
-    container.activePanelConstructor = undefined;
-    container.activePanelConstructor = Panel2;
-    this.addHTMLOutput(container);
-  });
-
-  testBasic('activeAFew', function() {
-    var container = new tv.c.SidePanelContainer();
-    container.model = createModel();
-    this.addHTMLOutput(container);
-    container.activePanelConstructor = Panel2;
-    container.activePanelConstructor = Panel3;
-    container.activePanelConstructor = Panel2;
-  });
-
 });
 </script>

@@ -6,20 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/ui.html">
-<link rel="import" href="/base/extension_registry.html">
 
-<script>
-'use strict';
-
-tv.exportTo('tv.c', function() {
-  /*
-   * @constructor Base type for side panels.
-   */
-  var SidePanel = tv.b.ui.define('side-panel');
-  SidePanel.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
-
-    decorate: function() {
+<polymer-element name='tv-c-side-panel'>
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
       this.objectInstance_ = undefined;
     },
 
@@ -46,23 +38,6 @@ tv.exportTo('tv.c', function() {
     set model(model) {
       throw new Error('Not implemented');
     }
-  };
-
-  // Type registry.
-  var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
-  options.mandatoryBaseClass = tv.c.SidePanel;
-  options.defaultMetadata = {
-    textLabel: '<Unknown>',
-    supportsModel: function(model) {
-      return {
-        supported: true
-      };
-    }
-  };
-  tv.b.decorateExtensionRegistry(SidePanel, options);
-
-  return {
-    SidePanel: SidePanel
-  };
-});
-</script>
+  });
+  </script>
+</polymer-element>
