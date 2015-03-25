@@ -13,33 +13,33 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   test('canImport', function() {
-    assertFalse(tv.e.importer.ddms.DdmsImporter.canImport('string'));
-    assertFalse(tv.e.importer.ddms.DdmsImporter.canImport([]));
-    assertTrue(tv.e.importer.ddms.DdmsImporter.canImport(TEST_DATA));
+    assert.isFalse(tv.e.importer.ddms.DdmsImporter.canImport('string'));
+    assert.isFalse(tv.e.importer.ddms.DdmsImporter.canImport([]));
+    assert.isTrue(tv.e.importer.ddms.DdmsImporter.canImport(TEST_DATA));
   });
 
   test('parseThreads', function() {
     var m = new tv.c.TraceModel(TEST_DATA, false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assertEquals(2, threads.length);
+    assert.equal(threads.length, 2);
     threads = m.findAllThreadsNamed('main');
-    assertEquals(1, threads.length);
+    assert.equal(threads.length, 1);
     var thread = threads[0];
-    assertEquals(2703, thread.tid);
+    assert.equal(thread.tid, 2703);
   });
 
   test('parseMethods', function() {
     var m = new tv.c.TraceModel(TEST_DATA, false);
-    assertFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings);
 
     var threads = m.findAllThreadsNamed('Binder_1');
-    assertEquals(1, threads.length);
+    assert.equal(threads.length, 1);
     var thread = threads[0];
-    assertEquals(22, thread.sliceGroup.length);
-    assertEquals('android.os.Binder.execTransact(IJJI)Z',
-      thread.sliceGroup.slices[0].title);
+    assert.equal(thread.sliceGroup.length, 22);
+    assert.equal(thread.sliceGroup.slices[0].title,
+                 'android.os.Binder.execTransact(IJJI)Z');
   });
 
   var TEST_DATA = atob('KnZlcnNpb24KMwpkYXRhLWZpbGUtb3ZlcmZsb3c9ZmFsc2UKY2' +
