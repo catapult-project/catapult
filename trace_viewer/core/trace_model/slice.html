@@ -32,6 +32,8 @@ tv.exportTo('tv.c.trace_model', function() {
     this.startStackFrame = undefined;
     this.endStackFrame = undefined;
     this.didNotFinish = false;
+    this.inFlowEvents = [];
+    this.outFlowEvents = [];
 
     if (opt_duration !== undefined)
       this.duration = opt_duration;

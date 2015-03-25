@@ -305,17 +305,21 @@ tv.exportTo('tv.e.importer', function() {
         }
         slice.endStackFrame = this.getStackFrameForEvent_(event);
 
-        for (var arg in event.args) {
-          if (slice.args[arg] !== undefined) {
-            this.model_.importWarning({
-              type: 'duration_parse_error',
-              message: 'Both the B and E phases of ' + slice.name +
-                  ' provided values for argument ' + arg + '.' +
-                  ' The value of the E phase event will be used.'
-            });
-          }
-          slice.args[arg] = this.deepCopyIfNeeded_(event.args[arg]);
+        this.mergeArgsInto_(slice.args, event.args, slice.title);
+      }
+    },
+
+    mergeArgsInto_: function(dstArgs, srcArgs, eventName) {
+      for (var arg in srcArgs) {
+        if (dstArgs[arg] !== undefined) {
+          this.model_.importWarning({
+            type: 'arg_merge_error',
+            message: 'Different phases of ' + eventName +
+                ' provided values for argument ' + arg + '.' +
+                ' The last provided value will be used.'
+          });
         }
+        dstArgs[arg] = this.deepCopyIfNeeded_(srcArgs[arg]);
       }
     },
 
@@ -1066,6 +1070,70 @@ tv.exportTo('tv.e.importer', function() {
       if (this.allFlowEvents_.length === 0)
         return;
 
+      var that = this;
+
+      function validateFlowEvent() {
+        if (event.name === undefined) {
+          that.model_.importWarning({
+            type: 'flow_slice_parse_error',
+            message: 'Flow events (ph: s, t or f) require a name parameter.'
+          });
+          return false;
+        }
+
+        if (event.id === undefined) {
+          that.model_.importWarning({
+            type: 'flow_slice_parse_error',
+            message: 'Flow events (ph: s, t or f) require an id parameter.'
+          });
+          return false;
+        }
+        return true;
+      }
+
+      function createFlowEvent(thread, event) {
+        // TODO(nduca): Figure out startSlice from ts and binding point,
+        // instead of making a join point.
+        var startSlice = new tv.c.trace_model.ThreadSlice(
+            event.cat,
+            event.name,
+            tv.b.ui.getColorIdForGeneralPurposeString(event.name),
+            event.ts / 1000,
+            that.deepCopyIfNeeded_(event.args));
+        startSlice.duration = 0;
+
+        thread.sliceGroup.pushSlice(startSlice);
+
+        var flowEvent = new tv.c.trace_model.FlowEvent(
+            event.cat,
+            event.id,
+            event.name,
+            tv.b.ui.getColorIdForGeneralPurposeString(event.name),
+            event.ts / 1000,
+            that.deepCopyIfNeeded_(event.args));
+        flowEvent.startSlice = startSlice;
+        return flowEvent;
+      }
+
+      function finishFlowEventWith(flowEvent, thread, event) {
+        // TODO(nduca): Figure out endSlice from ts and binding point.
+        var endSlice = new tv.c.trace_model.ThreadSlice(
+            event.cat,
+            event.name,
+            tv.b.ui.getColorIdForGeneralPurposeString(event.name),
+            event.ts / 1000,
+            that.deepCopyIfNeeded_(event.args));
+        endSlice.duration = 0;
+
+        thread.sliceGroup.pushSlice(endSlice);
+
+        // Modify the flowEvent with the new data.
+        flowEvent.endSlice = endSlice;
+        flowEvent.duration = (event.ts / 1000) - flowEvent.start;
+        that.mergeArgsInto_(flowEvent.args, event.args, flowEvent.title);
+      }
+
+      // Actual import.
       this.allFlowEvents_.sort(function(x, y) {
         var d = x.event.ts - y.event.ts;
         if (d != 0)
@@ -1078,44 +1146,24 @@ tv.exportTo('tv.e.importer', function() {
         var data = this.allFlowEvents_[i];
         var event = data.event;
         var thread = data.thread;
-
-        if (event.name === undefined) {
-          this.model_.importWarning({
-            type: 'flow_slice_parse_error',
-            message: 'Flow events (ph: s, t or f) require a name parameter.'
-          });
+        if (!validateFlowEvent(event))
           continue;
-        }
 
-        if (event.id === undefined) {
-          this.model_.importWarning({
-            type: 'flow_slice_parse_error',
-            message: 'Flow events (ph: s, t or f) require an id parameter.'
-          });
-          continue;
-        }
-
-        var slice = new tv.c.trace_model.FlowEvent(
-            event.cat,
-            event.id,
-            event.name,
-            tv.b.ui.getColorIdForGeneralPurposeString(event.name),
-            event.ts / 1000,
-            this.deepCopyIfNeeded_(event.args));
-        thread.sliceGroup.pushSlice(slice);
-
+        var flowEvent;
         if (event.ph === 's') {
-          if (flowIdToEvent[event.id] !== undefined) {
+          if (flowIdToEvent[event.id]) {
             this.model_.importWarning({
               type: 'flow_slice_start_error',
               message: 'event id ' + event.id + ' already seen when ' +
                   'encountering start of flow event.'});
+            continue;
           }
-          flowIdToEvent[event.id] = slice;
+          flowEvent = createFlowEvent(thread, event);
+          flowIdToEvent[event.id] = flowEvent;
 
         } else if (event.ph === 't' || event.ph === 'f') {
-          var flowPosition = flowIdToEvent[event.id];
-          if (flowPosition === undefined) {
+          flowEvent = flowIdToEvent[event.id];
+          if (flowEvent === undefined) {
             this.model_.importWarning({
               type: 'flow_slice_ordering_error',
               message: 'Found flow phase ' + event.ph + ' for id: ' + event.id +
@@ -1123,18 +1171,17 @@ tv.exportTo('tv.e.importer', function() {
             });
             continue;
           }
-          this.model_.flowEvents.push([flowPosition, slice]);
 
-          if (flowPosition)
-            flowPosition.nextFlowEvent = slice;
-          if (slice)
-            slice.previousFlowEvent = flowPosition;
+          finishFlowEventWith(flowEvent, thread, event);
 
-          if (event.ph === 'f') {
-            flowIdToEvent[event.id] = undefined;
-          } else {
-            // Make this slice the next start event in this flow.
-            flowIdToEvent[event.id] = slice;
+          that.model_.flowEvents.push(flowEvent);
+
+          flowIdToEvent[event.id] = undefined;
+
+          // If this is a step, then create another flow event.
+          if (event.ph === 't') {
+            flowEvent = createFlowEvent(thread, event);
+            flowIdToEvent[event.id] = flowEvent;
           }
         }
       }

@@ -304,29 +304,34 @@ tv.exportTo('tv.c.tracks', function() {
           this.model_.flowIntervalTree.findIntersection(viewLWorld, viewRWorld);
 
       var canvasBounds = ctx.canvas.getBoundingClientRect();
-      for (var i = 0; i < events.length; ++i) {
-        var startEvent = events[i][0];
-        var endEvent = events[i][1];
-        this.drawFlowArrowBetween_(
-            ctx, startEvent, endEvent, canvasBounds, pixWidth);
-      }
+      for (var i = 0; i < events.length; ++i)
+        this.drawFlowArrow_(ctx, events[i][0], canvasBounds, pixWidth);
     },
 
-    drawFlowArrowBetween_: function(ctx, startEvent, endEvent,
-                                    canvasBounds, pixWidth) {
+    drawFlowArrow_: function(ctx, flowEvent,
+                             canvasBounds, pixWidth) {
       var pixelRatio = window.devicePixelRatio || 1;
 
-      var startTrack = this.viewport.trackForEvent(startEvent);
-      var endTrack = this.viewport.trackForEvent(endEvent);
+      var startTrack = this.viewport.trackForEvent(flowEvent.startSlice);
+      var endTrack = this.viewport.trackForEvent(flowEvent.endSlice);
 
       var startBounds = startTrack.getBoundingClientRect();
       var endBounds = endTrack.getBoundingClientRect();
 
-      if (startEvent.selected || endEvent.selected) {
+      if (flowEvent.startSlice.selected || flowEvent.endSlice.selected) {
         ctx.shadowBlur = 1;
         ctx.shadowColor = 'red';
         ctx.shadowOffsety = 2;
         ctx.strokeStyle = 'red';
+      } else if (flowEvent.selected) {
+        ctx.shadowBlur = 1;
+        ctx.shadowColor = 'orange';
+        ctx.shadowOffsety = 2;
+        ctx.strokeStyle = 'orange';
+      } else {
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
       }
 
       var startSize = startBounds.left + startBounds.top +
@@ -342,28 +347,22 @@ tv.exportTo('tv.c.tracks', function() {
 
       var pixelStartY = pixelRatio * startY;
       var pixelEndY = pixelRatio * endY;
-      var half = (endEvent.start - startEvent.start) / 2;
+      var half = (flowEvent.end - flowEvent.start) / 2;
 
       ctx.beginPath();
-      ctx.moveTo(startEvent.start, pixelStartY);
+      ctx.moveTo(flowEvent.start, pixelStartY);
       ctx.bezierCurveTo(
-          startEvent.start + half, pixelStartY,
-          startEvent.start + half, pixelEndY,
-          endEvent.start, pixelEndY);
+          flowEvent.start + half, pixelStartY,
+          flowEvent.start + half, pixelEndY,
+          flowEvent.end, pixelEndY);
       ctx.stroke();
 
-      if (startEvent.selected || endEvent.selected) {
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
-      }
-
       var arrowWidth = 5 * pixWidth * pixelRatio;
-      var distance = endEvent.start - startEvent.start;
+      var distance = flowEvent.end - flowEvent.start;
       if (distance <= (2 * arrowWidth))
         return;
 
-      var tipX = endEvent.start;
+      var tipX = flowEvent.end;
       var tipY = pixelEndY;
       var arrowHeight = (endBounds.height / 4) * pixelRatio;
       tv.c.drawTriangle(ctx,

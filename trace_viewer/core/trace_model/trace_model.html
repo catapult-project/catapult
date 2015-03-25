@@ -115,8 +115,8 @@ tv.exportTo('tv.c', function() {
     this.interaction_records = [];
 
     this.flowIntervalTree = new tv.b.IntervalTree(
-        function(s) { return s.start; },
-        function(e) { return e.start; });
+        function(f) { return f.start; },
+        function(f) { return f.end; });
 
     this.globalMemoryDumps = [];
 
@@ -208,6 +208,10 @@ tv.exportTo('tv.c', function() {
       for (var i = 0; i < this.globalMemoryDumps.length; i++)
         this.globalMemoryDumps[i].addBoundsToRange(this.bounds);
 
+      this.flowEvents.forEach(function(flowEvent) {
+        this.bounds.addValue(flowEvent.start);
+        this.bounds.addValue(flowEvent.end);
+      }, this);
       this.alerts.forEach(function(alert) {
         this.bounds.addValue(alert.start);
         this.bounds.addValue(alert.end);
@@ -234,6 +238,9 @@ tv.exportTo('tv.c', function() {
         var sample = this.samples[i];
         sample.start -= timeBase;
       }
+      this.flowEvents.forEach(function(flowEvent) {
+        flowEvent.start -= timeBase;
+      });
       this.alerts.forEach(function(alert) {
         alert.start -= timeBase;
       });
@@ -565,8 +572,8 @@ tv.exportTo('tv.c', function() {
       lastTask = lastTask.after(function() {
         progressMeter.update('Building flow event map...');
         for (var i = 0; i < this.flowEvents.length; ++i) {
-          var pair = this.flowEvents[i];
-          this.flowIntervalTree.insert(pair[0], pair[1]);
+          var flowEvent = this.flowEvents[i];
+          this.flowIntervalTree.insert(flowEvent, flowEvent);
         }
         this.flowIntervalTree.updateHighValues();
       }, this);

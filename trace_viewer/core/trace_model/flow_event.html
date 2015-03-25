@@ -21,7 +21,7 @@ tv.exportTo('tv.c.trace_model', function() {
    *
    * @constructor
    */
-  function FlowEvent(category, id, title, colorId, start, args) {
+  function FlowEvent(category, id, title, colorId, start, args, opt_duration) {
     tv.c.trace_model.TimedEvent.call(this, start);
 
     this.category = category || '';
@@ -32,28 +32,15 @@ tv.exportTo('tv.c.trace_model', function() {
 
     this.id = id;
 
-    this.nextFlowEvent_ = undefined;
-    this.previousFlowEvent_ = undefined;
+    this.startSlice = undefined;
+    this.endSlice = undefined;
+
+    if (opt_duration !== undefined)
+      this.duration = opt_duration;
   }
 
   FlowEvent.prototype = {
     __proto__: tv.c.trace_model.TimedEvent.prototype,
-
-    set nextFlowEvent(nextFlowEvent) {
-      this.nextFlowEvent_ = nextFlowEvent;
-    },
-
-    set previousFlowEvent(prev) {
-      this.previousFlowEvent_ = prev;
-    },
-
-    get nextFlowEvent() {
-      return this.nextFlowEvent_;
-    },
-
-    get previousFlowEvent() {
-      return this.previousFlowEvent_;
-    },
 
     get userFriendlyName() {
       return 'Flow event named ' + this.title + ' at ' +
