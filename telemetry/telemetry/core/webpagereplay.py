@@ -10,6 +10,7 @@ import re
 import signal
 import subprocess
 import sys
+import tempfile
 import urllib
 
 from telemetry.core import exceptions
@@ -17,8 +18,6 @@ from telemetry.core import util
 
 _REPLAY_DIR = os.path.join(
     util.GetChromiumSrcDir(), 'third_party', 'webpagereplay')
-_LOG_FILE_PATH = os.path.join(
-    util.GetChromiumSrcDir(), 'webpagereplay_logs', 'logs.txt')
 
 
 class ReplayError(Exception):
@@ -72,10 +71,13 @@ class ReplayServer(object):
       replay_options: an iterable of options strings to forward to replay.py.
     """
     self.archive_path = archive_path
-    self._log_file_path = _LOG_FILE_PATH
     self._replay_host = replay_host
     self._use_dns_server = dns_port is not None
     self._started_ports = {}  # a dict such as {'http': 80, 'https': 443}
+
+    # A temporary path for storing stdout & stderr of the webpagereplay
+    # subprocess.
+    self._temp_log_file_path = None
 
     replay_py = os.path.join(_REPLAY_DIR, 'replay.py')
     self._cmd_line = self._GetCommandLine(
@@ -120,16 +122,16 @@ class ReplayServer(object):
 
   def _OpenLogFile(self):
     """Opens the log file for writing."""
-    log_dir = os.path.dirname(self._log_file_path)
+    log_dir = os.path.dirname(self._temp_log_file_path)
     if not os.path.exists(log_dir):
       os.makedirs(log_dir)
-    return open(self._log_file_path, 'w')
+    return open(self._temp_log_file_path, 'w')
 
   def _LogLines(self):
     """Yields the log lines."""
-    if not os.path.isfile(self._log_file_path):
+    if not os.path.isfile(self._temp_log_file_path):
       return
-    with open(self._log_file_path) as f:
+    with open(self._temp_log_file_path) as f:
       for line in f:
         yield line
 
@@ -193,6 +195,7 @@ class ReplayServer(object):
     """
     is_posix = sys.platform.startswith('linux') or sys.platform == 'darwin'
     logging.debug('Starting Web-Page-Replay: %s', self._cmd_line)
+    self._CreateTempLogFilePath()
     with self._OpenLogFile() as log_fh:
       self.replay_process = subprocess.Popen(
           self._cmd_line, stdout=log_fh, stderr=subprocess.STDOUT,
@@ -211,6 +214,12 @@ class ReplayServer(object):
 
   def StopServer(self):
     """Stop Web Page Replay."""
+    try:
+      self._StopReplayProcess()
+    finally:
+      self._CleanUpTempLogFilePath()
+
+  def _StopReplayProcess(self):
     if not self.replay_process:
       return
 
@@ -249,6 +258,18 @@ class ReplayServer(object):
         except:  # pylint: disable=W0702
           pass
       self.replay_process.wait()
+
+  def _CreateTempLogFilePath(self):
+    assert self._temp_log_file_path is None
+    handle, self._temp_log_file_path = tempfile.mkstemp()
+    os.close(handle)
+
+  def _CleanUpTempLogFilePath(self):
+    assert self._temp_log_file_path
+    # TODO(nednguyen): print the content of the log file path to telemetry's
+    # output before clearing the file.
+    os.remove(self._temp_log_file_path)
+    self._temp_log_file_path = None
 
   def __enter__(self):
     """Add support for with-statement."""
