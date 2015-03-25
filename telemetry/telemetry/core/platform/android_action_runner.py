@@ -2,8 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import time
 
+from telemetry.core import util
 
 class ActionNotSupported(Exception):
   pass
@@ -113,3 +115,55 @@ class AndroidActionRunner(object):
       dy: Change in the y coordinate due to move.
     """
     self._platform_backend.adb.RunShellCommand('input roll %s %s' % (dx, dy))
+
+  def TurnScreenOn(self):
+    """If device screen is off, turn screen on.
+    If the screen is already on, this method returns immediately.
+
+    Raises:
+      Timeout: If the screen is off and device fails to turn screen on.
+    """
+    if not self._platform_backend.IsScreenOn():
+      self._platform_backend.adb.RunShellCommand('input keyevent 26')
+    else:
+      logging.warning('Screen on when expected off.')
+      return
+
+    util.WaitFor(self._platform_backend.IsScreenOn, 5)
+
+  def TurnScreenOff(self):
+    """If device screen is on, turn screen off.
+    If the screen is already off, this method returns immediately.
+
+    Raises:
+      Timeout: If the screen is on and device fails to turn screen off.
+    """
+    def is_screen_off():
+      return not self._platform_backend.IsScreenOn()
+
+    if self._platform_backend.IsScreenOn():
+      self._platform_backend.adb.RunShellCommand(
+          'input keyevent 26')
+    else:
+      logging.warning('Screen off when expected on.')
+      return
+
+    util.WaitFor(is_screen_off, 5)
+
+  def UnlockScreen(self):
+    """If device screen is locked, unlocks it.
+    If the device is not locked, this method returns immediately.
+
+    Raises:
+      Timeout: If device fails to unlock screen.
+    """
+    def is_screen_unlocked():
+      return not self._platform_backend.IsScreenLocked()
+
+    if self._platform_backend.IsScreenLocked():
+      self._platform_backend.adb.RunShellCommand('input keyevent 82')
+    else:
+      logging.warning('Screen not locked when expected.')
+      return
+
+    util.WaitFor(is_screen_unlocked, 5)

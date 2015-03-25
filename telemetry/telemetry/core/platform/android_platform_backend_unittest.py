@@ -85,3 +85,39 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         android_device.AndroidDevice('success'), self._options)
     backend.InstallTestCa()
     self.assertTrue(backend.is_test_ca_installed)
+
+  def testIsScreenLockedTrue(self):
+    test_input = ['a=b', 'mHasBeenInactive=true']
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('success'), self._options)
+    self.assertTrue(backend._IsScreenLocked(test_input))
+
+  def testIsScreenLockedFalse(self):
+    test_input = ['a=b', 'mHasBeenInactive=false']
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('success'), self._options)
+    self.assertFalse(backend._IsScreenLocked(test_input))
+
+  def testIsScreenOnmScreenOnTrue(self):
+    test_input = ['a=b', 'mScreenOn=true']
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('success'), self._options)
+    self.assertTrue(backend._IsScreenOn(test_input))
+
+  def testIsScreenOnmScreenOnFalse(self):
+    test_input = ['a=b', 'mScreenOn=false']
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('success'), self._options)
+    self.assertFalse(backend._IsScreenOn(test_input))
+
+  def testIsScreenOnmInteractiveTrue(self):
+    test_input = ['a=b', 'mInteractive=true']
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('success'), self._options)
+    self.assertTrue(backend._IsScreenOn(test_input))
+
+  def testIsScreenOnmInteractiveFalse(self):
+    test_input = ['a=b', 'mInteractive=false']
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('success'), self._options)
+    self.assertFalse(backend._IsScreenOn(test_input))

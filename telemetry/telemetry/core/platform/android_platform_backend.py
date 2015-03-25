@@ -636,6 +636,70 @@ class AndroidPlatformBackend(
                                        stdout=subprocess.PIPE).communicate()[0])
     return ret
 
+  @staticmethod
+  def _IsScreenOn(input_methods):
+    """Parser method of IsScreenOn()
+
+    Args:
+      input_methods: Output from dumpsys input_methods
+
+    Returns:
+      boolean: True if screen is on, false if screen is off.
+
+    Raises:
+      ValueError: An unknown value is found for the screen state.
+      AndroidDeviceParsingError: Error in detecting screen state.
+    """
+    for line in input_methods:
+      if 'mScreenOn' in line or 'mInteractive' in line:
+        for pair in line.strip().split(' '):
+          key, value = pair.split('=', 1)
+          if key == 'mScreenOn' or key == 'mInteractive':
+            if value == 'true':
+              return True
+            elif value == 'false':
+              return False
+            else:
+              raise ValueError('Unknown value for %s: %s' % (key, value))
+    raise exceptions.AndroidDeviceParsingError(str(input_methods))
+
+  def IsScreenOn(self):
+    """Determines if device screen is on."""
+    input_methods = self._device.RunShellCommand('dumpsys input_method')
+    return self._IsScreenOn(input_methods)
+
+  @staticmethod
+  def _IsScreenLocked(input_methods):
+    """Parser method for IsScreenLocked()
+
+    Args:
+      input_methods: Output from dumpsys input_methods
+
+    Returns:
+      boolean: True if screen is locked, false if screen is not locked.
+
+    Raises:
+      ValueError: An unknown value is found for the screen lock state.
+      AndroidDeviceParsingError: Error in detecting screen state.
+
+    """
+    for line in input_methods:
+      if 'mHasBeenInactive' in line:
+        for pair in line.strip().split(' '):
+          key, value = pair.split('=', 1)
+          if key == 'mHasBeenInactive':
+            if value == 'true':
+              return True
+            elif value == 'false':
+              return False
+            else:
+              raise ValueError('Unknown value for %s: %s' % (key, value))
+    raise exceptions.AndroidDeviceParsingError(str(input_methods))
+
+  def IsScreenLocked(self):
+    """Determines if device screen is locked."""
+    input_methods = self._device.RunShellCommand('dumpsys input_method')
+    return self._IsScreenLocked(input_methods)
 
 def _FixPossibleAdbInstability():
   """Host side workaround for crbug.com/268450 (adb instability).
