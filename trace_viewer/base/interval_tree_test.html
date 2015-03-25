@@ -47,6 +47,23 @@ tv.b.unittest.testSuite(function() {
     assert.deepEqual(expected, values);
   });
 
+  test('findIntersection_zeroDuration', function() {
+    var tree = buildSimpleTree();
+    var intersect = tree.findIntersection(2, 2);
+
+    // Intersect will hold an array of begin/end objects. As a simple way
+    // to compare, we just grab the start and end values of those objects
+    // and compare to what we expect to see.
+    var values = intersect.map(function(v) { return [v[0].start, v[1].end]; });
+    values.sort(function(a, b) {
+      return (a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
+    });
+
+    var expected = [[1, 3], [1, 5]];
+    assert.equal(2, values.length);
+    assert.deepEqual(expected, values);
+  });
+
   test('findIntersection_noMatching', function() {
     var tree = buildSimpleTree();
     var intersect = tree.findIntersection(9, 10);
