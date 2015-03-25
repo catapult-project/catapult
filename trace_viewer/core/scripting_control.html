@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/core/timeline_track_view.html">
 
 <polymer-element
@@ -117,15 +118,26 @@ found in the LICENSE file.
       e.stopPropagation();
       if (!this._isEnterKey(e))
         return;
-      var historyEl = this.$.history;
       var promptEl = this.$.prompt;
       var command = promptEl.innerText;
       if (command.length === 0)
         return;
+      promptEl.innerText = '';
+      this.addLine_(String.fromCharCode(187) + ' ' + command);
+
+      try {
+        var result = this.controller_.executeCommand(command);
+      } catch (e) {
+        result = e.stack || e.stackTrace;
+      }
+      this.addLine_(result);
+    },
+
+    addLine_: function(line) {
+      var historyEl = this.$.history;
       if (historyEl.innerText.length !== 0)
         historyEl.innerText += '\n';
-      historyEl.innerText += command;
-      promptEl.innerText = '';
+      historyEl.innerText += line;
     },
 
     promptKeyPress: function(e) {
@@ -150,6 +162,14 @@ found in the LICENSE file.
     get visible() {
       var root = this.$.root;
       return !root.classList.contains('hidden');
+    },
+
+    get controller() {
+      return this.controller_;
+    },
+
+    set controller(c) {
+      this.controller_ = c;
     }
   });
   </script>

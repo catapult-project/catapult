@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/scripting_controller.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/timeline_track_view.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  test('scriptingControllerBasicArithmetic', function() {
+    var controller = document.createElement('tv-c-scripting-controller');
+    var result = controller.executeCommand('1 + 1');
+    assertEquals(2, result);
+  });
+
+  test('scriptingControllerNonLocalContext', function() {
+    var controller = document.createElement('tv-c-scripting-controller');
+    var x = 1;
+    controller.executeCommand('x = 2');
+    assertEquals(1, x);
+  });
+
+  test('scriptingControllerModifyGlobalContext', function() {
+    var controller = document.createElement('tv-c-scripting-controller');
+    window._x = 1;
+    controller.executeCommand('_x = 2');
+    assertEquals(2, window._x);
+    delete window._x;
+  });
+
+  test('scriptingControllerPersistentContext', function() {
+    var controller = document.createElement('tv-c-scripting-controller');
+    controller.executeCommand('a = 42');
+    var result = controller.executeCommand('a');
+    assertEquals(42, result);
+  });
+
+  test('scriptingControllerAddContextValue', function() {
+    var controller = document.createElement('tv-c-scripting-controller');
+    controller.addContextValue('z', 123);
+    var result = controller.executeCommand('z');
+    assertEquals(123, result);
+  });
+});
+</script>
+
