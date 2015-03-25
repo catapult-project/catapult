@@ -98,6 +98,7 @@ tv.exportTo('tv.c.test_utils', function() {
   function newModel(customizeModelCallback) {
     var io = new tv.c.ImportOptions();
     io.customizeModelCallback = customizeModelCallback;
+    io.shiftWorldToZero = false;
     return new tv.c.TraceModel([], io);
   }
 

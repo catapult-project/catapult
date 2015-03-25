@@ -202,6 +202,7 @@
       'trace_viewer/core/tracks/multi_row_track.html',
       'trace_viewer/core/tracks/object_instance_group_track.html',
       'trace_viewer/core/tracks/object_instance_track.html',
+      'trace_viewer/core/tracks/process_summary_track.html',
       'trace_viewer/core/tracks/process_track.html',
       'trace_viewer/core/tracks/process_track_base.html',
       'trace_viewer/core/tracks/rect_annotation_view.html',

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/slice_group.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/core/tracks/process_summary_track.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var ProcessSummaryTrack = tv.c.tracks.ProcessSummaryTrack;
+  var newSlice = tv.c.test_utils.newSlice;
+
+  test('buildRects', function() {
+    var process;
+    var model = tv.c.test_utils.newModel(function(model) {
+      process = model.getOrCreateProcess(1);
+
+      var thread1 = process.getOrCreateThread(1);
+      thread1.sliceGroup.pushSlice(newSlice(10, 40));
+      var thread2 = process.getOrCreateThread(2);
+      thread2.sliceGroup.pushSlice(newSlice(40, 40));
+    });
+
+    var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
+
+    assert.equal(1, rects.length);
+    var rect = rects[0];
+    assert.closeTo(10, rect.start, 1e-5);
+    assert.closeTo(80, rect.end, 1e-5);
+  });
+});
+</script>
+

@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/tracks/container_track.html">
 <link rel="import" href="/core/tracks/counter_track.html">
 <link rel="import" href="/core/tracks/object_instance_group_track.html">
+<link rel="import" href="/core/tracks/process_summary_track.html">
 <link rel="import" href="/core/tracks/spacing_track.html">
 <link rel="import" href="/core/tracks/thread_track.html">
 <link rel="import" href="/core/trace_model/trace_model_settings.html">
@@ -129,6 +130,7 @@ tv.exportTo('tv.c.tracks', function() {
 
       // Create the object instance tracks for this process.
       this.willAppendTracks_();
+      this.appendSummaryTrack_();
       this.appendObjectInstanceTracks_();
       this.appendCounterTracks_();
       this.appendThreadTracks_();
@@ -145,6 +147,15 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     didAppendTracks_: function() {
+    },
+
+    appendSummaryTrack_: function() {
+      var track = new tv.c.tracks.ProcessSummaryTrack(this.viewport);
+      track.process = this.process;
+      if (!track.hasVisibleContent)
+        return;
+      this.appendChild(track);
+      this.appendChild(new SpacingTrack(this.viewport));
     },
 
     appendObjectInstanceTracks_: function() {

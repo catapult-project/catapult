@@ -18,13 +18,6 @@ tv.b.unittest.testSuite(function() {
   var newAsyncSliceNamed = tv.c.test_utils.newAsyncSliceNamed;
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
 
-  function createSingleFrameModel(customizeModelCallback) {
-    var io = new tv.c.ImportOptions();
-    io.shiftWorldToZero = false;
-    io.customizeModelCallback = customizeModelCallback;
-    return new TraceModel([], io);
-  }
-
   /*
    * List of customizeModelCallbacks which produce different 80ms frames,
    * each starting at 10ms
@@ -70,7 +63,7 @@ tv.b.unittest.testSuite(function() {
 
   test('getThreads', function() {
     SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
-      var model = createSingleFrameModel(customizeModelCallback);
+      var model = tv.c.test_utils.newModel(customizeModelCallback);
       var helper = new AndroidModelHelper(model);
       assert.equal(model.uiThread, helper.apps[0].uiThread);
       assert.equal(model.renderThread, helper.apps[0].renderThread);
@@ -79,7 +72,7 @@ tv.b.unittest.testSuite(function() {
 
   test('getFrames', function() {
     SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
-      var model = createSingleFrameModel(customizeModelCallback);
+      var model = tv.c.test_utils.newModel(customizeModelCallback);
       var helper = new AndroidModelHelper(model);
       assert.equal(1, helper.apps.length);
 
