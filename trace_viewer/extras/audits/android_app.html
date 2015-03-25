@@ -61,30 +61,41 @@ tv.exportTo('tv.e.audits', function() {
 
     var frames = [];
     app.uiThread.sliceGroup.getSlicesOfName(UI_THREAD_DRAW_NAME)
-        .forEach(function(slice) {
-      var frame = new AndroidFrame(slice);
-      var uiInputSlice = findInputSlice(app.uiThread, slice.start);
+        .forEach(function(uiDrawSlice) {
+      var threadTimeRanges = [];
+
+      // UI thread work
+      var threadStart = uiDrawSlice.start;
+      var threadEnd = uiDrawSlice.end;
+      var uiInputSlice = findInputSlice(app.uiThread, uiDrawSlice.start);
       if (uiInputSlice) {
         // input handling observed, consider frame to start at this time
-        frame.start = uiInputSlice.start;
-        frame.totalDuration = slice.end - uiInputSlice.start;
+        threadStart = uiInputSlice.start;
       }
+      threadTimeRanges.push({
+        thread: app.uiThread,
+        start: threadStart,
+        end: threadEnd
+      });
+      var totalDuration = threadEnd - threadStart;
 
-      // on SDK 21+ devices with renderthread,
-      // account for time taken on both threads
-      var rtDrawSlice = findOverlappingDrawFrame(app.renderThread, slice.end);
+      // on SDK 21+ devices with RenderThread,
+      // account for time taken on RenderThread
+      var rtDrawSlice = findOverlappingDrawFrame(
+          app.renderThread, uiDrawSlice.end);
       if (rtDrawSlice) {
-        // account for draw time on RenderThread, if present
-        frame.totalDuration += rtDrawSlice.duration;
-        frame.end = rtDrawSlice.end;
+        totalDuration += rtDrawSlice.duration;
         var rtSyncSlice = rtDrawSlice.findDescendentSlice(THREAD_SYNC_NAME);
+        if (rtSyncSlice)
+          totalDuration -= rtSyncSlice.duration;
 
-        if (rtSyncSlice) {
-          // avoid double-counting time during thread sync
-          frame.totalDuration -= rtSyncSlice.duration;
-        }
+        threadTimeRanges.push({
+          thread: app.renderThread,
+          start: rtDrawSlice.start,
+          end: rtDrawSlice.end
+        });
       }
-      frames.push(frame);
+      frames.push(new AndroidFrame(threadTimeRanges, totalDuration));
     });
     return frames;
   }
@@ -92,12 +103,16 @@ tv.exportTo('tv.e.audits', function() {
   function getRenderThreadDrivenFrames(app) {
     if (!app.renderThread)
       return [];
-    var rtSliceGroup = app.renderThread.sliceGroup;
 
     var frames = [];
-    rtSliceGroup.getSlicesOfName(RENDER_THREAD_INDEP_DRAW_NAME)
+    app.renderThread.sliceGroup.getSlicesOfName(RENDER_THREAD_INDEP_DRAW_NAME)
         .forEach(function(slice) {
-      frames.push(new AndroidFrame(slice));
+      var threadTimeRanges = [{
+        thread: app.renderThread,
+        start: slice.start,
+        end: slice.end
+      }];
+      frames.push(new AndroidFrame(threadTimeRanges, slice.duration));
     });
     return frames;
   }

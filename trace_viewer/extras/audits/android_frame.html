@@ -19,11 +19,20 @@ tv.exportTo('tv.e.audits', function() {
 
   /**
    * Constructs a frame depicted by a single slice.
+   * @param {Array} threadTimeRanges Array of {thread, start, end}
+   *     for each thread.
+   * @param {number} totalDuration Total execution time of frame.
    */
-  function AndroidFrame(initialSlice) {
-    this.start = initialSlice.start;
-    this.end = initialSlice.end;
-    this.totalDuration = initialSlice.duration;
+  function AndroidFrame(threadTimeRanges, totalDuration) {
+    this.threadTimeRanges = threadTimeRanges;
+    this.totalDuration = totalDuration;
+
+    this.start = threadTimeRanges[0].start;
+    this.end = threadTimeRanges[0].end;
+    for (var i = 1; i < threadTimeRanges.length; i++) {
+      this.start = Math.min(this.start, threadTimeRanges[i].start);
+      this.end = Math.max(this.end, threadTimeRanges[i].end);
+    }
   };
 
   return {

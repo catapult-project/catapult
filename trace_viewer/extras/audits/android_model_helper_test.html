@@ -20,18 +20,20 @@ tv.b.unittest.testSuite(function() {
 
   function createSingleFrameModel(customizeModelCallback) {
     var io = new tv.c.ImportOptions();
+    io.shiftWorldToZero = false;
     io.customizeModelCallback = customizeModelCallback;
     return new TraceModel([], io);
   }
 
   /*
-   * List of customizeModelCallbacks which produce different 80ms frames
+   * List of customizeModelCallbacks which produce different 80ms frames,
+   * each starting at 10ms
    */
   var SINGLE_FRAME_CUSTOM_MODELS = [
     function(model) {
       // UI thread only
       var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 80));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 80));
 
       model.uiThread = uiThread;
     },
@@ -40,7 +42,7 @@ tv.b.unittest.testSuite(function() {
       // RenderThread only
       var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
       renderThread.name = 'RenderThread';
-      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 0, 80));
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 10, 80));
 
       model.renderThread = renderThread;
     },
@@ -49,7 +51,6 @@ tv.b.unittest.testSuite(function() {
       var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
 
       // UI thread time - 20 (from 0 to 20)
-      console.log(uiThread);
       uiThread.asyncSliceGroup.push(
         newAsyncSliceNamed('deliverInputEvent', 0, 9, uiThread, uiThread));
       uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 10));
@@ -84,7 +85,10 @@ tv.b.unittest.testSuite(function() {
 
       var frames = helper.apps[0].getFrames();
       assert.equal(1, frames.length);
-      assert.closeTo(80, frames[0].totalDuration, 1e-5);
+      assert.closeTo(frames[0].totalDuration, 80, 1e-5);
+
+      assert.closeTo(frames[0].start, 10, 1e-5);
+      assert.closeTo(frames[0].end, 90, 1e-5);
     });
   });
 });
