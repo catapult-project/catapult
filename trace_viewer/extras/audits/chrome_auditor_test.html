@@ -15,12 +15,7 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   function createModelWithChromeAuditor(customizeModelCallback) {
-    var io = new tv.c.ImportOptions();
-    io.pruneEmptyContainers = false;
-    io.shiftWorldToZero = false;
-    io.auditorConstructors = [tv.e.audits.ChromeAuditor];
-    io.customizeModelCallback = function(m) {
-
+    return tv.c.test_utils.newModelWithAuditor(function(m) {
       m.browserProcess = m.getOrCreateProcess(1);
       m.browserMain = m.browserProcess.getOrCreateThread(2);
       m.browserMain.name = 'CrBrowserMain';
@@ -33,8 +28,7 @@ tv.b.unittest.testSuite(function() {
       m.renderer1Compositor.name = 'Compositor';
 
       customizeModelCallback(m);
-    }
-    return new tv.c.TraceModel([], io);
+    }, tv.e.audits.ChromeAuditor);
   }
 
   function newInputLatencyEvent(tsStart, tsEnd, opt_args) {

@@ -102,6 +102,14 @@ tv.exportTo('tv.c.test_utils', function() {
     return new tv.c.TraceModel([], io);
   }
 
+  function newModelWithAuditor(customizeModelCallback, auditor) {
+    var io = new tv.c.ImportOptions();
+    io.customizeModelCallback = customizeModelCallback;
+    io.shiftWorldToZero = false;
+    io.auditorConstructors = [auditor];
+    return new tv.c.TraceModel([], io);
+  }
+
   return {
     newAsyncSlice: newAsyncSlice,
     newAsyncSliceNamed: newAsyncSliceNamed,
@@ -114,6 +122,7 @@ tv.exportTo('tv.c.test_utils', function() {
     newSliceCategory: newSliceCategory,
     newStackTrace: newStackTrace,
     newModel: newModel,
+    newModelWithAuditor: newModelWithAuditor,
     findSliceNamed: findSliceNamed
   };
 });

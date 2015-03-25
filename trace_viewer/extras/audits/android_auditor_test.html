@@ -16,33 +16,25 @@ tv.b.unittest.testSuite(function() {
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
 
   test('longframe', function() {
-    var io = new tv.c.ImportOptions();
-    io.auditorConstructors = [tv.e.audits.AndroidAuditor];
-    io.customizeModelCallback = function(model) {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 80));
-    };
+    }, tv.e.audits.AndroidAuditor);
 
-    var model = new tv.c.TraceModel([], io);
-    assert.isFalse(model.hasImportWarnings);
     assert.equal(1, model.alerts.length);
-
     var alert = model.alerts[0];
     assert.closeTo(80, alert.args.totalDuration, 1e-5);
   });
 
   test('savelayer', function() {
-    var io = new tv.c.ImportOptions();
-    io.auditorConstructors = [tv.e.audits.AndroidAuditor];
-    io.customizeModelCallback = function(model) {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
       var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceNamed('DrawFrame', 200, 5));
       renderThread.sliceGroup.pushSlice(newSliceNamed(
           'BadAlphaView alpha caused saveLayer 480x320', 203, 1));
-    };
-    var model = new tv.c.TraceModel([], io);
-    assert.isFalse(model.hasImportWarnings);
+    }, tv.e.audits.AndroidAuditor);
+
     assert.equal(1, model.alerts.length);
 
     var alert = model.alerts[0];
