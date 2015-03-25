@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/audits/chrome_model_helper.html">
+<link rel="import" href="/core/side_panel/side_panel.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/base/ui/line_chart.html">
+
+<style>
+  .x-alerts-side-panel {
+    -webkit-flex-direction: column;
+    display: -webkit-flex;
+    width: 250px;
+  }
+</style>
+
+<template id="x-alerts-side-panel-template">
+  <toolbar>
+  </toolbar>
+  <result-area>
+  </result-area>
+</template>
+
+<script>
+'use strict';
+
+tv.exportTo('tv.e.analysis', function() {
+  var THIS_DOC = document.currentScript.ownerDocument;
+
+  /**
+   * @constructor
+   */
+  var AlertsSidePanel = tv.b.ui.define(
+      'x-alerts-side-panel', tv.c.SidePanel);
+
+  AlertsSidePanel.supportsModel = function(m) {
+    if (m == undefined) {
+      return {
+        supported: false,
+        reason: 'Unknown tracing model'
+      };
+    }
+    return {
+      supported: true
+    };
+  };
+
+  AlertsSidePanel.prototype = {
+    __proto__: tv.c.SidePanel.prototype,
+
+    decorate: function() {
+      tv.c.SidePanel.prototype.decorate.call(this);
+      this.classList.add('x-alerts-side-panel');
+      this.appendChild(tv.b.instantiateTemplate(
+          '#x-alerts-side-panel-template', THIS_DOC));
+
+      // TODO(charliea): Do stuff here.
+      this.rangeOfInterest_ = new tv.b.Range();
+      this.selection_ = undefined;
+    },
+
+    get model() {
+      return this.model_;
+    },
+
+    set model(model) {
+      this.model_ = model;
+      this.updateContents_();
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+    },
+
+    get rangeOfInterest() {
+      return this.rangeOfInterest_;
+    },
+
+    set rangeOfInterest(rangeOfInterest) {
+      this.rangeOfInterest_ = rangeOfInterest;
+      this.updateContents_();
+    },
+
+    get currentRangeOfInterest() {
+      if (this.rangeOfInterest_.isEmpty)
+        return this.model_.bounds;
+      else
+        return this.rangeOfInterest_;
+    },
+
+    updateContents_: function() {
+      this.textContent = '';
+      if (this.model_ === undefined)
+        return;
+
+      var rangeOfInterest = this.currentRangeOfInterest;
+      var alerts = this.model_.alerts.filter(function(alert) {
+        return rangeOfInterest.containsExplicitRange(alert.start,
+                                                     alert.start);
+      });
+
+      // TODO(charliea): Do something better.
+      this.textContent = 'You have ' + alerts.length + ' alerts';
+    }
+  };
+
+  tv.c.SidePanel.register(
+    AlertsSidePanel,
+    {
+      textLabel: 'Alerts',
+      supportsModel: AlertsSidePanel.supportsModel
+    });
+
+  return {
+    AlertsSidePanel: AlertsSidePanel
+  };
+});
+</script>

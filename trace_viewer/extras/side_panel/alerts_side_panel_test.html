@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/side_panel/alerts_side_panel.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var ALERT_SEVERITY = tv.c.trace_model.ALERT_SEVERITY;
+
+  function createModelWithAlerts() {
+    var m = new tv.c.TraceModel(false, false, function(m) {
+      m.alerts.push(
+        new tv.c.trace_model.Alert('Aaaah', 3, ALERT_SEVERITY.CRITICAL, 5));
+      m.alerts.push(
+        new tv.c.trace_model.Alert('Aaaah', 3, ALERT_SEVERITY.CRITICAL, 20));
+      m.alerts.push(
+        new tv.c.trace_model.Alert('Hrrrm', 5, ALERT_SEVERITY.WARNING, 35));
+      m.alerts.push(
+        new tv.c.trace_model.Alert('Grrrr', 5, ALERT_SEVERITY.WARNING, 50));
+    });
+    return m;
+  };
+
+  test('instantiate', function() {
+    var panel = new tv.e.analysis.AlertsSidePanel();
+    this.addHTMLOutput(panel);
+
+    panel.model = createModelWithAlerts();
+  });
+});
+</script>
