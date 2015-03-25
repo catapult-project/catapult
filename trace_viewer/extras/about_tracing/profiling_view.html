@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/extras/about_tracing/inspector_tracing_controller_client.html">
 <link rel="import" href="/extras/about_tracing/xhr_based_tracing_controller_client.html">
 <link rel="import" href="/base/key_event_manager.html">
-<link rel="import" href="/base/ui/info_bar.html">
+<link rel="import" href="/base/ui/info_bar_group.html">
 <link rel="import" href="/base/ui/overlay.html">
 <link rel="import" href="/trace_viewer.html">
 
@@ -43,7 +43,7 @@ x-timeline-view-buttons > #monitoring-elements {
 </style>
 
 <template id="profiling-view-template">
-  <x-info-bar-group></x-info-bar-group>
+  <tv-b-ui-info-bar-group></tv-b-ui-info-bar-group>
   <x-timeline-view>
     <x-timeline-view-buttons>
       <button id="record-button">Record</button>
@@ -103,10 +103,9 @@ tv.exportTo('tv.e.about_tracing', function() {
           THIS_DOC));
 
       this.timelineView_ = this.querySelector('x-timeline-view');
-      this.infoBarGroup_ = this.querySelector('x-info-bar-group');
-
-      tv.b.ui.decorate(this.infoBarGroup_, tv.b.ui.InfoBarGroup);
       tv.b.ui.decorate(this.timelineView_, tv.c.TimelineView);
+
+      this.infoBarGroup_ = this.querySelector('tv-b-ui-info-bar-group');
 
       // Detach the buttons. We will reattach them to the timeline view.
       // TODO(nduca): Make timeline-view have a content select="x-buttons"

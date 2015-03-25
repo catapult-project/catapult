@@ -6,25 +6,39 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/ui.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
-<link rel="stylesheet" href="/base/ui/info_bar.css">
-<script>
-'use strict';
 
-tv.exportTo('tv.b.ui', function() {
-  /**
-   * @constructor
-   */
-  var InfoBar = tv.b.ui.define('x-info-bar');
+<polymer-element name='tv-b-ui-info-bar' is='HTMLDivElement'>
+  <template>
+    <style>
+    :host {
+      align-items: center;
+      flex: 0 0 auto;
+      background-color: rgb(252, 235, 162);
+      border-bottom: 1px solid #A3A3A3;
+      border-left: 1px solid white;
+      border-right: 1px solid #A3A3A3;
+      border-top: 1px solid white;
+      display: flex;
+      height: 26px;
+      padding: 0 3px 0 3px;
+    }
 
-  InfoBar.prototype = {
-    __proto__: HTMLDivElement.prototype,
+    .info-bar-hidden { display: none; }
+    #message { flex: 1 1 auto; }
+    </style>
 
-    decorate: function() {
-      this.messageEl_ = tv.b.ui.createSpan({className: 'message'});
-      this.buttonsEl_ = tv.b.ui.createSpan({className: 'buttons'});
+    <span id='message'></span>
+    <span id='buttons'></span>
+  </template>
 
-      this.appendChild(this.messageEl_);
-      this.appendChild(this.buttonsEl_);
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.messageEl_ = this.$.message;
+      this.buttonsEl_ = this.$.buttons;
+
       this.message = '';
       this.visible = false;
     },
@@ -38,7 +52,7 @@ tv.exportTo('tv.b.ui', function() {
     },
 
     get visible() {
-      return this.classList.contains('info-bar-hidden');
+      return !this.classList.contains('info-bar-hidden');
     },
 
     set visible(visible) {
@@ -59,59 +73,6 @@ tv.exportTo('tv.b.ui', function() {
       this.buttonsEl_.appendChild(button);
       return button;
     }
-  };
-
-  /**
-   * @constructor
-   */
-  var InfoBarGroup = tv.b.ui.define('x-info-bar-group');
-
-  InfoBarGroup.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
-
-    decorate: function() {
-      this.messages_ = [];
-    },
-
-    clearMessages: function() {
-      this.messages_ = [];
-      this.updateContents_();
-    },
-
-    addMessage: function(text, opt_buttons) {
-      opt_buttons = opt_buttons || [];
-      for (var i = 0; i < opt_buttons.length; i++) {
-        if (opt_buttons[i].buttonText === undefined)
-          throw new Error('buttonText must be provided');
-        if (opt_buttons[i].onClick === undefined)
-          throw new Error('onClick must be provided');
-      }
-
-      this.messages_.push({
-        text: text,
-        buttons: opt_buttons || []
-      });
-      this.updateContents_();
-    },
-
-    updateContents_: function() {
-      this.textContent = '';
-      this.messages_.forEach(function(message) {
-        var bar = new InfoBar();
-        bar.message = message.text;
-        bar.visible = true;
-        message.buttons.forEach(function(button) {
-          bar.addButton(button.buttonText, button.onClick);
-        }, this);
-        this.appendChild(bar);
-      }, this);
-    }
-  };
-
-
-  return {
-    InfoBar: InfoBar,
-    InfoBarGroup: InfoBarGroup
-  };
-});
-</script>
+  });
+  </script>
+</polymer-element>

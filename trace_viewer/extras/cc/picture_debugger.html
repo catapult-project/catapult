@@ -176,7 +176,7 @@ tv.exportTo('tv.e.cc', function() {
           this.drawOpsChartView_,
           rightPanel.querySelector('picture-ops-chart-view'));
 
-      this.infoBar_ = new tv.b.ui.InfoBar();
+      this.infoBar_ = document.createElement('tv-b-ui-info-bar');
       this.rasterArea_.appendChild(this.infoBar_);
 
       this.insertBefore(middleDragHandle, rightPanel);

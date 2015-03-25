@@ -114,7 +114,7 @@ found in the LICENSE file.
   </style>
 
   <div class="record-selection-dialog">
-    <x-info-bar-group></x-info-bar-group>
+    <tv-b-ui-info-bar-group></tv-b-ui-info-bar-group>
     <div class="category-presets">
     </div>
     <div class="category-description"></div>
@@ -247,8 +247,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       // TODO(chrishenry): When used with tv.b.ui.Overlay (such as in
       // chrome://tracing, this does not yet look quite right due to
       // the 10px overlay content padding (but it's good enough).
-      this.infoBarGroup_ = this.querySelector('x-info-bar-group');
-      tv.b.ui.decorate(this.infoBarGroup_, tv.b.ui.InfoBarGroup);
+      this.infoBarGroup_ = this.querySelector('tv-b-ui-info-bar-group');
 
       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
     },

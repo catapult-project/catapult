@@ -10,14 +10,14 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var infoBar = new tv.b.ui.InfoBar();
+    var infoBar = document.createElement('tv-b-ui-info-bar');
     infoBar.message = 'This is an info';
     infoBar.visible = true;
     this.addHTMLOutput(infoBar);
   });
 
   test('buttons', function() {
-    var infoBar = new tv.b.ui.InfoBar();
+    var infoBar = document.createElement('tv-b-ui-info-bar');
     infoBar.visible = true;
     infoBar.message = 'This is an info bar with buttons';
     var didClick = false;
@@ -27,44 +27,6 @@ tv.b.unittest.testSuite(function() {
     button.click();
     assert.isTrue(didClick);
     this.addHTMLOutput(infoBar);
-  });
-
-  test('group-instantiate', function() {
-    var infoBarGroup = new tv.b.ui.InfoBarGroup();
-    infoBarGroup.addMessage(
-        'Message 1',
-        [{buttonText: 'ok', onClick: function() {}}]);
-    infoBarGroup.addMessage(
-        'Message 2',
-        [{buttonText: 'button 2', onClick: function() {}}]);
-    this.addHTMLOutput(infoBarGroup);
-  });
-
-  test('group-populate-then-clear', function() {
-    var infoBarGroup = new tv.b.ui.InfoBarGroup();
-    infoBarGroup.addMessage(
-        'Message 1',
-        [{buttonText: 'ok', onClick: function() {}}]);
-    infoBarGroup.addMessage(
-        'Message 2',
-        [{buttonText: 'button 2', onClick: function() {}}]);
-    infoBarGroup.clearMessages();
-    assert.equal(0, infoBarGroup.children.length);
-  });
-
-  test('group-populate-clear-repopulate', function() {
-    var infoBarGroup = new tv.b.ui.InfoBarGroup();
-    infoBarGroup.addMessage(
-        'Message 1',
-        [{buttonText: 'ok', onClick: function() {}}]);
-    infoBarGroup.addMessage(
-        'Message 2',
-        [{buttonText: 'button 2', onClick: function() {}}]);
-    infoBarGroup.clearMessages();
-    infoBarGroup.addMessage(
-        'Message 1',
-        [{buttonText: 'ok', onClick: function() {}}]);
-    this.addHTMLOutput(infoBarGroup);
   });
 });
 </script>

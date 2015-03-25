@@ -99,7 +99,7 @@ tv.exportTo('tv.e.cc', function() {
       this.pictureAsImageData_ = {}; // Maps picture.guid to PictureAsImageData.
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
-      this.infoBar_ = new tv.b.ui.InfoBar();
+      this.infoBar_ = document.createElement('tv-b-ui-info-bar');
       this.quadStackView_ = new tv.b.ui.QuadStackView();
       this.quadStackView_.addEventListener(
           'selectionchange', this.onQuadStackViewSelectionChange_.bind(this));

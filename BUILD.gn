@@ -5,7 +5,6 @@
 tracing_css_files = [
   "trace_viewer/base/ui/common.css",
   "trace_viewer/base/ui/drag_handle.css",
-  "trace_viewer/base/ui/info_bar.css",
   "trace_viewer/base/ui/line_chart.css",
   "trace_viewer/base/ui/list_view.css",
   "trace_viewer/base/ui/mouse_mode_selector.css",
@@ -81,6 +80,7 @@ tracing_js_html_files = [
   "trace_viewer/base/ui/dom_helpers.html",
   "trace_viewer/base/ui/drag_handle.html",
   "trace_viewer/base/ui/info_bar.html",
+  "trace_viewer/base/ui/info_bar_group.html",
   "trace_viewer/base/ui/line_chart.html",
   "trace_viewer/base/ui/list_view.html",
   "trace_viewer/base/ui/mouse_mode_selector.html",

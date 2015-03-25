@@ -38,7 +38,7 @@ found in the LICENSE file.
     if (!tv.e.cc.PictureSnapshot.CanGetInfo()) {
       console.error(tv.e.cc.PictureSnapshot.HowToEnablePictureDebugging());
 
-      var infoBar = new tv.b.ui.InfoBar();
+      var infoBar = document.createElement('tv-b-ui-info-bar');
       var view = document.querySelector('.view');
 
       view.removeChild(debuggerEl);

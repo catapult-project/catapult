@@ -159,7 +159,7 @@ tv.exportTo('tv.e.cc', function() {
 
       var rightPanel = this.querySelector('right-panel');
 
-      this.infoBar_ = new tv.b.ui.InfoBar();
+      this.infoBar_ = document.createElement('tv-b-ui-info-bar');
       this.rasterArea_.insertBefore(this.infoBar_, this.rasterCanvas_);
 
       this.insertBefore(middleDragHandle, rightPanel);
