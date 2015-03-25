@@ -5,14 +5,14 @@ import logging
 import os
 import sys
 
-from telemetry import decorators
 from telemetry.core import browser_finder
 from telemetry.core import browser_finder_exceptions
 from telemetry.core import browser_info as browser_info_module
 from telemetry.core import exceptions
+from telemetry.core.platform.profiler import profiler_finder
 from telemetry.core import util
 from telemetry.core import wpr_modes
-from telemetry.core.platform.profiler import profiler_finder
+from telemetry import decorators
 from telemetry.page import page_test
 from telemetry.user_story import shared_user_story_state
 from telemetry.util import exception_formatter

@@ -3,9 +3,9 @@
 # found in the LICENSE file.
 """Imports event data obtained from the inspector's timeline."""
 
+from telemetry.timeline import importer
 import telemetry.timeline.slice as tracing_slice
 import telemetry.timeline.thread as timeline_thread
-from telemetry.timeline import importer
 from telemetry.timeline import trace_data as trace_data_module
 
 

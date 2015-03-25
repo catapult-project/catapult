@@ -13,9 +13,9 @@ import shutil
 import tempfile
 import zipfile
 
-from telemetry import decorators
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import power_monitor
+from telemetry import decorators
 from telemetry.util import cloud_storage
 from telemetry.util import path
 from telemetry.util import statistics

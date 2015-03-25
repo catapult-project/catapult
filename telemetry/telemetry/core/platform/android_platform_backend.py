@@ -10,11 +10,8 @@ import subprocess
 import tempfile
 import time
 
-from telemetry import decorators
-from telemetry.core import exceptions
-from telemetry.core import util
-from telemetry.core import video
 from telemetry.core.backends import adb_commands
+from telemetry.core import exceptions
 from telemetry.core.forwarders import android_forwarder
 from telemetry.core import platform
 from telemetry.core.platform import android_device
@@ -26,6 +23,9 @@ from telemetry.core.platform.power_monitor import android_temperature_monitor
 from telemetry.core.platform.power_monitor import monsoon_power_monitor
 from telemetry.core.platform.power_monitor import power_monitor_controller
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
+from telemetry.core import util
+from telemetry.core import video
+from telemetry import decorators
 from telemetry.util import exception_formatter
 from telemetry.util import external_modules
 
@@ -37,11 +37,11 @@ import certutils  # pylint: disable=F0401
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib import screenshot  # pylint: disable=F0401
 from pylib.device import device_errors  # pylint: disable=F0401
 from pylib.perf import cache_control  # pylint: disable=F0401
 from pylib.perf import perf_control  # pylint: disable=F0401
 from pylib.perf import thermal_throttle  # pylint: disable=F0401
+from pylib import screenshot  # pylint: disable=F0401
 
 try:
   from pylib.perf import surface_stats_collector  # pylint: disable=F0401

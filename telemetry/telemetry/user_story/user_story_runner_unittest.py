@@ -2,12 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import unittest
 import StringIO
 import sys
+import unittest
 
 from telemetry import benchmark
-from telemetry import user_story
 from telemetry.core import exceptions
 from telemetry.page import page as page_module
 from telemetry.page import page_test
@@ -15,6 +14,7 @@ from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
+from telemetry import user_story
 from telemetry.user_story import shared_user_story_state
 from telemetry.user_story import user_story_runner
 from telemetry.user_story import user_story_set

@@ -4,10 +4,10 @@
 
 import unittest
 
-from telemetry.results import page_test_results
-from telemetry.page import page
-from telemetry.web_perf.metrics import layout
 from collections import namedtuple
+from telemetry.page import page
+from telemetry.results import page_test_results
+from telemetry.web_perf.metrics import layout
 
 FakeEvent = namedtuple('Event', 'name, start, end')
 

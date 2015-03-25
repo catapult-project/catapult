@@ -6,8 +6,8 @@ import collections
 import logging
 import sys
 
-from telemetry.core import exceptions
 from telemetry.core.backends.chrome_inspector import inspector_backend
+from telemetry.core import exceptions
 
 
 def DebuggerUrlToId(debugger_url):

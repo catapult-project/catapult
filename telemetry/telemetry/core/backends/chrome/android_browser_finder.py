@@ -7,16 +7,16 @@
 import logging
 import os
 
-from telemetry import decorators
-from telemetry.core import browser
-from telemetry.core import exceptions
-from telemetry.core import possible_browser
-from telemetry.core import platform
-from telemetry.core import util
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends import android_browser_backend_settings
 from telemetry.core.backends.chrome import android_browser_backend
+from telemetry.core import browser
+from telemetry.core import exceptions
+from telemetry.core import platform
 from telemetry.core.platform import android_device
+from telemetry.core import possible_browser
+from telemetry.core import util
+from telemetry import decorators
 
 
 CHROME_PACKAGE_NAMES = {

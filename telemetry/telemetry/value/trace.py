@@ -4,16 +4,16 @@
 
 import datetime
 import logging
+import os
 import random
 import shutil
-import os
 import sys
 import tempfile
 
-from telemetry import value as value_module
 from telemetry.timeline import trace_data as trace_data_module
 from telemetry.util import cloud_storage
 from telemetry.util import file_handle
+from telemetry import value as value_module
 import telemetry.web_components # pylint: disable=W0611
 from trace_viewer.build import trace2html
 

@@ -6,10 +6,10 @@ import os
 import sys
 
 from telemetry.core import discover
-from telemetry.core import util
 from telemetry.core.platform import network_controller
 from telemetry.core.platform import platform_backend as platform_backend_module
 from telemetry.core.platform import tracing_controller
+from telemetry.core import util
 
 
 _host_platform = None

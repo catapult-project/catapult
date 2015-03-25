@@ -6,8 +6,8 @@ import shutil
 import tempfile
 import zipfile
 
-from telemetry import decorators
 from telemetry.core.platform.profiler import android_systrace_profiler
+from telemetry import decorators
 from telemetry.unittest_util import tab_test_case
 
 

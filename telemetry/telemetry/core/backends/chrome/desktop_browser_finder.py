@@ -8,12 +8,12 @@ import os
 import subprocess
 import sys
 
-from telemetry.core import platform as platform_module
+from telemetry.core.backends.chrome import desktop_browser_backend
 from telemetry.core import browser
 from telemetry.core import exceptions
-from telemetry.core import possible_browser
-from telemetry.core.backends.chrome import desktop_browser_backend
+from telemetry.core import platform as platform_module
 from telemetry.core.platform import desktop_device
+from telemetry.core import possible_browser
 from telemetry.util import path
 
 

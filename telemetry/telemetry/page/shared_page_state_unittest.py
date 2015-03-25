@@ -8,9 +8,9 @@ import unittest
 from telemetry.core import browser_finder
 from telemetry.core import wpr_modes
 from telemetry.page import page
-from telemetry.page import shared_page_state
 from telemetry.page import page_set
 from telemetry.page import page_test
+from telemetry.page import shared_page_state
 from telemetry.unittest_util import options_for_unittests
 from telemetry import user_story
 from telemetry.user_story import user_story_runner

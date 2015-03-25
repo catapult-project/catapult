@@ -12,19 +12,19 @@ import socket
 import sys
 import urllib2
 
-from telemetry import decorators
-from telemetry.core import exceptions
-from telemetry.core import forwarders
-from telemetry.core import user_agent
-from telemetry.core import util
-from telemetry.core import web_contents
-from telemetry.core import wpr_modes
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import extension_backend
 from telemetry.core.backends.chrome import system_info_backend
 from telemetry.core.backends.chrome import tab_list_backend
 from telemetry.core.backends.chrome_inspector import devtools_client_backend
 from telemetry.core.backends.chrome_inspector import devtools_http
+from telemetry.core import exceptions
+from telemetry.core import forwarders
+from telemetry.core import user_agent
+from telemetry.core import util
+from telemetry.core import web_contents
+from telemetry.core import wpr_modes
+from telemetry import decorators
 from telemetry.unittest_util import options_for_unittests
 
 

@@ -4,8 +4,8 @@
 
 import unittest
 
-from telemetry.core.platform.power_monitor import sysfs_power_monitor
 from telemetry.core.platform import android_platform_backend
+from telemetry.core.platform.power_monitor import sysfs_power_monitor
 
 
 class SysfsPowerMonitorMonitorTest(unittest.TestCase):

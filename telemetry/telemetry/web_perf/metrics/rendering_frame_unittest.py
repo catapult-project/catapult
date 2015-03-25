@@ -5,8 +5,8 @@
 import unittest
 
 import telemetry.timeline.bounds as timeline_bounds
-import telemetry.timeline.slice as tracing_slice
 from telemetry.timeline import model
+import telemetry.timeline.slice as tracing_slice
 from telemetry.web_perf.metrics. \
     rendering_frame import GetFrameEventsInsideRange
 from telemetry.web_perf.metrics.rendering_frame import MissingData

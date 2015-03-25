@@ -8,8 +8,8 @@ import logging
 import socket
 import time
 
-from telemetry.core import exceptions
 from telemetry.core.backends.chrome_inspector import websocket
+from telemetry.core import exceptions
 
 class WebSocketDisconnected(exceptions.Error):
   """An attempt was made to use a web socket after it had been disconnected."""

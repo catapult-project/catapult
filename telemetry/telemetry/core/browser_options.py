@@ -14,10 +14,10 @@ from telemetry.core import browser_finder
 from telemetry.core import browser_finder_exceptions
 from telemetry.core import device_finder
 from telemetry.core import platform
+from telemetry.core.platform.profiler import profiler_finder
 from telemetry.core import profile_types
 from telemetry.core import util
 from telemetry.core import wpr_modes
-from telemetry.core.platform.profiler import profiler_finder
 
 util.AddDirToPythonPath(
     util.GetChromiumSrcDir(), 'third_party', 'webpagereplay')

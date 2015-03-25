@@ -5,9 +5,9 @@
 import os
 import unittest
 
-from telemetry import decorators
-from telemetry.core import util
 from telemetry.core.platform import linux_platform_backend
+from telemetry.core import util
+from telemetry import decorators
 
 class TestBackend(
     linux_platform_backend.LinuxPlatformBackend):

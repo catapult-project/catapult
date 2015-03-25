@@ -7,8 +7,8 @@ import logging
 import os
 import re
 
-from telemetry import decorators
 from telemetry.core.platform import power_monitor
+from telemetry import decorators
 
 
 CPU_PATH = '/sys/devices/system/cpu/'

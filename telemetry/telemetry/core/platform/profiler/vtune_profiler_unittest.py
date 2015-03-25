@@ -5,8 +5,8 @@
 import sys
 import unittest
 
-from telemetry import decorators
 from telemetry.core.platform.profiler import vtune_profiler
+from telemetry import decorators
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import simple_mock
 from telemetry.unittest_util import tab_test_case

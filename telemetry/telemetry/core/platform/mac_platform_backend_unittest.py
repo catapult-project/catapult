@@ -5,9 +5,9 @@
 import os
 import unittest
 
-from telemetry import decorators
 from telemetry.core import platform as platform_module
 from telemetry.core.platform import platform_backend
+from telemetry import decorators
 
 
 class MacPlatformBackendTest(unittest.TestCase):

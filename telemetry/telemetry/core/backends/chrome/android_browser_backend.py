@@ -7,15 +7,15 @@ import pipes
 import sys
 import time
 
-from telemetry.core import exceptions
-from telemetry.core import forwarders
-from telemetry.core import util
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends import android_command_line_backend
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
+from telemetry.core import exceptions
+from telemetry.core import forwarders
 from telemetry.core.platform import android_platform_backend as \
   android_platform_backend_module
+from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import device_errors  # pylint: disable=F0401

@@ -6,12 +6,12 @@ import logging
 import re
 import sys
 
-from telemetry import decorators
-from telemetry.core import exceptions
 from telemetry.core.backends.chrome_inspector import devtools_http
 from telemetry.core.backends.chrome_inspector import inspector_backend
 from telemetry.core.backends.chrome_inspector import tracing_backend
+from telemetry.core import exceptions
 from telemetry.core.platform.tracing_agent import chrome_tracing_agent
+from telemetry import decorators
 from telemetry.timeline import trace_data as trace_data_module
 
 

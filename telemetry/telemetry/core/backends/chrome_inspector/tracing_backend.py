@@ -6,10 +6,10 @@ import logging
 import socket
 import time
 
-from telemetry import decorators
 from telemetry.core.backends.chrome_inspector import inspector_websocket
 from telemetry.core.backends.chrome_inspector import websocket
 from telemetry.core.platform import tracing_options
+from telemetry import decorators
 from telemetry.timeline import trace_data as trace_data_module
 
 

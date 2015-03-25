@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import forwarders
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.webdriver import webdriver_tab_list_backend
+from telemetry.core import forwarders
 
 
 class WebDriverBrowserBackend(browser_backend.BrowserBackend):

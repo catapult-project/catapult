@@ -9,12 +9,12 @@ import random
 import sys
 import time
 
-from telemetry import page as page_module
 from telemetry.core import exceptions
 from telemetry.core import wpr_modes
+from telemetry import page as page_module
+from telemetry.page.actions import page_action
 from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
-from telemetry.page.actions import page_action
 from telemetry.results import results_options
 from telemetry.user_story import user_story_filter
 from telemetry.user_story import user_story_set as user_story_set_module

@@ -4,10 +4,10 @@
 
 import unittest
 
-from telemetry.timeline import model as model_module
 from telemetry.timeline import async_slice
-from telemetry.web_perf import timeline_interaction_record as tir_module
+from telemetry.timeline import model as model_module
 from telemetry.web_perf.metrics import mainthread_jank_stats
+from telemetry.web_perf import timeline_interaction_record as tir_module
 
 
 class MainthreadJankTests(unittest.TestCase):

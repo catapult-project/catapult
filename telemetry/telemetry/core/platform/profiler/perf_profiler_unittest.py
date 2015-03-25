@@ -5,8 +5,8 @@ import logging
 import os
 import unittest
 
-from telemetry.core import util
 from telemetry.core.platform.profiler import perf_profiler
+from telemetry.core import util
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import simple_mock
 

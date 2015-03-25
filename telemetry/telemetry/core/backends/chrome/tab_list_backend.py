@@ -2,10 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.core.backends.chrome_inspector import inspector_backend_list
 from telemetry.core import exceptions
 from telemetry.core import tab
 from telemetry.core import util
-from telemetry.core.backends.chrome_inspector import inspector_backend_list
 
 
 class TabUnexpectedResponseException(exceptions.Error):

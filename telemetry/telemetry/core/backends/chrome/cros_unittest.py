@@ -4,10 +4,10 @@
 
 import logging
 
-from telemetry import decorators
+from telemetry.core.backends.chrome import cros_test_case
 from telemetry.core import exceptions
 from telemetry.core import util
-from telemetry.core.backends.chrome import cros_test_case
+from telemetry import decorators
 
 
 class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):

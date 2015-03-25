@@ -6,11 +6,11 @@ import optparse
 import unittest
 
 from telemetry import benchmark
-from telemetry import page
-from telemetry import user_story
 from telemetry.core import browser_options
+from telemetry import page
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
+from telemetry import user_story
 from telemetry.user_story import android
 from telemetry.user_story import shared_user_story_state
 from telemetry.user_story import user_story_runner

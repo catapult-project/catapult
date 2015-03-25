@@ -12,10 +12,10 @@ import subprocess
 import sys
 import urllib2
 
-from telemetry import decorators
 from telemetry.core import platform
-from telemetry.core import possible_browser
 from telemetry.core.platform import trybot_device
+from telemetry.core import possible_browser
+from telemetry import decorators
 
 CHROMIUM_CONFIG_FILENAME = 'tools/run-perf-test.cfg'
 BLINK_CONFIG_FILENAME = 'Tools/run-perf-test.cfg'

@@ -5,17 +5,17 @@ import json
 import os
 import shutil
 import StringIO
-import unittest
 import tempfile
+import unittest
 
 from telemetry import benchmark
 from telemetry import page as page_module
 from telemetry.page import page_set
 from telemetry.results import json_output_formatter
 from telemetry.results import page_test_results
+from telemetry.timeline import trace_data
 from telemetry.value import scalar
 from telemetry.value import trace
-from telemetry.timeline import trace_data
 
 
 def _MakePageSet():

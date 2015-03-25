@@ -4,8 +4,8 @@
 
 """Wrappers for gsutil, for basic interaction with Google Cloud Storage."""
 
-import contextlib
 import collections
+import contextlib
 import cStringIO
 import hashlib
 import logging
@@ -15,8 +15,8 @@ import sys
 import tarfile
 import urllib2
 
-from telemetry import decorators
 from telemetry.core import util
+from telemetry import decorators
 from telemetry.util import path
 
 

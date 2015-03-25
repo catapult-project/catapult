@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from collections import defaultdict
 import csv
 import logging
-from collections import defaultdict
 
 from telemetry.core.platform.power_monitor import sysfs_power_monitor
 

@@ -4,12 +4,12 @@
 
 import unittest
 
-from telemetry.unittest_util import test_page_test_results
 from telemetry.timeline import async_slice as async_slice_module
-from telemetry.timeline import slice as slice_module
 from telemetry.timeline import model as model_module
-from telemetry.web_perf import timeline_interaction_record as tir_module
+from telemetry.timeline import slice as slice_module
+from telemetry.unittest_util import test_page_test_results
 from telemetry.web_perf.metrics import gpu_timeline
+from telemetry.web_perf import timeline_interaction_record as tir_module
 
 SERVICE_FRAME_END_CATEGORY, SERVICE_FRAME_END_NAME = \
     gpu_timeline.SERVICE_FRAME_END_MARKER

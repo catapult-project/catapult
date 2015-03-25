@@ -8,8 +8,8 @@ import sys
 import tempfile
 
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.core.platform import profiler
+from telemetry.core import util
 
 
 class _SingleProcessSampleProfiler(object):

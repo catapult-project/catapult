@@ -13,8 +13,8 @@ import cStringIO
 import struct
 import subprocess
 
-from telemetry.core import util
 from telemetry.core import platform
+from telemetry.core import util
 from telemetry.image_processing import histogram
 from telemetry.image_processing import rgba_color
 from telemetry.util import support_binaries

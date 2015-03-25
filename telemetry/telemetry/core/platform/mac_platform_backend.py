@@ -8,11 +8,11 @@ import platform
 import sys
 import time
 
-from telemetry import decorators
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
-from telemetry.core.platform import process_statistic_timeline_data
 from telemetry.core.platform.power_monitor import powermetrics_power_monitor
+from telemetry.core.platform import process_statistic_timeline_data
+from telemetry import decorators
 
 try:
   import resource  # pylint: disable=F0401

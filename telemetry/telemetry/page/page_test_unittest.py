@@ -6,8 +6,8 @@ import json
 import os
 import unittest
 
-from telemetry import decorators
 from telemetry.core import wpr_modes
+from telemetry import decorators
 from telemetry.page import page as page_module
 from telemetry.page import page_set
 from telemetry.page import page_test

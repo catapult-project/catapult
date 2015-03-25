@@ -6,11 +6,11 @@ import logging
 import os
 import unittest
 
-from telemetry import decorators
-from telemetry.image_processing import image_util
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core import video
+from telemetry import decorators
+from telemetry.image_processing import image_util
 
 
 class VideoTest(unittest.TestCase):

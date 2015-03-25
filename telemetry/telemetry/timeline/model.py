@@ -13,8 +13,8 @@ from telemetry.timeline import async_slice as async_slice_module
 from telemetry.timeline import bounds
 from telemetry.timeline import event_container
 from telemetry.timeline import inspector_importer
-from telemetry.timeline import slice as slice_module
 from telemetry.timeline import process as process_module
+from telemetry.timeline import slice as slice_module
 from telemetry.timeline import surface_flinger_importer
 from telemetry.timeline import tab_id_importer
 from telemetry.timeline import trace_data as trace_data_module

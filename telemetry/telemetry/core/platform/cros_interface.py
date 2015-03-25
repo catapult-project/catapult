@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 """A wrapper around ssh for common operations on a CrOS-based device"""
 import logging
-import re
 import os
+import re
 import shutil
 import socket
 import stat

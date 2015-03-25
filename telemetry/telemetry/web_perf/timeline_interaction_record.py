@@ -4,8 +4,8 @@
 
 import re
 
-import telemetry.timeline.bounds as timeline_bounds
 from telemetry import decorators
+import telemetry.timeline.bounds as timeline_bounds
 
 # Allows multiple duplicate interactions of the same type
 REPEATABLE = 'repeatable'

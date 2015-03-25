@@ -4,8 +4,8 @@
 
 import unittest
 
-from telemetry.core import wpr_modes
 from telemetry.core.backends.chrome import chrome_browser_backend
+from telemetry.core import wpr_modes
 
 
 class FakePlatformBackend(object):

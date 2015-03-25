@@ -10,10 +10,10 @@ import shutil
 import tempfile
 import xml.parsers.expat
 
-from telemetry import decorators
-from telemetry.core import util
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import power_monitor
+from telemetry.core import util
+from telemetry import decorators
 
 
 class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):

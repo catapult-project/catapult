@@ -2,11 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import decorators
-from telemetry.core import platform
-from telemetry.core import web_contents
 from telemetry.core.backends import app_backend
+from telemetry.core import platform
 from telemetry.core.platform import profiling_controller_backend
+from telemetry.core import web_contents
+from telemetry import decorators
 
 
 class ExtensionsNotSupportedException(Exception):

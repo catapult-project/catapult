@@ -3,9 +3,9 @@
 # found in the LICENSE file.
 
 import os
-import unittest
 import shutil
 import tempfile
+import unittest
 
 from telemetry.util import file_handle
 

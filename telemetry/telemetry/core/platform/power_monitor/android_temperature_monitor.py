@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import util
 from telemetry.core.platform import power_monitor
+from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:

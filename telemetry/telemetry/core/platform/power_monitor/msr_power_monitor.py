@@ -6,8 +6,8 @@ import logging
 import platform
 import re
 
-from telemetry import decorators
 from telemetry.core.platform import power_monitor
+from telemetry import decorators
 
 
 MSR_RAPL_POWER_UNIT = 0x606

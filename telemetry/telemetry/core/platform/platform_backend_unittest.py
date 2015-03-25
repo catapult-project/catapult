@@ -6,8 +6,8 @@ import logging
 import time
 import unittest
 
-from telemetry import decorators
 from telemetry.core import platform as platform_module
+from telemetry import decorators
 
 
 class PlatformBackendTest(unittest.TestCase):

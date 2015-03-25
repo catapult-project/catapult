@@ -8,10 +8,10 @@ import logging
 import re
 import urllib2
 
-from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core.backends.chrome import system_info_backend
+from telemetry.core import exceptions
+from telemetry.core import util
 
 
 class IosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):

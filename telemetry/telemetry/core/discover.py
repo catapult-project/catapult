@@ -7,8 +7,8 @@ import inspect
 import os
 import re
 
-from telemetry import decorators
 from telemetry.core import camel_case
+from telemetry import decorators
 
 
 @decorators.Cache

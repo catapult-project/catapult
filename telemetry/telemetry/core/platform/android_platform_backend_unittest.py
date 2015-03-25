@@ -4,11 +4,11 @@
 
 import unittest
 
-from telemetry import decorators
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform_backend
-from telemetry.unittest_util import system_stub
+from telemetry import decorators
 from telemetry.unittest_util import options_for_unittests
+from telemetry.unittest_util import system_stub
 
 
 class AndroidPlatformBackendTest(unittest.TestCase):

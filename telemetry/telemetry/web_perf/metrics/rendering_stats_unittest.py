@@ -5,9 +5,9 @@
 import random
 import unittest
 
+from telemetry.perf_tests_helper import FlattenList
 import telemetry.timeline.async_slice as tracing_async_slice
 import telemetry.timeline.bounds as timeline_bounds
-from telemetry.perf_tests_helper import FlattenList
 from telemetry.timeline import model
 from telemetry.util.statistics import DivideIfPossibleOrZero
 from telemetry.web_perf.metrics.rendering_stats import (

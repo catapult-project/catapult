@@ -5,8 +5,8 @@
 import os
 import unittest
 
-from telemetry import user_story as user_story_module
 from telemetry.results import user_story_run
+from telemetry import user_story as user_story_module
 from telemetry.user_story import shared_user_story_state
 from telemetry.user_story import user_story_set
 from telemetry.value import failure

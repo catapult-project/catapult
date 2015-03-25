@@ -6,11 +6,11 @@ import logging
 import os
 import unittest
 
-from telemetry import decorators
-from telemetry.core import util
 from telemetry.core.platform import mac_platform_backend
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform.power_monitor import powermetrics_power_monitor
+from telemetry.core import util
+from telemetry import decorators
 
 
 def _parsePowerMetricsDataFromTestFile(output_file):

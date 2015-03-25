@@ -5,8 +5,8 @@
 import os
 
 from telemetry.core import discover
-from telemetry.core import util
 from telemetry.core.platform import profiler
+from telemetry.core import util
 
 
 def _DiscoverProfilers():

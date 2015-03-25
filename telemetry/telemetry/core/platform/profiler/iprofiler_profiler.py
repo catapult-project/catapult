@@ -7,8 +7,8 @@ import signal
 import sys
 
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.core.platform import profiler
+from telemetry.core import util
 
 # pexpect is not available on all platforms so use the third_party version.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'third_party', 'pexpect')

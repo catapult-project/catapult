@@ -5,8 +5,8 @@ import logging
 import os
 import unittest
 
-from telemetry.core import util
 from telemetry.core.platform import linux_based_platform_backend
+from telemetry.core import util
 
 
 class TestBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):

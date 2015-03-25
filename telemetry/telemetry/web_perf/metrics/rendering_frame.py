@@ -4,8 +4,8 @@
 
 from collections import defaultdict
 
-from telemetry.timeline import slice as slice_module
 from telemetry.timeline import bounds
+from telemetry.timeline import slice as slice_module
 
 
 class MissingData(Exception):

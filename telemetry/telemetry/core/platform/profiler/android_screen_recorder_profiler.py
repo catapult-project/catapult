@@ -5,9 +5,9 @@
 import os
 import subprocess
 
-from telemetry.core import util
 from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.platform import profiler
+from telemetry.core import util
 
 
 class AndroidScreenRecordingProfiler(profiler.Profiler):

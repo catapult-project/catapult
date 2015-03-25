@@ -5,14 +5,14 @@
 import logging
 import tempfile
 
+from telemetry.core import exceptions
+from telemetry.core.platform import tracing_category_filter
+from telemetry.core.platform import tracing_options
+from telemetry.core import util
+from telemetry.core import video
 from telemetry import decorators
 from telemetry.image_processing import image_util
 from telemetry.image_processing import rgba_color
-from telemetry.core import exceptions
-from telemetry.core import util
-from telemetry.core import video
-from telemetry.core.platform import tracing_category_filter
-from telemetry.core.platform import tracing_options
 from telemetry.timeline import model
 from telemetry.unittest_util import tab_test_case
 

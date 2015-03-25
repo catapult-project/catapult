@@ -11,10 +11,10 @@ import re
 import shutil
 import subprocess
 
-from telemetry import decorators
 from telemetry.core import platform as telemetry_platform
-from telemetry.core import util
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
+from telemetry.core import util
+from telemetry import decorators
 from telemetry.util import support_binaries
 
 try:

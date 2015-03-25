@@ -14,10 +14,10 @@ import sys
 import tempfile
 import time
 
-from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
+from telemetry.core import exceptions
+from telemetry.core import util
 from telemetry.util import path
 from telemetry.util import support_binaries
 

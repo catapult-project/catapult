@@ -4,9 +4,9 @@
 
 import unittest
 
+from telemetry.timeline import async_slice
 from telemetry.timeline import model as model_module
 from telemetry.timeline import slice as slice_module
-from telemetry.timeline import async_slice
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
 

@@ -7,9 +7,9 @@ try:
 except ImportError:
   resource = None  # Not available on all platforms
 
-from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core.platform import platform_backend
+from telemetry import decorators
 
 
 class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):

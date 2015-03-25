@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import time
 import logging
+import time
 import urlparse
 
 from telemetry.page.actions.drag import DragAction

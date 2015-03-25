@@ -9,10 +9,10 @@ import socket
 import struct
 import subprocess
 
+from telemetry.core.backends import adb_commands
 from telemetry.core import forwarders
 from telemetry.core import platform
 from telemetry.core import util
-from telemetry.core.backends import adb_commands
 from telemetry.util import support_binaries
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')

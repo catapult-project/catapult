@@ -6,8 +6,8 @@ import math
 import sys
 
 from telemetry.timeline import model as model_module
-from telemetry.value import scalar
 from telemetry.value import list_of_scalar_values
+from telemetry.value import scalar
 from telemetry.web_perf.metrics import timeline_based_metric
 
 TOPLEVEL_GL_CATEGORY = 'gpu_toplevel'

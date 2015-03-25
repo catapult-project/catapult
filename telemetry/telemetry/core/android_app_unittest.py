@@ -8,8 +8,8 @@ import unittest
 
 from pylib.device import intent
 from telemetry.core import android_app
-from telemetry.core import platform as platform_module
 from telemetry.core.backends import android_app_backend
+from telemetry.core import platform as platform_module
 from telemetry.core.platform import android_device
 from telemetry.unittest_util import options_for_unittests
 

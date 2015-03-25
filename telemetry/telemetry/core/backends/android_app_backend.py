@@ -6,12 +6,12 @@ import re
 import time
 
 from telemetry.core import android_process
-from telemetry.core import util
-from telemetry.core import web_contents
 from telemetry.core.backends import adb_commands
-from telemetry.core.backends import app_backend
 from telemetry.core.backends import android_browser_backend_settings
 from telemetry.core.backends import android_command_line_backend
+from telemetry.core.backends import app_backend
+from telemetry.core import util
+from telemetry.core import web_contents
 
 
 class AndroidAppBackend(app_backend.AppBackend):

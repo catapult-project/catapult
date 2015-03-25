@@ -9,19 +9,19 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir))
-sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir,
-                             'perf'))
-
 from telemetry.page import page as page_module
+from telemetry.results import buildbot_output_formatter
+from telemetry.results import page_test_results
 from telemetry.timeline import model
 from telemetry.timeline import tracing_timeline_data
-from telemetry.results import page_test_results
-from telemetry.results import buildbot_output_formatter
-from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import smoothness
+from telemetry.web_perf import timeline_interaction_record as tir_module
+
+sys.path.append(os.path.join(
+  os.path.dirname(__file__), os.pardir, os.pardir, 'perf'))
 # pylint: disable=F0401
-from measurements import smoothness_controller
 from measurements import smooth_gesture_util
+from measurements import smoothness_controller
 
 
 def _ExtractInteractionsRecordFromThread(thread, timeline_model):

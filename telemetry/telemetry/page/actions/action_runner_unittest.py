@@ -2,10 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
+from telemetry import decorators
 from telemetry.page.actions import action_runner as action_runner_module
 from telemetry.page.actions import page_action
 from telemetry.timeline import model

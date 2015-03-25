@@ -4,8 +4,8 @@
 
 import unittest
 
-from telemetry.core import browser_options
 from telemetry.core.backends.chrome import android_browser_finder
+from telemetry.core import browser_options
 from telemetry.unittest_util import system_stub
 
 

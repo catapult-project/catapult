@@ -5,8 +5,8 @@ import os
 import unittest
 
 from telemetry import page as page_module
-from telemetry import value
 from telemetry.page import page_set
+from telemetry import value
 from telemetry.value import list_of_string_values
 from telemetry.value import none_values
 

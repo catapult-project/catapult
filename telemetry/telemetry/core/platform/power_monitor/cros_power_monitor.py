@@ -5,8 +5,8 @@
 import collections
 import re
 
-from telemetry import decorators
 from telemetry.core.platform.power_monitor import sysfs_power_monitor
+from telemetry import decorators
 
 
 class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):

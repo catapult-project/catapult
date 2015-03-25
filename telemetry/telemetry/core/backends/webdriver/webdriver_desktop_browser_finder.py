@@ -7,12 +7,12 @@ import logging
 import os
 import sys
 
+from telemetry.core.backends.webdriver import webdriver_ie_backend
 from telemetry.core import browser
 from telemetry.core import platform as platform_module
+from telemetry.core.platform import desktop_device
 from telemetry.core import possible_browser
 from telemetry.core import util
-from telemetry.core.backends.webdriver import webdriver_ie_backend
-from telemetry.core.platform import desktop_device
 from telemetry.util import support_binaries
 
 # Try to import the selenium python lib which may be not available.

@@ -4,8 +4,8 @@
 import logging
 import os
 
-from telemetry.unittest_util import run_tests
 from telemetry.core import util
+from telemetry.unittest_util import run_tests
 
 
 def RunTestsForChromeOS(browser_type, unit_tests, perf_tests):

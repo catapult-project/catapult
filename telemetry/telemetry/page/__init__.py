@@ -6,8 +6,8 @@ import logging
 import os
 import urlparse
 
-from telemetry import user_story
 from telemetry.page import shared_page_state
+from telemetry import user_story
 from telemetry.util import cloud_storage
 from telemetry.util import path
 

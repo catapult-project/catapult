@@ -5,9 +5,9 @@
 import logging
 import unittest
 
-from telemetry import decorators
-from telemetry.core.platform import win_platform_backend
 from telemetry.core.platform.power_monitor import ippet_power_monitor
+from telemetry.core.platform import win_platform_backend
+from telemetry import decorators
 
 
 class IppetPowerMonitorTest(unittest.TestCase):
