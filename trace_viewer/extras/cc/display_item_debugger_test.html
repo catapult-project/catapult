@@ -30,12 +30,12 @@ tv.b.unittest.testSuite(function() {
 
     var dbg = new tv.e.cc.DisplayItemDebugger();
     this.addHTMLOutput(dbg);
-    assertEquals(dbg.displayItemList_, undefined);
-    assertEquals(dbg.picture_, undefined);
+    assert.isUndefined(dbg.displayItemList_);
+    assert.isUndefined(dbg.picture_);
     dbg.displayItemList = displayItemList;
-    assertTrue(dbg.displayItemList_ !== undefined);
-    assertTrue(dbg.picture_ !== undefined);
-    assertEquals(dbg.displayItemList_.items.length, 2);
+    assert.isDefined(dbg.displayItemList_);
+    assert.isDefined(dbg.picture_);
+    assert.equal(dbg.displayItemList_.items.length, 2);
     dbg.style.border = '1px solid black';
   });
 
@@ -61,29 +61,29 @@ tv.b.unittest.testSuite(function() {
     var dbg = new tv.e.cc.DisplayItemDebugger();
     this.addHTMLOutput(dbg);
     dbg.displayItemList = displayItemList;
-    assertTrue(dbg.displayItemList_ !== undefined);
-    assertTrue(dbg.picture_ !== undefined);
-    assertEquals(dbg.displayItemList_.items.length, 5);
+    assert.isDefined(dbg.displayItemList_);
+    assert.isDefined(dbg.picture_);
+    assert.equal(dbg.displayItemList_.items.length, 5);
 
     var initialPicture = dbg.picture_;
-    assertTrue(initialPicture.guid > 0);
+    assert.isAbove(initialPicture.guid, 0);
 
     // Select the drawing display item and make sure the picture updates.
     var listView = dbg.displayItemListView_;
     listView.selectedElement = listView.getElementByIndex(3);
     var updatedPicture = dbg.picture_;
-    assertTrue(updatedPicture.guid > 0);
-    assertNotEquals(initialPicture.guid, updatedPicture.guid);
+    assert.isAbove(updatedPicture.guid, 0);
+    assert.notEqual(initialPicture.guid, updatedPicture.guid);
 
     // Select the TransformDisplayItem and make sure the picture is blank.
     listView.selectedElement = listView.getElementByIndex(2);
-    assertTrue(dbg.picture_ === undefined);
+    assert.isUndefined(dbg.picture_);
 
     // Deselect a list item and make sure the picture is reset to the original.
     listView.selectedElement = undefined;
     updatedPicture = dbg.picture_;
-    assertTrue(updatedPicture.guid > 0);
-    assertEquals(initialPicture.guid, updatedPicture.guid);
+    assert.isAbove(updatedPicture.guid, 0);
+    assert.equal(initialPicture.guid, updatedPicture.guid);
 
     dbg.style.border = '1px solid black';
   });

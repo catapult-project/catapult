@@ -22,7 +22,7 @@ tv.b.unittest.testSuite(function() {
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
     var snapshot = instance.snapshots[0];
 
-    assertTrue(snapshot instanceof tv.e.cc.LayerTreeHostImplSnapshot);
+    assert.instanceOf(snapshot, tv.e.cc.LayerTreeHostImplSnapshot);
   });
 });
 </script>

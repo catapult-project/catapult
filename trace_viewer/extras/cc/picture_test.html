@@ -23,7 +23,7 @@ tv.b.unittest.testSuite(function() {
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
     var snapshot = instance.snapshots[0];
 
-    assertTrue(snapshot instanceof tv.e.cc.PictureSnapshot);
+    assert.instanceOf(snapshot, tv.e.cc.PictureSnapshot);
     instance.wasDeleted(150);
   });
 
@@ -37,11 +37,11 @@ tv.b.unittest.testSuite(function() {
     var ops = snapshot.getOps();
     if (!ops)
       return;
-    assertEquals(142, ops.length);
+    assert.equal(142, ops.length);
 
     var op0 = ops[0];
-    assertEquals('Save', op0.cmd_string);
-    assertTrue(op0.info instanceof Array);
+    assert.equal('Save', op0.cmd_string);
+    assert.instanceOf(op0.info, Array);
   });
 });
 </script>

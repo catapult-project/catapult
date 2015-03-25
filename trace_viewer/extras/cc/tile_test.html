@@ -23,7 +23,7 @@ tv.b.unittest.testSuite(function() {
     var instance = p.objects.getAllInstancesNamed('cc::Tile')[0];
     var snapshot = instance.snapshots[0];
 
-    assertTrue(snapshot instanceof tv.e.cc.TileSnapshot);
+    assert.instanceOf(snapshot, tv.e.cc.TileSnapshot);
   });
 });
 </script>

@@ -29,7 +29,7 @@ tv.b.unittest.testSuite(function() {
 
     var view = new PictureOpsListView();
     view.picture = snapshot;
-    assertEquals(142, view.opsList_.children.length);
+    assert.equal(142, view.opsList_.children.length);
   });
 
   test('selection', function() {
@@ -47,9 +47,9 @@ tv.b.unittest.testSuite(function() {
     view.addEventListener('selection-changed', function() {
       didSelectionChange = true;
     });
-    assertFalse(didSelectionChange);
+    assert.isFalse(didSelectionChange);
     view.opsList_.selectedElement = view.opsList_.children[3];
-    assertTrue(didSelectionChange);
+    assert.isTrue(didSelectionChange);
   });
 
 });

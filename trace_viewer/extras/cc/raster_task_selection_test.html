@@ -24,10 +24,10 @@ tv.b.unittest.testSuite(function() {
     selection.push(rasterTasks[0]);
     selection.push(rasterTasks[1]);
 
-    assertTrue(tv.e.cc.RasterTaskSelection.supports(selection));
+    assert.isTrue(tv.e.cc.RasterTaskSelection.supports(selection));
     var selection = new tv.e.cc.RasterTaskSelection(selection);
     var highlights = selection.extraHighlightsByLayerId;
-    assertTrue(tv.b.dictionaryLength(highlights), 1);
+    assert.equal(tv.b.dictionaryLength(highlights), 1);
   });
 });
 </script>

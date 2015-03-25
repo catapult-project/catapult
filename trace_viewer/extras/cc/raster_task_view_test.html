@@ -40,7 +40,7 @@ tv.b.unittest.testSuite(function() {
     var selection = createSelection();
     var view = new TracingAnalysisView();
     view.selection = selection;
-    assertNotUndefined(view.querySelector('RasterTaskView'));
+    assert.isDefined(view.querySelector('RasterTaskView'));
     this.addHTMLOutput(view);
   });
 });

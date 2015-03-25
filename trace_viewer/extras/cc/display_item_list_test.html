@@ -23,7 +23,7 @@ tv.b.unittest.testSuite(function() {
     var instance = p.objects.getAllInstancesNamed('cc::DisplayItemList')[0];
     var snapshot = instance.snapshots[0];
 
-    assertTrue(snapshot instanceof tv.e.cc.DisplayItemListSnapshot);
+    assert.instanceOf(snapshot, tv.e.cc.DisplayItemListSnapshot);
     instance.wasDeleted(150);
   });
 
@@ -35,10 +35,10 @@ tv.b.unittest.testSuite(function() {
     var snapshot = instance.snapshots[0];
 
     var items = snapshot.items;
-    assertEquals(2, items.length);
+    assert.equal(2, items.length);
 
-    assertEquals('BeginClipDisplayItem', items[0]);
-    assertEquals('EndClipDisplayItem', items[1]);
+    assert.equal('BeginClipDisplayItem', items[0]);
+    assert.equal('EndClipDisplayItem', items[1]);
   });
 });
 </script>
