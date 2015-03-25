@@ -1940,6 +1940,57 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(2, m.flowIntervalTree.size);
   });
 
+  // This test creates a flow event that stops on the same timestamp that
+  // the 'X' event which it triggers begins.
+  test('importFlowEventOverlaps', function () {
+    var events = [
+      { name: 'PostTask', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
+      { name: 'PostTask', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {} },  // @suppress longLineCheck
+      { name: 'PostTask', cat: 'foo', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', args: { 'queue_duration': 0 } },   // @suppress longLineCheck
+      // Note that RunTask has the same time-stamp as PostTask 'f'
+      { name: 'RunTask',  cat: 'foo',         pid: 70, tid: 71, ts: 580, ph: 'X', args: {'src_func' : 'PostRunTask'}, 'dur' : 1000 }   // @suppress longLineCheck
+    ];
+
+    var m = new tv.c.TraceModel(events);
+    var startT = m.processes[52].threads[53];
+    var endT = m.processes[70].threads[71];
+
+    assert.isDefined(startT);
+    assert.equal(2, startT.sliceGroup.slices.length);
+
+    assert.isDefined(endT);
+    assert.equal(2, endT.sliceGroup.slices.length);
+
+    assert.equal(2, m.flowEvents.length);
+
+    // m.flowEvents[0] represents 's' to 't'
+    var start = m.flowEvents[0][0];
+    var step = m.flowEvents[0][1];
+    // m.flowEvents[1] represents 't' to 'f'
+    assert.equal(step.start, m.flowEvents[1][0].start)
+    var finish = m.flowEvents[1][1];
+
+    assert.equal('PostTask', start.title);
+    assert.equal('foo', start.category);
+    assert.equal(72, start.id);
+    assert.equal(0, start.start);
+    assert.equal(0, start.duration);
+
+    assert.equal(start.title, step.title);
+    assert.equal(start.category, step.category);
+    assert.equal(start.id, step.id);
+    assert.closeTo(12 / 1000, step.start, 1e-5);
+    assert.equal(0, step.duration);
+
+    assert.equal(start.title, finish.title);
+    assert.equal(start.category, finish.category);
+    assert.equal(start.id, finish.id);
+    assert.closeTo((20 + 12) / 1000, finish.start, 1e-5);
+    assert.equal(0, finish.duration);
+
+    assert.equal(2, m.flowIntervalTree.size);
+  });
+
   test('importOutOfOrderFlowEvent', function() {
     var events = [
       { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
