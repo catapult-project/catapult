@@ -1464,10 +1464,104 @@ tv.exportTo('tv.e.importer', function() {
             continue;
           }
 
+          var dumps = processEvent.args.dumps;
+          if (dumps === undefined) {
+            this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'dumps not found in process memory dump for ' +
+                    'pid=' + pid + ' and dump id=' + id + '.'
+            });
+            continue;
+          }
+
           var process = this.model_.getOrCreateProcess(pid);
           var processMemoryDump = new tv.c.trace_model.ProcessMemoryDump(
-              globalMemoryDump, process, processEvent.ts,
-              this.deepCopyIfNeeded_(processEvent.args));
+              globalMemoryDump, process, processEvent.ts);
+
+          // Parse the totals, which are mandatory.
+          if (dumps.process_totals === undefined ||
+              dumps.process_totals.resident_set_bytes === undefined) {
+            this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'Mandatory field resident_set_bytes not found in' +
+                    ' process memory dump for pid=' + pid +
+                    ' and dump id=' + id + '.'
+            });
+            continue;
+          }
+          processMemoryDump.totalResidentBytes = parseInt(
+              dumps.process_totals.resident_set_bytes, 16);
+
+          // Populate the vmRegions, if present.
+          if (dumps.process_mmaps && dumps.process_mmaps.vm_regions) {
+            processMemoryDump.vmRegions = dumps.process_mmaps.vm_regions.map(
+              function(rawRegion) {
+                // See //base/trace_event/process_memory_maps.cc in Chromium.
+                var byteStats = new tv.c.trace_model.VMRegionByteStats(
+                    parseInt(rawRegion.bs.prv, 16),  // privateResident
+                    parseInt(rawRegion.bs.shr, 16),  // sharedResident
+                    parseInt(rawRegion.bs.pss, 16)  // proportionalResident
+                );
+                return new tv.c.trace_model.VMRegion(
+                    parseInt(rawRegion.sa, 16),  // startAddress
+                    parseInt(rawRegion.sz, 16),  // sizeInBytes
+                    rawRegion.pf,  // protectionFlags
+                    rawRegion.mf,  // mappedFile
+                    byteStats
+                );
+              }
+            );
+          }
+
+          // Populate the allocator dumps, if present, in two passes.
+          if (dumps.allocators !== undefined) {
+            // 1) Construct the MemoryAllocatorDump objects without parent links
+            //    and add them to the memoryAllocatorDumpsByFullName index.
+            tv.b.iterItems(dumps.allocators, function(fullName, rawDump) {
+              var allocatorDump = new tv.c.trace_model.MemoryAllocatorDump(
+                  fullName,
+                  parseInt(rawDump.physical_size_in_bytes, 16),
+                  parseInt(rawDump.allocated_objects_count, 16),
+                  parseInt(rawDump.allocated_objects_size_in_bytes, 16)
+              );
+              processMemoryDump.memoryAllocatorDumpsByFullName[fullName] =
+                  allocatorDump;
+            }, this);
+
+            // 2) Find the roots allocator dumps and establish the parent links.
+            var fullNames = Object.keys(dumps.allocators);
+            fullNames.sort();
+            fullNames.forEach(function(fullName) {
+              var allocatorDump =
+                  processMemoryDump.memoryAllocatorDumpsByFullName[fullName];
+              var rawDump = dumps.allocators[fullName];
+              var parentFullName = rawDump.parent;
+              if (parentFullName === undefined) {
+                // If the dump is a root, add it to the top-level
+                // memoryAllocatorDumps list of the processMemoryDump.
+                processMemoryDump.memoryAllocatorDumps.push(allocatorDump);
+                return;
+              }
+              // If the dump is not a root, find its parent and setup the
+              // parent <-> children relationships.
+              var parentAllocatorDump =
+                  processMemoryDump.memoryAllocatorDumpsByFullName[
+                      parentFullName];
+              if (parentAllocatorDump === undefined) {
+                this.model_.importWarning({
+                    type: 'memory_dump_parse_error',
+                    message: 'The allocator dump ' + rawDump.fullName +
+                        ' refers to an invalid parent ' + parentFullName +
+                        ' in the process memory dump id=' + id +
+                        ' for pid=' + pid + '.'
+                });
+                return;
+              }
+              allocatorDump.parent = parentAllocatorDump;
+              allocatorDump.parent.children.push(allocatorDump);
+            }, this);
+          }
+
           process.memoryDumps.push(processMemoryDump);
           globalMemoryDump.processMemoryDumps[pid] = processMemoryDump;
         }

@@ -2243,14 +2243,68 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(1, m.samples[0].weight);
   });
 
-  test('importMemoryDumps', function() {
+  test('importMemoryDumps_verifyProcessAndGlobalDumpLinks', function() {
     var events = [
       // 2 process memory dump events without a global memory dump event.
-      {name: 'a', pid: 42, ts: 10, cat: 'test', tid: 53, ph: 'v', 'id': 'dump1', args: {}},  // @suppress longLineCheck
-      {name: 'b', pid: 43, ts: 11, cat: 'test', tid: 54, ph: 'v', 'id': 'dump1', args: {}},  // @suppress longLineCheck
+      {
+        name: 'a',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '100'
+            }
+          }
+        }
+      },
+      {
+        name: 'b',
+        pid: 43,
+        ts: 11,
+        cat: 'test',
+        tid: 54,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '200'
+            }
+          }
+        }
+      },
       // 1 global memory dump event and 1 process memory dump event.
-      {name: 'c', pid: 44, ts: 12, cat: 'test', tid: 55, ph: 'V', 'id': 'dump2', args: {}},  // @suppress longLineCheck
-      {name: 'd', pid: 42, ts: 13, cat: 'test', tid: 56, ph: 'v', 'id': 'dump2', args: {}}  // @suppress longLineCheck
+      {
+        name: 'c',
+        pid: 44,
+        ts: 12,
+        cat: 'test',
+        tid: 55,
+        ph: 'V',
+        id: '0xfffffff12345678',
+        args: {}
+      },
+      {
+        name: 'd',
+        pid: 42,
+        ts: 13,
+        cat: 'test',
+        tid: 56,
+        ph: 'v',
+        id: '0xfffffff12345678',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '300'
+            }
+          }
+        }
+      }
     ];
     var m = new tv.c.TraceModel(events, false);
     var p1 = m.getProcess(42);
@@ -2287,6 +2341,208 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(m.globalMemoryDumps[1].processMemoryDumps[42],
         p1.memoryDumps[1]);
     assert.equal(m.globalMemoryDumps[1], p1.memoryDumps[1].globalMemoryDump);
+  });
+
+  test('importMemoryDumps_totalResidentBytesOnly', function() {
+    var events = [
+      {
+        name: 'some_dump_name',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x01',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '1fffffffffffff'
+            }
+          }
+        }
+      }
+    ];
+    var m = new tv.c.TraceModel(events, false);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(9007199254740991, d.totalResidentBytes);
+    assert.isUndefined(d.vmRegions);
+    assert.equal(0, d.memoryAllocatorDumps.length);
+    assert.equal(0, Object.keys(d.memoryAllocatorDumpsByFullName).length);
+  });
+
+  test('importMemoryDumps_vmRegions', function() {
+    var events = [
+      {
+        name: 'some_dump_name',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '000',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '0'
+            },
+            process_mmaps: {
+              vm_regions: [
+                {
+                  sa: 'f0',
+                  sz: '150',
+                  pf: 6,
+                  mf: '[stack:20310]',
+                  bs: {
+                    pss: '9e',
+                    prv: '60',
+                    shr: '50'
+                  }
+                },
+                {
+                  sa: '350',
+                  sz: '250',
+                  pf: 5,
+                  mf: '/dev/ashmem/dalvik',
+                  bs: {
+                    pss: 'cd',
+                    prv: 'cd',
+                    shr: '0'
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ];
+    var m = new tv.c.TraceModel(events, false);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(2, d.vmRegions.length);
+
+    var vr1 = d.vmRegions[0];
+    assert.equal(240, vr1.startAddress);
+    assert.equal(336, vr1.sizeInBytes);
+    assert.equal(6, vr1.protectionFlags);
+    assert.equal('rw-', vr1.protectionFlagsToString);
+    assert.equal('[stack:20310]', vr1.mappedFile);
+    assert.equal(96, vr1.byteStats.privateResident);
+    assert.equal(80, vr1.byteStats.sharedResident);
+    assert.equal(158, vr1.byteStats.proportionalResident);
+    assert.equal(176, vr1.byteStats.totalResident);
+
+    var vr2 = d.vmRegions[1];
+    assert.equal(848, vr2.startAddress);
+    assert.equal(592, vr2.sizeInBytes);
+    assert.equal(5, vr2.protectionFlags);
+    assert.equal('r-x', vr2.protectionFlagsToString);
+    assert.equal('/dev/ashmem/dalvik', vr2.mappedFile);
+    assert.equal(205, vr2.byteStats.privateResident);
+    assert.equal(0, vr2.byteStats.sharedResident);
+    assert.equal(205, vr2.byteStats.proportionalResident);
+    assert.equal(205, vr2.byteStats.totalResident);
+
+    assert.equal(0, d.totalResidentBytes);
+    assert.equal(0, d.memoryAllocatorDumps.length);
+    assert.equal(0, Object.keys(d.memoryAllocatorDumpsByFullName).length);
+  });
+
+  test('importMemoryDumps_allocatorMemoryDumps', function() {
+    var events = [
+      {
+        name: 'a',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '100'
+            },
+            allocators: {
+              'oilpan': {
+                allocated_objects_count: '2f',
+                allocated_objects_size_in_bytes: '1000',
+                physical_size_in_bytes: '4000',
+                args: {}
+              },
+              'oilpan/heap1': {
+                parent: 'oilpan',
+                allocated_objects_count: '3f',
+                allocated_objects_size_in_bytes: '3000',
+                physical_size_in_bytes: '4000',
+                args: {}
+              },
+              'oilpan/heap2': {
+                parent: 'oilpan',
+                allocated_objects_count: '4f',
+                allocated_objects_size_in_bytes: '4000',
+                physical_size_in_bytes: '4000',
+                args: {}
+              },
+              'oilpan/heap2/bucket1': {
+                parent: 'oilpan/heap2',
+                allocated_objects_count: '1f',
+                allocated_objects_size_in_bytes: '2000',
+                physical_size_in_bytes: '2000',
+                args: {}
+              },
+              'v8': {
+                allocated_objects_count: '5f',
+                allocated_objects_size_in_bytes: '5000',
+                physical_size_in_bytes: '6000',
+                args: {}
+              }
+            }
+          }
+        }
+      }
+    ];
+    var m = new tv.c.TraceModel(events, false);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(5, Object.keys(d.memoryAllocatorDumpsByFullName).length);
+    assert.equal(2, d.memoryAllocatorDumps.length);
+
+    var oilpanRoot = d.memoryAllocatorDumpsByFullName['oilpan'];
+    var v8Root = d.memoryAllocatorDumpsByFullName['v8'];
+    assert.isDefined(oilpanRoot);
+    assert.isDefined(v8Root);
+    assert.include(d.memoryAllocatorDumps, oilpanRoot);
+    assert.include(d.memoryAllocatorDumps, v8Root);
+
+    assert.equal(47, oilpanRoot.allocatedObjectsCount);
+    assert.equal(16384, oilpanRoot.physicalSizeInBytes);
+    assert.equal(4096, oilpanRoot.allocatedObjectsSizeInBytes);
+    assert.equal(2, oilpanRoot.children.length);
+
+    var oilpanBucket1 = d.memoryAllocatorDumpsByFullName[
+        'oilpan/heap2/bucket1'];
+    assert.isDefined(oilpanBucket1);
+    assert.equal('oilpan/heap2/bucket1', oilpanBucket1.fullName);
+    assert.equal('bucket1', oilpanBucket1.name);
+    assert.equal(31, oilpanBucket1.allocatedObjectsCount);
+    assert.equal(8192, oilpanBucket1.physicalSizeInBytes);
+    assert.equal(8192, oilpanBucket1.allocatedObjectsSizeInBytes);
+    assert.equal(0, oilpanBucket1.children.length);
+
+    assert.isDefined(oilpanBucket1.parent);
+    assert.equal('oilpan/heap2', oilpanBucket1.parent.fullName);
+    assert.equal('heap2', oilpanBucket1.parent.name);
+    assert.include(oilpanBucket1.parent.children, oilpanBucket1);
+
+    assert.isDefined(oilpanBucket1.parent.parent);
+    assert.strictEqual(oilpanRoot, oilpanBucket1.parent.parent);
+
+    assert.equal(256, d.totalResidentBytes);
+    assert.isUndefined(d.vmRegions);
   });
 
   test('importThreadInstantSliceWithStackFrame', function() {
