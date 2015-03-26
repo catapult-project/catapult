@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/polymer_utils.html">
 <link rel="import" href="/extras/tquery/tquery.html">
 
 /**
@@ -17,14 +18,18 @@ found in the LICENSE file.
   Polymer({
     ready: function() {
       this.timeline_ = undefined;
-      this.contextNames_ = [];
-      this.contextValues_ = [];
-      this.tquery_ = document.createElement('tv-e-tquery');
+      this.scriptObjectNames_ = [];
+      this.scriptObjectValues_ = [];
 
-      this.addContextValue('$t', this.tquery_);
-
-      // Make tquery also available to the DevTools inspector.
-      window['$t'] = this.tquery_;
+      // Register all scripting objects.
+      var objects = tv.b.getPolymerElementsThatSubclass(
+          'tv-c-scripting-object');
+      objects.forEach(function(className) {
+        var obj = document.createElement(className);
+        this.addScriptObject(obj.scriptName, obj.scriptValue);
+        // Also make the object available to the DevTools inspector.
+        window[obj.scriptName] = obj.scriptValue;
+      }.bind(this));
     },
 
     get timeline() {
@@ -33,18 +38,21 @@ found in the LICENSE file.
 
     set timeline(t) {
       this.timeline_ = t;
-      this.tquery_.timeline = t;
+      this.scriptObjectValues_.forEach(function(v) {
+        if (v.onTimelineChanged)
+          v.onTimelineChanged(t);
+      });
     },
 
-    addContextValue: function(name, value) {
-      this.contextNames_.push(name);
-      this.contextValues_.push(value);
+    addScriptObject: function(name, value) {
+      this.scriptObjectNames_.push(name);
+      this.scriptObjectValues_.push(value);
     },
 
     executeCommand: function(command) {
       var f = new Function(
-          this.contextNames_, 'return eval(' + command + ')');
-      return f.apply(null, this.contextValues_);
+          this.scriptObjectNames_, 'return eval(' + command + ')');
+      return f.apply(null, this.scriptObjectValues_);
     }
   });
   </script>

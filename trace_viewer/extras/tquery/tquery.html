@@ -8,8 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/scripting_object.html">
 
-<polymer-element name='tv-e-tquery'>
+<polymer-element name='tv-e-tquery' extends='tv-c-scripting-object'>
   <script>
   'use strict';
 
@@ -20,6 +21,19 @@ found in the LICENSE file.
       this.filterExpression_ = undefined;
       // Memoized filtering result.
       this.selection_ = undefined;
+    },
+
+    get scriptName() {
+      return '$t';
+    },
+
+    onTimelineChanged: function(t) {
+      this.timeline_ = t;
+      this.selection_ = undefined;
+    },
+
+    get timeline() {
+      return this.timeline_;
     },
 
     // Append a new filter expression to this query and return a query node
@@ -104,15 +118,6 @@ found in the LICENSE file.
         this.timeline.addAllObjectsMatchingFilterToSelectionAsTask(
             passThroughFilter, selection);
       return filterTask;
-    },
-
-    set timeline(t) {
-      this.timeline_ = t;
-      this.selection_ = undefined;
-    },
-
-    get timeline() {
-      return this.timeline_;
     },
 
     get selection() {

@@ -49,7 +49,7 @@ tv.b.unittest.testSuite(function() {
   test('tqueryAsyncSelection', function() {
     var tquery = document.createElement('tv-e-tquery');
     var timeline = createFakeTimeline_(3);
-    tquery.timeline = timeline;
+    tquery.onTimelineChanged(timeline);
 
     var result = tquery.show();
     tv.b.Task.RunSynchronously(result);
@@ -59,19 +59,19 @@ tv.b.unittest.testSuite(function() {
   test('tquerySyncSelection', function() {
     var tquery = document.createElement('tv-e-tquery');
     var timeline = createFakeTimeline_(3);
-    tquery.timeline = timeline;
+    tquery.onTimelineChanged(timeline);
 
     assertEquals(3, tquery.selection.length);
 
     // Selection should get reset when the timeline changes.
-    tquery.timeline = createFakeTimeline_(5);
+    tquery.onTimelineChanged(createFakeTimeline_(5));
     assertEquals(5, tquery.selection.length);
   });
 
   test('tqueryPassThroughFiltering', function() {
     var tquery = document.createElement('tv-e-tquery');
     var timeline = createFakeTimeline_(3);
-    tquery.timeline = timeline;
+    tquery.onTimelineChanged(timeline);
 
     var result = tquery.filter().filter().show();
     tv.b.Task.RunSynchronously(result);

@@ -41,9 +41,9 @@ tv.b.unittest.testSuite(function() {
     assertEquals(42, result);
   });
 
-  test('scriptingControllerAddContextValue', function() {
+  test('scriptingControllerAddScriptObject', function() {
     var controller = document.createElement('tv-c-scripting-controller');
-    controller.addContextValue('z', 123);
+    controller.addScriptObject('z', 123);
     var result = controller.executeCommand('z');
     assertEquals(123, result);
   });
