@@ -8,26 +8,35 @@ found in the LICENSE file.
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/analysis/table_builder.html">
 
-
 <polymer-element name='tv-c-a-multi-event-details-table'>
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    </style>
+    <div id='content'></div>
+  </template>
+
   <script>
   'use strict';
 
   Polymer({
     created: function() {
-      this.selection = undefined;
+      this.selection_ = undefined;
     },
 
     get selection() {
       return this.selection_;
     },
+
     set selection(selection) {
       this.selection_ = selection;
       this.updateContents_();
     },
 
     updateContents_: function() {
-      this.textContent = '';
+      this.$.content.textContent = '';
       var columns = [
           {
             title: 'Label',
@@ -41,11 +50,13 @@ found in the LICENSE file.
       ];
       var rows = [];
       rows.push({ name: 'Title', value: 'Testing' });
+
       var table = new TracingAnalysisNestedTable();
       table.tableColumns = columns;
       table.tableRows = rows;
       table.rebuild();
-      this.appendChild(table);
+
+      this.$.content.appendChild(table);
     }
   });
 </script>

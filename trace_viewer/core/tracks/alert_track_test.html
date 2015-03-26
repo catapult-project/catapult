@@ -42,20 +42,21 @@ tv.b.unittest.testSuite(function() {
     alerts[1].selectionState = SelectionState.SELECTED;
 
     var div = document.createElement('div');
-    this.addHTMLOutput(div);
-
     var viewport = new Viewport(div);
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = AlertTrack(viewport);
-    drawingContainer.invalidate();
     drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
 
     track.alerts = alerts;
     var dt = new tv.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
+
 
     assert.equal(track.items[0].start, 5);
   });

@@ -25,6 +25,7 @@ tv.b.unittest.testSuite(function() {
       new tv.c.trace_model.Alert(ALERT_TYPE_1, 5),
       new tv.c.trace_model.Alert(ALERT_TYPE_2, 35)
     ]);
+    panel.style.height = '100px';
 
     this.addHTMLOutput(panel);
   });
@@ -37,6 +38,7 @@ tv.b.unittest.testSuite(function() {
       new tv.c.trace_model.Alert(ALERT_TYPE_2, 3)
     ];
     panel.model = createModelWithAlerts(alerts);
+    panel.style.height = '100px';
     this.addHTMLOutput(panel);
 
     var selectionChanged = false;
@@ -46,7 +48,6 @@ tv.b.unittest.testSuite(function() {
       assert.equal(e.selection[0], alerts[0]);
       assert.equal(e.selection[1], alerts[1]);
     });
-
     panel.selectAlertsOfType(ALERT_TYPE_1.title);
 
     assert.isTrue(selectionChanged);

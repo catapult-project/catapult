@@ -16,7 +16,6 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var div = document.createElement('div');
-    this.addHTMLOutput(div);
 
     var viewport = new tv.c.TimelineViewport(div);
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
@@ -24,6 +23,8 @@ tv.b.unittest.testSuite(function() {
 
     var track = tv.c.tracks.RulerTrack(viewport);
     drawingContainer.appendChild(track);
+    this.addHTMLOutput(div);
+
     drawingContainer.invalidate();
 
     var dt = new tv.c.TimelineDisplayTransform();

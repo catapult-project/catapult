@@ -9,6 +9,15 @@ found in the LICENSE file.
 
 <polymer-element name="tv-c-multi-sample-sub-view"
     extends="tracing-analysis-sub-view">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    </style>
+    <div id='content'></div>
+  </template>
+
   <script>
   'use strict';
 
@@ -22,16 +31,15 @@ found in the LICENSE file.
     },
 
     set selection(selection) {
-
-      this.textContent = '';
+      this.$.content.textContent = '';
       this.currentSelection_ = selection;
 
       if (tv.isDefined('tv.e.analysis.SamplingSummaryPanel')) {
         var panel = new tv.e.analysis.SamplingSummaryPanel();
-        this.appendChild(panel);
+        this.$.content.appendChild(panel);
         panel.selection = selection;
       } else {
-        this.textContent = 'SamplingSummaryPanel not installed. :(';
+        this.$.content.textContent = 'SamplingSummaryPanel not installed. :(';
       }
     },
 

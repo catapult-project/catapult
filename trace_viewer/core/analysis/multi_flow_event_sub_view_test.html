@@ -26,7 +26,6 @@ tv.b.unittest.testSuite(function() {
     model.flowEvents.push(fe1);
     model.flowEvents.push(fe2);
 
-
     var selection = new Selection();
     selection.push(fe1);
     selection.push(fe2);
@@ -36,8 +35,6 @@ tv.b.unittest.testSuite(function() {
     subView.selection = selection;
 
     this.addHTMLOutput(subView);
-
-    assert.equal(1, subView.children.length);
   });
 });
 </script>

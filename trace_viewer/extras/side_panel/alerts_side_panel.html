@@ -18,14 +18,19 @@ found in the LICENSE file.
   <template>
     <style>
     :host {
+      display: block;
+      width: 250px;
+    }
+    #content {
       flex-direction: column;
       display: flex;
-      width: 250px;
     }
     </style>
 
-    <toolbar id='toolbar'></toolbar>
-    <result-area id='result_area'></result-area>
+    <div id='content'>
+      <toolbar id='toolbar'></toolbar>
+      <result-area id='result_area'></result-area>
+    </div>
   </template>
 
   <script>
@@ -48,6 +53,7 @@ found in the LICENSE file.
 
     set selection(selection) {
     },
+
     set rangeOfInterest(rangeOfInterest) {
     },
 

@@ -139,6 +139,10 @@ tv.exportTo('tv.b.unittest', function() {
       var htmlResultEl = document.createElement('x-html-test-case-html-result');
       htmlResultEl.appendChild(element);
       this.querySelector('#details').appendChild(htmlResultEl);
+
+      var bounds = element.getBoundingClientRect();
+      assert(bounds.width !== 0, 'addHTMLOutput element as 0 width');
+      assert(bounds.height !== 0, 'addHTMLOutput element has 0 height');
     },
 
     updateHTMLOutputDisplayState_: function() {

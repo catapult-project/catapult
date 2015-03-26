@@ -247,7 +247,7 @@ tv.exportTo('tv.b.ui', function() {
     var cur = el;
     while (cur.parentNode)
       cur = cur.parentNode;
-    return cur == el.ownerDocument;
+    return (cur === el.ownerDocument || cur.nodeName === '#document-fragment');
   }
 
   return {

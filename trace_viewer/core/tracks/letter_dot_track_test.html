@@ -35,7 +35,6 @@ tv.b.unittest.testSuite(function() {
     items[1].selectionState = SelectionState.SELECTED;
 
     var div = document.createElement('div');
-    this.addHTMLOutput(div);
 
     var viewport = new Viewport(div);
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
@@ -43,8 +42,10 @@ tv.b.unittest.testSuite(function() {
 
     var track = LetterDotTrack(viewport);
     track.getModelEventFromItem = function(item) { return item; }
-    drawingContainer.invalidate();
     drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
 
     track.items = items;
     var dt = new tv.c.TimelineDisplayTransform();

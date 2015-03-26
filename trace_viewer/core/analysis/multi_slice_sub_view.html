@@ -14,6 +14,16 @@ found in the LICENSE file.
 
 <polymer-element name="tv-c-multi-slice-sub-view"
     extends="tracing-analysis-sub-view">
+  <template>
+    <link rel='stylesheet' href='/core/analysis/analysis_results.css'>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <div id='content'></div>
+  </template>
+
   <script>
   'use strict';
 
@@ -42,7 +52,7 @@ found in the LICENSE file.
 
     setSelectionWithoutErrorChecks: function(selection) {
       this.currentSelection_ = selection;
-      this.textContent = '';
+      this.$.content.textContent = '';
       this.requiresTallView_ = false;
 
       // TODO(nduca): This is a gross hack for cc Frame Viewer, but its only
@@ -55,7 +65,7 @@ found in the LICENSE file.
           ltv.objectSnapshot = ltvSelection.containingSnapshot;
           ltv.selection = ltvSelection;
           ltv.extraHighlightsByLayerId = ltvSelection.extraHighlightsByLayerId;
-          this.appendChild(ltv);
+          this.$.content.appendChild(ltv);
 
           this.style.display = 'flex';
 
@@ -66,7 +76,7 @@ found in the LICENSE file.
       this.style.display = '';
 
       var results = new tv.c.analysis.AnalysisResults();
-      this.appendChild(results);
+      this.$.content.appendChild(results);
 
       this.analyze_(results, selection);
     },

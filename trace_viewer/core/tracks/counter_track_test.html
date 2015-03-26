@@ -18,7 +18,6 @@ tv.b.unittest.testSuite(function() {
 
   var runTest = function(timestamps, samples, testFn) {
     var testEl = document.createElement('div');
-    this.addHTMLOutput(testEl);
 
     var ctr = new Counter(undefined, 'foo', '', 'foo');
     var n = samples.length;
@@ -43,6 +42,7 @@ tv.b.unittest.testSuite(function() {
 
     var track = new CounterTrack(viewport);
     drawingContainer.appendChild(track);
+    this.addHTMLOutput(testEl);
 
     // Force the container to update sizes so the test can use coordinates that
     // make sense. This has to be after the adding of the track as we need to
@@ -80,16 +80,16 @@ tv.b.unittest.testSuite(function() {
     ctr.updateBounds();
 
     var div = document.createElement('div');
-    this.addHTMLOutput(div);
-
     var viewport = new Viewport(div);
 
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
-    drawingContainer.invalidate();
 
     var track = new CounterTrack(viewport);
     drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
 
     track.heading = ctr.name;
     track.counter = ctr;

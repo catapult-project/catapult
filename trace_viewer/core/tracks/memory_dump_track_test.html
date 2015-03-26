@@ -37,15 +37,16 @@ tv.b.unittest.testSuite(function() {
     dumps[1].selectionState = SelectionState.SELECTED;
 
     var div = document.createElement('div');
-    this.addHTMLOutput(div);
 
     var viewport = new Viewport(div);
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = MemoryDumpTrack(viewport);
-    drawingContainer.invalidate();
     drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
 
     track.memoryDumps = dumps;
     var dt = new tv.c.TimelineDisplayTransform();

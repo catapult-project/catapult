@@ -10,11 +10,14 @@ found in the LICENSE file.
 <!--
 @fileoverview A container that constructs a table-like container.
 -->
-
 <polymer-element name="tracing-analysis-nested-table"
     constructor="TracingAnalysisNestedTable">
   <template>
     <style>
+      :host {
+        display: block;
+      }
+
       table {
         border-collapse: collapse;
         border-spacing: 0;

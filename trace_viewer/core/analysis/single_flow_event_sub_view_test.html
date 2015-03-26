@@ -24,17 +24,13 @@ tv.b.unittest.testSuite(function() {
     var fe = new trace_model.FlowEvent('cat', 1234, 'title', 7, 10, {});
     model.flowEvents.push(fe);
 
-
     var selection = new Selection();
     selection.push(fe);
     assert.equal(1, selection.length);
 
-    var subView = document.createElement('tv-c-single-instant-event-sub-view');
+    var subView = document.createElement('tv-c-single-flow-event-sub-view');
     subView.selection = selection;
-
     this.addHTMLOutput(subView);
-
-    assert.equal(1, subView.children.length);
   });
 });
 </script>

@@ -29,7 +29,6 @@ tv.b.unittest.testSuite(function() {
 
   test('instantiate_withRects', function() {
     var div = document.createElement('div');
-    this.addHTMLOutput(div);
 
     var viewport = new Viewport(div);
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
@@ -37,6 +36,8 @@ tv.b.unittest.testSuite(function() {
 
     var track = RectTrack(viewport);
     drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
     drawingContainer.invalidate();
 
     track.heading = 'testBasicRects';
@@ -54,7 +55,6 @@ tv.b.unittest.testSuite(function() {
 
   test('instantiate_shrinkingRectSize', function() {
     var div = document.createElement('div');
-    this.addHTMLOutput(div);
 
     var viewport = new Viewport(div);
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
@@ -62,6 +62,8 @@ tv.b.unittest.testSuite(function() {
 
     var track = RectTrack(viewport);
     drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
     drawingContainer.invalidate();
 
     track.heading = 'testShrinkingRectSizes';
@@ -92,7 +94,6 @@ tv.b.unittest.testSuite(function() {
 
       var div = document.createElement('div');
       div.appendChild(document.createTextNode(dict.trackName));
-      this.addHTMLOutput(div);
 
       var viewport = new Viewport(div);
       var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
@@ -100,6 +101,8 @@ tv.b.unittest.testSuite(function() {
 
       var track = new RectTrack(viewport);
       drawingContainer.appendChild(track);
+
+      this.addHTMLOutput(div);
       drawingContainer.invalidate();
 
       track.SHOULD_ELIDE_TEXT = dict.elide;
@@ -138,7 +141,6 @@ tv.b.unittest.testSuite(function() {
     var testEl = document.createElement('div');
     testEl.appendChild(tv.b.ui.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
-    this.addHTMLOutput(testEl);
 
     var viewport = new Viewport(testEl);
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
@@ -146,6 +148,8 @@ tv.b.unittest.testSuite(function() {
 
     var track = monkeyPatchTrack(new RectTrack(viewport));
     drawingContainer.appendChild(track);
+    this.addHTMLOutput(testEl);
+
     drawingContainer.updateCanvasSizeIfNeeded_();
 
     track.heading = 'testSelectionHitTesting';
@@ -185,7 +189,6 @@ tv.b.unittest.testSuite(function() {
 
   test('elide', function() {
     var testEl = document.createElement('div');
-    this.addHTMLOutput(testEl);
 
     var viewport = new Viewport(testEl);
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
@@ -193,6 +196,8 @@ tv.b.unittest.testSuite(function() {
 
     var track = new RectTrack(viewport);
     drawingContainer.appendChild(track);
+    this.addHTMLOutput(testEl);
+
     drawingContainer.updateCanvasSizeIfNeeded_();
 
     var bigtitle = 'Super duper long long title ' +

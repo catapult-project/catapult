@@ -41,6 +41,7 @@ tv.b.unittest.testSuite(function() {
     var table = new TracingAnalysisNestedTable();
     table.tableColumns = columns;
     table.tableRows = rows;
+    table.rebuild();
 
     this.addHTMLOutput(table);
   });
@@ -97,6 +98,7 @@ tv.b.unittest.testSuite(function() {
     var table = new TracingAnalysisNestedTable();
     table.tableColumns = columns;
     table.tableRows = rows;
+    table.rebuild();
 
     this.addHTMLOutput(table);
   });
@@ -196,6 +198,8 @@ tv.b.unittest.testSuite(function() {
     table.tableColumns = columns;
     table.tableRows = rows;
     table.footerRows = footerRows;
+    table.rebuild();
+
     this.addHTMLOutput(table);
 
     var button = THIS_DOC.createElement('button');
@@ -204,6 +208,8 @@ tv.b.unittest.testSuite(function() {
       table.sortDescending = !table.sortDescending;
       table.sortColumnIndex = 0;
     });
+    table.rebuild();
+
     this.addHTMLOutput(button);
   });
 

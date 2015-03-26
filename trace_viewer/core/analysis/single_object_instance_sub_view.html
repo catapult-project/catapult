@@ -17,6 +17,10 @@ found in the LICENSE file.
     extends="tracing-analysis-sub-view">
   <template>
     <style>
+    :host {
+      display: block;
+    }
+
     #snapshots > * {
       display: block;
     }
@@ -41,6 +45,7 @@ found in the LICENSE file.
       vertical-align: top;
     }
     </style>
+    <div id='content'></div>
   </template>
   <script>
   'use strict';
@@ -51,10 +56,11 @@ found in the LICENSE file.
     },
 
     get requiresTallView() {
-      if (this.children.length === 0)
+      if (this.$.content.children.length === 0)
         return false;
-      if (this.children[0] instanceof tv.c.analysis.ObjectInstanceView)
-        return this.children[0].requiresTallView;
+      if (this.$.content.children[0] instanceof
+          tv.c.analysis.ObjectInstanceView)
+        return this.$.content.children[0].requiresTallView;
     },
 
     get selection() {
@@ -67,7 +73,7 @@ found in the LICENSE file.
       if (!(selection[0] instanceof tv.c.trace_model.ObjectInstance))
         throw new Error('Only supports object instances');
 
-      this.textContent = '';
+      this.$.content.textContent = '';
       this.currentSelection_ = selection;
 
       var instance = selection[0];
@@ -75,7 +81,7 @@ found in the LICENSE file.
           instance.category, instance.typeName);
       if (typeInfo) {
         var customView = new typeInfo.constructor();
-        this.appendChild(customView);
+        this.$.content.appendChild(customView);
         customView.modelEvent = instance;
       } else {
         this.appendGenericAnalysis_(instance);
@@ -99,8 +105,8 @@ found in the LICENSE file.
       }
       html += '<tr><td>snapshots:</td><td id="snapshots"></td></tr>\n';
       html += '</table>';
-      this.innerHTML = html;
-      var snapshotsEl = this.querySelector('#snapshots');
+      this.$.content.innerHTML = html;
+      var snapshotsEl = this.$.content.querySelector('#snapshots');
       instance.snapshots.forEach(function(snapshot) {
         var snapshotLink = document.createElement('tv-c-analysis-link');
         snapshotLink.selection = new tv.c.Selection(snapshot);
