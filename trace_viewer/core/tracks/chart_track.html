@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/trace_model/event.html">
+<link rel="import" href="/core/tracks/heading_track.html">
+<link rel="import" href="/core/event_presenter.html">
+<link rel="import" href="/base/ui.html">
+
+<style>
+.chart-track {
+  height: 30px;
+  position: relative;
+}
+</style>
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c.tracks', function() {
+
+  var SelectionState = tv.c.trace_model.SelectionState;
+  var EventPresenter = tv.c.EventPresenter;
+  var LAST_SAMPLE_PIXELS = 8;
+
+  var LINE_WIDTH = 1;
+  var BACKGROUND_ALPHA_MULTIPLIER = 0.5;
+  var MIN_HEIGHT = 2;
+  var SQUARE_WIDTH = 3; // Unselected sample point.
+  var CIRCLE_RADIUS = 2; // Selected sample point.
+
+  var POINT_DENSITY_TRANSPARENT = 0.10;
+  var POINT_DENSITY_OPAQUE = 0.05;
+  var POINT_DENSITY_RANGE = POINT_DENSITY_TRANSPARENT - POINT_DENSITY_OPAQUE;
+
+  /**
+   * A track that displays a Counter object.
+   * @constructor
+   * @extends {HeadingTrack}
+   */
+  // TODO(petrcermak): Rewrite this track to use ChartTrackSeries instead of
+  // Counter objects.
+  var ChartTrack =
+      tv.b.ui.define('chart-track', tv.c.tracks.HeadingTrack);
+
+  ChartTrack.prototype = {
+    __proto__: tv.c.tracks.HeadingTrack.prototype,
+
+    decorate: function(viewport) {
+      tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      this.classList.add('chart-track');
+      this.chart_ = null;
+    },
+
+    get chart() {
+      return this.chart_;
+    },
+
+    set chart(chart) {
+      this.chart_ = chart;
+      this.invalidateDrawingContainer();
+    },
+
+    get height() {
+      return window.getComputedStyle(this).height;
+    },
+
+    set height(height) {
+      this.style.height = height;
+      this.invalidateDrawingContainer();
+    },
+
+    get hasVisibleContent() {
+      return !!this.chart_;
+    },
+
+    getModelEventFromItem: function(rect) {
+      throw new Error('Not implemented.');
+    },
+
+    draw: function(type, viewLWorld, viewRWorld) {
+      switch (type) {
+        case tv.c.tracks.DrawType.SLICE:
+          this.drawSlices_(viewLWorld, viewRWorld);
+          break;
+      }
+    },
+
+    drawSlices_: function(viewLWorld, viewRWorld) {
+      var highDetails = this.viewport.highDetails;
+
+      var ctx = this.context();
+      var pixelRatio = window.devicePixelRatio || 1;
+
+      var bounds = this.getBoundingClientRect();
+      var height = bounds.height * pixelRatio;
+      var range = height - MIN_HEIGHT * pixelRatio;
+
+      var chart = this.chart_;
+
+      // Culling parametrs.
+      var vp = this.viewport;
+      var dt = vp.currentDisplayTransform;
+      var pixWidth = dt.xViewVectorToWorld(1);
+
+      // Drop samples that are less than skipDistancePix apart.
+      var skipDistancePix = 1;
+      var skipDistanceWorld = dt.xViewVectorToWorld(skipDistancePix);
+
+      // Figure out where drawing should begin.
+      var numSeries = chart.numSeries;
+      var numSamples = chart.numSamples;
+      var startIndex = tv.b.findLowIndexInSortedArray(
+          chart.timestamps,
+          function(x) { return x; },
+          viewLWorld);
+      var timestamps = chart.timestamps;
+
+      startIndex = startIndex - 1 > 0 ? startIndex - 1 : 0;
+      // Draw indices one by one until we fall off the viewRWorld.
+      var yScale = range / chart.maxTotal;
+
+      for (var seriesIndex = chart.numSeries - 1;
+           seriesIndex >= 0; seriesIndex--) {
+        var series = chart.series[seriesIndex];
+        ctx.strokeStyle = EventPresenter.getCounterSeriesColor(
+            series.color, SelectionState.NONE);
+
+        // Draw the background and the line.
+        var drawSeries = function(background) {
+          var selectionStateLast = -1;
+
+          // Set i and x such that the first sample we draw is the
+          // startIndex sample.
+          var i = startIndex - 1;
+          var xLast = i >= 0 ?
+              timestamps[i] - skipDistanceWorld : -1;
+          var yLastView = height;
+
+          // Iterate over samples from i onward until we either fall off the
+          // viewRWorld or we run out of samples. To avoid drawing too much,
+          // after drawing a sample at xLast, skip subsequent samples that are
+          // less than skipDistanceWorld from xLast.
+          var hasMoved = false;
+
+          while (true) {
+            i++;
+            if (i >= numSamples) {
+              break;
+            }
+
+            var x = timestamps[i];
+            var y = chart.totals[i * numSeries + seriesIndex];
+            var yView = range - yScale * y;
+
+            // If the sample is to the right of the viewport, we add a fixed
+            // margin to reduce zooming clipping errors.
+            if (x > viewRWorld) {
+              if (hasMoved) {
+                xLast = x = viewRWorld;
+                ctx.lineTo(dt.xWorldToView(x), yLastView);
+              }
+              break;
+            }
+
+            if (i + 1 < numSamples) {
+              var xNext = timestamps[i + 1];
+              if (xNext - xLast <= skipDistanceWorld && xNext < viewRWorld) {
+                continue;
+              }
+
+              // If the sample is to the left of the viewport, we add a fixed
+              // margin to reduce zooming clipping errors.
+              if (x < viewLWorld) {
+                x = viewLWorld;
+              }
+            }
+
+            if (x - xLast < skipDistanceWorld && xLast < x) {
+              // We know that xNext > xLast + skipDistanceWorld, so we can
+              // safely move this sample's x over that much without passing
+              // xNext.  This ensure that the previous sample is visible when
+              // zoomed out very far.
+              x = xLast + skipDistanceWorld;
+            }
+
+            var selectionState = series.samples[i].selectionState;
+
+            if (hasMoved) {
+              ctx.lineTo(dt.xWorldToView(x), yLastView);
+              if (selectionState != selectionStateLast) {
+                if (background) {
+                  ctx.lineTo(dt.xWorldToView(x), height);
+                  ctx.closePath();
+                  ctx.fill();
+                } else {
+                  ctx.lineTo(dt.xWorldToView(x), yView);
+                  ctx.stroke();
+                }
+              }
+            }
+
+            if (selectionState != selectionStateLast) {
+              ctx.fillStyle = EventPresenter.getCounterSeriesColor(
+                  series.color, selectionState, BACKGROUND_ALPHA_MULTIPLIER);
+              ctx.lineWidth = LINE_WIDTH * pixelRatio;
+              ctx.beginPath();
+
+              if (background) {
+                ctx.moveTo(dt.xWorldToView(x), height);
+              } else {
+                ctx.moveTo(dt.xWorldToView(x), hasMoved ? yLastView : yView);
+              }
+            }
+
+            if (background) {
+                ctx.lineTo(dt.xWorldToView(x), yView);
+            } else {
+                ctx.lineTo(dt.xWorldToView(x), yView);
+            }
+
+            hasMoved = true;
+            xLast = x;
+            yLastView = yView;
+            selectionStateLast = selectionState;
+          }
+
+          if (hasMoved) {
+            if (background) {
+              ctx.lineTo(dt.xWorldToView(xLast), height);
+              ctx.closePath();
+              ctx.fill();
+            } else {
+              ctx.stroke();
+            }
+          }
+        }
+
+        drawSeries(true);
+        if (highDetails) {
+          drawSeries(false);
+        }
+
+        // Calculate point density and, consequently, opacity of sample points.
+        var endIndex = tv.b.findLowIndexInSortedArray(
+            chart.timestamps, function(x) { return x; }, viewRWorld);
+        if (chart.timestamps[endIndex] == viewRWorld) {
+          endIndex++;
+        }
+        var minVisible = (startIndex >= chart.timestamps.length ?
+                          viewLWorld : chart.timestamps[startIndex]);
+        var maxVisible = (endIndex < 1 ?
+                          viewRWorld : chart.timestamps[endIndex - 1]);
+        var rangeVisible = (minVisible >= maxVisible ?
+                            viewRWorld - viewLWorld : maxVisible - minVisible);
+
+        var density = (endIndex - startIndex) / (dt.scaleX * rangeVisible);
+        var clampedDensity = tv.b.clamp(density, POINT_DENSITY_OPAQUE,
+                                      POINT_DENSITY_TRANSPARENT);
+        var opacity =
+            (POINT_DENSITY_TRANSPARENT - clampedDensity) / POINT_DENSITY_RANGE;
+
+        // Draw sample points.
+        ctx.strokeStyle = EventPresenter.getCounterSeriesColor(
+            series.color, SelectionState.NONE);
+        var lastFillStyle = undefined;
+        for (var i = startIndex; timestamps[i] < viewRWorld; i++) {
+          var x = timestamps[i];
+          var y = chart.totals[i * numSeries + seriesIndex];
+          var yView = range - yScale * y;
+
+          if (series.samples[i].selected) {
+            var fillStyle = EventPresenter.getCounterSeriesColor(
+              series.color, series.samples[i].selectionState);
+            if (fillStyle !== lastFillStyle) {
+              ctx.fillStyle = lastFillStyle = fillStyle;
+            }
+            ctx.beginPath();
+            ctx.arc(dt.xWorldToView(x), yView, CIRCLE_RADIUS * pixelRatio, 0,
+                    2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+          } else if (highDetails) {
+            var fillStyle = EventPresenter.getCounterSeriesColor(
+                series.color, series.samples[i].selectionState, opacity);
+            if (fillStyle !== lastFillStyle) {
+              ctx.fillStyle = lastFillStyle = fillStyle;
+            }
+            ctx.fillRect(dt.xWorldToView(x) - (SQUARE_WIDTH / 2) * pixelRatio,
+                         yView - (SQUARE_WIDTH / 2) * pixelRatio,
+                         SQUARE_WIDTH * pixelRatio, SQUARE_WIDTH * pixelRatio);
+          }
+        }
+      }
+    },
+
+    addEventsToTrackMap: function(eventToTrackMap) {
+      var allSeries = this.chart_.series;
+      for (var seriesIndex = 0; seriesIndex < allSeries.length; seriesIndex++) {
+        var samples = allSeries[seriesIndex].samples;
+        for (var i = 0; i < samples.length; i++)
+          eventToTrackMap.addEvent(samples[i], this);
+      }
+    },
+
+    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+        loWX, hiWX, viewPixWidthWorld, selection) {
+
+      function getSampleWidth(x, i) {
+        if (i === chart.timestamps.length - 1) {
+          var dt = this.viewport.currentDisplayTransform;
+          var pixWidth = dt.xViewVectorToWorld(1);
+          return LAST_SAMPLE_PIXELS * pixWidth;
+        }
+        return chart.timestamps[i + 1] - chart.timestamps[i];
+      }
+
+      var chart = this.chart_;
+      var iLo = tv.b.findLowIndexInSortedIntervals(chart.timestamps,
+                                                   function(x) { return x; },
+                                                   getSampleWidth.bind(this),
+                                                   loWX);
+      var iHi = tv.b.findLowIndexInSortedIntervals(chart.timestamps,
+                                                   function(x) { return x; },
+                                                   getSampleWidth.bind(this),
+                                                   hiWX);
+
+      // Iterate over every sample intersecting..
+      for (var sampleIndex = iLo; sampleIndex <= iHi; sampleIndex++) {
+        if (sampleIndex < 0)
+          continue;
+        if (sampleIndex >= chart.timestamps.length)
+          continue;
+
+        // TODO(nduca): Pick the seriesIndexHit based on the loY - hiY values.
+        for (var seriesIndex = 0;
+             seriesIndex < this.chart.numSeries;
+             seriesIndex++) {
+          var series = this.chart.series[seriesIndex];
+          this.addValueToSelection(series.samples[sampleIndex], selection);
+        }
+      }
+    },
+
+    addItemNearToProvidedEventToSelection: function(sample, offset, selection) {
+      var index = sample.getSampleIndex();
+      var newIndex = index + offset;
+      if (newIndex < 0 || newIndex >= sample.series.samples.length)
+        return false;
+
+      this.addValueToSelection(sample.series.samples[newIndex], selection);
+      return true;
+    },
+
+    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+    },
+
+    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+                                         selection) {
+      var chart = this.chart;
+      if (!chart.numSeries)
+        return;
+
+      var stackHeight = 0;
+
+      for (var i = 0; i < chart.numSeries; i++) {
+        var chartSample = tv.b.findClosestElementInSortedArray(
+            chart.series_[i].samples_,
+            function(x) { return x.timestamp; },
+            worldX,
+            worldMaxDist);
+
+        if (!chartSample)
+          continue;
+
+        this.addValueToSelection(chartSample, selection);
+      }
+    },
+
+    addValueToSelection: function(chartValue, selection) {
+      var event = this.getModelEventFromItem(chartValue);
+      if (event)
+        selection.push(event);
+    }
+  };
+
+  return {
+    ChartTrack: ChartTrack
+  };
+});
+</script>
