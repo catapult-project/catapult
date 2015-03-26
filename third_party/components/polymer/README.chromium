@@ -10,3 +10,7 @@ Security Critical: no
 
 Description:
 Polymer framework.
+
+Local modifications:
+ - Removed comment lines with {{var_names}} from polymer.js because of
+   breaking GRIT in Chromium. See #854

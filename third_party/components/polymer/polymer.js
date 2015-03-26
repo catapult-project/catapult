@@ -10035,8 +10035,7 @@ scope.styleResolver = styleResolver;
         var root = this.createShadowRoot();
         // stamp template
         // which includes parsing and applying MDV bindings before being
-        // inserted (to avoid {{}} in attribute values)
-        // e.g. to prevent <img src="images/{{icon}}"> from generating a 404.
+        // inserted (to avoid {{}} in attribute values).
         var dom = this.instanceTemplate(template);
         // append to shadow dom
         root.appendChild(dom);
@@ -10057,8 +10056,7 @@ scope.styleResolver = styleResolver;
         this.eventController = this;
         // stamp template
         // which includes parsing and applying MDV bindings before being
-        // inserted (to avoid {{}} in attribute values)
-        // e.g. to prevent <img src="images/{{icon}}"> from generating a 404.
+        // inserted (to avoid {{}} in attribute values).
         var dom = this.instanceTemplate(template);
         // append to shadow dom
         if (refNode) {
