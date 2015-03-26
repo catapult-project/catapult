@@ -99,6 +99,8 @@ tv.exportTo('tv.c', function() {
    * @constructor
    */
   function TraceModel(opt_eventData, opt_options) {
+    this.faviconHue = 'blue'; // Should be a key from favicons.html
+
     this.kernel = new Kernel(this);
     this.processes = {};
     this.metadata = [];

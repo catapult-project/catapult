@@ -89,6 +89,7 @@ found in the LICENSE file.
     p.then(
       function() {
         timelineViewEl.model = m;
+        timelineViewEl.updateDocumentFavicon();
         timelineViewEl.tabIndex = 1;
         if (timelineViewEl.timeline)
           timelineViewEl.timeline.focusElement = timelineViewEl;

@@ -134,6 +134,7 @@
       'trace_viewer/core/elided_cache.html',
       'trace_viewer/core/event_presenter.html',
       'trace_viewer/core/fast_rect_renderer.html',
+      'trace_viewer/core/favicons.html',
       'trace_viewer/core/filter.html',
       'trace_viewer/core/find_control.html',
       'trace_viewer/core/find_controller.html',

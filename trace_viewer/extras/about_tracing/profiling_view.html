@@ -349,6 +349,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       p.then(
           function() {
             this.timelineView_.model = m;
+            this.timelineView_.updateDocumentFavicon();
           }.bind(this),
           function(err) {
             tv.b.ui.Overlay.showError('While importing: ', err);

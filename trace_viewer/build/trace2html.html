@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
   p.then(
       function() {
         g_timelineViewEl.model = m;
+        g_timelineViewEl.updateDocumentFavicon();
         g_timelineViewEl.tabIndex = 1;
         g_timelineViewEl.viewTitle = document.title;
         if (g_timelineViewEl.timeline)
