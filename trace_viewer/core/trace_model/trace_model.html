@@ -573,7 +573,7 @@ tv.exportTo('tv.c', function() {
         progressMeter.update('Building flow event map...');
         for (var i = 0; i < this.flowEvents.length; ++i) {
           var flowEvent = this.flowEvents[i];
-          this.flowIntervalTree.insert(flowEvent, flowEvent);
+          this.flowIntervalTree.insert(flowEvent);
         }
         this.flowIntervalTree.updateHighValues();
       }, this);

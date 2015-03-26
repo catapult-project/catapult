@@ -305,7 +305,7 @@ tv.exportTo('tv.c.tracks', function() {
 
       var canvasBounds = ctx.canvas.getBoundingClientRect();
       for (var i = 0; i < events.length; ++i)
-        this.drawFlowArrow_(ctx, events[i][0], canvasBounds, pixWidth);
+        this.drawFlowArrow_(ctx, events[i], canvasBounds, pixWidth);
     },
 
     drawFlowArrow_: function(ctx, flowEvent,

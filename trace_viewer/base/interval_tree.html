@@ -43,14 +43,12 @@ tv.exportTo('tv.b', function() {
      * Insert events into the interval tree.
      *
      * @param {Object} begin The left object.
-     * @param {Object=} opt_end The end object, optional. If not provided the
-     *     begin object is assumed to also be the end object.
      */
-    insert: function(begin, opt_end) {
+    insert: function(begin) {
       var startPosition = this.beginPositionCb_(begin);
-      var endPosition = this.endPositionCb_(opt_end || begin);
+      var endPosition = this.endPositionCb_(begin);
 
-      var node = new IntervalTreeNode(begin, opt_end || begin,
+      var node = new IntervalTreeNode(begin,
                                       startPosition, endPosition);
       this.size_++;
 
@@ -147,26 +145,26 @@ tv.exportTo('tv.b', function() {
       if (this.root_ === undefined)
         return [];
 
-      return this.findIntersection_(this.root_, lowValue, highValue);
+      var ret = [];
+      this.appendIntersectionsInto_(ret, this.root_, lowValue, highValue);
+      return ret;
     },
 
-    findIntersection_: function(node, lowValue, highValue) {
-      var ret = [];
-
+    appendIntersectionsInto_: function(ret, node, lowValue, highValue) {
       /* This node starts has a start point at or further right then highValue
        * so we know this node is out and all right children are out. Just need
        * to check left */
       if (node.lowValue >= highValue) {
         if (!node.hasLeftNode)
-          return [];
-        return this.findIntersection_(node.leftNode, lowValue, highValue);
+          return;
+        return this.appendIntersectionsInto_(ret, node.leftNode,
+                                             lowValue, highValue);
       }
 
       /* If we have a maximum left high value that is bigger then lowValue we
        * need to check left for matches */
       if (node.maxHighLeft > lowValue) {
-        ret = ret.concat(
-            this.findIntersection_(node.leftNode, lowValue, highValue));
+        this.appendIntersectionsInto_(ret, node.leftNode, lowValue, highValue);
       }
 
       /* We know that this node starts before highValue, if any of it's data
@@ -178,17 +176,15 @@ tv.exportTo('tv.b', function() {
           if (node.data[i].high < lowValue)
             break;
 
-          ret.unshift([node.data[i].start, node.data[i].end]);
+          ret.push(node.data[i].start);
         }
       }
 
       /* check for matches in the right tree */
       if (node.hasRightNode) {
-        ret = ret.concat(
-            this.findIntersection_(node.rightNode, lowValue, highValue));
+        this.appendIntersectionsInto_(ret, node.rightNode,
+                                      lowValue, highValue);
       }
-
-      return ret;
     },
 
     /**
@@ -234,12 +230,11 @@ tv.exportTo('tv.b', function() {
     BLACK: 'black'
   };
 
-  function IntervalTreeNode(startObject, endObject, lowValue, highValue) {
+  function IntervalTreeNode(startObject, lowValue, highValue) {
     this.lowValue_ = lowValue;
 
     this.data_ = [{
       start: startObject,
-      end: endObject,
       high: highValue,
       low: lowValue
     }];
