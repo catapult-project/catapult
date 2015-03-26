@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/ui/color_scheme.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c.trace_model', function() {
+
+  var ALERT_SEVERITY = {
+    CRITICAL: 'critical',
+    WARNING: 'warning'
+  };
+
+  function AlertType(title, description, severity, opt_colorId) {
+    this.title = title;
+    this.description = description;
+    this.severity = severity;
+    if (opt_colorId !== undefined)
+      this.colorId = opt_colorId;
+    else
+      this.colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
+  }
+
+  return {
+    AlertType: AlertType,
+    ALERT_SEVERITY: ALERT_SEVERITY
+  };
+});
+</script>

@@ -61,11 +61,13 @@ tv.exportTo('tv.e.audits', function() {
       * frames, red when actively janking.
       */
       if (frame.totalDuration > EXPECTED_FRAME_TIME) {
-        var title = 'Frame took too long!';
-        var colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
+        var alertType = new tv.c.trace_model.AlertType(
+            'Long frame',
+            'Frames should take fewer than' + EXPECTED_FRAME_TIME +
+            'ms to ensure smooth performance.',
+            tv.c.trace_model.ALERT_SEVERITY.WARNING);
         var alert = new tv.c.trace_model.Alert(
-            title, colorId,
-            tv.c.trace_model.ALERT_SEVERITY.WARNING,
+            alertType,
             frame.start, { 'totalDuration' : frame.totalDuration });
         this.model.alerts.push(alert);
       }
@@ -78,14 +80,13 @@ tv.exportTo('tv.e.audits', function() {
       renderThread.sliceGroup.slices.forEach(function(slice) {
         var match = saveLayerRegEx.exec(slice.title);
         if (match) {
+          var alertType = new tv.c.trace_model.AlertType(
+              'Inefficient Alpha',
+              'http://developer.android.com/reference/android/view/View.html#setAlpha(float)', // @suppress longLineCheck
+              tv.c.trace_model.ALERT_SEVERITY.CRITICAL);
           var args = { 'width' : parseInt(match[2]),
                        'height' : parseInt(match[3]) };
-          var title = 'SaveLayer of size observed!';
-          var colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
-          var alert = new tv.c.trace_model.Alert(
-              title, colorId,
-              tv.c.trace_model.ALERT_SEVERITY.WARNING,
-              slice.start, args);
+          var alert = new tv.c.trace_model.Alert(alertType, slice.start, args);
           this.model.alerts.push(alert);
         }
         // TODO: also do something reasonable with standalone saveLayer commands

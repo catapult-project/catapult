@@ -1,4 +1,4 @@
-# Copyright 2014 The Chromium Authors. All rights reserved.
+ # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -156,6 +156,7 @@ tracing_js_html_files = [
   "trace_viewer/core/timeline_viewport.html",
   "trace_viewer/core/timing_tool.html",
   "trace_viewer/core/trace_model/alert.html",
+  "trace_viewer/core/trace_model/alert_type.html",
   "trace_viewer/core/trace_model/annotation.html",
   "trace_viewer/core/trace_model/async_slice.html",
   "trace_viewer/core/trace_model/async_slice_group.html",

@@ -106,14 +106,14 @@ tv.exportTo('tv.e.audits', function() {
           if (slice.category != 'toplevel')
             return;
           if (slice.duration > 75.0) {
+            var alertType = new AlertType(
+                'Task too long',
+                'Tasks taking >= 75ms are bad, and should be broken up to' +
+                'ensure the main thread is responsive',
+                tv.c.trace_model.ALERT_SEVERITY.CRITICAL);
             var center = slice.start + 0.5 * slice.duration;
-
-            var title = 'Task is too long: tasks should be <75ms!';
-            var colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
             var alert = new tv.c.trace_model.Alert(
-                title, colorId,
-                tv.c.trace_model.ALERT_SEVERITY.CRITICAL,
-                center, {/* explanatory data goes here */});
+                alertType, center, {/* explanatory data goes here */});
             model.alerts.push(alert);
           }
         });

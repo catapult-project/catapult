@@ -158,6 +158,7 @@
       'trace_viewer/core/timeline_viewport.html',
       'trace_viewer/core/timing_tool.html',
       'trace_viewer/core/trace_model/alert.html',
+      'trace_viewer/core/trace_model/alert_type.html',
       'trace_viewer/core/trace_model/annotation.html',
       'trace_viewer/core/trace_model/async_slice.html',
       'trace_viewer/core/trace_model/async_slice_group.html',

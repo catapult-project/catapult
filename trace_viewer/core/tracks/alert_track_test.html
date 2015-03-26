@@ -22,14 +22,17 @@ tv.b.unittest.testSuite(function() {
   var Viewport = tv.c.TimelineViewport;
 
   var ALERT_SEVERITY = tv.c.trace_model.ALERT_SEVERITY;
+  var ALERT_TYPE_1 = new tv.c.trace_model.AlertType(
+    'Alert 1', 'Critical alert', ALERT_SEVERITY.CRITICAL);
+  var ALERT_TYPE_2 = new tv.c.trace_model.AlertType(
+    'Alert 2', 'Warning alert', ALERT_SEVERITY.WARNING);
 
   var createAlerts = function() {
-    var m = new tv.c.TraceModel();
     var alerts = [
-      new tv.c.trace_model.Alert('Aaaah', 3, ALERT_SEVERITY.CRITICAL, 5),
-      new tv.c.trace_model.Alert('Aaaah', 3, ALERT_SEVERITY.CRITICAL, 20),
-      new tv.c.trace_model.Alert('Hrrrm', 5, ALERT_SEVERITY.WARNING, 35),
-      new tv.c.trace_model.Alert('Grrrr', 5, ALERT_SEVERITY.WARNING, 50)
+      new tv.c.trace_model.Alert(ALERT_TYPE_1, 5),
+      new tv.c.trace_model.Alert(ALERT_TYPE_1, 20),
+      new tv.c.trace_model.Alert(ALERT_TYPE_2, 35),
+      new tv.c.trace_model.Alert(ALERT_TYPE_2, 50)
     ];
     return alerts;
   };
