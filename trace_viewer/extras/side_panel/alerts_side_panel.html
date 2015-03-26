@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/audits/chrome_model_helper.html">
+<link rel="import" href="/core/analysis/table_builder.html">
 <link rel="import" href="/core/side_panel/side_panel.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/base/statistics.html">
@@ -32,7 +33,6 @@ found in the LICENSE file.
 
   Polymer({
     ready: function() {
-      // TODO(charliea): Do stuff here.
       this.rangeOfInterest_ = new tv.b.Range();
       this.selection_ = undefined;
     },
@@ -47,23 +47,78 @@ found in the LICENSE file.
     },
 
     set selection(selection) {
-      this.selection_ = selection;
     },
-
-    get rangeOfInterest() {
-      return this.rangeOfInterest_;
-    },
-
     set rangeOfInterest(rangeOfInterest) {
-      this.rangeOfInterest_ = rangeOfInterest;
-      this.updateContents_();
     },
 
-    get currentRangeOfInterest() {
-      if (this.rangeOfInterest_.isEmpty)
-        return this.model_.bounds;
-      else
-        return this.rangeOfInterest_;
+    /**
+     * Fires a selection event selecting all alerts of the specified
+     * type.
+     */
+    selectAlertsOfType: function(alertTypeString) {
+      var alertsOfType = this.model_.alerts.filter(function(alert) {
+        return alert.title === alertTypeString;
+      });
+
+      var event = new tv.c.RequestSelectionChangeEvent();
+      event.selection = new tv.c.Selection(alertsOfType);
+      this.dispatchEvent(event);
+    },
+
+    /**
+     * Returns a map for the specified alerts where each key is the
+     * alert type string and each value is a list of alerts with that
+     * type.
+     */
+    alertsByType_: function(alerts) {
+      var alertsByType = {};
+      alerts.forEach(function(alert) {
+        var title = alert.type.title;
+        if (!alertsByType[title])
+          alertsByType[title] = [];
+
+        alertsByType[title].push(alert);
+      });
+      return alertsByType;
+    },
+
+    alertsTableRows_: function(alertsByType) {
+      return Object.keys(alertsByType).map(function(key) {
+        return {
+          alertType: key,
+          count: alertsByType[key].length
+        };
+      });
+    },
+
+    alertsTableColumns_: function() {
+      return [
+        {
+          title: 'Alert type',
+          value: function(row) { return row.alertType; },
+          width: '75%'
+        },
+        {
+          title: 'Count',
+          value: function(row) { return row.count; }
+        }
+      ];
+    },
+
+    createAlertsTable_: function(alerts) {
+      var alertsByType = this.alertsByType_(alerts);
+
+      var table = new TracingAnalysisNestedTable();
+      table.tableColumns = this.alertsTableColumns_();
+      table.tableRows = this.alertsTableRows_(alertsByType);
+
+      table.rowClickCallback = function(e) {
+        var tr = e.target.parentElement;
+        var alertTypeString = tr.firstChild.innerText;
+        this.selectAlertsOfType(alertTypeString);
+      }.bind(this);
+
+      return table;
     },
 
     updateContents_: function() {
@@ -71,13 +126,8 @@ found in the LICENSE file.
       if (this.model_ === undefined)
         return;
 
-      var rangeOfInterest = this.currentRangeOfInterest;
-      var alerts = this.model_.alerts.filter(function(alert) {
-        return rangeOfInterest.containsExplicitRange(alert.start, alert.start);
-      });
-
-      // TODO(charliea): Do something better.
-      this.$.result_area.textContent = 'You have ' + alerts.length + ' alerts';
+      var panel = this.createAlertsTable_(this.model_.alerts);
+      this.$.result_area.appendChild(panel);
     },
 
     supportsModel: function(m) {

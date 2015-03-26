@@ -14,26 +14,48 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   var ALERT_SEVERITY = tv.c.trace_model.ALERT_SEVERITY;
-
-  function createModelWithAlerts() {
-    var m = new tv.c.TraceModel(false, false, function(m) {
-      m.alerts.push(
-        new tv.c.trace_model.Alert('Aaaah', 3, ALERT_SEVERITY.CRITICAL, 5));
-      m.alerts.push(
-        new tv.c.trace_model.Alert('Aaaah', 3, ALERT_SEVERITY.CRITICAL, 20));
-      m.alerts.push(
-        new tv.c.trace_model.Alert('Hrrrm', 5, ALERT_SEVERITY.WARNING, 35));
-      m.alerts.push(
-        new tv.c.trace_model.Alert('Grrrr', 5, ALERT_SEVERITY.WARNING, 50));
-    });
-    return m;
-  };
+  var ALERT_TYPE_1 = new tv.c.trace_model.AlertType(
+    'Alert 1', 'Critical alert', ALERT_SEVERITY.CRITICAL);
+  var ALERT_TYPE_2 = new tv.c.trace_model.AlertType(
+    'Alert 2', 'Warning alert', ALERT_SEVERITY.WARNING);
 
   test('instantiate', function() {
     var panel = document.createElement('tv-e-analysis-side-panel-alerts');
+    panel.model = createModelWithAlerts([
+      new tv.c.trace_model.Alert(ALERT_TYPE_1, 5),
+      new tv.c.trace_model.Alert(ALERT_TYPE_2, 35)
+    ]);
+
+    this.addHTMLOutput(panel);
+  });
+
+  test('selectAlertsOfType', function() {
+    var panel = document.createElement('tv-e-analysis-side-panel-alerts');
+    var alerts = [
+      new tv.c.trace_model.Alert(ALERT_TYPE_1, 1),
+      new tv.c.trace_model.Alert(ALERT_TYPE_1, 2),
+      new tv.c.trace_model.Alert(ALERT_TYPE_2, 3)
+    ];
+    panel.model = createModelWithAlerts(alerts);
     this.addHTMLOutput(panel);
 
-    panel.model = createModelWithAlerts();
+    var selectionChanged = false;
+    panel.addEventListener('requestSelectionChange', function(e) {
+      selectionChanged = true;
+      assert.lengthOf(e.selection, 2);
+      assert.equal(e.selection[0], alerts[0]);
+      assert.equal(e.selection[1], alerts[1]);
+    });
+
+    panel.selectAlertsOfType(ALERT_TYPE_1.title);
+
+    assert.isTrue(selectionChanged);
   });
+
+  function createModelWithAlerts(alerts) {
+    var m = new tv.c.TraceModel();
+    m.alerts = alerts;
+    return m;
+  };
 });
 </script>

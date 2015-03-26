@@ -117,6 +117,7 @@ found in the LICENSE file.
         this.sortDescending_ = false;
         this.columnsWithExpandButtons_ = [];
         this.headerCells_ = [];
+        this.rowClickCallback_ = undefined;
       },
 
       get showHeader() {
@@ -221,6 +222,14 @@ found in the LICENSE file.
 
       get sortDescending() {
         return this.sortDescending_;
+      },
+
+      set rowClickCallback(callback) {
+        this.rowClickCallback_ = callback;
+      },
+
+      get rowClickCallback() {
+        return this.rowClickCallback_;
       },
 
       updateHeaderArrows_: function() {
@@ -355,6 +364,13 @@ found in the LICENSE file.
 
           i += colSpan;
         }
+
+        var self = this;
+        tr.addEventListener('click', function(e) {
+          if (self.rowClickCallback_) {
+            self.rowClickCallback_(e);
+          }
+        });
       },
 
       addToggleListenerForRowToButton_: function(tableSection, row, button) {
