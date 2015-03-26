@@ -75,6 +75,50 @@ tv.exportTo('tv.c.test_utils', function() {
     return s;
   }
 
+  function newSliceEx(options) {
+    if (options.start === undefined)
+      throw new Error('Too little info');
+
+    var title = options.title ? options.title : 'a';
+
+    var colorId = options.colorId ? options.colorId : 0;
+
+    var duration;
+    if (options.duration !== undefined) {
+      if (options.end !== undefined) throw new Error('TMI');
+      duration = options.duration;
+    } else if (options.end !== undefined) {
+      if (options.duration !== undefined) throw new Error('TMI');
+      duration = options.end - options.start;
+    } else {
+      throw new Error('Too little info');
+    }
+
+    var cpuStart = options.cpuStart;
+    var cpuDuration;
+    if (options.cpuDuration !== undefined) {
+      if (cpuStart !== undefined) throw new Error('Too little info');
+      if (options.cpuEnd !== undefined) throw new Error('TMI');
+      cpuDuration = options.cpuDuration;
+    } else if (options.cpuEnd !== undefined) {
+      if (cpuStart === undefined) throw new Error('Too little info');
+      if (options.cpuDuration !== undefined) throw new Error('TMI');
+      cpuDuration = options.cpuEnd - cpuStart;
+    }
+
+    var slice = new tv.c.trace_model.Slice(
+        options.cat ? options.cat : 'cat',
+        title,
+        colorId,
+        options.start,
+        options.args ? options.args : {},
+        duration,
+        cpuStart, cpuDuration);
+
+
+    return slice;
+  }
+
   function newStackTrace(model, category, titles) {
     var frame = undefined;
     for (var i = 0; i < titles.length; i++) {
@@ -118,6 +162,7 @@ tv.exportTo('tv.c.test_utils', function() {
     newCounterCategory: newCounterCategory,
     newSlice: newSlice,
     newSliceNamed: newSliceNamed,
+    newSliceEx: newSliceEx,
     newSampleNamed: newSampleNamed,
     newSliceCategory: newSliceCategory,
     newStackTrace: newStackTrace,

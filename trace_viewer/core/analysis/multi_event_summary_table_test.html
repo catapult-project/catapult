@@ -16,25 +16,60 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   var Model = tv.c.TraceModel;
-  var Thread = tv.c.trace_model.Thread;
   var Selection = tv.c.Selection;
-  var newSliceNamed = tv.c.test_utils.newSliceNamed;
-  var newSliceCategory = tv.c.test_utils.newSliceCategory;
-  var Slice = tv.c.trace_model.Slice;
+  var newSliceEx = tv.c.test_utils.newSliceEx;
+
+  test('summaryRowNoCpu', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5}));
+    tsg.createSubSlices();
+
+    var row = new tv.c.analysis.SummaryRow('x', tsg.slices.slice(0));
+    assert.equal(row.duration, 5);
+    assert.equal(row.selfTime, 4);
+    assert.equal(row.cpuDuration, undefined);
+    assert.equal(row.cpuSelfTime, undefined);
+  });
+
+  test('summaryRowWithCpu', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                              cpuStart: 0, cpuEnd: 3}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
+                              cpuStart: 1, cpuEnd: 1.75}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5,
+                              cpuStart: 3, cpuEnd: 3.75}));
+    tsg.createSubSlices();
+
+    var row = new tv.c.analysis.SummaryRow('x', tsg.slices.slice(0));
+    assert.equal(row.duration, 5);
+    assert.equal(row.selfTime, 4);
+    assert.equal(row.cpuDuration, 4.5);
+    assert.equal(row.cpuSelfTime, 3.75);
+  });
+
 
   test('basic', function() {
     var model = new Model();
-    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-    t53.sliceGroup.pushSlice(newSliceNamed('a', 0, 0.5));
-    t53.sliceGroup.pushSlice(newSliceNamed('b', 1, 0.5));
-    t53.sliceGroup.pushSlice(newSliceNamed('b', 2, 0.5));
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, duration: 0.5}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, duration: 0.5}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 2, duration: 0.5}));
+    tsg.createSubSlices();
 
-    var t53track = {};
-    t53track.thread = t53;
+    var threadTrack = {};
+    threadTrack.thread = thread;
 
-    var selection = new Selection();
-    selection.push(t53.sliceGroup.slices[0]);
-    selection.push(t53.sliceGroup.slices[1]);
+    var selection = new Selection(tsg.slices);
 
     var viewEl = document.createElement('tv-c-a-multi-event-summary-table');
     viewEl.configure({
