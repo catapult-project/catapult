@@ -561,6 +561,19 @@ tv.exportTo('tv.c', function() {
           this.processes[pid].mergeKernelWithUserland();
       }, this);
 
+      // Create auditors
+      var auditors = [];
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Adding arbitrary data to model...');
+        auditors = options.auditorConstructors.map(
+          function(auditorConstructor) {
+            return new auditorConstructor(this);
+          }, this);
+        auditors.forEach(function(auditor) {
+          auditor.runAnnotate();
+        });
+      }, this);
+
       lastTask = lastTask.after(function() {
         progressMeter.update('Computing final world bounds...');
         this.updateBounds();
@@ -614,10 +627,6 @@ tv.exportTo('tv.c', function() {
       // Run audits.
       lastTask = lastTask.after(function() {
         progressMeter.update('Running auditors...');
-        var auditors = options.auditorConstructors.map(
-          function(auditorConstructor) {
-            return new auditorConstructor(this);
-          }, this);
         auditors.forEach(function(auditor) {
           auditor.runAudit();
         });

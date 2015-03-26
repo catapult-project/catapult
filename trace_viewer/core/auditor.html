@@ -20,6 +20,12 @@ tv.exportTo('tv.c', function() {
     __proto__: Object.prototype,
 
     /**
+     * Called by the Model after baking slices. May modify model.
+     */
+    runAnnotate: function() {
+    },
+
+    /**
      * Called by the Model after importing. Should not modify model, except
      * for adding interaction ranges and audits.
      */

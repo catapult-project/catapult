@@ -34,6 +34,12 @@ tv.exportTo('tv.e.audits', function() {
   AndroidAuditor.prototype = {
     __proto__: Auditor.prototype,
 
+    runAnnotate: function() {
+      this.helper.apps.forEach(function(app) {
+        app.process.frames.push.apply(app.process.frames, app.getFrames());
+      });
+    },
+
     runAudit: function() {
       this.helper.apps.forEach(function(app) {
         // per frame alerts

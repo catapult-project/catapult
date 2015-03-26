@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/trace_model/event.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Class describing rendered frames.
+ * s
+ * Because a frame is produced by multiple threads, it does not inherit from
+ * TimedEvent, and has no duration.
+ */
+tv.exportTo('tv.c.trace_model', function() {
+
+  /**
+   * @constructor
+   * @param {Array} threadTimeRanges Array of {thread, start, end}
+   *     for each thread.
+   * @param {number} totalDuration Total execution time of frame,
+   *      across threads.
+   */
+  function Frame(threadTimeRanges, totalDuration) {
+    tv.c.trace_model.TimedEvent.call(this);
+
+    this.threadTimeRanges = threadTimeRanges;
+    this.totalDuration = totalDuration;
+
+    this.start = threadTimeRanges[0].start;
+    this.end = threadTimeRanges[0].end;
+    for (var i = 1; i < threadTimeRanges.length; i++) {
+      this.start = Math.min(this.start, threadTimeRanges[i].start);
+      this.end = Math.max(this.end, threadTimeRanges[i].end);
+    }
+  };
+
+  Frame.prototype = {
+    __proto__: tv.c.trace_model.Event.prototype,
+
+    shiftTimestampsForward: function(amount) {
+      this.start += amount;
+      this.end += amount;
+
+      for (var i = 1; i < this.threadTimeRanges.length; i++) {
+        this.threadTimeRanges[i].start += amount;
+        this.threadTimeRanges[i].end += amount;
+      }
+    },
+
+    addBoundsToRange: function(range) {
+      range.addValue(this.start);
+      range.addValue(this.end);
+    }
+  };
+
+  // TODO(ccraik): register event, once view exists
+
+  return {
+    Frame: Frame
+  };
+});
+</script>

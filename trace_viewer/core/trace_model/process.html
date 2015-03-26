@@ -32,6 +32,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.labels = [];
     this.instantEvents = [];
     this.memoryDumps = [];
+    this.frames = [];
   };
 
   /**
@@ -108,6 +109,9 @@ tv.exportTo('tv.c.trace_model', function() {
       for (var id in this.instantEvents)
         this.instantEvents[id].start += amount;
 
+      for (var i = 0; i < this.frames.length; i++)
+        this.frames[i].shiftTimestampsForward(amount);
+
       for (var i = 0; i < this.memoryDumps.length; i++)
         this.memoryDumps[i].shiftTimestampsForward(amount);
 
@@ -118,12 +122,17 @@ tv.exportTo('tv.c.trace_model', function() {
     updateBounds: function() {
       tv.c.trace_model.ProcessBase.prototype.updateBounds.apply(this);
 
+      for (var i = 0; i < this.frames.length; i++)
+        this.frames[i].addBoundsToRange(this.bounds);
+
       for (var i = 0; i < this.memoryDumps.length; i++)
         this.memoryDumps[i].addBoundsToRange(this.bounds);
     },
 
     iterateAllEvents: function(callback, opt_this) {
       this.instantEvents.forEach(callback, opt_this);
+
+      this.frames.forEach(callback, opt_this);
 
       this.memoryDumps.forEach(callback, opt_this);
 

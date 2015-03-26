@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/auditor.html">
-<link rel="import" href="/extras/audits/android_frame.html">
+<link rel="import" href="/core/trace_model/frame.html">
 <link rel="import" href="/extras/audits/utils.html">
 
 <script>
@@ -17,7 +17,7 @@ found in the LICENSE file.
  * such as rendering apps, and frames rendered.
  */
 tv.exportTo('tv.e.audits', function() {
-  var AndroidFrame = tv.e.audits.AndroidFrame;
+  var Frame = tv.c.trace_model.Frame;
 
   var UI_THREAD_DRAW_NAME = 'performTraversals';
   var UI_THREAD_INPUT_NAME = 'deliverInputEvent';
@@ -95,7 +95,7 @@ tv.exportTo('tv.e.audits', function() {
           end: rtDrawSlice.end
         });
       }
-      frames.push(new AndroidFrame(threadTimeRanges, totalDuration));
+      frames.push(new Frame(threadTimeRanges, totalDuration));
     });
     return frames;
   }
@@ -112,7 +112,7 @@ tv.exportTo('tv.e.audits', function() {
         start: slice.start,
         end: slice.end
       }];
-      frames.push(new AndroidFrame(threadTimeRanges, slice.duration));
+      frames.push(new Frame(threadTimeRanges, slice.duration));
     });
     return frames;
   }
@@ -132,7 +132,8 @@ tv.exportTo('tv.e.audits', function() {
    * Model for Android-specific data.
    * @constructor
    */
-  function AndroidApp(uiThread, renderThread) {
+  function AndroidApp(process, uiThread, renderThread) {
+    this.process = process;
     this.uiThread = uiThread;
     this.renderThread = renderThread;
   };
@@ -146,7 +147,7 @@ tv.exportTo('tv.e.audits', function() {
     var renderThread = renderThreads.length == 1 ? renderThreads[0] : undefined;
 
     if (uiThread || renderThread) {
-      return new AndroidApp(uiThread, renderThread);
+      return new AndroidApp(process, uiThread, renderThread);
     }
   }
 

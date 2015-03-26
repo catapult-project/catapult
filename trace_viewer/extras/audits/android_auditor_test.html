@@ -15,18 +15,18 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
 
-  test('longframe', function() {
+  test('longFrameAlert', function() {
     var model = tv.c.test_utils.newModelWithAuditor(function(model) {
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 80));
     }, tv.e.audits.AndroidAuditor);
 
-    assert.equal(1, model.alerts.length);
+    assert.equal(model.alerts.length, 1);
     var alert = model.alerts[0];
-    assert.closeTo(80, alert.args.totalDuration, 1e-5);
+    assert.closeTo(alert.args.totalDuration, 80, 1e-5);
   });
 
-  test('savelayer', function() {
+  test('saveLayerAlert', function() {
     var model = tv.c.test_utils.newModelWithAuditor(function(model) {
       var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
@@ -35,11 +35,23 @@ tv.b.unittest.testSuite(function() {
           'BadAlphaView alpha caused saveLayer 480x320', 203, 1));
     }, tv.e.audits.AndroidAuditor);
 
-    assert.equal(1, model.alerts.length);
+    assert.equal(model.alerts.length, 1);
 
     var alert = model.alerts[0];
-    assert.equal(480, alert.args.width);
-    assert.equal(320, alert.args.height);
+    assert.equal(alert.args.width, 480);
+    assert.equal(alert.args.height, 320);
+  });
+
+  test('addFrameToModel', function() {
+    var process;
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      process = model.getOrCreateProcess(1);
+      var uiThread = process.getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 8));
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.equal(process.frames.length, 1);
+    assert.closeTo(process.frames[0].totalDuration, 8, 1e-5);
   });
 });
 </script>

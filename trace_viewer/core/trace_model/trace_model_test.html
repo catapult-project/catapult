@@ -17,6 +17,7 @@ tv.b.unittest.testSuite(function() {
   var ThreadSlice = tv.c.trace_model.ThreadSlice;
   var TraceModel = tv.c.TraceModel;
   var TitleOrCategoryFilter = tv.c.TitleOrCategoryFilter;
+  var Frame = tv.c.trace_model.Frame;
 
   var createTraceModelWithOneOfEverything = function() {
     var m = new TraceModel();
@@ -59,6 +60,8 @@ tv.b.unittest.testSuite(function() {
     bSeries.addCounterSample(1, 15);
     bSeries.addCounterSample(2, 12);
     bSeries.addCounterSample(3, 16);
+
+    p.frames.push.apply(p.frames, new Frame([t, 1, 5]));
 
     var gd = new tv.c.trace_model.GlobalMemoryDump(m, 2);
     var pd = new tv.c.trace_model.ProcessMemoryDump(gd, p, 2);
