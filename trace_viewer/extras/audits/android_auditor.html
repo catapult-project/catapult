@@ -35,9 +35,24 @@ tv.exportTo('tv.e.audits', function() {
     __proto__: Auditor.prototype,
 
     runAnnotate: function() {
+      var badFramesObserved = 0;
+      var framesObserved = 0;
       this.helper.apps.forEach(function(app) {
-        app.process.frames.push.apply(app.process.frames, app.getFrames());
+        // override frame list
+        app.process.frames = app.getFrames();
+
+        app.process.frames.forEach(function(frame) {
+          if (frame.totalDuration > EXPECTED_FRAME_TIME)
+            badFramesObserved++;
+        });
+        framesObserved += app.process.frames.length;
       });
+
+      var portionBad = badFramesObserved / framesObserved;
+      if (portionBad > 0.3)
+        this.model.faviconHue = 'red';
+      else if (portionBad = 0.05)
+        this.model.faviconHue = 'green';
     },
 
     runAudit: function() {
