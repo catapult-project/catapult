@@ -330,6 +330,7 @@
       'trace_viewer/extras/tcmalloc/tcmalloc.html',
       'trace_viewer/extras/tcmalloc/tcmalloc_instance_view.html',
       'trace_viewer/extras/tcmalloc/tcmalloc_snapshot_view.html',
+      'trace_viewer/extras/tquery/tquery.html',
       'trace_viewer/trace_viewer.html',
     ],
     'tracing_img_files': [

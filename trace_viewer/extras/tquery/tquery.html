@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/core/filter.html">
+<link rel="import" href="/core/selection.html">
+
+<polymer-element name='tv-e-tquery'>
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.timeline_ = undefined;
+      this.parent_ = undefined;
+      this.filterExpression_ = undefined;
+      // Memoized filtering result.
+      this.selection_ = undefined;
+    },
+
+    // Append a new filter expression to this query and return a query node
+    // that represents the result.
+    filter: function(filterExpression) {
+      var result = document.createElement('tv-e-tquery');
+      result.timeline_ = this.timeline;
+      result.parent_ = this;
+      result.filterExpression_ = filterExpression;
+      return result;
+    },
+
+    // Creates a graph of {Task} objects which will compute the selections for
+    // this filter object and all of its parents. The return value is an object
+    // with the following fields:
+    //  - rootTask: {Task} which should be executed to kick off processing for
+    //              the entire task graph.
+    //  - lastTask: The final {Task} of the graph. Can be used by the caller to
+    //              enqueue additional processing at the end.
+    //  - lastNode: The last filter object in the task. It's selection property
+    //              will contain the filtering result once |finalTask|
+    //              completes.
+    createFilterTaskGraph_: function() {
+      // List of nodes in order from the current one to the root.
+      var nodes = [];
+      var node = this;
+      while (node !== undefined) {
+        nodes.push(node);
+        node = node.parent_;
+      }
+
+      var rootTask = new tv.b.Task();
+      var lastTask = rootTask;
+      for (var i = nodes.length - 1; i >= 0; i--) {
+        var node = nodes[i];
+        // Reuse any memoized result.
+        if (node.selection_ !== undefined)
+          continue;
+        node.selection_ = new tv.c.Selection();
+        if (node.parent_ === undefined) {
+          // If this is the root, start by collecting all objects from the
+          // timeline.
+          lastTask = lastTask.after(
+              this.selectEverythingAsTask_(node.selection_));
+        } else {
+          // Otherwise execute the filter expression for this node and fill
+          // in its selection.
+          var prevNode = nodes[i + 1];
+          lastTask = this.createFilterTaskForNode_(lastTask, node, prevNode);
+        }
+      }
+      return {rootTask: rootTask, lastTask: lastTask, lastNode: node};
+    },
+
+    createFilterTaskForNode_: function(lastTask, node, prevNode) {
+      return lastTask.after(function() {
+        // TODO(skyostil): Break into subtasks.
+        prevNode.selection_.forEach(function(event) {
+          if (!node.filterExpression || node.filterExpression.matches(event)) {
+            node.selection_.push(event);
+          }
+        });
+      }, this);
+    },
+
+    // Show the result of this query as a highlight on the timeline. Returns a
+    // {Task} which runs the query and sets the highlight.
+    show: function() {
+      var graph = this.createFilterTaskGraph_();
+
+      graph.lastTask = graph.lastTask.after(function() {
+        this.timeline.setHighlightAndClearSelection(graph.lastNode.selection_);
+      }, this);
+      return graph.rootTask;
+    },
+
+    // Returns a task that fills the given selection with everything in the
+    // timeline.
+    selectEverythingAsTask_: function(selection) {
+      var passThroughFilter = new tv.c.Filter();
+      var filterTask =
+        this.timeline.addAllObjectsMatchingFilterToSelectionAsTask(
+            passThroughFilter, selection);
+      return filterTask;
+    },
+
+    set timeline(t) {
+      this.timeline_ = t;
+      this.selection_ = undefined;
+    },
+
+    get timeline() {
+      return this.timeline_;
+    },
+
+    get selection() {
+      if (this.selection_ === undefined) {
+        var graph = this.createFilterTaskGraph_();
+        tv.b.Task.RunSynchronously(graph.rootTask);
+      }
+      return this.selection_;
+    }
+  });
+  </script>
+</polymer-element>

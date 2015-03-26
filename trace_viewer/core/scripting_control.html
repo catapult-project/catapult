@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/task.html">
 <link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/core/timeline_track_view.html">
 
@@ -130,7 +131,13 @@ found in the LICENSE file.
       } catch (e) {
         result = e.stack || e.stackTrace;
       }
-      this.addLine_(result);
+
+      if (result instanceof tv.b.Task) {
+        // TODO(skyostil): Show a cool spinner.
+        tv.b.Task.RunWhenIdle(result);
+      } else {
+        this.addLine_(result);
+      }
     },
 
     addLine_: function(line) {

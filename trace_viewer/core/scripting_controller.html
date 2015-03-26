@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/utils.html">
+<link rel="import" href="/extras/tquery/tquery.html">
 
 /**
  * @fileoverview ScriptingController.
@@ -19,6 +19,12 @@ found in the LICENSE file.
       this.timeline_ = undefined;
       this.contextNames_ = [];
       this.contextValues_ = [];
+      this.tquery_ = document.createElement('tv-e-tquery');
+
+      this.addContextValue('$t', this.tquery_);
+
+      // Make tquery also available to the DevTools inspector.
+      window['$t'] = this.tquery_;
     },
 
     get timeline() {
@@ -27,6 +33,7 @@ found in the LICENSE file.
 
     set timeline(t) {
       this.timeline_ = t;
+      this.tquery_.timeline = t;
     },
 
     addContextValue: function(name, value) {
