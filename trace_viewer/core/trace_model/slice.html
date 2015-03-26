@@ -34,6 +34,9 @@ tv.exportTo('tv.c.trace_model', function() {
     this.didNotFinish = false;
     this.inFlowEvents = [];
     this.outFlowEvents = [];
+    this.subSlices = [];
+    this.selfTime = undefined;
+    this.cpuSelfTime = undefined;
 
     if (opt_duration !== undefined)
       this.duration = opt_duration;

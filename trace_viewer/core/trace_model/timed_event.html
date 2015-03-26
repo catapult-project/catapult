@@ -25,6 +25,8 @@ tv.exportTo('tv.c.trace_model', function() {
     tv.c.trace_model.Event.call(this);
     this.start = start;
     this.duration = 0;
+    this.cpuStart = undefined;
+    this.cpuDuration = undefined;
   }
 
   TimedEvent.prototype = {

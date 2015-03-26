@@ -81,24 +81,26 @@ found in the LICENSE file.
         rows.push({ name: 'CPU Duration', value: cpuDurationEl });
       }
 
-      if (slice.selfTime) {
-        var selfTimeEl = document.createElement('tv-c-a-time-span');
-        selfTimeEl.duration = slice.selfTime;
-        rows.push({ name: 'Self Time', value: selfTimeEl });
-      }
-
-      if (slice.cpuSelfTime) {
-        var cpuSelfTimeEl = document.createElement('tv-c-a-time-span');
-        cpuSelfTimeEl.duration = slice.cpuSelfTime;
-        if (slice.cpuSelfTime > slice.selfTime) {
-          cpuSelfTimeEl.warning =
-              ' Note that CPU Self Time is larger than Self Time. ' +
-              'This is a known limitation of this system, which occurs ' +
-              'due to several subslices, rounding issues, and imprecise ' +
-              'time at which we get cpu- and real-time.';
+      if (slice.subSlices !== undefined && slice.subSlices.length !== 0) {
+        if (slice.selfTime) {
+          var selfTimeEl = document.createElement('tv-c-a-time-span');
+          selfTimeEl.duration = slice.selfTime;
+          rows.push({ name: 'Self Time', value: selfTimeEl });
         }
-        rows.push({name: 'CPU Self Time',
-                   value: cpuSelfTimeEl});
+
+        if (slice.cpuSelfTime) {
+          var cpuSelfTimeEl = document.createElement('tv-c-a-time-span');
+          cpuSelfTimeEl.duration = slice.cpuSelfTime;
+          if (slice.cpuSelfTime > slice.selfTime) {
+            cpuSelfTimeEl.warning =
+                ' Note that CPU Self Time is larger than Self Time. ' +
+                'This is a known limitation of this system, which occurs ' +
+                'due to several subslices, rounding issues, and imprecise ' +
+                'time at which we get cpu- and real-time.';
+          }
+          rows.push({name: 'CPU Self Time',
+                     value: cpuSelfTimeEl});
+        }
       }
 
       if (slice.durationInUserTime) {

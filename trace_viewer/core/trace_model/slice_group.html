@@ -283,7 +283,26 @@ tv.exportTo('tv.c.trace_model', function() {
      */
     createSubSlices: function() {
       this.haveTopLevelSlicesBeenBuilt = true;
+      this.createSubSlicesImpl_();
 
+      this.slices.forEach(function(slice) {
+        var selfTime = slice.duration;
+        for (var i = 0; i < slice.subSlices.length; i++)
+          selfTime -= slice.subSlices[i].duration;
+        slice.selfTime = selfTime;
+
+        if (slice.cpuDuration === undefined)
+          return;
+
+        var cpuSelfTime = slice.cpuDuration;
+        for (var i = 0; i < slice.subSlices.length; i++) {
+          if (slice.subSlices[i].cpuDuration !== undefined)
+            cpuSelfTime -= slice.subSlices[i].cpuDuration;
+        }
+        slice.cpuSelfTime = cpuSelfTime;
+      });
+    },
+    createSubSlicesImpl_: function() {
       function addSliceIfBounds(root, child) {
         // Because we know that the start time of child is >= the start time
         // of all other slices seen so far, we can just check the last slice
@@ -294,17 +313,10 @@ tv.exportTo('tv.c.trace_model', function() {
                                  child))
               return true;
           }
-          if (!root.selfTime)
-            root.selfTime = root.duration;
-          if (!root.cpuSelfTime && root.cpuDuration)
-            root.cpuSelfTime = root.cpuDuration;
           child.parentSlice = root;
-          if (!root.subSlices)
+          if (root.subSlices === undefined)
             root.subSlices = [];
           root.subSlices.push(child);
-          root.selfTime -= child.duration;
-          if (child.cpuDuration)
-            root.cpuSelfTime -= child.cpuDuration;
           return true;
         }
         return false;

@@ -488,7 +488,7 @@ tv.exportTo('tv.c', function() {
           task.subTask(function() {
             progressMeter.update(
                 'Importing ' + (index + 1) + ' of ' + importers.length);
-            importer.importEvents(index > 0);
+            importer.importEvents();
           }, this);
         }, this);
       }, this);

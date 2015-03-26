@@ -27,6 +27,9 @@ tv.exportTo('tv.c.trace_model', function() {
                       opt_isTopLevel) {
     tv.c.trace_model.Slice.call(this, category, title, colorId, start, args,
                                 duration);
+
+    // TODO(nduca): Forgive me for what I must do.
+    this.subSlices = undefined;
     this.isTopLevel = (opt_isTopLevel === true);
   };
 
