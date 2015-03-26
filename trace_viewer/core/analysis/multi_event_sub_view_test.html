@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/deep_utils.html">
+<link rel="import" href="/core/analysis/multi_event_sub_view.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Model = tv.c.TraceModel;
+  var Thread = tv.c.trace_model.Thread;
+  var Selection = tv.c.Selection;
+  var newSliceNamed = tv.c.test_utils.newSliceNamed;
+  var newSliceCategory = tv.c.test_utils.newSliceCategory;
+  var Slice = tv.c.trace_model.Slice;
+
+  test('sameTitles', function() {
+    var model = new Model();
+    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    t53.sliceGroup.pushSlice(newSliceNamed('c', 0.0, 0.04));
+    t53.sliceGroup.pushSlice(newSliceNamed('c', 0.12, 0.06));
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new Selection();
+    selection.push(t53.sliceGroup.slices[0]);
+    selection.push(t53.sliceGroup.slices[1]);
+
+    var viewEl = document.createElement('tv-c-a-multi-event-sub-view');
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+
+    var summaryTableEl = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-a-multi-event-summary-table');
+    assert.isDefined(summaryTableEl);
+
+    assert.isFalse(summaryTableEl.showTotals);
+    assert.equal(tv.b.dictionaryLength(summaryTableEl.eventsByTitle), 1);
+    assert.equal(summaryTableEl.selectionBounds, selection.bounds);
+
+    var detailsTableEl = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-a-multi-event-details-table');
+        assert.isDefined(detailsTableEl);
+    assert.equal(detailsTableEl.selection, selection);
+  });
+
+  test('differentTitles', function() {
+    var model = new Model();
+    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    t53.sliceGroup.pushSlice(newSliceNamed('c', 0.0, 0.04));
+    t53.sliceGroup.pushSlice(newSliceNamed('c', 0.12, 0.06));
+    t53.sliceGroup.pushSlice(newSliceNamed('d', 0.5, 0.5));
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new Selection();
+    selection.push(t53.sliceGroup.slices[0]);
+    selection.push(t53.sliceGroup.slices[1]);
+    selection.push(t53.sliceGroup.slices[2]);
+
+    var viewEl = document.createElement('tv-c-a-multi-event-sub-view');
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+
+    var summaryTableEl = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-a-multi-event-summary-table');
+    assert.isDefined(summaryTableEl);
+
+    assert.isTrue(summaryTableEl.showTotals);
+    assert.equal(tv.b.dictionaryLength(summaryTableEl.eventsByTitle), 2);
+    assert.equal(summaryTableEl.selectionBounds, selection.bounds);
+
+    var detailsTableEl = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-a-multi-event-details-table');
+    assert.isUndefined(detailsTableEl);
+  });
+
+});
+</script>

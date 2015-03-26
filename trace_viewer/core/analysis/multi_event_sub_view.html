@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/ui.html">
+<link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/multi_event_summary_table.html">
+<link rel="import" href="/core/analysis/multi_event_details_table.html">
+<link rel="import" href="/core/analysis/table_builder.html">
+
+<polymer-element name="tv-c-a-multi-event-sub-view"
+    extends="tracing-analysis-sub-view">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    </style>
+    <div id="content">
+    </div>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+      this.requiresTallView_ = false;
+    },
+
+    set selection(selection) {
+      if (selection.length <= 1)
+        throw new Error('Only supports multiple items');
+      if (!selection.every(
+          function(x) { return x instanceof tv.c.trace_model.Slice; })) {
+        throw new Error('Only supports slices');
+      }
+      this.setSelectionWithoutErrorChecks(selection);
+    },
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    get requiresTallView() {
+      return this.requiresTallView_;
+    },
+
+    setSelectionWithoutErrorChecks: function(selection) {
+      this.currentSelection_ = selection;
+      this.requiresTallView_ = false;
+
+      // TODO(nduca): This is a gross hack for cc Frame Viewer, but its only
+      // the frame viewer that needs this feature, so ~shrug~.
+      if (window.RasterTaskView !== undefined) { // May not have been imported.
+        if (tv.e.cc.RasterTaskSelection.supports(selection)) {
+          var ltvSelection = new tv.e.cc.RasterTaskSelection(selection);
+
+          var ltv = new tv.e.cc.LayerTreeHostImplSnapshotView();
+          ltv.objectSnapshot = ltvSelection.containingSnapshot;
+          ltv.selection = ltvSelection;
+          ltv.extraHighlightsByLayerId = ltvSelection.extraHighlightsByLayerId;
+          this.appendChild(ltv);
+
+          this.style.display = 'flex';
+
+          this.requiresTallView_ = true;
+          return;
+        }
+      }
+      this.style.display = '';
+
+      var eventsByTitle = selection.getEventsOrganizedByTitle();
+      var numTitles = tv.b.dictionaryLength(eventsByTitle);
+
+      this.$.content.textContent = '';
+      var summaryTableEl = document.createElement(
+          'tv-c-a-multi-event-summary-table');
+      summaryTableEl.configure({
+        showTotals: numTitles > 1,
+        eventsByTitle: eventsByTitle,
+        selectionBounds: selection.bounds
+      });
+      this.$.content.appendChild(summaryTableEl);
+
+      if (numTitles === 1) {
+        var detailsTableEl = document.createElement(
+            'tv-c-a-multi-event-details-table');
+        detailsTableEl.selection = selection;
+        this.$.content.appendChild(detailsTableEl);
+      }
+    }
+  });
+  </script>
+</polymer>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/deep_utils.html">
+<link rel="import" href="/core/analysis/multi_event_summary_table.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Model = tv.c.TraceModel;
+  var Thread = tv.c.trace_model.Thread;
+  var Selection = tv.c.Selection;
+  var newSliceNamed = tv.c.test_utils.newSliceNamed;
+  var newSliceCategory = tv.c.test_utils.newSliceCategory;
+  var Slice = tv.c.trace_model.Slice;
+
+  test('basic', function() {
+    var model = new Model();
+    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    t53.sliceGroup.pushSlice(newSliceNamed('a', 0, 0.5));
+    t53.sliceGroup.pushSlice(newSliceNamed('b', 1, 0.5));
+    t53.sliceGroup.pushSlice(newSliceNamed('b', 2, 0.5));
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new Selection();
+    selection.push(t53.sliceGroup.slices[0]);
+    selection.push(t53.sliceGroup.slices[1]);
+
+    var viewEl = document.createElement('tv-c-a-multi-event-summary-table');
+    viewEl.configure({
+      showTotals: true,
+      eventsByTitle: selection.getEventsOrganizedByTitle(),
+      selectionBounds: selection.bounds
+    });
+    this.addHTMLOutput(viewEl);
+
+    // TODO(nduca): asserts here.
+  });
+
+  // With and without cpu time
+  // With and without totals
+  // Tooltippish stuff
+});
+</script>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/analysis/table_builder.html">
+
+
+<polymer-element name='tv-c-a-multi-event-summary-table'>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.showTotals_ = false;
+      this.eventsByTitle_ = undefined;
+      this.selectionBounds_ = new tv.b.Range();
+    },
+
+    configure: function(config) {
+      this.showTotals_ = config.showTotals;
+      this.eventsByTitle_ = config.eventsByTitle;
+      this.selectionBounds_ = config.selectionBounds;
+      this.updateContents_();
+    },
+
+    get showTotals() {
+      return this.showTotals_;
+    },
+
+    set showTotals(showTotals) {
+      this.showTotals_ = showTotals;
+      this.updateContents_();
+    },
+
+    get eventsByTitle() {
+      return this.eventsByTitle_;
+    },
+
+    set eventsByTitle(eventsByTitle) {
+      this.eventsByTitle_ = eventsByTitle;
+      this.appendChild(this.updateContents_());
+    },
+
+    get selectionBounds() {
+      return this.selectionBounds_;
+    },
+
+    set selectionBounds(selectionBounds) {
+      this.selectionBounds_ = selectionBounds;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.textContent = '';
+
+      var columns = [
+          {
+            title: 'Label',
+            value: function(row) { return row.name; },
+            width: '150px'
+          },
+          {
+            title: 'Value',
+            value: function(row) { return row.value; }
+        }
+      ];
+      var rows = [];
+      rows.push({ name: 'Title', value: 'Testing' });
+      var table = new TracingAnalysisNestedTable();
+      table.tableColumns = columns;
+      table.tableRows = rows;
+      table.rebuild();
+
+      this.appendChild(table);
+    }
+  });
+  </script>
+</polymer>

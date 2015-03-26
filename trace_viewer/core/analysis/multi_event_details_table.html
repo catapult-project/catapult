@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/analysis/table_builder.html">
+
+
+<polymer-element name='tv-c-a-multi-event-details-table'>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.selection = undefined;
+    },
+
+    get selection() {
+      return this.selection_;
+    },
+    set selection(selection) {
+      this.selection_ = selection;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.textContent = '';
+      var columns = [
+          {
+            title: 'Label',
+            value: function(row) { return row.name; },
+            width: '150px'
+          },
+          {
+            title: 'Value',
+            value: function(row) { return row.value; }
+        }
+      ];
+      var rows = [];
+      rows.push({ name: 'Title', value: 'Testing' });
+      var table = new TracingAnalysisNestedTable();
+      table.tableColumns = columns;
+      table.tableRows = rows;
+      table.rebuild();
+      this.appendChild(table);
+    }
+  });
+</script>
+</polymer>
+
+

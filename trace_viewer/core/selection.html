@@ -155,6 +155,20 @@ tv.exportTo('tv.c', function() {
       }
     },
 
+    getEventsOrganizedByTitle: function() {
+      var eventsByTitle = {};
+      for (var i = 0; i < this.length; i++) {
+        var event = this[i];
+        if (event.title === undefined)
+          throw new Error('An event didn\'t have a title!');
+        if (eventsByTitle[event.title] == undefined) {
+          eventsByTitle[event.title] = [];
+        }
+        eventsByTitle[event.title].push(event);
+      }
+      return eventsByTitle;
+    },
+
     enumEventsOfType: function(type, func) {
       for (var i = 0; i < this.length_; i++)
         if (this[i] instanceof type)
