@@ -13,10 +13,6 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.c.tracks', function() {
-  function compareNumbers(a, b) {
-    return a - b;
-  }
-
   /**
    * Visualizes a Process's state using a series of rects to represent activity.
    * @constructor
@@ -28,53 +24,84 @@ tv.exportTo('tv.c.tracks', function() {
     if (!process)
       return [];
 
-    // collect top level slices of all threads together
-    var starts = [];
-    var ends = [];
+    var ops = [];
+    // build list of start/end ops for each top level or important slice
+    var pushOp = function(isStart, time, slice) {
+      ops.push({
+        isStart: isStart,
+        time: time,
+        slice: slice
+      });
+    };
     for (var tid in process.threads) {
-      var thread = process.threads[tid];
+      var sliceGroup = process.threads[tid].sliceGroup;
 
-      process.threads[tid].sliceGroup.topLevelSlices.forEach(function(slice) {
-        starts.push(slice.start);
-        ends.push(slice.end);
+      sliceGroup.topLevelSlices.forEach(function(slice) {
+        pushOp(true, slice.start, undefined);
+        pushOp(false, slice.end, undefined);
+      });
+      sliceGroup.slices.forEach(function(slice) {
+        if (slice.important) {
+          pushOp(true, slice.start, slice);
+          pushOp(false, slice.end, slice);
+        }
       });
     }
+    ops.sort(function(a, b) { return a.time - b.time; });
 
-    // sort starts and ends so they're all ordered in global time
-    starts.sort(compareNumbers);
-    ends.sort(compareNumbers);
-
-    // 'merge sort' the starts/ends to find depth at any given time
-    // creates rect between each rising and falling edge of that depth
-    var colorId = tv.b.ui.getColorIdForReservedName('generic_work');
-    var lastStart = undefined;
-    var startIndex = 0;
-    var endIndex = 0;
-    var depth = 0;
     var rects = [];
-    while (startIndex < starts.length || endIndex < ends.length) {
-      if (startIndex < starts.length && starts[startIndex] <= ends[endIndex]) {
-        if (depth == 0) {
-          // rising edge, start a rect
-          lastStart = starts[startIndex];
-        }
-        startIndex++;
-        depth++;
-      } else {
-        if (depth == 1) {
-          // falling edge, end a rect
-          rects.push({
-            start: lastStart,
-            end: ends[endIndex],
-            duration: ends[endIndex] - lastStart,
-            colorId: colorId
-          });
-        }
-        endIndex++;
-        depth--;
-      }
+    /**
+     * Build a row of rects which display one way for unimportant activity,
+     * and during important slices, show up as those important slices.
+     *
+     * If an important slice starts in the middle of another,
+     * just drop it on the floor.
+     */
+    var genericColorId = tv.b.ui.getColorIdForReservedName('generic_work');
+    var pushRect = function(start, end, slice) {
+      rects.push({
+        start: start,
+        end: end,
+        duration: end - start,
+        colorId: slice ? slice.colorId : genericColorId,
+        title: slice ? slice.title : undefined
+      });
     }
+    var depth = 0;
+    var currentSlice = undefined;
+    var lastStart = undefined;
+    ops.forEach(function(op) {
+      depth += op.isStart ? 1 : -1;
 
+      if (currentSlice) {
+        // simply find end of current important slice
+        if (!op.isStart && op.slice == currentSlice) {
+          // important slice has ended
+          pushRect(lastStart, op.time, currentSlice);
+          lastStart = depth >= 1 ? op.time : undefined;
+          currentSlice = undefined;
+        }
+      } else {
+        if (op.isStart) {
+          if (depth == 1) {
+            lastStart = op.time;
+            currentSlice = op.slice;
+          } else if (op.slice) {
+            // switch to slice
+            if (op.time != lastStart) {
+              pushRect(lastStart, op.time, undefined);
+              lastStart = op.time;
+            }
+            currentSlice = op.slice;
+          }
+        } else {
+          if (depth == 0) {
+            pushRect(lastStart, op.time, undefined);
+            lastStart = undefined;
+          }
+        }
+      }
+    });
     return rects;
   };
 

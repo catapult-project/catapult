@@ -35,6 +35,10 @@ tv.exportTo('tv.e.audits', function() {
     __proto__: Auditor.prototype,
 
     runAnnotate: function() {
+      this.helper.iterateImportantSlices(function(slice) {
+        slice.important = true;
+      });
+
       var badFramesObserved = 0;
       var framesObserved = 0;
       this.helper.apps.forEach(function(app) {

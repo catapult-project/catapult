@@ -20,7 +20,7 @@ tv.b.unittest.testSuite(function() {
 
   /*
    * List of customizeModelCallbacks which produce different 80ms frames,
-   * each starting at 10ms
+   * each starting at 10ms, and with a single important slice
    */
   var SINGLE_FRAME_CUSTOM_MODELS = [
     function(model) {
@@ -77,11 +77,25 @@ tv.b.unittest.testSuite(function() {
       assert.equal(1, helper.apps.length);
 
       var frames = helper.apps[0].getFrames();
-      assert.equal(1, frames.length);
+      assert.equal(frames.length, 1);
       assert.closeTo(frames[0].totalDuration, 80, 1e-5);
 
       assert.closeTo(frames[0].start, 10, 1e-5);
       assert.closeTo(frames[0].end, 90, 1e-5);
+    });
+  });
+
+  test('iterateImportantSlices', function() {
+    SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
+      var model = tv.c.test_utils.newModel(customizeModelCallback);
+      var helper = new AndroidModelHelper(model);
+
+      var seen = 0;
+      helper.iterateImportantSlices(function(importantSlice) {
+        assert.isTrue(importantSlice instanceof tv.c.trace_model.Slice);
+        seen++;
+      });
+      assert.equal(seen, 1);
     });
   });
 });

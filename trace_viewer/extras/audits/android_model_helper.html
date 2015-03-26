@@ -14,10 +14,48 @@ found in the LICENSE file.
 
 /**
  * @fileoverview Class for managing android-specific model meta data,
- * such as rendering apps, and frames rendered.
+ * such as rendering apps, frames rendered, and SurfaceFlinger.
  */
 tv.exportTo('tv.e.audits', function() {
   var AndroidApp = tv.e.audits.AndroidApp;
+
+  var IMPORTANT_SURFACE_FLINGER_SLICES = {
+    'doComposition' : true,
+    'updateTexImage' : true,
+    'postFramebuffer' : true
+  };
+  var IMPORTANT_UI_THREAD_SLICES = {
+    'performTraversals' : true,
+    'deliverInputEvent' : true
+  };
+  var IMPORTANT_RENDER_THREAD_SLICES = {
+    'doFrame' : true
+  };
+
+  function iterateImportantThreadSlices(thread, important, callback) {
+    if (!thread)
+      return;
+
+    thread.sliceGroup.slices.forEach(function(slice) {
+      if (slice.title in important)
+        callback(slice);
+    });
+  }
+
+  function findSurfaceFlingerThread(process) {
+    var mainThread = process.getThread(process.pid);
+
+    // newer versions - main thread, lowercase name, preceeding forward slash
+    if (mainThread && mainThread.name &&
+        mainThread.name.match(/\/surfaceflinger/))
+      return mainThread;
+
+    // older versions - another thread is named SurfaceFlinger
+    var renderThreads = process.findAllThreadsNamed('SurfaceFlinger');
+    if (renderThreads.length == 1)
+      return renderThreads[0];
+    return undefined;
+  }
 
   /**
    * Model for Android-specific data.
@@ -26,11 +64,45 @@ tv.exportTo('tv.e.audits', function() {
   function AndroidModelHelper(model) {
     this.model = model;
     this.apps = [];
+    this.surfaceFlingerThread = undefined;
+
     model.getAllProcesses().forEach(function(process) {
       var app = AndroidApp.createForProcessIfPossible(process);
-      if (app)
+      if (app) {
         this.apps.push(app);
+        return;
+      }
+
+      var surfaceFlingerThread = findSurfaceFlingerThread(process);
+      if (surfaceFlingerThread) {
+        this.surfaceFlingerThread = surfaceFlingerThread;
+        return;
+      }
+
+      // TODO: classify other useful processes/threads
     }, this);
+  };
+
+  AndroidModelHelper.prototype = {
+    iterateImportantSlices: function(callback) {
+      if (this.surfaceFlingerThread) {
+        iterateImportantThreadSlices(
+            this.surfaceFlingerThread,
+            IMPORTANT_SURFACE_FLINGER_SLICES,
+            callback);
+      }
+
+      this.apps.forEach(function(app) {
+        iterateImportantThreadSlices(
+            app.uiThread,
+            IMPORTANT_UI_THREAD_SLICES,
+            callback);
+        iterateImportantThreadSlices(
+            app.renderThread,
+            IMPORTANT_RENDER_THREAD_SLICES,
+            callback);
+      });
+    }
   };
 
   return {

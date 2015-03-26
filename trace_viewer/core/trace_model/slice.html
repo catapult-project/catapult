@@ -37,6 +37,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.subSlices = [];
     this.selfTime = undefined;
     this.cpuSelfTime = undefined;
+    this.important = false;
 
     if (opt_duration !== undefined)
       this.duration = opt_duration;
