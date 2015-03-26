@@ -492,7 +492,8 @@ tv.exportTo('tv.c', function() {
 
       var selection = new Selection();
       var filter = new tv.c.ExactTitleFilter(this.selection[0].title);
-      this.addAllObjectsMatchingFilterToSelection(filter, selection);
+      this.modelTrack_.addAllObjectsMatchingFilterToSelection(filter,
+                                                              selection);
 
       this.setSelectionAndClearHighlight(selection);
     },
