@@ -38,8 +38,7 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
-      this.textContent = '';
-
+      this.shadowRoot.textContent = '';
       this.appendElementsForType_('', this.object_, 0, 0, 5, '');
     },
 
@@ -176,7 +175,7 @@ found in the LICENSE file.
       row.appendChild(suffixSpan);
 
       row.dataElement = dataElement;
-      this.appendChild(row);
+      this.shadowRoot.appendChild(row);
     },
 
     appendSimpleText_: function(label, indent, text, suffix) {
@@ -207,8 +206,8 @@ found in the LICENSE file.
       this.labelEl_ = document.createElement('div');
       this.genericObjectView_ =
           document.createElement('tv-c-analysis-generic-object-view');
-      this.appendChild(this.labelEl_);
-      this.appendChild(this.genericObjectView_);
+      this.shadowRoot.appendChild(this.labelEl_);
+      this.shadowRoot.appendChild(this.genericObjectView_);
     },
 
     get label() {

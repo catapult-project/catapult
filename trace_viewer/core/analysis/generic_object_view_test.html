@@ -15,44 +15,44 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('undefinedValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = undefined;
-    assert.equal('undefined', view.children[0].dataElement.textContent);
+    assert.equal('undefined', view.shadowRoot.textContent);
   });
 
   test('nullValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = null;
-    assert.equal('null', view.children[0].dataElement.textContent);
+    assert.equal('null', view.shadowRoot.textContent);
   });
 
   test('stringValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = 'string value';
-    assert.equal('"string value"', view.children[0].textContent);
+    assert.equal('"string value"', view.shadowRoot.textContent);
   });
 
   test('jsonObjectStringValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = '{"x": 1}';
-    assert.equal(1, view.children.length);
-    assert.equal(4, view.children[0].children.length);
+    assert.equal(1, view.shadowRoot.children.length);
+    assert.equal(4, view.shadowRoot.children[0].children.length);
   });
 
   test('jsonArraStringValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = '[1,2,3]';
-    assert.equal(3, view.children.length);
+    assert.equal(3, view.shadowRoot.children.length);
   });
 
   test('booleanValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = false;
-    assert.equal('false', view.children[0].dataElement.textContent);
+    assert.equal('false', view.shadowRoot.textContent);
   });
 
   test('numberValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = 3.14159;
-    assert.equal('3.14159', view.children[0].textContent);
+    assert.equal('3.14159', view.shadowRoot.textContent);
   });
 
   test('objectSnapshotValue', function() {
@@ -64,9 +64,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     view.object = s10;
     this.addHTMLOutput(view);
-    assert.strictEqual(
-        'TV-C-ANALYSIS-LINK',
-        view.children[0].dataElement.tagName);
+    assert.strictEqual('TV-C-ANALYSIS-LINK',
+        view.shadowRoot.children[0].dataElement.tagName);
   });
 
   test('objectInstanceValue', function() {
@@ -77,9 +76,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var s10 = i10.addSnapshot(10, {foo: 1});
 
     view.object = i10;
-    assert.strictEqual(
-        'TV-C-ANALYSIS-LINK',
-        view.children[0].dataElement.tagName);
+    assert.strictEqual('TV-C-ANALYSIS-LINK',
+        view.shadowRoot.children[0].dataElement.tagName);
   });
 
   test('instantiate_emptyArrayValue', function() {

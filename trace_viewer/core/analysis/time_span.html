@@ -4,12 +4,23 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/core/analysis/time_element.html">
 <link rel="import" href="/core/analysis/util.html">
 
-<polymer-element name="tv-c-a-time-span"
-    extends="tv-c-a-time-element">
+<polymer-element name="tv-c-a-time-span">
   <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+    #warning {
+      margin-left: 4px;
+      font-size: 66%;
+    }
+    </style>
+    <span id="content"></span>
+    <span id="warning" style="display:none">&#9888;</span>
   </template>
   <script>
   'use strict';
@@ -17,7 +28,6 @@ found in the LICENSE file.
   Polymer({
     ready: function() {
       this.warning_ = undefined;
-      this.$.warning.textContent = String.fromCharCode(9888);
       this.duration_ = undefined;
     },
 

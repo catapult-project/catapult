@@ -126,7 +126,6 @@
       'trace_viewer/core/analysis/stack_frame.html',
       'trace_viewer/core/analysis/tab_view.html',
       'trace_viewer/core/analysis/table_builder.html',
-      'trace_viewer/core/analysis/time_element.html',
       'trace_viewer/core/analysis/time_span.html',
       'trace_viewer/core/analysis/time_stamp.html',
       'trace_viewer/core/analysis/toggle_container.html',
