@@ -17,23 +17,54 @@ tv.b.unittest.testSuite(function() {
   var ProcessSummaryTrack = tv.c.tracks.ProcessSummaryTrack;
   var newSlice = tv.c.test_utils.newSlice;
 
-  test('buildRects', function() {
+  test('buildRectSimple', function() {
     var process;
     var model = tv.c.test_utils.newModel(function(model) {
       process = model.getOrCreateProcess(1);
-
+      // XXXX
+      //    XXXX
       var thread1 = process.getOrCreateThread(1);
-      thread1.sliceGroup.pushSlice(newSlice(10, 40));
+      thread1.sliceGroup.pushSlice(newSlice(1, 4));
       var thread2 = process.getOrCreateThread(2);
-      thread2.sliceGroup.pushSlice(newSlice(40, 40));
+      thread2.sliceGroup.pushSlice(newSlice(4, 4));
     });
 
     var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
 
     assert.equal(1, rects.length);
     var rect = rects[0];
-    assert.closeTo(10, rect.start, 1e-5);
-    assert.closeTo(80, rect.end, 1e-5);
+    assert.closeTo(rect.start, 1, 1e-5);
+    assert.closeTo(rect.end, 8, 1e-5);
+  });
+
+  test('buildRectComplex', function() {
+    var process;
+    var model = tv.c.test_utils.newModel(function(model) {
+      process = model.getOrCreateProcess(1);
+      // XXXX    X X XX
+      //    XXXX XXX    X
+      var thread1 = process.getOrCreateThread(1);
+      thread1.sliceGroup.pushSlice(newSlice(1, 4));
+      thread1.sliceGroup.pushSlice(newSlice(9, 1));
+      thread1.sliceGroup.pushSlice(newSlice(11, 1));
+      thread1.sliceGroup.pushSlice(newSlice(13, 2));
+      var thread2 = process.getOrCreateThread(2);
+      thread2.sliceGroup.pushSlice(newSlice(4, 4));
+      thread2.sliceGroup.pushSlice(newSlice(9, 3));
+      thread2.sliceGroup.pushSlice(newSlice(16, 1));
+    });
+
+    var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
+
+    assert.equal(rects.length, 4);
+    assert.closeTo(rects[0].start, 1, 1e-5);
+    assert.closeTo(rects[0].end, 8, 1e-5);
+    assert.closeTo(rects[1].start, 9, 1e-5);
+    assert.closeTo(rects[1].end, 12, 1e-5);
+    assert.closeTo(rects[2].start, 13, 1e-5);
+    assert.closeTo(rects[2].end, 15, 1e-5);
+    assert.closeTo(rects[3].start, 16, 1e-5);
+    assert.closeTo(rects[3].end, 17, 1e-5);
   });
 });
 </script>

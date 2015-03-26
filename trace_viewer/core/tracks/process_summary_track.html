@@ -13,16 +13,8 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.c.tracks', function() {
-  var SliceGroup = tv.c.trace_model.SliceGroup;
-
-  function hasSyncSlices(thread) {
-    return thread.sliceGroup && thread.sliceGroup.slices.length;
-  }
-
-  function getMergedTopLevelSlices(sliceGroupA, sliceGroupB) {
-    var newGroup = SliceGroup.merge(sliceGroupA, sliceGroupB);
-    newGroup.createSubSlices();
-    return newGroup.topLevelSlices;
+  function compareNumbers(a, b) {
+    return a - b;
   }
 
   /**
@@ -36,50 +28,53 @@ tv.exportTo('tv.c.tracks', function() {
     if (!process)
       return [];
 
-    // smush together all top level slices into single group
-    var totalGroup = undefined;
+    // collect top level slices of all threads together
+    var starts = [];
+    var ends = [];
     for (var tid in process.threads) {
       var thread = process.threads[tid];
 
-      // usage of topLevelSlices requires createSubSlices() to have been called
-      if (!thread.sliceGroup || thread.sliceGroup.topLevelSlices.length == 0)
-        continue;
+      process.threads[tid].sliceGroup.topLevelSlices.forEach(function(slice) {
+        starts.push(slice.start);
+        ends.push(slice.end);
+      });
+    }
 
-      var virtualGroup = new SliceGroup();
-      virtualGroup.pushSlices(thread.sliceGroup.topLevelSlices);
+    // sort starts and ends so they're all ordered in global time
+    starts.sort(compareNumbers);
+    ends.sort(compareNumbers);
 
-      if (!totalGroup) {
-        totalGroup = virtualGroup;
+    // 'merge sort' the starts/ends to find depth at any given time
+    // creates rect between each rising and falling edge of that depth
+    var colorId = tv.b.ui.getColorIdForReservedName('generic_work');
+    var lastStart = undefined;
+    var startIndex = 0;
+    var endIndex = 0;
+    var depth = 0;
+    var rects = [];
+    while (startIndex < starts.length || endIndex < ends.length) {
+      if (startIndex < starts.length && starts[startIndex] <= ends[endIndex]) {
+        if (depth == 0) {
+          // rising edge, start a rect
+          lastStart = starts[startIndex];
+        }
+        startIndex++;
+        depth++;
       } else {
-        var newTopSlices = getMergedTopLevelSlices(totalGroup, virtualGroup);
-        totalGroup = new SliceGroup();
-        totalGroup.pushSlices(newTopSlices);
+        if (depth == 1) {
+          // falling edge, end a rect
+          rects.push({
+            start: lastStart,
+            end: ends[endIndex],
+            duration: ends[endIndex] - lastStart,
+            colorId: colorId
+          });
+        }
+        endIndex++;
+        depth--;
       }
     }
 
-    if (!totalGroup)
-      return [];
-
-    // top level slices of that group represent process activity
-    var rects = [];
-    var colorId = tv.b.ui.getColorIdForReservedName('generic_work');
-    totalGroup.createSubSlices();
-    totalGroup.topLevelSlices.forEach(function(slice) {
-      if (rects.length) {
-        var lastRect = rects[rects.length - 1];
-        // attempt to merge
-        if (slice.start <= lastRect.end) {
-          lastRect.end = slice.end;
-          return;
-        }
-      }
-      rects.push({
-        start: slice.start,
-        end: slice.end,
-        duration: slice.duration,
-        colorId: colorId
-      });
-    });
     return rects;
   };
 
