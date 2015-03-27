@@ -4,6 +4,8 @@
 
 import os
 import shutil
+import sys
+import StringIO
 import tempfile
 import unittest
 
@@ -22,7 +24,7 @@ from telemetry.results import results_options
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
 from telemetry.user_story import user_story_runner
-from telemetry.util import exception_formatter as exception_formatter_module
+from telemetry.util import exception_formatter
 from unittest_data.page_sets import example_domain
 
 
@@ -73,11 +75,14 @@ def GetSuccessfulPageRuns(results):
   return [run for run in results.all_page_runs if run.ok or run.skipped]
 
 
-class FakeExceptionFormatterModule(object):
-  @staticmethod
-  def PrintFormattedException(
-      exception_class=None, exception=None, tb=None, msg=None):
-    pass
+def CaptureStderr(func, output_buffer):
+  def wrapper(*args, **kwargs):
+    original_stderr, sys.stderr = sys.stderr, output_buffer
+    try:
+      return func(*args, **kwargs)
+    finally:
+      sys.stderr = original_stderr
+  return wrapper
 
 
 # TODO: remove test cases that use real browsers and replace with a
@@ -88,14 +93,22 @@ class PageRunEndToEndTests(unittest.TestCase):
 
   def setUp(self):
     self._user_story_runner_logging_stub = None
+    self._formatted_exception_buffer = StringIO.StringIO()
+    self._original_formatter = exception_formatter.PrintFormattedException
 
-  def SuppressExceptionFormatting(self):
-    user_story_runner.exception_formatter = FakeExceptionFormatterModule
+  def CaptureFormattedException(self):
+    exception_formatter.PrintFormattedException = CaptureStderr(
+        exception_formatter.PrintFormattedException,
+        self._formatted_exception_buffer)
     self._user_story_runner_logging_stub = system_stub.Override(
-      user_story_runner, ['logging'])
+        user_story_runner, ['logging'])
+
+  @property
+  def formatted_exception(self):
+    return self._formatted_exception_buffer.getvalue()
 
   def RestoreExceptionFormatter(self):
-    user_story_runner.exception_formatter = exception_formatter_module
+    exception_formatter.PrintFormattedException = self._original_formatter
     if self._user_story_runner_logging_stub:
       self._user_story_runner_logging_stub.Restore()
       self._user_story_runner_logging_stub = None
@@ -104,7 +117,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     self.RestoreExceptionFormatter()
 
   def testRaiseBrowserGoneExceptionFromRestartBrowserBeforeEachPage(self):
-    self.SuppressExceptionFormatting()
+    self.CaptureFormattedException()
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     ps.pages.append(page_module.Page(
@@ -138,9 +151,10 @@ class PageRunEndToEndTests(unittest.TestCase):
     self.assertEquals(2, test.run_count)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
+    self.assertEquals('', self.formatted_exception)
 
   def testNeedsBrowserRestartAfterEachPage(self):
-    self.SuppressExceptionFormatting()
+    self.CaptureFormattedException()
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     ps.pages.append(page_module.Page(
@@ -169,9 +183,10 @@ class PageRunEndToEndTests(unittest.TestCase):
     user_story_runner.Run(test, ps, expectations, options, results)
     self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(2, test.browser_starts)
+    self.assertEquals('', self.formatted_exception)
 
   def testHandlingOfCrashedTabWithExpectedFailure(self):
-    self.SuppressExceptionFormatting()
+    self.CaptureFormattedException()
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     expectations.Fail('chrome://crash')
@@ -186,14 +201,18 @@ class PageRunEndToEndTests(unittest.TestCase):
     user_story_runner.Run(DummyTest(), ps, expectations, options, results)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
+    self.assertIn('DevtoolsTargetCrashException', self.formatted_exception)
+    # Check that only one exception is raised.
+    self.assertEquals(1, self.formatted_exception.count('Traceback'))
 
   def testCredentialsWhenLoginFails(self):
-    self.SuppressExceptionFormatting()
+    self.CaptureFormattedException()
     credentials_backend = StubCredentialsBackend(login_return_value=False)
     did_run = self.runCredentialsTest(credentials_backend)
     assert credentials_backend.did_get_login == True
     assert credentials_backend.did_get_login_no_longer_needed == False
     assert did_run == False
+    self.assertEquals('', self.formatted_exception)
 
   def testCredentialsWhenLoginSucceeds(self):
     credentials_backend = StubCredentialsBackend(login_return_value=True)
@@ -484,7 +503,6 @@ class PageRunEndToEndTests(unittest.TestCase):
       shutil.rmtree(options.output_dir)
 
   def _RunPageTestThatRaisesAppCrashException(self, test, max_failures):
-    self.SuppressExceptionFormatting()
     class TestPage(page_module.Page):
       def RunNavigateSteps(self, _):
         raise exceptions.AppCrashException
@@ -504,6 +522,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     return results
 
   def testSingleTabMeansCrashWillCauseFailureValue(self):
+    self.CaptureFormattedException()
     class SingleTabTest(page_test.PageTest):
       # Test is not multi-tab because it does not override TabForPage.
       def ValidateAndMeasurePage(self, *_):
@@ -513,9 +532,11 @@ class PageRunEndToEndTests(unittest.TestCase):
     results = self._RunPageTestThatRaisesAppCrashException(test, max_failures=1)
     self.assertEquals([], GetSuccessfulPageRuns(results))
     self.assertEquals(2, len(results.failures))  # max_failures + 1
+    self.assertEquals('', self.formatted_exception)
 
   @decorators.Enabled('has tabs')
   def testMultipleTabsMeansCrashRaises(self):
+    self.CaptureFormattedException()
     class MultipleTabsTest(page_test.PageTest):
       # Test *is* multi-tab because it overrides TabForPage.
       def TabForPage(self, page, browser):
@@ -526,6 +547,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     test = MultipleTabsTest()
     with self.assertRaises(page_test.MultiTabTestAppCrashError):
       self._RunPageTestThatRaisesAppCrashException(test, max_failures=1)
+    self.assertIn('AppCrashException', self.formatted_exception)
+    # Check that only one exception is raised.
+    self.assertEquals(1, self.formatted_exception.count('Traceback'))
 
   def testWebPageReplay(self):
     ps = example_domain.ExampleDomainPageSet()
