@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/base.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/extras/audits/android_auditor.html">
 <link rel="import" href="/extras/importer/linux_perf/linux_perf_importer.html">
@@ -52,6 +53,44 @@ tv.b.unittest.testSuite(function() {
 
     assert.equal(process.frames.length, 1);
     assert.closeTo(process.frames[0].totalDuration, 8, 1e-5);
+  });
+
+  test('rename', function() {
+    var appProcess;
+    var sfProcess;
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      appProcess = model.getOrCreateProcess(1);
+      var uiThread = appProcess.getOrCreateThread(1);
+      uiThread.name = 'appname';
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 8));
+
+      sfProcess = model.getOrCreateProcess(2);
+      var sfThread = sfProcess.getOrCreateThread(2);
+      sfThread.name = '/system/bin/surfaceflinger';
+      sfThread.sliceGroup.pushSlice(newSliceNamed('doComposition', 8, 2));
+
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.equal(appProcess.name, 'appname');
+    assert.equal(sfProcess.name, 'SurfaceFlinger');
+  });
+
+  test('favicon', function() {
+    var createTraceModelWithJank = function(percentageJank) {
+
+      return tv.c.test_utils.newModelWithAuditor(function(model) {
+        var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+        for (var i = 0; i < 100; i++) {
+          var slice = newSliceNamed('performTraversals',
+                                    30 * i,
+                                    i <= percentageJank ? 24 : 8);
+          uiThread.sliceGroup.pushSlice(slice);
+        }
+      }, tv.e.audits.AndroidAuditor);
+    };
+    assert.equal(createTraceModelWithJank(3).faviconHue, 'blue');
+    assert.equal(createTraceModelWithJank(10).faviconHue, 'green');
+    assert.equal(createTraceModelWithJank(50).faviconHue, 'red');
   });
 });
 </script>

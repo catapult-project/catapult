@@ -235,6 +235,7 @@ tracing_js_html_files = [
   "trace_viewer/extras/audits/android_app.html",
   "trace_viewer/extras/audits/android_auditor.html",
   "trace_viewer/extras/audits/android_model_helper.html",
+  "trace_viewer/extras/audits/android_surface_flinger.html",
   "trace_viewer/extras/audits/chrome_auditor.html",
   "trace_viewer/extras/audits/chrome_browser_helper.html",
   "trace_viewer/extras/audits/chrome_model_helper.html",

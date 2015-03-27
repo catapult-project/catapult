@@ -5,9 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/base.html">
-<link rel="import" href="/core/auditor.html">
 <link rel="import" href="/core/trace_model/frame.html">
-<link rel="import" href="/extras/audits/utils.html">
 
 <script>
 'use strict';
@@ -129,7 +127,7 @@ tv.exportTo('tv.e.audits', function() {
   }
 
   /**
-   * Model for Android-specific data.
+   * Model for Android App specific data.
    * @constructor
    */
   function AndroidApp(process, uiThread, renderThread) {

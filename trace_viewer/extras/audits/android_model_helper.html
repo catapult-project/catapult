@@ -7,6 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/auditor.html">
 <link rel="import" href="/extras/audits/android_app.html">
+<link rel="import" href="/extras/audits/android_surface_flinger.html">
 <link rel="import" href="/extras/audits/utils.html">
 
 <script>
@@ -18,6 +19,7 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.e.audits', function() {
   var AndroidApp = tv.e.audits.AndroidApp;
+  var AndroidSurfaceFlinger = tv.e.audits.AndroidSurfaceFlinger;
 
   var IMPORTANT_SURFACE_FLINGER_SLICES = {
     'doComposition' : true,
@@ -42,21 +44,6 @@ tv.exportTo('tv.e.audits', function() {
     });
   }
 
-  function findSurfaceFlingerThread(process) {
-    var mainThread = process.getThread(process.pid);
-
-    // newer versions - main thread, lowercase name, preceeding forward slash
-    if (mainThread && mainThread.name &&
-        mainThread.name.match(/\/surfaceflinger/))
-      return mainThread;
-
-    // older versions - another thread is named SurfaceFlinger
-    var renderThreads = process.findAllThreadsNamed('SurfaceFlinger');
-    if (renderThreads.length == 1)
-      return renderThreads[0];
-    return undefined;
-  }
-
   /**
    * Model for Android-specific data.
    * @constructor
@@ -64,7 +51,7 @@ tv.exportTo('tv.e.audits', function() {
   function AndroidModelHelper(model) {
     this.model = model;
     this.apps = [];
-    this.surfaceFlingerThread = undefined;
+    this.surfaceFlinger = undefined;
 
     model.getAllProcesses().forEach(function(process) {
       var app = AndroidApp.createForProcessIfPossible(process);
@@ -73,9 +60,9 @@ tv.exportTo('tv.e.audits', function() {
         return;
       }
 
-      var surfaceFlingerThread = findSurfaceFlingerThread(process);
-      if (surfaceFlingerThread) {
-        this.surfaceFlingerThread = surfaceFlingerThread;
+      var sf = AndroidSurfaceFlinger.createForProcessIfPossible(process);
+      if (sf) {
+        this.surfaceFlinger = sf;
         return;
       }
 
@@ -85,9 +72,9 @@ tv.exportTo('tv.e.audits', function() {
 
   AndroidModelHelper.prototype = {
     iterateImportantSlices: function(callback) {
-      if (this.surfaceFlingerThread) {
+      if (this.surfaceFlinger) {
         iterateImportantThreadSlices(
-            this.surfaceFlingerThread,
+            this.surfaceFlinger.thread,
             IMPORTANT_SURFACE_FLINGER_SLICES,
             callback);
       }

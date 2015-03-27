@@ -46,6 +46,11 @@ tv.exportTo('tv.c.test_utils', function() {
     return s;
   }
 
+  function newCounterSeries() {
+    var s = new tv.c.trace_model.CounterSeries('a', 0);
+    return s;
+  }
+
   function newSlice(start, duration) {
     return newSliceNamed('a', start, duration);
   }
@@ -160,6 +165,7 @@ tv.exportTo('tv.c.test_utils', function() {
     newCounter: newCounter,
     newCounterNamed: newCounterNamed,
     newCounterCategory: newCounterCategory,
+    newCounterSeries: newCounterSeries,
     newSlice: newSlice,
     newSliceNamed: newSliceNamed,
     newSliceEx: newSliceEx,

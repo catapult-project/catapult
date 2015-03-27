@@ -28,20 +28,37 @@ tv.exportTo('tv.e.audits', function() {
    */
   function AndroidAuditor(model) {
     this.model = model;
-    this.helper = new AndroidModelHelper(model);
+    var helper = new AndroidModelHelper(model);
+    if (helper.apps.length || helper.surfaceFlinger)
+      this.helper = helper;
   };
 
   AndroidAuditor.prototype = {
     __proto__: Auditor.prototype,
 
     runAnnotate: function() {
+      if (!this.helper)
+        return;
+
       this.helper.iterateImportantSlices(function(slice) {
         slice.important = true;
       });
 
+      if (this.helper.surfaceFlinger &&
+        !this.helper.surfaceFlinger.process.name) {
+        this.helper.surfaceFlinger.process.name = 'SurfaceFlinger';
+      }
+
       var badFramesObserved = 0;
       var framesObserved = 0;
       this.helper.apps.forEach(function(app) {
+        // give apps a process name based on UI thread
+        if (!app.process.name && app.uiThread) {
+          if (app.uiThread.name && app.uiThread.name.startsWith('ndroid.'))
+            app.uiThread.name = 'a' + app.uiThread.name;
+          app.process.name = app.uiThread.name;
+        }
+
         // override frame list
         app.process.frames = app.getFrames();
 
@@ -52,14 +69,19 @@ tv.exportTo('tv.e.audits', function() {
         framesObserved += app.process.frames.length;
       });
 
-      var portionBad = badFramesObserved / framesObserved;
-      if (portionBad > 0.3)
-        this.model.faviconHue = 'red';
-      else if (portionBad = 0.05)
-        this.model.faviconHue = 'green';
+      if (framesObserved) {
+        var portionBad = badFramesObserved / framesObserved;
+        if (portionBad > 0.3)
+          this.model.faviconHue = 'red';
+        else if (portionBad > 0.05)
+          this.model.faviconHue = 'green';
+      }
     },
 
     runAudit: function() {
+      if (!this.helper)
+        return;
+
       this.helper.apps.forEach(function(app) {
         // per frame alerts
         app.getFrames().forEach(this.getFrameTimingAlerts, this);

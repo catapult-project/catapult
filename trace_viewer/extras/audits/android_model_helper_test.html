@@ -17,7 +17,8 @@ tv.b.unittest.testSuite(function() {
   var TraceModel = tv.c.TraceModel;
   var newAsyncSliceNamed = tv.c.test_utils.newAsyncSliceNamed;
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
-
+  var newCounterNamed = tv.c.test_utils.newCounterNamed;
+  var newCounterSeries = tv.c.test_utils.newCounterSeries;
   /*
    * List of customizeModelCallbacks which produce different 80ms frames,
    * each starting at 10ms, and with a single important slice
@@ -97,6 +98,32 @@ tv.b.unittest.testSuite(function() {
       });
       assert.equal(seen, 1);
     });
+  });
+
+  test('surfaceFlingerVsyncs', function() {
+    var model = tv.c.test_utils.newModel(function(model) {
+      var sfProcess = model.getOrCreateProcess(2);
+      var sfThread = sfProcess.getOrCreateThread(2);
+      sfThread.name = '/system/bin/surfaceflinger';
+      sfThread.sliceGroup.pushSlice(newSliceNamed('doComposition', 8, 2));
+
+      var counter = sfProcess.getOrCreateCounter('android', 'VSYNC');
+      var series = newCounterSeries();
+      for (var i = 0; i <= 10; i++) {
+        series.addCounterSample(i * 10, i % 2);
+      }
+      counter.addSeries(series);
+    });
+    var helper = new AndroidModelHelper(model);
+    assert.isTrue(helper.surfaceFlinger.hasVsyncs);
+
+    // test querying the vsyncs
+    assert.closeTo(helper.surfaceFlinger.getFrameKickoff(5), 0, 1e-5);
+    assert.closeTo(helper.surfaceFlinger.getFrameDeadline(95), 100, 1e-5);
+
+    // test undefined behavior outside of vsyncs.
+    assert.equal(helper.surfaceFlinger.getFrameKickoff(-5), undefined);
+    assert.equal(helper.surfaceFlinger.getFrameDeadline(105), undefined);
   });
 });
 </script>
