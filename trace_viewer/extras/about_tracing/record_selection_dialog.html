@@ -176,6 +176,14 @@ tv.exportTo('tv.e.about_tracing', function() {
     {title: 'Manually select settings',
       categoryFilter: []}
   ];
+  var RECORDING_MODES = [
+      {'label': 'Record until full',
+        'value': 'record-until-full'},
+      {'label': 'Record continuously',
+        'value': 'record-continuously'},
+      {'label': 'Record as much as possible',
+        'value': 'record-as-much-as-possible'}];
+  var DEFAULT_RECORD_MODE = 'record-as-much-as-possible';
   var DEFAULT_CONTINUOUS_TRACING = true;
   var DEFAULT_SYSTEM_TRACING = false;
   var DEFAULT_SAMPLING_TRACING = false;
@@ -211,11 +219,11 @@ tv.exportTo('tv.e.about_tracing', function() {
             return { label: p.title, value: p.categoryFilter };
           })));
 
+      this.tracingRecordModeSltr_ = tv.b.ui.createSelector(
+          this, this.tracingRecordMode,
+          'recordSelectionDialog.tracingRecordMode',
+          DEFAULT_RECORD_MODE, RECORDING_MODES);
 
-      this.continuousTracingBn_ = tv.b.ui.createCheckBox(
-          undefined, undefined,
-          'recordSelectionDialog.useContinuousTracing', true,
-          'Continuous tracing');
       this.systemTracingBn_ = tv.b.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useSystemTracing', true,
@@ -225,7 +233,7 @@ tv.exportTo('tv.e.about_tracing', function() {
           'recordSelectionDialog.useSampling', false,
           'State sampling');
       this.tracingModesContainerEl_ = this.querySelector('.tracing-modes');
-      this.tracingModesContainerEl_.appendChild(this.continuousTracingBn_);
+      this.tracingModesContainerEl_.appendChild(this.tracingRecordModeSltr_);
       this.tracingModesContainerEl_.appendChild(this.systemTracingBn_);
       this.tracingModesContainerEl_.appendChild(this.samplingTracingBn_);
 
@@ -261,13 +269,13 @@ tv.exportTo('tv.e.about_tracing', function() {
       }
     },
 
-    get useContinuousTracing() {
+    get tracingRecordMode() {
       if (this.usingPreset_())
-        return DEFAULT_CONTINUOUS_TRACING;
-      return this.continuousTracingBn_.checked;
+        return DEFAULT_RECORD_MODE;
+      return this.tracingRecordModeSltr_.selectedValue;
     },
-    set useContinuousTracing(value) {
-      this.continuousTracingBn_.checked = !!value;
+    set tracingRecordMode(value) {
+      this.tracingRecordModeSltr_.selectedValue = value;
     },
 
     get useSystemTracing() {
@@ -278,6 +286,7 @@ tv.exportTo('tv.e.about_tracing', function() {
     set useSystemTracing(value) {
       this.systemTracingBn_.checked = !!value;
     },
+
     get useSampling() {
       if (this.usingPreset_())
         return DEFAULT_SAMPLING_TRACING;

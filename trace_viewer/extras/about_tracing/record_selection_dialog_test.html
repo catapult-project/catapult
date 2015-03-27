@@ -197,7 +197,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal('-three,-two', dlg.categoryFilter());
 
     // Make sure the default tracing types are returned.
-    assert.isTrue(dlg.useContinuousTracing);
+    assert.equal('record-as-much-as-possible', dlg.tracingRecordMode);
     assert.isFalse(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
@@ -223,7 +223,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     tv.b.Settings.set('two', true, 'categories');
     tv.b.Settings.set('three', false, 'categories');
     tv.b.Settings.set('disabled-by-default-cc.debug', true, 'categories');
-    tv.b.Settings.set('recordSelectionDialog.useContinuousTracing', false);
+    tv.b.Settings.set('recordSelectionDialog.tracingRecordMode',
+        'record-until-full');
     tv.b.Settings.set('recordSelectionDialog.useSystemTracing', true);
     tv.b.Settings.set('recordSelectionDialog.useSampling', false);
 
@@ -238,7 +239,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         dlg.categoryFilter());
 
     // Make sure the default tracing types are returned.
-    assert.isTrue(dlg.useContinuousTracing);
+    assert.equal('record-as-much-as-possible', dlg.tracingRecordMode);
     assert.isFalse(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
@@ -249,7 +250,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     // Switch to manual settings and verify the default values are not returned.
     dlg.currentlyChosenPreset = [];
     assert.equal('-three,disabled-by-default-cc.debug', dlg.categoryFilter());
-    assert.isFalse(dlg.useContinuousTracing);
+    assert.equal('record-until-full', dlg.tracingRecordMode);
     assert.isTrue(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
     assert.isFalse(classList.contains('categories-column-view-hidden'));
@@ -264,7 +265,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('recordSelectionDialog_savedPreset', function() {
     tv.b.Settings.set('two', true, 'categories');
     tv.b.Settings.set('three', false, 'categories');
-    tv.b.Settings.set('recordSelectionDialog.useContinuousTracing', true);
+    tv.b.Settings.set('recordSelectionDialog.tracingRecordMode',
+        'record-continuously');
     tv.b.Settings.set('recordSelectionDialog.useSystemTracing', true);
     tv.b.Settings.set('recordSelectionDialog.useSampling', true);
     tv.b.Settings.set('tv.e.about_tracing.record_selection_dialog_preset',
@@ -279,7 +281,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal('-three,-two', dlg.categoryFilter());
 
     // Make sure the correct tracing types are returned.
-    assert.isTrue(dlg.useContinuousTracing);
+    assert.equal('record-as-much-as-possible', dlg.tracingRecordMode);
     assert.isFalse(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
@@ -290,7 +292,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     // Switch to manual settings and verify the default values are not returned.
     dlg.currentlyChosenPreset = [];
     assert.equal('-three', dlg.categoryFilter());
-    assert.isTrue(dlg.useContinuousTracing);
+    assert.equal('record-continuously', dlg.tracingRecordMode);
     assert.isTrue(dlg.useSystemTracing);
     assert.isTrue(dlg.useSampling);
     assert.isFalse(classList.contains('categories-column-view-hidden'));

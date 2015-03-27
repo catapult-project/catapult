@@ -35,7 +35,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         assert.typeOf(recordingOptions.categoryFilter, 'string');
         assert.typeOf(recordingOptions.useSystemTracing, 'boolean');
         assert.typeOf(recordingOptions.useSampling, 'boolean');
-        assert.typeOf(recordingOptions.useContinuousTracing, 'boolean');
+        assert.typeOf(recordingOptions.tracingRecordMode, 'string');
         setTimeout(function() {
           recordingPromise.progressDlg.clickStopButton();
         }, 10);
@@ -68,7 +68,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         assert.typeOf(monitoringOptions.categoryFilter, 'string');
         assert.typeOf(monitoringOptions.useSystemTracing, 'boolean');
         assert.typeOf(monitoringOptions.useSampling, 'boolean');
-        assert.typeOf(monitoringOptions.useContinuousTracing, 'boolean');
+        assert.typeOf(monitoringOptions.tracingRecordMode, 'string');
         setTimeout(function() {
           var capturePromise = tv.e.about_tracing.captureMonitoring(mock);
           capturePromise.then(
@@ -106,4 +106,3 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 });
 </script>
-

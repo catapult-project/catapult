@@ -90,12 +90,9 @@ tv.exportTo('tv.e.about_tracing', function() {
           {
             categories: recordingOptions.categoryFilter,
             options:
-                [
-                  (recordingOptions.useContinuousTracing ?
-                     'record-continuously' : ''),
-                  (recordingOptions.useSampling ?
-                     'enable-sampling' : '')
-                ].join(),
+                [recordingOptions.tracingRecordMode,
+                  (recordingOptions.useSampling ? 'enable-sampling' : '')
+                ].join(','),
             bufferUsageReportingInterval: 1000
           });
       res = res.then(

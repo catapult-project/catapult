@@ -34,21 +34,21 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var recordingOptions = {
       categoryFilter: JSON.stringify(['a', 'b', 'c']),
       useSystemTracing: false,
-      useContinuousTracing: true,
+      tracingRecordMode: 'test-mode',
       useSampling: true
     };
 
     var result = JSON.parse(controller.beginRecording(recordingOptions).msg);
     assert.equal(result.params.categories, JSON.stringify(['a', 'b', 'c']));
     var options = result.params.options.split(',');
-    var contFlag = false;
+    var tracingRecordTestMode = false;
     var sampleFlag = false;
     for (var s in options) {
-      if (options[s] === 'record-continuously') contFlag = true;
+      if (options[s] === 'test-mode') tracingRecordTestMode = true;
       else if (options[s] === 'enable-sampling') sampleFlag = true;
       else assert.equal(options[s], '');
     }
-    assert.isTrue(contFlag);
+    assert.isTrue(tracingRecordTestMode);
     assert.isTrue(sampleFlag);
   });
 

@@ -24,7 +24,7 @@ tv.exportTo('tv.e.about_tracing', function() {
     var monitoringOptions = {
       categoryFilter: '*',
       useSystemTracing: false,
-      useContinuousTracing: false,
+      tracingRecordMode: 'record-until-full',
       useSampling: true
     };
 
@@ -139,7 +139,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       var recordingOptions = {
         categoryFilter: selectionDlg.categoryFilter(),
         useSystemTracing: selectionDlg.useSystemTracing,
-        useContinuousTracing: selectionDlg.useContinuousTracing,
+        tracingRecordMode: selectionDlg.tracingRecordMode,
         useSampling: selectionDlg.useSampling
       };
 
