@@ -270,6 +270,8 @@ tv.exportTo('tv.e.about_tracing', function() {
     },
 
     get tracingRecordMode() {
+      if (this.usingPreset_())
+        return DEFAULT_RECORD_MODE;
       return this.tracingRecordModeSltr_.selectedValue;
     },
     set tracingRecordMode(value) {
