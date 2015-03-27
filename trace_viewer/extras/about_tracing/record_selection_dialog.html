@@ -220,7 +220,7 @@ tv.exportTo('tv.e.about_tracing', function() {
           })));
 
       this.tracingRecordModeSltr_ = tv.b.ui.createSelector(
-          this, this.tracingRecordMode,
+          this, 'tracingRecordMode',
           'recordSelectionDialog.tracingRecordMode',
           DEFAULT_RECORD_MODE, RECORDING_MODES);
 
@@ -270,12 +270,10 @@ tv.exportTo('tv.e.about_tracing', function() {
     },
 
     get tracingRecordMode() {
-      if (this.usingPreset_())
-        return DEFAULT_RECORD_MODE;
       return this.tracingRecordModeSltr_.selectedValue;
     },
     set tracingRecordMode(value) {
-      this.tracingRecordModeSltr_.selectedValue = value;
+      this.tracingRecordMode_ = value;
     },
 
     get useSystemTracing() {

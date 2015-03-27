@@ -183,6 +183,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         tv.b.Settings.get('disabled-by-default-one', false, 'categories'));
   });
 
+  test('recordSelectionDialog_noPreset', function() {
+    tv.b.Settings.set('about_tracing.record_selection_dialog_preset', []);
+    var dlg = new tv.e.about_tracing.RecordSelectionDialog();
+    assert.isFalse(dlg.usingPreset_());
+  });
+
   test('recordSelectionDialog_defaultPreset', function() {
     tv.b.Settings.set('two', true, 'categories');
     tv.b.Settings.set('three', false, 'categories');
