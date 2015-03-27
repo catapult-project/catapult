@@ -2,8 +2,9 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file.
 -->
-![Trace Viewer Logo](https://raw.githubusercontent.com/google/trace-viewer/master/images/trace-viewer-circle-blue.png)
 [![Build Status](https://travis-ci.org/google/trace-viewer.svg?branch=master)](https://travis-ci.org/google/trace-viewer)
+
+![Trace Viewer Logo](https://raw.githubusercontent.com/google/trace-viewer/master/images/trace-viewer-circle-blue.png)
 
 Trace-Viewer is the javascript frontend for Chrome [about:tracing](http://dev.chromium.org/developers/how-tos/trace-event-profiling-tool) and [Android
 systrace](http://developer.android.com/tools/help/systrace.html).
