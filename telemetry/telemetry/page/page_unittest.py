@@ -147,22 +147,6 @@ class TestPage(unittest.TestCase):
           'name': 'Example'
         }, named_dict)
 
-  def testTransferToPageSet(self):
-    page_set_a = page_set.PageSet()
-    page_set_b = page_set.PageSet()
-    page_foo = page.Page('http://foo.com', page_set_a)
-    page_bar = page.Page('http://bar.com', page_set_a)
-    page_baz = page.Page('http://baz.com', page_set_a)
-
-    page_set_a.AddUserStory(page_foo)
-    page_set_a.AddUserStory(page_bar)
-    page_set_a.AddUserStory(page_baz)
-
-    page_bar.TransferToPageSet(page_set_b)
-    self.assertEqual([page_foo, page_baz], page_set_a.pages)
-    self.assertEqual([page_bar], page_set_b.pages)
-    self.assertIs(page_set_b, page_bar.page_set)
-
   def testIsLocal(self):
     p = page.Page('file://foo.html')
     self.assertTrue(p.is_local)

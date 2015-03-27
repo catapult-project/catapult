@@ -76,26 +76,6 @@ class Page(user_story.UserStory):
       if startup_url_scheme == 'file':
         raise ValueError('startup_url with local file scheme is not supported')
 
-  def TransferToPageSet(self, another_page_set):
-    """ Transfer this page to another page set.
-    Args:
-      another_page_set: an instance of telemetry.page.PageSet to transfer this
-          page to.
-    Note:
-      This method removes this page instance from the pages list of its current
-      page_set, so one should be careful not to iterate through the list of
-      pages of a page_set and calling this method.
-      For example, the below loop is erroneous:
-        for p in page_set_A.pages:
-          p.TransferToPageSet(page_set_B.pages)
-    """
-    assert self._page_set
-    if another_page_set is self._page_set:
-      return
-    self._page_set.pages.remove(self)
-    self._page_set = another_page_set
-    self._page_set.AddUserStory(self)
-
   def RunNavigateSteps(self, action_runner):
     url = self.file_path_url_with_scheme if self.is_file else self.url
     action_runner.Navigate(
