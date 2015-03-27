@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/auditor.html">
+<link rel="import" href="/core/trace_model/alert_type.html">
 <link rel="import" href="/extras/audits/utils.html">
 <link rel="import" href="/extras/audits/chrome_model_helper.html">
 
@@ -106,7 +107,7 @@ tv.exportTo('tv.e.audits', function() {
           if (slice.category != 'toplevel')
             return;
           if (slice.duration > 75.0) {
-            var alertType = new AlertType(
+            var alertType = new tv.c.trace_model.AlertType(
                 'Task too long',
                 'Tasks taking >= 75ms are bad, and should be broken up to' +
                 'ensure the main thread is responsive',
