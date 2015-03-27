@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/utils.html">
+
+<polymer-element name='tv-e-tquery-context'>
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.event = undefined;
+      this.ancestors = [];
+    },
+
+    push: function(event) {
+      var ctx = document.createElement('tv-e-tquery-context');
+      ctx.ancestors = this.ancestors.slice();
+      ctx.ancestors.push(event);
+      return ctx;
+    },
+
+    pop: function(event) {
+      var ctx = document.createElement('tv-e-tquery-context');
+      ctx.ancestors = this.ancestors.slice(0, this.ancestors.length - 1);
+      return ctx;
+    }
+  });
+  </script>
+</polymer-element>

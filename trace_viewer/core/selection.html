@@ -90,13 +90,17 @@ tv.exportTo('tv.c', function() {
       if (event.guid == undefined)
         throw new Error('Event must have a GUID');
 
-      if (this.pushed_guids_[event.guid])
+      if (this.contains(event))
         return event;
 
       this.pushed_guids_[event.guid] = true;
       this[this.length_++] = event;
       this.bounds_dirty_ = true;
       return event;
+    },
+
+    contains: function(event) {
+      return this.pushed_guids_[event.guid];
     },
 
     addSelection: function(selection) {

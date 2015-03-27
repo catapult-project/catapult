@@ -9,6 +9,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/scripting_object.html">
+<link rel="import" href="/extras/tquery/context.html">
+<link rel="import" href="/extras/tquery/filter_has_title.html">
 
 <polymer-element name='tv-e-tquery' extends='tv-c-scripting-object'>
   <script>
@@ -91,12 +93,54 @@ found in the LICENSE file.
     createFilterTaskForNode_: function(lastTask, node, prevNode) {
       return lastTask.after(function() {
         // TODO(skyostil): Break into subtasks.
-        prevNode.selection_.forEach(function(event) {
-          if (!node.filterExpression || node.filterExpression.matches(event)) {
-            node.selection_.push(event);
-          }
-        });
+        node.evaluateFilterExpression_(
+            prevNode.selection_, node.selection_);
       }, this);
+    },
+
+    // Applies the result of a filter expression for a given event and all
+    // of its subslices and adds the matching events to an output selection.
+    evaluateFilterExpression_: function(inputSelection, outputSelection) {
+      var seenEvents = {};
+      inputSelection.forEach(function(event) {
+        var context = document.createElement('tv-e-tquery-context');
+        context.event = event;
+        this.evaluateFilterExpressionForEvent_(
+            context, inputSelection, outputSelection, seenEvents);
+      }.bind(this));
+    },
+
+    evaluateFilterExpressionForEvent_: function(
+        context, inputSelection, outputSelection, seenEvents) {
+      var event = context.event;
+      if (inputSelection.contains(event) && !seenEvents[event.guid]) {
+        seenEvents[event.guid] = true;
+        var filterExpression = this.normalizeFilterExpression_();
+        if (!filterExpression || filterExpression.evaluate(context)) {
+          outputSelection.push(event);
+        }
+      }
+      if (!event.subSlices)
+        return;
+      context = context.push(event);
+      for (var i = 0; i < event.subSlices; i++) {
+        context.event = event.subSlices[i];
+        this.evaluateFilterExpressionForEvent_(
+            context, inputSelection, outputSelection, seenEvents);
+      }
+    },
+
+    normalizeFilterExpression_: function() {
+      // Shortcut: naked strings and regexps can be used to match against slice
+      // titles.
+      if (this.filterExpression_ instanceof String ||
+          typeof(this.filterExpression_) == 'string' ||
+          this.filterExpression_ instanceof RegExp) {
+        var filter = document.createElement('tv-e-tquery-filter-has-title');
+        filter.expected = this.filterExpression_;
+        return filter;
+      }
+      return this.filterExpression_;
     },
 
     // Show the result of this query as a highlight on the timeline. Returns a

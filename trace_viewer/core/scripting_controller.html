@@ -26,6 +26,8 @@ found in the LICENSE file.
           'tv-c-scripting-object');
       objects.forEach(function(className) {
         var obj = document.createElement(className);
+        if (!obj.scriptName)
+          return;
         this.addScriptObject(obj.scriptName, obj.scriptValue);
         // Also make the object available to the DevTools inspector.
         window[obj.scriptName] = obj.scriptValue;

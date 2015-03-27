@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/extras/tquery/tquery.html">
+<link rel="import" href="/extras/tquery/filter_has_title.html">
 
 <polymer-element name='tv-e-tquery-fake-timeline'>
   <script>
@@ -46,6 +47,12 @@ tv.b.unittest.testSuite(function() {
     return timeline;
   }
 
+  function createFakeTimelineWithEvents_(events) {
+    var timeline = document.createElement('tv-e-tquery-fake-timeline');
+    timeline.allObjects = events;
+    return timeline;
+  }
+
   test('tqueryAsyncSelection', function() {
     var tquery = document.createElement('tv-e-tquery');
     var timeline = createFakeTimeline_(3);
@@ -76,6 +83,30 @@ tv.b.unittest.testSuite(function() {
     var result = tquery.filter().filter().show();
     tv.b.Task.RunSynchronously(result);
     assertEquals(3, timeline.highlight.length);
+  });
+
+  test('tqueryFilterHasTitle', function() {
+    var tquery = document.createElement('tv-e-tquery');
+    var hasTitle = document.createElement(
+        'tv-e-tquery-filter-has-title').scriptValue;
+    var timeline = createFakeTimelineWithEvents_([
+        {guid: 1, title: 'a'},
+        {guid: 2, title: 'b'},
+        {guid: 3, title: 'c'}
+    ]);
+    tquery.onTimelineChanged(timeline);
+
+    var result = tquery.filter(hasTitle('a')).selection;
+    assertEquals(1, result.length);
+    assertEquals(1, result[0].guid);
+
+    var result = tquery.filter('b').selection;
+    assertEquals(1, result.length);
+    assertEquals(2, result[0].guid);
+
+    var result = tquery.filter(/^c$/).selection;
+    assertEquals(1, result.length);
+    assertEquals(3, result[0].guid);
   });
 });
 </script>
