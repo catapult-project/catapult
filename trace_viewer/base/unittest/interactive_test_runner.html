@@ -81,6 +81,10 @@ found in the LICENSE file.
         <input type="radio" name="test-type-to-run" value="perf" />
         Run perf tests
       </span>
+      <span>
+        <input type="radio" name="test-type-to-run" value="all" />
+        Run all tests
+      </span>
     </div>
     <span>
       <input type="checkbox" id="short-format" /> Short format
@@ -97,6 +101,7 @@ found in the LICENSE file.
 
 tv.exportTo('tv.b.unittest', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
+  var ALL_TEST_TYPES = 'all';
 
   /**
    * @constructor
@@ -238,10 +243,19 @@ tv.exportTo('tv.b.unittest', function() {
     set testTypeToRun(testTypeToRun) {
       this.testTypeToRun_ = testTypeToRun;
       var sel;
-      if (testTypeToRun == tv.b.unittest.TestTypes.UNITTEST)
-        sel = 'input[name=test-type-to-run][value=unit]';
-      else
-        sel = 'input[name=test-type-to-run][value=perf]';
+      switch (testTypeToRun) {
+        case tv.b.unittest.TestTypes.UNITTEST:
+          sel = 'input[name=test-type-to-run][value=unit]';
+          break;
+        case tv.b.unittest.TestTypes.PERFTEST:
+          sel = 'input[name=test-type-to-run][value=perf]';
+          break;
+        case ALL_TEST_TYPES:
+          sel = 'input[name=test-type-to-run][value=all]';
+          break;
+        default:
+          throw new Error('Invalid test type to run: ' + testTypeToRun);
+      }
       this.querySelector(sel).checked = true;
       this.scheduleRerun_();
       if (!this.suppressStateChange_)
@@ -249,10 +263,20 @@ tv.exportTo('tv.b.unittest', function() {
     },
 
     onTestTypeToRunClick_: function(e) {
-      if (e.target.value == 'unit')
-        this.testTypeToRun_ = tv.b.unittest.TestTypes.UNITTEST;
-      else // e.value == 'perf'
-        this.testTypeToRun_ = tv.b.unittest.TestTypes.PERFTEST;
+      switch (e.target.value) {
+        case 'unit':
+          this.testTypeToRun_ = tv.b.unittest.TestTypes.UNITTEST;
+          break;
+        case 'perf':
+          this.testTypeToRun_ = tv.b.unittest.TestTypes.PERFTEST;
+          break;
+        case 'all':
+          this.testTypeToRun_ = ALL_TEST_TYPES;
+          break;
+        default:
+          throw new Error('Inalid test type: ' + e.target.value);
+      }
+
       this.scheduleRerun_();
       if (!this.suppressStateChange_)
         tv.b.dispatchSimpleEvent(this, 'statechange');
@@ -327,7 +351,8 @@ tv.exportTo('tv.b.unittest', function() {
         var i = test.fullyQualifiedName.indexOf(this.testFilterString_);
         if (i == -1)
           return false;
-        if (test.testType != this.testTypeToRun_)
+        if (this.testTypeToRun_ !== ALL_TEST_TYPES &&
+            test.testType !== this.testTypeToRun_)
           return false;
         return true;
       }, this);
