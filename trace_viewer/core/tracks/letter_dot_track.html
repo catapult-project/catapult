@@ -101,39 +101,50 @@ tv.exportTo('tv.c.tracks', function() {
       ctx.strokeStyle = 'rgb(0,0,0)';
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
-      for (var i = loI; i < items.length; ++i) {
-        var item = items[i];
-        var x = item.start;
-        if (x - itemRadiusWorld > viewRWorld)
-          break;
-        var xView = dt.xWorldToView(x);
 
-        if (item.selected)
-          ctx.fillStyle = palette[item.colorId + highlightIdBoost];
-        else
-          ctx.fillStyle = palette[item.colorId];
-        ctx.beginPath();
-        ctx.arc(xView, halfHeight, dumpRadiusView + 0.5, 0, twoPi);
-        ctx.fill();
-        if (item.selected) {
-          ctx.lineWidth = 3;
-          ctx.strokeStyle = 'rgb(100,100,0)';
-          ctx.stroke();
+      var drawItems = function(selected) {
+        for (var i = loI; i < items.length; ++i) {
+          var item = items[i];
+          var x = item.start;
+          if (x - itemRadiusWorld > viewRWorld)
+            break;
+          if (item.selected !== selected)
+            continue;
+          var xView = dt.xWorldToView(x);
 
+          if (item.selected)
+            ctx.fillStyle = palette[item.colorId + highlightIdBoost];
+          else
+            ctx.fillStyle = palette[item.colorId];
           ctx.beginPath();
-          ctx.arc(xView, halfHeight, dumpRadiusView, 0, twoPi);
-          ctx.lineWidth = 1.5;
-          ctx.strokeStyle = 'rgb(255,255,0)';
-          ctx.stroke();
-        } else {
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = 'rgb(0,0,0)';
-          ctx.stroke();
-        }
+          ctx.arc(xView, halfHeight, dumpRadiusView + 0.5, 0, twoPi);
+          ctx.fill();
+          if (item.selected) {
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgb(100,100,0)';
+            ctx.stroke();
 
-        ctx.fillStyle = 'rgb(255, 255, 255)';
-        ctx.fillText(item.dotLetter, xView, halfHeight);
-      }
+            ctx.beginPath();
+            ctx.arc(xView, halfHeight, dumpRadiusView, 0, twoPi);
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgb(255,255,0)';
+            ctx.stroke();
+          } else {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgb(0,0,0)';
+            ctx.stroke();
+          }
+
+          ctx.fillStyle = 'rgb(255, 255, 255)';
+          ctx.fillText(item.dotLetter, xView, halfHeight);
+        }
+      };
+
+      // Draw unselected items first to make sure they don't occlude selected
+      // items.
+      drawItems(false);
+      drawItems(true);
+
       ctx.lineWidth = 1;
       ctx.font = oldFont;
 
