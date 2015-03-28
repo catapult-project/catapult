@@ -88,8 +88,7 @@ class IppetPowerMonitor(power_monitor.PowerMonitor):
     family, model = map(int, re.match('.+ Family ([0-9]+) Model ([0-9]+)',
                         platform.processor()).groups())
     # Model numbers from:
-    # https://software.intel.com/en-us/articles/intel-architecture-and- \
-    # processor-identification-with-cpuid-model-and-family-numbers
+    # https://software.intel.com/en-us/articles/intel-architecture-and-processor-identification-with-cpuid-model-and-family-numbers
     # http://www.speedtraq.com
     sandy_bridge_or_later = ('Intel' in platform.processor() and family == 6 and
                              (model in (0x2A, 0x2D) or model >= 0x30))
