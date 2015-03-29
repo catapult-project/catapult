@@ -14,68 +14,66 @@ tv.b.unittest.testSuite(function() {
         function(s) { return s.start; },
         function(s) { return s.end; });
 
-    tree.insert({start: 2, end: 6});
-    tree.insert({start: 1, end: 3});
-    tree.insert({start: 5, end: 7});
-    tree.insert({start: 1, end: 5});
-    tree.insert({start: 3, end: 5});
-    tree.insert({start: 3, end: 5});
-    tree.insert({start: 3, end: 6});
-    tree.insert({start: 1, end: 1});
-    tree.insert({start: 4, end: 8});
-    tree.insert({start: 0, end: 2});
+    function insert(name, value) {
+      tree.insert(value);
+      tree[name] = value;
+    }
+    insert('v0', {start: 2, end: 6});
+    insert('v1', {start: 1, end: 3});
+    insert('v2', {start: 5, end: 7});
+    insert('v3', {start: 1, end: 5});
+    insert('v4', {start: 3, end: 5});
+    insert('v5', {start: 3, end: 5});
+    insert('v6', {start: 3, end: 6});
+    insert('v7', {start: 1, end: 1});
+    insert('v8', {start: 4, end: 8});
+    insert('v9', {start: 0, end: 2});
 
     tree.updateHighValues();
 
     return tree;
   }
 
+  function sortSimpleResults(intersection) {
+    intersection.sort(function(a, b) {
+      if (a.start === b.start)
+        return a.end - b.end;
+      return a.start - b.start;
+    });
+  }
+
   test('findIntersection', function() {
     var tree = buildSimpleTree();
-    var intersect = tree.findIntersection(2, 4);
+    var intersection = tree.findIntersection(2, 4);
+    sortSimpleResults(intersection);
 
-    // Intersect will hold an array of begin/end objects. As a simple way
-    // to compare, we just grab the start and end values of those objects
-    // and compare to what we expect to see.
-    var values = intersect.map(function(v) { return [v.start, v.end]; });
-    values.sort(function(a, b) {
-      return (a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
-    });
-
-    var expected = [[1, 3], [1, 5], [2, 6], [3, 5], [3, 5], [3, 6]];
-    assert.equal(6, values.length);
-    assert.deepEqual(expected, values);
+    var expected = [tree.v1, tree.v3, tree.v0, tree.v4, tree.v5, tree.v6];
+    assert.equal(6, intersection.length);
+    assert.deepEqual(expected, intersection);
   });
 
   test('findIntersection_zeroDuration', function() {
     var tree = buildSimpleTree();
-    var intersect = tree.findIntersection(2, 2);
+    var intersection = tree.findIntersection(2, 2);
+    sortSimpleResults(intersection);
 
-    // Intersect will hold an array of begin/end objects. As a simple way
-    // to compare, we just grab the start and end values of those objects
-    // and compare to what we expect to see.
-    var values = intersect.map(function(v) { return [v.start, v.end]; });
-    values.sort(function(a, b) {
-      return (a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
-    });
-
-    var expected = [[1, 3], [1, 5]];
-    assert.equal(2, values.length);
-    assert.deepEqual(expected, values);
+    var expected = [tree.v1, tree.v3];
+    assert.equal(2, intersection.length);
+    assert.deepEqual(expected, intersection);
   });
 
   test('findIntersection_noMatching', function() {
     var tree = buildSimpleTree();
-    var intersect = tree.findIntersection(9, 10);
-    assert.deepEqual([], intersect);
+    var intersection = tree.findIntersection(9, 10);
+    assert.deepEqual([], intersection);
   });
 
   test('findIntersection_emptyTree', function() {
     var tree = new tv.b.IntervalTree();
     tree.updateHighValues();
 
-    var intersect = tree.findIntersection(2, 4);
-    assert.deepEqual([], intersect);
+    var intersection = tree.findIntersection(2, 4);
+    assert.deepEqual([], intersection);
   });
 
   test('findIntersection_emptyInterval', function() {
