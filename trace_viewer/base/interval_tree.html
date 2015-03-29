@@ -42,18 +42,19 @@ tv.exportTo('tv.b', function() {
     /**
      * Insert events into the interval tree.
      *
-     * @param {Object} begin The left object.
+     * @param {Object} datum The object to insert.
      */
-    insert: function(begin) {
-      var startPosition = this.beginPositionCb_(begin);
-      var endPosition = this.endPositionCb_(begin);
+    insert: function(datum) {
+      var startPosition = this.beginPositionCb_(datum);
+      var endPosition = this.endPositionCb_(datum);
 
-      var node = new IntervalTreeNode(begin,
+      var node = new IntervalTreeNode(datum,
                                       startPosition, endPosition);
       this.size_++;
 
       this.root_ = this.insertNode_(this.root_, node);
       this.root_.colour = Colour.BLACK;
+      return datum;
     },
 
     insertNode_: function(root, node) {
@@ -176,7 +177,7 @@ tv.exportTo('tv.b', function() {
           if (node.data[i].high < lowValue)
             break;
 
-          ret.push(node.data[i].start);
+          ret.push(node.data[i].datum);
         }
       }
 
@@ -230,11 +231,11 @@ tv.exportTo('tv.b', function() {
     BLACK: 'black'
   };
 
-  function IntervalTreeNode(startObject, lowValue, highValue) {
+  function IntervalTreeNode(datum, lowValue, highValue) {
     this.lowValue_ = lowValue;
 
     this.data_ = [{
-      start: startObject,
+      datum: datum,
       high: highValue,
       low: lowValue
     }];

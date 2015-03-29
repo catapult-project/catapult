@@ -9,25 +9,28 @@ found in the LICENSE file.
 'use strict';
 
 tv.b.unittest.testSuite(function() {
-  function buildSimpleTree() {
-    var tree = new tv.b.IntervalTree(
+  function SimpleIntervalTree() {
+    tv.b.IntervalTree.call(this,
         function(s) { return s.start; },
         function(s) { return s.end; });
+    return this;
+  }
+  SimpleIntervalTree.prototype = {
+    __proto__: tv.b.IntervalTree.prototype
+  };
 
-    function insert(name, value) {
-      tree.insert(value);
-      tree[name] = value;
-    }
-    insert('v0', {start: 2, end: 6});
-    insert('v1', {start: 1, end: 3});
-    insert('v2', {start: 5, end: 7});
-    insert('v3', {start: 1, end: 5});
-    insert('v4', {start: 3, end: 5});
-    insert('v5', {start: 3, end: 5});
-    insert('v6', {start: 3, end: 6});
-    insert('v7', {start: 1, end: 1});
-    insert('v8', {start: 4, end: 8});
-    insert('v9', {start: 0, end: 2});
+  function buildSimpleTree() {
+    var tree = new SimpleIntervalTree();
+    tree.v0 = tree.insert({start: 2, end: 6});
+    tree.v1 = tree.insert({start: 1, end: 3});
+    tree.v2 = tree.insert({start: 5, end: 7});
+    tree.v3 = tree.insert({start: 1, end: 5});
+    tree.v4 = tree.insert({start: 3, end: 5});
+    tree.v5 = tree.insert({start: 3, end: 5});
+    tree.v6 = tree.insert({start: 3, end: 6});
+    tree.v7 = tree.insert({start: 1, end: 1});
+    tree.v8 = tree.insert({start: 4, end: 8});
+    tree.v9 = tree.insert({start: 0, end: 2});
 
     tree.updateHighValues();
 
