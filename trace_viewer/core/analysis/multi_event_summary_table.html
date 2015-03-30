@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
+<link rel="import" href="/core/analysis/analysis_link.html">
 <link rel="import" href="/core/analysis/multi_event_summary.html">
 <link rel="import" href="/core/analysis/table_builder.html">
 <link rel="import" href="/core/analysis/time_span.html">
@@ -56,7 +57,16 @@ found in the LICENSE file.
 
       columns.push({
         title: 'Name',
-        value: function(row) { return row.title; },
+        value: function(row) {
+          if (row.title === 'Totals')
+            return 'Totals';
+
+          var linkEl = document.createElement('tv-c-analysis-link');
+          linkEl.setSelectionAndContent(function() {
+            return new tv.c.Selection(row.events);
+          }, row.title);
+          return linkEl;
+        },
         width: '350px',
         cmp: function(rowA, rowB) {
           return rowA.title.localeCompare(rowB.title);

@@ -45,6 +45,12 @@ found in the LICENSE file.
       this.textContent = selection.userFriendlyName;
     },
 
+    setSelectionAndContent: function(selection, opt_textContent) {
+      this.selection_ = selection;
+      if (opt_textContent)
+        this.textContent = opt_textContent;
+    },
+
     onClicked_: function() {
       if (!this.selection_)
         return;

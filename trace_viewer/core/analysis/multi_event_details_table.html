@@ -125,9 +125,16 @@ found in the LICENSE file.
       columns.push({
         title: 'Start',
         value: function(row) {
-          if (row.__proto__ !== tv.c.analysis.MultiEventSummary.prototype)
-            return tv.c.analysis.createTimeStamp(row.start);
-          return row.title;
+          if (row.__proto__ === tv.c.analysis.MultiEventSummary.prototype) {
+            return row.title;
+          }
+
+          var linkEl = document.createElement('tv-c-analysis-link');
+          linkEl.setSelectionAndContent(function() {
+              return new tv.c.Selection(row);
+          });
+          linkEl.appendChild(tv.c.analysis.createTimeStamp(row.start));
+          return linkEl;
         },
         width: '350px',
         cmp: function(rowA, rowB) {
