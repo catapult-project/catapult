@@ -19,14 +19,16 @@ found in the LICENSE file.
       }
 
       table {
+        font-size: 12px;
+
         flex: 1 1 auto;
         align-self: stretch;
-        border-collapse: collapse;
+        border-collapse: separate;
         border-spacing: 0;
         border-width: 0;
       }
 
-      table > * > tr > td {
+      tr > td {
         padding: 2px 4px 2px 4px;
         vertical-align: text-top;
       }
@@ -47,14 +49,17 @@ found in the LICENSE file.
         width: 30px;
       }
 
-      table > * > .hidden {
-        display: none;
-      }
-
-      table > thead {
-        background-color: #bbbbbb;
+      table > thead > tr > td {
         font-weight: bold;
         text-align: left;
+
+        background-color: #eee;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        border-top: 1px solid #ffffff;
+        border-bottom: 1px solid #aaa;
       }
 
       table > thead.hidden {
@@ -65,8 +70,16 @@ found in the LICENSE file.
       }
 
       table > tfoot {
-        background-color: #bbbbbb;
+        background-color: #eee;
         font-weight: bold;
+      }
+
+      table > tbody.has-footer > tr:last-child > td {
+        border-bottom: 1px solid #aaa;
+      }
+
+      table > tfoot > tr:first-child > td {
+        border-top: 1px solid #ffffff;
       }
 
       expand-button {
@@ -110,6 +123,7 @@ found in the LICENSE file.
         this.sortDescending_ = false;
         this.columnsWithExpandButtons_ = [];
         this.headerCells_ = [];
+        this.showHeader_ = true;
       },
 
       clear: function() {
@@ -126,14 +140,11 @@ found in the LICENSE file.
       },
 
       get showHeader() {
-        return !this.$.head.classList.contains('hidden');
+        return this.showHeader_;
       },
 
       set showHeader(showHeader) {
-        if (showHeader)
-          this.$.head.classList.remove('hidden');
-        else
-          this.$.head.classList.add('hidden');
+        this.showHeader_ = showHeader;
         this.scheduleRebuildHeaders_();
       },
 
@@ -303,6 +314,9 @@ found in the LICENSE file.
       generateHeaderColumns_: function() {
         this.headerCells_ = [];
         this.$.head.textContent = '';
+        if (!this.showHeader_)
+          return;
+
         var tr = this.appendNewElementAfter_(this.$.head, 'tr');
         for (var i = 0; i < this.tableColumns_.length; i++) {
           var td = this.appendNewElementAfter_(tr, 'td');
@@ -527,6 +541,11 @@ found in the LICENSE file.
         if (this.footerDirty_) {
           this.generateTableRowNodes_(this.$.foot, this.tableFooterRowsInfo_,
                                       0);
+          if (this.tableFooterRowsInfo_.length) {
+            this.$.body.classList.add('has-footer');
+          } else {
+            this.$.body.classList.remove('has-footer');
+          }
           this.footerDirty_ = false;
         }
       },
