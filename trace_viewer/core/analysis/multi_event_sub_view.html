@@ -26,6 +26,18 @@ found in the LICENSE file.
       flex: 1 1 auto;
       align-self: stretch;
     }
+    tv-c-a-multi-event-summary-table {
+      border-bottom: 1px solid #aaa;
+    }
+
+    tv-c-a-selection-summary-table  {
+      margin-top: 1.25em;
+      border-top: 1px solid #aaa;
+      background-color: #eee;
+      font-weight: bold;
+      margin-bottom: 1.25em;
+      border-bottom: 1px solid #aaa;
+    }
     </style>
     <div id="content"></div>
   </template>
@@ -83,6 +95,7 @@ found in the LICENSE file.
       var numTitles = tv.b.dictionaryLength(eventsByTitle);
 
       this.$.content.textContent = '';
+
       var summaryTableEl = document.createElement(
           'tv-c-a-multi-event-summary-table');
       summaryTableEl.configure({
