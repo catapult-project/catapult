@@ -84,8 +84,7 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
   def DidRunUserStory(self, results):
     if self._finder_options.profiler:
       self._StopProfiling(results)
-    if self._current_tab:
-      util.CloseConnections(self._current_tab)
+    util.CloseConnections(self._current_tab)
     self._test.CleanUpAfterPage(self._current_page, self._current_tab)
     if self._current_page.credentials and self._did_login_for_current_page:
       self.browser.credentials.LoginNoLongerNeeded(
@@ -254,7 +253,6 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
       self._ImplicitPageNavigation()
       self._test.RunPage(self._current_page, self._current_tab, results)
     except exceptions.Error:
-      self._current_tab = None
       if self._test.is_multi_tab_test:
         # Avoid trying to recover from an unknown multi-tab state.
         exception_formatter.PrintFormattedException(
