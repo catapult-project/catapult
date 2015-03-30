@@ -114,7 +114,7 @@ found in the LICENSE file.
     createAlertsTable_: function(alerts) {
       var alertsByType = this.alertsByType_(alerts);
 
-      var table = new TracingAnalysisNestedTable();
+      var table = document.createElement('tracing-analysis-nested-table');
       table.tableColumns = this.alertsTableColumns_();
       table.tableRows = this.alertsTableRows_(alertsByType);
 

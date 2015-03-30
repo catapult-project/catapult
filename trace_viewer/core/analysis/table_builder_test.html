@@ -38,7 +38,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = new TracingAnalysisNestedTable();
+    var table = document.createElement('tracing-analysis-nested-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -95,7 +95,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = new TracingAnalysisNestedTable();
+    var table = document.createElement('tracing-analysis-nested-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -104,7 +104,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('instantiateSortingCallbacksWithNests', function() {
-    var table = new TracingAnalysisNestedTable();
+    var table = document.createElement('tracing-analysis-nested-table');
 
     var columns = [
       {
@@ -242,7 +242,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = new TracingAnalysisNestedTable();
+    var table = document.createElement('tracing-analysis-nested-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -285,7 +285,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = new TracingAnalysisNestedTable();
+    var table = document.createElement('tracing-analysis-nested-table');
     table.showHeader = false;
     table.tableColumns = columns;
     table.tableRows = rows;
