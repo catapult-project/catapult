@@ -127,7 +127,6 @@ tv.exportTo('tv.c.analysis', function() {
     ready: function() {
       this.showTotals_ = false;
       this.eventsByTitle_ = undefined;
-      this.selectionBounds_ = new tv.b.Range();
     },
 
     updateTableColumns_: function(rows) {
@@ -218,7 +217,6 @@ tv.exportTo('tv.c.analysis', function() {
     configure: function(config) {
       this.showTotals_ = config.showTotals;
       this.eventsByTitle_ = config.eventsByTitle;
-      this.selectionBounds_ = config.selectionBounds;
       this.updateContents_();
     },
 
