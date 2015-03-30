@@ -201,11 +201,6 @@ tv.exportTo('tv.c.trace_model', function() {
       });
     },
 
-    toJSON: function() {
-      // TODO(nduca): Implement this if we need it.
-      return {};
-    },
-
     iterateAllEvents: function(callback, opt_this) {
       this.iterObjectInstances(function(instance) {
         callback.call(this, instance);

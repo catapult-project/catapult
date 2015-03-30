@@ -36,22 +36,6 @@ tv.exportTo('tv.c.trace_model', function() {
   AsyncSlice.prototype = {
     __proto__: tv.c.trace_model.Slice.prototype,
 
-    toJSON: function() {
-      var obj = new Object();
-      var keys = Object.keys(this);
-      for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        if (typeof this[key] == 'function')
-          continue;
-        if (key == 'startThread' || key == 'endThread') {
-          obj[key] = this[key].guid;
-          continue;
-        }
-        obj[key] = this[key];
-      }
-      return obj;
-    },
-
     id: undefined,
 
     startThread: undefined,

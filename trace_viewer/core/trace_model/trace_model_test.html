@@ -263,11 +263,6 @@ tv.b.unittest.testSuite(function() {
     assertFalse(new TitleOrCategoryFilter('x').matchSlice(s1));
   });
 
-  test('traceModel_toJSON', function() {
-    var m = createTraceModelWithOneOfEverything();
-    assertNotNull(JSON.stringify(m));
-  });
-
   test('traceModel_findAllThreadsNamed', function() {
     var m = new TraceModel();
     var t = m.getOrCreateProcess(1).getOrCreateThread(1);

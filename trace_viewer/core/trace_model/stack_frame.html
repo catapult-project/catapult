@@ -53,10 +53,6 @@ tv.exportTo('tv.c.trace_model', function() {
       this.children.splice(0, this.children.length);
     },
 
-    toJSON: function() {
-      return {};
-    },
-
     get stackTrace() {
       var stack = [];
       var cur = this;

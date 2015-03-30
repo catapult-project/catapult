@@ -44,22 +44,6 @@ tv.exportTo('tv.c.trace_model', function() {
       return this.guid_;
     },
 
-    toJSON: function() {
-      var obj = new Object();
-      var keys = Object.keys(this);
-      for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        if (typeof this[key] == 'function')
-          continue;
-        if (key == 'parent') {
-          obj[key] = this[key].guid;
-          continue;
-        }
-        obj[key] = this[key];
-      }
-      return obj;
-    },
-
     set timestamps(arg) {
       throw new Error('Bad counter API. No cookie.');
     },
