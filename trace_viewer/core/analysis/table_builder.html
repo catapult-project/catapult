@@ -277,6 +277,10 @@ found in the LICENSE file.
           var td = this.appendNewElementAfter_(tr, 'td');
           if (this.tableColumns_[i].width)
             td.style.width = this.tableColumns_[i].width;
+          if (this.tableColumns_[i].minWidth)
+            td.style.minWidth = this.tableColumns_[i].minWidth;
+          if (this.tableColumns_[i].maxWidth)
+            td.style.maxWidth = this.tableColumns_[i].maxWidth;
 
           var headerCell = new TracingAnalysisHeaderCell();
           if (this.showHeader)

@@ -111,6 +111,7 @@
       'trace_viewer/core/analysis/multi_slice_sub_view.html',
       'trace_viewer/core/analysis/object_instance_view.html',
       'trace_viewer/core/analysis/object_snapshot_view.html',
+      'trace_viewer/core/analysis/selection_summary_table.html',
       'trace_viewer/core/analysis/single_alert_sub_view.html',
       'trace_viewer/core/analysis/single_cpu_slice_sub_view.html',
       'trace_viewer/core/analysis/single_flow_event_sub_view.html',

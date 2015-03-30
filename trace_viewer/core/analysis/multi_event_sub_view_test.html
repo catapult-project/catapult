@@ -46,7 +46,11 @@ tv.b.unittest.testSuite(function() {
 
     assert.isFalse(summaryTableEl.showTotals);
     assert.equal(tv.b.dictionaryLength(summaryTableEl.eventsByTitle), 1);
-    assert.equal(summaryTableEl.selectionBounds, selection.bounds);
+
+    var selectionSummaryTableEl = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-a-selection-summary-table');
+    assert.isDefined(selectionSummaryTableEl);
+    assert.equal(selectionSummaryTableEl.selection, selection);
 
     var detailsTableEl = tv.b.findDeepElementMatching(
         viewEl, 'tv-c-a-multi-event-details-table');
@@ -80,7 +84,11 @@ tv.b.unittest.testSuite(function() {
 
     assert.isTrue(summaryTableEl.showTotals);
     assert.equal(tv.b.dictionaryLength(summaryTableEl.eventsByTitle), 2);
-    assert.equal(summaryTableEl.selectionBounds, selection.bounds);
+
+    var selectionSummaryTableEl = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-a-selection-summary-table');
+    assert.isDefined(selectionSummaryTableEl);
+    assert.equal(selectionSummaryTableEl.selection, selection);
 
     var detailsTableEl = tv.b.findDeepElementMatching(
         viewEl, 'tv-c-a-multi-event-details-table');
