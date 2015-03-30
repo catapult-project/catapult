@@ -27,9 +27,9 @@ tv.b.unittest.testSuite(function() {
 
     var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
 
-    assert.equal(2, merged.length);
-    assert.deepEqual({start: 0, end: 120}, merged[0]);
-    assert.deepEqual({start: 200, end: 220}, merged[1]);
+    assert.equal(merged.length, 2);
+    assert.deepEqual(merged[0], {start: 0, end: 120});
+    assert.deepEqual(merged[1], {start: 200, end: 220});
   });
 
   test('overlapping', function() {
@@ -41,9 +41,9 @@ tv.b.unittest.testSuite(function() {
 
     var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
 
-    assert.equal(2, merged.length);
-    assert.deepEqual({start: 0, end: 120}, merged[0]);
-    assert.deepEqual({start: 200, end: 220}, merged[1]);
+    assert.equal(merged.length, 2);
+    assert.deepEqual(merged[0], {start: 0, end: 120});
+    assert.deepEqual(merged[1], {start: 200, end: 220});
   });
 
   test('middleOneIsSmall', function() {
@@ -55,8 +55,8 @@ tv.b.unittest.testSuite(function() {
 
     var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
 
-    assert.equal(1, merged.length);
-    assert.deepEqual({start: 0, end: 120}, merged[0]);
+    assert.equal(merged.length, 1);
+    assert.deepEqual(merged[0], {start: 0, end: 120});
   });
 
   test('firstEventIsSplitPoint', function() {
@@ -67,11 +67,43 @@ tv.b.unittest.testSuite(function() {
 
     var merged = tv.e.audits.mergeEvents(inEvents, 25, simpleMerger);
 
-    assert.equal(2, merged.length);
-    assert.deepEqual({start: 0, end: 100}, merged[0]);
-    assert.deepEqual({start: 150, end: 200}, merged[1]);
+    assert.equal(merged.length, 2);
+    assert.deepEqual(merged[0], {start: 0, end: 100});
+    assert.deepEqual(merged[1], {start: 150, end: 200});
   });
 
+  test('mergeSingleEvent', function() {
+    var inEvents = [
+      {start: 0, end: 100}
+    ];
+
+    var mergeCount = 0;
+    var merged = tv.e.audits.mergeEvents(inEvents, 25, function(events) {
+      assert.deepEqual(events, inEvents);
+      mergeCount++;
+    });
+    assert.equal(mergeCount, 1);
+  });
+
+  test('zeroDurationSplit', function() {
+    var inEvents = [0, 10, 20, 50, 60];
+    var identityFunction = function(x) {
+      return x;
+    };
+    var timestampMerger = function(timestamps) {
+      console.log(timestamps);
+      return {
+        start: timestamps[0],
+        end: timestamps[timestamps.length - 1]
+      };
+    };
+    var merged = tv.e.audits.mergeEvents(inEvents, 15, timestampMerger,
+                                         identityFunction, identityFunction);
+    console.log(merged);
+    assert.equal(merged.length, 2);
+    assert.deepEqual(merged[0], {start: 0, end: 20});
+    assert.deepEqual(merged[1], {start: 50, end: 60});
+  });
 
 });
 </script>

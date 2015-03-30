@@ -11,27 +11,23 @@ found in the LICENSE file.
 'use strict';
 
 /**
- * @fileoverview Class for managing android-specific model meta data,
- * such as rendering apps, and frames rendered.
+ * @fileoverview Class for representing SurfaceFlinger process and its Vsyncs.
  */
 tv.exportTo('tv.e.audits', function() {
   var findLowIndexInSortedArray = tv.b.findLowIndexInSortedArray;
 
   var VSYNC_SF_NAME = 'android.VSYNC-sf';
-  var VSYNC_APP_NAME = 'android.VSYNC-sf';
+  var VSYNC_APP_NAME = 'android.VSYNC-app';
   var VSYNC_FALLBACK_NAME = 'android.VSYNC';
 
-  function timestampFromSample(sample) {
-    return sample.timestamp;
-  }
+  function getVsyncTimestamps(process, counterName) {
 
-  function getVsyncSamples(process, counterName) {
     var vsync = process.counters[counterName];
     if (!vsync)
       vsync = process.counters[VSYNC_FALLBACK_NAME];
 
-    if (vsync && vsync.numSeries == 1 && vsync.series[0].samples.length > 1)
-      return vsync.series[0].samples;
+    if (vsync && vsync.numSeries == 1 && vsync.numSamples > 1)
+      return vsync.series[0].timestamps;
     return undefined;
   }
 
@@ -46,8 +42,8 @@ tv.exportTo('tv.e.audits', function() {
     this.appVsync_ = undefined;
     this.sfVsync_ = undefined;
 
-    this.appVsyncSamples_ = getVsyncSamples(process, VSYNC_APP_NAME);
-    this.sfVsyncSamples_ = getVsyncSamples(process, VSYNC_SF_NAME);
+    this.appVsyncTimestamps_ = getVsyncTimestamps(process, VSYNC_APP_NAME);
+    this.sfVsyncTimestamps_ = getVsyncTimestamps(process, VSYNC_SF_NAME);
   };
 
   AndroidSurfaceFlinger.createForProcessIfPossible = function(process) {
@@ -67,7 +63,7 @@ tv.exportTo('tv.e.audits', function() {
 
   AndroidSurfaceFlinger.prototype = {
     get hasVsyncs() {
-      return !!this.appVsyncSamples_ && !!this.sfVsyncSamples_;
+      return !!this.appVsyncTimestamps_ && !!this.sfVsyncTimestamps_;
     },
 
     getFrameKickoff: function(timestamp) {
@@ -75,13 +71,13 @@ tv.exportTo('tv.e.audits', function() {
         throw new Error('cannot query vsync info without vsyncs');
 
       var firstGreaterIndex =
-          findLowIndexInSortedArray(this.appVsyncSamples_,
-                                    timestampFromSample,
+          findLowIndexInSortedArray(this.appVsyncTimestamps_,
+                                    function(x) { return x; },
                                     timestamp);
 
       if (firstGreaterIndex < 1)
         return undefined;
-      return this.appVsyncSamples_[firstGreaterIndex - 1].timestamp;
+      return this.appVsyncTimestamps_[firstGreaterIndex - 1];
     },
 
     getFrameDeadline: function(timestamp) {
@@ -89,12 +85,12 @@ tv.exportTo('tv.e.audits', function() {
         throw new Error('cannot query vsync info without vsyncs');
 
       var firstGreaterIndex =
-          findLowIndexInSortedArray(this.sfVsyncSamples_,
-                                    timestampFromSample,
+          findLowIndexInSortedArray(this.sfVsyncTimestamps_,
+                                    function(x) { return x; },
                                     timestamp);
-      if (firstGreaterIndex >= this.sfVsyncSamples_.length)
+      if (firstGreaterIndex >= this.sfVsyncTimestamps_.length)
         return undefined;
-      return this.sfVsyncSamples_[firstGreaterIndex].timestamp;
+      return this.sfVsyncTimestamps_[firstGreaterIndex];
     }
   };
 

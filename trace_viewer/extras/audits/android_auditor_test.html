@@ -55,13 +55,13 @@ tv.b.unittest.testSuite(function() {
     assert.closeTo(process.frames[0].totalDuration, 8, 1e-5);
   });
 
-  test('rename', function() {
+  test('processRenameAndSort', function() {
     var appProcess;
     var sfProcess;
     var model = tv.c.test_utils.newModelWithAuditor(function(model) {
       appProcess = model.getOrCreateProcess(1);
       var uiThread = appProcess.getOrCreateThread(1);
-      uiThread.name = 'appname';
+      uiThread.name = 'ndroid.systemui';
       uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 8));
 
       sfProcess = model.getOrCreateProcess(2);
@@ -71,8 +71,41 @@ tv.b.unittest.testSuite(function() {
 
     }, tv.e.audits.AndroidAuditor);
 
-    assert.equal(appProcess.name, 'appname');
+    // both processes should be renamed
+    assert.equal(appProcess.name, 'android.systemui');
     assert.equal(sfProcess.name, 'SurfaceFlinger');
+
+    assert.isTrue(sfProcess.sortIndex < appProcess.sortIndex);
+  });
+
+  test('drawingThreadPriorities', function() {
+    var uiThread;
+    var renderThread;
+    var workerThread;
+    var otherThread;
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var appProcess = model.getOrCreateProcess(1);
+
+      uiThread = appProcess.getOrCreateThread(1);
+      uiThread.name = 'ndroid.systemui';
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 4));
+
+      renderThread = appProcess.getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('DrawFrame', 3, 4));
+
+      workerThread = appProcess.getOrCreateThread(3);
+      workerThread.name = 'hwuiTask1';
+      workerThread.sliceGroup.pushSlice(newSliceNamed('work', 4, 1));
+
+      otherThread = appProcess.getOrCreateThread(4);
+      otherThread.name = 'other';
+      otherThread.sliceGroup.pushSlice(newSliceNamed('otherWork', 0, 2));
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.isTrue(uiThread.sortIndex < renderThread.sortIndex);
+    assert.isTrue(renderThread.sortIndex < workerThread.sortIndex);
+    assert.isTrue(workerThread.sortIndex < otherThread.sortIndex);
   });
 
   test('favicon', function() {
@@ -88,8 +121,8 @@ tv.b.unittest.testSuite(function() {
         }
       }, tv.e.audits.AndroidAuditor);
     };
-    assert.equal(createTraceModelWithJank(3).faviconHue, 'blue');
-    assert.equal(createTraceModelWithJank(10).faviconHue, 'green');
+    assert.equal(createTraceModelWithJank(3).faviconHue, 'green');
+    assert.equal(createTraceModelWithJank(10).faviconHue, 'yellow');
     assert.equal(createTraceModelWithJank(50).faviconHue, 'red');
   });
 });

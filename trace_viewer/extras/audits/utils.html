@@ -10,17 +10,31 @@ found in the LICENSE file.
 'use strict';
 
 /**
- * @fileoverview Provides color scheme related functions.
+ * @fileoverview Provides event merging functionality for grouping/analysis.
  */
 tv.exportTo('tv.e.audits', function() {
-  function mergeEvents(inEvents, mergeThreshold, mergeFunction) {
+
+  function mergeEvents(inEvents, mergeThreshold, mergeFunction,
+                       opt_startFunction, opt_endFunction) {
+    var startFunction = opt_startFunction;
+    var endFunction = opt_endFunction;
+    if (!startFunction)
+      startFunction = function(event) { return event.start; };
+    if (!endFunction)
+      endFunction = function(event) { return event.end; };
+
     var remainingEvents = inEvents.slice();
     remainingEvents.sort(function(x, y) {
-      return x.start - y.start;
+      return startFunction(x) - startFunction(y);
     });
 
-    if (remainingEvents.length <= 1)
-      return remainingEvents;
+    if (remainingEvents.length <= 1) {
+      var merged = [];
+      if (remainingEvents.length == 1) {
+        merged.push(mergeFunction(remainingEvents));
+      }
+      return merged;
+    }
 
     var mergedEvents = [];
 
@@ -29,7 +43,7 @@ tv.exportTo('tv.e.audits', function() {
     function beginMerging() {
       currentMergeBuffer.push(remainingEvents[0]);
       remainingEvents.splice(0, 1);
-      rightEdge = currentMergeBuffer[0].end;
+      rightEdge = endFunction(currentMergeBuffer[0]);
     }
 
     function flushCurrentMergeBuffer() {
@@ -49,9 +63,9 @@ tv.exportTo('tv.e.audits', function() {
     while (remainingEvents.length) {
       var currentEvent = remainingEvents[0];
 
-      var distanceFromRightEdge = currentEvent.start - rightEdge;
+      var distanceFromRightEdge = startFunction(currentEvent) - rightEdge;
       if (distanceFromRightEdge < mergeThreshold) {
-        rightEdge = Math.max(rightEdge, currentEvent.end);
+        rightEdge = Math.max(rightEdge, endFunction(currentEvent));
         remainingEvents.splice(0, 1);
         currentMergeBuffer.push(currentEvent);
         continue;

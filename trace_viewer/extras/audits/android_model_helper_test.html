@@ -44,18 +44,18 @@ tv.b.unittest.testSuite(function() {
     function(model) {
       var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
 
-      // UI thread time - 20 (from 0 to 20)
+      // UI thread time - 19 (from 10 to 29)
       uiThread.asyncSliceGroup.push(
-        newAsyncSliceNamed('deliverInputEvent', 0, 9, uiThread, uiThread));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 10));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('draw', 10, 8));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('Record View#draw()', 10, 8));
+        newAsyncSliceNamed('deliverInputEvent', 10, 9, uiThread, uiThread));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 10));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('draw', 20, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('Record View#draw()', 20, 8));
 
-      // RenderThread time - 61 (from 19 to 80), but minus 1 from total for sync
+      // RenderThread time - 61 (from 29 to 90)
       var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
       renderThread.name = 'RenderThread';
-      renderThread.sliceGroup.pushSlice(newSliceNamed('DrawFrame', 19, 71));
-      renderThread.sliceGroup.pushSlice(newSliceNamed('syncFrameState', 19, 1));
+      renderThread.sliceGroup.pushSlice(newSliceNamed('DrawFrame', 29, 61));
+      renderThread.sliceGroup.pushSlice(newSliceNamed('syncFrameState', 29, 1));
 
       model.uiThread = uiThread;
       model.renderThread = renderThread;
@@ -124,6 +124,49 @@ tv.b.unittest.testSuite(function() {
     // test undefined behavior outside of vsyncs.
     assert.equal(helper.surfaceFlinger.getFrameKickoff(-5), undefined);
     assert.equal(helper.surfaceFlinger.getFrameDeadline(105), undefined);
+  });
+
+  test('appInputs', function() {
+    var model = tv.c.test_utils.newModel(function(model) {
+      var process = model.getOrCreateProcess(120);
+      var uiThread = process.getOrCreateThread(120);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 4));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 40, 4));
+
+      var counter = process.getOrCreateCounter('android', 'aq:pending:foo');
+      var series = newCounterSeries();
+      series.addCounterSample(10, 1);
+      series.addCounterSample(20, 0);
+      series.addCounterSample(30, 1);
+      series.addCounterSample(40, 2);
+      series.addCounterSample(50, 0);
+      counter.addSeries(series);
+    });
+    var helper = new AndroidModelHelper(model);
+    assert.equal(helper.apps.length, 1);
+
+    var inputSamples = helper.apps[0].getInputSamples();
+    assert.equal(inputSamples.length, 3);
+    assert.equal(inputSamples[0].timestamp, 10);
+    assert.equal(inputSamples[1].timestamp, 30);
+    assert.equal(inputSamples[2].timestamp, 40);
+  });
+
+  test('appAnimations', function() {
+    var model = tv.c.test_utils.newModel(function(model) {
+      var process = model.getOrCreateProcess(120);
+      var uiThread = process.getOrCreateThread(120);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 10));
+      uiThread.asyncSliceGroup.push(newAsyncSliceNamed('animator:foo', 0, 10,
+                                                       uiThread, uiThread));
+    });
+    var helper = new AndroidModelHelper(model);
+    assert.equal(helper.apps.length, 1);
+
+    var animations = helper.apps[0].getAnimationAsyncSlices();
+    assert.equal(animations.length, 1);
+    assert.equal(animations[0].start, 0);
+    assert.equal(animations[0].end, 10);
   });
 });
 </script>

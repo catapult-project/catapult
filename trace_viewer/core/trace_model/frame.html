@@ -4,7 +4,7 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/statistics.html">
 <link rel="import" href="/core/trace_model/event.html">
 
 <script>
@@ -12,31 +12,29 @@ found in the LICENSE file.
 
 /**
  * @fileoverview Class describing rendered frames.
- * s
+ *
  * Because a frame is produced by multiple threads, it does not inherit from
  * TimedEvent, and has no duration.
  */
 tv.exportTo('tv.c.trace_model', function() {
+  var Statistics = tv.b.Statistics;
 
   /**
    * @constructor
    * @param {Array} threadTimeRanges Array of {thread, start, end}
-   *     for each thread.
-   * @param {number} totalDuration Total execution time of frame,
-   *      across threads.
+   *     for each thread, describing the critical path of the frame
    */
-  function Frame(threadTimeRanges, totalDuration) {
+  function Frame(threadTimeRanges) {
     tv.c.trace_model.TimedEvent.call(this);
 
     this.threadTimeRanges = threadTimeRanges;
-    this.totalDuration = totalDuration;
 
-    this.start = threadTimeRanges[0].start;
-    this.end = threadTimeRanges[0].end;
-    for (var i = 1; i < threadTimeRanges.length; i++) {
-      this.start = Math.min(this.start, threadTimeRanges[i].start);
-      this.end = Math.max(this.end, threadTimeRanges[i].end);
-    }
+    this.start = Statistics.min(
+        threadTimeRanges, function(x) { return x.start; });
+    this.end = Statistics.max(
+        threadTimeRanges, function(x) { return x.end; });
+    this.totalDuration = Statistics.sum(
+        threadTimeRanges, function(x) { return x.end - x.start; });
   };
 
   Frame.prototype = {
