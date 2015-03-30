@@ -12,21 +12,6 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/table_builder.html">
 <link rel="import" href="/core/analysis/time_span.html">
 
-<script>
-'use strict';
-tv.exportTo('tv.c.analysis', function() {
-  function createTimeSpan(duration) {
-    if (duration === undefined)
-      return '';
-    var span = document.createElement('tv-c-a-time-span');
-    span.duration = duration;
-    return span;
-  }
-  return {
-    createTimeSpan: createTimeSpan
-  };
-});
-
 </script>
 <polymer-element name='tv-c-a-multi-event-summary-table'>
   <template>

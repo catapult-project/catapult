@@ -29,8 +29,11 @@ found in the LICENSE file.
   'use strict';
 
   Polymer({
-    ready: function() {
+    created: function() {
       this.selection_ = new tv.b.Range();
+    },
+
+    ready: function() {
       this.$.table.showHeader = false;
       this.$.table.tableColumns = [
         {
@@ -58,22 +61,6 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
-      function createTimeSpan(duration) {
-        if (duration === undefined)
-          return '';
-        var span = document.createElement('tv-c-a-time-span');
-        span.duration = duration;
-        return span;
-      }
-
-      function createTimeStamp(timestamp) {
-        if (timestamp === undefined)
-          return '';
-        var span = document.createElement('tv-c-a-time-stamp');
-        span.timestamp = timestamp;
-        return span;
-      }
-
       var selection = this.selection_;
       var rows = [];
       var hasRange;
@@ -84,11 +71,13 @@ found in the LICENSE file.
 
       rows.push({
         title: 'Selection start',
-        value: hasRange ? createTimeStamp(selection.bounds.min) : '<empty>'
+        value: hasRange ?
+            tv.c.analysis.createTimeStamp(selection.bounds.min) : '<empty>'
       });
       rows.push({
         title: 'Selection extent',
-        value: hasRange ? createTimeSpan(selection.bounds.range) : '<empty>'
+        value: hasRange ?
+            tv.c.analysis.createTimeSpan(selection.bounds.range) : '<empty>'
       });
 
       this.$.table.tableRows = rows;

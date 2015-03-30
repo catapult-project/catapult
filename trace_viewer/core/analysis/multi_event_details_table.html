@@ -7,19 +7,29 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/analysis/table_builder.html">
+<link rel="import" href="/core/analysis/multi_event_summary.html">
+<link rel="import" href="/core/analysis/time_span.html">
+<link rel="import" href="/core/analysis/time_stamp.html">
 
 <polymer-element name='tv-c-a-multi-event-details-table'>
   <template>
     <style>
     :host {
       display: flex;
+      flex-direction: column;
     }
     #table {
       flex: 1 1 auto;
       align-self: stretch;
     }
+    #title-info {
+      font-size: 12px;
+    }
     </style>
-    <div id='content'></div>
+    <tracing-analysis-nested-table id="titletable">
+    </tracing-analysis-nested-table>
+    <tracing-analysis-nested-table id="table">
+    </tracing-analysis-nested-table>
   </template>
 
   <script>
@@ -30,37 +40,157 @@ found in the LICENSE file.
       this.selection_ = undefined;
     },
 
+    ready: function() {
+      this.initTitleTable_();
+    },
+
     get selection() {
       return this.selection_;
     },
 
     set selection(selection) {
       this.selection_ = selection;
-      this.updateContents_();
+
+      this.updateTitleTable_();
+
+      if (this.selection_ === undefined) {
+        this.$.table.tableRows = [];
+        this.$.table.tableFooterRows = [];
+        this.$.table.rebuild();
+        return;
+      }
+
+      var summary = new tv.c.analysis.MultiEventSummary(
+          'Totals', this.selection_);
+      this.updateColumns_(summary);
+      this.updateRows_(summary);
+      this.$.table.rebuild();
     },
 
-    updateContents_: function() {
-      this.$.content.textContent = '';
-      var columns = [
-          {
-            title: 'Label',
-            value: function(row) { return row.name; },
-            width: '150px'
-          },
-          {
-            title: 'Value',
-            value: function(row) { return row.value; }
+    initTitleTable_: function() {
+      var table = this.$.titletable;
+
+      table.showHeader = false;
+      table.tableColumns = [
+        {
+          title: 'Title',
+          value: function(row) { return row.title; },
+          width: '350px'
+        },
+        {
+          title: 'Value',
+          width: '100%',
+          value: function(row) {
+            return row.value;
+          }
         }
       ];
-      var rows = [];
-      rows.push({ name: 'Title', value: 'Testing' });
+    },
 
-      var table = document.createElement('tracing-analysis-nested-table');
-      table.tableColumns = columns;
-      table.tableRows = rows;
-      table.rebuild();
+    updateTitleTable_: function() {
+      var title;
+      if (this.selection_ && this.selection_.length)
+        title = this.selection_[0].title;
+      else
+        title = '<No selection>';
 
-      this.$.content.appendChild(table);
+      var table = this.$.titletable;
+      table.tableRows = [{
+        title: 'Title',
+        value: title
+      }];
+    },
+
+    updateColumns_: function(summary) {
+      var hasCpuData;
+      if (summary.cpuDuration !== undefined)
+        hasCpuData = true;
+      if (summary.cpuSelfTime !== undefined)
+        hasCpuData = true;
+
+      var colWidthPercentage;
+      if (hasCpuData)
+        colWidthPercentage = '20%';
+      else
+        colWidthPercentage = '33.3333%';
+
+      var columns = [];
+
+      columns.push({
+        title: 'Start',
+        value: function(row) {
+          if (row.__proto__ == tv.c.analysis.MultiEventSummary)
+            return row.title;
+          return tv.c.analysis.createTimeStamp(row.start);
+        },
+        width: '350px',
+        cmp: function(rowA, rowB) {
+          return rowA.title.localeCompare(rowB.title);
+        }
+      });
+      columns.push({
+        title: 'Wall Duration (ms)',
+        value: function(row) {
+          return tv.c.analysis.createTimeSpan(row.duration);
+        },
+        width: colWidthPercentage,
+        cmp: function(rowA, rowB) {
+          return rowA.duration - rowB.duration;
+        }
+      });
+
+      if (hasCpuData) {
+        columns.push({
+          title: 'CPU Duration (ms)',
+          value: function(row) {
+            return tv.c.analysis.createTimeSpan(row.cpuDuration);
+          },
+          width: colWidthPercentage,
+          cmp: function(rowA, rowB) {
+            return rowA.cpuDuration - rowB.cpuDuration;
+          }
+        });
+      }
+
+      columns.push({
+        title: 'Self time (ms)',
+        value: function(row) {
+          return tv.c.analysis.createTimeSpan(row.selfTime);
+        },
+        width: colWidthPercentage,
+        cmp: function(rowA, rowB) {
+          return rowA.selfTime - rowB.selfTime;
+        }
+      });
+      if (hasCpuData) {
+        columns.push({
+          title: 'CPU Self Time (ms)',
+          value: function(row) {
+            return tv.c.analysis.createTimeSpan(row.cpuSelfTime);
+          },
+          width: colWidthPercentage,
+          cmp: function(rowA, rowB) {
+            return rowA.cpuSelfTime - rowB.cpuSelfTime;
+          }
+        });
+      }
+      columns.push({
+        title: 'Args',
+        value: function(row) {
+          return '<WIP>';
+        },
+        width: colWidthPercentage
+      });
+
+      this.$.table.tableColumns = columns;
+    },
+
+    updateRows_: function(summary) {
+      this.$.table.sortColumnIndex = 0;
+      this.$.table.tableRows = this.selection_.map(function(event) {
+        return event;
+      });
+      this.$.table.tableFooterRows = [summary];
     }
   });
 </script>

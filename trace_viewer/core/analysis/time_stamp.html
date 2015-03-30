@@ -6,6 +6,22 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/core/analysis/util.html">
 
+<script>
+'use strict';
+tv.exportTo('tv.c.analysis', function() {
+  function createTimeStamp(timestamp) {
+    if (timestamp === undefined)
+      return '';
+    var span = document.createElement('tv-c-a-time-stamp');
+    span.timestamp = timestamp;
+    return span;
+  }
+  return {
+    createTimeStamp: createTimeStamp
+  };
+});
+</script>
+
 <polymer-element name="tv-c-a-time-stamp">
   <template>
   </template>
