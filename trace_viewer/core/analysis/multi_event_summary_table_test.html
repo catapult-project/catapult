@@ -25,8 +25,8 @@ tv.b.unittest.testSuite(function() {
     var tsg = thread.sliceGroup;
 
     tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3}));
-    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2}));
-    tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5}));
+    tsg.pushSlice(newSliceEx({title: 'bb', start: 1, end: 2}));
+    tsg.pushSlice(newSliceEx({title: 'bb', start: 4, end: 5}));
     tsg.createSubSlices();
 
     var row = new tv.c.analysis.SummaryRow('x', tsg.slices.slice(0));
@@ -57,7 +57,7 @@ tv.b.unittest.testSuite(function() {
   });
 
 
-  test('basic', function() {
+  test('basicNoCpu', function() {
     var model = new Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     var tsg = thread.sliceGroup;
@@ -74,14 +74,35 @@ tv.b.unittest.testSuite(function() {
     var viewEl = document.createElement('tv-c-a-multi-event-summary-table');
     viewEl.configure({
       showTotals: true,
-      eventsByTitle: selection.getEventsOrganizedByTitle(),
-      selectionBounds: selection.bounds
+      eventsByTitle: selection.getEventsOrganizedByTitle()
     });
     this.addHTMLOutput(viewEl);
-
-    // TODO(nduca): asserts here.
   });
 
+  test('basicWithCpu', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                              cpuStart: 0, cpuEnd: 3}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
+                              cpuStart: 1, cpuEnd: 1.75}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5,
+                              cpuStart: 3, cpuEnd: 3.75}));
+    tsg.createSubSlices();
+
+    var threadTrack = {};
+    threadTrack.thread = thread;
+
+    var selection = new Selection(tsg.slices);
+
+    var viewEl = document.createElement('tv-c-a-multi-event-summary-table');
+    viewEl.configure({
+      showTotals: true,
+      eventsByTitle: selection.getEventsOrganizedByTitle()
+    });
+    this.addHTMLOutput(viewEl);
+  });
   // With and without cpu time
   // With and without totals
   // Tooltippish stuff

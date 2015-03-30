@@ -128,67 +128,91 @@ tv.exportTo('tv.c.analysis', function() {
       this.showTotals_ = false;
       this.eventsByTitle_ = undefined;
       this.selectionBounds_ = new tv.b.Range();
+    },
 
-      this.$.table.tableColumns = [
-        {
-          title: 'Name',
-          value: function(row) { return row.title; },
-          width: '150px',
-          cmp: function(rowA, rowB) {
-            return rowA.title.localeCompare(rowB.title);
-          }
+    updateTableColumns_: function(rows) {
+      var hasCpuData = false;
+      rows.forEach(function(row) {
+        if (row.cpuDuration !== undefined)
+          hasCpuData = true;
+        if (row.cpuSelfTime !== undefined)
+          hasCpuData = true;
+      });
+
+      var colWidthPercentage;
+      if (hasCpuData)
+        colWidthPercentage = '20%';
+      else
+        colWidthPercentage = '33.3333%';
+
+      var columns = [];
+
+      columns.push({
+        title: 'Name',
+        value: function(row) { return row.title; },
+        width: '350px',
+        cmp: function(rowA, rowB) {
+          return rowA.title.localeCompare(rowB.title);
+        }
+      });
+      columns.push({
+        title: 'Wall Duration (ms)',
+        value: function(row) {
+          return tv.c.analysis.createTimeSpan(row.duration);
         },
-        {
-          title: 'Wall Duration (ms)',
-          value: function(row) {
-            return tv.c.analysis.createTimeSpan(row.duration);
-          },
-          width: '20%',
-          cmp: function(rowA, rowB) {
-            return rowA.duration - rowB.duration;
-          }
-        },
-        {
+        width: colWidthPercentage,
+        cmp: function(rowA, rowB) {
+          return rowA.duration - rowB.duration;
+        }
+      });
+
+      if (hasCpuData) {
+        columns.push({
           title: 'CPU Duration (ms)',
           value: function(row) {
             return tv.c.analysis.createTimeSpan(row.cpuDuration);
           },
-          width: '20%',
+          width: colWidthPercentage,
           cmp: function(rowA, rowB) {
             return rowA.cpuDuration - rowB.cpuDuration;
           }
+        });
+      }
+
+      columns.push({
+        title: 'Self time (ms)',
+        value: function(row) {
+          return tv.c.analysis.createTimeSpan(row.selfTime);
         },
-        {
-          title: 'Self time (ms)',
-          value: function(row) {
-            return tv.c.analysis.createTimeSpan(row.selfTime);
-          },
-          width: '20%',
-          cmp: function(rowA, rowB) {
-            return rowA.selfTime - rowB.selfTime;
-          }
-        },
-        {
+        width: colWidthPercentage,
+        cmp: function(rowA, rowB) {
+          return rowA.selfTime - rowB.selfTime;
+        }
+      });
+      if (hasCpuData) {
+        columns.push({
           title: 'CPU Self Time (ms)',
           value: function(row) {
             return tv.c.analysis.createTimeSpan(row.cpuSelfTime);
           },
-          width: '20%',
+          width: colWidthPercentage,
           cmp: function(rowA, rowB) {
             return rowA.cpuSelfTime - rowB.cpuSelfTime;
           }
+        });
+      }
+      columns.push({
+        title: 'Occurrences',
+        value: function(row) {
+          return row.numEvents;
         },
-        {
-          title: 'Occurrences',
-          value: function(row) {
-            return row.numEvents;
-          },
-          width: '20%',
-          cmp: function(rowA, rowB) {
-            return rowA.numEvents - rowB.numEvents;
-          }
+        width: colWidthPercentage,
+        cmp: function(rowA, rowB) {
+          return rowA.numEvents - rowB.numEvents;
         }
-      ];
+      });
+
+      this.$.table.tableColumns = columns;
     },
 
     configure: function(config) {
@@ -242,6 +266,7 @@ tv.exportTo('tv.c.analysis', function() {
             rows.push(row);
           });
 
+      this.updateTableColumns_(rows);
       this.$.table.tableRows = rows;
 
       var footerRows = [];
