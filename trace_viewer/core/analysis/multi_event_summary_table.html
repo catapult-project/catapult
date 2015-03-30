@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
+<link rel="import" href="/core/analysis/multi_event_summary.html">
 <link rel="import" href="/core/analysis/table_builder.html">
 <link rel="import" href="/core/analysis/time_span.html">
 
@@ -21,85 +22,7 @@ tv.exportTo('tv.c.analysis', function() {
     span.duration = duration;
     return span;
   }
-
-  function SummaryRow(title, events) {
-    this.title = title;
-    this.duration_ = undefined;
-    this.selfTime_ = undefined;
-    this.events_ = events;
-
-    this.cpuTimesComputed_ = false;
-    this.cpuSelfTime_ = undefined;
-    this.cpuDuration_ = undefined;
-  };
-  SummaryRow.prototype = {
-    get duration() {
-      if (this.duration_ === undefined) {
-        this.duration_ = tv.b.Statistics.sum(
-            this.events_, function(event) {
-                return event.duration;
-            });
-      }
-      return this.duration_;
-    },
-
-    get cpuSelfTime() {
-      this.computeCpuTimesIfNeeded_();
-      return this.cpuSelfTime_;
-    },
-
-    get cpuDuration() {
-      this.computeCpuTimesIfNeeded_();
-      return this.cpuDuration_;
-    },
-
-    computeCpuTimesIfNeeded_: function() {
-      if (this.cpuTimesComputed_)
-        return;
-      this.cpuTimesComputed_ = true;
-
-      var cpuSelfTime = 0;
-      var cpuDuration = 0;
-      var hasCpuData = false;
-      for (var i = 0; i < this.events_.length; i++) {
-        var event = this.events_[i];
-        if (event.cpuDuration !== undefined) {
-          cpuDuration += event.cpuDuration;
-          hasCpuData = true;
-        }
-
-        if (event.cpuSelfTime !== undefined) {
-          cpuSelfTime += event.cpuSelfTime;
-          hasCpuData = true;
-        }
-      }
-      if (hasCpuData) {
-        this.cpuDuration_ = cpuDuration;
-        this.cpuSelfTime_ = cpuSelfTime;
-      }
-    },
-
-    get selfTime() {
-      if (this.selfTime_ === undefined) {
-        this.selfTime_ = tv.b.Statistics.sum(
-            this.events_, function(event) {
-                return event.selfTime;
-            });
-      }
-      return this.selfTime_;
-    },
-
-    get events() {
-      return this.events_;
-    },
-
-    get numEvents() {
-      return this.events_.length;
-    }
-  };
-
   return {
-    SummaryRow: SummaryRow,
     createTimeSpan: createTimeSpan
   };
 });
@@ -260,7 +183,8 @@ tv.exportTo('tv.c.analysis', function() {
           eventsByTitle,
           function(title, eventsOfSingleTitle) {
             allEvents.push.apply(allEvents, eventsOfSingleTitle);
-            var row = new tv.c.analysis.SummaryRow(title, eventsOfSingleTitle);
+            var row = new tv.c.analysis.MultiEventSummary(title,
+                                                          eventsOfSingleTitle);
             rows.push(row);
           });
 
@@ -269,9 +193,10 @@ tv.exportTo('tv.c.analysis', function() {
 
       var footerRows = [];
 
-      if (this.showTotals_)
-        footerRows.push(new tv.c.analysis.SummaryRow('Totals', allEvents));
-
+      if (this.showTotals_) {
+        footerRows.push(
+            new tv.c.analysis.MultiEventSummary('Totals', allEvents));
+      }
       // TODO(selection bounds).
 
       // TODO(sorting)

@@ -101,6 +101,7 @@
       'trace_viewer/core/analysis/multi_alert_sub_view.html',
       'trace_viewer/core/analysis/multi_event_details_table.html',
       'trace_viewer/core/analysis/multi_event_sub_view.html',
+      'trace_viewer/core/analysis/multi_event_summary.html',
       'trace_viewer/core/analysis/multi_event_summary_table.html',
       'trace_viewer/core/analysis/multi_flow_event_sub_view.html',
       'trace_viewer/core/analysis/multi_global_memory_dump_sub_view.html',

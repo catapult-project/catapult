@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/base/statistics.html">
+
+<script>
+'use strict';
+tv.exportTo('tv.c.analysis', function() {
+  function MultiEventSummary(title, events) {
+    this.title = title;
+    this.duration_ = undefined;
+    this.selfTime_ = undefined;
+    this.events_ = events;
+
+    this.cpuTimesComputed_ = false;
+    this.cpuSelfTime_ = undefined;
+    this.cpuDuration_ = undefined;
+  };
+  MultiEventSummary.prototype = {
+    get duration() {
+      if (this.duration_ === undefined) {
+        this.duration_ = tv.b.Statistics.sum(
+            this.events_, function(event) {
+                return event.duration;
+            });
+      }
+      return this.duration_;
+    },
+
+    get cpuSelfTime() {
+      this.computeCpuTimesIfNeeded_();
+      return this.cpuSelfTime_;
+    },
+
+    get cpuDuration() {
+      this.computeCpuTimesIfNeeded_();
+      return this.cpuDuration_;
+    },
+
+    computeCpuTimesIfNeeded_: function() {
+      if (this.cpuTimesComputed_)
+        return;
+      this.cpuTimesComputed_ = true;
+
+      var cpuSelfTime = 0;
+      var cpuDuration = 0;
+      var hasCpuData = false;
+      for (var i = 0; i < this.events_.length; i++) {
+        var event = this.events_[i];
+        if (event.cpuDuration !== undefined) {
+          cpuDuration += event.cpuDuration;
+          hasCpuData = true;
+        }
+
+        if (event.cpuSelfTime !== undefined) {
+          cpuSelfTime += event.cpuSelfTime;
+          hasCpuData = true;
+        }
+      }
+      if (hasCpuData) {
+        this.cpuDuration_ = cpuDuration;
+        this.cpuSelfTime_ = cpuSelfTime;
+      }
+    },
+
+    get selfTime() {
+      if (this.selfTime_ === undefined) {
+        this.selfTime_ = tv.b.Statistics.sum(
+            this.events_, function(event) {
+                return event.selfTime;
+            });
+      }
+      return this.selfTime_;
+    },
+
+    get events() {
+      return this.events_;
+    },
+
+    get numEvents() {
+      return this.events_.length;
+    }
+  };
+
+  return {
+    MultiEventSummary: MultiEventSummary
+  };
+});
+</script>

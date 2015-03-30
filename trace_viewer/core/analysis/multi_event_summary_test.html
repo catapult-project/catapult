@@ -5,8 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/deep_utils.html">
-<link rel="import" href="/core/analysis/multi_event_summary_table.html">
+<link rel="import" href="/core/analysis/multi_event_summary.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
@@ -19,32 +18,28 @@ tv.b.unittest.testSuite(function() {
   var Selection = tv.c.Selection;
   var newSliceEx = tv.c.test_utils.newSliceEx;
 
-  test('basicNoCpu', function() {
+  test('summaryRowNoCpu', function() {
     var model = new Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     var tsg = thread.sliceGroup;
-    tsg.pushSlice(newSliceEx({title: 'a', start: 0, duration: 0.5}));
-    tsg.pushSlice(newSliceEx({title: 'b', start: 1, duration: 0.5}));
-    tsg.pushSlice(newSliceEx({title: 'b', start: 2, duration: 0.5}));
+
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3}));
+    tsg.pushSlice(newSliceEx({title: 'bb', start: 1, end: 2}));
+    tsg.pushSlice(newSliceEx({title: 'bb', start: 4, end: 5}));
     tsg.createSubSlices();
 
-    var threadTrack = {};
-    threadTrack.thread = thread;
-
-    var selection = new Selection(tsg.slices);
-
-    var viewEl = document.createElement('tv-c-a-multi-event-summary-table');
-    viewEl.configure({
-      showTotals: true,
-      eventsByTitle: selection.getEventsOrganizedByTitle()
-    });
-    this.addHTMLOutput(viewEl);
+    var row = new tv.c.analysis.MultiEventSummary('x', tsg.slices.slice(0));
+    assert.equal(row.duration, 5);
+    assert.equal(row.selfTime, 4);
+    assert.equal(row.cpuDuration, undefined);
+    assert.equal(row.cpuSelfTime, undefined);
   });
 
-  test('basicWithCpu', function() {
+  test('summaryRowWithCpu', function() {
     var model = new Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     var tsg = thread.sliceGroup;
+
     tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
                               cpuStart: 0, cpuEnd: 3}));
     tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
@@ -53,20 +48,11 @@ tv.b.unittest.testSuite(function() {
                               cpuStart: 3, cpuEnd: 3.75}));
     tsg.createSubSlices();
 
-    var threadTrack = {};
-    threadTrack.thread = thread;
-
-    var selection = new Selection(tsg.slices);
-
-    var viewEl = document.createElement('tv-c-a-multi-event-summary-table');
-    viewEl.configure({
-      showTotals: true,
-      eventsByTitle: selection.getEventsOrganizedByTitle()
-    });
-    this.addHTMLOutput(viewEl);
+    var row = new tv.c.analysis.MultiEventSummary('x', tsg.slices.slice(0));
+    assert.equal(row.duration, 5);
+    assert.equal(row.selfTime, 4);
+    assert.equal(row.cpuDuration, 4.5);
+    assert.equal(row.cpuSelfTime, 3.75);
   });
-  // With and without cpu time
-  // With and without totals
-  // Tooltippish stuff
 });
 </script>
