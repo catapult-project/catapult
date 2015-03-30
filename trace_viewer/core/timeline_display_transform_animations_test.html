@@ -36,8 +36,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isAbove(target.panX, 0);
     tv.b.forcePendingRAFTasksToRun(100);
     assert.isFalse(controller.hasActiveAnimation);
-    assert.equal(10, target.panX);
-    assert.equal(20, target.panY);
+    assert.equal(target.panX, 10);
+    assert.equal(target.panY, 20);
   });
 
   test('zoomBasic', function() {
@@ -55,7 +55,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     assert.isFalse(a.affectsPanY);
     tv.b.forcePendingRAFTasksToRun(100);
-    assert.equal(5, target.scaleX);
+    assert.equal(target.scaleX, 5);
   });
 
   test('panTakeover', function() {
@@ -79,7 +79,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     tv.b.forcePendingRAFTasksToRun(150);
     assert.isFalse(controller.hasActiveAnimation);
-    assert.equal(20, target.panX);
+    assert.equal(target.panX, 20);
   });
 });
 </script>

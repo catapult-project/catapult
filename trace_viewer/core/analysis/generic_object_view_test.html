@@ -15,44 +15,44 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('undefinedValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = undefined;
-    assert.equal('undefined', view.shadowRoot.textContent);
+    assert.equal(view.shadowRoot.textContent, 'undefined');
   });
 
   test('nullValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = null;
-    assert.equal('null', view.shadowRoot.textContent);
+    assert.equal(view.shadowRoot.textContent, 'null');
   });
 
   test('stringValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = 'string value';
-    assert.equal('"string value"', view.shadowRoot.textContent);
+    assert.equal(view.shadowRoot.textContent, '"string value"');
   });
 
   test('jsonObjectStringValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = '{"x": 1}';
-    assert.equal(1, view.shadowRoot.children.length);
-    assert.equal(4, view.shadowRoot.children[0].children.length);
+    assert.equal(view.shadowRoot.children.length, 1);
+    assert.equal(view.shadowRoot.children[0].children.length, 4);
   });
 
   test('jsonArraStringValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = '[1,2,3]';
-    assert.equal(3, view.shadowRoot.children.length);
+    assert.equal(view.shadowRoot.children.length, 3);
   });
 
   test('booleanValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = false;
-    assert.equal('false', view.shadowRoot.textContent);
+    assert.equal(view.shadowRoot.textContent, 'false');
   });
 
   test('numberValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = 3.14159;
-    assert.equal('3.14159', view.shadowRoot.textContent);
+    assert.equal(view.shadowRoot.textContent, '3.14159');
   });
 
   test('objectSnapshotValue', function() {

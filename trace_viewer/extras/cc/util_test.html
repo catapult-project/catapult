@@ -15,10 +15,10 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   test('nameConvert', function() {
-    assert.equal('_foo', tv.e.cc.convertNameToJSConvention('_foo'));
-    assert.equal('foo_', tv.e.cc.convertNameToJSConvention('foo_'));
-    assert.equal('foo', tv.e.cc.convertNameToJSConvention('foo'));
-    assert.equal('fooBar', tv.e.cc.convertNameToJSConvention('foo_bar'));
+    assert.equal(tv.e.cc.convertNameToJSConvention('_foo'), '_foo');
+    assert.equal(tv.e.cc.convertNameToJSConvention('foo_'), 'foo_');
+    assert.equal(tv.e.cc.convertNameToJSConvention('foo'), 'foo');
+    assert.equal(tv.e.cc.convertNameToJSConvention('foo_bar'), 'fooBar');
     assert.equal('fooBarBaz',
                  tv.e.cc.convertNameToJSConvention('foo_bar_baz'));
   });
@@ -41,7 +41,7 @@ tv.b.unittest.testSuite(function() {
       }
     };
     tv.e.cc.preInitializeObject(object);
-    assert.deepEqual(expected, object);
+    assert.deepEqual(object, expected);
   });
 
   test('arrayConvert', function() {
@@ -60,7 +60,7 @@ tv.b.unittest.testSuite(function() {
       ]
     };
     tv.e.cc.preInitializeObject(object);
-    assert.deepEqual(expected, object);
+    assert.deepEqual(object, expected);
   });
 
   test('quadCoversion', function() {

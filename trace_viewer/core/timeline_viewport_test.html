@@ -27,7 +27,7 @@ tv.b.unittest.testSuite(function() {
     assert.isUndefined(vp.trackForEvent(slice));
     vp.rebuildEventToTrackMap();
 
-    assert.equal('track', vp.trackForEvent(slice));
+    assert.equal(vp.trackForEvent(slice), 'track');
   });
 });
 </script>

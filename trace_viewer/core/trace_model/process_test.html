@@ -37,7 +37,7 @@ tv.b.unittest.testSuite(function() {
         shiftCount++;
     };
     process.shiftTimestampsForward(0.32);
-    assert.equal(2, shiftCount);
+    assert.equal(shiftCount, 2);
   });
 
   test('compareOnPID', function() {

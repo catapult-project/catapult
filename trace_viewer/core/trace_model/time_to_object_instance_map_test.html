@@ -26,24 +26,24 @@ tv.b.unittest.testSuite(function() {
     m.idWasDeleted('cat', 'name', 30);
     m.addSnapshot('cat', 'name', 40, 'b');
 
-    assert.equal(2, m.instances.length);
+    assert.equal(m.instances.length, 2);
 
     var i0 = m.getInstanceAt(0);
     var i10 = m.getInstanceAt(10);
-    assert.equal(i10, i0);
+    assert.equal(i0, i10);
 
     assertNotUndefined(i10);
-    assert.equal(2, i10.snapshots.length);
-    assert.equal('a1', i10.snapshots[0].args);
-    assert.equal('a2', i10.snapshots[1].args);
+    assert.equal(i10.snapshots.length, 2);
+    assert.equal(i10.snapshots[0].args, 'a1');
+    assert.equal(i10.snapshots[1].args, 'a2');
 
-    assert.equal(30, i10.deletionTs);
+    assert.equal(i10.deletionTs, 30);
 
     var i15 = m.getInstanceAt(15);
-    assert.equal(i10, i15);
+    assert.equal(i15, i10);
 
     var i20 = m.getInstanceAt(20);
-    assert.equal(i10, i20);
+    assert.equal(i20, i10);
 
     var i30 = m.getInstanceAt(30);
     assert.isUndefined(i30);
@@ -53,13 +53,13 @@ tv.b.unittest.testSuite(function() {
 
     var i40 = m.getInstanceAt(40);
     assert.isDefined(i40);
-    assert.notEqual(i10, i40);
-    assert.equal(1, i40.snapshots.length);
-    assert.equal(40, i40.creationTs);
-    assert.equal(Number.MAX_VALUE, i40.deletionTs);
+    assert.notEqual(i40, i10);
+    assert.equal(i40.snapshots.length, 1);
+    assert.equal(i40.creationTs, 40);
+    assert.equal(i40.deletionTs, Number.MAX_VALUE);
 
     var i41 = m.getInstanceAt(41);
-    assert.equal(i41, i40);
+    assert.equal(i40, i41);
   });
 
   test('timeToObjectInstanceMapsBoundsLogic', function() {
@@ -74,12 +74,12 @@ tv.b.unittest.testSuite(function() {
     m.instances.forEach(function(i) { i.updateBounds(); });
 
     var iA = m.getInstanceAt(10);
-    assert.equal(10, iA.bounds.min);
-    assert.equal(30, iA.bounds.max);
+    assert.equal(iA.bounds.min, 10);
+    assert.equal(iA.bounds.max, 30);
 
     var iB = m.getInstanceAt(40);
-    assert.equal(40, iB.bounds.min);
-    assert.equal(41, iB.bounds.max);
+    assert.equal(iB.bounds.min, 40);
+    assert.equal(iB.bounds.max, 41);
   });
 
   test('earlySnapshot', function() {
@@ -91,8 +91,8 @@ tv.b.unittest.testSuite(function() {
     assert.throws(function() {
       m.addSnapshot('cat', 'name', 5, 'a1');
     });
-    assert.equal(10, i10.creationTs);
-    assert.equal(20, i10.deletionTs);
+    assert.equal(i10.creationTs, 10);
+    assert.equal(i10.deletionTs, 20);
   });
 
   test('earlySnapshotWithImplicitCreate', function() {
@@ -100,8 +100,8 @@ tv.b.unittest.testSuite(function() {
         createObjectInstance, {}, 7);
     var i10 = m.idWasDeleted('cat', 'name', 20);
     m.addSnapshot('cat', 'name', 5, 'a1');
-    assert.equal(5, i10.creationTs);
-    assert.equal(20, i10.deletionTs);
+    assert.equal(i10.creationTs, 5);
+    assert.equal(i10.deletionTs, 20);
   });
 
   test('getInstanceBeforeCreationImplicitCreate', function() {
@@ -117,7 +117,7 @@ tv.b.unittest.testSuite(function() {
         createObjectInstance, {}, 7);
     var s5 = m.addSnapshot('cat', 'name', 5, 'a1');
     var i10 = m.idWasDeleted('cat', 'name', 20);
-    assert.equal(i10, m.getInstanceAt(5));
+    assert.equal(m.getInstanceAt(5), i10);
   });
 
   test('successiveDeletions', function() {
@@ -126,20 +126,20 @@ tv.b.unittest.testSuite(function() {
     var i20 = m.idWasDeleted('cat', 'name', 20);
     var i30 = m.idWasDeleted('cat', 'name', 30);
     var i40 = m.idWasDeleted('cat', 'name', 40);
-    assert.equal(20, i20.creationTs);
+    assert.equal(i20.creationTs, 20);
     assert.isFalse(i20.creationTsWasExplicit);
-    assert.equal(20, i20.deletionTs);
+    assert.equal(i20.deletionTs, 20);
     assert.isTrue(i20.deletionTsWasExplicit);
 
-    assert.equal(30, i30.creationTs);
+    assert.equal(i30.creationTs, 30);
     assert.isFalse(i30.creationTsWasExplicit);
-    assert.equal(30, i30.deletionTs);
+    assert.equal(i30.deletionTs, 30);
     assert.isTrue(i30.deletionTsWasExplicit);
 
 
-    assert.equal(40, i40.creationTs);
+    assert.equal(i40.creationTs, 40);
     assert.isFalse(i40.creationTsWasExplicit);
-    assert.equal(40, i40.deletionTs);
+    assert.equal(i40.deletionTs, 40);
     assert.isTrue(i40.deletionTsWasExplicit);
   });
 
@@ -152,11 +152,11 @@ tv.b.unittest.testSuite(function() {
     var s25 = m.addSnapshot('cat', 'name', 25, 'a1');
     var i25 = s25.objectInstance;
 
-    assert.equal(10, i10.creationTs);
-    assert.equal(20, i10.deletionTs);
-    assert.notEqual(i10, i25);
-    assert.equal(25, i25.creationTs);
-    assert.equal(Number.MAX_VALUE, i25.deletionTs);
+    assert.equal(i10.creationTs, 10);
+    assert.equal(i10.deletionTs, 20);
+    assert.notEqual(i25, i10);
+    assert.equal(i25.creationTs, 25);
+    assert.equal(i25.deletionTs, Number.MAX_VALUE);
   });
 });
 </script>

@@ -55,16 +55,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal('Value&nbsp;&#x25BF;',
                  convertToHTML(headerRow.cells[1].innerHTML));
     var tableRows = table.tBodies[0].rows;
-    assert.equal('First', tableRows[0].cells[0].innerText);
-    assert.equal('2', tableRows[0].cells[1].innerText);
-    assert.equal('Middle', tableRows[1].cells[0].innerText);
-    assert.equal('18', tableRows[1].cells[1].innerText);
-    assert.equal('Last', tableRows[2].cells[0].innerText);
-    assert.equal('1', tableRows[2].cells[1].innerText);
+    assert.equal(tableRows[0].cells[0].innerText, 'First');
+    assert.equal(tableRows[0].cells[1].innerText, '2');
+    assert.equal(tableRows[1].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[1].cells[1].innerText, '18');
+    assert.equal(tableRows[2].cells[0].innerText, 'Last');
+    assert.equal(tableRows[2].cells[1].innerText, '1');
     // the footer should never change.
     var footerRow = table.tFoot.rows[0];
-    assert.equal('Average', footerRow.cells[0].innerText);
-    assert.equal('7', footerRow.cells[1].innerText);
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
   });
 
   test('sortOnAlphabeticColumnAscending', function() {
@@ -77,16 +77,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal('Value&nbsp;&#x25BF;',
                  convertToHTML(headerRow.cells[1].innerHTML));
     var tableRows = table.tBodies[0].rows;
-    assert.equal('First', tableRows[0].cells[0].innerText);
-    assert.equal('2', tableRows[0].cells[1].innerText);
-    assert.equal('Last', tableRows[1].cells[0].innerText);
-    assert.equal('1', tableRows[1].cells[1].innerText);
-    assert.equal('Middle', tableRows[2].cells[0].innerText);
-    assert.equal('18', tableRows[2].cells[1].innerText);
+    assert.equal(tableRows[0].cells[0].innerText, 'First');
+    assert.equal(tableRows[0].cells[1].innerText, '2');
+    assert.equal(tableRows[1].cells[0].innerText, 'Last');
+    assert.equal(tableRows[1].cells[1].innerText, '1');
+    assert.equal(tableRows[2].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[2].cells[1].innerText, '18');
     // the footer should never change.
     var footerRow = table.tFoot.rows[0];
-    assert.equal('Average', footerRow.cells[0].innerText);
-    assert.equal('7', footerRow.cells[1].innerText);
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
   });
 
   test('sortOnAlphabeticColumnDescending', function() {
@@ -99,16 +99,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal('Value&nbsp;&#x25BF;',
                  convertToHTML(headerRow.cells[1].innerHTML));
     var tableRows = table.tBodies[0].rows;
-    assert.equal('Middle', tableRows[0].cells[0].innerText);
-    assert.equal('18', tableRows[0].cells[1].innerText);
-    assert.equal('Last', tableRows[1].cells[0].innerText);
-    assert.equal('1', tableRows[1].cells[1].innerText);
-    assert.equal('First', tableRows[2].cells[0].innerText);
-    assert.equal('2', tableRows[2].cells[1].innerText);
+    assert.equal(tableRows[0].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[0].cells[1].innerText, '18');
+    assert.equal(tableRows[1].cells[0].innerText, 'Last');
+    assert.equal(tableRows[1].cells[1].innerText, '1');
+    assert.equal(tableRows[2].cells[0].innerText, 'First');
+    assert.equal(tableRows[2].cells[1].innerText, '2');
     // the footer should never change.
     var footerRow = table.tFoot.rows[0];
-    assert.equal('Average', footerRow.cells[0].innerText);
-    assert.equal('7', footerRow.cells[1].innerText);
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
   });
 
   test('sortOnNumericColumnAscending', function() {
@@ -121,16 +121,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal('Value&nbsp;&#x25BE;',
                  convertToHTML(headerRow.cells[1].innerHTML));
     var tableRows = table.tBodies[0].rows;
-    assert.equal('Last', tableRows[0].cells[0].innerText);
-    assert.equal('1', tableRows[0].cells[1].innerText);
-    assert.equal('First', tableRows[1].cells[0].innerText);
-    assert.equal('2', tableRows[1].cells[1].innerText);
-    assert.equal('Middle', tableRows[2].cells[0].innerText);
-    assert.equal('18', tableRows[2].cells[1].innerText);
+    assert.equal(tableRows[0].cells[0].innerText, 'Last');
+    assert.equal(tableRows[0].cells[1].innerText, '1');
+    assert.equal(tableRows[1].cells[0].innerText, 'First');
+    assert.equal(tableRows[1].cells[1].innerText, '2');
+    assert.equal(tableRows[2].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[2].cells[1].innerText, '18');
     // the footer should never change.
     var footerRow = table.tFoot.rows[0];
-    assert.equal('Average', footerRow.cells[0].innerText);
-    assert.equal('7', footerRow.cells[1].innerText);
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
   });
 
   test('sortOnNumericColumnDescending', function() {
@@ -143,16 +143,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal('Value&nbsp;&#x25B4;',
                  convertToHTML(headerRow.cells[1].innerHTML));
     var tableRows = table.tBodies[0].rows;
-    assert.equal('Middle', tableRows[0].cells[0].innerText);
-    assert.equal('18', tableRows[0].cells[1].innerText);
-    assert.equal('First', tableRows[1].cells[0].innerText);
-    assert.equal('2', tableRows[1].cells[1].innerText);
-    assert.equal('Last', tableRows[2].cells[0].innerText);
-    assert.equal('1', tableRows[2].cells[1].innerText);
+    assert.equal(tableRows[0].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[0].cells[1].innerText, '18');
+    assert.equal(tableRows[1].cells[0].innerText, 'First');
+    assert.equal(tableRows[1].cells[1].innerText, '2');
+    assert.equal(tableRows[2].cells[0].innerText, 'Last');
+    assert.equal(tableRows[2].cells[1].innerText, '1');
     // the footer should never change.
     var footerRow = table.tFoot.rows[0];
-    assert.equal('Average', footerRow.cells[0].innerText);
-    assert.equal('7', footerRow.cells[1].innerText);
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
   });
 
   test('sortOnAColumnThenReverseIt', function() {
@@ -165,16 +165,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal('Value&nbsp;&#x25BF;',
                  convertToHTML(headerRow.cells[1].innerHTML));
     var tableRows = table.tBodies[0].rows;
-    assert.equal('First', tableRows[0].cells[0].innerText);
-    assert.equal('2', tableRows[0].cells[1].innerText);
-    assert.equal('Last', tableRows[1].cells[0].innerText);
-    assert.equal('1', tableRows[1].cells[1].innerText);
-    assert.equal('Middle', tableRows[2].cells[0].innerText);
-    assert.equal('18', tableRows[2].cells[1].innerText);
+    assert.equal(tableRows[0].cells[0].innerText, 'First');
+    assert.equal(tableRows[0].cells[1].innerText, '2');
+    assert.equal(tableRows[1].cells[0].innerText, 'Last');
+    assert.equal(tableRows[1].cells[1].innerText, '1');
+    assert.equal(tableRows[2].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[2].cells[1].innerText, '18');
     // the footer should never change.
     var footerRow = table.tFoot.rows[0];
-    assert.equal('Average', footerRow.cells[0].innerText);
-    assert.equal('7', footerRow.cells[1].innerText);
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
     table.sort(0);
     var headerRow = table.tHead.rows[0];
     assert.equal('Name&nbsp;&#x25B4;',
@@ -182,16 +182,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal('Value&nbsp;&#x25BF;',
                  convertToHTML(headerRow.cells[1].innerHTML));
     var tableRows = table.tBodies[0].rows;
-    assert.equal('Middle', tableRows[0].cells[0].innerText);
-    assert.equal('18', tableRows[0].cells[1].innerText);
-    assert.equal('Last', tableRows[1].cells[0].innerText);
-    assert.equal('1', tableRows[1].cells[1].innerText);
-    assert.equal('First', tableRows[2].cells[0].innerText);
-    assert.equal('2', tableRows[2].cells[1].innerText);
+    assert.equal(tableRows[0].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[0].cells[1].innerText, '18');
+    assert.equal(tableRows[1].cells[0].innerText, 'Last');
+    assert.equal(tableRows[1].cells[1].innerText, '1');
+    assert.equal(tableRows[2].cells[0].innerText, 'First');
+    assert.equal(tableRows[2].cells[1].innerText, '2');
     // the footer should never change.
     var footerRow = table.tFoot.rows[0];
-    assert.equal('Average', footerRow.cells[0].innerText);
-    assert.equal('7', footerRow.cells[1].innerText);
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
   });
 
   test('sortOnAColumnThenOnAnotherColumn', function() {
@@ -204,16 +204,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal('Value&nbsp;&#x25BF;',
                  convertToHTML(headerRow.cells[1].innerHTML));
     var tableRows = table.tBodies[0].rows;
-    assert.equal('Middle', tableRows[0].cells[0].innerText);
-    assert.equal('18', tableRows[0].cells[1].innerText);
-    assert.equal('Last', tableRows[1].cells[0].innerText);
-    assert.equal('1', tableRows[1].cells[1].innerText);
-    assert.equal('First', tableRows[2].cells[0].innerText);
-    assert.equal('2', tableRows[2].cells[1].innerText);
+    assert.equal(tableRows[0].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[0].cells[1].innerText, '18');
+    assert.equal(tableRows[1].cells[0].innerText, 'Last');
+    assert.equal(tableRows[1].cells[1].innerText, '1');
+    assert.equal(tableRows[2].cells[0].innerText, 'First');
+    assert.equal(tableRows[2].cells[1].innerText, '2');
     // the footer should never change.
     var footerRow = table.tFoot.rows[0];
-    assert.equal('Average', footerRow.cells[0].innerText);
-    assert.equal('7', footerRow.cells[1].innerText);
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
     table.sort(1 /*, 'downward' */);
     var headerRow = table.tHead.rows[0];
     assert.equal('Name&nbsp;&#x25BF;',
@@ -221,16 +221,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal('Value&nbsp;&#x25BE;',
                  convertToHTML(headerRow.cells[1].innerHTML));
     var tableRows = table.tBodies[0].rows;
-    assert.equal('Last', tableRows[0].cells[0].innerText);
-    assert.equal('1', tableRows[0].cells[1].innerText);
-    assert.equal('First', tableRows[1].cells[0].innerText);
-    assert.equal('2', tableRows[1].cells[1].innerText);
-    assert.equal('Middle', tableRows[2].cells[0].innerText);
-    assert.equal('18', tableRows[2].cells[1].innerText);
+    assert.equal(tableRows[0].cells[0].innerText, 'Last');
+    assert.equal(tableRows[0].cells[1].innerText, '1');
+    assert.equal(tableRows[1].cells[0].innerText, 'First');
+    assert.equal(tableRows[1].cells[1].innerText, '2');
+    assert.equal(tableRows[2].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[2].cells[1].innerText, '18');
     // the footer should never change.
     var footerRow = table.tFoot.rows[0];
-    assert.equal('Average', footerRow.cells[0].innerText);
-    assert.equal('7', footerRow.cells[1].innerText);
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
   });
 });
 </script>

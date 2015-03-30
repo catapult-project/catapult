@@ -28,17 +28,17 @@ tv.b.unittest.testSuite(function() {
     var sel = new tv.c.Selection();
     sel.push(t1.sliceGroup.slices[0]);
 
-    assert.equal(1, sel.bounds.min);
-    assert.equal(4, sel.bounds.max);
-    assert.equal(t1.sliceGroup.slices[0], sel[0]);
+    assert.equal(sel.bounds.min, 1);
+    assert.equal(sel.bounds.max, 4);
+    assert.equal(sel[0], t1.sliceGroup.slices[0]);
 
     sel.push(t1.sliceGroup.slices[1]);
-    assert.equal(1, sel.bounds.min);
-    assert.equal(6, sel.bounds.max);
-    assert.equal(t1.sliceGroup.slices[1], sel[1]);
+    assert.equal(sel.bounds.min, 1);
+    assert.equal(sel.bounds.max, 6);
+    assert.equal(sel[1], t1.sliceGroup.slices[1]);
 
     sel.clear();
-    assert.equal(0, sel.length);
+    assert.equal(sel.length, 0);
   });
 
   test('shiftedSelection', function() {
@@ -62,8 +62,8 @@ tv.b.unittest.testSuite(function() {
     sel.push(t1.sliceGroup.slices[0]);
 
     var shifted = sel.getShiftedSelection(track.viewport, 1);
-    assert.equal(1, shifted.length);
-    assert.equal(t1.sliceGroup.slices[1], shifted[0]);
+    assert.equal(shifted.length, 1);
+    assert.equal(shifted[0], t1.sliceGroup.slices[1]);
   });
 
   test('uniqueContents', function() {
@@ -74,10 +74,10 @@ tv.b.unittest.testSuite(function() {
 
     selection.push(sample1);
     selection.push(sample2);
-    assert.equal(2, selection.length);
+    assert.equal(selection.length, 2);
 
     selection.push(sample1);
-    assert.equal(2, selection.length);
+    assert.equal(selection.length, 2);
   });
 
   test('userFriendlyNameSingular', function() {
@@ -143,7 +143,7 @@ tv.b.unittest.testSuite(function() {
     ]);
 
     var eventsByTitle = selection.getEventsOrganizedByTitle();
-    assert.equal(tv.b.dictionaryLength(eventsByTitle), 2);
+    assert.equal(2, tv.b.dictionaryLength(eventsByTitle));
     assert.sameMembers(eventsByTitle['a'],
                  [t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]]);
     assert.sameMembers(eventsByTitle['b'],

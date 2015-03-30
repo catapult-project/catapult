@@ -31,7 +31,7 @@ tv.b.unittest.testSuite(function() {
 
     var selection = new Selection();
     selection.push(ie);
-    assert.equal(1, selection.length);
+    assert.equal(selection.length, 1);
 
     var subView = document.createElement('tv-c-single-instant-event-sub-view');
     subView.selection = selection;

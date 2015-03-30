@@ -102,11 +102,11 @@ tv.b.unittest.testSuite(function() {
     var m = new tv.c.TraceModel(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
     var threads = m.getAllThreads();
-    assert.equal(1, threads.length);
+    assert.equal(threads.length, 1);
 
     var gestureThread = threads[0];
-    assert.equal('gesture', gestureThread.name);
-    assert.equal(21, gestureThread.sliceGroup.length);
+    assert.equal(gestureThread.name, 'gesture');
+    assert.equal(gestureThread.sliceGroup.length, 21);
     assert.equal('touchpad_gesture',
                  gestureThread.sliceGroup.slices[0].category);
     assert.equal('GestureLog',
@@ -175,7 +175,7 @@ tv.b.unittest.testSuite(function() {
     var m = new tv.c.TraceModel(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
     var threads = m.getAllThreads();
-    assert.equal(1, threads.length);
+    assert.equal(threads.length, 1);
   });
 
   test('importError', function() {
@@ -199,7 +199,7 @@ tv.b.unittest.testSuite(function() {
     ];
     var m = new tv.c.TraceModel(lines.join('\n'), false);
     assert.isTrue(m.hasImportWarnings);
-    assert.equal(7, m.importWarnings.length);
+    assert.equal(m.importWarnings.length, 7);
   });
 });
 </script>

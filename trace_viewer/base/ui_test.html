@@ -33,23 +33,23 @@ tv.b.unittest.testSuite(function() {
 
   test('decorateOnceViaNew', function() {
     var testElement = new TestElement();
-    assert.equal(1, testElement.decorateCallCount);
+    assert.equal(testElement.decorateCallCount, 1);
   });
 
   test('decorateOnceDirectly', function() {
     var testElement = document.createElement('div');
     tv.b.ui.decorate(testElement, TestElement);
-    assert.equal(1, testElement.decorateCallCount);
+    assert.equal(testElement.decorateCallCount, 1);
   });
 
   test('componentToString', function() {
-    assert.equal('div', Base.toString());
+    assert.equal(Base.toString(), 'div');
 
     var Sub = tv.b.ui.define('Sub', Base);
-    assert.equal('div::sub', Sub.toString());
+    assert.equal(Sub.toString(), 'div::sub');
 
     var SubSub = tv.b.ui.define('Marine', Sub);
-    assert.equal('div::sub::marine', SubSub.toString());
+    assert.equal(SubSub.toString(), 'div::sub::marine');
   });
 
   test('basicDefines', function() {
@@ -61,7 +61,7 @@ tv.b.unittest.testSuite(function() {
     assert.equal(baseInstance.constructor.toString(), 'div');
 
     baseInstance.basePropertySet = 7;
-    assert.equal(7, baseInstance.basePropertySet);
+    assert.equal(baseInstance.basePropertySet, 7);
   });
 
   test('subclassing', function() {
@@ -160,7 +160,7 @@ tv.b.unittest.testSuite(function() {
 
   test('decorate_arguments', function() {
     var args = new Args('this is first');
-    assert.equal('this is first', args.first);
+    assert.equal(args.first, 'this is first');
     assert.isTrue(args.argsDecorated);
     assert.isUndefined(args.noArgsDecorated);
   });
@@ -168,7 +168,7 @@ tv.b.unittest.testSuite(function() {
   test('decorate_subclassArguments', function() {
     var argsChild = new ArgsChild('this is first', 'and second');
     assert.isUndefined(argsChild.first);
-    assert.equal('and second', argsChild.second);
+    assert.equal(argsChild.second, 'and second');
 
     assert.isTrue(argsChild.argsChildDecorated);
     assert.isUndefined(argsChild.argsDecorated);
@@ -178,8 +178,8 @@ tv.b.unittest.testSuite(function() {
   test('decorate_subClassCallsParentDecorate', function() {
     var argsDecoratingChild = new ArgsDecoratingChild(
         'this is first', 'and second');
-    assert.equal('this is first', argsDecoratingChild.first);
-    assert.equal('and second', argsDecoratingChild.second);
+    assert.equal(argsDecoratingChild.first, 'this is first');
+    assert.equal(argsDecoratingChild.second, 'and second');
     assert.isTrue(argsDecoratingChild.argsDecoratingChildDecorated);
     assert.isTrue(argsDecoratingChild.argsDecorated);
     assert.isUndefined(argsDecoratingChild.noArgsDecorated);
@@ -204,8 +204,8 @@ tv.b.unittest.testSuite(function() {
       }
     };
     var el = new cls();
-    assert.equal('svg', el.tagName);
-    assert.equal(svgNS, el.namespaceURI);
+    assert.equal(el.tagName, 'svg');
+    assert.equal(el.namespaceURI, svgNS);
     this.addHTMLOutput(el);
   });
 
@@ -232,12 +232,12 @@ tv.b.unittest.testSuite(function() {
     subCls.prototype = {
       __proto__: cls.prototype
     };
-    assert.equal('svg::sub', subCls.toString());
+    assert.equal(subCls.toString(), 'svg::sub');
 
     var el = new subCls();
     this.addHTMLOutput(el);
-    assert.equal('svg', el.tagName);
-    assert.equal(svgNS, el.namespaceURI);
+    assert.equal(el.tagName, 'svg');
+    assert.equal(el.namespaceURI, svgNS);
   });
 });
 </script>

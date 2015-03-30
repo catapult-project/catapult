@@ -19,7 +19,7 @@ tv.b.unittest.testSuite(function() {
     var highlightOffset = tv.b.ui.getColorPaletteHighlightIdBoost();
 
     assert.strictEqual(palette.length, rawPalette.length);
-    assert.equal(0, palette.length % 2);
+    assert.equal(palette.length % 2, 0);
     assert.equal(palette.length / 2, highlightOffset);
 
     for (var i = 0; i < rawPalette.length / 2; i++)

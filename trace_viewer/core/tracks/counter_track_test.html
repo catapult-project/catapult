@@ -112,25 +112,25 @@ tv.b.unittest.testSuite(function() {
       var x = 0.15 * clientRect.width;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
 
-      assert.equal(2, sel.length);
-      assert.equal(ctr, sel[0].series.counter);
-      assert.equal(1, sel[0].getSampleIndex());
-      assert.equal(0, sel[0].series.seriesIndex);
+      assert.equal(sel.length, 2);
+      assert.equal(sel[0].series.counter, ctr);
+      assert.equal(sel[0].getSampleIndex(), 1);
+      assert.equal(sel[0].series.seriesIndex, 0);
 
-      assert.equal(ctr, sel[1].series.counter);
-      assert.equal(1, sel[1].getSampleIndex());
-      assert.equal(1, sel[1].series.seriesIndex);
+      assert.equal(sel[1].series.counter, ctr);
+      assert.equal(sel[1].getSampleIndex(), 1);
+      assert.equal(sel[1].series.seriesIndex, 1);
 
       // Outside bounds.
       sel = new tv.c.Selection();
       var x = -0.5 * clientRect.width;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
-      assert.equal(0, sel.length);
+      assert.equal(sel.length, 0);
 
       sel = new tv.c.Selection();
       var x = 0.8 * clientRect.width;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
-      assert.equal(0, sel.length);
+      assert.equal(sel.length, 0);
     });
   });
 
@@ -143,43 +143,43 @@ tv.b.unittest.testSuite(function() {
       // Before with not range.
       var sel = new tv.c.Selection();
       track.addClosestEventToSelection(-1, 0, 0, 0, sel);
-      assert.equal(0, sel.length);
+      assert.equal(sel.length, 0);
 
       // Before with negative range.
       var sel = new tv.c.Selection();
       track.addClosestEventToSelection(-1, -10, 0, 0, sel);
-      assert.equal(0, sel.length);
+      assert.equal(sel.length, 0);
 
       // Before first sample.
       var sel = new tv.c.Selection();
       track.addClosestEventToSelection(-1, 1, 0, 0, sel);
-      assert.equal(2, sel.length);
-      assert.equal(0, sel[0].getSampleIndex());
+      assert.equal(sel.length, 2);
+      assert.equal(sel[0].getSampleIndex(), 0);
 
       // Between and closer to sample before.
       var sel = new tv.c.Selection();
       track.addClosestEventToSelection(1.3, 1, 0, 0, sel);
-      assert.equal(1, sel[0].getSampleIndex());
+      assert.equal(sel[0].getSampleIndex(), 1);
 
       // Between samples with bad range.
       var sel = new tv.c.Selection();
       track.addClosestEventToSelection(1.45, 0.25, 0, 0, sel);
-      assert.equal(0, sel.length);
+      assert.equal(sel.length, 0);
 
       // Between and closer to next sample.
       var sel = new tv.c.Selection();
       track.addClosestEventToSelection(4.7, 6, 0, 0, sel);
-      assert.equal(5, sel[0].getSampleIndex());
+      assert.equal(sel[0].getSampleIndex(), 5);
 
       // After last sample with good range.
       var sel = new tv.c.Selection();
       track.addClosestEventToSelection(8.5, 2, 0, 0, sel);
-      assert.equal(7, sel[0].getSampleIndex());
+      assert.equal(sel[0].getSampleIndex(), 7);
 
       // After last sample with bad range.
       var sel = new tv.c.Selection();
       track.addClosestEventToSelection(10, 1, 0, 0, sel);
-      assert.equal(0, sel.length);
+      assert.equal(sel.length, 0);
     });
   });
 });

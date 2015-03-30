@@ -78,12 +78,12 @@ tv.b.unittest.testSuite(function() {
     var uiState = UIState.fromUserFriendlyString(model, vp, str);
 
     assert.isDefined(uiState);
-    assert.equal(-50125.512, uiState.location.xWorld);
+    assert.equal(uiState.location.xWorld, -50125.512);
     assert.equal('1.2',
         uiState.location.getContainingTrack(vp).eventContainer.stableId);
-    assert.equal(1.1, uiState.scaleX);
+    assert.equal(uiState.scaleX, 1.1);
 
-    assert.equal(str, uiState.toUserFriendlyString(vp));
+    assert.equal(uiState.toUserFriendlyString(vp), str);
   });
 });
 </script>

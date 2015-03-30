@@ -30,7 +30,7 @@ tv.b.unittest.testSuite(function() {
           {typeName: 'MySnapshot'});
       var snapshot = instance.addSnapshot(15, {foo: 'bar'});
       assert.instanceOf(snapshot, MySnapshot);
-      assert.equal('bar', snapshot.myFoo);
+      assert.equal(snapshot.myFoo, 'bar');
     } finally {
       tv.c.trace_model.ObjectSnapshot.unregister(MySnapshot);
     }

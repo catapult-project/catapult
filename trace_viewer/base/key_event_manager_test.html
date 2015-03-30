@@ -34,14 +34,14 @@ tv.b.unittest.testSuite(function() {
     withElementAttachedToChild(div, function() {
       var ret = kem.dispatchFakeEvent('keydown', {keyCode: 73});
       assert.isUndefined(ret);
-      assert.equal(1, fireCount);
+      assert.equal(fireCount, 1);
     });
     fireCount = 0;
 
     // Send an event while it is detached.
     var ret = kem.dispatchFakeEvent('keydown', {keyCode: 73});
     assert.isUndefined(ret);
-    assert.equal(0, fireCount);
+    assert.equal(fireCount, 0);
   });
 
   test('preventDefault', function() {
@@ -57,7 +57,7 @@ tv.b.unittest.testSuite(function() {
     withElementAttachedToChild(div, function() {
       var ret = kem.dispatchFakeEvent('keydown', {keyCode: 73});
       assert.isFalse(ret);
-      assert.equal(1, fireCount);
+      assert.equal(fireCount, 1);
     });
 
   });
@@ -93,7 +93,7 @@ tv.b.unittest.testSuite(function() {
     }
     kem.addListener('keydown', handler, div);
     kem.removeListener('keydown', handler, div);
-    assert.equal(div.className, '');
+    assert.equal('', div.className);
 
     withElementAttachedToChild(div, function() {
       var ret = kem.dispatchFakeEvent('keydown', {keyCode: 73});

@@ -66,8 +66,8 @@ tv.b.unittest.testSuite(function() {
     SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
       var model = tv.c.test_utils.newModel(customizeModelCallback);
       var helper = new AndroidModelHelper(model);
-      assert.equal(model.uiThread, helper.apps[0].uiThread);
-      assert.equal(model.renderThread, helper.apps[0].renderThread);
+      assert.equal(helper.apps[0].uiThread, model.uiThread);
+      assert.equal(helper.apps[0].renderThread, model.renderThread);
     });
   });
 
@@ -75,7 +75,7 @@ tv.b.unittest.testSuite(function() {
     SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
       var model = tv.c.test_utils.newModel(customizeModelCallback);
       var helper = new AndroidModelHelper(model);
-      assert.equal(1, helper.apps.length);
+      assert.equal(helper.apps.length, 1);
 
       var frames = helper.apps[0].getFrames();
       assert.equal(frames.length, 1);
@@ -122,8 +122,8 @@ tv.b.unittest.testSuite(function() {
     assert.closeTo(helper.surfaceFlinger.getFrameDeadline(95), 100, 1e-5);
 
     // test undefined behavior outside of vsyncs.
-    assert.equal(helper.surfaceFlinger.getFrameKickoff(-5), undefined);
-    assert.equal(helper.surfaceFlinger.getFrameDeadline(105), undefined);
+    assert.isUndefined(helper.surfaceFlinger.getFrameKickoff(-5));
+    assert.isUndefined(helper.surfaceFlinger.getFrameDeadline(105));
   });
 
   test('appInputs', function() {

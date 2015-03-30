@@ -51,8 +51,8 @@ tv.b.unittest.testSuite(function() {
     sortSimpleResults(intersection);
 
     var expected = [tree.v1, tree.v3, tree.v0, tree.v4, tree.v5, tree.v6];
-    assert.equal(6, intersection.length);
-    assert.deepEqual(expected, intersection);
+    assert.equal(intersection.length, 6);
+    assert.deepEqual(intersection, expected);
   });
 
   test('findIntersection_zeroDuration', function() {
@@ -61,14 +61,14 @@ tv.b.unittest.testSuite(function() {
     sortSimpleResults(intersection);
 
     var expected = [tree.v1, tree.v3];
-    assert.equal(2, intersection.length);
-    assert.deepEqual(expected, intersection);
+    assert.equal(intersection.length, 2);
+    assert.deepEqual(intersection, expected);
   });
 
   test('findIntersection_noMatching', function() {
     var tree = buildSimpleTree();
     var intersection = tree.findIntersection(9, 10);
-    assert.deepEqual([], intersection);
+    assert.deepEqual(intersection, []);
   });
 
   test('findIntersection_emptyTree', function() {
@@ -76,7 +76,7 @@ tv.b.unittest.testSuite(function() {
     tree.updateHighValues();
 
     var intersection = tree.findIntersection(2, 4);
-    assert.deepEqual([], intersection);
+    assert.deepEqual(intersection, []);
   });
 
   test('findIntersection_emptyInterval', function() {
@@ -99,7 +99,7 @@ tv.b.unittest.testSuite(function() {
         function(s) { return s.start; },
         function(s) { return s.end; });
 
-    assert.equal(0, tree.size);
+    assert.equal(tree.size, 0);
 
     tree.insert({start: 1, end: 4});
     tree.insert({start: 3, end: 5});
@@ -112,8 +112,8 @@ tv.b.unittest.testSuite(function() {
       'data': [[3, 5]]
     };
 
-    assert.equal(2, tree.size);
-    assert.deepEqual(outTree, tree.dump_());
+    assert.equal(tree.size, 2);
+    assert.deepEqual(tree.dump_(), outTree);
   });
 
   test('insert_withoutEnd', function() {
@@ -121,7 +121,7 @@ tv.b.unittest.testSuite(function() {
         function(s) { return s.start; },
         function(s) { return s.end; });
 
-    assert.equal(0, tree.size);
+    assert.equal(tree.size, 0);
 
     tree.insert({start: 3, end: 5});
     tree.insert({start: 1, end: 4});
@@ -134,8 +134,8 @@ tv.b.unittest.testSuite(function() {
       'data': [[3, 5]]
     };
 
-    assert.equal(2, tree.size);
-    assert.deepEqual(outTree, tree.dump_());
+    assert.equal(tree.size, 2);
+    assert.deepEqual(tree.dump_(), outTree);
   });
 
   test('insert_balancesTree', function() {
@@ -143,7 +143,7 @@ tv.b.unittest.testSuite(function() {
         function(s) { return s.start; },
         function(s) { return s.end; });
 
-    assert.equal(0, tree.size);
+    assert.equal(tree.size, 0);
 
     for (var i = 0; i < 10; ++i)
       tree.insert({start: i, end: 5});
@@ -180,7 +180,7 @@ tv.b.unittest.testSuite(function() {
       }
     };
 
-    assert.deepEqual(outTree, tree.dump_());
+    assert.deepEqual(tree.dump_(), outTree);
   });
 
   test('insert_withDuplicateIntervals', function() {
@@ -188,7 +188,7 @@ tv.b.unittest.testSuite(function() {
         function(s) { return s.start; },
         function(s) { return s.end; });
 
-    assert.equal(0, tree.size);
+    assert.equal(tree.size, 0);
 
     tree.insert({start: 1, end: 4});
     tree.insert({start: 3, end: 5});
@@ -203,8 +203,8 @@ tv.b.unittest.testSuite(function() {
       'data': [[3, 5], [3, 5], [3, 6]]
     };
 
-    assert.equal(4, tree.size);
-    assert.deepEqual(outTree, tree.dump_());
+    assert.equal(tree.size, 4);
+    assert.deepEqual(tree.dump_(), outTree);
   });
 
   test('insert_updatesHighValues', function() {
@@ -230,7 +230,7 @@ tv.b.unittest.testSuite(function() {
     }
     walk(tree.root);
 
-    assert.deepEqual(expected, result);
+    assert.deepEqual(result, expected);
   });
 });
 </script>

@@ -46,8 +46,8 @@ tv.b.unittest.testSuite(function() {
     var m = createModel();
     var group = ts.generateResultsForGroup(m, 'foo');
     group.appendThreadSlices(m.bounds, m.processes[1].threads[2]);
-    assert.equal(20, group.wallTime);
-    assert.equal(19, group.cpuTime);
+    assert.equal(group.wallTime, 20);
+    assert.equal(group.cpuTime, 19);
   });
 
   test('trim', function() {

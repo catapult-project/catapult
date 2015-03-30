@@ -36,22 +36,22 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isNotNull(thread);
 
     var slices = thread.sliceGroup.slices;
-    assert.equal(7, thread.sliceGroup.length);
+    assert.equal(thread.sliceGroup.length, 7);
 
     // Slice 0 is an un-split sys_write
-    assert.equal('sys_write', slices[0].title);
+    assert.equal(slices[0].title, 'sys_write');
 
     // Slices 1 & 3 are a split sys_write
-    assert.equal('sys_write', slices[1].title);
-    assert.equal('dequeueBuffer', slices[2].title);
-    assert.equal('sys_write (cont.)', slices[3].title);
+    assert.equal(slices[1].title, 'sys_write');
+    assert.equal(slices[2].title, 'dequeueBuffer');
+    assert.equal(slices[3].title, 'sys_write (cont.)');
 
     // Slices 4 & 5 are a split sys_write with the dequeueBuffer in between
-    assert.equal('sys_write', slices[4].title);
-    assert.equal('sys_write (cont.)', slices[5].title);
+    assert.equal(slices[4].title, 'sys_write');
+    assert.equal(slices[5].title, 'sys_write (cont.)');
 
     // Slice 6 is another un-split sys_write
-    assert.equal('sys_write', slices[6].title);
+    assert.equal(slices[6].title, 'sys_write');
   });
 });
 </script>

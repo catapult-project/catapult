@@ -29,7 +29,7 @@ tv.b.unittest.testSuite(function() {
 
     var view = new PictureOpsListView();
     view.picture = snapshot;
-    assert.equal(142, view.opsList_.children.length);
+    assert.equal(view.opsList_.children.length, 142);
   });
 
   test('selection', function() {

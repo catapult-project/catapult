@@ -71,20 +71,20 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
         8, 8.1, 0.1, selection);
-    assert.equal(0, selection.length);
+    assert.equal(selection.length, 0);
 
     // Hit the first snapshot, via pixel-nearness.
     selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
         9.98, 9.99, 0.1, selection);
-    assert.equal(1, selection.length);
+    assert.equal(selection.length, 1);
     assert.instanceOf(selection[0], tv.c.trace_model.ObjectSnapshot);
 
     // Hit the instance, between the 1st and 2nd snapshots
     selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
         20, 20.1, 0.1, selection);
-    assert.equal(1, selection.length);
+    assert.equal(selection.length, 1);
     assert.instanceOf(selection[0], tv.c.trace_model.ObjectInstance);
   });
 

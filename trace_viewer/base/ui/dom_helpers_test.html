@@ -65,8 +65,8 @@ tv.b.unittest.testSuite(function() {
          {label: '100%', value: 1},
          {label: '200%', value: 2}
         ]);
-    assert.equal(0.25, target.scale);
-    assert.equal(2, sel.selectedIndex);
+    assert.equal(target.scale, 0.25);
+    assert.equal(sel.selectedIndex, 2);
   });
 
   test('selectorSettingsDefault', function() {
@@ -85,8 +85,8 @@ tv.b.unittest.testSuite(function() {
          {label: '100%', value: 1},
          {label: '200%', value: 2}
         ]);
-    assert.equal(0.375, target.scale);
-    assert.equal(3, sel.selectedIndex);
+    assert.equal(target.scale, 0.375);
+    assert.equal(sel.selectedIndex, 3);
   });
 
   test('selectorSettingsChanged', function() {
@@ -105,11 +105,11 @@ tv.b.unittest.testSuite(function() {
          {label: '100%', value: 1},
          {label: '200%', value: 2}
         ]);
-    assert.equal(0.375, sel.selectedValue);
+    assert.equal(sel.selectedValue, 0.375);
     sel.selectedValue = 0.75;
-    assert.equal(0.75, target.scale);
-    assert.equal(0.75, sel.selectedValue);
-    assert.equal(0.75, tv.b.Settings.get('myScale', undefined));
+    assert.equal(target.scale, 0.75);
+    assert.equal(sel.selectedValue, 0.75);
+    assert.equal(undefined), 0.75, tv.b.Settings.get('myScale');
   });
 });
 </script>

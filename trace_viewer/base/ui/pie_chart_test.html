@@ -13,8 +13,8 @@ tv.b.unittest.testSuite(function() {
     var chart = new tv.b.ui.PieChart();
     chart.width = 400;
     chart.height = 200;
-    assert.equal('400', chart.getAttribute('width'));
-    assert.equal('200', chart.getAttribute('height'));
+    assert.equal(chart.getAttribute('width'), '400');
+    assert.equal(chart.getAttribute('height'), '200');
     chart.chartTitle = 'Chart title';
     var data = [
       {label: 'a', value: 100},
@@ -25,9 +25,9 @@ tv.b.unittest.testSuite(function() {
     chart.highlightedLegendKey = 'a';
     chart.pushTempHighlightedLegendKey('b');
     chart.highlightedLegendKey = 'c';
-    assert.equal('b', chart.currentHighlightedLegendKey);
+    assert.equal(chart.currentHighlightedLegendKey, 'b');
     chart.popTempHighlightedLegendKey('b');
-    assert.equal('c', chart.highlightedLegendKey);
+    assert.equal(chart.highlightedLegendKey, 'c');
     this.addHTMLOutput(chart);
   });
 
@@ -58,8 +58,8 @@ tv.b.unittest.testSuite(function() {
 
     var didGetClick = false;
     chart.addEventListener('item-click', function(event) {
-      assert.equal(1, event.index);
-      assert.equal(43, event.data.foo);
+      assert.equal(event.index, 1);
+      assert.equal(event.data.foo, 43);
       didGetClick = true;
     });
 

@@ -23,12 +23,12 @@ tv.b.unittest.testSuite(function() {
     assert.isTrue(div.hasEventListener('foo'));
 
     tv.b.dispatchSimpleEvent(div, 'foo');
-    assert.equal(1, listenerCallCount);
+    assert.equal(listenerCallCount, 1);
 
     div.removeEventListener('foo', listener);
 
     tv.b.dispatchSimpleEvent(div, 'foo');
-    assert.equal(1, listenerCallCount);
+    assert.equal(listenerCallCount, 1);
 
     assert.isFalse(div.hasEventListener('foo'));
   });

@@ -32,7 +32,7 @@ tv.b.unittest.testSuite(function() {
   test('DecodeLengthReturn', function() {
     var buffer = new DataView(new ArrayBuffer(256));
     var len = tv.b.Base64.DecodeToTypedArray(btoa('hello'), buffer);
-    assert.equal(5, len);
+    assert.equal(len, 5);
   });
 });
 </script>

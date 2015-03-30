@@ -37,10 +37,10 @@ tv.b.unittest.testSuite(function() {
     var ops = snapshot.getOps();
     if (!ops)
       return;
-    assert.equal(142, ops.length);
+    assert.equal(ops.length, 142);
 
     var op0 = ops[0];
-    assert.equal('Save', op0.cmd_string);
+    assert.equal(op0.cmd_string, 'Save');
     assert.instanceOf(op0.info, Array);
   });
 });

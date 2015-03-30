@@ -45,8 +45,8 @@ tv.b.unittest.testSuite(function() {
     panel.addEventListener('requestSelectionChange', function(e) {
       selectionChanged = true;
       assert.lengthOf(e.selection, 2);
-      assert.equal(e.selection[0], alerts[0]);
-      assert.equal(e.selection[1], alerts[1]);
+      assert.equal(alerts[0], e.selection[0]);
+      assert.equal(alerts[1], e.selection[1]);
     });
     panel.selectAlertsOfType(ALERT_TYPE_1.title);
 

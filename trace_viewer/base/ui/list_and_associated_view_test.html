@@ -42,8 +42,8 @@ tv.b.unittest.testSuite(function() {
     lav.viewProperty = 'item';
 
     var lavListView = lav.listView;
-    assert.equal(3, lavListView.children.length);
-    assert.equal('1', lavListView.children[0].textContent);
+    assert.equal(lavListView.children.length, 3);
+    assert.equal(lavListView.children[0].textContent, '1');
   });
 
   test('listViewNamingWithProperty', function() {
@@ -71,8 +71,8 @@ tv.b.unittest.testSuite(function() {
     lav.viewProperty = 'item';
 
     var lavListView = lav.listView;
-    assert.equal(3, lavListView.children.length);
-    assert.equal('1', lavListView.children[0].textContent);
+    assert.equal(lavListView.children.length, 3);
+    assert.equal(lavListView.children[0].textContent, '1');
   });
 
   test('selectionChangesView', function() {

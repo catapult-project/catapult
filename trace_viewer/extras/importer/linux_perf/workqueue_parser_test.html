@@ -26,8 +26,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var m = new tv.c.TraceModel(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
 
-    assert.equal(1, m.processes['6880'].threads['6880'].sliceGroup.length);
-    assert.equal(1, m.processes['7269'].threads['7269'].sliceGroup.length);
+    assert.equal(m.processes['6880'].threads['6880'].sliceGroup.length, 1);
+    assert.equal(m.processes['7269'].threads['7269'].sliceGroup.length, 1);
   });
 });
 </script>

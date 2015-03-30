@@ -30,13 +30,13 @@ tv.b.unittest.testSuite(function() {
     var sel1 = new tv.b.ui.MouseModeSelector();
     sel1.defaultMode_ = MOUSE_SELECTOR_MODE.ZOOM;
     sel1.settingsKey = 'foo';
-    assert.equal(MOUSE_SELECTOR_MODE.ZOOM, sel1.mode);
+    assert.equal(sel1.mode, MOUSE_SELECTOR_MODE.ZOOM);
 
     sel1.mode = MOUSE_SELECTOR_MODE.PANSCAN;
 
     var sel2 = new tv.b.ui.MouseModeSelector();
     sel2.settingsKey = 'foo';
-    assert.equal(MOUSE_SELECTOR_MODE.PANSCAN, sel2.mode);
+    assert.equal(sel2.mode, MOUSE_SELECTOR_MODE.PANSCAN);
   });
 
 });

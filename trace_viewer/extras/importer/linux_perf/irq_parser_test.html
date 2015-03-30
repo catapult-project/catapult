@@ -27,15 +27,15 @@ tv.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(2, threads.length);
+    assert.equal(threads.length, 2);
 
     var threads = m.findAllThreadsNamed('irqs cpu 1');
-    assert.equal(1, threads.length);
-    assert.equal(1, threads[0].sliceGroup.length);
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0].sliceGroup.length, 1);
 
     var threads = m.findAllThreadsNamed('softirq cpu 0');
-    assert.equal(1, threads.length);
-    assert.equal(1, threads[0].sliceGroup.length);
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0].sliceGroup.length, 1);
   });
 });
 </script>

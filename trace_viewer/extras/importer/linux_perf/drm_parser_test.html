@@ -21,11 +21,11 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(1, threads.length);
+    assert.equal(threads.length, 1);
 
     var vblankThread = threads[0];
-    assert.equal('drm_vblank', vblankThread.name);
-    assert.equal(2, vblankThread.sliceGroup.length);
+    assert.equal(vblankThread.name, 'drm_vblank');
+    assert.equal(vblankThread.sliceGroup.length, 2);
   });
 });
 </script>

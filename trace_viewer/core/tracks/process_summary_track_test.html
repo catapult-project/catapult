@@ -32,7 +32,7 @@ tv.b.unittest.testSuite(function() {
 
     var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
 
-    assert.equal(1, rects.length);
+    assert.equal(rects.length, 1);
     var rect = rects[0];
     assert.closeTo(rect.start, 1, 1e-5);
     assert.closeTo(rect.end, 8, 1e-5);
@@ -57,7 +57,7 @@ tv.b.unittest.testSuite(function() {
 
     var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
 
-    assert.equal(rects.length, 4);
+    assert.equal(4, rects.length);
     assert.closeTo(rects[0].start, 1, 1e-5);
     assert.closeTo(rects[0].end, 8, 1e-5);
     assert.closeTo(rects[1].start, 9, 1e-5);
@@ -84,7 +84,7 @@ tv.b.unittest.testSuite(function() {
 
     var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
 
-    assert.equal(rects.length, 3);
+    assert.equal(3, rects.length);
     assert.closeTo(rects[0].start, 4, 1e-5);
     assert.closeTo(rects[0].end, 9, 1e-5);
     assert.closeTo(rects[1].start, 9, 1e-5);

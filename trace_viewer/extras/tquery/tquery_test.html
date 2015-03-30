@@ -60,7 +60,7 @@ tv.b.unittest.testSuite(function() {
 
     var result = tquery.show();
     tv.b.Task.RunSynchronously(result);
-    assertEquals(3, timeline.highlight.length);
+    assert.equal(timeline.highlight.length, 3);
   });
 
   test('tquerySyncSelection', function() {
@@ -68,11 +68,11 @@ tv.b.unittest.testSuite(function() {
     var timeline = createFakeTimeline_(3);
     tquery.onTimelineChanged(timeline);
 
-    assertEquals(3, tquery.selection.length);
+    assert.equal(tquery.selection.length, 3);
 
     // Selection should get reset when the timeline changes.
     tquery.onTimelineChanged(createFakeTimeline_(5));
-    assertEquals(5, tquery.selection.length);
+    assert.equal(tquery.selection.length, 5);
   });
 
   test('tqueryPassThroughFiltering', function() {
@@ -82,7 +82,7 @@ tv.b.unittest.testSuite(function() {
 
     var result = tquery.filter().filter().show();
     tv.b.Task.RunSynchronously(result);
-    assertEquals(3, timeline.highlight.length);
+    assert.equal(timeline.highlight.length, 3);
   });
 
   test('tqueryFilterHasTitle', function() {
@@ -97,16 +97,16 @@ tv.b.unittest.testSuite(function() {
     tquery.onTimelineChanged(timeline);
 
     var result = tquery.filter(hasTitle('a')).selection;
-    assertEquals(1, result.length);
-    assertEquals(1, result[0].guid);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 1);
 
     var result = tquery.filter('b').selection;
-    assertEquals(1, result.length);
-    assertEquals(2, result[0].guid);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 2);
 
     var result = tquery.filter(/^c$/).selection;
-    assertEquals(1, result.length);
-    assertEquals(3, result[0].guid);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 3);
   });
 });
 </script>

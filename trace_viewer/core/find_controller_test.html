@@ -229,22 +229,22 @@ tv.b.unittest.testSuite(function() {
     controller.filterText = 'a';
     var promise = controller.updateFilterHits();
     promise.then(function() {
-      assert.deepEqual([], timeline.selection);
-      assert.deepEqual(t1.sliceGroup.slices, timeline.highlight);
+      assert.deepEqual(timeline.selection, []);
+      assert.deepEqual(timeline.highlight, t1.sliceGroup.slices);
 
       controller.findNext();
-      assert.equal(1, timeline.selection.length);
-      assert.equal(t1.sliceGroup.slices[0], timeline.selection[0]);
+      assert.equal(timeline.selection.length, 1);
+      assert.equal(timeline.selection[0], t1.sliceGroup.slices[0]);
 
       controller.filterText = 'xxx';
       var nextPromise = controller.updateFilterHits();
       nextPromise.then(function() {
-        assert.equal(0, timeline.highlight.length);
-        assert.equal(0, timeline.selection.length);
+        assert.equal(timeline.highlight.length, 0);
+        assert.equal(timeline.selection.length, 0);
         controller.findNext();
-        assert.equal(0, timeline.selection.length);
+        assert.equal(timeline.selection.length, 0);
         controller.findNext();
-        assert.equal(0, timeline.selection.length);
+        assert.equal(timeline.selection.length, 0);
       });
       return nextPromise;
     });
@@ -280,14 +280,14 @@ tv.b.unittest.testSuite(function() {
 
     var cbCalls = 0;
     timeline.navToPosition = function(uiState) {
-      assert.equal(2000, uiState.location.xWorld);
+      assert.equal(uiState.location.xWorld, 2000);
       assert.equal('1.2',
           uiState.location.getContainingTrack(vp).eventContainer.stableId);
-      assert.equal(7, uiState.scaleX);
+      assert.equal(uiState.scaleX, 7);
       cbCalls++;
     };
     controller.updateFilterHits();
-    assert.equal(1, cbCalls);
+    assert.equal(cbCalls, 1);
   });
 });
 </script>

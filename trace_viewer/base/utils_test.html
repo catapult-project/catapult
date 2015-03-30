@@ -36,19 +36,19 @@ tv.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
 
   test('clamping', function() {
-    assert.equal(2, tv.b.clamp(2, 1, 3));
-    assert.equal(1, tv.b.clamp(1, 1, 3));
-    assert.equal(1, tv.b.clamp(0, 1, 3));
-    assert.equal(3, tv.b.clamp(3, 1, 3));
-    assert.equal(3, tv.b.clamp(4, 1, 3));
+    assert.equal(tv.b.clamp(2, 1, 3), 2);
+    assert.equal(tv.b.clamp(1, 1, 3), 1);
+    assert.equal(tv.b.clamp(0, 1, 3), 1);
+    assert.equal(tv.b.clamp(3, 1, 3), 3);
+    assert.equal(tv.b.clamp(4, 1, 3), 3);
   });
 
   test('getUsingPath', function() {
     var z = tv.b.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
-    assert.equal(3, z);
+    assert.equal(z, 3);
 
     var w = tv.b.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
-    assert.equal(undefined, w);
+    assert.isUndefined(w);
   });
 
   test('instantiateTemplatePolymer', function() {
@@ -63,17 +63,17 @@ tv.b.unittest.testSuite(function() {
     var outerElement = tv.b.instantiateTemplate(
                            '#multiple-template-test',
                            THIS_DOC);
-    assert.equal(2, outerElement.children.length);
-    assert.equal('Test', outerElement.children[1].testProperty);
+    assert.equal(outerElement.children.length, 2);
+    assert.equal(outerElement.children[1].testProperty, 'Test');
 
     // Make sure we can still instantiate inner templates, if we need them.
     var innerElement = outerElement.children[0].createInstance();
-    assert.equal(2, innerElement.children.length);
-    assert.equal('Test', innerElement.children[0].testProperty);
+    assert.equal(innerElement.children.length, 2);
+    assert.equal(innerElement.children[0].testProperty, 'Test');
     assert.equal(
-        'TestAttribute',
-        innerElement.children[1].getAttribute('test-attribute'));
-    assert.equal('Foo', innerElement.children[1].textContent);
+        innerElement.children[1].getAttribute('test-attribute'),
+        'TestAttribute');
+    assert.equal(innerElement.children[1].textContent, 'Foo');
   });
 });
 </script>

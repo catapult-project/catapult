@@ -51,7 +51,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           function(data) {
             mock.assertAllRequestsHandled();
             var testDataString = JSON.stringify(testData);
-            assert.equal(testDataString, data);
+            assert.equal(data, testDataString);
             resolve();
           },
           function(error) {
@@ -74,7 +74,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           capturePromise.then(
               function(data) {
                 var testDataString = JSON.stringify(testData);
-                assert.equal(testDataString, data);
+                assert.equal(data, testDataString);
               },
               function(error) {
                 reject();

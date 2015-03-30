@@ -14,13 +14,13 @@ tv.b.unittest.testSuite(function() {
     assert.isTrue(range.isEmpty);
     range.addValue(1);
     assert.isFalse(range.isEmpty);
-    assert.equal(range.min, 1);
-    assert.equal(range.max, 1);
+    assert.equal(1, range.min);
+    assert.equal(1, range.max);
 
     range.addValue(2);
     assert.isFalse(range.isEmpty);
-    assert.equal(range.min, 1);
-    assert.equal(range.max, 2);
+    assert.equal(1, range.min);
+    assert.equal(2, range.max);
   });
 
   test('addNonEmptyRange', function() {
@@ -30,8 +30,8 @@ tv.b.unittest.testSuite(function() {
 
     var r = new tv.b.Range();
     r.addRange(r1);
-    assert.equal(r.min, 1);
-    assert.equal(r.max, 2);
+    assert.equal(1, r.min);
+    assert.equal(2, r.max);
   });
 
   test('addEmptyRange', function() {
@@ -54,8 +54,8 @@ tv.b.unittest.testSuite(function() {
     r.addRange(r1);
 
     assert.isFalse(r.isEmpty);
-    assert.equal(r.min, 1);
-    assert.equal(r.max, 3);
+    assert.equal(1, r.min);
+    assert.equal(3, r.max);
   });
 });
 </script>

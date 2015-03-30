@@ -34,22 +34,22 @@ tv.b.unittest.testSuite(function() {
     // The objects timeline.selection and timeline.highlight are not actually
     // Arrays, they are Selection objects. Here we are not checking the other
     // properties of the selection and highlight, only the numbered properties.
-    assert.equal(selection.length, timeline.selection.length);
-    assert.equal(highlight.length, timeline.highlight.length);
+    assert.equal(timeline.selection.length, selection.length);
+    assert.equal(timeline.highlight.length, highlight.length);
     for (var i = 0; i < selection.length; i++)
-      assert.strictEqual(selection[i], timeline.selection[i]);
+      assert.strictEqual(timeline.selection[i], selection[i]);
     for (var i = 0; i < highlight.length; i++)
-      assert.strictEqual(highlight[i], timeline.highlight[i]);
+      assert.strictEqual(timeline.highlight[i], highlight[i]);
 
     timeline.model.iterateAllEvents(function(event) {
       if (contains(selection, event))
-        assert.equal(SelectionState.SELECTED, event.selectionState);
+        assert.equal(event.selectionState, SelectionState.SELECTED);
       else if (contains(highlight, event))
-        assert.equal(SelectionState.HIGHLIGHTED, event.selectionState);
+        assert.equal(event.selectionState, SelectionState.HIGHLIGHTED);
       else if (highlight.length)
-        assert.equal(SelectionState.DIMMED, event.selectionState);
+        assert.equal(event.selectionState, SelectionState.DIMMED);
       else
-        assert.equal(SelectionState.NONE, event.selectionState);
+        assert.equal(event.selectionState, SelectionState.NONE);
     });
   };
 
@@ -103,9 +103,9 @@ tv.b.unittest.testSuite(function() {
     var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
         new tv.c.TitleOrCategoryFilter('a'), result);
     Task.RunSynchronously(filterTask);
-    assert.equal(2, result.length);
-    assert.equal(expected[0], result[0]);
-    assert.equal(expected[1], result[1]);
+    assert.equal(result.length, 2);
+    assert.equal(result[0], expected[0]);
+    assert.equal(result[1], expected[1]);
 
     var expected = [t1asg.slices[1],
                     t1.sliceGroup.slices[1]];
@@ -113,9 +113,9 @@ tv.b.unittest.testSuite(function() {
     var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
         new tv.c.TitleOrCategoryFilter('b'), result);
     Task.RunSynchronously(filterTask);
-    assert.equal(2, result.length);
-    assert.equal(expected[0], result[0]);
-    assert.equal(expected[1], result[1]);
+    assert.equal(result.length, 2);
+    assert.equal(result[0], expected[0]);
+    assert.equal(result[1], expected[1]);
   });
 
   test('emptyThreadsDeleted', function() {
@@ -221,22 +221,22 @@ tv.b.unittest.testSuite(function() {
 
     // Add selection only.
     timeline.selection = selection;
-    assert.equal(selection, timeline.selection);
+    assert.equal(timeline.selection, selection);
     checkSelectionStates(timeline, selection, null);
 
     // Reset selection.
     timeline.selection = null;
-    assert.equal(0, timeline.selection.length);
+    assert.equal(timeline.selection.length, 0);
     checkSelectionStates(timeline, null, null);
 
     // Add highlight only.
     timeline.highlight = highlight;
-    assert.equal(highlight, timeline.highlight);
+    assert.equal(timeline.highlight, highlight);
     checkSelectionStates(timeline, null, highlight);
 
     // Reset highlight
     timeline.highlight = null;
-    assert.equal(0, timeline.highlight.length);
+    assert.equal(timeline.highlight.length, 0);
     checkSelectionStates(timeline, null, null);
 
     // Add selection and highlight.

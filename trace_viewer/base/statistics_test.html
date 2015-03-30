@@ -12,7 +12,7 @@ tv.b.unittest.testSuite(function() {
   var Statistics = tv.b.Statistics;
 
   test('sumBasic', function() {
-    assert.equal(6, Statistics.sum([1, 2, 3]));
+    assert.equal(Statistics.sum([1, 2, 3]), 6);
   });
 
   test('sumWithFunctor', function() {
@@ -33,32 +33,32 @@ tv.b.unittest.testSuite(function() {
       assert.equal(ary[i], x);
       return x;
     }
-    assert.equal(3, Statistics.max(ary, func, ctx));
-    assert.equal(1, Statistics.min(ary, func, ctx));
+    assert.equal(Statistics.max(ary, func, ctx), 3);
+    assert.equal(Statistics.min(ary, func, ctx), 1);
 
     var range = Statistics.range(ary, func, ctx);
     assertFalse(range.isEmpty);
-    assert.equal(1, range.min);
-    assert.equal(3, range.max);
+    assert.equal(range.min, 1);
+    assert.equal(range.max, 3);
   });
 
   test('maxExtrema', function() {
-    assert.equal(-Infinity, Statistics.max([]));
-    assert.equal(Infinity, Statistics.min([]));
+    assert.equal(Statistics.max([]), -Infinity);
+    assert.equal(Statistics.min([]), Infinity);
   });
 
   test('meanBasic', function() {
-    assert.equal(2, Statistics.mean([1, 2, 3]));
+    assert.equal(Statistics.mean([1, 2, 3]), 2);
   });
 
   test('varianceBasic', function() {
     // In [2, 4, 4, 2], all items have a deviation of 1.0 from the mean so the
     // population variance is 4.0 / 4 = 1.0, but the sample variance is 4.0 / 3.
-    assert.equal(4.0 / 3, Statistics.variance([2, 4, 4, 2]));
+    assert.equal(Statistics.variance([2, 4, 4, 2]), 4.0 / 3);
 
     // In [1, 2, 3], the squared deviations are 1.0, 0.0 and 1.0 respectively;
     // population variance 2.0 / 3 but sample variance is 2.0 / 2 = 1.0.
-    assert.equal(1.0, Statistics.variance([1, 2, 3]));
+    assert.equal(Statistics.variance([1, 2, 3]), 1.0);
   });
 
   test('varianceWithFunctor', function() {
@@ -74,7 +74,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('stddevBasic', function() {
-    assert.equal(Math.sqrt(4.0 / 3), Statistics.stddev([2, 4, 4, 2]));
+    assert.equal(Statistics.stddev([2, 4, 4, 2]), Math.sqrt(4.0 / 3));
   });
 
   test('stddevWithFunctor', function() {
@@ -105,10 +105,10 @@ tv.b.unittest.testSuite(function() {
       assert.equal(ctx, this);
       return d.x;
     }
-    assert.equal(0, Statistics.percentile(ary, 0, func, ctx));
-    assert.equal(4, Statistics.percentile(ary, .5, func, ctx));
-    assert.equal(6, Statistics.percentile(ary, .75, func, ctx));
-    assert.equal(9, Statistics.percentile(ary, 1, func, ctx));
+    assert.equal(Statistics.percentile(ary, 0, func, ctx), 0);
+    assert.equal(Statistics.percentile(ary, .5, func, ctx), 4);
+    assert.equal(Statistics.percentile(ary, .75, func, ctx), 6);
+    assert.equal(Statistics.percentile(ary, 1, func, ctx), 9);
   });
 
 });

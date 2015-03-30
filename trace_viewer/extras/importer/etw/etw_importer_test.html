@@ -29,7 +29,7 @@ tv.b.unittest.testSuite(function() {
     var model = 'dummy';
     var events = [];
     var importer = new tv.e.importer.etw.EtwImporter(model, events);
-    assert.strictEqual(model, importer.model);
+    assert.strictEqual(importer.model, model);
   });
 
   test('registerEventHandler', function() {

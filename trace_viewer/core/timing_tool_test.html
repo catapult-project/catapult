@@ -18,8 +18,8 @@ tv.b.unittest.testSuite(function() {
     tempDisplayTransform.xSetWorldBounds(0, 10, 100);
     vp.setDisplayTransformImmediately(tempDisplayTransform);
 
-    assertEquals(0, vp.currentDisplayTransform.xViewToWorld(0));
-    assertEquals(10, vp.currentDisplayTransform.xViewToWorld(100));
+    assert.equal(vp.currentDisplayTransform.xViewToWorld(0), 0);
+    assert.equal(vp.currentDisplayTransform.xViewToWorld(100), 10);
 
     return vp;
   }
@@ -31,12 +31,12 @@ tv.b.unittest.testSuite(function() {
     var tool = new tv.c.TimingTool(vp);
 
     tool.mouseDownAt_(1.1, 0);
-    assertTrue(vp.interestRange.leftSelected);
+    assert.isTrue(vp.interestRange.leftSelected);
     tool.mouseMoveAt_(1.5, 0, true);
-    assertEquals(1.5, vp.interestRange.min);
+    assert.equal(vp.interestRange.min, 1.5);
     tool.mouseUp_();
-    assertEquals(1.5, vp.interestRange.min);
-    assertFalse(vp.interestRange.leftSelected);
+    assert.equal(vp.interestRange.min, 1.5);
+    assert.isFalse(vp.interestRange.leftSelected);
   });
 
   test('dragRightInterestRegion', function() {
@@ -46,12 +46,12 @@ tv.b.unittest.testSuite(function() {
     var tool = new tv.c.TimingTool(vp);
 
     tool.mouseDownAt_(9.1, 0);
-    assertTrue(vp.interestRange.rightSelected);
+    assert.isTrue(vp.interestRange.rightSelected);
     tool.mouseMoveAt_(8, 0, true);
-    assertEquals(8, vp.interestRange.max);
+    assert.equal(vp.interestRange.max, 8);
     tool.mouseUp_();
-    assertEquals(8, vp.interestRange.max);
-    assertFalse(vp.interestRange.leftSelected);
+    assert.equal(vp.interestRange.max, 8);
+    assert.isFalse(vp.interestRange.leftSelected);
   });
 
   test('dragInNewSpace', function() {
@@ -61,17 +61,17 @@ tv.b.unittest.testSuite(function() {
     var tool = new tv.c.TimingTool(vp);
 
     tool.mouseDownAt_(5, 0);
-    assertTrue(vp.interestRange.rightSelected);
-    assertEquals(5, vp.interestRange.min);
-    assertEquals(5, vp.interestRange.max);
+    assert.isTrue(vp.interestRange.rightSelected);
+    assert.equal(vp.interestRange.min, 5);
+    assert.equal(vp.interestRange.max, 5);
     tool.mouseMoveAt_(4, 0, true);
-    assertEquals(4, vp.interestRange.min);
-    assertEquals(5, vp.interestRange.max);
-    assertTrue(vp.interestRange.leftSelected);
+    assert.equal(vp.interestRange.min, 4);
+    assert.equal(vp.interestRange.max, 5);
+    assert.isTrue(vp.interestRange.leftSelected);
     tool.mouseUp_();
-    assertEquals(4, vp.interestRange.min);
-    assertFalse(vp.interestRange.leftSelected);
-    assertFalse(vp.interestRange.rightSelected);
+    assert.equal(vp.interestRange.min, 4);
+    assert.isFalse(vp.interestRange.leftSelected);
+    assert.isFalse(vp.interestRange.rightSelected);
   });
 });
 </script>

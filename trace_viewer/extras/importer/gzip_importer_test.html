@@ -33,7 +33,7 @@ tv.b.unittest.testSuite(function() {
     var gzip_data = atob(gzip_data_base64);
     var importer = new tv.e.importer.GzipImporter(null, gzip_data);
     assert.isTrue(tv.e.importer.GzipImporter.canImport(gzip_data));
-    assert.equal(original_data, importer.extractSubtraces()[0]);
+    assert.equal(importer.extractSubtraces()[0], original_data);
   });
 
   test('inflateArrayBuffer', function() {
@@ -45,7 +45,7 @@ tv.b.unittest.testSuite(function() {
       view[i] = gzip_data.charCodeAt(i);
     var importer = new tv.e.importer.GzipImporter(null, buffer);
     assert.isTrue(tv.e.importer.GzipImporter.canImport(buffer));
-    assert.equal(original_data, importer.extractSubtraces()[0]);
+    assert.equal(importer.extractSubtraces()[0], original_data);
   });
 
   test('import', function() {

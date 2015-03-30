@@ -31,8 +31,8 @@ tv.b.unittest.testSuite(function() {
     var row = new tv.c.analysis.MultiEventSummary('x', tsg.slices.slice(0));
     assert.equal(row.duration, 5);
     assert.equal(row.selfTime, 4);
-    assert.equal(row.cpuDuration, undefined);
-    assert.equal(row.cpuSelfTime, undefined);
+    assert.isUndefined(row.cpuDuration);
+    assert.isUndefined(row.cpuSelfTime);
   });
 
   test('summaryRowWithCpu', function() {

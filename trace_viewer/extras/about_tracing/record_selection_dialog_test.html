@@ -55,7 +55,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     }
     results = results.sort();
 
-    assert.deepEqual(expected, results);
+    assert.deepEqual(results, expected);
   });
 
   test('recordSelectionDialog_UpdateForm_NoSettings', function() {
@@ -66,24 +66,24 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.updateForm_();
 
     var checkboxes = dlg.querySelectorAll('.categories input');
-    assert.equal(3, checkboxes.length);
-    assert.equal('three', checkboxes[0].id);
-    assert.equal('three', checkboxes[0].value);
+    assert.equal(checkboxes.length, 3);
+    assert.equal(checkboxes[0].id, 'three');
+    assert.equal(checkboxes[0].value, 'three');
     assert.isTrue(checkboxes[0].checked);
-    assert.equal('two', checkboxes[1].id);
-    assert.equal('two', checkboxes[1].value);
+    assert.equal(checkboxes[1].id, 'two');
+    assert.equal(checkboxes[1].value, 'two');
     assert.isTrue(checkboxes[1].checked);
-    assert.equal('disabled-by-default-one', checkboxes[2].id);
-    assert.equal('disabled-by-default-one', checkboxes[2].value);
+    assert.equal(checkboxes[2].id, 'disabled-by-default-one');
+    assert.equal(checkboxes[2].value, 'disabled-by-default-one');
     assert.isFalse(checkboxes[2].checked);
 
-    assert.equal('', dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(), '');
 
     var labels = dlg.querySelectorAll('.categories label');
-    assert.equal(3, labels.length);
-    assert.equal('three', labels[0].textContent);
-    assert.equal('two', labels[1].textContent);
-    assert.equal('one', labels[2].textContent);
+    assert.equal(labels.length, 3);
+    assert.equal(labels[0].textContent, 'three');
+    assert.equal(labels[1].textContent, 'two');
+    assert.equal(labels[2].textContent, 'one');
   });
 
   test('recordSelectionDialog_UpdateForm_Settings', function() {
@@ -97,24 +97,24 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.updateForm_();
 
     var checkboxes = dlg.querySelectorAll('.categories input');
-    assert.equal(3, checkboxes.length);
-    assert.equal('three', checkboxes[0].id);
-    assert.equal('three', checkboxes[0].value);
+    assert.equal(checkboxes.length, 3);
+    assert.equal(checkboxes[0].id, 'three');
+    assert.equal(checkboxes[0].value, 'three');
     assert.isFalse(checkboxes[0].checked);
-    assert.equal('two', checkboxes[1].id);
-    assert.equal('two', checkboxes[1].value);
+    assert.equal(checkboxes[1].id, 'two');
+    assert.equal(checkboxes[1].value, 'two');
     assert.isTrue(checkboxes[1].checked);
-    assert.equal('disabled-by-default-one', checkboxes[2].id);
-    assert.equal('disabled-by-default-one', checkboxes[2].value);
+    assert.equal(checkboxes[2].id, 'disabled-by-default-one');
+    assert.equal(checkboxes[2].value, 'disabled-by-default-one');
     assert.isFalse(checkboxes[2].checked);
 
-    assert.equal('-three', dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(), '-three');
 
     var labels = dlg.querySelectorAll('.categories label');
-    assert.equal(3, labels.length);
-    assert.equal('three', labels[0].textContent);
-    assert.equal('two', labels[1].textContent);
-    assert.equal('one', labels[2].textContent);
+    assert.equal(labels.length, 3);
+    assert.equal(labels[0].textContent, 'three');
+    assert.equal(labels[1].textContent, 'two');
+    assert.equal(labels[2].textContent, 'one');
   });
 
   test('recordSelectionDialog_UpdateForm_DisabledByDefault', function() {
@@ -124,12 +124,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
-    assert.equal('', dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(), '');
 
     var inputs =
         dlg.querySelector('input#disabled-by-default-bar').click();
 
-    assert.equal('disabled-by-default-bar', dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(), 'disabled-by-default-bar');
 
     assert.isFalse(
         tv.b.Settings.get('disabled-by-default-foo', false, 'categories'));
@@ -158,12 +158,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Enables the three option, two already enabled.
     dlg.querySelector('.default-enabled-categories .all-btn').click();
-    assert.equal('', dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(), '');
     assert.isTrue(tv.b.Settings.get('three', false, 'categories'));
 
     // Disables three and two.
     dlg.querySelector('.default-enabled-categories .none-btn').click();
-    assert.equal('-three,-two', dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(), '-three,-two');
     assert.isFalse(tv.b.Settings.get('two', false, 'categories'));
     assert.isFalse(tv.b.Settings.get('three', false, 'categories'));
 
@@ -172,13 +172,13 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Enables disabled category.
     dlg.querySelector('.default-disabled-categories .all-btn').click();
-    assert.equal('disabled-by-default-one', dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(), 'disabled-by-default-one');
     assert.isTrue(
         tv.b.Settings.get('disabled-by-default-one', false, 'categories'));
 
     // Turn disabled by default back off.
     dlg.querySelector('.default-disabled-categories .none-btn').click();
-    assert.equal('', dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(), '');
     assert.isFalse(
         tv.b.Settings.get('disabled-by-default-one', false, 'categories'));
   });
@@ -200,10 +200,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.updateForm_();
 
     // Make sure the default filter is returned.
-    assert.equal('-three,-two', dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(), '-three,-two');
 
     // Make sure the default tracing types are returned.
-    assert.equal('record-as-much-as-possible', dlg.tracingRecordMode);
+    assert.equal(dlg.tracingRecordMode, 'record-as-much-as-possible');
     assert.isFalse(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
@@ -213,15 +213,15 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Verify manual settings do not modify the checkboxes.
     var checkboxes = dlg.querySelectorAll('.categories input');
-    assert.equal(3, checkboxes.length);
-    assert.equal('three', checkboxes[0].id);
-    assert.equal('three', checkboxes[0].value);
+    assert.equal(checkboxes.length, 3);
+    assert.equal(checkboxes[0].id, 'three');
+    assert.equal(checkboxes[0].value, 'three');
     assert.isFalse(checkboxes[0].checked);
-    assert.equal('two', checkboxes[1].id);
-    assert.equal('two', checkboxes[1].value);
+    assert.equal(checkboxes[1].id, 'two');
+    assert.equal(checkboxes[1].value, 'two');
     assert.isTrue(checkboxes[1].checked);
-    assert.equal('disabled-by-default-one', checkboxes[2].id);
-    assert.equal('disabled-by-default-one', checkboxes[2].value);
+    assert.equal(checkboxes[2].id, 'disabled-by-default-one');
+    assert.equal(checkboxes[2].value, 'disabled-by-default-one');
     assert.isFalse(checkboxes[2].checked);
   });
 
@@ -245,7 +245,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         dlg.categoryFilter());
 
     // Make sure the default tracing types are returned.
-    assert.equal('record-as-much-as-possible', dlg.tracingRecordMode);
+    assert.equal(dlg.tracingRecordMode, 'record-as-much-as-possible');
     assert.isFalse(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
@@ -255,8 +255,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Switch to manual settings and verify the default values are not returned.
     dlg.currentlyChosenPreset = [];
-    assert.equal('-three,disabled-by-default-cc.debug', dlg.categoryFilter());
-    assert.equal('record-until-full', dlg.tracingRecordMode);
+    assert.equal(dlg.categoryFilter(), '-three,disabled-by-default-cc.debug');
+    assert.equal(dlg.tracingRecordMode, 'record-until-full');
     assert.isTrue(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
     assert.isFalse(classList.contains('categories-column-view-hidden'));
@@ -284,10 +284,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.updateForm_();
 
     // Make sure the correct filter is returned.
-    assert.equal('-three,-two', dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(), '-three,-two');
 
     // Make sure the correct tracing types are returned.
-    assert.equal('record-as-much-as-possible', dlg.tracingRecordMode);
+    assert.equal(dlg.tracingRecordMode, 'record-as-much-as-possible');
     assert.isFalse(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
@@ -297,8 +297,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Switch to manual settings and verify the default values are not returned.
     dlg.currentlyChosenPreset = [];
-    assert.equal('-three', dlg.categoryFilter());
-    assert.equal('record-continuously', dlg.tracingRecordMode);
+    assert.equal(dlg.categoryFilter(), '-three');
+    assert.equal(dlg.tracingRecordMode, 'record-continuously');
     assert.isTrue(dlg.useSystemTracing);
     assert.isTrue(dlg.useSampling);
     assert.isFalse(classList.contains('categories-column-view-hidden'));

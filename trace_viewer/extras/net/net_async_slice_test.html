@@ -21,7 +21,7 @@ tv.b.unittest.testSuite(function() {
 
     assert.equal(NetAsyncSlice,
                  AsyncSlice.getConstructor('netlog', 'HTTP_STREAM_JOB'));
-    assert.equal('NetLog', s.viewSubGroupTitle);
+    assert.equal(s.viewSubGroupTitle, 'NetLog');
   });
 
   test('import', function() {
@@ -31,7 +31,7 @@ tv.b.unittest.testSuite(function() {
     ];
     var m = new tv.c.TraceModel(events);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    assert.equal(1, t2.asyncSliceGroup.length);
+    assert.equal(t2.asyncSliceGroup.length, 1);
     assert.instanceOf(t2.asyncSliceGroup.slices[0], NetAsyncSlice);
   });
 
@@ -42,7 +42,7 @@ tv.b.unittest.testSuite(function() {
     // Make sure isTopLevel is populated in the constructor.
     assert.isTrue(slice.isTopLevel);
     // URL is exposed as the title of the parent slice.
-    assert.equal('https://google.com', slice.title);
+    assert.equal(slice.title, 'https://google.com');
   });
 
   test('ExposeURLNested', function() {
@@ -55,8 +55,8 @@ tv.b.unittest.testSuite(function() {
     assert.isTrue(slice.isTopLevel);
     assert.isFalse(childSlice.isTopLevel);
     // URL is exposed as the title of the parent slice.
-    assert.equal('http://test.url', slice.title);
-    assert.equal('b', childSlice.title);
+    assert.equal(slice.title, 'http://test.url');
+    assert.equal(childSlice.title, 'b');
   });
 
   test('ExposeURLNestedNoURL', function() {
@@ -67,8 +67,8 @@ tv.b.unittest.testSuite(function() {
     assert.isTrue(slice.isTopLevel);
     assert.isFalse(childSlice.isTopLevel);
     // URL is exposed as the title of the parent slice.
-    assert.equal('a', slice.title);
-    assert.equal('b', childSlice.title);
+    assert.equal(slice.title, 'a');
+    assert.equal(childSlice.title, 'b');
   });
 
   test('ExposeURLNestedBothChildrenHaveURL', function() {
@@ -83,9 +83,9 @@ tv.b.unittest.testSuite(function() {
     assert.isFalse(childSlice1.isTopLevel);
     assert.isFalse(childSlice2.isTopLevel);
     // Parent should take the first url param that it finds.
-    assert.equal('http://test.url.net', slice.title);
-    assert.equal('b', childSlice1.title);
-    assert.equal('c', childSlice2.title);
+    assert.equal(slice.title, 'http://test.url.net');
+    assert.equal(childSlice1.title, 'b');
+    assert.equal(childSlice2.title, 'c');
   });
 
   test('ExposeURLNestedBothParentAndChildHaveURL', function() {
@@ -102,9 +102,9 @@ tv.b.unittest.testSuite(function() {
     assert.isFalse(childSlice1.isTopLevel);
     assert.isFalse(childSlice2.isTopLevel);
     // Parent should take its own url param if there is one.
-    assert.equal('parent123.url.com', slice.title);
-    assert.equal('b', childSlice1.title);
-    assert.equal('c', childSlice2.title);
+    assert.equal(slice.title, 'parent123.url.com');
+    assert.equal(childSlice1.title, 'b');
+    assert.equal(childSlice2.title, 'c');
   });
 
   test('ExposeURLDoNotComputeUrlTwice', function() {
@@ -119,15 +119,15 @@ tv.b.unittest.testSuite(function() {
     assert.isFalse(childSlice1.isTopLevel);
     assert.isFalse(childSlice2.isTopLevel);
     // Parent should take its child's url param.
-    assert.equal('http://test.url.net', slice.title);
-    assert.equal('b', childSlice1.title);
-    assert.equal('c', childSlice2.title);
+    assert.equal(slice.title, 'http://test.url.net');
+    assert.equal(childSlice1.title, 'b');
+    assert.equal(childSlice2.title, 'c');
     // Now if we change the url param of the child, the parent's title should
     // remain the same. We do not recompute.
     childSlice1.args.params.url = 'example.com';
-    assert.equal('http://test.url.net', slice.title);
-    assert.equal('b', childSlice1.title);
-    assert.equal('c', childSlice2.title);
+    assert.equal(slice.title, 'http://test.url.net');
+    assert.equal(childSlice1.title, 'b');
+    assert.equal(childSlice2.title, 'c');
   });
 
   test('ExposeSourceTypeAsTitle', function() {
@@ -144,9 +144,9 @@ tv.b.unittest.testSuite(function() {
     assert.isFalse(childSlice1.isTopLevel);
     assert.isFalse(childSlice2.isTopLevel);
     // Parent should take its own source_type.
-    assert.equal('UDP_SOCKET', slice.title);
-    assert.equal('b', childSlice1.title);
-    assert.equal('c', childSlice2.title);
+    assert.equal(slice.title, 'UDP_SOCKET');
+    assert.equal(childSlice1.title, 'b');
+    assert.equal(childSlice2.title, 'c');
   });
 });
 </script>

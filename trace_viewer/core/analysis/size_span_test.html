@@ -13,7 +13,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var timeSpan = document.createElement('tv-c-a-size-span');
     timeSpan.numBytes = 5 * 1024;
-    assert.equal(5 * 1024, timeSpan.numBytes);
+    assert.equal(timeSpan.numBytes, 5 * 1024);
     this.addHTMLOutput(timeSpan);
   });
 
@@ -21,22 +21,22 @@ tv.b.unittest.testSuite(function() {
     var el = document.createElement('tv-c-a-size-span');
 
     el.numBytes = 0;
-    assert.equal('0.0 B', el.stringContent);
+    assert.equal(el.stringContent, '0.0 B');
 
     el.numBytes = 1;
-    assert.equal('1.0 B', el.stringContent);
+    assert.equal(el.stringContent, '1.0 B');
 
     el.numBytes = 1536;
-    assert.equal('1.5 KiB', el.stringContent);
+    assert.equal(el.stringContent, '1.5 KiB');
 
     el.numBytes = 424.2 * 1024 * 1024;
-    assert.equal('424.2 MiB', el.stringContent);
+    assert.equal(el.stringContent, '424.2 MiB');
 
     el.numBytes = 5 * 1024 * 1024 * 1024;
-    assert.equal('5.0 GiB', el.stringContent);
+    assert.equal(el.stringContent, '5.0 GiB');
 
     el.numBytes = 1025 * 1024 * 1024 * 1024 * 1024;
-    assert.equal('1025.0 TiB', el.stringContent);
+    assert.equal(el.stringContent, '1025.0 TiB');
     this.addHTMLOutput(el);
   });
 

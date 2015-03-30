@@ -13,8 +13,8 @@ tv.b.unittest.testSuite(function() {
     var chart = new tv.b.ui.SunburstChart();
     chart.width = 600;
     chart.height = 600;
-    assert.equal('600', chart.getAttribute('width'));
-    assert.equal('600', chart.getAttribute('height'));
+    assert.equal(chart.getAttribute('width'), '600');
+    assert.equal(chart.getAttribute('height'), '600');
     chart.chartTitle = 'Chart title';
     var nodes = {
       category: 'root',

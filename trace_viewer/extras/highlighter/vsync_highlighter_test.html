@@ -45,9 +45,9 @@ tv.b.unittest.testSuite(function() {
     ranges.sort();
     expectedRanges.sort();
 
-    assert.equal(expectedRanges.length, ranges.length);
+    assert.equal(ranges.length, expectedRanges.length);
     for (var i = 0; i < expectedRanges.length; i++) {
-      assert.deepEqual(expectedRanges[i], ranges[i]);
+      assert.deepEqual(ranges[i], expectedRanges[i]);
     }
   }
 

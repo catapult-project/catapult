@@ -35,11 +35,11 @@ tv.b.unittest.testSuite(function() {
     snapshot.initialize();
 
     // Base class got the timestamp.
-    assert.equal(1, snapshot.ts);
+    assert.equal(snapshot.ts, 1);
 
     // The first entry in the list is for totals.
-    assert.equal(10, snapshot.total_.currentAllocs);
-    assert.equal(10000, snapshot.total_.currentBytes);
+    assert.equal(snapshot.total_.currentAllocs, 10);
+    assert.equal(snapshot.total_.currentBytes, 10000);
   });
 
   // Tests multi-level trace stacks.
@@ -80,33 +80,33 @@ tv.b.unittest.testSuite(function() {
     // Our heap has two top-level stacks.
     var heap = snapshot.heap_;
     var childKeys = Object.keys(heap.children);
-    assert.equal(2, childKeys.length);
+    assert.equal(childKeys.length, 2);
     // Both methods exist as children.
-    assert.notEqual(-1, childKeys.indexOf('TestObject::TestMethod'));
-    assert.notEqual(-1, childKeys.indexOf('TestObject2::TestMethod2'));
+    assert.notEqual(childKeys.indexOf('TestObject::TestMethod'), -1);
+    assert.notEqual(childKeys.indexOf('TestObject2::TestMethod2'), -1);
 
     // Verify the first trace entry stack.
     var trace = heap.children['TestObject::TestMethod'];
-    assert.equal(2, trace.currentAllocs);
-    assert.equal(200, trace.currentBytes);
+    assert.equal(trace.currentAllocs, 2);
+    assert.equal(trace.currentBytes, 200);
     // One child for "(here)".
-    assert.equal(1, Object.keys(trace.children).length);
+    assert.equal(Object.keys(trace.children).length, 1);
     assert.isNotNull(trace.children['(here)']);
 
     // Verify the second trace entry stack.
     trace = heap.children['TestObject2::TestMethod2'];
     // Memory should have summed up.
-    assert.equal(8, trace.currentAllocs);
-    assert.equal(800, trace.currentBytes);
+    assert.equal(trace.currentAllocs, 8);
+    assert.equal(trace.currentBytes, 800);
     // Two children, "(here)" and another stack.
-    assert.equal(2, Object.keys(trace.children).length);
+    assert.equal(Object.keys(trace.children).length, 2);
     assert.isNotNull(trace.children['TestObject3::TestMethod3']);
     assert.isNotNull(trace.children['(here)']);
 
     trace = trace.children['TestObject3::TestMethod3'];
-    assert.equal(5, trace.currentAllocs);
-    assert.equal(500, trace.currentBytes);
-    assert.equal(1, Object.keys(trace.children).length);
+    assert.equal(trace.currentAllocs, 5);
+    assert.equal(trace.currentBytes, 500);
+    assert.equal(Object.keys(trace.children).length, 1);
   });
 });
 </script>

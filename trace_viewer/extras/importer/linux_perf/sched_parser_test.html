@@ -17,30 +17,30 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
         '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112');
     assert.isNotNull(x);
-    assert.equal('swapper', x[1]);
-    assert.equal('0', x[2]);
-    assert.equal('120', x[3]);
-    assert.equal('R', x[4]);
-    assert.equal('SurfaceFlinger', x[5]);
-    assert.equal('178', x[6]);
-    assert.equal('112', x[7]);
+    assert.equal(x[1], 'swapper');
+    assert.equal(x[2], '0');
+    assert.equal(x[3], '120');
+    assert.equal(x[4], 'R');
+    assert.equal(x[5], 'SurfaceFlinger');
+    assert.equal(x[6], '178');
+    assert.equal(x[7], '112');
 
     var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 prev_state=R ==> next_comm=Binder Thread # next_pid=195 next_prio=120'); // @suppress longLineCheck
     assert.isNotNull(x);
-    assert.equal('.android.chrome', x[1]);
-    assert.equal('Binder Thread #', x[5]);
+    assert.equal(x[1], '.android.chrome');
+    assert.equal(x[5], 'Binder Thread #');
 
     var x = re.exec('prev_comm=Binder Thread # prev_pid=1562 prev_prio=120 prev_state=R ==> next_comm=.android.chrome next_pid=195 next_prio=120'); // @suppress longLineCheck
     assert.isNotNull(x);
-    assert.equal('Binder Thread #', x[1]);
-    assert.equal('.android.chrome', x[5]);
+    assert.equal(x[1], 'Binder Thread #');
+    assert.equal(x[5], '.android.chrome');
 
     // explicit test for prev_state of D|W
     var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 ' +
         'prev_state=D|W ==> next_comm=Binder Thread # next_pid=195 ' +
         'next_prio=120');
     assert.isNotNull(x);
-    assert.equal('D|W', x[4]);
+    assert.equal(x[4], 'D|W');
   });
 
   test('schedWakeupRE', function() {
@@ -48,11 +48,11 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var x = re.exec(
         'comm=SensorService pid=207 prio=112 success=1 target_cpu=000');
     assert.isNotNull(x);
-    assert.equal('SensorService', x[1]);
-    assert.equal('207', x[2]);
-    assert.equal('112', x[3]);
-    assert.equal('1', x[4]);
-    assert.equal('000', x[5]);
+    assert.equal(x[1], 'SensorService');
+    assert.equal(x[2], '207');
+    assert.equal(x[3], '112');
+    assert.equal(x[4], '1');
+    assert.equal(x[5], '000');
   });
 
   test('importOneSequenceWithSchedWakeUp', function() {
@@ -71,26 +71,26 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var timeSlices = thread.timeSlices;
-    assert.equal(4, timeSlices.length);
+    assert.equal(timeSlices.length, 4);
 
     var runningSlice = timeSlices[0];
-    assert.equal('Running', runningSlice.title);
+    assert.equal(runningSlice.title, 'Running');
     assert.closeTo(12622506.890, runningSlice.start, 1e-5);
     assert.closeTo(.918 - .890, runningSlice.duration, 1e-5);
 
     var sleepSlice = timeSlices[1];
-    assert.equal('Uninterruptible Sleep', sleepSlice.title);
+    assert.equal(sleepSlice.title, 'Uninterruptible Sleep');
     assert.closeTo(12622506.918, sleepSlice.start, 1e-5);
     assert.closeTo(.936 - .918, sleepSlice.duration, 1e-5);
 
     var wakeupSlice = timeSlices[2];
-    assert.equal('Runnable', wakeupSlice.title);
+    assert.equal(wakeupSlice.title, 'Runnable');
     assert.closeTo(12622506.936, wakeupSlice.start, 1e-5);
     assert.closeTo(.950 - .936, wakeupSlice.duration, 1e-5);
-    assert.equal(584, wakeupSlice.args['wakeup from tid']);
+    assert.equal(wakeupSlice.args['wakeup from tid'], 584);
 
     var runningSlice2 = timeSlices[3];
-    assert.equal('Running', runningSlice2.title);
+    assert.equal(runningSlice2.title, 'Running');
     assert.closeTo(12622506.950, runningSlice2.start, 1e-5);
     assert.closeTo(7.253 - 6.950, runningSlice2.duration, 1e-5);
   });
@@ -111,12 +111,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       m = new tv.c.TraceModel(lines.join('\n'), false);
     });
     assert.isTrue(m.hasImportWarnings);
-    assert.equal('Unrecognized sleep state: F|O', m.importWarnings[0].message);
+    assert.equal(m.importWarnings[0].message, 'Unrecognized sleep state: F|O');
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var timeSlices = thread.timeSlices;
 
-    assert.equal('UNKNOWN', timeSlices[1].title);
+    assert.equal(timeSlices[1].title, 'UNKNOWN');
   });
 
   test('importWithUninterruptibleSleep', function() {
@@ -153,10 +153,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var timeSlices = thread.timeSlices;
-    assert.equal(4, timeSlices.length);
+    assert.equal(timeSlices.length, 4);
 
     var wakeKillSlice = timeSlices[1];
-    assert.equal('Uninterruptible Sleep | WakeKill', wakeKillSlice.title);
+    assert.equal(wakeKillSlice.title, 'Uninterruptible Sleep | WakeKill');
     assert.closeTo(12622506.918, wakeKillSlice.start, 1e-5);
     assert.closeTo(.936 - .918, wakeKillSlice.duration, 1e-5);
   });

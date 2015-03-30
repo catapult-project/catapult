@@ -36,15 +36,15 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(4, threads.length);
+    assert.equal(threads.length, 4);
 
     var threads = m.findAllThreadsNamed('s3c-fb');
-    assert.equal(1, threads.length);
-    assert.equal(1, threads[0].sliceGroup.length);
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0].sliceGroup.length, 1);
 
     var threads = m.findAllThreadsNamed('kworker/u:5');
-    assert.equal(1, threads.length);
-    assert.equal(1, threads[0].sliceGroup.length);
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0].sliceGroup.length, 1);
     assert.equal('fence_wait("display")',
                  threads[0].sliceGroup.slices[0].title);
   });

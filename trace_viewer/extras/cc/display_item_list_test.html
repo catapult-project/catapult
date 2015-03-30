@@ -35,10 +35,10 @@ tv.b.unittest.testSuite(function() {
     var snapshot = instance.snapshots[0];
 
     var items = snapshot.items;
-    assert.equal(2, items.length);
+    assert.equal(items.length, 2);
 
-    assert.equal('BeginClipDisplayItem', items[0]);
-    assert.equal('EndClipDisplayItem', items[1]);
+    assert.equal(items[0], 'BeginClipDisplayItem');
+    assert.equal(items[1], 'EndClipDisplayItem');
   });
 });
 </script>

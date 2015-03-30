@@ -49,9 +49,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
-    assert.equal(1, counters.length);
+    assert.equal(counters.length, 1);
 
-    assert.equal(10, counters[0].series[0].samples.length);
+    assert.equal(counters[0].series[0].samples.length, 10);
   });
 });
 </script>

@@ -21,15 +21,15 @@ tv.b.unittest.testSuite(function() {
     var storage = tv.b.Settings.getAlternativeStorageInstance();
     storage.setItem(tv.b.Settings.namespace_('key'), 'hello world');
 
-    assert.equal('value', tv.b.Settings.get('key', 'value'));
+    assert.equal(tv.b.Settings.get('key', 'value'), 'value');
   });
 
   test('setGetString', function() {
     var settings = new tv.b.Settings();
     settings.set('my_key', 'my_val');
-    assert.equal('my_val', settings.get('my_key'));
+    assert.equal(settings.get('my_key'), 'my_val');
     // tv.b.Settings() is a singleton
-    assert.equal('my_val', tv.b.Settings().get('my_key'));
+    assert.equal(tv.b.Settings().get('my_key'), 'my_val');
   });
 
   test('setGetNumber', function() {
@@ -47,7 +47,7 @@ tv.b.unittest.testSuite(function() {
   test('setGetObject', function() {
     var settings = new tv.b.Settings();
     settings.set('my_key', {'hello': 5});
-    assert.deepEqual({'hello': 5}, settings.get('my_key'));
+    assert.deepEqual(settings.get('my_key'), {'hello': 5});
   });
 
   test('setInvalidObject', function() {
@@ -75,16 +75,16 @@ tv.b.unittest.testSuite(function() {
   test('getDefault', function() {
     var settings = new tv.b.Settings();
     // default_val should be returned if value isn't set.
-    assert.equal('default_val', settings.get('my_key', 'default_val'));
+    assert.equal(settings.get('my_key', 'default_val'), 'default_val');
   });
 
   test('setGetPrefix', function() {
     var settings = new tv.b.Settings();
     settings.set('key_a', 'foo', 'my_prefix');
-    assert.equal('foo', settings.get('key_a', undefined, 'my_prefix'));
-    assert.equal('foo', settings.get('key_a', 'bar', 'my_prefix'));
+    assert.equal(settings.get('key_a', undefined, 'my_prefix'), 'foo');
+    assert.equal(settings.get('key_a', 'bar', 'my_prefix'), 'foo');
     assert.isUndefined(settings.get('key_a'));
-    assert.equal('bar', settings.get('key_a', 'bar'));
+    assert.equal(settings.get('key_a', 'bar'), 'bar');
   });
 
   test('keys', function() {
@@ -92,7 +92,7 @@ tv.b.unittest.testSuite(function() {
     settings.set('key_a', 'foo');
     settings.set('key_b', 'bar');
     settings.set('key_c', 'baz');
-    assert.deepEqual(['key_a', 'key_b', 'key_c'], settings.keys());
+    assert.deepEqual(settings.keys(), ['key_a', 'key_b', 'key_c']);
   });
 
   test('keysPrefix', function() {
@@ -103,12 +103,12 @@ tv.b.unittest.testSuite(function() {
     settings.set('key_a', 'foo', 'prefix2');
     settings.set('key_b', 'bar', 'prefix2');
     settings.set('key_C', 'baz', 'prefix2');
-    assert.deepEqual(['key_a', 'key_b', 'key_c'], settings.keys('prefix1'));
-    assert.deepEqual(['key_C', 'key_a', 'key_b'], settings.keys('prefix2'));
+    assert.deepEqual(settings.keys('prefix1'), ['key_a', 'key_b', 'key_c']);
+    assert.deepEqual(settings.keys('prefix2'), ['key_C', 'key_a', 'key_b']);
     assert.deepEqual(
+        settings.keys(),
         ['prefix1.key_a', 'prefix1.key_b', 'prefix1.key_c',
-         'prefix2.key_C', 'prefix2.key_a', 'prefix2.key_b'],
-        settings.keys());
+         'prefix2.key_C', 'prefix2.key_a', 'prefix2.key_b']);
   });
 });
 </script>

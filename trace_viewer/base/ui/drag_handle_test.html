@@ -50,7 +50,7 @@ tv.b.unittest.testSuite(function() {
     var dragHandle = el.dragHandle;
     var oldHeight = el.getLowerElHeight();
     dragHandle.applyDelta_(10);
-    assert.equal(oldHeight + 10, el.getLowerElHeight());
+    assert.equal(el.getLowerElHeight(), oldHeight + 10);
 
     document.body.removeChild(el);
   });
@@ -67,25 +67,25 @@ tv.b.unittest.testSuite(function() {
 
     var dragHandle = el.dragHandle;
     el.lowerEl.className = 'mode-a';
-    assert.equal(100, el.getLowerElHeight());
+    assert.equal(el.getLowerElHeight(), 100);
 
     dragHandle.applyDelta_(10);
-    assert.equal(110, el.getLowerElHeight());
+    assert.equal(el.getLowerElHeight(), 110);
 
     // Change the class, which should restore the layout
     // to the default sizing for mode-b
     el.lowerEl.className = 'mode-b';
     dragHandle.forceMutationObserverFlush_();
-    assert.equal(50, el.getLowerElHeight());
+    assert.equal(el.getLowerElHeight(), 50);
 
     dragHandle.applyDelta_(10);
-    assert.equal(60, el.getLowerElHeight());
+    assert.equal(el.getLowerElHeight(), 60);
 
     // Restore the class-a, which should restore the layout
     // to sizing when we were changed.
     el.lowerEl.className = 'mode-a';
     dragHandle.forceMutationObserverFlush_();
-    assert.equal(110, el.getLowerElHeight());
+    assert.equal(el.getLowerElHeight(), 110);
 
     document.head.removeChild(styleEl);
     document.body.removeChild(el);

@@ -152,20 +152,20 @@ tv.b.unittest.testSuite(function() {
       assert.isNotNull(view.uploadOverlay_);
       assert.isTrue(view.uploadOverlay_.visible);
       overlay = view.uploadOverlay_;
-      assert.notEqual('none', view.uploadOverlay_.buttons.style.display);
-      assert.equal(2, view.uploadOverlay_.buttons.childNodes.length);
+      assert.notEqual(view.uploadOverlay_.buttons.style.display, 'none');
+      assert.equal(view.uploadOverlay_.buttons.childNodes.length, 2);
     };
     clickUploadAndVerify();
 
     var cancelButton = view.uploadOverlay_.buttons.lastChild;
-    assert.equal('Cancel', cancelButton.textContent);
+    assert.equal(cancelButton.textContent, 'Cancel');
     cancelButton.click();
     assert.isNull(view.uploadOverlay_);
     assert.isFalse(overlay.visible);
 
     clickUploadAndVerify();
     var okButton = view.uploadOverlay_.buttons.firstChild;
-    assert.equal('Ok', okButton.textContent);
+    assert.equal(okButton.textContent, 'Ok');
     var commandSent = null;
     var dataSent = null;
     chrome.send = function(command, data) {
@@ -173,14 +173,14 @@ tv.b.unittest.testSuite(function() {
       dataSent = data;
     };
     okButton.click();
-    assert.equal('doUpload', commandSent);
-    assert.equal(view.activeTrace_.data, dataSent[0]);
+    assert.equal(commandSent, 'doUpload');
+    assert.equal(dataSent[0], view.activeTrace_.data);
 
     assert.isTrue(view.uploadOverlay_.visible);
     overlay = view.uploadOverlay_;
-    assert.equal(1, view.uploadOverlay_.buttons.childNodes.length);
+    assert.equal(view.uploadOverlay_.buttons.childNodes.length, 1);
     var closeButton = view.uploadOverlay_.buttons.childNodes[0];
-    assert.equal('Close', closeButton.textContent);
+    assert.equal(closeButton.textContent, 'Close');
     closeButton.click();
     assert.isNull(view.uploadOverlay_);
     assert.isFalse(overlay.visible);

@@ -35,7 +35,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         str += String.fromCharCode(ary[i]);
       return str;
     });
-    assert.deepEqual(['hello', 'world'], subTracesAsStrings);
+    assert.deepEqual(subTracesAsStrings, ['hello', 'world']);
   });
 });
 </script>

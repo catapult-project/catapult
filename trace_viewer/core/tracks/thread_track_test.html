@@ -116,13 +116,13 @@ tv.b.unittest.testSuite(function() {
 
     var t = new ThreadTrack(new tv.c.TimelineViewport());
     t.thread = thread;
-    assert.equal(2, t.tracks_.length);
+    assert.equal(t.tracks_.length, 2);
 
     // Instructions retired
     var t0 = t.tracks_[0];
     assert.notEqual(t0.heading.indexOf('instructions_retired'), -1);
     assert.instanceOf(t0, tv.c.tracks.SampleTrack);
-    assertTrue(4, t0.samples.length);
+    assert.equal(t0.samples.length, 4);
     t0.samples.forEach(function(s) {
       assert.instanceOf(s, tv.c.trace_model.Sample);
     });
@@ -131,7 +131,7 @@ tv.b.unittest.testSuite(function() {
     var t1 = t.tracks_[1];
     assert.notEqual(t1.heading.indexOf('page_fault'), -1);
     assert.instanceOf(t1, tv.c.tracks.SampleTrack);
-    assert.equal(2, t1.samples.length);
+    assert.equal(t1.samples.length, 2);
   });
 });
 </script>

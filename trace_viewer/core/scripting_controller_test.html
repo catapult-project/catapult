@@ -16,21 +16,21 @@ tv.b.unittest.testSuite(function() {
   test('scriptingControllerBasicArithmetic', function() {
     var controller = document.createElement('tv-c-scripting-controller');
     var result = controller.executeCommand('1 + 1');
-    assertEquals(2, result);
+    assert.equal(result, 2);
   });
 
   test('scriptingControllerNonLocalContext', function() {
     var controller = document.createElement('tv-c-scripting-controller');
     var x = 1;
     controller.executeCommand('x = 2');
-    assertEquals(1, x);
+    assert.equal(x, 1);
   });
 
   test('scriptingControllerModifyGlobalContext', function() {
     var controller = document.createElement('tv-c-scripting-controller');
     window._x = 1;
     controller.executeCommand('_x = 2');
-    assertEquals(2, window._x);
+    assert.equal(window._x, 2);
     delete window._x;
   });
 
@@ -38,14 +38,14 @@ tv.b.unittest.testSuite(function() {
     var controller = document.createElement('tv-c-scripting-controller');
     controller.executeCommand('a = 42');
     var result = controller.executeCommand('a');
-    assertEquals(42, result);
+    assert.equal(result, 42);
   });
 
   test('scriptingControllerAddScriptObject', function() {
     var controller = document.createElement('tv-c-scripting-controller');
     controller.addScriptObject('z', 123);
     var result = controller.executeCommand('z');
-    assertEquals(123, result);
+    assert.equal(result, 123);
   });
 });
 </script>

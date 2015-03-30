@@ -122,10 +122,10 @@ tv.b.unittest.testSuite(function() {
     panel.model = new tv.c.TraceModel(events);
     function listener(e) {
       selectionChanged = true;
-      assert.equal(3, e.selection.length);
-      assert.equal(20, e.selection[0].start);
-      assert.equal(31, e.selection[1].start);
-      assert.equal(40, e.selection[2].start);
+      assert.equal(e.selection.length, 3);
+      assert.equal(e.selection[0].start, 20);
+      assert.equal(e.selection[1].start, 31);
+      assert.equal(e.selection[2].start, 40);
     }
     panel.ownerDocument.addEventListener('requestSelectionChange', listener);
     try {

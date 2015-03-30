@@ -37,7 +37,7 @@ tv.b.unittest.testSuite(function() {
 
     var selection = new Selection();
     selection.push(t53.sliceGroup.slices[0]);
-    assert.equal(1, selection.length);
+    assert.equal(selection.length, 1);
 
     return selection;
   }
@@ -130,7 +130,7 @@ tv.b.unittest.testSuite(function() {
         analysisEl, /End Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(e.nextSibling.children[0].stackFrame);
-    assert.equal('b2', e.nextSibling.children[0].stackFrame.title);
+    assert.equal(e.nextSibling.children[0].stackFrame.title, 'b2');
   });
 
   test('instantiate_withDifferentStartAndEndStackFrames', function() {
@@ -146,13 +146,13 @@ tv.b.unittest.testSuite(function() {
         analysisEl, /Start Stack Trace/);
     assert.isDefined(eA);
     assert.isDefined(eA.nextSibling.children[0].stackFrame);
-    assert.equal('a2', eA.nextSibling.children[0].stackFrame.title);
+    assert.equal(eA.nextSibling.children[0].stackFrame.title, 'a2');
 
     var eB = tv.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assert.isDefined(eB);
     assert.isDefined(eB.nextSibling.children[0].stackFrame);
-    assert.equal('b2', eB.nextSibling.children[0].stackFrame.title);
+    assert.equal(eB.nextSibling.children[0].stackFrame.title, 'b2');
   });
 
   test('instantiate_withSameStartAndEndStackFrames', function() {
@@ -168,7 +168,7 @@ tv.b.unittest.testSuite(function() {
         analysisEl, /Start\+End Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(e.nextSibling.children[0].stackFrame);
-    assert.equal('a2', e.nextSibling.children[0].stackFrame.title);
+    assert.equal(e.nextSibling.children[0].stackFrame.title, 'a2');
   });
 
   test('analyzeSelectionWithSingleSlice', function() {
@@ -178,10 +178,10 @@ tv.b.unittest.testSuite(function() {
 
     var table = tv.b.findDeepElementMatching(
         subView, 'tracing-analysis-nested-table');
-    assert.equal(3, table.tableRows.length);
-    assert.equal('b', table.tableRows[0].value);
-    assert.equal(0, table.tableRows[1].value.timestamp);
-    assert.equal(0.002, table.tableRows[2].value.duration);
+    assert.equal(table.tableRows.length, 3);
+    assert.equal(table.tableRows[0].value, 'b');
+    assert.equal(table.tableRows[1].value.timestamp, 0);
+    assert.equal(table.tableRows[2].value.duration, 0.002);
   });
 
   test('analyzeSelectionWithSingleSliceCategory', function() {
@@ -192,11 +192,11 @@ tv.b.unittest.testSuite(function() {
 
     var table = tv.b.findDeepElementMatching(
         subView, 'tracing-analysis-nested-table');
-    assert.equal(4, table.tableRows.length);
-    assert.equal('b', table.tableRows[0].value);
-    assert.equal('foo', table.tableRows[1].value);
-    assert.equal(0, table.tableRows[2].value.timestamp);
-    assert.equal(0.002, table.tableRows[3].value.duration);
+    assert.equal(table.tableRows.length, 4);
+    assert.equal(table.tableRows[0].value, 'b');
+    assert.equal(table.tableRows[1].value, 'foo');
+    assert.equal(table.tableRows[2].value.timestamp, 0);
+    assert.equal(table.tableRows[3].value.duration, 0.002);
   });
 
   test('instantiate_withSingleSliceContainingIDRef', function() {
@@ -214,7 +214,7 @@ tv.b.unittest.testSuite(function() {
 
     var selection = new Selection();
     selection.push(t1.sliceGroup.slices[0]);
-    assert.equal(1, selection.length);
+    assert.equal(selection.length, 1);
 
     var subView = document.createElement('tv-c-single-slice-sub-view');
     subView.selection = selection;

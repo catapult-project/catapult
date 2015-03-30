@@ -29,7 +29,7 @@ tv.b.unittest.testSuite(function() {
     var selection = new Selection();
     selection.push(fe1);
     selection.push(fe2);
-    assert.equal(2, selection.length);
+    assert.equal(selection.length, 2);
 
     var subView = document.createElement('tv-c-multi-flow-event-sub-view');
     subView.selection = selection;

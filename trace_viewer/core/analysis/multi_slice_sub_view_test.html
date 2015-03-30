@@ -193,30 +193,30 @@ tv.b.unittest.testSuite(function() {
     var results = new StubAnalysisResults();
 
     sliceView.analyze_(results, selection);
-    assert.equal(1, results.tables.length);
+    assert.equal(results.tables.length, 1);
     var table = results.tables[0];
-    assert.equal(6, table.rows.length);
+    assert.equal(table.rows.length, 6);
 
-    assert.equal('a', table.rows[0].label);
-    assert.equal(1, table.rows[0].occurrences);
+    assert.equal(table.rows[0].label, 'a');
+    assert.equal(table.rows[0].occurrences, 1);
     assert.closeTo(0.04, table.rows[0].duration, 1e-5);
     assert.closeTo(0.04, table.rows[0].selfTime, 1e-5);
     assert.isNull(table.rows[0].cpuDuration);
-    assert.equal('aa', table.rows[1].label);
-    assert.equal(1, table.rows[1].occurrences);
+    assert.equal(table.rows[1].label, 'aa');
+    assert.equal(table.rows[1].occurrences, 1);
     assert.closeTo(0.06, table.rows[1].duration, 1e-5);
     assert.closeTo(0.06, table.rows[1].selfTime, 1e-5);
     assert.isNull(table.rows[1].cpuDuration);
-    assert.equal('Totals', table.rows[2].label);
-    assert.equal(2, table.rows[2].occurrences);
+    assert.equal(table.rows[2].label, 'Totals');
+    assert.equal(table.rows[2].occurrences, 2);
     assert.closeTo(0.1, table.rows[2].duration, 1e-5);
     assert.closeTo(0.1, table.rows[2].selfTime, 1e-5);
     assert.isNull(table.rows[2].cpuDuration);
 
-    assert.equal('Selection start', table.rows[4].label);
+    assert.equal(table.rows[4].label, 'Selection start');
     assert.closeTo(0, table.rows[4].time, 1e-5);
 
-    assert.equal('Selection extent', table.rows[5].label);
+    assert.equal(table.rows[5].label, 'Selection extent');
     assert.closeTo(0.18, table.rows[5].time, 1e-5);
   });
 
@@ -226,45 +226,45 @@ tv.b.unittest.testSuite(function() {
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
     sliceView.analyze_(results, selection);
-    assert.equal(2, results.tables.length);
+    assert.equal(results.tables.length, 2);
 
     var t;
     // Table 1.
     t = results.tables[0];
-    assert.equal('c', t.rows[0].label);
-    assert.equal(0.1, t.rows[0].duration);
-    assert.equal(null, t.rows[0].cpuDuration);
-    assert.equal(0.1, t.rows[0].selfTime);
-    assert.equal(null, t.rows[0].cpuSelfTime);
-    assert.equal(2, t.rows[0].occurrences);
-    assert.equal(null, t.rows[0].percentage);
+    assert.equal(t.rows[0].label, 'c');
+    assert.equal(t.rows[0].duration, 0.1);
+    assert.isNull(t.rows[0].cpuDuration);
+    assert.equal(t.rows[0].selfTime, 0.1);
+    assert.isNull(t.rows[0].cpuSelfTime);
+    assert.equal(t.rows[0].occurrences, 2);
+    assert.isNull(t.rows[0].percentage);
     assert.deepEqual({
       min: 0.04, max: 0.06, avg: 0.05,
       avg_stddev: 0.014142135623730947,
       frequency: undefined, frequency_stddev: undefined
     }, t.rows[0].details);
 
-    assert.deepEqual({label: 'Selection start', time: 0}, t.rows[1]);
-    assert.deepEqual({label: 'Selection extent', time: 0.18}, t.rows[2]);
+    assert.deepEqual(t.rows[1], {label: 'Selection start', time: 0});
+    assert.deepEqual(t.rows[2], {label: 'Selection extent', time: 0.18});
 
-    assert.deepEqual({label: 'Title: ', value: 'c'}, results.info[0]);
-    assert.deepEqual({label: 'Category: ', value: ''}, results.info[1]);
+    assert.deepEqual(results.info[0], {label: 'Title: ', value: 'c'});
+    assert.deepEqual(results.info[1], {label: 'Category: ', value: ''});
 
     // Table 2.
     var t = results.tables[1];
     console.log('table 2', t);
-    assert.equal(3, t.rows.length);
-    assert.equal(0, t.rows[0].start);
-    assert.equal(0.04, t.rows[0].duration);
-    assert.equal(0.04, t.rows[0].selfTime);
-    assert.deepEqual({}, t.rows[0].args);
-    assert.equal(0.12, t.rows[1].start);
-    assert.equal(0.06, t.rows[1].duration);
-    assert.equal(0.06, t.rows[1].selfTime);
-    assert.deepEqual({}, t.rows[2].args);
-    assert.equal(0.1, t.rows[2].duration);
-    assert.equal(0.1, t.rows[2].selfTime);
-    assert.deepEqual({}, t.rows[2].args);
+    assert.equal(t.rows.length, 3);
+    assert.equal(t.rows[0].start, 0);
+    assert.equal(t.rows[0].duration, 0.04);
+    assert.equal(t.rows[0].selfTime, 0.04);
+    assert.deepEqual(t.rows[0].args, {});
+    assert.equal(t.rows[1].start, 0.12);
+    assert.equal(t.rows[1].duration, 0.06);
+    assert.equal(t.rows[1].selfTime, 0.06);
+    assert.deepEqual(t.rows[2].args, {});
+    assert.equal(t.rows[2].duration, 0.1);
+    assert.equal(t.rows[2].selfTime, 0.1);
+    assert.deepEqual(t.rows[2].args, {});
   });
 
   test('analyzeSelectionTotalWithOneArg', function() {
@@ -273,13 +273,13 @@ tv.b.unittest.testSuite(function() {
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
     sliceView.analyze_(results, selection);
-    assert.equal(2, results.tables.length);
+    assert.equal(results.tables.length, 2);
 
     var t = results.tables[1];
 
-    assert.equal(0.1, t.rows[2].duration);
-    assert.equal(0.1, t.rows[2].selfTime);
-    assert.deepEqual({ 'arg1': 9.42 }, t.rows[2].args);
+    assert.equal(t.rows[2].duration, 0.1);
+    assert.equal(t.rows[2].selfTime, 0.1);
+    assert.deepEqual(t.rows[2].args, { 'arg1': 9.42 });
   });
 
   test('analyzeSelectionTotalWithOneNumberOneTextArg', function() {
@@ -288,13 +288,13 @@ tv.b.unittest.testSuite(function() {
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
     sliceView.analyze_(results, selection);
-    assert.equal(2, results.tables.length);
+    assert.equal(results.tables.length, 2);
 
     var t = results.tables[1];
 
-    assert.equal(0.1, t.rows[2].duration);
-    assert.equal(0.1, t.rows[2].selfTime);
-    assert.deepEqual({ 'arg1': 9.42 }, t.rows[2].args);
+    assert.equal(t.rows[2].duration, 0.1);
+    assert.equal(t.rows[2].selfTime, 0.1);
+    assert.deepEqual(t.rows[2].args, { 'arg1': 9.42 });
   });
 
   test('analyzeSelectionTotalWithTwoNumberArgs', function() {
@@ -303,13 +303,13 @@ tv.b.unittest.testSuite(function() {
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
     sliceView.analyze_(results, selection);
-    assert.equal(2, results.tables.length);
+    assert.equal(results.tables.length, 2);
 
     var t = results.tables[1];
 
-    assert.equal(0.1, t.rows[2].duration);
-    assert.equal(0.1, t.rows[2].selfTime);
-    assert.deepEqual({ 'arg1': 9.42, 'arg2': 300.0 }, t.rows[2].args);
+    assert.equal(t.rows[2].duration, 0.1);
+    assert.equal(t.rows[2].selfTime, 0.1);
+    assert.deepEqual(t.rows[2].args, { 'arg1': 9.42, 'arg2': 300.0 });
   });
 
   test('analyzeSelectionTotalWithMismatchedArgs', function() {
@@ -318,13 +318,13 @@ tv.b.unittest.testSuite(function() {
     var sliceView = document.createElement('tv-c-multi-slice-sub-view');
     var results = new StubAnalysisResults();
     sliceView.analyze_(results, selection);
-    assert.equal(2, results.tables.length);
+    assert.equal(results.tables.length, 2);
 
     var t = results.tables[1];
 
-    assert.equal(0.4, t.rows[5].duration);
-    assert.equal(0.4, t.rows[5].selfTime);
-    assert.deepEqual({ 'arg1': 10.42, 'arg2': 350.0 }, t.rows[5].args);
+    assert.equal(t.rows[5].duration, 0.4);
+    assert.equal(t.rows[5].selfTime, 0.4);
+    assert.deepEqual(t.rows[5].args, { 'arg1': 10.42, 'arg2': 350.0 });
   });
 });
 </script>

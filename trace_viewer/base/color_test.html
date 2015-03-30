@@ -11,65 +11,65 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   test('fromRGB', function() {
     var c = tv.b.Color.fromString('rgb(1, 2, 3)');
-    assert.equal(1, c.r);
-    assert.equal(2, c.g);
-    assert.equal(3, c.b);
+    assert.equal(c.r, 1);
+    assert.equal(c.g, 2);
+    assert.equal(c.b, 3);
     assert.isUndefined(c.a);
   });
 
   test('FromRGBA', function() {
     var c = tv.b.Color.fromString('rgba(1, 2, 3, 0.5)');
-    assert.equal(1, c.r);
-    assert.equal(2, c.g);
-    assert.equal(3, c.b);
-    assert.equal(0.5, c.a);
+    assert.equal(c.r, 1);
+    assert.equal(c.g, 2);
+    assert.equal(c.b, 3);
+    assert.equal(c.a, 0.5);
   });
 
   test('fromHex', function() {
     var c = tv.b.Color.fromString('#010203');
-    assert.equal(1, c.r);
-    assert.equal(2, c.g);
-    assert.equal(3, c.b);
+    assert.equal(c.r, 1);
+    assert.equal(c.g, 2);
+    assert.equal(c.b, 3);
     assert.isUndefined(c.a);
   });
 
   test('toStringRGB', function() {
     var c = new tv.b.Color(1, 2, 3);
-    assert.equal('rgb(1,2,3)', c.toString());
+    assert.equal(c.toString(), 'rgb(1,2,3)');
   });
 
   test('toStringRGBA', function() {
     var c = new tv.b.Color(1, 2, 3, 0.5);
-    assert.equal('rgba(1,2,3,0.5)', c.toString());
+    assert.equal(c.toString(), 'rgba(1,2,3,0.5)');
   });
 
   test('lerpRGB', function() {
     var a = new tv.b.Color(0, 127, 191);
     var b = new tv.b.Color(255, 255, 255);
     var x = tv.b.Color.lerpRGB(a, b, 0.25);
-    assert.equal(63, x.r);
-    assert.equal(159, x.g);
-    assert.equal(207, x.b);
+    assert.equal(x.r, 63);
+    assert.equal(x.g, 159);
+    assert.equal(x.b, 207);
   });
 
   test('lerpRGBA', function() {
     var a = new tv.b.Color(0, 127, 191, 0.5);
     var b = new tv.b.Color(255, 255, 255, 1);
     var x = tv.b.Color.lerpRGBA(a, b, 0.25);
-    assert.equal(63, x.r);
-    assert.equal(159, x.g);
-    assert.equal(207, x.b);
-    assert.equal(0.625, x.a);
+    assert.equal(x.r, 63);
+    assert.equal(x.g, 159);
+    assert.equal(x.b, 207);
+    assert.equal(x.a, 0.625);
   });
 
   test('blendRGBA', function() {
     var red = new tv.b.Color(255, 0, 0, 0.5);
     var white = new tv.b.Color(255, 255, 255, 1);
     var x = red.blendOver(white);
-    assert.equal(255, x.r);
-    assert.equal(127, x.g);
-    assert.equal(127, x.b);
-    assert.equal(1, x.a);
+    assert.equal(x.r, 255);
+    assert.equal(x.g, 127);
+    assert.equal(x.b, 127);
+    assert.equal(x.a, 1);
   });
 });
 </script>
