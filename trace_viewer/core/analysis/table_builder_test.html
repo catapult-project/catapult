@@ -19,7 +19,7 @@ tv.b.unittest.testSuite(function() {
       {
         title: 'First Column',
         value: function(row) { return row.firstData; },
-        width: '50%'
+        width: '200px'
       },
       {
         title: 'Second Column',
@@ -51,7 +51,7 @@ tv.b.unittest.testSuite(function() {
       {
         title: 'First Column',
         value: function(row) { return row.firstData; },
-        width: '50%'
+        width: '250px'
       },
       {
         title: 'Second Column',
@@ -115,7 +115,7 @@ tv.b.unittest.testSuite(function() {
       {
         title: 'Second Column',
         value: function(row) { return row.secondData; },
-        width: '50%',
+        width: '250px',
         cmp: function(rowA, rowB) {
           return rowA.secondData.toString().localeCompare(
               rowB.secondData.toString());
@@ -219,7 +219,7 @@ tv.b.unittest.testSuite(function() {
       {
         title: 'a',
         value: function(row) { return row.a; },
-        width: '50%'
+        width: '150px'
       },
       {
         title: 'a',
@@ -269,7 +269,7 @@ tv.b.unittest.testSuite(function() {
       {
         title: 'a',
         value: function(row) { return row.a; },
-        width: '50%'
+        width: '150px'
       },
       {
         title: 'a',
@@ -297,5 +297,71 @@ tv.b.unittest.testSuite(function() {
   });
 
 
+  test('sortColumnsNotPossibleOnPercentSizedColumns', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px'
+      },
+      {
+        title: 'Value',
+        value: function(row) { return row.b; },
+        width: '100%',
+        showExpandButtons: true
+      }
+    ];
+
+    var table1 = document.createElement('tracing-analysis-nested-table');
+    table1.showHeader = true;
+
+    assert.throws(function() {
+      table1.tableColumns = columns;
+    });
+  });
+
+  test('twoTablesFirstColumnMatching', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px'
+      },
+      {
+        title: 'Value',
+        value: function(row) { return row.b; },
+        width: '100%'
+      }
+    ];
+
+    var table1 = document.createElement('tracing-analysis-nested-table');
+    table1.showHeader = true;
+    table1.tableColumns = columns;
+    table1.tableRows = [
+      {
+        a: 'first',
+        b: 'row'
+      }
+    ];
+    table1.rebuild();
+    this.addHTMLOutput(table1);
+
+    var table2 = document.createElement('tracing-analysis-nested-table');
+    table2.showHeader = false;
+    table2.tableColumns = columns;
+    table2.tableRows = [
+      {
+        a: 'second',
+        b: 'row'
+      }
+    ];
+    table2.rebuild();
+    this.addHTMLOutput(table2);
+
+    var h1FirstCol = table1.$.head.children[0].children[0];
+    var h2FirstCol = table2.$.body.children[0].children[0];
+    assert.equal(h2FirstCol.getBoundingClientRect().width,
+                 h1FirstCol.getBoundingClientRect().width);
+  });
 });
 </script>

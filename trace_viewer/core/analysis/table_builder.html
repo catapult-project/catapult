@@ -74,6 +74,8 @@ found in the LICENSE file.
         display: inline-block;
         cursor: pointer;
         font-size: 9px;
+        min-width: 8px;
+        max-width: 8px;
       }
 
       .button-expanded {
@@ -96,7 +98,7 @@ found in the LICENSE file.
     var UNSORTED_ARROW = String.fromCharCode(0x25BF);
     var ASCENDING_ARROW = String.fromCharCode(0x25BE);
     var DESCENDING_ARROW = String.fromCharCode(0x25B4);
-
+    var BASIC_INDENTATION = 8;
 
     Polymer({
       created: function() {
@@ -144,15 +146,43 @@ found in the LICENSE file.
        * @param {Array} columns An array of data objects.
        */
       set tableColumns(columns) {
-        this.tableColumns_ = columns;
-        this.columnsWithExpandButtons_ = [];
+        // Figure out the columsn with expand buttons...
+        var columnsWithExpandButtons = [];
         for (var i = 0; i < columns.length; i++) {
           if (columns[i].showExpandButtons)
-            this.columnsWithExpandButtons_.push(i);
+            columnsWithExpandButtons.push(i);
         }
-        // First column if none have specified.
-        if (this.columnsWithExpandButtons_.length === 0)
-          this.columnsWithExpandButtons_ = [0];
+        if (columnsWithExpandButtons.length === 0) {
+          // First column if none have specified.
+          columnsWithExpandButtons = [0];
+        }
+
+        // Sanity check columns.
+        for (var i = 0; i < columns.length; i++) {
+          var colInfo = columns[i];
+          if (colInfo.width === undefined)
+            continue;
+
+          var hasExpandButton = columnsWithExpandButtons.indexOf(i) !== -1;
+
+          var w = colInfo.width;
+          if (w) {
+            if (/\d+px/.test(w)) {
+              continue;
+            } else if (/\d+%/.test(w)) {
+              if (hasExpandButton) {
+                throw new Error('Columns cannot be %-sized and host ' +
+                                ' an expand button');
+              }
+            } else {
+              throw new Error('Unrecognized width string');
+            }
+          }
+        }
+
+        // Commit the change.
+        this.tableColumns_ = columns;
+        this.columnsWithExpandButtons_ = columnsWithExpandButtons;
         this.sortColumnIndex = undefined;
         this.scheduleRebuildHeaders_();
       },
@@ -275,18 +305,14 @@ found in the LICENSE file.
         var tr = this.appendNewElementAfter_(this.$.head, 'tr');
         for (var i = 0; i < this.tableColumns_.length; i++) {
           var td = this.appendNewElementAfter_(tr, 'td');
-          if (this.tableColumns_[i].width)
-            td.style.width = this.tableColumns_[i].width;
-          if (this.tableColumns_[i].minWidth)
-            td.style.minWidth = this.tableColumns_[i].minWidth;
-          if (this.tableColumns_[i].maxWidth)
-            td.style.maxWidth = this.tableColumns_[i].maxWidth;
 
           var headerCell = new TracingAnalysisHeaderCell();
+
           if (this.showHeader)
             headerCell.cellTitle = this.tableColumns_[i].title;
           else
             headerCell.cellTitle = '';
+
           // If the table can be sorted by this column, attach a tap callback
           // to the column.
           if (this.tableColumns_[i].cmp) {
@@ -301,6 +327,54 @@ found in the LICENSE file.
 
           td.appendChild(headerCell);
           this.headerCells_.push(headerCell);
+        }
+      },
+
+      applySizes_: function() {
+        var rowToRemoveSizing;
+        var rowToSize;
+        if (this.showHeader) {
+          rowToSize = this.$.head.children[0];
+          rowToRemoveSizing = this.$.body.children[0];
+        } else {
+          rowToSize = this.$.body.children[0];
+          rowToRemoveSizing = this.$.head.children[0];
+        }
+        for (var i = 0; i < this.tableColumns_.length; i++) {
+          if (rowToRemoveSizing && rowToRemoveSizing.children[i]) {
+            var tdToRemoveSizing = rowToRemoveSizing.children[i];
+            tdToRemoveSizing.style.minWidth = '';
+            tdToRemoveSizing.style.width = '';
+          }
+
+          // Apply sizing.
+          var td = rowToSize.children[i];
+
+          var delta;
+          if (this.columnsWithExpandButtons_.indexOf(i) !== -1) {
+            td.style.paddingLeft = BASIC_INDENTATION + 'px';
+            delta = BASIC_INDENTATION + 'px';
+          } else {
+            delta = undefined;
+          }
+
+          function calc(base, delta) {
+            if (delta)
+              return 'calc(' + base + ' - ' + delta + ')';
+            else
+              return base;
+          }
+
+          var w = this.tableColumns_[i].width;
+          if (w) {
+            if (/\d+px/.test(w)) {
+              td.style.minWidth = calc(w, delta);
+            } else if (/\d+%/.test(w)) {
+              td.style.minWidth = w;
+            } else {
+              throw new Error('Unrecognized width string: ' + w);
+            }
+          }
         }
       },
 
@@ -337,7 +411,7 @@ found in the LICENSE file.
           return row.htmlNode;
 
         var INDENT_SPACE = indentation * 16;
-        var INDENT_SPACE_NO_BUTTON = indentation * 16 + 8;
+        var INDENT_SPACE_NO_BUTTON = indentation * 16 + BASIC_INDENTATION;
         var tr = this.ownerDocument.createElement('tr');
         row.htmlNode = tr;
         row.indentation = indentation;
@@ -435,6 +509,8 @@ found in the LICENSE file.
       },
 
       rebuild: function() {
+        var wasBodyOrHeaderDirty = this.headerDirty_ || this.bodyDirty_;
+
         if (this.headerDirty_) {
           this.generateHeaderColumns_();
           this.headerDirty_ = false;
@@ -443,6 +519,10 @@ found in the LICENSE file.
           this.generateTableRowNodes_(this.$.body, this.tableRowsInfo_, 0);
           this.bodyDirty_ = false;
         }
+
+        if (wasBodyOrHeaderDirty)
+          this.applySizes_();
+
         if (this.footerDirty_) {
           this.generateTableRowNodes_(this.$.foot, this.tableFooterRowsInfo_,
                                       0);
