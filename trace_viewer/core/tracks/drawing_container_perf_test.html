@@ -42,11 +42,6 @@ tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
       setUpOnce();
       viewportDiv = document.createElement('div');
 
-      if (this.name === 'draw_softwareCanvas') {
-        viewportDiv.width = '200px';
-        viewportDiv.style.width = '200px';
-      }
-
       var viewport = new tv.c.TimelineViewport(viewportDiv);
 
       drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
