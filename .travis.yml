@@ -24,8 +24,9 @@ script:
 
 # Then the interactive tests in headless mode.
  - (sleep 5 &&
-    /tmp/chrome-precise64/chrome --no-sandbox -no-experiments --no-first-run
-    --noerrdialogs "http://localhost:8003/base/tests.html?headless=true")&
+    /tmp/chrome-precise64/chrome
+    --no-sandbox -no-experiments --no-first-run --noerrdialogs
+    "http://localhost:8003/base/tests.html?headless=true&testTypeToRun=all")&
 
 # The individual test results will be communicated back to the server together
 # final test outcome ("all passed" or not), which will determine the exit code
