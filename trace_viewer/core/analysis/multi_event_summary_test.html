@@ -54,5 +54,24 @@ tv.b.unittest.testSuite(function() {
     assert.equal(row.cpuDuration, 4.5);
     assert.equal(row.cpuSelfTime, 3.75);
   });
+
+  test('argSummary', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                              args: {value1: 3, value2: 'x', value3: 1}}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
+                              args: {value1: 3, value2: 'y', value3: 2}}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5,
+                              args: {value1: 3, value2: 'z', value3: 'x'}}));
+    tsg.createSubSlices();
+
+    var row = new tv.c.analysis.MultiEventSummary('x', tsg.slices.slice(0));
+    assert.deepEqual(row.totalledArgs, {value1: 9});
+    assert.deepEqual(row.untotallableArgs, ['value2', 'value3']);
+  });
+
 });
 </script>

@@ -61,6 +61,53 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
   });
 
-  // TODO(nduca): With and without args
+
+  test('withFewerThanFourArgs', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                              args: {value1: 3, value2: 'x', value3: 1}}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
+                              args: {value1: 3.1, value2: 'y', value3: 2}}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5,
+                              args: {value1: 3.2, value2: 'z', value3: 'x'}}));
+    tsg.createSubSlices();
+
+    var threadTrack = {};
+    threadTrack.thread = thread;
+
+    var selection = new Selection(tsg.slices);
+
+    var viewEl = document.createElement('tv-c-a-multi-event-details-table');
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+  });
+
+  test('withExtraArgs', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                              args: {value1: 3, value2: 'x', value3: 1,
+                                     value4: 4, value5: 5, value6: 6}}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
+                              args: {value1: 3.1, value2: 'y', value3: 2,
+                                     value4: 4, value5: 5, value6: 6}}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5,
+                              args: {value1: 3.2, value2: 'z', value3: 'x',
+                                     value4: 4, value5: 'whoops', value6: 6}}));
+    tsg.createSubSlices();
+
+    var threadTrack = {};
+    threadTrack.thread = thread;
+
+    var selection = new Selection(tsg.slices);
+
+    var viewEl = document.createElement('tv-c-a-multi-event-details-table');
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+  });
+
 });
 </script>

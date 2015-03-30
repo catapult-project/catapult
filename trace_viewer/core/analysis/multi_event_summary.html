@@ -21,6 +21,9 @@ tv.exportTo('tv.c.analysis', function() {
     this.cpuTimesComputed_ = false;
     this.cpuSelfTime_ = undefined;
     this.cpuDuration_ = undefined;
+
+    this.untotallableArgs_ = [];
+    this.totalledArgs_ = undefined;
   };
   MultiEventSummary.prototype = {
     get duration() {
@@ -85,6 +88,45 @@ tv.exportTo('tv.c.analysis', function() {
 
     get numEvents() {
       return this.events_.length;
+    },
+
+    get untotallableArgs() {
+      this.updateArgsIfNeeded_();
+      return this.untotallableArgs_;
+    },
+
+    get totalledArgs() {
+      this.updateArgsIfNeeded_();
+      return this.totalledArgs_;
+    },
+
+    updateArgsIfNeeded_: function() {
+      if (this.totalledArgs_ !== undefined)
+        return;
+
+      var untotallableArgs = {};
+      var totalledArgs = {};
+      for (var i = 0; i < this.events_.length; i++) {
+        var event = this.events_[i];
+        for (var argName in event.args) {
+          var argVal = event.args[argName];
+          var type = typeof argVal;
+          if (type !== 'number') {
+            untotallableArgs[argName] = true;
+            delete totalledArgs[argName];
+            continue;
+          }
+          if (untotallableArgs[argName]) {
+            continue;
+          }
+
+          if (totalledArgs[argName] === undefined)
+            totalledArgs[argName] = 0;
+          totalledArgs[argName] += argVal;
+        }
+      }
+      this.untotallableArgs_ = tv.b.dictionaryKeys(untotallableArgs);
+      this.totalledArgs_ = totalledArgs;
     }
   };
 

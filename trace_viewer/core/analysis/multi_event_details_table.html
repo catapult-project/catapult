@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/multi_event_summary.html">
 <link rel="import" href="/core/analysis/time_span.html">
 <link rel="import" href="/core/analysis/time_stamp.html">
+<link rel="import" href="/core/analysis/generic_object_view.html">
 
 <polymer-element name='tv-c-a-multi-event-details-table'>
   <template>
@@ -119,9 +120,9 @@ found in the LICENSE file.
       columns.push({
         title: 'Start',
         value: function(row) {
-          if (row.__proto__ == tv.c.analysis.MultiEventSummary)
-            return row.title;
-          return tv.c.analysis.createTimeStamp(row.start);
+          if (row.__proto__ !== tv.c.analysis.MultiEventSummary.prototype)
+            return tv.c.analysis.createTimeStamp(row.start);
+          return row.title;
         },
         width: '350px',
         cmp: function(rowA, rowB) {
@@ -133,7 +134,7 @@ found in the LICENSE file.
         value: function(row) {
           return tv.c.analysis.createTimeSpan(row.duration);
         },
-        width: colWidthPercentage,
+        width: '<upated further down>',
         cmp: function(rowA, rowB) {
           return rowA.duration - rowB.duration;
         }
@@ -145,7 +146,7 @@ found in the LICENSE file.
           value: function(row) {
             return tv.c.analysis.createTimeSpan(row.cpuDuration);
           },
-          width: colWidthPercentage,
+          width: '<upated further down>',
           cmp: function(rowA, rowB) {
             return rowA.cpuDuration - rowB.cpuDuration;
           }
@@ -157,7 +158,7 @@ found in the LICENSE file.
         value: function(row) {
           return tv.c.analysis.createTimeSpan(row.selfTime);
         },
-        width: colWidthPercentage,
+        width: '<upated further down>',
         cmp: function(rowA, rowB) {
           return rowA.selfTime - rowB.selfTime;
         }
@@ -168,19 +169,70 @@ found in the LICENSE file.
           value: function(row) {
             return tv.c.analysis.createTimeSpan(row.cpuSelfTime);
           },
-          width: colWidthPercentage,
+          width: '<upated further down>',
           cmp: function(rowA, rowB) {
             return rowA.cpuSelfTime - rowB.cpuSelfTime;
           }
         });
       }
-      columns.push({
-        title: 'Args',
-        value: function(row) {
-          return '<WIP>';
-        },
-        width: colWidthPercentage
+
+      var argKeys = tv.b.dictionaryKeys(summary.totalledArgs);
+      argKeys.sort();
+
+      var otherKeys = summary.untotallableArgs.slice(0);
+      otherKeys.sort();
+
+      argKeys.push.apply(argKeys, otherKeys);
+      var keysWithColumns = argKeys.slice(0, 4);
+      var keysInOtherColumn = argKeys.slice(4);
+
+      keysWithColumns.forEach(function(argKey) {
+
+        var hasTotal = summary.totalledArgs[argKey];
+        var colDesc = {
+          title: 'Arg: ' + argKey,
+          value: function(row) {
+            if (row.__proto__ !== tv.c.analysis.MultiEventSummary.prototype) {
+              var argView =
+                  document.createElement('tv-c-analysis-generic-object-view');
+              argView.object = row.args[argKey];
+              return argView;
+            }
+            if (hasTotal)
+              return row.totalledArgs[argKey];
+            return '';
+          },
+          width: '<upated further down>'
+        };
+        if (hasTotal) {
+          colDesc.cmp = function(rowA, rowB) {
+            return rowA.args[argKey] - rowB.args[argKey];
+          }
+        }
+        columns.push(colDesc);
       });
+
+      if (keysInOtherColumn.length) {
+        columns.push({
+          title: 'Other Args',
+          value: function(row) {
+            if (row.__proto__ === tv.c.analysis.MultiEventSummary.prototype)
+              return '';
+            var argView =
+                document.createElement('tv-c-analysis-generic-object-view');
+            var obj = {};
+            for (var i = 0; i < keysInOtherColumn.length; i++)
+              obj[keysInOtherColumn[i]] = row.args[keysInOtherColumn[i]];
+            argView.object = obj;
+            return argView;
+          },
+          width: '<upated further down>'
+        });
+      }
+
+      var colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
+      for (var i = 1; i < columns.length; i++)
+        columns[i].width = colWidthPercentage;
 
       this.$.table.tableColumns = columns;
     },
@@ -190,7 +242,7 @@ found in the LICENSE file.
       this.$.table.tableRows = this.selection_.map(function(event) {
         return event;
       });
-      this.$.table.tableFooterRows = [summary];
+      this.$.table.footerRows = [summary];
     }
   });
 </script>
