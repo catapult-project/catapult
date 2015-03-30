@@ -483,6 +483,8 @@ tv.exportTo('tv.e.importer', function() {
      * model_.
      */
     importEvents: function() {
+      var csr = new tv.c.ClockSyncRecord('linux_perf_importer', 0, {});
+      this.model_.clockSyncRecords.push(csr);
       if (this.stackFrameEvents_)
         this.importStackFrames_();
 

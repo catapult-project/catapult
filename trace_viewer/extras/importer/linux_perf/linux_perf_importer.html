@@ -339,7 +339,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       this.registerDefaultHandlers_();
       this.parseLines();
       this.importClockSyncRecords();
-      var timeShift = this.computeTimeTransform(isSecondaryImport);
+      var timeShift = this.computeTimeTransform();
       if (timeShift === undefined) {
         this.model_.importWarning({
           type: 'clock_sync',
@@ -540,7 +540,10 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
      * @return {number} offset from perf time to parent time or undefined if
      * the necessary sync records were not found.
      */
-    computeTimeTransform: function(isSecondaryImport) {
+    computeTimeTransform: function() {
+      var isSecondaryImport = this.model.getClockSyncRecordsNamed(
+          'linux_perf_importer').length !== 0;
+
       var mSyncs = this.model_.getClockSyncRecordsNamed('monotonic');
       // If this is a secondary import, and no clock syncing records were
       // found, then abort the import. Otherwise, just skip clock alignment.

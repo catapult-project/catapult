@@ -198,6 +198,23 @@ tv.b.unittest.testSuite(function() {
     assert.equal(t3.sliceGroup.slices[0].title, 'taskB');
   });
 
+  test('traceModelCanImportCompressedSingleSubtrace', function() {
+    var compressedTrace = atob('H4sIACKfFVUC/wsuLUpLTE51y8nMS08t0jVSUIg2MDCMV' +
+        'dDT0zNUMDQwMNAzsFIAIqcaw5qSxOJsR65gfDqMEDpcATiC61ZbAAAA');
+    var m = new TraceModel();
+    m.importTraces([compressedTrace]);
+    assert.equal(1, tv.b.dictionaryValues(m.processes).length);
+
+    var p1 = m.processes[1];
+    assertNotUndefined(p1);
+
+    var t2 = p1.threads[2];
+    assertNotUndefined(t2);
+
+    assert.equal(1, t2.sliceGroup.length, 1);
+    assert.equal('taskA', t2.sliceGroup.slices[0].title);
+  });
+
   test('traceModelCanImportSubtracesRecursively', function() {
     var systraceLines = [
       'SurfaceFlinger-2  [001] ...1 1000.0: 0: B|1|taskA',

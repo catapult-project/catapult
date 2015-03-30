@@ -53,7 +53,7 @@ tv.exportTo('tv.e.importer', function() {
       var zip = new JSZip(this.eventData_);
       var subtraces = [];
       for (var idx in zip.files)
-        subtraces.push(zip.files[idx].asText());
+        subtraces.push(zip.files[idx].asBinary());
       return subtraces;
     }
   };
