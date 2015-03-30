@@ -174,8 +174,10 @@ tv.b.unittest.testSuite(function() {
   test('analyzeSelectionWithSingleSlice', function() {
     var selection = createSelectionWithSingleSlice();
     var subView = document.createElement('tv-c-single-slice-sub-view');
-    var table = subView.analyzeSingleSlice_(selection[0], 'Slice');
+    subView.selection = selection;
 
+    var table = tv.b.findDeepElementMatching(
+        subView, 'tracing-analysis-nested-table');
     assert.equal(3, table.tableRows.length);
     assert.equal('b', table.tableRows[0].value);
     assert.equal(0, table.tableRows[1].value.timestamp);
@@ -186,8 +188,10 @@ tv.b.unittest.testSuite(function() {
     var selection = createSelectionWithSingleSlice({withCategory: true});
 
     var subView = document.createElement('tv-c-single-slice-sub-view');
-    var table = subView.analyzeSingleSlice_(selection[0], 'Slice');
+    subView.selection = selection;
 
+    var table = tv.b.findDeepElementMatching(
+        subView, 'tracing-analysis-nested-table');
     assert.equal(4, table.tableRows.length);
     assert.equal('b', table.tableRows[0].value);
     assert.equal('foo', table.tableRows[1].value);

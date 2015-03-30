@@ -14,15 +14,16 @@ found in the LICENSE file.
   <template>
     <style>
       :host {
-        display: block;
+        display: flex;
+        flex-direction: column;
       }
 
       table {
+        flex: 1 1 auto;
+        align-self: stretch;
         border-collapse: collapse;
         border-spacing: 0;
         border-width: 0;
-        font-family: monospace;
-        width: 100%;
       }
 
       table > * > tr > td {
