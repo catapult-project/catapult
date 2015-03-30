@@ -49,6 +49,11 @@ found in the LICENSE file.
         width: 30px;
       }
 
+
+      table > thead > tr > td.sensitive:hover {
+        background-color: #fcfcfc;
+      }
+
       table > thead > tr > td {
         font-weight: bold;
         text-align: left;
@@ -72,6 +77,11 @@ found in the LICENSE file.
       table > tfoot {
         background-color: #eee;
         font-weight: bold;
+      }
+
+      table > tbody > tr:hover,
+      table > tfoot > tr:hover {
+        background-color: #e6e6e6
       }
 
       table > tbody.has-footer > tr:last-child > td {
@@ -331,6 +341,7 @@ found in the LICENSE file.
           // If the table can be sorted by this column, attach a tap callback
           // to the column.
           if (this.tableColumns_[i].cmp) {
+            td.classList.add('sensitive');
             headerCell.tapCallback = this.createSortCallback_(i);
             // Set arrow position, depending on the sortColumnIndex.
             if (this.sortColumnIndex_ === i)
