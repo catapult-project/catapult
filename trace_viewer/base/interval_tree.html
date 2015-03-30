@@ -130,62 +130,28 @@ tv.exportTo('tv.b', function() {
       return max(max(node.maxHighLeft, node.highValue), node.maxHighRight);
     },
 
+    validateFindArguments_: function(queryLow, queryHigh) {
+      if (queryLow === undefined || queryHigh === undefined)
+        throw new Error('queryLow and queryHigh must be defined');
+      if ((typeof queryLow !== 'number') || (typeof queryHigh !== 'number'))
+        throw new Error('queryLow and queryHigh must be numbers');
+    },
+
     /**
      * Retrieve all overlapping intervals.
      *
-     * @param {number} lowValue The low value for the intersection interval.
-     * @param {number} highValue The high value for the intersection interval.
+     * @param {number} queryLow The low value for the intersection interval.
+     * @param {number} queryHigh The high value for the intersection interval.
      * @return {Array} All [begin, end] pairs inside intersecting intervals.
      */
-    findIntersection: function(lowValue, highValue) {
-      if (lowValue === undefined || highValue === undefined)
-        throw new Error('lowValue and highValue must be defined');
-      if ((typeof lowValue !== 'number') || (typeof highValue !== 'number'))
-        throw new Error('lowValue and highValue must be numbers');
-
+    findIntersection: function(queryLow, queryHigh) {
+      this.validateFindArguments_(queryLow, queryHigh);
       if (this.root_ === undefined)
         return [];
 
       var ret = [];
-      this.appendIntersectionsInto_(ret, this.root_, lowValue, highValue);
+      this.root_.appendIntersectionsInto_(ret, queryLow, queryHigh);
       return ret;
-    },
-
-    appendIntersectionsInto_: function(ret, node, lowValue, highValue) {
-      /* This node starts has a start point at or further right then highValue
-       * so we know this node is out and all right children are out. Just need
-       * to check left */
-      if (node.lowValue >= highValue) {
-        if (!node.hasLeftNode)
-          return;
-        return this.appendIntersectionsInto_(ret, node.leftNode,
-                                             lowValue, highValue);
-      }
-
-      /* If we have a maximum left high value that is bigger then lowValue we
-       * need to check left for matches */
-      if (node.maxHighLeft > lowValue) {
-        this.appendIntersectionsInto_(ret, node.leftNode, lowValue, highValue);
-      }
-
-      /* We know that this node starts before highValue, if any of it's data
-       * ends after lowValue we need to add those nodes */
-      if (node.highValue > lowValue) {
-        for (var i = (node.data.length - 1); i >= 0; --i) {
-          /* data nodes are sorted by high value, so as soon as we see one
-           * before low value we're done. */
-          if (node.data[i].high < lowValue)
-            break;
-
-          ret.push(node.data[i].datum);
-        }
-      }
-
-      /* check for matches in the right tree */
-      if (node.hasRightNode) {
-        this.appendIntersectionsInto_(ret, node.rightNode,
-                                      lowValue, highValue);
-      }
     },
 
     /**
@@ -209,20 +175,7 @@ tv.exportTo('tv.b', function() {
     dump_: function() {
       if (this.root_ === undefined)
         return [];
-      return this.dumpNode_(this.root_);
-    },
-
-    dumpNode_: function(node) {
-      var ret = {};
-      if (node.hasLeftNode)
-        ret['left'] = this.dumpNode_(node.leftNode);
-
-      ret['node'] = node.dump();
-
-      if (node.hasRightNode)
-        ret['right'] = this.dumpNode_(node.rightNode);
-
-      return ret;
+      return this.root_.dump();
     }
   };
 
@@ -251,6 +204,42 @@ tv.exportTo('tv.b', function() {
   }
 
   IntervalTreeNode.prototype = {
+    appendIntersectionsInto_: function(ret, queryLow, queryHigh) {
+      /* This node starts has a start point at or further right then queryHigh
+       * so we know this node is out and all right children are out. Just need
+       * to check left */
+      if (this.lowValue_ >= queryHigh) {
+        if (!this.leftNode_)
+          return;
+        return this.leftNode_.appendIntersectionsInto_(
+            ret, queryLow, queryHigh);
+      }
+
+      /* If we have a maximum left high value that is bigger then queryLow we
+       * need to check left for matches */
+      if (this.maxHighLeft_ > queryLow) {
+        this.leftNode_.appendIntersectionsInto_(ret, queryLow, queryHigh);
+      }
+
+      /* We know that this node starts before queryHigh, if any of it's data
+       * ends after queryLow we need to add those nodes */
+      if (this.highValue > queryLow) {
+        for (var i = (this.data.length - 1); i >= 0; --i) {
+          /* data nodes are sorted by high value, so as soon as we see one
+           * before low value we're done. */
+          if (this.data[i].high < queryLow)
+            break;
+
+          ret.push(this.data[i].datum);
+        }
+      }
+
+      /* check for matches in the right tree */
+      if (this.rightNode_) {
+        this.rightNode_.appendIntersectionsInto_(ret, queryLow, queryHigh);
+      }
+    },
+
     get colour() {
       return this.colour_;
     },
@@ -332,17 +321,24 @@ tv.exportTo('tv.b', function() {
     },
 
     merge: function(node) {
-      this.data_ = this.data_.concat(node.data);
+      for (var i = 0; i < node.data.length; i++)
+        this.data_.push(node.data[i]);
       this.data_.sort(function(a, b) {
         return a.high - b.high;
       });
     },
 
     dump: function() {
-      if (this.data_.length === 1)
-        return [this.data_[0].low, this.data[0].high];
+      var ret = {};
+      if (this.leftNode_)
+        ret['left'] = this.leftNode_.dump();
 
-      return this.data_.map(function(d) { return [d.low, d.high]; });
+      ret['data'] = this.data_.map(function(d) { return [d.low, d.high]; });
+
+      if (this.rightNode_)
+        ret['right'] = this.rightNode_.dump();
+
+      return ret;
     }
   };
 

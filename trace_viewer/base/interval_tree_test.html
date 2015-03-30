@@ -107,9 +107,9 @@ tv.b.unittest.testSuite(function() {
 
     var outTree = {
       'left': {
-        'node': [1, 4]
+        'data': [[1, 4]]
       },
-      'node': [3, 5]
+      'data': [[3, 5]]
     };
 
     assert.equal(2, tree.size);
@@ -129,9 +129,9 @@ tv.b.unittest.testSuite(function() {
 
     var outTree = {
       'left': {
-        'node': [1, 4]
+        'data': [[1, 4]]
       },
-      'node': [3, 5]
+      'data': [[3, 5]]
     };
 
     assert.equal(2, tree.size);
@@ -152,30 +152,30 @@ tv.b.unittest.testSuite(function() {
     var outTree = {
       'left': {
         'left': {
-          'node': [0, 5]
+          'data': [[0, 5]]
         },
-        'node': [1, 5],
+        'data': [[1, 5]],
         'right': {
-          'node': [2, 5]
+          'data': [[2, 5]]
         }
       },
-      'node': [3, 5],
+      'data': [[3, 5]],
       'right': {
         'left': {
           'left': {
-            'node': [4, 5]
+            'data': [[4, 5]]
           },
-          'node': [5, 5],
+          'data': [[5, 5]],
           'right': {
-            'node': [6, 5]
+            'data': [[6, 5]]
           }
         },
-        'node': [7, 5],
+        'data': [[7, 5]],
         'right': {
           'left': {
-            'node': [8, 5]
+            'data': [[8, 5]]
           },
-          'node': [9, 5]
+          'data': [[9, 5]]
         }
       }
     };
@@ -198,9 +198,9 @@ tv.b.unittest.testSuite(function() {
 
     var outTree = {
       'left': {
-        'node': [1, 4]
+        'data': [[1, 4]]
       },
-      'node': [[3, 5], [3, 5], [3, 6]]
+      'data': [[3, 5], [3, 5], [3, 6]]
     };
 
     assert.equal(4, tree.size);
