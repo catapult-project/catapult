@@ -294,6 +294,12 @@ tv.b.unittest.testSuite(function() {
 
     var tHead = table.$.head;
     assert.equal(0, tHead.getBoundingClientRect().height);
+
+    table.showHeader = true;
+    table.rebuild();
+    table.showHeader = false;
+    table.rebuild();
+    assert.equal(table.$.head.children.length, 1);
   });
 
 

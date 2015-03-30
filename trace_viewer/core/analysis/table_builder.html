@@ -302,6 +302,7 @@ found in the LICENSE file.
 
       generateHeaderColumns_: function() {
         this.headerCells_ = [];
+        this.$.head.textContent = '';
         var tr = this.appendNewElementAfter_(this.$.head, 'tr');
         for (var i = 0; i < this.tableColumns_.length; i++) {
           var td = this.appendNewElementAfter_(tr, 'td');
