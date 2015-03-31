@@ -11,10 +11,15 @@ import sys
 import tempfile
 
 from telemetry.timeline import trace_data as trace_data_module
+from telemetry.core import util
 from telemetry.util import cloud_storage
 from telemetry.util import file_handle
 from telemetry import value as value_module
-import telemetry.web_components # pylint: disable=W0611
+
+# Bring in tv module for transforming raw trace to html form.
+util.AddDirToPythonPath(
+    util.GetChromiumSrcDir(), 'third_party', 'trace-viewer')
+
 from trace_viewer.build import trace2html
 
 class TraceValue(value_module.Value):
