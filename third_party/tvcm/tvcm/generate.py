@@ -55,6 +55,11 @@ css_warning_message = """
  */
 """
 
+def _AssertIsUTF8(f):
+  if isinstance(f, StringIO.StringIO):
+    return
+  assert f.encoding == 'utf-8'
+
 def CanMinify():
   return _HasLocalClosureCompiler()
 
@@ -173,6 +178,7 @@ def GenerateJSToFile(f,
                      dir_for_include_tag_root=None,
                      minify=False,
                      report_sizes=False):
+  _AssertIsUTF8(f)
   if use_include_tags_for_scripts and dir_for_include_tag_root == None:
     raise Exception('Must provide dir_for_include_tag_root')
 
@@ -240,6 +246,7 @@ class ExtraScript(object):
     self.content_type = content_type
 
   def WriteToFile(self, output_file):
+    _AssertIsUTF8(output_file)
     attrs = []
     if self.script_id:
       attrs.append('id="%s"' % self.script_id)
@@ -290,6 +297,7 @@ def GenerateStandaloneHTMLToFile(output_file,
                                  minify=False,
                                  report_sizes=False,
                                  output_html_head_and_body=True):
+  _AssertIsUTF8(output_file)
   extra_scripts = extra_scripts or []
 
   if output_html_head_and_body:
