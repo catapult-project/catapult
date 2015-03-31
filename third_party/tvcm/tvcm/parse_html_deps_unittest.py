@@ -34,7 +34,7 @@ class ParseTests(unittest.TestCase):
     html = """<!DOCTYPE html>
               <html>
                 <head>
-                  <script src="polymer.js"></script>
+                  <script src="polymer.min.js"></script>
                   <script src="foo.js"></script>
                 </head>
                 <body>
@@ -42,7 +42,7 @@ class ParseTests(unittest.TestCase):
               </html>"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
-    self.assertEquals(['polymer.js', 'foo.js'], module.scripts_external);
+    self.assertEquals(['polymer.min.js', 'foo.js'], module.scripts_external);
     self.assertEquals([], module.inline_scripts)
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
