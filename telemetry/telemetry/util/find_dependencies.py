@@ -14,19 +14,12 @@ import zipfile
 from telemetry import benchmark
 from telemetry.core import command_line
 from telemetry.core import discover
-from telemetry.core import util
 from telemetry.util import bootstrap
 from telemetry.util import cloud_storage
+from telemetry.util import path
 from telemetry.util import path_set
 
 DEPS_FILE = 'bootstrap_deps'
-
-
-def _InDirectory(subdirectory, directory):
-  subdirectory = os.path.realpath(subdirectory)
-  directory = os.path.realpath(directory)
-  common_prefix = os.path.commonprefix([subdirectory, directory])
-  return common_prefix == directory
 
 
 def FindBootstrapDependencies(base_dir):
@@ -34,9 +27,9 @@ def FindBootstrapDependencies(base_dir):
   if not os.path.exists(deps_file):
     return []
   deps_paths = bootstrap.ListAllDepsPaths(deps_file)
-  return set(
-      os.path.realpath(os.path.join(util.GetChromiumSrcDir(), os.pardir, path))
-      for path in deps_paths)
+  return set(os.path.realpath(os.path.join(
+      path.GetChromiumSrcDir(), os.pardir, deps_path))
+      for deps_path in deps_paths)
 
 
 def FindPythonDependencies(module_path):
@@ -58,7 +51,7 @@ def FindPythonDependencies(module_path):
       continue
 
     module_path = os.path.realpath(module_path)
-    if not _InDirectory(module_path, util.GetChromiumSrcDir()):
+    if not path.IsSubpath(module_path, path.GetChromiumSrcDir()):
       continue
 
     yield module_path
@@ -83,7 +76,7 @@ def FindPageSetDependencies(base_dir):
       options.ensure_value(k, v)
 
     # Page set paths are relative to their runner script, not relative to us.
-    util.GetBaseDir = lambda: base_dir
+    path.GetBaseDir = lambda: base_dir
     # TODO: Loading the page set will automatically download its Cloud Storage
     # deps. This is really expensive, and we don't want to do this by default.
     page_set = test_obj.CreatePageSet(options)
@@ -94,26 +87,20 @@ def FindPageSetDependencies(base_dir):
 
 
 def FindExcludedFiles(files, options):
-  def MatchesConditions(path, conditions):
-    for condition in conditions:
-      if condition(path):
-        return True
-    return False
-
   # Define some filters for files.
-  def IsHidden(path):
-    for pathname_component in path.split(os.sep):
+  def IsHidden(path_string):
+    for pathname_component in path_string.split(os.sep):
       if pathname_component.startswith('.'):
         return True
     return False
-  def IsPyc(path):
-    return os.path.splitext(path)[1] == '.pyc'
-  def IsInCloudStorage(path):
-    return os.path.exists(path + '.sha1')
-  def MatchesExcludeOptions(path):
+  def IsPyc(path_string):
+    return os.path.splitext(path_string)[1] == '.pyc'
+  def IsInCloudStorage(path_string):
+    return os.path.exists(path_string + '.sha1')
+  def MatchesExcludeOptions(path_string):
     for pattern in options.exclude:
-      if (fnmatch.fnmatch(path, pattern) or
-          fnmatch.fnmatch(os.path.basename(path), pattern)):
+      if (fnmatch.fnmatch(path_string, pattern) or
+          fnmatch.fnmatch(os.path.basename(path_string), pattern)):
         return True
     return False
 
@@ -126,32 +113,32 @@ def FindExcludedFiles(files, options):
   ]
 
   # Check all the files against the filters.
-  for path in files:
-    if MatchesConditions(path, exclude_conditions):
-      yield path
+  for file_path in files:
+    if any(condition(file_path) for condition in exclude_conditions):
+      yield file_path
 
 
-def FindDependencies(paths, options):
+def FindDependencies(target_paths, options):
   # Verify arguments.
-  for path in paths:
-    if not os.path.exists(path):
-      raise ValueError('Path does not exist: %s' % path)
+  for target_path in target_paths:
+    if not os.path.exists(target_path):
+      raise ValueError('Path does not exist: %s' % target_path)
 
   dependencies = path_set.PathSet()
 
   # Including __init__.py will include Telemetry and its dependencies.
   # If the user doesn't pass any arguments, we just have Telemetry.
   dependencies |= FindPythonDependencies(os.path.realpath(
-    os.path.join(util.GetTelemetryDir(), 'telemetry', '__init__.py')))
-  dependencies |= FindBootstrapDependencies(util.GetTelemetryDir())
+    os.path.join(path.GetTelemetryDir(), 'telemetry', '__init__.py')))
+  dependencies |= FindBootstrapDependencies(path.GetTelemetryDir())
 
   # Add dependencies.
-  for path in paths:
-    base_dir = os.path.dirname(os.path.realpath(path))
+  for target_path in target_paths:
+    base_dir = os.path.dirname(os.path.realpath(target_path))
 
     dependencies.add(base_dir)
     dependencies |= FindBootstrapDependencies(base_dir)
-    dependencies |= FindPythonDependencies(path)
+    dependencies |= FindPythonDependencies(target_path)
     if options.include_page_set_data:
       dependencies |= FindPageSetDependencies(base_dir)
 
@@ -161,25 +148,25 @@ def FindDependencies(paths, options):
   return dependencies
 
 
-def ZipDependencies(paths, dependencies, options):
-  base_dir = os.path.dirname(os.path.realpath(util.GetChromiumSrcDir()))
+def ZipDependencies(target_paths, dependencies, options):
+  base_dir = os.path.dirname(os.path.realpath(path.GetChromiumSrcDir()))
 
   with zipfile.ZipFile(options.zip, 'w', zipfile.ZIP_DEFLATED) as zip_file:
     # Add dependencies to archive.
-    for path in dependencies:
+    for dependency_path in dependencies:
       path_in_archive = os.path.join(
-          'telemetry', os.path.relpath(path, base_dir))
-      zip_file.write(path, path_in_archive)
+          'telemetry', os.path.relpath(dependency_path, base_dir))
+      zip_file.write(dependency_path, path_in_archive)
 
     # Add symlinks to executable paths, for ease of use.
-    for path in paths:
+    for target_path in target_paths:
       link_info = zipfile.ZipInfo(
-          os.path.join('telemetry', os.path.basename(path)))
+          os.path.join('telemetry', os.path.basename(target_path)))
       link_info.create_system = 3  # Unix attributes.
       # 010 is regular file, 0111 is the permission bits rwxrwxrwx.
       link_info.external_attr = 0100777 << 16  # Octal.
 
-      relative_path = os.path.relpath(path, base_dir)
+      relative_path = os.path.relpath(target_path, base_dir)
       link_script = (
           '#!/usr/bin/env python\n\n'
           'import os\n'
@@ -213,11 +200,11 @@ def ZipDependencies(paths, dependencies, options):
       # also have gsutil, which is why this is inside the gsutil block.
       gsutil_dependencies.add(os.path.join(gsutil_base_dir, 'upload.py'))
 
-      for path in gsutil_dependencies:
+      for dependency_path in gsutil_dependencies:
         path_in_archive = os.path.join(
-            'telemetry', os.path.relpath(util.GetTelemetryDir(), base_dir),
-            'third_party', os.path.relpath(path, gsutil_base_dir))
-        zip_file.write(path, path_in_archive)
+            'telemetry', os.path.relpath(path.GetTelemetryDir(), base_dir),
+            'third_party', os.path.relpath(dependency_path, gsutil_base_dir))
+        zip_file.write(dependency_path, path_in_archive)
 
 
 class FindDependenciesCommand(command_line.OptparseCommand):
@@ -251,10 +238,10 @@ class FindDependenciesCommand(command_line.OptparseCommand):
       logging.getLogger().setLevel(logging.WARNING)
 
   def Run(self, args):
-    paths = args.positional_args
-    dependencies = FindDependencies(paths, args)
+    target_paths = args.positional_args
+    dependencies = FindDependencies(target_paths, args)
     if args.zip:
-      ZipDependencies(paths, dependencies, args)
+      ZipDependencies(target_paths, dependencies, args)
       print 'Zip archive written to %s.' % args.zip
     else:
       print '\n'.join(sorted(dependencies))

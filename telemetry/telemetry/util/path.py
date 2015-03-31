@@ -41,3 +41,15 @@ def FindInstalledWindowsApplication(application_path):
       return path
 
   return None
+
+
+def IsSubpath(subpath, superpath):
+  """Returns True iff subpath is or is in superpath."""
+  subpath = os.path.realpath(subpath)
+  superpath = os.path.realpath(superpath)
+
+  while len(subpath) >= len(superpath):
+    if subpath == superpath:
+      return True
+    subpath = os.path.split(subpath)[0]
+  return False
