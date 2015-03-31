@@ -51,7 +51,7 @@ tv.exportTo('tv.e.audits', function() {
 
     // newer versions - main thread, lowercase name, preceeding forward slash
     if (mainThread && mainThread.name &&
-        mainThread.name.match(/\/surfaceflinger/))
+        /surfaceflinger/.test(mainThread.name))
       return new AndroidSurfaceFlinger(process, mainThread);
 
     // older versions - another thread is named SurfaceFlinger
