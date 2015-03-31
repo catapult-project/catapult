@@ -31,8 +31,8 @@ tv.b.unittest.testSuite(function() {
 
     DummyEvent.register(DummyEventSubclass, {typeName: 'dummy-name'});
     assert.equal(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
-    assert.equal(DummyEventSubclass,
-                 DummyEvent.getConstructor('dummy', 'dummy-name'));
+    assert.equal(DummyEvent.getConstructor('dummy', 'dummy-name'),
+                 DummyEventSubclass);
     DummyEvent.unregister(DummyEventSubclass);
     assert.equal(DummyEvent, DummyEvent.getConstructor('dummy', 'dummy-name'));
   });
@@ -61,8 +61,8 @@ tv.b.unittest.testSuite(function() {
       {categoryParts: ['dummy']
     });
     assert.equal(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
-    assert.equal(DummyEventSubclass,
-                 DummyEvent.getConstructor('dummy', 'dummy-name'));
+    assert.equal(DummyEvent.getConstructor('dummy', 'dummy-name'),
+                 DummyEventSubclass);
     DummyEvent.unregister(DummyEventSubclass);
     assert.equal(DummyEvent, DummyEvent.getConstructor('dummy', 'dummy-name'));
   });

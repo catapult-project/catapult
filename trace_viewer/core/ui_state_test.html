@@ -79,8 +79,9 @@ tv.b.unittest.testSuite(function() {
 
     assert.isDefined(uiState);
     assert.equal(uiState.location.xWorld, -50125.512);
-    assert.equal('1.2',
-        uiState.location.getContainingTrack(vp).eventContainer.stableId);
+    assert.equal(
+        uiState.location.getContainingTrack(vp).eventContainer.stableId,
+        '1.2');
     assert.equal(uiState.scaleX, 1.1);
 
     assert.equal(uiState.toUserFriendlyString(vp), str);

@@ -72,8 +72,8 @@ tv.b.unittest.testSuite(function() {
     var viewY = boundRect.top + boundRect.height / 2;
     var location = Location.fromViewCoordinates(vp, viewX, viewY);
     assert.equal(asyncTrack, location.getContainingTrack(vp));
-    assert.deepEqual({ viewX: viewX, viewY: viewY },
-                     location.toViewCoordinates(vp));
+    assert.deepEqual(location.toViewCoordinates(vp),
+                     { viewX: viewX, viewY: viewY });
 
     // Try expanding the multi-row track so that the dimensions of the thread
     // track changes.
@@ -81,8 +81,8 @@ tv.b.unittest.testSuite(function() {
     // Expanding the track causes the height to double. We can calculate the new
     // viewY with respect to the track's old boundRect. ViewX remains unchanged.
     var expandedViewY = boundRect.top + boundRect.height;
-    assert.deepEqual({ viewX: viewX, viewY: expandedViewY },
-                     location.toViewCoordinates(vp));
+    assert.deepEqual(location.toViewCoordinates(vp),
+                     { viewX: viewX, viewY: expandedViewY });
 
     // Test the functionality of fromStableIdAndTimestamp.
     var locationFromCoord =

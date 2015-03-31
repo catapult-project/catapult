@@ -64,8 +64,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     view.object = s10;
     this.addHTMLOutput(view);
-    assert.strictEqual('TV-C-ANALYSIS-LINK',
-        view.shadowRoot.children[0].dataElement.tagName);
+    assert.strictEqual(view.shadowRoot.children[0].dataElement.tagName,
+        'TV-C-ANALYSIS-LINK');
   });
 
   test('objectInstanceValue', function() {
@@ -76,8 +76,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var s10 = i10.addSnapshot(10, {foo: 1});
 
     view.object = i10;
-    assert.strictEqual('TV-C-ANALYSIS-LINK',
-        view.shadowRoot.children[0].dataElement.tagName);
+    assert.strictEqual(view.shadowRoot.children[0].dataElement.tagName,
+        'TV-C-ANALYSIS-LINK');
   });
 
   test('instantiate_emptyArrayValue', function() {

@@ -281,8 +281,9 @@ tv.b.unittest.testSuite(function() {
     var cbCalls = 0;
     timeline.navToPosition = function(uiState) {
       assert.equal(uiState.location.xWorld, 2000);
-      assert.equal('1.2',
-          uiState.location.getContainingTrack(vp).eventContainer.stableId);
+      assert.equal(
+          uiState.location.getContainingTrack(vp).eventContainer.stableId,
+          '1.2');
       assert.equal(uiState.scaleX, 7);
       cbCalls++;
     };

@@ -278,8 +278,8 @@ test('sliceGroupContainerMap', function() {
     // by checking the resulting map.
     assert.equal(containerToTrack.getTrackByStableId('123'), processTrack);
     assert.equal(containerToTrack.getTrackByStableId('123.456'), threadTrack);
-    assert.equal(groupTrack,
-        containerToTrack.getTrackByStableId('123.456.SliceGroup'));
+    assert.equal(containerToTrack.getTrackByStableId('123.456.SliceGroup'),
+        groupTrack);
 
     // Check the track's eventContainer getter.
     assert.equal(processTrack.eventContainer, process);

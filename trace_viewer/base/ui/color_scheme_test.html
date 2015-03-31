@@ -23,8 +23,8 @@ tv.b.unittest.testSuite(function() {
     assert.equal(palette.length / 2, highlightOffset);
 
     for (var i = 0; i < rawPalette.length / 2; i++)
-      assert.deepEqual(brighten(rawPalette[i]),
-                       rawPalette[i + highlightOffset]);
+      assert.deepEqual(rawPalette[i + highlightOffset],
+                       brighten(rawPalette[i]));
   });
 });
 </script>

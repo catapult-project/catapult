@@ -241,8 +241,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.updateForm_();
 
     // Make sure the default filter is returned.
-    assert.equal('-three,-two',
-        dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(),
+        '-three,-two');
 
     // Make sure the default tracing types are returned.
     assert.equal(dlg.tracingRecordMode, 'record-as-much-as-possible');
@@ -264,8 +264,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     // Switch to the graphics, rendering, and rasterization preset.
     dlg.currentlyChosenPreset = ['blink', 'cc', 'renderer',
       'disabled-by-default-cc.debug'];
-    assert.equal('disabled-by-default-cc.debug,-three,-two',
-        dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(),
+        'disabled-by-default-cc.debug,-three,-two');
   });
 
   test('recordSelectionDialog_savedPreset', function() {
@@ -319,14 +319,14 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
-    assert.equal('-cc,-disabled1,disabled-by-default-cc.debug',
-        dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(),
+        '-cc,-disabled1,disabled-by-default-cc.debug');
 
     // Switch to the graphics, rendering, and rasterization preset.
     dlg.currentlyChosenPreset = ['blink', 'cc', 'renderer',
       'disabled-by-default-cc.debug'];
-    assert.equal('-default1,disabled-by-default-cc.debug,-disabled1,-input',
-        dlg.categoryFilter());
+    assert.equal(dlg.categoryFilter(),
+        '-default1,disabled-by-default-cc.debug,-disabled1,-input');
   });
 });
 </script>

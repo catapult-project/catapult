@@ -19,8 +19,8 @@ tv.b.unittest.testSuite(function() {
     var s = new NetAsyncSlice('netlog', 'HTTP_STREAM_JOB', 7, 0, {});
     s.duration = 100;
 
-    assert.equal(NetAsyncSlice,
-                 AsyncSlice.getConstructor('netlog', 'HTTP_STREAM_JOB'));
+    assert.equal(AsyncSlice.getConstructor('netlog', 'HTTP_STREAM_JOB'),
+                 NetAsyncSlice);
     assert.equal(s.viewSubGroupTitle, 'NetLog');
   });
 

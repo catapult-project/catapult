@@ -503,8 +503,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(slice.subSlices.length, 0);
 
     // Check getAllThreads.
-    assert.deepEqual([m.processes[1].threads[1], m.processes[2].threads[2]],
-                      m.getAllThreads());
+    assert.deepEqual(m.getAllThreads(),
+                      [m.processes[1].threads[1], m.processes[2].threads[2]]);
   });
 
   // Process names.
@@ -687,8 +687,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(ctr.numSeries, 1);
 
     assert.equal(ctr.series[0].name, 'value');
-    assert.equal(tv.b.ui.getColorIdForGeneralPurposeString('ctr.value'),
-                 ctr.series[0].color);
+    assert.equal(ctr.series[0].color,
+                 tv.b.ui.getColorIdForGeneralPurposeString('ctr.value'));
 
     assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
 
@@ -819,10 +819,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     assert.equal(ctr.series[0].name, 'value1');
     assert.equal(ctr.series[1].name, 'value2');
-    assert.equal(tv.b.ui.getColorIdForGeneralPurposeString('ctr.value1'),
-                 ctr.series[0].color);
-    assert.equal(tv.b.ui.getColorIdForGeneralPurposeString('ctr.value2'),
-                 ctr.series[1].color);
+    assert.equal(ctr.series[0].color,
+                 tv.b.ui.getColorIdForGeneralPurposeString('ctr.value1'));
+    assert.equal(ctr.series[1].color,
+                 tv.b.ui.getColorIdForGeneralPurposeString('ctr.value2'));
 
     assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
     var samples = [];
@@ -2331,15 +2331,15 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Check that GlobalMemoryDump and ProcessMemoryDump objects are
     // interconnected correctly.
-    assert.equal(m.globalMemoryDumps[0].processMemoryDumps[42],
-        p1.memoryDumps[0]);
-    assert.equal(m.globalMemoryDumps[0].processMemoryDumps[43],
-        p2.memoryDumps[0]);
+    assert.equal(p1.memoryDumps[0],
+        m.globalMemoryDumps[0].processMemoryDumps[42]);
+    assert.equal(p2.memoryDumps[0],
+        m.globalMemoryDumps[0].processMemoryDumps[43]);
     assert.equal(p1.memoryDumps[0].globalMemoryDump, m.globalMemoryDumps[0]);
     assert.equal(p2.memoryDumps[0].globalMemoryDump, m.globalMemoryDumps[0]);
 
-    assert.equal(m.globalMemoryDumps[1].processMemoryDumps[42],
-        p1.memoryDumps[1]);
+    assert.equal(p1.memoryDumps[1],
+        m.globalMemoryDumps[1].processMemoryDumps[42]);
     assert.equal(p1.memoryDumps[1].globalMemoryDump, m.globalMemoryDumps[1]);
   });
 

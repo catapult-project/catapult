@@ -50,10 +50,10 @@ tv.b.unittest.testSuite(function() {
     var table = SimpleTable();
     SortableTable.decorate(table);
     var headerRow = table.tHead.rows[0];
-    assert.equal('Name&nbsp;&#x25BF;',
-                 convertToHTML(headerRow.cells[0].innerHTML));
-    assert.equal('Value&nbsp;&#x25BF;',
-                 convertToHTML(headerRow.cells[1].innerHTML));
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BF;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
     var tableRows = table.tBodies[0].rows;
     assert.equal(tableRows[0].cells[0].innerText, 'First');
     assert.equal(tableRows[0].cells[1].innerText, '2');
@@ -72,10 +72,10 @@ tv.b.unittest.testSuite(function() {
     SortableTable.decorate(table);
     table.sort(0 /*, 'downward' */);
     var headerRow = table.tHead.rows[0];
-    assert.equal('Name&nbsp;&#x25BE;',
-                 convertToHTML(headerRow.cells[0].innerHTML));
-    assert.equal('Value&nbsp;&#x25BF;',
-                 convertToHTML(headerRow.cells[1].innerHTML));
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BE;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
     var tableRows = table.tBodies[0].rows;
     assert.equal(tableRows[0].cells[0].innerText, 'First');
     assert.equal(tableRows[0].cells[1].innerText, '2');
@@ -94,10 +94,10 @@ tv.b.unittest.testSuite(function() {
     SortableTable.decorate(table);
     table.sort(0 , 'upward');
     var headerRow = table.tHead.rows[0];
-    assert.equal('Name&nbsp;&#x25B4;',
-                 convertToHTML(headerRow.cells[0].innerHTML));
-    assert.equal('Value&nbsp;&#x25BF;',
-                 convertToHTML(headerRow.cells[1].innerHTML));
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25B4;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
     var tableRows = table.tBodies[0].rows;
     assert.equal(tableRows[0].cells[0].innerText, 'Middle');
     assert.equal(tableRows[0].cells[1].innerText, '18');
@@ -116,10 +116,10 @@ tv.b.unittest.testSuite(function() {
     SortableTable.decorate(table);
     table.sort(1 /*, 'downward' */);
     var headerRow = table.tHead.rows[0];
-    assert.equal('Name&nbsp;&#x25BF;',
-                 convertToHTML(headerRow.cells[0].innerHTML));
-    assert.equal('Value&nbsp;&#x25BE;',
-                 convertToHTML(headerRow.cells[1].innerHTML));
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BF;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BE;');
     var tableRows = table.tBodies[0].rows;
     assert.equal(tableRows[0].cells[0].innerText, 'Last');
     assert.equal(tableRows[0].cells[1].innerText, '1');
@@ -138,10 +138,10 @@ tv.b.unittest.testSuite(function() {
     SortableTable.decorate(table);
     table.sort(1 , 'upward');
     var headerRow = table.tHead.rows[0];
-    assert.equal('Name&nbsp;&#x25BF;',
-                 convertToHTML(headerRow.cells[0].innerHTML));
-    assert.equal('Value&nbsp;&#x25B4;',
-                 convertToHTML(headerRow.cells[1].innerHTML));
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BF;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25B4;');
     var tableRows = table.tBodies[0].rows;
     assert.equal(tableRows[0].cells[0].innerText, 'Middle');
     assert.equal(tableRows[0].cells[1].innerText, '18');
@@ -160,10 +160,10 @@ tv.b.unittest.testSuite(function() {
     SortableTable.decorate(table);
     table.sort(0);
     var headerRow = table.tHead.rows[0];
-    assert.equal('Name&nbsp;&#x25BE;',
-                 convertToHTML(headerRow.cells[0].innerHTML));
-    assert.equal('Value&nbsp;&#x25BF;',
-                 convertToHTML(headerRow.cells[1].innerHTML));
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BE;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
     var tableRows = table.tBodies[0].rows;
     assert.equal(tableRows[0].cells[0].innerText, 'First');
     assert.equal(tableRows[0].cells[1].innerText, '2');
@@ -177,10 +177,10 @@ tv.b.unittest.testSuite(function() {
     assert.equal(footerRow.cells[1].innerText, '7');
     table.sort(0);
     var headerRow = table.tHead.rows[0];
-    assert.equal('Name&nbsp;&#x25B4;',
-                 convertToHTML(headerRow.cells[0].innerHTML));
-    assert.equal('Value&nbsp;&#x25BF;',
-                 convertToHTML(headerRow.cells[1].innerHTML));
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25B4;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
     var tableRows = table.tBodies[0].rows;
     assert.equal(tableRows[0].cells[0].innerText, 'Middle');
     assert.equal(tableRows[0].cells[1].innerText, '18');
@@ -199,10 +199,10 @@ tv.b.unittest.testSuite(function() {
     SortableTable.decorate(table);
     table.sort(0 , 'upward');
     var headerRow = table.tHead.rows[0];
-    assert.equal('Name&nbsp;&#x25B4;',
-                 convertToHTML(headerRow.cells[0].innerHTML));
-    assert.equal('Value&nbsp;&#x25BF;',
-                 convertToHTML(headerRow.cells[1].innerHTML));
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25B4;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
     var tableRows = table.tBodies[0].rows;
     assert.equal(tableRows[0].cells[0].innerText, 'Middle');
     assert.equal(tableRows[0].cells[1].innerText, '18');
@@ -216,10 +216,10 @@ tv.b.unittest.testSuite(function() {
     assert.equal(footerRow.cells[1].innerText, '7');
     table.sort(1 /*, 'downward' */);
     var headerRow = table.tHead.rows[0];
-    assert.equal('Name&nbsp;&#x25BF;',
-                 convertToHTML(headerRow.cells[0].innerHTML));
-    assert.equal('Value&nbsp;&#x25BE;',
-                 convertToHTML(headerRow.cells[1].innerHTML));
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BF;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BE;');
     var tableRows = table.tBodies[0].rows;
     assert.equal(tableRows[0].cells[0].innerText, 'Last');
     assert.equal(tableRows[0].cells[1].innerText, '1');

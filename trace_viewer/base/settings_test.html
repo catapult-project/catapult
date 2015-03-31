@@ -10,8 +10,7 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   function assertSettingIs(expectedValue, key) {
-    assert.equal(expectedValue, tv.b.Settings.get('my_key'),
-                 'Expected Settings.' + key + ' to be ' + expectedValue);
+    assert.equal(tv.b.Settings.get(key), expectedValue);
   }
 
   // Old settings versions used to stringify objects instead of putting them
