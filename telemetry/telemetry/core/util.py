@@ -103,15 +103,6 @@ def GetUnreservedAvailableLocalPort():
   return port
 
 
-def CloseConnections(tab):
-  """Closes all TCP sockets held open by the browser."""
-  try:
-    tab.ExecuteJavaScript("""window.chrome && chrome.benchmarking &&
-                             chrome.benchmarking.closeConnections()""")
-  except Exception:
-    pass
-
-
 def GetBuildDirectories():
   """Yields all combination of Chromium build output directories."""
   build_dirs = ['build',

@@ -261,3 +261,15 @@ class WebContents(object):
       A boolean indicating whether the WebContents is opearting normally.
     """
     return self._inspector_backend.IsInspectable()
+
+  def CloseConnections(self):
+    """Closes all TCP sockets held open by the browser.
+
+    Raises:
+      exceptions.DevtoolsTargetCrashException if the tab is not alive.
+    """
+    if not self.IsAlive():
+      raise exceptions.DevtoolsTargetCrashException
+    self.ExecuteJavaScript('window.chrome && chrome.benchmarking &&'
+                           'chrome.benchmarking.closeConnections()')
+

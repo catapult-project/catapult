@@ -84,7 +84,8 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
   def DidRunUserStory(self, results):
     if self._finder_options.profiler:
       self._StopProfiling(results)
-    util.CloseConnections(self._current_tab)
+    if self._current_tab and self._current_tab.IsAlive():
+      self._current_tab.CloseConnections()
     self._test.CleanUpAfterPage(self._current_page, self._current_tab)
     if self._current_page.credentials and self._did_login_for_current_page:
       self.browser.credentials.LoginNoLongerNeeded(
