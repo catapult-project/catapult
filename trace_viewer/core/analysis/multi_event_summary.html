@@ -74,10 +74,11 @@ tv.exportTo('tv.c.analysis', function() {
 
     get selfTime() {
       if (this.selfTime_ === undefined) {
-        this.selfTime_ = tv.b.Statistics.sum(
-            this.events_, function(event) {
-                return event.selfTime;
-            });
+        this.selfTime_ = 0;
+        for (var i = 0; i < this.events_.length; i++) {
+          if (this.events_[i].selfTime !== undefined)
+            this.selfTime_ += this.events[i].selfTime;
+        }
       }
       return this.selfTime_;
     },

@@ -55,6 +55,23 @@ tv.b.unittest.testSuite(function() {
     assert.equal(row.cpuSelfTime, 3.75);
   });
 
+  test('summaryRowNonSlice', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+
+    var fe1 = new tv.c.trace_model.FlowEvent('cat', 1234, 'title', 7, 10, {});
+    var fe2 = new tv.c.trace_model.FlowEvent('cat', 1234, 'title', 8, 20, {});
+    model.flowEvents.push(fe1);
+    model.flowEvents.push(fe2);
+
+    var row = new tv.c.analysis.MultiEventSummary('a', [fe1, fe2]);
+    assert.equal(row.duration, 0);
+    assert.equal(row.selfTime, 0);
+    assert.equal(row.cpuDuration, undefined);
+    assert.equal(row.cpuSelfTime, undefined);
+  });
+
   test('argSummary', function() {
     var model = new Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
