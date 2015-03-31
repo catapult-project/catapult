@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import codecs
 import optparse
 import os
 import sys
@@ -26,7 +27,8 @@ def main(args):
 
   olddir = os.getcwd()
   try:
-    o = open(os.path.join(options.out_dir, "about_tracing.html"), 'w')
+    o = codecs.open(os.path.join(options.out_dir, "about_tracing.html"), 'w',
+                    encoding='utf-8')
     try:
       tvcm.GenerateStandaloneHTMLToFile(
           o,
@@ -39,7 +41,9 @@ def main(args):
     o.close()
 
 
-    o = open(os.path.join(options.out_dir, "about_tracing.js"), 'w')
+    o = codecs.open(os.path.join(options.out_dir, "about_tracing.js"), 'w',
+                    encoding='utf-8')
+    assert o.encoding == 'utf-8'
     tvcm.GenerateJSToFile(
         o,
       load_sequence,
