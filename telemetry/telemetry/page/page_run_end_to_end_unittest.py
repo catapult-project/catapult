@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import re
 import shutil
 import sys
 import StringIO
@@ -96,6 +97,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     self._formatted_exception_buffer = StringIO.StringIO()
     self._original_formatter = exception_formatter.PrintFormattedException
 
+  def tearDown(self):
+    self.RestoreExceptionFormatter()
+
   def CaptureFormattedException(self):
     exception_formatter.PrintFormattedException = CaptureStderr(
         exception_formatter.PrintFormattedException,
@@ -113,8 +117,21 @@ class PageRunEndToEndTests(unittest.TestCase):
       self._user_story_runner_logging_stub.Restore()
       self._user_story_runner_logging_stub = None
 
-  def tearDown(self):
-    self.RestoreExceptionFormatter()
+  def assertFormattedExceptionIsEmpty(self):
+    self.longMessage = False
+    self.assertEquals(
+        '', self.formatted_exception,
+        msg='Expected empty formatted exception: actual=%s' % '\n   > '.join(
+            self.formatted_exception.split('\n')))
+
+  def assertFormattedExceptionOnlyHas(self, expected_exception_name):
+    self.longMessage = True
+    actual_exception_names = re.findall(r'^Traceback.*?^(\w+)',
+                                        self.formatted_exception,
+                                        re.DOTALL | re.MULTILINE)
+    self.assertEquals([expected_exception_name], actual_exception_names,
+                      msg='Full formatted exception: %s' % '\n   > '.join(
+                          self.formatted_exception.split('\n')))
 
   def testRaiseBrowserGoneExceptionFromRestartBrowserBeforeEachPage(self):
     self.CaptureFormattedException()
@@ -151,7 +168,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     self.assertEquals(2, test.run_count)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
-    self.assertEquals('', self.formatted_exception)
+    self.assertFormattedExceptionIsEmpty()
 
   def testNeedsBrowserRestartAfterEachPage(self):
     self.CaptureFormattedException()
@@ -183,7 +200,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     user_story_runner.Run(test, ps, expectations, options, results)
     self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(2, test.browser_starts)
-    self.assertEquals('', self.formatted_exception)
+    self.assertFormattedExceptionIsEmpty()
 
   def testHandlingOfCrashedTabWithExpectedFailure(self):
     self.CaptureFormattedException()
@@ -201,9 +218,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     user_story_runner.Run(DummyTest(), ps, expectations, options, results)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
-    self.assertIn('DevtoolsTargetCrashException', self.formatted_exception)
-    # Check that only one exception is raised.
-    self.assertEquals(1, self.formatted_exception.count('Traceback'))
+    self.assertFormattedExceptionOnlyHas('DevtoolsTargetCrashException')
 
   def testCredentialsWhenLoginFails(self):
     self.CaptureFormattedException()
@@ -212,7 +227,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     assert credentials_backend.did_get_login == True
     assert credentials_backend.did_get_login_no_longer_needed == False
     assert did_run == False
-    self.assertEquals('', self.formatted_exception)
+    self.assertFormattedExceptionIsEmpty()
 
   def testCredentialsWhenLoginSucceeds(self):
     credentials_backend = StubCredentialsBackend(login_return_value=True)
@@ -532,7 +547,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     results = self._RunPageTestThatRaisesAppCrashException(test, max_failures=1)
     self.assertEquals([], GetSuccessfulPageRuns(results))
     self.assertEquals(2, len(results.failures))  # max_failures + 1
-    self.assertEquals('', self.formatted_exception)
+    self.assertFormattedExceptionIsEmpty()
 
   @decorators.Enabled('has tabs')
   def testMultipleTabsMeansCrashRaises(self):
@@ -547,9 +562,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     test = MultipleTabsTest()
     with self.assertRaises(page_test.MultiTabTestAppCrashError):
       self._RunPageTestThatRaisesAppCrashException(test, max_failures=1)
-    self.assertIn('AppCrashException', self.formatted_exception)
-    # Check that only one exception is raised.
-    self.assertEquals(1, self.formatted_exception.count('Traceback'))
+    self.assertFormattedExceptionOnlyHas('AppCrashException')
 
   def testWebPageReplay(self):
     ps = example_domain.ExampleDomainPageSet()
