@@ -3,14 +3,16 @@
 # found in the LICENSE file.
 """A Resource is a file and its various associated canonical names."""
 
+import codecs
 import os
 
 class Resource(object):
   """Represents a file found via a path search."""
-  def __init__(self, toplevel_dir, absolute_path):
+  def __init__(self, toplevel_dir, absolute_path, binary=False):
     self.toplevel_dir = toplevel_dir
     self.absolute_path = absolute_path
     self._contents = None
+    self._binary = binary
 
   @property
   def relative_path(self):
@@ -43,7 +45,10 @@ class Resource(object):
       return self._contents
     if not os.path.exists(self.absolute_path):
       raise Exception('%s not found.' % self.absolute_path)
-    f = open(self.absolute_path, 'rb')
+    if self._binary:
+      f = open(self.absolute_path, mode='rb')
+    else:
+      f = codecs.open(self.absolute_path, mode='r', encoding='utf-8')
     self._contents = f.read()
     f.close()
     return self._contents

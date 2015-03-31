@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import codecs
 import optparse
 import os
 import StringIO
@@ -47,7 +48,7 @@ trace viewer.""")
     output_filename = os.path.join(
         trace_viewer_dir, 'bin/trace_viewer_%s.html' % options.config_name)
 
-  with open(output_filename, 'w') as f:
+  with codecs.open(output_filename, 'w', encoding='utf-8') as f:
     WriteTraceViewer(
         f,
         config_name=options.config_name,

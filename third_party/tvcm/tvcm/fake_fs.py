@@ -1,6 +1,7 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import codecs
 import os
 import sys
 import collections
@@ -21,6 +22,7 @@ class FakeFS(object):
         self._file_contents[k] = v
 
     self._bound = False
+    self._real_codecs_open = codecs.open
     self._real_open = sys.modules['__builtin__'].open
     self._real_exists = os.path.exists
     self._real_walk = os.walk
@@ -35,6 +37,7 @@ class FakeFS(object):
 
   def Bind(self):
     assert not self._bound
+    codecs.open = self._FakeCodecsOpen
     sys.modules['__builtin__'].open = self._FakeOpen
     os.path.exists = self._FakeExists
     os.walk = self._FakeWalk
@@ -43,6 +46,7 @@ class FakeFS(object):
 
   def Unbind(self):
     assert self._bound
+    codecs.open = self._real_codecs_open
     sys.modules['__builtin__'].open = self._real_open
     os.path.exists = self._real_exists
     os.walk = self._real_walk
@@ -54,6 +58,16 @@ class FakeFS(object):
     self._file_contents[path] = contents
 
   def _FakeOpen(self, path, mode=None):
+    if mode == None:
+      mode = 'r'
+    if mode == 'r' or mode == 'rU' or mode == 'rb':
+      if path not in self._file_contents:
+        return self._real_open(path, mode)
+      return WithableStringIO(self._file_contents[path])
+
+    raise NotImplementedError()
+
+  def _FakeCodecsOpen(self, path, mode=None, encoding=None):
     if mode == None:
       mode = 'r'
     if mode == 'r' or mode == 'rU' or mode == 'rb':

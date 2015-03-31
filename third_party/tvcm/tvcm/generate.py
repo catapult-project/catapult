@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import base64
+import codecs
 import httplib
 import optparse
 import json
@@ -143,7 +144,28 @@ def GenerateJS(load_sequence,
                    dir_for_include_tag_root,
                    minify=minify,
                    report_sizes=report_sizes)
+
   return f.getvalue()
+
+def pt_parts(self):
+  sl = ['unicode and 8-bit string parts of above page template']
+  for x in self.buflist:
+      if type(x) == type(''):
+          maxcode = 0
+          for c in x:
+              maxcode = max(ord(c), maxcode)
+      # show only unicode objects and non-ascii strings
+      if type(x) == type('') and maxcode > 127:
+          t = '****NonAsciiStr: '
+      elif type(x) == type(u''):
+          t = '*****UnicodeStr: '
+      else:
+          t = None
+      if t:
+          sl.append(t + repr(x))
+  s = '\n'.join(sl)
+  return s
+
 
 def GenerateJSToFile(f,
                      load_sequence,
@@ -250,7 +272,7 @@ def _MinifyCSS(css_text):
     p.communicate(input=css_text)
     if p.wait() != 0:
       raise Exception('Failed to generate %s.' % output_css_file)
-    with open(f.name, 'r') as f2:
+    with codecs.open(f.name, mode='r', encoding='utf-8') as f2:
       return f2.read()
 
 
@@ -311,8 +333,13 @@ def GenerateStandaloneHTMLToFile(output_file,
     output_file.write('<script src="%s"></script>\n' % flattened_js_url)
   else:
     output_file.write('<script>\n')
-    output_file.write(
-        GenerateJS(load_sequence, minify=minify, report_sizes=report_sizes))
+    x = GenerateJS(load_sequence, minify=minify, report_sizes=report_sizes)
+    try:
+      output_file.write(x)
+    except UnicodeEncodeError, ex:
+      print ex
+      import pdb; pdb.set_trace()
+      raise
     output_file.write('</script>\n')
 
   for extra_script in extra_scripts:

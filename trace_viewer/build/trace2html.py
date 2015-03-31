@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import codecs
 import base64
 import gzip
 import json
@@ -44,7 +45,7 @@ file that contains both the trace and the trace viewer.""")
     namepart = os.path.splitext(args[0])[0]
     output_filename = namepart + '.html'
 
-  with open(output_filename, 'w') as f:
+  with codecs.open(output_filename, mode='w', encoding='utf-8') as f:
     WriteHTMLForTracesToFile(args, f, config_name=options.config_name)
 
   if not options.quiet:

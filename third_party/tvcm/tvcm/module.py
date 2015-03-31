@@ -13,6 +13,7 @@ Other resources include HTML templates, raw javascript files, and stylesheets.
 import os
 import re
 import inspect
+import codecs
 
 from tvcm import resource as resource_module
 from tvcm import js_utils
@@ -98,7 +99,7 @@ class Module(object):
     self.resource = resource
 
     if load_resource:
-      f = open(self.filename, 'r')
+      f = codecs.open(self.filename, mode='r', encoding='utf-8')
       self.contents = f.read()
       f.close()
     else:
