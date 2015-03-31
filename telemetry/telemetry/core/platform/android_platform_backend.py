@@ -360,13 +360,20 @@ class AndroidPlatformBackend(
     ps = self._device.RunShellCommand(command)[1:]
     output = []
     for line in ps:
-      data = line.split()
-      curr_pid = data[1]
-      curr_name = data[-1]
-      if columns == ['pid', 'name']:
-        output.append([curr_pid, curr_name])
-      else:
-        output.append([curr_pid])
+      # TODO(rnephew): Remove when crbug.com/471122 is solved.
+      try:
+        data = line.split()
+        curr_pid = data[1]
+        curr_name = data[-1]
+        if columns == ['pid', 'name']:
+          output.append([curr_pid, curr_name])
+        else:
+          output.append([curr_pid])
+      except IndexError:
+        logging.warning(
+            'Error in processing ps line:\n%s\nFull ps contents:\n%s\n'
+             % (line, ps))
+        raise
     return output
 
   def RunCommand(self, command):
