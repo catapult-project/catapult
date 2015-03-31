@@ -32,7 +32,8 @@ class InlineScript(object):
 
   @property
   def contents(self):
-    return str(self._soup.string)
+    #TODO(nednguyen): change other places to use unicode() instead of str().
+    return unicode(self._soup.string)
 
   @property
   def stripped_contents(self):
