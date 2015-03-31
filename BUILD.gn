@@ -333,6 +333,7 @@ tracing_js_html_files = [
   "trace_viewer/extras/tcmalloc/tcmalloc_snapshot_view.html",
   "trace_viewer/extras/tquery/context.html",
   "trace_viewer/extras/tquery/filter.html",
+  "trace_viewer/extras/tquery/filter_has_ancestor.html",
   "trace_viewer/extras/tquery/filter_has_title.html",
   "trace_viewer/extras/tquery/tquery.html",
   "trace_viewer/trace_viewer.html",

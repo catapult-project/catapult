@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/scripting_object.html">
 <link rel="import" href="/extras/tquery/context.html">
+<link rel="import" href="/extras/tquery/filter_has_ancestor.html">
 <link rel="import" href="/extras/tquery/filter_has_title.html">
 
 <polymer-element name='tv-e-tquery' extends='tv-c-scripting-object'>
@@ -44,7 +45,10 @@ found in the LICENSE file.
       var result = document.createElement('tv-e-tquery');
       result.timeline_ = this.timeline;
       result.parent_ = this;
-      result.filterExpression_ = filterExpression;
+      // TODO(skyostil): Can we use a static helper function for this?
+      result.filterExpression_ =
+          document.createElement('tv-e-tquery-filter').
+              normalizeFilterExpression(filterExpression);
       return result;
     },
 
@@ -115,32 +119,18 @@ found in the LICENSE file.
       var event = context.event;
       if (inputSelection.contains(event) && !seenEvents[event.guid]) {
         seenEvents[event.guid] = true;
-        var filterExpression = this.normalizeFilterExpression_();
-        if (!filterExpression || filterExpression.evaluate(context)) {
+        if (!this.filterExpression_ ||
+            this.filterExpression_.evaluate(context))
           outputSelection.push(event);
-        }
       }
       if (!event.subSlices)
         return;
       context = context.push(event);
-      for (var i = 0; i < event.subSlices; i++) {
+      for (var i = 0; i < event.subSlices.length; i++) {
         context.event = event.subSlices[i];
         this.evaluateFilterExpressionForEvent_(
             context, inputSelection, outputSelection, seenEvents);
       }
-    },
-
-    normalizeFilterExpression_: function() {
-      // Shortcut: naked strings and regexps can be used to match against slice
-      // titles.
-      if (this.filterExpression_ instanceof String ||
-          typeof(this.filterExpression_) == 'string' ||
-          this.filterExpression_ instanceof RegExp) {
-        var filter = document.createElement('tv-e-tquery-filter-has-title');
-        filter.expected = this.filterExpression_;
-        return filter;
-      }
-      return this.filterExpression_;
     },
 
     // Show the result of this query as a highlight on the timeline. Returns a

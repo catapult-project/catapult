@@ -25,6 +25,19 @@ found in the LICENSE file.
       else if (expected instanceof Function)
         return expected(value);
       return value === expected;
+    },
+
+    normalizeFilterExpression: function(filterExpression) {
+      // Shortcut: naked strings and regexps can be used to match against slice
+      // titles.
+      if (filterExpression instanceof String ||
+          typeof(filterExpression) == 'string' ||
+          filterExpression instanceof RegExp) {
+        var filter = document.createElement('tv-e-tquery-filter-has-title');
+        filter.expected = filterExpression;
+        return filter;
+      }
+      return filterExpression;
     }
   });
   </script>

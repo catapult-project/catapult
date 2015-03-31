@@ -18,14 +18,15 @@ found in the LICENSE file.
     },
 
     push: function(event) {
-      var ctx = document.createElement('tv-e-tquery-context');
+      var ctx = document.createElement(this.element.name);
       ctx.ancestors = this.ancestors.slice();
       ctx.ancestors.push(event);
       return ctx;
     },
 
     pop: function(event) {
-      var ctx = document.createElement('tv-e-tquery-context');
+      var ctx = document.createElement(this.element.name);
+      ctx.event = this.ancestors[this.ancestors.length - 1];
       ctx.ancestors = this.ancestors.slice(0, this.ancestors.length - 1);
       return ctx;
     }

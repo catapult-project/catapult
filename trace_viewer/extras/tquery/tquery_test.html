@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/extras/tquery/tquery.html">
-<link rel="import" href="/extras/tquery/filter_has_title.html">
 
 <polymer-element name='tv-e-tquery-fake-timeline'>
   <script>
@@ -22,9 +21,18 @@ found in the LICENSE file.
       return new tv.b.Task(function() {
         var n = this.allObjects.length;
         for (var i = 0; i < n; i++) {
-          selection.push(this.allObjects[i]);
+          this.addSubtreeToSelection_(selection, this.allObjects[i]);
         }
       }, this);
+    },
+
+    addSubtreeToSelection_: function(selection, event) {
+      selection.push(event);
+      if (event.subSlices) {
+        for (var i = 0; i < event.subSlices.length; i++) {
+          this.addSubtreeToSelection_(selection, event.subSlices[i]);
+        }
+      }
     },
 
     setHighlightAndClearSelection: function(highlight) {
@@ -107,6 +115,29 @@ tv.b.unittest.testSuite(function() {
     var result = tquery.filter(/^c$/).selection;
     assert.equal(result.length, 1);
     assert.equal(result[0].guid, 3);
+  });
+
+  test('tqueryFilterHasAncestor', function() {
+    var tquery = document.createElement('tv-e-tquery');
+    var hasAncestor = document.createElement(
+        'tv-e-tquery-filter-has-ancestor').scriptValue;
+    var timeline = createFakeTimelineWithEvents_([
+        {guid: 1, title: 'a'},
+        {guid: 2, title: 'b', subSlices: [{guid: 4}]},
+        {guid: 3, title: 'c'}
+    ]);
+    tquery.onTimelineChanged(timeline);
+
+    var result = tquery.filter(hasAncestor('b')).selection;
+    assertEquals(1, result.length);
+    assertEquals(4, result[0].guid);
+
+    var result = tquery.filter(hasAncestor()).selection;
+    assertEquals(1, result.length);
+    assertEquals(4, result[0].guid);
+
+    var result = tquery.filter(hasAncestor('a')).selection;
+    assertEquals(0, result.length);
   });
 });
 </script>
