@@ -334,12 +334,7 @@ def GenerateStandaloneHTMLToFile(output_file,
   else:
     output_file.write('<script>\n')
     x = GenerateJS(load_sequence, minify=minify, report_sizes=report_sizes)
-    try:
-      output_file.write(x)
-    except UnicodeEncodeError, ex:
-      print ex
-      import pdb; pdb.set_trace()
-      raise
+    output_file.write(x)
     output_file.write('</script>\n')
 
   for extra_script in extra_scripts:
