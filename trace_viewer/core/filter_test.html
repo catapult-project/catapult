@@ -17,10 +17,10 @@ tv.b.unittest.testSuite(function() {
   var ExactTitleFilter = tv.c.ExactTitleFilter;
 
   test('titleOrCategoryFilter', function() {
-    assertThrows(function() {
+    assert.throw(function() {
       new TitleOrCategoryFilter();
     });
-    assertThrows(function() {
+    assert.throw(function() {
       new TitleOrCategoryFilter('');
     });
 
@@ -41,10 +41,10 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('exactTitleFilter', function() {
-    assertThrows(function() {
+    assert.throw(function() {
       new ExactTitleFilter();
     });
-    assertThrows(function() {
+    assert.throw(function() {
       new ExactTitleFilter('');
     });
 

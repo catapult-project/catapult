@@ -103,7 +103,7 @@ tv.b.unittest.testSuite(function() {
     };
 
     var sunburstData = tv.e.analysis.createSunburstData(s, 'cycles');
-    assertEquals(JSON.stringify(expect), JSON.stringify(sunburstData));
+    assert.equal(JSON.stringify(sunburstData), JSON.stringify(expect));
   });
 
   test('processOnlySamples', function() {
@@ -161,7 +161,7 @@ tv.b.unittest.testSuite(function() {
 
     var sunburstData = tv.e.analysis.createSunburstData(
         selection, 'page_misses');
-    assertEquals(JSON.stringify(expect), JSON.stringify(sunburstData));
+    assert.equal(JSON.stringify(sunburstData), JSON.stringify(expect));
   });
 
   test('createSunburstDataSampleType', function() {
@@ -199,7 +199,7 @@ tv.b.unittest.testSuite(function() {
     };
 
     var sunburstData = tv.e.analysis.createSunburstData(s, 'page_misses');
-    assertEquals(JSON.stringify(expect), JSON.stringify(sunburstData));
+    assert.equal(JSON.stringify(sunburstData), JSON.stringify(expect));
   });
 
   test('instantiate', function() {

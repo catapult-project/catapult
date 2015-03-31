@@ -129,15 +129,15 @@ tv.b.unittest.testSuite(function() {
     tquery.onTimelineChanged(timeline);
 
     var result = tquery.filter(hasAncestor('b')).selection;
-    assertEquals(1, result.length);
-    assertEquals(4, result[0].guid);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 4);
 
     var result = tquery.filter(hasAncestor()).selection;
-    assertEquals(1, result.length);
-    assertEquals(4, result[0].guid);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 4);
 
     var result = tquery.filter(hasAncestor('a')).selection;
-    assertEquals(0, result.length);
+    assert.equal(result.length, 0);
   });
 });
 </script>

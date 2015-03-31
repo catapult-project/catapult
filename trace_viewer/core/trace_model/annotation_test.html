@@ -20,13 +20,13 @@ tv.b.unittest.testSuite(function() {
     var start = new tv.c.Location(50, fakeYComponents);
     var end = new tv.c.Location(70, fakeYComponents);
     var rectAnnotation = new tv.c.trace_model.RectAnnotation(start, end);
-    assertEquals(start, rectAnnotation.startLocation);
-    assertEquals(end, rectAnnotation.endLocation);
+    assert.equal(rectAnnotation.startLocation, start);
+    assert.equal(rectAnnotation.endLocation, end);
   });
 
   test('xMarkerAnnotation', function() {
     var xMarkerAnnotation = new tv.c.trace_model.XMarkerAnnotation(2000);
-    assertEquals(2000, xMarkerAnnotation.timestamp);
+    assert.equal(xMarkerAnnotation.timestamp, 2000);
   });
 });
 </script>

@@ -32,7 +32,7 @@ tv.b.unittest.testSuite(function() {
     var i10 = m.getInstanceAt(10);
     assert.equal(i0, i10);
 
-    assertNotUndefined(i10);
+    assert.isDefined(i10);
     assert.equal(i10.snapshots.length, 2);
     assert.equal(i10.snapshots[0].args, 'a1');
     assert.equal(i10.snapshots[1].args, 'a2');

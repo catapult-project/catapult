@@ -37,7 +37,7 @@ tv.b.unittest.testSuite(function() {
     assert.equal(Statistics.min(ary, func, ctx), 1);
 
     var range = Statistics.range(ary, func, ctx);
-    assertFalse(range.isEmpty);
+    assert.isFalse(range.isEmpty);
     assert.equal(range.min, 1);
     assert.equal(range.max, 3);
   });
