@@ -288,6 +288,14 @@ tv.b.unittest.testSuite(function() {
     };
     controller.updateFilterHits();
     assert.equal(cbCalls, 1);
+
+    cbCalls = 0;
+    timeline.removeXNavStringMarker = function() {
+      cbCalls++;
+    };
+    controller.filterText = '';
+    controller.updateFilterHits();
+    assert.equal(cbCalls, 1);
   });
 });
 </script>

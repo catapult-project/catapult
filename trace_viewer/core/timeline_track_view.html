@@ -641,6 +641,8 @@ tv.exportTo('tv.c', function() {
     },
 
     removeXNavStringMarker: function() {
+      if (!this.xNavStringMarker_)
+        return;
       this.model.removeAnnotation(this.xNavStringMarker_);
     },
 
