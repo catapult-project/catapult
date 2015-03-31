@@ -16,7 +16,7 @@ tv.b.unittest.testSuite(function() {
     var m = new tv.c.TraceModel();
     m.importTraces([], false, false, function() {
     });
-    assert.equal(m.kernel.bestGuessAtCpuCount, undefined);
+    assert.isUndefined(m.kernel.bestGuessAtCpuCount);
   });
 
   test('bestGuessAtCpuCountWithCpuData', function() {

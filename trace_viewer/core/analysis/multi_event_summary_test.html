@@ -68,8 +68,8 @@ tv.b.unittest.testSuite(function() {
     var row = new tv.c.analysis.MultiEventSummary('a', [fe1, fe2]);
     assert.equal(row.duration, 0);
     assert.equal(row.selfTime, 0);
-    assert.equal(row.cpuDuration, undefined);
-    assert.equal(row.cpuSelfTime, undefined);
+    assert.isUndefined(row.cpuDuration);
+    assert.isUndefined(row.cpuSelfTime);
   });
 
   test('argSummary', function() {

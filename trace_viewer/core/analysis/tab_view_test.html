@@ -109,7 +109,7 @@ tv.b.unittest.testSuite(function() {
     tabView.appendChild(t2);
     tabView.appendChild(t3);
 
-    assert.equal(tabView.selectedTab, undefined);
+    assert.isUndefined(tabView.selectedTab);
     tabView.selectedTab = t1;
 
     assert.isTrue(t1.hasAttribute('selected'));
