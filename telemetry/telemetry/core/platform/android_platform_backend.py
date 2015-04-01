@@ -41,6 +41,7 @@ from pylib.device import device_errors  # pylint: disable=F0401
 from pylib.perf import cache_control  # pylint: disable=F0401
 from pylib.perf import perf_control  # pylint: disable=F0401
 from pylib.perf import thermal_throttle  # pylint: disable=F0401
+from pylib.utils import device_temp_file # pylint: disable=F0401
 from pylib import screenshot  # pylint: disable=F0401
 
 try:
@@ -357,23 +358,20 @@ class AndroidPlatformBackend(
     command = 'ps'
     if pid:
       command += ' -p %d' % pid
-    ps = self._device.RunShellCommand(command)[1:]
+    with device_temp_file.DeviceTempFile(self._device.adb) as ps_out:
+      command += ' > %s' % ps_out.name
+      self._device.RunShellCommand(command)
+      # Get rid of trailing new line and header.
+      ps = self._device.ReadFile(ps_out.name).split('\n')[1:-1]
     output = []
     for line in ps:
-      # TODO(rnephew): Remove when crbug.com/471122 is solved.
-      try:
-        data = line.split()
-        curr_pid = data[1]
-        curr_name = data[-1]
-        if columns == ['pid', 'name']:
-          output.append([curr_pid, curr_name])
-        else:
-          output.append([curr_pid])
-      except IndexError:
-        logging.warning(
-            'Error in processing ps line:\n%s\nFull ps contents:\n%s\n'
-             % (line, ps))
-        raise
+      data = line.split()
+      curr_pid = data[1]
+      curr_name = data[-1]
+      if columns == ['pid', 'name']:
+        output.append([curr_pid, curr_name])
+      else:
+        output.append([curr_pid])
     return output
 
   def RunCommand(self, command):
