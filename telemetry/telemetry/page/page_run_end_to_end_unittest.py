@@ -202,6 +202,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     self.assertEquals(2, test.browser_starts)
     self.assertFormattedExceptionIsEmpty()
 
+  @decorators.Disabled('android') # https://crbug.com/444240
   def testHandlingOfCrashedTabWithExpectedFailure(self):
     self.CaptureFormattedException()
     ps = page_set.PageSet()
