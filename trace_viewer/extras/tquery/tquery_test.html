@@ -186,5 +186,27 @@ tv.b.unittest.testSuite(function() {
     var result = tquery.filter(anyOf()).selection;
     assert.equal(result.length, 3);
   });
+
+  test('tqueryFilterIsTopLevel', function() {
+    var tquery = document.createElement('tv-e-tquery');
+    var isTopLevel = document.createElement(
+        'tv-e-tquery-filter-is-top-level').scriptValue;
+    var timeline = createFakeTimelineWithEvents_([
+        {guid: 1, title: 'a'},
+        {guid: 2, title: 'b', subSlices: [{guid: 4}]},
+        {guid: 3, title: 'c'}
+    ]);
+    tquery.onTimelineChanged(timeline);
+
+    var result = tquery.filter(isTopLevel()).selection;
+    assert.equal(result.length, 3);
+    assert.equal(result[0].guid, 1);
+    assert.equal(result[1].guid, 2);
+    assert.equal(result[2].guid, 3);
+
+    var result = tquery.filter(isTopLevel('a')).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 1);
+  });
 });
 </script>

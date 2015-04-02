@@ -339,6 +339,7 @@
       'trace_viewer/extras/tquery/filter_any_of.html',
       'trace_viewer/extras/tquery/filter_has_ancestor.html',
       'trace_viewer/extras/tquery/filter_has_title.html',
+      'trace_viewer/extras/tquery/filter_is_top_level.html',
       'trace_viewer/extras/tquery/tquery.html',
       'trace_viewer/trace_viewer.html',
     ],
