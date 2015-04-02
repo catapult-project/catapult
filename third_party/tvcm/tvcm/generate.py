@@ -83,19 +83,24 @@ def _MinifyJS(input_js):
 
 
 def _MinifyJSLocally(input_js):
-  with open(os.devnull, 'w') as devnull:
-    with tempfile.NamedTemporaryFile() as f:
-      args = [
-        'closure-compiler',
-        '--compilation_level', 'SIMPLE_OPTIMIZATIONS',
-        '--language_in', 'ECMASCRIPT5',
-        '--warning_level', 'QUIET'
-      ]
-      p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=devnull)
-      res = p.communicate(input=input_js)
-      if p.wait() != 0:
-        raise Exception('Failed to minify, omgah')
-      return res[0]
+  with tempfile.NamedTemporaryFile() as f:
+    args = [
+      'closure-compiler',
+      '--compilation_level', 'SIMPLE_OPTIMIZATIONS',
+      '--language_in', 'ECMASCRIPT5',
+      '--warning_level', 'QUIET'
+    ]
+    p = subprocess.Popen(args,
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    res = p.communicate(input=input_js)
+    errorcode = p.wait()
+    if errorcode != 0:
+      sys.stderr.write('Closure compiler exited with error code %d' % errorcode)
+      sys.stderr.write(res[1])
+      raise Exception('Failed to minify, omgah')
+    return res[0]
 
 def _MinifyJSUsingClosureService(input_js):
   # Define the parameters for the POST request and encode them in

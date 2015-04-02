@@ -14,6 +14,8 @@ def main(args):
   parser = optparse.OptionParser(usage="%prog --outdir=<directory>")
   parser.add_option("--outdir", dest="out_dir",
                     help="Where to place generated content")
+  parser.add_option("--minify", action="store_true", dest="minify",
+                    default=False, help="Whether to minify JS content.")
   options, args = parser.parse_args(args)
 
   if not options.out_dir:
@@ -27,6 +29,8 @@ def main(args):
 
   olddir = os.getcwd()
   try:
+    if not os.path.exists(options.out_dir):
+      os.makedirs(options.out_dir)
     o = codecs.open(os.path.join(options.out_dir, "about_tracing.html"), 'w',
                     encoding='utf-8')
     try:
@@ -34,7 +38,8 @@ def main(args):
           o,
           load_sequence,
           title='chrome://tracing',
-          flattened_js_url='tracing.js')
+          flattened_js_url='tracing.js',
+          minify=options.minify)
     except tvcm.module.DepsException, ex:
       sys.stderr.write("Error: %s\n\n" % str(ex))
       return 255
@@ -46,9 +51,10 @@ def main(args):
     assert o.encoding == 'utf-8'
     tvcm.GenerateJSToFile(
         o,
-      load_sequence,
-      use_include_tags_for_scripts=True,
-      dir_for_include_tag_root=options.out_dir)
+        load_sequence,
+        use_include_tags_for_scripts=True,
+        dir_for_include_tag_root=options.out_dir,
+        minify=options.minify)
     o.close()
 
   finally:
