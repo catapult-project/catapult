@@ -19,6 +19,7 @@ from telemetry.util import exception_formatter
 from telemetry.util import file_handle
 from telemetry.value import skip
 from telemetry.web_perf import timeline_based_measurement
+from telemetry.web_perf import timeline_based_page_test
 
 
 def _PrepareFinderOptions(finder_options, test, device_type):
@@ -39,7 +40,7 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
   def __init__(self, test, finder_options, user_story_set):
     super(SharedPageState, self).__init__(test, finder_options, user_story_set)
     if isinstance(test, timeline_based_measurement.TimelineBasedMeasurement):
-      self._test = timeline_based_measurement.TimelineBasedPageTest(test)
+      self._test = timeline_based_page_test.TimelineBasedPageTest(test)
     else:
       self._test = test
     device_type = self._device_type or user_story_set.user_agent_type

@@ -6,7 +6,6 @@ from collections import defaultdict
 
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
-from telemetry.page import page_test
 from telemetry.timeline import model as model_module
 from telemetry.value import trace
 from telemetry.web_perf.metrics import layout
@@ -226,28 +225,3 @@ class TimelineBasedMeasurement(object):
   def DidRunUserStory(self, tracing_controller):
     if tracing_controller.is_tracing_running:
       tracing_controller.Stop()
-
-
-class TimelineBasedPageTest(page_test.PageTest):
-  """Page test that collects metrics with TimelineBasedMeasurement."""
-  def __init__(self, tbm):
-    super(TimelineBasedPageTest, self).__init__('RunPageInteractions')
-    self._measurement = tbm
-
-  @property
-  def measurement(self):
-    return self._measurement
-
-  def WillNavigateToPage(self, page, tab):
-    tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.WillRunUserStory(
-        tracing_controller, page.GetSyntheticDelayCategories())
-
-  def ValidateAndMeasurePage(self, page, tab, results):
-    """Collect all possible metrics and added them to results."""
-    tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.Measure(tracing_controller, results)
-
-  def CleanUpAfterPage(self, page, tab):
-    tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.DidRunUserStory(tracing_controller)
