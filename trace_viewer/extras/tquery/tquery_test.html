@@ -139,5 +139,52 @@ tv.b.unittest.testSuite(function() {
     var result = tquery.filter(hasAncestor('a')).selection;
     assert.equal(result.length, 0);
   });
+
+  test('tqueryFilterAllOf', function() {
+    var tquery = document.createElement('tv-e-tquery');
+    var allOf = document.createElement(
+        'tv-e-tquery-filter-all-of').scriptValue;
+    var timeline = createFakeTimelineWithEvents_([
+        {guid: 1, title: 'a1'},
+        {guid: 2, title: 'b1'},
+        {guid: 3, title: 'c1'}
+    ]);
+    tquery.onTimelineChanged(timeline);
+
+    var result = tquery.filter(allOf('a1')).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 1);
+
+    var result = tquery.filter(allOf('a1', /1/)).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 1);
+
+    var result = tquery.filter(allOf()).selection;
+    assert.equal(result.length, 3);
+  });
+
+  test('tqueryFilterAnyOf', function() {
+    var tquery = document.createElement('tv-e-tquery');
+    var anyOf = document.createElement(
+        'tv-e-tquery-filter-any-of').scriptValue;
+    var timeline = createFakeTimelineWithEvents_([
+        {guid: 1, title: 'a'},
+        {guid: 2, title: 'b'},
+        {guid: 3, title: 'c'}
+    ]);
+    tquery.onTimelineChanged(timeline);
+
+    var result = tquery.filter(anyOf('a', 'b')).selection;
+    assert.equal(result.length, 2);
+    assert.equal(result[0].guid, 1);
+    assert.equal(result[1].guid, 2);
+
+    var result = tquery.filter(anyOf('not there', 'a')).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 1);
+
+    var result = tquery.filter(anyOf()).selection;
+    assert.equal(result.length, 3);
+  });
 });
 </script>
