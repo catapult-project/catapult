@@ -203,7 +203,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(dlg.categoryFilter(), '-three,-two');
 
     // Make sure the default tracing types are returned.
-    assert.equal(dlg.tracingRecordMode, 'record-as-much-as-possible');
+    assert.equal(dlg.tracingRecordMode, 'record-until-full');
     assert.isFalse(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
@@ -230,7 +230,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     tv.b.Settings.set('three', false, 'categories');
     tv.b.Settings.set('disabled-by-default-cc.debug', true, 'categories');
     tv.b.Settings.set('recordSelectionDialog.tracingRecordMode',
-        'record-until-full');
+        'record-as-much-as-possible');
     tv.b.Settings.set('recordSelectionDialog.useSystemTracing', true);
     tv.b.Settings.set('recordSelectionDialog.useSampling', false);
 
@@ -240,12 +240,15 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     // Note: currentlyChosenPreset is not set here, so the default is used.
     dlg.updateForm_();
 
+    // Preset mode is on.
+    assert.isTrue(dlg.usingPreset_());
+
     // Make sure the default filter is returned.
     assert.equal(dlg.categoryFilter(),
         '-three,-two');
 
     // Make sure the default tracing types are returned.
-    assert.equal(dlg.tracingRecordMode, 'record-as-much-as-possible');
+    assert.equal(dlg.tracingRecordMode, 'record-until-full');
     assert.isFalse(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
@@ -255,8 +258,15 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Switch to manual settings and verify the default values are not returned.
     dlg.currentlyChosenPreset = [];
+
+    // Preset mode is off.
+    assert.isFalse(dlg.usingPreset_());
+
+    // Make sure the default filter is returned.
     assert.equal(dlg.categoryFilter(), '-three,disabled-by-default-cc.debug');
-    assert.equal(dlg.tracingRecordMode, 'record-until-full');
+
+    // Make sure the tracing types set by catalog are returned.
+    assert.equal(dlg.tracingRecordMode, 'record-as-much-as-possible');
     assert.isTrue(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
     assert.isFalse(classList.contains('categories-column-view-hidden'));
@@ -287,7 +297,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(dlg.categoryFilter(), '-three,-two');
 
     // Make sure the correct tracing types are returned.
-    assert.equal(dlg.tracingRecordMode, 'record-as-much-as-possible');
+    assert.equal(dlg.tracingRecordMode, 'record-until-full');
     assert.isFalse(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
