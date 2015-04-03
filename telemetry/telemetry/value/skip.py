@@ -57,8 +57,8 @@ class SkipValue(value_module.Value):
     if 'important' in kwargs:
       del kwargs['important']
     kwargs['reason'] = value_dict['reason']
-    if 'interaction_record' in kwargs:
-      del kwargs['interaction_record']
+    if 'tir_label' in kwargs:
+      del kwargs['tir_label']
 
     return SkipValue(**kwargs)
 

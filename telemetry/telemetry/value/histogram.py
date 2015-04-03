@@ -29,9 +29,9 @@ class HistogramValueBucket(object):
 class HistogramValue(value_module.Value):
   def __init__(self, page, name, units,
                raw_value=None, raw_value_json=None, important=True,
-               description=None, interaction_record=None):
+               description=None, tir_label=None):
     super(HistogramValue, self).__init__(page, name, units, important,
-                                         description, interaction_record)
+                                         description, tir_label)
     if raw_value_json:
       assert raw_value == None, \
              'Don\'t specify both raw_value and raw_value_json'
@@ -52,13 +52,13 @@ class HistogramValue(value_module.Value):
     else:
       page_name = None
     return ('HistogramValue(%s, %s, %s, raw_json_string="%s", '
-            'important=%s, description=%s, interaction_record=%s') % (
+            'important=%s, description=%s, tir_label=%s') % (
                 page_name,
                 self.name, self.units,
                 self.ToJSONString(),
                 self.important,
                 self.description,
-                self.interaction_record)
+                self.tir_label)
 
   def GetBuildbotDataType(self, output_context):
     if self._IsImportantGivenOutputIntent(output_context):
@@ -104,8 +104,8 @@ class HistogramValue(value_module.Value):
     kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
     kwargs['raw_value'] = value_dict
 
-    if 'interaction_record' in value_dict:
-      kwargs['interaction_record'] = value_dict['interaction_record']
+    if 'tir_label' in value_dict:
+      kwargs['tir_label'] = value_dict['tir_label']
 
     return HistogramValue(**kwargs)
 
@@ -117,7 +117,7 @@ class HistogramValue(value_module.Value):
         v0.page, v0.name, v0.units,
         raw_value_json=histogram_util.AddHistograms(
             [v.ToJSONString() for v in values]),
-        important=v0.important, interaction_record=v0.interaction_record)
+        important=v0.important, tir_label=v0.tir_label)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values,

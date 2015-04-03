@@ -15,10 +15,10 @@ def _Mean(values):
 class ListOfScalarValues(value_module.Value):
   def __init__(self, page, name, units, values,
                important=True, description=None,
-               interaction_record=None, none_value_reason=None,
+               tir_label=None, none_value_reason=None,
                same_page_merge_policy=value_module.CONCATENATE):
     super(ListOfScalarValues, self).__init__(page, name, units, important,
-                                             description, interaction_record)
+                                             description, tir_label)
     if values is not None:
       assert isinstance(values, list)
       assert len(values) > 0
@@ -38,7 +38,7 @@ class ListOfScalarValues(value_module.Value):
     else:
       merge_policy = 'PICK_FIRST'
     return ('ListOfScalarValues(%s, %s, %s, %s, '
-            'important=%s, description=%s, interaction_record=%s, '
+            'important=%s, description=%s, tir_label=%s, '
             'same_page_merge_policy=%s)') % (
               page_name,
               self.name,
@@ -46,7 +46,7 @@ class ListOfScalarValues(value_module.Value):
               repr(self.values),
               self.important,
               self.description,
-              self.interaction_record,
+              self.tir_label,
               merge_policy)
 
   def GetBuildbotDataType(self, output_context):
@@ -87,8 +87,8 @@ class ListOfScalarValues(value_module.Value):
 
     if 'none_value_reason' in value_dict:
       kwargs['none_value_reason'] = value_dict['none_value_reason']
-    if 'interaction_record' in value_dict:
-      kwargs['interaction_record'] = value_dict['interaction_record']
+    if 'tir_label' in value_dict:
+      kwargs['tir_label'] = value_dict['tir_label']
 
     return ListOfScalarValues(**kwargs)
 
@@ -106,7 +106,7 @@ class ListOfScalarValues(value_module.Value):
           none_value_reason=v0.none_value_reason)
 
     assert v0.same_page_merge_policy == value_module.CONCATENATE
-    return cls._MergeLikeValues(values, v0.page, v0.name, v0.interaction_record)
+    return cls._MergeLikeValues(values, v0.page, v0.name, v0.tir_label)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values,
@@ -114,10 +114,10 @@ class ListOfScalarValues(value_module.Value):
     assert len(values) > 0
     v0 = values[0]
     name = v0.name_suffix if group_by_name_suffix else v0.name
-    return cls._MergeLikeValues(values, None, name, v0.interaction_record)
+    return cls._MergeLikeValues(values, None, name, v0.tir_label)
 
   @classmethod
-  def _MergeLikeValues(cls, values, page, name, interaction_record):
+  def _MergeLikeValues(cls, values, page, name, tir_label):
     v0 = values[0]
     merged_values = []
     none_value_reason = None
@@ -131,6 +131,6 @@ class ListOfScalarValues(value_module.Value):
         page, name, v0.units,
         merged_values,
         important=v0.important,
-        interaction_record=interaction_record,
+        tir_label=tir_label,
         same_page_merge_policy=v0.same_page_merge_policy,
         none_value_reason=none_value_reason)
