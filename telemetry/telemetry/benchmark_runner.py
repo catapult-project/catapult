@@ -326,7 +326,7 @@ def _PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
         'for %s ' %possible_browser.browser_type if possible_browser else '')
     for benchmark_class in sorted(filtered_benchmarks, key=lambda b: b.Name()):
       if possible_browser and not decorators.IsEnabled(benchmark_class,
-                                                       possible_browser):
+                                                       possible_browser)[0]:
         disabled_benchmarks.append(benchmark_class)
         continue
       print >> output_pipe, format_string % (
