@@ -242,12 +242,21 @@ class InspectorBackend(object):
   def _HandleInspectorDomainNotification(self, res):
     if (res['method'] == 'Inspector.detached' and
         res.get('params', {}).get('reason', '') == 'replaced_with_devtools'):
-      self._WaitForInspectorToGoAwayAndReconnect()
+      self._WaitForInspectorToGoAway()
       return
     if res['method'] == 'Inspector.targetCrashed':
       exception = exceptions.DevtoolsTargetCrashException(self.app)
       self._AddDebuggingInformation(exception)
       raise exception
+
+  def _WaitForInspectorToGoAway(self):
+    self._websocket.Disconnect()
+    raw_input('The connection to Chrome was lost to the inspector ui.\n'
+              'Please close the inspector and press enter to resume '
+              'Telemetry run...')
+    raise exceptions.DevtoolsTargetCrashException(
+        self.app, 'Devtool connection with the browser was interrupted due to '
+        'the opening of an inspector.')
 
   def _ConvertExceptionFromInspectorWebsocket(self, error):
     """Converts an Exception from inspector_websocket.
@@ -291,26 +300,6 @@ class InspectorBackend(object):
       )
     error.AddDebuggingMessage(msg)
     error.AddDebuggingMessage('Debugger url: %s' % self.debugger_url)
-
-  def _WaitForInspectorToGoAwayAndReconnect(self):
-    sys.stderr.write('The connection to Chrome was lost to the Inspector UI.\n')
-    sys.stderr.write('Telemetry is waiting for the inspector to be closed...\n')
-    super(InspectorBackend, self).Disconnect()
-    self._websocket._socket.close()
-    self._websocket._socket = None
-    def IsBack():
-      if not self.IsInspectable():
-        return False
-      try:
-        self._websocket.Connect(self.debugger_url)
-      except exceptions.DevtoolsTargetCrashException, ex:
-        if ex.message.message.find('Handshake Status 500') == 0:
-          return False
-        raise
-      return True
-    util.WaitFor(IsBack, 512)
-    sys.stderr.write('\n')
-    sys.stderr.write('Inspector\'s UI closed. Telemetry will now resume.\n')
 
   @_HandleInspectorWebSocketExceptions
   def CollectGarbage(self):
