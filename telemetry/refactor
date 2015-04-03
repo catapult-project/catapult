@@ -107,7 +107,7 @@ def _TransformImportGroups(module_path, transformation):
       _WriteImports(updated_file, import_group)
       import_group = []
 
-      Updated_file.write(line)
+      updated_file.write(line)
 
   if import_group:
     _WriteImports(updated_file, import_group)
