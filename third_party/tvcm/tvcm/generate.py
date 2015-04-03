@@ -60,35 +60,12 @@ def _AssertIsUTF8(f):
     return
   assert f.encoding == 'utf-8'
 
-def CanMinify():
-  return _HasLocalClosureCompiler()
-
-_HasLocalClosureCompilerResult = None
-def _HasLocalClosureCompiler():
-  global _HasLocalClosureCompilerResult
-  if _HasLocalClosureCompilerResult != None:
-    return _HasLocalClosureCompilerResult
-  try:
-    _MinifyJSLocally('console.log("test");')
-    _HasLocalClosureCompilerResult = True
-  except:
-    _HasLocalClosureCompilerResult = False
-  return _HasLocalClosureCompilerResult
-
 
 def _MinifyJS(input_js):
-  if _HasLocalClosureCompiler():
-    return _MinifyJSLocally(input_js)
-  return _MinifyJSUsingClosureService(input_js)
-
-
-def _MinifyJSLocally(input_js):
   with tempfile.NamedTemporaryFile() as f:
     args = [
-      'closure-compiler',
-      '--compilation_level', 'SIMPLE_OPTIMIZATIONS',
-      '--language_in', 'ECMASCRIPT5',
-      '--warning_level', 'QUIET'
+      'python',
+      'third_party/tvcm/third_party/rjsmin/rjsmin.py',
     ]
     p = subprocess.Popen(args,
                          stdin=subprocess.PIPE,
@@ -97,50 +74,11 @@ def _MinifyJSLocally(input_js):
     res = p.communicate(input=input_js)
     errorcode = p.wait()
     if errorcode != 0:
-      sys.stderr.write('Closure compiler exited with error code %d' % errorcode)
+      sys.stderr.write('rJSmin exited with error code %d' % errorcode)
       sys.stderr.write(res[1])
       raise Exception('Failed to minify, omgah')
     return res[0]
 
-def _MinifyJSUsingClosureService(input_js):
-  # Define the parameters for the POST request and encode them in
-  # a URL-safe format.
-  params = urllib.urlencode([
-    ('js_code', input_js),
-    ('language', 'ECMASCRIPT5'),
-    ('compilation_level', 'SIMPLE_OPTIMIZATIONS'),
-    ('output_format', 'json'),
-    ('output_info', 'errors'),
-    ('output_info', 'compiled_code'),
-  ])
-
-  # Always use the following value for the Content-type header.
-  headers = { "Content-type": "application/x-www-form-urlencoded" }
-  conn = httplib.HTTPConnection('closure-compiler.appspot.com')
-  conn.request('POST', '/compile', params, headers)
-  response = conn.getresponse()
-  data = response.read()
-  conn.close
-
-  if response.status != 200:
-    raise Exception("error returned from JS compile service: %d" % response.status)
-
-  result = json.loads(data)
-  if 'errors' in result:
-    errors = []
-    for e in result['errors']:
-      filenum = int(e['file'][6:])
-      filename = 'flat_script.js'
-      lineno = e['lineno']
-      charno = e['charno']
-      err = e['error']
-      errors.append('%s:%d:%d: %s' % (filename, lineno, charno, err))
-    raise Exception('Failed to generate %s. Reason: %s' % (output_js_file,
-                                                           '\n'.join(errors)))
-
-  if 'compiledCode' not in result:
-    raise Exception('Got %s' % repr(result))
-  return result['compiledCode']
 
 def GenerateJS(load_sequence,
                use_include_tags_for_scripts=False,
@@ -267,25 +205,20 @@ class ExtraScript(object):
     output_file.write('</script>\n')
 
 
-_have_printed_yui_missing_warning = False
-
 def _MinifyCSS(css_text):
   with tempfile.NamedTemporaryFile() as f:
-    yuic_args = ['yui-compressor', '--type', 'css', '-o', f.name]
-    try:
-      p = subprocess.Popen(yuic_args, stdin=subprocess.PIPE)
-    except OSError:
-      global _have_printed_yui_missing_warning
-      if not _have_printed_yui_missing_warning:
-        _have_printed_yui_missing_warning = True
-        sys.stderr.write(
-            'yui-compressor missing. CSS minification will be skipped.\n')
-      return css_text
-    p.communicate(input=css_text)
-    if p.wait() != 0:
-      raise Exception('Failed to generate %s.' % output_css_file)
-    with codecs.open(f.name, mode='r', encoding='utf-8') as f2:
-      return f2.read()
+    rcssmin_args = ['python', 'third_party/tvcm/third_party/rcssmin/rcssmin.py']
+    p = subprocess.Popen(rcssmin_args,
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    res = p.communicate(input=css_text)
+    errorcode = p.wait()
+    if errorcode != 0:
+      sys.stderr.write('rCSSmin exited with error code %d' % errorcode)
+      sys.stderr.write(res[1])
+      raise Exception('Failed to generate css for %s.' % css_text)
+    return res[0]
 
 
 def GenerateStandaloneHTMLAsString(*args, **kwargs):

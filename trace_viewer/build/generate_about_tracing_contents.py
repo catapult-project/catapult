@@ -15,7 +15,7 @@ def main(args):
   parser.add_option("--outdir", dest="out_dir",
                     help="Where to place generated content")
   parser.add_option("--minify", action="store_true", dest="minify",
-                    default=False, help="Whether to minify JS content.")
+                    default=True, help="Whether to minify JS content.")
   options, args = parser.parse_args(args)
 
   if not options.out_dir:
@@ -52,7 +52,7 @@ def main(args):
     tvcm.GenerateJSToFile(
         o,
         load_sequence,
-        use_include_tags_for_scripts=True,
+        use_include_tags_for_scripts=False,
         dir_for_include_tag_root=options.out_dir,
         minify=options.minify)
     o.close()
