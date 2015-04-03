@@ -230,6 +230,8 @@ class Benchmark(command_line.Command):
 
     # Download profile directory from cloud storage.
     found_browser = browser_finder.FindBrowser(options)
+    if found_browser.IsRemote():
+      return
     test_data_dir = os.path.join(util.GetChromiumSrcDir(), 'tools', 'perf',
         'generated_profiles',
         found_browser.target_os)
