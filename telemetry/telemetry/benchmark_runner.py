@@ -355,6 +355,11 @@ def main(environment):
       command_name = arg
       break
 
+  # TODO(eakuefner): Remove this hack after we port to argparse.
+  if command_name == 'help' and len(sys.argv) > 2 and sys.argv[2] == 'run':
+    command_name = 'run'
+    sys.argv[2] = '--help'
+
   # Validate and interpret the command name.
   commands = _MatchingCommands(command_name)
   if len(commands) > 1:
