@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import glob
 import heapq
 import logging
@@ -20,6 +21,14 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.util import path
 from telemetry.util import support_binaries
+
+
+def ParseCrashpadDateTime(date_time_str):
+  # Python strptime does not support time zone parsing, strip it.
+  date_time_parts = date_time_str.split()
+  if len(date_time_parts) >= 3:
+    date_time_str = ' '.join(date_time_parts[:2])
+  return datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
 
 
 class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
@@ -241,13 +250,79 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     except IOError:
       return ''
 
-  def _GetMostRecentMinidump(self):
-    dumps = glob.glob(os.path.join(self._tmp_minidump_dir, '*.dmp'))
-    if not dumps:
+  def _GetMostRecentCrashpadMinidump(self):
+    os_name = self.browser.platform.GetOSName()
+    arch_name = self.browser.platform.GetArchName()
+    crashpad_database_util = support_binaries.FindPath(
+        'crashpad_database_util', arch_name, os_name)
+    if not crashpad_database_util:
       return None
-    most_recent_dump = heapq.nlargest(1, dumps, os.path.getmtime)[0]
-    if os.path.getmtime(most_recent_dump) < (time.time() - (5 * 60)):
+
+    report_output = subprocess.check_output([
+        crashpad_database_util, '--database=' + self._tmp_minidump_dir,
+        '--show-pending-reports', '--show-completed-reports',
+        '--show-all-report-info'])
+
+    last_indentation = -1
+    reports_list = []
+    report_dict = {}
+    for report_line in report_output.splitlines():
+      # Report values are grouped together by the same indentation level.
+      current_indentation = 0
+      for report_char in report_line:
+        if not report_char.isspace():
+          break
+        current_indentation += 1
+
+      # Decrease in indentation level indicates a new report is being printed.
+      if current_indentation >= last_indentation:
+        report_key, report_value = report_line.split(':', 1)
+        if report_value:
+          report_dict[report_key.strip()] = report_value.strip()
+      elif report_dict:
+        try:
+          report_time = ParseCrashpadDateTime(report_dict['Creation time'])
+          report_path = report_dict['Path'].strip()
+          reports_list.append((report_time, report_path))
+        except (ValueError, KeyError) as e:
+          logging.warning('Crashpad report expected valid keys'
+                          ' "Path" and "Creation time": %s', e)
+        finally:
+          report_dict = {}
+
+      last_indentation = current_indentation
+
+    # Include the last report.
+    if report_dict:
+      try:
+        report_time = ParseCrashpadDateTime(report_dict['Creation time'])
+        report_path = report_dict['Path'].strip()
+        reports_list.append((report_time, report_path))
+      except (ValueError, KeyError) as e:
+        logging.warning('Crashpad report expected valid keys'
+                          ' "Path" and "Creation time": %s', e)
+
+    if reports_list:
+      _, most_recent_report_path = max(reports_list)
+      return most_recent_report_path
+
+    return None
+
+  def _GetMostRecentMinidump(self):
+    # Crashpad dump layout will be the standard eventually, check it first.
+    most_recent_dump = self._GetMostRecentCrashpadMinidump()
+
+    # Typical breakpad format is simply dump files in a folder.
+    if not most_recent_dump:
+      dumps = glob.glob(os.path.join(self._tmp_minidump_dir, '*.dmp'))
+      if dumps:
+        most_recent_dump = heapq.nlargest(1, dumps, os.path.getmtime)[0]
+
+    # As a sanity check, make sure the crash dump is recent.
+    if (most_recent_dump and
+        os.path.getmtime(most_recent_dump) < (time.time() - (5 * 60))):
       logging.warning('Crash dump is older than 5 minutes. May not be correct.')
+
     return most_recent_dump
 
   def _IsExecutableStripped(self):
@@ -259,7 +334,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return num_symbols < 10
     else:
       return False
-
 
   def _GetStackFromMinidump(self, minidump):
     os_name = self.browser.platform.GetOSName()
