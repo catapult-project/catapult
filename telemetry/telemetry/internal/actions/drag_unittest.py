@@ -5,8 +5,8 @@ import logging
 import math
 import os
 
-from telemetry.page.actions import drag
-from telemetry.page.actions import page_action
+from telemetry.internal.actions import drag
+from telemetry.internal.actions import page_action
 from telemetry.unittest_util import tab_test_case
 
 

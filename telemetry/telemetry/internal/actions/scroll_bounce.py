@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.page.actions import page_action
+from telemetry.internal.actions import page_action
 
 
 class ScrollBounceAction(page_action.PageAction):

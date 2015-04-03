@@ -4,7 +4,7 @@
 
 from telemetry.core import exceptions
 from telemetry import decorators
-from telemetry.page.actions import play
+from telemetry.internal.actions import play
 from telemetry.unittest_util import tab_test_case
 
 AUDIO_1_PLAYING_CHECK = 'window.__hasEventCompleted("#audio_1", "playing");'

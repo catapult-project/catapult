@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.page.actions import navigate
+from telemetry.internal.actions import navigate
 from telemetry.unittest_util import tab_test_case
 
 

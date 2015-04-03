@@ -4,7 +4,7 @@
 
 from telemetry.core import exceptions
 from telemetry import decorators
-from telemetry.page.actions import seek
+from telemetry.internal.actions import seek
 from telemetry.unittest_util import tab_test_case
 
 AUDIO_1_SEEKED_CHECK = 'window.__hasEventCompleted("#audio_1", "seeked");'

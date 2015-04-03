@@ -11,8 +11,8 @@ import time
 
 from telemetry.core import exceptions
 from telemetry.core import wpr_modes
+from telemetry.internal.actions import page_action
 from telemetry import page as page_module
-from telemetry.page.actions import page_action
 from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
 from telemetry.results import results_options

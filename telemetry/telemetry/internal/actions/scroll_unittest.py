@@ -5,7 +5,7 @@
 import os
 
 from telemetry import decorators
-from telemetry.page.actions import scroll
+from telemetry.internal.actions import scroll
 from telemetry.unittest_util import tab_test_case
 
 

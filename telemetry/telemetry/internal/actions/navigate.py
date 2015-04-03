@@ -4,7 +4,7 @@
 
 import time
 
-from telemetry.page.actions import page_action
+from telemetry.internal.actions import page_action
 
 
 class NavigateAction(page_action.PageAction):

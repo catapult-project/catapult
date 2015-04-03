@@ -4,7 +4,7 @@
 
 import os
 
-from telemetry.page.actions import page_action
+from telemetry.internal.actions import page_action
 
 
 class SwipeAction(page_action.PageAction):

@@ -6,21 +6,21 @@ import logging
 import time
 import urlparse
 
-from telemetry.page.actions.drag import DragAction
-from telemetry.page.actions.javascript_click import ClickElementAction
-from telemetry.page.actions.loop import LoopAction
-from telemetry.page.actions.mouse_click import MouseClickAction
-from telemetry.page.actions.navigate import NavigateAction
-from telemetry.page.actions.pinch import PinchAction
-from telemetry.page.actions.play import PlayAction
-from telemetry.page.actions.repaint_continuously import (
+from telemetry.internal.actions.drag import DragAction
+from telemetry.internal.actions.javascript_click import ClickElementAction
+from telemetry.internal.actions.loop import LoopAction
+from telemetry.internal.actions.mouse_click import MouseClickAction
+from telemetry.internal.actions.navigate import NavigateAction
+from telemetry.internal.actions.pinch import PinchAction
+from telemetry.internal.actions.play import PlayAction
+from telemetry.internal.actions.repaint_continuously import (
     RepaintContinuouslyAction)
-from telemetry.page.actions.scroll import ScrollAction
-from telemetry.page.actions.scroll_bounce import ScrollBounceAction
-from telemetry.page.actions.seek import SeekAction
-from telemetry.page.actions.swipe import SwipeAction
-from telemetry.page.actions.tap import TapAction
-from telemetry.page.actions.wait import WaitForElementAction
+from telemetry.internal.actions.scroll import ScrollAction
+from telemetry.internal.actions.scroll_bounce import ScrollBounceAction
+from telemetry.internal.actions.seek import SeekAction
+from telemetry.internal.actions.swipe import SwipeAction
+from telemetry.internal.actions.tap import TapAction
+from telemetry.internal.actions.wait import WaitForElementAction
 from telemetry.web_perf import timeline_interaction_record
 
 

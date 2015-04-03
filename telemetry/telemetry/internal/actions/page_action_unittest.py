@@ -4,8 +4,8 @@
 
 """Tests for page_action."""
 
+from telemetry.internal.actions import page_action
 from telemetry.page import action_runner
-from telemetry.page.actions import page_action
 from telemetry.unittest_util import tab_test_case
 
 

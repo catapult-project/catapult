@@ -5,7 +5,7 @@
 import time
 
 from telemetry.core import util
-from telemetry.page.actions import page_action
+from telemetry.internal.actions import page_action
 
 
 class RepaintContinuouslyAction(page_action.PageAction):

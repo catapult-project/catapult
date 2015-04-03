@@ -5,7 +5,7 @@
 import os
 
 from telemetry.core import exceptions
-from telemetry.page.actions import mouse_click
+from telemetry.internal.actions import mouse_click
 from telemetry.unittest_util import tab_test_case
 
 

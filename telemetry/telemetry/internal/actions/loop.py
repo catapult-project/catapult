@@ -13,8 +13,8 @@ Action parameters are:
 """
 
 from telemetry.core import exceptions
-from telemetry.page.actions import media_action
-from telemetry.page.actions import page_action
+from telemetry.internal.actions import media_action
+from telemetry.internal.actions import page_action
 
 
 class LoopAction(media_action.MediaAction):
