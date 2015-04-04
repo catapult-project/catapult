@@ -11,8 +11,6 @@ from tvcm import generate
 
 class Trace2HTMLTests(unittest.TestCase):
   def test_writeHTMLForTracesToFile(self):
-    can_minify=generate.CanMinify()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.html') as raw_tmpfile:
       with codecs.open(raw_tmpfile.name, 'w', encoding='utf-8') as tmpfile:
-        res = vulcanize_trace_viewer.WriteTraceViewer(tmpfile,
-                                                      minify=can_minify)
+        res = vulcanize_trace_viewer.WriteTraceViewer(tmpfile)
