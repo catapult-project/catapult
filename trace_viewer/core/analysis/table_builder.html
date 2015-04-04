@@ -134,8 +134,9 @@ found in the LICENSE file.
         this.textContent = '';
         this.tableColumns_ = [];
         this.tableRows_ = [];
-        this.tableRowsInfo_ = [];
+        this.tableRowsInfo_ = new WeakMap();
         this.tableFooterRows_ = [];
+        this.tableFooterRowsInfo_ = new WeakMap();
         this.sortColumnIndex_ = undefined;
         this.sortDescending_ = false;
         this.columnsWithExpandButtons_ = [];
@@ -214,8 +215,7 @@ found in the LICENSE file.
        */
       set tableRows(rows) {
         this.tableRows_ = rows;
-        this.tableRowsInfo_ = [];
-        this.createTableRowsInfo_(rows, this.tableRowsInfo_);
+        this.tableRowsInfo_ = new WeakMap();
         if (this.sortColumnIndex_ !== undefined)
           this.sortTable_();
         this.scheduleRebuildBody_();
@@ -227,8 +227,7 @@ found in the LICENSE file.
 
       set footerRows(rows) {
         this.tableFooterRows_ = rows;
-        this.tableFooterRowsInfo_ = [];
-        this.createTableRowsInfo_(rows, this.tableFooterRowsInfo_);
+        this.tableFooterRowsInfo_ = new WeakMap();
         this.scheduleRebuildFooter_();
       },
 
@@ -409,50 +408,71 @@ found in the LICENSE file.
         }.bind(this);
       },
 
-      generateTableRowNodes_: function(tableSection, sectionRows, indentation,
-                                       opt_prevSibling) {
+      generateTableRowNodes_: function(tableSection, userRows, rowInfoMap,
+                                       indentation, opt_prevSibling) {
         var sibling = opt_prevSibling;
-        for (var i = 0; i < sectionRows.length; i++) {
-          var row = sectionRows[i];
-          this.generateRowNode_(tableSection, row, indentation);
-          this.appendElementAfter_(tableSection, row.htmlNode, sibling);
-          if (row.isExpanded) {
-            sibling = this.generateTableRowNodes_(tableSection, row.subRows,
-                          indentation + 1, row.htmlNode);
-          } else {
-            sibling = row.htmlNode;
+        for (var i = 0; i < userRows.length; i++) {
+          var userRow = userRows[i];
+          var rowInfo = this.getRowInfoFor_(rowInfoMap, userRow);
+          var htmlNode = this.getHTMLNodeForRowInfo_(
+              tableSection, rowInfo, rowInfoMap, indentation);
+
+          this.appendElementAfter_(tableSection, htmlNode, sibling);
+          if (!rowInfo.isExpanded) {
+            sibling = htmlNode;
+            continue;
           }
+
+          // Append subrows now.
+          sibling = this.generateTableRowNodes_(
+              tableSection, userRow.subRows, rowInfoMap,
+              indentation + 1, sibling);
         }
         return sibling;
       },
 
-      generateRowNode_: function(tableSection, row, indentation) {
-        if (row.htmlNode)
-          return row.htmlNode;
+      getRowInfoFor_: function(rowInfoMap, userRow) {
+        if (rowInfoMap.has(userRow))
+          return rowInfoMap.get(userRow);
+
+        var rowInfo = {
+          userRow: userRow,
+          htmlNode: undefined,
+          isExpanded: userRow.isExpanded || false
+        };
+        rowInfoMap.set(userRow, rowInfo);
+        return rowInfo;
+      },
+
+      getHTMLNodeForRowInfo_: function(tableSection, rowInfo,
+                                       rowInfoMap, indentation) {
+        if (rowInfo.htmlNode)
+          return rowInfo.htmlNode;
 
         var INDENT_SPACE = indentation * 16;
         var INDENT_SPACE_NO_BUTTON = indentation * 16 + BASIC_INDENTATION;
         var tr = this.ownerDocument.createElement('tr');
-        row.htmlNode = tr;
-        row.indentation = indentation;
+        rowInfo.htmlNode = tr;
+        rowInfo.indentation = indentation;
 
         for (var i = 0; i < this.tableColumns_.length;) {
           var td = this.appendNewElementAfter_(tr, 'td');
           var column = this.tableColumns_[i];
-          var value = column.value(row.userRow);
+          var value = column.value(rowInfo.userRow);
           var colSpan = column.colSpan ? column.colSpan : 1;
           td.style.colSpan = colSpan;
 
           if (this.columnsWithExpandButtons_.indexOf(i) != -1) {
-            if (row.subRows.length > 0) {
+            if (rowInfo.userRow.subRows &&
+                rowInfo.userRow.subRows.length > 0) {
               td.style.paddingLeft = INDENT_SPACE + 'px';
               var expandButton = this.appendNewElementAfter_(td,
                   'expand-button');
               expandButton.textContent = RIGHT_ARROW;
-              if (row.isExpanded)
+              if (rowInfo.isExpanded)
                 expandButton.classList.add('button-expanded');
-              this.addToggleListenerForRowToButton_(tableSection, row,
-                  expandButton);
+              this.addToggleListenerForRowToButton_(tableSection, rowInfo,
+                                                    rowInfoMap, expandButton);
             } else {
               td.style.paddingLeft = INDENT_SPACE_NO_BUTTON + 'px';
             }
@@ -472,33 +492,47 @@ found in the LICENSE file.
             self.rowClickCallback_(e);
           }
         });
+
+        return rowInfo.htmlNode;
       },
 
-      addToggleListenerForRowToButton_: function(tableSection, row, button) {
+      addToggleListenerForRowToButton_: function(tableSection, rowInfo,
+                                                 rowInfoMap, button) {
         button.parentElement.addEventListener('click', function() {
-          row.isExpanded = !row.isExpanded;
+          rowInfo.isExpanded = !rowInfo.isExpanded;
 
-          if (row.isExpanded) {
+          if (rowInfo.isExpanded) {
             button.classList.add('button-expanded');
             // Before adding the expanded nodes, sort them if we can.
             if (this.sortColumnIndex_ !== undefined)
-              this.sortRows_(row.subRows);
-            var sibling = row.htmlNode;
-            this.generateTableRowNodes_(tableSection,
-                row.subRows, row.indentation + 1, sibling);
+              this.sortRows_(rowInfo.userRow.subRows);
+            var sibling = rowInfo.htmlNode;
+            if (rowInfo.userRow.subRows) {
+              this.generateTableRowNodes_(
+                  tableSection,
+                  rowInfo.userRow.subRows, rowInfoMap,
+                  rowInfo.indentation + 1, sibling);
+            }
           } else {
             button.classList.remove('button-expanded');
-            this.removeSubNodes_(tableSection, row);
+            this.removeSubNodes_(tableSection, rowInfo, rowInfoMap);
           }
         }.bind(this));
       },
 
-      removeSubNodes_: function(tableSection, row) {
-        for (var i = 0; i < row.subRows.length; i++) {
-          var subNode = row.subRows[i].htmlNode;
+      removeSubNodes_: function(tableSection, rowInfo, rowInfoMap) {
+        if (rowInfo.userRow.subRows === undefined)
+          return;
+        for (var i = 0; i < rowInfo.userRow.subRows.length; i++) {
+          var subRow = rowInfo.userRow.subRows[i];
+          var subRowInfo = rowInfoMap.get(subRow);
+          if (!subRowInfo)
+            continue;
+
+          var subNode = subRowInfo.htmlNode;
           if (subNode && subNode.parentNode === tableSection) {
-            tableSection.removeChild(row.subRows[i].htmlNode);
-            this.removeSubNodes_(tableSection, row.subRows[i]);
+            tableSection.removeChild(subNode);
+            this.removeSubNodes_(tableSection, subRowInfo, rowInfoMap);
           }
         }
       },
@@ -536,7 +570,9 @@ found in the LICENSE file.
           this.headerDirty_ = false;
         }
         if (this.bodyDirty_) {
-          this.generateTableRowNodes_(this.$.body, this.tableRowsInfo_, 0);
+          this.generateTableRowNodes_(
+              this.$.body,
+              this.tableRows_, this.tableRowsInfo_, 0);
           this.bodyDirty_ = false;
         }
 
@@ -544,29 +580,15 @@ found in the LICENSE file.
           this.applySizes_();
 
         if (this.footerDirty_) {
-          this.generateTableRowNodes_(this.$.foot, this.tableFooterRowsInfo_,
-                                      0);
+          this.generateTableRowNodes_(
+              this.$.foot,
+              this.tableFooterRows_, this.tableFooterRowsInfo_, 0);
           if (this.tableFooterRowsInfo_.length) {
             this.$.body.classList.add('has-footer');
           } else {
             this.$.body.classList.remove('has-footer');
           }
           this.footerDirty_ = false;
-        }
-      },
-
-      createTableRowsInfo_: function(rows, containerForResults) {
-        for (var i = 0; i < rows.length; i++) {
-          var subRowsArray = [];
-          if (rows[i].subRows)
-            this.createTableRowsInfo_(rows[i].subRows, subRowsArray);
-
-          containerForResults.push({
-            userRow: rows[i],
-            htmlNode: undefined,
-            subRows: subRowsArray,
-            isExpanded: rows[i].isExpanded || false
-          });
         }
       },
 

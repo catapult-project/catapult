@@ -264,6 +264,37 @@ tv.b.unittest.testSuite(function() {
   });
 
 
+  test('subRowsThatAreRetrievedOnDemand', function() {
+    var columns = [
+      {
+        title: 'a',
+        value: function(row) { return row.a; },
+        width: '150px'
+      }
+    ];
+
+    var rows = [
+      {
+        a: 'row1',
+        subRows: [
+          {
+            b: 'row1.1',
+            get subRows() {
+              throw new Error('Shold not be called');
+            }
+          }
+        ]
+      }
+    ];
+
+    var table = document.createElement('tracing-analysis-nested-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+    this.addHTMLOutput(table);
+  });
+
+
   test('instantiateTableWithHiddenHeader', function() {
     var columns = [
       {
