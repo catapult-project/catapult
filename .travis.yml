@@ -35,3 +35,9 @@ script:
 
 # Kill Chrome.
  - kill %1 && true
+
+# Vulcanize trace_viewer in full & chrome mode & report total size
+ - ./vulcanize_trace_viewer --config=chrome
+ - ./vulcanize_trace_viewer --config=full
+ - stat -c%s bin/trace_viewer_chrome.html
+ - stat -c%s bin/trace_viewer_full.html
