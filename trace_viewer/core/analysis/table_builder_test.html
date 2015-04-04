@@ -401,5 +401,126 @@ tv.b.unittest.testSuite(function() {
     assert.equal(h1FirstCol.getBoundingClientRect().width,
                  h2FirstCol.getBoundingClientRect().width);
   });
+
+  test('programmaticSorting', function() {
+    var table = document.createElement('tracing-analysis-nested-table');
+
+    var columns = [
+      {
+        title: 'Column',
+        value: function(row) { return row.value; },
+        cmp: function(rowA, rowB) {
+          return rowA.value.toString().localeCompare(
+              rowB.value.toString());
+        }
+      }
+    ];
+
+    var rows = [
+      {
+        value: 'A1',
+        subRows: [
+          {
+            value: 'A1.1'
+          },
+          {
+            value: 'A1.2',
+            subRows: [
+              {
+                value: 'A1.2.1'
+              },
+              {
+                value: 'A1.2.2'
+              }
+            ]
+          },
+          {
+            value: 'A1.3'
+          }
+        ]
+      },
+      {
+        value: 'A2'
+      }
+    ];
+
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    table.sortDescending = true;
+    table.sortColumnIndex = 0;
+    table.rebuild();
+    var r0 = table.$.body.children[0];
+    assert.equal(r0.rowInfo.userRow, rows[1]);
+
+    var r1 = table.$.body.children[1];
+    assert.equal(r1.rowInfo.userRow, rows[0]);
+  });
+
+  test('sortingAfterExpand', function() {
+    var table = document.createElement('tracing-analysis-nested-table');
+
+    var columns = [
+      {
+        title: 'Column',
+        value: function(row) { return row.value; },
+        cmp: function(rowA, rowB) {
+          return rowA.value.toString().localeCompare(
+              rowB.value.toString());
+        }
+      }
+    ];
+
+    var rows = [
+      {
+        value: 'A1',
+        isExpanded: true,
+        subRows: [
+          {
+            value: 'A1.1'
+          },
+          {
+            value: 'A1.2',
+            subRows: [
+              {
+                value: 'A1.2.1'
+              },
+              {
+                value: 'A1.2.2'
+              }
+            ]
+          },
+          {
+            value: 'A1.3'
+          }
+        ]
+      },
+      {
+        value: 'A2'
+      }
+    ];
+
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    table.sortDescending = true;
+    table.sortColumnIndex = 0;
+    table.rebuild();
+    var r0 = table.$.body.children[0];
+    assert.equal(r0.rowInfo.userRow, rows[1]);
+
+    var r1 = table.$.body.children[1];
+    assert.equal(r1.rowInfo.userRow, rows[0]);
+
+    var r2 = table.$.body.children[2];
+    assert.equal(r2.rowInfo.userRow, rows[0].subRows[2]);
+
+  });
 });
 </script>

@@ -216,8 +216,6 @@ found in the LICENSE file.
       set tableRows(rows) {
         this.tableRows_ = rows;
         this.tableRowsInfo_ = new WeakMap();
-        if (this.sortColumnIndex_ !== undefined)
-          this.sortTable_();
         this.scheduleRebuildBody_();
       },
 
@@ -249,7 +247,7 @@ found in the LICENSE file.
 
         this.sortColumnIndex_ = number;
         this.updateHeaderArrows_();
-        this.sortTable_();
+        this.scheduleRebuildBody_();
       },
 
       get sortColumnIndex() {
@@ -262,8 +260,7 @@ found in the LICENSE file.
         if (newValue !== this.sortDescending_) {
           this.sortDescending_ = newValue;
           this.updateHeaderArrows_();
-          if (this.sortColumnIndex_ !== undefined)
-            this.sortTable_();
+          this.scheduleRebuildBody_();
         }
       },
 
@@ -294,11 +291,6 @@ found in the LICENSE file.
         }
       },
 
-      sortTable_: function() {
-        this.sortRows_(this.tableRowsInfo_);
-        this.scheduleRebuildBody_();
-      },
-
       sortRows_: function(rows) {
         rows.sort(function(rowA, rowB) {
           if (this.sortDescending_)
@@ -320,9 +312,9 @@ found in the LICENSE file.
         if (!this.showHeader_)
           return;
 
-        var tr = this.appendNewElementAfter_(this.$.head, 'tr');
+        var tr = this.appendNewElement_(this.$.head, 'tr');
         for (var i = 0; i < this.tableColumns_.length; i++) {
-          var td = this.appendNewElementAfter_(tr, 'td');
+          var td = this.appendNewElement_(tr, 'td');
 
           var headerCell = new TracingAnalysisHeaderCell();
 
@@ -409,26 +401,45 @@ found in the LICENSE file.
       },
 
       generateTableRowNodes_: function(tableSection, userRows, rowInfoMap,
-                                       indentation, opt_prevSibling) {
-        var sibling = opt_prevSibling;
+                                       indentation, opt_lastAddedRow) {
+        var lastAddedRow = opt_lastAddedRow;
+        if (this.sortColumnIndex_ !== undefined &&
+            tableSection === this.$.body) {
+          userRows = userRows.slice(); // Don't mess with the input data.
+          userRows.sort(function(rowA, rowB) {
+            var c = this.tableColumns_[this.sortColumnIndex_].cmp(
+                  rowA, rowB);
+            if (this.sortDescending_)
+              c = -c;
+            return c;
+          }.bind(this));
+        }
+
         for (var i = 0; i < userRows.length; i++) {
           var userRow = userRows[i];
           var rowInfo = this.getRowInfoFor_(rowInfoMap, userRow);
           var htmlNode = this.getHTMLNodeForRowInfo_(
               tableSection, rowInfo, rowInfoMap, indentation);
 
-          this.appendElementAfter_(tableSection, htmlNode, sibling);
-          if (!rowInfo.isExpanded) {
-            sibling = htmlNode;
-            continue;
+          if (lastAddedRow === undefined) {
+            // Put first into the table.
+            tableSection.insertBefore(htmlNode, tableSection.firstChild);
+          } else {
+            // This is shorthand for insertAfter(htmlNode, lastAdded).
+            var nextSiblingOfLastAdded = lastAddedRow.nextSibling;
+            tableSection.insertBefore(htmlNode, nextSiblingOfLastAdded);
           }
 
+          lastAddedRow = htmlNode;
+          if (!rowInfo.isExpanded)
+            continue;
+
           // Append subrows now.
-          sibling = this.generateTableRowNodes_(
+          lastAddedRow = this.generateTableRowNodes_(
               tableSection, userRow.subRows, rowInfoMap,
-              indentation + 1, sibling);
+              indentation + 1, lastAddedRow);
         }
-        return sibling;
+        return lastAddedRow;
       },
 
       getRowInfoFor_: function(rowInfoMap, userRow) {
@@ -454,9 +465,10 @@ found in the LICENSE file.
         var tr = this.ownerDocument.createElement('tr');
         rowInfo.htmlNode = tr;
         rowInfo.indentation = indentation;
+        tr.rowInfo = rowInfo;
 
         for (var i = 0; i < this.tableColumns_.length;) {
-          var td = this.appendNewElementAfter_(tr, 'td');
+          var td = this.appendNewElement_(tr, 'td');
           var column = this.tableColumns_[i];
           var value = column.value(rowInfo.userRow);
           var colSpan = column.colSpan ? column.colSpan : 1;
@@ -466,7 +478,7 @@ found in the LICENSE file.
             if (rowInfo.userRow.subRows &&
                 rowInfo.userRow.subRows.length > 0) {
               td.style.paddingLeft = INDENT_SPACE + 'px';
-              var expandButton = this.appendNewElementAfter_(td,
+              var expandButton = this.appendNewElement_(td,
                   'expand-button');
               expandButton.textContent = RIGHT_ARROW;
               if (rowInfo.isExpanded)
@@ -503,15 +515,12 @@ found in the LICENSE file.
 
           if (rowInfo.isExpanded) {
             button.classList.add('button-expanded');
-            // Before adding the expanded nodes, sort them if we can.
-            if (this.sortColumnIndex_ !== undefined)
-              this.sortRows_(rowInfo.userRow.subRows);
-            var sibling = rowInfo.htmlNode;
+            var lastAddedRow = rowInfo.htmlNode;
             if (rowInfo.userRow.subRows) {
               this.generateTableRowNodes_(
                   tableSection,
                   rowInfo.userRow.subRows, rowInfoMap,
-                  rowInfo.indentation + 1, sibling);
+                  rowInfo.indentation + 1, lastAddedRow);
             }
           } else {
             button.classList.remove('button-expanded');
@@ -592,16 +601,9 @@ found in the LICENSE file.
         }
       },
 
-      appendElementAfter_: function(parent, element, opt_prevSibling) {
-        var nodeAfter = undefined;
-        if (opt_prevSibling)
-          nodeAfter = opt_prevSibling.nextSibling;
-        parent.insertBefore(element, nodeAfter);
-      },
-
-      appendNewElementAfter_: function(parent, tagName, opt_prevSibling) {
+      appendNewElement_: function(parent, tagName) {
         var element = parent.ownerDocument.createElement(tagName);
-        this.appendElementAfter_(parent, element, opt_prevSibling);
+        parent.appendChild(element);
         return element;
       }
     });
