@@ -66,6 +66,11 @@ class TraceViewerProject(project_module.Project):
   test_data_path = os.path.join(trace_viewer_path, 'test_data')
   skp_data_path = os.path.join(trace_viewer_path, 'skp_data')
 
+  rjsmin_path = os.path.abspath(os.path.join(
+      trace_viewer_third_party_path, 'tvcm', 'third_party', 'rjsmin'))
+  rcssmin_path = os.path.abspath(os.path.join(
+      trace_viewer_third_party_path, 'tvcm', 'third_party', 'rcssmin'))
+
   def __init__(self, *args, **kwargs):
     super(TraceViewerProject, self).__init__(*args, **kwargs)
 
@@ -93,6 +98,20 @@ class TraceViewerProject(project_module.Project):
       'gl-matrix/jsdoc-template/static/header.html',
       'gl-matrix/jsdoc-template/static/index.html',
     ])
+
+    rjsmin_doc_files = _FindAllFilesRecursive(
+        [os.path.join(self.rjsmin_path, 'docs', 'apidoc')])
+    rjsmin_doc_files = [os.path.relpath(x, self.rjsmin_path)
+                         for x in rjsmin_doc_files
+                         if x.endswith('.html')]
+    self.non_module_html_files.extendRel(self.rjsmin_path, rjsmin_doc_files)
+
+    rcssmin_doc_files = _FindAllFilesRecursive(
+        [os.path.join(self.rcssmin_path, 'docs', 'apidoc')])
+    rcssmin_doc_files = [os.path.relpath(x, self.rcssmin_path)
+                         for x in rcssmin_doc_files
+                         if x.endswith('.html')]
+    self.non_module_html_files.extendRel(self.rcssmin_path, rcssmin_doc_files)
 
   def FindAllTestModuleResources(self):
     all_filenames = _FindAllFilesRecursive([self.src_path])
