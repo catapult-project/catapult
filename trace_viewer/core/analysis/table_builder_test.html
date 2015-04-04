@@ -522,5 +522,66 @@ tv.b.unittest.testSuite(function() {
     assert.equal(r2.rowInfo.userRow, rows[0].subRows[2]);
 
   });
+
+
+  test('expandAfterRebuild', function() {
+    var table = document.createElement('tracing-analysis-nested-table');
+
+    var columns = [
+      {
+        title: 'Column',
+        value: function(row) { return row.value; },
+        cmp: function(rowA, rowB) {
+          return rowA.value.toString().localeCompare(
+              rowB.value.toString());
+        }
+      }
+    ];
+
+    var rows = [
+      {
+        value: 'A1',
+        subRows: [
+          {
+            value: 'A1.1'
+          },
+          {
+            value: 'A1.2',
+            subRows: [
+              {
+                value: 'A1.2.1'
+              },
+              {
+                value: 'A1.2.2'
+              }
+            ]
+          },
+          {
+            value: 'A1.3'
+          }
+        ]
+      },
+      {
+        value: 'A2'
+      }
+    ];
+
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    table.rebuild();
+    assert.isFalse(table.getExpandedForTableRow(rows[0]));
+    table.setExpandedForTableRow(rows[0], true);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    var r1 = table.$.body.children[1];
+    assert.equal(r1.rowInfo.userRow, rows[0].subRows[0]);
+  });
+
+
+
 });
 </script>

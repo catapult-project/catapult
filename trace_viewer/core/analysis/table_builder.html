@@ -483,8 +483,12 @@ found in the LICENSE file.
               expandButton.textContent = RIGHT_ARROW;
               if (rowInfo.isExpanded)
                 expandButton.classList.add('button-expanded');
-              this.addToggleListenerForRowToButton_(tableSection, rowInfo,
-                                                    rowInfoMap, expandButton);
+
+              expandButton.parentElement.addEventListener('click', function() {
+                this.setExpandedForUserRow_(
+                    tableSection, rowInfoMap,
+                    rowInfo.userRow, !rowInfo.isExpanded);
+              }.bind(this));
             } else {
               td.style.paddingLeft = INDENT_SPACE_NO_BUTTON + 'px';
             }
@@ -506,27 +510,6 @@ found in the LICENSE file.
         });
 
         return rowInfo.htmlNode;
-      },
-
-      addToggleListenerForRowToButton_: function(tableSection, rowInfo,
-                                                 rowInfoMap, button) {
-        button.parentElement.addEventListener('click', function() {
-          rowInfo.isExpanded = !rowInfo.isExpanded;
-
-          if (rowInfo.isExpanded) {
-            button.classList.add('button-expanded');
-            var lastAddedRow = rowInfo.htmlNode;
-            if (rowInfo.userRow.subRows) {
-              this.generateTableRowNodes_(
-                  tableSection,
-                  rowInfo.userRow.subRows, rowInfoMap,
-                  rowInfo.indentation + 1, lastAddedRow);
-            }
-          } else {
-            button.classList.remove('button-expanded');
-            this.removeSubNodes_(tableSection, rowInfo, rowInfoMap);
-          }
-        }.bind(this));
       },
 
       removeSubNodes_: function(tableSection, rowInfo, rowInfoMap) {
@@ -605,6 +588,46 @@ found in the LICENSE file.
         var element = parent.ownerDocument.createElement(tagName);
         parent.appendChild(element);
         return element;
+      },
+
+      getExpandedForTableRow: function(userRow) {
+        var rowInfo = this.getRowInfoFor_(this.tableRowsInfo_, userRow);
+        return rowInfo.isExpanded;
+      },
+
+      setExpandedForTableRow: function(userRow, expanded) {
+        return this.setExpandedForUserRow_(this.$.body, this.tableRowsInfo_,
+                                           userRow, expanded);
+      },
+
+      setExpandedForUserRow_: function(tableSection, rowInfoMap,
+                                       userRow, expanded) {
+        var rowInfo = this.getRowInfoFor_(rowInfoMap, userRow);
+        rowInfo.isExpanded = !!expanded;
+        // If no node, then nothing further needs doing.
+        if (rowInfo.htmlNode === undefined)
+          return;
+
+        // If its detached, then nothing needs doing.
+        if (rowInfo.htmlNode.parentElement !== tableSection)
+          return;
+
+        // Otherwise, rebuild.
+        var expandButton = rowInfo.htmlNode.querySelector('expand-button');
+        if (rowInfo.isExpanded) {
+          expandButton.classList.add('button-expanded');
+          var lastAddedRow = rowInfo.htmlNode;
+          if (rowInfo.userRow.subRows) {
+            this.generateTableRowNodes_(
+                tableSection,
+                rowInfo.userRow.subRows, rowInfoMap,
+                rowInfo.indentation + 1, lastAddedRow);
+          }
+        } else {
+          expandButton.classList.remove('button-expanded');
+          this.removeSubNodes_(tableSection, rowInfo, rowInfoMap);
+        }
+
       }
     });
   })();
