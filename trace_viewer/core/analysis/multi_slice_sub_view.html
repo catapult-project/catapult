@@ -32,6 +32,10 @@ found in the LICENSE file.
 
     set selection(selection) {
       this.$.content.setSelectionWithoutErrorChecks(selection);
+    },
+
+    get requiresTallView() {
+      return this.$.content.requiresTallView;
     }
   });
   </script>

@@ -82,7 +82,9 @@ found in the LICENSE file.
           ltv.objectSnapshot = ltvSelection.containingSnapshot;
           ltv.selection = ltvSelection;
           ltv.extraHighlightsByLayerId = ltvSelection.extraHighlightsByLayerId;
-          this.appendChild(ltv);
+
+          this.$.content.textContent = '';
+          this.$.content.appendChild(ltv);
 
           this.style.display = 'flex';
 
