@@ -883,8 +883,6 @@ tv.exportTo('tv.e.importer', function() {
           if (isTopLevel) {
             topLevelSlices.push(slice);
           } else if (eventStateEntry.parentEntry.slice !== undefined) {
-            if (eventStateEntry.parentEntry.slice.subSlices === undefined)
-              eventStateEntry.parentEntry.slice.subSlices = [];
             eventStateEntry.parentEntry.slice.subSlices.push(slice);
           }
         }
@@ -984,7 +982,6 @@ tv.exportTo('tv.e.importer', function() {
             slice.startThread = events[0].thread;
             slice.endThread = asyncEventState.thread;
             slice.id = id;
-            slice.subSlices = [];
 
             var stepType = events[1].event.ph;
             var isValid = true;

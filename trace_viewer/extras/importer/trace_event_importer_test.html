@@ -1217,7 +1217,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     // Arguments should include both BEGIN and END event.
     assert.equal(subSlice.args['x'], 1);
     assert.equal(subSlice.args['y'], 2);
-    assert.isUndefined(subSlice.subSlices);
+    assert.sameMembers(subSlice.subSlices, []);
   });
 
   test('nestableAsyncCombinedParams', function() {
@@ -1358,7 +1358,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(instantSlice.title, 'c');
     assert.closeTo(0, instantSlice.start, 1e-5);
     assert.closeTo(0, instantSlice.duration, 1e-5);
-    assert.isUndefined(instantSlice.subSlices);
+    assert.sameMembers(instantSlice.subSlices, []);
     assert.isTrue(instantSlice.isTopLevel);
 
     var nestedSlice = t.asyncSliceGroup.slices[1];
@@ -1369,7 +1369,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isDefined(nestedSlice.subSlices);
     assert.equal(nestedSlice.subSlices.length, 1);
     var nestedInstantSlice = nestedSlice.subSlices[0];
-    assert.isUndefined(nestedInstantSlice.subSlices);
+    assert.sameMembers(nestedInstantSlice.subSlices, []);
     assert.equal(nestedInstantSlice.title, 'd');
     assert.isFalse(nestedInstantSlice.isTopLevel);
   });
@@ -1408,10 +1408,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isFalse(subSlice.isTopLevel);
     assert.closeTo(1 / 1000, subSlice.start, 1e-5);
     assert.closeTo(35 / 1000, subSlice.duration, 1e-5);
-    assert.isUndefined(subSlice.subSlices);
+    assert.sameMembers(subSlice.subSlices, []);
     // Arguments should include those of the END event.
     assert.equal(subSlice.args['y'], 2);
-    assert.isUndefined(subSlice.subSlices);
+    assert.sameMembers(subSlice.subSlices, []);
   });
 
   test('nestableAsyncUnmatchedInnerBeginEvent', function() {
@@ -1454,13 +1454,13 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     // Unmatched BEGIN ends at the last event of that ID.
     assert.closeTo(1 / 1000, subSliceUnmatched.start, 1e-5);
     assert.closeTo(40 / 1000, subSliceUnmatched.duration, 1e-5);
-    assert.isUndefined(subSliceUnmatched.subSlices);
+    assert.sameMembers(subSliceUnmatched.subSlices, []);
     assert.equal(subSliceUnmatched.args['x'], 1);
     assert.isUndefined(subSliceUnmatched['y']);
     assert.isDefined(subSliceUnmatched.error);
     assert.closeTo(1 / 1000, subSliceInstant.start, 1e-5);
     assert.closeTo(0, subSliceInstant.duration, 1e-5);
-    assert.isUndefined(subSliceInstant.subSlices);
+    assert.sameMembers(subSliceInstant.subSlices, []);
   });
 
   test('nestableAsyncUnmatchedOuterEndEvent', function() {
@@ -1492,7 +1492,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isUndefined(unmatchedSlice.args['y']);
     assert.equal(unmatchedSlice.args['z'], 3);
     assert.isDefined(unmatchedSlice.error);
-    assert.isUndefined(unmatchedSlice.subSlices);
+    assert.sameMembers(unmatchedSlice.subSlices, []);
 
     assert.equal(slice.title, 'b');
     assert.isTrue(slice.isTopLevel);
@@ -1501,7 +1501,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     // Arguments should include both BEGIN and END event.
     assert.equal(slice.args['x'], 1);
     assert.equal(slice.args['y'], 2);
-    assert.isUndefined(slice.subSlices);
+    assert.sameMembers(slice.subSlices, []);
   });
 
   test('nestableAsyncUnmatchedInnerEndEvent', function() {
@@ -1548,10 +1548,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(subSliceUnmatched.args['z'], 3);
     assert.isDefined(subSliceUnmatched.error);
 
-    assert.isUndefined(subSliceUnmatched.subSlices);
+    assert.sameMembers(subSliceUnmatched.subSlices, []);
     assert.closeTo(1 / 1000, subSliceInstant.start, 1e-5);
     assert.closeTo(0, subSliceInstant.duration, 1e-5);
-    assert.isUndefined(subSliceInstant.subSlices);
+    assert.sameMembers(subSliceInstant.subSlices, []);
   });
 
   test('nestableAsyncSameIDDifferentCategory', function() {
@@ -1578,7 +1578,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(eventASlice.id, 'foo:72');
     assert.isTrue(eventASlice.isTopLevel);
     assert.equal(eventASlice.args['x'], 1);
-    assert.isUndefined(eventASlice.subSlices);
+    assert.sameMembers(eventASlice.subSlices, []);
 
     var eventBSlice = t.asyncSliceGroup.slices[1];
     assert.equal(eventBSlice.title, 'EVENT_B');
@@ -1586,7 +1586,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(eventBSlice.id, 'bar:72');
     assert.isTrue(eventBSlice.isTopLevel);
     assert.equal(eventBSlice.args['y'], 2);
-    assert.isUndefined(eventBSlice.subSlices);
+    assert.sameMembers(eventBSlice.subSlices, []);
   });
 
   test('importSamples', function() {

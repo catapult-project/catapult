@@ -52,7 +52,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(subRows[0].length, 2);
     assert.equal(subRows[1].length, 1);
     assert.equal(subRows[1][0], g.slices[0].subSlices[0]);
-    assert.isUndefined(g.slices[1].subSlices);
+    assert.sameMembers(g.slices[1].subSlices, []);
   });
 
   test('rebuildSubRows_twoOverlappingSlices', function() {
@@ -105,9 +105,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(subRows[0][1], g.slices[2]);
     assert.equal(subRows[1][0], g.slices[1]);
     assert.equal(subRows[1].length, 1);
-    assert.isUndefined(g.slices[0].subSlices);
-    assert.isUndefined(g.slices[1].subSlices);
-    assert.isUndefined(g.slices[2].subSlices);
+    assert.sameMembers(g.slices[0].subSlices, []);
+    assert.sameMembers(g.slices[1].subSlices, []);
+    assert.sameMembers(g.slices[2].subSlices, []);
   });
 
   test('rebuildSubRows_threeOverlappingSlices', function() {
