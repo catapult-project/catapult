@@ -58,10 +58,6 @@ found in the LICENSE file.
     set selection(selection) {
       if (selection.length <= 1)
         throw new Error('Only supports multiple items');
-      if (!selection.every(
-          function(x) { return x instanceof tv.c.trace_model.Slice; })) {
-        throw new Error('Only supports slices');
-      }
       this.setSelectionWithoutErrorChecks(selection);
     },
     get selection() {

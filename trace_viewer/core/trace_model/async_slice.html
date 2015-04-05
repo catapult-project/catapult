@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/extension_registry.html">
 <link rel="import" href="/core/analysis/util.html">
-<link rel="import" href="/core/trace_model/slice.html">
+<link rel="import" href="/core/trace_model/timed_event.html">
 
 <script>
 'use strict';
@@ -25,24 +25,33 @@ tv.exportTo('tv.c.trace_model', function() {
    */
   function AsyncSlice(category, title, colorId, start, args, duration,
                       opt_isTopLevel) {
-    tv.c.trace_model.Slice.call(this, category, title, colorId, start, args,
-                                duration);
+    tv.c.trace_model.TimedEvent.call(this, start);
+
+    this.category = category || '';
+    this.title = title;
+    this.colorId = colorId;
+    this.args = args;
+    this.startStackFrame = undefined;
+    this.endStackFrame = undefined;
+    this.didNotFinish = false;
+    this.important = false;
+
+    this.id = undefined;
+    this.startThread = undefined;
+    this.endThread = undefined;
+
+    this.duration = duration;
 
     // TODO(nduca): Forgive me for what I must do.
-    this.subSlices = undefined;
     this.isTopLevel = (opt_isTopLevel === true);
   };
 
   AsyncSlice.prototype = {
-    __proto__: tv.c.trace_model.Slice.prototype,
+    __proto__: tv.c.trace_model.TimedEvent.prototype,
 
-    id: undefined,
-
-    startThread: undefined,
-
-    endThread: undefined,
-
-    subSlices: undefined,
+    get analysisTypeName() {
+      return this.title;
+    },
 
     get viewSubGroupTitle() {
       return this.title;
