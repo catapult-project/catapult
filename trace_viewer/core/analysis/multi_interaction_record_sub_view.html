@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/analysis/multi_slice_sub_view.html">
+<link rel="import" href="/core/analysis/multi_event_sub_view.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/util.html">
 
@@ -22,7 +22,7 @@ found in the LICENSE file.
     set selection(selection) {
       this.currentSelection_ = selection;
       this.textContent = '';
-      var realView = document.createElement('tv-c-multi-slice-sub-view');
+      var realView = document.createElement('tv-c-a-multi-event-sub-view');
 
       this.appendChild(realView);
       realView.setSelectionWithoutErrorChecks(selection);

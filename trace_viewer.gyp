@@ -109,7 +109,6 @@
       'trace_viewer/core/analysis/multi_interaction_record_sub_view.html',
       'trace_viewer/core/analysis/multi_object_sub_view.html',
       'trace_viewer/core/analysis/multi_sample_sub_view.html',
-      'trace_viewer/core/analysis/multi_slice_sub_view.html',
       'trace_viewer/core/analysis/object_instance_view.html',
       'trace_viewer/core/analysis/object_snapshot_view.html',
       'trace_viewer/core/analysis/selection_summary_table.html',

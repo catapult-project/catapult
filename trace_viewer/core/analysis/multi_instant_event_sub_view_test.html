@@ -24,9 +24,7 @@ tv.b.unittest.testSuite(function() {
     var t53 = p52.getOrCreateThread(53);
 
     var ie1 = new trace_model.ProcessInstantEvent('cat', 'title', 7, 10, {});
-    ie1.duration = 20;
     var ie2 = new trace_model.ProcessInstantEvent('cat', 'title', 7, 20, {});
-    ie2.duration = 30;
     p52.instantEvents.push(ie1);
     p52.instantEvents.push(ie2);
 
