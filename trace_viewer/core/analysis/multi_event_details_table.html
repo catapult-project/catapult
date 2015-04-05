@@ -138,7 +138,7 @@ found in the LICENSE file.
         },
         width: '350px',
         cmp: function(rowA, rowB) {
-          return rowA.title.localeCompare(rowB.title);
+          return rowA.start - rowB.start;
         }
       });
       columns.push({
