@@ -118,12 +118,12 @@ found in the LICENSE file.
       var table = document.createElement('tracing-analysis-nested-table');
       table.tableColumns = this.alertsTableColumns_();
       table.tableRows = this.alertsTableRows_(alertsByType);
-
-      table.rowClickCallback = function(e) {
-        var tr = e.target.parentElement;
-        var alertTypeString = tr.firstChild.innerText;
-        this.selectAlertsOfType(alertTypeString);
-      }.bind(this);
+      table.supportsSelection = true;
+      table.addEventListener('selection-changed', function(e) {
+        var row = table.selectedTableRow;
+        if (row)
+          this.selectAlertsOfType(row.alertType);
+      }.bind(this));
 
       return table;
     },

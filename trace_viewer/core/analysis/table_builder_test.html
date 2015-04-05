@@ -523,8 +523,7 @@ tv.b.unittest.testSuite(function() {
 
   });
 
-
-  test('expandAfterRebuild', function() {
+  function createSimpleOneColumnNestedTable() {
     var table = document.createElement('tracing-analysis-nested-table');
 
     var columns = [
@@ -568,7 +567,13 @@ tv.b.unittest.testSuite(function() {
 
     table.tableColumns = columns;
     table.tableRows = rows;
+    return table;
+  }
+
+  test('expandAfterRebuild', function() {
+    var table = createSimpleOneColumnNestedTable();
     table.rebuild();
+    var rows = table.tableRows;
 
     this.addHTMLOutput(table);
 
@@ -581,7 +586,69 @@ tv.b.unittest.testSuite(function() {
     assert.equal(r1.rowInfo.userRow, rows[0].subRows[0]);
   });
 
+  test('tableSelection', function() {
+    var table = createSimpleOneColumnNestedTable();
+    var rows = table.tableRows;
+
+    table.supportsSelection = true;
+    table.selectedTableRow = rows[0];
+
+    table.setExpandedForTableRow(rows[0], true);
+    table.selectedTableRow = rows[0].subRows[1];
+    assert.equal(table.selectedTableRow, rows[0].subRows[1]);
+
+    table.setExpandedForTableRow(rows[0], false);
+    assert.equal(table.selectedTableRow, rows[0]);
+
+    table.supportsSelection = false;
+    assert.equal(table.selectedTableRow, undefined);
+
+    table.supportsSelection = true;
+    table.setExpandedForTableRow(rows[0].subRows[1], true);
+    this.addHTMLOutput(table);
+  });
 
 
+  test('keyMovement', function() {
+    var table = createSimpleOneColumnNestedTable();
+    table.supportsSelection = true;
+    this.addHTMLOutput(table);
+
+    var rows = table.tableRows;
+    table.selectedTableRow = rows[0];
+
+    table.performKeyCommand_('ARROW_DOWN');
+    assert.equal(table.selectedTableRow, rows[1]);
+
+    table.performKeyCommand_('ARROW_UP');
+    assert.equal(table.selectedTableRow, rows[0]);
+
+    // Arrow right on collapsed row should expand.
+    table.selectedTableRow = rows[0];
+    table.performKeyCommand_('ARROW_RIGHT');
+    assert.equal(table.selectedTableRow, rows[0].subRows[0]);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_DOWN');
+    assert.equal(table.selectedTableRow, rows[0].subRows[1]);
+
+    // ARrow left on collapsed item should select parent.
+    table.performKeyCommand_('ARROW_LEFT');
+    assert.equal(table.selectedTableRow, rows[0]);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    // Arrow right on expanded row should select first child.
+    table.selectedTableRow = rows[0];
+    table.setExpandedForTableRow(rows[0], true);
+    table.performKeyCommand_('ARROW_RIGHT');
+    assert.equal(table.selectedTableRow, rows[0].subRows[0]);
+
+    // Arrow right on a non-expandable row should do nothing.
+    table.selectedTableRow = rows[1];
+    assert.equal(table.selectedTableRow, rows[1]);
+    table.performKeyCommand_('ARROW_RIGHT');
+    assert.equal(table.selectedTableRow, rows[1]);
+    assert.isFalse(table.getExpandedForTableRow(rows[1]));
+  });
 });
 </script>
