@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/multi_event_sub_view.html">
+
+<polymer-element name="tv-c-a-multi-cpu-slice-sub-view"
+    extends="tracing-analysis-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    #content {
+      flex: 1 1 auto;
+    }
+    </style>
+    <tv-c-a-multi-event-sub-view id="content"></tv-c-a-multi-event-sub-view>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    get selection() {
+      return this.$.content.selection;
+    },
+
+    set selection(selection) {
+      this.$.content.setSelectionWithoutErrorChecks(selection);
+    }
+  });
+  </script>
+</polymer>
