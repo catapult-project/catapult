@@ -52,7 +52,6 @@ found in the LICENSE file.
   Polymer({
     created: function() {
       this.currentSelection_ = undefined;
-      this.requiresTallView_ = false;
     },
 
     set selection(selection) {
@@ -64,35 +63,8 @@ found in the LICENSE file.
       return this.currentSelection_;
     },
 
-    get requiresTallView() {
-      return this.requiresTallView_;
-    },
-
     setSelectionWithoutErrorChecks: function(selection) {
       this.currentSelection_ = selection;
-      this.requiresTallView_ = false;
-
-      // TODO(nduca): This is a gross hack for cc Frame Viewer, but its only
-      // the frame viewer that needs this feature, so ~shrug~.
-      if (window.RasterTaskView !== undefined) { // May not have been imported.
-        if (tv.e.cc.RasterTaskSelection.supports(selection)) {
-          var ltvSelection = new tv.e.cc.RasterTaskSelection(selection);
-
-          var ltv = new tv.e.cc.LayerTreeHostImplSnapshotView();
-          ltv.objectSnapshot = ltvSelection.containingSnapshot;
-          ltv.selection = ltvSelection;
-          ltv.extraHighlightsByLayerId = ltvSelection.extraHighlightsByLayerId;
-
-          this.$.content.textContent = '';
-          this.$.content.appendChild(ltv);
-
-          this.style.display = 'flex';
-
-          this.requiresTallView_ = true;
-          return;
-        }
-      }
-      this.style.display = '';
 
       var eventsByTitle = selection.getEventsOrganizedByTitle();
       var numTitles = tv.b.dictionaryLength(eventsByTitle);

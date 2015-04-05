@@ -16,26 +16,63 @@ found in the LICENSE file.
       display: flex;
     }
     #content {
+      display: flex;
       flex: 1 1 auto;
     }
     </style>
-    <tv-c-a-multi-event-sub-view id="content"></tv-c-a-multi-event-sub-view>
+    <div id="content"></div>
   </template>
 
   <script>
   'use strict';
 
   Polymer({
+    created: function() {
+      this.selection_ = undefined;
+    },
+
     get selection() {
-      return this.$.content.selection;
+      return this.selection_;
     },
 
     set selection(selection) {
-      this.$.content.setSelectionWithoutErrorChecks(selection);
+      this.selection_ = selection;
+
+      // TODO(nduca): This is a gross hack for cc Frame Viewer, but its only
+      // the frame viewer that needs this feature, so ~shrug~.
+      if (window.RasterTaskView !== undefined) { // May not have been imported.
+        if (tv.e.cc.RasterTaskSelection.supports(selection)) {
+          var ltvSelection = new tv.e.cc.RasterTaskSelection(selection);
+
+          var ltv = new tv.e.cc.LayerTreeHostImplSnapshotView();
+          ltv.objectSnapshot = ltvSelection.containingSnapshot;
+          ltv.selection = ltvSelection;
+          ltv.extraHighlightsByLayerId = ltvSelection.extraHighlightsByLayerId;
+
+          this.$.content.textContent = '';
+          this.$.content.appendChild(ltv);
+
+          this.requiresTallView_ = true;
+          return;
+        }
+      }
+
+      this.$.content.textContent = '';
+
+      var mesv = document.createElement('tv-c-a-multi-event-sub-view');
+      mesv.selection = selection;
+      this.$.content.appendChild(mesv);
     },
 
     get requiresTallView() {
-      return this.$.content.requiresTallView;
+      if (this.$.content.children.length === 0)
+        return false;
+      var childTagName = this.$.content.children[0].tagName;
+      if (childTagName === 'tv-c-a-multi-event-sub-view')
+        return false;
+
+      // Using raster task view.
+      return true;
     }
   });
   </script>
