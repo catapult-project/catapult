@@ -30,6 +30,7 @@ found in the LICENSE file.
     set selection(selection) {
       this.$.content.textContent = '';
       var realView = document.createElement('tv-c-a-multi-event-sub-view');
+      realView.eventsHaveDuration = false;
 
       this.$.content.appendChild(realView);
       realView.setSelectionWithoutErrorChecks(selection);

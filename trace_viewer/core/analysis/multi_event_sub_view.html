@@ -52,6 +52,7 @@ found in the LICENSE file.
   Polymer({
     created: function() {
       this.currentSelection_ = undefined;
+      this.eventsHaveDuration_ = true;
     },
 
     set selection(selection) {
@@ -59,23 +60,41 @@ found in the LICENSE file.
         throw new Error('Only supports multiple items');
       this.setSelectionWithoutErrorChecks(selection);
     },
+
     get selection() {
       return this.currentSelection_;
     },
 
     setSelectionWithoutErrorChecks: function(selection) {
       this.currentSelection_ = selection;
+      this.updateContents_();
+    },
+
+    get eventsHaveDuration() {
+      return this.eventsHaveDuration_;
+    },
+
+    set eventsHaveDuration(eventsHaveDuration) {
+      this.eventsHaveDuration_ = eventsHaveDuration;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      var selection = this.currentSelection_;
+
+      this.$.content.textContent = '';
+      if (!selection)
+        return;
 
       var eventsByTitle = selection.getEventsOrganizedByTitle();
       var numTitles = tv.b.dictionaryLength(eventsByTitle);
-
-      this.$.content.textContent = '';
 
       var summaryTableEl = document.createElement(
           'tv-c-a-multi-event-summary-table');
       summaryTableEl.configure({
         showTotals: numTitles > 1,
-        eventsByTitle: eventsByTitle
+        eventsByTitle: eventsByTitle,
+        eventsHaveDuration: this.eventsHaveDuration_
       });
       this.$.content.appendChild(summaryTableEl);
 

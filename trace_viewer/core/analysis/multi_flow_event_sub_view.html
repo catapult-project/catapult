@@ -30,9 +30,9 @@ found in the LICENSE file.
     set selection(selection) {
       this.$.content.textContent = '';
       var realView = document.createElement('tv-c-a-multi-event-sub-view');
-
-      this.$.content.appendChild(realView);
+      realView.eventsHaveDuration = false;
       realView.setSelectionWithoutErrorChecks(selection);
+      this.$.content.appendChild(realView);
 
       this.currentSelection_ = selection;
     },

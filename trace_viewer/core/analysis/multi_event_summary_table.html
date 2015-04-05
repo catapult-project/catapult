@@ -35,6 +35,7 @@ found in the LICENSE file.
   Polymer({
     ready: function() {
       this.showTotals_ = false;
+      this.eventsHaveDuration_ = true;
       this.eventsByTitle_ = undefined;
     },
 
@@ -47,11 +48,6 @@ found in the LICENSE file.
           hasCpuData = true;
       });
 
-      var colWidthPercentage;
-      if (hasCpuData)
-        colWidthPercentage = '20%';
-      else
-        colWidthPercentage = '33.3333%';
 
       var columns = [];
 
@@ -72,24 +68,26 @@ found in the LICENSE file.
           return rowA.title.localeCompare(rowB.title);
         }
       });
-      columns.push({
-        title: 'Wall Duration (ms)',
-        value: function(row) {
-          return tv.c.analysis.createTimeSpan(row.duration);
-        },
-        width: colWidthPercentage,
-        cmp: function(rowA, rowB) {
-          return rowA.duration - rowB.duration;
-        }
-      });
+      if (this.eventsHaveDuration_) {
+        columns.push({
+          title: 'Wall Duration (ms)',
+          value: function(row) {
+            return tv.c.analysis.createTimeSpan(row.duration);
+          },
+          width: '<upated further down>',
+          cmp: function(rowA, rowB) {
+            return rowA.duration - rowB.duration;
+          }
+        });
+      }
 
-      if (hasCpuData) {
+      if (this.eventsHaveDuration_ && hasCpuData) {
         columns.push({
           title: 'CPU Duration (ms)',
           value: function(row) {
             return tv.c.analysis.createTimeSpan(row.cpuDuration);
           },
-          width: colWidthPercentage,
+          width: '<upated further down>',
           cmp: function(rowA, rowB) {
             return rowA.cpuDuration - rowB.cpuDuration;
           }
@@ -101,7 +99,7 @@ found in the LICENSE file.
         value: function(row) {
           return tv.c.analysis.createTimeSpan(row.selfTime);
         },
-        width: colWidthPercentage,
+        width: '<upated further down>',
         cmp: function(rowA, rowB) {
           return rowA.selfTime - rowB.selfTime;
         }
@@ -112,7 +110,7 @@ found in the LICENSE file.
           value: function(row) {
             return tv.c.analysis.createTimeSpan(row.cpuSelfTime);
           },
-          width: colWidthPercentage,
+          width: '<upated further down>',
           cmp: function(rowA, rowB) {
             return rowA.cpuSelfTime - rowB.cpuSelfTime;
           }
@@ -123,17 +121,33 @@ found in the LICENSE file.
         value: function(row) {
           return row.numEvents;
         },
-        width: colWidthPercentage,
+        width: '<upated further down>',
         cmp: function(rowA, rowB) {
           return rowA.numEvents - rowB.numEvents;
         }
       });
 
+      var colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
+      for (var i = 1; i < columns.length; i++)
+        columns[i].width = colWidthPercentage;
+
       this.$.table.tableColumns = columns;
     },
 
     configure: function(config) {
-      this.showTotals_ = config.showTotals;
+      if (config.eventsByTitle === undefined)
+        throw new Error('Required: eventsByTitle');
+
+      if (config.showTotals !== undefined)
+        this.showTotals_ = config.showTotals;
+      else
+        this.showTotals_ = true;
+
+      if (config.eventsHaveDuration !== undefined)
+        this.eventsHaveDuration_ = config.eventsHaveDuration;
+      else
+        this.eventsHaveDuration_ = true;
+
       this.eventsByTitle_ = config.eventsByTitle;
       this.updateContents_();
     },
@@ -144,6 +158,15 @@ found in the LICENSE file.
 
     set showTotals(showTotals) {
       this.showTotals_ = showTotals;
+      this.updateContents_();
+    },
+
+    get eventsHaveDuration() {
+      return this.eventsHaveDuration_;
+    },
+
+    set eventsHaveDuration(eventsHaveDuration) {
+      this.eventsHaveDuration_ = eventsHaveDuration;
       this.updateContents_();
     },
 
