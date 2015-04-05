@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/extras/cc/raster_task.html">
 <link rel="import" href="/extras/cc/raster_task_view.html">
 <link rel="import" href="/extras/cc/selection.html">
-<link rel="import" href="/core/analysis/single_slice_sub_view.html">
+<link rel="import" href="/core/analysis/single_event_sub_view.html">
 <script>
 'use strict';
 
@@ -103,7 +103,7 @@ tv.exportTo('tv.e.cc', function() {
 
       var analysis;
       if (sel.length == 1)
-        analysis = document.createElement('tv-c-single-slice-sub-view');
+        analysis = document.createElement('tv-c-a-single-event-sub-view');
       else
         analysis = new RasterTaskView();
       analysis.selection = sel;

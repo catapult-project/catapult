@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/analysis/single_slice_sub_view.html">
+<link rel="import" href="/core/analysis/single_event_sub_view.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 
 <script>
@@ -69,7 +69,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_withSingleSlice', function() {
     var selection = createSelectionWithSingleSlice();
 
-    var analysisEl = document.createElement('tv-c-single-slice-sub-view');
+    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -86,7 +86,7 @@ tv.b.unittest.testSuite(function() {
       t53.sliceGroup.pushSlice(slice);
     });
 
-    var subView = document.createElement('tv-c-single-slice-sub-view');
+    var subView = document.createElement('tv-c-a-single-event-sub-view');
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
@@ -99,7 +99,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_withSingleSliceCategory', function() {
     var selection = createSelectionWithSingleSlice({withCategory: true});
 
-    var analysisEl = document.createElement('tv-c-single-slice-sub-view');
+    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -108,7 +108,7 @@ tv.b.unittest.testSuite(function() {
     var selection = createSelectionWithSingleSlice(
         {withStartStackFrame: 'a'});
 
-    var analysisEl = document.createElement('tv-c-single-slice-sub-view');
+    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
@@ -122,7 +122,7 @@ tv.b.unittest.testSuite(function() {
     var selection = createSelectionWithSingleSlice(
         {withEndStackFrame: 'b'});
 
-    var analysisEl = document.createElement('tv-c-single-slice-sub-view');
+    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
@@ -138,7 +138,7 @@ tv.b.unittest.testSuite(function() {
         {withStartStackFrame: 'a',
          withEndStackFrame: 'b'});
 
-    var analysisEl = document.createElement('tv-c-single-slice-sub-view');
+    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
@@ -160,7 +160,7 @@ tv.b.unittest.testSuite(function() {
         {withStartStackFrame: 'a',
          withEndStackFrame: 'a'});
 
-    var analysisEl = document.createElement('tv-c-single-slice-sub-view');
+    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
@@ -173,7 +173,7 @@ tv.b.unittest.testSuite(function() {
 
   test('analyzeSelectionWithSingleSlice', function() {
     var selection = createSelectionWithSingleSlice();
-    var subView = document.createElement('tv-c-single-slice-sub-view');
+    var subView = document.createElement('tv-c-a-single-event-sub-view');
     subView.selection = selection;
 
     var table = tv.b.findDeepElementMatching(
@@ -187,7 +187,7 @@ tv.b.unittest.testSuite(function() {
   test('analyzeSelectionWithSingleSliceCategory', function() {
     var selection = createSelectionWithSingleSlice({withCategory: true});
 
-    var subView = document.createElement('tv-c-single-slice-sub-view');
+    var subView = document.createElement('tv-c-a-single-event-sub-view');
     subView.selection = selection;
 
     var table = tv.b.findDeepElementMatching(
@@ -216,7 +216,7 @@ tv.b.unittest.testSuite(function() {
     selection.push(t1.sliceGroup.slices[0]);
     assert.equal(selection.length, 1);
 
-    var subView = document.createElement('tv-c-single-slice-sub-view');
+    var subView = document.createElement('tv-c-a-single-event-sub-view');
     subView.selection = selection;
     this.addHTMLOutput(subView);
 

@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
-<link rel="import" href="/core/analysis/single_slice_sub_view.html">
+<link rel="import" href="/core/analysis/single_event_sub_view.html">
 
 <polymer-element name="tv-c-single-instant-event-sub-view"
     extends="tracing-analysis-sub-view">
@@ -29,7 +29,7 @@ found in the LICENSE file.
 
     set selection(selection) {
       this.$.content.textContent = '';
-      var realView = document.createElement('tv-c-single-slice-sub-view');
+      var realView = document.createElement('tv-c-a-single-event-sub-view');
       realView.setSelectionWithoutErrorChecks(selection);
 
       this.$.content.appendChild(realView);
