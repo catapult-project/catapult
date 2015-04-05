@@ -591,9 +591,6 @@ tv.b.unittest.testSuite(function() {
     var table = createSimpleOneColumnNestedTable();
     var rows = table.tableRows;
 
-    var r0 = table.$.body.children[1];
-    assert.isTrue(r0.hasAttribute('tabIndex'));
-
     table.supportsSelection = true;
     table.selectedTableRow = rows[0];
 
@@ -610,6 +607,9 @@ tv.b.unittest.testSuite(function() {
     table.supportsSelection = true;
     table.setExpandedForTableRow(rows[0].subRows[1], true);
     this.addHTMLOutput(table);
+
+    var r0 = table.$.body.children[0];
+    assert.isTrue(r0.hasAttribute('tabIndex'));
   });
 
 
