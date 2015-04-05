@@ -44,10 +44,20 @@ found in the LICENSE file.
   Polymer({
     created: function() {
       this.selection_ = undefined;
+      this.eventsHaveDuration_ = true;
     },
 
     ready: function() {
       this.initTitleTable_();
+    },
+
+    get eventsHaveDuration() {
+      return this.eventsHaveDuration_;
+    },
+
+    set eventsHaveDuration(eventsHaveDuration) {
+      this.eventsHaveDuration_ = eventsHaveDuration;
+      this.updateContents_();
     },
 
     get selection() {
@@ -56,6 +66,11 @@ found in the LICENSE file.
 
     set selection(selection) {
       this.selection_ = selection;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      var selection = this.selection_;
 
       this.updateTitleTable_();
 
@@ -141,18 +156,21 @@ found in the LICENSE file.
           return rowA.start - rowB.start;
         }
       });
-      columns.push({
-        title: 'Wall Duration (ms)',
-        value: function(row) {
-          return tv.c.analysis.createTimeSpan(row.duration);
-        },
-        width: '<upated further down>',
-        cmp: function(rowA, rowB) {
-          return rowA.duration - rowB.duration;
-        }
-      });
 
-      if (hasCpuData) {
+      if (this.eventsHaveDuration_) {
+        columns.push({
+          title: 'Wall Duration (ms)',
+          value: function(row) {
+            return tv.c.analysis.createTimeSpan(row.duration);
+          },
+          width: '<upated further down>',
+          cmp: function(rowA, rowB) {
+            return rowA.duration - rowB.duration;
+          }
+        });
+      }
+
+      if (this.eventsHaveDuration_ && hasCpuData) {
         columns.push({
           title: 'CPU Duration (ms)',
           value: function(row) {
