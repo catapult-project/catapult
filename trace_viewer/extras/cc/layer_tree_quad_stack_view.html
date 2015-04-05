@@ -19,11 +19,11 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/info_bar.html">
 
 <style>
-layer-tree-quad-stack-view {
+* /deep/ layer-tree-quad-stack-view {
   position: relative;
 }
 
-layer-tree-quad-stack-view > top-controls {
+* /deep/ layer-tree-quad-stack-view > top-controls {
   -webkit-flex: 0 0 auto;
   background-image: -webkit-gradient(linear,
                                      0 0, 100% 0,
@@ -39,11 +39,11 @@ layer-tree-quad-stack-view > top-controls {
   overflow: hidden;
 }
 
-layer-tree-quad-stack-view > top-controls input[type='checkbox'] {
+* /deep/ layer-tree-quad-stack-view > top-controls input[type='checkbox'] {
   vertical-align: -2px;
 }
 
-layer-tree-quad-stack-view > .what-rasterized {
+* /deep/ layer-tree-quad-stack-view > .what-rasterized {
   color: -webkit-link;
   cursor: pointer;
   text-decoration: underline;
@@ -52,7 +52,7 @@ layer-tree-quad-stack-view > .what-rasterized {
   left: 10px;
 }
 
-layer-tree-quad-stack-view > #input-event {
+* /deep/ layer-tree-quad-stack-view > #input-event {
   content: url('./images/input-event.png');
   display: none;
 }

@@ -18,50 +18,52 @@ found in the LICENSE file.
 
 <template id="display-item-debugger-template">
   <style>
-  display-item-debugger {
+  * /deep/ display-item-debugger {
     -webkit-flex: 1 1 auto;
     display: -webkit-flex;
   }
 
-  display-item-debugger > left-panel {
+  * /deep/ display-item-debugger > left-panel {
     -webkit-flex-direction: column;
     display: -webkit-flex;
     min-width: 300px;
     overflow-y: auto;
   }
 
-  display-item-debugger > left-panel > display-item-info {
+  * /deep/ display-item-debugger > left-panel > display-item-info {
     -webkit-flex: 1 1 auto;
     padding-top: 2px;
   }
 
-  display-item-debugger > left-panel > display-item-info .title {
+  * /deep/ display-item-debugger > left-panel > display-item-info .title {
     font-weight: bold;
     margin-left: 5px;
     margin-right: 5px;
   }
 
-  display-item-debugger > x-drag-handle {
+  * /deep/ display-item-debugger > x-drag-handle {
     -webkit-flex: 0 0 auto;
   }
 
-  display-item-debugger > right-panel {
+  * /deep/ display-item-debugger > right-panel {
     -webkit-flex: 1 1 auto;
     display: -webkit-flex;
   }
 
-  display-item-debugger > left-panel > display-item-info > header {
+  * /deep/ display-item-debugger > left-panel >
+      display-item-info > header {
     border-bottom: 1px solid #555;
   }
 
-  display-item-debugger > left-panel > display-item-info > .x-list-view > div {
+  * /deep/ display-item-debugger > left-panel >
+      display-item-info > .x-list-view > div {
     border-bottom: 1px solid #555;
     padding-top: 3px;
     padding-bottom: 3px;
     padding-left: 5px;
   }
 
-  display-item-debugger > left-panel > display-item-info >
+  * /deep/ display-item-debugger > left-panel > display-item-info >
       .x-list-view > div:hover {
     background-color: #f0f0f0;
     cursor: pointer;
@@ -69,24 +71,25 @@ found in the LICENSE file.
 
   /******************************************************************************/
 
-  display-item-debugger > right-panel > picture-ops-list-view.hasPictureOps {
+  * /deep/ display-item-debugger > right-panel >
+      picture-ops-list-view.hasPictureOps {
     display: block;
   }
 
-  display-item-debugger > right-panel > x-drag-handle.hasPictureOps {
+  * /deep/ display-item-debugger > right-panel > x-drag-handle.hasPictureOps {
     display: block;
   }
 
-  display-item-debugger > right-panel > picture-ops-list-view {
+  * /deep/ display-item-debugger > right-panel > picture-ops-list-view {
     display: none;
     overflow-y: auto;
   }
 
-  display-item-debugger > right-panel > x-drag-handle {
+  * /deep/ display-item-debugger > right-panel > x-drag-handle {
     display: none;
   }
 
-  raster-area {
+  * /deep/ raster-area {
     -webkit-flex: 1 1 auto;
     background-color: #ddd;
     min-height: 200px;

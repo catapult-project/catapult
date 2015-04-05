@@ -20,51 +20,51 @@ found in the LICENSE file.
 
 <template id="picture-debugger-template">
   <style>
-  picture-debugger {
+  * /deep/ picture-debugger {
     -webkit-flex: 1 1 auto;
     -webkit-flex-direction: row;
     display: -webkit-flex;
   }
 
-  picture-debugger > tv-c-analysis-generic-object-view {
+  * /deep/ picture-debugger > tv-c-analysis-generic-object-view {
     -webkit-flex-direction: column;
     display: -webkit-flex;
     width: 400px;
   }
 
-  picture-debugger > left-panel {
+  * /deep/ picture-debugger > left-panel {
     -webkit-flex-direction: column;
     display: -webkit-flex;
     min-width: 300px;
   }
 
-  picture-debugger > left-panel > picture-info {
+  * /deep/ picture-debugger > left-panel > picture-info {
     -webkit-flex: 0 0 auto;
     padding-top: 2px;
   }
 
-  picture-debugger > left-panel > picture-info .title {
+  * /deep/ picture-debugger > left-panel > picture-info .title {
     font-weight: bold;
     margin-left: 5px;
     margin-right: 5px;
   }
 
-  picture-debugger > x-drag-handle {
+  * /deep/ picture-debugger > x-drag-handle {
     -webkit-flex: 0 0 auto;
   }
 
-  picture-debugger .filename {
+  * /deep/ picture-debugger .filename {
     -webkit-user-select: text;
     margin-left: 5px;
   }
 
-  picture-debugger > right-panel {
+  * /deep/ picture-debugger > right-panel {
     -webkit-flex: 1 1 auto;
     -webkit-flex-direction: column;
     display: -webkit-flex;
   }
 
-  picture-debugger > right-panel > picture-ops-chart-view {
+  * /deep/ picture-debugger > right-panel > picture-ops-chart-view {
     min-height: 150px;
     min-width : 0;
     overflow-x: auto;
@@ -73,7 +73,7 @@ found in the LICENSE file.
 
   /******************************************************************************/
 
-  raster-area {
+  * /deep/ raster-area {
     background-color: #ddd;
     min-height: 200px;
     min-width: 200px;

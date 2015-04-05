@@ -3,13 +3,13 @@
  * found in the LICENSE file.
  */
 
-x-drag-handle {
+* /deep/ x-drag-handle {
   -webkit-user-select: none;
   box-sizing: border-box;
   display: block;
 }
 
-x-drag-handle.horizontal-drag-handle {
+* /deep/ x-drag-handle.horizontal-drag-handle {
   background-image: -webkit-gradient(linear,
                                      0 0, 0 100%,
                                      from(#E5E5E5),
@@ -22,7 +22,7 @@ x-drag-handle.horizontal-drag-handle {
   z-index: 10;
 }
 
-x-drag-handle.vertical-drag-handle {
+* /deep/ x-drag-handle.vertical-drag-handle {
   background-image: -webkit-gradient(linear,
                                      0 0, 100% 0,
                                      from(#E5E5E5),

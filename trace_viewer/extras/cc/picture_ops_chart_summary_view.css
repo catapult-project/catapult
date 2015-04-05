@@ -3,7 +3,7 @@
  * found in the LICENSE file.
  */
 
-picture-ops-chart-summary-view {
+* /deep/ picture-ops-chart-summary-view {
   -webkit-flex: 0 0 auto;
   font-size: 0;
   margin: 0;
@@ -13,6 +13,6 @@ picture-ops-chart-summary-view {
   padding: 0;
 }
 
-picture-ops-chart-summary-view.hidden {
+* /deep/ picture-ops-chart-summary-view.hidden {
   display: none;
 }

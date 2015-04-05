@@ -3,7 +3,7 @@
  * found in the LICENSE file.
  */
 
-.mouse-mode-selector {
+* /deep/ .mouse-mode-selector {
 
   -webkit-user-drag: element;
   -webkit-user-select: none;
@@ -20,11 +20,11 @@
   z-index: 20;
 }
 
-.mouse-mode-icon {
+* /deep/ .mouse-mode-icon {
   background-image: url(../images/ui-states.png);
 }
 
-.mouse-mode-selector .drag-handle {
+* /deep/ .mouse-mode-selector .drag-handle {
   background: url(../images/ui-states.png) 2px 3px no-repeat;
   background-repeat: no-repeat;
   border-bottom: 1px solid #BCBCBC;
@@ -34,49 +34,49 @@
   width: 27px;
 }
 
-.mouse-mode-selector .pan-scan-mode-button {
+* /deep/ .mouse-mode-selector .pan-scan-mode-button {
   background-image: url(../images/ui-states.png);
   background-position: 0 -10px;
 }
 
-.mouse-mode-selector .pan-scan-mode-button.active {
+* /deep/ .mouse-mode-selector .pan-scan-mode-button.active {
   background-position: -30px -10px;
 }
 
-.mouse-mode-selector .selection-mode-button {
+* /deep/ .mouse-mode-selector .selection-mode-button {
   background-image: url(../images/ui-states.png);
   background-position: 0 -40px;
 }
 
-.mouse-mode-selector .selection-mode-button.active {
+* /deep/ .mouse-mode-selector .selection-mode-button.active {
   background-position: -30px -40px;
 }
 
-.mouse-mode-selector .zoom-mode-button {
+* /deep/ .mouse-mode-selector .zoom-mode-button {
   background-image: url(../images/ui-states.png);
   background-position: 0 -70px;
 }
 
-.mouse-mode-selector .zoom-mode-button.active {
+* /deep/ .mouse-mode-selector .zoom-mode-button.active {
   background-position: -30px -70px;
 }
 
-.mouse-mode-selector .timing-mode-button {
+* /deep/ .mouse-mode-selector .timing-mode-button {
   background-image: url(../images/ui-states.png);
   background-position: 0 -100px;
   border-bottom: none;
 }
 
-.mouse-mode-selector .timing-mode-button.active {
+* /deep/ .mouse-mode-selector .timing-mode-button.active {
   background-position: -30px -100px;
 }
 
-.mouse-mode-selector .rotate-mode-button {
+* /deep/ .mouse-mode-selector .rotate-mode-button {
   background-image: url(../images/ui-states.png);
   background-position: 0 -130px;
   border-bottom: none;
 }
 
-.mouse-mode-selector .rotate-mode-button.active {
+* /deep/ .mouse-mode-selector .rotate-mode-button.active {
   background-position: -30px -130px;
 }

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/utils.html">
+<link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/core/analysis/analysis_view.html">
 <link rel="import" href="/extras/cc/raster_task_view.html">
 <link rel="import" href="/extras/cc/raster_task_selection.html">
@@ -41,6 +42,8 @@ tv.b.unittest.testSuite(function() {
     var view = new TracingAnalysisView();
     view.selection = selection;
     assert.isDefined(view.querySelector('RasterTaskView'));
+    var sv = tv.b.findDeepElementMatching(view, 'tv-c-a-multi-slice-sub-view');
+    assert.isTrue(sv.requiresTallView);
     this.addHTMLOutput(view);
   });
 });

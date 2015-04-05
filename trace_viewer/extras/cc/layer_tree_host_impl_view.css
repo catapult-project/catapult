@@ -3,16 +3,16 @@
  * found in the LICENSE file.
  */
 
-.lthi-s-view {
+* /deep/ .lthi-s-view {
   -webkit-flex: 1 1 auto !important;
   -webkit-flex-direction: row;
   display: -webkit-flex;
 }
 
-.lthi-s-view > layer-picker {
+* /deep/ .lthi-s-view > layer-picker {
   -webkit-flex: 1 1 auto;
 }
 
-.lthi-s-view > x-drag-handle {
+* /deep/ .lthi-s-view > x-drag-handle {
   -webkit-flex: 0 0 auto;
 }

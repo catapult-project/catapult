@@ -15,7 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/mouse_tracker.html">
 
 <style>
-quad-stack-view {
+* /deep/ quad-stack-view {
   display: block;
   float: left;
   height: 100%;
@@ -24,31 +24,31 @@ quad-stack-view {
   width: 100%;
 }
 
-quad-stack-view > #header {
+* /deep/ quad-stack-view > #header {
   position: absolute;
   font-size: 70%;
   top: 10px;
   left: 10px;
   width: 800px;
 }
-quad-stack-view > #stacking-distance-slider {
+* /deep/ quad-stack-view > #stacking-distance-slider {
   position: absolute;
   font-size: 70%;
   top: 10px;
   right: 10px;
 }
 
-quad-stack-view > #chrome-left {
+* /deep/ quad-stack-view > #chrome-left {
   content: url('../images/chrome-left.png');
   display: none;
 }
 
-quad-stack-view > #chrome-mid {
+* /deep/ quad-stack-view > #chrome-mid {
   content: url('../images/chrome-mid.png');
   display: none;
 }
 
-quad-stack-view > #chrome-right {
+* /deep/ quad-stack-view > #chrome-right {
   content: url('../images/chrome-right.png');
   display: none;
 }

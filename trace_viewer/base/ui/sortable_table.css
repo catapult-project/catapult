@@ -3,6 +3,6 @@
  * found in the LICENSE file.
  */
 
-.sortable-table > thead > tr > td {
+* /deep/ .sortable-table > thead > tr > td {
   cursor: pointer !important;
 }

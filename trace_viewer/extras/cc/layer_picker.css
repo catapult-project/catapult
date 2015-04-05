@@ -3,12 +3,12 @@
  * found in the LICENSE file.
  */
 
-layer-picker {
+* /deep/ layer-picker {
   -webkit-flex-direction: column;
   display: -webkit-flex;
 }
 
-layer-picker > top-controls {
+* /deep/ layer-picker > top-controls {
   -webkit-flex: 0 0 auto;
   background-image: -webkit-gradient(linear,
                                      0 0, 100% 0,
@@ -21,23 +21,23 @@ layer-picker > top-controls {
   padding-left: 2px;
 }
 
-layer-picker > top-controls input[type='checkbox'] {
+* /deep/ layer-picker > top-controls input[type='checkbox'] {
     vertical-align: -2px;
 }
 
-layer-picker > .x-list-view {
+* /deep/ layer-picker > .x-list-view {
   -webkit-flex: 1 1 auto;
   font-family: monospace;
   overflow: auto;
 }
 
-layer-picker > tv-c-analysis-generic-object-view {
+* /deep/ layer-picker > tv-c-analysis-generic-object-view {
   -webkit-flex: 0 0 auto;
   height: 200px;
   overflow: auto;
 }
 
-layer-picker > tv-c-analysis-generic-object-view * {
+* /deep/ layer-picker > tv-c-analysis-generic-object-view * {
   -webkit-user-select: text !important;
   cursor: text;
 }

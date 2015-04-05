@@ -3,7 +3,7 @@
  * found in the LICENSE file.
  */
 
-.tool-button {
+* /deep/ .tool-button {
   background-position: center center;
   background-repeat: no-repeat;
   border-bottom: 1px solid #BCBCBC;
@@ -12,6 +12,6 @@
   height: 30px;
 }
 
-.tool-button.active {
+* /deep/ .tool-button.active {
   cursor: auto;
 }

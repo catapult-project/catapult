@@ -3,15 +3,15 @@
  * found in the LICENSE file.
  */
 
-x-list-and-associated-view {
+* /deep/ x-list-and-associated-view {
   -webkit-flex-direction: row;
   display: -webkit-flex;
 }
 
-x-list-and-associated-view > .x-list-view {
+* /deep/ x-list-and-associated-view > .x-list-view {
   min-width: 100px;
 }
 
-x-list-and-associated-view > :nth-child(2) {
+* /deep/ x-list-and-associated-view > :nth-child(2) {
   -webkit-flex: 1;
 }

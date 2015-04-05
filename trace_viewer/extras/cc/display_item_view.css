@@ -3,7 +3,7 @@
  * found in the LICENSE file.
  */
 
-.display-item-view {
+* /deep/ .display-item-view {
   -webkit-flex: 1 1 auto !important;
   display: -webkit-flex;
 }

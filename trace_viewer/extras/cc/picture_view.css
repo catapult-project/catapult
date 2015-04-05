@@ -3,7 +3,7 @@
  * found in the LICENSE file.
  */
 
-.picture-snapshot-view {
+* /deep/ .picture-snapshot-view {
   -webkit-flex: 0 1 auto !important;
   display: -webkit-flex;
 }

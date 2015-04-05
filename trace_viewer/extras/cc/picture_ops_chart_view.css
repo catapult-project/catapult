@@ -3,7 +3,7 @@
  * found in the LICENSE file.
  */
 
-picture-ops-chart-view {
+* /deep/ picture-ops-chart-view {
   display: block;
   height: 180px;
   margin: 0;
@@ -11,7 +11,7 @@ picture-ops-chart-view {
   position: relative;
 }
 
-picture-ops-chart-view > .use-percentile-scale {
+* /deep/ picture-ops-chart-view > .use-percentile-scale {
   left: 0;
   position: absolute;
   top: 0;
