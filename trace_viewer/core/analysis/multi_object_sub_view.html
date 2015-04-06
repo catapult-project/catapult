@@ -5,12 +5,23 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/analysis/analysis_results.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/core/analysis/table_builder.html">
+<link rel="import" href="/core/analysis/time_stamp.html">
+<link rel="import" href="/core/analysis/analysis_link.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/util.html">
 
 <polymer-element name="tv-c-multi-object-sub-view"
     extends="tracing-analysis-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <tracing-analysis-nested-table id="content"></tracing-analysis-nested-table>
+  </template>
   <script>
   'use strict';
 
@@ -19,70 +30,57 @@ found in the LICENSE file.
       this.currentSelection_ = undefined;
     },
 
+    ready: function() {
+      this.$.content.showHeader = false;
+    },
+
     get selection() {
       return this.currentSelection_;
     },
 
     set selection(selection) {
       this.currentSelection_ = selection;
-      this.textContent = '';
 
-      var results = new tv.c.analysis.AnalysisResults();
-      this.appendChild(results);
-
-      this.analyzeObjectEvents_(results, selection);
-    },
-
-    /**
-     * Extremely simplistic analysis of objects. Mainly exists to provide
-     * click-through to the main object's analysis view.
-     */
-    analyzeObjectEvents_: function(results, objectEvents) {
-      objectEvents = tv.b.asArray(objectEvents).sort(
+      var objectEvents = tv.b.asArray(selection).sort(
           tv.b.Range.compareByMinTimes);
 
-      var table = results.appendTable('analysis-object-sample-table', 2);
+      var table = this.$.content;
+      table.tableColumns = [
+        {
+          title: 'First',
+          value: function(event) {
+            if (event instanceof tv.c.trace_model.ObjectSnapshot)
+              return tv.c.analysis.createTimeStamp(event.ts)
 
-      objectEvents.forEach(function(event) {
-        var row = results.appendBodyRow(table);
-        var ts;
-        var objectText;
-        var selectionGenerator;
-        if (event instanceof tv.c.trace_model.ObjectSnapshot) {
-          var objectSnapshot = event;
-          ts = tv.c.analysis.tsString(objectSnapshot.ts);
-          objectText = objectSnapshot.objectInstance.typeName + ' ' +
-              objectSnapshot.objectInstance.id;
-          selectionGenerator = function() {
-            var selection = new tv.c.Selection();
-            selection.push(objectSnapshot);
-            return selection;
-          };
-        } else {
-          var objectInstance = event;
-
-          var deletionTs = objectInstance.deletionTs == Number.MAX_VALUE ?
-              '' : tv.c.analysis.tsString(objectInstance.deletionTs);
-          ts = tv.c.analysis.tsString(objectInstance.creationTs) +
-              ' - ' + deletionTs;
-
-          objectText = objectInstance.typeName + ' ' +
-              objectInstance.id;
-
-          selectionGenerator = function() {
-            var selection = new tv.c.Selection();
-            selection.push(objectInstance);
-            return selection;
-          };
+            var spanEl = document.createElement('span');
+            spanEl.appendChild(tv.c.analysis.createTimeStamp(event.creationTs));
+            spanEl.appendChild(tv.b.ui.createSpan({
+                textContent: '-',
+                marginLeft: '4px',
+                marginRight: '4px'
+            }));
+            if (event.deletionTs != Number.MAX_VALUE) {
+              spanEl.appendChild(
+                  tv.c.analysis.createTimeStamp(event.deletionTs));
+            }
+            return spanEl;
+          },
+          width: '200px'
+        },
+        {
+          title: 'Second',
+          value: function(event) {
+            var linkEl = document.createElement('tv-c-analysis-link');
+            linkEl.setSelectionAndContent(function() {
+                return new tv.c.Selection(event);
+            }, event.userFriendlyName);
+            return linkEl;
+          },
+          width: '100%'
         }
-
-        results.appendTableCell(table, row, ts);
-        var linkContainer = results.appendTableCell(table, row, '');
-        linkContainer.appendChild(
-            results.createSelectionChangingLink(
-                objectText,
-                selectionGenerator));
-      });
+      ];
+      table.tableRows = objectEvents;
+      table.rebuild();
     }
   });
   </script>
