@@ -4,12 +4,17 @@
 
 import unittest
 
+from telemetry.core import util
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform_backend
 from telemetry import decorators
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
 
+util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
+import mock # pylint: disable=F0401
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+from pylib.device import battery_utils # pylint: disable=F0401
 
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):
@@ -22,10 +27,13 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     # Skip _FixPossibleAdbInstability by setting psutil to None.
     self._actual_ps_util = android_platform_backend.psutil
     android_platform_backend.psutil = None
+    self.battery_patcher = mock.patch.object(battery_utils, 'BatteryUtils')
+    self.battery_patcher.start()
 
   def tearDown(self):
     self._stubs.Restore()
     android_platform_backend.psutil = self._actual_ps_util
+    self.battery_patcher.stop()
 
   @decorators.Disabled('chromeos')
   def testGetCpuStats(self):

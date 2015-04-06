@@ -6,8 +6,12 @@ from collections import defaultdict
 import csv
 import logging
 
+from telemetry.core import util
 from telemetry.core.platform.power_monitor import sysfs_power_monitor
 
+# Get build/android scripts into path
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+from pylib.device import battery_utils # pylint: disable=F0401
 
 class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   """PowerMonitor that relies on the dumpsys batterystats to monitor the power
@@ -25,6 +29,7 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     super(DumpsysPowerMonitor, self).__init__(platform_backend)
     self._browser = None
     self._device = device
+    self._battery = battery_utils.BatteryUtils(device)
 
   def CanMonitorPower(self):
     result = self._platform.RunCommand('dumpsys batterystats -c')
@@ -42,14 +47,14 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
     # charging.
-    self._device.DisableBatteryUpdates()
+    self._battery.DisableBatteryUpdates()
 
   def StopMonitoringPower(self):
     if self._browser:
       package = self._browser._browser_backend.package
       self._browser = None
     cpu_stats = super(DumpsysPowerMonitor, self).StopMonitoringPower()
-    self._device.EnableBatteryUpdates()
+    self._battery.EnableBatteryUpdates()
     # By default, 'dumpsys batterystats' measures power consumption during the
     # last unplugged period.
     result = self._platform.RunCommand('dumpsys batterystats -c %s' % package)
