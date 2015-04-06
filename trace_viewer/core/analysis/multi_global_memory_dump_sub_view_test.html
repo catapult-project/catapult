@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_view.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Model = tv.c.TraceModel;
+  var Selection = tv.c.Selection;
+  var trace_model = tv.c.trace_model;
+
+  test('basic', function() {
+    var m = new tv.c.TraceModel();
+    var d1 = new tv.c.trace_model.GlobalMemoryDump(m, 5);
+    var d2 = new tv.c.trace_model.GlobalMemoryDump(m, 20);
+    m.globalMemoryDumps.push(d1);
+    m.globalMemoryDumps.push(d2);
+
+    var selection = new Selection();
+    selection.push(d1);
+    selection.push(d2);
+    assert.equal(selection.length, 2);
+
+    var subView = document.createElement(
+        'tv-c-multi-global-memory-dump-sub-view');
+    subView.selection = selection;
+
+    this.addHTMLOutput(subView);
+  });
+});
+</script>

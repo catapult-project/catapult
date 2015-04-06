@@ -5,12 +5,21 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/analysis/analysis_results.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/table_builder.html">
 <link rel="import" href="/core/analysis/util.html">
 
 <polymer-element name="tv-c-multi-global-memory-dump-sub-view"
     extends="tracing-analysis-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <tracing-analysis-nested-table id="content"></tracing-analysis-nested-table>
+  </template>
+
   <script>
   'use strict';
 
@@ -19,34 +28,38 @@ found in the LICENSE file.
       this.currentSelection_ = undefined;
     },
 
+    get selection() {
+      return this.currentSelection_;
+    },
+
     set selection(selection) {
       this.currentSelection_ = selection;
-      this.textContent = '';
 
       selection = tv.b.asArray(selection).sort(
           tv.b.Range.compareByMinTimes);
 
-      var results = new tv.c.analysis.AnalysisResults();
-      this.appendChild(results);
-
-      var table = results.appendTable('analysis-global-memory-dump-table', 1);
-
-      selection.forEach(function(dump) {
-        var row = results.appendBodyRow(table);
-        var linkContainer = results.appendTableCell(table, row, '');
-        var label = 'Dump at ' + tv.c.analysis.tsString(dump.start);
-        var selectionGenerator = function() {
-          var selection = new tv.c.Selection();
-          selection.push(dump);
-          return selection;
+      var table = this.$.content;
+      table.tableColumns = [
+        {
+          title: 'Dump',
+          value: function(row) {
+            var linkEl = document.createElement('tv-c-analysis-link');
+            linkEl.setSelectionAndContent(function() {
+                return new tv.c.Selection(row);
+            });
+            var spanEl = document.createElement('span');
+            spanEl.textContent = 'Memory dump at ';
+            linkEl.appendChild(spanEl);
+            linkEl.appendChild(tv.c.analysis.createTimeStamp(row.start));
+            return linkEl;
+          }
         }
-        linkContainer.appendChild(results.createSelectionChangingLink(
-            label, selectionGenerator));
+      ];
+      table.showHeader = false;
+      table.tableRows = selection.map(function(dump) {
+        return dump;
       });
-    },
-
-    get selection() {
-      return this.currentSelection_;
+      table.rebuild();
     }
   });
   </script>
