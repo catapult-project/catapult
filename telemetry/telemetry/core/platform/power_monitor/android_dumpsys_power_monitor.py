@@ -27,7 +27,14 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     self._device = device
 
   def CanMonitorPower(self):
-    return self._device.old_interface.CanControlUsbCharging()
+    result = self._platform.RunCommand('dumpsys batterystats -c')
+    DUMP_VERSION_INDEX = 0
+    csvreader = csv.reader(result)
+    # Dumpsys power data is present in dumpsys versions 8 and 9
+    # which is found on L+ devices.
+    if csvreader.next()[DUMP_VERSION_INDEX] in ['8', '9']:
+      return True
+    return False
 
   def StartMonitoringPower(self, browser):
     super(DumpsysPowerMonitor, self).StartMonitoringPower(browser)
