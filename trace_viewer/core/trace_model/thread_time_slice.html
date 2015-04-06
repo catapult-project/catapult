@@ -14,6 +14,24 @@ found in the LICENSE file.
 tv.exportTo('tv.c.trace_model', function() {
   var Slice = tv.c.trace_model.Slice;
 
+
+  var SCHEDULING_STATE = {
+    DEBUG: 'Debug',
+    EXIT_DEAD: 'Exit Dead',
+    RUNNABLE: 'Runnable',
+    RUNNING: 'Running',
+    SLEEPING: 'Sleeping',
+    STOPPED: 'Stopped',
+    TASK_DEAD: 'Task Dead',
+    UNINTR_SLEEP: 'Uninterruptible Sleep',
+    UNINTR_SLEEP_WAKE_KILL: 'Uninterruptible Sleep | WakeKill',
+    UNINTR_SLEEP_WAKING: 'Uninterruptible Sleep | Waking',
+    UNKNOWN: 'UNKNOWN',
+    WAKE_KILL: 'Wakekill',
+    WAKING: 'Waking',
+    ZOMBIE: 'Zombie'
+  };
+
   /**
    * A ThreadTimeSlice is a slice of time on a specific thread where that thread
    * was running on a specific CPU, or in a specific sleep state.
@@ -29,14 +47,42 @@ tv.exportTo('tv.c.trace_model', function() {
    * @constructor
    */
   function ThreadTimeSlice(
-      thread, cat, title, colorId, start, args, opt_duration) {
-    Slice.call(this, cat, title, colorId, start, args, opt_duration);
+      thread, threadState, cat, start, args, opt_duration) {
+    Slice.call(this, cat, threadState, this.getColorForState_(threadState),
+        start, args, opt_duration);
     this.thread = thread;
+    this.threadState = threadState;
     this.cpuOnWhichThreadWasRunning = undefined;
   }
 
   ThreadTimeSlice.prototype = {
     __proto__: Slice.prototype,
+
+    getColorForState_: function(state) {
+      var getColorIdForReservedName = tv.b.ui.getColorIdForReservedName;
+      switch (state) {
+        case SCHEDULING_STATE.RUNNABLE:
+          return getColorIdForReservedName('thread_state_runnable');
+        case SCHEDULING_STATE.RUNNING:
+          return getColorIdForReservedName('thread_state_running');
+        case SCHEDULING_STATE.SLEEPING:
+          return getColorIdForReservedName('thread_state_sleeping');
+        case SCHEDULING_STATE.DEBUG:
+        case SCHEDULING_STATE.EXIT_DEAD:
+        case SCHEDULING_STATE.STOPPED:
+        case SCHEDULING_STATE.TASK_DEAD:
+        case SCHEDULING_STATE.UNINTR_SLEEP:
+        case SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL:
+        case SCHEDULING_STATE.UNINTR_SLEEP_WAKING:
+        case SCHEDULING_STATE.UNKNOWN:
+        case SCHEDULING_STATE.WAKE_KILL:
+        case SCHEDULING_STATE.WAKING:
+        case SCHEDULING_STATE.ZOMBIE:
+          return getColorIdForReservedName('thread_state_iowait');
+        default:
+          return getColorIdForReservedName('thread_state_unknown');
+      }
+    },
 
     get analysisTypeName() {
       return 'tv.c.analysis.ThreadTimeSlice';
@@ -98,7 +144,8 @@ tv.exportTo('tv.c.trace_model', function() {
 
 
   return {
-    ThreadTimeSlice: ThreadTimeSlice
+    ThreadTimeSlice: ThreadTimeSlice,
+    SCHEDULING_STATE: SCHEDULING_STATE
   };
 });
 </script>

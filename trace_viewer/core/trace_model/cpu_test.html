@@ -13,6 +13,7 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   var Cpu = tv.c.trace_model.Cpu;
+  var newThreadSlice = tv.c.test_utils.newThreadSlice;
 
   test('cpuBounds_Empty', function() {
     var cpu = new Cpu({}, 1);
@@ -61,21 +62,14 @@ tv.b.unittest.testSuite(function() {
     return s;
   }
 
-  function newTimeSliceNamed(thread, name, start, duration, opt_cpu) {
-    var s = new tv.c.trace_model.ThreadTimeSlice(
-        thread, 'cat', name, 0, start, {}, duration);
-    if (opt_cpu)
-      s.cpuOnWhichThreadWasRunning = opt_cpu;
-    return s;
-  }
-
   test('getTimesliceForCpuSlice', function() {
     var m = new tv.c.TraceModel();
+    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
     var cpu = m.kernel.getOrCreateCpu(1);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    t2.timeSlices = [newTimeSliceNamed(t2, 'Running', 0, 10, cpu),
-                     newTimeSliceNamed(t2, 'Sleeping', 10, 10),
-                     newTimeSliceNamed(t2, 'Running', 20, 10, cpu)];
+    t2.timeSlices = [newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 0, 10, cpu),
+                     newThreadSlice(t2, SCHEDULING_STATE.SLEEPING, 10, 10),
+                     newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 20, 10, cpu)];
     cpu.slices = [newCpuSliceNamed(cpu, 'x', 0, 10, t2),
                   newCpuSliceNamed(cpu, 'x', 20, 10, t2)];
     assert.equal(cpu.slices[0].getAssociatedTimeslice(), t2.timeSlices[0]);
@@ -95,14 +89,15 @@ tv.b.unittest.testSuite(function() {
 
   test('putToSleepFor', function() {
     var m = new tv.c.TraceModel();
+    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
     var cpu = m.kernel.getOrCreateCpu(1);
 
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var t3 = m.getOrCreateProcess(1).getOrCreateThread(3);
-    t2.timeSlices = [newTimeSliceNamed(t2, 'Running', 0, 10, cpu),
-                     newTimeSliceNamed(t2, 'Sleeping', 10, 10),
-                     newTimeSliceNamed(t2, 'Running', 20, 10, cpu)];
-    t3.timeSlices = [newTimeSliceNamed(t3, 'Running', 10, 5, cpu)];
+    t2.timeSlices = [newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 0, 10, cpu),
+                     newThreadSlice(t2, SCHEDULING_STATE.SLEEPING, 10, 10),
+                     newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 20, 10, cpu)];
+    t3.timeSlices = [newThreadSlice(t3, SCHEDULING_STATE.RUNNING, 10, 5, cpu)];
     cpu.slices = [newCpuSliceNamed(cpu, 'x', 0, 10, t2),
                    newCpuSliceNamed(cpu, 'x', 10, 5, t3),
                    newCpuSliceNamed(cpu, 'x', 20, 10, t2)];
@@ -118,14 +113,15 @@ tv.b.unittest.testSuite(function() {
 
   test('putToSleepForNothing', function() {
     var m = new tv.c.TraceModel();
+    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
     var cpu = m.kernel.getOrCreateCpu(1);
 
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var t3 = m.getOrCreateProcess(1).getOrCreateThread(3);
-    t2.timeSlices = [newTimeSliceNamed(t2, 'Running', 0, 10, cpu),
-                     newTimeSliceNamed(t2, 'Sleeping', 10, 10),
-                     newTimeSliceNamed(t2, 'Running', 20, 10, cpu)];
-    t3.timeSlices = [newTimeSliceNamed(t3, 'Running', 15, 5, cpu)];
+    t2.timeSlices = [newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 0, 10, cpu),
+                     newThreadSlice(t2, SCHEDULING_STATE.SLEEPING, 10, 10),
+                     newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 20, 10, cpu)];
+    t3.timeSlices = [newThreadSlice(t3, SCHEDULING_STATE.RUNNING, 15, 5, cpu)];
     cpu.slices = [newCpuSliceNamed(cpu, 'x', 0, 10, t2),
                    newCpuSliceNamed(cpu, 'x', 15, 5, t3),
                    newCpuSliceNamed(cpu, 'x', 20, 10, t2)];
