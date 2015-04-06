@@ -158,12 +158,9 @@ def GenerateJSToFile(f,
                                     use_include_tags_for_scripts,
                                     dir_for_include_tag_root)
 
-      # Sizing. Can only show minified sizes if closure-compiler is local.
+      # Add minified size info.
       js = s.getvalue()
-      if _HasLocalClosureCompiler():
-        min_js_size = str(len(_MinifyJS(js)))
-      else:
-        min_js_size = '-'
+      min_js_size = str(len(_MinifyJS(js)))
 
       # Print names for this module. Some domain-specific simplifciations
       # are included to make pivoting more obvious.
