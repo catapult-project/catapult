@@ -24,6 +24,7 @@ found in the LICENSE file.
       this.textContent = '';
       var realView = document.createElement('tv-c-a-multi-event-sub-view');
       realView.eventsHaveDuration = false;
+      realView.eventsHaveSubRows = false;
 
       this.appendChild(realView);
       realView.setSelectionWithoutErrorChecks(selection);

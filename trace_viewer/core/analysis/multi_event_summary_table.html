@@ -36,6 +36,7 @@ found in the LICENSE file.
     ready: function() {
       this.showTotals_ = false;
       this.eventsHaveDuration_ = true;
+      this.eventsHaveSubRows_ = true;
       this.eventsByTitle_ = undefined;
     },
 
@@ -94,17 +95,20 @@ found in the LICENSE file.
         });
       }
 
-      columns.push({
-        title: 'Self time (ms)',
-        value: function(row) {
-          return tv.c.analysis.createTimeSpan(row.selfTime);
-        },
-        width: '<upated further down>',
-        cmp: function(rowA, rowB) {
-          return rowA.selfTime - rowB.selfTime;
-        }
-      });
-      if (hasCpuData) {
+      if (this.eventsHaveSubRows_ && this.eventsHaveDuration_) {
+        columns.push({
+          title: 'Self time (ms)',
+          value: function(row) {
+            return tv.c.analysis.createTimeSpan(row.selfTime);
+          },
+          width: '<upated further down>',
+          cmp: function(rowA, rowB) {
+            return rowA.selfTime - rowB.selfTime;
+          }
+        });
+      }
+
+      if (this.eventsHaveSubRows_ && this.eventsHaveDuration_ && hasCpuData) {
         columns.push({
           title: 'CPU Self Time (ms)',
           value: function(row) {
@@ -127,7 +131,12 @@ found in the LICENSE file.
         }
       });
 
-      var colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
+      var colWidthPercentage;
+      if (columns.length == 1)
+        colWidthPercentage = '100%';
+      else
+        colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
+
       for (var i = 1; i < columns.length; i++)
         columns[i].width = colWidthPercentage;
 
@@ -147,6 +156,11 @@ found in the LICENSE file.
         this.eventsHaveDuration_ = config.eventsHaveDuration;
       else
         this.eventsHaveDuration_ = true;
+
+      if (config.eventsHaveSubRows !== undefined)
+        this.eventsHaveSubRows_ = config.eventsHaveSubRows;
+      else
+        this.eventsHaveSubRows_ = true;
 
       this.eventsByTitle_ = config.eventsByTitle;
       this.updateContents_();
@@ -170,13 +184,22 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
+    get eventsHaveSubRows() {
+      return this.eventsHaveSubRows_;
+    },
+
+    set eventsHaveSubRows(eventsHaveSubRows) {
+      this.eventsHaveSubRows_ = eventsHaveSubRows;
+      this.updateContents_();
+    },
+
     get eventsByTitle() {
       return this.eventsByTitle_;
     },
 
     set eventsByTitle(eventsByTitle) {
       this.eventsByTitle_ = eventsByTitle;
-      this.appendChild(this.updateContents_());
+      this.updateContents_();
     },
 
     get selectionBounds() {

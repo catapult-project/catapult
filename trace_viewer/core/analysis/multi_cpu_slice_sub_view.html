@@ -26,6 +26,10 @@ found in the LICENSE file.
   'use strict';
 
   Polymer({
+    ready: function() {
+      this.$.content.eventsHaveSubRows = false;
+    },
+
     get selection() {
       return this.$.content.selection;
     },
