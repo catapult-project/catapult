@@ -6,10 +6,20 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
-<link rel="import" href="/core/analysis/analysis_results.html">
+<link rel="import" href="/core/analysis/table_builder.html">
+<link rel="import" href="/core/analysis/stack_frame.html">
+<link rel="import" href="/core/analysis/time_stamp.html">
 
 <polymer-element name="tv-c-single-sample-sub-view"
     extends="tracing-analysis-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <tracing-analysis-nested-table id="content"></tracing-analysis-nested-table>
+  </template>
   <script>
   'use strict';
 
@@ -18,31 +28,58 @@ found in the LICENSE file.
       this.currentSelection_ = undefined;
     },
 
-    set selection(selection) {
-
-      this.textContent = '';
-      this.currentSelection_ = selection;
-
-      var results = new tv.c.analysis.AnalysisResults();
-      this.appendChild(results);
-
-      this.analyzeSingleSampleEvent_(
-          results, selection[0], 'Sample Event');
+    ready: function() {
+      this.$.content.tableColumns = [
+        {
+          title: 'FirstColumn',
+          value: function(row) { return row.title; },
+          width: '250px'
+        },
+        {
+          title: 'SecondColumn',
+          value: function(row) { return row.value; },
+          width: '100%'
+        }
+      ];
+      this.$.content.showHeader = false;
     },
 
     get selection() {
       return this.currentSelection_;
     },
 
-    analyzeSingleSampleEvent_: function(results, sample, type) {
-      results.appendHeader('Selected ' + type + ':');
-      var table = results.appendTable('analysis-slice-table', 2);
+    set selection(selection) {
+      this.currentSelection_ = selection;
 
-      results.appendInfoRow(table, 'Title', sample.title);
-      results.appendInfoRowTime(table, 'Sample Time', sample.start);
-      results.appendInfoRow(table,
-                            'Stack Trace',
-                            sample.getUserFriendlyStackTrace());
+      if (this.currentSelection_ === undefined) {
+        this.$.content.tableRows = [];
+        return;
+      }
+
+      var sample = this.currentSelection_[0];
+      var table = this.$.content;
+
+      var rows = [];
+
+      rows.push({
+        title: 'Title',
+        value: sample.title
+      });
+
+      rows.push({
+          title: 'Sample time',
+          value: tv.c.analysis.createTimeStamp(sample.start)
+      });
+
+      var sfEl = document.createElement('tv-c-a-stack-frame');
+      debugger;
+      sfEl.stackFrame = sample.leafStackFrame;
+      rows.push({
+        title: 'Stack trace',
+        value: sfEl
+      });
+      table.tableRows = rows;
+      table.rebuild();
     }
   });
   </script>

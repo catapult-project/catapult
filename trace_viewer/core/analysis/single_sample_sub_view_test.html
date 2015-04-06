@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/core/analysis/single_sample_sub_view.html">
-<link rel="import" href="/core/analysis/stub_analysis_results.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
@@ -20,7 +20,7 @@ tv.b.unittest.testSuite(function() {
   var StubAnalysisResults = tv.c.analysis.StubAnalysisResults;
   var newSampleNamed = tv.c.test_utils.newSampleNamed;
 
-  var createSelectionWithSingleSample = function() {
+  test('instantiate_withSingleSample', function() {
     var model = new Model();
     var t53;
     model.importTraces([], false, false, function() {
@@ -38,35 +38,19 @@ tv.b.unittest.testSuite(function() {
     selection.push(t53.samples[0]);
     assert.equal(selection.length, 1);
 
-    return selection;
-  };
-
-  test('instantiate_withSingleSample', function() {
-    var selection = createSelectionWithSingleSample();
-
     var view = document.createElement('tv-c-single-sample-sub-view');
     view.selection = selection;
     this.addHTMLOutput(view);
-  });
 
-  test('analyzeSelectionWithSingleSample', function() {
-    var selection = createSelectionWithSingleSample();
+    var table = tv.b.findDeepElementMatching(
+        view, 'tracing-analysis-nested-table');
 
-    var view = document.createElement('tv-c-single-sample-sub-view');
+    var rows = table.tableRows;
+    assert.equal(rows.length, 3);
 
-    var results = new StubAnalysisResults();
-    view.analyzeSingleSampleEvent_(results, selection[0], 'Sample Event');
-    assert.equal(results.tables.length, 1);
-    var table = results.tables[0];
-    var header = results.headers[0];
-    assert.equal(header.label, 'Selected Sample Event:');
-    assert.equal(table.rows.length, 3);
-
-    assert.equal(table.rows[0].text, 'X');
-    assert.equal(table.rows[1].time, 0.184);
-    assert.equal(table.rows[2].text[0], 'my-category: a');
-    assert.equal(table.rows[2].text[1], 'my-category: b');
-    assert.equal(table.rows[2].text[2], 'my-category: c');
+    assert.equal(rows[0].value, 'X');
+    assert.equal(rows[1].value.timestamp, 0.184);
+    assert.equal(rows[2].value.stackFrame, t53.samples[0].leafStackFrame);
   });
 });
 </script>
