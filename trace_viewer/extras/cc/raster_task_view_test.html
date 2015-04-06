@@ -42,7 +42,8 @@ tv.b.unittest.testSuite(function() {
     var view = new TracingAnalysisView();
     view.selection = selection;
     assert.isDefined(view.querySelector('RasterTaskView'));
-    var sv = tv.b.findDeepElementMatching(view, 'tv-c-a-multi-slice-sub-view');
+    var sv = tv.b.findDeepElementMatching(
+        view, 'tv-c-a-multi-thread-slice-sub-view');
     assert.isTrue(sv.requiresTallView);
     this.addHTMLOutput(view);
   });

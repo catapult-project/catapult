@@ -26,33 +26,6 @@ tv.exportTo('tv.c.trace_model', function() {
   var ThreadSlice = tv.c.trace_model.ThreadSlice;
 
   /**
-   * A ThreadSlice represents an interval of time on a thread resource
-   * with associated nestinged slice information.
-   *
-   * ThreadSlices are typically associated with a specific trace event pair on a
-   * specific thread.
-   * For example,
-   *   TRACE_EVENT_BEGIN1("x","myArg", 7) at time=0.1ms
-   *   TRACE_EVENT_END0()                 at time=0.3ms
-   * This results in a single slice from 0.1 with duration 0.2 on a
-   * specific thread.
-   *
-   * @constructor
-   */
-  function ThreadSlice(cat, title, colorId, start, args, opt_duration,
-                       opt_cpuStart, opt_cpuDuration) {
-    Slice.call(this, cat, title, colorId, start, args, opt_duration,
-               opt_cpuStart, opt_cpuDuration);
-    // Do not modify this directly.
-    // subSlices is configured by SliceGroup.rebuildSubRows_.
-    this.subSlices = [];
-  }
-
-  ThreadSlice.prototype = {
-    __proto__: Slice.prototype
-  };
-
-  /**
    * A Thread stores all the trace events collected for a particular
    * thread. We organize the synchronous slices on a thread by "subrows," where
    * subrow 0 has all the root slices, subrow 1 those nested 1 deep, and so on.

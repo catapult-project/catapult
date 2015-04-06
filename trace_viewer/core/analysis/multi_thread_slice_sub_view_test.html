@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/analysis/multi_slice_sub_view.html">
+<link rel="import" href="/core/analysis/multi_thread_slice_sub_view.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
@@ -29,7 +29,7 @@ tv.b.unittest.testSuite(function() {
     selection.push(t53.sliceGroup.slices[0]);
     selection.push(t53.sliceGroup.slices[1]);
 
-    var viewEl = document.createElement('tv-c-a-multi-slice-sub-view');
+    var viewEl = document.createElement('tv-c-a-multi-thread-slice-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
   });

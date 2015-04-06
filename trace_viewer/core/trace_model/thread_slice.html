@@ -42,6 +42,16 @@ tv.exportTo('tv.c.trace_model', function() {
   ThreadSlice.prototype = {
     __proto__: Slice.prototype
   };
+
+  tv.c.trace_model.EventRegistry.register(
+      ThreadSlice,
+      {
+        name: 'slice',
+        pluralName: 'slices',
+        singleViewElementName: 'tv-c-a-single-thread-slice-sub-view',
+        multiViewElementName: 'tv-c-a-multi-thread-slice-sub-view'
+      });
+
   return {
     ThreadSlice: ThreadSlice
   };

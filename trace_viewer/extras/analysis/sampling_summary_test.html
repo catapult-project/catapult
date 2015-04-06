@@ -16,7 +16,7 @@ tv.b.unittest.testSuite(function() {
   var StackFrame = tv.c.trace_model.StackFrame;
   var Sample = tv.c.trace_model.Sample;
 
-  var newSliceNamed = tv.c.test_utils.newSliceNamed;
+  var newSliceEx = tv.c.test_utils.newSliceEx;
 
   function createSelection() {
     var selection = new tv.c.Selection();
@@ -156,8 +156,14 @@ tv.b.unittest.testSuite(function() {
 
     // Along with the samples, push some slices too.
     // The panel should completely ignore these.
-    selection.push(newSliceNamed('a', 1, 2));
-    selection.push(newSliceNamed('f', 9, 7));
+    selection.push(newSliceEx({
+      type: tv.c.trace_model.ThreadSlice,
+      title: 'a', start: 1, duration: 2
+    }));
+    selection.push(newSliceEx({
+      type: tv.c.trace_model.ThreadSlice,
+      title: 'f', start: 9, duration: 7
+    }));
 
     var sunburstData = tv.e.analysis.createSunburstData(
         selection, 'page_misses');

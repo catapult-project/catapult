@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/single_thread_slice_sub_view.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var newSliceEx = tv.c.test_utils.newSliceEx;
+
+  test('instantiate', function() {
+    var model = new tv.c.TraceModel();
+    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    t53.sliceGroup.pushSlice(
+        newSliceEx({title: 'a', start: 0.0, duration: 0.5}));
+    t53.sliceGroup.createSubSlices();
+
+    var selection = new tv.c.Selection();
+    selection.push(t53.sliceGroup.slices[0]);
+
+    var viewEl = document.createElement('tv-c-a-single-thread-slice-sub-view');
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+  });
+
+});
+</script>
