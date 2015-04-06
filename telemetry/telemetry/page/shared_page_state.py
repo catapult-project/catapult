@@ -85,16 +85,20 @@ class SharedPageState(shared_user_story_state.SharedUserStoryState):
   def DidRunUserStory(self, results):
     if self._finder_options.profiler:
       self._StopProfiling(results)
-    if self._current_tab and self._current_tab.IsAlive():
-      self._current_tab.CloseConnections()
-    self._test.CleanUpAfterPage(self._current_page, self._current_tab)
-    if self._current_page.credentials and self._did_login_for_current_page:
-      self.browser.credentials.LoginNoLongerNeeded(
-          self._current_tab, self._current_page.credentials)
-    if self._test.StopBrowserAfterPage(self.browser, self._current_page):
-      self._StopBrowser()
-    self._current_page = None
-    self._current_tab = None
+    # We might hang while trying to close the connection, and need to guarantee
+    # the page will get cleaned up to avoid future tests failing in weird ways.
+    try:
+      if self._current_tab and self._current_tab.IsAlive():
+        self._current_tab.CloseConnections()
+    finally:
+      self._test.CleanUpAfterPage(self._current_page, self._current_tab)
+      if self._current_page.credentials and self._did_login_for_current_page:
+        self.browser.credentials.LoginNoLongerNeeded(
+            self._current_tab, self._current_page.credentials)
+      if self._test.StopBrowserAfterPage(self.browser, self._current_page):
+        self._StopBrowser()
+      self._current_page = None
+      self._current_tab = None
 
   @property
   def platform(self):
