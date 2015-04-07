@@ -62,10 +62,14 @@ tv.exportTo('tv.c.trace_model', function() {
     },
 
     addCounterSample: function(ts, val) {
-      this.timestamps_.push(ts);
       var sample = new CounterSample(this, ts, val);
-      this.samples_.push(sample);
+      this.addSample(sample);
       return sample;
+    },
+
+    addSample: function(sample) {
+      this.timestamps_.push(sample.timestamp);
+      this.samples_.push(sample);
     },
 
     getStatistics: function(sampleIndices) {

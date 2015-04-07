@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/trace_model/process_memory_dump.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var TraceModel = tv.c.TraceModel;
+  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
+  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
+  var VMRegion = tv.c.trace_model.VMRegion;
+  var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
+
+  var createProcessMemoryDump = function() {
+    var m = new TraceModel();
+    var p = m.getOrCreateProcess(123);
+    var gmd = new GlobalMemoryDump(m, 42);
+    var pmd = new ProcessMemoryDump(gmd, p, 43);
+    return pmd;
+  };
+
+  test('totalProportionalResidentSizeInBytes_undefinedVmRegions', function() {
+    var pmd = createProcessMemoryDump();
+    assert.isUndefined(pmd.totalProportionalResidentSizeInBytes);
+  });
+
+  test('totalProportionalResidentSizeInBytes_zeroVmRegions', function() {
+    var pmd = createProcessMemoryDump();
+    pmd.vmRegions = [];
+    assert.equal(pmd.totalProportionalResidentSizeInBytes, 0);
+  });
+
+  test('totalProportionalResidentSizeInBytes_oneVmRegion', function() {
+    var pmd = createProcessMemoryDump();
+    pmd.vmRegions = [
+      VMRegion.fromDict({
+        startAddress: 256,
+        sizeInBytes: 336,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_WRITE,
+        mappedFile: '[stack:20310]',
+        byteStats: {
+          privateResident: 96,
+          sharedResident: 144,
+          proportionalResident: 158
+        }
+      })
+    ];
+    assert.equal(pmd.totalProportionalResidentSizeInBytes, 158);
+  });
+
+  test('totalProportionalResidentSizeInBytes_twoVmRegions', function() {
+    var pmd = createProcessMemoryDump();
+    pmd.vmRegions = [
+      VMRegion.fromDict({
+        startAddress: 256,
+        sizeInBytes: 336,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_WRITE,
+        mappedFile: '[stack:20310]',
+        byteStats: {
+          privateResident: 96,
+          sharedResident: 144,
+          proportionalResident: 158
+        }
+      }),
+      VMRegion.fromDict({
+        startAddress: 848,
+        sizeInBytes: 592,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_EXECUTE,
+        mappedFile: '/dev/ashmem/dalvik',
+        byteStats: {
+          privateResident: 205,
+          sharedResident: 0,
+          proportionalResident: 205
+        }
+      })
+    ];
+    assert.equal(pmd.totalProportionalResidentSizeInBytes, 363);
+  });
+});
+</script>

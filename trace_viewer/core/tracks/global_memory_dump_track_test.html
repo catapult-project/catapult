@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/trace_model/process_memory_dump.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/core/tracks/drawing_container.html">
+<link rel="import" href="/core/tracks/global_memory_dump_track.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Viewport = tv.c.TimelineViewport;
+  var GlobalMemoryDumpTrack = tv.c.tracks.GlobalMemoryDumpTrack;
+  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
+  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
+  var VMRegion = tv.c.trace_model.VMRegion;
+  var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
+  var TraceModel = tv.c.TraceModel;
+  var SelectionState = tv.c.trace_model.SelectionState;
+  var Viewport = tv.c.TimelineViewport;
+
+  function createVMRegions(pssValues) {
+    return pssValues.map(function(pssValue, i) {
+      return VMRegion.fromDict({
+        startAddress: 1000 * i,
+        sizeInBytes: 1000,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+        mappedFile: '[stack' + i + ']',
+        byteStats: {
+          privateResident: pssValue / 3,
+          sharedResident: pssValue * 3,
+          proportionalResident: pssValue
+        }
+      });
+    });
+  };
+
+  function addProcessMemoryDump(globalMemoryDump, process, start,
+      opt_vmRegions) {
+    var pmd = new ProcessMemoryDump(globalMemoryDump, process, start);
+    if (opt_vmRegions !== undefined) {
+      pmd.vmRegions = opt_vmRegions;
+    }
+    globalMemoryDump.processMemoryDumps[process.pid] = pmd;
+  };
+
+  function createModelWithDumps(withVmRegions) {
+    var maybeAddVmRegions = function(pssValues) {
+      return withVmRegions ? createVMRegions(pssValues) : undefined;
+    };
+    return tv.c.test_utils.newModel(function(model) {
+      // Construct a model with three processes.
+      var pa = model.getOrCreateProcess(3);
+      var pb = model.getOrCreateProcess(6);
+      var pc = model.getOrCreateProcess(9);
+
+      var gmd1 = new GlobalMemoryDump(model, 0);
+      model.globalMemoryDumps.push(gmd1);
+      addProcessMemoryDump(gmd1, pa, 0, maybeAddVmRegions([111]));
+      addProcessMemoryDump(gmd1, pb, 0.2);
+
+      var gmd2 = new GlobalMemoryDump(model, 5);
+      model.globalMemoryDumps.push(gmd2);
+      addProcessMemoryDump(gmd2, pa, 0);
+      addProcessMemoryDump(gmd2, pb, 4.99, maybeAddVmRegions([100, 50]));
+      addProcessMemoryDump(gmd2, pc, 5.12);
+
+      var gmd3 = new GlobalMemoryDump(model, 15);
+      model.globalMemoryDumps.push(gmd3);
+      addProcessMemoryDump(gmd3, pa, 15.5, maybeAddVmRegions([]));
+      addProcessMemoryDump(gmd3, pc, 14.5, maybeAddVmRegions([70, 70, 70]));
+
+      var gmd4 = new GlobalMemoryDump(model, 18);
+      model.globalMemoryDumps.push(gmd4);
+    });
+  };
+
+  function instantiateTrack(dumps) {
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = GlobalMemoryDumpTrack(viewport);
+    drawingContainer.appendChild(track);
+    drawingContainer.invalidate();
+
+    track.memoryDumps = dumps;
+    this.addHTMLOutput(div);
+
+    var dt = new tv.c.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 50, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    return track;
+  };
+
+  test('instantiate_withoutVmRegions', function() {
+    var model = createModelWithDumps(false);
+    var dumps = model.globalMemoryDumps;
+    dumps[2].selectionState = SelectionState.SELECTED;
+
+    var track = instantiateTrack.call(this, dumps);
+    assert.lengthOf(track.tracks_, 1);
+  });
+
+  test('instantiate_withVmRegions', function() {
+    var model = createModelWithDumps(true);
+    var dumps = model.globalMemoryDumps;
+    dumps[2].selectionState = SelectionState.SELECTED;
+
+    var track = instantiateTrack.call(this, dumps);
+    assert.lengthOf(track.tracks_, 2);
+  });
+
+  test('buildDumpDotsItems_withoutVMRegions', function() {
+    var model = createModelWithDumps(false);
+    var dumps = model.globalMemoryDumps;
+    var items = GlobalMemoryDumpTrack.buildDumpDotsItems(dumps);
+
+    assert.lengthOf(items, 4);
+    assert.equal(items[0].start, 0);
+    assert.equal(items[1].start, 5);
+    assert.equal(items[2].start, 15);
+    assert.equal(items[3].start, 18);
+  });
+
+  test('buildDumpDotsItems_withVMRegions', function() {
+    var model = createModelWithDumps(false);
+    var dumps = model.globalMemoryDumps;
+    var items = GlobalMemoryDumpTrack.buildDumpDotsItems(dumps);
+
+    assert.lengthOf(items, 4);
+    assert.equal(items[0].start, 0);
+    assert.equal(items[1].start, 5);
+    assert.equal(items[2].start, 15);
+    assert.equal(items[3].start, 18);
+  });
+
+  test('buildUsedMemoryChart_withoutVmRegions', function() {
+    var model = createModelWithDumps(false);
+    var dumps = model.globalMemoryDumps;
+    var chart = GlobalMemoryDumpTrack.buildUsedMemoryChart(dumps);
+
+    assert.isUndefined(chart);
+  });
+
+  test('buildUsedMemoryChart_withVmRegions', function() {
+    var model = createModelWithDumps(true);
+    var dumps = model.globalMemoryDumps;
+    var chart = GlobalMemoryDumpTrack.buildUsedMemoryChart(dumps);
+
+    assert.equal(chart.numSeries, 3);
+
+    var sa = chart.series[0];
+    var sb = chart.series[1];
+    var sc = chart.series[2];
+
+    assert.lengthOf(sa.samples, 4);
+    assert.lengthOf(sb.samples, 4);
+    assert.lengthOf(sc.samples, 4);
+    assert.lengthOf(sa.timestamps, 4);
+    assert.lengthOf(sb.timestamps, 4);
+    assert.lengthOf(sc.timestamps, 4);
+
+    // Process A: VM regions defined -> sum their PSS values (111).
+    // Process B: VM regions undefined and no previous value -> assume zero.
+    // Process C: Memory dump not present -> assume process not alive (0).
+    assert.equal(sa.samples[0].value, 111);
+    assert.equal(sb.samples[0].value, 0);
+    assert.equal(sc.samples[0].value, 0);
+    assert.equal(sa.samples[0].timestamp, 0);
+    assert.equal(sb.samples[0].timestamp, 0);
+    assert.equal(sc.samples[0].timestamp, 0);
+
+    // Process A: VM regions undefined -> assume previous value (111).
+    // Process B: VM regions defined -> sum their PSS values (555).
+    // Process C: VM regions undefined -> assume previous value (0).
+    assert.equal(sa.samples[1].value, 111);
+    assert.equal(sb.samples[1].value, 150);
+    assert.equal(sc.samples[1].value, 0);
+    assert.equal(sa.samples[1].timestamp, 5);
+    assert.equal(sb.samples[1].timestamp, 5);
+    assert.equal(sc.samples[1].timestamp, 5);
+
+    // Process A: VM regions defined -> sum their PSS values (0).
+    // Process B: Memory dump not present -> assume process not alive (0).
+    // Process C: VM regions defined -> sum their PSS values (999).
+    assert.equal(sa.samples[2].value, 0);
+    assert.equal(sb.samples[2].value, 0);
+    assert.equal(sc.samples[2].value, 210);
+    assert.equal(sa.samples[2].timestamp, 15);
+    assert.equal(sb.samples[2].timestamp, 15);
+    assert.equal(sc.samples[2].timestamp, 15);
+
+    // All processes: Memory dump not present -> assume process not alive (0).
+    assert.equal(sa.samples[3].value, 0);
+    assert.equal(sb.samples[3].value, 0);
+    assert.equal(sc.samples[3].value, 0);
+    assert.equal(sa.samples[3].timestamp, 18);
+    assert.equal(sb.samples[3].timestamp, 18);
+    assert.equal(sc.samples[3].timestamp, 18);
+  });
+
+  test('modelMapping', function() {
+    var model = createModelWithDumps(true);
+    var dumps = model.globalMemoryDumps;
+    dumps[2].selectionState = SelectionState.SELECTED;
+    dumps[3].selectionState = SelectionState.HIGHLIGHTED;
+
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    var track = new GlobalMemoryDumpTrack(viewport);
+    track.memoryDumps = dumps;
+
+    var dumpDotsTrack = track.tracks_[0];
+    var usedMemoryTrack = track.tracks_[1];
+
+    // Check that selected and selectionState are proxied correctly from the
+    // model events to the corresponding items.
+    var item1 = dumpDotsTrack.items[2];
+    assert.equal(item1.selected, dumps[2].selected);
+    var item2 = usedMemoryTrack.chart.series[1].samples[3];
+    assert.equal(item2.selectionState, dumps[3].selectionState);
+
+    // Check that the items are mapped to the right model events.
+    var modelEvent1 = dumpDotsTrack.getModelEventFromItem(item1);
+    assert.equal(modelEvent1, dumps[2]);
+    var modelEvent2 = usedMemoryTrack.getModelEventFromItem(item2);
+    assert.equal(modelEvent2, dumps[3]);
+  });
+});
+</script>

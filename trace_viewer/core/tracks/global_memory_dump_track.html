@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/tracks/chart_track.html">
+<link rel="import" href="/core/tracks/container_track.html">
+<link rel="import" href="/core/tracks/letter_dot_track.html">
+<link rel="import" href="/core/trace_model/counter.html">
+<link rel="import" href="/core/trace_model/counter_sample.html">
+<link rel="import" href="/core/trace_model/counter_series.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c.tracks', function() {
+
+  var USED_MEMORY_TRACK_HEIGHT = 50;
+
+  /**
+   * A track that displays an array of GlobalMemoryDump objects.
+   * @constructor
+   * @extends {ContainerTrack}
+   */
+  var GlobalMemoryDumpTrack = tv.b.ui.define(
+      'global-memory-dump-track', tv.c.tracks.ContainerTrack);
+
+  GlobalMemoryDumpTrack.prototype = {
+    __proto__: tv.c.tracks.ContainerTrack.prototype,
+
+    decorate: function(viewport) {
+      tv.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      this.memoryDumps_ = undefined;
+    },
+
+    get memoryDumps() {
+      return this.memoryDumps_;
+    },
+
+    set memoryDumps(memoryDumps) {
+      this.memoryDumps_ = memoryDumps;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.tracks_.forEach(function(track) {
+        this.removeChild(track);
+      }, this);
+
+      // Show no tracks if there are no dumps.
+      if (!this.memoryDumps_ || !this.memoryDumps_.length)
+        return;
+
+      this.appendDumpDotsTrack_();
+      this.appendUsedMemoryTrack_();
+    },
+
+    appendDumpDotsTrack_: function() {
+      var items = GlobalMemoryDumpTrack.buildDumpDotsItems(this.memoryDumps_);
+      if (!items)
+        return;
+
+      var track = new tv.c.tracks.LetterDotTrack(this.viewport);
+      track.heading = 'Memory Dumps';
+      track.getModelEventFromItem = function(item) {
+        return item.memoryDump;
+      };
+      track.items = items;
+      this.appendChild(track);
+    },
+
+    appendUsedMemoryTrack_: function() {
+      var chart = GlobalMemoryDumpTrack.buildUsedMemoryChart(this.memoryDumps_);
+      if (!chart)
+        return;
+
+      var track = new tv.c.tracks.ChartTrack(this.viewport);
+      track.heading = 'Used memory (per process)';
+      track.height = USED_MEMORY_TRACK_HEIGHT + 'px';
+      track.getModelEventFromItem = function(sample) {
+        return sample.memoryDump;
+      };
+      track.chart = chart;
+      this.appendChild(track);
+    }
+  };
+
+  GlobalMemoryDumpTrack.buildDumpDotsItems = function(globalMemoryDumps) {
+    var memoryColorId = tv.b.ui.getColorIdForReservedName('memory_dump');
+    return globalMemoryDumps.map(function(memoryDump) {
+      return {
+        start: memoryDump.start,
+        get selected() {
+          return this.memoryDump.selected;
+        },
+        colorId: memoryColorId,
+        dotLetter: 'M',
+        memoryDump: memoryDump
+      };
+    });
+  }
+
+  GlobalMemoryDumpTrack.buildUsedMemoryChart = function(globalMemoryDumps) {
+    // Do not generate the chart if no process memory dump contains VM regions.
+    var containsVmRegions = globalMemoryDumps.some(function(globalDump) {
+      for (var pid in globalDump.processMemoryDumps)
+        if (globalDump.processMemoryDumps[pid].vmRegions)
+          return true;
+      return false;
+    });
+    if (!containsVmRegions)
+      return undefined;
+
+    // Find all processes that dump memory at least once.
+    var pidToProcess = {};
+    globalMemoryDumps.forEach(function(globalDump) {
+      tv.b.iterItems(globalDump.processMemoryDumps, function(pid, processDump) {
+        pidToProcess[pid] = processDump.process;
+      }, this);
+    }, this);
+
+    // Create a counter representing used memory.
+    // TODO(petrcermak): Change this to ChartTrackSeries once implemented.
+    var counter = new tv.c.trace_model.Counter(
+        undefined, 'total-memory', '', 'Total Memory');
+
+    // Add one counter series for each instrumented process.
+    var pidToCounterSeries = {};
+    tv.b.iterItems(pidToProcess, function(pid, process) {
+      var series = new tv.c.trace_model.CounterSeries(
+          process.userFriendlyName,
+          tv.b.ui.getColorIdForGeneralPurposeString(process.userFriendlyName));
+      pidToCounterSeries[pid] = series;
+      counter.addSeries(series);
+    }, this);
+
+    // For every timestamp, calculate the total PSS (proportional set size) of
+    // each process and append it to the corresponding series.
+    var pidToPreviousPss = {};
+    globalMemoryDumps.forEach(function(globalDump) {
+      tv.b.iterItems(pidToCounterSeries, function(pid, series) {
+        var processMemoryDump = globalDump.processMemoryDumps[pid];
+        var pss;
+        if (processMemoryDump === undefined) {
+          // If no dump was found, assume that the process is dead.
+          pss = 0;
+        } else {
+          pss = processMemoryDump.totalProportionalResidentSizeInBytes;
+          if (pss === undefined) {
+            // If the dump does not provide the necessary information (namely VM
+            // regions), assume previous value.
+            pss = pidToPreviousPss[pid] || 0;
+          }
+        }
+        pidToPreviousPss[pid] = pss;
+        var sample = new GlobalMemoryDumpTrackSample(
+            series, globalDump.start, pss, globalDump);
+        series.addSample(sample);
+      }, this);
+    }, this);
+
+    counter.updateBounds();
+
+    return counter;
+  };
+
+  /**
+   * @constructor
+   * @extends {CounterSample}
+   */
+  function GlobalMemoryDumpTrackSample(series, ts, val, memoryDump) {
+    tv.c.trace_model.CounterSample.call(this, series, ts, val);
+    this.memoryDump = memoryDump;
+  }
+
+  GlobalMemoryDumpTrackSample.prototype = {
+    __proto__: tv.c.trace_model.CounterSample.prototype,
+
+    get selectionState() {
+      return this.memoryDump.selectionState;
+    },
+
+    set selectionState(selectionState) {
+      // This empty setter is necessary because CounterSample is a subclass of
+      // Event, which sets selectionState to NONE in the constructor.
+      // TODO(petrcermak): Get rid of this once we use ChartTrackSeries instead.
+    }
+  };
+
+  return {
+    GlobalMemoryDumpTrack: GlobalMemoryDumpTrack
+  };
+});
+</script>

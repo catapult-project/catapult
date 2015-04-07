@@ -40,6 +40,17 @@ tv.exportTo('tv.c.trace_model', function() {
     get userFriendlyName() {
       return 'Process memory dump ' + ' at ' +
           tv.c.analysis.tsString(this.start);
+    },
+
+    get totalProportionalResidentSizeInBytes() {
+      if (this.vmRegions === undefined)
+        return undefined;
+
+      var total = 0;
+      this.vmRegions.forEach(function(vmRegion) {
+        total += vmRegion.byteStats.proportionalResident;
+      });
+      return total;
     }
   };
 
@@ -91,6 +102,15 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
+  VMRegion.fromDict = function(dict) {
+    return new VMRegion(
+        dict.startAddress,
+        dict.sizeInBytes,
+        dict.protectionFlags,
+        dict.mappedFile,
+        VMRegionByteStats.fromDict(dict.byteStats));
+  };
+
   /**
    * @constructor
    */
@@ -105,6 +125,13 @@ tv.exportTo('tv.c.trace_model', function() {
     get totalResident() {
       return this.privateResident + this.sharedResident;
     }
+  };
+
+  VMRegionByteStats.fromDict = function(dict) {
+    return new VMRegionByteStats(
+        dict.privateResident,
+        dict.sharedResident,
+        dict.proportionalResident);
   };
 
   tv.c.trace_model.EventRegistry.register(
