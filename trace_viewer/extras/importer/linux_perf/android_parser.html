@@ -95,7 +95,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       slice.endThread = thread;
       slice.duration = ts - slice.start;
       slice.startThread.asyncSliceGroup.push(slice);
-      slice.subSlices = [new tv.c.trace_model.Slice(slice.category,
+      slice.subSlices = [new tv.c.trace_model.AsyncSlice(slice.category,
           slice.title, slice.colorId, slice.start, slice.args, slice.duration)];
       delete this.openAsyncSlices[key];
     },
