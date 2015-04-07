@@ -156,7 +156,7 @@ found in the LICENSE file.
 
           var linkEl = document.createElement('tv-c-analysis-link');
           linkEl.setSelectionAndContent(function() {
-              return new tv.c.Selection(row);
+              return new tv.c.Selection(row.event);
           });
           linkEl.appendChild(tv.c.analysis.createTimeStamp(row.start));
           return linkEl;
