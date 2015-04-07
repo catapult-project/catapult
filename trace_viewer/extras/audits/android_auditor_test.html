@@ -114,9 +114,9 @@ tv.b.unittest.testSuite(function() {
     assert.closeTo(process.frames[0].totalDuration, 8, 1e-5);
     assert.closeTo(process.frames[1].totalDuration, 20, 1e-5);
 
-    assert.equal(process.frames[0].perfClassification,
+    assert.equal(process.frames[0].perfClass,
         FRAME_PERF_CLASS.GOOD);
-    assert.equal(process.frames[1].perfClassification,
+    assert.equal(process.frames[1].perfClass,
         FRAME_PERF_CLASS.TERRIBLE);
   });
 
