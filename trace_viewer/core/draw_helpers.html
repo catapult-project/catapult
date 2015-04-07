@@ -173,7 +173,7 @@ tv.exportTo('tv.c', function() {
 
       var w = pixWidth;
       if (slice.duration > 0) {
-        w = Math.max(slice.duration, 0.001);
+        w = Math.max(slice.duration, 0.000001);
         if (w < pixWidth)
           w = pixWidth;
       }
