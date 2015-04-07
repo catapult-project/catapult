@@ -48,7 +48,7 @@ tv.exportTo('tv.e.about_tracing', function() {
         }
 
         var req = this.requests[requestIndex];
-        assertEquals(req.method, method);
+        assert.equal(method, req.method);
         var resp = req.generateResponseCb(args);
         resolve(resp);
       }.bind(this));
@@ -57,7 +57,7 @@ tv.exportTo('tv.e.about_tracing', function() {
     assertAllRequestsHandled: function() {
       if (this.allowLooping)
         throw new Error('Incompatible with allowLooping');
-      assertTrue(this.nextRequestIndex == this.requests.length);
+      assert.equal(this.requests.length, this.nextRequestIndex);
     },
 
     beginMonitoring: function(monitoringOptions) {
