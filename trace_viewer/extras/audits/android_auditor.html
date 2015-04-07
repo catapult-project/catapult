@@ -22,7 +22,7 @@ tv.exportTo('tv.e.audits', function() {
   var Auditor = tv.c.Auditor;
   var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
   var Statistics = tv.b.Statistics;
-  var FRAME_PERF_CLASSIFICATION = tv.c.trace_model.FRAME_PERF_CLASSIFICATION;
+  var FRAME_PERF_CLASS = tv.c.trace_model.FRAME_PERF_CLASS;
 
   var InteractionRecord = tv.c.trace_model.InteractionRecord;
 
@@ -226,14 +226,14 @@ tv.exportTo('tv.e.audits', function() {
 
         app.process.frames.forEach(function(frame) {
           if (frameIsActivityStart(frame)) {
-            frame.perfClassification = FRAME_PERF_CLASSIFICATION.NEUTRAL;
+            frame.perfClass = FRAME_PERF_CLASS.NEUTRAL;
           }
 
           if (frame.totalDuration > EXPECTED_FRAME_TIME_MS) {
             badFramesObserved++;
-            frame.perfClassification = FRAME_PERF_CLASSIFICATION.TERRIBLE;
+            frame.perfClass = FRAME_PERF_CLASS.TERRIBLE;
           } else {
-            frame.perfClassification = FRAME_PERF_CLASSIFICATION.GOOD;
+            frame.perfClass = FRAME_PERF_CLASS.GOOD;
           }
         });
         framesObserved += app.process.frames.length;
@@ -270,8 +270,8 @@ tv.exportTo('tv.e.audits', function() {
       this.helper.apps.forEach(function(app) {
         app.getFrames().forEach(function(frame) {
           // skip alerts for neutral or good frames
-          if (frame.perfClassification == FRAME_PERF_CLASSIFICATION.NEUTRAL ||
-              frame.perfClassification == FRAME_PERF_CLASSIFICATION.GOOD)
+          if (frame.perfClass == FRAME_PERF_CLASS.NEUTRAL ||
+              frame.perfClass == FRAME_PERF_CLASS.GOOD)
             return;
 
           var alert = AndroidAuditor.getUploadAlert_(frame);

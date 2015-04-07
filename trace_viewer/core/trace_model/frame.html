@@ -20,7 +20,7 @@ found in the LICENSE file.
 tv.exportTo('tv.c.trace_model', function() {
   var Statistics = tv.b.Statistics;
 
-  var FRAME_PERF_CLASSIFICATION = {
+  var FRAME_PERF_CLASS = {
     // This frame met its deadline
     GOOD: 'good',
 
@@ -47,6 +47,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.threadTimeRanges = threadTimeRanges;
     this.events = events;
 
+    this.title = 'Frame';
     this.start = Statistics.min(
         threadTimeRanges, function(x) { return x.start; });
     this.end = Statistics.max(
@@ -54,14 +55,19 @@ tv.exportTo('tv.c.trace_model', function() {
     this.totalDuration = Statistics.sum(
         threadTimeRanges, function(x) { return x.end - x.start; });
 
-    this.perfClassification = FRAME_PERF_CLASSIFICATION.NEUTRAL;
+    this.perfClass = FRAME_PERF_CLASS.NEUTRAL;
   };
 
   Frame.prototype = {
     __proto__: tv.c.trace_model.Event.prototype,
 
-    get colorId() {
-      return tv.b.ui.getColorIdForReservedName(this.perfClassification);
+    set perfClass(perfClass) {
+      this.colorId = tv.b.ui.getColorIdForReservedName(perfClass);
+      this.perfClass_ = perfClass;
+    },
+
+    get perfClass() {
+      return this.perfClass_;
     },
 
     shiftTimestampsForward: function(amount) {
@@ -80,11 +86,18 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
-  // TODO(ccraik): register event, once view exists
+  tv.c.trace_model.EventRegistry.register(
+      Frame,
+      {
+        name: 'frame',
+        pluralName: 'frames',
+        singleViewElementName: 'tv-c-single-frame-sub-view',
+        multiViewElementName: 'tv-c-multi-frame-sub-view'
+      });
 
   return {
     Frame: Frame,
-    FRAME_PERF_CLASSIFICATION: FRAME_PERF_CLASSIFICATION
+    FRAME_PERF_CLASS: FRAME_PERF_CLASS
   };
 });
 </script>

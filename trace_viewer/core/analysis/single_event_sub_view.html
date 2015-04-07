@@ -71,43 +71,45 @@ found in the LICENSE file.
         return;
       }
 
-      var slice = this.currentSelection_[0];
+      var event = this.currentSelection_[0];
 
       var rows = [];
-      if (slice.error)
-        rows.push({ name: 'Error', value: slice.error });
+      if (event.error)
+        rows.push({ name: 'Error', value: event.error });
 
-      if (slice.title)
-        rows.push({ name: 'Title', value: slice.title });
+      if (event.title)
+        rows.push({ name: 'Title', value: event.title });
 
-      if (slice.category)
-        rows.push({ name: 'Category', value: slice.category });
+      if (event.category)
+        rows.push({ name: 'Category', value: event.category });
 
       var startEl = document.createElement('tv-c-a-time-stamp');
-      startEl.timestamp = slice.start;
+      startEl.timestamp = event.start;
       rows.push({ name: 'Start', value: startEl });
 
-      var wallDurationEl = document.createElement('tv-c-a-time-span');
-      wallDurationEl.duration = slice.duration;
-      rows.push({ name: 'Wall Duration', value: wallDurationEl });
+      if (event.duration) {
+        var wallDurationEl = document.createElement('tv-c-a-time-span');
+        wallDurationEl.duration = event.duration;
+        rows.push({ name: 'Wall Duration', value: wallDurationEl });
+      }
 
-      if (slice.cpuDuration) {
+      if (event.cpuDuration) {
         var cpuDurationEl = document.createElement('tv-c-a-time-span');
-        cpuDurationEl.duration = slice.cpuDuration;
+        cpuDurationEl.duration = event.cpuDuration;
         rows.push({ name: 'CPU Duration', value: cpuDurationEl });
       }
 
-      if (slice.subSlices !== undefined && slice.subSlices.length !== 0) {
-        if (slice.selfTime) {
+      if (event.subSlices !== undefined && event.subSlices.length !== 0) {
+        if (event.selfTime) {
           var selfTimeEl = document.createElement('tv-c-a-time-span');
-          selfTimeEl.duration = slice.selfTime;
+          selfTimeEl.duration = event.selfTime;
           rows.push({ name: 'Self Time', value: selfTimeEl });
         }
 
-        if (slice.cpuSelfTime) {
+        if (event.cpuSelfTime) {
           var cpuSelfTimeEl = document.createElement('tv-c-a-time-span');
-          cpuSelfTimeEl.duration = slice.cpuSelfTime;
-          if (slice.cpuSelfTime > slice.selfTime) {
+          cpuSelfTimeEl.duration = event.cpuSelfTime;
+          if (event.cpuSelfTime > event.selfTime) {
             cpuSelfTimeEl.warning =
                 ' Note that CPU Self Time is larger than Self Time. ' +
                 'This is a known limitation of this system, which occurs ' +
@@ -119,9 +121,9 @@ found in the LICENSE file.
         }
       }
 
-      if (slice.durationInUserTime) {
+      if (event.durationInUserTime) {
         var durationInUserTimeEl = document.createElement('tv-c-a-time-span');
-        durationInUserTimeEl.duration = slice.durationInUserTime;
+        durationInUserTimeEl.duration = event.durationInUserTime;
         rows.push({ name: 'Duration (U)', value: durationInUserTimeEl });
       }
 
@@ -130,36 +132,36 @@ found in the LICENSE file.
         sfEl.stackFrame = sf;
         return sfEl;
       }
-      if (slice.startStackFrame && slice.endStackFrame) {
-        if (slice.startStackFrame === slice.endStackFrame) {
+      if (event.startStackFrame && event.endStackFrame) {
+        if (event.startStackFrame === event.endStackFrame) {
           rows.push({name: 'Start+End Stack Trace',
-              value: createStackFrameEl(slice.startStackFrame)});
+              value: createStackFrameEl(event.startStackFrame)});
 
         } else {
           rows.push({ name: 'Start Stack Trace',
-              value: createStackFrameEl(slice.startStackFrame)});
+              value: createStackFrameEl(event.startStackFrame)});
           rows.push({ name: 'End Stack Trace',
-              value: createStackFrameEl(slice.endStackFrame)});
+              value: createStackFrameEl(event.endStackFrame)});
         }
-      } else if (slice.startStackFrame) {
+      } else if (event.startStackFrame) {
         rows.push({ name: 'Start Stack Trace',
-            value: createStackFrameEl(slice.startStackFrame)});
+            value: createStackFrameEl(event.startStackFrame)});
 
-      } else if (slice.endStackFrame) {
+      } else if (event.endStackFrame) {
         rows.push({ name: 'End Stack Trace',
-            value: createStackFrameEl(slice.endStackFrame)});
+            value: createStackFrameEl(event.endStackFrame)});
       }
 
       var n = 0;
-      for (var argName in slice.args) {
+      for (var argName in event.args) {
         n += 1;
       }
       if (n > 0) {
         var subRows = [];
-        for (var argName in slice.args) {
+        for (var argName in event.args) {
           var argView =
               document.createElement('tv-c-analysis-generic-object-view');
-          argView.object = slice.args[argName];
+          argView.object = event.args[argName];
           subRows.push({ name: argName,
                       value: argView});
         }

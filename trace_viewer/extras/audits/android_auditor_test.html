@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
-  var FRAME_PERF_CLASSIFICATION = tv.c.trace_model.FRAME_PERF_CLASSIFICATION;
+  var FRAME_PERF_CLASS = tv.c.trace_model.FRAME_PERF_CLASS;
 
   test('saveLayerAlert', function() {
     var model = tv.c.test_utils.newModelWithAuditor(function(model) {
@@ -115,9 +115,9 @@ tv.b.unittest.testSuite(function() {
     assert.closeTo(process.frames[1].totalDuration, 20, 1e-5);
 
     assert.equal(process.frames[0].perfClassification,
-        FRAME_PERF_CLASSIFICATION.GOOD);
+        FRAME_PERF_CLASS.GOOD);
     assert.equal(process.frames[1].perfClassification,
-        FRAME_PERF_CLASSIFICATION.TERRIBLE);
+        FRAME_PERF_CLASS.TERRIBLE);
   });
 
   test('processRenameAndSort', function() {
