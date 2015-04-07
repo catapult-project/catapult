@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/ui/dom_helpers.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/single_event_sub_view.html">
 
@@ -19,13 +20,24 @@ found in the LICENSE file.
     },
 
     set selection(selection) {
+      this.currentSelection_ = selection;
+
       this.textContent = '';
       var realView = document.createElement('tv-c-a-single-event-sub-view');
+      realView.addExtraRowsCallback = function(rows) {
+        var alert = this.currentSelection_[0];
+
+        var descriptionEl = tv.b.ui.createSpan({
+          textContent: alert.type.description
+        });
+        rows.push({
+          name: 'Description',
+          value: descriptionEl
+        });
+      }.bind(this);
 
       this.appendChild(realView);
       realView.setSelectionWithoutErrorChecks(selection);
-
-      this.currentSelection_ = selection;
     }
   });
   </script>

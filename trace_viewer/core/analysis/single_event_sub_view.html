@@ -35,6 +35,10 @@ found in the LICENSE file.
   'use strict';
 
   Polymer({
+    created: function() {
+      this.addExtraRowsCallback_ = undefined;
+    },
+
     ready: function() {
       this.currentSelection_ = undefined;
       this.$.table.tableColumns = [
@@ -52,19 +56,31 @@ found in the LICENSE file.
       this.$.table.showHeader = false;
     },
 
-    set selection(selection) {
-      if (selection.length !== 1)
-        throw new Error('Only supports single slices');
-      this.setSelectionWithoutErrorChecks(selection);
+    get addExtraRowsCallback() {
+      return this.addExtraRowsCallback_;
+    },
+
+    set addExtraRowsCallback(addExtraRowsCallback) {
+      this.addExtraRowsCallback_ = addExtraRowsCallback;
+      this.updateContents_();
     },
 
     get selection() {
       return this.currentSelection_;
     },
 
+    set selection(selection) {
+      if (selection.length !== 1)
+        throw new Error('Only supports single slices');
+      this.setSelectionWithoutErrorChecks(selection);
+    },
+
     setSelectionWithoutErrorChecks: function(selection) {
       this.currentSelection_ = selection;
+      this.updateContents_();
+    },
 
+    updateContents_: function() {
       if (this.currentSelection_ === undefined) {
         this.$.table.rows = [];
         this.$.table.rebuild();
@@ -170,6 +186,9 @@ found in the LICENSE file.
           isExpanded: true, subRows: subRows
         });
       }
+
+      if (this.addExtraRowsCallback_)
+        this.addExtraRowsCallback_(rows);
 
       this.$.table.tableRows = rows;
       this.$.table.rebuild();
