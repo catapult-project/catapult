@@ -26,7 +26,8 @@ tv.b.unittest.testSuite(function() {
 
     var p = m.getOrCreateProcess(1);
     var t = p.getOrCreateThread(1);
-    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
+    var slice = new ThreadSlice('', 'a', 0, 1, {}, 4);
+    t.sliceGroup.pushSlice(slice);
     t.asyncSliceGroup.push(tv.c.test_utils.newAsyncSlice(0, 1, t, t));
 
     var c = p.getOrCreateCounter('', 'ProcessCounter');
@@ -61,7 +62,8 @@ tv.b.unittest.testSuite(function() {
     bSeries.addCounterSample(2, 12);
     bSeries.addCounterSample(3, 16);
 
-    p.frames.push.apply(p.frames, new Frame([t, 1, 5]));
+    var frame1 = new Frame([slice], [{thread: t, start: 1, end: 5}]);
+    p.frames.push.apply(p.frames, frame1);
 
     var gd = new tv.c.trace_model.GlobalMemoryDump(m, 2);
     var pd = new tv.c.trace_model.ProcessMemoryDump(gd, p, 2);

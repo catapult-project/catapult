@@ -13,15 +13,16 @@ found in the LICENSE file.
 
 tv.exportTo('tv.c.trace_model', function() {
 
-  function Alert(type, start, opt_args) {
+  function Alert(type, start, opt_associatedEvents, opt_args) {
     tv.c.trace_model.TimedEvent.call(this, start);
     this.type = type;
-    if (opt_args !== undefined)
-      this.args = opt_args;
-    else
-      this.args = {};
-    this.duration = 0;
+    this.args = opt_args || {};
+    this.associatedEvents = opt_associatedEvents || [];
+    this.associatedEvents.forEach(function(event) {
+      event.associatedAlerts.push(this);
+    });
   }
+
   Alert.prototype = {
     __proto__: tv.c.trace_model.TimedEvent.prototype,
 

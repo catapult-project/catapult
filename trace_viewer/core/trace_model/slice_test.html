@@ -30,5 +30,30 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sC, sA.findDescendentSlice('c'));
     assert.isUndefined(sA.findDescendentSlice('d'));
   });
+
+  test('iterateAllDescendents', function() {
+    var group = new SliceGroup({});
+
+    var sA = group.pushSlice(newSliceNamed('a', 1, 10));
+    var sB = group.pushSlice(newSliceNamed('b', 2, 8));
+    var sC = group.pushSlice(newSliceNamed('c', 3, 6));
+
+    group.createSubSlices();
+
+    var descendentCount = 0;
+    var bCount = 0;
+    var cCount = 0;
+    sA.iterateAllDescendents(function(descendent) {
+      if (descendent == sB)
+        bCount++;
+      if (descendent == sC)
+        cCount++;
+      descendentCount++;
+    });
+
+    assert.equal(bCount, 1);
+    assert.equal(cCount, 1);
+    assert.equal(descendentCount, 2);
+  });
 });
 </script>

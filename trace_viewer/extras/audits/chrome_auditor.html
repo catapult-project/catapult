@@ -114,7 +114,7 @@ tv.exportTo('tv.e.audits', function() {
                 tv.c.trace_model.ALERT_SEVERITY.CRITICAL);
             var center = slice.start + 0.5 * slice.duration;
             var alert = new tv.c.trace_model.Alert(
-                alertType, center, {/* explanatory data goes here */});
+                alertType, center, [slice]);
             model.alerts.push(alert);
           }
         });

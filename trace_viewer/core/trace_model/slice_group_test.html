@@ -648,5 +648,23 @@ tv.b.unittest.testSuite(function() {
 
     assert.deepEqual(group.getSlicesOfName('a'), expected);
   });
+
+  test('iterSlicesInTimeRange', function() {
+    var group = new SliceGroup({});
+    var expected = [];
+
+    for (var i = 0; i < 10; i++) {
+      var slice = newSliceNamed('a', i, 1);
+      group.pushSlice(slice);
+      if (4 <= i && i <= 7)
+        expected.push(slice);
+    }
+    group.createSubSlices();
+
+    var observed = [];
+    group.iterSlicesInTimeRange(function(slice) { observed.push(slice); },
+                                4.5, 7.5);
+    assert.deepEqual(observed, expected);
+  });
 });
 </script>

@@ -155,7 +155,7 @@ tv.exportTo('tv.c.tracks', function() {
       if (!track.hasVisibleContent)
         return;
       this.appendChild(track);
-      this.appendChild(new SpacingTrack(this.viewport));
+      // no spacing track, since this track only shown in collapsed state
     },
 
     appendObjectInstanceTracks_: function() {

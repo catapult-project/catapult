@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/frame.html">
 <link rel="import" href="/extras/audits/android_auditor.html">
 <link rel="import" href="/extras/importer/linux_perf/linux_perf_importer.html">
 
@@ -15,17 +16,7 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
-
-  test('longFrameAlert', function() {
-    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 80));
-    }, tv.e.audits.AndroidAuditor);
-
-    assert.equal(model.alerts.length, 1);
-    var alert = model.alerts[0];
-    assert.closeTo(alert.args.totalDuration, 80, 1e-5);
-  });
+  var FRAME_PERF_CLASSIFICATION = tv.c.trace_model.FRAME_PERF_CLASSIFICATION;
 
   test('saveLayerAlert', function() {
     var model = tv.c.test_utils.newModelWithAuditor(function(model) {
@@ -39,8 +30,75 @@ tv.b.unittest.testSuite(function() {
     assert.equal(model.alerts.length, 1);
 
     var alert = model.alerts[0];
+    assert.equal(alert.args['view name'], 'BadAlphaView');
     assert.equal(alert.args.width, 480);
     assert.equal(alert.args.height, 320);
+  });
+
+  test('uploadAlert', function() {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 0, 20));
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'Upload 1000x1000 Texture', 0, 15));
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+
+    var alert = model.alerts[0];
+    assert.closeTo(alert.args['pixels uploaded (millions)'], 1, 1e-5);
+    assert.equal(alert.args['time spent'], 15);
+  });
+
+  test('listViewAlert', function() {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('obtainView', 0, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('setupListItem', 5, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('obtainView', 10, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('setupListItem', 15, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 10));
+
+      // short frame, so no alert should be generated
+      uiThread.sliceGroup.pushSlice(newSliceNamed('obtainView', 50, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('setupListItem', 55, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 60, 1));
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+    var alert = model.alerts[0];
+    assert.equal(alert.args['items inflated'], 2);
+    assert.closeTo(alert.args['time spent'], 20, 1e-5);
+  });
+
+  test('measureLayoutAlert', function() {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('measure', 0, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('layout', 10, 5));
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+    assert.closeTo(model.alerts[0].args['time spent'], 10, 1e-5);
+  });
+
+  test('viewDrawAlert', function() {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      // modern naming
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('Record View#draw()', 0, 10));
+
+      // legacy naming
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 40, 20));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('getDisplayList', 40, 10));
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 2);
+    assert.closeTo(model.alerts[0].args['time spent'], 10, 1e-5);
+    assert.closeTo(model.alerts[1].args['time spent'], 10, 1e-5);
   });
 
   test('addFrameToModel', function() {
@@ -49,10 +107,17 @@ tv.b.unittest.testSuite(function() {
       process = model.getOrCreateProcess(1);
       var uiThread = process.getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 16, 20));
     }, tv.e.audits.AndroidAuditor);
 
-    assert.equal(process.frames.length, 1);
+    assert.equal(process.frames.length, 2);
     assert.closeTo(process.frames[0].totalDuration, 8, 1e-5);
+    assert.closeTo(process.frames[1].totalDuration, 20, 1e-5);
+
+    assert.equal(process.frames[0].perfClassification,
+        FRAME_PERF_CLASSIFICATION.GOOD);
+    assert.equal(process.frames[1].perfClassification,
+        FRAME_PERF_CLASSIFICATION.TERRIBLE);
   });
 
   test('processRenameAndSort', function() {

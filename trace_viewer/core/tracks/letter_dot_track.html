@@ -176,6 +176,12 @@ tv.exportTo('tv.c.tracks', function() {
       }, this);
     },
 
+    addItemEventsToSelection: function(selection, item) {
+      var event = this.getModelEventFromItem(item);
+      if (event)
+        selection.push(event);
+    },
+
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       if (this.items_ === undefined)
@@ -188,9 +194,7 @@ tv.exportTo('tv.c.tracks', function() {
           function(x) { return 2 * itemRadiusWorld; },
           loWX, hiWX,
           function(item) {
-            var event = this.getModelEventFromItem(item);
-            if (event)
-              selection.push(event);
+            this.addItemEventsToSelection(selection, item);
           }.bind(this));
     },
 
@@ -212,9 +216,7 @@ tv.exportTo('tv.c.tracks', function() {
       var index = items.indexOf(event);
       var newIndex = index + offset;
       if (newIndex >= 0 && newIndex < items.length) {
-        var event = this.getModelEventFromItem(items[newIndex]);
-        if (event)
-          selection.push(event);
+        this.addItemEventsToSelection(selection, item);
         return true;
       }
       return false;
@@ -237,9 +239,7 @@ tv.exportTo('tv.c.tracks', function() {
       if (!item)
         return;
 
-      var event = this.getModelEventFromItem(item);
-      if (event)
-        selection.push(event);
+      this.addItemEventsToSelection(selection, item);
     }
   };
 

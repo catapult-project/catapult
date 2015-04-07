@@ -271,6 +271,21 @@ tv.exportTo('tv.c.trace_model', function() {
       return slices;
     },
 
+    iterSlicesInTimeRange: function(callback, start, end) {
+      var ret = [];
+      tv.b.iterateOverIntersectingIntervals(
+        this.topLevelSlices,
+        function(s) { return s.start; },
+        function(s) { return s.duration; },
+        start,
+        end,
+        function(topLevelSlice) {
+          callback(topLevelSlice);
+          topLevelSlice.iterateAllDescendents(callback);
+        });
+      return ret;
+    },
+
     /**
      * Construct subSlices for this group.
      * Populate the group topLevelSlices, parent slices get a subSlices[],

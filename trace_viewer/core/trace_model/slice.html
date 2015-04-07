@@ -73,6 +73,13 @@ tv.exportTo('tv.c.trace_model', function() {
         if (slice) return slice;
       }
       return undefined;
+    },
+
+    iterateAllDescendents: function(callback, opt_this) {
+      this.subSlices.forEach(callback, opt_this);
+      this.subSlices.forEach(function(subSlice) {
+        subSlice.iterateAllDescendents(callback, opt_this);
+      }, opt_this);
     }
   };
 

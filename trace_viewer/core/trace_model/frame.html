@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/core/trace_model/event.html">
+<link rel="import" href="/base/ui/color_scheme.html">
 
 <script>
 'use strict';
@@ -19,15 +20,32 @@ found in the LICENSE file.
 tv.exportTo('tv.c.trace_model', function() {
   var Statistics = tv.b.Statistics;
 
+  var FRAME_PERF_CLASSIFICATION = {
+    // This frame met its deadline
+    GOOD: 'good',
+
+    // This frame that didn't meet its presentaiton deadline,
+    // but didn't cause jank (e.g. an 'ok' frame in a deeply pipelined mode)
+    BAD: 'bad',
+
+    // This frame ran past its deadline, causing extreme jank.
+    TERRIBLE: 'terrible',
+
+    // This frame was not expected to meet its deadline, (e.g. first draw).
+    NEUTRAL: 'generic_work'
+  };
+
   /**
    * @constructor
+   * @param {Array} events Array of events composing the frame.
    * @param {Array} threadTimeRanges Array of {thread, start, end}
    *     for each thread, describing the critical path of the frame
    */
-  function Frame(threadTimeRanges) {
-    tv.c.trace_model.TimedEvent.call(this);
+  function Frame(events, threadTimeRanges) {
+    tv.c.trace_model.Event.call(this);
 
     this.threadTimeRanges = threadTimeRanges;
+    this.events = events;
 
     this.start = Statistics.min(
         threadTimeRanges, function(x) { return x.start; });
@@ -35,16 +53,22 @@ tv.exportTo('tv.c.trace_model', function() {
         threadTimeRanges, function(x) { return x.end; });
     this.totalDuration = Statistics.sum(
         threadTimeRanges, function(x) { return x.end - x.start; });
+
+    this.perfClassification = FRAME_PERF_CLASSIFICATION.NEUTRAL;
   };
 
   Frame.prototype = {
     __proto__: tv.c.trace_model.Event.prototype,
 
+    get colorId() {
+      return tv.b.ui.getColorIdForReservedName(this.perfClassification);
+    },
+
     shiftTimestampsForward: function(amount) {
       this.start += amount;
       this.end += amount;
 
-      for (var i = 1; i < this.threadTimeRanges.length; i++) {
+      for (var i = 0; i < this.threadTimeRanges.length; i++) {
         this.threadTimeRanges[i].start += amount;
         this.threadTimeRanges[i].end += amount;
       }
@@ -59,7 +83,8 @@ tv.exportTo('tv.c.trace_model', function() {
   // TODO(ccraik): register event, once view exists
 
   return {
-    Frame: Frame
+    Frame: Frame,
+    FRAME_PERF_CLASSIFICATION: FRAME_PERF_CLASSIFICATION
   };
 });
 </script>
