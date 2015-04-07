@@ -62,10 +62,15 @@ def _AssertIsUTF8(f):
 
 
 def _MinifyJS(input_js):
+  tvcm_path = os.path.abspath(os.path.join(
+      os.path.dirname(__file__), '..'))
+  rjsmin_path = os.path.abspath(
+      os.path.join(tvcm_path, 'third_party', 'rjsmin', 'rjsmin.py'))
+
   with tempfile.NamedTemporaryFile() as f:
     args = [
       'python',
-      'third_party/tvcm/third_party/rjsmin/rjsmin.py',
+      rjsmin_path
     ]
     p = subprocess.Popen(args,
                          stdin=subprocess.PIPE,
@@ -203,8 +208,13 @@ class ExtraScript(object):
 
 
 def _MinifyCSS(css_text):
+  tvcm_path = os.path.abspath(os.path.join(
+      os.path.dirname(__file__), '..'))
+  rcssmin_path = os.path.abspath(
+      os.path.join(tvcm_path, 'third_party', 'rcssmin', 'rcssmin.py'))
+
   with tempfile.NamedTemporaryFile() as f:
-    rcssmin_args = ['python', 'third_party/tvcm/third_party/rcssmin/rcssmin.py']
+    rcssmin_args = ['python', rcssmin_path]
     p = subprocess.Popen(rcssmin_args,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
