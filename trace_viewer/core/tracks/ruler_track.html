@@ -172,7 +172,7 @@ tv.exportTo('tv.c.tracks', function() {
         var curXView = Math.floor(dt.xWorldToView(curX));
 
         var unitValue = curX / unitDivisor;
-        var roundedUnitValue = Math.floor(unitValue * 100000) / 100000;
+        var roundedUnitValue = Math.round(unitValue * 100000) / 100000;
 
         if (!tickLabels[roundedUnitValue])
           tickLabels[roundedUnitValue] = roundedUnitValue + ' ' + unit;
@@ -229,7 +229,7 @@ tv.exportTo('tv.c.tracks', function() {
         var markerWorld = interestRange.min;
         var markerView = dt.xWorldToView(markerWorld);
         var displayValue = markerWorld / unitDivisor;
-        displayValue = Math.abs((Math.floor(displayValue * 1000) / 1000));
+        displayValue = Math.abs((Math.round(displayValue * 1000) / 1000));
 
         var textToDraw = displayValue + ' ' + unit;
         var textLeftView = markerView + 4 * pixelRatio;
@@ -274,7 +274,7 @@ tv.exportTo('tv.c.tracks', function() {
       // Calculate display value to print.
       displayDistance = distanceBetweenMarkers / unitDivisor;
       var roundedDisplayDistance =
-          Math.abs((Math.floor(displayDistance * 1000) / 1000));
+          Math.abs((Math.round(displayDistance * 1000) / 1000));
       var textToDraw = roundedDisplayDistance + ' ' + unit;
       var textWidthView = ctx.measureText(textToDraw).width;
       var spaceForArrowsAndTextView =
