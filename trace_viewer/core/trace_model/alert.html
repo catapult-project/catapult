@@ -20,7 +20,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.associatedEvents = opt_associatedEvents || [];
     this.associatedEvents.forEach(function(event) {
       event.associatedAlerts.push(this);
-    });
+    }, this);
   }
 
   Alert.prototype = {

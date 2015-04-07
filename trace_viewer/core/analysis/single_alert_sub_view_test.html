@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_view.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Selection = tv.c.Selection;
+  var newSliceEx = tv.c.test_utils.newSliceEx;
+
+  test('instantiate', function() {
+
+    var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
+
+    var ALERT_SEVERITY = tv.c.trace_model.ALERT_SEVERITY;
+    var ALERT_TYPE_1 = new tv.c.trace_model.AlertType(
+        'Alert 1', 'Critical alert', ALERT_SEVERITY.CRITICAL);
+
+    var alert = new tv.c.trace_model.Alert(ALERT_TYPE_1, 5, [slice]);
+
+    var selection = new tv.c.Selection();
+    selection.push(alert);
+
+    var subView = document.createElement('tv-c-single-alert-sub-view');
+    subView.selection = selection;
+    this.addHTMLOutput(subView);
+  });
+});
+</script>

@@ -168,6 +168,25 @@ found in the LICENSE file.
             value: createStackFrameEl(event.endStackFrame)});
       }
 
+      if (event.associatedAlerts.length) {
+        var alertSubRows = [];
+        event.associatedAlerts.forEach(function(alert) {
+          var linkEl = document.createElement('tv-c-analysis-link');
+          linkEl.setSelectionAndContent(function() {
+            return new tv.c.Selection(alert);
+          }, alert.type.description);
+          alertSubRows.push({
+            name: alert.title,
+            value: linkEl
+          });
+        });
+
+        rows.push({
+          name: 'Alerts', value: '',
+          isExpanded: true, subRows: alertSubRows
+        });
+      }
+
       var n = 0;
       for (var argName in event.args) {
         n += 1;

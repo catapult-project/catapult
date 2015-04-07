@@ -74,6 +74,23 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(analysisEl);
   });
 
+  test('alerts', function() {
+    var slice = newSliceNamed('b', 0, 0.002);
+
+    var ALERT_SEVERITY = tv.c.trace_model.ALERT_SEVERITY;
+    var ALERT_TYPE_1 = new tv.c.trace_model.AlertType(
+        'Alert 1', 'Critical alert', ALERT_SEVERITY.CRITICAL);
+
+    var alert = new tv.c.trace_model.Alert(ALERT_TYPE_1, 5, [slice]);
+
+    var selection = new tv.c.Selection();
+    selection.push(slice);
+
+    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
   test('instantiate_withSingleSliceWithArg', function() {
     var selection = createSelection(function(t53) {
       var slice = newSliceNamed('my_slice', 0, 1.0);

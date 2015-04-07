@@ -25,6 +25,7 @@ found in the LICENSE file.
       this.textContent = '';
       var realView = document.createElement('tv-c-a-single-event-sub-view');
       realView.addExtraRowsCallback = function(rows) {
+        // Alert description.
         var alert = this.currentSelection_[0];
 
         var descriptionEl = tv.b.ui.createSpan({
@@ -34,6 +35,26 @@ found in the LICENSE file.
           name: 'Description',
           value: descriptionEl
         });
+
+        // Associated events...
+        if (alert.associatedEvents.length) {
+          var eventSubRows = [];
+          alert.associatedEvents.forEach(function(event, i) {
+            var linkEl = document.createElement('tv-c-analysis-link');
+            linkEl.setSelectionAndContent(function() {
+              return new tv.c.Selection(event);
+            }, event.userFriendlyName);
+            eventSubRows.push({
+              name: i,
+              value: linkEl
+            });
+          });
+
+          rows.push({
+            name: 'Alerts', value: '',
+            isExpanded: true, subRows: eventSubRows
+          });
+        }
       }.bind(this);
 
       this.appendChild(realView);

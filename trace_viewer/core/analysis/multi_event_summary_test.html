@@ -72,6 +72,19 @@ tv.b.unittest.testSuite(function() {
     assert.isUndefined(row.cpuSelfTime);
   });
 
+  test('summaryNumAlerts', function() {
+    var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
+
+    var ALERT_SEVERITY = tv.c.trace_model.ALERT_SEVERITY;
+    var ALERT_TYPE_1 = new tv.c.trace_model.AlertType(
+        'Alert 1', 'Critical alert', ALERT_SEVERITY.CRITICAL);
+
+    var alert = new tv.c.trace_model.Alert(ALERT_TYPE_1, 5, [slice]);
+
+    var row = new tv.c.analysis.MultiEventSummary('a', [slice]);
+    assert.equal(row.numAlerts, 1);
+  });
+
   test('argSummary', function() {
     var model = new Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);

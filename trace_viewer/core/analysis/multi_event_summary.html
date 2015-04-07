@@ -91,6 +91,15 @@ tv.exportTo('tv.c.analysis', function() {
       return this.events_.length;
     },
 
+    get numAlerts() {
+      if (this.numAlerts_ === undefined) {
+        this.numAlerts_ = tv.b.Statistics.sum(this.events_, function(event) {
+          return event.associatedAlerts.length;
+        });
+      }
+      return this.numAlerts_;
+    },
+
     get untotallableArgs() {
       this.updateArgsIfNeeded_();
       return this.untotallableArgs_;

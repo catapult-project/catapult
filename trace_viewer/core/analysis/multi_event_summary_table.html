@@ -42,11 +42,14 @@ found in the LICENSE file.
 
     updateTableColumns_: function(rows) {
       var hasCpuData = false;
+      var hasAlerts = false;
       rows.forEach(function(row) {
         if (row.cpuDuration !== undefined)
           hasCpuData = true;
         if (row.cpuSelfTime !== undefined)
           hasCpuData = true;
+        if (row.numAlerts)
+          hasAlerts = true;
       });
 
 
@@ -131,6 +134,20 @@ found in the LICENSE file.
         }
       });
 
+      var alertsColumnIndex;
+      if (hasAlerts) {
+        columns.push({
+          title: 'Num Alerts',
+          value: function(row) {
+            return row.numAlerts;
+          },
+          width: '<upated further down>',
+          cmp: function(rowA, rowB) {
+            return rowA.numAlerts - rowB.numAlerts;
+          }
+        });
+        alertsColumnIndex = columns.length - 1;
+      }
       var colWidthPercentage;
       if (columns.length == 1)
         colWidthPercentage = '100%';
@@ -141,6 +158,11 @@ found in the LICENSE file.
         columns[i].width = colWidthPercentage;
 
       this.$.table.tableColumns = columns;
+
+      if (hasAlerts) {
+        this.$.table.sortColumnIndex = alertsColumnIndex;
+        this.$.table.sortDescending = true;
+      }
     },
 
     configure: function(config) {
