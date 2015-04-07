@@ -101,9 +101,37 @@ found in the LICENSE file.
   <script>
   'use strict';
   Polymer({
-
     ready: function() {
       this.$.tshh.style.display = 'none';
+
+      // A tab is represented by the following tuple:
+      // (id, label, content, observer, savedScrollTop, savedScrollLeft).
+      // The properties are used in the following way:
+      // id: Uniquely identifies a tab. It is the same number as the index
+      //     in the tabs array. Used primarily by the on-click event attached
+      //     to buttons.
+      // label: A string, representing the label printed on the tab button.
+      // content: The light-dom child representing the contents of the tab.
+      //     The content is appended to this tab-view by the user.
+      // observers: The observers attached to the content node to watch for
+      //     attribute changes. The attributes of interest are: 'selected',
+      //     and 'tab-label'.
+      // savedScrollTop/Left: Used to return the scroll position upon switching
+      //     tabs. The values are generally saved when a tab switch occurs.
+      //
+      // The order of the tabs is relevant for the tab ordering.
+      this.tabs_ = [];
+      this.selectedTab_ = undefined;
+
+      // Register any already existing children.
+      for (var i = 0; i < this.children.length; i++)
+        this.processAddedChild_(this.children[i]);
+
+      // In case the user decides to add more tabs, make sure we watch for
+      // any child mutations.
+      this.childrenObserver_ = new MutationObserver(
+          this.childrenUpdated_.bind(this));
+      this.childrenObserver_.observe(this, { childList: 'true' });
     },
 
     get tabStripHeadingText() {
@@ -167,38 +195,6 @@ found in the LICENSE file.
       else
         ts.removeAttribute('tabs-hidden');
     },
-
-    ready: function() {
-      // A tab is represented by the following tuple:
-      // (id, label, content, observer, savedScrollTop, savedScrollLeft).
-      // The properties are used in the following way:
-      // id: Uniquely identifies a tab. It is the same number as the index
-      //     in the tabs array. Used primarily by the on-click event attached
-      //     to buttons.
-      // label: A string, representing the label printed on the tab button.
-      // content: The light-dom child representing the contents of the tab.
-      //     The content is appended to this tab-view by the user.
-      // observers: The observers attached to the content node to watch for
-      //     attribute changes. The attributes of interest are: 'selected',
-      //     and 'tab-label'.
-      // savedScrollTop/Left: Used to return the scroll position upon switching
-      //     tabs. The values are generally saved when a tab switch occurs.
-      //
-      // The order of the tabs is relevant for the tab ordering.
-      this.tabs_ = [];
-      this.selectedTab_ = undefined;
-
-      // Register any already existing children.
-      for (var i = 0; i < this.children.length; i++)
-        this.processAddedChild_(this.children[i]);
-
-      // In case the user decides to add more tabs, make sure we watch for
-      // any child mutations.
-      this.childrenObserver_ = new MutationObserver(
-          this.childrenUpdated_.bind(this));
-      this.childrenObserver_.observe(this, { childList: 'true' });
-    },
-
 
     /**
      * Function called on light-dom child addition.
