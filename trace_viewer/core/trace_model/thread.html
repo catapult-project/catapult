@@ -250,6 +250,45 @@ tv.exportTo('tv.c.trace_model', function() {
         this.asyncSliceGroup.iterateAllEventContainers(callback);
     },
 
+    getSchedulingStatsForRange: function(range) {
+      var stats = {};
+
+      if (!this.timeSlices) return stats;
+
+      // Find first thread slice with
+      // start-time + duration > initialSlice.start
+      // TODO have a pointer into timeSlices to make this more efficient
+      var index = tv.b.findLowIndexInSortedArray(
+          this.timeSlices,
+          function(timeSlice) {
+            return (timeSlice.start + timeSlice.duration); },
+          range.start);
+
+      // And keep adding slices that are within this range
+      for (var i = index; i < this.timeSlices.length; i++) {
+        var threadTimeSlice = this.timeSlices[i];
+
+        if (threadTimeSlice.start > range.end)
+          break;
+
+        var duration = threadTimeSlice.duration;
+        if (threadTimeSlice.start < range.start) {
+          duration -= range.start - threadTimeSlice.start;
+        }
+        if (threadTimeSlice.end > range.end) {
+          duration -= threadTimeSlice.end - range.end;
+        }
+
+        if (!(threadTimeSlice.threadState in stats)) {
+          stats[threadTimeSlice.threadState] = duration;
+        } else {
+          stats[threadTimeSlice.threadState] += duration;
+        }
+      }
+
+      return stats;
+    },
+
     get samples() {
       return this.samples_;
     }

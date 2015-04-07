@@ -15,8 +15,38 @@ found in the LICENSE file.
 'use strict';
 
 tv.b.unittest.testSuite(function() {
+  var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
   var FRAME_PERF_CLASS = tv.c.trace_model.FRAME_PERF_CLASS;
+  var newThreadSlice = tv.c.test_utils.newThreadSlice;
+
+  test('scheduleAlerts', function() {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 10));
+      uiThread.timeSlices = [
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 3, 0),
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNABLE, 3, 5, 0),
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 8, 2, 0)];
+    }, tv.e.audits.AndroidAuditor);
+    assert.equal(model.alerts.length, 1);
+    var alert = model.alerts[0];
+    assert.equal(alert.type.title, 'Scheduling delay');
+    assert.closeTo(alert.args.delay, 5, 1e-5);
+
+    model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 15));
+      uiThread.timeSlices = [
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 5, 0),
+          newThreadSlice(uiThread, SCHEDULING_STATE.UNINTR_SLEEP, 5, 9, 0),
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 14, 1, 0)];
+    }, tv.e.audits.AndroidAuditor);
+    assert.equal(model.alerts.length, 1);
+    var alert = model.alerts[0];
+    assert.equal(alert.type.title, 'Blocking I/O delay');
+    assert.closeTo(alert.args.delay, 9, 1e-5);
+  });
 
   test('saveLayerAlert', function() {
     var model = tv.c.test_utils.newModelWithAuditor(function(model) {

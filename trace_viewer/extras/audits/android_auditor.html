@@ -43,6 +43,12 @@ tv.exportTo('tv.e.audits', function() {
     }
     return false;
   }
+  // TODO: use sane values or different metric
+  var MAX_TIME_UNSCHEDULED = 3.0;
+  var MAX_TIME_BLOCKING_IO = 5.0;
+
+  var Auditor = tv.c.Auditor;
+  var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
 
   /**
    * Auditor for Android-specific traces.
@@ -291,10 +297,58 @@ tv.exportTo('tv.e.audits', function() {
         // general alerts
         alerts.push.apply(alerts,
           AndroidAuditor.getSaveLayerAlerts_(app.renderThread));
+        // scheduler alerts
+        this.addSchedulingAlerts(app.renderThread);
+        this.addSchedulingAlerts(app.uiThread);
       }, this);
 
       this.addRenderingInteractionRecords();
       this.addInputInteractionRecords();
+    },
+
+    addSchedulingAlerts: function(thread) {
+      var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+
+      if (!thread || !thread.timeSlices)
+        return;
+
+      var colorId = tv.b.ui.getColorIdForGeneralPurposeString(
+          'SchedulingAlerts');
+
+      for (var i = 1; i < thread.timeSlices.length; i++) {
+        var slice = thread.timeSlices[i];
+        var previousSlice = thread.timeSlices[i - 1];
+        var timeDiff = slice.start - previousSlice.start;
+
+        if (slice.threadState == SCHEDULING_STATE.RUNNING &&
+            previousSlice.threadState == SCHEDULING_STATE.RUNNABLE &&
+            timeDiff > MAX_TIME_UNSCHEDULED) {
+          var alertType = new tv.c.trace_model.AlertType(
+            'Scheduling delay',
+            'Thread ' + thread.userFriendlyName +
+            ' not scheduled for ' + timeDiff + ' ms.',
+            tv.c.trace_model.ALERT_SEVERITY.WARNING);
+          var alert = new tv.c.trace_model.Alert(
+              alertType,
+              slice.start,
+              [previousSlice, slice],
+              {'delay': timeDiff});
+          this.model.alerts.push(alert);
+        } else if (previousSlice.threadState == SCHEDULING_STATE.UNINTR_SLEEP &&
+              timeDiff > MAX_TIME_BLOCKING_IO) {
+          var alertType = new tv.c.trace_model.AlertType(
+            'Blocking I/O delay',
+            'Thread ' + thread.userFriendlyName +
+            ' had blocking I/O for ' + timeDiff + ' ms.',
+            tv.c.trace_model.ALERT_SEVERITY.WARNING);
+          var alert = new tv.c.trace_model.Alert(
+              alertType,
+              slice.start,
+              [previousSlice, slice],
+              {'delay': timeDiff});
+          this.model.alerts.push(alert);
+        }
+      }
     },
 
     addRenderingInteractionRecords: function() {
