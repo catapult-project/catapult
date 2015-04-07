@@ -63,9 +63,25 @@ found in the LICENSE file.
       button-label {
         display: inline;
       }
+
+      tab-strip-heading {
+        display: block;
+        flex: 0 0 auto;
+        padding: 4px 15px 1px 15px;
+        margin-top: 2px;
+        margin-before: 20px;
+        margin-after: 10px;
+      }
+      #tsh {
+        display: inline;
+        font-weight: bold;
+      }
     </style>
 
     <tab-strip>
+      <tab-strip-heading id="tshh">
+        <span id="tsh"></span>
+      </tab-strip-heading>
       <template repeat="{{tab in tabs_}}">
         <tab-button
             button-id="{{ tab.id }}"
@@ -85,6 +101,22 @@ found in the LICENSE file.
   <script>
   'use strict';
   Polymer({
+
+    ready: function() {
+      this.$.tshh.style.display = 'none';
+    },
+
+    get tabStripHeadingText() {
+      return this.$.tsh.textContent;
+    },
+
+    set tabStripHeadingText(tabStripHeadingText) {
+      this.$.tsh.textContent = tabStripHeadingText;
+      if (!!tabStripHeadingText)
+        this.$.tshh.style.display = '';
+      else
+        this.$.tshh.style.display = 'none';
+    },
 
     get selectedTab() {
       // Do not give access to the user to the inner data structure.

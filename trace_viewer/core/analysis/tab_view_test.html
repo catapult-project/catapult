@@ -80,6 +80,51 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(button);
   });
 
+
+  test('instantiateWithTabHeading', function() {
+    var TAB_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' +
+        ' Cras eleifend elit nec erat tristique pellentesque. Cras placerat ' +
+        'lectus, sed semper tortor ornare quis. Maecenas vitae hendrerit. ' +
+        'Cras mattis interdum nisi, eget egestas dui iaculis ultricies. Proi' +
+        'n magna at nibh fringilla tincidunt id vitae ante. Fusce nec urna n' +
+        'on porttitor tincidunt. Pellentesque habitant morbi tristique senec' +
+        'tus netus et malesuada fames ac turpis egestas. Suspendisse sed vel' +
+        'it mollis ornare sit amet vel augue. Nullam rhoncus in tellus id. ' +
+        'Vestibulum ante ipsum primis in faucibus orci luctus et ultrices ' +
+        'cubilia Curae; Nunc at velit consectetur ipsum tempus tempus. Nunc ' +
+        'mattis sapien, a placerat erat. Vivamus ac enim ultricies, gravida ' +
+        'nulla ut, scelerisque magna. Sed a volutpat enim. Morbi vulputate, ' +
+        'sed egestas mollis, urna nisl varius sem, sed venenatis turpis null' +
+        'a ipsum. Suspendisse potenti.';
+
+    var tabViewContainer = document.createElement('div');
+    tabViewContainer.style.width = '500px';
+    tabViewContainer.style.height = '200px';
+
+    var tabView = new TracingAnalysisTabView();
+    tabView.tabStripHeadingText = 'Hello world:';
+
+    var firstTab = document.createElement('div');
+    firstTab.setAttribute('tab-label', 'First Tab Label');
+    firstTab.innerHTML = '<p>' + TAB_TEXT + '<p>';
+
+    var secondTab = document.createElement('div');
+    secondTab.setAttribute('tab-label', 'Second Tab Label');
+    secondTab.innerHTML = '<b>' + 'Second Tab Text' + '</b>';
+
+    var thirdTab = document.createElement('div');
+    thirdTab.setAttribute('tab-label', 'Third Tab Label');
+    thirdTab.innerHTML = '<b>' + 'Third Tab Text' + '</b>';
+
+    tabView.appendChild(firstTab);
+    tabView.appendChild(secondTab);
+    tabView.appendChild(thirdTab);
+    tabViewContainer.appendChild(tabView);
+
+    this.addHTMLOutput(tabViewContainer);
+    tabView.selectedTab = secondTab;
+  });
+
   test('instantiateChildrenAlreadyInside', function() {
     var tabViewTemplate = THIS_DOC.querySelector('#tab-view-test-template');
     var tabView = tabViewTemplate.createInstance();

@@ -129,6 +129,14 @@ using custom elements specialized for different event types.
 
         this.tallMode = false;
         this.tabView_.textContent = '';
+        if (selection.length == 0) {
+          this.tabView_.tabStripHeadingText = 'Nothing selected. Tap stuff.';
+        } else if (selection.length == 1) {
+          this.tabView_.tabStripHeadingText = '1 item selected: ';
+        } else {
+          this.tabView_.tabStripHeadingText = selection.length +
+              ' items selected: ';
+        }
 
         var eventsByBaseTypeName = selection.getEventsOrganizedByBaseType(true);
 
@@ -187,7 +195,7 @@ using custom elements specialized for different event types.
           camelLabel = EventRegistry.getUserFriendlySingularName(eventTypeName);
         else
           camelLabel = EventRegistry.getUserFriendlyPluralName(eventTypeName);
-        subView.tabLabel = camelLabel;
+        subView.tabLabel = camelLabel + ' (' + subSelection.length + ')';
 
         return subView;
       },
