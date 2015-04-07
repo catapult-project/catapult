@@ -37,6 +37,8 @@ tv.exportTo('tv.c.tracks', function() {
       this.classList.add('ruler-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
+      this.strings_usecs_ = [];
+      this.strings_nsecs_ = [];
 
       this.viewportChange_ = this.viewportChange_.bind(this);
       viewport.addEventListener('change', this.viewportChange_);
@@ -110,7 +112,15 @@ tv.exportTo('tv.c.tracks', function() {
       var unit;
       var unitDivisor;
       var tickLabels = undefined;
-      if (majorMarkDistanceWorld < 100) {
+      if (majorMarkDistanceWorld < 0.0001) {
+        unit = "ns"
+        unitDivisor = 0.000001;
+        tickLabels = this.strings_nsecs_;
+      } else if (majorMarkDistanceWorld < 0.1) {
+        unit = "us";
+        unitDivisor = 0.001;
+        tickLabels = this.strings_usecs_;
+      } else if (majorMarkDistanceWorld < 100) {
         unit = 'ms';
         unitDivisor = 1;
         tickLabels = this.strings_msecs_;
@@ -247,7 +257,13 @@ tv.exportTo('tv.c.tracks', function() {
           leftMarkerView + (distanceBetweenMarkersView / 2);
 
       // Determine units.
-      if (distanceBetweenMarkers < 100) {
+      if (distanceBetweenMarkers < 0.0001) {
+        unit = "ns";
+        unitDivisor = 0.000001;
+      } else if (distanceBetweenMarkers < 0.1) {
+        unit = "us";
+        unitDivisor = 0.001;
+      } else if (distanceBetweenMarkers < 100) {
         unit = 'ms';
         unitDivisor = 1;
       } else {
