@@ -205,7 +205,7 @@ class CloudStorageModuleStub(object):
     elif bucket == CloudStorageModuleStub.INTERNAL_BUCKET:
       if self.permission_level < CloudStorageModuleStub.INTERNAL_PERMISSION:
         raise CloudStorageModuleStub.PermissionError()
-    else:
+    elif bucket not in self.remote_paths:
       raise CloudStorageModuleStub.NotFoundError()
 
   def SetRemotePathsForTesting(self, remote_path_dict=None):
