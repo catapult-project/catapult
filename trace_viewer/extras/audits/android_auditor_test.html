@@ -138,15 +138,19 @@ tv.b.unittest.testSuite(function() {
       var uiThread = process.getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 8));
       uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 16, 20));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 40, 90));
     }, tv.e.audits.AndroidAuditor);
 
-    assert.equal(process.frames.length, 2);
+    assert.equal(process.frames.length, 3);
     assert.closeTo(process.frames[0].totalDuration, 8, 1e-5);
     assert.closeTo(process.frames[1].totalDuration, 20, 1e-5);
+    assert.closeTo(process.frames[2].totalDuration, 90, 1e-5);
 
     assert.equal(process.frames[0].perfClass,
         FRAME_PERF_CLASS.GOOD);
     assert.equal(process.frames[1].perfClass,
+        FRAME_PERF_CLASS.BAD);
+    assert.equal(process.frames[2].perfClass,
         FRAME_PERF_CLASS.TERRIBLE);
   });
 

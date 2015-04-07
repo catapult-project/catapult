@@ -235,9 +235,12 @@ tv.exportTo('tv.e.audits', function() {
             frame.perfClass = FRAME_PERF_CLASS.NEUTRAL;
           }
 
-          if (frame.totalDuration > EXPECTED_FRAME_TIME_MS) {
-            badFramesObserved++;
+          if (frame.totalDuration > EXPECTED_FRAME_TIME_MS * 2) {
+            badFramesObserved += 2;
             frame.perfClass = FRAME_PERF_CLASS.TERRIBLE;
+          } else if (frame.totalDuration > EXPECTED_FRAME_TIME_MS) {
+            badFramesObserved++;
+            frame.perfClass = FRAME_PERF_CLASS.BAD;
           } else {
             frame.perfClass = FRAME_PERF_CLASS.GOOD;
           }
