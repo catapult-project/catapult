@@ -17,13 +17,13 @@ found in the LICENSE file.
       display: -webkit-flex;
     }
 
-    :host[expanded] > active-panel-container {
+    :host([expanded]) > active-panel-container {
       -webkit-flex: 1 1 auto;
       border-left: 1px solid black;
       display: -webkit-flex;
     }
 
-    :host:not([expanded]) > active-panel-container {
+    :host(:not([expanded])) > active-panel-container {
       display: none;
     }
 
