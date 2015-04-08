@@ -101,7 +101,7 @@ class ParseTests(unittest.TestCase):
 <script src="blah.js"></script>
 """
     module = parse_html_deps.HTMLModuleParser().Parse(html)
-    self.assertEquals('\n\n', module.html_contents_without_links_and_script)
+    self.assertEquals('', module.html_contents_without_links_and_script)
 
 
   def test_parse_link_rel_stylesheet(self):
@@ -134,8 +134,7 @@ class ParseTests(unittest.TestCase):
 
 
   def test_parse_inline_style(self):
-    html = """
-<style>
+    html = """<style>
   hello
 </style>"""
     module = parse_html_deps.HTMLModuleParser().Parse(html)
@@ -148,8 +147,7 @@ class ParseTests(unittest.TestCase):
         return None
 
     gen_html = module.GenerateHTML(Ctl())
-    ghtm = """
-<style>
+    ghtm = """<style>
   HELLO
 </style>"""
     self.assertEquals(ghtm, gen_html)

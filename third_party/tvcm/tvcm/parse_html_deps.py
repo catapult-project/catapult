@@ -162,8 +162,8 @@ class HTMLModuleParserResults(object):
       for comment in comments:
         comment.extract()
 
-    # We is done.
-    return str(soup)
+    # We are done.
+    return str(soup).strip()
 
   @property
   def html_contents_without_links_and_script(self):
