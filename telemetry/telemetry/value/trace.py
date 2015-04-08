@@ -7,6 +7,7 @@ import logging
 import os
 import random
 import shutil
+import StringIO
 import sys
 import tempfile
 
@@ -39,15 +40,17 @@ class TraceValue(value_module.Value):
     self._serialized_file_handle = None
 
   def _GetTempFileHandle(self, trace_data):
-    tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
     if self.page:
       title = self.page.display_name
     else:
       title = ''
+    content = StringIO.StringIO()
     trace2html.WriteHTMLForTraceDataToFile(
         [trace_data.GetEventsFor(trace_data_module.CHROME_TRACE_PART)],
         title,
-        tf)
+        content)
+    tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
+    tf.write(content.getvalue().encode('utf-8'))
     tf.close()
     return file_handle.FromTempFile(tf)
 
