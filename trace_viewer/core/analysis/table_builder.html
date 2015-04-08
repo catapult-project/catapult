@@ -614,6 +614,7 @@ found in the LICENSE file.
           this.headerDirty_ = false;
         }
         if (this.bodyDirty_) {
+          this.$.body.textContent = '';
           this.generateTableRowNodes_(
               this.$.body,
               this.tableRows_, this.tableRowsInfo_, 0,
@@ -625,6 +626,7 @@ found in the LICENSE file.
           this.applySizes_();
 
         if (this.footerDirty_) {
+          this.$.body.textContent = '';
           this.generateTableRowNodes_(
               this.$.foot,
               this.tableFooterRows_, this.tableFooterRowsInfo_, 0,

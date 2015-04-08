@@ -46,6 +46,40 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
   });
 
+  test('sequentialRebuildsBehaveSanely', function() {
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '200px'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; }
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2'
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+
+    var table = document.createElement('tracing-analysis-nested-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+    table.rebuild();
+    assert.equal(table.$.body.children.length, 2);
+
+    this.addHTMLOutput(table);
+  });
+
   test('instantiateNestedTableWithNests', function() {
     var columns = [
       {
