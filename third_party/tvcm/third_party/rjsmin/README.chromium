@@ -9,3 +9,7 @@ Description:
 rJSmin is a javascript minifier written in python.
 The minifier is based on the semantics of jsmin.c by Douglas Crockford.
 The module is a re-implementation aiming for speed, so it can be used at runtime (rather than during a preprocessing step). Usually it produces the same results as the original jsmin.c.
+
+Modifications made:
+ - Removed the bench.sh since the file doesn't have the licensing info and
+   caused license checker to fail.
