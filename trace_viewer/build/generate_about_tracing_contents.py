@@ -14,8 +14,9 @@ def main(args):
   parser = optparse.OptionParser(usage="%prog --outdir=<directory>")
   parser.add_option("--outdir", dest="out_dir",
                     help="Where to place generated content")
-  parser.add_option("--minify", action="store_true", dest="minify",
-                    default=True, help="Whether to minify JS content.")
+  parser.add_option('--no-min', dest='no_min', default=False, 
+                    action='store_true',
+                    help='skip minification')                    
   options, args = parser.parse_args(args)
 
   if not options.out_dir:
@@ -39,7 +40,7 @@ def main(args):
           load_sequence,
           title='chrome://tracing',
           flattened_js_url='tracing.js',
-          minify=options.minify)
+          minify=not options.no_min)
     except tvcm.module.DepsException, ex:
       sys.stderr.write("Error: %s\n\n" % str(ex))
       return 255
@@ -54,7 +55,7 @@ def main(args):
         load_sequence,
         use_include_tags_for_scripts=False,
         dir_for_include_tag_root=options.out_dir,
-        minify=options.minify)
+        minify=not options.no_min)
     o.close()
 
   finally:
