@@ -191,6 +191,9 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     if (LinuxPerfImporter._extractEventsFromSystraceHTML(events, false).ok)
       return true;
 
+    if (LinuxPerfImporter._extractEventsFromSystraceMultiHTML(events, false).ok)
+      return true;
+
     if (/^# tracer:/.test(events))
       return true;
 
@@ -262,6 +265,45 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     if (newLastEvent == oldLastEvent)
       return failure;
     events[events.length - 1] = newLastEvent;
+
+    return {ok: true,
+      lines: produce_result ? events : undefined,
+      events_begin_at_line: events_begin_at_line};
+  };
+
+  LinuxPerfImporter._extractEventsFromSystraceMultiHTML = function(
+      incoming_events, produce_result) {
+    var failure = {ok: false};
+    if (produce_result === undefined)
+      produce_result = true;
+
+    if (/^<!DOCTYPE HTML>/.test(incoming_events) == false)
+      return failure;
+    var r = new tv.c.importer.SimpleLineReader(incoming_events);
+
+    // Try to find the Linux perf trace in any of the trace-data tags
+    var events = [];
+    while (!/^# tracer:/.test(events)) {
+      if (!r.advanceToLineMatching(
+          /^  <script class="trace-data" type="application\/text">$/))
+        return failure;
+
+      var events_begin_at_line = r.curLineNumber + 1;
+
+      r.beginSavingLines();
+      if (!r.advanceToLineMatching(/^  <\/script>$/))
+        return failure;
+
+      events = r.endSavingLinesAndGetResult();
+
+      // Drop off first and last event as it contains the tag.
+      events = events.slice(1, events.length - 1);
+    }
+
+    if (!r.advanceToLineMatching(/^<\/body>$/))
+      return failure;
+    if (!r.advanceToLineMatching(/^<\/html>$/))
+      return failure;
 
     return {ok: true,
       lines: produce_result ? events : undefined,
@@ -731,10 +773,14 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
      * Walks the this.events_ structure and populates this.lines_.
      */
     parseLines: function() {
+      var lines = [];
       var extractResult = LinuxPerfImporter._extractEventsFromSystraceHTML(
           this.events_, true);
+      if (!extractResult.ok)
+        extractResult = LinuxPerfImporter._extractEventsFromSystraceMultiHTML(
+            this.events_, true);
       var lines = extractResult.ok ?
-          extractResult.lines : this.events_.split('\n');
+        extractResult.lines : this.events_.split('\n');
 
       var lineParser = null;
       for (var lineNumber = 0; lineNumber < lines.length; ++lineNumber) {
