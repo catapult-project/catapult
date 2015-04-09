@@ -7,6 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/guid.html">
 <link rel="import" href="/base/extension_registry.html">
+<link rel="import" href="/core/trace_model/selectable_item.html">
+<link rel="import" href="/core/trace_model/selection_state.html">
 
 <script>
 'use strict';
@@ -15,16 +17,8 @@ found in the LICENSE file.
  * @fileoverview Provides the Event class.
  */
 tv.exportTo('tv.c.trace_model', function() {
-
-  /**
-   * The SelectionState enum defines how Events are displayed in the view.
-   */
-  var SelectionState = {
-    NONE: 0,
-    SELECTED: 1,
-    HIGHLIGHTED: 2,
-    DIMMED: 3
-  };
+  var SelectableItem = tv.c.trace_model.SelectableItem;
+  var SelectionState = tv.c.trace_model.SelectionState;
 
   // Cached values for getCategoryParts.
   var categoryPartsFor = {};
@@ -52,20 +46,20 @@ tv.exportTo('tv.c.trace_model', function() {
    * of data in the trace model.
    *
    * @constructor
+   * @extends {SelectableItem}
    */
   function Event() {
+    SelectableItem.call(this, this /* modelItem */);
     this.guid_ = tv.b.GUID.allocate();
     this.selectionState = SelectionState.NONE;
     this.associatedAlerts = [];
   }
 
   Event.prototype = {
+    __proto__: SelectableItem.prototype,
+
     get guid() {
       return this.guid_;
-    },
-
-    get selected() {
-      return this.selectionState === SelectionState.SELECTED;
     }
   };
 
@@ -137,8 +131,7 @@ tv.exportTo('tv.c.trace_model', function() {
 
   return {
     Event: Event,
-    EventRegistry: EventRegistry,
-    SelectionState: SelectionState
+    EventRegistry: EventRegistry
   };
 });
 </script>

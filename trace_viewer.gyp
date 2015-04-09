@@ -191,6 +191,8 @@
       'trace_viewer/core/trace_model/process_memory_dump.html',
       'trace_viewer/core/trace_model/rect_annotation.html',
       'trace_viewer/core/trace_model/sample.html',
+      'trace_viewer/core/trace_model/selectable_item.html',
+      'trace_viewer/core/trace_model/selection_state.html',
       'trace_viewer/core/trace_model/slice.html',
       'trace_viewer/core/trace_model/slice_group.html',
       'trace_viewer/core/trace_model/stack_frame.html',
