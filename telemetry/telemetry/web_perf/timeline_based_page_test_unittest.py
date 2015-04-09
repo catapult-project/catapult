@@ -14,12 +14,14 @@ from telemetry.web_perf import timeline_based_page_test as tbpt_module
 class TestTimelinebasedMeasurementPage(page_module.Page):
 
   def __init__(self, ps, base_dir, trigger_animation=False,
-               trigger_jank=False, trigger_slow=False):
+               trigger_jank=False, trigger_slow=False,
+               trigger_scroll_gesture=False):
     super(TestTimelinebasedMeasurementPage, self).__init__(
         'file://interaction_enabled_page.html', ps, base_dir)
     self._trigger_animation = trigger_animation
     self._trigger_jank = trigger_jank
     self._trigger_slow = trigger_slow
+    self._trigger_scroll_gesture = trigger_scroll_gesture
 
   def RunPageInteractions(self, action_runner):
     if self._trigger_animation:
@@ -31,6 +33,10 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
     if self._trigger_slow:
       action_runner.TapElement('#slow-button')
       action_runner.WaitForJavaScriptCondition('window.slowScriptDone')
+    if self._trigger_scroll_gesture:
+      interaction = action_runner.BeginGestureInteraction('Scroll')
+      action_runner.ScrollPage()
+      interaction.End()
 
 
 class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
@@ -88,3 +94,18 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     v = results.FindAllPageSpecificValuesNamed(
         'JankThreadJSRun-responsive-total_big_jank_thread_time')
     self.assertGreaterEqual(v[0].value, 50)
+
+  def testTimelineBasedMeasurementGestureAdjustmentSmoke(self):
+    ps = self.CreateEmptyPageSet()
+    ps.AddUserStory(TestTimelinebasedMeasurementPage(
+        ps, ps.base_dir, trigger_scroll_gesture=True))
+
+    tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
+    measurement = tbpt_module.TimelineBasedPageTest(tbm)
+    results = self.RunMeasurement(measurement, ps,
+                                  options=self._options)
+
+    self.assertEquals(0, len(results.failures))
+    v = results.FindAllPageSpecificValuesNamed(
+        'Gesture_Scroll-frame_time_discrepancy')
+    self.assertEquals(len(v), 1)

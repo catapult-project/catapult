@@ -12,6 +12,7 @@ from telemetry.web_perf.metrics import layout
 from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.web_perf.metrics import smoothness
 from telemetry.web_perf import timeline_interaction_record as tir_module
+from telemetry.web_perf import smooth_gesture_util
 
 # TimelineBasedMeasurement considers all instrumentation as producing a single
 # timeline. But, depending on the amount of instrumentation that is enabled,
@@ -68,6 +69,11 @@ def _GetRendererThreadsToInteractionRecordsMap(model):
       # TODO(nduca): Add support for page-load interaction record.
       if tir_module.IsTimelineInteractionRecord(event.name):
         interaction = tir_module.TimelineInteractionRecord.FromAsyncEvent(event)
+        # Adjust the interaction record to match the synthetic gesture
+        # controller if needed.
+        interaction = (
+            smooth_gesture_util.GetAdjustedInteractionIfContainGesture(
+                model, interaction))
         threads_to_records_map[curr_thread].append(interaction)
         if interaction.label in interaction_labels_of_previous_threads:
           raise InvalidInteractions(
