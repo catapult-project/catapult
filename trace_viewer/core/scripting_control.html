@@ -98,10 +98,10 @@ found in the LICENSE file.
         this.$.root.classList.remove('focused');
         // Workaround for crbug.com/89026 to ensure the prompt doesn't retain
         // keyboard focus.
-        var dummyInput = document.createElement('input');
-        dummyInput.focus();
-        dummyInput.setSelectionRange(0, 0);
-        dummyInput.blur();
+        var parent = promptEl.parentElement;
+        var nextEl = promptEl.nextSibling;
+        promptEl.remove();
+        parent.insertBefore(promptEl, nextEl);
       }
     },
 
