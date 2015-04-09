@@ -6,6 +6,7 @@ import logging
 import time
 import urlparse
 
+from telemetry.core import exceptions
 from telemetry.internal.actions.drag import DragAction
 from telemetry.internal.actions.javascript_click import ClickElementAction
 from telemetry.internal.actions.loop import LoopAction
@@ -34,6 +35,7 @@ class ActionRunner(object):
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
 
+  # TODO(nednguyen): remove this API when crbug.com/475090 is fixed.
   def BeginInteraction(self, label, repeatable=False):
     """Marks the beginning of an interaction record.
 
@@ -58,6 +60,7 @@ class ActionRunner(object):
     interaction.Begin()
     return interaction
 
+  # TODO(nednguyen): remove this API when crbug.com/475090 is fixed.
   def BeginGestureInteraction(self, label, repeatable=False):
     """Marks the beginning of a gesture-based interaction record.
 
@@ -77,6 +80,67 @@ class ActionRunner(object):
           have the same flags.
     """
     return self.BeginInteraction('Gesture_' + label, repeatable)
+
+  def CreateInteraction(self, label, repeatable=False):
+    """ Create an action.Interaction object that issues interaction record.
+
+    An interaction record is a labeled time period containing
+    interaction that developers care about. Each set of metrics
+    specified in flags will be calculated for this time period.
+
+    To mark the start of interaction record, call Begin() method on the returned
+    object. To mark the finish of interaction record, call End() method on
+    it. Or better yet, use the with statement to create an
+    interaction record that covers the actions in the with block.
+
+    e.g:
+      with action_runner.CreateInteraction('Animation-1'):
+        action_runner.TapElement(...)
+        action_runner.WaitForJavaScriptCondition(...)
+
+    Args:
+      label: A label for this particular interaction. This can be any
+          user-defined string, but must not contain '/'.
+      repeatable: Whether other interactions may use the same logical name
+          as this interaction. All interactions with the same logical name must
+          have the same flags.
+
+    Returns:
+      An instance of action_runner.Interaction
+    """
+    flags = []
+    if repeatable:
+      flags.append(timeline_interaction_record.REPEATABLE)
+
+    return Interaction(self._tab, label, flags)
+
+  def CreateGestureInteraction(self, label, repeatable=False):
+    """ Create an action.Interaction object that issues gesture-based
+    interaction record.
+
+    This is similar to normal interaction record, but it will
+    auto-narrow the interaction time period to only include the
+    synthetic gesture event output by Chrome. This is typically use to
+    reduce noise in gesture-based analysis (e.g., analysis for a
+    swipe/scroll).
+
+    The interaction record label will be prepended with 'Gesture_'.
+
+    e.g:
+      with action_runner.CreateGestureInteraction('Scroll-1'):
+        action_runner.ScrollPage()
+
+    Args:
+      label: A label for this particular interaction. This can be any
+          user-defined string, but must not contain '/'.
+      repeatable: Whether other interactions may use the same logical name
+          as this interaction. All interactions with the same logical name must
+          have the same flags.
+
+    Returns:
+      An instance of action_runner.Interaction
+    """
+    return self.CreateInteraction('Gesture_' + label, repeatable)
 
   def NavigateToPage(self, page, timeout_in_seconds=60):
     """Navigates to the given page.
@@ -623,6 +687,18 @@ class Interaction(object):
     self._label = label
     self._flags = flags
     self._started = False
+
+  def __enter__(self):
+    self.Begin()
+    return self
+
+  def __exit__(self, exc_type, exc_value, traceback):
+    if exc_value is None:
+      self.End()
+    else:
+      logging.warning(
+          'Exception was raised in the with statement block, the end of '
+          'interaction record is not marked.')
 
   def Begin(self):
     assert not self._started

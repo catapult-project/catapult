@@ -1,16 +1,21 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import unittest
 
 from telemetry.core import exceptions
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
+from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.actions import page_action
 from telemetry.page import action_runner as action_runner_module
 from telemetry.timeline import model
 from telemetry.unittest_util import tab_test_case
 from telemetry.web_perf import timeline_interaction_record as tir_module
+
+util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
+import mock
 
 
 class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
@@ -33,9 +38,9 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
     options.enable_chrome_trace = True
     self._browser.platform.tracing_controller.Start(
         options, tracing_category_filter.CreateNoOverheadFilter())
-    interaction = action_runner.BeginInteraction('InteractionName',
-                                                 **interaction_kwargs)
-    interaction.End()
+    with action_runner.CreateInteraction('InteractionName',
+                                                 **interaction_kwargs):
+      pass
     trace_data = self._browser.platform.tracing_controller.Stop()
 
     records = self.GetInteractionRecords(trace_data)
@@ -248,3 +253,34 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.SwipePage(direction='left', left_start_ratio=0.9)
     self.assertTrue(action_runner.EvaluateJavaScript(
         'document.body.scrollLeft') > 75)
+
+
+class InteractionTest(unittest.TestCase):
+
+  def setUp(self):
+    self.mock_action_runner = mock.Mock(action_runner_module.ActionRunner)
+
+  def testIssuingInteractionRecordCommand(self):
+    with action_runner_module.Interaction(
+        self.mock_action_runner, label='ABC', flags=[]):
+      pass
+    expected_calls = [
+        mock.call.ExecuteJavaScript('console.time("Interaction.ABC");'),
+        mock.call.ExecuteJavaScript('console.timeEnd("Interaction.ABC");')]
+    self.assertEqual(expected_calls, self.mock_action_runner.mock_calls)
+
+  def testExceptionRaisedInWithInteraction(self):
+    class FooException(Exception):
+      pass
+    # Test that the Foo exception raised in the with block is propagated to the
+    # caller.
+    with self.assertRaises(FooException):
+      with action_runner_module.Interaction(
+          self.mock_action_runner, label='ABC', flags=[]):
+        raise FooException()
+
+    # Test that the end console.timeEnd(...) isn't called because exception was
+    # raised.
+    expected_calls = [
+        mock.call.ExecuteJavaScript('console.time("Interaction.ABC");')]
+    self.assertEqual(expected_calls, self.mock_action_runner.mock_calls)
