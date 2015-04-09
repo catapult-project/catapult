@@ -7,7 +7,7 @@ import os
 from telemetry import decorators
 from telemetry.internal.actions import scroll
 from telemetry.unittest_util import tab_test_case
-
+from telemetry.core.backends.chrome_inspector import devtools_client_backend
 
 class ScrollActionTest(tab_test_case.TabTestCase):
   def testScrollAction(self):
@@ -40,6 +40,42 @@ class ScrollActionTest(tab_test_case.TabTestCase):
         '(document.documentElement.scrollTop || document.body.scrollTop)')
     self.assertTrue(scroll_position != 0,
                     msg='scroll_position=%d;' % (scroll_position))
+
+  def testDiagonalScrollAction(self):
+    # Diagonal scrolling was not supported in the ScrollAction until Chrome
+    # branch number 2332
+    branch_num = self._tab.browser._browser_backend.devtools_client \
+        .GetChromeBranchNumber()
+    if branch_num < 2332:
+      return
+
+    self.Navigate('blank.html')
+
+    # Make page bigger than window so it's scrollable.
+    self._tab.ExecuteJavaScript("""document.body.style.height =
+                              (2 * window.innerHeight + 1) + 'px';""")
+    self._tab.ExecuteJavaScript("""document.body.style.width =
+                              (2 * window.innerWidth + 1) + 'px';""")
+
+    self.assertEquals(
+        self._tab.EvaluateJavaScript("""document.documentElement.scrollTop
+                                   || document.body.scrollTop"""), 0)
+    self.assertEquals(
+        self._tab.EvaluateJavaScript("""document.documentElement.scrollLeft
+                                   || document.body.scrollLeft"""), 0)
+
+    i = scroll.ScrollAction(direction='downright')
+    i.WillRunAction(self._tab)
+
+    i.RunAction(self._tab)
+
+    viewport_top = self._tab.EvaluateJavaScript(
+        '(document.documentElement.scrollTop || document.body.scrollTop)')
+    self.assertTrue(viewport_top != 0, msg='viewport_top=%d;' % viewport_top)
+
+    viewport_left = self._tab.EvaluateJavaScript(
+        '(document.documentElement.scrollLeft || document.body.scrollLeft)')
+    self.assertTrue(viewport_left != 0, msg='viewport_left=%d;' % viewport_left)
 
   def testBoundingClientRect(self):
     self.Navigate('blank.html')

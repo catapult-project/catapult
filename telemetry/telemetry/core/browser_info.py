@@ -45,3 +45,10 @@ class BrowserInfo(object):
     branch_num = (
         self._browser._browser_backend.devtools_client.GetChromeBranchNumber())
     return branch_num >= 2339
+
+  def HasDiagonalScrollingSupport(self):
+    # Diagonal scrolling was not supported in the ScrollAction until
+    # Chromium branch number 2332
+    branch_num = (
+        self._browser._browser_backend.devtools_client.GetChromeBranchNumber())
+    return branch_num >= 2332

@@ -41,43 +41,71 @@
   function ScrollAction(opt_callback, opt_distance_func) {
     var self = this;
 
-    this.beginMeasuringHook = function() {}
-    this.endMeasuringHook = function() {}
+    this.beginMeasuringHook = function() {};
+    this.endMeasuringHook = function() {};
 
     this.callback_ = opt_callback;
     this.distance_func_ = opt_distance_func;
   }
+
+  ScrollAction.prototype.getScrollDistanceDown_ = function() {
+    var clientHeight;
+    // clientHeight is "special" for the body element.
+    if (this.element_ == document.body)
+      clientHeight = window.innerHeight;
+    else
+      clientHeight = this.element_.clientHeight;
+
+    return this.element_.scrollHeight -
+           this.element_.scrollTop -
+           clientHeight;
+  };
+
+  ScrollAction.prototype.getScrollDistanceUp_ = function() {
+    return this.element_.scrollTop;
+  };
+
+  ScrollAction.prototype.getScrollDistanceRight_ = function() {
+    var clientWidth;
+    // clientWidth is "special" for the body element.
+    if (this.element_ == document.body)
+      clientWidth = window.innerWidth;
+    else
+      clientWidth = this.element_.clientWidth;
+
+    return this.element_.scrollWidth - this.element_.scrollLeft - clientWidth;
+  };
+
+  ScrollAction.prototype.getScrollDistanceLeft_ = function() {
+    return this.element_.scrollLeft;
+  };
 
   ScrollAction.prototype.getScrollDistance_ = function() {
     if (this.distance_func_)
       return this.distance_func_();
 
     if (this.options_.direction_ == 'down') {
-      var clientHeight;
-      // clientHeight is "special" for the body element.
-      if (this.element_ == document.body)
-        clientHeight = window.innerHeight;
-      else
-        clientHeight = this.element_.clientHeight;
-
-      return this.element_.scrollHeight -
-             this.element_.scrollTop -
-             clientHeight;
+      return this.getScrollDistanceDown_();
     } else if (this.options_.direction_ == 'up') {
-      return this.element_.scrollTop;
+      return this.getScrollDistanceUp_();
     } else if (this.options_.direction_ == 'right') {
-      var clientWidth;
-      // clientWidth is "special" for the body element.
-      if (this.element_ == document.body)
-        clientWidth = window.innerWidth;
-      else
-        clientWidth = this.element_.clientWidth;
-
-      return this.element_.scrollWidth - this.element_.scrollLeft - clientWidth;
+      return this.getScrollDistanceRight_();
     } else if (this.options_.direction_ == 'left') {
-      return this.element_.scrollLeft;
+      return this.getScrollDistanceLeft_();
+    } else if (this.options_.direction_ == 'upleft') {
+      return Math.min(this.getScrollDistanceUp_(),
+                      this.getScrollDistanceLeft_());
+    } else if (this.options_.direction_ == 'upright') {
+      return Math.min(this.getScrollDistanceUp_(),
+                      this.getScrollDistanceRight_());
+    } else if (this.options_.direction_ == 'downleft') {
+      return Math.min(this.getScrollDistanceDown_(),
+                      this.getScrollDistanceLeft_());
+    } else if (this.options_.direction_ == 'downright') {
+      return Math.min(this.getScrollDistanceDown_(),
+                      this.getScrollDistanceRight_());
     }
-  }
+  };
 
   ScrollAction.prototype.start = function(opt_options) {
     this.options_ = new ScrollGestureOptions(opt_options);

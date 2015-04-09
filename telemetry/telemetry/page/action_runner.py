@@ -396,7 +396,7 @@ class ActionRunner(object):
           gesture, as a ratio of the visible bounding rectangle for
           document.body.
       direction: The direction of scroll, either 'left', 'right',
-          'up', or 'down'
+          'up', 'down', 'upleft', 'upright', 'downleft', or 'downright'
       distance: The distance to scroll (in pixel).
       distance_expr: A JavaScript expression (as string) that can be
           evaluated to compute scroll distance. Example:
@@ -436,7 +436,7 @@ class ActionRunner(object):
           gesture, as a ratio of the visible bounding rectangle for
           the element.
       direction: The direction of scroll, either 'left', 'right',
-          'up', or 'down'
+          'up', 'down', 'upleft', 'upright', 'downleft', or 'downright'
       distance: The distance to scroll (in pixel).
       distance_expr: A JavaScript expression (as string) that can be
           evaluated to compute scroll distance. Example:
@@ -470,7 +470,7 @@ class ActionRunner(object):
           gesture, as a ratio of the visible bounding rectangle for
           document.body.
       direction: The direction of scroll, either 'left', 'right',
-          'up', or 'down'
+          'up', 'down', 'upleft', 'upright', 'downleft', or 'downright'
       distance: The distance to scroll (in pixel).
       overscroll: The number of additional pixels to scroll back, in
           addition to the givendistance.
@@ -508,7 +508,7 @@ class ActionRunner(object):
           gesture, as a ratio of the visible bounding rectangle for
           document.body.
       direction: The direction of scroll, either 'left', 'right',
-          'up', or 'down'
+          'up', 'down', 'upleft', 'upright', 'downleft', or 'downright'
       distance: The distance to scroll (in pixel).
       overscroll: The number of additional pixels to scroll back, in
           addition to the givendistance.

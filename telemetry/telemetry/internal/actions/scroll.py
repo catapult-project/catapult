@@ -14,7 +14,9 @@ class ScrollAction(page_action.PageAction):
                distance=None, distance_expr=None,
                speed_in_pixels_per_second=800, use_touch=False):
     super(ScrollAction, self).__init__()
-    if direction not in ['down', 'up', 'left', 'right']:
+    if direction not in ('down', 'up', 'left', 'right',
+                         'downleft', 'downright',
+                         'upleft', 'upright'):
       raise page_action.PageActionNotSupported(
           'Invalid scroll direction: %s' % self.direction)
     self._selector = selector
@@ -35,6 +37,14 @@ class ScrollAction(page_action.PageAction):
                              distance_expr)
 
   def WillRunAction(self, tab):
+    if self._direction in ('downleft', 'downright', 'upleft', 'upright'):
+      # Diagonal scrolling support was added in Chrome branch number 2332.
+      branch_num = (
+          tab.browser._browser_backend.devtools_client.GetChromeBranchNumber())
+      if branch_num < 2332:
+        raise ValueError('Diagonal scrolling requires Chrome branch number'
+                         ' 2332 or later. Found branch number %d' %
+                         branch_num)
     for js_file in ['gesture_common.js', 'scroll.js']:
       with open(os.path.join(os.path.dirname(__file__), js_file)) as f:
         js = f.read()
