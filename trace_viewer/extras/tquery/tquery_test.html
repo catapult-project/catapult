@@ -208,5 +208,35 @@ tv.b.unittest.testSuite(function() {
     assert.equal(result.length, 1);
     assert.equal(result[0].guid, 1);
   });
+
+  test('tqueryFilterHasDuration', function() {
+    var tquery = document.createElement('tv-e-tquery');
+    var hasDuration = document.createElement(
+        'tv-e-tquery-filter-has-duration').scriptValue;
+    var timeline = createFakeTimelineWithEvents_([
+        {guid: 1, title: 'a', duration: 1},
+        {guid: 2, title: 'b', duration: 2},
+        {guid: 3, title: 'c', duration: 3},
+        {guid: 4, title: 'no duration'}
+    ]);
+    tquery.onTimelineChanged(timeline);
+
+    var result = tquery.filter(hasDuration(1.5, 2.5)).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 2);
+
+    var result = tquery.filter(hasDuration(3, Infinity)).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 3);
+
+    var result = tquery.filter(hasDuration(-1, 0)).selection;
+    assert.equal(result.length, 0);
+
+    var result = tquery.filter(hasDuration(function(d) {
+      return d > 2;
+    })).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 3);
+  });
 });
 </script>
