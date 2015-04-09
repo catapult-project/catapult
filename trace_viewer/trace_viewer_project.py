@@ -99,6 +99,10 @@ class TraceViewerProject(project_module.Project):
       'gl-matrix/jsdoc-template/static/index.html',
     ])
 
+    # Ignore drive html due to embedded external script resources.
+    self.non_module_html_files.appendRel(self.src_path,
+      'extras/drive/index.html')
+
     rjsmin_doc_files = _FindAllFilesRecursive(
         [os.path.join(self.rjsmin_path, 'docs', 'apidoc')])
     rjsmin_doc_files = [os.path.relpath(x, self.rjsmin_path)
