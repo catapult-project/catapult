@@ -107,8 +107,10 @@ def SetupPrebuiltTools(adb):
     host_tools.append('host_forwarder')
 
   arch_name = adb.device().GetABI()
-  has_device_prebuilt = arch_name.startswith('armeabi')
+  has_device_prebuilt = (arch_name.startswith('armeabi')
+                         or arch_name.startswith('arm64'))
   if not has_device_prebuilt:
+    logging.warning('Unknown architecture type: %s' % arch_name)
     return all([support_binaries.FindLocallyBuiltPath(t) for t in device_tools])
 
   build_type = None
