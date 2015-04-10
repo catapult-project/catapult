@@ -61,7 +61,8 @@ tv.exportTo('tv.c.trace_model', function() {
 
     this.sliceGroup = new SliceGroup(this, ThreadSliceForThisThread, 'slices');
     this.timeSlices = undefined;
-    this.kernelSliceGroup = new SliceGroup(this, undefined, 'kernel-slices');
+    this.kernelSliceGroup = new SliceGroup(
+        this, ThreadSliceForThisThread, 'kernel-slices');
     this.asyncSliceGroup = new AsyncSliceGroup(this, 'async-slices');
     this.bounds = new tv.b.Range();
   }
