@@ -61,7 +61,8 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     values = [
         self._ComputeQueueingDuration(page, stats),
         self._ComputeFrameTimeDiscrepancy(page, stats),
-        self._ComputeMeanPixelsApproximated(page, stats)
+        self._ComputeMeanPixelsApproximated(page, stats),
+        self._ComputeMeanPixelsCheckerboarded(page, stats)
     ]
     values += self._ComputeLatencyMetric(page, stats, 'input_event_latency',
                                          stats.input_event_latency)
@@ -285,4 +286,28 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
         page, 'mean_pixels_approximated', 'percent', mean_pixels_approximated,
         description='Percentage of pixels that were approximated '
                     '(checkerboarding, low-resolution tiles, etc.).',
+        none_value_reason=none_value_reason)
+
+  def _ComputeMeanPixelsCheckerboarded(self, page, stats):
+    """Add the mean percentage of pixels checkerboarded.
+
+    This looks at tiles which are only missing.
+    It does not take into consideration tiles which are of low or
+    non-ideal resolution.
+    """
+    mean_pixels_checkerboarded = None
+    none_value_reason = None
+    if self._HasEnoughFrames(stats.frame_timestamps):
+      if rendering_stats.CHECKERBOARDED_PIXEL_ERROR in stats.errors:
+        none_value_reason = stats.errors[
+            rendering_stats.CHECKERBOARDED_PIXEL_ERROR]
+      else:
+        mean_pixels_checkerboarded = round(statistics.ArithmeticMean(
+            FlattenList(stats.checkerboarded_pixel_percentages)), 3)
+    else:
+      none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
+    return scalar.ScalarValue(
+        page, 'mean_pixels_checkerboarded', 'percent',
+        mean_pixels_checkerboarded,
+        description='Percentage of pixels that were checkerboarded.',
         none_value_reason=none_value_reason)

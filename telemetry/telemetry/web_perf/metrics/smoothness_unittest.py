@@ -6,6 +6,7 @@ import unittest
 
 from telemetry.page import page as page_module
 from telemetry.results import page_test_results
+from telemetry.web_perf.metrics import rendering_stats
 from telemetry.web_perf.metrics import smoothness
 
 
@@ -14,8 +15,9 @@ class _MockRenderingStats(object):
   stats = ['refresh_period', 'frame_timestamps', 'frame_times', 'paint_times',
            'painted_pixel_counts', 'record_times',
            'recorded_pixel_counts', 'approximated_pixel_percentages',
-           'input_event_latency', 'frame_queueing_durations',
-           'scroll_update_latency', 'gesture_scroll_update_latency']
+           'checkerboarded_pixel_percentages', 'input_event_latency',
+           'frame_queueing_durations', 'scroll_update_latency',
+           'gesture_scroll_update_latency']
 
   def __init__(self, **kwargs):
     self.errors = {}
@@ -44,7 +46,8 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
     self.metric._PopulateResultsFromStats(results, stats, False)
     current_page_run = results.current_page_run
     self.assertTrue(current_page_run.ok)
-    self.assertEquals(11, len(current_page_run.values))
+    expected_values_count = 12
+    self.assertEquals(expected_values_count, len(current_page_run.values))
 
   def testHasEnoughFrames(self):
     # This list will pass since every sub-array has at least 2 frames.
@@ -238,4 +241,33 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
         self.page, stats)
     self.assertEquals(None, mean_pixels_value.value)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
+                      mean_pixels_value.none_value_reason)
+
+  def testComputeMeanPixelsCheckerboarded(self):
+    stats = _MockRenderingStats(
+        frame_timestamps=self.good_timestamps,
+        checkerboarded_pixel_percentages=[[10, 20], [30, 40, 50]])
+    mean_pixels_value = self.metric._ComputeMeanPixelsCheckerboarded(
+        self.page, stats)
+    self.assertEquals(30, mean_pixels_value.value)
+
+  def testComputeMeanPixelsCheckerboardedWithNotEnoughFrames(self):
+    stats = _MockRenderingStats(
+        frame_timestamps=self.not_enough_frames_timestamps,
+        checkerboarded_pixel_percentages=[[10, 20], [30, 40, 50]])
+    mean_pixels_value = self.metric._ComputeMeanPixelsCheckerboarded(
+        self.page, stats)
+    self.assertEquals(None, mean_pixels_value.value)
+    self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
+                      mean_pixels_value.none_value_reason)
+
+  def testComputeMeanPixelsCheckerboardedWithNoData(self):
+    stats = _MockRenderingStats(
+        frame_timestamps=self.good_timestamps,
+        checkerboarded_pixel_percentages=None)
+    stats.errors[rendering_stats.CHECKERBOARDED_PIXEL_ERROR] = 'test error'
+    mean_pixels_value = self.metric._ComputeMeanPixelsCheckerboarded(
+        self.page, stats)
+    self.assertEquals(None, mean_pixels_value.value)
+    self.assertEquals('test error',
                       mean_pixels_value.none_value_reason)

@@ -54,11 +54,13 @@ class ReferenceRenderingStats(object):
     self.frame_timestamps = []
     self.frame_times = []
     self.approximated_pixel_percentages = []
+    self.checkerboarded_pixel_percentages = []
 
   def AppendNewRange(self):
     self.frame_timestamps.append([])
     self.frame_times.append([])
     self.approximated_pixel_percentages.append([])
+    self.checkerboarded_pixel_percentages.append([])
 
 
 class ReferenceInputLatencyStats(object):
@@ -142,7 +144,8 @@ def AddImplThreadRenderingStats(mock_timer, thread, first_frame,
   # Create randonm data and timestap for impl thread rendering stats.
   data = {'frame_count': 1,
           'visible_content_area': random.uniform(0, 100),
-          'approximated_visible_content_area': random.uniform(0, 5)}
+          'approximated_visible_content_area': random.uniform(0, 5),
+          'checkerboarded_visible_content_area': random.uniform(0, 5)}
   timestamp = mock_timer.AdvanceAndGet()
 
   # Add a slice with the event data to the given thread.
@@ -167,6 +170,9 @@ def AddImplThreadRenderingStats(mock_timer, thread, first_frame,
       round(DivideIfPossibleOrZero(data['approximated_visible_content_area'],
                                    data['visible_content_area']) * 100.0, 3))
 
+  ref_stats.checkerboarded_pixel_percentages[-1].append(
+      round(DivideIfPossibleOrZero(data['checkerboarded_visible_content_area'],
+                                   data['visible_content_area']) * 100.0, 3))
 
 def AddInputLatencyStats(mock_timer, start_thread, end_thread,
                          ref_latency_stats=None):
@@ -462,6 +468,8 @@ class RenderingStatsUnitTest(unittest.TestCase):
     self.assertEquals(stats.frame_times, browser_ref_stats.frame_times)
     self.assertEquals(stats.approximated_pixel_percentages,
                       renderer_ref_stats.approximated_pixel_percentages)
+    self.assertEquals(stats.checkerboarded_pixel_percentages,
+                      renderer_ref_stats.checkerboarded_pixel_percentages)
 
   def testInputLatencyFromTimeline(self):
     timeline = model.TimelineModel()

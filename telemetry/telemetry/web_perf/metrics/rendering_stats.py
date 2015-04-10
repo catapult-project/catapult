@@ -27,6 +27,16 @@ SCROLL_UPDATE_EVENT_NAME = 'InputLatency:ScrollUpdate'
 # Name for a gesture scroll update latency event.
 GESTURE_SCROLL_UPDATE_EVENT_NAME = 'InputLatency:GestureScrollUpdate'
 
+# These are keys used in the 'data' field dictionary located in
+# BenchmarkInstrumentation::ImplThreadRenderingStats.
+VISIBLE_CONTENT_DATA = 'visible_content_area'
+APPROXIMATED_VISIBLE_CONTENT_DATA = 'approximated_visible_content_area'
+CHECKERBOARDED_VISIBLE_CONTENT_DATA = 'checkerboarded_visible_content_area'
+# These are keys used in the 'errors' field  dictionary located in
+# RenderingStats in this file.
+APPROXIMATED_PIXEL_ERROR = 'approximated_pixel_percentages'
+CHECKERBOARDED_PIXEL_ERROR = 'checkerboarded_pixel_percentages'
+
 
 def GetInputLatencyEvents(process, timeline_range):
   """Get input events' LatencyInfo from the process's trace buffer that are
@@ -152,6 +162,7 @@ class RenderingStats(object):
     self.frame_timestamps = []
     self.frame_times = []
     self.approximated_pixel_percentages = []
+    self.checkerboarded_pixel_percentages = []
     # End-to-end latency for input event - from when input event is
     # generated to when the its resulted page is swap buffered.
     self.input_event_latency = []
@@ -166,6 +177,7 @@ class RenderingStats(object):
       self.frame_timestamps.append([])
       self.frame_times.append([])
       self.approximated_pixel_percentages.append([])
+      self.checkerboarded_pixel_percentages.append([])
       self.input_event_latency.append([])
       self.scroll_update_latency.append([])
       self.gesture_scroll_update_latency.append([])
@@ -237,12 +249,37 @@ class RenderingStats(object):
     event_name = 'BenchmarkInstrumentation::ImplThreadRenderingStats'
     for event in self._GatherEvents(event_name, process, timeline_range):
       data = event.args['data']
-      if data.get('visible_content_area', 0):
+      if VISIBLE_CONTENT_DATA not in data:
+        self.errors[APPROXIMATED_PIXEL_ERROR] = (
+          'Calculating approximated_pixel_percentages not possible because '
+          'visible_content_area was missing.')
+        self.errors[CHECKERBOARDED_PIXEL_ERROR] = (
+          'Calculating checkerboarded_pixel_percentages not possible because '
+          'visible_content_area was missing.')
+        return
+      visible_content_area = data[VISIBLE_CONTENT_DATA]
+      if visible_content_area == 0:
+        self.errors[APPROXIMATED_PIXEL_ERROR] = (
+          'Calculating approximated_pixel_percentages would have caused '
+          'a divide-by-zero')
+        self.errors[CHECKERBOARDED_PIXEL_ERROR] = (
+          'Calculating checkerboarded_pixel_percentages would have caused '
+          'a divide-by-zero')
+        return
+      if APPROXIMATED_VISIBLE_CONTENT_DATA in data:
         self.approximated_pixel_percentages[-1].append(
-            round(float(data['approximated_visible_content_area']) /
-                  float(data['visible_content_area']) * 100.0, 3))
+          round(float(data[APPROXIMATED_VISIBLE_CONTENT_DATA]) /
+                float(data[VISIBLE_CONTENT_DATA]) * 100.0, 3))
       else:
-        self.approximated_pixel_percentages[-1].append(0.0)
+        self.errors[APPROXIMATED_PIXEL_ERROR] = (
+          'approximated_pixel_percentages was not recorded')
+      if CHECKERBOARDED_VISIBLE_CONTENT_DATA in data:
+        self.checkerboarded_pixel_percentages[-1].append(
+          round(float(data[CHECKERBOARDED_VISIBLE_CONTENT_DATA]) /
+                float(data[VISIBLE_CONTENT_DATA]) * 100.0, 3))
+      else:
+        self.errors[CHECKERBOARDED_PIXEL_ERROR] = (
+          'checkerboarded_pixel_percentages was not recorded')
 
   def _InitFrameQueueingDurationsFromTimeline(self, process, timeline_range):
     try:
