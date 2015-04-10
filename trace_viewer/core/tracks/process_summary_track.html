@@ -59,13 +59,12 @@ tv.exportTo('tv.c.tracks', function() {
      */
     var genericColorId = tv.b.ui.getColorIdForReservedName('generic_work');
     var pushRect = function(start, end, slice) {
-      rects.push({
-        start: start,
-        end: end,
-        duration: end - start,
-        colorId: slice ? slice.colorId : genericColorId,
-        title: slice ? slice.title : ''
-      });
+      rects.push(new tv.c.tracks.Rect(
+          undefined, /* modelItem */  // Not selectable.
+          slice ? slice.title : '', /* title */
+          slice ? slice.colorId : genericColorId, /* colorId */
+          start, /* start */
+          end - start /* duration */));
     }
     var depth = 0;
     var currentSlice = undefined;
@@ -120,11 +119,6 @@ tv.exportTo('tv.c.tracks', function() {
     set process(process) {
       this.process_ = process;
       this.rects = ProcessSummaryTrack.buildRectsFromProcess(process);
-    },
-
-    getModelEventFromItem: function(thing) {
-      // Do nothing, since not selectable
-      return undefined;
     }
   };
 

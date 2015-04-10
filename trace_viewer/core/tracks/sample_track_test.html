@@ -20,13 +20,13 @@ tv.b.unittest.testSuite(function() {
   var Sample = tv.c.trace_model.Sample;
   var StackFrame = tv.c.trace_model.StackFrame;
 
-  test('getModelEventFromItemTest', function() {
+  test('modelMapping', function() {
     var track = new SampleTrack(new tv.c.TimelineViewport());
     var fA = new StackFrame(undefined, 1, 'cat', 'a', 7);
     var sample = new Sample(undefined, undefined, 'instructions_retired',
                             10, fA, 10);
     track.samples = [sample];
-    var me0 = track.getModelEventFromItem(track.samples[0]);
+    var me0 = track.rects[0].modelItem;
     assert.equal(me0, sample);
   });
 });

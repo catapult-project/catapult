@@ -189,6 +189,7 @@
       'trace_viewer/core/trace_model/process.html',
       'trace_viewer/core/trace_model/process_base.html',
       'trace_viewer/core/trace_model/process_memory_dump.html',
+      'trace_viewer/core/trace_model/proxy_selectable_item.html',
       'trace_viewer/core/trace_model/rect_annotation.html',
       'trace_viewer/core/trace_model/sample.html',
       'trace_viewer/core/trace_model/selectable_item.html',

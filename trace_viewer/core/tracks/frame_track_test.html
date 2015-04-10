@@ -72,7 +72,7 @@ tv.b.unittest.testSuite(function() {
     var track = FrameTrack(viewport);
     track.frames = frames;
 
-    var a0 = track.getModelEventFromItem(track.items[0]);
+    var a0 = track.items[0].modelItem;
     assert.equal(a0, frames[0]);
   });
 
@@ -85,7 +85,7 @@ tv.b.unittest.testSuite(function() {
     track.frames = frames;
 
     var selection = new Selection();
-    track.addItemEventsToSelection(selection, track.items[0]);
+    track.items[0].addToSelection(selection);
 
     // select both frame and its component slice
     assert.equal(selection.length, 2);

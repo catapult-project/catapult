@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/trace_model/proxy_selectable_item.html">
 <link rel="import" href="/core/tracks/heading_track.html">
 <link rel="import" href="/base/ui/color_scheme.html">
 <link rel="import" href="/base/sorted_array_utils.html">
@@ -36,10 +37,6 @@ tv.exportTo('tv.c.tracks', function() {
       tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('letter-dot-track');
       this.items_ = undefined;
-    },
-
-    getModelEventFromItem: function(item) {
-      throw new Error('Not implemented.');
     },
 
     get items() {
@@ -170,16 +167,8 @@ tv.exportTo('tv.c.tracks', function() {
         return;
 
       this.items_.forEach(function(item) {
-        var event = this.getModelEventFromItem(item);
-        if (event)
-          eventToTrackMap.addEvent(event, this);
+        item.addToTrackMap(eventToTrackMap, this);
       }, this);
-    },
-
-    addItemEventsToSelection: function(selection, item) {
-      var event = this.getModelEventFromItem(item);
-      if (event)
-        selection.push(event);
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
@@ -194,7 +183,7 @@ tv.exportTo('tv.c.tracks', function() {
           function(x) { return 2 * itemRadiusWorld; },
           loWX, hiWX,
           function(item) {
-            this.addItemEventsToSelection(selection, item);
+            item.addToSelection(selection);
           }.bind(this));
     },
 
@@ -213,10 +202,15 @@ tv.exportTo('tv.c.tracks', function() {
         return;
 
       var items = this.items_;
-      var index = items.indexOf(event);
+      var index = tv.b.findFirstIndexInArray(items, function(item) {
+        return item.modelItem === event;
+      });
+      if (index === -1)
+        return false;
+
       var newIndex = index + offset;
       if (newIndex >= 0 && newIndex < items.length) {
-        this.addItemEventsToSelection(selection, item);
+        items[newIndex].addToSelection(selection);
         return true;
       }
       return false;
@@ -239,12 +233,30 @@ tv.exportTo('tv.c.tracks', function() {
       if (!item)
         return;
 
-      this.addItemEventsToSelection(selection, item);
+      item.addToSelection(selection);
     }
   };
 
+  /**
+   * A filled dot with a letter inside it.
+   *
+   * @constructor
+   * @extends {ProxySelectableItem}
+   */
+  function LetterDot(modelItem, dotLetter, colorId, start) {
+    tv.c.trace_model.ProxySelectableItem.call(this, modelItem);
+    this.dotLetter = dotLetter;
+    this.colorId = colorId;
+    this.start = start;
+  };
+
+  LetterDot.prototype = {
+    __proto__: tv.c.trace_model.ProxySelectableItem.prototype
+  };
+
   return {
-    LetterDotTrack: LetterDotTrack
+    LetterDotTrack: LetterDotTrack,
+    LetterDot: LetterDot
   };
 });
 </script>

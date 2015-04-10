@@ -69,7 +69,7 @@ tv.b.unittest.testSuite(function() {
     var track = AlertTrack(viewport);
     track.alerts = alerts;
 
-    var a0 = track.getModelEventFromItem(track.items[0]);
+    var a0 = track.items[0].modelItem;
     assert.equal(a0, alerts[0]);
   });
 });

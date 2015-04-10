@@ -17,15 +17,9 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var Selection = tv.c.Selection;
   var RectTrack = tv.c.tracks.RectTrack;
+  var Rect = tv.c.tracks.Rect;
   var Slice = tv.c.trace_model.Slice;
   var Viewport = tv.c.TimelineViewport;
-
-  var monkeyPatchTrack = function(track) {
-    track.getModelEventFromItem = function(rect) {
-      return rect;
-    };
-    return track;
-  };
 
   test('instantiate_withRects', function() {
     var div = document.createElement('div');
@@ -41,6 +35,32 @@ tv.b.unittest.testSuite(function() {
     drawingContainer.invalidate();
 
     track.heading = 'testBasicRects';
+    track.rects = [
+      new Rect(undefined, 'a', 0, 1, 1),
+      new Rect(undefined, 'b', 1, 2.1, 4.8),
+      new Rect(undefined, 'b', 1, 7, 0.5),
+      new Rect(undefined, 'c', 2, 7.6, 0.4)
+    ];
+
+    var dt = new tv.c.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 8.8, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+  });
+
+  test('instantiate_withSlices', function() {
+    var div = document.createElement('div');
+
+    var viewport = new Viewport(div);
+    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = RectTrack(viewport);
+    drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    track.heading = 'testBasicSlices';
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -71,7 +91,7 @@ tv.b.unittest.testSuite(function() {
     var widths = [10, 5, 4, 3, 2, 1, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05];
     var slices = [];
     for (var i = 0; i < widths.length; i++) {
-      var s = new Slice('', 'a', 1, x, {}, widths[i]);
+      var s = new Rect(undefined, 'a', 1, x, widths[i]);
       x += s.duration + 0.5;
       slices.push(s);
     }
@@ -109,10 +129,10 @@ tv.b.unittest.testSuite(function() {
       track.heading = 'Visual: ' + dict.trackName;
       track.rects = [
         // title, colorId, start, args, opt_duration
-        new Slice('', 'a ' + tooLongTitle + bigTitle, 0, 1, {}, 1),
-        new Slice('', bigTitle, 1, 2.1, {}, 4.8),
-        new Slice('', 'cccc cccc cccc', 1, 7, {}, 0.5),
-        new Slice('', 'd', 2, 7.6, {}, 1.0)
+        new Rect(undefined, 'a ' + tooLongTitle + bigTitle, 0, 1, 1),
+        new Rect(undefined, bigTitle, 1, 2.1, 4.8),
+        new Rect(undefined, 'cccc cccc cccc', 1, 7, 0.5),
+        new Rect(undefined, 'd', 2, 7.6, 1.0)
       ];
       var dt = new tv.c.TimelineDisplayTransform();
       dt.xSetWorldBounds(0, 9.5, track.clientWidth);
@@ -121,7 +141,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('findAllObjectsMatchingInRectTrack', function() {
-    var track = monkeyPatchTrack(RectTrack(new tv.c.TimelineViewport()));
+    var track = new RectTrack(new tv.c.TimelineViewport());
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -133,8 +153,8 @@ tv.b.unittest.testSuite(function() {
         new tv.c.TitleOrCategoryFilter('b'), selection);
 
     assert.equal(2, selection.length);
-    assert.equal(track.rects[1], selection[0]);
-    assert.equal(track.rects[2], selection[1]);
+    assert.equal(track.rects[1].modelItem, selection[0]);
+    assert.equal(track.rects[2].modelItem, selection[1]);
   });
 
   test('selectionHitTesting', function() {
@@ -146,7 +166,7 @@ tv.b.unittest.testSuite(function() {
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
     testEl.appendChild(drawingContainer);
 
-    var track = monkeyPatchTrack(new RectTrack(viewport));
+    var track = new RectTrack(viewport);
     drawingContainer.appendChild(track);
     this.addHTMLOutput(testEl);
 
@@ -169,7 +189,7 @@ tv.b.unittest.testSuite(function() {
     var selection = new Selection();
     var x = (1.5 / wW) * vW;
     track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
-    assert.equal(track.rects[0], selection[0]);
+    assert.equal(track.rects[0].modelItem, selection[0]);
 
     var selection = new Selection();
     x = (2.1 / wW) * vW;
@@ -179,7 +199,7 @@ tv.b.unittest.testSuite(function() {
     var selection = new Selection();
     x = (6.8 / wW) * vW;
     track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
-    assert.equal(track.rects[1], selection[0]);
+    assert.equal(track.rects[1].modelItem, selection[0]);
 
     var selection = new Selection();
     x = (9.9 / wW) * vW;
@@ -269,7 +289,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('rectTrackAddItemNearToProvidedEvent', function() {
-    var track = monkeyPatchTrack(new RectTrack(new tv.c.TimelineViewport()));
+    var track = new RectTrack(new tv.c.TimelineViewport());
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -285,20 +305,20 @@ tv.b.unittest.testSuite(function() {
     var selRight = new Selection();
     ret = track.addItemNearToProvidedEventToSelection(sel[0], 1, selRight);
     assert.isTrue(ret);
-    assert.equal(track.rects[2], selRight[0]);
+    assert.equal(track.rects[2].modelItem, selRight[0]);
 
     // Select to the right of the 2nd b.
     var selRight2 = new Selection();
     ret = track.addItemNearToProvidedEventToSelection(sel[0], 2, selRight2);
     assert.isTrue(ret);
-    assert.equal(track.rects[3], selRight2[0]);
+    assert.equal(track.rects[3].modelItem, selRight2[0]);
 
     // Select to 2 to the right of the 2nd b.
     var selRightOfRight = new Selection();
     ret = track.addItemNearToProvidedEventToSelection(
         selRight[0], 1, selRightOfRight);
     assert.isTrue(ret);
-    assert.equal(track.rects[3], selRightOfRight[0]);
+    assert.equal(track.rects[3].modelItem, selRightOfRight[0]);
 
     // Select to the right of the rightmost slice.
     var selNone = new Selection();
@@ -320,7 +340,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('rectTrackAddClosestEventToSelection', function() {
-    var track = monkeyPatchTrack(new RectTrack(new tv.c.TimelineViewport()));
+    var track = new RectTrack(new tv.c.TimelineViewport());
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -342,17 +362,17 @@ tv.b.unittest.testSuite(function() {
     var sel = new Selection();
     track.addClosestEventToSelection(0.5, 1, 0, 0, sel);
     assert.equal(1, sel.length);
-    assert.equal(track.rects[0], sel[0]);
+    assert.equal(track.rects[0].modelItem, sel[0]);
 
     // Within first slice closer to start.
     var sel = new Selection();
     track.addClosestEventToSelection(1.3, 1, 0, 0, sel);
-    assert.equal(track.rects[0], sel[0]);
+    assert.equal(track.rects[0].modelItem, sel[0]);
 
     // Between slices with good range.
     var sel = new Selection();
     track.addClosestEventToSelection(2.08, 3, 0, 0, sel);
-    assert.equal(track.rects[1], sel[0]);
+    assert.equal(track.rects[1].modelItem, sel[0]);
 
     // Between slices with bad range.
     var sel = new Selection();
@@ -362,7 +382,7 @@ tv.b.unittest.testSuite(function() {
     // Within slice closer to end.
     var sel = new Selection();
     track.addClosestEventToSelection(6, 100, 0, 0, sel);
-    assert.equal(track.rects[1], sel[0]);
+    assert.equal(track.rects[1].modelItem, sel[0]);
 
     // Within slice with bad range.
     var sel = new Selection();
@@ -372,7 +392,7 @@ tv.b.unittest.testSuite(function() {
     // After last slice with good range.
     var sel = new Selection();
     track.addClosestEventToSelection(8.5, 1, 0, 0, sel);
-    assert.equal(track.rects[3], sel[0]);
+    assert.equal(track.rects[3].modelItem, sel[0]);
 
     // After last slice with bad range.
     var sel = new Selection();

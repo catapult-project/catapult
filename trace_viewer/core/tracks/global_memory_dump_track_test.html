@@ -232,10 +232,10 @@ tv.b.unittest.testSuite(function() {
     assert.equal(item2.selectionState, dumps[3].selectionState);
 
     // Check that the items are mapped to the right model events.
-    var modelEvent1 = dumpDotsTrack.getModelEventFromItem(item1);
-    assert.equal(modelEvent1, dumps[2]);
-    var modelEvent2 = usedMemoryTrack.getModelEventFromItem(item2);
-    assert.equal(modelEvent2, dumps[3]);
+    var modelItem1 = item1.modelItem;
+    assert.equal(modelItem1, dumps[2]);
+    var modelItem2 = usedMemoryTrack.getModelEventFromItem(item2);
+    assert.equal(modelItem2, dumps[3]);
   });
 });
 </script>

@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="stylesheet" href="/core/tracks/rect_track.css">
 
+<link rel="import" href="/core/trace_model/proxy_selectable_item.html">
 <link rel="import" href="/core/tracks/heading_track.html">
 <link rel="import" href="/core/fast_rect_renderer.html">
 <link rel="import" href="/core/draw_helpers.html">
@@ -67,10 +68,6 @@ tv.exportTo('tv.c.tracks', function() {
       return this.rects_.length > 0;
     },
 
-    getModelEventFromItem: function(rect) {
-      throw new Error('Not implemented.');
-    },
-
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
         case tv.c.tracks.DrawType.SLICE:
@@ -121,18 +118,14 @@ tv.exportTo('tv.c.tracks', function() {
         return;
 
       this.rects_.forEach(function(rect) {
-        var event = this.getModelEventFromItem(rect);
-        if (event)
-          eventToTrackMap.addEvent(event, this);
+        rect.addToTrackMap(eventToTrackMap, this);
       }, this);
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onRect(rect) {
-        var event = this.getModelEventFromItem(rect);
-        if (event)
-          selection.push(event);
+        rect.addToSelection(selection);
       }
       onRect = onRect.bind(this);
       tv.b.iterateOverIntersectingIntervals(this.rects_,
@@ -140,23 +133,6 @@ tv.exportTo('tv.c.tracks', function() {
           function(x) { return x.duration; },
           loWX, hiWX,
           onRect);
-    },
-
-    /**
-     * Find the index for the given rect.
-     * @return {index} Index of the given rect, or undefined.
-     * @private
-     */
-    indexOfRect_: function(rect) {
-      var index = tv.b.findLowIndexInSortedArray(this.rects_,
-          function(x) { return x.start; },
-          rect.start);
-      while (index < this.rects_.length &&
-          rect.start == this.rects_[index].start &&
-          rect.colorId != this.rects_[index].colorId) {
-        index++;
-      }
-      return index < this.rects_.length ? index : undefined;
     },
 
     /**
@@ -170,27 +146,30 @@ tv.exportTo('tv.c.tracks', function() {
      * @private
      */
     addItemNearToProvidedEventToSelection: function(event, offset, selection) {
-      var index = this.indexOfRect_(event);
-      if (index === undefined)
+      var index = tv.b.findFirstIndexInArray(this.rects_, function(rect) {
+        return rect.modelItem === event;
+      });
+      if (index === -1)
         return false;
 
       var newIndex = index + offset;
       if (newIndex < 0 || newIndex >= this.rects_.length)
         return false;
 
-      var event = this.rects_[newIndex];
-      if (event)
-        selection.push(event);
+      this.rects_[newIndex].addToSelection(selection);
       return true;
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
       for (var i = 0; i < this.rects_.length; ++i) {
-        if (filter.matchSlice(this.rects_[i])) {
-          var event = this.getModelEventFromItem(this.rects_[i]);
-          if (event)
-            selection.push(event);
-        }
+        // TODO(petrcermak): Rather than unpacking the proxy item here,
+        // we should probably add an addToSelectionIfMatching(selection, filter)
+        // method to SelectableItem (#900).
+        var modelItem = this.rects_[i].modelItem;
+        if (!modelItem)
+          continue;
+        if (filter.matchSlice(modelItem))
+          selection.push(modelItem);
       }
     },
 
@@ -203,16 +182,35 @@ tv.exportTo('tv.c.tracks', function() {
           worldX,
           worldMaxDist);
 
-      if (rect) {
-        var event = this.getModelEventFromItem(rect);
-        if (event)
-          selection.push(event);
-      }
+      if (!rect)
+        return;
+
+      rect.addToSelection(selection);
     }
   };
 
+  /**
+   * A filled rectangle with a title.
+   *
+   * @constructor
+   * @extends {ProxySelectableItem}
+   */
+  function Rect(modelItem, title, colorId, start, duration) {
+    tv.c.trace_model.ProxySelectableItem.call(this, modelItem);
+    this.title = title;
+    this.colorId = colorId;
+    this.start = start;
+    this.duration = duration;
+    this.end = start + duration;
+  };
+
+  Rect.prototype = {
+    __proto__: tv.c.trace_model.ProxySelectableItem.prototype
+  };
+
   return {
-    RectTrack: RectTrack
+    RectTrack: RectTrack,
+    Rect: Rect
   };
 });
 </script>

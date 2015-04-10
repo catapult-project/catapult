@@ -64,9 +64,6 @@ tv.exportTo('tv.c.tracks', function() {
 
       var track = new tv.c.tracks.LetterDotTrack(this.viewport);
       track.heading = 'Memory Dumps';
-      track.getModelEventFromItem = function(item) {
-        return item.memoryDump;
-      };
       track.items = items;
       this.appendChild(track);
     },
@@ -90,15 +87,8 @@ tv.exportTo('tv.c.tracks', function() {
   GlobalMemoryDumpTrack.buildDumpDotsItems = function(globalMemoryDumps) {
     var memoryColorId = tv.b.ui.getColorIdForReservedName('memory_dump');
     return globalMemoryDumps.map(function(memoryDump) {
-      return {
-        start: memoryDump.start,
-        get selected() {
-          return this.memoryDump.selected;
-        },
-        colorId: memoryColorId,
-        dotLetter: 'M',
-        memoryDump: memoryDump
-      };
+      return new tv.c.tracks.LetterDot(
+          memoryDump, 'M', memoryColorId, memoryDump.start);
     });
   }
 

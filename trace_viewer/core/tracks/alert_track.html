@@ -38,20 +38,9 @@ tv.exportTo('tv.c.tracks', function() {
         return;
       }
       this.items = this.alerts_.map(function(alert) {
-        return {
-          start: alert.start,
-          get selected() {
-            return this.alert.selected;
-          },
-          colorId: alert.colorId,
-          dotLetter: String.fromCharCode(9888),
-          alert: alert
-        };
+        return new tv.c.tracks.LetterDot(
+            alert, String.fromCharCode(9888), alert.colorId, alert.start);
       });
-    },
-
-    getModelEventFromItem: function(item) {
-      return item.alert;
     }
   };
 

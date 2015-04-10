@@ -18,12 +18,11 @@ tv.b.unittest.testSuite(function() {
   var SliceTrack = tv.c.tracks.SliceTrack;
   var Slice = tv.c.trace_model.Slice;
 
-  test('getModelEventFromItem', function() {
+  test('modelMapping', function() {
     var track = new SliceTrack(new tv.c.TimelineViewport());
     var slice = new Slice('', 'a', 0, 1, {}, 1);
     track.slices = [slice];
-    var sel = new Selection();
-    var me0 = track.getModelEventFromItem(track.slices[0]);
+    var me0 = track.rects[0].modelItem;
     assert.equal(slice, me0);
   });
 });
