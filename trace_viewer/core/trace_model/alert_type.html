@@ -16,9 +16,10 @@ tv.exportTo('tv.c.trace_model', function() {
     WARNING: 'warning'
   };
 
-  function AlertType(title, description, severity, opt_colorId) {
+  function AlertType(title, description, docUrl, severity, opt_colorId) {
     this.title = title;
     this.description = description;
+    this.docUrl = docUrl;
     this.severity = severity;
     if (opt_colorId !== undefined)
       this.colorId = opt_colorId;

@@ -111,6 +111,7 @@ tv.exportTo('tv.e.audits', function() {
                 'Task too long',
                 'Tasks taking >= 75ms are bad, and should be broken up to' +
                 'ensure the main thread is responsive',
+                undefined,
                 tv.c.trace_model.ALERT_SEVERITY.CRITICAL);
             var center = slice.start + 0.5 * slice.duration;
             var alert = new tv.c.trace_model.Alert(

@@ -20,6 +20,10 @@ tv.exportTo('tv.e.audits', function() {
   var VSYNC_APP_NAME = 'android.VSYNC-app';
   var VSYNC_FALLBACK_NAME = 'android.VSYNC';
 
+  // when sampling vsync, push samples back by this much to ensure
+  // frame start samples *between* vsyncs
+  var TIMESTAMP_FUDGE_MS = 0.01;
+
   function getVsyncTimestamps(process, counterName) {
 
     var vsync = process.counters[counterName];
@@ -73,7 +77,7 @@ tv.exportTo('tv.e.audits', function() {
       var firstGreaterIndex =
           findLowIndexInSortedArray(this.appVsyncTimestamps_,
                                     function(x) { return x; },
-                                    timestamp);
+                                    timestamp + TIMESTAMP_FUDGE_MS);
 
       if (firstGreaterIndex < 1)
         return undefined;
@@ -87,7 +91,7 @@ tv.exportTo('tv.e.audits', function() {
       var firstGreaterIndex =
           findLowIndexInSortedArray(this.sfVsyncTimestamps_,
                                     function(x) { return x; },
-                                    timestamp);
+                                    timestamp + TIMESTAMP_FUDGE_MS);
       if (firstGreaterIndex >= this.sfVsyncTimestamps_.length)
         return undefined;
       return this.sfVsyncTimestamps_[firstGreaterIndex];

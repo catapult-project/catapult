@@ -48,13 +48,17 @@ tv.b.unittest.testSuite(function() {
     assert.closeTo(alert.args.delay, 9, 1e-5);
   });
 
-  test('saveLayerAlert', function() {
+  test('saveLayerAlert_badAlpha', function() {
     var model = tv.c.test_utils.newModelWithAuditor(function(model) {
       var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
-      renderThread.sliceGroup.pushSlice(newSliceNamed('DrawFrame', 200, 5));
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 200, 5));
       renderThread.sliceGroup.pushSlice(newSliceNamed(
           'BadAlphaView alpha caused saveLayer 480x320', 203, 1));
+
+      // doesn't create alert, since bad alpha accounts for this savelayer
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'unclipped saveLayer 480x320', 204, 1));
     }, tv.e.audits.AndroidAuditor);
 
     assert.equal(model.alerts.length, 1);
@@ -63,6 +67,40 @@ tv.b.unittest.testSuite(function() {
     assert.equal(alert.args['view name'], 'BadAlphaView');
     assert.equal(alert.args.width, 480);
     assert.equal(alert.args.height, 320);
+  });
+
+  test('saveLayerAlert_canvas', function() {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 200, 5));
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'saveLayer 480x320', 204, 1));
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+
+    var alert = model.alerts[0];
+    assert.equal(alert.args['clipped saveLayer count'], 1);
+    assert.equal(alert.associatedEvents.length, 1);
+  });
+
+  test('generatePathAlert', function() {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 0, 20));
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'Generate Path Texture', 0, 3));
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'Generate Path Texture', 3, 6));
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+
+    var alert = model.alerts[0];
+    assert.equal(alert.args['time spent'], 9);
+    assert.equal(alert.associatedEvents.length, 2);
   });
 
   test('uploadAlert', function() {
@@ -79,6 +117,7 @@ tv.b.unittest.testSuite(function() {
     var alert = model.alerts[0];
     assert.closeTo(alert.args['pixels uploaded (millions)'], 1, 1e-5);
     assert.equal(alert.args['time spent'], 15);
+    assert.equal(alert.associatedEvents.length, 1);
   });
 
   test('listViewAlert', function() {
@@ -100,6 +139,7 @@ tv.b.unittest.testSuite(function() {
     var alert = model.alerts[0];
     assert.equal(alert.args['items inflated'], 2);
     assert.closeTo(alert.args['time spent'], 20, 1e-5);
+    assert.equal(alert.associatedEvents.length, 4);
   });
 
   test('measureLayoutAlert', function() {
@@ -111,7 +151,10 @@ tv.b.unittest.testSuite(function() {
     }, tv.e.audits.AndroidAuditor);
 
     assert.equal(model.alerts.length, 1);
-    assert.closeTo(model.alerts[0].args['time spent'], 10, 1e-5);
+
+    var alert = model.alerts[0];
+    assert.closeTo(alert.args['time spent'], 10, 1e-5);
+    assert.equal(alert.associatedEvents.length, 2);
   });
 
   test('viewDrawAlert', function() {
@@ -129,6 +172,34 @@ tv.b.unittest.testSuite(function() {
     assert.equal(model.alerts.length, 2);
     assert.closeTo(model.alerts[0].args['time spent'], 10, 1e-5);
     assert.closeTo(model.alerts[1].args['time spent'], 10, 1e-5);
+  });
+
+  test('blockingGcAlert', function() {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      var sliceGroup = uiThread.sliceGroup;
+      sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      sliceGroup.pushSlice(newSliceNamed('DVM Suspend', 0, 15));
+
+      sliceGroup.pushSlice(newSliceNamed('performTraversals', 50, 20));
+      sliceGroup.pushSlice(newSliceNamed('GC: Wait For Concurrent', 50, 15));
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 2);
+    assert.closeTo(model.alerts[0].args['blocked duration'], 15, 1e-5);
+    assert.closeTo(model.alerts[1].args['blocked duration'], 15, 1e-5);
+  });
+
+  test('lockContentionAlert', function() {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      var sliceGroup = uiThread.sliceGroup;
+      sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      sliceGroup.pushSlice(newSliceNamed('Lock Contention on a lock', 0, 15));
+    }, tv.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+    assert.closeTo(model.alerts[0].args['blocked duration'], 15, 1e-5);
   });
 
   test('addFrameToModel', function() {

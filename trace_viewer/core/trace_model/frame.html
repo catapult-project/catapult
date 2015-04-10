@@ -21,17 +21,9 @@ tv.exportTo('tv.c.trace_model', function() {
   var Statistics = tv.b.Statistics;
 
   var FRAME_PERF_CLASS = {
-    // This frame met its deadline
     GOOD: 'good',
-
-    // This frame that didn't meet its presentaiton deadline,
-    // but didn't cause jank (e.g. an 'ok' frame in a deeply pipelined mode)
     BAD: 'bad',
-
-    // This frame ran past its deadline, causing extreme jank.
     TERRIBLE: 'terrible',
-
-    // This frame was not expected to meet its deadline, (e.g. first draw).
     NEUTRAL: 'generic_work'
   };
 
@@ -41,11 +33,12 @@ tv.exportTo('tv.c.trace_model', function() {
    * @param {Array} threadTimeRanges Array of {thread, start, end}
    *     for each thread, describing the critical path of the frame
    */
-  function Frame(events, threadTimeRanges) {
+  function Frame(events, threadTimeRanges, opt_args) {
     tv.c.trace_model.Event.call(this);
 
     this.threadTimeRanges = threadTimeRanges;
     this.events = events;
+    this.args = opt_args || {};
 
     this.title = 'Frame';
     this.start = Statistics.min(

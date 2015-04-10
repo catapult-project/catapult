@@ -50,6 +50,10 @@ tv.exportTo('tv.e.audits', function() {
   var Auditor = tv.c.Auditor;
   var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
 
+  function frameMissedDeadline(frame) {
+    return frame.args['deadline'] && frame.args['deadline'] < frame.end;
+  }
+
   /**
    * Auditor for Android-specific traces.
    * @constructor
@@ -65,34 +69,88 @@ tv.exportTo('tv.e.audits', function() {
   // Rendering / RenderThread alerts - only available on SDK 22+
   //////////////////////////////////////////////////////////////////////////////
 
+  AndroidAuditor.viewAlphaAlertType_ = new AlertType(
+      'Inefficient View alpha usage',
+      'Setting an alpha between 0 and 1 has significant performance costs, if one of the fast alpha paths is not used.', // @suppress longLineCheck
+      'http://developer.android.com/reference/android/view/View.html#setAlpha(float)', // @suppress longLineCheck
+      ALERT_SEVERITY.CRITICAL);
   AndroidAuditor.saveLayerAlertType_ = new AlertType(
-    'Inefficient Alpha',
-    'http://developer.android.com/reference/android/view/View.html#setAlpha(float)', // @suppress longLineCheck
-    ALERT_SEVERITY.CRITICAL);
-  AndroidAuditor.getSaveLayerAlerts_ = function(renderThread) {
-    if (!renderThread)
-      return [];
-    var ret = [];
-    var saveLayerRegEx =
+      'Expensive rendering with Canvas#saveLayer()',
+      'Canvas#saveLayer() incurs extremely high rendering cost. They disrupt the rendering pipeline when drawn, forcing a flush of drawing content. Instead use View hardware layers, or static Bitmaps. This enables the offscreen buffers to be reused in between frames, and avoids the disruptive render target switch.', // @suppress longLineCheck
+      'https://developer.android.com/reference/android/graphics/Canvas.html#saveLayerAlpha(android.graphics.RectF, int, int)', // @suppress longLineCheck
+      ALERT_SEVERITY.CRITICAL);
+  AndroidAuditor.getSaveLayerAlerts_ = function(frame) {
+    var badAlphaRegEx =
         /^(.+) alpha caused (unclipped )?saveLayer (\d+)x(\d+)$/;
-    renderThread.sliceGroup.slices.forEach(function(slice) {
-      var match = saveLayerRegEx.exec(slice.title);
+    var saveLayerRegEx = /^(unclipped )?saveLayer (\d+)x(\d+)$/;
+
+    var ret = [];
+    var otherSaveSlices = [];
+
+    frame.events.forEach(function(slice) {
+      var match = badAlphaRegEx.exec(slice.title);
       if (match) {
+        // due to bug in tracing code on SDK 22, ignore
+        // presence of 'unclipped' string in View alpha slices
         var args = { 'view name': match[1],
                      width: parseInt(match[3]),
                      height: parseInt(match[4]) };
-        ret.push(new Alert(
-            AndroidAuditor.saveLayerAlertType_, slice.start, [slice], args));
-      }
-      // TODO: also do something reasonable with standalone saveLayer commands
+        ret.push(new Alert(AndroidAuditor.viewAlphaAlertType_,
+                           slice.start, [slice], args));
+      } else if (saveLayerRegEx.test(slice.title))
+        otherSaveSlices.push(slice);
     }, this);
+
+    if (otherSaveSlices.length > ret.length) {
+      // more saveLayers than bad alpha can account for - add another alert
+
+      var unclippedSeen = Statistics.sum(otherSaveSlices, function(slice) {
+        return saveLayerRegEx.exec(slice.title)[1] ? 1 : 0;
+      });
+      var clippedSeen = otherSaveSlices.length - unclippedSeen;
+      var earliestStart = Statistics.min(otherSaveSlices, function(slice) {
+        return slice.start;
+      });
+
+      var args = {
+        'unclipped saveLayer count (especially bad!)': unclippedSeen,
+        'clipped saveLayer count': clippedSeen
+      };
+      ret.push(new Alert(AndroidAuditor.saveLayerAlertType_,
+                         earliestStart, otherSaveSlices, args));
+    }
+
     return ret;
+  };
+
+
+  AndroidAuditor.pathAlertType_ = new AlertType(
+      'Path texture churn',
+      'Paths are drawn with a mask texture, so when a path is modified / newly drawn, that texture must be generated and uploaded to the GPU. Ensure that you cache paths between frames and do not unnecessarily call Path#reset(). You can cut down on this cost by sharing Path object instances between drawables/views.', // @suppress longLineCheck
+      undefined, // TODO: link
+      ALERT_SEVERITY.CRITICAL);
+  AndroidAuditor.getPathAlert_ = function(frame) {
+    var uploadRegEx = /^Generate Path Texture$/;
+
+    var slices = frame.events.filter(function(event) {
+      return event.title == 'Generate Path Texture';
+    });
+    var start = Statistics.min(slices, getStart);
+    var duration = Statistics.sum(slices, getDuration);
+
+    if (duration < 3)
+      return undefined;
+
+    return new Alert(AndroidAuditor.pathAlertType_, start, slices,
+                     { 'time spent': duration });
   }
 
+
   AndroidAuditor.uploadAlertType_ = new AlertType(
-    'Expensive Bitmap uploads',
-    'Bitmaps that have been modified / newly drawn must be uploaded to the GPU. Since this be expensive if the total number of pixels uploaded is large, reduce the amount of Bitmap churn in this animation/context, per frame.', // @suppress longLineCheck
-    ALERT_SEVERITY.CRITICAL);
+      'Expensive Bitmap uploads',
+      'Bitmaps that have been modified / newly drawn must be uploaded to the GPU. Since this is expensive if the total number of pixels uploaded is large, reduce the amount of Bitmap churn in this animation/context, per frame.', // @suppress longLineCheck
+      undefined, // TODO: link
+      ALERT_SEVERITY.CRITICAL);
   AndroidAuditor.getUploadAlert_ = function(frame) {
     var uploadRegEx = /^Upload (\d+)x(\d+) Texture$/;
 
@@ -123,9 +181,10 @@ tv.exportTo('tv.e.audits', function() {
   //////////////////////////////////////////////////////////////////////////////
 
   AndroidAuditor.listViewAlertType_ = new AlertType(
-    'Inefficient ListView recycling',
-    'ListView recycling taking too much time per frame. Simplify your ListView layouts and ensure your Adapter#getView() recycles correctly, and binds efficiently.', // @suppress longLineCheck
-    ALERT_SEVERITY.CRITICAL);
+      'Inefficient ListView recycling',
+      'ListView recycling taking too much time per frame. Simplify your ListView layouts and ensure your Adapter#getView() recycles correctly, and binds efficiently.', // @suppress longLineCheck
+      undefined, // TODO: link
+      ALERT_SEVERITY.CRITICAL);
   AndroidAuditor.getListViewAlert_ = function(frame) {
     var events = frame.events.filter(function(event) {
       return event.title == 'obtainView' || event.title == 'setupListItem';
@@ -144,9 +203,9 @@ tv.exportTo('tv.e.audits', function() {
 
 
   AndroidAuditor.measureLayoutAlertType_ = new AlertType(
-    'Expensive measure/layout pass',
-    'Measure/Layout took a significant time, contributing to jank. Avoid triggering layout during animations.', // @suppress longLineCheck
-    ALERT_SEVERITY.CRITICAL);
+      'Expensive measure/layout pass',
+      'Measure/Layout took a significant time, contributing to jank. Avoid triggering layout during animations.', // @suppress longLineCheck
+      ALERT_SEVERITY.CRITICAL);
   AndroidAuditor.getMeasureLayoutAlert_ = function(frame) {
     var events = frame.events.filter(function(event) {
       return event.title == 'measure' || event.title == 'layout';
@@ -157,16 +216,15 @@ tv.exportTo('tv.e.audits', function() {
       return undefined;
 
     var start = Statistics.min(events, getStart);
-    return new Alert(
-        AndroidAuditor.measureLayoutAlertType_, start, events,
-            { 'time spent': duration });
+    return new Alert(AndroidAuditor.measureLayoutAlertType_, start, events,
+                     { 'time spent': duration });
   }
 
 
   AndroidAuditor.viewDrawAlertType_ = new AlertType(
-    'Long View#draw()',
-    'Recording the drawing commands of invalidated Views took a long time. Avoid significant work in View or Drawable custom drawing, especially allocations or drawing to Bitmaps.', // @suppress longLineCheck
-    ALERT_SEVERITY.CRITICAL);
+      'Long View#draw()',
+      'Recording the drawing commands of invalidated Views took a long time. Avoid significant work in View or Drawable custom drawing, especially allocations or drawing to Bitmaps.', // @suppress longLineCheck
+      ALERT_SEVERITY.CRITICAL);
   AndroidAuditor.getViewDrawAlert_ = function(frame) {
     var slice = undefined;
     for (var i = 0; i < frame.events.length; i++) {
@@ -179,10 +237,53 @@ tv.exportTo('tv.e.audits', function() {
 
     if (!slice || slice.duration < 3)
       return undefined;
-    return new Alert(
-        AndroidAuditor.viewDrawAlertType_, slice.start, [slice],
-            { 'time spent': slice.duration });
+    return new Alert(AndroidAuditor.viewDrawAlertType_, slice.start, [slice],
+                     { 'time spent': slice.duration });
   }
+
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Runtime alerts
+  //////////////////////////////////////////////////////////////////////////////
+
+  AndroidAuditor.blockingGcAlertType_ = new AlertType(
+      'Blocking Garbage Collection',
+      'Blocking GCs are caused by object churn, and made worse by having large numbers of objects in the heap. Avoid allocating objects during animations/scrolling, and recycle Bitmaps to avoid triggering garbage collection.', // @suppress longLineCheck
+      undefined, // TODO: link
+      ALERT_SEVERITY.CRITICAL);
+  AndroidAuditor.getBlockingGcAlert_ = function(frame) {
+    var slices = frame.events.filter(function(event) {
+      return event.title == 'DVM Suspend' ||
+          event.title == 'GC: Wait For Concurrent';
+    });
+    var blockedDuration = Statistics.sum(slices, getDuration);
+    if (blockedDuration < 3)
+      return undefined;
+
+    var start = Statistics.min(slices, getStart);
+    return new Alert(AndroidAuditor.blockingGcAlertType_, start, slices,
+                     { 'blocked duration': blockedDuration });
+  };
+
+
+  AndroidAuditor.lockContentionAlertType_ = new AlertType(
+      'Lock contention',
+      'UI thread lock contention is caused when another thread holds a lock that the UI thread is trying to use. UI thread progress is blocked until the lock is released. Inspect locking done within the UI thread, and ensure critical sections are short.', // @suppress longLineCheck
+      undefined, // TODO: link
+      ALERT_SEVERITY.CRITICAL);
+  AndroidAuditor.getLockContentionAlert_ = function(frame) {
+    var slices = frame.events.filter(function(event) {
+      return /^Lock Contention on /.test(event.title);
+    });
+
+    var blockedDuration = Statistics.sum(slices, getDuration);
+    if (blockedDuration < 1)
+      return undefined;
+
+    var start = Statistics.min(slices, getStart);
+    return new Alert(AndroidAuditor.lockContentionAlertType_, start, slices,
+                     { 'blocked duration': blockedDuration });
+  };
 
 
   AndroidAuditor.prototype = {
@@ -226,19 +327,18 @@ tv.exportTo('tv.e.audits', function() {
     pushFramesAndJudgeJank_: function() {
       var badFramesObserved = 0;
       var framesObserved = 0;
+      var surfaceFlinger = this.helper.surfaceFlinger;
+
       this.helper.apps.forEach(function(app) {
         // override frame list
         app.process.frames = app.getFrames();
 
         app.process.frames.forEach(function(frame) {
-          if (frameIsActivityStart(frame)) {
-            frame.perfClass = FRAME_PERF_CLASS.NEUTRAL;
-          }
-
           if (frame.totalDuration > EXPECTED_FRAME_TIME_MS * 2) {
             badFramesObserved += 2;
             frame.perfClass = FRAME_PERF_CLASS.TERRIBLE;
-          } else if (frame.totalDuration > EXPECTED_FRAME_TIME_MS) {
+          } else if (frame.totalDuration > EXPECTED_FRAME_TIME_MS ||
+              frameMissedDeadline(frame)) {
             badFramesObserved++;
             frame.perfClass = FRAME_PERF_CLASS.BAD;
           } else {
@@ -278,11 +378,16 @@ tv.exportTo('tv.e.audits', function() {
       var alerts = this.model.alerts;
       this.helper.apps.forEach(function(app) {
         app.getFrames().forEach(function(frame) {
-          // skip alerts for neutral or good frames
+          alerts.push.apply(alerts, AndroidAuditor.getSaveLayerAlerts_(frame));
+
+          // skip most alerts for neutral or good frames
           if (frame.perfClass == FRAME_PERF_CLASS.NEUTRAL ||
               frame.perfClass == FRAME_PERF_CLASS.GOOD)
             return;
 
+          var alert = AndroidAuditor.getPathAlert_(frame);
+          if (alert)
+            alerts.push(alert);
           var alert = AndroidAuditor.getUploadAlert_(frame);
           if (alert)
             alerts.push(alert);
@@ -295,11 +400,13 @@ tv.exportTo('tv.e.audits', function() {
           var alert = AndroidAuditor.getViewDrawAlert_(frame);
           if (alert)
             alerts.push(alert);
+          var alert = AndroidAuditor.getBlockingGcAlert_(frame);
+          if (alert)
+            alerts.push(alert);
+          var alert = AndroidAuditor.getLockContentionAlert_(frame);
+          if (alert)
+            alerts.push(alert);
         });
-
-        // general alerts
-        alerts.push.apply(alerts,
-          AndroidAuditor.getSaveLayerAlerts_(app.renderThread));
         // scheduler alerts
         this.addSchedulingAlerts(app.renderThread);
         this.addSchedulingAlerts(app.uiThread);

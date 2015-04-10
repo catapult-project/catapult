@@ -19,6 +19,26 @@ tv.b.unittest.testSuite(function() {
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
   var newCounterNamed = tv.c.test_utils.newCounterNamed;
   var newCounterSeries = tv.c.test_utils.newCounterSeries;
+
+  function createSurfaceFlingerWithVsyncs(model) {
+      if (model.getProcess(2))
+        throw new Error('process already exists');
+
+      var sfProcess = model.getOrCreateProcess(2);
+      var sfThread = sfProcess.getOrCreateThread(2); // main thread, tid = pid
+      sfThread.name = '/system/bin/surfaceflinger';
+
+      // ensure slicegroup has data
+      sfThread.sliceGroup.pushSlice(newSliceNamed('doComposition', 8, 2));
+
+      var counter = sfProcess.getOrCreateCounter('android', 'VSYNC');
+      var series = newCounterSeries();
+      for (var i = 0; i <= 10; i++) {
+        series.addCounterSample(i * 10, i % 2);
+      }
+      counter.addSeries(series);
+  }
+
   /*
    * List of customizeModelCallbacks which produce different 80ms frames,
    * each starting at 10ms, and with a single important slice
@@ -71,6 +91,20 @@ tv.b.unittest.testSuite(function() {
     });
   });
 
+  test('iterateImportantSlices', function() {
+    SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
+      var model = tv.c.test_utils.newModel(customizeModelCallback);
+      var helper = new AndroidModelHelper(model);
+
+      var seen = 0;
+      helper.iterateImportantSlices(function(importantSlice) {
+        assert.isTrue(importantSlice instanceof tv.c.trace_model.Slice);
+        seen++;
+      });
+      assert.equal(seen, 1);
+    });
+  });
+
   test('getFrames', function() {
     SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
       var model = tv.c.test_utils.newModel(customizeModelCallback);
@@ -86,34 +120,8 @@ tv.b.unittest.testSuite(function() {
     });
   });
 
-  test('iterateImportantSlices', function() {
-    SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
-      var model = tv.c.test_utils.newModel(customizeModelCallback);
-      var helper = new AndroidModelHelper(model);
-
-      var seen = 0;
-      helper.iterateImportantSlices(function(importantSlice) {
-        assert.isTrue(importantSlice instanceof tv.c.trace_model.Slice);
-        seen++;
-      });
-      assert.equal(seen, 1);
-    });
-  });
-
   test('surfaceFlingerVsyncs', function() {
-    var model = tv.c.test_utils.newModel(function(model) {
-      var sfProcess = model.getOrCreateProcess(2);
-      var sfThread = sfProcess.getOrCreateThread(2);
-      sfThread.name = '/system/bin/surfaceflinger';
-      sfThread.sliceGroup.pushSlice(newSliceNamed('doComposition', 8, 2));
-
-      var counter = sfProcess.getOrCreateCounter('android', 'VSYNC');
-      var series = newCounterSeries();
-      for (var i = 0; i <= 10; i++) {
-        series.addCounterSample(i * 10, i % 2);
-      }
-      counter.addSeries(series);
-    });
+    var model = tv.c.test_utils.newModel(createSurfaceFlingerWithVsyncs);
     var helper = new AndroidModelHelper(model);
     assert.isTrue(helper.surfaceFlinger.hasVsyncs);
 
@@ -121,9 +129,37 @@ tv.b.unittest.testSuite(function() {
     assert.closeTo(helper.surfaceFlinger.getFrameKickoff(5), 0, 1e-5);
     assert.closeTo(helper.surfaceFlinger.getFrameDeadline(95), 100, 1e-5);
 
+    assert.closeTo(helper.surfaceFlinger.getFrameKickoff(10), 10, 1e-5);
+    assert.closeTo(helper.surfaceFlinger.getFrameDeadline(90), 100, 1e-5);
+
     // test undefined behavior outside of vsyncs.
     assert.isUndefined(helper.surfaceFlinger.getFrameKickoff(-5));
     assert.isUndefined(helper.surfaceFlinger.getFrameDeadline(105));
+  });
+
+  test('frameVsyncInterop', function() {
+    var model = tv.c.test_utils.newModel(function(model) {
+      // app - 3 good, 3 bad frames
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 1, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 31, 11));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 45, 6));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 60, 20));
+
+      // surface flinger - vsync every 10ms
+      createSurfaceFlingerWithVsyncs(model);
+    });
+    var helper = new AndroidModelHelper(model);
+
+    var frames = helper.apps[0].getFrames();
+    assert.equal(frames.length, 6);
+    for (var i = 0; i < 6; i++) {
+      var shouldMissDeadline = i >= 3;
+      var missedDeadline = frames[i].args['deadline'] < frames[i].end;
+      assert.equal(shouldMissDeadline, missedDeadline);
+    }
   });
 
   test('appInputs', function() {

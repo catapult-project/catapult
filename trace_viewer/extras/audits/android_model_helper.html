@@ -53,20 +53,17 @@ tv.exportTo('tv.e.audits', function() {
     this.apps = [];
     this.surfaceFlinger = undefined;
 
+    var processes = model.getAllProcesses();
+    for (var i = 0; i < processes.length && !this.surfaceFlinger; i++) {
+      this.surfaceFlinger =
+          AndroidSurfaceFlinger.createForProcessIfPossible(processes[i]);
+    }
+
     model.getAllProcesses().forEach(function(process) {
-      var app = AndroidApp.createForProcessIfPossible(process);
-      if (app) {
+      var app = AndroidApp.createForProcessIfPossible(
+          process, this.surfaceFlinger);
+      if (app)
         this.apps.push(app);
-        return;
-      }
-
-      var sf = AndroidSurfaceFlinger.createForProcessIfPossible(process);
-      if (sf) {
-        this.surfaceFlinger = sf;
-        return;
-      }
-
-      // TODO: classify other useful processes/threads
     }, this);
   };
 

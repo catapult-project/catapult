@@ -38,6 +38,18 @@ tv.exportTo('tv.e.audits', function() {
     return ret;
   }
 
+  function makeFrame(threadTimeRanges, surfaceFlinger) {
+    var args = {};
+    if (surfaceFlinger && surfaceFlinger.hasVsyncs) {
+      var start = Statistics.min(threadTimeRanges,
+          function(threadTimeRanges) { return threadTimeRanges.start; });
+      args['deadline'] = surfaceFlinger.getFrameDeadline(start);
+      args['frameKickoff'] = surfaceFlinger.getFrameKickoff(start);
+    }
+    var events = getSlicesForThreadTimeRanges(threadTimeRanges);
+    return new Frame(events, threadTimeRanges, args);
+  }
+
   function findOverlappingDrawFrame(renderThread, time) {
     if (!renderThread)
       return undefined;
@@ -132,8 +144,7 @@ tv.exportTo('tv.e.audits', function() {
           end: rtDrawSlice.end
         });
       }
-      var events = getSlicesForThreadTimeRanges(threadTimeRanges);
-      frames.push(new Frame(events, threadTimeRanges));
+      frames.push(makeFrame(threadTimeRanges, app.surfaceFlinger));
     });
     return frames;
   }
@@ -150,8 +161,7 @@ tv.exportTo('tv.e.audits', function() {
         start: slice.start,
         end: slice.end
       }];
-      var events = getSlicesForThreadTimeRanges(threadTimeRanges);
-      frames.push(new Frame(events, threadTimeRanges));
+      frames.push(makeFrame(threadTimeRanges, app.surfaceFlinger));
     });
     return frames;
   }
@@ -208,16 +218,17 @@ tv.exportTo('tv.e.audits', function() {
    * Model for Android App specific data.
    * @constructor
    */
-  function AndroidApp(process, uiThread, renderThread) {
+  function AndroidApp(process, uiThread, renderThread, surfaceFlinger) {
     this.process = process;
     this.uiThread = uiThread;
     this.renderThread = renderThread;
+    this.surfaceFlinger = surfaceFlinger;
 
     this.frames_ = undefined;
     this.inputs_ = undefined;
   };
 
-  AndroidApp.createForProcessIfPossible = function(process) {
+  AndroidApp.createForProcessIfPossible = function(process, surfaceFlinger) {
     var uiThread = process.getThread(process.pid);
     if (uiThread && !hasUiDraw(uiThread)) {
       uiThread = undefined;
@@ -226,7 +237,7 @@ tv.exportTo('tv.e.audits', function() {
     var renderThread = renderThreads.length == 1 ? renderThreads[0] : undefined;
 
     if (uiThread || renderThread) {
-      return new AndroidApp(process, uiThread, renderThread);
+      return new AndroidApp(process, uiThread, renderThread, surfaceFlinger);
     }
   }
 
