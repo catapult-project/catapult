@@ -36,7 +36,7 @@ class ActionRunner(object):
     action.RunAction(self._tab)
 
   # TODO(nednguyen): remove this API when crbug.com/475090 is fixed.
-  def BeginInteraction(self, label, repeatable=False):
+  def _BeginInteraction(self, label, repeatable=False):
     """Marks the beginning of an interaction record.
 
     An interaction record is a labeled time period containing
@@ -79,7 +79,7 @@ class ActionRunner(object):
           as this interaction. All interactions with the same logical name must
           have the same flags.
     """
-    return self.BeginInteraction('Gesture_' + label, repeatable)
+    return self._BeginInteraction('Gesture_' + label, repeatable)
 
   def CreateInteraction(self, label, repeatable=False):
     """ Create an action.Interaction object that issues interaction record.
