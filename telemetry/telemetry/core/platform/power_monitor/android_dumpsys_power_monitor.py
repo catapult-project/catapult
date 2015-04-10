@@ -28,7 +28,6 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     """
     super(DumpsysPowerMonitor, self).__init__(platform_backend)
     self._browser = None
-    self._device = device
     self._battery = battery_utils.BatteryUtils(device)
 
   def CanMonitorPower(self):
@@ -55,80 +54,24 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
       self._browser = None
     cpu_stats = super(DumpsysPowerMonitor, self).StopMonitoringPower()
     self._battery.EnableBatteryUpdates()
-    # By default, 'dumpsys batterystats' measures power consumption during the
-    # last unplugged period.
-    result = self._platform.RunCommand('dumpsys batterystats -c %s' % package)
-    assert result, 'Dumpsys produced no output'
+    power_data = self._battery.GetPackagePowerData(package)
+    power_results = self.ProcessPowerData(power_data, package)
+    if power_results['energy_consumption_mwh'] == 0:
+      logging.warning('Power data is returning 0 usage for %s. %s'
+                      % (package, self._battery.GetPowerData()))
     return super(DumpsysPowerMonitor, self).CombineResults(
-        cpu_stats, DumpsysPowerMonitor.ParseSamplingOutput(package,
-                                                           result.split('\n')))
+        cpu_stats, power_results)
 
   @staticmethod
-  def ParseSamplingOutput(package, dumpsys_output):
-    """Parse output of 'dumpsys batterystats -c'
-
-    See:
-    https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/os/BatteryStats.java
-
-    Returns:
-        Dictionary in the format returned by StopMonitoringPower().
-    """
-    # Raw power usage samples.
-    out_dict = {}
-    out_dict['identifier'] = 'dumpsys'
-    out_dict['power_samples_mw'] = []
-
-    # The list of useful CSV columns.
-    # Index of the column containing the format version.
-    DUMP_VERSION_INDEX = 0
-    # Index of the column containing the type of the row.
-    ROW_TYPE_INDEX = 3
-
-    # Index for columns of type unique identifier ('uid')
-    # Index of the column containing the uid.
-    PACKAGE_UID_INDEX = 4
-    # Index of the column containing the application package.
-    PACKAGE_NAME_INDEX = 5
-
-    # Index for columns of type power use ('pwi')
-    # The column containing the uid of the item.
-    PWI_UID_INDEX = 1
-    # The column containing the type of consumption. Only consumtion since last
-    # charge are of interest here.
-    PWI_AGGREGATION_INDEX = 2
-    # The column containing the amount of power used, in mah.
-    PWI_POWER_COMSUMPTION_INDEX = 5
-    csvreader = csv.reader(dumpsys_output)
-    uid_entries = {}
-    pwi_entries = defaultdict(list)
-    for entry in csvreader:
-      if entry[DUMP_VERSION_INDEX] not in ['8', '9']:
-        # Wrong file version.
-        break
-      if ROW_TYPE_INDEX >= len(entry):
-        continue
-      if entry[ROW_TYPE_INDEX] == 'uid':
-        current_package = entry[PACKAGE_NAME_INDEX]
-        assert current_package not in uid_entries
-        uid_entries[current_package] = entry[PACKAGE_UID_INDEX]
-      elif (PWI_POWER_COMSUMPTION_INDEX < len(entry) and
-            entry[ROW_TYPE_INDEX] == 'pwi' and
-            entry[PWI_AGGREGATION_INDEX] == 'l'):
-        pwi_entries[entry[PWI_UID_INDEX]].append(
-            float(entry[PWI_POWER_COMSUMPTION_INDEX]))
-
-    # Find the uid of for the given package.
-    if not package in uid_entries:
-      logging.warning('Unable to parse dumpsys output. '
-                      'Please upgrade the OS version of the device.'
-                      'package=%s, uid_entries=%s' % (package, uid_entries))
-      out_dict['energy_consumption_mwh'] = 0
-      return out_dict
-    uid = uid_entries[package]
-    consumptions_mah = pwi_entries[uid]
-    consumption_mah = sum(consumptions_mah)
+  def ProcessPowerData(power_data, package):
+    power_results = {'identifier': 'dumpsys', 'power_samples_mw': []}
+    if not power_data:
+      logging.warning('Unable to find power data for %s in dumpsys output. '
+                      'Please upgrade the OS version of the device.' % package)
+      power_results['energy_consumption_mwh'] = 0
+      return power_results
     # Converting at a nominal voltage of 4.0V, as those values are obtained by a
     # heuristic, and 4.0V is the voltage we set when using a monsoon device.
-    consumption_mwh = consumption_mah * 4.0
-    out_dict['energy_consumption_mwh'] = consumption_mwh
-    return out_dict
+    consumption_mwh = sum(power_data['data']) * 4.0
+    power_results['energy_consumption_mwh'] = consumption_mwh
+    return power_results

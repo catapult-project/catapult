@@ -10,25 +10,23 @@ from telemetry.core.util import GetUnittestDataDir
 
 
 class DumpsysPowerMonitorMonitorTest(unittest.TestCase):
+
   def testEnergyComsumption(self):
     package = 'com.google.android.apps.chrome'
-    dumpsys_output = os.path.join(GetUnittestDataDir(), 'batterystats_v8.csv')
-    with open(dumpsys_output, 'r') as output:
-      results = (
-          android_dumpsys_power_monitor.DumpsysPowerMonitor.ParseSamplingOutput(
-              package, output))
+    power_data = {'data': [23.9], 'uid': '12345'}
+    results = (
+        android_dumpsys_power_monitor.DumpsysPowerMonitor.ProcessPowerData(
+            power_data, package))
     self.assertEqual(results['identifier'], 'dumpsys')
     self.assertAlmostEqual(results['energy_consumption_mwh'], 95.6)
 
   # Older version of the OS do not have the data.
   def testNoData(self):
     package = 'com.android.chrome'
-    dumpsys_output = os.path.join(GetUnittestDataDir(),
-                                  'batterystats_v8_no_data.csv')
-    with open(dumpsys_output, 'r') as output:
-      results = (
-          android_dumpsys_power_monitor.DumpsysPowerMonitor.ParseSamplingOutput(
-              package, output))
+    power_data = None
+    results = (
+        android_dumpsys_power_monitor.DumpsysPowerMonitor.ProcessPowerData(
+            power_data, package))
     self.assertEqual(results['identifier'], 'dumpsys')
     self.assertEqual(results['energy_consumption_mwh'], 0)
 
