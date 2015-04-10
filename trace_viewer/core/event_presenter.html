@@ -52,8 +52,7 @@ tv.exportTo('tv.c', function() {
 
     getInstantSliceColor: function(instant) {
       var colorId = instant.colorId + this.getColorIdOffset_(instant);
-      return tv.b.ui.colorToRGBAString(paletteRaw[colorId],
-                                       this.getAlpha_(instant));
+      return tv.b.ui.colorToRGBAString(paletteRaw[colorId], 1.0);
     },
 
     getObjectInstanceColor: function(instance) {
@@ -80,8 +79,7 @@ tv.exportTo('tv.c', function() {
           (snapshot.objectInstance.colorId + offset) %
           tv.b.ui.paletteProperties.numGeneralPurposeColorIds;
       colorId += this.getColorIdOffset_(snapshot);
-      return tv.b.ui.colorToRGBAString(paletteRaw[colorId],
-                                       this.getAlpha_(snapshot));
+      return tv.b.ui.colorToRGBAString(paletteRaw[colorId], 1.0);
     }
   };
 
