@@ -57,6 +57,7 @@ tv.exportTo('tv.b', function() {
       return Color.lerpRGBA(a, b, percent);
     return Color.lerpRGB(a, b, percent);
   }
+
   Color.lerpRGB = function(a, b, percent) {
     return new Color(
         ((b.r - a.r) * percent) + a.r,

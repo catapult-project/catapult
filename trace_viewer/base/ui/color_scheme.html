@@ -88,11 +88,13 @@ tv.exportTo('tv.b.ui', function() {
     paletteBase.push.apply(paletteBase, generalPurposeColors);
     paletteBase.push.apply(paletteBase,
                            tv.b.dictionaryValues(reservedColorsByName));
-    return paletteBase.concat(paletteBase.map(tv.b.ui.brightenColor));
+    return paletteBase.concat(paletteBase.map(tv.b.ui.brightenColor),
+                              paletteBase.map(tv.b.ui.desaturateColor));
   })();
   var palette = paletteRaw.map(colorToRGBString);
 
-  var highlightIdBoost = palette.length / 2;
+  var highlightIdBoost = paletteRaw.length / 3;
+  var desaturateIdBoost = (paletteRaw.length / 3) * 2;
 
   // Build reservedColorNameToIdMap.
   var reservedColorNameToIdMap = (function() {
@@ -132,11 +134,19 @@ tv.exportTo('tv.b.ui', function() {
 
   /**
    * @return {Number} The value to add to a color ID to get its highlighted
-   * colro ID. E.g. 7 + getPaletteHighlightIdBoost() yields a brightened from
+   * color ID. E.g. 7 + getPaletteHighlightIdBoost() yields a brightened form
    * of 7's base color.
    */
   function getColorPaletteHighlightIdBoost() {
     return highlightIdBoost;
+  }
+  /**
+   * @return {Number} The value to add to a color ID to get its desaturated
+   * color ID. E.g. 7 + getPaletteDesaturateIdBoost() yields a desaturate form
+   * of 7's base color.
+   */
+  function getColorPaletteDesaturateIdBoost() {
+    return desaturateIdBoost;
   }
 
   /**
@@ -169,7 +179,8 @@ tv.exportTo('tv.b.ui', function() {
 
   var paletteProperties = {
     numGeneralPurposeColorIds: numGeneralPurposeColorIds,
-    highlightIdBoost: highlightIdBoost
+    highlightIdBoost: highlightIdBoost,
+    desaturateIdBoost: desaturateIdBoost
   };
 
   return {

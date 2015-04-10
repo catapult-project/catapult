@@ -24,15 +24,12 @@ tv.exportTo('tv.c', function() {
    * Provides methods to get view values for events.
    */
   var EventPresenter = {
-    getAlpha_: function(event) {
-      if (event.selectionState === SelectionState.DIMMED)
-        return 0.3;
-      return 1.0;
-    },
 
     getColorIdOffset_: function(event) {
       if (event.selectionState === SelectionState.SELECTED)
         return tv.b.ui.paletteProperties.highlightIdBoost;
+      else if (event.selectionState === SelectionState.DIMMED)
+        return tv.b.ui.paletteProperties.desaturateIdBoost;
       return 0;
     },
 
@@ -47,7 +44,7 @@ tv.exportTo('tv.c', function() {
     },
 
     getSliceAlpha: function(slice, async) {
-      var alpha = this.getAlpha_(slice);
+      var alpha = 1;
       if (async)
         alpha *= 0.3;
       return alpha;
@@ -75,7 +72,6 @@ tv.exportTo('tv.c', function() {
       var event = {selectionState: selectionState};
       return tv.b.ui.colorToRGBAString(
           paletteRaw[colorId + this.getColorIdOffset_(event)],
-          this.getAlpha_(event) *
               (opt_alphaMultiplier !== undefined ? opt_alphaMultiplier : 1.0));
     },
 
