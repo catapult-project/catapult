@@ -63,7 +63,7 @@ tv.exportTo('tv.c', function() {
         return false;
 
       return matchLower(slice.title, this.text_) ||
-          (slice.category && matchLower(slice.category, this.text_));
+          (!!slice.category && matchLower(slice.category, this.text_));
     }
   };
 

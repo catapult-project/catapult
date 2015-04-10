@@ -12,19 +12,25 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   var brighten = tv.b.ui.brightenColor;
+  var desaturate = tv.b.ui.desaturateColor;
 
   test('buildColorPalette', function() {
     var palette = tv.b.ui.getColorPalette();
     var rawPalette = tv.b.ui.getRawColorPalette();
     var highlightOffset = tv.b.ui.getColorPaletteHighlightIdBoost();
+    var desaturateOffset = tv.b.ui.getColorPaletteDesaturateIdBoost();
 
     assert.strictEqual(palette.length, rawPalette.length);
-    assert.equal(palette.length % 2, 0);
-    assert.equal(palette.length / 2, highlightOffset);
+    assert.equal(palette.length % 3, 0);
+    assert.equal(palette.length / 3, highlightOffset);
+    assert.equal((palette.length / 3) * 2, desaturateOffset);
 
-    for (var i = 0; i < rawPalette.length / 2; i++)
+    for (var i = 0; i < rawPalette.length / 3; i++) {
       assert.deepEqual(rawPalette[i + highlightOffset],
                        brighten(rawPalette[i]));
+      assert.deepEqual(rawPalette[i + desaturateOffset],
+                       desaturate(rawPalette[i]));
+    }
   });
 });
 </script>
