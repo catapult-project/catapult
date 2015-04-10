@@ -5,9 +5,10 @@
 _check_webgl_supported_script = """
 (function () {
   var c = document.createElement('canvas');
-  var gl = c.getContext('webgl');
+  var gl = c.getContext('webgl', { failIfMajorPerformanceCaveat: true });
   if (gl == null) {
-    gl = c.getContext("experimental-webgl");
+    gl = c.getContext('experimental-webgl',
+        { failIfMajorPerformanceCaveat: true });
     if (gl == null) {
       return false;
     }
