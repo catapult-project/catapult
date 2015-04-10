@@ -58,6 +58,13 @@ found in the LICENSE file.
       <tr>
         <td>Active slices:</td><td id="running-thread"></td>
       </tr>
+      <tr>
+        <td>Args:</td>
+        <td>
+          <tv-c-analysis-generic-object-view id="args">
+          </tv-c-analysis-generic-object-view>
+        </td>
+      </tr>
     </table>
   </template>
 
@@ -94,6 +101,7 @@ found in the LICENSE file.
             'none';
         shadowRoot.querySelector('#thread-name').textContent = cpuSlice.title;
       }
+
       shadowRoot.querySelector('#start').textContent =
           tv.c.analysis.tsString(cpuSlice.start);
 
@@ -112,6 +120,9 @@ found in the LICENSE file.
         runningThreadEl.textContent = '';
         runningThreadEl.appendChild(threadLink);
       }
+
+      shadowRoot.querySelector('#args').object = cpuSlice.args;
+
     }
   });
   </script>
