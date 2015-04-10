@@ -46,6 +46,10 @@ tv.exportTo('tv.c.trace_model', function() {
       return this.guid_;
     },
 
+    // Invoked by trace model when this annotation is removed.
+    onRemove: function() {
+    },
+
     toDict: function() {
       throw new Error('Not implemented');
     },

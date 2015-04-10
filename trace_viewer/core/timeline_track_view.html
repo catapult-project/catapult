@@ -612,7 +612,7 @@ tv.exportTo('tv.c', function() {
       this.viewport_.queueDisplayTransformAnimation(animation);
     },
 
-    navToPosition: function(uiState) {
+    navToPosition: function(uiState, showNavLine) {
       var location = uiState.location;
       var scaleX = uiState.scaleX;
       var track = location.getContainingTrack(this.viewport_);
@@ -632,6 +632,8 @@ tv.exportTo('tv.c', function() {
           zoomInRatio);
       this.viewport_.queueDisplayTransformAnimation(animation);
 
+      if (!showNavLine)
+        return;
       // Add an X Marker Annotation at the specified timestamp.
       if (this.xNavStringMarker_)
         this.model.removeAnnotation(this.xNavStringMarker_);

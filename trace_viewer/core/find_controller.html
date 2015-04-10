@@ -110,7 +110,7 @@ tv.exportTo('tv.c', function() {
       }
 
       if (stateFromString !== undefined) {
-        this.timeline.navToPosition(stateFromString);
+        this.timeline.navToPosition(stateFromString, true);
       } else {
         // filterText is not a navString here -- proceed with find and filter.
         if (this.filterText.length === 0)

@@ -179,6 +179,7 @@ tv.exportTo('tv.c.tracks', function() {
         this.annotationViews_.push(
             annotations[i].getOrCreateView(this.viewport_));
       }
+      this.invalidateDrawingContainer();
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {

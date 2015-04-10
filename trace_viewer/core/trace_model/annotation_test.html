@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/location.html">
+<link rel="import" href="/core/trace_model/comment_box_annotation.html">
 <link rel="import" href="/core/trace_model/rect_annotation.html">
 <link rel="import" href="/core/trace_model/x_marker_annotation.html">
 <link rel="import" href="/core/test_utils.html">
@@ -27,6 +28,16 @@ tv.b.unittest.testSuite(function() {
   test('xMarkerAnnotation', function() {
     var xMarkerAnnotation = new tv.c.trace_model.XMarkerAnnotation(2000);
     assert.equal(xMarkerAnnotation.timestamp, 2000);
+  });
+
+  test('commentBoxAnnotation', function() {
+    var fakeYComponents = [{stableId: '1.2', yPercentOffset: 0.5}];
+    var location = new tv.c.Location(50, fakeYComponents);
+    var text = 'test';
+    var commentBoxAnnotation =
+        new tv.c.trace_model.CommentBoxAnnotation(location, text);
+    assertEquals(location, commentBoxAnnotation.location);
+    assertEquals(text, commentBoxAnnotation.text);
   });
 });
 </script>

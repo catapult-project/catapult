@@ -309,6 +309,7 @@ tv.exportTo('tv.c', function() {
     },
 
     removeAnnotation: function(annotation) {
+      this.annotationsByGuid_[annotation.guid].onRemove();
       delete this.annotationsByGuid_[annotation.guid];
       tv.b.dispatchSimpleEvent(this, 'annotationChange');
     },

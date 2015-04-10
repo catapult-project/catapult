@@ -527,6 +527,11 @@ tv.exportTo('tv.c', function() {
     get listenToKeys_() {
       if (!tv.b.ui.isElementAttachedToDocument(this))
         return;
+      if (document.activeElement.type === 'textarea')
+        return false;
+      if (this.sidePanelContainer_.activePanel &&
+          this.sidePanelContainer_.activePanel.listeningToKeys)
+        return false;
       if (!this.focusElement_)
         return true;
       if (this.focusElement.tabIndex >= 0)
