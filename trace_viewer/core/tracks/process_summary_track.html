@@ -64,7 +64,7 @@ tv.exportTo('tv.c.tracks', function() {
         end: end,
         duration: end - start,
         colorId: slice ? slice.colorId : genericColorId,
-        title: slice ? slice.title : undefined
+        title: slice ? slice.title : ''
       });
     }
     var depth = 0;
