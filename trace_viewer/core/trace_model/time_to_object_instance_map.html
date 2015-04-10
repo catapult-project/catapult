@@ -57,7 +57,7 @@ tv.exportTo('tv.c.trace_model', function() {
             this.parent, this.id, category, name, ts, opt_baseTypeName));
       }
 
-      var i = tv.b.findLowIndexInSortedIntervals(
+      var i = tv.b.findIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },
@@ -151,7 +151,7 @@ tv.exportTo('tv.c.trace_model', function() {
     },
 
     getInstanceAt: function(ts) {
-      var i = tv.b.findLowIndexInSortedIntervals(
+      var i = tv.b.findIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },

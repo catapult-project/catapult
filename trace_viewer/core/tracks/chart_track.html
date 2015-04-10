@@ -309,6 +309,7 @@ tv.exportTo('tv.c.tracks', function() {
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
 
+      var chart = this.chart_;
       function getSampleWidth(x, i) {
         if (i === chart.timestamps.length - 1) {
           var dt = this.viewport.currentDisplayTransform;
@@ -318,31 +319,22 @@ tv.exportTo('tv.c.tracks', function() {
         return chart.timestamps[i + 1] - chart.timestamps[i];
       }
 
-      var chart = this.chart_;
-      var iLo = tv.b.findLowIndexInSortedIntervals(chart.timestamps,
-                                                   function(x) { return x; },
-                                                   getSampleWidth.bind(this),
-                                                   loWX);
-      var iHi = tv.b.findLowIndexInSortedIntervals(chart.timestamps,
-                                                   function(x) { return x; },
-                                                   getSampleWidth.bind(this),
-                                                   hiWX);
-
-      // Iterate over every sample intersecting..
-      for (var sampleIndex = iLo; sampleIndex <= iHi; sampleIndex++) {
-        if (sampleIndex < 0)
-          continue;
-        if (sampleIndex >= chart.timestamps.length)
-          continue;
-
+      function selectSample(timestamp, sampleIndex) {
         // TODO(nduca): Pick the seriesIndexHit based on the loY - hiY values.
         for (var seriesIndex = 0;
-             seriesIndex < this.chart.numSeries;
+             seriesIndex < chart.numSeries;
              seriesIndex++) {
-          var series = this.chart.series[seriesIndex];
+          var series = chart.series[seriesIndex];
           this.addValueToSelection(series.samples[sampleIndex], selection);
         }
       }
+
+      tv.b.iterateOverIntersectingIntervals(chart.timestamps,
+                                            function(x) { return x; },
+                                            getSampleWidth.bind(this),
+                                            loWX,
+                                            hiWX,
+                                            selectSample.bind(this));
     },
 
     addItemNearToProvidedEventToSelection: function(sample, offset, selection) {

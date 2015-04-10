@@ -54,9 +54,8 @@ tv.exportTo('tv.b', function() {
   }
 
   /**
-   * Finds an index in an array of intervals that either
-   * intersects the provided loVal, or if no intersection is found,
-   * the index of the first interval whose start is > loVal.
+   * Finds an index in an array of intervals that either intersects
+   * the provided loVal, or if no intersection is found, ary.length.
    *
    * The array of intervals is defined implicitly via two mapping functions
    * over the provided ary. mapLoFn determines the lower value of the interval,
@@ -76,7 +75,7 @@ tv.exportTo('tv.b', function() {
    *     loVal, -1 if none found and loVal is below than all the intervals,
    *     ary.length if loVal is greater than all the intervals.
    */
-  function findLowIndexInSortedIntervals(ary, mapLoFn, mapWidthFn, loVal) {
+  function findIndexInSortedIntervals(ary, mapLoFn, mapWidthFn, loVal) {
     var first = findLowIndexInSortedArray(ary, mapLoFn, loVal);
     if (first == 0) {
       if (loVal >= mapLoFn(ary[0]) &&
@@ -142,7 +141,7 @@ tv.exportTo('tv.b', function() {
     if (i > 0) {
       var hi = mapLoFn(ary[i - 1]) + mapWidthFn(ary[i - 1], i - 1);
       if (hi >= loVal) {
-        cb(ary[i - 1]);
+        cb(ary[i - 1], i - 1);
       }
     }
     if (i == ary.length) {
@@ -153,7 +152,7 @@ tv.exportTo('tv.b', function() {
       var lo = mapLoFn(ary[i]);
       if (lo >= hiVal)
         break;
-      cb(ary[i]);
+      cb(ary[i], i);
     }
   }
 
@@ -254,7 +253,7 @@ tv.exportTo('tv.b', function() {
 
   return {
     findLowIndexInSortedArray: findLowIndexInSortedArray,
-    findLowIndexInSortedIntervals: findLowIndexInSortedIntervals,
+    findIndexInSortedIntervals: findIndexInSortedIntervals,
     iterateOverIntersectingIntervals: iterateOverIntersectingIntervals,
     getIntersectingIntervals: getIntersectingIntervals,
     findClosestElementInSortedArray: findClosestElementInSortedArray,

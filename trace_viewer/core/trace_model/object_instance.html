@@ -130,7 +130,7 @@ tv.exportTo('tv.c.trace_model', function() {
         throw new Error('ts must be within lifetime of this instance');
 
       var snapshots = this.snapshots;
-      var i = tv.b.findLowIndexInSortedIntervals(
+      var i = tv.b.findIndexInSortedIntervals(
           snapshots,
           function(snapshot) { return snapshot.ts; },
           function(snapshot, i) {

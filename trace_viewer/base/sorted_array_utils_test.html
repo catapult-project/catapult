@@ -26,8 +26,8 @@ tv.b.unittest.testSuite(function() {
           ts);
     },
 
-    findLowIntervalIndex: function(ts) {
-      return tv.b.findLowIndexInSortedIntervals(
+    findIntervalIndex: function(ts) {
+      return tv.b.findIndexInSortedIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi - x.lo; },
@@ -84,30 +84,30 @@ tv.b.unittest.testSuite(function() {
     assert.equal(array.findLowElementIndex(100), 2);
   });
 
-  test('findLowIntervalIndex', function() {
+  test('findIntervalIndex', function() {
     var array = new ArrayOfIntervals([
       {lo: 10, hi: 15},
       {lo: 20, hi: 30}
     ]);
 
-    assert.equal(array.findLowIntervalIndex(0), -1);
-    assert.equal(array.findLowIntervalIndex(9.9), -1);
+    assert.equal(array.findIntervalIndex(0), -1);
+    assert.equal(array.findIntervalIndex(9.9), -1);
 
-    assert.equal(array.findLowIntervalIndex(10), 0);
-    assert.equal(array.findLowIntervalIndex(12), 0);
-    assert.equal(array.findLowIntervalIndex(14.9), 0);
+    assert.equal(array.findIntervalIndex(10), 0);
+    assert.equal(array.findIntervalIndex(12), 0);
+    assert.equal(array.findIntervalIndex(14.9), 0);
 
-    // These two are a little odd... the return is correct in that
-    // it was not found, but its neither below, nor above. Whatever.
-    assert.equal(array.findLowIntervalIndex(15), 2);
-    assert.equal(array.findLowIntervalIndex(19.9), 2);
+    assert.equal(array.findIntervalIndex(20), 1);
+    assert.equal(array.findIntervalIndex(21), 1);
+    assert.equal(array.findIntervalIndex(29.99), 1);
 
-    assert.equal(array.findLowIntervalIndex(20), 1);
-    assert.equal(array.findLowIntervalIndex(21), 1);
-    assert.equal(array.findLowIntervalIndex(29.99), 1);
+    assert.equal(array.findIntervalIndex(30), 2);
+    assert.equal(array.findIntervalIndex(40), 2);
 
-    assert.equal(array.findLowIntervalIndex(30), 2);
-    assert.equal(array.findLowIntervalIndex(40), 2);
+
+    // misses, in between the intervals, return array length
+    assert.equal(array.findIntervalIndex(15), 2);
+    assert.equal(array.findIntervalIndex(19.9), 2);
   });
 
   test('findIntersectingIntervals', function() {
