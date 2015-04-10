@@ -420,16 +420,21 @@ tv.exportTo('tv.c.trace_model', function() {
     // to the end-time and start-time of the input slice, respectively) we
     // split all of the currently open slices from groupB.
 
-    if (groupA.openPartialSlices_.length > 0) {
+    if (groupA.openPartialSlices_.length > 0)
       throw new Error('groupA has open partial slices');
-    }
-    if (groupB.openPartialSlices_.length > 0) {
+
+    if (groupB.openPartialSlices_.length > 0)
       throw new Error('groupB has open partial slices');
-    }
+
     if (groupA.parentThread != groupB.parentThread)
       throw new Error('Different parent threads. Cannot merge');
 
-    var result = new SliceGroup(groupA.parentThread);
+    if (groupA.sliceConstructor != groupB.sliceConstructor)
+      throw new Error('Different slice constructors. Cannot merge');
+
+    var result = new SliceGroup(groupA.parentThread,
+                                groupA.sliceConstructor,
+                                groupA.name_);
 
     var slicesA = groupA.slices;
     var slicesB = groupB.slices;

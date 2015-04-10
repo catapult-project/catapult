@@ -143,8 +143,10 @@ tv.exportTo('tv.c', function() {
             maxEventTypeInfo = eventTypeInfo;
           }
         });
-        if (maxEventIndex == -1)
+        if (maxEventIndex == -1) {
+          console.log(event);
           throw new Error('Unrecgonized event type');
+        }
         events[maxEventTypeInfo.metadata.name].push(event);
       });
       if (opt_pruneEmpty) {

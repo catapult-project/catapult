@@ -236,9 +236,19 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('basicMerge', function() {
+    function TestSlice(
+        cat, title, colorId, start, args, opt_duration,
+        opt_cpuStart, opt_cpuDuration) {
+      Slice.call(this, cat, title, colorId, start, args, opt_duration,
+                 opt_cpuStart, opt_cpuDuration);
+    }
+    TestSlice.prototype = {
+      __proto__: Slice.prototype
+    };
+
     var thread = {};
-    var a = new SliceGroup(thread);
-    var b = new SliceGroup(thread);
+    var a = new SliceGroup(thread, TestSlice);
+    var b = new SliceGroup(thread, TestSlice);
     a.beginSlice('', 'one', 1);
     a.endSlice(2);
     b.beginSlice('', 'two', 3);
@@ -254,6 +264,9 @@ tv.b.unittest.testSuite(function() {
     assert.equal(m.slices[1].title, 'two');
     assert.equal(m.slices[1].start, 3);
     assert.equal(m.slices[1].duration, 2);
+
+    // ensure constructor merged correctly
+    assert.equal(m.sliceConstructor, TestSlice);
   });
 
   test('nestedMerge', function() {

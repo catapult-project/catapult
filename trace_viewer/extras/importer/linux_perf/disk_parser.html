@@ -78,7 +78,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
           slice.args = args;
           slice.endThread = kthread.thread;
           slice.subSlices = [
-            new tv.c.trace_model.Slice(category, slice.title,
+            new tv.c.trace_model.AsyncSlice(category, slice.title,
                 slice.colorId, slice.start, slice.args, slice.duration)
           ];
           kthread.thread.asyncSliceGroup.push(slice);
