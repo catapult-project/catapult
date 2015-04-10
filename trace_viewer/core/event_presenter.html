@@ -24,6 +24,10 @@ tv.exportTo('tv.c', function() {
    * Provides methods to get view values for events.
    */
   var EventPresenter = {
+    getSelectableItemColor: function(item) {
+      var colorId = item.colorId + this.getColorIdOffset_(item);
+      return palette[colorId];
+    },
 
     getColorIdOffset_: function(event) {
       if (event.selectionState === SelectionState.SELECTED)
