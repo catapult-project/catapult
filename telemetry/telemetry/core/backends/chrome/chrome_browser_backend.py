@@ -188,7 +188,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def _WaitForBrowserToComeUp(self):
     """ Wait for browser to come up. """
     try:
-      util.WaitFor(self.HasBrowserFinishedLaunching, timeout=30)
+      timeout = self.browser_options.browser_startup_timeout
+      util.WaitFor(self.HasBrowserFinishedLaunching, timeout=timeout)
     except (exceptions.TimeoutException, exceptions.ProcessGoneException) as e:
       if not self.IsBrowserRunning():
         raise exceptions.BrowserGoneException(self.browser, e)

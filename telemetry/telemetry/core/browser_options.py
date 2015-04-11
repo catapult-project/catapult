@@ -223,6 +223,10 @@ class BrowserOptions(object):
     self.wpr_mode = wpr_modes.WPR_OFF
     self.netsim = None
 
+    # The amount of time Telemetry should wait for the browser to start.
+    # This property is not exposed as a command line option.
+    self._browser_startup_timeout = 30
+
     self.disable_background_networking = True
     self.no_proxy_server = False
     self.browser_user_agent_type = None
@@ -365,6 +369,14 @@ class BrowserOptions(object):
   @property
   def extra_browser_args(self):
     return self._extra_browser_args
+
+  @property
+  def browser_startup_timeout(self):
+    return self._browser_startup_timeout
+
+  @browser_startup_timeout.setter
+  def browser_startup_timeout(self, value):
+    self._browser_startup_timeout = value
 
   def AppendExtraBrowserArgs(self, args):
     if isinstance(args, list):
