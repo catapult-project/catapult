@@ -8,6 +8,7 @@ from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.timeline import model as model_module
 from telemetry.value import trace
+from telemetry.web_perf.metrics import gpu_timeline
 from telemetry.web_perf.metrics import layout
 from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.web_perf.metrics import smoothness
@@ -35,7 +36,8 @@ def _GetAllTimelineBasedMetrics():
   # This cannot be done until crbug.com/460208 is fixed.
   return (smoothness.SmoothnessMetric(),
           responsiveness_metric.ResponsivenessMetric(),
-          layout.LayoutMetric())
+          layout.LayoutMetric(),
+          gpu_timeline.GPUTimelineMetric())
 
 
 class InvalidInteractions(Exception):

@@ -2,8 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import wpr_modes
 from telemetry import decorators
+from telemetry.core import wpr_modes
+from telemetry.core.platform import tracing_category_filter
 from telemetry.page import page as page_module
 from telemetry.unittest_util import browser_test_case
 from telemetry.unittest_util import options_for_unittests
@@ -66,6 +67,32 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     v = results.FindAllPageSpecificValuesNamed(
         'DrawerAnimation-frame_time_discrepancy')
     self.assertEquals(len(v), 1)
+
+  # This test should eventually work on all platforms, but currently this
+  # this metric is flaky on desktop: crbug.com/453131
+  @decorators.Enabled('android')
+  def testGPUTimesTimelineBasedMeasurementForSmoke(self):
+    ps = self.CreateEmptyPageSet()
+    ps.AddUserStory(TestTimelinebasedMeasurementPage(
+        ps, ps.base_dir, trigger_animation=True))
+
+    cat_filter = tracing_category_filter.TracingCategoryFilter(
+        'disabled-by-default-gpu.service')
+    tbm_option = tbm_module.Options(overhead_level=cat_filter)
+    tbm = tbm_module.TimelineBasedMeasurement(tbm_option)
+    measurement = tbpt_module.TimelineBasedPageTest(tbm)
+    results = self.RunMeasurement(measurement, ps,
+                                  options=self._options)
+
+    self.assertEquals(0, len(results.failures))
+    v = results.FindAllPageSpecificValuesNamed(
+        'CenterAnimation-browser_compositor_max_cpu_time')
+    self.assertEquals(len(v), 1)
+    self.assertGreater(v[0].value, 0)
+    v = results.FindAllPageSpecificValuesNamed(
+        'DrawerAnimation-browser_compositor_max_cpu_time')
+    self.assertEquals(len(v), 1)
+    self.assertGreater(v[0].value, 0)
 
   # Disabled since mainthread_jank metric is not supported on windows platform.
   # Also, flaky on the mac when run in parallel: crbug.com/426676
