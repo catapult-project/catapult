@@ -36,8 +36,8 @@ tv.b.unittest.testSuite(function() {
     var text = 'test';
     var commentBoxAnnotation =
         new tv.c.trace_model.CommentBoxAnnotation(location, text);
-    assertEquals(location, commentBoxAnnotation.location);
-    assertEquals(text, commentBoxAnnotation.text);
+    assert.equal(location, commentBoxAnnotation.location);
+    assert.equal(text, commentBoxAnnotation.text);
   });
 });
 </script>
