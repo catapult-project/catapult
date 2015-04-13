@@ -239,6 +239,7 @@ tv.b.unittest.testSuite(function() {
   test('canImport', function() {
     assert.isTrue(V8LogImporter.canImport(
         'timer-event,"V8.External",38189483,3'));
+    assert.isTrue(V8LogImporter.canImport('v8-version,4,3,66,0,0'));
     assert.isFalse(V8LogImporter.canImport(''));
     assert.isFalse(V8LogImporter.canImport([]));
   });
