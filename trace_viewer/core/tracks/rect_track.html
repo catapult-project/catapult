@@ -70,7 +70,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.c.tracks.DrawType.SLICE:
+        case tv.c.tracks.DrawType.GENERAL_EVENT:
           this.drawRects_(viewLWorld, viewRWorld);
           break;
       }

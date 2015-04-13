@@ -78,13 +78,13 @@ tv.exportTo('tv.c.tracks', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.c.tracks.DrawType.SLICE:
-          this.drawSlices_(viewLWorld, viewRWorld);
+        case tv.c.tracks.DrawType.GENERAL_EVENT:
+          this.drawLetterDots_(viewLWorld, viewRWorld);
           break;
       }
     },
 
-    drawSlices_: function(viewLWorld, viewRWorld) {
+    drawLetterDots_: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 

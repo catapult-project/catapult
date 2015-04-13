@@ -76,13 +76,13 @@ tv.exportTo('tv.e.tcmalloc', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.c.tracks.DrawType.SLICE:
-          this.drawSlices_(viewLWorld, viewRWorld);
+        case tv.c.tracks.DrawType.GENERAL_EVENT:
+          this.drawEvents_(viewLWorld, viewRWorld);
           break;
       }
     },
 
-    drawSlices_: function(viewLWorld, viewRWorld) {
+    drawEvents_: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 

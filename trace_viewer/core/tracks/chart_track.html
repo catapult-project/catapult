@@ -83,13 +83,13 @@ tv.exportTo('tv.c.tracks', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.c.tracks.DrawType.SLICE:
-          this.drawSlices_(viewLWorld, viewRWorld);
+        case tv.c.tracks.DrawType.GENERAL_EVENT:
+          this.drawChart_(viewLWorld, viewRWorld);
           break;
       }
     },
 
-    drawSlices_: function(viewLWorld, viewRWorld) {
+    drawChart_: function(viewLWorld, viewRWorld) {
       var highDetails = this.viewport.highDetails;
 
       var ctx = this.context();
