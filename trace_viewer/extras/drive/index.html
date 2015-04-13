@@ -403,6 +403,7 @@ found in the LICENSE file.
       p.then(
           function() {
             timelineViewEl_.model = m;
+            timelineViewEl_.updateDocumentFavicon();
             timelineViewEl_.tabIndex = 1;
             if (timelineViewEl_.timeline)
               timelineViewEl_.timeline.focusElement = timelineViewEl_;
