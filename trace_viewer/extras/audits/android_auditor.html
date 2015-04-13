@@ -23,9 +23,7 @@ tv.exportTo('tv.e.audits', function() {
   var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
   var Statistics = tv.b.Statistics;
   var FRAME_PERF_CLASS = tv.c.trace_model.FRAME_PERF_CLASS;
-
   var InteractionRecord = tv.c.trace_model.InteractionRecord;
-
   var Alert = tv.c.trace_model.Alert;
   var AlertType = tv.c.trace_model.AlertType;
   var ALERT_SEVERITY = tv.c.trace_model.ALERT_SEVERITY;
@@ -430,8 +428,11 @@ tv.exportTo('tv.e.audits', function() {
         var previousSlice = thread.timeSlices[i - 1];
         var timeDiff = slice.start - previousSlice.start;
 
-        if (slice.threadState == SCHEDULING_STATE.RUNNING &&
-            previousSlice.threadState == SCHEDULING_STATE.RUNNABLE &&
+        var schedState = slice.schedulingState;
+        var prevSchedState = previousSlice.schedulingState;
+
+        if (schedState == SCHEDULING_STATE.RUNNING &&
+            prevSchedState == SCHEDULING_STATE.RUNNABLE &&
             timeDiff > MAX_TIME_UNSCHEDULED) {
           var alertType = new tv.c.trace_model.AlertType(
             'Scheduling delay',
@@ -444,7 +445,7 @@ tv.exportTo('tv.e.audits', function() {
               [previousSlice, slice],
               {'delay': timeDiff});
           this.model.alerts.push(alert);
-        } else if (previousSlice.threadState == SCHEDULING_STATE.UNINTR_SLEEP &&
+        } else if (prevSchedState == SCHEDULING_STATE.UNINTR_SLEEP &&
               timeDiff > MAX_TIME_BLOCKING_IO) {
           var alertType = new tv.c.trace_model.AlertType(
             'Blocking I/O delay',

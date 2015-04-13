@@ -17,6 +17,8 @@ tv.b.unittest.testSuite(function() {
   var Thread = tv.c.trace_model.Thread;
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
   var newAsyncSlice = tv.c.test_utils.newAsyncSlice;
+  var newThreadSlice = tv.c.test_utils.newThreadSlice;
+  var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
 
   test('threadBounds_Empty', function() {
     var model = new tv.c.TraceModel();
@@ -90,6 +92,46 @@ tv.b.unittest.testSuite(function() {
 
     assert.equal(shiftCount, 1);
     assert.equal(t.sliceGroup.slices[0].start, 0.32);
+  });
+
+  test('getSchedulingStatsForRange', function() {
+    var scheduledThread = undefined;
+    var unscheduledThread = undefined;
+    var model = tv.c.test_utils.newModel(function(model) {
+      unscheduledThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      unscheduledThread.sliceGroup.pushSlice(newSliceNamed('work', 0, 20));
+
+      scheduledThread = model.getOrCreateProcess(2).getOrCreateThread(2);
+      scheduledThread.sliceGroup.pushSlice(newSliceNamed('work', 0, 20));
+      scheduledThread.timeSlices = [
+          newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNING, 0, 3),
+          newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNABLE, 3, 5),
+          newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNING, 8, 2),
+          newThreadSlice(scheduledThread, SCHEDULING_STATE.SLEEPING, 10, 10)
+      ];
+    });
+
+    // thread without scheduling states
+    var stats = unscheduledThread.getSchedulingStatsForRange(0, 20);
+    assert.deepEqual(stats, {});
+
+    // no scheduling info
+    var stats = scheduledThread.getSchedulingStatsForRange(50, 100);
+    assert.deepEqual(stats, {});
+
+    // simple query
+    var stats = scheduledThread.getSchedulingStatsForRange(0, 3);
+    var expected = {};
+    expected[SCHEDULING_STATE.RUNNING] = 3;
+    assert.deepEqual(stats, expected);
+
+    // aggregation
+    var stats = scheduledThread.getSchedulingStatsForRange(0, 20);
+    var expected = {};
+    expected[SCHEDULING_STATE.RUNNING] = 5;
+    expected[SCHEDULING_STATE.RUNNABLE] = 5;
+    expected[SCHEDULING_STATE.SLEEPING] = 10;
+    assert.deepEqual(stats, expected);
   });
 });
 </script>

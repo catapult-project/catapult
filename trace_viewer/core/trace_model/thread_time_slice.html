@@ -46,12 +46,13 @@ tv.exportTo('tv.c.trace_model', function() {
    *
    * @constructor
    */
-  function ThreadTimeSlice(
-      thread, threadState, cat, start, args, opt_duration) {
-    Slice.call(this, cat, threadState, this.getColorForState_(threadState),
+  function ThreadTimeSlice(thread, schedulingState, cat,
+                           start, args, opt_duration) {
+    Slice.call(this, cat, schedulingState,
+               this.getColorForState_(schedulingState),
         start, args, opt_duration);
     this.thread = thread;
-    this.threadState = threadState;
+    this.schedulingState = schedulingState;
     this.cpuOnWhichThreadWasRunning = undefined;
   }
 
