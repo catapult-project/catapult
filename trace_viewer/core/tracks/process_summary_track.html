@@ -60,7 +60,7 @@ tv.exportTo('tv.c.tracks', function() {
     var genericColorId = tv.b.ui.getColorIdForReservedName('generic_work');
     var pushRect = function(start, end, slice) {
       rects.push(new tv.c.tracks.Rect(
-          undefined, /* modelItem */  // Not selectable.
+          slice, /* modelItem: show selection state of slice if present */
           slice ? slice.title : '', /* title */
           slice ? slice.colorId : genericColorId, /* colorId */
           start, /* start */
