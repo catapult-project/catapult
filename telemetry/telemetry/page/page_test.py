@@ -207,14 +207,10 @@ class PageTest(object):
 
   def RunPage(self, page, tab, results):
     # Run actions.
-    interactive = self.options and self.options.interactive
     action_runner = action_runner_module.ActionRunner(
         tab, skip_waits=page.skip_waits)
     self.WillRunActions(page, tab)
-    if interactive:
-      action_runner.PauseInteractive()
-    else:
-      page.RunPageInteractions(action_runner)
+    page.RunPageInteractions(action_runner)
     self.DidRunActions(page, tab)
     self.ValidateAndMeasurePage(page, tab, results)
 
