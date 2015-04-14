@@ -23,9 +23,8 @@ class BasicTestPage(page_module.Page):
     super(BasicTestPage, self).__init__(url, page_set, base_dir)
 
   def RunPageInteractions(self, action_runner):
-    interaction = action_runner.BeginGestureInteraction('ScrollAction')
-    action_runner.ScrollPage()
-    interaction.End()
+    with action_runner.CreateGestureInteraction('ScrollAction'):
+      action_runner.ScrollPage()
 
 
 class EmptyMetadataForTest(benchmark.BenchmarkMetadata):

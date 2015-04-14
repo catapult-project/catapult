@@ -35,9 +35,8 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
       action_runner.TapElement('#slow-button')
       action_runner.WaitForJavaScriptCondition('window.slowScriptDone')
     if self._trigger_scroll_gesture:
-      interaction = action_runner.BeginGestureInteraction('Scroll')
-      action_runner.ScrollPage()
-      interaction.End()
+      with action_runner.CreateGestureInteraction('Scroll'):
+        action_runner.ScrollPage()
 
 
 class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
