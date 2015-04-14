@@ -147,6 +147,11 @@ found in the LICENSE file.
           supported: false,
           reason: 'Unknown tracing model'
         };
+      } else if (m.alerts.length === 0) {
+        return {
+          supported: false,
+          reason: 'No alerts in tracing model'
+        };
       }
 
       return {

@@ -180,6 +180,7 @@ found in the LICENSE file.
         } else {
           labelEl.title = 'Not supported for the current trace: ' +
               supported.reason;
+          labelEl.style.display = 'none';
         }
         this.tabStrip_.appendChild(labelEl);
       }, this);
