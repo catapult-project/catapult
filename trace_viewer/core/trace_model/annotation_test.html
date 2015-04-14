@@ -6,8 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/location.html">
+<link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/core/timeline_viewport.html">
 <link rel="import" href="/core/trace_model/comment_box_annotation.html">
 <link rel="import" href="/core/trace_model/rect_annotation.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/core/trace_model/x_marker_annotation.html">
 <link rel="import" href="/core/test_utils.html">
 
@@ -16,28 +19,58 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
 
+  function createPopulatedTimeline() {
+    var model = new tv.c.TraceModel();
+    var process = model.getOrCreateProcess(1);
+    var thread = process.getOrCreateThread(2);
+    thread.sliceGroup.pushSlice(tv.c.test_utils.newSliceNamed('a', 80, 50));
+
+    var timeline = new tv.c.TimelineTrackView();
+    var vp = new tv.c.TimelineViewport(timeline);
+    timeline.model = model;
+    timeline.focusElement = timeline;
+    timeline.tabIndex = 0;
+    timeline.style.maxHeight = '600px';
+
+    return timeline;
+  }
+
   test('rectAnnotation', function() {
-    var fakeYComponents = [{stableId: '1.2', yPercentOffset: 0.5}];
-    var start = new tv.c.Location(50, fakeYComponents);
-    var end = new tv.c.Location(70, fakeYComponents);
+    var fakeYComponents1 = [{stableId: '1.2', yPercentOffset: 0.3}];
+    var fakeYComponents2 = [{stableId: '1.2', yPercentOffset: 0.9}];
+    var start = new tv.c.Location(50, fakeYComponents1);
+    var end = new tv.c.Location(100, fakeYComponents2);
     var rectAnnotation = new tv.c.trace_model.RectAnnotation(start, end);
     assert.equal(rectAnnotation.startLocation, start);
     assert.equal(rectAnnotation.endLocation, end);
+
+    var timeline = createPopulatedTimeline();
+    timeline.model.addAnnotation(rectAnnotation);
+    this.addHTMLOutput(timeline);
   });
 
   test('xMarkerAnnotation', function() {
-    var xMarkerAnnotation = new tv.c.trace_model.XMarkerAnnotation(2000);
-    assert.equal(xMarkerAnnotation.timestamp, 2000);
+    var xMarkerAnnotation = new tv.c.trace_model.XMarkerAnnotation(90);
+    assert.equal(xMarkerAnnotation.timestamp, 90);
+
+    var timeline = createPopulatedTimeline();
+    var model = timeline.model;
+    timeline.model.addAnnotation(xMarkerAnnotation);
+    this.addHTMLOutput(timeline);
   });
 
   test('commentBoxAnnotation', function() {
     var fakeYComponents = [{stableId: '1.2', yPercentOffset: 0.5}];
-    var location = new tv.c.Location(50, fakeYComponents);
-    var text = 'test';
+    var location = new tv.c.Location(120, fakeYComponents);
+    var text = 'abc';
     var commentBoxAnnotation =
         new tv.c.trace_model.CommentBoxAnnotation(location, text);
-    assert.equal(location, commentBoxAnnotation.location);
-    assert.equal(text, commentBoxAnnotation.text);
+    assert.equal(commentBoxAnnotation.location, location);
+    assert.equal(commentBoxAnnotation.text, text);
+
+    var timeline = createPopulatedTimeline();
+    timeline.model.addAnnotation(commentBoxAnnotation);
+    this.addHTMLOutput(timeline);
   });
 });
 </script>

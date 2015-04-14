@@ -280,7 +280,7 @@ tv.exportTo('tv.c.tracks', function() {
 
         case tv.c.tracks.DrawType.ANNOTATIONS:
           for (var i = 0; i < this.annotationViews_.length; i++) {
-            this.annotationViews_[i].draw(this.context());
+            this.annotationViews_[i].draw(ctx);
           }
           ctx.restore();
           return;

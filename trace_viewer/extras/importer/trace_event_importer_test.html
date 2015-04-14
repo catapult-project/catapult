@@ -2615,6 +2615,41 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(s0.endStackFrame.title, 'frame8');
   });
 
+  test('annotationParsing', function() {
+    var yComponents1 = [{stableId: '52.53', yPercentOffset: 0.5},
+      {stableId: '52', yPercentOffset: 0.3}];
+    var yComponents2 = [{stableId: '52.53', yPercentOffset: 0.7},
+      {stableId: '52', yPercentOffset: 0.4}];
+    var location1 = new tv.c.Location(0.1, yComponents1);
+    var location2 = new tv.c.Location(0.2, yComponents2);
+
+    var eventData = { traceEvents: [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'}],
+      traceAnnotations: [
+        {typeName: 'xmarker', args: {timestamp: 12}},
+        {typeName: 'rect', args: {
+          start: location1.toDict(), end: location2.toDict()}},
+        {typeName: 'comment_box', args: {text: 'test',
+          location: location1.toDict()}}
+      ]};
+
+    var m = new tv.c.TraceModel(eventData);
+    var annotations = m.getAllAnnotations();
+    assert.equal(annotations.length, 3);
+
+    assert.isTrue(annotations[0] instanceof tv.c.trace_model.XMarkerAnnotation);
+    assert.equal(annotations[0].timestamp, 12);
+
+    assert.isTrue(annotations[1] instanceof tv.c.trace_model.RectAnnotation);
+    assert.deepEqual(annotations[1].startLocation, location1);
+    assert.deepEqual(annotations[1].endLocation, location2);
+
+    assert.isTrue(
+        annotations[2] instanceof tv.c.trace_model.CommentBoxAnnotation);
+    assert.equal(annotations[2].text, 'test');
+    assert.deepEqual(annotations[2].location, location1);
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
 
