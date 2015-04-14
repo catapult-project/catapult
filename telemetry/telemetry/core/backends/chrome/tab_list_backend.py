@@ -28,7 +28,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     self._browser_backend.devtools_client.CreateNewTab(timeout)
     return self[-1]
 
-  def CloseTab(self, tab_id, timeout=None):
+  def CloseTab(self, tab_id, timeout=30):
     """Closes the tab with the given debugger_url.
 
     Raises:
@@ -50,7 +50,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
 
     util.WaitFor(lambda: tab_id not in self, timeout=5)
 
-  def ActivateTab(self, tab_id, timeout=None):
+  def ActivateTab(self, tab_id, timeout=30):
     """Activates the tab with the given debugger_url.
 
     Raises:

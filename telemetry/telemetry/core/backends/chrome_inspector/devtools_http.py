@@ -69,6 +69,8 @@ class DevToolsHttp(object):
     Raises:
       DevToolsClientConnectionError: If the connection fails.
     """
+    assert timeout
+
     if not self._conn:
       self._Connect(timeout)
 
