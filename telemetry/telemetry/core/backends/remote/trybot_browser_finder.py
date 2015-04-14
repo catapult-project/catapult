@@ -62,7 +62,6 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
         finder_options.chrome_root or
         finder_options.cros_remote or
         finder_options.extensions_to_load or
-        finder_options.interactive or
         finder_options.profile_dir):
       return False
     return True
