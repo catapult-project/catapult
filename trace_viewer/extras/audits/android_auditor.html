@@ -83,7 +83,7 @@ tv.exportTo('tv.e.audits', function() {
     var saveLayerRegEx = /^(unclipped )?saveLayer (\d+)x(\d+)$/;
 
     var ret = [];
-    var otherSaveSlices = [];
+    var events = [];
 
     frame.events.forEach(function(slice) {
       var match = badAlphaRegEx.exec(slice.title);
@@ -96,17 +96,17 @@ tv.exportTo('tv.e.audits', function() {
         ret.push(new Alert(AndroidAuditor.viewAlphaAlertType_,
                            slice.start, [slice], args));
       } else if (saveLayerRegEx.test(slice.title))
-        otherSaveSlices.push(slice);
+        events.push(slice);
     }, this);
 
-    if (otherSaveSlices.length > ret.length) {
+    if (events.length > ret.length) {
       // more saveLayers than bad alpha can account for - add another alert
 
-      var unclippedSeen = Statistics.sum(otherSaveSlices, function(slice) {
+      var unclippedSeen = Statistics.sum(events, function(slice) {
         return saveLayerRegEx.exec(slice.title)[1] ? 1 : 0;
       });
-      var clippedSeen = otherSaveSlices.length - unclippedSeen;
-      var earliestStart = Statistics.min(otherSaveSlices, function(slice) {
+      var clippedSeen = events.length - unclippedSeen;
+      var earliestStart = Statistics.min(events, function(slice) {
         return slice.start;
       });
 
@@ -114,8 +114,10 @@ tv.exportTo('tv.e.audits', function() {
         'unclipped saveLayer count (especially bad!)': unclippedSeen,
         'clipped saveLayer count': clippedSeen
       };
+
+      events.push(frame);
       ret.push(new Alert(AndroidAuditor.saveLayerAlertType_,
-                         earliestStart, otherSaveSlices, args));
+                         earliestStart, events, args));
     }
 
     return ret;
@@ -130,16 +132,17 @@ tv.exportTo('tv.e.audits', function() {
   AndroidAuditor.getPathAlert_ = function(frame) {
     var uploadRegEx = /^Generate Path Texture$/;
 
-    var slices = frame.events.filter(function(event) {
+    var events = frame.events.filter(function(event) {
       return event.title == 'Generate Path Texture';
     });
-    var start = Statistics.min(slices, getStart);
-    var duration = Statistics.sum(slices, getDuration);
+    var start = Statistics.min(events, getStart);
+    var duration = Statistics.sum(events, getDuration);
 
     if (duration < 3)
       return undefined;
 
-    return new Alert(AndroidAuditor.pathAlertType_, start, slices,
+    events.push(frame);
+    return new Alert(AndroidAuditor.pathAlertType_, start, events,
                      { 'time spent': duration });
   }
 
@@ -169,9 +172,10 @@ tv.exportTo('tv.e.audits', function() {
       return undefined;
 
     var args = { 'pixels uploaded (millions)': pixelsUploaded / 1000000,
-                 'time spent': duration};
+                 'time spent': duration };
+    events.push(frame);
     return new Alert(
-      AndroidAuditor.uploadAlertType_, start, events, args);
+        AndroidAuditor.uploadAlertType_, start, events, args);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -195,6 +199,7 @@ tv.exportTo('tv.e.audits', function() {
     var start = Statistics.min(events, getStart);
     var args = { 'items inflated': events.length / 2,
         'time spent': duration };
+    events.push(frame);
     return new Alert(
         AndroidAuditor.listViewAlertType_, start, events, args);
   }
@@ -214,6 +219,7 @@ tv.exportTo('tv.e.audits', function() {
       return undefined;
 
     var start = Statistics.min(events, getStart);
+    events.push(frame);
     return new Alert(AndroidAuditor.measureLayoutAlertType_, start, events,
                      { 'time spent': duration });
   }
@@ -235,8 +241,8 @@ tv.exportTo('tv.e.audits', function() {
 
     if (!slice || slice.duration < 3)
       return undefined;
-    return new Alert(AndroidAuditor.viewDrawAlertType_, slice.start, [slice],
-                     { 'time spent': slice.duration });
+    return new Alert(AndroidAuditor.viewDrawAlertType_, slice.start,
+                     [slice, frame], { 'time spent': slice.duration });
   }
 
 
@@ -250,16 +256,17 @@ tv.exportTo('tv.e.audits', function() {
       undefined, // TODO: link
       ALERT_SEVERITY.CRITICAL);
   AndroidAuditor.getBlockingGcAlert_ = function(frame) {
-    var slices = frame.events.filter(function(event) {
+    var events = frame.events.filter(function(event) {
       return event.title == 'DVM Suspend' ||
           event.title == 'GC: Wait For Concurrent';
     });
-    var blockedDuration = Statistics.sum(slices, getDuration);
+    var blockedDuration = Statistics.sum(events, getDuration);
     if (blockedDuration < 3)
       return undefined;
 
-    var start = Statistics.min(slices, getStart);
-    return new Alert(AndroidAuditor.blockingGcAlertType_, start, slices,
+    var start = Statistics.min(events, getStart);
+    events.push(frame);
+    return new Alert(AndroidAuditor.blockingGcAlertType_, start, events,
                      { 'blocked duration': blockedDuration });
   };
 
@@ -270,16 +277,17 @@ tv.exportTo('tv.e.audits', function() {
       undefined, // TODO: link
       ALERT_SEVERITY.CRITICAL);
   AndroidAuditor.getLockContentionAlert_ = function(frame) {
-    var slices = frame.events.filter(function(event) {
+    var events = frame.events.filter(function(event) {
       return /^Lock Contention on /.test(event.title);
     });
 
-    var blockedDuration = Statistics.sum(slices, getDuration);
+    var blockedDuration = Statistics.sum(events, getDuration);
     if (blockedDuration < 1)
       return undefined;
 
-    var start = Statistics.min(slices, getStart);
-    return new Alert(AndroidAuditor.lockContentionAlertType_, start, slices,
+    var start = Statistics.min(events, getStart);
+    events.push(frame);
+    return new Alert(AndroidAuditor.lockContentionAlertType_, start, events,
                      { 'blocked duration': blockedDuration });
   };
 

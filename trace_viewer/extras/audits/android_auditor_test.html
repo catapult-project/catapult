@@ -82,7 +82,7 @@ tv.b.unittest.testSuite(function() {
 
     var alert = model.alerts[0];
     assert.equal(alert.args['clipped saveLayer count'], 1);
-    assert.equal(alert.associatedEvents.length, 1);
+    assert.equal(alert.associatedEvents.length, 2);
   });
 
   test('generatePathAlert', function() {
@@ -100,7 +100,7 @@ tv.b.unittest.testSuite(function() {
 
     var alert = model.alerts[0];
     assert.equal(alert.args['time spent'], 9);
-    assert.equal(alert.associatedEvents.length, 2);
+    assert.equal(alert.associatedEvents.length, 3);
   });
 
   test('uploadAlert', function() {
@@ -117,7 +117,7 @@ tv.b.unittest.testSuite(function() {
     var alert = model.alerts[0];
     assert.closeTo(alert.args['pixels uploaded (millions)'], 1, 1e-5);
     assert.equal(alert.args['time spent'], 15);
-    assert.equal(alert.associatedEvents.length, 1);
+    assert.equal(alert.associatedEvents.length, 2);
   });
 
   test('listViewAlert', function() {
@@ -139,7 +139,7 @@ tv.b.unittest.testSuite(function() {
     var alert = model.alerts[0];
     assert.equal(alert.args['items inflated'], 2);
     assert.closeTo(alert.args['time spent'], 20, 1e-5);
-    assert.equal(alert.associatedEvents.length, 4);
+    assert.equal(alert.associatedEvents.length, 5);
   });
 
   test('measureLayoutAlert', function() {
@@ -154,7 +154,7 @@ tv.b.unittest.testSuite(function() {
 
     var alert = model.alerts[0];
     assert.closeTo(alert.args['time spent'], 10, 1e-5);
-    assert.equal(alert.associatedEvents.length, 2);
+    assert.equal(alert.associatedEvents.length, 3);
   });
 
   test('viewDrawAlert', function() {
