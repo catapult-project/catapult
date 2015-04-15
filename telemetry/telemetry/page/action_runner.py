@@ -35,52 +35,6 @@ class ActionRunner(object):
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
 
-  # TODO(nednguyen): remove this API when crbug.com/475090 is fixed.
-  def _BeginInteraction(self, label, repeatable=False):
-    """Marks the beginning of an interaction record.
-
-    An interaction record is a labeled time period containing
-    interaction that developers care about. Each set of metrics
-    specified in flags will be calculated for this time period.. The
-    End() method in the returned object must be called once to mark
-    the end of the timeline.
-
-    Args:
-      label: A label for this particular interaction. This can be any
-          user-defined string, but must not contain '/'.
-      repeatable: Whether other interactions may use the same logical name
-          as this interaction. All interactions with the same logical name must
-          have the same flags.
-    """
-    flags = []
-    if repeatable:
-      flags.append(timeline_interaction_record.REPEATABLE)
-
-    interaction = Interaction(self._tab, label, flags)
-    interaction.Begin()
-    return interaction
-
-  # TODO(nednguyen): remove this API when crbug.com/475090 is fixed.
-  def BeginGestureInteraction(self, label, repeatable=False):
-    """Marks the beginning of a gesture-based interaction record.
-
-    This is similar to normal interaction record, but it will
-    auto-narrow the interaction time period to only include the
-    synthetic gesture event output by Chrome. This is typically use to
-    reduce noise in gesture-based analysis (e.g., analysis for a
-    swipe/scroll).
-
-    The interaction record label will be prepended with 'Gesture_'.
-
-    Args:
-      label: A label for this particular interaction. This can be any
-          user-defined string, but must not contain '/'.
-      repeatable: Whether other interactions may use the same logical name
-          as this interaction. All interactions with the same logical name must
-          have the same flags.
-    """
-    return self._BeginInteraction('Gesture_' + label, repeatable)
-
   def CreateInteraction(self, label, repeatable=False):
     """ Create an action.Interaction object that issues interaction record.
 
