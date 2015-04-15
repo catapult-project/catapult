@@ -28,6 +28,7 @@ tv.exportTo('tv.c.tracks', function() {
     decorate: function(viewport) {
       tv.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('cpu-track');
+      this.detailedMode_ = true;
     },
 
     get cpu() {
@@ -36,6 +37,15 @@ tv.exportTo('tv.c.tracks', function() {
 
     set cpu(cpu) {
       this.cpu_ = cpu;
+      this.updateContents_();
+    },
+
+    get detailedMode() {
+      return this.detailedMode_;
+    },
+
+    set detailedMode(detailedMode) {
+      this.detailedMode_ = detailedMode;
       this.updateContents_();
     },
 
@@ -64,15 +74,17 @@ tv.exportTo('tv.c.tracks', function() {
         this.appendChild(track);
       }
 
-      this.appendSamplesTracks_();
+      if (this.detailedMode_) {
+        this.appendSamplesTracks_();
 
-      for (var counterName in this.cpu_.counters) {
-        var counter = this.cpu_.counters[counterName];
-        track = new tv.c.tracks.CounterTrack(this.viewport);
-        track.heading = this.cpu_.userFriendlyName + ' ' +
-            counter.name + ':';
-        track.counter = counter;
-        this.appendChild(track);
+        for (var counterName in this.cpu_.counters) {
+          var counter = this.cpu_.counters[counterName];
+          track = new tv.c.tracks.CounterTrack(this.viewport);
+          track.heading = this.cpu_.userFriendlyName + ' ' +
+              counter.name + ':';
+          track.counter = counter;
+          this.appendChild(track);
+        }
       }
     },
 

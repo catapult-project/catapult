@@ -56,6 +56,7 @@ tv.exportTo('tv.c.tracks', function() {
       for (var i = 0; i < cpus.length; ++i) {
         var cpu = cpus[i];
         var track = new tv.c.tracks.CpuTrack(this.viewport);
+        track.detailedMode = this.expanded;
         track.cpu = cpu;
         if (!track.hasVisibleContent)
           continue;

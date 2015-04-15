@@ -104,6 +104,7 @@ tv.exportTo('tv.c.tracks', function() {
 
       var modelSettings = new TraceModelSettings(this.processBase_.model);
       modelSettings.setSettingFor(this.processBase_, 'expanded', expanded);
+      this.updateContents_();
     },
 
     get hasVisibleContent() {
@@ -131,11 +132,14 @@ tv.exportTo('tv.c.tracks', function() {
 
       // Create the object instance tracks for this process.
       this.willAppendTracks_();
-      this.appendSummaryTrack_();
-      this.appendObjectInstanceTracks_();
-      this.appendCounterTracks_();
-      this.appendFrameTrack_();
-      this.appendThreadTracks_();
+      if (this.expanded) {
+        this.appendObjectInstanceTracks_();
+        this.appendCounterTracks_();
+        this.appendFrameTrack_();
+        this.appendThreadTracks_();
+      } else {
+        this.appendSummaryTrack_();
+      }
       this.didAppendTracks_();
     },
 

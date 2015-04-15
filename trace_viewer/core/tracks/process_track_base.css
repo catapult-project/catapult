@@ -14,14 +14,6 @@
   font-size: 75%;
 }
 
-.process-track-base:not(.expanded) > .track:not(.inverse-expand) {
-  display: none;
-}
-
-.process-track-base.expanded > .track.inverse-expand {
-  display: none;
-}
-
 .process-track-name:before {
   content: '\25B8'; /* Right triangle */
   padding: 0 5px;
