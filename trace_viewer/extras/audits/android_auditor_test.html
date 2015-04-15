@@ -246,6 +246,8 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sfProcess.name, 'SurfaceFlinger');
 
     assert.isTrue(sfProcess.sortIndex < appProcess.sortIndex);
+    assert.isTrue(appProcess.important);
+    assert.isFalse(sfProcess.important);
   });
 
   test('drawingThreadPriorities', function() {

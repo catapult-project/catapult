@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/trace_model/counter.html">
+<link rel="import" href="/core/trace_model/event_container.html">
 <link rel="import" href="/core/trace_model/object_collection.html">
 <link rel="import" href="/core/trace_model/thread.html">
 <link rel="import" href="/core/trace_model/trace_model_settings.html">
@@ -33,6 +34,7 @@ tv.exportTo('tv.c.trace_model', function() {
   function ProcessBase(model) {
     if (!model)
       throw new Error('Must provide a model');
+    tv.c.trace_model.EventContainer.call(this, model);
     this.guid_ = tv.b.GUID.allocate();
     this.model = model;
     this.threads = {};

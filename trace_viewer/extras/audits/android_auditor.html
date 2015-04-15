@@ -296,6 +296,7 @@ tv.exportTo('tv.e.audits', function() {
     __proto__: Auditor.prototype,
 
     renameAndSort_: function() {
+      this.model.kernel.important = false;// auto collapse
       // SurfaceFlinger first, other processes sorted by slice count
       this.model.getAllProcesses().forEach(function(process) {
         if (this.helper.surfaceFlinger &&
@@ -303,6 +304,7 @@ tv.exportTo('tv.e.audits', function() {
           if (!process.name)
             process.name = 'SurfaceFlinger';
           process.sortIndex = Number.NEGATIVE_INFINITY;
+          process.important = false; // auto collapse
           return;
         }
 

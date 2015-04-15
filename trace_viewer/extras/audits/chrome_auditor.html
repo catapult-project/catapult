@@ -41,6 +41,18 @@ tv.exportTo('tv.e.audits', function() {
   ChromeAuditor.prototype = {
     __proto__: Auditor.prototype,
 
+    runAnnotate: function() {
+      if (!this.modelHelper)
+        return;
+
+      this.model.getAllProcesses().forEach(function(process) {
+        if (process.labels !== undefined &&
+            process.labels.length == 1 &&
+            process.labels[0] == 'chrome://tracing')
+          process.important = false;
+      });
+    },
+
     runAudit: function() {
       if (!this.modelHelper)
         return;
