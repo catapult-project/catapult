@@ -69,13 +69,25 @@ tv.b.unittest.testSuite(function() {
         secondData: 'B2'
       }
     ];
+    var footerRows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2'
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
 
     var table = document.createElement('tracing-analysis-nested-table');
     table.tableColumns = columns;
     table.tableRows = rows;
+    table.footerRows = footerRows;
     table.rebuild();
     table.rebuild();
     assert.equal(table.$.body.children.length, 2);
+    assert.equal(table.$.foot.children.length, 2);
 
     this.addHTMLOutput(table);
   });
