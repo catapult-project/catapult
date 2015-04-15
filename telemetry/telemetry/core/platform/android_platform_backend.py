@@ -262,17 +262,14 @@ class AndroidPlatformBackend(
     self._device.ForceStop(application)
 
   def KillApplication(self, application):
-    """Kill the given application.
+    """Kill the given |application|.
+
+    Might be used instead of ForceStop for efficiency reasons.
 
     Args:
       application: The full package name string of the application to kill.
     """
-    # We use KillAll rather than ForceStop for efficiency reasons.
-    try:
-      self._adb.device().KillAll(application, retries=0)
-      time.sleep(3)
-    except device_errors.CommandFailedError:
-      pass
+    self._device.KillAll(application, blocking=True, quiet=True)
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
