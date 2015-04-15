@@ -22,7 +22,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     self._stubs = system_stub.Override(
         android_platform_backend,
         ['perf_control', 'thermal_throttle', 'adb_commands', 'certutils',
-         'adb_install_cert'])
+         'adb_install_cert', 'platformsettings'])
 
     # Skip _FixPossibleAdbInstability by setting psutil to None.
     self._actual_ps_util = android_platform_backend.psutil

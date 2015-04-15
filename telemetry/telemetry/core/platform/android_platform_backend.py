@@ -34,6 +34,7 @@ util.AddDirToPythonPath(util.GetChromiumSrcDir(),
                         'third_party', 'webpagereplay')
 import adb_install_cert  # pylint: disable=F0401
 import certutils  # pylint: disable=F0401
+import platformsettings  # pylint: disable=F0401
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
@@ -446,7 +447,7 @@ class AndroidPlatformBackend(
           'The OpenSSL module is unavailable. '
           'Will fallback to ignoring certificate errors.')
       return
-    if not certutils.has_sni():
+    if not platformsettings.HasSniSupport():
       logging.warning(
           'Web Page Replay requires SNI support (pyOpenSSL 0.13 or greater) '
           'to generate certificates from a test CA. '
