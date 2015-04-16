@@ -62,7 +62,12 @@ found in the LICENSE file.
       tv.b.iterItems(pidToProcessMemoryDump, function(pid, processMemoryDump) {
         rows.push({
           title: processMemoryDump.process.userFriendlyName,
-          pss: processMemoryDump.totalProportionalResidentSizeInBytes
+          proportionalResident:
+              processMemoryDump.totalProportionalResidentSizeInBytes,
+          privateResident:
+              processMemoryDump.totalPrivateResidentSizeInBytes,
+          sharedResident:
+              processMemoryDump.totalSharedResidentSizeInBytes
         });
       }, this);
       this.$.table.tableRows = rows;
@@ -73,6 +78,34 @@ found in the LICENSE file.
     },
 
     updateColumns_: function() {
+      function createResidentSizeColumn(title, rowKey) {
+        return {
+          title: title,
+          value: function(row) {
+            // TODO(petrcermak): Show the most recently measured size instead
+            // of '<unknown>'.
+            var size = row[rowKey];
+            if (size === undefined)
+              return '<unknown>';
+            var sizeEl = document.createElement('tv-c-a-size-span');
+            sizeEl.numBytes = size;
+            return sizeEl;
+          },
+          width: '<upated further down>',
+          cmp: function(rowA, rowB) {
+            var sizeA = rowA[rowKey];
+            var sizeB = rowB[rowKey];
+            if (sizeA === undefined && sizeB === undefined)
+              return 0;
+            if (sizeA === undefined)
+              return -1;
+            if (sizeB === undefined)
+              return 1;
+            return sizeA - sizeB;
+          }
+        };
+      }
+
       var columns = [
         {
           title: 'Process',
@@ -84,30 +117,12 @@ found in the LICENSE file.
             return rowA.title.localeCompare(rowB.title);
           }
         },
-        {
-          title: 'Proportional Set Size',
-          value: function(row) {
-            // TODO(petrcermak): Show the most recent measured PSS value instead
-            // of '<unknown>'.
-            if (row.pss === undefined)
-              return '<unknown>';
-            var sizeEl = document.createElement('tv-c-a-size-span');
-            sizeEl.numBytes = row.pss;
-            return sizeEl;
-          },
-          width: '<upated further down>',
-          cmp: function(rowA, rowB) {
-            var pssA = rowA.pss;
-            var pssB = rowB.pss;
-            if (pssA === undefined && pssB === undefined)
-              return 0;
-            if (pssA === undefined)
-              return -1;
-            if (pssB === undefined)
-              return 1;
-            return pssA - pssB;
-          }
-        }
+        createResidentSizeColumn(
+            'Proportional Set Size', 'proportionalResident'),
+        createResidentSizeColumn(
+            'Private Memory', 'privateResident'),
+        createResidentSizeColumn(
+            'Shared Memory', 'sharedResident')
       ];
 
       var columnWidth = (100 / (columns.length - 1)).toFixed(3) + '%';
