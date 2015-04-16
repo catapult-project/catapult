@@ -126,10 +126,14 @@ def FindDependencies(target_paths, options):
 
   dependencies = path_set.PathSet()
 
-  # Including __init__.py will include Telemetry and its dependencies.
-  # If the user doesn't pass any arguments, we just have Telemetry.
+  # Including Telemetry's major entry points will (hopefully) include Telemetry
+  # and all its dependencies. If the user doesn't pass any arguments, we just
+  # have Telemetry.
   dependencies |= FindPythonDependencies(os.path.realpath(
-    os.path.join(path.GetTelemetryDir(), 'telemetry', '__init__.py')))
+    os.path.join(path.GetTelemetryDir(), 'telemetry', 'benchmark_runner.py')))
+  dependencies |= FindPythonDependencies(os.path.realpath(
+    os.path.join(path.GetTelemetryDir(),
+                 'telemetry', 'unittest_util', 'run_tests.py')))
   dependencies |= FindBootstrapDependencies(path.GetTelemetryDir())
 
   # Add dependencies.
