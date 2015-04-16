@@ -26,34 +26,29 @@ tv.exportTo('tv.c', function() {
   };
 
   /**
-   * Accepts a UIState string in the format of (timestamp)@(pid).(tid)x(scaleX)
+   * Accepts a UIState string in the format of (timestamp)@(stableID)x(scaleX)
    * Returns undefined if string is not in this format, or throws an Error if
    * variables in a syntactically-correct stateString does not produce a valid
    * UIState. Otherwise returns a constructed UIState instance.
    */
   UIState.fromUserFriendlyString = function(model, viewport, stateString) {
-    var navByFinderPattern = /^(-?\d+(\.\d+)?)@(\d+)\.(\d+)x(\d+(\.\d+)?)$/g;
+    var navByFinderPattern = /^(-?\d+(\.\d+)?)@(.+)x(\d+(\.\d+)?)$/g;
     var match = navByFinderPattern.exec(stateString);
     if (!match)
       return;
 
     var timestamp = parseFloat(match[1]);
-    var pid = match[3];
-    var tid = match[4];
-    var scaleX = parseFloat(match[5]);
+    var stableId = match[3];
+    var scaleX = parseFloat(match[4]);
 
     if (scaleX <= 0)
       throw new Error('Invalid ScaleX value in UI State string.');
 
-    var processFromModel = model.processes[pid];
-    if (!processFromModel)
-      throw new Error('Invalid PID value in UI State string.');
-    var threadFromModel = processFromModel.threads[tid];
-    if (!threadFromModel)
-      throw new Error('Invalid TID value in UI State string.');
+    if (!viewport.containerToTrackObj.getTrackByStableId(stableId))
+      throw new Error('Invalid StableID given in UI State String.');
 
     var loc = tv.c.Location.fromStableIdAndTimestamp(
-        viewport, threadFromModel.stableId, timestamp);
+        viewport, stableId, timestamp);
     return new UIState(loc, scaleX);
   }
 

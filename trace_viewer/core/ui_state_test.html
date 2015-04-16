@@ -50,25 +50,34 @@ tv.b.unittest.testSuite(function() {
   }
 
   test('invalidStableId', function() {
+    var model = new FakeModel;
     var vp = new FakeViewPort;
-    assert.isUndefined(UIState.fromUserFriendlyString(vp, '15@1.3x6'));
-    assert.isUndefined(UIState.fromUserFriendlyString(vp, '15@2.2x6'));
+    assert.throws(function() {
+      UIState.fromUserFriendlyString(model, vp, '15@1.3x6');
+    });
+    assert.throws(function() {
+      UIState.fromUserFriendlyString(model, vp, '15@2.2x6');
+    });
+    assert.throws(function() {
+      UIState.fromUserFriendlyString(model, vp, '505@1.x5');
+    });
   });
 
   test('invalidScaleX', function() {
+    var model = new FakeModel;
     var vp = new FakeViewPort;
-    assert.isUndefined(UIState.fromUserFriendlyString(vp, '1@1.2x-1'));
-    assert.isUndefined(UIState.fromUserFriendlyString(vp, '1@1.2x0'));
+    assert.isUndefined(UIState.fromUserFriendlyString(model, vp, '1@1.2x-1'));
+    assert.throws(function() {
+      UIState.fromUserFriendlyString(model, vp, '1@1.2x0');
+    });
   });
 
   test('invalidSyntax', function() {
+    var model = new FakeModel;
     var vp = new FakeViewPort;
-    assert.isUndefined(UIState.fromUserFriendlyString(vp, '5'));
-    assert.isUndefined(UIState.fromUserFriendlyString(vp, '505@1x5'));
-    assert.isUndefined(UIState.fromUserFriendlyString(vp, '505@1.x5'));
-    assert.isUndefined(UIState.fromUserFriendlyString(vp, '5@x5'));
-    assert.isUndefined(UIState.fromUserFriendlyString(vp, '1@1.2.3x5'));
-    assert.isUndefined(UIState.fromUserFriendlyString(vp, 'ab@1.2x5'));
+    assert.isUndefined(UIState.fromUserFriendlyString(model, vp, '5'));
+    assert.isUndefined(UIState.fromUserFriendlyString(model, vp, '5@x5'));
+    assert.isUndefined(UIState.fromUserFriendlyString(model, vp, 'ab@1.2x5'));
   });
 
   test('validString', function() {
