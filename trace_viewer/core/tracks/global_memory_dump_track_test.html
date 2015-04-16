@@ -145,69 +145,66 @@ tv.b.unittest.testSuite(function() {
     assert.equal(items[3].start, 18);
   });
 
-  test('buildUsedMemoryChart_withoutVmRegions', function() {
+  test('buildUsedMemoryChartSeries_withoutVmRegions', function() {
     var model = createModelWithDumps(false);
     var dumps = model.globalMemoryDumps;
-    var chart = GlobalMemoryDumpTrack.buildUsedMemoryChart(dumps);
+    var chart = GlobalMemoryDumpTrack.buildUsedMemoryChartSeries(dumps);
 
     assert.isUndefined(chart);
   });
 
-  test('buildUsedMemoryChart_withVmRegions', function() {
+  test('buildUsedMemoryChartSeries_withVmRegions', function() {
     var model = createModelWithDumps(true);
     var dumps = model.globalMemoryDumps;
-    var chart = GlobalMemoryDumpTrack.buildUsedMemoryChart(dumps);
+    var series = GlobalMemoryDumpTrack.buildUsedMemoryChartSeries(dumps);
 
-    assert.equal(chart.numSeries, 3);
+    assert.lengthOf(series, 3);
 
-    var sa = chart.series[0];
-    var sb = chart.series[1];
-    var sc = chart.series[2];
+    var sa = series[2];
+    var sb = series[1];
+    var sc = series[0];
 
-    assert.lengthOf(sa.samples, 4);
-    assert.lengthOf(sb.samples, 4);
-    assert.lengthOf(sc.samples, 4);
-    assert.lengthOf(sa.timestamps, 4);
-    assert.lengthOf(sb.timestamps, 4);
-    assert.lengthOf(sc.timestamps, 4);
+    assert.lengthOf(sa.points, 4);
+    assert.lengthOf(sb.points, 4);
+    assert.lengthOf(sc.points, 4);
 
     // Process A: VM regions defined -> sum their PSS values (111).
     // Process B: VM regions undefined and no previous value -> assume zero.
     // Process C: Memory dump not present -> assume process not alive (0).
-    assert.equal(sa.samples[0].value, 111);
-    assert.equal(sb.samples[0].value, 0);
-    assert.equal(sc.samples[0].value, 0);
-    assert.equal(sa.samples[0].timestamp, 0);
-    assert.equal(sb.samples[0].timestamp, 0);
-    assert.equal(sc.samples[0].timestamp, 0);
+    assert.equal(sa.points[0].x, 0);
+    assert.equal(sb.points[0].x, 0);
+    assert.equal(sc.points[0].x, 0);
+    assert.equal(sa.points[0].y, 111);
+    assert.equal(sb.points[0].y, 111);
+    assert.equal(sc.points[0].y, 111);
 
     // Process A: VM regions undefined -> assume previous value (111).
     // Process B: VM regions defined -> sum their PSS values (555).
     // Process C: VM regions undefined -> assume previous value (0).
-    assert.equal(sa.samples[1].value, 111);
-    assert.equal(sb.samples[1].value, 150);
-    assert.equal(sc.samples[1].value, 0);
-    assert.equal(sa.samples[1].timestamp, 5);
-    assert.equal(sb.samples[1].timestamp, 5);
-    assert.equal(sc.samples[1].timestamp, 5);
+    assert.equal(sa.points[1].x, 5);
+    assert.equal(sb.points[1].x, 5);
+    assert.equal(sc.points[1].x, 5);
+    assert.equal(sa.points[1].y, 111);
+    assert.equal(sb.points[1].y, 261);
+    assert.equal(sc.points[1].y, 261);
 
     // Process A: VM regions defined -> sum their PSS values (0).
     // Process B: Memory dump not present -> assume process not alive (0).
     // Process C: VM regions defined -> sum their PSS values (999).
-    assert.equal(sa.samples[2].value, 0);
-    assert.equal(sb.samples[2].value, 0);
-    assert.equal(sc.samples[2].value, 210);
-    assert.equal(sa.samples[2].timestamp, 15);
-    assert.equal(sb.samples[2].timestamp, 15);
-    assert.equal(sc.samples[2].timestamp, 15);
+    assert.equal(sa.points[2].x, 15);
+    assert.equal(sb.points[2].x, 15);
+    assert.equal(sc.points[2].x, 15);
+    assert.equal(sa.points[2].y, 0);
+    assert.equal(sb.points[2].y, 0);
+    assert.equal(sc.points[2].y, 210);
 
     // All processes: Memory dump not present -> assume process not alive (0).
-    assert.equal(sa.samples[3].value, 0);
-    assert.equal(sb.samples[3].value, 0);
-    assert.equal(sc.samples[3].value, 0);
-    assert.equal(sa.samples[3].timestamp, 18);
-    assert.equal(sb.samples[3].timestamp, 18);
-    assert.equal(sc.samples[3].timestamp, 18);
+    assert.equal(sa.points[3].x, 18);
+    assert.equal(sb.points[3].x, 18);
+    assert.equal(sc.points[3].x, 18);
+    assert.equal(sa.points[3].y, 0);
+    assert.equal(sb.points[3].y, 0);
+    assert.equal(sc.points[3].y, 0);
   });
 
   test('modelMapping', function() {
@@ -228,13 +225,13 @@ tv.b.unittest.testSuite(function() {
     // model events to the corresponding items.
     var item1 = dumpDotsTrack.items[2];
     assert.equal(item1.selected, dumps[2].selected);
-    var item2 = usedMemoryTrack.chart.series[1].samples[3];
+    var item2 = usedMemoryTrack.series[1].points[3];
     assert.equal(item2.selectionState, dumps[3].selectionState);
 
     // Check that the items are mapped to the right model events.
     var modelItem1 = item1.modelItem;
     assert.equal(modelItem1, dumps[2]);
-    var modelItem2 = usedMemoryTrack.getModelEventFromItem(item2);
+    var modelItem2 = item2.modelItem;
     assert.equal(modelItem2, dumps[3]);
   });
 });

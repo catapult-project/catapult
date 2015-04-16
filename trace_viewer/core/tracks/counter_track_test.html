@@ -115,11 +115,11 @@ tv.b.unittest.testSuite(function() {
       assert.equal(sel.length, 2);
       assert.equal(sel[0].series.counter, ctr);
       assert.equal(sel[0].getSampleIndex(), 1);
-      assert.equal(sel[0].series.seriesIndex, 0);
+      assert.equal(sel[0].series.seriesIndex, 1);
 
       assert.equal(sel[1].series.counter, ctr);
       assert.equal(sel[1].getSampleIndex(), 1);
-      assert.equal(sel[1].series.seriesIndex, 1);
+      assert.equal(sel[1].series.seriesIndex, 0);
 
       // Outside bounds.
       sel = new tv.c.Selection();

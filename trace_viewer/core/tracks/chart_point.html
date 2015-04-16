@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/trace_model/proxy_selectable_item.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c.tracks', function() {
+
+  /**
+   * A point in a chart series with x (timestamp) and y (value) coordinates
+   * and an associated model item.
+   *
+   * @constructor
+   * @extends {ProxySelectableItem}
+   */
+  function ChartPoint(modelItem, x, y) {
+    tv.c.trace_model.ProxySelectableItem.call(this, modelItem);
+    this.x = x;
+    this.y = y;
+  };
+
+  ChartPoint.prototype = {
+    __proto__: tv.c.trace_model.ProxySelectableItem.prototype
+  };
+
+  return {
+    ChartPoint: ChartPoint
+  };
+});
+</script>
