@@ -131,6 +131,7 @@
       'trace_viewer/core/analysis/single_sample_sub_view.html',
       'trace_viewer/core/analysis/single_thread_slice_sub_view.html',
       'trace_viewer/core/analysis/single_thread_time_slice_sub_view.html',
+      'trace_viewer/core/analysis/size_span.html',
       'trace_viewer/core/analysis/stack_frame.html',
       'trace_viewer/core/analysis/tab_view.html',
       'trace_viewer/core/analysis/table_builder.html',

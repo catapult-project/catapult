@@ -6,10 +6,24 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
-<link rel="import" href="/core/analysis/generic_object_view.html">
+<link rel="import" href="/core/analysis/size_span.html">
+<link rel="import" href="/core/analysis/table_builder.html">
 
 <polymer-element name="tv-c-single-global-memory-dump-sub-view"
     extends="tracing-analysis-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    #table {
+      flex: 1 1 auto;
+      align-self: stretch;
+    }
+    </style>
+    <tracing-analysis-nested-table id="table">
+    </tracing-analysis-nested-table>
+  </template>
   <script>
   'use strict';
 
@@ -32,19 +46,75 @@ found in the LICENSE file.
 
     setSelectionWithoutErrorChecks: function(selection) {
       this.currentSelection_ = selection;
-      this.textContent = '';
+      this.updateContents_();
+    },
 
-      var pidToProcessMemoryMap = {};
-      var gd = this.currentSelection_[0];
-      for (var pid in gd.processMemoryDumps) {
-        var pd = gd.processMemoryDumps[pid];
-        pidToProcessMemoryMap[pid] = pd.args;
-      }
+    updateContents_: function() {
+      var selection = this.currentSelection_;
 
-      var objectView =
-          document.createElement('tv-c-analysis-generic-object-view');
-      objectView.object = pidToProcessMemoryMap;
-      this.appendChild(objectView);
+      var pidToProcessMemoryDump;
+      if (selection)
+        pidToProcessMemoryDump = selection[0].processMemoryDumps;
+      else
+        pidToProcessMemoryDump = {};
+
+      var rows = [];
+      tv.b.iterItems(pidToProcessMemoryDump, function(pid, processMemoryDump) {
+        rows.push({
+          title: processMemoryDump.process.userFriendlyName,
+          pss: processMemoryDump.totalProportionalResidentSizeInBytes
+        });
+      }, this);
+      this.$.table.tableRows = rows;
+
+      this.updateColumns_();
+
+      this.$.table.rebuild();
+    },
+
+    updateColumns_: function() {
+      var columns = [
+        {
+          title: 'Process',
+          value: function(row) {
+            return row.title;
+          },
+          width: '350px',
+          cmp: function(rowA, rowB) {
+            return rowA.title.localeCompare(rowB.title);
+          }
+        },
+        {
+          title: 'Proportional Set Size',
+          value: function(row) {
+            // TODO(petrcermak): Show the most recent measured PSS value instead
+            // of '<unknown>'.
+            if (row.pss === undefined)
+              return '<unknown>';
+            var sizeEl = document.createElement('tv-c-a-size-span');
+            sizeEl.numBytes = row.pss;
+            return sizeEl;
+          },
+          width: '<upated further down>',
+          cmp: function(rowA, rowB) {
+            var pssA = rowA.pss;
+            var pssB = rowB.pss;
+            if (pssA === undefined && pssB === undefined)
+              return 0;
+            if (pssA === undefined)
+              return -1;
+            if (pssB === undefined)
+              return 1;
+            return pssA - pssB;
+          }
+        }
+      ];
+
+      var columnWidth = (100 / (columns.length - 1)).toFixed(3) + '%';
+      for (var i = 1; i < columns.length; i++)
+        columns[i].width = columnWidth;
+
+      this.$.table.tableColumns = columns;
     }
   });
   </script>
