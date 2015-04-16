@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
-<link rel="import" href="/core/analysis/single_event_sub_view.html">
+<link rel="import" href="/core/analysis/alert_sub_view.html">
 
 <polymer-element name="tv-c-single-frame-sub-view"
     extends="tracing-analysis-sub-view">
@@ -14,18 +14,14 @@ found in the LICENSE file.
   'use strict';
 
   Polymer({
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
-
     set selection(selection) {
+      if (selection.length != 1)
+        throw new Error('Only supports single frame!');
       this.textContent = '';
-      var realView = document.createElement('tv-c-a-single-event-sub-view');
+      var realView = document.createElement('tv-c-a-alert-sub-view');
 
       this.appendChild(realView);
-      realView.setSelectionWithoutErrorChecks(selection);
-
-      this.currentSelection_ = selection;
+      realView.selection = selection[0].associatedAlerts;
     }
   });
   </script>

@@ -35,10 +35,6 @@ found in the LICENSE file.
   'use strict';
 
   Polymer({
-    created: function() {
-      this.addExtraRowsCallback_ = undefined;
-    },
-
     ready: function() {
       this.currentSelection_ = undefined;
       this.$.table.tableColumns = [
@@ -56,15 +52,6 @@ found in the LICENSE file.
       this.$.table.showHeader = false;
     },
 
-    get addExtraRowsCallback() {
-      return this.addExtraRowsCallback_;
-    },
-
-    set addExtraRowsCallback(addExtraRowsCallback) {
-      this.addExtraRowsCallback_ = addExtraRowsCallback;
-      this.updateContents_();
-    },
-
     get selection() {
       return this.currentSelection_;
     },
@@ -80,16 +67,9 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
-    updateContents_: function() {
-      if (this.currentSelection_ === undefined) {
-        this.$.table.rows = [];
-        this.$.table.rebuild();
-        return;
-      }
-
-      var event = this.currentSelection_[0];
-
+    getEventRows_: function(event) {
       var rows = [];
+
       if (event.error)
         rows.push({ name: 'Error', value: event.error });
 
@@ -205,11 +185,18 @@ found in the LICENSE file.
           isExpanded: true, subRows: subRows
         });
       }
+      return rows;
+    },
 
-      if (this.addExtraRowsCallback_)
-        this.addExtraRowsCallback_(rows);
+    updateContents_: function() {
+      if (this.currentSelection_ === undefined) {
+        this.$.table.rows = [];
+        this.$.table.rebuild();
+        return;
+      }
 
-      this.$.table.tableRows = rows;
+      var event = this.currentSelection_[0];
+      this.$.table.tableRows = this.getEventRows_(event);
       this.$.table.rebuild();
     }
   });

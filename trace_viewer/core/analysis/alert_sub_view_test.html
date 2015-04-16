@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/core/analysis/analysis_view.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
@@ -23,16 +24,25 @@ tv.b.unittest.testSuite(function() {
 
     var ALERT_SEVERITY = tv.c.trace_model.ALERT_SEVERITY;
     var ALERT_TYPE_1 = new tv.c.trace_model.AlertType(
-        'Alert 1', 'Critical alert', ALERT_SEVERITY.CRITICAL);
+        'Alert 1', 'Critical alert',
+        'https://github.com/google/trace-viewer/', ALERT_SEVERITY.CRITICAL);
 
     var alert = new tv.c.trace_model.Alert(ALERT_TYPE_1, 5, [slice]);
 
     var selection = new tv.c.Selection();
     selection.push(alert);
 
-    var subView = document.createElement('tv-c-single-alert-sub-view');
+    var subView = document.createElement('tv-c-a-alert-sub-view');
     subView.selection = selection;
     this.addHTMLOutput(subView);
+
+    var table = tv.b.findDeepElementMatching(
+        subView, 'tracing-analysis-nested-table');
+
+    var rows = table.tableRows;
+    var columns = table.tableColumns;
+    assert.lengthOf(rows, 4);
+    assert.lengthOf(columns, 2);
   });
 });
 </script>

@@ -45,6 +45,10 @@ tv.exportTo('tv.b.ui', function() {
         divEl.className = opt_dictionary.className;
       if (opt_dictionary.parent)
         opt_dictionary.parent.appendChild(divEl);
+      if (opt_dictionary.textContent)
+        divEl.textContent = opt_dictionary.textContent;
+      if (opt_dictionary.maxWidth)
+        divEl.style.maxWidth = opt_dictionary.maxWidth;
     }
     return divEl;
   };
