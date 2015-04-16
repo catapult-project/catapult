@@ -197,9 +197,10 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     if (/^# tracer:/.test(events))
       return true;
 
-    var m = /^(.+)\n/.exec(events);
-    if (m)
-      events = m[1];
+    var lineBreakIndex = events.indexOf('\n');
+    if (lineBreakIndex > -1)
+      events = events.substring(0, lineBreakIndex);
+
     if (autoDetectLineParser(events))
       return true;
 
