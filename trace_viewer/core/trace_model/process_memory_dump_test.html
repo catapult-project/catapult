@@ -28,18 +28,22 @@ tv.b.unittest.testSuite(function() {
     return pmd;
   };
 
-  test('totalProportionalResidentSizeInBytes_undefinedVmRegions', function() {
+  test('totalResidentSizeInBytes_undefinedVmRegions', function() {
     var pmd = createProcessMemoryDump();
     assert.isUndefined(pmd.totalProportionalResidentSizeInBytes);
+    assert.isUndefined(pmd.totalPrivateResidentSizeInBytes);
+    assert.isUndefined(pmd.totalSharedResidentSizeInBytes);
   });
 
-  test('totalProportionalResidentSizeInBytes_zeroVmRegions', function() {
+  test('totalResidentSizeInBytes_zeroVmRegions', function() {
     var pmd = createProcessMemoryDump();
     pmd.vmRegions = [];
     assert.equal(pmd.totalProportionalResidentSizeInBytes, 0);
+    assert.equal(pmd.totalPrivateResidentSizeInBytes, 0);
+    assert.equal(pmd.totalSharedResidentSizeInBytes, 0);
   });
 
-  test('totalProportionalResidentSizeInBytes_oneVmRegion', function() {
+  test('totalResidentSizeInBytes_oneVmRegion', function() {
     var pmd = createProcessMemoryDump();
     pmd.vmRegions = [
       VMRegion.fromDict({
@@ -56,9 +60,11 @@ tv.b.unittest.testSuite(function() {
       })
     ];
     assert.equal(pmd.totalProportionalResidentSizeInBytes, 158);
+    assert.equal(pmd.totalPrivateResidentSizeInBytes, 96);
+    assert.equal(pmd.totalSharedResidentSizeInBytes, 144);
   });
 
-  test('totalProportionalResidentSizeInBytes_twoVmRegions', function() {
+  test('totalResidentSizeInBytes_twoVmRegions', function() {
     var pmd = createProcessMemoryDump();
     pmd.vmRegions = [
       VMRegion.fromDict({
@@ -87,6 +93,8 @@ tv.b.unittest.testSuite(function() {
       })
     ];
     assert.equal(pmd.totalProportionalResidentSizeInBytes, 363);
+    assert.equal(pmd.totalPrivateResidentSizeInBytes, 301);
+    assert.equal(pmd.totalSharedResidentSizeInBytes, 144);
   });
 });
 </script>

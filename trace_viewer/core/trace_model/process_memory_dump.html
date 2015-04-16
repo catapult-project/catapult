@@ -38,19 +38,36 @@ tv.exportTo('tv.c.trace_model', function() {
     },
 
     get userFriendlyName() {
-      return 'Process memory dump ' + ' at ' +
-          tv.c.analysis.tsString(this.start);
+      return 'Process memory dump at ' + tv.c.analysis.tsString(this.start);
     },
 
-    get totalProportionalResidentSizeInBytes() {
+    getTotalVmRegionStat_: function(statGetterFn) {
       if (this.vmRegions === undefined)
         return undefined;
 
       var total = 0;
       this.vmRegions.forEach(function(vmRegion) {
-        total += vmRegion.byteStats.proportionalResident;
+        total += statGetterFn(vmRegion);
       });
       return total;
+    },
+
+    get totalProportionalResidentSizeInBytes() {
+      return this.getTotalVmRegionStat_(function(vmRegion) {
+        return vmRegion.byteStats.proportionalResident;
+      });
+    },
+
+    get totalPrivateResidentSizeInBytes() {
+      return this.getTotalVmRegionStat_(function(vmRegion) {
+        return vmRegion.byteStats.privateResident;
+      });
+    },
+
+    get totalSharedResidentSizeInBytes() {
+      return this.getTotalVmRegionStat_(function(vmRegion) {
+        return vmRegion.byteStats.sharedResident;
+      });
     }
   };
 
