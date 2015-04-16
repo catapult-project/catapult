@@ -31,7 +31,7 @@ tv.b.unittest.testSuite(function() {
     }, tv.e.audits.AndroidAuditor);
     assert.equal(model.alerts.length, 1);
     var alert = model.alerts[0];
-    assert.equal(alert.type.title, 'Scheduling delay');
+    assert.equal(alert.info.title, 'Scheduling delay');
     assert.closeTo(alert.args.delay, 5, 1e-5);
 
     model = tv.c.test_utils.newModelWithAuditor(function(model) {
@@ -44,7 +44,7 @@ tv.b.unittest.testSuite(function() {
     }, tv.e.audits.AndroidAuditor);
     assert.equal(model.alerts.length, 1);
     var alert = model.alerts[0];
-    assert.equal(alert.type.title, 'Blocking I/O delay');
+    assert.equal(alert.info.title, 'Blocking I/O delay');
     assert.closeTo(alert.args.delay, 9, 1e-5);
   });
 

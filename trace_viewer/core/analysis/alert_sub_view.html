@@ -90,7 +90,7 @@ found in the LICENSE file.
 
       // Description
       var descriptionEl = tv.b.ui.createDiv({
-          textContent: alert.type.description,
+          textContent: alert.info.description,
           maxWidth: '300px'
       });
       rows.push({
@@ -98,10 +98,10 @@ found in the LICENSE file.
         value: descriptionEl
       });
 
-      if (alert.type.docUrl) {
+      if (alert.info.docUrl) {
         var linkEl = document.createElement('a');
-        linkEl.href = alert.type.docUrl;
-        linkEl.textContent = alert.type.docUrl;
+        linkEl.href = alert.info.docUrl;
+        linkEl.textContent = alert.info.docUrl;
         rows.push({
         name: 'Additional reading',
         value: linkEl

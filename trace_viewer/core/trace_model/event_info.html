@@ -11,25 +11,21 @@ found in the LICENSE file.
 
 tv.exportTo('tv.c.trace_model', function() {
 
-  var ALERT_SEVERITY = {
-    CRITICAL: 'critical',
-    WARNING: 'warning'
-  };
-
-  function AlertType(title, description, docUrl, severity, opt_colorId) {
+  /**
+   * EventInfo is an annotation added to Events in order to document
+   * what they represent, and override their title/colorId values.
+   *
+   * @constructor
+   */
+  function EventInfo(title, description, docUrl) {
     this.title = title;
     this.description = description;
     this.docUrl = docUrl;
-    this.severity = severity;
-    if (opt_colorId !== undefined)
-      this.colorId = opt_colorId;
-    else
-      this.colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
+    this.colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
   }
 
   return {
-    AlertType: AlertType,
-    ALERT_SEVERITY: ALERT_SEVERITY
+    EventInfo: EventInfo
   };
 });
 </script>

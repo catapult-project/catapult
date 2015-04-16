@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/core/trace_model/timed_event.html">
-<link rel="import" href="/core/trace_model/alert_type.html">
+<link rel="import" href="/core/trace_model/event_info.html">
 <link rel="import" href="/core/analysis/util.html">
 
 <script>
@@ -13,9 +13,9 @@ found in the LICENSE file.
 
 tv.exportTo('tv.c.trace_model', function() {
 
-  function Alert(type, start, opt_associatedEvents, opt_args) {
+  function Alert(info, start, opt_associatedEvents, opt_args) {
     tv.c.trace_model.TimedEvent.call(this, start);
-    this.type = type;
+    this.info = info;
     this.args = opt_args || {};
     this.associatedEvents = opt_associatedEvents || [];
     this.associatedEvents.forEach(function(event) {
@@ -27,11 +27,11 @@ tv.exportTo('tv.c.trace_model', function() {
     __proto__: tv.c.trace_model.TimedEvent.prototype,
 
     get title() {
-      return this.type.title;
+      return this.info.title;
     },
 
     get colorId() {
-      return this.type.colorId;
+      return this.info.colorId;
     },
 
     get userFriendlyName() {

@@ -53,6 +53,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.guid_ = tv.b.GUID.allocate();
     this.selectionState = SelectionState.NONE;
     this.associatedAlerts = [];
+    this.info = undefined;
   }
 
   Event.prototype = {

@@ -13,17 +13,16 @@ found in the LICENSE file.
 'use strict';
 
 tv.b.unittest.testSuite(function() {
-  var ALERT_SEVERITY = tv.c.trace_model.ALERT_SEVERITY;
-  var ALERT_TYPE_1 = new tv.c.trace_model.AlertType(
-    'Alert 1', 'Critical alert', ALERT_SEVERITY.CRITICAL);
-  var ALERT_TYPE_2 = new tv.c.trace_model.AlertType(
-    'Alert 2', 'Warning alert', ALERT_SEVERITY.WARNING);
+  var ALERT_INFO_1 = new tv.c.trace_model.EventInfo(
+    'Alert 1', 'Critical alert');
+  var ALERT_INFO_2 = new tv.c.trace_model.EventInfo(
+    'Alert 2', 'Warning alert');
 
   test('instantiate', function() {
     var panel = document.createElement('tv-e-analysis-side-panel-alerts');
     panel.model = createModelWithAlerts([
-      new tv.c.trace_model.Alert(ALERT_TYPE_1, 5),
-      new tv.c.trace_model.Alert(ALERT_TYPE_2, 35)
+      new tv.c.trace_model.Alert(ALERT_INFO_1, 5),
+      new tv.c.trace_model.Alert(ALERT_INFO_2, 35)
     ]);
     panel.style.height = '100px';
 
@@ -33,9 +32,9 @@ tv.b.unittest.testSuite(function() {
   test('selectAlertsOfType', function() {
     var panel = document.createElement('tv-e-analysis-side-panel-alerts');
     var alerts = [
-      new tv.c.trace_model.Alert(ALERT_TYPE_1, 1),
-      new tv.c.trace_model.Alert(ALERT_TYPE_1, 2),
-      new tv.c.trace_model.Alert(ALERT_TYPE_2, 3)
+      new tv.c.trace_model.Alert(ALERT_INFO_1, 1),
+      new tv.c.trace_model.Alert(ALERT_INFO_1, 2),
+      new tv.c.trace_model.Alert(ALERT_INFO_2, 3)
     ];
     panel.model = createModelWithAlerts(alerts);
     panel.style.height = '100px';
@@ -48,7 +47,7 @@ tv.b.unittest.testSuite(function() {
       assert.equal(alerts[0], e.selection[0]);
       assert.equal(alerts[1], e.selection[1]);
     });
-    panel.selectAlertsOfType(ALERT_TYPE_1.title);
+    panel.selectAlertsOfType(ALERT_INFO_1.title);
 
     assert.isTrue(selectionChanged);
   });
