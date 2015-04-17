@@ -30,6 +30,22 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(view.$.content.textContent, '"string value"');
   });
 
+  test('multiLineStringValue', function() {
+    var view = document.createElement('tv-c-analysis-generic-object-view');
+    view.object = 'i am a\n  string value\ni have\n  various indents';
+    this.addHTMLOutput(view);
+    var c = view.$.content;
+  });
+
+  test('multiLineStringValueInsideObject', function() {
+    var view = document.createElement('tv-c-analysis-generic-object-view');
+    view.object = {key: 'i am a\n  string value\ni have\n  various indents',
+                   value: 'simple'};
+    this.addHTMLOutput(view);
+    var c = view.$.content;
+
+  });
+
   test('jsonObjectStringValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = '{"x": 1}';
