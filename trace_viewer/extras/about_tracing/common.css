@@ -16,5 +16,6 @@ body {
 
 body > x-profiling-view {
   -webkit-flex: 1 1 auto;
+  min-height: 0;
 }
 
