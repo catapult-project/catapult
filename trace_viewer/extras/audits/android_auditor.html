@@ -552,7 +552,7 @@ tv.exportTo('tv.e.audits', function() {
           parent: 'performTraversals',
           description: 'Draw pass over the View hierarchy. Every invalidated View will have its drawing commands recorded. On Android versions prior to Lollipop, this would also include the issuing of draw commands to the GPU. Starting with Lollipop, it only includes the recording of commands, and syncing that information to the RenderThread.'}); // @suppress longLineCheck
 
-      var recordString = 'Every invalidated View’s drawing commands are recorded. Each will have View#draw() called, and is passed a Canvas that will record and store its drawing commands until it is next invalidated/rerecorded.'; // @suppress longLineCheck
+      var recordString = 'Every invalidated View\'s drawing commands are recorded. Each will have View#draw() called, and is passed a Canvas that will record and store its drawing commands until it is next invalidated/rerecorded.'; // @suppress longLineCheck
       registerEventInfo({
           title: 'getDisplayList', // Legacy name for compatibility.
           parent: 'draw',
