@@ -19,14 +19,14 @@ tv.b.unittest.testSuite(function() {
   var ChartAxis = tv.c.tracks.ChartAxis;
 
   function buildChartTransform() {
-    var timelineTransform = new TimelineDisplayTransform();
-    timelineTransform.panX = -20;
-    timelineTransform.scaleX = 0.5;
+    var displayTransform = new TimelineDisplayTransform();
+    displayTransform.panX = -20;
+    displayTransform.scaleX = 0.5;
 
     var axis = new ChartAxis(-100, 100);
 
     var chartTransform = new ChartTransform(
-        timelineTransform,
+        displayTransform,
         axis,
         500, /* trackWidth */
         80, /* trackHeight */

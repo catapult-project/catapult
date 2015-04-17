@@ -128,8 +128,6 @@ tv.exportTo('tv.c.tracks', function() {
       // Pre-multiply all device-independent pixel parameters with the pixel
       // ratio to avoid unnecessary recomputation in the performance-critical
       // drawing code.
-      var timelineTransform = displayTransform.clone();
-      timelineTransform.scaleX *= pixelRatio;
       var width = bounds.width * pixelRatio;
       var height = bounds.height * pixelRatio;
       var topPadding = this.topPadding_ * pixelRatio;
@@ -144,7 +142,7 @@ tv.exportTo('tv.c.tracks', function() {
       // Draw all series in the increasing z-order.
       this.series_.forEach(function(series) {
         var chartTransform = new tv.c.tracks.ChartTransform(
-            timelineTransform, series.axis, width, height, topPadding,
+            displayTransform, series.axis, width, height, topPadding,
             bottomPadding, pixelRatio);
         series.draw(ctx, chartTransform, highDetails);
       }, this);

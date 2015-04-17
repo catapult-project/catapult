@@ -47,19 +47,19 @@ tv.b.unittest.testSuite(function() {
     var canvas = document.createElement('canvas');
     div.appendChild(canvas);
 
-    canvas.width = CANVAS_WIDTH;
-    canvas.style.width = CANVAS_WIDTH + 'px';
-    canvas.height = CANVAS_HEIGHT;
-    canvas.style.height = CANVAS_HEIGHT + 'px';
-
     var pixelRatio = window.devicePixelRatio || 1;
 
-    var timelineTransform = new TimelineDisplayTransform();
-    timelineTransform.scaleX = CANVAS_WIDTH * pixelRatio / 60;
-    timelineTransform.panX = 30;
+    canvas.width = CANVAS_WIDTH * pixelRatio;
+    canvas.style.width = CANVAS_WIDTH + 'px';
+    canvas.height = CANVAS_HEIGHT * pixelRatio;
+    canvas.style.height = CANVAS_HEIGHT + 'px';
+
+    var displayTransform = new TimelineDisplayTransform();
+    displayTransform.scaleX = CANVAS_WIDTH * pixelRatio / 60;
+    displayTransform.panX = 30;
 
     var transform = new ChartTransform(
-        timelineTransform,
+        displayTransform,
         series.axis,
         CANVAS_WIDTH * pixelRatio,
         CANVAS_HEIGHT * pixelRatio,

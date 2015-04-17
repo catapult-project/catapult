@@ -118,7 +118,8 @@ tv.b.unittest.testSuite(function() {
     drawingContainer.invalidate();
 
     var dt = new tv.c.TimelineDisplayTransform();
-    dt.xSetWorldBounds(-3, 3, track.clientWidth);
+    var pixelRatio = window.devicePixelRatio || 1;
+    dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
     track.viewport.setDisplayTransformImmediately(dt);
 
     track.height = '100px';
@@ -145,7 +146,8 @@ tv.b.unittest.testSuite(function() {
     drawingContainer.invalidate();
 
     var dt = new tv.c.TimelineDisplayTransform();
-    dt.xSetWorldBounds(-3, 3, track.clientWidth);
+    var pixelRatio = window.devicePixelRatio || 1;
+    dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
     track.viewport.setDisplayTransformImmediately(dt);
 
     track.height = '100px';

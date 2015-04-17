@@ -40,17 +40,17 @@ tv.exportTo('tv.c.tracks', function() {
    *
    * @constructor
    */
-  function ChartTransform(timelineTransform, axis, trackWidth,
+  function ChartTransform(displayTransform, axis, trackWidth,
       trackHeight, topPadding, bottomPadding, pixelRatio) {
     this.pixelRatio = pixelRatio;
 
     // X axis.
     this.leftViewX = 0;
     this.rightViewX = trackWidth;
-    this.leftTimestamp = timelineTransform.xViewToWorld(this.leftViewX);
-    this.rightTimestamp = timelineTransform.xViewToWorld(this.rightViewX);
+    this.leftTimestamp = displayTransform.xViewToWorld(this.leftViewX);
+    this.rightTimestamp = displayTransform.xViewToWorld(this.rightViewX);
 
-    this.timelineTransform_ = timelineTransform;
+    this.displayTransform_ = displayTransform;
 
     // Y axis.
     this.outerTopViewY = 0;
@@ -64,11 +64,11 @@ tv.exportTo('tv.c.tracks', function() {
 
   ChartTransform.prototype = {
     worldXToViewX: function(worldX) {
-      return this.timelineTransform_.xWorldToView(worldX);
+      return this.displayTransform_.xWorldToView(worldX);
     },
 
     viewXToWorldX: function(viewX) {
-      return this.timelineTransform_.xViewToWorld(viewX);
+      return this.displayTransform_.xViewToWorld(viewX);
     },
 
     worldYToViewY: function(worldY) {
