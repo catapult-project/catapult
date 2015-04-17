@@ -88,6 +88,21 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
                 if d / refresh_period >= min_normalized_delta]
     return (deltas, [delta / refresh_period for delta in deltas])
 
+  @staticmethod
+  def _JoinTimestampRanges(frame_timestamps):
+    """Joins ranges of timestamps, adjusting timestamps to remove deltas
+    between the start of a range and the end of the prior range.
+    """
+    timestamps = []
+    for timestamp_range in frame_timestamps:
+      if len(timestamps) == 0:
+        timestamps.extend(timestamp_range)
+      else:
+        for i in range(1, len(timestamp_range)):
+          timestamps.append(timestamps[-1] +
+              timestamp_range[i] - timestamp_range[i-1])
+    return timestamps
+
   def _ComputeSurfaceFlingerMetric(self, page, stats):
     jank_count = None
     avg_surface_fps = None
@@ -95,7 +110,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     frame_lengths = None
     none_value_reason = None
     if self._HasEnoughFrames(stats.frame_timestamps):
-      timestamps = FlattenList(stats.frame_timestamps)
+      timestamps = self._JoinTimestampRanges(stats.frame_timestamps)
       frame_count = len(timestamps)
       milliseconds = timestamps[-1] - timestamps[0]
       min_normalized_frame_length = 0.5

@@ -60,16 +60,28 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
         self.not_enough_frames_timestamps)
     self.assertFalse(has_enough_frames)
 
-  def testComputeSurfaceFlingerMetric(self):
+  def testComputeSurfaceFlingerMetricNoJank(self):
     stats = _MockRenderingStats(refresh_period=10,
-                                frame_timestamps=self.good_timestamps,
-                                frame_times=[[10, 20], [30, 40, 50]])
+                                frame_timestamps=[[10, 20], [130, 140, 150]],
+                                frame_times=[[10], [10, 10]])
     avg_surface_fps, jank_count, max_frame_delay, frame_lengths = (
         self.metric._ComputeSurfaceFlingerMetric(self.page, stats))
-    self.assertEquals([1, 1, 1, 1], frame_lengths.values)
+    self.assertEquals([1, 1, 1], frame_lengths.values)
     self.assertEquals(1, max_frame_delay.value)
     self.assertEquals(0, jank_count.value)
     self.assertEquals(100, avg_surface_fps.value)
+
+  def testComputeSurfaceFlingerMetricJank(self):
+    stats = _MockRenderingStats(
+        refresh_period=10,
+        frame_timestamps=[[10, 20, 50], [130, 140, 150, 170, 180]],
+        frame_times=[[10, 30], [10, 10, 20, 10]])
+    avg_surface_fps, jank_count, max_frame_delay, frame_lengths = (
+        self.metric._ComputeSurfaceFlingerMetric(self.page, stats))
+    self.assertEquals([1, 3, 1, 1, 2, 1], frame_lengths.values)
+    self.assertEquals(3, max_frame_delay.value)
+    self.assertEquals(2, jank_count.value)
+    self.assertEquals(67, avg_surface_fps.value)
 
   def testComputeFrameTimeMetricWithNotEnoughFrames(self):
     stats = _MockRenderingStats(
