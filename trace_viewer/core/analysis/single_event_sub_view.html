@@ -148,6 +148,27 @@ found in the LICENSE file.
             value: createStackFrameEl(event.endStackFrame)});
       }
 
+      if (event.info) {
+        var descriptionEl = tv.b.ui.createDiv({
+            textContent: event.info.description,
+            maxWidth: '300px'
+        });
+        rows.push({
+          name: 'Description',
+          value: descriptionEl
+        });
+
+        if (event.info.docUrl) {
+          var linkEl = document.createElement('a');
+          linkEl.href = event.info.docUrl;
+          linkEl.textContent = event.info.docUrl;
+          rows.push({
+          name: 'Additional reading',
+          value: linkEl
+          });
+        }
+      }
+
       if (event.associatedAlerts.length) {
         var alertSubRows = [];
         event.associatedAlerts.forEach(function(alert) {

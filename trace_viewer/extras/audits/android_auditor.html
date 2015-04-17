@@ -351,12 +351,23 @@ tv.exportTo('tv.e.audits', function() {
       }
     },
 
+    pushEventInfo_: function() {
+      var appAnnotator = new AppAnnotator();
+      this.helper.apps.forEach(function(app) {
+        if (app.uiThread)
+          appAnnotator.applyEventInfos(app.uiThread.sliceGroup);
+        if (app.renderThread)
+          appAnnotator.applyEventInfos(app.renderThread.sliceGroup);
+      });
+    },
+
     runAnnotate: function() {
       if (!this.helper)
         return;
 
       this.renameAndSort_();
       this.pushFramesAndJudgeJank_();
+      this.pushEventInfo_();
 
       this.helper.iterateImportantSlices(function(slice) {
         slice.important = true;
@@ -491,6 +502,125 @@ tv.exportTo('tv.e.audits', function() {
   };
 
   Auditor.register(AndroidAuditor);
+
+  function AppAnnotator() {
+    this.titleInfoLookup = {};
+    this.titleParentLookup = {};
+    this.build_();
+  }
+
+  AppAnnotator.prototype = {
+    build_: function() {
+      var registerEventInfo = function(dict) {
+        this.titleInfoLookup[dict.title] = new EventInfo(
+            dict.title, dict.description, dict.docUrl);
+        if (dict.parent)
+          this.titleParentLookup[dict.title] = dict.parent;
+      }.bind(this);
+
+      //////////////////////////////////////////////////////////////////////////
+      // Adapter view
+      //////////////////////////////////////////////////////////////////////////
+      registerEventInfo({
+          title: 'obtainView',
+          description: 'Adapter#getView() called to bind content to a recycled View that is being presented.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'setupListItem',
+          description: 'Attached a newly-bound, recycled View to its parent ListView.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'setupGridItem',
+          description: 'Attached a newly-bound, recycled View to its parent GridView.'}); // @suppress longLineCheck
+
+      //////////////////////////////////////////////////////////////////////////
+      // performTraversals + sub methods
+      //////////////////////////////////////////////////////////////////////////
+      registerEventInfo({
+          title: 'performTraversals',
+          description: 'A drawing traversal of the View hierarchy, comprised of all layout and drawing needed to produce the frame.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'measure',
+          parent: 'performTraversals',
+          docUrl: 'https://developer.android.com/reference/android/view/View.html#Layout',  // @suppress longLineCheck
+          description: 'First of two phases in view hierarchy layout. Views are asked to size themselves according to constraints supplied by their parent. Some ViewGroups may measure a child more than once to help satisfy their own constraints. Nesting ViewGroups that measure children more than once can lead to excessive and repeated work.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'layout',
+          parent: 'performTraversals',
+          docUrl: 'https://developer.android.com/reference/android/view/View.html#Layout',  // @suppress longLineCheck
+          description: 'Second of two phases in view hierarchy layout, repositioning content and child Views into their new locations.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'draw',
+          parent: 'performTraversals',
+          description: 'Draw pass over the View hierarchy. Every invalidated View will have its drawing commands recorded. On Android versions prior to Lollipop, this would also include the issuing of draw commands to the GPU. Starting with Lollipop, it only includes the recording of commands, and syncing that information to the RenderThread.'}); // @suppress longLineCheck
+
+      var recordString = 'Every invalidated View’s drawing commands are recorded. Each will have View#draw() called, and is passed a Canvas that will record and store its drawing commands until it is next invalidated/rerecorded.'; // @suppress longLineCheck
+      registerEventInfo({
+          title: 'getDisplayList', // Legacy name for compatibility.
+          parent: 'draw',
+          description: recordString});
+      registerEventInfo({
+          title: 'Record View#draw()',
+          parent: 'draw',
+          description: recordString});
+
+
+      registerEventInfo({
+          title: 'drawDisplayList',
+          parent: 'draw',
+          description: 'Execution of recorded draw commands to generate a frame. This represents the actual formation and issuing of drawing commands to the GPU.'}); // @suppress longLineCheck
+
+      //////////////////////////////////////////////////////////////////////////
+      // RenderThread
+      //////////////////////////////////////////////////////////////////////////
+      registerEventInfo({
+          title: 'DrawFrame',
+          description: 'RenderThread portion of the standard UI/RenderThread split frame. This represents the actual formation and issuing of drawing commands to the GPU.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'doFrame',
+          description: 'RenderThread animation frame. Represents drawing work done by the RenderThread on a frame where the UI thread did not produce new drawing content.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'syncFrameState',
+          description: 'Sync stage between the UI thread and the RenderThread, where the UI thread hands off a frame (including information about modified Views). Time in this method primarily consists of uploading modified Bitmaps to the GPU. After this sync is completed, the UI thread is unblocked, and the RenderThread starts to render the frame.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'flush drawing commands',
+          description: 'Issuing the now complete drawing commands to the GPU.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'eglSwapBuffers',
+          description: 'Complete GPU rendering of the frame.'}); // @suppress longLineCheck
+    },
+
+    applyEventInfosRecursive_: function(parentNames, slice) {
+      // Set EventInfo on the slice if it matches title, and parent.
+      if (slice.title in this.titleInfoLookup) {
+        var expectedParentName = this.titleParentLookup[slice.title];
+        if (!expectedParentName || expectedParentName in parentNames)
+          slice.info = this.titleInfoLookup[slice.title];
+      }
+
+      // Push slice into parentNames, and recurse over subSlices.
+      if (slice.subSlices.length > 0) {
+        // Increment title in parentName dict.
+        if (!(slice.title in parentNames))
+          parentNames[slice.title] = 0;
+        parentNames[slice.title]++;
+
+        // Recurse over subSlices.
+        slice.subSlices.forEach(function(subSlice) {
+          this.applyEventInfosRecursive_(parentNames, subSlice);
+        }, this);
+
+        // Decrement title in parentName dict.
+        parentNames[slice.title]--;
+        if (parentNames[slice.title] == 0)
+          delete parentNames[slice.title];
+      }
+    },
+
+    applyEventInfos: function(sliceGroup) {
+      sliceGroup.topLevelSlices.forEach(function(slice) {
+        this.applyEventInfosRecursive_({}, slice);
+      }, this);
+    }
+  };
 
   return {
     AndroidAuditor: AndroidAuditor

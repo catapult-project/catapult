@@ -240,5 +240,18 @@ tv.b.unittest.testSuite(function() {
                                                     'tv-c-analysis-link');
     assert.isDefined(analysisLink);
   });
+
+  test('instantiate_withSingleSliceContainingInfo', function() {
+    var slice = newSliceNamed('b', 0, 1);
+    slice.info = new tv.c.trace_model.EventInfo(
+        'Info title', 'Description');
+
+    var selection = new tv.c.Selection();
+    selection.push(slice);
+
+    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
 });
 </script>

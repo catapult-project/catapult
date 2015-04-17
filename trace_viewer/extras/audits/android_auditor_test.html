@@ -250,6 +250,43 @@ tv.b.unittest.testSuite(function() {
     assert.isFalse(sfProcess.important);
   });
 
+  test('eventInfo', function() {
+    var eventsExpectingInfo = [];
+    var eventsNotExpectingInfo = [];
+
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var appProcess = model.getOrCreateProcess(1);
+      var uiThread = appProcess.getOrCreateThread(1);
+      uiThread.name = 'ndroid.systemui';
+
+      var pushInfoSlice = function(slice) {
+        eventsExpectingInfo.push(slice);
+        uiThread.sliceGroup.pushSlice(slice);
+      }
+      var pushNonInfoSlice = function(slice) {
+        eventsNotExpectingInfo.push(slice);
+        uiThread.sliceGroup.pushSlice(slice);
+      }
+
+      pushInfoSlice(newSliceNamed('performTraversals', 0, 10));
+      pushInfoSlice(newSliceNamed('measure', 0, 2));
+      pushInfoSlice(newSliceNamed('layout', 2, 1));
+      pushInfoSlice(newSliceNamed('draw', 3, 7));
+
+      // Out of place slices should not be tagged.
+      pushNonInfoSlice(newSliceNamed('measure', 11, 1));
+      pushNonInfoSlice(newSliceNamed('draw', 12, 1));
+    }, tv.e.audits.AndroidAuditor);
+
+    eventsExpectingInfo.forEach(function(event) {
+      assert.notEqual(event.info, undefined);
+    });
+
+    eventsNotExpectingInfo.forEach(function(event) {
+      assert.equal(event.info, undefined);
+    });
+  });
+
   test('drawingThreadPriorities', function() {
     var uiThread;
     var renderThread;
