@@ -1514,6 +1514,9 @@ tv.exportTo('tv.e.importer', function() {
 
           // Populate the allocator dumps, if present, in two passes.
           if (dumps.allocators !== undefined) {
+            var memoryAllocatorDumpsByFullName = {};
+            var memoryAllocatorDumps = [];
+
             // 1) Construct the MemoryAllocatorDump objects without parent links
             //    and add them to the memoryAllocatorDumpsByFullName index.
             tv.b.iterItems(dumps.allocators, function(fullName, rawDump) {
@@ -1523,29 +1526,26 @@ tv.exportTo('tv.e.importer', function() {
                   parseInt(rawDump.allocated_objects_count, 16),
                   parseInt(rawDump.allocated_objects_size_in_bytes, 16)
               );
-              processMemoryDump.memoryAllocatorDumpsByFullName[fullName] =
-                  allocatorDump;
+              memoryAllocatorDumpsByFullName[fullName] = allocatorDump;
             }, this);
 
             // 2) Find the roots allocator dumps and establish the parent links.
             var fullNames = Object.keys(dumps.allocators);
             fullNames.sort();
             fullNames.forEach(function(fullName) {
-              var allocatorDump =
-                  processMemoryDump.memoryAllocatorDumpsByFullName[fullName];
+              var allocatorDump = memoryAllocatorDumpsByFullName[fullName];
               var rawDump = dumps.allocators[fullName];
               var parentFullName = rawDump.parent;
               if (parentFullName === undefined) {
                 // If the dump is a root, add it to the top-level
                 // memoryAllocatorDumps list of the processMemoryDump.
-                processMemoryDump.memoryAllocatorDumps.push(allocatorDump);
+                memoryAllocatorDumps.push(allocatorDump);
                 return;
               }
               // If the dump is not a root, find its parent and setup the
               // parent <-> children relationships.
-              var parentAllocatorDump =
-                  processMemoryDump.memoryAllocatorDumpsByFullName[
-                      parentFullName];
+              var parentAllocatorDump = memoryAllocatorDumpsByFullName[
+                  parentFullName];
               if (parentAllocatorDump === undefined) {
                 this.model_.importWarning({
                     type: 'memory_dump_parse_error',
@@ -1559,6 +1559,7 @@ tv.exportTo('tv.e.importer', function() {
               allocatorDump.parent = parentAllocatorDump;
               allocatorDump.parent.children.push(allocatorDump);
             }, this);
+            processMemoryDump.memoryAllocatorDumps = memoryAllocatorDumps;
           }
 
           process.memoryDumps.push(processMemoryDump);

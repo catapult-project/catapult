@@ -17,6 +17,7 @@ tv.b.unittest.testSuite(function() {
   var TraceModel = tv.c.TraceModel;
   var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
   var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
+  var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
   var VMRegion = tv.c.trace_model.VMRegion;
   var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
 
@@ -95,6 +96,99 @@ tv.b.unittest.testSuite(function() {
     assert.equal(pmd.totalProportionalResidentSizeInBytes, 363);
     assert.equal(pmd.totalPrivateResidentSizeInBytes, 301);
     assert.equal(pmd.totalSharedResidentSizeInBytes, 144);
+  });
+
+  test('memoryAllocatorDumps_undefinedDumps', function() {
+    var pmd = createProcessMemoryDump();
+    assert.isUndefined(pmd.memoryAllocatorDumps);
+    assert.isUndefined(pmd.getMemoryAllocatorDumpByFullName('malloc'));
+  });
+
+  test('memoryAllocatorDumps_zeroDumps', function() {
+    var pmd = createProcessMemoryDump();
+    pmd.memoryAllocatorDumps = [];
+    assert.lengthOf(pmd.memoryAllocatorDumps, 0);
+    assert.isUndefined(pmd.getMemoryAllocatorDumpByFullName('malloc'));
+  });
+
+  test('memoryAllocatorDumps_flatDumps', function() {
+    var pmd = createProcessMemoryDump();
+    var oilpanDump = MemoryAllocatorDump.fromDict({
+      fullName: 'oilpan',
+      physicalSizeInBytes: 1024,
+      allocatedObjectsCount: 7,
+      allocatedObjectsSizeInBytes: 768
+    });
+    var v8Dump = MemoryAllocatorDump.fromDict({
+      fullName: 'v8',
+      physicalSizeInBytes: 2048,
+      allocatedObjectsCount: 15,
+      allocatedObjectsSizeInBytes: 1999
+    });
+    pmd.memoryAllocatorDumps = [oilpanDump, v8Dump];
+
+    assert.lengthOf(pmd.memoryAllocatorDumps, 2);
+    assert.equal(pmd.memoryAllocatorDumps[0], oilpanDump);
+    assert.equal(pmd.memoryAllocatorDumps[1], v8Dump);
+
+    assert.equal(pmd.getMemoryAllocatorDumpByFullName('oilpan'), oilpanDump);
+    assert.equal(pmd.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
+    assert.isUndefined(pmd.getMemoryAllocatorDumpByFullName('malloc'));
+  });
+
+  test('memoryAllocatorDumps_nestedDumps', function() {
+    var pmd = createProcessMemoryDump();
+    var oilpanDump = MemoryAllocatorDump.fromDict({
+      fullName: 'oilpan',
+      physicalSizeInBytes: 1024,
+      allocatedObjectsCount: 7,
+      allocatedObjectsSizeInBytes: 768
+    });
+    var oilpanBucket1Dump = MemoryAllocatorDump.fromDict({
+      fullName: 'oilpan/bucket1',
+      physicalSizeInBytes: 512,
+      allocatedObjectsCount: 3,
+      allocatedObjectsSizeInBytes: 256,
+      parent: oilpanDump
+    });
+    oilpanDump.children.push(oilpanBucket1Dump);
+    var oilpanBucket2Dump = MemoryAllocatorDump.fromDict({
+      fullName: 'oilpan/bucket2',
+      physicalSizeInBytes: 512,
+      allocatedObjectsCount: 4,
+      allocatedObjectsSizeInBytes: 512,
+      parent: oilpanDump
+    });
+    oilpanDump.children.push(oilpanBucket2Dump);
+    var oilpanBucket2StringsDump = MemoryAllocatorDump.fromDict({
+      fullName: 'oilpan/bucket2/strings',
+      physicalSizeInBytes: 512,
+      allocatedObjectsCount: 4,
+      allocatedObjectsSizeInBytes: 512,
+      parent: oilpanBucket2Dump
+    });
+    oilpanBucket2Dump.children.push(oilpanBucket2StringsDump);
+    var v8Dump = MemoryAllocatorDump.fromDict({
+      fullName: 'v8',
+      physicalSizeInBytes: 2048,
+      allocatedObjectsCount: 15,
+      allocatedObjectsSizeInBytes: 1999
+    });
+    pmd.memoryAllocatorDumps = [oilpanDump, v8Dump];
+
+    assert.lengthOf(pmd.memoryAllocatorDumps, 2);
+    assert.equal(pmd.memoryAllocatorDumps[0], oilpanDump);
+    assert.equal(pmd.memoryAllocatorDumps[1], v8Dump);
+
+    assert.equal(pmd.getMemoryAllocatorDumpByFullName('oilpan'), oilpanDump);
+    assert.equal(pmd.getMemoryAllocatorDumpByFullName('oilpan/bucket1'),
+        oilpanBucket1Dump);
+    assert.equal(pmd.getMemoryAllocatorDumpByFullName('oilpan/bucket2'),
+        oilpanBucket2Dump);
+    assert.equal(pmd.getMemoryAllocatorDumpByFullName('oilpan/bucket2/strings'),
+        oilpanBucket2StringsDump);
+    assert.equal(pmd.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
+    assert.isUndefined(pmd.getMemoryAllocatorDumpByFullName('malloc'));
   });
 });
 </script>

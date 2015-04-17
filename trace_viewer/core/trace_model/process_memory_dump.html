@@ -26,8 +26,8 @@ tv.exportTo('tv.c.trace_model', function() {
 
     this.totalResidentBytes = undefined;
     this.vmRegions = undefined;
-    this.memoryAllocatorDumps = [];
-    this.memoryAllocatorDumpsByFullName = {};
+    this.memoryAllocatorDumps_ = undefined;
+    this.memoryAllocatorDumpsByFullName_ = undefined;
   };
 
   ProcessMemoryDump.prototype = {
@@ -39,6 +39,40 @@ tv.exportTo('tv.c.trace_model', function() {
 
     get userFriendlyName() {
       return 'Process memory dump at ' + tv.c.analysis.tsString(this.start);
+    },
+
+    get memoryAllocatorDumps() {
+      return this.memoryAllocatorDumps_;
+    },
+
+    set memoryAllocatorDumps(memoryAllocatorDumps) {
+      this.memoryAllocatorDumps_ = memoryAllocatorDumps;
+
+      // Clear the index and generate it lazily.
+      this.memoryAllocatorDumpsByFullName_ = undefined;
+    },
+
+    getMemoryAllocatorDumpByFullName: function(fullName) {
+      if (this.memoryAllocatorDumps_ === undefined)
+        return undefined;
+
+      if (this.memoryAllocatorDumpsByFullName_ === undefined) {
+        var index = {};
+        function addDumpsToIndex(dumps) {
+          dumps.forEach(function(dump) {
+            index[dump.fullName] = dump;
+            addDumpsToIndex(dump.children);
+          });
+        };
+        addDumpsToIndex(this.memoryAllocatorDumps_);
+        this.memoryAllocatorDumpsByFullName_ = index;
+      }
+
+      return this.memoryAllocatorDumpsByFullName_[fullName];
+    },
+
+    get memoryAllocatorDumpsByFullName() {
+      return this.memoryAllocatorDumpsByFullName_;
     },
 
     getTotalVmRegionStat_: function(statGetterFn) {
@@ -91,6 +125,15 @@ tv.exportTo('tv.c.trace_model', function() {
     get name() {
       return this.fullName.substring(this.fullName.lastIndexOf('/') + 1);
     }
+  };
+
+  MemoryAllocatorDump.fromDict = function(dict) {
+    return new MemoryAllocatorDump(
+        dict.fullName,
+        dict.physicalSizeInBytes,
+        dict.allocatedObjectsCount,
+        dict.allocatedObjectsSizeInBytes,
+        dict.parent);
   };
 
   /**

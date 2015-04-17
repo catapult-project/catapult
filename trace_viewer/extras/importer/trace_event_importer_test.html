@@ -2368,8 +2368,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     assert.equal(d.totalResidentBytes, 9007199254740991);
     assert.isUndefined(d.vmRegions);
-    assert.equal(d.memoryAllocatorDumps.length, 0);
-    assert.equal(Object.keys(d.memoryAllocatorDumpsByFullName).length, 0);
+    assert.isUndefined(d.memoryAllocatorDumps);
+    assert.isUndefined(d.memoryAllocatorDumpsByFullName);
   });
 
   test('importMemoryDumps_vmRegions', function() {
@@ -2446,8 +2446,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(vr2.byteStats.totalResident, 205);
 
     assert.equal(d.totalResidentBytes, 0);
-    assert.equal(d.memoryAllocatorDumps.length, 0);
-    assert.equal(Object.keys(d.memoryAllocatorDumpsByFullName).length, 0);
+    assert.isUndefined(d.memoryAllocatorDumps);
+    assert.isUndefined(d.memoryAllocatorDumpsByFullName);
   });
 
   test('importMemoryDumps_allocatorMemoryDumps', function() {
@@ -2508,11 +2508,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
-    assert.equal(Object.keys(d.memoryAllocatorDumpsByFullName).length, 5);
     assert.equal(d.memoryAllocatorDumps.length, 2);
 
-    var oilpanRoot = d.memoryAllocatorDumpsByFullName['oilpan'];
-    var v8Root = d.memoryAllocatorDumpsByFullName['v8'];
+    var oilpanRoot = d.getMemoryAllocatorDumpByFullName('oilpan');
+    var v8Root = d.getMemoryAllocatorDumpByFullName('v8');
     assert.isDefined(oilpanRoot);
     assert.isDefined(v8Root);
     assert.include(d.memoryAllocatorDumps, oilpanRoot);
@@ -2523,8 +2522,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(oilpanRoot.allocatedObjectsSizeInBytes, 4096);
     assert.equal(oilpanRoot.children.length, 2);
 
-    var oilpanBucket1 = d.memoryAllocatorDumpsByFullName[
-        'oilpan/heap2/bucket1'];
+    var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
+        'oilpan/heap2/bucket1');
     assert.isDefined(oilpanBucket1);
     assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
     assert.equal(oilpanBucket1.name, 'bucket1');
