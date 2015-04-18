@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/audits/rail_interaction_record.html">
+<link rel="import" href="/extras/audits/chrome_test_utils.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var test_utils = tv.c.test_utils;
+
+  test('layoutInfo', function() {
+    var model = tv.e.audits.newChromeModel(function(model) {
+      // TODO(benjhayden): Create
+      model.rendererMain.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'FrameView::layout',
+        start: 0,
+        duration: 100
+      }));
+    });
+
+    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
+    var rir = new tv.e.audits.RAILInteractionRecord(
+        'simple', 1, 0, 100, modelHelper);
+    rir.associatedEvents.push(model.rendererMain.sliceGroup.slices[0]);
+    rir.updateArgs();
+
+    assert.equal(rir.args.layoutInfo.timeInLayout, 100);
+  });
+
+});
+</script>

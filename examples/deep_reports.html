@@ -57,7 +57,14 @@ found in the LICENSE file.
       var rest = /measurmt-traces\/(.+)/.exec(file)[1];
 
       // Find subdirectories.
-      var dirName = /(.+?)\//.exec(rest)[1];
+      var m = /(.+?)\/(.*)/.exec(rest);
+      var dirName = m[1];
+      var baseName = m[2];
+      if (baseName == 'rail_expectations.json') {
+        // TODO(nduca): Stash this somewhere else.
+        return;
+      }
+
       if (filesByDirName[dirName] === undefined)
         filesByDirName[dirName] = [];
       filesByDirName[dirName].push(file);
@@ -112,8 +119,9 @@ found in the LICENSE file.
     var dirName = window.location.hash.substr(1);
     var selectEl = document.body.querySelector('#trace-dir');
     var filesInDir = selectEl.filesByDirName[dirName];
-    tv.e.deep_reports.main(document.querySelector('#results'),
-                           filesInDir);
+    var results = document.querySelector('#results');
+    results.clear();
+    tv.e.deep_reports.main(results, filesInDir);
   }
   </script>
 </body>

@@ -262,6 +262,8 @@
       'trace_viewer/extras/audits/chrome_model_helper.html',
       'trace_viewer/extras/audits/chrome_process_helper.html',
       'trace_viewer/extras/audits/chrome_renderer_helper.html',
+      'trace_viewer/extras/audits/rail_interaction_record.html',
+      'trace_viewer/extras/audits/rail_ir_finder.html',
       'trace_viewer/extras/audits/utils.html',
       'trace_viewer/extras/cc/cc.html',
       'trace_viewer/extras/cc/constants.html',

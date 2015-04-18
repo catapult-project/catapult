@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/base/xhr.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/extras/deep_reports/scalar_value.html">
+<link rel="import" href="/extras/audits/chrome_model_helper.html">
+<script>
+'use strict';
+
+tv.exportTo('tv.e.deep_reports', function() {
+
+  function RAILDeepReporter() {
+  };
+
+  RAILDeepReporter.addResultsForModel = function(results, page, model) {
+    if (!tv.e.audits.ChromeModelHelper.supportsModel(model))
+      return;
+
+    var helper = new tv.e.audits.ChromeModelHelper(model);
+
+    var numRailIRs = 0;
+    var railScoresByType = {};
+    model.interaction_records.forEach(function(ir) {
+      if (!ir.title.startsWith('rail'))
+        return;
+      numRailIRs += 1;
+
+      if (railScoresByType[ir.railType] === undefined)
+        railScoresByType[ir.railType] = [];
+      railScoresByType[ir.railType].push(ir);
+    });
+
+    if (numRailIRs === 0)
+      return;
+
+    results.addValue(
+        new tv.e.deep_reports.ScalarValue(
+            page, 'numRailIRs', 'ms', numRailIRs));
+
+    var overallRailScores = [];
+    tv.b.iterItems(function(railType, irs) {
+      var minRailScoreForType = tv.b.Statistics.min(irs, function(ir) {
+        return ir.railScore;
+      });
+      results.addValue(
+        new tv.e.deep_reports.ScalarValue(
+          page, 'min' + railType, 'rails', minRailScoreForType));
+      overallRailScores.push(minRailScoreForType);
+    });
+
+    var overallRailScore = tv.b.Statistics.min(overallRailScores);
+    results.addValue(
+      new tv.e.deep_reports.ScalarValue(
+        page, 'minRail', 'rails', overallRailScore));
+  }
+
+  return {
+    RAILDeepReporter: RAILDeepReporter
+  };
+});
+</script>

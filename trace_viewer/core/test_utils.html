@@ -209,6 +209,7 @@ tv.exportTo('tv.c.test_utils', function() {
     var io = new tv.c.ImportOptions();
     io.customizeModelCallback = customizeModelCallback;
     io.shiftWorldToZero = false;
+    io.pruneEmptyContainers = false;
     return new tv.c.TraceModel([], io);
   }
 
@@ -216,6 +217,7 @@ tv.exportTo('tv.c.test_utils', function() {
     var io = new tv.c.ImportOptions();
     io.customizeModelCallback = customizeModelCallback;
     io.shiftWorldToZero = false;
+    io.pruneEmptyContainers = false;
     io.auditorConstructors = [auditor];
     return new tv.c.TraceModel([], io);
   }

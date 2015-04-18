@@ -38,7 +38,11 @@ and updates the table internally.
           width: '350px'
         }
       ];
-      table.tableRows = [];
+      this.clear();
+    },
+
+    clear: function() {
+      this.$.table.tableRows = [];
     },
 
     addColumnIfNeeded_: function(columnName) {
@@ -49,6 +53,8 @@ and updates the table internally.
       var column = {
         title: columnName,
         value: function(row) {
+          if (row[columnName] === undefined)
+            return '';
           return row[columnName];
         }
       };

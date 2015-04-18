@@ -25,6 +25,10 @@ tv.exportTo('tv.e.audits', function() {
   ChromeBrowserHelper.prototype = {
     __proto__: tv.e.audits.ChromeProcessHelper.prototype,
 
+    get rendererProcesses() {
+      return this.modelHelper.rendererProcesses;
+    },
+
     getLoadingEventsInRange: function(rangeOfInterest) {
       var loadingEvents = [];
       tv.b.iterItems(this.process.threads, function(tid, thread) {
@@ -101,6 +105,17 @@ tv.exportTo('tv.e.audits', function() {
       return latencyData;
     },
 
+    getAllAsyncSlicesMatching: function(pred, opt_this) {
+      var events = [];
+      this.iterAllThreads(function(thread) {
+        thread.asyncSliceGroup.slices.forEach(function(slice) {
+          if (pred.call(opt_this, slice))
+            events.push(slice);
+        });
+      });
+      return events;
+    },
+
     getAllNetworkEventsInRange: function(rangeOfInterest) {
       var networkEvents = [];
       this.modelHelper.model.getAllThreads().forEach(function(thread) {
@@ -120,6 +135,17 @@ tv.exportTo('tv.e.audits', function() {
         });
       });
       return networkEvents;
+    },
+
+    iterAllThreads: function(func, opt_this) {
+      tv.b.iterItems(this.process.threads, function(tid, thread) {
+        func.call(opt_this, thread);
+      });
+      this.rendererProcesses.forEach(function(rendererProcess) {
+        tv.b.iterItems(rendererProcess.threads, function(tid, thread) {
+          func.call(opt_this, thread);
+        });
+      });
     }
   };
 

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/core/test_utils.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Base class for trace data Auditors.
+ */
+tv.exportTo('tv.e.audits', function() {
+  function newChromeModel(customizeModelCallback) {
+    return tv.c.test_utils.newModel(function(model) {
+      model.browserProcess = model.getOrCreateProcess(1);
+      model.browserMain = model.browserProcess.getOrCreateThread(2);
+      model.browserMain.name = 'CrBrowserMain';
+
+      model.rendererProcess = model.getOrCreateProcess(2);
+      model.rendererMain = model.rendererProcess.getOrCreateThread(3);
+      model.rendererMain.name = 'CrRendererMain';
+
+      model.rendererCompositor = model.rendererProcess.getOrCreateThread(4);
+      model.rendererCompositor.name = 'Compositor';
+
+      customizeModelCallback(model);
+    });
+  }
+
+  function addGeneralLatencyInfoEvent(model, dict) {
+    dict.title = 'InputLatency';
+    dict.isTopLevel = true;
+    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
+  function addFlingStartLatencyInfoEvent(model, dict) {
+    var topEvent = addGeneralLatencyInfoEvent(model, dict);
+
+    dict.start = dict.flingStart;
+    dict.end = topEvent.end;
+    dict.title = 'InputLatency:GestureFlingStart';
+    var flingStartEvent = tv.c.test_utils.newAsyncSliceEx(dict);
+    topEvent.subSlices.push(flingStartEvent);
+    return topEvent;
+  }
+
+  function addFlingCancelLatencyInfoEvent(model, dict) {
+    var topEvent = addGeneralLatencyInfoEvent(model, dict);
+
+    dict.start = dict.flingCancel;
+    dict.end = topEvent.end;
+    dict.title = 'InputLatency:GestureFlingCancel';
+    var flingCancelEvent = tv.c.test_utils.newAsyncSliceEx(dict);
+    topEvent.subSlices.push(flingCancelEvent);
+    return topEvent;
+  }
+
+  function addFlingAnimationEvent(model, dict) {
+    dict.title = 'InputHandlerProxy::HandleGestureFling::started';
+    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererCompositor.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
+  return {
+    newChromeModel: newChromeModel,
+
+    addGeneralLatencyInfoEvent: addGeneralLatencyInfoEvent,
+    addFlingStartLatencyInfoEvent: addFlingStartLatencyInfoEvent,
+    addFlingCancelLatencyInfoEvent: addFlingCancelLatencyInfoEvent,
+    addFlingAnimationEvent: addFlingAnimationEvent
+  };
+});
+</script>

@@ -9,6 +9,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/xhr.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/extras/deep_reports/scalar_value.html">
+<link rel="import" href="/extras/deep_reports/rail_deep_reporter.html">
+<link rel="import" href="/extras/audits/chrome_model_helper.html">
 <script>
 'use strict';
 
@@ -56,6 +58,8 @@ tv.exportTo('tv.e.deep_reports', function() {
       name: 'numProcesses', units: 'processes', important: true,
       value: model.numProcesses
     }));
+
+    tv.e.deep_reports.RAILDeepReporter.addResultsForModel(results, page, model);
   }
 
   return {

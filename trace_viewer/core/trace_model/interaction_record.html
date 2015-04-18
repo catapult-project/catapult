@@ -16,6 +16,8 @@ tv.exportTo('tv.c.trace_model', function() {
     this.title = title;
     this.colorId = colorId;
     this.duration = duration;
+    this.args = {};
+    this.associatedEvents = [];
   }
   InteractionRecord.prototype = {
     __proto__: tv.c.trace_model.TimedEvent.prototype,
