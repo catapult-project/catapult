@@ -147,7 +147,7 @@ using custom elements specialized for different event types.
               EventRegistry.getEventTypeInfoByTypeName(y).metadata.priority;
           if (priorityDiff != 0)
             return priorityDiff;
-          return x.attr.localeCompare(y);
+          return x.localeCompare(y);
         });
 
         selectionTypeNames.forEach(function(eventTypeName) {
