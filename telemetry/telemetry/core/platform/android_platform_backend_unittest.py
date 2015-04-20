@@ -129,3 +129,71 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     backend = android_platform_backend.AndroidPlatformBackend(
         android_device.AndroidDevice('success'), self._options)
     self.assertFalse(backend._IsScreenOn(test_input))
+
+class AndroidPlatformBackendPsutilTest(unittest.TestCase):
+
+  class psutil_1_0(object):
+    version_info = (1, 0)
+    def __init__(self):
+      self.set_cpu_affinity_args = []
+    class Process(object):
+      def __init__(self, parent):
+        self._parent = parent
+        self.name = 'adb'
+      def set_cpu_affinity(self, cpus):
+        self._parent.set_cpu_affinity_args.append(cpus)
+    def process_iter(self):
+      return [self.Process(self)]
+
+  class psutil_2_0(object):
+    version_info = (2, 0)
+    def __init__(self):
+      self.set_cpu_affinity_args = []
+    class Process(object):
+      def __init__(self, parent):
+        self._parent = parent
+        self.set_cpu_affinity_args = []
+      def name(self):
+        return 'adb'
+      def cpu_affinity(self, cpus=None):
+        self._parent.set_cpu_affinity_args.append(cpus)
+    def process_iter(self):
+      return [self.Process(self)]
+
+  def setUp(self):
+    self._options = options_for_unittests.GetCopy()
+    self._stubs = system_stub.Override(
+        android_platform_backend,
+        ['perf_control', 'adb_commands'])
+    self.battery_patcher = mock.patch.object(battery_utils, 'BatteryUtils')
+    self.battery_patcher.start()
+    self._actual_ps_util = android_platform_backend.psutil
+
+  def tearDown(self):
+    self._stubs.Restore()
+    android_platform_backend.psutil = self._actual_ps_util
+    self.battery_patcher.stop()
+
+  @decorators.Disabled('chromeos')
+  def testPsutil1(self):
+    psutil = self.psutil_1_0()
+    android_platform_backend.psutil = psutil
+
+    # Mock an empty /proc/pid/stat.
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('1234'), self._options)
+    cpu_stats = backend.GetCpuStats('7702')
+    self.assertEquals({}, cpu_stats)
+    self.assertEquals([[0]], psutil.set_cpu_affinity_args)
+
+  @decorators.Disabled('chromeos')
+  def testPsutil2(self):
+    psutil = self.psutil_2_0()
+    android_platform_backend.psutil = psutil
+
+    # Mock an empty /proc/pid/stat.
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('1234'), self._options)
+    cpu_stats = backend.GetCpuStats('7702')
+    self.assertEquals({}, cpu_stats)
+    self.assertEquals([[0]], psutil.set_cpu_affinity_args)

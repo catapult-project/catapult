@@ -713,10 +713,11 @@ def _FixPossibleAdbInstability():
     return
   for process in psutil.process_iter():
     try:
-      if 'adb' in process.name:
-        if 'set_cpu_affinity' in dir(process):
-          process.set_cpu_affinity([0])  # Older versions.
-        else:
-          process.cpu_affinity([0])  # New versions of psutil.
+      if psutil.version_info >= (2, 0):
+        if 'adb' in process.name():
+          process.cpu_affinity([0])
+      else:
+        if 'adb' in process.name:
+          process.set_cpu_affinity([0])
     except (psutil.NoSuchProcess, psutil.AccessDenied):
       logging.warn('Failed to set adb process CPU affinity')
