@@ -66,12 +66,27 @@ def _InstallWinRing0():
     cloud_storage.GetIfChanged(zip_path, bucket=cloud_storage.PUBLIC_BUCKET)
     try:
       with zipfile.ZipFile(zip_path, 'r') as zip_file:
+        error_message = (
+            'Failed to extract %s into %s. If python claims that '
+            'the zip file is locked, this may be a lie. The problem may be '
+            'that python does not have write permissions to the destination '
+            'directory.'
+        )
         # Install DLL.
         if not os.path.exists(dll_path):
-          zip_file.extract(dll_file_name, executable_dir)
+          try:
+            zip_file.extract(dll_file_name, executable_dir)
+          except:
+            logging.error(error_message % (dll_file_name, executable_dir))
+            raise
+
         # Install kernel driver.
         if not os.path.exists(driver_path):
-          zip_file.extract(driver_file_name, executable_dir)
+          try:
+            zip_file.extract(driver_file_name, executable_dir)
+          except:
+            logging.error(error_message % (driver_file_name, executable_dir))
+            raise
     finally:
       os.remove(zip_path)
 
