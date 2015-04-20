@@ -12,7 +12,6 @@ from telemetry.core.backends.chrome import cros_browser_finder
 from telemetry.core.backends.chrome import desktop_browser_finder
 from telemetry.core.backends.chrome import ios_browser_finder
 from telemetry.core.backends.remote import trybot_browser_finder
-from telemetry.core.backends.webdriver import webdriver_desktop_browser_finder
 from telemetry.core import browser_finder_exceptions
 from telemetry.core import device_finder
 from telemetry import decorators
@@ -23,7 +22,6 @@ BROWSER_FINDERS = [
   cros_browser_finder,
   ios_browser_finder,
   trybot_browser_finder,
-  webdriver_desktop_browser_finder,
   ]
 
 
