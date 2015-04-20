@@ -18,6 +18,7 @@ found in the LICENSE file.
 tv.exportTo('tv.c.tracks', function() {
 
   var USED_MEMORY_TRACK_HEIGHT = 50;
+  var ALLOCATED_MEMORY_TRACK_HEIGHT = 50;
 
   /**
    * A track that displays an array of GlobalMemoryDump objects.
@@ -55,6 +56,7 @@ tv.exportTo('tv.c.tracks', function() {
 
       this.appendDumpDotsTrack_();
       this.appendUsedMemoryTrack_();
+      this.appendAllocatedMemoryTrack_();
     },
 
     appendDumpDotsTrack_: function() {
@@ -77,6 +79,20 @@ tv.exportTo('tv.c.tracks', function() {
       var track = new tv.c.tracks.ChartTrack(this.viewport);
       track.heading = 'Used memory (per process)';
       track.height = USED_MEMORY_TRACK_HEIGHT + 'px';
+      track.series = series;
+      track.autoSetAllAxes({expandMax: true});
+      this.appendChild(track);
+    },
+
+    appendAllocatedMemoryTrack_: function() {
+      var series = GlobalMemoryDumpTrack.buildAllocatedMemoryChartSeries(
+          this.memoryDumps_);
+      if (!series)
+        return;
+
+      var track = new tv.c.tracks.ChartTrack(this.viewport);
+      track.heading = 'Allocated memory (per allocator)';
+      track.height = ALLOCATED_MEMORY_TRACK_HEIGHT + 'px';
       track.series = series;
       track.autoSetAllAxes({expandMax: true});
       this.appendChild(track);
@@ -161,6 +177,91 @@ tv.exportTo('tv.c.tracks', function() {
 
     // Show the first series (with the smallest cumulative value) at the top.
     series.reverse();
+
+    return series;
+  };
+
+  // TODO(petrcermak): This method shares some code with the previous one.
+  // The common logic should possibly be factored out.
+  GlobalMemoryDumpTrack.buildAllocatedMemoryChartSeries = function(
+      globalMemoryDumps) {
+    // Do not generate the chart if no process memory dump contains any
+    // allocator dumps.
+    var containsAllocatorDumps = globalMemoryDumps.some(function(globalDump) {
+      for (var pid in globalDump.processMemoryDumps) {
+        var processMemoryDump = globalDump.processMemoryDumps[pid];
+        var allocatorDumps = processMemoryDump.memoryAllocatorDumps;
+        if (allocatorDumps && allocatorDumps.length > 0)
+          return true;
+      }
+      return false;
+    });
+    if (!containsAllocatorDumps)
+      return undefined;
+
+    // Build one list of points for each instrumented allocator.
+    var allocatorNameToPoints = {};
+    globalMemoryDumps.forEach(function(globalDump) {
+      tv.b.iterItems(globalDump.processMemoryDumps, function(pid, processDump) {
+        if (!processDump.memoryAllocatorDumps)
+          return;
+        processDump.memoryAllocatorDumps.forEach(function(allocatorDump) {
+          allocatorNameToPoints[allocatorDump.fullName] = [];
+        });
+      });
+    });
+
+    // For every timestamp, calculate the total allocated object size of
+    // each allocator and append it to the corresponding list of points.
+    var allocatorNameToPidToLastSize = {};
+    globalMemoryDumps.forEach(function(globalDump) {
+      tv.b.iterItems(allocatorNameToPoints, function(allocatorName, points) {
+        var totalAllocatedSize = 0;
+        var pidToLastSize = allocatorNameToPidToLastSize[allocatorName];
+        if (pidToLastSize === undefined) {
+          pidToLastSize = {};
+          allocatorNameToPidToLastSize[allocatorName] = pidToLastSize;
+        }
+        tv.b.iterItems(globalDump.processMemoryDumps,
+            function(pid, processMemoryDump) {
+          var allocatedSize;
+          if (processMemoryDump === undefined) {
+            // If no dump was found, assume that the process is dead.
+            allocatedSize = 0;
+          } else {
+            var allocatorDump =
+               processMemoryDump.getMemoryAllocatorDumpByFullName(
+                    allocatorName);
+            if (allocatorDump) {
+              allocatedSize = allocatorDump.allocatedObjectsSizeInBytes;
+            } else {
+              // If the dump does not provide the necessary information (namely
+              // the allocator dump with the given full name), assume previous
+              // value.
+              allocatedSize = pidToLastSize[pid] || 0;
+            }
+          }
+          pidToLastSize[pid] = allocatedSize;
+          totalAllocatedSize += allocatedSize;
+        });
+        points.push(new tv.c.tracks.ChartPoint(
+            globalDump, globalDump.start, totalAllocatedSize));
+      });
+    });
+
+    // Create one common axis for all allocated memory chart series.
+    var axis = new tv.c.tracks.ChartAxis(0);
+
+    // Build a chart series for each allocator.
+    var series = [];
+    tv.b.iterItems(allocatorNameToPoints, function(allocatorName, points) {
+      var colorId = tv.b.ui.getColorIdForGeneralPurposeString(allocatorName);
+      var renderingConfig = {
+        chartType: tv.c.tracks.ChartSeriesType.LINE,
+        colorId: colorId
+      };
+      series.push(new tv.c.tracks.ChartSeries(points, axis, renderingConfig));
+    });
 
     return series;
   };

@@ -21,6 +21,7 @@ tv.b.unittest.testSuite(function() {
   var GlobalMemoryDumpTrack = tv.c.tracks.GlobalMemoryDumpTrack;
   var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
   var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
+  var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
   var VMRegion = tv.c.trace_model.VMRegion;
   var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
   var TraceModel = tv.c.TraceModel;
@@ -43,18 +44,35 @@ tv.b.unittest.testSuite(function() {
     });
   };
 
+  function createAllocatorDumps(dumpSizes) {
+    var allocatorDumps = [];
+    tv.b.iterItems(dumpSizes, function(allocatorName, size) {
+      allocatorDumps.push(MemoryAllocatorDump.fromDict({
+        fullName: allocatorName,
+        physicalSizeInBytes: 2 * size,
+        allocatedObjectsCount: size / 2,
+        allocatedObjectsSizeInBytes: size
+      }));
+    });
+    return allocatorDumps;
+  }
+
   function addProcessMemoryDump(globalMemoryDump, process, start,
-      opt_vmRegions) {
+      opt_vmRegions, opt_allocatorDumps) {
     var pmd = new ProcessMemoryDump(globalMemoryDump, process, start);
-    if (opt_vmRegions !== undefined) {
+    if (opt_vmRegions !== undefined)
       pmd.vmRegions = opt_vmRegions;
-    }
+    if (opt_allocatorDumps !== undefined)
+      pmd.memoryAllocatorDumps = opt_allocatorDumps;
     globalMemoryDump.processMemoryDumps[process.pid] = pmd;
   };
 
-  function createModelWithDumps(withVmRegions) {
-    var maybeAddVmRegions = function(pssValues) {
-      return withVmRegions ? createVMRegions(pssValues) : undefined;
+  function createModelWithDumps(withVMRegions, withAllocatorDumps) {
+    var maybeAddVMRegions = function(pssValues) {
+      return withVMRegions ? createVMRegions(pssValues) : undefined;
+    };
+    var maybeAddAllocatorDumps = function(dumpSizes) {
+      return withAllocatorDumps ? createAllocatorDumps(dumpSizes) : undefined;
     };
     return tv.c.test_utils.newModel(function(model) {
       // Construct a model with three processes.
@@ -64,26 +82,35 @@ tv.b.unittest.testSuite(function() {
 
       var gmd1 = new GlobalMemoryDump(model, 0);
       model.globalMemoryDumps.push(gmd1);
-      addProcessMemoryDump(gmd1, pa, 0, maybeAddVmRegions([111]));
-      addProcessMemoryDump(gmd1, pb, 0.2);
+      addProcessMemoryDump(gmd1, pa, 0, maybeAddVMRegions([111]));
+      addProcessMemoryDump(gmd1, pb, 0.2, undefined,
+          maybeAddAllocatorDumps({oilpan: 1024}));
 
       var gmd2 = new GlobalMemoryDump(model, 5);
       model.globalMemoryDumps.push(gmd2);
       addProcessMemoryDump(gmd2, pa, 0);
-      addProcessMemoryDump(gmd2, pb, 4.99, maybeAddVmRegions([100, 50]));
-      addProcessMemoryDump(gmd2, pc, 5.12);
+      addProcessMemoryDump(gmd2, pb, 4.99, maybeAddVMRegions([100, 50]),
+          maybeAddAllocatorDumps({v8: 512}));
+      addProcessMemoryDump(gmd2, pc, 5.12, undefined,
+          maybeAddAllocatorDumps({oilpan: 128, v8: 256}));
 
       var gmd3 = new GlobalMemoryDump(model, 15);
       model.globalMemoryDumps.push(gmd3);
-      addProcessMemoryDump(gmd3, pa, 15.5, maybeAddVmRegions([]));
-      addProcessMemoryDump(gmd3, pc, 14.5, maybeAddVmRegions([70, 70, 70]));
+      addProcessMemoryDump(gmd3, pa, 15.5, maybeAddVMRegions([]),
+          maybeAddAllocatorDumps({v8: 768}));
+      addProcessMemoryDump(gmd3, pc, 14.5, maybeAddVMRegions([70, 70, 70]));
 
       var gmd4 = new GlobalMemoryDump(model, 18);
       model.globalMemoryDumps.push(gmd4);
     });
   };
 
-  function instantiateTrack(dumps) {
+  function instantiateTrack(withVMRegions, withAllocatorDumps,
+                            expectedTrackCount) {
+    var model = createModelWithDumps(withVMRegions, withAllocatorDumps);
+    var dumps = model.globalMemoryDumps;
+    dumps[2].selectionState = SelectionState.SELECTED;
+
     var div = document.createElement('div');
     var viewport = new Viewport(div);
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
@@ -100,29 +127,27 @@ tv.b.unittest.testSuite(function() {
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 
-    return track;
+    assert.lengthOf(track.tracks_, expectedTrackCount);
   };
 
-  test('instantiate_withoutVmRegions', function() {
-    var model = createModelWithDumps(false);
-    var dumps = model.globalMemoryDumps;
-    dumps[2].selectionState = SelectionState.SELECTED;
-
-    var track = instantiateTrack.call(this, dumps);
-    assert.lengthOf(track.tracks_, 1);
+  test('instantiate_dotsOnly', function() {
+    instantiateTrack.call(this, false, false, 1);
   });
 
-  test('instantiate_withVmRegions', function() {
-    var model = createModelWithDumps(true);
-    var dumps = model.globalMemoryDumps;
-    dumps[2].selectionState = SelectionState.SELECTED;
+  test('instantiate_withVMRegions', function() {
+    instantiateTrack.call(this, true, false, 2);
+  });
 
-    var track = instantiateTrack.call(this, dumps);
-    assert.lengthOf(track.tracks_, 2);
+  test('instantiate_withMemoryAllocatorDumps', function() {
+    instantiateTrack.call(this, false, true, 2);
+  });
+
+  test('instantiate_withBoth', function() {
+    instantiateTrack.call(this, true, true, 3);
   });
 
   test('buildDumpDotsItems_withoutVMRegions', function() {
-    var model = createModelWithDumps(false);
+    var model = createModelWithDumps(false, false);
     var dumps = model.globalMemoryDumps;
     var items = GlobalMemoryDumpTrack.buildDumpDotsItems(dumps);
 
@@ -134,7 +159,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('buildDumpDotsItems_withVMRegions', function() {
-    var model = createModelWithDumps(false);
+    var model = createModelWithDumps(false, false);
     var dumps = model.globalMemoryDumps;
     var items = GlobalMemoryDumpTrack.buildDumpDotsItems(dumps);
 
@@ -145,16 +170,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal(items[3].start, 18);
   });
 
-  test('buildUsedMemoryChartSeries_withoutVmRegions', function() {
-    var model = createModelWithDumps(false);
+  test('buildUsedMemoryChartSeries_withoutVMRegions', function() {
+    var model = createModelWithDumps(false, false);
     var dumps = model.globalMemoryDumps;
-    var chart = GlobalMemoryDumpTrack.buildUsedMemoryChartSeries(dumps);
+    var series = GlobalMemoryDumpTrack.buildUsedMemoryChartSeries(dumps);
 
-    assert.isUndefined(chart);
+    assert.isUndefined(series);
   });
 
-  test('buildUsedMemoryChartSeries_withVmRegions', function() {
-    var model = createModelWithDumps(true);
+  test('buildUsedMemoryChartSeries_withVMRegions', function() {
+    var model = createModelWithDumps(true, false);
     var dumps = model.globalMemoryDumps;
     var series = GlobalMemoryDumpTrack.buildUsedMemoryChartSeries(dumps);
 
@@ -207,8 +232,60 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sc.points[3].y, 0);
   });
 
+  test('buildAllocatedMemoryChartSeries_withoutMemoryAllocatorDumps',
+      function() {
+    var model = createModelWithDumps(false, false);
+    var dumps = model.globalMemoryDumps;
+    var series = GlobalMemoryDumpTrack.buildAllocatedMemoryChartSeries(dumps);
+
+    assert.isUndefined(series);
+  });
+
+  test('buildAllocatedMemoryChartSeries_withMemoryAllocatorDumps', function() {
+    var model = createModelWithDumps(false, true);
+    var dumps = model.globalMemoryDumps;
+    var series = GlobalMemoryDumpTrack.buildAllocatedMemoryChartSeries(dumps);
+
+    assert.lengthOf(series, 2);
+
+    var so = series[0];
+    var sv = series[1];
+
+    assert.lengthOf(so.points, 4);
+    assert.lengthOf(sv.points, 4);
+
+    // Oilpan: Only process B dumps allocated objects size (1024).
+    // V8: No process dumps allocated objects size (0).
+    assert.equal(so.points[0].x, 0);
+    assert.equal(sv.points[0].x, 0);
+    assert.equal(so.points[0].y, 1024);
+    assert.equal(sv.points[0].y, 0);
+
+    // Oilpan: Process B keeps previous value and process C dumps (1024 + 128).
+    // V8: Processes B and C dump (512 + 256).
+    assert.equal(so.points[1].x, 5);
+    assert.equal(sv.points[1].x, 5);
+    assert.equal(so.points[1].y, 1152);
+    assert.equal(sv.points[1].y, 768);
+
+    // Oilpan: Process B assumed not alive and process C keeps previous value
+    // (128).
+    // V8: Process A dumps now, process B assumed not alive, process C keeps
+    // previous value (768 + 256).
+    assert.equal(so.points[2].x, 15);
+    assert.equal(sv.points[2].x, 15);
+    assert.equal(so.points[2].y, 128);
+    assert.equal(sv.points[2].y, 1024);
+
+    // All processes: Memory dump not present -> assume process not alive (0).
+    assert.equal(so.points[3].x, 18);
+    assert.equal(sv.points[3].x, 18);
+    assert.equal(so.points[3].y, 0);
+    assert.equal(sv.points[3].y, 0);
+  });
+
   test('modelMapping', function() {
-    var model = createModelWithDumps(true);
+    var model = createModelWithDumps(true, true);
     var dumps = model.globalMemoryDumps;
     dumps[2].selectionState = SelectionState.SELECTED;
     dumps[3].selectionState = SelectionState.HIGHLIGHTED;
@@ -220,6 +297,7 @@ tv.b.unittest.testSuite(function() {
 
     var dumpDotsTrack = track.tracks_[0];
     var usedMemoryTrack = track.tracks_[1];
+    var allocatedMemoryTrack = track.tracks_[2];
 
     // Check that selected and selectionState are proxied correctly from the
     // model events to the corresponding items.
@@ -227,12 +305,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal(item1.selected, dumps[2].selected);
     var item2 = usedMemoryTrack.series[1].points[3];
     assert.equal(item2.selectionState, dumps[3].selectionState);
+    var item3 = allocatedMemoryTrack.series[0].points[1];
+    assert.equal(item3.selectionState, dumps[1].selectionState);
 
     // Check that the items are mapped to the right model events.
     var modelItem1 = item1.modelItem;
     assert.equal(modelItem1, dumps[2]);
     var modelItem2 = item2.modelItem;
     assert.equal(modelItem2, dumps[3]);
+    var modelItem3 = item3.modelItem;
+    assert.equal(modelItem3, dumps[1]);
   });
 });
 </script>
