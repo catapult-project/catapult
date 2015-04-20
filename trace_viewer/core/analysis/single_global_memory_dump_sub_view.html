@@ -60,6 +60,13 @@ found in the LICENSE file.
 
       var rows = [];
       tv.b.iterItems(pidToProcessMemoryDump, function(pid, processMemoryDump) {
+        var allocatorObjectSizes = {};
+        if (processMemoryDump.memoryAllocatorDumps !== undefined) {
+          processMemoryDump.memoryAllocatorDumps.forEach(function(dump) {
+            allocatorObjectSizes[dump.fullName] =
+                dump.allocatedObjectsSizeInBytes;
+          }, this);
+        }
         rows.push({
           title: processMemoryDump.process.userFriendlyName,
           proportionalResident:
@@ -67,17 +74,19 @@ found in the LICENSE file.
           privateResident:
               processMemoryDump.totalPrivateResidentSizeInBytes,
           sharedResident:
-              processMemoryDump.totalSharedResidentSizeInBytes
+              processMemoryDump.totalSharedResidentSizeInBytes,
+          allocatorObjectSizes:
+              allocatorObjectSizes
         });
       }, this);
       this.$.table.tableRows = rows;
 
-      this.updateColumns_();
+      this.updateColumns_(rows);
 
       this.$.table.rebuild();
     },
 
-    updateColumns_: function() {
+    updateColumns_: function(rows) {
       function createResidentSizeColumn(title, rowKey) {
         return {
           title: title,
@@ -124,6 +133,45 @@ found in the LICENSE file.
         createResidentSizeColumn(
             'Shared Memory', 'sharedResident')
       ];
+
+      var instrumentedAllocators = {};
+      rows.forEach(function(row) {
+        tv.b.iterItems(row.allocatorObjectSizes, function(allocatorName, size) {
+          instrumentedAllocators[allocatorName] = true;
+        }, this);
+      }, this);
+
+      tv.b.iterItems(instrumentedAllocators, function(allocatorName) {
+        columns.push({
+          title: allocatorName,
+          value: function(row) {
+            // TODO(petrcermak): Show the most recently measured size instead
+            // of '<unknown>'.
+            var size = row.allocatorObjectSizes[allocatorName];
+            if (size === undefined)
+              return '<unknown>';
+            var sizeEl = document.createElement('tv-c-a-size-span');
+            sizeEl.numBytes = size;
+            return sizeEl;
+          },
+          width: '<upated further down>',
+          cmp: function(rowA, rowB) {
+            // TODO(petrcermak): Reduce duplication by sharing code with the
+            // cmp function inside createResidentSizeColumn. This will not be
+            // necessary once we show the most recently measured size instead
+            // of '<unknown>'.
+            var sizeA = rowA.allocatorObjectSizes[allocatorName];
+            var sizeB = rowB.allocatorObjectSizes[allocatorName];
+            if (sizeA === undefined && sizeB === undefined)
+              return 0;
+            if (sizeA === undefined)
+              return -1;
+            if (sizeB === undefined)
+              return 1;
+            return sizeA - sizeB;
+          }
+        });
+      }, this);
 
       var columnWidth = (100 / (columns.length - 1)).toFixed(3) + '%';
       for (var i = 1; i < columns.length; i++)
