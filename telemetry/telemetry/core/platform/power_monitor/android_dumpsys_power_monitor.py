@@ -9,9 +9,6 @@ import logging
 from telemetry.core import util
 from telemetry.core.platform.power_monitor import sysfs_power_monitor
 
-# Get build/android scripts into path
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib.device import battery_utils # pylint: disable=F0401
 
 class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   """PowerMonitor that relies on the dumpsys batterystats to monitor the power
@@ -19,16 +16,16 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   and is the same information end-users see with the battery application.
   Available on Android L and higher releases.
   """
-  def __init__(self, device, platform_backend):
+  def __init__(self, battery, platform_backend):
     """Constructor.
 
     Args:
-        device: A DeviceUtil instance.
+        battery: A BatteryUtil instance.
         platform_backend: A LinuxBasedPlatformBackend instance.
     """
     super(DumpsysPowerMonitor, self).__init__(platform_backend)
+    self._battery = battery
     self._browser = None
-    self._battery = battery_utils.BatteryUtils(device)
 
   def CanMonitorPower(self):
     result = self._platform.RunCommand('dumpsys batterystats -c')

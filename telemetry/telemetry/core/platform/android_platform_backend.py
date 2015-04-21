@@ -38,6 +38,7 @@ import platformsettings  # pylint: disable=F0401
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+from pylib.device import battery_utils # pylint: disable=F0401
 from pylib.device import device_errors  # pylint: disable=F0401
 from pylib.perf import cache_control  # pylint: disable=F0401
 from pylib.perf import perf_control  # pylint: disable=F0401
@@ -70,6 +71,7 @@ class AndroidPlatformBackend(
       # Ignore result.
       self._adb.EnableAdbRoot()
     self._device = self._adb.device()
+    self._battery = battery_utils.BatteryUtils(self._device)
     self._enable_performance_mode = device.enable_performance_mode
     self._surface_stats_collector = None
     self._perf_tests_setup = perf_control.PerfControl(self._device)
@@ -80,7 +82,7 @@ class AndroidPlatformBackend(
     power_controller = power_monitor_controller.PowerMonitorController([
         monsoon_power_monitor.MonsoonPowerMonitor(self._device, self),
         android_ds2784_power_monitor.DS2784PowerMonitor(self._device, self),
-        android_dumpsys_power_monitor.DumpsysPowerMonitor(self._device, self),
+        android_dumpsys_power_monitor.DumpsysPowerMonitor(self._battery, self),
     ])
     self._power_monitor = android_temperature_monitor.AndroidTemperatureMonitor(
         power_controller, self._device)
