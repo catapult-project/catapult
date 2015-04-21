@@ -846,6 +846,7 @@ tv.exportTo('tv.c', function() {
       this.dragBox_.style.width = finalDragBox.width + 'px';
       this.dragBox_.style.top = finalDragBox.top + 'px';
       this.dragBox_.style.height = finalDragBox.height + 'px';
+      this.dragBox_.style.whiteSpace = 'nowrap';
 
       var pixelRatio = window.devicePixelRatio || 1;
       var canv = this.modelTrackContainer_.canvas;
@@ -855,8 +856,7 @@ tv.exportTo('tv.c', function() {
       var hiWX = dt.xViewToWorld(
           (hiX - canv.offsetLeft) * pixelRatio);
 
-      var roundedDuration = Math.round((hiWX - loWX) * 100) / 100;
-      this.dragBox_.textContent = roundedDuration + 'ms';
+      this.dragBox_.textContent = tv.c.analysis.tsString((hiWX - loWX));
 
       var e = new tv.b.Event('selectionChanging');
       e.loWX = loWX;

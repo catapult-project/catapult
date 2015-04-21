@@ -13,7 +13,8 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.c.analysis', function() {
   function tsString(ts) {
-    return Number(parseFloat(tsRound(ts)).toFixed(3)).toLocaleString() + ' ms';
+    return Number(tsRound(ts))
+        .toLocaleString(undefined, { minimumFractionDigits: 3 }) + ' ms';
   }
 
   function tsRound(ts) {
