@@ -4,8 +4,6 @@
 import os
 import sys
 
-PYLINT_BLACKLIST = []
-PYLINT_DISABLED_WARNINGS = ['R0923', 'R0201', 'E1101']
 
 def _CommonChecks(input_api, output_api):
   results = []
@@ -21,9 +19,7 @@ def _CommonChecks(input_api, output_api):
       '$ %s' % os.path.abspath(update_docs_path)))
 
   results.extend(input_api.canned_checks.RunPylint(
-        input_api, output_api,
-        black_list=PYLINT_BLACKLIST,
-        disabled_warnings=PYLINT_DISABLED_WARNINGS))
+        input_api, output_api, black_list=[], pylintrc='pylintrc'))
   return results
 
 def GetPathsToPrepend(input_api):
