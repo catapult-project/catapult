@@ -16,20 +16,50 @@ found in the LICENSE file.
     :host {
       display: flex;
     }
-    #table {
+    #overview_pane,
+    #process_pane {
+      width: 50%;
+      margin: 8px;
+    }
+    #overview_table,
+    #overview_table {
       flex: 1 1 auto;
       align-self: stretch;
     }
+    .pane_label {
+      font-weight: bold;
+      font-size: 15pt;
+      margin-bottom: 5px;
+    }
     </style>
-    <tracing-analysis-nested-table id="table">
-    </tracing-analysis-nested-table>
+    <div id="overview_pane">
+      <div class="pane_label">Overview</div>
+      <tracing-analysis-nested-table id="overview_table">
+      </tracing-analysis-nested-table>
+    </div>
+    <div id="process_pane">
+      <div class="pane_label">Process</div>
+      <tracing-analysis-nested-table id="process_table">
+      </tracing-analysis-nested-table>
+    </div>
   </template>
   <script>
   'use strict';
 
+  // TODO(petrcermak): Refactor this whole class (split into several objects).
+  // We are landing this early to enable other teams to start instrumenting
+  // their Chrome allocators and analyze the obtained data.
   Polymer({
     created: function() {
       this.currentSelection_ = undefined;
+      this.selectedProcessDump_ = undefined;
+    },
+
+    ready: function() {
+      this.$.overview_table.addEventListener('selection-changed', function(e) {
+        this.selectedProcessDump =
+            e.srcElement.selectedTableRow.processMemoryDump;
+      }.bind(this));
     },
 
     set selection(selection) {
@@ -47,6 +77,15 @@ found in the LICENSE file.
     setSelectionWithoutErrorChecks: function(selection) {
       this.currentSelection_ = selection;
       this.updateContents_();
+    },
+
+    set selectedProcessDump(selectedProcessDump) {
+      this.selectedProcessDump_ = selectedProcessDump;
+      this.updateProcessContents_();
+    },
+
+    get selectedProcessDump() {
+      return this.selectedProcessDump_;
     },
 
     updateContents_: function() {
@@ -75,18 +114,20 @@ found in the LICENSE file.
               processMemoryDump.totalPrivateResidentSizeInBytes,
           sharedResident:
               processMemoryDump.totalSharedResidentSizeInBytes,
-          allocatorObjectSizes:
-              allocatorObjectSizes
+          allocatorObjectSizes: allocatorObjectSizes,
+          processMemoryDump: processMemoryDump
         });
       }, this);
-      this.$.table.tableRows = rows;
+      this.$.overview_table.tableRows = rows;
 
-      this.updateColumns_(rows);
+      this.updateOverviewColumns_(rows);
 
-      this.$.table.rebuild();
+      this.$.overview_table.supportsSelection = true;
+
+      this.$.overview_table.rebuild();
     },
 
-    updateColumns_: function(rows) {
+    updateOverviewColumns_: function(rows) {
       function createResidentSizeColumn(title, rowKey) {
         return {
           title: title,
@@ -121,7 +162,7 @@ found in the LICENSE file.
           value: function(row) {
             return row.title;
           },
-          width: '350px',
+          width: '200px',
           cmp: function(rowA, rowB) {
             return rowA.title.localeCompare(rowB.title);
           }
@@ -177,7 +218,121 @@ found in the LICENSE file.
       for (var i = 1; i < columns.length; i++)
         columns[i].width = columnWidth;
 
-      this.$.table.tableColumns = columns;
+      this.$.overview_table.tableColumns = columns;
+    },
+
+    updateProcessContents_: function() {
+      if (this.selectedProcessDump_ === undefined) {
+        this.$.process_table.tableRows = [];
+        this.$.process_table.tableColumns = [];
+        this.$.process_table.rebuild();
+        return;
+      }
+
+      var memoryAllocatorDumps;
+      if (this.selectedProcessDump_.memoryAllocatorDumps)
+        memoryAllocatorDumps = this.selectedProcessDump_.memoryAllocatorDumps;
+      else
+        memoryAllocatorDumps = [];
+
+      var createAllocatorRows = function(allocatorDumps) {
+        return allocatorDumps.map(function(allocatorDump) {
+          var row = {
+            title: allocatorDump.fullName,
+            physicalSize: allocatorDump.physicalSizeInBytes,
+            allocatedObjectsCount: allocatorDump.allocatedObjectsCount,
+            allocatedObjectsSize: allocatorDump.allocatedObjectsSizeInBytes
+          };
+          if (allocatorDump.children.length > 0)
+            row.subRows = createAllocatorRows(allocatorDump.children);
+          return row;
+        });
+      };
+      var rows = createAllocatorRows(memoryAllocatorDumps);
+
+      this.$.process_table.tableRows = rows;
+
+      this.updateProcessColumns_(rows);
+
+      this.$.process_table.rebuild();
+    },
+
+    updateProcessColumns_: function(rows) {
+      function createSizeColumn(title, rowKey) {
+        return {
+          title: title,
+          value: function(row) {
+            // TODO(petrcermak): Show the most recently measured size instead
+            // of '<unknown>'.
+            var size = row[rowKey];
+            if (size === undefined)
+              return '<unknown>';
+            var sizeEl = document.createElement('tv-c-a-size-span');
+            sizeEl.numBytes = size;
+            return sizeEl;
+          },
+          width: '<upated further down>',
+          cmp: function(rowA, rowB) {
+            var sizeA = rowA[rowKey];
+            var sizeB = rowB[rowKey];
+            if (sizeA === undefined && sizeB === undefined)
+              return 0;
+            if (sizeA === undefined)
+              return -1;
+            if (sizeB === undefined)
+              return 1;
+            return sizeA - sizeB;
+          }
+        };
+      }
+
+      function createCountColumn(title, rowKey) {
+        return {
+          title: title,
+          value: function(row) {
+            // TODO(petrcermak): Show the most recently measured count instead
+            // of '<unknown>'.
+            var size = row[rowKey];
+            if (size === undefined)
+              return '<unknown>';
+            return size;
+          },
+          width: '<upated further down>',
+          cmp: function(rowA, rowB) {
+            var sizeA = rowA[rowKey];
+            var sizeB = rowB[rowKey];
+            if (sizeA === undefined && sizeB === undefined)
+              return 0;
+            if (sizeA === undefined)
+              return -1;
+            if (sizeB === undefined)
+              return 1;
+            return sizeA - sizeB;
+          }
+        };
+      }
+
+      var columns = [
+        {
+          title: 'Allocator',
+          value: function(row) {
+            return row.title;
+          },
+          width: '200px',
+          cmp: function(rowA, rowB) {
+            return rowA.title.localeCompare(rowB.title);
+          }
+        },
+        createSizeColumn('Allocated Objects Size', 'allocatedObjectsSize'),
+        createCountColumn('Allocated Objects Count', 'allocatedObjectsCount'),
+        createSizeColumn('Physical Size', 'physicalSize')
+      ];
+
+      var columnWidth = (100 / (columns.length - 1)).toFixed(3) + '%';
+      for (var i = 1; i < columns.length; i++)
+        columns[i].width = columnWidth;
+
+      this.$.process_table.tableColumns = columns;
     }
   });
   </script>
