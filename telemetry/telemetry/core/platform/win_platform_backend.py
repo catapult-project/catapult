@@ -60,7 +60,8 @@ def _InstallWinRing0():
 
   # Check for WinRing0 and download if needed.
   if not (os.path.exists(dll_path) and os.path.exists(driver_path)):
-    win_binary_dir = os.path.join(path.GetTelemetryDir(), 'bin', 'win')
+    win_binary_dir = os.path.join(
+        path.GetTelemetryDir(), 'bin', 'win', 'AMD64')
     zip_path = os.path.join(win_binary_dir, 'winring0.zip')
     cloud_storage.GetIfChanged(zip_path, bucket=cloud_storage.PUBLIC_BUCKET)
     try:
