@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/core/analysis/size_span.html">
 <link rel="import" href="/core/analysis/table_builder.html">
 
@@ -128,34 +129,6 @@ found in the LICENSE file.
     },
 
     updateOverviewColumns_: function(rows) {
-      function createResidentSizeColumn(title, rowKey) {
-        return {
-          title: title,
-          value: function(row) {
-            // TODO(petrcermak): Show the most recently measured size instead
-            // of '<unknown>'.
-            var size = row[rowKey];
-            if (size === undefined)
-              return '<unknown>';
-            var sizeEl = document.createElement('tv-c-a-size-span');
-            sizeEl.numBytes = size;
-            return sizeEl;
-          },
-          width: '<upated further down>',
-          cmp: function(rowA, rowB) {
-            var sizeA = rowA[rowKey];
-            var sizeB = rowB[rowKey];
-            if (sizeA === undefined && sizeB === undefined)
-              return 0;
-            if (sizeA === undefined)
-              return -1;
-            if (sizeB === undefined)
-              return 1;
-            return sizeA - sizeB;
-          }
-        };
-      }
-
       var columns = [
         {
           title: 'Process',
@@ -167,12 +140,18 @@ found in the LICENSE file.
             return rowA.title.localeCompare(rowB.title);
           }
         },
-        createResidentSizeColumn(
-            'Proportional Set Size', 'proportionalResident'),
-        createResidentSizeColumn(
-            'Private Memory', 'privateResident'),
-        createResidentSizeColumn(
-            'Shared Memory', 'sharedResident')
+        new tv.c.analysis.MemoryColumn(
+            'Proportional Set Size',
+            tv.c.analysis.fieldGetter('proportionalResident'),
+            tv.c.analysis.sizeFormatter),
+        new tv.c.analysis.MemoryColumn(
+            'Private Memory',
+            tv.c.analysis.fieldGetter('privateResident'),
+            tv.c.analysis.sizeFormatter),
+        new tv.c.analysis.MemoryColumn(
+            'Shared Memory',
+            tv.c.analysis.fieldGetter('sharedResident'),
+            tv.c.analysis.sizeFormatter)
       ];
 
       var instrumentedAllocators = {};
@@ -183,35 +162,10 @@ found in the LICENSE file.
       }, this);
 
       tv.b.iterItems(instrumentedAllocators, function(allocatorName) {
-        columns.push({
-          title: allocatorName,
-          value: function(row) {
-            // TODO(petrcermak): Show the most recently measured size instead
-            // of '<unknown>'.
-            var size = row.allocatorObjectSizes[allocatorName];
-            if (size === undefined)
-              return '<unknown>';
-            var sizeEl = document.createElement('tv-c-a-size-span');
-            sizeEl.numBytes = size;
-            return sizeEl;
-          },
-          width: '<upated further down>',
-          cmp: function(rowA, rowB) {
-            // TODO(petrcermak): Reduce duplication by sharing code with the
-            // cmp function inside createResidentSizeColumn. This will not be
-            // necessary once we show the most recently measured size instead
-            // of '<unknown>'.
-            var sizeA = rowA.allocatorObjectSizes[allocatorName];
-            var sizeB = rowB.allocatorObjectSizes[allocatorName];
-            if (sizeA === undefined && sizeB === undefined)
-              return 0;
-            if (sizeA === undefined)
-              return -1;
-            if (sizeB === undefined)
-              return 1;
-            return sizeA - sizeB;
-          }
-        });
+        columns.push(new tv.c.analysis.MemoryColumn(
+            allocatorName,
+            tv.c.analysis.fieldGetter('allocatorObjectSizes', allocatorName),
+            tv.c.analysis.sizeFormatter));
       }, this);
 
       var columnWidth = (100 / (columns.length - 1)).toFixed(3) + '%';
@@ -258,60 +212,6 @@ found in the LICENSE file.
     },
 
     updateProcessColumns_: function(rows) {
-      function createSizeColumn(title, rowKey) {
-        return {
-          title: title,
-          value: function(row) {
-            // TODO(petrcermak): Show the most recently measured size instead
-            // of '<unknown>'.
-            var size = row[rowKey];
-            if (size === undefined)
-              return '<unknown>';
-            var sizeEl = document.createElement('tv-c-a-size-span');
-            sizeEl.numBytes = size;
-            return sizeEl;
-          },
-          width: '<upated further down>',
-          cmp: function(rowA, rowB) {
-            var sizeA = rowA[rowKey];
-            var sizeB = rowB[rowKey];
-            if (sizeA === undefined && sizeB === undefined)
-              return 0;
-            if (sizeA === undefined)
-              return -1;
-            if (sizeB === undefined)
-              return 1;
-            return sizeA - sizeB;
-          }
-        };
-      }
-
-      function createCountColumn(title, rowKey) {
-        return {
-          title: title,
-          value: function(row) {
-            // TODO(petrcermak): Show the most recently measured count instead
-            // of '<unknown>'.
-            var size = row[rowKey];
-            if (size === undefined)
-              return '<unknown>';
-            return size;
-          },
-          width: '<upated further down>',
-          cmp: function(rowA, rowB) {
-            var sizeA = rowA[rowKey];
-            var sizeB = rowB[rowKey];
-            if (sizeA === undefined && sizeB === undefined)
-              return 0;
-            if (sizeA === undefined)
-              return -1;
-            if (sizeB === undefined)
-              return 1;
-            return sizeA - sizeB;
-          }
-        };
-      }
-
       var columns = [
         {
           title: 'Allocator',
@@ -323,9 +223,18 @@ found in the LICENSE file.
             return rowA.title.localeCompare(rowB.title);
           }
         },
-        createSizeColumn('Allocated Objects Size', 'allocatedObjectsSize'),
-        createCountColumn('Allocated Objects Count', 'allocatedObjectsCount'),
-        createSizeColumn('Physical Size', 'physicalSize')
+        new tv.c.analysis.MemoryColumn(
+            'Allocated Objects Size',
+            tv.c.analysis.fieldGetter('allocatedObjectsSize'),
+            tv.c.analysis.sizeFormatter),
+        new tv.c.analysis.MemoryColumn(
+            'Allocated Objects Count',
+            tv.c.analysis.fieldGetter('allocatedObjectsCount'),
+            tv.c.analysis.countFormatter),
+        new tv.c.analysis.MemoryColumn(
+            'Physical Size',
+            tv.c.analysis.fieldGetter('physicalSize'),
+            tv.c.analysis.sizeFormatter)
       ];
 
       var columnWidth = (100 / (columns.length - 1)).toFixed(3) + '%';

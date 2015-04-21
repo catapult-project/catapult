@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<script>
+'use strict';
+
+/**
+ * @fileoverview Helper code for memory dump sub-views.
+ */
+tv.exportTo('tv.c.analysis', function() {
+
+  /**
+   * A table builder column for displaying memory dump data.
+   *
+   * @constructor
+   */
+  function MemoryColumn(title, valueGetter, valueFormatter) {
+    this.title = title;
+    this.valueGetter_ = valueGetter;
+    this.valueFormatter_ = valueFormatter;
+  }
+
+  MemoryColumn.prototype = {
+    value: function(row) {
+      // TODO(petrcermak): Show the most recently measured size instead
+      // of '<unknown>'.
+      var rawValue = this.valueGetter_(row);
+      if (rawValue === undefined)
+        return '<unknown>';
+      return this.valueFormatter_(rawValue);
+    },
+
+    cmp: function(rowA, rowB) {
+      var rawValueA = this.valueGetter_(rowA);
+      var rawValueB = this.valueGetter_(rowB);
+      if (rawValueA === undefined && rawValueB === undefined)
+        return 0;
+      if (rawValueA === undefined)
+        return -1;
+      if (rawValueB === undefined)
+        return 1;
+      return rawValueA - rawValueB;
+    }
+  };
+
+  function countFormatter(count) {
+    return count;
+  }
+
+  function sizeFormatter(size) {
+    var sizeEl = document.createElement('tv-c-a-size-span');
+    sizeEl.numBytes = size;
+    return sizeEl;
+  }
+
+  function fieldGetter(/* fields */) {
+    var fields = arguments;
+    return function(row) {
+      var value = row;
+      for (var i = 0; i < fields.length; i++)
+        value = value[fields[i]];
+      return value;
+    };
+  }
+
+  return {
+    MemoryColumn: MemoryColumn,
+    countFormatter: countFormatter,
+    sizeFormatter: sizeFormatter,
+    fieldGetter: fieldGetter
+  };
+});
+</script>

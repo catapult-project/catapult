@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
+<link rel="import" href="/core/test_utils.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var MemoryColumn = tv.c.analysis.MemoryColumn;
+  var countFormatter = tv.c.analysis.countFormatter;
+  var sizeFormatter = tv.c.analysis.sizeFormatter;
+  var fieldGetter = tv.c.analysis.fieldGetter;
+
+  test('checkMemoryColumn_value', function() {
+    var c = new MemoryColumn('Test Column', fieldGetter('x'), sizeFormatter);
+    assert.equal(c.title, 'Test Column');
+    assert.isUndefined(c.width);
+
+    // Undefined field.
+    var row = {};
+    assert.equal(c.value(row), '<unknown>');
+
+    // Defined field.
+    var row = {x: 1024};
+    assert.equal(c.value(row).numBytes, 1024);
+  });
+
+  test('checkMemoryColumn_cmp', function() {
+    var c = new MemoryColumn('Test Column', fieldGetter('x'), countFormatter);
+
+    // Field undefined in one or both rows.
+    assert.equal(c.cmp({}, {}), 0);
+    assert.isAbove(c.cmp({x: -10}, {}), 0);
+    assert.isBelow(c.cmp({}, {x: 20}), 0);
+
+    // Field defined in both rows
+    assert.equal(c.cmp({x: 0.01}, {x: 0.01}), 0);
+    assert.isAbove(c.cmp({x: -1}, {x: -2}), 0);
+    assert.isBelow(c.cmp({x: 999}, {x: 1000}), 0);
+  });
+
+  test('checkCountFormatter', function() {
+    assert.equal(countFormatter(-273.15), -273.15);
+    assert.equal(countFormatter(0), 0);
+    assert.equal(countFormatter(0.01), 0.01);
+    assert.equal(countFormatter(1099511627776), 1099511627776);
+  });
+
+  test('checkSizeFormatter', function() {
+    assert.equal(sizeFormatter(0).numBytes, 0);
+    assert.equal(sizeFormatter(1).numBytes, 1);
+    assert.equal(sizeFormatter(1025).numBytes, 1025);
+    assert.equal(sizeFormatter(1099511627776).numBytes, 1099511627776);
+  });
+
+  test('checkFieldGetter', function() {
+    // Zero fields.
+    var f = fieldGetter();
+    var row = {a: 5};
+    assert.equal(f(row), row);
+
+    // One field.
+    var f = fieldGetter('p2');
+    assert.equal(f({p1: 'wrong', p2: 'right'}), 'right');
+    assert.isUndefined(f({p1: 'wrong'}));
+
+    // Multiple fields.
+    var f = fieldGetter('b', 'd', 'f');
+    assert.equal(f({a: 0, b: {c: 0, d: {e: 0, f: 42}}}), 42);
+  });
+});
+</script>
