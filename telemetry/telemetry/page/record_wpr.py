@@ -88,12 +88,14 @@ class WprRecorder(object):
 
     self._benchmark = _MaybeGetInstanceOfClass(target, base_dir,
                                                benchmark.Benchmark)
-    if self._benchmark is not None:
-      self._record_page_test.page_test = self._benchmark.test()
     self._parser = self._options.CreateParser(usage='%prog <PageSet|Benchmark>')
     self._AddCommandLineArgs()
     self._ParseArgs(args)
     self._ProcessCommandLineArgs()
+    if self._benchmark is not None:
+      # This must be called after the command line args are added.
+      self._record_page_test.page_test = self._benchmark.CreatePageTest(
+          self.options)
 
     if self._options.page_set_base_dir:
       page_set_base_dir = self._options.page_set_base_dir
