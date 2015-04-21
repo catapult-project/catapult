@@ -52,7 +52,7 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
 # and class names, then always index by class name.
 @decorators.Cache
 def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
-                    index_by_class_name=False):
+                    index_by_class_name=True):
   """Discover all classes in |start_dir| which subclass |base_class|.
 
   Base classes that contain subclasses are ignored by default.

@@ -9,55 +9,35 @@ from telemetry.core.platform import linux_platform_backend
 from telemetry.core import util
 from telemetry import decorators
 
-class TestBackend(
-    linux_platform_backend.LinuxPlatformBackend):
-
-  def __init__(self):
-    super(TestBackend, self).__init__()
-    self._mock_files = {}
-
-  def SetMockFile(self, filename, output):
-    self._mock_files[filename] = output
-
-  def GetFileContents(self, filename):
-    return self._mock_files[filename]
-
-  def IsThermallyThrottled(self):
-    raise NotImplementedError()
-
-  def HasBeenThermallyThrottled(self):
-    raise NotImplementedError()
-
-  def GetSystemCommitCharge(self):
-    raise NotImplementedError()
-
-  def StopVideoCapture(self):
-    raise NotImplementedError()
-
-  def StartVideoCapture(self, min_bitrate_mbps):
-    raise NotImplementedError()
-
-  def GetSystemTotalPhysicalMemory(self):
-    raise NotImplementedError()
+util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
+import mock
 
 
 class LinuxPlatformBackendTest(unittest.TestCase):
   @decorators.Enabled('linux')
   def testGetOSVersionNameSaucy(self):
-    backend = TestBackend()
     path = os.path.join(util.GetUnittestDataDir(), 'ubuntu-saucy-lsb-release')
     with open(path) as f:
-      backend.SetMockFile('/etc/lsb-release', f.read())
+      unbuntu_saucy_lsb_release_content = f.read()
 
-    self.assertEqual(backend.GetOSVersionName(), 'saucy')
+    with mock.patch.object(
+        linux_platform_backend.LinuxPlatformBackend, 'GetFileContents',
+        return_value=unbuntu_saucy_lsb_release_content) as mock_method:
+      backend = linux_platform_backend.LinuxPlatformBackend()
+      self.assertEqual(backend.GetOSVersionName(), 'saucy')
+      mock_method.assert_called_once_with('/etc/lsb-release')
 
   @decorators.Enabled('linux')
   def testGetOSVersionNameArch(self):
-    backend = TestBackend()
     path = os.path.join(util.GetUnittestDataDir(), 'arch-lsb-release')
     with open(path) as f:
-      backend.SetMockFile('/etc/lsb-release', f.read())
+      arch_lsb_release_content = f.read()
 
-    # a distribution may not have a codename or a release number. We just check
-    # that GetOSVersionName doesn't raise an exception
-    backend.GetOSVersionName()
+    with mock.patch.object(
+        linux_platform_backend.LinuxPlatformBackend, 'GetFileContents',
+        return_value=arch_lsb_release_content) as mock_method:
+      backend = linux_platform_backend.LinuxPlatformBackend()
+      # a distribution may not have a codename or a release number. We just
+      # check that GetOSVersionName doesn't raise an exception
+      backend.GetOSVersionName()
+      mock_method.assert_called_once_with('/etc/lsb-release')
