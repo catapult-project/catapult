@@ -14,6 +14,32 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
 
+  test('instantiateEmptyTable', function() {
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '200px'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; }
+      }
+    ];
+
+    var table = document.createElement('tracing-analysis-nested-table');
+    table.tableColumns = columns;
+    table.tableRows = [];
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    // Check that the width of the first column was set correctly (despite no
+    // body rows).
+    var firstColumnHeader = table.$.head.children[0].children[0];
+    assert.closeTo(firstColumnHeader.offsetWidth, 200, 10);
+  });
+
   test('instantiateNestedTableNoNests', function() {
     var columns = [
       {

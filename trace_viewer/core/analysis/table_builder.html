@@ -358,7 +358,7 @@ found in the LICENSE file.
       },
 
       applySizes_: function() {
-        if (this.tableRows_.length === 0)
+        if (this.tableRows_.length === 0 && !this.showHeader)
           return;
         var rowToRemoveSizing;
         var rowToSize;
