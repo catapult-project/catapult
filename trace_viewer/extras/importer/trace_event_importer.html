@@ -1486,10 +1486,11 @@ tv.exportTo('tv.e.importer', function() {
                     ' process memory dump for pid=' + pid +
                     ' and dump id=' + id + '.'
             });
-            continue;
+            processMemoryDump.totalResidentBytes = undefined;
+          } else {
+            processMemoryDump.totalResidentBytes = parseInt(
+                dumps.process_totals.resident_set_bytes, 16);
           }
-          processMemoryDump.totalResidentBytes = parseInt(
-              dumps.process_totals.resident_set_bytes, 16);
 
           // Populate the vmRegions, if present.
           if (dumps.process_mmaps && dumps.process_mmaps.vm_regions) {
