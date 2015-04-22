@@ -5,6 +5,7 @@
 import collections
 import copy
 import datetime
+import itertools
 import logging
 import random
 import sys

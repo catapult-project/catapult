@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import shutil
 
 
 _next_file_id = 0

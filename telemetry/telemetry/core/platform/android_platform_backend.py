@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 
 from telemetry.core.backends import adb_commands
 from telemetry.core import exceptions
@@ -31,21 +32,22 @@ from telemetry.util import external_modules
 psutil = external_modules.ImportOptionalModule('psutil')
 util.AddDirToPythonPath(util.GetChromiumSrcDir(),
                         'third_party', 'webpagereplay')
-import adb_install_cert  # pylint: disable=import-error
-import certutils  # pylint: disable=import-error
-import platformsettings  # pylint: disable=import-error
+import adb_install_cert  # pylint: disable=F0401
+import certutils  # pylint: disable=F0401
+import platformsettings  # pylint: disable=F0401
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib.device import battery_utils # pylint: disable=import-error
-from pylib.perf import cache_control  # pylint: disable=import-error
-from pylib.perf import perf_control  # pylint: disable=import-error
-from pylib.perf import thermal_throttle  # pylint: disable=import-error
-from pylib.utils import device_temp_file # pylint: disable=import-error
-from pylib import screenshot  # pylint: disable=import-error
+from pylib.device import battery_utils # pylint: disable=F0401
+from pylib.device import device_errors  # pylint: disable=F0401
+from pylib.perf import cache_control  # pylint: disable=F0401
+from pylib.perf import perf_control  # pylint: disable=F0401
+from pylib.perf import thermal_throttle  # pylint: disable=F0401
+from pylib.utils import device_temp_file # pylint: disable=F0401
+from pylib import screenshot  # pylint: disable=F0401
 
 try:
-  from pylib.perf import surface_stats_collector  # pylint: disable=import-error
+  from pylib.perf import surface_stats_collector  # pylint: disable=F0401
 except Exception:
   surface_stats_collector = None
 

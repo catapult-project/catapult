@@ -5,6 +5,8 @@
 import os
 import unittest
 
+from telemetry import decorators
+
 from telemetry.unittest_util import system_stub
 from telemetry.util import cloud_storage
 

@@ -2,19 +2,24 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import cStringIO
+import json
 import unittest
 
+from telemetry.core.backends.chrome_inspector import inspector_websocket
 from telemetry.core.backends.chrome_inspector import tracing_backend
 from telemetry.core.backends.chrome_inspector import websocket
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.core import util
+from telemetry import decorators
 from telemetry.timeline import model as model_module
+from telemetry.timeline import trace_data as trace_data_module
 from telemetry.unittest_util import simple_mock
 from telemetry.unittest_util import tab_test_case
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock  # pylint:disable=import-error
+import mock
 
 
 class FakeInspectorWebsocket(object):

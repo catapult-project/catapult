@@ -11,6 +11,7 @@ from telemetry import page as page_module
 from telemetry.page import page_set
 from telemetry.timeline import trace_data
 from telemetry.unittest_util import system_stub
+from telemetry.util import file_handle
 from telemetry.value import trace
 
 

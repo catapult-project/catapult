@@ -3,8 +3,10 @@
 # found in the LICENSE file.
 
 import json
+import os
 
 from telemetry.results import output_formatter
+from telemetry.util import file_handle
 
 
 def ResultsAsDict(page_test_results, benchmark_metadata):

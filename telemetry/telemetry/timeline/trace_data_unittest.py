@@ -4,8 +4,10 @@
 
 import cStringIO
 import json
+import logging
 import unittest
 
+from telemetry.core import util
 from telemetry.timeline import trace_data
 
 class TraceDataTest(unittest.TestCase):
