@@ -15,10 +15,7 @@ found in the LICENSE file.
     <style>
     :host {
       display: flex;
-    }
-    #overview_pane,
-    #process_pane {
-      width: 50%;
+      flex-direction: column;
     }
     </style>
     <tv-c-memory-dump-overview-pane id="overview_pane">
@@ -52,6 +49,10 @@ found in the LICENSE file.
 
     get selection() {
       return this.currentSelection_;
+    },
+
+    get requiresTallView() {
+      return true;
     },
 
     setSelectionWithoutErrorChecks: function(selection) {
