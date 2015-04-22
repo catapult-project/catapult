@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.backends.chrome_inspector import devtools_client_backend
-from telemetry.core.backends.chrome_inspector import devtools_http
 from telemetry import decorators
 from telemetry.unittest_util import browser_test_case
 

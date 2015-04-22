@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
-
 from telemetry.core import exceptions
 from telemetry.internal.actions import mouse_click
 from telemetry.unittest_util import tab_test_case

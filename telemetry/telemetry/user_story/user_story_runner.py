@@ -5,19 +5,15 @@
 import logging
 import optparse
 import os
-import random
 import sys
 import time
 
 from telemetry.core import exceptions
 from telemetry.core import wpr_modes
 from telemetry.internal.actions import page_action
-from telemetry import page as page_module
-from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
 from telemetry.results import results_options
 from telemetry.user_story import user_story_filter
-from telemetry.user_story import user_story_set as user_story_set_module
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
 from telemetry.value import failure

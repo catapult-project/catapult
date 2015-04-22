@@ -6,7 +6,6 @@ import os
 import tempfile
 import unittest
 
-from telemetry import benchmark
 from telemetry.core import util
 from telemetry.image_processing import image_util
 from telemetry.image_processing.rgba_color import RgbaColor

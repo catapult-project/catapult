@@ -8,7 +8,6 @@ import tempfile
 import zipfile
 
 from telemetry.core.platform.profiler import trace_profiler
-from telemetry import decorators
 from telemetry.unittest_util import tab_test_case
 
 

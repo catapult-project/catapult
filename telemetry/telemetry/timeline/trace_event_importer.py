@@ -8,8 +8,6 @@ https://code.google.com/p/trace-viewer/
 """
 
 import copy
-import json
-import re
 
 import telemetry.timeline.async_slice as tracing_async_slice
 import telemetry.timeline.flow_event as tracing_flow_event

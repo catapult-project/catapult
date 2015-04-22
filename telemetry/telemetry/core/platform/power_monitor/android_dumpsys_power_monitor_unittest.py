@@ -2,11 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
 import unittest
 
 from telemetry.core.platform.power_monitor import android_dumpsys_power_monitor
-from telemetry.core.util import GetUnittestDataDir
 
 
 class DumpsysPowerMonitorMonitorTest(unittest.TestCase):

@@ -3,9 +3,7 @@
 # found in the LICENSE file.
 
 import logging
-import pipes
 import sys
-import time
 
 from telemetry.core.backends import adb_commands
 from telemetry.core.backends import android_command_line_backend
@@ -18,7 +16,6 @@ from telemetry.core.platform import android_platform_backend as \
 from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib.device import device_errors  # pylint: disable=F0401
 from pylib.device import intent  # pylint: disable=F0401
 
 

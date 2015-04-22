@@ -15,7 +15,7 @@ from telemetry.unittest_util import tab_test_case
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock
+import mock  # pylint:disable=import-error
 
 
 class ActionRunnerInteractionTest(tab_test_case.TabTestCase):

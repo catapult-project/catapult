@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import json
-import numbers
 
 class NonSerializableTraceData(Exception):
   """Raised when raw trace data cannot be serialized to TraceData."""

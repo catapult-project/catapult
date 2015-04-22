@@ -21,7 +21,6 @@ from telemetry.user_story import user_story_set
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter as exception_formatter_module
 from telemetry.value import scalar
-from telemetry.value import string
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.wpr import archive_info
 

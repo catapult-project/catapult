@@ -2,10 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import httplib
-import socket
 import unittest
-import urllib2
 
 from telemetry.core.backends.chrome_inspector import devtools_http
 

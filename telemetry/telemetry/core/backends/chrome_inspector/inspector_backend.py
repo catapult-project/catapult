@@ -17,9 +17,7 @@ from telemetry.core.backends.chrome_inspector import inspector_runtime
 from telemetry.core.backends.chrome_inspector import inspector_websocket
 from telemetry.core.backends.chrome_inspector import websocket
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry import decorators
-from telemetry.image_processing import image_util
 from telemetry.timeline import model as timeline_model_module
 from telemetry.timeline import trace_data as trace_data_module
 

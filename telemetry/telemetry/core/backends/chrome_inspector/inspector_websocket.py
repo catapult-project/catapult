@@ -2,11 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import collections
 import json
 import logging
-import socket
-import time
 
 from telemetry.core.backends.chrome_inspector import websocket
 from telemetry.core import exceptions

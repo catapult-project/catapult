@@ -1,12 +1,9 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
-
 from telemetry.core import platform
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform
-from telemetry.core import wpr_modes
 from telemetry.user_story import shared_user_story_state
 from telemetry.web_perf import timeline_based_measurement
 

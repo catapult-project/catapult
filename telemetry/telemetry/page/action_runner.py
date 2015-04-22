@@ -6,7 +6,6 @@ import logging
 import time
 import urlparse
 
-from telemetry.core import exceptions
 from telemetry.internal.actions.drag import DragAction
 from telemetry.internal.actions.javascript_click import ClickElementAction
 from telemetry.internal.actions.loop import LoopAction

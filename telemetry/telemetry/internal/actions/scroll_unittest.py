@@ -4,10 +4,8 @@
 
 import os
 
-from telemetry import decorators
 from telemetry.internal.actions import scroll
 from telemetry.unittest_util import tab_test_case
-from telemetry.core.backends.chrome_inspector import devtools_client_backend
 
 class ScrollActionTest(tab_test_case.TabTestCase):
   def testScrollAction(self):

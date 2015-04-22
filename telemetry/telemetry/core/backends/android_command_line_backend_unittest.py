@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
 import unittest
 
 from telemetry import benchmark
@@ -16,7 +15,7 @@ class _MockBackendSettings(object):
   def __init__(self, path):
     self._path = path
 
-  def GetCommandLineFile(self, _is_user_debug_build):
+  def GetCommandLineFile(self, _):
     return self._path
 
 
