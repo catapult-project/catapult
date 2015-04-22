@@ -66,16 +66,6 @@ class TabTest(tab_test_case.TabTestCase):
                       lambda: self._tab.Navigate('chrome://crash',
                                                  timeout=5))
 
-  # Currently stack traces do not work on windows: http://crbug.com/476110
-  # Linux stack traces depends on fission support: http://crbug.com/405623
-  @decorators.Enabled('mac')
-  def testCrashSymbols(self):
-    try:
-      self._tab.Navigate('chrome://crash', timeout=5)
-    except exceptions.DevtoolsTargetCrashException as e:
-      crash_dump = e._app.GetStackTrace()
-      self.assertTrue('::CrashIntentionally' in crash_dump)
-
   @decorators.Enabled('has tabs')
   def testActivateTab(self):
     util.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
