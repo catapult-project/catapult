@@ -148,7 +148,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     else:
       arguments[0] = './tools/perf/run_benchmark'
     for index, arg in enumerate(arguments):
-      if arg.startswith('--browser'):
+      if arg.startswith('--browser='):
         if bot_platform == 'android':
           arguments[index] = '--browser=android-chrome-shell'
         elif any('x64' in bot for bot in self._builder_names[bot_platform]):
@@ -156,9 +156,6 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
           target_arch = 'x64'
         else:
           arguments[index] = '--browser=release'
-      if arg in _GetTrybotList():
-        arguments[index] = ''
-
     command = ' '.join(arguments)
 
     return {
