@@ -6,9 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
-<link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
-<link rel="import" href="/core/analysis/size_span.html">
-<link rel="import" href="/core/analysis/table_builder.html">
+<link rel="import" href="/core/analysis/memory_dump_overview_pane.html">
+<link rel="import" href="/core/analysis/memory_dump_process_pane.html">
 
 <polymer-element name="tv-c-single-global-memory-dump-sub-view"
     extends="tracing-analysis-sub-view">
@@ -20,46 +19,26 @@ found in the LICENSE file.
     #overview_pane,
     #process_pane {
       width: 50%;
-      margin: 8px;
-    }
-    #overview_table,
-    #overview_table {
-      flex: 1 1 auto;
-      align-self: stretch;
-    }
-    .pane_label {
-      font-weight: bold;
-      font-size: 15pt;
-      margin-bottom: 5px;
     }
     </style>
-    <div id="overview_pane">
-      <div class="pane_label">Overview</div>
-      <tracing-analysis-nested-table id="overview_table">
-      </tracing-analysis-nested-table>
-    </div>
-    <div id="process_pane">
-      <div class="pane_label">Process</div>
-      <tracing-analysis-nested-table id="process_table">
-      </tracing-analysis-nested-table>
-    </div>
+    <tv-c-memory-dump-overview-pane id="overview_pane">
+    </tv-c-memory-dump-overview-pane>
+    <tv-c-memory-dump-process-pane id="process_pane">
+    </tv-c-memory-dump-process-pane>
   </template>
   <script>
   'use strict';
 
-  // TODO(petrcermak): Refactor this whole class (split into several objects).
-  // We are landing this early to enable other teams to start instrumenting
-  // their Chrome allocators and analyze the obtained data.
   Polymer({
     created: function() {
       this.currentSelection_ = undefined;
-      this.selectedProcessDump_ = undefined;
     },
 
     ready: function() {
-      this.$.overview_table.addEventListener('selection-changed', function(e) {
-        this.selectedProcessDump =
-            e.srcElement.selectedTableRow.processMemoryDump;
+      this.$.overview_pane.addEventListener(
+          'selected-process-memory-dump-changed', function(e) {
+        this.$.process_pane.processMemoryDump =
+            this.$.overview_pane.selectedProcessMemoryDump;
       }.bind(this));
     },
 
@@ -77,171 +56,8 @@ found in the LICENSE file.
 
     setSelectionWithoutErrorChecks: function(selection) {
       this.currentSelection_ = selection;
-      this.updateContents_();
-    },
-
-    set selectedProcessDump(selectedProcessDump) {
-      this.selectedProcessDump_ = selectedProcessDump;
-      this.updateProcessContents_();
-    },
-
-    get selectedProcessDump() {
-      return this.selectedProcessDump_;
-    },
-
-    updateContents_: function() {
-      var selection = this.currentSelection_;
-
-      var pidToProcessMemoryDump;
-      if (selection)
-        pidToProcessMemoryDump = selection[0].processMemoryDumps;
-      else
-        pidToProcessMemoryDump = {};
-
-      var rows = [];
-      tv.b.iterItems(pidToProcessMemoryDump, function(pid, processMemoryDump) {
-        var allocatorObjectSizes = {};
-        if (processMemoryDump.memoryAllocatorDumps !== undefined) {
-          processMemoryDump.memoryAllocatorDumps.forEach(function(dump) {
-            allocatorObjectSizes[dump.fullName] =
-                dump.allocatedObjectsSizeInBytes;
-          }, this);
-        }
-        rows.push({
-          title: processMemoryDump.process.userFriendlyName,
-          proportionalResident:
-              processMemoryDump.totalProportionalResidentSizeInBytes,
-          privateResident:
-              processMemoryDump.totalPrivateResidentSizeInBytes,
-          sharedResident:
-              processMemoryDump.totalSharedResidentSizeInBytes,
-          allocatorObjectSizes: allocatorObjectSizes,
-          processMemoryDump: processMemoryDump
-        });
-      }, this);
-      this.$.overview_table.tableRows = rows;
-
-      this.updateOverviewColumns_(rows);
-
-      this.$.overview_table.supportsSelection = true;
-
-      this.$.overview_table.rebuild();
-    },
-
-    updateOverviewColumns_: function(rows) {
-      var columns = [
-        {
-          title: 'Process',
-          value: function(row) {
-            return row.title;
-          },
-          width: '200px',
-          cmp: function(rowA, rowB) {
-            return rowA.title.localeCompare(rowB.title);
-          }
-        },
-        new tv.c.analysis.MemoryColumn(
-            'Proportional Set Size',
-            tv.c.analysis.fieldGetter('proportionalResident'),
-            tv.c.analysis.sizeFormatter),
-        new tv.c.analysis.MemoryColumn(
-            'Private Memory',
-            tv.c.analysis.fieldGetter('privateResident'),
-            tv.c.analysis.sizeFormatter),
-        new tv.c.analysis.MemoryColumn(
-            'Shared Memory',
-            tv.c.analysis.fieldGetter('sharedResident'),
-            tv.c.analysis.sizeFormatter)
-      ];
-
-      var instrumentedAllocators = {};
-      rows.forEach(function(row) {
-        tv.b.iterItems(row.allocatorObjectSizes, function(allocatorName, size) {
-          instrumentedAllocators[allocatorName] = true;
-        }, this);
-      }, this);
-
-      tv.b.iterItems(instrumentedAllocators, function(allocatorName) {
-        columns.push(new tv.c.analysis.MemoryColumn(
-            allocatorName,
-            tv.c.analysis.fieldGetter('allocatorObjectSizes', allocatorName),
-            tv.c.analysis.sizeFormatter));
-      }, this);
-
-      var columnWidth = (100 / (columns.length - 1)).toFixed(3) + '%';
-      for (var i = 1; i < columns.length; i++)
-        columns[i].width = columnWidth;
-
-      this.$.overview_table.tableColumns = columns;
-    },
-
-    updateProcessContents_: function() {
-      if (this.selectedProcessDump_ === undefined) {
-        this.$.process_table.tableRows = [];
-        this.$.process_table.tableColumns = [];
-        this.$.process_table.rebuild();
-        return;
-      }
-
-      var memoryAllocatorDumps;
-      if (this.selectedProcessDump_.memoryAllocatorDumps)
-        memoryAllocatorDumps = this.selectedProcessDump_.memoryAllocatorDumps;
-      else
-        memoryAllocatorDumps = [];
-
-      var createAllocatorRows = function(allocatorDumps) {
-        return allocatorDumps.map(function(allocatorDump) {
-          var row = {
-            title: allocatorDump.fullName,
-            physicalSize: allocatorDump.physicalSizeInBytes,
-            allocatedObjectsCount: allocatorDump.allocatedObjectsCount,
-            allocatedObjectsSize: allocatorDump.allocatedObjectsSizeInBytes
-          };
-          if (allocatorDump.children.length > 0)
-            row.subRows = createAllocatorRows(allocatorDump.children);
-          return row;
-        });
-      };
-      var rows = createAllocatorRows(memoryAllocatorDumps);
-
-      this.$.process_table.tableRows = rows;
-
-      this.updateProcessColumns_(rows);
-
-      this.$.process_table.rebuild();
-    },
-
-    updateProcessColumns_: function(rows) {
-      var columns = [
-        {
-          title: 'Allocator',
-          value: function(row) {
-            return row.title;
-          },
-          width: '200px',
-          cmp: function(rowA, rowB) {
-            return rowA.title.localeCompare(rowB.title);
-          }
-        },
-        new tv.c.analysis.MemoryColumn(
-            'Allocated Objects Size',
-            tv.c.analysis.fieldGetter('allocatedObjectsSize'),
-            tv.c.analysis.sizeFormatter),
-        new tv.c.analysis.MemoryColumn(
-            'Allocated Objects Count',
-            tv.c.analysis.fieldGetter('allocatedObjectsCount'),
-            tv.c.analysis.countFormatter),
-        new tv.c.analysis.MemoryColumn(
-            'Physical Size',
-            tv.c.analysis.fieldGetter('physicalSize'),
-            tv.c.analysis.sizeFormatter)
-      ];
-
-      var columnWidth = (100 / (columns.length - 1)).toFixed(3) + '%';
-      for (var i = 1; i < columns.length; i++)
-        columns[i].width = columnWidth;
-
-      this.$.process_table.tableColumns = columns;
+      this.$.overview_pane.processMemoryDumps = selection[0].processMemoryDumps;
+      this.$.process_pane.processMemoryDump = undefined;
     }
   });
   </script>

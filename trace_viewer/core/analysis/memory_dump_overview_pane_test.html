@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/deep_utils.html">
+<link rel="import" href="/core/analysis/memory_dump_overview_pane.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/trace_model/process_memory_dump.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var TraceModel = tv.c.TraceModel;
+  var Selection = tv.c.Selection;
+  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
+  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
+  var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
+  var VMRegion = tv.c.trace_model.VMRegion;
+  var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
+
+  function createProcessMemoryDumps() {
+    var model = new TraceModel();
+    var p1 = model.getOrCreateProcess(1);
+    var p2 = model.getOrCreateProcess(2);
+
+    var gmd = new GlobalMemoryDump(model, 42);
+
+    // One process with VM regions.
+    var pmd1 = new ProcessMemoryDump(gmd, p1, 41);
+    gmd.processMemoryDumps[p1.pid] = pmd1;
+    pmd1.vmRegions = [
+      VMRegion.fromDict({
+          startAddress: 1024,
+          sizeInBytes: 20971520, /* 20 MiB */
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+          mappedFile: '[stack]',
+          byteStats: VMRegionByteStats.fromDict({
+              privateResident: 8388608, /* 8 MiB */
+              sharedResident: 12582912, /* 12 MiB */
+              proportionalResident: 10485760 /* 10 MiB */
+          })
+      })
+    ];
+
+    // One process with allocator dumps.
+    var pmd2 = new ProcessMemoryDump(gmd, p2, 43);
+    gmd.processMemoryDumps[p2.pid] = pmd2;
+    pmd2.memoryAllocatorDumps = [
+      MemoryAllocatorDump.fromDict({
+        fullName: 'oilpan',
+        physicalSizeInBytes: 2147483648, /* 2 GiB */
+        allocatedObjectsCount: 2015,
+        allocatedObjectsSizeInBytes: 5242880 /* 5 MiB */
+      }),
+      MemoryAllocatorDump.fromDict({
+        fullName: 'v8',
+        physicalSizeInBytes: 1073741824, /* 1 GiB */
+        allocatedObjectsCount: 204,
+        allocatedObjectsSizeInBytes: 2097152 /* 2 MiB */
+      })
+    ];
+
+    return gmd.processMemoryDumps;
+  }
+
+  test('instantiate', function() {
+    var processMemoryDumps = createProcessMemoryDumps();
+
+    var viewEl = document.createElement('tv-c-memory-dump-overview-pane');
+    viewEl.processMemoryDumps = processMemoryDumps;
+    this.addHTMLOutput(viewEl);
+
+    var table = tv.b.findDeepElementMatching(
+        viewEl, 'tracing-analysis-nested-table');
+
+    var rows = table.tableRows;
+    var columns = table.tableColumns;
+    assert.lengthOf(rows, 2);
+    assert.lengthOf(columns, 6);
+
+    var titleColumn = columns[0];
+    var proportionalColumn = columns[1];
+    var privateColumn = columns[2];
+    var sharedColumn = columns[3];
+    var oilpanColumn = columns[4];
+    var v8Column = columns[5];
+
+    // Check the rows of the table.
+    assert.equal(titleColumn.value(rows[0]), 'Process 1');
+    assert.equal(proportionalColumn.value(rows[0]).numBytes, 10485760);
+    assert.equal(privateColumn.value(rows[0]).numBytes, 8388608);
+    assert.equal(sharedColumn.value(rows[0]).numBytes, 12582912);
+    assert.equal(oilpanColumn.value(rows[0]), '<unknown>');
+    assert.equal(v8Column.value(rows[0]), '<unknown>');
+
+    assert.equal(titleColumn.value(rows[1]), 'Process 2');
+    assert.equal(proportionalColumn.value(rows[1]), '<unknown>');
+    assert.equal(privateColumn.value(rows[1]), '<unknown>');
+    assert.equal(sharedColumn.value(rows[1]), '<unknown>');
+    assert.equal(oilpanColumn.value(rows[1]).numBytes, 5242880);
+    assert.equal(v8Column.value(rows[1]).numBytes, 2097152);
+  });
+
+  test('selection', function() {
+    var processMemoryDumps = createProcessMemoryDumps();
+
+    var viewEl = document.createElement('tv-c-memory-dump-overview-pane');
+    viewEl.processMemoryDumps = processMemoryDumps;
+    this.addHTMLOutput(viewEl);
+
+    var didFireSelectedDumpChanged;
+    viewEl.addEventListener('selected-process-memory-dump-changed',
+        function(e) {
+      didFireSelectedDumpChanged = true;
+    });
+
+    var table = tv.b.findDeepElementMatching(
+        viewEl, 'tracing-analysis-nested-table');
+
+    // Simulate clicking on the second body row.
+    didFireSelectedDumpChanged = false;
+    table.$.body.children[1].children[0].click();
+    assert.isTrue(didFireSelectedDumpChanged);
+    assert.equal(viewEl.selectedProcessMemoryDump, processMemoryDumps[2]);
+
+    // Simulate clicking on the first body row.
+    didFireSelectedDumpChanged = false;
+    table.$.body.children[0].children[1].click();
+    assert.isTrue(didFireSelectedDumpChanged);
+    assert.equal(viewEl.selectedProcessMemoryDump, processMemoryDumps[1]);
+  });
+});
+</script>

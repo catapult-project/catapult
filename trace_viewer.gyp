@@ -99,6 +99,8 @@
       'trace_viewer/core/analysis/analysis_view.html',
       'trace_viewer/core/analysis/counter_sample_sub_view.html',
       'trace_viewer/core/analysis/generic_object_view.html',
+      'trace_viewer/core/analysis/memory_dump_overview_pane.html',
+      'trace_viewer/core/analysis/memory_dump_process_pane.html',
       'trace_viewer/core/analysis/memory_dump_sub_view_util.html',
       'trace_viewer/core/analysis/multi_async_slice_sub_view.html',
       'trace_viewer/core/analysis/multi_cpu_slice_sub_view.html',

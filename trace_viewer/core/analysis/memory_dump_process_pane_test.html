@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/deep_utils.html">
+<link rel="import" href="/core/analysis/memory_dump_process_pane.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/trace_model/process_memory_dump.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var TraceModel = tv.c.TraceModel;
+  var Selection = tv.c.Selection;
+  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
+  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
+  var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
+  var VMRegion = tv.c.trace_model.VMRegion;
+  var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
+
+  function createProcessMemoryDump() {
+    var model = new TraceModel();
+    var p1 = model.getOrCreateProcess(1);
+    var p2 = model.getOrCreateProcess(2);
+
+    var gmd = new GlobalMemoryDump(model, 42);
+
+    var pmd = new ProcessMemoryDump(gmd, p2, 43);
+    gmd.processMemoryDumps[p2.pid] = pmd;
+    pmd.memoryAllocatorDumps = [
+      MemoryAllocatorDump.fromDict({
+        fullName: 'oilpan',
+        physicalSizeInBytes: 2147483648, /* 2 GiB */
+        allocatedObjectsCount: 2015,
+        allocatedObjectsSizeInBytes: 5242880 /* 5 MiB */
+      }),
+      MemoryAllocatorDump.fromDict({
+        fullName: 'v8',
+        physicalSizeInBytes: 1073741824, /* 1 GiB */
+        allocatedObjectsCount: 204,
+        allocatedObjectsSizeInBytes: 2097152 /* 2 MiB */
+      })
+    ];
+
+    return pmd;
+  }
+
+  test('instantiate', function() {
+    var processMemoryDump = createProcessMemoryDump();
+
+    var viewEl = document.createElement('tv-c-memory-dump-process-pane');
+    viewEl.processMemoryDump = processMemoryDump;
+    this.addHTMLOutput(viewEl);
+
+    var table = tv.b.findDeepElementMatching(
+        viewEl, 'tracing-analysis-nested-table');
+
+    var rows = table.tableRows;
+    var columns = table.tableColumns;
+    assert.lengthOf(rows, 2);
+    assert.lengthOf(columns, 4);
+
+    var titleColumn = columns[0];
+    var allocatedObjectsSizeColumn = columns[1];
+    var allocatedObjectsCountColumn = columns[2];
+    var physicalSizeColumn = columns[3];
+
+    // Check the rows of the table.
+    assert.equal(titleColumn.value(rows[0]), 'oilpan');
+    assert.equal(allocatedObjectsSizeColumn.value(rows[0]).numBytes, 5242880);
+    assert.equal(allocatedObjectsCountColumn.value(rows[0]), 2015);
+    assert.equal(physicalSizeColumn.value(rows[0]).numBytes, 2147483648);
+
+    assert.equal(titleColumn.value(rows[1]), 'v8');
+    assert.equal(allocatedObjectsSizeColumn.value(rows[1]).numBytes, 2097152);
+    assert.equal(allocatedObjectsCountColumn.value(rows[1]), 204);
+    assert.equal(physicalSizeColumn.value(rows[1]).numBytes, 1073741824);
+  });
+});
+</script>

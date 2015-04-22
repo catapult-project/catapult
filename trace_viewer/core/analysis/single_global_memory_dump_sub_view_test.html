@@ -26,7 +26,7 @@ tv.b.unittest.testSuite(function() {
   var VMRegion = tv.c.trace_model.VMRegion;
   var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
 
-  test('instantiate', function() {
+  function createGlobalMemoryDump() {
     var model = new TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var p2 = model.getOrCreateProcess(2);
@@ -68,42 +68,37 @@ tv.b.unittest.testSuite(function() {
       })
     ];
 
+    return gmd;
+  }
+
+  test('instantiate', function() {
+    var globalMemoryDump = createGlobalMemoryDump();
+
     var selection = new Selection();
-    selection.push(gmd);
+    selection.push(globalMemoryDump);
 
     var viewEl = document.createElement(
         'tv-c-single-global-memory-dump-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
 
-    var table = tv.b.findDeepElementMatching(
-        viewEl, 'tracing-analysis-nested-table');
+    var overviewPane = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-memory-dump-overview-pane');
+    var overviewTable = tv.b.findDeepElementMatching(
+        overviewPane, 'tracing-analysis-nested-table');
 
-    var rows = table.tableRows;
-    var columns = table.tableColumns;
-    assert.lengthOf(rows, 2);
-    assert.lengthOf(columns, 6);
+    var processPane = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-memory-dump-process-pane');
+    var processTable = tv.b.findDeepElementMatching(
+        processPane, 'tracing-analysis-nested-table');
 
-    var titleColumn = columns[0];
-    var proportionalColumn = columns[1];
-    var privateColumn = columns[2];
-    var sharedColumn = columns[3];
-    var oilpanColumn = columns[4];
-    var v8Column = columns[5];
+    assert.lengthOf(overviewTable.tableRows, 2);
+    assert.lengthOf(processTable.tableRows, 0);
 
-    assert.equal(titleColumn.value(rows[0]), 'Process 1');
-    assert.equal(proportionalColumn.value(rows[0]).numBytes, 10485760);
-    assert.equal(privateColumn.value(rows[0]).numBytes, 8388608);
-    assert.equal(sharedColumn.value(rows[0]).numBytes, 12582912);
-    assert.equal(oilpanColumn.value(rows[0]), '<unknown>');
-    assert.equal(v8Column.value(rows[0]), '<unknown>');
+    overviewTable.$.body.children[1].click();
 
-    assert.equal(titleColumn.value(rows[1]), 'Process 2');
-    assert.equal(proportionalColumn.value(rows[1]), '<unknown>');
-    assert.equal(privateColumn.value(rows[1]), '<unknown>');
-    assert.equal(sharedColumn.value(rows[1]), '<unknown>');
-    assert.equal(oilpanColumn.value(rows[1]).numBytes, 5242880);
-    assert.equal(v8Column.value(rows[1]).numBytes, 2097152);
+    assert.lengthOf(overviewTable.tableRows, 2);
+    assert.lengthOf(processTable.tableRows, 2);
   });
 });
 </script>
