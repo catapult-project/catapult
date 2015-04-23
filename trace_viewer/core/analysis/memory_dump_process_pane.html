@@ -74,7 +74,7 @@ found in the LICENSE file.
       var createAllocatorRows = function(allocatorDumps) {
         return allocatorDumps.map(function(allocatorDump) {
           var row = {
-            title: allocatorDump.fullName,
+            title: allocatorDump.name,
             physicalSize: allocatorDump.physicalSizeInBytes,
             allocatedObjectsCount: allocatorDump.allocatedObjectsCount,
             allocatedObjectsSize: allocatorDump.allocatedObjectsSizeInBytes

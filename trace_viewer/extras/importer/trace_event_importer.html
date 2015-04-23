@@ -1535,30 +1535,50 @@ tv.exportTo('tv.e.importer', function() {
             fullNames.sort();
             fullNames.forEach(function(fullName) {
               var allocatorDump = memoryAllocatorDumpsByFullName[fullName];
-              var rawDump = dumps.allocators[fullName];
-              var parentFullName = rawDump.parent;
-              if (parentFullName === undefined) {
-                // If the dump is a root, add it to the top-level
-                // memoryAllocatorDumps list of the processMemoryDump.
-                memoryAllocatorDumps.push(allocatorDump);
-                return;
+
+              // This is a loop because we might need to build implicit
+              // ancestors in case they were not present in the trace.
+              while (true) {
+                var lastSlashIndex = fullName.lastIndexOf('/');
+                if (lastSlashIndex === -1) {
+                  // If the dump is a root, add it to the top-level
+                  // memoryAllocatorDumps list.
+                  memoryAllocatorDumps.push(allocatorDump);
+                  break;
+                }
+
+                // If the dump is not a root, find its parent.
+                var parentFullName = fullName.substring(0, lastSlashIndex);
+                var parentAllocatorDump = memoryAllocatorDumpsByFullName[
+                    parentFullName];
+
+                // If the parent dump does not exist yet, we build an implicit
+                // one and continue up the ancestor chain.
+                var parentAlreadyExisted;
+                if (parentAllocatorDump !== undefined) {
+                  parentAlreadyExisted = true;
+                } else {
+                  parentAlreadyExisted = false;
+                  parentAllocatorDump =
+                      new tv.c.trace_model.MemoryAllocatorDump(
+                          parentFullName, undefined, undefined, undefined);
+                  memoryAllocatorDumpsByFullName[parentFullName] =
+                      parentAllocatorDump;
+                }
+
+                // Setup the parent <-> children relationships
+                allocatorDump.parent = parentAllocatorDump;
+                parentAllocatorDump.children.push(allocatorDump);
+
+                // If the parent already existed, then so did all the other
+                // ancestors so we can stop.
+                if (parentAlreadyExisted) {
+                  break;
+                }
+
+                fullName = parentFullName;
+                allocatorDump = parentAllocatorDump;
               }
-              // If the dump is not a root, find its parent and setup the
-              // parent <-> children relationships.
-              var parentAllocatorDump = memoryAllocatorDumpsByFullName[
-                  parentFullName];
-              if (parentAllocatorDump === undefined) {
-                this.model_.importWarning({
-                    type: 'memory_dump_parse_error',
-                    message: 'The allocator dump ' + rawDump.fullName +
-                        ' refers to an invalid parent ' + parentFullName +
-                        ' in the process memory dump id=' + id +
-                        ' for pid=' + pid + '.'
-                });
-                return;
-              }
-              allocatorDump.parent = parentAllocatorDump;
-              allocatorDump.parent.children.push(allocatorDump);
             }, this);
             processMemoryDump.memoryAllocatorDumps = memoryAllocatorDumps;
           }

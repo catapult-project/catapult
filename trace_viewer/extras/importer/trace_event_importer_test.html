@@ -2450,7 +2450,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isUndefined(d.memoryAllocatorDumpsByFullName);
   });
 
-  test('importMemoryDumps_allocatorMemoryDumps', function() {
+  test('importMemoryDumps_explicitAllocatorMemoryDumps', function() {
     var events = [
       {
         name: 'a',
@@ -2520,6 +2520,87 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(oilpanRoot.allocatedObjectsCount, 47);
     assert.equal(oilpanRoot.physicalSizeInBytes, 16384);
     assert.equal(oilpanRoot.allocatedObjectsSizeInBytes, 4096);
+    assert.equal(oilpanRoot.children.length, 2);
+
+    var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
+        'oilpan/heap2/bucket1');
+    assert.isDefined(oilpanBucket1);
+    assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
+    assert.equal(oilpanBucket1.name, 'bucket1');
+    assert.equal(oilpanBucket1.allocatedObjectsCount, 31);
+    assert.equal(oilpanBucket1.physicalSizeInBytes, 8192);
+    assert.equal(oilpanBucket1.allocatedObjectsSizeInBytes, 8192);
+    assert.equal(oilpanBucket1.children.length, 0);
+
+    assert.isDefined(oilpanBucket1.parent);
+    assert.equal(oilpanBucket1.parent.fullName, 'oilpan/heap2');
+    assert.equal(oilpanBucket1.parent.name, 'heap2');
+    assert.include(oilpanBucket1.parent.children, oilpanBucket1);
+
+    assert.isDefined(oilpanBucket1.parent.parent);
+    assert.strictEqual(oilpanBucket1.parent.parent, oilpanRoot);
+
+    assert.equal(d.totalResidentBytes, 256);
+    assert.isUndefined(d.mostRecentVmRegions);
+  });
+
+  test('importMemoryDumps_implicitAllocatorMemoryDumps', function() {
+    var events = [
+      {
+        name: 'a',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '100'
+            },
+            allocators: {
+              'oilpan/heap1': {
+                parent: 'oilpan',
+                allocated_objects_count: '3f',
+                allocated_objects_size_in_bytes: '3000',
+                physical_size_in_bytes: '4000',
+                args: {}
+              },
+              'oilpan/heap2/bucket1': {
+                parent: 'oilpan/heap2',
+                allocated_objects_count: '1f',
+                allocated_objects_size_in_bytes: '2000',
+                physical_size_in_bytes: '2000',
+                args: {}
+              },
+              'v8': {
+                allocated_objects_count: '5f',
+                allocated_objects_size_in_bytes: '5000',
+                physical_size_in_bytes: '6000',
+                args: {}
+              }
+            }
+          }
+        }
+      }
+    ];
+    var m = new tv.c.TraceModel(events, false);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(d.memoryAllocatorDumps.length, 2);
+
+    var oilpanRoot = d.getMemoryAllocatorDumpByFullName('oilpan');
+    var v8Root = d.getMemoryAllocatorDumpByFullName('v8');
+    assert.isDefined(oilpanRoot);
+    assert.isDefined(v8Root);
+    assert.include(d.memoryAllocatorDumps, oilpanRoot);
+    assert.include(d.memoryAllocatorDumps, v8Root);
+
+    assert.isUndefined(oilpanRoot.allocatedObjectsCount);
+    assert.isUndefined(oilpanRoot.physicalSizeInBytes);
+    assert.isUndefined(oilpanRoot.allocatedObjectsSizeInBytes);
     assert.equal(oilpanRoot.children.length, 2);
 
     var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
