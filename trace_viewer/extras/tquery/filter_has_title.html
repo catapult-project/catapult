@@ -5,33 +5,37 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/extras/tquery/filter.html">
 
-<polymer-element name='tv-e-tquery-filter-has-title'
-    extends='tv-e-tquery-filter'>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.expected = undefined;
-    },
+tv.exportTo('tv.e.tquery', function() {
+  function FilterHasTitle(expected) {
+    tv.e.tquery.Filter.call(this);
+    this.expected = expected;
+  }
 
-    get scriptName() {
-      return 'hasTitle';
-    },
-
-    get scriptValue() {
-      return function(expected) {
-        var filter = document.createElement(this.element.name);
-        filter.expected = expected;
-        return filter;
-      }.bind(this);
-    },
+  FilterHasTitle.prototype = {
+    __proto__: tv.e.tquery.Filter.prototype,
 
     evaluate: function(context) {
       return this.matchValue_(context.event.title, this.expected);
     }
-  });
-  </script>
-</polymer-element>
+  };
+  tv.c.ScriptingObjectRegistry.register(
+      function(expected) {
+        var filter = new tv.e.tquery.FilterHasTitle(expected);
+        return filter;
+      },
+      {
+        name: 'hasTitle'
+      }
+  );
+
+  return {
+    FilterHasTitle: FilterHasTitle
+  };
+});
+</script>

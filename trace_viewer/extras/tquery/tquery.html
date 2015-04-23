@@ -17,22 +17,22 @@ found in the LICENSE file.
 <link rel="import" href="/extras/tquery/filter_has_title.html">
 <link rel="import" href="/extras/tquery/filter_is_top_level.html">
 
-<polymer-element name='tv-e-tquery' extends='tv-c-scripting-object'>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.timeline_ = undefined;
-      this.parent_ = undefined;
-      this.filterExpression_ = undefined;
-      // Memoized filtering result.
-      this.selection_ = undefined;
-    },
+tv.exportTo('tv.e.tquery', function() {
+  function TQuery() {
+    tv.c.ScriptingObject.call(this);
 
-    get scriptName() {
-      return '$t';
-    },
+    this.timeline_ = undefined;
+    this.parent_ = undefined;
+    this.filterExpression_ = undefined;
+    // Memoized filtering result.
+    this.selection_ = undefined;
+  };
+
+  TQuery.prototype = {
+    __proto__: tv.c.ScriptingObject.prototype,
 
     onTimelineChanged: function(t) {
       this.timeline_ = t;
@@ -46,13 +46,11 @@ found in the LICENSE file.
     // Append a new filter expression to this query and return a query node
     // that represents the result.
     filter: function(filterExpression) {
-      var result = document.createElement('tv-e-tquery');
+      var result = new TQuery();
       result.timeline_ = this.timeline;
       result.parent_ = this;
-      // TODO(skyostil): Can we use a static helper function for this?
       result.filterExpression_ =
-          document.createElement('tv-e-tquery-filter').
-              normalizeFilterExpression(filterExpression);
+          tv.e.tquery.Filter.normalizeFilterExpression(filterExpression);
       return result;
     },
 
@@ -111,7 +109,7 @@ found in the LICENSE file.
     evaluateFilterExpression_: function(inputSelection, outputSelection) {
       var seenEvents = {};
       inputSelection.forEach(function(event) {
-        var context = document.createElement('tv-e-tquery-context');
+        var context = new tv.e.tquery.Context();
         context.event = event;
         this.evaluateFilterExpressionForEvent_(
             context, inputSelection, outputSelection, seenEvents);
@@ -165,6 +163,16 @@ found in the LICENSE file.
       }
       return this.selection_;
     }
-  });
-  </script>
-</polymer-element>
+  };
+  tv.c.ScriptingObjectRegistry.register(
+      new TQuery(),
+      {
+        name: '$t'
+      }
+  );
+
+  return {
+    TQuery: TQuery
+  };
+});
+</script>

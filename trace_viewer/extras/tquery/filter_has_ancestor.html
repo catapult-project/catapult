@@ -5,32 +5,22 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/extras/tquery/filter.html">
 
-<polymer-element name='tv-e-tquery-filter-has-ancestor'
-    extends='tv-e-tquery-filter'>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.subExpression_ = undefined;
-    },
+tv.exportTo('tv.e.tquery', function() {
+  function FilterHasAncestor(opt_subExpression) {
+    this.subExpression = opt_subExpression;
+  };
 
-    get scriptName() {
-      return 'hasAncestor';
-    },
-
-    get scriptValue() {
-      return function(subExpression) {
-        var filter = document.createElement(this.element.name);
-        filter.subExpression = subExpression;
-        return filter;
-      }.bind(this);
-    },
+  FilterHasAncestor.prototype = {
+    __proto__: tv.e.tquery.Filter.prototype,
 
     set subExpression(expr) {
-      this.subExpression_ = this.normalizeFilterExpression(expr);
+      this.subExpression_ = tv.e.tquery.Filter.normalizeFilterExpression(expr);
     },
 
     get subExpression() {
@@ -47,6 +37,17 @@ found in the LICENSE file.
       }
       return false;
     }
-  });
-  </script>
-</polymer-element>
+  };
+  tv.c.ScriptingObjectRegistry.register(
+      function(subExpression) {
+        return new FilterHasAncestor(subExpression);
+      },
+      {
+        name: 'hasAncestor'
+      }
+  );
+  return {
+    FilterHasAncestor: FilterHasAncestor
+  };
+});
+</script>

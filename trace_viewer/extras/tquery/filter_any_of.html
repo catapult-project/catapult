@@ -5,37 +5,26 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/extras/tquery/filter.html">
 
-<polymer-element name='tv-e-tquery-filter-any-of' extends='tv-e-tquery-filter'>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.subExpressions_ = [];
-    },
+tv.exportTo('tv.e.tquery', function() {
+  function FilterAnyOf(opt_subExpressions) {
+    tv.e.tquery.Filter.call(this);
+    this.subExpressions = opt_subExpressions || [];
+  };
 
-    get scriptName() {
-      return 'anyOf';
-    },
-
-    get scriptValue() {
-      return function() {
-        var filter = document.createElement(this.element.name);
-        var exprs = [];
-        for (var i = 0; i < arguments.length; i++) {
-          exprs.push(arguments[i]);
-        }
-        filter.subExpressions = exprs;
-        return filter;
-      }.bind(this);
-    },
+  FilterAnyOf.prototype = {
+    __proto__: tv.e.tquery.Filter.prototype,
 
     set subExpressions(exprs) {
       this.subExpressions_ = [];
       for (var i = 0; i < exprs.length; i++) {
-        this.subExpressions_.push(this.normalizeFilterExpression(exprs[i]));
+        this.subExpressions_.push(
+            tv.e.tquery.Filter.normalizeFilterExpression(exprs[i]));
       }
     },
 
@@ -52,6 +41,21 @@ found in the LICENSE file.
       }
       return false;
     }
-  });
-  </script>
-</polymer-element>
+  };
+  tv.c.ScriptingObjectRegistry.register(
+      function() {
+        var exprs = [];
+        for (var i = 0; i < arguments.length; i++) {
+          exprs.push(arguments[i]);
+        }
+        return new FilterAnyOf(exprs);
+      },
+      {
+        name: 'anyOf'
+      }
+  );
+  return {
+    FilterAnyOf: FilterAnyOf
+  };
+});
+</script>

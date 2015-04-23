@@ -7,29 +7,33 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/utils.html">
 
-<polymer-element name='tv-e-tquery-context'>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.event = undefined;
-      this.ancestors = [];
-    },
+tv.exportTo('tv.e.tquery', function() {
+  function Context() {
+    this.event = undefined;
+    this.ancestors = [];
+  }
 
+  Context.prototype = {
     push: function(event) {
-      var ctx = document.createElement(this.element.name);
+      var ctx = new Context();
       ctx.ancestors = this.ancestors.slice();
       ctx.ancestors.push(event);
       return ctx;
     },
 
     pop: function(event) {
-      var ctx = document.createElement(this.element.name);
+      var ctx = new Context();
       ctx.event = this.ancestors[this.ancestors.length - 1];
       ctx.ancestors = this.ancestors.slice(0, this.ancestors.length - 1);
       return ctx;
     }
-  });
-  </script>
-</polymer-element>
+  };
+
+  return {
+    Context: Context
+  };
+});
+</script>

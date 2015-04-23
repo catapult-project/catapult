@@ -6,17 +6,18 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/task.html">
+<link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/extras/tquery/tquery.html">
 
-<polymer-element name='tv-e-tquery-fake-timeline'>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.allObjects = [];
-    },
+tv.exportTo('tv.e.tquery', function() {
+  function FakeTimeline() {
+    this.allObjects = [];
+  }
 
+  FakeTimeline.prototype = {
     addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
       return new tv.b.Task(function() {
         var n = this.allObjects.length;
@@ -38,16 +39,15 @@ found in the LICENSE file.
     setHighlightAndClearSelection: function(highlight) {
       this.highlight = highlight;
     }
-  });
-  </script>
-</polymer-element>
-
-<script>
-'use strict';
+  };
+  return {
+    FakeTimeline: FakeTimeline
+  };
+});
 
 tv.b.unittest.testSuite(function() {
   function createFakeTimeline_(sliceCount) {
-    var timeline = document.createElement('tv-e-tquery-fake-timeline');
+    var timeline = new tv.e.tquery.FakeTimeline();
     timeline.allObjects = [];
     for (var i = 0; i < sliceCount; i++) {
       timeline.allObjects.push({guid: i});
@@ -56,13 +56,22 @@ tv.b.unittest.testSuite(function() {
   }
 
   function createFakeTimelineWithEvents_(events) {
-    var timeline = document.createElement('tv-e-tquery-fake-timeline');
+    var timeline = new tv.e.tquery.FakeTimeline();
     timeline.allObjects = events;
     return timeline;
   }
 
+  function getScriptObject(name) {
+    var typeInfos = tv.c.ScriptingObjectRegistry.getAllRegisteredTypeInfos();
+    for (var i = 0; i < typeInfos.length; i++) {
+      if (typeInfos[i].metadata.name === name) {
+        return typeInfos[i].constructor;
+      }
+    }
+  }
+
   test('tqueryAsyncSelection', function() {
-    var tquery = document.createElement('tv-e-tquery');
+    var tquery = new tv.e.tquery.TQuery();
     var timeline = createFakeTimeline_(3);
     tquery.onTimelineChanged(timeline);
 
@@ -72,7 +81,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tquerySyncSelection', function() {
-    var tquery = document.createElement('tv-e-tquery');
+    var tquery = new tv.e.tquery.TQuery();
     var timeline = createFakeTimeline_(3);
     tquery.onTimelineChanged(timeline);
 
@@ -84,7 +93,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryPassThroughFiltering', function() {
-    var tquery = document.createElement('tv-e-tquery');
+    var tquery = new tv.e.tquery.TQuery();
     var timeline = createFakeTimeline_(3);
     tquery.onTimelineChanged(timeline);
 
@@ -94,9 +103,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterHasTitle', function() {
-    var tquery = document.createElement('tv-e-tquery');
-    var hasTitle = document.createElement(
-        'tv-e-tquery-filter-has-title').scriptValue;
+    var tquery = new tv.e.tquery.TQuery();
+    var hasTitle = getScriptObject('hasTitle');
     var timeline = createFakeTimelineWithEvents_([
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b'},
@@ -118,9 +126,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterHasAncestor', function() {
-    var tquery = document.createElement('tv-e-tquery');
-    var hasAncestor = document.createElement(
-        'tv-e-tquery-filter-has-ancestor').scriptValue;
+    var tquery = new tv.e.tquery.TQuery();
+    var hasAncestor = getScriptObject('hasAncestor');
     var timeline = createFakeTimelineWithEvents_([
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b', subSlices: [{guid: 4}]},
@@ -141,9 +148,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterAllOf', function() {
-    var tquery = document.createElement('tv-e-tquery');
-    var allOf = document.createElement(
-        'tv-e-tquery-filter-all-of').scriptValue;
+    var tquery = new tv.e.tquery.TQuery();
+    var allOf = getScriptObject('allOf');
     var timeline = createFakeTimelineWithEvents_([
         {guid: 1, title: 'a1'},
         {guid: 2, title: 'b1'},
@@ -164,9 +170,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterAnyOf', function() {
-    var tquery = document.createElement('tv-e-tquery');
-    var anyOf = document.createElement(
-        'tv-e-tquery-filter-any-of').scriptValue;
+    var tquery = new tv.e.tquery.TQuery();
+    var anyOf = getScriptObject('anyOf');
     var timeline = createFakeTimelineWithEvents_([
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b'},
@@ -188,9 +193,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterIsTopLevel', function() {
-    var tquery = document.createElement('tv-e-tquery');
-    var isTopLevel = document.createElement(
-        'tv-e-tquery-filter-is-top-level').scriptValue;
+    var tquery = new tv.e.tquery.TQuery();
+    var isTopLevel = getScriptObject('isTopLevel');
     var timeline = createFakeTimelineWithEvents_([
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b', subSlices: [{guid: 4}]},
@@ -210,9 +214,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterHasDuration', function() {
-    var tquery = document.createElement('tv-e-tquery');
-    var hasDuration = document.createElement(
-        'tv-e-tquery-filter-has-duration').scriptValue;
+    var tquery = new tv.e.tquery.TQuery();
+    var hasDuration = getScriptObject('hasDuration');
     var timeline = createFakeTimelineWithEvents_([
         {guid: 1, title: 'a', duration: 1},
         {guid: 2, title: 'b', duration: 2},

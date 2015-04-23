@@ -241,8 +241,7 @@ tv.exportTo('tv.c', function() {
       this.findCtl_ = new TracingFindControl();
       this.findCtl_.controller = new tv.c.FindController();
       this.scriptingCtl_ = new TracingScriptingControl();
-      this.scriptingCtl_.controller = document.createElement(
-          'tv-c-scripting-controller');
+      this.scriptingCtl_.controller = new tv.c.ScriptingController();
 
       this.showFlowEvents_ = false;
       this.rightControls.appendChild(tv.b.ui.createCheckBox(

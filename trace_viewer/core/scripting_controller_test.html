@@ -14,20 +14,20 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   test('scriptingControllerBasicArithmetic', function() {
-    var controller = document.createElement('tv-c-scripting-controller');
+    var controller = new tv.c.ScriptingController();
     var result = controller.executeCommand('1 + 1');
     assert.equal(result, 2);
   });
 
   test('scriptingControllerNonLocalContext', function() {
-    var controller = document.createElement('tv-c-scripting-controller');
+    var controller = new tv.c.ScriptingController();
     var x = 1;
     controller.executeCommand('x = 2');
     assert.equal(x, 1);
   });
 
   test('scriptingControllerModifyGlobalContext', function() {
-    var controller = document.createElement('tv-c-scripting-controller');
+    var controller = new tv.c.ScriptingController();
     window._x = 1;
     controller.executeCommand('_x = 2');
     assert.equal(window._x, 2);
@@ -35,16 +35,28 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('scriptingControllerPersistentContext', function() {
-    var controller = document.createElement('tv-c-scripting-controller');
+    var controller = new tv.c.ScriptingController();
     controller.executeCommand('a = 42');
     var result = controller.executeCommand('a');
     assert.equal(result, 42);
   });
 
   test('scriptingControllerAddScriptObject', function() {
-    var controller = document.createElement('tv-c-scripting-controller');
+    var controller = new tv.c.ScriptingController();
     controller.addScriptObject('z', 123);
     var result = controller.executeCommand('z');
+    assert.equal(result, 123);
+  });
+
+  test('scriptingControllerObjectRegistry', function() {
+    tv.c.ScriptingObjectRegistry.register(
+        function() { return 123; },
+        {
+          name: 'testFunctionName'
+        }
+    );
+    var controller = new tv.c.ScriptingController();
+    var result = controller.executeCommand('testFunctionName()');
     assert.equal(result, 123);
   });
 });

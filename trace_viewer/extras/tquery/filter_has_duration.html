@@ -5,36 +5,24 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/extras/tquery/filter.html">
 
-<polymer-element name='tv-e-tquery-filter-has-duration'
-    extends='tv-e-tquery-filter'>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.expected = undefined;
-      this.minValue = undefined;
-      this.maxValue = undefined;
-    },
+tv.exportTo('tv.e.tquery', function() {
+  function FilterHasDuration(minValueOrExpected, opt_maxValue) {
+    if (minValueOrExpected !== undefined && opt_maxValue !== undefined) {
+      this.minValue = minValueOrExpected;
+      this.maxValue = opt_maxValue;
+    } else {
+      this.expected = minValueOrExpected;
+    }
+  };
 
-    get scriptName() {
-      return 'hasDuration';
-    },
-
-    get scriptValue() {
-      return function(minValueOrExpected, maxValue) {
-        var filter = document.createElement(this.element.name);
-        if (minValueOrExpected !== undefined && maxValue !== undefined) {
-          filter.minValue = minValueOrExpected;
-          filter.maxValue = maxValue;
-        } else {
-          filter.expected = minValueOrExpected;
-        }
-        return filter;
-      }.bind(this);
-    },
+  FilterHasDuration.prototype = {
+    __proto__: tv.e.tquery.Filter.prototype,
 
     evaluate: function(context) {
       if (context.event.duration === undefined)
@@ -45,7 +33,17 @@ found in the LICENSE file.
       }
       return this.matchValue_(context.event.duration, this.expected);
     }
-  });
-  </script>
-</polymer-element>
-
+  };
+  tv.c.ScriptingObjectRegistry.register(
+      function(minValueOrExpected, opt_maxValue) {
+        return new FilterHasDuration(minValueOrExpected, opt_maxValue);
+      },
+      {
+        name: 'hasDuration'
+      }
+  );
+  return {
+    FilterHasDuration: FilterHasDuration
+  };
+});
+</script>

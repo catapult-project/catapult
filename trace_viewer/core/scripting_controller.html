@@ -5,32 +5,33 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/polymer_utils.html">
-<link rel="import" href="/extras/tquery/tquery.html">
+<link rel="import" href="/base/extension_registry.html">
+<link rel="import" href="/core/scripting_object.html">
 
-<polymer-element name='tv-c-scripting-controller'>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.timeline_ = undefined;
-      this.scriptObjectNames_ = [];
-      this.scriptObjectValues_ = [];
+tv.exportTo('tv.c', function() {
+  function ScriptingController() {
+    this.timeline_ = undefined;
+    this.scriptObjectNames_ = [];
+    this.scriptObjectValues_ = [];
 
-      // Register all scripting objects.
-      var objects = tv.b.getPolymerElementsThatSubclass(
-          'tv-c-scripting-object');
-      objects.forEach(function(className) {
-        var obj = document.createElement(className);
-        if (!obj.scriptName)
-          return;
-        this.addScriptObject(obj.scriptName, obj.scriptValue);
-        // Also make the object available to the DevTools inspector.
-        window[obj.scriptName] = obj.scriptValue;
-      }.bind(this));
-    },
+    // Register all scripting objects.
+    var typeInfos = ScriptingObjectRegistry.getAllRegisteredTypeInfos();
+    typeInfos.forEach(function(typeInfo) {
+      this.addScriptObject(typeInfo.metadata.name, typeInfo.constructor);
+      // Also make the object available to the DevTools inspector.
+      window[typeInfo.metadata.name] = typeInfo.constructor;
+    }.bind(this));
+  }
 
+  function ScriptingObjectRegistry() {
+  }
+  var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
+  tv.b.decorateExtensionRegistry(ScriptingObjectRegistry, options);
+
+  ScriptingController.prototype = {
     get timeline() {
       return this.timeline_;
     },
@@ -53,6 +54,11 @@ found in the LICENSE file.
           this.scriptObjectNames_, 'return eval(' + command + ')');
       return f.apply(null, this.scriptObjectValues_);
     }
-  });
-  </script>
-</polymer-element>
+  };
+
+  return {
+    ScriptingController: ScriptingController,
+    ScriptingObjectRegistry: ScriptingObjectRegistry
+  };
+});
+</script>

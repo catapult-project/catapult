@@ -7,24 +7,22 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/utils.html">
 
-<polymer-element name='tv-c-scripting-object'>
-  <script>
-  'use strict';
-  Polymer({
-    // Name under which this object is accessible in the console.
-    get scriptName() {
-      throw new Error('Not implemented');
-    },
+<script>
+'use strict';
 
-    // Value to bind the console object to. Defaults to "this".
-    get scriptValue() {
-      return this;
-    },
+tv.exportTo('tv.c', function() {
+  function ScriptingObject() {
+  }
 
+  ScriptingObject.prototype = {
     // Called when the active timeline changes.
     onTimelineChanged: function(timeline) {
       // No-op by default.
     }
-  });
-  </script>
-</polymer-element>
+  };
+
+  return {
+    ScriptingObject: ScriptingObject
+  };
+});
+</script>

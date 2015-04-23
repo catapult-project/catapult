@@ -7,13 +7,28 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/scripting_object.html">
 
-<polymer-element name='tv-e-tquery-filter' extends='tv-c-scripting-object'>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    get scriptName() {
-    },
+tv.exportTo('tv.e.tquery', function() {
+  function Filter() {
+    tv.c.ScriptingObject.call(this);
+  }
+
+  Filter.normalizeFilterExpression = function(filterExpression) {
+    // Shortcut: naked strings and regexps can be used to match against slice
+    // titles.
+    if (filterExpression instanceof String ||
+        typeof(filterExpression) == 'string' ||
+        filterExpression instanceof RegExp) {
+      var filter = new tv.e.tquery.FilterHasTitle(filterExpression);
+      return filter;
+    }
+    return filterExpression;
+  };
+
+  Filter.prototype = {
+    __proto__: tv.c.ScriptingObject.prototype,
 
     evaluate: function(context) {
       throw new Error('Not implemented');
@@ -25,20 +40,11 @@ found in the LICENSE file.
       else if (expected instanceof Function)
         return expected(value);
       return value === expected;
-    },
-
-    normalizeFilterExpression: function(filterExpression) {
-      // Shortcut: naked strings and regexps can be used to match against slice
-      // titles.
-      if (filterExpression instanceof String ||
-          typeof(filterExpression) == 'string' ||
-          filterExpression instanceof RegExp) {
-        var filter = document.createElement('tv-e-tquery-filter-has-title');
-        filter.expected = filterExpression;
-        return filter;
-      }
-      return filterExpression;
     }
-  });
-  </script>
-</polymer-element>
+  };
+
+  return {
+    Filter: Filter
+  };
+});
+</script>
