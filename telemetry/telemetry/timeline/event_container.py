@@ -15,6 +15,10 @@ class TimelineEventContainer(object):
     self.parent = parent
     self.name = name
 
+  @staticmethod
+  def IsAsyncSlice(t):
+    return t == async_slice_module.AsyncSlice
+
   # Basic functions that subclasses of TimelineEventContainer should implement
   # in order to expose their events. New methods should be added to this part of
   # the code only when absolutely certain they're needed.
@@ -113,12 +117,16 @@ class TimelineEventContainer(object):
       event_predicate=lambda e: e.name == name and e.parent_slice == None)
 
   def IterAllAsyncSlicesOfName(self, name, recursive=True):
-    def IsAsyncSlice(t):
-      return t == async_slice_module.AsyncSlice
     return self.IterAllEvents(
       recursive=recursive,
-      event_type_predicate=IsAsyncSlice,
+      event_type_predicate=self.IsAsyncSlice,
       event_predicate=lambda e: e.name == name)
+
+  def IterAllAsyncSlicesStartsWithName(self, name, recursive=True):
+    return self.IterAllEvents(
+      recursive=recursive,
+      event_type_predicate=self.IsAsyncSlice,
+      event_predicate=lambda e: e.name.startswith(name))
 
   def IterAllFlowEvents(self, recursive=True):
     return self.IterAllEvents(

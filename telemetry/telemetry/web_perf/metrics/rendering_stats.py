@@ -23,9 +23,9 @@ FORWARD_SCROLL_UPDATE_COMP_NAME = (
 END_COMP_NAME = 'INPUT_EVENT_GPU_SWAP_BUFFER_COMPONENT'
 
 # Name for a main thread scroll update latency event.
-SCROLL_UPDATE_EVENT_NAME = 'InputLatency:ScrollUpdate'
+SCROLL_UPDATE_EVENT_NAME = 'InputLatency::ScrollUpdate'
 # Name for a gesture scroll update latency event.
-GESTURE_SCROLL_UPDATE_EVENT_NAME = 'InputLatency:GestureScrollUpdate'
+GESTURE_SCROLL_UPDATE_EVENT_NAME = 'InputLatency::GestureScrollUpdate'
 
 # These are keys used in the 'data' field dictionary located in
 # BenchmarkInstrumentation::ImplThreadRenderingStats.
@@ -43,14 +43,14 @@ def GetInputLatencyEvents(process, timeline_range):
      within the timeline_range.
 
   Input events dump their LatencyInfo into trace buffer as async trace event
-  with name "InputLatency". The trace event has a memeber 'data' containing
-  its latency history.
+  of name starting with "InputLatency". The trace event has a memeber 'data'
+  containing its latency history.
 
   """
   input_events = []
   if not process:
     return input_events
-  for event in process.IterAllAsyncSlicesOfName('InputLatency'):
+  for event in process.IterAllAsyncSlicesStartsWithName('InputLatency'):
     if event.start >= timeline_range.min and event.end <= timeline_range.max:
       for ss in event.sub_slices:
         if 'data' in ss.args:
