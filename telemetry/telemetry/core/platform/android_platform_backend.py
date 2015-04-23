@@ -44,6 +44,7 @@ from pylib.perf import cache_control  # pylint: disable=F0401
 from pylib.perf import perf_control  # pylint: disable=F0401
 from pylib.perf import thermal_throttle  # pylint: disable=F0401
 from pylib.utils import device_temp_file # pylint: disable=F0401
+from pylib import constants # pylint: disable=F0401
 from pylib import screenshot  # pylint: disable=F0401
 
 try:
@@ -345,6 +346,15 @@ class AndroidPlatformBackend(
 
   def StopMonitoringPower(self):
     return self._power_monitor.StopMonitoringPower()
+
+  def CanMonitorNetworkData(self):
+    if (self._device.build_version_sdk <
+        constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP):
+      return False
+    return True
+
+  def GetNetworkData(self, browser):
+    return self._battery.GetNetworkData(browser._browser_backend.package)
 
   def GetFileContents(self, fname):
     if not self._can_access_protected_file_contents:

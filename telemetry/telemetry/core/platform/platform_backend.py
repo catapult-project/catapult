@@ -260,6 +260,12 @@ class PlatformBackend(object):
   def StopMonitoringPower(self):
     raise NotImplementedError()
 
+  def CanMonitorNetworkData(self):
+    return False
+
+  def GetNetworkData(self, browser):
+    raise NotImplementedError()
+
   def ReadMsr(self, msr_number, start=0, length=64):
     """Read a CPU model-specific register (MSR).
 
