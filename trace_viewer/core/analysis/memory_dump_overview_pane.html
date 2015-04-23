@@ -98,11 +98,11 @@ found in the LICENSE file.
         rows.push({
           title: processMemoryDump.process.userFriendlyName,
           proportionalResident:
-              processMemoryDump.totalProportionalResidentSizeInBytes,
+              processMemoryDump.mostRecentTotalProportionalResidentSizeInBytes,
           privateResident:
-              processMemoryDump.totalPrivateResidentSizeInBytes,
+              processMemoryDump.mostRecentTotalPrivateResidentSizeInBytes,
           sharedResident:
-              processMemoryDump.totalSharedResidentSizeInBytes,
+              processMemoryDump.mostRecentTotalSharedResidentSizeInBytes,
           allocatorObjectSizes: allocatorObjectSizes,
           processMemoryDump: processMemoryDump
         });

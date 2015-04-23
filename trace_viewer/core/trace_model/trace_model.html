@@ -608,14 +608,14 @@ tv.exportTo('tv.c', function() {
           this.processes[pid].autoDeleteObjects(this.bounds.max);
       }, this);
 
-      // Sort global and process memory dumps.
+      // Finalize global and process memory dumps.
       lastTask = lastTask.after(function() {
-        progressMeter.update('Sorting memory dumps...');
+        progressMeter.update('Finalizing memory dumps...');
         this.globalMemoryDumps.sort(function(x, y) {
           return x.start - y.start;
         });
         for (var pid in this.processes)
-          this.processes[pid].sortMemoryDumps();
+          this.processes[pid].finalizeMemoryDumps();
       }, this);
 
       // Run initializers.

@@ -25,48 +25,52 @@ tv.b.unittest.testSuite(function() {
   var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
 
   function createProcessMemoryDumps() {
-    var model = new TraceModel();
-    var p1 = model.getOrCreateProcess(1);
-    var p2 = model.getOrCreateProcess(2);
+    var model = tv.c.test_utils.newModel(function(model) {
+      var p1 = model.getOrCreateProcess(1);
+      var p2 = model.getOrCreateProcess(2);
 
-    var gmd = new GlobalMemoryDump(model, 42);
+      var gmd = new GlobalMemoryDump(model, 42);
+      model.globalMemoryDumps.push(gmd);
 
-    // One process with VM regions.
-    var pmd1 = new ProcessMemoryDump(gmd, p1, 41);
-    gmd.processMemoryDumps[p1.pid] = pmd1;
-    pmd1.vmRegions = [
-      VMRegion.fromDict({
-          startAddress: 1024,
-          sizeInBytes: 20971520, /* 20 MiB */
-          protectionFlags: VMRegion.PROTECTION_FLAG_READ,
-          mappedFile: '[stack]',
-          byteStats: VMRegionByteStats.fromDict({
-              privateResident: 8388608, /* 8 MiB */
-              sharedResident: 12582912, /* 12 MiB */
-              proportionalResident: 10485760 /* 10 MiB */
-          })
-      })
-    ];
+      // One process with VM regions.
+      var pmd1 = new ProcessMemoryDump(gmd, p1, 41);
+      p1.memoryDumps.push(pmd1);
+      gmd.processMemoryDumps[p1.pid] = pmd1;
+      pmd1.vmRegions = [
+        VMRegion.fromDict({
+            startAddress: 1024,
+            sizeInBytes: 20971520, /* 20 MiB */
+            protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+            mappedFile: '[stack]',
+            byteStats: VMRegionByteStats.fromDict({
+                privateResident: 8388608, /* 8 MiB */
+                sharedResident: 12582912, /* 12 MiB */
+                proportionalResident: 10485760 /* 10 MiB */
+            })
+        })
+      ];
 
-    // One process with allocator dumps.
-    var pmd2 = new ProcessMemoryDump(gmd, p2, 43);
-    gmd.processMemoryDumps[p2.pid] = pmd2;
-    pmd2.memoryAllocatorDumps = [
-      MemoryAllocatorDump.fromDict({
-        fullName: 'oilpan',
-        physicalSizeInBytes: 2147483648, /* 2 GiB */
-        allocatedObjectsCount: 2015,
-        allocatedObjectsSizeInBytes: 5242880 /* 5 MiB */
-      }),
-      MemoryAllocatorDump.fromDict({
-        fullName: 'v8',
-        physicalSizeInBytes: 1073741824, /* 1 GiB */
-        allocatedObjectsCount: 204,
-        allocatedObjectsSizeInBytes: 2097152 /* 2 MiB */
-      })
-    ];
+      // One process with allocator dumps.
+      var pmd2 = new ProcessMemoryDump(gmd, p2, 43);
+      p2.memoryDumps.push(pmd2);
+      gmd.processMemoryDumps[p2.pid] = pmd2;
+      pmd2.memoryAllocatorDumps = [
+        MemoryAllocatorDump.fromDict({
+          fullName: 'oilpan',
+          physicalSizeInBytes: 2147483648, /* 2 GiB */
+          allocatedObjectsCount: 2015,
+          allocatedObjectsSizeInBytes: 5242880 /* 5 MiB */
+        }),
+        MemoryAllocatorDump.fromDict({
+          fullName: 'v8',
+          physicalSizeInBytes: 1073741824, /* 1 GiB */
+          allocatedObjectsCount: 204,
+          allocatedObjectsSizeInBytes: 2097152 /* 2 MiB */
+        })
+      ];
+    });
 
-    return gmd.processMemoryDumps;
+    return model.globalMemoryDumps[0].processMemoryDumps;
   }
 
   test('instantiate', function() {

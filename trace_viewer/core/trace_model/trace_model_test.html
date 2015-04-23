@@ -359,18 +359,34 @@ tv.b.unittest.testSuite(function() {
     assert.equal(m.globalMemoryDumps[2].start, 4);
   });
 
-  test('traceModel_sortsProcessMemoryDumps', function() {
+  test('traceModel_finalizesProcessMemoryDumps', function() {
     var m = new tv.c.TraceModel();
     var p = m.getOrCreateProcess(1);
     m.importTraces([], true /* shiftWorldToZero */, false, function() {
       var g = new tv.c.trace_model.GlobalMemoryDump(m, -1);
-      p.memoryDumps.push(new tv.c.trace_model.ProcessMemoryDump(g, p, 1));
-      p.memoryDumps.push(new tv.c.trace_model.ProcessMemoryDump(g, p, 5));
-      p.memoryDumps.push(new tv.c.trace_model.ProcessMemoryDump(g, p, 3));
+
+      var pmd1 = new tv.c.trace_model.ProcessMemoryDump(g, p, 1);
+      p.memoryDumps.push(pmd1);
+
+      var pmd2 = new tv.c.trace_model.ProcessMemoryDump(g, p, 5);
+      p.memoryDumps.push(pmd2);
+
+      var pmd3 = new tv.c.trace_model.ProcessMemoryDump(g, p, 3);
+      p.memoryDumps.push(pmd3);
+      pmd3.vmRegions = [];
     });
+
+    // Check the sort order.
     assert.equal(p.memoryDumps[0].start, 0);
     assert.equal(p.memoryDumps[1].start, 2);
     assert.equal(p.memoryDumps[2].start, 4);
+
+    // Check that the most recent VM regions are linked correctly.
+    assert.isUndefined(p.memoryDumps[0].mostRecentVmRegions);
+    assert.lengthOf(p.memoryDumps[1].mostRecentVmRegions, 0);
+    assert.strictEqual(
+        p.memoryDumps[1].mostRecentVmRegions,
+        p.memoryDumps[2].mostRecentVmRegions);
   });
 
   test('traceModel_annotationAddRemove', function() {

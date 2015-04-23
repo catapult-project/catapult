@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/trace_model/process_base.html">
+<link rel="import" href="/core/trace_model/process_memory_dump.html">
 
 <script>
 'use strict';
@@ -145,10 +146,12 @@ tv.exportTo('tv.c.trace_model', function() {
         this.threads[tid].iterateAllEventContainers(callback);
     },
 
-    sortMemoryDumps: function() {
+    finalizeMemoryDumps: function() {
       this.memoryDumps.sort(function(x, y) {
         return x.start - y.start;
       });
+      tv.c.trace_model.ProcessMemoryDump.hookUpMostRecentVmRegionsLinks(
+          this.memoryDumps);
     }
   };
 

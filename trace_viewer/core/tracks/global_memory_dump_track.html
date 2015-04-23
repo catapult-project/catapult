@@ -112,7 +112,7 @@ tv.exportTo('tv.c.tracks', function() {
     // Do not generate the chart if no process memory dump contains VM regions.
     var containsVmRegions = globalMemoryDumps.some(function(globalDump) {
       for (var pid in globalDump.processMemoryDumps)
-        if (globalDump.processMemoryDumps[pid].vmRegions)
+        if (globalDump.processMemoryDumps[pid].mostRecentVmRegions)
           return true;
       return false;
     });
@@ -135,7 +135,6 @@ tv.exportTo('tv.c.tracks', function() {
 
     // For every timestamp, calculate the total PSS (proportional set size) of
     // each process and append it to the corresponding list of points.
-    var pidToPreviousPss = {};
     globalMemoryDumps.forEach(function(globalDump) {
       var pssSum = 0;
       tv.b.iterItems(pidToPoints, function(pid, points) {
@@ -145,14 +144,14 @@ tv.exportTo('tv.c.tracks', function() {
           // If no dump was found, assume that the process is dead.
           pss = 0;
         } else {
-          pss = processMemoryDump.totalProportionalResidentSizeInBytes;
+          pss =
+              processMemoryDump.mostRecentTotalProportionalResidentSizeInBytes;
           if (pss === undefined) {
-            // If the dump does not provide the necessary information (namely VM
-            // regions), assume previous value.
-            pss = pidToPreviousPss[pid] || 0;
+            // If the dump does not provide the necessary information (namely
+            // most recent VM regions), assume zero.
+            pss = 0;
           }
         }
-        pidToPreviousPss[pid] = pss;
         pssSum += pss;
         points.push(new tv.c.tracks.ChartPoint(
             globalDump, globalDump.start, pssSum));

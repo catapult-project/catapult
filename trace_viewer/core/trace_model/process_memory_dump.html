@@ -25,7 +25,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.globalMemoryDump = globalMemoryDump;
 
     this.totalResidentBytes = undefined;
-    this.vmRegions = undefined;
+    this.vmRegions_ = undefined;
     this.memoryAllocatorDumps_ = undefined;
     this.memoryAllocatorDumpsByFullName_ = undefined;
   };
@@ -39,6 +39,15 @@ tv.exportTo('tv.c.trace_model', function() {
 
     get userFriendlyName() {
       return 'Process memory dump at ' + tv.c.analysis.tsString(this.start);
+    },
+
+    get vmRegions() {
+      throw new Error(
+          'VM regions must be accessed through the mostRecentVmRegions field');
+    },
+
+    set vmRegions(vmRegions) {
+      this.vmRegions_ = vmRegions;
     },
 
     get memoryAllocatorDumps() {
@@ -75,34 +84,47 @@ tv.exportTo('tv.c.trace_model', function() {
       return this.memoryAllocatorDumpsByFullName_;
     },
 
-    getTotalVmRegionStat_: function(statGetterFn) {
-      if (this.vmRegions === undefined)
+    getMostRecentTotalVmRegionStat_: function(statGetterFn) {
+      if (this.mostRecentVmRegions === undefined)
         return undefined;
 
       var total = 0;
-      this.vmRegions.forEach(function(vmRegion) {
+      this.mostRecentVmRegions.forEach(function(vmRegion) {
         total += statGetterFn(vmRegion);
       });
       return total;
     },
 
-    get totalProportionalResidentSizeInBytes() {
-      return this.getTotalVmRegionStat_(function(vmRegion) {
+    get mostRecentTotalProportionalResidentSizeInBytes() {
+      return this.getMostRecentTotalVmRegionStat_(function(vmRegion) {
         return vmRegion.byteStats.proportionalResident;
       });
     },
 
-    get totalPrivateResidentSizeInBytes() {
-      return this.getTotalVmRegionStat_(function(vmRegion) {
+    get mostRecentTotalPrivateResidentSizeInBytes() {
+      return this.getMostRecentTotalVmRegionStat_(function(vmRegion) {
         return vmRegion.byteStats.privateResident;
       });
     },
 
-    get totalSharedResidentSizeInBytes() {
-      return this.getTotalVmRegionStat_(function(vmRegion) {
+    get mostRecentTotalSharedResidentSizeInBytes() {
+      return this.getMostRecentTotalVmRegionStat_(function(vmRegion) {
         return vmRegion.byteStats.sharedResident;
       });
     }
+  };
+
+  ProcessMemoryDump.hookUpMostRecentVmRegionsLinks = function(processDumps) {
+    var mostRecentVmRegions = undefined;
+
+    processDumps.forEach(function(processDump) {
+      // Update the most recent VM regions from the current dump.
+      if (processDump.vmRegions_ !== undefined)
+        mostRecentVmRegions = processDump.vmRegions_;
+
+      // Set the most recent VM regions of the current dump.
+      processDump.mostRecentVmRegions = mostRecentVmRegions;
+    });
   };
 
   /**

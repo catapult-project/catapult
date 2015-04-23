@@ -65,6 +65,7 @@ tv.b.unittest.testSuite(function() {
     if (opt_allocatorDumps !== undefined)
       pmd.memoryAllocatorDumps = opt_allocatorDumps;
     globalMemoryDump.processMemoryDumps[process.pid] = pmd;
+    process.memoryDumps.push(pmd);
   };
 
   function createModelWithDumps(withVMRegions, withAllocatorDumps) {
