@@ -42,8 +42,26 @@ tv.exportTo('tv.b', function() {
     return foundElement;
   }
 
+  function findDeepElementsMatchingPredicate(element, predicate) {
+    var foundElements = [];
+    function matches(element) {
+      var match = predicate(element);
+      if (match){
+        foundElements.push(element);
+      }
+      return false;
+    }
+    iterateElementDeeply(element, matches);
+    return foundElements;
+  }
+
   function findDeepElementMatching(element, selector) {
     return findDeepElementMatchingPredicate(element, function(element) {
+      return element.matches(selector);
+    });
+  }
+  function findDeepElementsMatching(element, selector) {
+    return findDeepElementsMatchingPredicate(element, function(element) {
       return element.matches(selector);
     });
   }
@@ -57,7 +75,9 @@ tv.exportTo('tv.b', function() {
   return {
     iterateElementDeeply: iterateElementDeeply,
     findDeepElementMatching: findDeepElementMatching,
+    findDeepElementsMatching: findDeepElementsMatching,
     findDeepElementMatchingPredicate: findDeepElementMatchingPredicate,
+    findDeepElementsMatchingPredicate: findDeepElementsMatchingPredicate,
     findDeepElementWithTextContent: findDeepElementWithTextContent
   };
 });

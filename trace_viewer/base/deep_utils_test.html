@@ -18,7 +18,7 @@ tv.b.unittest.testSuite(function() {
     return el;
   }
 
-  test('testFindDeepMatching', function() {
+  test('testFindDeepElementMatching', function() {
     var a = createElement('a');
     var a_ = a.createShadowRoot();
 
@@ -30,6 +30,22 @@ tv.b.unittest.testSuite(function() {
 
     var m = tv.b.findDeepElementMatching(a, 'c.x');
     assert.equal(m, b_.children[0]);
+  });
+
+  test('testFindDeepElementsMatching', function() {
+    var a = createElement('a');
+    var a_ = a.createShadowRoot();
+
+    var b = createElement('b');
+    a_.appendChild(b);
+
+    var b_ = b.createShadowRoot();
+    b_.appendChild(createElement('c', 'x'));
+    b_.appendChild(createElement('c', 'x'));
+
+    var m = tv.b.findDeepElementsMatching(a, 'c.x');
+    assert.equal(m[0], b_.children[0]);
+    assert.equal(m[1], b_.children[1]);
   });
 });
 </script>
