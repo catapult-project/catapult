@@ -1,6 +1,8 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import itertools
+
 from operator import attrgetter
 
 from telemetry.web_perf.metrics import rendering_frame
@@ -15,7 +17,7 @@ ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT'
 BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT'
 # This is when an input event is turned into a scroll update.
 BEGIN_SCROLL_UPDATE_COMP_NAME = (
-    'INPUT_EVENT_LATENCY_BEGIN_SCROLL_UPDATE_MAIN_COMPONENT')
+    'LATENCY_BEGIN_SCROLL_LISTENER_UPDATE_MAIN_COMPONENT')
 # This is when a scroll update is forwarded to the main thread.
 FORWARD_SCROLL_UPDATE_COMP_NAME = (
     'INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT')
@@ -23,7 +25,7 @@ FORWARD_SCROLL_UPDATE_COMP_NAME = (
 END_COMP_NAME = 'INPUT_EVENT_GPU_SWAP_BUFFER_COMPONENT'
 
 # Name for a main thread scroll update latency event.
-SCROLL_UPDATE_EVENT_NAME = 'InputLatency::ScrollUpdate'
+SCROLL_UPDATE_EVENT_NAME = 'Latency::ScrollUpdate'
 # Name for a gesture scroll update latency event.
 GESTURE_SCROLL_UPDATE_EVENT_NAME = 'InputLatency::GestureScrollUpdate'
 
@@ -38,27 +40,30 @@ APPROXIMATED_PIXEL_ERROR = 'approximated_pixel_percentages'
 CHECKERBOARDED_PIXEL_ERROR = 'checkerboarded_pixel_percentages'
 
 
-def GetInputLatencyEvents(process, timeline_range):
-  """Get input events' LatencyInfo from the process's trace buffer that are
+def GetLatencyEvents(process, timeline_range):
+  """Get LatencyInfo trace events from the process's trace buffer that are
      within the timeline_range.
 
   Input events dump their LatencyInfo into trace buffer as async trace event
-  of name starting with "InputLatency". The trace event has a memeber 'data'
-  containing its latency history.
+  of name starting with "InputLatency". Non-input events with name starting
+  with "Latency". The trace event has a memeber 'data' containing its latency
+  history.
 
   """
-  input_events = []
+  latency_events = []
   if not process:
-    return input_events
-  for event in process.IterAllAsyncSlicesStartsWithName('InputLatency'):
+    return latency_events
+  for event in itertools.chain(
+      process.IterAllAsyncSlicesStartsWithName('InputLatency'),
+      process.IterAllAsyncSlicesStartsWithName('Latency')):
     if event.start >= timeline_range.min and event.end <= timeline_range.max:
       for ss in event.sub_slices:
         if 'data' in ss.args:
-          input_events.append(ss)
-  return input_events
+          latency_events.append(ss)
+  return latency_events
 
 
-def ComputeInputEventLatencies(input_events):
+def ComputeEventLatencies(input_events):
   """ Compute input event latencies.
 
   Input event latency is the time from when the input event is created to
@@ -71,7 +76,7 @@ def ComputeInputEventLatencies(input_events):
   3. INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT -- when event reaches RenderWidget
 
   If the latency starts with a
-  INPUT_EVENT_LATENCY_BEGIN_SCROLL_UPDATE_MAIN_COMPONENT component, then it is
+  LATENCY_BEGIN_SCROLL_UPDATE_MAIN_COMPONENT component, then it is
   classified as a scroll update instead of a normal input latency measure.
 
   Returns:
@@ -200,22 +205,21 @@ class RenderingStats(object):
 
   def _InitInputLatencyStatsFromTimeline(
       self, browser_process, renderer_process, timeline_range):
-    latency_events = GetInputLatencyEvents(browser_process, timeline_range)
+    latency_events = GetLatencyEvents(browser_process, timeline_range)
     # Plugin input event's latency slice is generated in renderer process.
-    latency_events.extend(GetInputLatencyEvents(renderer_process,
-                                                timeline_range))
-    input_event_latencies = ComputeInputEventLatencies(latency_events)
+    latency_events.extend(GetLatencyEvents(renderer_process, timeline_range))
+    event_latencies = ComputeEventLatencies(latency_events)
     # Don't include scroll updates in the overall input latency measurement,
     # because scroll updates can take much more time to process than other
     # input events and would therefore add noise to overall latency numbers.
     self.input_event_latency[-1] = [
-        latency for name, latency in input_event_latencies
+        latency for name, latency in event_latencies
         if name != SCROLL_UPDATE_EVENT_NAME]
     self.scroll_update_latency[-1] = [
-        latency for name, latency in input_event_latencies
+        latency for name, latency in event_latencies
         if name == SCROLL_UPDATE_EVENT_NAME]
     self.gesture_scroll_update_latency[-1] = [
-        latency for name, latency in input_event_latencies
+        latency for name, latency in event_latencies
         if name == GESTURE_SCROLL_UPDATE_EVENT_NAME]
 
   def _GatherEvents(self, event_name, process, timeline_range):

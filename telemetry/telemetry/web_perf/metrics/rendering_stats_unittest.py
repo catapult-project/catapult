@@ -20,10 +20,10 @@ from telemetry.web_perf.metrics.rendering_stats import (
     SCROLL_UPDATE_EVENT_NAME,
     UI_COMP_NAME)
 from telemetry.web_perf.metrics.rendering_stats import (
-    ComputeInputEventLatencies)
-from telemetry.web_perf.metrics.rendering_stats import GetInputLatencyEvents
-from telemetry.web_perf.metrics.rendering_stats import HasRenderingStats
-from telemetry.web_perf.metrics.rendering_stats import RenderingStats
+    ComputeEventLatencies,
+    GetLatencyEvents,
+    HasRenderingStats,
+    RenderingStats)
 
 
 class MockTimer(object):
@@ -512,7 +512,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
     browser.FinalizeImport()
     renderer.FinalizeImport()
 
-    input_events = []
+    latency_events = []
 
     timeline_markers = timeline.FindTimelineMarkers(
         ['ActionA', 'ActionB', 'ActionA'])
@@ -521,11 +521,11 @@ class RenderingStatsUnitTest(unittest.TestCase):
     for timeline_range in timeline_ranges:
       if timeline_range.is_empty:
         continue
-      input_events.extend(GetInputLatencyEvents(browser, timeline_range))
+      latency_events.extend(GetLatencyEvents(browser, timeline_range))
 
-    self.assertEquals(input_events, ref_latency.input_event)
-    input_event_latency_result = ComputeInputEventLatencies(input_events)
-    self.assertEquals(input_event_latency_result,
+    self.assertEquals(latency_events, ref_latency.input_event)
+    event_latency_result = ComputeEventLatencies(latency_events)
+    self.assertEquals(event_latency_result,
                       ref_latency.input_event_latency)
 
     stats = RenderingStats(renderer, browser, None, timeline_ranges)
