@@ -90,13 +90,13 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
         frame_times=[[10, 20], [30, 40, 50]])
     avg_surface_fps, jank_count, max_frame_delay, frame_lengths = (
         self.metric._ComputeSurfaceFlingerMetric(self.page, stats))
-    self.assertEquals(None, avg_surface_fps.values)
+    self.assertEquals(None, avg_surface_fps.value)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
                       avg_surface_fps.none_value_reason)
-    self.assertEquals(None, jank_count.values)
+    self.assertEquals(None, jank_count.value)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
                       jank_count.none_value_reason)
-    self.assertEquals(None, max_frame_delay.values)
+    self.assertEquals(None, max_frame_delay.value)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
                       max_frame_delay.none_value_reason)
     self.assertEquals(None, frame_lengths.values)
@@ -206,7 +206,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
     self.assertEquals(30, mean_frame_time_value.value)
     self.assertEquals(20, percentage_smooth_value.value)
 
-  def testComputeFrameTimeMetricWithNotEnoughFrames(self):
+  def testComputeFrameTimeMetricWithNotEnoughFrames2(self):
     stats = _MockRenderingStats(
         frame_timestamps=self.not_enough_frames_timestamps,
         frame_times=[[10, 20], [30, 40, 50]])

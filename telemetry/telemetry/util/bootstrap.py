@@ -35,7 +35,7 @@ def _DownloadAndImportDAVClientModule():
   global davclient
   davclient_src = urllib.urlopen(_DAVCLIENT_URL).read()
   davclient = imp.new_module('davclient')
-  exec davclient_src in davclient.__dict__
+  exec davclient_src in davclient.__dict__  # pylint: disable=exec-used
 
 
 class DAVClientWrapper(object):
@@ -116,7 +116,7 @@ def ListAllDepsPaths(deps_file):
   while os.path.basename(chrome_root) != 'src':
     chrome_root = os.path.abspath(os.path.join(chrome_root, os.pardir))
 
-  exec open(deps_file).read()
+  exec open(deps_file).read()  # pylint: disable=exec-used
 
   deps_paths = deps.keys()
 
@@ -146,7 +146,7 @@ def DownloadDeps(destination_dir, url):
   deps = {}
   deps_includes = {}
 
-  exec urllib.urlopen(url).read()
+  exec urllib.urlopen(url).read()  # pylint: disable=exec-used
 
   for dst_path, src_path in deps.iteritems():
     full_dst_path = os.path.join(destination_dir, dst_path)

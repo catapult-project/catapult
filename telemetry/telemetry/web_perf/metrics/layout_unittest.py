@@ -8,7 +8,6 @@ from collections import namedtuple
 from telemetry.page import page
 from telemetry.results import page_test_results
 from telemetry.web_perf.metrics import layout
-from collections import namedtuple
 from telemetry.web_perf import timeline_interaction_record
 
 FakeEvent = namedtuple('Event', 'name, start, end')

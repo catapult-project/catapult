@@ -177,7 +177,7 @@ class ValueTest(TestBase):
     d = v.AsDict()
     self.assertEqual('foo', d['tir_label'])
 
-  def testAsDictWithoutDescription(self):
+  def testAsDictWithoutInteractionRecord(self):
     v = ValueForAsDictTest(None, 'x', 'unit', important=False, description=None,
                            tir_label=None)
     self.assertNotIn('tir_label', v.AsDict())
