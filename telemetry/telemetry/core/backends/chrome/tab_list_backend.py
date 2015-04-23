@@ -28,7 +28,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     self._browser_backend.devtools_client.CreateNewTab(timeout)
     return self[-1]
 
-  def CloseTab(self, tab_id, timeout=30):
+  def CloseTab(self, tab_id, timeout=300):
     """Closes the tab with the given debugger_url.
 
     Raises:

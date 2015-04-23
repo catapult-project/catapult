@@ -5,7 +5,7 @@ class TabList(object):
   def __init__(self, tab_list_backend):
     self._tab_list_backend = tab_list_backend
 
-  def New(self, timeout=30):
+  def New(self, timeout=300):
     return self._tab_list_backend.New(timeout)
 
   def __iter__(self):
