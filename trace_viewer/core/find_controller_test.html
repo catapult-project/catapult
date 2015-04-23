@@ -291,7 +291,7 @@ tv.b.unittest.testSuite(function() {
     assert.equal(cbCalls, 1);
 
     cbCalls = 0;
-    timeline.removeXNavStringMarker = function() {
+    timeline.findTextCleared = function() {
       cbCalls++;
     };
     controller.filterText = '';

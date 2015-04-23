@@ -463,7 +463,7 @@ tv.exportTo('tv.c', function() {
 
       // Create new trackView if needed.
       if (modelValid && !this.trackView_) {
-        this.trackView_ = new tv.c.TimelineTrackView();
+        this.trackView_ = new tv.c.TimelineTrackView(this);
         this.trackView_.focusElement =
             this.focusElement_ ? this.focusElement_ : this.parentElement;
         this.trackViewContainer_.appendChild(this.trackView_);
@@ -647,6 +647,10 @@ tv.exportTo('tv.c', function() {
     toggleHighlightVSync_: function() {
       this.highlightVSyncCheckbox_.checked =
           !this.highlightVSyncCheckbox_.checked;
+    },
+
+    setFindCtlText: function(string) {
+      this.findCtl_.setText(string);
     }
   };
 

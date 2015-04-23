@@ -80,9 +80,11 @@ tv.exportTo('tv.c', function() {
 
     model_: null,
 
-    decorate: function() {
+    decorate: function(timelineView) {
 
       this.classList.add('timeline-track-view');
+
+      this.timelineView_ = timelineView;
 
       this.viewport_ = new Viewport(this);
       this.viewportDisplayTransformAtMouseDown_ = null;
@@ -128,6 +130,7 @@ tv.exportTo('tv.c', function() {
 
       this.bindEventListener_(this, 'dblclick', this.onDblClick_, this);
       this.bindEventListener_(this, 'mousewheel', this.onMouseWheel_, this);
+      this.bindEventListener_(this, 'mousedown', this.onMouseDown_, this);
 
       this.addEventListener('mousemove', this.onMouseMove_);
 
@@ -508,6 +511,55 @@ tv.exportTo('tv.c', function() {
       e.preventDefault();
     },
 
+    onMouseDown_: function(e) {
+      if (this.mouseModeSelector_.mode !==
+          tv.b.ui.MOUSE_SELECTOR_MODE.SELECTION)
+        return;
+      // Mouse down must start on ruler track for crosshair guide lines to draw.
+      if (e.target !== this.rulerTrack_)
+        return;
+
+      // Make sure we don't start a selection drag event here.
+      this.dragBeginEvent_ = undefined;
+
+      // Remove nav string marker if it exists, since we're clearing the
+      // find control box.
+      if (this.xNavStringMarker_) {
+        this.model.removeAnnotation(this.xNavStringMarker_);
+        this.xNavStringMarker_ = undefined;
+      }
+
+      var dt = this.viewport_.currentDisplayTransform;
+      tv.b.ui.trackMouseMovesUntilMouseUp(function(e) { // Mouse move handler.
+        // If mouse event is on ruler, don't do anything.
+        if (e.target === this.rulerTrack_)
+          return;
+
+        var relativePosition = this.extractRelativeMousePosition_(e);
+        var loc = tv.c.Location.fromViewCoordinates(
+            this.viewport_, relativePosition.x, relativePosition.y);
+        // Not all points on the timeline represents a valid location.
+        // ex. process header tracks, letter dot tracks.
+        if (!loc)
+          return;
+
+        if (this.guideLineAnnotation_ === undefined) {
+          this.guideLineAnnotation_ =
+              new tv.c.trace_model.XMarkerAnnotation(loc.xWorld);
+          this.model.addAnnotation(this.guideLineAnnotation_);
+        } else {
+          this.guideLineAnnotation_.timestamp = loc.xWorld;
+          this.modelTrackContainer_.invalidate();
+        }
+
+        // Set the findcontrol's text to nav string of current state.
+        var state = new tv.c.UIState(loc,
+            this.viewport_.currentDisplayTransform.scaleX);
+        this.timelineView_.setFindCtlText(
+            state.toUserFriendlyString(this.viewport_));
+      }.bind(this));
+    },
+
     queueSmoothPan_: function(viewDeltaX, deltaY) {
       var deltaX = this.viewport_.currentDisplayTransform.xViewVectorToWorld(
           viewDeltaX);
@@ -642,10 +694,16 @@ tv.exportTo('tv.c', function() {
       this.model.addAnnotation(this.xNavStringMarker_);
     },
 
-    removeXNavStringMarker: function() {
-      if (!this.xNavStringMarker_)
-        return;
-      this.model.removeAnnotation(this.xNavStringMarker_);
+    findTextCleared: function() {
+      if (this.xNavStringMarker_ !== undefined) {
+        this.model.removeAnnotation(this.xNavStringMarker_);
+        this.xNavStringMarker_ = undefined;
+      }
+
+      if (this.guideLineAnnotation_ !== undefined) {
+        this.model.removeAnnotation(this.guideLineAnnotation_);
+        this.guideLineAnnotation_ = undefined;
+      }
     },
 
     setCurrentSelectionAsInterestRange_: function() {

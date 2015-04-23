@@ -67,7 +67,7 @@ tv.exportTo('tv.c', function() {
       var stableId =
           this.location_.getContainingTrack(viewport).eventContainer.stableId;
       var scaleX = this.scaleX_;
-      return timestamp + '@' + stableId + 'x' + scaleX;
+      return timestamp.toFixed(5) + '@' + stableId + 'x' + scaleX.toFixed(5);
     },
 
     toDict: function() {

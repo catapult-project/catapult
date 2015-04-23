@@ -83,15 +83,15 @@ tv.b.unittest.testSuite(function() {
   test('validString', function() {
     var model = new FakeModel;
     var vp = new FakeViewPort;
-    var str = '-50125.512@1.2x1.1';
+    var str = '-50125.51231@1.2x1.12345';
     var uiState = UIState.fromUserFriendlyString(model, vp, str);
 
     assert.isDefined(uiState);
-    assert.equal(uiState.location.xWorld, -50125.512);
+    assert.equal(uiState.location.xWorld, -50125.51231);
     assert.equal(
         uiState.location.getContainingTrack(vp).eventContainer.stableId,
         '1.2');
-    assert.equal(uiState.scaleX, 1.1);
+    assert.equal(uiState.scaleX, 1.12345);
 
     assert.equal(uiState.toUserFriendlyString(vp), str);
   });

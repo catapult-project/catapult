@@ -16,7 +16,7 @@ tv.exportTo('tv.c.trace_model', function() {
   function XMarkerAnnotation(timestamp) {
     tv.c.trace_model.Annotation.apply(this, arguments);
 
-    this.timestamp_ = timestamp; // Location of top-left corner.
+    this.timestamp = timestamp;
     this.strokeStyle = 'rgba(0, 0, 255, 0.5)';
   }
 
@@ -26,10 +26,6 @@ tv.exportTo('tv.c.trace_model', function() {
 
   XMarkerAnnotation.prototype = {
     __proto__: tv.c.trace_model.Annotation.prototype,
-
-    get timestamp() {
-      return this.timestamp_;
-    },
 
     toDict: function() {
       return {
