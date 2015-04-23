@@ -81,6 +81,12 @@ class Value(object):
     self.description = description
     self.tir_label = tir_label
 
+  def __eq__(self, other):
+    return hash(self) == hash(other)
+
+  def __hash__(self):
+    return hash(str(self))
+
   def IsMergableWith(self, that):
     return (self.units == that.units and
             type(self) == type(that) and
