@@ -98,6 +98,8 @@ tv.exportTo('tv.c.tracks', function() {
       var modelSettings = new TraceModelSettings(this.processBase_.model);
       modelSettings.setSettingFor(this.processBase_, 'expanded', expanded);
       this.updateContents_();
+      this.viewport.rebuildEventToTrackMap();
+      this.viewport.rebuildContainerToTrackMap();
     },
 
     get hasVisibleContent() {

@@ -316,6 +316,11 @@ tv.exportTo('tv.c.tracks', function() {
       var startTrack = this.viewport.trackForEvent(flowEvent.startSlice);
       var endTrack = this.viewport.trackForEvent(flowEvent.endSlice);
 
+      // TODO(nduca): Figure out how to draw flow arrows even when
+      // processes are collapsed, bug #931.
+      if (startTrack === undefined || endTrack === undefined)
+        return;
+
       var startBounds = startTrack.getBoundingClientRect();
       var endBounds = endTrack.getBoundingClientRect();
 
