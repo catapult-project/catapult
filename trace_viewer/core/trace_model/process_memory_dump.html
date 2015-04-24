@@ -146,6 +146,26 @@ tv.exportTo('tv.c.trace_model', function() {
       if (name in this.attributes)
         throw new Error('Duplicate attribute name: ' + name + '.');
       this.attributes[name] = value;
+    },
+
+    aggregateAttributes: function(opt_model) {
+      var attributes = {};
+
+      this.children.forEach(function(child) {
+        child.aggregateAttributes(opt_model);
+        tv.b.iterItems(child.attributes, function(name) {
+          attributes[name] = true;
+        }, this);
+      }, this);
+
+      tv.b.iterItems(attributes, function(name) {
+        var childAttributes = this.children.map(function(child) {
+          return child.attributes[name];
+        }, this);
+        var currentAttribute = this.attributes[name];
+        this.attributes[name] = tv.c.trace_model.Attribute.aggregate(
+            childAttributes, currentAttribute, opt_model);
+      }, this);
     }
   };
 

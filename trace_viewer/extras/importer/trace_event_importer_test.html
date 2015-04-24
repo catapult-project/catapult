@@ -2587,9 +2587,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.include(d.memoryAllocatorDumps, oilpanRoot);
     assert.include(d.memoryAllocatorDumps, v8Root);
 
-    assert.isUndefined(oilpanRoot.attributes['allocated_objects_count']);
-    assert.isUndefined(oilpanRoot.attributes['outer_size']);
-    assert.isUndefined(oilpanRoot.attributes['inner_size']);
+    assert.equal(oilpanRoot.attributes['allocated_objects_count'].value, 94);
+    assert.equal(oilpanRoot.attributes['outer_size'].value, 24576);
+    assert.equal(oilpanRoot.attributes['inner_size'].value, 20480);
     assert.equal(oilpanRoot.children.length, 2);
 
     var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(

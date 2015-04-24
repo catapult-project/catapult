@@ -1582,6 +1582,9 @@ tv.exportTo('tv.e.importer', function() {
                 allocatorDump = parentAllocatorDump;
               }
             }, this);
+            memoryAllocatorDumps.forEach(function(dump) {
+              dump.aggregateAttributes(this.model_);
+            }, this);
             processMemoryDump.memoryAllocatorDumps = memoryAllocatorDumps;
           }
 

@@ -184,7 +184,6 @@ tv.b.unittest.testSuite(function() {
         new ScalarAttribute(4));
     oilpanBucket2StringsDump.addAttribute('inner_size',
         new BytesAttribute(512));
-    oilpanDump.children.push(oilpanBucket2StringsDump);
     oilpanBucket2Dump.children.push(oilpanBucket2StringsDump);
 
     var v8Dump = new MemoryAllocatorDump('v8');
@@ -209,6 +208,52 @@ tv.b.unittest.testSuite(function() {
         oilpanBucket2StringsDump);
     assert.equal(pmd.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
     assert.isUndefined(pmd.getMemoryAllocatorDumpByFullName('malloc'));
+  });
+
+  test('memoryAllocatorDumps_aggregateAttributes', function() {
+    var oilpanDump = new MemoryAllocatorDump('oilpan');
+    oilpanDump.addAttribute('allocated_objects_count', new ScalarAttribute(7));
+
+    var oilpanBucket1Dump = new MemoryAllocatorDump(
+        'oilpan/bucket1', oilpanDump);
+    oilpanBucket1Dump.addAttribute('outer_size', new BytesAttribute(512));
+    oilpanBucket1Dump.addAttribute('allocated_objects_count',
+        new ScalarAttribute(3));
+    oilpanBucket1Dump.addAttribute('inner_size', new BytesAttribute(256));
+    oilpanDump.children.push(oilpanBucket1Dump);
+
+    var oilpanBucket2Dump = new MemoryAllocatorDump(
+        'oilpan/bucket2', oilpanDump);
+    oilpanDump.children.push(oilpanBucket2Dump);
+
+    var oilpanBucket2StringsDump = new MemoryAllocatorDump(
+        'oilpan/bucket2/strings', oilpanBucket2Dump);
+    oilpanBucket2StringsDump.addAttribute('outer_size',
+        new BytesAttribute(512));
+    oilpanBucket2StringsDump.addAttribute('allocated_objects_count',
+        new ScalarAttribute(4));
+    oilpanBucket2StringsDump.addAttribute('inner_size',
+        new BytesAttribute(512));
+    oilpanBucket2Dump.children.push(oilpanBucket2StringsDump);
+
+    oilpanDump.aggregateAttributes();
+
+    // oilpan has *some* attributes aggregated.
+    assert.equal(oilpanDump.attributes['allocated_objects_count'].value, 7);
+    assert.equal(oilpanDump.attributes['inner_size'].value, 768);
+    assert.equal(oilpanDump.attributes['outer_size'].value, 1024);
+
+    // oilpan/bucket2 has *all* attributes aggregated.
+    assert.equal(oilpanBucket2Dump.attributes['allocated_objects_count'].value,
+        4);
+    assert.equal(oilpanBucket2Dump.attributes['inner_size'].value, 512);
+    assert.equal(oilpanBucket2Dump.attributes['outer_size'].value, 512);
+
+    // oilpan/bucket2/strings has *no* attributes aggregated.
+    assert.equal(oilpanBucket2StringsDump.attributes[
+        'allocated_objects_count'].value, 4);
+    assert.equal(oilpanBucket2StringsDump.attributes['inner_size'].value, 512);
+    assert.equal(oilpanBucket2StringsDump.attributes['outer_size'].value, 512);
   });
 
   test('hookUpMostRecentVmRegionsLinks_emptyArray', function() {

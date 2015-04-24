@@ -42,8 +42,90 @@ tv.exportTo('tv.c.trace_model', function() {
     return typeInfo.constructor.fromTraceValue(value, opt_model);
   };
 
+  /**
+   * Find the common constructor of a list of attribute values. If they have
+   * different types (e.g. BytesAttribute and ScalarAttribute), the common
+   * constructor will be UnknownAttribute.
+   *
+   * Undefined attribute values are skipped. This function will return undefined
+   * if the list of attribute values contains no defined attribute values.
+   */
+  Attribute.findCommonConstructor = function(attributes, opt_model) {
+    var commonConstructor;
+    for (var i = 0; i < attributes.length; i++) {
+      var attribute = attributes[i];
+      if (attribute === undefined)
+        continue;
+
+      var attributeConstructor = attribute.constructor;
+
+      if (commonConstructor === undefined) {
+        commonConstructor = attributeConstructor;
+      } else if (attributeConstructor !== commonConstructor) {
+        if (opt_model) {
+          opt_model.importWarning({
+            type: 'attribute_parse_error',
+            message: 'Attribute with different types: ' + commonConstructor +
+                ' and ' + attributeConstructor + '.'
+          });
+        }
+        return UnknownAttribute;
+      }
+    }
+    return commonConstructor;
+  };
+
+  /**
+   * Aggregate a list of child attribute values with an existing attribute
+   * value. The individual values can be undefined, in which case they are
+   * ignored.
+   */
+  Attribute.aggregate = function(childAttributes, existingParentAttribute,
+                                 opt_model) {
+    var definedChildAttributes = childAttributes.filter(
+        function(childAttribute) {
+      return childAttribute !== undefined;
+    });
+
+    var constructor = Attribute.findCommonConstructor(
+        definedChildAttributes, opt_model);
+
+    // If all child attribute values were undefined or the common type does not
+    // support merging child attribute values, return the existing parent
+    // attribute value (possibly undefined).
+    if (constructor === undefined || constructor.merge === undefined)
+      return existingParentAttribute;
+
+    var mergedAttribute = constructor.merge(definedChildAttributes, opt_model);
+
+    // If there is no existing parent attribute value, use the merged value
+    // (possibly undefined).
+    if (existingParentAttribute === undefined)
+      return mergedAttribute;
+
+    // Leave it up to the existing parent attribute value to decide if/how it
+    // will use the merged value (e.g. generate an import warning if the
+    // existing and merged attribute value types differ).
+    existingParentAttribute.useMergedAttribute(mergedAttribute, opt_model);
+
+    return existingParentAttribute;
+  }
+
   Attribute.fromTraceValue = function(value, opt_model) {
     throw new Error('Not implemented');
+  };
+
+  Attribute.prototype.useMergedAttribute = function(mergedAttribute,
+                                                    opt_model) {
+    if (mergedAttribute.constructor !== this.constructor) {
+      if (opt_model) {
+        opt_model.importWarning({
+          type: 'attribute_parse_error',
+          message: 'Attribute with different types: ' + this.constructor +
+              ' and ' + mergedAttribute.constructor + '.'
+        });
+      }
+    }
   };
 
   var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
@@ -52,10 +134,13 @@ tv.exportTo('tv.c.trace_model', function() {
 
   Attribute.addEventListener('will-register', function(e) {
     if (!e.typeInfo.constructor.hasOwnProperty('fromTraceValue'))
-      throw new Error('Must have fromTraceValue method');
+      throw new Error('Attributes must have fromTraceValue method');
 
     if (!e.typeInfo.metadata.type)
-      throw new Error('Registered Attributes must provide type');
+      throw new Error('Attributes must provide type');
+
+    if (e.typeInfo.constructor.prototype.constructor !== e.typeInfo.constructor)
+      throw new Error('Attribute prototypes must provide constructor.');
   });
 
   /**
@@ -69,9 +154,15 @@ tv.exportTo('tv.c.trace_model', function() {
     return new ScalarAttribute(parseInt(traceValue, 16));
   };
 
-  ScalarAttribute.prototype = {
-    __proto__: Attribute.prototype
-  };
+  ScalarAttribute.merge = function(childAttributes) {
+    var sum = 0;
+    childAttributes.forEach(function(childAttribute) {
+      sum += childAttribute.value;
+    });
+    return new ScalarAttribute(sum);
+  }
+
+  ScalarAttribute.prototype.__proto__ = Attribute.prototype;
 
   Attribute.register(ScalarAttribute, {type: 'scalar'});
 
@@ -86,9 +177,15 @@ tv.exportTo('tv.c.trace_model', function() {
     return new BytesAttribute(parseInt(traceValue, 16));
   };
 
-  BytesAttribute.prototype = {
-    __proto__: Attribute.prototype
+  BytesAttribute.merge = function(childAttributes) {
+    var sum = 0;
+    childAttributes.forEach(function(childAttribute) {
+      sum += childAttribute.value;
+    });
+    return new BytesAttribute(sum);
   };
+
+  BytesAttribute.prototype.__proto__ = Attribute.prototype;
 
   Attribute.register(BytesAttribute, {type: 'bytes'});
 
@@ -103,9 +200,9 @@ tv.exportTo('tv.c.trace_model', function() {
     return new UnknownAttribute(traceValue);
   };
 
-  UnknownAttribute.prototype = {
-    __proto__: Attribute.prototype
-  };
+  UnknownAttribute.prototype.__proto__ = Attribute.prototype;
+
+  Attribute.register(UnknownAttribute, {type: 'unknown'});
 
   return {
     Attribute: Attribute,
