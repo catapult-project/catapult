@@ -10,7 +10,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/xhr.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/extras/deep_reports/scalar_value.html">
-<link rel="import" href="/extras/audits/chrome_model_helper.html">
+<link rel="import" href="/extras/audits/rail_interaction_record.html">
+<link rel="import" href="/extras/audits/rail_score.html">
 <script>
 'use strict';
 
@@ -20,45 +21,32 @@ tv.exportTo('tv.e.deep_reports', function() {
   };
 
   RAILDeepReporter.addResultsForModel = function(results, page, model) {
-    if (!tv.e.audits.ChromeModelHelper.supportsModel(model))
-      return;
-
-    var helper = new tv.e.audits.ChromeModelHelper(model);
-
-    var numRailIRs = 0;
-    var railScoresByType = {};
+    var rirs = [];
     model.interaction_records.forEach(function(ir) {
-      if (!ir.title.startsWith('rail'))
-        return;
-      numRailIRs += 1;
-
-      if (railScoresByType[ir.railType] === undefined)
-        railScoresByType[ir.railType] = [];
-      railScoresByType[ir.railType].push(ir);
+      if (ir instanceof tv.e.audits.RAILInteractionRecord)
+        rirs.push(ir);
     });
 
-    if (numRailIRs === 0)
+    if (rirs.length === 0)
       return;
+
+    var railScore = tv.e.audits.RAILScore.compute(rirs);
 
     results.addValue(
         new tv.e.deep_reports.ScalarValue(
-            page, 'numRailIRs', 'ms', numRailIRs));
+            page, 'numRailIRs', 'ms', rirs.length));
 
-    var overallRailScores = [];
-    tv.b.iterItems(function(railType, irs) {
-      var minRailScoreForType = tv.b.Statistics.min(irs, function(ir) {
-        return ir.railScore;
-      });
+    tv.b.iterItems(railScore, function(key, value) {
+      if (key === 'score')
+        return;
       results.addValue(
         new tv.e.deep_reports.ScalarValue(
-          page, 'min' + railType, 'rails', minRailScoreForType));
-      overallRailScores.push(minRailScoreForType);
+          page, key, 'rails', value));
     });
 
-    var overallRailScore = tv.b.Statistics.min(overallRailScores);
     results.addValue(
       new tv.e.deep_reports.ScalarValue(
-        page, 'minRail', 'rails', overallRailScore));
+        page, 'railScore', 'rails', railScore.score));
   }
 
   return {

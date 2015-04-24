@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<script>
+'use strict';
+
+tv.exportTo('tv.e.audits', function() {
+
+  function RAILScore() {
+  };
+
+  RAILScore.compute = function(rirs) {
+    if (rirs.length === 0)
+      throw new Error('Impossible');
+
+    var railScoresByTypeName = {};
+    rirs.forEach(function(ir) {
+      if (railScoresByTypeName[ir.railTypeName] === undefined)
+        railScoresByTypeName[ir.railTypeName] = [];
+      railScoresByTypeName[ir.railTypeName].push(ir);
+    });
+
+    var result = {};
+
+    var overallRailScores = [];
+    tv.b.iterItems(railScoresByTypeName, function(railTypeName, irs) {
+      var minRailScoreForType = tv.b.Statistics.sum(irs, function(ir) {
+        return ir.railScore;
+      });
+      result['sum(' + railTypeName + ')'] = minRailScoreForType;
+      overallRailScores.push(minRailScoreForType);
+    });
+
+    result.score = tv.b.Statistics.sum(overallRailScores);
+    return result;
+  }
+
+  return {
+    RAILScore: RAILScore
+  };
+});
+</script>

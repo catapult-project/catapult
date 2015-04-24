@@ -40,6 +40,16 @@ tv.exportTo('tv.e.audits', function() {
       };
 
       this.args = args;
+    },
+
+    get railTypeName() {
+      // At some point, we will subclass RAILInteractionRecord, at which point
+      // this will be overridden by the subclasses.
+      return this.title;
+    },
+
+    get railScore() {
+      return this.duration;
     }
   };
 
