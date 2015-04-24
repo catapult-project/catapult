@@ -14,6 +14,7 @@
 * /deep/ layer-view > layer-tree-quad-stack-view {
   -webkit-flex: 1 1 100%;
   -webkit-flex-direction: column;
+  min-height: 0;
   display: -webkit-flex;
   width: 100%;
 }
