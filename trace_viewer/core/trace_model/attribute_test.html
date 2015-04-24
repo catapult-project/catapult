@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/attribute.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Attribute = tv.c.trace_model.Attribute;
+  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
+  var BytesAttribute = tv.c.trace_model.BytesAttribute;
+  var UnknownAttribute = tv.c.trace_model.UnknownAttribute;
+
+  test('scalar_construct', function() {
+    var attr = new ScalarAttribute(1024);
+    assert.equal(attr.value, 1024);
+  });
+
+  test('scalar_fromDict', function() {
+    var attr = Attribute.fromDictIfPossible({type: 'scalar', value: '400'});
+    assert.isDefined(attr);
+    assert.equal(attr.value, 1024);
+    assert.instanceOf(attr, ScalarAttribute);
+  });
+
+  test('bytes_construct', function() {
+    var attr = new BytesAttribute(1024);
+    assert.equal(attr.value, 1024);
+  });
+
+  test('bytes_fromDict', function() {
+    var attr = Attribute.fromDictIfPossible({type: 'bytes', value: '400'});
+    assert.isDefined(attr);
+    assert.equal(attr.value, 1024);
+    assert.instanceOf(attr, BytesAttribute);
+  });
+
+  test('unknown_construct', function() {
+    var attr = new UnknownAttribute('fail');
+    assert.equal(attr.value, 'fail');
+  });
+
+  test('unknown_fromDict', function() {
+    // Missing type.
+    var attr = Attribute.fromDictIfPossible({value: '[]'});
+    assert.isDefined(attr);
+    assert.equal(attr.value, '[]');
+    assert.instanceOf(attr, UnknownAttribute);
+
+    // Non-existent type.
+    var attr = Attribute.fromDictIfPossible({type: 'hashmap', value: '{}'});
+    assert.isDefined(attr);
+    assert.equal(attr.value, '{}');
+    assert.instanceOf(attr, UnknownAttribute);
+  });
+});
+</script>

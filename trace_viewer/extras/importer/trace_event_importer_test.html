@@ -2467,37 +2467,29 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
             },
             allocators: {
               'oilpan': {
-                allocated_objects_count: '2f',
-                allocated_objects_size_in_bytes: '1000',
-                physical_size_in_bytes: '4000',
-                args: {}
+                allocated_objects_count: {type: 'scalar', value: '2f'},
+                inner_size: {type: 'bytes', value: '1000'},
+                outer_size: {type: 'bytes', value: '4000'}
               },
               'oilpan/heap1': {
-                parent: 'oilpan',
-                allocated_objects_count: '3f',
-                allocated_objects_size_in_bytes: '3000',
-                physical_size_in_bytes: '4000',
-                args: {}
+                allocated_objects_count: {type: 'scalar', value: '3f'},
+                inner_size: {type: 'bytes', value: '3000'},
+                outer_size: {type: 'bytes', value: '4000'}
               },
               'oilpan/heap2': {
-                parent: 'oilpan',
-                allocated_objects_count: '4f',
-                allocated_objects_size_in_bytes: '4000',
-                physical_size_in_bytes: '4000',
-                args: {}
+                allocated_objects_count: {type: 'scalar', value: '4f'},
+                inner_size: {type: 'bytes', value: '4000'},
+                outer_size: {type: 'bytes', value: '4000'}
               },
               'oilpan/heap2/bucket1': {
-                parent: 'oilpan/heap2',
-                allocated_objects_count: '1f',
-                allocated_objects_size_in_bytes: '2000',
-                physical_size_in_bytes: '2000',
-                args: {}
+                allocated_objects_count: {type: 'scalar', value: '1f'},
+                inner_size: {type: 'bytes', value: '2000'},
+                outer_size: {type: 'bytes', value: '2000'}
               },
               'v8': {
-                allocated_objects_count: '5f',
-                allocated_objects_size_in_bytes: '5000',
-                physical_size_in_bytes: '6000',
-                args: {}
+                allocated_objects_count: {type: 'scalar', value: '5f'},
+                inner_size: {type: 'bytes', value: '5000'},
+                outer_size: {type: 'bytes', value: '6000'}
               }
             }
           }
@@ -2517,9 +2509,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.include(d.memoryAllocatorDumps, oilpanRoot);
     assert.include(d.memoryAllocatorDumps, v8Root);
 
-    assert.equal(oilpanRoot.allocatedObjectsCount, 47);
-    assert.equal(oilpanRoot.physicalSizeInBytes, 16384);
-    assert.equal(oilpanRoot.allocatedObjectsSizeInBytes, 4096);
+    assert.equal(oilpanRoot.attributes['allocated_objects_count'].value, 47);
+    assert.equal(oilpanRoot.attributes['outer_size'].value, 16384);
+    assert.equal(oilpanRoot.attributes['inner_size'].value, 4096);
     assert.equal(oilpanRoot.children.length, 2);
 
     var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
@@ -2527,9 +2519,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isDefined(oilpanBucket1);
     assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
     assert.equal(oilpanBucket1.name, 'bucket1');
-    assert.equal(oilpanBucket1.allocatedObjectsCount, 31);
-    assert.equal(oilpanBucket1.physicalSizeInBytes, 8192);
-    assert.equal(oilpanBucket1.allocatedObjectsSizeInBytes, 8192);
+    assert.equal(oilpanBucket1.attributes['allocated_objects_count'].value, 31);
+    assert.equal(oilpanBucket1.attributes['outer_size'].value, 8192);
+    assert.equal(oilpanBucket1.attributes['inner_size'].value, 8192);
     assert.equal(oilpanBucket1.children.length, 0);
 
     assert.isDefined(oilpanBucket1.parent);
@@ -2562,23 +2554,20 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
             allocators: {
               'oilpan/heap1': {
                 parent: 'oilpan',
-                allocated_objects_count: '3f',
-                allocated_objects_size_in_bytes: '3000',
-                physical_size_in_bytes: '4000',
-                args: {}
+                allocated_objects_count: {type: 'scalar', value: '3f'},
+                inner_size: {type: 'bytes', value: '3000'},
+                outer_size: {type: 'bytes', value: '4000'}
               },
               'oilpan/heap2/bucket1': {
                 parent: 'oilpan/heap2',
-                allocated_objects_count: '1f',
-                allocated_objects_size_in_bytes: '2000',
-                physical_size_in_bytes: '2000',
-                args: {}
+                allocated_objects_count: {type: 'scalar', value: '1f'},
+                inner_size: {type: 'bytes', value: '2000'},
+                outer_size: {type: 'bytes', value: '2000'}
               },
               'v8': {
-                allocated_objects_count: '5f',
-                allocated_objects_size_in_bytes: '5000',
-                physical_size_in_bytes: '6000',
-                args: {}
+                allocated_objects_count: {type: 'scalar', value: '5f'},
+                inner_size: {type: 'bytes', value: '5000'},
+                outer_size: {type: 'bytes', value: '6000'}
               }
             }
           }
@@ -2598,9 +2587,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.include(d.memoryAllocatorDumps, oilpanRoot);
     assert.include(d.memoryAllocatorDumps, v8Root);
 
-    assert.isUndefined(oilpanRoot.allocatedObjectsCount);
-    assert.isUndefined(oilpanRoot.physicalSizeInBytes);
-    assert.isUndefined(oilpanRoot.allocatedObjectsSizeInBytes);
+    assert.isUndefined(oilpanRoot.attributes['allocated_objects_count']);
+    assert.isUndefined(oilpanRoot.attributes['outer_size']);
+    assert.isUndefined(oilpanRoot.attributes['inner_size']);
     assert.equal(oilpanRoot.children.length, 2);
 
     var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
@@ -2608,9 +2597,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isDefined(oilpanBucket1);
     assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
     assert.equal(oilpanBucket1.name, 'bucket1');
-    assert.equal(oilpanBucket1.allocatedObjectsCount, 31);
-    assert.equal(oilpanBucket1.physicalSizeInBytes, 8192);
-    assert.equal(oilpanBucket1.allocatedObjectsSizeInBytes, 8192);
+    assert.equal(oilpanBucket1.attributes['allocated_objects_count'].value, 31);
+    assert.equal(oilpanBucket1.attributes['outer_size'].value, 8192);
+    assert.equal(oilpanBucket1.attributes['inner_size'].value, 8192);
     assert.equal(oilpanBucket1.children.length, 0);
 
     assert.isDefined(oilpanBucket1.parent);

@@ -130,32 +130,23 @@ tv.exportTo('tv.c.trace_model', function() {
   /**
    * @constructor
    */
-  function MemoryAllocatorDump(fullName, physicalSizeInBytes,
-      allocatedObjectsCount, allocatedObjectsSizeInBytes, opt_parent) {
+  function MemoryAllocatorDump(fullName, opt_parent) {
     this.fullName = fullName;
     this.parent = opt_parent;
     this.children = [];
-
-    this.physicalSizeInBytes = physicalSizeInBytes;
-    this.allocatedObjectsCount = allocatedObjectsCount;
-    this.allocatedObjectsSizeInBytes = allocatedObjectsSizeInBytes;
-
-    // TODO(primiano): next CLs add extra_attributes.
+    this.attributes = {};
   };
 
   MemoryAllocatorDump.prototype = {
     get name() {
       return this.fullName.substring(this.fullName.lastIndexOf('/') + 1);
-    }
-  };
+    },
 
-  MemoryAllocatorDump.fromDict = function(dict) {
-    return new MemoryAllocatorDump(
-        dict.fullName,
-        dict.physicalSizeInBytes,
-        dict.allocatedObjectsCount,
-        dict.allocatedObjectsSizeInBytes,
-        dict.parent);
+    addAttribute: function(name, value) {
+      if (name in this.attributes)
+        throw new Error('Duplicate attribute name: ' + name + '.');
+      this.attributes[name] = value;
+    }
   };
 
   /**

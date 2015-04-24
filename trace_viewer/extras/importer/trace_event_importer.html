@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/core/importer/importer.html">
+<link rel="import" href="/core/trace_model/attribute.html">
 <link rel="import" href="/core/trace_model/comment_box_annotation.html">
 <link rel="import" href="/core/trace_model/instant_event.html">
 <link rel="import" href="/core/trace_model/flow_event.html">
@@ -1520,13 +1521,14 @@ tv.exportTo('tv.e.importer', function() {
 
             // 1) Construct the MemoryAllocatorDump objects without parent links
             //    and add them to the memoryAllocatorDumpsByFullName index.
-            tv.b.iterItems(dumps.allocators, function(fullName, rawDump) {
+            tv.b.iterItems(dumps.allocators, function(fullName, attributes) {
               var allocatorDump = new tv.c.trace_model.MemoryAllocatorDump(
-                  fullName,
-                  parseInt(rawDump.physical_size_in_bytes, 16),
-                  parseInt(rawDump.allocated_objects_count, 16),
-                  parseInt(rawDump.allocated_objects_size_in_bytes, 16)
-              );
+                  fullName);
+              tv.b.iterItems(attributes, function(attrName, attrArgs) {
+                var attrValue =
+                    tv.c.trace_model.Attribute.fromDictIfPossible(attrArgs);
+                allocatorDump.addAttribute(attrName, attrValue);
+              }, this);
               memoryAllocatorDumpsByFullName[fullName] = allocatorDump;
             }, this);
 

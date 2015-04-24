@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/core/analysis/memory_dump_overview_pane.html">
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/attribute.html">
 <link rel="import" href="/core/trace_model/global_memory_dump.html">
 <link rel="import" href="/core/trace_model/process_memory_dump.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
@@ -23,6 +24,8 @@ tv.b.unittest.testSuite(function() {
   var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
   var VMRegion = tv.c.trace_model.VMRegion;
   var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
+  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
+  var BytesAttribute = tv.c.trace_model.BytesAttribute;
 
   function createProcessMemoryDumps() {
     var model = tv.c.test_utils.newModel(function(model) {
@@ -54,20 +57,25 @@ tv.b.unittest.testSuite(function() {
       var pmd2 = new ProcessMemoryDump(gmd, p2, 43);
       p2.memoryDumps.push(pmd2);
       gmd.processMemoryDumps[p2.pid] = pmd2;
-      pmd2.memoryAllocatorDumps = [
-        MemoryAllocatorDump.fromDict({
-          fullName: 'oilpan',
-          physicalSizeInBytes: 2147483648, /* 2 GiB */
-          allocatedObjectsCount: 2015,
-          allocatedObjectsSizeInBytes: 5242880 /* 5 MiB */
-        }),
-        MemoryAllocatorDump.fromDict({
-          fullName: 'v8',
-          physicalSizeInBytes: 1073741824, /* 1 GiB */
-          allocatedObjectsCount: 204,
-          allocatedObjectsSizeInBytes: 2097152 /* 2 MiB */
-        })
-      ];
+      pmd2.memoryAllocatorDumps = (function() {
+        var oilpanDump = new MemoryAllocatorDump('oilpan');
+        oilpanDump.addAttribute('outer_size',
+            new BytesAttribute(2147483648) /* 2 GiB */);
+        oilpanDump.addAttribute('inner_size',
+            new BytesAttribute(5242880) /* 5 MiB */);
+        oilpanDump.addAttribute('allocated_objects_count',
+            new ScalarAttribute(2015));
+
+        var v8Dump = new MemoryAllocatorDump('v8');
+        v8Dump.addAttribute('outer_size',
+            new BytesAttribute(1073741824) /* 1 GiB */);
+        v8Dump.addAttribute('inner_size',
+            new BytesAttribute(2097152) /* 2 MiB */);
+        v8Dump.addAttribute('allocated_objects_count',
+            new ScalarAttribute(204));
+
+        return [oilpanDump, v8Dump];
+      })();
     });
 
     return model.globalMemoryDumps[0].processMemoryDumps;

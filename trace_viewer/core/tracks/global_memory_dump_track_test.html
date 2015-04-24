@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/core/trace_model/attribute.html">
 <link rel="import" href="/core/trace_model/global_memory_dump.html">
 <link rel="import" href="/core/trace_model/process_memory_dump.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
@@ -27,6 +28,7 @@ tv.b.unittest.testSuite(function() {
   var TraceModel = tv.c.TraceModel;
   var SelectionState = tv.c.trace_model.SelectionState;
   var Viewport = tv.c.TimelineViewport;
+  var BytesAttribute = tv.c.trace_model.BytesAttribute;
 
   function createVMRegions(pssValues) {
     return pssValues.map(function(pssValue, i) {
@@ -47,12 +49,9 @@ tv.b.unittest.testSuite(function() {
   function createAllocatorDumps(dumpSizes) {
     var allocatorDumps = [];
     tv.b.iterItems(dumpSizes, function(allocatorName, size) {
-      allocatorDumps.push(MemoryAllocatorDump.fromDict({
-        fullName: allocatorName,
-        physicalSizeInBytes: 2 * size,
-        allocatedObjectsCount: size / 2,
-        allocatedObjectsSizeInBytes: size
-      }));
+      var dump = new MemoryAllocatorDump(allocatorName);
+      dump.addAttribute('inner_size', new BytesAttribute(size));
+      allocatorDumps.push(dump);
     });
     return allocatorDumps;
   }

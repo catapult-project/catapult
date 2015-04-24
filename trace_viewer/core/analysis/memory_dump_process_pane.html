@@ -75,9 +75,10 @@ found in the LICENSE file.
         return allocatorDumps.map(function(allocatorDump) {
           var row = {
             title: allocatorDump.name,
-            physicalSize: allocatorDump.physicalSizeInBytes,
-            allocatedObjectsCount: allocatorDump.allocatedObjectsCount,
-            allocatedObjectsSize: allocatorDump.allocatedObjectsSizeInBytes
+            physicalSize: allocatorDump.attributes['outer_size'].value,
+            allocatedObjectsCount:
+                allocatorDump.attributes['allocated_objects_count'].value,
+            allocatedObjectsSize: allocatorDump.attributes['inner_size'].value
           };
           if (allocatorDump.children.length > 0)
             row.subRows = createAllocatorRows(allocatorDump.children);

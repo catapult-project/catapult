@@ -172,6 +172,7 @@
       'trace_viewer/core/trace_model/annotation.html',
       'trace_viewer/core/trace_model/async_slice.html',
       'trace_viewer/core/trace_model/async_slice_group.html',
+      'trace_viewer/core/trace_model/attribute.html',
       'trace_viewer/core/trace_model/comment_box_annotation.html',
       'trace_viewer/core/trace_model/counter.html',
       'trace_viewer/core/trace_model/counter_sample.html',

@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/attribute.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/core/trace_model/global_memory_dump.html">
 <link rel="import" href="/core/trace_model/process_memory_dump.html">
@@ -20,6 +21,9 @@ tv.b.unittest.testSuite(function() {
   var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
   var VMRegion = tv.c.trace_model.VMRegion;
   var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
+  var Attribute = tv.c.trace_model.Attribute;
+  var BytesAttribute = tv.c.trace_model.BytesAttribute;
+  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
 
   var createProcessMemoryDump = function(timestamp, model) {
     var gmd = new GlobalMemoryDump(model, timestamp);
@@ -126,18 +130,15 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('memoryAllocatorDumps_flatDumps', function() {
-    var oilpanDump = MemoryAllocatorDump.fromDict({
-      fullName: 'oilpan',
-      physicalSizeInBytes: 1024,
-      allocatedObjectsCount: 7,
-      allocatedObjectsSizeInBytes: 768
-    });
-    var v8Dump = MemoryAllocatorDump.fromDict({
-      fullName: 'v8',
-      physicalSizeInBytes: 2048,
-      allocatedObjectsCount: 15,
-      allocatedObjectsSizeInBytes: 1999
-    });
+    var oilpanDump = new MemoryAllocatorDump('oilpan');
+    oilpanDump.addAttribute('outer_size', new BytesAttribute(1024));
+    oilpanDump.addAttribute('allocated_objects_count', new ScalarAttribute(7));
+    oilpanDump.addAttribute('inner_size', new BytesAttribute(768));
+
+    var v8Dump = new MemoryAllocatorDump('v8');
+    v8Dump.addAttribute('outer_size', new BytesAttribute(2048));
+    v8Dump.addAttribute('allocated_objects_count', new ScalarAttribute(15));
+    v8Dump.addAttribute('inner_size', new BytesAttribute(1999));
 
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.memoryAllocatorDumps = [oilpanDump, v8Dump];
@@ -154,42 +155,42 @@ tv.b.unittest.testSuite(function() {
 
   test('memoryAllocatorDumps_nestedDumps', function() {
 
-    var oilpanDump = MemoryAllocatorDump.fromDict({
-      fullName: 'oilpan',
-      physicalSizeInBytes: 1024,
-      allocatedObjectsCount: 7,
-      allocatedObjectsSizeInBytes: 768
-    });
-    var oilpanBucket1Dump = MemoryAllocatorDump.fromDict({
-      fullName: 'oilpan/bucket1',
-      physicalSizeInBytes: 512,
-      allocatedObjectsCount: 3,
-      allocatedObjectsSizeInBytes: 256,
-      parent: oilpanDump
-    });
+    var oilpanDump = new MemoryAllocatorDump('oilpan');
+    oilpanDump.addAttribute('outer_size', new BytesAttribute(1024));
+    oilpanDump.addAttribute('allocated_objects_count', new ScalarAttribute(7));
+    oilpanDump.addAttribute('inner_size', new BytesAttribute(768));
+
+    var oilpanBucket1Dump = new MemoryAllocatorDump(
+        'oilpan/bucket1', oilpanDump);
+    oilpanBucket1Dump.addAttribute('outer_size', new BytesAttribute(512));
+    oilpanBucket1Dump.addAttribute('allocated_objects_count',
+        new ScalarAttribute(3));
+    oilpanBucket1Dump.addAttribute('inner_size', new BytesAttribute(256));
     oilpanDump.children.push(oilpanBucket1Dump);
-    var oilpanBucket2Dump = MemoryAllocatorDump.fromDict({
-      fullName: 'oilpan/bucket2',
-      physicalSizeInBytes: 512,
-      allocatedObjectsCount: 4,
-      allocatedObjectsSizeInBytes: 512,
-      parent: oilpanDump
-    });
+
+    var oilpanBucket2Dump = new MemoryAllocatorDump(
+        'oilpan/bucket2', oilpanDump);
+    oilpanBucket2Dump.addAttribute('outer_size', new BytesAttribute(512));
+    oilpanBucket2Dump.addAttribute('allocated_objects_count',
+        new ScalarAttribute(4));
+    oilpanBucket2Dump.addAttribute('inner_size', new BytesAttribute(512));
     oilpanDump.children.push(oilpanBucket2Dump);
-    var oilpanBucket2StringsDump = MemoryAllocatorDump.fromDict({
-      fullName: 'oilpan/bucket2/strings',
-      physicalSizeInBytes: 512,
-      allocatedObjectsCount: 4,
-      allocatedObjectsSizeInBytes: 512,
-      parent: oilpanBucket2Dump
-    });
+
+    var oilpanBucket2StringsDump = new MemoryAllocatorDump(
+        'oilpan/bucket2/strings', oilpanBucket2Dump);
+    oilpanBucket2StringsDump.addAttribute('outer_size',
+        new BytesAttribute(512));
+    oilpanBucket2StringsDump.addAttribute('allocated_objects_count',
+        new ScalarAttribute(4));
+    oilpanBucket2StringsDump.addAttribute('inner_size',
+        new BytesAttribute(512));
+    oilpanDump.children.push(oilpanBucket2StringsDump);
     oilpanBucket2Dump.children.push(oilpanBucket2StringsDump);
-    var v8Dump = MemoryAllocatorDump.fromDict({
-      fullName: 'v8',
-      physicalSizeInBytes: 2048,
-      allocatedObjectsCount: 15,
-      allocatedObjectsSizeInBytes: 1999
-    });
+
+    var v8Dump = new MemoryAllocatorDump('v8');
+    v8Dump.addAttribute('outer_size', new BytesAttribute(2048));
+    v8Dump.addAttribute('allocated_objects_count', new ScalarAttribute(15));
+    v8Dump.addAttribute('inner_size', new BytesAttribute(1999));
 
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.memoryAllocatorDumps = [oilpanDump, v8Dump];
@@ -225,37 +226,37 @@ tv.b.unittest.testSuite(function() {
     // A dump with VM regions and malloc and Oilpan allocator dumps.
     var dump2 = createProcessMemoryDump(2, m);
     dump2.vmRegions = [];
-    dump2.memoryAllocatorDumps = [
-      MemoryAllocatorDump.fromDict({
-        fullName: 'oilpan',
-        physicalSizeInBytes: 1024,
-        allocatedObjectsCount: 7,
-        allocatedObjectsSizeInBytes: 768
-      }),
-      MemoryAllocatorDump.fromDict({
-        fullName: 'v8',
-        physicalSizeInBytes: 2048,
-        allocatedObjectsCount: 15,
-        allocatedObjectsSizeInBytes: 1999
-      })
-    ];
+    dump2.memoryAllocatorDumps = (function() {
+      var oilpanDump = new MemoryAllocatorDump('oilpan');
+      oilpanDump.addAttribute('outer_size', new BytesAttribute(1024));
+      oilpanDump.addAttribute('allocated_objects_count',
+          new ScalarAttribute(7));
+      oilpanDump.addAttribute('inner_size', new BytesAttribute(768));
+
+      var v8Dump = new MemoryAllocatorDump('v8');
+      v8Dump.addAttribute('outer_size', new BytesAttribute(2048));
+      v8Dump.addAttribute('allocated_objects_count', new ScalarAttribute(15));
+      v8Dump.addAttribute('inner_size', new BytesAttribute(1999));
+
+      return [oilpanDump. v8Dump];
+    })();
 
     // A dump with malloc and V8 allocator dumps.
     var dump3 = createProcessMemoryDump(3, m);
-    dump3.memoryAllocatorDumps = [
-      MemoryAllocatorDump.fromDict({
-        fullName: 'malloc',
-        physicalSizeInBytes: 1024,
-        allocatedObjectsCount: 7,
-        allocatedObjectsSizeInBytes: 768
-      }),
-      MemoryAllocatorDump.fromDict({
-        fullName: 'v8',
-        physicalSizeInBytes: 2048,
-        allocatedObjectsCount: 15,
-        allocatedObjectsSizeInBytes: 1999
-      })
-    ];
+    dump3.memoryAllocatorDumps = (function() {
+      var mallocDump = new MemoryAllocatorDump('malloc');
+      mallocDump.addAttribute('outer_size', new BytesAttribute(1024));
+      mallocDump.addAttribute('allocated_objects_count',
+          new ScalarAttribute(7));
+      mallocDump.addAttribute('inner_size', new BytesAttribute(768));
+
+      var v8Dump = new MemoryAllocatorDump('v8');
+      v8Dump.addAttribute('outer_size', new BytesAttribute(2048));
+      v8Dump.addAttribute('allocated_objects_count', new ScalarAttribute(15));
+      v8Dump.addAttribute('inner_size', new BytesAttribute(1999));
+
+      return [mallocDump. v8Dump];
+    })();
 
     // A dump with VM regions.
     var dump4 = createProcessMemoryDump(4, m);
