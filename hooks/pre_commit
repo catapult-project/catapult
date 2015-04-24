@@ -7,6 +7,9 @@ import os
 import sys
 
 if __name__ == '__main__':
+  # This pre-commit hook was replaced by a pre-submit hook (see PRESUBMIT.py).
+  sys.exit(0)
+
   f = __file__
   if os.path.islink(f):
     f = os.path.abspath(os.path.join(os.path.dirname(f), os.readlink(f)))

@@ -74,15 +74,17 @@ class AffectedFile(object):
     return self._cached_changed_contents[:]
 
   def GenerateDiff(self):
-    return self._input_api._git(['diff', '--cached', self.filename])
+    return self._input_api._git([
+        'diff', self._input_api.diff_base, '--cached', self.filename])
 
 
 class InputAPI(object):
-  def __init__(self, tvp):
+  def __init__(self, tvp, diff_base):
     self.DEFAULT_BLACK_LIST = []
     self._tvp = tvp
     self._filename_statuses = None
     self._added_files = None
+    self.diff_base = diff_base
 
   def _git(self, args):
     assert isinstance(args, list)
@@ -131,7 +133,8 @@ class InputAPI(object):
       return self._filename_statuses
 
     self._filename_statuses = []
-    stdout = self._git(['diff', '--cached', '--name-status'])
+    stdout = self._git([
+        'diff', self.diff_base, '--cached', '--name-status'])
     for line in stdout.split('\n'):
       line = line.strip()
       if len(line) == 0:
@@ -174,10 +177,14 @@ def RunChecks(input_api):
   return results
 
 
-def Main(args):
+def GetResults(diff_base):
   tvp = trace_viewer_project.TraceViewerProject()
-  input_api = InputAPI(tvp)
-  results = RunChecks(input_api)
+  input_api = InputAPI(tvp, diff_base)
+  return RunChecks(input_api)
+
+
+def Main(args):
+  results = GetResults('HEAD')
   print '\n\n'.join(results)
 
   if len(results):
