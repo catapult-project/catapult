@@ -91,7 +91,11 @@ class Oobe(web_contents.WebContents):
   def _NavigateWebViewLogin(self, username, password):
     """Logs into the webview-based GAIA screen"""
     self._NavigateWebViewEntry('identifierId', username)
+    self._GaiaWebViewContext().WaitForJavaScriptExpression(
+        "document.getElementById('identifierId') == null", 20)
+
     self._NavigateWebViewEntry('password', password)
+    util.WaitFor(lambda: self._GaiaWebViewContext() == None, 20)
 
   def _NavigateWebViewEntry(self, field, value):
     self._WaitForField(field)
@@ -101,8 +105,6 @@ class Oobe(web_contents.WebContents):
        document.getElementById('%s').value='%s';
        document.getElementById('next').click()"""
            % (field, value))
-    gaia_webview_context.WaitForJavaScriptExpression(
-        "document.getElementById('%s') == null" % field, 20)
 
   def _WaitForField(self, field_id):
     gaia_webview_context = util.WaitFor(self._GaiaWebViewContext, 5)
