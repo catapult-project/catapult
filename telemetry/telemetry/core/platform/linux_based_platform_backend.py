@@ -7,6 +7,8 @@ try:
 except ImportError:
   resource = None  # Not available on all platforms
 
+import re
+
 from telemetry.core import exceptions
 from telemetry.core.platform import platform_backend
 from telemetry import decorators
@@ -53,8 +55,7 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
     return results
 
   def GetCpuTimestamp(self):
-    timer_list = self.GetFileContents('/proc/timer_list')
-    total_jiffies = float(self._GetProcJiffies(timer_list))
+    total_jiffies = self._GetProcJiffies()
     clock_ticks = self.GetClockTicks()
     return {'TotalTime': total_jiffies / clock_ticks}
 
@@ -146,15 +147,22 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
       retval[key.strip()] = value.strip()
     return retval
 
-  def _GetProcJiffies(self, timer_list):
+  def _GetProcJiffies(self):
     """Parse '/proc/timer_list' output and returns the first jiffies attribute.
 
     Multi-CPU machines will have multiple 'jiffies:' lines, all of which will be
     essentially the same.  Return the first one."""
-    if isinstance(timer_list, str):
-      timer_list = timer_list.splitlines()
-    for line in timer_list:
-      if line.startswith('jiffies:'):
-        _, value = line.split(':')
-        return value
-    raise Exception('Unable to find jiffies from /proc/timer_list')
+    jiffies_timer_lines = self.RunCommand(
+        ['grep', 'jiffies','/proc/timer_list'])
+    if not jiffies_timer_lines:
+      raise Exception('Unable to find jiffies from /proc/timer_list')
+    jiffies_timer_list = jiffies_timer_lines.splitlines()
+    # Each line should look something like 'jiffies: 4315883489'.
+    for line in jiffies_timer_list:
+      print repr(line)
+      match = re.match('\s*jiffies\s*:\s*(\d+)', line)
+      if match:
+        value = match.group(1)
+        return float(value)
+    raise Exception('Unable to parse jiffies attribute: %s' %
+                    repr(jiffies_timer_lines))

@@ -8,6 +8,10 @@ import unittest
 from telemetry.core.platform import linux_based_platform_backend
 from telemetry.core import util
 
+util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
+import mock  # pylint: disable=import-error
+
+
 
 class TestBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
 
@@ -47,11 +51,22 @@ class LinuxBasedPlatformBackendTest(unittest.TestCase):
     if not linux_based_platform_backend.resource:
       logging.warning('Test not supported')
       return
-
-    backend = TestBackend()
-    self.SetMockFileInBackend(backend, 'timer_list', '/proc/timer_list')
-    result = backend.GetCpuTimestamp()
-    self.assertEquals(result, {'TotalTime': 105054633.0})
+    jiffies_grep_string = """
+    jiffies
+jiffies  a1111
+    .last_jiffies   : 4307239958
+    .next_jiffies   : 4307239968
+    jiffies: 10505463300
+    jiffies: 10505463333
+    """
+    with mock.patch.object(
+        linux_based_platform_backend.LinuxBasedPlatformBackend,
+        'RunCommand', return_value=jiffies_grep_string) as mock_method:
+      backend = linux_based_platform_backend.LinuxBasedPlatformBackend()
+      result = backend.GetCpuTimestamp()
+      self.assertEquals(result, {'TotalTime': 105054633.0})
+    mock_method.assert_call_once_with(
+        ['grep', '-m', '1', 'jiffies:','/proc/timer_list'])
 
   def testGetMemoryStatsBasic(self):
     if not linux_based_platform_backend.resource:
