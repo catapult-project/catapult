@@ -127,8 +127,9 @@ class WprArchiveInfo(object):
     shutil.move(self.temp_target_wpr_file_path, target_wpr_file_path)
 
     # Update the hash file.
+    target_wpr_file_hash = cloud_storage.CalculateHash(target_wpr_file_path)
     with open(target_wpr_file_path + '.sha1', 'wb') as f:
-      f.write(cloud_storage.CalculateHash(target_wpr_file_path))
+      f.write(target_wpr_file_hash)
       f.flush()
 
     self._WriteToFile()
@@ -141,7 +142,7 @@ class WprArchiveInfo(object):
                         'user stories to cloud storage.')
         return
       try:
-        cloud_storage.Insert(self._bucket, target_wpr_file,
+        cloud_storage.Insert(self._bucket, target_wpr_file_hash,
                              target_wpr_file_path)
       except cloud_storage.CloudStorageError, e:
         logging.warning('Failed to upload wpr file %s to cloud storage. '
