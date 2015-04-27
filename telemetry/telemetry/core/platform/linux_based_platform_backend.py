@@ -159,7 +159,6 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
     jiffies_timer_list = jiffies_timer_lines.splitlines()
     # Each line should look something like 'jiffies: 4315883489'.
     for line in jiffies_timer_list:
-      print repr(line)
       match = re.match('\s*jiffies\s*:\s*(\d+)', line)
       if match:
         value = match.group(1)
