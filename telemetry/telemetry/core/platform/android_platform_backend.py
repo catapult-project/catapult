@@ -323,7 +323,7 @@ class AndroidPlatformBackend(
     self._video_recorder = screenshot.VideoRecorder(
         self._device, megabits_per_second=min_bitrate_mbps)
     self._video_recorder.Start()
-    util.WaitFor(self._video_recorder.IsStarted, 10)
+    util.WaitFor(self._video_recorder.IsStarted, 5)
 
   @property
   def is_video_capture_running(self):
