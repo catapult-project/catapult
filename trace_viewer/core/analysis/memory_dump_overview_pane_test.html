@@ -25,7 +25,6 @@ tv.b.unittest.testSuite(function() {
   var VMRegion = tv.c.trace_model.VMRegion;
   var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
   var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
-  var BytesAttribute = tv.c.trace_model.BytesAttribute;
 
   function createProcessMemoryDumps() {
     var model = tv.c.test_utils.newModel(function(model) {
@@ -60,19 +59,19 @@ tv.b.unittest.testSuite(function() {
       pmd2.memoryAllocatorDumps = (function() {
         var oilpanDump = new MemoryAllocatorDump('oilpan');
         oilpanDump.addAttribute('outer_size',
-            new BytesAttribute(2147483648) /* 2 GiB */);
+            new ScalarAttribute('bytes', 2147483648) /* 2 GiB */);
         oilpanDump.addAttribute('inner_size',
-            new BytesAttribute(5242880) /* 5 MiB */);
-        oilpanDump.addAttribute('allocated_objects_count',
-            new ScalarAttribute(2015));
+            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
+        oilpanDump.addAttribute('objects_count',
+            new ScalarAttribute('objects', 2015));
 
         var v8Dump = new MemoryAllocatorDump('v8');
         v8Dump.addAttribute('outer_size',
-            new BytesAttribute(1073741824) /* 1 GiB */);
+            new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
         v8Dump.addAttribute('inner_size',
-            new BytesAttribute(2097152) /* 2 MiB */);
-        v8Dump.addAttribute('allocated_objects_count',
-            new ScalarAttribute(204));
+            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
+        v8Dump.addAttribute('objects_count',
+            new ScalarAttribute('objects', 204));
 
         return [oilpanDump, v8Dump];
       })();

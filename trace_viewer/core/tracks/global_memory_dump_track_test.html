@@ -28,7 +28,7 @@ tv.b.unittest.testSuite(function() {
   var TraceModel = tv.c.TraceModel;
   var SelectionState = tv.c.trace_model.SelectionState;
   var Viewport = tv.c.TimelineViewport;
-  var BytesAttribute = tv.c.trace_model.BytesAttribute;
+  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
 
   function createVMRegions(pssValues) {
     return pssValues.map(function(pssValue, i) {
@@ -50,7 +50,7 @@ tv.b.unittest.testSuite(function() {
     var allocatorDumps = [];
     tv.b.iterItems(dumpSizes, function(allocatorName, size) {
       var dump = new MemoryAllocatorDump(allocatorName);
-      dump.addAttribute('inner_size', new BytesAttribute(size));
+      dump.addAttribute('inner_size', new ScalarAttribute('bytes', size));
       allocatorDumps.push(dump);
     });
     return allocatorDumps;

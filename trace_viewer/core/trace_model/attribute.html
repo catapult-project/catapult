@@ -18,61 +18,81 @@ tv.exportTo('tv.c.trace_model', function() {
   /**
    * @constructor
    */
-  function Attribute() {
+  function Attribute(units) {
+    this.units = units;
   }
 
-  Attribute.fromDictIfPossible = function(args, opt_model) {
+  Attribute.fromDictIfPossible = function(dict, opt_model) {
     var typeInfo = Attribute.findTypeInfoMatching(function(typeInfo) {
-      return typeInfo.metadata.type === args.type;
+      return typeInfo.metadata.type === dict.type;
     });
-
-    var value = args.value;
 
     if (typeInfo === undefined) {
       if (opt_model) {
         opt_model.importWarning({
-            type: 'attribute_parse_error',
-            message: 'Unknown attribute type \'' + args.type + '\'' +
-                ' (value=' + attribute.value + ').'
+          type: 'attribute_parse_error',
+          message: 'Unknown attribute type \'' + dict.type + '\'.'
         });
       }
-      return UnknownAttribute.fromTraceValue(value, opt_model);
+      return UnknownAttribute.fromDict(dict, opt_model);
     }
 
-    return typeInfo.constructor.fromTraceValue(value, opt_model);
+    return typeInfo.constructor.fromDict(dict, opt_model);
   };
 
   /**
-   * Find the common constructor of a list of attribute values. If they have
-   * different types (e.g. BytesAttribute and ScalarAttribute), the common
-   * constructor will be UnknownAttribute.
+   * Find the common constructor and units of a list of attribute values. If
+   * they have different types (e.g. ScalarAttribute and UnknownAttribute) or
+   * units (e.g. 'ms' and 'Hz'), the common constructor will be
+   * UnknownAttribute and the common units will be undefined.
    *
    * Undefined attribute values are skipped. This function will return undefined
    * if the list of attribute values contains no defined attribute values.
    */
-  Attribute.findCommonConstructor = function(attributes, opt_model) {
-    var commonConstructor;
+  Attribute.findCommonTraits = function(attributes, opt_model) {
+    var commonTraits;
     for (var i = 0; i < attributes.length; i++) {
       var attribute = attributes[i];
       if (attribute === undefined)
         continue;
 
       var attributeConstructor = attribute.constructor;
+      var attributeUnits = attribute.units;
 
-      if (commonConstructor === undefined) {
-        commonConstructor = attributeConstructor;
-      } else if (attributeConstructor !== commonConstructor) {
+      if (commonTraits === undefined) {
+        commonTraits = {
+          constructor: attributeConstructor,
+          units: attributeUnits
+        };
+      } else if (attributeConstructor !== commonTraits.constructor) {
         if (opt_model) {
           opt_model.importWarning({
             type: 'attribute_parse_error',
-            message: 'Attribute with different types: ' + commonConstructor +
-                ' and ' + attributeConstructor + '.'
+            message: 'Attribute with different types: ' +
+                commonTraits.constructor + ' and ' + attributeConstructor + '.'
           });
         }
-        return UnknownAttribute;
+        commonTraits = {
+          constructor: UnknownAttribute,
+          units: undefined
+        };
+        break;
+      } else if (attributeUnits !== commonTraits.units) {
+        if (opt_model) {
+          opt_model.importWarning({
+            type: 'attribute_parse_error',
+            message: 'Attribute with different units: ' + commonTraits.units +
+                ' and ' + attributeUnits + '.'
+          });
+        }
+        commonTraits = {
+          constructor: UnknownAttribute,
+          units: undefined
+        };
+        break;
       }
     }
-    return commonConstructor;
+    return commonTraits;
   };
 
   /**
@@ -87,16 +107,21 @@ tv.exportTo('tv.c.trace_model', function() {
       return childAttribute !== undefined;
     });
 
-    var constructor = Attribute.findCommonConstructor(
-        definedChildAttributes, opt_model);
-
-    // If all child attribute values were undefined or the common type does not
-    // support merging child attribute values, return the existing parent
+    // If all child attribute values were undefined, return the existing parent
     // attribute value (possibly undefined).
-    if (constructor === undefined || constructor.merge === undefined)
+    var traits = Attribute.findCommonTraits(definedChildAttributes, opt_model);
+    if (traits === undefined)
       return existingParentAttribute;
 
-    var mergedAttribute = constructor.merge(definedChildAttributes, opt_model);
+    var constructor = traits.constructor;
+
+    // If the common type does not support merging child attribute values,
+    // return the existing parent attribute value (possibly undefined).
+    if (constructor.merge === undefined)
+      return existingParentAttribute;
+
+    var mergedAttribute = constructor.merge(
+        definedChildAttributes, traits.units, opt_model);
 
     // If there is no existing parent attribute value, use the merged value
     // (possibly undefined).
@@ -125,6 +150,14 @@ tv.exportTo('tv.c.trace_model', function() {
               ' and ' + mergedAttribute.constructor + '.'
         });
       }
+    } else if (mergedAttribute.units !== this.units) {
+      if (opt_model) {
+        opt_model.importWarning({
+          type: 'attribute_parse_error',
+          message: 'Attribute with different units: ' + this.units +
+              ' and ' + mergedAttribute.units + '.'
+        });
+      }
     }
   };
 
@@ -133,8 +166,8 @@ tv.exportTo('tv.c.trace_model', function() {
   tv.b.decorateExtensionRegistry(Attribute, options);
 
   Attribute.addEventListener('will-register', function(e) {
-    if (!e.typeInfo.constructor.hasOwnProperty('fromTraceValue'))
-      throw new Error('Attributes must have fromTraceValue method');
+    if (!e.typeInfo.constructor.hasOwnProperty('fromDict'))
+      throw new Error('Attributes must have fromDict method');
 
     if (!e.typeInfo.metadata.type)
       throw new Error('Attributes must provide type');
@@ -146,20 +179,21 @@ tv.exportTo('tv.c.trace_model', function() {
   /**
    * @constructor
    */
-  function ScalarAttribute(value) {
+  function ScalarAttribute(units, value) {
+    Attribute.call(this, units);
     this.value = value;
   }
 
-  ScalarAttribute.fromTraceValue = function(traceValue) {
-    return new ScalarAttribute(parseInt(traceValue, 16));
+  ScalarAttribute.fromDict = function(dict) {
+    return new ScalarAttribute(dict.units, parseInt(dict.value, 16));
   };
 
-  ScalarAttribute.merge = function(childAttributes) {
+  ScalarAttribute.merge = function(childAttributes, units) {
     var sum = 0;
     childAttributes.forEach(function(childAttribute) {
       sum += childAttribute.value;
     });
-    return new ScalarAttribute(sum);
+    return new ScalarAttribute(units, sum);
   }
 
   ScalarAttribute.prototype.__proto__ = Attribute.prototype;
@@ -169,35 +203,12 @@ tv.exportTo('tv.c.trace_model', function() {
   /**
    * @constructor
    */
-  function BytesAttribute(value) {
-    this.value = value;
+  function UnknownAttribute(units) {
+    Attribute.call(this, units);
   }
 
-  BytesAttribute.fromTraceValue = function(traceValue) {
-    return new BytesAttribute(parseInt(traceValue, 16));
-  };
-
-  BytesAttribute.merge = function(childAttributes) {
-    var sum = 0;
-    childAttributes.forEach(function(childAttribute) {
-      sum += childAttribute.value;
-    });
-    return new BytesAttribute(sum);
-  };
-
-  BytesAttribute.prototype.__proto__ = Attribute.prototype;
-
-  Attribute.register(BytesAttribute, {type: 'bytes'});
-
-  /**
-   * @constructor
-   */
-  function UnknownAttribute(value) {
-    this.value = value;
-  }
-
-  UnknownAttribute.fromTraceValue = function(traceValue) {
-    return new UnknownAttribute(traceValue);
+  UnknownAttribute.fromDict = function(dict) {
+    return new UnknownAttribute(dict.units);
   };
 
   UnknownAttribute.prototype.__proto__ = Attribute.prototype;
@@ -207,7 +218,6 @@ tv.exportTo('tv.c.trace_model', function() {
   return {
     Attribute: Attribute,
     ScalarAttribute: ScalarAttribute,
-    BytesAttribute: BytesAttribute,
     UnknownAttribute: UnknownAttribute
   };
 });
