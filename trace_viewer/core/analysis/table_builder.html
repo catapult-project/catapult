@@ -84,9 +84,15 @@ found in the LICENSE file.
       table > tbody > tr:hover[selected] {
         background-color: rgb(171, 217, 202);
       }
-      table > tbody > tr:hover,
+      table > tbody > tr:hover:not(.empty-row),
       table > tfoot > tr:hover {
         background-color: #e6e6e6
+      }
+
+      table > tbody > tr.empty-row > td {
+        color: #666;
+        font-style: italic;
+        text-align: center;
       }
 
       table > tbody.has-footer > tr:last-child > td {
@@ -141,6 +147,7 @@ found in the LICENSE file.
         this.columnsWithExpandButtons_ = [];
         this.headerCells_ = [];
         this.showHeader_ = true;
+        this.emptyValue_ = undefined;
       },
 
       ready: function() {
@@ -170,6 +177,17 @@ found in the LICENSE file.
       set showHeader(showHeader) {
         this.showHeader_ = showHeader;
         this.scheduleRebuildHeaders_();
+      },
+
+      get emptyValue() {
+        return this.emptyValue_;
+      },
+
+      set emptyValue(emptyValue) {
+        var previousEmptyValue = this.emptyValue_;
+        this.emptyValue_ = emptyValue;
+        if (this.tableRows_.length === 0 && emptyValue !== previousEmptyValue)
+          this.scheduleRebuildBody_();
       },
 
       /**
@@ -619,6 +637,19 @@ found in the LICENSE file.
               this.$.body,
               this.tableRows_, this.tableRowsInfo_, 0,
               undefined, undefined);
+          if (this.tableRows_.length === 0 && this.emptyValue_ !== undefined) {
+            var tr = this.ownerDocument.createElement('tr');
+            this.$.body.appendChild(tr);
+            tr.classList.add('empty-row');
+            var td = this.ownerDocument.createElement('td');
+            tr.appendChild(td);
+            td.colSpan = this.tableColumns_.length;
+            var emptyValue = this.emptyValue_;
+            if (emptyValue instanceof HTMLElement)
+              td.appendChild(emptyValue);
+            else
+              td.appendChild(this.ownerDocument.createTextNode(emptyValue));
+          }
           this.bodyDirty_ = false;
         }
 
