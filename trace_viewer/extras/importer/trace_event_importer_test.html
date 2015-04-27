@@ -2467,29 +2467,39 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
             },
             allocators: {
               'oilpan': {
-                allocated_objects_count: {type: 'scalar', value: '2f'},
-                inner_size: {type: 'bytes', value: '1000'},
-                outer_size: {type: 'bytes', value: '4000'}
+                attrs: {
+                  allocated_objects_count: {type: 'scalar', value: '2f'},
+                  inner_size: {type: 'bytes', value: '1000'},
+                  outer_size: {type: 'bytes', value: '4000'}
+                }
               },
               'oilpan/heap1': {
-                allocated_objects_count: {type: 'scalar', value: '3f'},
-                inner_size: {type: 'bytes', value: '3000'},
-                outer_size: {type: 'bytes', value: '4000'}
+                attrs: {
+                  allocated_objects_count: {type: 'scalar', value: '3f'},
+                  inner_size: {type: 'bytes', value: '3000'},
+                  outer_size: {type: 'bytes', value: '4000'}
+                }
               },
               'oilpan/heap2': {
-                allocated_objects_count: {type: 'scalar', value: '4f'},
-                inner_size: {type: 'bytes', value: '4000'},
-                outer_size: {type: 'bytes', value: '4000'}
+                attrs: {
+                  allocated_objects_count: {type: 'scalar', value: '4f'},
+                  inner_size: {type: 'bytes', value: '4000'},
+                  outer_size: {type: 'bytes', value: '4000'}
+                }
               },
               'oilpan/heap2/bucket1': {
-                allocated_objects_count: {type: 'scalar', value: '1f'},
-                inner_size: {type: 'bytes', value: '2000'},
-                outer_size: {type: 'bytes', value: '2000'}
+                attrs: {
+                  allocated_objects_count: {type: 'scalar', value: '1f'},
+                  inner_size: {type: 'bytes', value: '2000'},
+                  outer_size: {type: 'bytes', value: '2000'}
+                }
               },
               'v8': {
-                allocated_objects_count: {type: 'scalar', value: '5f'},
-                inner_size: {type: 'bytes', value: '5000'},
-                outer_size: {type: 'bytes', value: '6000'}
+                attrs: {
+                  allocated_objects_count: {type: 'scalar', value: '5f'},
+                  inner_size: {type: 'bytes', value: '5000'},
+                  outer_size: {type: 'bytes', value: '6000'}
+                }
               }
             }
           }
@@ -2553,21 +2563,25 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
             },
             allocators: {
               'oilpan/heap1': {
-                parent: 'oilpan',
-                allocated_objects_count: {type: 'scalar', value: '3f'},
-                inner_size: {type: 'bytes', value: '3000'},
-                outer_size: {type: 'bytes', value: '4000'}
+                attrs: {
+                  allocated_objects_count: {type: 'scalar', value: '3f'},
+                  inner_size: {type: 'bytes', value: '3000'},
+                  outer_size: {type: 'bytes', value: '4000'}
+                }
               },
               'oilpan/heap2/bucket1': {
-                parent: 'oilpan/heap2',
-                allocated_objects_count: {type: 'scalar', value: '1f'},
-                inner_size: {type: 'bytes', value: '2000'},
-                outer_size: {type: 'bytes', value: '2000'}
+                attrs: {
+                  allocated_objects_count: {type: 'scalar', value: '1f'},
+                  inner_size: {type: 'bytes', value: '2000'},
+                  outer_size: {type: 'bytes', value: '2000'}
+                }
               },
               'v8': {
-                allocated_objects_count: {type: 'scalar', value: '5f'},
-                inner_size: {type: 'bytes', value: '5000'},
-                outer_size: {type: 'bytes', value: '6000'}
+                attrs: {
+                  allocated_objects_count: {type: 'scalar', value: '5f'},
+                  inner_size: {type: 'bytes', value: '5000'},
+                  outer_size: {type: 'bytes', value: '6000'}
+                }
               }
             }
           }
