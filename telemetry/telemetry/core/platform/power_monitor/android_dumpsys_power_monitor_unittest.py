@@ -16,7 +16,7 @@ class DumpsysPowerMonitorMonitorTest(unittest.TestCase):
     power_data = {'data': [23.9], 'uid': '12345'}
     results = (
         android_dumpsys_power_monitor.DumpsysPowerMonitor.ProcessPowerData(
-            power_data, package))
+            power_data, 4.0, package))
     self.assertEqual(results['identifier'], 'dumpsys')
     self.assertAlmostEqual(results['energy_consumption_mwh'], 95.6)
 
@@ -26,7 +26,7 @@ class DumpsysPowerMonitorMonitorTest(unittest.TestCase):
     power_data = None
     results = (
         android_dumpsys_power_monitor.DumpsysPowerMonitor.ProcessPowerData(
-            power_data, package))
+            power_data, 4.0, package))
     self.assertEqual(results['identifier'], 'dumpsys')
     self.assertEqual(results['energy_consumption_mwh'], 0)
 

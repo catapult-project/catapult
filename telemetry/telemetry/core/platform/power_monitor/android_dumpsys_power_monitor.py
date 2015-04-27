@@ -52,7 +52,17 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     cpu_stats = super(DumpsysPowerMonitor, self).StopMonitoringPower()
     self._battery.EnableBatteryUpdates()
     power_data = self._battery.GetPackagePowerData(package)
-    power_results = self.ProcessPowerData(power_data, package)
+    battery_info = self._battery.GetBatteryInfo()
+    voltage = battery_info.get('voltage')
+    if voltage is None:
+      # Converting at a nominal voltage of 4.0V, as those values are obtained by
+      # a heuristic, and 4.0V is the voltage we set when using a monsoon device.
+      voltage = 4.0
+      logging.warning('Unable to get device voltage. Using %s.', voltage)
+    else:
+      voltage = float(voltage) / 1000
+      logging.info('Device voltage at %s', voltage)
+    power_results = self.ProcessPowerData(power_data, voltage, package)
     if power_results['energy_consumption_mwh'] == 0:
       logging.warning('Power data is returning 0 usage for %s. %s'
                       % (package, self._battery.GetPowerData()))
@@ -60,15 +70,13 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
         cpu_stats, power_results)
 
   @staticmethod
-  def ProcessPowerData(power_data, package):
+  def ProcessPowerData(power_data, voltage, package):
     power_results = {'identifier': 'dumpsys', 'power_samples_mw': []}
     if not power_data:
       logging.warning('Unable to find power data for %s in dumpsys output. '
                       'Please upgrade the OS version of the device.' % package)
       power_results['energy_consumption_mwh'] = 0
       return power_results
-    # Converting at a nominal voltage of 4.0V, as those values are obtained by a
-    # heuristic, and 4.0V is the voltage we set when using a monsoon device.
-    consumption_mwh = sum(power_data['data']) * 4.0
+    consumption_mwh = sum(power_data['data']) * voltage
     power_results['energy_consumption_mwh'] = consumption_mwh
     return power_results
