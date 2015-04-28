@@ -8,7 +8,6 @@ tools: crop, find bounding box of a color and compute histogram of color values.
 """
 
 import array
-import base64
 import cStringIO
 import struct
 import subprocess

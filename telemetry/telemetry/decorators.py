@@ -7,7 +7,6 @@ import functools
 import inspect
 import types
 
-
 def Cache(obj):
   """Decorator for caching read-only properties.
 

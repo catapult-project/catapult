@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import os
-import shutil
 import tempfile
 import unittest
 

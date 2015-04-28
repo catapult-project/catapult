@@ -4,9 +4,7 @@
 
 import collections
 import logging
-import sys
 
-from telemetry.core.backends.chrome_inspector import inspector_backend
 from telemetry.core import exceptions
 
 
@@ -42,7 +40,7 @@ class InspectorBackendList(collections.Sequence):
   def GetContextInfo(self, context_id):
     return self._devtools_context_map_backend.GetContextInfo(context_id)
 
-  def ShouldIncludeContext(self, _context):
+  def ShouldIncludeContext(self, _):
     """Override this method to control which contexts are included."""
     return True
 

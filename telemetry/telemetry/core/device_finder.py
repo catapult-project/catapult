@@ -4,8 +4,6 @@
 
 """Finds devices that can be controlled by telemetry."""
 
-import logging
-
 from telemetry.core.platform import android_device
 from telemetry.core.platform import cros_device
 from telemetry.core.platform import desktop_device

@@ -2,13 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import unittest
 
 import telemetry.timeline.counter as tracing_counter
 import telemetry.timeline.model as timeline_model
 from telemetry.timeline import trace_data as trace_data_module
-from telemetry.timeline import trace_event_importer
 
 
 def FindEventNamed(events, name):

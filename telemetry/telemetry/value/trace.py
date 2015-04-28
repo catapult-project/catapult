@@ -21,7 +21,7 @@ from telemetry import value as value_module
 util.AddDirToPythonPath(
     util.GetChromiumSrcDir(), 'third_party', 'trace-viewer')
 
-from trace_viewer.build import trace2html
+from trace_viewer.build import trace2html  # pylint:disable=import-error
 
 class TraceValue(value_module.Value):
   def __init__(self, page, trace_data, important=False, description=None):

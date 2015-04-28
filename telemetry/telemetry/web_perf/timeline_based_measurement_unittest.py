@@ -5,7 +5,6 @@
 import os
 import unittest
 
-from telemetry.core import platform
 from telemetry.page import page as page_module
 from telemetry.page import page_set
 from telemetry.results import page_test_results
@@ -14,7 +13,6 @@ from telemetry.timeline import model as model_module
 from telemetry.value import scalar
 from telemetry.web_perf.metrics import timeline_based_metric
 from telemetry.web_perf import timeline_based_measurement as tbm_module
-from telemetry.web_perf import timeline_interaction_record as tir_module
 
 
 class FakeSmoothMetric(timeline_based_metric.TimelineBasedMetric):

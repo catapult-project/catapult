@@ -18,9 +18,7 @@ from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import discover
-from telemetry.core import util
 from telemetry import decorators
-from telemetry.util import find_dependencies
 
 
 class Environment(object):

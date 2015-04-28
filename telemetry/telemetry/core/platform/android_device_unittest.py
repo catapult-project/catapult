@@ -4,7 +4,6 @@
 
 import unittest
 
-from telemetry import benchmark
 from telemetry.core import browser_options
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform_backend
@@ -43,7 +42,7 @@ class GetDeviceTest(unittest.TestCase):
   def testNoAdbReturnsNone(self):
     finder_options = browser_options.BrowserFinderOptions()
 
-    def NoAdb(*_, **__):
+    def NoAdb(*_1, **_2):
       raise OSError('not found')
     self._android_device_stub.subprocess.Popen = NoAdb
 

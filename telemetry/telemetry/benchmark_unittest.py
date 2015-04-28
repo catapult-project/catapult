@@ -60,7 +60,7 @@ class BenchmarkTest(unittest.TestCase):
   def testPageTestWithCompatibleUserStory(self):
     original_run_fn = user_story_runner.Run
     was_run = [False]
-    def RunStub(*_, **__):
+    def RunStub(*_arg, **_kwargs):
       was_run[0] = True
     user_story_runner.Run = RunStub
 

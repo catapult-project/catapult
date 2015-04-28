@@ -6,7 +6,6 @@
 
 import logging
 import re
-import subprocess
 
 from telemetry.core.backends.chrome import ios_browser_backend
 from telemetry.core.backends.chrome_inspector import inspector_backend
@@ -15,7 +14,6 @@ from telemetry.core import platform
 from telemetry.core.platform import ios_device
 from telemetry.core.platform import ios_platform_backend
 from telemetry.core import possible_browser
-from telemetry import decorators
 
 
 # Key matches output from ios-webkit-debug-proxy and the value is a readable

@@ -7,7 +7,6 @@ import os
 from telemetry.core import discover
 from telemetry.core.platform import tracing_agent
 from telemetry.core.platform.tracing_agent import chrome_tracing_agent
-from telemetry.core.platform.tracing_agent import display_tracing_agent
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.core import util
@@ -28,7 +27,6 @@ class TracingControllerBackend(object):
     self._current_trace_options = None
     self._current_category_filter = None
     self._current_chrome_tracing_agent = None
-    self._current_display_tracing_agent = None
     self._supported_agents_classes = [
         agent_classes for agent_classes in _IterAllTracingAgentClasses() if
         agent_classes.IsSupported(platform_backend)]
