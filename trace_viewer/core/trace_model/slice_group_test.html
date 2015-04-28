@@ -41,6 +41,12 @@ tv.b.unittest.testSuite(function() {
 
     assert.equal(group.topLevelSlices.length, 2);
     assert.deepEqual(group.topLevelSlices, [sA, sB]);
+    assert.equal(group.findSliceAtTs(0), undefined);
+    assert.equal(group.findSliceAtTs(1), sA);
+    assert.equal(group.findSliceAtTs(3), sA);
+    assert.equal(group.findSliceAtTs(3.1), sB);
+    assert.equal(group.findSliceAtTs(4), sB);
+    assert.equal(group.findSliceAtTs(5), undefined);
   });
 
   test('subSlicesBuilderBasic2', function() {
@@ -75,6 +81,12 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sB.selfTime, 0);
 
     assert.equal(sB, sA.parentSlice);
+
+    assert.equal(group.findSliceAtTs(0), undefined);
+    assert.equal(group.findSliceAtTs(1), sA);
+    assert.equal(group.findSliceAtTs(2), sA);
+    assert.equal(group.findSliceAtTs(5), sA);
+    assert.equal(group.findSliceAtTs(6), undefined);
   });
 
   test('subSlicesBuilderInstantEvents', function() {
@@ -86,6 +98,9 @@ tv.b.unittest.testSuite(function() {
 
     assert.equal(group.topLevelSlices.length, 2);
     assert.deepEqual(group.topLevelSlices, [sA, sB]);
+    assert.equal(group.findSliceAtTs(1), sA);
+    assert.equal(group.findSliceAtTs(1.5), undefined);
+    assert.equal(group.findSliceAtTs(2), sB);
   });
 
   test('subSlicesBuilderTwoInstantEvents', function() {
@@ -103,6 +118,8 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sA.selfTime, 0);
 
     assert.equal(sA, sB.parentSlice);
+    assert.equal(group.findSliceAtTs(1), sB);
+    assert.equal(group.findSliceAtTs(1.0001), undefined);
   });
 
   test('subSlicesBuilderOutOfOrderAddition', function() {
@@ -118,6 +135,7 @@ tv.b.unittest.testSuite(function() {
 
     assert.equal(group.topLevelSlices.length, 2);
     assert.deepEqual(group.topLevelSlices, [sA, sB]);
+    assert.equal(group.findSliceAtTs(3), sA);
   });
 
   test('subRowBuilderOutOfOrderAddition2', function() {
@@ -140,6 +158,11 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sA.selfTime, 4);
 
     assert.equal(sA, sB.parentSlice);
+    assert.equal(group.findSliceAtTs(1.5), sA);
+    assert.equal(group.findSliceAtTs(3), sB);
+    assert.equal(group.findSliceAtTs(3.5), sB);
+    assert.equal(group.findSliceAtTs(4), sB);
+    assert.equal(group.findSliceAtTs(4.5), sA);
   });
 
   test('subSlicesBuilderOnNestedZeroLength', function() {
@@ -163,6 +186,8 @@ tv.b.unittest.testSuite(function() {
 
     assert.equal(sA, sB1.parentSlice);
     assert.equal(sA, sB2.parentSlice);
+    assert.equal(group.findSliceAtTs(1), sB1);
+    assert.equal(group.findSliceAtTs(4), sB2);
   });
 
   test('subSlicesBuilderOnGroup1', function() {
@@ -185,6 +210,11 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sA.selfTime, 2);
 
     assert.equal(sA, sB.parentSlice);
+    assert.equal(group.findSliceAtTs(1), sA);
+    assert.equal(group.findSliceAtTs(2), sB);
+    assert.equal(group.findSliceAtTs(3), sA);
+    assert.equal(group.findSliceAtTs(4.5), undefined);
+    assert.equal(group.findSliceAtTs(5), sC);
   });
 
   test('subSlicesBuilderOnGroup2', function() {
@@ -214,6 +244,7 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sB.selfTime, 0.5);
 
     assert.equal(sB, sC.parentSlice);
+    assert.equal(group.findSliceAtTs(2), sC);
   });
 
   test('subSlicesBuilderTolerateFPInaccuracy', function() {
@@ -233,6 +264,8 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sA.subSlices.length, 1);
     assert.deepEqual(sA.subSlices, [sB]);
     assert.equal(sA, sB.parentSlice);
+    assert.equal(group.findSliceAtTs(1), sB);
+    assert.equal(group.findSliceAtTs(3), sB);
   });
 
   test('basicMerge', function() {

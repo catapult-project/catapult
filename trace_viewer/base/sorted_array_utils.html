@@ -55,7 +55,7 @@ tv.exportTo('tv.b', function() {
 
   /**
    * Finds an index in an array of intervals that either intersects
-   * the provided loVal, or if no intersection is found, ary.length.
+   * the provided loVal, or if no intersection is found, -1 or ary.length.
    *
    * The array of intervals is defined implicitly via two mapping functions
    * over the provided ary. mapLoFn determines the lower value of the interval,
@@ -100,6 +100,61 @@ tv.exportTo('tv.b', function() {
           loVal < mapLoFn(ary[first - 1]) +
           mapWidthFn(ary[first - 1], first - 1)) {
         return first - 1;
+      } else {
+        return ary.length;
+      }
+    } else {
+      return ary.length;
+    }
+  }
+
+  /**
+   * Finds an index in an array of sorted closed intervals that either
+   * intersects the provided val, or if no intersection is found, -1 or
+   *  ary.length.
+   *
+   * The array of intervals is defined implicitly via two mapping functions
+   * over the provided ary. mapLoFn determines the lower value of the interval,
+   * mapHiFn the high. Intersection is closed, e.g. [lo,hi], unlike with
+   * findIndexInSortedIntervals, which is right-open.
+   *
+   * The array of intervals formed by this mapping must be non-overlapping, and
+   * sorted in ascending order by val.
+   *
+   * @param {Array} ary An array of objects that can be converted into sorted
+   *     nonoverlapping ranges [x,y) using the mapLoFn and mapWidth.
+   * @param {function():*} mapLoFn Callback that produces the low value for the
+   *     interval represented by an  element in the array.
+   * @param {function():*} mapHiFn Callback that produces the high for the
+   *     interval represented by an  element in the array.
+   * @param {number} val The value for the search.
+   * @return {Number} An index in the array that intersects or is first-above
+   *     val, -1 if none found and val is below than all the intervals,
+   *     ary.length if val is greater than all the intervals.
+   */
+  function findIndexInSortedClosedIntervals(ary, mapLoFn, mapHiFn, val) {
+    var i = findLowIndexInSortedArray(ary, mapLoFn, val);
+    if (i === 0) {
+      if (val >= mapLoFn(ary[0], 0) &&
+          val <= mapHiFn(ary[0], 0)) {
+        return 0;
+      } else {
+        return -1;
+    }
+    } else if (i < ary.length) {
+      if (val >= mapLoFn(ary[i - 1], i - 1) &&
+          val <= mapHiFn(ary[i - 1], i - 1)) {
+        return i - 1;
+      } else if (val >= mapLoFn(ary[i], i) &&
+          val <= mapHiFn(ary[i], i)) {
+        return i;
+      } else {
+        return ary.length;
+      }
+    } else if (i == ary.length) {
+      if (val >= mapLoFn(ary[i - 1], i - 1) &&
+          val <= mapHiFn(ary[i - 1], i - 1)) {
+        return i - 1;
       } else {
         return ary.length;
       }
@@ -254,6 +309,7 @@ tv.exportTo('tv.b', function() {
   return {
     findLowIndexInSortedArray: findLowIndexInSortedArray,
     findIndexInSortedIntervals: findIndexInSortedIntervals,
+    findIndexInSortedClosedIntervals: findIndexInSortedClosedIntervals,
     iterateOverIntersectingIntervals: iterateOverIntersectingIntervals,
     getIntersectingIntervals: getIntersectingIntervals,
     findClosestElementInSortedArray: findClosestElementInSortedArray,

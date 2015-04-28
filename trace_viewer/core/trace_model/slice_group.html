@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/trace_model/event_container.html">
-<link rel="import" href="/core/trace_model/slice.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/base/ui/color_scheme.html">
 <link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/sorted_array_utils.html">
 
 <script>
 'use strict';
@@ -19,6 +19,14 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.c.trace_model', function() {
   var Slice = tv.c.trace_model.Slice;
+
+  function getSliceLo(s) {
+    return s.start;
+  }
+
+  function getSliceHi(s) {
+    return s.end;
+  }
 
   /**
    * A group of Slices, plus code to create them from B/E events, as
@@ -284,6 +292,30 @@ tv.exportTo('tv.c.trace_model', function() {
           topLevelSlice.iterateAllDescendents(callback);
         });
       return ret;
+    },
+
+    findSliceAtTs: function(ts) {
+      if (!this.haveTopLevelSlicesBeenBuilt)
+        throw new Error('Nope');
+      var i = tv.b.findIndexInSortedClosedIntervals(
+          this.topLevelSlices,
+          getSliceLo, getSliceHi,
+          ts);
+      if (i == -1 || i == this.topLevelSlices.length)
+        return undefined;
+
+      var curSlice = this.topLevelSlices[i];
+
+      // Now recurse on slice looking for subSlice of given ts.
+      while (true) {
+        var i = tv.b.findIndexInSortedClosedIntervals(
+            curSlice.subSlices,
+            getSliceLo, getSliceHi,
+            ts);
+        if (i == -1 || i == curSlice.subSlices.length)
+          return curSlice;
+        curSlice = curSlice.subSlices[i];
+      }
     },
 
     /**

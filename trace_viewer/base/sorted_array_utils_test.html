@@ -34,6 +34,14 @@ tv.b.unittest.testSuite(function() {
           ts);
     },
 
+    findIndexInClosedIntervals: function(ts) {
+      return tv.b.findIndexInSortedClosedIntervals(
+          this.array,
+          function(x) { return x.lo; },
+          function(x) { return x.hi; },
+          ts);
+    },
+
     findIntersectingIntervals: function(tsA, tsB) {
       var array = this.array;
       var result = [];
@@ -108,6 +116,30 @@ tv.b.unittest.testSuite(function() {
     // misses, in between the intervals, return array length
     assert.equal(array.findIntervalIndex(15), 2);
     assert.equal(array.findIntervalIndex(19.9), 2);
+  });
+
+  test('findClosedIntervalIndex', function() {
+    var array = new ArrayOfIntervals([
+      {lo: 10, hi: 15},
+      {lo: 15, hi: 20},
+      {lo: 21, hi: 25}
+    ]);
+
+    assert.equal(array.findIndexInClosedIntervals(0), -1);
+    assert.equal(array.findIndexInClosedIntervals(9.999), -1);
+    assert.equal(array.findIndexInClosedIntervals(10), 0);
+    assert.equal(array.findIndexInClosedIntervals(14), 0);
+    assert.equal(array.findIndexInClosedIntervals(15), 0);
+    assert.equal(array.findIndexInClosedIntervals(15.00001), 1);
+    assert.equal(array.findIndexInClosedIntervals(20.5), 3);
+    assert.equal(array.findIndexInClosedIntervals(22), 2);
+    assert.equal(array.findIndexInClosedIntervals(25), 2);
+    assert.equal(array.findIndexInClosedIntervals(25.00001), 3);
+  });
+
+  test('findClosedInEmptyArray', function() {
+    var array = new ArrayOfIntervals([]);
+    assert.equal(array.findIndexInClosedIntervals(0), 0);
   });
 
   test('findIntersectingIntervals', function() {
