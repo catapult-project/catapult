@@ -91,8 +91,11 @@ found in the LICENSE file.
         var allocatorObjectSizes = {};
         if (processMemoryDump.memoryAllocatorDumps !== undefined) {
           processMemoryDump.memoryAllocatorDumps.forEach(function(dump) {
-            allocatorObjectSizes[dump.fullName] =
-                dump.attributes['inner_size'].value;
+            var attributes = dump.attributes;
+            if ('inner_size' in attributes) {
+              allocatorObjectSizes[dump.fullName] =
+                  attributes['inner_size'].value;
+            }
           }, this);
         }
         rows.push({

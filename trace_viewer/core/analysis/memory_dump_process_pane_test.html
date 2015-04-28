@@ -41,8 +41,6 @@ tv.b.unittest.testSuite(function() {
           new ScalarAttribute('bytes', 2147483648) /* 2 GiB */);
       oilpanDump.addAttribute('inner_size',
           new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
-      oilpanDump.addAttribute('objects_count',
-          new ScalarAttribute('objects', 2015));
 
       var v8Dump = new MemoryAllocatorDump('v8');
       v8Dump.addAttribute('outer_size',
@@ -81,7 +79,7 @@ tv.b.unittest.testSuite(function() {
     // Check the rows of the table.
     assert.equal(titleColumn.value(rows[0]), 'oilpan');
     assert.equal(allocatedObjectsSizeColumn.value(rows[0]).numBytes, 5242880);
-    assert.equal(allocatedObjectsCountColumn.value(rows[0]), 2015);
+    assert.equal(allocatedObjectsCountColumn.value(rows[0]), '<unknown>');
     assert.equal(physicalSizeColumn.value(rows[0]).numBytes, 2147483648);
 
     assert.equal(titleColumn.value(rows[1]), 'v8');

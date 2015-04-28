@@ -74,12 +74,16 @@ found in the LICENSE file.
       var createAllocatorRows = function(allocatorDumps) {
         return allocatorDumps.map(function(allocatorDump) {
           var row = {
-            title: allocatorDump.name,
-            physicalSize: allocatorDump.attributes['outer_size'].value,
-            allocatedObjectsCount:
-                allocatorDump.attributes['objects_count'].value,
-            allocatedObjectsSize: allocatorDump.attributes['inner_size'].value
+            title: allocatorDump.name
           };
+          var attributes = allocatorDump.attributes;
+          // TODO(petrcermak): Do not hard-code the fields, but find all
+          // attributes in the memory allocator dump tree instead.
+          var fields = ['outer_size', 'inner_size', 'objects_count'];
+          fields.forEach(function(field) {
+            if (field in attributes)
+              row[field] = attributes[field].value;
+          });
           if (allocatorDump.children.length > 0)
             row.subRows = createAllocatorRows(allocatorDump.children);
           return row;
@@ -104,17 +108,19 @@ found in the LICENSE file.
             return rowA.title.localeCompare(rowB.title);
           }
         },
+        // TODO(petrcermak): Do not hard-code the columns, but generate them
+        // from attributes in the memory allocator dump tree instead.
         new tv.c.analysis.MemoryColumn(
-            'Allocated Objects Size',
-            tv.c.analysis.fieldGetter('allocatedObjectsSize'),
+            'Inner Size',
+            tv.c.analysis.fieldGetter('inner_size'),
             tv.c.analysis.sizeFormatter),
         new tv.c.analysis.MemoryColumn(
             'Allocated Objects Count',
-            tv.c.analysis.fieldGetter('allocatedObjectsCount'),
+            tv.c.analysis.fieldGetter('objects_count'),
             tv.c.analysis.countFormatter),
         new tv.c.analysis.MemoryColumn(
-            'Physical Size',
-            tv.c.analysis.fieldGetter('physicalSize'),
+            'Outer Size',
+            tv.c.analysis.fieldGetter('outer_size'),
             tv.c.analysis.sizeFormatter)
       ];
 
