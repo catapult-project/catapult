@@ -25,6 +25,28 @@ found in the LICENSE file.
   <script>
   'use strict';
 
+  function isTable(object) {
+    if (!(object instanceof Array) ||
+        (object.length < 2)) return false;
+    for (var colName in object[0]) {
+      if (typeof colName !== 'string') return false;
+    }
+    for (var i = 0; i < object.length; ++i) {
+      if (!(object[i] instanceof Object)) return false;
+      for (var colName in object[i]) {
+        if (i && (object[0][colName] === undefined)) return false;
+        var cellType = typeof object[i][colName];
+        if (cellType !== 'string' && cellType != 'number') return false;
+      }
+      if (i) {
+        for (var colName in object[0]) {
+          if (object[i][colName] === undefined) return false;
+        }
+      }
+    }
+    return true;
+  }
+
   Polymer({
     ready: function() {
       this.object_ = undefined;
@@ -149,6 +171,32 @@ found in the LICENSE file.
         label, object, indent, depth, maxDepth, suffix) {
       if (object.length == 0) {
         this.appendSimpleText_(label, indent, '[]', suffix);
+        return;
+      }
+
+      if (isTable(object)) {
+        var table = document.createElement('table');
+        var tr = document.createElement('tr');
+        table.appendChild(tr);
+        var columns = [];
+        for (var colName in object[0]) {
+          columns.push(colName);
+          var th = document.createElement('th');
+          th.textContent = colName;
+          tr.appendChild(th);
+        }
+        object.forEach(function(row) {
+          var tr = document.createElement('tr');
+          table.appendChild(tr);
+          columns.forEach(function(colName) {
+            var cell = row[colName];
+            var td = document.createElement('td');
+            td.textContent = cell;
+            td.style.textAlign = isNaN(parseFloat(cell)) ? 'left' : 'right';
+            tr.appendChild(td);
+          });
+        });
+        this.appendElementWithLabel_(label, indent, table, suffix);
         return;
       }
 

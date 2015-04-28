@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
 <link rel="import" href="/core/trace_model/object_instance.html">
 
@@ -53,7 +54,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(view.$.content.children[0].children.length, 4);
   });
 
-  test('jsonArraStringValue', function() {
+  test('jsonArrayStringValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
     view.object = '[1,2,3]';
     assert.equal(view.$.content.children.length, 3);
@@ -128,8 +129,35 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('instantiate_arrayWithComplexObjectValue', function() {
     var view = document.createElement('tv-c-analysis-generic-object-view');
-    view.object = [{complex: 'object', field: 'two'}];
+    view.object = [{col0: 'object', col1: 0},
+                   {col2: 'Object', col3: 1}];
     this.addHTMLOutput(view);
+    assert.equal(undefined, tv.b.findDeepElementMatching(
+      view.$.content, 'table'));
+  });
+
+  test('instantiate_arrayWithDeepObjectValue', function() {
+    var view = document.createElement('tv-c-analysis-generic-object-view');
+    view.object = [{key: {deep: 'object values make isTable() return false'}}];
+    this.addHTMLOutput(view);
+    assert.equal(undefined, tv.b.findDeepElementMatching(
+      view.$.content, 'table'));
+  });
+
+  test('jsonTableValue', function() {
+    var view = document.createElement('tv-c-analysis-generic-object-view');
+    view.object = [{col0: 'object', col1: 0}, {col0: 'Object', col1: 1}];
+    this.addHTMLOutput(view);
+    var table = tv.b.findDeepElementMatching(view.$.content, 'table');
+    assert.equal(1 + view.object.length, table.rows.length);
+    assert.equal(2, table.rows[0].children.length);
+    assert.equal('col0', table.rows[0].children[0].textContent);
+    assert.equal('col1', table.rows[0].children[1].textContent);
+    view.object.forEach(function(row, rowIndex) {
+      assert.equal(2, table.rows[1 + rowIndex].children.length);
+      assert.equal(row.col0, table.rows[1 + rowIndex].children[0].textContent);
+      assert.equal(row.col1, table.rows[1 + rowIndex].children[1].textContent);
+    });
   });
 
   test('instantiate_objectValue', function() {
