@@ -136,7 +136,7 @@ tv.exportTo('tv.c.trace_model', function() {
     return existingParentAttribute;
   }
 
-  Attribute.fromTraceValue = function(value, opt_model) {
+  Attribute.fromTraceValue = function(dict, opt_model) {
     throw new Error('Not implemented');
   };
 
@@ -203,8 +203,23 @@ tv.exportTo('tv.c.trace_model', function() {
   /**
    * @constructor
    */
-  function UnknownAttribute(units) {
+  function StringAttribute(units, value) {
     Attribute.call(this, units);
+    this.value = value;
+  }
+
+  StringAttribute.fromDict = function(dict) {
+    return new StringAttribute(dict.units, dict.value);
+  };
+
+  Attribute.register(StringAttribute, {type: 'string'});
+
+  /**
+   * @constructor
+   */
+  function UnknownAttribute(units, opt_value) {
+    Attribute.call(this, units, opt_value);
+    this.value = opt_value;
   }
 
   UnknownAttribute.fromDict = function(dict) {
@@ -213,11 +228,10 @@ tv.exportTo('tv.c.trace_model', function() {
 
   UnknownAttribute.prototype.__proto__ = Attribute.prototype;
 
-  Attribute.register(UnknownAttribute, {type: 'unknown'});
-
   return {
     Attribute: Attribute,
     ScalarAttribute: ScalarAttribute,
+    StringAttribute: StringAttribute,
     UnknownAttribute: UnknownAttribute
   };
 });

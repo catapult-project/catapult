@@ -14,18 +14,8 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var Attribute = tv.c.trace_model.Attribute;
   var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
+  var StringAttribute = tv.c.trace_model.StringAttribute;
   var UnknownAttribute = tv.c.trace_model.UnknownAttribute;
-
-  // There is currently only one concrete subclass of Attribute apart from
-  // UnknownAttribute (which is used to indicate failure by some methods).
-  // We need to have at least one more "correct" attribute subclass for testing
-  // purposes.
-  function MockAttribute(units, value) {
-    Attribute.call(this, units);
-    this.value = value;
-  };
-
-  MockAttribute.prototype.__proto__ = Attribute.prototype;
 
   test('findCommonTraits', function() {
     // Empty list.
@@ -59,7 +49,7 @@ tv.b.unittest.testSuite(function() {
     var traits = Attribute.findCommonTraits([
       new ScalarAttribute('km/h', 15),
       undefined,
-      new MockAttribute('km/h', 'speed-of-light')
+      new StringAttribute('km/h', 'speed-of-light')
     ]);
     assert.strictEqual(traits.constructor, UnknownAttribute);
     assert.isUndefined(traits.units);
@@ -93,7 +83,7 @@ tv.b.unittest.testSuite(function() {
 
     // No parent, children with multiple types.
     var aggregatedAttr = Attribute.aggregate([
-      new MockAttribute('Hz', 128),
+      new StringAttribute('Hz', 128),
       new ScalarAttribute('Hz', 64)
     ], undefined);
     assert.isUndefined(aggregatedAttr);
@@ -102,6 +92,13 @@ tv.b.unittest.testSuite(function() {
     var aggregatedAttr = Attribute.aggregate([
       new ScalarAttribute('s', 10),
       new ScalarAttribute('Hz', 0.1)
+    ], undefined);
+    assert.isUndefined(aggregatedAttr);
+
+    // No parent, children which do not support merging.
+    var aggregatedAttr = Attribute.aggregate([
+      new StringAttribute('items', 'a piece of text'),
+      new StringAttribute('items', 'another piece of text')
     ], undefined);
     assert.isUndefined(aggregatedAttr);
 
@@ -124,8 +121,8 @@ tv.b.unittest.testSuite(function() {
 
     // Defined parent, children with a different type.
     var aggregatedAttr = Attribute.aggregate([
-      new MockAttribute('colors', 640),
-      new MockAttribute('colors', 640)
+      new StringAttribute('colors', 640),
+      new StringAttribute('colors', 640)
     ], new ScalarAttribute('colors', -1234));
     assert.isDefined(aggregatedAttr);
     assert.equal(aggregatedAttr.value, -1234);
@@ -135,12 +132,22 @@ tv.b.unittest.testSuite(function() {
     // Defined parent, children with multiple types.
     var aggregatedAttr = Attribute.aggregate([
       new ScalarAttribute('mm', 999),
-      new MockAttribute('mm', 640)
+      new StringAttribute('mm', 640)
     ], new ScalarAttribute('mm', -12345));
     assert.isDefined(aggregatedAttr);
     assert.equal(aggregatedAttr.value, -12345);
     assert.equal(aggregatedAttr.units, 'mm');
     assert.instanceOf(aggregatedAttr, ScalarAttribute);
+
+    // Defined parent, children which do not support merging.
+    var aggregatedAttr = Attribute.aggregate([
+      new StringAttribute('m', 'X'),
+      new StringAttribute('m', 'Y')
+    ], new StringAttribute('m', 'Z'));
+    assert.isDefined(aggregatedAttr);
+    assert.equal(aggregatedAttr.value, 'Z');
+    assert.equal(aggregatedAttr.units, 'm');
+    assert.instanceOf(aggregatedAttr, StringAttribute);
   });
 
   test('useMergedAttribute', function() {
@@ -198,6 +205,24 @@ tv.b.unittest.testSuite(function() {
     assert.equal(mergedAttr.value, 27);
     assert.equal(mergedAttr.units, 'objects');
     assert.instanceOf(mergedAttr, ScalarAttribute);
+  });
+
+  test('string_construct', function() {
+    var attr = new StringAttribute('C', 'absolute zero');
+    assert.equal(attr.value, 'absolute zero');
+    assert.equal(attr.units, 'C');
+  });
+
+  test('string_fromDict', function() {
+    var attr = Attribute.fromDictIfPossible({
+      type: 'string',
+      units: 'm/s',
+      value: 'almost zero'
+    });
+    assert.isDefined(attr);
+    assert.equal(attr.value, 'almost zero');
+    assert.equal(attr.units, 'm/s');
+    assert.instanceOf(attr, StringAttribute);
   });
 
   test('unknown_construct', function() {
