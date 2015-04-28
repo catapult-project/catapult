@@ -763,5 +763,34 @@ tv.b.unittest.testSuite(function() {
     assert.equal(table.selectedTableRow, rows[1]);
     assert.isFalse(table.getExpandedForTableRow(rows[1]));
   });
+
+  test('reduceNumberOfColumnsAfterRebuild', function() {
+    // Create a table with two columns.
+    var table = document.createElement('tracing-analysis-nested-table');
+    table.tableColumns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '100px'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; },
+        width: '100px'
+      }
+    ];
+
+    // Build the table.
+    table.rebuild();
+
+    // Check that reducing the number of columns doesn't throw an exception.
+    table.tableColumns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '200px'
+      }
+    ];
+  });
 });
 </script>
