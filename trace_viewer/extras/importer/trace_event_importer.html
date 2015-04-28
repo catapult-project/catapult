@@ -1433,9 +1433,9 @@ tv.exportTo('tv.e.importer', function() {
         // Calculate the range of the global memory dump.
         var range = new tv.b.Range();
         if (events.global !== undefined)
-          range.addValue(events.global.ts);
+          range.addValue(events.global.ts / 1000);
         for (var i = 0; i < events.process.length; i++)
-          range.addValue(events.process[i].ts);
+          range.addValue(events.process[i].ts / 1000);
 
         // Create the global memory dump.
         var globalMemoryDump = new tv.c.trace_model.GlobalMemoryDump(
@@ -1476,7 +1476,7 @@ tv.exportTo('tv.e.importer', function() {
 
           var process = this.model_.getOrCreateProcess(pid);
           var processMemoryDump = new tv.c.trace_model.ProcessMemoryDump(
-              globalMemoryDump, process, processEvent.ts);
+              globalMemoryDump, process, processEvent.ts / 1000);
 
           // Parse the totals, which are mandatory.
           if (dumps.process_totals === undefined ||
