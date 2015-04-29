@@ -231,8 +231,8 @@ tv.exportTo('tv.c.tracks', function() {
             var allocatorDump =
                processMemoryDump.getMemoryAllocatorDumpByFullName(
                     allocatorName);
-            if (allocatorDump && 'inner_size' in allocatorDump.attributes)
-              allocatedSize = allocatorDump.attributes['inner_size'].value;
+            if (allocatorDump && 'outer_size' in allocatorDump.attributes)
+              allocatedSize = allocatorDump.attributes['outer_size'].value;
             if (allocatedSize === undefined) {
               // If the dump does not provide the necessary information (namely
               // the allocator dump with the given full name and size), assume

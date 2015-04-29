@@ -114,8 +114,8 @@ tv.b.unittest.testSuite(function() {
     assert.equal(proportionalColumn.value(rows[1]), '');
     assert.equal(privateColumn.value(rows[1]), '');
     assert.equal(sharedColumn.value(rows[1]), '');
-    assert.equal(oilpanColumn.value(rows[1]).numBytes, 5242880);
-    assert.equal(v8Column.value(rows[1]).numBytes, 2097152);
+    assert.equal(oilpanColumn.value(rows[1]).numBytes, 2147483648);
+    assert.equal(v8Column.value(rows[1]).numBytes, 1073741824);
   });
 
   test('selection', function() {

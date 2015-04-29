@@ -50,7 +50,7 @@ tv.b.unittest.testSuite(function() {
     var allocatorDumps = [];
     tv.b.iterItems(dumpSizes, function(allocatorName, size) {
       var dump = new MemoryAllocatorDump(allocatorName);
-      dump.addAttribute('inner_size', new ScalarAttribute('bytes', size));
+      dump.addAttribute('outer_size', new ScalarAttribute('bytes', size));
       allocatorDumps.push(dump);
     });
     return allocatorDumps;

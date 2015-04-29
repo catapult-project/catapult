@@ -109,9 +109,7 @@ found in the LICENSE file.
         var allocatorSizes = {};
         if (processMemoryDump.memoryAllocatorDumps !== undefined) {
           processMemoryDump.memoryAllocatorDumps.forEach(function(dump) {
-            var attributes = dump.attributes;
-            if ('inner_size' in attributes)
-              allocatorSizes[dump.fullName] = attributes['inner_size'];
+            allocatorSizes[dump.fullName] = dump.attributes['outer_size'];
           }, this);
         }
 
