@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 
-class SharedUserStoryState(object):
+class SharedState(object):
   """A class that manages the test state across multiple user stories.
   It's styled on unittest.TestCase for handling test setup & teardown logic.
 

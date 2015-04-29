@@ -12,10 +12,10 @@ from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
+from telemetry.story import shared_state
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
 from telemetry import user_story
-from telemetry.user_story import shared_user_story_state
 from telemetry.user_story import user_story_runner
 from telemetry.user_story import user_story_set
 from telemetry.util import cloud_storage
@@ -33,7 +33,7 @@ class FakePlatform(object):
     return False
 
 
-class TestSharedUserStoryState(shared_user_story_state.SharedUserStoryState):
+class TestSharedState(shared_state.SharedState):
 
   _platform = FakePlatform()
 
@@ -42,7 +42,7 @@ class TestSharedUserStoryState(shared_user_story_state.SharedUserStoryState):
     cls._platform = platform
 
   def __init__(self, test, options, user_story_setz):
-    super(TestSharedUserStoryState, self).__init__(
+    super(TestSharedState, self).__init__(
         test, options, user_story_setz)
     self._test = test
     self._current_user_story = None
@@ -67,7 +67,7 @@ class TestSharedUserStoryState(shared_user_story_state.SharedUserStoryState):
     pass
 
 
-class TestSharedPageState(TestSharedUserStoryState):
+class TestSharedPageState(TestSharedState):
   def RunUserStory(self, results):
     self._test.RunPage(self._current_user_story, None, results)
 
@@ -94,9 +94,9 @@ class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
 
 
 class DummyLocalUserStory(user_story.UserStory):
-  def __init__(self, shared_user_story_state_class, name=''):
+  def __init__(self, shared_state_class, name=''):
     super(DummyLocalUserStory, self).__init__(
-        shared_user_story_state_class, name=name)
+        shared_state_class, name=name)
 
   @property
   def is_local(self):
@@ -171,7 +171,7 @@ class UserStoryRunnerTest(unittest.TestCase):
                   FooUserStoryState, FooUserStoryState]
     mixed_states = [FooUserStoryState, FooUserStoryState, FooUserStoryState,
                     BarUserStoryState, FooUserStoryState]
-    # UserStorySet's are only allowed to have one SharedUserStoryState.
+    # UserStorySet's are only allowed to have one SharedState.
     us = SetupUserStorySet(False, foo_states)
     story_groups = (
         user_story_runner.StoriesGroupedByStateClass(
@@ -182,17 +182,17 @@ class UserStoryRunnerTest(unittest.TestCase):
         ValueError,
         user_story_runner.StoriesGroupedByStateClass,
         us, False)
-    # BaseUserStorySets are allowed to have multiple SharedUserStoryStates.
+    # BaseUserStorySets are allowed to have multiple SharedStates.
     bus = SetupUserStorySet(True, mixed_states)
     story_groups = (
         user_story_runner.StoriesGroupedByStateClass(
             bus, True))
     self.assertEqual(len(story_groups), 3)
-    self.assertEqual(story_groups[0].shared_user_story_state_class,
+    self.assertEqual(story_groups[0].shared_state_class,
                      FooUserStoryState)
-    self.assertEqual(story_groups[1].shared_user_story_state_class,
+    self.assertEqual(story_groups[1].shared_state_class,
                      BarUserStoryState)
-    self.assertEqual(story_groups[2].shared_user_story_state_class,
+    self.assertEqual(story_groups[2].shared_state_class,
                      FooUserStoryState)
 
   def RunUserStoryTest(self, us, expected_successes):
@@ -223,7 +223,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     Any PageTest related calls or attributes need to only be called
     for PageTest tests.
     """
-    class TestSharedTbmState(TestSharedUserStoryState):
+    class TestSharedTbmState(TestSharedState):
       def RunUserStory(self, results):
         pass
 
@@ -366,7 +366,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     class DidRunTestError(Exception):
       pass
 
-    class TestTearDownSharedUserStoryState(TestSharedPageState):
+    class TestTearDownSharedState(TestSharedPageState):
       def TearDownState(self, results):
         self._test.DidRunTest('app', results)
 
@@ -390,8 +390,8 @@ class UserStoryRunnerTest(unittest.TestCase):
         self._unit_test_events.append('did-run-test')
         raise DidRunTestError
 
-    us.AddUserStory(DummyLocalUserStory(TestTearDownSharedUserStoryState))
-    us.AddUserStory(DummyLocalUserStory(TestTearDownSharedUserStoryState))
+    us.AddUserStory(DummyLocalUserStory(TestTearDownSharedState))
+    us.AddUserStory(DummyLocalUserStory(TestTearDownSharedState))
     test = Test()
 
     with self.assertRaises(DidRunTestError):
@@ -491,8 +491,8 @@ class UserStoryRunnerTest(unittest.TestCase):
   def _testMaxFailuresOptionIsRespectedAndOverridable(
       self, num_failing_user_stories, runner_max_failures, options_max_failures,
       expected_num_failures):
-    class SimpleSharedUserStoryState(
-        shared_user_story_state.SharedUserStoryState):
+    class SimpleSharedState(
+        shared_state.SharedState):
       _fake_platform = FakePlatform()
       _current_user_story = None
 
@@ -518,7 +518,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     class FailingUserStory(user_story.UserStory):
       def __init__(self):
         super(FailingUserStory, self).__init__(
-            shared_user_story_state_class=SimpleSharedUserStoryState,
+            shared_state_class=SimpleSharedState,
             is_local=True)
         self.was_run = False
 

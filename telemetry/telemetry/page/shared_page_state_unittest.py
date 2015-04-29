@@ -76,7 +76,7 @@ class SharedPageStateTests(unittest.TestCase):
     test = DummyTest()
     uss = user_story_set.UserStorySet()
     uss.AddUserStory(us)
-    us.shared_user_story_state_class(test, self.options, uss)
+    us.shared_state_class(test, self.options, uss)
     browser_options = self.options.browser_options
     actual_user_agent = browser_options.browser_user_agent_type
     self.assertEqual(expected_user_agent, actual_user_agent)

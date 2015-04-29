@@ -23,6 +23,6 @@ class AppStory(user_story.UserStory):
     self.start_intent = start_intent
     self.is_app_ready_predicate = is_app_ready_predicate
 
-  def Run(self, shared_user_story_state):
+  def Run(self, shared_state):
     """Execute the interactions with the applications."""
     raise NotImplementedError

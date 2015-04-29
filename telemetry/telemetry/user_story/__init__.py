@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import re
-from telemetry.user_story import shared_user_story_state
+from telemetry.story import shared_state
 
 _next_user_story_id = 0
 
@@ -13,12 +13,12 @@ class UserStory(object):
 
   Test should override Run to maybe start the application and perform actions
   onto it. To share state between different tests, one can define a
-  shared_user_story_state which contains hooks that will be called before &
+  shared_state which contains hooks that will be called before &
   after mutiple user stories run and in between runs.
 
   Args:
-    shared_user_story_state_class: subclass of
-        telemetry.user_story.shared_user_story_state.SharedUserStoryState.
+    shared_state_class: subclass of
+        telemetry.user_story.shared_state.SharedState.
     name: string name of this user story that can be used for identifying user
         story in results output.
     labels: A list or set of string labels that are used for filtering. See
@@ -26,7 +26,7 @@ class UserStory(object):
     is_local: If true, the user story does not require network.
   """
 
-  def __init__(self, shared_user_story_state_class, name='', labels=None,
+  def __init__(self, shared_state_class, name='', labels=None,
                is_local=False, make_javascript_deterministic=True):
     """
     Args:
@@ -38,9 +38,9 @@ class UserStory(object):
           not text/html. See also: _InjectScripts method in
           third_party/webpagereplay/httpclient.py.
     """
-    assert issubclass(shared_user_story_state_class,
-                      shared_user_story_state.SharedUserStoryState)
-    self._shared_user_story_state_class = shared_user_story_state_class
+    assert issubclass(shared_state_class,
+                      shared_state.SharedState)
+    self._shared_state_class = shared_state_class
     self._name = name
     global _next_user_story_id
     self._id = _next_user_story_id
@@ -60,8 +60,8 @@ class UserStory(object):
     return self._labels
 
   @property
-  def shared_user_story_state_class(self):
-    return self._shared_user_story_state_class
+  def shared_state_class(self):
+    return self._shared_state_class
 
   @property
   def id(self):

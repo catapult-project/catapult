@@ -10,9 +10,9 @@ from telemetry.core import browser_options
 from telemetry import page
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
+from telemetry.story import shared_state
 from telemetry import user_story
 from telemetry.user_story import android
-from telemetry.user_story import shared_user_story_state
 from telemetry.user_story import user_story_runner
 from telemetry.user_story import user_story_set as user_story_set_module
 from telemetry.web_perf import timeline_based_measurement
@@ -40,14 +40,14 @@ class BenchmarkTest(unittest.TestCase):
 
   def testPageTestWithIncompatibleUserStory(self):
     b = TestBenchmark(user_story.UserStory(
-        shared_user_story_state_class=shared_page_state.SharedPageState))
+        shared_state_class=shared_page_state.SharedPageState))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page user stories'):
       b.Run(browser_options.BrowserFinderOptions())
 
-    state_class = shared_user_story_state.SharedUserStoryState
+    state_class = shared_state.SharedState
     b = TestBenchmark(user_story.UserStory(
-        shared_user_story_state_class=state_class))
+        shared_state_class=state_class))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page user stories'):
       b.Run(browser_options.BrowserFinderOptions())

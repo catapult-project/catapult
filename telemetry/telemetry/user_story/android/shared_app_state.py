@@ -4,11 +4,11 @@
 from telemetry.core import platform
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform
-from telemetry.user_story import shared_user_story_state
+from telemetry.story import shared_state
 from telemetry.web_perf import timeline_based_measurement
 
 
-class SharedAppState(shared_user_story_state.SharedUserStoryState):
+class SharedAppState(shared_state.SharedState):
   """Manage test state/transitions across multiple android.UserStory's.
 
   WARNING: the class is not ready for public consumption.

@@ -5,21 +5,21 @@
 import os
 import unittest
 
+from telemetry.story import shared_state
 from telemetry import user_story
-from telemetry.user_story import shared_user_story_state
 from telemetry.user_story import user_story_set
 from telemetry.util import cloud_storage
 
 
 # pylint: disable=abstract-method
-class SharedUserStoryStateBar(shared_user_story_state.SharedUserStoryState):
+class SharedStateBar(shared_state.SharedState):
   pass
 
 
 class UserStoryFoo(user_story.UserStory):
   def __init__(self, name='', labels=None):
     super(UserStoryFoo, self).__init__(
-        SharedUserStoryStateBar, name, labels)
+        SharedStateBar, name, labels)
 
 
 class UserStorySetFoo(user_story_set.UserStorySet):

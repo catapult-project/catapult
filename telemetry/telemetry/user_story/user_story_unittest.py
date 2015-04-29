@@ -4,25 +4,25 @@
 
 import unittest
 
+from telemetry.story import shared_state
 from telemetry import user_story
-from telemetry.user_story import shared_user_story_state
 
 
 # pylint: disable=abstract-method
-class SharedUserStoryStateBar(shared_user_story_state.SharedUserStoryState):
+class SharedStateBar(shared_state.SharedState):
   pass
 
 
 class UserStoryFoo(user_story.UserStory):
   def __init__(self, name='', labels=None):
     super(UserStoryFoo, self).__init__(
-        SharedUserStoryStateBar, name, labels)
+        SharedStateBar, name, labels)
 
 
 class UserStoryTest(unittest.TestCase):
   def testUserStoriesHaveDifferentIds(self):
-    u0 = user_story.UserStory(SharedUserStoryStateBar, 'foo')
-    u1 = user_story.UserStory(SharedUserStoryStateBar, 'bar')
+    u0 = user_story.UserStory(SharedStateBar, 'foo')
+    u1 = user_story.UserStory(SharedStateBar, 'bar')
     self.assertNotEqual(u0.id, u1.id)
 
   def testNamelessUserStoryDisplayName(self):
@@ -38,25 +38,25 @@ class UserStoryTest(unittest.TestCase):
     self.assertEquals('Foo_Bar_Baz_0', u.file_safe_name)
 
   def testNamelessUserStoryAsDict(self):
-    u = user_story.UserStory(SharedUserStoryStateBar)
+    u = user_story.UserStory(SharedStateBar)
     u_dict = u.AsDict()
     self.assertEquals(u_dict['id'], u.id)
     self.assertNotIn('name', u_dict)
 
   def testNamedUserStoryAsDict(self):
-    u = user_story.UserStory(SharedUserStoryStateBar, 'Foo')
+    u = user_story.UserStory(SharedStateBar, 'Foo')
     u_dict = u.AsDict()
     self.assertEquals(u_dict['id'], u.id)
     self.assertEquals('Foo', u_dict['name'])
 
   def testMakeJavaScriptDeterministic(self):
-    u = user_story.UserStory(SharedUserStoryStateBar)
+    u = user_story.UserStory(SharedStateBar)
     self.assertTrue(u.make_javascript_deterministic)
 
     u = user_story.UserStory(
-        SharedUserStoryStateBar, make_javascript_deterministic=False)
+        SharedStateBar, make_javascript_deterministic=False)
     self.assertFalse(u.make_javascript_deterministic)
 
     u = user_story.UserStory(
-        SharedUserStoryStateBar, make_javascript_deterministic=True)
+        SharedStateBar, make_javascript_deterministic=True)
     self.assertTrue(u.make_javascript_deterministic)

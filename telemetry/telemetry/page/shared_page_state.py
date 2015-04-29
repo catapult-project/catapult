@@ -14,7 +14,7 @@ from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry import decorators
 from telemetry.page import page_test
-from telemetry.user_story import shared_user_story_state
+from telemetry.story import shared_state
 from telemetry.util import exception_formatter
 from telemetry.util import file_handle
 from telemetry.value import skip
@@ -32,7 +32,7 @@ def _PrepareFinderOptions(finder_options, test, device_type):
     profiler_class.CustomizeBrowserOptions(browser_options.browser_type,
                                            finder_options)
 
-class SharedPageState(shared_user_story_state.SharedUserStoryState):
+class SharedPageState(shared_state.SharedState):
 
   _device_type = None
 

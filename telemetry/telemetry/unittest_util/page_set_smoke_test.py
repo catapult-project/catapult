@@ -114,14 +114,14 @@ class PageSetSmokeTest(unittest.TestCase):
 
   def CheckSharedStates(self, page_set):
     if not page_set.allow_mixed_story_states:
-      shared_user_story_state_class = (
-          page_set.user_stories[0].shared_user_story_state_class)
+      shared_state_class = (
+          page_set.user_stories[0].shared_state_class)
       for p in page_set:
         self.assertIs(
-            shared_user_story_state_class,
-            p.shared_user_story_state_class,
-            msg='page %s\'s shared_user_story_state_class field is different '
-            'from other pages\'s shared_user_story_state_class whereas '
+            shared_state_class,
+            p.shared_state_class,
+            msg='page %s\'s shared_state_class field is different '
+            'from other pages\'s shared_state_class whereas '
             'page set %s disallow having mixed states' %
             (p, page_set))
 

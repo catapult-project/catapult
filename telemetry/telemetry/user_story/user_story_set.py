@@ -55,12 +55,12 @@ class UserStorySet(object):
   def allow_mixed_story_states(self):
     """True iff UserStories are allowed to have different StoryState classes.
 
-    There are no checks in place for determining if SharedUserStoryStates are
+    There are no checks in place for determining if SharedStates are
     being assigned correctly to all UserStorys in a given UserStorySet. The
     majority of test cases should not need the ability to have multiple
     ShareduserStoryStates, and usually implies you should be writing multiple
     benchmarks instead. We provide errors to avoid accidentally assigning
-    or defaulting to the wrong SharedUserStoryState.
+    or defaulting to the wrong SharedState.
     Override at your own risk. Here be dragons.
     """
     return False

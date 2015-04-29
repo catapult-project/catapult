@@ -5,8 +5,8 @@
 import unittest
 
 from telemetry.results import user_story_run
+from telemetry.story import shared_state
 from telemetry import user_story as user_story_module
-from telemetry.user_story import shared_user_story_state
 from telemetry.user_story import user_story_set
 from telemetry.value import failure
 from telemetry.value import scalar
@@ -14,13 +14,13 @@ from telemetry.value import skip
 
 
 # pylint: disable=abstract-method
-class SharedUserStoryStateBar(shared_user_story_state.SharedUserStoryState):
+class SharedStateBar(shared_state.SharedState):
   pass
 
 class UserStoryFoo(user_story_module.UserStory):
   def __init__(self, name='', labels=None):
     super(UserStoryFoo, self).__init__(
-        SharedUserStoryStateBar, name, labels)
+        SharedStateBar, name, labels)
 
 class UserStoryRunTest(unittest.TestCase):
   def setUp(self):
