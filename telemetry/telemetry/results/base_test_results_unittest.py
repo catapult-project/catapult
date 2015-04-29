@@ -7,19 +7,6 @@ import unittest
 from telemetry.core import exceptions
 
 
-class TestOutputStream(object):
-
-  def __init__(self):
-    self.output_data = []
-
-  def write(self, data):
-    assert isinstance(data, str)
-    self.output_data.append(data)
-
-  def flush(self):
-    pass
-
-
 class BaseTestResultsUnittest(unittest.TestCase):
 
   def CreateException(self):

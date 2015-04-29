@@ -11,6 +11,7 @@ from telemetry.results import base_test_results_unittest
 from telemetry.results import gtest_progress_reporter
 from telemetry.results import page_test_results
 from telemetry.unittest_util import simple_mock
+from telemetry.unittest_util import stream
 from telemetry.value import failure
 from telemetry.value import skip
 
@@ -31,7 +32,7 @@ class GTestProgressReporterTest(
     super(GTestProgressReporterTest, self).setUp()
     self._mock_timer = simple_mock.MockTimer(gtest_progress_reporter)
 
-    self._output_stream = base_test_results_unittest.TestOutputStream()
+    self._output_stream = stream.TestOutputStream()
     self._reporter = gtest_progress_reporter.GTestProgressReporter(
         self._output_stream)
 

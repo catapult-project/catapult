@@ -8,6 +8,7 @@ import unittest
 from telemetry.core import exceptions
 from telemetry.unittest_util import gtest_progress_reporter
 from telemetry.unittest_util import simple_mock
+from telemetry.unittest_util import stream
 
 
 try:
@@ -20,21 +21,6 @@ class TestFoo(unittest.TestCase):
   # Test method doesn't have test- prefix intentionally. This is so that
   # run_test script won't run this test.
   def runTezt(self):
-    pass
-
-
-class TestOutputStream(object):
-  def __init__(self):
-    self._output_data = []
-
-  @property
-  def output_data(self):
-    return ''.join(self._output_data)
-
-  def write(self, data):
-    self._output_data.append(data)
-
-  def flush(self):
     pass
 
 
@@ -51,7 +37,7 @@ class TestResultWithSuccesses(unittest.TestResult):
 class GTestProgressReporterTest(unittest.TestCase):
   def setUp(self):
     super(GTestProgressReporterTest, self).setUp()
-    self._stream = TestOutputStream()
+    self._stream = stream.TestOutputStream()
     self._formatter = gtest_progress_reporter.GTestProgressReporter(
         self._stream)
 
