@@ -33,6 +33,8 @@ tv.exportTo('tv.c.analysis', function() {
         return;
       var attributes = row[attributesKey];
       tv.b.iterItems(attributes, function(attrName, attrValue) {
+        if (attrValue === undefined)
+          return;
         var existingTraits = columnTraits[attrName];
         if (existingTraits === undefined) {
           columnTraits[attrName] = {
