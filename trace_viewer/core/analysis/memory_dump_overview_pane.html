@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/core/analysis/size_span.html">
 <link rel="import" href="/core/analysis/table_builder.html">
+<link rel="import" href="/core/trace_model/attribute.html">
 
 <polymer-element name="tv-c-memory-dump-overview-pane">
   <template>
@@ -88,25 +89,36 @@ found in the LICENSE file.
 
       var rows = [];
       tv.b.iterItems(processMemoryDumps, function(pid, processMemoryDump) {
-        var allocatorObjectSizes = {};
+        // Used memory (proportional, private, and shared resident)
+        var usedMemorySizes = {};
+        function addUsedMemorySize(columnKey, dumpKey) {
+          var value = processMemoryDump[dumpKey];
+          if (value !== undefined) {
+            usedMemorySizes[columnKey] =
+                new tv.c.trace_model.ScalarAttribute('bytes', value);
+          }
+        }
+        addUsedMemorySize('proportional_resident',
+            'mostRecentTotalProportionalResidentSizeInBytes');
+        addUsedMemorySize('private_resident',
+            'mostRecentTotalPrivateResidentSizeInBytes');
+        addUsedMemorySize('shared_resident',
+            'mostRecentTotalSharedResidentSizeInBytes');
+
+        // Allocator memory (v8, oilpan, ...).
+        var allocatorSizes = {};
         if (processMemoryDump.memoryAllocatorDumps !== undefined) {
           processMemoryDump.memoryAllocatorDumps.forEach(function(dump) {
             var attributes = dump.attributes;
-            if ('inner_size' in attributes) {
-              allocatorObjectSizes[dump.fullName] =
-                  attributes['inner_size'].value;
-            }
+            if ('inner_size' in attributes)
+              allocatorSizes[dump.fullName] = attributes['inner_size'];
           }, this);
         }
+
         rows.push({
           title: processMemoryDump.process.userFriendlyName,
-          proportionalResident:
-              processMemoryDump.mostRecentTotalProportionalResidentSizeInBytes,
-          privateResident:
-              processMemoryDump.mostRecentTotalPrivateResidentSizeInBytes,
-          sharedResident:
-              processMemoryDump.mostRecentTotalSharedResidentSizeInBytes,
-          allocatorObjectSizes: allocatorObjectSizes,
+          usedMemorySizes: usedMemorySizes,
+          allocatorSizes: allocatorSizes,
           processMemoryDump: processMemoryDump
         });
       }, this);
@@ -118,49 +130,26 @@ found in the LICENSE file.
     },
 
     updateColumns_: function(rows) {
-      var columns = [
-        {
-          title: 'Process',
-          value: function(row) {
-            return row.title;
-          },
-          width: '200px',
-          cmp: function(rowA, rowB) {
-            return rowA.title.localeCompare(rowB.title);
-          }
+      var titleColumn = {
+        title: 'Process',
+        value: function(row) {
+          return row.title;
         },
-        new tv.c.analysis.MemoryColumn(
-            'Proportional Set Size',
-            tv.c.analysis.fieldGetter('proportionalResident'),
-            tv.c.analysis.sizeFormatter),
-        new tv.c.analysis.MemoryColumn(
-            'Private Memory',
-            tv.c.analysis.fieldGetter('privateResident'),
-            tv.c.analysis.sizeFormatter),
-        new tv.c.analysis.MemoryColumn(
-            'Shared Memory',
-            tv.c.analysis.fieldGetter('sharedResident'),
-            tv.c.analysis.sizeFormatter)
-      ];
+        width: '200px',
+        cmp: function(rowA, rowB) {
+          return rowA.title.localeCompare(rowB.title);
+        }
+      };
 
-      var instrumentedAllocators = {};
-      rows.forEach(function(row) {
-        tv.b.iterItems(row.allocatorObjectSizes, function(allocatorName, size) {
-          instrumentedAllocators[allocatorName] = true;
-        }, this);
-      }, this);
+      var usedMemorySizeColumns = tv.c.analysis.MemoryColumn.fromRows(
+          rows, 'usedMemorySizes');
+      var allocatorSizeColumns = tv.c.analysis.MemoryColumn.fromRows(
+          rows, 'allocatorSizes');
 
-      tv.b.iterItems(instrumentedAllocators, function(allocatorName) {
-        columns.push(new tv.c.analysis.MemoryColumn(
-            allocatorName,
-            tv.c.analysis.fieldGetter('allocatorObjectSizes', allocatorName),
-            tv.c.analysis.sizeFormatter));
-      }, this);
+      var sizeColumns = usedMemorySizeColumns.concat(allocatorSizeColumns);
+      tv.c.analysis.MemoryColumn.spaceEqually(sizeColumns);
 
-      var columnWidth = (100 / (columns.length - 1)).toFixed(3) + '%';
-      for (var i = 1; i < columns.length; i++)
-        columns[i].width = columnWidth;
-
+      var columns = [titleColumn].concat(sizeColumns);
       this.$.table.tableColumns = columns;
     }
   });

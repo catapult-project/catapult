@@ -74,60 +74,39 @@ found in the LICENSE file.
       var createAllocatorRows = function(allocatorDumps) {
         return allocatorDumps.map(function(allocatorDump) {
           var row = {
-            title: allocatorDump.name
+            title: allocatorDump.name,
+            attributes: allocatorDump.attributes
           };
-          var attributes = allocatorDump.attributes;
-          // TODO(petrcermak): Do not hard-code the fields, but find all
-          // attributes in the memory allocator dump tree instead.
-          var fields = ['outer_size', 'inner_size', 'objects_count'];
-          fields.forEach(function(field) {
-            if (field in attributes)
-              row[field] = attributes[field].value;
-          });
           if (allocatorDump.children.length > 0)
             row.subRows = createAllocatorRows(allocatorDump.children);
           return row;
         });
       };
-      this.$.table.tableRows = createAllocatorRows(memoryAllocatorDumps);
+      var rows = createAllocatorRows(memoryAllocatorDumps);
+      this.$.table.tableRows = rows;
 
-      this.updateColumns_();
+      this.updateColumns_(rows);
 
       this.$.table.rebuild();
     },
 
-    updateColumns_: function() {
-      var columns = [
-        {
-          title: 'Allocator',
-          value: function(row) {
-            return row.title;
-          },
-          width: '200px',
-          cmp: function(rowA, rowB) {
-            return rowA.title.localeCompare(rowB.title);
-          }
+    updateColumns_: function(rows) {
+      var titleColumn = {
+        title: 'Allocator',
+        value: function(row) {
+          return row.title;
         },
-        // TODO(petrcermak): Do not hard-code the columns, but generate them
-        // from attributes in the memory allocator dump tree instead.
-        new tv.c.analysis.MemoryColumn(
-            'Inner Size',
-            tv.c.analysis.fieldGetter('inner_size'),
-            tv.c.analysis.sizeFormatter),
-        new tv.c.analysis.MemoryColumn(
-            'Allocated Objects Count',
-            tv.c.analysis.fieldGetter('objects_count'),
-            tv.c.analysis.countFormatter),
-        new tv.c.analysis.MemoryColumn(
-            'Outer Size',
-            tv.c.analysis.fieldGetter('outer_size'),
-            tv.c.analysis.sizeFormatter)
-      ];
+        width: '200px',
+        cmp: function(rowA, rowB) {
+          return rowA.title.localeCompare(rowB.title);
+        }
+      };
 
-      var columnWidth = (100 / (columns.length - 1)).toFixed(3) + '%';
-      for (var i = 1; i < columns.length; i++)
-        columns[i].width = columnWidth;
+      var attributeColumns = tv.c.analysis.MemoryColumn.fromRows(
+          rows, 'attributes');
+      tv.c.analysis.MemoryColumn.spaceEqually(attributeColumns);
 
+      var columns = [titleColumn].concat(attributeColumns);
       this.$.table.tableColumns = columns;
     }
   });

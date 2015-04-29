@@ -19,44 +19,119 @@ tv.exportTo('tv.c.analysis', function() {
    *
    * @constructor
    */
-  function MemoryColumn(title, valueGetter, valueFormatter) {
+  function MemoryColumn(title, units, attrGetter) {
     this.title = title;
-    this.valueGetter_ = valueGetter;
-    this.valueFormatter_ = valueFormatter;
+    this.units = units;
+    this.attrGetter_ = attrGetter;
   }
+
+  MemoryColumn.fromRows = function(rows, attributesKey) {
+    var columnTraits = {};
+
+    function gatherTraits(row) {
+      if (row === undefined)
+        return;
+      var attributes = row[attributesKey];
+      tv.b.iterItems(attributes, function(attrName, attrValue) {
+        var existingTraits = columnTraits[attrName];
+        if (existingTraits === undefined) {
+          columnTraits[attrName] = {
+            constructor: attrValue.constructor,
+            units: attrValue.units
+          };
+          return;
+        }
+        if (existingTraits.constructor !== attrValue.constructor ||
+            existingTraits.units !== attrValue.units) {
+          existingTraits.constructor = tv.c.trace_model.UnknownAttribute;
+          existingTraits.units = undefined;
+        }
+      });
+      if (row.subRows !== undefined)
+        row.subRows.forEach(gatherTraits);
+    };
+    rows.forEach(gatherTraits);
+
+    var columns = [];
+    tv.b.iterItems(columnTraits, function(columnName, columnTraits) {
+      var columnGetter = fieldGetter(attributesKey, columnName);
+      columns.push(MemoryColumn.fromAttributeTraits(
+          columnName, columnTraits, columnGetter));
+    });
+
+    return columns;
+  };
+
+  MemoryColumn.fromAttributeTraits = function(title, traits, attrGetter) {
+    var constructor;
+    if (traits.constructor === tv.c.trace_model.ScalarAttribute)
+      constructor = ScalarMemoryColumn;
+    else
+      constructor = MemoryColumn;
+    return new constructor(title, traits.units, attrGetter);
+  };
+
+  MemoryColumn.spaceEqually = function(columns) {
+    var columnWidth = (100 / columns.length).toFixed(3) + '%';
+    columns.forEach(function(column) {
+      column.width = columnWidth;
+    });
+  };
 
   MemoryColumn.prototype = {
     value: function(row) {
-      // TODO(petrcermak): Show the most recently measured size instead
-      // of '<unknown>'.
-      var rawValue = this.valueGetter_(row);
-      if (rawValue === undefined)
-        return '<unknown>';
-      return this.valueFormatter_(rawValue);
+      var attr = this.attrGetter_(row);
+      if (attr === undefined)
+        return '';
+      return this.formatDefinedAttribute(attr);
+    },
+
+    formatDefinedAttribute: function(attr) {
+      return String(attr.value);
     },
 
     cmp: function(rowA, rowB) {
-      var rawValueA = this.valueGetter_(rowA);
-      var rawValueB = this.valueGetter_(rowB);
-      if (rawValueA === undefined && rawValueB === undefined)
+      var attrA = this.attrGetter_(rowA);
+      var attrB = this.attrGetter_(rowB);
+      if (attrA === undefined && attrB === undefined)
         return 0;
-      if (rawValueA === undefined)
+      if (attrA === undefined)
         return -1;
-      if (rawValueB === undefined)
+      if (attrB === undefined)
         return 1;
-      return rawValueA - rawValueB;
+      return this.compareDefinedAttributes(attrA, attrB);
+    },
+
+    compareDefinedAttributes: function(attrA, attrB) {
+      var strA = String(attrA.value);
+      var strB = String(attrB.value);
+      return strA.localeCompare(strB);
     }
   };
 
-  function countFormatter(count) {
-    return count;
+  /**
+   * @constructor
+   */
+  function ScalarMemoryColumn(title, units, attrGetter) {
+    MemoryColumn.call(this, title, units, attrGetter);
   }
 
-  function sizeFormatter(size) {
-    var sizeEl = document.createElement('tv-c-a-size-span');
-    sizeEl.numBytes = size;
-    return sizeEl;
-  }
+  ScalarMemoryColumn.prototype = {
+    __proto__: MemoryColumn.prototype,
+
+    formatDefinedAttribute: function(attr) {
+      if (this.units === 'bytes') {
+        var sizeEl = document.createElement('tv-c-a-size-span');
+        sizeEl.numBytes = attr.value;
+        return sizeEl;
+      }
+      return MemoryColumn.prototype.formatDefinedAttribute.call(this, attr);
+    },
+
+    compareDefinedAttributes: function(attrA, attrB) {
+      return attrA.value - attrB.value;
+    }
+  };
 
   function fieldGetter(/* fields */) {
     var fields = arguments;
@@ -70,8 +145,7 @@ tv.exportTo('tv.c.analysis', function() {
 
   return {
     MemoryColumn: MemoryColumn,
-    countFormatter: countFormatter,
-    sizeFormatter: sizeFormatter,
+    ScalarMemoryColumn: ScalarMemoryColumn,
     fieldGetter: fieldGetter
   };
 });
