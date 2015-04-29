@@ -77,7 +77,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self.platform_backend.adb
 
   def _KillBrowser(self):
-    self.platform_backend.KillApplication(self._backend_settings.package)
+    if self._adb.device().IsUserBuild():
+      self.platform_backend.StopApplication(self._backend_settings.package)
+    else:
+      self.platform_backend.KillApplication(self._backend_settings.package)
 
   def Start(self):
     self._adb.device().RunShellCommand('logcat -c')
