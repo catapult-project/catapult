@@ -38,7 +38,7 @@ class _StoryLabelMatcher(object):
     return self and bool(user_story.labels.intersection(self._labels))
 
 
-class UserStoryFilter(command_line.ArgumentHandlerMixIn):
+class StoryFilter(command_line.ArgumentHandlerMixIn):
   """Filters user stories in the user story set based on command-line flags."""
 
   @classmethod

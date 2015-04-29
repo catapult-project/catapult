@@ -13,7 +13,7 @@ from telemetry.core import wpr_modes
 from telemetry.internal.actions import page_action
 from telemetry.page import page_test
 from telemetry.results import results_options
-from telemetry.user_story import user_story_filter
+from telemetry.story import story_filter
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
 from telemetry.value import failure
@@ -25,7 +25,7 @@ class ArchiveError(Exception):
 
 
 def AddCommandLineArgs(parser):
-  user_story_filter.UserStoryFilter.AddCommandLineArgs(parser)
+  story_filter.StoryFilter.AddCommandLineArgs(parser)
   results_options.AddResultsOptions(parser)
 
   # Page set options
@@ -54,7 +54,7 @@ def AddCommandLineArgs(parser):
                     help='Ignore @Disabled and @Enabled restrictions.')
 
 def ProcessCommandLineArgs(parser, args):
-  user_story_filter.UserStoryFilter.ProcessCommandLineArgs(parser, args)
+  story_filter.StoryFilter.ProcessCommandLineArgs(parser, args)
   results_options.ProcessCommandLineArgs(parser, args)
 
   # Page set options
@@ -175,8 +175,8 @@ def Run(test, user_story_set, expectations, finder_options, results,
   can continue running the remaining user stories.
   """
   # Filter page set based on options.
-  user_stories = filter(user_story_filter.UserStoryFilter.IsSelected,
-                        user_story_set)
+  user_stories = filter(story_filter.StoryFilter.IsSelected,
+                              user_story_set)
 
   if (not finder_options.use_live_sites and user_story_set.bucket and
       finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):

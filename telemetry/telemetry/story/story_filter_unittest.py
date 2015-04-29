@@ -6,10 +6,10 @@ import unittest
 
 from telemetry.page import page
 from telemetry.page import page_set
-from telemetry.user_story import user_story_filter
+from telemetry.story import story_filter as story_filter_module
 
 
-class UserStoryFilterTest(unittest.TestCase):
+class FilterTest(unittest.TestCase):
 
   def setUp(self):
     ps = page_set.PageSet()
@@ -34,11 +34,11 @@ class UserStoryFilterTest(unittest.TestCase):
         self.story_filter_exclude = story_filter_exclude
         self.story_label_filter = story_label_filter
         self.story_label_filter_exclude = story_label_filter_exclude
-    user_story_filter.UserStoryFilter.ProcessCommandLineArgs(
+    story_filter_module.StoryFilter.ProcessCommandLineArgs(
         parser, Options(**kwargs))
 
   def PageSelections(self):
-    return [user_story_filter.UserStoryFilter.IsSelected(p) for p in self.pages]
+    return [story_filter_module.StoryFilter.IsSelected(p) for p in self.pages]
 
   def testNoFilterMatchesAll(self):
     self.ProcessCommandLineArgs()

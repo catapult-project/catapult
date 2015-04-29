@@ -22,7 +22,7 @@ class UserStory(object):
     name: string name of this user story that can be used for identifying user
         story in results output.
     labels: A list or set of string labels that are used for filtering. See
-        user_story.user_story_filter for more information.
+        story.story_filter for more information.
     is_local: If true, the user story does not require network.
   """
 
