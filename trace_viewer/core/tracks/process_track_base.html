@@ -128,6 +128,7 @@ tv.exportTo('tv.c.tracks', function() {
       // Create the object instance tracks for this process.
       this.willAppendTracks_();
       if (this.expanded) {
+        this.appendMemoryDumpTrack_();
         this.appendObjectInstanceTracks_();
         this.appendCounterTracks_();
         this.appendFrameTrack_();
@@ -148,6 +149,9 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     didAppendTracks_: function() {
+    },
+
+    appendMemoryDumpTrack_: function() {
     },
 
     appendSummaryTrack_: function() {

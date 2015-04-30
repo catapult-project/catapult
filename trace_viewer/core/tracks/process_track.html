@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/tracks/process_memory_dump_track.html">
 <link rel="import" href="/core/tracks/process_track_base.html">
 <link rel="import" href="/core/draw_helpers.html">
 
@@ -110,6 +111,15 @@ tv.exportTo('tv.c.tracks', function() {
       this.tracks_.forEach(function(track) {
         track.addContainersToTrackMap(containerToTrackMap);
       });
+    },
+
+    appendMemoryDumpTrack_: function() {
+      var processMemoryDumps = this.process.memoryDumps;
+      if (processMemoryDumps.length) {
+        var pmdt = new tv.c.tracks.ProcessMemoryDumpTrack(this.viewport_);
+        pmdt.memoryDumps = processMemoryDumps;
+        this.appendChild(pmdt);
+      }
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(

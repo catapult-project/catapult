@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_viewport.html">
 <link rel="import" href="/core/tracks/drawing_container.html">
-<link rel="import" href="/core/tracks/global_memory_dump_track.html">
+<link rel="import" href="/core/tracks/process_memory_dump_track.html">
 <link rel="import" href="/core/tracks/memory_dump_track_test_utils.html">
 
 <script>
@@ -16,24 +16,27 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   var Viewport = tv.c.TimelineViewport;
-  var GlobalMemoryDumpTrack = tv.c.tracks.GlobalMemoryDumpTrack;
-  var createTestGlobalMemoryDumps = tv.c.tracks.createTestGlobalMemoryDumps;
+  var ProcessMemoryDumpTrack = tv.c.tracks.ProcessMemoryDumpTrack;
+  var createTestProcessMemoryDumps = tv.c.tracks.createTestProcessMemoryDumps;
 
   function instantiateTrack(withVMRegions, withAllocatorDumps,
                             expectedTrackCount) {
-    var dumps = createTestGlobalMemoryDumps(withVMRegions, withAllocatorDumps);
+    var dumps = createTestProcessMemoryDumps(withVMRegions, withAllocatorDumps);
 
     var div = document.createElement('div');
     var viewport = new Viewport(div);
     var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
-    var track = new GlobalMemoryDumpTrack(viewport);
+    var track = new ProcessMemoryDumpTrack(viewport);
     drawingContainer.appendChild(track);
     drawingContainer.invalidate();
 
     track.memoryDumps = dumps;
-    this.addHTMLOutput(div);
+
+    // TODO(petrcermak): Check that the div has indeed zero size.
+    if (expectedTrackCount > 0)
+      this.addHTMLOutput(div);
 
     var dt = new tv.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
@@ -42,20 +45,11 @@ tv.b.unittest.testSuite(function() {
     assert.lengthOf(track.tracks_, expectedTrackCount);
   };
 
-  test('instantiate_dotsOnly', function() {
-    instantiateTrack.call(this, false, false, 1);
+  test('instantiate_withoutMemoryAllocatorDumps', function() {
+    instantiateTrack.call(this, false, false, 0);
   });
-
-  test('instantiate_withVMRegions', function() {
-    instantiateTrack.call(this, true, false, 2);
-  });
-
   test('instantiate_withMemoryAllocatorDumps', function() {
-    instantiateTrack.call(this, false, true, 2);
-  });
-
-  test('instantiate_withBoth', function() {
-    instantiateTrack.call(this, true, true, 3);
+    instantiateTrack.call(this, false, true, 1);
   });
 });
 </script>

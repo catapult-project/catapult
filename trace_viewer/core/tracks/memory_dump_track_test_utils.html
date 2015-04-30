@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/trace_model/attribute.html">
+<link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/trace_model/process_memory_dump.html">
+<link rel="import" href="/core/trace_model/selection_state.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Helper functions for memory dump track tests.
+ */
+tv.exportTo('tv.c.tracks', function() {
+  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
+  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
+  var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
+  var VMRegion = tv.c.trace_model.VMRegion;
+  var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
+  var TraceModel = tv.c.TraceModel;
+  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
+  var SelectionState = tv.c.trace_model.SelectionState;
+
+  function createVMRegions(pssValues) {
+    return pssValues.map(function(pssValue, i) {
+      return VMRegion.fromDict({
+        startAddress: 1000 * i,
+        sizeInBytes: 1000,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+        mappedFile: '[stack' + i + ']',
+        byteStats: VMRegionByteStats.fromDict({
+          privateResident: pssValue / 3,
+          sharedResident: pssValue * 3,
+          proportionalResident: pssValue
+        })
+      });
+    });
+  }
+
+  function createAllocatorDumps(dumpSizes) {
+    var allocatorDumps = [];
+    tv.b.iterItems(dumpSizes, function(allocatorName, size) {
+      var dump = new MemoryAllocatorDump(allocatorName);
+      dump.addAttribute('outer_size', new ScalarAttribute('bytes', size));
+      allocatorDumps.push(dump);
+    });
+    return allocatorDumps;
+  }
+
+  function addProcessMemoryDump(globalMemoryDump, process, start,
+      opt_vmRegions, opt_allocatorDumps) {
+    var pmd = new ProcessMemoryDump(globalMemoryDump, process, start);
+    if (opt_vmRegions !== undefined)
+      pmd.vmRegions = opt_vmRegions;
+    if (opt_allocatorDumps !== undefined)
+      pmd.memoryAllocatorDumps = opt_allocatorDumps;
+    globalMemoryDump.processMemoryDumps[process.pid] = pmd;
+    process.memoryDumps.push(pmd);
+  }
+
+  function createModelWithDumps(withVMRegions, withAllocatorDumps) {
+    var maybeAddVMRegions = function(pssValues) {
+      return withVMRegions ? createVMRegions(pssValues) : undefined;
+    };
+    var maybeAddAllocatorDumps = function(dumpSizes) {
+      return withAllocatorDumps ? createAllocatorDumps(dumpSizes) : undefined;
+    };
+    return tv.c.test_utils.newModel(function(model) {
+      // Construct a model with three processes.
+      var pa = model.getOrCreateProcess(3);
+      var pb = model.getOrCreateProcess(6);
+      var pc = model.getOrCreateProcess(9);
+
+      var gmd1 = new GlobalMemoryDump(model, 0);
+      model.globalMemoryDumps.push(gmd1);
+      addProcessMemoryDump(gmd1, pa, 0, maybeAddVMRegions([111]));
+      addProcessMemoryDump(gmd1, pb, 0.2, undefined,
+          maybeAddAllocatorDumps({oilpan: 1024}));
+
+      var gmd2 = new GlobalMemoryDump(model, 5);
+      model.globalMemoryDumps.push(gmd2);
+      addProcessMemoryDump(gmd2, pa, 0);
+      addProcessMemoryDump(gmd2, pb, 4.99, maybeAddVMRegions([100, 50]),
+          maybeAddAllocatorDumps({v8: 512}));
+      addProcessMemoryDump(gmd2, pc, 5.12, undefined,
+          maybeAddAllocatorDumps({oilpan: 128, v8: 256}));
+
+      var gmd3 = new GlobalMemoryDump(model, 15);
+      model.globalMemoryDumps.push(gmd3);
+      addProcessMemoryDump(gmd3, pa, 15.5, maybeAddVMRegions([]),
+          maybeAddAllocatorDumps({v8: 768}));
+      addProcessMemoryDump(gmd3, pc, 14.5, maybeAddVMRegions([70, 70, 70]),
+          maybeAddAllocatorDumps({oilpan: 512}));
+
+      var gmd4 = new GlobalMemoryDump(model, 18);
+      model.globalMemoryDumps.push(gmd4);
+    });
+  }
+
+  function createTestGlobalMemoryDumps(withVMRegions, withAllocatorDumps) {
+    var model = createModelWithDumps(withVMRegions, withAllocatorDumps);
+    var dumps = model.globalMemoryDumps;
+    dumps[1].selectionState = SelectionState.HIGHLIGHTED;
+    dumps[2].selectionState = SelectionState.SELECTED;
+    return dumps;
+  }
+
+  function createTestProcessMemoryDumps(withVMRegions, withAllocatorDumps) {
+    var model = createModelWithDumps(withVMRegions, withAllocatorDumps);
+    var dumps = model.getProcess(9).memoryDumps;
+    dumps[0].selectionState = SelectionState.SELECTED;
+    dumps[1].selectionState = SelectionState.HIGHLIGHTED;
+    return dumps;
+  }
+
+  return {
+    createTestGlobalMemoryDumps: createTestGlobalMemoryDumps,
+    createTestProcessMemoryDumps: createTestProcessMemoryDumps
+  };
+});
+</script>

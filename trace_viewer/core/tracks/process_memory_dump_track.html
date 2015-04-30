@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/tracks/chart_track.html">
 <link rel="import" href="/core/tracks/container_track.html">
-<link rel="import" href="/core/tracks/letter_dot_track.html">
 <link rel="import" href="/core/tracks/memory_dump_track_util.html">
 
 <script>
@@ -15,18 +14,17 @@ found in the LICENSE file.
 
 tv.exportTo('tv.c.tracks', function() {
 
-  var USED_MEMORY_TRACK_HEIGHT = 50;
   var ALLOCATED_MEMORY_TRACK_HEIGHT = 50;
 
   /**
-   * A track that displays an array of GlobalMemoryDump objects.
+   * A track that displays an array of ProcessMemoryDump objects.
    * @constructor
    * @extends {ContainerTrack}
    */
-  var GlobalMemoryDumpTrack = tv.b.ui.define(
-      'global-memory-dump-track', tv.c.tracks.ContainerTrack);
+  var ProcessMemoryDumpTrack = tv.b.ui.define(
+      'process-memory-dump-track', tv.c.tracks.ContainerTrack);
 
-  GlobalMemoryDumpTrack.prototype = {
+  ProcessMemoryDumpTrack.prototype = {
     __proto__: tv.c.tracks.ContainerTrack.prototype,
 
     decorate: function(viewport) {
@@ -52,38 +50,11 @@ tv.exportTo('tv.c.tracks', function() {
       if (!this.memoryDumps_ || !this.memoryDumps_.length)
         return;
 
-      this.appendDumpDotsTrack_();
-      this.appendUsedMemoryTrack_();
       this.appendAllocatedMemoryTrack_();
     },
 
-    appendDumpDotsTrack_: function() {
-      var items = tv.c.tracks.buildMemoryLetterDots(this.memoryDumps_);
-      if (!items)
-        return;
-
-      var track = new tv.c.tracks.LetterDotTrack(this.viewport);
-      track.heading = 'Memory Dumps';
-      track.items = items;
-      this.appendChild(track);
-    },
-
-    appendUsedMemoryTrack_: function() {
-      var series = tv.c.tracks.buildGlobalUsedMemoryChartSeries(
-          this.memoryDumps_);
-      if (!series)
-        return;
-
-      var track = new tv.c.tracks.ChartTrack(this.viewport);
-      track.heading = 'Used memory (per process)';
-      track.height = USED_MEMORY_TRACK_HEIGHT + 'px';
-      track.series = series;
-      track.autoSetAllAxes({expandMax: true});
-      this.appendChild(track);
-    },
-
     appendAllocatedMemoryTrack_: function() {
-      var series = tv.c.tracks.buildGlobalAllocatedMemoryChartSeries(
+      var series = tv.c.tracks.buildProcessAllocatedMemoryChartSeries(
           this.memoryDumps_);
       if (!series)
         return;
@@ -98,7 +69,7 @@ tv.exportTo('tv.c.tracks', function() {
   };
 
   return {
-    GlobalMemoryDumpTrack: GlobalMemoryDumpTrack
+    ProcessMemoryDumpTrack: ProcessMemoryDumpTrack
   };
 });
 </script>
