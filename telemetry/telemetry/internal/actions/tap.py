@@ -10,7 +10,8 @@ from telemetry.internal.actions import page_action
 class TapAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_position_percentage=0.5, top_position_percentage=0.5,
-               duration_ms=50):
+               duration_ms=50,
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
     super(TapAction, self).__init__()
     self.selector = selector
     self.text = text
@@ -18,6 +19,8 @@ class TapAction(page_action.PageAction):
     self.left_position_percentage = left_position_percentage
     self.top_position_percentage = top_position_percentage
     self.duration_ms = duration_ms
+    self._synthetic_gesture_source = ('chrome.gpuBenchmarking.%s_INPUT' %
+                                      synthetic_gesture_source)
 
   def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'tap.js']:
@@ -43,7 +46,6 @@ class TapAction(page_action.PageAction):
   def RunAction(self, tab):
     if not self.HasElementSelector():
       self.element_function = 'document.body'
-    gesture_source_type = page_action.GetGestureSourceTypeFromOptions(tab)
 
     tap_cmd = ('''
         window.__tapAction.start({
@@ -56,7 +58,7 @@ class TapAction(page_action.PageAction):
           % (self.left_position_percentage,
              self.top_position_percentage,
              self.duration_ms,
-             gesture_source_type))
+             self._synthetic_gesture_source))
     code = '''
         function(element, errorMsg) {
           if (!element) {

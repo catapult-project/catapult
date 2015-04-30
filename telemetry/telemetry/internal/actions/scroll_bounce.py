@@ -11,7 +11,8 @@ class ScrollBounceAction(page_action.PageAction):
                left_start_ratio=0.5, top_start_ratio=0.5,
                direction='down', distance=100,
                overscroll=10, repeat_count=10,
-               speed_in_pixels_per_second=400):
+               speed_in_pixels_per_second=400,
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
     super(ScrollBounceAction, self).__init__()
     if direction not in ['down', 'up', 'left', 'right']:
       raise page_action.PageActionNotSupported(
@@ -32,6 +33,8 @@ class ScrollBounceAction(page_action.PageAction):
     self._repeat_count = repeat_count
     # 7 pixels per frame should be plenty of frames.
     self._speed = speed_in_pixels_per_second
+    self._synthetic_gesture_source = ('chrome.gpuBenchmarking.%s_INPUT' %
+                                      synthetic_gesture_source)
 
     if (self._selector is None and self._text is None and
         self._element_function is None):
@@ -55,7 +58,7 @@ class ScrollBounceAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'Touch scroll not supported for this browser')
 
-    if (page_action.GetGestureSourceTypeFromOptions(tab) ==
+    if (self._synthetic_gesture_source ==
         'chrome.gpuBenchmarking.MOUSE_INPUT'):
       raise page_action.PageActionNotSupported(
           'ScrollBounce page action does not support mouse input')

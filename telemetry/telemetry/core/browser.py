@@ -73,10 +73,6 @@ class Browser(app.App):
     return self._browser_backend.supports_tab_control
 
   @property
-  def synthetic_gesture_source_type(self):
-    return self._browser_backend.browser_options.synthetic_gesture_source_type
-
-  @property
   def tabs(self):
     return self._tabs
 

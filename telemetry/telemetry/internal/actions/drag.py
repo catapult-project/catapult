@@ -28,7 +28,8 @@ class DragAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_start_ratio=None, top_start_ratio=None, left_end_ratio=None,
                top_end_ratio=None, speed_in_pixels_per_second=800,
-               use_touch=False):
+               use_touch=False,
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
     super(DragAction, self).__init__()
     self._selector = selector
     self._text = text
@@ -39,6 +40,8 @@ class DragAction(page_action.PageAction):
     self._top_end_ratio = top_end_ratio
     self._speed = speed_in_pixels_per_second
     self._use_touch = use_touch
+    self._synthetic_gesture_source = ('chrome.gpuBenchmarking.%s_INPUT' %
+                                      synthetic_gesture_source)
 
   def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'drag.js']:
@@ -57,7 +60,7 @@ class DragAction(page_action.PageAction):
         raise page_action.PageActionNotSupported(
             'Touch drag not supported for this browser')
 
-      if (page_action.GetGestureSourceTypeFromOptions(tab) ==
+      if (self._synthetic_gesture_source ==
           'chrome.gpuBenchmarking.MOUSE_INPUT'):
         raise page_action.PageActionNotSupported(
             'Drag requires touch on this page but mouse input was requested')

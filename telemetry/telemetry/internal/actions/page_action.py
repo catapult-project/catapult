@@ -6,6 +6,12 @@ import re
 
 from telemetry import decorators
 
+GESTURE_SOURCE_DEFAULT = 'DEFAULT'
+GESTURE_SOURCE_MOUSE = 'MOUSE'
+GESTURE_SOURCE_TOUCH = 'TOUCH'
+SUPPORTED_GESTURE_SOURCES = (GESTURE_SOURCE_DEFAULT,
+                             GESTURE_SOURCE_MOUSE,
+                             GESTURE_SOURCE_TOUCH)
 
 class PageActionNotSupported(Exception):
   pass
@@ -112,9 +118,6 @@ def EvaluateCallbackWithElement(
 def _EscapeSelector(selector):
   return selector.replace('\'', '\\\'')
 
-def GetGestureSourceTypeFromOptions(tab):
-  gesture_source_type = tab.browser.synthetic_gesture_source_type
-  return 'chrome.gpuBenchmarking.' + gesture_source_type.upper() + '_INPUT'
 
 @decorators.Cache
 def IsGestureSourceTypeSupported(tab, gesture_source_type):

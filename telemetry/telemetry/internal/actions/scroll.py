@@ -12,7 +12,8 @@ class ScrollAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_start_ratio=0.5, top_start_ratio=0.5, direction='down',
                distance=None, distance_expr=None,
-               speed_in_pixels_per_second=800, use_touch=False):
+               speed_in_pixels_per_second=800, use_touch=False,
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
     super(ScrollAction, self).__init__()
     if direction not in ('down', 'up', 'left', 'right',
                          'downleft', 'downright',
@@ -27,6 +28,8 @@ class ScrollAction(page_action.PageAction):
     self._direction = direction
     self._speed = speed_in_pixels_per_second
     self._use_touch = use_touch
+    self._synthetic_gesture_source = ('chrome.gpuBenchmarking.%s_INPUT' %
+                                      synthetic_gesture_source)
 
     self._distance_func = 'null'
     if distance:
@@ -61,7 +64,7 @@ class ScrollAction(page_action.PageAction):
         raise page_action.PageActionNotSupported(
             'Touch scroll not supported for this browser')
 
-      if (page_action.GetGestureSourceTypeFromOptions(tab) ==
+      if (self._synthetic_gesture_source ==
           'chrome.gpuBenchmarking.MOUSE_INPUT'):
         raise page_action.PageActionNotSupported(
             'Scroll requires touch on this page but mouse input was requested')
@@ -77,7 +80,7 @@ class ScrollAction(page_action.PageAction):
         self._element_function is None):
       self._element_function = 'document.body'
 
-    gesture_source_type = page_action.GetGestureSourceTypeFromOptions(tab)
+    gesture_source_type = self._synthetic_gesture_source
     if self._use_touch:
       gesture_source_type = 'chrome.gpuBenchmarking.TOUCH_INPUT'
 

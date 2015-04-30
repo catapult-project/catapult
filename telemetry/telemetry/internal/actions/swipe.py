@@ -10,7 +10,8 @@ from telemetry.internal.actions import page_action
 class SwipeAction(page_action.PageAction):
   def __init__(self, selector=None, text=None, element_function=None,
                left_start_ratio=0.5, top_start_ratio=0.5,
-               direction='left', distance=100, speed_in_pixels_per_second=800):
+               direction='left', distance=100, speed_in_pixels_per_second=800,
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
     super(SwipeAction, self).__init__()
     if direction not in ['down', 'up', 'left', 'right']:
       raise page_action.PageActionNotSupported(
@@ -23,6 +24,8 @@ class SwipeAction(page_action.PageAction):
     self._direction = direction
     self._distance = distance
     self._speed = speed_in_pixels_per_second
+    self._synthetic_gesture_source = ('chrome.gpuBenchmarking.%s_INPUT' %
+                                      synthetic_gesture_source)
 
   def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'swipe.js']:
@@ -35,7 +38,7 @@ class SwipeAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'Synthetic swipe not supported for this browser')
 
-    if (page_action.GetGestureSourceTypeFromOptions(tab) ==
+    if (self._synthetic_gesture_source ==
         'chrome.gpuBenchmarking.MOUSE_INPUT'):
       raise page_action.PageActionNotSupported(
           'Swipe page action does not support mouse input')
