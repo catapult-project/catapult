@@ -95,20 +95,25 @@ tv.b.unittest.testSuite(function() {
 
     var overviewPane = tv.b.findDeepElementMatching(
         viewEl, 'tv-c-memory-dump-overview-pane');
-    var overviewTable = tv.b.findDeepElementMatching(
-        overviewPane, 'tracing-analysis-nested-table');
-
     var processPane = tv.b.findDeepElementMatching(
         viewEl, 'tv-c-memory-dump-process-pane');
+
+    var overviewTable = tv.b.findDeepElementMatching(
+        overviewPane, 'tracing-analysis-nested-table');
+    assert.lengthOf(overviewTable.tableRows, 2);
+
+    // The process pane should not contain a table (no process selected).
     var processTable = tv.b.findDeepElementMatching(
         processPane, 'tracing-analysis-nested-table');
-
-    assert.lengthOf(overviewTable.tableRows, 2);
-    assert.lengthOf(processTable.tableRows, 0);
+    assert.isUndefined(processTable);
 
     overviewTable.$.body.children[1].click();
 
     assert.lengthOf(overviewTable.tableRows, 2);
+
+    // The process pane should now contain a table (second process selected).
+    processTable = tv.b.findDeepElementMatching(
+        processPane, 'tracing-analysis-nested-table');
     assert.lengthOf(processTable.tableRows, 2);
   });
 });

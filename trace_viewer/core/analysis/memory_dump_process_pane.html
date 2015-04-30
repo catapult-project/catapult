@@ -29,14 +29,21 @@ found in the LICENSE file.
         font-weight: bold;
       }
 
-      #table {
+      #contents {
         flex: 1 1 auto;
         align-self: stretch;
+        font-size: 12px;
+      }
+
+      #contents .info-text {
+        padding: 8px;
+        color: #666;
+        font-style: italic;
+        text-align: center;
       }
     </style>
-    <div id="label">Process</div>
-    <tracing-analysis-nested-table id="table">
-    </tracing-analysis-nested-table>
+    <div id="label">Details</div>
+    <div id="contents"></div>
   </template>
   <script>
   'use strict';
@@ -51,6 +58,7 @@ found in the LICENSE file.
     },
 
     ready: function() {
+      this.updateContents_();
     },
 
     set processMemoryDump(processMemoryDump) {
@@ -63,10 +71,30 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
+      this.$.contents.textContent = '';
+
+      if (this.processMemoryDump_ === undefined) {
+        var infoText = this.ownerDocument.createElement('div');
+        this.$.contents.appendChild(infoText);
+        infoText.classList.add('info-text');
+        infoText.innerText = 'No process selected';
+        return;
+      }
+
+      var rows = this.createRows_();
+      var columns = this.createColumns_(rows);
+
+      var table = this.ownerDocument.createElement(
+          'tracing-analysis-nested-table');
+      this.$.contents.appendChild(table);
+      table.tableRows = rows;
+      table.tableColumns = columns;
+      table.rebuild();
+    },
+
+    createRows_: function() {
       var memoryAllocatorDumps;
-      if (this.processMemoryDump_ === undefined)
-        memoryAllocatorDumps = [];
-      else if (this.processMemoryDump_.memoryAllocatorDumps === undefined)
+      if (this.processMemoryDump_.memoryAllocatorDumps === undefined)
         memoryAllocatorDumps = [];
       else
         memoryAllocatorDumps = this.processMemoryDump_.memoryAllocatorDumps;
@@ -83,14 +111,10 @@ found in the LICENSE file.
         });
       };
       var rows = createAllocatorRows(memoryAllocatorDumps);
-      this.$.table.tableRows = rows;
-
-      this.updateColumns_(rows);
-
-      this.$.table.rebuild();
+      return rows;
     },
 
-    updateColumns_: function(rows) {
+    createColumns_: function(rows) {
       var titleColumn = {
         title: 'Allocator',
         value: function(row) {
@@ -107,7 +131,7 @@ found in the LICENSE file.
       tv.c.analysis.MemoryColumn.spaceEqually(attributeColumns);
 
       var columns = [titleColumn].concat(attributeColumns);
-      this.$.table.tableColumns = columns;
+      return columns;
     }
   });
   </script>
