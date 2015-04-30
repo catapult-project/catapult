@@ -6,15 +6,10 @@ import os
 
 from telemetry.page import page as page_module
 from telemetry.user_story import user_story_set
-from telemetry.util import cloud_storage
 
-PUBLIC_BUCKET = cloud_storage.PUBLIC_BUCKET
-PARTNER_BUCKET = cloud_storage.PARTNER_BUCKET
-INTERNAL_BUCKET = cloud_storage.INTERNAL_BUCKET
-
-
-class PageSetError(Exception):
-  pass
+PUBLIC_BUCKET = user_story_set.PUBLIC_BUCKET
+PARTNER_BUCKET = user_story_set.PARTNER_BUCKET
+INTERNAL_BUCKET = user_story_set.INTERNAL_BUCKET
 
 
 class PageSet(user_story_set.UserStorySet):
