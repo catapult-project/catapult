@@ -81,11 +81,6 @@ class HtmlOutputFormatterTest(unittest.TestCase):
               "units": "seconds",
               "important": False
             },
-            "telemetry_page_measurement_results.num_errored": {
-              "current": [0],
-              "units": "count",
-              "important": False
-            },
             "a.http://www.foo.com/": {
               "current": [3],
               "units": "seconds",
@@ -137,11 +132,6 @@ class HtmlOutputFormatterTest(unittest.TestCase):
                 "units": "seconds",
                 "important": False
               },
-              "telemetry_page_measurement_results.num_errored": {
-                "current": [0],
-                "units": "count",
-                "important": False
-              },
               "a.http://www.foo.com/": {
                 "current": [3],
                 "units": "seconds",
@@ -172,11 +162,6 @@ class HtmlOutputFormatterTest(unittest.TestCase):
               "a.http://www.bar.com/": {
                 "current": [8],
                 "units": "seconds",
-                "important": False
-              },
-              "telemetry_page_measurement_results.num_errored": {
-                "current": [0],
-                "units": "count",
                 "important": False
               },
               "a.http://www.foo.com/": {
@@ -228,11 +213,6 @@ class HtmlOutputFormatterTest(unittest.TestCase):
             "a.http://www.bar.com/": {
               "current": [9],
               "units": "seconds",
-              "important": False
-            },
-            "telemetry_page_measurement_results.num_errored": {
-              "current": [0],
-              "units": "count",
               "important": False
             },
             "a.http://www.foo.com/": {
