@@ -50,7 +50,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = [v0]
     summary_values = []
 
-    d = chart_json_output_formatter.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -60,7 +60,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = []
     summary_values = []
 
-    d = chart_json_output_formatter.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -73,7 +73,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = []
     summary_values = []
 
-    d = chart_json_output_formatter.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         benchmark.BenchmarkMetadata('benchmark_name', ''),
         page_specific_values,
         summary_values)
@@ -86,7 +86,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = [v0, v1]
     summary_values = []
 
-    d = chart_json_output_formatter.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -100,7 +100,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = [v0, v1]
     summary_values = []
 
-    d = chart_json_output_formatter.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -116,7 +116,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = [v0, v1]
     summary_values = []
 
-    d = chart_json_output_formatter.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -132,7 +132,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = []
     summary_values = [v0]
 
-    d = chart_json_output_formatter.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -145,7 +145,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = []
     summary_values = [v0]
 
-    d = chart_json_output_formatter.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
@@ -158,7 +158,7 @@ class ChartJsonTest(unittest.TestCase):
     page_specific_values = []
     summary_values = [v0]
 
-    d = chart_json_output_formatter.ResultsAsChartDict(
+    d = chart_json_output_formatter._ResultsAsChartDict( # pylint: disable=W0212
         self._benchmark_metadata,
         page_specific_values,
         summary_values)
