@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/memory_dump_overview_pane.html">
 <link rel="import" href="/core/analysis/memory_dump_process_pane.html">
 
-<polymer-element name="tv-c-single-global-memory-dump-sub-view"
+<polymer-element name="tv-c-single-process-memory-dump-sub-view"
     extends="tracing-analysis-sub-view">
   <template>
     <style>
@@ -41,9 +41,9 @@ found in the LICENSE file.
 
     set selection(selection) {
       if (selection.length !== 1)
-        throw new Error('Only supports a single global memory dump');
-      if (!(selection[0] instanceof tv.c.trace_model.GlobalMemoryDump))
-        throw new Error('Only supports global memory dumps');
+        throw new Error('Only supports a single process memory dump');
+      if (!(selection[0] instanceof tv.c.trace_model.ProcessMemoryDump))
+        throw new Error('Only supports process memory dumps');
       this.setSelectionWithoutErrorChecks(selection);
     },
 
@@ -57,8 +57,7 @@ found in the LICENSE file.
 
     setSelectionWithoutErrorChecks: function(selection) {
       this.currentSelection_ = selection;
-      this.$.overview_pane.processMemoryDumps = tv.b.dictionaryValues(
-          selection[0].processMemoryDumps);
+      this.$.overview_pane.processMemoryDumps = [selection[0]];
       this.$.process_pane.processMemoryDump = undefined;
     }
   });

@@ -16,16 +16,16 @@ found in the LICENSE file.
 
 tv.b.unittest.testSuite(function() {
   var Selection = tv.c.Selection;
-  var createTestGlobalMemoryDump = tv.c.analysis.createTestGlobalMemoryDump;
+  var createTestProcessMemoryDump = tv.c.analysis.createTestProcessMemoryDump;
 
   test('instantiate', function() {
-    var globalMemoryDump = createTestGlobalMemoryDump();
+    var processMemoryDump = createTestProcessMemoryDump();
 
     var selection = new Selection();
-    selection.push(globalMemoryDump);
+    selection.push(processMemoryDump);
 
     var viewEl = document.createElement(
-        'tv-c-single-global-memory-dump-sub-view');
+        'tv-c-single-process-memory-dump-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
 
@@ -36,16 +36,16 @@ tv.b.unittest.testSuite(function() {
 
     var overviewTable = tv.b.findDeepElementMatching(
         overviewPane, 'tracing-analysis-nested-table');
-    assert.lengthOf(overviewTable.tableRows, 2);
+    assert.lengthOf(overviewTable.tableRows, 1);
 
     // The process pane should not contain a table (no process selected).
     var processTable = tv.b.findDeepElementMatching(
         processPane, 'tracing-analysis-nested-table');
     assert.isUndefined(processTable);
 
-    overviewTable.$.body.children[1].click();
+    overviewTable.$.body.children[0].click();
 
-    assert.lengthOf(overviewTable.tableRows, 2);
+    assert.lengthOf(overviewTable.tableRows, 1);
 
     // The process pane should now contain a table (second process selected).
     processTable = tv.b.findDeepElementMatching(

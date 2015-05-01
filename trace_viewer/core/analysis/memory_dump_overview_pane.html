@@ -85,10 +85,9 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
-      var processMemoryDumps = this.processMemoryDumps_ || {};
+      var processMemoryDumps = this.processMemoryDumps_ || [];
 
-      var rows = [];
-      tv.b.iterItems(processMemoryDumps, function(pid, processMemoryDump) {
+      var rows = processMemoryDumps.map(function(processMemoryDump) {
         // Used memory (proportional, private, and shared resident)
         var usedMemorySizes = {};
         function addUsedMemorySize(columnKey, dumpKey) {
@@ -113,12 +112,12 @@ found in the LICENSE file.
           }, this);
         }
 
-        rows.push({
+        return {
           title: processMemoryDump.process.userFriendlyName,
           usedMemorySizes: usedMemorySizes,
           allocatorSizes: allocatorSizes,
           processMemoryDump: processMemoryDump
-        });
+        };
       }, this);
       this.$.table.tableRows = rows;
 

@@ -77,7 +77,7 @@ tv.b.unittest.testSuite(function() {
       })();
     });
 
-    return model.globalMemoryDumps[0].processMemoryDumps;
+    return tv.b.dictionaryValues(model.globalMemoryDumps[0].processMemoryDumps);
   }
 
   test('instantiate', function() {
@@ -138,13 +138,13 @@ tv.b.unittest.testSuite(function() {
     didFireSelectedDumpChanged = false;
     table.$.body.children[1].children[0].click();
     assert.isTrue(didFireSelectedDumpChanged);
-    assert.equal(viewEl.selectedProcessMemoryDump, processMemoryDumps[2]);
+    assert.equal(viewEl.selectedProcessMemoryDump, processMemoryDumps[1]);
 
     // Simulate clicking on the first body row.
     didFireSelectedDumpChanged = false;
     table.$.body.children[0].children[1].click();
     assert.isTrue(didFireSelectedDumpChanged);
-    assert.equal(viewEl.selectedProcessMemoryDump, processMemoryDumps[1]);
+    assert.equal(viewEl.selectedProcessMemoryDump, processMemoryDumps[0]);
   });
 });
 </script>

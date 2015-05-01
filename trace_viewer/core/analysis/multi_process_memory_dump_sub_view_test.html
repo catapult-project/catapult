@@ -17,18 +17,23 @@ tv.b.unittest.testSuite(function() {
   var TraceModel = tv.c.TraceModel;
   var Selection = tv.c.Selection;
   var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
+  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
 
   test('basic', function() {
-    var m = new tv.c.TraceModel();
+    var m = new TraceModel();
+    var p = m.getOrCreateProcess(42);
 
-    function addGlobalMemoryDump(timestamp) {
+    function addProcessMemoryDump(timestamp) {
       var gmd = new GlobalMemoryDump(m, timestamp);
       m.globalMemoryDumps.push(gmd);
-      return gmd;
+      var pmd = new ProcessMemoryDump(gmd, p, timestamp);
+      p.memoryDumps.push(pmd);
+      gmd.processMemoryDumps[pmd.pid] = pmd;
+      return pmd;
     }
 
-    var d1 = addGlobalMemoryDump(5);
-    var d2 = addGlobalMemoryDump(20);
+    var d1 = addProcessMemoryDump(5);
+    var d2 = addProcessMemoryDump(20);
 
     var selection = new Selection();
     selection.push(d1);
@@ -36,7 +41,7 @@ tv.b.unittest.testSuite(function() {
     assert.equal(selection.length, 2);
 
     var subView = document.createElement(
-        'tv-c-multi-global-memory-dump-sub-view');
+        'tv-c-multi-process-memory-dump-sub-view');
     subView.selection = selection;
 
     this.addHTMLOutput(subView);
