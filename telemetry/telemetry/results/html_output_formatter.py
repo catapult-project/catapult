@@ -8,8 +8,10 @@ import logging
 import os
 import re
 
+from telemetry import value as value_module
 from telemetry.core import util
-from telemetry.results import buildbot_output_formatter
+from telemetry.results import chart_json_output_formatter
+from telemetry.results import output_formatter
 from telemetry.util import cloud_storage
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'util')
@@ -26,19 +28,14 @@ _PLUGINS = [('third_party', 'flot', 'jquery.flot.min.js'),
 _UNIT_JSON = ('tools', 'perf', 'unit-info.json')
 
 
-# TODO(chrishenry): This should not really extend BuildbotOutputFormatter.
-# Leaving as-is now since we are going to move HtmlOutputFormatter to be
-# based on JSON anyway.
-class HtmlOutputFormatter(buildbot_output_formatter.BuildbotOutputFormatter):
+# TODO(eakuefner): rewrite template to use Telemetry JSON directly
+class HtmlOutputFormatter(output_formatter.OutputFormatter):
   def __init__(self, output_stream, metadata, reset_results, upload_results,
-      browser_type, results_label=None, trace_tag=''):
-    # Pass output_stream=None so that we blow up if
-    # BuildbotOutputFormatter ever use the output_stream.
-    super(HtmlOutputFormatter, self).__init__(None, trace_tag)
+      browser_type, results_label=None):
+    super(HtmlOutputFormatter, self).__init__(output_stream)
     self._metadata = metadata
     self._reset_results = reset_results
     self._upload_results = upload_results
-    self._html_output_stream = output_stream
     self._existing_results = self._ReadExistingResults(output_stream)
     self._result = {
         'buildTime': self._GetBuildTime(),
@@ -84,9 +81,9 @@ class HtmlOutputFormatter(buildbot_output_formatter.BuildbotOutputFormatter):
     return json.loads(m.group(1))[:512]
 
   def _SaveResults(self, results):
-    self._html_output_stream.seek(0)
-    self._html_output_stream.write(results)
-    self._html_output_stream.truncate()
+    self._output_stream.seek(0)
+    self._output_stream.write(results)
+    self._output_stream.truncate()
 
   def _PrintPerfResult(self, measurement, trace, values, units,
                        result_type='default'):
@@ -101,6 +98,32 @@ class HtmlOutputFormatter(buildbot_output_formatter.BuildbotOutputFormatter):
         'important': result_type == 'default'
         }
 
+  def _TranslateChartJson(self, chart_json_dict):
+    dummy_dict = dict()
+
+    for chart_name, traces in chart_json_dict['charts'].iteritems():
+      for trace_name, value_dict in traces.iteritems():
+        # TODO(eakuefner): refactor summarization so we don't have to jump
+        # through hoops like this.
+        if 'page_id' in value_dict:
+          del value_dict['page_id']
+          result_type = 'nondefault'
+        else:
+          result_type = 'default'
+
+        # Note: we explicitly ignore TraceValues because Buildbot did.
+        if value_dict['type'] == 'trace':
+          continue
+        value = value_module.Value.FromDict(value_dict, dummy_dict)
+
+        perf_value = value.GetBuildbotValue()
+
+        if trace_name == 'summary':
+          trace_name = chart_name
+
+        self._PrintPerfResult(chart_name, trace_name, perf_value,
+                              value.units, result_type)
+
   @property
   def _test_name(self):
     return self._metadata.name
@@ -114,7 +137,14 @@ class HtmlOutputFormatter(buildbot_output_formatter.BuildbotOutputFormatter):
     return all_results
 
   def Format(self, page_test_results):
-    super(HtmlOutputFormatter, self).Format(page_test_results)
+    chart_json_dict = chart_json_output_formatter.ResultsAsChartDict(
+        self._metadata, page_test_results.all_page_specific_values,
+        page_test_results.all_summary_values)
+
+    self._TranslateChartJson(chart_json_dict)
+    self._PrintPerfResult('telemetry_page_measurement_results', 'num_failed',
+                          [len(page_test_results.failures)], 'count',
+                          'unimportant')
 
     html = self._GetHtmlTemplate()
     html = html.replace('%json_results%', json.dumps(self.GetCombinedResults()))
@@ -123,7 +153,7 @@ class HtmlOutputFormatter(buildbot_output_formatter.BuildbotOutputFormatter):
     self._SaveResults(html)
 
     if self._upload_results:
-      file_path = os.path.abspath(self._html_output_stream.name)
+      file_path = os.path.abspath(self._output_stream.name)
       file_name = 'html-results/results-%s' % datetime.datetime.now().strftime(
           '%Y-%m-%d_%H-%M-%S')
       try:
@@ -137,4 +167,4 @@ class HtmlOutputFormatter(buildbot_output_formatter.BuildbotOutputFormatter):
                       ' permission error: %s' % e.message)
     print
     print 'View result at file://%s' % os.path.abspath(
-        self._html_output_stream.name)
+        self._output_stream.name)

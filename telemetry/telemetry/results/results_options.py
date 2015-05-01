@@ -145,7 +145,7 @@ def CreateResults(benchmark_metadata, options,
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
           output_stream, benchmark_metadata, options.reset_results,
           options.upload_results, options.browser_type,
-          options.results_label, trace_tag=options.output_trace_tag))
+          options.results_label))
     elif output_format == 'json':
       output_formatters.append(json_output_formatter.JsonOutputFormatter(
           output_stream, benchmark_metadata))
