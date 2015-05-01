@@ -309,6 +309,7 @@
       'trace_viewer/extras/gpu/state.html',
       'trace_viewer/extras/gpu/state_view.html',
       'trace_viewer/extras/highlighter/vsync_highlighter.html',
+      'trace_viewer/extras/importer/battor_importer.html',
       'trace_viewer/extras/importer/ddms_importer.html',
       'trace_viewer/extras/importer/etw/etw_importer.html',
       'trace_viewer/extras/importer/etw/eventtrace_parser.html',
