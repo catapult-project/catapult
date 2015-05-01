@@ -16,6 +16,7 @@ from telemetry.core import exceptions
 from telemetry.core import user_agent
 from telemetry.core import util
 from telemetry import decorators
+from telemetry.internal import story_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_set
 from telemetry.page import page_test
@@ -24,7 +25,6 @@ from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
-from telemetry.user_story import user_story_runner
 from telemetry.util import exception_formatter
 from unittest_data.page_sets import example_domain
 
@@ -44,11 +44,11 @@ class DummyTest(page_test.PageTest):
     pass
 
 
-def SetUpUserStoryRunnerArguments(options):
+def SetUpStoryRunnerArguments(options):
   parser = options.CreateParser()
-  user_story_runner.AddCommandLineArgs(parser)
+  story_runner.AddCommandLineArgs(parser)
   options.MergeDefaultValues(parser.get_default_values())
-  user_story_runner.ProcessCommandLineArgs(parser, options)
+  story_runner.ProcessCommandLineArgs(parser, options)
 
 class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
   def __init__(self):
@@ -87,13 +87,13 @@ def CaptureStderr(func, output_buffer):
 
 
 # TODO: remove test cases that use real browsers and replace with a
-# user_story_runner or shared_page_state unittest that tests the same logic.
+# story_runner or shared_page_state unittest that tests the same logic.
 class PageRunEndToEndTests(unittest.TestCase):
   # TODO(nduca): Move the basic "test failed, test succeeded" tests from
   # page_test_unittest to here.
 
   def setUp(self):
-    self._user_story_runner_logging_stub = None
+    self._story_runner_logging_stub = None
     self._formatted_exception_buffer = StringIO.StringIO()
     self._original_formatter = exception_formatter.PrintFormattedException
 
@@ -104,8 +104,8 @@ class PageRunEndToEndTests(unittest.TestCase):
     exception_formatter.PrintFormattedException = CaptureStderr(
         exception_formatter.PrintFormattedException,
         self._formatted_exception_buffer)
-    self._user_story_runner_logging_stub = system_stub.Override(
-        user_story_runner, ['logging'])
+    self._story_runner_logging_stub = system_stub.Override(
+        story_runner, ['logging'])
 
   @property
   def formatted_exception(self):
@@ -113,9 +113,9 @@ class PageRunEndToEndTests(unittest.TestCase):
 
   def RestoreExceptionFormatter(self):
     exception_formatter.PrintFormattedException = self._original_formatter
-    if self._user_story_runner_logging_stub:
-      self._user_story_runner_logging_stub.Restore()
-      self._user_story_runner_logging_stub = None
+    if self._story_runner_logging_stub:
+      self._story_runner_logging_stub.Restore()
+      self._story_runner_logging_stub = None
 
   def assertFormattedExceptionIsEmpty(self):
     self.longMessage = False
@@ -162,9 +162,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     test = Test()
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
+    story_runner.Run(test, ps, expectations, options, results)
     self.assertEquals(2, test.run_count)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
@@ -195,9 +195,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     test = Test(needs_browser_restart_after_each_page=True)
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
+    story_runner.Run(test, ps, expectations, options, results)
     self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(2, test.browser_starts)
     self.assertFormattedExceptionIsEmpty()
@@ -214,9 +214,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(DummyTest(), ps, expectations, options, results)
+    story_runner.Run(DummyTest(), ps, expectations, options, results)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(0, len(results.failures))
     self.assertFormattedExceptionOnlyHas('DevtoolsTargetCrashException')
@@ -267,9 +267,9 @@ class PageRunEndToEndTests(unittest.TestCase):
       options = options_for_unittests.GetCopy()
       options.output_formats = ['none']
       options.suppress_gtest_report = True
-      SetUpUserStoryRunnerArguments(options)
+      SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      user_story_runner.Run(test, ps, expectations, options, results)
+      story_runner.Run(test, ps, expectations, options, results)
     finally:
       os.remove(f.name)
 
@@ -298,13 +298,13 @@ class PageRunEndToEndTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
+    story_runner.Run(test, ps, expectations, options, results)
 
     self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
 
-  # Ensure that user_story_runner forces exactly 1 tab before running a page.
+  # Ensure that story_runner forces exactly 1 tab before running a page.
   @decorators.Enabled('has tabs')
   def testOneTab(self):
     ps = page_set.PageSet()
@@ -324,11 +324,11 @@ class PageRunEndToEndTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
+    story_runner.Run(test, ps, expectations, options, results)
 
-  # Ensure that user_story_runner allows >1 tab for multi-tab test.
+  # Ensure that story_runner allows >1 tab for multi-tab test.
   @decorators.Enabled('has tabs')
   def testMultipleTabsOkayForMultiTabTest(self):
     ps = page_set.PageSet()
@@ -348,11 +348,11 @@ class PageRunEndToEndTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
+    story_runner.Run(test, ps, expectations, options, results)
 
-  # Ensure that user_story_runner allows the test to customize the browser
+  # Ensure that story_runner allows the test to customize the browser
   # before it launches.
   def testBrowserBeforeLaunch(self):
     ps = page_set.PageSet()
@@ -382,9 +382,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
+    story_runner.Run(test, ps, expectations, options, results)
 
   def testRunPageWithStartupUrl(self):
     ps = page_set.PageSet()
@@ -414,13 +414,13 @@ class PageRunEndToEndTests(unittest.TestCase):
     if not browser_finder.FindBrowser(options):
       return
     test = Measurement()
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
+    story_runner.Run(test, ps, expectations, options, results)
     self.assertEquals('about:blank', options.browser_options.startup_url)
     self.assertTrue(test.browser_restarted)
 
-  # Ensure that user_story_runner calls cleanUp when a page run fails.
+  # Ensure that story_runner calls cleanUp when a page run fails.
   def testCleanUpPage(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
@@ -444,9 +444,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
+    story_runner.Run(test, ps, expectations, options, results)
     assert test.did_call_clean_up
 
   # Ensure skipping the test if shared state cannot be run on the browser.
@@ -480,9 +480,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results)
+    story_runner.Run(test, ps, expectations, options, results)
     self.assertFalse(test.will_navigate_to_page_called)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.skipped_values))
@@ -507,9 +507,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     options.output_dir = tempfile.mkdtemp()
     options.profiler = 'trace'
     try:
-      SetUpUserStoryRunnerArguments(options)
+      SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      user_story_runner.Run(Measurement(), ps, expectations, options, results)
+      story_runner.Run(Measurement(), ps, expectations, options, results)
       self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
       self.assertEquals(0, len(results.failures))
       self.assertEquals(0, len(results.all_page_specific_values))
@@ -531,9 +531,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(test, ps, expectations, options, results,
+    story_runner.Run(test, ps, expectations, options, results,
                           max_failures=max_failures)
     return results
 
@@ -576,10 +576,10 @@ class PageRunEndToEndTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpUserStoryRunnerArguments(options)
+    SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
 
-    user_story_runner.Run(test, ps, expectations, options, results)
+    story_runner.Run(test, ps, expectations, options, results)
 
     self.longMessage = True
     self.assertIn('Example Domain', body[0], msg='URL: %s' % ps.pages[0].url)

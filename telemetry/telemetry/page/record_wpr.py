@@ -10,11 +10,11 @@ from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import util
 from telemetry.core import wpr_modes
+from telemetry.internal import story_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
-from telemetry.user_story import user_story_runner
 
 class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
   def __init__(self):
@@ -124,7 +124,7 @@ class WprRecorder(object):
   def _AddCommandLineArgs(self):
     self._parser.add_option('--page-set-base-dir', action='store',
                             type='string')
-    user_story_runner.AddCommandLineArgs(self._parser)
+    story_runner.AddCommandLineArgs(self._parser)
     if self._benchmark is not None:
       self._benchmark.AddCommandLineArgs(self._parser)
       self._benchmark.SetArgumentDefaults(self._parser)
@@ -139,7 +139,7 @@ class WprRecorder(object):
     self._parser.parse_args(args_to_parse)
 
   def _ProcessCommandLineArgs(self):
-    user_story_runner.ProcessCommandLineArgs(self._parser, self._options)
+    story_runner.ProcessCommandLineArgs(self._parser, self._options)
     if self._benchmark is not None:
       self._benchmark.ProcessCommandLineArgs(self._parser, self._options)
 
@@ -157,7 +157,7 @@ class WprRecorder(object):
       'Pageset archive_data_file path must be specified.')
     self._page_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
-    user_story_runner.Run(self._record_page_test, self._page_set,
+    story_runner.Run(self._record_page_test, self._page_set,
         test_expectations.TestExpectations(), self._options, results)
 
   def HandleResults(self, results, upload_to_cloud_storage):

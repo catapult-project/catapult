@@ -7,13 +7,13 @@ import unittest
 
 from telemetry import benchmark
 from telemetry.core import browser_options
+from telemetry.internal import story_runner
 from telemetry import page
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
 from telemetry.story import shared_state
 from telemetry import user_story
 from telemetry.user_story import android
-from telemetry.user_story import user_story_runner
 from telemetry.user_story import user_story_set as user_story_set_module
 from telemetry.web_perf import timeline_based_measurement
 
@@ -58,11 +58,11 @@ class BenchmarkTest(unittest.TestCase):
       b.Run(browser_options.BrowserFinderOptions())
 
   def testPageTestWithCompatibleUserStory(self):
-    original_run_fn = user_story_runner.Run
+    original_run_fn = story_runner.Run
     was_run = [False]
     def RunStub(*_arg, **_kwargs):
       was_run[0] = True
-    user_story_runner.Run = RunStub
+    story_runner.Run = RunStub
 
     try:
       options = browser_options.BrowserFinderOptions()
@@ -75,7 +75,7 @@ class BenchmarkTest(unittest.TestCase):
       b = TestBenchmark(page.Page(url='about:blank'))
       b.Run(options)
     finally:
-      user_story_runner.Run = original_run_fn
+      story_runner.Run = original_run_fn
 
     self.assertTrue(was_run[0])
 
@@ -135,7 +135,7 @@ class BenchmarkTest(unittest.TestCase):
       def ValueCanBeAddedPredicate(cls, value, is_first_result):
         return False
 
-    original_run_fn = user_story_runner.Run
+    original_run_fn = story_runner.Run
     validPredicate = [False]
 
     def RunStub(test, user_story_set, expectations, finder_options, results,
@@ -144,7 +144,7 @@ class BenchmarkTest(unittest.TestCase):
       valid = predicate == PredicateBenchmark.ValueCanBeAddedPredicate
       validPredicate[0] = valid
 
-    user_story_runner.Run = RunStub
+    story_runner.Run = RunStub
 
     try:
       options = browser_options.BrowserFinderOptions()
@@ -157,6 +157,6 @@ class BenchmarkTest(unittest.TestCase):
       b = PredicateBenchmark(page.Page(url='about:blank'))
       b.Run(options)
     finally:
-      user_story_runner.Run = original_run_fn
+      story_runner.Run = original_run_fn
 
     self.assertTrue(validPredicate[0])

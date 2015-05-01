@@ -9,13 +9,13 @@ import unittest
 from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import util
+from telemetry.internal import story_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
 from telemetry.unittest_util import options_for_unittests
-from telemetry.user_story import user_story_runner
 
 
 class BasicTestPage(page_module.Page):
@@ -54,7 +54,7 @@ class PageTestTestCase(unittest.TestCase):
       options = options_for_unittests.GetCopy()
     assert options
     temp_parser = options.CreateParser()
-    user_story_runner.AddCommandLineArgs(temp_parser)
+    story_runner.AddCommandLineArgs(temp_parser)
     defaults = temp_parser.get_default_values()
     for k, v in defaults.__dict__.items():
       if hasattr(options, k):
@@ -66,9 +66,9 @@ class PageTestTestCase(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     options.output_trace_tag = None
-    user_story_runner.ProcessCommandLineArgs(temp_parser, options)
+    story_runner.ProcessCommandLineArgs(temp_parser, options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(measurement, ps, expectations, options, results)
+    story_runner.Run(measurement, ps, expectations, options, results)
     return results
 
   def TestTracingCleanedUp(self, measurement_class, options=None):

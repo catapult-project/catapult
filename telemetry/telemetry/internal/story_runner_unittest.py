@@ -8,6 +8,7 @@ import unittest
 
 from telemetry import benchmark
 from telemetry.core import exceptions
+from telemetry.internal import story_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.page import test_expectations
@@ -16,7 +17,6 @@ from telemetry.story import shared_state
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
 from telemetry import user_story
-from telemetry.user_story import user_story_runner
 from telemetry.user_story import user_story_set
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter as exception_formatter_module
@@ -121,9 +121,9 @@ def _GetOptionForUnittest():
   options.output_formats = ['none']
   options.suppress_gtest_report = False
   parser = options.CreateParser()
-  user_story_runner.AddCommandLineArgs(parser)
+  story_runner.AddCommandLineArgs(parser)
   options.MergeDefaultValues(parser.get_default_values())
-  user_story_runner.ProcessCommandLineArgs(parser, options)
+  story_runner.ProcessCommandLineArgs(parser, options)
   return options
 
 
@@ -138,7 +138,7 @@ def GetNumberOfSuccessfulPageRuns(results):
   return len([run for run in results.all_page_runs if run.ok or run.skipped])
 
 
-class UserStoryRunnerTest(unittest.TestCase):
+class StoryRunnerTest(unittest.TestCase):
 
   def setUp(self):
     self.fake_stdout = StringIO.StringIO()
@@ -148,19 +148,19 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.expectations = test_expectations.TestExpectations()
     self.results = results_options.CreateResults(
         EmptyMetadataForTest(), self.options)
-    self._user_story_runner_logging_stub = None
+    self._story_runner_logging_stub = None
 
   def SuppressExceptionFormatting(self):
     """Fake out exception formatter to avoid spamming the unittest stdout."""
-    user_story_runner.exception_formatter = FakeExceptionFormatterModule
-    self._user_story_runner_logging_stub = system_stub.Override(
-      user_story_runner, ['logging'])
+    story_runner.exception_formatter = FakeExceptionFormatterModule
+    self._story_runner_logging_stub = system_stub.Override(
+      story_runner, ['logging'])
 
   def RestoreExceptionFormatter(self):
-    user_story_runner.exception_formatter = exception_formatter_module
-    if self._user_story_runner_logging_stub:
-      self._user_story_runner_logging_stub.Restore()
-      self._user_story_runner_logging_stub = None
+    story_runner.exception_formatter = exception_formatter_module
+    if self._story_runner_logging_stub:
+      self._story_runner_logging_stub.Restore()
+      self._story_runner_logging_stub = None
 
   def tearDown(self):
     sys.stdout = self.actual_stdout
@@ -174,18 +174,18 @@ class UserStoryRunnerTest(unittest.TestCase):
     # UserStorySet's are only allowed to have one SharedState.
     us = SetupUserStorySet(False, foo_states)
     story_groups = (
-        user_story_runner.StoriesGroupedByStateClass(
+        story_runner.StoriesGroupedByStateClass(
             us, False))
     self.assertEqual(len(story_groups), 1)
     us = SetupUserStorySet(False, mixed_states)
     self.assertRaises(
         ValueError,
-        user_story_runner.StoriesGroupedByStateClass,
+        story_runner.StoriesGroupedByStateClass,
         us, False)
     # BaseUserStorySets are allowed to have multiple SharedStates.
     bus = SetupUserStorySet(True, mixed_states)
     story_groups = (
-        user_story_runner.StoriesGroupedByStateClass(
+        story_runner.StoriesGroupedByStateClass(
             bus, True))
     self.assertEqual(len(story_groups), 3)
     self.assertEqual(story_groups[0].shared_state_class,
@@ -197,7 +197,7 @@ class UserStoryRunnerTest(unittest.TestCase):
 
   def RunUserStoryTest(self, us, expected_successes):
     test = DummyTest()
-    user_story_runner.Run(
+    story_runner.Run(
         test, us, self.expectations, self.options, self.results)
     self.assertEquals(0, len(self.results.failures))
     self.assertEquals(expected_successes,
@@ -214,11 +214,11 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.RunUserStoryTest(us, 9)
     us = SetupUserStorySet(False, one_bar)
     test = DummyTest()
-    self.assertRaises(ValueError, user_story_runner.Run, test, us,
+    self.assertRaises(ValueError, story_runner.Run, test, us,
                       self.expectations, self.options, self.results)
 
   def testSuccessfulTimelineBasedMeasurementTest(self):
-    """Check that PageTest is not required for user_story_runner.Run.
+    """Check that PageTest is not required for story_runner.Run.
 
     Any PageTest related calls or attributes need to only be called
     for PageTest tests.
@@ -233,7 +233,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     us.AddUserStory(DummyLocalUserStory(TestSharedTbmState))
     us.AddUserStory(DummyLocalUserStory(TestSharedTbmState))
     us.AddUserStory(DummyLocalUserStory(TestSharedTbmState))
-    user_story_runner.Run(
+    story_runner.Run(
         test, us, self.expectations, self.options, self.results)
     self.assertEquals(0, len(self.results.failures))
     self.assertEquals(3, GetNumberOfSuccessfulPageRuns(self.results))
@@ -291,7 +291,7 @@ class UserStoryRunnerTest(unittest.TestCase):
         raise exceptions.AppCrashException('App Foo crashes')
 
     us.AddUserStory(DummyLocalUserStory(SharedUserStoryThatCausesAppCrash))
-    user_story_runner.Run(
+    story_runner.Run(
         DummyTest(), us, self.expectations, self.options, self.results)
     self.assertEquals(1, len(self.results.failures))
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(self.results))
@@ -326,7 +326,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     uss.AddUserStory(us2)
     test = Test()
     with self.assertRaises(UnknownException):
-      user_story_runner.Run(
+      story_runner.Run(
           test, uss, self.expectations, self.options, self.results)
     self.assertEqual(set([us2]), self.results.pages_that_failed)
     self.assertEqual(set([us1]), self.results.pages_that_succeeded)
@@ -353,7 +353,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     us.AddUserStory(DummyLocalUserStory(TestSharedPageState))
     us.AddUserStory(DummyLocalUserStory(TestSharedPageState))
     test = Test()
-    user_story_runner.Run(
+    story_runner.Run(
         test, us, self.expectations, self.options, self.results)
     self.assertEquals(2, test.run_count)
     self.assertEquals(1, len(self.results.failures))
@@ -395,7 +395,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     test = Test()
 
     with self.assertRaises(DidRunTestError):
-      user_story_runner.Run(
+      story_runner.Run(
           test, us, self.expectations, self.options, self.results)
     self.assertEqual(['app-crash', 'did-run-test'], test._unit_test_events)
     # The AppCrashException gets added as a failure.
@@ -421,7 +421,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.options.output_formats = ['buildbot']
     results = results_options.CreateResults(
       EmptyMetadataForTest(), self.options)
-    user_story_runner.Run(
+    story_runner.Run(
         Measurement(), us, self.expectations, self.options, results)
     results.PrintSummary()
     contents = self.fake_stdout.getvalue()
@@ -432,7 +432,7 @@ class UserStoryRunnerTest(unittest.TestCase):
     self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', contents)
 
   def testUpdateAndCheckArchives(self):
-    usr_stub = system_stub.Override(user_story_runner, ['cloud_storage'])
+    usr_stub = system_stub.Override(story_runner, ['cloud_storage'])
     wpr_stub = system_stub.Override(archive_info, ['cloud_storage'])
     try:
       uss = user_story_set.UserStorySet()
@@ -440,8 +440,8 @@ class UserStoryRunnerTest(unittest.TestCase):
           'http://www.testurl.com', uss, uss.base_dir))
       # Page set missing archive_data_file.
       self.assertRaises(
-          user_story_runner.ArchiveError,
-          user_story_runner._UpdateAndCheckArchives,
+          story_runner.ArchiveError,
+          story_runner._UpdateAndCheckArchives,
           uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
 
       uss = user_story_set.UserStorySet(
@@ -450,8 +450,8 @@ class UserStoryRunnerTest(unittest.TestCase):
           'http://www.testurl.com', uss, uss.base_dir))
       # Page set missing json file specified in archive_data_file.
       self.assertRaises(
-          user_story_runner.ArchiveError,
-          user_story_runner._UpdateAndCheckArchives,
+          story_runner.ArchiveError,
+          story_runner._UpdateAndCheckArchives,
           uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
 
       uss = user_story_set.UserStorySet(
@@ -460,14 +460,14 @@ class UserStoryRunnerTest(unittest.TestCase):
       uss.AddUserStory(page_module.Page(
           'http://www.testurl.com', uss, uss.base_dir))
       # Page set with valid archive_data_file.
-      self.assertTrue(user_story_runner._UpdateAndCheckArchives(
+      self.assertTrue(story_runner._UpdateAndCheckArchives(
           uss.archive_data_file, uss.wpr_archive_info, uss.user_stories))
       uss.AddUserStory(page_module.Page(
           'http://www.google.com', uss, uss.base_dir))
       # Page set with an archive_data_file which exists but is missing a page.
       self.assertRaises(
-          user_story_runner.ArchiveError,
-          user_story_runner._UpdateAndCheckArchives,
+          story_runner.ArchiveError,
+          story_runner._UpdateAndCheckArchives,
           uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
 
       uss = user_story_set.UserStorySet(
@@ -480,8 +480,8 @@ class UserStoryRunnerTest(unittest.TestCase):
       # Page set with an archive_data_file which exists and contains all pages
       # but fails to find a wpr file.
       self.assertRaises(
-          user_story_runner.ArchiveError,
-          user_story_runner._UpdateAndCheckArchives,
+          story_runner.ArchiveError,
+          story_runner._UpdateAndCheckArchives,
           uss.archive_data_file, uss.wpr_archive_info, uss.user_stories)
     finally:
       usr_stub.Restore()
@@ -539,7 +539,7 @@ class UserStoryRunnerTest(unittest.TestCase):
       options.max_failures = options_max_failures
 
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    user_story_runner.Run(
+    story_runner.Run(
         DummyTest(), uss, test_expectations.TestExpectations(), options,
         results, max_failures=runner_max_failures)
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(results))

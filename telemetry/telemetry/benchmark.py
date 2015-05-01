@@ -13,12 +13,12 @@ from telemetry.core import browser_finder
 from telemetry.core import command_line
 from telemetry.core import util
 from telemetry import decorators
+from telemetry.internal import story_runner
 from telemetry import page
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
-from telemetry.user_story import user_story_runner
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
 from telemetry.web_perf import timeline_based_measurement
@@ -198,7 +198,7 @@ class Benchmark(command_line.Command):
         benchmark_metadata, finder_options,
         self.ValueCanBeAddedPredicate) as results:
       try:
-        user_story_runner.Run(pt, us, expectations, finder_options, results,
+        story_runner.Run(pt, us, expectations, finder_options, results,
                               max_failures=self._max_failures)
         return_code = min(254, len(results.failures))
       except Exception:
@@ -341,8 +341,8 @@ class Benchmark(command_line.Command):
 
 
 def AddCommandLineArgs(parser):
-  user_story_runner.AddCommandLineArgs(parser)
+  story_runner.AddCommandLineArgs(parser)
 
 
 def ProcessCommandLineArgs(parser, args):
-  user_story_runner.ProcessCommandLineArgs(parser, args)
+  story_runner.ProcessCommandLineArgs(parser, args)
