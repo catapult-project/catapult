@@ -792,5 +792,59 @@ tv.b.unittest.testSuite(function() {
       }
     ];
   });
+
+  test('cellSelectionBasic', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px',
+        supportsCellSelection: false
+      },
+      {
+        title: 'Col1',
+        value: function(row) { return row.b; },
+        width: '33%'
+      },
+      {
+        title: 'Col2',
+        value: function(row) { return row.b * 2; },
+        width: '33%'
+      },
+      {
+        title: 'Col3',
+        value: function(row) { return row.b * 3; },
+        width: '33%'
+      }
+    ];
+
+    var table = document.createElement('tracing-analysis-nested-table');
+    table.showHeader = true;
+    table.supportsSelection = true;
+    table.cellSelectionMode = true;
+    table.tableColumns = columns;
+    table.tableRows = [
+      {
+        a: 'first',
+        b: '1'
+      },
+      {
+        a: 'second',
+        b: '2'
+      }
+    ];
+    table.rebuild();
+    this.addHTMLOutput(table);
+
+    table.selectedTableRow = table.tableRows[0];
+    assert.equal(table.selectedColumnIndex, 1);
+
+    table.performKeyCommand_('ARROW_DOWN');
+    table.performKeyCommand_('ARROW_RIGHT');
+    table.performKeyCommand_('ARROW_RIGHT');
+    table.performKeyCommand_('ARROW_LEFT');
+    assert.equal(table.selectedTableRow, table.tableRows[1]);
+    assert.equal(table.selectedColumnIndex, 2);
+  });
 });
 </script>
