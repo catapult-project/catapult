@@ -21,6 +21,51 @@ from telemetry.core import discover
 from telemetry import decorators
 
 
+def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
+  """ Print benchmarks that are not filtered in the same order of benchmarks in
+  the |benchmarks| list.
+
+  Args:
+    benchmarks: the list of benchmarks to be printed (in the same order of the
+      list).
+    possible_browser: the possible_browser instance that's used for checking
+      which benchmarks are enabled.
+    output_pipe: the stream in which benchmarks are printed on.
+  """
+  if not benchmarks:
+    print >> output_pipe, 'No benchmarks found!'
+    return
+  b = None  # Need this to stop pylint from complaining undefined variable.
+  if any(not issubclass(b, benchmark.Benchmark) for b in benchmarks):
+    assert False, '|benchmarks| param contains non benchmark class: %s' % b
+
+  # Align the benchmark names to the longest one.
+  format_string = '  %%-%ds %%s' % max(len(b.Name()) for b in benchmarks)
+  disabled_benchmarks = []
+
+  print >> output_pipe, 'Available benchmarks %sare:' % (
+      'for %s ' %possible_browser.browser_type if possible_browser else '')
+  for benchmark_class in benchmarks:
+    if possible_browser and not decorators.IsEnabled(benchmark_class,
+                                                     possible_browser)[0]:
+      disabled_benchmarks.append(benchmark_class)
+      continue
+    print >> output_pipe, format_string % (
+        benchmark_class.Name(), benchmark_class.Description())
+
+  if disabled_benchmarks:
+    print >> output_pipe
+    print >> output_pipe, (
+        'Disabled benchmarks for %s are (force run with -d):' %
+        possible_browser.browser_type)
+    for benchmark_class in disabled_benchmarks:
+      print >> output_pipe, format_string % (
+          benchmark_class.Name(), benchmark_class.Description())
+  print >> output_pipe, (
+      'Pass --browser to list benchmarks for another browser.')
+  print >> output_pipe
+
+
 class Environment(object):
   """Contains information about the benchmark runtime environment.
 
@@ -120,7 +165,7 @@ class List(command_line.OptparseCommand):
                                       possible_reference_browser,
                                       args.benchmarks, args.num_shards))
     else:
-      _PrintBenchmarkList(args.benchmarks, possible_browser)
+      PrintBenchmarkList(args.benchmarks, possible_browser)
     return 0
 
 
@@ -158,7 +203,7 @@ class Run(command_line.OptparseCommand):
     if not args.positional_args:
       possible_browser = (
           browser_finder.FindBrowser(args) if args.browser_type else None)
-      _PrintBenchmarkList(_Benchmarks(environment), possible_browser)
+      PrintBenchmarkList(_Benchmarks(environment), possible_browser)
       sys.exit(-1)
 
     input_benchmark_name = args.positional_args[0]
@@ -166,7 +211,7 @@ class Run(command_line.OptparseCommand):
     if not matching_benchmarks:
       print >> sys.stderr, 'No benchmark named "%s".' % input_benchmark_name
       print >> sys.stderr
-      _PrintBenchmarkList(_Benchmarks(environment), None, sys.stderr)
+      PrintBenchmarkList(_Benchmarks(environment), None, sys.stderr)
       sys.exit(-1)
 
     if len(matching_benchmarks) > 1:
@@ -174,7 +219,7 @@ class Run(command_line.OptparseCommand):
                             input_benchmark_name)
       print >> sys.stderr, 'Did you mean one of these?'
       print >> sys.stderr
-      _PrintBenchmarkList(matching_benchmarks, None, sys.stderr)
+      PrintBenchmarkList(matching_benchmarks, None, sys.stderr)
       sys.exit(-1)
 
     benchmark_class = matching_benchmarks.pop()
@@ -306,40 +351,6 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
         }
 
   return json.dumps(output, indent=2, sort_keys=True)
-
-
-def _PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
-  if not benchmarks:
-    print >> output_pipe, 'No benchmarks found!'
-    return
-
-  # Align the benchmark names to the longest one.
-  format_string = '  %%-%ds %%s' % max(len(b.Name()) for b in benchmarks)
-
-  filtered_benchmarks = [benchmark_class for benchmark_class in benchmarks
-                         if issubclass(benchmark_class, benchmark.Benchmark)]
-  disabled_benchmarks = []
-  if filtered_benchmarks:
-    print >> output_pipe, 'Available benchmarks %sare:' % (
-        'for %s ' %possible_browser.browser_type if possible_browser else '')
-    for benchmark_class in sorted(filtered_benchmarks, key=lambda b: b.Name()):
-      if possible_browser and not decorators.IsEnabled(benchmark_class,
-                                                       possible_browser)[0]:
-        disabled_benchmarks.append(benchmark_class)
-        continue
-      print >> output_pipe, format_string % (
-          benchmark_class.Name(), benchmark_class.Description())
-
-    if disabled_benchmarks:
-      print >> output_pipe, (
-          'Disabled benchmarks for %s are (force run with -d): ' %
-          possible_browser.browser_type)
-      for benchmark_class in disabled_benchmarks:
-        print >> output_pipe, format_string % (
-            benchmark_class.Name(), benchmark_class.Description())
-    print >> output_pipe, (
-        'Pass --browser to list benchmarks for another browser.')
-    print >> output_pipe
 
 
 def main(environment):
