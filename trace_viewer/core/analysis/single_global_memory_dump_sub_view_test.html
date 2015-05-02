@@ -43,7 +43,7 @@ tv.b.unittest.testSuite(function() {
         processPane, 'tracing-analysis-nested-table');
     assert.isUndefined(processTable);
 
-    overviewTable.$.body.children[1].click();
+    overviewTable.selectedTableRow = overviewTable.tableRows[1];
 
     assert.lengthOf(overviewTable.tableRows, 2);
 
