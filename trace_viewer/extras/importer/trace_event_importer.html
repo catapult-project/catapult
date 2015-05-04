@@ -863,6 +863,17 @@ tv.exportTo('tv.e.importer', function() {
              tv.c.trace_model.AsyncSlice.getConstructor(
                 eventStateEntry.event.cat,
                 eventStateEntry.event.name);
+
+          var thread_start = undefined;
+          var thread_duration = undefined;
+          if (startState.event.tts && startState.event.use_async_tts) {
+            thread_start = startState.event.tts / 1000;
+            if (endState.event.tts) {
+              var thread_end = endState.event.tts / 1000;
+              thread_duration = thread_end - thread_start;
+            }
+          }
+
           var slice = new asyncSliceConstructor(
               eventStateEntry.event.cat,
               eventStateEntry.event.name,
@@ -871,7 +882,9 @@ tv.exportTo('tv.e.importer', function() {
               startState.event.ts / 1000,
               sliceArgs,
               (endState.event.ts - startState.event.ts) / 1000,
-              isTopLevel);
+              isTopLevel,
+              thread_start,
+              thread_duration);
 
           slice.startThread = startState.thread;
           slice.endThread = endState.thread;

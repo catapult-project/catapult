@@ -1189,6 +1189,63 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isTrue(m.hasImportWarnings);
   });
 
+  test('asyncSliceWithoutCPUDuration', function() {
+    var events = [
+      // Async slice without tts field.
+      {name: 'a', args: {params: ''}, pid: 52, ts: 10, cat: 'foo', tid: 53,
+        id: 72, ph: 'b'},
+      {name: 'a', args: {params: ''}, pid: 52, ts: 20, cat: 'foo', tid: 53,
+        id: 72, ph: 'e'},
+      // Async slice with tts field but without use_async_tts marker field.
+      {name: 'b', args: {params: ''}, pid: 52, ts: 30, cat: 'foo', tid: 53,
+        id: 72, ph: 'b', tts: 30000},
+      {name: 'b', args: {params: ''}, pid: 52, ts: 40, cat: 'foo', tid: 53,
+        id: 72, ph: 'e', tts: 40000},
+      // Async slice with tts field but with use_async_tts marker set to 0.
+      {name: 'c', args: {params: ''}, pid: 52, ts: 50000, cat: 'foo', tid: 53,
+       id: 72, ph: 'b', tts: 50000, use_async_tts: 0},
+      {name: 'c', args: {params: ''}, pid: 52, ts: 60000, cat: 'foo', tid: 53,
+        id: 72, ph: 'e', tts: 60000, use_async_tts: 0}
+    ];
+
+    var m = new tv.c.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 3);
+
+    var noTTSNoField = t.asyncSliceGroup.slices[0];
+    assert.isUndefined(noTTSNoField.cpuStart);
+    assert.isUndefined(noTTSNoField.cpuDuration);
+
+    var TTSNoField = t.asyncSliceGroup.slices[1];
+    assert.isUndefined(TTSNoField.cpuStart);
+    assert.isUndefined(TTSNoField.cpuDuration);
+
+    var TTSZeroField = t.asyncSliceGroup.slices[2];
+    assert.isUndefined(TTSZeroField.cpuStart);
+    assert.isUndefined(TTSZeroField.cpuDuration);
+  });
+
+  test('asyncSliceWithCPUDuration', function() {
+    var events = [
+      {name: 'a', args: {params: ''}, pid: 52, ts: 50000, cat: 'foo', tid: 53,
+       id: 72, ph: 'b', tts: 100000, use_async_tts: 1},
+      {name: 'a', args: {params: ''}, pid: 52, ts: 60000, cat: 'foo', tid: 53,
+        id: 72, ph: 'e', tts: 105000, use_async_tts: 1}
+    ];
+
+    var m = new tv.c.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+
+    var asyncSlice = t.asyncSliceGroup.slices[0];
+    assert.isDefined(asyncSlice);
+    assert.equal(asyncSlice.duration, 10);
+    assert.equal(asyncSlice.cpuStart, 100);
+    assert.equal(asyncSlice.cpuDuration, 5);
+  });
+
   test('nestableAsyncBasic', function() {
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
