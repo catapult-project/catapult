@@ -57,24 +57,24 @@ class PosixPlatformBackendTest(unittest.TestCase):
         posix_platform_backend._BinaryExistsInSudoersFiles(binary_path, ''))
     self.assertFalse(
         posix_platform_backend._BinaryExistsInSudoersFiles(
-            binary_path,'    (ALL) ALL'))
+            binary_path, '    (ALL) ALL'))
     self.assertFalse(
         posix_platform_backend._BinaryExistsInSudoersFiles(
-            binary_path,'     (root) NOPASSWD: /usr/bin/pkill_DUMMY'))
+            binary_path, '     (root) NOPASSWD: /usr/bin/pkill_DUMMY'))
     self.assertFalse(
         posix_platform_backend._BinaryExistsInSudoersFiles(
-            binary_path,'     (root) NOPASSWD: pkill'))
+            binary_path, '     (root) NOPASSWD: pkill'))
 
 
     self.assertTrue(
         posix_platform_backend._BinaryExistsInSudoersFiles(
-            binary_path,'(root) NOPASSWD: /usr/bin/pkill'))
+            binary_path, '(root) NOPASSWD: /usr/bin/pkill'))
     self.assertTrue(
         posix_platform_backend._BinaryExistsInSudoersFiles(
-            binary_path,'     (root) NOPASSWD: /usr/bin/pkill'))
+            binary_path, '     (root) NOPASSWD: /usr/bin/pkill'))
     self.assertTrue(
         posix_platform_backend._BinaryExistsInSudoersFiles(
-            binary_path,'     (root) NOPASSWD: /usr/bin/pkill arg1 arg2'))
+            binary_path, '     (root) NOPASSWD: /usr/bin/pkill arg1 arg2'))
 
   @decorators.Enabled('linux', 'mac')
   def testIsApplicationRunning(self):

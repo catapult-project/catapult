@@ -8,7 +8,7 @@ from telemetry.internal.actions import page_action
 
 def read_js():
   with open(os.path.join(os.path.dirname(__file__), 'mouse_click.js')) as f:
-      return f.read()
+    return f.read()
 
 
 class MouseClickAction(page_action.PageAction):

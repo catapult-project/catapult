@@ -135,7 +135,7 @@ class SmoothGestureTest(page_test_test_case.PageTestTestCase):
         tab_ids.append(tab.id)
 
       def ValidateAndMeasurePage(self, _page, _tab, _results):
-         pass
+        pass
 
     self.RunMeasurement(ScrollingGestureTestMeasurement(), ps)
     timeline_model = models[0]

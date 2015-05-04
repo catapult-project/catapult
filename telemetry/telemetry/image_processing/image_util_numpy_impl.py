@@ -174,7 +174,7 @@ def GetColorHistogram(image, ignore_color, tolerance):
       in_range = ((filtered[:, 0] < colorm[0]) | (filtered[:, 0] > colorp[0]) |
                   (filtered[:, 1] < colorm[1]) | (filtered[:, 1] > colorp[1]) |
                   (filtered[:, 2] < colorm[2]) | (filtered[:, 2] > colorp[2]))
-      filtered = np.compress(in_range, filtered, axis = 0)
+      filtered = np.compress(in_range, filtered, axis=0)
     if len(filtered[:, 0]) == 0:
       return histogram.ColorHistogram(np.zeros((256)), np.zeros((256)),
                                       np.zeros((256)), ignore_color)

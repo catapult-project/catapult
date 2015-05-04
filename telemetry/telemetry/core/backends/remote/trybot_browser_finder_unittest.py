@@ -344,7 +344,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
 
   def test_config_android(self):
     config = self._GetConfigForBrowser(
-        'trybot-android-nexus4', 'android','somebranch',
+        'trybot-android-nexus4', 'android', 'somebranch',
         'tools/run-perf-test.cfg')
     self.assertEquals(
         ('config = {\n'

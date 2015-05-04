@@ -44,11 +44,11 @@ class BenchmarkMetadata(object):
 
   @property
   def description(self):
-      return self._description
+    return self._description
 
   @property
   def rerun_options(self):
-      return self._rerun_options
+    return self._rerun_options
 
 
 class Benchmark(command_line.Command):

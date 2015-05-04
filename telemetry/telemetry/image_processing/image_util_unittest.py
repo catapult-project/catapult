@@ -57,8 +57,8 @@ class ImageUtilTest(unittest.TestCase):
                       orig, temp_file)
 
   def testWriteCroppedBmpToPngFile(self):
-    pixels = [255,0,0, 255,255,0, 0,0,0,
-              255,255,0, 0,255,0, 0,0,0]
+    pixels = [255, 0, 0, 255, 255, 0, 0, 0, 0,
+              255, 255, 0, 0, 255, 0, 0, 0, 0]
     orig = image_util.FromRGBPixels(3, 2, pixels)
     orig = image_util.Crop(orig, 0, 0, 2, 2)
     temp_file = tempfile.NamedTemporaryFile(suffix='.png').name
@@ -102,9 +102,9 @@ class ImageUtilTest(unittest.TestCase):
     image_util.GetPixelColor(diff_bmp, 2, 2).AssertIsRGB(255, 255, 255)
 
   def testGetBoundingBox(self):
-    pixels = [0,0,0, 0,0,0, 0,0,0, 0,0,0,
-              0,0,0, 1,0,0, 1,0,0, 0,0,0,
-              0,0,0, 0,0,0, 0,0,0, 0,0,0]
+    pixels = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     bmp = image_util.FromRGBPixels(4, 3, pixels)
     box, count = image_util.GetBoundingBox(bmp, RgbaColor(1, 0, 0))
     self.assertEquals(box, (1, 1, 2, 1))
@@ -115,9 +115,9 @@ class ImageUtilTest(unittest.TestCase):
     self.assertEquals(count, 0)
 
   def testCrop(self):
-    pixels = [0,0,0, 1,0,0, 2,0,0, 3,0,0,
-              0,1,0, 1,1,0, 2,1,0, 3,1,0,
-              0,2,0, 1,2,0, 2,2,0, 3,2,0]
+    pixels = [0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0,
+              0, 1, 0, 1, 1, 0, 2, 1, 0, 3, 1, 0,
+              0, 2, 0, 1, 2, 0, 2, 2, 0, 3, 2, 0]
     bmp = image_util.FromRGBPixels(4, 3, pixels)
     bmp = image_util.Crop(bmp, 1, 2, 2, 1)
 
@@ -125,4 +125,4 @@ class ImageUtilTest(unittest.TestCase):
     self.assertEquals(1, image_util.Height(bmp))
     image_util.GetPixelColor(bmp, 0, 0).AssertIsRGB(1, 2, 0)
     image_util.GetPixelColor(bmp, 1, 0).AssertIsRGB(2, 2, 0)
-    self.assertEquals(image_util.Pixels(bmp), bytearray([1,2,0, 2,2,0]))
+    self.assertEquals(image_util.Pixels(bmp), bytearray([1, 2, 0, 2, 2, 0]))

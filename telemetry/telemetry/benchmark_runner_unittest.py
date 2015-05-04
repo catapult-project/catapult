@@ -56,7 +56,7 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
         '  BarBenchmarkkkkk  Benchmark Bar for testing long description line.\n'
         'Pass --browser to list benchmarks for another browser.\n\n')
     with mock.patch('telemetry.benchmark_runner.decorators') as mock_module:
-      def FakeIsEnabled(benchmark_class,  _):
+      def FakeIsEnabled(benchmark_class, _):
         if benchmark_class is BenchmarkFoo:
           return True, None
         else:

@@ -161,7 +161,7 @@ class DevToolsClientBackend(object):
     Raises:
       devtools_http.DevToolsClientConnectionError
     """
-    contexts  = self._ListInspectableContexts()
+    contexts = self._ListInspectableContexts()
     return tab_id in [c['id'] for c in contexts]
 
   def GetUpdatedInspectableContexts(self):

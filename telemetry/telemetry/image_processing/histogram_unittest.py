@@ -50,9 +50,9 @@ class HistogramDistanceTest(unittest.TestCase):
 
 class HistogramTest(unittest.TestCase):
   def testHistogram(self):
-    pixels = [1,2,3, 1,2,3, 1,2,3, 1,2,3,
-              1,2,3, 8,7,6, 5,4,6, 1,2,3,
-              1,2,3, 8,7,6, 5,4,6, 1,2,3]
+    pixels = [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3,
+              1, 2, 3, 8, 7, 6, 5, 4, 6, 1, 2, 3,
+              1, 2, 3, 8, 7, 6, 5, 4, 6, 1, 2, 3]
     bmp = image_util.FromRGBPixels(4, 3, pixels)
     bmp = image_util.Crop(bmp, 1, 1, 2, 2)
 
@@ -70,9 +70,9 @@ class HistogramTest(unittest.TestCase):
     self.assertEquals(hist.b[6], 4)
 
   def testHistogramIgnoreColor(self):
-    pixels = [1,2,3, 1,2,3, 1,2,3, 1,2,3,
-              1,2,3, 8,7,6, 5,4,6, 1,2,3,
-              1,2,3, 8,7,6, 5,4,6, 1,2,3]
+    pixels = [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3,
+              1, 2, 3, 8, 7, 6, 5, 4, 6, 1, 2, 3,
+              1, 2, 3, 8, 7, 6, 5, 4, 6, 1, 2, 3]
     bmp = image_util.FromRGBPixels(4, 3, pixels)
 
     hist = image_util.GetColorHistogram(bmp,
@@ -87,8 +87,8 @@ class HistogramTest(unittest.TestCase):
     self.assertEquals(hist.b[6], 4)
 
   def testHistogramIgnoreColorTolerance(self):
-    pixels = [1,2,3, 4,5,6,
-              7,8,9, 8,7,6]
+    pixels = [1, 2, 3, 4, 5, 6,
+              7, 8, 9, 8, 7, 6]
     bmp = image_util.FromRGBPixels(2, 2, pixels)
 
     hist = image_util.GetColorHistogram(
@@ -106,8 +106,8 @@ class HistogramTest(unittest.TestCase):
     self.assertEquals(hist.b[9], 1)
 
   def testHistogramDistanceIgnoreColor(self):
-    pixels = [1,2,3, 1,2,3,
-              1,2,3, 1,2,3]
+    pixels = [1, 2, 3, 1, 2, 3,
+              1, 2, 3, 1, 2, 3]
     bmp = image_util.FromRGBPixels(2, 2, pixels)
 
     hist1 = image_util.GetColorHistogram(bmp, ignore_color=RgbaColor(1, 2, 3))

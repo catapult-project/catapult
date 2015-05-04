@@ -17,9 +17,9 @@ TOPLEVEL_DEVICE_CATEGORY = 'disabled-by-default-gpu.device'
 SERVICE_FRAME_END_MARKER = (TOPLEVEL_SERVICE_CATEGORY, 'SwapBuffer')
 DEVICE_FRAME_END_MARKER = (TOPLEVEL_DEVICE_CATEGORY, 'SwapBuffer')
 
-TRACKED_GL_CONTEXT_NAME = { 'RenderCompositor': 'render_compositor',
-                            'BrowserCompositor': 'browser_compositor',
-                            'Compositor': 'browser_compositor' }
+TRACKED_GL_CONTEXT_NAME = {'RenderCompositor': 'render_compositor',
+                           'BrowserCompositor': 'browser_compositor',
+                           'Compositor': 'browser_compositor'}
 
 
 class GPUTimelineListOfValues(list_of_scalar_values.ListOfScalarValues):
@@ -47,14 +47,14 @@ def _CPUFrameTimes(events_per_frame):
   # CPU event frames are calculated using the event thread duration.
   # Some platforms do not support thread_duration, convert those to 0.
   return _CalculateFrameTimes(events_per_frame,
-                              lambda event : event.thread_duration or 0)
+                              lambda event: event.thread_duration or 0)
 
 
 def _GPUFrameTimes(events_per_frame):
   """Given a list of events per frame, returns a list of GPU frame times."""
   # GPU event frames are asynchronous slices which use the event duration.
   return _CalculateFrameTimes(events_per_frame,
-                              lambda event : event.duration)
+                              lambda event: event.duration)
 
 
 def TimelineName(name, source_type, value_type):

@@ -10,7 +10,7 @@ from telemetry.timeline import trace_data
 
 class TraceDataTest(unittest.TestCase):
   def testSerialize(self):
-    ri = trace_data.TraceData({'traceEvents': [1,2,3]})
+    ri = trace_data.TraceData({'traceEvents': [1, 2, 3]})
     f = cStringIO.StringIO()
     ri.Serialize(f)
     d = f.getvalue()
@@ -68,7 +68,7 @@ class TraceDataTest(unittest.TestCase):
 class TraceDataBuilderTest(unittest.TestCase):
   def testBasicChrome(self):
     builder = trace_data.TraceDataBuilder()
-    builder.AddEventsTo(trace_data.CHROME_TRACE_PART, [1,2,3])
+    builder.AddEventsTo(trace_data.CHROME_TRACE_PART, [1, 2, 3])
     builder.AddEventsTo(trace_data.TAB_ID_PART, ['tab-7'])
 
     d = builder.AsData()

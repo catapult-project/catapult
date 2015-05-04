@@ -66,7 +66,7 @@ jiffies  a1111
       result = backend.GetCpuTimestamp()
       self.assertEquals(result, {'TotalTime': 105054633.0})
     mock_method.assert_call_once_with(
-        ['grep', '-m', '1', 'jiffies:','/proc/timer_list'])
+        ['grep', '-m', '1', 'jiffies:', '/proc/timer_list'])
 
   def testGetMemoryStatsBasic(self):
     if not linux_based_platform_backend.resource:

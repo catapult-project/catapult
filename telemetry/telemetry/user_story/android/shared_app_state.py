@@ -26,9 +26,9 @@ class SharedAppState(shared_state.SharedState):
     super(SharedAppState, self).__init__(test, finder_options, user_story_set)
     if not isinstance(
         test, timeline_based_measurement.TimelineBasedMeasurement):
-        raise ValueError(
-            'SharedAppState only accepts TimelineBasedMeasurement tests'
-            ' (not %s).' % test.__class__)
+      raise ValueError(
+          'SharedAppState only accepts TimelineBasedMeasurement tests'
+          ' (not %s).' % test.__class__)
     self._test = test
     self._finder_options = finder_options
     self._android_app = None

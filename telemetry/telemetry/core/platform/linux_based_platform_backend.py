@@ -153,7 +153,7 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
     Multi-CPU machines will have multiple 'jiffies:' lines, all of which will be
     essentially the same.  Return the first one."""
     jiffies_timer_lines = self.RunCommand(
-        ['grep', 'jiffies','/proc/timer_list'])
+        ['grep', 'jiffies', '/proc/timer_list'])
     if not jiffies_timer_lines:
       raise Exception('Unable to find jiffies from /proc/timer_list')
     jiffies_timer_list = jiffies_timer_lines.splitlines()

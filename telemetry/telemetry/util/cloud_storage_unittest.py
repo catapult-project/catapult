@@ -45,9 +45,9 @@ class CloudStorageUnitTest(unittest.TestCase):
       cloud_storage.FindGsutil = orig_find_gs_util
 
   def testRunCommandCredentialsError(self):
-      strs = ['You are attempting to access protected data with no configured',
-              'Failure: No handler was ready to authenticate.']
-      self._assertRunCommandRaisesError(strs, cloud_storage.CredentialsError)
+    strs = ['You are attempting to access protected data with no configured',
+             'Failure: No handler was ready to authenticate.']
+    self._assertRunCommandRaisesError(strs, cloud_storage.CredentialsError)
 
   def testRunCommandPermissionError(self):
     strs = ['status=403', 'status 403', '403 Forbidden']
@@ -134,7 +134,7 @@ class CloudStorageUnitTest(unittest.TestCase):
                            'dir2':['2file.txt'], 'dir3':['3file1.sha1']}
     stubs.os.path.dirs = ['real_dir_path']
     def IncrementFilesUpdated(*_):
-      IncrementFilesUpdated.files_updated +=1
+      IncrementFilesUpdated.files_updated += 1
     IncrementFilesUpdated.files_updated = 0
     orig_get_if_changed = cloud_storage.GetIfChanged
     cloud_storage.GetIfChanged = IncrementFilesUpdated

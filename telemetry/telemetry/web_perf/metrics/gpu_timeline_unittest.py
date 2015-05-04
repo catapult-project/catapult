@@ -23,7 +23,7 @@ INTERACTION_RECORDS = [tir_module.TimelineInteractionRecord("test-record",
 
 
 def _CreateGPUSlices(parent_thread, name, start_time, duration, offset=0):
-  args = { 'gl_category': gpu_timeline.TOPLEVEL_GL_CATEGORY }
+  args = {'gl_category': gpu_timeline.TOPLEVEL_GL_CATEGORY}
   return (slice_module.Slice(parent_thread,
                              gpu_timeline.TOPLEVEL_SERVICE_CATEGORY,
                              name, start_time,
@@ -36,7 +36,7 @@ def _CreateGPUSlices(parent_thread, name, start_time, duration, offset=0):
                              duration=duration))
 
 def _CreateFrameEndSlices(parent_thread, start_time, duration, offset=0):
-  args = { 'gl_category': gpu_timeline.TOPLEVEL_GL_CATEGORY }
+  args = {'gl_category': gpu_timeline.TOPLEVEL_GL_CATEGORY}
   return (slice_module.Slice(parent_thread,
                              SERVICE_FRAME_END_CATEGORY,
                              SERVICE_FRAME_END_NAME,
