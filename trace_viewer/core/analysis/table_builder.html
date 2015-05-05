@@ -775,19 +775,25 @@ found in the LICENSE file.
       },
 
       set cellSelectionMode(cellSelectionMode) {
-        if (!cellSelectionMode) {
-          this.$.body.classList.remove('cell-selection-mode');
-          this.$.body.classList.add('row-selection-mode');
-        } else {
-          this.$.body.classList.add('cell-selection-mode');
-          this.$.body.classList.remove('row-selection-mode');
-        }
         this.rebuildIfNeeded_();
         this.cellSelectionMode_ = !!cellSelectionMode;
         this.didSelectionStateChange_();
       },
 
       didSelectionStateChange_: function() {
+        if (!this.supportsSelection_) {
+          // Selection disabled.
+          this.$.body.classList.remove('cell-selection-mode');
+          this.$.body.classList.remove('row-selection-mode');
+        } else if (!this.cellSelectionMode_) {
+          // Row selection mode.
+          this.$.body.classList.remove('cell-selection-mode');
+          this.$.body.classList.add('row-selection-mode');
+        } else {
+          // Cell selection mode.
+          this.$.body.classList.add('cell-selection-mode');
+          this.$.body.classList.remove('row-selection-mode');
+        }
         for (var i = 0; i < this.$.body.children.length; i++)
           this.updateTabIndexForTableRowNode_(this.$.body.children[i]);
         this.maybeUpdateSelectedRow_();
