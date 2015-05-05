@@ -113,6 +113,7 @@
     "build/android/gyp/util/build_utils.py",
     "build/android/gyp/util/md5_check.py",
     "build/android/gyp/util/md5_check_test.py",
+    "build/android/gyp/util/proguard_util.py",
     "build/android/gyp/write_build_config.py",
     "build/android/gyp/write_ordered_libraries.py",
     "build/android/gyp/zip.py",
