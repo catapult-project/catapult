@@ -149,6 +149,10 @@ class InputAPI(object):
       self._filename_statuses.append((filename, status_char))
     return self._filename_statuses
 
+  def IsTestDataFile(self, affected_file):
+    full_path = os.path.join(self.repository_root, affected_file.filename)
+    return full_path.startswith(self._tvp.test_data_path)
+
 
 def RunChecks(input_api):
   results = []

@@ -40,6 +40,9 @@ def _FindNewViolationsOfRule(callable_rule, input_api,
     if all(callable_rule(extension, line) for line in f.contents_as_lines):
       continue  # No violation found in full text: can skip considering diff.
 
+    if input_api.IsTestDataFile(f):
+      continue
+
     for line_num, line in f.changed_lines:
       if not callable_rule(extension, line):
         errors.append(error_formatter(f.filename, line_num, line))
@@ -90,15 +93,17 @@ def CheckCopyright(input_api):
                       if os.path.splitext(f.filename)[1] != '.html']
 
   results = []
-  results += _Check(html_license_re, html_sources)
-  results += _Check(non_html_license_re, non_html_sources)
+  results += _Check(input_api, html_license_re, html_sources)
+  results += _Check(input_api, non_html_license_re, non_html_sources)
   return results
 
-def _Check(license_re, sources):
+def _Check(input_api, license_re, sources):
   bad_files = []
   for f in sources:
     contents = f.contents
     if not license_re.search(contents):
+      if input_api.IsTestDataFile(f):
+        continue
       bad_files.append(f.filename)
   if bad_files:
     return [_FormatError(
