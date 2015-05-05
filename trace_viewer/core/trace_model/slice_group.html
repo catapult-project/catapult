@@ -318,6 +318,22 @@ tv.exportTo('tv.c.trace_model', function() {
       }
     },
 
+    findNextSliceAfter: function(ts, refGuid) {
+      var i = tv.b.findLowIndexInSortedArray(
+          this.slices, getSliceLo, ts);
+      if (i === this.slices.length)
+        return undefined;
+      for (; i < this.slices.length; i++) {
+        var slice = this.slices[i];
+        if (slice.start > ts)
+          return slice;
+        if (slice.guid <= refGuid)
+          continue;
+        return slice;
+      }
+      return undefined;
+    },
+
     /**
      * Construct subSlices for this group.
      * Populate the group topLevelSlices, parent slices get a subSlices[],
@@ -376,10 +392,10 @@ tv.exportTo('tv.c.trace_model', function() {
         ops.push(i);
       }
 
-      var groupSlices = this.slices;
+      var originalSlices = this.slices;
       ops.sort(function(ix, iy) {
-        var x = groupSlices[ix];
-        var y = groupSlices[iy];
+        var x = originalSlices[ix];
+        var y = originalSlices[iy];
         if (x.start != y.start)
           return x.start - y.start;
 
@@ -390,16 +406,25 @@ tv.exportTo('tv.c.trace_model', function() {
         return ix - iy;
       });
 
-      var rootSlice = this.slices[ops[0]];
+      var slices = new Array(this.slices.length);
+      for (var i = 0; i < ops.length; i++) {
+        slices[i] = originalSlices[ops[i]];
+      }
+
+      // Actually build the subrows.
+      var rootSlice = slices[0];
       this.topLevelSlices = [];
       this.topLevelSlices.push(rootSlice);
-      for (var i = 1; i < ops.length; i++) {
-        var slice = this.slices[ops[i]];
+      for (var i = 1; i < slices.length; i++) {
+        var slice = slices[i];
         if (!addSliceIfBounds(rootSlice, slice)) {
           rootSlice = slice;
           this.topLevelSlices.push(rootSlice);
         }
       }
+
+      // Keep the slices in sorted form.
+      this.slices = slices;
     }
   };
 

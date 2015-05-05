@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/analysis/multi_thread_slice_sub_view.html">
+<link rel="import" href="/core/analysis/related_flows.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
@@ -18,24 +18,6 @@ tv.b.unittest.testSuite(function() {
   var newFlowEventEx = tv.c.test_utils.newFlowEventEx;
 
   test('instantiate', function() {
-    var model = new tv.c.TraceModel();
-    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-    t53.sliceGroup.pushSlice(
-        newSliceEx({title: 'a', start: 0.0, duration: 0.5}));
-    t53.sliceGroup.pushSlice(
-        newSliceEx({title: 'b', start: 1.0, duration: 2}));
-    t53.sliceGroup.createSubSlices();
-
-    var selection = new tv.c.Selection();
-    selection.push(t53.sliceGroup.slices[0]);
-    selection.push(t53.sliceGroup.slices[1]);
-
-    var viewEl = document.createElement('tv-c-a-multi-thread-slice-sub-view');
-    viewEl.selection = selection;
-    this.addHTMLOutput(viewEl);
-  });
-
-  test('withFlows', function() {
     var m = tv.c.test_utils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
 
@@ -66,14 +48,13 @@ tv.b.unittest.testSuite(function() {
       });
     });
 
-    var selection = new tv.c.Selection();
-    selection.push(m.sA);
-    selection.push(m.sB);
-    selection.push(m.sC);
+    var inSel = new tv.c.Selection([m.f1]);
+    var outSel = new tv.c.Selection([m.f2]);
 
-    var viewEl = document.createElement('tv-c-a-multi-thread-slice-sub-view');
-    viewEl.selection = selection;
+    var viewEl = document.createElement('tv-c-a-related-flows');
+    viewEl.setFlows(inSel, outSel);
     this.addHTMLOutput(viewEl);
   });
+
 });
 </script>

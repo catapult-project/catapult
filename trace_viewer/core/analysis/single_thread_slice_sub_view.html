@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/single_event_sub_view.html">
+<link rel="import" href="/core/analysis/related_flows.html">
 
 <polymer-element name="tv-c-a-single-thread-slice-sub-view"
     extends="tracing-analysis-sub-view">
@@ -14,9 +15,19 @@ found in the LICENSE file.
     <style>
     :host {
       display: flex;
+      flex-direction: row;
     }
+    #flows {
+      display: flex;
+      flex-direction: column;
+    }
+
     </style>
     <tv-c-a-single-event-sub-view id="content"></tv-c-a-single-event-sub-view>
+    <div id="flows">
+      <tv-c-a-related-flows id="rflows">
+      </tv-c-a-related-flows>
+    </div>
   </template>
 
   <script>
@@ -29,6 +40,22 @@ found in the LICENSE file.
 
     set selection(selection) {
       this.$.content.selection = selection;
+      var hasFlows = false;
+      var slice;
+      if (selection) {
+        slice = selection[0];
+        hasFlows = slice.inFlowEvents.length !== 0 ||
+            slice.outFlowEvents.length !== 0;
+      }
+      if (hasFlows) {
+        this.$.rflows.style.display = '';
+        this.$.rflows.setFlows(
+          new tv.c.Selection(slice.inFlowEvents),
+          new tv.c.Selection(slice.outFlowEvents));
+      } else {
+        this.$.rflows.style.display = 'none';
+        this.$.rflows.clearFlows();
+      }
     }
   });
   </script>

@@ -98,6 +98,57 @@ tv.exportTo('tv.c.test_utils', function() {
     return s;
   }
 
+  function newFlowEventEx(options) {
+    if (options.start === undefined)
+      throw new Error('Too little info');
+
+    var title = options.title ? options.title : 'a';
+
+    var colorId = options.colorId ? options.colorId : 0;
+
+    var duration;
+    if (options.duration !== undefined) {
+      if (options.end !== undefined) throw new Error('TMI');
+      duration = options.duration;
+    } else if (options.end !== undefined) {
+      if (options.duration !== undefined) throw new Error('TMI');
+      duration = options.end - options.start;
+    } else {
+      throw new Error('Too little info');
+    }
+
+    var id;
+    if (options.id !== undefined)
+      id = options.id;
+    else
+      id = tv.b.GUID.allocate();
+
+    var event = new tv.c.trace_model.FlowEvent(
+        options.cat ? options.cat : 'cat',
+        id,
+        title,
+        colorId,
+        options.start,
+        options.args ? options.args : {},
+        duration);
+
+    if (options.startStackFrame)
+      event.startStackFrame = options.startStackFrame;
+    if (options.endStackFrame)
+      event.endStackFrame = options.endStackFrame;
+    if (options.important)
+      event.important = options.important;
+    if (options.startSlice) {
+      event.startSlice = options.startSlice;
+      event.startSlice.outFlowEvents.push(event);
+    }
+    if (options.endSlice) {
+      event.endSlice = options.endSlice;
+      event.endSlice.inFlowEvents.push(event);
+    }
+    return event;
+  }
+
   function newSlice(start, duration) {
     return newSliceNamed('a', start, duration);
   }
@@ -230,6 +281,7 @@ tv.exportTo('tv.c.test_utils', function() {
     newCounterNamed: newCounterNamed,
     newCounterCategory: newCounterCategory,
     newCounterSeries: newCounterSeries,
+    newFlowEventEx: newFlowEventEx,
     newSlice: newSlice,
     newThreadSlice: newThreadSlice,
     newSliceNamed: newSliceNamed,

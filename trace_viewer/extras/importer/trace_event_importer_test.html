@@ -1960,9 +1960,17 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('importFlowEvent', function() {
     var events = [
+      { name: 'aSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 547, ph: 'B', args: {} },  // @suppress longLineCheck
       { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
+      { id: 72, pid: 52, tid: 53, ts: 549, ph: 'E', args: {} },  // @suppress longLineCheck
+
+      { name: 'bSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 559, ph: 'B', args: {} },  // @suppress longLineCheck
       { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {} },  // @suppress longLineCheck
-      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} }   // @suppress longLineCheck
+      { id: 72, pid: 52, tid: 53, ts: 561, ph: 'E', args: {} },  // @suppress longLineCheck
+
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} },   // @suppress longLineCheck
+      { name: 'cSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 581, ph: 'B', args: {} },  // @suppress longLineCheck
+      { id: 72, pid: 52, tid: 53, ts: 582, ph: 'E', args: {} }  // @suppress longLineCheck
     ];
 
     var m = new tv.c.TraceModel(events);
@@ -1976,8 +1984,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(f0.title, 'a');
     assert.equal(f0.category, 'foo');
     assert.equal(f0.id, 72);
-    assert.equal(f0.start, 0);
+    assert.closeTo(f0.start, 0.001, 1e-5);
     assert.closeTo(12 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'aSlice');
+    assert.equal(f0.endSlice.title, 'bSlice');
 
     // TODO(nduca): Replace this assertion with something better when
     // flow events don't create synthetic slices on their own.
@@ -1990,17 +2000,22 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(f1.id, f0.id);
     assert.closeTo(20 / 1000, f1.duration, 1e-5);
 
-    // TODO(nduca): Replace this assertion with something better when
-    // flow events don't create synthetic slices on their own.
-    assert.isDefined(f1.startSlice);
-    assert.isDefined(f1.endSlice);
+    assert.equal(f1.startSlice.title, 'bSlice');
+    assert.equal(f1.endSlice.title, 'cSlice');
+
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+    assert.deepEqual(f1.startSlice.outFlowEvents, [f1]);
+    assert.deepEqual(f1.endSlice.inFlowEvents, [f1]);
   });
 
   // This test creates a flow event that stops on the same timestamp that
   // the 'X' event which it triggers begins.
   test('importFlowEventOverlaps', function() {
     var events = [
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
       { name: 'PostTask', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {}},  // @suppress longLineCheck
+
       { name: 'PostTask', cat: 'foo', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', args: { 'queue_duration': 0}},   // @suppress longLineCheck
       // Note that RunTask has the same time-stamp as PostTask 'f'
       { name: 'RunTask', cat: 'foo', pid: 70, tid: 71, ts: 580, ph: 'X', args: {'src_func': 'PostRunTask'}, 'dur': 1000}   // @suppress longLineCheck
@@ -2014,7 +2029,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(startT.sliceGroup.slices.length, 1);
 
     assert.isDefined(endT);
-    assert.equal(endT.sliceGroup.slices.length, 2);
+    assert.equal(endT.sliceGroup.slices.length, 1);
 
     assert.equal(m.flowEvents.length, 1);
 
@@ -2026,6 +2041,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(f0.id, 72);
     assert.equal(f0.start, .548);
     assert.closeTo(32 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'SomeTask');
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.equal(f0.endSlice.title, 'RunTask');
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
 
     // TODO(nduca): Add assertions about the flow slices, esp that they were
     // found correctly.
@@ -2033,11 +2052,20 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('importOutOfOrderFlowEvent', function() {
     var events = [
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 548, ph: 'X', 'dur': 10},   // @suppress longLineCheck
       { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
+
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 148, ph: 'X', 'dur': 10},   // @suppress longLineCheck
       { name: 'b', cat: 'foo', id: 73, pid: 52, tid: 53, ts: 148, ph: 's', args: {} },  // @suppress longLineCheck
+
       { name: 'b', cat: 'foo', id: 73, pid: 52, tid: 53, ts: 570, ph: 'f', args: {} },   // @suppress longLineCheck
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 571, ph: 'X', 'dur': 10},   // @suppress longLineCheck
+
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 560, ph: 'X', 'dur': 10},   // @suppress longLineCheck
       { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {} },  // @suppress longLineCheck
-      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} }   // @suppress longLineCheck
+
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} },   // @suppress longLineCheck
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 581, ph: 'X', 'dur': 10}   // @suppress longLineCheck
     ];
 
     var expected = [0.4, 0.0, 0.412];

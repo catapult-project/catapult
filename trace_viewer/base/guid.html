@@ -13,6 +13,10 @@ tv.exportTo('tv.b', function() {
   var GUID = {
     allocate: function() {
       return nextGUID++;
+    },
+
+    getLastGuid: function() {
+      return nextGUID - 1;
     }
   };
 

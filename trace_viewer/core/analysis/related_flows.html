@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_link.html">
+<link rel="import" href="/core/analysis/table_builder.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
+
+<polymer-element name="tv-c-a-related-flows">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    #table {
+      flex: 1 1 auto;
+      align-self: stretch;
+    }
+    </style>
+    <tracing-analysis-nested-table id="table"></tracing-analysis-nested-table>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.inSelection_ = undefined;
+      this.outSelection_ = undefined;
+      this.internalSelection_ = undefined;
+
+      this.$.table.tableColumns = [
+        {
+          title: 'Direction',
+          value: function(row) { return row.direction; },
+          width: '150px'
+        },
+        {
+          title: 'Title',
+          width: '100%',
+          value: function(row) {
+            var linkEl = document.createElement('tv-c-analysis-link');
+            linkEl.setSelectionAndContent(function() {
+                return new tv.c.Selection(row.event);
+            });
+            linkEl.appendChild(tv.b.ui.createSpan({
+              textContent: row.event.title
+            }));
+            return linkEl;
+          }
+        }
+      ];
+    },
+
+    clearFlows: function() {
+      this.inSelection_ = undefined;
+      this.outSelection_ = undefined;
+      this.internalSelection_ = undefined;
+      this.updateContents_();
+    },
+
+    setFlows: function(inSelection, outSelection, opt_internalSelection) {
+      this.inSelection_ = inSelection;
+      this.outSelection_ = outSelection;
+      if (opt_internalSelection)
+        this.internalSelection_ = opt_internalSelection;
+      else
+        this.internalSelection_ = new tv.c.Selection();
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      var table = this.$.table;
+      if (this.inSelection_ === undefined || this.outSelection_ === undefined) {
+        table.tableRows = [];
+        table.rebuild();
+        return;
+      }
+
+      var rows = [];
+      this.inSelection_.forEach(function(fe) {
+        rows.push({
+          direction: 'Incoming',
+          event: fe
+        });
+      });
+      this.outSelection_.forEach(function(fe) {
+        rows.push({
+          direction: 'Outgoing',
+          event: fe
+        });
+      });
+      this.internalSelection_.forEach(function(fe) {
+        rows.push({
+          direction: 'Internal',
+          event: fe
+        });
+      });
+
+      table.tableRows = rows;
+      table.rebuild();
+    }
+  });
+  </script>
+</polymer>

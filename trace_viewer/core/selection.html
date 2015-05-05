@@ -221,17 +221,17 @@ tv.exportTo('tv.c', function() {
         var addEventToNewSelection = function(event) {
         };
 
-        // If this is a flow event, and we have a next/prev item in the chain
-        // then we use that as the item to move too. Otherwise, we let the
-        // normal movement for a slice kick in and use that.
+        // If this is a flow event, then move to its slice based on the
+        // offset direction.
         if (event instanceof tv.c.trace_model.FlowEvent) {
-          if ((offset > 0) && event.nextFlowEvent) {
-            newSelection.push(event.nextFlowEvent);
-            continue;
-          } else if ((offset < 0) && event.previousFlowEvent) {
-            newSelection.push(event.previousFlowEvent);
-            continue;
+          if (offset > 0) {
+            newSelection.push(event.endSlice);
+          } else if (offset < 0) {
+            newSelection.push(event.startSlice);
+          } else {
+            /* Do nothing. Zero offsets don't do anything. */
           }
+          continue;
         }
 
         var track = viewport.trackForEvent(event);

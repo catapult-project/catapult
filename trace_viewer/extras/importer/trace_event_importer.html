@@ -199,6 +199,7 @@ tv.exportTo('tv.e.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allFlowEvents_.push({
+        refGuid: tv.b.GUID.getLastGuid(),
         sequenceNumber: this.allFlowEvents_.length,
         event: event,
         thread: thread
@@ -1104,18 +1105,10 @@ tv.exportTo('tv.e.importer', function() {
         return true;
       }
 
-      function createFlowEvent(thread, event) {
-        // TODO(nduca): Figure out startSlice from ts and binding point,
-        // instead of making a join point.
-        var startSlice = new tv.c.trace_model.ThreadSlice(
-            event.cat,
-            event.name,
-            tv.b.ui.getColorIdForGeneralPurposeString(event.name),
-            event.ts / 1000,
-            that.deepCopyIfNeeded_(event.args));
-        startSlice.duration = 0;
-
-        thread.sliceGroup.pushSlice(startSlice);
+      function createFlowEvent(thread, event, refGuid) {
+        var startSlice = thread.sliceGroup.findSliceAtTs(event.ts / 1000);
+        if (startSlice === undefined)
+          return undefined;
 
         var flowEvent = new tv.c.trace_model.FlowEvent(
             event.cat,
@@ -1125,25 +1118,28 @@ tv.exportTo('tv.e.importer', function() {
             event.ts / 1000,
             that.deepCopyIfNeeded_(event.args));
         flowEvent.startSlice = startSlice;
+        startSlice.outFlowEvents.push(flowEvent);
         return flowEvent;
       }
 
-      function finishFlowEventWith(flowEvent, thread, event) {
+      function finishFlowEventWith(flowEvent, thread, event, refGuid, isStep) {
         // TODO(nduca): Figure out endSlice from ts and binding point.
-        var endSlice = new tv.c.trace_model.ThreadSlice(
-            event.cat,
-            event.name,
-            tv.b.ui.getColorIdForGeneralPurposeString(event.name),
-            event.ts / 1000,
-            that.deepCopyIfNeeded_(event.args));
-        endSlice.duration = 0;
-
-        thread.sliceGroup.pushSlice(endSlice);
+        var endSlice;
+        if (isStep) {
+          endSlice = thread.sliceGroup.findSliceAtTs(event.ts / 1000);
+        } else {
+          endSlice = thread.sliceGroup.findNextSliceAfter(
+              event.ts / 1000, refGuid);
+        }
+        if (endSlice === undefined)
+          return false;
+        endSlice.inFlowEvents.push(flowEvent);
 
         // Modify the flowEvent with the new data.
         flowEvent.endSlice = endSlice;
         flowEvent.duration = (event.ts / 1000) - flowEvent.start;
         that.mergeArgsInto_(flowEvent.args, event.args, flowEvent.title);
+        return true;
       }
 
       // Actual import.
@@ -1157,6 +1153,7 @@ tv.exportTo('tv.e.importer', function() {
       var flowIdToEvent = {};
       for (var i = 0; i < this.allFlowEvents_.length; ++i) {
         var data = this.allFlowEvents_[i];
+        var refGuid = data.refGuid;
         var event = data.event;
         var thread = data.thread;
         if (!validateFlowEvent(event))
@@ -1171,7 +1168,14 @@ tv.exportTo('tv.e.importer', function() {
                   'encountering start of flow event.'});
             continue;
           }
-          flowEvent = createFlowEvent(thread, event);
+          flowEvent = createFlowEvent(thread, event, refGuid);
+          if (!flowEvent) {
+            this.model_.importWarning({
+              type: 'flow_slice_start_error',
+              message: 'event id ' + event.id + ' does not start ' +
+                  'at an actual slice, so cannot be created.'});
+            continue;
+          }
           flowIdToEvent[event.id] = flowEvent;
 
         } else if (event.ph === 't' || event.ph === 'f') {
@@ -1185,14 +1189,22 @@ tv.exportTo('tv.e.importer', function() {
             continue;
           }
 
-          finishFlowEventWith(flowEvent, thread, event);
-
-          that.model_.flowEvents.push(flowEvent);
+          var isStep = event.ph == 't';
+          var ok = finishFlowEventWith(flowEvent, thread, event,
+                                       refGuid, isStep);
+          if (ok) {
+            that.model_.flowEvents.push(flowEvent);
+          } else {
+            this.model_.importWarning({
+              type: 'flow_slice_start_error',
+              message: 'event id ' + event.id + ' does not end ' +
+                  'at an actual slice, so cannot be created.'});
+          }
 
           flowIdToEvent[event.id] = undefined;
 
           // If this is a step, then create another flow event.
-          if (event.ph === 't') {
+          if (ok && event.ph === 't') {
             flowEvent = createFlowEvent(thread, event);
             flowIdToEvent[event.id] = flowEvent;
           }

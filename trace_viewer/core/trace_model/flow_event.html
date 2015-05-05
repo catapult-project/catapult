@@ -46,7 +46,7 @@ tv.exportTo('tv.c.trace_model', function() {
       return 'Flow event named ' + this.title + ' at ' +
           tv.c.analysis.tsString(this.timestamp);
     }
-};
+  };
 
   tv.c.trace_model.EventRegistry.register(
       FlowEvent,

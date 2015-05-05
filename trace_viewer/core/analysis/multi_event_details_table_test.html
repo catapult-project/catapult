@@ -24,12 +24,12 @@ tv.b.unittest.testSuite(function() {
     var model = new Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     var tsg = thread.sliceGroup;
-    tsg.pushSlice(newSliceEx({title: 'a', start: 1, end: 2,
-                              cpuStart: 1, cpuEnd: 1.75}));
-    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
-                              cpuStart: 0, cpuEnd: 3}));
-    tsg.pushSlice(newSliceEx({title: 'a', start: 4, end: 5,
-                              cpuStart: 3, cpuEnd: 3.75}));
+    var sA = tsg.pushSlice(newSliceEx({title: 'a', start: 1, end: 2,
+                                       cpuStart: 1, cpuEnd: 1.75}));
+    var sB = tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                                       cpuStart: 0, cpuEnd: 3}));
+    var sC = tsg.pushSlice(newSliceEx({title: 'a', start: 4, end: 5,
+                                       cpuStart: 3, cpuEnd: 3.75}));
     tsg.createSubSlices();
 
     var threadTrack = {};
@@ -42,7 +42,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
 
     var table = viewEl.$.table;
-    var cmpResult = table.tableColumns[0].cmp(tsg.slices[0], tsg.slices[1]);
+    var cmpResult = table.tableColumns[0].cmp(sA, sB);
     assert.equal(cmpResult, 1);
   });
 
