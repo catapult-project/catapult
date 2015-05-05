@@ -88,7 +88,8 @@ found in the LICENSE file.
         background-color: rgb(171, 217, 202);
       }
       table > tbody.row-selection-mode > tr:hover:not(.empty-row),
-      table > tbody.cell-selection-mode > tr:not(.empty-row) > td:hover,
+      table > tbody.cell-selection-mode > tr:not(.empty-row) >
+          td.supports-selection:hover,
       table > tfoot > tr:hover {
         background-color: #e6e6e6
       }
@@ -527,6 +528,9 @@ found in the LICENSE file.
           var value = column.value(rowInfo.userRow);
           var colSpan = column.colSpan ? column.colSpan : 1;
           td.style.colSpan = colSpan;
+
+          if (this.doesColumnIndexSupportSelection(i))
+            td.classList.add('supports-selection');
 
           if (this.columnsWithExpandButtons_.indexOf(i) != -1) {
             if (rowInfo.userRow.subRows &&
