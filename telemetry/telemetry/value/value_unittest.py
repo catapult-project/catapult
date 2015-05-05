@@ -77,6 +77,12 @@ class ValueTest(TestBase):
                     tir_label='foo')
     self.assertTrue(b.IsMergableWith(a))
 
+    a = value.Value(page0, 'x', 'unit', important=False, description=None,
+                    tir_label='foo')
+    b = value.Value(page0, 'x', 'unit', important=False, description=None,
+                     tir_label='bar')
+    self.assertTrue(b.IsMergableWith(a))
+
   def testIncompat(self):
     page0 = self.pages[0]
 
@@ -96,12 +102,6 @@ class ValueTest(TestBase):
                     tir_label=None)
     b = ValueForTest(page0, 'x', 'unit', important=True, description=None,
                      tir_label=None)
-    self.assertFalse(b.IsMergableWith(a))
-
-    a = value.Value(page0, 'x', 'unit', important=False, description=None,
-                    tir_label='foo')
-    b = value.Value(page0, 'x', 'unit', important=False, description=None,
-                     tir_label='bar')
     self.assertFalse(b.IsMergableWith(a))
 
   def testNameMustBeString(self):

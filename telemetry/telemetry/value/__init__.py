@@ -90,8 +90,7 @@ class Value(object):
   def IsMergableWith(self, that):
     return (self.units == that.units and
             type(self) == type(that) and
-            self.important == that.important and
-            self.tir_label == that.tir_label)
+            self.important == that.important)
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
