@@ -11,11 +11,11 @@ import tempfile
 import unittest
 
 from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import browser_finder
 from telemetry.core import exceptions
 from telemetry.core import user_agent
 from telemetry.core import util
-from telemetry import decorators
 from telemetry.internal import story_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_set
@@ -275,6 +275,7 @@ class PageRunEndToEndTests(unittest.TestCase):
 
     return did_run[0]
 
+  @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUserAgent(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()

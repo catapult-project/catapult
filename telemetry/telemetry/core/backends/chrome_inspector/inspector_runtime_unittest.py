@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.unittest_util import tab_test_case
@@ -33,6 +34,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
   def testRuntimeExecuteOfSomethingThatCantJSONize(self):
     self._tab.ExecuteJavaScript('window')
 
+  @decorators.Disabled('chromeos')  # crbug.com/483212
   def testIFrame(self):
     starting_contexts = self._tab.EnableAllContexts()
 

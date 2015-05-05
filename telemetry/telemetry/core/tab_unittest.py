@@ -181,8 +181,8 @@ class GpuTabTest(tab_test_case.TabTestCase):
   def CustomizeBrowserOptions(cls, options):
     options.AppendExtraBrowserArgs('--enable-gpu-benchmarking')
 
-  # Test flaky on mac: http://crbug.com/358664
-  @decorators.Disabled('android', 'mac')
+  # Test flaky on mac: crbug.com/358664, chromeos: crbug.com/483212.
+  @decorators.Disabled('android', 'mac', 'chromeos')
   def testScreenshot(self):
     if not self._tab.screenshot_supported:
       logging.warning('Browser does not support screenshots, skipping test.')

@@ -184,7 +184,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.ClickElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
-  @decorators.Disabled('android', 'debug') # crbug.com/437068
+  @decorators.Disabled('android', 'debug',  # crbug.com/437068
+                       'chromeos')          # crbug.com/483212
   def testTapElement(self):
     self.Navigate('page_with_clickables.html')
     action_runner = action_runner_module.ActionRunner(self._tab,
@@ -207,7 +208,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.TapElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
-  @decorators.Disabled('android') # crbug.com/437065.
+  @decorators.Disabled('android',   # crbug.com/437065.
+                       'chromeos')  # crbug.com/483212.
   def testScroll(self):
     if not page_action.IsGestureSourceTypeSupported(
         self._tab, 'touch'):
@@ -231,7 +233,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertTrue(action_runner.EvaluateJavaScript(
         'document.body.scrollLeft') > 75)
 
-  @decorators.Disabled('android') # crbug.com/437065.
+  @decorators.Disabled('android',   # crbug.com/437065.
+                       'chromeos')  # crbug.com/483212.
   def testSwipe(self):
     if not page_action.IsGestureSourceTypeSupported(
         self._tab, 'touch'):

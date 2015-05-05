@@ -7,6 +7,7 @@ import sys
 import unittest
 
 from telemetry import benchmark
+from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.internal import story_runner
 from telemetry.page import page as page_module
@@ -431,6 +432,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertIn('RESULT metric: green= [2,4] unit', contents)
     self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', contents)
 
+  @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUpdateAndCheckArchives(self):
     usr_stub = system_stub.Override(story_runner, ['cloud_storage'])
     wpr_stub = system_stub.Override(archive_info, ['cloud_storage'])
