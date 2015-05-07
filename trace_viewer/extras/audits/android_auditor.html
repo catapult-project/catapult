@@ -586,6 +586,28 @@ tv.exportTo('tv.e.audits', function() {
       registerEventInfo({
           title: 'eglSwapBuffers',
           description: 'Complete GPU rendering of the frame.'}); // @suppress longLineCheck
+
+      //////////////////////////////////////////////////////////////////////////
+      // RecyclerView
+      //////////////////////////////////////////////////////////////////////////
+      registerEventInfo({
+          title: 'RV Scroll',
+          description: 'RecyclerView is calculating a scroll. If there are too many of these in Systrace, some Views inside RecyclerView might be causing it. Try to avoid using EditText, focusable views or handle them with care.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'RV OnLayout',
+          description: 'OnLayout has been called by the View system. If this shows up too many times in Systrace, make sure the children of RecyclerView do not update themselves directly. This will cause a full re-layout but when it happens via the Adapter notifyItemChanged, RecyclerView can avoid full layout calculation.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'RV FullInvalidate',
+          description: 'NotifyDataSetChanged or equal has been called. If this is taking a long time, try sending granular notify adapter changes instead of just calling notifyDataSetChanged or setAdapter / swapAdapter. Adding stable ids to your adapter might help.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'RV PartialInvalidate',
+          description: 'RecyclerView is rebinding a View. If this is taking a lot of time, consider optimizing your layout or make sure you are not doing extra operations in onBindViewHolder call.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'RV OnBindView',
+          description: 'RecyclerView is rebinding a View. If this is taking a lot of time, consider optimizing your layout or make sure you are not doing extra operations in onBindViewHolder call.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'RV CreateView',
+          description: 'RecyclerView is creating a new View. If too many of these are present: 1) There might be a problem in Recycling (e.g. custom Animations that set transient state and prevent recycling or ItemAnimator not implementing the contract properly. See Adapter#onFailedToRecycleView(ViewHolder). 2) There may be too many item view types. Try merging them. 3) There might be too many itemChange animations and not enough space in RecyclerPool. Try increasing your pool size and item cache size.'}); // @suppress longLineCheck
     },
 
     applyEventInfosRecursive_: function(parentNames, slice) {
