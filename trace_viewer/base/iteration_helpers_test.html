@@ -49,5 +49,52 @@ tv.b.unittest.testSuite(function() {
     assert.equal(compareArrays([], [], cmp), 0);
     assert.equal(compareArrays([1], [1], cmp), 0);
   });
+
+  test('mapItems', function() {
+    // Empty dictionary.
+    var srcDict = {};
+    var dstDict = tv.b.mapItems(srcDict, function(key, value) {
+      return value;
+    });
+    assert.lengthOf(Object.keys(srcDict), 0);
+    assert.lengthOf(Object.keys(dstDict), 0);
+    assert.notStrictEqual(dstDict, srcDict);
+
+    // Non-empty dictionary.
+    var srcDict = {a: 0, b: 30};
+    var dstDict = tv.b.mapItems(srcDict, function(key, value) {
+      return 9 * value / 5 + 32;
+    });
+    assert.lengthOf(Object.keys(srcDict), 2);
+    assert.equal(srcDict.a, 0);
+    assert.equal(srcDict.b, 30);
+    assert.lengthOf(Object.keys(dstDict), 2);
+    assert.equal(dstDict.a, 32);
+    assert.equal(dstDict.b, 86);
+    assert.notStrictEqual(dstDict, srcDict);
+
+    // Optional 'this' argument.
+    var srcDict = {c: '?', d: '!', e: '.'};
+    var dstDict = tv.b.mapItems(srcDict, function(key, value) {
+      return key + this.delimiter + value;
+    }, {delimiter: '='});
+    assert.lengthOf(Object.keys(srcDict), 3);
+    assert.equal(srcDict.c, '?');
+    assert.equal(srcDict.d, '!');
+    assert.equal(srcDict.e, '.');
+    assert.lengthOf(Object.keys(dstDict), 3);
+    assert.equal(dstDict.c, 'c=?');
+    assert.equal(dstDict.d, 'd=!');
+    assert.equal(dstDict.e, 'e=.');
+    assert.notStrictEqual(dstDict, srcDict);
+
+    // Inherited properties should not be mapped.
+    var srcDict = {__proto__: {a: 10}};
+    var dstDict = tv.b.mapItems(srcDict, function(key, value) {
+      return value;
+    });
+    assert.lengthOf(Object.keys(srcDict), 0);
+    assert.lengthOf(Object.keys(dstDict), 0);
+  });
 });
 </script>
