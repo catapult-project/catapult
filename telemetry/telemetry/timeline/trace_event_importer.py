@@ -188,7 +188,11 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         self._ProcessDurationEvent(event)
       elif phase == 'X':
         self._ProcessCompleteEvent(event)
+      # Note, S, F, T are deprecated and replaced by 'b' and 'e'. For
+      # backwards compatibility continue to support them here.
       elif phase == 'S' or phase == 'F' or phase == 'T':
+        self._ProcessAsyncEvent(event)
+      elif phase == 'b' or phase == 'e':
         self._ProcessAsyncEvent(event)
       # Note, I is historic. The instant event marker got changed, but we
       # want to support loading old trace files so we have both I and i.
@@ -238,18 +242,18 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       name = event.get('name', None)
       if name is None:
         self._model.import_errors.append(
-            'Async events (ph: S, T or F) require an name parameter.')
+            'Async events (ph: b, e, S, T or F) require an name parameter.')
         continue
 
       event_id = event.get('id')
       if event_id is None:
         self._model.import_errors.append(
-            'Async events (ph: S, T or F) require an id parameter.')
+            'Async events (ph: b, e, S, T or F) require an id parameter.')
         continue
 
       # TODO(simonjam): Add a synchronous tick on the appropriate thread.
 
-      if event['ph'] == 'S':
+      if event['ph'] == 'S' or event['ph'] == 'b':
         if not name in async_event_states_by_name_then_id:
           async_event_states_by_name_then_id[name] = {}
         if event_id in async_event_states_by_name_then_id[name]:
@@ -274,7 +278,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         events = async_event_states_by_name_then_id[name][event_id]
         events.append(async_event_state)
 
-        if event['ph'] == 'F':
+        if event['ph'] == 'F' or event['ph'] == 'e':
           # Create a slice from start to end.
           async_slice = tracing_async_slice.AsyncSlice(
               events[0]['event']['cat'],
