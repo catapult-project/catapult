@@ -326,12 +326,23 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
                 '-v', '--output-format=chartjson', '--upload-results',
                 base_name]
     perf_dashboard_id = base_name
-    # TODO(tonyg): Currently we set the device affinity to a stable hash of the
-    # benchmark name. This somewhat evenly distributes benchmarks among the
+    # TODO(fmeawad): Currently we set the device affinity to a stable hash of
+    # the benchmark name. This somewhat evenly distributes benchmarks among the
     # requested number of shards. However, it is far from optimal in terms of
     # cycle time.  We should add a benchmark size decorator (e.g. small, medium,
     # large) and let that inform sharding.
-    device_affinity = int(hashlib.sha1(base_name).hexdigest(), 16) % num_shards
+
+    # Based on the current timings, we shift the result of the hash function to
+    # achieve better load balancing. Those shift values are to be revised when
+    # necessary. (See tools/build/scripts/tools/perf/chrome-perf-step-timings.py
+    # for more details)
+    hash_shift = {
+      2 : 47,
+      5 : 56
+    }
+    shift = hash_shift.get(num_shards, 0)
+    base_name_hash = hashlib.sha1(base_name).hexdigest()
+    device_affinity = (int(base_name_hash, 16) >> shift) % num_shards
 
     output['steps'][base_name] = {
       'cmd': ' '.join(base_cmd + [
