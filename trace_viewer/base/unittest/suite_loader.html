@@ -25,8 +25,12 @@ tv.exportTo('tv.b.unittest', function() {
     this.testLinks = [];
 
     if (opt_suiteNamesToLoad) {
+      var tmp = opt_suiteNamesToLoad.map(function(n) {
+        var parts = n.split('.');
+        return parts.join('/') + '.html';
+      });
       this.allSuitesLoadedPromise = this.beginLoadingModules_(
-          opt_suiteNamesToLoad);
+          tmp);
     } else {
       var p;
       p = tv.b.getAsync('/tv/json/tests');
