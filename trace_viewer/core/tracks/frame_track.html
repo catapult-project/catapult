@@ -64,13 +64,7 @@ tv.exportTo('tv.c.tracks', function() {
   }
 
   FrameDot.prototype = {
-    __proto__: tv.c.tracks.LetterDot.prototype,
-
-    addToSelection: function(selection) {
-      var modelItem = this.modelItem;
-      selection.push(modelItem);
-      modelItem.events.forEach(selection.push, selection);
-    }
+    __proto__: tv.c.tracks.LetterDot.prototype
   };
 
   return {

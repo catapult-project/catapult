@@ -5,7 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/utils.html">
+<link rel="import" href="/base/event_target.html">
 <link rel="import" href="/base/deep_utils.html">
+<link rel="import" href="/core/selection_controller.html">
 <link rel="import" href="/core/analysis/analysis_view.html">
 <link rel="import" href="/extras/cc/raster_task_view.html">
 <link rel="import" href="/extras/cc/raster_task_selection.html">
@@ -25,6 +27,8 @@ tv.b.unittest.testSuite(function() {
     });
 
     var selection = new tv.c.Selection();
+    selection.model = m;
+
     selection.push(rasterTasks[0]);
     selection.push(rasterTasks[1]);
     return selection;
@@ -37,15 +41,22 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(view);
   });
 
+
   test('analysisViewIntegration', function() {
     var selection = createSelection();
-    var view = new TracingAnalysisView();
-    view.selection = selection;
-    assert.isDefined(view.querySelector('RasterTaskView'));
+
+    var timelineView = {model: selection.model};
+    var selectionController = new tv.c.SelectionController(timelineView);
+
+    var analysisEl = document.createElement('tv-c-a-analysis-view');
+    analysisEl.selectionController = selectionController;
+    selectionController.changeSelectionFromTimeline(selection);
+
+    assert.isDefined(analysisEl.querySelector('RasterTaskView'));
     var sv = tv.b.findDeepElementMatching(
-        view, 'tv-c-a-multi-thread-slice-sub-view');
+        analysisEl, 'tv-c-a-multi-thread-slice-sub-view');
     assert.isTrue(sv.requiresTallView);
-    this.addHTMLOutput(view);
+    this.addHTMLOutput(analysisEl);
   });
 });
 </script>

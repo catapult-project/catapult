@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/ui_state.html">
 
 <script>
 'use strict';
@@ -19,8 +18,8 @@ found in the LICENSE file.
 tv.exportTo('tv.c', function() {
   var Task = tv.b.Task;
 
-  function FindController() {
-    this.timeline_ = undefined;
+  function FindController(selectionController) {
+    this.selectionController_ = selectionController;
     this.filterText_ = '';
     this.filterHits_ = new tv.c.Selection();
     this.filterHitsDirty_ = true;
@@ -31,18 +30,11 @@ tv.exportTo('tv.c', function() {
     __proto__: Object.prototype,
 
     get model() {
-      if (!this.timeline_)
-        return;
-      return this.timeline_.model;
+      return this.selectionController_.model;
     },
 
-    get timeline() {
-      return this.timeline_;
-    },
-
-    set timeline(t) {
-      this.timeline_ = t;
-      this.filterHitsDirty_ = true;
+    get selectionController() {
+      return this.selectionController_;
     },
 
     get filterText() {
@@ -57,27 +49,28 @@ tv.exportTo('tv.c', function() {
     },
 
     getFilterPromise_: function(filterText) {
-      if (!this.timeline_)
+      if (!this.selectionController_)
         return;
       var promise = Promise.resolve();
 
+
+      var sc = this.selectionController_;
+
       var filter = new tv.c.TitleOrCategoryFilter(filterText);
       var filterHits = new tv.c.Selection();
-      var filterTask =
-          this.timeline.addAllObjectsMatchingFilterToSelectionAsTask(
-              filter, filterHits);
+      var filterTask = sc.addAllObjectsMatchingFilterToSelectionAsTask(
+          filter, filterHits);
       promise = Task.RunWhenIdle(filterTask);
       promise.then(function() {
         this.filterHitsDirty_ = false;
         this.filterHits_ = filterHits;
-        this.timeline.setHighlightAndClearSelection(filterHits);
+        sc.findTextChangedTo(filterHits);
       }.bind(this));
       return promise;
     },
 
     clearFindSelections_: function() {
-      this.timeline.setHighlightAndClearSelection(new tv.c.Selection());
-      this.timeline.findTextCleared();
+      this.selectionController_.findTextCleared();
     },
 
     /**
@@ -99,8 +92,8 @@ tv.exportTo('tv.c', function() {
       // It will return undefined if there is no syntactic match.
       var stateFromString;
       try {
-        stateFromString = tv.c.UIState.fromUserFriendlyString(
-          this.model, this.timeline.viewport, this.filterText);
+        stateFromString = this.selectionController_.uiStateFromString(
+            this.filterText);
       } catch (e) {
         var overlay = new tv.b.ui.Overlay();
         overlay.textContent = e.message;
@@ -110,7 +103,7 @@ tv.exportTo('tv.c', function() {
       }
 
       if (stateFromString !== undefined) {
-        this.timeline.navToPosition(stateFromString, true);
+        this.selectionController_.navToPosition(stateFromString, true);
       } else {
         // filterText is not a navString here -- proceed with find and filter.
         if (this.filterText.length === 0)
@@ -142,11 +135,11 @@ tv.exportTo('tv.c', function() {
       var N = this.filterHits.length;
       this.currentHitIndex_ = (this.currentHitIndex_ + dir + N) % N;
 
-      if (!this.timeline)
+      if (!this.selectionController_)
         return;
 
-      this.timeline.selection =
-          this.filterHits.subSelection(this.currentHitIndex_, 1);
+      this.selectionController_.findFocusChangedTo(
+          this.filterHits.subSelection(this.currentHitIndex_, 1));
     },
 
     findNext: function() {

@@ -15,9 +15,7 @@ tv.exportTo('tv.c', function() {
   }
 
   ScriptingObject.prototype = {
-    // Called when the active timeline changes.
-    onTimelineChanged: function(timeline) {
-      // No-op by default.
+    onModelChanged: function() {
     }
   };
 

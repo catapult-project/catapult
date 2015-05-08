@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/trace_model/selection_state.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c', function() {
+  var Selection = tv.c.Selection;
+  var SelectionState = tv.c.trace_model.SelectionState;
+
+  function BrushingState() {
+    this.guid_ = tv.b.GUID.allocate();
+    this.selection_ = new Selection();
+    this.findMatches_ = new Selection();
+    this.analysisViewRelatedEvents_ = new Selection();
+    this.appliedToModel_ = undefined;
+  }
+  BrushingState.prototype = {
+    get guid() {
+      return this.guid_;
+    },
+
+    clone: function() {
+      var that = new BrushingState();
+      that.selection_ = this.selection_;
+      that.findMatches_ = this.findMatches_;
+      that.analysisViewRelatedEvents_ = this.analysisViewRelatedEvents_;
+
+      return that;
+    },
+
+    equals: function(that) {
+      if (!this.selection_.equals(that.selection_))
+        return false;
+      if (!this.findMatches_.equals(that.findMatches_))
+        return false;
+      if (!this.analysisViewRelatedEvents_.equals(
+          that.analysisViewRelatedEvents_)) {
+        return false;
+      }
+      return true;
+    },
+
+    get selectionOfInterest() {
+      if (this.selection_.length)
+        return this.selection_;
+
+      if (this.highlight_.length)
+        return this.highlight_;
+
+      if (this.analysisViewRelatedEvents_.length)
+        return this.analysisViewRelatedEvents_;
+
+      return this.selection_;
+    },
+
+    get selection() {
+      return this.selection_;
+    },
+
+    set selection(selection) {
+      if (this.appliedToModel_)
+        throw new Error('Cannot mutate this state right now');
+      if (selection === undefined)
+        selection = new Selection();
+      this.selection_ = selection;
+    },
+
+    get findMatches() {
+      return this.findMatches_;
+    },
+
+    set findMatches(findMatches) {
+      if (this.appliedToModel_)
+        throw new Error('Cannot mutate this state right now');
+      if (findMatches === undefined)
+        findMatches = new Selection();
+      this.findMatches_ = findMatches;
+    },
+
+    get analysisViewRelatedEvents() {
+      return this.analysisViewRelatedEvents_;
+    },
+
+    set analysisViewRelatedEvents(analysisViewRelatedEvents) {
+      if (this.appliedToModel_)
+        throw new Error('Cannot mutate this state right now');
+      if (analysisViewRelatedEvents === undefined)
+        analysisViewRelatedEvents = new Selection();
+      this.analysisViewRelatedEvents_ = analysisViewRelatedEvents;
+    },
+
+    get isAppliedToModel() {
+      return this.appliedToModel_ !== undefined;
+    },
+
+    get hasHighlight_() {
+      return this.findMatches_.length > 0 ||
+          this.analysisViewRelatedEvents_.length > 0;
+    },
+
+    applyToModelSelectionState: function(model) {
+      this.appliedToModel_ = model;
+
+      if (!this.hasHighlight_) {
+        this.selection_.forEach(function(e) {
+          e.selectionState = SelectionState.SELECTED;
+        });
+        return;
+      }
+
+      model.iterateAllEvents(function(e) {
+        var selectionState;
+        if (this.selection_.contains(e)) {
+          selectionState = SelectionState.SELECTED;
+        } else if (this.findMatches_.contains(e)) {
+          selectionState = SelectionState.HIGHLIGHTED;
+        } else if (this.analysisViewRelatedEvents_.contains(e)) {
+          selectionState = SelectionState.HIGHLIGHTED;
+        } else {
+          selectionState = SelectionState.DIMMED;
+        }
+        e.selectionState = selectionState;
+      }.bind(this));
+    },
+
+    transferModelOwnershipToClone: function(that) {
+      if (!this.appliedToModel_)
+        throw new Error('Not applied');
+      // Assumes this.equals(that).
+      that.appliedToModel_ = this.appliedToModel_;
+      this.appliedToModel_ = undefined;
+    },
+
+    unapplyFromModelSelectionState: function() {
+      if (!this.appliedToModel_)
+        throw new Error('Not applied');
+      var model = this.appliedToModel_;
+      this.appliedToModel_ = undefined;
+
+      if (!this.hasHighlight_) {
+        this.selection_.forEach(function(e) {
+          e.selectionState = SelectionState.NONE;
+        });
+        return;
+      }
+
+      model.iterateAllEvents(function(e) {
+        e.selectionState = SelectionState.NONE;
+      });
+    }
+  };
+
+  return {
+    BrushingState: BrushingState
+  };
+});
+</script>

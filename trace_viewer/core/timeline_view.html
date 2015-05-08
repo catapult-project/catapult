@@ -18,6 +18,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/find_control.html">
 <link rel="import" href="/core/find_controller.html">
 <link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/core/selection_controller.html">
 <link rel="import" href="/core/scripting_control.html">
 <link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/core/side_panel/side_panel_container.html">
@@ -36,7 +37,7 @@ found in the LICENSE file.
     <tv-c-side-panel-container></tv-c-side-panel-container>
   </middle-container>
   <x-drag-handle></x-drag-handle>
-  <tracing-analysis-view id="analysis"></tracing-analysis-view>
+  <tv-c-a-analysis-view id="analysis"></tv-c-a-analysis-view>
 </template>
 
 <template id="help-btn-template">
@@ -237,11 +238,18 @@ tv.exportTo('tv.c', function() {
           'tv-c-side-panel-container');
       this.trackViewContainer_ = this.querySelector('track-view-container');
 
+      this.selectionController_ = new tv.c.SelectionController(this);
+      this.selectionController_.historyEnabled = true;
 
       this.findCtl_ = new TracingFindControl();
-      this.findCtl_.controller = new tv.c.FindController();
+      this.findCtl_.controller = new tv.c.FindController(
+          this.selectionController_);
+
       this.scriptingCtl_ = new TracingScriptingControl();
-      this.scriptingCtl_.controller = new tv.c.ScriptingController();
+      this.scriptingCtl_.controller = new tv.c.ScriptingController(
+          this.selectionController_);
+
+      this.sidePanelContainer_.selectionController = this.selectionController_;
 
       this.showFlowEvents_ = false;
       this.rightControls.appendChild(tv.b.ui.createCheckBox(
@@ -265,21 +273,21 @@ tv.exportTo('tv.c', function() {
       tv.b.ui.decorate(this.dragEl_, tv.b.ui.DragHandle);
 
       this.analysisEl_ = this.querySelector('#analysis');
+      this.analysisEl_.selectionController = this.selectionController_;
 
-      this.addEventListener('requestSelectionChange',
-                            this.onRequestSelectionChange_.bind(this));
+      this.addEventListener(
+          'requestSelectionChange',
+          function(e) {
+            var sc = this.selectionController_;
+            sc.changeSelectionFromRequestSelectionChangeEvent(e.selection);
+          }.bind(this));
 
       // Bookkeeping.
       this.onViewportChanged_ = this.onViewportChanged_.bind(this);
-      this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
       document.addEventListener('keydown', this.onKeyDown_.bind(this), true);
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
 
       this.dragEl_.target = this.analysisEl_;
-
-      // State management on selection change.
-      this.selections_ = {};
-      window.addEventListener('popstate', this.onPopState_.bind(this));
     },
 
     updateDocumentFavicon: function() {
@@ -451,26 +459,22 @@ tv.exportTo('tv.c', function() {
         if (this.trackView_) {
           this.trackView_.viewport.removeEventListener(
               'change', this.onViewportChanged_);
-          this.trackView_.removeEventListener(
-              'selectionChange', this.onSelectionChanged_);
+          this.trackView_.selectionController = undefined;
           this.trackView_.detach();
           this.trackView_ = undefined;
-          this.findCtl_.controller.timeline = undefined;
-          this.scriptingCtl_.controller.timeline = undefined;
         }
-        this.sidePanelContainer_.model = undefined;
+        this.selectionController_.modelWillChange();
       }
 
       // Create new trackView if needed.
       if (modelValid && !this.trackView_) {
         this.trackView_ = new tv.c.TimelineTrackView(this);
+
+        this.trackView.selectionController = this.selectionController_;
+
         this.trackView_.focusElement =
             this.focusElement_ ? this.focusElement_ : this.parentElement;
         this.trackViewContainer_.appendChild(this.trackView_);
-        this.findCtl_.controller.timeline = this.trackView_;
-        this.scriptingCtl_.controller.timeline = this.trackView_;
-        this.trackView_.addEventListener(
-            'selectionChange', this.onSelectionChanged_);
         this.trackView_.viewport.addEventListener(
             'change', this.onViewportChanged_);
       }
@@ -478,21 +482,23 @@ tv.exportTo('tv.c', function() {
       // Set the model.
       if (modelValid) {
         this.trackView_.model = model;
-        this.sidePanelContainer_.model = model;
         this.trackView_.viewport.showFlowEvents = this.showFlowEvents;
         this.trackView_.viewport.highlightVSync = this.highlightVSync;
-        this.clearSelectionHistory_();
       }
-      tv.b.dispatchSimpleEvent(this, 'modelChange');
 
       // Do things that are selection specific
       if (modelInstanceChanged) {
-        this.onSelectionChanged_();
+        tv.b.dispatchSimpleEvent(this, 'modelChange');
+        this.selectionController_.modelDidChange();
         this.onViewportChanged_();
       }
     },
 
-    get timeline() {
+    get selectionController() {
+      return this.selectionController_;
+    },
+
+    get trackView() {
       return this.trackView_;
     },
 
@@ -592,44 +598,6 @@ tv.exportTo('tv.c', function() {
           e.preventDefault();
           break;
       }
-    },
-
-    onSelectionChanged_: function(e) {
-      var oldScrollTop = this.trackViewContainer_.scrollTop;
-
-      var selection = this.trackView_ ?
-          this.trackView_.selectionOfInterest :
-          new tv.c.Selection();
-      this.analysisEl_.selection = selection;
-      this.trackViewContainer_.scrollTop = oldScrollTop;
-      this.sidePanelContainer_.selection = selection;
-    },
-
-    onRequestSelectionChange_: function(e) {
-      // Save the selection so that when back button is pressed,
-      // it could be retrieved.
-      this.selections_[e.selection.guid] = e.selection;
-      var state = {
-        selection_guid: e.selection.guid
-      };
-      window.history.pushState(state, document.title);
-
-      this.trackView_.selection = e.selection;
-      e.stopPropagation();
-    },
-
-    onPopState_: function(e) {
-      if (e.state === null)
-        return;
-
-      var selection = this.selections_[e.state.selection_guid];
-      if (selection)
-        this.trackView_.selection = selection;
-      e.stopPropagation();
-    },
-
-    clearSelectionHistory_: function() {
-      this.selections_ = {};
     },
 
     onViewportChanged_: function(e) {

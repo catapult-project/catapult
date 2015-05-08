@@ -216,6 +216,8 @@ tv.exportTo('tv.c.tracks', function() {
 
     drawTrack: function(type) {
       var ctx = this.context();
+      if (!this.model_)
+        return;
 
       var pixelRatio = window.devicePixelRatio || 1;
       var bounds = this.getBoundingClientRect();

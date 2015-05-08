@@ -147,6 +147,11 @@ found in the LICENSE file.
     },
 
     get selectedTab() {
+      // Make sure we process any pending children additions / removals, before
+      // trying to select a tab. Otherwise, we might not find some children.
+      this.childrenUpdated_(
+        this.childrenObserver_.takeRecords(), this.childrenObserver_);
+
       // Do not give access to the user to the inner data structure.
       // A user should only be able to mutate the added tab content.
       if (this.selectedTab_)
@@ -273,8 +278,10 @@ found in the LICENSE file.
           this.tabs_[i].observers.forAttributeSelected.disconnect();
           this.tabs_[i].observers.forAttributeTabLabel.disconnect();
           // The user has removed the currently selected tab.
-          if (this.tabs_[i] === this.selectedTab_)
+          if (this.tabs_[i] === this.selectedTab_) {
             this.clearSelectedTab_();
+            this.fire('selected-tab-change');
+          }
           child.removeAttribute('selected');
           delete child.selected;
           // Remove the observer since we no longer care about this child.

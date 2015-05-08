@@ -88,6 +88,7 @@ tv.exportTo('tv.c', function() {
 
       this.viewport_ = new Viewport(this);
       this.viewportDisplayTransformAtMouseDown_ = null;
+      this.selectionController_ = undefined;
 
       this.rulerTrackContainer_ =
           new tv.c.tracks.DrawingContainer(this.viewport_);
@@ -124,6 +125,8 @@ tv.exportTo('tv.c', function() {
 
       this.initHintText_();
 
+      this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
+
       this.bindEventListener_(document, 'keypress', this.onKeypress_, this);
       this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
       this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
@@ -143,8 +146,7 @@ tv.exportTo('tv.c', function() {
 
       this.lastTouchViewPositions_ = [];
 
-      this.selection_ = new Selection();
-      this.highlight_ = new Selection();
+      this.alert_ = undefined;
 
       this.isPanningAndScanning_ = false;
       this.isZooming_ = false;
@@ -225,6 +227,35 @@ tv.exportTo('tv.c', function() {
           m.ZOOM, tv.b.ui.MODIFIER.CMD_OR_CTRL);
     },
 
+    get selectionController() {
+      return this.selectionController_;
+    },
+
+    set selectionController(selectionController) {
+      if (this.selectionController_) {
+        this.selectionController_.removeEventListener('change',
+                                                      this.onSelectionChanged_);
+      }
+      this.selectionController_ = selectionController;
+      if (this.selectionController_) {
+        this.selectionController_.addEventListener('change',
+                                                   this.onSelectionChanged_);
+      }
+    },
+
+    onSelectionChanged_: function() {
+      this.showHintText_('Press \'m\' to mark current selection');
+      this.viewport_.dispatchChangeEvent();
+    },
+
+    set selection(selection) {
+      throw new Error('DO NOT CALL THIS');
+    },
+
+    set highlight(highlight) {
+      throw new Error('DO NOT CALL THIS');
+    },
+
     detach: function() {
       this.modelTrack_.detach();
       this.upperModelTrack_.detach();
@@ -301,10 +332,15 @@ tv.exportTo('tv.c', function() {
      * @return {Task} which performs the filtering.
      */
     addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
-      return this.modelTrack_.addAllObjectsMatchingFilterToSelectionAsTask(
+      var modelTrack = this.modelTrack_;
+      var firstT = modelTrack.addAllObjectsMatchingFilterToSelectionAsTask(
           filter, selection);
-      this.upperModelTrack_.addAllObjectsMatchingFilterToSelection(
+      var lastT = firstT.after(function() {
+        this.upperModelTrack_.addAllObjectsMatchingFilterToSelection(
           filter, selection);
+
+      }, this);
+      return firstT;
     },
 
     /**
@@ -439,11 +475,11 @@ tv.exportTo('tv.c', function() {
 
       switch (e.keyCode) {
         case 37:   // left arrow
-          sel = this.selection.getShiftedSelection(
+          sel = this.selectionController_.selection.getShiftedSelection(
               this.viewport, -1);
 
           if (sel) {
-            this.setSelectionAndClearHighlight(sel);
+            this.selectionController.changeSelectionFromTimeline(sel);
             this.panToSelection();
             e.preventDefault();
           } else {
@@ -451,10 +487,10 @@ tv.exportTo('tv.c', function() {
           }
           break;
         case 39:   // right arrow
-          sel = this.selection.getShiftedSelection(
+          sel = this.selectionController_.selection.getShiftedSelection(
               this.viewport, 1);
           if (sel) {
-            this.setSelectionAndClearHighlight(sel);
+            this.selectionController.changeSelectionFromTimeline(sel);
             this.panToSelection();
             e.preventDefault();
           } else {
@@ -490,15 +526,16 @@ tv.exportTo('tv.c', function() {
           tv.b.ui.MOUSE_SELECTOR_MODE.SELECTION)
         return;
 
-      if (!this.selection.length || !this.selection[0].title)
+      var curSelection = this.selectionController_.selection;
+      if (!curSelection.length || !curSelection[0].title)
         return;
 
       var selection = new Selection();
-      var filter = new tv.c.ExactTitleFilter(this.selection[0].title);
+      var filter = new tv.c.ExactTitleFilter(curSelection[0].title);
       this.modelTrack_.addAllObjectsMatchingFilterToSelection(filter,
                                                               selection);
 
-      this.setSelectionAndClearHighlight(selection);
+      this.selectionController.changeSelectionFromTimeline(selection);
     },
 
     onMouseWheel_: function(e) {
@@ -605,10 +642,10 @@ tv.exportTo('tv.c', function() {
      * Zoom into the current selection.
      */
     zoomToSelection: function() {
-      if (!this.selectionOfInterest.length)
+      if (!this.selectionController.selectionOfInterest.length)
         return;
 
-      var bounds = this.selectionOfInterest.bounds;
+      var bounds = this.selectionController.selectionOfInterest.bounds;
       if (!bounds.range)
         return;
 
@@ -631,10 +668,10 @@ tv.exportTo('tv.c', function() {
      * Pan the view so the current selection becomes visible.
      */
     panToSelection: function() {
-      if (!this.selectionOfInterest.length)
+      if (!this.selectionController.selectionOfInterest.length)
         return;
 
-      var bounds = this.selectionOfInterest.bounds;
+      var bounds = this.selectionController.selectionOfInterest.bounds;
       var worldCenter = bounds.center;
       var viewWidth = this.modelTrackContainer_.canvas.width;
 
@@ -694,18 +731,6 @@ tv.exportTo('tv.c', function() {
       this.model.addAnnotation(this.xNavStringMarker_);
     },
 
-    findTextCleared: function() {
-      if (this.xNavStringMarker_ !== undefined) {
-        this.model.removeAnnotation(this.xNavStringMarker_);
-        this.xNavStringMarker_ = undefined;
-      }
-
-      if (this.guideLineAnnotation_ !== undefined) {
-        this.model.removeAnnotation(this.guideLineAnnotation_);
-        this.guideLineAnnotation_ = undefined;
-      }
-    },
-
     setCurrentSelectionAsInterestRange_: function() {
       var selectionBounds = this.selection.bounds;
       if (selectionBounds.empty) {
@@ -722,148 +747,6 @@ tv.exportTo('tv.c', function() {
 
     toggleHighDetails_: function() {
       this.viewport_.highDetails = !this.viewport_.highDetails;
-    },
-
-    /**
-     * Sets the selected events and changes the SelectionState of the events to
-     *   SELECTED.
-     * @param {Selection} selection A Selection of the new selected events.
-     */
-    set selection(selection) {
-      this.setSelectionAndHighlight(selection, this.highlight_);
-    },
-
-    get selection() {
-      return this.selection_;
-    },
-
-    /**
-     * Sets the highlighted events and changes the SelectionState of the events
-     *   to HIGHLIGHTED. All other events are set to DIMMED, except SELECTED
-     *   ones.
-     * @param {Selection} selection A Selection of the new selected events.
-     */
-    set highlight(highlight) {
-      this.setSelectionAndHighlight(this.selection_, highlight);
-    },
-
-    get highlight() {
-      return this.highlight_;
-    },
-
-    /**
-     * Getter for events of interest, primarily SELECTED and secondarily
-     *   HIGHLIGHTED events.
-     */
-    get selectionOfInterest() {
-      if (!this.selection_.length && this.highlight_.length)
-        return this.highlight_;
-      return this.selection_;
-    },
-
-    /**
-     * Sets the selected events, changes the SelectionState of the events to
-     *   SELECTED and clears the highlighted events.
-     * @param {Selection} selection A Selection of the new selected events.
-     */
-    setSelectionAndClearHighlight: function(selection) {
-      this.setSelectionAndHighlight(selection, null);
-    },
-
-    /**
-     * Sets the highlighted events, changes the SelectionState of the events to
-     *   HIGHLIGHTED and clears the selected events. All other events are set to
-     *   DIMMED.
-     * @param {Selection} highlight A Selection of the new highlighted events.
-     */
-    setHighlightAndClearSelection: function(highlight) {
-      this.setSelectionAndHighlight(null, highlight);
-    },
-
-    /**
-     * Sets both selected and highlighted events. If an event is both it will be
-     *   set to SELECTED. All other events are set to DIMMED.
-     * @param {Selection} selection A Selection of the new selected events.
-     * @param {Selection} highlight A Selection of the new highlighted events.
-     */
-    setSelectionAndHighlight: function(selection, highlight) {
-      if (selection === this.selection_ && highlight === this.highlight_)
-        return;
-
-      if ((selection !== null && !(selection instanceof Selection)) ||
-          (highlight !== null && !(highlight instanceof Selection))) {
-        throw new Error('Expected Selection');
-      }
-
-      if (highlight && highlight.length) {
-        // Set all events to DIMMED. This needs to be done before clearing the
-        // old highlight, so that the old events are still available. This is
-        // also necessary when the highlight doesn't change, because it might
-        // have overlapping events with selection.
-        this.resetEventsTo_(SelectionState.DIMMED);
-
-        // Switch the highlight.
-        if (highlight !== this.highlight_)
-          this.highlight_ = highlight;
-
-        // Set HIGHLIGHTED on the events of the new highlight.
-        this.setSelectionState_(highlight, SelectionState.HIGHLIGHTED);
-      } else {
-        // If no highlight is active the SelectionState needs to be cleared.
-        // Note that this also clears old SELECTED events, so it doesn't need
-        // to be called again when setting the selection.
-        this.resetEventsTo_(SelectionState.NONE);
-        this.highlight_ = new Selection();
-      }
-
-      if (selection && selection.length) {
-        // Switch the selection
-        if (selection !== this.selection_)
-          this.selection_ = selection;
-
-        // Set SELECTED on the events of the new highlight.
-        this.setSelectionState_(selection, SelectionState.SELECTED);
-      } else
-        this.selection_ = new Selection();
-
-      tv.b.dispatchSimpleEvent(this, 'selectionChange');
-      this.showHintText_('Press \'m\' to mark current selection');
-
-      if (this.selectionOfInterest.length) {
-        var track = this.viewport_.trackForEvent(this.selectionOfInterest[0]);
-        if (track)
-          track.scrollIntoViewIfNeeded();
-      }
-
-      this.viewport_.dispatchChangeEvent(); // Triggers a redraw.
-    },
-
-    /**
-     * Sets a new SelectionState on all events in the selection.
-     * @param {Selection} selection The affected selection.
-     * @param {SelectionState} selectionState The new selection state.
-     */
-    setSelectionState_: function(selection, selectionState) {
-      for (var i = 0; i < selection.length; i++)
-        selection[i].selectionState = selectionState;
-    },
-
-    /**
-     * Resets all events to the provided SelectionState. When the SelectionState
-     *   changes from or to DIMMED all events in the model need to get updated.
-     * @param {SelectionState} selectionState The SelectionState to reset to.
-     */
-    resetEventsTo_: function(selectionState) {
-      var dimmed = this.highlight_.length;
-      var resetAll = (dimmed && selectionState !== SelectionState.DIMMED) ||
-                     (!dimmed && selectionState === SelectionState.DIMMED);
-      if (resetAll) {
-        this.model.iterateAllEvents(
-            function(event) { event.selectionState = selectionState; });
-      } else {
-        this.setSelectionState_(this.selection_, selectionState);
-        this.setSelectionState_(this.highlight_, selectionState);
-      }
     },
 
     hideDragBox_: function() {
@@ -1107,9 +990,7 @@ tv.exportTo('tv.c', function() {
           loVX, hiVX, loY, hiY, selection);
 
       // Activate the new selection.
-      var selection_change_event = new tv.c.RequestSelectionChangeEvent();
-      selection_change_event.selection = selection;
-      this.dispatchEvent(selection_change_event);
+      this.selectionController_.changeSelectionFromTimeline(selection);
     },
 
     onBeginZoom_: function(e) {

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/event_target.html">
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/extras/tquery/tquery.html">
@@ -13,16 +14,29 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.e.tquery', function() {
-  function FakeTimeline() {
-    this.allObjects = [];
+  function FakeSelectionController() {
+    tv.b.EventTarget.call(this);
+    this.allEvents_ = [];
   }
 
-  FakeTimeline.prototype = {
+  FakeSelectionController.prototype = {
+    __proto__: tv.b.EventTarget.prototype,
+
+    get allEvents() {
+      return this.allEvents_;
+    },
+
+    set allEvents(allEvents) {
+      this.allEvents_ = allEvents;
+      var e = new tv.b.Event('model-changed');
+      this.dispatchEvent(e);
+    },
+
     addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
       return new tv.b.Task(function() {
-        var n = this.allObjects.length;
+        var n = this.allEvents.length;
         for (var i = 0; i < n; i++) {
-          this.addSubtreeToSelection_(selection, this.allObjects[i]);
+          this.addSubtreeToSelection_(selection, this.allEvents[i]);
         }
       }, this);
     },
@@ -35,30 +49,31 @@ tv.exportTo('tv.e.tquery', function() {
         }
       }
     },
-
-    setHighlightAndClearSelection: function(highlight) {
-      this.highlight = highlight;
+    showScriptControlSelection: function(selection) {
+      this.selection = new tv.c.Selection();
+      this.highlight = selection;
     }
   };
   return {
-    FakeTimeline: FakeTimeline
+    FakeSelectionController: FakeSelectionController
   };
 });
 
 tv.b.unittest.testSuite(function() {
-  function createFakeTimeline_(sliceCount) {
-    var timeline = new tv.e.tquery.FakeTimeline();
-    timeline.allObjects = [];
+  var FakeSelectionController = tv.e.tquery.FakeSelectionController;
+
+  function createSliceArray(sliceCount) {
+    var allEvents = [];
     for (var i = 0; i < sliceCount; i++) {
-      timeline.allObjects.push({guid: i});
+      allEvents.push({guid: i});
     }
-    return timeline;
+    return allEvents;
   }
 
-  function createFakeTimelineWithEvents_(events) {
-    var timeline = new tv.e.tquery.FakeTimeline();
-    timeline.allObjects = events;
-    return timeline;
+  function createFakeSelectionController_(sliceCount) {
+    var selectionController = new FakeSelectionController();
+    selectionController.allEvents = createSliceArray(sliceCount);
+    return selectionController;
   }
 
   function getScriptObject(name) {
@@ -71,46 +86,44 @@ tv.b.unittest.testSuite(function() {
   }
 
   test('tqueryAsyncSelection', function() {
-    var tquery = new tv.e.tquery.TQuery();
-    var timeline = createFakeTimeline_(3);
-    tquery.onTimelineChanged(timeline);
+    var selectionController = createFakeSelectionController_(3);
+    var tquery = new tv.e.tquery.TQuery(selectionController);
 
     var result = tquery.show();
     tv.b.Task.RunSynchronously(result);
-    assert.equal(timeline.highlight.length, 3);
+    assert.equal(selectionController.highlight.length, 3);
   });
 
   test('tquerySyncSelection', function() {
-    var tquery = new tv.e.tquery.TQuery();
-    var timeline = createFakeTimeline_(3);
-    tquery.onTimelineChanged(timeline);
+    var selectionController = createFakeSelectionController_(3);
+    var tquery = new tv.e.tquery.TQuery(selectionController);
 
     assert.equal(tquery.selection.length, 3);
 
-    // Selection should get reset when the timeline changes.
-    tquery.onTimelineChanged(createFakeTimeline_(5));
+    // Selection should get reset when the model changes.
+    selectionController.allEvents = createSliceArray(5);
+    tquery.onModelChanged();
     assert.equal(tquery.selection.length, 5);
   });
 
   test('tqueryPassThroughFiltering', function() {
-    var tquery = new tv.e.tquery.TQuery();
-    var timeline = createFakeTimeline_(3);
-    tquery.onTimelineChanged(timeline);
+    var selectionController = new createFakeSelectionController_(3);
+    var tquery = new tv.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter().filter().show();
     tv.b.Task.RunSynchronously(result);
-    assert.equal(timeline.highlight.length, 3);
+    assert.equal(selectionController.highlight.length, 3);
   });
 
   test('tqueryFilterHasTitle', function() {
-    var tquery = new tv.e.tquery.TQuery();
     var hasTitle = getScriptObject('hasTitle');
-    var timeline = createFakeTimelineWithEvents_([
+    var selectionController = new FakeSelectionController();
+    selectionController.allEvents = [
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b'},
         {guid: 3, title: 'c'}
-    ]);
-    tquery.onTimelineChanged(timeline);
+    ];
+    var tquery = new tv.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(hasTitle('a')).selection;
     assert.equal(result.length, 1);
@@ -126,14 +139,14 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterHasAncestor', function() {
-    var tquery = new tv.e.tquery.TQuery();
     var hasAncestor = getScriptObject('hasAncestor');
-    var timeline = createFakeTimelineWithEvents_([
+    var selectionController = new FakeSelectionController();
+    selectionController.allEvents = [
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b', subSlices: [{guid: 4}]},
         {guid: 3, title: 'c'}
-    ]);
-    tquery.onTimelineChanged(timeline);
+    ];
+    var tquery = new tv.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(hasAncestor('b')).selection;
     assert.equal(result.length, 1);
@@ -148,14 +161,14 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterAllOf', function() {
-    var tquery = new tv.e.tquery.TQuery();
     var allOf = getScriptObject('allOf');
-    var timeline = createFakeTimelineWithEvents_([
+    var selectionController = new FakeSelectionController();
+    selectionController.allEvents = [
         {guid: 1, title: 'a1'},
         {guid: 2, title: 'b1'},
         {guid: 3, title: 'c1'}
-    ]);
-    tquery.onTimelineChanged(timeline);
+    ];
+    var tquery = new tv.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(allOf('a1')).selection;
     assert.equal(result.length, 1);
@@ -170,14 +183,14 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterAnyOf', function() {
-    var tquery = new tv.e.tquery.TQuery();
     var anyOf = getScriptObject('anyOf');
-    var timeline = createFakeTimelineWithEvents_([
+    var selectionController = new FakeSelectionController();
+    selectionController.allEvents = [
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b'},
         {guid: 3, title: 'c'}
-    ]);
-    tquery.onTimelineChanged(timeline);
+    ];
+    var tquery = new tv.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(anyOf('a', 'b')).selection;
     assert.equal(result.length, 2);
@@ -193,14 +206,14 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterIsTopLevel', function() {
-    var tquery = new tv.e.tquery.TQuery();
     var isTopLevel = getScriptObject('isTopLevel');
-    var timeline = createFakeTimelineWithEvents_([
+    var selectionController = new FakeSelectionController();
+    selectionController.allEvents = [
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b', subSlices: [{guid: 4}]},
         {guid: 3, title: 'c'}
-    ]);
-    tquery.onTimelineChanged(timeline);
+    ];
+    var tquery = new tv.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(isTopLevel()).selection;
     assert.equal(result.length, 3);
@@ -214,15 +227,15 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterHasDuration', function() {
-    var tquery = new tv.e.tquery.TQuery();
     var hasDuration = getScriptObject('hasDuration');
-    var timeline = createFakeTimelineWithEvents_([
+    var selectionController = new FakeSelectionController();
+    selectionController.allEvents = [
         {guid: 1, title: 'a', duration: 1},
         {guid: 2, title: 'b', duration: 2},
         {guid: 3, title: 'c', duration: 3},
         {guid: 4, title: 'no duration'}
-    ]);
-    tquery.onTimelineChanged(timeline);
+    ];
+    var tquery = new tv.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(hasDuration(1.5, 2.5)).selection;
     assert.equal(result.length, 1);

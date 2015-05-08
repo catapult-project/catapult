@@ -10,18 +10,43 @@ found in the LICENSE file.
 
 <polymer-element name="tv-c-single-frame-sub-view"
     extends="tracing-analysis-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    #asv {
+      flex: 0 0 auto;
+      align-self: stretch;
+    }
+    </style>
+    <tv-c-a-alert-sub-view id="asv">
+    </tv-c-a-alert-sub-view>
+  </template>
   <script>
   'use strict';
 
   Polymer({
+    ready: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
     set selection(selection) {
       if (selection.length != 1)
         throw new Error('Only supports single frame!');
-      this.textContent = '';
-      var realView = document.createElement('tv-c-a-alert-sub-view');
+      this.currentSelection_ = selection;
+      this.$.asv.selection = new tv.c.Selection(selection[0].associatedAlerts);
+    },
 
-      this.appendChild(realView);
-      realView.selection = selection[0].associatedAlerts;
+    get relatedEventsToHighlight() {
+      if (!this.currentSelection_)
+        return undefined;
+      return new tv.c.Selection(this.currentSelection_[0].events);
     }
   });
   </script>

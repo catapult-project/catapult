@@ -14,6 +14,20 @@ found in the LICENSE file.
 'use strict';
 
 tv.b.unittest.testSuite(function() {
+  function FakeSelectionController() {
+    this.addAllObjectsMatchingFilterToSelectionReturnValue = [];
+
+    this.viewport = undefined;
+    this.model = undefined;
+    this.selection = new tv.c.Selection();
+    this.highlight = new tv.c.Selection();
+  }
+
+  FakeSelectionController.prototype = {
+    addEventListener: function(name, cb) {
+    }
+  };
+
   function createModel() {
     var m = new tv.c.TraceModel();
     m.importTraces([], false, false, function() {
@@ -28,8 +42,11 @@ tv.b.unittest.testSuite(function() {
   }
 
   test('instantiateCollapsed', function() {
+    var selectionController = new FakeSelectionController();
+    selectionController.model = createModel();
+
     var container = document.createElement('tv-c-side-panel-container');
-    container.model = createModel();
+    container.selectionController = selectionController;
     this.addHTMLOutput(container);
   });
 });

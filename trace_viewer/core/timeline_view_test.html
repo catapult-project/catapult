@@ -117,6 +117,7 @@ tv.b.unittest.testSuite(function() {
     var view = new tv.c.TimelineView();
     view.style.height = '400px';
     view.model = model;
+    var sc = view.selectionController;
 
     // Mutate the model and update the view.
     var t123 = model.getOrCreateProcess(123).getOrCreateThread(123);
@@ -126,7 +127,7 @@ tv.b.unittest.testSuite(function() {
     // Verify that the new bits of the model show up in the view.
     var selection = new tv.c.Selection();
     var filter = new tv.c.TitleOrCategoryFilter('somethingUnusual');
-    var filterTask = view.timeline.addAllObjectsMatchingFilterToSelectionAsTask(
+    var filterTask = sc.addAllObjectsMatchingFilterToSelectionAsTask(
         filter, selection);
     Task.RunSynchronously(filterTask);
     assert.equal(selection.length, 1);

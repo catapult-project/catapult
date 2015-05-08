@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/event_target.html">
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/core/brushing_state.html">
+<link rel="import" href="/core/trace_model/selection_state.html">
+<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/core/ui_state.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.c', function() {
+  var BrushingState = tv.c.BrushingState;
+  var Selection = tv.c.Selection;
+  var SelectionState = tv.c.trace_model.SelectionState;
+  var Viewport = tv.c.TimelineViewport;
+
+  function SelectionController(timelineView) {
+    tv.b.EventTarget.call(this);
+
+    this.timelineView_ = timelineView;
+    this.currentBrushingState_ = new BrushingState();
+
+    this.onPopState_ = this.onPopState_.bind(this);
+    this.historyEnabled_ = false;
+    this.selections_ = {};
+  }
+
+  SelectionController.prototype = {
+    __proto__: tv.b.EventTarget.prototype,
+
+    dispatchChangeEvent_: function() {
+      var e = new tv.b.Event('change', false, false);
+      this.dispatchEvent(e);
+    },
+
+    get model() {
+      if (!this.timelineView_)
+        return undefined;
+      return this.timelineView_.model;
+    },
+
+    get trackView() {
+      if (!this.timelineView_)
+        return undefined;
+      return this.timelineView_.trackView;
+    },
+
+    get viewport() {
+      if (!this.timelineView_)
+        return undefined;
+      if (!this.timelineView_.trackView)
+        return undefined;
+      return this.timelineView_.trackView.viewport;
+    },
+
+    /* History system */
+    get historyEnabled() {
+      return this.historyEnabled_;
+    },
+
+    set historyEnabled(historyEnabled) {
+      this.historyEnabled_ = !!historyEnabled;
+      if (historyEnabled)
+        window.addEventListener('popstate', this.onPopState_);
+      else
+        window.removeEventListener('popstate', this.onPopState_);
+    },
+
+    modelWillChange: function() {
+      if (this.currentBrushingState_.isAppliedToModel)
+        this.currentBrushingState_.unapplyFromModelSelectionState();
+    },
+
+    modelDidChange: function() {
+      this.selections_ = {};
+      this.currentBrushingState_.applyToModelSelectionState(this.model);
+
+      var e = new tv.b.Event('model-changed', false, false);
+      this.dispatchEvent(e);
+    },
+
+    onUserInitiatedSelectionChange_: function() {
+      var selection = this.selection;
+      if (this.historyEnabled) {
+        // Save the selection so that when back button is pressed,
+        // it could be retrieved.
+        this.selections_[selection.guid] = selection;
+        var state = {
+          selection_guid: selection.guid
+        };
+
+        window.history.pushState(state, document.title);
+      }
+    },
+
+    onPopState_: function(e) {
+      if (e.state === null)
+        return;
+
+      var selection = this.selections_[e.state.selection_guid];
+      if (selection) {
+        var newState = this.currentBrushingState_.clone();
+        newState.selection = seleciton;
+        this.currentBrushingState = newState;
+      }
+      e.stopPropagation();
+    },
+
+    get selection() {
+      return this.currentBrushingState_.selection;
+    },
+    get findMatches() {
+      return this.currentBrushingState_.findMatches;
+    },
+
+    get selectionOfInterest() {
+      return this.currentBrushingState_.selectionOfInterest;
+    },
+
+    get currentBrushingState() {
+      return this.currentBrushingState_;
+    },
+
+    set currentBrushingState(newBrushingState) {
+      if (newBrushingState.isAppliedToModel)
+        throw new Error('Cannot apply this state, it is applied');
+
+      // This function uses value-equality on the states so that state can
+      // changed to a clone of itself without causing a change event, while
+      // still having the actual state object change to the new clone.
+      var hasValueChanged = !this.currentBrushingState_.equals(
+          newBrushingState);
+
+      if (newBrushingState !== this.currentBrushingState_ &&
+          hasValueChanged == false) {
+        this.currentBrushingState_.transferModelOwnershipToClone(
+            newBrushingState);
+        this.currentBrushingState_ = newBrushingState;
+        return;
+      }
+
+      if (this.currentBrushingState_.isAppliedToModel)
+        this.currentBrushingState_.unapplyFromModelSelectionState();
+
+      this.currentBrushingState_ = newBrushingState;
+
+      if (this.model)
+        this.currentBrushingState_.applyToModelSelectionState(this.model);
+
+      this.dispatchChangeEvent_();
+    },
+
+    /**
+     * @param {Filter} filter The filter to use for finding matches.
+     * @param {Selection} selection The selection to add matches to.
+     * @return {Task} which performs the filtering.
+     */
+    addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
+      var timelineView = this.timelineView_.trackView;
+      if (!timelineView)
+        return new tv.b.Task();
+      return timelineView.addAllObjectsMatchingFilterToSelectionAsTask(
+          filter, selection);
+    },
+
+    findTextChangedTo: function(allPossibleMatches) {
+      var newBrushingState = this.currentBrushingState_.clone();
+      newBrushingState.findMatches = allPossibleMatches;
+      this.currentBrushingState = newBrushingState;
+    },
+
+    findFocusChangedTo: function(currentFocus) {
+      var newBrushingState = this.currentBrushingState_.clone();
+      newBrushingState.selection = currentFocus;
+      this.currentBrushingState = newBrushingState;
+
+      this.onUserInitiatedSelectionChange_();
+    },
+
+    findTextCleared: function() {
+      if (this.xNavStringMarker_ !== undefined) {
+        this.model.removeAnnotation(this.xNavStringMarker_);
+        this.xNavStringMarker_ = undefined;
+      }
+
+      if (this.guideLineAnnotation_ !== undefined) {
+        this.model.removeAnnotation(this.guideLineAnnotation_);
+        this.guideLineAnnotation_ = undefined;
+      }
+
+      var newBrushingState = this.currentBrushingState_.clone();
+      newBrushingState.selection = new Selection();
+      newBrushingState.findMatches = new Selection();
+      this.currentBrushingState = newBrushingState;
+
+      this.onUserInitiatedSelectionChange_();
+    },
+
+    uiStateFromString: function(string) {
+      return tv.c.UIState.fromUserFriendlyString(
+          this.model, this.viewport, string);
+    },
+
+    navToPosition: function(uiState, showNavLine) {
+      this.trackView.navToPosition(uiState, showNavLine);
+    },
+
+    changeSelectionFromTimeline: function(selection) {
+      var newBrushingState = this.currentBrushingState_.clone();
+      newBrushingState.selection = selection;
+      newBrushingState.findMatches = new Selection();
+      this.currentBrushingState = newBrushingState;
+
+      this.onUserInitiatedSelectionChange_();
+    },
+
+    showScriptControlSelection: function(selection) {
+      var newBrushingState = this.currentBrushingState_.clone();
+      newBrushingState.selection = selection;
+      newBrushingState.findMatches = new Selection();
+      this.currentBrushingState = newBrushingState;
+    },
+
+    changeSelectionFromRequestSelectionChangeEvent: function(selection) {
+      var newBrushingState = this.currentBrushingState_.clone();
+      newBrushingState.selection = selection;
+      newBrushingState.findMatches = new Selection();
+      this.currentBrushingState = newBrushingState;
+
+      this.onUserInitiatedSelectionChange_();
+    },
+
+    changeAnalysisViewRelatedEvents: function(selection) {
+      var newBrushingState = this.currentBrushingState_.clone();
+      newBrushingState.analysisViewRelatedEvents = selection;
+      this.currentBrushingState = newBrushingState;
+    }
+  };
+
+  return {
+    SelectionController: SelectionController
+  };
+});
+</script>

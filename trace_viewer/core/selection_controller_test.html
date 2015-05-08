@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/core/timeline_view.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var newSliceEx = tv.c.test_utils.newSliceEx;
+
+  var Selection = tv.c.Selection;
+  var SelectionState = tv.c.trace_model.SelectionState;
+  var Task = tv.b.Task;
+
+  function newSimpleFakeTimelineView() {
+    var m = tv.c.test_utils.newModel(function(m) {
+      m.p1 = m.getOrCreateProcess(1);
+      m.t2 = m.p1.getOrCreateThread(2);
+
+      m.sA = m.t2.sliceGroup.pushSlice(
+          newSliceEx({title: 'a', start: 0, end: 5}));
+      m.sB = m.t2.sliceGroup.pushSlice(
+          newSliceEx({title: 'b', start: 10, end: 15}));
+      m.sC = m.t2.sliceGroup.pushSlice(
+          newSliceEx({title: 'c', start: 20, end: 20}));
+    });
+
+    // Fake timeline view. So fake its ... just wow.
+    var timelineView = {
+      model: m
+    };
+    return timelineView;
+  }
+
+  function doesCauseChangeToFire(selectionController, cb, opt_this) {
+    var didFire = false;
+    function didFireCb() {
+      didFire = true;
+    };
+    selectionController.addEventListener('change', didFireCb);
+    cb.call(opt_this);
+    selectionController.removeEventListener('change', didFireCb);
+    return didFire;
+  }
+
+  test('simpleStateChanges', function() {
+    var timelineView = newSimpleFakeTimelineView();
+    var selectionController = new tv.c.SelectionController(timelineView);
+    var m = timelineView.model;
+
+    // Setting causes change.
+    var bs = new tv.c.BrushingState();
+    bs.selection = new Selection([m.sA]);
+    assert.isTrue(doesCauseChangeToFire(
+        selectionController,
+        function() {
+          selectionController.currentBrushingState = bs;
+        }));
+    assert.isTrue(bs.isAppliedToModel);
+
+    // Setting value equivalent doesn't cause change event.
+    var bs2 = bs.clone();
+    assert.isFalse(doesCauseChangeToFire(
+        selectionController,
+        function() {
+          selectionController.currentBrushingState = bs2;
+        }));
+    assert.equal(selectionController.currentBrushingState, bs2);
+    assert.isTrue(selectionController.currentBrushingState.isAppliedToModel);
+
+    // Setting to something different unapplies the old bs.
+    var bs3 = new tv.c.BrushingState();
+    bs3.findMatches = new Selection([m.sA, m.sB]);
+    selectionController.currentBrushingState = bs3;
+    assert.isTrue(bs3.isAppliedToModel);
+    assert.isFalse(bs2.isAppliedToModel);
+  });
+
+});
+</script>

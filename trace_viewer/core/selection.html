@@ -122,6 +122,17 @@ tv.exportTo('tv.c', function() {
       return selection;
     },
 
+    equals: function(that) {
+      if (this.length !== that.length)
+        return false;
+      for (var i = 0; i < this.length; i++) {
+        var event = this[i];
+        if (that.pushed_guids_[event.guid] === undefined)
+          return false;
+      }
+      return true;
+    },
+
     getEventsOrganizedByBaseType: function(opt_pruneEmpty) {
       var events = {};
       var allTypeInfos = EventRegistry.getAllRegisteredTypeInfos();
@@ -217,9 +228,6 @@ tv.exportTo('tv.c', function() {
       var newSelection = new Selection();
       for (var i = 0; i < this.length_; i++) {
         var event = this[i];
-
-        var addEventToNewSelection = function(event) {
-        };
 
         // If this is a flow event, then move to its slice based on the
         // offset direction.

@@ -33,6 +33,18 @@ found in the LICENSE file.
 
     get selection() {
       return this.currentSelection_;
+    },
+
+    get relatedEventsToHighlight() {
+      if (!this.currentSelection_)
+        return undefined;
+      var selection = new tv.c.Selection();
+      this.currentSelection_.forEach(function(frameEvent) {
+        frameEvent.events.forEach(function(event) {
+          selection.push(event);
+        });
+      });
+      return selection;
     }
   });
   </script>

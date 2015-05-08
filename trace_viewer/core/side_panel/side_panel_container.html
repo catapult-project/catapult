@@ -77,16 +77,46 @@ found in the LICENSE file.
       this.activePanelContainer_ = this.$.active_panel_container;
       this.tabStrip_ = this.$.tab_strip;
 
-      this.model_ = undefined;
       this.rangeOfInterest_ = new tv.b.Range();
+      this.selectionController_ = undefined;
+      this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
+      this.onModelChanged_ = this.onModelChanged_.bind(this);
+    },
+
+    get selectionController() {
+      return this.selectionController_;
+    },
+
+    set selectionController(selectionController) {
+      if (this.selectionController) {
+        this.selectionController_.removeEventListener(
+            'change', this.onSelectionChanged_);
+        this.selectionController_.removeEventListener(
+            'model-changed', this.onModelChanged_);
+      }
+      this.selectionController_ = selectionController;
+      if (this.selectionController) {
+        this.selectionController_.addEventListener(
+            'change', this.onSelectionChanged_);
+        this.selectionController_.addEventListener(
+            'model-changed', this.onModelChanged_);
+      }
+    },
+
+    get selection() {
+      return this.selectionController_.selection;
+    },
+
+    onSelectionChanged_: function() {
+      if (this.activePanel)
+        this.activePanel.selection = this.selection;
     },
 
     get model() {
-      return this.model_;
+      return this.selectionController_.model;
     },
 
-    set model(model) {
-      this.model_ = model;
+    onModelChanged_: function() {
       this.activePanelType_ = undefined;
       this.updateContents_();
     },
@@ -106,14 +136,14 @@ found in the LICENSE file.
     },
 
     set activePanelType(panelType) {
-      if (this.model_ === undefined)
+      if (this.model === undefined)
         throw new Error('Cannot activate panel without a model');
 
       var panel = undefined;
       if (panelType)
           panel = document.createElement(panelType);
 
-      if (panel !== undefined && !panel.supportsModel(this.model_))
+      if (panel !== undefined && !panel.supportsModel(this.model))
         throw new Error('Cannot activate panel: does not support this model');
 
       if (this.activePanelType) {
@@ -135,7 +165,7 @@ found in the LICENSE file.
       this.activePanelContainer_.appendChild(panel);
       panel.rangeOfInterest = this.rangeOfInterest_;
       panel.selection = this.selection_;
-      panel.model = this.model_;
+      panel.model = this.model;
 
       this.activePanelType_ = panelType;
     },
@@ -169,8 +199,8 @@ found in the LICENSE file.
         labelEl.textContent = panel.textLabel;
         labelEl.panelType = panelType;
 
-        var supported = panel.supportsModel(this.model_);
-        if (this.model_ && supported.supported) {
+        var supported = panel.supportsModel(this.model);
+        if (this.model && supported.supported) {
           supportedPanelTypes.push(panelType);
           labelEl.setAttribute('enabled', true);
           labelEl.addEventListener('click', function() {
@@ -194,16 +224,6 @@ found in the LICENSE file.
         this.activePanelContainer_.textContent = '';
         this.removeAttribute('expanded');
       }
-    },
-
-    get selection() {
-      return this.selection_;
-    },
-
-    set selection(selection) {
-      this.selection_ = selection;
-      if (this.activePanel)
-        this.activePanel.selection = selection;
     },
 
     get rangeOfInterest() {

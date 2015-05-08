@@ -94,7 +94,7 @@ x-timeline-view > x-drag-handle {
   -webkit-flex: 0 0 auto;
 }
 
-x-timeline-view > tracing-analysis-view {
+x-timeline-view > tv-c-a-analysis-view {
   -webkit-flex: 0 0 auto;
 }
 

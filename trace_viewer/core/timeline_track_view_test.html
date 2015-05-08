@@ -18,41 +18,6 @@ tv.b.unittest.testSuite(function() {
   var SelectionState = tv.c.trace_model.SelectionState;
   var Task = tv.b.Task;
 
-  function contains(array, element) {
-    for (var i = 0; i < array.length; i++) {
-      if (array[i] === element) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  function checkSelectionStates(timeline, selection, highlight) {
-    selection = selection || [];
-    highlight = highlight || [];
-
-    // The objects timeline.selection and timeline.highlight are not actually
-    // Arrays, they are Selection objects. Here we are not checking the other
-    // properties of the selection and highlight, only the numbered properties.
-    assert.equal(timeline.selection.length, selection.length);
-    assert.equal(timeline.highlight.length, highlight.length);
-    for (var i = 0; i < selection.length; i++)
-      assert.strictEqual(timeline.selection[i], selection[i]);
-    for (var i = 0; i < highlight.length; i++)
-      assert.strictEqual(timeline.highlight[i], highlight[i]);
-
-    timeline.model.iterateAllEvents(function(event) {
-      if (contains(selection, event))
-        assert.equal(event.selectionState, SelectionState.SELECTED);
-      else if (contains(highlight, event))
-        assert.equal(event.selectionState, SelectionState.HIGHLIGHTED);
-      else if (highlight.length)
-        assert.equal(event.selectionState, SelectionState.DIMMED);
-      else
-        assert.equal(event.selectionState, SelectionState.NONE);
-    });
-  };
-
   test('instantiate', function() {
     var model = new tv.c.TraceModel();
     var num_threads = 500;
@@ -178,92 +143,6 @@ tv.b.unittest.testSuite(function() {
     timeline.model = model;
 
     assert.isTrue(timeline.hasVisibleContent);
-  });
-
-  test('selectionAndHighlight', function() {
-    var events = [
-      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
-      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
-      {name: 'ab', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
-      {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
-      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'B'}
-    ];
-    var model = new tv.c.TraceModel(events);
-    var timeline = new tv.c.TimelineTrackView();
-    timeline.model = model;
-
-    var selection = new Selection();
-    var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
-        new tv.c.TitleOrCategoryFilter('a'), selection);
-    Task.RunSynchronously(filterTask);
-
-    var highlight = new Selection();
-    var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
-        new tv.c.TitleOrCategoryFilter('b'), highlight);
-    Task.RunSynchronously(filterTask);
-
-    // Test for faulty input.
-    assert.throw(function() {
-      timeline.selection = 'selection';
-    });
-
-    assert.throw(function() {
-      timeline.highlight = 1;
-    });
-
-    assert.throw(function() {
-      timeline.setSelectionAndHighlight(0, false);
-    });
-
-    // Check state after reset.
-    timeline.setSelectionAndHighlight(null, null);
-    checkSelectionStates(timeline, null, null);
-
-    // Add selection only.
-    timeline.selection = selection;
-    assert.equal(timeline.selection, selection);
-    checkSelectionStates(timeline, selection, null);
-
-    // Reset selection.
-    timeline.selection = null;
-    assert.equal(timeline.selection.length, 0);
-    checkSelectionStates(timeline, null, null);
-
-    // Add highlight only.
-    timeline.highlight = highlight;
-    assert.equal(timeline.highlight, highlight);
-    checkSelectionStates(timeline, null, highlight);
-
-    // Reset highlight
-    timeline.highlight = null;
-    assert.equal(timeline.highlight.length, 0);
-    checkSelectionStates(timeline, null, null);
-
-    // Add selection and highlight.
-    timeline.setSelectionAndHighlight(selection, highlight);
-    checkSelectionStates(timeline, selection, highlight);
-
-    // Selection replaces old selection.
-    var subSelection = selection.subSelection(0, 1);
-    timeline.selection = subSelection;
-    checkSelectionStates(timeline, subSelection, highlight);
-
-    // Highlight replaces old highlight.
-    var subHighlight = highlight.subSelection(1, 2);
-    timeline.highlight = subHighlight;
-    checkSelectionStates(timeline, subSelection, subHighlight);
-
-    // Set selection and clear highlight.
-    timeline.setSelectionAndClearHighlight(selection);
-    checkSelectionStates(timeline, selection, null);
-
-    // Set highlight and clear selection.
-    timeline.setHighlightAndClearSelection(highlight);
-    checkSelectionStates(timeline, null, highlight);
-
-    // Reset both.
-    timeline.setSelectionAndHighlight(null, null);
-    checkSelectionStates(timeline, null, null);
   });
 
   test('interestRange', function() {

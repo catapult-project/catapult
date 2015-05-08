@@ -62,8 +62,7 @@ found in the LICENSE file.
 @fileoverview A component used to display an analysis of a selection,
 using custom elements specialized for different event types.
 -->
-<polymer-element name="tracing-analysis-view"
-    constructor="TracingAnalysisView">
+<polymer-element name="tv-c-a-analysis-view">
   <template>
     <style>
       :host {
@@ -94,11 +93,12 @@ using custom elements specialized for different event types.
         this.tabView_ = document.createElement(
             'tracing-analysis-tab-view');
         this.tabView_.style.flex = '1 1 auto';
-        this.tabView_.addEventListener(
-          'selected-tab-change',
-          this.onSelectedTabChange_.bind(this));
         this.appendChild(this.tabView_);
-        this.currentSelection_ = undefined;
+        this.selectionController_ = undefined;
+        this.onSelectedTabChange_ = this.onSelectedTabChange_.bind(this);
+        this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
+
+        this.lastSeenSelection_ = new tv.c.Selection();
       },
 
       set tallMode(value) {
@@ -116,11 +116,35 @@ using custom elements specialized for different event types.
         return this.tabView_;
       },
 
-      get selection() {
-        return this.currentSelection_;
+      get selectionController() {
+        return this.selectionController_;
       },
 
-      set selection(selection) {
+      set selectionController(selectionController) {
+        if (this.selectionController) {
+          this.selectionController_.removeEventListener(
+              'change', this.onSelectionChanged_);
+        }
+        this.selectionController_ = selectionController;
+        if (this.selectionController) {
+          this.selectionController_.addEventListener(
+              'change', this.onSelectionChanged_);
+        }
+        this.onSelectionChanged_();
+      },
+
+      get selection() {
+        return this.selectionController_.selection;
+      },
+
+      onSelectionChanged_: function(e) {
+        var selection = this.selectionController_.selection;
+
+        var selectionHasSameValue = this.lastSeenSelection_.equals(selection);
+        this.lastSeenSelection_ = selection;
+        if (selectionHasSameValue)
+          return;
+
         var lastSelectedTabTagName;
         var lastSelectedTabTypeName;
         if (this.tabView_.selectedTab) {
@@ -129,6 +153,10 @@ using custom elements specialized for different event types.
         }
 
         this.tallMode = false;
+
+        var previouslySelectedTab = this.tabView_.selectedTab;
+        this.tabView_.removeEventListener(
+          'selected-tab-change', this.onSelectedTabChange_);
         this.tabView_.textContent = '';
         if (selection.length == 0) {
           this.tabView_.tabStripHeadingText = 'Nothing selected. Tap stuff.';
@@ -181,7 +209,13 @@ using custom elements specialized for different event types.
         // If all else fails, pick the first tab.
         if (!tab)
           tab = this.tabView_.firstChild;
+
         this.tabView_.selectedTab = tab;
+        if (this.tabView_.selectedTab !== previouslySelectedTab)
+          this.onSelectedTabChange_();
+
+        this.tabView_.addEventListener(
+          'selected-tab-change', this.onSelectedTabChange_);
       },
 
       createSubViewForSelection_: function(eventTypeName, subSelection) {
@@ -213,10 +247,19 @@ using custom elements specialized for different event types.
       },
 
       onSelectedTabChange_: function() {
-        if (this.tabView_.selectedTab)
-          this.tallMode = this.tabView_.selectedTab.requiresTallView;
-        else
+        var selectionController = this.selectionController_;
+        if (this.tabView_.selectedTab) {
+          var selectedTab = this.tabView_.selectedTab;
+          this.tallMode = selectedTab.requiresTallView;
+          if (selectionController) {
+            var rlth = selectedTab.relatedEventsToHighlight;
+            selectionController.changeAnalysisViewRelatedEvents(rlth);
+          }
+        } else {
           this.tallMode = false;
+          if (selectionController)
+            selectionController.changeAnalysisViewRelatedEvents(undefined);
+        }
       }
     });
   })();

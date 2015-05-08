@@ -21,10 +21,10 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.e.tquery', function() {
-  function TQuery() {
+  function TQuery(selectionController) {
     tv.c.ScriptingObject.call(this);
 
-    this.timeline_ = undefined;
+    this.selectionController_ = selectionController;
     this.parent_ = undefined;
     this.filterExpression_ = undefined;
     // Memoized filtering result.
@@ -34,20 +34,18 @@ tv.exportTo('tv.e.tquery', function() {
   TQuery.prototype = {
     __proto__: tv.c.ScriptingObject.prototype,
 
-    onTimelineChanged: function(t) {
-      this.timeline_ = t;
+    onModelChanged: function() {
       this.selection_ = undefined;
     },
 
-    get timeline() {
-      return this.timeline_;
+    get selectionController() {
+      return this.selectionController_;
     },
 
     // Append a new filter expression to this query and return a query node
     // that represents the result.
     filter: function(filterExpression) {
-      var result = new TQuery();
-      result.timeline_ = this.timeline;
+      var result = new TQuery(this.selectionController_);
       result.parent_ = this;
       result.filterExpression_ =
           tv.e.tquery.Filter.normalizeFilterExpression(filterExpression);
@@ -83,7 +81,7 @@ tv.exportTo('tv.e.tquery', function() {
         node.selection_ = new tv.c.Selection();
         if (node.parent_ === undefined) {
           // If this is the root, start by collecting all objects from the
-          // timeline.
+          // selection controller.
           lastTask = lastTask.after(
               this.selectEverythingAsTask_(node.selection_));
         } else {
@@ -135,23 +133,24 @@ tv.exportTo('tv.e.tquery', function() {
       }
     },
 
-    // Show the result of this query as a highlight on the timeline. Returns a
+    // Show the result as a highlight on the selection controller. Returns a
     // {Task} which runs the query and sets the highlight.
     show: function() {
       var graph = this.createFilterTaskGraph_();
 
       graph.lastTask = graph.lastTask.after(function() {
-        this.timeline.setHighlightAndClearSelection(graph.lastNode.selection_);
+        this.selectionController.showScriptControlSelection(
+            graph.lastNode.selection_);
       }, this);
       return graph.rootTask;
     },
 
-    // Returns a task that fills the given selection with everything in the
-    // timeline.
+    // Returns a task that fills the given selection with everything ®eachable
+    // by the selection controller.
     selectEverythingAsTask_: function(selection) {
       var passThroughFilter = new tv.c.Filter();
       var filterTask =
-        this.timeline.addAllObjectsMatchingFilterToSelectionAsTask(
+        this.selectionController.addAllObjectsMatchingFilterToSelectionAsTask(
             passThroughFilter, selection);
       return filterTask;
     },

@@ -87,8 +87,8 @@ tv.b.unittest.testSuite(function() {
     var selection = new Selection();
     track.items[0].addToSelection(selection);
 
-    // select both frame and its component slice
-    assert.equal(selection.length, 2);
+    // select both frame, but not its component slice
+    assert.equal(selection.length, 1);
 
     var frameCount = 0;
     var eventCount = 0;
@@ -100,7 +100,7 @@ tv.b.unittest.testSuite(function() {
         eventCount++;
     });
     assert.equal(frameCount, 1);
-    assert.equal(eventCount, 1);
+    assert.equal(eventCount, 0);
   });
 });
 </script>

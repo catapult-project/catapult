@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/selection.html">
+
 <!--
 @fileoverview Polymer element for various analysis sub-views.
 -->
@@ -23,6 +25,10 @@ found in the LICENSE file.
 
     get requiresTallView() {
       return false;
+    },
+
+    get relatedEventsToHighlight() {
+      return undefined;
     },
 
     /**

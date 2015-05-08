@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/find_controller.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/core/timeline_view.html">
 
 <script>
 'use strict';
@@ -17,39 +18,18 @@ tv.b.unittest.testSuite(function() {
   var Task = tv.b.Task;
 
   /*
-   * Just enough of the Timeline to support the tests below.
+   * Just enough of the SelectionController to support the tests below.
    */
-  var FakeTimeline = tv.b.ui.define('div');
+  function FakeSelectionController() {
+    this.addAllObjectsMatchingFilterToSelectionReturnValue = [];
 
-  FakeTimeline.prototype = {
-    __proto__: HTMLDivElement.prototype,
+    this.viewport = undefined;
+    this.model = undefined;
+    this.selection = new tv.c.Selection();
+    this.findMatches = new tv.c.Selection();
+  }
 
-    decorate: function() {
-      this.addAllObjectsMatchingFilterToSelectionReturnValue = [];
-
-      this.selection = new tv.c.Selection();
-      this.highlight = new tv.c.Selection();
-      this.keyHelp = '<keyHelp>';
-
-      // Put some simple UI in for testing purposes.
-      var noteEl = document.createElement('div');
-      noteEl.textContent = 'FakeTimeline:';
-      this.appendChild(noteEl);
-
-      this.statusEl_ = document.createElement('div');
-      this.appendChild(this.statusEl_);
-      this.refresh_();
-    },
-
-    refresh_: function() {
-      var status;
-      if (this.model)
-        status = 'model=set';
-      else
-        status = 'model=undefined';
-      this.statusEl_.textContent = status;
-    },
-
+  FakeSelectionController.prototype = {
     addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
       return new Task(function() {
         var n = this.addAllObjectsMatchingFilterToSelectionReturnValue.length;
@@ -60,8 +40,22 @@ tv.b.unittest.testSuite(function() {
       }, this);
     },
 
-    setHighlightAndClearSelection: function(highlight) {
-      this.highlight = highlight;
+    uiStateFromString: function(string) {
+      return undefined;
+    },
+
+    findTextChangedTo: function(selection) {
+      this.findMatches = selection;
+      this.selection = new tv.c.Selection();
+    },
+
+    findFocusChangedTo: function(selection) {
+      this.selection = selection;
+    },
+
+    findTextCleared: function(selection) {
+      this.selection = new tv.c.Selection();
+      this.findMatches = new tv.c.Selection();
     }
   };
 
@@ -79,148 +73,156 @@ tv.b.unittest.testSuite(function() {
     throw new tv.b.unittest.TestError(message);
   };
 
-  test('findControllerNoTimeline', function() {
-    var controller = new tv.c.FindController();
+  test('findControllerNoModel', function() {
+    var selectionController = new FakeSelectionController();
+    var controller = new tv.c.FindController(selectionController);
     controller.findNext();
     controller.findPrevious();
   });
 
   test('findControllerEmptyHit', function() {
-    var timeline = new FakeTimeline();
-    var controller = new tv.c.FindController();
-    controller.timeline = timeline;
+    var selectionController = new FakeSelectionController();
+    var controller = new tv.c.FindController(selectionController);
 
-    timeline.selection = new tv.c.Selection();
-    timeline.highlight = new tv.c.Selection();
+    selectionController.selection = new tv.c.Selection();
+    selectionController.findMatches = new tv.c.Selection();
     controller.findNext();
-    assertArrayShallowEquals([], timeline.selection);
-    assertArrayShallowEquals([], timeline.highlight);
+    assertArrayShallowEquals([], selectionController.selection);
+    assertArrayShallowEquals([], selectionController.findMatches);
     controller.findPrevious();
-    assertArrayShallowEquals([], timeline.selection);
-    assertArrayShallowEquals([], timeline.highlight);
+    assertArrayShallowEquals([], selectionController.selection);
+    assertArrayShallowEquals([], selectionController.findMatches);
   });
 
   test('findControllerOneHit', function() {
-    var timeline = new FakeTimeline();
-    var controller = new tv.c.FindController();
-    controller.timeline = timeline;
+    var selectionController = new FakeSelectionController();
+    var controller = new tv.c.FindController(selectionController);
 
     var s1 = {guid: 1};
-    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1];
+    selectionController.addAllObjectsMatchingFilterToSelectionReturnValue = [
+      s1
+    ];
     controller.filterText = 'asdf';
     var promise = controller.updateFilterHits();
     promise.then(function() {
-      assertArrayShallowEquals([], timeline.selection);
-      assertArrayShallowEquals([s1], timeline.highlight);
+      assertArrayShallowEquals([], selectionController.selection);
+      assertArrayShallowEquals([s1], selectionController.findMatches);
       controller.findNext();
-      assertArrayShallowEquals([s1], timeline.selection);
-      assertArrayShallowEquals([s1], timeline.highlight);
+      assertArrayShallowEquals([s1], selectionController.selection);
+      assertArrayShallowEquals([s1], selectionController.findMatches);
       controller.findNext();
-      assertArrayShallowEquals([s1], timeline.selection);
-      assertArrayShallowEquals([s1], timeline.highlight);
+      assertArrayShallowEquals([s1], selectionController.selection);
+      assertArrayShallowEquals([s1], selectionController.findMatches);
       controller.findPrevious();
-      assertArrayShallowEquals([s1], timeline.selection);
-      assertArrayShallowEquals([s1], timeline.highlight);
+      assertArrayShallowEquals([s1], selectionController.selection);
+      assertArrayShallowEquals([s1], selectionController.findMatches);
     });
     return promise;
   });
 
   test('findControllerMultipleHits', function() {
-    var timeline = new FakeTimeline();
-    var controller = new tv.c.FindController();
-    controller.timeline = timeline;
+    var selectionController = new FakeSelectionController();
+    var controller = new tv.c.FindController(selectionController);
 
     var s1 = {guid: 1};
     var s2 = {guid: 2};
     var s3 = {guid: 3};
 
-    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1, s2, s3];
+    selectionController.addAllObjectsMatchingFilterToSelectionReturnValue = [
+      s1, s2, s3
+    ];
     controller.filterText = 'asdf';
     var promise = controller.updateFilterHits();
     promise.then(function() {
       // Loop through hits then when we wrap, try moving backward.
-      assertArrayShallowEquals([], timeline.selection);
-      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+      assertArrayShallowEquals([], selectionController.selection);
+      assertArrayShallowEquals([s1, s2, s3], selectionController.findMatches);
       controller.findNext();
-      assertArrayShallowEquals([s1], timeline.selection);
+      assertArrayShallowEquals([s1], selectionController.selection);
       controller.findNext();
-      assertArrayShallowEquals([s2], timeline.selection);
+      assertArrayShallowEquals([s2], selectionController.selection);
       controller.findNext();
-      assertArrayShallowEquals([s3], timeline.selection);
+      assertArrayShallowEquals([s3], selectionController.selection);
       controller.findNext();
-      assertArrayShallowEquals([s1], timeline.selection);
+      assertArrayShallowEquals([s1], selectionController.selection);
       controller.findPrevious();
-      assertArrayShallowEquals([s3], timeline.selection);
+      assertArrayShallowEquals([s3], selectionController.selection);
       controller.findPrevious();
-      assertArrayShallowEquals([s2], timeline.selection);
-      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+      assertArrayShallowEquals([s2], selectionController.selection);
+      assertArrayShallowEquals([s1, s2, s3], selectionController.findMatches);
     });
     return promise;
   });
 
   test('findControllerChangeFilterAfterNext', function() {
-    var timeline = new FakeTimeline();
-    var controller = new tv.c.FindController();
-    controller.timeline = timeline;
+    var selectionController = new FakeSelectionController();
+    var controller = new tv.c.FindController(selectionController);
 
     var s1 = {guid: 1};
     var s2 = {guid: 2};
     var s3 = {guid: 3};
     var s4 = {guid: 4};
 
-    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1, s2, s3];
+    selectionController.addAllObjectsMatchingFilterToSelectionReturnValue = [
+      s1, s2, s3
+    ];
     controller.filterText = 'asdf';
     var promise = controller.updateFilterHits();
     promise.then(function() {
       // Loop through hits then when we wrap, try moving backward.
       controller.findNext();
-      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s4];
+      selectionController.addAllObjectsMatchingFilterToSelectionReturnValue = [
+        s4
+      ];
 
       controller.filterText = 'asdfsf';
       var nextPromise = controller.updateFilterHits();
       nextPromise.then(function() {
         controller.findNext();
-        assertArrayShallowEquals([s4], timeline.selection);
+        assertArrayShallowEquals([s4], selectionController.selection);
       });
     });
     return promise;
   });
 
   test('findControllerSelectsAllItemsFirst', function() {
-    var timeline = new FakeTimeline();
-    var controller = new tv.c.FindController();
-    controller.timeline = timeline;
+    var selectionController = new FakeSelectionController();
+    var controller = new tv.c.FindController(selectionController);
 
     var s1 = {guid: 1};
     var s2 = {guid: 2};
     var s3 = {guid: 3};
-    timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [s1, s2, s3];
+    selectionController.addAllObjectsMatchingFilterToSelectionReturnValue = [
+      s1, s2, s3
+    ];
     controller.filterText = 'asdfsf';
     var promise = controller.updateFilterHits();
     promise.then(function() {
-      assertArrayShallowEquals([], timeline.selection);
-      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+      assertArrayShallowEquals([], selectionController.selection);
+      assertArrayShallowEquals([s1, s2, s3], selectionController.findMatches);
       controller.findNext();
-      assertArrayShallowEquals([s1], timeline.selection);
+      assertArrayShallowEquals([s1], selectionController.selection);
       controller.findNext();
-      assertArrayShallowEquals([s2], timeline.selection);
-      assertArrayShallowEquals([s1, s2, s3], timeline.highlight);
+      assertArrayShallowEquals([s2], selectionController.selection);
+      assertArrayShallowEquals([s1, s2, s3], selectionController.findMatches);
     });
     return promise;
   });
 
   test('findControllerWithRealTimeline', function() {
-    var model = new tv.c.TraceModel();
-    var p1 = model.getOrCreateProcess(1);
-    var t1 = p1.getOrCreateThread(1);
-    t1.sliceGroup.pushSlice(new tv.c.trace_model.ThreadSlice(
-        '', 'a', 0, 1, {}, 3));
+    var model = tv.c.test_utils.newModel(function(model) {
+      var p1 = model.getOrCreateProcess(1);
+      var t1 = p1.getOrCreateThread(1);
+      t1.sliceGroup.pushSlice(new tv.c.trace_model.ThreadSlice(
+          '', 'a', 0, 1, {}, 3));
+      model.t1 = t1;
+    });
 
-    var timeline = new tv.c.TimelineTrackView();
+    var timeline = new tv.c.TimelineView();
     timeline.model = model;
 
-    var controller = new tv.c.FindController();
-    controller.timeline = timeline;
+    var selectionController = timeline.selectionController;
+    var controller = timeline.findCtl_.controller;
 
     // Test find with no filterText.
     controller.findNext();
@@ -228,23 +230,25 @@ tv.b.unittest.testSuite(function() {
     // Test find with filter txt.
     controller.filterText = 'a';
     var promise = controller.updateFilterHits();
-    promise.then(function() {
-      assert.deepEqual(timeline.selection, []);
-      assert.deepEqual(timeline.highlight, t1.sliceGroup.slices);
+    promise = promise.then(function() {
+      assert.equal(selectionController.selection.length, 0);
+      assert.deepEqual(tv.b.asArray(selectionController.findMatches),
+                       model.t1.sliceGroup.slices);
 
       controller.findNext();
-      assert.equal(timeline.selection.length, 1);
-      assert.equal(timeline.selection[0], t1.sliceGroup.slices[0]);
+      assert.equal(selectionController.selection.length, 1);
+      assert.equal(selectionController.selection[0],
+                   model.t1.sliceGroup.slices[0]);
 
       controller.filterText = 'xxx';
       var nextPromise = controller.updateFilterHits();
       nextPromise.then(function() {
-        assert.equal(timeline.highlight.length, 0);
-        assert.equal(timeline.selection.length, 0);
+        assert.equal(selectionController.findMatches.length, 0);
+        assert.equal(selectionController.selection.length, 1);
         controller.findNext();
-        assert.equal(timeline.selection.length, 0);
+        assert.equal(selectionController.selection.length, 0);
         controller.findNext();
-        assert.equal(timeline.selection.length, 0);
+        assert.equal(selectionController.selection.length, 0);
       });
       return nextPromise;
     });
@@ -252,51 +256,33 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('findControllerNavigation', function() {
-    var model = new tv.c.TraceModel();
-    var p1 = model.getOrCreateProcess(1);
-    var t1 = p1.getOrCreateThread(2);
-    t1.sliceGroup.pushSlice(new tv.c.trace_model.ThreadSlice(
-        '', 'a', 0, 1, {}, 3));
+    var selectionController = new FakeSelectionController();
+    var controller = new tv.c.FindController(selectionController);
 
-    var timeline = new tv.c.TimelineTrackView();
-    var vp = new tv.c.TimelineViewport(timeline);
-    timeline.model = model;
-    timeline.focusElement = timeline;
-    timeline.tabIndex = 0;
-    timeline.style.maxHeight = '600px';
-    this.addHTMLOutput(timeline);
-
-    vp.containerToTrackObj = {
-      getTrackByStableId: function(stableId) {
-        if (stableId === '1.2')
-          return { eventContainer: { stableId: '1.2' } };
+    var navToPositionCallCount = 0;
+    var fakeUIState = {};
+    selectionController.uiStateFromString = function(string) {
+      if (string === '')
         return undefined;
-      }
+      assert.equal(string, '2000@1.2x7');
+      return fakeUIState;
+    }
+    selectionController.navToPosition = function(uiState) {
+      assert.equal(uiState, fakeUIState);
+      navToPositionCallCount++;
     };
 
-    var controller = new tv.c.FindController();
-    controller.timeline = timeline;
     controller.filterText = '2000@1.2x7';
-
-    var cbCalls = 0;
-    timeline.navToPosition = function(uiState) {
-      assert.equal(uiState.location.xWorld, 2000);
-      assert.equal(
-          uiState.location.getContainingTrack(vp).eventContainer.stableId,
-          '1.2');
-      assert.equal(uiState.scaleX, 7);
-      cbCalls++;
-    };
     controller.updateFilterHits();
-    assert.equal(cbCalls, 1);
+    assert.equal(navToPositionCallCount, 1);
 
-    cbCalls = 0;
-    timeline.findTextCleared = function() {
-      cbCalls++;
+    var findTextClearedCallCount = 0;
+    selectionController.findTextCleared = function() {
+      findTextClearedCallCount++;
     };
     controller.filterText = '';
     controller.updateFilterHits();
-    assert.equal(cbCalls, 1);
+    assert.equal(findTextClearedCallCount, 1);
   });
 });
 </script>

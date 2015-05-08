@@ -12,10 +12,12 @@ found in the LICENSE file.
 'use strict';
 
 tv.exportTo('tv.c', function() {
-  function ScriptingController() {
-    this.timeline_ = undefined;
+  function ScriptingController(selectionController) {
+    this.selectionController_ = selectionController;
     this.scriptObjectNames_ = [];
     this.scriptObjectValues_ = [];
+    this.selectionController.addEventListener(
+        'model-changed', this.onModelChanged_.bind(this));
 
     // Register all scripting objects.
     var typeInfos = ScriptingObjectRegistry.getAllRegisteredTypeInfos();
@@ -32,15 +34,14 @@ tv.exportTo('tv.c', function() {
   tv.b.decorateExtensionRegistry(ScriptingObjectRegistry, options);
 
   ScriptingController.prototype = {
-    get timeline() {
-      return this.timeline_;
+    get selectionController() {
+      return this.selectionController_;
     },
 
-    set timeline(t) {
-      this.timeline_ = t;
+    onModelChanged_: function() {
       this.scriptObjectValues_.forEach(function(v) {
-        if (v.onTimelineChanged)
-          v.onTimelineChanged(t);
+        if (v.onModelChanged)
+          v.onModelChanged();
       });
     },
 
