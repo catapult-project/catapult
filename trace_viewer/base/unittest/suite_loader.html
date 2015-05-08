@@ -33,17 +33,22 @@ tv.exportTo('tv.b.unittest', function() {
       p = p.then(
           function(data) {
             var testMetadata = JSON.parse(data);
-            var testModuleNames = testMetadata.test_module_names;
-            return this.beginLoadingModules_(testModuleNames, testMetadata);
+            if (testMetadata.hasOwnProperty('test_module_names')) {
+              tv.showPanic(
+                  'out of date webserver',
+                  '>_< your devserver needs a restart kthxbai');
+            }
+            var testRelpaths = testMetadata.test_relpaths;
+            return this.beginLoadingModules_(testRelpaths, testMetadata);
           }.bind(this));
       this.allSuitesLoadedPromise = p;
     }
   }
 
-  function loadModule(moduleName) {
+  function loadModule(relpath) {
     return new Promise(function(resolve, reject) {
-      var parts = moduleName.split('.');
-      var href = '/' + parts.join('/') + '.html';
+      var href = '/' + relpath;
+      var moduleName = relpath.split('/').slice(-1)[0];
 
       var importEl = document.createElement('link');
       importEl.moduleName = moduleName;
@@ -70,7 +75,7 @@ tv.exportTo('tv.b.unittest', function() {
   SuiteLoader.prototype = {
     __proto__: tv.b.EventTarget.prototype,
 
-    beginLoadingModules_: function(testModuleNames, opt_testMetadata) {
+    beginLoadingModules_: function(testRelpaths, opt_testMetadata) {
       if (opt_testMetadata) {
         var testMetadata = opt_testMetadata;
         for (var i = 0; i < testMetadata.test_links.length; i++) {
@@ -85,8 +90,8 @@ tv.exportTo('tv.b.unittest', function() {
 
       // Load the modules.
       var modulePromises = [];
-      for (var i = 0; i < testModuleNames.length; i++) {
-        var p = loadModule(testModuleNames[i]);
+      for (var i = 0; i < testRelpaths.length; i++) {
+        var p = loadModule(testRelpaths[i]);
         p = p.then(
             function(importEl) {
               this.didImportElementGetLoaded_(importEl);

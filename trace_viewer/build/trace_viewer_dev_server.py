@@ -54,9 +54,10 @@ def do_GET_json_examples_skp(request):
 def do_GET_json_tests(self):
   test_module_resources = self.server.project.FindAllTestModuleResources()
 
-  test_module_names = [x.name for x in test_module_resources]
+  test_relpaths = [x.unix_style_relative_path
+                   for x in test_module_resources]
 
-  tests = {'test_module_names': test_module_names,
+  tests = {'test_relpaths': test_relpaths,
            'test_links': self.server.test_links}
   tests_as_json = json.dumps(tests);
 
