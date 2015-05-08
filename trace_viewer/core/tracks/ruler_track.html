@@ -113,11 +113,11 @@ tv.exportTo('tv.c.tracks', function() {
       var unitDivisor;
       var tickLabels = undefined;
       if (majorMarkDistanceWorld < 0.0001) {
-        unit = "ns"
+        unit = 'ns';
         unitDivisor = 0.000001;
         tickLabels = this.strings_nsecs_;
       } else if (majorMarkDistanceWorld < 0.1) {
-        unit = "us";
+        unit = 'us';
         unitDivisor = 0.001;
         tickLabels = this.strings_usecs_;
       } else if (majorMarkDistanceWorld < 100) {
@@ -258,10 +258,10 @@ tv.exportTo('tv.c.tracks', function() {
 
       // Determine units.
       if (distanceBetweenMarkers < 0.0001) {
-        unit = "ns";
+        unit = 'ns';
         unitDivisor = 0.000001;
       } else if (distanceBetweenMarkers < 0.1) {
-        unit = "us";
+        unit = 'us';
         unitDivisor = 0.001;
       } else if (distanceBetweenMarkers < 100) {
         unit = 'ms';
