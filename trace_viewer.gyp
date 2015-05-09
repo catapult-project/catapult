@@ -80,6 +80,7 @@
       'trace_viewer/base/ui/d3.html',
       'trace_viewer/base/ui/dom_helpers.html',
       'trace_viewer/base/ui/drag_handle.html',
+      'trace_viewer/base/ui/dropdown.html',
       'trace_viewer/base/ui/info_bar.html',
       'trace_viewer/base/ui/info_bar_group.html',
       'trace_viewer/base/ui/line_chart.html',

@@ -95,6 +95,9 @@ found in the LICENSE file.
 
   Polymer({
     filterKeyDown: function(e) {
+      if (e.keyCode === 27)
+        return;
+
       e.stopPropagation();
       if (e.keyCode !== 13) //
         return;
@@ -103,6 +106,8 @@ found in the LICENSE file.
     },
 
     filterKeyPress: function(e) {
+      if (e.keyCode === 27)
+        return;
       e.stopPropagation();
     },
 

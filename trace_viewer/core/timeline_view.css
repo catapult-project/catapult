@@ -58,7 +58,8 @@ x-timeline-view > .control > .bar > span {
 }
 
 x-timeline-view > .control > .bar > .controls button,
-x-timeline-view > .control > .bar > .controls label {
+x-timeline-view > .control > .bar > .controls label,
+x-timeline-view > .control > .bar > .controls tv-b-dropdown {
   font-size: 14px;
   margin: 1px 2px 1px 2px;
 }
@@ -115,6 +116,12 @@ x-timeline-view .selection ul {
   margin: 1px;
   min-width: 23px;
   text-align: center;
+}
+
+x-timeline-view > .control > .bar > .controls tv-b-dropdown {
+  font-size: 12px;
+  height: 19px;
+  background-color: #f8f8f8;
 }
 
 .button:hover {

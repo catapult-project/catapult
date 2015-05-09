@@ -12,6 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
 <link rel="import" href="/base/ui/overlay.html">
+<link rel="import" href="/base/ui/dropdown.html">
 <link rel="import" href="/base/ui/drag_handle.html">
 <link rel="import" href="/core/analysis/analysis_view.html">
 <link rel="import" href="/core/favicons.html">
@@ -244,6 +245,12 @@ tv.exportTo('tv.c', function() {
       this.findCtl_ = new TracingFindControl();
       this.findCtl_.controller = new tv.c.FindController(
           this.selectionController_);
+      this.findCtl_.addEventListener('keydown', function(e) {
+        if (e.keyCode === 27) { // ESC
+          this.focus();
+          e.preventDefault();
+        }
+      }.bind(this));
 
       this.scriptingCtl_ = new TracingScriptingControl();
       this.scriptingCtl_.controller = new tv.c.ScriptingController(
@@ -251,8 +258,11 @@ tv.exportTo('tv.c', function() {
 
       this.sidePanelContainer_.selectionController = this.selectionController_;
 
+      this.optionsDropdown_ = document.createElement('tv-b-dropdown');
+      this.optionsDropdown_.iconElement.textContent = 'View Options';
+
       this.showFlowEvents_ = false;
-      this.rightControls.appendChild(tv.b.ui.createCheckBox(
+      this.optionsDropdown_.appendChild(tv.b.ui.createCheckBox(
           this, 'showFlowEvents',
           'tv.c.TimelineView.showFlowEvents', false,
           'Flow events'));
@@ -261,9 +271,11 @@ tv.exportTo('tv.c', function() {
           this, 'highlightVSync',
           'tv.c.TimelineView.highlightVSync', false,
           'Highlight VSync');
-      this.rightControls.appendChild(this.highlightVSyncCheckbox_);
+      this.optionsDropdown_.appendChild(this.highlightVSyncCheckbox_);
 
       this.rightControls.appendChild(this.createMetadataButton_());
+
+      this.rightControls.appendChild(this.optionsDropdown_);
       this.rightControls.appendChild(this.findCtl_);
       this.rightControls.appendChild(this.createConsoleButton_());
       this.rightControls.appendChild(this.createHelpButton_());
@@ -547,11 +559,6 @@ tv.exportTo('tv.c', function() {
     onKeyDown_: function(e) {
       if (!this.listenToKeys_)
         return;
-
-      if (e.keyCode === 27) { // ESC
-        this.focus();
-        e.preventDefault();
-      }
     },
 
     onKeypress_: function(e) {
