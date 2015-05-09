@@ -44,6 +44,10 @@ tv.exportTo('tv.c.tracks', function() {
       return this.kernel;
     },
 
+    get hasVisibleContent() {
+      return this.children.length > 1;
+    },
+
     addContainersToTrackMap: function(containerToTrackMap) {
       containerToTrackMap.addContainer(this.kernel, this);
     },
