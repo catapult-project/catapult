@@ -93,11 +93,6 @@ found in the LICENSE file.
     }
   }
 
-  function getUserFriendlyNameForFilename(filename) {
-    var m = /measurmt-traces\/(.+?\/.+$)/.exec(filename);
-    return m[1];
-  }
-
   function onSelectionChange() {
     var selectEl = document.body.querySelector('#trace-dir');
     window.location.hash = '#' + selectEl[selectEl.selectedIndex].value;
