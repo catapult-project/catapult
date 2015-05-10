@@ -108,7 +108,7 @@ tv.exportTo('tv.c', function() {
       var selection = this.selections_[e.state.selection_guid];
       if (selection) {
         var newState = this.currentBrushingState_.clone();
-        newState.selection = seleciton;
+        newState.selection = selection;
         this.currentBrushingState = newState;
       }
       e.stopPropagation();
