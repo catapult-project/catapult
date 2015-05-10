@@ -50,7 +50,7 @@ found in the LICENSE file.
           title: 'First',
           value: function(event) {
             if (event instanceof tv.c.trace_model.ObjectSnapshot)
-              return tv.c.analysis.createTimeStamp(event.ts)
+              return tv.c.analysis.createTimeStamp(event.ts);
 
             var spanEl = document.createElement('span');
             spanEl.appendChild(tv.c.analysis.createTimeStamp(event.creationTs));
