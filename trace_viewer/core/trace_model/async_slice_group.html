@@ -129,6 +129,9 @@ tv.exportTo('tv.c.trace_model', function() {
           subGroupsByTitle[subGroupTitle].slices.push(slice);
         }
         this.viewSubGroups_ = tv.b.dictionaryValues(subGroupsByTitle);
+        this.viewSubGroups_.sort(function(a, b) {
+          return a.slices[0].compareTo(b.slices[0]);
+        });
       }
       return this.viewSubGroups_;
     },

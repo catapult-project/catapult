@@ -89,6 +89,10 @@ tv.exportTo('tv.c.trace_model', function() {
       this.subSlices.forEach(function(subSlice) {
         subSlice.iterateAllDescendents(callback, opt_this);
       }, opt_this);
+    },
+
+    compareTo: function(that) {
+      return this.title.localeCompare(that.title);
     }
   };
 
