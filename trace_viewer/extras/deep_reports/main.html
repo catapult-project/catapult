@@ -64,6 +64,17 @@ tv.exportTo('tv.e.deep_reports', function() {
     }));
 
     tv.e.deep_reports.RAILDeepReporter.addResultsForModel(results, page, model);
+
+    if (tv.e.audits.ChromeModelHelper.supportsModel(model)) {
+      var helper = new tv.e.audits.ChromeModelHelper(model);
+      if (false) {
+        var latencyEvents = helper.browser.getLatencyEventsInRange(model.bounds);
+        window.allTitles = window.allTitles || {};
+        latencyEvents.forEach(function(event) {
+          window.allTitles[event.title] = true;
+        });
+      }
+    }
   }
 
   return {
