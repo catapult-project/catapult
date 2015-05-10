@@ -16,7 +16,14 @@ found in the LICENSE file.
 tv.exportTo('tv.e.audits', function() {
   function ChromeBrowserHelper(modelHelper, process) {
     tv.e.audits.ChromeProcessHelper.call(this, modelHelper, process);
+    this.mainThread_ = process.findAtMostOneThreadNamed('CrBrowserMain');
   }
+
+  ChromeBrowserHelper.isBrowserProcess = function(process) {
+    if (!process.findAtMostOneThreadNamed('CrBrowserMain'))
+      return false;
+    return true;
+  };
 
   ChromeBrowserHelper.prototype = {
     __proto__: tv.e.audits.ChromeProcessHelper.prototype,

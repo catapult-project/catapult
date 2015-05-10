@@ -15,11 +15,14 @@ found in the LICENSE file.
 tv.exportTo('tv.e.audits', function() {
   function ChromeRendererHelper(modelHelper, process) {
     tv.e.audits.ChromeProcessHelper.call(this, modelHelper, process);
-    var mains = process.findAllThreadsNamed(
-        tv.e.audits.CHROME_RENDERER_THREAD_NAME);
-    if (mains.length !== 1) throw new Error('omgah: more than one renderer!');
-    this.mainThread_ = mains[0];
-  }
+    this.mainThread_ = process.findAtMostOneThreadNamed('CrRendererMain');
+  };
+
+  ChromeRendererHelper.isRenderProcess = function(process) {
+    if (!process.findAtMostOneThreadNamed('CrRendererMain'))
+      return false;
+    return true;
+  };
 
   ChromeRendererHelper.prototype = {
     __proto__: tv.e.audits.ChromeProcessHelper.prototype,

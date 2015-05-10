@@ -160,6 +160,15 @@ tv.exportTo('tv.c.trace_model', function() {
       return namedThreads;
     },
 
+    findAtMostOneThreadNamed: function(name) {
+      var threads = this.findAllThreadsNamed(name);
+      if (threads.length === 0)
+        return undefined;
+      if (threads.length > 1)
+        throw new Error('Expected no more than one ' + name);
+      return threads[0];
+    },
+
     /**
      * Removes threads from the process that are fully empty.
      */

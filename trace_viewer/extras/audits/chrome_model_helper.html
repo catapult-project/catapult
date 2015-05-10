@@ -16,28 +16,26 @@ found in the LICENSE file.
  * @fileoverview Utilities for accessing trace data about the Chrome browser.
  */
 tv.exportTo('tv.e.audits', function() {
-  var CHROME_BROWSER_MAIN_THREAD_NAME = 'CrBrowserMain';
-  var CHROME_RENDERER_THREAD_NAME = 'CrRendererMain';
-
   function findChromeBrowserProcess(model) {
-    var browsers = [];
+    var browserProcesses = [];
     model.getAllProcesses().forEach(function(process) {
-      if (process.findAllThreadsNamed(
-              CHROME_BROWSER_MAIN_THREAD_NAME).length !== 0)
-        browsers.push(process);
+      if (!tv.e.audits.ChromeBrowserHelper.isBrowserProcess(process))
+        return;
+      browserProcesses.push(process);
     }, this);
-    if (browsers.length === 0)
+    if (browserProcesses.length === 0)
       return undefined;
-    if (browsers.length > 1)
+    if (browserProcesses.length > 1)
       return undefined;
-    return browsers[0];
+    return browserProcesses[0];
   }
 
   function findChromeRenderProcesses(model) {
     var rendererProcesses = [];
     model.getAllProcesses().forEach(function(process) {
-      if (process.findAllThreadsNamed(CHROME_RENDERER_THREAD_NAME).length !== 0)
-        rendererProcesses.push(process);
+      if (!tv.e.audits.ChromeRendererHelper.isRenderProcess(process))
+        return;
+      rendererProcesses.push(process);
     });
     return rendererProcesses;
   }
@@ -106,7 +104,6 @@ tv.exportTo('tv.e.audits', function() {
   };
 
   return {
-    CHROME_RENDERER_THREAD_NAME: CHROME_RENDERER_THREAD_NAME,
     ChromeModelHelper: ChromeModelHelper
   };
 });
