@@ -26,6 +26,12 @@ found in the LICENSE file.
       realView.setSelectionWithoutErrorChecks(selection);
 
       this.currentSelection_ = selection;
+    },
+
+    get relatedEventsToHighlight() {
+      if (!this.currentSelection_)
+        return undefined;
+      return new tv.c.Selection(this.currentSelection_[0].associatedEvents);
     }
   });
   </script>

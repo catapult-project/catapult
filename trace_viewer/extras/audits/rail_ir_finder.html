@@ -177,6 +177,9 @@ tv.exportTo('tv.e.audits', function() {
         var ir = new tv.e.audits.RAILInteractionRecord(
             'railInput', colorId,
             gesture.expectedStart, gesture.expectedEnd - gesture.expectedStart);
+        ir.associatedEvents.push.apply(
+            ir.associatedEvents,
+            gesture.latencyEvents);
         return ir;
       });
       rirs.push.apply(rirs, gestureIRs);

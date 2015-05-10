@@ -24,6 +24,14 @@ found in the LICENSE file.
         value: event.id
       });
       return rows;
+    },
+
+    get relatedEventsToHighlight() {
+      if (!this.currentSelection_)
+        return undefined;
+      if (!this.currentSelection_[0].associatedEvents)
+        return;
+      return new tv.c.Selection(this.currentSelection_[0].associatedEvents);
     }
   });
   </script>
