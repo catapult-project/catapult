@@ -732,7 +732,7 @@ tv.exportTo('tv.c', function() {
     },
 
     setCurrentSelectionAsInterestRange_: function() {
-      var selectionBounds = this.selection.bounds;
+      var selectionBounds = this.selectionController_.selection.bounds;
       if (selectionBounds.empty) {
         this.viewport_.interestRange.reset();
         return;
@@ -806,7 +806,8 @@ tv.exportTo('tv.c', function() {
     },
 
     onGridToggle_: function(left) {
-      var tb = left ? this.selection.bounds.min : this.selection.bounds.max;
+      var selection = this.selectionController_.selection;
+      var tb = left ? selection.bounds.min : selection.bounds.max;
 
       // Toggle the grid off if the grid is on, the marker position is the same
       // and the same element is selected (same timebase).
