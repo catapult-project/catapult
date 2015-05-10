@@ -64,7 +64,10 @@ found in the LICENSE file.
         // TODO(nduca): Stash this somewhere else.
         return;
       }
-
+      if (baseName.endsWith('.mp4')) {
+        // TODO(nduca): Stash this somewhere else.
+        return;
+      }
       if (filesByDirName[dirName] === undefined)
         filesByDirName[dirName] = [];
       filesByDirName[dirName].push(file);
