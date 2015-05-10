@@ -44,7 +44,11 @@ tv.exportTo('tv.e.deep_reports', function() {
       io.pruneEmptyContainers = false;
 
       var m = new tv.c.TraceModel();
-      m.importTraces([trace], io);
+      try {
+        m.importTraces([trace], io);
+      } catch(e) {
+        throw new Error('While loading ' + filename + ' got: ' + e.toString());
+      }
       return m;
     });
   }

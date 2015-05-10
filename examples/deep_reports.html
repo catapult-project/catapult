@@ -124,7 +124,12 @@ found in the LICENSE file.
     var filesInDir = selectEl.filesByDirName[dirName];
     var results = document.querySelector('#results');
     results.clear();
-    tv.e.deep_reports.main(results, filesInDir);
+    tv.e.deep_reports.main(results, filesInDir).then(
+      function success() {
+      },
+      function error(err) {
+        tv.showPanic('Error', err);
+      });
   }
   </script>
 </body>
