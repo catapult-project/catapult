@@ -58,7 +58,7 @@
       "tid": 15895,
       "ts": 1001,
       "ph": "X",
-      "name": "IPC",
+      "name": "Blergh",
       "args": {},
       "dur": 100
     },
@@ -69,7 +69,7 @@
       "tid": 15794,
       "ts": 3200,
       "ph": "X",
-      "name": "IPC",
+      "name": "OtherSlice",
       "args": {},
       "dur": 500
     },
@@ -100,7 +100,7 @@
       "tid": 15894,
       "ts": 3331,
       "ph": "X",
-      "name": "IPC",
+      "name": "SomeSlice",
       "args": {},
       "dur": 400
     }
