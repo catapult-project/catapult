@@ -66,6 +66,8 @@ tv.exportTo('tv.c.test_utils', function() {
         options.args ? options.args : {},
         duration, isTopLevel);
 
+    if (options.id)
+      slice.id = options.id;
     if (options.startStackFrame)
       slice.startStackFrame = options.startStackFrame;
     if (options.endStackFrame)

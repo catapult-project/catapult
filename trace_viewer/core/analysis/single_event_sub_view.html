@@ -188,17 +188,20 @@ found in the LICENSE file.
           isExpanded: true, subRows: alertSubRows
         });
       }
+      return rows;
+    },
 
+    addArgsToRows_: function(rows, args) {
       var n = 0;
-      for (var argName in event.args) {
+      for (var argName in args) {
         n += 1;
       }
       if (n > 0) {
         var subRows = [];
-        for (var argName in event.args) {
+        for (var argName in args) {
           var argView =
               document.createElement('tv-c-analysis-generic-object-view');
-          argView.object = event.args[argName];
+          argView.object = args[argName];
           subRows.push({ name: argName,
                       value: argView});
         }
@@ -218,7 +221,11 @@ found in the LICENSE file.
       }
 
       var event = this.currentSelection_[0];
-      this.$.table.tableRows = this.getEventRows_(event);
+
+      var rows = this.getEventRows_(event);
+      this.addArgsToRows_(rows, event.args);
+
+      this.$.table.tableRows = rows;
       this.$.table.rebuild();
     }
   });

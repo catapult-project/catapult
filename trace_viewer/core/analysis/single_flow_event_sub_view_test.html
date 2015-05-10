@@ -16,16 +16,32 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var Model = tv.c.TraceModel;
   var Selection = tv.c.Selection;
-  var trace_model = tv.c.trace_model;
+  var test_utils = tv.c.test_utils;
 
   test('analyzeSelectionWithSingleEvent', function() {
-    var model = new Model();
-
-    var fe = new trace_model.FlowEvent('cat', 1234, 'title', 7, 10, {});
-    model.flowEvents.push(fe);
+    var model = test_utils.newModel(function(model) {
+      model.p1 = model.getOrCreateProcess(1);
+      model.t2 = model.p1.getOrCreateThread(model.p1);
+      model.sA = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'a', start: 0, end: 2
+      }));
+      model.sB = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'b', start: 9, end: 11
+      }));
+      model.fe = test_utils.newFlowEventEx({
+        cat: 'cat',
+        id: 1234,
+        title: 'MyFlow',
+        start: 1,
+        end: 10,
+        startSlice: model.sA,
+        endSlice: model.sB
+      });
+      model.flowEvents.push(model.fe);
+    });
 
     var selection = new Selection();
-    selection.push(fe);
+    selection.push(model.fe);
     assert.equal(selection.length, 1);
 
     var subView = document.createElement('tv-c-single-flow-event-sub-view');

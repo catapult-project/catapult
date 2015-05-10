@@ -21,6 +21,7 @@ tv.b.unittest.testSuite(function() {
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
     t1.asyncSliceGroup.push(newAsyncSliceEx({
+      id: 31415,
       title: 'a',
       start: 10,
       duration: 20,

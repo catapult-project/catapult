@@ -6,39 +6,43 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/core/analysis/analysis_link.html">
 <link rel="import" href="/core/analysis/single_event_sub_view.html">
 
 <polymer-element name="tv-c-single-flow-event-sub-view"
-    extends="tracing-analysis-sub-view">
-  <template>
-    <style>
-    :host {
-      display: block;
-    }
-    </style>
-    <div id='content'></div>
-  </template>
-
+    extends="tv-c-a-single-event-sub-view">
   <script>
   'use strict';
 
   Polymer({
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
+    getEventRows_: function(event) {
+      // TODO(nduca): Figure out if there is a cleaner way to do this.
+      var rows = this.__proto__.__proto__.getEventRows_(event);
 
-    set selection(selection) {
-      this.$.content.textContent = '';
+      // Put the ID up top.
+      rows.splice(0, 0, {
+        name: 'ID',
+        value: event.id
+      });
 
-      var realView = document.createElement('tv-c-a-single-event-sub-view');
-      realView.setSelectionWithoutErrorChecks(selection);
-      this.$.content.appendChild(realView);
+      function createLinkTo(slice) {
+        var linkEl = document.createElement('tv-c-analysis-link');
+        linkEl.setSelectionAndContent(function() {
+            return new tv.c.Selection(slice);
+        });
+        linkEl.textContent = slice.userFriendlyName;
+        return linkEl;
+      }
 
-      this.currentSelection_ = selection;
-    },
-
-    get selection() {
-      return this.currentSelection_;
+      rows.push({
+        name: 'From',
+        value: createLinkTo(event.startSlice)
+      });
+      rows.push({
+        name: 'To',
+        value: createLinkTo(event.endSlice)
+      });
+      return rows;
     }
   });
   </script>

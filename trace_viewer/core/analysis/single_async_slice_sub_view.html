@@ -9,26 +9,21 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/single_event_sub_view.html">
 
 <polymer-element name="tv-c-a-single-async-slice-sub-view"
-    extends="tracing-analysis-sub-view">
-  <template>
-    <style>
-    :host {
-      display: flex;
-    }
-    </style>
-    <tv-c-a-single-event-sub-view id="content"></tv-c-a-single-event-sub-view>
-  </template>
-
+    extends="tv-c-a-single-event-sub-view">
   <script>
   'use strict';
 
   Polymer({
-    get selection() {
-      return this.$.content.selection;
-    },
+    getEventRows_: function(event) {
+      // TODO(nduca): Figure out if there is a cleaner way to do this.
+      var rows = this.__proto__.__proto__.getEventRows_(event);
 
-    set selection(selection) {
-      this.$.content.selection = selection;
+      // Put the ID up top.
+      rows.splice(0, 0, {
+        name: 'ID',
+        value: event.id
+      });
+      return rows;
     }
   });
   </script>
