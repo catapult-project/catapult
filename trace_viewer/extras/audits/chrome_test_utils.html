@@ -28,6 +28,9 @@ tv.exportTo('tv.e.audits', function() {
       model.rendererCompositor = model.rendererProcess.getOrCreateThread(4);
       model.rendererCompositor.name = 'Compositor';
 
+      model.rasterWorker1 = model.rendererProcess.getOrCreateThread(5);
+      model.rasterWorker1.name = 'CompositorTileWorker1';
+
       customizeModelCallback(model);
     });
   }

@@ -146,18 +146,27 @@ tv.exportTo('tv.c.trace_model', function() {
       this.objects.addCategoriesToDict(categoriesDict);
     },
 
+    findAllThreadsMatching: function(predicate, opt_this) {
+      var threads = [];
+      for (var tid in this.threads) {
+        var thread = this.threads[tid];
+        if (predicate.call(opt_this, thread))
+          threads.push(thread);
+      }
+      return threads;
+    },
+
     /**
      * @param {String} The name of the thread to find.
      * @return {Array} An array of all the matched threads.
      */
     findAllThreadsNamed: function(name) {
-      var namedThreads = [];
-      for (var tid in this.threads) {
-        var thread = this.threads[tid];
-        if (thread.name == name)
-          namedThreads.push(thread);
-      }
-      return namedThreads;
+      var threads = this.findAllThreadsMatching(function(thread) {
+        if (!thread.name)
+          return false;
+        return thread.name === name;
+      });
+      return threads;
     },
 
     findAtMostOneThreadNamed: function(name) {

@@ -16,10 +16,22 @@ tv.exportTo('tv.e.audits', function() {
   function ChromeRendererHelper(modelHelper, process) {
     tv.e.audits.ChromeProcessHelper.call(this, modelHelper, process);
     this.mainThread_ = process.findAtMostOneThreadNamed('CrRendererMain');
+    this.compositorThread_ = process.findAtMostOneThreadNamed('Compositor');
+    this.rasterWorkerThreads_ = process.findAllThreadsMatching(function(t) {
+      if (t.name === undefined)
+        return false;
+      if (t.name.indexOf('CompositorTileWorker') === 0)
+        return true;
+      if (t.name.indexOf('CompositorRasterWorker') === 0)
+        return true;
+      return false;
+    });
   };
 
   ChromeRendererHelper.isRenderProcess = function(process) {
     if (!process.findAtMostOneThreadNamed('CrRendererMain'))
+      return false;
+    if (!process.findAtMostOneThreadNamed('Compositor'))
       return false;
     return true;
   };
@@ -29,6 +41,14 @@ tv.exportTo('tv.e.audits', function() {
 
     get mainThread() {
       return this.mainThread_;
+    },
+
+    get compositorThread() {
+      return this.compositorThread_;
+    },
+
+    get rasterWorkerThreads() {
+      return this.rasterWorkerThreads_;
     }
   };
 
