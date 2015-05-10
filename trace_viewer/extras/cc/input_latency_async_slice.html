@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/core/trace_model/async_slice.html">
+
+<script>
+'use strict';
+
+tv.exportTo('tv.e.cc', function() {
+  var AsyncSlice = tv.c.trace_model.AsyncSlice;
+
+
+  var UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT';
+  var ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT';
+  var BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT';
+  var END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT';
+
+
+  function InputLatencyAsyncSlice() {
+    AsyncSlice.apply(this, arguments);
+  }
+
+  InputLatencyAsyncSlice.prototype = {
+    __proto__: AsyncSlice.prototype,
+
+
+    get inputLatency() {
+      if (!('data' in this.args))
+        return undefined;
+
+      var data = this.args.data;
+      if (!(END_COMP_NAME in data))
+        return undefined;
+
+      var latency = 0;
+      var endTime = data[END_COMP_NAME].time;
+      if (ORIGINAL_COMP_NAME in data) {
+        latency = endTime - data[ORIGINAL_COMP_NAME].time;
+      } else if (UI_COMP_NAME in data) {
+        latency = endTime - data[UI_COMP_NAME].time;
+      } else if (BEGIN_COMP_NAME in data) {
+        latency = endTime - data[BEGIN_COMP_NAME].time;
+      } else {
+        throw new Error('No valid begin latency component');
+      }
+      return latency;
+    }
+  };
+
+  var eventTypeNames = [
+    'Char',
+    'GestureFlingCancel',
+    'GestureFlingStart',
+    'GestureScrollBegin',
+    'GestureScrollEnd',
+    'GestureScrollUpdate',
+    'GestureShowPress',
+    'GestureTap',
+    'GestureTapCancel',
+    'GestureTapDown',
+    'KeyUp',
+    'MouseDown',
+    'MouseMove',
+    'MouseUp',
+    'MouseWheel',
+    'RawKeyDown',
+    'ScrollUpdate',
+    'TouchEnd',
+    'TouchMove',
+    'TouchStart'
+  ];
+  var allTypeNames = ['InputLatency'];
+  eventTypeNames.forEach(function(eventTypeName) {
+    // Old style.
+    allTypeNames.push('InputLatency:' + eventTypeName);
+
+    // New style.
+    allTypeNames.push('InputLatency::' + eventTypeName);
+  });
+
+  AsyncSlice.register(
+    InputLatencyAsyncSlice,
+    {
+      typeNames: allTypeNames
+    });
+
+  return {
+    InputLatencyAsyncSlice: InputLatencyAsyncSlice
+  };
+});
+</script>

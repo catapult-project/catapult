@@ -282,6 +282,7 @@ tracing_js_html_files = [
   "trace_viewer/extras/cc/display_item_debugger.html",
   "trace_viewer/extras/cc/display_item_list.html",
   "trace_viewer/extras/cc/display_item_view.html",
+  "trace_viewer/extras/cc/input_latency_async_slice.html",
   "trace_viewer/extras/cc/layer_impl.html",
   "trace_viewer/extras/cc/layer_picker.html",
   "trace_viewer/extras/cc/layer_tree_host_impl.html",

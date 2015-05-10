@@ -37,6 +37,7 @@ tv.exportTo('tv.c.test_utils', function() {
     if (options.start === undefined)
       throw new Error('Too little info');
 
+    var cat = options.cat ? options.cat : 'cat';
     var title = options.title ? options.title : 'a';
 
     var colorId = options.colorId ? options.colorId : 0;
@@ -58,8 +59,11 @@ tv.exportTo('tv.c.test_utils', function() {
     else
       isTopLevel = false;
 
-    var slice = new tv.c.trace_model.AsyncSlice(
-        options.cat ? options.cat : 'cat',
+    var asyncSliceConstructor =
+        tv.c.trace_model.AsyncSlice.getConstructor(cat, title);
+
+    var slice = new asyncSliceConstructor(
+        cat,
         title,
         colorId,
         options.start,

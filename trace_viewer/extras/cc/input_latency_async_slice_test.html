@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/cc/input_latency_async_slice.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var newAsyncSliceEx = tv.c.test_utils.newAsyncSliceEx;
+
+  test('oldStyle', function() {
+    var sOuter = newAsyncSliceEx({
+      title: 'InputLatency',
+      cat: 'benchmark',
+      start: 0,
+      end: 10,
+      id: '0x100',
+      isTopLevel: true,
+      args: {
+        data: {
+          INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT: {'time' : 0},
+          INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT: {time: 10}
+        }
+      }
+    });
+
+    var sInner = newAsyncSliceEx({
+      title: 'InputLatency:GestureScrollUpdate',
+      cat: 'benchmark',
+      start: 2,
+      end: 10,
+      id: '0x100',
+      args: {
+        'step': 'GestureScrollUpdate'
+      }
+    });
+    sOuter.subSlices.push(sInner);
+    assert.isTrue(sOuter instanceof tv.e.cc.InputLatencyAsyncSlice);
+    assert.isTrue(sInner instanceof tv.e.cc.InputLatencyAsyncSlice);
+    assert.equal(sOuter.inputLatency, 10);
+  });
+
+  test('newStyle', function() {
+    var sInfo = newAsyncSliceEx({
+      title: 'InputLatency::GestureScrollUpdate',
+      cat: 'benchmark',
+      start: 2,
+      end: 10,
+      id: '0x100',
+      isTopLevel: true,
+      args: {
+        data: {
+          INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT: {'time' : 0},
+          INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT: {time: 10}
+        }
+      }
+    });
+
+    assert.isTrue(sInfo instanceof tv.e.cc.InputLatencyAsyncSlice);
+    assert.equal(sInfo.inputLatency, 10);
+  });
+
+});
+</script>

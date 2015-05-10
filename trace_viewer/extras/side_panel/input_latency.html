@@ -227,8 +227,18 @@ found in the LICENSE file.
         return d.frametime;
       });
 
-      var latencyData = this.modelHelper_.browser.getLatencyDataInRange(
+      var latencyEvents = this.modelHelper_.browser.getLatencyEventsInRange(
           rangeOfInterest);
+
+      var latencyData = [];
+      latencyEvents.forEach(function(event) {
+        if (event.inputLatency === undefined)
+          return;
+        latencyData.push({
+          x: event.start,
+          latency: event.inputLatency / 1000
+        });
+      });
 
       var averageLatency = tv.b.Statistics.mean(latencyData, function(d) {
         return d.latency;
