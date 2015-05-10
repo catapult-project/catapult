@@ -34,8 +34,8 @@ tv.exportTo('tv.e.audits', function() {
   function getDuration(e) { return e.duration; }
 
   function frameIsActivityStart(frame) {
-    for (var i = 0; i < frame.events.length; i++) {
-      if (frame.events[i].title == 'activityStart')
+    for (var i = 0; i < frame.associatedEvents.length; i++) {
+      if (frame.associatedEvents[i].title == 'activityStart')
         return true;
     }
     return false;
@@ -82,7 +82,7 @@ tv.exportTo('tv.e.audits', function() {
     var ret = [];
     var events = [];
 
-    frame.events.forEach(function(slice) {
+    frame.associatedEvents.forEach(function(slice) {
       var match = badAlphaRegEx.exec(slice.title);
       if (match) {
         // due to bug in tracing code on SDK 22, ignore
@@ -127,7 +127,7 @@ tv.exportTo('tv.e.audits', function() {
   AndroidAuditor.getPathAlert_ = function(frame) {
     var uploadRegEx = /^Generate Path Texture$/;
 
-    var events = frame.events.filter(function(event) {
+    var events = frame.associatedEvents.filter(function(event) {
       return event.title == 'Generate Path Texture';
     });
     var start = Statistics.min(events, getStart);
@@ -152,7 +152,7 @@ tv.exportTo('tv.e.audits', function() {
     var start = Number.POSITIVE_INFINITY;
     var duration = 0;
     var pixelsUploaded = 0;
-    frame.events.forEach(function(event) {
+    frame.associatedEvents.forEach(function(event) {
       var match = uploadRegEx.exec(event.title);
       if (match) {
         events.push(event);
@@ -178,7 +178,7 @@ tv.exportTo('tv.e.audits', function() {
       'Inefficient ListView recycling',
       'ListView recycling taking too much time per frame. Simplify your ListView layouts and ensure your Adapter#getView() recycles correctly, and binds efficiently.'); // @suppress longLineCheck
   AndroidAuditor.getListViewAlert_ = function(frame) {
-    var events = frame.events.filter(function(event) {
+    var events = frame.associatedEvents.filter(function(event) {
       return event.title == 'obtainView' || event.title == 'setupListItem';
     });
     var duration = Statistics.sum(events, getDuration);
@@ -199,7 +199,7 @@ tv.exportTo('tv.e.audits', function() {
       'Expensive measure/layout pass',
       'Measure/Layout took a significant time, contributing to jank. Avoid triggering layout during animations.'); // @suppress longLineCheck
   AndroidAuditor.getMeasureLayoutAlert_ = function(frame) {
-    var events = frame.events.filter(function(event) {
+    var events = frame.associatedEvents.filter(function(event) {
       return event.title == 'measure' || event.title == 'layout';
     });
     var duration = Statistics.sum(events, getDuration);
@@ -219,10 +219,10 @@ tv.exportTo('tv.e.audits', function() {
       'Recording the drawing commands of invalidated Views took a long time. Avoid significant work in View or Drawable custom drawing, especially allocations or drawing to Bitmaps.'); // @suppress longLineCheck
   AndroidAuditor.getViewDrawAlert_ = function(frame) {
     var slice = undefined;
-    for (var i = 0; i < frame.events.length; i++) {
-      if (frame.events[i].title == 'getDisplayList' ||
-          frame.events[i].title == 'Record View#draw()') {
-        slice = frame.events[i];
+    for (var i = 0; i < frame.associatedEvents.length; i++) {
+      if (frame.associatedEvents[i].title == 'getDisplayList' ||
+          frame.associatedEvents[i].title == 'Record View#draw()') {
+        slice = frame.associatedEvents[i];
         break;
       }
     }
@@ -242,7 +242,7 @@ tv.exportTo('tv.e.audits', function() {
       'Blocking Garbage Collection',
       'Blocking GCs are caused by object churn, and made worse by having large numbers of objects in the heap. Avoid allocating objects during animations/scrolling, and recycle Bitmaps to avoid triggering garbage collection.'); // @suppress longLineCheck
   AndroidAuditor.getBlockingGcAlert_ = function(frame) {
-    var events = frame.events.filter(function(event) {
+    var events = frame.associatedEvents.filter(function(event) {
       return event.title == 'DVM Suspend' ||
           event.title == 'GC: Wait For Concurrent';
     });
@@ -261,7 +261,7 @@ tv.exportTo('tv.e.audits', function() {
       'Lock contention',
       'UI thread lock contention is caused when another thread holds a lock that the UI thread is trying to use. UI thread progress is blocked until the lock is released. Inspect locking done within the UI thread, and ensure critical sections are short.'); // @suppress longLineCheck
   AndroidAuditor.getLockContentionAlert_ = function(frame) {
-    var events = frame.events.filter(function(event) {
+    var events = frame.associatedEvents.filter(function(event) {
       return /^Lock Contention on /.test(event.title);
     });
 

@@ -40,7 +40,7 @@ found in the LICENSE file.
         return undefined;
       var selection = new tv.c.Selection();
       this.currentSelection_.forEach(function(frameEvent) {
-        frameEvent.events.forEach(function(event) {
+        frameEvent.associatedEvents.forEach(function(event) {
           selection.push(event);
         });
       });
