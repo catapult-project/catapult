@@ -18,6 +18,8 @@ tv.b.unittest.testSuite(function() {
   var newSlice = tv.c.test_utils.newSlice;
   var newSliceEx = tv.c.test_utils.newSliceEx;
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
+  var newThreadSlice = tv.c.test_utils.newThreadSlice;
+
 
   test('basicBeginEnd', function() {
     var group = new SliceGroup({});
@@ -731,6 +733,104 @@ tv.b.unittest.testSuite(function() {
     group.iterSlicesInTimeRange(function(slice) { observed.push(slice); },
                                 4.5, 7.5);
     assert.deepEqual(observed, expected);
+  });
+
+  test('computeCpuDurationNoOverlap', function() {
+    var model = new tv.c.TraceModel();
+    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var process = model.getOrCreateProcess(123);
+    var t = process.getOrCreateThread(456);
+    t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
+    var group = new SliceGroup(t);
+    group.pushSlice(newSliceNamed('draw', 0, 20));
+    group.pushSlice(newSliceNamed('render', 60, 20));
+    group.createSubSlices();
+    assert.equal(group.slices[0].cpuDuration, 0);
+    assert.equal(group.slices[1].cpuDuration, 0);
+  });
+
+  test('computeCpuDurationPartialOverlap', function() {
+    var model = new tv.c.TraceModel();
+    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var process = model.getOrCreateProcess(123);
+    var t = process.getOrCreateThread(456);
+    t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
+    var group = new SliceGroup(t);
+    group.pushSlice(newSliceNamed('draw', 10, 30));
+    group.pushSlice(newSliceNamed('render', 50, 20));
+    group.createSubSlices();
+    assert.equal(group.slices[0].cpuDuration, 20);
+    assert.equal(group.slices[1].cpuDuration, 10);
+  });
+
+  test('computeCpuDurationFullOverlap', function() {
+    var model = new tv.c.TraceModel();
+    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var process = model.getOrCreateProcess(123);
+    var t = process.getOrCreateThread(456);
+    t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
+    var group = new SliceGroup(t);
+    group.pushSlice(newSliceNamed('draw', 20, 30));
+    group.pushSlice(newSliceNamed('render', 50, 20));
+    group.createSubSlices();
+    assert.equal(group.slices[0].cpuDuration, 20);
+    assert.equal(group.slices[1].cpuDuration, 20);
+  });
+
+  test('computeCpuSelfDurationWithSubslices', function() {
+    var model = new tv.c.TraceModel();
+    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var process = model.getOrCreateProcess(123);
+    var t = process.getOrCreateThread(456);
+    t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
+    var group = new SliceGroup(t);
+    group.pushSlice(newSliceNamed('draw', 20, 30));
+    group.pushSlice(newSliceNamed('render', 21, 8));
+    group.pushSlice(newSliceNamed('flush', 29, 11));
+    group.createSubSlices();
+    assert.equal(group.slices[0].cpuDuration, 20);
+    assert.equal(group.slices[0].cpuSelfTime, 1);
+    assert.equal(group.slices[1].cpuDuration, 8);
+    assert.equal(group.slices[1].cpuSelfTime, 8);
+    assert.equal(group.slices[2].cpuDuration, 11);
+    assert.equal(group.slices[2].cpuSelfTime, 11);
+  });
+
+  test('computeCpuDurationSmallTimeslices', function() {
+    var model = new tv.c.TraceModel();
+    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var process = model.getOrCreateProcess(123);
+    var t = process.getOrCreateThread(456);
+    t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 21, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 22, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 23, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 24, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 25, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 26, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 27, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 28, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 29, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 30, 1)];
+    var group = new SliceGroup(t);
+    group.pushSlice(newSliceNamed('draw', 20, 11)); // 20,[22,24,26,28],30
+    group.pushSlice(newSliceNamed('render', 22, 8)); // 22,[24, 26, 28]
+    group.pushSlice(newSliceNamed('flush', 24, 6)); // 24, 26, 28
+    group.createSubSlices();
+    assert.equal(group.slices[0].cpuDuration, 6);
+    assert.equal(group.slices[0].cpuSelfTime, 2);
+    assert.equal(group.slices[1].cpuDuration, 4);
+    assert.equal(group.slices[1].cpuSelfTime, 1);
+    assert.equal(group.slices[2].cpuDuration, 3);
+    assert.equal(group.slices[2].cpuSelfTime, 3);
   });
 });
 </script>

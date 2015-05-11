@@ -344,7 +344,8 @@ tv.exportTo('tv.c.trace_model', function() {
     createSubSlices: function() {
       this.haveTopLevelSlicesBeenBuilt = true;
       this.createSubSlicesImpl_();
-
+      if (this.parentThread.timeSlices)
+        this.addCpuTimeToSubslices_(this.parentThread.timeSlices);
       this.slices.forEach(function(slice) {
         var selfTime = slice.duration;
         for (var i = 0; i < slice.subSlices.length; i++)
@@ -426,6 +427,55 @@ tv.exportTo('tv.c.trace_model', function() {
 
       // Keep the slices in sorted form.
       this.slices = slices;
+    },
+    addCpuTimeToSubslices_: function(timeSlices) {
+      var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+      var sliceIdx = 0;
+      timeSlices.forEach(function(timeSlice) {
+        if (timeSlice.schedulingState == SCHEDULING_STATE.RUNNING) {
+          while (sliceIdx < this.topLevelSlices.length) {
+            if (this.addCpuTimeToSubslice_(this.topLevelSlices[sliceIdx],
+                timeSlice)) {
+              // The current top-level slice and children are fully
+              // accounted for, proceed to next top-level slice.
+              sliceIdx++;
+            } else {
+              // The current top-level runs beyond the time slice, break out
+              // so we can potentially add more time slices to it
+              break;
+            }
+          }
+        }
+      }, this);
+    },
+    /* Add run-time of this timeSlice to the passed in slice
+     * and all of it's children (recursively).
+     * Returns whether the slice ends before or at the end of the
+     * time slice, signaling we are done with this slice.
+     */
+    addCpuTimeToSubslice_: function(slice, timeSlice) {
+      // Make sure they overlap
+      if (slice.start > timeSlice.end || slice.end < timeSlice.start)
+        return slice.end <= timeSlice.end;
+
+      // Compute actual overlap
+      var duration = timeSlice.duration;
+      if (slice.start > timeSlice.start)
+        duration -= slice.start - timeSlice.start;
+      if (timeSlice.end > slice.end)
+        duration -= timeSlice.end - slice.end;
+
+      if (slice.cpuDuration) {
+        slice.cpuDuration += duration;
+      } else {
+        slice.cpuDuration = duration;
+      }
+
+      for (var i = 0; i < slice.subSlices.length; i++) {
+        this.addCpuTimeToSubslice_(slice.subSlices[i], timeSlice);
+      }
+
+      return slice.end <= timeSlice.end;
     }
   };
 
