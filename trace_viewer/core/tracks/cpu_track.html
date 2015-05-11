@@ -64,7 +64,7 @@ tv.exportTo('tv.c.tracks', function() {
       var cpu = this.cpu_;
       if (cpu.slices.length)
         return true;
-      if (cpu.samples.length)
+      if (cpu.samples && cpu.samples.length)
         return true;
       if (tv.b.dictionaryLength(cpu.counters) > 0)
         return true;
