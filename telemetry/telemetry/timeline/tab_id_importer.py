@@ -48,7 +48,7 @@ class TabIdImporter(importer.TimelineImporter):
 
     for tab_id in tab_id_events:
       timeline_markers = self._model.FindTimelineMarkers(tab_id)
-      assert(len(timeline_markers) == 1)
-      assert(timeline_markers[0].start_thread == timeline_markers[0].end_thread)
+      assert len(timeline_markers) == 1
+      assert timeline_markers[0].start_thread == timeline_markers[0].end_thread
       self._model.AddMappingFromTabIdToRendererThread(
           tab_id, timeline_markers[0].start_thread)

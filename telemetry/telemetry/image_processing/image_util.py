@@ -52,7 +52,7 @@ def WritePngFile(image, path):
     image: an image object.
     path: The path to the PNG file. Must end in 'png' or an
           AssertionError will be raised."""
-  assert(path.endswith('png'))
+  assert path.endswith('png')
   return impl.WritePngFile(image, path)
 
 def FromRGBPixels(width, height, pixels, bpp=3):

@@ -498,7 +498,7 @@ class ScreenFinder(object):
       if avg_intensity[0][0] > avg_intensity[1][0] * min_factor and \
          avg_intensity[0][0] > min_brightness:
         bright_corner = avg_intensity[0][1]
-        if (bright_corner == 0):
+        if bright_corner == 0:
           angle = np.pi - (line_angles[i, 0] + line_angles[i, 3]) / 2.0
           if angle < 0:
             angle = angle + tau
@@ -631,7 +631,7 @@ class ScreenFinder(object):
       corner_image = self._frame_edges[corner[1] - 1:corner[1] + 2,
                                        corner[0] - 1:corner[0] + 2]
       ret, p = self._FindExactCorner(i <= 1, i == 1 or i == 2, corner_image)
-      if (ret):
+      if ret:
         if self.DEBUG:
           self._frame_edges[corner[1] - 1 + p[1]][corner[0] - 1 + p[0]] = 128
         real_corners[i] = corner - 1 + p
@@ -828,7 +828,7 @@ class ScreenFinder(object):
                    (int(corner[0]), int(corner[1])), 5, (255, 0, 255), 1)
     cv2.imshow('original', self._frame)
     cv2.imshow('debug', self._frame_debug)
-    if (screen is not None):
+    if screen is not None:
       cv2.imshow('screen', screen)
     cv2.waitKey()
 

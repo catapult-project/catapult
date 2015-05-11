@@ -2,7 +2,7 @@
 
 # Disable the message, report, category or checker with the given id(s).
 # TODO(telemetry-team): Shrink this list to as small as possible.
-disable=I0010,I0011,abstract-class-little-used,abstract-class-not-used,anomalous-backslash-in-string,bad-builtin,bad-continuation,bad-str-strip-call,broad-except,cell-var-from-loop,deprecated-lambda,deprecated-module,duplicate-code,fixme,global-statement,interface-not-implemented,invalid-name,locally-enabled,logging-not-lazy,missing-docstring,no-init,no-member,no-name-in-module,no-self-use,not-callable,old-style-class,protected-access,star-args,superfluous-parens,too-few-public-methods,too-many-ancestors,too-many-arguments,too-many-branches,too-many-function-args,too-many-instance-attributes,too-many-lines,too-many-locals,too-many-public-methods,too-many-return-statements,too-many-statements,unpacking-non-sequence,unused-argument
+disable=I0010,I0011,abstract-class-little-used,abstract-class-not-used,anomalous-backslash-in-string,bad-builtin,bad-continuation,bad-str-strip-call,broad-except,cell-var-from-loop,deprecated-lambda,deprecated-module,duplicate-code,fixme,global-statement,interface-not-implemented,invalid-name,locally-enabled,logging-not-lazy,missing-docstring,no-init,no-member,no-name-in-module,no-self-use,not-callable,old-style-class,protected-access,star-args,too-few-public-methods,too-many-ancestors,too-many-arguments,too-many-branches,too-many-function-args,too-many-instance-attributes,too-many-lines,too-many-locals,too-many-public-methods,too-many-return-statements,too-many-statements,unused-argument
 
 
 [REPORTS]

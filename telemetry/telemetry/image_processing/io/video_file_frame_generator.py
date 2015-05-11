@@ -39,7 +39,7 @@ class VideoFileFrameGenerator(frame_generator.FrameGenerator):
     width = self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
     height = self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
     self._dimensions = (int(width), int(height))
-    if (self._frame_count <= start_frame_index):
+    if self._frame_count <= start_frame_index:
       raise frame_generator.FrameReadError('Not enough frames in capture.')
     while self._frame_index < start_frame_index - 1:
       self._ReadFrame(True)
