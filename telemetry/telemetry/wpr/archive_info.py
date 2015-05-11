@@ -9,7 +9,6 @@ import re
 import shutil
 import tempfile
 
-from telemetry import page as page_module
 from telemetry.util import cloud_storage
 
 
@@ -102,7 +101,7 @@ class WprArchiveInfo(object):
     if self.temp_target_wpr_file_path:
       return self.temp_target_wpr_file_path
     wpr_file = self._user_story_name_to_wpr_file.get(story.display_name, None)
-    if wpr_file is None and isinstance(story, page_module.Page):
+    if wpr_file is None and hasattr(story, 'url'):
       # Some old pages always use the URL to identify a page rather than the
       # display_name, so try to look for that.
       wpr_file = self._user_story_name_to_wpr_file.get(story.url, None)
