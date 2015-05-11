@@ -19,20 +19,23 @@ tv.exportTo('tv.c.analysis', function() {
    *
    * @constructor
    */
-  function MemoryColumn(title, units, attrGetter) {
+  function MemoryColumn(title, units, cellGetter) {
     this.title = title;
     this.units = units;
-    this.attrGetter_ = attrGetter;
+    this.cell = cellGetter;
   }
 
-  MemoryColumn.fromRows = function(rows, attributesKey) {
+  MemoryColumn.fromRows = function(rows, cellKey) {
     var columnTraits = {};
 
     function gatherTraits(row) {
       if (row === undefined)
         return;
-      var attributes = row[attributesKey];
-      tv.b.iterItems(attributes, function(attrName, attrValue) {
+      var attrCells = row[cellKey];
+      tv.b.iterItems(attrCells, function(attrName, attrCell) {
+        if (attrCell === undefined)
+          return;
+        var attrValue = attrCell.attr;
         if (attrValue === undefined)
           return;
         var existingTraits = columnTraits[attrName];
@@ -56,21 +59,21 @@ tv.exportTo('tv.c.analysis', function() {
 
     var columns = [];
     tv.b.iterItems(columnTraits, function(columnName, columnTraits) {
-      var columnGetter = fieldGetter(attributesKey, columnName);
+      var cellGetter = fieldGetter(cellKey, columnName);
       columns.push(MemoryColumn.fromAttributeTraits(
-          columnName, columnTraits, columnGetter));
+          columnName, columnTraits, cellGetter));
     });
 
     return columns;
   };
 
-  MemoryColumn.fromAttributeTraits = function(title, traits, attrGetter) {
+  MemoryColumn.fromAttributeTraits = function(title, traits, cellGetter) {
     var constructor;
     if (traits.constructor === tv.c.trace_model.ScalarAttribute)
       constructor = ScalarMemoryColumn;
     else
       constructor = MemoryColumn;
-    return new constructor(title, traits.units, attrGetter);
+    return new constructor(title, traits.units, cellGetter);
   };
 
   MemoryColumn.spaceEqually = function(columns) {
@@ -81,8 +84,15 @@ tv.exportTo('tv.c.analysis', function() {
   };
 
   MemoryColumn.prototype = {
+    attr: function(row) {
+      var cell = this.cell(row);
+      if (cell === undefined)
+        return undefined;
+      return cell.attr;
+    },
+
     value: function(row) {
-      var attr = this.attrGetter_(row);
+      var attr = this.attr(row);
       if (attr === undefined)
         return '';
       return this.formatDefinedAttribute(attr);
@@ -93,8 +103,8 @@ tv.exportTo('tv.c.analysis', function() {
     },
 
     cmp: function(rowA, rowB) {
-      var attrA = this.attrGetter_(rowA);
-      var attrB = this.attrGetter_(rowB);
+      var attrA = this.attr(rowA);
+      var attrB = this.attr(rowB);
       if (attrA === undefined && attrB === undefined)
         return 0;
       if (attrA === undefined)
@@ -114,8 +124,8 @@ tv.exportTo('tv.c.analysis', function() {
   /**
    * @constructor
    */
-  function ScalarMemoryColumn(title, units, attrGetter) {
-    MemoryColumn.call(this, title, units, attrGetter);
+  function ScalarMemoryColumn(title, units, cellGetter) {
+    MemoryColumn.call(this, title, units, cellGetter);
   }
 
   ScalarMemoryColumn.prototype = {
@@ -135,8 +145,15 @@ tv.exportTo('tv.c.analysis', function() {
     }
   };
 
+  /**
+   * @constructor
+   */
+  function MemoryCell(attr) {
+    this.attr = attr;
+  }
+
   function fieldGetter(/* fields */) {
-    var fields = arguments;
+    var fields = tv.b.asArray(arguments);
     return function(row) {
       var value = row;
       for (var i = 0; i < fields.length; i++)
@@ -148,6 +165,7 @@ tv.exportTo('tv.c.analysis', function() {
   return {
     MemoryColumn: MemoryColumn,
     ScalarMemoryColumn: ScalarMemoryColumn,
+    MemoryCell: MemoryCell,
     fieldGetter: fieldGetter
   };
 });

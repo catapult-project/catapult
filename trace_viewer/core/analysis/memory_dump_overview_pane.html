@@ -53,17 +53,10 @@ found in the LICENSE file.
 
     ready: function() {
       this.$.table.supportsSelection = true;
+      this.$.table.cellSelectionMode = true;
       this.$.table.addEventListener('selection-changed', function(tableEvent) {
         tableEvent.stopPropagation();
-        var paneEvent = new Event(
-            'selected-process-memory-dump-changed', false, false);
-        var previousSelectedTableRow = tableEvent.previousSelectedTableRow;
-        if (previousSelectedTableRow) {
-          paneEvent.previousSelectedProcessMemoryDump =
-              previousSelectedTableRow.processMemoryDump;
-        } else {
-          paneEvent.previousSelectedProcessMemoryDump = undefined;
-        }
+        var paneEvent = new Event('selected-memory-dump-changed', false, false);
         this.dispatchEvent(paneEvent);
       }.bind(this));
     },
@@ -77,11 +70,21 @@ found in the LICENSE file.
       return this.processMemoryDumps_;
     },
 
-    get selectedProcessMemoryDump() {
+    get selectedMemoryDump() {
       var selectedTableRow = this.$.table.selectedTableRow;
       if (!selectedTableRow)
         return undefined;
-      return selectedTableRow.processMemoryDump;
+
+      var selectedColumnIndex = this.$.table.selectedColumnIndex;
+      if (selectedColumnIndex === undefined)
+        return undefined;
+
+      var selectedColumn = this.$.table.tableColumns[selectedColumnIndex];
+      var selectedCell = selectedColumn.cell(selectedTableRow);
+      if (!selectedCell)
+        return undefined;
+
+      return selectedCell.dump;
     },
 
     updateContents_: function() {
@@ -93,8 +96,8 @@ found in the LICENSE file.
         function addUsedMemorySize(columnKey, dumpKey) {
           var value = processMemoryDump[dumpKey];
           if (value !== undefined) {
-            usedMemorySizes[columnKey] =
-                new tv.c.trace_model.ScalarAttribute('bytes', value);
+            usedMemorySizes[columnKey] = new tv.c.analysis.MemoryCell(
+                new tv.c.trace_model.ScalarAttribute('bytes', value));
           }
         }
         addUsedMemorySize('proportional_resident',
@@ -108,15 +111,17 @@ found in the LICENSE file.
         var allocatorSizes = {};
         if (processMemoryDump.memoryAllocatorDumps !== undefined) {
           processMemoryDump.memoryAllocatorDumps.forEach(function(dump) {
-            allocatorSizes[dump.fullName] = dump.attributes['outer_size'];
+            var cell = new tv.c.analysis.MemoryCell(
+                dump.attributes['outer_size']);
+            cell.dump = dump;
+            allocatorSizes[dump.fullName] = cell;
           }, this);
         }
 
         return {
           title: processMemoryDump.process.userFriendlyName,
           usedMemorySizes: usedMemorySizes,
-          allocatorSizes: allocatorSizes,
-          processMemoryDump: processMemoryDump
+          allocatorSizes: allocatorSizes
         };
       }, this);
       this.$.table.tableRows = rows;
@@ -135,7 +140,8 @@ found in the LICENSE file.
         width: '200px',
         cmp: function(rowA, rowB) {
           return rowA.title.localeCompare(rowB.title);
-        }
+        },
+        supportsCellSelection: false
       };
 
       var usedMemorySizeColumns = tv.c.analysis.MemoryColumn.fromRows(

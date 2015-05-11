@@ -126,7 +126,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
 
     var didFireSelectedDumpChanged;
-    viewEl.addEventListener('selected-process-memory-dump-changed',
+    viewEl.addEventListener('selected-memory-dump-changed',
         function(e) {
       didFireSelectedDumpChanged = true;
     });
@@ -134,17 +134,19 @@ tv.b.unittest.testSuite(function() {
     var table = tv.b.findDeepElementMatching(
         viewEl, 'tracing-analysis-nested-table');
 
-    // Simulate clicking on the second body row.
+    // Simulate clicking on the 'oilpan' cell of the second process.
     didFireSelectedDumpChanged = false;
-    table.$.body.children[1].children[0].click();
+    table.selectedTableRow = table.tableRows[1];
+    table.selectedColumnIndex = 4;
     assert.isTrue(didFireSelectedDumpChanged);
-    assert.equal(viewEl.selectedProcessMemoryDump, processMemoryDumps[1]);
+    assert.strictEqual(viewEl.selectedMemoryDump,
+        processMemoryDumps[1].getMemoryAllocatorDumpByFullName('oilpan'));
 
-    // Simulate clicking on the first body row.
+    // Simulate clicking on the 'shared_resident' cell of the first process.
     didFireSelectedDumpChanged = false;
-    table.$.body.children[0].children[1].click();
+    table.selectedColumnIndex = 3;
     assert.isTrue(didFireSelectedDumpChanged);
-    assert.equal(viewEl.selectedProcessMemoryDump, processMemoryDumps[0]);
+    assert.isUndefined(viewEl.selectedMemoryDump);
   });
 });
 </script>

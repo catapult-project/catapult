@@ -15,6 +15,7 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var MemoryColumn = tv.c.analysis.MemoryColumn;
   var ScalarMemoryColumn = tv.c.analysis.ScalarMemoryColumn;
+  var MemoryCell = tv.c.analysis.MemoryCell;
   var fieldGetter = tv.c.analysis.fieldGetter;
   var StringAttribute = tv.c.trace_model.StringAttribute;
   var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
@@ -24,25 +25,33 @@ tv.b.unittest.testSuite(function() {
     assert.equal(string.slice(-1), '%');
   }
 
+  function buildStringCell(value, units) {
+    return new MemoryCell(new StringAttribute(value, units));
+  }
+
+  function buildScalarCell(value, units) {
+    return new MemoryCell(new ScalarAttribute(value, units));
+  }
+
   test('checkMemoryColumn_fromRows', function() {
     var rows = [
       {
         title: 'Row 1',
         attributes: {
-          'cpu_temperature': new StringAttribute('C', 'below zero')
+          'cpu_temperature': buildStringCell('C', 'below zero')
         },
         subRows: [
           {
             title: 'Row 1A',
             attributes: {
-              'page_size': new ScalarAttribute('bytes', 1024)
+              'page_size': buildScalarCell('bytes', 1024)
             }
           },
           {
             title: 'Row 1B',
             attributes: {
-              'page_size': new ScalarAttribute('bytes', 512),
-              'mixed': new StringAttribute('ms', '0.01')
+              'page_size': buildScalarCell('bytes', 512),
+              'mixed': buildStringCell('ms', '0.01')
             }
           }
         ]
@@ -51,7 +60,7 @@ tv.b.unittest.testSuite(function() {
         title: 'Row 2',
         attributes: {
           'cpu_temperature': undefined,
-          'mixed': new ScalarAttribute('ms', 0.99)
+          'mixed': buildScalarCell('ms', 0.99)
         }
       }
     ];
@@ -88,10 +97,10 @@ tv.b.unittest.testSuite(function() {
     assert.instanceOf(column, MemoryColumn);
     assert.equal(column.title, 'First Column');
     assert.isUndefined(column.width);
-    assert.equal(column.value({x: new StringAttribute('Mbps', 'very fast')}),
+    assert.equal(column.value({x: buildStringCell('Mbps', 'very fast')}),
         'very fast');
-    assert.isAbove(column.cmp({x: new StringAttribute('Mbps', 'slow')},
-        {x: new StringAttribute('Mbps', 'fast')}), 0);
+    assert.isAbove(column.cmp({x: buildStringCell('Mbps', 'slow')},
+        {x: buildStringCell('Mbps', 'fast')}), 0);
 
     // Scalar attribute.
     var traits = {
@@ -103,10 +112,10 @@ tv.b.unittest.testSuite(function() {
     assert.instanceOf(column, MemoryColumn);
     assert.equal(column.title, 'Second Column');
     assert.isUndefined(column.width);
-    assert.equal(column.value({x: new ScalarAttribute('bytes', 1024)}).numBytes,
+    assert.equal(column.value({x: buildScalarCell('bytes', 1024)}).numBytes,
         1024);
-    assert.isAbove(column.cmp({x: new ScalarAttribute('bytes', 100)},
-        {x: new ScalarAttribute('bytes', 99.99)}), 0);
+    assert.isAbove(column.cmp({x: buildScalarCell('bytes', 100)},
+        {x: buildScalarCell('bytes', 99.99)}), 0);
   });
 
   test('checkMemoryColumn_spaceEqually', function() {
@@ -140,35 +149,52 @@ tv.b.unittest.testSuite(function() {
     checkPercent(columns[1].width, 50);
   });
 
+  test('checkMemoryColumn_attr', function() {
+    var c = new MemoryColumn('Test Column', 'ms', fieldGetter('x'));
+
+    // Undefined cell.
+    var row = {};
+    assert.isUndefined(c.attr(row));
+
+    // Undefined attribute inside cell.
+    var row = {x: new MemoryCell(undefined)};
+    assert.isUndefined(c.attr(row));
+
+    // Defined attribute inside cell.
+    var attr = new ScalarAttribute('hPa', 1013.25);
+    var row = {x: new MemoryCell(attr)};
+    assert.strictEqual(c.attr(row), attr);
+  });
+
   test('checkMemoryColumn_value', function() {
     var c = new MemoryColumn('Test Column', 'ms', fieldGetter('x'));
     assert.equal(c.title, 'Test Column');
     assert.isUndefined(c.width);
 
-    // Undefined field.
+    // Undefined cell.
     var row = {};
     assert.equal(c.value(row), '');
 
-    // Defined field.
-    var row = {x: new ScalarAttribute('ms', 123)};
+    // Defined cell.
+    var row = {x: buildScalarCell('ms', 123)};
     assert.equal(c.value(row), '123');
   });
 
   test('checkMemoryColumn_cmp', function() {
     var c = new MemoryColumn('Test Column', 'ms', fieldGetter('x'));
 
-    // Field undefined in one or both rows.
-    assert.equal(c.cmp({}, {}), 0);
-    assert.isAbove(c.cmp({x: new StringAttribute('ms', 'negative')}, {}), 0);
-    assert.isBelow(c.cmp({}, {x: new StringAttribute('ms', 'positive')}), 0);
+    // Cell (or the associated attribute) undefined in one or both rows.
+    assert.equal(c.cmp({}, {y: new MemoryCell(undefined)}), 0);
+    assert.isAbove(c.cmp({x: buildStringCell('ms', 'negative')}, {}), 0);
+    assert.isBelow(c.cmp({}, {x: buildStringCell('ms', 'positive')}), 0);
 
-    // Field defined in both rows
-    assert.equal(c.cmp({x: new StringAttribute('t', 'equal')},
-        {x: new StringAttribute('t', 'equal')}), 0);
-    assert.isAbove(c.cmp({x: new StringAttribute('u', 'bigger')},
-        {x: new StringAttribute('u', 'BIG')}), 0);
-    assert.isBelow(c.cmp({x: new StringAttribute('v', 'small')},
-        {x: new StringAttribute('v', 'smaLL')}), 0);
+    // Cell defined in both rows
+    assert.equal(c.cmp({x: buildStringCell('t', 'equal')},
+        {x: buildStringCell('t', 'equal')}), 0);
+    assert.isAbove(c.cmp({x: buildStringCell('u', 'bigger')},
+        {x: buildStringCell('u', 'BIG')}), 0);
+    assert.isBelow(c.cmp({x: buildStringCell('v', 'small')},
+        {x: buildStringCell('v', 'smaLL')}), 0);
   });
 
   test('checkScalarMemoryColumn_value', function() {
@@ -176,44 +202,44 @@ tv.b.unittest.testSuite(function() {
     assert.equal(c.title, 'Test Column');
     assert.isUndefined(c.width);
 
-    // Undefined field.
+    // Undefined cell.
     var row = {};
     assert.equal(c.value(row), '');
 
-    // Defined field.
-    var row = {x: new ScalarAttribute('bytes', 1024)};
+    // Defined cell.
+    var row = {x: buildScalarCell('bytes', 1024)};
     assert.equal(c.value(row).numBytes, 1024);
   });
 
   test('checkScalarMemoryColumn_cmp', function() {
     var c = new ScalarMemoryColumn('Test Column', 'ms', fieldGetter('x'));
 
-    // Field undefined in one or both rows.
-    assert.equal(c.cmp({}, {}), 0);
-    assert.isAbove(c.cmp({x: new ScalarAttribute('ms', -10)}, {}), 0);
-    assert.isBelow(c.cmp({}, {x: new ScalarAttribute('ms', 20)}), 0);
+    // Cell (or the associated attribute) undefined in one or both rows.
+    assert.equal(c.cmp({}, {y: new MemoryCell(undefined)}), 0);
+    assert.isAbove(c.cmp({x: buildScalarCell('ms', -10)}, {}), 0);
+    assert.isBelow(c.cmp({}, {x: buildScalarCell('ms', 20)}), 0);
 
-    // Field defined in both rows
-    assert.equal(c.cmp({x: new ScalarAttribute('ms', 0.01)},
-        {x: new ScalarAttribute('ms', 0.01)}), 0);
-    assert.isAbove(c.cmp({x: new ScalarAttribute('ms', -1)},
-        {x: new ScalarAttribute('ms', -2)}), 0);
-    assert.isBelow(c.cmp({x: new ScalarAttribute('ms', 999)},
-        {x: new ScalarAttribute('ms', 1000)}), 0);
+    // Cell defined in both rows
+    assert.equal(c.cmp({x: buildScalarCell('ms', 0.01)},
+        {x: buildScalarCell('ms', 0.01)}), 0);
+    assert.isAbove(c.cmp({x: buildScalarCell('ms', -1)},
+        {x: buildScalarCell('ms', -2)}), 0);
+    assert.isBelow(c.cmp({x: buildScalarCell('ms', 999)},
+        {x: buildScalarCell('ms', 1000)}), 0);
   });
 
   test('checkFieldGetter', function() {
-    // Zero fields.
+    // Zero cells.
     var f = fieldGetter();
     var row = {a: 5};
     assert.equal(f(row), row);
 
-    // One field.
+    // One cell.
     var f = fieldGetter('p2');
     assert.equal(f({p1: 'wrong', p2: 'right'}), 'right');
     assert.isUndefined(f({p1: 'wrong'}));
 
-    // Multiple fields.
+    // Multiple cells.
     var f = fieldGetter('b', 'd', 'f');
     assert.equal(f({a: 0, b: {c: 0, d: {e: 0, f: 42}}}), 42);
   });

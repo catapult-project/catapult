@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/size_span.html">
 <link rel="import" href="/core/analysis/table_builder.html">
 
-<polymer-element name="tv-c-memory-dump-process-pane">
+<polymer-element name="tv-c-memory-dump-details-pane">
   <template>
     <style>
       :host {
@@ -50,34 +50,34 @@ found in the LICENSE file.
 
   Polymer({
     // TODO(petrcermak): Consider sharing more code between
-    // tv-c-memory-dump-overview-pane and tv-c-memory-dump-process pane
+    // tv-c-memory-dump-overview-pane and tv-c-memory-dump-details-pane
     // (e.g. by defining a common base class tv-c-memory-dump-pane).
 
     created: function() {
-      this.processMemoryDump_ = undefined;
+      this.memoryDump_ = undefined;
     },
 
     ready: function() {
       this.updateContents_();
     },
 
-    set processMemoryDump(processMemoryDump) {
-      this.processMemoryDump_ = processMemoryDump;
+    set memoryDump(memoryDump) {
+      this.memoryDump_ = memoryDump;
       this.updateContents_();
     },
 
-    get processMemoryDump() {
-      return this.processMemoryDump_;
+    get memoryDump() {
+      return this.memoryDump_;
     },
 
     updateContents_: function() {
       this.$.contents.textContent = '';
 
-      if (this.processMemoryDump_ === undefined) {
+      if (this.memoryDump_ === undefined) {
         var infoText = this.ownerDocument.createElement('div');
         this.$.contents.appendChild(infoText);
         infoText.classList.add('info-text');
-        infoText.innerText = 'No process selected';
+        infoText.innerText = 'No details selected';
         return;
       }
 
@@ -93,24 +93,21 @@ found in the LICENSE file.
     },
 
     createRows_: function() {
-      var memoryAllocatorDumps;
-      if (this.processMemoryDump_.memoryAllocatorDumps === undefined)
-        memoryAllocatorDumps = [];
-      else
-        memoryAllocatorDumps = this.processMemoryDump_.memoryAllocatorDumps;
-
-      var createAllocatorRows = function(allocatorDumps) {
-        return allocatorDumps.map(function(allocatorDump) {
-          var row = {
-            title: allocatorDump.name,
-            attributes: allocatorDump.attributes
-          };
-          if (allocatorDump.children.length > 0)
-            row.subRows = createAllocatorRows(allocatorDump.children);
-          return row;
+      // TODO(petrcermak): Extend this to other types of memory dumps.
+      var createAllocatorRow = function(allocatorDump) {
+        var cells = tv.b.mapItems(allocatorDump.attributes,
+            function(attrName, attrValue) {
+          return new tv.c.analysis.MemoryCell(attrValue);
         });
+        var row = {
+          title: allocatorDump.name,
+          cells: cells
+        };
+        if (allocatorDump.children.length > 0)
+          row.subRows = allocatorDump.children.map(createAllocatorRow);
+        return row;
       };
-      var rows = createAllocatorRows(memoryAllocatorDumps);
+      var rows = [createAllocatorRow(this.memoryDump_)];
       return rows;
     },
 
@@ -126,8 +123,7 @@ found in the LICENSE file.
         }
       };
 
-      var attributeColumns = tv.c.analysis.MemoryColumn.fromRows(
-          rows, 'attributes');
+      var attributeColumns = tv.c.analysis.MemoryColumn.fromRows(rows, 'cells');
       tv.c.analysis.MemoryColumn.spaceEqually(attributeColumns);
 
       var columns = [titleColumn].concat(attributeColumns);
