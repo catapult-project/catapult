@@ -59,7 +59,16 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     get hasVisibleContent() {
-      return this.children.length > 0;
+      if (this.cpu_ === undefined)
+        return false;
+      var cpu = this.cpu_;
+      if (cpu.slices.length)
+        return true;
+      if (cpu.samples.length)
+        return true;
+      if (tv.b.dictionaryLength(cpu.counters) > 0)
+        return true;
+      return false;
     },
 
     updateContents_: function() {
