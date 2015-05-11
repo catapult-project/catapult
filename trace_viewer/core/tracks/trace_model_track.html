@@ -410,7 +410,7 @@ tv.exportTo('tv.c.tracks', function() {
       return bounds.top - canvasBounds.top + (bounds.height / 2);
     },
 
-    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
@@ -422,7 +422,7 @@ tv.exportTo('tv.c.tracks', function() {
           onPickHit.bind(this));
 
       tv.c.tracks.ContainerTrack.prototype.
-          addIntersectingItemsInRangeToSelectionInWorldSpace.
+          addIntersectingEventsInRangeToSelectionInWorldSpace.
           apply(this, arguments);
     },
 

@@ -150,7 +150,7 @@ tv.exportTo('tv.e.tquery', function() {
     selectEverythingAsTask_: function(selection) {
       var passThroughFilter = new tv.c.Filter();
       var filterTask =
-        this.selectionController.addAllObjectsMatchingFilterToSelectionAsTask(
+        this.selectionController.addAllEventsMatchingFilterToSelectionAsTask(
             passThroughFilter, selection);
       return filterTask;
     },

@@ -154,7 +154,7 @@ tv.exportTo('tv.c.tracks', function() {
       }, this);
     },
 
-    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       if (this.items_ === undefined)
         return;
@@ -180,7 +180,7 @@ tv.exportTo('tv.c.tracks', function() {
      * @return {boolean} Whether an event was found.
      * @private
      */
-    addItemNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
       if (this.items_ === undefined)
         return;
 
@@ -199,7 +199,7 @@ tv.exportTo('tv.c.tracks', function() {
       return false;
     },
 
-    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection: function(filter, selection) {
     },
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,

@@ -149,7 +149,7 @@ tv.b.unittest.testSuite(function() {
       new Slice('', 'c', 2, 7.6, {}, 0.4)
     ];
     var selection = new Selection();
-    track.addAllObjectsMatchingFilterToSelection(
+    track.addAllEventsMatchingFilterToSelection(
         new tv.c.TitleOrCategoryFilter('b'), selection);
 
     assert.equal(2, selection.length);
@@ -188,22 +188,26 @@ tv.b.unittest.testSuite(function() {
 
     var selection = new Selection();
     var x = (1.5 / wW) * vW;
-    track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
+    track.addIntersectingEventsInRangeToSelection(
+        x, x + 1, y, y + 1, selection);
     assert.equal(track.rects[0].modelItem, selection[0]);
 
     var selection = new Selection();
     x = (2.1 / wW) * vW;
-    track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
+    track.addIntersectingEventsInRangeToSelection(
+        x, x + 1, y, y + 1, selection);
     assert.equal(0, selection.length);
 
     var selection = new Selection();
     x = (6.8 / wW) * vW;
-    track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
+    track.addIntersectingEventsInRangeToSelection(
+        x, x + 1, y, y + 1, selection);
     assert.equal(track.rects[1].modelItem, selection[0]);
 
     var selection = new Selection();
     x = (9.9 / wW) * vW;
-    track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
+    track.addIntersectingEventsInRangeToSelection(
+        x, x + 1, y, y + 1, selection);
     assert.equal(0, selection.length);
   });
 
@@ -297,44 +301,44 @@ tv.b.unittest.testSuite(function() {
       new Slice('', 'c', 2, 7.6, {}, 0.4)
     ];
     var sel = new Selection();
-    track.addAllObjectsMatchingFilterToSelection(
+    track.addAllEventsMatchingFilterToSelection(
         new tv.c.TitleOrCategoryFilter('b'), sel);
     var ret;
 
     // Select to the right of B.
     var selRight = new Selection();
-    ret = track.addItemNearToProvidedEventToSelection(sel[0], 1, selRight);
+    ret = track.addEventNearToProvidedEventToSelection(sel[0], 1, selRight);
     assert.isTrue(ret);
     assert.equal(track.rects[2].modelItem, selRight[0]);
 
     // Select to the right of the 2nd b.
     var selRight2 = new Selection();
-    ret = track.addItemNearToProvidedEventToSelection(sel[0], 2, selRight2);
+    ret = track.addEventNearToProvidedEventToSelection(sel[0], 2, selRight2);
     assert.isTrue(ret);
     assert.equal(track.rects[3].modelItem, selRight2[0]);
 
     // Select to 2 to the right of the 2nd b.
     var selRightOfRight = new Selection();
-    ret = track.addItemNearToProvidedEventToSelection(
+    ret = track.addEventNearToProvidedEventToSelection(
         selRight[0], 1, selRightOfRight);
     assert.isTrue(ret);
     assert.equal(track.rects[3].modelItem, selRightOfRight[0]);
 
     // Select to the right of the rightmost slice.
     var selNone = new Selection();
-    ret = track.addItemNearToProvidedEventToSelection(
+    ret = track.addEventNearToProvidedEventToSelection(
         selRightOfRight[0], 1, selNone);
     assert.isFalse(ret);
     assert.equal(0, selNone.length);
 
     // Select A and then select left.
     var sel = new Selection();
-    track.addAllObjectsMatchingFilterToSelection(
+    track.addAllEventsMatchingFilterToSelection(
         new tv.c.TitleOrCategoryFilter('a'), sel);
     var ret;
 
     selNone = new Selection();
-    ret = track.addItemNearToProvidedEventToSelection(sel[0], -1, selNone);
+    ret = track.addEventNearToProvidedEventToSelection(sel[0], -1, selNone);
     assert.isFalse(ret);
     assert.equal(0, selNone.length);
   });

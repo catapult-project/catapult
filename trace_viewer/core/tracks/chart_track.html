@@ -161,24 +161,24 @@ tv.exportTo('tv.c.tracks', function() {
       }, this);
     },
 
-    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       this.series_.forEach(function(series) {
-        series.addIntersectingItemsInRangeToSelectionInWorldSpace(
+        series.addIntersectingEventsInRangeToSelectionInWorldSpace(
             loWX, hiWX, viewPixWidthWorld, selection);
       }, this);
     },
 
-    addItemNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
       var foundItem = false;
       this.series_.forEach(function(series) {
-        foundItem = foundItem || series.addItemNearToProvidedEventToSelection(
+        foundItem = foundItem || series.addEventNearToProvidedEventToSelection(
             event, offset, selection);
       }, this);
       return foundItem;
     },
 
-    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection: function(filter, selection) {
       // Do nothing.
     },
 

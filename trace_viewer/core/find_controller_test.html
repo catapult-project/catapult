@@ -21,7 +21,7 @@ tv.b.unittest.testSuite(function() {
    * Just enough of the SelectionController to support the tests below.
    */
   function FakeSelectionController() {
-    this.addAllObjectsMatchingFilterToSelectionReturnValue = [];
+    this.addAllEventsMatchingFilterToSelectionReturnValue = [];
 
     this.viewport = undefined;
     this.model = undefined;
@@ -30,12 +30,12 @@ tv.b.unittest.testSuite(function() {
   }
 
   FakeSelectionController.prototype = {
-    addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
+    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
       return new Task(function() {
-        var n = this.addAllObjectsMatchingFilterToSelectionReturnValue.length;
+        var n = this.addAllEventsMatchingFilterToSelectionReturnValue.length;
         for (var i = 0; i < n; i++) {
           selection.push(
-              this.addAllObjectsMatchingFilterToSelectionReturnValue[i]);
+              this.addAllEventsMatchingFilterToSelectionReturnValue[i]);
         }
       }, this);
     },
@@ -99,7 +99,7 @@ tv.b.unittest.testSuite(function() {
     var controller = new tv.c.FindController(selectionController);
 
     var s1 = {guid: 1};
-    selectionController.addAllObjectsMatchingFilterToSelectionReturnValue = [
+    selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1
     ];
     controller.filterText = 'asdf';
@@ -128,7 +128,7 @@ tv.b.unittest.testSuite(function() {
     var s2 = {guid: 2};
     var s3 = {guid: 3};
 
-    selectionController.addAllObjectsMatchingFilterToSelectionReturnValue = [
+    selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1, s2, s3
     ];
     controller.filterText = 'asdf';
@@ -163,7 +163,7 @@ tv.b.unittest.testSuite(function() {
     var s3 = {guid: 3};
     var s4 = {guid: 4};
 
-    selectionController.addAllObjectsMatchingFilterToSelectionReturnValue = [
+    selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1, s2, s3
     ];
     controller.filterText = 'asdf';
@@ -171,7 +171,7 @@ tv.b.unittest.testSuite(function() {
     promise.then(function() {
       // Loop through hits then when we wrap, try moving backward.
       controller.findNext();
-      selectionController.addAllObjectsMatchingFilterToSelectionReturnValue = [
+      selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
         s4
       ];
 
@@ -192,7 +192,7 @@ tv.b.unittest.testSuite(function() {
     var s1 = {guid: 1};
     var s2 = {guid: 2};
     var s3 = {guid: 3};
-    selectionController.addAllObjectsMatchingFilterToSelectionReturnValue = [
+    selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1, s2, s3
     ];
     controller.filterText = 'asdfsf';

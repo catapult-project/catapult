@@ -32,7 +32,7 @@ tv.exportTo('tv.e.tquery', function() {
       this.dispatchEvent(e);
     },
 
-    addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
+    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
       return new tv.b.Task(function() {
         var n = this.allEvents.length;
         for (var i = 0; i < n; i++) {

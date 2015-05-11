@@ -149,32 +149,32 @@ tv.b.unittest.testSuite(function() {
     assert.closeTo(range.max, 1, 0.05);
   });
 
-  test('checkAddIntersectingItemsInRangeToSelectionInWorldSpace', function() {
+  test('checkaddIntersectingEventsInRangeToSelectionInWorldSpace', function() {
     var series = buildSeries();
 
     // Too far left.
     var sel = new Selection();
-    series.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    series.addIntersectingEventsInRangeToSelectionInWorldSpace(
         -1000, -30.5, 40, sel);
     assert.lengthOf(sel, 0);
 
     // Select first point.
     var sel = new Selection();
-    series.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    series.addIntersectingEventsInRangeToSelectionInWorldSpace(
         -30.5, -29.5, 40, sel);
     assert.lengthOf(sel, 1);
     assert.equal(sel[0].index, 0);
 
     // Select second point.
     var sel = new Selection();
-    series.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    series.addIntersectingEventsInRangeToSelectionInWorldSpace(
         -28.8, -28.2, 40, sel);
     assert.lengthOf(sel, 1);
     assert.equal(sel[0].index, 1);
 
     // Select points in the middle.
     var sel = new Selection();
-    series.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    series.addIntersectingEventsInRangeToSelectionInWorldSpace(
         -0.99, 1.01, 40, sel);
     assert.lengthOf(sel, 3);
     assert.equal(sel[0].index, 29);
@@ -183,71 +183,71 @@ tv.b.unittest.testSuite(function() {
 
     // Select the last point.
     var sel = new Selection();
-    series.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    series.addIntersectingEventsInRangeToSelectionInWorldSpace(
         668.99, 668.99, 40, sel);
     assert.lengthOf(sel, 1);
     assert.equal(sel[0].index, 59);
 
     // Too far right.
     var sel = new Selection();
-    series.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    series.addIntersectingEventsInRangeToSelectionInWorldSpace(
         669.01, 2000, 40, sel);
     assert.lengthOf(sel, 0);
 
     // Select everything.
     var sel = new Selection();
-    series.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    series.addIntersectingEventsInRangeToSelectionInWorldSpace(
         -29.01, 669.01, 40, sel);
     assert.lengthOf(sel, 60);
   });
 
-  test('checkAddItemNearToProvidedEventToSelection', function() {
+  test('checkaddEventNearToProvidedEventToSelection', function() {
     var series = buildSeries();
 
     // Invalid event.
     var sel = new Selection();
-    assert.isFalse(series.addItemNearToProvidedEventToSelection(
+    assert.isFalse(series.addEventNearToProvidedEventToSelection(
         new Event(), 1, sel));
     assert.lengthOf(sel, 0);
 
     var sel = new Selection();
-    assert.isFalse(series.addItemNearToProvidedEventToSelection(
+    assert.isFalse(series.addEventNearToProvidedEventToSelection(
         new Event(), -1, sel));
     assert.lengthOf(sel, 0);
 
     // First point.
     var sel = new Selection();
-    assert.isTrue(series.addItemNearToProvidedEventToSelection(
+    assert.isTrue(series.addEventNearToProvidedEventToSelection(
         series.points[0].modelItem, 1, sel));
     assert.lengthOf(sel, 1);
     assert.equal(sel[0].index, 1);
 
     var sel = new Selection();
-    assert.isFalse(series.addItemNearToProvidedEventToSelection(
+    assert.isFalse(series.addEventNearToProvidedEventToSelection(
         series.points[0].modelItem, -1, sel));
     assert.lengthOf(sel, 0);
 
     // Middle point.
     var sel = new Selection();
-    assert.isTrue(series.addItemNearToProvidedEventToSelection(
+    assert.isTrue(series.addEventNearToProvidedEventToSelection(
         series.points[30].modelItem, 1, sel));
     assert.lengthOf(sel, 1);
     assert.equal(sel[0].index, 31);
 
     var sel = new Selection();
-    assert.isTrue(series.addItemNearToProvidedEventToSelection(
+    assert.isTrue(series.addEventNearToProvidedEventToSelection(
         series.points[30].modelItem, -1, sel));
     assert.lengthOf(sel, 1);
     assert.equal(sel[0].index, 29);
 
     // Last point.
     var sel = new Selection();
-    assert.isFalse(series.addItemNearToProvidedEventToSelection(
+    assert.isFalse(series.addEventNearToProvidedEventToSelection(
         series.points[59].modelItem, 1, sel));
     assert.lengthOf(sel, 0);
 
     var sel = new Selection();
-    assert.isTrue(series.addItemNearToProvidedEventToSelection(
+    assert.isTrue(series.addEventNearToProvidedEventToSelection(
         series.points[59].modelItem, -1, sel));
     assert.lengthOf(sel, 1);
     assert.equal(sel[0].index, 58);

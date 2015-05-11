@@ -394,7 +394,7 @@ tv.exportTo('tv.c.tracks', function() {
       }
     },
 
-    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       var points = this.points;
 
@@ -418,7 +418,7 @@ tv.exportTo('tv.c.tracks', function() {
           selectPoint);
     },
 
-    addItemNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
       if (this.points === undefined)
         return false;
 

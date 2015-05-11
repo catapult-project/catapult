@@ -43,7 +43,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(timeline);
   });
 
-  test('addAllObjectsMatchingFilterToSelectionAsTask', function() {
+  test('addAllEventsMatchingFilterToSelectionAsTask', function() {
     var model = new tv.c.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
@@ -65,7 +65,7 @@ tv.b.unittest.testSuite(function() {
     var expected = [t1asg.slices[0],
                     t1.sliceGroup.slices[0]];
     var result = new tv.c.Selection();
-    var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
+    var filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
         new tv.c.TitleOrCategoryFilter('a'), result);
     Task.RunSynchronously(filterTask);
     assert.equal(result.length, 2);
@@ -75,7 +75,7 @@ tv.b.unittest.testSuite(function() {
     var expected = [t1asg.slices[1],
                     t1.sliceGroup.slices[1]];
     var result = new tv.c.Selection();
-    var filterTask = timeline.addAllObjectsMatchingFilterToSelectionAsTask(
+    var filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
         new tv.c.TitleOrCategoryFilter('b'), result);
     Task.RunSynchronously(filterTask);
     assert.equal(result.length, 2);

@@ -40,7 +40,7 @@ tv.exportTo('tv.c.tracks', function() {
     /**
      * Used to hit-test clicks in the graph.
      */
-    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onSnapshot(snapshot) {
         selection.push(snapshot);
@@ -76,7 +76,7 @@ tv.exportTo('tv.c.tracks', function() {
      * @return {boolean} Whether an event was found.
      * @private
      */
-    addItemNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
       if (!(event instanceof tv.c.trace_model.ObjectSnapshot))
         throw new Error('Unrecognized event');
       var objectSnapshots = this.objectInstance_.snapshots;
@@ -89,7 +89,7 @@ tv.exportTo('tv.c.tracks', function() {
       return false;
     },
 
-    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection: function(filter, selection) {
     },
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,

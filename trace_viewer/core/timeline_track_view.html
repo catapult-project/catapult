@@ -331,12 +331,12 @@ tv.exportTo('tv.c', function() {
      * @param {Selection} selection The selection to add matches to.
      * @return {Task} which performs the filtering.
      */
-    addAllObjectsMatchingFilterToSelectionAsTask: function(filter, selection) {
+    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
       var modelTrack = this.modelTrack_;
-      var firstT = modelTrack.addAllObjectsMatchingFilterToSelectionAsTask(
+      var firstT = modelTrack.addAllEventsMatchingFilterToSelectionAsTask(
           filter, selection);
       var lastT = firstT.after(function() {
-        this.upperModelTrack_.addAllObjectsMatchingFilterToSelection(
+        this.upperModelTrack_.addAllEventsMatchingFilterToSelection(
           filter, selection);
 
       }, this);
@@ -532,7 +532,7 @@ tv.exportTo('tv.c', function() {
 
       var selection = new Selection();
       var filter = new tv.c.ExactTitleFilter(curSelection[0].title);
-      this.modelTrack_.addAllObjectsMatchingFilterToSelection(filter,
+      this.modelTrack_.addAllEventsMatchingFilterToSelection(filter,
                                                               selection);
 
       this.selectionController.changeSelectionFromTimeline(selection);
@@ -987,7 +987,7 @@ tv.exportTo('tv.c', function() {
 
       // Figure out what has been selected.
       var selection = new Selection();
-      this.modelTrack_.addIntersectingItemsInRangeToSelection(
+      this.modelTrack_.addIntersectingEventsInRangeToSelection(
           loVX, hiVX, loY, hiY, selection);
 
       // Activate the new selection.

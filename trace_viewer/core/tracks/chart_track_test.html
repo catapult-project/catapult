@@ -168,11 +168,11 @@ tv.b.unittest.testSuite(function() {
     assert.lengthOf(Object.keys(eventToTrackMap.map), 23);
   });
 
-  test('checkAddIntersectingItemsInRangeToSelectionInWorldSpace', function() {
+  test('checkaddIntersectingEventsInRangeToSelectionInWorldSpace', function() {
     var track = buildTrack();
 
     var sel = new Selection();
-    track.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         -1.1, -0.7, 0.01, sel);
     assert.lengthOf(sel, 3);
     assert.equal(sel[0], track.series[0].points[1].modelItem);
@@ -180,18 +180,18 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sel[2], track.series[2].points[3].modelItem);
   });
 
-  test('checkAddItemNearToProvidedEventToSelection', function() {
+  test('checkaddEventNearToProvidedEventToSelection', function() {
     var track = buildTrack();
 
     // Fail to find a near item to the left in any series.
     var sel = new Selection();
-    assert.isFalse(track.addItemNearToProvidedEventToSelection(
+    assert.isFalse(track.addEventNearToProvidedEventToSelection(
         track.series[0].points[0].modelItem, -1, sel));
     assert.lengthOf(sel, 0);
 
     // Succeed at finding a near item to the right of one series.
     var sel = new Selection();
-    assert.isTrue(track.addItemNearToProvidedEventToSelection(
+    assert.isTrue(track.addEventNearToProvidedEventToSelection(
         track.series[1].points[1].modelItem, 1, sel));
     assert.lengthOf(sel, 1);
     assert.equal(sel[0], track.series[1].points[2].modelItem);

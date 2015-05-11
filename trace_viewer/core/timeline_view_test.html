@@ -127,7 +127,7 @@ tv.b.unittest.testSuite(function() {
     // Verify that the new bits of the model show up in the view.
     var selection = new tv.c.Selection();
     var filter = new tv.c.TitleOrCategoryFilter('somethingUnusual');
-    var filterTask = sc.addAllObjectsMatchingFilterToSelectionAsTask(
+    var filterTask = sc.addAllEventsMatchingFilterToSelectionAsTask(
         filter, selection);
     Task.RunSynchronously(filterTask);
     assert.equal(selection.length, 1);

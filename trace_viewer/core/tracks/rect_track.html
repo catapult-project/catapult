@@ -122,7 +122,7 @@ tv.exportTo('tv.c.tracks', function() {
       }, this);
     },
 
-    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onRect(rect) {
         rect.addToSelection(selection);
@@ -145,7 +145,7 @@ tv.exportTo('tv.c.tracks', function() {
      * @return {boolean} Whether an event was found.
      * @private
      */
-    addItemNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
       var index = tv.b.findFirstIndexInArray(this.rects_, function(rect) {
         return rect.modelItem === event;
       });
@@ -160,7 +160,7 @@ tv.exportTo('tv.c.tracks', function() {
       return true;
     },
 
-    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection: function(filter, selection) {
       for (var i = 0; i < this.rects_.length; ++i) {
         // TODO(petrcermak): Rather than unpacking the proxy item here,
         // we should probably add an addToSelectionIfMatching(selection, filter)

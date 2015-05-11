@@ -58,7 +58,7 @@ tv.exportTo('tv.c', function() {
 
       var filter = new tv.c.TitleOrCategoryFilter(filterText);
       var filterHits = new tv.c.Selection();
-      var filterTask = sc.addAllObjectsMatchingFilterToSelectionAsTask(
+      var filterTask = sc.addAllEventsMatchingFilterToSelectionAsTask(
           filter, filterHits);
       promise = Task.RunWhenIdle(filterTask);
       promise.then(function() {

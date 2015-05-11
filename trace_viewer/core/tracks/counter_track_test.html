@@ -110,7 +110,8 @@ tv.b.unittest.testSuite(function() {
       // In bounds.
       var sel = new tv.c.Selection();
       var x = 0.15 * clientRect.width;
-      track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
+      track.addIntersectingEventsInRangeToSelection(
+          x, x + 1, y75, y75 + 1, sel);
 
       assert.equal(sel.length, 2);
       assert.equal(sel[0].series.counter, ctr);
@@ -124,12 +125,14 @@ tv.b.unittest.testSuite(function() {
       // Outside bounds.
       sel = new tv.c.Selection();
       var x = -0.5 * clientRect.width;
-      track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
+      track.addIntersectingEventsInRangeToSelection(
+          x, x + 1, y75, y75 + 1, sel);
       assert.equal(sel.length, 0);
 
       sel = new tv.c.Selection();
       var x = 0.8 * clientRect.width;
-      track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
+      track.addIntersectingEventsInRangeToSelection(
+          x, x + 1, y75, y75 + 1, sel);
       assert.equal(sel.length, 0);
     });
   });

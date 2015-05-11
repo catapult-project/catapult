@@ -194,7 +194,7 @@ tv.exportTo('tv.c.tracks', function() {
       }
     },
 
-    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       // Pick snapshots first.
       var foundSnapshot = false;
@@ -232,7 +232,7 @@ tv.exportTo('tv.c.tracks', function() {
      * @return {boolean} Whether an event was found.
      * @private
      */
-    addItemNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
       var events;
       if (event instanceof tv.c.trace_model.ObjectSnapshot)
         events = this.objectSnapshots_;
@@ -250,7 +250,7 @@ tv.exportTo('tv.c.tracks', function() {
       return false;
     },
 
-    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection: function(filter, selection) {
     },
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,

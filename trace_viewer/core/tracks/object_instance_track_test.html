@@ -69,26 +69,26 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Hit outside range
     var selection = new Selection();
-    track.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         8, 8.1, 0.1, selection);
     assert.equal(selection.length, 0);
 
     // Hit the first snapshot, via pixel-nearness.
     selection = new Selection();
-    track.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         9.98, 9.99, 0.1, selection);
     assert.equal(selection.length, 1);
     assert.instanceOf(selection[0], tv.c.trace_model.ObjectSnapshot);
 
     // Hit the instance, between the 1st and 2nd snapshots
     selection = new Selection();
-    track.addIntersectingItemsInRangeToSelectionInWorldSpace(
+    track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         20, 20.1, 0.1, selection);
     assert.equal(selection.length, 1);
     assert.instanceOf(selection[0], tv.c.trace_model.ObjectInstance);
   });
 
-  test('addItemNearToProvidedEventToSelection', function() {
+  test('addEventNearToProvidedEventToSelection', function() {
     var objects = createObjects();
     var frames = objects.getAllInstancesByTypeName()['Frame'];
 
@@ -99,7 +99,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         {}, '0x1000', 'cat', 'n', 10);
 
     assert.doesNotThrow(function() {
-      track.addItemNearToProvidedEventToSelection(instance, 0, undefined);
+      track.addEventNearToProvidedEventToSelection(instance, 0, undefined);
     });
   });
 });

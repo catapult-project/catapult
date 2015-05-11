@@ -122,7 +122,7 @@ tv.exportTo('tv.c.tracks', function() {
       }
     },
 
-    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
@@ -134,7 +134,7 @@ tv.exportTo('tv.c.tracks', function() {
           onPickHit.bind(this));
 
       tv.c.tracks.ContainerTrack.prototype.
-          addIntersectingItemsInRangeToSelectionInWorldSpace.
+          addIntersectingEventsInRangeToSelectionInWorldSpace.
           apply(this, arguments);
     },
 
