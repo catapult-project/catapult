@@ -261,12 +261,13 @@ tv.exportTo('tv.c.trace_model', function() {
       return newSlice;
     },
 
-    iterateAllEvents: function(callback, opt_this) {
-      this.slices.forEach(callback, opt_this);
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      if (eventTypePredicate.call(opt_this, this.sliceConstructor))
+        this.slices.forEach(callback, opt_this);
     },
 
-    iterateAllEventContainers: function(callback) {
-      callback(this);
+    iterateAllChildEventContainers: function(callback, opt_this) {
     },
 
     getSlicesOfName: function(title) {

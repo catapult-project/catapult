@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/trace_model/event_container.html">
 <link rel="import" href="/core/trace_model/object_instance.html">
 <link rel="import" href="/core/trace_model/time_to_object_instance_map.html">
 <link rel="import" href="/base/utils.html">
@@ -19,6 +20,7 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.c.trace_model', function() {
   var ObjectInstance = tv.c.trace_model.ObjectInstance;
+  var ObjectSnapshot = tv.c.trace_model.ObjectSnapshot;
 
   /**
    * A collection of object instances and their snapshots, accessible by id and
@@ -27,6 +29,7 @@ tv.exportTo('tv.c.trace_model', function() {
    * @constructor
    */
   function ObjectCollection(parent) {
+    tv.c.trace_model.EventContainer.call(this);
     this.parent = parent;
     this.bounds = new tv.b.Range();
     this.instanceMapsById_ = {}; // id -> TimeToObjectInstanceMap
@@ -35,7 +38,24 @@ tv.exportTo('tv.c.trace_model', function() {
   }
 
   ObjectCollection.prototype = {
-    __proto__: Object.prototype,
+    __proto__: tv.c.trace_model.EventContainer.prototype,
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+    },
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      var bI = !!eventTypePredicate.call(opt_this, ObjectInstance);
+      var bS = !!eventTypePredicate.call(opt_this, ObjectSnapshot);
+      if (bI === false && bS === false)
+        return;
+      this.iterObjectInstances(function(instance) {
+        if (bI)
+          callback.call(opt_this, instance);
+        if (bS)
+          instance.snapshots.forEach(callback, opt_this);
+      }, opt_this);
+    },
 
     createObjectInstance_: function(
         parent, id, category, name, creationTs, opt_baseTypeName) {
@@ -199,13 +219,6 @@ tv.exportTo('tv.c.trace_model', function() {
       this.iterObjectInstances(function(instance) {
         categoriesDict[instance.category] = true;
       });
-    },
-
-    iterateAllEvents: function(callback, opt_this) {
-      this.iterObjectInstances(function(instance) {
-        callback.call(this, instance);
-        instance.snapshots.forEach(callback);
-      }, opt_this);
     }
   };
 

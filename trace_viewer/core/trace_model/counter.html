@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/trace_model/counter_series.html">
+<link rel="import" href="/core/trace_model/event_container.html">
 <link rel="import" href="/base/guid.html">
 <link rel="import" href="/base/range.html">
 
@@ -22,6 +23,7 @@ tv.exportTo('tv.c.trace_model', function() {
    * @constructor
    */
   function Counter(parent, id, category, name) {
+    tv.c.trace_model.EventContainer.call(this);
     this.guid_ = tv.b.GUID.allocate();
 
     this.parent = parent;
@@ -35,13 +37,22 @@ tv.exportTo('tv.c.trace_model', function() {
   }
 
   Counter.prototype = {
-    __proto__: Object.prototype,
+    __proto__: tv.c.trace_model.EventContainer.prototype,
 
     /*
      * @return {Number} A globally unique identifier for this counter.
      */
     get guid() {
       return this.guid_;
+    },
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      for (var i = 0; i < this.series_.length; i++)
+        callback.call(opt_this, this.series_[i]);
     },
 
     set timestamps(arg) {
@@ -153,11 +164,6 @@ tv.exportTo('tv.c.trace_model', function() {
 
         this.maxTotal = Math.max(total, this.maxTotal);
       }
-    },
-
-    iterateAllEvents: function(callback, opt_this) {
-      for (var i = 0; i < this.series_.length; i++)
-        this.series_[i].iterateAllEvents(callback, opt_this);
     }
   };
 

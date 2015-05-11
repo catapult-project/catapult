@@ -62,6 +62,24 @@ tv.exportTo('tv.c.trace_model', function() {
       throw new Error('Not implemented');
     },
 
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      for (var tid in this.threads)
+        callback.call(opt_this, this.threads[tid]);
+      for (var id in this.counters)
+        callback.call(opt_this, this.counters[id]);
+      callback.call(opt_this, this.objects);
+    },
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+    },
+
+    iterateAllPersistableObjects: function(cb) {
+      cb(this);
+      for (var tid in this.threads)
+        this.threads[tid].iterateAllPersistableObjects(cb);
+    },
+
     /**
      * Gets the number of threads in this process.
      */
@@ -227,22 +245,6 @@ tv.exportTo('tv.c.trace_model', function() {
     createSubSlices: function() {
       for (var tid in this.threads)
         this.threads[tid].createSubSlices();
-    },
-
-    iterateAllEvents: function(callback, opt_this) {
-      for (var tid in this.threads)
-        this.threads[tid].iterateAllEvents(callback, opt_this);
-
-      for (var id in this.counters)
-        this.counters[id].iterateAllEvents(callback, opt_this);
-
-      this.objects.iterateAllEvents(callback, opt_this);
-    },
-
-    iterateAllPersistableObjects: function(cb) {
-      cb(this);
-      for (var tid in this.threads)
-        this.threads[tid].iterateAllPersistableObjects(cb);
     }
   };
 

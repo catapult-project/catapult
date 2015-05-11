@@ -16,6 +16,7 @@ found in the LICENSE file.
 tv.exportTo('tv.c.trace_model', function() {
   function EventContainer() {
     this.important = true;
+    this.bounds = undefined;
   }
 
   EventContainer.prototype = {
@@ -25,6 +26,43 @@ tv.exportTo('tv.c.trace_model', function() {
      */
     get stableId() {
       throw new Error('Not implemented');
+    },
+
+    updateBounds: function() {
+      throw new Error('Not implemented');
+    },
+
+    shiftTimestampsForward: function(amount) {
+      throw new Error('Not implemented');
+    },
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      throw new Error('Not implemented');
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      throw new Error('Not implemented');
+    },
+
+    /**
+     * Iterates all events in the model and calls callback on each event.
+     * @param {function(event)} callback The callback called for every event.
+     */
+    iterateAllEvents: function(callback, opt_this) {
+      this.iterateAllEventContainers(function(ec) {
+        ec.iterateAllEventsInThisContainer(
+            function(eventType) { return true; },
+            callback, opt_this);
+      });
+    },
+
+    iterateAllEventContainers: function(callback, opt_this) {
+      function visit(ec) {
+        callback.call(opt_this, ec);
+        ec.iterateAllChildEventContainers(visit);
+      }
+      visit(this);
     }
   };
 

@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/trace_model/counter_sample.html">
+<link rel="import" href="/core/trace_model/event_container.html">
 
 <script>
 'use strict';
@@ -17,6 +18,7 @@ tv.exportTo('tv.c.trace_model', function() {
   var CounterSample = tv.c.trace_model.CounterSample;
 
   function CounterSeries(name, color) {
+    tv.c.trace_model.EventContainer.call(this);
     this.guid_ = tv.b.GUID.allocate();
 
     this.name_ = name;
@@ -31,7 +33,7 @@ tv.exportTo('tv.c.trace_model', function() {
   }
 
   CounterSeries.prototype = {
-    __proto__: Object.prototype,
+    __proto__: tv.c.trace_model.EventContainer.prototype,
 
     get length() {
       return this.timestamps_.length;
@@ -101,8 +103,14 @@ tv.exportTo('tv.c.trace_model', function() {
       }
     },
 
-    iterateAllEvents: function(callback, opt_this) {
-      this.samples_.forEach(callback, opt_this);
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      if (eventTypePredicate.call(opt_this, tv.c.trace_model.CounterSample)) {
+        this.samples_.forEach(callback, opt_this);
+      }
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
     }
   };
 

@@ -48,6 +48,12 @@ tv.exportTo('tv.c', function() {
   var Importer = tv.c.importer.Importer;
   var Process = tv.c.trace_model.Process;
   var Kernel = tv.c.trace_model.Kernel;
+  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
+  var GlobalInstantEvent = tv.c.trace_model.GlobalInstantEvent;
+  var FlowEvent = tv.c.trace_model.FlowEvent;
+  var Alert = tv.c.trace_model.Alert;
+  var InteractionRecord = tv.c.trace_model.InteractionRecord;
+  var Sample = tv.c.trace_model.Sample;
 
   function ImportOptions() {
     this.shiftWorldToZero = true;
@@ -99,6 +105,9 @@ tv.exportTo('tv.c', function() {
    * @constructor
    */
   function TraceModel(opt_eventData, opt_options) {
+    tv.c.trace_model.EventContainer.call(this);
+    tv.b.EventTarget.decorate(this);
+
     this.faviconHue = 'blue'; // Should be a key from favicons.html
 
     this.kernel = new Kernel(this);
@@ -133,7 +142,73 @@ tv.exportTo('tv.c', function() {
   }
 
   TraceModel.prototype = {
-    __proto__: tv.b.EventTarget.prototype,
+    __proto__: tv.c.trace_model.EventContainer.prototype,
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      if (eventTypePredicate.call(opt_this, GlobalMemoryDump))
+        this.globalMemoryDumps.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, GlobalInstantEvent))
+        this.instantEvents.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, FlowEvent))
+        this.flowEvents.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, Alert))
+        this.alerts.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, InteractionRecord))
+        this.interaction_records.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, Sample))
+        this.samples.forEach(callback, opt_this);
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      callback.call(opt_this, this.kernel);
+      for (var pid in this.processes)
+        callback.call(opt_this, this.processes[pid]);
+    },
+
+    /**
+     * Some objects in the model can persist their state in TraceModelSettings.
+     *
+     * This iterates through them.
+     */
+    iterateAllPersistableObjects: function(callback) {
+      this.kernel.iterateAllPersistableObjects(callback);
+      for (var pid in this.processes)
+        this.processes[pid].iterateAllPersistableObjects(callback);
+    },
+
+    updateBounds: function() {
+      this.bounds.reset();
+      var bounds = this.bounds;
+
+      this.iterateAllChildEventContainers(function(ec) {
+        ec.updateBounds();
+        bounds.addRange(ec.bounds);
+      });
+      this.iterateAllEventsInThisContainer(
+          function(eventConstructor) { return true; },
+          function(event) {
+            event.addBoundsToRange(bounds);
+          });
+    },
+
+    shiftWorldToZero: function() {
+      var shiftAmount = -this.bounds.min;
+      this.iterateAllChildEventContainers(function(ec) {
+        ec.shiftTimestampsForward(shiftAmount);
+      });
+      this.iterateAllEventsInThisContainer(
+        function(eventConstructor) { return true; },
+        function(event) {
+          event.start += shiftAmount;
+        });
+      this.updateBounds();
+    },
 
     get numProcesses() {
       var n = 0;
@@ -194,66 +269,6 @@ tv.exportTo('tv.c', function() {
       for (var category in categoriesDict)
         if (category != '')
           this.categories.push(category);
-    },
-
-    updateBounds: function() {
-      this.bounds.reset();
-
-      this.kernel.updateBounds();
-      this.bounds.addRange(this.kernel.bounds);
-
-      for (var pid in this.processes) {
-        this.processes[pid].updateBounds();
-        this.bounds.addRange(this.processes[pid].bounds);
-      }
-
-      for (var i = 0; i < this.globalMemoryDumps.length; i++)
-        this.globalMemoryDumps[i].addBoundsToRange(this.bounds);
-
-      this.flowEvents.forEach(function(flowEvent) {
-        this.bounds.addValue(flowEvent.start);
-        this.bounds.addValue(flowEvent.end);
-      }, this);
-      this.alerts.forEach(function(alert) {
-        this.bounds.addValue(alert.start);
-        this.bounds.addValue(alert.end);
-      }, this);
-      this.interaction_records.forEach(function(ir) {
-        this.bounds.addValue(ir.start);
-        this.bounds.addValue(ir.end);
-      }, this);
-    },
-
-    shiftWorldToZero: function() {
-      if (this.bounds.isEmpty)
-        return;
-      var timeBase = this.bounds.min;
-      this.kernel.shiftTimestampsForward(-timeBase);
-
-      for (var id in this.instantEvents)
-        this.instantEvents[id].start -= timeBase;
-
-      for (var pid in this.processes)
-        this.processes[pid].shiftTimestampsForward(-timeBase);
-
-      for (var i = 0; i < this.samples.length; i++) {
-        var sample = this.samples[i];
-        sample.start -= timeBase;
-      }
-      this.flowEvents.forEach(function(flowEvent) {
-        flowEvent.start -= timeBase;
-      });
-      this.alerts.forEach(function(alert) {
-        alert.start -= timeBase;
-      });
-      this.interaction_records.forEach(function(ir) {
-        ir.start -= timeBase;
-      });
-
-      for (var i = 0; i < this.globalMemoryDumps.length; i++)
-        this.globalMemoryDumps[i].shiftTimestampsForward(-timeBase);
-
-      this.updateBounds();
     },
 
     getAllThreads: function() {
@@ -673,41 +688,6 @@ tv.exportTo('tv.c', function() {
 
     get importWarnings() {
       return this.importWarnings_;
-    },
-
-    /**
-     * Iterates all events in the model and calls callback on each event.
-     * @param {function(event)} callback The callback called for every event.
-     */
-    iterateAllEvents: function(callback, opt_this) {
-      this.instantEvents.forEach(callback, opt_this);
-
-      this.kernel.iterateAllEvents(callback, opt_this);
-
-      for (var pid in this.processes)
-        this.processes[pid].iterateAllEvents(callback, opt_this);
-
-      this.samples.forEach(callback, opt_this);
-      this.globalMemoryDumps.forEach(callback, opt_this);
-      this.alerts.forEach(callback, opt_this);
-      this.interaction_records.forEach(callback, opt_this);
-    },
-
-    /**
-     * Some objects in the model can persist their state in TraceModelSettings.
-     *
-     * This iterates through them.
-     */
-    iterateAllPersistableObjects: function(cb) {
-      this.kernel.iterateAllPersistableObjects(cb);
-      for (var pid in this.processes)
-        this.processes[pid].iterateAllPersistableObjects(cb);
-    },
-
-    iterateAllEventContainers: function(cb) {
-      this.kernel.iterateAllEventContainers(cb);
-      for (var pid in this.processes)
-        this.processes[pid].iterateAllEventContainers(cb);
     }
   };
 

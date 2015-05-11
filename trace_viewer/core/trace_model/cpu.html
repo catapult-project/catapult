@@ -49,6 +49,22 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   Cpu.prototype = {
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      if (eventTypePredicate.call(opt_this, tv.c.trace_model.CpuSlice))
+        this.slices.forEach(callback, opt_this);
+
+      if (this.samples_) {
+        if (eventTypePredicate.call(opt_this, tv.c.trace_model.Sample))
+          this.samples_.forEach(callback, opt_this);
+      }
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      for (var id in this.counters)
+        callback.call(opt_this, this.counters[id]);
+    },
+
     /**
      * @return {TimelineCounter} The counter on this process named 'name',
      * creating it if it doesn't exist.
@@ -125,13 +141,6 @@ tv.exportTo('tv.c.trace_model', function() {
       if (this.slices[i] !== cpuSlice)
         return undefined;
       return i;
-    },
-
-    iterateAllEvents: function(callback, opt_this) {
-      this.slices.forEach(callback, opt_this);
-
-      for (var id in this.counters)
-        this.counters[id].iterateAllEvents(callback, opt_this);
     },
 
     /**

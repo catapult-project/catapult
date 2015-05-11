@@ -24,6 +24,7 @@ tv.exportTo('tv.c.trace_model', function() {
   var AsyncSlice = tv.c.trace_model.AsyncSlice;
   var AsyncSliceGroup = tv.c.trace_model.AsyncSliceGroup;
   var ThreadSlice = tv.c.trace_model.ThreadSlice;
+  var ThreadTimeSlice = tv.c.trace_model.ThreadTimeSlice;
 
   /**
    * A Thread stores all the trace events collected for a particular
@@ -83,6 +84,30 @@ tv.exportTo('tv.c.trace_model', function() {
 
     compareTo: function(that) {
       return Thread.compare(this, that);
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      if (this.sliceGroup.length)
+        callback.call(opt_this, this.sliceGroup);
+      if (this.kernelSliceGroup.length)
+        callback.call(opt_this, this.kernelSliceGroup);
+      if (this.asyncSliceGroup.length)
+        callback.call(opt_this, this.asyncSliceGroup);
+    },
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      if (this.timeSlices && this.timeSlices.length) {
+        if (eventTypePredicate.call(opt_this, ThreadTimeSlice))
+          this.timeSlices.forEach(callback, opt_this);
+      }
+    },
+
+    iterateAllPersistableObjects: function(cb) {
+      cb(this);
+      if (this.sliceGroup.length)
+        cb(this.sliceGroup);
+      this.asyncSliceGroup.viewSubGroups.forEach(cb);
     },
 
     /**
@@ -222,33 +247,6 @@ tv.exportTo('tv.c.trace_model', function() {
       if (this.timeSlices[i] !== timeSlice)
         return undefined;
       return i;
-    },
-
-    iterateAllEvents: function(callback, opt_this) {
-      this.sliceGroup.iterateAllEvents(callback, opt_this);
-      this.kernelSliceGroup.iterateAllEvents(callback, opt_this);
-      this.asyncSliceGroup.iterateAllEvents(callback, opt_this);
-
-      if (this.timeSlices && this.timeSlices.length)
-        this.timeSlices.forEach(callback, opt_this);
-    },
-
-    iterateAllPersistableObjects: function(cb) {
-      cb(this);
-      if (this.sliceGroup.length)
-        cb(this.sliceGroup);
-      this.asyncSliceGroup.viewSubGroups.forEach(cb);
-    },
-
-    iterateAllEventContainers: function(callback) {
-      callback(this);
-
-      if (this.sliceGroup.length)
-        this.sliceGroup.iterateAllEventContainers(callback);
-      if (this.kernelSliceGroup.length)
-        this.kernelSliceGroup.iterateAllEventContainers(callback);
-      if (this.asyncSliceGroup.length)
-        this.asyncSliceGroup.iterateAllEventContainers(callback);
     },
 
     getSchedulingStatsForRange: function(start, end) {

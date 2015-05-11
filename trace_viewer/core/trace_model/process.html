@@ -16,6 +16,9 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.c.trace_model', function() {
   var ProcessBase = tv.c.trace_model.ProcessBase;
+  var ProcessInstantEvent = tv.c.trace_model.ProcessInstantEvent;
+  var Frame = tv.c.trace_model.Frame;
+  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
 
   /**
    * The Process represents a single userland process in the
@@ -67,6 +70,26 @@ tv.exportTo('tv.c.trace_model', function() {
 
     compareTo: function(that) {
       return Process.compare(this, that);
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      ProcessBase.prototype.iterateAllChildEventContainers.call(
+          this, callback, opt_this);
+    },
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      ProcessBase.prototype.iterateAllEventsInThisContainer.call(
+          this, eventTypePredicate, callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, ProcessInstantEvent))
+        this.instantEvents.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, Frame))
+        this.frames.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, ProcessMemoryDump))
+        this.memoryDumps.forEach(callback, opt_this);
     },
 
     pushInstantEvent: function(instantEvent) {
@@ -128,22 +151,6 @@ tv.exportTo('tv.c.trace_model', function() {
 
       for (var i = 0; i < this.memoryDumps.length; i++)
         this.memoryDumps[i].addBoundsToRange(this.bounds);
-    },
-
-    iterateAllEvents: function(callback, opt_this) {
-      this.instantEvents.forEach(callback, opt_this);
-
-      this.frames.forEach(callback, opt_this);
-
-      this.memoryDumps.forEach(callback, opt_this);
-
-      ProcessBase.prototype.iterateAllEvents.call(this, callback, opt_this);
-    },
-
-    iterateAllEventContainers: function(callback) {
-      callback(this);
-      for (var tid in this.threads)
-        this.threads[tid].iterateAllEventContainers(callback);
     },
 
     finalizeMemoryDumps: function() {

@@ -129,15 +129,17 @@ tv.exportTo('tv.c.trace_model', function() {
       return 'kernel';
     },
 
-    iterateAllEvents: function(callback, opt_this) {
-      for (var cpuNumber in this.cpus)
-        this.cpus[cpuNumber].iterateAllEvents(callback, opt_this);
-
-      ProcessBase.prototype.iterateAllEvents.call(this, callback, opt_this);
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      ProcessBase.prototype.iterateAllChildEventContainers.call(
+          this, callback, opt_this);
+      for (var cpuId in this.cpus)
+        callback.call(opt_this, this.cpus[cpuId]);
     },
 
-    iterateAllEventContainers: function(callback) {
-      callback(this);
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      ProcessBase.prototype.iterateAllEventsInThisContainer.call(
+          this, eventTypePredicate, callback, opt_this);
     }
   };
 
