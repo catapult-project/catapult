@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/statistics.html">
+<link rel="import" href="/base/time.html">
 <link rel="import" href="/core/auditor.html">
 <link rel="import" href="/core/trace_model/alert.html">
 <link rel="import" href="/core/trace_model/frame.html">
@@ -26,6 +27,7 @@ tv.exportTo('tv.e.audits', function() {
   var InteractionRecord = tv.c.trace_model.InteractionRecord;
   var Alert = tv.c.trace_model.Alert;
   var EventInfo = tv.c.trace_model.EventInfo;
+  var TimeDuration = tv.b.TimeDuration;
 
   // TODO: extract from VSYNC, since not all devices have vsync near 60fps
   var EXPECTED_FRAME_TIME_MS = 16.67;
@@ -108,8 +110,8 @@ tv.exportTo('tv.e.audits', function() {
       });
 
       var args = {
-        'unclipped saveLayer count (especially bad!)': unclippedSeen,
-        'clipped saveLayer count': clippedSeen
+        'Unclipped saveLayer count (especially bad!)': unclippedSeen,
+        'Clipped saveLayer count': clippedSeen
       };
 
       events.push(frame);
@@ -138,7 +140,7 @@ tv.exportTo('tv.e.audits', function() {
 
     events.push(frame);
     return new Alert(AndroidAuditor.pathAlertInfo_, start, events,
-                     { 'time spent': duration });
+                     { 'Time spent': new TimeDuration(duration) });
   }
 
 
@@ -164,8 +166,9 @@ tv.exportTo('tv.e.audits', function() {
     if (events.length == 0 || duration < 3)
       return undefined;
 
-    var args = { 'pixels uploaded (millions)': pixelsUploaded / 1000000,
-                 'time spent': duration };
+    var mPixels = (pixelsUploaded / 1000000).toFixed(2) + ' million';
+    var args = { 'Pixels uploaded': mPixels,
+                 'Time spent': new TimeDuration(duration) };
     events.push(frame);
     return new Alert(AndroidAuditor.uploadAlertInfo_, start, events, args);
   }
@@ -174,9 +177,12 @@ tv.exportTo('tv.e.audits', function() {
   // UI responsiveness alerts
   //////////////////////////////////////////////////////////////////////////////
 
-  AndroidAuditor.listViewAlertInfo_ = new EventInfo(
-      'Inefficient ListView recycling',
-      'ListView recycling taking too much time per frame. Simplify your ListView layouts and ensure your Adapter#getView() recycles correctly, and binds efficiently.'); // @suppress longLineCheck
+  AndroidAuditor.ListViewInflateAlertInfo_ = new EventInfo(
+      'Inflation during ListView recycling',
+      'ListView item recycling involved inflating views. Ensure your Adapter#getView() recycles the incoming View, instead of constructing a new one.'); // @suppress longLineCheck
+  AndroidAuditor.ListViewBindAlertInfo_ = new EventInfo(
+      'Inefficient ListView recycling/rebinding',
+      'ListView recycling taking too much time per frame. Ensure your Adapter#getView() binds data efficiently.'); // @suppress longLineCheck
   AndroidAuditor.getListViewAlert_ = function(frame) {
     var events = frame.associatedEvents.filter(function(event) {
       return event.title == 'obtainView' || event.title == 'setupListItem';
@@ -186,12 +192,25 @@ tv.exportTo('tv.e.audits', function() {
     if (events.length == 0 || duration < 3)
       return undefined;
 
+    // simplifying assumption - check for *any* inflation.
+    // TODO(ccraik): make 'inflate' slices associated events.
+    var hasInflation = false;
+    for (var i = 0; i < events.length; i++) {
+      if (events[i] instanceof tv.c.trace_model.Slice &&
+          events[i].findDescendentSlice('inflate')) {
+        hasInflation = true;
+        break;
+      }
+    }
+
     var start = Statistics.min(events, getStart);
-    var args = { 'items inflated': events.length / 2,
-        'time spent': duration };
+    var args = { 'Time spent': new TimeDuration(duration) };
+    args['ListView items ' + (hasInflation ? 'inflated' : 'rebound')] =
+        events.length / 2;
+    var eventInfo = hasInflation ? AndroidAuditor.ListViewInflateAlertInfo_ :
+        AndroidAuditor.ListViewBindAlertInfo_;
     events.push(frame);
-    return new Alert(
-        AndroidAuditor.listViewAlertInfo_, start, events, args);
+    return new Alert(eventInfo, start, events, args);
   }
 
 
@@ -210,7 +229,7 @@ tv.exportTo('tv.e.audits', function() {
     var start = Statistics.min(events, getStart);
     events.push(frame);
     return new Alert(AndroidAuditor.measureLayoutAlertInfo_, start, events,
-                     { 'time spent': duration });
+                     { 'Time spent': new TimeDuration(duration) });
   }
 
 
@@ -230,7 +249,8 @@ tv.exportTo('tv.e.audits', function() {
     if (!slice || slice.duration < 3)
       return undefined;
     return new Alert(AndroidAuditor.viewDrawAlertInfo_, slice.start,
-                     [slice, frame], { 'time spent': slice.duration });
+                     [slice, frame],
+                     { 'Time spent': new TimeDuration(slice.duration) });
   }
 
 
@@ -253,7 +273,7 @@ tv.exportTo('tv.e.audits', function() {
     var start = Statistics.min(events, getStart);
     events.push(frame);
     return new Alert(AndroidAuditor.blockingGcAlertInfo_, start, events,
-                     { 'blocked duration': blockedDuration });
+                     { 'Blocked duration': new TimeDuration(blockedDuration) });
   };
 
 
@@ -272,7 +292,7 @@ tv.exportTo('tv.e.audits', function() {
     var start = Statistics.min(events, getStart);
     events.push(frame);
     return new Alert(AndroidAuditor.lockContentionAlertInfo_, start, events,
-                     { 'blocked duration': blockedDuration });
+                     { 'Blocked duration': new TimeDuration(blockedDuration) });
   };
 
 
@@ -517,6 +537,10 @@ tv.exportTo('tv.e.audits', function() {
         if (dict.parent)
           this.titleParentLookup[dict.title] = dict.parent;
       }.bind(this);
+
+      registerEventInfo({
+          title: 'inflate',
+          description: 'Constructing a View hierarchy from pre-processed XML via LayoutInflater#layout. This includes constructing all of the View objects in the hierarchy, and applying styled attributes.'}); // @suppress longLineCheck
 
       //////////////////////////////////////////////////////////////////////////
       // Adapter view

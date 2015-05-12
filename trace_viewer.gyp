@@ -69,6 +69,7 @@
       'trace_viewer/base/sorted_array_utils.html',
       'trace_viewer/base/statistics.html',
       'trace_viewer/base/task.html',
+      'trace_viewer/base/time.html',
       'trace_viewer/base/ui.html',
       'trace_viewer/base/ui/animation.html',
       'trace_viewer/base/ui/animation_controller.html',

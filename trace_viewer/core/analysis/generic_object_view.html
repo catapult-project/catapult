@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_link.html">
+<link rel="import" href="/base/time.html">
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/ui.html">
 
@@ -154,6 +155,20 @@ found in the LICENSE file.
 
       if (object instanceof tv.b.Rect) {
         this.appendSimpleText_(label, indent, object.toString(), suffix);
+        return;
+      }
+
+      if (object instanceof tv.b.TimeDuration) {
+        var el = this.ownerDocument.createElement('tv-c-a-time-span');
+        el.duration = object.duration;
+        this.appendElementWithLabel_(label, indent, el, suffix);
+        return;
+      }
+
+      if (object instanceof tv.b.TimeStamp) {
+        var el = this.ownerDocument.createElement('tv-c-a-time-stamp');
+        el.timestamp = object.timestamp;
+        this.appendElementWithLabel_(label, indent, el, suffix);
         return;
       }
 
