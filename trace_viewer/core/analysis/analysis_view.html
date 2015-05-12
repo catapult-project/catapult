@@ -170,19 +170,7 @@ using custom elements specialized for different event types.
         var eventsByBaseTypeName = selection.getEventsOrganizedByBaseType(true);
 
         var numBaseTypesToAnalyze = tv.b.dictionaryLength(eventsByBaseTypeName);
-
-        // Sort selected event types by their priorities.
-        var selectionTypeNames = tv.b.dictionaryKeys(eventsByBaseTypeName);
-        selectionTypeNames.sort(function(x, y) {
-          var priorityDiff =
-              EventRegistry.getEventTypeInfoByTypeName(x).metadata.priority -
-              EventRegistry.getEventTypeInfoByTypeName(y).metadata.priority;
-          if (priorityDiff != 0)
-            return priorityDiff;
-          return x.localeCompare(y);
-        });
-
-        selectionTypeNames.forEach(function(eventTypeName) {
+        for (var eventTypeName in eventsByBaseTypeName) {
           var subSelection = eventsByBaseTypeName[eventTypeName];
           var subView = this.createSubViewForSelection_(
             eventTypeName, subSelection);
@@ -191,7 +179,7 @@ using custom elements specialized for different event types.
           this.tabView_.appendChild(subView);
 
           subView.selection = subSelection;
-        }, this);
+        }
 
         // Restore the tab type that was previously selected. First try by tag
         // name.

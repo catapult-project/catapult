@@ -93,8 +93,6 @@ tv.exportTo('tv.c.trace_model', function() {
       throw new Error('Registered events must provide ' +
                       'multiViewElementName metadata');
     }
-    if (metadata.priority === undefined)
-      metadata.priority = 0;
   });
 
   // Helper: lookup Events indexed by type name.
