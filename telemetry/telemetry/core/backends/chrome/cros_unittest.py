@@ -64,7 +64,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
         pass
       util.WaitFor(lambda: not self._IsCryptohomeMounted(), 20)
 
-  @decorators.Enabled('chromeos')
+  @decorators.Disabled
   def testGaiaLogin(self):
     """Tests gaia login. Credentials are expected to be found in a
     credentials.txt file, with a single line of format username:password."""

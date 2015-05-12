@@ -87,6 +87,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
       inspector.DispatchNotifications(timeout=10)
     self.assertEqual(0, len(results))
 
+  @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUnregisterDomain(self):
     inspector = inspector_websocket.InspectorWebsocket()
     fake_socket = FakeSocket(self._mock_timer)
