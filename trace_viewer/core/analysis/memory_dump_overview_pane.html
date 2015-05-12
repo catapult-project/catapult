@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/ui/color_legend.html">
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/core/analysis/size_span.html">
 <link rel="import" href="/core/analysis/table_builder.html">
@@ -135,7 +136,9 @@ found in the LICENSE file.
       var titleColumn = {
         title: 'Process',
         value: function(row) {
-          return row.title;
+          var titleEl = document.createElement('tv-b-color-legend');
+          titleEl.label = row.title;
+          return titleEl;
         },
         width: '200px',
         cmp: function(rowA, rowB) {

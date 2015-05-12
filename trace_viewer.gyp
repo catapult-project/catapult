@@ -74,6 +74,7 @@
       'trace_viewer/base/ui/animation_controller.html',
       'trace_viewer/base/ui/camera.html',
       'trace_viewer/base/ui/chart_base.html',
+      'trace_viewer/base/ui/color_legend.html',
       'trace_viewer/base/ui/color_scheme.html',
       'trace_viewer/base/ui/color_utils.html',
       'trace_viewer/base/ui/container_that_decorates_its_children.html',

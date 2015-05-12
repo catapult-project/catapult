@@ -103,14 +103,14 @@ tv.b.unittest.testSuite(function() {
     var v8Column = columns[5];
 
     // Check the rows of the table.
-    assert.equal(titleColumn.value(rows[0]), 'Process 1');
+    assert.equal(titleColumn.value(rows[0]).label, 'Process 1');
     assert.equal(proportionalColumn.value(rows[0]).numBytes, 10485760);
     assert.equal(privateColumn.value(rows[0]).numBytes, 8388608);
     assert.equal(sharedColumn.value(rows[0]).numBytes, 12582912);
     assert.equal(oilpanColumn.value(rows[0]), '');
     assert.equal(v8Column.value(rows[0]), '');
 
-    assert.equal(titleColumn.value(rows[1]), 'Process 2');
+    assert.equal(titleColumn.value(rows[1]).label, 'Process 2');
     assert.equal(proportionalColumn.value(rows[1]), '');
     assert.equal(privateColumn.value(rows[1]), '');
     assert.equal(sharedColumn.value(rows[1]), '');
