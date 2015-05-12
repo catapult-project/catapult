@@ -46,6 +46,9 @@ class MockPageTest(page_test.PageTest):
     self._action_name_to_run = "RunPageInteractions"
     self.func_calls = []
 
+  def CustomizeBrowserOptions(self, options):
+    self.func_calls.append('CustomizeBrowserOptions')
+
   def WillNavigateToPage(self, page, tab):
     self.func_calls.append('WillNavigateToPage')
 
@@ -185,12 +188,18 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     self.assertEqual(wpr_modes.WPR_RECORD,
                      wpr_recorder.options.browser_options.wpr_mode)
 
-  # When the RecorderPageTest WillStartBrowser/DidStartBrowser function is
-  # called, it forwards the call to the PageTest
+  # When the RecorderPageTest CustomizeBrowserOptions/WillStartBrowser/
+  # DidStartBrowser function is called, it forwards the call to the PageTest
   def testRecorderPageTest_BrowserMethods(self):
+    flags = ['--mock-benchmark-url', self._url]
     record_page_test = record_wpr.RecorderPageTest()
     record_page_test.page_test = MockBenchmark().test()
+    wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, MockBenchmark(),
+                                          flags)
+    record_page_test.CustomizeBrowserOptions(wpr_recorder.options)
     record_page_test.WillStartBrowser(self._tab.browser.platform)
     record_page_test.DidStartBrowser(self._tab.browser)
+    self.assertTrue(
+        'CustomizeBrowserOptions' in record_page_test.page_test.func_calls)
     self.assertTrue('WillStartBrowser' in record_page_test.page_test.func_calls)
     self.assertTrue('DidStartBrowser' in record_page_test.page_test.func_calls)
