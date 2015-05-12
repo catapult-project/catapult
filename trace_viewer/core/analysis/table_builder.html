@@ -1128,7 +1128,7 @@ found in the LICENSE file.
     }
   </style>
 
-    <span>{{ cellTitle_ }}</span><side-element id="side"></side-element>
+    <span id="title"></span><side-element id="side"></side-element>
   </template>
 
   <script>
@@ -1142,6 +1142,15 @@ found in the LICENSE file.
 
     set cellTitle(value) {
       this.cellTitle_ = value;
+
+      var titleNode;
+      if (this.cellTitle_ instanceof Node)
+        titleNode = this.cellTitle_;
+      else
+        titleNode = this.ownerDocument.createTextNode(this.cellTitle_);
+
+      this.$.title.innerText = '';
+      this.$.title.appendChild(titleNode);
     },
 
     get cellTitle() {

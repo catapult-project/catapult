@@ -846,5 +846,47 @@ tv.b.unittest.testSuite(function() {
     assert.equal(table.selectedTableRow, table.tableRows[1]);
     assert.equal(table.selectedColumnIndex, 2);
   });
+
+  test('headersWithHtmlElements', function() {
+    var firstColumnTitle = document.createTextNode('First Column');
+    var secondColumnTitle = document.createElement('span');
+    secondColumnTitle.innerText = 'Second Column';
+    secondColumnTitle.style.color = 'blue';
+
+    var columns = [
+      {
+        title: firstColumnTitle,
+        value: function(row) { return row.firstData; },
+        width: '200px'
+      },
+      {
+        title: secondColumnTitle,
+        value: function(row) { return row.secondData; }
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2'
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+
+    var table = document.createElement('tracing-analysis-nested-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    var firstColumnHeader = table.$.head.children[0].children[0].children[0];
+    var secondColumnHeader = table.$.head.children[0].children[1].children[0];
+    assert.equal(firstColumnHeader.cellTitle.textContent, 'First Column');
+    assert.equal(secondColumnHeader.cellTitle.textContent, 'Second Column');
+  });
 });
 </script>
