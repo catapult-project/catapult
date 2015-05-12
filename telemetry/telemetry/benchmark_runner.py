@@ -7,6 +7,7 @@
 Handles benchmark configuration, but all the logic for
 actually running the benchmark is in Benchmark and PageRunner."""
 
+import difflib
 import hashlib
 import inspect
 import json
@@ -65,6 +66,32 @@ def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
       'Pass --browser to list benchmarks for another browser.')
   print >> output_pipe
 
+
+def GetMostLikelyMatchedBenchmarks(all_benchmarks, input_benchmark_name):
+  """ Returns the list of benchmarks whose name most likely matched with
+    |input_benchmark_name|.
+
+  Args:
+    all_benchmarks: the list of benchmark classes.
+    input_benchmark_name: a string to be matched against the names of benchmarks
+      in |all_benchmarks|.
+
+  Returns:
+    A list of benchmark classes whose name likely matched
+    |input_benchmark_name|. Benchmark classes are arranged in descending order
+    of similarity between their names to |input_benchmark_name|.
+  """
+  def MatchedWithBenchmarkInputNameScore(benchmark_class):
+    return difflib.SequenceMatcher(
+        isjunk=None,
+        a=benchmark_class.Name(), b=input_benchmark_name).ratio()
+  benchmarks_with_similar_names = [
+      b for b in all_benchmarks if
+      MatchedWithBenchmarkInputNameScore(b) > 0.4]
+  ordered_list = sorted(benchmarks_with_similar_names,
+                        key=MatchedWithBenchmarkInputNameScore,
+                        reverse=True)
+  return ordered_list
 
 class Environment(object):
   """Contains information about the benchmark runtime environment.
@@ -200,10 +227,11 @@ class Run(command_line.OptparseCommand):
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args, environment):
+    all_benchmarks = _Benchmarks(environment)
     if not args.positional_args:
       possible_browser = (
           browser_finder.FindBrowser(args) if args.browser_type else None)
-      PrintBenchmarkList(_Benchmarks(environment), possible_browser)
+      PrintBenchmarkList(all_benchmarks, possible_browser)
       sys.exit(-1)
 
     input_benchmark_name = args.positional_args[0]
@@ -211,7 +239,11 @@ class Run(command_line.OptparseCommand):
     if not matching_benchmarks:
       print >> sys.stderr, 'No benchmark named "%s".' % input_benchmark_name
       print >> sys.stderr
-      PrintBenchmarkList(_Benchmarks(environment), None, sys.stderr)
+      most_likely_matched_benchmarks = GetMostLikelyMatchedBenchmarks(
+          all_benchmarks, input_benchmark_name)
+      if most_likely_matched_benchmarks:
+        print >> sys.stderr, 'Do you mean any of those benchmarks below?'
+        PrintBenchmarkList(most_likely_matched_benchmarks, None, sys.stderr)
       sys.exit(-1)
 
     if len(matching_benchmarks) > 1:
