@@ -34,6 +34,10 @@ tv.exportTo('tv.e.audits', function() {
 
   function getStart(e) { return e.start; }
   function getDuration(e) { return e.duration; }
+  // used for general UI thread responsiveness alerts, falls back to duration
+  function getCpuDuration(e) {
+    return (e.cpuDuration !== undefined) ? e.cpuDuration : e.duration;
+  }
 
   function frameIsActivityStart(frame) {
     for (var i = 0; i < frame.associatedEvents.length; i++) {
@@ -187,7 +191,7 @@ tv.exportTo('tv.e.audits', function() {
     var events = frame.associatedEvents.filter(function(event) {
       return event.title == 'obtainView' || event.title == 'setupListItem';
     });
-    var duration = Statistics.sum(events, getDuration);
+    var duration = Statistics.sum(events, getCpuDuration);
 
     if (events.length == 0 || duration < 3)
       return undefined;
@@ -221,7 +225,7 @@ tv.exportTo('tv.e.audits', function() {
     var events = frame.associatedEvents.filter(function(event) {
       return event.title == 'measure' || event.title == 'layout';
     });
-    var duration = Statistics.sum(events, getDuration);
+    var duration = Statistics.sum(events, getCpuDuration);
 
     if (events.length == 0 || duration < 3)
       return undefined;
@@ -246,11 +250,11 @@ tv.exportTo('tv.e.audits', function() {
       }
     }
 
-    if (!slice || slice.duration < 3)
+    if (!slice || getCpuDuration(slice) < 3)
       return undefined;
     return new Alert(AndroidAuditor.viewDrawAlertInfo_, slice.start,
                      [slice, frame],
-                     { 'Time spent': new TimeDuration(slice.duration) });
+                     { 'Time spent': new TimeDuration(getCpuDuration(slice)) });
   }
 
 
