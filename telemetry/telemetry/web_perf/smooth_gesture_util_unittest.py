@@ -124,7 +124,7 @@ class SmoothGestureTest(page_test_test_case.PageTestTestCase):
         # pylint: disable=bad-super-call
         super(ScrollingGestureTestMeasurement, self).__init__()
 
-      def WillRunActions(self, _page, tab):
+      def WillNavigateToPage(self, _page, tab):
         options = tracing_options.TracingOptions()
         options.enable_chrome_trace = True
         tab.browser.platform.tracing_controller.Start(

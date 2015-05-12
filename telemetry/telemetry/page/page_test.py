@@ -160,9 +160,6 @@ class PageTest(object):
     """Override to do operations right after the page is navigated and after
     all waiting for completion has occurred."""
 
-  def WillRunActions(self, page, tab):
-    """Override to do operations before running the actions on the page."""
-
   def DidRunActions(self, page, tab):
     """Override to do operations after running the actions on the page."""
 
@@ -209,7 +206,6 @@ class PageTest(object):
     # Run actions.
     action_runner = action_runner_module.ActionRunner(
         tab, skip_waits=page.skip_waits)
-    self.WillRunActions(page, tab)
     page.RunPageInteractions(action_runner)
     self.DidRunActions(page, tab)
     self.ValidateAndMeasurePage(page, tab, results)
