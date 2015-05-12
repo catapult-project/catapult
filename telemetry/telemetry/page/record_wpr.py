@@ -43,10 +43,6 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
     if self.page_test:
       self.page_test.DidNavigateToPage(page, tab)
 
-  def DidRunActions(self, page, tab):
-    if self.page_test:
-      self.page_test.DidRunActions(page, tab)
-
   def CleanUpAfterPage(self, page, tab):
     if self.page_test:
       self.page_test.CleanUpAfterPage(page, tab)

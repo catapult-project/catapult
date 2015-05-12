@@ -55,9 +55,6 @@ class MockPageTest(page_test.PageTest):
   def DidNavigateToPage(self, page, tab):
     self.func_calls.append('DidNavigateToPage')
 
-  def DidRunActions(self, page, tab):
-    self.func_calls.append('DidRunActions')
-
   def ValidateAndMeasurePage(self, page, tab, results):
     self.func_calls.append('ValidateAndMeasurePage')
 
@@ -121,10 +118,9 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     record_page_test.page_test = MockBenchmark().test()
     page = MockPage(page_set=MockPageSet(url=self._url), url=self._url)
     record_page_test.RunPage(page, self._tab, results=None)
-    self.assertEqual(2, len(record_page_test.page_test.func_calls))
-    self.assertEqual('DidRunActions', record_page_test.page_test.func_calls[0])
+    self.assertEqual(1, len(record_page_test.page_test.func_calls))
     self.assertEqual('ValidateAndMeasurePage',
-                     record_page_test.page_test.func_calls[1])
+                     record_page_test.page_test.func_calls[0])
 
   @decorators.Disabled('chromeos') # crbug.com/404868.
   def testWprRecorderWithPageSet(self):

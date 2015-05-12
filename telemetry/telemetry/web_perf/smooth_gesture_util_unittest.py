@@ -130,13 +130,10 @@ class SmoothGestureTest(page_test_test_case.PageTestTestCase):
         tab.browser.platform.tracing_controller.Start(
           options, tracing_category_filter.TracingCategoryFilter())
 
-      def DidRunActions(self, _page, tab):
+      def ValidateAndMeasurePage(self, _page, tab, _results):
         models.append(model_module.TimelineModel(
           tab.browser.platform.tracing_controller.Stop()))
         tab_ids.append(tab.id)
-
-      def ValidateAndMeasurePage(self, _page, _tab, _results):
-        pass
 
     self.RunMeasurement(ScrollingGestureTestMeasurement(), ps)
     timeline_model = models[0]

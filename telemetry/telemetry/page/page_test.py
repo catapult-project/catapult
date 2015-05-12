@@ -160,9 +160,6 @@ class PageTest(object):
     """Override to do operations right after the page is navigated and after
     all waiting for completion has occurred."""
 
-  def DidRunActions(self, page, tab):
-    """Override to do operations after running the actions on the page."""
-
   def CleanUpAfterPage(self, page, tab):
     """Called after the test run method was run, even if it failed."""
 
@@ -207,7 +204,6 @@ class PageTest(object):
     action_runner = action_runner_module.ActionRunner(
         tab, skip_waits=page.skip_waits)
     page.RunPageInteractions(action_runner)
-    self.DidRunActions(page, tab)
     self.ValidateAndMeasurePage(page, tab, results)
 
   def RunNavigateSteps(self, page, tab):
