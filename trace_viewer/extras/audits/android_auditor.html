@@ -4,6 +4,7 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/base/time.html">
 <link rel="import" href="/core/auditor.html">
@@ -20,6 +21,7 @@ found in the LICENSE file.
  * @fileoverview Class for Android-specific Auditing
  */
 tv.exportTo('tv.e.audits', function() {
+  var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
   var Auditor = tv.c.Auditor;
   var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
   var Statistics = tv.b.Statistics;
@@ -299,6 +301,41 @@ tv.exportTo('tv.e.audits', function() {
                      { 'Blocked duration': new TimeDuration(blockedDuration) });
   };
 
+  AndroidAuditor.schedulingAlertInfo_ = new EventInfo(
+      'Scheduling delay',
+      'Work to produce this frame was descheduled for several milliseconds, contributing to jank. Ensure that code on the UI thread doesn\'t block on work being done on other threads, and that background threads (doing e.g. network or bitmap loading) are running at android.os.Process#THREAD_PRIORITY_BACKGROUND or lower so they are less likely to interrupt the UI thread. These background threads should with a priority number of 130 or higher in the scheduling section under the Kernel process.'); // @suppress longLineCheck
+  AndroidAuditor.getSchedulingAlert_ = function(frame) {
+    var totalDuration = 0;
+    var totalStats = {};
+    frame.threadTimeRanges.forEach(function(ttr) {
+      var stats = ttr.thread.getSchedulingStatsForRange(ttr.start, ttr.end);
+      tv.b.iterItems(stats, function(key, value) {
+        if (!(key in totalStats))
+          totalStats[key] = 0;
+        totalStats[key] += value;
+        totalDuration += value;
+      });
+    });
+
+    // only alert if frame not running for > 3ms. Note that we expect a frame
+    // to never describe intentionally idle time.
+    if (!(SCHEDULING_STATE.RUNNING in totalStats) ||
+        totalDuration == 0 ||
+        totalDuration - totalStats[SCHEDULING_STATE.RUNNING] < 3)
+      return;
+
+    var args = {};
+    tv.b.iterItems(totalStats, function(key, value) {
+      if (key === SCHEDULING_STATE.RUNNABLE)
+        key = 'Not scheduled, but runnable';
+      else if (key === SCHEDULING_STATE.UNINTR_SLEEP)
+        key = 'Blocking I/O delay';
+      args[key] = new TimeDuration(value);
+    });
+
+    return new Alert(AndroidAuditor.schedulingAlertInfo_, frame.start, [frame],
+                     args);
+  };
 
   AndroidAuditor.prototype = {
     __proto__: Auditor.prototype,
@@ -433,60 +470,14 @@ tv.exportTo('tv.e.audits', function() {
           var alert = AndroidAuditor.getLockContentionAlert_(frame);
           if (alert)
             alerts.push(alert);
+          var alert = AndroidAuditor.getSchedulingAlert_(frame);
+          if (alert)
+            alerts.push(alert);
         });
-        // scheduler alerts
-        this.addSchedulingAlerts(app.renderThread);
-        this.addSchedulingAlerts(app.uiThread);
       }, this);
 
       this.addRenderingInteractionRecords();
       this.addInputInteractionRecords();
-    },
-
-    addSchedulingAlerts: function(thread) {
-      var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
-
-      if (!thread || !thread.timeSlices)
-        return;
-
-      var colorId = tv.b.ui.getColorIdForGeneralPurposeString(
-          'SchedulingAlerts');
-
-      for (var i = 1; i < thread.timeSlices.length; i++) {
-        var slice = thread.timeSlices[i];
-        var previousSlice = thread.timeSlices[i - 1];
-        var timeDiff = slice.start - previousSlice.start;
-
-        var schedState = slice.schedulingState;
-        var prevSchedState = previousSlice.schedulingState;
-
-        if (schedState == SCHEDULING_STATE.RUNNING &&
-            prevSchedState == SCHEDULING_STATE.RUNNABLE &&
-            timeDiff > MAX_TIME_UNSCHEDULED) {
-          var alertInfo = new tv.c.trace_model.EventInfo(
-            'Scheduling delay',
-            'Thread ' + thread.userFriendlyName +
-            ' not scheduled for ' + timeDiff + ' ms.');
-          var alert = new tv.c.trace_model.Alert(
-              alertInfo,
-              slice.start,
-              [previousSlice, slice],
-              {'delay': timeDiff});
-          this.model.alerts.push(alert);
-        } else if (prevSchedState == SCHEDULING_STATE.UNINTR_SLEEP &&
-              timeDiff > MAX_TIME_BLOCKING_IO) {
-          var alertInfo = new tv.c.trace_model.EventInfo(
-            'Blocking I/O delay',
-            'Thread ' + thread.userFriendlyName +
-            ' had blocking I/O for ' + timeDiff + ' ms.');
-          var alert = new tv.c.trace_model.Alert(
-              alertInfo,
-              slice.start,
-              [previousSlice, slice],
-              {'delay': timeDiff});
-          this.model.alerts.push(alert);
-        }
-      }
     },
 
     addRenderingInteractionRecords: function() {

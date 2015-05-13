@@ -21,34 +21,6 @@ tv.b.unittest.testSuite(function() {
   var newThreadSlice = tv.c.test_utils.newThreadSlice;
   var TimeDuration = tv.b.TimeDuration;
 
-  test('scheduleAlerts', function() {
-    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 10));
-      uiThread.timeSlices = [
-          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 3),
-          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNABLE, 3, 5),
-          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 8, 2)];
-    }, tv.e.audits.AndroidAuditor);
-    assert.equal(model.alerts.length, 1);
-    var alert = model.alerts[0];
-    assert.equal(alert.info.title, 'Scheduling delay');
-    assert.closeTo(alert.args.delay, 5, 1e-5);
-
-    model = tv.c.test_utils.newModelWithAuditor(function(model) {
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 15));
-      uiThread.timeSlices = [
-          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 5),
-          newThreadSlice(uiThread, SCHEDULING_STATE.UNINTR_SLEEP, 5, 9),
-          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 14, 1)];
-    }, tv.e.audits.AndroidAuditor);
-    assert.equal(model.alerts.length, 1);
-    var alert = model.alerts[0];
-    assert.equal(alert.info.title, 'Blocking I/O delay');
-    assert.closeTo(alert.args.delay, 9, 1e-5);
-  });
-
   test('saveLayerAlert_badAlpha', function() {
     var model = tv.c.test_utils.newModelWithAuditor(function(model) {
       var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
@@ -214,6 +186,35 @@ tv.b.unittest.testSuite(function() {
     assert.equal(model.alerts.length, 1);
     assert.deepEqual(model.alerts[0].args['Blocked duration'],
         new TimeDuration(15));
+  });
+
+  test('schedulingAlerts', function() {
+    var model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      uiThread.timeSlices = [
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 6),
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNABLE, 6, 10),
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 16, 4)];
+    }, tv.e.audits.AndroidAuditor);
+    assert.equal(model.alerts.length, 1);
+    var alert = model.alerts[0];
+    assert.equal(alert.info.title, 'Scheduling delay');
+    assert.deepEqual(alert.args['Not scheduled, but runnable'],
+        new TimeDuration(10));
+
+    model = tv.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      uiThread.timeSlices = [
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 5),
+          newThreadSlice(uiThread, SCHEDULING_STATE.UNINTR_SLEEP, 5, 10),
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 15, 5)];
+    }, tv.e.audits.AndroidAuditor);
+    assert.equal(model.alerts.length, 1);
+    var alert = model.alerts[0];
+    assert.equal(alert.info.title, 'Scheduling delay');
+    assert.deepEqual(alert.args['Blocking I/O delay'], new TimeDuration(10));
   });
 
   test('addFrameToModel', function() {
