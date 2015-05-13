@@ -150,7 +150,11 @@ found in the LICENSE file.
       var usedMemorySizeColumns = tv.c.analysis.MemoryColumn.fromRows(
           rows, 'usedMemorySizes');
       var allocatorSizeColumns = tv.c.analysis.MemoryColumn.fromRows(
-          rows, 'allocatorSizes');
+          rows, 'allocatorSizes', function(allocatorName) {
+        var titleEl = document.createElement('tv-b-color-legend');
+        titleEl.label = allocatorName;
+        return titleEl;
+      });
 
       var sizeColumns = usedMemorySizeColumns.concat(allocatorSizeColumns);
       tv.c.analysis.MemoryColumn.spaceEqually(sizeColumns);

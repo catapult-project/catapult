@@ -25,7 +25,7 @@ tv.exportTo('tv.c.analysis', function() {
     this.cell = cellGetter;
   }
 
-  MemoryColumn.fromRows = function(rows, cellKey) {
+  MemoryColumn.fromRows = function(rows, cellKey, opt_titleBuilder) {
     var columnTraits = {};
 
     function gatherTraits(row) {
@@ -57,11 +57,14 @@ tv.exportTo('tv.c.analysis', function() {
     };
     rows.forEach(gatherTraits);
 
+    var titleBuilder = opt_titleBuilder || tv.b.identity;
+
     var columns = [];
     tv.b.iterItems(columnTraits, function(columnName, columnTraits) {
       var cellGetter = fieldGetter(cellKey, columnName);
+      var title = titleBuilder(columnName);
       columns.push(MemoryColumn.fromAttributeTraits(
-          columnName, columnTraits, cellGetter));
+          title, columnTraits, cellGetter));
     });
 
     return columns;
