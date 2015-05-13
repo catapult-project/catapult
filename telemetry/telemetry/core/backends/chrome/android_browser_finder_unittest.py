@@ -9,7 +9,7 @@ from telemetry.core import browser_options
 from telemetry.unittest_util import system_stub
 
 
-class FakeAndroidPlatform():
+class FakeAndroidPlatform(object):
   def __init__(self, can_launch):
     self._platform_backend = None
     self._unittest_can_launch = can_launch
