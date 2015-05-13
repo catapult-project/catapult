@@ -96,5 +96,21 @@ tv.b.unittest.testSuite(function() {
     assert.lengthOf(Object.keys(srcDict), 0);
     assert.lengthOf(Object.keys(dstDict), 0);
   });
+
+  test('identity', function() {
+    // Undefined value.
+    assert.isUndefined(tv.b.identity(undefined));
+
+    // Primitive value.
+    assert.equal(tv.b.identity(-273.15), -273.15);
+
+    // List.
+    var list = ['list', 'with', 1, undefined, 'value'];
+    assert.strictEqual(tv.b.identity(list), list);
+
+    // Object.
+    var object = {'hasItems': true};
+    assert.strictEqual(tv.b.identity(object), object);
+  });
 });
 </script>
