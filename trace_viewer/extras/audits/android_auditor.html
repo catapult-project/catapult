@@ -627,6 +627,14 @@ tv.exportTo('tv.e.audits', function() {
       registerEventInfo({
           title: 'RV CreateView',
           description: 'RecyclerView is creating a new View. If too many of these are present: 1) There might be a problem in Recycling (e.g. custom Animations that set transient state and prevent recycling or ItemAnimator not implementing the contract properly. See Adapter#onFailedToRecycleView(ViewHolder). 2) There may be too many item view types. Try merging them. 3) There might be too many itemChange animations and not enough space in RecyclerPool. Try increasing your pool size and item cache size.'}); // @suppress longLineCheck
+
+      //////////////////////////////////////////////////////////////////////////
+      // Graphics + Composition
+      //////////////////////////////////////////////////////////////////////////
+      // TODO(ccraik): SurfaceFlinger work
+      registerEventInfo({
+          title: 'eglSwapBuffers',
+          description: 'The CPU has finished producing drawing commands, and is flushing drawing work to the GPU, and posting that buffer to the consumer (which is often SurfaceFlinger window composition). Once this is completed, the GPU can produce the frame content without any involvement from the CPU.'}); // @suppress longLineCheck
     },
 
     applyEventInfosRecursive_: function(parentNames, slice) {
