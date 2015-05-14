@@ -68,7 +68,7 @@ class SharedAppState(shared_state.SharedState):
     """This does not apply to android app user stories."""
     return 'pass', None
 
-  def TearDownState(self, results):
+  def TearDownState(self):
     """Tear down anything created in the __init__ method that is not needed.
 
     Currently, there is no clean-up needed from SharedAppState.__init__.

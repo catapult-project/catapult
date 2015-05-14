@@ -55,7 +55,7 @@ class SharedState(object):
     """
     raise NotImplementedError()
 
-  def TearDownState(self, results):
+  def TearDownState(self):
     """ Override to do any action after running multiple user stories that
     share this same state.
     This method is styled on unittest.TestCase.tearDownClass.

@@ -267,7 +267,7 @@ class SharedPageState(shared_state.SharedState):
         raise page_test.MultiTabTestAppCrashError
       raise
 
-  def TearDownState(self, results):
+  def TearDownState(self):
     self._StopBrowser()
 
   def _StopBrowser(self):

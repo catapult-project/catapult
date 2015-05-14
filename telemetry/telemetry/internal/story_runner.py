@@ -222,7 +222,7 @@ def Run(test, user_story_set, expectations, finder_options, results,
               try:
                 # If TearDownState raises, do not catch the exception.
                 # (The Error was saved as a failure value.)
-                state.TearDownState(results)
+                state.TearDownState()
               finally:
                 # Later finally-blocks use state, so ensure it is cleared.
                 state = None
@@ -246,7 +246,7 @@ def Run(test, user_story_set, expectations, finder_options, results,
       if state:
         has_existing_exception = sys.exc_info() is not None
         try:
-          state.TearDownState(results)
+          state.TearDownState()
         except Exception:
           if not has_existing_exception:
             raise
