@@ -88,6 +88,7 @@
     "build/android/gyp/finalize_apk.py",
     "build/android/gyp/find.py",
     "build/android/gyp/gcc_preprocess.py",
+    "build/android/gyp/generate_split_manifest.py",
     "build/android/gyp/generate_v14_compatible_resources.py",
     "build/android/gyp/get_device_configuration.py",
     "build/android/gyp/insert_chromium_version.py",
