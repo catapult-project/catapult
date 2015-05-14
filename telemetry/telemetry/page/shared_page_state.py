@@ -268,10 +268,6 @@ class SharedPageState(shared_state.SharedState):
       raise
 
   def TearDownState(self, results):
-    # NOTE: this is a HACK to get story_runner to be generic enough for any
-    # user_story while maintaining existing use cases of page tests. Other
-    # SharedUserStory should not call DidRunTest this way.
-    self._test.DidRunTest(self.browser, results)
     self._StopBrowser()
 
   def _StopBrowser(self):

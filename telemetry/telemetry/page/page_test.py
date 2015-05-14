@@ -142,13 +142,6 @@ class PageTest(object):
     """Sets the BrowserFinderOptions instance to use."""
     self.options = options
 
-  def DidRunTest(self, browser, results): # pylint: disable=W0613
-    """Override to do operations after all page set(s) are completed.
-
-    This will occur before the browser is torn down.
-    """
-    self.options = None
-
   def WillNavigateToPage(self, page, tab):
     """Override to do operations before the page is navigated, notably Telemetry
     will already have performed the following operations on the browser before

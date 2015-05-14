@@ -364,32 +364,30 @@ class StoryRunnerTest(unittest.TestCase):
     self.SuppressExceptionFormatting()
     us = user_story_set.UserStorySet()
 
+    unit_test_events = []  # track what was called when
     class DidRunTestError(Exception):
       pass
 
     class TestTearDownSharedState(TestSharedPageState):
       def TearDownState(self, results):
-        self._test.DidRunTest('app', results)
+        unit_test_events.append('tear-down-state')
+        raise DidRunTestError
+
 
     class Test(page_test.PageTest):
       def __init__(self, *args):
         super(Test, self).__init__(*args)
         self.run_count = 0
-        self._unit_test_events = []  # track what was called when
 
       def RunPage(self, *_):
         old_run_count = self.run_count
         self.run_count += 1
         if old_run_count == 0:
-          self._unit_test_events.append('app-crash')
+          unit_test_events.append('app-crash')
           raise exceptions.AppCrashException
 
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
-
-      def DidRunTest(self, _, __):
-        self._unit_test_events.append('did-run-test')
-        raise DidRunTestError
 
     us.AddUserStory(DummyLocalUserStory(TestTearDownSharedState))
     us.AddUserStory(DummyLocalUserStory(TestTearDownSharedState))
@@ -398,7 +396,7 @@ class StoryRunnerTest(unittest.TestCase):
     with self.assertRaises(DidRunTestError):
       story_runner.Run(
           test, us, self.expectations, self.options, self.results)
-    self.assertEqual(['app-crash', 'did-run-test'], test._unit_test_events)
+    self.assertEqual(['app-crash', 'tear-down-state'], unit_test_events)
     # The AppCrashException gets added as a failure.
     self.assertEquals(1, len(self.results.failures))
 
