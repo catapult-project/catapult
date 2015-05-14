@@ -370,7 +370,8 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
     # for more details)
     hash_shift = {
       2 : 47,
-      5 : 56
+      5 : 56,
+      8 : 50
     }
     shift = hash_shift.get(num_shards, 0)
     base_name_hash = hashlib.sha1(base_name).hexdigest()
