@@ -37,18 +37,25 @@ import platformsettings  # pylint: disable=import-error
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+from pylib import constants # pylint: disable=F0401
+from pylib import screenshot  # pylint: disable=F0401
 from pylib.device import battery_utils # pylint: disable=F0401
 from pylib.perf import cache_control  # pylint: disable=F0401
 from pylib.perf import perf_control  # pylint: disable=F0401
 from pylib.perf import thermal_throttle  # pylint: disable=F0401
 from pylib.utils import device_temp_file # pylint: disable=F0401
-from pylib import constants # pylint: disable=F0401
-from pylib import screenshot  # pylint: disable=F0401
 
 try:
   from pylib.perf import surface_stats_collector  # pylint: disable=import-error
 except Exception:
   surface_stats_collector = None
+
+
+_DEVICE_COPY_SCRIPT_FILE = os.path.join(
+    constants.DIR_SOURCE_ROOT, 'build', 'android', 'pylib',
+    'efficient_android_directory_copy.sh')
+_DEVICE_COPY_SCRIPT_LOCATION = (
+    '/data/local/tmp/efficient_android_directory_copy.sh')
 
 
 class AndroidPlatformBackend(
@@ -76,8 +83,9 @@ class AndroidPlatformBackend(
     self._perf_tests_setup = perf_control.PerfControl(self._device)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
     self._raw_display_frame_rate_measurements = []
-    self._can_access_protected_file_contents = \
-        self._device.old_interface.CanAccessProtectedFileContents()
+    self._can_access_protected_file_contents = (
+        self._device.HasRoot() or self._device.NeedsSU())
+    self._device_copy_script = None
     power_controller = power_monitor_controller.PowerMonitorController([
         monsoon_power_monitor.MonsoonPowerMonitor(self._device, self),
         android_ds2784_power_monitor.DS2784PowerMonitor(self._device, self),
@@ -201,11 +209,11 @@ class AndroidPlatformBackend(
     if not android_prebuilt_profiler_helper.InstallOnDevice(
         self._device, 'purge_ashmem'):
       raise Exception('Error installing purge_ashmem.')
-    (status, output) = self._device.old_interface.GetAndroidToolStatusAndOutput(
+    output = self._device.RunShellCommand(
         android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem'),
-        log_result=True)
-    if status != 0:
-      raise Exception('Error while purging ashmem: ' + '\n'.join(output))
+        check_return=True)
+    for l in output:
+      logging.info(l)
 
   def GetMemoryStats(self, pid):
     memory_usage = self._device.GetMemoryUsageForPid(pid)
@@ -530,7 +538,7 @@ class AndroidPlatformBackend(
     self._device.PushChangedFiles([(new_profile_dir, saved_profile_location)])
 
     profile_dir = self._GetProfileDir(package)
-    self._device.old_interface.EfficientDeviceDirectoryCopy(
+    self._EfficientDeviceDirectoryCopy(
         saved_profile_location, profile_dir)
     dumpsys = self._device.RunShellCommand('dumpsys package %s' % package)
     id_line = next(line for line in dumpsys if 'userId=' in line)
@@ -543,6 +551,16 @@ class AndroidPlatformBackend(
       extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)
       self._device.RunShellCommand(
           'chown %s.%s %s' % (uid, uid, extended_path))
+
+  def _EfficientDeviceDirectoryCopy(self, source, dest):
+    if not self._device_copy_script:
+      self._device.adb.Push(
+          _DEVICE_COPY_SCRIPT_FILE,
+          _DEVICE_COPY_SCRIPT_LOCATION)
+      self._device_copy_script = _DEVICE_COPY_SCRIPT_FILE
+    self._device.RunShellCommand(
+        ['sh', self._device_copy_script, source, dest],
+        check_return=True)
 
   def RemoveProfile(self, package, ignore_list):
     """Delete application profile on device.
@@ -574,17 +592,14 @@ class AndroidPlatformBackend(
     # pulled down is really needed e.g. .pak files.
     if not os.path.exists(output_profile_path):
       os.makedirs(output_profile_path)
-    files = self._device.RunShellCommand('ls "%s"' % profile_dir)
+    files = self._device.RunShellCommand(
+        ['ls', profile_dir], check_return=True)
     for f in files:
       # Don't pull lib, since it is created by the installer.
       if f != 'lib':
         source = '%s%s' % (profile_dir, f)
         dest = os.path.join(output_profile_path, f)
-        # self._adb.Pull(source, dest) doesn't work because its timeout
-        # is fixed in android's adb_interface at 60 seconds, which may
-        # be too short to pull the cache.
-        cmd = 'pull %s %s' % (source, dest)
-        self._device.old_interface.Adb().SendCommand(cmd, timeout_time=240)
+        self._device.PullFile(source, dest, timeout=240)
 
   def _GetProfileDir(self, package):
     """Returns the on-device location where the application profile is stored

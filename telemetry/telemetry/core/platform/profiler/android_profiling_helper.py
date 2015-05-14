@@ -17,6 +17,10 @@ from telemetry.core import util
 from telemetry import decorators
 from telemetry.util import support_binaries
 
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+from pylib.utils import md5sum  # pylint: disable=F0401
+
+
 try:
   import sqlite3
 except ImportError:
@@ -166,7 +170,6 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
   """
   logging.info('Building symfs into %s.' % symfs_dir)
 
-  mismatching_files = {}
   for lib in libraries:
     device_dir = os.path.dirname(lib)
     output_dir = os.path.join(symfs_dir, device_dir[1:])
@@ -201,14 +204,9 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
       # the profiler can at least use the public symbols of that library. To
       # speed things up, only pull files that don't match copies we already
       # have in the symfs.
-      if not device_dir in mismatching_files:
-        changed_files = device.old_interface.GetFilesChanged(output_dir,
-                                                             device_dir)
-        mismatching_files[device_dir] = [
-            device_path for _, device_path in changed_files]
-
-      if not os.path.exists(output_lib) or lib in mismatching_files[device_dir]:
-        logging.info('Pulling %s to %s' % (lib, output_lib))
+      if (md5sum.CalculateHostMd5Sums([output_lib])[0] !=
+          md5sum.CalculateDeviceMd5Sums([lib])[0]):
+        logging.info('Pulling %s to %s', lib, output_lib)
         device.PullFile(lib, output_lib)
 
   # Also pull a copy of the kernel symbols.

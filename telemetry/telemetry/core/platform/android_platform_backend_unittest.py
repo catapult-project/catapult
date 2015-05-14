@@ -44,8 +44,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         '1074767676 0 4612 0 38136 4294967295 0 0 17 0 0 0 0 0 0 '
         '1074470376 1074470912 1102155776\n')
     self._stubs.adb_commands.adb_device.mock_content = proc_stat_content
-    old_interface = self._stubs.adb_commands.adb_device.old_interface
-    old_interface.can_access_protected_file_contents = True
+    self._stubs.adb_commands.adb_device.has_root = True
     backend = android_platform_backend.AndroidPlatformBackend(
         android_device.AndroidDevice('12345'), self._options)
     cpu_stats = backend.GetCpuStats('7702')

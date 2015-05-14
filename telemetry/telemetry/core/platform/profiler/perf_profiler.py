@@ -128,8 +128,7 @@ Try rerunning this script under sudo or setting
                                   self._output_file)
     if self._is_android:
       device = self._browser_backend.adb.device()
-      device.old_interface.Adb().Pull(self._device_output_file,
-                                      self._output_file)
+      device.PullFile(self._device_output_file, self._output_file)
       required_libs = \
           android_profiling_helper.GetRequiredLibrariesForPerfProfile(
               self._output_file)

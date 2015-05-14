@@ -38,8 +38,7 @@ class V8Profiler(profiler.Profiler):
     # On Android pull the output file to the host.
     if self._platform_backend.GetOSName() == 'android':
       host_output_file = '%s.log' % self._output_path
-      self._browser_backend.adb.device().old_interface.Adb().Pull(
-          output_file, host_output_file)
+      self._browser_backend.adb.device().PullFile(output_file, host_output_file)
       # Clean the device
       self._browser_backend.adb.device().RunShellCommand('rm %s' % output_file)
       output_file = host_output_file

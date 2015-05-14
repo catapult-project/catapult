@@ -48,7 +48,7 @@ class JavaHeapProfiler(profiler.Profiler):
   def CollectProfile(self):
     self._timer.cancel()
     self._DumpJavaHeap(True)
-    self._browser_backend.adb.device().old_interface.Adb().Pull(
+    self._browser_backend.adb.device().PullFile(
         self._DEFAULT_DEVICE_DIR, self._output_path)
     self._browser_backend.adb.RunShellCommand(
         'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))

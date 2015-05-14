@@ -185,8 +185,11 @@ class AndroidRndisConfigurator(object):
   def __init__(self, adb):
     self._device = adb.device()
 
-    is_root_enabled = self._device.old_interface.EnableAdbRoot()
-    assert is_root_enabled, 'RNDIS forwarding requires a rooted device.'
+    try:
+      self._device.EnableRoot()
+    except device_errors.CommandFailedError:
+      logging.error('RNDIS forwarding requires a rooted device.')
+      raise
 
     self._device_ip = None
     self._host_iface = None
@@ -206,9 +209,6 @@ class AndroidRndisConfigurator(object):
   def _IsRndisSupported(self):
     """Checks that the device has RNDIS support in the kernel."""
     return self._device.FileExists('%s/f_rndis/device' % self._RNDIS_DEVICE)
-
-  def _WaitForDevice(self):
-    self._device.old_interface.Adb().SendCommand('wait-for-device')
 
   def _FindDeviceRndisInterface(self):
     """Returns the name of the RNDIS network interface if present."""
@@ -279,7 +279,7 @@ class AndroidRndisConfigurator(object):
     except device_errors.AdbCommandFailedError:
       # Ignore exception due to USB connection being reset.
       pass
-    self._WaitForDevice()
+    self._device.adb.WaitForDevice()
 
   def _EnableRndis(self):
     """Enables the RNDIS network interface."""
@@ -321,7 +321,7 @@ doit &
     # TODO(szym): run via su -c if necessary.
     self._device.RunShellCommand('rm %s.log' % script_prefix)
     self._device.RunShellCommand('. %s.sh' % script_prefix)
-    self._WaitForDevice()
+    self._device.adb.WaitForDevice()
     result = self._device.ReadFile('%s.log' % script_prefix).splitlines()
     assert any('DONE' in line for line in result), 'RNDIS script did not run!'
 
@@ -489,7 +489,7 @@ doit &
     self._device.RunShellCommand(
         'ifconfig %s %s netmask %s up' % (device_iface, device_ip, netmask))
     # Enabling the interface sometimes breaks adb.
-    self._WaitForDevice()
+    self._device.adb.WaitForDevice()
     self._host_iface = host_iface
     self._host_ip = host_ip
     self.device_iface = device_iface

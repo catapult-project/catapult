@@ -60,24 +60,22 @@ class Override(object):
     self._overrides = {}
 
 
-class AndroidCommands(object):
-
-  def __init__(self):
-    self.can_access_protected_file_contents = False
-
-  def CanAccessProtectedFileContents(self):
-    return self.can_access_protected_file_contents
-
-
 class AdbDevice(object):
 
   def __init__(self):
+    self.has_root = False
+    self.needs_su = False
     self.shell_command_handlers = {}
     self.mock_content = []
     self.system_properties = {}
     if self.system_properties.get('ro.product.cpu.abi') == None:
       self.system_properties['ro.product.cpu.abi'] = 'armeabi-v7a'
-    self.old_interface = AndroidCommands()
+
+  def HasRoot(self):
+    return self.has_root
+
+  def NeedsSU(self):
+    return self.needs_su
 
   def RunShellCommand(self, args, **_kwargs):
     if isinstance(args, basestring):
