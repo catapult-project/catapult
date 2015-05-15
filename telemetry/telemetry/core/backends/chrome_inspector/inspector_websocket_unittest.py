@@ -112,6 +112,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     self.assertEqual(1, len(results))
     self.assertEqual('Test2.foo', results[0]['method'])
 
+  @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUnregisterDomainWithUnregisteredDomain(self):
     inspector = inspector_websocket.InspectorWebsocket()
     with self.assertRaises(AssertionError):
