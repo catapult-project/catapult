@@ -14,15 +14,22 @@ tv.exportTo('tv.c.tracks', function() {
 
   /**
    * A point in a chart series with x (timestamp) and y (value) coordinates
-   * and an associated model item.
+   * and an associated model item. The point can optionally also have a base
+   * y coordinate (which for example corresponds to the bottom edge of the
+   * associated bar in a bar chart).
    *
    * @constructor
    * @extends {ProxySelectableItem}
    */
-  function ChartPoint(modelItem, x, y) {
+  function ChartPoint(modelItem, x, y, opt_yBase) {
     tv.c.trace_model.ProxySelectableItem.call(this, modelItem);
     this.x = x;
     this.y = y;
+
+    // If the base y-coordinate is undefined, the bottom edge of the associated
+    // bar in a bar chart will start at the outer bottom edge (which is most
+    // likely slightly below zero).
+    this.yBase = opt_yBase;
   };
 
   ChartPoint.prototype = {

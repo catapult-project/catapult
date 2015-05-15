@@ -35,8 +35,12 @@ tv.b.unittest.testSuite(function() {
     for (var i = 0; i < 60; i++) {
       var event = new Event();
       event.index = i;
-      points.push(new ChartPoint(event, i - 30,
-          Math.sin(i * Math.PI / 15)));
+      var phase = i * Math.PI / 15;
+      var value = Math.sin(phase);
+      var peakIndex = Math.floor((phase + Math.PI / 2) / (2 * Math.PI));
+      var base = peakIndex % 2 === 0 ? undefined : -1 + value / 1.5;
+      var point = new ChartPoint(event, i - 30, value, base);
+      points.push(point);
     }
     var axis = new ChartAxis(-1, 1);
     return new ChartSeries(points, axis, renderingConfig);

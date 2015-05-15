@@ -14,13 +14,24 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var ChartPoint = tv.c.tracks.ChartPoint;
 
-  test('checkFields', function() {
+  test('checkFields_withoutYBase', function() {
     var event = {};
     var point = new ChartPoint(event, 42, -7);
 
     assert.equal(point.modelItem, event);
     assert.equal(point.x, 42);
     assert.equal(point.y, -7);
+    assert.isUndefined(point.yBase);
+  });
+
+  test('checkFields_withYBase', function() {
+    var event = {};
+    var point = new ChartPoint(event, 111, 222, 333);
+
+    assert.equal(point.modelItem, event);
+    assert.equal(point.x, 111);
+    assert.equal(point.y, 222);
+    assert.equal(point.yBase, 333);
   });
 });
 </script>

@@ -245,13 +245,14 @@ tv.exportTo('tv.c.tracks', function() {
       // position is independent of the surrounding dots.
       var previousViewX = undefined;
       var previousViewY = undefined;
+      var previousViewYBase = undefined;
       var lastSelectionState = undefined;
+      var baseSteps = undefined;
       var startIndex = Math.max(firstVisibleIndex - 1, 0);
 
       for (var i = startIndex; i < this.points.length; i++) {
         var currentPoint = this.points[i];
         var currentViewX = transform.worldXToViewX(currentPoint.x);
-        var currentViewY = transform.worldYToViewY(currentPoint.y);
 
         // Stop drawing the points once we are to the right of the visible area.
         if (currentViewX > rightViewX) {
@@ -292,6 +293,12 @@ tv.exportTo('tv.c.tracks', function() {
           currentViewX = previousViewX + viewSkipDistance;
         }
 
+        var currentViewY = transform.worldYToViewY(currentPoint.y);
+        var currentViewYBase;
+        if (currentPoint.yBase === undefined)
+          currentViewYBase = transform.outerBottomViewY;
+        else
+          currentViewYBase = transform.worldYToViewY(currentPoint.yBase);
         var currentSelectionState = currentPoint.selectionState;
 
         // Actually draw the given component of the point.
@@ -341,11 +348,20 @@ tv.exportTo('tv.c.tracks', function() {
             if (previousViewX !== undefined)
               ctx.lineTo(currentViewX, previousViewY);
 
-            // Change background color and start a new polygon when the
-            // selection state changes (and at the beginning) .
+            // Finish the bottom part of the backgound polygon, change
+            // background color and start a new polygon when the selection state
+            // changes (and at the beginning).
             if (currentSelectionState !== lastSelectionState) {
               if (previousViewX !== undefined) {
-                ctx.lineTo(currentViewX, transform.outerBottomViewY);
+                var previousBaseStepViewX = currentViewX;
+                for (var j = baseSteps.length - 1; j >= 0; j--) {
+                  var baseStep = baseSteps[j];
+                  var baseStepViewX = baseStep.viewX;
+                  var baseStepViewY = baseStep.viewY;
+                  ctx.lineTo(previousBaseStepViewX, baseStepViewY);
+                  ctx.lineTo(baseStepViewX, baseStepViewY);
+                  previousBaseStepViewX = baseStepViewX;
+                }
                 ctx.closePath();
                 ctx.fill();
               }
@@ -353,7 +369,13 @@ tv.exportTo('tv.c.tracks', function() {
               ctx.fillStyle = EventPresenter.getCounterSeriesColor(
                   this.colorId_, currentSelectionState,
                   this.backgroundOpacity_);
-              ctx.moveTo(currentViewX, transform.outerBottomViewY);
+              ctx.moveTo(currentViewX, currentViewYBase);
+              baseSteps = [];
+            }
+
+            if (currentViewYBase !== previousViewYBase ||
+                currentSelectionState !== lastSelectionState) {
+              baseSteps.push({viewX: currentViewX, viewY: currentViewYBase});
             }
 
             // Move to the current point coordinate.
@@ -366,6 +388,7 @@ tv.exportTo('tv.c.tracks', function() {
 
         previousViewX = currentViewX;
         previousViewY = currentViewY;
+        previousViewYBase = currentViewYBase;
         lastSelectionState = currentSelectionState;
       }
 
@@ -383,7 +406,15 @@ tv.exportTo('tv.c.tracks', function() {
             break;
 
           case ChartSeriesComponent.BACKGROUND:
-            ctx.lineTo(previousViewX, transform.outerBottomViewY);
+            var previousBaseStepViewX = currentViewX;
+            for (var j = baseSteps.length - 1; j >= 0; j--) {
+              var baseStep = baseSteps[j];
+              var baseStepViewX = baseStep.viewX;
+              var baseStepViewY = baseStep.viewY;
+              ctx.lineTo(previousBaseStepViewX, baseStepViewY);
+              ctx.lineTo(baseStepViewX, baseStepViewY);
+              previousBaseStepViewX = baseStepViewX;
+            }
             ctx.closePath();
             ctx.fill();
             break;
