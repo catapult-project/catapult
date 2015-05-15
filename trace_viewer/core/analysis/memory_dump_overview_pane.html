@@ -101,12 +101,8 @@ found in the LICENSE file.
                 new tv.c.trace_model.ScalarAttribute('bytes', value));
           }
         }
-        addUsedMemorySize('proportional_resident',
+        addUsedMemorySize('Proportional used memory (mmaps)',
             'mostRecentTotalProportionalResidentSizeInBytes');
-        addUsedMemorySize('private_resident',
-            'mostRecentTotalPrivateResidentSizeInBytes');
-        addUsedMemorySize('shared_resident',
-            'mostRecentTotalSharedResidentSizeInBytes');
 
         // Allocator memory (v8, oilpan, ...).
         var allocatorSizes = {};

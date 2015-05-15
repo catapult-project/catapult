@@ -93,27 +93,21 @@ tv.b.unittest.testSuite(function() {
     var rows = table.tableRows;
     var columns = table.tableColumns;
     assert.lengthOf(rows, 2);
-    assert.lengthOf(columns, 6);
+    assert.lengthOf(columns, 4);
 
     var titleColumn = columns[0];
     var proportionalColumn = columns[1];
-    var privateColumn = columns[2];
-    var sharedColumn = columns[3];
-    var oilpanColumn = columns[4];
-    var v8Column = columns[5];
+    var oilpanColumn = columns[2];
+    var v8Column = columns[3];
 
     // Check the rows of the table.
     assert.equal(titleColumn.value(rows[0]).label, 'Process 1');
     assert.equal(proportionalColumn.value(rows[0]).numBytes, 10485760);
-    assert.equal(privateColumn.value(rows[0]).numBytes, 8388608);
-    assert.equal(sharedColumn.value(rows[0]).numBytes, 12582912);
     assert.equal(oilpanColumn.value(rows[0]), '');
     assert.equal(v8Column.value(rows[0]), '');
 
     assert.equal(titleColumn.value(rows[1]).label, 'Process 2');
     assert.equal(proportionalColumn.value(rows[1]), '');
-    assert.equal(privateColumn.value(rows[1]), '');
-    assert.equal(sharedColumn.value(rows[1]), '');
     assert.equal(oilpanColumn.value(rows[1]).numBytes, 2147483648);
     assert.equal(v8Column.value(rows[1]).numBytes, 1073741824);
   });
@@ -137,14 +131,14 @@ tv.b.unittest.testSuite(function() {
     // Simulate clicking on the 'oilpan' cell of the second process.
     didFireSelectedDumpChanged = false;
     table.selectedTableRow = table.tableRows[1];
-    table.selectedColumnIndex = 4;
+    table.selectedColumnIndex = 2;
     assert.isTrue(didFireSelectedDumpChanged);
     assert.strictEqual(viewEl.selectedMemoryDump,
         processMemoryDumps[1].getMemoryAllocatorDumpByFullName('oilpan'));
 
     // Simulate clicking on the 'shared_resident' cell of the first process.
     didFireSelectedDumpChanged = false;
-    table.selectedColumnIndex = 3;
+    table.selectedColumnIndex = 1;
     assert.isTrue(didFireSelectedDumpChanged);
     assert.isUndefined(viewEl.selectedMemoryDump);
   });
