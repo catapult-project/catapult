@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/memory_dump_overview_pane.html">
-<link rel="import" href="/core/analysis/memory_dump_details_pane.html">
 
 <polymer-element name="tv-c-single-process-memory-dump-sub-view"
     extends="tracing-analysis-sub-view">
@@ -20,22 +19,31 @@ found in the LICENSE file.
     </style>
     <tv-c-memory-dump-overview-pane id="overview_pane">
     </tv-c-memory-dump-overview-pane>
-    <tv-c-memory-dump-details-pane id="details_pane">
-    </tv-c-memory-dump-details-pane>
+    <div id="details_pane_container">
+    </div>
   </template>
   <script>
   'use strict';
 
   Polymer({
+    // TODO(petrcermak): tv-c-single-process-memory-dump-sub-view and
+    // tv-c-global-process-memory-dump-sub-view share most of their code. The
+    // resulting code duplication should probably be reduced either by defining
+    // a common base class or by delegating more work to
+    // tv-c-memory-dump-overview-pane (or both).
     created: function() {
       this.currentSelection_ = undefined;
     },
 
     ready: function() {
       this.$.overview_pane.addEventListener(
-          'selected-memory-dump-changed', function(e) {
-        this.$.details_pane.memoryDump =
-            this.$.overview_pane.selectedMemoryDump;
+          'selected-memory-cell-changed', function(e) {
+        this.$.details_pane_container.innerText = '';
+        var selectedMemoryCell = this.$.overview_pane.selectedMemoryCell;
+        if (!selectedMemoryCell || !selectedMemoryCell.buildDetailsPane)
+          return;
+        this.$.details_pane_container.appendChild(
+            selectedMemoryCell.buildDetailsPane());
       }.bind(this));
     },
 
@@ -58,7 +66,7 @@ found in the LICENSE file.
     setSelectionWithoutErrorChecks: function(selection) {
       this.currentSelection_ = selection;
       this.$.overview_pane.processMemoryDumps = [selection[0]];
-      this.$.details_pane.memoryDump = undefined;
+      this.$.details_pane_container.innerText = '';
     }
   });
   </script>

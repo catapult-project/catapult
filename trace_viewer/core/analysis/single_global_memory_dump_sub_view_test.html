@@ -31,26 +31,24 @@ tv.b.unittest.testSuite(function() {
 
     var overviewPane = tv.b.findDeepElementMatching(
         viewEl, 'tv-c-memory-dump-overview-pane');
-    var detailsPane = tv.b.findDeepElementMatching(
-        viewEl, 'tv-c-memory-dump-details-pane');
-
     var overviewTable = tv.b.findDeepElementMatching(
         overviewPane, 'tracing-analysis-nested-table');
     assert.lengthOf(overviewTable.tableRows, 2);
 
-    // The details pane should not contain a table (no cell selected).
-    var detailsTable = tv.b.findDeepElementMatching(
-        detailsPane, 'tracing-analysis-nested-table');
-    assert.isUndefined(detailsTable);
+    // Select mmaps dump of first process.
+    overviewTable.selectedTableRow = overviewTable.tableRows[0];
+    overviewTable.selectedColumnIndex = 1;
 
+    // Select mmaps dump of second process.
     overviewTable.selectedTableRow = overviewTable.tableRows[1];
+
+    // Select oilpan dump of second process.
     overviewTable.selectedColumnIndex = 2;
 
-    assert.lengthOf(overviewTable.tableRows, 2);
-
-    // The details pane should now contain a table (oilpan dump of second
-    // process selected).
-    detailsTable = tv.b.findDeepElementMatching(
+    // There should now be an allocator details pane containing contain a table.
+    var detailsPane = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-memory-dump-allocator-details-pane');
+    var detailsTable = tv.b.findDeepElementMatching(
         detailsPane, 'tracing-analysis-nested-table');
     assert.lengthOf(detailsTable.tableRows, 1);
   });

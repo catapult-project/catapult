@@ -120,7 +120,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
 
     var didFireSelectedDumpChanged;
-    viewEl.addEventListener('selected-memory-dump-changed',
+    viewEl.addEventListener('selected-memory-cell-changed',
         function(e) {
       didFireSelectedDumpChanged = true;
     });
@@ -133,14 +133,15 @@ tv.b.unittest.testSuite(function() {
     table.selectedTableRow = table.tableRows[1];
     table.selectedColumnIndex = 2;
     assert.isTrue(didFireSelectedDumpChanged);
-    assert.strictEqual(viewEl.selectedMemoryDump,
-        processMemoryDumps[1].getMemoryAllocatorDumpByFullName('oilpan'));
+    assert.isDefined(viewEl.selectedMemoryCell);
+    assert.isDefined(viewEl.selectedMemoryCell.buildDetailsPane);
 
-    // Simulate clicking on the 'shared_resident' cell of the first process.
+    // Simulate clicking on the 'Proportional used memory (mmaps)' cell of the
+    // second process.
     didFireSelectedDumpChanged = false;
     table.selectedColumnIndex = 1;
     assert.isTrue(didFireSelectedDumpChanged);
-    assert.isUndefined(viewEl.selectedMemoryDump);
+    assert.isUndefined(viewEl.selectedMemoryCell);
   });
 });
 </script>

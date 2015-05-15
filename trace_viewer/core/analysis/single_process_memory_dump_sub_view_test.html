@@ -31,28 +31,23 @@ tv.b.unittest.testSuite(function() {
 
     var overviewPane = tv.b.findDeepElementMatching(
         viewEl, 'tv-c-memory-dump-overview-pane');
-    var detailsPane = tv.b.findDeepElementMatching(
-        viewEl, 'tv-c-memory-dump-details-pane');
-
     var overviewTable = tv.b.findDeepElementMatching(
         overviewPane, 'tracing-analysis-nested-table');
     assert.lengthOf(overviewTable.tableRows, 1);
 
-    // The details pane should not contain a table (no dump selected).
-    var processTable = tv.b.findDeepElementMatching(
-        detailsPane, 'tracing-analysis-nested-table');
-    assert.isUndefined(processTable);
-
+    // Select v8 dump.
     overviewTable.selectedTableRow = overviewTable.tableRows[0];
+    overviewTable.selectedColumnIndex = 2;
+
+    // Select oilpan dump.
     overviewTable.selectedColumnIndex = 1;
 
-    assert.lengthOf(overviewTable.tableRows, 1);
-
-    // The details pane should now contain a table (oilpan dump of second
-    // process selected).
-    processTable = tv.b.findDeepElementMatching(
+    // There should now be an allocator details pane containing contain a table.
+    var detailsPane = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-memory-dump-allocator-details-pane');
+    var detailsTable = tv.b.findDeepElementMatching(
         detailsPane, 'tracing-analysis-nested-table');
-    assert.lengthOf(processTable.tableRows, 1);
+    assert.lengthOf(detailsTable.tableRows, 1);
   });
 });
 </script>

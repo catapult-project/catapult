@@ -6,7 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/deep_utils.html">
-<link rel="import" href="/core/analysis/memory_dump_details_pane.html">
+<link rel="import"
+    href="/core/analysis/memory_dump_allocator_details_pane.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/trace_model/attribute.html">
 <link rel="import" href="/core/trace_model/process_memory_dump.html">
@@ -30,15 +31,17 @@ tv.b.unittest.testSuite(function() {
   }
 
   test('instantiate_empty', function() {
-    var viewEl = document.createElement('tv-c-memory-dump-details-pane');
+    var viewEl = document.createElement(
+        'tv-c-memory-dump-allocator-details-pane');
     this.addHTMLOutput(viewEl);
   });
 
   test('instantiate_nonEmpty', function() {
     var memoryAllocatorDump = createMemoryAllocatorDump();
 
-    var viewEl = document.createElement('tv-c-memory-dump-details-pane');
-    viewEl.memoryDump = memoryAllocatorDump;
+    var viewEl = document.createElement(
+        'tv-c-memory-dump-allocator-details-pane');
+    viewEl.memoryAllocatorDump = memoryAllocatorDump;
     this.addHTMLOutput(viewEl);
 
     var table = tv.b.findDeepElementMatching(
