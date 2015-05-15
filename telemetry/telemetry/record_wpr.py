@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import argparse
 import logging
 import sys
 
@@ -16,7 +17,8 @@ from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
 
-class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
+
+class RecorderPageTest(page_test.PageTest):
   def __init__(self):
     super(RecorderPageTest, self).__init__()
     self.page_test = None
@@ -68,12 +70,41 @@ class RecorderPageTest(page_test.PageTest):  # pylint: disable=W0223
       super(RecorderPageTest, self).RunNavigateSteps(page, tab)
 
 
+def _GetSubclasses(base_dir, cls):
+  """ Return all subclasses of |cls| in |base_dir|.
+  Args:
+    cls: a class
+  Returns:
+
+  """
+  return discover.DiscoverClasses(base_dir, base_dir, cls,
+                                  index_by_class_name=True)
+
+
 def _MaybeGetInstanceOfClass(target, base_dir, cls):
   if isinstance(target, cls):
     return target
-  classes = discover.DiscoverClasses(base_dir, base_dir, cls,
-                                     index_by_class_name=True)
+  classes = _GetSubclasses(base_dir, cls)
   return classes[target]() if target in classes else None
+
+
+def _PrintAllBenchmarks(base_dir, output_stream):
+  # TODO: reuse the logic of finding supported benchmarks in benchmark_runner.py
+  # so this only prints out benchmarks that are supported by the recording
+  # platform.
+  classes = _GetSubclasses(base_dir, benchmark.Benchmark)
+  output_stream.write('Available benchmarks\' names:\n\n')
+  for k in classes:
+    output_stream.write('%s\n' % k)
+
+
+def _PrintAllUserStories(base_dir, output_stream):
+  output_stream.write('Available page sets\' names:\n\n')
+  # TODO: actually print all user stories once record_wpr support general
+  # user stories recording.
+  classes = _GetSubclasses(base_dir, page_set.PageSet)
+  for k in classes:
+    output_stream.write('%s\n' % k)
 
 
 class WprRecorder(object):
@@ -84,7 +115,7 @@ class WprRecorder(object):
 
     self._benchmark = _MaybeGetInstanceOfClass(target, base_dir,
                                                benchmark.Benchmark)
-    self._parser = self._options.CreateParser(usage='%prog <PageSet|Benchmark>')
+    self._parser = self._options.CreateParser(usage='See %prog --help')
     self._AddCommandLineArgs()
     self._ParseArgs(args)
     self._ProcessCommandLineArgs()
@@ -166,22 +197,43 @@ class WprRecorder(object):
         upload_to_cloud_storage)
 
 
+# TODO(nednguyen): use benchmark.Environment instead of base_dir for discovering
+# benchmark & user story classes.
 def Main(base_dir):
-  quick_args = []
-  upload_to_cloud_storage = False
 
-  for a in sys.argv[1:]:
-    if not a.startswith('-'):
-      quick_args.append(a)
-    elif a == '--upload':
-      upload_to_cloud_storage = True
+  parser = argparse.ArgumentParser(
+      usage='Record a benchmark or a user story (page set).')
+  parser.add_argument(
+      'benchmark', type=str,
+      help=('benchmark name. This argument is optional. If both benchmark name '
+            'and user story name are specified, this takes precedence as the '
+            'target of the recording.'),
+      nargs='?')
+  parser.add_argument('--story', dest='story', type=str,
+                      help='user story (page set) name')
+  parser.add_argument('--list-stories', dest='list_stories',
+                      action='store_true', help='list all user story names.')
+  parser.add_argument('--list-benchmarks', dest='list_benchmarks',
+                      action='store_true', help='list all benchmark names.')
+  parser.add_argument('--upload', action='store_true',
+                      help='upload to cloud storage.')
+  args, extra_args = parser.parse_known_args()
 
-  if len(quick_args) != 1:
-    print >> sys.stderr, 'Usage: record_wpr <PageSet|Benchmark> [--upload]\n'
-    sys.exit(1)
-  target = quick_args.pop()
-  wpr_recorder = WprRecorder(base_dir, target)
+  if args.list_benchmarks:
+    _PrintAllBenchmarks(base_dir, sys.stderr)
+  elif args.list_stories:
+    _PrintAllUserStories(base_dir, sys.stderr)
+
+  target = args.benchmark or args.story
+
+  if not target:
+    return 0
+
+  # TODO(nednguyen): update WprRecorder so that it handles the difference
+  # between recording a benchmark vs recording a user story better based on
+  # the distinction between args.benchmark & args.story
+  wpr_recorder = WprRecorder(base_dir, target, extra_args)
   results = wpr_recorder.CreateResults()
   wpr_recorder.Record(results)
-  wpr_recorder.HandleResults(results, upload_to_cloud_storage)
+  wpr_recorder.HandleResults(results, args.upload)
   return min(255, len(results.failures))
