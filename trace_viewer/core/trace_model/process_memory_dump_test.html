@@ -42,6 +42,21 @@ tv.b.unittest.testSuite(function() {
     return pmds[0];
   }
 
+  function checkProtectionFlagsToString(protectionFlags, expectedString) {
+    var vmRegion = VMRegion.fromDict({
+      startAddress: 256,
+      sizeInBytes: 336,
+      protectionFlags: protectionFlags,
+      mappedFile: '[stack:20310]',
+      byteStats: {
+        privateResident: 96,
+        sharedResident: 144,
+        proportionalResident: 158
+      }
+    });
+    assert.strictEqual(vmRegion.protectionFlagsToString, expectedString);
+  }
+
   test('totalResidentSizeInBytes_undefinedVmRegions', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {});
     assert.isUndefined(pmd.mostRecentTotalProportionalResidentSizeInBytes);
@@ -341,6 +356,18 @@ tv.b.unittest.testSuite(function() {
 
     assert.equal(dumps[3], dump4);
     assert.equal(dump4.mostRecentVmRegions, dump4.vmRegions_);
+  });
+
+  test('vmRegion_protectionFlagsToString', function() {
+    checkProtectionFlagsToString(undefined, undefined);
+    checkProtectionFlagsToString(0, '---');
+    checkProtectionFlagsToString(VMRegion.PROTECTION_FLAG_READ, 'r--');
+    checkProtectionFlagsToString(
+        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_EXECUTE,
+        'r-x');
+    checkProtectionFlagsToString(
+        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_WRITE,
+        'rw-');
   });
 });
 </script>
