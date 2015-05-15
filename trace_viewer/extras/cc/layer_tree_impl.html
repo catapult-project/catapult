@@ -60,7 +60,7 @@ tv.exportTo('tv.e.cc', function() {
         return;
 
       var latencyEvents = modelHelper.browser.getLatencyEventsInRange(
-          traceModel.range);
+          traceModel.bounds);
 
       // Convert all ids to InputLatency Async objects.
       latencyEvents.forEach(function(event) {
