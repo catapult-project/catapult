@@ -55,21 +55,27 @@ class Oobe(web_contents.WebContents):
     """Fake user login."""
     self._ExecuteOobeApi('Oobe.loginForTesting', username, password)
 
-  def NavigateGaiaLogin(self, username, password):
-    """Logs in using the GAIA webview or IFrame, whichever is
-    present."""
-    self._ExecuteOobeApi('Oobe.addUserForTesting')
-    self._NavigateLogin(username, password)
-
   def NavigateEnterpriseEnrollment(self, username, password):
     """Enterprise enrolls using the GAIA webview or IFrame, whichever
     is present."""
-    # TODO(resetswitch@chromium.org): Check if enrollment is open already.
+    self._ExecuteOobeApi('Oobe.skipToLoginForTesting')
     self._ExecuteOobeApi('Oobe.switchToEnterpriseEnrollmentForTesting')
-    self._NavigateLogin(username, password)
+    if self._GaiaIFrameContext() is None:
+      self._NavigateWebViewLogin(username, password, wait_for_close=False)
+    else:
+      self._NavigateIFrameLogin(username, password)
 
-  def _NavigateLogin(self, username, password):
+    # TODO(resetswitch): Move UI specifics out of this util. crbug/486904
+    self.WaitForJavaScriptExpression("""
+        document.getElementById('oauth-enrollment').classList.contains(
+            'oauth-enroll-state-success')""", 30)
+    self._ExecuteOobeApi('Oobe.enterpriseEnrollmentDone')
+
+  def NavigateGaiaLogin(self, username, password):
+    """Logs in using the GAIA webview or IFrame, whichever is
+    present."""
     def _GetGaiaFunction():
+      self._ExecuteOobeApi('Oobe.showAddUserForTesting')
       if self._GaiaIFrameContext() is not None:
         return Oobe._NavigateIFrameLogin
       elif self._GaiaWebViewContext() is not None:
@@ -88,14 +94,14 @@ class Oobe(web_contents.WebContents):
             % (username, password),
         gaia_iframe_context)
 
-  def _NavigateWebViewLogin(self, username, password):
+  def _NavigateWebViewLogin(self, username, password, wait_for_close=True):
     """Logs into the webview-based GAIA screen"""
     self._NavigateWebViewEntry('identifierId', username)
     self._GaiaWebViewContext().WaitForJavaScriptExpression(
         "document.getElementById('identifierId') == null", 20)
-
     self._NavigateWebViewEntry('password', password)
-    util.WaitFor(lambda: self._GaiaWebViewContext() == None, 20)
+    if wait_for_close:
+      util.WaitFor(lambda: self._GaiaWebViewContext() == None, 20)
 
   def _NavigateWebViewEntry(self, field, value):
     self._WaitForField(field)
