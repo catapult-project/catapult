@@ -6,13 +6,13 @@ import os
 import sys
 
 from telemetry import benchmark
+from telemetry import record_wpr
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry import decorators
 from telemetry.page import page as page_module
 from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
-from telemetry.page import record_wpr
 from telemetry.unittest_util import tab_test_case
 
 
