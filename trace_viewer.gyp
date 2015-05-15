@@ -314,6 +314,7 @@
       'trace_viewer/extras/chrome_config.html',
       'trace_viewer/extras/full_config.html',
       'trace_viewer/extras/gpu/gpu.html',
+      'trace_viewer/extras/gpu/gpu_async_slice.html',
       'trace_viewer/extras/gpu/state.html',
       'trace_viewer/extras/gpu/state_view.html',
       'trace_viewer/extras/highlighter/vsync_highlighter.html',
