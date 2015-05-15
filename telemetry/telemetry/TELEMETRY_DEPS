@@ -46,6 +46,7 @@
     "build/android/android_no_jni_exports.lst",
     "build/android/ant/apk-package.xml",
     "build/android/ant/chromium-debug.keystore",
+    "build/android/apkbuilder_action.gypi",
     "build/android/asan_symbolize.py",
     "build/android/avd.py",
     "build/android/bb_run_sharded_steps.py",
