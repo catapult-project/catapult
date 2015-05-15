@@ -135,6 +135,7 @@
     "build/android/native_app_dependencies.gypi",
     "build/android/ndk.gyp",
     "build/android/pack_arm_relocations.gypi",
+    "build/android/package_resources_action.gypi",
     "build/android/provision_devices.py",
     "build/android/push_libraries.gypi",
     "build/android/rezip.gyp",
