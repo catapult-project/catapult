@@ -116,15 +116,28 @@ class AndroidActionRunner(object):
     """
     self._platform_backend.adb.RunShellCommand('input roll %s %s' % (dx, dy))
 
+  def EnsureScreenOn(self):
+    """If device screen is off, turn screen on.
+    If the screen is already on, return immediately.
+
+    Raises:
+      Timeout: If the screen is off and device fails to turn screen on.
+    """
+    if self._platform_backend.IsScreenOn():
+      return
+
+    self._ToggleScreenOn()
+    util.WaitFor(self._platform_backend.IsScreenOn, 5)
+
   def TurnScreenOn(self):
     """If device screen is off, turn screen on.
-    If the screen is already on, this method returns immediately.
+    If the screen is already on, log a warning and return immediately.
 
     Raises:
       Timeout: If the screen is off and device fails to turn screen on.
     """
     if not self._platform_backend.IsScreenOn():
-      self._platform_backend.adb.RunShellCommand('input keyevent 26')
+      self._ToggleScreenOn()
     else:
       logging.warning('Screen on when expected off.')
       return
@@ -133,7 +146,7 @@ class AndroidActionRunner(object):
 
   def TurnScreenOff(self):
     """If device screen is on, turn screen off.
-    If the screen is already off, this method returns immediately.
+    If the screen is already off, log a warning and return immediately.
 
     Raises:
       Timeout: If the screen is on and device fails to turn screen off.
@@ -142,8 +155,7 @@ class AndroidActionRunner(object):
       return not self._platform_backend.IsScreenOn()
 
     if self._platform_backend.IsScreenOn():
-      self._platform_backend.adb.RunShellCommand(
-          'input keyevent 26')
+      self._ToggleScreenOn()
     else:
       logging.warning('Screen off when expected on.')
       return
@@ -152,7 +164,7 @@ class AndroidActionRunner(object):
 
   def UnlockScreen(self):
     """If device screen is locked, unlocks it.
-    If the device is not locked, this method returns immediately.
+    If the device is not locked, log a warning and return immediately.
 
     Raises:
       Timeout: If device fails to unlock screen.
@@ -167,3 +179,6 @@ class AndroidActionRunner(object):
       return
 
     util.WaitFor(is_screen_unlocked, 5)
+
+  def _ToggleScreenOn(self):
+    self._platform_backend.adb.RunShellCommand('input keyevent 26')

@@ -53,3 +53,7 @@ class BrowserInfo(object):
     branch_num = (
         self._browser._browser_backend.devtools_client.GetChromeBranchNumber())
     return branch_num >= 2332
+
+  @property
+  def browser_type(self):
+    return self._browser.browser_type
