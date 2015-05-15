@@ -84,7 +84,8 @@ tv.exportTo('tv.e.cc', function() {
   AsyncSlice.register(
     InputLatencyAsyncSlice,
     {
-      typeNames: allTypeNames
+      typeNames: allTypeNames,
+      categoryParts: ['latencyInfo']
     });
 
   return {
