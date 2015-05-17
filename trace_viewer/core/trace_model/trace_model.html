@@ -491,7 +491,7 @@ tv.exportTo('tv.c', function() {
         }
 
         // Sort them on priority. This ensures importing happens in a
-        // predictable order, e.g. linux_perf_importer before
+        // predictable order, e.g. ftrace_importer before
         // trace_event_importer.
         importers.sort(function(x, y) {
           return x.importPriority - y.importPriority;

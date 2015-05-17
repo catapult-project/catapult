@@ -580,7 +580,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
      */
     computeTimeTransform: function() {
       var isSecondaryImport = this.model.getClockSyncRecordsNamed(
-          'linux_perf_importer').length !== 0;
+          'ftrace_importer').length !== 0;
 
       var mSyncs = this.model_.getClockSyncRecordsNamed('monotonic');
       // If this is a secondary import, and no clock syncing records were

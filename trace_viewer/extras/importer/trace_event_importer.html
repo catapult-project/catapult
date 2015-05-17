@@ -107,7 +107,7 @@ tv.exportTo('tv.e.importer', function() {
       var container = this.events_;
       this.events_ = this.events_.traceEvents;
 
-      // Some trace_event implementations put linux_perf_importer traces as a
+      // Some trace_event implementations put ftrace_importer traces as a
       // huge string inside container.systemTraceEvents. If we see that, pull it
       // out. It will be picked up by extractSubtraces later on.
       this.systemTraceEvents_ = container.systemTraceEvents;
@@ -485,7 +485,7 @@ tv.exportTo('tv.e.importer', function() {
      * model_.
      */
     importEvents: function() {
-      var csr = new tv.c.ClockSyncRecord('linux_perf_importer', 0, {});
+      var csr = new tv.c.ClockSyncRecord('ftrace_importer', 0, {});
       this.model_.clockSyncRecords.push(csr);
       if (this.stackFrameEvents_)
         this.importStackFrames_();
