@@ -807,12 +807,11 @@ tv.exportTo('tv.e.importer', function() {
           }
           var startState = undefined;
           var endState = undefined;
-          var sliceArgs = undefined;
+          var sliceArgs = eventStateEntry.event.args || {};
           var sliceError = undefined;
           if (eventStateEntry.event.ph === 'n') {
             startState = eventStateEntry;
             endState = eventStateEntry;
-            sliceArgs = eventStateEntry.event.args;
           } else if (eventStateEntry.event.ph === 'b') {
             if (eventStateEntry.end === undefined) {
               // Unmatched BEGIN. End it when last event with this ID ends.
@@ -827,7 +826,6 @@ tv.exportTo('tv.e.importer', function() {
                     eventStateEntry.event.name +
                     ' and id=' + eventStateEntry.event.id + ' was unmatched.'
               });
-              sliceArgs = eventStateEntry.event.args;
             } else {
               // Include args for both END and BEGIN for a matched pair.
               var concatenateArguments = function(args1, args2) {
@@ -839,8 +837,8 @@ tv.exportTo('tv.e.importer', function() {
                                                        args2.params);
                 return tv.b.concatenateObjects(args1, args2, args3);
               }
-              sliceArgs = concatenateArguments(eventStateEntry.event.args,
-                                               eventStateEntry.end.event.args);
+              var endArgs = eventStateEntry.end.event.args || {};
+              sliceArgs = concatenateArguments(sliceArgs, endArgs);
             }
             startState = eventStateEntry;
             endState = eventStateEntry.end;
@@ -857,7 +855,6 @@ tv.exportTo('tv.e.importer', function() {
             });
             startState = eventStateEntries[0];
             endState = eventStateEntry;
-            sliceArgs = eventStateEntry.event.args;
           }
 
           var isTopLevel = (eventStateEntry.parentEntry === undefined);

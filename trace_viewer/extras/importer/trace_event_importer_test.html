@@ -1277,6 +1277,30 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.sameMembers(subSlice.subSlices, []);
   });
 
+
+  test('nestableAsyncNoArgs', function() {
+    var events = [
+      {name: 'name', pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'name', pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tv.c.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var slice = t.asyncSliceGroup.slices[0];
+    assert.equal(slice.title, 'name');
+    assert.equal(slice.category, 'foo');
+    assert.isTrue(slice.isTopLevel);
+
+    assert.isDefined(slice.subSlices);
+    assert.equal(slice.subSlices.length, 0);
+
+    assert.deepEqual(slice.args, {});
+  });
+
   test('nestableAsyncCombinedParams', function() {
     var events = [
       {name: 'a', args: {x: 1, params: {p1: 'hello', p2: 123}},
