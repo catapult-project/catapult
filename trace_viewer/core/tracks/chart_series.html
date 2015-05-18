@@ -293,12 +293,14 @@ tv.exportTo('tv.c.tracks', function() {
           currentViewX = previousViewX + viewSkipDistance;
         }
 
-        var currentViewY = transform.worldYToViewY(currentPoint.y);
+        var currentViewY = Math.round(transform.worldYToViewY(currentPoint.y));
         var currentViewYBase;
-        if (currentPoint.yBase === undefined)
+        if (currentPoint.yBase === undefined) {
           currentViewYBase = transform.outerBottomViewY;
-        else
-          currentViewYBase = transform.worldYToViewY(currentPoint.yBase);
+        } else {
+          currentViewYBase = Math.round(
+              transform.worldYToViewY(currentPoint.yBase));
+        }
         var currentSelectionState = currentPoint.selectionState;
 
         // Actually draw the given component of the point.
