@@ -80,6 +80,9 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sa.points[0].y, 111);
     assert.equal(sb.points[0].y, 111);
     assert.equal(sc.points[0].y, 111);
+    assert.equal(sa.points[0].yBase, 0);
+    assert.equal(sb.points[0].yBase, 111);
+    assert.equal(sc.points[0].yBase, 111);
 
     // Process A: VM regions undefined -> assume previous value (111).
     // Process B: VM regions defined -> sum their PSS values (555).
@@ -90,6 +93,9 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sa.points[1].y, 111);
     assert.equal(sb.points[1].y, 261);
     assert.equal(sc.points[1].y, 261);
+    assert.equal(sa.points[1].yBase, 0);
+    assert.equal(sb.points[1].yBase, 111);
+    assert.equal(sc.points[1].yBase, 261);
 
     // Process A: VM regions defined -> sum their PSS values (0).
     // Process B: Memory dump not present -> assume process not alive (0).
@@ -100,6 +106,9 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sa.points[2].y, 0);
     assert.equal(sb.points[2].y, 0);
     assert.equal(sc.points[2].y, 210);
+    assert.equal(sa.points[2].yBase, 0);
+    assert.equal(sb.points[2].yBase, 0);
+    assert.equal(sc.points[2].yBase, 0);
 
     // All processes: Memory dump not present -> assume process not alive (0).
     assert.equal(sa.points[3].x, 18);
@@ -108,6 +117,9 @@ tv.b.unittest.testSuite(function() {
     assert.equal(sa.points[3].y, 0);
     assert.equal(sb.points[3].y, 0);
     assert.equal(sc.points[3].y, 0);
+    assert.equal(sc.points[3].yBase, 0);
+    assert.equal(sc.points[3].yBase, 0);
+    assert.equal(sc.points[3].yBase, 0);
 
     // Check model mapping.
     assert.equal(sa.points[1].selectionState, SelectionState.HIGHLIGHTED);

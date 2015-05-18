@@ -166,7 +166,7 @@ tv.exportTo('tv.c.tracks', function() {
     // For every timestamp, calculate the total PSS (proportional set size) of
     // each process and append it to the corresponding list of points.
     globalMemoryDumps.forEach(function(globalDump) {
-      var pssSum = 0;
+      var pssBase = 0;
       tv.b.iterItems(pidToPoints, function(pid, points) {
         var processMemoryDump = globalDump.processMemoryDumps[pid];
         var pss;
@@ -182,9 +182,10 @@ tv.exportTo('tv.c.tracks', function() {
             pss = 0;
           }
         }
-        pssSum += pss;
+        var cumulativePss = pssBase + pss;
         points.push(new tv.c.tracks.ChartPoint(
-            globalDump, globalDump.start, pssSum));
+            globalDump, globalDump.start, cumulativePss, pssBase));
+        pssBase = cumulativePss;
       });
     });
 
@@ -199,7 +200,8 @@ tv.exportTo('tv.c.tracks', function() {
           process.userFriendlyName);
       var renderingConfig = {
         chartType: tv.c.tracks.ChartSeriesType.AREA,
-        colorId: colorId
+        colorId: colorId,
+        backgroundOpacity: 0.8
       };
       series.push(new tv.c.tracks.ChartSeries(points, axis, renderingConfig));
     });
