@@ -8,6 +8,6 @@ of tools for performance analysis, testing, and monitoring:
  * [Telemetry](https://www.chromium.org/developers/telemetry)
  * [Performance Dashboard](https://chromeperf.appspot.com/)
 
-These tools were created by chromium developers for performance debugging and
+These tools were created by Chromium developers for performance debugging and
 testing of Chrome, but they can also be used for analyzing and monitoring
-websites, and eventually android apps.
+websites, and eventually Android apps.
