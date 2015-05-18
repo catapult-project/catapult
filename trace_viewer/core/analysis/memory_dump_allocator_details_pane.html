@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
-<link rel="import" href="/core/analysis/size_span.html">
 <link rel="import" href="/core/analysis/table_builder.html">
 
 <polymer-element name="tv-c-memory-dump-allocator-details-pane">
@@ -94,7 +93,6 @@ found in the LICENSE file.
     },
 
     createRows_: function() {
-      // TODO(petrcermak): Extend this to other types of memory dumps.
       var createAllocatorRow = function(allocatorDump) {
         var cells = tv.b.mapItems(allocatorDump.attributes,
             function(attrName, attrValue) {

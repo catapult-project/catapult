@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/deep_utils.html">
+<link rel="import"
+    href="/core/analysis/memory_dump_vm_regions_details_pane.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/process_memory_dump.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var Selection = tv.c.Selection;
+  var VMRegion = tv.c.trace_model.VMRegion;
+
+  function createVMRegions() {
+    return [
+      VMRegion.fromDict({
+        mappedFile: '/lib/chrome.so',
+        startAddress: 65536,
+        sizeInBytes: 2097152,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_EXECUTE,
+        byteStats: {
+          proportionalResident: 8192
+        }
+      }),
+      VMRegion.fromDict({
+        startAddress: 10995116277760,
+        sizeInBytes: 4294967296,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_WRITE,
+        byteStats: {
+          privateResident: 0,
+          sharedResident: 0
+        }
+      })
+    ];
+  }
+
+  test('instantiate_empty', function() {
+    var viewEl = document.createElement(
+        'tv-c-memory-dump-vm-regions-details-pane');
+    this.addHTMLOutput(viewEl);
+  });
+
+  test('instantiate_nonEmpty', function() {
+    var vmRegions = createVMRegions();
+
+    var viewEl = document.createElement(
+        'tv-c-memory-dump-vm-regions-details-pane');
+    viewEl.vmRegions = vmRegions;
+    this.addHTMLOutput(viewEl);
+
+    var table = tv.b.findDeepElementMatching(
+        viewEl, 'tracing-analysis-nested-table');
+
+    var rows = table.tableRows;
+    var columns = table.tableColumns;
+    assert.lengthOf(rows, 2);
+    assert.lengthOf(columns, 7);
+
+    var mappedFileColumn = columns[0];
+    var startAddressColumn = columns[1];
+    var virtualSizeColumn = columns[2];
+    var protectionFlagsColumn = columns[3];
+    var proportionalResidentColumn = columns[4];
+    var privateResidentColumn = columns[5];
+    var sharedResidentColumn = columns[6];
+
+    // Check the rows of the table.
+    assert.equal(mappedFileColumn.value(rows[0]), '/lib/chrome.so');
+    assert.equal(startAddressColumn.value(rows[0]), '0000000000010000');
+    assert.equal(virtualSizeColumn.value(rows[0]).numBytes, 2097152);
+    assert.equal(protectionFlagsColumn.value(rows[0]), 'r-x');
+    assert.equal(proportionalResidentColumn.value(rows[0]).numBytes, 8192);
+    assert.equal(privateResidentColumn.value(rows[0]), '');
+    assert.equal(sharedResidentColumn.value(rows[0]), '');
+
+    assert.equal(mappedFileColumn.value(rows[1]), '');
+    assert.equal(startAddressColumn.value(rows[1]), '00000a0000000000');
+    assert.equal(virtualSizeColumn.value(rows[1]).numBytes, 4294967296);
+    assert.equal(protectionFlagsColumn.value(rows[1]), 'rw-');
+    assert.equal(proportionalResidentColumn.value(rows[1]), '');
+    assert.equal(privateResidentColumn.value(rows[1]).numBytes, 0);
+    assert.equal(sharedResidentColumn.value(rows[1]).numBytes, 0);
+  });
+});
+</script>

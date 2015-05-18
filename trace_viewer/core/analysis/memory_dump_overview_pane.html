@@ -8,6 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/color_legend.html">
 <link rel="import"
     href="/core/analysis/memory_dump_allocator_details_pane.html">
+<link rel="import"
+    href="/core/analysis/memory_dump_vm_regions_details_pane.html">
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/core/analysis/size_span.html">
 <link rel="import" href="/core/analysis/table_builder.html">
@@ -91,17 +93,21 @@ found in the LICENSE file.
       var processMemoryDumps = this.processMemoryDumps_ || [];
 
       var rows = processMemoryDumps.map(function(processMemoryDump) {
-        // Used memory (proportional, private, and shared resident)
+        // Used memory (PSS).
         var usedMemorySizes = {};
-        function addUsedMemorySize(columnKey, dumpKey) {
-          var value = processMemoryDump[dumpKey];
-          if (value !== undefined) {
-            usedMemorySizes[columnKey] = new tv.c.analysis.MemoryCell(
-                new tv.c.trace_model.ScalarAttribute('bytes', value));
+        var pss =
+            processMemoryDump.mostRecentTotalProportionalResidentSizeInBytes;
+        if (pss !== undefined) {
+          var cell = new tv.c.analysis.MemoryCell(
+              new tv.c.trace_model.ScalarAttribute('bytes', pss));
+          cell.buildDetailsPane = function() {
+            var pane = document.createElement(
+                'tv-c-memory-dump-vm-regions-details-pane');
+            pane.vmRegions = processMemoryDump.mostRecentVmRegions;
+            return pane;
           }
+          usedMemorySizes['Proportional used memory (mmaps)'] = cell;
         }
-        addUsedMemorySize('Proportional used memory (mmaps)',
-            'mostRecentTotalProportionalResidentSizeInBytes');
 
         // Allocator memory (v8, oilpan, ...).
         var allocatorSizes = {};
