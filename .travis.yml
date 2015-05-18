@@ -10,11 +10,11 @@ python:
 before_install:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
-  - export CHROME_DEV_VER=$(
-    curl -s http://omahaproxy.appspot.com/all | grep linux,dev | cut -d, -f3)
-  - echo "Downloading Chrome dev channel ($CHROME_DEV_VER)"
+  - export CHROME_VER=$(
+    curl -s http://omahaproxy.appspot.com/all | grep linux,stable | cut -d, -f3)
+  - echo "Downloading Chrome stable channel ($CHROME_VER)"
   - GCS="https://commondatastorage.googleapis.com/chrome-unsigned"
-  - curl -s $GCS/desktop-W15K3Y/$CHROME_DEV_VER/precise64/chrome-precise64.zip
+  - curl -s $GCS/desktop-W15K3Y/$CHROME_VER/precise64/chrome-precise64.zip
     -o /tmp/chrome.zip
   - unzip -q /tmp/chrome.zip -d /tmp
 
