@@ -17,6 +17,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/counter_series.html">
 <link rel="import" href="/core/trace_model/slice_group.html">
 <link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/trace_model/memory_allocator_dump.html">
 <link rel="import" href="/core/trace_model/process_memory_dump.html">
 <link rel="import" href="/core/trace_model/rect_annotation.html">
 <link rel="import" href="/core/trace_model/x_marker_annotation.html">
@@ -1549,7 +1550,7 @@ tv.exportTo('tv.e.importer', function() {
             tv.b.iterItems(dumps.allocators,
                 function(fullName, rawAllocatorDump) {
               var allocatorDump = new tv.c.trace_model.MemoryAllocatorDump(
-                  fullName);
+                  processMemoryDump, fullName);
               var attributes = rawAllocatorDump.attrs;
               tv.b.iterItems(attributes, function(attrName, attrArgs) {
                 var attrValue =
@@ -1590,7 +1591,7 @@ tv.exportTo('tv.e.importer', function() {
                   parentAlreadyExisted = false;
                   parentAllocatorDump =
                       new tv.c.trace_model.MemoryAllocatorDump(
-                          parentFullName, undefined, undefined, undefined);
+                          processMemoryDump, parentFullName);
                   memoryAllocatorDumpsByFullName[parentFullName] =
                       parentAllocatorDump;
                 }

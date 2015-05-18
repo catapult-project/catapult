@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/trace_model/timed_event.html">
+<link rel="import" href="/core/trace_model/container_memory_dump.html">
 <link rel="import" href="/core/analysis/util.html">
 
 <script>
@@ -20,19 +20,14 @@ tv.exportTo('tv.c.trace_model', function() {
    * processes.
    * @constructor
    */
-  function GlobalMemoryDump(model, start, opt_args) {
-    tv.c.trace_model.TimedEvent.call(this, start);
+  function GlobalMemoryDump(model, start) {
+    tv.c.trace_model.ContainerMemoryDump.call(this, start);
     this.model = model;
     this.processMemoryDumps = {};
-    this.args = opt_args;
-  };
+  }
 
   GlobalMemoryDump.prototype = {
-    __proto__: tv.c.trace_model.TimedEvent.prototype,
-
-    shiftTimestampsForward: function(amount) {
-      this.start += amount;
-    },
+    __proto__: tv.c.trace_model.ContainerMemoryDump.prototype,
 
     get userFriendlyName() {
       return 'Global memory dump ' + ' at ' +

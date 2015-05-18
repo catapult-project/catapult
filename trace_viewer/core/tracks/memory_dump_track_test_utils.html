@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/trace_model/attribute.html">
 <link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/trace_model/memory_allocator_dump.html">
 <link rel="import" href="/core/trace_model/process_memory_dump.html">
 <link rel="import" href="/core/trace_model/selection_state.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
@@ -43,10 +44,10 @@ tv.exportTo('tv.c.tracks', function() {
     });
   }
 
-  function createAllocatorDumps(dumpSizes) {
+  function createAllocatorDumps(memoryDump, dumpSizes) {
     var allocatorDumps = [];
     tv.b.iterItems(dumpSizes, function(allocatorName, size) {
-      var dump = new MemoryAllocatorDump(allocatorName);
+      var dump = new MemoryAllocatorDump(memoryDump, allocatorName);
       dump.addAttribute('outer_size', new ScalarAttribute('bytes', size));
       allocatorDumps.push(dump);
     });
@@ -54,22 +55,22 @@ tv.exportTo('tv.c.tracks', function() {
   }
 
   function addProcessMemoryDump(globalMemoryDump, process, start,
-      opt_vmRegions, opt_allocatorDumps) {
+      opt_pssValues, opt_dumpSizes) {
     var pmd = new ProcessMemoryDump(globalMemoryDump, process, start);
-    if (opt_vmRegions !== undefined)
-      pmd.vmRegions = opt_vmRegions;
-    if (opt_allocatorDumps !== undefined)
-      pmd.memoryAllocatorDumps = opt_allocatorDumps;
+    if (opt_pssValues !== undefined)
+      pmd.vmRegions = createVMRegions(opt_pssValues);
+    if (opt_dumpSizes !== undefined)
+      pmd.memoryAllocatorDumps = createAllocatorDumps(pmd, opt_dumpSizes);
     globalMemoryDump.processMemoryDumps[process.pid] = pmd;
     process.memoryDumps.push(pmd);
   }
 
   function createModelWithDumps(withVMRegions, withAllocatorDumps) {
-    var maybeAddVMRegions = function(pssValues) {
-      return withVMRegions ? createVMRegions(pssValues) : undefined;
+    var maybePssValues = function(pssValues) {
+      return withVMRegions ? pssValues : undefined;
     };
-    var maybeAddAllocatorDumps = function(dumpSizes) {
-      return withAllocatorDumps ? createAllocatorDumps(dumpSizes) : undefined;
+    var maybeDumpSizes = function(dumpSizes) {
+      return withAllocatorDumps ? dumpSizes : undefined;
     };
     return tv.c.test_utils.newModel(function(model) {
       // Construct a model with three processes.
@@ -79,24 +80,24 @@ tv.exportTo('tv.c.tracks', function() {
 
       var gmd1 = new GlobalMemoryDump(model, 0);
       model.globalMemoryDumps.push(gmd1);
-      addProcessMemoryDump(gmd1, pa, 0, maybeAddVMRegions([111]));
+      addProcessMemoryDump(gmd1, pa, 0, maybePssValues([111]));
       addProcessMemoryDump(gmd1, pb, 0.2, undefined,
-          maybeAddAllocatorDumps({oilpan: 1024}));
+          maybeDumpSizes({oilpan: 1024}));
 
       var gmd2 = new GlobalMemoryDump(model, 5);
       model.globalMemoryDumps.push(gmd2);
       addProcessMemoryDump(gmd2, pa, 0);
-      addProcessMemoryDump(gmd2, pb, 4.99, maybeAddVMRegions([100, 50]),
-          maybeAddAllocatorDumps({v8: 512}));
+      addProcessMemoryDump(gmd2, pb, 4.99, maybePssValues([100, 50]),
+          maybeDumpSizes({v8: 512}));
       addProcessMemoryDump(gmd2, pc, 5.12, undefined,
-          maybeAddAllocatorDumps({oilpan: 128, v8: 256}));
+          maybeDumpSizes({oilpan: 128, v8: 256}));
 
       var gmd3 = new GlobalMemoryDump(model, 15);
       model.globalMemoryDumps.push(gmd3);
-      addProcessMemoryDump(gmd3, pa, 15.5, maybeAddVMRegions([]),
-          maybeAddAllocatorDumps({v8: 768}));
-      addProcessMemoryDump(gmd3, pc, 14.5, maybeAddVMRegions([70, 70, 70]),
-          maybeAddAllocatorDumps({oilpan: 512}));
+      addProcessMemoryDump(gmd3, pa, 15.5, maybePssValues([]),
+          maybeDumpSizes({v8: 768}));
+      addProcessMemoryDump(gmd3, pc, 14.5, maybePssValues([70, 70, 70]),
+          maybeDumpSizes({oilpan: 512}));
 
       var gmd4 = new GlobalMemoryDump(model, 18);
       model.globalMemoryDumps.push(gmd4);

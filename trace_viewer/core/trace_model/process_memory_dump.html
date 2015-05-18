@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/trace_model/timed_event.html">
+<link rel="import" href="/core/trace_model/container_memory_dump.html">
 <link rel="import" href="/core/analysis/util.html">
 
 <script>
@@ -20,22 +20,16 @@ tv.exportTo('tv.c.trace_model', function() {
    * @constructor
    */
   function ProcessMemoryDump(globalMemoryDump, process, start) {
-    tv.c.trace_model.TimedEvent.call(this, start);
+    tv.c.trace_model.ContainerMemoryDump.call(this, start);
     this.process = process;
     this.globalMemoryDump = globalMemoryDump;
 
     this.totalResidentBytes = undefined;
     this.vmRegions_ = undefined;
-    this.memoryAllocatorDumps_ = undefined;
-    this.memoryAllocatorDumpsByFullName_ = undefined;
   };
 
   ProcessMemoryDump.prototype = {
-    __proto__: tv.c.trace_model.TimedEvent.prototype,
-
-    shiftTimestampsForward: function(amount) {
-      this.start += amount;
-    },
+    __proto__: tv.c.trace_model.ContainerMemoryDump.prototype,
 
     get userFriendlyName() {
       return 'Process memory dump at ' + tv.c.analysis.tsString(this.start);
@@ -48,40 +42,6 @@ tv.exportTo('tv.c.trace_model', function() {
 
     set vmRegions(vmRegions) {
       this.vmRegions_ = vmRegions;
-    },
-
-    get memoryAllocatorDumps() {
-      return this.memoryAllocatorDumps_;
-    },
-
-    set memoryAllocatorDumps(memoryAllocatorDumps) {
-      this.memoryAllocatorDumps_ = memoryAllocatorDumps;
-
-      // Clear the index and generate it lazily.
-      this.memoryAllocatorDumpsByFullName_ = undefined;
-    },
-
-    getMemoryAllocatorDumpByFullName: function(fullName) {
-      if (this.memoryAllocatorDumps_ === undefined)
-        return undefined;
-
-      if (this.memoryAllocatorDumpsByFullName_ === undefined) {
-        var index = {};
-        function addDumpsToIndex(dumps) {
-          dumps.forEach(function(dump) {
-            index[dump.fullName] = dump;
-            addDumpsToIndex(dump.children);
-          });
-        };
-        addDumpsToIndex(this.memoryAllocatorDumps_);
-        this.memoryAllocatorDumpsByFullName_ = index;
-      }
-
-      return this.memoryAllocatorDumpsByFullName_[fullName];
-    },
-
-    get memoryAllocatorDumpsByFullName() {
-      return this.memoryAllocatorDumpsByFullName_;
     },
 
     getMostRecentTotalVmRegionStat_: function(statGetterFn) {
@@ -125,48 +85,6 @@ tv.exportTo('tv.c.trace_model', function() {
       // Set the most recent VM regions of the current dump.
       processDump.mostRecentVmRegions = mostRecentVmRegions;
     });
-  };
-
-  /**
-   * @constructor
-   */
-  function MemoryAllocatorDump(fullName, opt_parent) {
-    this.fullName = fullName;
-    this.parent = opt_parent;
-    this.children = [];
-    this.attributes = {};
-  };
-
-  MemoryAllocatorDump.prototype = {
-    get name() {
-      return this.fullName.substring(this.fullName.lastIndexOf('/') + 1);
-    },
-
-    addAttribute: function(name, value) {
-      if (name in this.attributes)
-        throw new Error('Duplicate attribute name: ' + name + '.');
-      this.attributes[name] = value;
-    },
-
-    aggregateAttributes: function(opt_model) {
-      var attributes = {};
-
-      this.children.forEach(function(child) {
-        child.aggregateAttributes(opt_model);
-        tv.b.iterItems(child.attributes, function(name) {
-          attributes[name] = true;
-        }, this);
-      }, this);
-
-      tv.b.iterItems(attributes, function(name) {
-        var childAttributes = this.children.map(function(child) {
-          return child.attributes[name];
-        }, this);
-        var currentAttribute = this.attributes[name];
-        this.attributes[name] = tv.c.trace_model.Attribute.aggregate(
-            childAttributes, currentAttribute, opt_model);
-      }, this);
-    }
   };
 
   /**
@@ -240,7 +158,6 @@ tv.exportTo('tv.c.trace_model', function() {
 
   return {
     ProcessMemoryDump: ProcessMemoryDump,
-    MemoryAllocatorDump: MemoryAllocatorDump,
     VMRegion: VMRegion,
     VMRegionByteStats: VMRegionByteStats
   };

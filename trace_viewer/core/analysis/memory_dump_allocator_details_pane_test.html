@@ -10,7 +10,8 @@ found in the LICENSE file.
     href="/core/analysis/memory_dump_allocator_details_pane.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/trace_model/attribute.html">
-<link rel="import" href="/core/trace_model/process_memory_dump.html">
+<link rel="import" href="/core/trace_model/container_memory_dump.html">
+<link rel="import" href="/core/trace_model/memory_allocator_dump.html">
 
 <script>
 'use strict';
@@ -18,10 +19,12 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var Selection = tv.c.Selection;
   var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
+  var ContainerMemoryDump = tv.c.trace_model.ContainerMemoryDump;
   var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
 
   function createMemoryAllocatorDump() {
-    var dump = new MemoryAllocatorDump('v8');
+    var memoryDump = new ContainerMemoryDump(-10);
+    var dump = new MemoryAllocatorDump(memoryDump, 'v8');
     dump.addAttribute('outer_size',
         new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
     dump.addAttribute('inner_size',

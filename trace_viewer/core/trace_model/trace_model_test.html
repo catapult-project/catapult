@@ -364,6 +364,7 @@ tv.b.unittest.testSuite(function() {
     var p = m.getOrCreateProcess(1);
     m.importTraces([], true /* shiftWorldToZero */, false, function() {
       var g = new tv.c.trace_model.GlobalMemoryDump(m, -1);
+      m.globalMemoryDumps.push(g);
 
       var pmd1 = new tv.c.trace_model.ProcessMemoryDump(g, p, 1);
       p.memoryDumps.push(pmd1);
@@ -377,9 +378,9 @@ tv.b.unittest.testSuite(function() {
     });
 
     // Check the sort order.
-    assert.equal(p.memoryDumps[0].start, 0);
-    assert.equal(p.memoryDumps[1].start, 2);
-    assert.equal(p.memoryDumps[2].start, 4);
+    assert.equal(p.memoryDumps[0].start, 2);
+    assert.equal(p.memoryDumps[1].start, 4);
+    assert.equal(p.memoryDumps[2].start, 6);
 
     // Check that the most recent VM regions are linked correctly.
     assert.isUndefined(p.memoryDumps[0].mostRecentVmRegions);
