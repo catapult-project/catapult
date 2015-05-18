@@ -35,15 +35,18 @@ tv.b.unittest.testSuite(function() {
         overviewPane, 'tracing-analysis-nested-table');
     assert.lengthOf(overviewTable.tableRows, 2);
 
-    // Select mmaps dump of first process.
+    // Select totals dump of first process.
     overviewTable.selectedTableRow = overviewTable.tableRows[0];
     overviewTable.selectedColumnIndex = 1;
+
+    // Select mmaps dump of first process.
+    overviewTable.selectedColumnIndex = 2;
 
     // Select mmaps dump of second process.
     overviewTable.selectedTableRow = overviewTable.tableRows[1];
 
     // Select oilpan dump of second process.
-    overviewTable.selectedColumnIndex = 2;
+    overviewTable.selectedColumnIndex = 3;
 
     // There should now be an allocator details pane containing contain a table.
     var detailsPane = tv.b.findDeepElementMatching(

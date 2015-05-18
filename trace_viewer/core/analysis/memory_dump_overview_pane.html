@@ -93,8 +93,12 @@ found in the LICENSE file.
       var processMemoryDumps = this.processMemoryDumps_ || [];
 
       var rows = processMemoryDumps.map(function(processMemoryDump) {
-        // Used memory (PSS).
-        var usedMemorySizes = {};
+        // Used memory (total resident, PSS).
+        var totalResident = processMemoryDump.totalResidentBytes;
+        var usedMemorySizes = {
+          'Total used memory': new tv.c.analysis.MemoryCell(
+              new tv.c.trace_model.ScalarAttribute('bytes', totalResident))
+        };
         var pss =
             processMemoryDump.mostRecentTotalProportionalResidentSizeInBytes;
         if (pss !== undefined) {

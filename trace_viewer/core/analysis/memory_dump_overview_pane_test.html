@@ -7,78 +7,16 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/core/analysis/memory_dump_overview_pane.html">
+<link rel="import" href="/core/analysis/memory_dump_sub_view_test_utils.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/trace_model/attribute.html">
-<link rel="import" href="/core/trace_model/global_memory_dump.html">
-<link rel="import" href="/core/trace_model/memory_allocator_dump.html">
-<link rel="import" href="/core/trace_model/process_memory_dump.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
 
 <script>
 'use strict';
 
 tv.b.unittest.testSuite(function() {
-  var TraceModel = tv.c.TraceModel;
-  var Selection = tv.c.Selection;
-  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
-  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
-  var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
-  var VMRegion = tv.c.trace_model.VMRegion;
-  var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
-  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
-
   function createProcessMemoryDumps() {
-    var model = tv.c.test_utils.newModel(function(model) {
-      var p1 = model.getOrCreateProcess(1);
-      var p2 = model.getOrCreateProcess(2);
-
-      var gmd = new GlobalMemoryDump(model, 42);
-      model.globalMemoryDumps.push(gmd);
-
-      // One process with VM regions.
-      var pmd1 = new ProcessMemoryDump(gmd, p1, 41);
-      p1.memoryDumps.push(pmd1);
-      gmd.processMemoryDumps[p1.pid] = pmd1;
-      pmd1.vmRegions = [
-        VMRegion.fromDict({
-            startAddress: 1024,
-            sizeInBytes: 20971520, /* 20 MiB */
-            protectionFlags: VMRegion.PROTECTION_FLAG_READ,
-            mappedFile: '[stack]',
-            byteStats: VMRegionByteStats.fromDict({
-                privateResident: 8388608, /* 8 MiB */
-                sharedResident: 12582912, /* 12 MiB */
-                proportionalResident: 10485760 /* 10 MiB */
-            })
-        })
-      ];
-
-      // One process with allocator dumps.
-      var pmd2 = new ProcessMemoryDump(gmd, p2, 43);
-      p2.memoryDumps.push(pmd2);
-      gmd.processMemoryDumps[p2.pid] = pmd2;
-      pmd2.memoryAllocatorDumps = (function() {
-        var oilpanDump = new MemoryAllocatorDump(pmd2, 'oilpan');
-        oilpanDump.addAttribute('outer_size',
-            new ScalarAttribute('bytes', 2147483648) /* 2 GiB */);
-        oilpanDump.addAttribute('inner_size',
-            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
-        oilpanDump.addAttribute('objects_count',
-            new ScalarAttribute('objects', 2015));
-
-        var v8Dump = new MemoryAllocatorDump(pmd2, 'v8');
-        v8Dump.addAttribute('outer_size',
-            new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
-        v8Dump.addAttribute('inner_size',
-            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
-        v8Dump.addAttribute('objects_count',
-            new ScalarAttribute('objects', 204));
-
-        return [oilpanDump, v8Dump];
-      })();
-    });
-
-    return tv.b.dictionaryValues(model.globalMemoryDumps[0].processMemoryDumps);
+    var gmd = tv.c.analysis.createTestGlobalMemoryDump();
+    return tv.b.dictionaryValues(gmd.processMemoryDumps);
   }
 
   test('instantiate', function() {
@@ -94,15 +32,17 @@ tv.b.unittest.testSuite(function() {
     var rows = table.tableRows;
     var columns = table.tableColumns;
     assert.lengthOf(rows, 2);
-    assert.lengthOf(columns, 4);
+    assert.lengthOf(columns, 5);
 
     var titleColumn = columns[0];
-    var proportionalColumn = columns[1];
-    var oilpanColumn = columns[2];
-    var v8Column = columns[3];
+    var totalColumn = columns[1];
+    var proportionalColumn = columns[2];
+    var oilpanColumn = columns[3];
+    var v8Column = columns[4];
 
     // Check the rows of the table.
     assert.equal(titleColumn.value(rows[0]).label, 'Process 1');
+    assert.equal(totalColumn.value(rows[0]).numBytes, 31457280);
     assert.equal(proportionalColumn.value(rows[0]).numBytes, 10485760);
     assert.equal(oilpanColumn.value(rows[0]), '');
     assert.equal(v8Column.value(rows[0]), '');
@@ -132,7 +72,7 @@ tv.b.unittest.testSuite(function() {
     // Simulate clicking on the 'oilpan' cell of the second process.
     didFireSelectedDumpChanged = false;
     table.selectedTableRow = table.tableRows[1];
-    table.selectedColumnIndex = 2;
+    table.selectedColumnIndex = 3;
     assert.isTrue(didFireSelectedDumpChanged);
     assert.isDefined(viewEl.selectedMemoryCell);
     assert.isDefined(viewEl.selectedMemoryCell.buildDetailsPane);
@@ -140,7 +80,7 @@ tv.b.unittest.testSuite(function() {
     // Simulate clicking on the 'Proportional used memory (mmaps)' cell of the
     // second process.
     didFireSelectedDumpChanged = false;
-    table.selectedColumnIndex = 1;
+    table.selectedColumnIndex = 2;
     assert.isTrue(didFireSelectedDumpChanged);
     assert.isUndefined(viewEl.selectedMemoryCell);
   });
