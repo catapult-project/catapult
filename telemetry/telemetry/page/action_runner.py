@@ -97,23 +97,6 @@ class ActionRunner(object):
     """
     return self.CreateInteraction('Gesture_' + label, repeatable)
 
-  def NavigateToPage(self, page, timeout_in_seconds=60):
-    """Navigates to the given page.
-
-    TODO(ariblue): Remove this sometime in/after Feb 2015. NavigateToPage has
-    been deprecated since action_runner will support arbitrary user stories
-    and web contents.
-    """
-    logging.warn('NavigateToPage is deprecated. Please use Navigate instead.')
-    if page.is_file:
-      target_side_url = self._tab.browser.http_server.UrlOf(page.file_path_url)
-    else:
-      target_side_url = page.url
-    self._RunAction(NavigateAction(
-        url=target_side_url,
-        script_to_evaluate_on_commit=page.script_to_evaluate_on_commit,
-        timeout_in_seconds=timeout_in_seconds))
-
   def Navigate(self, url, script_to_evaluate_on_commit=None,
                timeout_in_seconds=60):
     """Navigates to url.
