@@ -156,6 +156,8 @@ class BrowserFinderOptions(optparse.Values):
         logging.getLogger().setLevel(logging.INFO)
       else:
         logging.getLogger().setLevel(logging.WARNING)
+      logging.basicConfig(
+          format='%(levelname)s:%(name)s:%(asctime)s:%(message)s')
 
       if self.device == 'list':
         devices = device_finder.GetDevicesMatchingOptions(self)
