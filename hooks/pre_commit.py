@@ -31,10 +31,6 @@ class AffectedFile(object):
     return self._cached_contents
 
   @property
-  def is_added(self):
-    return self.fileame in self._input_api.added_files
-
-  @property
   def contents_as_lines(self):
     """Returns an iterator over the lines in the new version of file.
 
@@ -82,7 +78,6 @@ class InputAPI(object):
     self.DEFAULT_BLACK_LIST = []
     self._tvp = tvp
     self._filename_statuses = None
-    self._added_files = None
 
   def _git(self, args):
     assert isinstance(args, list)
@@ -99,19 +94,6 @@ class InputAPI(object):
   @property
   def repository_root(self):
     return self._tvp.trace_viewer_path
-
-  @property
-  def added_files(self):
-    if not self._added_files:
-      self._added_files = set()
-      for filename, status_char in filename_statuses:
-        if status_char == 'A':
-          self._added_files.Add(filename)
-    return self._added_files
-
-  @property
-  def affected_files(self):
-    return self.AffectedFiles(include_deletes=True)
 
   def AffectedFiles(self,
                     include_deletes=False,
