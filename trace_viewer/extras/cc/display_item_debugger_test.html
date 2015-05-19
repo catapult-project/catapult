@@ -87,5 +87,44 @@ tv.b.unittest.testSuite(function() {
 
     dbg.style.border = '1px solid black';
   });
+
+  test('export', function() {
+    var displayItemList = new tv.e.cc.DisplayItemListSnapshot(
+      {id: '31415'},
+      10,
+      {
+        'params': {
+          'layer_rect': [-15, -15, 46, 833],
+          'items': [
+            'BeginClipDisplayItem',
+            'EndClipDisplayItem'
+          ]
+        },
+        'skp64': 'c2twaWN0dXJl'});
+    displayItemList.preInitialize();
+    displayItemList.initialize();
+
+    var dbg = new tv.e.cc.DisplayItemDebugger();
+    this.addHTMLOutput(dbg);
+    dbg.displayItemList = displayItemList;
+
+    var onSaveDisplayListCalled = false;
+    dbg.saveFile_ = function(filename, rawData) {
+      onSaveDisplayListCalled = true;
+      assert.equal(filename, 'displayitemlist.json');
+      assert.equal(rawData, '["BeginClipDisplayItem","EndClipDisplayItem"]');
+    };
+    dbg.onExportDisplayListClicked_();
+    assert(onSaveDisplayListCalled);
+
+    var onSaveSkPictureCalled = false;
+    dbg.saveFile_ = function(filename, rawData) {
+      onSaveSkPictureCalled = true;
+      assert.equal(filename, 'skpicture.skp');
+      assert.equal(rawData, 'skpicture');
+    };
+    dbg.onExportSkPictureClicked_();
+    assert(onSaveSkPictureCalled);
+  });
 });
 </script>

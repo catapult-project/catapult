@@ -41,6 +41,10 @@ found in the LICENSE file.
     margin-right: 5px;
   }
 
+  * /deep/ display-item-debugger > left-panel > display-item-info .export {
+    margin: 5px;
+  }
+
   * /deep/ display-item-debugger > x-drag-handle {
     -webkit-flex: 0 0 auto;
   }
@@ -104,6 +108,14 @@ found in the LICENSE file.
       <header>
         <span class='title'>Display Item List</span>
         <span class='size'></span>
+        <div class='export'>
+          <input class='dlfilename' type='text' value='displayitemlist.json' />
+          <button class='dlexport'>Export display item list</button>
+        </div>
+        <div class='export'>
+          <input class='skpfilename' type='text' value='skpicture.skp' />
+          <button class='skpexport'>Export list as SkPicture</button>
+        </div>
       </header>
     </display-item-info>
   </left-panel>
@@ -153,6 +165,16 @@ tv.exportTo('tv.e.cc', function() {
       this.displayItemListView_.addEventListener('selection-changed',
           this.onDisplayItemListSelection_.bind(this));
       this.displayItemInfo_.appendChild(this.displayItemListView_);
+
+      this.displayListFilename_ = this.querySelector('.dlfilename');
+      this.displayListExportButton_ = this.querySelector('.dlexport');
+      this.displayListExportButton_.addEventListener(
+          'click', this.onExportDisplayListClicked_.bind(this));
+
+      this.skpFilename_ = this.querySelector('.skpfilename');
+      this.skpExportButton_ = this.querySelector('.skpexport');
+      this.skpExportButton_.addEventListener(
+          'click', this.onExportSkPictureClicked_.bind(this));
 
       var leftPanel = this.querySelector('left-panel');
 
@@ -402,6 +424,42 @@ tv.exportTo('tv.e.cc', function() {
         x: e.clientX - this.rasterArea_.offsetLeft,
         y: e.clientY - this.rasterArea_.offsetTop
       };
+    },
+
+    saveFile_: function(filename, rawData) {
+      if (!rawData)
+        return;
+
+      // Convert this String into an Uint8Array
+      var length = rawData.length;
+      var arrayBuffer = new ArrayBuffer(length);
+      var uint8Array = new Uint8Array(arrayBuffer);
+      for (var c = 0; c < length; c++)
+        uint8Array[c] = rawData.charCodeAt(c);
+
+      // Create a blob URL from the binary array.
+      var blob = new Blob([uint8Array], {type: 'application/octet-binary'});
+      var blobUrl = window.URL.createObjectURL(blob);
+
+      // Create a link and click on it.
+      var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+      link.href = blobUrl;
+      link.download = filename;
+      var event = document.createEvent('MouseEvents');
+      event.initMouseEvent(
+          'click', true, false, window, 0, 0, 0, 0, 0,
+          false, false, false, false, 0, null);
+      link.dispatchEvent(event);
+    },
+
+    onExportDisplayListClicked_: function() {
+      var rawData = JSON.stringify(this.displayItemList_.items);
+      this.saveFile_(this.displayListFilename_.value, rawData);
+    },
+
+    onExportSkPictureClicked_: function() {
+      var rawData = atob(this.picture_.getBase64SkpData());
+      this.saveFile_(this.skpFilename_.value, rawData);
     }
   };
 
