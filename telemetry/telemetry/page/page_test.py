@@ -192,13 +192,6 @@ class PageTest(object):
     """
     raise NotImplementedError
 
-  def RunPage(self, page, tab, results):
-    # Run actions.
-    action_runner = action_runner_module.ActionRunner(
-        tab, skip_waits=page.skip_waits)
-    page.RunPageInteractions(action_runner)
-    self.ValidateAndMeasurePage(page, tab, results)
-
   def RunNavigateSteps(self, page, tab):
     """Navigates the tab to the page URL attribute.
 

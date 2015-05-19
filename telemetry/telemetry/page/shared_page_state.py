@@ -14,6 +14,7 @@ from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry import decorators
 from telemetry.page import page_test
+from telemetry.page import action_runner as action_runner_module
 from telemetry.story import shared_state
 from telemetry.util import exception_formatter
 from telemetry.util import file_handle
@@ -258,7 +259,11 @@ class SharedPageState(shared_state.SharedState):
     try:
       self._PreparePage()
       self._ImplicitPageNavigation()
-      self._test.RunPage(self._current_page, self._current_tab, results)
+      action_runner = action_runner_module.ActionRunner(
+          self._current_tab, skip_waits=self._current_page.skip_waits)
+      self._current_page.RunPageInteractions(action_runner)
+      self._test.ValidateAndMeasurePage(
+          self._current_page, self._current_tab, results)
     except exceptions.Error:
       if self._test.is_multi_tab_test:
         # Avoid trying to recover from an unknown multi-tab state.

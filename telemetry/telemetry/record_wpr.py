@@ -44,6 +44,8 @@ class RecorderPageTest(page_test.PageTest):
   def DidNavigateToPage(self, page, tab):
     if self.page_test:
       self.page_test.DidNavigateToPage(page, tab)
+    tab.WaitForDocumentReadyStateToBeComplete()
+    util.WaitFor(tab.HasReachedQuiescence, 30)
 
   def CleanUpAfterPage(self, page, tab):
     if self.page_test:
@@ -52,16 +54,6 @@ class RecorderPageTest(page_test.PageTest):
   def ValidateAndMeasurePage(self, page, tab, results):
     if self.page_test:
       self.page_test.ValidateAndMeasurePage(page, tab, results)
-
-  def RunPage(self, page, tab, results):
-    tab.WaitForDocumentReadyStateToBeComplete()
-    util.WaitFor(tab.HasReachedQuiescence, 30)
-
-    if self.page_test:
-      self.page_test.RunPage(page, tab, results)
-      return
-
-    super(RecorderPageTest, self).RunPage(page, tab, results)
 
   def RunNavigateSteps(self, page, tab):
     if self.page_test:

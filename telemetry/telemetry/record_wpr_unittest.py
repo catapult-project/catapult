@@ -100,24 +100,19 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     record_page_test.RunNavigateSteps(page, self._tab)
     self.assertTrue('RunNavigateSteps' in page.func_calls)
 
-    record_page_test.RunPage(page, self._tab, results=None)
-    self.assertTrue('RunPageInteractions' in page.func_calls)
-
   # When the RecorderPageTest is created from a Benchmark, the benchmark will
   # have a PageTest, specified by its test attribute.
   def testRunPage_OnlyRunBenchmarkAction(self):
     record_page_test = record_wpr.RecorderPageTest()
     record_page_test.page_test = MockBenchmark().test()
     page = MockPage(page_set=MockPageSet(url=self._url), url=self._url)
-    record_page_test.RunPage(page, self._tab, results=None)
-    self.assertTrue('RunPageInteractions' in page.func_calls)
-    self.assertFalse('RunSmoothness' in page.func_calls)
+    record_page_test.ValidateAndMeasurePage(page, self._tab, results=None)
 
   def testRunPage_CallBenchmarksPageTestsFunctions(self):
     record_page_test = record_wpr.RecorderPageTest()
     record_page_test.page_test = MockBenchmark().test()
     page = MockPage(page_set=MockPageSet(url=self._url), url=self._url)
-    record_page_test.RunPage(page, self._tab, results=None)
+    record_page_test.ValidateAndMeasurePage(page, self._tab, results=None)
     self.assertEqual(1, len(record_page_test.page_test.func_calls))
     self.assertEqual('ValidateAndMeasurePage',
                      record_page_test.page_test.func_calls[0])
