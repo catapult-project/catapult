@@ -192,6 +192,7 @@ class PageTest(object):
     """
     raise NotImplementedError
 
+  # Deprecated: do not use this hook. (crbug.com/470147)
   def RunNavigateSteps(self, page, tab):
     """Navigates the tab to the page URL attribute.
 
