@@ -23,7 +23,10 @@ found in the LICENSE file.
       padding: 0 3px 0 3px;
     }
 
-    .info-bar-hidden { display: none; }
+    :host(.info-bar-hidden) {
+      display: none;
+    }
+
     #message { flex: 1 1 auto; }
     </style>
 

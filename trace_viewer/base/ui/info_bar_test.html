@@ -28,5 +28,20 @@ tv.b.unittest.testSuite(function() {
     assert.isTrue(didClick);
     this.addHTMLOutput(infoBar);
   });
+
+  test('hiding', function() {
+    var infoBar = document.createElement('tv-b-ui-info-bar');
+    infoBar.message = 'This is an info bar';
+    infoBar.visible = true;
+    this.addHTMLOutput(infoBar);
+
+    assert.equal(getComputedStyle(infoBar)['display'], 'flex');
+
+    infoBar.visible = false;
+    assert.equal(getComputedStyle(infoBar)['display'], 'none');
+
+    infoBar.visible = true;
+    assert.equal(getComputedStyle(infoBar)['display'], 'flex');
+  });
 });
 </script>
