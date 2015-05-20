@@ -21,7 +21,7 @@ class TraceProfiler(profiler.Profiler):
     # We always want flow events when tracing via telemetry.
     categories_with_flow = 'disabled-by-default-toplevel.flow'
     if categories:
-      categories_with_flow = ',%s' % categories
+      categories_with_flow += ',%s' % categories
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True
     self._browser_backend.StartTracing(
