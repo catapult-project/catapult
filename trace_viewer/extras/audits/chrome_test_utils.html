@@ -7,6 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/audits/chrome_process_helper.html">
 
 <script>
 'use strict';
@@ -72,9 +73,44 @@ tv.exportTo('tv.e.audits', function() {
     return slice;
   }
 
+  function addFrameEvent(model, dict) {
+    dict.title = tv.e.audits.IMPL_RENDERING_STATS;
+    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    slice.parentThread = model.rendererMain;
+    return slice;
+  }
+
+  function addLoadingEvent(model, dict) {
+    dict.title = 'WebContentsImpl Loading';
+    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
+  function addNetworkEvent(model, dict) {
+    dict.title = 'Generic Network event';
+    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    model.browserMain.asyncSliceGroup.push(slice);
+    // TODO Why can't this be dict.cat?
+    slice.cat = 'netlog';
+    return slice;
+  }
+
+  function addProvisionalLoadEvent(model, dict) {
+    dict.title = 'RenderFrameImpl::didCommitProvisionalLoad';
+    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    slice.parentThread = model.rendererMain;
+    return slice;
+  }
+
   return {
     newChromeModel: newChromeModel,
-
+    addFrameEvent: addFrameEvent,
+    addLoadingEvent: addLoadingEvent,
+    addNetworkEvent: addNetworkEvent,
+    addProvisionalLoadEvent: addProvisionalLoadEvent,
     addGeneralLatencyInfoEvent: addGeneralLatencyInfoEvent,
     addFlingStartLatencyInfoEvent: addFlingStartLatencyInfoEvent,
     addFlingCancelLatencyInfoEvent: addFlingCancelLatencyInfoEvent,

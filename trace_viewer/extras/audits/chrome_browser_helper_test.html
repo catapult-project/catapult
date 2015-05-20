@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/audits/chrome_browser_helper.html">
+<link rel="import" href="/extras/audits/chrome_model_helper.html">
+<link rel="import" href="/extras/audits/chrome_test_utils.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/trace_model/trace_model.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var audits = tv.e.audits;
+
+  function getRange(min, max) {
+    var range = new tv.b.Range();
+    range.min = min;
+    range.max = max;
+    return range;
+  }
+
+  test('LoadingEvent', function() {
+    var model = tv.e.audits.newChromeModel(function() { });
+    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
+    audits.addLoadingEvent(model, {start: 1, end: 10});
+    assert.equal(1, modelHelper.browser.getLoadingEventsInRange(
+      getRange(0, 100)).length);
+  });
+
+  test('ProvisionalLoadEvent', function() {
+    var model = tv.e.audits.newChromeModel(function() { });
+    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
+    audits.addProvisionalLoadEvent(model, {start: 1, end: 10});
+    assert.equal(1, modelHelper.browser.getCommitProvisionalLoadEventsInRange(
+      getRange(0, 100)).length);
+  });
+
+  test('LatencyEvent', function() {
+    var model = tv.e.audits.newChromeModel(function() { });
+    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
+    audits.addGeneralLatencyInfoEvent(model, {start: 1, end: 10});
+    assert.equal(1, modelHelper.browser.getLatencyEventsInRange(
+      getRange(0, 100)).length);
+  });
+
+  test('NetworkEvent', function() {
+    var model = tv.e.audits.newChromeModel(function() { });
+    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
+    audits.addNetworkEvent(model, {start: 1, end: 10});
+    assert.equal(1, modelHelper.browser.getAllNetworkEventsInRange(
+      getRange(0, 100)).length);
+  });
+});
+</script>

@@ -63,49 +63,11 @@ tv.exportTo('tv.e.audits', function() {
       if (window.profilingView)
         return;
 
-      var allLoadAndNetEvents = this.getAllLoadAndNetEvents();
-      var allFrameEvents = this.getAllFrameEvents();
-      var allLatencyEvents = this.getAllLatencyEvents();
-      var allFrameAndLatencyEvents = [];
-      allFrameAndLatencyEvents.push.apply(allFrameAndLatencyEvents,
-                                          allFrameEvents);
-      allFrameAndLatencyEvents.push.apply(allFrameAndLatencyEvents,
-                                          allLatencyEvents);
-
-      function mergeEventsIntoIR(title, colorId, events) {
-        var e0 = events[0];
-        var eN = events[events.length - 1];
-        var ir = new tv.c.trace_model.InteractionRecord(
-            title, colorId,
-            e0.start, eN.end - e0.start);
-        ir.events = events;
-        return ir;
-      }
-
-      var addIRs = function(records) {
-        records.forEach(function(ir) {
-          this.model.addInteractionRecord(ir);
-        }, this);
-      }.bind(this);
-
-      var mergedLoadIRs = tv.e.audits.mergeEvents(
-          allLoadAndNetEvents, 300,
-          mergeEventsIntoIR.bind(
-              undefined, 'Loading/Net',
-              tv.b.ui.getColorIdForGeneralPurposeString('mt_loading')));
-      addIRs(mergedLoadIRs);
-
-      var mergedFrameIRs = tv.e.audits.mergeEvents(
-          allFrameEvents, 150,
-          mergeEventsIntoIR.bind(
-              undefined, 'Rendering',
-              tv.b.ui.getColorIdForGeneralPurposeString('mt_rendering')));
-      addIRs(mergedFrameIRs);
-
       if (tv.e.audits.RAILIRFinder.supportsModelHelper(this.modelHelper)) {
         var rirf = new tv.e.audits.RAILIRFinder(this.model, this.modelHelper);
-        var railIRs = rirf.findAllInteractionRecords();
-        addIRs(railIRs);
+        rirf.findAllInteractionRecords().forEach(function(ir) {
+          this.model.addInteractionRecord(ir);
+        }.bind(this));
       }
 
       this.addBigTaskAlerts();
@@ -130,45 +92,6 @@ tv.exportTo('tv.e.audits', function() {
           }
         });
       });
-    },
-
-    getAllLoadAndNetEvents: function() {
-      var model = this.model;
-      if (this.modelHelper.browser === undefined)
-        return;
-      var browser = this.modelHelper.browser;
-
-      var events = [];
-      events.push.apply(
-          events, browser.getLoadingEventsInRange(model.bounds));
-      events.push.apply(
-          events, browser.getAllNetworkEventsInRange(model.bounds));
-      return events;
-    },
-
-    getAllFrameEvents: function() {
-      var model = this.model;
-      var frameEvents = [];
-      if (this.modelHelper.browser) {
-        var fe = this.modelHelper.browser.getFrameEventsInRange(
-            tv.e.audits.IMPL_FRAMETIME_TYPE,
-            model.bounds);
-        frameEvents.push.apply(frameEvents, fe);
-      }
-      tv.b.iterItems(this.modelHelper.renderers, function(pid, renderer) {
-        var fe = renderer.getFrameEventsInRange(tv.e.audits.IMPL_FRAMETIME_TYPE,
-                                       model.bounds);
-        frameEvents.push.apply(frameEvents, fe);
-      }, this);
-      frameEvents.sort(function(x, y) { return x.start - y.start; });
-      return frameEvents;
-    },
-
-    getAllLatencyEvents: function() {
-      if (!this.modelHelper.browser)
-        return [];
-      return this.modelHelper.browser.getLatencyEventsInRange(
-          this.model.bounds);
     }
   };
 

@@ -33,6 +33,31 @@ tv.exportTo('tv.e.audits', function() {
           this.model.bounds);
     },
 
+    getAllFrameEvents: function() {
+      var frameEvents = [];
+      if (this.modelHelper.browser) {
+        var fe = this.modelHelper.browser.getFrameEventsInRange(
+            tv.e.audits.IMPL_FRAMETIME_TYPE,
+            this.model.bounds);
+        frameEvents.push.apply(frameEvents, fe);
+      }
+      tv.b.iterItems(this.modelHelper.renderers, function(pid, renderer) {
+        var fe = renderer.getFrameEventsInRange(tv.e.audits.IMPL_FRAMETIME_TYPE,
+                                                this.model.bounds);
+        frameEvents.push.apply(frameEvents, fe);
+      }, this);
+      frameEvents.sort(function(x, y) { return x.start - y.start; });
+      return frameEvents;
+    },
+
+    getAllLoadAndNetEvents: function() {
+      if (this.modelHelper.browser === undefined)
+        return;
+      var bounds = this.model.bounds;
+      return this.modelHelper.browser.getLoadingEventsInRange(bounds).concat(
+          this.modelHelper.browser.getAllNetworkEventsInRange(bounds));
+    },
+
     getAllGestures: function() {
       var allLatencyEvents = this.getAllLatencyEvents();
 
@@ -96,17 +121,14 @@ tv.exportTo('tv.e.audits', function() {
       });
 
       // Add ops for fling animations.
-      function isFlingAnimationEvent(event) {
-        return event.title === 'InputHandlerProxy::HandleGestureFling::started';
-      };
-      var browserHelper = this.modelHelper.browser;
-      var allFlingAnimationEvents = browserHelper.getAllAsyncSlicesMatching(
-          isFlingAnimationEvent);
-      allFlingAnimationEvents.forEach(function(flingAnimationEvent) {
+      this.modelHelper.browser.getAllAsyncSlicesMatching(function(event) {
+        if (event.title !== 'InputHandlerProxy::HandleGestureFling::started')
+          return;
         ops.push({
-            op: FLING_OP_ANIM_END, guid: flingAnimationEvent.guid,
-            opTs: flingAnimationEvent.end,
-            flingAnimationEvent: flingAnimationEvent
+            op: FLING_OP_ANIM_END,
+            guid: event.guid,
+            opTs: event.end,
+            flingAnimationEvent: event
         });
       });
 
@@ -125,7 +147,7 @@ tv.exportTo('tv.e.audits', function() {
         switch (op.op) {
         case FLING_OP_START:
           if (currentFling)
-            throw new Error('OMG THERE IS ALREADY A FLING GOING WAT IS THIS');
+            throw new Error('OMG THERE IS ALREADY A FLING');
           currentFling = {
             expectedStart: op.latencyEvent.start,
             actualStart: op.latencyEvent.end,
@@ -171,6 +193,7 @@ tv.exportTo('tv.e.audits', function() {
 
     findAllInteractionRecords: function() {
       var rirs = [];
+
       var gestures = this.getAllGestures();
       var gestureIRs = gestures.map(function gestureToIR(gesture) {
         var colorId = tv.b.ui.getColorIdForGeneralPurposeString('mt_input');
@@ -194,6 +217,80 @@ tv.exportTo('tv.e.audits', function() {
       });
       rirs.push.apply(rirs, flingIRs);
 
+      var allLoadAndNetEvents = this.getAllLoadAndNetEvents();
+
+      var allCommitProvisionalLoad =
+        this.modelHelper.browser.getCommitProvisionalLoadEventsInRange(
+            this.model.bounds);
+
+      var allFrameEvents = this.getAllFrameEvents();
+
+      allCommitProvisionalLoad.forEach(function(commitLoad, commitLoadIndex) {
+        allFrameEvents.some(function(frame) {
+          if ((frame.start > commitLoad.start) &&
+              (frame.parentThread.parent.pid ==
+               commitLoad.parentThread.parent.pid)) {
+            if (frame.commitProvisionalLoad) return true;
+            console.log('commit first frame', commitLoad.start, frame.start,
+                frame.start - commitLoad.start);
+            commitLoad.firstFrame = frame;
+            frame.commitProvisionalLoad = commitLoad;
+            return true;
+          }
+          return false;
+        });
+        if (!commitLoad.firstFrame) {
+          console.log('missing first frame', commitLoad);
+        }
+      });
+
+      var allLatencyEvents = this.getAllLatencyEvents();
+      var allFrameAndLatencyEvents = [];
+      allFrameAndLatencyEvents.push.apply(allFrameAndLatencyEvents,
+                                          allFrameEvents);
+      allFrameAndLatencyEvents.push.apply(allFrameAndLatencyEvents,
+                                          allLatencyEvents);
+
+      function mergeEventsIntoIR(title, colorId, events) {
+        var e0 = events[0];
+        var eN = events[events.length - 1];
+        var ir = new tv.c.trace_model.InteractionRecord(
+            title, colorId,
+            e0.start, eN.end - e0.start);
+        ir.events = events;
+        return ir;
+      }
+
+      allCommitProvisionalLoad.forEach(function(commitLoad, commitLoadIndex) {
+        if (!commitLoad.firstFrame) return;
+        var ir = new tv.c.trace_model.InteractionRecord(
+            'CommitToFirstFrame',
+            tv.b.ui.getColorIdForGeneralPurposeString('mt_loading'),
+            commitLoad.start,
+            commitLoad.firstFrame.end - commitLoad.start);
+        ir.events = [commitLoad, commitLoad.firstFrame];
+        if (!ir.args) ir.args = {};
+        ir.args.url = commitLoad.args.url;
+        rirs.push(ir);
+      });
+
+      var mergedLoadIRs = tv.e.audits.mergeEvents(
+          allLoadAndNetEvents, 300,
+          mergeEventsIntoIR.bind(
+              undefined, 'Loading/Net',
+              tv.b.ui.getColorIdForGeneralPurposeString('mt_loading')));
+      mergedLoadIRs.forEach(function(loadIR) {
+        if (!loadIR.args) loadIR.args = {};
+        loadIR.args.url = loadIR.events[0].args.URL;
+      });
+      rirs.push.apply(rirs, mergedLoadIRs);
+
+      var mergedFrameIRs = tv.e.audits.mergeEvents(
+          allFrameEvents, 150,
+          mergeEventsIntoIR.bind(
+              undefined, 'Rendering',
+              tv.b.ui.getColorIdForGeneralPurposeString('mt_rendering')));
+      rirs.push.apply(rirs, mergedFrameIRs);
       return rirs;
     }
   };

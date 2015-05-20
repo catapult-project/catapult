@@ -56,7 +56,6 @@ tv.exportTo('tv.e.audits', function() {
           return;
         if (range.intersectsExplicitRange(event.start, event.end))
           frameEvents.push(event);
-
       });
 
       frameEvents.sort(function(a, b) {return a.start - b.start});
@@ -81,6 +80,8 @@ tv.exportTo('tv.e.audits', function() {
 
     MAIN_FRAMETIME_TYPE: MAIN_FRAMETIME_TYPE,
     IMPL_FRAMETIME_TYPE: IMPL_FRAMETIME_TYPE,
+    MAIN_RENDERING_STATS: MAIN_RENDERING_STATS,
+    IMPL_RENDERING_STATS: IMPL_RENDERING_STATS,
 
     getSlicesIntersectingRange: getSlicesIntersectingRange,
     getFrametimeDataFromEvents: getFrametimeDataFromEvents
