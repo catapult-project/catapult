@@ -56,7 +56,6 @@ tv.exportTo('tv.c.analysis', function() {
       var pmd2 = new ProcessMemoryDump(gmd, p2, 43);
       p2.memoryDumps.push(pmd2);
       gmd.processMemoryDumps[p2.pid] = pmd2;
-      pmd2.totalResidentBytes = 4294967296 /* 4 GiB */;
       pmd2.memoryAllocatorDumps = (function() {
         var oilpanDump = new MemoryAllocatorDump(pmd2, 'oilpan');
         oilpanDump.addAttribute('outer_size',

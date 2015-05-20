@@ -94,11 +94,12 @@ found in the LICENSE file.
 
       var rows = processMemoryDumps.map(function(processMemoryDump) {
         // Used memory (total resident, PSS).
+        var usedMemorySizes = {};
         var totalResident = processMemoryDump.totalResidentBytes;
-        var usedMemorySizes = {
-          'Total used memory': new tv.c.analysis.MemoryCell(
-              new tv.c.trace_model.ScalarAttribute('bytes', totalResident))
-        };
+        if (totalResident !== undefined) {
+          usedMemorySizes['Total used memory'] = new tv.c.analysis.MemoryCell(
+              new tv.c.trace_model.ScalarAttribute('bytes', totalResident));
+        }
         var pss =
             processMemoryDump.mostRecentTotalProportionalResidentSizeInBytes;
         if (pss !== undefined) {
