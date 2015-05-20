@@ -96,9 +96,7 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
     browser_backend = self._browser._browser_backend
     self._device = browser_backend._adb.device()
 
-  # Test fails: crbug.com/437081
-  # @decorators.Enabled('android')
-  @decorators.Disabled
+  @decorators.Enabled('android')
   def testCreateSymFs(self):
     # pylint: disable=W0212
     browser_pid = self._browser._browser_backend.pid
@@ -115,7 +113,7 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
       # Check that we have kernel symbols.
       assert os.path.exists(kallsyms)
 
-      is_unstripped = re.compile(r'^/data/app/.*\.so$')
+      is_unstripped = re.compile(r'^/data/app(-lib)?/.*\.so$')
       has_unstripped = False
 
       # Check that all requested libraries are present.
@@ -137,4 +135,4 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
       self._device.PullFile('/system/lib/libc.so', libc.name)
       path = android_profiling_helper.GetToolchainBinaryPath(libc.name,
                                                              'objdump')
-      assert os.path.exists(path)
+      assert path and os.path.exists(path)
