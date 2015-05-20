@@ -6,53 +6,25 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
-<link rel="import" href="/core/analysis/memory_dump_overview_pane.html">
+<link rel="import" href="/core/analysis/memory_dump_view.html">
 
 <polymer-element name="tv-c-single-process-memory-dump-sub-view"
     extends="tracing-analysis-sub-view">
   <template>
-    <style>
-    :host {
-      display: flex;
-      flex-direction: column;
-    }
-    </style>
-    <tv-c-memory-dump-overview-pane id="overview_pane">
-    </tv-c-memory-dump-overview-pane>
-    <div id="details_pane_container">
-    </div>
+    <tv-c-memory-dump-view id="memory_dump_view">
+    </tv-c-memory-dump-view>
   </template>
   <script>
   'use strict';
 
   Polymer({
-    // TODO(petrcermak): tv-c-single-process-memory-dump-sub-view and
-    // tv-c-global-process-memory-dump-sub-view share most of their code. The
-    // resulting code duplication should probably be reduced either by defining
-    // a common base class or by delegating more work to
-    // tv-c-memory-dump-overview-pane (or both).
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
-
-    ready: function() {
-      this.$.overview_pane.addEventListener(
-          'selected-memory-cell-changed', function(e) {
-        this.$.details_pane_container.innerText = '';
-        var selectedMemoryCell = this.$.overview_pane.selectedMemoryCell;
-        if (!selectedMemoryCell || !selectedMemoryCell.buildDetailsPane)
-          return;
-        this.$.details_pane_container.appendChild(
-            selectedMemoryCell.buildDetailsPane());
-      }.bind(this));
-    },
-
     set selection(selection) {
       if (selection.length !== 1)
         throw new Error('Only supports a single process memory dump');
       if (!(selection[0] instanceof tv.c.trace_model.ProcessMemoryDump))
         throw new Error('Only supports process memory dumps');
-      this.setSelectionWithoutErrorChecks(selection);
+      this.currentSelection_ = selection;
+      this.$.memory_dump_view.processMemoryDumps = [selection[0]];
     },
 
     get selection() {
@@ -61,12 +33,6 @@ found in the LICENSE file.
 
     get requiresTallView() {
       return true;
-    },
-
-    setSelectionWithoutErrorChecks: function(selection) {
-      this.currentSelection_ = selection;
-      this.$.overview_pane.processMemoryDumps = [selection[0]];
-      this.$.details_pane_container.innerText = '';
     }
   });
   </script>

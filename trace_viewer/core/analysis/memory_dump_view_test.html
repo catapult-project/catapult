@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/deep_utils.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/analysis/memory_dump_view.html">
+<link rel="import" href="/core/analysis/memory_dump_sub_view_test_utils.html">
+
+<script>
+'use strict';
+
+tv.b.unittest.testSuite(function() {
+  var createTestProcessMemoryDumps = tv.c.analysis.createTestProcessMemoryDumps;
+
+  test('instantiate', function() {
+    var processMemoryDumps = createTestProcessMemoryDumps();
+
+    var viewEl = document.createElement('tv-c-memory-dump-view');
+    viewEl.processMemoryDumps = processMemoryDumps;
+    this.addHTMLOutput(viewEl);
+
+    var overviewPane = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-memory-dump-overview-pane');
+    var overviewTable = tv.b.findDeepElementMatching(
+        overviewPane, 'tracing-analysis-nested-table');
+    assert.lengthOf(overviewTable.tableRows, 2);
+
+    // Select totals dump of first process.
+    overviewTable.selectedTableRow = overviewTable.tableRows[0];
+    overviewTable.selectedColumnIndex = 1;
+
+    // Select mmaps dump of first process.
+    overviewTable.selectedColumnIndex = 2;
+
+    // Select mmaps dump of second process.
+    overviewTable.selectedTableRow = overviewTable.tableRows[1];
+
+    // Select oilpan dump of second process.
+    overviewTable.selectedColumnIndex = 3;
+
+    // There should now be an allocator details pane containing contain a table.
+    var detailsPane = tv.b.findDeepElementMatching(
+        viewEl, 'tv-c-memory-dump-allocator-details-pane');
+    var detailsTable = tv.b.findDeepElementMatching(
+        detailsPane, 'tracing-analysis-nested-table');
+    assert.lengthOf(detailsTable.tableRows, 1);
+  });
+});
+</script>
+

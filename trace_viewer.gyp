@@ -106,6 +106,7 @@
       'trace_viewer/core/analysis/memory_dump_allocator_details_pane.html',
       'trace_viewer/core/analysis/memory_dump_overview_pane.html',
       'trace_viewer/core/analysis/memory_dump_sub_view_util.html',
+      'trace_viewer/core/analysis/memory_dump_view.html',
       'trace_viewer/core/analysis/memory_dump_vm_regions_details_pane.html',
       'trace_viewer/core/analysis/multi_async_slice_sub_view.html',
       'trace_viewer/core/analysis/multi_cpu_slice_sub_view.html',

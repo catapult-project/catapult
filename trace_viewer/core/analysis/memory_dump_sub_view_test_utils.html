@@ -80,6 +80,11 @@ tv.exportTo('tv.c.analysis', function() {
     return model.globalMemoryDumps[0];
   }
 
+  function createTestProcessMemoryDumps() {
+    var globalMemoryDump = createTestGlobalMemoryDump();
+    return tv.b.dictionaryValues(globalMemoryDump.processMemoryDumps);
+  }
+
   function createTestProcessMemoryDump() {
     var globalMemoryDump = createTestGlobalMemoryDump();
     return globalMemoryDump.processMemoryDumps[2];
@@ -87,6 +92,7 @@ tv.exportTo('tv.c.analysis', function() {
 
   return {
     createTestGlobalMemoryDump: createTestGlobalMemoryDump,
+    createTestProcessMemoryDumps: createTestProcessMemoryDumps,
     createTestProcessMemoryDump: createTestProcessMemoryDump
   };
 });
