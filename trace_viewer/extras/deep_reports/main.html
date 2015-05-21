@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/extras/deep_reports/scalar_value.html">
 <link rel="import" href="/extras/deep_reports/rail_deep_reporter.html">
-<link rel="import" href="/extras/audits/chrome_model_helper.html">
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
 <script>
 'use strict';
 
@@ -46,7 +46,7 @@ tv.exportTo('tv.e.deep_reports', function() {
       var m = new tv.c.TraceModel();
       try {
         m.importTraces([trace], io);
-      } catch(e) {
+      } catch (e) {
         throw new Error('While loading ' + filename + ' got: ' + e.toString());
       }
       return m;
@@ -68,7 +68,8 @@ tv.exportTo('tv.e.deep_reports', function() {
     if (tv.e.audits.ChromeModelHelper.supportsModel(model)) {
       var helper = new tv.e.audits.ChromeModelHelper(model);
       if (false) {
-        var latencyEvents = helper.browser.getLatencyEventsInRange(model.bounds);
+        var latencyEvents = helper.browser.getLatencyEventsInRange(
+          model.bounds);
         window.allTitles = window.allTitles || {};
         latencyEvents.forEach(function(event) {
           window.allTitles[event.title] = true;
