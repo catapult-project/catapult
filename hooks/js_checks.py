@@ -127,6 +127,8 @@ class JSChecker(object):
       affected_files = []
 
     def ShouldCheck(f):
+      if self.input_api.IsIgnoredFile(f):
+        return False
       if f.filename.endswith('.js'):
         return True
       if f.filename.endswith('.html'):
