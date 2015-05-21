@@ -132,6 +132,9 @@ class InputAPI(object):
     if affected_file.filename.endswith('.png'):
       return True
 
+    if affected_file.filename.endswith('.svg'):
+      return True
+
     # Is test data?
     full_path = os.path.join(self.repository_root, affected_file.filename)
     if full_path.startswith(self._tvp.test_data_path):
