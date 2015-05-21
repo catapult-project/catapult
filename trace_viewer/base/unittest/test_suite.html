@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/statistics.html">
 <link rel="import" href="/base/unittest/test_case.html">
 <link rel="import" href="/base/unittest/constants.html">
 <script>
@@ -69,17 +70,26 @@ tv.exportTo('tv.b.unittest', function() {
         throw new Error('timedPerfTest must have iteration option provided.');
 
       var testWrapper = function(results) {
-        results = [];
-        var durationSum = 0;
+        var durations = [];
         for (var i = 0; i < options.iterations; ++i) {
           var start = window.performance.now();
           test.call(this);
           var duration = window.performance.now() - start;
-          durationSum += duration;
-          results.push(duration.toFixed(2) + 'ms');
+          durations.push(duration);
         }
-        var average = durationSum / options.iterations;
-        return results.join(', ') + ' [avg ' + average.toFixed(2) + 'ms]';
+
+        var durationStrings = durations.map(function(d) {
+          return d.toFixed(2) + 'ms';
+        });
+        var average = tv.b.Statistics.mean(durations);
+        var min = tv.b.Statistics.min(durations);
+
+        var summaryString = ' [';
+        summaryString += 'min ' + min.toFixed(2) + 'ms, ';
+        summaryString += 'avg ' + average.toFixed(2) + 'ms';
+        summaryString += ']';
+
+        return durationStrings.join(', ') + summaryString;
       };
 
       this.addTest(new PerfTestCase(this, name, testWrapper, options));
