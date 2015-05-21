@@ -888,5 +888,27 @@ tv.b.unittest.testSuite(function() {
     assert.equal(firstColumnHeader.cellTitle.textContent, 'First Column');
     assert.equal(secondColumnHeader.cellTitle.textContent, 'Second Column');
   });
+
+  test('textAlign', function() {
+    var columns = [
+      {
+        title: 'a',
+        textAlign: 'right',
+        value: function(row) {
+          return row.a;
+        }
+      }
+    ];
+    var rows = [{a: 1}];
+
+    var table = document.createElement('tracing-analysis-nested-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    assert.equal('right', table.$.body.children[0].children[0].style.textAlign);
+  });
 });
 </script>
