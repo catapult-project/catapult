@@ -37,13 +37,14 @@ import platformsettings  # pylint: disable=import-error
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib import constants # pylint: disable=F0401
-from pylib import screenshot  # pylint: disable=F0401
-from pylib.device import battery_utils # pylint: disable=F0401
-from pylib.perf import cache_control  # pylint: disable=F0401
-from pylib.perf import perf_control  # pylint: disable=F0401
-from pylib.perf import thermal_throttle  # pylint: disable=F0401
-from pylib.utils import device_temp_file # pylint: disable=F0401
+from pylib import constants  # pylint: disable=import-error
+from pylib import screenshot  # pylint: disable=import-error
+from pylib.device import battery_utils  # pylint: disable=import-error
+from pylib.device import device_errors  # pylint: disable=import-error
+from pylib.perf import cache_control  # pylint: disable=import-error
+from pylib.perf import perf_control  # pylint: disable=import-error
+from pylib.perf import thermal_throttle  # pylint: disable=import-error
+from pylib.utils import device_temp_file  # pylint: disable=import-error
 
 try:
   from pylib.perf import surface_stats_collector  # pylint: disable=import-error
@@ -599,7 +600,10 @@ class AndroidPlatformBackend(
       if f != 'lib':
         source = '%s%s' % (profile_dir, f)
         dest = os.path.join(output_profile_path, f)
-        self._device.PullFile(source, dest, timeout=240)
+        try:
+          self._device.PullFile(source, dest, timeout=240)
+        except device_errors.CommandFailedError:
+          logging.exception('Failed to pull %s to %s', source, dest)
 
   def _GetProfileDir(self, package):
     """Returns the on-device location where the application profile is stored
