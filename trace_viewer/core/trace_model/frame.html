@@ -31,7 +31,7 @@ tv.exportTo('tv.c.trace_model', function() {
    * @constructor
    * @param {Array} associatedEvents Array of events composing the frame.
    * @param {Array} threadTimeRanges Array of {thread, start, end}
-   *     for each thread, describing the critical path of the frame
+   * for each thread, describing the critical path of the frame.
    */
   function Frame(associatedEvents, threadTimeRanges, opt_args) {
     tv.c.trace_model.Event.call(this);

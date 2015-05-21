@@ -78,7 +78,7 @@ and updates the table internally.
     getRowForPage_: function(page) {
       if (!this.pageToRowMap_.has(page)) {
         var i = page.url.lastIndexOf('/');
-        var baseName = page.url.substring(i+1);
+        var baseName = page.url.substring(i + 1);
 
         var link = document.createElement('a');
         link.href = 'trace_viewer.html#' + page.url;
