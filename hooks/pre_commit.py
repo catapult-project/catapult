@@ -129,7 +129,7 @@ class InputAPI(object):
     return self._filename_statuses
 
   def IsIgnoredFile(self, affected_file):
-    if affected_file.endswith('.png'):
+    if affected_file.filename.endswith('.png'):
       return True
 
     # Is test data?
