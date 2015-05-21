@@ -1462,7 +1462,7 @@ tv.exportTo('tv.e.importer', function() {
 
         // Create the global memory dump.
         var globalMemoryDump = new tv.c.trace_model.GlobalMemoryDump(
-            this.model_, range.min, this.deepCopyIfNeeded_(events.global));
+            this.model_, range.min);
         globalMemoryDump.duration = range.range;
         this.model_.globalMemoryDumps.push(globalMemoryDump);
 
@@ -1475,8 +1475,10 @@ tv.exportTo('tv.e.importer', function() {
           });
         }
 
-        for (var i = 0; i < events.process.length; i++) {
-          var processEvent = events.process[i];
+        var allMemoryAllocatorDumpsByGuid = {};
+        var globalMemoryAllocatorDumpsByFullName = {};
+
+        events.process.forEach(function(processEvent) {
           var pid = processEvent.pid;
           if (pid in globalMemoryDump.processMemoryDumps) {
             this.model_.importWarning({
@@ -1484,7 +1486,7 @@ tv.exportTo('tv.e.importer', function() {
               message: 'Multiple process memory dumps with pid=' + pid +
                   ' for dump id ' + id + '.'
             });
-            continue;
+            return;
           }
 
           var dumps = processEvent.args.dumps;
@@ -1494,7 +1496,7 @@ tv.exportTo('tv.e.importer', function() {
                 message: 'dumps not found in process memory dump for ' +
                     'pid=' + pid + ' and dump id=' + id + '.'
             });
-            continue;
+            return;
           }
 
           var process = this.model_.getOrCreateProcess(pid);
@@ -1537,86 +1539,245 @@ tv.exportTo('tv.e.importer', function() {
             );
           }
 
-          // Populate the allocator dumps, if present, in two passes.
+          // Gather the process and global memory allocator dumps, if present.
+          var processMemoryAllocatorDumpsByFullName = {};
           if (dumps.allocators !== undefined) {
-            var memoryAllocatorDumpsByFullName = {};
-            var memoryAllocatorDumps = [];
-
-            // 1) Construct the MemoryAllocatorDump objects without parent links
-            //    and add them to the memoryAllocatorDumpsByFullName index.
+            // Construct the MemoryAllocatorDump objects without parent links
+            // and add them to the processMemoryAllocatorDumpsByName and
+            // globalMemoryAllocatorDumpsByName indices appropriately.
             tv.b.iterItems(dumps.allocators,
                 function(fullName, rawAllocatorDump) {
-              var allocatorDump = new tv.c.trace_model.MemoryAllocatorDump(
-                  processMemoryDump, fullName);
+              // Every memory allocator dump should have a GUID. If not, then
+              // it cannot be associated with any edges.
+              var guid = rawAllocatorDump.guid;
+              if (guid === undefined) {
+                this.model_.importWarning({
+                  type: 'memory_dump_parse_error',
+                  message: 'Memory allocator dump ' + fullName +
+                      ' from pid=' + pid + ' does not have a GUID.'
+                });
+              }
+
+              // Determine if this is a global memory allocator dump (check if
+              // it's prefixed with 'global/').
+              var GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX = 'global/';
+              var containerMemoryDump;
+              var dstIndex;
+              if (fullName.startsWith(GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX)) {
+                // Global memory allocator dump.
+                fullName = fullName.substring(
+                    GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX.length);
+                containerMemoryDump = globalMemoryDump;
+                dstIndex = globalMemoryAllocatorDumpsByFullName;
+              } else {
+                // Process memory allocator dump.
+                containerMemoryDump = processMemoryDump;
+                dstIndex = processMemoryAllocatorDumpsByFullName;
+              }
+
+              // Construct or retrieve a memory allocator dump with the provided
+              // GUID.
+              var allocatorDump = allMemoryAllocatorDumpsByGuid[guid];
+              if (allocatorDump === undefined) {
+                if (fullName in dstIndex) {
+                  this.model_.importWarning({
+                    type: 'memory_dump_parse_error',
+                    message: 'Multiple GUIDs provided for' +
+                        ' memory allocator dump ' + fullName + ': ' +
+                        dstIndex[fullName].guid + ', ' + guid + ' (ignored).'
+                  });
+                  return;
+                }
+                allocatorDump = new tv.c.trace_model.MemoryAllocatorDump(
+                    containerMemoryDump, fullName, guid);
+                dstIndex[fullName] = allocatorDump;
+                if (guid !== undefined)
+                  allMemoryAllocatorDumpsByGuid[guid] = allocatorDump;
+              } else {
+                // A memory allocator dump with this GUID has already been
+                // dumped (so we will only add new attributes). Check that it
+                // belonged to the same process or was also global.
+                if (allocatorDump.containerMemoryDump !== containerMemoryDump) {
+                  this.model_.importWarning({
+                  type: 'memory_dump_parse_error',
+                  message: 'Memory allocator dump ' + fullName +
+                      ' (GUID=' + guid + ') dumped in different contexts.'
+                  });
+                  return;
+                }
+                // Check that the names of the memory allocator dumps match.
+                if (allocatorDump.fullName !== fullName) {
+                  this.model_.importWarning({
+                  type: 'memory_dump_parse_error',
+                  message: 'Memory allocator dump with GUID=' + guid +
+                      ' has multiple names: ' + allocatorDump.fullName +
+                      ', ' + fullName + ' (ignored).'
+                  });
+                  return;
+                }
+              }
+
+              // Add all new attributes to the memory allocator dump.
               var attributes = rawAllocatorDump.attrs;
               tv.b.iterItems(attributes, function(attrName, attrArgs) {
+                if (attrName in allocatorDump.attributes) {
+                  // Skip existing attributes of the memory allocator dump.
+                  this.model_.importWarning({
+                  type: 'memory_dump_parse_error',
+                  message: 'Multiple values provided for attribute ' +
+                      attrName + ' of memory allocator dump ' + fullName +
+                      ' (GUID=' + guid + ').'
+                  });
+                  return;
+                }
                 var attrValue =
                     tv.c.trace_model.Attribute.fromDictIfPossible(attrArgs);
                 allocatorDump.addAttribute(attrName, attrValue);
               }, this);
-              memoryAllocatorDumpsByFullName[fullName] = allocatorDump;
             }, this);
-
-            // 2) Find the roots allocator dumps and establish the parent links.
-            var fullNames = Object.keys(dumps.allocators);
-            fullNames.sort();
-            fullNames.forEach(function(fullName) {
-              var allocatorDump = memoryAllocatorDumpsByFullName[fullName];
-
-              // This is a loop because we might need to build implicit
-              // ancestors in case they were not present in the trace.
-              while (true) {
-                var lastSlashIndex = fullName.lastIndexOf('/');
-                if (lastSlashIndex === -1) {
-                  // If the dump is a root, add it to the top-level
-                  // memoryAllocatorDumps list.
-                  memoryAllocatorDumps.push(allocatorDump);
-                  break;
-                }
-
-                // If the dump is not a root, find its parent.
-                var parentFullName = fullName.substring(0, lastSlashIndex);
-                var parentAllocatorDump = memoryAllocatorDumpsByFullName[
-                    parentFullName];
-
-                // If the parent dump does not exist yet, we build an implicit
-                // one and continue up the ancestor chain.
-                var parentAlreadyExisted;
-                if (parentAllocatorDump !== undefined) {
-                  parentAlreadyExisted = true;
-                } else {
-                  parentAlreadyExisted = false;
-                  parentAllocatorDump =
-                      new tv.c.trace_model.MemoryAllocatorDump(
-                          processMemoryDump, parentFullName);
-                  memoryAllocatorDumpsByFullName[parentFullName] =
-                      parentAllocatorDump;
-                }
-
-                // Setup the parent <-> children relationships
-                allocatorDump.parent = parentAllocatorDump;
-                parentAllocatorDump.children.push(allocatorDump);
-
-                // If the parent already existed, then so did all the other
-                // ancestors so we can stop.
-                if (parentAlreadyExisted) {
-                  break;
-                }
-
-                fullName = parentFullName;
-                allocatorDump = parentAllocatorDump;
-              }
-            }, this);
-            memoryAllocatorDumps.forEach(function(dump) {
-              dump.aggregateAttributes(this.model_);
-            }, this);
-            processMemoryDump.memoryAllocatorDumps = memoryAllocatorDumps;
           }
+
+          // Find the root allocator dumps and establish the parent links of
+          // the process memory dump.
+          processMemoryDump.memoryAllocatorDumps =
+              this.inferMemoryAllocatorDumpTree_(
+                  processMemoryAllocatorDumpsByFullName);
 
           process.memoryDumps.push(processMemoryDump);
           globalMemoryDump.processMemoryDumps[pid] = processMemoryDump;
+        }, this);
+
+        // Find the root allocator dumps and establish the parent links of
+        // the global memory dump.
+        globalMemoryDump.memoryAllocatorDumps =
+            this.inferMemoryAllocatorDumpTree_(
+                globalMemoryAllocatorDumpsByFullName);
+
+        // Set up edges between memory allocator dumps.
+        events.process.forEach(function(processEvent) {
+          var dumps = processEvent.args.dumps;
+          if (dumps === undefined)
+            return;
+
+          var edges = dumps.edges;
+          if (edges === undefined)
+            return;
+
+          edges.forEach(function(rawEdge) {
+            var sourceGuid = rawEdge.source;
+            var sourceDump = allMemoryAllocatorDumpsByGuid[sourceGuid];
+            if (sourceDump === undefined) {
+              this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'Edge is missing source memory allocator dump (GUID=' +
+                    sourceGuid + ')'
+              });
+              return;
+            }
+
+            var targetGuid = rawEdge.target;
+            var targetDump = allMemoryAllocatorDumpsByGuid[targetGuid];
+            if (targetDump === undefined) {
+              this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'Edge is missing target memory allocator dump (GUID=' +
+                    targetGuid + ')'
+              });
+              return;
+            }
+
+            var importance = rawEdge.importance;
+            var edge = new tv.c.trace_model.MemoryAllocatorDumpLink(
+                sourceDump, targetDump, importance);
+
+            switch (rawEdge.type) {
+              case 'ownership':
+                if (sourceDump.owns !== undefined) {
+                  this.model_.importWarning({
+                    type: 'memory_dump_parse_error',
+                    message: 'Memory allocator dump ' + sourceDump.fullName +
+                        ' (GUID=' + sourceGuid + ') already owns a memory' +
+                        ' allocator dump (' +
+                        sourceDump.owns.target.fullName + ').'
+                  });
+                  return;
+                }
+                sourceDump.owns = edge;
+                targetDump.ownedBy.push(edge);
+                break;
+
+              case 'retention':
+                sourceDump.retains.push(edge);
+                targetDump.retainedBy.push(edge);
+                break;
+
+              default:
+                this.model_.importWarning({
+                  type: 'memory_dump_parse_error',
+                  message: 'Invalid edge type: ' + rawEdge.type +
+                      ' (source=' + sourceGuid + ', target=' + targetGuid +
+                      ', importance=' + importance + ').'
+                });
+            }
+          }, this);
+        }, this);
+      }, this);
+    },
+
+    inferMemoryAllocatorDumpTree_: function(memoryAllocatorDumpsByFullName) {
+      var rootAllocatorDumps = [];
+
+      var fullNames = Object.keys(memoryAllocatorDumpsByFullName);
+      fullNames.sort();
+      fullNames.forEach(function(fullName) {
+        var allocatorDump = memoryAllocatorDumpsByFullName[fullName];
+
+        // This is a loop because we might need to build implicit
+        // ancestors in case they were not present in the trace.
+        while (true) {
+          var lastSlashIndex = fullName.lastIndexOf('/');
+          if (lastSlashIndex === -1) {
+            // If the dump is a root, add it to the top-level
+            // rootAllocatorDumps list.
+            rootAllocatorDumps.push(allocatorDump);
+            break;
+          }
+
+          // If the dump is not a root, find its parent.
+          var parentFullName = fullName.substring(0, lastSlashIndex);
+          var parentAllocatorDump =
+              memoryAllocatorDumpsByFullName[parentFullName];
+
+          // If the parent dump does not exist yet, we build an implicit
+          // one and continue up the ancestor chain.
+          var parentAlreadyExisted = true;
+          if (parentAllocatorDump === undefined) {
+            parentAlreadyExisted = false;
+            parentAllocatorDump = new tv.c.trace_model.MemoryAllocatorDump(
+                allocatorDump.containerMemoryDump, parentFullName);
+            memoryAllocatorDumpsByFullName[parentFullName] =
+                parentAllocatorDump;
+          }
+
+          // Setup the parent <-> children relationships
+          allocatorDump.parent = parentAllocatorDump;
+          parentAllocatorDump.children.push(allocatorDump);
+
+          // If the parent already existed, then its ancestors were/will be
+          // constructed in another iteration of the forEach loop.
+          if (parentAlreadyExisted)
+            break;
+
+          fullName = parentFullName;
+          allocatorDump = parentAllocatorDump;
         }
       }, this);
+
+      rootAllocatorDumps.forEach(function(dump) {
+        dump.aggregateAttributes(this.model_);
+      }, this);
+
+      return rootAllocatorDumps;
     },
 
     joinObjectRefs_: function() {

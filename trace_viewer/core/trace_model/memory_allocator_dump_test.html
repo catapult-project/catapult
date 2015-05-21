@@ -78,8 +78,8 @@ tv.b.unittest.testSuite(function() {
     var d2 = new MemoryAllocatorDump('oilpan/document1');
     var link = new MemoryAllocatorDumpLink(d1, d2, 3);
 
-    assert.strictEqual(link.from, d1);
-    assert.strictEqual(link.to, d2);
+    assert.strictEqual(link.source, d1);
+    assert.strictEqual(link.target, d2);
     assert.strictEqual(link.importance, 3);
   });
 });

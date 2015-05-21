@@ -17,7 +17,7 @@ tv.exportTo('tv.c.trace_model', function() {
   /**
    * @constructor
    */
-  function MemoryAllocatorDump(containerMemoryDump, fullName) {
+  function MemoryAllocatorDump(containerMemoryDump, fullName, opt_guid) {
     this.fullName = fullName;
     this.parent = undefined;
     this.children = [];
@@ -33,6 +33,9 @@ tv.exportTo('tv.c.trace_model', function() {
     // Retention relationship between memory allocator dumps.
     this.retains = [];
     this.retainedBy = [];
+
+    // For debugging purposes.
+    this.guid = opt_guid;
   };
 
   MemoryAllocatorDump.prototype = {
@@ -70,9 +73,9 @@ tv.exportTo('tv.c.trace_model', function() {
   /**
    * @constructor
    */
-  function MemoryAllocatorDumpLink(from, to, opt_importance) {
-    this.from = from;
-    this.to = to;
+  function MemoryAllocatorDumpLink(source, target, opt_importance) {
+    this.source = source;
+    this.target = target;
     this.importance = opt_importance;
   }
 

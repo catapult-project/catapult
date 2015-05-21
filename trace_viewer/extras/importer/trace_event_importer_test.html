@@ -2352,7 +2352,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(m.samples[0].weight, 1);
   });
 
-  test('importMemoryDumps_verifyProcessAndGlobalDumpLinks', function() {
+  test('importMemoryDumps_verifyProcessAndGlobalMemoryDumpLinks', function() {
     var events = [
       // 2 process memory dump events without a global memory dump event.
       {
@@ -2477,8 +2477,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     assert.equal(d.totalResidentBytes, 9007199254740991);
     assert.isUndefined(d.mostRecentVmRegions);
-    assert.isUndefined(d.memoryAllocatorDumps);
-    assert.isUndefined(d.memoryAllocatorDumpsByFullName);
+    assert.lengthOf(d.memoryAllocatorDumps, 0);
   });
 
   test('importMemoryDumps_vmRegions', function() {
@@ -2555,11 +2554,10 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(vr2.byteStats.totalResident, 205);
 
     assert.equal(d.totalResidentBytes, 0);
-    assert.isUndefined(d.memoryAllocatorDumps);
-    assert.isUndefined(d.memoryAllocatorDumpsByFullName);
+    assert.lengthOf(d.memoryAllocatorDumps, 0);
   });
 
-  test('importMemoryDumps_explicitAllocatorMemoryDumps', function() {
+  test('importMemoryDumps_explicitMemoryAllocatorDumps', function() {
     var events = [
       {
         name: 'a',
@@ -2576,6 +2574,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
             },
             allocators: {
               'oilpan': {
+                guid: '1a',
                 attrs: {
                   objects_count: {
                     type: 'scalar', units: 'objects', value: '2f'
@@ -2585,6 +2584,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                 }
               },
               'oilpan/heap1': {
+                guid: '2b',
                 attrs: {
                   objects_count: {
                     type: 'scalar', units: 'objects', value: '3f'
@@ -2594,6 +2594,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                 }
               },
               'oilpan/heap2': {
+                guid: '3c',
                 attrs: {
                   objects_count: {
                     type: 'scalar', units: 'objects', value: '4f'
@@ -2603,6 +2604,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                 }
               },
               'oilpan/heap2/bucket1': {
+                // Deliberately missing GUID (to check that the importer does
+                // not skip memory allocator dump without GUID).
                 attrs: {
                   objects_count: {
                     type: 'scalar', units: 'objects', value: '1f'
@@ -2612,6 +2615,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                 }
               },
               'v8': {
+                guid: '5e',
                 attrs: {
                   objects_count: {
                     type: 'scalar', units: 'objects', value: '5f'
@@ -2665,7 +2669,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isUndefined(d.mostRecentVmRegions);
   });
 
-  test('importMemoryDumps_implicitAllocatorMemoryDumps', function() {
+  test('importMemoryDumps_implicitMemoryAllocatorDumps', function() {
     var events = [
       {
         name: 'a',
@@ -2682,6 +2686,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
             },
             allocators: {
               'oilpan/heap1': {
+                guid: '999',
                 attrs: {
                   objects_count: {
                     type: 'scalar', units: 'objects', value: '3f'
@@ -2691,6 +2696,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                 }
               },
               'oilpan/heap2/bucket1': {
+                guid: '888',
                 attrs: {
                   objects_count: {
                     type: 'scalar', units: 'objects', value: '1f'
@@ -2700,6 +2706,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                 }
               },
               'v8': {
+                guid: '777',
                 attrs: {
                   objects_count: {
                     type: 'scalar', units: 'objects', value: '5f'
@@ -2751,6 +2758,379 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     assert.equal(d.totalResidentBytes, 256);
     assert.isUndefined(d.mostRecentVmRegions);
+  });
+
+  test('importMemoryDumps_globalMemoryAllocatorDumps', function() {
+    var events = [
+      {
+        name: 'a',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '100'
+            },
+            allocators: {
+              'tile_manager/tile1': {
+                guid: '21',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '3f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '3000'},
+                  outer_size: {type: 'scalar', units: 'bytes', value: '4000'},
+                  weather: {type: 'string', units: '', value: 'rainy'}
+                }
+              },
+              'global/shared_bitmap_manager/bitmap2': {
+                guid: '42',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '1f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '2000'},
+                  outer_size: {type: 'scalar', units: 'bytes', value: '2000'},
+                  weather: {type: 'string', units: '', value: 'sunny'}
+                }
+              }
+            }
+          }
+        }
+      }
+    ];
+    var m = new tv.c.TraceModel(events, false);
+    var p = m.getProcess(42);
+    var gmd = m.globalMemoryDumps[0];
+    var pmd = p.memoryDumps[0];
+
+    assert.isUndefined(gmd.totalResidentBytes);
+    assert.equal(pmd.totalResidentBytes, 256);
+
+    assert.isUndefined(gmd.mostRecentVmRegions);
+    assert.isUndefined(pmd.mostRecentVmRegions);
+
+    assert.equal(gmd.memoryAllocatorDumps.length, 1);
+    assert.equal(pmd.memoryAllocatorDumps.length, 1);
+
+    // Global memory allocator dumps.
+    var sharedBitmapManager = gmd.getMemoryAllocatorDumpByFullName(
+        'shared_bitmap_manager');
+    assert.isDefined(sharedBitmapManager);
+    assert.include(gmd.memoryAllocatorDumps, sharedBitmapManager);
+
+    assert.equal(sharedBitmapManager.attributes['objects_count'].value, 31);
+    assert.equal(sharedBitmapManager.attributes['outer_size'].value, 8192);
+    assert.equal(sharedBitmapManager.attributes['inner_size'].value, 8192);
+    assert.isUndefined(sharedBitmapManager.attributes['weather']);
+    assert.lengthOf(sharedBitmapManager.children, 1);
+
+    var bitmap2 = gmd.getMemoryAllocatorDumpByFullName(
+        'shared_bitmap_manager/bitmap2');
+    assert.isDefined(bitmap2);
+    assert.include(sharedBitmapManager.children, bitmap2);
+    assert.strictEqual(bitmap2.parent, sharedBitmapManager);
+
+    assert.equal(bitmap2.attributes['objects_count'].value, 31);
+    assert.equal(bitmap2.attributes['outer_size'].value, 8192);
+    assert.equal(bitmap2.attributes['inner_size'].value, 8192);
+    assert.equal(bitmap2.attributes['weather'].value, 'sunny');
+    assert.lengthOf(bitmap2.children, 0);
+
+    assert.isUndefined(gmd.getMemoryAllocatorDumpByFullName('tile_manager'));
+    assert.isUndefined(
+        gmd.getMemoryAllocatorDumpByFullName('tile_manager/tile1'));
+
+    // Process memory allocator dumps.
+    var tileManagerRoot = pmd.getMemoryAllocatorDumpByFullName('tile_manager');
+    assert.isDefined(tileManagerRoot);
+    assert.include(pmd.memoryAllocatorDumps, tileManagerRoot);
+    assert.isUndefined(tileManagerRoot.parent);
+
+    assert.equal(tileManagerRoot.attributes['objects_count'].value, 63);
+    assert.equal(tileManagerRoot.attributes['outer_size'].value, 16384);
+    assert.equal(tileManagerRoot.attributes['inner_size'].value, 12288);
+    assert.isUndefined(tileManagerRoot.attributes['weather']);
+    assert.lengthOf(tileManagerRoot.children, 1);
+
+    var tile1 = pmd.getMemoryAllocatorDumpByFullName(
+        'tile_manager/tile1');
+    assert.isDefined(tile1);
+    assert.include(tileManagerRoot.children, tile1);
+    assert.strictEqual(tile1.parent, tileManagerRoot);
+
+    assert.equal(tile1.attributes['objects_count'].value, 63);
+    assert.equal(tile1.attributes['outer_size'].value, 16384);
+    assert.equal(tile1.attributes['inner_size'].value, 12288);
+    assert.equal(tile1.attributes['weather'].value, 'rainy');
+    assert.lengthOf(tile1.children, 0);
+
+    assert.isUndefined(
+        pmd.getMemoryAllocatorDumpByFullName('shared_bitmap_manager'));
+    assert.isUndefined(
+        pmd.getMemoryAllocatorDumpByFullName('shared_bitmap_manager/bitmap2'));
+  });
+
+  test('importMemoryDumps_memoryAllocatorDumpEdges', function() {
+    var events = [
+      {
+        name: 'browser',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '100'
+            },
+            allocators: {
+              'local': {
+                guid: '3',
+                attrs: {
+                  mood: {type: 'string', units: '', value: 'very good'}
+                }
+              },
+              'global/shared': {
+                guid: '7',
+                attrs: {
+                  color: {type: 'string', units: '', value: 'blue'}
+                }
+              }
+            },
+            edges: [
+              {
+                source: '3',
+                target: '7',
+                type: 'ownership',
+                importance: 0
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: 'renderer',
+        pid: 43,
+        ts: 11,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '200'
+            },
+            allocators: {
+              'local': {
+                guid: '4',
+                attrs: {
+                  size: {type: 'scalar', units: 'ft', value: '3'}
+                }
+              },
+              'global/shared': {
+                guid: '7',
+                attrs: {
+                  area: {type: 'scalar', units: 'sq ft', value: '9'}
+                }
+              }
+            },
+            edges: [
+              {
+                source: '4',
+                target: '7',
+                type: 'ownership',
+                importance: 1
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: 'gpu',
+        pid: 44,
+        ts: 10.5,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '300'
+            },
+            allocators: {
+              'local1': {
+                guid: '5',
+                attrs: {
+                  state: {type: 'string', units: '', value: 'ON'}
+                }
+              },
+              'local2': {
+                guid: '6',
+                attrs: {
+                  temperature: {type: 'scalar', units: 'C', value: '64'}
+                }
+              }
+            },
+            edges: [
+              {
+                source: '5',
+                target: '7',
+                type: 'ownership',
+                importance: -1
+              },
+              {
+                source: '6',
+                target: '5',
+                type: 'ownership',
+                importance: 1
+              },
+              {
+                source: '5',
+                target: '4',
+                type: 'retention'
+              }
+            ]
+          }
+        }
+      }
+    ];
+    var model = new tv.c.TraceModel(events, false);
+    var browserProcess = model.getProcess(42);
+    var rendererProcess = model.getProcess(43);
+    var gpuProcess = model.getProcess(44);
+
+    assert.lengthOf(model.globalMemoryDumps, 1);
+    assert.lengthOf(browserProcess.memoryDumps, 1);
+    assert.lengthOf(rendererProcess.memoryDumps, 1);
+    assert.lengthOf(gpuProcess.memoryDumps, 1);
+
+    var globalDump = model.globalMemoryDumps[0];
+    var browserDump = browserProcess.memoryDumps[0];
+    var rendererDump = rendererProcess.memoryDumps[0];
+    var gpuDump = gpuProcess.memoryDumps[0];
+
+    // Global memory allocator dump.
+    assert.lengthOf(globalDump.memoryAllocatorDumps, 1);
+
+    var globalDumpShared = globalDump.getMemoryAllocatorDumpByFullName(
+        'shared');
+    assert.isDefined(globalDumpShared);
+    assert.include(globalDump.memoryAllocatorDumps, globalDumpShared);
+    assert.equal(globalDumpShared.attributes['color'].value, 'blue');
+    assert.equal(globalDumpShared.attributes['area'].value, 9);
+    assert.isUndefined(globalDumpShared.attributes['mood']);
+    assert.isUndefined(globalDumpShared.attributes['size']);
+    assert.isUndefined(globalDumpShared.attributes['state']);
+    assert.isUndefined(globalDumpShared.attributes['temperature']);
+    assert.lengthOf(globalDumpShared.children, 0);
+    assert.isUndefined(globalDumpShared.parent);
+
+    assert.isUndefined(globalDumpShared.owns);
+    assert.lengthOf(globalDumpShared.ownedBy, 3);
+    assert.lengthOf(globalDumpShared.retains, 0);
+    assert.lengthOf(globalDumpShared.retainedBy, 0);
+
+    // Browser memory allocator dump.
+    assert.lengthOf(browserDump.memoryAllocatorDumps, 1);
+
+    var browserDumpLocal = browserDump.getMemoryAllocatorDumpByFullName(
+        'local');
+    assert.isDefined(browserDumpLocal);
+    assert.include(browserDump.memoryAllocatorDumps, browserDumpLocal);
+    assert.equal(browserDumpLocal.attributes['mood'].value, 'very good');
+    assert.isUndefined(browserDumpLocal.attributes['color']);
+    assert.lengthOf(browserDumpLocal.children, 0);
+    assert.isUndefined(browserDumpLocal.parent);
+
+    assert.isDefined(browserDumpLocal.owns);
+    assert.lengthOf(browserDumpLocal.ownedBy, 0);
+    assert.lengthOf(browserDumpLocal.retains, 0);
+    assert.lengthOf(browserDumpLocal.retainedBy, 0);
+
+    var browserDumpLocalOwnsLink = browserDumpLocal.owns;
+    assert.include(globalDumpShared.ownedBy, browserDumpLocalOwnsLink);
+    assert.strictEqual(browserDumpLocalOwnsLink.source, browserDumpLocal);
+    assert.strictEqual(browserDumpLocalOwnsLink.target, globalDumpShared);
+    assert.equal(browserDumpLocalOwnsLink.importance, 0);
+
+    // Renderer memory allocator dump.
+    assert.lengthOf(rendererDump.memoryAllocatorDumps, 1);
+
+    var rendererDumpLocal = rendererDump.getMemoryAllocatorDumpByFullName(
+        'local');
+    assert.isDefined(rendererDumpLocal);
+    assert.include(rendererDump.memoryAllocatorDumps, rendererDumpLocal);
+    assert.equal(rendererDumpLocal.attributes['size'].value, 3);
+    assert.isUndefined(rendererDumpLocal.attributes['area']);
+    assert.lengthOf(rendererDumpLocal.children, 0);
+    assert.isUndefined(rendererDumpLocal.parent);
+
+    assert.isDefined(rendererDumpLocal.owns);
+    assert.lengthOf(rendererDumpLocal.ownedBy, 0);
+    assert.lengthOf(rendererDumpLocal.retains, 0);
+    assert.lengthOf(rendererDumpLocal.retainedBy, 1);
+
+    var rendererDumpLocalOwnsLink = rendererDumpLocal.owns;
+    assert.include(globalDumpShared.ownedBy, rendererDumpLocalOwnsLink);
+    assert.strictEqual(rendererDumpLocalOwnsLink.source, rendererDumpLocal);
+    assert.strictEqual(rendererDumpLocalOwnsLink.target, globalDumpShared);
+    assert.equal(rendererDumpLocalOwnsLink.importance, 1);
+
+    // GPU memory allocator dumps.
+    assert.lengthOf(gpuDump.memoryAllocatorDumps, 2);
+
+    var gpuDumpLocal1 = gpuDump.getMemoryAllocatorDumpByFullName('local1');
+    assert.isDefined(gpuDumpLocal1);
+    assert.include(gpuDump.memoryAllocatorDumps, gpuDumpLocal1);
+    assert.equal(gpuDumpLocal1.attributes['state'].value, 'ON');
+    assert.isUndefined(gpuDumpLocal1.attributes['temperature']);
+    assert.lengthOf(gpuDumpLocal1.children, 0);
+    assert.isUndefined(gpuDumpLocal1.parent);
+
+    assert.isDefined(gpuDumpLocal1.owns);
+    assert.lengthOf(gpuDumpLocal1.ownedBy, 1);
+    assert.lengthOf(gpuDumpLocal1.retains, 1);
+    assert.lengthOf(gpuDumpLocal1.retainedBy, 0);
+
+    var gpuDumpLocal1OwnsLink = gpuDumpLocal1.owns;
+    assert.include(globalDumpShared.ownedBy, gpuDumpLocal1OwnsLink);
+    assert.strictEqual(gpuDumpLocal1OwnsLink.source, gpuDumpLocal1);
+    assert.strictEqual(gpuDumpLocal1OwnsLink.target, globalDumpShared);
+    assert.equal(gpuDumpLocal1OwnsLink.importance, -1);
+
+    var gpuDumpLocal1RetainsLink = gpuDumpLocal1.retains[0];
+    assert.include(rendererDumpLocal.retainedBy, gpuDumpLocal1RetainsLink);
+    assert.strictEqual(gpuDumpLocal1RetainsLink.source, gpuDumpLocal1);
+    assert.strictEqual(gpuDumpLocal1RetainsLink.target, rendererDumpLocal);
+    assert.isUndefined(gpuDumpLocal1RetainsLink.importance);
+
+    var gpuDumpLocal2 = gpuDump.getMemoryAllocatorDumpByFullName('local2');
+    assert.isDefined(gpuDumpLocal2);
+    assert.include(gpuDump.memoryAllocatorDumps, gpuDumpLocal2);
+    assert.equal(gpuDumpLocal2.attributes['temperature'].value, 100);
+    assert.isUndefined(gpuDumpLocal2.attributes['state']);
+    assert.lengthOf(gpuDumpLocal2.children, 0);
+    assert.isUndefined(gpuDumpLocal2.parent);
+
+    assert.isDefined(gpuDumpLocal2.owns);
+    assert.lengthOf(gpuDumpLocal2.ownedBy, 0);
+    assert.lengthOf(gpuDumpLocal2.retains, 0);
+    assert.lengthOf(gpuDumpLocal2.retainedBy, 0);
+
+    var gpuDumpLocal2OwnsLink = gpuDumpLocal2.owns;
+    assert.include(gpuDumpLocal1.ownedBy, gpuDumpLocal2OwnsLink);
+    assert.strictEqual(gpuDumpLocal2OwnsLink.source, gpuDumpLocal2);
+    assert.strictEqual(gpuDumpLocal2OwnsLink.target, gpuDumpLocal1);
+    assert.equal(gpuDumpLocal2OwnsLink.importance, 1);
   });
 
   test('importThreadInstantSliceWithStackFrame', function() {
