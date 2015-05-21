@@ -128,9 +128,16 @@ class InputAPI(object):
       self._filename_statuses.append((filename, status_char))
     return self._filename_statuses
 
-  def IsTestDataFile(self, affected_file):
+  def IsIgnoredFile(self, affected_file):
+    if affected_file.endswith('.png'):
+      return True
+
+    # Is test data?
     full_path = os.path.join(self.repository_root, affected_file.filename)
-    return full_path.startswith(self._tvp.test_data_path)
+    if full_path.startswith(self._tvp.test_data_path):
+      return True
+
+    return False
 
 
 def RunChecks(input_api):

@@ -40,7 +40,7 @@ def _FindNewViolationsOfRule(callable_rule, input_api,
     if all(callable_rule(extension, line) for line in f.contents_as_lines):
       continue  # No violation found in full text: can skip considering diff.
 
-    if input_api.IsTestDataFile(f):
+    if input_api.IsIgnoredFile(f):
       continue
 
     for line_num, line in f.changed_lines:
@@ -102,7 +102,7 @@ def _Check(input_api, license_re, sources):
   for f in sources:
     contents = f.contents
     if not license_re.search(contents):
-      if input_api.IsTestDataFile(f):
+      if input_api.IsIgnoredFile(f):
         continue
       bad_files.append(f.filename)
   if bad_files:
