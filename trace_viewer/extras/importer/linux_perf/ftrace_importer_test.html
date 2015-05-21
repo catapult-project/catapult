@@ -280,9 +280,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isFalse(m.hasImportWarnings);
   });
 
-  test('importHtml', function() {
+  test('importSystraceHtml', function() {
     var p = tv.b.getAsync(
-        '/extras/importer/linux_perf/ftrace_importer_test_data.html');
+        '/test_data/trivial_systrace.html');
     return p.then(function(data) {
       var m = new tv.c.TraceModel(data, false);
       assert.isFalse(m.hasImportWarnings);
