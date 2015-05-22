@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/xhr.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/extras/full_config.html">
 
@@ -12,55 +13,47 @@ found in the LICENSE file.
 'use strict';
 
 tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
-  function getSynchronous(url) {
-    var req = new XMLHttpRequest();
-    req.open('GET', url, false);
-    // Without the mime type specified like this, the file's bytes are not
-    // retrieved correctly.
-    req.overrideMimeType('text/plain; charset=x-user-defined');
-    req.send(null);
-    return req.responseText;
+  var generalModel;
+  function getOrCreateGeneralModel() {
+    if (generalModel !== undefined)
+      generalModel;
+    var fileUrl = '/test_data/thread_time_visualisation.json.gz';
+    var events = tv.b.getSync(fileUrl);
+    generalModel = new tv.c.TraceModel();
+    generalModel.importTraces([events], true);
+    return generalModel;
   }
 
-  var model = undefined;
+  function DCPerfTestCase(testName, opt_options) {
+    tv.b.unittest.PerfTestCase.call(this, testName, undefined, opt_options);
+    this.viewportDiv = undefined;
+    this.drawingContainer = undefined;
+  }
+  DCPerfTestCase.prototype = {
+    __proto__: tv.b.unittest.PerfTestCase.prototype,
 
-  var drawingContainer;
-  var viewportDiv;
+    setUp: function(model) {
+      this.viewportDiv = document.createElement('div');
 
-  function timedDrawingContainerPerfTest(name, testFn, iterations) {
+      var viewport = new tv.c.TimelineViewport(this.viewportDiv);
 
-    function setUpOnce() {
-      if (model !== undefined)
-        return;
-      var fileUrl = '/test_data/thread_time_visualisation.json.gz';
-      var events = getSynchronous(fileUrl);
-      model = new tv.c.TraceModel();
-      model.importTraces([events], true);
-    }
-
-    function setUp() {
-      setUpOnce();
-      viewportDiv = document.createElement('div');
-
-      var viewport = new tv.c.TimelineViewport(viewportDiv);
-
-      drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
-      viewport.modelTrackContainer = drawingContainer;
+      this.drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+      viewport.modelTrackContainer = this.drawingContainer;
 
       var modelTrack = new tv.c.tracks.TraceModelTrack(viewport);
-      drawingContainer.appendChild(modelTrack);
+      this.drawingContainer.appendChild(modelTrack);
 
       modelTrack.model = model;
 
-      viewportDiv.appendChild(drawingContainer);
+      this.viewportDiv.appendChild(this.drawingContainer);
 
-      this.addHTMLOutput(viewportDiv);
+      this.addHTMLOutput(this.viewportDiv);
 
       // Size the canvas.
-      drawingContainer.updateCanvasSizeIfNeeded_();
+      this.drawingContainer.updateCanvasSizeIfNeeded_();
 
       // Size the viewport.
-      var w = drawingContainer.canvas.width;
+      var w = this.drawingContainer.canvas.width;
       var min = model.bounds.min;
       var range = model.bounds.range;
 
@@ -68,28 +61,38 @@ tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
       var dt = new tv.c.TimelineDisplayTransform();
       dt.xSetWorldBounds(min - boost, min + range + boost, w);
       modelTrack.viewport.setDisplayTransformImmediately(dt);
-    };
+    },
 
-    function tearDown() {
-      viewportDiv.innerText = '';
-      drawingContainer = undefined;
+    runOneIteration: function() {
+      this.drawingContainer.draw_();
+    },
+
+    tearDown: function() {
+      this.viewportDiv.innerText = '';
+      this.drawingContainer = undefined;
     }
+  };
 
-    timedPerfTest(name, testFn, {
-      setUp: setUp,
-      tearDown: tearDown,
-      iterations: iterations
-    });
+
+  function GeneralDCPerfTestCase(testName, opt_options) {
+    DCPerfTestCase.call(this, testName, opt_options);
   }
 
-  var n110100 = [1, 10, 100];
-  n110100.forEach(function(val) {
-    timedDrawingContainerPerfTest(
-        'draw_softwareCanvas_' + val,
-        function() {
-          drawingContainer.draw_();
-        }, val);
-  });
+  GeneralDCPerfTestCase.prototype = {
+    __proto__: DCPerfTestCase.prototype,
+
+    setUp: function() {
+      var model = getOrCreateGeneralModel();
+      DCPerfTestCase.prototype.setUp.call(this, model);
+    }
+  };
+
+  test(new GeneralDCPerfTestCase('draw_softwareCanvas_One',
+                                 {iterations: 1}));
+  test(new GeneralDCPerfTestCase('draw_softwareCanvas_Ten',
+                                 {iterations: 10}));
+  test(new GeneralDCPerfTestCase('draw_softwareCanvas_AHundred',
+                                 {iterations: 100}));
 });
 </script>
 
