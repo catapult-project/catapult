@@ -280,6 +280,9 @@ var PADDING_UNDER_GRAPH = 5;
 var INDENTATION = 40;
 
 function TestResult(metric, values, associatedRun) {
+    if (!values)
+        return;
+
     if (values[0] instanceof Array) {
         var flattenedValues = [];
         for (var i = 0; i < values.length; i++)
