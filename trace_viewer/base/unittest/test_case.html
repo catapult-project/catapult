@@ -12,15 +12,19 @@ found in the LICENSE file.
 tv.exportTo('tv.b.unittest', function() {
   var TestTypes = tv.b.unittest.TestTypes;
 
-  function TestCase(suite, testType, name, test, options) {
+  function TestCase(name, opt_testFn, opt_options) {
+    if (!name)
+      throw new Error('Name must be provided');
     this.guid_ = tv.b.GUID.allocate();
-    this.suite_ = suite;
-    this.testType_ = testType;
+    this.suite_ = undefined; // Set by TestSuite.addTest.
     this.name_ = name;
 
-    this.options_ = options;
+    if (opt_options)
+      this.options_ = opt_options;
+    else
+      this.options_ = {};
 
-    this.test_ = test;
+    this.testFn_ = opt_testFn;
   }
 
   TestCase.parseFullyQualifiedName = function(fqn) {
@@ -44,8 +48,14 @@ tv.exportTo('tv.b.unittest', function() {
       return this.suite_;
     },
 
+    set suite(suite) {
+      if (this.suite_ !== undefined)
+        throw new Error('Suite can only be assigned once.');
+      this.suite_ = suite;
+    },
+
     get testType() {
-      return this.testType_;
+      return TestTypes.UNITTEST;
     },
 
     get name() {
@@ -60,8 +70,18 @@ tv.exportTo('tv.b.unittest', function() {
       return this.options_;
     },
 
+    setUp: function() {
+      if (this.options_.setUp)
+        this.options_.setUp.call(this);
+    },
+
     run: function(htmlHook) {
-      return this.test_();
+      return this.testFn_();
+    },
+
+    tearDown: function() {
+      if (this.options_.tearDown)
+        this.options_.tearDown.call(this);
     },
 
     // TODO(nduca): The routing of this is a bit awkward. Probably better
@@ -71,12 +91,45 @@ tv.exportTo('tv.b.unittest', function() {
     }
   };
 
-  function PerfTestCase(suite, name, test, options) {
-    TestCase.call(this, suite, TestTypes.PERFTEST, name, test, options);
+  function PerfTestCase(name, testFn, opt_options) {
+    TestCase.call(this, name, testFn, opt_options);
+    this.iterations = this.options.iterations || 10;
   }
 
   PerfTestCase.prototype = {
-    __proto__: TestCase.prototype
+    __proto__: TestCase.prototype,
+
+    get testType() {
+      return TestTypes.PERFTEST;
+    },
+
+    run: function() {
+      var durations = [];
+      var iterations = this.iterations;
+      for (var i = 0; i < iterations; ++i) {
+        var start = window.performance.now();
+        this.runOneIteration();
+        var duration = window.performance.now() - start;
+        durations.push(duration);
+      }
+
+      var durationStrings = durations.map(function(d) {
+        return d.toFixed(2) + 'ms';
+      });
+      var average = tv.b.Statistics.mean(durations);
+      var min = tv.b.Statistics.min(durations);
+
+      var summaryString = ' [';
+      summaryString += 'min ' + min.toFixed(2) + 'ms, ';
+      summaryString += 'avg ' + average.toFixed(2) + 'ms';
+      summaryString += ']';
+
+      return durationStrings.join(', ') + summaryString;
+    },
+
+    runOneIteration: function() {
+      this.testFn_();
+    }
   };
 
   return {

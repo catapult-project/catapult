@@ -23,11 +23,22 @@ tv.exportTo('tv.b.unittest', function() {
     this.tests_ = [];
     this.testNames_ = {}; // For dupe checking.
 
-    global.test = function(name, test, options) {
-      if (test == undefined)
-        throw new Error('Must provide test');
-      options = options || {};
-      var testName = name;
+    global.test = function(testCaseOrName, opt_testFn, opt_options) {
+      if (testCaseOrName instanceof TestCase) {
+        if (opt_testFn !== undefined)
+          throw new Error('opt_testFn cannot be given when giving a TestCase');
+        if (opt_options !== undefined)
+          throw new Error('opt_options cannot be given when giving a TestCase');
+        this.addTest(testCaseOrName);
+        return;
+      }
+
+      var testName = testCaseOrName;
+      var testFn = opt_testFn;
+      var options = options || {};
+      if (testFn == undefined)
+        throw new Error('Must provide opt_testFn');
+
       // If the test cares about DPI settings then we first push a test
       // that fakes the DPI as the low or hi Dpi version, depending on what
       // we're current using.
@@ -38,7 +49,7 @@ tv.exportTo('tv.b.unittest', function() {
         var testWrapper = function() {
           window.devicePixelRatio = dpi;
           try {
-            test.bind(this).call();
+            testFn.bind(this).call();
           } finally {
             window.devicePixelRatio = defaultDevicePixelRatio;
           }
@@ -53,53 +64,26 @@ tv.exportTo('tv.b.unittest', function() {
           testName += '_loDPI';
         }
 
-        this.addTest(new TestCase(this, TestTypes.UNITTEST, newName,
+        this.addTest(new TestCase(newName,
                                   testWrapper, options || {}));
       }
 
-      this.addTest(new TestCase(this, TestTypes.UNITTEST, testName,
-                                test, options || {}));
+      this.addTest(new TestCase(testName,
+                                testFn, options || {}));
     }.bind(this);
 
-    global.perfTest = function(name, test, options) {
-      this.addTest(new PerfTestCase(this, name, test, options || {}));
-    }.bind(this);
-
-    global.timedPerfTest = function(name, test, options) {
+    global.timedPerfTest = function(name, testFn, options) {
       if (options === undefined || options.iterations === undefined)
         throw new Error('timedPerfTest must have iteration option provided.');
-
-      var testWrapper = function(results) {
-        var durations = [];
-        for (var i = 0; i < options.iterations; ++i) {
-          var start = window.performance.now();
-          test.call(this);
-          var duration = window.performance.now() - start;
-          durations.push(duration);
-        }
-
-        var durationStrings = durations.map(function(d) {
-          return d.toFixed(2) + 'ms';
-        });
-        var average = tv.b.Statistics.mean(durations);
-        var min = tv.b.Statistics.min(durations);
-
-        var summaryString = ' [';
-        summaryString += 'min ' + min.toFixed(2) + 'ms, ';
-        summaryString += 'avg ' + average.toFixed(2) + 'ms';
-        summaryString += ']';
-
-        return durationStrings.join(', ') + summaryString;
-      };
-
-      this.addTest(new PerfTestCase(this, name, testWrapper, options));
+      this.addTest(new PerfTestCase(name, testFn, options));
     }.bind(this);
 
-    suiteConstructor.call();
-
-    global.test = undefined;
-    global.perfTest = undefined;
-    global.timedPerfTest = undefined;
+    try {
+      suiteConstructor.call();
+    } finally {
+      global.test = undefined;
+      global.timedPerfTest = undefined;
+    }
   }
 
   TestSuite.prototype = {
@@ -110,8 +94,11 @@ tv.exportTo('tv.b.unittest', function() {
     },
 
     addTest: function(test) {
+      if (test.suite !== undefined)
+        throw new Error('Test suite is already assigned');
       if (this.testNames_[test.name] !== undefined)
         throw new Error('Test name already used');
+      test.suite = this;
       this.testNames_[test.name] = true;
       this.tests_.push(test);
     },

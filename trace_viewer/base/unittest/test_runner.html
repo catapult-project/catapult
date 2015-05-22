@@ -151,8 +151,7 @@ tv.exportTo('tv.b.unittest', function() {
       // Try setting it up. Return true if succeeded.
       installGlobalTestHooks(this);
       try {
-        if (this.currentTestCase_.options_.setUp)
-          this.currentTestCase_.options_.setUp.call(this.currentTestCase_);
+        this.currentTestCase_.setUp();
       } catch (error) {
         this.results_.addErrorForCurrentTest(error);
         return false;
@@ -185,8 +184,7 @@ tv.exportTo('tv.b.unittest', function() {
 
     tearDownCurrentTestCase_: function() {
       try {
-        if (this.currentTestCase_.tearDown)
-          this.currentTestCase_.tearDown.call(this.currentTestCase_);
+        this.currentTestCase_.tearDown();
       } catch (error) {
         this.results_.addErrorForCurrentTest(error);
       }
