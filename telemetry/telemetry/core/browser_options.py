@@ -243,8 +243,16 @@ class BrowserOptions(object):
     # remove this setting and the old code path. http://crbug.com/379980
     self.use_devtools_active_port = False
 
+    # TODO(danduong): Find a way to store target_os here instead of
+    # finder_options.
+    self._finder_options = None
+
   def __repr__(self):
-    return str(sorted(self.__dict__.items()))
+    # This works around the infinite loop caused by the introduction of a
+    # circular reference with _finder_options.
+    obj = self.__dict__.copy()
+    del obj['_finder_options']
+    return str(sorted(obj.items()))
 
   def IsCrosBrowserOptions(self):
     return False
@@ -318,6 +326,7 @@ class BrowserOptions(object):
         delattr(finder_options, o)
 
     self.browser_type = finder_options.browser_type
+    self._finder_options = finder_options
 
     if hasattr(self, 'extra_browser_args_as_string'): # pylint: disable=E1101
       tmp = shlex.split(
@@ -351,6 +360,10 @@ class BrowserOptions(object):
     # This deferred import is necessary because browser_options is imported in
     # telemetry/telemetry/__init__.py.
     finder_options.browser_options = CreateChromeBrowserOptions(self)
+
+  @property
+  def finder_options(self):
+    return self._finder_options
 
   @property
   def extra_browser_args(self):
