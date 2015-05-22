@@ -11,3 +11,5 @@ of tools for performance analysis, testing, and monitoring:
 These tools were created by Chromium developers for performance debugging and
 testing of Chrome, but they can also be used for analyzing and monitoring
 websites, and eventually Android apps.
+
+For background, see [Chrome Speed Infra](http://www.chromium.org/developers/speed-infra)
