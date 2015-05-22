@@ -43,7 +43,7 @@ class UserStorySet(object):
     self._cloud_storage_bucket = cloud_storage_bucket
     if base_dir:
       if not os.path.isdir(base_dir):
-        raise ValueError('Must provide valid directory path for base_dir.')
+        raise ValueError('Invalid directory path of base_dir: %s' % base_dir)
       self._base_dir = base_dir
     else:
       self._base_dir = os.path.dirname(inspect.getfile(self.__class__))
