@@ -401,6 +401,8 @@ tv.exportTo('tv.e.audits', function() {
           if (/^ndroid\./.test(uiThread.name))
             uiThread.name = 'a' + uiThread.name;
           process.name = uiThread.name;
+
+          uiThread.name = 'UI Thread';
         }
 
         process.sortIndex = 0;
