@@ -20,6 +20,7 @@ tv.exportTo('tv.c', function() {
   var elidedTitleCache = new tv.c.ElidedTitleCache();
   var palette = tv.b.ui.getColorPalette();
   var EventPresenter = tv.c.EventPresenter;
+  var blackColorId = tv.b.ui.getColorIdForReservedName('black');
 
   /**
    * This value is used to allow for consistent style UI elements.
@@ -165,6 +166,8 @@ tv.exportTo('tv.c', function() {
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);
 
+    var hadTopLevel = false;
+
     for (var i = lowSlice; i < slices.length; ++i) {
       var slice = slices[i];
       var x = slice.start;
@@ -182,15 +185,11 @@ tv.exportTo('tv.c', function() {
       var alpha = EventPresenter.getSliceAlpha(slice, async);
       var lightAlpha = alpha * 0.70;
 
-      // Shift the top level slice down, make it shorter, and draw a top border
-      // in order to visually separate the slice from events above it.
-      // See https://github.com/google/trace-viewer/issues/725.
       if (slice.isTopLevel) {
-        ctx.beginPath();
-        drawLine(ctx, x, 2, w + x, 2);
-        ctx.lineWidth = 2;
-        ctx.stroke();
         tr.setYandH(3, height - 3);
+        hadTopLevel = true;
+      } else {
+        tr.setYandH(0, height);
       }
 
       // If cpuDuration is available, draw rectangles proportional to the
@@ -246,6 +245,30 @@ tv.exportTo('tv.c', function() {
       }
     }
     tr.flush();
+
+    if (async && hadTopLevel) {
+      // Draw a top border over async slices in order to visually separate
+      // them from events above it.
+      // See https://github.com/google/trace-viewer/issues/725.
+      tr.setYandH(2, 1);
+      for (var i = lowSlice; i < slices.length; ++i) {
+        var slice = slices[i];
+        var x = slice.start;
+        if (x > viewRWorld)
+          break;
+
+        var w = pixWidth;
+        if (slice.duration > 0) {
+          w = Math.max(slice.duration, 0.000001);
+          if (w < pixWidth)
+            w = pixWidth;
+        }
+
+        tr.fillRect(x, w, blackColorId, 0.7);
+      }
+      tr.flush();
+    }
+
     ctx.restore();
   }
 

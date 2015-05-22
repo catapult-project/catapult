@@ -67,6 +67,9 @@ tv.exportTo('tv.c', function() {
      * calls. x and width are specifieid on the fillRect calls.
      */
     setYandH: function(y, h) {
+      if (this.y_ === y &&
+          this.h_ === h)
+        return;
       this.flush();
       this.y_ = y;
       this.h_ = h;
