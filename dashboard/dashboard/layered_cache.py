@@ -1,0 +1,163 @@
+"""Caches processed query results in memcache and datastore.
+
+Memcache is not very reliable for the perf dashboard. Prometheus team explained
+that memcache is LRU and shared between multiple applications, so their activity
+may result in our data being evicted. To prevent this, we cache processed
+query results in the data store. Using NDB, the values are also cached in
+memcache if possible. This improves performance because doing a get()
+for a key which has a single BlobProperty is much quicker than a complex query
+over a large dataset.
+(Background: http://g/prometheus-discuss/othVtufGIyM/wjAS5djyG8kJ)
+
+When an item is cached, layered_cache does the following:
+1) Namespaces the key based on whether datastore_hooks says the request is
+internal_only.
+2) Pickles the value (memcache does this internally), and adds a data store
+entity with the key and a BlobProperty with the pickled value.
+
+Retrieving values checks memcache via NDB first, and if datastore is used it
+unpickles.
+
+When an item is removed from the the cache, it is removed from both internal and
+external caches, since removals are usually caused by large changes that affect
+both caches.
+"""
+
+import cPickle
+import datetime
+import logging
+
+from google.appengine.api import datastore_errors
+from google.appengine.ext import ndb
+
+from dashboard import datastore_hooks
+from dashboard import request_handler
+
+
+class DeleteExpiredEntitiesHandler(request_handler.RequestHandler):
+  """URL endpoint for a cron job to delete expired entities from datastore."""
+
+  def get(self):
+    """This get handler is called from cron.
+
+    It deletes only expired CachedPickledString entities from the datastore.
+    """
+    DeleteAllExpiredEntities()
+
+
+class CachedPickledString(ndb.Model):
+  value = ndb.BlobProperty()
+  expire_time = ndb.DateTimeProperty()
+
+  @classmethod
+  def GetExpiredKeys(cls):
+    """Gets keys of expired entities.
+
+    Returns:
+      List of keys for items which are expired.
+    """
+    current_time = datetime.datetime.now()
+    query = cls.query(cls.expire_time < current_time)
+    query = query.filter(cls.expire_time != None)
+    return query.fetch(keys_only=True)
+
+
+def _NamespaceKey(key, namespace=None):
+  if not namespace:
+    namespace = datastore_hooks.GetNamespace()
+  return '%s__%s' % (namespace, key)
+
+
+def Prewarm(keys):
+  """Prewarm the NDB in-context cache by doing async_get for the keys.
+
+  For requests like /add_point which can get/set dozens of keys, contention
+  occasionally causes the gets to take several seconds. But they will be
+  cached in context by NDB if they are requested at the start of the request.
+
+  Args:
+    keys: List of string keys.
+  """
+  to_get = []
+  for key in keys:
+    to_get.append(ndb.Key('CachedPickledString',
+                          _NamespaceKey(key, 'externally_visible')))
+    to_get.append(ndb.Key('CachedPickledString',
+                          _NamespaceKey(key, 'internal_only')))
+  ndb.get_multi_async(to_get)
+
+
+def Get(key):
+  """Gets the value from the datastore."""
+  namespaced_key = _NamespaceKey(key)
+  entity = ndb.Key('CachedPickledString', namespaced_key).get(
+      read_policy=ndb.EVENTUAL_CONSISTENCY)
+  if entity:
+    return cPickle.loads(entity.value)
+  return None
+
+
+def GetExternal(key):
+  """Gets the value from the datastore for the externally namespaced key."""
+  namespaced_key = _NamespaceKey(key, 'externally_visible')
+  entity = ndb.Key('CachedPickledString', namespaced_key).get(
+      read_policy=ndb.EVENTUAL_CONSISTENCY)
+  if entity:
+    return cPickle.loads(entity.value)
+  return None
+
+
+def Set(key, value, days_to_keep=None):
+  """Sets the value in the datastore.
+
+  Args:
+    key: The key name, which will be namespaced.
+    value: The value to set.
+    days_to_keep: Number of days to keep entity in datastore, default is None.
+    Entity will not expire when this value is 0 or None.
+  """
+  # When number of days to keep is given, calculate expiration time for
+  # the entity and store it in datastore.
+  # Once the entity expires, it will be deleted from the datastore.
+  expire_time = None
+  if days_to_keep:
+    expire_time = datetime.datetime.now() + datetime.timedelta(
+        days=days_to_keep)
+  namespaced_key = _NamespaceKey(key)
+  try:
+    CachedPickledString(id=namespaced_key,
+                        value=cPickle.dumps(value),
+                        expire_time=expire_time).put()
+  except datastore_errors.BadRequestError as e:
+    logging.warning('BadRequestError for key %s: %s', key, e)
+
+
+def SetExternal(key, value):
+  """Sets the value in the datastore for the externally namespaced key.
+
+  Needed for things like /add_point that update internal/exteral data at the
+  same time.
+
+  Args:
+    key: The key name, which will be namespaced as externally_visible.
+    value: The value to set.
+  """
+  namespaced_key = _NamespaceKey(key, 'externally_visible')
+  try:
+    CachedPickledString(id=namespaced_key,
+                        value=cPickle.dumps(value)).put()
+  except datastore_errors.BadRequestError as e:
+    logging.warning('BadRequestError for key %s: %s', key, e)
+
+
+def Delete(key):
+  """Clears the value from the datastore."""
+  internal_key = _NamespaceKey(key, namespace='internal_only')
+  external_key = _NamespaceKey(key, namespace='externally_visible')
+  ndb.delete_multi([ndb.Key('CachedPickledString', internal_key),
+                    ndb.Key('CachedPickledString', external_key)])
+
+
+def DeleteAllExpiredEntities():
+  """Deletes all expired entities from the datastore."""
+  ndb.delete_multi(CachedPickledString.GetExpiredKeys())

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block head %}
+  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
+{% endblock %}
+{% block content %}
+  <p>Buildbots at the following IP addresses are permitted to post data to the
+  dashboard. If you're not sure what IP to add,
+  <a href="https://appengine.google.com/logs?app_id=s~chromeperf&amp;filter=IP+address&amp;filter_type=regex"
+     target="_blank">check the logs</a>.</p>
+  <form action="/ip_whitelist" method="POST">
+    {{xsrf_input|safe}}
+    <textarea rows=50 cols=100 name="ip_whitelist">{{ip_whitelist}}</textarea>
+    <br>
+    <input type="submit" value="Update IP Whitelist">
+  </form>
+{% endblock %}

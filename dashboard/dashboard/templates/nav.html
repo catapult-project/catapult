@@ -1,0 +1,188 @@
+<script async>
+  /**
+   * Opens a window with new Chromium bug, pre-filled with some info.
+   * @param {string} summary The title of the bug.
+   * @param {string} comment The description of the bug.
+   * @param {Array} labels A list of labels to apply to the bug.
+   * @param {Array} cc A list of email addresses to cc on the bug.
+   */
+  function openCrBugWindow(summary, comment, labels, cc) {
+    var url = 'https://code.google.com/p/chromium/issues/entry?';
+    url += [
+      'summary=' + encodeURIComponent(summary),
+      'comment=' + encodeURIComponent(comment),
+      'labels=' + encodeURIComponent(labels.join(',')),
+      'cc=' + encodeURIComponent(cc.join(','))
+    ].join('&');
+    window.open(url, '_blank');
+  }
+
+  /**
+   * Opens a window to report a general dashboard bug.
+   */
+  function reportBug() {
+    var os = guessOS();
+    var chromeVersion = 'unknown';
+    var chromeVersionMatch = navigator.userAgent.match(/Chrome\/(\S*)/);
+    if (chromeVersionMatch) {
+      chromeVersion = chromeVersionMatch[1];
+    }
+    var description = 'Chrome version: ' + chromeVersion + ' (' + os + ')\n';
+    description += 'Url: ' + document.location.href + '\n\n';
+    description += 'Please copy and paste any errors from JavaScript console (';
+    description += (os == 'Mac' ? 'Command+Option+J' : 'Ctrl+Shift+J');
+    description += ' to open):\n\n'
+    description += 'Please describe the problem:\n';
+    openCrBugWindow('', description, ['Performance-Dashboard'], []);
+  }
+
+  /**
+   * Guesses user's OS from user agent string (for pre-filling bug labels).
+   */
+  function guessOS() {
+    var userAgentContains = function(s) {
+      return navigator.userAgent.indexOf(s) != -1;
+    }
+    if (userAgentContains('CrOS')) {
+      return 'Chrome OS';
+    } else if (userAgentContains('Windows')) {
+      return 'Windows';
+    } else if (userAgentContains('Macintosh')) {
+      return 'Mac';
+    } else if (userAgentContains('Linux')) {
+      return 'Linux';
+    } else if (userAgentContains('Android')) {
+      return 'Android';
+    }
+    return 'unknown'
+  }
+
+  /**
+   * Opens a window to report a general dashboard bug.
+   */
+  function fileIpWhitelistRequest() {
+    var description = 'Please whitelist the following IP addresses ' +
+        'to send data to the Chrome Perf Dashboard:\n' +
+        '<IP ADDRESSES HERE>\n\n' +
+        'These buildbots are for:\n';
+    var labels = ['Performance-Dashboard-IPWhitelist', 'Restrict-View-Google'];
+    openCrBugWindow('IP Whitelist Request', description, labels, []);
+  }
+
+  /**
+   * Opens a window to report a general dashboard bug.
+   */
+  function fileBotWhitelistRequest() {
+    var description = 'Please make the following bots and all their data ' +
+        'publicly available, with no google.com login required: \n' +
+        '<BOT NAMES HERE>\n\n';
+    var labels = ['Performance-Dashboard-BotWhitelist', 'Restrict-View-Google'];
+    openCrBugWindow('Bot Whitelist Request', description, labels, []);
+  }
+
+  /**
+   * Opens a window to report a general dashboard bug.
+   */
+  function fileMonitoringRequest() {
+    var description = 'Please add monitoring for the following tests:\n\n' +
+        'Test owner (see http://go/perf-test-owners):\n' +
+        'Buildbot master name:\n' +
+        'Test suite names:\n' +
+        'Restrict to these specific traces (if any):\n' +
+        'Email address and/or url of sheriff rotation: \n' +
+        'Receive individual email alerts immediately or as a daily summary?\n' +
+        'Should these alerts be Google-internal?\n';
+    var labels = ['Performance-Dashboard-MonitoringRequest', 'Restrict-View-Google'];
+    openCrBugWindow('Monitoring Request', description, labels, []);
+  }
+</script>
+<nav id="navbar">
+  <ul class="menu">
+    <li><a href="/">Home</a></li>
+    <li><a href="/alerts">Alerts</a></li>
+    <li><a href="/report">Browse Graphs</a></li>
+    <li><a href="https://code.google.com/p/chromium/issues/list?q=label%3AType-Bug-Regression+label%3APerformance&amp;sort=-id"
+           target="_blank">Perf Bugs</a></li>
+    <li>Other Pages<span class="menu-drop-arrow"></span>
+      <ul class="submenu">
+        <li><a href="/edit_test_owners">Edit Test Owners</a></li>
+        <li><a href="/bisect_stats">Bisect Stat Graphs</a></li>
+        <li><a href="/new_points">Recently Added Points</a></li>
+        <li><a href="/debug_alert">Debug Alert</a></li>
+      </ul>
+    </li>
+    <li>Waterfalls<span class="menu-drop-arrow"></span>
+      <ul class="submenu">
+        <li><a href="http://build.chromium.org/p/chromium.perf/waterfall?show_events=true&amp;failures_only=true&amp;reload=120"
+               target="_blank">chromium.perf</a></li>
+        <li><a href="http://build.chromium.org/p/chromium.webkit/waterfall?builder=Win7%20Perf&amp;builder=Mac10.6%20Perf&amp;builder=Linux%20Perf"
+               target="_blank">chromium.webkit</a></li>
+        <li><a href="http://build.chromium.org/p/chromium.gpu/waterfall?show_events=true&amp;failures_only=true&amp;reload=120"
+               target="_blank">chromium.gpu</a></li>
+        <li><a href="http://build.chromium.org/p/tryserver.chromium.perf/builders"
+               target="_blank">Bisect bots</a></li>
+      </ul>
+    </li>
+    <li>Help<span class="menu-drop-arrow"></span>
+      <ul class="submenu">
+        <li><a href="http://www.chromium.org/developers/speed-infra/performance-dashboard"
+               target="_blank">Perf Dashboard Public Documentation</a></li>
+        <li><a href="http://www.chromium.org/developers/speed-infra/performance-dashboard/endpoints"
+               target="_blank">Documented Endpoints</a></li>
+        <li><a href="http://www.chromium.org/developers/tree-sheriffs/perf-sheriffs"
+               target="_blank">About Chromium Perf Sheriffing</a></li>
+        <li><a href="https://docs.google.com/a/chromium.org/document/d/1kIMZ8jNA2--4JsCtUJ_OprnlfT6aM3BfHrQ8o4s3bDI/edit"
+               target="_blank">Chromium Perf Sheriff Status</a></li>
+        <li><a href="http://www.chromium.org/developers/tree-sheriffs/perf-sheriffs/bisecting-performance-regressions"
+               target="_blank">Bisecting Performance Regressions</a></li>
+        <li><a href="http://www.chromium.org/developers/how-tos/gpu-wrangling"
+               target="_blank">GPU Bots &amp; Pixel Wrangling</a></li>
+        <li><a href="https://docs.google.com/a/google.com/spreadsheets/d/1R_1BAOd3xeVtR0jn6wB5HHJ2K25mIbKp3iIRQKkX38o/view"
+               target="_blank">Benchmark Owners Spreadsheet</a></li>
+        {% if is_admin %}
+        <li><a href="https://sites.google.com/a/google.com/chromeperf/hacking-on-the-perf-dashboard"
+               target="_blank">Hacking on the Perf Dashboard</a></li>
+        {% endif %}
+      </ul>
+    </li>
+
+    {% if is_admin %}
+    <li>Admin<span class="menu-drop-arrow"></span>
+      <ul class="submenu">
+        <li><a href="/edit_sheriffs"
+               target="_blank">Edit Sheriff Rotations</a></li>
+        <li><a href="/edit_anomaly_configs"
+               target="_blank">Edit Anomaly Configs</a></li>
+        <li><a href="/edit_bug_labels"
+               target="_blank">Edit Bug Labels</a></li>
+        <li><a href="/stats"
+               target="_blank">View Statistics</a></li>
+        <li><a href="/update_test_metadata"
+               target="_blank">Update Test Metadata</a></li>
+        <li><a href="/migrate_test_names"
+               target="_blank">Migrate Test Names</a></li>
+        <li><a href="/ip_whitelist"
+               target="_blank">IP Whitelist</a></li>
+        <li><a href="/bot_whitelist"
+               target="_blank">Bot Whitelist</a></li>
+        <li><a href="/change_internal_only"
+               target="_blank">Change internal_only</a></li>
+        <li><a href="https://appengine.google.com/dashboard?&amp;app_id=s~chromeperf"
+               target="_blank">App Engine Dashboard</a></li>
+        <li><a href="https://appengine.google.com/logs?&amp;app_id=s~chromeperf"
+               target="_blank">App Engine Logs</a></li>
+      </ul>
+    </li>
+    {% endif %}
+    <li class="report-issue">Report Issue<span class="menu-drop-arrow"></span>
+      <ul class="submenu">
+        <li><a href="javascript:reportBug()">Report a Perf Dashboard Bug</a></li>
+        <li><a href="javascript:fileIpWhitelistRequest()">Request Buildbot IP Whitelisting</a></li>
+        <li><a href="javascript:fileBotWhitelistRequest()">Request to Make Buildbots Publicly Visible</a></li>
+        <li><a href="javascript:fileMonitoringRequest()">Request Monitoring for Tests</a></li>
+      </ul>
+    </li>
+    <li class="spacer"></li>
+    <li>{{user_info|safe}}</li>
+  </ul>
+</nav>

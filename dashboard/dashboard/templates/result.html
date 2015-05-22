@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block head %}
+  <title>Result</title>
+  <link type="text/css" rel="stylesheet" href="static/main_style.css">
+{% endblock %}
+{% block content %}
+  {% if errors %}
+    {% for error in errors %}
+      <h1 class="error">{{error}}</h1>
+    {% endfor %}
+  {% else %}
+    <h1>{{headline}}</h1>
+    <dl class="results">
+      {% for item in results %}
+      <dt>{{item.name}}</dt><dd {% if item.class %}class="{{item.class}}"{% endif %}>{{item.value}}</dd>
+      {% endfor %}
+    </dl>
+  {% endif %}
+  {% if close_window %}
+    <a href="" onclick="window.close();opener.location.reload();">Close</a>
+  {% else %}
+    <a href="">&laquo; Back</a>
+  {% endif %}
+{% endblock %}

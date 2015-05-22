@@ -1,0 +1,52 @@
+# Python Application Configuration
+# https://developers.google.com/appengine/docs/python/config/appconfig
+
+runtime: python27  # Which runtime to use.
+api_version: 1     # Which version of the API to use for that runtime.
+threadsafe: false  # Disable threading.
+
+# Third party libraries loaded from the App Engine environment.
+libraries:
+- name: jinja2
+  version: "2.6"
+- name: pycrypto
+  version: "2.6"
+- name: oauth2client
+  version: "latest"
+- name: webapp2
+  version: "2.5.1"
+
+builtins:
+- remote_api: on
+- appstats: on
+- deferred: on
+
+inbound_services:
+- warmup
+
+handlers:
+- url: /_ah/dev_console(/.*)?
+  script: google.appengine.ext.admin.application
+  login: admin
+  secure: always
+
+- url: /favicon.ico
+  static_dir: dashboard/static/favicon.ico
+  secure: always
+
+- url: /static/
+  static_dir: dashboard/static/
+  secure: always
+
+- url: /components/
+  static_dir: dashboard/elements/
+  secure: always
+
+- url: /ip_whitelist
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /.*
+  script: dashboard.dispatcher.app
+  secure: always
