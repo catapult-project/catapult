@@ -17,12 +17,17 @@ tv.exportTo('tv.c.trace_model', function() {
    *
    * TODO(ccraik): eventually support more complex structure/paragraphs.
    *
+   * @param {string} title A user-visible title for the event.
+   * @param {string} description A user-visible description of the event.
+   * @param {Array} docLinks A list of Objects, each of the form
+   * {label: str, textContent: str, href: str}
+   *
    * @constructor
    */
-  function EventInfo(title, description, docUrl) {
+  function EventInfo(title, description, docLinks) {
     this.title = title;
     this.description = description;
-    this.docUrl = docUrl;
+    this.docLinks = docLinks;
     this.colorId = tv.b.ui.getColorIdForGeneralPurposeString(title);
   }
 

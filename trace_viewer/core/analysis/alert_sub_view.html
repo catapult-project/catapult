@@ -98,14 +98,17 @@ found in the LICENSE file.
         value: descriptionEl
       });
 
-      if (alert.info.docUrl) {
-        var linkEl = document.createElement('a');
-        linkEl.href = alert.info.docUrl;
-        linkEl.textContent = alert.info.docUrl;
-        linkEl.target = '_blank';
-        rows.push({
-        name: 'Additional reading',
-        value: linkEl
+      // Additional Reading Links
+      if (alert.info.docLinks) {
+        alert.info.docLinks.forEach(function(linkObject) {
+          var linkEl = document.createElement('a');
+          linkEl.target = '_blank';
+          linkEl.href = linkObject.href;
+          linkEl.textContent = linkObject.textContent;
+          rows.push({
+            name: linkObject.label,
+            value: linkEl
+          });
         });
       }
       return rows;

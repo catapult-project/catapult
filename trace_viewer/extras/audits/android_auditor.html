@@ -59,6 +59,32 @@ tv.exportTo('tv.e.audits', function() {
     return frame.args['deadline'] && frame.args['deadline'] < frame.end;
   }
 
+  /** Builder object for EventInfo docLink structures */
+  function DocLinkBuilder() {
+    this.docLinks = [];
+  }
+  DocLinkBuilder.prototype = {
+    addAppVideo: function(name, videoId) {
+      this.docLinks.push({
+        label: 'Video Link',
+        textContent: ('Android Performance Patterns: ' + name),
+        href: 'https://www.youtube.com/watch?list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&v=' + videoId // @suppress longLineCheck
+      });
+      return this;
+    },
+    addDacRef: function(name, link) {
+      this.docLinks.push({
+          label: 'Doc Link',
+          textContent: (name + ' documentation'),
+          href: 'https://developer.android.com/reference/' + link
+      });
+      return this;
+    },
+    build: function() {
+      return this.docLinks;
+    }
+  };
+
   /**
    * Auditor for Android-specific traces.
    * @constructor
@@ -77,11 +103,17 @@ tv.exportTo('tv.e.audits', function() {
   AndroidAuditor.viewAlphaAlertInfo_ = new EventInfo(
       'Inefficient View alpha usage',
       'Setting an alpha between 0 and 1 has significant performance costs, if one of the fast alpha paths is not used.', // @suppress longLineCheck
-      'http://developer.android.com/reference/android/view/View.html#setAlpha(float)'); // @suppress longLineCheck
+      new DocLinkBuilder()
+          .addAppVideo('Hidden Cost of Transparency', 'wIy8g8yNhNk')
+          .addDacRef('View#setAlpha()', 'android/view/View.html#setAlpha(float)') // @suppress longLineCheck
+          .build());
   AndroidAuditor.saveLayerAlertInfo_ = new EventInfo(
       'Expensive rendering with Canvas#saveLayer()',
       'Canvas#saveLayer() incurs extremely high rendering cost. They disrupt the rendering pipeline when drawn, forcing a flush of drawing content. Instead use View hardware layers, or static Bitmaps. This enables the offscreen buffers to be reused in between frames, and avoids the disruptive render target switch.', // @suppress longLineCheck
-      'https://developer.android.com/reference/android/graphics/Canvas.html#saveLayerAlpha(android.graphics.RectF, int, int)'); // @suppress longLineCheck
+      new DocLinkBuilder()
+          .addAppVideo('Hidden Cost of Transparency', 'wIy8g8yNhNk')
+          .addDacRef('Canvas#saveLayerAlpha()', 'android/graphics/Canvas.html#saveLayerAlpha(android.graphics.RectF, int, int)') // @suppress longLineCheck
+          .build());
   AndroidAuditor.getSaveLayerAlerts_ = function(frame) {
     var badAlphaRegEx =
         /^(.+) alpha caused (unclipped )?saveLayer (\d+)x(\d+)$/;
@@ -222,7 +254,10 @@ tv.exportTo('tv.e.audits', function() {
 
   AndroidAuditor.measureLayoutAlertInfo_ = new EventInfo(
       'Expensive measure/layout pass',
-      'Measure/Layout took a significant time, contributing to jank. Avoid triggering layout during animations.'); // @suppress longLineCheck
+      'Measure/Layout took a significant time, contributing to jank. Avoid triggering layout during animations.', // @suppress longLineCheck
+      new DocLinkBuilder()
+          .addAppVideo('Invalidations, Layouts, and Performance', 'we6poP0kw6E')
+          .build());
   AndroidAuditor.getMeasureLayoutAlert_ = function(frame) {
     var events = frame.associatedEvents.filter(function(event) {
       return event.title == 'measure' || event.title == 'layout';
@@ -241,7 +276,11 @@ tv.exportTo('tv.e.audits', function() {
 
   AndroidAuditor.viewDrawAlertInfo_ = new EventInfo(
       'Long View#draw()',
-      'Recording the drawing commands of invalidated Views took a long time. Avoid significant work in View or Drawable custom drawing, especially allocations or drawing to Bitmaps.'); // @suppress longLineCheck
+      'Recording the drawing commands of invalidated Views took a long time. Avoid significant work in View or Drawable custom drawing, especially allocations or drawing to Bitmaps.', // @suppress longLineCheck
+      new DocLinkBuilder()
+          .addAppVideo('Invalidations, Layouts, and Performance', 'we6poP0kw6E')
+          .addAppVideo('Avoiding Allocations in onDraw()', 'HAK5acHQ53E')
+          .build());
   AndroidAuditor.getViewDrawAlert_ = function(frame) {
     var slice = undefined;
     for (var i = 0; i < frame.associatedEvents.length; i++) {
@@ -266,7 +305,11 @@ tv.exportTo('tv.e.audits', function() {
 
   AndroidAuditor.blockingGcAlertInfo_ = new EventInfo(
       'Blocking Garbage Collection',
-      'Blocking GCs are caused by object churn, and made worse by having large numbers of objects in the heap. Avoid allocating objects during animations/scrolling, and recycle Bitmaps to avoid triggering garbage collection.'); // @suppress longLineCheck
+      'Blocking GCs are caused by object churn, and made worse by having large numbers of objects in the heap. Avoid allocating objects during animations/scrolling, and recycle Bitmaps to avoid triggering garbage collection.', // @suppress longLineCheck
+      new DocLinkBuilder()
+          .addAppVideo('Garbage Collection in Android', 'pzfzz50W5Uo')
+          .addAppVideo('Avoiding Allocations in onDraw()', 'HAK5acHQ53E')
+          .build());
   AndroidAuditor.getBlockingGcAlert_ = function(frame) {
     var events = frame.associatedEvents.filter(function(event) {
       return event.title == 'DVM Suspend' ||
@@ -528,7 +571,7 @@ tv.exportTo('tv.e.audits', function() {
     build_: function() {
       var registerEventInfo = function(dict) {
         this.titleInfoLookup[dict.title] = new EventInfo(
-            dict.title, dict.description, dict.docUrl);
+            dict.title, dict.description, dict.docLinks);
         if (dict.parent)
           this.titleParentLookup[dict.title] = dict.parent;
       }.bind(this);
@@ -559,12 +602,12 @@ tv.exportTo('tv.e.audits', function() {
       registerEventInfo({
           title: 'measure',
           parent: 'performTraversals',
-          docUrl: 'https://developer.android.com/reference/android/view/View.html#Layout',  // @suppress longLineCheck
+          docLinks: {'View#layout documentation': 'https://developer.android.com/reference/android/view/View.html#Layout'}, // @suppress longLineCheck
           description: 'First of two phases in view hierarchy layout. Views are asked to size themselves according to constraints supplied by their parent. Some ViewGroups may measure a child more than once to help satisfy their own constraints. Nesting ViewGroups that measure children more than once can lead to excessive and repeated work.'}); // @suppress longLineCheck
       registerEventInfo({
           title: 'layout',
           parent: 'performTraversals',
-          docUrl: 'https://developer.android.com/reference/android/view/View.html#Layout',  // @suppress longLineCheck
+          docLinks: {'View#layout documentation': 'https://developer.android.com/reference/android/view/View.html#Layout'}, // @suppress longLineCheck
           description: 'Second of two phases in view hierarchy layout, repositioning content and child Views into their new locations.'}); // @suppress longLineCheck
       registerEventInfo({
           title: 'draw',

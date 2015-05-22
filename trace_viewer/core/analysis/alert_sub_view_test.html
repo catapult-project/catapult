@@ -22,7 +22,12 @@ tv.b.unittest.testSuite(function() {
     var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
 
     var ALERT_INFO_1 = new tv.c.trace_model.EventInfo(
-        'Alert 1', 'Critical alert', 'https://github.com/google/trace-viewer/');
+        'Alert 1', 'Critical alert',
+        [{
+          label: 'Project Page',
+          textContent: 'Trace-Viewer Github Project',
+          href: 'https://github.com/google/trace-viewer/'
+        }]);
 
     var alert = new tv.c.trace_model.Alert(ALERT_INFO_1, 5, [slice]);
 

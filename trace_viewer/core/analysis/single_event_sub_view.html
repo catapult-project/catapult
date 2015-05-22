@@ -158,14 +158,17 @@ found in the LICENSE file.
           value: descriptionEl
         });
 
-        if (event.info.docUrl) {
-          var linkEl = document.createElement('a');
-          linkEl.href = event.info.docUrl;
-          linkEl.textContent = event.info.docUrl;
-          linkEl.target = '_blank';
-          rows.push({
-          name: 'Additional reading',
-          value: linkEl
+
+        if (event.info.docLinks) {
+          event.info.docLinks.forEach(function(linkObject) {
+            var linkEl = document.createElement('a');
+            linkEl.target = '_blank';
+            linkEl.href = linkObject.href;
+            linkEl.textContent = linkObject.textContent;
+            rows.push({
+              name: linkObject.label,
+              value: linkEl
+            });
           });
         }
       }
