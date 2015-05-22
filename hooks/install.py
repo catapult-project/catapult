@@ -54,8 +54,6 @@ def InstallHooks():
     return
 
   links = []
-  links.append(Link(os.path.join('.git', 'hooks', 'pre-commit'),
-                    os.path.join('hooks/pre_commit')))
   links.append(Link(os.path.join('.git', 'hooks', 'pre-push'),
                     os.path.join('hooks/pre_push')))
 
