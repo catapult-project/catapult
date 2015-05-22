@@ -41,7 +41,18 @@ tv.exportTo('tv.c.test_utils', function() {
     var cat = options.cat ? options.cat : 'cat';
     var title = options.title ? options.title : 'a';
 
-    var colorId = options.colorId ? options.colorId : 0;
+    var colorId;
+    if (options.colorId) {
+      if (options.colorId === 'random') {
+        colorId = Math.floor(Math.random() *
+                   tv.b.ui.paletteProperties.numGeneralPurposeColorIds);
+      } else {
+        colorId = options.colorId;
+      }
+    } else {
+      colorId = 0;
+    }
+
 
     var duration;
     if (options.duration !== undefined) {
@@ -73,6 +84,9 @@ tv.exportTo('tv.c.test_utils', function() {
 
     if (options.id)
       slice.id = options.id;
+    else
+      slice.id = tv.b.GUID.allocate();
+
     if (options.startStackFrame)
       slice.startStackFrame = options.startStackFrame;
     if (options.endStackFrame)

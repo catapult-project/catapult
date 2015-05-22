@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/xhr.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/extras/full_config.html">
 
 <script>
@@ -28,6 +29,7 @@ tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
     tv.b.unittest.PerfTestCase.call(this, testName, undefined, opt_options);
     this.viewportDiv = undefined;
     this.drawingContainer = undefined;
+    this.viewport = undefined;
   }
   DCPerfTestCase.prototype = {
     __proto__: tv.b.unittest.PerfTestCase.prototype,
@@ -35,12 +37,12 @@ tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
     setUp: function(model) {
       this.viewportDiv = document.createElement('div');
 
-      var viewport = new tv.c.TimelineViewport(this.viewportDiv);
+      this.viewport = new tv.c.TimelineViewport(this.viewportDiv);
 
-      this.drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
-      viewport.modelTrackContainer = this.drawingContainer;
+      this.drawingContainer = new tv.c.tracks.DrawingContainer(this.viewport);
+      this.viewport.modelTrackContainer = this.drawingContainer;
 
-      var modelTrack = new tv.c.tracks.TraceModelTrack(viewport);
+      var modelTrack = new tv.c.tracks.TraceModelTrack(this.viewport);
       this.drawingContainer.appendChild(modelTrack);
 
       modelTrack.model = model;
@@ -60,7 +62,7 @@ tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
       var boost = range * 0.15;
       var dt = new tv.c.TimelineDisplayTransform();
       dt.xSetWorldBounds(min - boost, min + range + boost, w);
-      modelTrack.viewport.setDisplayTransformImmediately(dt);
+      this.viewport.setDisplayTransformImmediately(dt);
     },
 
     runOneIteration: function() {
@@ -68,8 +70,6 @@ tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
     },
 
     tearDown: function() {
-      this.viewportDiv.innerText = '';
-      this.drawingContainer = undefined;
     }
   };
 
@@ -93,6 +93,45 @@ tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
                                  {iterations: 10}));
   test(new GeneralDCPerfTestCase('draw_softwareCanvas_AHundred',
                                  {iterations: 100}));
+
+
+  function AsyncDCPerfTestCase(testName, opt_options) {
+    DCPerfTestCase.call(this, testName, opt_options);
+  }
+
+  AsyncDCPerfTestCase.prototype = {
+    __proto__: DCPerfTestCase.prototype,
+
+    setUp: function() {
+      var model = tv.c.test_utils.newModel(function(m) {
+        var proc = m.getOrCreateProcess(1);
+        for (var tid = 1; tid <= 5; tid++) {
+          var thread = proc.getOrCreateThread(tid);
+          for (var i = 0; i < 5000; i++) {
+            var mod = Math.floor(i / 100) % 4;
+            var slice = tv.c.test_utils.newAsyncSliceEx({
+              name: 'Test' + i,
+              colorId: tid + mod,
+              id: tv.b.GUID.allocate(),
+              start: i * 10,
+              duration: 9,
+              isTopLevel: true
+            });
+            thread.asyncSliceGroup.push(slice);
+          }
+        }
+      });
+      DCPerfTestCase.prototype.setUp.call(this, model);
+
+      var w = this.drawingContainer.canvas.width;
+
+      var dt = new tv.c.TimelineDisplayTransform();
+      dt.xSetWorldBounds(-2000, 54000, w);
+      this.viewport.setDisplayTransformImmediately(dt);
+    }
+  };
+  test(new AsyncDCPerfTestCase('draw_asyncSliceHeavy_Twenty',
+                                 {iterations: 20}));
 });
 </script>
 
