@@ -149,9 +149,7 @@ class JSChecker(object):
       flags.FLAGS.strict = True
       error_handler = ErrorHandlerImpl()
       js_checker = checker.JavaScriptStyleChecker(error_handler)
-      js_checker.Check(os.path.join(
-          self.input_api.repository_root,
-          f.filename))
+      js_checker.Check(f.absolute_path)
 
       for error in error_handler.GetErrors():
         highlight = self.error_highlight(
