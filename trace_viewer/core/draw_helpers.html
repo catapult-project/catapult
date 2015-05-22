@@ -257,6 +257,9 @@ tv.exportTo('tv.c', function() {
         if (x > viewRWorld)
           break;
 
+        if (!slice.isTopLevel)
+          continue;
+
         var w = pixWidth;
         if (slice.duration > 0) {
           w = Math.max(slice.duration, 0.000001);
