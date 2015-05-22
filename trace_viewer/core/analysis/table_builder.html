@@ -939,7 +939,7 @@ found in the LICENSE file.
         node.setAttribute('selected', true);
       },
 
-      doesColumnIndexSupportSelection(columnIndex) {
+      doesColumnIndexSupportSelection: function(columnIndex) {
         var columnInfo = this.tableColumns_[columnIndex];
         var scs = columnInfo.supportsCellSelection;
         if (scs === false)
