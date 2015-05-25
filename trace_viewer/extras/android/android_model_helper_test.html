@@ -17,6 +17,7 @@ tv.b.unittest.testSuite(function() {
   var TraceModel = tv.c.TraceModel;
   var newAsyncSliceNamed = tv.c.test_utils.newAsyncSliceNamed;
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
+  var newSliceEx = tv.c.test_utils.newSliceEx;
   var newCounterNamed = tv.c.test_utils.newCounterNamed;
   var newCounterSeries = tv.c.test_utils.newCounterSeries;
 
@@ -29,7 +30,11 @@ tv.b.unittest.testSuite(function() {
       sfThread.name = '/system/bin/surfaceflinger';
 
       // ensure slicegroup has data
-      sfThread.sliceGroup.pushSlice(newSliceNamed('doComposition', 8, 2));
+      sfThread.sliceGroup.pushSlice(newSliceEx({
+        title: 'doComposition',
+        start: 8,
+        duration: 2
+      }));
 
       var counter = sfProcess.getOrCreateCounter('android', 'VSYNC');
       var series = newCounterSeries();
