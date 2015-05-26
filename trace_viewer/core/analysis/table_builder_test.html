@@ -910,5 +910,35 @@ tv.b.unittest.testSuite(function() {
 
     assert.equal('right', table.$.body.children[0].children[0].style.textAlign);
   });
+
+  test('subRowsPropertyName', function() {
+    var columns = [
+      {
+        title: 'a',
+        value: function(row) {
+          return row.a;
+        }
+      }
+    ];
+    var rows = [
+      {
+        a: 1,
+        isExpanded: true,
+        children: [
+          {a: 2}
+        ]
+      }
+    ];
+
+    var table = document.createElement('tracing-analysis-nested-table');
+    table.subRowsPropertyName = 'children';
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    assert.equal(2, table.$.body.children[1].children[0].textContent);
+  });
 });
 </script>

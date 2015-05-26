@@ -156,6 +156,7 @@ found in the LICENSE file.
         this.headerCells_ = [];
         this.showHeader_ = true;
         this.emptyValue_ = undefined;
+        this.subRowsPropertyName_ = 'subRows';
       },
 
       ready: function() {
@@ -179,6 +180,7 @@ found in the LICENSE file.
         this.sortDescending_ = false;
         this.columnsWithExpandButtons_ = [];
         this.headerCells_ = [];
+        this.subRowsPropertyName_ = 'subRows';
       },
 
       get showHeader() {
@@ -188,6 +190,10 @@ found in the LICENSE file.
       set showHeader(showHeader) {
         this.showHeader_ = showHeader;
         this.scheduleRebuildHeaders_();
+      },
+
+      set subRowsPropertyName(name) {
+        this.subRowsPropertyName_ = name;
       },
 
       get emptyValue() {
@@ -263,7 +269,8 @@ found in the LICENSE file.
        * @param {Array} rows An array of 'row' objects with the following
        * fields:
        *   optional: subRows An array of objects that have the same 'row'
-       *                     structure.
+       *                     structure. Set subRowsPropertyName to use an
+       *                     alternative field name.
        */
       set tableRows(rows) {
         this.selectedTableRowInfo_ = undefined;
@@ -349,7 +356,7 @@ found in the LICENSE file.
         // Sort expanded sub rows recursively.
         for (var i = 0; i < rows.length; i++) {
           if (rows[i].isExpanded)
-            this.sortRows_(rows[i].subRows);
+            this.sortRows_(rows[i][this.subRowsPropertyName_]);
         }
       },
 
@@ -452,7 +459,6 @@ found in the LICENSE file.
       generateTableRowNodes_: function(tableSection, userRows, rowInfoMap,
                                        indentation, lastAddedRow,
                                        parentRowInfo) {
-
         if (this.sortColumnIndex_ !== undefined &&
             tableSection === this.$.body) {
           userRows = userRows.slice(); // Don't mess with the input data.
@@ -488,7 +494,7 @@ found in the LICENSE file.
 
           // Append subrows now.
           lastAddedRow = this.generateTableRowNodes_(
-              tableSection, userRow.subRows, rowInfoMap,
+              tableSection, userRow[this.subRowsPropertyName_], rowInfoMap,
               indentation + 1, lastAddedRow, rowInfo);
         }
         return lastAddedRow;
@@ -536,8 +542,8 @@ found in the LICENSE file.
             td.classList.add('supports-selection');
 
           if (this.columnsWithExpandButtons_.indexOf(i) != -1) {
-            if (rowInfo.userRow.subRows &&
-                rowInfo.userRow.subRows.length > 0) {
+            if (rowInfo.userRow[this.subRowsPropertyName_] &&
+                rowInfo.userRow[this.subRowsPropertyName_].length > 0) {
               td.style.paddingLeft = INDENT_SPACE + 'px';
               var expandButton = this.appendNewElement_(td,
                   'expand-button');
@@ -592,7 +598,8 @@ found in the LICENSE file.
                                       tdThatWasClicked.columnIndex);
               }
               if (isAlreadySelected) {
-                if (rowInfo.userRow.subRows && rowInfo.userRow.subRows.length) {
+                if (rowInfo.userRow[this.subRowsPropertyName_] &&
+                    rowInfo.userRow[this.subRowsPropertyName_].length) {
                   this.setExpandedForUserRow_(
                       tableSection, rowInfoMap,
                       rowInfo.userRow, !rowInfo.isExpanded);
@@ -602,7 +609,8 @@ found in the LICENSE file.
                     rowInfo, tdThatWasClicked.columnIndex);
               }
             } else {
-              if (rowInfo.userRow.subRows && rowInfo.userRow.subRows.length) {
+              if (rowInfo.userRow[this.subRowsPropertyName_] &&
+                  rowInfo.userRow[this.subRowsPropertyName_].length) {
                 this.setExpandedForUserRow_(
                     tableSection, rowInfoMap,
                     rowInfo.userRow, !rowInfo.isExpanded);
@@ -615,10 +623,11 @@ found in the LICENSE file.
       },
 
       removeSubNodes_: function(tableSection, rowInfo, rowInfoMap) {
-        if (rowInfo.userRow.subRows === undefined)
+        if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
           return;
-        for (var i = 0; i < rowInfo.userRow.subRows.length; i++) {
-          var subRow = rowInfo.userRow.subRows[i];
+        for (var i = 0;
+             i < rowInfo.userRow[this.subRowsPropertyName_].length; i++) {
+          var subRow = rowInfo.userRow[this.subRowsPropertyName_][i];
           var subRowInfo = rowInfoMap.get(subRow);
           if (!subRowInfo)
             continue;
@@ -752,10 +761,10 @@ found in the LICENSE file.
         if (rowInfo.isExpanded) {
           expandButton.classList.add('button-expanded');
           var lastAddedRow = rowInfo.htmlNode;
-          if (rowInfo.userRow.subRows) {
+          if (rowInfo.userRow[this.subRowsPropertyName_]) {
             this.generateTableRowNodes_(
                 tableSection,
-                rowInfo.userRow.subRows, rowInfoMap,
+                rowInfo.userRow[this.subRowsPropertyName_], rowInfoMap,
                 rowInfo.indentation + 1,
                 lastAddedRow, rowInfo);
           }
@@ -1050,14 +1059,15 @@ found in the LICENSE file.
             return;
 
           } else {
-            if (rowInfo.userRow.subRows === undefined)
+            if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
               return;
-            if (rowInfo.userRow.subRows.length === 0)
+            if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
               return;
 
             if (!rowInfo.isExpanded)
               this.setExpandedForTableRow(rowInfo.userRow, true);
-            this.selectedTableRow = rowInfo.userRow.subRows[0];
+            this.selectedTableRow =
+              rowInfo.userRow[this.subRowsPropertyName_][0];
             this.focusSelected_();
             return;
           }
