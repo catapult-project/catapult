@@ -65,8 +65,6 @@ tv.exportTo('tv.e.about_tracing', function() {
   }
 
   function beginRecording(tracingControllerClient) {
-    var defaultTitle = document.title;
-    var toggleRecordingIndicator = false;
     var finalPromiseResolver;
     var finalPromise = new Promise(function(resolve, reject) {
       finalPromiseResolver = {
@@ -168,7 +166,6 @@ tv.exportTo('tv.e.about_tracing', function() {
             recordFailed);
         stopButton.disabled = true;
         bufferPercentFullDiv = undefined;
-        document.title = defaultTitle;
       });
       finalPromise.progressDlg = progressDlg;
     }
@@ -201,14 +198,6 @@ tv.exportTo('tv.e.about_tracing', function() {
       var newText = 'Buffer usage: ' + percent_full + '%';
       if (bufferPercentFullDiv.textContent != newText)
         bufferPercentFullDiv.textContent = newText;
-
-      document.title = 'tracing: ' + percent_full + '%';
-      if (toggleRecordingIndicator)
-        document.title = document.title + ' \u25AA';
-      if (percent_full < 100)
-          toggleRecordingIndicator = !toggleRecordingIndicator;
-      else
-          toggleRecordingIndicator = false;
 
       window.setTimeout(getBufferPercentFull, 500);
     }
