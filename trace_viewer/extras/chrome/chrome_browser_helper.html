@@ -29,8 +29,8 @@ tv.exportTo('tv.e.audits', function() {
   ChromeBrowserHelper.prototype = {
     __proto__: tv.e.audits.ChromeProcessHelper.prototype,
 
-    get rendererProcesses() {
-      return this.modelHelper.rendererProcesses;
+    get rendererHelpers() {
+      return this.modelHelper.rendererHelpers;
     },
 
     getLoadingEventsInRange: function(rangeOfInterest) {
@@ -106,11 +106,13 @@ tv.exportTo('tv.e.audits', function() {
       tv.b.iterItems(this.process.threads, function(tid, thread) {
         func.call(opt_this, thread);
       });
-      this.rendererProcesses.forEach(function(rendererProcess) {
+
+      tv.b.iterItems(this.rendererHelpers, function(pid, rendererHelper) {
+        var rendererProcess = rendererHelper.process;
         tv.b.iterItems(rendererProcess.threads, function(tid, thread) {
           func.call(opt_this, thread);
         });
-      });
+      }, this);
     }
   };
 

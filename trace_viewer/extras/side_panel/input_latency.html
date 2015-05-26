@@ -150,7 +150,6 @@ found in the LICENSE file.
     },
 
     updateToolbar_: function() {
-      var rendererProcesses = this.modelHelper_.rendererProcesses;
       var browserProcess = this.modelHelper_.browserProcess;
       var labels = [];
 
@@ -159,10 +158,13 @@ found in the LICENSE file.
         labels.push({label: label_str, value: browserProcess.pid});
       }
 
-      rendererProcesses.forEach(function(rendererProcess) {
-        var label_str = 'Renderer: ' + rendererProcess.pid;
-        labels.push({label: label_str, value: rendererProcess.pid});
-      });
+      tv.b.iterItems(this.modelHelper_.rendererHelpers,
+        function(pid, rendererHelper) {
+          var rendererProcess = rendererHelper.process;
+          var label_str = 'Renderer: ' + rendererProcess.userFriendlyName;
+          labels.push({label: label_str, value: rendererProcess.userFriendlyName
+        });
+      }, this);
 
       if (labels.length === 0)
         return;
@@ -214,10 +216,12 @@ found in the LICENSE file.
       var rangeOfInterest = this.currentRangeOfInterest;
 
       var chromeProcess;
-      if (this.modelHelper_.renderers[this.selectedProcessId_])
-        chromeProcess = this.modelHelper_.renderers[this.selectedProcessId_];
+      if (this.modelHelper_.rendererHelpers[this.selectedProcessId_])
+        chromeProcess = this.modelHelper_.rendererHelpers[
+          this.selectedProcessId_
+        ];
       else
-        chromeProcess = this.modelHelper_.browser;
+        chromeProcess = this.modelHelper_.browserHelper;
 
       var frameEvents = chromeProcess.getFrameEventsInRange(
           this.frametimeType, rangeOfInterest);
@@ -227,7 +231,8 @@ found in the LICENSE file.
         return d.frametime;
       });
 
-      var latencyEvents = this.modelHelper_.browser.getLatencyEventsInRange(
+      var latencyEvents = this.modelHelper_.browserHelper.
+        getLatencyEventsInRange(
           rangeOfInterest);
 
       var latencyData = [];
@@ -297,10 +302,11 @@ found in the LICENSE file.
       }
 
       var modelHelper = new tv.e.audits.ChromeModelHelper(m);
-      if (modelHelper.browser && modelHelper.browser.hasLatencyEvents) {
-        return {
-          supported: true
-        };
+      if (modelHelper.browserHelper &&
+        modelHelper.browserHelper.hasLatencyEvents) {
+          return {
+            supported: true
+          };
       }
 
       return {

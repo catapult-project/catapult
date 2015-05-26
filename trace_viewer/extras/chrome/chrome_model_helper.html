@@ -46,22 +46,23 @@ tv.exportTo('tv.e.audits', function() {
   function ChromeModelHelper(model) {
     this.model_ = model;
 
-    // Find browser.
+    // Find browserHelper.
     this.browserProcess_ = findChromeBrowserProcess(model);
     if (this.browserProcess_) {
-      this.browser_ = new tv.e.audits.ChromeBrowserHelper(
+      this.browserHelper_ = new tv.e.audits.ChromeBrowserHelper(
           this, this.browserProcess_);
     } else {
-      this.browser_ = undefined;
+      this.browserHelper_ = undefined;
     }
 
-    // Find renderers.
-    this.rendererProcesses_ = findChromeRenderProcesses(model);
+    // Find rendererHelpers.
+    var rendererProcesses_ = findChromeRenderProcesses(model);
 
-    this.renderers_ = {};
-    this.rendererProcesses_.forEach(function(renderProcess) {
-      var renderer = new tv.e.audits.ChromeRendererHelper(this, renderProcess);
-      this.renderers_[renderer.pid] = renderer;
+    this.rendererHelpers_ = {};
+    rendererProcesses_.forEach(function(renderProcess) {
+      var rendererHelper = new tv.e.audits.ChromeRendererHelper(
+        this, renderProcess);
+      this.rendererHelpers_[rendererHelper.pid] = rendererHelper;
     }, this);
   }
 
@@ -90,16 +91,12 @@ tv.exportTo('tv.e.audits', function() {
       return this.browserProcess_;
     },
 
-    get browser() {
-      return this.browser_;
+    get browserHelper() {
+      return this.browserHelper_;
     },
 
-    get rendererProcesses() {
-      return this.rendererProcesses_;
-    },
-
-    get renderers() {
-      return this.renderers_;
+    get rendererHelpers() {
+      return this.rendererHelpers_;
     }
   };
 

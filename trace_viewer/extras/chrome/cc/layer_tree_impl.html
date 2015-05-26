@@ -56,10 +56,10 @@ tv.exportTo('tv.e.cc', function() {
 
     _initializeTracedInputLatencies: function(traceModel) {
       var modelHelper = new tv.e.audits.ChromeModelHelper(traceModel);
-      if (!modelHelper.browser)
+      if (!modelHelper.browserHelper)
         return;
 
-      var latencyEvents = modelHelper.browser.getLatencyEventsInRange(
+      var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
           traceModel.bounds);
 
       // Convert all ids to InputLatency Async objects.

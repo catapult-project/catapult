@@ -68,7 +68,7 @@ tv.exportTo('tv.e.deep_reports', function() {
     if (tv.e.audits.ChromeModelHelper.supportsModel(model)) {
       var helper = new tv.e.audits.ChromeModelHelper(model);
       if (false) {
-        var latencyEvents = helper.browser.getLatencyEventsInRange(
+        var latencyEvents = helper.browserHelper.getLatencyEventsInRange(
           model.bounds);
         window.allTitles = window.allTitles || {};
         latencyEvents.forEach(function(event) {

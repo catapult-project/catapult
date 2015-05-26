@@ -24,24 +24,24 @@ tv.exportTo('tv.e.audits', function() {
   };
 
   RAILIRFinder.supportsModelHelper = function(modelHelper) {
-    return modelHelper.browser !== undefined;
+    return modelHelper.browserHelper !== undefined;
   };
 
   RAILIRFinder.prototype = {
     getAllLatencyEvents: function() {
-      return this.modelHelper.browser.getLatencyEventsInRange(
+      return this.modelHelper.browserHelper.getLatencyEventsInRange(
           this.model.bounds);
     },
 
     getAllFrameEvents: function() {
       var frameEvents = [];
-      if (this.modelHelper.browser) {
-        var fe = this.modelHelper.browser.getFrameEventsInRange(
+      if (this.modelHelper.browserHelper) {
+        var fe = this.modelHelper.browserHelper.getFrameEventsInRange(
             tv.e.audits.IMPL_FRAMETIME_TYPE,
             this.model.bounds);
         frameEvents.push.apply(frameEvents, fe);
       }
-      tv.b.iterItems(this.modelHelper.renderers, function(pid, renderer) {
+      tv.b.iterItems(this.modelHelper.rendererHelpers, function(pid, renderer) {
         var fe = renderer.getFrameEventsInRange(tv.e.audits.IMPL_FRAMETIME_TYPE,
                                                 this.model.bounds);
         frameEvents.push.apply(frameEvents, fe);
@@ -51,11 +51,12 @@ tv.exportTo('tv.e.audits', function() {
     },
 
     getAllLoadAndNetEvents: function() {
-      if (this.modelHelper.browser === undefined)
+      if (this.modelHelper.browserHelper === undefined)
         return;
       var bounds = this.model.bounds;
-      return this.modelHelper.browser.getLoadingEventsInRange(bounds).concat(
-          this.modelHelper.browser.getAllNetworkEventsInRange(bounds));
+      return this.modelHelper.browserHelper.getLoadingEventsInRange(
+        bounds).concat(
+          this.modelHelper.browserHelper.getAllNetworkEventsInRange(bounds));
     },
 
     getAllGestures: function() {
@@ -91,7 +92,7 @@ tv.exportTo('tv.e.audits', function() {
     },
 
     getAllExpectedFlingingRanges: function() {
-      if (this.modelHelper.browser === undefined)
+      if (this.modelHelper.browserHelper === undefined)
         return;
       var ops = [];
       var FLING_OP_START = 'start';
@@ -121,7 +122,7 @@ tv.exportTo('tv.e.audits', function() {
       });
 
       // Add ops for fling animations.
-      this.modelHelper.browser.getAllAsyncSlicesMatching(function(event) {
+      this.modelHelper.browserHelper.getAllAsyncSlicesMatching(function(event) {
         if (event.title !== 'InputHandlerProxy::HandleGestureFling::started')
           return;
         ops.push({
@@ -220,7 +221,7 @@ tv.exportTo('tv.e.audits', function() {
       var allLoadAndNetEvents = this.getAllLoadAndNetEvents();
 
       var allCommitProvisionalLoad =
-        this.modelHelper.browser.getCommitProvisionalLoadEventsInRange(
+        this.modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
             this.model.bounds);
 
       var allFrameEvents = this.getAllFrameEvents();

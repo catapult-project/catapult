@@ -112,8 +112,9 @@ tv.b.unittest.testSuite(function() {
       audits.addProvisionalLoadEvent(model, {start: 1, end: 10});
       audits.addFrameEvent(model, {start: 11, end: 20});
     });
-    var loads = rirf.modelHelper.browser.getCommitProvisionalLoadEventsInRange(
-      rirf.model.bounds);
+    var loads = rirf.modelHelper.browserHelper.
+      getCommitProvisionalLoadEventsInRange(
+        rirf.model.bounds);
     assert.equal(1, loads.length);
     var irs = rirf.findAllInteractionRecords();
     assert.equal(2, irs.length);

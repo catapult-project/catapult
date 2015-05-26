@@ -29,8 +29,8 @@ tv.exportTo('tv.e.audits', function() {
     if (tv.e.audits.ChromeModelHelper.supportsModel(this.model)) {
       var modelHelper = new tv.e.audits.ChromeModelHelper(this.model);
 
-      // Must be a browser in order to do audits.
-      if (modelHelper.browser === undefined)
+      // Must be a browserHelper in order to do audits.
+      if (modelHelper.browserHelper === undefined)
         this.modelHelper = undefined;
       else
         this.modelHelper = modelHelper;
@@ -75,7 +75,7 @@ tv.exportTo('tv.e.audits', function() {
 
     addBigTaskAlerts: function() {
       var model = this.model;
-      tv.b.iterItems(this.modelHelper.renderers, function(pid, renderer) {
+      tv.b.iterItems(this.modelHelper.rendererHelpers, function(pid, renderer) {
         var slices = renderer.mainThread.sliceGroup.slices;
         slices.forEach(function(slice) {
           if (slice.category != 'toplevel')

@@ -29,7 +29,7 @@ tv.b.unittest.testSuite(function() {
     var model = tv.e.audits.newChromeModel(function() { });
     var modelHelper = new tv.e.audits.ChromeModelHelper(model);
     audits.addLoadingEvent(model, {start: 1, end: 10});
-    assert.equal(1, modelHelper.browser.getLoadingEventsInRange(
+    assert.equal(1, modelHelper.browserHelper.getLoadingEventsInRange(
       getRange(0, 100)).length);
   });
 
@@ -37,15 +37,16 @@ tv.b.unittest.testSuite(function() {
     var model = tv.e.audits.newChromeModel(function() { });
     var modelHelper = new tv.e.audits.ChromeModelHelper(model);
     audits.addProvisionalLoadEvent(model, {start: 1, end: 10});
-    assert.equal(1, modelHelper.browser.getCommitProvisionalLoadEventsInRange(
-      getRange(0, 100)).length);
+    assert.equal(1,
+      modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
+        getRange(0, 100)).length);
   });
 
   test('LatencyEvent', function() {
     var model = tv.e.audits.newChromeModel(function() { });
     var modelHelper = new tv.e.audits.ChromeModelHelper(model);
     audits.addGeneralLatencyInfoEvent(model, {start: 1, end: 10});
-    assert.equal(1, modelHelper.browser.getLatencyEventsInRange(
+    assert.equal(1, modelHelper.browserHelper.getLatencyEventsInRange(
       getRange(0, 100)).length);
   });
 
@@ -53,7 +54,7 @@ tv.b.unittest.testSuite(function() {
     var model = tv.e.audits.newChromeModel(function() { });
     var modelHelper = new tv.e.audits.ChromeModelHelper(model);
     audits.addNetworkEvent(model, {start: 1, end: 10});
-    assert.equal(1, modelHelper.browser.getAllNetworkEventsInRange(
+    assert.equal(1, modelHelper.browserHelper.getAllNetworkEventsInRange(
       getRange(0, 100)).length);
   });
 });
