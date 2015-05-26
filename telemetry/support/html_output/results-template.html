@@ -280,35 +280,36 @@ var PADDING_UNDER_GRAPH = 5;
 var INDENTATION = 40;
 
 function TestResult(metric, values, associatedRun) {
-    if (!values)
-        return;
+    if (values) {
+        if (values[0] instanceof Array) {
+            var flattenedValues = [];
+            for (var i = 0; i < values.length; i++)
+                flattenedValues = flattenedValues.concat(values[i]);
+            values = flattenedValues;
+        }
 
-    if (values[0] instanceof Array) {
-        var flattenedValues = [];
-        for (var i = 0; i < values.length; i++)
-            flattenedValues = flattenedValues.concat(values[i]);
-        values = flattenedValues;
-    }
-
-    if (jQuery.type(values[0]) === 'string') {
-        try {
-            var current = JSON.parse(values[0]);
-            if (current.params.type === 'HISTOGRAM') {
-                this.histogramValues = current;
-                // Histogram results have no values (per se). Instead we calculate
-                // the values from the histogram bins.
-                var values = [];
-                var buckets = current.buckets
-                for (var i = 0; i < buckets.length; i++) {
-                    var bucket = buckets[i];
-                    var bucket_mean = (bucket.high + bucket.low) / 2;
-                    for (var b = 0; b < bucket.count; b++) {
-                        values.push(bucket_mean);
+        if (jQuery.type(values[0]) === 'string') {
+            try {
+                var current = JSON.parse(values[0]);
+                if (current.params.type === 'HISTOGRAM') {
+                    this.histogramValues = current;
+                    // Histogram results have no values (per se). Instead we calculate
+                    // the values from the histogram bins.
+                    var values = [];
+                    var buckets = current.buckets
+                    for (var i = 0; i < buckets.length; i++) {
+                        var bucket = buckets[i];
+                        var bucket_mean = (bucket.high + bucket.low) / 2;
+                        for (var b = 0; b < bucket.count; b++) {
+                            values.push(bucket_mean);
+                        }
                     }
                 }
             }
+            catch (e) { /* ignore, assume not a JSON string */ }
         }
-        catch (e) { /* ignore, assume not a JSON string */ }
+    } else {
+        values = [];
     }
 
     this.test = function () { return metric; }
