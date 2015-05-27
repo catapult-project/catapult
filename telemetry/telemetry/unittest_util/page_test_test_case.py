@@ -87,7 +87,7 @@ class PageTestTestCase(unittest.TestCase):
           ActualStartTracing(*args, **kwargs)
           start_tracing_called[0] = True
           raise exceptions.IntentionalException
-        browser.platform.tracing_controller.Start = FakeStartTracing
+        browser.StartTracing = FakeStartTracing
 
         ActualStopTracing = browser.platform.tracing_controller.Stop
         def FakeStopTracing(*args, **kwargs):
@@ -101,7 +101,7 @@ class PageTestTestCase(unittest.TestCase):
     measurement = BuggyMeasurement()
     try:
       self.RunMeasurement(measurement, ps, options=options)
-    except page_test.MultiTabTestAppCrashError:
+    except page_test.TestNotSupportedOnPlatformError:
       pass
     if start_tracing_called[0]:
       self.assertTrue(stop_tracing_called[0])
