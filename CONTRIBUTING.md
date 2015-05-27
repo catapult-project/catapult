@@ -23,4 +23,6 @@ https://www.chromium.org/developers/how-tos/install-depot-tools) set up.
 
 You can run tests locally with `./base/util/run_tests.py`. You can also check the
 current status of our tests on the
-[waterfall](http://build.chromium.org/p/client.catapult/waterfall).
+[waterfall](http://build.chromium.org/p/client.catapult/waterfall). Use the
+"commit" checkbox in rietveld to commit through the commit queue, which automatically
+runs all tests.
