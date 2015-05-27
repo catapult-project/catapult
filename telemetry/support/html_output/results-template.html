@@ -306,7 +306,9 @@ function TestResult(metric, values, associatedRun) {
                     }
                 }
             }
-            catch (e) { /* ignore, assume not a JSON string */ }
+            catch (e) {
+                console.error(e, e.stack);
+            }
         }
     } else {
         values = [];
