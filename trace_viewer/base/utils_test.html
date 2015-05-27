@@ -35,14 +35,6 @@ found in the LICENSE file.
 tv.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
 
-  test('clamping', function() {
-    assert.equal(tv.b.clamp(2, 1, 3), 2);
-    assert.equal(tv.b.clamp(1, 1, 3), 1);
-    assert.equal(tv.b.clamp(0, 1, 3), 1);
-    assert.equal(tv.b.clamp(3, 1, 3), 3);
-    assert.equal(tv.b.clamp(4, 1, 3), 3);
-  });
-
   test('getUsingPath', function() {
     var z = tv.b.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
     assert.equal(z, 3);
