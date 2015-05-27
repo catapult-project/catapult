@@ -117,7 +117,8 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.retry_limit = args.retry_limit
     runner.args.test_results_server = args.test_results_server
     runner.args.test_type = args.test_type
-    runner.args.timing = args.timing
+    # Always print out test's timing info.
+    runner.args.timing = True
     runner.args.top_level_dir = args.top_level_dir
     runner.args.verbose = args.verbosity
     runner.args.write_full_results_to = args.write_full_results_to
