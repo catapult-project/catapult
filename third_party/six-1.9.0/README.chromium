@@ -1,0 +1,12 @@
+Name: six
+URL: http://pythonhosted.org/six/
+Version: 1.9.0
+License: MIT
+
+Description:
+Six provides utilities for wrapping over differences between Python 2 and 3.
+
+It is included in catapult because webtest depends on it.
+
+Local Modifications:
+Removed everything except for six.py.
