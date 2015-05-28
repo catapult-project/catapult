@@ -8,6 +8,7 @@ import os
 import re
 import stat
 import subprocess
+import sys
 
 from telemetry.core.platform import desktop_platform_backend
 from telemetry.core.platform import ps_util
@@ -126,6 +127,19 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     if elevate_privilege and not IsSetUID(application):
       args = ['/usr/bin/sudo'] + args
       if not _CanRunElevatedWithSudo(application) and not IsElevated():
+        if not sys.stdout.isatty():
+          # Without an interactive terminal (or a configured 'askpass', but
+          # that is rarely relevant), there's no way to prompt the user for
+          # sudo. Fail with a helpful error message. For more information, see:
+          #   https://code.google.com/p/chromium/issues/detail?id=426720
+          text = ('Telemetry needs to run %s with elevated privileges, but the '
+                 'setuid bit is not set and there is no interactive terminal '
+                 'for a prompt. Please ask an administrator to set the setuid '
+                 'bit on this executable and ensure that it is owned by a user '
+                 'with the necessary privileges. Aborting.' % application)
+          print text
+          raise Exception(text)
+        # Else, there is a tty that can be used for a useful interactive prompt.
         print ('Telemetry needs to run %s under sudo. Please authenticate.' %
                application)
         # Synchronously authenticate.
