@@ -8,7 +8,8 @@ import os
 import sys
 import unittest
 
-_DASHBOARD = os.path.join(os.path.dirname(__file__), 'dashboard')
+_DASHBOARD_PARENT = os.path.join(os.path.dirname(__file__))
+_DASHBOARD = os.path.join(_DASHBOARD_PARENT, 'dashboard')
 
 
 def _GetTests(args):
@@ -18,8 +19,16 @@ def _GetTests(args):
   return loader.discover(_DASHBOARD, pattern='*_test.py')
 
 
-def main():
+def _FixPath():
   dev_appserver.fix_sys_path()
+  sys.path.append(os.path.dirname(__file__))
+  # The __init__.py in the dashboard package should add third party
+  # libraries to the path.
+  import dashboard  # pylint: disable=unused-variable
+
+
+def main():
+  _FixPath()
   parser = argparse.ArgumentParser(description='Run the test suite.')
   parser.add_argument(
       'tests', nargs='*', help='Fully-qualified names of tests to run.')
