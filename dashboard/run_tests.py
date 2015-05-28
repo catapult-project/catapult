@@ -34,7 +34,11 @@ def main():
       'tests', nargs='*', help='Fully-qualified names of tests to run.')
   args = parser.parse_args()
   runner = unittest.TextTestRunner(verbosity=1)
-  runner.run(_GetTests(args))
+  result = runner.run(_GetTests(args))
+  if result.wasSuccessful():
+    sys.exit(0)
+  else:
+    sys.exit(1)
 
 
 if __name__ == '__main__':
