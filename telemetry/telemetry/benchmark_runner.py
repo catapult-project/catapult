@@ -66,7 +66,6 @@ def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
       'Pass --browser to list benchmarks for another browser.')
   print >> output_pipe
 
-
 def GetMostLikelyMatchedBenchmarks(all_benchmarks, input_benchmark_name):
   """ Returns the list of benchmarks whose name most likely matched with
     |input_benchmark_name|.
@@ -93,7 +92,8 @@ def GetMostLikelyMatchedBenchmarks(all_benchmarks, input_benchmark_name):
                         reverse=True)
   return ordered_list
 
-class Environment(object):
+
+class ProjectConfig(object):
   """Contains information about the benchmark runtime environment.
 
   Attributes:
