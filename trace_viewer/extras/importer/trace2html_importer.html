@@ -30,7 +30,8 @@ tv.exportTo('tv.e.importer', function() {
     // Try to find viewer-data...
     while (true) {
       if (!r.advanceToLineMatching(
-          /^<\s*script id="viewer-data" type="application\/json">$/))
+          new RegExp('^<\s*script id="viewer-data" ' +
+                     'type="(application\/json|text\/plain)">$')))
         break;
 
       r.beginSavingLines();
