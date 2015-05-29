@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/drive/side_panel_comments.html">
+<link rel="import" href="/extras/drive/comments_side_panel.html">
 <link rel="import" href="/core/test_utils.html">
 
 <script>
@@ -63,7 +63,7 @@ tv.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var panel = document.createElement('tv-e-analysis-side-panel-comments');
+    var panel = document.createElement('tv-e-d-comments-side-panel');
     panel.setCommentProvider(new StubCommentProvider);
     this.addHTMLOutput(panel);
   });
