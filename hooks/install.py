@@ -53,6 +53,13 @@ def InstallHooks():
   if sys.platform == 'win32':
     return
 
+  # Remove old pre-commit, see https://github.com/google/trace-viewer/issues/932
+  old_precommit = os.path.join(_TOP_PATH, '.git', 'hooks', 'pre-commit')
+  old_precommit_target = os.path.join(_TOP_PATH, 'hooks', 'pre_commit')
+  if (os.path.islink(old_precommit) and
+      os.path.abspath(os.readlink(old_precommit)) == old_precommit_target):
+    os.remove(old_precommit)
+
   links = []
   links.append(Link(os.path.join('.git', 'hooks', 'pre-push'),
                     os.path.join('hooks/pre_push')))
