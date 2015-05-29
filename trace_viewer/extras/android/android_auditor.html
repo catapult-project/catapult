@@ -6,7 +6,8 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
-<link rel="import" href="/base/time.html">
+<link rel="import" href="/base/units/time_duration.html">
+<link rel="import" href="/base/units/time_stamp.html">
 <link rel="import" href="/core/auditor.html">
 <link rel="import" href="/core/trace_model/alert.html">
 <link rel="import" href="/core/trace_model/frame.html">
@@ -29,7 +30,7 @@ tv.exportTo('tv.e.audits', function() {
   var InteractionRecord = tv.c.trace_model.InteractionRecord;
   var Alert = tv.c.trace_model.Alert;
   var EventInfo = tv.c.trace_model.EventInfo;
-  var TimeDuration = tv.b.TimeDuration;
+  var TimeDuration = tv.b.units.TimeDuration;
 
   // TODO: extract from VSYNC, since not all devices have vsync near 60fps
   var EXPECTED_FRAME_TIME_MS = 16.67;

@@ -169,5 +169,28 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     };
     this.addHTMLOutput(view);
   });
+
+  test('timeDurationValue', function() {
+    var view = document.createElement('tv-c-a-generic-object-view');
+    view.object = new tv.b.units.TimeDuration(3);
+    assert.isDefined(tv.b.findDeepElementMatching(
+      view.$.content, 'tv-b-u-time-duration-span'));
+  });
+
+  test('timeStampValue', function() {
+    var view = document.createElement('tv-c-a-generic-object-view');
+    view.object = new tv.b.units.TimeStamp(3);
+    assert.isDefined(tv.b.findDeepElementMatching(
+      view.$.content, 'tv-b-u-time-stamp-span'));
+  });
+
+  test('sizeInBytesValue', function() {
+    var view = document.createElement('tv-c-a-generic-object-view');
+    view.object = new tv.b.units.SizeInBytes(3);
+    assert.isDefined(tv.b.findDeepElementMatching(
+      view.$.content, 'tv-b-u-size-in-bytes-span'));
+  });
+
+
 });
 </script>

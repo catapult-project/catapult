@@ -7,7 +7,7 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/core/analysis/analysis_results.css">
 
 <link rel="import" href="/base/ui.html">
-<link rel="import" href="/core/analysis/util.html">
+<link rel="import" href="/base/units/util.html">
 <link rel="import" href="/core/analysis/analysis_link.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
 
@@ -221,7 +221,7 @@ tv.exportTo('tv.c.analysis', function() {
         var row = this.appendBodyRow(table);
       this.appendTableCell_(table, row, 0, label);
       this.appendTableCell_(
-          table, row, 1, tv.c.analysis.tsString(time), opt_warning);
+          table, row, 1, tv.b.units.tsString(time), opt_warning);
     },
 
     /**
@@ -246,26 +246,26 @@ tv.exportTo('tv.c.analysis', function() {
 
         if (opt_selectionGenerator) {
           var labelEl = this.appendTableCell(table, row,
-                                             tv.c.analysis.tsString(start));
+                                             tv.b.units.tsString(start));
           labelEl.textContent = '';
           labelEl.appendChild(this.createSelectionChangingLink(
-                                      tv.c.analysis.tsString(start),
+                                      tv.b.units.tsString(start),
                                       opt_selectionGenerator, ''));
         } else {
-          this.appendTableCell(table, row, tv.c.analysis.tsString(start));
+          this.appendTableCell(table, row, tv.b.units.tsString(start));
         }
       }
       if (duration !== null)
-        this.appendTableCell(table, row, tv.c.analysis.tsString(duration));
+        this.appendTableCell(table, row, tv.b.units.tsString(duration));
 
       if (opt_cpuDuration)
         this.appendTableCell(table, row,
                              opt_cpuDuration != '' ?
-                             tv.c.analysis.tsString(opt_cpuDuration) :
+                             tv.b.units.tsString(opt_cpuDuration) :
                              '');
 
       if (selfTime !== null)
-        this.appendTableCell(table, row, tv.c.analysis.tsString(selfTime));
+        this.appendTableCell(table, row, tv.b.units.tsString(selfTime));
 
       var argsCell = this.appendTableCell(table, row, '');
       var n = 0;
@@ -304,28 +304,29 @@ tv.exportTo('tv.c.analysis', function() {
 
       var tooltip = undefined;
       if (opt_statistics) {
+        var stddevRounded = Math.round(opt_statistics.avg_stddev * 1000) / 1000;
+
         tooltip = 'Min Duration:\u0009' +
-                  tv.c.analysis.tsString(opt_statistics.min) +
-                  ' ms \u000DMax Duration:\u0009' +
-                  tv.c.analysis.tsString(opt_statistics.max) +
-                  ' ms \u000DAvg Duration:\u0009' +
-                  tv.c.analysis.tsString(opt_statistics.avg) +
-                  ' ms (\u03C3 = ' +
-                  tv.c.analysis.tsRound(opt_statistics.avg_stddev) + ')';
+                  tv.b.units.tsString(opt_statistics.min) +
+                  ' \u000DMax Duration:\u0009' +
+                  tv.b.units.tsString(opt_statistics.max) +
+                  ' \u000DAvg Duration:\u0009' +
+                  tv.b.units.tsString(opt_statistics.avg) +
+                  ' (\u03C3 = ' + stddevRounded + ')';
 
         if (opt_statistics.start) {
           tooltip += '\u000DStart Time:\u0009' +
-              tv.c.analysis.tsString(opt_statistics.start);
+              tv.b.units.tsString(opt_statistics.start);
         }
         if (opt_statistics.end) {
           tooltip += '\u000DEnd Time:\u0009' +
-              tv.c.analysis.tsString(opt_statistics.end);
+              tv.b.units.tsString(opt_statistics.end);
         }
         if (opt_statistics.frequency && opt_statistics.frequency_stddev) {
+          var fR = Math.round(opt_statistics.frequency * 1000) / 1000;
+          var fSR = Math.round(opt_statistics.frequency_stddev * 1000) / 1000;
           tooltip += '\u000DFrequency:\u0009' +
-              tv.c.analysis.tsRound(opt_statistics.frequency) +
-              ' occurrences/s (\u03C3 = ' +
-              tv.c.analysis.tsRound(opt_statistics.frequency_stddev) + ')';
+              fR + ' occurrences/s (\u03C3 = ' + fSR + ')';
         }
       }
 
@@ -356,7 +357,7 @@ tv.exportTo('tv.c.analysis', function() {
                 '[' + opt_duration.join(', ') + ']', tooltip);
           } else {
             this.appendTableCellWithTooltip_(table, row, cellNum,
-                tv.c.analysis.tsString(opt_duration), tooltip);
+                tv.b.units.tsString(opt_duration), tooltip);
           }
         } else {
           this.appendTableCell_(table, row, cellNum, '');
@@ -367,7 +368,7 @@ tv.exportTo('tv.c.analysis', function() {
       if (opt_cpuDuration !== null) {
         if (opt_cpuDuration != '') {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tv.c.analysis.tsString(opt_cpuDuration), tooltip);
+              tv.b.units.tsString(opt_cpuDuration), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }
@@ -377,7 +378,7 @@ tv.exportTo('tv.c.analysis', function() {
       if (opt_selfTime !== null) {
         if (opt_selfTime) {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tv.c.analysis.tsString(opt_selfTime), tooltip);
+              tv.b.units.tsString(opt_selfTime), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }
@@ -387,7 +388,7 @@ tv.exportTo('tv.c.analysis', function() {
       if (opt_cpuSelfTime !== null) {
         if (opt_cpuSelfTime) {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tv.c.analysis.tsString(opt_cpuSelfTime), tooltip);
+              tv.b.units.tsString(opt_cpuSelfTime), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }

@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/core/analysis/util.html">
+<link rel="import" href="/base/units/time_duration.html">
+<link rel="import" href="/base/units/util.html">
 
 <script>
 'use strict';
-tv.exportTo('tv.c.analysis', function() {
+tv.exportTo('tv.b.units', function() {
   function createTimeSpan(duration) {
     if (duration === undefined)
       return '';
-    var span = document.createElement('tv-c-a-time-span');
+    var span = document.createElement('tv-b-u-time-duration-span');
     span.duration = duration;
     return span;
   }
@@ -22,7 +23,7 @@ tv.exportTo('tv.c.analysis', function() {
 });
 </script>
 
-<polymer-element name="tv-c-a-time-span">
+<polymer-element name="tv-b-u-time-duration-span">
   <template>
     <style>
     :host {
@@ -52,8 +53,11 @@ tv.exportTo('tv.c.analysis', function() {
     },
 
     set duration(duration) {
-      this.duration_ = duration;
-      this.$.content.textContent = tv.c.analysis.tsString(duration);
+      if (duration instanceof tv.b.units.TimeDuration)
+        this.duration_ = duration;
+      else
+        this.duration_ = duration;
+      this.$.content.textContent = tv.b.units.tsString(this.duration_);
     },
 
     get warning() {

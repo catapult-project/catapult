@@ -6,7 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_link.html">
-<link rel="import" href="/base/time.html">
+<link rel="import" href="/base/units/time_duration.html">
+<link rel="import" href="/base/units/time_stamp.html">
+<link rel="import" href="/base/units/size_in_bytes.html">
+<link rel="import" href="/base/units/time_duration_span.html">
+<link rel="import" href="/base/units/time_stamp_span.html">
+<link rel="import" href="/base/units/size_in_bytes_span.html">
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/ui.html">
 
@@ -158,15 +163,22 @@ found in the LICENSE file.
         return;
       }
 
-      if (object instanceof tv.b.TimeDuration) {
-        var el = this.ownerDocument.createElement('tv-c-a-time-span');
+      if (object instanceof tv.b.units.SizeInBytes) {
+        var el = this.ownerDocument.createElement('tv-b-u-size-in-bytes-span');
+        el.numBytes = object.numBytes;
+        this.appendElementWithLabel_(label, indent, el, suffix);
+        return;
+      }
+
+      if (object instanceof tv.b.units.TimeDuration) {
+        var el = this.ownerDocument.createElement('tv-b-u-time-duration-span');
         el.duration = object.duration;
         this.appendElementWithLabel_(label, indent, el, suffix);
         return;
       }
 
-      if (object instanceof tv.b.TimeStamp) {
-        var el = this.ownerDocument.createElement('tv-c-a-time-stamp');
+      if (object instanceof tv.b.units.TimeStamp) {
+        var el = this.ownerDocument.createElement('tv-b-u-time-stamp-span');
         el.timestamp = object.timestamp;
         this.appendElementWithLabel_(label, indent, el, suffix);
         return;

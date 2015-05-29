@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/time.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/trace_model/frame.html">
 <link rel="import" href="/extras/android/android_auditor.html">
@@ -19,7 +18,7 @@ tv.b.unittest.testSuite(function() {
   var newSliceNamed = tv.c.test_utils.newSliceNamed;
   var FRAME_PERF_CLASS = tv.c.trace_model.FRAME_PERF_CLASS;
   var newThreadSlice = tv.c.test_utils.newThreadSlice;
-  var TimeDuration = tv.b.TimeDuration;
+  var TimeDuration = tv.b.units.TimeDuration;
 
   test('saveLayerAlert_badAlpha', function() {
     var model = tv.c.test_utils.newModelWithAuditor(function(model) {

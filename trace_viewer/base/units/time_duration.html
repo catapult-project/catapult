@@ -9,7 +9,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b', function() {
+tv.exportTo('tv.b.units', function() {
   /**
    * Float wrapper, representing a time duration, capable of pretty-printing.
    */
@@ -23,18 +23,7 @@ tv.exportTo('tv.b', function() {
     }
   };
 
-  function TimeStamp(timestamp) {
-    this.timestamp = timestamp;
-  };
-
-  TimeStamp.prototype = {
-    toString: function() {
-      return this.timestamp.toFixed(4) + ' ms';
-    }
-  };
-
   return {
-    TimeStamp: TimeStamp,
     TimeDuration: TimeDuration
   };
 });

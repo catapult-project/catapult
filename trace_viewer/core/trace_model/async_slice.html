@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/extension_registry.html">
-<link rel="import" href="/core/analysis/util.html">
+<link rel="import" href="/base/units/util.html">
 <link rel="import" href="/core/trace_model/timed_event.html">
 
 <script>
@@ -68,7 +68,7 @@ tv.exportTo('tv.c.trace_model', function() {
 
     get userFriendlyName() {
       return 'Async slice ' + this.title + ' at ' +
-          tv.c.analysis.tsString(this.start);
+          tv.b.units.tsString(this.start);
     },
 
     findDescendentSlice: function(targetTitle) {

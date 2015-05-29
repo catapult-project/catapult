@@ -797,7 +797,7 @@ tv.exportTo('tv.c', function() {
       var hiWX = dt.xViewToWorld(
           (hiX - canv.offsetLeft) * pixelRatio);
 
-      this.dragBox_.textContent = tv.c.analysis.tsString((hiWX - loWX));
+      this.dragBox_.textContent = tv.b.units.tsString((hiWX - loWX));
 
       var e = new tv.b.Event('selectionChanging');
       e.loWX = loWX;

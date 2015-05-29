@@ -6,12 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
-<link rel="import" href="/core/analysis/time_span.html">
-<link rel="import" href="/core/analysis/time_stamp.html">
+<link rel="import" href="/base/units/time_duration_span.html">
+<link rel="import" href="/base/units/time_stamp_span.html">
 <link rel="import" href="/core/analysis/stack_frame.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
 <link rel="import" href="/core/analysis/table_builder.html">
-<link rel="import" href="/core/analysis/util.html">
+<link rel="import" href="/base/units/util.html">
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/base/ui.html">
 
@@ -79,31 +79,34 @@ found in the LICENSE file.
       if (event.category)
         rows.push({ name: 'Category', value: event.category });
 
-      var startEl = document.createElement('tv-c-a-time-stamp');
+      var startEl = document.createElement('tv-b-u-time-stamp-span');
       startEl.timestamp = event.start;
       rows.push({ name: 'Start', value: startEl });
 
       if (event.duration) {
-        var wallDurationEl = document.createElement('tv-c-a-time-span');
+        var wallDurationEl = document.createElement(
+            'tv-b-u-time-duration-span');
         wallDurationEl.duration = event.duration;
         rows.push({ name: 'Wall Duration', value: wallDurationEl });
       }
 
       if (event.cpuDuration) {
-        var cpuDurationEl = document.createElement('tv-c-a-time-span');
+        var cpuDurationEl = document.createElement(
+            'tv-b-u-time-duration-span');
         cpuDurationEl.duration = event.cpuDuration;
         rows.push({ name: 'CPU Duration', value: cpuDurationEl });
       }
 
       if (event.subSlices !== undefined && event.subSlices.length !== 0) {
         if (event.selfTime) {
-          var selfTimeEl = document.createElement('tv-c-a-time-span');
+          var selfTimeEl = document.createElement('tv-b-u-time-duration-span');
           selfTimeEl.duration = event.selfTime;
           rows.push({ name: 'Self Time', value: selfTimeEl });
         }
 
         if (event.cpuSelfTime) {
-          var cpuSelfTimeEl = document.createElement('tv-c-a-time-span');
+          var cpuSelfTimeEl = document.createElement(
+              'tv-b-u-time-duration-span');
           cpuSelfTimeEl.duration = event.cpuSelfTime;
           if (event.cpuSelfTime > event.selfTime) {
             cpuSelfTimeEl.warning =
@@ -118,7 +121,8 @@ found in the LICENSE file.
       }
 
       if (event.durationInUserTime) {
-        var durationInUserTimeEl = document.createElement('tv-c-a-time-span');
+        var durationInUserTimeEl = document.createElement(
+            'tv-b-u-time-duration-span');
         durationInUserTimeEl.duration = event.durationInUserTime;
         rows.push({ name: 'Duration (U)', value: durationInUserTimeEl });
       }

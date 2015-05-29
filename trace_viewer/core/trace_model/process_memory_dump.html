@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/trace_model/container_memory_dump.html">
-<link rel="import" href="/core/analysis/util.html">
+<link rel="import" href="/base/units/util.html">
 
 <script>
 'use strict';
@@ -32,7 +32,7 @@ tv.exportTo('tv.c.trace_model', function() {
     __proto__: tv.c.trace_model.ContainerMemoryDump.prototype,
 
     get userFriendlyName() {
-      return 'Process memory dump at ' + tv.c.analysis.tsString(this.start);
+      return 'Process memory dump at ' + tv.b.units.tsString(this.start);
     },
 
     get vmRegions() {
