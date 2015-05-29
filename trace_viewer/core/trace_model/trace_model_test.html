@@ -159,6 +159,7 @@ tv.b.unittest.testSuite(function() {
   test('traceModelCanImportEmpty', function() {
     var m;
     m = new TraceModel([]);
+    assert.isDefined(m.traceModelIndices);
     m = new TraceModel('');
   });
 

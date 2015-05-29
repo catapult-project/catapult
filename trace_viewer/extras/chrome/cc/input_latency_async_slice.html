@@ -18,14 +18,37 @@ tv.exportTo('tv.e.cc', function() {
   var BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT';
   var END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT';
 
-
   function InputLatencyAsyncSlice() {
     AsyncSlice.apply(this, arguments);
+    this.associatedEvents_ = undefined;
   }
 
   InputLatencyAsyncSlice.prototype = {
     __proto__: AsyncSlice.prototype,
 
+    get associatedEvents() {
+      if (this.associatedEvents_ !== undefined)
+        return this.associatedEvents_;
+
+      this.associatedEvents_ = [];
+      var traceModelIndices = this.startThread.parent.model.traceModelIndices;
+      var matchedFlowEvents = traceModelIndices.getFlowEventsWithId(this.id);
+
+      var eventGUIDs = {};
+      matchedFlowEvents.forEach(function(flowEvent) {
+        this.associatedEvents_.push(flowEvent);
+        if (flowEvent.startSlice && !eventGUIDs[flowEvent.startSlice.guid]) {
+          this.associatedEvents_.push(flowEvent.startSlice);
+          eventGUIDs[flowEvent.startSlice.guid] = 1;
+        }
+        if (flowEvent.startSlice && !eventGUIDs[flowEvent.endSlice.guid]) {
+          this.associatedEvents_.push(flowEvent.endSlice);
+          eventGUIDs[flowEvent.endSlice.guid] = 1;
+        }
+      }, this);
+
+      return this.associatedEvents_;
+    },
 
     get inputLatency() {
       if (!('data' in this.args))

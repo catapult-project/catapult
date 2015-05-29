@@ -8,12 +8,16 @@ found in the LICENSE file.
 <link rel="import" href="/extras/chrome/cc/input_latency_async_slice.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/core/trace_model/trace_model_indices.html">
 
 <script>
 'use strict';
 
 tv.b.unittest.testSuite(function() {
   var newAsyncSliceEx = tv.c.test_utils.newAsyncSliceEx;
+  var newSliceEx = tv.c.test_utils.newSliceEx;
+  var newFlowEventEx = tv.c.test_utils.newFlowEventEx;
+  var newModel = tv.c.test_utils.newModel;
 
   test('matchByType_oldStyle', function() {
     var sOuter = newAsyncSliceEx({
@@ -86,6 +90,78 @@ tv.b.unittest.testSuite(function() {
 
     assert.isTrue(sInfo instanceof tv.e.cc.InputLatencyAsyncSlice);
     assert.equal(sInfo.inputLatency, 10);
+  });
+
+  test('testGetAssociatedEvents', function() {
+    var m = newModel(function(m) {
+
+      var p = m.getOrCreateProcess(1);
+      var t = p.getOrCreateThread(1);
+
+      var s0 = newSliceEx({
+        title: 'a',
+        start: 0.0,
+        duration: 0.5
+      });
+
+      var s1 = newSliceEx({
+        title: 'b',
+        start: 0.5,
+        duration: 0.5
+      });
+
+      var s2 = newSliceEx({
+        title: 'c',
+        start: 1.0,
+        duration: 0.5
+      });
+
+      var f1 = newFlowEventEx({
+        'title': 'test1',
+        start: 0,
+        end: 10,
+        startSlice: s0,
+        endSlice: s1,
+        id: '0x100'
+      });
+
+      var f2 = newFlowEventEx({
+        'title': 'test2',
+        start: 20,
+        end: 30,
+        startSlice: s1,
+        endSlice: s2,
+        id: '0x100'
+      });
+
+      m.flowEvents.push(f1);
+      m.flowEvents.push(f2);
+
+      m.as0 = newAsyncSliceEx({
+        title: 'InputLatency::TestShouldReturnEmpty',
+        cat: 'benchmark,latencyInfo',
+        start: 2,
+        end: 10,
+        id: '0x101',
+        isTopLevel: true,
+        startThread: t
+      });
+
+      m.as1 = newAsyncSliceEx({
+        title: 'InputLatency::TestShouldReturnTwoElements',
+        cat: 'benchmark,latencyInfo',
+        start: 2,
+        end: 10,
+        id: '0x100',
+        isTopLevel: true,
+        startThread: t
+      });
+
+    });
+
+    assert.equal(m.as0.associatedEvents.length, 0);
+    assert.equal(m.as1.associatedEvents.length, 5);
+    assert.equal(m.as1.associatedEvents[0].id, '0x100');
   });
 
 });

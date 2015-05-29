@@ -24,6 +24,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/process_memory_dump.html">
 <link rel="import" href="/core/trace_model/alert.html">
 <link rel="import" href="/core/trace_model/interaction_record.html">
+<link rel="import" href="/core/trace_model/trace_model_indices.html">
 
 <script>
 'use strict';
@@ -136,6 +137,7 @@ tv.exportTo('tv.c', function() {
     this.importWarnings_ = [];
     this.reportedImportWarnings_ = {};
 
+    this.traceModelIndices = undefined;
     var options = ImportOptions.fromArguments(arguments, 1);
     if (opt_eventData)
       this.importTraces([opt_eventData], options);
@@ -638,6 +640,12 @@ tv.exportTo('tv.c', function() {
         progressMeter.update('Initializing objects (step 2/2)...');
         for (var pid in this.processes)
           this.processes[pid].initializeObjects();
+      }, this);
+
+      // Build event indices mapping from an event id to all flow events.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Building flow event indices...');
+        this.traceModelIndices = new tv.c.trace_model.TraceModelIndices(this);
       }, this);
 
       // Run audits.

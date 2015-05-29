@@ -219,6 +219,7 @@ tracing_js_html_files = [
   "trace_viewer/core/trace_model/time_to_object_instance_map.html",
   "trace_viewer/core/trace_model/timed_event.html",
   "trace_viewer/core/trace_model/trace_model.html",
+  "trace_viewer/core/trace_model/trace_model_indices.html",
   "trace_viewer/core/trace_model/trace_model_settings.html",
   "trace_viewer/core/trace_model/x_marker_annotation.html",
   "trace_viewer/core/tracks/alert_track.html",
