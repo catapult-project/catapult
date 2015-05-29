@@ -32,6 +32,15 @@ tv.exportTo('tv.c.trace_model', function() {
     get userFriendlyName() {
       return 'Global memory dump ' + ' at ' +
           tv.b.units.tsString(this.start);
+    },
+
+    calculateGraphAttributes: function() {
+      // TODO(petrcermak): Calculate sizes using the graph.
+
+      this.aggregateMemoryAllocatorDumpAttributes(this.model);
+      tv.b.iterItems(this.processMemoryDumps, function(pid, dump) {
+        dump.aggregateMemoryAllocatorDumpAttributes();
+      }, this);
     }
   };
 

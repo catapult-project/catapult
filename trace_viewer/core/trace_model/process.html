@@ -153,7 +153,7 @@ tv.exportTo('tv.c.trace_model', function() {
         this.memoryDumps[i].addBoundsToRange(this.bounds);
     },
 
-    finalizeMemoryDumps: function() {
+    sortMemoryDumps: function() {
       this.memoryDumps.sort(function(x, y) {
         return x.start - y.start;
       });

@@ -1773,10 +1773,6 @@ tv.exportTo('tv.e.importer', function() {
         }
       }, this);
 
-      rootAllocatorDumps.forEach(function(dump) {
-        dump.aggregateAttributes(this.model_);
-      }, this);
-
       return rootAllocatorDumps;
     },
 

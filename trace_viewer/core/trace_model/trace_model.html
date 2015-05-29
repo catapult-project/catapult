@@ -625,14 +625,22 @@ tv.exportTo('tv.c', function() {
           this.processes[pid].autoDeleteObjects(this.bounds.max);
       }, this);
 
-      // Finalize global and process memory dumps.
+      // Sort global and process memory dumps.
       lastTask = lastTask.after(function() {
-        progressMeter.update('Finalizing memory dumps...');
+        progressMeter.update('Sorting memory dumps...');
         this.globalMemoryDumps.sort(function(x, y) {
           return x.start - y.start;
         });
         for (var pid in this.processes)
-          this.processes[pid].finalizeMemoryDumps();
+          this.processes[pid].sortMemoryDumps();
+      }, this);
+
+      // Calculate memory dump graph attributes.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Calculating memory dump graph attributes...');
+        this.globalMemoryDumps.forEach(function(dump) {
+          dump.calculateGraphAttributes();
+        });
       }, this);
 
       // Run initializers.
