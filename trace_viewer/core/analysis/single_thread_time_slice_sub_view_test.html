@@ -39,7 +39,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
 
-    var view = document.createElement('tv-c-single-thread-time-slice-sub-view');
+    var view = document.createElement(
+        'tv-c-a-single-thread-time-slice-sub-view');
     var selection = new tv.c.Selection();
     selection.push(thread.timeSlices[0]);
     view.selection = selection;
@@ -52,7 +53,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       assert.equal(e.selection[0], binderSlice);
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('tv-c-analysis-link').click();
+    view.shadowRoot.querySelector('tv-c-a-analysis-link').click();
     assert.isTrue(didSelectionChangeHappen);
   });
 
@@ -68,7 +69,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
 
-    var view = document.createElement('tv-c-single-thread-time-slice-sub-view');
+    var view = document.createElement(
+        'tv-c-a-single-thread-time-slice-sub-view');
     var selection = new tv.c.Selection();
     selection.push(thread.timeSlices[1]);
     view.selection = selection;
@@ -81,7 +83,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       assert.equal(e.selection[0], launcherSlice);
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('tv-c-analysis-link').click();
+    view.shadowRoot.querySelector('tv-c-a-analysis-link').click();
     assert.isTrue(didSelectionChangeHappen);
   });
 });

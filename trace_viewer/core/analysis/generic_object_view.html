@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/ui.html">
 
-<polymer-element name="tv-c-analysis-generic-object-view"
+<polymer-element name="tv-c-a-generic-object-view"
     is="HTMLUnknownElement">
   <template>
     <style>
@@ -140,14 +140,14 @@ found in the LICENSE file.
       }
 
       if (object instanceof tv.c.trace_model.ObjectSnapshot) {
-        var link = document.createElement('tv-c-analysis-link');
+        var link = document.createElement('tv-c-a-analysis-link');
         link.selection = new tv.c.Selection(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }
 
       if (object instanceof tv.c.trace_model.ObjectInstance) {
-        var link = document.createElement('tv-c-analysis-link');
+        var link = document.createElement('tv-c-a-analysis-link');
         link.selection = new tv.c.Selection(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
@@ -284,7 +284,7 @@ found in the LICENSE file.
   </script>
 </polymer-element>
 
-<polymer-element name="tv-c-analysis-generic-object-view-with-label"
+<polymer-element name="tv-c-a-generic-object-view-with-label"
     is="HTMLUnknownElement">
   <template>
     <style>
@@ -301,7 +301,7 @@ found in the LICENSE file.
     ready: function() {
       this.labelEl_ = document.createElement('div');
       this.genericObjectView_ =
-          document.createElement('tv-c-analysis-generic-object-view');
+          document.createElement('tv-c-a-generic-object-view');
       this.shadowRoot.appendChild(this.labelEl_);
       this.shadowRoot.appendChild(this.genericObjectView_);
     },

@@ -52,7 +52,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_singleCounterWithTwoSeries', function() {
     var selection = createSelectionWithTwoSeriesSingleCounter();
 
-    var analysisEl = document.createElement('tv-c-counter-sample-sub-view');
+    var analysisEl = document.createElement('tv-c-a-counter-sample-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -79,7 +79,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_twoCountersWithTwoSeries', function() {
     var selection = createSelectionWithTwoSeriesTwoCounters();
 
-    var analysisEl = document.createElement('tv-c-counter-sample-sub-view');
+    var analysisEl = document.createElement('tv-c-a-counter-sample-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -96,7 +96,7 @@ tv.b.unittest.testSuite(function() {
     var t1track = {};
     selection.push(ctr.getSeries(0).samples[1]);
 
-    var view = document.createElement('tv-c-counter-sample-sub-view');
+    var view = document.createElement('tv-c-a-counter-sample-sub-view');
     var results = new StubAnalysisResults();
     view.analyzeCounterSamples_(results, selection);
 
@@ -159,7 +159,7 @@ tv.b.unittest.testSuite(function() {
   test('analyzeSelectionWithComplexSeriesTwoCounters', function() {
     var selection = createSelectionWithTwoCountersDiffSeriesDiffEvents();
 
-    var view = document.createElement('tv-c-counter-sample-sub-view');
+    var view = document.createElement('tv-c-a-counter-sample-sub-view');
     var results = new StubAnalysisResults();
     view.analyzeCounterSamples_(results, selection);
 

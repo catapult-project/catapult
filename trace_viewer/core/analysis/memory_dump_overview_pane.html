@@ -15,7 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/table_builder.html">
 <link rel="import" href="/core/trace_model/attribute.html">
 
-<polymer-element name="tv-c-memory-dump-overview-pane">
+<polymer-element name="tv-c-a-memory-dump-overview-pane">
   <template>
     <style>
       :host {
@@ -49,7 +49,7 @@ found in the LICENSE file.
 
   Polymer({
     // TODO(petrcermak): Consider sharing more code between
-    // tv-c-memory-dump-overview-pane and tv-c-memory-dump-process pane
+    // tv-c-a-memory-dump-overview-pane and tv-c-memory-dump-process pane
     // (e.g. by defining a common base class tv-c-memory-dump-pane).
 
     created: function() {
@@ -107,7 +107,7 @@ found in the LICENSE file.
               new tv.c.trace_model.ScalarAttribute('bytes', pss));
           cell.buildDetailsPane = function() {
             var pane = document.createElement(
-                'tv-c-memory-dump-vm-regions-details-pane');
+                'tv-c-a-memory-dump-vm-regions-details-pane');
             pane.vmRegions = processMemoryDump.mostRecentVmRegions;
             return pane;
           }
@@ -122,7 +122,7 @@ found in the LICENSE file.
                 dump.attributes['outer_size']);
             cell.buildDetailsPane = function() {
               var pane = document.createElement(
-                  'tv-c-memory-dump-allocator-details-pane');
+                  'tv-c-a-memory-dump-allocator-details-pane');
               pane.memoryAllocatorDump = dump;
               return pane;
             };
@@ -147,7 +147,7 @@ found in the LICENSE file.
       var titleColumn = {
         title: 'Process',
         value: function(row) {
-          var titleEl = document.createElement('tv-b-color-legend');
+          var titleEl = document.createElement('tv-b-ui-color-legend');
           titleEl.label = row.title;
           return titleEl;
         },
@@ -162,7 +162,7 @@ found in the LICENSE file.
           rows, 'usedMemorySizes');
       var allocatorSizeColumns = tv.c.analysis.MemoryColumn.fromRows(
           rows, 'allocatorSizes', function(allocatorName) {
-        var titleEl = document.createElement('tv-b-color-legend');
+        var titleEl = document.createElement('tv-b-ui-color-legend');
         titleEl.label = allocatorName;
         return titleEl;
       });

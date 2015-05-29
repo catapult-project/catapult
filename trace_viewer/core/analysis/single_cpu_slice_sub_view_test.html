@@ -39,7 +39,7 @@ tv.b.unittest.testSuite(function() {
     assert.isDefined(thread);
     assert.equal(cpuSlice.threadThatWasRunning, thread);
 
-    var view = document.createElement('tv-c-single-cpu-slice-sub-view');
+    var view = document.createElement('tv-c-a-single-cpu-slice-sub-view');
     var selection = new tv.c.Selection();
     selection.push(cpuSlice);
     view.selection = selection;
@@ -52,7 +52,7 @@ tv.b.unittest.testSuite(function() {
       assert.equal(thread.timeSlices[0], e.selection[0]);
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('tv-c-analysis-link').click();
+    view.shadowRoot.querySelector('tv-c-a-analysis-link').click();
     assert.isTrue(didSelectionChangeHappen);
   });
 
@@ -68,7 +68,7 @@ tv.b.unittest.testSuite(function() {
     var selection = new tv.c.Selection();
     selection.push(cpuSlice);
 
-    var view = document.createElement('tv-c-single-cpu-slice-sub-view');
+    var view = document.createElement('tv-c-a-single-cpu-slice-sub-view');
     view.selection = selection;
     this.addHTMLOutput(view);
   });

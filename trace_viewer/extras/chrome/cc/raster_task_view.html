@@ -24,7 +24,7 @@ found in the LICENSE file.
     </style>
     <div id="heading">
       Rasterization costs in
-      <tv-c-analysis-link id="link"></tv-c-analysis-link>
+      <tv-c-a-analysis-link id="link"></tv-c-a-analysis-link>
     </div>
     <tracing-analysis-nested-table id="content"></tracing-analysis-nested-table>
   </template>
@@ -49,7 +49,7 @@ found in the LICENSE file.
             if (row.isTotals)
               return 'Totals';
             if (row.layer) {
-              var linkEl = document.createElement('tv-c-analysis-link');
+              var linkEl = document.createElement('tv-c-a-analysis-link');
               linkEl.setSelectionAndContent(
                 function() {
                   return new tv.e.cc.LayerSelection(costs.layer);

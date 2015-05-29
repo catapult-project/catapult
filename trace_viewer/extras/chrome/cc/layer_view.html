@@ -108,7 +108,7 @@ tv.exportTo('tv.e.cc', function() {
       if (!(pictures instanceof Array))
         pictures = [pictures];
 
-      var link = document.createElement('tv-c-analysis-link');
+      var link = document.createElement('tv-c-a-analysis-link');
       link.selection = function() {
         var layeredPicture = new tv.e.cc.LayeredPicture(pictures);
         var snapshot = new tv.e.cc.PictureSnapshot(layeredPicture);

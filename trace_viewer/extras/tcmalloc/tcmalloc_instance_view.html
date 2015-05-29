@@ -77,7 +77,7 @@ tv.exportTo('tv.e.tcmalloc', function() {
       var row = document.createElement('tr');
       var td = document.createElement('td');
       if (snapshot) {
-        var snapshotLink = document.createElement('tv-c-analysis-link');
+        var snapshotLink = document.createElement('tv-c-a-analysis-link');
         snapshotLink.selection = new tv.c.Selection(snapshot);
         td.appendChild(snapshotLink);
       }

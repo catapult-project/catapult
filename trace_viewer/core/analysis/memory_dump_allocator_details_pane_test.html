@@ -35,7 +35,7 @@ tv.b.unittest.testSuite(function() {
 
   test('instantiate_empty', function() {
     var viewEl = document.createElement(
-        'tv-c-memory-dump-allocator-details-pane');
+        'tv-c-a-memory-dump-allocator-details-pane');
     this.addHTMLOutput(viewEl);
   });
 
@@ -43,7 +43,7 @@ tv.b.unittest.testSuite(function() {
     var memoryAllocatorDump = createMemoryAllocatorDump();
 
     var viewEl = document.createElement(
-        'tv-c-memory-dump-allocator-details-pane');
+        'tv-c-a-memory-dump-allocator-details-pane');
     viewEl.memoryAllocatorDump = memoryAllocatorDump;
     this.addHTMLOutput(viewEl);
 

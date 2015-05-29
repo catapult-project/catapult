@@ -22,7 +22,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var processMemoryDumps = createProcessMemoryDumps();
 
-    var viewEl = document.createElement('tv-c-memory-dump-overview-pane');
+    var viewEl = document.createElement('tv-c-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps;
     this.addHTMLOutput(viewEl);
 
@@ -56,7 +56,7 @@ tv.b.unittest.testSuite(function() {
   test('selection', function() {
     var processMemoryDumps = createProcessMemoryDumps();
 
-    var viewEl = document.createElement('tv-c-memory-dump-overview-pane');
+    var viewEl = document.createElement('tv-c-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps;
     this.addHTMLOutput(viewEl);
 

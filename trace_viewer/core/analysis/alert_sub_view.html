@@ -13,7 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/table_builder.html">
 
 <polymer-element name="tv-c-a-alert-sub-view"
-    extends="tracing-analysis-sub-view">
+    extends="tv-c-a-sub-view">
   <template>
     <style>
     :host {
@@ -64,7 +64,7 @@ found in the LICENSE file.
       // Arguments
       for (var argName in alert.args) {
         var argView =
-            document.createElement('tv-c-analysis-generic-object-view');
+            document.createElement('tv-c-a-generic-object-view');
         argView.object = alert.args[argName];
         rows.push({ name: argName, value: argView });
       }
@@ -72,7 +72,7 @@ found in the LICENSE file.
       // Associated events
       if (alert.associatedEvents.length) {
         alert.associatedEvents.forEach(function(event, i) {
-          var linkEl = document.createElement('tv-c-analysis-link');
+          var linkEl = document.createElement('tv-c-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
             return new tv.c.Selection(event);
           }, event.title);

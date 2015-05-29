@@ -154,7 +154,7 @@ found in the LICENSE file.
             return row.title;
           }
 
-          var linkEl = document.createElement('tv-c-analysis-link');
+          var linkEl = document.createElement('tv-c-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
               return new tv.c.Selection(row.event);
           });
@@ -237,7 +237,7 @@ found in the LICENSE file.
           value: function(row) {
             if (row.__proto__ !== tv.c.analysis.MultiEventSummary.prototype) {
               var argView =
-                  document.createElement('tv-c-analysis-generic-object-view');
+                  document.createElement('tv-c-a-generic-object-view');
               argView.object = row.args[argKey];
               return argView;
             }
@@ -262,7 +262,7 @@ found in the LICENSE file.
             if (row.__proto__ === tv.c.analysis.MultiEventSummary.prototype)
               return '';
             var argView =
-                document.createElement('tv-c-analysis-generic-object-view');
+                document.createElement('tv-c-a-generic-object-view');
             var obj = {};
             for (var i = 0; i < keysInOtherColumn.length; i++)
               obj[keysInOtherColumn[i]] = row.args[keysInOtherColumn[i]];

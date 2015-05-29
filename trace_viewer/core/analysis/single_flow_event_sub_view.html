@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/analysis_link.html">
 <link rel="import" href="/core/analysis/single_event_sub_view.html">
 
-<polymer-element name="tv-c-single-flow-event-sub-view"
+<polymer-element name="tv-c-a-single-flow-event-sub-view"
     extends="tv-c-a-single-event-sub-view">
   <script>
   'use strict';
@@ -26,7 +26,7 @@ found in the LICENSE file.
       });
 
       function createLinkTo(slice) {
-        var linkEl = document.createElement('tv-c-analysis-link');
+        var linkEl = document.createElement('tv-c-a-analysis-link');
         linkEl.setSelectionAndContent(function() {
             return new tv.c.Selection(slice);
         });
