@@ -13,7 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/frame.html">
 <link rel="import" href="/core/trace_model/interaction_record.html">
 <link rel="import" href="/extras/android/android_model_helper.html">
-<link rel="import" href="/extras/audits/utils.html">
+<link rel="import" href="/base/range_utils.html">
 
 <script>
 'use strict';
@@ -540,7 +540,7 @@ tv.exportTo('tv.e.audits', function() {
             events[events.length - 1].end - events[0].start);
         this.model.addInteractionRecord(ir);
       }.bind(this);
-      tv.e.audits.mergeEvents(events, 30, mergerFunction);
+      tv.e.audits.mergeExplicitRanges(events, 30, mergerFunction);
     },
 
     addInputInteractionRecords: function() {
@@ -557,7 +557,7 @@ tv.exportTo('tv.e.audits', function() {
         this.model.addInteractionRecord(ir);
       }.bind(this);
       var timestampFunction = function(x) { return x.timestamp; };
-      tv.e.audits.mergeEvents(inputSamples, 30, mergerFunction,
+      tv.e.audits.mergeExplicitRanges(inputSamples, 30, mergerFunction,
                               timestampFunction, timestampFunction);
     }
   };

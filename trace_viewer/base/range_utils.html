@@ -13,8 +13,15 @@ found in the LICENSE file.
  * @fileoverview Provides event merging functionality for grouping/analysis.
  */
 tv.exportTo('tv.e.audits', function() {
+  function mergeRanges(inRanges, mergeThreshold, mergeFunction) {
+    return mergeExplicitRanges(inRanges,
+                               mergeThreshold,
+                               mergeFunction,
+                               function(r) { return r.min; },
+                               function(r) { return r.max; });
+  }
 
-  function mergeEvents(inEvents, mergeThreshold, mergeFunction,
+  function mergeExplicitRanges(inRanges, mergeThreshold, mergeFunction,
                        opt_startFunction, opt_endFunction) {
     var startFunction = opt_startFunction;
     var endFunction = opt_endFunction;
@@ -23,7 +30,7 @@ tv.exportTo('tv.e.audits', function() {
     if (!endFunction)
       endFunction = function(event) { return event.end; };
 
-    var remainingEvents = inEvents.slice();
+    var remainingEvents = inRanges.slice();
     remainingEvents.sort(function(x, y) {
       return startFunction(x) - startFunction(y);
     });
@@ -80,7 +87,7 @@ tv.exportTo('tv.e.audits', function() {
   }
 
   return {
-    mergeEvents: mergeEvents
+    mergeExplicitRanges: mergeExplicitRanges
   };
 });
 </script>

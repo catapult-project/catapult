@@ -7,7 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/base/sorted_array_utils.html">
 <link rel="import" href="/core/trace_model/frame.html">
-<link rel="import" href="/extras/audits/utils.html">
+<link rel="import" href="/base/range_utils.html">
 
 <script>
 'use strict';
@@ -87,7 +87,7 @@ tv.exportTo('tv.e.audits', function() {
         preFrameEvents.push(slice);
     });
 
-    return tv.e.audits.mergeEvents(preFrameEvents, 3, function(events) {
+    return tv.e.audits.mergeExplicitRanges(preFrameEvents, 3, function(events) {
       return {
         start: events[0].start,
         end: events[events.length - 1].end

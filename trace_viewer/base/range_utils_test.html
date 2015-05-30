@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/audits/utils.html">
+<link rel="import" href="/base/range_utils.html">
 <link rel="import" href="/core/test_utils.html">
 
 <script>
@@ -25,7 +25,7 @@ tv.b.unittest.testSuite(function() {
       {start: 200, end: 220}
     ];
 
-    var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
+    var merged = tv.e.audits.mergeExplicitRanges(inEvents, 50, simpleMerger);
 
     assert.equal(merged.length, 2);
     assert.deepEqual(merged[0], {start: 0, end: 120});
@@ -39,7 +39,7 @@ tv.b.unittest.testSuite(function() {
       {start: 200, end: 220}
     ];
 
-    var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
+    var merged = tv.e.audits.mergeExplicitRanges(inEvents, 50, simpleMerger);
 
     assert.equal(merged.length, 2);
     assert.deepEqual(merged[0], {start: 0, end: 120});
@@ -53,7 +53,7 @@ tv.b.unittest.testSuite(function() {
       {start: 100, end: 120}
     ];
 
-    var merged = tv.e.audits.mergeEvents(inEvents, 50, simpleMerger);
+    var merged = tv.e.audits.mergeExplicitRanges(inEvents, 50, simpleMerger);
 
     assert.equal(merged.length, 1);
     assert.deepEqual(merged[0], {start: 0, end: 120});
@@ -65,7 +65,7 @@ tv.b.unittest.testSuite(function() {
       {start: 150, end: 200}
     ];
 
-    var merged = tv.e.audits.mergeEvents(inEvents, 25, simpleMerger);
+    var merged = tv.e.audits.mergeExplicitRanges(inEvents, 25, simpleMerger);
 
     assert.equal(merged.length, 2);
     assert.deepEqual(merged[0], {start: 0, end: 100});
@@ -78,7 +78,7 @@ tv.b.unittest.testSuite(function() {
     ];
 
     var mergeCount = 0;
-    var merged = tv.e.audits.mergeEvents(inEvents, 25, function(events) {
+    tv.e.audits.mergeExplicitRanges(inEvents, 25, function(events) {
       assert.deepEqual(events, inEvents);
       mergeCount++;
     });
@@ -97,7 +97,7 @@ tv.b.unittest.testSuite(function() {
         end: timestamps[timestamps.length - 1]
       };
     };
-    var merged = tv.e.audits.mergeEvents(inEvents, 15, timestampMerger,
+    var merged = tv.e.audits.mergeExplicitRanges(inEvents, 15, timestampMerger,
                                          identityFunction, identityFunction);
     console.log(merged);
     assert.equal(merged.length, 2);

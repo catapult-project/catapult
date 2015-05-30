@@ -7,7 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/auditor.html">
 <link rel="import" href="/core/trace_model/event_info.html">
-<link rel="import" href="/extras/audits/utils.html">
+<link rel="import" href="/base/range_utils.html">
 <link rel="import" href="/extras/chrome/chrome_model_helper.html">
 <link rel="import" href="/extras/rail/rail_interaction_record.html">
 
@@ -87,7 +87,7 @@ tv.exportTo('tv.e.audits', function() {
         return gesture;
       }
 
-      return tv.e.audits.mergeEvents(
+      return tv.e.audits.mergeExplicitRanges(
           latencyStartPoints, 250, joinStartPointsIntoGesture);
     },
 
@@ -275,7 +275,7 @@ tv.exportTo('tv.e.audits', function() {
         rirs.push(ir);
       });
 
-      var mergedLoadIRs = tv.e.audits.mergeEvents(
+      var mergedLoadIRs = tv.e.audits.mergeExplicitRanges(
           allLoadAndNetEvents, 300,
           mergeEventsIntoIR.bind(
               undefined, 'Loading/Net',
@@ -286,7 +286,7 @@ tv.exportTo('tv.e.audits', function() {
       });
       rirs.push.apply(rirs, mergedLoadIRs);
 
-      var mergedFrameIRs = tv.e.audits.mergeEvents(
+      var mergedFrameIRs = tv.e.audits.mergeExplicitRanges(
           allFrameEvents, 150,
           mergeEventsIntoIR.bind(
               undefined, 'Rendering',
