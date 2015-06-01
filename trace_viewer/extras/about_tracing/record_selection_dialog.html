@@ -377,6 +377,8 @@ tv.exportTo('tv.e.about_tracing', function() {
         for (var i = 0; i < this.currentlyChosenPreset_.length; ++i) {
           var categoryEl = document.getElementById(
               this.currentlyChosenPreset_[i]);
+          if (!categoryEl)
+            continue;
           categoryEl.checked = true;
         }
       }
