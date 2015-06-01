@@ -21,9 +21,7 @@ from telemetry import user_story
 from telemetry.user_story import user_story_set
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter as exception_formatter_module
-from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
-from telemetry.value import summary as summary_module
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.wpr import archive_info
 
@@ -404,11 +402,8 @@ class StoryRunnerTest(unittest.TestCase):
 
   def testPagesetRepeat(self):
     us = user_story_set.UserStorySet()
-    # TODO(eakuefner): Factor this out after flattening page ref in Value
-    blank_story = DummyLocalUserStory(TestSharedPageState, name='blank')
-    green_story = DummyLocalUserStory(TestSharedPageState, name='green')
-    us.AddUserStory(blank_story)
-    us.AddUserStory(green_story)
+    us.AddUserStory(DummyLocalUserStory(TestSharedPageState, name='blank'))
+    us.AddUserStory(DummyLocalUserStory(TestSharedPageState, name='green'))
 
     class Measurement(page_test.PageTest):
       i = 0
@@ -422,27 +417,18 @@ class StoryRunnerTest(unittest.TestCase):
 
     self.options.page_repeat = 1
     self.options.pageset_repeat = 2
-    self.options.output_formats = []
+    self.options.output_formats = ['buildbot']
     results = results_options.CreateResults(
       EmptyMetadataForTest(), self.options)
     story_runner.Run(
         Measurement(), us, self.expectations, self.options, results)
-    summary = summary_module.Summary(results.all_page_specific_values)
-    values = summary.interleaved_computed_per_page_values_and_summaries
-
-    blank_value = list_of_scalar_values.ListOfScalarValues(
-        blank_story, 'metric', 'unit', [1, 3])
-    green_value = list_of_scalar_values.ListOfScalarValues(
-        green_story, 'metric', 'unit', [2, 4])
-    merged_value = list_of_scalar_values.ListOfScalarValues(
-        None, 'metric', 'unit', [1, 2, 3, 4])
-
+    results.PrintSummary()
+    contents = self.fake_stdout.getvalue()
     self.assertEquals(4, GetNumberOfSuccessfulPageRuns(results))
     self.assertEquals(0, len(results.failures))
-    self.assertEquals(3, len(values))
-    self.assertIn(blank_value, values)
-    self.assertIn(green_value, values)
-    self.assertIn(merged_value, values)
+    self.assertIn('RESULT metric: blank= [1,3] unit', contents)
+    self.assertIn('RESULT metric: green= [2,4] unit', contents)
+    self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', contents)
 
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUpdateAndCheckArchives(self):

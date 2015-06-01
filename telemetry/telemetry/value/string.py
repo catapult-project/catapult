@@ -26,7 +26,7 @@ class StringValue(value_module.Value):
 
   def __repr__(self):
     if self.page:
-      page_name = self.page.name
+      page_name = self.page.url
     else:
       page_name = None
     return ('StringValue(%s, %s, %s, %s, important=%s, description=%s, '

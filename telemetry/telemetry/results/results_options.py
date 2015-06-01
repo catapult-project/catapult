@@ -7,6 +7,7 @@ import os
 import sys
 
 from telemetry.core import util
+from telemetry.results import buildbot_output_formatter
 from telemetry.results import chart_json_output_formatter
 from telemetry.results import csv_output_formatter
 from telemetry.results import csv_pivot_table_output_formatter
@@ -17,8 +18,8 @@ from telemetry.results import page_test_results
 from telemetry.results import progress_reporter
 
 # Allowed output formats. The default is the first item in the list.
-_OUTPUT_FORMAT_CHOICES = ('html', 'csv', 'gtest', 'json', 'chartjson',
-                          'csv-pivot-table', 'none')
+_OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'csv', 'gtest', 'json',
+    'chartjson', 'csv-pivot-table', 'none')
 
 
 # Filenames to use for given output formats.
@@ -48,7 +49,7 @@ def AddResultsOptions(parser):
   group.add_option('--output-trace-tag',
                     default='',
                     help='Append a tag to the key of each result trace. Use '
-                    'with html, csv-pivot-table output formats.')
+                    'with html, buildbot, csv-pivot-table output formats.')
   group.add_option('--reset-results', action='store_true',
                     help='Delete all stored results.')
   group.add_option('--upload-results', action='store_true',
@@ -88,6 +89,9 @@ def _GetOutputStream(output_format, output_dir):
   assert output_format not in ('gtest', 'none'), (
       'Cannot set stream for \'gtest\' or \'none\' output formats.')
 
+  if output_format == 'buildbot':
+    return sys.stdout
+
   assert output_format in _OUTPUT_FILENAME_LOOKUP, (
       'No known filename for the \'%s\' output format' % output_format)
   output_file = os.path.join(output_dir, _OUTPUT_FILENAME_LOOKUP[output_format])
@@ -125,9 +129,19 @@ def CreateResults(benchmark_metadata, options,
       output_formatters.append(
           csv_pivot_table_output_formatter.CsvPivotTableOutputFormatter(
               output_stream, trace_tag=options.output_trace_tag))
+    elif output_format == 'buildbot':
+      output_formatters.append(
+          buildbot_output_formatter.BuildbotOutputFormatter(
+              output_stream, trace_tag=options.output_trace_tag))
     elif output_format == 'html':
-      # TODO(eakuefner): Come up with some kind of progress reporter after
-      # removing buildbot?
+      # TODO(chrishenry): We show buildbot output so that users can grep
+      # through the results easily without needing to open the html
+      # file.  Another option for this is to output the results directly
+      # in gtest-style results (via some sort of progress reporter),
+      # as we plan to enable gtest-style output for all output formatters.
+      output_formatters.append(
+          buildbot_output_formatter.BuildbotOutputFormatter(
+              sys.stdout, trace_tag=options.output_trace_tag))
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
           output_stream, benchmark_metadata, options.reset_results,
           options.upload_results, options.browser_type,
