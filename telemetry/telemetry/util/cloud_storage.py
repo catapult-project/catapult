@@ -135,9 +135,15 @@ def _RunCommand(args):
     gsutil_env = os.environ.copy()
     gsutil_env['HOME'] = _CROS_GSUTIL_HOME_WAR
 
-  gsutil = subprocess.Popen([sys.executable, gsutil_path] + args,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            env=gsutil_env)
+  if os.name == 'nt':
+    # If Windows, prepend python. Python scripts aren't directly executable.
+    args = [sys.executable, gsutil_path] + args
+  else:
+    # Don't do it on POSIX, in case someone is using a shell script to redirect.
+    args = [gsutil_path] + args
+
+  gsutil = subprocess.Popen(args, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, env=gsutil_env)
   stdout, stderr = gsutil.communicate()
 
   if gsutil.returncode:
