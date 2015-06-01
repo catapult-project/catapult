@@ -285,13 +285,6 @@ tv.exportTo('tv.e.audits', function() {
         loadIR.args.url = loadIR.events[0].args.URL;
       });
       rirs.push.apply(rirs, mergedLoadIRs);
-
-      var mergedFrameIRs = tv.e.audits.mergeExplicitRanges(
-          allFrameEvents, 150,
-          mergeEventsIntoIR.bind(
-              undefined, 'Rendering',
-              tv.b.ui.getColorIdForGeneralPurposeString('mt_rendering')));
-      rirs.push.apply(rirs, mergedFrameIRs);
       return rirs;
     }
   };
