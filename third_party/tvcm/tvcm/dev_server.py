@@ -20,6 +20,7 @@ import SimpleHTTPServer
 import StringIO
 import BaseHTTPServer
 
+TEST_DATA_PREFIX = '/test_data'
 
 class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def __init__(self, *args, **kwargs):
@@ -58,6 +59,10 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def translate_path(self, path):
     path = path.split('?',1)[0]
     path = path.split('#',1)[0]
+
+    if path.startswith(TEST_DATA_PREFIX):
+      path = path[len(TEST_DATA_PREFIX):]
+
     for mapped_path in self.server.project.source_paths:
       rel = os.path.relpath(path, '/')
       candidate = os.path.join(mapped_path, rel)
@@ -206,6 +211,10 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   @property
   def port(self):
     return self._port
+
+  @property
+  def data_dir(self):
+    return self._data_dir
 
   def serve_forever(self):
     if not self._quiet:

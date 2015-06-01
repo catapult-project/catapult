@@ -2,6 +2,7 @@
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import argparse
 import json
 import os
 import sys
@@ -21,6 +22,8 @@ def getFilesIn(basedir):
     for f in filenames:
       if f.startswith('.'):
         continue
+      if f == 'README.md':
+        continue
       full_f = os.path.join(dirpath, f)
       rel_f = os.path.relpath(full_f, basedir)
       data_files.append(rel_f)
@@ -28,10 +31,8 @@ def getFilesIn(basedir):
   data_files.sort()
   return data_files
 
-
 def do_GET_json_examples(request):
-  test_data_path = os.path.abspath(os.path.join(_ROOT_PATH, 'test_data'))
-  data_files = getFilesIn(test_data_path)
+  data_files = getFilesIn(request.server.data_dir)
   files_as_json = json.dumps(data_files)
 
   request.send_response(200)
@@ -84,10 +85,19 @@ def do_POST_report_test_completion(request):
   request.server.RequestShutdown(exit_code=(0 if 'ALL_PASSED' in msg else 1))
 
 def Main(args):
-  port = 8003
+  parser = argparse.ArgumentParser(description='Run tracing development server')
+  parser.add_argument(
+      '-d', '--data-dir',
+      default=os.path.abspath(os.path.join(_ROOT_PATH, 'test_data')))
+  parser.add_argument('-p', '--port', default=8003, type=int)
+  args = parser.parse_args()
+
   project = trace_viewer_project.TraceViewerProject()
 
-  server = tvcm.DevServer(port=port, project=project)
+  server = tvcm.DevServer(port=args.port, project=project)
+  server.data_dir = os.path.abspath(args.data_dir)
+  project.source_paths.append(server.data_dir)
+
   server.AddPathHandler('/json/examples', do_GET_json_examples)
   server.AddPathHandler('/tv/json/tests', do_GET_json_tests)
   server.AddPathHandler('/json/examples/skp', do_GET_json_examples_skp)
