@@ -54,7 +54,7 @@ tv.exportTo('tv.b.units', function() {
 
     set duration(duration) {
       if (duration instanceof tv.b.units.TimeDuration)
-        this.duration_ = duration;
+        this.duration_ = duration.duration;
       else
         this.duration_ = duration;
       this.$.content.textContent = tv.b.units.tsString(this.duration_);

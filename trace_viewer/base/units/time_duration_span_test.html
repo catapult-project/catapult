@@ -18,6 +18,7 @@ tv.b.unittest.testSuite(function() {
     var timeSpan = document.createElement('tv-b-u-time-duration-span');
     timeSpan.duration = new tv.b.units.TimeDuration(73);
     this.addHTMLOutput(timeSpan);
+    assert.equal(timeSpan.duration, 73);
   });
   test('instantiateWithWarning', function() {
     var timeSpan = document.createElement('tv-b-u-time-duration-span');

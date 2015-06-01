@@ -39,7 +39,7 @@ tv.exportTo('tv.b.units', function() {
 
     set timestamp(timestamp) {
       if (timestamp instanceof tv.b.units.TimeStamp)
-        this.timestamp_ = timestamp;
+        this.timestamp_ = timestamp.timestamp;
       else
         this.timestamp_ = timestamp;
       this.shadowRoot.textContent = tv.b.units.tsString(this.timestamp_);

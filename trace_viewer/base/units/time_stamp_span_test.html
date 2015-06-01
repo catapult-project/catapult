@@ -18,6 +18,7 @@ tv.b.unittest.testSuite(function() {
     var timeStamp = document.createElement('tv-b-u-time-stamp-span');
     timeStamp.timestamp = new tv.b.units.TimeStamp(73);
     this.addHTMLOutput(timeStamp);
+    assert.equal(timeStamp.timestamp, 73);
   });
 });
 </script>
