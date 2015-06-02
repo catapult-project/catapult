@@ -118,6 +118,13 @@ tv.exportTo('tv.b', function() {
     }
   };
 
+  Range.fromExplicitRange = function(min, max) {
+    var range = new Range();
+    range.min = min;
+    range.max = max;
+    return range;
+  };
+
   Range.compareByMinTimes = function(a, b) {
     if (!a.isEmpty && !b.isEmpty)
       return a.min_ - b.min_;
@@ -134,6 +141,5 @@ tv.exportTo('tv.b', function() {
   return {
     Range: Range
   };
-
 });
 </script>

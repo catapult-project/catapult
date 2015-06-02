@@ -86,8 +86,61 @@ tv.exportTo('tv.e.audits', function() {
     return mergedEvents;
   }
 
+  // 'totalRange' allows capturing an empty range before the first of 'inRanges'
+  // and after the last of 'inRanges'.
+  function findEmptyRangesBetweenExplicitRanges(
+      inRanges, totalRange, opt_startFunction, opt_endFunction) {
+    var startFunction = opt_startFunction;
+    if (!startFunction)
+      startFunction = function(range) { return range.start; };
+    var endFunction = opt_endFunction;
+    if (!endFunction)
+      endFunction = function(range) { return range.end; };
+
+    inRanges = inRanges.slice();
+    inRanges.sort(function(x, y) {
+      return startFunction(x) - startFunction(y);
+    });
+    var emptyRanges = [];
+    if (startFunction(totalRange) < startFunction(inRanges[0])) {
+      emptyRanges.push(tv.b.Range.fromExplicitRange(
+          startFunction(totalRange), startFunction(inRanges[0])));
+    }
+
+    inRanges.forEach(function(range, index) {
+      for (var otherIndex = 0; otherIndex < inRanges.length; ++otherIndex) {
+        if (index === otherIndex)
+          continue;
+        var other = inRanges[otherIndex];
+
+        if (startFunction(other) > endFunction(range)) {
+          // 'inRanges' is sorted, so 'other' is the first range after 'range',
+          // and there is an empty range between them.
+          emptyRanges.push(tv.b.Range.fromExplicitRange(
+              endFunction(range), startFunction(other)));
+          return;
+        }
+        // Otherwise, 'other' starts before 'range' ends, so 'other' might
+        // possibly contain the end of 'range'.
+
+        if (endFunction(other) > endFunction(range)) {
+          // 'other' does contain the end of 'range', so no empty range starts
+          // at the end of this 'range'.
+          return;
+        }
+      }
+      if (endFunction(range) < endFunction(totalRange)) {
+        emptyRanges.push(tv.b.Range.fromExplicitRange(
+            endFunction(range), endFunction(totalRange)));
+      }
+    });
+    return emptyRanges;
+  }
+
   return {
-    mergeExplicitRanges: mergeExplicitRanges
+    findEmptyRangesBetweenExplicitRanges: findEmptyRangesBetweenExplicitRanges,
+    mergeExplicitRanges: mergeExplicitRanges,
+    mergeRanges: mergeRanges
   };
 });
 </script>
