@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
-<link rel="import" href="/core/analysis/table_builder.html">
+<link rel="import" href="/base/ui/table.html">
 
 <polymer-element name="tv-c-a-alert-sub-view"
     extends="tv-c-a-sub-view">
@@ -25,8 +25,8 @@ found in the LICENSE file.
       align-self: stretch;
     }
     </style>
-    <tracing-analysis-nested-table id="table">
-    </tracing-analysis-nested-table>
+    <tv-b-ui-table id="table">
+    </tv-b-ui-table>
   </template>
   <script>
   'use strict';

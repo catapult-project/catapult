@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/extras/chrome/cc/selection.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/base/units/time_duration_span.html">
-<link rel="import" href="/core/analysis/table_builder.html">
+<link rel="import" href="/base/ui/table.html">
 
 <polymer-element name="tv-e-cc-raster-task-view"
     constructor="RasterTaskView">
@@ -26,7 +26,7 @@ found in the LICENSE file.
       Rasterization costs in
       <tv-c-a-analysis-link id="link"></tv-c-a-analysis-link>
     </div>
-    <tracing-analysis-nested-table id="content"></tracing-analysis-nested-table>
+    <tv-b-ui-table id="content"></tv-b-ui-table>
   </template>
   <script>
   'use strict';

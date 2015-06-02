@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
-<link rel="import" href="/core/analysis/table_builder.html">
+<link rel="import" href="/base/ui/table.html">
 
 <polymer-element name="tv-c-a-memory-dump-allocator-details-pane">
   <template>
@@ -85,7 +85,7 @@ found in the LICENSE file.
       var columns = this.createColumns_(rows);
 
       var table = this.ownerDocument.createElement(
-          'tracing-analysis-nested-table');
+          'tv-b-ui-table');
       this.$.contents.appendChild(table);
       table.tableRows = rows;
       table.tableColumns = columns;

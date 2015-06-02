@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/deep_utils.html">
-<link rel="import" href="/core/analysis/table_builder.html">
+<link rel="import" href="/base/ui/table.html">
 
 <script>
 'use strict';
@@ -27,7 +27,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = [];
     table.rebuild();
@@ -56,7 +56,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = [];
     table.emptyValue = 'This table is left intentionally empty';
@@ -97,7 +97,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.emptyValue = 'THIS SHOULD NOT BE VISIBLE!!!';
@@ -143,7 +143,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.footerRows = footerRows;
@@ -204,7 +204,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -213,7 +213,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('instantiateSortingCallbacksWithNests', function() {
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
 
     var columns = [
       {
@@ -351,7 +351,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -396,7 +396,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -425,7 +425,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.showHeader = false;
     table.tableColumns = columns;
     table.tableRows = rows;
@@ -459,7 +459,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table1 = document.createElement('tracing-analysis-nested-table');
+    var table1 = document.createElement('tv-b-ui-table');
     table1.showHeader = true;
 
     assert.throws(function() {
@@ -481,7 +481,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table1 = document.createElement('tracing-analysis-nested-table');
+    var table1 = document.createElement('tv-b-ui-table');
     table1.showHeader = true;
     table1.tableColumns = columns;
     table1.tableRows = [
@@ -493,7 +493,7 @@ tv.b.unittest.testSuite(function() {
     table1.rebuild();
     this.addHTMLOutput(table1);
 
-    var table2 = document.createElement('tracing-analysis-nested-table');
+    var table2 = document.createElement('tv-b-ui-table');
     table2.showHeader = false;
     table2.tableColumns = columns;
     table2.tableRows = [
@@ -512,7 +512,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('programmaticSorting', function() {
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
 
     var columns = [
       {
@@ -570,7 +570,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('sortingAfterExpand', function() {
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
 
     var columns = [
       {
@@ -634,7 +634,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   function createSimpleOneColumnNestedTable() {
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
 
     var columns = [
       {
@@ -766,7 +766,7 @@ tv.b.unittest.testSuite(function() {
 
   test('reduceNumberOfColumnsAfterRebuild', function() {
     // Create a table with two columns.
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.tableColumns = [
       {
         title: 'First Column',
@@ -818,7 +818,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.showHeader = true;
     table.supportsSelection = true;
     table.cellSelectionMode = true;
@@ -876,7 +876,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -901,7 +901,7 @@ tv.b.unittest.testSuite(function() {
     ];
     var rows = [{a: 1}];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -930,7 +930,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tracing-analysis-nested-table');
+    var table = document.createElement('tv-b-ui-table');
     table.subRowsPropertyName = 'children';
     table.tableColumns = columns;
     table.tableRows = rows;

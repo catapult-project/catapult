@@ -27,7 +27,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
 
     var table = tv.b.findDeepElementMatching(
-        viewEl, 'tracing-analysis-nested-table');
+        viewEl, 'tv-b-ui-table');
 
     var rows = table.tableRows;
     var columns = table.tableColumns;
@@ -67,7 +67,7 @@ tv.b.unittest.testSuite(function() {
     });
 
     var table = tv.b.findDeepElementMatching(
-        viewEl, 'tracing-analysis-nested-table');
+        viewEl, 'tv-b-ui-table');
 
     // Simulate clicking on the 'oilpan' cell of the second process.
     didFireSelectedDumpChanged = false;

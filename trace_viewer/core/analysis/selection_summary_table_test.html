@@ -25,7 +25,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(summaryTable);
 
     var tableEl = tv.b.findDeepElementMatching(
-        summaryTable, 'tracing-analysis-nested-table');
+        summaryTable, 'tv-b-ui-table');
     assert.equal(tableEl.tableRows[0].value, '<empty>');
     assert.equal(tableEl.tableRows[1].value, '<empty>');
   });
@@ -37,7 +37,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(summaryTable);
 
     var tableEl = tv.b.findDeepElementMatching(
-        summaryTable, 'tracing-analysis-nested-table');
+        summaryTable, 'tv-b-ui-table');
     assert.equal(tableEl.tableRows[0].value, '<empty>');
     assert.equal(tableEl.tableRows[1].value, '<empty>');
   });
@@ -59,7 +59,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(summaryTable);
 
     var tableEl = tv.b.findDeepElementMatching(
-        summaryTable, 'tracing-analysis-nested-table');
+        summaryTable, 'tv-b-ui-table');
     assert.equal(tableEl.tableRows[0].value.timestamp, 0);
     assert.equal(tableEl.tableRows[1].value.duration, 3);
   });

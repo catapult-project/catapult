@@ -43,7 +43,7 @@ tv.b.unittest.testSuite(function() {
     this.addHTMLOutput(view);
 
     var table = tv.b.findDeepElementMatching(
-        view, 'tracing-analysis-nested-table');
+        view, 'tv-b-ui-table');
 
     var rows = table.tableRows;
     assert.equal(rows.length, 3);

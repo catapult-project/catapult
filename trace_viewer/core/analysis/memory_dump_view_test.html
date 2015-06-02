@@ -26,7 +26,7 @@ tv.b.unittest.testSuite(function() {
     var overviewPane = tv.b.findDeepElementMatching(
         viewEl, 'tv-c-a-memory-dump-overview-pane');
     var overviewTable = tv.b.findDeepElementMatching(
-        overviewPane, 'tracing-analysis-nested-table');
+        overviewPane, 'tv-b-ui-table');
     assert.lengthOf(overviewTable.tableRows, 2);
 
     // Select totals dump of first process.
@@ -46,7 +46,7 @@ tv.b.unittest.testSuite(function() {
     var detailsPane = tv.b.findDeepElementMatching(
         viewEl, 'tv-c-a-memory-dump-allocator-details-pane');
     var detailsTable = tv.b.findDeepElementMatching(
-        detailsPane, 'tracing-analysis-nested-table');
+        detailsPane, 'tv-b-ui-table');
     assert.lengthOf(detailsTable.tableRows, 1);
   });
 });
