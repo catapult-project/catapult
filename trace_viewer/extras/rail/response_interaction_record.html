@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/core/trace_model/event_info.html">
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/extras/rail/rail_interaction_record.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview The Response phase of RAIL.
+ */
+tv.exportTo('tv.e.audits', function() {
+  function ResponseInteractionRecord(start, duration) {
+    tv.e.audits.RAILInteractionRecord.call(
+        this, 'Gesture',
+        tv.b.ui.getColorIdForGeneralPurposeString('mt_input'),
+        start, duration);
+  }
+
+  ResponseInteractionRecord.prototype = {
+    __proto__: tv.e.audits.RAILInteractionRecord.prototype,
+
+    get railTypeName() {
+      return 'Response';
+    }
+  };
+
+  return {
+    ResponseInteractionRecord: ResponseInteractionRecord
+  };
+});
+</script>

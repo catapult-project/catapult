@@ -91,23 +91,7 @@ tv.b.unittest.testSuite(function() {
     assert.equal(1, rirf.getAllFrameEvents().length);
   });
 
-  test('LoadingEvent', function() {
-    var rirf = newRIRF(function(model) {
-      audits.addGeneralLatencyInfoEvent(model, {start: 0, end: 100});
-      audits.addLoadingEvent(model, {start: 1, end: 10});
-    });
-    assert.equal(1, rirf.getAllLoadAndNetEvents().length);
-  });
-
-  test('NetworkEvent', function() {
-    var rirf = newRIRF(function(model) {
-      audits.addGeneralLatencyInfoEvent(model, {start: 0, end: 100});
-      audits.addNetworkEvent(model, {start: 1, end: 10});
-    });
-    assert.equal(1, rirf.getAllLoadAndNetEvents().length);
-  });
-
-  test('CommitToFirstFrame', function() {
+  test('Load', function() {
     var rirf = newRIRF(function(model) {
       audits.addProvisionalLoadEvent(model, {start: 1, end: 10});
       audits.addFrameEvent(model, {start: 11, end: 20});
@@ -118,7 +102,7 @@ tv.b.unittest.testSuite(function() {
     assert.equal(1, loads.length);
     var irs = rirf.findAllInteractionRecords();
     assert.equal(1, irs.length);
-    assert.equal('CommitToFirstFrame', irs[0].title);
+    assert.equal('Load', irs[0].title);
     assert.equal(1, irs[0].start);
     assert.equal(20, irs[0].end);
   });

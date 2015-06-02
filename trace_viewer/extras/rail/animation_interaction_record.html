@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/core/trace_model/event_info.html">
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/extras/rail/rail_interaction_record.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview The Animation phase of RAIL.
+ */
+tv.exportTo('tv.e.audits', function() {
+  function AnimationInteractionRecord(start, duration) {
+    tv.e.audits.RAILInteractionRecord.call(
+        this, 'Fling',
+        tv.b.ui.getColorIdForGeneralPurposeString('mt_fling'),
+        start, duration);
+  }
+
+  AnimationInteractionRecord.prototype = {
+    __proto__: tv.e.audits.RAILInteractionRecord.prototype,
+
+    get railTypeName() {
+      return 'Animation';
+    }
+  };
+
+  return {
+    AnimationInteractionRecord: AnimationInteractionRecord
+  };
+});
+</script>

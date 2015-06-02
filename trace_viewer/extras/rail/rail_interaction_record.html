@@ -43,13 +43,25 @@ tv.exportTo('tv.e.audits', function() {
     },
 
     get railTypeName() {
-      // At some point, we will subclass RAILInteractionRecord, at which point
-      // this will be overridden by the subclasses.
       return this.title;
     },
 
+    // 0 means painless. 1 means "switch to firefox".
+    get normalizedUserPain() {
+      return 0;
+    },
+
+    // 0 means extremely wasteful of battery. 1 means battery economical enough.
+    get normalizedEfficiency() {
+      return 1;
+    },
+
+    // 0 means an inefficient and painful user experience.
+    // 1 means an efficient and painless user experience.
     get railScore() {
-      return this.duration;
+      // TODO(benjhayden, nduca) Better scoring algorithm.
+      var happiness = 1 - this.normalizedUserPain;
+      return this.normalizedEfficiency * happiness;
     }
   };
 

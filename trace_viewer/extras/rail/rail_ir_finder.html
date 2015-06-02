@@ -9,7 +9,9 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/event_info.html">
 <link rel="import" href="/base/range_utils.html">
 <link rel="import" href="/extras/chrome/chrome_model_helper.html">
-<link rel="import" href="/extras/rail/rail_interaction_record.html">
+<link rel="import" href="/extras/rail/animation_interaction_record.html">
+<link rel="import" href="/extras/rail/load_interaction_record.html">
+<link rel="import" href="/extras/rail/response_interaction_record.html">
 
 <script>
 'use strict';
@@ -48,15 +50,6 @@ tv.exportTo('tv.e.audits', function() {
       }, this);
       frameEvents.sort(function(x, y) { return x.start - y.start; });
       return frameEvents;
-    },
-
-    getAllLoadAndNetEvents: function() {
-      if (this.modelHelper.browserHelper === undefined)
-        return;
-      var bounds = this.model.bounds;
-      return this.modelHelper.browserHelper.getLoadingEventsInRange(
-        bounds).concat(
-          this.modelHelper.browserHelper.getAllNetworkEventsInRange(bounds));
     },
 
     getAllGestures: function() {
@@ -192,45 +185,17 @@ tv.exportTo('tv.e.audits', function() {
       // InputLatency:GestureTapDown/
     },
 
-    findAllInteractionRecords: function() {
-      var rirs = [];
-
-      var gestures = this.getAllGestures();
-      var gestureIRs = gestures.map(function gestureToIR(gesture) {
-        var colorId = tv.b.ui.getColorIdForGeneralPurposeString('mt_input');
-        var ir = new tv.e.audits.RAILInteractionRecord(
-            'railInput', colorId,
-            gesture.expectedStart, gesture.expectedEnd - gesture.expectedStart);
-        ir.associatedEvents.push.apply(
-            ir.associatedEvents,
-            gesture.latencyEvents);
-        return ir;
-      });
-      rirs.push.apply(rirs, gestureIRs);
-
-      var flings = this.getAllExpected60Ranges();
-      var flingIRs = flings.map(function flingToIR(e60r) {
-        var colorId = tv.b.ui.getColorIdForGeneralPurposeString('mt_fling');
-        var ir = new tv.e.audits.RAILInteractionRecord(
-            'railFling', colorId,
-            e60r.expectedStart, e60r.expectedEnd - e60r.expectedStart);
-        return ir;
-      });
-      rirs.push.apply(rirs, flingIRs);
-
-      var allLoadAndNetEvents = this.getAllLoadAndNetEvents();
-
-      var allCommitProvisionalLoad =
+    findLoadInteractionRecords: function() {
+      var commits =
         this.modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
             this.model.bounds);
+      var frames = this.getAllFrameEvents();
 
-      var allFrameEvents = this.getAllFrameEvents();
-
-      allCommitProvisionalLoad.forEach(function(commitLoad, commitLoadIndex) {
-        allFrameEvents.some(function(frame) {
+      commits.forEach(function(commitLoad, commitLoadIndex) {
+        frames.some(function(frame) {
           if ((frame.start > commitLoad.start) &&
               (frame.parentThread.parent.pid ==
-               commitLoad.parentThread.parent.pid)) {
+                commitLoad.parentThread.parent.pid)) {
             if (frame.commitProvisionalLoad) return true;
             console.log('commit first frame', commitLoad.start, frame.start,
                 frame.start - commitLoad.start);
@@ -245,46 +210,35 @@ tv.exportTo('tv.e.audits', function() {
         }
       });
 
-      var allLatencyEvents = this.getAllLatencyEvents();
-      var allFrameAndLatencyEvents = [];
-      allFrameAndLatencyEvents.push.apply(allFrameAndLatencyEvents,
-                                          allFrameEvents);
-      allFrameAndLatencyEvents.push.apply(allFrameAndLatencyEvents,
-                                          allLatencyEvents);
-
-      function mergeEventsIntoIR(title, colorId, events) {
-        var e0 = events[0];
-        var eN = events[events.length - 1];
-        var ir = new tv.c.trace_model.InteractionRecord(
-            title, colorId,
-            e0.start, eN.end - e0.start);
-        ir.events = events;
-        return ir;
-      }
-
-      allCommitProvisionalLoad.forEach(function(commitLoad, commitLoadIndex) {
-        if (!commitLoad.firstFrame) return;
-        var ir = new tv.c.trace_model.InteractionRecord(
-            'CommitToFirstFrame',
-            tv.b.ui.getColorIdForGeneralPurposeString('mt_loading'),
-            commitLoad.start,
-            commitLoad.firstFrame.end - commitLoad.start);
-        ir.events = [commitLoad, commitLoad.firstFrame];
-        if (!ir.args) ir.args = {};
-        ir.args.url = commitLoad.args.url;
-        rirs.push(ir);
+      var lirs = [];
+      commits.forEach(function(commitLoad, commitLoadIndex) {
+        if (!commitLoad.firstFrame)
+          return;
+        lirs.push(new tv.e.audits.LoadInteractionRecord(
+            commitLoad.start, commitLoad.firstFrame.end - commitLoad.start));
       });
+      return lirs;
+    },
 
-      var mergedLoadIRs = tv.e.audits.mergeExplicitRanges(
-          allLoadAndNetEvents, 300,
-          mergeEventsIntoIR.bind(
-              undefined, 'Loading/Net',
-              tv.b.ui.getColorIdForGeneralPurposeString('mt_loading')));
-      mergedLoadIRs.forEach(function(loadIR) {
-        if (!loadIR.args) loadIR.args = {};
-        loadIR.args.url = loadIR.events[0].args.URL;
+    findResponseInteractionRecords: function() {
+      return this.getAllGestures().map(function(gesture) {
+        return new tv.e.audits.ResponseInteractionRecord(
+            gesture.expectedStart, gesture.expectedEnd - gesture.expectedStart);
       });
-      rirs.push.apply(rirs, mergedLoadIRs);
+    },
+
+    findAnimationInteractionRecords: function() {
+      return this.getAllExpected60Ranges().map(function(fling) {
+        return new tv.e.audits.AnimationInteractionRecord(
+            fling.expectedStart, fling.expectedEnd - fling.expectedStart);
+      });
+    },
+
+    findAllInteractionRecords: function() {
+      var rirs = [];
+      rirs.push.apply(rirs, this.findLoadInteractionRecords());
+      rirs.push.apply(rirs, this.findResponseInteractionRecords());
+      rirs.push.apply(rirs, this.findAnimationInteractionRecords());
       return rirs;
     }
   };
