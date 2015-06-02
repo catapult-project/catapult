@@ -39,6 +39,13 @@ tv.b.unittest.testSuite(function() {
     var firstColumnHeader = table.$.head.children[0].children[0];
     assert.closeTo(firstColumnHeader.offsetWidth, 300, 20);
 
+    // Check that the first column has a non-empty header.
+    var firstColumnTitle = tv.b.findDeepElementMatchingPredicate(
+        firstColumnHeader, function(element) {
+      return element.textContent === 'First Column';
+    });
+    assert.isDefined(firstColumnTitle);
+
     // Check that empty value was not appended.
     assert.lengthOf(table.$.body.children, 0);
   });
