@@ -51,10 +51,7 @@ tv.exportTo('tv.e.importer.battor', function() {
     if (!(typeof(events) === 'string' || events instanceof String))
       return false;
 
-    if (/^# BattOr/.test(events))
-      return true;
-
-    return false;
+    return /^# BattOr/.test(events);
   };
 
   BattorImporter.prototype = {
