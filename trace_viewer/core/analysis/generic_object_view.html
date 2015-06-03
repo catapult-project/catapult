@@ -14,6 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/units/size_in_bytes_span.html">
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/ui.html">
+<link rel="import" href="/base/ui/table.html">
 
 <polymer-element name="tv-c-a-generic-object-view"
     is="HTMLUnknownElement">
@@ -202,28 +203,17 @@ found in the LICENSE file.
       }
 
       if (isTable(object)) {
-        var table = document.createElement('table');
-        var tr = document.createElement('tr');
-        table.appendChild(tr);
+        var table = document.createElement('tv-b-ui-table');
         var columns = [];
-        for (var colName in object[0]) {
-          columns.push(colName);
-          var th = document.createElement('th');
-          th.textContent = colName;
-          tr.appendChild(th);
-        }
-        object.forEach(function(row) {
-          var tr = document.createElement('tr');
-          table.appendChild(tr);
-          columns.forEach(function(colName) {
-            var cell = row[colName];
-            var td = document.createElement('td');
-            td.textContent = cell;
-            td.style.textAlign = isNaN(parseFloat(cell)) ? 'left' : 'right';
-            tr.appendChild(td);
-          });
+        tv.b.iterItems(object[0], function(colName) {
+          columns.push({title: colName, value: function(row) {
+            return row[colName];
+          }});
         });
+        table.tableColumns = columns;
+        table.tableRows = object;
         this.appendElementWithLabel_(label, indent, table, suffix);
+        table.rebuild();
         return;
       }
 

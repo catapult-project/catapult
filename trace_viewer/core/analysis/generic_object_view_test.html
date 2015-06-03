@@ -148,16 +148,14 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var view = document.createElement('tv-c-a-generic-object-view');
     view.object = [{col0: 'object', col1: 0}, {col0: 'Object', col1: 1}];
     this.addHTMLOutput(view);
-    var table = tv.b.findDeepElementMatching(view.$.content, 'table');
-    assert.equal(1 + view.object.length, table.rows.length);
-    assert.equal(2, table.rows[0].children.length);
-    assert.equal('col0', table.rows[0].children[0].textContent);
-    assert.equal('col1', table.rows[0].children[1].textContent);
-    view.object.forEach(function(row, rowIndex) {
-      assert.equal(2, table.rows[1 + rowIndex].children.length);
-      assert.equal(row.col0, table.rows[1 + rowIndex].children[0].textContent);
-      assert.equal(row.col1, table.rows[1 + rowIndex].children[1].textContent);
-    });
+    var table = tv.b.findDeepElementMatching(
+        view.$.content, 'tv-b-ui-table');
+    assert.equal('col0', table.tableColumns[0].title);
+    assert.equal('col1', table.tableColumns[1].title);
+    assert.equal('object', table.tableColumns[0].value(table.tableRows[0]));
+    assert.equal('Object', table.tableColumns[0].value(table.tableRows[1]));
+    assert.equal(0, table.tableColumns[1].value(table.tableRows[0]));
+    assert.equal(1, table.tableColumns[1].value(table.tableRows[1]));
   });
 
   test('instantiate_objectValue', function() {
