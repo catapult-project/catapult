@@ -214,7 +214,7 @@ class SharedPageState(shared_state.SharedState):
           '(page.CanRunOnBrowser() returns False).')
       return 'skip', skip_value
     expectation = expectations.GetExpectationForPage(
-        self.browser, self._current_page)
+        self, self._current_page)
     if expectation == 'skip':
       skip_value = skip.SkipValue(
           self._current_page, 'Skipped by test expectations')

@@ -46,6 +46,10 @@ class StubBrowser(object):
   def GetSystemInfo(self):
     return self.system_info
 
+class StubSharedPageState(object):
+  def __init__(self, browser):
+    self.browser = browser
+
 class SampleTestExpectations(test_expectations.TestExpectations):
   def SetExpectations(self):
     self.Fail('page1.html', ['win', 'mac'], bug=123)
@@ -68,9 +72,9 @@ class SampleTestExpectations(test_expectations.TestExpectations):
   def IsValidUserDefinedCondition(self, condition):
     return condition in ('valid_condition_matched', 'valid_condition_unmatched')
 
-  def ModifiersApply(self, platform, gpu_info, expectation):
+  def ModifiersApply(self, shared_page_state, expectation):
     if not super(SampleTestExpectations,
-        self).ModifiersApply(platform, gpu_info, expectation):
+        self).ModifiersApply(shared_page_state, expectation):
       return False
     return ((not expectation.user_defined_conditions) or
         'valid_condition_matched' in expectation.user_defined_conditions)
@@ -81,8 +85,8 @@ class TestExpectationsTest(unittest.TestCase):
 
   def assertExpectationEquals(self, expected, page, platform='', gpu=0,
       device=0, vendor_string='', device_string=''):
-    result = self.expectations.GetExpectationForPage(StubBrowser(platform, gpu,
-        device, vendor_string, device_string), page)
+    result = self.expectations.GetExpectationForPage(StubSharedPageState(
+        StubBrowser(platform, gpu, device, vendor_string, device_string)), page)
     self.assertEquals(expected, result)
 
   # Pages with no expectations should always return 'pass'
