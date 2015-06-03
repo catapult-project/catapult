@@ -57,14 +57,16 @@ class _SingleProcessVTuneProfiler(object):
       return self._output_file
 
     if self._is_android:
-      required_libs = (
+      required_libs = \
           android_profiling_helper.GetRequiredLibrariesForVTuneProfile(
-              self._output_file))
+              self._output_file)
 
+      device = self._browser_backend.adb.device()
       symfs_root = os.path.dirname(self._output_file)
-      android_profiling_helper.CreateSymFs(
-          self._browser_backend.device, symfs_root, required_libs,
-          use_symlinks=True)
+      android_profiling_helper.CreateSymFs(device,
+                                           symfs_root,
+                                           required_libs,
+                                           use_symlinks=True)
       logging.info('Resolving symbols in profile.')
       subprocess.call(['amplxe-cl', '-finalize', '-r', self._output_file,
                        '-search-dir', symfs_root])
@@ -128,8 +130,6 @@ class VTuneProfiler(profiler.Profiler):
 
       if browser_type.startswith('android'):
         # VTune checks if 'su' is available on the device.
-        # TODO(jbudorick): Replace with DeviceUtils.HasRoot,
-        # DeviceUtils.NeedsSU, or some combination thereof.
         proc = subprocess.Popen(['adb', 'shell', 'su', '-c', 'id'],
                                 stderr=subprocess.STDOUT,
                                 stdout=subprocess.PIPE)

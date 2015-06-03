@@ -12,17 +12,16 @@ from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock # pylint: disable=import-error
+import mock # pylint: disable=F0401
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib.device import battery_utils # pylint: disable=import-error
-from pylib.device import device_utils # pylint: disable=import-error
+from pylib.device import battery_utils # pylint: disable=F0401
 
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):
     self._options = options_for_unittests.GetCopy()
     self._stubs = system_stub.Override(
         android_platform_backend,
-        ['perf_control', 'thermal_throttle', 'certutils',
+        ['perf_control', 'thermal_throttle', 'adb_commands', 'certutils',
          'adb_install_cert', 'platformsettings'])
 
     # Skip _FixPossibleAdbInstability by setting psutil to None.
@@ -31,25 +30,9 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     self.battery_patcher = mock.patch.object(battery_utils, 'BatteryUtils')
     self.battery_patcher.start()
 
-    def get_prop(name, cache=None):
-      return {'ro.product.cpu.abi': 'armeabi-v7a'}.get(name)
-
-    self.helper_patcher = mock.patch(
-        'telemetry.core.platform.android_platform_backend._SetupPrebuiltTools',
-        return_value=True)
-    self.helper_patcher.start()
-
-    self.device_patcher = mock.patch.multiple(
-        device_utils.DeviceUtils,
-        HasRoot=mock.MagicMock(return_value=True),
-        GetProp=mock.MagicMock(side_effect=get_prop))
-    self.device_patcher.start()
-
   def tearDown(self):
     self._stubs.Restore()
     android_platform_backend.psutil = self._actual_ps_util
-    self.device_patcher.stop()
-    self.helper_patcher.stop()
     self.battery_patcher.stop()
 
   @decorators.Disabled('chromeos')
@@ -60,23 +43,20 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         '4294967295 1074458624 1074463824 3197495984 3197494152 '
         '1074767676 0 4612 0 38136 4294967295 0 0 17 0 0 0 0 0 0 '
         '1074470376 1074470912 1102155776\n')
-
-    with mock.patch('pylib.device.device_utils.DeviceUtils.ReadFile',
-                   return_value=proc_stat_content):
-      backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('12345'), self._options)
-      cpu_stats = backend.GetCpuStats('7702')
-      self.assertEquals(cpu_stats, {'CpuProcessTime': 0.05})
+    self._stubs.adb_commands.adb_device.mock_content = proc_stat_content
+    self._stubs.adb_commands.adb_device.has_root = True
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('12345'), self._options)
+    cpu_stats = backend.GetCpuStats('7702')
+    self.assertEquals(cpu_stats, {'CpuProcessTime': 0.05})
 
   @decorators.Disabled('chromeos')
   def testGetCpuStatsInvalidPID(self):
     # Mock an empty /proc/pid/stat.
-    with mock.patch('pylib.device.device_utils.DeviceUtils.ReadFile',
-                    return_value=''):
-      backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('1234'), self._options)
-      cpu_stats = backend.GetCpuStats('7702')
-      self.assertEquals(cpu_stats, {})
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('1234'), self._options)
+    cpu_stats = backend.GetCpuStats('7702')
+    self.assertEquals(cpu_stats, {})
 
   def testAndroidParseCpuStates(self):
     cstate = {
@@ -182,33 +162,15 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
   def setUp(self):
     self._options = options_for_unittests.GetCopy()
     self._stubs = system_stub.Override(
-        android_platform_backend, ['perf_control'])
-
+        android_platform_backend,
+        ['perf_control', 'adb_commands'])
     self.battery_patcher = mock.patch.object(battery_utils, 'BatteryUtils')
     self.battery_patcher.start()
-
-    def get_prop(name, cache=None):
-      return {'ro.product.cpu.abi': 'armeabi-v7a'}.get(name)
-
-    self.helper_patcher = mock.patch(
-        'telemetry.core.platform.android_platform_backend._SetupPrebuiltTools',
-        return_value=True)
-    self.helper_patcher.start()
-
-    self.device_patcher = mock.patch.multiple(
-        device_utils.DeviceUtils,
-        FileExists=mock.MagicMock(return_value=False),
-        GetProp=mock.MagicMock(side_effect=get_prop),
-        HasRoot=mock.MagicMock(return_value=True))
-    self.device_patcher.start()
-
     self._actual_ps_util = android_platform_backend.psutil
 
   def tearDown(self):
     self._stubs.Restore()
     android_platform_backend.psutil = self._actual_ps_util
-    self.device_patcher.stop()
-    self.helper_patcher.stop()
     self.battery_patcher.stop()
 
   @decorators.Disabled('chromeos')
@@ -217,13 +179,11 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
     android_platform_backend.psutil = psutil
 
     # Mock an empty /proc/pid/stat.
-    with mock.patch('pylib.device.device_utils.DeviceUtils.ReadFile',
-                    return_value=''):
-      backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('1234'), self._options)
-      cpu_stats = backend.GetCpuStats('7702')
-      self.assertEquals({}, cpu_stats)
-      self.assertEquals([[0]], psutil.set_cpu_affinity_args)
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('1234'), self._options)
+    cpu_stats = backend.GetCpuStats('7702')
+    self.assertEquals({}, cpu_stats)
+    self.assertEquals([[0]], psutil.set_cpu_affinity_args)
 
   @decorators.Disabled('chromeos')
   def testPsutil2(self):
@@ -231,10 +191,8 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
     android_platform_backend.psutil = psutil
 
     # Mock an empty /proc/pid/stat.
-    with mock.patch('pylib.device.device_utils.DeviceUtils.ReadFile',
-                    return_value=''):
-      backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('1234'), self._options)
-      cpu_stats = backend.GetCpuStats('7702')
-      self.assertEquals({}, cpu_stats)
-      self.assertEquals([[0]], psutil.set_cpu_affinity_args)
+    backend = android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('1234'), self._options)
+    cpu_stats = backend.GetCpuStats('7702')
+    self.assertEquals({}, cpu_stats)
+    self.assertEquals([[0]], psutil.set_cpu_affinity_args)

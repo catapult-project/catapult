@@ -35,12 +35,12 @@ class SetUpCommandLineFlags(object):
   Example usage:
 
       with android_command_line_backend.SetUpCommandLineFlags(
-          device, backend_settings, startup_args):
+          adb, backend_settings, startup_args):
         # Something to run while the command line flags are set appropriately.
   """
-  def __init__(self, device, backend_settings, startup_args):
+  def __init__(self, adb, backend_settings, startup_args):
     self._android_command_line_backend = _AndroidCommandLineBackend(
-        device, backend_settings, startup_args)
+        adb, backend_settings, startup_args)
 
   def __enter__(self):
     self._android_command_line_backend.SetUpCommandLineFlags()
@@ -59,15 +59,15 @@ class _AndroidCommandLineBackend(object):
   functionality.
   """
 
-  def __init__(self, device, backend_settings, startup_args):
-    self._device = device
+  def __init__(self, adb, backend_settings, startup_args):
+    self._adb = adb
     self._backend_settings = backend_settings
     self._startup_args = startup_args
     self._saved_command_line_file_contents = None
 
   @property
   def command_line_file(self):
-    return self._backend_settings.GetCommandLineFile(self._device.IsUserBuild())
+    return self._backend_settings.GetCommandLineFile(self._adb.IsUserBuild())
 
   def SetUpCommandLineFlags(self):
     args = [self._backend_settings.pseudo_exec_name]
@@ -100,11 +100,11 @@ class _AndroidCommandLineBackend(object):
       self._WriteFile(self._saved_command_line_file_contents)
 
   def _ReadFile(self):
-    return self._device.ReadFile(self.command_line_file, as_root=True)
+    return self._adb.device().ReadFile(self.command_line_file, as_root=True)
 
   def _WriteFile(self, contents):
-    self._device.WriteFile(self.command_line_file, contents, as_root=True)
+    self._adb.device().WriteFile(self.command_line_file, contents, as_root=True)
 
   def _RemoveFile(self):
-    self._device.RunShellCommand(['rm', '-f', self.command_line_file],
-                                 as_root=True, check_return=True)
+    self._adb.device().RunShellCommand(['rm', '-f', self.command_line_file],
+                                       as_root=True, check_return=True)

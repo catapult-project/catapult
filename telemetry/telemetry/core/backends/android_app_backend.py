@@ -24,8 +24,8 @@ class AndroidAppBackend(app_backend.AppBackend):
     self._existing_processes_by_pid = {}
 
   @property
-  def _device(self):
-    return self.platform_backend.device
+  def _adb(self):
+    return self.platform_backend.adb
 
   def _IsAppReady(self):
     if self._is_app_ready_predicate is None:
@@ -42,10 +42,10 @@ class AndroidAppBackend(app_backend.AppBackend):
     backend_settings = android_browser_backend_settings.WebviewBackendSettings(
         'android-webview')
     with android_command_line_backend.SetUpCommandLineFlags(
-        self._device, backend_settings, webview_startup_args):
+        self._adb, backend_settings, webview_startup_args):
       # TODO(slamm): check if can use "blocking=True" instead of needing to
       # sleep. If "blocking=True" does not work, switch sleep to "ps" check.
-      self._device.StartActivity(self._start_intent, blocking=False)
+      self._adb.device().StartActivity(self._start_intent, blocking=False)
       util.WaitFor(self._IsAppReady, timeout=60)
     self._is_running = True
 
