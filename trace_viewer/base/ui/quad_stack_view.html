@@ -673,7 +673,7 @@ tv.exportTo('tv.b.ui', function() {
           res.push(quad);
       }
       this.stackTransformAndProcessQuads_(1, handleQuad, false);
-      var e = new Event('selectionchange', false, false);
+      var e = new Event('selectionchange');
       e.quads = res;
       this.dispatchEvent(e);
     }

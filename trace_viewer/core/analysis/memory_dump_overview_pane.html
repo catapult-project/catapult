@@ -61,7 +61,7 @@ found in the LICENSE file.
       this.$.table.cellSelectionMode = true;
       this.$.table.addEventListener('selection-changed', function(tableEvent) {
         tableEvent.stopPropagation();
-        var paneEvent = new Event('selected-memory-cell-changed', false, false);
+        var paneEvent = new Event('selected-memory-cell-changed');
         this.dispatchEvent(paneEvent);
       }.bind(this));
     },

@@ -79,7 +79,7 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     onHeadingDivClicked_: function() {
-      var e = new Event('heading-clicked', true, false);
+      var e = new Event('heading-clicked', {'bubbles': true});
       this.dispatchEvent(e);
     },
 

@@ -923,7 +923,7 @@ found in the LICENSE file.
       },
 
       prepareToChangeSelection_: function() {
-        var e = new Event('selection-changed', false, false);
+        var e = new Event('selection-changed');
         var previousSelectedRowInfo = this.selectedTableRowInfo_;
         if (previousSelectedRowInfo)
           e.previousSelectedTableRow = previousSelectedRowInfo.userRow;
