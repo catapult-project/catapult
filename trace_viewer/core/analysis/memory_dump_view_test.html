@@ -28,19 +28,20 @@ tv.b.unittest.testSuite(function() {
     var overviewTable = tv.b.findDeepElementMatching(
         overviewPane, 'tv-b-ui-table');
     assert.lengthOf(overviewTable.tableRows, 2);
+    assert.lengthOf(overviewTable.tableColumns, 7);
 
     // Select totals dump of first process.
     overviewTable.selectedTableRow = overviewTable.tableRows[0];
-    overviewTable.selectedColumnIndex = 1;
+    overviewTable.selectedColumnIndex = 3;
 
     // Select mmaps dump of first process.
-    overviewTable.selectedColumnIndex = 2;
+    overviewTable.selectedColumnIndex = 4;
 
     // Select mmaps dump of second process.
     overviewTable.selectedTableRow = overviewTable.tableRows[1];
 
     // Select oilpan dump of second process.
-    overviewTable.selectedColumnIndex = 3;
+    overviewTable.selectedColumnIndex = 5;
 
     // There should now be an allocator details pane containing contain a table.
     var detailsPane = tv.b.findDeepElementMatching(

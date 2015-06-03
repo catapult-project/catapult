@@ -123,23 +123,29 @@ found in the LICENSE file.
           var cell = new tv.c.analysis.MemoryCell(attr);
           cells[columnName] = cell;
         }
+        function addBytesCellIfValueDefined(columnName, value) {
+          addCellIfValueDefined(columnName,
+              tv.c.trace_model.ScalarAttribute, 'bytes', value);
+        }
         addCellIfValueDefined('Start address',
             tv.c.trace_model.StringAttribute, '',
             hexString(vmRegion.startAddress));
-        addCellIfValueDefined('Virtual size',
-            tv.c.trace_model.ScalarAttribute, 'bytes', vmRegion.sizeInBytes);
+        addBytesCellIfValueDefined('Virtual size', vmRegion.sizeInBytes);
         addCellIfValueDefined('Protection flags',
             tv.c.trace_model.StringAttribute, '',
             vmRegion.protectionFlagsToString);
-        addCellIfValueDefined('Proportional resident',
-            tv.c.trace_model.ScalarAttribute, 'bytes',
+        addBytesCellIfValueDefined('PSS',
             vmRegion.byteStats.proportionalResident);
-        addCellIfValueDefined('Private resident',
-            tv.c.trace_model.ScalarAttribute, 'bytes',
-            vmRegion.byteStats.privateResident);
-        addCellIfValueDefined('Shared resident',
-            tv.c.trace_model.ScalarAttribute, 'bytes',
-            vmRegion.byteStats.sharedResident);
+        addBytesCellIfValueDefined('Private dirty',
+            vmRegion.byteStats.privateDirtyResident);
+        addBytesCellIfValueDefined('Private clean',
+            vmRegion.byteStats.privateCleanResident);
+        addBytesCellIfValueDefined('Shared dirty',
+            vmRegion.byteStats.sharedDirtyResident);
+        addBytesCellIfValueDefined('Shared clean',
+            vmRegion.byteStats.sharedCleanResident);
+        addBytesCellIfValueDefined('Swapped',
+            vmRegion.byteStats.swapped);
 
         return {mappedFile: mappedFile, cells: cells};
       });

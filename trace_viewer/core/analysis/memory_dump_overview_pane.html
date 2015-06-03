@@ -93,26 +93,36 @@ found in the LICENSE file.
       var processMemoryDumps = this.processMemoryDumps_ || [];
 
       var rows = processMemoryDumps.map(function(processMemoryDump) {
-        // Used memory (total resident, PSS).
+        function buildVMRegionsPane() {
+          var pane = document.createElement(
+                  'tv-c-a-memory-dump-vm-regions-details-pane');
+          pane.vmRegions = processMemoryDump.mostRecentVmRegions;
+          return pane;
+        }
+
+        // Used memory (total resident, PSS, ...).
         var usedMemorySizes = {};
         var totalResident = processMemoryDump.totalResidentBytes;
         if (totalResident !== undefined) {
-          usedMemorySizes['Total used memory'] = new tv.c.analysis.MemoryCell(
-              new tv.c.trace_model.ScalarAttribute('bytes', totalResident));
-        }
-        var pss =
-            processMemoryDump.mostRecentTotalProportionalResidentSizeInBytes;
-        if (pss !== undefined) {
           var cell = new tv.c.analysis.MemoryCell(
-              new tv.c.trace_model.ScalarAttribute('bytes', pss));
-          cell.buildDetailsPane = function() {
-            var pane = document.createElement(
-                'tv-c-a-memory-dump-vm-regions-details-pane');
-            pane.vmRegions = processMemoryDump.mostRecentVmRegions;
-            return pane;
-          }
-          usedMemorySizes['Proportional used memory (mmaps)'] = cell;
+              new tv.c.trace_model.ScalarAttribute('bytes', totalResident));
+          cell.buildDetailsPane = buildVMRegionsPane;
+          usedMemorySizes['Total resident'] = cell;
         }
+
+        function addByteStatCell(byteStatName, columnTitle) {
+          var byteStat =
+              processMemoryDump.getMostRecentTotalVmRegionStat(byteStatName);
+          if (byteStat !== undefined) {
+            var cell = new tv.c.analysis.MemoryCell(
+                new tv.c.trace_model.ScalarAttribute('bytes', byteStat));
+            cell.buildDetailsPane = buildVMRegionsPane;
+            usedMemorySizes[columnTitle] = cell;
+          }
+        }
+        addByteStatCell('proportionalResident', 'PSS');
+        addByteStatCell('privateDirtyResident', 'Private dirty');
+        addByteStatCell('swapped', 'Swapped');
 
         // Allocator memory (v8, oilpan, ...).
         var allocatorSizes = {};

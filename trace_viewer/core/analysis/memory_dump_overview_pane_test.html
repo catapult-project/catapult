@@ -32,23 +32,29 @@ tv.b.unittest.testSuite(function() {
     var rows = table.tableRows;
     var columns = table.tableColumns;
     assert.lengthOf(rows, 2);
-    assert.lengthOf(columns, 5);
+    assert.lengthOf(columns, 7);
 
     var titleColumn = columns[0];
     var totalColumn = columns[1];
     var proportionalColumn = columns[2];
-    var oilpanColumn = columns[3];
-    var v8Column = columns[4];
+    var privateDirtyColumn = columns[3];
+    var swappedColumn = columns[4];
+    var oilpanColumn = columns[5];
+    var v8Column = columns[6];
 
     // Check the rows of the table.
     assert.equal(titleColumn.value(rows[0]).label, 'Process 1');
     assert.equal(totalColumn.value(rows[0]).numBytes, 31457280);
     assert.equal(proportionalColumn.value(rows[0]).numBytes, 10485760);
+    assert.equal(privateDirtyColumn.value(rows[0]).numBytes, 8388608);
+    assert.equal(swappedColumn.value(rows[0]).numBytes, 0);
     assert.equal(oilpanColumn.value(rows[0]), '');
     assert.equal(v8Column.value(rows[0]), '');
 
     assert.equal(titleColumn.value(rows[1]).label, 'Process 2');
     assert.equal(proportionalColumn.value(rows[1]), '');
+    assert.equal(privateDirtyColumn.value(rows[1]), '');
+    assert.equal(swappedColumn.value(rows[1]), '');
     assert.equal(oilpanColumn.value(rows[1]).numBytes, 2147483648);
     assert.equal(v8Column.value(rows[1]).numBytes, 1073741824);
   });
@@ -72,7 +78,7 @@ tv.b.unittest.testSuite(function() {
     // Simulate clicking on the 'oilpan' cell of the second process.
     didFireSelectedDumpChanged = false;
     table.selectedTableRow = table.tableRows[1];
-    table.selectedColumnIndex = 3;
+    table.selectedColumnIndex = 5;
     assert.isTrue(didFireSelectedDumpChanged);
     assert.isDefined(viewEl.selectedMemoryCell);
     assert.isDefined(viewEl.selectedMemoryCell.buildDetailsPane);
@@ -80,7 +86,7 @@ tv.b.unittest.testSuite(function() {
     // Simulate clicking on the 'Proportional used memory (mmaps)' cell of the
     // second process.
     didFireSelectedDumpChanged = false;
-    table.selectedColumnIndex = 2;
+    table.selectedColumnIndex = 4;
     assert.isTrue(didFireSelectedDumpChanged);
     assert.isUndefined(viewEl.selectedMemoryCell);
   });

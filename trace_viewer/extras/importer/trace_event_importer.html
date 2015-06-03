@@ -1520,13 +1520,22 @@ tv.exportTo('tv.e.importer', function() {
 
           // Populate the vmRegions, if present.
           if (dumps.process_mmaps && dumps.process_mmaps.vm_regions) {
+            function parseByteStat(rawValue) {
+              if (rawValue === undefined)
+                return undefined;
+              return parseInt(rawValue, 16);
+            }
+
             processMemoryDump.vmRegions = dumps.process_mmaps.vm_regions.map(
               function(rawRegion) {
                 // See //base/trace_event/process_memory_maps.cc in Chromium.
                 var byteStats = new tv.c.trace_model.VMRegionByteStats(
-                    parseInt(rawRegion.bs.prv, 16),  // privateResident
-                    parseInt(rawRegion.bs.shr, 16),  // sharedResident
-                    parseInt(rawRegion.bs.pss, 16)  // proportionalResident
+                  parseByteStat(rawRegion.bs.pc),
+                  parseByteStat(rawRegion.bs.pd),
+                  parseByteStat(rawRegion.bs.sc),
+                  parseByteStat(rawRegion.bs.sd),
+                  parseByteStat(rawRegion.bs.pss),
+                  parseByteStat(rawRegion.bs.sw)
                 );
                 return new tv.c.trace_model.VMRegion(
                     parseInt(rawRegion.sa, 16),  // startAddress

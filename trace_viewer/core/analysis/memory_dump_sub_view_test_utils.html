@@ -44,11 +44,11 @@ tv.exportTo('tv.c.analysis', function() {
             sizeInBytes: 20971520, /* 20 MiB */
             protectionFlags: VMRegion.PROTECTION_FLAG_READ,
             mappedFile: '[stack]',
-            byteStats: VMRegionByteStats.fromDict({
-                privateResident: 8388608, /* 8 MiB */
-                sharedResident: 12582912, /* 12 MiB */
+            byteStats: {
+                privateDirtyResident: 8388608, /* 8 MiB */
+                sharedCleanResident: 12582912, /* 12 MiB */
                 proportionalResident: 10485760 /* 10 MiB */
-            })
+            }
         })
       ];
 

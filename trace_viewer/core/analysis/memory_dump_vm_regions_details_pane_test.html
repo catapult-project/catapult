@@ -36,8 +36,8 @@ tv.b.unittest.testSuite(function() {
         protectionFlags: VMRegion.PROTECTION_FLAG_READ |
             VMRegion.PROTECTION_FLAG_WRITE,
         byteStats: {
-          privateResident: 0,
-          sharedResident: 0
+          privateDirtyResident: 0,
+          swapped: 0
         }
       })
     ];
@@ -70,8 +70,8 @@ tv.b.unittest.testSuite(function() {
     var virtualSizeColumn = columns[2];
     var protectionFlagsColumn = columns[3];
     var proportionalResidentColumn = columns[4];
-    var privateResidentColumn = columns[5];
-    var sharedResidentColumn = columns[6];
+    var privateDirtyResident = columns[5];
+    var swapped = columns[6];
 
     // Check the rows of the table.
     assert.equal(mappedFileColumn.value(rows[0]), '/lib/chrome.so');
@@ -79,16 +79,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal(virtualSizeColumn.value(rows[0]).numBytes, 2097152);
     assert.equal(protectionFlagsColumn.value(rows[0]), 'r-x');
     assert.equal(proportionalResidentColumn.value(rows[0]).numBytes, 8192);
-    assert.equal(privateResidentColumn.value(rows[0]), '');
-    assert.equal(sharedResidentColumn.value(rows[0]), '');
+    assert.equal(privateDirtyResident.value(rows[0]), '');
+    assert.equal(swapped.value(rows[0]), '');
 
     assert.equal(mappedFileColumn.value(rows[1]), '');
     assert.equal(startAddressColumn.value(rows[1]), '00000a0000000000');
     assert.equal(virtualSizeColumn.value(rows[1]).numBytes, 4294967296);
     assert.equal(protectionFlagsColumn.value(rows[1]), 'rw-');
     assert.equal(proportionalResidentColumn.value(rows[1]), '');
-    assert.equal(privateResidentColumn.value(rows[1]).numBytes, 0);
-    assert.equal(sharedResidentColumn.value(rows[1]).numBytes, 0);
+    assert.equal(privateDirtyResident.value(rows[1]).numBytes, 0);
+    assert.equal(swapped.value(rows[1]).numBytes, 0);
   });
 });
 </script>

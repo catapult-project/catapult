@@ -181,8 +181,8 @@ tv.exportTo('tv.c.tracks', function() {
           // If no dump was found, assume that the process is dead.
           pss = 0;
         } else {
-          pss =
-              processMemoryDump.mostRecentTotalProportionalResidentSizeInBytes;
+          pss = processMemoryDump.getMostRecentTotalVmRegionStat(
+              'proportionalResident');
           if (pss === undefined) {
             // If the dump does not provide the necessary information (namely
             // most recent VM regions), assume zero.

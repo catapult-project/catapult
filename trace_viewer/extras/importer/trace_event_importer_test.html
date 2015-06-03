@@ -2504,8 +2504,11 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                   mf: '[stack:20310]',
                   bs: {
                     pss: '9e',
-                    prv: '60',
-                    shr: '50'
+                    pc: '40',
+                    pd: '20',
+                    sc: '100',
+                    sd: '0',
+                    sw: '50'
                   }
                 },
                 {
@@ -2515,8 +2518,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                   mf: '/dev/ashmem/dalvik',
                   bs: {
                     pss: 'cd',
-                    prv: 'cd',
-                    shr: '0'
+                    pd: 'cd',
+                    sw: '0'
                   }
                 }
               ]
@@ -2537,10 +2540,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(vr1.protectionFlags, 6);
     assert.equal(vr1.protectionFlagsToString, 'rw-');
     assert.equal(vr1.mappedFile, '[stack:20310]');
-    assert.equal(vr1.byteStats.privateResident, 96);
-    assert.equal(vr1.byteStats.sharedResident, 80);
+    assert.equal(vr1.byteStats.privateCleanResident, 64);
+    assert.equal(vr1.byteStats.privateDirtyResident, 32);
+    assert.equal(vr1.byteStats.sharedCleanResident, 256);
+    assert.equal(vr1.byteStats.sharedDirtyResident, 0);
     assert.equal(vr1.byteStats.proportionalResident, 158);
-    assert.equal(vr1.byteStats.totalResident, 176);
+    assert.equal(vr1.byteStats.swapped, 80);
 
     var vr2 = d.mostRecentVmRegions[1];
     assert.equal(vr2.startAddress, 848);
@@ -2548,10 +2553,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(vr2.protectionFlags, 5);
     assert.equal(vr2.protectionFlagsToString, 'r-x');
     assert.equal(vr2.mappedFile, '/dev/ashmem/dalvik');
-    assert.equal(vr2.byteStats.privateResident, 205);
-    assert.equal(vr2.byteStats.sharedResident, 0);
     assert.equal(vr2.byteStats.proportionalResident, 205);
-    assert.equal(vr2.byteStats.totalResident, 205);
+    assert.isUndefined(vr2.byteStats.privateCleanResident);
+    assert.equal(vr2.byteStats.privateDirtyResident, 205);
+    assert.isUndefined(vr2.byteStats.sharedCleanResident);
+    assert.isUndefined(vr2.byteStats.sharedDirtyResident);
+    assert.equal(vr2.byteStats.swapped, 0);
 
     assert.equal(d.totalResidentBytes, 0);
     assert.lengthOf(d.memoryAllocatorDumps, 0);

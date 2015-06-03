@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/attribute.html">
 <link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/core/trace_model/global_memory_dump.html">
+<link rel="import" href="/core/trace_model/memory_allocator_dump.html">
 <link rel="import" href="/core/trace_model/process_memory_dump.html">
 
 <script>
@@ -47,8 +48,8 @@ tv.b.unittest.testSuite(function() {
       protectionFlags: protectionFlags,
       mappedFile: '[stack:20310]',
       byteStats: {
-        privateResident: 96,
-        sharedResident: 144,
+        privateDirtyResident: 96,
+        swapped: 144,
         proportionalResident: 158
       }
     });
@@ -58,17 +59,19 @@ tv.b.unittest.testSuite(function() {
   test('totalResidentSizeInBytes_undefinedVmRegions', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {});
     assert.isUndefined(pmd.mostRecentTotalProportionalResidentSizeInBytes);
-    assert.isUndefined(pmd.mostRecentTotalPrivateResidentSizeInBytes);
-    assert.isUndefined(pmd.mostRecentTotalSharedResidentSizeInBytes);
+    assert.isUndefined(
+        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'));
+    assert.isUndefined(
+        pmd.getMostRecentTotalVmRegionStat('privateCleanResident'));
   });
 
   test('totalResidentSizeInBytes_zeroVmRegions', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.vmRegions = [];
     });
-    assert.equal(pmd.mostRecentTotalProportionalResidentSizeInBytes, 0);
-    assert.equal(pmd.mostRecentTotalPrivateResidentSizeInBytes, 0);
-    assert.equal(pmd.mostRecentTotalSharedResidentSizeInBytes, 0);
+    assert.equal(pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 0);
+    assert.equal(pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 0);
+    assert.equal(pmd.getMostRecentTotalVmRegionStat('privateCleanResident'), 0);
   });
 
   test('totalResidentSizeInBytes_oneVmRegion', function() {
@@ -81,16 +84,18 @@ tv.b.unittest.testSuite(function() {
               VMRegion.PROTECTION_FLAG_WRITE,
           mappedFile: '[stack:20310]',
           byteStats: {
-            privateResident: 96,
-            sharedResident: 144,
+            privateDirtyResident: 96,
+            swapped: 144,
             proportionalResident: 158
           }
         })
       ];
     });
-    assert.equal(pmd.mostRecentTotalProportionalResidentSizeInBytes, 158);
-    assert.equal(pmd.mostRecentTotalPrivateResidentSizeInBytes, 96);
-    assert.equal(pmd.mostRecentTotalSharedResidentSizeInBytes, 144);
+    assert.equal(
+        pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 158);
+    assert.equal(
+        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 96);
+    assert.equal(pmd.getMostRecentTotalVmRegionStat('privateCleanResident'), 0);
   });
 
   test('totalResidentSizeInBytes_twoVmRegions', function() {
@@ -103,8 +108,8 @@ tv.b.unittest.testSuite(function() {
               VMRegion.PROTECTION_FLAG_WRITE,
           mappedFile: '[stack:20310]',
           byteStats: {
-            privateResident: 96,
-            sharedResident: 144,
+            privateDirtyResident: 96,
+            swapped: 144,
             proportionalResident: 158
           }
         }),
@@ -115,16 +120,20 @@ tv.b.unittest.testSuite(function() {
               VMRegion.PROTECTION_FLAG_EXECUTE,
           mappedFile: '/dev/ashmem/dalvik',
           byteStats: {
-            privateResident: 205,
-            sharedResident: 0,
+            privateDirtyResident: 205,
+            privateCleanResident: 0,
             proportionalResident: 205
           }
         })
       ];
     });
-    assert.equal(pmd.mostRecentTotalProportionalResidentSizeInBytes, 363);
-    assert.equal(pmd.mostRecentTotalPrivateResidentSizeInBytes, 301);
-    assert.equal(pmd.mostRecentTotalSharedResidentSizeInBytes, 144);
+    assert.equal(
+        pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 363);
+    assert.equal(
+        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 301);
+    assert.equal(pmd.getMostRecentTotalVmRegionStat('swapped'), 144);
+    assert.equal(pmd.getMostRecentTotalVmRegionStat('privateCleanResident'), 0);
+    assert.equal(pmd.getMostRecentTotalVmRegionStat('sharedCleanResident'), 0);
   });
 
   test('hookUpMostRecentVmRegionsLinks_emptyArray', function() {

@@ -35,11 +35,11 @@ tv.exportTo('tv.c.tracks', function() {
         sizeInBytes: 1000,
         protectionFlags: VMRegion.PROTECTION_FLAG_READ,
         mappedFile: '[stack' + i + ']',
-        byteStats: VMRegionByteStats.fromDict({
-          privateResident: pssValue / 3,
-          sharedResident: pssValue * 3,
+        byteStats: {
+          privateDirtyResident: pssValue / 3,
+          swapped: pssValue * 3,
           proportionalResident: pssValue
-        })
+        }
       });
     });
   }
