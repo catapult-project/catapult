@@ -125,6 +125,24 @@ found in the LICENSE file.
       var attributeColumns = tv.c.analysis.MemoryColumn.fromRows(rows, 'cells');
       tv.c.analysis.MemoryColumn.spaceEqually(attributeColumns);
 
+      // Show 'size' and 'outer_size' columns before other attribute columns.
+      // TODO(petrcermak): Make this less hacky and more generic.
+      var columnPositions = attributeColumns.map(function(column, index) {
+        return {
+          index: index,
+          importance: ['outer_size', 'size'].indexOf(column.title),
+          column: column
+        };
+      });
+      columnPositions.sort(function(a, b) {
+        if (a.importance === b.importance)
+          return a.index - b.index;
+        return b.importance - a.importance;
+      });
+      attributeColumns = columnPositions.map(function(columnPosition) {
+        return columnPosition.column;
+      });
+
       var columns = [titleColumn].concat(attributeColumns);
       return columns;
     }
