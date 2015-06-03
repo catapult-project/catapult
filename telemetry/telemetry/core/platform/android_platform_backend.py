@@ -6,10 +6,10 @@ import logging
 import os
 import re
 import shutil
+import stat
 import subprocess
 import tempfile
 
-from telemetry.core.backends import adb_commands
 from telemetry.core import exceptions
 from telemetry.core.forwarders import android_forwarder
 from telemetry.core import platform
@@ -27,6 +27,7 @@ from telemetry.core import video
 from telemetry import decorators
 from telemetry.util import exception_formatter
 from telemetry.util import external_modules
+from telemetry.util import support_binaries
 
 psutil = external_modules.ImportOptionalModule('psutil')
 util.AddDirToPythonPath(util.GetChromiumSrcDir(),
@@ -37,14 +38,15 @@ import platformsettings  # pylint: disable=import-error
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib import constants  # pylint: disable=import-error
+from pylib import constants # pylint: disable=import-error
 from pylib import screenshot  # pylint: disable=import-error
-from pylib.device import battery_utils  # pylint: disable=import-error
+from pylib.device import battery_utils # pylint: disable=import-error
 from pylib.device import device_errors  # pylint: disable=import-error
-from pylib.perf import cache_control  # pylint: disable=import-error
-from pylib.perf import perf_control  # pylint: disable=import-error
+from pylib.device import device_utils # pylint: disable=import-error
+from pylib.perf import cache_control # pylint: disable=import-error
+from pylib.perf import perf_control # pylint: disable=import-error
 from pylib.perf import thermal_throttle  # pylint: disable=import-error
-from pylib.utils import device_temp_file  # pylint: disable=import-error
+from pylib.utils import device_temp_file # pylint: disable=import-error
 
 try:
   from pylib.perf import surface_stats_collector  # pylint: disable=import-error
@@ -59,14 +61,81 @@ _DEVICE_COPY_SCRIPT_LOCATION = (
     '/data/local/tmp/efficient_android_directory_copy.sh')
 
 
+def _SetupPrebuiltTools(device):
+  """Some of the android pylib scripts we depend on are lame and expect
+  binaries to be in the out/ directory. So we copy any prebuilt binaries there
+  as a prereq."""
+
+  # TODO(bulach): Build the targets for x86/mips.
+  device_tools = [
+    'file_poller',
+    'forwarder_dist/device_forwarder',
+    'md5sum_dist/md5sum_bin',
+    'purge_ashmem',
+    'run_pie',
+  ]
+
+  host_tools = [
+    'bitmaptools',
+    'md5sum_bin_host',
+  ]
+
+  if platform.GetHostPlatform().GetOSName() == 'linux':
+    host_tools.append('host_forwarder')
+
+  arch_name = device.product_cpu_abi
+  has_device_prebuilt = (arch_name.startswith('armeabi')
+                         or arch_name.startswith('arm64'))
+  if not has_device_prebuilt:
+    logging.warning('Unknown architecture type: %s' % arch_name)
+    return all([support_binaries.FindLocallyBuiltPath(t) for t in device_tools])
+
+  build_type = None
+  for t in device_tools + host_tools:
+    executable = os.path.basename(t)
+    locally_built_path = support_binaries.FindLocallyBuiltPath(t)
+    if not build_type:
+      build_type = _GetBuildTypeOfPath(locally_built_path) or 'Release'
+      constants.SetBuildType(build_type)
+    dest = os.path.join(constants.GetOutDirectory(), t)
+    if not locally_built_path:
+      logging.info('Setting up prebuilt %s', dest)
+      if not os.path.exists(os.path.dirname(dest)):
+        os.makedirs(os.path.dirname(dest))
+      platform_name = ('android' if t in device_tools else
+                       platform.GetHostPlatform().GetOSName())
+      bin_arch_name = (arch_name if t in device_tools else
+                       platform.GetHostPlatform().GetArchName())
+      prebuilt_path = support_binaries.FindPath(
+          executable, bin_arch_name, platform_name)
+      if not prebuilt_path or not os.path.exists(prebuilt_path):
+        raise NotImplementedError("""
+%s must be checked into cloud storage.
+Instructions:
+http://www.chromium.org/developers/telemetry/upload_to_cloud_storage
+""" % t)
+      shutil.copyfile(prebuilt_path, dest)
+      os.chmod(dest, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+  return True
+
+
+def _GetBuildTypeOfPath(path):
+  if not path:
+    return None
+  for build_dir, build_type in util.GetBuildDirectories():
+    if os.path.join(build_dir, build_type) in path:
+      return build_type
+  return None
+
+
 class AndroidPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
   def __init__(self, device, finder_options):
     assert device, (
         'AndroidPlatformBackend can only be initialized from remote device')
     super(AndroidPlatformBackend, self).__init__(device)
-    self._adb = adb_commands.AdbCommands(device=device.device_id)
-    installed_prebuilt_tools = adb_commands.SetupPrebuiltTools(self._adb)
+    self._device = device_utils.DeviceUtils(device.device_id)
+    installed_prebuilt_tools = _SetupPrebuiltTools(self._device)
     if not installed_prebuilt_tools:
       logging.error(
           '%s detected, however prebuilt android tools could not '
@@ -74,10 +143,9 @@ class AndroidPlatformBackend(
           '  $ ninja -C out/Release android_tools' % device.name)
       raise exceptions.PlatformError()
     # Trying to root the device, if possible.
-    if not self._adb.IsRootEnabled():
+    if not self._device.HasRoot():
       # Ignore result.
-      self._adb.EnableAdbRoot()
-    self._device = self._adb.device()
+      self._device.EnableRoot()
     self._battery = battery_utils.BatteryUtils(self._device)
     self._enable_performance_mode = device.enable_performance_mode
     self._surface_stats_collector = None
@@ -122,7 +190,7 @@ class AndroidPlatformBackend(
   def forwarder_factory(self):
     if not self._forwarder_factory:
       self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
-          self._adb, self._use_rndis_forwarder)
+          self._device, self._use_rndis_forwarder)
 
     return self._forwarder_factory
 
@@ -131,8 +199,8 @@ class AndroidPlatformBackend(
     return self._use_rndis_forwarder
 
   @property
-  def adb(self):
-    return self._adb
+  def device(self):
+    return self._device
 
   def IsDisplayTracingSupported(self):
     return bool(self.GetOSVersionName() >= 'J')
@@ -423,7 +491,7 @@ class AndroidPlatformBackend(
     return old_flag
 
   def ForwardHostToDevice(self, host_port, device_port):
-    self._adb.Forward('tcp:%d' % host_port, device_port)
+    self._device.adb.Forward('tcp:%d' % host_port, device_port)
 
   def DismissCrashDialogIfNeeded(self):
     """Dismiss any error dialogs.
@@ -440,8 +508,7 @@ class AndroidPlatformBackend(
     Args:
       process_name: The full package name string of the process.
     """
-    pids = self._adb.ExtractPid(process_name)
-    return len(pids) != 0
+    return bool(self._device.GetPids(process_name))
 
   @property
   def wpr_ca_cert_path(self):
@@ -477,9 +544,9 @@ class AndroidPlatformBackend(
       certutils.write_dummy_ca_cert(*certutils.generate_dummy_ca_cert(),
                                     cert_path=self._wpr_ca_cert_path)
       self._device_cert_util = adb_install_cert.AndroidCertInstaller(
-          self._adb.device_serial(), None, self._wpr_ca_cert_path)
+          self._device.adb.GetDeviceSerial(), None, self._wpr_ca_cert_path)
       logging.info('Installing test certificate authority on device: %s',
-                   self._adb.device_serial())
+                   str(self._device))
       self._device_cert_util.install_cert(overwrite_cert=True)
       self._is_test_ca_installed = True
     except Exception as e:
@@ -488,7 +555,7 @@ class AndroidPlatformBackend(
       logging.warning(
           'Unable to install test certificate authority on device: %s. '
           'Will fallback to ignoring certificate errors. Install error: %s',
-          self._adb.device_serial(), e)
+          str(self._device), e)
 
   @property
   def is_test_ca_installed(self):
@@ -509,7 +576,7 @@ class AndroidPlatformBackend(
         # Best effort cleanup - show the error and continue.
         exception_formatter.PrintFormattedException(
           msg=('Error while trying to remove certificate authority: %s. '
-               % self._adb.device_serial()))
+               % str(self._device)))
       self._is_test_ca_installed = False
 
     shutil.rmtree(os.path.dirname(self._wpr_ca_cert_path), ignore_errors=True)
@@ -620,7 +687,7 @@ class AndroidPlatformBackend(
     Args:
       package: The full package name string of the application.
     """
-    if self._adb.IsUserBuild():
+    if self._device.IsUserBuild():
       logging.debug('User build device, setting debug app')
       self._device.RunShellCommand('am set-debug-app --persistent %s' % package)
 
@@ -664,7 +731,7 @@ class AndroidPlatformBackend(
     if os.path.exists(tombstones):
       ret += Decorate('Tombstones',
                       subprocess.Popen([tombstones, '-w', '--device',
-                                        self._adb.device_serial()],
+                                        self._device.adb.GetDeviceSerial()],
                                        stdout=subprocess.PIPE).communicate()[0])
     return ret
 

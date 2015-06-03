@@ -9,14 +9,12 @@ This test allows one to test code that itself uses os, sys, and subprocess.
 
 import os
 import re
-import shlex
 import sys
 
 
 class Override(object):
   def __init__(self, base_module, module_list):
-    stubs = {'adb_commands': AdbCommandsModuleStub,
-             'cloud_storage': CloudStorageModuleStub,
+    stubs = {'cloud_storage': CloudStorageModuleStub,
              'open': OpenFunctionStub,
              'os': OsModuleStub,
              'perf_control': PerfControlModuleStub,
@@ -58,96 +56,6 @@ class Override(object):
       else:
         setattr(self._base_module, module_name, original_module)
     self._overrides = {}
-
-
-class AdbDevice(object):
-
-  def __init__(self):
-    self.has_root = False
-    self.needs_su = False
-    self.shell_command_handlers = {}
-    self.mock_content = []
-    self.system_properties = {}
-    if self.system_properties.get('ro.product.cpu.abi') == None:
-      self.system_properties['ro.product.cpu.abi'] = 'armeabi-v7a'
-
-  def HasRoot(self):
-    return self.has_root
-
-  def NeedsSU(self):
-    return self.needs_su
-
-  def RunShellCommand(self, args, **_kwargs):
-    if isinstance(args, basestring):
-      args = shlex.split(args)
-    handler = self.shell_command_handlers[args[0]]
-    return handler(args)
-
-  def FileExists(self, _):
-    return False
-
-  def ReadFile(self, device_path, as_root=False):  # pylint: disable=W0613
-    return self.mock_content
-
-  def GetProp(self, property_name):
-    return self.system_properties[property_name]
-
-  def SetProp(self, property_name, property_value):
-    self.system_properties[property_name] = property_value
-
-
-class AdbCommandsModuleStub(object):
-
-  class AdbCommandsStub(object):
-
-    def __init__(self, module, device):
-      self._module = module
-      self._device = device
-      self.is_root_enabled = True
-      self._adb_device = module.adb_device
-
-    def IsRootEnabled(self):
-      return self.is_root_enabled
-
-    def RestartAdbdOnDevice(self):
-      pass
-
-    def IsUserBuild(self):
-      return False
-
-    def WaitForDevicePm(self):
-      pass
-
-    def device(self):
-      return self._adb_device
-
-    def device_serial(self):
-      return self._device
-
-  def __init__(self):
-    self.attached_devices = []
-    self.apk_package_name = None
-    self.adb_device = AdbDevice()
-
-    def AdbCommandsStubConstructor(device=None):
-      return AdbCommandsModuleStub.AdbCommandsStub(self, device)
-    self.AdbCommands = AdbCommandsStubConstructor
-
-  @staticmethod
-  def IsAndroidSupported():
-    return True
-
-  def GetPackageName(self, _):
-    return self.apk_package_name
-
-  def GetAttachedDevices(self):
-    return self.attached_devices
-
-  def SetupPrebuiltTools(self, _):
-    return True
-
-  def CleanupLeftoverProcesses(self):
-    pass
 
 
 class CloudStorageModuleStub(object):

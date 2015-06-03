@@ -32,7 +32,7 @@ class OOMKillerProfiler(profiler.Profiler):
         browser_backend, platform_backend, output_path, state)
     if not 'mem_consumer_launched' in state:
       state['mem_consumer_launched'] = True
-      arch_name = self._browser_backend.adb.device().GetABI()
+      arch_name = self._browser_backend.device.product_cpu_abi
       mem_consumer_path = support_binaries.FindPath(
           os.path.join('apks', 'MemConsumer.apk'), arch_name, 'android')
       assert mem_consumer_path, ('Could not find memconsumer app. Please build '
@@ -40,12 +40,12 @@ class OOMKillerProfiler(profiler.Profiler):
       if not self._platform_backend.CanLaunchApplication(
           'org.chromium.memconsumerg'):
         self._platform_backend.InstallApplication(mem_consumer_path)
-      self._browser_backend.adb.device().GoHome()
+      self._browser_backend.device.GoHome()
       self._platform_backend.LaunchApplication(
           'org.chromium.memconsumer/.MemConsumer',
           '--ei memory 20')
       # Bring the browser to the foreground after launching the mem consumer
-      self._browser_backend.adb.device().StartActivity(
+      self._browser_backend.device.StartActivity(
           intent.Intent(package=browser_backend.package,
                         activity=browser_backend.activity),
           blocking=True)
@@ -62,7 +62,7 @@ class OOMKillerProfiler(profiler.Profiler):
 
   @classmethod
   def WillCloseBrowser(cls, browser_backend, platform_backend):
-    browser_backend.adb.device().ForceStop('org.chromium.memconsumer')
+    browser_backend.device.ForceStop('org.chromium.memconsumer')
 
   def CollectProfile(self):
     missing_applications = self._MissingApplications()

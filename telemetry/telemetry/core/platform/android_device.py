@@ -1,16 +1,18 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import logging
 import os
-import re
-import subprocess
-import sys
 
-from telemetry.core.backends import adb_commands
 from telemetry.core.platform import device
 from telemetry.core.platform.profiler import monsoon
 from telemetry.core import util
+
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+from pylib import constants # pylint: disable=import-error
+from pylib.device import device_errors # pylint: disable=import-error
+from pylib.device import device_utils # pylint: disable=import-error
 
 
 class AndroidDevice(device.Device):
@@ -44,7 +46,8 @@ class AndroidDevice(device.Device):
 
 
 def GetDeviceSerials():
-  device_serials = adb_commands.GetAttachedDevices()
+  device_serials = [d.adb.GetDeviceSerial()
+                    for d in device_utils.DeviceUtils.HealthyDevices()]
   # The monsoon provides power for the device, so for devices with no
   # real battery, we need to turn them on after the monsoon enables voltage
   # output to the device.
@@ -65,8 +68,9 @@ The Monsoon's power output has been enabled. Please now ensure that:
 
 Waiting for device...
 """)
-      util.WaitFor(adb_commands.GetAttachedDevices, 600)
-      device_serials = adb_commands.GetAttachedDevices()
+      util.WaitFor(device_utils.DeviceUtils.HealthyDevices, 600)
+      device_serials = [d.adb.GetDeviceSerial()
+                        for d in device_utils.DeviceUtils.HealthyDevices()]
     except IOError:
       return []
   return device_serials
@@ -98,33 +102,16 @@ def GetDevice(finder_options):
 
 def CanDiscoverDevices():
   """Returns true if devices are discoverable via adb."""
-  if not adb_commands.IsAndroidSupported():
-    logging.info(
-        'Android build commands unavailable on this machine. '
-        'Have you installed Android build dependencies?')
+  adb_path = constants.GetAdbPath()
+  if os.path.isabs(adb_path) and not os.path.exists(adb_path):
     return False
+
   try:
-    with open(os.devnull, 'w') as devnull:
-      adb_process = subprocess.Popen(
-          ['adb', 'devices'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-          stdin=devnull)
-      stdout = adb_process.communicate()[0]
-    if re.search(re.escape('????????????\tno permissions'), stdout) != None:
-      logging.warn('adb devices gave a permissions error. '
-                   'Consider running adb as root:')
-      logging.warn('  adb kill-server')
-      logging.warn('  sudo `which adb` devices\n\n')
+    device_utils.DeviceUtils.HealthyDevices()
     return True
-  except OSError:
-    pass
-  chromium_adb_path = os.path.join(
-      util.GetChromiumSrcDir(), 'third_party', 'android_tools', 'sdk',
-      'platform-tools', 'adb')
-  if sys.platform.startswith('linux') and os.path.exists(chromium_adb_path):
-    os.environ['PATH'] = os.pathsep.join(
-        [os.path.dirname(chromium_adb_path), os.environ['PATH']])
-    return True
-  return False
+  except (device_errors.CommandFailedError, device_errors.CommandTimeoutError,
+          OSError):
+    return False
 
 
 def FindAllAvailableDevices(_):

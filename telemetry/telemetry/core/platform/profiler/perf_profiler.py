@@ -80,15 +80,16 @@ class _SingleProcessPerfProfiler(object):
     cmd_prefix = []
     perf_args = ['record', '--pid', str(pid)]
     if self._is_android:
-      cmd_prefix = ['adb', '-s', browser_backend.adb.device_serial(), 'shell',
-                    perf_binary]
+      cmd_prefix = ['adb', '-s', browser_backend.device.adb.GetDeviceSerial(),
+                    'shell', perf_binary]
       perf_args += _PERF_OPTIONS_ANDROID
       output_file = os.path.join('/sdcard', 'perf_profiles',
                                  os.path.basename(output_file))
       self._device_output_file = output_file
-      browser_backend.adb.RunShellCommand(
+      browser_backend.device.RunShellCommand(
           'mkdir -p ' + os.path.dirname(self._device_output_file))
-      browser_backend.adb.RunShellCommand('rm -f ' + self._device_output_file)
+      browser_backend.device.RunShellCommand(
+          'rm -f ' + self._device_output_file)
     else:
       cmd_prefix = [perf_binary]
     perf_args += ['--output', output_file] + _PERF_OPTIONS
@@ -103,10 +104,10 @@ class _SingleProcessPerfProfiler(object):
                       'To collect a full profile rerun with '
                       '"--extra-browser-args=--single-process"')
     if self._is_android:
-      device = self._browser_backend.adb.device()
       try:
         binary_name = os.path.basename(self._perf_binary)
-        device.KillAll(binary_name, signum=signal.SIGINT, blocking=True)
+        self._browser_backend.device.KillAll(
+            binary_name, signum=signal.SIGINT, blocking=True)
       except device_errors.CommandFailedError:
         logging.warning('The perf process could not be killed on the device.')
     self._proc.send_signal(signal.SIGINT)
@@ -127,16 +128,15 @@ Try rerunning this script under sudo or setting
     cmd = '%s report -n -i %s' % (_NicePath(self._perfhost_binary),
                                   self._output_file)
     if self._is_android:
-      device = self._browser_backend.adb.device()
-      device.PullFile(self._device_output_file, self._output_file)
-      required_libs = \
+      self._browser_backend.device.PullFile(
+          self._device_output_file, self._output_file)
+      required_libs = (
           android_profiling_helper.GetRequiredLibrariesForPerfProfile(
-              self._output_file)
+              self._output_file))
       symfs_root = os.path.dirname(self._output_file)
-      kallsyms = android_profiling_helper.CreateSymFs(device,
-                                                      symfs_root,
-                                                      required_libs,
-                                                      use_symlinks=True)
+      kallsyms = android_profiling_helper.CreateSymFs(
+          self._browser_backend.device, symfs_root, required_libs,
+          use_symlinks=True)
       cmd += ' --symfs %s --kallsyms %s' % (symfs_root, kallsyms)
       for lib in required_libs:
         lib = os.path.join(symfs_root, lib[1:])
@@ -173,9 +173,10 @@ class PerfProfiler(profiler.Profiler):
     perf_binary = perfhost_binary = _InstallPerfHost()
     try:
       if platform_backend.GetOSName() == 'android':
-        device = browser_backend.adb.device()
-        perf_binary = android_profiling_helper.PrepareDeviceForPerf(device)
-        self._perf_control = perf_control.PerfControl(device)
+        perf_binary = android_profiling_helper.PrepareDeviceForPerf(
+            browser_backend.device)
+        self._perf_control = perf_control.PerfControl(
+            browser_backend.device)
         self._perf_control.SetPerfProfilingMode()
       else:
         _PrepareHostForPerf()

@@ -9,7 +9,6 @@ import socket
 import struct
 import subprocess
 
-from telemetry.core.backends import adb_commands
 from telemetry.core import forwarders
 from telemetry.core import platform
 from telemetry.core import util
@@ -17,27 +16,28 @@ from telemetry.util import support_binaries
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
-  from pylib import forwarder  # pylint: disable=F0401
+  from pylib import forwarder # pylint: disable=import-error
 except ImportError:
   forwarder = None
 
-from pylib.device import device_errors  # pylint: disable=F0401
+from pylib.device import device_errors # pylint: disable=import-error
+from pylib.device import device_utils # pylint: disable=import-error
 
 
 class AndroidForwarderFactory(forwarders.ForwarderFactory):
 
-  def __init__(self, adb, use_rndis):
+  def __init__(self, device, use_rndis):
     super(AndroidForwarderFactory, self).__init__()
-    self._adb = adb
+    self._device = device
     self._rndis_configurator = None
     if use_rndis:
-      self._rndis_configurator = AndroidRndisConfigurator(self._adb)
+      self._rndis_configurator = AndroidRndisConfigurator(self._device)
 
   def Create(self, port_pairs):
     if self._rndis_configurator:
-      return AndroidRndisForwarder(self._adb, self._rndis_configurator,
+      return AndroidRndisForwarder(self._device, self._rndis_configurator,
                                    port_pairs)
-    return AndroidForwarder(self._adb, port_pairs)
+    return AndroidForwarder(self._device, port_pairs)
 
   @property
   def host_ip(self):
@@ -52,9 +52,9 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
 
 class AndroidForwarder(forwarders.Forwarder):
 
-  def __init__(self, adb, port_pairs):
+  def __init__(self, device, port_pairs):
     super(AndroidForwarder, self).__init__(port_pairs)
-    self._device = adb.device()
+    self._device = device
     forwarder.Forwarder.Map([(p.remote_port, p.local_port)
                              for p in port_pairs if p], self._device)
     self._port_pairs = forwarders.PortPairs(*[
@@ -74,10 +74,10 @@ class AndroidForwarder(forwarders.Forwarder):
 class AndroidRndisForwarder(forwarders.Forwarder):
   """Forwards traffic using RNDIS. Assumes the device has root access."""
 
-  def __init__(self, adb, rndis_configurator, port_pairs):
+  def __init__(self, device, rndis_configurator, port_pairs):
     super(AndroidRndisForwarder, self).__init__(port_pairs)
 
-    self._adb = adb
+    self._device = device
     self._rndis_configurator = rndis_configurator
     self._device_iface = rndis_configurator.device_iface
     self._host_ip = rndis_configurator.host_ip
@@ -103,12 +103,13 @@ class AndroidRndisForwarder(forwarders.Forwarder):
 
   def _RedirectPorts(self, port_pairs):
     """Sets the local to remote pair mappings to use for RNDIS."""
-    self._adb.RunShellCommand('iptables -F -t nat')  # Flush any old nat rules.
+    # Flush any old nat rules.
+    self._device.RunShellCommand('iptables -F -t nat')
     for port_pair in port_pairs:
       if not port_pair or port_pair.local_port == port_pair.remote_port:
         continue
       protocol = 'udp' if port_pair.remote_port == 53 else 'tcp'
-      self._adb.RunShellCommand(
+      self._device.RunShellCommand(
           'iptables -t nat -A OUTPUT -p %s --dport %d'
           ' -j DNAT --to-destination %s:%d' %
           (protocol, port_pair.remote_port, self.host_ip, port_pair.local_port))
@@ -129,27 +130,27 @@ class AndroidRndisForwarder(forwarders.Forwarder):
       return  # If there is no route, then nobody cares about DNS.
     # DNS proxy in older versions of Android is configured via properties.
     # TODO(szym): run via su -c if necessary.
-    self._adb.device().SetProp('net.dns1', dns1)
-    self._adb.device().SetProp('net.dns2', dns2)
-    dnschange = self._adb.device().GetProp('net.dnschange')
+    self._device.SetProp('net.dns1', dns1)
+    self._device.SetProp('net.dns2', dns2)
+    dnschange = self._device.GetProp('net.dnschange')
     if dnschange:
-      self._adb.device().SetProp('net.dnschange', str(int(dnschange) + 1))
+      self._device.SetProp('net.dnschange', str(int(dnschange) + 1))
     # Since commit 8b47b3601f82f299bb8c135af0639b72b67230e6 to frameworks/base
     # the net.dns1 properties have been replaced with explicit commands for netd
-    self._adb.RunShellCommand('netd resolver setifdns %s %s %s' %
-                              (iface, dns1, dns2))
+    self._device.RunShellCommand('netd resolver setifdns %s %s %s' %
+                                 (iface, dns1, dns2))
     # TODO(szym): if we know the package UID, we could setifaceforuidrange
-    self._adb.RunShellCommand('netd resolver setdefaultif %s' % iface)
+    self._device.RunShellCommand('netd resolver setdefaultif %s' % iface)
 
   def _GetCurrentDns(self):
     """Returns current gateway, dns1, and dns2."""
-    routes = self._adb.RunShellCommand('cat /proc/net/route')[1:]
+    routes = self._device.RunShellCommand('cat /proc/net/route')[1:]
     routes = [route.split() for route in routes]
     default_routes = [route[0] for route in routes if route[1] == '00000000']
     return (
       default_routes[0] if default_routes else None,
-      self._adb.device().GetProp('net.dns1'),
-      self._adb.device().GetProp('net.dns2'),
+      self._device.GetProp('net.dns1'),
+      self._device.GetProp('net.dns2'),
     )
 
   def _OverrideDefaultGateway(self):
@@ -162,11 +163,11 @@ class AndroidRndisForwarder(forwarders.Forwarder):
     (e.g. Telemetry crashes). A power cycle or "adb reboot" is a simple
     workaround around in that case.
     """
-    self._adb.RunShellCommand('route add default gw %s dev %s' %
+    self._device.RunShellCommand('route add default gw %s dev %s' %
                               (self.host_ip, self._device_iface))
 
   def _RestoreDefaultGateway(self):
-    self._adb.RunShellCommand('netcfg %s down' % self._device_iface)
+    self._device.RunShellCommand('netcfg %s down' % self._device_iface)
 
 
 class AndroidRndisConfigurator(object):
@@ -182,8 +183,8 @@ class AndroidRndisConfigurator(object):
   _INTERFACES_INCLUDE = 'source /etc/network/interfaces.d/*.conf'
   _TELEMETRY_INTERFACE_FILE = '/etc/network/interfaces.d/telemetry-{}.conf'
 
-  def __init__(self, adb):
-    self._device = adb.device()
+  def __init__(self, device):
+    self._device = device
 
     try:
       self._device.EnableRoot()
@@ -386,9 +387,8 @@ doit &
     """
     my_device = str(self._device)
     addresses = []
-    for device_serial in adb_commands.GetAttachedDevices():
-      device = adb_commands.AdbCommands(device_serial).device()
-      if device_serial == my_device:
+    for device in device_utils.DeviceUtils.HealthyDevices():
+      if device.adb.GetDeviceSerial() == my_device:
         excluded = excluded_iface
       else:
         excluded = 'no interfaces excluded on other devices'

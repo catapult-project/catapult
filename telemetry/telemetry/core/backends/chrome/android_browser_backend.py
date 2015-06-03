@@ -5,7 +5,6 @@
 import logging
 import sys
 
-from telemetry.core.backends import adb_commands
 from telemetry.core.backends import android_command_line_backend
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
@@ -16,7 +15,11 @@ from telemetry.core.platform import android_platform_backend as \
 from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib.device import intent  # pylint: disable=F0401
+try:
+  from pylib import ports # pylint: disable=import-error
+except ImportError:
+  ports = None
+from pylib.device import intent  # pylint: disable=import-error
 
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
@@ -43,7 +46,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # TODO(tonyg): This is flaky because it doesn't reserve the port that it
     # allocates. Need to fix this.
-    self._port = adb_commands.AllocateTestServerPort()
+    self._port = ports.AllocateTestServerPort()
 
     # TODO(wuhu): Move to network controller backend.
     self.platform_backend.InstallTestCa()
@@ -51,7 +54,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Kill old browser.
     self._KillBrowser()
 
-    if self._adb.device().old_interface.CanAccessProtectedFileContents():
+    if self.device.old_interface.CanAccessProtectedFileContents():
       if self.browser_options.profile_dir:
         self.platform_backend.PushProfile(
             self._backend_settings.package,
@@ -73,17 +76,17 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self.platform_backend.SetDebugApp(self._backend_settings.package)
 
   @property
-  def _adb(self):
-    return self.platform_backend.adb
+  def device(self):
+    return self.platform_backend.device
 
   def _KillBrowser(self):
-    if self._adb.device().IsUserBuild():
+    if self.device.IsUserBuild():
       self.platform_backend.StopApplication(self._backend_settings.package)
     else:
       self.platform_backend.KillApplication(self._backend_settings.package)
 
   def Start(self):
-    self._adb.device().RunShellCommand('logcat -c')
+    self.device.RunShellCommand('logcat -c')
     if self.browser_options.startup_url:
       url = self.browser_options.startup_url
     elif self.browser_options.profile_dir:
@@ -97,15 +100,15 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     browser_startup_args = self.GetBrowserStartupArgs()
     with android_command_line_backend.SetUpCommandLineFlags(
-        self._adb, self._backend_settings, browser_startup_args):
-      self._adb.device().StartActivity(
+        self.device, self._backend_settings, browser_startup_args):
+      self.device.StartActivity(
           intent.Intent(package=self._backend_settings.package,
                         activity=self._backend_settings.activity,
                         action=None, data=url, category=None),
           blocking=True)
 
       remote_devtools_port = self._backend_settings.GetDevtoolsRemotePort(
-          self._adb)
+          self.device)
       self.platform_backend.ForwardHostToDevice(self._port,
                                                 remote_devtools_port)
       try:
@@ -113,8 +116,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self._InitDevtoolsClientBackend(remote_devtools_port)
       except exceptions.BrowserGoneException:
         logging.critical('Failed to connect to browser.')
-        device = self._adb.device()
-        if not device.old_interface.CanAccessProtectedFileContents():
+        if not self.device.old_interface.CanAccessProtectedFileContents():
           logging.critical(
             'Resolve this by either: '
             '(1) Flashing to a userdebug build OR '
@@ -135,15 +137,11 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return args
 
   @property
-  def adb(self):
-    return self._adb
-
-  @property
   def pid(self):
-    pids = self._adb.ExtractPid(self._backend_settings.package)
-    if not pids:
+    pids = self.device.GetPids(self._backend_settings.package)
+    if not pids or self._backend_settings.package not in pids:
       raise exceptions.BrowserGoneException(self.browser)
-    return int(pids[0])
+    return int(pids[self._backend_settings.package])
 
   @property
   def browser_directory(self):

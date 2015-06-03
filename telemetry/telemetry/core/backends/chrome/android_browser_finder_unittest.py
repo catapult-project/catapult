@@ -6,7 +6,11 @@ import unittest
 
 from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core import browser_options
+from telemetry.core import util
 from telemetry.unittest_util import system_stub
+
+util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
+import mock # pylint: disable=import-error
 
 
 class FakeAndroidPlatform(object):
@@ -24,7 +28,7 @@ class AndroidBrowserFinderTest(unittest.TestCase):
 
     # Mock out what's needed for testing with exact APKs
     self._android_browser_finder_stub = system_stub.Override(
-        android_browser_finder, ['adb_commands', 'os'])
+        android_browser_finder, ['os'])
 
   def tearDown(self):
     self._android_browser_finder_stub.Restore()
@@ -50,37 +54,39 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     self._android_browser_finder_stub.os.path.files.append(
         '/foo/content-shell.apk')
     self.finder_options.browser_executable = '/foo/content-shell.apk'
-    self._android_browser_finder_stub.adb_commands.apk_package_name = \
-        'org.chromium.content_shell_apk'
 
-    fake_platform = FakeAndroidPlatform(can_launch=True)
-    expected_types = set(
-        android_browser_finder.FindAllBrowserTypes(self.finder_options))
-    possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
-        self.finder_options, fake_platform)
-    self.assertEqual(
-        expected_types,
-        set([b.browser_type for b in possible_browsers]))
+    with mock.patch('pylib.utils.apk_helper.GetPackageName',
+                    return_value='org.chromium.content_shell_apk'):
+      fake_platform = FakeAndroidPlatform(can_launch=True)
+      expected_types = set(
+          android_browser_finder.FindAllBrowserTypes(self.finder_options))
+      possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
+          self.finder_options, fake_platform)
+      self.assertEqual(
+          expected_types,
+          set([b.browser_type for b in possible_browsers]))
 
   def testErrorWithUnknownExactApk(self):
     self._android_browser_finder_stub.os.path.files.append(
         '/foo/content-shell.apk')
     self.finder_options.browser_executable = '/foo/content-shell.apk'
-    self._android_browser_finder_stub.adb_commands.apk_package_name = \
-        'org.unknown.app'
 
-    fake_platform = FakeAndroidPlatform(can_launch=True)
-    self.assertRaises(Exception,
-        android_browser_finder._FindAllPossibleBrowsers,
-        self.finder_options, fake_platform)
+    with mock.patch('pylib.utils.apk_helper.GetPackageName',
+                    return_value='org.unknown.app'):
+      fake_platform = FakeAndroidPlatform(can_launch=True)
+      self.assertRaises(Exception,
+          android_browser_finder._FindAllPossibleBrowsers,
+          self.finder_options, fake_platform)
 
   def testErrorWithNonExistantExactApk(self):
     self.finder_options.browser_executable = '/foo/content-shell.apk'
 
-    fake_platform = FakeAndroidPlatform(can_launch=True)
-    self.assertRaises(Exception,
-        android_browser_finder._FindAllPossibleBrowsers,
-        self.finder_options, fake_platform)
+    with mock.patch('pylib.utils.apk_helper.GetPackageName',
+                    return_value='org.chromium.content_shell_apk'):
+      fake_platform = FakeAndroidPlatform(can_launch=True)
+      self.assertRaises(Exception,
+          android_browser_finder._FindAllPossibleBrowsers,
+          self.finder_options, fake_platform)
 
 
 class FakePossibleBrowser(object):

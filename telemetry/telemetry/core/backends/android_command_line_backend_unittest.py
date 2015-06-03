@@ -5,9 +5,14 @@
 import unittest
 
 from telemetry import benchmark
-from telemetry.core.backends import adb_commands
+from telemetry.core import util
 from telemetry.core.backends import android_command_line_backend
 from telemetry.unittest_util import options_for_unittests
+
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+from pylib.device import device_errors # pylint: disable=import-error
+from pylib.device import device_utils # pylint: disable=import-error
+
 
 class _MockBackendSettings(object):
   pseudo_exec_name = 'chrome'
@@ -49,16 +54,19 @@ class AndroidCommandLineBackendTest(unittest.TestCase):
     Requires a device connected to the host.
     """
     serial = options_for_unittests.GetCopy().device
-    if not serial:
-      serial = adb_commands.GetAttachedDevices()[0]
+    if serial:
+      device = device_utils.DeviceUtils(serial)
+    else:
+      devices = device_utils.DeviceUtils.HealthyDevices()
+      if not devices:
+        raise device_errors.NoDevicesError()
+      device = devices[0]
     cmd_file = '/data/local/tmp/test_cmd'
-    adb = adb_commands.AdbCommands(device=serial)
     backend_settings = _MockBackendSettings('/data/local/tmp/test_cmd')
     startup_args = ['--some', '--test', '--args']
-    device = adb.device()
     device.WriteFile(cmd_file, 'chrome --args --to --save')
     with android_command_line_backend.SetUpCommandLineFlags(
-        adb, backend_settings, startup_args):
+        device, backend_settings, startup_args):
       self.assertEqual('chrome --some --test --args',
                        device.ReadFile(cmd_file).strip())
     self.assertEqual('chrome --args --to --save',
@@ -72,16 +80,19 @@ class AndroidCommandLineBackendTest(unittest.TestCase):
     Requires a device connected to the host.
     """
     serial = options_for_unittests.GetCopy().device
-    if not serial:
-      serial = adb_commands.GetAttachedDevices()[0]
+    if serial:
+      device = device_utils.DeviceUtils(serial)
+    else:
+      devices = device_utils.DeviceUtils.HealthyDevices()
+      if not devices:
+        raise device_errors.NoDevicesError()
+      device = devices[0]
     cmd_file = '/data/local/tmp/test_cmd'
-    adb = adb_commands.AdbCommands(device=serial)
     backend_settings = _MockBackendSettings('/data/local/tmp/test_cmd')
     startup_args = ['--some', '--test', '--args']
-    device = adb.device()
     device.RunShellCommand(['rm', '-f', cmd_file], check_return=True)
     with android_command_line_backend.SetUpCommandLineFlags(
-        adb, backend_settings, startup_args):
+        device, backend_settings, startup_args):
       self.assertEqual('chrome --some --test --args',
                        device.ReadFile(cmd_file).strip())
     self.assertFalse(device.FileExists(cmd_file))

@@ -36,9 +36,9 @@ class NetLogProfiler(profiler.Profiler):
     # On Android pull the output file to the host.
     if self._platform_backend.GetOSName() == 'android':
       host_output_file = '%s.json' % self._output_path
-      self._browser_backend.adb.device().PullFile(output_file, host_output_file)
+      self._browser_backend.device.PullFile(output_file, host_output_file)
       # Clean the device
-      self._browser_backend.adb.device().RunShellCommand('rm %s' % output_file)
+      self._browser_backend.device.RunShellCommand('rm %s' % output_file)
       output_file = host_output_file
     print 'Net-internals log saved as %s' % output_file
     print 'To view, open in chrome://net-internals'
