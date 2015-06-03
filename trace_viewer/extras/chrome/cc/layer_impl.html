@@ -74,6 +74,8 @@ tv.exportTo('tv.e.cc', function() {
         this.replicaLayer.parentLayer = this;
       if (!this.geometryContentsScale)
         this.geometryContentsScale = 1.0;
+      if (!this.idealContentsScale)
+        this.idealContentsScale = 1.0;
 
       this.touchEventHandlerRegion = tv.e.cc.Region.fromArrayOrUndefined(
           this.args.touchEventHandlerRegion);
@@ -153,7 +155,8 @@ tv.exportTo('tv.e.cc', function() {
       this.tileCoverageRects = [];
       if (this.args.coverageTiles) {
         for (var i = 0; i < this.args.coverageTiles.length; ++i) {
-          var rect = this.args.coverageTiles[i].geometryRect;
+          var rect = this.args.coverageTiles[i].geometryRect.scale(
+              this.idealContentsScale);
           var tile = this.args.coverageTiles[i].tile;
           this.tileCoverageRects.push(new tv.e.cc.TileCoverageRect(rect, tile));
         }
