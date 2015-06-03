@@ -8,6 +8,7 @@ from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.timeline import model as model_module
 from telemetry.value import trace
+from telemetry.web_perf.metrics import blob_timeline
 from telemetry.web_perf.metrics import gpu_timeline
 from telemetry.web_perf.metrics import layout
 from telemetry.web_perf.metrics import responsiveness_metric
@@ -37,7 +38,8 @@ def _GetAllTimelineBasedMetrics():
   return (smoothness.SmoothnessMetric(),
           responsiveness_metric.ResponsivenessMetric(),
           layout.LayoutMetric(),
-          gpu_timeline.GPUTimelineMetric())
+          gpu_timeline.GPUTimelineMetric(),
+          blob_timeline.BlobTimelineMetric())
 
 
 class InvalidInteractions(Exception):
