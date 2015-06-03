@@ -41,12 +41,12 @@ tv.b.unittest.testSuite(function() {
     var md = new ContainerMemoryDump(42);
 
     var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
-    oilpanDump.addAttribute('outer_size', new ScalarAttribute('bytes', 1024));
+    oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
     oilpanDump.addAttribute('objects_count', new ScalarAttribute('objects', 7));
     oilpanDump.addAttribute('inner_size', new ScalarAttribute('bytes', 768));
 
     var v8Dump = new MemoryAllocatorDump(md, 'v8');
-    v8Dump.addAttribute('outer_size', new ScalarAttribute('bytes', 2048));
+    v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
     v8Dump.addAttribute('objects_count', new ScalarAttribute('objects', 15));
     v8Dump.addAttribute('inner_size', new ScalarAttribute('bytes', 1999));
 
@@ -65,13 +65,13 @@ tv.b.unittest.testSuite(function() {
     var md = new ContainerMemoryDump(42);
 
     var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
-    oilpanDump.addAttribute('outer_size', new ScalarAttribute('bytes', 1024));
+    oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
     oilpanDump.addAttribute('objects_count', new ScalarAttribute('objects', 7));
     oilpanDump.addAttribute('inner_size', new ScalarAttribute('bytes', 768));
 
     var oilpanBucket1Dump = new MemoryAllocatorDump(
         md, 'oilpan/bucket1', oilpanDump);
-    oilpanBucket1Dump.addAttribute('outer_size',
+    oilpanBucket1Dump.addAttribute('size',
         new ScalarAttribute('bytes', 512));
     oilpanBucket1Dump.addAttribute('objects_count',
         new ScalarAttribute('objects', 3));
@@ -81,7 +81,7 @@ tv.b.unittest.testSuite(function() {
 
     var oilpanBucket2Dump = new MemoryAllocatorDump(
         md, 'oilpan/bucket2', oilpanDump);
-    oilpanBucket2Dump.addAttribute('outer_size',
+    oilpanBucket2Dump.addAttribute('size',
         new ScalarAttribute('bytes', 512));
     oilpanBucket2Dump.addAttribute('objects_count',
         new ScalarAttribute('objects', 4));
@@ -91,7 +91,7 @@ tv.b.unittest.testSuite(function() {
 
     var oilpanBucket2StringsDump = new MemoryAllocatorDump(
         md, 'oilpan/bucket2/strings', oilpanBucket2Dump);
-    oilpanBucket2StringsDump.addAttribute('outer_size',
+    oilpanBucket2StringsDump.addAttribute('size',
         new ScalarAttribute('bytes', 512));
     oilpanBucket2StringsDump.addAttribute('objects_count',
         new ScalarAttribute('objects', 4));
@@ -100,7 +100,7 @@ tv.b.unittest.testSuite(function() {
     setUpParentChildRelationship(oilpanBucket2Dump, oilpanBucket2StringsDump);
 
     var v8Dump = new MemoryAllocatorDump(md, 'v8');
-    v8Dump.addAttribute('outer_size', new ScalarAttribute('bytes', 2048));
+    v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
     v8Dump.addAttribute('objects_count', new ScalarAttribute('objects', 15));
     v8Dump.addAttribute('inner_size', new ScalarAttribute('bytes', 1999));
 

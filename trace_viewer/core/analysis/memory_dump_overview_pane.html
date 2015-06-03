@@ -118,8 +118,12 @@ found in the LICENSE file.
         var allocatorSizes = {};
         if (processMemoryDump.memoryAllocatorDumps !== undefined) {
           processMemoryDump.memoryAllocatorDumps.forEach(function(dump) {
-            var cell = new tv.c.analysis.MemoryCell(
-                dump.attributes['outer_size']);
+            var attr = dump.attributes['size'];
+            // TODO(petrcermak): Remove support for the old default attribute
+            // name once the correspoding change lands in Chromium.
+            if (attr === undefined)
+              attr = dump.attributes['outer_size'];
+            var cell = new tv.c.analysis.MemoryCell(attr);
             cell.buildDetailsPane = function() {
               var pane = document.createElement(
                   'tv-c-a-memory-dump-allocator-details-pane');

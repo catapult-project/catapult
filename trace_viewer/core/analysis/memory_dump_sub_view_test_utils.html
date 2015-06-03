@@ -58,7 +58,7 @@ tv.exportTo('tv.c.analysis', function() {
       gmd.processMemoryDumps[p2.pid] = pmd2;
       pmd2.memoryAllocatorDumps = (function() {
         var oilpanDump = new MemoryAllocatorDump(pmd2, 'oilpan');
-        oilpanDump.addAttribute('outer_size',
+        oilpanDump.addAttribute('size',
             new ScalarAttribute('bytes', 2147483648) /* 2 GiB */);
         oilpanDump.addAttribute('inner_size',
             new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
@@ -66,7 +66,7 @@ tv.exportTo('tv.c.analysis', function() {
             new ScalarAttribute('objects', 2015));
 
         var v8Dump = new MemoryAllocatorDump(pmd2, 'v8');
-        v8Dump.addAttribute('outer_size',
+        v8Dump.addAttribute('size',
             new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
         v8Dump.addAttribute('inner_size',
             new ScalarAttribute('bytes', 2097152) /* 2 MiB */);

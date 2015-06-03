@@ -17,7 +17,10 @@ found in the LICENSE file.
 
 tv.exportTo('tv.c.tracks', function() {
 
-  var ALLOCATOR_SIZE_ATTRIBUTE_NAME = 'outer_size';
+  // TODO(petrcermak): Remove support for the old default attribute name once
+  // the correspoding change lands in Chromium.
+  var ALLOCATOR_SIZE_ATTRIBUTE_OLD_NAME = 'outer_size';
+  var ALLOCATOR_SIZE_ATTRIBUTE_NAME = 'size';
 
   /**
    * Add numeric values from a source dictionary to the numeric values in
@@ -48,6 +51,10 @@ tv.exportTo('tv.c.tracks', function() {
     allocatorDumps.forEach(function(allocatorDump) {
       var allocatorSize = allocatorDump.attributes[
           ALLOCATOR_SIZE_ATTRIBUTE_NAME];
+      if (allocatorSize === undefined) {
+        allocatorSize = allocatorDump.attributes[
+            ALLOCATOR_SIZE_ATTRIBUTE_OLD_NAME];
+      }
       if (allocatorSize === undefined)
         return;
       var allocatorSizeValue = allocatorSize.value;

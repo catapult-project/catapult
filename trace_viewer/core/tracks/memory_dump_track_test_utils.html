@@ -48,7 +48,7 @@ tv.exportTo('tv.c.tracks', function() {
     var allocatorDumps = [];
     tv.b.iterItems(dumpSizes, function(allocatorName, size) {
       var dump = new MemoryAllocatorDump(memoryDump, allocatorName);
-      dump.addAttribute('outer_size', new ScalarAttribute('bytes', size));
+      dump.addAttribute('size', new ScalarAttribute('bytes', size));
       allocatorDumps.push(dump);
     });
     return allocatorDumps;

@@ -31,7 +31,7 @@ tv.b.unittest.testSuite(function() {
 
     var oilpanBucket1Dump = new MemoryAllocatorDump(
         md, 'oilpan/bucket1', oilpanDump);
-    oilpanBucket1Dump.addAttribute('outer_size',
+    oilpanBucket1Dump.addAttribute('size',
         new ScalarAttribute('bytes', 512));
     oilpanBucket1Dump.addAttribute('objects_count',
         new ScalarAttribute('objects', 3));
@@ -45,7 +45,7 @@ tv.b.unittest.testSuite(function() {
 
     var oilpanBucket2StringsDump = new MemoryAllocatorDump(
         md, 'oilpan/bucket2/strings', oilpanBucket2Dump);
-    oilpanBucket2StringsDump.addAttribute('outer_size',
+    oilpanBucket2StringsDump.addAttribute('size',
         new ScalarAttribute('bytes', 512));
     oilpanBucket2StringsDump.addAttribute('objects_count',
         new ScalarAttribute('objects', 4));
@@ -58,19 +58,19 @@ tv.b.unittest.testSuite(function() {
     // oilpan has *some* attributes aggregated.
     assert.equal(oilpanDump.attributes['objects_count'].value, 7);
     assert.equal(oilpanDump.attributes['inner_size'].value, 768);
-    assert.equal(oilpanDump.attributes['outer_size'].value, 1024);
+    assert.equal(oilpanDump.attributes['size'].value, 1024);
 
     // oilpan/bucket2 has *all* attributes aggregated.
     assert.equal(oilpanBucket2Dump.attributes['objects_count'].value,
         4);
     assert.equal(oilpanBucket2Dump.attributes['inner_size'].value, 512);
-    assert.equal(oilpanBucket2Dump.attributes['outer_size'].value, 512);
+    assert.equal(oilpanBucket2Dump.attributes['size'].value, 512);
 
     // oilpan/bucket2/strings has *no* attributes aggregated.
     assert.equal(oilpanBucket2StringsDump.attributes[
         'objects_count'].value, 4);
     assert.equal(oilpanBucket2StringsDump.attributes['inner_size'].value, 512);
-    assert.equal(oilpanBucket2StringsDump.attributes['outer_size'].value, 512);
+    assert.equal(oilpanBucket2StringsDump.attributes['size'].value, 512);
   });
 
   test('memoryAllocatorDumpLink_instantiate', function() {

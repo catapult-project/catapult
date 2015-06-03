@@ -25,7 +25,7 @@ tv.b.unittest.testSuite(function() {
   function createMemoryAllocatorDump() {
     var memoryDump = new ContainerMemoryDump(-10);
     var dump = new MemoryAllocatorDump(memoryDump, 'v8');
-    dump.addAttribute('outer_size',
+    dump.addAttribute('size',
         new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
     dump.addAttribute('inner_size',
         new ScalarAttribute('bytes', 2097152) /* 2 MiB */);

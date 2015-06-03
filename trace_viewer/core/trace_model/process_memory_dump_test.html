@@ -144,13 +144,13 @@ tv.b.unittest.testSuite(function() {
     dump2.vmRegions = [];
     dump2.memoryAllocatorDumps = (function() {
       var oilpanDump = new MemoryAllocatorDump('oilpan');
-      oilpanDump.addAttribute('outer_size', new ScalarAttribute('bytes', 1024));
+      oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
       oilpanDump.addAttribute('objects_count',
           new ScalarAttribute('objects', 7));
       oilpanDump.addAttribute('inner_size', new ScalarAttribute('bytes', 768));
 
       var v8Dump = new MemoryAllocatorDump('v8');
-      v8Dump.addAttribute('outer_size', new ScalarAttribute('bytes', 2048));
+      v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
       v8Dump.addAttribute('objects_count', new ScalarAttribute('objects', 15));
       v8Dump.addAttribute('inner_size', new ScalarAttribute('bytes', 1999));
 
@@ -161,13 +161,13 @@ tv.b.unittest.testSuite(function() {
     var dump3 = createProcessMemoryDump(3, m);
     dump3.memoryAllocatorDumps = (function() {
       var mallocDump = new MemoryAllocatorDump('malloc');
-      mallocDump.addAttribute('outer_size', new ScalarAttribute('bytes', 1024));
+      mallocDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
       mallocDump.addAttribute('objects_count',
           new ScalarAttribute('objects', 7));
       mallocDump.addAttribute('inner_size', new ScalarAttribute('bytes', 768));
 
       var v8Dump = new MemoryAllocatorDump('v8');
-      v8Dump.addAttribute('outer_size', new ScalarAttribute('bytes', 2048));
+      v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
       v8Dump.addAttribute('objects_count', new ScalarAttribute('objects', 15));
       v8Dump.addAttribute('inner_size', new ScalarAttribute('bytes', 1999));
 

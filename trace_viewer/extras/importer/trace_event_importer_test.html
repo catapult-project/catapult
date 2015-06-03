@@ -2580,7 +2580,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '2f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '1000'},
-                  outer_size: {type: 'scalar', units: 'bytes', value: '4000'}
+                  size: {type: 'scalar', units: 'bytes', value: '4000'}
                 }
               },
               'oilpan/heap1': {
@@ -2590,7 +2590,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '3f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '3000'},
-                  outer_size: {type: 'scalar', units: 'bytes', value: '4000'}
+                  size: {type: 'scalar', units: 'bytes', value: '4000'}
                 }
               },
               'oilpan/heap2': {
@@ -2600,7 +2600,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '4f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '4000'},
-                  outer_size: {type: 'scalar', units: 'bytes', value: '4000'}
+                  size: {type: 'scalar', units: 'bytes', value: '4000'}
                 }
               },
               'oilpan/heap2/bucket1': {
@@ -2611,7 +2611,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '1f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '2000'},
-                  outer_size: {type: 'scalar', units: 'bytes', value: '2000'}
+                  size: {type: 'scalar', units: 'bytes', value: '2000'}
                 }
               },
               'v8': {
@@ -2621,7 +2621,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '5f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '5000'},
-                  outer_size: {type: 'scalar', units: 'bytes', value: '6000'}
+                  size: {type: 'scalar', units: 'bytes', value: '6000'}
                 }
               }
             }
@@ -2643,7 +2643,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.include(d.memoryAllocatorDumps, v8Root);
 
     assert.equal(oilpanRoot.attributes['objects_count'].value, 47);
-    assert.equal(oilpanRoot.attributes['outer_size'].value, 16384);
+    assert.equal(oilpanRoot.attributes['size'].value, 16384);
     assert.equal(oilpanRoot.attributes['inner_size'].value, 4096);
     assert.equal(oilpanRoot.children.length, 2);
 
@@ -2653,7 +2653,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
     assert.equal(oilpanBucket1.name, 'bucket1');
     assert.equal(oilpanBucket1.attributes['objects_count'].value, 31);
-    assert.equal(oilpanBucket1.attributes['outer_size'].value, 8192);
+    assert.equal(oilpanBucket1.attributes['size'].value, 8192);
     assert.equal(oilpanBucket1.attributes['inner_size'].value, 8192);
     assert.equal(oilpanBucket1.children.length, 0);
 
@@ -2692,7 +2692,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '3f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '3000'},
-                  outer_size: {type: 'scalar', units: 'bytes', value: '4000'}
+                  size: {type: 'scalar', units: 'bytes', value: '4000'}
                 }
               },
               'oilpan/heap2/bucket1': {
@@ -2702,7 +2702,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '1f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '2000'},
-                  outer_size: {type: 'scalar', units: 'bytes', value: '2000'}
+                  size: {type: 'scalar', units: 'bytes', value: '2000'}
                 }
               },
               'v8': {
@@ -2712,7 +2712,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '5f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '5000'},
-                  outer_size: {type: 'scalar', units: 'bytes', value: '6000'}
+                  size: {type: 'scalar', units: 'bytes', value: '6000'}
                 }
               }
             }
@@ -2734,7 +2734,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.include(d.memoryAllocatorDumps, v8Root);
 
     assert.equal(oilpanRoot.attributes['objects_count'].value, 94);
-    assert.equal(oilpanRoot.attributes['outer_size'].value, 24576);
+    assert.equal(oilpanRoot.attributes['size'].value, 24576);
     assert.equal(oilpanRoot.attributes['inner_size'].value, 20480);
     assert.equal(oilpanRoot.children.length, 2);
 
@@ -2744,7 +2744,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
     assert.equal(oilpanBucket1.name, 'bucket1');
     assert.equal(oilpanBucket1.attributes['objects_count'].value, 31);
-    assert.equal(oilpanBucket1.attributes['outer_size'].value, 8192);
+    assert.equal(oilpanBucket1.attributes['size'].value, 8192);
     assert.equal(oilpanBucket1.attributes['inner_size'].value, 8192);
     assert.equal(oilpanBucket1.children.length, 0);
 
@@ -2783,7 +2783,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '3f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '3000'},
-                  outer_size: {type: 'scalar', units: 'bytes', value: '4000'},
+                  size: {type: 'scalar', units: 'bytes', value: '4000'},
                   weather: {type: 'string', units: '', value: 'rainy'}
                 }
               },
@@ -2794,7 +2794,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '1f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '2000'},
-                  outer_size: {type: 'scalar', units: 'bytes', value: '2000'},
+                  size: {type: 'scalar', units: 'bytes', value: '2000'},
                   weather: {type: 'string', units: '', value: 'sunny'}
                 }
               }
@@ -2824,7 +2824,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.include(gmd.memoryAllocatorDumps, sharedBitmapManager);
 
     assert.equal(sharedBitmapManager.attributes['objects_count'].value, 31);
-    assert.equal(sharedBitmapManager.attributes['outer_size'].value, 8192);
+    assert.equal(sharedBitmapManager.attributes['size'].value, 8192);
     assert.equal(sharedBitmapManager.attributes['inner_size'].value, 8192);
     assert.isUndefined(sharedBitmapManager.attributes['weather']);
     assert.lengthOf(sharedBitmapManager.children, 1);
@@ -2836,7 +2836,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.strictEqual(bitmap2.parent, sharedBitmapManager);
 
     assert.equal(bitmap2.attributes['objects_count'].value, 31);
-    assert.equal(bitmap2.attributes['outer_size'].value, 8192);
+    assert.equal(bitmap2.attributes['size'].value, 8192);
     assert.equal(bitmap2.attributes['inner_size'].value, 8192);
     assert.equal(bitmap2.attributes['weather'].value, 'sunny');
     assert.lengthOf(bitmap2.children, 0);
@@ -2852,7 +2852,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isUndefined(tileManagerRoot.parent);
 
     assert.equal(tileManagerRoot.attributes['objects_count'].value, 63);
-    assert.equal(tileManagerRoot.attributes['outer_size'].value, 16384);
+    assert.equal(tileManagerRoot.attributes['size'].value, 16384);
     assert.equal(tileManagerRoot.attributes['inner_size'].value, 12288);
     assert.isUndefined(tileManagerRoot.attributes['weather']);
     assert.lengthOf(tileManagerRoot.children, 1);
@@ -2864,7 +2864,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.strictEqual(tile1.parent, tileManagerRoot);
 
     assert.equal(tile1.attributes['objects_count'].value, 63);
-    assert.equal(tile1.attributes['outer_size'].value, 16384);
+    assert.equal(tile1.attributes['size'].value, 16384);
     assert.equal(tile1.attributes['inner_size'].value, 12288);
     assert.equal(tile1.attributes['weather'].value, 'rainy');
     assert.lengthOf(tile1.children, 0);
