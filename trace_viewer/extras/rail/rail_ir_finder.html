@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/range_utils.html">
 <link rel="import" href="/extras/chrome/chrome_model_helper.html">
 <link rel="import" href="/extras/rail/animation_interaction_record.html">
+<link rel="import" href="/extras/rail/idle_interaction_record.html">
 <link rel="import" href="/extras/rail/load_interaction_record.html">
 <link rel="import" href="/extras/rail/response_interaction_record.html">
 
@@ -234,11 +235,21 @@ tv.exportTo('tv.e.audits', function() {
       });
     },
 
+    findIdleInteractionRecords: function(otherIRs) {
+      var emptyRanges = tv.e.audits.findEmptyRangesBetweenExplicitRanges(
+          otherIRs, this.model.bounds);
+      return emptyRanges.map(function(range) {
+        return new tv.e.audits.IdleInteractionRecord(
+            range.min, range.max - range.min);
+      });
+    },
+
     findAllInteractionRecords: function() {
       var rirs = [];
       rirs.push.apply(rirs, this.findLoadInteractionRecords());
       rirs.push.apply(rirs, this.findResponseInteractionRecords());
       rirs.push.apply(rirs, this.findAnimationInteractionRecords());
+      rirs.push.apply(rirs, this.findIdleInteractionRecords(rirs));
       return rirs;
     }
   };
