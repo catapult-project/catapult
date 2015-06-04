@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/base.html">
+<link rel="import" href="/base/units/time.html">
 <script>
 'use strict';
 
@@ -13,9 +14,7 @@ found in the LICENSE file.
  */
 tv.exportTo('tv.b.units', function() {
   function tsString(ts) {
-    var tsRounded = Math.round(ts * 1000.0) / 1000.0;
-    var n = new Number(tsRounded);
-    return n.toLocaleString(undefined, { minimumFractionDigits: 3 }) + ' ms';
+    return tv.b.units.Time.currentDisplayUnit.format(ts);
   }
 
   return {

@@ -4,8 +4,9 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/base/deep_utils.html">
+<link rel="import" href="/base/units/time.html">
 <link rel="import" href="/base/units/time_stamp.html">
-<link rel="import" href="/base/units/util.html">
 <script>
 'use strict';
 tv.exportTo('tv.b.units', function() {
@@ -16,6 +17,14 @@ tv.exportTo('tv.b.units', function() {
     span.timestamp = timestamp;
     return span;
   }
+
+  tv.b.units.Time.addEventListener('display-unit-changed', function(e) {
+    tv.b.findDeepElementsMatching(document.body,
+      'tv-b-u-time-stamp-span').forEach(function(el) {
+        el.updateContent_();
+      });
+  });
+
   return {
     createTimeStampSpan: createTimeStampSpan
   };
@@ -42,7 +51,12 @@ tv.exportTo('tv.b.units', function() {
         this.timestamp_ = timestamp.timestamp;
       else
         this.timestamp_ = timestamp;
-      this.shadowRoot.textContent = tv.b.units.tsString(this.timestamp_);
+      this.updateContent_();
+    },
+
+    updateContent_: function() {
+      var content = tv.b.units.Time.currentDisplayUnit.format(this.timestamp_);
+      this.shadowRoot.textContent = content;
     }
   });
   </script>

@@ -4,6 +4,7 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/base/units/time.html">
 <link rel="import" href="/base/units/time_duration_span.html">
 <script>
 'use strict';
@@ -41,6 +42,24 @@ tv.b.unittest.testSuite(function() {
     spanB.style.marginLeft = '4px';
     overall.appendChild(spanB);
     this.addHTMLOutput(overall);
+  });
+
+
+  test('respectCurrentDisplayUnit', function() {
+    try {
+      var Time = tv.b.units.Time;
+      Time.currentDisplayUnit = Time.supportedUnits.ns;
+
+      var timeSpan = document.createElement('tv-b-u-time-duration-span');
+      timeSpan.duration = 73;
+      this.addHTMLOutput(timeSpan);
+
+      assert.isTrue(timeSpan.$.content.textContent.indexOf('ns') > 0);
+      Time.currentDisplayUnit = Time.supportedUnits.ms;
+      assert.isTrue(timeSpan.$.content.textContent.indexOf('ms') > 0);
+    } finally {
+      Time.reset();
+    }
   });
 });
 </script>
