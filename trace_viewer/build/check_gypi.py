@@ -6,22 +6,22 @@ import os
 
 from trace_viewer.build import check_common
 
-GYP_FILE = "trace_viewer.gyp"
+GYPI_FILE = 'trace_viewer.gypi'
 
-def GypCheck():
-  f = open(GYP_FILE, 'r')
+def GypiCheck():
+  f = open(GYPI_FILE, 'r')
   gyp = f.read()
   f.close()
 
   data = eval(gyp)
   listed_files = []
-  error = ""
+  error = ''
   for group in check_common.FILE_GROUPS:
-    filenames = map(os.path.normpath, data["variables"][group])
-    error += check_common.CheckListedFilesSorted(GYP_FILE, group, filenames)
+    filenames = map(os.path.normpath, data['variables'][group])
+    error += check_common.CheckListedFilesSorted(GYPI_FILE, group, filenames)
     listed_files.extend(filenames)
 
-  return error + check_common.CheckCommon(GYP_FILE, listed_files)
+  return error + check_common.CheckCommon(GYPI_FILE, listed_files)
 
 if __name__ == '__main__':
-  print GypCheck()
+  print GypiCheck()
