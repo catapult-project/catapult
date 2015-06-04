@@ -2,10 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.android import shared_android_state
 from telemetry import user_story
-from telemetry.user_story.android import shared_app_state
 
-class AppStory(user_story.UserStory):
+class AndroidStory(user_story.UserStory):
   def __init__(self, start_intent, is_app_ready_predicate=None,
                name='', labels=None, is_local=False):
     """Creates a new user story for Android app.
@@ -17,8 +17,8 @@ class AppStory(user_story.UserStory):
       labels: See UserStory.__init__.
       is_app_ready_predicate: See UserStory.__init__.
     """
-    super(AppStory, self).__init__(
-        shared_app_state.SharedAppState, name=name, labels=labels,
+    super(AndroidStory, self).__init__(
+        shared_android_state.SharedAndroidState, name=name, labels=labels,
         is_local=is_local)
     self.start_intent = start_intent
     self.is_app_ready_predicate = is_app_ready_predicate

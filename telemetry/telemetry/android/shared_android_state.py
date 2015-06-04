@@ -8,8 +8,8 @@ from telemetry.story import shared_state
 from telemetry.web_perf import timeline_based_measurement
 
 
-class SharedAppState(shared_state.SharedState):
-  """Manage test state/transitions across multiple android.UserStory's.
+class SharedAndroidState(shared_state.SharedState):
+  """Manage test state/transitions across multiple android.AndroidStory's.
 
   WARNING: the class is not ready for public consumption.
   Email telemetry@chromium.org if you feel like you must use it.
@@ -21,13 +21,13 @@ class SharedAppState(shared_state.SharedState):
     Args:
       test: a web_perf.TimelineBasedMeasurement instance.
       options: a BrowserFinderOptions instance with command line options.
-      story_set: an android.StorySet instance.
+      story_set: a story.StorySet instance.
     """
-    super(SharedAppState, self).__init__(test, finder_options, story_set)
+    super(SharedAndroidState, self).__init__(test, finder_options, story_set)
     if not isinstance(
         test, timeline_based_measurement.TimelineBasedMeasurement):
       raise ValueError(
-          'SharedAppState only accepts TimelineBasedMeasurement tests'
+          'SharedAndroidState only accepts TimelineBasedMeasurement tests'
           ' (not %s).' % test.__class__)
     self._test = test
     self._finder_options = finder_options
@@ -71,6 +71,6 @@ class SharedAppState(shared_state.SharedState):
   def TearDownState(self):
     """Tear down anything created in the __init__ method that is not needed.
 
-    Currently, there is no clean-up needed from SharedAppState.__init__.
+    Currently, there is no clean-up needed from SharedAndroidState.__init__.
     """
     pass

@@ -5,6 +5,7 @@
 import optparse
 import unittest
 
+from telemetry import android
 from telemetry import benchmark
 from telemetry.core import browser_options
 from telemetry.internal import story_runner
@@ -14,7 +15,6 @@ from telemetry.page import shared_page_state
 from telemetry.story import shared_state
 from telemetry import story as story_module
 from telemetry import user_story
-from telemetry.user_story import android
 from telemetry.web_perf import timeline_based_measurement
 
 
@@ -52,7 +52,7 @@ class BenchmarkTest(unittest.TestCase):
         Exception, 'containing only telemetry.page.Page user stories'):
       b.Run(browser_options.BrowserFinderOptions())
 
-    b = TestBenchmark(android.AppStory(start_intent=None))
+    b = TestBenchmark(android.AndroidStory(start_intent=None))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page user stories'):
       b.Run(browser_options.BrowserFinderOptions())
