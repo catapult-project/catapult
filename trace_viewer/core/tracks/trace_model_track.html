@@ -308,9 +308,14 @@ tv.exportTo('tv.c.tracks', function() {
       var events =
           this.model_.flowIntervalTree.findIntersection(viewLWorld, viewRWorld);
 
+      // When not showing flow events, show only highlighted/selected ones.
+      var onlyHighlighted = !this.viewport.showFlowEvents;
       var canvasBounds = ctx.canvas.getBoundingClientRect();
-      for (var i = 0; i < events.length; ++i)
+      for (var i = 0; i < events.length; ++i) {
+        if (onlyHighlighted && events[i].selectionState === SelectionState.NONE)
+          continue;
         this.drawFlowArrow_(ctx, events[i], canvasBounds, pixWidth);
+      }
     },
 
     drawFlowArrow_: function(ctx, flowEvent,

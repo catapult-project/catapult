@@ -85,11 +85,9 @@ tv.exportTo('tv.c.tracks', function() {
         DrawType.INSTANT_EVENT,
         DrawType.GENERAL_EVENT,
         DrawType.MARKERS,
-        DrawType.ANNOTATIONS
+        DrawType.ANNOTATIONS,
+        DrawType.FLOW_ARROWS
       ];
-
-      if (this.viewport.showFlowEvents)
-        typesToDraw.push(DrawType.FLOW_ARROWS);
 
       for (var idx in typesToDraw) {
         for (var i = 0; i < this.children.length; ++i) {
