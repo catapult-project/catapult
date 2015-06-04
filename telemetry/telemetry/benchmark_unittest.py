@@ -12,9 +12,9 @@ from telemetry import page
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
 from telemetry.story import shared_state
+from telemetry import story as story_module
 from telemetry import user_story
 from telemetry.user_story import android
-from telemetry.user_story import user_story_set as user_story_set_module
 from telemetry.web_perf import timeline_based_measurement
 
 
@@ -26,14 +26,14 @@ class DummyPageTest(page_test.PageTest):
 class TestBenchmark(benchmark.Benchmark):
   def __init__(self, story):
     super(TestBenchmark, self).__init__()
-    self._uss = user_story_set_module.UserStorySet()
-    self._uss.AddUserStory(story)
+    self._story_set = story_module.StorySet()
+    self._story_set.AddUserStory(story)
 
   def CreatePageTest(self, _):
     return DummyPageTest()
 
-  def CreateUserStorySet(self, _):
-    return self._uss
+  def CreateStorySet(self, _):
+    return self._story_set
 
 
 class BenchmarkTest(unittest.TestCase):
@@ -138,7 +138,7 @@ class BenchmarkTest(unittest.TestCase):
     original_run_fn = story_runner.Run
     validPredicate = [False]
 
-    def RunStub(test, user_story_set, expectations, finder_options, results,
+    def RunStub(test, story_set_module, expectations, finder_options, results,
                 **args): # pylint: disable=unused-argument
       predicate = results._value_can_be_added_predicate
       valid = predicate == PredicateBenchmark.ValueCanBeAddedPredicate

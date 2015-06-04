@@ -73,7 +73,7 @@ class WprArchiveInfo(object):
     """
     # Download all .wpr files.
     if not self._bucket:
-      logging.warning('User story set in %s has no bucket specified, and '
+      logging.warning('Story set in %s has no bucket specified, and '
                       'cannot be downloaded from cloud_storage.', )
       return
     assert 'archives' in self._data, 'Invalid data format in %s. \'archives\'' \
@@ -137,7 +137,7 @@ class WprArchiveInfo(object):
     # Upload to cloud storage
     if upload_to_cloud_storage:
       if not self._bucket:
-        logging.warning('UserStorySet must have bucket specified to upload '
+        logging.warning('StorySet must have bucket specified to upload '
                         'user stories to cloud storage.')
         return
       try:
@@ -172,7 +172,7 @@ class WprArchiveInfo(object):
     """Writes the metadata into the file passed as constructor parameter."""
     metadata = dict()
     metadata['description'] = (
-        'Describes the Web Page Replay archives for a user story set. '
+        'Describes the Web Page Replay archives for a story set. '
         'Don\'t edit by hand! Use record_wpr for updating.')
     metadata['archives'] = self._wpr_file_to_user_story_names.copy()
     # Don't write data for abandoned archives.
@@ -203,7 +203,7 @@ class WprArchiveInfo(object):
       base = match.groupdict()['BASE']
     if not base:
       # If we're creating a completely new info file, use the base name of the
-      # user story set file.
+      # story set file.
       base = os.path.splitext(os.path.basename(self._file_path))[0]
     new_filename = '%s_%03d.wpr' % (base, highest_number + 1)
     return new_filename, self._WprFileNameToPath(new_filename)

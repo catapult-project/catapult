@@ -6,32 +6,27 @@ import inspect
 import os
 
 from telemetry import user_story as user_story_module
-from telemetry.util import cloud_storage
 from telemetry.wpr import archive_info
 
-PUBLIC_BUCKET = cloud_storage.PUBLIC_BUCKET
-PARTNER_BUCKET = cloud_storage.PARTNER_BUCKET
-INTERNAL_BUCKET = cloud_storage.INTERNAL_BUCKET
 
-
-class UserStorySet(object):
+class StorySet(object):
   """A collection of user story.
 
-  A typical usage of UserStorySet would be to subclass it and then calling
+  A typical usage of StorySet would be to subclass it and then calling
   AddUserStory for each UserStory.
   """
 
   def __init__(self, archive_data_file='', cloud_storage_bucket=None,
                base_dir=None, serving_dirs=None):
-    """Creates a new UserStorySet.
+    """Creates a new StorySet.
 
     Args:
       archive_data_file: The path to Web Page Replay's archive data, relative
           to self.base_dir.
       cloud_storage_bucket: The cloud storage bucket used to download
           Web Page Replay's archive data. Valid values are: None,
-          PUBLIC_BUCKET, PARTNER_BUCKET, or INTERNAL_BUCKET (defined
-          in telemetry.util.cloud_storage).
+          story.PUBLIC_BUCKET, story.PARTNER_BUCKET, or story.INTERNAL_BUCKET
+          (defined in telemetry.util.cloud_storage).
       serving_dirs: A set of paths, relative to self.base_dir, to directories
           containing hash files for non-wpr archive data stored in cloud
           storage.
@@ -56,7 +51,7 @@ class UserStorySet(object):
     """True iff UserStories are allowed to have different StoryState classes.
 
     There are no checks in place for determining if SharedStates are
-    being assigned correctly to all UserStorys in a given UserStorySet. The
+    being assigned correctly to all UserStorys in a given StorySet. The
     majority of test cases should not need the ability to have multiple
     ShareduserStoryStates, and usually implies you should be writing multiple
     benchmarks instead. We provide errors to avoid accidentally assigning
@@ -73,7 +68,7 @@ class UserStorySet(object):
   def base_dir(self):
     """The base directory to resolve archive_data_file.
 
-    This defaults to the directory containing the UserStorySet instance's class.
+    This defaults to the directory containing the StorySet instance's class.
     """
     return self._base_dir
 
@@ -114,7 +109,7 @@ class UserStorySet(object):
 
   @classmethod
   def Name(cls):
-    """Returns the string name of this UserStorySet.
+    """Returns the string name of this StorySet.
     Note that this should be a classmethod so benchmark_runner script can match
     user story class with its name specified in the run command:
     'Run <User story test name> <User story class name>'

@@ -6,8 +6,8 @@ import unittest
 
 from telemetry.results import user_story_run
 from telemetry.story import shared_state
+from telemetry.story import story_set
 from telemetry import user_story as user_story_module
-from telemetry.user_story import user_story_set
 from telemetry.value import failure
 from telemetry.value import scalar
 from telemetry.value import skip
@@ -24,12 +24,12 @@ class UserStoryFoo(user_story_module.UserStory):
 
 class UserStoryRunTest(unittest.TestCase):
   def setUp(self):
-    self.user_story_set = user_story_set.UserStorySet()
-    self.user_story_set.AddUserStory(UserStoryFoo())
+    self.story_set = story_set.StorySet()
+    self.story_set.AddUserStory(UserStoryFoo())
 
   @property
   def user_stories(self):
-    return self.user_story_set.user_stories
+    return self.story_set.user_stories
 
   def testUserStoryRunFailed(self):
     run = user_story_run.UserStoryRun(self.user_stories[0])

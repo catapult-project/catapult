@@ -9,7 +9,7 @@ class SharedState(object):
 
   """
 
-  def __init__(self, test, options, user_story_set):
+  def __init__(self, test, options, story_set):
     """ This method is styled on unittest.TestCase.setUpClass.
     Override to do any action before running user stories that
     share this same state.
@@ -17,7 +17,7 @@ class SharedState(object):
       test: a page_test.PageTest instance.
       options: a BrowserFinderOptions instance that contains command line
         options.
-      user_story_set: a user_story_set.UserStorySet instance.
+      story_set: a story.StorySet instance.
     """
     pass
 

@@ -13,7 +13,7 @@ from telemetry.core import wpr_modes
 from telemetry.internal.actions import page_action
 from telemetry.page import page_test
 from telemetry.results import results_options
-from telemetry.story import story_filter
+from telemetry import story
 from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
 from telemetry.value import failure
@@ -25,7 +25,7 @@ class ArchiveError(Exception):
 
 
 def AddCommandLineArgs(parser):
-  story_filter.StoryFilter.AddCommandLineArgs(parser)
+  story.StoryFilter.AddCommandLineArgs(parser)
   results_options.AddResultsOptions(parser)
 
   # Page set options
@@ -54,7 +54,7 @@ def AddCommandLineArgs(parser):
                     help='Ignore @Disabled and @Enabled restrictions.')
 
 def ProcessCommandLineArgs(parser, args):
-  story_filter.StoryFilter.ProcessCommandLineArgs(parser, args)
+  story.StoryFilter.ProcessCommandLineArgs(parser, args)
   results_options.ProcessCommandLineArgs(parser, args)
 
   # Page set options
@@ -130,30 +130,30 @@ class UserStoryGroup(object):
     self._user_stories.append(user_story)
 
 
-def StoriesGroupedByStateClass(user_story_set, allow_multiple_groups):
+def StoriesGroupedByStateClass(story_set, allow_multiple_groups):
   """ Returns a list of user story groups which each contains user stories with
   the same shared_state_class.
 
   Example:
     Assume A1, A2, A3 are user stories with same shared user story class, and
     similar for B1, B2.
-    If their orders in user story set is A1 A2 B1 B2 A3, then the grouping will
+    If their orders in story set is A1 A2 B1 B2 A3, then the grouping will
     be [A1 A2] [B1 B2] [A3].
 
   It's purposefully done this way to make sure that order of user
-  stories are the same of that defined in user_story_set. It's recommended that
+  stories are the same of that defined in story_set. It's recommended that
   user stories with the same states should be arranged next to each others in
-  user story sets to reduce the overhead of setting up & tearing down the
+  story sets to reduce the overhead of setting up & tearing down the
   shared user story state.
   """
   user_story_groups = []
   user_story_groups.append(
-      UserStoryGroup(user_story_set[0].shared_state_class))
-  for user_story in user_story_set:
+      UserStoryGroup(story_set[0].shared_state_class))
+  for user_story in story_set:
     if (user_story.shared_state_class is not
         user_story_groups[-1].shared_state_class):
       if not allow_multiple_groups:
-        raise ValueError('This UserStorySet is only allowed to have one '
+        raise ValueError('This StorySet is only allowed to have one '
                          'SharedState but contains the following '
                          'SharedState classes: %s, %s.\n Either '
                          'remove the extra SharedStates or override '
@@ -166,7 +166,7 @@ def StoriesGroupedByStateClass(user_story_set, allow_multiple_groups):
   return user_story_groups
 
 
-def Run(test, user_story_set, expectations, finder_options, results,
+def Run(test, story_set, expectations, finder_options, results,
         max_failures=None):
   """Runs a given test against a given page_set with the given options.
 
@@ -175,17 +175,16 @@ def Run(test, user_story_set, expectations, finder_options, results,
   can continue running the remaining user stories.
   """
   # Filter page set based on options.
-  user_stories = filter(story_filter.StoryFilter.IsSelected,
-                              user_story_set)
+  user_stories = filter(story.StoryFilter.IsSelected, story_set)
 
-  if (not finder_options.use_live_sites and user_story_set.bucket and
+  if (not finder_options.use_live_sites and story_set.bucket and
       finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):
-    serving_dirs = user_story_set.serving_dirs
+    serving_dirs = story_set.serving_dirs
     for directory in serving_dirs:
       cloud_storage.GetFilesInDirectoryIfChanged(directory,
-                                                 user_story_set.bucket)
+                                                 story_set.bucket)
     if not _UpdateAndCheckArchives(
-        user_story_set.archive_data_file, user_story_set.wpr_archive_info,
+        story_set.archive_data_file, story_set.wpr_archive_info,
         user_stories):
       return
 
@@ -199,7 +198,7 @@ def Run(test, user_story_set, expectations, finder_options, results,
 
   user_story_groups = StoriesGroupedByStateClass(
       user_stories,
-      user_story_set.allow_mixed_story_states)
+      story_set.allow_mixed_story_states)
 
   for group in user_story_groups:
     state = None
@@ -209,7 +208,7 @@ def Run(test, user_story_set, expectations, finder_options, results,
           for _ in xrange(finder_options.page_repeat):
             if not state:
               state = group.shared_state_class(
-                  test, finder_options, user_story_set)
+                  test, finder_options, story_set)
             results.WillRunPage(user_story)
             try:
               _WaitForThermalThrottlingIfNeeded(state.platform)
@@ -261,13 +260,13 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
 
   Logs warnings and returns False if any are missing.
   """
-  # Report any problems with the entire user story set.
+  # Report any problems with the entire story set.
   if any(not user_story.is_local for user_story in filtered_user_stories):
     if not archive_data_file:
-      logging.error('The user story set is missing an "archive_data_file" '
+      logging.error('The story set is missing an "archive_data_file" '
                     'property.\nTo run from live sites pass the flag '
                     '--use-live-sites.\nTo create an archive file add an '
-                    'archive_data_file property to the user story set and then '
+                    'archive_data_file property to the story set and then '
                     'run record_wpr.')
       raise ArchiveError('No archive data file.')
     if not wpr_archive_info:
@@ -290,7 +289,7 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
         user_stories_missing_archive_data.append(user_story)
   if user_stories_missing_archive_path:
     logging.error(
-        'The user story set archives for some user stories do not exist.\n'
+        'The story set archives for some user stories do not exist.\n'
         'To fix this, record those user stories using record_wpr.\n'
         'To ignore this warning and run against live sites, '
         'pass the flag --use-live-sites.')
@@ -300,7 +299,7 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
                   for user_story in user_stories_missing_archive_path))
   if user_stories_missing_archive_data:
     logging.error(
-        'The user story set archives for some user stories are missing.\n'
+        'The story set archives for some user stories are missing.\n'
         'Someone forgot to check them in, uploaded them to the '
         'wrong cloud storage bucket, or they were deleted.\n'
         'To fix this, record those user stories using record_wpr.\n'
@@ -312,7 +311,7 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
                   for user_story in user_stories_missing_archive_data))
   if user_stories_missing_archive_path or user_stories_missing_archive_data:
     raise ArchiveError('Archive file is missing user stories.')
-  # Only run valid user stories if no problems with the user story set or
+  # Only run valid user stories if no problems with the story set or
   # individual user stories.
   return True
 

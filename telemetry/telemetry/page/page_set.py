@@ -5,19 +5,19 @@
 import os
 
 from telemetry.page import page as page_module
-from telemetry.user_story import user_story_set
+from telemetry import story
 
-PUBLIC_BUCKET = user_story_set.PUBLIC_BUCKET
-PARTNER_BUCKET = user_story_set.PARTNER_BUCKET
-INTERNAL_BUCKET = user_story_set.INTERNAL_BUCKET
+PUBLIC_BUCKET = story.PUBLIC_BUCKET
+PARTNER_BUCKET = story.PARTNER_BUCKET
+INTERNAL_BUCKET = story.INTERNAL_BUCKET
 
 
-class PageSet(user_story_set.UserStorySet):
+class PageSet(story.StorySet):
   def __init__(self, file_path=None, archive_data_file='', user_agent_type=None,
                serving_dirs=None, bucket=None):
     # The default value of file_path is location of the file that define this
     # page set instance's class.
-    # TODO(aiolos): When migrating page_sets over to user_story_sets, make
+    # TODO(aiolos): When migrating page_sets over to story_sets, make
     # sure that we are passing a valid directory path in to base_dir, and not
     # a file path like we curerntly do in some cases for file_path.
     dir_name = file_path

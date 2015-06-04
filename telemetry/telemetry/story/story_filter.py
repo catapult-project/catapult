@@ -39,7 +39,7 @@ class _StoryLabelMatcher(object):
 
 
 class StoryFilter(command_line.ArgumentHandlerMixIn):
-  """Filters user stories in the user story set based on command-line flags."""
+  """Filters user stories in the story set based on command-line flags."""
 
   @classmethod
   def AddCommandLineArgs(cls, parser):

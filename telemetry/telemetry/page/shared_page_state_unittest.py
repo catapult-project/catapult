@@ -11,8 +11,8 @@ from telemetry.page import page
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
+from telemetry import story
 from telemetry.unittest_util import options_for_unittests
-from telemetry.user_story import user_story_set
 
 
 def SetUpPageRunnerArguments(options):
@@ -74,9 +74,9 @@ class SharedPageStateTests(unittest.TestCase):
         'http://www.google.com',
         shared_page_state_class=shared_page_state_class)
     test = DummyTest()
-    uss = user_story_set.UserStorySet()
-    uss.AddUserStory(us)
-    us.shared_state_class(test, self.options, uss)
+    story_set = story.StorySet()
+    story_set.AddUserStory(us)
+    us.shared_state_class(test, self.options, story_set)
     browser_options = self.options.browser_options
     actual_user_agent = browser_options.browser_user_agent_type
     self.assertEqual(expected_user_agent, actual_user_agent)

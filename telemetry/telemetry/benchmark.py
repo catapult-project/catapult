@@ -58,7 +58,7 @@ class Benchmark(command_line.Command):
   Benchmarks default to using TBM unless you override the value of
   Benchmark.test, or override the CreatePageTest method.
 
-  New benchmarks should override CreateUserStorySet.
+  New benchmarks should override CreateStorySet.
   """
   options = {}
   test = timeline_based_measurement.TimelineBasedMeasurement
@@ -184,11 +184,11 @@ class Benchmark(command_line.Command):
       pt._enabled_strings = self._enabled_strings
 
     expectations = self.CreateExpectations()
-    us = self.CreateUserStorySet(finder_options)
+    us = self.CreateStorySet(finder_options)
     if isinstance(pt, page_test.PageTest):
       if any(not isinstance(p, page.Page) for p in us.user_stories):
         raise Exception(
-            'PageTest must be used with UserStorySet containing only '
+            'PageTest must be used with StorySet containing only '
             'telemetry.page.Page user stories.')
 
     self._DownloadGeneratedProfileArchive(finder_options)
@@ -327,7 +327,7 @@ class Benchmark(command_line.Command):
       raise TypeError('"%s" is not a PageSet.' % self.page_set.__name__)
     return self.page_set()
 
-  def CreateUserStorySet(self, options):
+  def CreateStorySet(self, options):
     return self.CreatePageSet(options)
 
   @classmethod
