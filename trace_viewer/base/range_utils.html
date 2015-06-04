@@ -86,10 +86,10 @@ tv.exportTo('tv.e.audits', function() {
     return mergedEvents;
   }
 
-  // 'totalRange' allows capturing an empty range before the first of 'inRanges'
-  // and after the last of 'inRanges'.
+  // 'opt_totalRange' allows capturing an empty range before the first of
+  // 'inRanges' and after the last of 'inRanges'.
   function findEmptyRangesBetweenExplicitRanges(
-      inRanges, totalRange, opt_startFunction, opt_endFunction) {
+      inRanges, opt_totalRange, opt_startFunction, opt_endFunction) {
     var startFunction = opt_startFunction;
     if (!startFunction)
       startFunction = function(range) { return range.start; };
@@ -97,14 +97,23 @@ tv.exportTo('tv.e.audits', function() {
     if (!endFunction)
       endFunction = function(range) { return range.end; };
 
+    var emptyRanges = [];
+    if (!inRanges.length) {
+      if (opt_totalRange) {
+        emptyRanges.push(tv.b.Range.fromExplicitRange(
+            startFunction(opt_totalRange), endFunction(opt_totalRange)));
+      }
+      return emptyRanges;
+    }
+
     inRanges = inRanges.slice();
     inRanges.sort(function(x, y) {
       return startFunction(x) - startFunction(y);
     });
-    var emptyRanges = [];
-    if (startFunction(totalRange) < startFunction(inRanges[0])) {
+    if (opt_totalRange &&
+        (startFunction(opt_totalRange) < startFunction(inRanges[0]))) {
       emptyRanges.push(tv.b.Range.fromExplicitRange(
-          startFunction(totalRange), startFunction(inRanges[0])));
+          startFunction(opt_totalRange), startFunction(inRanges[0])));
     }
 
     inRanges.forEach(function(range, index) {
@@ -129,9 +138,10 @@ tv.exportTo('tv.e.audits', function() {
           return;
         }
       }
-      if (endFunction(range) < endFunction(totalRange)) {
+      if (opt_totalRange &&
+          (endFunction(range) < endFunction(opt_totalRange))) {
         emptyRanges.push(tv.b.Range.fromExplicitRange(
-            endFunction(range), endFunction(totalRange)));
+            endFunction(range), endFunction(opt_totalRange)));
       }
     });
     return emptyRanges;

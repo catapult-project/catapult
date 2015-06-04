@@ -121,5 +121,16 @@ tv.b.unittest.testSuite(function() {
     assert.equal(8, ranges[2].min);
     assert.equal(10, ranges[2].max);
   });
+
+  test('findEmptyRangesWithEmptyInput', function() {
+    var ranges = tv.e.audits.findEmptyRangesBetweenExplicitRanges(
+        [], {start: 0, end: 10});
+    assert.equal(1, ranges.length);
+    assert.equal(0, ranges[0].min);
+    assert.equal(10, ranges[0].max);
+
+    ranges = tv.e.audits.findEmptyRangesBetweenExplicitRanges([]);
+    assert.equal(0, ranges.length);
+  });
 });
 </script>
