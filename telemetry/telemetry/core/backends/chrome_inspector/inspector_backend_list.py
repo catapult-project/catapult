@@ -3,8 +3,6 @@
 # found in the LICENSE file.
 
 import collections
-import logging
-
 from telemetry.core import exceptions
 
 
@@ -57,11 +55,11 @@ class InspectorBackendList(collections.Sequence):
   def __getitem__(self, index):
     self._Update()
     if index >= len(self._filtered_context_ids):
-      logging.error('About to explode: _filtered_context_ids = %s',
-                    repr({
-                      "index": index,
-                      "context_ids": self._filtered_context_ids
-                    }))
+      raise exceptions.DevtoolsTargetCrashException(
+          self.app,
+          'Web content with index %s may have crashed. '
+          'filtered_context_ids = %s' % (
+              index, repr(self._filtered_context_ids)))
     context_id = self._filtered_context_ids[index]
     return self.GetBackendFromContextId(context_id)
 

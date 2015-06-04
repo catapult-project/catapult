@@ -2,6 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
+
+from telemetry.core import exceptions
 from telemetry.page import action_runner as action_runner_module
 from telemetry.page import test_expectations
 
@@ -164,7 +167,17 @@ class PageTest(object):
   def TabForPage(self, page, browser):   # pylint: disable=W0613
     """Override to select a different tab for the page.  For instance, to
     create a new tab for every page, return browser.tabs.New()."""
-    return browser.tabs[0]
+    try:
+      return browser.tabs[0]
+    # The tab may have gone away in some case, so we create a new tab and retry
+    # (See crbug.com/496280)
+    except exceptions.DevtoolsTargetCrashException as e:
+      logging.error('Tab may have crashed: %s' % str(e))
+      browser.tabs.New()
+      # See comment in shared_page_state.WillRunUserStory for why this waiting
+      # is needed.
+      browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
+      return browser.tabs[0]
 
   def ValidateAndMeasurePage(self, page, tab, results):
     """Override to check test assertions and perform measurement.
