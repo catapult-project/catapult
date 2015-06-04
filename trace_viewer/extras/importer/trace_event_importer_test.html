@@ -2033,6 +2033,110 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.deepEqual(f1.endSlice.inFlowEvents, [f1]);
   });
 
+  test('importOldFlowEventBindtoNext', function() {
+    // Old trace format without event.bp, and event.cat doesn't contain input
+    var events = [
+      { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'flow', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {}},  // @suppress longLineCheck
+
+      { name: 'flow', cat: 'foo', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', args: {}},   // @suppress longLineCheck
+      { name: 'slice2', cat: 'foo', pid: 70, tid: 71, ts: 570, ph: 'X', args: {}, 'dur': 100},   // @suppress longLineCheck
+      { name: 'slice3', cat: 'foo', pid: 70, tid: 71, ts: 770, ph: 'X', args: {}, 'dur': 1000}   // @suppress longLineCheck
+
+    ];
+
+    var m = new tv.c.TraceModel(events, false, false);
+
+    assert.equal(m.flowEvents.length, 1);
+
+    var f0 = m.flowEvents[0];
+
+    assert.equal(f0.title, 'flow');
+    assert.equal(f0.category, 'foo');
+    assert.equal(f0.id, 72);
+    assert.equal(f0.start, .548);
+    assert.closeTo(32 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'slice1');
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.equal(f0.endSlice.title, 'slice3');
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+  });
+
+  test('importOldFlowEventBindtoParent', function() {
+    // Old trace format without event.bp, but event.cat contains input
+    var events = [
+      { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'flow', cat: 'input', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {}},  // @suppress longLineCheck
+
+      { name: 'flow', cat: 'input', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', args: {}},   // @suppress longLineCheck
+      { name: 'slice2', cat: 'foo', pid: 70, tid: 71, ts: 570, ph: 'X', args: {}, 'dur': 100},   // @suppress longLineCheck
+      { name: 'slice3', cat: 'foo', pid: 70, tid: 71, ts: 770, ph: 'X', args: {}, 'dur': 1000}   // @suppress longLineCheck
+
+    ];
+
+    var m = new tv.c.TraceModel(events, false, false);
+
+    assert.equal(m.flowEvents.length, 1);
+
+    var f0 = m.flowEvents[0];
+
+    assert.equal(f0.title, 'flow');
+    assert.equal(f0.category, 'input');
+    assert.equal(f0.id, 72);
+    assert.equal(f0.start, .548);
+    assert.closeTo(32 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'slice1');
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.equal(f0.endSlice.title, 'slice2');
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+  });
+
+  test('importNewFlowEventBindtoParent', function() {
+    // New trace format with event.bp
+    var events = [
+      { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'flow', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', bp: 'e', args: {}},  // @suppress longLineCheck
+
+      { name: 'flow', cat: 'foo', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', bp: 'e', args: {}},   // @suppress longLineCheck
+      { name: 'slice2', cat: 'foo', pid: 70, tid: 71, ts: 570, ph: 'X', args: {}, 'dur': 100},   // @suppress longLineCheck
+      { name: 'slice3', cat: 'foo', pid: 70, tid: 71, ts: 770, ph: 'X', args: {}, 'dur': 1000}   // @suppress longLineCheck
+
+    ];
+
+    var m = new tv.c.TraceModel(events, false, false);
+
+    assert.equal(m.flowEvents.length, 1);
+
+    var f0 = m.flowEvents[0];
+
+    assert.equal(f0.title, 'flow');
+    assert.equal(f0.category, 'foo');
+    assert.equal(f0.id, 72);
+    assert.equal(f0.start, .548);
+    assert.closeTo(32 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'slice1');
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.equal(f0.endSlice.title, 'slice2');
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+  });
+
+  test('importNewFlowEventWithInvalidBindingPoint', function() {
+    // New trace format with event.bp, which however !== 'e'
+    var events = [
+      { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'flow', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', bp: 'z', args: {}},  // @suppress longLineCheck
+
+      { name: 'flow', cat: 'foo', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', bp: 'z', args: {}},   // @suppress longLineCheck
+      { name: 'slice2', cat: 'foo', pid: 70, tid: 71, ts: 570, ph: 'X', args: {}, 'dur': 100},   // @suppress longLineCheck
+      { name: 'slice3', cat: 'foo', pid: 70, tid: 71, ts: 770, ph: 'X', args: {}, 'dur': 1000}   // @suppress longLineCheck
+
+    ];
+
+    var m = new tv.c.TraceModel(events, false, false);
+
+    assert.equal(m.flowEvents.length, 0);
+  });
+
   // This test creates a flow event that stops on the same timestamp that
   // the 'X' event which it triggers begins.
   test('importFlowEventOverlaps', function() {

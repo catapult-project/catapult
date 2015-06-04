@@ -1120,10 +1120,11 @@ tv.exportTo('tv.e.importer', function() {
         return flowEvent;
       }
 
-      function finishFlowEventWith(flowEvent, thread, event, refGuid, isStep) {
+      function finishFlowEventWith(flowEvent, thread, event,
+                                   refGuid, bindToParent) {
         // TODO(nduca): Figure out endSlice from ts and binding point.
         var endSlice;
-        if (isStep) {
+        if (bindToParent) {
           endSlice = thread.sliceGroup.findSliceAtTs(event.ts / 1000);
         } else {
           endSlice = thread.sliceGroup.findNextSliceAfter(
@@ -1132,6 +1133,7 @@ tv.exportTo('tv.e.importer', function() {
         if (endSlice === undefined)
           return false;
         endSlice.inFlowEvents.push(flowEvent);
+        console.log(flowEvent, bindToParent, endSlice);
 
         // Modify the flowEvent with the new data.
         flowEvent.endSlice = endSlice;
@@ -1187,9 +1189,33 @@ tv.exportTo('tv.e.importer', function() {
             continue;
           }
 
-          var isStep = event.ph == 't';
+          var bindToParent = event.ph === 't';
+
+          if (event.ph === 'f') {
+            if (event.bp === undefined) {
+              // Hack: input latency flow events used to be issued without
+              // bp='e' letter in old traces. But, we still want their flow
+              // events to parse "properly." This adjusts their binding point
+              // so that they parse.
+              //
+              // TODO(nduca): Removal of this hack is tracked in
+              // https://github.com/google/trace-viewer/issues/991.
+              if (event.cat.indexOf('input') > -1)
+                bindToParent = true;
+            } else {
+              if (event.bp !== 'e') {
+                this.model_.importWarning({
+                 type: 'flow_slice_bind_point_error',
+                 message: 'Flow event with invalid binding point (event.bp).'
+                });
+                continue;
+              }
+              bindToParent = true;
+            }
+          }
+
           var ok = finishFlowEventWith(flowEvent, thread, event,
-                                       refGuid, isStep);
+                                       refGuid, bindToParent);
           if (ok) {
             that.model_.flowEvents.push(flowEvent);
           } else {
