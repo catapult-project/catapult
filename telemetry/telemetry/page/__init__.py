@@ -12,20 +12,11 @@ from telemetry.util import cloud_storage
 from telemetry.util import path
 
 
-def _UpdateCredentials(credentials_path):
-  # Attempt to download the credentials file.
-  try:
-    cloud_storage.GetIfChanged(credentials_path, cloud_storage.PUBLIC_BUCKET)
-  except (cloud_storage.CredentialsError, cloud_storage.PermissionError,
-          cloud_storage.CloudStorageError) as e:
-    logging.warning('Cannot retrieve credential file %s due to cloud storage '
-                    'error %s', credentials_path, str(e))
-
-
 class Page(user_story.UserStory):
   def __init__(self, url, page_set=None, base_dir=None, name='',
-               credentials_path=None, labels=None, startup_url='',
-               make_javascript_deterministic=True,
+               credentials_path=None,
+               credentials_bucket=cloud_storage.PUBLIC_BUCKET, labels=None,
+               startup_url='', make_javascript_deterministic=True,
                shared_page_state_class=shared_page_state.SharedPageState):
     self._url = url
 
@@ -43,7 +34,7 @@ class Page(user_story.UserStory):
     self._name = name
     if credentials_path:
       credentials_path = os.path.join(self._base_dir, credentials_path)
-      _UpdateCredentials(credentials_path)
+      cloud_storage.GetIfChanged(credentials_path, credentials_bucket)
       if not os.path.exists(credentials_path):
         logging.error('Invalid credentials path: %s' % credentials_path)
         credentials_path = None
