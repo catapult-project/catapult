@@ -54,13 +54,13 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
   RegulatorParser.prototype = {
     __proto__: Parser.prototype,
 
-    /*
+    /**
      * Get or create a counter with one series.
      */
     getCtr_: function(ctrName, valueName) {
       var ctr = this.model_.kernel
         .getOrCreateCounter(null, 'vreg ' + ctrName + ' ' + valueName);
-      //Initialize the counter's series fields if needed.
+      // Initialize the counter's series fields if needed.
       if (ctr.series[0] === undefined) {
         ctr.addSeries(new tv.c.trace_model.CounterSeries(valueName,
         tv.b.ui.getColorIdForGeneralPurposeString(
