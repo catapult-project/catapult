@@ -11,11 +11,11 @@
 #  - Vulcanizing Polymer components.
 #  - Versioning of JS and CS.
 
-default_appid=generic.data
+default_appid=chromeperf
 appid=${1:-$default_appid}
 
 user=$(git config --get user.email | sed 's/@.*//')
-hash=$(git rev-parse --short=10 HEAD)-
+hash=$(git rev-parse --short=10 HEAD)
 version=$hash-$user
 
 dir=$(cd `dirname "$0"` && pwd)
