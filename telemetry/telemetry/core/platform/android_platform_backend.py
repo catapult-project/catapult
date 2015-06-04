@@ -244,6 +244,10 @@ class AndroidPlatformBackend(
       raise exceptions.ProcessGoneException()
     return ps[0][1]
 
+  @decorators.Cache
+  def GetArchName(self):
+    return self._device.GetABI()
+
   def GetOSName(self):
     return 'android'
 
