@@ -27,13 +27,9 @@ tv.exportTo('tv.e.importer.battor', function() {
    */
   function BattorImporter(model, events) {
     this.importPriority = 3; // runs after the linux_perf importer
-    this.series_ = undefined;
     this.sampleRate_ = undefined;
     this.model_ = model;
     this.events_ = events;
-    this.kernelThreadStates_ = {};
-    this.lines_ = [];
-    this.pseudoThreadCounter = 1;
   }
 
   var TestExports = {};
@@ -71,7 +67,6 @@ tv.exportTo('tv.e.importer.battor', function() {
       var series = new tv.c.trace_model.CounterSeries('value',
           tv.b.ui.getColorIdForGeneralPurposeString(name + '.' + 'value'));
       this.importPowerSamples(series);
-      this.series_ = series;
 
       // Find the markers for the beginning and end of the vreg sync.
       var syncMarks = this.model_.getClockSyncRecordsNamed('battor');
