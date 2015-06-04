@@ -38,7 +38,8 @@ tv.exportTo('tv.e.importer.battor', function() {
 
   var TestExports = {};
 
-  var battorLineRE = /^(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)$/;
+  var battorDataLineRE = /^(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)$/;
+  var battorHeaderLineRE = /^# BattOr/;
   var sampleRateLineRE = /^# sample_rate=(\d+)Hz/;
 
   /**
@@ -51,7 +52,7 @@ tv.exportTo('tv.e.importer.battor', function() {
     if (!(typeof(events) === 'string' || events instanceof String))
       return false;
 
-    return /^# BattOr/.test(events);
+    return battorHeaderLineRE.test(events);
   };
 
   BattorImporter.prototype = {
@@ -207,7 +208,7 @@ tv.exportTo('tv.e.importer.battor', function() {
           this.sampleRate_ = parseInt(groups[1]);
         } else {
           // Parse power sample.
-          var groups = battorLineRE.exec(line);
+          var groups = battorDataLineRE.exec(line);
           if (!groups) {
             this.model_.importWarning({
                 type: 'parse_error',
