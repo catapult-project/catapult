@@ -1133,7 +1133,6 @@ tv.exportTo('tv.e.importer', function() {
         if (endSlice === undefined)
           return false;
         endSlice.inFlowEvents.push(flowEvent);
-        console.log(flowEvent, bindToParent, endSlice);
 
         // Modify the flowEvent with the new data.
         flowEvent.endSlice = endSlice;
