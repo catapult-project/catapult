@@ -43,7 +43,7 @@ class FailureValue(value_module.Value):
 
   def __repr__(self):
     if self.page:
-      page_name = self.page.url
+      page_name = self.page.name
     else:
       page_name = None
     return 'FailureValue(%s, %s)' % (
