@@ -1,4 +1,4 @@
-# Copyright (c) 2014 The Chromium Authors. All rights reserved.
+# Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -64,34 +64,7 @@ class BuildFile(object):
     raise Exception("Not implemented.")
 
 
-class GnFile(BuildFile):
-  def _ProcessMatch(self, match):
-    min_index = match.start(2)
-    end_index = match.end(2)
-    token = _Token(match.string[min_index:end_index],
-                        id=match.groups()[0])
-    return min_index, end_index, token
-
-  def _TokenRegex(self):
-    # regexp to match the following:
-    # file_group_name = [
-    #   "path/to/one/file.extension",
-    #   "another/file.ex",
-    # ]
-    # In the match,
-    # group 1 is : 'file_group_name'
-    # group 2 is : """  "path/to/one/file.extension",\n  "another/file.ex",\n"""
-    regexp_str = '(%s) = \[\n(.+?)\]\n' % '|'.join(self._file_groups)
-    return re.compile(regexp_str, re.MULTILINE | re.DOTALL)
-
-  def _GetReplacementListAsString(self, existing_list_as_string, filelist):
-    list_entry = existing_list_as_string.splitlines()[0]
-    prefix, entry, suffix = list_entry.split('"')
-    return "".join(['"'.join([prefix, filename, suffix + '\n'])
-                    for filename in filelist])
-
-
-class GypFile(BuildFile):
+class GypiFile(BuildFile):
   def _ProcessMatch(self, match):
     min_index = match.start(2)
     end_index = match.end(2)
@@ -138,18 +111,11 @@ def _UpdateBuildFile(filename, build_file_class):
     build_file.Write(f)
 
 
-def UpdateGn():
+def UpdateGypi():
   tvp = trace_viewer_project.TraceViewerProject()
   _UpdateBuildFile(
-      os.path.join(tvp.trace_viewer_path, 'BUILD.gn'), GnFile)
-
-
-def UpdateGyp():
-  tvp = trace_viewer_project.TraceViewerProject()
-  _UpdateBuildFile(
-      os.path.join(tvp.trace_viewer_path, 'trace_viewer.gyp'), GypFile)
+      os.path.join(tvp.trace_viewer_path, 'trace_viewer.gypi'), GypiFile)
 
 
 def Update():
-  UpdateGyp()
-  UpdateGn()
+  UpdateGypi()
