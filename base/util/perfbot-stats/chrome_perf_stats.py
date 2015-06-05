@@ -6,15 +6,14 @@
 """Script to pull chromium.perf stats from chrome-infra-stats API.
 
 Currently this just pulls success rates from the API, averages daily per
-builder, and outputs a CSV. It could be improved to provide more detailed
-success rates or build times.
+builder, and uploads to perf dashboard. It could be improved to provide more
+detailed success rates.
 
 The API documentation for chrome-infra-stats is at:
 https://apis-explorer.appspot.com/apis-explorer/?
    base=https://chrome-infra-stats.appspot.com/_ah/api#p/
 """
-import calendar
-import csv
+import datetime
 import json
 import sys
 import urllib
@@ -26,33 +25,43 @@ BUILDER_LIST_URL = ('https://chrome-infra-stats.appspot.com/'
 BUILDER_STATS_URL = ('https://chrome-infra-stats.appspot.com/_ah/api/stats/v1/'
                      'stats/chromium.perf/%s/overall__build__result__/%s')
 
-USAGE = 'Usage: chrome_perf_stats.py <outfilename> <year> <month> [<day>]'
+USAGE = ('Usage: chrome_perf_stats.py <year> <month> <day>. If date is not '
+         'specified, yesterday will be used.')
 
 def main():
-  if len(sys.argv) != 4 and len(sys.argv) != 5:
+  if len(sys.argv) == 2 and sys.argv[0] == '--help':
     print USAGE
     sys.exit(0)
-  outfilename = sys.argv[1]
-  year = int(sys.argv[2])
-  if year > 2016 or year < 2014:
-    print USAGE
-    sys.exit(0)
-  month = int(sys.argv[3])
-  if month > 12 or month <= 0:
-    print USAGE
-    sys.exit(0)
-  days = range(1, calendar.monthrange(year, month)[1] + 1)
-  if len(sys.argv) == 5:
-    day = int(sys.argv[4])
+  year = None
+  month = None
+  days = None
+  if len(sys.argv) == 4:
+    year = int(sys.argv[1])
+    if year > 2016 or year < 2014:
+      print USAGE
+      sys.exit(0)
+    month = int(sys.argv[2])
+    if month > 12 or month <= 0:
+      print USAGE
+      sys.exit(0)
+    day = int(sys.argv[3])
     if day > 31 or day <=0:
       print USAGE
       sys.exit(0)
     days = [day]
+  elif len(sys.argv) != 1:
+    print USAGE
+    sys.exit(0)
+  else:
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    year = yesterday.year
+    month = yesterday.month
+    days = [yesterday.day]
 
   response = urllib2.urlopen(BUILDER_LIST_URL)
   builders = [builder['name'] for builder in json.load(response)['builders']]
   success_rates = CalculateSuccessRates(year, month, days, builders)
-  WriteSuccessRatesAsCsv(success_rates, outfilename)
+  UploadToPerfDashboard(success_rates)
 
 def _UpdateSuccessRatesWithResult(
     success_rates, results, date_dict_str, builder):
@@ -83,21 +92,48 @@ def _SummarizeSuccessRates(success_rates):
         [day, float(success_rate_sum) / float(success_rate_count)])
   return overall_success_rates
 
-def WriteSuccessRatesAsCsv(success_rates, outfilename):
-  with open(outfilename, 'wb') as f:
-    writer = csv.writer(f)
-    writer.writerows(success_rates)
+def UploadToPerfDashboard(success_rates):
+  for success_rate in success_rates:
+    date_str = ('%s-%s-%s' %
+        (success_rate[0][0:4], success_rate[0][4:6], success_rate[0][6:8]))
+    dashboard_data = {
+        'master': 'WaterfallStats',
+        'bot': 'ChromiumPerf',
+        'point_id': int(success_rate[0]),
+        'supplemental': {},
+        'versions': {
+            'date': date_str,
+        },
+        'chart_data': {
+            'benchmark_name': 'success_rate',
+            'benchmark_description': 'Success rates averaged per-builder',
+            'format_version': 1.0,
+            'charts': {
+                'overall_success_rate': {
+                    'summary': {
+                        'name': 'overall_success_rate',
+                        'type': 'scalar',
+                        'units': '%',
+                        'value': success_rate[1]
+                    }
+                }
+            }
+        }
+    }
+    url = 'https://chromeperf.appspot.com/add_point'
+    data = urllib.urlencode({'data': json.dumps(dashboard_data)})
+    content = urllib2.urlopen(url=url, data=data).read()
+
 
 def CalculateSuccessRates(year, month, days, builders):
   success_rates = {}
   for day in days:
     for hour in range(24):
       date_str = '%d-%02d-%02dT%02d:00Z' % (year, month, day, hour)
-      date_dict_str = '%d-%02d-%02d' % (year, month, day)
+      date_dict_str = '%d%02d%02d' % (year, month, day)
       for builder in builders:
         url = BUILDER_STATS_URL % (
             urllib.quote(builder), urllib.quote(date_str))
-        print url
         response = urllib2.urlopen(url)
         results = json.load(response)
         _UpdateSuccessRatesWithResult(
