@@ -70,6 +70,7 @@ class Oobe(web_contents.WebContents):
   def NavigateGaiaLogin(self, username, password):
     """Logs in using the GAIA webview or IFrame, whichever is
     present."""
+    self._ExecuteOobeApi('Oobe.skipToLoginForTesting')
     def _GetGaiaFunction():
       self._ExecuteOobeApi('Oobe.showAddUserForTesting')
       if self._GaiaIFrameContext() is not None:
