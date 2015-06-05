@@ -11,20 +11,9 @@ found in the LICENSE file.
 
 tv.exportTo('tv.e.gpu', function() {
   var AsyncSlice = tv.c.trace_model.AsyncSlice;
-  var ChannelColors = new Object();
-  var ChannelColorID = 1;
 
   function GpuAsyncSlice() {
     AsyncSlice.apply(this, arguments);
-
-    // Have service and device channels match color IDs.
-    if (this.args.channel) {
-      var channel = this.args.channel;
-      if (!ChannelColors[channel]) {
-        ChannelColors[channel] = ChannelColorID++;
-      }
-      this.colorId = ChannelColors[channel];
-    }
   }
 
   GpuAsyncSlice.prototype = {
