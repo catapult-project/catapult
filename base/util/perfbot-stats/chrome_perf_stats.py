@@ -13,6 +13,7 @@ The API documentation for chrome-infra-stats is at:
 https://apis-explorer.appspot.com/apis-explorer/?
    base=https://chrome-infra-stats.appspot.com/_ah/api#p/
 """
+import calendar
 import datetime
 import json
 import sys
@@ -35,7 +36,7 @@ def main():
   year = None
   month = None
   days = None
-  if len(sys.argv) == 4:
+  if len(sys.argv) == 4 or len(sys.argv) == 3:
     year = int(sys.argv[1])
     if year > 2016 or year < 2014:
       print USAGE
@@ -44,11 +45,14 @@ def main():
     if month > 12 or month <= 0:
       print USAGE
       sys.exit(0)
-    day = int(sys.argv[3])
-    if day > 31 or day <=0:
-      print USAGE
-      sys.exit(0)
-    days = [day]
+    if len(sys.argv) == 3:
+      days = range(1, calendar.monthrange(year, month)[1] + 1)
+    else:
+      day = int(sys.argv[3])
+      if day > 31 or day <=0:
+        print USAGE
+        sys.exit(0)
+      days = [day]
   elif len(sys.argv) != 1:
     print USAGE
     sys.exit(0)
