@@ -128,7 +128,11 @@ Try rerunning this script under sudo or setting
                                   self._output_file)
     if self._is_android:
       device = self._browser_backend.adb.device()
-      device.PullFile(self._device_output_file, self._output_file)
+      try:
+        device.PullFile(self._device_output_file, self._output_file)
+      except:
+        logging.exception('New exception caused by DeviceUtils conversion')
+        raise
       required_libs = \
           android_profiling_helper.GetRequiredLibrariesForPerfProfile(
               self._output_file)

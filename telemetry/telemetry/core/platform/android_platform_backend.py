@@ -84,8 +84,12 @@ class AndroidPlatformBackend(
     self._perf_tests_setup = perf_control.PerfControl(self._device)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
     self._raw_display_frame_rate_measurements = []
-    self._can_access_protected_file_contents = (
-        self._device.HasRoot() or self._device.NeedsSU())
+    try:
+      self._can_access_protected_file_contents = (
+          self._device.HasRoot() or self._device.NeedsSU())
+    except:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
     self._device_copy_script = None
     power_controller = power_monitor_controller.PowerMonitorController([
         monsoon_power_monitor.MonsoonPowerMonitor(self._device, self),
@@ -210,8 +214,12 @@ class AndroidPlatformBackend(
     if not android_prebuilt_profiler_helper.InstallOnDevice(
         self._device, 'purge_ashmem'):
       raise Exception('Error installing purge_ashmem.')
-    output = self._device.RunShellCommand(
-        android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem'))
+    try:
+      output = self._device.RunShellCommand(
+          android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem'))
+    except:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
     for l in output:
       logging.info(l)
 
@@ -542,8 +550,12 @@ class AndroidPlatformBackend(
     self._device.PushChangedFiles([(new_profile_dir, saved_profile_location)])
 
     profile_dir = self._GetProfileDir(package)
-    self._EfficientDeviceDirectoryCopy(
-        saved_profile_location, profile_dir)
+    try:
+      self._EfficientDeviceDirectoryCopy(
+          saved_profile_location, profile_dir)
+    except:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
     dumpsys = self._device.RunShellCommand('dumpsys package %s' % package)
     id_line = next(line for line in dumpsys if 'userId=' in line)
     uid = re.search(r'\d+', id_line).group()
@@ -595,7 +607,11 @@ class AndroidPlatformBackend(
     # pulled down is really needed e.g. .pak files.
     if not os.path.exists(output_profile_path):
       os.makedirs(output_profile_path)
-    files = self._device.RunShellCommand(['ls', profile_dir])
+    try:
+      files = self._device.RunShellCommand(['ls', profile_dir])
+    except:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
     for f in files:
       # Don't pull lib, since it is created by the installer.
       if f != 'lib':

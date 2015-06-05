@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
 import signal
 import subprocess
@@ -44,7 +45,11 @@ class _TCPDumpProfilerAndroid(object):
     self._proc.terminate()
     host_dump = os.path.join(self._output_path,
                              os.path.basename(self._DEVICE_DUMP_FILE))
-    self._adb.device().PullFile(self._DEVICE_DUMP_FILE, host_dump)
+    try:
+      self._adb.device().PullFile(self._DEVICE_DUMP_FILE, host_dump)
+    except:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
     print 'TCP dump available at: %s ' % host_dump
     print 'Use Wireshark to open it.'
     return host_dump

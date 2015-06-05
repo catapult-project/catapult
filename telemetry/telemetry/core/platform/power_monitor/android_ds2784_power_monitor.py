@@ -43,9 +43,13 @@ class DS2784PowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
   def CanMonitorPower(self):
     if not self._HasFuelGauge():
       return False
-    if self._device_battery.GetCharging():
-      logging.warning("Can't monitor power usage since device is charging.")
-      return False
+    try:
+      if self._device_battery.GetCharging():
+        logging.warning("Can't monitor power usage since device is charging.")
+        return False
+    except:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
     return True
 
   def StartMonitoringPower(self, browser):

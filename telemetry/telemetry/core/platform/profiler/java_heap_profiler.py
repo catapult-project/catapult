@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
 import subprocess
 import threading
@@ -48,8 +49,12 @@ class JavaHeapProfiler(profiler.Profiler):
   def CollectProfile(self):
     self._timer.cancel()
     self._DumpJavaHeap(True)
-    self._browser_backend.adb.device().PullFile(
-        self._DEFAULT_DEVICE_DIR, self._output_path)
+    try:
+      self._browser_backend.adb.device().PullFile(
+          self._DEFAULT_DEVICE_DIR, self._output_path)
+    except:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
     self._browser_backend.adb.RunShellCommand(
         'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))
     output_files = []
