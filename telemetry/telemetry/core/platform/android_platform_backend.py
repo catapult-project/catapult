@@ -211,8 +211,7 @@ class AndroidPlatformBackend(
         self._device, 'purge_ashmem'):
       raise Exception('Error installing purge_ashmem.')
     output = self._device.RunShellCommand(
-        android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem'),
-        check_return=True)
+        android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem'))
     for l in output:
       logging.info(l)
 
@@ -564,8 +563,7 @@ class AndroidPlatformBackend(
           _DEVICE_COPY_SCRIPT_LOCATION)
       self._device_copy_script = _DEVICE_COPY_SCRIPT_FILE
     self._device.RunShellCommand(
-        ['sh', self._device_copy_script, source, dest],
-        check_return=True)
+        ['sh', self._device_copy_script, source, dest])
 
   def RemoveProfile(self, package, ignore_list):
     """Delete application profile on device.
@@ -597,8 +595,7 @@ class AndroidPlatformBackend(
     # pulled down is really needed e.g. .pak files.
     if not os.path.exists(output_profile_path):
       os.makedirs(output_profile_path)
-    files = self._device.RunShellCommand(
-        ['ls', profile_dir], check_return=True)
+    files = self._device.RunShellCommand(['ls', profile_dir])
     for f in files:
       # Don't pull lib, since it is created by the installer.
       if f != 'lib':
