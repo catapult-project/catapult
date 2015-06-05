@@ -156,7 +156,7 @@ tv.exportTo('tv.c', function() {
         });
         if (maxEventIndex == -1) {
           console.log(event);
-          throw new Error('Unrecgonized event type');
+          throw new Error('Unrecognized event type');
         }
         events[maxEventTypeInfo.metadata.name].push(event);
       });
