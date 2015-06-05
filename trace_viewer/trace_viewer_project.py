@@ -8,6 +8,11 @@ import re
 
 from tvcm import project as project_module
 
+_D8_PATH = os.path.realpath(
+    os.path.abspath(os.path.join(
+        os.path.dirname(__file__), 'extras', 'd8')))
+def _IsD8Test(x):
+  return os.path.realpath(x).startswith(_D8_PATH)
 
 def _FindAllFilesRecursive(source_paths):
   all_filenames = set()
@@ -21,6 +26,9 @@ def _FindAllFilesRecursive(source_paths):
   return all_filenames
 
 def _IsFilenameATest(loader, x):
+  if _IsD8Test(x):
+    return False
+    
   if x.endswith('_test.js'):
     return True
 
@@ -73,7 +81,6 @@ class TraceViewerProject(project_module.Project):
 
   def __init__(self, *args, **kwargs):
     super(TraceViewerProject, self).__init__(*args, **kwargs)
-
     self.source_paths.append(self.src_path)
     self.source_paths.append(self.trace_viewer_third_party_path)
     self.source_paths.append(self.jszip_path)
