@@ -180,3 +180,26 @@ class ComponentExtensionTest(unittest.TestCase):
                           extension_path,
                           browser_type=options.browser_type,
                           is_component=True))
+
+
+class WebviewInExtensionTest(ExtensionTest):
+  def testWebviewInExtension(self):
+    """Tests GetWebviewContext() for a web app containing <webview> element."""
+    if not self.CreateBrowserWithExtension('webview_app'):
+      logging.warning('Did not find a browser that supports extensions, '
+                      'skipping test.')
+      return
+
+    self._browser.extensions.GetByExtensionId(self._extension_id)
+    webview_contexts = self._extension.GetWebviewContexts()
+    self.assertEquals(1, len(webview_contexts))
+    webview_context = webview_contexts[0]
+    webview_context.WaitForDocumentReadyStateToBeComplete()
+    # Check that the context has the right url from the <webview> element.
+    self.assertTrue(webview_context.GetUrl().startswith('data:'))
+    # Check |test_input_id| element is accessible from the webview context.
+    self.assertTrue(webview_context.EvaluateJavaScript(
+                    'document.getElementById("test_input_id") != null'))
+    # Check that |test_input_id| is not accessible from outside webview context
+    self.assertFalse(self._extension.EvaluateJavaScript(
+                    'document.getElementById("test_input_id") != null'))

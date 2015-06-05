@@ -27,14 +27,10 @@ class Oobe(web_contents.WebContents):
         pass
     return None
 
-  def _GaiaWebViewContext(self):
-    devtools_context_map = (
-        self._inspector_backend._devtools_client.GetUpdatedInspectableContexts()
-    )
-    for context in devtools_context_map.contexts:
-      if context['type'] == 'webview':
-        return web_contents.WebContents(
-            devtools_context_map.GetInspectorBackend(context['id']))
+  def _GaiaWebviewContext(self):
+    webview_contexts = self.GetWebviewContexts()
+    if webview_contexts:
+      return webview_contexts[0]
     return None
 
   def _ExecuteOobeApi(self, api, *args):
@@ -78,7 +74,7 @@ class Oobe(web_contents.WebContents):
       self._ExecuteOobeApi('Oobe.showAddUserForTesting')
       if self._GaiaIFrameContext() is not None:
         return Oobe._NavigateIFrameLogin
-      elif self._GaiaWebViewContext() is not None:
+      elif self._GaiaWebviewContext():
         return Oobe._NavigateWebViewLogin
       return None
     util.WaitFor(_GetGaiaFunction, 20)(self, username, password)
@@ -97,23 +93,23 @@ class Oobe(web_contents.WebContents):
   def _NavigateWebViewLogin(self, username, password, wait_for_close=True):
     """Logs into the webview-based GAIA screen"""
     self._NavigateWebViewEntry('identifierId', username)
-    self._GaiaWebViewContext().WaitForJavaScriptExpression(
+    self._GaiaWebviewContext().WaitForJavaScriptExpression(
         "document.getElementById('identifierId') == null", 20)
     self._NavigateWebViewEntry('password', password)
     if wait_for_close:
-      util.WaitFor(lambda: self._GaiaWebViewContext() == None, 20)
+      util.WaitFor(lambda: not self._GaiaWebviewContext(), 20)
 
   def _NavigateWebViewEntry(self, field, value):
     self._WaitForField(field)
     self._WaitForField('next')
-    gaia_webview_context = self._GaiaWebViewContext()
+    gaia_webview_context = self._GaiaWebviewContext()
     gaia_webview_context.EvaluateJavaScript("""
        document.getElementById('%s').value='%s';
        document.getElementById('next').click()"""
            % (field, value))
 
   def _WaitForField(self, field_id):
-    gaia_webview_context = util.WaitFor(self._GaiaWebViewContext, 5)
+    gaia_webview_context = util.WaitFor(self._GaiaWebviewContext, 5)
     util.WaitFor(gaia_webview_context.HasReachedQuiescence, 20)
     gaia_webview_context.WaitForJavaScriptExpression(
         "document.getElementById('%s') != null" % field_id, 20)

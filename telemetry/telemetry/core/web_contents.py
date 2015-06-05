@@ -25,6 +25,29 @@ class WebContents(object):
     """Return the unique id string for this tab object."""
     return self._inspector_backend.id
 
+  def GetUrl(self):
+    """Returns the URL to which the WebContents is connected.
+
+    Raises:
+      exceptions.Error: If there is an error in inspector backend connection.
+    """
+    return self._inspector_backend.url
+
+  def GetWebviewContexts(self):
+    """Returns a list of webview contexts within the current inspector backend.
+
+    Returns:
+      A list of WebContents objects representing the webview contexts.
+
+    Raises:
+      exceptions.Error: If there is an error in inspector backend connection.
+    """
+    webviews = []
+    inspector_backends = self._inspector_backend.GetWebviewInspectorBackends()
+    for inspector_backend in inspector_backends:
+      webviews.append(WebContents(inspector_backend))
+    return webviews
+
   def WaitForDocumentReadyStateToBeComplete(self,
       timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     """Waits for the document to finish loading.

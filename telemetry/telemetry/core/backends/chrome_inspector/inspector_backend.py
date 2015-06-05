@@ -106,6 +106,20 @@ class InspectorBackend(object):
   def debugger_url(self):
     return self._context['webSocketDebuggerUrl']
 
+  def GetWebviewInspectorBackends(self):
+    """Returns a list of InspectorBackend instances associated with webviews.
+
+    Raises:
+      devtools_http.DevToolsClientConnectionError
+    """
+    inspector_backends = []
+    devtools_context_map = self._devtools_client.GetUpdatedInspectableContexts()
+    for context in devtools_context_map.contexts:
+      if context['type'] == 'webview':
+        inspector_backends.append(
+            devtools_context_map.GetInspectorBackend(context['id']))
+    return inspector_backends
+
   def IsInspectable(self):
     """Whether the tab is inspectable, as reported by devtools."""
     try:
