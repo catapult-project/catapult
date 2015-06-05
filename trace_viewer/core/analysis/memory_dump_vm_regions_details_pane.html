@@ -48,71 +48,162 @@ found in the LICENSE file.
   <script>
   'use strict';
 
-  Polymer({
-    // TODO(petrcermak): Consider sharing more code between
-    // tv-c-a-memory-dump-allocator-details-pane and
-    // tv-c-a-memory-dump-vm-regions-details-pane (e.g. by defining a common
-    // base class tv-c-memory-dump-details-pane).
+  (function() {
+    /**
+     * Rules for classifying memory maps.
+     *
+     * These rules are derived from core/jni/android_os_Debug.cpp in Android.
+     */
+    var CLASSIFICATION_RULES = {
+      name: 'Total',
+      children: [
+        {
+          name: 'Android',
+          file: /^\/dev\/ashmem/,
+          children: [
+            {
+              name: 'Java runtime',
+              file: /^\/dev\/ashmem\/dalvik-.*$/,
+              children: [
+                {
+                  name: 'Spaces',
+                  file: /\bspace/,
+                  children: [
+                    {
+                      name: 'Normal',
+                      file: /(alloc)|(main)/
+                    },
+                    {
+                      name: 'Large',
+                      file: /large.object/
+                    },
+                    {
+                      name: 'Zygote',
+                      file: /zygote/
+                    },
+                    {
+                      name: 'Non-moving',
+                      file: /non.moving/
+                    }
+                  ]
+                },
+                {
+                  name: 'Linear Alloc',
+                  file: /LinearAlloc/
+                },
+                {
+                  name: 'Indirect Reference Table',
+                  file: /indirect.ref/
+                },
+                {
+                  name: 'Cache',
+                  file: /jit-code-cache/
+                },
+                {
+                  name: 'Accounting'
+                }
+              ]
+            },
+            {
+              name: 'Cursor',
+              file: /CursorWindow/
+            },
+            {
+              name: 'Ashmem'
+            }
+          ]
+        },
+        {
+          name: 'Native heap',
+          file: /^((\[heap\])|(\[anon:)|(\/dev\/ashmem\/libc malloc)|$)/
+        },
+        {
+          name: 'Stack',
+          file: /^\[stack/
+        },
+        {
+          name: 'Files',
+          file: /\.((((so)|(jar)|(apk)|(ttf)|(odex)|(oat)|(arg))$)|(dex))/,
+          children: [
+            {
+              name: 'so',
+              file: /\.so$/
+            },
+            {
+              name: 'jar',
+              file: /\.jar$/
+            },
+            {
+              name: 'apk',
+              file: /\.apk$/
+            },
+            {
+              name: 'ttf',
+              file: /\.ttf$/
+            },
+            {
+              name: 'dex',
+              file: /\.((dex)|(odex$))/
+            },
+            {
+              name: 'oat',
+              file: /\.oat$/
+            },
+            {
+              name: 'art',
+              file: /\.art$/
+            }
+          ]
+        },
+        {
+          name: 'Devices',
+          file: /(^\/dev\/)|(anon_inode:dmabuf)/,
+          children: [
+            {
+              name: 'GPU',
+              file: /\/((nv)|(mali)|(kgsl))/
+            },
+            {
+              name: 'DMA',
+              file: /anon_inode:dmabuf/
+            }
+          ]
+        }
+      ]
+    };
 
-    created: function() {
-      this.vmRegions_ = undefined;
-    },
+    /**
+     * Create a tree of nested rows (containing no mmaps) corresponding to a
+     * tree of classification rules.
+     */
+    function createEmptyRow(rule) {
+      var row = {
+        title: rule.name,
+        rule: rule,
+        cells: {},
+        subRows: []
+      };
+      if (rule.children !== undefined)
+        row.subRows = rule.children.map(createEmptyRow);
+      return row;
+    }
 
-    ready: function() {
-      this.updateContents_();
-    },
+    function hexString(address, is64BitAddress) {
+      var hexPadding = is64BitAddress ? '0000000000000000' : '00000000';
+      if (address === undefined)
+        return undefined;
+      return (hexPadding + address.toString(16)).substr(-hexPadding.length);
+    }
 
-    set vmRegions(vmRegions) {
-      this.vmRegions_ = vmRegions;
-      this.updateContents_();
-    },
-
-    get vmRegions() {
-      return this.vmRegions_;
-    },
-
-    updateContents_: function() {
-      this.$.contents.textContent = '';
-
-      if (this.vmRegions_ === undefined) {
-        var infoText = this.ownerDocument.createElement('div');
-        this.$.contents.appendChild(infoText);
-        infoText.classList.add('info-text');
-        infoText.innerText = 'No memory maps selected';
-        return;
-      }
-
-      var rows = this.createRows_();
-      var columns = this.createColumns_(rows);
-
-      var table = this.ownerDocument.createElement(
-          'tv-b-ui-table');
-      this.$.contents.appendChild(table);
-      table.supportsSelection = true;
-      table.tableRows = rows;
-      table.tableColumns = columns;
-      table.rebuild();
-    },
-
-    createRows_: function() {
-      // TODO(petrcermak): Figure out if there's a cleaner way to do this.
-      var use64Bits = this.vmRegions_.some(function(vmRegion) {
-        if (vmRegion.startAddress === undefined)
-          return;
-        return vmRegion.startAddress >= 4294967296 /* 2^32 */;
-      });
-      var hexPadding = use64Bits ? '0000000000000000' : '00000000';
-      function hexString(address) {
-        if (address === undefined)
-          return undefined;
-        return (hexPadding + address.toString(16)).substr(-hexPadding.length);
-      }
-
-      // TODO(petrcermak): This can be quite slow. Consider generating the rows
-      // asynchronously.
-      return this.vmRegions_.map(function(vmRegion) {
-        // The name of the mapped file needs to be handled separately because
-        // the first column must be assigned a fixed size.
+    /**
+     * Classify a memory map and add it as a leaf row to a tree of nested rows.
+     */
+    function classifyVMRegion(row, vmRegion, is64BitAddress) {
+      var rule = row.rule;
+      if (rule === undefined ||
+          rule.children === undefined ||
+          rule.children.length === 0) {
+        // Leaf rule (create a sub-row for the mmap).
         var mappedFile = vmRegion.mappedFile || '';
 
         var cells = {};
@@ -129,7 +220,7 @@ found in the LICENSE file.
         }
         addCellIfValueDefined('Start address',
             tv.c.trace_model.StringAttribute, '',
-            hexString(vmRegion.startAddress));
+            hexString(vmRegion.startAddress, is64BitAddress));
         addBytesCellIfValueDefined('Virtual size', vmRegion.sizeInBytes);
         addCellIfValueDefined('Protection flags',
             tv.c.trace_model.StringAttribute, '',
@@ -147,28 +238,161 @@ found in the LICENSE file.
         addBytesCellIfValueDefined('Swapped',
             vmRegion.byteStats.swapped);
 
-        return {mappedFile: mappedFile, cells: cells};
-      });
-    },
+        row.subRows.push({title: mappedFile, cells: cells});
+        return;
+      }
 
-    createColumns_: function(rows) {
-      var titleColumn = {
-        title: 'Mapped file',
-        value: function(row) {
-          return row.mappedFile;
-        },
-        width: '200px',
-        cmp: function(rowA, rowB) {
-          return rowA.mappedFile.localeCompare(rowB.mappedFile);
+      // Non-leaf rule (classify mmap further down the tree).
+      function vmRegionMatchesChildRule(childRule) {
+        var fileRegExp = childRule.file;
+        if (fileRegExp === undefined)
+          return true;
+        return fileRegExp.test(vmRegion.mappedFile);
+      }
+
+      var matchedChildRuleIndex = tv.b.findFirstIndexInArray(
+          rule.children, vmRegionMatchesChildRule);
+      if (matchedChildRuleIndex === -1) {
+        // Mmap belongs to the 'Other' node (created lazily).
+        matchedChildRuleIndex = rule.children.length;
+        if (matchedChildRuleIndex >= row.subRows.length) {
+          row.subRows.push({
+            title: 'Other',
+            cells: {},
+            subRows: []
+          });
         }
-      };
+      }
 
-      var attributeColumns = tv.c.analysis.MemoryColumn.fromRows(rows, 'cells');
-      tv.c.analysis.MemoryColumn.spaceEqually(attributeColumns);
-
-      var columns = [titleColumn].concat(attributeColumns);
-      return columns;
+      classifyVMRegion(
+          row.subRows[matchedChildRuleIndex], vmRegion, is64BitAddress);
     }
-  });
+
+    /**
+     * Sum mmap sizes up the classification tree.
+     *
+     * Note that classes containing no memory maps will have no sizes (shown
+     * as empty cells) instead of zeros.
+     */
+    // TODO(petrcermak): This code is almost the same as
+    // MemoryAllocatorDump.aggregateAttributes. Consider sharing code between
+    // the two functions.
+    function aggregateRowCells(row) {
+      if (row.subRows === undefined)
+        return;
+
+      var cells = {};
+
+      row.subRows.forEach(function(subRow) {
+        aggregateRowCells(subRow);
+        tv.b.iterItems(subRow.cells, function(columnName) {
+          cells[columnName] = true;
+        });
+      });
+
+      tv.b.iterItems(cells, function(name) {
+        var childAttributes = row.subRows.map(function(subRow) {
+          var cell = subRow.cells[name];
+          if (cell === undefined)
+            return undefined;
+          return cell.attr;
+        }, this);
+        row.cells[name] = new tv.c.analysis.MemoryCell(
+            tv.c.trace_model.Attribute.aggregate(childAttributes));
+      });
+    }
+
+    Polymer({
+      // TODO(petrcermak): Consider sharing more code between
+      // tv-c-a-memory-dump-allocator-details-pane and
+      // tv-c-a-memory-dump-vm-regions-details-pane (e.g. by defining a common
+      // base class tv-c-memory-dump-details-pane).
+
+      created: function() {
+        this.vmRegions_ = undefined;
+      },
+
+      ready: function() {
+        this.updateContents_();
+      },
+
+      set vmRegions(vmRegions) {
+        this.vmRegions_ = vmRegions;
+        this.updateContents_();
+      },
+
+      get vmRegions() {
+        return this.vmRegions_;
+      },
+
+      updateContents_: function() {
+        this.$.contents.textContent = '';
+
+        if (this.vmRegions_ === undefined) {
+          var infoText = this.ownerDocument.createElement('div');
+          this.$.contents.appendChild(infoText);
+          infoText.classList.add('info-text');
+          infoText.innerText = 'No memory maps selected';
+          return;
+        }
+
+        var rows = this.createRows_();
+        var columns = this.createColumns_(rows);
+
+        var table = this.ownerDocument.createElement(
+            'tv-b-ui-table');
+        this.$.contents.appendChild(table);
+        table.supportsSelection = true;
+        table.tableRows = rows;
+        table.tableColumns = columns;
+
+        // TODO(petrcermak): This can be quite slow. Consider doing this somehow
+        // asynchronously.
+        table.rebuild();
+      },
+
+      createRows_: function() {
+        // TODO(petrcermak): Figure out if there's a cleaner way to do this.
+        var is64BitAddress = this.vmRegions_.some(function(vmRegion) {
+          if (vmRegion.startAddress === undefined)
+            return;
+          return vmRegion.startAddress >= 4294967296 /* 2^32 */;
+        });
+
+        // Create an empty tree structure of rows.
+        var rootRow = createEmptyRow(CLASSIFICATION_RULES);
+
+        // Classify the mmaps.
+        this.vmRegions_.map(function(vmRegion) {
+          classifyVMRegion(rootRow, vmRegion, is64BitAddress);
+        });
+
+        // Aggregate attributes of the mmaps.
+        aggregateRowCells(rootRow);
+
+        return [rootRow];
+      },
+
+      createColumns_: function(rows) {
+        var titleColumn = {
+          title: 'Mapped file',
+          value: function(row) {
+            return row.title;
+          },
+          width: '200px',
+          cmp: function(rowA, rowB) {
+            return rowA.title.localeCompare(rowB.title);
+          }
+        };
+
+        var attributeColumns = tv.c.analysis.MemoryColumn.fromRows(
+            rows, 'cells');
+        tv.c.analysis.MemoryColumn.spaceEqually(attributeColumns);
+
+        var columns = [titleColumn].concat(attributeColumns);
+        return columns;
+      }
+    });
+  })();
   </script>
 </polymer-element>
