@@ -83,12 +83,18 @@ class _InputAPI(object):
         affected_file.filename.endswith('.gn')):
       return True
 
+    if self.IsThirdParty(affected_file):
+      return True
+
     # Is test data?
     test_data_path = trace_viewer_project.TraceViewerProject.test_data_path
     if affected_file.absolute_path.startswith(test_data_path):
       return True
 
     return False
+
+  def IsThirdParty(self, affected_file):
+    return affected_file.filename.startswith('third_party')
 
 
 def RunChecks(depot_tools_input_api, depot_tools_output_api):

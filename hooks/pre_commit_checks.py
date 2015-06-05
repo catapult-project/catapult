@@ -6,6 +6,8 @@ import re
 import sys
 import time
 
+import checklicenses
+
 def _FormatError(msg, files):
   return ('%s in these files:\n' % msg +
       '\n'.join(['  ' + x for x in files])
@@ -50,6 +52,28 @@ def _FindNewViolationsOfRule(callable_rule, input_api,
   return errors
 
 def CheckCopyright(input_api):
+  results = []
+  results += _CheckCopyrightThirdParty(input_api)
+  results += _CheckCopyrightNonThirdParty(input_api)
+  return results
+
+def _CheckCopyrightThirdParty(input_api):
+  results = []
+  has_third_party_change = any(
+      input_api.IsThirdParty(f)
+      for f in input_api.AffectedFiles(include_deletes=False))
+  if has_third_party_change:
+    trace_viewer_root = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..'))
+    trace_viewer_third_party = os.path.join(trace_viewer_root, 'third_party')
+    has_invalid_license = checklicenses.check_licenses(
+        trace_viewer_root, trace_viewer_third_party)
+    if has_invalid_license:
+      results.append(
+          'License check encountered invalid licenses in third_party/.')
+  return results
+
+def _CheckCopyrightNonThirdParty(input_api):
   project_name = 'Chromium'
 
   current_year = int(time.strftime('%Y'))
@@ -85,7 +109,8 @@ def CheckCopyright(input_api):
   }
   html_license_re = re.compile(html_license_header, re.MULTILINE)
 
-  sources = list(input_api.AffectedFiles(include_deletes=False))
+  sources = list(s for s in input_api.AffectedFiles(include_deletes=False)
+                 if not input_api.IsThirdParty(s))
 
   html_sources = [f for f in sources
                   if os.path.splitext(f.filename)[1] == '.html']
