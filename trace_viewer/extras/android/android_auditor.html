@@ -597,6 +597,31 @@ tv.exportTo('tv.e.audits', function() {
           description: 'Attached a newly-bound, recycled View to its parent GridView.'}); // @suppress longLineCheck
 
       //////////////////////////////////////////////////////////////////////////
+      // Choreographer (tracing enabled on M+)
+      //////////////////////////////////////////////////////////////////////////
+      var choreographerLinks = {'Choreographer documentation': 'https://developer.android.com/reference/android/view/Choreographer.html'}; // @suppress longLineCheck
+
+      registerEventInfo({
+          title: 'Choreographer#doFrame()',
+          docLinks: choreographerLinks,
+          description: 'Choreographer executes frame callbacks for inputs, animations, and rendering traversals. When this work is done, a frame will be presented to the user.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'input',
+          parent: 'Choreographer#doFrame()',
+          docLinks: choreographerLinks,
+          description: 'Input callbacks are processed. This generally encompasses dispatching input to Views, as well as any work the Views do to process this input/gesture.'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'animation',
+          parent: 'Choreographer#doFrame()',
+          docLinks: choreographerLinks,
+          description: 'Animation callbacks are processed. This is generally minimal work, as animations determine progress for the frame, and push new state to animated objects (such as setting View properties).'}); // @suppress longLineCheck
+      registerEventInfo({
+          title: 'traversals',
+          parent: 'Choreographer#doFrame()',
+          docLinks: choreographerLinks,
+          description: 'Primary draw traversals. This is the primary traversal of the View hierarchy, including layout and draw passes.'}); // @suppress longLineCheck
+
+      //////////////////////////////////////////////////////////////////////////
       // performTraversals + sub methods
       //////////////////////////////////////////////////////////////////////////
       registerEventInfo({
@@ -612,10 +637,11 @@ tv.exportTo('tv.e.audits', function() {
           parent: 'performTraversals',
           docLinks: {'View#layout documentation': 'https://developer.android.com/reference/android/view/View.html#Layout'}, // @suppress longLineCheck
           description: 'Second of two phases in view hierarchy layout, repositioning content and child Views into their new locations.'}); // @suppress longLineCheck
+      var drawString = 'Draw pass over the View hierarchy. Every invalidated View will have its drawing commands recorded. On Android versions prior to Lollipop, this would also include the issuing of draw commands to the GPU. Starting with Lollipop, it only includes the recording of commands, and syncing that information to the RenderThread.'; // @suppress longLineCheck
       registerEventInfo({
           title: 'draw',
           parent: 'performTraversals',
-          description: 'Draw pass over the View hierarchy. Every invalidated View will have its drawing commands recorded. On Android versions prior to Lollipop, this would also include the issuing of draw commands to the GPU. Starting with Lollipop, it only includes the recording of commands, and syncing that information to the RenderThread.'}); // @suppress longLineCheck
+          description: drawString});
 
       var recordString = 'Every invalidated View\'s drawing commands are recorded. Each will have View#draw() called, and is passed a Canvas that will record and store its drawing commands until it is next invalidated/rerecorded.'; // @suppress longLineCheck
       registerEventInfo({
@@ -627,11 +653,10 @@ tv.exportTo('tv.e.audits', function() {
           parent: 'draw',
           description: recordString});
 
-
       registerEventInfo({
           title: 'drawDisplayList',
           parent: 'draw',
-          description: 'Execution of recorded draw commands to generate a frame. This represents the actual formation and issuing of drawing commands to the GPU.'}); // @suppress longLineCheck
+          description: 'Execution of recorded draw commands to generate a frame. This represents the actual formation and issuing of drawing commands to the GPU. On Android L and higher devices, this work is done on a dedicated RenderThread, instead of on the UI Thread.'}); // @suppress longLineCheck
 
       //////////////////////////////////////////////////////////////////////////
       // RenderThread

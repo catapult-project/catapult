@@ -216,14 +216,21 @@ tv.b.unittest.testSuite(function() {
     assert.deepEqual(alert.args['Blocking I/O delay'], new TimeDuration(10));
   });
 
-  test('addFrameToModel', function() {
+  test('addFramesToModel', function() {
     var process;
     var model = tv.c.test_utils.newModelWithAuditor(function(model) {
       process = model.getOrCreateProcess(1);
       var uiThread = process.getOrCreateThread(1);
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 8));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 16, 20));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 40, 90));
+
+      // High level choreographer frame signal
+      uiThread.sliceGroup.pushSlice(newSliceNamed(
+          'Choreographer#doFrame()', 0, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed(
+          'Choreographer#doFrame()', 16, 20));
+
+      // Old devices only have 'performTraversals'
+      uiThread.sliceGroup.pushSlice(newSliceNamed(
+          'performTraversals', 40, 90));
     }, tv.e.audits.AndroidAuditor);
 
     assert.equal(process.frames.length, 3);

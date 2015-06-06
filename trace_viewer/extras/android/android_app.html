@@ -20,7 +20,10 @@ tv.exportTo('tv.e.audits', function() {
   var Frame = tv.c.trace_model.Frame;
   var Statistics = tv.b.Statistics;
 
-  var UI_THREAD_DRAW_NAME = 'performTraversals';
+  var UI_THREAD_DRAW_NAMES = {
+    'performTraversals': true,
+    'Choreographer#doFrame()': true
+  };
   var RENDER_THREAD_DRAW_NAME = 'DrawFrame';
   var RENDER_THREAD_INDEP_DRAW_NAME = 'doFrame';
   var THREAD_SYNC_NAME = 'syncFrameState';
@@ -69,6 +72,8 @@ tv.exportTo('tv.e.audits', function() {
   /**
    * Builds an array of {start, end} ranges grouping common work of a frame
    * that occurs just before performTraversals().
+   *
+   * Only necessary before Choreographer#doFrame tracing existed.
    */
   function getPreTraversalWorkRanges(uiThread) {
     if (!uiThread)
@@ -115,20 +120,23 @@ tv.exportTo('tv.e.audits', function() {
     var preTraversalWorkRanges = getPreTraversalWorkRanges(app.uiThread);
 
     var frames = [];
-    app.uiThread.sliceGroup.getSlicesOfName(UI_THREAD_DRAW_NAME)
-        .forEach(function(uiDrawSlice) {
+    app.uiThread.sliceGroup.slices.forEach(function(slice) {
+      if (!(slice.title in UI_THREAD_DRAW_NAMES)) {
+        return;
+      }
+
       var threadTimeRanges = [];
       var uiThreadTimeRange = {
         thread: app.uiThread,
-        start: getFrameStartTime(uiDrawSlice.start, preTraversalWorkRanges),
-        end: uiDrawSlice.end
+        start: getFrameStartTime(slice.start, preTraversalWorkRanges),
+        end: slice.end
       };
       threadTimeRanges.push(uiThreadTimeRange);
 
       // on SDK 21+ devices with RenderThread,
       // account for time taken on RenderThread
       var rtDrawSlice = findOverlappingDrawFrame(
-          app.renderThread, uiDrawSlice.end);
+          app.renderThread, slice.end);
       if (rtDrawSlice) {
         var rtSyncSlice = rtDrawSlice.findDescendentSlice(THREAD_SYNC_NAME);
         if (rtSyncSlice) {
@@ -169,8 +177,7 @@ tv.exportTo('tv.e.audits', function() {
   function hasUiDraw(uiThread) {
     var slices = uiThread.sliceGroup.slices;
     for (var i = 0; i < slices.length; i++) {
-      var slice = slices[i];
-      if (slice.title == UI_THREAD_DRAW_NAME) {
+      if (slices[i].title in UI_THREAD_DRAW_NAMES) {
         return uiThread;
       }
     }
