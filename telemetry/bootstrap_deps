@@ -12,7 +12,6 @@ deps = {
     "src/tools/telemetry": "",
     "src/build/util": "",
     "src/chrome/test/data/extensions/profiles": "",
-    "src/chrome/test/data/perf/canvas_bench": "",
     "src/third_party/android_testrunner": "",
     "src/third_party/android_tools/sdk/platform-tools": "",
     "src/third_party/chromite/ssh_keys": "",

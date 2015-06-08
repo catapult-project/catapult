@@ -6,7 +6,6 @@
   "directory_deps": [
     "build/android/pylib/",
     "chrome/test/data/extensions/",
-    "chrome/test/data/perf/canvas_bench/",
     "third_party/android_testrunner/",
     "third_party/android_tools/sdk/platform-tools/",
     "third_party/trace-viewer/",
