@@ -28,7 +28,7 @@ class PageTestResults(object):
       output_stream: The output stream to use to write test results.
       output_formatters: A list of output formatters. The output
           formatters are typically used to format the test results, such
-          as CsvOutputFormatter, which output the test results as CSV.
+          as CsvPivotTableOutputFormatter, which output the test results as CSV.
       progress_reporter: An instance of progress_reporter.ProgressReporter,
           to be used to output test status/results progressively.
       trace_tag: A string to append to the buildbot trace name. Currently only
