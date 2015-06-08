@@ -147,7 +147,8 @@ class Benchmark(command_line.Command):
     results.
 
     Args:
-      value: a value.Value instance.
+      value: a value.Value instance (except failure.FailureValue,
+        skip.SkipValue or trace.TraceValue which will always be added).
       is_first_result: True if |value| is the first result for its
           corresponding user story.
 
