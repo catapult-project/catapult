@@ -34,7 +34,7 @@ tv.exportTo('tv.c.trace_model', function() {
   function ProcessBase(model) {
     if (!model)
       throw new Error('Must provide a model');
-    tv.c.trace_model.EventContainer.call(this, model);
+    tv.c.trace_model.EventContainer.call(this);
     this.guid_ = tv.b.GUID.allocate();
     this.model = model;
     this.threads = {};
