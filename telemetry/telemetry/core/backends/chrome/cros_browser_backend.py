@@ -54,11 +54,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if not self.browser_options.dont_override_profile:
       self._cri.RunCmdOnDevice(['cryptohome', '--action=remove', '--force',
                                 '--user=%s' % self._username])
-    if self.browser_options.profile_dir:
-      cri.RmRF(self.profile_directory)
-      cri.PushFile(self.browser_options.profile_dir + '/Default',
-                   self.profile_directory)
-      cri.Chown(self.profile_directory)
 
   def GetBrowserStartupArgs(self):
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
