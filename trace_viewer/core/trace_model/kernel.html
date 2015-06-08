@@ -20,14 +20,12 @@ tv.exportTo('tv.c.trace_model', function() {
   var ProcessBase = tv.c.trace_model.ProcessBase;
 
   /**
-   * The Kernel represents kernel-level objects in the
-   * model.
+   * The Kernel represents kernel-level objects in the model.
    * @constructor
    */
   function Kernel(model) {
-    if (model === undefined)
-      throw new Error('model must be provided');
     ProcessBase.call(this, model);
+
     this.cpus = {};
     this.softwareMeasuredCpuCount_ = undefined;
   };
