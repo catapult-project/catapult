@@ -39,9 +39,6 @@ tv.exportTo('tv.c.trace_model', function() {
   Counter.prototype = {
     __proto__: tv.c.trace_model.EventContainer.prototype,
 
-    /*
-     * @return {Number} A globally unique identifier for this counter.
-     */
     get guid() {
       return this.guid_;
     },
