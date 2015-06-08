@@ -279,7 +279,7 @@ class AndroidRndisConfigurator(object):
     except device_errors.AdbCommandFailedError:
       # Ignore exception due to USB connection being reset.
       pass
-    self._device.adb.WaitForDevice()
+    self._device.WaitUntilFullyBooted()
 
   def _EnableRndis(self):
     """Enables the RNDIS network interface."""
@@ -321,7 +321,7 @@ doit &
     # TODO(szym): run via su -c if necessary.
     self._device.RunShellCommand('rm %s.log' % script_prefix)
     self._device.RunShellCommand('. %s.sh' % script_prefix)
-    self._device.adb.WaitForDevice()
+    self._device.WaitUntilFullyBooted()
     result = self._device.ReadFile('%s.log' % script_prefix).splitlines()
     assert any('DONE' in line for line in result), 'RNDIS script did not run!'
 
@@ -489,7 +489,7 @@ doit &
     self._device.RunShellCommand(
         'ifconfig %s %s netmask %s up' % (device_iface, device_ip, netmask))
     # Enabling the interface sometimes breaks adb.
-    self._device.adb.WaitForDevice()
+    self._device.WaitUntilFullyBooted()
     self._host_iface = host_iface
     self._host_ip = host_ip
     self.device_iface = device_iface
