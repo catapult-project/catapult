@@ -35,21 +35,6 @@ tv.b.unittest.testSuite(function() {
     assert.equal(s_service.viewSubGroupTitle, 'Service.test_channel2');
   });
 
-  test('color', function() {
-    var s1 = new GpuAsyncSlice('disabled-by-default-gpu.device', 'gpu1',
-                               7, 0, {'channel': 'test_channel1'});
-
-    var s2 = new GpuAsyncSlice('disabled-by-default-gpu.service', 'gpu2',
-                               7, 0, {'channel': 'test_channel2'});
-
-    var s3 = new GpuAsyncSlice('disabled-by-default-gpu.service', 'gpu2',
-                               7, 0, {'channel': 'test_channel1'});
-
-    assert.notEqual(s1.colorId, s2.colorId);
-    assert.notEqual(s2.colorId, s3.colorId);
-    assert.equal(s1.colorId, s3.colorId);
-  });
-
   test('import', function() {
     var events = [
       {name: 'trace1', args: {}, pid: 1, ts: 100,
@@ -76,8 +61,6 @@ tv.b.unittest.testSuite(function() {
     assert.instanceOf(slice1, GpuAsyncSlice);
     assert.instanceOf(slice2, GpuAsyncSlice);
     assert.instanceOf(slice3, GpuAsyncSlice);
-
-    assert.equal(slice2.colorId, slice3.colorId);
 
     assert.equal(slice1.viewSubGroupTitle, 'trace1');
     assert.equal(slice2.viewSubGroupTitle, 'Service.test_channel');
