@@ -1,0 +1,11 @@
+Name: Blink javascript libraries.
+Short Name: Blink
+URL: http://www.chromium.org/blink
+Version: N/A
+License: BSD license
+License File: LICENSE
+Security Critical: no
+Description: Blink javascripts libraries are used for visualize performance
+metrics.
+Local Modifications: All the files not needed by telemetry are removed. Only keep
+jquery.tablesorter.min.js and statistics.js

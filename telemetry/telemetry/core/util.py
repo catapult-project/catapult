@@ -26,6 +26,11 @@ def GetTelemetryDir():
       __file__, os.pardir, os.pardir, os.pardir))
 
 
+def GetTelemetryThirdPartyDir():
+  return os.path.normpath(os.path.join(
+      __file__, os.pardir, os.pardir, os.pardir, 'third_party'))
+
+
 def GetUnittestDataDir():
   return os.path.join(GetTelemetryDir(), 'unittest_data')
 

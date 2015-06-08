@@ -20,11 +20,11 @@ import lastchange  # pylint: disable=F0401
 
 _TEMPLATE_HTML_PATH = os.path.join(
     util.GetTelemetryDir(), 'support', 'html_output', 'results-template.html')
-_PLUGINS = [('third_party', 'flot', 'jquery.flot.min.js'),
-            ('third_party', 'WebKit', 'PerformanceTests', 'resources',
-             'jquery.tablesorter.min.js'),
-            ('third_party', 'WebKit', 'PerformanceTests', 'resources',
-             'statistics.js')]
+_JS_PLUGINS = [os.path.join('flot', 'jquery.flot.min.js'),
+               os.path.join('WebKit', 'PerformanceTests', 'resources',
+                            'jquery.tablesorter.min.js'),
+               os.path.join('WebKit', 'PerformanceTests', 'resources',
+                            'statistics.js')]
 _UNIT_JSON = ('tools', 'perf', 'unit-info.json')
 
 
@@ -59,8 +59,8 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
 
   def _GetPlugins(self):
     plugins = ''
-    for p in _PLUGINS:
-      with open(os.path.join(util.GetChromiumSrcDir(), *p)) as f:
+    for p in _JS_PLUGINS:
+      with open(os.path.join(util.GetTelemetryThirdPartyDir(), p)) as f:
         plugins += f.read()
     return plugins
 

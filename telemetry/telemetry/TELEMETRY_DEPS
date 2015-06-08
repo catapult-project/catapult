@@ -27,11 +27,8 @@
     "build/util/lib/common/util.py",
     "build/util/version.gypi",
     "build/util/version.py",
-    "third_party/WebKit/PerformanceTests/resources/jquery.tablesorter.min.js",
-    "third_party/WebKit/PerformanceTests/resources/statistics.js",
     "third_party/chromite/ssh_keys/testing_rsa",
     "third_party/chromite/ssh_keys/testing_rsa.pub",
-    "third_party/flot/jquery.flot.min.js",
     "tools/perf/unit-info.json"
   ]
 }
