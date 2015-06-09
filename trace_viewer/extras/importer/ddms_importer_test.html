@@ -11,15 +11,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('canImport', function() {
-    assert.isFalse(tv.e.importer.ddms.DdmsImporter.canImport('string'));
-    assert.isFalse(tv.e.importer.ddms.DdmsImporter.canImport([]));
-    assert.isTrue(tv.e.importer.ddms.DdmsImporter.canImport(TEST_DATA));
+    assert.isFalse(tr.e.importer.ddms.DdmsImporter.canImport('string'));
+    assert.isFalse(tr.e.importer.ddms.DdmsImporter.canImport([]));
+    assert.isTrue(tr.e.importer.ddms.DdmsImporter.canImport(TEST_DATA));
   });
 
   test('parseThreads', function() {
-    var m = new tv.c.TraceModel(TEST_DATA, false);
+    var m = new tr.c.TraceModel(TEST_DATA, false);
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -31,7 +31,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('parseMethods', function() {
-    var m = new tv.c.TraceModel(TEST_DATA, false);
+    var m = new tr.c.TraceModel(TEST_DATA, false);
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.findAllThreadsNamed('Binder_1');

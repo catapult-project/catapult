@@ -9,25 +9,25 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('eventTargetHelper', function() {
     var listenerCallCount = 0;
     function listener() { listenerCallCount++; }
 
     var div = document.createElement('div');
-    tv.b.EventTargetHelper.decorate(div);
+    tr.b.EventTargetHelper.decorate(div);
 
     assert.isFalse(div.hasEventListener('foo'));
 
     div.addEventListener('foo', listener);
     assert.isTrue(div.hasEventListener('foo'));
 
-    tv.b.dispatchSimpleEvent(div, 'foo');
+    tr.b.dispatchSimpleEvent(div, 'foo');
     assert.equal(listenerCallCount, 1);
 
     div.removeEventListener('foo', listener);
 
-    tv.b.dispatchSimpleEvent(div, 'foo');
+    tr.b.dispatchSimpleEvent(div, 'foo');
     assert.equal(listenerCallCount, 1);
 
     assert.isFalse(div.hasEventListener('foo'));

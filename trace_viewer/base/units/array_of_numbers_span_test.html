@@ -8,19 +8,19 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('instantiateInAverageMode', function() {
-    var span = document.createElement('tv-b-u-array-of-numbers-span');
+    var span = document.createElement('tr-b-u-array-of-numbers-span');
     span.numbers = [1, 2, 3];
-    span.summaryMode = tv.b.units.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
+    span.summaryMode = tr.b.units.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
     this.addHTMLOutput(span);
     assert.equal(span.shadowRoot.textContent, '2');
   });
 
   test('instantiateInTotalsMode', function() {
-    var span = document.createElement('tv-b-u-array-of-numbers-span');
+    var span = document.createElement('tr-b-u-array-of-numbers-span');
     span.numbers = [1, 2, 3];
-    span.summaryMode = tv.b.units.ArrayOfNumbersSummaryModes.TOTALS_MODE;
+    span.summaryMode = tr.b.units.ArrayOfNumbersSummaryModes.TOTALS_MODE;
     this.addHTMLOutput(span);
     assert.equal(span.shadowRoot.textContent, '6');
   });

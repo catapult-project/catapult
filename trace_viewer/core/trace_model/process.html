@@ -14,11 +14,11 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Process class.
  */
-tv.exportTo('tv.c.trace_model', function() {
-  var ProcessBase = tv.c.trace_model.ProcessBase;
-  var ProcessInstantEvent = tv.c.trace_model.ProcessInstantEvent;
-  var Frame = tv.c.trace_model.Frame;
-  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
+tr.exportTo('tr.c.trace_model', function() {
+  var ProcessBase = tr.c.trace_model.ProcessBase;
+  var ProcessInstantEvent = tr.c.trace_model.ProcessInstantEvent;
+  var Frame = tr.c.trace_model.Frame;
+  var ProcessMemoryDump = tr.c.trace_model.ProcessMemoryDump;
 
   /**
    * The Process represents a single userland process in the
@@ -30,7 +30,7 @@ tv.exportTo('tv.c.trace_model', function() {
       throw new Error('model must be provided');
     if (pid === undefined)
       throw new Error('pid must be provided');
-    tv.c.trace_model.ProcessBase.call(this, model);
+    tr.c.trace_model.ProcessBase.call(this, model);
     this.pid = pid;
     this.name = undefined;
     this.labels = [];
@@ -43,17 +43,17 @@ tv.exportTo('tv.c.trace_model', function() {
    * Comparison between processes that orders by pid.
    */
   Process.compare = function(x, y) {
-    var tmp = tv.c.trace_model.ProcessBase.compare(x, y);
+    var tmp = tr.c.trace_model.ProcessBase.compare(x, y);
     if (tmp)
       return tmp;
 
-    tmp = tv.b.comparePossiblyUndefinedValues(
+    tmp = tr.b.comparePossiblyUndefinedValues(
         x.name, y.name,
         function(x, y) { return x.localeCompare(y); });
     if (tmp)
       return tmp;
 
-    tmp = tv.b.compareArrays(x.labels, y.labels,
+    tmp = tr.b.compareArrays(x.labels, y.labels,
         function(x, y) { return x.localeCompare(y); });
     if (tmp)
       return tmp;
@@ -62,7 +62,7 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   Process.prototype = {
-    __proto__: tv.c.trace_model.ProcessBase.prototype,
+    __proto__: tr.c.trace_model.ProcessBase.prototype,
 
     get stableId() {
       return this.pid;
@@ -139,12 +139,12 @@ tv.exportTo('tv.c.trace_model', function() {
       for (var i = 0; i < this.memoryDumps.length; i++)
         this.memoryDumps[i].shiftTimestampsForward(amount);
 
-      tv.c.trace_model.ProcessBase.prototype
+      tr.c.trace_model.ProcessBase.prototype
           .shiftTimestampsForward.apply(this, arguments);
     },
 
     updateBounds: function() {
-      tv.c.trace_model.ProcessBase.prototype.updateBounds.apply(this);
+      tr.c.trace_model.ProcessBase.prototype.updateBounds.apply(this);
 
       for (var i = 0; i < this.frames.length; i++)
         this.frames[i].addBoundsToRange(this.bounds);
@@ -157,7 +157,7 @@ tv.exportTo('tv.c.trace_model', function() {
       this.memoryDumps.sort(function(x, y) {
         return x.start - y.start;
       });
-      tv.c.trace_model.ProcessMemoryDump.hookUpMostRecentVmRegionsLinks(
+      tr.c.trace_model.ProcessMemoryDump.hookUpMostRecentVmRegionsLinks(
           this.memoryDumps);
     }
   };

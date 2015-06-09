@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/table.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
 
-<polymer-element name="tv-c-a-related-flows">
+<polymer-element name="tr-c-a-related-flows">
   <template>
     <style>
     :host {
@@ -21,7 +21,7 @@ found in the LICENSE file.
       align-self: stretch;
     }
     </style>
-    <tv-b-ui-table id="table"></tv-b-ui-table>
+    <tr-b-ui-table id="table"></tr-b-ui-table>
   </template>
 
   <script>
@@ -43,11 +43,11 @@ found in the LICENSE file.
           title: 'Title',
           width: '100%',
           value: function(row) {
-            var linkEl = document.createElement('tv-c-a-analysis-link');
+            var linkEl = document.createElement('tr-c-a-analysis-link');
             linkEl.setSelectionAndContent(function() {
-                return new tv.c.Selection(row.event);
+                return new tr.c.Selection(row.event);
             });
-            linkEl.appendChild(tv.b.ui.createSpan({
+            linkEl.appendChild(tr.b.ui.createSpan({
               textContent: row.event.title
             }));
             return linkEl;
@@ -69,7 +69,7 @@ found in the LICENSE file.
       if (opt_internalSelection)
         this.internalSelection_ = opt_internalSelection;
       else
-        this.internalSelection_ = new tv.c.Selection();
+        this.internalSelection_ = new tr.c.Selection();
       this.updateContents_();
     },
 

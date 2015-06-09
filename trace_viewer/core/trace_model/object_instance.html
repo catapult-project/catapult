@@ -17,8 +17,8 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the ObjectSnapshot and ObjectHistory classes.
  */
-tv.exportTo('tv.c.trace_model', function() {
-  var ObjectSnapshot = tv.c.trace_model.ObjectSnapshot;
+tr.exportTo('tr.c.trace_model', function() {
+  var ObjectSnapshot = tr.c.trace_model.ObjectSnapshot;
 
   /**
    * An object with a specific id, whose state has been snapshotted several
@@ -28,7 +28,7 @@ tv.exportTo('tv.c.trace_model', function() {
    */
   function ObjectInstance(
       parent, id, category, name, creationTs, opt_baseTypeName) {
-    tv.c.trace_model.Event.call(this);
+    tr.c.trace_model.Event.call(this);
     this.parent = parent;
     this.id = id;
     this.category = category;
@@ -39,13 +39,13 @@ tv.exportTo('tv.c.trace_model', function() {
     this.deletionTs = Number.MAX_VALUE;
     this.deletionTsWasExplicit = false;
     this.colorId = 0;
-    this.bounds = new tv.b.Range();
+    this.bounds = new tr.b.Range();
     this.snapshots = [];
     this.hasImplicitSnapshots = false;
   }
 
   ObjectInstance.prototype = {
-    __proto__: tv.c.trace_model.Event.prototype,
+    __proto__: tr.c.trace_model.Event.prototype,
 
     get typeName() {
       return this.name;
@@ -84,7 +84,7 @@ tv.exportTo('tv.c.trace_model', function() {
       }
 
       var snapshotConstructor =
-          tv.c.trace_model.ObjectSnapshot.getConstructor(
+          tr.c.trace_model.ObjectSnapshot.getConstructor(
               this.category, this.name);
       var snapshot = new snapshotConstructor(this, ts, args);
       this.snapshots.push(snapshot);
@@ -130,7 +130,7 @@ tv.exportTo('tv.c.trace_model', function() {
         throw new Error('ts must be within lifetime of this instance');
 
       var snapshots = this.snapshots;
-      var i = tv.b.findIndexInSortedIntervals(
+      var i = tr.b.findIndexInSortedIntervals(
           snapshots,
           function(snapshot) { return snapshot.ts; },
           function(snapshot, i) {
@@ -175,20 +175,20 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
-  tv.c.trace_model.EventRegistry.register(
+  tr.c.trace_model.EventRegistry.register(
     ObjectInstance,
     {
       name: 'objectInstance',
       pluralName: 'objectInstances',
-      singleViewElementName: 'tv-c-a-single-object-instance-sub-view',
-      multiViewElementName: 'tv-c-a-multi-object-sub-view'
+      singleViewElementName: 'tr-c-a-single-object-instance-sub-view',
+      multiViewElementName: 'tr-c-a-multi-object-sub-view'
     });
 
-  var options = new tv.b.ExtensionRegistryOptions(
-      tv.b.TYPE_BASED_REGISTRY_MODE);
+  var options = new tr.b.ExtensionRegistryOptions(
+      tr.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = ObjectInstance;
   options.defaultConstructor = ObjectInstance;
-  tv.b.decorateExtensionRegistry(ObjectInstance, options);
+  tr.b.decorateExtensionRegistry(ObjectInstance, options);
 
   return {
     ObjectInstance: ObjectInstance

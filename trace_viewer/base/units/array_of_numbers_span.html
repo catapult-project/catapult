@@ -7,7 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/statistics.html">
 <script>
 'use strict';
-tv.exportTo('tv.b.units', function() {
+tr.exportTo('tr.b.units', function() {
   var ArrayOfNumbersSummaryModes = {
     AVERAGE_MODE: 'average-mode',
     TOTAL_MODE: 'total-mode'
@@ -17,7 +17,7 @@ tv.exportTo('tv.b.units', function() {
   };
 });
 </script>
-<polymer-element name="tv-b-u-array-of-numbers-span">
+<polymer-element name="tr-b-u-array-of-numbers-span">
   <template>
   </template>
   <script>
@@ -26,7 +26,7 @@ tv.exportTo('tv.b.units', function() {
   Polymer({
     created: function() {
       this.numbers_ = undefined;
-      this.summaryMode_ = tv.b.units.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
+      this.summaryMode_ = tr.b.units.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
     },
 
     get summaryMode() {
@@ -60,12 +60,12 @@ tv.exportTo('tv.b.units', function() {
         return;
       }
 
-      var ArrayOfNumbersSummaryModes = tv.b.units.ArrayOfNumbersSummaryModes;
+      var ArrayOfNumbersSummaryModes = tr.b.units.ArrayOfNumbersSummaryModes;
       var value;
       if (this.summaryMode_ === ArrayOfNumbersSummaryModes.AVERAGE_MODE)
-        value = tv.b.Statistics.mean(this.numbers_);
+        value = tr.b.Statistics.mean(this.numbers_);
       else
-        value = tv.b.Statistics.sum(this.numbers_);
+        value = tr.b.Statistics.sum(this.numbers_);
 
       var valueRounded = Math.round(value * 1000.0) / 1000.0;
       this.shadowRoot.textContent = valueRounded;

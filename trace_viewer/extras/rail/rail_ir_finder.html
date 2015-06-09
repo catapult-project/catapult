@@ -20,7 +20,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Base class for trace data Auditors.
  */
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
   function RAILIRFinder(model, modelHelper) {
     this.model = model;
     this.modelHelper = modelHelper;
@@ -40,12 +40,12 @@ tv.exportTo('tv.e.audits', function() {
       var frameEvents = [];
       if (this.modelHelper.browserHelper) {
         var fe = this.modelHelper.browserHelper.getFrameEventsInRange(
-            tv.e.audits.IMPL_FRAMETIME_TYPE,
+            tr.e.audits.IMPL_FRAMETIME_TYPE,
             this.model.bounds);
         frameEvents.push.apply(frameEvents, fe);
       }
-      tv.b.iterItems(this.modelHelper.rendererHelpers, function(pid, renderer) {
-        var fe = renderer.getFrameEventsInRange(tv.e.audits.IMPL_FRAMETIME_TYPE,
+      tr.b.iterItems(this.modelHelper.rendererHelpers, function(pid, renderer) {
+        var fe = renderer.getFrameEventsInRange(tr.e.audits.IMPL_FRAMETIME_TYPE,
                                                 this.model.bounds);
         frameEvents.push.apply(frameEvents, fe);
       }, this);
@@ -81,7 +81,7 @@ tv.exportTo('tv.e.audits', function() {
         return gesture;
       }
 
-      return tv.e.audits.mergeExplicitRanges(
+      return tr.e.audits.mergeExplicitRanges(
           latencyStartPoints, 250, joinStartPointsIntoGesture);
     },
 
@@ -215,7 +215,7 @@ tv.exportTo('tv.e.audits', function() {
       commits.forEach(function(commitLoad, commitLoadIndex) {
         if (!commitLoad.firstFrame)
           return;
-        lirs.push(new tv.e.audits.LoadInteractionRecord(
+        lirs.push(new tr.e.audits.LoadInteractionRecord(
             commitLoad.start, commitLoad.firstFrame.end - commitLoad.start));
       });
       return lirs;
@@ -223,23 +223,23 @@ tv.exportTo('tv.e.audits', function() {
 
     findResponseInteractionRecords: function() {
       return this.getAllGestures().map(function(gesture) {
-        return new tv.e.audits.ResponseInteractionRecord(
+        return new tr.e.audits.ResponseInteractionRecord(
             gesture.expectedStart, gesture.expectedEnd - gesture.expectedStart);
       });
     },
 
     findAnimationInteractionRecords: function() {
       return this.getAllExpected60Ranges().map(function(fling) {
-        return new tv.e.audits.AnimationInteractionRecord(
+        return new tr.e.audits.AnimationInteractionRecord(
             fling.expectedStart, fling.expectedEnd - fling.expectedStart);
       });
     },
 
     findIdleInteractionRecords: function(otherIRs) {
-      var emptyRanges = tv.e.audits.findEmptyRangesBetweenExplicitRanges(
+      var emptyRanges = tr.e.audits.findEmptyRangesBetweenExplicitRanges(
           otherIRs, this.model.bounds);
       return emptyRanges.map(function(range) {
-        return new tv.e.audits.IdleInteractionRecord(
+        return new tr.e.audits.IdleInteractionRecord(
             range.min, range.max - range.min);
       });
     },

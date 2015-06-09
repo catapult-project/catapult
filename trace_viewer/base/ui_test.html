@@ -8,8 +8,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var TestElement = tv.b.ui.define('div');
+tr.b.unittest.testSuite(function() {
+  var TestElement = tr.b.ui.define('div');
   TestElement.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -20,7 +20,7 @@ tv.b.unittest.testSuite(function() {
     }
   };
 
-  var Base = tv.b.ui.define('div');
+  var Base = tr.b.ui.define('div');
   Base.prototype = {
     __proto__: HTMLDivElement.prototype,
     decorate: function() {
@@ -38,17 +38,17 @@ tv.b.unittest.testSuite(function() {
 
   test('decorateOnceDirectly', function() {
     var testElement = document.createElement('div');
-    tv.b.ui.decorate(testElement, TestElement);
+    tr.b.ui.decorate(testElement, TestElement);
     assert.equal(testElement.decorateCallCount, 1);
   });
 
   test('componentToString', function() {
     assert.equal(Base.toString(), 'div');
 
-    var Sub = tv.b.ui.define('Sub', Base);
+    var Sub = tr.b.ui.define('Sub', Base);
     assert.equal(Sub.toString(), 'div::sub');
 
-    var SubSub = tv.b.ui.define('Marine', Sub);
+    var SubSub = tr.b.ui.define('Marine', Sub);
     assert.equal(SubSub.toString(), 'div::sub::marine');
   });
 
@@ -65,7 +65,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('subclassing', function() {
-    var Sub = tv.b.ui.define('sub', Base);
+    var Sub = tr.b.ui.define('sub', Base);
     Sub.prototype = {
       __proto__: Base.prototype,
       decorate: function() {
@@ -87,7 +87,7 @@ tv.b.unittest.testSuite(function() {
     assert.isTrue(subInstance.basePropertySet);
   });
 
-  var NoArgs = tv.b.ui.define('div');
+  var NoArgs = tr.b.ui.define('div');
   NoArgs.prototype = {
     __proto__: HTMLDivElement.prototype,
     decorate: function() {
@@ -98,7 +98,7 @@ tv.b.unittest.testSuite(function() {
     }
   };
 
-  var Args = tv.b.ui.define('args', NoArgs);
+  var Args = tr.b.ui.define('args', NoArgs);
   Args.prototype = {
     __proto__: NoArgs.prototype,
     decorate: function(first) {
@@ -113,7 +113,7 @@ tv.b.unittest.testSuite(function() {
     }
   };
 
-  var ArgsChild = tv.b.ui.define('args-child', Args);
+  var ArgsChild = tr.b.ui.define('args-child', Args);
   ArgsChild.prototype = {
     __proto__: Args.prototype,
     decorate: function(_, second) {
@@ -131,7 +131,7 @@ tv.b.unittest.testSuite(function() {
     }
   };
 
-  var ArgsDecoratingChild = tv.b.ui.define('args-decorating-child', Args);
+  var ArgsDecoratingChild = tr.b.ui.define('args-decorating-child', Args);
   ArgsDecoratingChild.prototype = {
     __proto__: Args.prototype,
     decorate: function(first, second) {
@@ -187,7 +187,7 @@ tv.b.unittest.testSuite(function() {
 
   test('defineWithNamespace', function() {
     var svgNS = 'http://www.w3.org/2000/svg';
-    var cls = tv.b.ui.define('svg', undefined, svgNS);
+    var cls = tr.b.ui.define('svg', undefined, svgNS);
     cls.prototype = {
       __proto__: HTMLUnknownElement.prototype,
 
@@ -211,7 +211,7 @@ tv.b.unittest.testSuite(function() {
 
   test('defineSubclassWithNamespace', function() {
     var svgNS = 'http://www.w3.org/2000/svg';
-    var cls = tv.b.ui.define('svg', undefined, svgNS);
+    var cls = tr.b.ui.define('svg', undefined, svgNS);
     cls.prototype = {
       __proto__: HTMLUnknownElement.prototype,
 
@@ -228,7 +228,7 @@ tv.b.unittest.testSuite(function() {
       }
     };
 
-    var subCls = tv.b.ui.define('sub', cls);
+    var subCls = tr.b.ui.define('sub', cls);
     subCls.prototype = {
       __proto__: cls.prototype
     };

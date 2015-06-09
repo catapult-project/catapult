@@ -17,16 +17,16 @@ found in the LICENSE file.
 /**
  * @fileoverview Helper functions for memory dump analysis sub-view tests.
  */
-tv.exportTo('tv.c.analysis', function() {
-  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
-  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
-  var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
-  var VMRegion = tv.c.trace_model.VMRegion;
-  var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
-  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
+tr.exportTo('tr.c.analysis', function() {
+  var GlobalMemoryDump = tr.c.trace_model.GlobalMemoryDump;
+  var ProcessMemoryDump = tr.c.trace_model.ProcessMemoryDump;
+  var MemoryAllocatorDump = tr.c.trace_model.MemoryAllocatorDump;
+  var VMRegion = tr.c.trace_model.VMRegion;
+  var VMRegionByteStats = tr.c.trace_model.VMRegionByteStats;
+  var ScalarAttribute = tr.c.trace_model.ScalarAttribute;
 
   function createTestGlobalMemoryDump() {
-    var model = tv.c.test_utils.newModel(function(model) {
+    var model = tr.c.test_utils.newModel(function(model) {
       var p1 = model.getOrCreateProcess(1);
       var p2 = model.getOrCreateProcess(2);
 
@@ -82,7 +82,7 @@ tv.exportTo('tv.c.analysis', function() {
 
   function createTestProcessMemoryDumps() {
     var globalMemoryDump = createTestGlobalMemoryDump();
-    return tv.b.dictionaryValues(globalMemoryDump.processMemoryDumps);
+    return tr.b.dictionaryValues(globalMemoryDump.processMemoryDumps);
   }
 
   function createTestProcessMemoryDump() {

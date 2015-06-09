@@ -8,14 +8,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
 
   test('simpleSpanAndDiv', function() {
-    var divEl = tv.b.ui.createDiv({
+    var divEl = tr.b.ui.createDiv({
       className: 'a-div-class', parent: document.body
     });
     var testText = 'some span text';
-    var spanEl = tv.b.ui.createSpan({
+    var spanEl = tr.b.ui.createSpan({
       className: 'a-span-class',
       textContent: testText,
       parent: divEl
@@ -27,33 +27,33 @@ tv.b.unittest.testSuite(function() {
 
   test('checkboxFromDefaults', function() {
     var target = {foo: undefined};
-    var cb = tv.b.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
+    var cb = tr.b.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
     assert.isFalse(target.foo);
   });
 
   test('checkboxFromSettings', function() {
-    tv.b.Settings.set('myCheckBox', true);
+    tr.b.Settings.set('myCheckBox', true);
     var target = {foo: undefined};
-    var cb = tv.b.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
+    var cb = tr.b.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
     assert.isTrue(target.foo);
   });
 
   test('checkboxChanged', function() {
     var target = {foo: undefined};
-    var cb = tv.b.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
+    var cb = tr.b.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
     cb.checked = true;
 
-    assert.isTrue(tv.b.Settings.get('myCheckBox', undefined));
+    assert.isTrue(tr.b.Settings.get('myCheckBox', undefined));
     assert.isTrue(target.foo);
   });
 
   test('selectorSettingsAlreaySet', function() {
-    tv.b.Settings.set('myScale', 0.25);
+    tr.b.Settings.set('myScale', 0.25);
 
     var target = {
       scale: 314
     };
-    var sel = tv.b.ui.createSelector(
+    var sel = tr.b.ui.createSelector(
         target, 'scale',
         'myScale', 0.375,
         [{label: '6.25%', value: 0.0625},
@@ -73,7 +73,7 @@ tv.b.unittest.testSuite(function() {
     var target = {
       scale: 314
     };
-    var sel = tv.b.ui.createSelector(
+    var sel = tr.b.ui.createSelector(
         target, 'scale',
         'myScale', 0.375,
         [{label: '6.25%', value: 0.0625},
@@ -93,7 +93,7 @@ tv.b.unittest.testSuite(function() {
     var target = {
       scale: 314
     };
-    var sel = tv.b.ui.createSelector(
+    var sel = tr.b.ui.createSelector(
         target, 'scale',
         'myScale', 0.375,
         [{label: '6.25%', value: 0.0625},
@@ -109,7 +109,7 @@ tv.b.unittest.testSuite(function() {
     sel.selectedValue = 0.75;
     assert.equal(target.scale, 0.75);
     assert.equal(sel.selectedValue, 0.75);
-    assert.equal(undefined), 0.75, tv.b.Settings.get('myScale');
+    assert.equal(undefined), 0.75, tr.b.Settings.get('myScale');
   });
 });
 </script>

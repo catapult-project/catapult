@@ -13,26 +13,26 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var ThreadSlice = tv.c.trace_model.ThreadSlice;
-  var TraceModel = tv.c.TraceModel;
-  var TitleOrCategoryFilter = tv.c.TitleOrCategoryFilter;
-  var Frame = tv.c.trace_model.Frame;
+tr.b.unittest.testSuite(function() {
+  var ThreadSlice = tr.c.trace_model.ThreadSlice;
+  var TraceModel = tr.c.TraceModel;
+  var TitleOrCategoryFilter = tr.c.TitleOrCategoryFilter;
+  var Frame = tr.c.trace_model.Frame;
 
   var createTraceModelWithOneOfEverything = function() {
     var m = new TraceModel();
     var cpu = m.kernel.getOrCreateCpu(1);
-    cpu.slices.push(tv.c.test_utils.newSlice(1, 3));
+    cpu.slices.push(tr.c.test_utils.newSlice(1, 3));
 
     var p = m.getOrCreateProcess(1);
     var t = p.getOrCreateThread(1);
     var slice = new ThreadSlice('', 'a', 0, 1, {}, 4);
     t.sliceGroup.pushSlice(slice);
-    t.asyncSliceGroup.push(tv.c.test_utils.newAsyncSlice(0, 1, t, t));
+    t.asyncSliceGroup.push(tr.c.test_utils.newAsyncSlice(0, 1, t, t));
 
     var c = p.getOrCreateCounter('', 'ProcessCounter');
-    var aSeries = new tv.c.trace_model.CounterSeries('a', 0);
-    var bSeries = new tv.c.trace_model.CounterSeries('b', 0);
+    var aSeries = new tr.c.trace_model.CounterSeries('a', 0);
+    var bSeries = new tr.c.trace_model.CounterSeries('b', 0);
     c.addSeries(aSeries);
     c.addSeries(bSeries);
 
@@ -47,8 +47,8 @@ tv.b.unittest.testSuite(function() {
     bSeries.addCounterSample(3, 16);
 
     var c1 = cpu.getOrCreateCounter('', 'CpuCounter');
-    var aSeries = new tv.c.trace_model.CounterSeries('a', 0);
-    var bSeries = new tv.c.trace_model.CounterSeries('b', 0);
+    var aSeries = new tr.c.trace_model.CounterSeries('a', 0);
+    var bSeries = new tr.c.trace_model.CounterSeries('b', 0);
     c1.addSeries(aSeries);
     c1.addSeries(bSeries);
 
@@ -65,8 +65,8 @@ tv.b.unittest.testSuite(function() {
     var frame1 = new Frame([slice], [{thread: t, start: 1, end: 5}]);
     p.frames.push.apply(p.frames, frame1);
 
-    var gd = new tv.c.trace_model.GlobalMemoryDump(m, 2);
-    var pd = new tv.c.trace_model.ProcessMemoryDump(gd, p, 2);
+    var gd = new tr.c.trace_model.GlobalMemoryDump(m, 2);
+    var pd = new tr.c.trace_model.ProcessMemoryDump(gd, p, 2);
     gd.processMemoryDumps[1] = pd;
     m.globalMemoryDumps.push(gd);
     p.memoryDumps.push(pd);
@@ -113,7 +113,7 @@ tv.b.unittest.testSuite(function() {
   test('traceModelBounds_OneCpu', function() {
     var m = new TraceModel();
     var cpu = m.kernel.getOrCreateCpu(1);
-    cpu.slices.push(tv.c.test_utils.newSlice(1, 3));
+    cpu.slices.push(tr.c.test_utils.newSlice(1, 3));
     m.updateBounds();
     assert.equal(m.bounds.min, 1);
     assert.equal(m.bounds.max, 4);
@@ -122,7 +122,7 @@ tv.b.unittest.testSuite(function() {
   test('traceModelBounds_OneCpuOneThread', function() {
     var m = new TraceModel();
     var cpu = m.kernel.getOrCreateCpu(1);
-    cpu.slices.push(tv.c.test_utils.newSlice(1, 3));
+    cpu.slices.push(tr.c.test_utils.newSlice(1, 3));
 
     var t = m.getOrCreateProcess(1).getOrCreateThread(1);
     t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
@@ -134,9 +134,9 @@ tv.b.unittest.testSuite(function() {
 
   test('traceModelBounds_GlobalMemoryDumps', function() {
     var m = new TraceModel();
-    m.globalMemoryDumps.push(new tv.c.trace_model.GlobalMemoryDump(m, 1));
-    m.globalMemoryDumps.push(new tv.c.trace_model.GlobalMemoryDump(m, 3));
-    m.globalMemoryDumps.push(new tv.c.trace_model.GlobalMemoryDump(m, 5));
+    m.globalMemoryDumps.push(new tr.c.trace_model.GlobalMemoryDump(m, 1));
+    m.globalMemoryDumps.push(new tr.c.trace_model.GlobalMemoryDump(m, 3));
+    m.globalMemoryDumps.push(new tr.c.trace_model.GlobalMemoryDump(m, 5));
 
     m.updateBounds();
     assert.equal(m.bounds.min, 1);
@@ -146,10 +146,10 @@ tv.b.unittest.testSuite(function() {
   test('traceModelBounds_ProcessMemoryDumps', function() {
     var m = new TraceModel();
     var p = m.getOrCreateProcess(1);
-    var gd = new tv.c.trace_model.GlobalMemoryDump(m, -1);
-    p.memoryDumps.push(new tv.c.trace_model.ProcessMemoryDump(gd, m, 1));
-    p.memoryDumps.push(new tv.c.trace_model.ProcessMemoryDump(gd, m, 3));
-    p.memoryDumps.push(new tv.c.trace_model.ProcessMemoryDump(gd, m, 5));
+    var gd = new tr.c.trace_model.GlobalMemoryDump(m, -1);
+    p.memoryDumps.push(new tr.c.trace_model.ProcessMemoryDump(gd, m, 1));
+    p.memoryDumps.push(new tr.c.trace_model.ProcessMemoryDump(gd, m, 3));
+    p.memoryDumps.push(new tr.c.trace_model.ProcessMemoryDump(gd, m, 5));
 
     m.updateBounds();
     assert.equal(m.bounds.min, 1);
@@ -184,7 +184,7 @@ tv.b.unittest.testSuite(function() {
 
     var m = new TraceModel();
     m.importTraces([combined]);
-    assert.equal(tv.b.dictionaryValues(m.processes).length, 1);
+    assert.equal(tr.b.dictionaryValues(m.processes).length, 1);
 
     var p1 = m.processes[1];
     assert.isDefined(p1);
@@ -206,7 +206,7 @@ tv.b.unittest.testSuite(function() {
         'dDT0zNUMDQwMNAzsFIAIqcaw5qSxOJsR65gfDqMEDpcATiC61ZbAAAA');
     var m = new TraceModel();
     m.importTraces([compressedTrace]);
-    assert.equal(1, tv.b.dictionaryValues(m.processes).length);
+    assert.equal(1, tr.b.dictionaryValues(m.processes).length);
 
     var p1 = m.processes[1];
     assert.isDefined(p1);
@@ -247,7 +247,7 @@ tv.b.unittest.testSuite(function() {
 
     var m = new TraceModel();
     m.importTraces([outerTrace]);
-    assert.equal(tv.b.dictionaryValues(m.processes).length, 1);
+    assert.equal(tr.b.dictionaryValues(m.processes).length, 1);
 
     var p1 = m.processes[1];
     assert.isDefined(p1);
@@ -273,11 +273,11 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('TitleOrCategoryFilter', function() {
-    var s0 = tv.c.test_utils.newSlice(1, 3);
+    var s0 = tr.c.test_utils.newSlice(1, 3);
     assert.isTrue(new TitleOrCategoryFilter('a').matchSlice(s0));
     assert.isFalse(new TitleOrCategoryFilter('x').matchSlice(s0));
 
-    var s1 = tv.c.test_utils.newSliceNamed('ba', 1, 3);
+    var s1 = tr.c.test_utils.newSliceNamed('ba', 1, 3);
     assert.isTrue(new TitleOrCategoryFilter('a').matchSlice(s1));
     assert.isTrue(new TitleOrCategoryFilter('ba').matchSlice(s1));
     assert.isFalse(new TitleOrCategoryFilter('x').matchSlice(s1));
@@ -311,14 +311,14 @@ tv.b.unittest.testSuite(function() {
     var m = createTraceModelWithOneOfEverything();
     var wasCalled = false;
     m.iterateAllEvents(function(event) {
-      assert.isTrue(event instanceof tv.c.trace_model.Event);
+      assert.isTrue(event instanceof tr.c.trace_model.Event);
       wasCalled = true;
     });
     assert.isTrue(wasCalled);
   });
 
   test('customizeCallback', function() {
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([], false, false, function() {
       var browserProcess = m.getOrCreateProcess(1);
       var browserMain = browserProcess.getOrCreateThread(2);
@@ -335,7 +335,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('traceModel_sortsSamples', function() {
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     // The 184, 0 and 185 are the tick-times
     // and irrespective of the order
     // in which the lines appear in the trace,
@@ -349,11 +349,11 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('traceModel_sortsGlobalMemoryDumps', function() {
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([], true /* shiftWorldToZero */, false, function() {
-      m.globalMemoryDumps.push(new tv.c.trace_model.GlobalMemoryDump(m, 1));
-      m.globalMemoryDumps.push(new tv.c.trace_model.GlobalMemoryDump(m, 5));
-      m.globalMemoryDumps.push(new tv.c.trace_model.GlobalMemoryDump(m, 3));
+      m.globalMemoryDumps.push(new tr.c.trace_model.GlobalMemoryDump(m, 1));
+      m.globalMemoryDumps.push(new tr.c.trace_model.GlobalMemoryDump(m, 5));
+      m.globalMemoryDumps.push(new tr.c.trace_model.GlobalMemoryDump(m, 3));
     });
     assert.equal(m.globalMemoryDumps[0].start, 0);
     assert.equal(m.globalMemoryDumps[1].start, 2);
@@ -361,19 +361,19 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('traceModel_finalizesProcessMemoryDumps', function() {
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     var p = m.getOrCreateProcess(1);
     m.importTraces([], true /* shiftWorldToZero */, false, function() {
-      var g = new tv.c.trace_model.GlobalMemoryDump(m, -1);
+      var g = new tr.c.trace_model.GlobalMemoryDump(m, -1);
       m.globalMemoryDumps.push(g);
 
-      var pmd1 = new tv.c.trace_model.ProcessMemoryDump(g, p, 1);
+      var pmd1 = new tr.c.trace_model.ProcessMemoryDump(g, p, 1);
       p.memoryDumps.push(pmd1);
 
-      var pmd2 = new tv.c.trace_model.ProcessMemoryDump(g, p, 5);
+      var pmd2 = new tr.c.trace_model.ProcessMemoryDump(g, p, 5);
       p.memoryDumps.push(pmd2);
 
-      var pmd3 = new tv.c.trace_model.ProcessMemoryDump(g, p, 3);
+      var pmd3 = new tr.c.trace_model.ProcessMemoryDump(g, p, 3);
       p.memoryDumps.push(pmd3);
       pmd3.vmRegions = [];
     });
@@ -392,9 +392,9 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('traceModel_annotationAddRemove', function() {
-    var m = new tv.c.TraceModel();
-    var a1 = new tv.c.trace_model.Annotation();
-    var a2 = new tv.c.trace_model.Annotation();
+    var m = new tr.c.TraceModel();
+    var a1 = new tr.c.trace_model.Annotation();
+    var a2 = new tr.c.trace_model.Annotation();
 
     assert.equal(m.getAllAnnotations().length, 0);
     m.addAnnotation(a1);

@@ -14,12 +14,12 @@ found in the LICENSE file.
  * @fileoverview A list of things, and a viewer for the currently selected
  * thing.
  */
-tv.exportTo('tv.b.ui', function() {
+tr.exportTo('tr.b.ui', function() {
 
   /**
    * @constructor
    */
-  var ListAndAssociatedView = tv.b.ui.define('x-list-and-associated-view');
+  var ListAndAssociatedView = tr.b.ui.define('x-list-and-associated-view');
   ListAndAssociatedView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
@@ -28,7 +28,7 @@ tv.exportTo('tv.b.ui', function() {
       this.listProperty_ = undefined;
       this.view_ = undefined;
       this.viewProperty_ = undefined;
-      this.listView_ = new tv.b.ui.ListView();
+      this.listView_ = new tr.b.ui.ListView();
       this.listView_.addEventListener('selection-changed',
                                       this.onSelectionChanged_.bind(this));
       this.placeholder_ = document.createElement('div');

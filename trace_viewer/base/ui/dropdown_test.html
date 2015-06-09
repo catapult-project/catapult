@@ -11,23 +11,23 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var dd = document.createElement('tv-b-ui-dropdown');
+    var dd = document.createElement('tr-b-ui-dropdown');
     dd.style.marginLeft = '50px';
     dd.style.width = '50px';
     dd.iconElement.textContent = 'Settings ' + String.fromCharCode(0x2699);
 
-    dd.appendChild(tv.b.ui.createDiv({textContent: 'item 1'}));
-    dd.appendChild(tv.b.ui.createDiv({textContent: 'item 2 longer'}));
-    dd.appendChild(tv.b.ui.createDiv({textContent: 'item 3'}));
+    dd.appendChild(tr.b.ui.createDiv({textContent: 'item 1'}));
+    dd.appendChild(tr.b.ui.createDiv({textContent: 'item 2 longer'}));
+    dd.appendChild(tr.b.ui.createDiv({textContent: 'item 3'}));
 
-    var container = tv.b.ui.createDiv();
+    var container = tr.b.ui.createDiv();
     container.style.height = '100px';
     container.appendChild(dd);
-    container.appendChild(tv.b.ui.createDiv({textContent: 'some text'}));
-    container.appendChild(tv.b.ui.createDiv({textContent: 'some more text'}));
-    container.appendChild(tv.b.ui.createDiv({textContent: 'more text'}));
+    container.appendChild(tr.b.ui.createDiv({textContent: 'some text'}));
+    container.appendChild(tr.b.ui.createDiv({textContent: 'some more text'}));
+    container.appendChild(tr.b.ui.createDiv({textContent: 'more text'}));
     this.addHTMLOutput(container);
 
     dd.show();

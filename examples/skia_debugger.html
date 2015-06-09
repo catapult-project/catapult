@@ -35,10 +35,10 @@ found in the LICENSE file.
   var debuggerEl;
 
   function getPicture(skp64) {
-    if (!tv.e.cc.PictureSnapshot.CanGetInfo()) {
-      console.error(tv.e.cc.PictureSnapshot.HowToEnablePictureDebugging());
+    if (!tr.e.cc.PictureSnapshot.CanGetInfo()) {
+      console.error(tr.e.cc.PictureSnapshot.HowToEnablePictureDebugging());
 
-      var infoBar = document.createElement('tv-b-ui-info-bar');
+      var infoBar = document.createElement('tr-b-ui-info-bar');
       var view = document.querySelector('.view');
 
       view.removeChild(debuggerEl);
@@ -46,7 +46,7 @@ found in the LICENSE file.
 
       view.appendChild(infoBar);
 
-      infoBar.message = tv.e.cc.PictureSnapshot.HowToEnablePictureDebugging();
+      infoBar.message = tr.e.cc.PictureSnapshot.HowToEnablePictureDebugging();
       infoBar.visible = true;
       return undefined;
     }
@@ -55,9 +55,9 @@ found in the LICENSE file.
     if (size === undefined)
       throw new Error('Unable to get picture information');
 
-    return new tv.e.cc.Picture(skp64,
-        tv.Rect.fromXYWH(0, 0, size.width, size.height),
-        tv.Rect.fromXYWH(0, 0, size.width, size.height));
+    return new tr.e.cc.Picture(skp64,
+        tr.Rect.fromXYWH(0, 0, size.width, size.height),
+        tr.Rect.fromXYWH(0, 0, size.width, size.height));
   }
 
   function utf8_to_b64(str) {
@@ -143,7 +143,7 @@ found in the LICENSE file.
   }
 
   function onLoad() {
-    debuggerEl = new tv.e.cc.PictureDebugger();
+    debuggerEl = new tr.e.cc.PictureDebugger();
     document.querySelector('.view').appendChild(debuggerEl);
 
     getAsync('/json/examples/skp', function(data) {

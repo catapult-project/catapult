@@ -8,14 +8,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.unittest', function() {
+tr.exportTo('tr.b.unittest', function() {
   var realTvOnAnimationFrameError;
   var realWindowOnError;
   var realWindowHistoryPushState;
 
   function installGlobalTestHooks(runner) {
-    realTvOnAnimationFrameError = tv.b.onAnimationFrameError;
-    tv.b.onAnimationFrameError = function(error) {
+    realTvOnAnimationFrameError = tr.b.onAnimationFrameError;
+    tr.b.onAnimationFrameError = function(error) {
       runner.results.addErrorForCurrentTest(error);
     }
 
@@ -32,12 +32,12 @@ tv.exportTo('tv.b.unittest', function() {
     window.history.pushState = function() {
     };
 
-    tv.b.unittest.addHTMLOutputForCurrentTest = function(element) {
+    tr.b.unittest.addHTMLOutputForCurrentTest = function(element) {
       runner.results.addHTMLOutputForCurrentTest(element);
     }
 
     global.sessionStorage.clear();
-    var e = new Event('tv-unittest-will-run');
+    var e = new Event('tr-unittest-will-run');
     document.head.dispatchEvent(e);
   }
 
@@ -45,13 +45,13 @@ tv.exportTo('tv.b.unittest', function() {
     window.onerror = realWindowOnError;
     realWindowOnError = undefined;
 
-    tv.b.onAnimationFrameError = realTvOnAnimationFrameError;
+    tr.b.onAnimationFrameError = realTvOnAnimationFrameError;
     realTvOnAnimationFrameError = undefined;
 
     window.history.pushState = realWindowHistoryPushState;
     realWindowHistoryPushState = undefined;
 
-    tv.b.unittest.addHTMLOutputForCurrentTest = undefined;
+    tr.b.unittest.addHTMLOutputForCurrentTest = undefined;
   }
 
 
@@ -108,7 +108,7 @@ tv.exportTo('tv.b.unittest', function() {
       if (this.runOneTestCaseScheduled_)
         return;
       this.runOneTestCaseScheduled_ = true;
-      tv.b.requestIdleCallback(this.runOneTestCase_, this);
+      tr.b.requestIdleCallback(this.runOneTestCase_, this);
     },
 
     runOneTestCase_: function() {

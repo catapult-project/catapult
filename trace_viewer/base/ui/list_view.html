@@ -15,18 +15,18 @@ found in the LICENSE file.
 /**
  * @fileoverview Simple list view.
  */
-tv.exportTo('tv.b.ui', function() {
+tr.exportTo('tr.b.ui', function() {
   /**
    * @constructor
    */
-  var ListView = tv.b.ui.define(
-      'x-list-view', tv.b.ui.ContainerThatDecoratesItsChildren);
+  var ListView = tr.b.ui.define(
+      'x-list-view', tr.b.ui.ContainerThatDecoratesItsChildren);
 
   ListView.prototype = {
-    __proto__: tv.b.ui.ContainerThatDecoratesItsChildren.prototype,
+    __proto__: tr.b.ui.ContainerThatDecoratesItsChildren.prototype,
 
     decorate: function() {
-      tv.b.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
+      tr.b.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
 
       this.classList.add('x-list-view');
       this.onItemClicked_ = this.onItemClicked_.bind(this);
@@ -56,7 +56,7 @@ tv.exportTo('tv.b.ui', function() {
                 this.removeAttribute('selected');
               var newSelection = listView.selectedElement;
               if (newSelection != oldSelection)
-                tv.b.dispatchSimpleEvent(listView, 'selection-changed', false);
+                tr.b.dispatchSimpleEvent(listView, 'selection-changed', false);
             },
             get: function() {
               return this.hasAttribute('selected');
@@ -78,7 +78,7 @@ tv.exportTo('tv.b.ui', function() {
 
     doneDecoratingForNow_: function() {
       if (this.selectionChanged_)
-        tv.b.dispatchSimpleEvent(this, 'selection-changed', false);
+        tr.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     get selectedElement() {
@@ -107,9 +107,9 @@ tv.exportTo('tv.b.ui', function() {
 
     clear: function() {
       var changed = this.selectedElement !== undefined;
-      tv.b.ui.ContainerThatDecoratesItsChildren.prototype.clear.call(this);
+      tr.b.ui.ContainerThatDecoratesItsChildren.prototype.clear.call(this);
       if (changed)
-        tv.b.dispatchSimpleEvent(this, 'selection-changed', false);
+        tr.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     onItemClicked_: function(e) {
@@ -121,7 +121,7 @@ tv.exportTo('tv.b.ui', function() {
         element = element.parentElement;
       if (element !== currentSelectedElement)
         element.setAttribute('selected', 'selected');
-      tv.b.dispatchSimpleEvent(this, 'selection-changed', false);
+      tr.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     onKeyDown_: function(e) {
@@ -132,7 +132,7 @@ tv.exportTo('tv.b.ui', function() {
         var prev = this.selectedElement.previousSibling;
         if (prev) {
           prev.selected = true;
-          tv.b.scrollIntoViewIfNeeded(prev);
+          tr.b.scrollIntoViewIfNeeded(prev);
           e.preventDefault();
           return true;
         }
@@ -140,7 +140,7 @@ tv.exportTo('tv.b.ui', function() {
         var next = this.selectedElement.nextSibling;
         if (next) {
           next.selected = true;
-          tv.b.scrollIntoViewIfNeeded(next);
+          tr.b.scrollIntoViewIfNeeded(next);
           e.preventDefault();
           return true;
         }

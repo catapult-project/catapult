@@ -12,12 +12,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('selectionChangingLink', function() {
-    var r = tv.c.analysis.AnalysisResults();
+    var r = tr.c.analysis.AnalysisResults();
     var track = {};
     var linkEl = r.createSelectionChangingLink('hello', function() {
-      var selection = new tv.c.Selection();
+      var selection = new tr.c.Selection();
       selection.push({guid: 1});
       return selection;
     });
@@ -30,8 +30,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('displayValuesInInfoRow', function() {
-    var r = new tv.c.analysis.AnalysisResults();
-    var table = new tv.c.analysis.StubAnalysisTable();
+    var r = new tr.c.analysis.AnalysisResults();
+    var table = new tr.c.analysis.StubAnalysisTable();
     var node;
     var sectionNode;
     assert.equal(table.nodeCount, 0);

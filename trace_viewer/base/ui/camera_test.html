@@ -11,18 +11,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
 
   function createQuads() {
     var quads = [
-      tv.b.Quad.fromXYWH(-500, -500, 30, 30), // 4 corners
-      tv.b.Quad.fromXYWH(-500, 470, 30, 30),
-      tv.b.Quad.fromXYWH(470, -500, 30, 30),
-      tv.b.Quad.fromXYWH(470, 470, 30, 30),
-      tv.b.Quad.fromXYWH(-250, -250, 250, 250), // crosshairs
-      tv.b.Quad.fromXYWH(0, -250, 250, 250), // crosshairs
-      tv.b.Quad.fromXYWH(-250, 0, 250, 250), // crosshairs
-      tv.b.Quad.fromXYWH(0, 0, 250, 250) // crosshairs
+      tr.b.Quad.fromXYWH(-500, -500, 30, 30), // 4 corners
+      tr.b.Quad.fromXYWH(-500, 470, 30, 30),
+      tr.b.Quad.fromXYWH(470, -500, 30, 30),
+      tr.b.Quad.fromXYWH(470, 470, 30, 30),
+      tr.b.Quad.fromXYWH(-250, -250, 250, 250), // crosshairs
+      tr.b.Quad.fromXYWH(0, -250, 250, 250), // crosshairs
+      tr.b.Quad.fromXYWH(-250, 0, 250, 250), // crosshairs
+      tr.b.Quad.fromXYWH(0, 0, 250, 250) // crosshairs
     ];
     quads[0].stackingGroupId = 0;
     quads[1].stackingGroupId = 0;
@@ -37,11 +37,11 @@ tv.b.unittest.testSuite(function() {
 
   function createQuadStackView(testFramework) {
     var quads = createQuads();
-    var view = new tv.b.ui.QuadStackView();
+    var view = new tr.b.ui.QuadStackView();
     // simulate the constraints of the layer-tree-view
     view.style.height = '400px';
     view.style.width = '800px';
-    view.deviceRect = tv.b.Rect.fromXYWH(-250, -250, 500, 500);
+    view.deviceRect = tr.b.Rect.fromXYWH(-250, -250, 500, 500);
     view.quads = quads;
 
     testFramework.addHTMLOutput(view);

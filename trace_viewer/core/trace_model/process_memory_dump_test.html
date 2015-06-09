@@ -15,13 +15,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var TraceModel = tv.c.TraceModel;
-  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
-  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
-  var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
-  var VMRegion = tv.c.trace_model.VMRegion;
-  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
+tr.b.unittest.testSuite(function() {
+  var TraceModel = tr.c.TraceModel;
+  var GlobalMemoryDump = tr.c.trace_model.GlobalMemoryDump;
+  var ProcessMemoryDump = tr.c.trace_model.ProcessMemoryDump;
+  var MemoryAllocatorDump = tr.c.trace_model.MemoryAllocatorDump;
+  var VMRegion = tr.c.trace_model.VMRegion;
+  var ScalarAttribute = tr.c.trace_model.ScalarAttribute;
 
   var createProcessMemoryDump = function(timestamp, model) {
     var gmd = new GlobalMemoryDump(model, timestamp);
@@ -33,7 +33,7 @@ tv.b.unittest.testSuite(function() {
   }
 
   var createFinalizedProcessMemoryDump = function(timestamp, createdCallback) {
-    var model = tv.c.test_utils.newModel(function(model) {
+    var model = tr.c.test_utils.newModel(function(model) {
       createdCallback(createProcessMemoryDump(timestamp, model));
     });
     var pmds = model.getProcess(123).memoryDumps;

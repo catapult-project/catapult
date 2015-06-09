@@ -14,9 +14,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
-  var EventPresenter = tv.c.EventPresenter;
-  var SelectionState = tv.c.trace_model.SelectionState;
+tr.exportTo('tr.c.tracks', function() {
+  var EventPresenter = tr.c.EventPresenter;
+  var SelectionState = tr.c.trace_model.SelectionState;
 
   /**
    * The type of a chart series.
@@ -94,7 +94,7 @@ tv.exportTo('tv.c.tracks', function() {
       var config = opt_renderingConfig || {};
 
       // Store all configuration flags as private properties.
-      tv.b.iterItems(DEFAULT_RENDERING_CONFIG, function(key, defaultValue) {
+      tr.b.iterItems(DEFAULT_RENDERING_CONFIG, function(key, defaultValue) {
         var value = config[key];
         if (value === undefined)
           value = defaultValue;
@@ -107,7 +107,7 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     get range() {
-      var range = new tv.b.Range();
+      var range = new tr.b.Range();
       this.points.forEach(function(point) {
         range.addValue(point.y);
       }, this);
@@ -150,11 +150,11 @@ tv.exportTo('tv.c.tracks', function() {
       var rightTimestamp = transform.rightTimestamp + extraPixels;
 
       // Find the index of the first and last (partially) visible points.
-      var firstVisibleIndex = tv.b.findLowIndexInSortedArray(
+      var firstVisibleIndex = tr.b.findLowIndexInSortedArray(
           this.points,
           function(point) { return point.x; },
           leftTimestamp);
-      var lastVisibleIndex = tv.b.findLowIndexInSortedArray(
+      var lastVisibleIndex = tr.b.findLowIndexInSortedArray(
           this.points,
           function(point) { return point.x; },
           rightTimestamp);
@@ -209,7 +209,7 @@ tv.exportTo('tv.c.tracks', function() {
             break;
           }
           var density = visibleIndexRange / visibleViewXRange;
-          var clampedDensity = tv.b.clamp(density,
+          var clampedDensity = tr.b.clamp(density,
               this.unselectedPointDensityOpaque_,
               this.unselectedPointDensityTransparent_);
           var densityRange = this.unselectedPointDensityTransparent_ -
@@ -442,7 +442,7 @@ tv.exportTo('tv.c.tracks', function() {
         point.addToSelection(selection);
       }
 
-      tv.b.iterateOverIntersectingIntervals(
+      tr.b.iterateOverIntersectingIntervals(
           this.points,
           function(point) { return point.x },
           getPointWidth,
@@ -455,7 +455,7 @@ tv.exportTo('tv.c.tracks', function() {
       if (this.points === undefined)
         return false;
 
-      var index = tv.b.findFirstIndexInArray(this.points, function(point) {
+      var index = tr.b.findFirstIndexInArray(this.points, function(point) {
         return point.modelItem === event;
       }, this);
       if (index === -1)
@@ -474,7 +474,7 @@ tv.exportTo('tv.c.tracks', function() {
       if (this.points === undefined)
         return;
 
-      var item = tv.b.findClosestElementInSortedArray(
+      var item = tr.b.findClosestElementInSortedArray(
           this.points,
           function(point) { return point.x },
           worldX,

@@ -13,9 +13,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides color scheme related functions.
  */
-tv.exportTo('tv.b.ui', function() {
-  var colorToRGBString = tv.b.ui.colorToRGBString;
-  var colorToRGBAString = tv.b.ui.colorToRGBAString;
+tr.exportTo('tr.b.ui', function() {
+  var colorToRGBString = tr.b.ui.colorToRGBString;
+  var colorToRGBAString = tr.b.ui.colorToRGBAString;
 
   // Basic constants...
 
@@ -71,7 +71,7 @@ tv.exportTo('tv.b.ui', function() {
 
   // Some constants we'll need for later lookups.
   var numGeneralPurposeColorIds = generalPurposeColors.length;
-  var numReservedColorIds = tv.b.dictionaryLength(reservedColorsByName);
+  var numReservedColorIds = tr.b.dictionaryLength(reservedColorsByName);
 
   // The color palette is split in half, with the upper
   // half of the palette being the "highlighted" verison
@@ -89,9 +89,9 @@ tv.exportTo('tv.b.ui', function() {
     var paletteBase = [];
     paletteBase.push.apply(paletteBase, generalPurposeColors);
     paletteBase.push.apply(paletteBase,
-                           tv.b.dictionaryValues(reservedColorsByName));
-    return paletteBase.concat(paletteBase.map(tv.b.ui.brightenColor),
-                              paletteBase.map(tv.b.ui.desaturateColor));
+                           tr.b.dictionaryValues(reservedColorsByName));
+    return paletteBase.concat(paletteBase.map(tr.b.ui.brightenColor),
+                              paletteBase.map(tr.b.ui.desaturateColor));
   })();
   var palette = paletteRaw.map(colorToRGBString);
 
@@ -102,7 +102,7 @@ tv.exportTo('tv.b.ui', function() {
   var reservedColorNameToIdMap = (function() {
     var m = {};
     var i = generalPurposeColors.length;
-    tv.b.iterItems(reservedColorsByName, function(key, value) {
+    tr.b.iterItems(reservedColorsByName, function(key, value) {
       m[key] = i++;
     });
     return m;

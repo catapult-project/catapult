@@ -15,7 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/table.html">
 <link rel="import" href="/core/trace_model/attribute.html">
 
-<polymer-element name="tv-c-a-memory-dump-overview-pane">
+<polymer-element name="tr-c-a-memory-dump-overview-pane">
   <template>
     <style>
       :host {
@@ -41,16 +41,16 @@ found in the LICENSE file.
       }
     </style>
     <div id="label">Overview</div>
-    <tv-b-ui-table id="table">
-    </tv-b-ui-table>
+    <tr-b-ui-table id="table">
+    </tr-b-ui-table>
   </template>
   <script>
   'use strict';
 
   Polymer({
     // TODO(petrcermak): Consider sharing more code between
-    // tv-c-a-memory-dump-overview-pane and tv-c-memory-dump-process pane
-    // (e.g. by defining a common base class tv-c-memory-dump-pane).
+    // tr-c-a-memory-dump-overview-pane and tr-c-memory-dump-process pane
+    // (e.g. by defining a common base class tr-c-memory-dump-pane).
 
     created: function() {
       this.processMemoryDumps_ = undefined;
@@ -95,7 +95,7 @@ found in the LICENSE file.
       var rows = processMemoryDumps.map(function(processMemoryDump) {
         function buildVMRegionsPane() {
           var pane = document.createElement(
-                  'tv-c-a-memory-dump-vm-regions-details-pane');
+                  'tr-c-a-memory-dump-vm-regions-details-pane');
           pane.vmRegions = processMemoryDump.mostRecentVmRegions;
           return pane;
         }
@@ -104,8 +104,8 @@ found in the LICENSE file.
         var usedMemorySizes = {};
         var totalResident = processMemoryDump.totalResidentBytes;
         if (totalResident !== undefined) {
-          var cell = new tv.c.analysis.MemoryCell(
-              new tv.c.trace_model.ScalarAttribute('bytes', totalResident));
+          var cell = new tr.c.analysis.MemoryCell(
+              new tr.c.trace_model.ScalarAttribute('bytes', totalResident));
           cell.buildDetailsPane = buildVMRegionsPane;
           usedMemorySizes['Total resident'] = cell;
         }
@@ -114,8 +114,8 @@ found in the LICENSE file.
           var byteStat =
               processMemoryDump.getMostRecentTotalVmRegionStat(byteStatName);
           if (byteStat !== undefined) {
-            var cell = new tv.c.analysis.MemoryCell(
-                new tv.c.trace_model.ScalarAttribute('bytes', byteStat));
+            var cell = new tr.c.analysis.MemoryCell(
+                new tr.c.trace_model.ScalarAttribute('bytes', byteStat));
             cell.buildDetailsPane = buildVMRegionsPane;
             usedMemorySizes[columnTitle] = cell;
           }
@@ -133,10 +133,10 @@ found in the LICENSE file.
             // name once the correspoding change lands in Chromium.
             if (attr === undefined)
               attr = dump.attributes['outer_size'];
-            var cell = new tv.c.analysis.MemoryCell(attr);
+            var cell = new tr.c.analysis.MemoryCell(attr);
             cell.buildDetailsPane = function() {
               var pane = document.createElement(
-                  'tv-c-a-memory-dump-allocator-details-pane');
+                  'tr-c-a-memory-dump-allocator-details-pane');
               pane.memoryAllocatorDump = dump;
               return pane;
             };
@@ -161,7 +161,7 @@ found in the LICENSE file.
       var titleColumn = {
         title: 'Process',
         value: function(row) {
-          var titleEl = document.createElement('tv-b-ui-color-legend');
+          var titleEl = document.createElement('tr-b-ui-color-legend');
           titleEl.label = row.title;
           return titleEl;
         },
@@ -172,17 +172,17 @@ found in the LICENSE file.
         supportsCellSelection: false
       };
 
-      var usedMemorySizeColumns = tv.c.analysis.MemoryColumn.fromRows(
+      var usedMemorySizeColumns = tr.c.analysis.MemoryColumn.fromRows(
           rows, 'usedMemorySizes');
-      var allocatorSizeColumns = tv.c.analysis.MemoryColumn.fromRows(
+      var allocatorSizeColumns = tr.c.analysis.MemoryColumn.fromRows(
           rows, 'allocatorSizes', function(allocatorName) {
-        var titleEl = document.createElement('tv-b-ui-color-legend');
+        var titleEl = document.createElement('tr-b-ui-color-legend');
         titleEl.label = allocatorName;
         return titleEl;
       });
 
       var sizeColumns = usedMemorySizeColumns.concat(allocatorSizeColumns);
-      tv.c.analysis.MemoryColumn.spaceEqually(sizeColumns);
+      tr.c.analysis.MemoryColumn.spaceEqually(sizeColumns);
 
       var columns = [titleColumn].concat(sizeColumns);
       this.$.table.tableColumns = columns;

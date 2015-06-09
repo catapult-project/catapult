@@ -11,9 +11,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var picture = new tv.e.cc.PictureSnapshot({id: '31415'}, 10, {
+    var picture = new tr.e.cc.PictureSnapshot({id: '31415'}, 10, {
       'params': {
         'opaque_rect': [-15, -15, 0, 0],
         'layer_rect': [-15, -15, 46, 833]
@@ -23,7 +23,7 @@ tv.b.unittest.testSuite(function() {
     picture.preInitialize();
     picture.initialize();
 
-    var dbg = new tv.e.cc.PictureDebugger();
+    var dbg = new tr.e.cc.PictureDebugger();
     this.addHTMLOutput(dbg);
     dbg.picture = picture;
     dbg.style.border = '1px solid black';

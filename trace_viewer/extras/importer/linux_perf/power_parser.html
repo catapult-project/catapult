@@ -14,9 +14,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses power events in the Linux event trace format.
  */
-tv.exportTo('tv.e.importer.linux_perf', function() {
+tr.exportTo('tr.e.importer.linux_perf', function() {
 
-  var Parser = tv.e.importer.linux_perf.Parser;
+  var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux power trace events.
@@ -53,8 +53,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       }
       powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
-        powerCounter.addSeries(new tv.c.trace_model.CounterSeries('state',
-            tv.b.ui.getColorIdForGeneralPurposeString(
+        powerCounter.addSeries(new tr.c.trace_model.CounterSeries('state',
+            tr.b.ui.getColorIdForGeneralPurposeString(
                 powerCounter.name + '.' + 'state')));
       }
       powerCounter.series.forEach(function(series) {
@@ -66,8 +66,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
       var powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
-        powerCounter.addSeries(new tv.c.trace_model.CounterSeries('state',
-            tv.b.ui.getColorIdForGeneralPurposeString(powerCounter.name)));
+        powerCounter.addSeries(new tr.c.trace_model.CounterSeries('state',
+            tr.b.ui.getColorIdForGeneralPurposeString(powerCounter.name)));
       }
       // NB: 4294967295/-1 means an exit from the current state
       var val = (cpuState != 4294967295 ? cpuState + 1 : 0);
@@ -81,8 +81,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var powerCounter =
           targetCpu.getOrCreateCounter('', 'Clock Frequency');
       if (powerCounter.numSeries === 0) {
-        powerCounter.addSeries(new tv.c.trace_model.CounterSeries('state',
-            tv.b.ui.getColorIdForGeneralPurposeString(
+        powerCounter.addSeries(new tr.c.trace_model.CounterSeries('state',
+            tr.b.ui.getColorIdForGeneralPurposeString(
                 powerCounter.name + '.' + 'state')));
       }
       powerCounter.series.forEach(function(series) {

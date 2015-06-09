@@ -11,19 +11,19 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Settings object.
  */
-tv.exportTo('tv.b', function() {
+tr.exportTo('tr.b', function() {
   /**
    * Settings is a simple wrapper around local storage, to make it easier
    * to test classes that have settings.
    *
-   * May be called as new tv.b.Settings() or simply tv.b.Settings()
+   * May be called as new tr.b.Settings() or simply tr.b.Settings()
    * @constructor
    */
   function Settings() {
     return Settings;
   };
 
-  document.head.addEventListener('tv-unittest-will-run', function() {
+  document.head.addEventListener('tr-unittest-will-run', function() {
     Settings.setAlternativeStorageInstance(global.sessionStorage);
   });
 

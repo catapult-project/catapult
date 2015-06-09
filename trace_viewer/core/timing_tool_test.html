@@ -11,10 +11,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function create100PxWideViewportInto10WideWorld() {
-    var vp = new tv.c.TimelineViewport(document.createElement('div'));
-    var tempDisplayTransform = new tv.c.TimelineDisplayTransform();
+    var vp = new tr.c.TimelineViewport(document.createElement('div'));
+    var tempDisplayTransform = new tr.c.TimelineDisplayTransform();
     tempDisplayTransform.xSetWorldBounds(0, 10, 100);
     vp.setDisplayTransformImmediately(tempDisplayTransform);
 
@@ -28,7 +28,7 @@ tv.b.unittest.testSuite(function() {
     var vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tv.c.TimingTool(vp);
+    var tool = new tr.c.TimingTool(vp);
 
     tool.mouseDownAt_(1.1, 0);
     assert.isTrue(vp.interestRange.leftSelected);
@@ -43,7 +43,7 @@ tv.b.unittest.testSuite(function() {
     var vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tv.c.TimingTool(vp);
+    var tool = new tr.c.TimingTool(vp);
 
     tool.mouseDownAt_(9.1, 0);
     assert.isTrue(vp.interestRange.rightSelected);
@@ -58,7 +58,7 @@ tv.b.unittest.testSuite(function() {
     var vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tv.c.TimingTool(vp);
+    var tool = new tr.c.TimingTool(vp);
 
     tool.mouseDownAt_(5, 0);
     assert.isTrue(vp.interestRange.rightSelected);

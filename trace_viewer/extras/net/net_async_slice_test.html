@@ -11,9 +11,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var AsyncSlice = tv.c.trace_model.AsyncSlice;
-  var NetAsyncSlice = tv.e.net.NetAsyncSlice;
+tr.b.unittest.testSuite(function() {
+  var AsyncSlice = tr.c.trace_model.AsyncSlice;
+  var NetAsyncSlice = tr.e.net.NetAsyncSlice;
 
   test('basic', function() {
     var s = new NetAsyncSlice('netlog', 'HTTP_STREAM_JOB', 7, 0, {});
@@ -29,7 +29,7 @@ tv.b.unittest.testSuite(function() {
       {name: 'HTTP_STREAM_JOB', args: {}, pid: 1, ts: 100, cat: 'netlog', tid: 2, ph: 'b', id: 71}, // @suppress longLineCheck
       {name: 'HTTP_STREAM_JOB', args: {}, pid: 1, ts: 200, cat: 'netlog', tid: 2, ph: 'e', id: 71} // @suppress longLineCheck
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     assert.equal(t2.asyncSliceGroup.length, 1);
     assert.instanceOf(t2.asyncSliceGroup.slices[0], NetAsyncSlice);

@@ -9,7 +9,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.ui', function() {
+tr.exportTo('tr.b.ui', function() {
 
   var constants = {
     DEFAULT_SCALE: 0.5,
@@ -19,11 +19,11 @@ tv.exportTo('tv.b.ui', function() {
     FOV: 15,
     RESCALE_TIMEOUT_MS: 200,
     MAXIMUM_TILT: 80,
-    SETTINGS_NAMESPACE: 'tv.ui_camera'
+    SETTINGS_NAMESPACE: 'tr.ui_camera'
   };
 
 
-  var Camera = tv.b.ui.define('camera');
+  var Camera = tr.b.ui.define('camera');
 
   Camera.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -69,12 +69,12 @@ tv.exportTo('tv.b.ui', function() {
 
     get projectionMatrix() {
       var rect =
-          tv.b.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
+          tr.b.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
 
       var aspectRatio = rect.width / rect.height;
       var matrix = mat4.create();
       mat4.perspective(
-          matrix, tv.b.deg2rad(constants.FOV), aspectRatio, 1, 100000);
+          matrix, tr.b.deg2rad(constants.FOV), aspectRatio, 1, 100000);
 
       return matrix;
     },
@@ -121,7 +121,7 @@ tv.exportTo('tv.b.ui', function() {
       this.gazeTarget_ = [0, 0, 0];
       this.rotation_ = [0, 0];
 
-      var settings = tv.b.SessionSettings();
+      var settings = tr.b.SessionSettings();
       var keys = settings.keys(constants.SETTINGS_NAMESPACE);
       if (keys.length !== 0) {
         this.loadCameraFromSettings(settings);
@@ -130,7 +130,7 @@ tv.exportTo('tv.b.ui', function() {
 
       if (this.deviceRect_) {
         var rect =
-            tv.b.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
+            tr.b.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
 
         this.eye_[0] = this.deviceRect_.width / 2;
         this.eye_[1] = this.deviceRect_.height / 2;
@@ -145,7 +145,7 @@ tv.exportTo('tv.b.ui', function() {
 
     updatePanByDelta: function(delta) {
       var rect =
-          tv.b.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
+          tr.b.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
 
       // Get the eye vector, since we'll be adjusting gazeTarget.
       var eyeVector = [
@@ -157,15 +157,15 @@ tv.exportTo('tv.b.ui', function() {
 
       var halfFov = constants.FOV / 2;
       var multiplier =
-          2.0 * length * Math.tan(tv.b.deg2rad(halfFov)) / rect.height;
+          2.0 * length * Math.tan(tr.b.deg2rad(halfFov)) / rect.height;
 
       // Get the up and right vectors.
       var up = [0, 1, 0];
       var rotMatrix = mat4.create();
       mat4.rotate(
-          rotMatrix, rotMatrix, tv.b.deg2rad(this.rotation_[1]), [0, 1, 0]);
+          rotMatrix, rotMatrix, tr.b.deg2rad(this.rotation_[1]), [0, 1, 0]);
       mat4.rotate(
-          rotMatrix, rotMatrix, tv.b.deg2rad(this.rotation_[0]), [1, 0, 0]);
+          rotMatrix, rotMatrix, tr.b.deg2rad(this.rotation_[0]), [1, 0, 0]);
       vec3.transformMat4(up, up, rotMatrix);
 
       var right = [0, 0, 0];
@@ -184,7 +184,7 @@ tv.exportTo('tv.b.ui', function() {
       // to be on the plane z = 0 with normal [0, 0, 1].
       if (Math.abs(this.gazeTarget_[2]) > 1e-6) {
         var gazeVector = [-eyeVector[0], -eyeVector[1], -eyeVector[2]];
-        var newLength = tv.b.clamp(
+        var newLength = tr.b.clamp(
             -this.eye_[2] / gazeVector[2],
             constants.MINIMUM_DISTANCE,
             constants.MAXIMUM_DISTANCE);
@@ -193,13 +193,13 @@ tv.exportTo('tv.b.ui', function() {
           this.gazeTarget_[i] = this.eye_[i] + newLength * gazeVector[i];
       }
 
-      this.saveCameraToSettings(tv.b.SessionSettings());
+      this.saveCameraToSettings(tr.b.SessionSettings());
       this.dispatchRenderEvent_();
     },
 
     updateZoomByDelta: function(delta) {
       var deltaY = delta[1];
-      deltaY = tv.b.clamp(deltaY, -50, 50);
+      deltaY = tr.b.clamp(deltaY, -50, 50);
       var scale = 1.0 - deltaY / 100.0;
 
       var eyeVector = [0, 0, 0];
@@ -216,7 +216,7 @@ tv.exportTo('tv.b.ui', function() {
       vec3.scale(eyeVector, eyeVector, scale);
       vec3.add(this.eye_, this.gazeTarget_, eyeVector);
 
-      this.saveCameraToSettings(tv.b.SessionSettings());
+      this.saveCameraToSettings(tr.b.SessionSettings());
       this.dispatchRenderEvent_();
     },
 
@@ -235,9 +235,9 @@ tv.exportTo('tv.b.ui', function() {
       // Undo the current rotation.
       var rotMatrix = mat4.create();
       mat4.rotate(
-          rotMatrix, rotMatrix, -tv.b.deg2rad(this.rotation_[0]), [1, 0, 0]);
+          rotMatrix, rotMatrix, -tr.b.deg2rad(this.rotation_[0]), [1, 0, 0]);
       mat4.rotate(
-          rotMatrix, rotMatrix, -tv.b.deg2rad(this.rotation_[1]), [0, 1, 0]);
+          rotMatrix, rotMatrix, -tr.b.deg2rad(this.rotation_[1]), [0, 1, 0]);
       vec4.transformMat4(eyeVector, eyeVector, rotMatrix);
 
       // Update rotation values.
@@ -247,14 +247,14 @@ tv.exportTo('tv.b.ui', function() {
       // Redo the new rotation.
       mat4.identity(rotMatrix);
       mat4.rotate(
-          rotMatrix, rotMatrix, tv.b.deg2rad(this.rotation_[1]), [0, 1, 0]);
+          rotMatrix, rotMatrix, tr.b.deg2rad(this.rotation_[1]), [0, 1, 0]);
       mat4.rotate(
-          rotMatrix, rotMatrix, tv.b.deg2rad(this.rotation_[0]), [1, 0, 0]);
+          rotMatrix, rotMatrix, tr.b.deg2rad(this.rotation_[0]), [1, 0, 0]);
       vec4.transformMat4(eyeVector, eyeVector, rotMatrix);
 
       vec3.add(this.eye_, this.gazeTarget_, eyeVector);
 
-      this.saveCameraToSettings(tv.b.SessionSettings());
+      this.saveCameraToSettings(tr.b.SessionSettings());
       this.dispatchRenderEvent_();
     },
 
@@ -322,7 +322,7 @@ tv.exportTo('tv.b.ui', function() {
 
     // Misc helper functions.
     getMousePosition_: function(e) {
-      var rect = tv.b.windowRectForElement(this.canvas_);
+      var rect = tr.b.windowRectForElement(this.canvas_);
       return [(e.clientX - rect.x) * this.pixelRatio_,
               (e.clientY - rect.y) * this.pixelRatio_];
     },
@@ -333,7 +333,7 @@ tv.exportTo('tv.b.ui', function() {
     },
 
     dispatchRenderEvent_: function() {
-      tv.b.dispatchSimpleEvent(this, 'renderrequired', false, false);
+      tr.b.dispatchSimpleEvent(this, 'renderrequired', false, false);
     }
   };
 

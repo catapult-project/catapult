@@ -12,25 +12,25 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.cc', function() {
+tr.exportTo('tr.e.cc', function() {
   /**
    * @constructor
    */
   function RasterTaskSelection(selection) {
-    tv.e.cc.Selection.call(this);
+    tr.e.cc.Selection.call(this);
     var whySupported = RasterTaskSelection.whySuported(selection);
     if (!whySupported.ok)
       throw new Error('Fail: ' + whySupported.why);
-    this.slices_ = tv.b.asArray(selection);
+    this.slices_ = tr.b.asArray(selection);
     this.tiles_ = this.slices_.map(function(slice) {
-      var tile = tv.e.cc.getTileFromRasterTaskSlice(slice);
+      var tile = tr.e.cc.getTileFromRasterTaskSlice(slice);
       if (tile === undefined)
         throw new Error('This should never happen due to .supports check.');
       return tile;
     });
   }
   RasterTaskSelection.whySuported = function(selection) {
-    if (!(selection instanceof tv.c.Selection))
+    if (!(selection instanceof tr.c.Selection))
       return {ok: false, why: 'Must be selection'};
 
     if (selection.length === 0)
@@ -39,10 +39,10 @@ tv.exportTo('tv.e.cc', function() {
     var tile0;
     for (var i = 0; i < selection.length; i++) {
       var event = selection[i];
-      if (!(event instanceof tv.c.trace_model.Slice))
+      if (!(event instanceof tr.c.trace_model.Slice))
         return {ok: false, why: 'Not a slice'};
 
-      var tile = tv.e.cc.getTileFromRasterTaskSlice(selection[i]);
+      var tile = tr.e.cc.getTileFromRasterTaskSlice(selection[i]);
       if (tile === undefined)
         return {ok: false, why: 'No tile found'};
 
@@ -65,7 +65,7 @@ tv.exportTo('tv.e.cc', function() {
   };
 
   RasterTaskSelection.prototype = {
-    __proto__: tv.e.cc.Selection.prototype,
+    __proto__: tr.e.cc.Selection.prototype,
 
     get specicifity() {
       return 3;
@@ -96,14 +96,14 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     createAnalysis: function() {
-      var sel = new tv.c.Selection();
+      var sel = new tr.c.Selection();
       this.slices_.forEach(function(slice) {
         sel.push(slice);
       });
 
       var analysis;
       if (sel.length == 1)
-        analysis = document.createElement('tv-c-a-single-event-sub-view');
+        analysis = document.createElement('tr-c-a-single-event-sub-view');
       else
         analysis = new RasterTaskView();
       analysis.selection = sel;

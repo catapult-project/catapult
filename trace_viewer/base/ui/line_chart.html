@@ -12,9 +12,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.ui', function() {
-  var ChartBase = tv.b.ui.ChartBase;
-  var getColorOfKey = tv.b.ui.getColorOfKey;
+tr.exportTo('tr.b.ui', function() {
+  var ChartBase = tr.b.ui.ChartBase;
+  var getColorOfKey = tr.b.ui.getColorOfKey;
 
   function getSampleWidth(data, index, leftSide) {
     var leftIndex, rightIndex;
@@ -33,7 +33,7 @@ tv.exportTo('tv.b.ui', function() {
   /**
    * @constructor
    */
-  var LineChart = tv.b.ui.define('line-chart', ChartBase);
+  var LineChart = tr.b.ui.define('line-chart', ChartBase);
 
   LineChart.prototype = {
     __proto__: ChartBase.prototype,
@@ -42,7 +42,7 @@ tv.exportTo('tv.b.ui', function() {
       ChartBase.prototype.decorate.call(this);
       this.classList.add('line-chart');
 
-      this.brushedRange_ = new tv.b.Range();
+      this.brushedRange_ = new tr.b.Range();
 
       this.xScale_ = d3.scale.linear();
       this.yScale_ = d3.scale.linear();
@@ -94,7 +94,7 @@ tv.exportTo('tv.b.ui', function() {
     },
 
     computeBrushRangeFromIndices: function(indexA, indexB) {
-      var r = new tv.b.Range();
+      var r = new tr.b.Range();
       var leftIndex = Math.min(indexA, indexB);
       var rightIndex = Math.max(indexA, indexB);
       leftIndex = Math.max(0, leftIndex);
@@ -122,7 +122,7 @@ tv.exportTo('tv.b.ui', function() {
       this.xScale_.domain(d3.extent(this.data_, function(d) { return d.x; }));
 
       // Y.
-      var yRange = new tv.b.Range();
+      var yRange = new tr.b.Range();
       this.data_.forEach(function(d) {
         this.seriesKeys_.forEach(function(k) {
           yRange.addValue(d[k]);
@@ -206,7 +206,7 @@ tv.exportTo('tv.b.ui', function() {
       var index = this.getDataIndexAtClientPoint_(e.clientX, e.clientY, true);
 
       if (index !== undefined) {
-        tv.b.ui.trackMouseMovesUntilMouseUp(
+        tr.b.ui.trackMouseMovesUntilMouseUp(
             this.onMouseMove_.bind(this, e.button),
             this.onMouseUp_.bind(this, e.button));
       }

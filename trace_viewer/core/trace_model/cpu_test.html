@@ -11,9 +11,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Cpu = tv.c.trace_model.Cpu;
-  var newThreadSlice = tv.c.test_utils.newThreadSlice;
+tr.b.unittest.testSuite(function() {
+  var Cpu = tr.c.trace_model.Cpu;
+  var newThreadSlice = tr.c.test_utils.newThreadSlice;
 
   test('cpuBounds_Empty', function() {
     var cpu = new Cpu({}, 1);
@@ -24,7 +24,7 @@ tv.b.unittest.testSuite(function() {
 
   test('cpuBounds_OneSlice', function() {
     var cpu = new Cpu({}, 1);
-    cpu.slices.push(tv.c.test_utils.newSlice(1, 3));
+    cpu.slices.push(tr.c.test_utils.newSlice(1, 3));
     cpu.updateBounds();
     assert.equal(cpu.bounds.min, 1);
     assert.equal(cpu.bounds.max, 4);
@@ -40,13 +40,13 @@ tv.b.unittest.testSuite(function() {
   test('shiftTimestampsForward', function() {
     var cpu = new Cpu({}, 1);
     var ctr = cpu.getOrCreateCounter('foo', 'bar');
-    cpu.slices.push(tv.c.test_utils.newSlice(1, 3));
+    cpu.slices.push(tr.c.test_utils.newSlice(1, 3));
     var shiftCount = 0;
     ctr.shiftTimestampsForward = function(ts) {
       if (ts == 0.32)
         shiftCount++;
     };
-    cpu.slices.push(tv.c.test_utils.newSlice(1, 3));
+    cpu.slices.push(tr.c.test_utils.newSlice(1, 3));
     cpu.shiftTimestampsForward(0.32);
     assert.equal(1, shiftCount);
     assert.equal(cpu.slices[0].start, 1.32);
@@ -54,7 +54,7 @@ tv.b.unittest.testSuite(function() {
 
 
   function newCpuSliceNamed(cpu, name, start, duration, opt_thread) {
-    var s = new tv.c.trace_model.CpuSlice(
+    var s = new tr.c.trace_model.CpuSlice(
         'cat', name, 0, start, {}, duration);
     s.cpu = cpu;
     if (opt_thread)
@@ -63,8 +63,8 @@ tv.b.unittest.testSuite(function() {
   }
 
   test('getTimesliceForCpuSlice', function() {
-    var m = new tv.c.TraceModel();
-    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var m = new tr.c.TraceModel();
+    var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
     var cpu = m.kernel.getOrCreateCpu(1);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     t2.timeSlices = [newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 0, 10, cpu),
@@ -88,8 +88,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('putToSleepFor', function() {
-    var m = new tv.c.TraceModel();
-    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var m = new tr.c.TraceModel();
+    var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
     var cpu = m.kernel.getOrCreateCpu(1);
 
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
@@ -112,8 +112,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('putToSleepForNothing', function() {
-    var m = new tv.c.TraceModel();
-    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var m = new tr.c.TraceModel();
+    var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
     var cpu = m.kernel.getOrCreateCpu(1);
 
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
@@ -129,7 +129,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('switchActiveThread', function() {
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     var cpu = m.kernel.getOrCreateCpu(1);
 
     cpu.switchActiveThread(5, {}, 0, 'idle thread', {});

@@ -14,14 +14,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Selection = tv.c.Selection;
-  var SampleTrack = tv.c.tracks.SampleTrack;
-  var Sample = tv.c.trace_model.Sample;
-  var StackFrame = tv.c.trace_model.StackFrame;
+tr.b.unittest.testSuite(function() {
+  var Selection = tr.c.Selection;
+  var SampleTrack = tr.c.tracks.SampleTrack;
+  var Sample = tr.c.trace_model.Sample;
+  var StackFrame = tr.c.trace_model.StackFrame;
 
   test('modelMapping', function() {
-    var track = new SampleTrack(new tv.c.TimelineViewport());
+    var track = new SampleTrack(new tr.c.TimelineViewport());
     var fA = new StackFrame(undefined, 1, 'cat', 'a', 7);
     var sample = new Sample(undefined, undefined, 'instructions_retired',
                             10, fA, 10);

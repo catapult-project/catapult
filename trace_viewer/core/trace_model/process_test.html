@@ -12,18 +12,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('getOrCreateCounter', function() {
-    var model = new tv.c.TraceModel();
-    var process = new tv.c.trace_model.Process(model, 7);
+    var model = new tr.c.TraceModel();
+    var process = new tr.c.trace_model.Process(model, 7);
     var ctrBar = process.getOrCreateCounter('foo', 'bar');
     var ctrBar2 = process.getOrCreateCounter('foo', 'bar');
     assert.equal(ctrBar2, ctrBar);
   });
 
   test('shiftTimestampsForward', function() {
-    var model = new tv.c.TraceModel();
-    var process = new tv.c.trace_model.Process(model, 7);
+    var model = new tr.c.TraceModel();
+    var process = new tr.c.trace_model.Process(model, 7);
     var ctr = process.getOrCreateCounter('foo', 'bar');
     var thread = process.getOrCreateThread(1);
 
@@ -41,47 +41,47 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('compareOnPID', function() {
-    var model = new tv.c.TraceModel();
-    var p1 = new tv.c.trace_model.Process(model, 1);
+    var model = new tr.c.TraceModel();
+    var p1 = new tr.c.trace_model.Process(model, 1);
     p1.name = 'Renderer';
 
-    var model = new tv.c.TraceModel();
-    var p2 = new tv.c.trace_model.Process(model, 2);
+    var model = new tr.c.TraceModel();
+    var p2 = new tr.c.trace_model.Process(model, 2);
     p2.name = 'Renderer';
 
     assert.isBelow(p1.compareTo(p2), 0);
   });
 
   test('compareOnSortIndex', function() {
-    var model = new tv.c.TraceModel();
-    var p1 = new tv.c.trace_model.Process(model, 1);
+    var model = new tr.c.TraceModel();
+    var p1 = new tr.c.trace_model.Process(model, 1);
     p1.name = 'Renderer';
     p1.sortIndex = 1;
 
-    var p2 = new tv.c.trace_model.Process(model, 2);
+    var p2 = new tr.c.trace_model.Process(model, 2);
     p2.name = 'Renderer';
 
     assert.isAbove(p1.compareTo(p2), 0);
   });
 
   test('compareOnName', function() {
-    var model = new tv.c.TraceModel();
-    var p1 = new tv.c.trace_model.Process(model, 1);
+    var model = new tr.c.TraceModel();
+    var p1 = new tr.c.trace_model.Process(model, 1);
     p1.name = 'Browser';
 
-    var p2 = new tv.c.trace_model.Process(model, 2);
+    var p2 = new tr.c.trace_model.Process(model, 2);
     p2.name = 'Renderer';
 
     assert.isBelow(p1.compareTo(p2), 0);
   });
 
   test('compareOnLabels', function() {
-    var model = new tv.c.TraceModel();
-    var p1 = new tv.c.trace_model.Process(model, 1);
+    var model = new tr.c.TraceModel();
+    var p1 = new tr.c.trace_model.Process(model, 1);
     p1.name = 'Renderer';
     p1.labels = ['a'];
 
-    var p2 = new tv.c.trace_model.Process(model, 2);
+    var p2 = new tr.c.trace_model.Process(model, 2);
     p2.name = 'Renderer';
     p2.labels = ['b'];
 

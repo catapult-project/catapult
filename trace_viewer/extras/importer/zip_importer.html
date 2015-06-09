@@ -17,8 +17,8 @@ found in the LICENSE file.
  * @fileoverview ZipImporter inflates zip compressed data and passes it along
  * to an actual importer.
  */
-tv.exportTo('tv.e.importer', function() {
-  var Importer = tv.c.importer.Importer;
+tr.exportTo('tr.e.importer', function() {
+  var Importer = tr.c.importer.Importer;
 
   function ZipImporter(model, eventData) {
     if (eventData instanceof ArrayBuffer)
@@ -58,7 +58,7 @@ tv.exportTo('tv.e.importer', function() {
     }
   };
 
-  tv.c.importer.Importer.register(ZipImporter);
+  tr.c.importer.Importer.register(ZipImporter);
 
   return {
     ZipImporter: ZipImporter

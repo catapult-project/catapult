@@ -13,16 +13,16 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.ui', function() {
-  var ChartBase = tv.b.ui.ChartBase;
-  var getColorOfKey = tv.b.ui.getColorOfKey;
+tr.exportTo('tr.b.ui', function() {
+  var ChartBase = tr.b.ui.ChartBase;
+  var getColorOfKey = tr.b.ui.getColorOfKey;
 
   var MIN_RADIUS = 100;
 
   /**
    * @constructor
    */
-  var PieChart = tv.b.ui.define('pie-chart', ChartBase);
+  var PieChart = tr.b.ui.define('pie-chart', ChartBase);
 
   PieChart.prototype = {
     __proto__: ChartBase.prototype,

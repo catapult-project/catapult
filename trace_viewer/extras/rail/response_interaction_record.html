@@ -16,16 +16,16 @@ found in the LICENSE file.
 /**
  * @fileoverview The Response phase of RAIL.
  */
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
   function ResponseInteractionRecord(start, duration) {
-    tv.e.audits.RAILInteractionRecord.call(
+    tr.e.audits.RAILInteractionRecord.call(
         this, 'Gesture',
-        tv.b.ui.getColorIdForGeneralPurposeString('mt_input'),
+        tr.b.ui.getColorIdForGeneralPurposeString('mt_input'),
         start, duration);
   }
 
   ResponseInteractionRecord.prototype = {
-    __proto__: tv.e.audits.RAILInteractionRecord.prototype,
+    __proto__: tr.e.audits.RAILInteractionRecord.prototype,
 
     get railTypeName() {
       return 'Response';

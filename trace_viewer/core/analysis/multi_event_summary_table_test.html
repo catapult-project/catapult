@@ -14,10 +14,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Model = tv.c.TraceModel;
-  var Selection = tv.c.Selection;
-  var newSliceEx = tv.c.test_utils.newSliceEx;
+tr.b.unittest.testSuite(function() {
+  var Model = tr.c.TraceModel;
+  var Selection = tr.c.Selection;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
 
   test('basicNoCpu', function() {
     var model = new Model();
@@ -33,7 +33,7 @@ tv.b.unittest.testSuite(function() {
 
     var selection = new Selection(tsg.slices);
 
-    var viewEl = document.createElement('tv-c-a-multi-event-summary-table');
+    var viewEl = document.createElement('tr-c-a-multi-event-summary-table');
     viewEl.configure({
       showTotals: true,
       eventsHaveDuration: true,
@@ -59,7 +59,7 @@ tv.b.unittest.testSuite(function() {
 
     var selection = new Selection(tsg.slices);
 
-    var viewEl = document.createElement('tv-c-a-multi-event-summary-table');
+    var viewEl = document.createElement('tr-c-a-multi-event-summary-table');
     viewEl.configure({
       showTotals: true,
       eventsHaveDuration: true,
@@ -71,8 +71,8 @@ tv.b.unittest.testSuite(function() {
   test('noDurationNoSubRows', function() {
     var model = new Model();
 
-    var fe1 = new tv.c.trace_model.FlowEvent('cat', 1234, 'title', 7, 10, {});
-    var fe2 = new tv.c.trace_model.FlowEvent('cat', 1234, 'title', 8, 20, {});
+    var fe1 = new tr.c.trace_model.FlowEvent('cat', 1234, 'title', 7, 10, {});
+    var fe2 = new tr.c.trace_model.FlowEvent('cat', 1234, 'title', 8, 20, {});
 
     // Make reading some properties an explosion, as a way to ensure that they
     // aren't read.
@@ -95,7 +95,7 @@ tv.b.unittest.testSuite(function() {
 
     var selection = new Selection([fe1, fe2]);
 
-    var viewEl = document.createElement('tv-c-a-multi-event-summary-table');
+    var viewEl = document.createElement('tr-c-a-multi-event-summary-table');
     viewEl.configure({
       showTotals: true,
       eventsHaveDuration: false,

@@ -14,19 +14,19 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
 
   /**
    * Visualizes a Cpu using a series of of SliceTracks.
    * @constructor
    */
   var CpuTrack =
-      tv.b.ui.define('cpu-track', tv.c.tracks.ContainerTrack);
+      tr.b.ui.define('cpu-track', tr.c.tracks.ContainerTrack);
   CpuTrack.prototype = {
-    __proto__: tv.c.tracks.ContainerTrack.prototype,
+    __proto__: tr.c.tracks.ContainerTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('cpu-track');
       this.detailedMode_ = true;
     },
@@ -66,7 +66,7 @@ tv.exportTo('tv.c.tracks', function() {
         return true;
       if (cpu.samples && cpu.samples.length)
         return true;
-      if (tv.b.dictionaryLength(cpu.counters) > 0)
+      if (tr.b.dictionaryLength(cpu.counters) > 0)
         return true;
       return false;
     },
@@ -77,7 +77,7 @@ tv.exportTo('tv.c.tracks', function() {
         return;
       var slices = this.cpu_.slices;
       if (slices.length) {
-        var track = new tv.c.tracks.SliceTrack(this.viewport);
+        var track = new tr.c.tracks.SliceTrack(this.viewport);
         track.slices = slices;
         track.heading = this.cpu_.userFriendlyName + ':';
         this.appendChild(track);
@@ -88,7 +88,7 @@ tv.exportTo('tv.c.tracks', function() {
 
         for (var counterName in this.cpu_.counters) {
           var counter = this.cpu_.counters[counterName];
-          track = new tv.c.tracks.CounterTrack(this.viewport);
+          track = new tr.c.tracks.CounterTrack(this.viewport);
           track.heading = this.cpu_.userFriendlyName + ' ' +
               counter.name + ':';
           track.counter = counter;
@@ -108,19 +108,19 @@ tv.exportTo('tv.c.tracks', function() {
         samplesByTitle[sample.title].push(sample);
       });
 
-      var sampleTitles = tv.b.dictionaryKeys(samplesByTitle);
+      var sampleTitles = tr.b.dictionaryKeys(samplesByTitle);
       sampleTitles.sort();
 
       sampleTitles.forEach(function(sampleTitle) {
         var samples = samplesByTitle[sampleTitle];
-        var samplesTrack = new tv.c.tracks.SliceTrack(this.viewport);
+        var samplesTrack = new tr.c.tracks.SliceTrack(this.viewport);
         samplesTrack.group = this.cpu_;
         samplesTrack.slices = samples;
         samplesTrack.heading = this.cpu_.userFriendlyName + ': ' +
             sampleTitle;
         samplesTrack.tooltip = this.cpu_.userFriendlyDetails;
         samplesTrack.selectionGenerator = function() {
-          var selection = new tv.c.Selection();
+          var selection = new tr.c.Selection();
           for (var i = 0; i < samplesTrack.slices.length; i++) {
             selection.push(samplesTrack.slices[i]);
           }

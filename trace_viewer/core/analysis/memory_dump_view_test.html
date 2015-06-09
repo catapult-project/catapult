@@ -13,20 +13,20 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var createTestProcessMemoryDumps = tv.c.analysis.createTestProcessMemoryDumps;
+tr.b.unittest.testSuite(function() {
+  var createTestProcessMemoryDumps = tr.c.analysis.createTestProcessMemoryDumps;
 
   test('instantiate', function() {
     var processMemoryDumps = createTestProcessMemoryDumps();
 
-    var viewEl = document.createElement('tv-c-a-memory-dump-view');
+    var viewEl = document.createElement('tr-c-a-memory-dump-view');
     viewEl.processMemoryDumps = processMemoryDumps;
     this.addHTMLOutput(viewEl);
 
-    var overviewPane = tv.b.findDeepElementMatching(
-        viewEl, 'tv-c-a-memory-dump-overview-pane');
-    var overviewTable = tv.b.findDeepElementMatching(
-        overviewPane, 'tv-b-ui-table');
+    var overviewPane = tr.b.findDeepElementMatching(
+        viewEl, 'tr-c-a-memory-dump-overview-pane');
+    var overviewTable = tr.b.findDeepElementMatching(
+        overviewPane, 'tr-b-ui-table');
     assert.lengthOf(overviewTable.tableRows, 2);
     assert.lengthOf(overviewTable.tableColumns, 7);
 
@@ -44,10 +44,10 @@ tv.b.unittest.testSuite(function() {
     overviewTable.selectedColumnIndex = 5;
 
     // There should now be an allocator details pane containing contain a table.
-    var detailsPane = tv.b.findDeepElementMatching(
-        viewEl, 'tv-c-a-memory-dump-allocator-details-pane');
-    var detailsTable = tv.b.findDeepElementMatching(
-        detailsPane, 'tv-b-ui-table');
+    var detailsPane = tr.b.findDeepElementMatching(
+        viewEl, 'tr-c-a-memory-dump-allocator-details-pane');
+    var detailsTable = tr.b.findDeepElementMatching(
+        detailsPane, 'tr-b-ui-table');
     assert.lengthOf(detailsTable.tableRows, 1);
   });
 });

@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b', function() {
+tr.exportTo('tr.b', function() {
 
   /**
    * KeyEventManager avoids leaks when listening for keys.
@@ -40,7 +40,7 @@ tv.exportTo('tv.b', function() {
   }
   KeyEventManager.instance = undefined;
 
-  document.head.addEventListener('tv-unittest-will-run', function() {
+  document.head.addEventListener('tr-unittest-will-run', function() {
     if (KeyEventManager.instance) {
       KeyEventManager.instance.destroy();
       KeyEventManager.instance = undefined;
@@ -51,7 +51,7 @@ tv.exportTo('tv.b', function() {
   KeyEventManager.prototype = {
     addListener: function(type, handler, thisArg) {
       if (!thisArg.keyEventManagerGuid_) {
-        thisArg.keyEventManagerGuid_ = tv.b.GUID.allocate();
+        thisArg.keyEventManagerGuid_ = tr.b.GUID.allocate();
         thisArg.keyEventManagerRefCount_ = 0;
       }
       thisArg.classList.add('key-event-manager-target');

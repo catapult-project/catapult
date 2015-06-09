@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/table.html">
 <link rel="import" href="/base/units/generic_table.html">
 <link rel="import" href="/base/units/array_of_numbers_span.html">
-<polymer-element name="tv-b-u-generic-table-view">
+<polymer-element name="tr-b-u-generic-table-view">
   <template>
     <style>
     :host {
@@ -20,13 +20,13 @@ found in the LICENSE file.
       align-self: stretch;
     }
     </style>
-    <tv-b-ui-table id="table"></tv-b-ui-table>
+    <tr-b-ui-table id="table"></tr-b-ui-table>
   </template>
 </polymer-element>
 <script>
 'use strict';
 
-tv.exportTo('tv.b.units', function() {
+tr.exportTo('tr.b.units', function() {
   var TEXT_COLUMN_MODE = 1;
   var NUMERIC_COLUMN_MODE = 2;
 
@@ -63,10 +63,10 @@ tv.exportTo('tv.b.units', function() {
     },
 
     cmp: function(a, b) {
-      return tv.b.comparePossiblyUndefinedValues(a, b, function(a, b) {
+      return tr.b.comparePossiblyUndefinedValues(a, b, function(a, b) {
         var vA = a[this.fieldName];
         var vB = b[this.fieldName];
-        return tv.b.comparePossiblyUndefinedValues(vA, vB, function(vA, vB) {
+        return tr.b.comparePossiblyUndefinedValues(vA, vB, function(vA, vB) {
           if (vA.localeCompare)
             return vA.localeCompare(vB);
           return vA - vB;
@@ -102,8 +102,8 @@ tv.exportTo('tv.b.units', function() {
     value: function(item) {
       var fieldValue = item[this.fieldName];
       if (fieldValue instanceof GenericTableViewTotalsItem) {
-        var span = document.createElement('tv-b-u-array-of-numbers-span');
-        span.summaryMode = tv.b.units.ArrayOfNumbersSummaryModes.TOTAL_MODE;
+        var span = document.createElement('tr-b-u-array-of-numbers-span');
+        span.summaryMode = tr.b.units.ArrayOfNumbersSummaryModes.TOTAL_MODE;
         span.numbers = fieldValue.values;
         return span;
       }
@@ -116,7 +116,7 @@ tv.exportTo('tv.b.units', function() {
     }
   };
 
-  Polymer('tv-b-u-generic-table-view', {
+  Polymer('tr-b-u-generic-table-view', {
     created: function() {
       this.items_ = undefined;
     },
@@ -130,7 +130,7 @@ tv.exportTo('tv.b.units', function() {
         this.items_ = undefined;
       } else if (itemsOrGenericTable instanceof Array) {
         this.items_ = itemsOrGenericTable;
-      } else if (itemsOrGenericTable instanceof tv.b.units.GenericTable) {
+      } else if (itemsOrGenericTable instanceof tr.b.units.GenericTable) {
         this.items_ = itemsOrGenericTable.items;
       }
       this.updateContents_();
@@ -139,7 +139,7 @@ tv.exportTo('tv.b.units', function() {
     createColumns_: function() {
       var columnsByName = {};
       this.items_.forEach(function(item) {
-        tv.b.iterItems(item, function(itemFieldName, itemFieldValue) {
+        tr.b.iterItems(item, function(itemFieldName, itemFieldValue) {
           var colDesc = columnsByName[itemFieldName];
           if (colDesc !== undefined) {
             colDesc.updateModeGivenValue(itemFieldValue);
@@ -152,7 +152,7 @@ tv.exportTo('tv.b.units', function() {
         }, this);
       }, this);
 
-      var columns = tv.b.dictionaryValues(columnsByName);
+      var columns = tr.b.dictionaryValues(columnsByName);
       if (columns.length === 0)
         return undefined;
 

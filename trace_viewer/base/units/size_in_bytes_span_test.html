@@ -8,24 +8,24 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
 
   test('instantiate', function() {
-    var timeSpan = document.createElement('tv-b-u-size-in-bytes-span');
+    var timeSpan = document.createElement('tr-b-u-size-in-bytes-span');
     timeSpan.numBytes = 5 * 1024;
     assert.equal(timeSpan.numBytes, 5 * 1024);
     this.addHTMLOutput(timeSpan);
   });
 
   test('instantiateWithObject', function() {
-    var timeSpan = document.createElement('tv-b-u-size-in-bytes-span');
-    timeSpan.numBytes = new tv.b.units.SizeInBytes(5 * 1024);
+    var timeSpan = document.createElement('tr-b-u-size-in-bytes-span');
+    timeSpan.numBytes = new tr.b.units.SizeInBytes(5 * 1024);
     assert.equal(timeSpan.numBytes, 5 * 1024);
     this.addHTMLOutput(timeSpan);
   });
 
   test('sizeStrings', function() {
-    var el = document.createElement('tv-b-u-size-in-bytes-span');
+    var el = document.createElement('tr-b-u-size-in-bytes-span');
 
     el.numBytes = 0;
     assert.equal(el.stringContent, '0.0 B');

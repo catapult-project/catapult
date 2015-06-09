@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
 
   function RAILScore() {
   };
@@ -30,15 +30,15 @@ tv.exportTo('tv.e.audits', function() {
     var result = {};
 
     var overallRailScores = [];
-    tv.b.iterItems(railScoresByTypeName, function(railTypeName, irs) {
-      var minRailScoreForType = tv.b.Statistics.sum(irs, function(ir) {
+    tr.b.iterItems(railScoresByTypeName, function(railTypeName, irs) {
+      var minRailScoreForType = tr.b.Statistics.sum(irs, function(ir) {
         return ir.railScore;
       });
       result['sum(' + railTypeName + ')'] = minRailScoreForType;
       overallRailScores.push(minRailScoreForType);
     });
 
-    result.score = tv.b.Statistics.sum(overallRailScores);
+    result.score = tr.b.Statistics.sum(overallRailScores);
     return result;
   }
 

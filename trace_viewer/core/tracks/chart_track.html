@@ -19,7 +19,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
 
   /**
    * A track that displays a chart.
@@ -28,13 +28,13 @@ tv.exportTo('tv.c.tracks', function() {
    * @extends {HeadingTrack}
    */
   var ChartTrack =
-      tv.b.ui.define('chart-track', tv.c.tracks.HeadingTrack);
+      tr.b.ui.define('chart-track', tr.c.tracks.HeadingTrack);
 
   ChartTrack.prototype = {
-    __proto__: tv.c.tracks.HeadingTrack.prototype,
+    __proto__: tr.c.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('chart-track');
       this.series_ = undefined;
 
@@ -107,7 +107,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.c.tracks.DrawType.GENERAL_EVENT:
+        case tr.c.tracks.DrawType.GENERAL_EVENT:
           this.drawChart_(viewLWorld, viewRWorld);
           break;
       }
@@ -141,7 +141,7 @@ tv.exportTo('tv.c.tracks', function() {
 
       // Draw all series in the increasing z-order.
       this.series_.forEach(function(series) {
-        var chartTransform = new tv.c.tracks.ChartTransform(
+        var chartTransform = new tr.c.tracks.ChartTransform(
             displayTransform, series.axis, width, height, topPadding,
             bottomPadding, pixelRatio);
         series.draw(ctx, chartTransform, highDetails);
@@ -198,7 +198,7 @@ tv.exportTo('tv.c.tracks', function() {
      * configuration argument flags.
      */
     autoSetAllAxes: function(opt_config) {
-      tv.b.iterItems(this.axisGuidToAxisData_, function(axisGuid, axisData) {
+      tr.b.iterItems(this.axisGuidToAxisData_, function(axisGuid, axisData) {
         var axis = axisData.axis;
         var series = axisData.series;
         axis.autoSetFromSeries(series, opt_config);

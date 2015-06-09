@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/table.html">
 <link rel="import" href="/core/trace_model/attribute.html">
 
-<polymer-element name="tv-c-a-memory-dump-vm-regions-details-pane">
+<polymer-element name="tr-c-a-memory-dump-vm-regions-details-pane">
   <template>
     <style>
       :host {
@@ -211,19 +211,19 @@ found in the LICENSE file.
           if (value === undefined)
             return;
           var attr = new attrClass(units, value);
-          var cell = new tv.c.analysis.MemoryCell(attr);
+          var cell = new tr.c.analysis.MemoryCell(attr);
           cells[columnName] = cell;
         }
         function addBytesCellIfValueDefined(columnName, value) {
           addCellIfValueDefined(columnName,
-              tv.c.trace_model.ScalarAttribute, 'bytes', value);
+              tr.c.trace_model.ScalarAttribute, 'bytes', value);
         }
         addCellIfValueDefined('Start address',
-            tv.c.trace_model.StringAttribute, '',
+            tr.c.trace_model.StringAttribute, '',
             hexString(vmRegion.startAddress, is64BitAddress));
         addBytesCellIfValueDefined('Virtual size', vmRegion.sizeInBytes);
         addCellIfValueDefined('Protection flags',
-            tv.c.trace_model.StringAttribute, '',
+            tr.c.trace_model.StringAttribute, '',
             vmRegion.protectionFlagsToString);
         addBytesCellIfValueDefined('PSS',
             vmRegion.byteStats.proportionalResident);
@@ -250,7 +250,7 @@ found in the LICENSE file.
         return fileRegExp.test(vmRegion.mappedFile);
       }
 
-      var matchedChildRuleIndex = tv.b.findFirstIndexInArray(
+      var matchedChildRuleIndex = tr.b.findFirstIndexInArray(
           rule.children, vmRegionMatchesChildRule);
       if (matchedChildRuleIndex === -1) {
         // Mmap belongs to the 'Other' node (created lazily).
@@ -285,28 +285,28 @@ found in the LICENSE file.
 
       row.subRows.forEach(function(subRow) {
         aggregateRowCells(subRow);
-        tv.b.iterItems(subRow.cells, function(columnName) {
+        tr.b.iterItems(subRow.cells, function(columnName) {
           cells[columnName] = true;
         });
       });
 
-      tv.b.iterItems(cells, function(name) {
+      tr.b.iterItems(cells, function(name) {
         var childAttributes = row.subRows.map(function(subRow) {
           var cell = subRow.cells[name];
           if (cell === undefined)
             return undefined;
           return cell.attr;
         }, this);
-        row.cells[name] = new tv.c.analysis.MemoryCell(
-            tv.c.trace_model.Attribute.aggregate(childAttributes));
+        row.cells[name] = new tr.c.analysis.MemoryCell(
+            tr.c.trace_model.Attribute.aggregate(childAttributes));
       });
     }
 
     Polymer({
       // TODO(petrcermak): Consider sharing more code between
-      // tv-c-a-memory-dump-allocator-details-pane and
-      // tv-c-a-memory-dump-vm-regions-details-pane (e.g. by defining a common
-      // base class tv-c-memory-dump-details-pane).
+      // tr-c-a-memory-dump-allocator-details-pane and
+      // tr-c-a-memory-dump-vm-regions-details-pane (e.g. by defining a common
+      // base class tr-c-memory-dump-details-pane).
 
       created: function() {
         this.vmRegions_ = undefined;
@@ -340,7 +340,7 @@ found in the LICENSE file.
         var columns = this.createColumns_(rows);
 
         var table = this.ownerDocument.createElement(
-            'tv-b-ui-table');
+            'tr-b-ui-table');
         this.$.contents.appendChild(table);
         table.supportsSelection = true;
         table.tableRows = rows;
@@ -385,9 +385,9 @@ found in the LICENSE file.
           }
         };
 
-        var attributeColumns = tv.c.analysis.MemoryColumn.fromRows(
+        var attributeColumns = tr.c.analysis.MemoryColumn.fromRows(
             rows, 'cells');
-        tv.c.analysis.MemoryColumn.spaceEqually(attributeColumns);
+        tr.c.analysis.MemoryColumn.spaceEqually(attributeColumns);
 
         var columns = [titleColumn].concat(attributeColumns);
         return columns;

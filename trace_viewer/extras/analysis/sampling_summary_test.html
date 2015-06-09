@@ -12,15 +12,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var StackFrame = tv.c.trace_model.StackFrame;
-  var Sample = tv.c.trace_model.Sample;
+tr.b.unittest.testSuite(function() {
+  var StackFrame = tr.c.trace_model.StackFrame;
+  var Sample = tr.c.trace_model.Sample;
 
-  var newSliceEx = tv.c.test_utils.newSliceEx;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
 
   function createSelection() {
-    var selection = new tv.c.Selection();
-    var model = new tv.c.TraceModel();
+    var selection = new tr.c.Selection();
+    var model = new tr.c.TraceModel();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
 
@@ -102,13 +102,13 @@ tv.b.unittest.testSuite(function() {
       ]
     };
 
-    var sunburstData = tv.e.analysis.createSunburstData(s, 'cycles');
+    var sunburstData = tr.e.analysis.createSunburstData(s, 'cycles');
     assert.equal(JSON.stringify(sunburstData), JSON.stringify(expect));
   });
 
   test('processOnlySamples', function() {
-    var selection = new tv.c.Selection();
-    var model = new tv.c.TraceModel();
+    var selection = new tr.c.Selection();
+    var model = new tr.c.TraceModel();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
 
@@ -157,15 +157,15 @@ tv.b.unittest.testSuite(function() {
     // Along with the samples, push some slices too.
     // The panel should completely ignore these.
     selection.push(newSliceEx({
-      type: tv.c.trace_model.ThreadSlice,
+      type: tr.c.trace_model.ThreadSlice,
       title: 'a', start: 1, duration: 2
     }));
     selection.push(newSliceEx({
-      type: tv.c.trace_model.ThreadSlice,
+      type: tr.c.trace_model.ThreadSlice,
       title: 'f', start: 9, duration: 7
     }));
 
-    var sunburstData = tv.e.analysis.createSunburstData(
+    var sunburstData = tr.e.analysis.createSunburstData(
         selection, 'page_misses');
     assert.equal(JSON.stringify(sunburstData), JSON.stringify(expect));
   });
@@ -204,14 +204,14 @@ tv.b.unittest.testSuite(function() {
       ]
     };
 
-    var sunburstData = tv.e.analysis.createSunburstData(s, 'page_misses');
+    var sunburstData = tr.e.analysis.createSunburstData(s, 'page_misses');
     assert.equal(JSON.stringify(sunburstData), JSON.stringify(expect));
   });
 
   test('instantiate', function() {
     var s = createSelection();
 
-    var panel = new tv.e.analysis.SamplingSummaryPanel();
+    var panel = new tr.e.analysis.SamplingSummaryPanel();
     this.addHTMLOutput(panel);
     panel.style.border = '1px solid black';
     panel.selection = s;

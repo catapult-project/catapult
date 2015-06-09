@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('UVRectBasic', function() {
     function assertRectEquals(a, b, opt_message) {
       var ok = true;
@@ -18,12 +18,12 @@ tv.b.unittest.testSuite(function() {
       }
       var message = opt_message || 'Expected "' + a.toString() +
           '", got "' + b.toString() + '"';
-      throw new tv.b.unittest.TestError(message);
+      throw new tr.b.unittest.TestError(message);
     }
-    var container = tv.b.Rect.fromXYWH(0, 0, 10, 10);
-    var inner = tv.b.Rect.fromXYWH(1, 1, 8, 8);
+    var container = tr.b.Rect.fromXYWH(0, 0, 10, 10);
+    var inner = tr.b.Rect.fromXYWH(1, 1, 8, 8);
     var uv = inner.asUVRectInside(container);
-    assertRectEquals(uv, tv.b.Rect.fromXYWH(0.1, 0.1, .8, .8));
+    assertRectEquals(uv, tr.b.Rect.fromXYWH(0.1, 0.1, .8, .8));
     assert.equal(10, container.size().width);
     assert.equal(10, container.size().height);
   });

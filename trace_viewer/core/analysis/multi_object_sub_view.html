@@ -12,15 +12,15 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/base/units/util.html">
 
-<polymer-element name="tv-c-a-multi-object-sub-view"
-    extends="tv-c-a-sub-view">
+<polymer-element name="tr-c-a-multi-object-sub-view"
+    extends="tr-c-a-sub-view">
   <template>
     <style>
     :host {
       display: flex;
     }
     </style>
-    <tv-b-ui-table id="content"></tv-b-ui-table>
+    <tr-b-ui-table id="content"></tr-b-ui-table>
   </template>
   <script>
   'use strict';
@@ -41,28 +41,28 @@ found in the LICENSE file.
     set selection(selection) {
       this.currentSelection_ = selection;
 
-      var objectEvents = tv.b.asArray(selection).sort(
-          tv.b.Range.compareByMinTimes);
+      var objectEvents = tr.b.asArray(selection).sort(
+          tr.b.Range.compareByMinTimes);
 
       var table = this.$.content;
       table.tableColumns = [
         {
           title: 'First',
           value: function(event) {
-            if (event instanceof tv.c.trace_model.ObjectSnapshot)
-              return tv.b.units.createTimeStampSpan(event.ts);
+            if (event instanceof tr.c.trace_model.ObjectSnapshot)
+              return tr.b.units.createTimeStampSpan(event.ts);
 
             var spanEl = document.createElement('span');
-            spanEl.appendChild(tv.b.units.createTimeStampSpan(
+            spanEl.appendChild(tr.b.units.createTimeStampSpan(
                 event.creationTs));
-            spanEl.appendChild(tv.b.ui.createSpan({
+            spanEl.appendChild(tr.b.ui.createSpan({
                 textContent: '-',
                 marginLeft: '4px',
                 marginRight: '4px'
             }));
             if (event.deletionTs != Number.MAX_VALUE) {
               spanEl.appendChild(
-                  tv.b.units.createTimeStampSpan(event.deletionTs));
+                  tr.b.units.createTimeStampSpan(event.deletionTs));
             }
             return spanEl;
           },
@@ -71,9 +71,9 @@ found in the LICENSE file.
         {
           title: 'Second',
           value: function(event) {
-            var linkEl = document.createElement('tv-c-a-analysis-link');
+            var linkEl = document.createElement('tr-c-a-analysis-link');
             linkEl.setSelectionAndContent(function() {
-                return new tv.c.Selection(event);
+                return new tr.c.Selection(event);
             }, event.userFriendlyName);
             return linkEl;
           },

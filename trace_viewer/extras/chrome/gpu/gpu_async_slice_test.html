@@ -11,9 +11,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var AsyncSlice = tv.c.trace_model.AsyncSlice;
-  var GpuAsyncSlice = tv.e.gpu.GpuAsyncSlice;
+tr.b.unittest.testSuite(function() {
+  var AsyncSlice = tr.c.trace_model.AsyncSlice;
+  var GpuAsyncSlice = tr.e.gpu.GpuAsyncSlice;
 
   test('construct', function() {
     assert.equal(AsyncSlice.getConstructor('disabled-by-default-gpu.device',
@@ -50,7 +50,7 @@ tv.b.unittest.testSuite(function() {
       {name: 'trace3', args: {'channel': 'test_channel'}, pid: 1, ts: 200,
        cat: 'disabled-by-default-gpu.device', tid: 2, ph: 'e', id: 73}
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     assert.equal(t2.asyncSliceGroup.length, 3);
 

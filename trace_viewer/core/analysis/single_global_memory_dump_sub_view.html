@@ -8,11 +8,11 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/memory_dump_view.html">
 
-<polymer-element name="tv-c-a-single-global-memory-dump-sub-view"
-    extends="tv-c-a-sub-view">
+<polymer-element name="tr-c-a-single-global-memory-dump-sub-view"
+    extends="tr-c-a-sub-view">
   <template>
-    <tv-c-a-memory-dump-view id="memory_dump_view">
-    </tv-c-a-memory-dump-view>
+    <tr-c-a-memory-dump-view id="memory_dump_view">
+    </tr-c-a-memory-dump-view>
   </template>
   <script>
   'use strict';
@@ -21,10 +21,10 @@ found in the LICENSE file.
     set selection(selection) {
       if (selection.length !== 1)
         throw new Error('Only supports a single global memory dump');
-      if (!(selection[0] instanceof tv.c.trace_model.GlobalMemoryDump))
+      if (!(selection[0] instanceof tr.c.trace_model.GlobalMemoryDump))
         throw new Error('Only supports global memory dumps');
       this.currentSelection_ = selection;
-      this.$.memory_dump_view.processMemoryDumps = tv.b.dictionaryValues(
+      this.$.memory_dump_view.processMemoryDumps = tr.b.dictionaryValues(
           selection[0].processMemoryDumps);
     },
 

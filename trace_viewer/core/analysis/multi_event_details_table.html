@@ -12,7 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/units/time_stamp_span.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
 
-<polymer-element name='tv-c-a-multi-event-details-table'>
+<polymer-element name='tr-c-a-multi-event-details-table'>
   <template>
     <style>
     :host {
@@ -32,10 +32,10 @@ found in the LICENSE file.
       font-size: 12px;
     }
     </style>
-    <tv-b-ui-table id="titletable">
-    </tv-b-ui-table>
-    <tv-b-ui-table id="table">
-    </tv-b-ui-table>
+    <tr-b-ui-table id="titletable">
+    </tr-b-ui-table>
+    <tr-b-ui-table id="table">
+    </tr-b-ui-table>
   </template>
 
   <script>
@@ -91,7 +91,7 @@ found in the LICENSE file.
         return;
       }
 
-      var summary = new tv.c.analysis.MultiEventSummary(
+      var summary = new tr.c.analysis.MultiEventSummary(
           'Totals', this.selection_);
       this.updateColumns_(summary);
       this.updateRows_(summary);
@@ -150,15 +150,15 @@ found in the LICENSE file.
       columns.push({
         title: 'Start',
         value: function(row) {
-          if (row.__proto__ === tv.c.analysis.MultiEventSummary.prototype) {
+          if (row.__proto__ === tr.c.analysis.MultiEventSummary.prototype) {
             return row.title;
           }
 
-          var linkEl = document.createElement('tv-c-a-analysis-link');
+          var linkEl = document.createElement('tr-c-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
-              return new tv.c.Selection(row.event);
+              return new tr.c.Selection(row.event);
           });
-          linkEl.appendChild(tv.b.units.createTimeStampSpan(row.start));
+          linkEl.appendChild(tr.b.units.createTimeStampSpan(row.start));
           return linkEl;
         },
         width: '350px',
@@ -171,7 +171,7 @@ found in the LICENSE file.
         columns.push({
           title: 'Wall Duration (ms)',
           value: function(row) {
-            return tv.b.units.createTimeSpan(row.duration);
+            return tr.b.units.createTimeSpan(row.duration);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -184,7 +184,7 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Duration (ms)',
           value: function(row) {
-            return tv.b.units.createTimeSpan(row.cpuDuration);
+            return tr.b.units.createTimeSpan(row.cpuDuration);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -197,7 +197,7 @@ found in the LICENSE file.
         columns.push({
           title: 'Self time (ms)',
           value: function(row) {
-            return tv.b.units.createTimeSpan(row.selfTime);
+            return tr.b.units.createTimeSpan(row.selfTime);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -210,7 +210,7 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Self Time (ms)',
           value: function(row) {
-            return tv.b.units.createTimeSpan(row.cpuSelfTime);
+            return tr.b.units.createTimeSpan(row.cpuSelfTime);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -219,7 +219,7 @@ found in the LICENSE file.
         });
       }
 
-      var argKeys = tv.b.dictionaryKeys(summary.totalledArgs);
+      var argKeys = tr.b.dictionaryKeys(summary.totalledArgs);
       argKeys.sort();
 
       var otherKeys = summary.untotallableArgs.slice(0);
@@ -235,9 +235,9 @@ found in the LICENSE file.
         var colDesc = {
           title: 'Arg: ' + argKey,
           value: function(row) {
-            if (row.__proto__ !== tv.c.analysis.MultiEventSummary.prototype) {
+            if (row.__proto__ !== tr.c.analysis.MultiEventSummary.prototype) {
               var argView =
-                  document.createElement('tv-c-a-generic-object-view');
+                  document.createElement('tr-c-a-generic-object-view');
               argView.object = row.args[argKey];
               return argView;
             }
@@ -259,10 +259,10 @@ found in the LICENSE file.
         columns.push({
           title: 'Other Args',
           value: function(row) {
-            if (row.__proto__ === tv.c.analysis.MultiEventSummary.prototype)
+            if (row.__proto__ === tr.c.analysis.MultiEventSummary.prototype)
               return '';
             var argView =
-                document.createElement('tv-c-a-generic-object-view');
+                document.createElement('tr-c-a-generic-object-view');
             var obj = {};
             for (var i = 0; i < keysInOtherColumn.length; i++)
               obj[keysInOtherColumn[i]] = row.args[keysInOtherColumn[i]];

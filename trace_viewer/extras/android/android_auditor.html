@@ -21,16 +21,16 @@ found in the LICENSE file.
 /**
  * @fileoverview Class for Android-specific Auditing.
  */
-tv.exportTo('tv.e.audits', function() {
-  var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
-  var Auditor = tv.c.Auditor;
-  var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
-  var Statistics = tv.b.Statistics;
-  var FRAME_PERF_CLASS = tv.c.trace_model.FRAME_PERF_CLASS;
-  var InteractionRecord = tv.c.trace_model.InteractionRecord;
-  var Alert = tv.c.trace_model.Alert;
-  var EventInfo = tv.c.trace_model.EventInfo;
-  var TimeDuration = tv.b.units.TimeDuration;
+tr.exportTo('tr.e.audits', function() {
+  var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
+  var Auditor = tr.c.Auditor;
+  var AndroidModelHelper = tr.e.audits.AndroidModelHelper;
+  var Statistics = tr.b.Statistics;
+  var FRAME_PERF_CLASS = tr.c.trace_model.FRAME_PERF_CLASS;
+  var InteractionRecord = tr.c.trace_model.InteractionRecord;
+  var Alert = tr.c.trace_model.Alert;
+  var EventInfo = tr.c.trace_model.EventInfo;
+  var TimeDuration = tr.b.units.TimeDuration;
 
   // TODO: extract from VSYNC, since not all devices have vsync near 60fps
   var EXPECTED_FRAME_TIME_MS = 16.67;
@@ -50,8 +50,8 @@ tv.exportTo('tv.e.audits', function() {
     return false;
   }
 
-  var Auditor = tv.c.Auditor;
-  var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
+  var Auditor = tr.c.Auditor;
+  var AndroidModelHelper = tr.e.audits.AndroidModelHelper;
 
   function frameMissedDeadline(frame) {
     return frame.args['deadline'] && frame.args['deadline'] < frame.end;
@@ -232,7 +232,7 @@ tv.exportTo('tv.e.audits', function() {
     // TODO(ccraik): make 'inflate' slices associated events.
     var hasInflation = false;
     for (var i = 0; i < events.length; i++) {
-      if (events[i] instanceof tv.c.trace_model.Slice &&
+      if (events[i] instanceof tr.c.trace_model.Slice &&
           events[i].findDescendentSlice('inflate')) {
         hasInflation = true;
         break;
@@ -350,7 +350,7 @@ tv.exportTo('tv.e.audits', function() {
     var totalStats = {};
     frame.threadTimeRanges.forEach(function(ttr) {
       var stats = ttr.thread.getSchedulingStatsForRange(ttr.start, ttr.end);
-      tv.b.iterItems(stats, function(key, value) {
+      tr.b.iterItems(stats, function(key, value) {
         if (!(key in totalStats))
           totalStats[key] = 0;
         totalStats[key] += value;
@@ -366,7 +366,7 @@ tv.exportTo('tv.e.audits', function() {
       return;
 
     var args = {};
-    tv.b.iterItems(totalStats, function(key, value) {
+    tr.b.iterItems(totalStats, function(key, value) {
       if (key === SCHEDULING_STATE.RUNNABLE)
         key = 'Not scheduled, but runnable';
       else if (key === SCHEDULING_STATE.UNINTR_SLEEP)
@@ -532,12 +532,12 @@ tv.exportTo('tv.e.audits', function() {
 
       var mergerFunction = function(events) {
         var ir = new InteractionRecord('Rendering',
-            tv.b.ui.getColorIdForGeneralPurposeString('mt_rendering'),
+            tr.b.ui.getColorIdForGeneralPurposeString('mt_rendering'),
             events[0].start,
             events[events.length - 1].end - events[0].start);
         this.model.addInteractionRecord(ir);
       }.bind(this);
-      tv.e.audits.mergeExplicitRanges(events, 30, mergerFunction);
+      tr.e.audits.mergeExplicitRanges(events, 30, mergerFunction);
     },
 
     addInputInteractionRecords: function() {
@@ -548,13 +548,13 @@ tv.exportTo('tv.e.audits', function() {
 
       var mergerFunction = function(events) {
         var ir = new InteractionRecord('Input',
-            tv.b.ui.getColorIdForGeneralPurposeString('mt_input'),
+            tr.b.ui.getColorIdForGeneralPurposeString('mt_input'),
             events[0].timestamp,
             events[events.length - 1].timestamp - events[0].timestamp);
         this.model.addInteractionRecord(ir);
       }.bind(this);
       var timestampFunction = function(x) { return x.timestamp; };
-      tv.e.audits.mergeExplicitRanges(inputSamples, 30, mergerFunction,
+      tr.e.audits.mergeExplicitRanges(inputSamples, 30, mergerFunction,
                               timestampFunction, timestampFunction);
     }
   };

@@ -11,12 +11,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('subViewThrowsNotImplementedErrors', function() {
-    var subView = document.createElement('tv-c-a-sub-view');
+    var subView = document.createElement('tr-c-a-sub-view');
 
     assert.throw(function() {
-      subView.selection = new tv.c.Selection();
+      subView.selection = new tr.c.Selection();
     }, 'Not implemented!');
 
     assert.throw(function() {

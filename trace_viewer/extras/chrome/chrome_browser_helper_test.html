@@ -15,27 +15,27 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var audits = tv.e.audits;
+tr.b.unittest.testSuite(function() {
+  var audits = tr.e.audits;
 
   function getRange(min, max) {
-    var range = new tv.b.Range();
+    var range = new tr.b.Range();
     range.min = min;
     range.max = max;
     return range;
   }
 
   test('LoadingEvent', function() {
-    var model = tv.e.audits.newChromeModel(function() { });
-    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
+    var model = tr.e.audits.newChromeModel(function() { });
+    var modelHelper = new tr.e.audits.ChromeModelHelper(model);
     audits.addLoadingEvent(model, {start: 1, end: 10});
     assert.equal(1, modelHelper.browserHelper.getLoadingEventsInRange(
       getRange(0, 100)).length);
   });
 
   test('ProvisionalLoadEvent', function() {
-    var model = tv.e.audits.newChromeModel(function() { });
-    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
+    var model = tr.e.audits.newChromeModel(function() { });
+    var modelHelper = new tr.e.audits.ChromeModelHelper(model);
     audits.addProvisionalLoadEvent(model, {start: 1, end: 10});
     assert.equal(1,
       modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
@@ -43,16 +43,16 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('LatencyEvent', function() {
-    var model = tv.e.audits.newChromeModel(function() { });
-    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
+    var model = tr.e.audits.newChromeModel(function() { });
+    var modelHelper = new tr.e.audits.ChromeModelHelper(model);
     audits.addGeneralLatencyInfoEvent(model, {start: 1, end: 10});
     assert.equal(1, modelHelper.browserHelper.getLatencyEventsInRange(
       getRange(0, 100)).length);
   });
 
   test('NetworkEvent', function() {
-    var model = tv.e.audits.newChromeModel(function() { });
-    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
+    var model = tr.e.audits.newChromeModel(function() { });
+    var modelHelper = new tr.e.audits.ChromeModelHelper(model);
     audits.addNetworkEvent(model, {start: 1, end: 10});
     assert.equal(1, modelHelper.browserHelper.getAllNetworkEventsInRange(
       getRange(0, 100)).length);

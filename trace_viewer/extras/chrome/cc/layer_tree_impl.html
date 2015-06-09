@@ -13,10 +13,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.cc', function() {
+tr.exportTo('tr.e.cc', function() {
 
-  var constants = tv.e.cc.constants;
-  var ObjectSnapshot = tv.c.trace_model.ObjectSnapshot;
+  var constants = tr.e.cc.constants;
+  var ObjectSnapshot = tr.c.trace_model.ObjectSnapshot;
 
   /**
    * @constructor
@@ -29,14 +29,14 @@ tv.exportTo('tv.e.cc', function() {
     __proto__: ObjectSnapshot.prototype,
 
     preInitialize: function() {
-      tv.e.cc.preInitializeObject(this);
+      tr.e.cc.preInitializeObject(this);
       this.layerTreeHostImpl = undefined;
       this.whichTree = undefined;
       this.sourceFrameNumber = undefined;
     },
 
     initialize: function() {
-      tv.e.cc.moveRequiredFieldsFromArgsToToplevel(
+      tr.e.cc.moveRequiredFieldsFromArgsToToplevel(
           this, ['rootLayer',
             'renderSurfaceLayerList']);
       if (this.args.sourceFrameNumber)
@@ -49,13 +49,13 @@ tv.exportTo('tv.e.cc', function() {
 
         var ownProcess = this.objectInstance.parent;
         var traceModel = ownProcess.model;
-        if (tv.e.audits.ChromeModelHelper.supportsModel(traceModel))
+        if (tr.e.audits.ChromeModelHelper.supportsModel(traceModel))
           this._initializeTracedInputLatencies(traceModel);
       }
     },
 
     _initializeTracedInputLatencies: function(traceModel) {
-      var modelHelper = new tv.e.audits.ChromeModelHelper(traceModel);
+      var modelHelper = new tr.e.audits.ChromeModelHelper(traceModel);
       if (!modelHelper.browserHelper)
         return;
 
@@ -75,7 +75,7 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     get hasSourceFrameBeenDrawnBefore() {
-      if (this.whichTree == tv.e.cc.constants.PENDING_TREE)
+      if (this.whichTree == tr.e.cc.constants.PENDING_TREE)
         return false;
 
       // Old chrome's don't produce sourceFrameNumber.

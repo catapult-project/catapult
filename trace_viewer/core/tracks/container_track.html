@@ -13,19 +13,19 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
-  var Task = tv.b.Task;
+tr.exportTo('tr.c.tracks', function() {
+  var Task = tr.b.Task;
 
   /**
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var ContainerTrack = tv.b.ui.define('container-track', tv.c.tracks.Track);
+  var ContainerTrack = tr.b.ui.define('container-track', tr.c.tracks.Track);
   ContainerTrack.prototype = {
-    __proto__: tv.c.tracks.Track.prototype,
+    __proto__: tr.c.tracks.Track.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.Track.prototype.decorate.call(this, viewport);
+      tr.c.tracks.Track.prototype.decorate.call(this, viewport);
     },
 
     detach: function() {
@@ -43,7 +43,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     drawTrack: function(type) {
       for (var i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tv.c.tracks.Track))
+        if (!(this.children[i] instanceof tr.c.tracks.Track))
           continue;
         this.children[i].drawTrack(type);
       }
@@ -72,7 +72,7 @@ tv.exportTo('tv.c.tracks', function() {
               loVX, hiVX, loY, hiY, selection);
       }
 
-      tv.c.tracks.Track.prototype.addIntersectingEventsInRangeToSelection.
+      tr.c.tracks.Track.prototype.addIntersectingEventsInRangeToSelection.
           apply(this, arguments);
     },
 
@@ -110,7 +110,7 @@ tv.exportTo('tv.c.tracks', function() {
         }
       }
 
-      tv.c.tracks.Track.prototype.addClosestEventToSelection.
+      tr.c.tracks.Track.prototype.addClosestEventToSelection.
           apply(this, arguments);
     }
   };

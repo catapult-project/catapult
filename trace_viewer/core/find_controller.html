@@ -15,13 +15,13 @@ found in the LICENSE file.
 /**
  * @fileoverview FindController.
  */
-tv.exportTo('tv.c', function() {
-  var Task = tv.b.Task;
+tr.exportTo('tr.c', function() {
+  var Task = tr.b.Task;
 
   function FindController(selectionController) {
     this.selectionController_ = selectionController;
     this.filterText_ = '';
-    this.filterHits_ = new tv.c.Selection();
+    this.filterHits_ = new tr.c.Selection();
     this.filterHitsDirty_ = true;
     this.currentHitIndex_ = -1;
   };
@@ -56,8 +56,8 @@ tv.exportTo('tv.c', function() {
 
       var sc = this.selectionController_;
 
-      var filter = new tv.c.TitleOrCategoryFilter(filterText);
-      var filterHits = new tv.c.Selection();
+      var filter = new tr.c.TitleOrCategoryFilter(filterText);
+      var filterHits = new tr.c.Selection();
       var filterTask = sc.addAllEventsMatchingFilterToSelectionAsTask(
           filter, filterHits);
       promise = Task.RunWhenIdle(filterTask);
@@ -83,7 +83,7 @@ tv.exportTo('tv.c', function() {
       if (!this.filterHitsDirty_)
         return promise;
 
-      this.filterHits_ = new tv.c.Selection();
+      this.filterHits_ = new tr.c.Selection();
       this.currentHitIndex_ = -1;
 
       // Try constructing a UIState from the filterText.
@@ -95,7 +95,7 @@ tv.exportTo('tv.c', function() {
         stateFromString = this.selectionController_.uiStateFromString(
             this.filterText);
       } catch (e) {
-        var overlay = new tv.b.ui.Overlay();
+        var overlay = new tr.b.ui.Overlay();
         overlay.textContent = e.message;
         overlay.title = 'UI State Navigation Error';
         overlay.visible = true;
@@ -115,7 +115,7 @@ tv.exportTo('tv.c', function() {
     },
 
     /**
-     * Returns the most recent filter hits as a tv.c.Selection. Call
+     * Returns the most recent filter hits as a tr.c.Selection. Call
      * |updateFilterHits| to ensure this is up to date after the filter
      * settings have been changed.
      */

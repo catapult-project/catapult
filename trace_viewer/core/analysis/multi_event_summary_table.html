@@ -14,7 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/units/time_duration_span.html">
 
 </script>
-<polymer-element name='tv-c-a-multi-event-summary-table'>
+<polymer-element name='tr-c-a-multi-event-summary-table'>
   <template>
     <style>
     :host {
@@ -25,8 +25,8 @@ found in the LICENSE file.
       align-self: stretch;
     }
     </style>
-    <tv-b-ui-table id="table">
-    </tv-b-ui-table>
+    <tr-b-ui-table id="table">
+    </tr-b-ui-table>
     </div>
   </template>
   <script>
@@ -61,9 +61,9 @@ found in the LICENSE file.
           if (row.title === 'Totals')
             return 'Totals';
 
-          var linkEl = document.createElement('tv-c-a-analysis-link');
+          var linkEl = document.createElement('tr-c-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
-            return new tv.c.Selection(row.events);
+            return new tr.c.Selection(row.events);
           }, row.title);
           return linkEl;
         },
@@ -76,7 +76,7 @@ found in the LICENSE file.
         columns.push({
           title: 'Wall Duration (ms)',
           value: function(row) {
-            return tv.b.units.createTimeSpan(row.duration);
+            return tr.b.units.createTimeSpan(row.duration);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -89,7 +89,7 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Duration (ms)',
           value: function(row) {
-            return tv.b.units.createTimeSpan(row.cpuDuration);
+            return tr.b.units.createTimeSpan(row.cpuDuration);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -102,7 +102,7 @@ found in the LICENSE file.
         columns.push({
           title: 'Self time (ms)',
           value: function(row) {
-            return tv.b.units.createTimeSpan(row.selfTime);
+            return tr.b.units.createTimeSpan(row.selfTime);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -115,7 +115,7 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Self Time (ms)',
           value: function(row) {
-            return tv.b.units.createTimeSpan(row.cpuSelfTime);
+            return tr.b.units.createTimeSpan(row.cpuSelfTime);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -242,11 +242,11 @@ found in the LICENSE file.
 
       var allEvents = [];
       var rows = [];
-      tv.b.iterItems(
+      tr.b.iterItems(
           eventsByTitle,
           function(title, eventsOfSingleTitle) {
             allEvents.push.apply(allEvents, eventsOfSingleTitle);
-            var row = new tv.c.analysis.MultiEventSummary(title,
+            var row = new tr.c.analysis.MultiEventSummary(title,
                                                           eventsOfSingleTitle);
             rows.push(row);
           });
@@ -258,7 +258,7 @@ found in the LICENSE file.
 
       if (this.showTotals_) {
         footerRows.push(
-            new tv.c.analysis.MultiEventSummary('Totals', allEvents));
+            new tr.c.analysis.MultiEventSummary('Totals', allEvents));
       }
       // TODO(selection bounds).
 

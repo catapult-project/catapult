@@ -12,8 +12,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/dom_helpers.html">
 <link rel="import" href="/base/ui/line_chart.html">
 
-<polymer-element name='tv-e-s-input-latency-side-panel'
-    extends='tv-c-side-panel'>
+<polymer-element name='tr-e-s-input-latency-side-panel'
+    extends='tr-c-side-panel'>
   <template>
     <style>
     :host {
@@ -42,8 +42,8 @@ found in the LICENSE file.
 
   Polymer({
     ready: function() {
-      this.rangeOfInterest_ = new tv.b.Range();
-      this.frametimeType_ = tv.e.audits.IMPL_FRAMETIME_TYPE;
+      this.rangeOfInterest_ = new tr.b.Range();
+      this.frametimeType_ = tr.e.audits.IMPL_FRAMETIME_TYPE;
       this.latencyChart_ = undefined;
       this.frametimeChart_ = undefined;
       this.selectedProcessId_ = undefined;
@@ -58,7 +58,7 @@ found in the LICENSE file.
     set model(model) {
       this.model_ = model;
       if (this.model_)
-        this.modelHelper_ = new tv.e.audits.ChromeModelHelper(model);
+        this.modelHelper_ = new tr.e.audits.ChromeModelHelper(model);
       else
         this.modelHelper_ = undefined;
 
@@ -105,7 +105,7 @@ found in the LICENSE file.
       if (this.latencyChart_ === undefined)
         return;
 
-      var r = new tv.b.Range();
+      var r = new tr.b.Range();
       if (this.mouseDownIndex_ === undefined) {
         this.latencyChart_.brushedRange = r;
         return;
@@ -123,10 +123,10 @@ found in the LICENSE file.
             latencySlices.push(event);
         });
       });
-      latencySlices = tv.e.audits.getSlicesIntersectingRange(r, latencySlices);
+      latencySlices = tr.e.audits.getSlicesIntersectingRange(r, latencySlices);
 
-      var event = new tv.c.RequestSelectionChangeEvent();
-      event.selection = new tv.c.Selection(latencySlices);
+      var event = new tr.c.RequestSelectionChangeEvent();
+      event.selection = new tr.c.Selection(latencySlices);
       this.latencyChart_.dispatchEvent(event);
     },
 
@@ -159,7 +159,7 @@ found in the LICENSE file.
         labels.push({label: label_str, value: browserProcess.pid});
       }
 
-      tv.b.iterItems(this.modelHelper_.rendererHelpers,
+      tr.b.iterItems(this.modelHelper_.rendererHelpers,
         function(pid, rendererHelper) {
           var rendererProcess = rendererHelper.process;
           var label_str = 'Renderer: ' + rendererProcess.userFriendlyName;
@@ -172,15 +172,15 @@ found in the LICENSE file.
 
       this.selectedProcessId_ = labels[0].value;
       var toolbarEl = this.$.toolbar;
-      toolbarEl.appendChild(tv.b.ui.createSelector(
+      toolbarEl.appendChild(tr.b.ui.createSelector(
           this, 'frametimeType',
           'inputLatencySidePanel.frametimeType', this.frametimeType_,
           [{label: 'Main Thread Frame Times',
-            value: tv.e.audits.MAIN_FRAMETIME_TYPE},
+            value: tr.e.audits.MAIN_FRAMETIME_TYPE},
            {label: 'Impl Thread Frame Times',
-            value: tv.e.audits.IMPL_FRAMETIME_TYPE}
+            value: tr.e.audits.IMPL_FRAMETIME_TYPE}
           ]));
-      toolbarEl.appendChild(tv.b.ui.createSelector(
+      toolbarEl.appendChild(tr.b.ui.createSelector(
           this, 'selectedProcessId',
           'inputLatencySidePanel.selectedProcessId',
           this.selectedProcessId_,
@@ -195,7 +195,7 @@ found in the LICENSE file.
     },
 
     createLatencyLineChart: function(data, title) {
-      var chart = new tv.b.ui.LineChart();
+      var chart = new tr.b.ui.LineChart();
       var width = 600;
       if (document.body.clientWidth != undefined)
         width = document.body.clientWidth * 0.5;
@@ -227,8 +227,8 @@ found in the LICENSE file.
       var frameEvents = chromeProcess.getFrameEventsInRange(
           this.frametimeType, rangeOfInterest);
 
-      var frametimeData = tv.e.audits.getFrametimeDataFromEvents(frameEvents);
-      var averageFrametime = tv.b.Statistics.mean(frametimeData, function(d) {
+      var frametimeData = tr.e.audits.getFrametimeDataFromEvents(frameEvents);
+      var averageFrametime = tr.b.Statistics.mean(frametimeData, function(d) {
         return d.frametime;
       });
 
@@ -246,19 +246,19 @@ found in the LICENSE file.
         });
       });
 
-      var averageLatency = tv.b.Statistics.mean(latencyData, function(d) {
+      var averageLatency = tr.b.Statistics.mean(latencyData, function(d) {
         return d.latency;
       });
 
       // Create summary.
       var latencySummaryText = document.createElement('div');
-      latencySummaryText.appendChild(tv.b.ui.createSpan({
+      latencySummaryText.appendChild(tr.b.ui.createSpan({
         textContent: 'Average Latency ' + averageLatency + ' ms',
         bold: true}));
       resultArea.appendChild(latencySummaryText);
 
       var frametimeSummaryText = document.createElement('div');
-      frametimeSummaryText.appendChild(tv.b.ui.createSpan({
+      frametimeSummaryText.appendChild(tr.b.ui.createSpan({
         textContent: 'Average Frame Time ' + averageFrametime + ' ms',
         bold: true}));
       resultArea.appendChild(frametimeSummaryText);
@@ -295,14 +295,14 @@ found in the LICENSE file.
         };
       }
 
-      if (!tv.e.audits.ChromeModelHelper.supportsModel(m)) {
+      if (!tr.e.audits.ChromeModelHelper.supportsModel(m)) {
         return {
           supported: false,
           reason: 'No Chrome browser or renderer process found'
         };
       }
 
-      var modelHelper = new tv.e.audits.ChromeModelHelper(m);
+      var modelHelper = new tr.e.audits.ChromeModelHelper(m);
       if (modelHelper.browserHelper &&
         modelHelper.browserHelper.hasLatencyEvents) {
           return {

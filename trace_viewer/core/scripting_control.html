@@ -133,9 +133,9 @@ found in the LICENSE file.
         result = e.stack || e.stackTrace;
       }
 
-      if (result instanceof tv.b.Task) {
+      if (result instanceof tr.b.Task) {
         // TODO(skyostil): Show a cool spinner.
-        tv.b.Task.RunWhenIdle(result);
+        tr.b.Task.RunWhenIdle(result);
       } else {
         this.addLine_(result);
       }

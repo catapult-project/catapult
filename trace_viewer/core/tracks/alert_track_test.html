@@ -15,23 +15,23 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var AlertTrack = tv.c.tracks.AlertTrack;
-  var Selection = tv.c.Selection;
-  var SelectionState = tv.c.trace_model.SelectionState;
-  var Viewport = tv.c.TimelineViewport;
+tr.b.unittest.testSuite(function() {
+  var AlertTrack = tr.c.tracks.AlertTrack;
+  var Selection = tr.c.Selection;
+  var SelectionState = tr.c.trace_model.SelectionState;
+  var Viewport = tr.c.TimelineViewport;
 
-  var ALERT_INFO_1 = new tv.c.trace_model.EventInfo(
+  var ALERT_INFO_1 = new tr.c.trace_model.EventInfo(
     'Alert 1', 'One alert');
-  var ALERT_INFO_2 = new tv.c.trace_model.EventInfo(
+  var ALERT_INFO_2 = new tr.c.trace_model.EventInfo(
     'Alert 2', 'Another alert');
 
   var createAlerts = function() {
     var alerts = [
-      new tv.c.trace_model.Alert(ALERT_INFO_1, 5),
-      new tv.c.trace_model.Alert(ALERT_INFO_1, 20),
-      new tv.c.trace_model.Alert(ALERT_INFO_2, 35),
-      new tv.c.trace_model.Alert(ALERT_INFO_2, 50)
+      new tr.c.trace_model.Alert(ALERT_INFO_1, 5),
+      new tr.c.trace_model.Alert(ALERT_INFO_1, 20),
+      new tr.c.trace_model.Alert(ALERT_INFO_2, 35),
+      new tr.c.trace_model.Alert(ALERT_INFO_2, 50)
     ];
     return alerts;
   };
@@ -42,7 +42,7 @@ tv.b.unittest.testSuite(function() {
 
     var div = document.createElement('div');
     var viewport = new Viewport(div);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = AlertTrack(viewport);
@@ -52,7 +52,7 @@ tv.b.unittest.testSuite(function() {
     drawingContainer.invalidate();
 
     track.alerts = alerts;
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 

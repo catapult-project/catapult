@@ -11,16 +11,16 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Sample = tv.c.trace_model.Sample;
-  var StackFrame = tv.c.trace_model.StackFrame;
-  var Thread = tv.c.trace_model.Thread;
+tr.b.unittest.testSuite(function() {
+  var Sample = tr.c.trace_model.Sample;
+  var StackFrame = tr.c.trace_model.StackFrame;
+  var Thread = tr.c.trace_model.Thread;
 
   test('sampleStackTrace', function() {
     var thread = new Thread({}, 1);
 
-    var model = new tv.c.TraceModel();
-    var fABC = tv.c.test_utils.newStackTrace(model, 'cat', ['a', 'b', 'c']);
+    var model = new tr.c.TraceModel();
+    var fABC = tr.c.test_utils.newStackTrace(model, 'cat', ['a', 'b', 'c']);
 
     var s = new Sample(undefined, thread, 'instructions_retired',
                        10, fABC, 10);

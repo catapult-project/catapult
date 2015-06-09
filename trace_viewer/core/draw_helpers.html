@@ -16,11 +16,11 @@ found in the LICENSE file.
  * @fileoverview Provides various helper methods for drawing to a provided
  * canvas.
  */
-tv.exportTo('tv.c', function() {
-  var elidedTitleCache = new tv.c.ElidedTitleCache();
-  var palette = tv.b.ui.getColorPalette();
-  var EventPresenter = tv.c.EventPresenter;
-  var blackColorId = tv.b.ui.getColorIdForReservedName('black');
+tr.exportTo('tr.c', function() {
+  var elidedTitleCache = new tr.c.ElidedTitleCache();
+  var palette = tr.b.ui.getColorPalette();
+  var EventPresenter = tr.c.EventPresenter;
+  var blackColorId = tr.b.ui.getColorIdForReservedName('black');
 
   /**
    * This value is used to allow for consistent style UI elements.
@@ -157,11 +157,11 @@ tv.exportTo('tv.c', function() {
     ctx.save();
     dt.applyTransformToCanvas(ctx);
 
-    var tr = new tv.c.FastRectRenderer(
+    var rect = new tr.c.FastRectRenderer(
         ctx, 2 * pixWidth, 2 * pixWidth, palette);
-    tr.setYandH(0, height);
+    rect.setYandH(0, height);
 
-    var lowSlice = tv.b.findLowIndexInSortedArray(
+    var lowSlice = tr.b.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);
@@ -186,17 +186,17 @@ tv.exportTo('tv.c', function() {
       var lightAlpha = alpha * 0.70;
 
       if (slice.isTopLevel) {
-        tr.setYandH(3, height - 3);
+        rect.setYandH(3, height - 3);
         hadTopLevel = true;
       } else {
-        tr.setYandH(0, height);
+        rect.setYandH(0, height);
       }
 
       // If cpuDuration is available, draw rectangles proportional to the
       // amount of cpu time taken.
       if (!slice.cpuDuration) {
         // No cpuDuration available, draw using only one alpha.
-        tr.fillRect(x, w, colorId, alpha);
+        rect.fillRect(x, w, colorId, alpha);
         continue;
       }
 
@@ -224,7 +224,7 @@ tv.exportTo('tv.c', function() {
       //
       // First draw the solid color, representing the 'active' part.
       if (activeWidth > 0) {
-        tr.fillRect(x, activeWidth, colorId, alpha);
+        rect.fillRect(x, activeWidth, colorId, alpha);
       }
 
       // Next draw the two toned 'idle' part.
@@ -233,24 +233,24 @@ tv.exportTo('tv.c', function() {
       // ('active' and 'idle') may appear split apart.
       if (waitingWidth > 0) {
         // First draw the light toned top part.
-        tr.setYandH(0, lightRectHeight);
-        tr.fillRect(x + activeWidth - pixWidth,
+        rect.setYandH(0, lightRectHeight);
+        rect.fillRect(x + activeWidth - pixWidth,
             waitingWidth + pixWidth, colorId, lightAlpha);
         // Then the solid bottom half.
-        tr.setYandH(lightRectHeight, darkRectHeight);
-        tr.fillRect(x + activeWidth - pixWidth,
+        rect.setYandH(lightRectHeight, darkRectHeight);
+        rect.fillRect(x + activeWidth - pixWidth,
             waitingWidth + pixWidth, colorId, alpha);
         // Reset for the next slice.
-        tr.setYandH(0, height);
+        rect.setYandH(0, height);
       }
     }
-    tr.flush();
+    rect.flush();
 
     if (async && hadTopLevel) {
       // Draw a top border over async slices in order to visually separate
       // them from events above it.
       // See https://github.com/google/trace-viewer/issues/725.
-      tr.setYandH(2, 1);
+      rect.setYandH(2, 1);
       for (var i = lowSlice; i < slices.length; ++i) {
         var slice = slices[i];
         var x = slice.start;
@@ -267,9 +267,9 @@ tv.exportTo('tv.c', function() {
             w = pixWidth;
         }
 
-        tr.fillRect(x, w, blackColorId, 0.7);
+        rect.fillRect(x, w, blackColorId, 0.7);
       }
-      tr.flush();
+      rect.flush();
     }
 
     ctx.restore();
@@ -305,7 +305,7 @@ tv.exportTo('tv.c', function() {
     dt.applyTransformToCanvas(ctx);
     ctx.beginPath();
 
-    var lowSlice = tv.b.findLowIndexInSortedArray(
+    var lowSlice = tr.b.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start; },
         viewLWorld);
@@ -360,7 +360,7 @@ tv.exportTo('tv.c', function() {
 
     var cY = yOffset * pixelRatio;
 
-    var lowSlice = tv.b.findLowIndexInSortedArray(
+    var lowSlice = tr.b.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);

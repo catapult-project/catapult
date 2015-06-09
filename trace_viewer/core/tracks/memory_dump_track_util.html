@@ -15,7 +15,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
 
   // TODO(petrcermak): Remove support for the old default attribute name once
   // the correspoding change lands in Chromium.
@@ -31,7 +31,7 @@ tv.exportTo('tv.c.tracks', function() {
    * destination dictionary (first argument) to {a: 1, b: 5, c: 4}.
    */
   function addDictionary(dstDict, srcDict) {
-    tv.b.iterItems(srcDict, function(key, value) {
+    tr.b.iterItems(srcDict, function(key, value) {
       var existingValue = dstDict[key];
       if (existingValue === undefined)
         existingValue = 0;
@@ -72,7 +72,7 @@ tv.exportTo('tv.c.tracks', function() {
    */
   function getGlobalMemoryDumpAllocatorSizes(globalMemoryDump) {
     var globalAllocatorSizes = {};
-    tv.b.iterItems(globalMemoryDump.processMemoryDumps,
+    tr.b.iterItems(globalMemoryDump.processMemoryDumps,
         function(pid, processMemoryDump) {
       addDictionary(globalAllocatorSizes,
           getProcessMemoryDumpAllocatorSizes(processMemoryDump));
@@ -90,7 +90,7 @@ tv.exportTo('tv.c.tracks', function() {
     var allocatorNameToPoints = {};
     var dumpsData = memoryDumps.map(function(memoryDump) {
       var allocatorSizes = memoryDumpToAllocatorSizesFn(memoryDump);
-      tv.b.iterItems(allocatorSizes, function(allocatorName) {
+      tr.b.iterItems(allocatorSizes, function(allocatorName) {
         allocatorNameToPoints[allocatorName] = [];
       });
       return {dump: memoryDump, sizes: allocatorSizes};
@@ -104,25 +104,25 @@ tv.exportTo('tv.c.tracks', function() {
     dumpsData.forEach(function(dumpData) {
       var memoryDump = dumpData.dump;
       var allocatorSizes = dumpData.sizes;
-      tv.b.iterItems(allocatorNameToPoints, function(allocatorName, points) {
+      tr.b.iterItems(allocatorNameToPoints, function(allocatorName, points) {
         var allocatorSize = allocatorSizes[allocatorName] || 0;
-        points.push(new tv.c.tracks.ChartPoint(
+        points.push(new tr.c.tracks.ChartPoint(
             memoryDump, memoryDump.start, allocatorSize));
       });
     });
 
     // Create one common axis for all allocated memory chart series.
-    var axis = new tv.c.tracks.ChartAxis(0);
+    var axis = new tr.c.tracks.ChartAxis(0);
 
     // Build a chart series for each allocator.
     var series = [];
-    tv.b.iterItems(allocatorNameToPoints, function(allocatorName, points) {
-      var colorId = tv.b.ui.getColorIdForGeneralPurposeString(allocatorName);
+    tr.b.iterItems(allocatorNameToPoints, function(allocatorName, points) {
+      var colorId = tr.b.ui.getColorIdForGeneralPurposeString(allocatorName);
       var renderingConfig = {
-        chartType: tv.c.tracks.ChartSeriesType.LINE,
+        chartType: tr.c.tracks.ChartSeriesType.LINE,
         colorId: colorId
       };
-      series.push(new tv.c.tracks.ChartSeries(points, axis, renderingConfig));
+      series.push(new tr.c.tracks.ChartSeries(points, axis, renderingConfig));
     });
 
     return series;
@@ -133,9 +133,9 @@ tv.exportTo('tv.c.tracks', function() {
    * inside).
    */
   function buildMemoryLetterDots(memoryDumps) {
-    var memoryColorId = tv.b.ui.getColorIdForReservedName('memory_dump');
+    var memoryColorId = tr.b.ui.getColorIdForReservedName('memory_dump');
     return memoryDumps.map(function(memoryDump) {
-      return new tv.c.tracks.LetterDot(
+      return new tr.c.tracks.LetterDot(
           memoryDump, 'M', memoryColorId, memoryDump.start);
     });
   }
@@ -159,14 +159,14 @@ tv.exportTo('tv.c.tracks', function() {
     // Find all processes that dump memory at least once.
     var pidToProcess = {};
     globalMemoryDumps.forEach(function(globalDump) {
-      tv.b.iterItems(globalDump.processMemoryDumps, function(pid, processDump) {
+      tr.b.iterItems(globalDump.processMemoryDumps, function(pid, processDump) {
         pidToProcess[pid] = processDump.process;
       });
     });
 
     // Build one list of points for each instrumented process.
     var pidToPoints = {};
-    tv.b.iterItems(pidToProcess, function(pid, process) {
+    tr.b.iterItems(pidToProcess, function(pid, process) {
       pidToPoints[pid] = [];
     });
 
@@ -174,7 +174,7 @@ tv.exportTo('tv.c.tracks', function() {
     // each process and append it to the corresponding list of points.
     globalMemoryDumps.forEach(function(globalDump) {
       var pssBase = 0;
-      tv.b.iterItems(pidToPoints, function(pid, points) {
+      tr.b.iterItems(pidToPoints, function(pid, points) {
         var processMemoryDump = globalDump.processMemoryDumps[pid];
         var pss;
         if (processMemoryDump === undefined) {
@@ -190,27 +190,27 @@ tv.exportTo('tv.c.tracks', function() {
           }
         }
         var cumulativePss = pssBase + pss;
-        points.push(new tv.c.tracks.ChartPoint(
+        points.push(new tr.c.tracks.ChartPoint(
             globalDump, globalDump.start, cumulativePss, pssBase));
         pssBase = cumulativePss;
       });
     });
 
     // Create one common axis for all used memory chart series.
-    var axis = new tv.c.tracks.ChartAxis(0);
+    var axis = new tr.c.tracks.ChartAxis(0);
 
     // Build a chart series for each instrumented process.
     var series = [];
-    tv.b.iterItems(pidToPoints, function(pid, points) {
+    tr.b.iterItems(pidToPoints, function(pid, points) {
       var process = pidToProcess[pid];
-      var colorId = tv.b.ui.getColorIdForGeneralPurposeString(
+      var colorId = tr.b.ui.getColorIdForGeneralPurposeString(
           process.userFriendlyName);
       var renderingConfig = {
-        chartType: tv.c.tracks.ChartSeriesType.AREA,
+        chartType: tr.c.tracks.ChartSeriesType.AREA,
         colorId: colorId,
         backgroundOpacity: 0.8
       };
-      series.push(new tv.c.tracks.ChartSeries(points, axis, renderingConfig));
+      series.push(new tr.c.tracks.ChartSeries(points, axis, renderingConfig));
     });
 
     // Show the first series (with the smallest cumulative value) at the top.

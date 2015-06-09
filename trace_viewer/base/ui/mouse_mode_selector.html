@@ -24,7 +24,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.ui', function() {
+tr.exportTo('tr.b.ui', function() {
 
   var THIS_DOC = document.currentScript.ownerDocument;
 
@@ -110,7 +110,7 @@ tv.exportTo('tv.b.ui', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var MouseModeSelector = tv.b.ui.define('div');
+  var MouseModeSelector = tr.b.ui.define('div');
 
   MouseModeSelector.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -118,7 +118,7 @@ tv.exportTo('tv.b.ui', function() {
     decorate: function(opt_targetElement) {
       this.classList.add('mouse-mode-selector');
 
-      var node = tv.b.instantiateTemplate('#mouse-mode-selector-template',
+      var node = tr.b.instantiateTemplate('#mouse-mode-selector-template',
                                           THIS_DOC);
       this.appendChild(node);
 
@@ -145,9 +145,9 @@ tv.exportTo('tv.b.ui', function() {
       this.buttonsEl_.addEventListener('mousedown', this.onButtonMouseDown_);
       this.buttonsEl_.addEventListener('click', this.onButtonPress_.bind(this));
 
-      tv.b.KeyEventManager.instance.addListener(
+      tr.b.KeyEventManager.instance.addListener(
           'keydown', this.onKeyDown_, this);
-      tv.b.KeyEventManager.instance.addListener(
+      tr.b.KeyEventManager.instance.addListener(
           'keyup', this.onKeyUp_, this);
       this.keyCodeCondition = undefined;
 
@@ -192,7 +192,7 @@ tv.exportTo('tv.b.ui', function() {
       if (!this.settingsKey_)
         return;
 
-      var mode = tv.b.Settings.get(this.settingsKey_ + '.mode', undefined);
+      var mode = tr.b.Settings.get(this.settingsKey_ + '.mode', undefined);
       // Modes changed from 1,2,3,4 to 0x1, 0x2, 0x4, 0x8. Fix any stray
       // settings to the best of our abilities.
       if (allModeInfo[mode] === undefined)
@@ -207,7 +207,7 @@ tv.exportTo('tv.b.ui', function() {
         mode = this.defaultMode_;
       this.mode = mode;
 
-      var pos = tv.b.Settings.get(this.settingsKey_ + '.pos', undefined);
+      var pos = tr.b.Settings.get(this.settingsKey_ + '.pos', undefined);
       if (pos)
         this.pos = pos;
     },
@@ -279,7 +279,7 @@ tv.exportTo('tv.b.ui', function() {
         }
 
         // Exit event.
-        tv.b.dispatchSimpleEvent(this, modeInfo.eventNames.exit, true);
+        tr.b.dispatchSimpleEvent(this, modeInfo.eventNames.exit, true);
       }
 
       this.currentMode_ = newMode;
@@ -296,7 +296,7 @@ tv.exportTo('tv.b.ui', function() {
 
         // Enter event.
         if (!this.isInAlternativeMode_)
-          tv.b.dispatchSimpleEvent(this, modeInfo.eventNames.enter, true);
+          tr.b.dispatchSimpleEvent(this, modeInfo.eventNames.enter, true);
 
         // Begin event.
         if (this.isInteracting_) {
@@ -309,7 +309,7 @@ tv.exportTo('tv.b.ui', function() {
       }
 
       if (this.settingsKey_ && !this.isInAlternativeMode_)
-        tv.b.Settings.set(this.settingsKey_ + '.mode', this.mode);
+        tr.b.Settings.set(this.settingsKey_ + '.mode', this.mode);
     },
 
     setKeyCodeForMode: function(mode, keyCode) {
@@ -338,7 +338,7 @@ tv.exportTo('tv.b.ui', function() {
     },
 
     createEvent_: function(eventName, sourceEvent) {
-      var event = new tv.b.Event(eventName, true);
+      var event = new tr.b.Event(eventName, true);
       event.clientX = this.mousePos_.x;
       event.clientY = this.mousePos_.y;
       event.deltaX = this.mousePos_.x - this.mouseDownPos_.x;
@@ -369,7 +369,7 @@ tv.exportTo('tv.b.ui', function() {
       this.dispatchEvent(mouseEvent);
       this.isInteracting_ = true;
       this.isClick_ = true;
-      tv.b.ui.trackMouseMovesUntilMouseUp(this.onMouseMove_, this.onMouseUp_);
+      tr.b.ui.trackMouseMovesUntilMouseUp(this.onMouseMove_, this.onMouseUp_);
     },
 
     onMouseMove_: function(e) {
@@ -432,7 +432,7 @@ tv.exportTo('tv.b.ui', function() {
       }
 
       var didHandleKey = false;
-      tv.b.iterItems(this.modeToKeyCodeMap_, function(modeStr, keyCode) {
+      tr.b.iterItems(this.modeToKeyCodeMap_, function(modeStr, keyCode) {
         if (e.keyCode === keyCode) {
           this.modeBeforeAlternativeModeActivated_ = undefined;
           var mode = parseInt(modeStr);
@@ -453,7 +453,7 @@ tv.exportTo('tv.b.ui', function() {
       var shiftPressed = e.shiftKey;
       var spacePressed = this.spacePressed_;
       var cmdOrCtrlPressed =
-          (tv.isMac && e.metaKey) || (!tv.isMac && e.ctrlKey);
+          (tr.isMac && e.metaKey) || (!tr.isMac && e.ctrlKey);
 
       // Figure out the new mode
       var smm = this.supportedModeMask_;
@@ -513,12 +513,12 @@ tv.exportTo('tv.b.ui', function() {
       this.style.top = pos.y + 'px';
 
       if (this.settingsKey_)
-        tv.b.Settings.set(this.settingsKey_ + '.pos', this.pos);
+        tr.b.Settings.set(this.settingsKey_ + '.pos', this.pos);
     },
 
     constrainPositionToBounds_: function(pos) {
       var parent = this.offsetParent || document.body;
-      var parentRect = tv.b.windowRectForElement(parent);
+      var parentRect = tr.b.windowRectForElement(parent);
 
       var top = 0;
       var bottom = parentRect.height - this.offsetHeight;
@@ -542,7 +542,7 @@ tv.exportTo('tv.b.ui', function() {
         x: e.clientX - this.offsetLeft,
         y: e.clientY - this.offsetTop
       };
-      tv.b.ui.trackMouseMovesUntilMouseUp(function(e) {
+      tr.b.ui.trackMouseMovesUntilMouseUp(function(e) {
         var pos = {};
         pos.x = e.clientX - mouseDownPos.x;
         pos.y = e.clientY - mouseDownPos.y;

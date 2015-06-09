@@ -16,14 +16,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c', function() {
-  var BrushingState = tv.c.BrushingState;
-  var Selection = tv.c.Selection;
-  var SelectionState = tv.c.trace_model.SelectionState;
-  var Viewport = tv.c.TimelineViewport;
+tr.exportTo('tr.c', function() {
+  var BrushingState = tr.c.BrushingState;
+  var Selection = tr.c.Selection;
+  var SelectionState = tr.c.trace_model.SelectionState;
+  var Viewport = tr.c.TimelineViewport;
 
   function SelectionController(timelineView) {
-    tv.b.EventTarget.call(this);
+    tr.b.EventTarget.call(this);
 
     this.timelineView_ = timelineView;
     this.currentBrushingState_ = new BrushingState();
@@ -34,10 +34,10 @@ tv.exportTo('tv.c', function() {
   }
 
   SelectionController.prototype = {
-    __proto__: tv.b.EventTarget.prototype,
+    __proto__: tr.b.EventTarget.prototype,
 
     dispatchChangeEvent_: function() {
-      var e = new tv.b.Event('change', false, false);
+      var e = new tr.b.Event('change', false, false);
       this.dispatchEvent(e);
     },
 
@@ -83,7 +83,7 @@ tv.exportTo('tv.c', function() {
       this.selections_ = {};
       this.currentBrushingState_.applyToModelSelectionState(this.model);
 
-      var e = new tv.b.Event('model-changed', false, false);
+      var e = new tr.b.Event('model-changed', false, false);
       this.dispatchEvent(e);
     },
 
@@ -166,7 +166,7 @@ tv.exportTo('tv.c', function() {
     addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
       var timelineView = this.timelineView_.trackView;
       if (!timelineView)
-        return new tv.b.Task();
+        return new tr.b.Task();
       return timelineView.addAllEventsMatchingFilterToSelectionAsTask(
           filter, selection);
     },
@@ -205,7 +205,7 @@ tv.exportTo('tv.c', function() {
     },
 
     uiStateFromString: function(string) {
-      return tv.c.UIState.fromUserFriendlyString(
+      return tr.c.UIState.fromUserFriendlyString(
           this.model, this.viewport, string);
     },
 

@@ -16,15 +16,15 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Counter class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
 
   /**
    * Stores all the samples for a given counter.
    * @constructor
    */
   function Counter(parent, id, category, name) {
-    tv.c.trace_model.EventContainer.call(this);
-    this.guid_ = tv.b.GUID.allocate();
+    tr.c.trace_model.EventContainer.call(this);
+    this.guid_ = tr.b.GUID.allocate();
 
     this.parent = parent;
     this.id = id;
@@ -33,11 +33,11 @@ tv.exportTo('tv.c.trace_model', function() {
 
     this.series_ = [];
     this.totals = [];
-    this.bounds = new tv.b.Range();
+    this.bounds = new tr.b.Range();
   }
 
   Counter.prototype = {
-    __proto__: tv.c.trace_model.EventContainer.prototype,
+    __proto__: tr.c.trace_model.EventContainer.prototype,
 
     get guid() {
       return this.guid_;

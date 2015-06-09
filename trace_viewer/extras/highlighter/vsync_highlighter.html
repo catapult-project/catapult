@@ -16,9 +16,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the VSyncHighlighter class.
  */
-tv.exportTo('tv.e.highlighter', function() {
+tr.exportTo('tr.e.highlighter', function() {
 
-  var Highlighter = tv.c.tracks.Highlighter;
+  var Highlighter = tr.c.tracks.Highlighter;
 
   /**
    * Highlights VSync events on the model track (using "zebra" striping).
@@ -122,7 +122,7 @@ tv.exportTo('tv.e.highlighter', function() {
     var stripes = [];
 
     // Find the lowest and highest index within the viewport.
-    var lowIndex = tv.b.findLowIndexInSortedArray(
+    var lowIndex = tr.b.findLowIndexInSortedArray(
         times,
         function(time) { return time; },
         minTime);
@@ -164,7 +164,7 @@ tv.exportTo('tv.e.highlighter', function() {
 
       var stripeRange = stripes[stripes.length - 1][1] - stripes[0][0];
       var stripeDensity = stripes.length / (dt.scaleX * stripeRange);
-      var clampedStripeDensity = tv.b.clamp(stripeDensity,
+      var clampedStripeDensity = tr.b.clamp(stripeDensity,
           VSyncHighlighter.VSYNC_DENSITY_OPAQUE,
           VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT);
       var opacity =
@@ -176,7 +176,7 @@ tv.exportTo('tv.e.highlighter', function() {
 
       var pixelRatio = window.devicePixelRatio || 1;
       var height = viewHeight * pixelRatio;
-      ctx.fillStyle = tv.b.ui.colorToRGBAString(
+      ctx.fillStyle = tr.b.ui.colorToRGBAString(
           VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR,
           VSyncHighlighter.VSYNC_HIGHLIGHT_ALPHA * opacity);
 
@@ -189,7 +189,7 @@ tv.exportTo('tv.e.highlighter', function() {
   };
 
   // Register the highlighter.
-  tv.c.tracks.Highlighter.register(VSyncHighlighter);
+  tr.c.tracks.Highlighter.register(VSyncHighlighter);
 
   return {
     VSyncHighlighter: VSyncHighlighter

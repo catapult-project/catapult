@@ -9,7 +9,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.cc', function() {
+tr.exportTo('tr.e.cc', function() {
   /**
    * @constructor
    */
@@ -23,7 +23,7 @@ tv.exportTo('tv.e.cc', function() {
 
     var r = new Region();
     for (var i = 0; i < array.length; i += 4) {
-      r.rects.push(tv.b.Rect.fromXYWH(array[i], array[i + 1],
+      r.rects.push(tr.b.Rect.fromXYWH(array[i], array[i + 1],
                                       array[i + 2], array[i + 3]));
     }
     return r;

@@ -14,9 +14,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the CpuSlice class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
 
-  var Slice = tv.c.trace_model.Slice;
+  var Slice = tr.c.trace_model.Slice;
 
   /**
    * A CpuSlice represents a slice of time on a CPU.
@@ -33,7 +33,7 @@ tv.exportTo('tv.c.trace_model', function() {
     __proto__: Slice.prototype,
 
     get analysisTypeName() {
-      return 'tv.c.analysis.CpuSlice';
+      return 'tr.c.analysis.CpuSlice';
     },
 
     getAssociatedTimeslice: function() {
@@ -52,13 +52,13 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
-  tv.c.trace_model.EventRegistry.register(
+  tr.c.trace_model.EventRegistry.register(
       CpuSlice,
       {
         name: 'cpuSlice',
         pluralName: 'cpuSlices',
-        singleViewElementName: 'tv-c-a-single-cpu-slice-sub-view',
-        multiViewElementName: 'tv-c-a-multi-cpu-slice-sub-view'
+        singleViewElementName: 'tr-c-a-single-cpu-slice-sub-view',
+        multiViewElementName: 'tr-c-a-multi-cpu-slice-sub-view'
       });
 
   return {

@@ -22,20 +22,20 @@ found in the LICENSE file.
  * @fileoverview LayerView coordinates graphical and analysis views of layers.
  */
 
-tv.exportTo('tv.e.cc', function() {
-  var constants = tv.e.cc.constants;
+tr.exportTo('tr.e.cc', function() {
+  var constants = tr.e.cc.constants;
 
   /**
    * @constructor
    */
-  var LayerView = tv.b.ui.define('layer-view');
+  var LayerView = tr.b.ui.define('layer-view');
 
   LayerView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.layerTreeQuadStackView_ = new tv.e.cc.LayerTreeQuadStackView();
-      this.dragBar_ = new tv.b.ui.DragHandle();
+      this.layerTreeQuadStackView_ = new tr.e.cc.LayerTreeQuadStackView();
+      this.dragBar_ = new tr.b.ui.DragHandle();
       this.analysisEl_ = document.createElement('layer-view-analysis');
       this.analysisEl_.addEventListener('requestSelectionChange',
           this.onRequestSelectionChangeFromAnalysisEl_.bind(this));
@@ -101,20 +101,20 @@ tv.exportTo('tv.e.cc', function() {
         this.layerTreeQuadStackView_.style.height =
             window.getComputedStyle(this).height;
       }
-      tv.b.dispatchSimpleEvent(this, 'selection-change');
+      tr.b.dispatchSimpleEvent(this, 'selection-change');
     },
 
     createPictureBtn_: function(pictures) {
       if (!(pictures instanceof Array))
         pictures = [pictures];
 
-      var link = document.createElement('tv-c-a-analysis-link');
+      var link = document.createElement('tr-c-a-analysis-link');
       link.selection = function() {
-        var layeredPicture = new tv.e.cc.LayeredPicture(pictures);
-        var snapshot = new tv.e.cc.PictureSnapshot(layeredPicture);
+        var layeredPicture = new tr.e.cc.LayeredPicture(pictures);
+        var snapshot = new tr.e.cc.PictureSnapshot(layeredPicture);
         snapshot.picture = layeredPicture;
 
-        var selection = new tv.c.Selection();
+        var selection = new tr.c.Selection();
         selection.push(snapshot);
         return selection;
       };
@@ -123,7 +123,7 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     onRequestSelectionChangeFromAnalysisEl_: function(e) {
-      if (!(e.selection instanceof tv.e.cc.Selection))
+      if (!(e.selection instanceof tr.e.cc.Selection))
         return;
 
       e.stopPropagation();

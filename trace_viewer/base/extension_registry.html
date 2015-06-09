@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-gCopyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -39,24 +39,24 @@ found in the LICENSE file.
  * then set mandatoryBaseType field on the registry.
  *
  */
-tv.exportTo('tv.b', function() {
+tr.exportTo('tr.b', function() {
 
   function decorateExtensionRegistry(registry, registryOptions) {
     if (registry.register)
       throw new Error('Already has registry');
 
     registryOptions.freeze();
-    if (registryOptions.mode == tv.b.BASIC_REGISTRY_MODE) {
-      tv.b._decorateBasicExtensionRegistry(registry, registryOptions);
-    } else if (registryOptions.mode == tv.b.TYPE_BASED_REGISTRY_MODE) {
-      tv.b._decorateTypeBasedExtensionRegistry(registry, registryOptions);
+    if (registryOptions.mode == tr.b.BASIC_REGISTRY_MODE) {
+      tr.b._decorateBasicExtensionRegistry(registry, registryOptions);
+    } else if (registryOptions.mode == tr.b.TYPE_BASED_REGISTRY_MODE) {
+      tr.b._decorateTypeBasedExtensionRegistry(registry, registryOptions);
     } else {
       throw new Error('Unrecognized mode');
     }
 
     // Make it an event target.
     if (registry.addEventListener === undefined)
-      tv.b.EventTarget.decorate(registry);
+      tr.b.EventTarget.decorate(registry);
   }
 
   return {

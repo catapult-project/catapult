@@ -11,12 +11,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() { // @suppress longLineCheck
-  var Process = tv.c.trace_model.Process;
-  var Thread = tv.c.trace_model.Thread;
-  var AsyncSlice = tv.c.trace_model.AsyncSlice;
-  var AsyncSliceGroup = tv.c.trace_model.AsyncSliceGroup;
-  var newAsyncSlice = tv.c.test_utils.newAsyncSlice;
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var Process = tr.c.trace_model.Process;
+  var Thread = tr.c.trace_model.Thread;
+  var AsyncSlice = tr.c.trace_model.AsyncSlice;
+  var AsyncSliceGroup = tr.c.trace_model.AsyncSliceGroup;
+  var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
 
   test('asyncSliceGroupBounds_Empty', function() {
     var thread = {};
@@ -26,7 +26,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('asyncSliceGroupBounds_Basic', function() {
-    var model = new tv.c.TraceModel();
+    var model = new tr.c.TraceModel();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -39,7 +39,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('asyncSliceGroupStableId', function() {
-    var model = new tv.c.TraceModel();
+    var model = new tr.c.TraceModel();
     var process = model.getOrCreateProcess(123);
     var thread = process.getOrCreateThread(456);
     var group = new AsyncSliceGroup(thread);

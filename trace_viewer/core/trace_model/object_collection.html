@@ -18,9 +18,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the ObjectCollection class.
  */
-tv.exportTo('tv.c.trace_model', function() {
-  var ObjectInstance = tv.c.trace_model.ObjectInstance;
-  var ObjectSnapshot = tv.c.trace_model.ObjectSnapshot;
+tr.exportTo('tr.c.trace_model', function() {
+  var ObjectInstance = tr.c.trace_model.ObjectInstance;
+  var ObjectSnapshot = tr.c.trace_model.ObjectSnapshot;
 
   /**
    * A collection of object instances and their snapshots, accessible by id and
@@ -29,16 +29,16 @@ tv.exportTo('tv.c.trace_model', function() {
    * @constructor
    */
   function ObjectCollection(parent) {
-    tv.c.trace_model.EventContainer.call(this);
+    tr.c.trace_model.EventContainer.call(this);
     this.parent = parent;
-    this.bounds = new tv.b.Range();
+    this.bounds = new tr.b.Range();
     this.instanceMapsById_ = {}; // id -> TimeToObjectInstanceMap
     this.instancesByTypeName_ = {};
     this.createObjectInstance_ = this.createObjectInstance_.bind(this);
   }
 
   ObjectCollection.prototype = {
-    __proto__: tv.c.trace_model.EventContainer.prototype,
+    __proto__: tr.c.trace_model.EventContainer.prototype,
 
     iterateAllChildEventContainers: function(callback, opt_this) {
     },
@@ -59,7 +59,7 @@ tv.exportTo('tv.c.trace_model', function() {
 
     createObjectInstance_: function(
         parent, id, category, name, creationTs, opt_baseTypeName) {
-      var constructor = tv.c.trace_model.ObjectInstance.getConstructor(
+      var constructor = tr.c.trace_model.ObjectInstance.getConstructor(
           category, name);
       var instance = new constructor(
           parent, id, category, name, creationTs, opt_baseTypeName);
@@ -77,7 +77,7 @@ tv.exportTo('tv.c.trace_model', function() {
       var instanceMap = this.instanceMapsById_[id];
       if (instanceMap)
         return instanceMap;
-      instanceMap = new tv.c.trace_model.TimeToObjectInstanceMap(
+      instanceMap = new tr.c.trace_model.TimeToObjectInstanceMap(
           this.createObjectInstance_, this.parent, id);
       this.instanceMapsById_[id] = instanceMap;
       return instanceMap;
@@ -136,7 +136,7 @@ tv.exportTo('tv.c.trace_model', function() {
     },
 
     autoDeleteObjects: function(maxTimestamp) {
-      tv.b.iterItems(this.instanceMapsById_, function(id, i2imap) {
+      tr.b.iterItems(this.instanceMapsById_, function(id, i2imap) {
         var lastInstance = i2imap.lastInstance;
         if (lastInstance.deletionTs != Number.MAX_VALUE)
           return;
@@ -164,7 +164,7 @@ tv.exportTo('tv.c.trace_model', function() {
 
     iterObjectInstances: function(iter, opt_this) {
       opt_this = opt_this || this;
-      tv.b.iterItems(this.instanceMapsById_, function(id, i2imap) {
+      tr.b.iterItems(this.instanceMapsById_, function(id, i2imap) {
         i2imap.instances.forEach(iter, opt_this);
       });
     },

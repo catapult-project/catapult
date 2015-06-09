@@ -11,10 +11,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
 
   function Alert(info, start, opt_associatedEvents, opt_args) {
-    tv.c.trace_model.TimedEvent.call(this, start);
+    tr.c.trace_model.TimedEvent.call(this, start);
     this.info = info;
     this.args = opt_args || {};
     this.associatedEvents = opt_associatedEvents || [];
@@ -24,7 +24,7 @@ tv.exportTo('tv.c.trace_model', function() {
   }
 
   Alert.prototype = {
-    __proto__: tv.c.trace_model.TimedEvent.prototype,
+    __proto__: tr.c.trace_model.TimedEvent.prototype,
 
     get title() {
       return this.info.title;
@@ -36,17 +36,17 @@ tv.exportTo('tv.c.trace_model', function() {
 
     get userFriendlyName() {
       return 'Alert ' + this.title + ' at ' +
-          tv.b.units.tsString(this.start);
+          tr.b.units.tsString(this.start);
     }
   };
 
-  tv.c.trace_model.EventRegistry.register(
+  tr.c.trace_model.EventRegistry.register(
       Alert,
       {
         name: 'alert',
         pluralName: 'alerts',
-        singleViewElementName: 'tv-c-a-alert-sub-view',
-        multiViewElementName: 'tv-c-a-alert-sub-view'
+        singleViewElementName: 'tr-c-a-alert-sub-view',
+        multiViewElementName: 'tr-c-a-alert-sub-view'
       });
 
   return {

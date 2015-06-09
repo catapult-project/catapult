@@ -13,21 +13,21 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function createProcessMemoryDumps() {
-    var gmd = tv.c.analysis.createTestGlobalMemoryDump();
-    return tv.b.dictionaryValues(gmd.processMemoryDumps);
+    var gmd = tr.c.analysis.createTestGlobalMemoryDump();
+    return tr.b.dictionaryValues(gmd.processMemoryDumps);
   }
 
   test('instantiate', function() {
     var processMemoryDumps = createProcessMemoryDumps();
 
-    var viewEl = document.createElement('tv-c-a-memory-dump-overview-pane');
+    var viewEl = document.createElement('tr-c-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps;
     this.addHTMLOutput(viewEl);
 
-    var table = tv.b.findDeepElementMatching(
-        viewEl, 'tv-b-ui-table');
+    var table = tr.b.findDeepElementMatching(
+        viewEl, 'tr-b-ui-table');
 
     var rows = table.tableRows;
     var columns = table.tableColumns;
@@ -62,7 +62,7 @@ tv.b.unittest.testSuite(function() {
   test('selection', function() {
     var processMemoryDumps = createProcessMemoryDumps();
 
-    var viewEl = document.createElement('tv-c-a-memory-dump-overview-pane');
+    var viewEl = document.createElement('tr-c-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps;
     this.addHTMLOutput(viewEl);
 
@@ -72,8 +72,8 @@ tv.b.unittest.testSuite(function() {
       didFireSelectedDumpChanged = true;
     });
 
-    var table = tv.b.findDeepElementMatching(
-        viewEl, 'tv-b-ui-table');
+    var table = tr.b.findDeepElementMatching(
+        viewEl, 'tr-b-ui-table');
 
     // Simulate clicking on the 'oilpan' cell of the second process.
     didFireSelectedDumpChanged = false;

@@ -16,9 +16,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Event class.
  */
-tv.exportTo('tv.c.trace_model', function() {
-  var SelectableItem = tv.c.trace_model.SelectableItem;
-  var SelectionState = tv.c.trace_model.SelectionState;
+tr.exportTo('tr.c.trace_model', function() {
+  var SelectableItem = tr.c.trace_model.SelectableItem;
+  var SelectionState = tr.c.trace_model.SelectionState;
 
   // Cached values for getCategoryParts.
   var categoryPartsFor = {};
@@ -50,7 +50,7 @@ tv.exportTo('tv.c.trace_model', function() {
    */
   function Event() {
     SelectableItem.call(this, this /* modelItem */);
-    this.guid_ = tv.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocate();
     this.selectionState = SelectionState.NONE;
     this.associatedAlerts = [];
     this.info = undefined;
@@ -67,9 +67,9 @@ tv.exportTo('tv.c.trace_model', function() {
   // Create the type registry.
   function EventRegistry() {
   }
-  var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
+  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   options.mandatoryBaseType = Event;
-  tv.b.decorateExtensionRegistry(EventRegistry, options);
+  tr.b.decorateExtensionRegistry(EventRegistry, options);
 
   // Enforce all options objects have the right fields.
   EventRegistry.addEventListener('will-register', function(e) {
@@ -77,7 +77,7 @@ tv.exportTo('tv.c.trace_model', function() {
 
     if (metadata.name === undefined)
       throw new Error('Registered events must provide name metadata');
-    var i = tv.b.findFirstInArray(
+    var i = tr.b.findFirstInArray(
       EventRegistry.getAllRegisteredTypeInfos(),
       function(x) { return x.metadata.name === metadata.name; });
     if (i !== undefined)

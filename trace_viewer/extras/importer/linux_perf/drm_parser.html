@@ -13,9 +13,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses drm driver events in the Linux event trace format.
  */
-tv.exportTo('tv.e.importer.linux_perf', function() {
+tr.exportTo('tr.e.importer.linux_perf', function() {
 
-  var Parser = tv.e.importer.linux_perf.Parser;
+  var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux drm trace events.
@@ -34,8 +34,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     drmVblankSlice: function(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('drm_vblank');
       kthread.openSlice = eventName;
-      var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-          tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+      var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+          tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);

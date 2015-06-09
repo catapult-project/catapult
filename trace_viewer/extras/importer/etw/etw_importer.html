@@ -51,8 +51,8 @@ found in the LICENSE file.
  */
 'use strict';
 
-tv.exportTo('tv.e.importer.etw', function() {
-  var Importer = tv.c.importer.Importer;
+tr.exportTo('tr.e.importer.etw', function() {
+  var Importer = tr.c.importer.Importer;
 
   // GUID and opcode of a Thread DCStart event, as defined at the link above.
   var kThreadGuid = '3D6FA8D1-FE05-11D0-9DDA-00C04FD7BA7C';
@@ -70,11 +70,11 @@ tv.exportTo('tv.e.importer.etw', function() {
     __proto__: Object.prototype,
 
     reset: function(base64_payload) {
-      var decoded_size = tv.b.Base64.getDecodedBufferLength(base64_payload);
+      var decoded_size = tr.b.Base64.getDecodedBufferLength(base64_payload);
       if (decoded_size > this.payload_.byteLength)
         this.payload_ = new DataView(new ArrayBuffer(decoded_size));
 
-      tv.b.Base64.DecodeToTypedArray(base64_payload, this.payload_);
+      tr.b.Base64.DecodeToTypedArray(base64_payload, this.payload_);
       this.position_ = 0;
     },
 
@@ -275,7 +275,7 @@ tv.exportTo('tv.e.importer.etw', function() {
     this.tidsToPid_ = {};
 
     // Instantiate the parsers; this will register handlers for known events.
-    var allTypeInfos = tv.e.importer.etw.Parser.getAllRegisteredTypeInfos();
+    var allTypeInfos = tr.e.importer.etw.Parser.getAllRegisteredTypeInfos();
     this.parsers_ = allTypeInfos.map(
         function(typeInfo) {
           return new typeInfo.constructor(this);
@@ -380,7 +380,7 @@ tv.exportTo('tv.e.importer.etw', function() {
           event.hasOwnProperty('payload') &&
           event.guid === kThreadGuid &&
           event.op == kThreadDCStartOpcode) {
-        var decoded_size = tv.b.Base64.getDecodedBufferLength(event.payload);
+        var decoded_size = tr.b.Base64.getDecodedBufferLength(event.payload);
 
         if (event.ver == 1) {
           if (decoded_size >= 52)
@@ -466,7 +466,7 @@ tv.exportTo('tv.e.importer.etw', function() {
   };
 
   // Register the EtwImporter to the Importer.
-  tv.c.importer.Importer.register(EtwImporter);
+  tr.c.importer.Importer.register(EtwImporter);
 
   return {
     EtwImporter: EtwImporter

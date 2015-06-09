@@ -14,13 +14,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Model = tv.c.TraceModel;
-  var Thread = tv.c.trace_model.Thread;
-  var Selection = tv.c.Selection;
-  var newSliceNamed = tv.c.test_utils.newSliceNamed;
-  var newSliceCategory = tv.c.test_utils.newSliceCategory;
-  var Slice = tv.c.trace_model.Slice;
+tr.b.unittest.testSuite(function() {
+  var Model = tr.c.TraceModel;
+  var Thread = tr.c.trace_model.Thread;
+  var Selection = tr.c.Selection;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newSliceCategory = tr.c.test_utils.newSliceCategory;
+  var Slice = tr.c.trace_model.Slice;
 
   test('differentTitles', function() {
     var model = new Model();
@@ -38,24 +38,24 @@ tv.b.unittest.testSuite(function() {
     selection.push(t53.sliceGroup.slices[1]);
     selection.push(t53.sliceGroup.slices[2]);
 
-    var viewEl = document.createElement('tv-c-a-multi-event-sub-view');
+    var viewEl = document.createElement('tr-c-a-multi-event-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
 
-    var summaryTableEl = tv.b.findDeepElementMatching(
-        viewEl, 'tv-c-a-multi-event-summary-table');
+    var summaryTableEl = tr.b.findDeepElementMatching(
+        viewEl, 'tr-c-a-multi-event-summary-table');
     assert.isDefined(summaryTableEl);
 
     assert.isTrue(summaryTableEl.showTotals);
-    assert.equal(tv.b.dictionaryLength(summaryTableEl.eventsByTitle), 2);
+    assert.equal(tr.b.dictionaryLength(summaryTableEl.eventsByTitle), 2);
 
-    var selectionSummaryTableEl = tv.b.findDeepElementMatching(
-        viewEl, 'tv-c-a-selection-summary-table');
+    var selectionSummaryTableEl = tr.b.findDeepElementMatching(
+        viewEl, 'tr-c-a-selection-summary-table');
     assert.isDefined(selectionSummaryTableEl);
     assert.equal(selectionSummaryTableEl.selection, selection);
 
-    var detailsTableEl = tv.b.findDeepElementMatching(
-        viewEl, 'tv-c-a-multi-event-details-table');
+    var detailsTableEl = tr.b.findDeepElementMatching(
+        viewEl, 'tr-c-a-multi-event-details-table');
     assert.isUndefined(detailsTableEl);
   });
 
@@ -73,24 +73,24 @@ tv.b.unittest.testSuite(function() {
     selection.push(t53.sliceGroup.slices[0]);
     selection.push(t53.sliceGroup.slices[1]);
 
-    var viewEl = document.createElement('tv-c-a-multi-event-sub-view');
+    var viewEl = document.createElement('tr-c-a-multi-event-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
 
-    var summaryTableEl = tv.b.findDeepElementMatching(
-        viewEl, 'tv-c-a-multi-event-summary-table');
+    var summaryTableEl = tr.b.findDeepElementMatching(
+        viewEl, 'tr-c-a-multi-event-summary-table');
     assert.isDefined(summaryTableEl);
 
     assert.isFalse(summaryTableEl.showTotals);
-    assert.equal(tv.b.dictionaryLength(summaryTableEl.eventsByTitle), 1);
+    assert.equal(tr.b.dictionaryLength(summaryTableEl.eventsByTitle), 1);
 
-    var selectionSummaryTableEl = tv.b.findDeepElementMatching(
-        viewEl, 'tv-c-a-selection-summary-table');
+    var selectionSummaryTableEl = tr.b.findDeepElementMatching(
+        viewEl, 'tr-c-a-selection-summary-table');
     assert.isDefined(selectionSummaryTableEl);
     assert.equal(selectionSummaryTableEl.selection, selection);
 
-    var detailsTableEl = tv.b.findDeepElementMatching(
-        viewEl, 'tv-c-a-multi-event-details-table');
+    var detailsTableEl = tr.b.findDeepElementMatching(
+        viewEl, 'tr-c-a-multi-event-details-table');
         assert.isDefined(detailsTableEl);
     assert.equal(detailsTableEl.selection, selection);
   });

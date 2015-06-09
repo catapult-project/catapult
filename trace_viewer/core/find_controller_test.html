@@ -14,8 +14,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Task = tv.b.Task;
+tr.b.unittest.testSuite(function() {
+  var Task = tr.b.Task;
 
   /*
    * Just enough of the SelectionController to support the tests below.
@@ -25,8 +25,8 @@ tv.b.unittest.testSuite(function() {
 
     this.viewport = undefined;
     this.model = undefined;
-    this.selection = new tv.c.Selection();
-    this.findMatches = new tv.c.Selection();
+    this.selection = new tr.c.Selection();
+    this.findMatches = new tr.c.Selection();
   }
 
   FakeSelectionController.prototype = {
@@ -46,7 +46,7 @@ tv.b.unittest.testSuite(function() {
 
     findTextChangedTo: function(selection) {
       this.findMatches = selection;
-      this.selection = new tv.c.Selection();
+      this.selection = new tr.c.Selection();
     },
 
     findFocusChangedTo: function(selection) {
@@ -54,8 +54,8 @@ tv.b.unittest.testSuite(function() {
     },
 
     findTextCleared: function(selection) {
-      this.selection = new tv.c.Selection();
-      this.findMatches = new tv.c.Selection();
+      this.selection = new tr.c.Selection();
+      this.findMatches = new tr.c.Selection();
     }
   };
 
@@ -70,22 +70,22 @@ tv.b.unittest.testSuite(function() {
     }
 
     var message = opt_message || 'Expected array ' + a + ', got array ' + b;
-    throw new tv.b.unittest.TestError(message);
+    throw new tr.b.unittest.TestError(message);
   };
 
   test('findControllerNoModel', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.FindController(selectionController);
+    var controller = new tr.c.FindController(selectionController);
     controller.findNext();
     controller.findPrevious();
   });
 
   test('findControllerEmptyHit', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.FindController(selectionController);
+    var controller = new tr.c.FindController(selectionController);
 
-    selectionController.selection = new tv.c.Selection();
-    selectionController.findMatches = new tv.c.Selection();
+    selectionController.selection = new tr.c.Selection();
+    selectionController.findMatches = new tr.c.Selection();
     controller.findNext();
     assertArrayShallowEquals([], selectionController.selection);
     assertArrayShallowEquals([], selectionController.findMatches);
@@ -96,7 +96,7 @@ tv.b.unittest.testSuite(function() {
 
   test('findControllerOneHit', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.FindController(selectionController);
+    var controller = new tr.c.FindController(selectionController);
 
     var s1 = {guid: 1};
     selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
@@ -122,7 +122,7 @@ tv.b.unittest.testSuite(function() {
 
   test('findControllerMultipleHits', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.FindController(selectionController);
+    var controller = new tr.c.FindController(selectionController);
 
     var s1 = {guid: 1};
     var s2 = {guid: 2};
@@ -156,7 +156,7 @@ tv.b.unittest.testSuite(function() {
 
   test('findControllerChangeFilterAfterNext', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.FindController(selectionController);
+    var controller = new tr.c.FindController(selectionController);
 
     var s1 = {guid: 1};
     var s2 = {guid: 2};
@@ -187,7 +187,7 @@ tv.b.unittest.testSuite(function() {
 
   test('findControllerSelectsAllItemsFirst', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.FindController(selectionController);
+    var controller = new tr.c.FindController(selectionController);
 
     var s1 = {guid: 1};
     var s2 = {guid: 2};
@@ -210,15 +210,15 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('findControllerWithRealTimeline', function() {
-    var model = tv.c.test_utils.newModel(function(model) {
+    var model = tr.c.test_utils.newModel(function(model) {
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
-      t1.sliceGroup.pushSlice(new tv.c.trace_model.ThreadSlice(
+      t1.sliceGroup.pushSlice(new tr.c.trace_model.ThreadSlice(
           '', 'a', 0, 1, {}, 3));
       model.t1 = t1;
     });
 
-    var timeline = new tv.c.TimelineView();
+    var timeline = new tr.c.TimelineView();
     timeline.model = model;
 
     var selectionController = timeline.selectionController;
@@ -232,7 +232,7 @@ tv.b.unittest.testSuite(function() {
     var promise = controller.updateFilterHits();
     promise = promise.then(function() {
       assert.equal(selectionController.selection.length, 0);
-      assert.deepEqual(tv.b.asArray(selectionController.findMatches),
+      assert.deepEqual(tr.b.asArray(selectionController.findMatches),
                        model.t1.sliceGroup.slices);
 
       controller.findNext();
@@ -257,7 +257,7 @@ tv.b.unittest.testSuite(function() {
 
   test('findControllerNavigation', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.FindController(selectionController);
+    var controller = new tr.c.FindController(selectionController);
 
     var navToPositionCallCount = 0;
     var fakeUIState = {};

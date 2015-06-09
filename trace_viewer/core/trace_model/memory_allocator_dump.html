@@ -13,7 +13,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the MemoryAllocatorDump class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
   /**
    * @constructor
    */
@@ -54,17 +54,17 @@ tv.exportTo('tv.c.trace_model', function() {
 
       this.children.forEach(function(child) {
         child.aggregateAttributes(opt_model);
-        tv.b.iterItems(child.attributes, function(name) {
+        tr.b.iterItems(child.attributes, function(name) {
           attributes[name] = true;
         }, this);
       }, this);
 
-      tv.b.iterItems(attributes, function(name) {
+      tr.b.iterItems(attributes, function(name) {
         var childAttributes = this.children.map(function(child) {
           return child.attributes[name];
         }, this);
         var currentAttribute = this.attributes[name];
-        this.attributes[name] = tv.c.trace_model.Attribute.aggregate(
+        this.attributes[name] = tr.c.trace_model.Attribute.aggregate(
             childAttributes, currentAttribute, opt_model);
       }, this);
     }

@@ -14,13 +14,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var audits = tv.e.audits;
+tr.b.unittest.testSuite(function() {
+  var audits = tr.e.audits;
 
   function newRIRF(customizeModelCallback) {
-    var model = tv.e.audits.newChromeModel(customizeModelCallback);
-    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
-    return new tv.e.audits.RAILIRFinder(model, modelHelper);
+    var model = tr.e.audits.newChromeModel(customizeModelCallback);
+    var modelHelper = new tr.e.audits.ChromeModelHelper(model);
+    return new tr.e.audits.RAILIRFinder(model, modelHelper);
   }
 
   test('twoScrollsNoFling', function() {

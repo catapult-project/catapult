@@ -11,7 +11,7 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-tv.exportTo('tv.c.analysis', function() {
+tr.exportTo('tr.c.analysis', function() {
   function MultiEventSummary(title, events) {
     this.title = title;
     this.duration_ = undefined;
@@ -28,7 +28,7 @@ tv.exportTo('tv.c.analysis', function() {
   MultiEventSummary.prototype = {
     get duration() {
       if (this.duration_ === undefined) {
-        this.duration_ = tv.b.Statistics.sum(
+        this.duration_ = tr.b.Statistics.sum(
             this.events_, function(event) {
                 return event.duration;
             });
@@ -93,7 +93,7 @@ tv.exportTo('tv.c.analysis', function() {
 
     get numAlerts() {
       if (this.numAlerts_ === undefined) {
-        this.numAlerts_ = tv.b.Statistics.sum(this.events_, function(event) {
+        this.numAlerts_ = tr.b.Statistics.sum(this.events_, function(event) {
           return event.associatedAlerts.length;
         });
       }
@@ -135,7 +135,7 @@ tv.exportTo('tv.c.analysis', function() {
           totalledArgs[argName] += argVal;
         }
       }
-      this.untotallableArgs_ = tv.b.dictionaryKeys(untotallableArgs);
+      this.untotallableArgs_ = tr.b.dictionaryKeys(untotallableArgs);
       this.totalledArgs_ = totalledArgs;
     }
   };

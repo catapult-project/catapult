@@ -10,18 +10,18 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-tv.exportTo('tv.b.units', function() {
+tr.exportTo('tr.b.units', function() {
   function createTimeSpan(duration) {
     if (duration === undefined)
       return '';
-    var span = document.createElement('tv-b-u-time-duration-span');
+    var span = document.createElement('tr-b-u-time-duration-span');
     span.duration = duration;
     return span;
   }
 
-  tv.b.units.Time.addEventListener('display-unit-changed', function(e) {
-    tv.b.findDeepElementsMatching(document.body,
-      'tv-b-u-time-duration-span').forEach(function(el) {
+  tr.b.units.Time.addEventListener('display-unit-changed', function(e) {
+    tr.b.findDeepElementsMatching(document.body,
+      'tr-b-u-time-duration-span').forEach(function(el) {
         el.updateContent_();
       });
   });
@@ -32,7 +32,7 @@ tv.exportTo('tv.b.units', function() {
 });
 </script>
 
-<polymer-element name="tv-b-u-time-duration-span">
+<polymer-element name="tr-b-u-time-duration-span">
   <template>
     <style>
     :host {
@@ -62,7 +62,7 @@ tv.exportTo('tv.b.units', function() {
     },
 
     set duration(duration) {
-      if (duration instanceof tv.b.units.TimeDuration)
+      if (duration instanceof tr.b.units.TimeDuration)
         this.duration_ = duration.duration;
       else
         this.duration_ = duration;
@@ -70,7 +70,7 @@ tv.exportTo('tv.b.units', function() {
     },
 
     updateContent_: function() {
-      var content = tv.b.units.Time.currentDisplayUnit.format(this.duration_);
+      var content = tr.b.units.Time.currentDisplayUnit.format(this.duration_);
       this.$.content.textContent = content;
     },
 

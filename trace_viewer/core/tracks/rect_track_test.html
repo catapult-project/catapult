@@ -14,18 +14,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Selection = tv.c.Selection;
-  var RectTrack = tv.c.tracks.RectTrack;
-  var Rect = tv.c.tracks.Rect;
-  var Slice = tv.c.trace_model.Slice;
-  var Viewport = tv.c.TimelineViewport;
+tr.b.unittest.testSuite(function() {
+  var Selection = tr.c.Selection;
+  var RectTrack = tr.c.tracks.RectTrack;
+  var Rect = tr.c.tracks.Rect;
+  var Slice = tr.c.trace_model.Slice;
+  var Viewport = tr.c.TimelineViewport;
 
   test('instantiate_withRects', function() {
     var div = document.createElement('div');
 
     var viewport = new Viewport(div);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = RectTrack(viewport);
@@ -42,7 +42,7 @@ tv.b.unittest.testSuite(function() {
       new Rect(undefined, 'c', 2, 7.6, 0.4)
     ];
 
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 8.8, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
@@ -51,7 +51,7 @@ tv.b.unittest.testSuite(function() {
     var div = document.createElement('div');
 
     var viewport = new Viewport(div);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = RectTrack(viewport);
@@ -68,7 +68,7 @@ tv.b.unittest.testSuite(function() {
       new Slice('', 'c', 2, 7.6, {}, 0.4)
     ];
 
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 8.8, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
@@ -77,7 +77,7 @@ tv.b.unittest.testSuite(function() {
     var div = document.createElement('div');
 
     var viewport = new Viewport(div);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = RectTrack(viewport);
@@ -96,7 +96,7 @@ tv.b.unittest.testSuite(function() {
       slices.push(s);
     }
     track.rects = slices;
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 1.1 * x, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
@@ -116,7 +116,7 @@ tv.b.unittest.testSuite(function() {
       div.appendChild(document.createTextNode(dict.trackName));
 
       var viewport = new Viewport(div);
-      var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+      var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
       div.appendChild(drawingContainer);
 
       var track = new RectTrack(viewport);
@@ -134,14 +134,14 @@ tv.b.unittest.testSuite(function() {
         new Rect(undefined, 'cccc cccc cccc', 1, 7, 0.5),
         new Rect(undefined, 'd', 2, 7.6, 1.0)
       ];
-      var dt = new tv.c.TimelineDisplayTransform();
+      var dt = new tr.c.TimelineDisplayTransform();
       dt.xSetWorldBounds(0, 9.5, track.clientWidth);
       track.viewport.setDisplayTransformImmediately(dt);
     }
   });
 
   test('findAllObjectsMatchingInRectTrack', function() {
-    var track = new RectTrack(new tv.c.TimelineViewport());
+    var track = new RectTrack(new tr.c.TimelineViewport());
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -150,7 +150,7 @@ tv.b.unittest.testSuite(function() {
     ];
     var selection = new Selection();
     track.addAllEventsMatchingFilterToSelection(
-        new tv.c.TitleOrCategoryFilter('b'), selection);
+        new tr.c.TitleOrCategoryFilter('b'), selection);
 
     assert.equal(2, selection.length);
     assert.equal(track.rects[1].modelItem, selection[0]);
@@ -159,11 +159,11 @@ tv.b.unittest.testSuite(function() {
 
   test('selectionHitTesting', function() {
     var testEl = document.createElement('div');
-    testEl.appendChild(tv.b.ui.createScopedStyle('heading { width: 100px; }'));
+    testEl.appendChild(tr.b.ui.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
 
     var viewport = new Viewport(testEl);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     testEl.appendChild(drawingContainer);
 
     var track = new RectTrack(viewport);
@@ -182,7 +182,7 @@ tv.b.unittest.testSuite(function() {
     var wW = 10;
     var vW = drawingContainer.canvas.getBoundingClientRect().width;
 
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, wW, vW * pixelRatio);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -215,7 +215,7 @@ tv.b.unittest.testSuite(function() {
     var testEl = document.createElement('div');
 
     var viewport = new Viewport(testEl);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     testEl.appendChild(drawingContainer);
 
     var track = new RectTrack(viewport);
@@ -233,7 +233,7 @@ tv.b.unittest.testSuite(function() {
       new Slice('', bigtitle, 0, 1, {}, 1),
       new Slice('', smalltitle, 1, 2, {}, 1)
     ];
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 3.3, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -242,11 +242,11 @@ tv.b.unittest.testSuite(function() {
 
     // Small titles on big slices are not elided.
     stringWidthPair =
-        tv.c.elidedTitleCache_.get(
+        tr.c.elidedTitleCache_.get(
             track.context(),
             pixWidth,
             smalltitle,
-            tv.c.elidedTitleCache_.labelWidth(
+            tr.c.elidedTitleCache_.labelWidth(
                 track.context(),
                 smalltitle),
             1);
@@ -256,11 +256,11 @@ tv.b.unittest.testSuite(function() {
     var elidedWhenSmallEnough = false;
     for (var sliceLength = 1; sliceLength >= 0.00001; sliceLength /= 2.0) {
       stringWidthPair =
-          tv.c.elidedTitleCache_.get(
+          tr.c.elidedTitleCache_.get(
               track.context(),
               pixWidth,
               smalltitle,
-              tv.c.elidedTitleCache_.labelWidth(
+              tr.c.elidedTitleCache_.labelWidth(
                   track.context(),
                   smalltitle),
               sliceLength);
@@ -277,11 +277,11 @@ tv.b.unittest.testSuite(function() {
       superBigTitle += bigtitle;
     }
     stringWidthPair =
-        tv.c.elidedTitleCache_.get(
+        tr.c.elidedTitleCache_.get(
             track.context(),
             pixWidth,
             superBigTitle,
-            tv.c.elidedTitleCache_.labelWidth(
+            tr.c.elidedTitleCache_.labelWidth(
                 track.context(),
                 superBigTitle),
             1);
@@ -293,7 +293,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('rectTrackAddItemNearToProvidedEvent', function() {
-    var track = new RectTrack(new tv.c.TimelineViewport());
+    var track = new RectTrack(new tr.c.TimelineViewport());
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -302,7 +302,7 @@ tv.b.unittest.testSuite(function() {
     ];
     var sel = new Selection();
     track.addAllEventsMatchingFilterToSelection(
-        new tv.c.TitleOrCategoryFilter('b'), sel);
+        new tr.c.TitleOrCategoryFilter('b'), sel);
     var ret;
 
     // Select to the right of B.
@@ -334,7 +334,7 @@ tv.b.unittest.testSuite(function() {
     // Select A and then select left.
     var sel = new Selection();
     track.addAllEventsMatchingFilterToSelection(
-        new tv.c.TitleOrCategoryFilter('a'), sel);
+        new tr.c.TitleOrCategoryFilter('a'), sel);
     var ret;
 
     selNone = new Selection();
@@ -344,7 +344,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('rectTrackAddClosestEventToSelection', function() {
-    var track = new RectTrack(new tv.c.TimelineViewport());
+    var track = new RectTrack(new tr.c.TimelineViewport());
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),

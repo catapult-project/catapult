@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.analysis', function() {
+tr.exportTo('tr.c.analysis', function() {
   var FLOW_IN = 0x1;
   var FLOW_OUT = 0x2;
   var FLOW_IN_OUT = FLOW_IN | FLOW_OUT;
@@ -51,7 +51,7 @@ tv.exportTo('tv.c.analysis', function() {
     },
 
     get inFlowEvents() {
-      var selection = new tv.c.Selection();
+      var selection = new tr.c.Selection();
       for (var guid in this.eventsByGUID_) {
         var fs = this.eventsByGUID_[guid];
         if (fs.state === FLOW_IN)
@@ -61,7 +61,7 @@ tv.exportTo('tv.c.analysis', function() {
     },
 
     get outFlowEvents() {
-      var selection = new tv.c.Selection();
+      var selection = new tr.c.Selection();
       for (var guid in this.eventsByGUID_) {
         var fs = this.eventsByGUID_[guid];
         if (fs.state === FLOW_OUT)
@@ -71,7 +71,7 @@ tv.exportTo('tv.c.analysis', function() {
     },
 
     get internalFlowEvents() {
-      var selection = new tv.c.Selection();
+      var selection = new tr.c.Selection();
       for (var guid in this.eventsByGUID_) {
         var fs = this.eventsByGUID_[guid];
         if (fs.state === FLOW_IN_OUT)

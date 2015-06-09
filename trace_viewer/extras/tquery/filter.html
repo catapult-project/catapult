@@ -10,9 +10,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.tquery', function() {
+tr.exportTo('tr.e.tquery', function() {
   function Filter() {
-    tv.c.ScriptingObject.call(this);
+    tr.c.ScriptingObject.call(this);
   }
 
   Filter.normalizeFilterExpression = function(filterExpression) {
@@ -21,14 +21,14 @@ tv.exportTo('tv.e.tquery', function() {
     if (filterExpression instanceof String ||
         typeof(filterExpression) == 'string' ||
         filterExpression instanceof RegExp) {
-      var filter = new tv.e.tquery.FilterHasTitle(filterExpression);
+      var filter = new tr.e.tquery.FilterHasTitle(filterExpression);
       return filter;
     }
     return filterExpression;
   };
 
   Filter.prototype = {
-    __proto__: tv.c.ScriptingObject.prototype,
+    __proto__: tr.c.ScriptingObject.prototype,
 
     evaluate: function(context) {
       throw new Error('Not implemented');

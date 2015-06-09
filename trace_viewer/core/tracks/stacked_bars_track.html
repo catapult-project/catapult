@@ -11,21 +11,21 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
   /**
    * A track that displays traces as stacked bars.
    * @constructor
    * @extends {HeadingTrack}
    */
-  var StackedBarsTrack = tv.b.ui.define(
-      'stacked-bars-track', tv.c.tracks.HeadingTrack);
+  var StackedBarsTrack = tr.b.ui.define(
+      'stacked-bars-track', tr.c.tracks.HeadingTrack);
 
   StackedBarsTrack.prototype = {
 
-    __proto__: tv.c.tracks.HeadingTrack.prototype,
+    __proto__: tr.c.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('stacked-bars-track');
       this.objectInstance_ = null;
     },
@@ -49,7 +49,7 @@ tv.exportTo('tv.c.tracks', function() {
       var snapshots = this.objectInstance_.snapshots;
       var maxBounds = this.objectInstance_.parent.model.bounds.max;
 
-      tv.b.iterateOverIntersectingIntervals(
+      tr.b.iterateOverIntersectingIntervals(
           snapshots,
           function(x) { return x.ts; },
           function(x, i) {
@@ -77,7 +77,7 @@ tv.exportTo('tv.c.tracks', function() {
      * @private
      */
     addEventNearToProvidedEventToSelection: function(event, offset, selection) {
-      if (!(event instanceof tv.c.trace_model.ObjectSnapshot))
+      if (!(event instanceof tr.c.trace_model.ObjectSnapshot))
         throw new Error('Unrecognized event');
       var objectSnapshots = this.objectInstance_.snapshots;
       var index = objectSnapshots.indexOf(event);
@@ -94,7 +94,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      var snapshot = tv.b.findClosestElementInSortedArray(
+      var snapshot = tr.b.findClosestElementInSortedArray(
           this.objectInstance_.snapshots,
           function(x) { return x.ts; },
           worldX,

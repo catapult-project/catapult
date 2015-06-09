@@ -12,7 +12,7 @@ href="/extras/chrome/cc/picture_ops_chart_summary_view.css">
 <script>
 'use strict';
 
-tv.exportTo('tv.e.cc', function() {
+tr.exportTo('tr.e.cc', function() {
   var OPS_TIMING_ITERATIONS = 3;
   var CHART_PADDING_LEFT = 65;
   var CHART_PADDING_RIGHT = 40;
@@ -34,7 +34,7 @@ tv.exportTo('tv.e.cc', function() {
    *
    * @constructor
    */
-  var PictureOpsChartSummaryView = tv.b.ui.define(
+  var PictureOpsChartSummaryView = tr.b.ui.define(
       'picture-ops-chart-summary-view');
 
   PictureOpsChartSummaryView.prototype = {
@@ -121,7 +121,7 @@ tv.exportTo('tv.e.cc', function() {
         this.currentBarMouseOverTarget_ = Math.floor(
             (x - chartLeft) / chartInnerWidth * this.opsTimingData_.length);
 
-        this.currentBarMouseOverTarget_ = tv.b.clamp(
+        this.currentBarMouseOverTarget_ = tr.b.clamp(
             this.currentBarMouseOverTarget_, 0, this.opsTimingData_.length - 1);
 
       }

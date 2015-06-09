@@ -9,20 +9,20 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
   /**
    * A track that displays an array of alert objects.
    * @constructor
    * @extends {HeadingTrack}
    */
-  var AlertTrack = tv.b.ui.define(
-      'alert-track', tv.c.tracks.LetterDotTrack);
+  var AlertTrack = tr.b.ui.define(
+      'alert-track', tr.c.tracks.LetterDotTrack);
 
   AlertTrack.prototype = {
-    __proto__: tv.c.tracks.LetterDotTrack.prototype,
+    __proto__: tr.c.tracks.LetterDotTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.LetterDotTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.LetterDotTrack.prototype.decorate.call(this, viewport);
       this.heading = 'Alerts';
       this.alerts_ = undefined;
     },
@@ -38,7 +38,7 @@ tv.exportTo('tv.c.tracks', function() {
         return;
       }
       this.items = this.alerts_.map(function(alert) {
-        return new tv.c.tracks.LetterDot(
+        return new tr.c.tracks.LetterDot(
             alert, String.fromCharCode(9888), alert.colorId, alert.start);
       });
     }

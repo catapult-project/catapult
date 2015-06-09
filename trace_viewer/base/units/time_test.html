@@ -8,13 +8,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('Time.ms.format', function() {
     function local(v) {
       return v.toLocaleString(undefined, { minimumFractionDigits: 3}) + ' ms';
     }
 
-    var unit = tv.b.units.Time.supportedUnits.ms;
+    var unit = tr.b.units.Time.supportedUnits.ms;
     assert.equal(unit.format(1), local(1));
     assert.equal(unit.format(1.001), local(1.001));
     assert.equal(unit.format(1.0005), local(1.001));
@@ -28,7 +28,7 @@ tv.b.unittest.testSuite(function() {
       return v.toLocaleString(undefined, { maximumFractionDigits: 0}) + ' ns';
     }
 
-    var unit = tv.b.units.Time.supportedUnits.ns;
+    var unit = tr.b.units.Time.supportedUnits.ns;
     assert.equal(unit.format(1), local(1000000));
     assert.equal(unit.format(0.001), local(1000));
     assert.equal(unit.format(0.000001), local(1));
@@ -38,7 +38,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('Time.display-unit-changed', function() {
-    var Time = tv.b.units.Time;
+    var Time = tr.b.units.Time;
 
     var listenerWasCalled = false;
     function listener(e) {

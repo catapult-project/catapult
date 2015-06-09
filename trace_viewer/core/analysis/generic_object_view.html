@@ -16,7 +16,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui.html">
 <link rel="import" href="/base/ui/table.html">
 
-<polymer-element name="tv-c-a-generic-object-view"
+<polymer-element name="tr-c-a-generic-object-view"
     is="HTMLUnknownElement">
   <template>
     <style>
@@ -145,41 +145,41 @@ found in the LICENSE file.
         }
       }
 
-      if (object instanceof tv.c.trace_model.ObjectSnapshot) {
-        var link = document.createElement('tv-c-a-analysis-link');
-        link.selection = new tv.c.Selection(object);
+      if (object instanceof tr.c.trace_model.ObjectSnapshot) {
+        var link = document.createElement('tr-c-a-analysis-link');
+        link.selection = new tr.c.Selection(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }
 
-      if (object instanceof tv.c.trace_model.ObjectInstance) {
-        var link = document.createElement('tv-c-a-analysis-link');
-        link.selection = new tv.c.Selection(object);
+      if (object instanceof tr.c.trace_model.ObjectInstance) {
+        var link = document.createElement('tr-c-a-analysis-link');
+        link.selection = new tr.c.Selection(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }
 
-      if (object instanceof tv.b.Rect) {
+      if (object instanceof tr.b.Rect) {
         this.appendSimpleText_(label, indent, object.toString(), suffix);
         return;
       }
 
-      if (object instanceof tv.b.units.SizeInBytes) {
-        var el = this.ownerDocument.createElement('tv-b-u-size-in-bytes-span');
+      if (object instanceof tr.b.units.SizeInBytes) {
+        var el = this.ownerDocument.createElement('tr-b-u-size-in-bytes-span');
         el.numBytes = object.numBytes;
         this.appendElementWithLabel_(label, indent, el, suffix);
         return;
       }
 
-      if (object instanceof tv.b.units.TimeDuration) {
-        var el = this.ownerDocument.createElement('tv-b-u-time-duration-span');
+      if (object instanceof tr.b.units.TimeDuration) {
+        var el = this.ownerDocument.createElement('tr-b-u-time-duration-span');
         el.duration = object.duration;
         this.appendElementWithLabel_(label, indent, el, suffix);
         return;
       }
 
-      if (object instanceof tv.b.units.TimeStamp) {
-        var el = this.ownerDocument.createElement('tv-b-u-time-stamp-span');
+      if (object instanceof tr.b.units.TimeStamp) {
+        var el = this.ownerDocument.createElement('tr-b-u-time-stamp-span');
         el.timestamp = object.timestamp;
         this.appendElementWithLabel_(label, indent, el, suffix);
         return;
@@ -203,9 +203,9 @@ found in the LICENSE file.
       }
 
       if (isTable(object)) {
-        var table = document.createElement('tv-b-ui-table');
+        var table = document.createElement('tr-b-ui-table');
         var columns = [];
-        tv.b.iterItems(object[0], function(colName) {
+        tr.b.iterItems(object[0], function(colName) {
           columns.push({title: colName, value: function(row) {
             return row[colName];
           }});
@@ -234,7 +234,7 @@ found in the LICENSE file.
 
     appendElementsForObject_: function(
         label, object, indent, depth, maxDepth, suffix) {
-      var keys = tv.b.dictionaryKeys(object);
+      var keys = tr.b.dictionaryKeys(object);
       if (keys.length == 0) {
         this.appendSimpleText_(label, indent, '{}', suffix);
         return;
@@ -286,7 +286,7 @@ found in the LICENSE file.
   </script>
 </polymer-element>
 
-<polymer-element name="tv-c-a-generic-object-view-with-label"
+<polymer-element name="tr-c-a-generic-object-view-with-label"
     is="HTMLUnknownElement">
   <template>
     <style>
@@ -303,7 +303,7 @@ found in the LICENSE file.
     ready: function() {
       this.labelEl_ = document.createElement('div');
       this.genericObjectView_ =
-          document.createElement('tv-c-a-generic-object-view');
+          document.createElement('tr-c-a-generic-object-view');
       this.shadowRoot.appendChild(this.labelEl_);
       this.shadowRoot.appendChild(this.genericObjectView_);
     },

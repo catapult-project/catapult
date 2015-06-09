@@ -8,9 +8,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('simple', function() {
-    var chart = new tv.b.ui.PieChart();
+    var chart = new tr.b.ui.PieChart();
     chart.width = 400;
     chart.height = 200;
     assert.equal(chart.getAttribute('width'), '400');
@@ -32,7 +32,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('withValueText', function() {
-    var chart = new tv.b.ui.PieChart();
+    var chart = new tr.b.ui.PieChart();
     chart.width = 400;
     chart.height = 200;
     chart.chartTitle = 'Chart title';
@@ -46,7 +46,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('clickEvent', function() {
-    var chart = new tv.b.ui.PieChart();
+    var chart = new tr.b.ui.PieChart();
     chart.width = 400;
     chart.height = 200;
     chart.chartTitle = 'Chart title';
@@ -64,12 +64,12 @@ tv.b.unittest.testSuite(function() {
     });
 
     var arc0 = chart.querySelectorAll('.paths > path')[1];
-    tv.b.dispatchSimpleEvent(arc0, 'click');
+    tr.b.dispatchSimpleEvent(arc0, 'click');
     assert.isTrue(didGetClick);
   });
 
   test('lotsOfValues', function() {
-    var chart = new tv.b.ui.PieChart();
+    var chart = new tr.b.ui.PieChart();
     chart.chartTitle = 'Chart title';
     var data = [
       {label: 'a', value: 100},
@@ -93,7 +93,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('denseValues', function() {
-    var chart = new tv.b.ui.PieChart();
+    var chart = new tr.b.ui.PieChart();
     chart.chartTitle = 'Chart title';
     var data = [
       {

@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   var fakeNow = undefined;
   function withFakeWindowPerformanceNow(func) {
     var oldNow = window.performance.now;
@@ -22,41 +22,41 @@ tv.b.unittest.testSuite(function() {
 
   test('runIdleTaskWhileIdle', function() {
     withFakeWindowPerformanceNow(function() {
-      tv.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+      tr.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
 
       var rafRan = false;
-      tv.b.requestAnimationFrame(function() {
+      tr.b.requestAnimationFrame(function() {
         rafRan = true;
       });
       var idleRan = false;
-      tv.b.requestIdleCallback(function() {
+      tr.b.requestIdleCallback(function() {
         idleRan = true;
       });
       fakeNow = 0;
-      tv.b.forcePendingRAFTasksToRun(fakeNow);
+      tr.b.forcePendingRAFTasksToRun(fakeNow);
       assert.isFalse(idleRan);
       assert.isTrue(rafRan);
-      tv.b.forcePendingRAFTasksToRun(fakeNow);
+      tr.b.forcePendingRAFTasksToRun(fakeNow);
       assert.isTrue(idleRan);
     });
   });
 
   test('twoShortIdleCallbacks', function() {
     withFakeWindowPerformanceNow(function() {
-      tv.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+      tr.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
 
       var idle1Ran = false;
       var idle2Ran = false;
-      tv.b.requestIdleCallback(function() {
+      tr.b.requestIdleCallback(function() {
         fakeNow += 1;
         idle1Ran = true;
       });
-      tv.b.requestIdleCallback(function() {
+      tr.b.requestIdleCallback(function() {
         fakeNow += 1;
         idle2Ran = true;
       });
       fakeNow = 0;
-      tv.b.forcePendingRAFTasksToRun(fakeNow);
+      tr.b.forcePendingRAFTasksToRun(fakeNow);
       assert.isTrue(idle1Ran);
       assert.isTrue(idle2Ran);
     });
@@ -65,20 +65,20 @@ tv.b.unittest.testSuite(function() {
 
   test('oneLongOneShortIdleCallback', function() {
     withFakeWindowPerformanceNow(function() {
-      tv.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+      tr.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
 
       var idle1Ran = false;
       var idle2Ran = false;
-      tv.b.requestIdleCallback(function() {
+      tr.b.requestIdleCallback(function() {
         fakeNow += 100;
         idle1Ran = true;
       });
-      tv.b.requestIdleCallback(function() {
+      tr.b.requestIdleCallback(function() {
         fakeNow += 1;
         idle2Ran = true;
       });
       fakeNow = 0;
-      tv.b.forcePendingRAFTasksToRun(fakeNow);
+      tr.b.forcePendingRAFTasksToRun(fakeNow);
       assert.isTrue(idle1Ran);
       assert.isFalse(idle2Ran);
 
@@ -86,7 +86,7 @@ tv.b.unittest.testSuite(function() {
       idle1Ran = false;
 
       // Now run. idle2 should now run.
-      tv.b.forcePendingRAFTasksToRun(fakeNow);
+      tr.b.forcePendingRAFTasksToRun(fakeNow);
       assert.isFalse(idle1Ran);
       assert.isTrue(idle2Ran);
     });
@@ -94,20 +94,20 @@ tv.b.unittest.testSuite(function() {
 
   test('buggyPerformanceNowDoesNotBlockIdleTasks', function() {
     withFakeWindowPerformanceNow(function() {
-      tv.b.forcePendingRAFTasksToRun();  // Clear current RAF task queue.
+      tr.b.forcePendingRAFTasksToRun();  // Clear current RAF task queue.
 
       var idle1Ran = false;
       var idle2Ran = false;
-      tv.b.requestIdleCallback(function() {
+      tr.b.requestIdleCallback(function() {
         fakeNow += 100;
         idle1Ran = true;
       });
-      tv.b.requestIdleCallback(function() {
+      tr.b.requestIdleCallback(function() {
         fakeNow += 1;
         idle2Ran = true;
       });
       fakeNow = 10000;
-      tv.b.forcePendingRAFTasksToRun(0);
+      tr.b.forcePendingRAFTasksToRun(0);
       assert.isTrue(idle1Ran);
       assert.isFalse(idle2Ran);
 
@@ -115,7 +115,7 @@ tv.b.unittest.testSuite(function() {
       idle1Ran = false;
 
       // Now run. idle2 should now run.
-      tv.b.forcePendingRAFTasksToRun(0);
+      tr.b.forcePendingRAFTasksToRun(0);
       assert.isFalse(idle1Ran);
       assert.isTrue(idle2Ran);
     });

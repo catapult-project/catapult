@@ -13,14 +13,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var ProcessSummaryTrack = tv.c.tracks.ProcessSummaryTrack;
-  var newSlice = tv.c.test_utils.newSlice;
-  var newSliceNamed = tv.c.test_utils.newSliceNamed;
+tr.b.unittest.testSuite(function() {
+  var ProcessSummaryTrack = tr.c.tracks.ProcessSummaryTrack;
+  var newSlice = tr.c.test_utils.newSlice;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
 
   test('buildRectSimple', function() {
     var process;
-    var model = tv.c.test_utils.newModel(function(model) {
+    var model = tr.c.test_utils.newModel(function(model) {
       process = model.getOrCreateProcess(1);
       // XXXX
       //    XXXX
@@ -40,7 +40,7 @@ tv.b.unittest.testSuite(function() {
 
   test('buildRectComplex', function() {
     var process;
-    var model = tv.c.test_utils.newModel(function(model) {
+    var model = tr.c.test_utils.newModel(function(model) {
       process = model.getOrCreateProcess(1);
       // XXXX    X X XX
       //    XXXX XXX    X
@@ -70,7 +70,7 @@ tv.b.unittest.testSuite(function() {
 
   test('buildRectImportantSlice', function() {
     var process;
-    var model = tv.c.test_utils.newModel(function(model) {
+    var model = tr.c.test_utils.newModel(function(model) {
       //    [    unimportant    ]
       //         [important]
       var a = newSliceNamed('unimportant', 4, 21);

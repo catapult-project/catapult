@@ -14,12 +14,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var LetterDotTrack = tv.c.tracks.LetterDotTrack;
-  var LetterDot = tv.c.tracks.LetterDot;
-  var Selection = tv.c.Selection;
-  var SelectionState = tv.c.trace_model.SelectionState;
-  var Viewport = tv.c.TimelineViewport;
+tr.b.unittest.testSuite(function() {
+  var LetterDotTrack = tr.c.tracks.LetterDotTrack;
+  var LetterDot = tr.c.tracks.LetterDot;
+  var Selection = tr.c.Selection;
+  var SelectionState = tr.c.trace_model.SelectionState;
+  var Viewport = tr.c.TimelineViewport;
 
   var createItems = function() {
     var items = [
@@ -37,7 +37,7 @@ tv.b.unittest.testSuite(function() {
     var div = document.createElement('div');
 
     var viewport = new Viewport(div);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = LetterDotTrack(viewport);
@@ -47,7 +47,7 @@ tv.b.unittest.testSuite(function() {
     drawingContainer.invalidate();
 
     track.items = items;
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 60, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });

@@ -20,23 +20,23 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
-  var EventPresenter = tv.c.EventPresenter;
-  var SelectionState = tv.c.trace_model.SelectionState;
+tr.exportTo('tr.c.tracks', function() {
+  var EventPresenter = tr.c.EventPresenter;
+  var SelectionState = tr.c.trace_model.SelectionState;
 
   /**
    * A track that displays an array of dots with filled letters inside them.
    * @constructor
    * @extends {HeadingTrack}
    */
-  var LetterDotTrack = tv.b.ui.define(
-      'letter-dot-track', tv.c.tracks.HeadingTrack);
+  var LetterDotTrack = tr.b.ui.define(
+      'letter-dot-track', tr.c.tracks.HeadingTrack);
 
   LetterDotTrack.prototype = {
-    __proto__: tv.c.tracks.HeadingTrack.prototype,
+    __proto__: tr.c.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('letter-dot-track');
       this.items_ = undefined;
     },
@@ -66,7 +66,7 @@ tv.exportTo('tv.c.tracks', function() {
       if (this.items_ === undefined)
         return;
       switch (type) {
-        case tv.c.tracks.DrawType.GENERAL_EVENT:
+        case tr.c.tracks.DrawType.GENERAL_EVENT:
           this.drawLetterDots_(viewLWorld, viewRWorld);
           break;
       }
@@ -80,8 +80,8 @@ tv.exportTo('tv.c.tracks', function() {
       var height = bounds.height * pixelRatio;
       var halfHeight = height * 0.5;
       var twoPi = Math.PI * 2;
-      var palette = tv.b.ui.getColorPalette();
-      var highlightIdBoost = tv.b.ui.paletteProperties.highlightIdBoost;
+      var palette = tr.b.ui.getColorPalette();
+      var highlightIdBoost = tr.b.ui.paletteProperties.highlightIdBoost;
 
       // Culling parameters.
       var dt = this.viewport.currentDisplayTransform;
@@ -90,7 +90,7 @@ tv.exportTo('tv.c.tracks', function() {
 
       // Draw the memory dumps.
       var items = this.items_;
-      var loI = tv.b.findLowIndexInSortedArray(
+      var loI = tr.b.findLowIndexInSortedArray(
           items,
           function(item) { return item.start; },
           viewLWorld);
@@ -160,7 +160,7 @@ tv.exportTo('tv.c.tracks', function() {
         return;
 
       var itemRadiusWorld = viewPixWidthWorld * this.dumpRadiusView;
-      tv.b.iterateOverIntersectingIntervals(
+      tr.b.iterateOverIntersectingIntervals(
           this.items_,
           function(x) { return x.start - itemRadiusWorld; },
           function(x) { return 2 * itemRadiusWorld; },
@@ -185,7 +185,7 @@ tv.exportTo('tv.c.tracks', function() {
         return;
 
       var items = this.items_;
-      var index = tv.b.findFirstIndexInArray(items, function(item) {
+      var index = tr.b.findFirstIndexInArray(items, function(item) {
         return item.modelItem === event;
       });
       if (index === -1)
@@ -207,7 +207,7 @@ tv.exportTo('tv.c.tracks', function() {
       if (this.items_ === undefined)
         return;
 
-      var item = tv.b.findClosestElementInSortedArray(
+      var item = tr.b.findClosestElementInSortedArray(
           this.items_,
           function(x) { return x.start; },
           worldX,
@@ -227,14 +227,14 @@ tv.exportTo('tv.c.tracks', function() {
    * @extends {ProxySelectableItem}
    */
   function LetterDot(modelItem, dotLetter, colorId, start) {
-    tv.c.trace_model.ProxySelectableItem.call(this, modelItem);
+    tr.c.trace_model.ProxySelectableItem.call(this, modelItem);
     this.dotLetter = dotLetter;
     this.colorId = colorId;
     this.start = start;
   };
 
   LetterDot.prototype = {
-    __proto__: tv.c.trace_model.ProxySelectableItem.prototype
+    __proto__: tr.c.trace_model.ProxySelectableItem.prototype
   };
 
   return {

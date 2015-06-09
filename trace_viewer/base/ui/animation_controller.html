@@ -10,19 +10,19 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.ui', function() {
+tr.exportTo('tr.b.ui', function() {
   /**
-   * Manages execution, queueing and blending of tv.b.ui.Animations against
+   * Manages execution, queueing and blending of tr.b.ui.Animations against
    * a single target.
    *
    * Targets must have a cloneAnimationState() method that returns all the
    * animatable states of that target.
    *
    * @constructor
-   * @extends {tv.b.EventTarget}
+   * @extends {tr.b.EventTarget}
    */
   function AnimationController() {
-    tv.b.EventTarget.call(this);
+    tr.b.EventTarget.call(this);
 
     this.target_ = undefined;
 
@@ -32,7 +32,7 @@ tv.exportTo('tv.b.ui', function() {
   }
 
   AnimationController.prototype = {
-    __proto__: tv.b.EventTarget.prototype,
+    __proto__: tr.b.EventTarget.prototype,
 
     get target() {
       return this.target_;
@@ -89,7 +89,7 @@ tv.exportTo('tv.b.ui', function() {
       if (this.tickScheduled_)
         return;
       this.tickScheduled_ = true;
-      tv.b.requestAnimationFrame(this.tickActiveAnimation_, this);
+      tr.b.requestAnimationFrame(this.tickActiveAnimation_, this);
     },
 
     cancelActiveAnimation: function(opt_now) {
@@ -122,7 +122,7 @@ tv.exportTo('tv.b.ui', function() {
 
       if (this.activeAnimation_) {
         this.tickScheduled_ = true;
-        tv.b.requestAnimationFrame(this.tickActiveAnimation_, this);
+        tr.b.requestAnimationFrame(this.tickActiveAnimation_, this);
       }
 
       if (oldTargetState) {

@@ -13,11 +13,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var newAsyncSliceEx = tv.c.test_utils.newAsyncSliceEx;
-  var newSliceEx = tv.c.test_utils.newSliceEx;
-  var newFlowEventEx = tv.c.test_utils.newFlowEventEx;
-  var newModel = tv.c.test_utils.newModel;
+tr.b.unittest.testSuite(function() {
+  var newAsyncSliceEx = tr.c.test_utils.newAsyncSliceEx;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newFlowEventEx = tr.c.test_utils.newFlowEventEx;
+  var newModel = tr.c.test_utils.newModel;
 
   test('matchByType_oldStyle', function() {
     var sOuter = newAsyncSliceEx({
@@ -46,8 +46,8 @@ tv.b.unittest.testSuite(function() {
       }
     });
     sOuter.subSlices.push(sInner);
-    assert.isTrue(sOuter instanceof tv.e.cc.InputLatencyAsyncSlice);
-    assert.isTrue(sInner instanceof tv.e.cc.InputLatencyAsyncSlice);
+    assert.isTrue(sOuter instanceof tr.e.cc.InputLatencyAsyncSlice);
+    assert.isTrue(sInner instanceof tr.e.cc.InputLatencyAsyncSlice);
     assert.equal(sOuter.inputLatency, 10);
   });
 
@@ -67,7 +67,7 @@ tv.b.unittest.testSuite(function() {
       }
     });
 
-    assert.isTrue(sInfo instanceof tv.e.cc.InputLatencyAsyncSlice);
+    assert.isTrue(sInfo instanceof tr.e.cc.InputLatencyAsyncSlice);
     assert.equal(sInfo.inputLatency, 10);
   });
 
@@ -88,7 +88,7 @@ tv.b.unittest.testSuite(function() {
       }
     });
 
-    assert.isTrue(sInfo instanceof tv.e.cc.InputLatencyAsyncSlice);
+    assert.isTrue(sInfo instanceof tr.e.cc.InputLatencyAsyncSlice);
     assert.equal(sInfo.inputLatency, 10);
   });
 

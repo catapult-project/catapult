@@ -11,12 +11,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() { // @suppress longLineCheck
-  var findSliceNamed = tv.c.test_utils.findSliceNamed;
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var findSliceNamed = tr.c.test_utils.findSliceNamed;
 
   test('canImportEmpty', function() {
-    assert.isFalse(tv.e.importer.TraceEventImporter.canImport([]));
-    assert.isFalse(tv.e.importer.TraceEventImporter.canImport(''));
+    assert.isFalse(tr.e.importer.TraceEventImporter.canImport([]));
+    assert.isFalse(tr.e.importer.TraceEventImporter.canImport(''));
   });
 
   test('basicSingleThreadNonnestedParsing', function() {
@@ -27,7 +27,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'bar', tid: 53, ph: 'E'}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -60,7 +60,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'bar', tid: 53, ph: 'E', tts: 331}  // @suppress longLineCheck
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -105,7 +105,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'E'}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[1].threads[1];
     var sA = findSliceNamed(t.sliceGroup, 'a');
 
@@ -122,7 +122,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
 
     // This should not throw an exception.
-    new tv.c.TraceModel(events);
+    new tr.c.TraceModel(events);
   });
 
   test('importDoesNotChokeOnNulls', function() {
@@ -132,7 +132,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
 
     // This should not throw an exception.
-    new tv.c.TraceModel(events);
+    new tr.c.TraceModel(events);
   });
 
   test('categoryBeginEndMismatchPrefersBegin', function() {
@@ -141,7 +141,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'bar', tid: 53, ph: 'E'}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -162,7 +162,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.isTrue(m.hasImportWarnings);
     assert.equal(m.importWarnings.length, 1);
   });
@@ -174,7 +174,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 1, ts: 3, tts: 3, cat: 'bar', tid: 1, ph: 'E'},
       {name: 'a', args: {}, pid: 1, ts: 4, tts: 3, cat: 'foo', tid: 1, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var t = m.processes[1].threads[1];
 
     var sA = findSliceNamed(t.sliceGroup, 'a');
@@ -206,7 +206,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'c', args: {}, pid: 1, ts: 7, tts: 6, cat: 'baz', tid: 1, ph: 'E'},
       {name: 'a', args: {}, pid: 1, ts: 8, tts: 8, cat: 'foo', tid: 1, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var t = m.processes[1].threads[1];
 
     var sA = findSliceNamed(t.sliceGroup, 'a');
@@ -246,7 +246,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 1, ts: 7, cat: 'bar', tid: 1, ph: 'E'},
       {name: 'a', args: {}, pid: 1, ts: 8, cat: 'foo', tid: 1, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var t = m.processes[1].threads[1];
 
     var sA = findSliceNamed(t.sliceGroup, 'a');
@@ -289,7 +289,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 1, ts: 1, cat: 'bar', tid: 2, ph: 'B'},
       {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 2, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     var slice = t.sliceGroup.slices[0];
@@ -305,7 +305,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       // Slice that doesn't finish.
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'}
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     var slice = t.sliceGroup.slices[0];
@@ -323,7 +323,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b1', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'E'},
       {name: 'b2', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'B'}
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var t = m.processes[1].threads[1];
 
     var sA = findSliceNamed(t.sliceGroup, 'a');
@@ -345,7 +345,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'c', args: {}, pid: 1, ts: 1, cat: 'bar', tid: 2, ph: 'B'},
       {name: 'c', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 2, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.length, 2);
@@ -377,7 +377,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 2, ph: 'B'},
       {name: 'b', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 2, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var t1 = m.processes[1].threads[1];
     var t2 = m.processes[1].threads[2];
 
@@ -392,7 +392,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('taskColoring', function() {
     // The test below depends on hashing of 'a' != 'b'. Fail early if that
     // assumption is incorrect.
-    assert.notEqual(tv.b.ui.getStringHash('a'), tv.b.ui.getStringHash('b'));
+    assert.notEqual(tr.b.ui.getStringHash('a'), tr.b.ui.getStringHash('b'));
 
     var events = [
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
@@ -402,7 +402,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 1, ph: 'B'},
       {name: 'a', args: {}, pid: 1, ts: 6, cat: 'baz', tid: 1, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     var a1 = t.sliceGroup.slices[0];
@@ -425,7 +425,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 2, ph: 'B'},
       {name: 'b', args: {}, pid: 1, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[1];
     assert.isDefined(p);
@@ -466,7 +466,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 2, ts: 3, cat: 'bar', tid: 2, ph: 'B'},
       {name: 'b', args: {}, pid: 2, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.numProcesses, 2);
     var p = m.processes[1];
     assert.isDefined(p);
@@ -515,7 +515,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'process_name', args: {name: 'SomeProcessName'},
         pid: 2, ts: 0, tid: 1, ph: 'M'}
     ];
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false, false);
     assert.equal(m.processes[1].name, 'SomeProcessName');
   });
@@ -528,7 +528,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'process_labels', args: {labels: 'baz'},
         pid: 2, ts: 0, tid: 1, ph: 'M'}
     ];
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false, false);
     assert.deepEqual(m.processes[1].labels, ['foo', 'bar', 'baz']);
     assert.deepEqual(m.processes[2].labels, ['baz']);
@@ -544,7 +544,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'process_sort_index', args: {sort_index: 1},
         pid: 1, ts: 0, tid: 1, ph: 'M'}
     ];
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false, false);
 
     // By name, p1 is before p2. But, its sort index overrides that.
@@ -559,7 +559,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'thread_name', args: {name: 'Thread 2'},
         pid: 2, ts: 0, tid: 2, ph: 'M'}
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     m.importTraces([events], false, false);
     assert.equal(m.processes[1].threads[1].name, 'Thread 1');
     assert.equal(m.processes[2].threads[2].name, 'Thread 2');
@@ -575,7 +575,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'thread_sort_index', args: {sort_index: 1},
         pid: 1, ts: 0, tid: 1, ph: 'M'}
     ];
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false, false);
 
     // By name, t1 is before t2. But, its sort index overrides that.
@@ -592,7 +592,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'num_cpus', args: {number: 4},
         pid: 14, ts: 0, tid: 0, ph: 'M'}
     ];
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false, false);
     assert.equal(m.kernel.softwareMeasuredCpuCount, 4);
     assert.equal(m.kernel.bestGuessAtCpuCount, 4);
@@ -605,7 +605,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'num_cpus', args: {number: 1},
         pid: 14, ts: 0, tid: 0, ph: 'M'}
     ];
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false, false);
     assert.equal(m.kernel.softwareMeasuredCpuCount, 4);
     assert.equal(m.kernel.bestGuessAtCpuCount, 4);
@@ -617,7 +617,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'B'},
       {name: 'a', args: {}, pid: 1, ts: 5, cat: 'foo', tid: 1, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.length, 1);
@@ -638,7 +638,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'slower', args: {}, pid: 1, ts: 4, cat: 'baz', tid: 1, ph: 'i'},
       {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var p = m.processes[1];
     var t = p.threads[1];
 
@@ -677,7 +677,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'C'}
 
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var p = m.processes[1];
     var ctr = m.processes[1].counters['foo.ctr'];
 
@@ -688,7 +688,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     assert.equal(ctr.series[0].name, 'value');
     assert.equal(ctr.series[0].color,
-                 tv.b.ui.getColorIdForGeneralPurposeString('ctr.value'));
+                 tr.b.ui.getColorIdForGeneralPurposeString('ctr.value'));
 
     assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
 
@@ -717,7 +717,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'ctr', args: {'value': 40}, pid: 1, ts: 20, cat: 'bar', tid: 1,
         ph: 'C', id: 2}
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var p = m.processes[1];
     var ctr = m.processes[1].counters['foo.ctr[0]'];
     assert.equal(ctr.name, 'ctr[0]');
@@ -759,11 +759,11 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('multiCounterUpdateBounds', function() {
-    var ctr = new tv.c.trace_model.Counter(undefined, 'testBasicCounter',
+    var ctr = new tr.c.trace_model.Counter(undefined, 'testBasicCounter',
         '', 'testBasicCounter');
-    var value1Series = new tv.c.trace_model.CounterSeries(
+    var value1Series = new tr.c.trace_model.CounterSeries(
         'value1', 'testBasicCounter.value1');
-    var value2Series = new tv.c.trace_model.CounterSeries(
+    var value2Series = new tr.c.trace_model.CounterSeries(
         'value2', 'testBasicCounter.value2');
     ctr.addSeries(value1Series);
     ctr.addSeries(value2Series);
@@ -807,7 +807,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'ctr', args: {'value1': 10, 'value2': 4}, pid: 1, ts: 10, cat: 'foo', tid: 1, ph: 'C'}, // @suppress longLineCheck
       {name: 'ctr', args: {'value1': 0, 'value2': 1 }, pid: 1, ts: 20, cat: 'foo', tid: 1, ph: 'C'} // @suppress longLineCheck
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var p = m.processes[1];
     var ctr = m.processes[1].counters['foo.ctr'];
     assert.equal(ctr.name, 'ctr');
@@ -820,9 +820,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(ctr.series[0].name, 'value1');
     assert.equal(ctr.series[1].name, 'value2');
     assert.equal(ctr.series[0].color,
-                 tv.b.ui.getColorIdForGeneralPurposeString('ctr.value1'));
+                 tr.b.ui.getColorIdForGeneralPurposeString('ctr.value1'));
     assert.equal(ctr.series[1].color,
-                 tv.b.ui.getColorIdForGeneralPurposeString('ctr.value2'));
+                 tr.b.ui.getColorIdForGeneralPurposeString('ctr.value2'));
 
     assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
     var samples = [];
@@ -848,7 +848,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ] };
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.numProcesses, 1);
   });
 
@@ -858,7 +858,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tv.c.TraceModel(JSON.stringify(events));
+    var m = new tr.c.TraceModel(JSON.stringify(events));
     assert.equal(m.numProcesses, 1);
   });
 
@@ -868,7 +868,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tv.c.TraceModel(' ' + JSON.stringify(events));
+    var m = new tr.c.TraceModel(' ' + JSON.stringify(events));
     assert.equal(m.numProcesses, 1);
   });
 
@@ -878,7 +878,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tv.c.TraceModel(JSON.stringify(events) + '\n');
+    var m = new tr.c.TraceModel(JSON.stringify(events) + '\n');
     assert.equal(m.numProcesses, 1);
   });
 
@@ -893,7 +893,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Drop off the trailing ]
     var dropped = tmp.substring(0, tmp.length - 1);
-    var m = new tv.c.TraceModel(dropped);
+    var m = new tr.c.TraceModel(dropped);
     assert.equal(m.numProcesses, 1);
   });
 
@@ -905,7 +905,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
     var text = lines.join('\n');
 
-    var m = new tv.c.TraceModel(text);
+    var m = new tr.c.TraceModel(text);
     assert.equal(m.numProcesses, 1);
     assert.equal(m.processes[52].threads[53].sliceGroup.length, 1);
   });
@@ -921,7 +921,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Drop off the trailing ] and add a newline
     var dropped = tmp.substring(0, tmp.length - 1);
-    var m = new tv.c.TraceModel(dropped + '\n');
+    var m = new tr.c.TraceModel(dropped + '\n');
     assert.equal(m.numProcesses, 1);
   });
 
@@ -933,7 +933,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
     var text = lines.join('\r\n');
 
-    var m = new tv.c.TraceModel(text);
+    var m = new tr.c.TraceModel(text);
     assert.equal(m.numProcesses, 1);
     assert.equal(m.processes[52].threads[53].sliceGroup.length, 1);
   });
@@ -946,7 +946,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       ']'
     ];
     var text = lines.join('\n');
-    var m = new tv.c.TraceModel(text);
+    var m = new tr.c.TraceModel(text);
     assert.equal(m.numProcesses, 1);
     assert.equal(m.processes[9].threads[8].sliceGroup.length, 1);
   });
@@ -960,7 +960,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72, args: {'foo': 'bar'}}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -982,7 +982,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -1007,7 +1007,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {z: 4}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -1032,7 +1032,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1056,7 +1056,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1078,7 +1078,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'S', id: 72} // @suppress longLineCheck
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1114,7 +1114,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         tid: 53, ph: 'T', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isUndefined(t);
   });
@@ -1128,7 +1128,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isUndefined(t);
   });
@@ -1144,7 +1144,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1183,7 +1183,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isUndefined(t);
     assert.isTrue(m.hasImportWarnings);
@@ -1208,7 +1208,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         id: 72, ph: 'e', tts: 60000, use_async_tts: 0}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 3);
@@ -1234,7 +1234,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         id: 72, ph: 'e', tts: 105000, use_async_tts: 1}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1258,7 +1258,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1286,7 +1286,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1317,7 +1317,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         cat: 'foo', tid: 53, ph: 'e', id: 74}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 3);
@@ -1373,7 +1373,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     // Perfectly matched events should not produce a warning.
@@ -1431,7 +1431,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 2);
@@ -1465,7 +1465,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     // Unmatched BEGIN should produce a warning.
@@ -1507,7 +1507,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     // Unmatched BEGIN should produce a warning.
@@ -1555,7 +1555,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     // Unmatched END should produce a warning.
@@ -1597,7 +1597,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     // Unmatched END should produce a warning.
@@ -1649,7 +1649,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 2);
@@ -1677,7 +1677,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'c', args: {}, pid: 52, ts: 558, cat: 'test', tid: 53, ph: 'P'},
       {name: 'a', args: {}, pid: 52, ts: 568, cat: 'test', tid: 53, ph: 'P'}
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var p = m.processes[52];
     assert.isDefined(p);
     var t = p.threads[53];
@@ -1711,9 +1711,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       }
     };
 
-    var options = new tv.c.ImportOptions();
+    var options = new tr.c.ImportOptions();
     options.shiftWorldToZero = false;
-    var m = new tv.c.TraceModel(eventData, options);
+    var m = new tr.c.TraceModel(eventData, options);
 
     var p = m.processes[1];
     var t = p.threads[2];
@@ -1730,7 +1730,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
       {name: 'c', pid: 52, ts: 549, cat: 'test', tid: 53, ph: 'P'}
     ];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var p = m.processes[52];
     assert.isDefined(p);
     var t = p.threads[53];
@@ -1747,7 +1747,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 20}}, // @suppress longLineCheck
       {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}} // @suppress longLineCheck
     ];
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false);
     assert.equal(m.bounds.min, 10);
     assert.equal(m.bounds.max, 50);
@@ -1791,7 +1791,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ]}}
     ];
 
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false);
     var p1 = m.processes[1];
 
@@ -1829,7 +1829,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ]}}
     ];
 
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false);
     var p1 = m.processes[1];
 
@@ -1850,7 +1850,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'LayerImpl', args: {}} // @suppress longLineCheck
     ];
 
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false);
     var p1 = m.processes[1];
     assert.equal(m.importWarnings.length, 0);
@@ -1872,7 +1872,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}} // @suppress longLineCheck
     ];
 
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false);
     var p1 = m.processes[1];
 
@@ -1899,7 +1899,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}} // @suppress longLineCheck
     ];
 
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false);
     var p1 = m.processes[1];
 
@@ -1925,16 +1925,16 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         ]}}}
     ];
 
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([events], false);
     var p1 = m.processes[1];
 
     var sA = p1.objects.getSnapshotAt('0x1000', 15);
     assert.isTrue(sA.args.x instanceof Array);
     assert.equal(sA.args.x.length, 3);
-    assert.isTrue(sA.args.x[0] instanceof tv.c.trace_model.ObjectSnapshot);
-    assert.isTrue(sA.args.x[1] instanceof tv.c.trace_model.ObjectSnapshot);
-    assert.isTrue(sA.args.x[2] instanceof tv.c.trace_model.ObjectSnapshot);
+    assert.isTrue(sA.args.x[0] instanceof tr.c.trace_model.ObjectSnapshot);
+    assert.isTrue(sA.args.x[1] instanceof tr.c.trace_model.ObjectSnapshot);
+    assert.isTrue(sA.args.x[2] instanceof tr.c.trace_model.ObjectSnapshot);
   });
 
   test('importDoesNotMutateEventList', function() {
@@ -1955,21 +1955,21 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     // The A type family exists to mutate the args list provided to
     // snapshots.
     function ASnapshot() {
-      tv.c.trace_model.ObjectSnapshot.apply(this, arguments);
+      tr.c.trace_model.ObjectSnapshot.apply(this, arguments);
       this.args.foo = 7;
     }
     ASnapshot.prototype = {
-      __proto__: tv.c.trace_model.ObjectSnapshot.prototype
+      __proto__: tr.c.trace_model.ObjectSnapshot.prototype
     };
 
     // Import event while the A types are registered, causing the
     // arguments of the snapshots to be mutated.
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     try {
-      tv.c.trace_model.ObjectSnapshot.register(ASnapshot, {typeName: 'a'});
+      tr.c.trace_model.ObjectSnapshot.register(ASnapshot, {typeName: 'a'});
       m.importTraces([events], false);
     } finally {
-      tv.c.trace_model.ObjectSnapshot.unregister(ASnapshot);
+      tr.c.trace_model.ObjectSnapshot.unregister(ASnapshot);
     }
     assert.isFalse(m.hasImportWarnings);
 
@@ -1997,7 +1997,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       { id: 72, pid: 52, tid: 53, ts: 582, ph: 'E', args: {} }  // @suppress longLineCheck
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
 
     assert.isDefined(t);
@@ -2045,7 +2045,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     ];
 
-    var m = new tv.c.TraceModel(events, false, false);
+    var m = new tr.c.TraceModel(events, false, false);
 
     assert.equal(m.flowEvents.length, 1);
 
@@ -2074,7 +2074,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     ];
 
-    var m = new tv.c.TraceModel(events, false, false);
+    var m = new tr.c.TraceModel(events, false, false);
 
     assert.equal(m.flowEvents.length, 1);
 
@@ -2103,7 +2103,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     ];
 
-    var m = new tv.c.TraceModel(events, false, false);
+    var m = new tr.c.TraceModel(events, false, false);
 
     assert.equal(m.flowEvents.length, 1);
 
@@ -2132,7 +2132,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     ];
 
-    var m = new tv.c.TraceModel(events, false, false);
+    var m = new tr.c.TraceModel(events, false, false);
 
     assert.equal(m.flowEvents.length, 0);
   });
@@ -2149,7 +2149,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       { name: 'RunTask', cat: 'foo', pid: 70, tid: 71, ts: 580, ph: 'X', args: {'src_func': 'PostRunTask'}, 'dur': 1000}   // @suppress longLineCheck
     ];
 
-    var m = new tv.c.TraceModel(events, false, false);
+    var m = new tr.c.TraceModel(events, false, false);
     var startT = m.processes[52].threads[53];
     var endT = m.processes[70].threads[71];
 
@@ -2197,7 +2197,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
 
     var expected = [0.4, 0.0, 0.412];
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.flowIntervalTree.size, 3);
 
     var order = m.flowEvents.map(function(x) { return x.start });
@@ -2212,7 +2212,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       { name: 'c', args: {}, pid: 52, ts: 740, cat: 'baz', tid: 53, ph: 'X' }
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -2250,7 +2250,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       { name: 'c', args: {}, pid: 52, ts: 740, cat: 'baz', tid: 53, ph: 'X', tts: 115 }  // @suppress longLineCheck
     ];
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -2291,7 +2291,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       { name: 'b', args: {}, pid: 52, ts: 244654227095, dur: 36045, cat: 'foo', tid: 53, ph: 'X' }  // @suppress longLineCheck
     ];
 
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var t = m.processes[52].threads[53];
 
     var sA = findSliceNamed(t.sliceGroup, 'a');
@@ -2343,9 +2343,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       }
     };
 
-    var options = new tv.c.ImportOptions();
+    var options = new tr.c.ImportOptions();
     options.shiftWorldToZero = false;
-    var m = new tv.c.TraceModel(eventData, options);
+    var m = new tr.c.TraceModel(eventData, options);
 
     var p = m.processes[1];
     var t = p.threads[2];
@@ -2372,7 +2372,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 1000, ph: 'F', args: {'seq': 1001}});  // @suppress longLineCheck
 
-    var m = new tv.c.TraceModel(events);
+    var m = new tr.c.TraceModel(events);
     var t = m.processes[52].threads[53];
 
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -2431,11 +2431,11 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       ]
     };
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     assert.isDefined(m.kernel.cpus[0]);
     assert.equal(m.getAllThreads().length, 1);
 
-    assert.equal(tv.b.dictionaryKeys(m.stackFrames).length, 4);
+    assert.equal(tr.b.dictionaryKeys(m.stackFrames).length, 4);
     assert.equal(m.samples.length, 3);
 
     var t1 = m.processes[1].threads[1];
@@ -2519,7 +2519,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var p1 = m.getProcess(42);
     var p2 = m.getProcess(43);
     assert.isDefined(p1);
@@ -2575,7 +2575,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
@@ -2632,7 +2632,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
@@ -2740,7 +2740,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
@@ -2831,7 +2831,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
@@ -2914,7 +2914,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tv.c.TraceModel(events, false);
+    var m = new tr.c.TraceModel(events, false);
     var p = m.getProcess(42);
     var gmd = m.globalMemoryDumps[0];
     var pmd = p.memoryDumps[0];
@@ -3114,7 +3114,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var model = new tv.c.TraceModel(events, false);
+    var model = new tr.c.TraceModel(events, false);
     var browserProcess = model.getProcess(42);
     var rendererProcess = model.getProcess(43);
     var gpuProcess = model.getProcess(44);
@@ -3262,9 +3262,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       }
     };
 
-    var options = new tv.c.ImportOptions();
+    var options = new tr.c.ImportOptions();
     options.shiftWorldToZero = false;
-    var m = new tv.c.TraceModel(eventData, options);
+    var m = new tr.c.TraceModel(eventData, options);
 
     var p = m.processes[1];
     var t = p.threads[2];
@@ -3300,9 +3300,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       }
     };
 
-    var options = new tv.c.ImportOptions();
+    var options = new tr.c.ImportOptions();
     options.shiftWorldToZero = false;
-    var m = new tv.c.TraceModel(eventData, options);
+    var m = new tr.c.TraceModel(eventData, options);
 
     var p = m.processes[1];
     var t = p.threads[2];
@@ -3319,8 +3319,8 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       {stableId: '52', yPercentOffset: 0.3}];
     var yComponents2 = [{stableId: '52.53', yPercentOffset: 0.7},
       {stableId: '52', yPercentOffset: 0.4}];
-    var location1 = new tv.c.Location(0.1, yComponents1);
-    var location2 = new tv.c.Location(0.2, yComponents2);
+    var location1 = new tr.c.Location(0.1, yComponents1);
+    var location2 = new tr.c.Location(0.2, yComponents2);
 
     var eventData = { traceEvents: [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'}],
@@ -3332,19 +3332,19 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           location: location1.toDict()}}
       ]};
 
-    var m = new tv.c.TraceModel(eventData);
+    var m = new tr.c.TraceModel(eventData);
     var annotations = m.getAllAnnotations();
     assert.equal(annotations.length, 3);
 
-    assert.isTrue(annotations[0] instanceof tv.c.trace_model.XMarkerAnnotation);
+    assert.isTrue(annotations[0] instanceof tr.c.trace_model.XMarkerAnnotation);
     assert.equal(annotations[0].timestamp, 12);
 
-    assert.isTrue(annotations[1] instanceof tv.c.trace_model.RectAnnotation);
+    assert.isTrue(annotations[1] instanceof tr.c.trace_model.RectAnnotation);
     assert.deepEqual(annotations[1].startLocation, location1);
     assert.deepEqual(annotations[1].endLocation, location2);
 
     assert.isTrue(
-        annotations[2] instanceof tv.c.trace_model.CommentBoxAnnotation);
+        annotations[2] instanceof tr.c.trace_model.CommentBoxAnnotation);
     assert.equal(annotations[2].text, 'test');
     assert.deepEqual(annotations[2].location, location1);
   });

@@ -17,16 +17,16 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
 
   function createPopulatedTimeline() {
-    var model = new tv.c.TraceModel();
+    var model = new tr.c.TraceModel();
     var process = model.getOrCreateProcess(1);
     var thread = process.getOrCreateThread(2);
-    thread.sliceGroup.pushSlice(tv.c.test_utils.newSliceNamed('a', 80, 50));
+    thread.sliceGroup.pushSlice(tr.c.test_utils.newSliceNamed('a', 80, 50));
 
-    var timeline = new tv.c.TimelineTrackView();
-    var vp = new tv.c.TimelineViewport(timeline);
+    var timeline = new tr.c.TimelineTrackView();
+    var vp = new tr.c.TimelineViewport(timeline);
     timeline.model = model;
     timeline.focusElement = timeline;
     timeline.tabIndex = 0;
@@ -38,9 +38,9 @@ tv.b.unittest.testSuite(function() {
   test('rectAnnotation', function() {
     var fakeYComponents1 = [{stableId: '1.2', yPercentOffset: 0.3}];
     var fakeYComponents2 = [{stableId: '1.2', yPercentOffset: 0.9}];
-    var start = new tv.c.Location(50, fakeYComponents1);
-    var end = new tv.c.Location(100, fakeYComponents2);
-    var rectAnnotation = new tv.c.trace_model.RectAnnotation(start, end);
+    var start = new tr.c.Location(50, fakeYComponents1);
+    var end = new tr.c.Location(100, fakeYComponents2);
+    var rectAnnotation = new tr.c.trace_model.RectAnnotation(start, end);
     assert.equal(rectAnnotation.startLocation, start);
     assert.equal(rectAnnotation.endLocation, end);
 
@@ -50,7 +50,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('xMarkerAnnotation', function() {
-    var xMarkerAnnotation = new tv.c.trace_model.XMarkerAnnotation(90);
+    var xMarkerAnnotation = new tr.c.trace_model.XMarkerAnnotation(90);
     assert.equal(xMarkerAnnotation.timestamp, 90);
 
     var timeline = createPopulatedTimeline();
@@ -61,10 +61,10 @@ tv.b.unittest.testSuite(function() {
 
   test('commentBoxAnnotation', function() {
     var fakeYComponents = [{stableId: '1.2', yPercentOffset: 0.5}];
-    var location = new tv.c.Location(120, fakeYComponents);
+    var location = new tr.c.Location(120, fakeYComponents);
     var text = 'abc';
     var commentBoxAnnotation =
-        new tv.c.trace_model.CommentBoxAnnotation(location, text);
+        new tr.c.trace_model.CommentBoxAnnotation(location, text);
     assert.equal(commentBoxAnnotation.location, location);
     assert.equal(commentBoxAnnotation.text, text);
 

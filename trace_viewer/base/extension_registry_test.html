@@ -9,7 +9,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('tberSimpleNamedRegistration', function() {
     function DummyEvent() {
     }
@@ -22,11 +22,11 @@ tv.b.unittest.testSuite(function() {
       __proto__: DummyEvent.prototype
     };
 
-    var options = new tv.b.ExtensionRegistryOptions(
-        tv.b.TYPE_BASED_REGISTRY_MODE);
+    var options = new tr.b.ExtensionRegistryOptions(
+        tr.b.TYPE_BASED_REGISTRY_MODE);
     options.mandatoryBaseClass = DummyEvent;
     options.defaultConstructor = DummyEvent;
-    tv.b.decorateExtensionRegistry(
+    tr.b.decorateExtensionRegistry(
         DummyEvent, options);
 
     DummyEvent.register(DummyEventSubclass, {typeName: 'dummy-name'});
@@ -49,11 +49,11 @@ tv.b.unittest.testSuite(function() {
       __proto__: DummyEvent.prototype
     };
 
-    var options = new tv.b.ExtensionRegistryOptions(
-        tv.b.TYPE_BASED_REGISTRY_MODE);
+    var options = new tr.b.ExtensionRegistryOptions(
+        tr.b.TYPE_BASED_REGISTRY_MODE);
     options.mandatoryBaseClass = DummyEvent;
     options.defaultConstructor = DummyEvent;
-    tv.b.decorateExtensionRegistry(
+    tr.b.decorateExtensionRegistry(
         DummyEvent, options);
 
     DummyEvent.register(
@@ -79,11 +79,11 @@ tv.b.unittest.testSuite(function() {
       __proto__: DummyEvent.prototype
     };
 
-    var options = new tv.b.ExtensionRegistryOptions(
-        tv.b.TYPE_BASED_REGISTRY_MODE);
+    var options = new tr.b.ExtensionRegistryOptions(
+        tr.b.TYPE_BASED_REGISTRY_MODE);
     options.mandatoryBaseClass = DummyEvent;
     options.defaultConstructor = DummyEvent;
-    tv.b.decorateExtensionRegistry(
+    tr.b.decorateExtensionRegistry(
         DummyEvent, options);
 
     DummyEvent.register(
@@ -109,11 +109,11 @@ tv.b.unittest.testSuite(function() {
       __proto__: DummyEvent.prototype
     };
 
-    var options = new tv.b.ExtensionRegistryOptions(
-        tv.b.TYPE_BASED_REGISTRY_MODE);
+    var options = new tr.b.ExtensionRegistryOptions(
+        tr.b.TYPE_BASED_REGISTRY_MODE);
     options.mandatoryBaseClass = DummyEvent;
     options.defaultConstructor = DummyEvent;
-    tv.b.decorateExtensionRegistry(
+    tr.b.decorateExtensionRegistry(
         DummyEvent, options);
 
     DummyEvent.register(

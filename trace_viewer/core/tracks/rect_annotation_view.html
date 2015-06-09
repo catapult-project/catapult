@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.annotations', function() {
+tr.exportTo('tr.c.annotations', function() {
   /**
    * A view responsible for drawing a single highlight rectangle box on
    * the timeline.
@@ -23,7 +23,7 @@ tv.exportTo('tv.c.annotations', function() {
   }
 
   RectAnnotationView.prototype = {
-    __proto__: tv.c.annotations.AnnotationView.prototype,
+    __proto__: tr.c.annotations.AnnotationView.prototype,
 
     draw: function(ctx) {
       var dt = this.viewport_.currentDisplayTransform;

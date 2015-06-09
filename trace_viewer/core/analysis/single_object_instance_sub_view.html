@@ -12,8 +12,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/single_event_sub_view.html">
 <link rel="import" href="/base/units/util.html">
 
-<polymer-element name="tv-c-a-single-object-instance-sub-view"
-    extends="tv-c-a-sub-view">
+<polymer-element name="tr-c-a-single-object-instance-sub-view"
+    extends="tr-c-a-sub-view">
   <template>
     <style>
     :host {
@@ -58,7 +58,7 @@ found in the LICENSE file.
       if (this.$.content.children.length === 0)
         return false;
       if (this.$.content.children[0] instanceof
-          tv.c.analysis.ObjectInstanceView)
+          tr.c.analysis.ObjectInstanceView)
         return this.$.content.children[0].requiresTallView;
     },
 
@@ -69,14 +69,14 @@ found in the LICENSE file.
     set selection(selection) {
       if (selection.length !== 1)
         throw new Error('Only supports single item selections');
-      if (!(selection[0] instanceof tv.c.trace_model.ObjectInstance))
+      if (!(selection[0] instanceof tr.c.trace_model.ObjectInstance))
         throw new Error('Only supports object instances');
 
       this.$.content.textContent = '';
       this.currentSelection_ = selection;
 
       var instance = selection[0];
-      var typeInfo = tv.c.analysis.ObjectInstanceView.getTypeInfo(
+      var typeInfo = tr.c.analysis.ObjectInstanceView.getTypeInfo(
           instance.category, instance.typeName);
       if (typeInfo) {
         var customView = new typeInfo.constructor();
@@ -107,8 +107,8 @@ found in the LICENSE file.
       this.$.content.innerHTML = html;
       var snapshotsEl = this.$.content.querySelector('#snapshots');
       instance.snapshots.forEach(function(snapshot) {
-        var snapshotLink = document.createElement('tv-c-a-analysis-link');
-        snapshotLink.selection = new tv.c.Selection(snapshot);
+        var snapshotLink = document.createElement('tr-c-a-analysis-link');
+        snapshotLink.selection = new tr.c.Selection(snapshot);
         snapshotsEl.appendChild(snapshotLink);
       });
     }

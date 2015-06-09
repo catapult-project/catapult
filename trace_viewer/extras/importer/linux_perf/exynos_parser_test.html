@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('exynosBusfreqImport', function() {
     var lines = [
       '     kworker/1:0-4177  [001] ....  2803.129806: ' +
@@ -23,7 +23,7 @@ tv.b.unittest.testSuite(function() {
       '     kworker/1:0-4177  [001] ....  2805.729039: ' +
           'exynos_busfreq_target_mif: frequency=200000'
     ];
-    var m = new tv.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.c.TraceModel(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
@@ -51,7 +51,7 @@ tv.b.unittest.testSuite(function() {
       '     kworker/0:1-25931 [000] .... 1000.000007: ' +
           'exynos_page_flip_state: pipe=0, fb=25, state=flipped'
     ];
-    var m = new tv.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.c.TraceModel(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -98,7 +98,7 @@ tv.b.unittest.testSuite(function() {
       '          <idle>-0     [000] d.h. 1000.000011: ' +
           'exynos_page_flip_state: pipe=0, fb=26, state=wait_apply'
     ];
-    var m = new tv.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.c.TraceModel(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();

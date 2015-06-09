@@ -14,9 +14,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Utilities for accessing trace data about the Chrome browser.
  */
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
   function ChromeBrowserHelper(modelHelper, process) {
-    tv.e.audits.ChromeProcessHelper.call(this, modelHelper, process);
+    tr.e.audits.ChromeProcessHelper.call(this, modelHelper, process);
     this.mainThread_ = process.findAtMostOneThreadNamed('CrBrowserMain');
   }
 
@@ -27,7 +27,7 @@ tv.exportTo('tv.e.audits', function() {
   };
 
   ChromeBrowserHelper.prototype = {
-    __proto__: tv.e.audits.ChromeProcessHelper.prototype,
+    __proto__: tr.e.audits.ChromeProcessHelper.prototype,
 
     get rendererHelpers() {
       return this.modelHelper.rendererHelpers;
@@ -53,7 +53,7 @@ tv.exportTo('tv.e.audits', function() {
         thread.iterateAllEvents(function(event) {
           if (!event.isTopLevel)
             return;
-          if (!(event instanceof tv.e.cc.InputLatencyAsyncSlice))
+          if (!(event instanceof tr.e.cc.InputLatencyAsyncSlice))
             return;
           hasLatency = true;
         });
@@ -103,13 +103,13 @@ tv.exportTo('tv.e.audits', function() {
     },
 
     iterAllThreads: function(func, opt_this) {
-      tv.b.iterItems(this.process.threads, function(tid, thread) {
+      tr.b.iterItems(this.process.threads, function(tid, thread) {
         func.call(opt_this, thread);
       });
 
-      tv.b.iterItems(this.rendererHelpers, function(pid, rendererHelper) {
+      tr.b.iterItems(this.rendererHelpers, function(pid, rendererHelper) {
         var rendererProcess = rendererHelper.process;
-        tv.b.iterItems(rendererProcess.threads, function(tid, thread) {
+        tr.b.iterItems(rendererProcess.threads, function(tid, thread) {
           func.call(opt_this, thread);
         });
       }, this);

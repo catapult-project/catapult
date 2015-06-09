@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('regulatorImport', function() {
     var lines = [
       ' kworker/0:2H-14312 [000] ...1 143713.787749: ' +
@@ -33,7 +33,7 @@ tv.b.unittest.testSuite(function() {
       'kworker/0:1-30321 [000] ...1 144568.654785: ' +
         'regulator_disable_complete: name=8941_smbb_boost'
     ];
-    var m = new tv.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.c.TraceModel(lines.join('\n'), false);
     console.log(m.importWarnings);
     assert.isFalse(m.hasImportWarnings);
 

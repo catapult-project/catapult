@@ -29,9 +29,9 @@ found in the LICENSE file.
  * @fileoverview TraceEventImporter imports TraceEvent-formatted data
  * into the provided model.
  */
-tv.exportTo('tv.e.importer', function() {
+tr.exportTo('tr.e.importer', function() {
 
-  var Importer = tv.c.importer.Importer;
+  var Importer = tr.c.importer.Importer;
 
   function deepCopy(value) {
     if (!(value instanceof Object)) {
@@ -200,7 +200,7 @@ tv.exportTo('tv.e.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allFlowEvents_.push({
-        refGuid: tv.b.GUID.getLastGuid(),
+        refGuid: tr.b.GUID.getLastGuid(),
         sequenceNumber: this.allFlowEvents_.length,
         event: event,
         thread: thread
@@ -224,9 +224,9 @@ tv.exportTo('tv.e.importer', function() {
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {
         for (var seriesName in event.args) {
-          ctr.addSeries(new tv.c.trace_model.CounterSeries(
+          ctr.addSeries(new tr.c.trace_model.CounterSeries(
               seriesName,
-              tv.b.ui.getColorIdForGeneralPurposeString(
+              tr.b.ui.getColorIdForGeneralPurposeString(
                   ctr.name + '.' + seriesName)));
         }
 
@@ -385,10 +385,10 @@ tv.exportTo('tv.e.importer', function() {
       var constructor;
       switch (event.s) {
         case 'g':
-          constructor = tv.c.trace_model.GlobalInstantEvent;
+          constructor = tr.c.trace_model.GlobalInstantEvent;
           break;
         case 'p':
-          constructor = tv.c.trace_model.ProcessInstantEvent;
+          constructor = tr.c.trace_model.ProcessInstantEvent;
           break;
         default:
           this.model_.importWarning({
@@ -398,16 +398,16 @@ tv.exportTo('tv.e.importer', function() {
           return;
       }
 
-      var colorId = tv.b.ui.getColorIdForGeneralPurposeString(event.name);
+      var colorId = tr.b.ui.getColorIdForGeneralPurposeString(event.name);
       var instantEvent = new constructor(event.cat, event.name,
           colorId, event.ts / 1000, this.deepCopyIfNeeded_(event.args));
 
       switch (instantEvent.type) {
-        case tv.c.trace_model.InstantEventType.GLOBAL:
+        case tr.c.trace_model.InstantEventType.GLOBAL:
           this.model_.pushInstantEvent(instantEvent);
           break;
 
-        case tv.c.trace_model.InstantEventType.PROCESS:
+        case tr.c.trace_model.InstantEventType.PROCESS:
           var process = this.model_.getOrCreateProcess(event.pid);
           process.pushInstantEvent(instantEvent);
           break;
@@ -427,16 +427,16 @@ tv.exportTo('tv.e.importer', function() {
             event.name];
       }
       if (stackFrame === undefined) {
-        var id = 'te-' + tv.b.GUID.allocate();
-        stackFrame = new tv.c.trace_model.StackFrame(
+        var id = 'te-' + tr.b.GUID.allocate();
+        stackFrame = new tr.c.trace_model.StackFrame(
             undefined, id,
             event.cat, event.name,
-            tv.b.ui.getColorIdForGeneralPurposeString(event.name));
+            tr.b.ui.getColorIdForGeneralPurposeString(event.name));
         this.model_.addStackFrame(stackFrame);
         this.traceEventSampleStackFramesByName_[event.name] = stackFrame;
       }
 
-      var sample = new tv.c.trace_model.Sample(
+      var sample = new tr.c.trace_model.Sample(
           undefined, thread, 'TRACE_EVENT_SAMPLE',
           event.ts / 1000, stackFrame, 1,
           this.deepCopyIfNeeded_(event.args));
@@ -486,7 +486,7 @@ tv.exportTo('tv.e.importer', function() {
      * model_.
      */
     importEvents: function() {
-      var csr = new tv.c.ClockSyncRecord('ftrace_importer', 0, {});
+      var csr = new tr.c.ClockSyncRecord('ftrace_importer', 0, {});
       this.model_.clockSyncRecords.push(csr);
       if (this.stackFrameEvents_)
         this.importStackFrames_();
@@ -548,10 +548,10 @@ tv.exportTo('tv.e.importer', function() {
       for (var id in events) {
         var event = events[id];
         var textForColor = event.category ? event.category : event.name;
-        var frame = new tv.c.trace_model.StackFrame(
+        var frame = new tr.c.trace_model.StackFrame(
             undefined, 'g' + id,
             event.category, event.name,
-            tv.b.ui.getColorIdForGeneralPurposeString(textForColor));
+            tr.b.ui.getColorIdForGeneralPurposeString(textForColor));
         m.addStackFrame(frame);
       }
       for (var id in events) {
@@ -576,7 +576,7 @@ tv.exportTo('tv.e.importer', function() {
 
     importAnnotations_: function() {
       for (var id in this.traceAnnotations_) {
-        var annotation = tv.c.trace_model.Annotation.fromDictIfPossible(
+        var annotation = tr.c.trace_model.Annotation.fromDictIfPossible(
            this.traceAnnotations_[id]);
         if (!annotation) {
           this.model_.importWarning({
@@ -687,7 +687,7 @@ tv.exportTo('tv.e.importer', function() {
 
         var stackFrame = this.getStackFrameForEvent_(event);
 
-        var sample = new tv.c.trace_model.Sample(
+        var sample = new tr.c.trace_model.Sample(
             cpu, thread,
             event.name, event.ts / 1000,
             stackFrame,
@@ -830,12 +830,12 @@ tv.exportTo('tv.e.importer', function() {
               // Include args for both END and BEGIN for a matched pair.
               var concatenateArguments = function(args1, args2) {
                 if (args1.params === undefined || args2.params === undefined)
-                  return tv.b.concatenateObjects(args1, args2);
+                  return tr.b.concatenateObjects(args1, args2);
                 // Make an argument object to hold the combined params.
                 var args3 = {};
-                args3.params = tv.b.concatenateObjects(args1.params,
+                args3.params = tr.b.concatenateObjects(args1.params,
                                                        args2.params);
-                return tv.b.concatenateObjects(args1, args2, args3);
+                return tr.b.concatenateObjects(args1, args2, args3);
               }
               var endArgs = eventStateEntry.end.event.args || {};
               sliceArgs = concatenateArguments(sliceArgs, endArgs);
@@ -859,7 +859,7 @@ tv.exportTo('tv.e.importer', function() {
 
           var isTopLevel = (eventStateEntry.parentEntry === undefined);
           var asyncSliceConstructor =
-             tv.c.trace_model.AsyncSlice.getConstructor(
+             tr.c.trace_model.AsyncSlice.getConstructor(
                 eventStateEntry.event.cat,
                 eventStateEntry.event.name);
 
@@ -876,7 +876,7 @@ tv.exportTo('tv.e.importer', function() {
           var slice = new asyncSliceConstructor(
               eventStateEntry.event.cat,
               eventStateEntry.event.name,
-              tv.b.ui.getColorIdForGeneralPurposeString(
+              tr.b.ui.getColorIdForGeneralPurposeString(
                   eventStateEntry.event.name),
               startState.event.ts / 1000,
               sliceArgs,
@@ -980,15 +980,15 @@ tv.exportTo('tv.e.importer', function() {
           if (event.ph === 'F') {
             // Create a slice from start to end.
             var asyncSliceConstructor =
-               tv.c.trace_model.AsyncSlice.getConstructor(
+               tr.c.trace_model.AsyncSlice.getConstructor(
                   events[0].event.cat,
                   name);
             var slice = new asyncSliceConstructor(
                 events[0].event.cat,
                 name,
-                tv.b.ui.getColorIdForGeneralPurposeString(name),
+                tr.b.ui.getColorIdForGeneralPurposeString(name),
                 events[0].event.ts / 1000,
-                tv.b.concatenateObjects(events[0].event.args,
+                tr.b.concatenateObjects(events[0].event.args,
                                       events[events.length - 1].event.args),
                 (event.ts - events[0].event.ts) / 1000,
                 true);
@@ -1036,13 +1036,13 @@ tv.exportTo('tv.e.importer', function() {
                 subName = subName + ':' + events[j].event.args.step;
 
               var asyncSliceConstructor =
-                 tv.c.trace_model.AsyncSlice.getConstructor(
+                 tr.c.trace_model.AsyncSlice.getConstructor(
                     events[0].event.cat,
                     subName);
               var subSlice = new asyncSliceConstructor(
                   events[0].event.cat,
                   subName,
-                  tv.b.ui.getColorIdForGeneralPurposeString(subName + j),
+                  tr.b.ui.getColorIdForGeneralPurposeString(subName + j),
                   events[startIndex].event.ts / 1000,
                   this.deepCopyIfNeeded_(events[j].event.args),
                   (events[endIndex].event.ts - events[startIndex].event.ts) /
@@ -1108,11 +1108,11 @@ tv.exportTo('tv.e.importer', function() {
         if (startSlice === undefined)
           return undefined;
 
-        var flowEvent = new tv.c.trace_model.FlowEvent(
+        var flowEvent = new tr.c.trace_model.FlowEvent(
             event.cat,
             event.id,
             event.name,
-            tv.b.ui.getColorIdForGeneralPurposeString(event.name),
+            tr.b.ui.getColorIdForGeneralPurposeString(event.name),
             event.ts / 1000,
             that.deepCopyIfNeeded_(event.args));
         flowEvent.startSlice = startSlice;
@@ -1331,7 +1331,7 @@ tv.exportTo('tv.e.importer', function() {
         }
 
         if (instance) {
-          instance.colorId = tv.b.ui.getColorIdForGeneralPurposeString(
+          instance.colorId = tr.b.ui.getColorIdForGeneralPurposeString(
               instance.typeName);
         }
       }
@@ -1358,7 +1358,7 @@ tv.exportTo('tv.e.importer', function() {
     },
 
     createImplicitObjects_: function() {
-      tv.b.iterItems(this.model_.processes, function(pid, process) {
+      tr.b.iterItems(this.model_.processes, function(pid, process) {
         this.createImplicitObjectsForProcess_(process);
       }, this);
     },
@@ -1376,7 +1376,7 @@ tv.exportTo('tv.e.importer', function() {
           return;
 
         if (referencingObjectFieldValue instanceof
-            tv.c.trace_model.ObjectSnapshot)
+            tr.c.trace_model.ObjectSnapshot)
           return null;
         if (referencingObjectFieldValue.id === undefined)
           return;
@@ -1421,7 +1421,7 @@ tv.exportTo('tv.e.importer', function() {
         res.containingSnapshot = containingSnapshot;
         res.snapshottedOnThread = containingSnapshot.snapshottedOnThread;
         referencingObject[referencingObjectFieldName] = res;
-        if (!(res instanceof tv.c.trace_model.ObjectSnapshot))
+        if (!(res instanceof tr.c.trace_model.ObjectSnapshot))
           throw new Error('Created object must be instanceof snapshot');
         return res.args;
       }
@@ -1477,16 +1477,16 @@ tv.exportTo('tv.e.importer', function() {
     },
 
     createMemoryDumps_: function() {
-      tv.b.iterItems(this.allMemoryDumpEvents_, function(id, events) {
+      tr.b.iterItems(this.allMemoryDumpEvents_, function(id, events) {
         // Calculate the range of the global memory dump.
-        var range = new tv.b.Range();
+        var range = new tr.b.Range();
         if (events.global !== undefined)
           range.addValue(events.global.ts / 1000);
         for (var i = 0; i < events.process.length; i++)
           range.addValue(events.process[i].ts / 1000);
 
         // Create the global memory dump.
-        var globalMemoryDump = new tv.c.trace_model.GlobalMemoryDump(
+        var globalMemoryDump = new tr.c.trace_model.GlobalMemoryDump(
             this.model_, range.min);
         globalMemoryDump.duration = range.range;
         this.model_.globalMemoryDumps.push(globalMemoryDump);
@@ -1525,7 +1525,7 @@ tv.exportTo('tv.e.importer', function() {
           }
 
           var process = this.model_.getOrCreateProcess(pid);
-          var processMemoryDump = new tv.c.trace_model.ProcessMemoryDump(
+          var processMemoryDump = new tr.c.trace_model.ProcessMemoryDump(
               globalMemoryDump, process, processEvent.ts / 1000);
 
           // Parse the totals, which are mandatory.
@@ -1554,7 +1554,7 @@ tv.exportTo('tv.e.importer', function() {
             processMemoryDump.vmRegions = dumps.process_mmaps.vm_regions.map(
               function(rawRegion) {
                 // See //base/trace_event/process_memory_maps.cc in Chromium.
-                var byteStats = new tv.c.trace_model.VMRegionByteStats(
+                var byteStats = new tr.c.trace_model.VMRegionByteStats(
                   parseByteStat(rawRegion.bs.pc),
                   parseByteStat(rawRegion.bs.pd),
                   parseByteStat(rawRegion.bs.sc),
@@ -1562,7 +1562,7 @@ tv.exportTo('tv.e.importer', function() {
                   parseByteStat(rawRegion.bs.pss),
                   parseByteStat(rawRegion.bs.sw)
                 );
-                return new tv.c.trace_model.VMRegion(
+                return new tr.c.trace_model.VMRegion(
                     parseInt(rawRegion.sa, 16),  // startAddress
                     parseInt(rawRegion.sz, 16),  // sizeInBytes
                     rawRegion.pf,  // protectionFlags
@@ -1579,7 +1579,7 @@ tv.exportTo('tv.e.importer', function() {
             // Construct the MemoryAllocatorDump objects without parent links
             // and add them to the processMemoryAllocatorDumpsByName and
             // globalMemoryAllocatorDumpsByName indices appropriately.
-            tv.b.iterItems(dumps.allocators,
+            tr.b.iterItems(dumps.allocators,
                 function(fullName, rawAllocatorDump) {
               // Every memory allocator dump should have a GUID. If not, then
               // it cannot be associated with any edges.
@@ -1622,7 +1622,7 @@ tv.exportTo('tv.e.importer', function() {
                   });
                   return;
                 }
-                allocatorDump = new tv.c.trace_model.MemoryAllocatorDump(
+                allocatorDump = new tr.c.trace_model.MemoryAllocatorDump(
                     containerMemoryDump, fullName, guid);
                 dstIndex[fullName] = allocatorDump;
                 if (guid !== undefined)
@@ -1653,7 +1653,7 @@ tv.exportTo('tv.e.importer', function() {
 
               // Add all new attributes to the memory allocator dump.
               var attributes = rawAllocatorDump.attrs;
-              tv.b.iterItems(attributes, function(attrName, attrArgs) {
+              tr.b.iterItems(attributes, function(attrName, attrArgs) {
                 if (attrName in allocatorDump.attributes) {
                   // Skip existing attributes of the memory allocator dump.
                   this.model_.importWarning({
@@ -1665,7 +1665,7 @@ tv.exportTo('tv.e.importer', function() {
                   return;
                 }
                 var attrValue =
-                    tv.c.trace_model.Attribute.fromDictIfPossible(attrArgs);
+                    tr.c.trace_model.Attribute.fromDictIfPossible(attrArgs);
                 allocatorDump.addAttribute(attrName, attrValue);
               }, this);
             }, this);
@@ -1721,7 +1721,7 @@ tv.exportTo('tv.e.importer', function() {
             }
 
             var importance = rawEdge.importance;
-            var edge = new tv.c.trace_model.MemoryAllocatorDumpLink(
+            var edge = new tr.c.trace_model.MemoryAllocatorDumpLink(
                 sourceDump, targetDump, importance);
 
             switch (rawEdge.type) {
@@ -1787,7 +1787,7 @@ tv.exportTo('tv.e.importer', function() {
           var parentAlreadyExisted = true;
           if (parentAllocatorDump === undefined) {
             parentAlreadyExisted = false;
-            parentAllocatorDump = new tv.c.trace_model.MemoryAllocatorDump(
+            parentAllocatorDump = new tr.c.trace_model.MemoryAllocatorDump(
                 allocatorDump.containerMemoryDump, parentFullName);
             memoryAllocatorDumpsByFullName[parentFullName] =
                 parentAllocatorDump;
@@ -1811,7 +1811,7 @@ tv.exportTo('tv.e.importer', function() {
     },
 
     joinObjectRefs_: function() {
-      tv.b.iterItems(this.model_.processes, function(pid, process) {
+      tr.b.iterItems(this.model_.processes, function(pid, process) {
         this.joinObjectRefsForProcess_(process);
       }, this);
     },
@@ -1819,7 +1819,7 @@ tv.exportTo('tv.e.importer', function() {
     joinObjectRefsForProcess_: function(process) {
       // Iterate the world, looking for id_refs
       var patchupsToApply = [];
-      tv.b.iterItems(process.threads, function(tid, thread) {
+      tr.b.iterItems(process.threads, function(tid, thread) {
         thread.asyncSliceGroup.slices.forEach(function(item) {
           this.searchItemForIDRefs_(
               patchupsToApply, process.objects, 'start', item);
@@ -1868,9 +1868,9 @@ tv.exportTo('tv.e.importer', function() {
         if (!(object instanceof Object))
           return;
 
-        if ((object instanceof tv.c.trace_model.ObjectSnapshot) ||
+        if ((object instanceof tr.c.trace_model.ObjectSnapshot) ||
             (object instanceof Float32Array) ||
-            (object instanceof tv.b.Quad))
+            (object instanceof tr.b.Quad))
           return;
 
         if (object instanceof Array) {
@@ -1892,7 +1892,7 @@ tv.exportTo('tv.e.importer', function() {
     }
   };
 
-  tv.c.importer.Importer.register(TraceEventImporter);
+  tr.c.importer.Importer.register(TraceEventImporter);
 
   return {
     TraceEventImporter: TraceEventImporter

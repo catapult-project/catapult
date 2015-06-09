@@ -15,11 +15,11 @@ found in the LICENSE file.
 /**
  * @fileoverview Utilities for accessing trace data about the Chrome browser.
  */
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
   function findChromeBrowserProcess(model) {
     var browserProcesses = [];
     model.getAllProcesses().forEach(function(process) {
-      if (!tv.e.audits.ChromeBrowserHelper.isBrowserProcess(process))
+      if (!tr.e.audits.ChromeBrowserHelper.isBrowserProcess(process))
         return;
       browserProcesses.push(process);
     }, this);
@@ -33,7 +33,7 @@ tv.exportTo('tv.e.audits', function() {
   function findChromeRenderProcesses(model) {
     var rendererProcesses = [];
     model.getAllProcesses().forEach(function(process) {
-      if (!tv.e.audits.ChromeRendererHelper.isRenderProcess(process))
+      if (!tr.e.audits.ChromeRendererHelper.isRenderProcess(process))
         return;
       rendererProcesses.push(process);
     });
@@ -49,7 +49,7 @@ tv.exportTo('tv.e.audits', function() {
     // Find browserHelper.
     this.browserProcess_ = findChromeBrowserProcess(model);
     if (this.browserProcess_) {
-      this.browserHelper_ = new tv.e.audits.ChromeBrowserHelper(
+      this.browserHelper_ = new tr.e.audits.ChromeBrowserHelper(
           this, this.browserProcess_);
     } else {
       this.browserHelper_ = undefined;
@@ -60,7 +60,7 @@ tv.exportTo('tv.e.audits', function() {
 
     this.rendererHelpers_ = {};
     rendererProcesses_.forEach(function(renderProcess) {
-      var rendererHelper = new tv.e.audits.ChromeRendererHelper(
+      var rendererHelper = new tr.e.audits.ChromeRendererHelper(
         this, renderProcess);
       this.rendererHelpers_[rendererHelper.pid] = rendererHelper;
     }, this);

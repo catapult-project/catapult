@@ -13,9 +13,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses Mali DDK/kernel events in the Linux event trace format.
  */
-tv.exportTo('tv.e.importer.linux_perf', function() {
+tr.exportTo('tr.e.importer.linux_perf', function() {
 
-  var Parser = tv.e.importer.linux_perf.Parser;
+  var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses Mali DDK/kernel trace events.
@@ -305,8 +305,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var counter = this.model_.kernel.
           getOrCreateCounter('DVFS', counterName);
       if (counter.numSeries === 0) {
-        counter.addSeries(new tv.c.trace_model.CounterSeries(seriesName,
-            tv.b.ui.getColorIdForGeneralPurposeString(counter.name)));
+        counter.addSeries(new tr.c.trace_model.CounterSeries(seriesName,
+            tr.b.ui.getColorIdForGeneralPurposeString(counter.name)));
       }
       counter.series.forEach(function(series) {
         series.addCounterSample(ts, value);
@@ -349,8 +349,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var counter = this.model_.kernel.
           getOrCreateCounter(cat, counterName);
       if (counter.numSeries === 0) {
-        counter.addSeries(new tv.c.trace_model.CounterSeries(seriesName,
-            tv.b.ui.getColorIdForGeneralPurposeString(counter.name)));
+        counter.addSeries(new tr.c.trace_model.CounterSeries(seriesName,
+            tr.b.ui.getColorIdForGeneralPurposeString(counter.name)));
       }
       counter.series.forEach(function(series) {
         series.addCounterSample(ts, value);

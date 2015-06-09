@@ -11,9 +11,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var displayItemList = new tv.e.cc.DisplayItemListSnapshot(
+    var displayItemList = new tr.e.cc.DisplayItemListSnapshot(
       {id: '31415'},
       10,
       {
@@ -28,7 +28,7 @@ tv.b.unittest.testSuite(function() {
     displayItemList.preInitialize();
     displayItemList.initialize();
 
-    var dbg = new tv.e.cc.DisplayItemDebugger();
+    var dbg = new tr.e.cc.DisplayItemDebugger();
     this.addHTMLOutput(dbg);
     assert.isUndefined(dbg.displayItemList_);
     assert.isUndefined(dbg.picture_);
@@ -40,7 +40,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('selections', function() {
-    var displayItemList = new tv.e.cc.DisplayItemListSnapshot(
+    var displayItemList = new tr.e.cc.DisplayItemListSnapshot(
       {id: '31415'},
       10,
       {
@@ -58,7 +58,7 @@ tv.b.unittest.testSuite(function() {
     displayItemList.preInitialize();
     displayItemList.initialize();
 
-    var dbg = new tv.e.cc.DisplayItemDebugger();
+    var dbg = new tr.e.cc.DisplayItemDebugger();
     this.addHTMLOutput(dbg);
     dbg.displayItemList = displayItemList;
     assert.isDefined(dbg.displayItemList_);
@@ -89,7 +89,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('export', function() {
-    var displayItemList = new tv.e.cc.DisplayItemListSnapshot(
+    var displayItemList = new tr.e.cc.DisplayItemListSnapshot(
       {id: '31415'},
       10,
       {
@@ -104,7 +104,7 @@ tv.b.unittest.testSuite(function() {
     displayItemList.preInitialize();
     displayItemList.initialize();
 
-    var dbg = new tv.e.cc.DisplayItemDebugger();
+    var dbg = new tr.e.cc.DisplayItemDebugger();
     this.addHTMLOutput(dbg);
     dbg.displayItemList = displayItemList;
 

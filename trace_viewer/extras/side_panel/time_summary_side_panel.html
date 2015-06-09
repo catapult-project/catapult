@@ -13,8 +13,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/dom_helpers.html">
 <link rel="import" href="/base/ui/pie_chart.html">
 
-<polymer-element name="tv-e-s-time-summary-side-panel"
-    extends="tv-c-side-panel">
+<polymer-element name="tr-e-s-time-summary-side-panel"
+    extends="tr-c-side-panel">
   <template>
     <style>
     :host {
@@ -59,7 +59,7 @@ found in the LICENSE file.
 
     ResultsForGroup.prototype = {
       get wallTime() {
-        var wallSum = tv.b.Statistics.sum(
+        var wallSum = tr.b.Statistics.sum(
             this.topLevelSlices, function(x) { return x.duration; });
         return wallSum;
       },
@@ -120,7 +120,7 @@ found in the LICENSE file.
 
     Polymer({
       ready: function() {
-        this.rangeOfInterest_ = new tv.b.Range();
+        this.rangeOfInterest_ = new tr.b.Range();
         this.selection_ = undefined;
         this.groupBy_ = GROUP_BY_PROCESS_NAME;
         this.groupingUnit_ = CPU_TIME_GROUPING_UNIT;
@@ -128,7 +128,7 @@ found in the LICENSE file.
         this.chart_ = undefined;
 
         var toolbarEl = this.$.toolbar;
-        this.groupBySelector_ = tv.b.ui.createSelector(
+        this.groupBySelector_ = tr.b.ui.createSelector(
             this, 'groupBy',
             'timeSummarySidePanel.groupBy', this.groupBy_,
             [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
@@ -136,7 +136,7 @@ found in the LICENSE file.
             ]);
         toolbarEl.appendChild(this.groupBySelector_);
 
-        this.groupingUnitSelector_ = tv.b.ui.createSelector(
+        this.groupingUnitSelector_ = tr.b.ui.createSelector(
             this, 'groupingUnit',
             'timeSummarySidePanel.groupingUnit', this.groupingUnit_,
             [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
@@ -144,7 +144,7 @@ found in the LICENSE file.
             ]);
         toolbarEl.appendChild(this.groupingUnitSelector_);
 
-        this.showCpuIdleTimeCheckbox_ = tv.b.ui.createCheckBox(
+        this.showCpuIdleTimeCheckbox_ = tr.b.ui.createCheckBox(
             this, 'showCpuIdleTime',
             'timeSummarySidePanel.showCpuIdleTime', this.showCpuIdleTime_,
             'Show CPU idle time');
@@ -165,7 +165,7 @@ found in the LICENSE file.
         });
 
         // Figure out total array range.
-        var sum = tv.b.Statistics.sum(groups, getValue);
+        var sum = tr.b.Statistics.sum(groups, getValue);
         if (opt_extraValue !== undefined)
           sum += opt_extraValue;
 
@@ -206,13 +206,13 @@ found in the LICENSE file.
 
       createPieChartFromResultGroups: function(
           groups, title, getValue, opt_extraData) {
-        var chart = new tv.b.ui.PieChart();
+        var chart = new tr.b.ui.PieChart();
 
         function pushDataForGroup(data, resultsForGroup, value) {
           data.push({
             label: resultsForGroup.name,
             value: value,
-            valueText: tv.b.units.tsString(value),
+            valueText: tr.b.units.tsString(value),
             resultsForGroup: resultsForGroup
           });
         }
@@ -221,8 +221,8 @@ found in the LICENSE file.
           if (resultsForGroup === undefined)
             return;
 
-          var event = new tv.c.RequestSelectionChangeEvent();
-          event.selection = new tv.c.Selection(resultsForGroup.allSlices);
+          var event = new tr.c.RequestSelectionChangeEvent();
+          event.selection = new tr.c.Selection(resultsForGroup.allSlices);
           event.selection.timeSummaryGroupName = resultsForGroup.name;
           chart.dispatchEvent(event);
         });
@@ -346,11 +346,11 @@ found in the LICENSE file.
 
         // Create summary.
         var summaryText = document.createElement('div');
-        summaryText.appendChild(tv.b.ui.createSpan({
+        summaryText.appendChild(tr.b.ui.createSpan({
           textContent: 'Total ' + this.groupingUnit_ + ': ',
           bold: true}));
-        summaryText.appendChild(tv.b.ui.createSpan({
-          textContent: tv.b.units.tsString(getValueFromGroup(allGroup))}));
+        summaryText.appendChild(tr.b.ui.createSpan({
+          textContent: tr.b.units.tsString(getValueFromGroup(allGroup))}));
         resultArea.appendChild(summaryText);
 
         // If needed, add in the idle time.
@@ -365,7 +365,7 @@ found in the LICENSE file.
           extraData.push({
             label: 'CPU Idle',
             value: idleTime,
-            valueText: tv.b.units.tsString(idleTime)
+            valueText: tr.b.units.tsString(idleTime)
           });
           extraValue += idleTime;
         }
@@ -373,13 +373,13 @@ found in the LICENSE file.
         // Create the actual chart.
         var otherGroup = this.generateResultsForGroup(this.model_, 'Other');
         var groups = this.trimPieChartData(
-            tv.b.dictionaryValues(resultsByGroupName),
+            tr.b.dictionaryValues(resultsByGroupName),
             otherGroup,
             getValueFromGroup,
             extraValue);
 
         if (groups.length == 0) {
-          resultArea.appendChild(tv.b.ui.createSpan({textContent: 'No data'}));
+          resultArea.appendChild(tr.b.ui.createSpan({textContent: 'No data'}));
           return undefined;
         }
 
@@ -390,8 +390,8 @@ found in the LICENSE file.
         resultArea.appendChild(this.chart_);
 
         this.chart_.addEventListener('click', function() {
-          var event = new tv.c.RequestSelectionChangeEvent();
-          event.selection = new tv.c.Selection([]);
+          var event = new tr.c.RequestSelectionChangeEvent();
+          event.selection = new tr.c.Selection([]);
           this.dispatchEvent(event);
         });
         this.chart_.setSize(this.chart_.getMinSize());

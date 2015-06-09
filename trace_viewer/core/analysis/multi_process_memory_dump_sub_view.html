@@ -9,15 +9,15 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/table.html">
 <link rel="import" href="/base/units/util.html">
 
-<polymer-element name="tv-c-a-multi-process-memory-dump-sub-view"
-    extends="tv-c-a-sub-view">
+<polymer-element name="tr-c-a-multi-process-memory-dump-sub-view"
+    extends="tr-c-a-sub-view">
   <template>
     <style>
     :host {
       display: flex;
     }
     </style>
-    <tv-b-ui-table id="content"></tv-b-ui-table>
+    <tr-b-ui-table id="content"></tr-b-ui-table>
   </template>
 
   <script>
@@ -35,22 +35,22 @@ found in the LICENSE file.
     set selection(selection) {
       this.currentSelection_ = selection;
 
-      selection = tv.b.asArray(selection).sort(
-          tv.b.Range.compareByMinTimes);
+      selection = tr.b.asArray(selection).sort(
+          tr.b.Range.compareByMinTimes);
 
       var table = this.$.content;
       table.tableColumns = [
         {
           title: 'Dump',
           value: function(row) {
-            var linkEl = document.createElement('tv-c-a-analysis-link');
+            var linkEl = document.createElement('tr-c-a-analysis-link');
             linkEl.setSelectionAndContent(function() {
-                return new tv.c.Selection(row);
+                return new tr.c.Selection(row);
             });
             var spanEl = document.createElement('span');
             spanEl.textContent = 'Process memory dump at ';
             linkEl.appendChild(spanEl);
-            linkEl.appendChild(tv.b.units.createTimeStampSpan(row.start));
+            linkEl.appendChild(tr.b.units.createTimeStampSpan(row.start));
             return linkEl;
           }
         }

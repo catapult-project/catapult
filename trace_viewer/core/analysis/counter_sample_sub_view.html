@@ -10,12 +10,12 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/analysis_results.html">
 <link rel="import" href="/core/trace_model/counter_sample.html">
 
-<polymer-element name="tv-c-a-counter-sample-sub-view"
-    extends="tv-c-a-sub-view">
+<polymer-element name="tr-c-a-counter-sample-sub-view"
+    extends="tr-c-a-sub-view">
   <script>
   'use strict';
   (function() {
-    var CounterSample = tv.c.trace_model.CounterSample;
+    var CounterSample = tr.c.trace_model.CounterSample;
 
     Polymer({
       created: function() {
@@ -27,7 +27,7 @@ found in the LICENSE file.
       },
 
       set selection(selection) {
-        var results = new tv.c.analysis.AnalysisResults();
+        var results = new tr.c.analysis.AnalysisResults();
         this.appendChild(results);
         this.analyzeCounterSamples_(results, selection);
       },

@@ -22,36 +22,36 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
 
-  var ObjectSnapshotView = tv.c.analysis.ObjectSnapshotView;
-  var ObjectInstanceView = tv.c.analysis.ObjectInstanceView;
-  var TraceModelSettings = tv.c.TraceModelSettings;
-  var SpacingTrack = tv.c.tracks.SpacingTrack;
+  var ObjectSnapshotView = tr.c.analysis.ObjectSnapshotView;
+  var ObjectInstanceView = tr.c.analysis.ObjectInstanceView;
+  var TraceModelSettings = tr.c.TraceModelSettings;
+  var SpacingTrack = tr.c.tracks.SpacingTrack;
 
   /**
    * Visualizes a Process by building ThreadTracks and CounterTracks.
    * @constructor
    */
   var ProcessTrackBase =
-      tv.b.ui.define('process-track-base', tv.c.tracks.ContainerTrack);
+      tr.b.ui.define('process-track-base', tr.c.tracks.ContainerTrack);
 
   ProcessTrackBase.prototype = {
 
-    __proto__: tv.c.tracks.ContainerTrack.prototype,
+    __proto__: tr.c.tracks.ContainerTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
 
       this.processBase_ = undefined;
 
       this.classList.add('process-track-base');
       this.classList.add('expanded');
 
-      this.processNameEl_ = tv.b.ui.createSpan();
+      this.processNameEl_ = tr.b.ui.createSpan();
       this.processNameEl_.classList.add('process-track-name');
 
-      this.headerEl_ = tv.b.ui.createDiv({className: 'process-track-header'});
+      this.headerEl_ = tr.b.ui.createDiv({className: 'process-track-header'});
       this.headerEl_.appendChild(this.processNameEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 
@@ -155,7 +155,7 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     appendSummaryTrack_: function() {
-      var track = new tv.c.tracks.ProcessSummaryTrack(this.viewport);
+      var track = new tr.c.tracks.ProcessSummaryTrack(this.viewport);
       track.process = this.process;
       if (!track.hasVisibleContent)
         return;
@@ -168,7 +168,7 @@ tv.exportTo('tv.c.tracks', function() {
       if (!frames || !frames.length)
         return;
 
-      var track = new tv.c.tracks.FrameTrack(this.viewport);
+      var track = new tr.c.tracks.FrameTrack(this.viewport);
       track.frames = frames;
       this.appendChild(track);
       this.backgroundProvider = track;
@@ -177,7 +177,7 @@ tv.exportTo('tv.c.tracks', function() {
     appendObjectInstanceTracks_: function() {
       var instancesByTypeName =
           this.processBase_.objects.getAllInstancesByTypeName();
-      var instanceTypeNames = tv.b.dictionaryKeys(instancesByTypeName);
+      var instanceTypeNames = tr.b.dictionaryKeys(instancesByTypeName);
       instanceTypeNames.sort();
 
       var didAppendAtLeastOneTrack = false;
@@ -219,15 +219,15 @@ tv.exportTo('tv.c.tracks', function() {
         // Look up the constructor for this track, or use the default
         // constructor if none exists.
         var trackConstructor =
-            tv.c.tracks.ObjectInstanceTrack.getConstructor(
+            tr.c.tracks.ObjectInstanceTrack.getConstructor(
                 undefined, typeName);
         if (!trackConstructor) {
           var snapshotViewInfo = ObjectSnapshotView.getTypeInfo(
               undefined, typeName);
           if (snapshotViewInfo && snapshotViewInfo.metadata.showInstances) {
-            trackConstructor = tv.c.tracks.ObjectInstanceGroupTrack;
+            trackConstructor = tr.c.tracks.ObjectInstanceGroupTrack;
           } else {
-            trackConstructor = tv.c.tracks.ObjectInstanceTrack;
+            trackConstructor = tr.c.tracks.ObjectInstanceTrack;
           }
         }
         var track = new trackConstructor(this.viewport);
@@ -241,12 +241,12 @@ tv.exportTo('tv.c.tracks', function() {
 
     appendCounterTracks_: function() {
       // Add counter tracks for this process.
-      var counters = tv.b.dictionaryValues(this.processBase.counters);
-      counters.sort(tv.c.trace_model.Counter.compare);
+      var counters = tr.b.dictionaryValues(this.processBase.counters);
+      counters.sort(tr.c.trace_model.Counter.compare);
 
       // Create the counters for this process.
       counters.forEach(function(counter) {
-        var track = new tv.c.tracks.CounterTrack(this.viewport);
+        var track = new tr.c.tracks.CounterTrack(this.viewport);
         track.counter = counter;
         this.appendChild(track);
         this.appendChild(new SpacingTrack(this.viewport));
@@ -255,12 +255,12 @@ tv.exportTo('tv.c.tracks', function() {
 
     appendThreadTracks_: function() {
       // Get a sorted list of threads.
-      var threads = tv.b.dictionaryValues(this.processBase.threads);
-      threads.sort(tv.c.trace_model.Thread.compare);
+      var threads = tr.b.dictionaryValues(this.processBase.threads);
+      threads.sort(tr.c.trace_model.Thread.compare);
 
       // Create the threads.
       threads.forEach(function(thread) {
-        var track = new tv.c.tracks.ThreadTrack(this.viewport);
+        var track = new tr.c.tracks.ThreadTrack(this.viewport);
         track.thread = thread;
         if (!track.hasVisibleContent)
           return;

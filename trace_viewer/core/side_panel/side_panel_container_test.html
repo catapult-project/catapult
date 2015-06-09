@@ -13,14 +13,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function FakeSelectionController() {
     this.addAllEventsMatchingFilterToSelectionReturnValue = [];
 
     this.viewport = undefined;
     this.model = undefined;
-    this.selection = new tv.c.Selection();
-    this.highlight = new tv.c.Selection();
+    this.selection = new tr.c.Selection();
+    this.highlight = new tr.c.Selection();
   }
 
   FakeSelectionController.prototype = {
@@ -29,7 +29,7 @@ tv.b.unittest.testSuite(function() {
   };
 
   function createModel() {
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.importTraces([], false, false, function() {
       var browserProcess = m.getOrCreateProcess(1);
       var browserMain = browserProcess.getOrCreateThread(2);
@@ -45,7 +45,7 @@ tv.b.unittest.testSuite(function() {
     var selectionController = new FakeSelectionController();
     selectionController.model = createModel();
 
-    var container = document.createElement('tv-c-side-panel-container');
+    var container = document.createElement('tr-c-side-panel-container');
     container.selectionController = selectionController;
     this.addHTMLOutput(container);
   });

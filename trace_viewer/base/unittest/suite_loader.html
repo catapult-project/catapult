@@ -11,14 +11,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.unittest', function() {
+tr.exportTo('tr.b.unittest', function() {
   function TestLink(linkPath, title) {
     this.linkPath = linkPath;
     this.title = title;
   }
 
   function SuiteLoader(opt_suiteNamesToLoad) {
-    tv.b.EventTarget.call(this);
+    tr.b.EventTarget.call(this);
 
     this.testSuiteGUIDs_ = {};
     this.testSuites = [];
@@ -33,12 +33,12 @@ tv.exportTo('tv.b.unittest', function() {
           tmp);
     } else {
       var p;
-      p = tv.b.getAsync('/tv/json/tests');
+      p = tr.b.getAsync('/tr/json/tests');
       p = p.then(
           function(data) {
             var testMetadata = JSON.parse(data);
             if (testMetadata.hasOwnProperty('test_module_names')) {
-              tv.showPanic(
+              tr.showPanic(
                   'out of date webserver',
                   '>_< your devserver needs a restart kthxbai');
             }
@@ -58,7 +58,7 @@ tv.exportTo('tv.b.unittest', function() {
       importEl.moduleName = moduleName;
       importEl.setAttribute('rel', 'import');
       importEl.setAttribute('href', href);
-      tv.doc.head.appendChild(importEl);
+      tr.doc.head.appendChild(importEl);
 
       importEl.addEventListener('load', function() {
         resolve(importEl);
@@ -77,7 +77,7 @@ tv.exportTo('tv.b.unittest', function() {
   }
 
   SuiteLoader.prototype = {
-    __proto__: tv.b.EventTarget.prototype,
+    __proto__: tr.b.EventTarget.prototype,
 
     beginLoadingModules_: function(testRelpaths, opt_testMetadata) {
       if (opt_testMetadata) {
@@ -171,8 +171,8 @@ tv.exportTo('tv.b.unittest', function() {
     },
 
     didImportElementGetLoaded_: function(importEl) {
-      // The global tv.testSute function stashes test suites
-      // onto the _tv array.
+      // The global tr.testSute function stashes test suites
+      // onto the _tr array.
       var importDoc = importEl.import;
       var suites = allTestSuitesByModuleURL[importDoc.URL];
       suites.forEach(function(testSuite) {
@@ -231,7 +231,7 @@ tv.exportTo('tv.b.unittest', function() {
     if (!document.currentScript)
       throw new Error('Cannot call testSuite except during load.');
 
-    var testSuite = new tv.b.unittest.TestSuite(
+    var testSuite = new tr.b.unittest.TestSuite(
       name, suiteConstructor);
 
 

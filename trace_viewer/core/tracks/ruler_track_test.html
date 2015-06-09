@@ -13,21 +13,21 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var div = document.createElement('div');
 
-    var viewport = new tv.c.TimelineViewport(div);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var viewport = new tr.c.TimelineViewport(div);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
-    var track = tv.c.tracks.RulerTrack(viewport);
+    var track = tr.c.tracks.RulerTrack(viewport);
     drawingContainer.appendChild(track);
     this.addHTMLOutput(div);
 
     drawingContainer.invalidate();
 
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.setPanAndScale(0, track.clientWidth / 1000);
     track.viewport.setDisplayTransformImmediately(dt);
   });

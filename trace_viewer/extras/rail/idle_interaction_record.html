@@ -13,16 +13,16 @@ found in the LICENSE file.
 /**
  * @fileoverview Base class for trace data Auditors.
  */
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
   function IdleInteractionRecord(start, duration) {
-    tv.e.audits.RAILInteractionRecord.call(
+    tr.e.audits.RAILInteractionRecord.call(
         this, 'Idle',
-        tv.b.ui.getColorIdForGeneralPurposeString('mt_idle'),
+        tr.b.ui.getColorIdForGeneralPurposeString('mt_idle'),
         start, duration);
   }
 
   IdleInteractionRecord.prototype = {
-    __proto__: tv.e.audits.RAILInteractionRecord.prototype,
+    __proto__: tr.e.audits.RAILInteractionRecord.prototype,
 
     get railTypeName() {
       return 'Idle';

@@ -17,8 +17,8 @@ found in the LICENSE file.
  * Because a frame is produced by multiple threads, it does not inherit from
  * TimedEvent, and has no duration.
  */
-tv.exportTo('tv.c.trace_model', function() {
-  var Statistics = tv.b.Statistics;
+tr.exportTo('tr.c.trace_model', function() {
+  var Statistics = tr.b.Statistics;
 
   var FRAME_PERF_CLASS = {
     GOOD: 'good',
@@ -34,7 +34,7 @@ tv.exportTo('tv.c.trace_model', function() {
    * for each thread, describing the critical path of the frame.
    */
   function Frame(associatedEvents, threadTimeRanges, opt_args) {
-    tv.c.trace_model.Event.call(this);
+    tr.c.trace_model.Event.call(this);
 
     this.threadTimeRanges = threadTimeRanges;
     this.associatedEvents = associatedEvents;
@@ -52,10 +52,10 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   Frame.prototype = {
-    __proto__: tv.c.trace_model.Event.prototype,
+    __proto__: tr.c.trace_model.Event.prototype,
 
     set perfClass(perfClass) {
-      this.colorId = tv.b.ui.getColorIdForReservedName(perfClass);
+      this.colorId = tr.b.ui.getColorIdForReservedName(perfClass);
       this.perfClass_ = perfClass;
     },
 
@@ -79,13 +79,13 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
-  tv.c.trace_model.EventRegistry.register(
+  tr.c.trace_model.EventRegistry.register(
       Frame,
       {
         name: 'frame',
         pluralName: 'frames',
-        singleViewElementName: 'tv-c-a-single-frame-sub-view',
-        multiViewElementName: 'tv-c-a-multi-frame-sub-view'
+        singleViewElementName: 'tr-c-a-single-frame-sub-view',
+        multiViewElementName: 'tr-c-a-multi-frame-sub-view'
       });
 
   return {

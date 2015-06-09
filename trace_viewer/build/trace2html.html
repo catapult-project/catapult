@@ -31,7 +31,7 @@ var g_timelineViewEl;
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
-  g_timelineViewEl = new tv.TraceViewer();
+  g_timelineViewEl = new tr.TraceViewer();
   g_timelineViewEl.id = 'timeline-view';
   document.body.appendChild(g_timelineViewEl);
 
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     traces.push(atob(text));
   }
 
-  var m = new tv.c.TraceModel();
+  var m = new tr.c.TraceModel();
   var p = m.importTracesWithProgressDialog(traces, true);
   p.then(
       function() {
@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', function() {
           g_timelineViewEl.timeline.focusElement = g_timelineViewEl;
       },
       function(err) {
-        var overlay = new tv.b.ui.Overlay();
-        overlay.textContent = tv.b.normalizeException(err).message;
+        var overlay = new tr.b.ui.Overlay();
+        overlay.textContent = tr.b.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
       });

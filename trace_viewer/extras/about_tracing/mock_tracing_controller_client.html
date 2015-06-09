@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.about_tracing', function() {
+tr.exportTo('tr.e.about_tracing', function() {
   function MockTracingControllerClient() {
     this.requests = [];
     this.nextRequestIndex = 0;
@@ -18,7 +18,7 @@ tv.exportTo('tv.e.about_tracing', function() {
   }
 
   MockTracingControllerClient.prototype = {
-    __proto__: tv.e.about_tracing.TracingControllerClient.prototype,
+    __proto__: tr.e.about_tracing.TracingControllerClient.prototype,
 
     expectRequest: function(method, generateResponse) {
       var generateResponseCb;

@@ -19,9 +19,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Code for the viewport.
  */
-tv.exportTo('tv.c', function() {
-  var TimelineDisplayTransform = tv.c.TimelineDisplayTransform;
-  var TimelineInterestRange = tv.c.TimelineInterestRange;
+tr.exportTo('tr.c', function() {
+  var TimelineDisplayTransform = tr.c.TimelineDisplayTransform;
+  var TimelineInterestRange = tr.c.TimelineInterestRange;
 
   /**
    * ContainerToTrackObj is a class to handle building and accessing a map
@@ -60,7 +60,7 @@ tv.exportTo('tv.c', function() {
    * ways.
    *
    * @constructor
-   * @extends {tv.b.EventTarget}
+   * @extends {tr.b.EventTarget}
    */
   function TimelineViewport(parentEl) {
     this.parentEl_ = parentEl;
@@ -103,7 +103,7 @@ tv.exportTo('tv.c', function() {
   }
 
   TimelineViewport.prototype = {
-    __proto__: tv.b.EventTarget.prototype,
+    __proto__: tr.b.EventTarget.prototype,
 
     /**
      * Allows initialization of the viewport when the viewport's parent element
@@ -123,7 +123,7 @@ tv.exportTo('tv.c', function() {
       // Allow not providing a parent element, used by tests.
       if (this.parentEl_ === undefined)
         return;
-      return tv.b.ui.isElementAttachedToDocument(this.parentEl_);
+      return tr.b.ui.isElementAttachedToDocument(this.parentEl_);
     },
 
     onResize_: function() {
@@ -170,7 +170,7 @@ tv.exportTo('tv.c', function() {
      * to redraw when the underlying model has been mutated.
      */
     dispatchChangeEvent: function() {
-      tv.b.dispatchSimpleEvent(this, 'change');
+      tr.b.dispatchSimpleEvent(this, 'change');
     },
 
     detach: function() {
@@ -185,7 +185,7 @@ tv.exportTo('tv.c', function() {
     },
 
     initAnimationController_: function() {
-      this.dtAnimationController_ = new tv.b.ui.AnimationController();
+      this.dtAnimationController_ = new tr.b.ui.AnimationController();
       this.dtAnimationController_.addEventListener(
           'didtick', function(e) {
             this.onCurentDisplayTransformChange_(e.oldTargetState);
@@ -242,15 +242,15 @@ tv.exportTo('tv.c', function() {
     },
 
     queueDisplayTransformAnimation: function(animation) {
-      if (!(animation instanceof tv.b.ui.Animation))
-        throw new Error('animation must be instanceof tv.b.ui.Animation');
+      if (!(animation instanceof tr.b.ui.Animation))
+        throw new Error('animation must be instanceof tr.b.ui.Animation');
       this.dtAnimationController_.queueAnimation(animation);
     },
 
     onCurentDisplayTransformChange_: function(oldDisplayTransform) {
       // Ensure panY stays clamped in the track container's scroll range.
       if (this.modelTrackContainer_) {
-        this.currentDisplayTransform.panY = tv.b.clamp(
+        this.currentDisplayTransform.panY = tr.b.clamp(
             this.currentDisplayTransform.panY,
             0,
             this.modelTrackContainer_.scrollHeight -
@@ -355,7 +355,7 @@ tv.exportTo('tv.c', function() {
       ctx.beginPath();
       for (var idx in this.majorMarkPositions) {
         var x = Math.floor(this.majorMarkPositions[idx]);
-        tv.c.drawLine(ctx, x, 0, x, ctx.canvas.height);
+        tr.c.drawLine(ctx, x, 0, x, ctx.canvas.height);
       }
       ctx.strokeStyle = '#ddd';
       ctx.stroke();
@@ -381,7 +381,7 @@ tv.exportTo('tv.c', function() {
           // Do conversion to viewspace here rather than on
           // x to avoid precision issues.
           var vx = Math.floor(dt.xWorldToView(x));
-          tv.c.drawLine(ctx, vx, 0, vx, ctx.canvas.height);
+          tr.c.drawLine(ctx, vx, 0, vx, ctx.canvas.height);
         }
 
         x += this.gridStep;

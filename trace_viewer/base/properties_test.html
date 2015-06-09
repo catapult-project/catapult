@@ -8,11 +8,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('defineProperties', function() {
     var stateChanges = [];
 
-    var ASpan = tv.b.ui.define('span');
+    var ASpan = tr.b.ui.define('span');
     ASpan.prototype = {
       __proto__: HTMLSpanElement.prototype,
 
@@ -31,7 +31,7 @@ tv.b.unittest.testSuite(function() {
       },
 
       set prop(newValue) {
-        tv.b.setPropertyAndDispatchChange(this, 'prop', newValue);
+        tr.b.setPropertyAndDispatchChange(this, 'prop', newValue);
       }
     };
 

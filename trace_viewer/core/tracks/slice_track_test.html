@@ -13,13 +13,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Selection = tv.c.Selection;
-  var SliceTrack = tv.c.tracks.SliceTrack;
-  var Slice = tv.c.trace_model.Slice;
+tr.b.unittest.testSuite(function() {
+  var Selection = tr.c.Selection;
+  var SliceTrack = tr.c.tracks.SliceTrack;
+  var Slice = tr.c.trace_model.Slice;
 
   test('modelMapping', function() {
-    var track = new SliceTrack(new tv.c.TimelineViewport());
+    var track = new SliceTrack(new tr.c.TimelineViewport());
     var slice = new Slice('', 'a', 0, 1, {}, 1);
     track.slices = [slice];
     var me0 = track.rects[0].modelItem;

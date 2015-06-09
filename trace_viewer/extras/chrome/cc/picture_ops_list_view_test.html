@@ -15,14 +15,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var PictureOpsListView = tv.e.cc.PictureOpsListView;
+tr.b.unittest.testSuite(function() {
+  var PictureOpsListView = tr.e.cc.PictureOpsListView;
 
   test('instantiate', function() {
-    if (!tv.e.cc.PictureSnapshot.CanRasterize())
+    if (!tr.e.cc.PictureSnapshot.CanRasterize())
       return;
-    var m = new tv.c.TraceModel(g_catLTHIEvents);
-    var p = tv.b.dictionaryValues(m.processes)[0];
+    var m = new tr.c.TraceModel(g_catLTHIEvents);
+    var p = tr.b.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
     var snapshot = instance.snapshots[0];
@@ -33,10 +33,10 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('selection', function() {
-    if (!tv.e.cc.PictureSnapshot.CanRasterize())
+    if (!tr.e.cc.PictureSnapshot.CanRasterize())
       return;
-    var m = new tv.c.TraceModel(g_catLTHIEvents);
-    var p = tv.b.dictionaryValues(m.processes)[0];
+    var m = new tr.c.TraceModel(g_catLTHIEvents);
+    var p = tr.b.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
     var snapshot = instance.snapshots[0];

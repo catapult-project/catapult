@@ -11,15 +11,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('testBasic', function() {
-    var link = document.createElement('tv-c-a-analysis-link');
+    var link = document.createElement('tr-c-a-analysis-link');
 
-    var i10 = new tv.c.trace_model.ObjectInstance(
+    var i10 = new tr.c.trace_model.ObjectInstance(
     {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
 
-    link.selection = new tv.c.Selection(s10);
+    link.selection = new tr.c.Selection(s10);
     this.addHTMLOutput(link);
 
     var didRSC = false;
@@ -32,14 +32,14 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('testGeneratorVersion', function() {
-    var link = document.createElement('tv-c-a-analysis-link');
+    var link = document.createElement('tr-c-a-analysis-link');
 
-    var i10 = new tv.c.trace_model.ObjectInstance(
+    var i10 = new tr.c.trace_model.ObjectInstance(
     {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
 
     function selectionGenerator() {
-      return new tv.c.Selection(s10);
+      return new tr.c.Selection(s10);
     }
     selectionGenerator.userFriendlyName = 'hello world';
     link.selection = selectionGenerator;

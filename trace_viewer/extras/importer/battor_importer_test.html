@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
 
   var BATTOR_LINES = [
     '# BattOr',
@@ -48,14 +48,14 @@ tv.b.unittest.testSuite(function() {
   ];
 
   test('canImport', function() {
-    assert.isFalse(tv.e.importer.battor.BattorImporter.canImport('string'));
-    assert.isFalse(tv.e.importer.battor.BattorImporter.canImport([]));
-    assert.isTrue(tv.e.importer.battor.BattorImporter.canImport(
+    assert.isFalse(tr.e.importer.battor.BattorImporter.canImport('string'));
+    assert.isFalse(tr.e.importer.battor.BattorImporter.canImport([]));
+    assert.isTrue(tr.e.importer.battor.BattorImporter.canImport(
         BATTOR_LINES.join('\n')));
   });
 
   test('importPowerSamplesAndTrace', function() {
-    var m = new tv.c.TraceModel(SYSTRACE_LINES.join('\n'), false);
+    var m = new tr.c.TraceModel(SYSTRACE_LINES.join('\n'), false);
     m.importTraces([BATTOR_LINES.join('\n')]);
     assert.isFalse(m.hasImportWarnings);
 
@@ -72,13 +72,13 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('importMissingLinuxTrace', function() {
-    var m = new tv.c.TraceModel(BATTOR_LINES.join('\n'), false);
+    var m = new tr.c.TraceModel(BATTOR_LINES.join('\n'), false);
     assert.isTrue(m.hasImportWarnings);
   });
 
   test('importNotEnoughSamples', function() {
     var shortLines = BATTOR_LINES.slice(0, 5);
-    var m = new tv.c.TraceModel(SYSTRACE_LINES.join('\n'), false);
+    var m = new tr.c.TraceModel(SYSTRACE_LINES.join('\n'), false);
     m.importTraces([shortLines.join('\n')]);
     assert.isTrue(m.hasImportWarnings);
   });

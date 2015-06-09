@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
 
   test('instantiateEmptyTable_withoutEmptyValue', function() {
@@ -27,7 +27,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = [];
     table.rebuild();
@@ -40,7 +40,7 @@ tv.b.unittest.testSuite(function() {
     assert.closeTo(firstColumnHeader.offsetWidth, 300, 20);
 
     // Check that the first column has a non-empty header.
-    var firstColumnTitle = tv.b.findDeepElementMatchingPredicate(
+    var firstColumnTitle = tr.b.findDeepElementMatchingPredicate(
         firstColumnHeader, function(element) {
       return element.textContent === 'First Column';
     });
@@ -63,7 +63,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = [];
     table.emptyValue = 'This table is left intentionally empty';
@@ -104,7 +104,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.emptyValue = 'THIS SHOULD NOT BE VISIBLE!!!';
@@ -150,7 +150,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.footerRows = footerRows;
@@ -211,7 +211,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -220,7 +220,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('instantiateSortingCallbacksWithNests', function() {
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
 
     var columns = [
       {
@@ -358,18 +358,18 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
     this.addHTMLOutput(table);
 
-    var a1El = tv.b.findDeepElementMatchingPredicate(table, function(element) {
+    var a1El = tr.b.findDeepElementMatchingPredicate(table, function(element) {
       return element.textContent == 'a1';
     });
     assert.isDefined(a1El);
 
-    var bToplevelEl = tv.b.findDeepElementMatchingPredicate(
+    var bToplevelEl = tr.b.findDeepElementMatchingPredicate(
         table,
         function(element) {
           return element.textContent == 'bToplevel';
@@ -403,7 +403,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -432,7 +432,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.showHeader = false;
     table.tableColumns = columns;
     table.tableRows = rows;
@@ -466,7 +466,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table1 = document.createElement('tv-b-ui-table');
+    var table1 = document.createElement('tr-b-ui-table');
     table1.showHeader = true;
 
     assert.throws(function() {
@@ -488,7 +488,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table1 = document.createElement('tv-b-ui-table');
+    var table1 = document.createElement('tr-b-ui-table');
     table1.showHeader = true;
     table1.tableColumns = columns;
     table1.tableRows = [
@@ -500,7 +500,7 @@ tv.b.unittest.testSuite(function() {
     table1.rebuild();
     this.addHTMLOutput(table1);
 
-    var table2 = document.createElement('tv-b-ui-table');
+    var table2 = document.createElement('tr-b-ui-table');
     table2.showHeader = false;
     table2.tableColumns = columns;
     table2.tableRows = [
@@ -519,7 +519,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('programmaticSorting', function() {
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
 
     var columns = [
       {
@@ -577,7 +577,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('sortingAfterExpand', function() {
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
 
     var columns = [
       {
@@ -641,7 +641,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   function createSimpleOneColumnNestedTable() {
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
 
     var columns = [
       {
@@ -773,7 +773,7 @@ tv.b.unittest.testSuite(function() {
 
   test('reduceNumberOfColumnsAfterRebuild', function() {
     // Create a table with two columns.
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.tableColumns = [
       {
         title: 'First Column',
@@ -825,7 +825,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.showHeader = true;
     table.supportsSelection = true;
     table.cellSelectionMode = true;
@@ -883,7 +883,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -908,7 +908,7 @@ tv.b.unittest.testSuite(function() {
     ];
     var rows = [{a: 1}];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -937,7 +937,7 @@ tv.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tv-b-ui-table');
+    var table = document.createElement('tr-b-ui-table');
     table.subRowsPropertyName = 'children';
     table.tableColumns = columns;
     table.tableRows = rows;

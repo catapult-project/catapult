@@ -20,7 +20,7 @@ found in the LICENSE file.
  * and their constructor must register their event handlers with the
  * importer.  For example,
  *
- * var Parser = tv.e.importer.linux_perf.Parser;
+ * var Parser = tr.e.importer.linux_perf.Parser;
  *
  * function WorkqueueParser(importer) {
  *   Parser.call(this, importer);
@@ -57,15 +57,15 @@ found in the LICENSE file.
  *
  * All subclasses should depend on importer.linux_perf.parser, e.g.
  *
- * tv.defineModule('importer.linux_perf.workqueue_parser')
+ * tr.defineModule('importer.linux_perf.workqueue_parser')
  *   .dependsOn('importer.linux_perf.parser')
  *   .exportsTo('tracing', function()
  *
  * and be listed in the dependsOn of LinuxPerfImporter.  Beware that after
  * adding a new subclass you must run build/generate_about_tracing_contents.py
- * to regenerate tv.e.about_tracing.*.
+ * to regenerate tr.e.about_tracing.*.
  */
-tv.exportTo('tv.e.importer.linux_perf', function() {
+tr.exportTo('tr.e.importer.linux_perf', function() {
   /**
    * Parses linux perf events.
    * @constructor
@@ -79,9 +79,9 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     __proto__: Object.prototype
   };
 
-  var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
+  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   options.mandatoryBaseClass = Parser;
-  tv.b.decorateExtensionRegistry(Parser, options);
+  tr.b.decorateExtensionRegistry(Parser, options);
 
   return {
     Parser: Parser

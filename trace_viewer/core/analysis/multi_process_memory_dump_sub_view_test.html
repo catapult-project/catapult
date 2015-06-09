@@ -13,11 +13,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var TraceModel = tv.c.TraceModel;
-  var Selection = tv.c.Selection;
-  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
-  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
+tr.b.unittest.testSuite(function() {
+  var TraceModel = tr.c.TraceModel;
+  var Selection = tr.c.Selection;
+  var GlobalMemoryDump = tr.c.trace_model.GlobalMemoryDump;
+  var ProcessMemoryDump = tr.c.trace_model.ProcessMemoryDump;
 
   test('basic', function() {
     var m = new TraceModel();
@@ -41,7 +41,7 @@ tv.b.unittest.testSuite(function() {
     assert.equal(selection.length, 2);
 
     var subView = document.createElement(
-        'tv-c-a-multi-process-memory-dump-sub-view');
+        'tr-c-a-multi-process-memory-dump-sub-view');
     subView.selection = selection;
 
     this.addHTMLOutput(subView);

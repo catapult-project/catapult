@@ -40,17 +40,17 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.ui', function() {
+tr.exportTo('tr.b.ui', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   var svgNS = 'http://www.w3.org/2000/svg';
-  var highlightIdBoost = tv.b.ui.getColorPaletteHighlightIdBoost();
+  var highlightIdBoost = tr.b.ui.getColorPaletteHighlightIdBoost();
 
   function getColorOfKey(key, selected) {
-    var id = tv.b.ui.getColorIdForGeneralPurposeString(key);
+    var id = tr.b.ui.getColorIdForGeneralPurposeString(key);
     if (selected)
       id += highlightIdBoost;
-    return tv.b.ui.getColorPalette()[id];
+    return tr.b.ui.getColorPalette()[id];
   }
 
   /**
@@ -59,7 +59,7 @@ tv.exportTo('tv.b.ui', function() {
    *
    * @constructor
    */
-  var ChartBase = tv.b.ui.define('svg', undefined, svgNS);
+  var ChartBase = tr.b.ui.define('svg', undefined, svgNS);
 
   ChartBase.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -72,7 +72,7 @@ tv.exportTo('tv.b.ui', function() {
       this.width_ = 400;
       this.height_ = 300;
 
-      // This should use tv.b.instantiateTemplate. However, creating
+      // This should use tr.b.instantiateTemplate. However, creating
       // svg-namespaced elements inside a template isn't possible. Thus, this
       // hack.
       var template = THIS_DOC.querySelector('#chart-base-template');

@@ -13,9 +13,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses workqueue events in the Linux event trace format.
  */
-tv.exportTo('tv.e.importer.linux_perf', function() {
+tr.exportTo('tr.e.importer.linux_perf', function() {
 
-  var Parser = tv.e.importer.linux_perf.Parser;
+  var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux workqueue trace events.
@@ -68,8 +68,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
           pid, pid);
       if (kthread.openSlice) {
-        var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-            tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+        var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+            tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             {},
             ts - kthread.openSliceTS);

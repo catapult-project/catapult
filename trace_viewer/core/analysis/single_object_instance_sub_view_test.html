@@ -13,10 +13,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var TraceModel = tv.c.TraceModel;
-  var Selection = tv.c.Selection;
-  var ObjectInstance = tv.c.trace_model.ObjectInstance;
+tr.b.unittest.testSuite(function() {
+  var TraceModel = tr.c.TraceModel;
+  var Selection = tr.c.Selection;
+  var ObjectInstance = tr.c.trace_model.ObjectInstance;
 
   test('analyzeSelectionWithObjectInstanceUnknownType', function() {
     var i10 = new ObjectInstance({}, '0x1000', 'cat', 'someUnhandledName', 10);
@@ -26,7 +26,7 @@ tv.b.unittest.testSuite(function() {
     var selection = new Selection();
     selection.push(i10);
 
-    var view = document.createElement('tv-c-a-single-object-instance-sub-view');
+    var view = document.createElement('tr-c-a-single-object-instance-sub-view');
     view.selection = selection;
     this.addHTMLOutput(view);
   });

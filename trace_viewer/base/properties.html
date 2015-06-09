@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b', function() {
+tr.exportTo('tr.b', function() {
   /**
    * Fires a property change event on the target.
    * @param {EventTarget} target The target to dispatch the event on.
@@ -18,7 +18,7 @@ tv.exportTo('tv.b', function() {
    */
   function dispatchPropertyChange(target, propertyName, newValue, oldValue,
                                   opt_bubbles, opt_cancelable) {
-    var e = new tv.b.Event(propertyName + 'Change',
+    var e = new tr.b.Event(propertyName + 'Change',
                            opt_bubbles, opt_cancelable);
     e.propertyName = propertyName;
     e.newValue = newValue;
@@ -39,7 +39,7 @@ tv.exportTo('tv.b', function() {
     var oldValue = obj[propertyName];
     obj[privateName] = newValue;
     if (oldValue !== newValue)
-      tv.b.dispatchPropertyChange(obj, propertyName,
+      tr.b.dispatchPropertyChange(obj, propertyName,
           newValue, oldValue, true, false);
   }
 
@@ -58,7 +58,7 @@ tv.exportTo('tv.b', function() {
    * @return {string} an obfuscated name
    */
   function getPrivateName(name) {
-    return name + '_tv_';
+    return name + '_tr_';
   }
 
   /**
@@ -89,7 +89,7 @@ tv.exportTo('tv.b', function() {
    * Helper function for defineProperty that returns the getter to use for the
    * property.
    * @param {string} name The name of the property.
-   * @param {tv.b.PropertyKind} kind The kind of the property.
+   * @param {tr.b.PropertyKind} kind The kind of the property.
    * @return {function():*} The getter for the property.
    */
   function getGetter(name, kind) {
@@ -117,7 +117,7 @@ tv.exportTo('tv.b', function() {
    * kind.
    * @param {string} name The name of the property we are defining the setter
    *     for.
-   * @param {tv.b.PropertyKind} kind The kind of property we are getting the
+   * @param {tr.b.PropertyKind} kind The kind of property we are getting the
    *     setter for.
    * @param {function(*):void=} opt_setHook A function to run after the property
    *     is set, but before the propertyChange event is fired.
@@ -180,7 +180,7 @@ tv.exportTo('tv.b', function() {
    * property change event with the type {@code name + 'Change'} is fired.
    * @param {!Object} obj The object to define the property for.
    * @param {string} name The name of the property.
-   * @param {tv.b.PropertyKind=} opt_kind What kind of underlying storage to
+   * @param {tr.b.PropertyKind=} opt_kind What kind of underlying storage to
    * use.
    * @param {function(*):void=} opt_setHook A function to run after the
    *     property is set, but before the propertyChange event is fired.
@@ -190,7 +190,7 @@ tv.exportTo('tv.b', function() {
    */
   function defineProperty(obj, name, opt_kind, opt_setHook,
                           opt_bubbles, opt_cancelable) {
-    console.error("Don't use tv.b.defineProperty");
+    console.error("Don't use tr.b.defineProperty");
     if (typeof obj == 'function')
       obj = obj.prototype;
 

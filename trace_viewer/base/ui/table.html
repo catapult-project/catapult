@@ -10,7 +10,7 @@ found in the LICENSE file.
 <!--
 @fileoverview A container that constructs a table-like container.
 -->
-<polymer-element name="tv-b-ui-table">
+<polymer-element name="tr-b-ui-table">
   <template>
     <style>
       :host {
@@ -369,7 +369,7 @@ found in the LICENSE file.
         for (var i = 0; i < this.tableColumns_.length; i++) {
           var td = this.appendNewElement_(tr, 'td');
 
-          var headerCell = document.createElement('tv-b-ui-table-header-cell');
+          var headerCell = document.createElement('tr-b-ui-table-header-cell');
 
           if (this.showHeader)
             headerCell.cellTitle = this.tableColumns_[i].title;
@@ -1027,7 +1027,7 @@ found in the LICENSE file.
         if (cmdName === 'ARROW_UP') {
           var prev = htmlNode.previousElementSibling;
           if (prev) {
-            tv.b.scrollIntoViewIfNeeded(prev);
+            tr.b.scrollIntoViewIfNeeded(prev);
             this.selectedTableRow = prev.rowInfo.userRow;
             this.focusSelected_();
             return;
@@ -1038,7 +1038,7 @@ found in the LICENSE file.
         if (cmdName === 'ARROW_DOWN') {
           var next = htmlNode.nextElementSibling;
           if (next) {
-            tv.b.scrollIntoViewIfNeeded(next);
+            tr.b.scrollIntoViewIfNeeded(next);
             this.selectedTableRow = next.rowInfo.userRow;
             this.focusSelected_();
             return;
@@ -1114,7 +1114,7 @@ found in the LICENSE file.
   })();
   </script>
 </polymer-element>
-<polymer-element name="tv-b-ui-table-header-cell" on-tap="onTap_">
+<polymer-element name="tr-b-ui-table-header-cell" on-tap="onTap_">
   <template>
   <style>
     :host {

@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   var testData = [
     {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 19000, cat: 'foo', tid: 53, ph: 'E'},
@@ -21,7 +21,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('fullRecording', function() {
     return new Promise(function(resolve, reject) {
-      var mock = new tv.e.about_tracing.MockTracingControllerClient();
+      var mock = new tr.e.about_tracing.MockTracingControllerClient();
       mock.expectRequest('endRecording', function() {
         return '';
       });
@@ -45,7 +45,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         return JSON.stringify(testData);
       });
 
-      var recordingPromise = tv.e.about_tracing.beginRecording(mock);
+      var recordingPromise = tr.e.about_tracing.beginRecording(mock);
 
       return recordingPromise.then(
           function(data) {
@@ -62,7 +62,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('monitoring', function() {
     return new Promise(function(resolve, reject) {
-      var mock = new tv.e.about_tracing.MockTracingControllerClient();
+      var mock = new tr.e.about_tracing.MockTracingControllerClient();
 
       mock.expectRequest('beginMonitoring', function(monitoringOptions) {
         assert.typeOf(monitoringOptions.categoryFilter, 'string');
@@ -70,7 +70,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
         assert.typeOf(monitoringOptions.useSampling, 'boolean');
         assert.typeOf(monitoringOptions.tracingRecordMode, 'string');
         setTimeout(function() {
-          var capturePromise = tv.e.about_tracing.captureMonitoring(mock);
+          var capturePromise = tr.e.about_tracing.captureMonitoring(mock);
           capturePromise.then(
               function(data) {
                 var testDataString = JSON.stringify(testData);
@@ -85,7 +85,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
       mock.expectRequest('captureMonitoring', function(data) {
         setTimeout(function() {
-          var endPromise = tv.e.about_tracing.endMonitoring(mock);
+          var endPromise = tr.e.about_tracing.endMonitoring(mock);
           endPromise.then(
               function(data) {
                 mock.assertAllRequestsHandled();
@@ -101,7 +101,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       mock.expectRequest('endMonitoring', function(data) {
       });
 
-      tv.e.about_tracing.beginMonitoring(mock);
+      tr.e.about_tracing.beginMonitoring(mock);
     });
   });
 });

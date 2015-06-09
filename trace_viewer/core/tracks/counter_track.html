@@ -14,7 +14,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
 
   /**
    * A track that displays a Counter object.
@@ -22,13 +22,13 @@ tv.exportTo('tv.c.tracks', function() {
    * @extends {ChartTrack}
    */
   var CounterTrack =
-      tv.b.ui.define('counter-track', tv.c.tracks.ChartTrack);
+      tr.b.ui.define('counter-track', tr.c.tracks.ChartTrack);
 
   CounterTrack.prototype = {
-    __proto__: tv.c.tracks.ChartTrack.prototype,
+    __proto__: tr.c.tracks.ChartTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.ChartTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.ChartTrack.prototype.decorate.call(this, viewport);
       this.classList.add('counter-track');
     },
 
@@ -52,19 +52,19 @@ tv.exportTo('tv.c.tracks', function() {
     var totals = counter.totals;
 
     // Create one common axis for all series.
-    var chartAxis = new tv.c.tracks.ChartAxis(0, undefined);
+    var chartAxis = new tr.c.tracks.ChartAxis(0, undefined);
 
     // Build one chart series for each counter series.
     var chartSeries = counter.series.map(function(series, seriesIndex) {
       var chartPoints = series.samples.map(function(sample, sampleIndex) {
         var total = totals[sampleIndex * numSeries + seriesIndex];
-        return new tv.c.tracks.ChartPoint(sample, sample.timestamp, total);
+        return new tr.c.tracks.ChartPoint(sample, sample.timestamp, total);
       });
       var renderingConfig = {
-        chartType: tv.c.tracks.ChartSeriesType.AREA,
+        chartType: tr.c.tracks.ChartSeriesType.AREA,
         colorId: series.color
       };
-      return new tv.c.tracks.ChartSeries(
+      return new tr.c.tracks.ChartSeries(
           chartPoints, chartAxis, renderingConfig);
     });
 

@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
 
   /**
    * A vertical axis for a (set of) chart series which maps an arbitrary range
@@ -19,8 +19,8 @@ tv.exportTo('tv.c.tracks', function() {
    * @constructor
    */
   function ChartAxis(opt_min, opt_max) {
-    this.guid_ = tv.b.GUID.allocate();
-    this.bounds = new tv.b.Range();
+    this.guid_ = tr.b.GUID.allocate();
+    this.bounds = new tr.b.Range();
     if (opt_min !== undefined)
       this.bounds.addValue(opt_min);
     if (opt_max !== undefined)
@@ -49,7 +49,7 @@ tv.exportTo('tv.c.tracks', function() {
      * argument flags.
      */
     autoSetFromSeries: function(series, opt_config) {
-      var range = new tv.b.Range();
+      var range = new tr.b.Range();
       series.forEach(function(s) {
         range.addRange(s.range);
       }, this);

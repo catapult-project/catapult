@@ -20,16 +20,16 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.cc', function() {
-  var constants = tv.e.cc.constants;
-  var bytesToRoundedMegabytes = tv.e.cc.bytesToRoundedMegabytes;
+tr.exportTo('tr.e.cc', function() {
+  var constants = tr.e.cc.constants;
+  var bytesToRoundedMegabytes = tr.e.cc.bytesToRoundedMegabytes;
   var RENDER_PASS_QUADS =
       Math.max(constants.ACTIVE_TREE, constants.PENDING_TREE) + 1;
 
   /**
    * @constructor
    */
-  var LayerPicker = tv.b.ui.define('layer-picker');
+  var LayerPicker = tr.b.ui.define('layer-picker');
 
   LayerPicker.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -40,7 +40,7 @@ tv.exportTo('tv.e.cc', function() {
       this.renderPassQuads_ = false;
 
 
-      this.itemList_ = new tv.b.ui.ListView();
+      this.itemList_ = new tr.b.ui.ListView();
       this.appendChild(this.controls_);
 
       this.appendChild(this.itemList_);
@@ -48,7 +48,7 @@ tv.exportTo('tv.e.cc', function() {
       this.itemList_.addEventListener(
           'selection-changed', this.onItemSelectionChanged_.bind(this));
 
-      this.controls_.appendChild(tv.b.ui.createSelector(
+      this.controls_.appendChild(tr.b.ui.createSelector(
           this, 'whichTree',
           'layerPicker.whichTree', constants.ACTIVE_TREE,
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
@@ -56,7 +56,7 @@ tv.exportTo('tv.e.cc', function() {
            {label: 'Render pass quads', value: RENDER_PASS_QUADS}]));
 
       this.showPureTransformLayers_ = false;
-      var showPureTransformLayers = tv.b.ui.createCheckBox(
+      var showPureTransformLayers = tr.b.ui.createCheckBox(
           this, 'showPureTransformLayers',
           'layerPicker.showPureTransformLayers', false,
           'Transform layers');
@@ -83,7 +83,7 @@ tv.exportTo('tv.e.cc', function() {
       this.whichTree_ = whichTree;
       this.renderPassQuads_ = (whichTree == RENDER_PASS_QUADS);
       this.updateContents_();
-      tv.b.dispatchSimpleEvent(this, 'selection-change', false);
+      tr.b.dispatchSimpleEvent(this, 'selection-change', false);
     },
 
     get layerTreeImpl() {
@@ -197,7 +197,7 @@ tv.exportTo('tv.e.cc', function() {
         var id = renderPassInfo.id;
 
         var item = this.createElementWithDepth_(renderPassInfo.depth);
-        var labelEl = item.appendChild(tv.b.ui.createSpan());
+        var labelEl = item.appendChild(tr.b.ui.createSpan());
 
         labelEl.textContent = renderPassInfo.name + ' ' + id;
         item.renderPass = renderPass;
@@ -206,7 +206,7 @@ tv.exportTo('tv.e.cc', function() {
 
         if (id == selectedRenderPassId) {
           renderPass.selectionState =
-              tv.c.trace_model.SelectionState.SELECTED;
+              tr.c.trace_model.SelectionState.SELECTED;
         }
       }, this);
     },
@@ -226,11 +226,11 @@ tv.exportTo('tv.e.cc', function() {
           var id = layer.layerId;
 
           var item = this.createElementWithDepth_(layerInfo.depth);
-          var labelEl = item.appendChild(tv.b.ui.createSpan());
+          var labelEl = item.appendChild(tr.b.ui.createSpan());
 
           labelEl.textContent = layerInfo.name + ' ' + id;
 
-          var notesEl = item.appendChild(tv.b.ui.createSpan());
+          var notesEl = item.appendChild(tr.b.ui.createSpan());
           if (layerInfo.isMaskLayer)
             notesEl.textContent += '(mask)';
           if (layerInfo.isReplicaLayer)
@@ -246,7 +246,7 @@ tv.exportTo('tv.e.cc', function() {
           this.itemList_.appendChild(item);
 
           if (layer.layerId == selectedLayerId) {
-            layer.selectionState = tv.c.trace_model.SelectionState.SELECTED;
+            layer.selectionState = tr.c.trace_model.SelectionState.SELECTED;
             item.selected = true;
           }
         }, this);
@@ -258,7 +258,7 @@ tv.exportTo('tv.e.cc', function() {
     createElementWithDepth_: function(depth) {
       var item = document.createElement('div');
 
-      var indentEl = item.appendChild(tv.b.ui.createSpan());
+      var indentEl = item.appendChild(tr.b.ui.createSpan());
       indentEl.style.whiteSpace = 'pre';
       for (var i = 0; i < depth; i++)
         indentEl.textContent = indentEl.textContent + ' ';
@@ -272,7 +272,7 @@ tv.exportTo('tv.e.cc', function() {
         this.onRenderPassSelected_(e);
       else
         this.onLayerSelected_(e);
-      tv.b.dispatchSimpleEvent(this, 'selection-change', false);
+      tr.b.dispatchSimpleEvent(this, 'selection-change', false);
     },
 
     onRenderPassSelected_: function(e) {
@@ -285,7 +285,7 @@ tv.exportTo('tv.e.cc', function() {
       }
 
       if (selectedRenderPass) {
-        this.selection_ = new tv.e.cc.RenderPassSelection(
+        this.selection_ = new tr.e.cc.RenderPassSelection(
             selectedRenderPass, selectedRenderPassId);
       } else {
         this.selection_ = undefined;
@@ -298,7 +298,7 @@ tv.exportTo('tv.e.cc', function() {
         selectedLayer = this.itemList_.selectedElement.layer;
 
       if (selectedLayer)
-        this.selection_ = new tv.e.cc.LayerSelection(selectedLayer);
+        this.selection_ = new tr.e.cc.LayerSelection(selectedLayer);
       else
         this.selection_ = undefined;
     },

@@ -16,11 +16,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Selection = tv.c.Selection;
-  var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
-  var ContainerMemoryDump = tv.c.trace_model.ContainerMemoryDump;
-  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
+tr.b.unittest.testSuite(function() {
+  var Selection = tr.c.Selection;
+  var MemoryAllocatorDump = tr.c.trace_model.MemoryAllocatorDump;
+  var ContainerMemoryDump = tr.c.trace_model.ContainerMemoryDump;
+  var ScalarAttribute = tr.c.trace_model.ScalarAttribute;
 
   function createMemoryAllocatorDump() {
     var memoryDump = new ContainerMemoryDump(-10);
@@ -35,7 +35,7 @@ tv.b.unittest.testSuite(function() {
 
   test('instantiate_empty', function() {
     var viewEl = document.createElement(
-        'tv-c-a-memory-dump-allocator-details-pane');
+        'tr-c-a-memory-dump-allocator-details-pane');
     this.addHTMLOutput(viewEl);
   });
 
@@ -43,12 +43,12 @@ tv.b.unittest.testSuite(function() {
     var memoryAllocatorDump = createMemoryAllocatorDump();
 
     var viewEl = document.createElement(
-        'tv-c-a-memory-dump-allocator-details-pane');
+        'tr-c-a-memory-dump-allocator-details-pane');
     viewEl.memoryAllocatorDump = memoryAllocatorDump;
     this.addHTMLOutput(viewEl);
 
-    var table = tv.b.findDeepElementMatching(
-        viewEl, 'tv-b-ui-table');
+    var table = tr.b.findDeepElementMatching(
+        viewEl, 'tr-b-ui-table');
 
     var rows = table.tableRows;
     var columns = table.tableColumns;

@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/units/time_duration_span.html">
 <link rel="import" href="/base/ui/table.html">
 
-<polymer-element name="tv-e-cc-raster-task-view"
+<polymer-element name="tr-e-cc-raster-task-view"
     constructor="RasterTaskView">
   <template>
     <style>
@@ -24,9 +24,9 @@ found in the LICENSE file.
     </style>
     <div id="heading">
       Rasterization costs in
-      <tv-c-a-analysis-link id="link"></tv-c-a-analysis-link>
+      <tr-c-a-analysis-link id="link"></tr-c-a-analysis-link>
     </div>
-    <tv-b-ui-table id="content"></tv-b-ui-table>
+    <tr-b-ui-table id="content"></tr-b-ui-table>
   </template>
   <script>
   'use strict';
@@ -49,10 +49,10 @@ found in the LICENSE file.
             if (row.isTotals)
               return 'Totals';
             if (row.layer) {
-              var linkEl = document.createElement('tv-c-a-analysis-link');
+              var linkEl = document.createElement('tr-c-a-analysis-link');
               linkEl.setSelectionAndContent(
                 function() {
-                  return new tv.e.cc.LayerSelection(costs.layer);
+                  return new tr.e.cc.LayerSelection(costs.layer);
                 },
                 'Layer ' + row.layerId);
               return linkEl;
@@ -82,7 +82,7 @@ found in the LICENSE file.
         {
           title: 'Wall Duration (ms)',
           value: function(row) {
-            return tv.b.units.createTimeSpan(row.duration);
+            return tr.b.units.createTimeSpan(row.duration);
           },
           cmp: function(a, b) { return a.duration - b.duration; }
         }
@@ -92,7 +92,7 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Duration (ms)',
           value: function(row) {
-            return tv.b.units.createTimeSpan(row.duration);
+            return tr.b.units.createTimeSpan(row.duration);
           },
           cmp: function(a, b) { return a.cpuDuration - b.cpuDuration; }
         });
@@ -123,10 +123,10 @@ found in the LICENSE file.
       }
 
       // LTHI link.
-      var lthi = tv.e.cc.getTileFromRasterTaskSlice(
+      var lthi = tr.e.cc.getTileFromRasterTaskSlice(
           this.selection_[0]).containingSnapshot;
       this.$.link.setSelectionAndContent(function() {
-          return new tv.c.Selection(lthi);
+          return new tr.c.Selection(lthi);
       }, lthi.userFriendlyName);
 
       // Get costs by layer.
@@ -162,7 +162,7 @@ found in the LICENSE file.
       var tilesThatWeHaveSeen = {};
 
       this.selection_.forEach(function(slice) {
-        var tile = tv.e.cc.getTileFromRasterTaskSlice(slice);
+        var tile = tr.e.cc.getTileFromRasterTaskSlice(slice);
         var curCosts = getCurrentCostsForLayerId(tile);
 
         if (!tilesThatWeHaveSeen[tile.objectInstance.id]) {
@@ -170,7 +170,7 @@ found in the LICENSE file.
           curCosts.numTiles += 1;
         }
 
-        if (tv.e.cc.isSliceDoingAnalysis(slice)) {
+        if (tr.e.cc.isSliceDoingAnalysis(slice)) {
           curCosts.numAnalysisTasks += 1;
           totalNumAnalyzeTasks += 1;
         } else {
@@ -188,14 +188,14 @@ found in the LICENSE file.
 
       // Apply to the table.
       this.updateColumns_(hadCpuDurations);
-      table.tableRows = tv.b.dictionaryValues(costsByLayerId);
+      table.tableRows = tr.b.dictionaryValues(costsByLayerId);
       table.rebuild();
 
       // Footer.
       table.footerRows = [
         {
           isTotals: true,
-          numTiles: tv.b.dictionaryLength(tilesThatWeHaveSeen),
+          numTiles: tr.b.dictionaryLength(tilesThatWeHaveSeen),
           numAnalysisTasks: totalNumAnalyzeTasks,
           numRasterTasks: totalNumRasterizeTasks,
           duration: totalDuration,

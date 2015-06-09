@@ -17,22 +17,22 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
 
   /**
    * A track that displays an array of Rect objects.
    * @constructor
    * @extends {HeadingTrack}
    */
-  var RectTrack = tv.b.ui.define(
-      'rect-track', tv.c.tracks.HeadingTrack);
+  var RectTrack = tr.b.ui.define(
+      'rect-track', tr.c.tracks.HeadingTrack);
 
   RectTrack.prototype = {
 
-    __proto__: tv.c.tracks.HeadingTrack.prototype,
+    __proto__: tr.c.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('rect-track');
       this.asyncStyle_ = false;
       this.rects_ = null;
@@ -70,7 +70,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.c.tracks.DrawType.GENERAL_EVENT:
+        case tr.c.tracks.DrawType.GENERAL_EVENT:
           this.drawRects_(viewLWorld, viewRWorld);
           break;
       }
@@ -81,7 +81,7 @@ tv.exportTo('tv.c.tracks', function() {
 
       ctx.save();
       var bounds = this.getBoundingClientRect();
-      tv.c.drawSlices(
+      tr.c.drawSlices(
           ctx,
           this.viewport.currentDisplayTransform,
           viewLWorld,
@@ -102,7 +102,7 @@ tv.exportTo('tv.c.tracks', function() {
         fontSize = 10;
         yOffset = 2.5;
       }
-      tv.c.drawLabels(
+      tr.c.drawLabels(
           ctx,
           this.viewport.currentDisplayTransform,
           viewLWorld,
@@ -128,7 +128,7 @@ tv.exportTo('tv.c.tracks', function() {
         rect.addToSelection(selection);
       }
       onRect = onRect.bind(this);
-      tv.b.iterateOverIntersectingIntervals(this.rects_,
+      tr.b.iterateOverIntersectingIntervals(this.rects_,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,
@@ -146,7 +146,7 @@ tv.exportTo('tv.c.tracks', function() {
      * @private
      */
     addEventNearToProvidedEventToSelection: function(event, offset, selection) {
-      var index = tv.b.findFirstIndexInArray(this.rects_, function(rect) {
+      var index = tr.b.findFirstIndexInArray(this.rects_, function(rect) {
         return rect.modelItem === event;
       });
       if (index === -1)
@@ -175,7 +175,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      var rect = tv.b.findClosestIntervalInSortedIntervals(
+      var rect = tr.b.findClosestIntervalInSortedIntervals(
           this.rects_,
           function(x) { return x.start; },
           function(x) { return x.end; },
@@ -196,7 +196,7 @@ tv.exportTo('tv.c.tracks', function() {
    * @extends {ProxySelectableItem}
    */
   function Rect(modelItem, title, colorId, start, duration) {
-    tv.c.trace_model.ProxySelectableItem.call(this, modelItem);
+    tr.c.trace_model.ProxySelectableItem.call(this, modelItem);
     this.title = title;
     this.colorId = colorId;
     this.start = start;
@@ -205,7 +205,7 @@ tv.exportTo('tv.c.tracks', function() {
   };
 
   Rect.prototype = {
-    __proto__: tv.c.trace_model.ProxySelectableItem.prototype
+    __proto__: tr.c.trace_model.ProxySelectableItem.prototype
   };
 
   return {

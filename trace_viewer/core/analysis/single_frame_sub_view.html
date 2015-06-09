@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/alert_sub_view.html">
 
-<polymer-element name="tv-c-a-single-frame-sub-view"
-    extends="tv-c-a-sub-view">
+<polymer-element name="tr-c-a-single-frame-sub-view"
+    extends="tr-c-a-sub-view">
   <template>
     <style>
     :host {
@@ -21,8 +21,8 @@ found in the LICENSE file.
       align-self: stretch;
     }
     </style>
-    <tv-c-a-alert-sub-view id="asv">
-    </tv-c-a-alert-sub-view>
+    <tr-c-a-alert-sub-view id="asv">
+    </tr-c-a-alert-sub-view>
   </template>
   <script>
   'use strict';
@@ -40,13 +40,13 @@ found in the LICENSE file.
       if (selection.length != 1)
         throw new Error('Only supports single frame!');
       this.currentSelection_ = selection;
-      this.$.asv.selection = new tv.c.Selection(selection[0].associatedAlerts);
+      this.$.asv.selection = new tr.c.Selection(selection[0].associatedAlerts);
     },
 
     get relatedEventsToHighlight() {
       if (!this.currentSelection_)
         return undefined;
-      return new tv.c.Selection(this.currentSelection_[0].associatedEvents);
+      return new tr.c.Selection(this.currentSelection_[0].associatedEvents);
     }
   });
   </script>

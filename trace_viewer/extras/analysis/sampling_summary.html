@@ -129,11 +129,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.analysis', function() {
+tr.exportTo('tr.e.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
-  var RequestSelectionChangeEvent = tv.c.RequestSelectionChangeEvent;
-  var getColorOfKey = tv.b.ui.getColorOfKey;
+  var RequestSelectionChangeEvent = tr.c.RequestSelectionChangeEvent;
+  var getColorOfKey = tr.b.ui.getColorOfKey;
 
   /**
     * @constructor
@@ -302,7 +302,7 @@ tv.exportTo('tv.e.analysis', function() {
    * @constructor
    */
   var SamplingSummaryPanel =
-      tv.b.ui.define('x-sample-summary-panel');
+      tr.b.ui.define('x-sample-summary-panel');
   SamplingSummaryPanel.textLabel = 'Sampling Summary';
   SamplingSummaryPanel.supportsModel = function(m) {
     if (m == undefined) {
@@ -333,7 +333,7 @@ tv.exportTo('tv.e.analysis', function() {
       var sample = selection[i];
       var id = sample.leafStackFrame.id;
       if (!stackFrameIdToSamples[id])
-        stackFrameIdToSamples[id] = new tv.c.Selection();
+        stackFrameIdToSamples[id] = new tr.c.Selection();
       stackFrameIdToSamples[id].push(sample);
     }
     return stackFrameIdToSamples;
@@ -344,7 +344,7 @@ tv.exportTo('tv.e.analysis', function() {
 
     decorate: function() {
       this.classList.add('x-sample-summary-panel');
-      this.appendChild(tv.b.instantiateTemplate(
+      this.appendChild(tr.b.instantiateTemplate(
           '#x-sample-summary-panel-template', THIS_DOC));
 
       this.sampleType_ = undefined;
@@ -419,7 +419,7 @@ tv.exportTo('tv.e.analysis', function() {
       }
 
       // Make it sortable.
-      tv.b.ui.SortableTable.decorate(table);
+      tr.b.ui.SortableTable.decorate(table);
 
       var calleeArea = that.querySelector('x-callees');
       calleeArea.textContent = '';
@@ -471,7 +471,7 @@ tv.exportTo('tv.e.analysis', function() {
 
     getSamplesFromNode_: function(node) {
       // A node has samples associated with it, if it's a leaf node.
-      var selection = new tv.c.Selection();
+      var selection = new tr.c.Selection();
       if (node.leaf_node_id !== undefined) {
         selection.addSelection(this.stackFrameIdToSamples_[node.leaf_node_id]);
       }
@@ -496,7 +496,7 @@ tv.exportTo('tv.e.analysis', function() {
 
       var sunburstData =
           createSunburstData(this.selection_, this.sampleType_);
-      this.chart_ = new tv.b.ui.SunburstChart();
+      this.chart_ = new tr.b.ui.SunburstChart();
       this.chart_.width = 600;
       this.chart_.height = 600;
       this.chart_.chartTitle = 'Sampling Summary';
@@ -546,7 +546,7 @@ tv.exportTo('tv.e.analysis', function() {
         sampleTypeOptions.push({label: sampleTypes[i], value: sampleTypes[i]});
 
       var toolbarEl = this.querySelector('x-toolbar');
-      this.sampleTypeSelector_ = tv.b.ui.createSelector(
+      this.sampleTypeSelector_ = tr.b.ui.createSelector(
           this,
           'sampleType',
           'samplingSummaryPanel.sampleType',

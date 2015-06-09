@@ -13,13 +13,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var TraceModel = tv.c.TraceModel;
-  var Selection = tv.c.Selection;
-  var ObjectInstance = tv.c.trace_model.ObjectInstance;
+tr.b.unittest.testSuite(function() {
+  var TraceModel = tr.c.TraceModel;
+  var Selection = tr.c.Selection;
+  var ObjectInstance = tr.c.trace_model.ObjectInstance;
 
   test('instantiate_snapshotView', function() {
-    var i10 = new tv.c.trace_model.ObjectInstance(
+    var i10 = new tr.c.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
     i10.updateBounds();
@@ -27,7 +27,7 @@ tv.b.unittest.testSuite(function() {
     var selection = new Selection();
     selection.push(s10);
 
-    var view = document.createElement('tv-c-a-single-object-snapshot-sub-view');
+    var view = document.createElement('tr-c-a-single-object-snapshot-sub-view');
     view.selection = selection;
     this.addHTMLOutput(view);
   });

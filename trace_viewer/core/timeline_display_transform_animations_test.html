@@ -12,12 +12,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() { // @suppress longLineCheck
-  var TimelineDisplayTransform = tv.c.TimelineDisplayTransform;
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var TimelineDisplayTransform = tr.c.TimelineDisplayTransform;
   var TimelineDisplayTransformPanAnimation =
-      tv.c.TimelineDisplayTransformPanAnimation;
+      tr.c.TimelineDisplayTransformPanAnimation;
   var TimelineDisplayTransformZoomToAnimation =
-      tv.c.TimelineDisplayTransformZoomToAnimation;
+      tr.c.TimelineDisplayTransformZoomToAnimation;
 
   test('panBasic', function() {
     var target = new TimelineDisplayTransform();
@@ -27,14 +27,14 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var a = new TimelineDisplayTransformPanAnimation(10, 20, 100);
 
-    var controller = new tv.b.ui.AnimationController();
+    var controller = new tr.b.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
     assert.isTrue(a.affectsPanY);
-    tv.b.forcePendingRAFTasksToRun(50);
+    tr.b.forcePendingRAFTasksToRun(50);
     assert.isAbove(target.panX, 0);
-    tv.b.forcePendingRAFTasksToRun(100);
+    tr.b.forcePendingRAFTasksToRun(100);
     assert.isFalse(controller.hasActiveAnimation);
     assert.equal(target.panX, 10);
     assert.equal(target.panY, 20);
@@ -49,12 +49,12 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var a = new TimelineDisplayTransformZoomToAnimation(10, 20, 30, 5, 100);
 
-    var controller = new tv.b.ui.AnimationController();
+    var controller = new tr.b.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
     assert.isFalse(a.affectsPanY);
-    tv.b.forcePendingRAFTasksToRun(100);
+    tr.b.forcePendingRAFTasksToRun(100);
     assert.equal(target.scaleX, 5);
   });
 
@@ -67,17 +67,17 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     var b = new TimelineDisplayTransformPanAnimation(10, 0, 100);
     var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new tv.b.ui.AnimationController();
+    var controller = new tr.b.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
-    tv.b.forcePendingRAFTasksToRun(50);
+    tr.b.forcePendingRAFTasksToRun(50);
     controller.queueAnimation(b, 50);
 
-    tv.b.forcePendingRAFTasksToRun(100);
+    tr.b.forcePendingRAFTasksToRun(100);
     assert.isTrue(controller.hasActiveAnimation);
 
-    tv.b.forcePendingRAFTasksToRun(150);
+    tr.b.forcePendingRAFTasksToRun(150);
     assert.isFalse(controller.hasActiveAnimation);
     assert.equal(target.panX, 20);
   });

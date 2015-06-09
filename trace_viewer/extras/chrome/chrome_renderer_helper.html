@@ -12,9 +12,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Utilities for accessing trace data about the Chrome browser.
  */
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
   function ChromeRendererHelper(modelHelper, process) {
-    tv.e.audits.ChromeProcessHelper.call(this, modelHelper, process);
+    tr.e.audits.ChromeProcessHelper.call(this, modelHelper, process);
     this.mainThread_ = process.findAtMostOneThreadNamed('CrRendererMain');
     this.compositorThread_ = process.findAtMostOneThreadNamed('Compositor');
     this.rasterWorkerThreads_ = process.findAllThreadsMatching(function(t) {
@@ -37,7 +37,7 @@ tv.exportTo('tv.e.audits', function() {
   };
 
   ChromeRendererHelper.prototype = {
-    __proto__: tv.e.audits.ChromeProcessHelper.prototype,
+    __proto__: tr.e.audits.ChromeProcessHelper.prototype,
 
     get mainThread() {
       return this.mainThread_;

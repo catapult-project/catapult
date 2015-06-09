@@ -15,12 +15,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() { // @suppress longLineCheck
-  var SystemStatsInstanceTrack = tv.e.system_stats.SystemStatsInstanceTrack;
-  var Viewport = tv.c.TimelineViewport;
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var SystemStatsInstanceTrack = tr.e.system_stats.SystemStatsInstanceTrack;
+  var Viewport = tr.c.TimelineViewport;
 
   var createObjects = function() {
-    var objectInstance = new tv.c.trace_model.ObjectInstance({});
+    var objectInstance = new tr.c.trace_model.ObjectInstance({});
     var snapshots = [];
 
     var stats1 = new Object();
@@ -34,9 +34,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     stats2['meminfo'] = new Object();
     stats2.meminfo['free'] = 20000;
 
-    snapshots.push(new tv.e.system_stats.SystemStatsSnapshot(objectInstance,
+    snapshots.push(new tr.e.system_stats.SystemStatsSnapshot(objectInstance,
                                                              10, stats1));
-    snapshots.push(new tv.e.system_stats.SystemStatsSnapshot(objectInstance,
+    snapshots.push(new tr.e.system_stats.SystemStatsSnapshot(objectInstance,
                                                              20, stats2));
 
     objectInstance.snapshots = snapshots;
@@ -50,7 +50,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var div = document.createElement('div');
     var viewport = new Viewport(div);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = new SystemStatsInstanceTrack(viewport);
@@ -61,7 +61,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
     drawingContainer.invalidate();
 
     track.heading = 'testBasic';
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });

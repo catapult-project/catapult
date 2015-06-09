@@ -14,16 +14,16 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Model = tv.c.TraceModel;
-  var Thread = tv.c.trace_model.Thread;
-  var Selection = tv.c.Selection;
-  var newSliceNamed = tv.c.test_utils.newSliceNamed;
-  var newSliceCategory = tv.c.test_utils.newSliceCategory;
+tr.b.unittest.testSuite(function() {
+  var Model = tr.c.TraceModel;
+  var Thread = tr.c.trace_model.Thread;
+  var Selection = tr.c.Selection;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newSliceCategory = tr.c.test_utils.newSliceCategory;
 
   function createSelection(customizeThreadCallback) {
     var model = new Model();
-    var importOptions = new tv.c.ImportOptions();
+    var importOptions = new tr.c.ImportOptions();
     importOptions.customizeModelCallback = function() {
       var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
       customizeThreadCallback(t53, model);
@@ -46,8 +46,8 @@ tv.b.unittest.testSuite(function() {
     var options = opt_options || {};
     return createSelection(function(t53, model) {
       if (options.withStartStackFrame || options.withEndStackFrame) {
-        var fA = tv.c.test_utils.newStackTrace(model, 'cat', ['a1', 'a2']);
-        var fB = tv.c.test_utils.newStackTrace(model, 'cat', ['b1', 'b2']);
+        var fA = tr.c.test_utils.newStackTrace(model, 'cat', ['a1', 'a2']);
+        var fB = tr.c.test_utils.newStackTrace(model, 'cat', ['b1', 'b2']);
       }
 
       var slice;
@@ -69,7 +69,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_withSingleSlice', function() {
     var selection = createSelectionWithSingleSlice();
 
-    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
+    var analysisEl = document.createElement('tr-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -77,15 +77,15 @@ tv.b.unittest.testSuite(function() {
   test('alerts', function() {
     var slice = newSliceNamed('b', 0, 0.002);
 
-    var ALERT_INFO_1 = new tv.c.trace_model.EventInfo(
+    var ALERT_INFO_1 = new tr.c.trace_model.EventInfo(
         'Alert 1', 'Critical alert');
 
-    var alert = new tv.c.trace_model.Alert(ALERT_INFO_1, 5, [slice]);
+    var alert = new tr.c.trace_model.Alert(ALERT_INFO_1, 5, [slice]);
 
-    var selection = new tv.c.Selection();
+    var selection = new tr.c.Selection();
     selection.push(slice);
 
-    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
+    var analysisEl = document.createElement('tr-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -102,12 +102,12 @@ tv.b.unittest.testSuite(function() {
       t53.sliceGroup.pushSlice(slice);
     });
 
-    var subView = document.createElement('tv-c-a-single-event-sub-view');
+    var subView = document.createElement('tr-c-a-single-event-sub-view');
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    var gov = tv.b.findDeepElementMatching(subView,
-                                           'tv-c-a-generic-object-view');
+    var gov = tr.b.findDeepElementMatching(subView,
+                                           'tr-c-a-generic-object-view');
     assert.isDefined(gov);
   });
 
@@ -115,7 +115,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_withSingleSliceCategory', function() {
     var selection = createSelectionWithSingleSlice({withCategory: true});
 
-    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
+    var analysisEl = document.createElement('tr-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -124,11 +124,11 @@ tv.b.unittest.testSuite(function() {
     var selection = createSelectionWithSingleSlice(
         {withStartStackFrame: 'a'});
 
-    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
+    var analysisEl = document.createElement('tr-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    var e = tv.b.findDeepElementWithTextContent(
+    var e = tr.b.findDeepElementWithTextContent(
         analysisEl, /Start Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(e.nextSibling.children[0].stackFrame);
@@ -138,11 +138,11 @@ tv.b.unittest.testSuite(function() {
     var selection = createSelectionWithSingleSlice(
         {withEndStackFrame: 'b'});
 
-    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
+    var analysisEl = document.createElement('tr-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    var e = tv.b.findDeepElementWithTextContent(
+    var e = tr.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(e.nextSibling.children[0].stackFrame);
@@ -154,17 +154,17 @@ tv.b.unittest.testSuite(function() {
         {withStartStackFrame: 'a',
          withEndStackFrame: 'b'});
 
-    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
+    var analysisEl = document.createElement('tr-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    var eA = tv.b.findDeepElementWithTextContent(
+    var eA = tr.b.findDeepElementWithTextContent(
         analysisEl, /Start Stack Trace/);
     assert.isDefined(eA);
     assert.isDefined(eA.nextSibling.children[0].stackFrame);
     assert.equal(eA.nextSibling.children[0].stackFrame.title, 'a2');
 
-    var eB = tv.b.findDeepElementWithTextContent(
+    var eB = tr.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assert.isDefined(eB);
     assert.isDefined(eB.nextSibling.children[0].stackFrame);
@@ -176,11 +176,11 @@ tv.b.unittest.testSuite(function() {
         {withStartStackFrame: 'a',
          withEndStackFrame: 'a'});
 
-    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
+    var analysisEl = document.createElement('tr-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    var e = tv.b.findDeepElementWithTextContent(
+    var e = tr.b.findDeepElementWithTextContent(
         analysisEl, /Start\+End Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(e.nextSibling.children[0].stackFrame);
@@ -189,11 +189,11 @@ tv.b.unittest.testSuite(function() {
 
   test('analyzeSelectionWithSingleSlice', function() {
     var selection = createSelectionWithSingleSlice();
-    var subView = document.createElement('tv-c-a-single-event-sub-view');
+    var subView = document.createElement('tr-c-a-single-event-sub-view');
     subView.selection = selection;
 
-    var table = tv.b.findDeepElementMatching(
-        subView, 'tv-b-ui-table');
+    var table = tr.b.findDeepElementMatching(
+        subView, 'tr-b-ui-table');
     assert.equal(table.tableRows.length, 3);
     assert.equal(table.tableRows[0].value, 'b');
     assert.equal(table.tableRows[1].value.timestamp, 0);
@@ -203,11 +203,11 @@ tv.b.unittest.testSuite(function() {
   test('analyzeSelectionWithSingleSliceCategory', function() {
     var selection = createSelectionWithSingleSlice({withCategory: true});
 
-    var subView = document.createElement('tv-c-a-single-event-sub-view');
+    var subView = document.createElement('tr-c-a-single-event-sub-view');
     subView.selection = selection;
 
-    var table = tv.b.findDeepElementMatching(
-        subView, 'tv-b-ui-table');
+    var table = tr.b.findDeepElementMatching(
+        subView, 'tr-b-ui-table');
     assert.equal(table.tableRows.length, 4);
     assert.equal(table.tableRows[0].value, 'b');
     assert.equal(table.tableRows[1].value, 'foo');
@@ -232,24 +232,24 @@ tv.b.unittest.testSuite(function() {
     selection.push(t1.sliceGroup.slices[0]);
     assert.equal(selection.length, 1);
 
-    var subView = document.createElement('tv-c-a-single-event-sub-view');
+    var subView = document.createElement('tr-c-a-single-event-sub-view');
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    var analysisLink = tv.b.findDeepElementMatching(subView,
-                                                    'tv-c-a-analysis-link');
+    var analysisLink = tr.b.findDeepElementMatching(subView,
+                                                    'tr-c-a-analysis-link');
     assert.isDefined(analysisLink);
   });
 
   test('instantiate_withSingleSliceContainingInfo', function() {
     var slice = newSliceNamed('b', 0, 1);
-    slice.info = new tv.c.trace_model.EventInfo(
+    slice.info = new tr.c.trace_model.EventInfo(
         'Info title', 'Description');
 
-    var selection = new tv.c.Selection();
+    var selection = new tr.c.Selection();
     selection.push(slice);
 
-    var analysisEl = document.createElement('tv-c-a-single-event-sub-view');
+    var analysisEl = document.createElement('tr-c-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });

@@ -19,28 +19,28 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the ProcessBase class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
 
-  var Thread = tv.c.trace_model.Thread;
-  var Counter = tv.c.trace_model.Counter;
+  var Thread = tr.c.trace_model.Thread;
+  var Counter = tr.c.trace_model.Counter;
 
   /**
    * The ProcessBase is a partial base class, upon which Kernel
    * and Process are built.
    *
    * @constructor
-   * @extends {tv.c.trace_model.EventContainer}
+   * @extends {tr.c.trace_model.EventContainer}
    */
   function ProcessBase(model) {
     if (!model)
       throw new Error('Must provide a model');
-    tv.c.trace_model.EventContainer.call(this);
-    this.guid_ = tv.b.GUID.allocate();
+    tr.c.trace_model.EventContainer.call(this);
+    this.guid_ = tr.b.GUID.allocate();
     this.model = model;
     this.threads = {};
     this.counters = {};
-    this.objects = new tv.c.trace_model.ObjectCollection(this);
-    this.bounds = new tv.b.Range();
+    this.objects = new tr.c.trace_model.ObjectCollection(this);
+    this.bounds = new tr.b.Range();
     this.sortIndex = 0;
   };
 
@@ -49,7 +49,7 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   ProcessBase.prototype = {
-    __proto__: tv.c.trace_model.EventContainer.prototype,
+    __proto__: tr.c.trace_model.EventContainer.prototype,
 
     get guid() {
       return this.guid_;

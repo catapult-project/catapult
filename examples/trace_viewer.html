@@ -62,11 +62,11 @@ found in the LICENSE file.
 
 
   function getAsync(url, cb) {
-    tv.b.getAsync(url).then(cb);
+    tr.b.getAsync(url).then(cb);
   }
 
   function createViewFromTraces(filenames, traces) {
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     var p = m.importTracesWithProgressDialog(traces, true);
     p.then(
       function() {
@@ -78,8 +78,8 @@ found in the LICENSE file.
         timelineViewEl.viewTitle = '';
       },
       function(err) {
-        var overlay = new tv.b.ui.Overlay();
-        overlay.textContent = tv.b.normalizeException(err).message;
+        var overlay = new tr.b.ui.Overlay();
+        overlay.textContent = tr.b.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
       });
@@ -128,7 +128,7 @@ found in the LICENSE file.
 
   function onLoad() {
     timelineViewEl = document.querySelector('x-timeline-view');
-    tv.b.ui.decorate(timelineViewEl, tv.TraceViewer);
+    tr.b.ui.decorate(timelineViewEl, tr.TraceViewer);
 
     var selectEl = document.createElement('select');
     selectEl.id = 'trace-file';

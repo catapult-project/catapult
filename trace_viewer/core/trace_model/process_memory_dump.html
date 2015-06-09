@@ -14,13 +14,13 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the ProcessMemoryDump class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
   /**
    * The ProcessMemoryDump represents a memory dump of a single process.
    * @constructor
    */
   function ProcessMemoryDump(globalMemoryDump, process, start) {
-    tv.c.trace_model.ContainerMemoryDump.call(this, start);
+    tr.c.trace_model.ContainerMemoryDump.call(this, start);
     this.process = process;
     this.globalMemoryDump = globalMemoryDump;
 
@@ -29,10 +29,10 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   ProcessMemoryDump.prototype = {
-    __proto__: tv.c.trace_model.ContainerMemoryDump.prototype,
+    __proto__: tr.c.trace_model.ContainerMemoryDump.prototype,
 
     get userFriendlyName() {
-      return 'Process memory dump at ' + tv.b.units.tsString(this.start);
+      return 'Process memory dump at ' + tr.b.units.tsString(this.start);
     },
 
     get vmRegions() {
@@ -133,13 +133,13 @@ tv.exportTo('tv.c.trace_model', function() {
         dict.swapped);
   }
 
-  tv.c.trace_model.EventRegistry.register(
+  tr.c.trace_model.EventRegistry.register(
       ProcessMemoryDump,
       {
         name: 'processMemoryDump',
         pluralName: 'processMemoryDumps',
-        singleViewElementName: 'tv-c-a-single-process-memory-dump-sub-view',
-        multiViewElementName: 'tv-c-a-multi-process-memory-dump-sub-view'
+        singleViewElementName: 'tr-c-a-single-process-memory-dump-sub-view',
+        multiViewElementName: 'tr-c-a-multi-process-memory-dump-sub-view'
       });
 
   return {

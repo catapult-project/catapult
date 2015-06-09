@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.ui', function() {
+tr.exportTo('tr.b.ui', function() {
 
   /**
    * Decorates elements as an instance of a class.
@@ -21,7 +21,7 @@ tv.exportTo('tv.b.ui', function() {
   function decorate(source, constr) {
     var elements;
     if (typeof source == 'string')
-      elements = tv.doc.querySelectorAll(source);
+      elements = tr.doc.querySelectorAll(source);
     else
       elements = [source];
 
@@ -35,8 +35,8 @@ tv.exportTo('tv.b.ui', function() {
    * Defines a tracing UI component, a function that can be called to construct
    * the component.
    *
-   * tv class:
-   * var List = tv.b.ui.define('list');
+   * tr class:
+   * var List = tr.b.ui.define('list');
    * List.prototype = {
    *   __proto__: HTMLUListElement.prototype,
    *   decorate: function() {
@@ -46,7 +46,7 @@ tv.exportTo('tv.b.ui', function() {
    * };
    *
    * Derived class:
-   * var CustomList = tv.b.ui.define('custom-list', List);
+   * var CustomList = tr.b.ui.define('custom-list', List);
    * CustomList.prototype = {
    *   __proto__: List.prototype,
    *   decorate: function() {
@@ -62,7 +62,7 @@ tv.exportTo('tv.b.ui', function() {
 
    * @param {function=} opt_parentConstructor The parent class for this new
    *     element, if subclassing is desired. If provided, the parent class must
-   *     be also a function created by tv.b.ui.define.
+   *     be also a function created by tr.b.ui.define.
    *
    * @param {string=} opt_tagNS The namespace in which to create the base
    *     element. Has no meaning when opt_parentConstructor is passed and must
@@ -80,7 +80,7 @@ tv.exportTo('tv.b.ui', function() {
     var className = className.toLowerCase();
     if (opt_parentConstructor && !opt_parentConstructor.tagName)
       throw new Error('opt_parentConstructor was not ' +
-                      'created by tv.b.ui.define');
+                      'created by tr.b.ui.define');
 
     // Walk up the parent constructors until we can find the type of tag
     // to create.
@@ -116,9 +116,9 @@ tv.exportTo('tv.b.ui', function() {
 
       var el;
       if (tagNS === undefined)
-        el = tv.doc.createElement(tagName);
+        el = tr.doc.createElement(tagName);
       else
-        el = tv.doc.createElementNS(tagNS, tagName);
+        el = tr.doc.createElementNS(tagNS, tagName);
       f.decorate.call(this, el, arguments);
       return el;
     }

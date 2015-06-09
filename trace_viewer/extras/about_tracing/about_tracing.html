@@ -10,11 +10,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.about_tracing', function() {
+tr.exportTo('tr.e.about_tracing', function() {
   window.profilingView = undefined;  // Made global for debugging purposes only.
 
   document.addEventListener('DOMContentLoaded', function() {
-    window.profilingView = new tv.e.about_tracing.ProfilingView();
+    window.profilingView = new tr.e.about_tracing.ProfilingView();
     document.body.appendChild(profilingView);
   });
 

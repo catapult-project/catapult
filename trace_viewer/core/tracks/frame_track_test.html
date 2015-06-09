@@ -14,18 +14,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Frame = tv.c.trace_model.Frame;
-  var FrameTrack = tv.c.tracks.FrameTrack;
-  var Selection = tv.c.Selection;
-  var SelectionState = tv.c.trace_model.SelectionState;
-  var Viewport = tv.c.TimelineViewport;
+tr.b.unittest.testSuite(function() {
+  var Frame = tr.c.trace_model.Frame;
+  var FrameTrack = tr.c.tracks.FrameTrack;
+  var Selection = tr.c.Selection;
+  var SelectionState = tr.c.trace_model.SelectionState;
+  var Viewport = tr.c.TimelineViewport;
 
-  var newSliceNamed = tv.c.test_utils.newSliceNamed;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
 
   var createFrames = function() {
     var frames = undefined;
-    var model = tv.c.test_utils.newModel(function(model) {
+    var model = tr.c.test_utils.newModel(function(model) {
       var process = model.getOrCreateProcess(1);
       var thread = process.getOrCreateThread(1);
       for (var i = 1; i < 5; i++) {
@@ -47,7 +47,7 @@ tv.b.unittest.testSuite(function() {
 
     var div = document.createElement('div');
     var viewport = new Viewport(div);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = FrameTrack(viewport);
@@ -57,7 +57,7 @@ tv.b.unittest.testSuite(function() {
     drawingContainer.invalidate();
 
     track.frames = frames;
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 

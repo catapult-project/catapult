@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/core/side_panel/side_panel.html">
 
-<polymer-element name='tv-c-side-panel-container' is='HTMLUnknownElement'>
+<polymer-element name='tr-c-side-panel-container' is='HTMLUnknownElement'>
   <template>
     <style>
     :host {
@@ -77,7 +77,7 @@ found in the LICENSE file.
       this.activePanelContainer_ = this.$.active_panel_container;
       this.tabStrip_ = this.$.tab_strip;
 
-      this.rangeOfInterest_ = new tv.b.Range();
+      this.rangeOfInterest_ = new tr.b.Range();
       this.selectionController_ = undefined;
       this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
       this.onModelChanged_ = this.onModelChanged_.bind(this);
@@ -191,7 +191,7 @@ found in the LICENSE file.
       this.tabStrip_.textContent = '';
       var supportedPanelTypes = [];
 
-      var panelTypes = tv.b.getPolymerElementsThatSubclass('tv-c-side-panel');
+      var panelTypes = tr.b.getPolymerElementsThatSubclass('tr-c-side-panel');
       panelTypes.forEach(function(panelType) {
         var labelEl = document.createElement('tab-strip-label');
         var panel = document.createElement(panelType);

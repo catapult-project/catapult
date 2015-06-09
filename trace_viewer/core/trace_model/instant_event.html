@@ -14,14 +14,14 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the InstantEvent class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
   var InstantEventType = {
     GLOBAL: 1,
     PROCESS: 2
   };
 
   function InstantEvent(category, title, colorId, start, args) {
-    tv.c.trace_model.TimedEvent.call(this);
+    tr.c.trace_model.TimedEvent.call(this);
 
     this.category = category || '';
     this.title = title;
@@ -33,7 +33,7 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   InstantEvent.prototype = {
-    __proto__: tv.c.trace_model.TimedEvent.prototype
+    __proto__: tr.c.trace_model.TimedEvent.prototype
   };
 
   function GlobalInstantEvent(category, title, colorId, start, args) {
@@ -63,13 +63,13 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
-  tv.c.trace_model.EventRegistry.register(
+  tr.c.trace_model.EventRegistry.register(
       InstantEvent,
       {
         name: 'instantEvent',
         pluralName: 'instantEvents',
-        singleViewElementName: 'tv-c-a-single-instant-event-sub-view',
-        multiViewElementName: 'tv-c-a-multi-instant-event-sub-view'
+        singleViewElementName: 'tr-c-a-single-instant-event-sub-view',
+        multiViewElementName: 'tr-c-a-multi-instant-event-sub-view'
       });
 
   return {

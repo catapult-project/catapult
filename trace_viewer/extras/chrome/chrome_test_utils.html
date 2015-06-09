@@ -15,9 +15,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Base class for trace data Auditors.
  */
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
   function newChromeModel(customizeModelCallback) {
-    return tv.c.test_utils.newModel(function(model) {
+    return tr.c.test_utils.newModel(function(model) {
       model.browserProcess = model.getOrCreateProcess(1);
       model.browserMain = model.browserProcess.getOrCreateThread(2);
       model.browserMain.name = 'CrBrowserMain';
@@ -39,7 +39,7 @@ tv.exportTo('tv.e.audits', function() {
   function addGeneralLatencyInfoEvent(model, dict) {
     dict.title = 'InputLatency';
     dict.isTopLevel = true;
-    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
     return slice;
   }
@@ -50,7 +50,7 @@ tv.exportTo('tv.e.audits', function() {
     dict.start = dict.flingStart;
     dict.end = topEvent.end;
     dict.title = 'InputLatency:GestureFlingStart';
-    var flingStartEvent = tv.c.test_utils.newAsyncSliceEx(dict);
+    var flingStartEvent = tr.c.test_utils.newAsyncSliceEx(dict);
     topEvent.subSlices.push(flingStartEvent);
     return topEvent;
   }
@@ -61,21 +61,21 @@ tv.exportTo('tv.e.audits', function() {
     dict.start = dict.flingCancel;
     dict.end = topEvent.end;
     dict.title = 'InputLatency:GestureFlingCancel';
-    var flingCancelEvent = tv.c.test_utils.newAsyncSliceEx(dict);
+    var flingCancelEvent = tr.c.test_utils.newAsyncSliceEx(dict);
     topEvent.subSlices.push(flingCancelEvent);
     return topEvent;
   }
 
   function addFlingAnimationEvent(model, dict) {
     dict.title = 'InputHandlerProxy::HandleGestureFling::started';
-    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererCompositor.asyncSliceGroup.push(slice);
     return slice;
   }
 
   function addFrameEvent(model, dict) {
-    dict.title = tv.e.audits.IMPL_RENDERING_STATS;
-    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    dict.title = tr.e.audits.IMPL_RENDERING_STATS;
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
     slice.parentThread = model.rendererMain;
     return slice;
@@ -83,14 +83,14 @@ tv.exportTo('tv.e.audits', function() {
 
   function addLoadingEvent(model, dict) {
     dict.title = 'WebContentsImpl Loading';
-    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
     return slice;
   }
 
   function addNetworkEvent(model, dict) {
     dict.title = 'Generic Network event';
-    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.browserMain.asyncSliceGroup.push(slice);
     // TODO Why can't this be dict.cat?
     slice.cat = 'netlog';
@@ -99,7 +99,7 @@ tv.exportTo('tv.e.audits', function() {
 
   function addProvisionalLoadEvent(model, dict) {
     dict.title = 'RenderFrameImpl::didCommitProvisionalLoad';
-    var slice = tv.c.test_utils.newAsyncSliceEx(dict);
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
     slice.parentThread = model.rendererMain;
     return slice;

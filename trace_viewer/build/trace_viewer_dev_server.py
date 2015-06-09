@@ -99,7 +99,7 @@ def Main(args):
   project.source_paths.append(server.data_dir)
 
   server.AddPathHandler('/json/examples', do_GET_json_examples)
-  server.AddPathHandler('/tv/json/tests', do_GET_json_tests)
+  server.AddPathHandler('/tr/json/tests', do_GET_json_tests)
   server.AddPathHandler('/json/examples/skp', do_GET_json_examples_skp)
 
   server.AddSourcePathMapping(project.trace_viewer_path)

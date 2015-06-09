@@ -23,11 +23,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
 
   // TODO(nduca): Move this elsewhere and make it non-hacky.
   function HackyMultiRowTrack(viewport, model) {
-    var mrt = new tv.c.tracks.MultiRowTrack(viewport);
+    var mrt = new tr.c.tracks.MultiRowTrack(viewport);
     mrt.heading = 'Interactions';
     mrt.buildSubRows_ = function(slices) {
       slices.sort(function(x, y) {
@@ -36,18 +36,18 @@ tv.exportTo('tv.c.tracks', function() {
           return r;
         return x.start - y.start;
       });
-      return tv.c.tracks.AsyncSliceGroupTrack.prototype.buildSubRows_.call(
+      return tr.c.tracks.AsyncSliceGroupTrack.prototype.buildSubRows_.call(
           {}, slices, true);
     };
     mrt.addSubTrack_ = function(slices) {
-      var track = new tv.c.tracks.SliceTrack(this.viewport);
+      var track = new tr.c.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       this.appendChild(track);
       return track;
     };
 
     mrt.setItemsToGroup(model.interaction_records, {
-      guid: tv.b.GUID.allocate(),
+      guid: tr.b.GUID.allocate(),
       model: model,
       getSettingsKey: function() {
         return undefined;
@@ -57,26 +57,26 @@ tv.exportTo('tv.c.tracks', function() {
     return mrt;
   }
 
-  var SelectionState = tv.c.trace_model.SelectionState;
-  var EventPresenter = tv.c.EventPresenter;
+  var SelectionState = tr.c.trace_model.SelectionState;
+  var EventPresenter = tr.c.EventPresenter;
 
   /**
    * Visualizes a Model by building ProcessTracks and CpuTracks.
    * @constructor
    */
-  var TraceModelTrack = tv.b.ui.define(
-      'trace-model-track', tv.c.tracks.ContainerTrack);
+  var TraceModelTrack = tr.b.ui.define(
+      'trace-model-track', tr.c.tracks.ContainerTrack);
 
 
   TraceModelTrack.prototype = {
 
-    __proto__: tv.c.tracks.ContainerTrack.prototype,
+    __proto__: tr.c.tracks.ContainerTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('model-track');
 
-      var typeInfos = tv.c.tracks.Highlighter.getAllRegisteredTypeInfos();
+      var typeInfos = tr.c.tracks.Highlighter.getAllRegisteredTypeInfos();
       this.highlighters_ = typeInfos.map(
         function(typeInfo) {
           return new typeInfo.constructor(viewport);
@@ -97,7 +97,7 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     detach: function() {
-      tv.c.tracks.ContainerTrack.prototype.detach.call(this);
+      tr.c.tracks.ContainerTrack.prototype.detach.call(this);
     },
 
     get model() {
@@ -137,13 +137,13 @@ tv.exportTo('tv.c.tracks', function() {
       }
 
       if (this.model_.alerts.length) {
-        var at = new tv.c.tracks.AlertTrack(this.viewport_);
+        var at = new tr.c.tracks.AlertTrack(this.viewport_);
         at.alerts = this.model_.alerts;
         this.appendChild(at);
       }
 
       if (this.model_.globalMemoryDumps.length) {
-        var gmdt = new tv.c.tracks.GlobalMemoryDumpTrack(this.viewport_);
+        var gmdt = new tr.c.tracks.GlobalMemoryDumpTrack(this.viewport_);
         gmdt.memoryDumps = this.model_.globalMemoryDumps;
         this.appendChild(gmdt);
       }
@@ -152,12 +152,12 @@ tv.exportTo('tv.c.tracks', function() {
 
       // Get a sorted list of processes.
       var processes = this.model_.getAllProcesses();
-      processes.sort(tv.c.trace_model.Process.compare);
+      processes.sort(tr.c.trace_model.Process.compare);
 
       for (var i = 0; i < processes.length; ++i) {
         var process = processes[i];
 
-        var track = new tv.c.tracks.ProcessTrack(this.viewport);
+        var track = new tr.c.tracks.ProcessTrack(this.viewport);
         track.process = process;
         if (!track.hasVisibleContent)
           continue;
@@ -209,7 +209,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     appendKernelTrack_: function() {
       var kernel = this.model.kernel;
-      var track = new tv.c.tracks.KernelTrack(this.viewport);
+      var track = new tr.c.tracks.KernelTrack(this.viewport);
       track.kernel = this.model.kernel;
       if (!track.hasVisibleContent)
         return;
@@ -233,13 +233,13 @@ tv.exportTo('tv.c.tracks', function() {
       var viewRWorld = dt.xViewToWorld(bounds.width * pixelRatio);
 
       switch (type) {
-        case tv.c.tracks.DrawType.GRID:
+        case tr.c.tracks.DrawType.GRID:
           this.viewport.drawMajorMarkLines(ctx);
           // The model is the only thing that draws grid lines.
           ctx.restore();
           return;
 
-        case tv.c.tracks.DrawType.FLOW_ARROWS:
+        case tr.c.tracks.DrawType.FLOW_ARROWS:
           if (this.model_.flowIntervalTree.size === 0) {
             ctx.restore();
             return;
@@ -249,12 +249,12 @@ tv.exportTo('tv.c.tracks', function() {
           ctx.restore();
           return;
 
-        case tv.c.tracks.DrawType.INSTANT_EVENT:
+        case tr.c.tracks.DrawType.INSTANT_EVENT:
           if (!this.model_.instantEvents ||
               this.model_.instantEvents.length === 0)
             break;
 
-          tv.c.drawInstantSlicesAsLines(
+          tr.c.drawInstantSlicesAsLines(
               ctx,
               this.viewport.currentDisplayTransform,
               viewLWorld,
@@ -265,7 +265,7 @@ tv.exportTo('tv.c.tracks', function() {
 
           break;
 
-        case tv.c.tracks.DrawType.MARKERS:
+        case tr.c.tracks.DrawType.MARKERS:
           if (!this.viewport.interestRange.isEmpty) {
             this.viewport.interestRange.draw(ctx, viewLWorld, viewRWorld);
             this.viewport.interestRange.drawIndicators(
@@ -274,7 +274,7 @@ tv.exportTo('tv.c.tracks', function() {
           ctx.restore();
           return;
 
-        case tv.c.tracks.DrawType.HIGHLIGHTS:
+        case tr.c.tracks.DrawType.HIGHLIGHTS:
           for (var i = 0; i < this.highlighters_.length; i++) {
             this.highlighters_[i].drawHighlight(ctx, dt, viewLWorld, viewRWorld,
                 bounds.height);
@@ -282,7 +282,7 @@ tv.exportTo('tv.c.tracks', function() {
           ctx.restore();
           return;
 
-        case tv.c.tracks.DrawType.ANNOTATIONS:
+        case tr.c.tracks.DrawType.ANNOTATIONS:
           for (var i = 0; i < this.annotationViews_.length; i++) {
             this.annotationViews_[i].draw(ctx);
           }
@@ -291,7 +291,7 @@ tv.exportTo('tv.c.tracks', function() {
       }
       ctx.restore();
 
-      tv.c.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
+      tr.c.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
     },
 
     drawFlowArrows_: function(viewLWorld, viewRWorld) {
@@ -400,7 +400,7 @@ tv.exportTo('tv.c.tracks', function() {
       var tipX = flowEvent.end;
       var tipY = pixelEndY;
       var arrowHeight = (endBounds.height / 4) * pixelRatio;
-      tv.c.drawTriangle(ctx,
+      tr.c.drawTriangle(ctx,
           tipX, tipY,
           tipX - arrowWidth, tipY - arrowHeight,
           tipX - arrowWidth, tipY + arrowHeight);
@@ -421,13 +421,13 @@ tv.exportTo('tv.c.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
-      tv.b.iterateOverIntersectingIntervals(this.model_.instantEvents,
+      tr.b.iterateOverIntersectingIntervals(this.model_.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,
           onPickHit.bind(this));
 
-      tv.c.tracks.ContainerTrack.prototype.
+      tr.c.tracks.ContainerTrack.prototype.
           addIntersectingEventsInRangeToSelectionInWorldSpace.
           apply(this, arguments);
     },
@@ -436,7 +436,7 @@ tv.exportTo('tv.c.tracks', function() {
                                          selection) {
       this.addClosestInstantEventToSelection(this.model_.instantEvents,
                                              worldX, worldMaxDist, selection);
-      tv.c.tracks.ContainerTrack.prototype.addClosestEventToSelection.
+      tr.c.tracks.ContainerTrack.prototype.addClosestEventToSelection.
           apply(this, arguments);
     }
   };

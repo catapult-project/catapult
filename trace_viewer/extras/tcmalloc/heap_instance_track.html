@@ -15,8 +15,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.tcmalloc', function() {
-  var EventPresenter = tv.c.EventPresenter;
+tr.exportTo('tr.e.tcmalloc', function() {
+  var EventPresenter = tr.c.EventPresenter;
 
   /**
    * A track that displays heap memory data.
@@ -24,15 +24,15 @@ tv.exportTo('tv.e.tcmalloc', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var HeapInstanceTrack = tv.b.ui.define(
-      'heap-instance-track', tv.c.tracks.StackedBarsTrack);
+  var HeapInstanceTrack = tr.b.ui.define(
+      'heap-instance-track', tr.c.tracks.StackedBarsTrack);
 
   HeapInstanceTrack.prototype = {
 
-    __proto__: tv.c.tracks.StackedBarsTrack.prototype,
+    __proto__: tr.c.tracks.StackedBarsTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
       this.classList.add('heap-instance-track');
       this.objectInstance_ = null;
     },
@@ -76,7 +76,7 @@ tv.exportTo('tv.e.tcmalloc', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.c.tracks.DrawType.GENERAL_EVENT:
+        case tr.c.tracks.DrawType.GENERAL_EVENT:
           this.drawEvents_(viewLWorld, viewRWorld);
           break;
       }
@@ -97,7 +97,7 @@ tv.exportTo('tv.e.tcmalloc', function() {
       var maxBytes = this.maxBytes_;
 
       var objectSnapshots = this.objectInstance_.snapshots;
-      var lowIndex = tv.b.findLowIndexInSortedArray(
+      var lowIndex = tr.b.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts;
@@ -165,7 +165,7 @@ tv.exportTo('tv.e.tcmalloc', function() {
     }
   };
 
-  tv.c.tracks.ObjectInstanceTrack.register(
+  tr.c.tracks.ObjectInstanceTrack.register(
       HeapInstanceTrack,
       {typeName: 'memory::Heap'});
 

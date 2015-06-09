@@ -12,13 +12,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
   /**
    * Visualizes a Process's state using a series of rects to represent activity.
    * @constructor
    */
-  var ProcessSummaryTrack = tv.b.ui.define('process-summary-track',
-                                           tv.c.tracks.RectTrack);
+  var ProcessSummaryTrack = tr.b.ui.define('process-summary-track',
+                                           tr.c.tracks.RectTrack);
 
   ProcessSummaryTrack.buildRectsFromProcess = function(process) {
     if (!process)
@@ -57,9 +57,9 @@ tv.exportTo('tv.c.tracks', function() {
      * If an important slice starts in the middle of another,
      * just drop it on the floor.
      */
-    var genericColorId = tv.b.ui.getColorIdForReservedName('generic_work');
+    var genericColorId = tr.b.ui.getColorIdForReservedName('generic_work');
     var pushRect = function(start, end, slice) {
-      rects.push(new tv.c.tracks.Rect(
+      rects.push(new tr.c.tracks.Rect(
           slice, /* modelItem: show selection state of slice if present */
           slice ? slice.title : '', /* title */
           slice ? slice.colorId : genericColorId, /* colorId */
@@ -105,10 +105,10 @@ tv.exportTo('tv.c.tracks', function() {
   };
 
   ProcessSummaryTrack.prototype = {
-    __proto__: tv.c.tracks.RectTrack.prototype,
+    __proto__: tr.c.tracks.RectTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.RectTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.RectTrack.prototype.decorate.call(this, viewport);
     },
 
     get process() {

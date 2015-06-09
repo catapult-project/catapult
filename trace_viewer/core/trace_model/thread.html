@@ -18,13 +18,13 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Thread class.
  */
-tv.exportTo('tv.c.trace_model', function() {
-  var Slice = tv.c.trace_model.Slice;
-  var SliceGroup = tv.c.trace_model.SliceGroup;
-  var AsyncSlice = tv.c.trace_model.AsyncSlice;
-  var AsyncSliceGroup = tv.c.trace_model.AsyncSliceGroup;
-  var ThreadSlice = tv.c.trace_model.ThreadSlice;
-  var ThreadTimeSlice = tv.c.trace_model.ThreadTimeSlice;
+tr.exportTo('tr.c.trace_model', function() {
+  var Slice = tr.c.trace_model.Slice;
+  var SliceGroup = tr.c.trace_model.SliceGroup;
+  var AsyncSlice = tr.c.trace_model.AsyncSlice;
+  var AsyncSliceGroup = tr.c.trace_model.AsyncSliceGroup;
+  var ThreadSlice = tr.c.trace_model.ThreadSlice;
+  var ThreadTimeSlice = tr.c.trace_model.ThreadTimeSlice;
 
   /**
    * A Thread stores all the trace events collected for a particular
@@ -36,10 +36,10 @@ tv.exportTo('tv.c.trace_model', function() {
    * ThreadSlice.
    *
    * @constructor
-   * @extends {tv.c.trace_model.EventContainer}
+   * @extends {tr.c.trace_model.EventContainer}
    */
   function Thread(parent, tid) {
-    this.guid_ = tv.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocate();
     if (!parent)
       throw new Error('Parent must be provided.');
     this.parent = parent;
@@ -65,11 +65,11 @@ tv.exportTo('tv.c.trace_model', function() {
     this.kernelSliceGroup = new SliceGroup(
         this, ThreadSliceForThisThread, 'kernel-slices');
     this.asyncSliceGroup = new AsyncSliceGroup(this, 'async-slices');
-    this.bounds = new tv.b.Range();
+    this.bounds = new tr.b.Range();
   }
 
   Thread.prototype = {
-    __proto__: tv.c.trace_model.EventContainer.prototype,
+    __proto__: tr.c.trace_model.EventContainer.prototype,
 
     get guid() {
       return this.guid_;
@@ -237,7 +237,7 @@ tv.exportTo('tv.c.trace_model', function() {
      * Returns the index of the slice in the timeSlices array, or undefined.
      */
     indexOfTimeSlice: function(timeSlice) {
-      var i = tv.b.findLowIndexInSortedArray(
+      var i = tr.b.findLowIndexInSortedArray(
           this.timeSlices,
           function(slice) { return slice.start; },
           timeSlice.start);
@@ -261,7 +261,7 @@ tv.exportTo('tv.c.trace_model', function() {
         stats[schedulingState] += overlapEnd - overlapStart;
       }
 
-      tv.b.iterateOverIntersectingIntervals(this.timeSlices,
+      tr.b.iterateOverIntersectingIntervals(this.timeSlices,
                                             function(x) { return x.start; },
                                             function(x) { return x.end; },
                                             start,
@@ -288,7 +288,7 @@ tv.exportTo('tv.c.trace_model', function() {
     if (tmp)
       return tmp;
 
-    tmp = tv.b.comparePossiblyUndefinedValues(
+    tmp = tr.b.comparePossiblyUndefinedValues(
         x.name, y.name,
         function(x, y) { return x.localeCompare(y); });
     if (tmp)

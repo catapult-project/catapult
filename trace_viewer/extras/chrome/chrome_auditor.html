@@ -17,8 +17,8 @@ found in the LICENSE file.
 /**
  * @fileoverview Base class for trace data Auditors.
  */
-tv.exportTo('tv.e.audits', function() {
-  var Auditor = tv.c.Auditor;
+tr.exportTo('tr.e.audits', function() {
+  var Auditor = tr.c.Auditor;
 
   /**
    * Auditor for Chrome-specific traces.
@@ -26,8 +26,8 @@ tv.exportTo('tv.e.audits', function() {
    */
   function ChromeAuditor(model) {
     this.model = model;
-    if (tv.e.audits.ChromeModelHelper.supportsModel(this.model)) {
-      var modelHelper = new tv.e.audits.ChromeModelHelper(this.model);
+    if (tr.e.audits.ChromeModelHelper.supportsModel(this.model)) {
+      var modelHelper = new tr.e.audits.ChromeModelHelper(this.model);
 
       // Must be a browserHelper in order to do audits.
       if (modelHelper.browserHelper === undefined)
@@ -63,8 +63,8 @@ tv.exportTo('tv.e.audits', function() {
       if (window.profilingView)
         return;
 
-      if (tv.e.audits.RAILIRFinder.supportsModelHelper(this.modelHelper)) {
-        var rirf = new tv.e.audits.RAILIRFinder(this.model, this.modelHelper);
+      if (tr.e.audits.RAILIRFinder.supportsModelHelper(this.modelHelper)) {
+        var rirf = new tr.e.audits.RAILIRFinder(this.model, this.modelHelper);
         rirf.findAllInteractionRecords().forEach(function(ir) {
           this.model.addInteractionRecord(ir);
         }.bind(this));
@@ -75,18 +75,18 @@ tv.exportTo('tv.e.audits', function() {
 
     addBigTaskAlerts: function() {
       var model = this.model;
-      tv.b.iterItems(this.modelHelper.rendererHelpers, function(pid, renderer) {
+      tr.b.iterItems(this.modelHelper.rendererHelpers, function(pid, renderer) {
         var slices = renderer.mainThread.sliceGroup.slices;
         slices.forEach(function(slice) {
           if (slice.category != 'toplevel')
             return;
           if (slice.duration > 75.0) {
-            var alertInfo = new tv.c.trace_model.EventInfo(
+            var alertInfo = new tr.c.trace_model.EventInfo(
                 'Task too long',
                 'Tasks taking >= 75ms are bad, and should be broken up to ' +
                 'ensure the main thread is responsive');
             var center = slice.start + 0.5 * slice.duration;
-            var alert = new tv.c.trace_model.Alert(
+            var alert = new tr.c.trace_model.Alert(
                 alertInfo, center, [slice]);
             model.alerts.push(alert);
           }

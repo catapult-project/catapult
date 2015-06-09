@@ -11,14 +11,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.unittest', function() {
-  var TestCase = tv.b.unittest.TestCase;
-  var PerfTestCase = tv.b.unittest.PerfTestCase;
+tr.exportTo('tr.b.unittest', function() {
+  var TestCase = tr.b.unittest.TestCase;
+  var PerfTestCase = tr.b.unittest.PerfTestCase;
 
-  var TestTypes = tv.b.unittest.TestTypes;
+  var TestTypes = tr.b.unittest.TestTypes;
 
   function TestSuite(name, suiteConstructor) {
-    this.guid = tv.b.GUID.allocate();
+    this.guid = tr.b.GUID.allocate();
     this.name_ = name;
     this.tests_ = [];
     this.testNames_ = {}; // For dupe checking.

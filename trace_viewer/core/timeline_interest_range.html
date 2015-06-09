@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c', function() {
+tr.exportTo('tr.c', function() {
   /**
    * @constructor
    */
@@ -27,7 +27,7 @@ tv.exportTo('tv.c', function() {
   function TimelineInterestRange(vp) {
     this.viewport_ = vp;
 
-    this.range_ = new tv.b.Range();
+    this.range_ = new tr.b.Range();
 
     this.leftSelected_ = false;
     this.rightSelected_ = false;
@@ -85,7 +85,7 @@ tv.exportTo('tv.c', function() {
     },
 
     asRangeObject: function() {
-      var range = new tv.b.Range();
+      var range = new tr.b.Range();
       range.addRange(this.range_);
       return range;
     },
@@ -180,7 +180,7 @@ tv.exportTo('tv.c', function() {
       ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
 
       ctx.beginPath();
-      tv.c.drawLine(ctx, viewX, 0, viewX, height);
+      tr.c.drawLine(ctx, viewX, 0, viewX, height);
       if (selected)
         ctx.strokeStyle = 'rgb(255, 0, 0)';
       else
@@ -225,12 +225,12 @@ tv.exportTo('tv.c', function() {
         ctx.fillStyle = 'rgb(255, 0, 0)';
       else
         ctx.fillStyle = 'rgb(0, 0, 0)';
-      tv.c.drawTriangle(ctx,
+      tr.c.drawTriangle(ctx,
           viewX - arrowSize * 0.75, viewY,
           viewX + arrowSize * 0.75, viewY,
           viewX, viewY + arrowSize);
       ctx.fill();
-      tv.c.drawTriangle(ctx,
+      tr.c.drawTriangle(ctx,
           viewX - arrowSize * 0.75, viewY + viewHeight,
           viewX + arrowSize * 0.75, viewY + viewHeight,
           viewX, viewY + viewHeight - arrowSize);

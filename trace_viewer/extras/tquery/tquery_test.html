@@ -13,14 +13,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.tquery', function() {
+tr.exportTo('tr.e.tquery', function() {
   function FakeSelectionController() {
-    tv.b.EventTarget.call(this);
+    tr.b.EventTarget.call(this);
     this.allEvents_ = [];
   }
 
   FakeSelectionController.prototype = {
-    __proto__: tv.b.EventTarget.prototype,
+    __proto__: tr.b.EventTarget.prototype,
 
     get allEvents() {
       return this.allEvents_;
@@ -28,12 +28,12 @@ tv.exportTo('tv.e.tquery', function() {
 
     set allEvents(allEvents) {
       this.allEvents_ = allEvents;
-      var e = new tv.b.Event('model-changed');
+      var e = new tr.b.Event('model-changed');
       this.dispatchEvent(e);
     },
 
     addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
-      return new tv.b.Task(function() {
+      return new tr.b.Task(function() {
         var n = this.allEvents.length;
         for (var i = 0; i < n; i++) {
           this.addSubtreeToSelection_(selection, this.allEvents[i]);
@@ -50,7 +50,7 @@ tv.exportTo('tv.e.tquery', function() {
       }
     },
     showScriptControlSelection: function(selection) {
-      this.selection = new tv.c.Selection();
+      this.selection = new tr.c.Selection();
       this.highlight = selection;
     }
   };
@@ -59,8 +59,8 @@ tv.exportTo('tv.e.tquery', function() {
   };
 });
 
-tv.b.unittest.testSuite(function() {
-  var FakeSelectionController = tv.e.tquery.FakeSelectionController;
+tr.b.unittest.testSuite(function() {
+  var FakeSelectionController = tr.e.tquery.FakeSelectionController;
 
   function createSliceArray(sliceCount) {
     var allEvents = [];
@@ -77,7 +77,7 @@ tv.b.unittest.testSuite(function() {
   }
 
   function getScriptObject(name) {
-    var typeInfos = tv.c.ScriptingObjectRegistry.getAllRegisteredTypeInfos();
+    var typeInfos = tr.c.ScriptingObjectRegistry.getAllRegisteredTypeInfos();
     for (var i = 0; i < typeInfos.length; i++) {
       if (typeInfos[i].metadata.name === name) {
         return typeInfos[i].constructor;
@@ -87,16 +87,16 @@ tv.b.unittest.testSuite(function() {
 
   test('tqueryAsyncSelection', function() {
     var selectionController = createFakeSelectionController_(3);
-    var tquery = new tv.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(selectionController);
 
     var result = tquery.show();
-    tv.b.Task.RunSynchronously(result);
+    tr.b.Task.RunSynchronously(result);
     assert.equal(selectionController.highlight.length, 3);
   });
 
   test('tquerySyncSelection', function() {
     var selectionController = createFakeSelectionController_(3);
-    var tquery = new tv.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(selectionController);
 
     assert.equal(tquery.selection.length, 3);
 
@@ -108,10 +108,10 @@ tv.b.unittest.testSuite(function() {
 
   test('tqueryPassThroughFiltering', function() {
     var selectionController = new createFakeSelectionController_(3);
-    var tquery = new tv.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter().filter().show();
-    tv.b.Task.RunSynchronously(result);
+    tr.b.Task.RunSynchronously(result);
     assert.equal(selectionController.highlight.length, 3);
   });
 
@@ -123,7 +123,7 @@ tv.b.unittest.testSuite(function() {
         {guid: 2, title: 'b'},
         {guid: 3, title: 'c'}
     ];
-    var tquery = new tv.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(hasTitle('a')).selection;
     assert.equal(result.length, 1);
@@ -146,7 +146,7 @@ tv.b.unittest.testSuite(function() {
         {guid: 2, title: 'b', subSlices: [{guid: 4}]},
         {guid: 3, title: 'c'}
     ];
-    var tquery = new tv.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(hasAncestor('b')).selection;
     assert.equal(result.length, 1);
@@ -168,7 +168,7 @@ tv.b.unittest.testSuite(function() {
         {guid: 2, title: 'b1'},
         {guid: 3, title: 'c1'}
     ];
-    var tquery = new tv.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(allOf('a1')).selection;
     assert.equal(result.length, 1);
@@ -190,7 +190,7 @@ tv.b.unittest.testSuite(function() {
         {guid: 2, title: 'b'},
         {guid: 3, title: 'c'}
     ];
-    var tquery = new tv.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(anyOf('a', 'b')).selection;
     assert.equal(result.length, 2);
@@ -213,7 +213,7 @@ tv.b.unittest.testSuite(function() {
         {guid: 2, title: 'b', subSlices: [{guid: 4}]},
         {guid: 3, title: 'c'}
     ];
-    var tquery = new tv.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(isTopLevel()).selection;
     assert.equal(result.length, 3);
@@ -235,7 +235,7 @@ tv.b.unittest.testSuite(function() {
         {guid: 3, title: 'c', duration: 3},
         {guid: 4, title: 'no duration'}
     ];
-    var tquery = new tv.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(selectionController);
 
     var result = tquery.filter(hasDuration(1.5, 2.5)).selection;
     assert.equal(result.length, 1);

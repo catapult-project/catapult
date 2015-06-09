@@ -14,7 +14,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Helper code for memory dump sub-views.
  */
-tv.exportTo('tv.c.analysis', function() {
+tr.exportTo('tr.c.analysis', function() {
 
   /**
    * A table builder column for displaying memory dump data.
@@ -35,7 +35,7 @@ tv.exportTo('tv.c.analysis', function() {
       if (row === undefined)
         return;
       var attrCells = row[cellKey];
-      tv.b.iterItems(attrCells, function(attrName, attrCell) {
+      tr.b.iterItems(attrCells, function(attrName, attrCell) {
         if (attrCell === undefined)
           return;
         var attrValue = attrCell.attr;
@@ -51,7 +51,7 @@ tv.exportTo('tv.c.analysis', function() {
         }
         if (existingTraits.constructor !== attrValue.constructor ||
             existingTraits.units !== attrValue.units) {
-          existingTraits.constructor = tv.c.trace_model.UnknownAttribute;
+          existingTraits.constructor = tr.c.trace_model.UnknownAttribute;
           existingTraits.units = undefined;
         }
       });
@@ -60,10 +60,10 @@ tv.exportTo('tv.c.analysis', function() {
     };
     rows.forEach(gatherTraits);
 
-    var titleBuilder = opt_titleBuilder || tv.b.identity;
+    var titleBuilder = opt_titleBuilder || tr.b.identity;
 
     var columns = [];
-    tv.b.iterItems(columnTraits, function(columnName, columnTraits) {
+    tr.b.iterItems(columnTraits, function(columnName, columnTraits) {
       var cellGetter = fieldGetter(cellKey, columnName);
       var title = titleBuilder(columnName);
       columns.push(MemoryColumn.fromAttributeTraits(
@@ -75,7 +75,7 @@ tv.exportTo('tv.c.analysis', function() {
 
   MemoryColumn.fromAttributeTraits = function(name, title, traits, cellGetter) {
     var constructor;
-    if (traits.constructor === tv.c.trace_model.ScalarAttribute)
+    if (traits.constructor === tr.c.trace_model.ScalarAttribute)
       constructor = ScalarMemoryColumn;
     else
       constructor = MemoryColumn;
@@ -232,7 +232,7 @@ tv.exportTo('tv.c.analysis', function() {
 
     formatDefinedAttribute: function(attr) {
       if (this.units === 'bytes') {
-        var sizeEl = document.createElement('tv-b-u-size-in-bytes-span');
+        var sizeEl = document.createElement('tr-b-u-size-in-bytes-span');
         sizeEl.numBytes = attr.value;
         return sizeEl;
       }
@@ -252,7 +252,7 @@ tv.exportTo('tv.c.analysis', function() {
   }
 
   function fieldGetter(/* fields */) {
-    var fields = tv.b.asArray(arguments);
+    var fields = tr.b.asArray(arguments);
     return function(row) {
       var value = row;
       for (var i = 0; i < fields.length; i++)

@@ -11,28 +11,28 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('snapshotTypeRegistry', function() {
     function MySnapshot() {
-      tv.c.trace_model.ObjectSnapshot.apply(this, arguments);
+      tr.c.trace_model.ObjectSnapshot.apply(this, arguments);
       this.myFoo = this.args.foo;
     }
 
     MySnapshot.prototype = {
-      __proto__: tv.c.trace_model.ObjectSnapshot.prototype
+      __proto__: tr.c.trace_model.ObjectSnapshot.prototype
     };
 
-    var instance = new tv.c.trace_model.ObjectInstance(
+    var instance = new tr.c.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'MySnapshot', 10);
     try {
-      tv.c.trace_model.ObjectSnapshot.register(
+      tr.c.trace_model.ObjectSnapshot.register(
           MySnapshot,
           {typeName: 'MySnapshot'});
       var snapshot = instance.addSnapshot(15, {foo: 'bar'});
       assert.instanceOf(snapshot, MySnapshot);
       assert.equal(snapshot.myFoo, 'bar');
     } finally {
-      tv.c.trace_model.ObjectSnapshot.unregister(MySnapshot);
+      tr.c.trace_model.ObjectSnapshot.unregister(MySnapshot);
     }
   });
 });

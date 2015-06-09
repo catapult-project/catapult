@@ -10,15 +10,15 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/stack_frame.html">
 <link rel="import" href="/base/units/time_stamp_span.html">
 
-<polymer-element name="tv-c-a-single-sample-sub-view"
-    extends="tv-c-a-sub-view">
+<polymer-element name="tr-c-a-single-sample-sub-view"
+    extends="tr-c-a-sub-view">
   <template>
     <style>
     :host {
       display: flex;
     }
     </style>
-    <tv-b-ui-table id="content"></tv-b-ui-table>
+    <tr-b-ui-table id="content"></tr-b-ui-table>
   </template>
   <script>
   'use strict';
@@ -68,10 +68,10 @@ found in the LICENSE file.
 
       rows.push({
           title: 'Sample time',
-          value: tv.b.units.createTimeStampSpan(sample.start)
+          value: tr.b.units.createTimeStampSpan(sample.start)
       });
 
-      var sfEl = document.createElement('tv-c-a-stack-frame');
+      var sfEl = document.createElement('tr-c-a-stack-frame');
       sfEl.stackFrame = sample.leafStackFrame;
       rows.push({
         title: 'Stack trace',

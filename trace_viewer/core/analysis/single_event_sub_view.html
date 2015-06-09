@@ -15,8 +15,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/base/ui.html">
 
-<polymer-element name="tv-c-a-single-event-sub-view"
-    extends="tv-c-a-sub-view">
+<polymer-element name="tr-c-a-single-event-sub-view"
+    extends="tr-c-a-sub-view">
   <template>
     <style>
     :host {
@@ -28,8 +28,8 @@ found in the LICENSE file.
       align-self: stretch;
     }
     </style>
-    <tv-b-ui-table id="table">
-    </tv-b-ui-table>
+    <tr-b-ui-table id="table">
+    </tr-b-ui-table>
   </template>
   <script>
   'use strict';
@@ -79,34 +79,34 @@ found in the LICENSE file.
       if (event.category)
         rows.push({ name: 'Category', value: event.category });
 
-      var startEl = document.createElement('tv-b-u-time-stamp-span');
+      var startEl = document.createElement('tr-b-u-time-stamp-span');
       startEl.timestamp = event.start;
       rows.push({ name: 'Start', value: startEl });
 
       if (event.duration) {
         var wallDurationEl = document.createElement(
-            'tv-b-u-time-duration-span');
+            'tr-b-u-time-duration-span');
         wallDurationEl.duration = event.duration;
         rows.push({ name: 'Wall Duration', value: wallDurationEl });
       }
 
       if (event.cpuDuration) {
         var cpuDurationEl = document.createElement(
-            'tv-b-u-time-duration-span');
+            'tr-b-u-time-duration-span');
         cpuDurationEl.duration = event.cpuDuration;
         rows.push({ name: 'CPU Duration', value: cpuDurationEl });
       }
 
       if (event.subSlices !== undefined && event.subSlices.length !== 0) {
         if (event.selfTime) {
-          var selfTimeEl = document.createElement('tv-b-u-time-duration-span');
+          var selfTimeEl = document.createElement('tr-b-u-time-duration-span');
           selfTimeEl.duration = event.selfTime;
           rows.push({ name: 'Self Time', value: selfTimeEl });
         }
 
         if (event.cpuSelfTime) {
           var cpuSelfTimeEl = document.createElement(
-              'tv-b-u-time-duration-span');
+              'tr-b-u-time-duration-span');
           cpuSelfTimeEl.duration = event.cpuSelfTime;
           if (event.cpuSelfTime > event.selfTime) {
             cpuSelfTimeEl.warning =
@@ -122,13 +122,13 @@ found in the LICENSE file.
 
       if (event.durationInUserTime) {
         var durationInUserTimeEl = document.createElement(
-            'tv-b-u-time-duration-span');
+            'tr-b-u-time-duration-span');
         durationInUserTimeEl.duration = event.durationInUserTime;
         rows.push({ name: 'Duration (U)', value: durationInUserTimeEl });
       }
 
       function createStackFrameEl(sf) {
-        var sfEl = document.createElement('tv-c-a-stack-frame');
+        var sfEl = document.createElement('tr-c-a-stack-frame');
         sfEl.stackFrame = sf;
         return sfEl;
       }
@@ -153,7 +153,7 @@ found in the LICENSE file.
       }
 
       if (event.info) {
-        var descriptionEl = tv.b.ui.createDiv({
+        var descriptionEl = tr.b.ui.createDiv({
             textContent: event.info.description,
             maxWidth: '300px'
         });
@@ -180,9 +180,9 @@ found in the LICENSE file.
       if (event.associatedAlerts.length) {
         var alertSubRows = [];
         event.associatedAlerts.forEach(function(alert) {
-          var linkEl = document.createElement('tv-c-a-analysis-link');
+          var linkEl = document.createElement('tr-c-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
-            return new tv.c.Selection(alert);
+            return new tr.c.Selection(alert);
           }, alert.info.description);
           alertSubRows.push({
             name: alert.title,
@@ -207,7 +207,7 @@ found in the LICENSE file.
         var subRows = [];
         for (var argName in args) {
           var argView =
-              document.createElement('tv-c-a-generic-object-view');
+              document.createElement('tr-c-a-generic-object-view');
           argView.object = args[argName];
           subRows.push({ name: argName,
                       value: argView});

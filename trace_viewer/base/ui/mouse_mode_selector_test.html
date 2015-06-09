@@ -8,10 +8,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var MOUSE_SELECTOR_MODE = tv.b.ui.MOUSE_SELECTOR_MODE;
+tr.b.unittest.testSuite(function() {
+  var MOUSE_SELECTOR_MODE = tr.b.ui.MOUSE_SELECTOR_MODE;
   test('instantiate', function() {
-    var sel = new tv.b.ui.MouseModeSelector();
+    var sel = new tr.b.ui.MouseModeSelector();
     sel.supportedModeMask =
         MOUSE_SELECTOR_MODE.SELECTION |
         MOUSE_SELECTOR_MODE.PANSCAN;
@@ -19,7 +19,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('changeMaskWithUnsupportedMode', function() {
-    var sel = new tv.b.ui.MouseModeSelector();
+    var sel = new tr.b.ui.MouseModeSelector();
     sel.mode = MOUSE_SELECTOR_MODE.SELECTION;
     assert.throw(function() {
       sel.supportedModeMask = MOUSE_SELECTOR_MODE.ZOOM;
@@ -27,14 +27,14 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('modePersists', function() {
-    var sel1 = new tv.b.ui.MouseModeSelector();
+    var sel1 = new tr.b.ui.MouseModeSelector();
     sel1.defaultMode_ = MOUSE_SELECTOR_MODE.ZOOM;
     sel1.settingsKey = 'foo';
     assert.equal(sel1.mode, MOUSE_SELECTOR_MODE.ZOOM);
 
     sel1.mode = MOUSE_SELECTOR_MODE.PANSCAN;
 
-    var sel2 = new tv.b.ui.MouseModeSelector();
+    var sel2 = new tr.b.ui.MouseModeSelector();
     sel2.settingsKey = 'foo';
     assert.equal(sel2.mode, MOUSE_SELECTOR_MODE.PANSCAN);
   });

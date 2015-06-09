@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function StubCommentProvider() {
     this.addDummyComment('Lorem ipsum dolor sit amet');
     this.addDummyComment('consectetur adipiscing elit');
@@ -63,7 +63,7 @@ tv.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var panel = document.createElement('tv-e-d-comments-side-panel');
+    var panel = document.createElement('tr-e-d-comments-side-panel');
     panel.setCommentProvider(new StubCommentProvider);
     this.addHTMLOutput(panel);
   });

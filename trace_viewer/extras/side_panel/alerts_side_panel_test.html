@@ -12,17 +12,17 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var ALERT_INFO_1 = new tv.c.trace_model.EventInfo(
+tr.b.unittest.testSuite(function() {
+  var ALERT_INFO_1 = new tr.c.trace_model.EventInfo(
     'Alert 1', 'Critical alert');
-  var ALERT_INFO_2 = new tv.c.trace_model.EventInfo(
+  var ALERT_INFO_2 = new tr.c.trace_model.EventInfo(
     'Alert 2', 'Warning alert');
 
   test('instantiate', function() {
-    var panel = document.createElement('tv-e-s-alerts-side-panel');
+    var panel = document.createElement('tr-e-s-alerts-side-panel');
     panel.model = createModelWithAlerts([
-      new tv.c.trace_model.Alert(ALERT_INFO_1, 5),
-      new tv.c.trace_model.Alert(ALERT_INFO_2, 35)
+      new tr.c.trace_model.Alert(ALERT_INFO_1, 5),
+      new tr.c.trace_model.Alert(ALERT_INFO_2, 35)
     ]);
     panel.style.height = '100px';
 
@@ -30,11 +30,11 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('selectAlertsOfType', function() {
-    var panel = document.createElement('tv-e-s-alerts-side-panel');
+    var panel = document.createElement('tr-e-s-alerts-side-panel');
     var alerts = [
-      new tv.c.trace_model.Alert(ALERT_INFO_1, 1),
-      new tv.c.trace_model.Alert(ALERT_INFO_1, 2),
-      new tv.c.trace_model.Alert(ALERT_INFO_2, 3)
+      new tr.c.trace_model.Alert(ALERT_INFO_1, 1),
+      new tr.c.trace_model.Alert(ALERT_INFO_1, 2),
+      new tr.c.trace_model.Alert(ALERT_INFO_2, 3)
     ];
     panel.model = createModelWithAlerts(alerts);
     panel.style.height = '100px';
@@ -53,7 +53,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   function createModelWithAlerts(alerts) {
-    var m = new tv.c.TraceModel();
+    var m = new tr.c.TraceModel();
     m.alerts = alerts;
     return m;
   };

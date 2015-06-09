@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function createElement(tagName, opt_class) {
     var el = document.createElement(tagName);
     if (opt_class)
@@ -28,7 +28,7 @@ tv.b.unittest.testSuite(function() {
     var b_ = b.createShadowRoot();
     b_.appendChild(createElement('c', 'x'));
 
-    var m = tv.b.findDeepElementMatching(a, 'c.x');
+    var m = tr.b.findDeepElementMatching(a, 'c.x');
     assert.equal(m, b_.children[0]);
   });
 
@@ -43,7 +43,7 @@ tv.b.unittest.testSuite(function() {
     b_.appendChild(createElement('c', 'x'));
     b_.appendChild(createElement('c', 'x'));
 
-    var m = tv.b.findDeepElementsMatching(a, 'c.x');
+    var m = tr.b.findDeepElementsMatching(a, 'c.x');
     assert.equal(m[0], b_.children[0]);
     assert.equal(m[1], b_.children[1]);
   });

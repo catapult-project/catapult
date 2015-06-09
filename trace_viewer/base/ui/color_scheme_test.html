@@ -10,15 +10,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var brighten = tv.b.ui.brightenColor;
-  var desaturate = tv.b.ui.desaturateColor;
+tr.b.unittest.testSuite(function() {
+  var brighten = tr.b.ui.brightenColor;
+  var desaturate = tr.b.ui.desaturateColor;
 
   test('buildColorPalette', function() {
-    var palette = tv.b.ui.getColorPalette();
-    var rawPalette = tv.b.ui.getRawColorPalette();
-    var highlightOffset = tv.b.ui.getColorPaletteHighlightIdBoost();
-    var desaturateOffset = tv.b.ui.getColorPaletteDesaturateIdBoost();
+    var palette = tr.b.ui.getColorPalette();
+    var rawPalette = tr.b.ui.getRawColorPalette();
+    var highlightOffset = tr.b.ui.getColorPaletteHighlightIdBoost();
+    var desaturateOffset = tr.b.ui.getColorPaletteDesaturateIdBoost();
 
     assert.strictEqual(palette.length, rawPalette.length);
     assert.equal(palette.length % 3, 0);

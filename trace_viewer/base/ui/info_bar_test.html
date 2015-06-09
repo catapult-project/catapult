@@ -8,16 +8,16 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var infoBar = document.createElement('tv-b-ui-info-bar');
+    var infoBar = document.createElement('tr-b-ui-info-bar');
     infoBar.message = 'This is an info';
     infoBar.visible = true;
     this.addHTMLOutput(infoBar);
   });
 
   test('buttons', function() {
-    var infoBar = document.createElement('tv-b-ui-info-bar');
+    var infoBar = document.createElement('tr-b-ui-info-bar');
     infoBar.visible = true;
     infoBar.message = 'This is an info bar with buttons';
     var didClick = false;
@@ -30,7 +30,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('hiding', function() {
-    var infoBar = document.createElement('tv-b-ui-info-bar');
+    var infoBar = document.createElement('tr-b-ui-info-bar');
     infoBar.message = 'This is an info bar';
     infoBar.visible = true;
     this.addHTMLOutput(infoBar);

@@ -17,13 +17,13 @@ found in the LICENSE file.
 /**
  * @fileoverview Base class for trace data Auditors.
  */
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
   function RAILInteractionRecord(title, colorId, start, duration) {
-    tv.c.trace_model.InteractionRecord.call(this,
+    tr.c.trace_model.InteractionRecord.call(this,
                                             title, colorId, start, duration);
   }
   RAILInteractionRecord.prototype = {
-    __proto__: tv.c.trace_model.InteractionRecord.prototype,
+    __proto__: tr.c.trace_model.InteractionRecord.prototype,
 
     updateArgs: function() {
       var args = {};
@@ -31,7 +31,7 @@ tv.exportTo('tv.e.audits', function() {
       var layoutSlices = this.associatedEvents.filter(function(event) {
         return event.title === 'FrameView::layout';
       });
-      var timeInLayout = tv.b.Statistics.sum(layoutSlices, function(event) {
+      var timeInLayout = tr.b.Statistics.sum(layoutSlices, function(event) {
         return event.duration;
       });
 

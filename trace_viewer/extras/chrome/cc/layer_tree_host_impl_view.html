@@ -17,33 +17,33 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.cc', function() {
+tr.exportTo('tr.e.cc', function() {
   /*
    * Displays a LayerTreeHostImpl snapshot in a human readable form.
    * @constructor
    */
-  var LayerTreeHostImplSnapshotView = tv.b.ui.define(
+  var LayerTreeHostImplSnapshotView = tr.b.ui.define(
       'layer-tree-host-impl-snapshot-view',
-      tv.c.analysis.ObjectSnapshotView);
+      tr.c.analysis.ObjectSnapshotView);
 
   LayerTreeHostImplSnapshotView.prototype = {
-    __proto__: tv.c.analysis.ObjectSnapshotView.prototype,
+    __proto__: tr.c.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('lthi-s-view');
 
       this.selection_ = undefined;
 
-      this.layerPicker_ = new tv.e.cc.LayerPicker();
+      this.layerPicker_ = new tr.e.cc.LayerPicker();
       this.layerPicker_.addEventListener(
           'selection-change',
           this.onLayerPickerSelectionChanged_.bind(this));
 
-      this.layerView_ = new tv.e.cc.LayerView();
+      this.layerView_ = new tr.e.cc.LayerView();
       this.layerView_.addEventListener(
           'selection-change',
           this.onLayerViewSelectionChanged_.bind(this));
-      this.dragHandle_ = new tv.b.ui.DragHandle();
+      this.dragHandle_ = new tr.b.ui.DragHandle();
       this.dragHandle_.horizontal = false;
       this.dragHandle_.target = this.layerView_;
 
@@ -89,7 +89,7 @@ tv.exportTo('tv.e.cc', function() {
       this.selection_ = selection;
       this.layerPicker_.selection = selection;
       this.layerView_.selection = selection;
-      tv.b.dispatchSimpleEvent(this, 'cc-selection-change');
+      tr.b.dispatchSimpleEvent(this, 'cc-selection-change');
     },
 
     onLayerPickerSelectionChanged_: function() {
@@ -98,13 +98,13 @@ tv.exportTo('tv.e.cc', function() {
       this.layerView_.layerTreeImpl = this.layerPicker_.layerTreeImpl;
       this.layerView_.isRenderPassQuads = this.layerPicker_.isRenderPassQuads;
       this.layerView_.regenerateContent();
-      tv.b.dispatchSimpleEvent(this, 'cc-selection-change');
+      tr.b.dispatchSimpleEvent(this, 'cc-selection-change');
     },
 
     onLayerViewSelectionChanged_: function() {
       this.selection_ = this.layerView_.selection;
       this.layerPicker_.selection = this.selection;
-      tv.b.dispatchSimpleEvent(this, 'cc-selection-change');
+      tr.b.dispatchSimpleEvent(this, 'cc-selection-change');
     },
 
     get extraHighlightsByLayerId() {
@@ -116,7 +116,7 @@ tv.exportTo('tv.e.cc', function() {
     }
   };
 
-  tv.c.analysis.ObjectSnapshotView.register(
+  tr.c.analysis.ObjectSnapshotView.register(
       LayerTreeHostImplSnapshotView, {typeName: 'cc::LayerTreeHostImpl'});
 
   return {

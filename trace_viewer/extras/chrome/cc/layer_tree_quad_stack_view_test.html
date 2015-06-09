@@ -14,9 +14,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('tileCoverageRectCount', function() {
-    var m = new tv.c.TraceModel(g_catLTHIEvents);
+    var m = new tr.c.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
 
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
@@ -24,9 +24,9 @@ tv.b.unittest.testSuite(function() {
     var numLayers = lthi.activeTree.renderSurfaceLayerList.length;
     var layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
 
-    var view = new tv.e.cc.LayerTreeQuadStackView();
+    var view = new tr.e.cc.LayerTreeQuadStackView();
     view.layerTreeImpl = lthi.activeTree;
-    view.selection = new tv.e.cc.LayerSelection(layer);
+    view.selection = new tr.e.cc.LayerSelection(layer);
     view.howToShowTiles = 'none';
     view.showInvalidations = false;
     view.showContents = false;

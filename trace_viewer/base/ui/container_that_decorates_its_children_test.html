@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   function createChild() {
     var span = document.createElement('span');
@@ -19,11 +19,11 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
   /**
    * @constructor
    */
-  var SimpleContainer = tv.b.ui.define(
-      'simple-container', tv.b.ui.ContainerThatDecoratesItsChildren);
+  var SimpleContainer = tr.b.ui.define(
+      'simple-container', tr.b.ui.ContainerThatDecoratesItsChildren);
 
   SimpleContainer.prototype = {
-    __proto__: tv.b.ui.ContainerThatDecoratesItsChildren.prototype,
+    __proto__: tr.b.ui.ContainerThatDecoratesItsChildren.prototype,
 
     decorateChild_: function(child) {
       assert.isFalse(child.decorated);

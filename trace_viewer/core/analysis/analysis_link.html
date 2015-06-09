@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/base/ui.html">
 
-<polymer-element name="tv-c-a-analysis-link" is="a">
+<polymer-element name="tr-c-a-analysis-link" is="a">
   <template>
     <style>
     :host {
@@ -55,7 +55,7 @@ found in the LICENSE file.
       if (!this.selection_)
         return;
 
-      var event = new tv.c.RequestSelectionChangeEvent();
+      var event = new tr.c.RequestSelectionChangeEvent();
       if (typeof this.selection_ === 'function')
         event.selection = this.selection_();
       else

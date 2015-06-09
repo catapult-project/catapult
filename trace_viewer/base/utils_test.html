@@ -32,19 +32,19 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
 
   test('getUsingPath', function() {
-    var z = tv.b.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
+    var z = tr.b.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
     assert.equal(z, 3);
 
-    var w = tv.b.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
+    var w = tr.b.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
     assert.isUndefined(w);
   });
 
   test('instantiateTemplatePolymer', function() {
-    var e = tv.b.instantiateTemplate(
+    var e = tr.b.instantiateTemplate(
                 '#instantiate-template-polymer-test',
                 THIS_DOC);
     assert.equal(e.children.length, 1);
@@ -52,7 +52,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('instantiateTemplateMultipleTemplates', function() {
-    var outerElement = tv.b.instantiateTemplate(
+    var outerElement = tr.b.instantiateTemplate(
                            '#multiple-template-test',
                            THIS_DOC);
     assert.equal(outerElement.children.length, 2);

@@ -18,15 +18,15 @@ found in the LICENSE file.
 /**
  * @fileoverview Helper functions for memory dump track tests.
  */
-tv.exportTo('tv.c.tracks', function() {
-  var ProcessMemoryDump = tv.c.trace_model.ProcessMemoryDump;
-  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
-  var MemoryAllocatorDump = tv.c.trace_model.MemoryAllocatorDump;
-  var VMRegion = tv.c.trace_model.VMRegion;
-  var VMRegionByteStats = tv.c.trace_model.VMRegionByteStats;
-  var TraceModel = tv.c.TraceModel;
-  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
-  var SelectionState = tv.c.trace_model.SelectionState;
+tr.exportTo('tr.c.tracks', function() {
+  var ProcessMemoryDump = tr.c.trace_model.ProcessMemoryDump;
+  var GlobalMemoryDump = tr.c.trace_model.GlobalMemoryDump;
+  var MemoryAllocatorDump = tr.c.trace_model.MemoryAllocatorDump;
+  var VMRegion = tr.c.trace_model.VMRegion;
+  var VMRegionByteStats = tr.c.trace_model.VMRegionByteStats;
+  var TraceModel = tr.c.TraceModel;
+  var ScalarAttribute = tr.c.trace_model.ScalarAttribute;
+  var SelectionState = tr.c.trace_model.SelectionState;
 
   function createVMRegions(pssValues) {
     return pssValues.map(function(pssValue, i) {
@@ -46,7 +46,7 @@ tv.exportTo('tv.c.tracks', function() {
 
   function createAllocatorDumps(memoryDump, dumpSizes) {
     var allocatorDumps = [];
-    tv.b.iterItems(dumpSizes, function(allocatorName, size) {
+    tr.b.iterItems(dumpSizes, function(allocatorName, size) {
       var dump = new MemoryAllocatorDump(memoryDump, allocatorName);
       dump.addAttribute('size', new ScalarAttribute('bytes', size));
       allocatorDumps.push(dump);
@@ -72,7 +72,7 @@ tv.exportTo('tv.c.tracks', function() {
     var maybeDumpSizes = function(dumpSizes) {
       return withAllocatorDumps ? dumpSizes : undefined;
     };
-    return tv.c.test_utils.newModel(function(model) {
+    return tr.c.test_utils.newModel(function(model) {
       // Construct a model with three processes.
       var pa = model.getOrCreateProcess(3);
       var pb = model.getOrCreateProcess(6);

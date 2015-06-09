@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/extras/drive/comment_element.html">
 
-<polymer-element name='tv-e-d-comments-side-panel'
-    extends='tv-c-side-panel'>
+<polymer-element name='tr-e-d-comments-side-panel'
+    extends='tr-c-side-panel'>
   <template>
     <style>
     :host {
@@ -57,7 +57,7 @@ found in the LICENSE file.
 
   Polymer({
     ready: function() {
-      this.rangeOfInterest_ = new tv.b.Range();
+      this.rangeOfInterest_ = new tr.b.Range();
       this.selection_ = undefined;
       this.comments_ = [];
       this.annotationFromComment_ = undefined;
@@ -70,7 +70,7 @@ found in the LICENSE file.
 
     attached: function() {
       if (this.commentProvider_ === undefined)
-        this.commentProvider_ = new tv.e.analysis.DefaultCommentProvider();
+        this.commentProvider_ = new tr.e.analysis.DefaultCommentProvider();
       this.commentProvider_.attachToElement(this);
     },
 
@@ -83,10 +83,10 @@ found in the LICENSE file.
       if (anchor === undefined)
         return;
 
-      var uiState = JSON.parse(anchor).a[0][tv.e.drive.constants.ANCHOR_NAME];
+      var uiState = JSON.parse(anchor).a[0][tr.e.drive.constants.ANCHOR_NAME];
 
       var myEvent = new CustomEvent('navigateToUIState', { detail:
-          new tv.c.UIState(new tv.c.Location(uiState.location.xWorld,
+          new tr.c.UIState(new tr.c.Location(uiState.location.xWorld,
                                              uiState.location.yComponents),
                                              uiState.scaleX)
           });
@@ -94,13 +94,13 @@ found in the LICENSE file.
 
       if (this.annotationFromComment_)
         this.model.removeAnnotation(this.annotationFromComment_);
-      var loc = new tv.c.Location(uiState.location.xWorld,
+      var loc = new tr.c.Location(uiState.location.xWorld,
                                   uiState.location.yComponents);
 
       var text = sender.comment.author.displayName + ': ' +
           sender.comment.content;
       this.annotationFromComment_ =
-          new tv.c.trace_model.CommentBoxAnnotation(loc, text);
+          new tr.c.trace_model.CommentBoxAnnotation(loc, text);
       this.model.addAnnotation(this.annotationFromComment_);
     },
 

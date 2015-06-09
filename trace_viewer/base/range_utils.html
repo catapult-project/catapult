@@ -12,7 +12,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides event merging functionality for grouping/analysis.
  */
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
   function mergeRanges(inRanges, mergeThreshold, mergeFunction) {
     return mergeExplicitRanges(inRanges,
                                mergeThreshold,
@@ -100,7 +100,7 @@ tv.exportTo('tv.e.audits', function() {
     var emptyRanges = [];
     if (!inRanges.length) {
       if (opt_totalRange) {
-        emptyRanges.push(tv.b.Range.fromExplicitRange(
+        emptyRanges.push(tr.b.Range.fromExplicitRange(
             startFunction(opt_totalRange), endFunction(opt_totalRange)));
       }
       return emptyRanges;
@@ -112,7 +112,7 @@ tv.exportTo('tv.e.audits', function() {
     });
     if (opt_totalRange &&
         (startFunction(opt_totalRange) < startFunction(inRanges[0]))) {
-      emptyRanges.push(tv.b.Range.fromExplicitRange(
+      emptyRanges.push(tr.b.Range.fromExplicitRange(
           startFunction(opt_totalRange), startFunction(inRanges[0])));
     }
 
@@ -125,7 +125,7 @@ tv.exportTo('tv.e.audits', function() {
         if (startFunction(other) > endFunction(range)) {
           // 'inRanges' is sorted, so 'other' is the first range after 'range',
           // and there is an empty range between them.
-          emptyRanges.push(tv.b.Range.fromExplicitRange(
+          emptyRanges.push(tr.b.Range.fromExplicitRange(
               endFunction(range), startFunction(other)));
           return;
         }
@@ -140,7 +140,7 @@ tv.exportTo('tv.e.audits', function() {
       }
       if (opt_totalRange &&
           (endFunction(range) < endFunction(opt_totalRange))) {
-        emptyRanges.push(tv.b.Range.fromExplicitRange(
+        emptyRanges.push(tr.b.Range.fromExplicitRange(
             endFunction(range), endFunction(opt_totalRange)));
       }
     });

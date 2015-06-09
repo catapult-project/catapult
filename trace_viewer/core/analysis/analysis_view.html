@@ -62,7 +62,7 @@ found in the LICENSE file.
 @fileoverview A component used to display an analysis of a selection,
 using custom elements specialized for different event types.
 -->
-<polymer-element name="tv-c-a-analysis-view">
+<polymer-element name="tr-c-a-analysis-view">
   <template>
     <style>
       :host {
@@ -86,7 +86,7 @@ using custom elements specialized for different event types.
   <script>
   'use strict';
   (function() {
-    var EventRegistry = tv.c.trace_model.EventRegistry;
+    var EventRegistry = tr.c.trace_model.EventRegistry;
 
     Polymer({
       ready: function() {
@@ -98,7 +98,7 @@ using custom elements specialized for different event types.
         this.onSelectedTabChange_ = this.onSelectedTabChange_.bind(this);
         this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
 
-        this.lastSeenSelection_ = new tv.c.Selection();
+        this.lastSeenSelection_ = new tr.c.Selection();
       },
 
       set tallMode(value) {
@@ -169,7 +169,7 @@ using custom elements specialized for different event types.
 
         var eventsByBaseTypeName = selection.getEventsOrganizedByBaseType(true);
 
-        var numBaseTypesToAnalyze = tv.b.dictionaryLength(eventsByBaseTypeName);
+        var numBaseTypesToAnalyze = tr.b.dictionaryLength(eventsByBaseTypeName);
         for (var eventTypeName in eventsByBaseTypeName) {
           var subSelection = eventsByBaseTypeName[eventTypeName];
           var subView = this.createSubViewForSelection_(
@@ -189,7 +189,7 @@ using custom elements specialized for different event types.
 
         // If that fails, look for a tab with that typeName.
         if (!tab && lastSelectedTabTypeName) {
-          var tab = tv.b.findFirstInArray(
+          var tab = tr.b.findFirstInArray(
               this.tabView_.children, function(tab) {
             return tab._eventTypeName === lastSelectedTabTypeName;
           });
@@ -217,7 +217,7 @@ using custom elements specialized for different event types.
         else
           tagName = eventTypeInfo.metadata.multiViewElementName;
 
-        if (!tv.b.getPolymerElementNamed(tagName))
+        if (!tr.b.getPolymerElementNamed(tagName))
           throw new Error('Element not registered: ' + tagName);
 
         // Create.

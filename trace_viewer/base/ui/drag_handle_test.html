@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   var createDragHandle = function() {
     var el = document.createElement('div');
     el.style.border = '1px solid black';
@@ -23,7 +23,7 @@ tv.b.unittest.testSuite(function() {
     var lowerEl = document.createElement('div');
     lowerEl.style.height = '100px';
 
-    var dragHandle = new tv.b.ui.DragHandle();
+    var dragHandle = new tr.b.ui.DragHandle();
     dragHandle.target = lowerEl;
 
     el.appendChild(upperEl);

@@ -9,9 +9,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('group-instantiate', function() {
-    var infoBarGroup = document.createElement('tv-b-ui-info-bar-group');
+    var infoBarGroup = document.createElement('tr-b-ui-info-bar-group');
     infoBarGroup.addMessage(
         'Message 1',
         [{buttonText: 'ok', onClick: function() {}}]);
@@ -22,7 +22,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('group-populate-then-clear', function() {
-    var infoBarGroup = document.createElement('tv-b-ui-info-bar-group');
+    var infoBarGroup = document.createElement('tr-b-ui-info-bar-group');
     infoBarGroup.addMessage(
         'Message 1',
         [{buttonText: 'ok', onClick: function() {}}]);
@@ -34,7 +34,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('group-populate-clear-repopulate', function() {
-    var infoBarGroup = document.createElement('tv-b-ui-info-bar-group');
+    var infoBarGroup = document.createElement('tr-b-ui-info-bar-group');
     infoBarGroup.addMessage(
         'Message 1',
         [{buttonText: 'ok', onClick: function() {}}]);

@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('memreclaimImport', function() {
     var lines = [
       ' surfaceflinger-1155  ( 1155) [001] ...1 12839.528756: ' +
@@ -24,7 +24,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
       ' kswapd0-33    (   33) [001] ...1 12838.529770: mm_vmscan_kswapd_wake: nid=0 order=2', // @suppress longLineCheck
       ' kswapd0-33    (   33) [001] ...1 12840.545737: mm_vmscan_kswapd_sleep: nid=0' // @suppress longLineCheck
     ];
-    var m = new tv.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.c.TraceModel(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
 
     assert.equal(m.processes['1155'].threads['1155'].sliceGroup.length, 1);

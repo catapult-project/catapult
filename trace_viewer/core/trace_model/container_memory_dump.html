@@ -13,20 +13,20 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the ContainerMemoryDump class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
   /**
    * The ContainerMemoryDump represents an abstract container memory dump.
    * @constructor
    */
   function ContainerMemoryDump(start) {
-    tv.c.trace_model.TimedEvent.call(this, start);
+    tr.c.trace_model.TimedEvent.call(this, start);
 
     this.memoryAllocatorDumps_ = undefined;
     this.memoryAllocatorDumpsByFullName_ = undefined;
   };
 
   ContainerMemoryDump.prototype = {
-    __proto__: tv.c.trace_model.TimedEvent.prototype,
+    __proto__: tr.c.trace_model.TimedEvent.prototype,
 
     shiftTimestampsForward: function(amount) {
       this.start += amount;

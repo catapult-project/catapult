@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('irqImport', function() {
     var lines = [
       ' kworker/u4:1-31907 (31907) [001] d.h3 14063.748288: ' +
@@ -23,7 +23,7 @@ tv.b.unittest.testSuite(function() {
       ' kworker/u4:2-31908 (31908) [000] ..s3 14063.477246: ' +
         'softirq_exit: vec=9 [action=RCU]'
     ];
-    var m = new tv.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.c.TraceModel(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();

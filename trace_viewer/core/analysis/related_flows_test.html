@@ -13,12 +13,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var newSliceEx = tv.c.test_utils.newSliceEx;
-  var newFlowEventEx = tv.c.test_utils.newFlowEventEx;
+tr.b.unittest.testSuite(function() {
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newFlowEventEx = tr.c.test_utils.newFlowEventEx;
 
   test('instantiate', function() {
-    var m = tv.c.test_utils.newModel(function(m) {
+    var m = tr.c.test_utils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
 
       m.t2 = m.p1.getOrCreateThread(2);
@@ -48,10 +48,10 @@ tv.b.unittest.testSuite(function() {
       });
     });
 
-    var inSel = new tv.c.Selection([m.f1]);
-    var outSel = new tv.c.Selection([m.f2]);
+    var inSel = new tr.c.Selection([m.f1]);
+    var outSel = new tr.c.Selection([m.f2]);
 
-    var viewEl = document.createElement('tv-c-a-related-flows');
+    var viewEl = document.createElement('tr-c-a-related-flows');
     viewEl.setFlows(inSel, outSel);
     this.addHTMLOutput(viewEl);
   });

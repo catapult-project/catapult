@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel='import' href='/base/ui/info_bar.html'>
 
-<polymer-element name='tv-b-ui-info-bar-group' is='HTMLUnknownElement'>
+<polymer-element name='tr-b-ui-info-bar-group' is='HTMLUnknownElement'>
   <template>
     <style>
     :host {
@@ -49,7 +49,7 @@ found in the LICENSE file.
     updateContents_: function() {
       this.$.messages.textContent = '';
       this.messages_.forEach(function(message) {
-        var bar = document.createElement('tv-b-ui-info-bar');
+        var bar = document.createElement('tr-b-ui-info-bar');
         bar.message = message.text;
         bar.visible = true;
 

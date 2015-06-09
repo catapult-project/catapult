@@ -13,31 +13,31 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function FakeSelectionController() {
-    tv.b.EventTarget.call(this);
+    tr.b.EventTarget.call(this);
 
     this.addAllEventsMatchingFilterToSelectionReturnValue = [];
 
     this.viewport = undefined;
     this.model = undefined;
-    this.selection = new tv.c.Selection();
-    this.highlight = new tv.c.Selection();
+    this.selection = new tr.c.Selection();
+    this.highlight = new tr.c.Selection();
   }
   FakeSelectionController.prototype = {
-    __proto__: tv.b.EventTarget.prototype
+    __proto__: tr.b.EventTarget.prototype
   };
 
   test('scriptingControllerBasicArithmetic', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.ScriptingController(selectionController);
+    var controller = new tr.c.ScriptingController(selectionController);
     var result = controller.executeCommand('1 + 1');
     assert.equal(result, 2);
   });
 
   test('scriptingControllerNonLocalContext', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.ScriptingController(selectionController);
+    var controller = new tr.c.ScriptingController(selectionController);
     var x = 1;
     controller.executeCommand('x = 2');
     assert.equal(x, 1);
@@ -45,7 +45,7 @@ tv.b.unittest.testSuite(function() {
 
   test('scriptingControllerModifyGlobalContext', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.ScriptingController(selectionController);
+    var controller = new tr.c.ScriptingController(selectionController);
     window._x = 1;
     controller.executeCommand('_x = 2');
     assert.equal(window._x, 2);
@@ -54,7 +54,7 @@ tv.b.unittest.testSuite(function() {
 
   test('scriptingControllerPersistentContext', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.ScriptingController(selectionController);
+    var controller = new tr.c.ScriptingController(selectionController);
     controller.executeCommand('a = 42');
     var result = controller.executeCommand('a');
     assert.equal(result, 42);
@@ -62,7 +62,7 @@ tv.b.unittest.testSuite(function() {
 
   test('scriptingControllerAddScriptObject', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tv.c.ScriptingController(selectionController);
+    var controller = new tr.c.ScriptingController(selectionController);
     controller.addScriptObject('z', 123);
     var result = controller.executeCommand('z');
     assert.equal(result, 123);
@@ -71,13 +71,13 @@ tv.b.unittest.testSuite(function() {
   test('scriptingControllerObjectRegistry', function() {
     var selectionController = new FakeSelectionController();
 
-    tv.c.ScriptingObjectRegistry.register(
+    tr.c.ScriptingObjectRegistry.register(
         function() { return 123; },
         {
           name: 'testFunctionName'
         }
     );
-    var controller = new tv.c.ScriptingController(selectionController);
+    var controller = new tr.c.ScriptingController(selectionController);
     var result = controller.executeCommand('testFunctionName()');
     assert.equal(result, 123);
   });

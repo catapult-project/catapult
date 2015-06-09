@@ -14,30 +14,30 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Model = tv.c.TraceModel;
-  var Selection = tv.c.Selection;
-  var newSliceEx = tv.c.test_utils.newSliceEx;
+tr.b.unittest.testSuite(function() {
+  var Model = tr.c.TraceModel;
+  var Selection = tr.c.Selection;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
 
   test('noSelection', function() {
-    var summaryTable = document.createElement('tv-c-a-selection-summary-table');
+    var summaryTable = document.createElement('tr-c-a-selection-summary-table');
     summaryTable.selection = undefined;
     this.addHTMLOutput(summaryTable);
 
-    var tableEl = tv.b.findDeepElementMatching(
-        summaryTable, 'tv-b-ui-table');
+    var tableEl = tr.b.findDeepElementMatching(
+        summaryTable, 'tr-b-ui-table');
     assert.equal(tableEl.tableRows[0].value, '<empty>');
     assert.equal(tableEl.tableRows[1].value, '<empty>');
   });
 
   test('emptySelection', function() {
-    var summaryTable = document.createElement('tv-c-a-selection-summary-table');
+    var summaryTable = document.createElement('tr-c-a-selection-summary-table');
     var selection = new Selection();
     summaryTable.selection = selection;
     this.addHTMLOutput(summaryTable);
 
-    var tableEl = tv.b.findDeepElementMatching(
-        summaryTable, 'tv-b-ui-table');
+    var tableEl = tr.b.findDeepElementMatching(
+        summaryTable, 'tr-b-ui-table');
     assert.equal(tableEl.tableRows[0].value, '<empty>');
     assert.equal(tableEl.tableRows[1].value, '<empty>');
   });
@@ -54,12 +54,12 @@ tv.b.unittest.testSuite(function() {
     selection.push(tsg.slices[0]);
     selection.push(tsg.slices[1]);
 
-    var summaryTable = document.createElement('tv-c-a-selection-summary-table');
+    var summaryTable = document.createElement('tr-c-a-selection-summary-table');
     summaryTable.selection = selection;
     this.addHTMLOutput(summaryTable);
 
-    var tableEl = tv.b.findDeepElementMatching(
-        summaryTable, 'tv-b-ui-table');
+    var tableEl = tr.b.findDeepElementMatching(
+        summaryTable, 'tr-b-ui-table');
     assert.equal(tableEl.tableRows[0].value.timestamp, 0);
     assert.equal(tableEl.tableRows[1].value.duration, 3);
   });

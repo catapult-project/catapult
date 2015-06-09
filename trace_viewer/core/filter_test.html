@@ -12,9 +12,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var TitleOrCategoryFilter = tv.c.TitleOrCategoryFilter;
-  var ExactTitleFilter = tv.c.ExactTitleFilter;
+tr.b.unittest.testSuite(function() {
+  var TitleOrCategoryFilter = tr.c.TitleOrCategoryFilter;
+  var ExactTitleFilter = tr.c.ExactTitleFilter;
 
   test('titleOrCategoryFilter', function() {
     assert.throw(function() {
@@ -24,14 +24,14 @@ tv.b.unittest.testSuite(function() {
       new TitleOrCategoryFilter('');
     });
 
-    var s0 = tv.c.test_utils.newSliceCategory('cat', 'a', 1, 3);
+    var s0 = tr.c.test_utils.newSliceCategory('cat', 'a', 1, 3);
     assert.isTrue(new TitleOrCategoryFilter('a').matchSlice(s0));
     assert.isTrue(new TitleOrCategoryFilter('cat').matchSlice(s0));
     assert.isTrue(new TitleOrCategoryFilter('at').matchSlice(s0));
     assert.isFalse(new TitleOrCategoryFilter('b').matchSlice(s0));
     assert.isFalse(new TitleOrCategoryFilter('X').matchSlice(s0));
 
-    var s1 = tv.c.test_utils.newSliceCategory('cat', 'abc', 1, 3);
+    var s1 = tr.c.test_utils.newSliceCategory('cat', 'abc', 1, 3);
     assert.isTrue(new TitleOrCategoryFilter('abc').matchSlice(s1));
     assert.isTrue(new TitleOrCategoryFilter('Abc').matchSlice(s1));
     assert.isTrue(new TitleOrCategoryFilter('cat').matchSlice(s1));
@@ -48,12 +48,12 @@ tv.b.unittest.testSuite(function() {
       new ExactTitleFilter('');
     });
 
-    var s0 = tv.c.test_utils.newSliceNamed('a', 1, 3);
+    var s0 = tr.c.test_utils.newSliceNamed('a', 1, 3);
     assert.isTrue(new ExactTitleFilter('a').matchSlice(s0));
     assert.isFalse(new ExactTitleFilter('b').matchSlice(s0));
     assert.isFalse(new ExactTitleFilter('A').matchSlice(s0));
 
-    var s1 = tv.c.test_utils.newSliceNamed('abc', 1, 3);
+    var s1 = tr.c.test_utils.newSliceNamed('abc', 1, 3);
     assert.isTrue(new ExactTitleFilter('abc').matchSlice(s1));
     assert.isFalse(new ExactTitleFilter('Abc').matchSlice(s1));
     assert.isFalse(new ExactTitleFilter('bc').matchSlice(s1));

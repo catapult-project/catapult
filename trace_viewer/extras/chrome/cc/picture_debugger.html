@@ -26,7 +26,7 @@ found in the LICENSE file.
     display: -webkit-flex;
   }
 
-  * /deep/ picture-debugger > tv-c-a-generic-object-view {
+  * /deep/ picture-debugger > tr-c-a-generic-object-view {
     -webkit-flex-direction: column;
     display: -webkit-flex;
     width: 400px;
@@ -103,7 +103,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.cc', function() {
+tr.exportTo('tr.e.cc', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -112,13 +112,13 @@ tv.exportTo('tv.e.cc', function() {
    *
    * @constructor
    */
-  var PictureDebugger = tv.b.ui.define('picture-debugger');
+  var PictureDebugger = tr.b.ui.define('picture-debugger');
 
   PictureDebugger.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tv.b.instantiateTemplate('#picture-debugger-template',
+      var node = tr.b.instantiateTemplate('#picture-debugger-template',
           THIS_DOC);
 
       this.appendChild(node);
@@ -134,8 +134,8 @@ tv.exportTo('tv.e.cc', function() {
 
       this.filename_ = this.querySelector('.filename');
 
-      this.drawOpsChartSummaryView_ = new tv.e.cc.PictureOpsChartSummaryView();
-      this.drawOpsChartView_ = new tv.e.cc.PictureOpsChartView();
+      this.drawOpsChartSummaryView_ = new tr.e.cc.PictureOpsChartSummaryView();
+      this.drawOpsChartView_ = new tr.e.cc.PictureOpsChartView();
       this.drawOpsChartView_.addEventListener(
           'selection-changed', this.onChartBarClicked_.bind(this));
 
@@ -145,12 +145,12 @@ tv.exportTo('tv.e.cc', function() {
 
       this.trackMouse_();
 
-      var overdrawCheckbox = tv.b.ui.createCheckBox(
+      var overdrawCheckbox = tr.b.ui.createCheckBox(
           this, 'showOverdraw',
           'pictureView.showOverdraw', false,
           'Show overdraw');
 
-      var chartCheckbox = tv.b.ui.createCheckBox(
+      var chartCheckbox = tr.b.ui.createCheckBox(
           this, 'showSummaryChart',
           'pictureView.showSummaryChart', false,
           'Show timing summary');
@@ -159,7 +159,7 @@ tv.exportTo('tv.e.cc', function() {
       pictureInfo.appendChild(overdrawCheckbox);
       pictureInfo.appendChild(chartCheckbox);
 
-      this.drawOpsView_ = new tv.e.cc.PictureOpsListView();
+      this.drawOpsView_ = new tr.e.cc.PictureOpsListView();
       this.drawOpsView_.addEventListener(
           'selection-changed', this.onChangeDrawOps_.bind(this));
 
@@ -167,7 +167,7 @@ tv.exportTo('tv.e.cc', function() {
       leftPanel.appendChild(this.drawOpsChartSummaryView_);
       leftPanel.appendChild(this.drawOpsView_);
 
-      var middleDragHandle = new tv.b.ui.DragHandle();
+      var middleDragHandle = new tr.b.ui.DragHandle();
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
@@ -176,14 +176,14 @@ tv.exportTo('tv.e.cc', function() {
           this.drawOpsChartView_,
           rightPanel.querySelector('picture-ops-chart-view'));
 
-      this.infoBar_ = document.createElement('tv-b-ui-info-bar');
+      this.infoBar_ = document.createElement('tr-b-ui-info-bar');
       this.rasterArea_.appendChild(this.infoBar_);
 
       this.insertBefore(middleDragHandle, rightPanel);
 
       this.picture_ = undefined;
 
-      tv.b.KeyEventManager.instance.addListener(
+      tr.b.KeyEventManager.instance.addListener(
           'keypress', this.onKeyPress_, this);
 
       // Add a mutation observer so that when the view is resized we can
@@ -294,7 +294,7 @@ tv.exportTo('tv.e.cc', function() {
       if (this.updateContentsPending_)
         return;
       this.updateContentsPending_ = true;
-      tv.b.requestAnimationFrameInThisFrameIfPossible(
+      tr.b.requestAnimationFrameInThisFrameIfPossible(
           this.updateContents_.bind(this)
       );
     },
@@ -320,7 +320,7 @@ tv.exportTo('tv.e.cc', function() {
       if (this.pictureAsImageData_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new tv.b.ui.Overlay();
+          var overlay = new tr.b.ui.Overlay();
           overlay.textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           e.stopPropagation();
@@ -373,7 +373,7 @@ tv.exportTo('tv.e.cc', function() {
         this.selectedOpIndex = 0;
         return;
       }
-      this.selectedOpIndex = tv.b.clamp(
+      this.selectedOpIndex = tr.b.clamp(
           this.selectedOpIndex + increment,
           0, this.numOps);
     },
@@ -417,13 +417,13 @@ tv.exportTo('tv.e.cc', function() {
     },
 
     trackMouse_: function() {
-      this.mouseModeSelector_ = new tv.b.ui.MouseModeSelector(this.rasterArea_);
+      this.mouseModeSelector_ = new tr.b.ui.MouseModeSelector(this.rasterArea_);
       this.rasterArea_.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.supportedModeMask =
-          tv.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.mode = tv.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.defaultMode = tv.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
+          tr.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.mode = tr.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.defaultMode = tr.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
       this.mouseModeSelector_.settingsKey = 'pictureDebugger.mouseModeSelector';
 
       this.mouseModeSelector_.addEventListener('beginzoom',

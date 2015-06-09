@@ -12,13 +12,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Slice = tv.c.trace_model.Slice;
-  var SliceGroup = tv.c.trace_model.SliceGroup;
-  var newSlice = tv.c.test_utils.newSlice;
-  var newSliceEx = tv.c.test_utils.newSliceEx;
-  var newSliceNamed = tv.c.test_utils.newSliceNamed;
-  var newThreadSlice = tv.c.test_utils.newThreadSlice;
+tr.b.unittest.testSuite(function() {
+  var Slice = tr.c.trace_model.Slice;
+  var SliceGroup = tr.c.trace_model.SliceGroup;
+  var newSlice = tr.c.test_utils.newSlice;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newThreadSlice = tr.c.test_utils.newThreadSlice;
 
 
   test('basicBeginEnd', function() {
@@ -693,7 +693,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('sliceGroupStableId', function() {
-    var model = new tv.c.TraceModel();
+    var model = new tr.c.TraceModel();
     var process = model.getOrCreateProcess(123);
     var thread = process.getOrCreateThread(456);
     var group = new SliceGroup(thread);
@@ -736,8 +736,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('computeCpuDurationNoOverlap', function() {
-    var model = new tv.c.TraceModel();
-    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var model = new tr.c.TraceModel();
+    var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
     var process = model.getOrCreateProcess(123);
     var t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
@@ -752,8 +752,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('computeCpuDurationPartialOverlap', function() {
-    var model = new tv.c.TraceModel();
-    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var model = new tr.c.TraceModel();
+    var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
     var process = model.getOrCreateProcess(123);
     var t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
@@ -768,8 +768,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('computeCpuDurationFullOverlap', function() {
-    var model = new tv.c.TraceModel();
-    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var model = new tr.c.TraceModel();
+    var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
     var process = model.getOrCreateProcess(123);
     var t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
@@ -784,8 +784,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('computeCpuSelfDurationWithSubslices', function() {
-    var model = new tv.c.TraceModel();
-    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var model = new tr.c.TraceModel();
+    var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
     var process = model.getOrCreateProcess(123);
     var t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
@@ -805,8 +805,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('computeCpuDurationSmallTimeslices', function() {
-    var model = new tv.c.TraceModel();
-    var SCHEDULING_STATE = tv.c.trace_model.SCHEDULING_STATE;
+    var model = new tr.c.TraceModel();
+    var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
     var process = model.getOrCreateProcess(123);
     var t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 1),

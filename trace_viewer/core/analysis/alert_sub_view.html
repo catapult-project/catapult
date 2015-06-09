@@ -12,8 +12,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/base/ui/table.html">
 
-<polymer-element name="tv-c-a-alert-sub-view"
-    extends="tv-c-a-sub-view">
+<polymer-element name="tr-c-a-alert-sub-view"
+    extends="tr-c-a-sub-view">
   <template>
     <style>
     :host {
@@ -25,8 +25,8 @@ found in the LICENSE file.
       align-self: stretch;
     }
     </style>
-    <tv-b-ui-table id="table">
-    </tv-b-ui-table>
+    <tr-b-ui-table id="table">
+    </tr-b-ui-table>
   </template>
   <script>
   'use strict';
@@ -64,7 +64,7 @@ found in the LICENSE file.
       // Arguments
       for (var argName in alert.args) {
         var argView =
-            document.createElement('tv-c-a-generic-object-view');
+            document.createElement('tr-c-a-generic-object-view');
         argView.object = alert.args[argName];
         rows.push({ name: argName, value: argView });
       }
@@ -72,13 +72,13 @@ found in the LICENSE file.
       // Associated events
       if (alert.associatedEvents.length) {
         alert.associatedEvents.forEach(function(event, i) {
-          var linkEl = document.createElement('tv-c-a-analysis-link');
+          var linkEl = document.createElement('tr-c-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
-            return new tv.c.Selection(event);
+            return new tr.c.Selection(event);
           }, event.title);
 
           var valueString = '';
-          if (event instanceof tv.c.trace_model.TimedEvent)
+          if (event instanceof tr.c.trace_model.TimedEvent)
             valueString = 'took ' + event.duration.toFixed(2) + 'ms';
 
           rows.push({
@@ -89,7 +89,7 @@ found in the LICENSE file.
       }
 
       // Description
-      var descriptionEl = tv.b.ui.createDiv({
+      var descriptionEl = tr.b.ui.createDiv({
           textContent: alert.info.description,
           maxWidth: '300px'
       });

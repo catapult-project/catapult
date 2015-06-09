@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c', function() {
+tr.exportTo('tr.c', function() {
   /**
    * YComponent is a class that handles storing the stableId and the percentage
    * offset in the y direction of all tracks within a specific viewX and viewY
@@ -59,7 +59,7 @@ tv.exportTo('tv.c', function() {
           viewY + viewport.modelTrackContainer.canvas.offsetTop);
     // Build yComponents by calculating percentage offset with respect to
     // each parent track.
-    while (elem instanceof tv.c.tracks.Track) {
+    while (elem instanceof tr.c.tracks.Track) {
       if (elem.eventContainer) {
         var boundRect = elem.getBoundingClientRect();
         var yPercentOffset = (viewY - boundRect.top) / boundRect.height;
@@ -86,7 +86,7 @@ tv.exportTo('tv.c', function() {
       return;
 
     var firstY = elem.getBoundingClientRect().top;
-    while (elem instanceof tv.c.tracks.Track) {
+    while (elem instanceof tr.c.tracks.Track) {
       if (elem.eventContainer) {
         var boundRect = elem.getBoundingClientRect();
         var yPercentOffset = (firstY - boundRect.top) / boundRect.height;

@@ -114,7 +114,7 @@ found in the LICENSE file.
   </style>
 
   <div class="record-selection-dialog">
-    <tv-b-ui-info-bar-group></tv-b-ui-info-bar-group>
+    <tr-b-ui-info-bar-group></tr-b-ui-info-bar-group>
     <div class="category-presets">
     </div>
     <div class="category-description"></div>
@@ -151,11 +151,11 @@ found in the LICENSE file.
 
 /**
  * @fileoverview RecordSelectionDialog presents the available categories
- * to be enabled/disabled during tv.c.
+ * to be enabled/disabled during tr.c.
  */
-tv.exportTo('tv.e.about_tracing', function() {
+tr.exportTo('tr.e.about_tracing', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
-  var RecordSelectionDialog = tv.b.ui.define('div');
+  var RecordSelectionDialog = tr.b.ui.define('div');
 
   var DEFAULT_PRESETS = [
     {title: 'Web developer',
@@ -190,15 +190,15 @@ tv.exportTo('tv.e.about_tracing', function() {
   var DEFAULT_SAMPLING_TRACING = false;
 
   RecordSelectionDialog.prototype = {
-    __proto__: tv.b.ui.Overlay.prototype,
+    __proto__: tr.b.ui.Overlay.prototype,
 
     decorate: function() {
-      tv.b.ui.Overlay.prototype.decorate.call(this);
+      tr.b.ui.Overlay.prototype.decorate.call(this);
       this.title = 'Record a new trace...';
 
       this.classList.add('record-dialog-overlay');
 
-      var node = tv.b.instantiateTemplate('#record-selection-dialog-template',
+      var node = tr.b.instantiateTemplate('#record-selection-dialog-template',
           THIS_DOC);
       this.appendChild(node);
 
@@ -212,7 +212,7 @@ tv.exportTo('tv.e.about_tracing', function() {
 
       this.categoriesView_ = this.querySelector('.categories-column-view');
       this.presetsEl_ = this.querySelector('.category-presets');
-      this.presetsEl_.appendChild(tv.b.ui.createOptionGroup(
+      this.presetsEl_.appendChild(tr.b.ui.createOptionGroup(
           this, 'currentlyChosenPreset',
           'about_tracing.record_selection_dialog_preset',
           DEFAULT_PRESETS[0].categoryFilter,
@@ -220,16 +220,16 @@ tv.exportTo('tv.e.about_tracing', function() {
             return { label: p.title, value: p.categoryFilter };
           })));
 
-      this.tracingRecordModeSltr_ = tv.b.ui.createSelector(
+      this.tracingRecordModeSltr_ = tr.b.ui.createSelector(
           this, 'tracingRecordMode',
           'recordSelectionDialog.tracingRecordMode',
           DEFAULT_RECORD_MODE, RECORDING_MODES);
 
-      this.systemTracingBn_ = tv.b.ui.createCheckBox(
+      this.systemTracingBn_ = tr.b.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useSystemTracing', true,
           'System tracing');
-      this.samplingTracingBn_ = tv.b.ui.createCheckBox(
+      this.samplingTracingBn_ = tr.b.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useSampling', false,
           'State sampling');
@@ -253,10 +253,10 @@ tv.exportTo('tv.e.about_tracing', function() {
           this.querySelector('.warning-default-disabled-categories'));
       this.editCategoriesOpened_ = false;
 
-      // TODO(chrishenry): When used with tv.b.ui.Overlay (such as in
+      // TODO(chrishenry): When used with tr.b.ui.Overlay (such as in
       // chrome://tracing, this does not yet look quite right due to
       // the 10px overlay content padding (but it's good enough).
-      this.infoBarGroup_ = this.querySelector('tv-b-ui-info-bar-group');
+      this.infoBarGroup_ = this.querySelector('tr-b-ui-info-bar-group');
 
       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
     },
@@ -362,7 +362,7 @@ tv.exportTo('tv.e.about_tracing', function() {
         for (var j = 0; j < categoryGroup.length; ++j) {
           var categoryEl = categoryGroup[j].children[0];
           categoryEl.checked = shouldReadFromSettings ?
-              tv.b.Settings.get(categoryEl.value, false, this.settings_key_) :
+              tr.b.Settings.get(categoryEl.value, false, this.settings_key_) :
               false;
         }
       }
@@ -459,7 +459,7 @@ tv.exportTo('tv.e.about_tracing', function() {
 
     onRecordButtonClicked_: function() {
       this.visible = false;
-      tv.b.dispatchSimpleEvent(this, 'recordclick');
+      tr.b.dispatchSimpleEvent(this, 'recordclick');
       return false;
     },
 
@@ -501,7 +501,7 @@ tv.exportTo('tv.e.about_tracing', function() {
         inputEl.id = category;
         inputEl.value = category;
 
-        inputEl.checked = tv.b.Settings.get(
+        inputEl.checked = tr.b.Settings.get(
             category, checkedDefault, this.settings_key_);
         inputEl.onclick = this.updateSetting_.bind(this);
 
@@ -522,7 +522,7 @@ tv.exportTo('tv.e.about_tracing', function() {
       // returned when we query the category list.
       var categorySet = {};
       var allCategories =
-          this.categories_.concat(tv.b.Settings.keys(this.settings_key_));
+          this.categories_.concat(tr.b.Settings.keys(this.settings_key_));
       var allCategoriesLength = allCategories.length;
       for (var i = 0; i < allCategoriesLength; ++i)
         categorySet[allCategories[i]] = true;
@@ -563,7 +563,7 @@ tv.exportTo('tv.e.about_tracing', function() {
 
     updateSetting_: function(e) {
       var checkbox = e.target;
-      tv.b.Settings.set(checkbox.value, checkbox.checked, this.settings_key_);
+      tr.b.Settings.set(checkbox.value, checkbox.checked, this.settings_key_);
 
       // Change the current record mode to 'Manually select settings' from
       // preset mode if and only if currently user is in preset record mode
@@ -623,7 +623,7 @@ tv.exportTo('tv.e.about_tracing', function() {
 
     createDefaultDisabledWarningDialog_: function(warningLink) {
       function onClickHandler(evt) {
-        this.warningOverlay_ = tv.b.ui.Overlay();
+        this.warningOverlay_ = tr.b.ui.Overlay();
         this.warningOverlay_.parentEl_ = this;
         this.warningOverlay_.title = 'Warning...';
         this.warningOverlay_.userCanClose = true;
@@ -631,7 +631,7 @@ tv.exportTo('tv.e.about_tracing', function() {
 
         this.setWarningDialogOverlayText_([
           'Enabling the default disabled categories may have',
-          'performance and memory impact while tv.c.'
+          'performance and memory impact while tr.c.'
         ]);
 
         evt.preventDefault();

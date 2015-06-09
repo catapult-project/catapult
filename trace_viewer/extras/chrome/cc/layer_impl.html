@@ -14,9 +14,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.cc', function() {
-  var constants = tv.e.cc.constants;
-  var ObjectSnapshot = tv.c.trace_model.ObjectSnapshot;
+tr.exportTo('tr.e.cc', function() {
+  var constants = tr.e.cc.constants;
+  var ObjectSnapshot = tr.c.trace_model.ObjectSnapshot;
 
   /**
    * @constructor
@@ -29,7 +29,7 @@ tv.exportTo('tv.e.cc', function() {
     __proto__: ObjectSnapshot.prototype,
 
     preInitialize: function() {
-      tv.e.cc.preInitializeObject(this);
+      tr.e.cc.preInitializeObject(this);
 
       this.layerTreeImpl_ = undefined;
       this.parentLayer = undefined;
@@ -37,16 +37,16 @@ tv.exportTo('tv.e.cc', function() {
 
     initialize: function() {
       // Defaults.
-      this.invalidation = new tv.e.cc.Region();
-      this.annotatedInvalidation = new tv.e.cc.Region();
-      this.unrecordedRegion = new tv.e.cc.Region();
+      this.invalidation = new tr.e.cc.Region();
+      this.annotatedInvalidation = new tr.e.cc.Region();
+      this.unrecordedRegion = new tr.e.cc.Region();
       this.pictures = [];
 
       // Import & validate this.args
-      tv.e.cc.moveRequiredFieldsFromArgsToToplevel(
+      tr.e.cc.moveRequiredFieldsFromArgsToToplevel(
           this, ['layerId', 'children',
                  'layerQuad']);
-      tv.e.cc.moveOptionalFieldsFromArgsToToplevel(
+      tr.e.cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['maskLayer', 'replicaLayer',
                  'idealContentsScale', 'geometryContentsScale',
                  'layoutRects', 'usingGpuRasterization']);
@@ -55,13 +55,13 @@ tv.exportTo('tv.e.cc', function() {
       this.gpuMemoryUsageInBytes = this.args.gpuMemoryUsage;
 
       // Leave bounds in both places.
-      this.bounds = tv.b.Rect.fromXYWH(
+      this.bounds = tr.b.Rect.fromXYWH(
           0, 0,
           this.args.bounds.width, this.args.bounds.height);
 
       if (this.args.animationBounds) {
         // AnimationBounds[2] and [5] are the Z-component of the box.
-        this.animationBoundsRect = tv.b.Rect.fromXYWH(
+        this.animationBoundsRect = tr.b.Rect.fromXYWH(
             this.args.animationBounds[0], this.args.animationBounds[1],
             this.args.animationBounds[3], this.args.animationBounds[4]);
       }
@@ -77,11 +77,11 @@ tv.exportTo('tv.e.cc', function() {
       if (!this.idealContentsScale)
         this.idealContentsScale = 1.0;
 
-      this.touchEventHandlerRegion = tv.e.cc.Region.fromArrayOrUndefined(
+      this.touchEventHandlerRegion = tr.e.cc.Region.fromArrayOrUndefined(
           this.args.touchEventHandlerRegion);
-      this.wheelEventHandlerRegion = tv.e.cc.Region.fromArrayOrUndefined(
+      this.wheelEventHandlerRegion = tr.e.cc.Region.fromArrayOrUndefined(
           this.args.wheelEventHandlerRegion);
-      this.nonFastScrollableRegion = tv.e.cc.Region.fromArrayOrUndefined(
+      this.nonFastScrollableRegion = tr.e.cc.Region.fromArrayOrUndefined(
           this.args.nonFastScrollableRegion);
     },
 
@@ -125,11 +125,11 @@ tv.exportTo('tv.e.cc', function() {
       LayerImplSnapshot.prototype.initialize.call(this);
 
       if (this.args.invalidation) {
-        this.invalidation = tv.e.cc.Region.fromArray(this.args.invalidation);
+        this.invalidation = tr.e.cc.Region.fromArray(this.args.invalidation);
         delete this.args.invalidation;
       }
       if (this.args.annotatedInvalidationRects) {
-        this.annotatedInvalidation = new tv.e.cc.Region();
+        this.annotatedInvalidation = new tr.e.cc.Region();
         for (var i = 0; i < this.args.annotatedInvalidationRects.length; ++i) {
           var annotatedRect = this.args.annotatedInvalidationRects[i];
           var rect = annotatedRect.geometryRect;
@@ -139,7 +139,7 @@ tv.exportTo('tv.e.cc', function() {
         delete this.args.annotatedInvalidationRects;
       }
       if (this.args.unrecordedRegion) {
-        this.unrecordedRegion = tv.e.cc.Region.fromArray(
+        this.unrecordedRegion = tr.e.cc.Region.fromArray(
             this.args.unrecordedRegion);
         delete this.args.unrecordedRegion;
       }
@@ -158,7 +158,7 @@ tv.exportTo('tv.e.cc', function() {
           var rect = this.args.coverageTiles[i].geometryRect.scale(
               this.idealContentsScale);
           var tile = this.args.coverageTiles[i].tile;
-          this.tileCoverageRects.push(new tv.e.cc.TileCoverageRect(rect, tile));
+          this.tileCoverageRects.push(new tr.e.cc.TileCoverageRect(rect, tile));
         }
         delete this.args.coverageTiles;
       }

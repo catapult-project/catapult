@@ -16,10 +16,10 @@ found in the LICENSE file.
 var global = this;
 
 /** Platform, package, object property, and Event support. */
-this.tv = (function() {
-  if (window.tv) {
+this.tr = (function() {
+  if (window.tr) {
     console.warn('Base was multiply initialized. First init wins.');
-    return window.tv;
+    return window.tr;
   }
 
   /**
@@ -159,12 +159,12 @@ this.tv = (function() {
       }
     }
 
-    tv.doc = document;
+    tr.doc = document;
 
-    tv.isMac = /Mac/.test(navigator.platform);
-    tv.isWindows = /Win/.test(navigator.platform);
-    tv.isChromeOS = /CrOS/.test(navigator.userAgent);
-    tv.isLinux = /Linux/.test(navigator.userAgent);
+    tr.isMac = /Mac/.test(navigator.platform);
+    tr.isWindows = /Win/.test(navigator.platform);
+    tr.isChromeOS = /CrOS/.test(navigator.userAgent);
+    tr.isLinux = /Linux/.test(navigator.userAgent);
   }
 
   return {
@@ -179,5 +179,5 @@ this.tv = (function() {
   };
 })();
 
-tv.initialize();
+tr.initialize();
 </script>

@@ -9,7 +9,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function SimpleAnimation(options) {
     this.stopTime = options.stopTime;
 
@@ -20,7 +20,7 @@ tv.b.unittest.testSuite(function() {
   }
 
   SimpleAnimation.prototype = {
-    __proto__: tv.b.ui.Animation.prototype,
+    __proto__: tr.b.ui.Animation.prototype,
 
     canTakeOverFor: function(existingAnimation) {
       return false;
@@ -54,13 +54,13 @@ tv.b.unittest.testSuite(function() {
       cloneAnimationState: function() { return {x: this.x}; }
     };
 
-    var controller = new tv.b.ui.AnimationController();
+    var controller = new tr.b.ui.AnimationController();
     controller.target = target;
 
     var animation = new SimpleAnimation({stopTime: 100});
     controller.queueAnimation(animation);
 
-    tv.b.forcePendingRAFTasksToRun(0);
+    tr.b.forcePendingRAFTasksToRun(0);
     assert.equal(animation.tickCount, 1);
     controller.cancelActiveAnimation();
     assert.isFalse(controller.hasActiveAnimation);
@@ -73,31 +73,31 @@ tv.b.unittest.testSuite(function() {
       cloneAnimationState: function() { return {x: this.x}; }
     };
 
-    var controller = new tv.b.ui.AnimationController();
+    var controller = new tr.b.ui.AnimationController();
     controller.target = target;
 
     var animation = new SimpleAnimation({stopTime: 100});
     controller.queueAnimation(animation);
 
-    tv.b.forcePendingRAFTasksToRun(0);
+    tr.b.forcePendingRAFTasksToRun(0);
     assert.equal(animation.tickCount, 1);
     assert.isTrue(controller.hasActiveAnimation);
 
-    tv.b.forcePendingRAFTasksToRun(100);
+    tr.b.forcePendingRAFTasksToRun(100);
     assert.equal(animation.tickCount, 2);
     assert.isFalse(controller.hasActiveAnimation);
   });
 
   test('queueTwo', function() {
     // Clear all pending rafs so if something is lingering it will blow up here.
-    tv.b.forcePendingRAFTasksToRun(0);
+    tr.b.forcePendingRAFTasksToRun(0);
 
     var target = {
       x: 0,
       cloneAnimationState: function() { return {x: this.x}; }
     };
 
-    var controller = new tv.b.ui.AnimationController();
+    var controller = new tr.b.ui.AnimationController();
     controller.target = target;
 
     var a1 = new SimpleAnimation({stopTime: 100});
@@ -108,7 +108,7 @@ tv.b.unittest.testSuite(function() {
     assert.isTrue(a1.didStopEarlyCalled);
     assert.isTrue(a2.startCalled);
 
-    tv.b.forcePendingRAFTasksToRun(150);
+    tr.b.forcePendingRAFTasksToRun(150);
     assert.isFalse(controller.hasActiveAnimation);
     assert.isAbove(a2.tickCount, 0);
   });
@@ -121,7 +121,7 @@ tv.b.unittest.testSuite(function() {
   }
 
   AnimationThatCanTakeOverForSimpleAnimation.prototype = {
-    __proto__: tv.b.ui.Animation.prototype,
+    __proto__: tr.b.ui.Animation.prototype,
 
 
     canTakeOverFor: function(existingAnimation) {
@@ -143,7 +143,7 @@ tv.b.unittest.testSuite(function() {
       cloneAnimationState: function() { return {x: this.x}; }
     };
 
-    var controller = new tv.b.ui.AnimationController();
+    var controller = new tr.b.ui.AnimationController();
     controller.target = target;
 
     var a1 = new SimpleAnimation({stopTime: 100});

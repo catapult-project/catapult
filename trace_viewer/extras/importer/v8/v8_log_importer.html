@@ -19,8 +19,8 @@ found in the LICENSE file.
 /**
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
-tv.exportTo('tv.e.importer.v8', function() {
-  var Importer = tv.c.importer.Importer;
+tr.exportTo('tr.e.importer.v8', function() {
+  var Importer = tr.c.importer.Importer;
 
   function V8LogImporter(model, eventData) {
     this.importPriority = 3;
@@ -28,11 +28,11 @@ tv.exportTo('tv.e.importer.v8', function() {
 
     this.logData_ = eventData;
 
-    this.code_map_ = new tv.e.importer.v8.CodeMap();
+    this.code_map_ = new tr.e.importer.v8.CodeMap();
     this.v8_timer_thread_ = undefined;
     this.v8_thread_ = undefined;
 
-    this.root_stack_frame_ = new tv.c.trace_model.StackFrame(
+    this.root_stack_frame_ = new tr.c.trace_model.StackFrame(
         undefined, 'v8-root-stack-frame',
         'v8-root-stack-frame', 'v8-root-stack-frame', 0);
 
@@ -82,8 +82,8 @@ tv.exportTo('tv.e.importer.v8', function() {
       if (args === undefined) return;
       start /= 1000;  // Convert to milliseconds.
       length /= 1000;
-      var colorId = tv.b.ui.getColorIdForGeneralPurposeString(name);
-      var slice = new tv.c.trace_model.Slice('v8', name, colorId, start,
+      var colorId = tr.b.ui.getColorIdForGeneralPurposeString(name);
+      var slice = new tr.c.trace_model.Slice('v8', name, colorId, start,
           args, length);
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
     },
@@ -101,7 +101,7 @@ tv.exportTo('tv.e.importer.v8', function() {
     },
 
     processCodeCreateEvent_: function(type, kind, address, size, name) {
-      var code_entry = new tv.e.importer.v8.CodeMap.CodeEntry(size, name);
+      var code_entry = new tr.e.importer.v8.CodeMap.CodeEntry(size, name);
       code_entry.kind = kind;
       this.code_map_.addCode(address, code_entry);
     },
@@ -115,7 +115,7 @@ tv.exportTo('tv.e.importer.v8', function() {
     },
 
     processSharedLibrary_: function(name, start, end) {
-      var code_entry = new tv.e.importer.v8.CodeMap.CodeEntry(
+      var code_entry = new tr.e.importer.v8.CodeMap.CodeEntry(
           end - start, name);
       code_entry.kind = -3;  // External code kind.
       for (var i = 0; i < kV8BinarySuffixes.length; i++) {
@@ -162,10 +162,10 @@ tv.exportTo('tv.e.importer.v8', function() {
           var childFrame = findChildWithEntryID(lastStackFrame, entryID);
           if (childFrame === undefined) {
             var entryName = entry ? entry.name : 'Unknown';
-            lastStackFrame = new tv.c.trace_model.StackFrame(
-                lastStackFrame, 'v8sf-' + tv.b.GUID.allocate(),
+            lastStackFrame = new tr.c.trace_model.StackFrame(
+                lastStackFrame, 'v8sf-' + tr.b.GUID.allocate(),
                 'v8', entryName,
-                tv.b.ui.getColorIdForGeneralPurposeString(entryName));
+                tr.b.ui.getColorIdForGeneralPurposeString(entryName));
             lastStackFrame.entryID = entryID;
             this.model_.addStackFrame(lastStackFrame);
           } else {
@@ -177,16 +177,16 @@ tv.exportTo('tv.e.importer.v8', function() {
         var pcEntryID = 'v8pc-' + (pcEntry ? pcEntry.id : 'Unknown');
         if (this.model_.stackFrames[pcEntryID] === undefined) {
           var pcEntryName = pcEntry ? pcEntry.name : 'Unknown';
-          lastStackFrame = new tv.c.trace_model.StackFrame(
+          lastStackFrame = new tr.c.trace_model.StackFrame(
               undefined, pcEntryID,
               'v8', pcEntryName,
-              tv.b.ui.getColorIdForGeneralPurposeString(pcEntryName));
+              tr.b.ui.getColorIdForGeneralPurposeString(pcEntryName));
           this.model_.addStackFrame(lastStackFrame);
         }
         lastStackFrame = this.model_.stackFrames[pcEntryID];
       }
 
-      var sample = new tv.c.trace_model.Sample(
+      var sample = new tr.c.trace_model.Sample(
           undefined, this.v8_thread_, 'V8 PC',
           start, lastStackFrame, 1);
       this.model_.samples.push(sample);
@@ -210,7 +210,7 @@ tv.exportTo('tv.e.importer.v8', function() {
      * model_.
      */
     importEvents: function() {
-      var logreader = new tv.e.importer.v8.LogReader(
+      var logreader = new tr.e.importer.v8.LogReader(
           { 'timer-event' : {
             parsers: [null, parseInt, parseInt],
             processor: this.processTimerEvent_.bind(this)
@@ -277,8 +277,8 @@ tv.exportTo('tv.e.importer.v8', function() {
       function addSlices(slices, thread) {
         for (var i = 0; i < slices.length; i++) {
           var duration = slices[i].end - slices[i].start;
-          var slice = new tv.c.trace_model.Slice('v8', slices[i].name,
-              tv.b.ui.getColorIdForGeneralPurposeString(slices[i].name),
+          var slice = new tr.c.trace_model.Slice('v8', slices[i].name,
+              tr.b.ui.getColorIdForGeneralPurposeString(slices[i].name),
               slices[i].start, {}, duration);
           thread.sliceGroup.pushSlice(slice);
           addSlices(slices[i].children, thread);
@@ -288,7 +288,7 @@ tv.exportTo('tv.e.importer.v8', function() {
     }
   };
 
-  tv.c.importer.Importer.register(V8LogImporter);
+  tr.c.importer.Importer.register(V8LogImporter);
 
   return {
     V8LogImporter: V8LogImporter

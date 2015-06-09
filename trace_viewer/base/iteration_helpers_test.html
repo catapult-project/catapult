@@ -8,9 +8,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var comparePossiblyUndefinedValues = tv.b.comparePossiblyUndefinedValues;
-  var compareArrays = tv.b.compareArrays;
+tr.b.unittest.testSuite(function() {
+  var comparePossiblyUndefinedValues = tr.b.comparePossiblyUndefinedValues;
+  var compareArrays = tr.b.compareArrays;
 
   test('comparePossiblyUndefinedValues', function() {
     function cmp(x, y) {
@@ -53,7 +53,7 @@ tv.b.unittest.testSuite(function() {
   test('mapItems', function() {
     // Empty dictionary.
     var srcDict = {};
-    var dstDict = tv.b.mapItems(srcDict, function(key, value) {
+    var dstDict = tr.b.mapItems(srcDict, function(key, value) {
       return value;
     });
     assert.lengthOf(Object.keys(srcDict), 0);
@@ -62,7 +62,7 @@ tv.b.unittest.testSuite(function() {
 
     // Non-empty dictionary.
     var srcDict = {a: 0, b: 30};
-    var dstDict = tv.b.mapItems(srcDict, function(key, value) {
+    var dstDict = tr.b.mapItems(srcDict, function(key, value) {
       return 9 * value / 5 + 32;
     });
     assert.lengthOf(Object.keys(srcDict), 2);
@@ -75,7 +75,7 @@ tv.b.unittest.testSuite(function() {
 
     // Optional 'this' argument.
     var srcDict = {c: '?', d: '!', e: '.'};
-    var dstDict = tv.b.mapItems(srcDict, function(key, value) {
+    var dstDict = tr.b.mapItems(srcDict, function(key, value) {
       return key + this.delimiter + value;
     }, {delimiter: '='});
     assert.lengthOf(Object.keys(srcDict), 3);
@@ -90,7 +90,7 @@ tv.b.unittest.testSuite(function() {
 
     // Inherited properties should not be mapped.
     var srcDict = {__proto__: {a: 10}};
-    var dstDict = tv.b.mapItems(srcDict, function(key, value) {
+    var dstDict = tr.b.mapItems(srcDict, function(key, value) {
       return value;
     });
     assert.lengthOf(Object.keys(srcDict), 0);
@@ -99,18 +99,18 @@ tv.b.unittest.testSuite(function() {
 
   test('identity', function() {
     // Undefined value.
-    assert.isUndefined(tv.b.identity(undefined));
+    assert.isUndefined(tr.b.identity(undefined));
 
     // Primitive value.
-    assert.equal(tv.b.identity(-273.15), -273.15);
+    assert.equal(tr.b.identity(-273.15), -273.15);
 
     // List.
     var list = ['list', 'with', 1, undefined, 'value'];
-    assert.strictEqual(tv.b.identity(list), list);
+    assert.strictEqual(tr.b.identity(list), list);
 
     // Object.
     var object = {'hasItems': true};
-    assert.strictEqual(tv.b.identity(object), object);
+    assert.strictEqual(tr.b.identity(object), object);
   });
 });
 </script>

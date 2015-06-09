@@ -35,10 +35,10 @@ found in the LICENSE file.
   </div>
   <middle-container>
     <track-view-container></track-view-container>
-    <tv-c-side-panel-container></tv-c-side-panel-container>
+    <tr-c-side-panel-container></tr-c-side-panel-container>
   </middle-container>
   <x-drag-handle></x-drag-handle>
-  <tv-c-a-analysis-view id="analysis"></tv-c-a-analysis-view>
+  <tr-c-a-analysis-view id="analysis"></tr-c-a-analysis-view>
 </template>
 
 <template id="help-btn-template">
@@ -212,9 +212,9 @@ found in the LICENSE file.
 
 /**
  * @fileoverview View visualizes TRACE_EVENT events using the
- * tv.c.Timeline component and adds in selection summary and control buttons.
+ * tr.c.Timeline component and adds in selection summary and control buttons.
  */
-tv.exportTo('tv.c', function() {
+tr.exportTo('tr.c', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -222,13 +222,13 @@ tv.exportTo('tv.c', function() {
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var TimelineView = tv.b.ui.define('x-timeline-view');
+  var TimelineView = tr.b.ui.define('x-timeline-view');
 
   TimelineView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tv.b.instantiateTemplate('#timeline-view-template', THIS_DOC);
+      var node = tr.b.instantiateTemplate('#timeline-view-template', THIS_DOC);
       this.appendChild(node);
 
       this.titleEl_ = this.querySelector('.title');
@@ -236,14 +236,14 @@ tv.exportTo('tv.c', function() {
       this.rightControlsEl_ = this.querySelector('#right-controls');
       this.collapsingControlsEl_ = this.querySelector('#collapsing-controls');
       this.sidePanelContainer_ = this.querySelector(
-          'tv-c-side-panel-container');
+          'tr-c-side-panel-container');
       this.trackViewContainer_ = this.querySelector('track-view-container');
 
-      this.selectionController_ = new tv.c.SelectionController(this);
+      this.selectionController_ = new tr.c.SelectionController(this);
       this.selectionController_.historyEnabled = true;
 
       this.findCtl_ = new TracingFindControl();
-      this.findCtl_.controller = new tv.c.FindController(
+      this.findCtl_.controller = new tr.c.FindController(
           this.selectionController_);
       this.findCtl_.addEventListener('keydown', function(e) {
         if (e.keyCode === 27) { // ESC
@@ -253,23 +253,23 @@ tv.exportTo('tv.c', function() {
       }.bind(this));
 
       this.scriptingCtl_ = new TracingScriptingControl();
-      this.scriptingCtl_.controller = new tv.c.ScriptingController(
+      this.scriptingCtl_.controller = new tr.c.ScriptingController(
           this.selectionController_);
 
       this.sidePanelContainer_.selectionController = this.selectionController_;
 
-      this.optionsDropdown_ = document.createElement('tv-b-ui-dropdown');
+      this.optionsDropdown_ = document.createElement('tr-b-ui-dropdown');
       this.optionsDropdown_.iconElement.textContent = 'View Options';
 
       this.showFlowEvents_ = false;
-      this.optionsDropdown_.appendChild(tv.b.ui.createCheckBox(
+      this.optionsDropdown_.appendChild(tr.b.ui.createCheckBox(
           this, 'showFlowEvents',
-          'tv.c.TimelineView.showFlowEvents', false,
+          'tr.c.TimelineView.showFlowEvents', false,
           'Flow events'));
       this.highlightVSync_ = false;
-      this.highlightVSyncCheckbox_ = tv.b.ui.createCheckBox(
+      this.highlightVSyncCheckbox_ = tr.b.ui.createCheckBox(
           this, 'highlightVSync',
-          'tv.c.TimelineView.highlightVSync', false,
+          'tr.c.TimelineView.highlightVSync', false,
           'Highlight VSync');
       this.optionsDropdown_.appendChild(this.highlightVSyncCheckbox_);
 
@@ -282,7 +282,7 @@ tv.exportTo('tv.c', function() {
       this.collapsingControls.appendChild(this.scriptingCtl_);
 
       this.dragEl_ = this.querySelector('x-drag-handle');
-      tv.b.ui.decorate(this.dragEl_, tv.b.ui.DragHandle);
+      tr.b.ui.decorate(this.dragEl_, tr.b.ui.DragHandle);
 
       this.analysisEl_ = this.querySelector('#analysis');
       this.analysisEl_.selectionController = this.selectionController_;
@@ -309,9 +309,9 @@ tv.exportTo('tv.c', function() {
       else
         hue = this.model.faviconHue;
 
-      var faviconData = tv.c.FaviconsByHue[hue];
+      var faviconData = tr.c.FaviconsByHue[hue];
       if (faviconData === undefined)
-        faviconData = tv.c.FaviconsByHue['blue'];
+        faviconData = tr.c.FaviconsByHue['blue'];
 
       // Find link if its there
       var link = document.head.querySelector('link[rel="shortcut icon"]');
@@ -346,11 +346,11 @@ tv.exportTo('tv.c', function() {
     },
 
     createHelpButton_: function() {
-      var node = tv.b.instantiateTemplate('#help-btn-template', THIS_DOC);
+      var node = tr.b.instantiateTemplate('#help-btn-template', THIS_DOC);
       var showEl = node.querySelector('.view-help-button');
       var helpTextEl = node.querySelector('.view-help-text');
 
-      var dlg = new tv.b.ui.Overlay();
+      var dlg = new tr.b.ui.Overlay();
       dlg.title = 'chrome://tracing Help';
       dlg.classList.add('view-help-overlay');
       dlg.appendChild(node);
@@ -358,7 +358,7 @@ tv.exportTo('tv.c', function() {
       function onClick(e) {
         dlg.visible = !dlg.visible;
 
-        var mod = tv.isMac ? 'cmd ' : 'ctrl';
+        var mod = tr.isMac ? 'cmd ' : 'ctrl';
         var spans = helpTextEl.querySelectorAll('span.mod');
         for (var i = 0; i < spans.length; i++) {
           spans[i].textContent = mod;
@@ -374,7 +374,7 @@ tv.exportTo('tv.c', function() {
     },
 
     createConsoleButton_: function() {
-      var node = tv.b.instantiateTemplate('#console-btn-template', THIS_DOC);
+      var node = tr.b.instantiateTemplate('#console-btn-template', THIS_DOC);
       var toggleEl = node.querySelector('.view-console-button');
 
       function onClick(e) {
@@ -388,11 +388,11 @@ tv.exportTo('tv.c', function() {
     },
 
     createMetadataButton_: function() {
-      var node = tv.b.instantiateTemplate('#metadata-btn-template', THIS_DOC);
+      var node = tr.b.instantiateTemplate('#metadata-btn-template', THIS_DOC);
       var showEl = node.querySelector('.view-metadata-button');
       var textEl = node.querySelector('.info-button-text');
 
-      var dlg = new tv.b.ui.Overlay();
+      var dlg = new tr.b.ui.Overlay();
       dlg.title = 'Metadata for trace';
       dlg.classList.add('view-metadata-overlay');
       dlg.appendChild(node);
@@ -480,7 +480,7 @@ tv.exportTo('tv.c', function() {
 
       // Create new trackView if needed.
       if (modelValid && !this.trackView_) {
-        this.trackView_ = new tv.c.TimelineTrackView(this);
+        this.trackView_ = new tr.c.TimelineTrackView(this);
 
         this.trackView.selectionController = this.selectionController_;
 
@@ -500,7 +500,7 @@ tv.exportTo('tv.c', function() {
 
       // Do things that are selection specific
       if (modelInstanceChanged) {
-        tv.b.dispatchSimpleEvent(this, 'modelChange');
+        tr.b.dispatchSimpleEvent(this, 'modelChange');
         this.selectionController_.modelDidChange();
         this.onViewportChanged_();
       }
@@ -516,7 +516,7 @@ tv.exportTo('tv.c', function() {
 
     get settings() {
       if (!this.settings_)
-        this.settings_ = new tv.b.Settings();
+        this.settings_ = new tr.b.Settings();
       return this.settings_;
     },
 
@@ -542,7 +542,7 @@ tv.exportTo('tv.c', function() {
     },
 
     get listenToKeys_() {
-      if (!tv.b.ui.isElementAttachedToDocument(this))
+      if (!tr.b.ui.isElementAttachedToDocument(this))
         return;
       if (document.activeElement.type === 'textarea')
         return false;

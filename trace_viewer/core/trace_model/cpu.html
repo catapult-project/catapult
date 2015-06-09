@@ -16,11 +16,11 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the Cpu class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
 
-  var Counter = tv.c.trace_model.Counter;
-  var Slice = tv.c.trace_model.Slice;
-  var CpuSlice = tv.c.trace_model.CpuSlice;
+  var Counter = tr.c.trace_model.Counter;
+  var Slice = tr.c.trace_model.Slice;
+  var CpuSlice = tr.c.trace_model.CpuSlice;
 
   /**
    * The Cpu represents a Cpu from the kernel's point of view.
@@ -33,7 +33,7 @@ tv.exportTo('tv.c.trace_model', function() {
     this.cpuNumber = number;
     this.slices = [];
     this.counters = {};
-    this.bounds = new tv.b.Range();
+    this.bounds = new tr.b.Range();
     this.samples_ = undefined; // Set during createSubSlices
 
     // Start timestamp of the last active thread.
@@ -51,11 +51,11 @@ tv.exportTo('tv.c.trace_model', function() {
   Cpu.prototype = {
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
-      if (eventTypePredicate.call(opt_this, tv.c.trace_model.CpuSlice))
+      if (eventTypePredicate.call(opt_this, tr.c.trace_model.CpuSlice))
         this.slices.forEach(callback, opt_this);
 
       if (this.samples_) {
-        if (eventTypePredicate.call(opt_this, tv.c.trace_model.Sample))
+        if (eventTypePredicate.call(opt_this, tr.c.trace_model.Sample))
           this.samples_.forEach(callback, opt_this);
       }
     },
@@ -134,7 +134,7 @@ tv.exportTo('tv.c.trace_model', function() {
      * Returns the index of the slice in the CPU's slices, or undefined.
      */
     indexOf: function(cpuSlice) {
-      var i = tv.b.findLowIndexInSortedArray(
+      var i = tr.b.findLowIndexInSortedArray(
           this.slices,
           function(slice) { return slice.start; },
           cpuSlice.start);
@@ -165,9 +165,9 @@ tv.exportTo('tv.c.trace_model', function() {
       }
 
       var duration = end_timestamp - this.lastActiveTimestamp_;
-      var slice = new tv.c.trace_model.CpuSlice(
+      var slice = new tr.c.trace_model.CpuSlice(
           '', this.lastActiveName_,
-          tv.b.ui.getColorIdForGeneralPurposeString(this.lastActiveName_),
+          tr.b.ui.getColorIdForGeneralPurposeString(this.lastActiveName_),
           this.lastActiveTimestamp_,
           this.lastActiveArgs_,
           duration);

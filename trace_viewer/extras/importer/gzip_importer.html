@@ -16,8 +16,8 @@ found in the LICENSE file.
  * @fileoverview GzipImporter inflates gzip compressed data and passes it along
  * to an actual importer.
  */
-tv.exportTo('tv.e.importer', function() {
-  var Importer = tv.c.importer.Importer;
+tr.exportTo('tr.e.importer', function() {
+  var Importer = tr.c.importer.Importer;
 
   var GZIP_MEMBER_HEADER_ID_SIZE = 3;
 
@@ -139,7 +139,7 @@ tv.exportTo('tv.e.importer', function() {
     }
   };
 
-  tv.c.importer.Importer.register(GzipImporter);
+  tr.c.importer.Importer.register(GzipImporter);
 
   return {
     GzipImporter: GzipImporter

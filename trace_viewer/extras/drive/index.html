@@ -146,7 +146,7 @@ found in the LICENSE file.
 
   (function() {
 
-    tv.exportTo('tv.e.drive', function() {
+    tr.exportTo('tr.e.drive', function() {
       var appId = '239864068844';
       var constants = {
         APP_ID: appId,
@@ -209,8 +209,8 @@ found in the LICENSE file.
 
     function onAuthApiLoad(tryImmediate, resultCallback) {
       window.gapi.auth.authorize(
-          {'client_id': tv.e.drive.constants.CLIENT_ID,
-              'scope': tv.e.drive.constants.SCOPE, 'immediate': tryImmediate},
+          {'client_id': tr.e.drive.constants.CLIENT_ID,
+              'scope': tr.e.drive.constants.SCOPE, 'immediate': tryImmediate},
           function(authResult) {
             handleAuthResult(authResult, tryImmediate, resultCallback);
           });
@@ -245,11 +245,11 @@ found in the LICENSE file.
         var picker = new google.picker.PickerBuilder()
                        .enableFeature(google.picker.Feature.NAV_HIDDEN)
                        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
-                       .setAppId(tv.e.drive.constants.APP_ID)
+                       .setAppId(tr.e.drive.constants.APP_ID)
                        .setOAuthToken(oauthToken_)
                        .addView(view)
                        .addView(new google.picker.DocsUploadView())
-                       .setDeveloperKey(tv.e.drive.constants.DEVELOPER_KEY)
+                       .setDeveloperKey(tr.e.drive.constants.DEVELOPER_KEY)
                        .setCallback(pickerCallback)
                        .build();
         picker.setVisible(true);
@@ -264,7 +264,7 @@ found in the LICENSE file.
 
     function initShareButton() {
       shareClient_ = new gapi.drive.share.ShareClient(
-          tv.e.drive.constants.APP_ID);
+          tr.e.drive.constants.APP_ID);
       shareClient_.setItemIds([driveFileId_]);
     }
 
@@ -279,7 +279,7 @@ found in the LICENSE file.
 
     function downloadFile(file) {
       if (file.downloadUrl) {
-        var downloadingOverlay = tv.b.ui.Overlay();
+        var downloadingOverlay = tr.b.ui.Overlay();
         downloadingOverlay.title = 'Downloading...';
         downloadingOverlay.userCanClose = false;
         downloadingOverlay.msgEl = document.createElement('div');
@@ -328,22 +328,22 @@ found in the LICENSE file.
         imageList.push({'image': img, 'name': user.displayName});
       }
       for (i = 0; i < imageList.length; i++) {
-        var collabTooltip = tv.b.ui.createDiv({
+        var collabTooltip = tr.b.ui.createDiv({
             className: 'collaborator-tooltip'
         });
-        var collabTooltipContent = tv.b.ui.createDiv({
+        var collabTooltipContent = tr.b.ui.createDiv({
             className: 'collaborator-tooltip-content'
         });
         collabTooltipContent.textContent = imageList[i].name;
         collabTooltip.appendChild(collabTooltipContent);
         collabspan.appendChild(collabTooltip);
-        var collabTooltipArrow = tv.b.ui.createDiv({
+        var collabTooltipArrow = tr.b.ui.createDiv({
             className: 'collaborator-tooltip-arrow'});
         collabTooltip.appendChild(collabTooltipArrow);
-        var collabTooltipArrowBefore = tv.b.ui.createDiv({
+        var collabTooltipArrowBefore = tr.b.ui.createDiv({
             className: 'collaborator-tooltip-arrow-before'});
         collabTooltipArrow.appendChild(collabTooltipArrowBefore);
-        var collabTooltipArrowAfter = tv.b.ui.createDiv({
+        var collabTooltipArrowAfter = tr.b.ui.createDiv({
             className: 'collaborator-tooltip-arrow-after'});
         collabTooltipArrow.appendChild(collabTooltipArrowAfter);
 
@@ -398,7 +398,7 @@ found in the LICENSE file.
     }
 
     function createViewFromTraces(filenames, traces) {
-      var m = new tv.c.TraceModel();
+      var m = new tr.c.TraceModel();
       var p = m.importTracesWithProgressDialog(traces, true);
       p.then(
           function() {
@@ -410,9 +410,9 @@ found in the LICENSE file.
             timelineViewEl_.viewTitle = '';
           },
           function(err) {
-            var downloadingOverlay = new tv.b.ui.Overlay();
+            var downloadingOverlay = new tr.b.ui.Overlay();
             downloadingOverlay.textContent =
-                tv.b.normalizeException(err).message;
+                tr.b.normalizeException(err).message;
             downloadingOverlay.title = 'Import error';
             downloadingOverlay.visible = true;
           });
@@ -434,7 +434,7 @@ found in the LICENSE file.
       timelineViewEl_ = document.querySelector('x-timeline-view');
       var navbar = document.getElementById('navbar');
       timelineViewEl_.style.top = navbar.offsetHeight + 'px';
-      tv.b.ui.decorate(timelineViewEl_, tv.c.TimelineView);
+      tr.b.ui.decorate(timelineViewEl_, tr.c.TimelineView);
     }
 
     window.addEventListener('load', onLoad);

@@ -15,23 +15,23 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the AsyncSliceGroup class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
   /**
    * A group of AsyncSlices associated with a thread.
    * @constructor
-   * @extends {tv.c.trace_model.EventContainer}
+   * @extends {tr.c.trace_model.EventContainer}
    */
   function AsyncSliceGroup(parentThread, opt_name) {
     this.parentThread_ = parentThread;
-    this.guid_ = tv.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocate();
     this.slices = [];
-    this.bounds = new tv.b.Range();
+    this.bounds = new tr.b.Range();
     this.name_ = opt_name;
     this.viewSubGroups_ = undefined;
   }
 
   AsyncSliceGroup.prototype = {
-    __proto__: tv.c.trace_model.EventContainer.prototype,
+    __proto__: tr.c.trace_model.EventContainer.prototype,
 
     get guid() {
       return this.guid_;
@@ -128,7 +128,7 @@ tv.exportTo('tv.c.trace_model', function() {
           }
           subGroupsByTitle[subGroupTitle].slices.push(slice);
         }
-        this.viewSubGroups_ = tv.b.dictionaryValues(subGroupsByTitle);
+        this.viewSubGroups_ = tr.b.dictionaryValues(subGroupsByTitle);
         this.viewSubGroups_.sort(function(a, b) {
           return a.slices[0].compareTo(b.slices[0]);
         });
@@ -138,7 +138,7 @@ tv.exportTo('tv.c.trace_model', function() {
 
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
-      if (eventTypePredicate.call(opt_this, tv.c.trace_model.AsyncSlice)) {
+      if (eventTypePredicate.call(opt_this, tr.c.trace_model.AsyncSlice)) {
         for (var i = 0; i < this.slices.length; i++) {
           var slice = this.slices[i];
           callback.call(opt_this, slice);

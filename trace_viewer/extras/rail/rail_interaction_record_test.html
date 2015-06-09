@@ -14,11 +14,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var test_utils = tv.c.test_utils;
+tr.b.unittest.testSuite(function() {
+  var test_utils = tr.c.test_utils;
 
   test('layoutInfo', function() {
-    var model = tv.e.audits.newChromeModel(function(model) {
+    var model = tr.e.audits.newChromeModel(function(model) {
       // TODO(benjhayden): Create
       model.rendererMain.sliceGroup.pushSlice(test_utils.newSliceEx({
         title: 'FrameView::layout',
@@ -27,8 +27,8 @@ tv.b.unittest.testSuite(function() {
       }));
     });
 
-    var modelHelper = new tv.e.audits.ChromeModelHelper(model);
-    var rir = new tv.e.audits.RAILInteractionRecord(
+    var modelHelper = new tr.e.audits.ChromeModelHelper(model);
+    var rir = new tr.e.audits.RAILInteractionRecord(
         'simple', 1, 0, 100, modelHelper);
     rir.associatedEvents.push(model.rendererMain.sliceGroup.slices[0]);
     rir.updateArgs();

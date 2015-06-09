@@ -10,8 +10,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c', function() {
-  var Location = tv.c.Location;
+tr.exportTo('tr.c', function() {
+  var Location = tr.c.Location;
 
   /**
    * UIState is a class that represents the current state of the timeline by
@@ -47,7 +47,7 @@ tv.exportTo('tv.c', function() {
     if (!viewport.containerToTrackObj.getTrackByStableId(stableId))
       throw new Error('Invalid StableID given in UI State String.');
 
-    var loc = tv.c.Location.fromStableIdAndTimestamp(
+    var loc = tr.c.Location.fromStableIdAndTimestamp(
         viewport, stableId, timestamp);
     return new UIState(loc, scaleX);
   }

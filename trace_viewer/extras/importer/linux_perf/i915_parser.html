@@ -13,8 +13,8 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses i915 driver events in the Linux event trace format.
  */
-tv.exportTo('tv.e.importer.linux_perf', function() {
-  var Parser = tv.e.importer.linux_perf.Parser;
+tr.exportTo('tr.e.importer.linux_perf', function() {
+  var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux i915 trace events.
@@ -85,8 +85,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     i915FlipCloseSlice: function(ts, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_flip');
       if (kthread.openSlice) {
-        var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-            tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+        var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+            tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             args,
             ts - kthread.openSliceTS);
@@ -99,8 +99,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     i915GemObjectSlice: function(ts, eventName, obj, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem');
       kthread.openSlice = eventName + ':' + obj;
-      var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-          tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+      var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+          tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
@@ -109,8 +109,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     i915GemRingSlice: function(ts, eventName, dev, ring, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem_ring');
       kthread.openSlice = eventName + ':' + dev + '.' + ring;
-      var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-          tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+      var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+          tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
@@ -119,8 +119,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     i915RegSlice: function(ts, eventName, reg, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_reg');
       kthread.openSlice = eventName + ':' + reg;
-      var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-          tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+      var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+          tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
@@ -129,8 +129,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
     i915FreqChangeSlice: function(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gpu_freq');
       kthread.openSlice = eventName;
-      var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-          tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+      var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+          tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);

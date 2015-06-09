@@ -45,16 +45,16 @@ found in the LICENSE file.
  * nesting tasks.
  *
  */
-tv.exportTo('tv.c', function() {
-  var Importer = tv.c.importer.Importer;
-  var Process = tv.c.trace_model.Process;
-  var Kernel = tv.c.trace_model.Kernel;
-  var GlobalMemoryDump = tv.c.trace_model.GlobalMemoryDump;
-  var GlobalInstantEvent = tv.c.trace_model.GlobalInstantEvent;
-  var FlowEvent = tv.c.trace_model.FlowEvent;
-  var Alert = tv.c.trace_model.Alert;
-  var InteractionRecord = tv.c.trace_model.InteractionRecord;
-  var Sample = tv.c.trace_model.Sample;
+tr.exportTo('tr.c', function() {
+  var Importer = tr.c.importer.Importer;
+  var Process = tr.c.trace_model.Process;
+  var Kernel = tr.c.trace_model.Kernel;
+  var GlobalMemoryDump = tr.c.trace_model.GlobalMemoryDump;
+  var GlobalInstantEvent = tr.c.trace_model.GlobalInstantEvent;
+  var FlowEvent = tr.c.trace_model.FlowEvent;
+  var Alert = tr.c.trace_model.Alert;
+  var InteractionRecord = tr.c.trace_model.InteractionRecord;
+  var Sample = tr.c.trace_model.Sample;
 
   function ImportOptions() {
     this.shiftWorldToZero = true;
@@ -65,7 +65,7 @@ tv.exportTo('tv.c', function() {
     // finalized.
     this.customizeModelCallback = undefined;
 
-    var auditorTypes = tv.c.Auditor.getAllRegisteredTypeInfos();
+    var auditorTypes = tr.c.Auditor.getAllRegisteredTypeInfos();
     this.auditorConstructors = auditorTypes.map(function(typeInfo) {
       return typeInfo.constructor;
     });
@@ -106,8 +106,8 @@ tv.exportTo('tv.c', function() {
    * @constructor
    */
   function TraceModel(opt_eventData, opt_options) {
-    tv.c.trace_model.EventContainer.call(this);
-    tv.b.EventTarget.decorate(this);
+    tr.c.trace_model.EventContainer.call(this);
+    tr.b.EventTarget.decorate(this);
 
     this.faviconHue = 'blue'; // Should be a key from favicons.html
 
@@ -115,7 +115,7 @@ tv.exportTo('tv.c', function() {
     this.processes = {};
     this.metadata = [];
     this.categories = [];
-    this.bounds = new tv.b.Range();
+    this.bounds = new tr.b.Range();
     this.instantEvents = [];
     this.flowEvents = [];
     this.clockSyncRecords = [];
@@ -126,7 +126,7 @@ tv.exportTo('tv.c', function() {
     this.alerts = [];
     this.interaction_records = [];
 
-    this.flowIntervalTree = new tv.b.IntervalTree(
+    this.flowIntervalTree = new tr.b.IntervalTree(
         function(f) { return f.start; },
         function(f) { return f.end; });
 
@@ -144,7 +144,7 @@ tv.exportTo('tv.c', function() {
   }
 
   TraceModel.prototype = {
-    __proto__: tv.c.trace_model.EventContainer.prototype,
+    __proto__: tr.c.trace_model.EventContainer.prototype,
 
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
@@ -303,7 +303,7 @@ tv.exportTo('tv.c', function() {
     getAllCounters: function() {
       var counters = [];
       counters.push.apply(
-          counters, tv.b.dictionaryValues(this.kernel.counters));
+          counters, tr.b.dictionaryValues(this.kernel.counters));
       for (var pid in this.processes) {
         var process = this.processes[pid];
         for (var tid in process.counters) {
@@ -322,17 +322,17 @@ tv.exportTo('tv.c', function() {
         throw new Error('Annotation with undefined guid given');
 
       this.annotationsByGuid_[annotation.guid] = annotation;
-      tv.b.dispatchSimpleEvent(this, 'annotationChange');
+      tr.b.dispatchSimpleEvent(this, 'annotationChange');
     },
 
     removeAnnotation: function(annotation) {
       this.annotationsByGuid_[annotation.guid].onRemove();
       delete this.annotationsByGuid_[annotation.guid];
-      tv.b.dispatchSimpleEvent(this, 'annotationChange');
+      tr.b.dispatchSimpleEvent(this, 'annotationChange');
     },
 
     getAllAnnotations: function() {
-      return tv.b.dictionaryValues(this.annotationsByGuid_);
+      return tr.b.dictionaryValues(this.annotationsByGuid_);
     },
 
     /**
@@ -353,7 +353,7 @@ tv.exportTo('tv.c', function() {
     },
 
     createImporter_: function(eventData) {
-      var importerConstructor = tv.c.importer.Importer.findImporterFor(
+      var importerConstructor = tr.c.importer.Importer.findImporterFor(
           eventData);
 
       // TODO(kphanee): Throwing same Error at 2 places. Lets try to avoid it!
@@ -391,7 +391,7 @@ tv.exportTo('tv.c', function() {
           progressMeter,
           traces,
           options);
-      tv.b.Task.RunSynchronously(task);
+      tr.b.Task.RunSynchronously(task);
     },
 
     /**
@@ -402,7 +402,7 @@ tv.exportTo('tv.c', function() {
     importTracesWithProgressDialog: function(traces, opt_options) {
       var options = ImportOptions.fromArguments(arguments, 1);
 
-      var overlay = tv.b.ui.Overlay();
+      var overlay = tr.b.ui.Overlay();
       overlay.title = 'Importing...';
       overlay.userCanClose = false;
       overlay.msgEl = document.createElement('div');
@@ -417,7 +417,7 @@ tv.exportTo('tv.c', function() {
           overlay,
           traces,
           options);
-      var promise = tv.b.Task.RunWhenIdle(task);
+      var promise = tr.b.Task.RunWhenIdle(task);
       promise.then(
           function() {
             overlay.visible = false;
@@ -455,7 +455,7 @@ tv.exportTo('tv.c', function() {
       // Just some simple setup. It is useful to have a nop first
       // task so that we can set up the lastTask = lastTask.after()
       // pattern that follows.
-      var importTask = new tv.b.Task(function() {
+      var importTask = new tr.b.Task(function() {
         progressMeter.update('I will now import your traces for you...');
       }, this);
       var lastTask = importTask;
@@ -653,7 +653,7 @@ tv.exportTo('tv.c', function() {
       // Build event indices mapping from an event id to all flow events.
       lastTask = lastTask.after(function() {
         progressMeter.update('Building flow event indices...');
-        this.traceModelIndices = new tv.c.trace_model.TraceModelIndices(this);
+        this.traceModelIndices = new tr.c.trace_model.TraceModelIndices(this);
       }, this);
 
       // Run audits.

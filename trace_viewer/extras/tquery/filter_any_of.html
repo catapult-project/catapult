@@ -11,20 +11,20 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.tquery', function() {
+tr.exportTo('tr.e.tquery', function() {
   function FilterAnyOf(opt_subExpressions) {
-    tv.e.tquery.Filter.call(this);
+    tr.e.tquery.Filter.call(this);
     this.subExpressions = opt_subExpressions || [];
   };
 
   FilterAnyOf.prototype = {
-    __proto__: tv.e.tquery.Filter.prototype,
+    __proto__: tr.e.tquery.Filter.prototype,
 
     set subExpressions(exprs) {
       this.subExpressions_ = [];
       for (var i = 0; i < exprs.length; i++) {
         this.subExpressions_.push(
-            tv.e.tquery.Filter.normalizeFilterExpression(exprs[i]));
+            tr.e.tquery.Filter.normalizeFilterExpression(exprs[i]));
       }
     },
 
@@ -42,7 +42,7 @@ tv.exportTo('tv.e.tquery', function() {
       return false;
     }
   };
-  tv.c.ScriptingObjectRegistry.register(
+  tr.c.ScriptingObjectRegistry.register(
       function() {
         var exprs = [];
         for (var i = 0; i < arguments.length; i++) {

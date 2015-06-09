@@ -14,14 +14,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Selection = tv.c.Selection;
-  var newSliceEx = tv.c.test_utils.newSliceEx;
+tr.b.unittest.testSuite(function() {
+  var Selection = tr.c.Selection;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
 
   test('instantiate', function() {
     var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
 
-    var ALERT_INFO_1 = new tv.c.trace_model.EventInfo(
+    var ALERT_INFO_1 = new tr.c.trace_model.EventInfo(
         'Alert 1', 'Critical alert',
         [{
           label: 'Project Page',
@@ -29,17 +29,17 @@ tv.b.unittest.testSuite(function() {
           href: 'https://github.com/google/trace-viewer/'
         }]);
 
-    var alert = new tv.c.trace_model.Alert(ALERT_INFO_1, 5, [slice]);
+    var alert = new tr.c.trace_model.Alert(ALERT_INFO_1, 5, [slice]);
 
-    var selection = new tv.c.Selection();
+    var selection = new tr.c.Selection();
     selection.push(alert);
 
-    var subView = document.createElement('tv-c-a-alert-sub-view');
+    var subView = document.createElement('tr-c-a-alert-sub-view');
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    var table = tv.b.findDeepElementMatching(
-        subView, 'tv-b-ui-table');
+    var table = tr.b.findDeepElementMatching(
+        subView, 'tr-b-ui-table');
 
     var rows = table.tableRows;
     var columns = table.tableColumns;

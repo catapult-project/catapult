@@ -14,12 +14,12 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the CounterSeries class.
  */
-tv.exportTo('tv.c.trace_model', function() {
-  var CounterSample = tv.c.trace_model.CounterSample;
+tr.exportTo('tr.c.trace_model', function() {
+  var CounterSample = tr.c.trace_model.CounterSample;
 
   function CounterSeries(name, color) {
-    tv.c.trace_model.EventContainer.call(this);
-    this.guid_ = tv.b.GUID.allocate();
+    tr.c.trace_model.EventContainer.call(this);
+    this.guid_ = tr.b.GUID.allocate();
 
     this.name_ = name;
     this.color_ = color;
@@ -33,7 +33,7 @@ tv.exportTo('tv.c.trace_model', function() {
   }
 
   CounterSeries.prototype = {
-    __proto__: tv.c.trace_model.EventContainer.prototype,
+    __proto__: tr.c.trace_model.EventContainer.prototype,
 
     get length() {
       return this.timestamps_.length;
@@ -105,7 +105,7 @@ tv.exportTo('tv.c.trace_model', function() {
 
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
-      if (eventTypePredicate.call(opt_this, tv.c.trace_model.CounterSample)) {
+      if (eventTypePredicate.call(opt_this, tr.c.trace_model.CounterSample)) {
         this.samples_.forEach(callback, opt_this);
       }
     },

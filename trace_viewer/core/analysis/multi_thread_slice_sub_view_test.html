@@ -13,12 +13,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var newSliceEx = tv.c.test_utils.newSliceEx;
-  var newFlowEventEx = tv.c.test_utils.newFlowEventEx;
+tr.b.unittest.testSuite(function() {
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newFlowEventEx = tr.c.test_utils.newFlowEventEx;
 
   test('instantiate', function() {
-    var model = new tv.c.TraceModel();
+    var model = new tr.c.TraceModel();
     var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
     t53.sliceGroup.pushSlice(
         newSliceEx({title: 'a', start: 0.0, duration: 0.5}));
@@ -26,17 +26,17 @@ tv.b.unittest.testSuite(function() {
         newSliceEx({title: 'b', start: 1.0, duration: 2}));
     t53.sliceGroup.createSubSlices();
 
-    var selection = new tv.c.Selection();
+    var selection = new tr.c.Selection();
     selection.push(t53.sliceGroup.slices[0]);
     selection.push(t53.sliceGroup.slices[1]);
 
-    var viewEl = document.createElement('tv-c-a-multi-thread-slice-sub-view');
+    var viewEl = document.createElement('tr-c-a-multi-thread-slice-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
   });
 
   test('withFlows', function() {
-    var m = tv.c.test_utils.newModel(function(m) {
+    var m = tr.c.test_utils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
 
       m.t2 = m.p1.getOrCreateThread(2);
@@ -66,12 +66,12 @@ tv.b.unittest.testSuite(function() {
       });
     });
 
-    var selection = new tv.c.Selection();
+    var selection = new tr.c.Selection();
     selection.push(m.sA);
     selection.push(m.sB);
     selection.push(m.sC);
 
-    var viewEl = document.createElement('tv-c-a-multi-thread-slice-sub-view');
+    var viewEl = document.createElement('tr-c-a-multi-thread-slice-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
   });

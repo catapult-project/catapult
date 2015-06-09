@@ -16,13 +16,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
   /**
    * A track that displays the ruler.
    * @constructor
    * @extends {HeadingTrack}
    */
-  var RulerTrack = tv.b.ui.define('ruler-track', tv.c.tracks.HeadingTrack);
+  var RulerTrack = tr.b.ui.define('ruler-track', tr.c.tracks.HeadingTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {
@@ -30,10 +30,10 @@ tv.exportTo('tv.c.tracks', function() {
   }
 
   RulerTrack.prototype = {
-    __proto__: tv.c.tracks.HeadingTrack.prototype,
+    __proto__: tr.c.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('ruler-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
@@ -46,7 +46,7 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     detach: function() {
-      tv.c.tracks.HeadingTrack.prototype.detach.call(this);
+      tr.c.tracks.HeadingTrack.prototype.detach.call(this);
       this.viewport.removeEventListener('change',
                                         this.viewportChange_);
     },
@@ -60,10 +60,10 @@ tv.exportTo('tv.c.tracks', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.c.tracks.DrawType.GRID:
+        case tr.c.tracks.DrawType.GRID:
           this.drawGrid_(viewLWorld, viewRWorld);
           break;
-        case tv.c.tracks.DrawType.MARKERS:
+        case tr.c.tracks.DrawType.MARKERS:
           if (!this.viewport.interestRange.isEmpty)
             this.viewport.interestRange.draw(this.context(),
                                              viewLWorld, viewRWorld);
@@ -182,12 +182,12 @@ tv.exportTo('tv.c.tracks', function() {
         vp.majorMarkPositions.push(curXView);
 
         // Major mark
-        tv.c.drawLine(ctx, curXView, 0, curXView, rulerHeight);
+        tr.c.drawLine(ctx, curXView, 0, curXView, rulerHeight);
 
         // Minor marks
         for (var i = 1; i < numTicksPerMajor; ++i) {
           var xView = Math.floor(curXView + minorMarkDistancePx * i);
-          tv.c.drawLine(ctx,
+          tr.c.drawLine(ctx,
               xView, rulerHeight - minorTickH,
               xView, rulerHeight);
         }
@@ -195,7 +195,7 @@ tv.exportTo('tv.c.tracks', function() {
 
       // Draw bottom bar.
       ctx.strokeStyle = 'rgb(0, 0, 0)';
-      tv.c.drawLine(ctx, 0, height, width, height);
+      tr.c.drawLine(ctx, 0, height, width, height);
       ctx.stroke();
 
       // Give distance between directly adjacent markers.
@@ -203,7 +203,7 @@ tv.exportTo('tv.c.tracks', function() {
         return;
 
       // Draw middle bar.
-      tv.c.drawLine(ctx, 0, rulerHeight, width, rulerHeight);
+      tr.c.drawLine(ctx, 0, rulerHeight, width, rulerHeight);
       ctx.stroke();
 
       // Distance Variables.
@@ -298,16 +298,16 @@ tv.exportTo('tv.c.tracks', function() {
         // Draw the arrows pointing from outside in and a line in between.
         ctx.strokeStyle = arrowColor;
         ctx.beginPath();
-        tv.c.drawLine(ctx, leftMarkerView, arrowPosY, rightMarkerView,
+        tr.c.drawLine(ctx, leftMarkerView, arrowPosY, rightMarkerView,
             arrowPosY);
         ctx.stroke();
 
         ctx.fillStyle = arrowColor;
-        tv.c.drawArrow(ctx,
+        tr.c.drawArrow(ctx,
             leftMarkerView - 1.5 * arrowSpacing, arrowPosY,
             leftMarkerView, arrowPosY,
             arrowLengthView, arrowWidthView);
-        tv.c.drawArrow(ctx,
+        tr.c.drawArrow(ctx,
             rightMarkerView + 1.5 * arrowSpacing, arrowPosY,
             rightMarkerView, arrowPosY,
             arrowLengthView, arrowWidthView);
@@ -330,11 +330,11 @@ tv.exportTo('tv.c.tracks', function() {
         // Draw the arrows pointing inside out.
         ctx.strokeStyle = arrowColor;
         ctx.fillStyle = arrowColor;
-        tv.c.drawArrow(ctx,
+        tr.c.drawArrow(ctx,
             leftArrowStart, arrowPosY,
             leftMarkerView, arrowPosY,
             arrowLengthView, arrowWidthView);
-        tv.c.drawArrow(ctx,
+        tr.c.drawArrow(ctx,
             rightArrowStart, arrowPosY,
             rightMarkerView, arrowPosY,
             arrowLengthView, arrowWidthView);

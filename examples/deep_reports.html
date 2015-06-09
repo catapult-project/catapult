@@ -26,12 +26,12 @@ found in the LICENSE file.
 </head>
 <body>
   <select id="trace-dir"></select>
-  <tv-e-dr-html-results id="results"></tv-e-dr-html-results>
+  <tr-e-dr-html-results id="results"></tr-e-dr-html-results>
   <script>
   'use strict';
 
   function onLoad() {
-    tv.b.getAsync('/json/examples').then(function(data) {
+    tr.b.getAsync('/json/examples').then(function(data) {
       var select = document.querySelector('#trace-file');
       var all_files = JSON.parse(data);
       var files = all_files.filter(function(file) {
@@ -76,7 +76,7 @@ found in the LICENSE file.
     var selectEl = document.body.querySelector('#trace-dir');
     selectEl.filesByDirName = filesByDirName;
 
-    tv.b.iterItems(filesByDirName, function(dirName, filesInDir) {
+    tr.b.iterItems(filesByDirName, function(dirName, filesInDir) {
       var runEl = document.createElement('option');
       runEl.textContent = dirName + ': ' + filesInDir.length + ' traces';
       runEl.value = dirName;
@@ -119,11 +119,11 @@ found in the LICENSE file.
     var filesInDir = selectEl.filesByDirName[dirName];
     var results = document.querySelector('#results');
     results.clear();
-    tv.e.deep_reports.main(results, filesInDir).then(
+    tr.e.deep_reports.main(results, filesInDir).then(
       function success() {
       },
       function error(err) {
-        tv.showPanic('Error', err);
+        tr.showPanic('Error', err);
       });
   }
   </script>

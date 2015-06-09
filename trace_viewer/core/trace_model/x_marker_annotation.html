@@ -11,10 +11,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
 
   function XMarkerAnnotation(timestamp) {
-    tv.c.trace_model.Annotation.apply(this, arguments);
+    tr.c.trace_model.Annotation.apply(this, arguments);
 
     this.timestamp = timestamp;
     this.strokeStyle = 'rgba(0, 0, 255, 0.5)';
@@ -25,7 +25,7 @@ tv.exportTo('tv.c.trace_model', function() {
   }
 
   XMarkerAnnotation.prototype = {
-    __proto__: tv.c.trace_model.Annotation.prototype,
+    __proto__: tr.c.trace_model.Annotation.prototype,
 
     toDict: function() {
       return {
@@ -37,11 +37,11 @@ tv.exportTo('tv.c.trace_model', function() {
     },
 
     createView_: function(viewport) {
-      return new tv.c.annotations.XMarkerAnnotationView(viewport, this);
+      return new tr.c.annotations.XMarkerAnnotationView(viewport, this);
     }
   };
 
-  tv.c.trace_model.Annotation.register(
+  tr.c.trace_model.Annotation.register(
       XMarkerAnnotation, {typeName: 'xmarker'});
 
   return {

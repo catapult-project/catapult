@@ -11,24 +11,24 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('canImport', function() {
-    assert.isFalse(tv.e.importer.etw.EtwImporter.canImport('string'));
-    assert.isFalse(tv.e.importer.etw.EtwImporter.canImport([]));
+    assert.isFalse(tr.e.importer.etw.EtwImporter.canImport('string'));
+    assert.isFalse(tr.e.importer.etw.EtwImporter.canImport([]));
 
     // Must not parse an invalid name.
     var dummy = { name: 'dummy', content: [] };
-    assert.isFalse(tv.e.importer.etw.EtwImporter.canImport(dummy));
+    assert.isFalse(tr.e.importer.etw.EtwImporter.canImport(dummy));
 
     // Must parse  an empty valid trace.
     var valid = { name: 'ETW', content: [] };
-    assert.isTrue(tv.e.importer.etw.EtwImporter.canImport(valid));
+    assert.isTrue(tr.e.importer.etw.EtwImporter.canImport(valid));
   });
 
   test('getModel', function() {
     var model = 'dummy';
     var events = [];
-    var importer = new tv.e.importer.etw.EtwImporter(model, events);
+    var importer = new tr.e.importer.etw.EtwImporter(model, events);
     assert.strictEqual(importer.model, model);
   });
 
@@ -36,7 +36,7 @@ tv.b.unittest.testSuite(function() {
     // Create a dummy EtwImporter.
     var model = 'dummy';
     var events = ['events'];
-    var importer = new tv.e.importer.etw.EtwImporter(model, events);
+    var importer = new tr.e.importer.etw.EtwImporter(model, events);
     var dummy_handler = function() {};
 
     // The handler must not exists.
@@ -55,7 +55,7 @@ tv.b.unittest.testSuite(function() {
   test('parseEvent', function() {
     var model = 'dummy';
     var events = [];
-    var importer = new tv.e.importer.etw.EtwImporter(model, events);
+    var importer = new tr.e.importer.etw.EtwImporter(model, events);
     var handler_called = false;
     var dummy_handler = function() { handler_called = true; return true; };
 
@@ -76,7 +76,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('resetTooSmall', function() {
-    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
 
     var oldByteLength = decoder.payload_.byteLength;
@@ -97,7 +97,7 @@ tv.b.unittest.testSuite(function() {
   test('decode', function() {
     var model = 'dummy';
     var events = [];
-    var importer = new tv.e.importer.etw.EtwImporter(model, events);
+    var importer = new tr.e.importer.etw.EtwImporter(model, events);
 
     var decoder = importer.decoder_;
 
@@ -156,7 +156,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('decodeUInteger', function() {
-    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
 
     decoder.reset('AQIDBAUGBwg=');
@@ -167,7 +167,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('decodeString', function() {
-    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
 
     decoder.reset('dGVzdAA=');
@@ -178,14 +178,14 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('decodeW16String', function() {
-    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
     decoder.reset('dABlAHMAdAAAAA==');
     assert.strictEqual(decoder.decodeW16String(), 'test');
   });
 
   test('decodeFixedW16String', function() {
-    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
     decoder.reset('dABlAHMAdAAAAA==');
     assert.strictEqual(decoder.decodeFixedW16String(32), 'test');
@@ -197,7 +197,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('decodeBytes', function() {
-    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
     decoder.reset('AAECAwQFBgc=');
     var bytes = decoder.decodeBytes(8);
@@ -206,7 +206,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('decodeSID', function() {
-    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
 
     // Decode a SID structure with 64-bit pointer.
@@ -220,7 +220,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('decodeSystemTime', function() {
-    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
 
     // Decode a SystemTime structure.
@@ -237,7 +237,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('decodeTimeZoneInformation', function() {
-    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
 
     // Decode a TimeZoneInformation structure.
@@ -258,7 +258,7 @@ tv.b.unittest.testSuite(function() {
   test('manageThreads', function() {
     var events = [];
     var model = 'dummy';
-    var importer = new tv.e.importer.etw.EtwImporter(model, events);
+    var importer = new tr.e.importer.etw.EtwImporter(model, events);
 
     // After initialisation, no threads must exists.
     assert.equal(Object.getOwnPropertyNames(importer.tidsToPid_).length, 0);

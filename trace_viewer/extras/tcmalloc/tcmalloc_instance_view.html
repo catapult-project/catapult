@@ -12,20 +12,20 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.tcmalloc', function() {
+tr.exportTo('tr.e.tcmalloc', function() {
   /**
    * Displays tcmalloc heap memory information over time. A tcmalloc instance
    * has multiple snapshots.
    * @constructor
    */
-  var TcmallocInstanceView = tv.b.ui.define(
-      'tcmalloc-instance-view', tv.c.analysis.ObjectInstanceView);
+  var TcmallocInstanceView = tr.b.ui.define(
+      'tcmalloc-instance-view', tr.c.analysis.ObjectInstanceView);
 
   TcmallocInstanceView.prototype = {
-    __proto__: tv.c.analysis.ObjectInstanceView.prototype,
+    __proto__: tr.c.analysis.ObjectInstanceView.prototype,
 
     decorate: function() {
-      tv.c.analysis.ObjectInstanceView.prototype.decorate.apply(this);
+      tr.c.analysis.ObjectInstanceView.prototype.decorate.apply(this);
       this.classList.add('tcmalloc-instance-view');
     },
 
@@ -77,8 +77,8 @@ tv.exportTo('tv.e.tcmalloc', function() {
       var row = document.createElement('tr');
       var td = document.createElement('td');
       if (snapshot) {
-        var snapshotLink = document.createElement('tv-c-a-analysis-link');
-        snapshotLink.selection = new tv.c.Selection(snapshot);
+        var snapshotLink = document.createElement('tr-c-a-analysis-link');
+        snapshotLink.selection = new tr.c.Selection(snapshot);
         td.appendChild(snapshotLink);
       }
       row.appendChild(td);
@@ -99,7 +99,7 @@ tv.exportTo('tv.e.tcmalloc', function() {
     }
   };
 
-  tv.c.analysis.ObjectInstanceView.register(
+  tr.c.analysis.ObjectInstanceView.register(
       TcmallocInstanceView,
       {typeName: 'memory::Heap'});
 

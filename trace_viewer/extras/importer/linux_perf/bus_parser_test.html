@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('exynos5Bus', function() {
     var lines = [
       's3c-fb-vsync-85    [001] d..2  8116.730115: memory_bus_usage: ' +
@@ -53,7 +53,7 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
           'cycles=6690156 ns=16725375'
 
     ];
-    var m = new tv.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.c.TraceModel(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();

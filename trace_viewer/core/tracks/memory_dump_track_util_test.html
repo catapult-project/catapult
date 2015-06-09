@@ -13,14 +13,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var SelectionState = tv.c.trace_model.SelectionState;
-  var createTestGlobalMemoryDumps = tv.c.tracks.createTestGlobalMemoryDumps;
-  var createTestProcessMemoryDumps = tv.c.tracks.createTestProcessMemoryDumps;
+tr.b.unittest.testSuite(function() {
+  var SelectionState = tr.c.trace_model.SelectionState;
+  var createTestGlobalMemoryDumps = tr.c.tracks.createTestGlobalMemoryDumps;
+  var createTestProcessMemoryDumps = tr.c.tracks.createTestProcessMemoryDumps;
 
   test('buildMemoryLetterDots_withoutVMRegions', function() {
     var dumps = createTestGlobalMemoryDumps(false, false);
-    var items = tv.c.tracks.buildMemoryLetterDots(dumps);
+    var items = tr.c.tracks.buildMemoryLetterDots(dumps);
 
     assert.lengthOf(items, 4);
     assert.equal(items[0].start, 0);
@@ -36,7 +36,7 @@ tv.b.unittest.testSuite(function() {
 
   test('buildMemoryLetterDots_withVMRegions', function() {
     var dumps = createTestGlobalMemoryDumps(false, false);
-    var items = tv.c.tracks.buildMemoryLetterDots(dumps);
+    var items = tr.c.tracks.buildMemoryLetterDots(dumps);
 
     assert.lengthOf(items, 4);
     assert.equal(items[0].start, 0);
@@ -52,14 +52,14 @@ tv.b.unittest.testSuite(function() {
 
   test('buildGlobalUsedMemoryChartSeries_withoutVMRegions', function() {
     var dumps = createTestGlobalMemoryDumps(false, false);
-    var series = tv.c.tracks.buildGlobalUsedMemoryChartSeries(dumps);
+    var series = tr.c.tracks.buildGlobalUsedMemoryChartSeries(dumps);
 
     assert.isUndefined(series);
   });
 
   test('buildGlobalUsedMemoryChartSeries_withVMRegions', function() {
     var dumps = createTestGlobalMemoryDumps(true, false);
-    var series = tv.c.tracks.buildGlobalUsedMemoryChartSeries(dumps);
+    var series = tr.c.tracks.buildGlobalUsedMemoryChartSeries(dumps);
 
     assert.lengthOf(series, 3);
 
@@ -130,7 +130,7 @@ tv.b.unittest.testSuite(function() {
   test('buildGlobalAllocatedMemoryChartSeries_withoutMemoryAllocatorDumps',
       function() {
     var dumps = createTestGlobalMemoryDumps(false, false);
-    var series = tv.c.tracks.buildGlobalAllocatedMemoryChartSeries(dumps);
+    var series = tr.c.tracks.buildGlobalAllocatedMemoryChartSeries(dumps);
 
     assert.isUndefined(series);
   });
@@ -138,7 +138,7 @@ tv.b.unittest.testSuite(function() {
   test('buildGlobalAllocatedMemoryChartSeries_withMemoryAllocatorDumps',
       function() {
     var dumps = createTestGlobalMemoryDumps(false, true);
-    var series = tv.c.tracks.buildGlobalAllocatedMemoryChartSeries(dumps);
+    var series = tr.c.tracks.buildGlobalAllocatedMemoryChartSeries(dumps);
 
     assert.lengthOf(series, 2);
 
@@ -185,7 +185,7 @@ tv.b.unittest.testSuite(function() {
   test('buildProcessAllocatedMemoryChartSeries_withoutMemoryAllocatorDumps',
       function() {
     var dumps = createTestProcessMemoryDumps(false, false);
-    var series = tv.c.tracks.buildProcessAllocatedMemoryChartSeries(dumps);
+    var series = tr.c.tracks.buildProcessAllocatedMemoryChartSeries(dumps);
 
     assert.isUndefined(series);
   });
@@ -193,7 +193,7 @@ tv.b.unittest.testSuite(function() {
   test('buildProcessAllocatedMemoryChartSeries_withMemoryAllocatorDumps',
       function() {
     var dumps = createTestProcessMemoryDumps(false, true);
-    var series = tv.c.tracks.buildProcessAllocatedMemoryChartSeries(dumps);
+    var series = tr.c.tracks.buildProcessAllocatedMemoryChartSeries(dumps);
 
     assert.lengthOf(series, 2);
 

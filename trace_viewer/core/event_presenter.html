@@ -14,11 +14,11 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides color scheme related functions.
  */
-tv.exportTo('tv.c', function() {
-  var paletteRaw = tv.b.ui.getRawColorPalette();
-  var palette = tv.b.ui.getColorPalette();
+tr.exportTo('tr.c', function() {
+  var paletteRaw = tr.b.ui.getRawColorPalette();
+  var palette = tr.b.ui.getColorPalette();
 
-  var SelectionState = tv.c.trace_model.SelectionState;
+  var SelectionState = tr.c.trace_model.SelectionState;
 
   /**
    * Provides methods to get view values for events.
@@ -31,9 +31,9 @@ tv.exportTo('tv.c', function() {
 
     getColorIdOffset_: function(event) {
       if (event.selectionState === SelectionState.SELECTED)
-        return tv.b.ui.paletteProperties.highlightIdBoost;
+        return tr.b.ui.paletteProperties.highlightIdBoost;
       else if (event.selectionState === SelectionState.DIMMED)
-        return tv.b.ui.paletteProperties.desaturateIdBoost;
+        return tr.b.ui.paletteProperties.desaturateIdBoost;
       return 0;
     },
 
@@ -56,12 +56,12 @@ tv.exportTo('tv.c', function() {
 
     getInstantSliceColor: function(instant) {
       var colorId = instant.colorId + this.getColorIdOffset_(instant);
-      return tv.b.ui.colorToRGBAString(paletteRaw[colorId], 1.0);
+      return tr.b.ui.colorToRGBAString(paletteRaw[colorId], 1.0);
     },
 
     getObjectInstanceColor: function(instance) {
       var colorId = instance.colorId + this.getColorIdOffset_(instance);
-      return tv.b.ui.colorToRGBAString(paletteRaw[colorId], 0.25);
+      return tr.b.ui.colorToRGBAString(paletteRaw[colorId], 0.25);
     },
 
     getObjectSnapshotColor: function(snapshot) {
@@ -73,7 +73,7 @@ tv.exportTo('tv.c', function() {
     getCounterSeriesColor: function(colorId, selectionState,
                                     opt_alphaMultiplier) {
       var event = {selectionState: selectionState};
-      return tv.b.ui.colorToRGBAString(
+      return tr.b.ui.colorToRGBAString(
           paletteRaw[colorId + this.getColorIdOffset_(event)],
               (opt_alphaMultiplier !== undefined ? opt_alphaMultiplier : 1.0));
     },
@@ -81,9 +81,9 @@ tv.exportTo('tv.c', function() {
     getBarSnapshotColor: function(snapshot, offset) {
       var colorId =
           (snapshot.objectInstance.colorId + offset) %
-          tv.b.ui.paletteProperties.numGeneralPurposeColorIds;
+          tr.b.ui.paletteProperties.numGeneralPurposeColorIds;
       colorId += this.getColorIdOffset_(snapshot);
-      return tv.b.ui.colorToRGBAString(paletteRaw[colorId], 1.0);
+      return tr.b.ui.colorToRGBAString(paletteRaw[colorId], 1.0);
     }
   };
 

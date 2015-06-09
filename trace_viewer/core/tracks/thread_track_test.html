@@ -14,33 +14,33 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var HighlightInstantEvent = tv.c.trace_model.ThreadHighlightInstantEvent;
-  var Process = tv.c.trace_model.Process;
-  var Selection = tv.c.Selection;
-  var StackFrame = tv.c.trace_model.StackFrame;
-  var Sample = tv.c.trace_model.Sample;
-  var Thread = tv.c.trace_model.Thread;
-  var ThreadSlice = tv.c.trace_model.ThreadSlice;
-  var ThreadTrack = tv.c.tracks.ThreadTrack;
-  var Viewport = tv.c.TimelineViewport;
-  var newAsyncSlice = tv.c.test_utils.newAsyncSlice;
-  var newAsyncSliceNamed = tv.c.test_utils.newAsyncSliceNamed;
-  var newSliceNamed = tv.c.test_utils.newSliceNamed;
+tr.b.unittest.testSuite(function() {
+  var HighlightInstantEvent = tr.c.trace_model.ThreadHighlightInstantEvent;
+  var Process = tr.c.trace_model.Process;
+  var Selection = tr.c.Selection;
+  var StackFrame = tr.c.trace_model.StackFrame;
+  var Sample = tr.c.trace_model.Sample;
+  var Thread = tr.c.trace_model.Thread;
+  var ThreadSlice = tr.c.trace_model.ThreadSlice;
+  var ThreadTrack = tr.c.tracks.ThreadTrack;
+  var Viewport = tr.c.TimelineViewport;
+  var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
+  var newAsyncSliceNamed = tr.c.test_utils.newAsyncSliceNamed;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
 
   test('selectionHitTestingWithThreadTrack', function() {
-    var model = new tv.c.TraceModel();
+    var model = new tr.c.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
     t1.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
     t1.sliceGroup.pushSlice(new ThreadSlice('', 'b', 0, 5.1, {}, 4));
 
     var testEl = document.createElement('div');
-    testEl.appendChild(tv.b.ui.createScopedStyle('heading { width: 100px; }'));
+    testEl.appendChild(tr.b.ui.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
 
     var viewport = new Viewport(testEl);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     testEl.appendChild(drawingContainer);
 
     var track = new ThreadTrack(viewport);
@@ -52,7 +52,7 @@ tv.b.unittest.testSuite(function() {
     var h = track.getBoundingClientRect().height;
     var wW = 10;
     var vW = drawingContainer.canvas.getBoundingClientRect().width;
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, wW, vW);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -70,21 +70,21 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('filterThreadSlices', function() {
-    var model = new tv.c.TraceModel();
+    var model = new tr.c.TraceModel();
     var thread = new Thread(new Process(model, 7), 1);
     thread.sliceGroup.pushSlice(newSliceNamed('a', 0, 0));
     thread.asyncSliceGroup.push(newAsyncSliceNamed('a', 0, 5, t, t));
 
-    var t = new ThreadTrack(new tv.c.TimelineViewport());
+    var t = new ThreadTrack(new tr.c.TimelineViewport());
     t.thread = thread;
 
     assert.equal(t.tracks_.length, 2);
-    assert.instanceOf(t.tracks_[0], tv.c.tracks.AsyncSliceGroupTrack);
-    assert.instanceOf(t.tracks_[1], tv.c.tracks.SliceGroupTrack);
+    assert.instanceOf(t.tracks_[0], tr.c.tracks.AsyncSliceGroupTrack);
+    assert.instanceOf(t.tracks_[1], tr.c.tracks.SliceGroupTrack);
   });
 
   test('sampleThreadSlices', function() {
-    var model = new tv.c.TraceModel();
+    var model = new tr.c.TraceModel();
     var thread;
     var cpu;
     model.importTraces([], false, false, function() {
@@ -115,23 +115,23 @@ tv.b.unittest.testSuite(function() {
                                     35, fAD, 10));
     });
 
-    var t = new ThreadTrack(new tv.c.TimelineViewport());
+    var t = new ThreadTrack(new tr.c.TimelineViewport());
     t.thread = thread;
     assert.equal(t.tracks_.length, 2);
 
     // Instructions retired
     var t0 = t.tracks_[0];
     assert.notEqual(t0.heading.indexOf('instructions_retired'), -1);
-    assert.instanceOf(t0, tv.c.tracks.SampleTrack);
+    assert.instanceOf(t0, tr.c.tracks.SampleTrack);
     assert.equal(t0.samples.length, 4);
     t0.samples.forEach(function(s) {
-      assert.instanceOf(s, tv.c.trace_model.Sample);
+      assert.instanceOf(s, tr.c.trace_model.Sample);
     });
 
     // page_fault
     var t1 = t.tracks_[1];
     assert.notEqual(t1.heading.indexOf('page_fault'), -1);
-    assert.instanceOf(t1, tv.c.tracks.SampleTrack);
+    assert.instanceOf(t1, tr.c.tracks.SampleTrack);
     assert.equal(t1.samples.length, 2);
   });
 });

@@ -10,9 +10,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('beginRecording_sendCategoriesAndOptions', function() {
-    var controller = new tv.e.about_tracing.InspectorTracingControllerClient();
+    var controller = new tr.e.about_tracing.InspectorTracingControllerClient();
     controller.conn_ = new (function() {
       this.req = function(method, params) {
         var msg = JSON.stringify({
@@ -54,20 +54,20 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('oldFormat', function() {
     var chunks = [];
-    tv.e.about_tracing.appendTraceChunksTo(chunks, '"{ "method": "Tracing.dataCollected", "params": { "value": [ {"cat":"__metadata","pid":28871,"tid":0,"ts":0,"ph":"M","name":"num_cpus","args":{"number":4}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_sort_index","args":{"sort_index":-5}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_name","args":{"name":"Renderer"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_labels","args":{"labels":"JS Bin"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_sort_index","args":{"sort_index":-1}},{"cat":"__metadata","pid":28871,"tid":28917,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Compositor"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Chrome_ChildIOThread"}},{"cat":"__metadata","pid":28871,"tid":28919,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CompositorRasterWorker1/28919"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CrRendererMain"}},{"cat":"ipc,toplevel","pid":28871,"tid":28911,"ts":22000084746,"ph":"X","name":"ChannelReader::DispatchInputData","args":{"class":64,"line":25},"tdur":0,"tts":1853064},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"overhead","args":{"average_overhead":0.015}} ] } }"'); // @suppress longLineCheck
+    tr.e.about_tracing.appendTraceChunksTo(chunks, '"{ "method": "Tracing.dataCollected", "params": { "value": [ {"cat":"__metadata","pid":28871,"tid":0,"ts":0,"ph":"M","name":"num_cpus","args":{"number":4}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_sort_index","args":{"sort_index":-5}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_name","args":{"name":"Renderer"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_labels","args":{"labels":"JS Bin"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_sort_index","args":{"sort_index":-1}},{"cat":"__metadata","pid":28871,"tid":28917,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Compositor"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Chrome_ChildIOThread"}},{"cat":"__metadata","pid":28871,"tid":28919,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CompositorRasterWorker1/28919"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CrRendererMain"}},{"cat":"ipc,toplevel","pid":28871,"tid":28911,"ts":22000084746,"ph":"X","name":"ChannelReader::DispatchInputData","args":{"class":64,"line":25},"tdur":0,"tts":1853064},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"overhead","args":{"average_overhead":0.015}} ] } }"'); // @suppress longLineCheck
     assert.equal(chunks.length, 1);
     JSON.parse('[' + chunks.join('') + ']');
   });
 
   test('newFormat', function() {
     var chunks = [];
-    tv.e.about_tracing.appendTraceChunksTo(chunks, '"{ "method": "Tracing.dataCollected", "params": { "value": [{"cat":"__metadata","pid":28871,"tid":0,"ts":0,"ph":"M","name":"num_cpus","args":{"number":4}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_sort_index","args":{"sort_index":-5}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_name","args":{"name":"Renderer"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_labels","args":{"labels":"JS Bin"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_sort_index","args":{"sort_index":-1}},{"cat":"__metadata","pid":28871,"tid":28917,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Compositor"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Chrome_ChildIOThread"}},{"cat":"__metadata","pid":28871,"tid":28919,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CompositorRasterWorker1/28919"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CrRendererMain"}},{"cat":"ipc,toplevel","pid":28871,"tid":28911,"ts":22000084746,"ph":"X","name":"ChannelReader::DispatchInputData","args":{"class":64,"line":25},"tdur":0,"tts":1853064},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"overhead","args":{"average_overhead":0.015}}] } }"'); // @suppress longLineCheck
+    tr.e.about_tracing.appendTraceChunksTo(chunks, '"{ "method": "Tracing.dataCollected", "params": { "value": [{"cat":"__metadata","pid":28871,"tid":0,"ts":0,"ph":"M","name":"num_cpus","args":{"number":4}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_sort_index","args":{"sort_index":-5}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_name","args":{"name":"Renderer"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_labels","args":{"labels":"JS Bin"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_sort_index","args":{"sort_index":-1}},{"cat":"__metadata","pid":28871,"tid":28917,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Compositor"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Chrome_ChildIOThread"}},{"cat":"__metadata","pid":28871,"tid":28919,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CompositorRasterWorker1/28919"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CrRendererMain"}},{"cat":"ipc,toplevel","pid":28871,"tid":28911,"ts":22000084746,"ph":"X","name":"ChannelReader::DispatchInputData","args":{"class":64,"line":25},"tdur":0,"tts":1853064},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"overhead","args":{"average_overhead":0.015}}] } }"'); // @suppress longLineCheck
     assert.equal(chunks.length, 1);
     JSON.parse('[' + chunks.join('') + ']');
   });
 
   test('stringAndObjectPayload', function() {
-    var connection = new tv.e.about_tracing.InspectorConnection();
+    var connection = new tr.e.about_tracing.InspectorConnection();
     connection.setNotificationListener('Tracing.dataCollected',
         function(message) {
           assert.typeOf(message, 'string');

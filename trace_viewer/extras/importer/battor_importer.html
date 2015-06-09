@@ -18,8 +18,8 @@ found in the LICENSE file.
  */
 'use strict';
 
-tv.exportTo('tv.e.importer.battor', function() {
-  var Importer = tv.c.importer.Importer;
+tr.exportTo('tr.e.importer.battor', function() {
+  var Importer = tr.c.importer.Importer;
 
   /**
    * Imports linux perf events into a specified model.
@@ -64,8 +64,8 @@ tv.exportTo('tv.e.importer.battor', function() {
     importEvents: function(isSecondaryImport) {
       // Create series and import power samples into it.
       var name = 'power';
-      var series = new tv.c.trace_model.CounterSeries('value',
-          tv.b.ui.getColorIdForGeneralPurposeString(name + '.' + 'value'));
+      var series = new tr.c.trace_model.CounterSeries('value',
+          tr.b.ui.getColorIdForGeneralPurposeString(name + '.' + 'value'));
       this.importPowerSamples(series);
 
       // Find the sync markers.
@@ -236,7 +236,7 @@ tv.exportTo('tv.e.importer.battor', function() {
     }
   };
 
-  tv.c.importer.Importer.register(BattorImporter);
+  tr.c.importer.Importer.register(BattorImporter);
 
   return {
     BattorImporter: BattorImporter,

@@ -20,9 +20,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.tquery', function() {
+tr.exportTo('tr.e.tquery', function() {
   function TQuery(selectionController) {
-    tv.c.ScriptingObject.call(this);
+    tr.c.ScriptingObject.call(this);
 
     this.selectionController_ = selectionController;
     this.parent_ = undefined;
@@ -32,7 +32,7 @@ tv.exportTo('tv.e.tquery', function() {
   };
 
   TQuery.prototype = {
-    __proto__: tv.c.ScriptingObject.prototype,
+    __proto__: tr.c.ScriptingObject.prototype,
 
     onModelChanged: function() {
       this.selection_ = undefined;
@@ -48,7 +48,7 @@ tv.exportTo('tv.e.tquery', function() {
       var result = new TQuery(this.selectionController_);
       result.parent_ = this;
       result.filterExpression_ =
-          tv.e.tquery.Filter.normalizeFilterExpression(filterExpression);
+          tr.e.tquery.Filter.normalizeFilterExpression(filterExpression);
       return result;
     },
 
@@ -71,14 +71,14 @@ tv.exportTo('tv.e.tquery', function() {
         node = node.parent_;
       }
 
-      var rootTask = new tv.b.Task();
+      var rootTask = new tr.b.Task();
       var lastTask = rootTask;
       for (var i = nodes.length - 1; i >= 0; i--) {
         var node = nodes[i];
         // Reuse any memoized result.
         if (node.selection_ !== undefined)
           continue;
-        node.selection_ = new tv.c.Selection();
+        node.selection_ = new tr.c.Selection();
         if (node.parent_ === undefined) {
           // If this is the root, start by collecting all objects from the
           // selection controller.
@@ -107,7 +107,7 @@ tv.exportTo('tv.e.tquery', function() {
     evaluateFilterExpression_: function(inputSelection, outputSelection) {
       var seenEvents = {};
       inputSelection.forEach(function(event) {
-        var context = new tv.e.tquery.Context();
+        var context = new tr.e.tquery.Context();
         context.event = event;
         this.evaluateFilterExpressionForEvent_(
             context, inputSelection, outputSelection, seenEvents);
@@ -148,7 +148,7 @@ tv.exportTo('tv.e.tquery', function() {
     // Returns a task that fills the given selection with everything reachable
     // by the selection controller.
     selectEverythingAsTask_: function(selection) {
-      var passThroughFilter = new tv.c.Filter();
+      var passThroughFilter = new tr.c.Filter();
       var filterTask =
         this.selectionController.addAllEventsMatchingFilterToSelectionAsTask(
             passThroughFilter, selection);
@@ -158,12 +158,12 @@ tv.exportTo('tv.e.tquery', function() {
     get selection() {
       if (this.selection_ === undefined) {
         var graph = this.createFilterTaskGraph_();
-        tv.b.Task.RunSynchronously(graph.rootTask);
+        tr.b.Task.RunSynchronously(graph.rootTask);
       }
       return this.selection_;
     }
   };
-  tv.c.ScriptingObjectRegistry.register(
+  tr.c.ScriptingObjectRegistry.register(
       new TQuery(),
       {
         name: '$t'

@@ -16,18 +16,18 @@ found in the LICENSE file.
  * using a child canvas element. Uses a FastRectRenderer to draw only
  * the visible slices.
  */
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
   /**
    * The base class for all tracks.
    * @constructor
    */
-  var Track = tv.b.ui.define('track',
-                             tv.b.ui.ContainerThatDecoratesItsChildren);
+  var Track = tr.b.ui.define('track',
+                             tr.b.ui.ContainerThatDecoratesItsChildren);
   Track.prototype = {
-    __proto__: tv.b.ui.ContainerThatDecoratesItsChildren.prototype,
+    __proto__: tr.b.ui.ContainerThatDecoratesItsChildren.prototype,
 
     decorate: function(viewport) {
-      tv.b.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
+      tr.b.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
       if (viewport === undefined)
         throw new Error('viewport is required when creating a Track.');
 
@@ -42,7 +42,7 @@ tv.exportTo('tv.c.tracks', function() {
     get drawingContainer() {
       var cur = this;
       while (cur) {
-        if (cur instanceof tv.c.tracks.DrawingContainer)
+        if (cur instanceof tr.c.tracks.DrawingContainer)
           return cur;
         cur = cur.parentElement;
       }
@@ -146,7 +146,7 @@ tv.exportTo('tv.c.tracks', function() {
 
     addClosestInstantEventToSelection: function(instantEvents, worldX,
                                                 worldMaxDist, selection) {
-      var instantEvent = tv.b.findClosestElementInSortedArray(
+      var instantEvent = tr.b.findClosestElementInSortedArray(
           instantEvents,
           function(x) { return x.start; },
           worldX,

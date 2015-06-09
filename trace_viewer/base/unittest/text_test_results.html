@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b.unittest', function() {
+tr.exportTo('tr.b.unittest', function() {
   /**
    * @constructor
    */
@@ -40,7 +40,7 @@ tv.exportTo('tv.b.unittest', function() {
     },
 
     addErrorForCurrentTest: function(error) {
-      var normalizedException = tv.b.normalizeException(error);
+      var normalizedException = tr.b.normalizeException(error);
       this.writeToBuffer('Exception: ' + normalizedException.message + '\n' +
           normalizedException.stack + '\n');
       this.currentTestCaseHadErrors_ = true;

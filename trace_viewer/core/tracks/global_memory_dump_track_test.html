@@ -14,10 +14,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Viewport = tv.c.TimelineViewport;
-  var GlobalMemoryDumpTrack = tv.c.tracks.GlobalMemoryDumpTrack;
-  var createTestGlobalMemoryDumps = tv.c.tracks.createTestGlobalMemoryDumps;
+tr.b.unittest.testSuite(function() {
+  var Viewport = tr.c.TimelineViewport;
+  var GlobalMemoryDumpTrack = tr.c.tracks.GlobalMemoryDumpTrack;
+  var createTestGlobalMemoryDumps = tr.c.tracks.createTestGlobalMemoryDumps;
 
   function instantiateTrack(withVMRegions, withAllocatorDumps,
                             expectedTrackCount) {
@@ -25,7 +25,7 @@ tv.b.unittest.testSuite(function() {
 
     var div = document.createElement('div');
     var viewport = new Viewport(div);
-    var drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = new GlobalMemoryDumpTrack(viewport);
@@ -35,7 +35,7 @@ tv.b.unittest.testSuite(function() {
     track.memoryDumps = dumps;
     this.addHTMLOutput(div);
 
-    var dt = new tv.c.TimelineDisplayTransform();
+    var dt = new tr.c.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 

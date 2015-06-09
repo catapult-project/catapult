@@ -15,8 +15,8 @@ found in the LICENSE file.
  * @fileoverview Parses trace_marker events that were inserted in the trace by
  * userland.
  */
-tv.exportTo('tv.e.importer.linux_perf', function() {
-  var Parser = tv.e.importer.linux_perf.Parser;
+tr.exportTo('tr.e.importer.linux_perf', function() {
+  var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux trace mark events that were inserted in the trace by userland.
@@ -57,8 +57,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var ctr = this.model_.kernel
               .getOrCreateCounter(null, 'bus ' + name + ' read');
       if (ctr.numSeries === 0) {
-        ctr.addSeries(new tv.c.trace_model.CounterSeries('value',
-            tv.b.ui.getColorIdForGeneralPurposeString(
+        ctr.addSeries(new tr.c.trace_model.CounterSeries('value',
+            tr.b.ui.getColorIdForGeneralPurposeString(
                 ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
@@ -68,8 +68,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       ctr = this.model_.kernel
               .getOrCreateCounter(null, 'bus ' + name + ' write');
       if (ctr.numSeries === 0) {
-        ctr.addSeries(new tv.c.trace_model.CounterSeries('value',
-            tv.b.ui.getColorIdForGeneralPurposeString(
+        ctr.addSeries(new tr.c.trace_model.CounterSeries('value',
+            tr.b.ui.getColorIdForGeneralPurposeString(
                 ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {

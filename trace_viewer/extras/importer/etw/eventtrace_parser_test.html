@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   // Constants for EventTrace events.
   var guid = '68FDD900-4A3E-11D1-84F4-0000F80464E3';
   var kEventTraceHeaderOpcode = 0;
@@ -39,9 +39,9 @@ tv.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('DecodeFields', function() {
 
-    var importer = new tv.e.importer.etw.EtwImporter('dummy', []);
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
-    var parser = new tv.e.importer.etw.EventTraceParser(importer);
+    var parser = new tr.e.importer.etw.EventTraceParser(importer);
     var header;
     var fields;
 

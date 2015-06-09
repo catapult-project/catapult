@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   var ArrayOfIntervals = function(array) {
     this.array = array;
   }
@@ -20,14 +20,14 @@ tv.b.unittest.testSuite(function() {
     },
 
     findLowElementIndex: function(ts) {
-      return tv.b.findLowIndexInSortedArray(
+      return tr.b.findLowIndexInSortedArray(
           this.array,
           function(x) { return x.lo; },
           ts);
     },
 
     findIntervalIndex: function(ts) {
-      return tv.b.findIndexInSortedIntervals(
+      return tr.b.findIndexInSortedIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi - x.lo; },
@@ -35,7 +35,7 @@ tv.b.unittest.testSuite(function() {
     },
 
     findIndexInClosedIntervals: function(ts) {
-      return tv.b.findIndexInSortedClosedIntervals(
+      return tr.b.findIndexInSortedClosedIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi; },
@@ -45,7 +45,7 @@ tv.b.unittest.testSuite(function() {
     findIntersectingIntervals: function(tsA, tsB) {
       var array = this.array;
       var result = [];
-      tv.b.iterateOverIntersectingIntervals(
+      tr.b.iterateOverIntersectingIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi - x.lo; },
@@ -56,7 +56,7 @@ tv.b.unittest.testSuite(function() {
     },
 
     findClosestElement: function(ts, tsDiff) {
-      return tv.b.findClosestElementInSortedArray(
+      return tr.b.findClosestElementInSortedArray(
           this.array,
           function(x) { return x.lo; },
           ts,
@@ -64,7 +64,7 @@ tv.b.unittest.testSuite(function() {
     },
 
     findClosestInterval: function(ts, tsDiff) {
-      return tv.b.findClosestIntervalInSortedIntervals(
+      return tr.b.findClosestIntervalInSortedIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi; },

@@ -12,13 +12,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var MemoryColumn = tv.c.analysis.MemoryColumn;
-  var ScalarMemoryColumn = tv.c.analysis.ScalarMemoryColumn;
-  var MemoryCell = tv.c.analysis.MemoryCell;
-  var fieldGetter = tv.c.analysis.fieldGetter;
-  var StringAttribute = tv.c.trace_model.StringAttribute;
-  var ScalarAttribute = tv.c.trace_model.ScalarAttribute;
+tr.b.unittest.testSuite(function() {
+  var MemoryColumn = tr.c.analysis.MemoryColumn;
+  var ScalarMemoryColumn = tr.c.analysis.ScalarMemoryColumn;
+  var MemoryCell = tr.c.analysis.MemoryCell;
+  var fieldGetter = tr.c.analysis.fieldGetter;
+  var StringAttribute = tr.c.trace_model.StringAttribute;
+  var ScalarAttribute = tr.c.trace_model.ScalarAttribute;
 
   function checkPercent(string, expectedPercent) {
     assert.equal(Number(string.slice(0, -1)), expectedPercent);

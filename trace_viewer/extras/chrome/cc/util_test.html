@@ -13,13 +13,13 @@ found in the LICENSE file.
 
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('nameConvert', function() {
-    assert.equal(tv.e.cc.convertNameToJSConvention('_foo'), '_foo');
-    assert.equal(tv.e.cc.convertNameToJSConvention('foo_'), 'foo_');
-    assert.equal(tv.e.cc.convertNameToJSConvention('foo'), 'foo');
-    assert.equal(tv.e.cc.convertNameToJSConvention('foo_bar'), 'fooBar');
-    assert.equal(tv.e.cc.convertNameToJSConvention('foo_bar_baz'),
+    assert.equal(tr.e.cc.convertNameToJSConvention('_foo'), '_foo');
+    assert.equal(tr.e.cc.convertNameToJSConvention('foo_'), 'foo_');
+    assert.equal(tr.e.cc.convertNameToJSConvention('foo'), 'foo');
+    assert.equal(tr.e.cc.convertNameToJSConvention('foo_bar'), 'fooBar');
+    assert.equal(tr.e.cc.convertNameToJSConvention('foo_bar_baz'),
                  'fooBarBaz');
   });
 
@@ -40,7 +40,7 @@ tv.b.unittest.testSuite(function() {
         }
       }
     };
-    tv.e.cc.preInitializeObject(object);
+    tr.e.cc.preInitializeObject(object);
     assert.deepEqual(object, expected);
   });
 
@@ -59,7 +59,7 @@ tv.b.unittest.testSuite(function() {
         {fooBar: 8}
       ]
     };
-    tv.e.cc.preInitializeObject(object);
+    tr.e.cc.preInitializeObject(object);
     assert.deepEqual(object, expected);
   });
 
@@ -69,8 +69,8 @@ tv.b.unittest.testSuite(function() {
         some_quad: [1, 2, 3, 4, 5, 6, 7, 8]
       }
     };
-    tv.e.cc.preInitializeObject(object);
-    assert.instanceOf(object.args.someQuad, tv.b.Quad);
+    tr.e.cc.preInitializeObject(object);
+    assert.instanceOf(object.args.someQuad, tr.b.Quad);
   });
 
   test('quadConversionNested', function() {
@@ -82,9 +82,9 @@ tv.b.unittest.testSuite(function() {
         non_nested_quad: [1, 2, 3, 4, 5, 6, 7, 8]
       }
     };
-    tv.e.cc.preInitializeObject(object);
-    assert.instanceOf(object.args.nestedField.aQuad, tv.b.Quad);
-    assert.instanceOf(object.args.nonNestedQuad, tv.b.Quad);
+    tr.e.cc.preInitializeObject(object);
+    assert.instanceOf(object.args.nestedField.aQuad, tr.b.Quad);
+    assert.instanceOf(object.args.nonNestedQuad, tr.b.Quad);
   });
 
   test('rectCoversion', function() {
@@ -93,8 +93,8 @@ tv.b.unittest.testSuite(function() {
         some_rect: [1, 2, 3, 4]
       }
     };
-    tv.e.cc.preInitializeObject(object);
-    assert.instanceOf(object.args.someRect, tv.b.Rect);
+    tr.e.cc.preInitializeObject(object);
+    assert.instanceOf(object.args.someRect, tr.b.Rect);
   });
 
   test('rectCoversionNested', function() {
@@ -106,9 +106,9 @@ tv.b.unittest.testSuite(function() {
         non_nested_rect: [1, 2, 3, 4]
       }
     };
-    tv.e.cc.preInitializeObject(object);
-    assert.instanceOf(object.args.nestedField.aRect, tv.b.Rect);
-    assert.instanceOf(object.args.nonNestedRect, tv.b.Rect);
+    tr.e.cc.preInitializeObject(object);
+    assert.instanceOf(object.args.nestedField.aRect, tr.b.Rect);
+    assert.instanceOf(object.args.nonNestedRect, tr.b.Rect);
   });
 });
 </script>

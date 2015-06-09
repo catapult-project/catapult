@@ -18,14 +18,14 @@ found in the LICENSE file.
 /**
  * @fileoverview Helper functions for use in tracing tests.
  */
-tv.exportTo('tv.c.test_utils', function() {
+tr.exportTo('tr.c.test_utils', function() {
   function newAsyncSlice(start, duration, startThread, endThread) {
     return newAsyncSliceNamed('a', start, duration, startThread, endThread);
   }
 
   function newAsyncSliceNamed(name, start, duration, startThread, endThread) {
     var asyncSliceConstructor =
-        tv.c.trace_model.AsyncSlice.getConstructor('', name);
+        tr.c.trace_model.AsyncSlice.getConstructor('', name);
 
     var s = new asyncSliceConstructor('', name, 0, start);
     s.duration = duration;
@@ -45,7 +45,7 @@ tv.exportTo('tv.c.test_utils', function() {
     if (options.colorId) {
       if (options.colorId === 'random') {
         colorId = Math.floor(Math.random() *
-                   tv.b.ui.paletteProperties.numGeneralPurposeColorIds);
+                   tr.b.ui.paletteProperties.numGeneralPurposeColorIds);
       } else {
         colorId = options.colorId;
       }
@@ -72,7 +72,7 @@ tv.exportTo('tv.c.test_utils', function() {
       isTopLevel = false;
 
     var asyncSliceConstructor =
-        tv.c.trace_model.AsyncSlice.getConstructor(cat, title);
+        tr.c.trace_model.AsyncSlice.getConstructor(cat, title);
 
     var slice = new asyncSliceConstructor(
         cat,
@@ -85,7 +85,7 @@ tv.exportTo('tv.c.test_utils', function() {
     if (options.id)
       slice.id = options.id;
     else
-      slice.id = tv.b.GUID.allocate();
+      slice.id = tr.b.GUID.allocate();
 
     if (options.startStackFrame)
       slice.startStackFrame = options.startStackFrame;
@@ -105,17 +105,17 @@ tv.exportTo('tv.c.test_utils', function() {
   }
 
   function newCounterNamed(parent, name) {
-    var s = new tv.c.trace_model.Counter(parent, name, null, name);
+    var s = new tr.c.trace_model.Counter(parent, name, null, name);
     return s;
   }
 
   function newCounterCategory(parent, category, name) {
-    var s = new tv.c.trace_model.Counter(parent, name, category, name);
+    var s = new tr.c.trace_model.Counter(parent, name, category, name);
     return s;
   }
 
   function newCounterSeries() {
-    var s = new tv.c.trace_model.CounterSeries('a', 0);
+    var s = new tr.c.trace_model.CounterSeries('a', 0);
     return s;
   }
 
@@ -142,9 +142,9 @@ tv.exportTo('tv.c.test_utils', function() {
     if (options.id !== undefined)
       id = options.id;
     else
-      id = tv.b.GUID.allocate();
+      id = tr.b.GUID.allocate();
 
-    var event = new tv.c.trace_model.FlowEvent(
+    var event = new tr.c.trace_model.FlowEvent(
         options.cat ? options.cat : 'cat',
         id,
         title,
@@ -175,12 +175,12 @@ tv.exportTo('tv.c.test_utils', function() {
   }
 
   function newSliceNamed(name, start, duration) {
-    var s = new tv.c.trace_model.Slice('', name, 0, start, {}, duration);
+    var s = new tr.c.trace_model.Slice('', name, 0, start, {}, duration);
     return s;
   }
 
   function newThreadSlice(thread, state, start, duration, opt_cpu) {
-    var s = new tv.c.trace_model.ThreadTimeSlice(
+    var s = new tr.c.trace_model.ThreadTimeSlice(
         thread, state, 'cat', start, {}, duration);
     if (opt_cpu)
       s.cpuOnWhichThreadWasRunning = opt_cpu;
@@ -194,7 +194,7 @@ tv.exportTo('tv.c.test_utils', function() {
     else
       model = undefined;
     var sf = newStackTrace(model, category, frameNames);
-    var s = new tv.c.trace_model.Sample(undefined, thread,
+    var s = new tr.c.trace_model.Sample(undefined, thread,
                                         sampleName, start,
                                         sf,
                                         1);
@@ -202,7 +202,7 @@ tv.exportTo('tv.c.test_utils', function() {
   }
 
   function newSliceCategory(category, name, start, duration) {
-    var s = new tv.c.trace_model.Slice(
+    var s = new tr.c.trace_model.Slice(
         category, name, 0, start, {}, duration);
     return s;
   }
@@ -242,7 +242,7 @@ tv.exportTo('tv.c.test_utils', function() {
     if (options.type)
       type = options.type;
     else
-      type = tv.c.trace_model.Slice;
+      type = tr.c.trace_model.Slice;
 
     var slice = new type(
         options.cat ? options.cat : 'cat',
@@ -260,7 +260,7 @@ tv.exportTo('tv.c.test_utils', function() {
   function newStackTrace(model, category, titles) {
     var frame = undefined;
     for (var i = 0; i < titles.length; i++) {
-      frame = new tv.c.trace_model.StackFrame(frame, tv.b.GUID.allocate(),
+      frame = new tr.c.trace_model.StackFrame(frame, tr.b.GUID.allocate(),
                                                  category, titles[i], 7);
       if (model)
         model.addStackFrame(frame);
@@ -269,7 +269,7 @@ tv.exportTo('tv.c.test_utils', function() {
   }
 
   function findSliceNamed(slices, name) {
-    if (slices instanceof tv.c.trace_model.SliceGroup)
+    if (slices instanceof tr.c.trace_model.SliceGroup)
       slices = slices.slices;
     for (var i = 0; i < slices.length; i++)
       if (slices[i].title == name)
@@ -278,20 +278,20 @@ tv.exportTo('tv.c.test_utils', function() {
   }
 
   function newModel(customizeModelCallback) {
-    var io = new tv.c.ImportOptions();
+    var io = new tr.c.ImportOptions();
     io.customizeModelCallback = customizeModelCallback;
     io.shiftWorldToZero = false;
     io.pruneEmptyContainers = false;
-    return new tv.c.TraceModel([], io);
+    return new tr.c.TraceModel([], io);
   }
 
   function newModelWithAuditor(customizeModelCallback, auditor) {
-    var io = new tv.c.ImportOptions();
+    var io = new tr.c.ImportOptions();
     io.customizeModelCallback = customizeModelCallback;
     io.shiftWorldToZero = false;
     io.pruneEmptyContainers = false;
     io.auditorConstructors = [auditor];
-    return new tv.c.TraceModel([], io);
+    return new tr.c.TraceModel([], io);
   }
 
   return {

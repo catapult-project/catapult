@@ -12,15 +12,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.system_stats', function() {
+tr.exportTo('tr.e.system_stats', function() {
   /*
    * Displays a system stats snapshot in a human readable form. @constructor
    */
-  var SystemStatsSnapshotView = tv.b.ui.define('system-stats-snapshot-view',
-      tv.c.analysis.ObjectSnapshotView);
+  var SystemStatsSnapshotView = tr.b.ui.define('system-stats-snapshot-view',
+      tr.c.analysis.ObjectSnapshotView);
 
   SystemStatsSnapshotView.prototype = {
-    __proto__: tv.c.analysis.ObjectSnapshotView.prototype,
+    __proto__: tr.c.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('system-stats-snapshot-view');
@@ -71,7 +71,7 @@ tv.exportTo('tv.e.system_stats', function() {
     }
   };
 
-  tv.c.analysis.ObjectSnapshotView.register(
+  tr.c.analysis.ObjectSnapshotView.register(
       SystemStatsSnapshotView,
       {typeName: 'base::TraceEventSystemStatsMonitor::SystemStats'});
 

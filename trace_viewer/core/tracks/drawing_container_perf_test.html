@@ -13,36 +13,36 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
+tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
   var generalModel;
   function getOrCreateGeneralModel() {
     if (generalModel !== undefined)
       generalModel;
     var fileUrl = '/test_data/thread_time_visualisation.json.gz';
-    var events = tv.b.getSync(fileUrl);
-    generalModel = new tv.c.TraceModel();
+    var events = tr.b.getSync(fileUrl);
+    generalModel = new tr.c.TraceModel();
     generalModel.importTraces([events], true);
     return generalModel;
   }
 
   function DCPerfTestCase(testName, opt_options) {
-    tv.b.unittest.PerfTestCase.call(this, testName, undefined, opt_options);
+    tr.b.unittest.PerfTestCase.call(this, testName, undefined, opt_options);
     this.viewportDiv = undefined;
     this.drawingContainer = undefined;
     this.viewport = undefined;
   }
   DCPerfTestCase.prototype = {
-    __proto__: tv.b.unittest.PerfTestCase.prototype,
+    __proto__: tr.b.unittest.PerfTestCase.prototype,
 
     setUp: function(model) {
       this.viewportDiv = document.createElement('div');
 
-      this.viewport = new tv.c.TimelineViewport(this.viewportDiv);
+      this.viewport = new tr.c.TimelineViewport(this.viewportDiv);
 
-      this.drawingContainer = new tv.c.tracks.DrawingContainer(this.viewport);
+      this.drawingContainer = new tr.c.tracks.DrawingContainer(this.viewport);
       this.viewport.modelTrackContainer = this.drawingContainer;
 
-      var modelTrack = new tv.c.tracks.TraceModelTrack(this.viewport);
+      var modelTrack = new tr.c.tracks.TraceModelTrack(this.viewport);
       this.drawingContainer.appendChild(modelTrack);
 
       modelTrack.model = model;
@@ -60,7 +60,7 @@ tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
       var range = model.bounds.range;
 
       var boost = range * 0.15;
-      var dt = new tv.c.TimelineDisplayTransform();
+      var dt = new tr.c.TimelineDisplayTransform();
       dt.xSetWorldBounds(min - boost, min + range + boost, w);
       this.viewport.setDisplayTransformImmediately(dt);
     },
@@ -103,16 +103,16 @@ tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
     __proto__: DCPerfTestCase.prototype,
 
     setUp: function() {
-      var model = tv.c.test_utils.newModel(function(m) {
+      var model = tr.c.test_utils.newModel(function(m) {
         var proc = m.getOrCreateProcess(1);
         for (var tid = 1; tid <= 5; tid++) {
           var thread = proc.getOrCreateThread(tid);
           for (var i = 0; i < 5000; i++) {
             var mod = Math.floor(i / 100) % 4;
-            var slice = tv.c.test_utils.newAsyncSliceEx({
+            var slice = tr.c.test_utils.newAsyncSliceEx({
               name: 'Test' + i,
               colorId: tid + mod,
-              id: tv.b.GUID.allocate(),
+              id: tr.b.GUID.allocate(),
               start: i * 10,
               duration: 9,
               isTopLevel: true
@@ -125,7 +125,7 @@ tv.b.unittest.testSuite(function() {  // @suppress longLineCheck
 
       var w = this.drawingContainer.canvas.width;
 
-      var dt = new tv.c.TimelineDisplayTransform();
+      var dt = new tr.c.TimelineDisplayTransform();
       dt.xSetWorldBounds(-2000, 54000, w);
       this.viewport.setDisplayTransformImmediately(dt);
     }

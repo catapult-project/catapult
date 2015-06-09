@@ -16,16 +16,16 @@ found in the LICENSE file.
 /**
  * @fileoverview The Load phase of RAIL.
  */
-tv.exportTo('tv.e.audits', function() {
+tr.exportTo('tr.e.audits', function() {
   function LoadInteractionRecord(start, duration) {
-    tv.e.audits.RAILInteractionRecord.call(
+    tr.e.audits.RAILInteractionRecord.call(
         this, 'Load',
-        tv.b.ui.getColorIdForGeneralPurposeString('mt_loading'),
+        tr.b.ui.getColorIdForGeneralPurposeString('mt_loading'),
         start, duration);
   }
 
   LoadInteractionRecord.prototype = {
-    __proto__: tv.e.audits.RAILInteractionRecord.prototype,
+    __proto__: tr.e.audits.RAILInteractionRecord.prototype,
 
     get railTypeName() {
       return 'Load';

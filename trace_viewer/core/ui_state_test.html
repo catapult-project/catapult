@@ -12,18 +12,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var UIState = tv.c.UIState;
+tr.b.unittest.testSuite(function() {
+  var UIState = tr.c.UIState;
 
   function FakeModel() {
     this.processes = { 1: { threads: { 2: { stableId: '1.2' } } } };
   }
 
-  // FakeTrack needs to be an instance of tv.c.tracks.Track because a
+  // FakeTrack needs to be an instance of tr.c.tracks.Track because a
   // location is constructed in terms of Track instances.
   function FakeTrack() { }
   FakeTrack.prototype = {
-    __proto__: tv.c.tracks.Track.prototype,
+    __proto__: tr.c.tracks.Track.prototype,
 
     get eventContainer() {
       return { stableId: '1.2' };

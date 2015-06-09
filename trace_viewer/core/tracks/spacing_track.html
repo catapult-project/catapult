@@ -12,18 +12,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
   /**
    * @constructor
    */
-  var SpacingTrack = tv.b.ui.define('spacing-track',
-                                    tv.c.tracks.HeadingTrack);
+  var SpacingTrack = tr.b.ui.define('spacing-track',
+                                    tr.c.tracks.HeadingTrack);
 
   SpacingTrack.prototype = {
-    __proto__: tv.c.tracks.HeadingTrack.prototype,
+    __proto__: tr.c.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('spacing-track');
     },
 

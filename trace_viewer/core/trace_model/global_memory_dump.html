@@ -14,43 +14,43 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the GlobalMemoryDump class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
   /**
    * The GlobalMemoryDump represents a simultaneous memory dump of all
    * processes.
    * @constructor
    */
   function GlobalMemoryDump(model, start) {
-    tv.c.trace_model.ContainerMemoryDump.call(this, start);
+    tr.c.trace_model.ContainerMemoryDump.call(this, start);
     this.model = model;
     this.processMemoryDumps = {};
   }
 
   GlobalMemoryDump.prototype = {
-    __proto__: tv.c.trace_model.ContainerMemoryDump.prototype,
+    __proto__: tr.c.trace_model.ContainerMemoryDump.prototype,
 
     get userFriendlyName() {
       return 'Global memory dump ' + ' at ' +
-          tv.b.units.tsString(this.start);
+          tr.b.units.tsString(this.start);
     },
 
     calculateGraphAttributes: function() {
       // TODO(petrcermak): Calculate sizes using the graph.
 
       this.aggregateMemoryAllocatorDumpAttributes(this.model);
-      tv.b.iterItems(this.processMemoryDumps, function(pid, dump) {
+      tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
         dump.aggregateMemoryAllocatorDumpAttributes();
       }, this);
     }
   };
 
-  tv.c.trace_model.EventRegistry.register(
+  tr.c.trace_model.EventRegistry.register(
       GlobalMemoryDump,
       {
         name: 'globalMemoryDump',
         pluralName: 'globalMemoryDumps',
-        singleViewElementName: 'tv-c-a-single-global-memory-dump-sub-view',
-        multiViewElementName: 'tv-c-a-multi-global-memory-dump-sub-view'
+        singleViewElementName: 'tr-c-a-single-global-memory-dump-sub-view',
+        multiViewElementName: 'tr-c-a-multi-global-memory-dump-sub-view'
       });
 
   return {

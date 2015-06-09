@@ -13,8 +13,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/multi_event_details_table.html">
 <link rel="import" href="/base/ui/table.html">
 
-<polymer-element name="tv-c-a-multi-event-sub-view"
-    extends="tv-c-a-sub-view">
+<polymer-element name="tr-c-a-multi-event-sub-view"
+    extends="tr-c-a-sub-view">
   <template>
     <style>
     :host {
@@ -31,11 +31,11 @@ found in the LICENSE file.
       flex: 0 0 auto;
       align-self: stretch;
     }
-    tv-c-a-multi-event-summary-table {
+    tr-c-a-multi-event-summary-table {
       border-bottom: 1px solid #aaa;
     }
 
-    tv-c-a-selection-summary-table  {
+    tr-c-a-selection-summary-table  {
       margin-top: 1.25em;
       border-top: 1px solid #aaa;
       background-color: #eee;
@@ -97,10 +97,10 @@ found in the LICENSE file.
         return;
 
       var eventsByTitle = selection.getEventsOrganizedByTitle();
-      var numTitles = tv.b.dictionaryLength(eventsByTitle);
+      var numTitles = tr.b.dictionaryLength(eventsByTitle);
 
       var summaryTableEl = document.createElement(
-          'tv-c-a-multi-event-summary-table');
+          'tr-c-a-multi-event-summary-table');
       summaryTableEl.configure({
         showTotals: numTitles > 1,
         eventsByTitle: eventsByTitle,
@@ -110,13 +110,13 @@ found in the LICENSE file.
       this.$.content.appendChild(summaryTableEl);
 
       var selectionSummaryTableEl = document.createElement(
-          'tv-c-a-selection-summary-table');
+          'tr-c-a-selection-summary-table');
       selectionSummaryTableEl.selection = this.currentSelection_;
       this.$.content.appendChild(selectionSummaryTableEl);
 
       if (numTitles === 1) {
         var detailsTableEl = document.createElement(
-            'tv-c-a-multi-event-details-table');
+            'tr-c-a-multi-event-details-table');
         detailsTableEl.eventsHaveDuration = this.eventsHaveDuration_;
         detailsTableEl.eventsHaveSubRows = this.eventsHaveSubRows_;
         detailsTableEl.selection = selection;

@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.cc', function() {
+tr.exportTo('tr.e.cc', function() {
 
   var knownRasterTaskNames = [
       'TileManager::RunRasterTask',
@@ -45,7 +45,7 @@ tv.exportTo('tv.e.cc', function() {
       return tileData.tile_id;
 
     var tile = tileData.tileId;
-    if (!(tile instanceof tv.e.cc.TileSnapshot))
+    if (!(tile instanceof tr.e.cc.TileSnapshot))
       return undefined;
     return tileData.tileId;
   }

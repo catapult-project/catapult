@@ -9,25 +9,25 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var timeStamp = document.createElement('tv-b-u-time-stamp-span');
+    var timeStamp = document.createElement('tr-b-u-time-stamp-span');
     timeStamp.timestamp = 73;
     this.addHTMLOutput(timeStamp);
   });
   test('instantiateWithObject', function() {
-    var timeStamp = document.createElement('tv-b-u-time-stamp-span');
-    timeStamp.timestamp = new tv.b.units.TimeStamp(73);
+    var timeStamp = document.createElement('tr-b-u-time-stamp-span');
+    timeStamp.timestamp = new tr.b.units.TimeStamp(73);
     this.addHTMLOutput(timeStamp);
     assert.equal(timeStamp.timestamp, 73);
   });
 
   test('respectCurrentDisplayUnit', function() {
     try {
-      var Time = tv.b.units.Time;
+      var Time = tr.b.units.Time;
       Time.currentDisplayUnit = Time.supportedUnits.ns;
 
-      var timeStamp = document.createElement('tv-b-u-time-stamp-span');
+      var timeStamp = document.createElement('tr-b-u-time-stamp-span');
       timeStamp.timestamp = 73;
       this.addHTMLOutput(timeStamp);
 

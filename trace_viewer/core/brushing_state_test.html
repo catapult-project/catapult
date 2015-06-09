@@ -13,14 +13,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var newSliceEx = tv.c.test_utils.newSliceEx;
+tr.b.unittest.testSuite(function() {
+  var newSliceEx = tr.c.test_utils.newSliceEx;
 
-  var Selection = tv.c.Selection;
-  var SelectionState = tv.c.trace_model.SelectionState;
+  var Selection = tr.c.Selection;
+  var SelectionState = tr.c.trace_model.SelectionState;
 
   function newSimpleModel() {
-    return tv.c.test_utils.newModel(function(m) {
+    return tr.c.test_utils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
       m.t2 = m.p1.getOrCreateThread(2);
 
@@ -36,7 +36,7 @@ tv.b.unittest.testSuite(function() {
   test('brushingStateSimple', function() {
     var m = newSimpleModel();
 
-    var bs = new tv.c.BrushingState();
+    var bs = new tr.c.BrushingState();
     bs.selection = new Selection([m.sA]);
 
     bs.applyToModelSelectionState(m);
@@ -48,7 +48,7 @@ tv.b.unittest.testSuite(function() {
   test('brushingStateWithSimpleHighlight', function() {
     var m = newSimpleModel();
 
-    var bs = new tv.c.BrushingState();
+    var bs = new tr.c.BrushingState();
     bs.selection = new Selection([m.sA]);
     bs.findMatches = new Selection([m.sA, m.sB]);
 
@@ -65,7 +65,7 @@ tv.b.unittest.testSuite(function() {
   test('brushingTransfer', function() {
     var m = newSimpleModel();
 
-    var bs = new tv.c.BrushingState();
+    var bs = new tr.c.BrushingState();
     bs.selection = new Selection([m.sA]);
 
     var bs2 = bs.clone();
@@ -85,7 +85,7 @@ tv.b.unittest.testSuite(function() {
   test('equality', function() {
     var m = newSimpleModel();
 
-    var bs = new tv.c.BrushingState();
+    var bs = new tr.c.BrushingState();
     bs.selection = new Selection([m.sA]);
     bs.findMatches = new Selection([m.sB]);
     bs.applyToModelSelectionState = new Selection([m.sC]);

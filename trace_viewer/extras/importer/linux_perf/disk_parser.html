@@ -14,9 +14,9 @@ found in the LICENSE file.
  * @fileoverview Parses filesystem and block device events in the Linux event
  * trace format.
  */
-tv.exportTo('tv.e.importer.linux_perf', function() {
+tr.exportTo('tr.e.importer.linux_perf', function() {
 
-  var Parser = tv.e.importer.linux_perf.Parser;
+  var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux filesystem and block device trace events.
@@ -54,11 +54,11 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
       var asyncSliceConstructor =
-         tv.c.trace_model.AsyncSlice.getConstructor(
+         tr.c.trace_model.AsyncSlice.getConstructor(
             category, name);
       var slice = new asyncSliceConstructor(
           category, name,
-          tv.b.ui.getColorIdForGeneralPurposeString(name),
+          tr.b.ui.getColorIdForGeneralPurposeString(name),
           ts);
       slice.startThread = kthread.thread;
 
@@ -78,7 +78,7 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
           slice.args = args;
           slice.endThread = kthread.thread;
           slice.subSlices = [
-            new tv.c.trace_model.AsyncSlice(category, slice.title,
+            new tr.c.trace_model.AsyncSlice(category, slice.title,
                 slice.colorId, slice.start, slice.args, slice.duration)
           ];
           kthread.thread.asyncSliceGroup.push(slice);

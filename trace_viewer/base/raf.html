@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b', function() {
+tr.exportTo('tr.b', function() {
   // Setting this to true will cause stack traces to get dumped into the
   // tasks. When an exception happens the original stack will be printed.
   //
@@ -50,7 +50,7 @@ tv.exportTo('tv.b', function() {
     try {
       task.callback.call(task.context, frameBeginTime);
     } catch (e) {
-      tv.b.onAnimationFrameError(e, task.stack);
+      tr.b.onAnimationFrameError(e, task.stack);
     }
   }
 
@@ -93,7 +93,7 @@ tv.exportTo('tv.b', function() {
     if (!recordRAFStacks)
       return '';
 
-    var stackLines = tv.b.stackTrace();
+    var stackLines = tr.b.stackTrace();
     // Strip off getStack_.
     stackLines.shift();
     return stackLines.join('\n');

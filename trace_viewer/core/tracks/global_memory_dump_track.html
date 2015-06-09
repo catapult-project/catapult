@@ -13,7 +13,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
 
   var USED_MEMORY_TRACK_HEIGHT = 50;
   var ALLOCATED_MEMORY_TRACK_HEIGHT = 50;
@@ -23,14 +23,14 @@ tv.exportTo('tv.c.tracks', function() {
    * @constructor
    * @extends {ContainerTrack}
    */
-  var GlobalMemoryDumpTrack = tv.b.ui.define(
-      'global-memory-dump-track', tv.c.tracks.ContainerTrack);
+  var GlobalMemoryDumpTrack = tr.b.ui.define(
+      'global-memory-dump-track', tr.c.tracks.ContainerTrack);
 
   GlobalMemoryDumpTrack.prototype = {
-    __proto__: tv.c.tracks.ContainerTrack.prototype,
+    __proto__: tr.c.tracks.ContainerTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.memoryDumps_ = undefined;
     },
 
@@ -58,23 +58,23 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     appendDumpDotsTrack_: function() {
-      var items = tv.c.tracks.buildMemoryLetterDots(this.memoryDumps_);
+      var items = tr.c.tracks.buildMemoryLetterDots(this.memoryDumps_);
       if (!items)
         return;
 
-      var track = new tv.c.tracks.LetterDotTrack(this.viewport);
+      var track = new tr.c.tracks.LetterDotTrack(this.viewport);
       track.heading = 'Memory Dumps';
       track.items = items;
       this.appendChild(track);
     },
 
     appendUsedMemoryTrack_: function() {
-      var series = tv.c.tracks.buildGlobalUsedMemoryChartSeries(
+      var series = tr.c.tracks.buildGlobalUsedMemoryChartSeries(
           this.memoryDumps_);
       if (!series)
         return;
 
-      var track = new tv.c.tracks.ChartTrack(this.viewport);
+      var track = new tr.c.tracks.ChartTrack(this.viewport);
       track.heading = 'Used memory (per process)';
       track.height = USED_MEMORY_TRACK_HEIGHT + 'px';
       track.series = series;
@@ -83,12 +83,12 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     appendAllocatedMemoryTrack_: function() {
-      var series = tv.c.tracks.buildGlobalAllocatedMemoryChartSeries(
+      var series = tr.c.tracks.buildGlobalAllocatedMemoryChartSeries(
           this.memoryDumps_);
       if (!series)
         return;
 
-      var track = new tv.c.tracks.ChartTrack(this.viewport);
+      var track = new tr.c.tracks.ChartTrack(this.viewport);
       track.heading = 'Allocated memory (per allocator)';
       track.height = ALLOCATED_MEMORY_TRACK_HEIGHT + 'px';
       track.series = series;

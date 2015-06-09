@@ -8,7 +8,8 @@ found in the LICENSE file.
 <script>
 function onTraceViewerImportFail() {
   document.addEventListener('DOMContentLoaded', function() {
-    document.body.textContent = 'bin/trace_viewer_full.html is missing. Run vulcanize_trace_viewer from $TRACE_VIEWER and reload.';
+    document.body.textContent = 'bin/trace_viewer_full.html is missing. ' +
+        'Run vulcanize_trace_viewer from $TRACE_VIEWER and reload.';
   });
 }
 </script>
@@ -30,7 +31,7 @@ function onTraceViewerImportFail() {
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var viewer = new tv.TraceViewer('../test_data/big_trace.json');
+  var viewer = new tr.TraceViewer('../test_data/big_trace.json');
   viewer.id = 'trace-viewer';
   viewer.tabIndex = 1;
   document.body.appendChild(viewer);

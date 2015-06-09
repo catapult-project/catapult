@@ -15,11 +15,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.system_stats', function() {
-  var EventPresenter = tv.c.EventPresenter;
+tr.exportTo('tr.e.system_stats', function() {
+  var EventPresenter = tr.c.EventPresenter;
 
-  var palette = tv.b.ui.getColorPalette();
-  var highlightIdBoost = tv.b.ui.getColorPaletteHighlightIdBoost();
+  var palette = tr.b.ui.getColorPalette();
+  var highlightIdBoost = tr.b.ui.getColorPaletteHighlightIdBoost();
 
   var statCount;
 
@@ -49,15 +49,15 @@ tv.exportTo('tv.e.system_stats', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var SystemStatsInstanceTrack = tv.b.ui.define(
-      'system-stats-instance-track', tv.c.tracks.StackedBarsTrack);
+  var SystemStatsInstanceTrack = tr.b.ui.define(
+      'system-stats-instance-track', tr.c.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {
 
-    __proto__: tv.c.tracks.StackedBarsTrack.prototype,
+    __proto__: tr.c.tracks.StackedBarsTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
       this.classList.add('system-stats-instance-track');
       this.objectInstance_ = null;
     },
@@ -192,7 +192,7 @@ tv.exportTo('tv.e.system_stats', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tv.c.tracks.DrawType.GENERAL_EVENT:
+        case tr.c.tracks.DrawType.GENERAL_EVENT:
           this.drawStatBars_(viewLWorld, viewRWorld);
           break;
       }
@@ -213,7 +213,7 @@ tv.exportTo('tv.e.system_stats', function() {
       var maxStats = this.maxStats_;
 
       var objectSnapshots = this.objectInstance_.snapshots;
-      var lowIndex = tv.b.findLowIndexInSortedArray(
+      var lowIndex = tr.b.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts;
@@ -345,7 +345,7 @@ tv.exportTo('tv.e.system_stats', function() {
     }
   };
 
-  tv.c.tracks.ObjectInstanceTrack.register(
+  tr.c.tracks.ObjectInstanceTrack.register(
       SystemStatsInstanceTrack,
       {typeName: 'base::TraceEventSystemStatsMonitor::SystemStats'});
 

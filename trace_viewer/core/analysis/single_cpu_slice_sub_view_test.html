@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function createBasicModel() {
     var lines = [
       'Android.launcher-584   [001] d..3 12622.506890: sched_switch: prev_comm=Android.launcher prev_pid=584 prev_prio=120 prev_state=R+ ==> next_comm=Binder_1 next_pid=217 next_prio=120', // @suppress longLineCheck
@@ -24,7 +24,7 @@ tv.b.unittest.testSuite(function() {
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ==> next_comm=Android.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
     ];
 
-    return new tv.c.TraceModel(lines.join('\n'), false);
+    return new tr.c.TraceModel(lines.join('\n'), false);
   }
 
   test('cpuSliceView_withCpuSliceOnExistingThread', function() {
@@ -39,8 +39,8 @@ tv.b.unittest.testSuite(function() {
     assert.isDefined(thread);
     assert.equal(cpuSlice.threadThatWasRunning, thread);
 
-    var view = document.createElement('tv-c-a-single-cpu-slice-sub-view');
-    var selection = new tv.c.Selection();
+    var view = document.createElement('tr-c-a-single-cpu-slice-sub-view');
+    var selection = new tr.c.Selection();
     selection.push(cpuSlice);
     view.selection = selection;
     this.addHTMLOutput(view);
@@ -52,7 +52,7 @@ tv.b.unittest.testSuite(function() {
       assert.equal(thread.timeSlices[0], e.selection[0]);
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('tv-c-a-analysis-link').click();
+    view.shadowRoot.querySelector('tr-c-a-analysis-link').click();
     assert.isTrue(didSelectionChangeHappen);
   });
 
@@ -65,10 +65,10 @@ tv.b.unittest.testSuite(function() {
     assert.equal('Android.launcher', cpuSlice.title);
     assert.isUndefined(cpuSlice.thread);
 
-    var selection = new tv.c.Selection();
+    var selection = new tr.c.Selection();
     selection.push(cpuSlice);
 
-    var view = document.createElement('tv-c-a-single-cpu-slice-sub-view');
+    var view = document.createElement('tr-c-a-single-cpu-slice-sub-view');
     view.selection = selection;
     this.addHTMLOutput(view);
   });

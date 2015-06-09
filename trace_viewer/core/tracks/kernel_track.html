@@ -12,16 +12,16 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
-  var Cpu = tv.c.trace_model.Cpu;
-  var CpuTrack = tv.c.tracks.cpu_track;
-  var ProcessTrackBase = tv.c.tracks.ProcessTrackBase;
-  var SpacingTrack = tv.c.tracks.SpacingTrack;
+tr.exportTo('tr.c.tracks', function() {
+  var Cpu = tr.c.trace_model.Cpu;
+  var CpuTrack = tr.c.tracks.cpu_track;
+  var ProcessTrackBase = tr.c.tracks.ProcessTrackBase;
+  var SpacingTrack = tr.c.tracks.SpacingTrack;
 
   /**
    * @constructor
    */
-  var KernelTrack = tv.b.ui.define('kernel-track', ProcessTrackBase);
+  var KernelTrack = tr.b.ui.define('kernel-track', ProcessTrackBase);
 
   KernelTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
@@ -53,13 +53,13 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     willAppendTracks_: function() {
-      var cpus = tv.b.dictionaryValues(this.kernel.cpus);
-      cpus.sort(tv.c.trace_model.Cpu.compare);
+      var cpus = tr.b.dictionaryValues(this.kernel.cpus);
+      cpus.sort(tr.c.trace_model.Cpu.compare);
 
       var didAppendAtLeastOneTrack = false;
       for (var i = 0; i < cpus.length; ++i) {
         var cpu = cpus[i];
-        var track = new tv.c.tracks.CpuTrack(this.viewport);
+        var track = new tr.c.tracks.CpuTrack(this.viewport);
         track.detailedMode = this.expanded;
         track.cpu = cpu;
         if (!track.hasVisibleContent)

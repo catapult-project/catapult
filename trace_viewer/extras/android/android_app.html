@@ -16,9 +16,9 @@ found in the LICENSE file.
  * @fileoverview Class for managing android-specific model meta data,
  * such as rendering apps, and frames rendered.
  */
-tv.exportTo('tv.e.audits', function() {
-  var Frame = tv.c.trace_model.Frame;
-  var Statistics = tv.b.Statistics;
+tr.exportTo('tr.e.audits', function() {
+  var Frame = tr.c.trace_model.Frame;
+  var Statistics = tr.b.Statistics;
 
   var UI_THREAD_DRAW_NAMES = {
     'performTraversals': true,
@@ -93,7 +93,7 @@ tv.exportTo('tv.e.audits', function() {
         preFrameEvents.push(slice);
     });
 
-    return tv.e.audits.mergeExplicitRanges(preFrameEvents, 3, function(events) {
+    return tr.e.audits.mergeExplicitRanges(preFrameEvents, 3, function(events) {
       return {
         start: events[0].start,
         end: events[events.length - 1].end
@@ -102,7 +102,7 @@ tv.exportTo('tv.e.audits', function() {
   }
 
   function getFrameStartTime(traversalStart, preTraversalWorkRanges) {
-    var preTraversalWorkRange = tv.b.findClosestIntervalInSortedIntervals(
+    var preTraversalWorkRange = tr.b.findClosestIntervalInSortedIntervals(
         preTraversalWorkRanges,
         function(range) { return range.start },
         function(range) { return range.end },

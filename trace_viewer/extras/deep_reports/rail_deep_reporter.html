@@ -15,7 +15,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.deep_reports', function() {
+tr.exportTo('tr.e.deep_reports', function() {
 
   function RAILDeepReporter() {
   };
@@ -23,29 +23,29 @@ tv.exportTo('tv.e.deep_reports', function() {
   RAILDeepReporter.addResultsForModel = function(results, page, model) {
     var rirs = [];
     model.interaction_records.forEach(function(ir) {
-      if (ir instanceof tv.e.audits.RAILInteractionRecord)
+      if (ir instanceof tr.e.audits.RAILInteractionRecord)
         rirs.push(ir);
     });
 
     if (rirs.length === 0)
       return;
 
-    var railScore = tv.e.audits.RAILScore.compute(rirs);
+    var railScore = tr.e.audits.RAILScore.compute(rirs);
 
     results.addValue(
-        new tv.e.deep_reports.ScalarValue(
+        new tr.e.deep_reports.ScalarValue(
             page, 'numRailIRs', 'ms', rirs.length));
 
-    tv.b.iterItems(railScore, function(key, value) {
+    tr.b.iterItems(railScore, function(key, value) {
       if (key === 'score')
         return;
       results.addValue(
-        new tv.e.deep_reports.ScalarValue(
+        new tr.e.deep_reports.ScalarValue(
           page, key, 'rails', value));
     });
 
     results.addValue(
-      new tv.e.deep_reports.ScalarValue(
+      new tr.e.deep_reports.ScalarValue(
         page, 'railScore', 'rails', railScore.score));
   }
 

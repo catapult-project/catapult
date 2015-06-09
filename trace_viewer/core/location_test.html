@@ -14,24 +14,24 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Location = tv.c.Location;
-  var Model = tv.c.TraceModel;
+tr.b.unittest.testSuite(function() {
+  var Location = tr.c.Location;
+  var Model = tr.c.TraceModel;
 
   test('locationObj', function() {
-    var model = new tv.c.TraceModel();
+    var model = new tr.c.TraceModel();
     var process = model.getOrCreateProcess(123);
     var thread = process.getOrCreateThread(456);
 
     model.importTraces([], false, false, function() {
       thread.asyncSliceGroup.push(
-        tv.c.test_utils.newAsyncSliceNamed('a', 80, 20, thread, thread));
+        tr.c.test_utils.newAsyncSliceNamed('a', 80, 20, thread, thread));
       thread.asyncSliceGroup.push(
-        tv.c.test_utils.newAsyncSliceNamed('a', 85, 10, thread, thread));
+        tr.c.test_utils.newAsyncSliceNamed('a', 85, 10, thread, thread));
     });
 
-    var timeline = new tv.c.TimelineTrackView();
-    var vp = new tv.c.TimelineViewport(timeline);
+    var timeline = new tr.c.TimelineTrackView();
+    var vp = new tr.c.TimelineViewport(timeline);
     timeline.model = model;
     timeline.focusElement = timeline;
     timeline.tabIndex = 0;
@@ -51,7 +51,7 @@ tv.b.unittest.testSuite(function() {
       },
       addEventListener: function() {},
       canvas: {
-        offsetLeft: tv.c.constants.HEADING_WIDTH,
+        offsetLeft: tr.c.constants.HEADING_WIDTH,
         offsetTop: 0
       }
     };

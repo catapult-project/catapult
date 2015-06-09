@@ -8,49 +8,49 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function assertSettingIs(expectedValue, key) {
-    assert.equal(tv.b.Settings.get(key), expectedValue);
+    assert.equal(tr.b.Settings.get(key), expectedValue);
   }
 
   // Old settings versions used to stringify objects instead of putting them
   // into JSON. This test makes sure that these old settings yield the default
   // value instead of strings.
   test('oldStyleSettingYieldsDefaultValue', function() {
-    var storage = tv.b.Settings.getAlternativeStorageInstance();
-    storage.setItem(tv.b.Settings.namespace_('key'), 'hello world');
+    var storage = tr.b.Settings.getAlternativeStorageInstance();
+    storage.setItem(tr.b.Settings.namespace_('key'), 'hello world');
 
-    assert.equal(tv.b.Settings.get('key', 'value'), 'value');
+    assert.equal(tr.b.Settings.get('key', 'value'), 'value');
   });
 
   test('setGetString', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     settings.set('my_key', 'my_val');
     assert.equal(settings.get('my_key'), 'my_val');
-    // tv.b.Settings() is a singleton
-    assert.equal(tv.b.Settings().get('my_key'), 'my_val');
+    // tr.b.Settings() is a singleton
+    assert.equal(tr.b.Settings().get('my_key'), 'my_val');
   });
 
   test('setGetNumber', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     settings.set('my_key', 5);
     assertSettingIs(5, 'my_key');
   });
 
   test('setGetBool', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     settings.set('my_key', false);
     assertSettingIs(false, 'my_key');
   });
 
   test('setGetObject', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     settings.set('my_key', {'hello': 5});
     assert.deepEqual(settings.get('my_key'), {'hello': 5});
   });
 
   test('setInvalidObject', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     var obj = {'hello': undefined};
     obj.hello = obj;
     assert.throws(function() {
@@ -59,26 +59,26 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('setUndefined', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     assert.throws(function() {
       settings.set('my_key', undefined);
     });
   });
 
   test('getUnset', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     // Undefined should be returned if value isn't set.
     assertSettingIs(undefined, 'my_key');
   });
 
   test('getDefault', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     // default_val should be returned if value isn't set.
     assert.equal(settings.get('my_key', 'default_val'), 'default_val');
   });
 
   test('setGetPrefix', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     settings.set('key_a', 'foo', 'my_prefix');
     assert.equal(settings.get('key_a', undefined, 'my_prefix'), 'foo');
     assert.equal(settings.get('key_a', 'bar', 'my_prefix'), 'foo');
@@ -87,7 +87,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('keys', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     settings.set('key_a', 'foo');
     settings.set('key_b', 'bar');
     settings.set('key_c', 'baz');
@@ -95,7 +95,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('keysPrefix', function() {
-    var settings = new tv.b.Settings();
+    var settings = new tr.b.Settings();
     settings.set('key_a', 'foo', 'prefix1');
     settings.set('key_b', 'bar', 'prefix1');
     settings.set('key_c', 'baz', 'prefix1');

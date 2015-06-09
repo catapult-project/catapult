@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function getSynchronous(url) {
     var req = new XMLHttpRequest();
     req.open('GET', url, false);
@@ -43,7 +43,7 @@ tv.b.unittest.testSuite(function() {
         return;
       var fileUrl = '/test_data/counter_tracks.html';
       var events = getSynchronous(fileUrl);
-      model = new tv.c.TraceModel();
+      model = new tr.c.TraceModel();
       model.importTraces([events], true);
     }
 
@@ -51,12 +51,12 @@ tv.b.unittest.testSuite(function() {
       setUpOnce();
       viewportDiv = document.createElement('div');
 
-      var viewport = new tv.c.TimelineViewport(viewportDiv);
+      var viewport = new tr.c.TimelineViewport(viewportDiv);
 
-      drawingContainer = new tv.c.tracks.DrawingContainer(viewport);
+      drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
       viewport.modelTrackContainer = drawingContainer;
 
-      var modelTrack = new tv.c.tracks.TraceModelTrack(viewport);
+      var modelTrack = new tr.c.tracks.TraceModelTrack(viewport);
       drawingContainer.appendChild(modelTrack);
 
       modelTrack.model = model;
@@ -75,7 +75,7 @@ tv.b.unittest.testSuite(function() {
       worldMid = min + range / 2;
 
       var boost = range * 0.15;
-      var dt = new tv.c.TimelineDisplayTransform();
+      var dt = new tr.c.TimelineDisplayTransform();
       dt.xSetWorldBounds(min - boost, min + range + boost, viewportWidth);
       modelTrack.viewport.setDisplayTransformImmediately(dt);
       startScale = dt.scaleX;
@@ -90,7 +90,7 @@ tv.b.unittest.testSuite(function() {
             for (var j = Math.floor(samples.length / 2); j < samples.length;
                  j++) {
               samples[j].selectionState =
-                  tv.c.trace_model.SelectionState.SELECTED;
+                  tr.c.trace_model.SelectionState.SELECTED;
             }
           }
         }

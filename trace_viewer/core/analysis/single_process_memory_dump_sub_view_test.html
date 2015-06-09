@@ -13,9 +13,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Selection = tv.c.Selection;
-  var createTestProcessMemoryDump = tv.c.analysis.createTestProcessMemoryDump;
+tr.b.unittest.testSuite(function() {
+  var Selection = tr.c.Selection;
+  var createTestProcessMemoryDump = tr.c.analysis.createTestProcessMemoryDump;
 
   test('instantiate', function() {
     var processMemoryDump = createTestProcessMemoryDump();
@@ -24,7 +24,7 @@ tv.b.unittest.testSuite(function() {
     selection.push(processMemoryDump);
 
     var viewEl = document.createElement(
-        'tv-c-a-single-process-memory-dump-sub-view');
+        'tr-c-a-single-process-memory-dump-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
   });

@@ -12,28 +12,28 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
   /**
    * A track that displays a AsyncSliceGroup.
    * @constructor
    * @extends {MultiRowTrack}
    */
-  var AsyncSliceGroupTrack = tv.b.ui.define(
+  var AsyncSliceGroupTrack = tr.b.ui.define(
       'async-slice-group-track',
-      tv.c.tracks.MultiRowTrack);
+      tr.c.tracks.MultiRowTrack);
 
   AsyncSliceGroupTrack.prototype = {
 
-    __proto__: tv.c.tracks.MultiRowTrack.prototype,
+    __proto__: tr.c.tracks.MultiRowTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
       this.classList.add('async-slice-group-track');
       this.group_ = undefined;
     },
 
     addSubTrack_: function(slices) {
-      var track = new tv.c.tracks.SliceTrack(this.viewport);
+      var track = new tr.c.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       this.appendChild(track);
       track.asyncStyle = true;

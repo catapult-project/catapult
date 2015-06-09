@@ -13,9 +13,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses regulator events in the Linux event trace format.
  */
-tv.exportTo('tv.e.importer.linux_perf', function() {
+tr.exportTo('tr.e.importer.linux_perf', function() {
 
-  var Parser = tv.e.importer.linux_perf.Parser;
+  var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux regulator trace events.
@@ -62,8 +62,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
         .getOrCreateCounter(null, 'vreg ' + ctrName + ' ' + valueName);
       // Initialize the counter's series fields if needed.
       if (ctr.series[0] === undefined) {
-        ctr.addSeries(new tv.c.trace_model.CounterSeries(valueName,
-        tv.b.ui.getColorIdForGeneralPurposeString(
+        ctr.addSeries(new tr.c.trace_model.CounterSeries(valueName,
+        tr.b.ui.getColorIdForGeneralPurposeString(
         ctrName + '.' + valueName)));
       }
       return ctr;

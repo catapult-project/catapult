@@ -8,9 +8,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.b', function() {
+tr.exportTo('tr.b', function() {
   /**
-   * Creates a new event to be used with tv.b.EventTarget or DOM EventTarget
+   * Creates a new event to be used with tr.b.EventTarget or DOM EventTarget
    * objects.
    * @param {string} type The name of the event.
    * @param {boolean=} opt_bubbles Whether the event bubbles.
@@ -21,7 +21,7 @@ tv.exportTo('tv.b', function() {
    * @extends {Event}
    */
   function Event(type, opt_bubbles, opt_preventable) {
-    var e = tv.doc.createEvent('Event');
+    var e = tr.doc.createEvent('Event');
     e.initEvent(type, !!opt_bubbles, !!opt_preventable);
     e.__proto__ = global.Event.prototype;
     return e;

@@ -15,7 +15,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides the AsyncSlice class.
  */
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
   /**
    * A AsyncSlice represents an interval of time during which an
    * asynchronous operation is in progress. An AsyncSlice consumes no CPU time
@@ -25,7 +25,7 @@ tv.exportTo('tv.c.trace_model', function() {
    */
   function AsyncSlice(category, title, colorId, start, args, duration,
                       opt_isTopLevel, opt_cpuStart, opt_cpuDuration) {
-    tv.c.trace_model.TimedEvent.call(this, start);
+    tr.c.trace_model.TimedEvent.call(this, start);
 
     this.category = category || '';
     this.title = title;
@@ -56,7 +56,7 @@ tv.exportTo('tv.c.trace_model', function() {
   };
 
   AsyncSlice.prototype = {
-    __proto__: tv.c.trace_model.TimedEvent.prototype,
+    __proto__: tr.c.trace_model.TimedEvent.prototype,
 
     get analysisTypeName() {
       return this.title;
@@ -68,7 +68,7 @@ tv.exportTo('tv.c.trace_model', function() {
 
     get userFriendlyName() {
       return 'Async slice ' + this.title + ' at ' +
-          tv.b.units.tsString(this.start);
+          tr.b.units.tsString(this.start);
     },
 
     findDescendentSlice: function(targetTitle) {
@@ -96,21 +96,21 @@ tv.exportTo('tv.c.trace_model', function() {
     }
   };
 
-  tv.c.trace_model.EventRegistry.register(
+  tr.c.trace_model.EventRegistry.register(
       AsyncSlice,
       {
         name: 'asyncSlice',
         pluralName: 'asyncSlices',
-        singleViewElementName: 'tv-c-a-single-async-slice-sub-view',
-        multiViewElementName: 'tv-c-a-multi-async-slice-sub-view'
+        singleViewElementName: 'tr-c-a-single-async-slice-sub-view',
+        multiViewElementName: 'tr-c-a-multi-async-slice-sub-view'
       });
 
 
-  var options = new tv.b.ExtensionRegistryOptions(
-      tv.b.TYPE_BASED_REGISTRY_MODE);
+  var options = new tr.b.ExtensionRegistryOptions(
+      tr.b.TYPE_BASED_REGISTRY_MODE);
   options.mandatoryBaseClass = AsyncSlice;
   options.defaultConstructor = AsyncSlice;
-  tv.b.decorateExtensionRegistry(AsyncSlice, options);
+  tr.b.decorateExtensionRegistry(AsyncSlice, options);
 
   return {
     AsyncSlice: AsyncSlice

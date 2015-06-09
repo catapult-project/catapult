@@ -20,7 +20,7 @@ found in the LICENSE file.
  * and their constructor must register their event handlers with the
  * importer.  For example,
  *
- * var Parser = tv.e.importer.etw.Parser;
+ * var Parser = tr.e.importer.etw.Parser;
  *
  * function ThreadParser(importer) {
  *   Parser.call(this, importer);
@@ -47,7 +47,7 @@ found in the LICENSE file.
  * true.
  *
  */
-tv.exportTo('tv.e.importer.etw', function() {
+tr.exportTo('tr.e.importer.etw', function() {
   /**
    * Parses Windows ETW events.
    * @constructor
@@ -61,9 +61,9 @@ tv.exportTo('tv.e.importer.etw', function() {
     __proto__: Object.prototype
   };
 
-  var options = new tv.b.ExtensionRegistryOptions(tv.b.BASIC_REGISTRY_MODE);
+  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   options.mandatoryBaseClass = Parser;
-  tv.b.decorateExtensionRegistry(Parser, options);
+  tr.b.decorateExtensionRegistry(Parser, options);
 
 
   return {

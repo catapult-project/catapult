@@ -17,11 +17,11 @@ found in the LICENSE file.
 /**
  * @fileoverview Code for the viewport.
  */
-tv.exportTo('tv.c', function() {
+tr.exportTo('tr.c', function() {
 
-  var EventRegistry = tv.c.trace_model.EventRegistry;
+  var EventRegistry = tr.c.trace_model.EventRegistry;
 
-  var RequestSelectionChangeEvent = tv.b.Event.bind(
+  var RequestSelectionChangeEvent = tr.b.Event.bind(
       undefined, 'requestSelectionChange', true, false);
 
   /**
@@ -36,9 +36,9 @@ tv.exportTo('tv.c', function() {
     this.sunburst_zoom_level = undefined;
 
     this.bounds_dirty_ = true;
-    this.bounds_ = new tv.b.Range();
+    this.bounds_ = new tr.b.Range();
     this.length_ = 0;
-    this.guid_ = tv.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocate();
     this.pushed_guids_ = {};
 
     if (opt_events) {
@@ -198,14 +198,14 @@ tv.exportTo('tv.c', function() {
       }
 
       var eventsByBaseType = this.getEventsOrganizedByBaseType(true);
-      var eventTypeName = tv.b.dictionaryKeys(eventsByBaseType)[0];
+      var eventTypeName = tr.b.dictionaryKeys(eventsByBaseType)[0];
 
       if (this.length === 1) {
         var tmp = EventRegistry.getUserFriendlySingularName(eventTypeName);
         return this[0].userFriendlyName;
       }
 
-      var numEventTypes = tv.b.dictionaryLength(eventsByBaseType);
+      var numEventTypes = tr.b.dictionaryLength(eventsByBaseType);
       if (numEventTypes !== 1) {
         return this.length + ' events of various types';
       }
@@ -231,7 +231,7 @@ tv.exportTo('tv.c', function() {
 
         // If this is a flow event, then move to its slice based on the
         // offset direction.
-        if (event instanceof tv.c.trace_model.FlowEvent) {
+        if (event instanceof tr.c.trace_model.FlowEvent) {
           if (offset > 0) {
             newSelection.push(event.endSlice);
           } else if (offset < 0) {

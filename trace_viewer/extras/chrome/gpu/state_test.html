@@ -14,15 +14,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var m = new tv.c.TraceModel(g_gpu_state_trace);
-    var p = tv.b.dictionaryValues(m.processes)[0];
+    var m = new tr.c.TraceModel(g_gpu_state_trace);
+    var p = tr.b.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('gpu::State')[0];
     var snapshot = instance.snapshots[0];
 
-    assert.instanceOf(snapshot, tv.e.gpu.StateSnapshot);
+    assert.instanceOf(snapshot, tr.e.gpu.StateSnapshot);
     assert.typeOf(snapshot.screenshot, 'string');
     instance.wasDeleted(150);
   });

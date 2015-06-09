@@ -19,18 +19,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
+tr.exportTo('tr.c.tracks', function() {
   /**
    * Visualizes a Thread using a series of SliceTracks.
    * @constructor
    */
-  var ThreadTrack = tv.b.ui.define('thread-track',
-                                   tv.c.tracks.ContainerTrack);
+  var ThreadTrack = tr.b.ui.define('thread-track',
+                                   tr.c.tracks.ContainerTrack);
   ThreadTrack.prototype = {
-    __proto__: tv.c.tracks.ContainerTrack.prototype,
+    __proto__: tr.c.tracks.ContainerTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('thread-track');
     },
 
@@ -72,16 +72,16 @@ tv.exportTo('tv.c.tracks', function() {
       this.appendThreadSamplesTracks_();
 
       if (this.thread_.timeSlices) {
-        var timeSlicesTrack = new tv.c.tracks.SliceTrack(this.viewport);
+        var timeSlicesTrack = new tr.c.tracks.SliceTrack(this.viewport);
         timeSlicesTrack.heading = '';
-        timeSlicesTrack.height = tv.c.THIN_SLICE_HEIGHT + 'px';
+        timeSlicesTrack.height = tr.c.THIN_SLICE_HEIGHT + 'px';
         timeSlicesTrack.slices = this.thread_.timeSlices;
         if (timeSlicesTrack.hasVisibleContent)
           this.appendChild(timeSlicesTrack);
       }
 
       if (this.thread_.sliceGroup.length) {
-        var track = new tv.c.tracks.SliceGroupTrack(this.viewport);
+        var track = new tr.c.tracks.SliceGroupTrack(this.viewport);
         track.heading = this.thread_.userFriendlyName;
         track.tooltip = this.thread_.userFriendlyDetails;
         track.group = this.thread_.sliceGroup;
@@ -93,7 +93,7 @@ tv.exportTo('tv.c.tracks', function() {
     appendAsyncSliceTracks_: function() {
       var subGroups = this.thread_.asyncSliceGroup.viewSubGroups;
       subGroups.forEach(function(subGroup) {
-        var asyncTrack = new tv.c.tracks.AsyncSliceGroupTrack(this.viewport);
+        var asyncTrack = new tr.c.tracks.AsyncSliceGroupTrack(this.viewport);
         var title = subGroup.slices[0].viewSubGroupTitle;
         asyncTrack.group = subGroup;
         asyncTrack.heading = title;
@@ -113,19 +113,19 @@ tv.exportTo('tv.c.tracks', function() {
         samplesByTitle[sample.title].push(sample);
       });
 
-      var sampleTitles = tv.b.dictionaryKeys(samplesByTitle);
+      var sampleTitles = tr.b.dictionaryKeys(samplesByTitle);
       sampleTitles.sort();
 
       sampleTitles.forEach(function(sampleTitle) {
         var samples = samplesByTitle[sampleTitle];
-        var samplesTrack = new tv.c.tracks.SampleTrack(this.viewport);
+        var samplesTrack = new tr.c.tracks.SampleTrack(this.viewport);
         samplesTrack.group = this.thread_;
         samplesTrack.samples = samples;
         samplesTrack.heading = this.thread_.userFriendlyName + ': ' +
             sampleTitle;
         samplesTrack.tooltip = this.thread_.userFriendlyDetails;
         samplesTrack.selectionGenerator = function() {
-          var selection = new tv.c.Selection();
+          var selection = new tr.c.Selection();
           for (var i = 0; i < samplesTrack.samples.length; i++) {
             selection.push(samplesTrack.samples[i]);
           }

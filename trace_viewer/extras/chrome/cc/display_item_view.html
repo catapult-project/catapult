@@ -16,21 +16,21 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.cc', function() {
+tr.exportTo('tr.e.cc', function() {
   /*
    * Displays a display item snapshot in a human readable form.
    * @constructor
    */
-  var DisplayItemSnapshotView = tv.b.ui.define(
+  var DisplayItemSnapshotView = tr.b.ui.define(
       'display-item-snapshot-view',
-      tv.c.analysis.ObjectSnapshotView);
+      tr.c.analysis.ObjectSnapshotView);
 
   DisplayItemSnapshotView.prototype = {
-    __proto__: tv.c.analysis.ObjectSnapshotView.prototype,
+    __proto__: tr.c.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('display-item-view');
-      this.displayItemDebugger_ = new tv.e.cc.DisplayItemDebugger();
+      this.displayItemDebugger_ = new tr.e.cc.DisplayItemDebugger();
       this.appendChild(this.displayItemDebugger_);
     },
 
@@ -40,7 +40,7 @@ tv.exportTo('tv.e.cc', function() {
     }
   };
 
-  tv.c.analysis.ObjectSnapshotView.register(
+  tr.c.analysis.ObjectSnapshotView.register(
       DisplayItemSnapshotView,
       {
         typeNames: ['cc::DisplayItemList'],

@@ -12,24 +12,24 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
-  var ProcessTrackBase = tv.c.tracks.ProcessTrackBase;
+tr.exportTo('tr.c.tracks', function() {
+  var ProcessTrackBase = tr.c.tracks.ProcessTrackBase;
 
   /**
    * @constructor
    */
-  var ProcessTrack = tv.b.ui.define('process-track', ProcessTrackBase);
+  var ProcessTrack = tr.b.ui.define('process-track', ProcessTrackBase);
 
   ProcessTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.ProcessTrackBase.prototype.decorate.call(this, viewport);
+      tr.c.tracks.ProcessTrackBase.prototype.decorate.call(this, viewport);
     },
 
     drawTrack: function(type) {
       switch (type) {
-        case tv.c.tracks.DrawType.INSTANT_EVENT:
+        case tr.c.tracks.DrawType.INSTANT_EVENT:
           if (!this.processBase.instantEvents ||
               this.processBase.instantEvents.length === 0)
             break;
@@ -48,7 +48,7 @@ tv.exportTo('tv.c.tracks', function() {
           var viewRWorld = dt.xViewToWorld(
               bounds.width * pixelRatio);
 
-          tv.c.drawInstantSlicesAsLines(
+          tr.c.drawInstantSlicesAsLines(
               ctx,
               this.viewport.currentDisplayTransform,
               viewLWorld,
@@ -61,14 +61,14 @@ tv.exportTo('tv.c.tracks', function() {
 
           break;
 
-        case tv.c.tracks.DrawType.BACKGROUND:
+        case tr.c.tracks.DrawType.BACKGROUND:
           this.drawBackground_();
           // Don't bother recursing further, Process is the only level that
           // draws backgrounds.
           return;
       }
 
-      tv.c.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
+      tr.c.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
     },
 
     drawBackground_: function() {
@@ -79,8 +79,8 @@ tv.exportTo('tv.c.tracks', function() {
       var draw = false;
       ctx.fillStyle = '#eee';
       for (var i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tv.c.tracks.Track) ||
-            (this.children[i] instanceof tv.c.tracks.SpacingTrack))
+        if (!(this.children[i] instanceof tr.c.tracks.Track) ||
+            (this.children[i] instanceof tr.c.tracks.SpacingTrack))
           continue;
 
         draw = !draw;
@@ -116,7 +116,7 @@ tv.exportTo('tv.c.tracks', function() {
     appendMemoryDumpTrack_: function() {
       var processMemoryDumps = this.process.memoryDumps;
       if (processMemoryDumps.length) {
-        var pmdt = new tv.c.tracks.ProcessMemoryDumpTrack(this.viewport_);
+        var pmdt = new tr.c.tracks.ProcessMemoryDumpTrack(this.viewport_);
         pmdt.memoryDumps = processMemoryDumps;
         this.appendChild(pmdt);
       }
@@ -127,13 +127,13 @@ tv.exportTo('tv.c.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
-      tv.b.iterateOverIntersectingIntervals(this.processBase.instantEvents,
+      tr.b.iterateOverIntersectingIntervals(this.processBase.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,
           onPickHit.bind(this));
 
-      tv.c.tracks.ContainerTrack.prototype.
+      tr.c.tracks.ContainerTrack.prototype.
           addIntersectingEventsInRangeToSelectionInWorldSpace.
           apply(this, arguments);
     },
@@ -142,7 +142,7 @@ tv.exportTo('tv.c.tracks', function() {
                                          selection) {
       this.addClosestInstantEventToSelection(this.processBase.instantEvents,
                                              worldX, worldMaxDist, selection);
-      tv.c.tracks.ContainerTrack.prototype.addClosestEventToSelection.
+      tr.c.tracks.ContainerTrack.prototype.addClosestEventToSelection.
           apply(this, arguments);
     }
   };

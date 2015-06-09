@@ -13,23 +13,23 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.tracks', function() {
-  var TraceModelSettings = tv.c.TraceModelSettings;
+tr.exportTo('tr.c.tracks', function() {
+  var TraceModelSettings = tr.c.TraceModelSettings;
 
   /**
    * A track that displays a group of objects in multiple rows.
    * @constructor
    * @extends {ContainerTrack}
    */
-  var MultiRowTrack = tv.b.ui.define(
-      'multi-row-track', tv.c.tracks.ContainerTrack);
+  var MultiRowTrack = tr.b.ui.define(
+      'multi-row-track', tr.c.tracks.ContainerTrack);
 
   MultiRowTrack.prototype = {
 
-    __proto__: tv.c.tracks.ContainerTrack.prototype,
+    __proto__: tr.c.tracks.ContainerTrack.prototype,
 
     decorate: function(viewport) {
-      tv.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      tr.c.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.tooltip_ = '';
       this.heading_ = '';
 
@@ -139,7 +139,7 @@ tv.exportTo('tv.c.tracks', function() {
     },
 
     updateContents_: function() {
-      tv.c.tracks.ContainerTrack.prototype.updateContents_.call(this);
+      tr.c.tracks.ContainerTrack.prototype.updateContents_.call(this);
       if (!this.itemsToGroup_) {
         this.updateHeadingAndTooltip_();
         this.currentSubRows_ = [];

@@ -13,11 +13,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Model = tv.c.TraceModel;
-  var Thread = tv.c.trace_model.Thread;
-  var Selection = tv.c.Selection;
-  var trace_model = tv.c.trace_model;
+tr.b.unittest.testSuite(function() {
+  var Model = tr.c.TraceModel;
+  var Thread = tr.c.trace_model.Thread;
+  var Selection = tr.c.Selection;
+  var trace_model = tr.c.trace_model;
 
   test('analyzeSelectionWithSingleEvent', function() {
     var model = new Model();
@@ -34,7 +34,7 @@ tv.b.unittest.testSuite(function() {
     assert.equal(selection.length, 1);
 
     var subView = document.createElement(
-        'tv-c-a-single-instant-event-sub-view');
+        'tr-c-a-single-instant-event-sub-view');
     subView.selection = selection;
 
     this.addHTMLOutput(subView);

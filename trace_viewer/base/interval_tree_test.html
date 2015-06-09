@@ -8,15 +8,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function SimpleIntervalTree() {
-    tv.b.IntervalTree.call(this,
+    tr.b.IntervalTree.call(this,
         function(s) { return s.start; },
         function(s) { return s.end; });
     return this;
   }
   SimpleIntervalTree.prototype = {
-    __proto__: tv.b.IntervalTree.prototype
+    __proto__: tr.b.IntervalTree.prototype
   };
 
   function buildSimpleTree() {
@@ -72,7 +72,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('findIntersection_emptyTree', function() {
-    var tree = new tv.b.IntervalTree();
+    var tree = new tr.b.IntervalTree();
     tree.updateHighValues();
 
     var intersection = tree.findIntersection(2, 4);
@@ -80,7 +80,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('findIntersection_emptyInterval', function() {
-    var tree = new tv.b.IntervalTree();
+    var tree = new tr.b.IntervalTree();
     tree.updateHighValues();
 
     assert.throws(function() {
@@ -95,7 +95,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('insert', function() {
-    var tree = new tv.b.IntervalTree(
+    var tree = new tr.b.IntervalTree(
         function(s) { return s.start; },
         function(s) { return s.end; });
 
@@ -117,7 +117,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('insert_withoutEnd', function() {
-    var tree = new tv.b.IntervalTree(
+    var tree = new tr.b.IntervalTree(
         function(s) { return s.start; },
         function(s) { return s.end; });
 
@@ -139,7 +139,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('insert_balancesTree', function() {
-    var tree = new tv.b.IntervalTree(
+    var tree = new tr.b.IntervalTree(
         function(s) { return s.start; },
         function(s) { return s.end; });
 
@@ -184,7 +184,7 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('insert_withDuplicateIntervals', function() {
-    var tree = new tv.b.IntervalTree(
+    var tree = new tr.b.IntervalTree(
         function(s) { return s.start; },
         function(s) { return s.end; });
 

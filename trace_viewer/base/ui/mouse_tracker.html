@@ -18,7 +18,7 @@ found in the LICENSE file.
  *      'mouse-tracker-end' : mouseup and not tracking.
  */
 
-tv.exportTo('tv.b.ui', function() {
+tr.exportTo('tr.b.ui', function() {
 
   /**
    * @constructor
@@ -78,7 +78,7 @@ tv.exportTo('tv.b.ui', function() {
     },
 
     remakeEvent_: function(e, newType) {
-      var remade = new tv.b.Event(newType, true, true);
+      var remade = new tr.b.Event(newType, true, true);
       remade.x = e.x;
       remade.y = e.y;
       remade.offsetX = e.offsetX;

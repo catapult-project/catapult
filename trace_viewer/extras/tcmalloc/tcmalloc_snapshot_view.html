@@ -12,17 +12,17 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.e.tcmalloc', function() {
+tr.exportTo('tr.e.tcmalloc', function() {
   /*
    * Displays a heap memory snapshot in a human readable form.
    * @constructor
    */
-  var TcmallocSnapshotView = tv.b.ui.define(
+  var TcmallocSnapshotView = tr.b.ui.define(
       'heap-snapshot-view',
-      tv.c.analysis.ObjectSnapshotView);
+      tr.c.analysis.ObjectSnapshotView);
 
   TcmallocSnapshotView.prototype = {
-    __proto__: tv.c.analysis.ObjectSnapshotView.prototype,
+    __proto__: tr.c.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('tcmalloc-snapshot-view');
@@ -165,7 +165,7 @@ tv.exportTo('tv.e.tcmalloc', function() {
     }
   };
 
-  tv.c.analysis.ObjectSnapshotView.register(
+  tr.c.analysis.ObjectSnapshotView.register(
       TcmallocSnapshotView,
       {typeName: 'memory::Heap'});
 

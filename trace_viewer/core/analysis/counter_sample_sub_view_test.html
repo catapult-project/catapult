@@ -14,12 +14,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
-  var Counter = tv.c.trace_model.Counter;
-  var CounterSeries = tv.c.trace_model.CounterSeries;
+tr.b.unittest.testSuite(function() {
+  var Counter = tr.c.trace_model.Counter;
+  var CounterSeries = tr.c.trace_model.CounterSeries;
 
-  var Selection = tv.c.Selection;
-  var StubAnalysisResults = tv.c.analysis.StubAnalysisResults;
+  var Selection = tr.c.Selection;
+  var StubAnalysisResults = tr.c.analysis.StubAnalysisResults;
 
   function createSeries(ctr) {
     var allocatedSeries = new CounterSeries('bytesallocated', 0);
@@ -52,7 +52,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_singleCounterWithTwoSeries', function() {
     var selection = createSelectionWithTwoSeriesSingleCounter();
 
-    var analysisEl = document.createElement('tv-c-a-counter-sample-sub-view');
+    var analysisEl = document.createElement('tr-c-a-counter-sample-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -79,7 +79,7 @@ tv.b.unittest.testSuite(function() {
   test('instantiate_twoCountersWithTwoSeries', function() {
     var selection = createSelectionWithTwoSeriesTwoCounters();
 
-    var analysisEl = document.createElement('tv-c-a-counter-sample-sub-view');
+    var analysisEl = document.createElement('tr-c-a-counter-sample-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
@@ -96,7 +96,7 @@ tv.b.unittest.testSuite(function() {
     var t1track = {};
     selection.push(ctr.getSeries(0).samples[1]);
 
-    var view = document.createElement('tv-c-a-counter-sample-sub-view');
+    var view = document.createElement('tr-c-a-counter-sample-sub-view');
     var results = new StubAnalysisResults();
     view.analyzeCounterSamples_(results, selection);
 
@@ -159,7 +159,7 @@ tv.b.unittest.testSuite(function() {
   test('analyzeSelectionWithComplexSeriesTwoCounters', function() {
     var selection = createSelectionWithTwoCountersDiffSeriesDiffEvents();
 
-    var view = document.createElement('tv-c-a-counter-sample-sub-view');
+    var view = document.createElement('tr-c-a-counter-sample-sub-view');
     var results = new StubAnalysisResults();
     view.analyzeCounterSamples_(results, selection);
 

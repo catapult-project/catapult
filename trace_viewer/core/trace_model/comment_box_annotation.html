@@ -13,10 +13,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.exportTo('tv.c.trace_model', function() {
+tr.exportTo('tr.c.trace_model', function() {
 
   function CommentBoxAnnotation(location, text) {
-    tv.c.trace_model.Annotation.apply(this, arguments);
+    tr.c.trace_model.Annotation.apply(this, arguments);
 
     this.location = location;
     this.text = text;
@@ -25,12 +25,12 @@ tv.exportTo('tv.c.trace_model', function() {
   CommentBoxAnnotation.fromDict = function(dict) {
     var args = dict.args;
     var location =
-        new tv.c.Location(args.location.xWorld, args.location.yComponents);
-    return new tv.c.trace_model.CommentBoxAnnotation(location, args.text);
+        new tr.c.Location(args.location.xWorld, args.location.yComponents);
+    return new tr.c.trace_model.CommentBoxAnnotation(location, args.text);
   };
 
   CommentBoxAnnotation.prototype = {
-    __proto__: tv.c.trace_model.Annotation.prototype,
+    __proto__: tr.c.trace_model.Annotation.prototype,
 
     onRemove: function() {
       this.view_.removeTextArea();
@@ -47,11 +47,11 @@ tv.exportTo('tv.c.trace_model', function() {
     },
 
     createView_: function(viewport) {
-      return new tv.c.annotations.CommentBoxAnnotationView(viewport, this);
+      return new tr.c.annotations.CommentBoxAnnotationView(viewport, this);
     }
   };
 
-  tv.c.trace_model.Annotation.register(
+  tr.c.trace_model.Annotation.register(
       CommentBoxAnnotation, {typeName: 'comment_box'});
 
   return {

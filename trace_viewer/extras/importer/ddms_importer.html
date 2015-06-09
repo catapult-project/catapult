@@ -15,8 +15,8 @@ found in the LICENSE file.
  */
 'use strict';
 
-tv.exportTo('tv.e.importer.ddms', function() {
-  var Importer = tv.c.importer.Importer;
+tr.exportTo('tr.e.importer.ddms', function() {
+  var Importer = tr.c.importer.Importer;
 
   var kPid = 0;
   var kCategory = 'java';
@@ -210,7 +210,7 @@ tv.exportTo('tv.e.importer.ddms', function() {
   };
 
   // Register the DdmsImporter to the Importer.
-  tv.c.importer.Importer.register(DdmsImporter);
+  tr.c.importer.Importer.register(DdmsImporter);
 
   return {
     DdmsImporter: DdmsImporter

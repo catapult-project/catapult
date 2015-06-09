@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/trace_model/trace_model.html">
 <script>
 'use strict';
-tv.exportTo('tv', function() {
+tr.exportTo('tr', function() {
   /**
    * Creates a trace viewer and, if given, loads the provided URL.
    *
@@ -19,13 +19,13 @@ tv.exportTo('tv', function() {
    *
    * Returns an HTMLElement that is the trace-viwer.
    */
-  var TraceViewer = tv.b.ui.define('trace-viewer', tv.c.TimelineView);
+  var TraceViewer = tr.b.ui.define('trace-viewer', tr.c.TimelineView);
 
   TraceViewer.prototype = {
-    __proto__: tv.c.TimelineView.prototype,
+    __proto__: tr.c.TimelineView.prototype,
 
     decorate: function(opt_url) {
-      tv.c.TimelineView.prototype.decorate.call(this);
+      tr.c.TimelineView.prototype.decorate.call(this);
 
       if (opt_url === undefined)
         return;
@@ -52,7 +52,7 @@ tv.exportTo('tv', function() {
       req.send(null);
 
       function onResultFail(err) {
-        var overlay = new tv.b.ui.Overlay();
+        var overlay = new tr.b.ui.Overlay();
         overlay.textContent = err + ': ' + url + ' could not be loaded';
         overlay.title = 'Failed to fetch data';
         overlay.visible = true;
@@ -60,7 +60,7 @@ tv.exportTo('tv', function() {
 
       var model;
       function onResult(result) {
-        model = new tv.c.TraceModel();
+        model = new tr.c.TraceModel();
         var p = model.importTracesWithProgressDialog([result], true);
         p.then(onModelLoaded, onImportFail);
       }
@@ -73,8 +73,8 @@ tv.exportTo('tv', function() {
       }
 
       function onImportFail() {
-        var overlay = new tv.b.ui.Overlay();
-        overlay.textContent = tv.b.normalizeException(err).message;
+        var overlay = new tr.b.ui.Overlay();
+        overlay.textContent = tr.b.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
       }

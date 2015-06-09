@@ -13,9 +13,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Parses exynos events in the Linux event trace format.
  */
-tv.exportTo('tv.e.importer.linux_perf', function() {
+tr.exportTo('tr.e.importer.linux_perf', function() {
 
-  var Parser = tv.e.importer.linux_perf.Parser;
+  var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux exynos trace events.
@@ -40,8 +40,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var targetCpu = this.importer.getOrCreateCpu(0);
       var counter = targetCpu.getOrCreateCounter('', name);
       if (counter.numSeries === 0) {
-        counter.addSeries(new tv.c.trace_model.CounterSeries('frequency',
-            tv.b.ui.getColorIdForGeneralPurposeString(
+        counter.addSeries(new tr.c.trace_model.CounterSeries('frequency',
+            tr.b.ui.getColorIdForGeneralPurposeString(
                 counter.name + '.' + 'frequency')));
       }
       counter.series.forEach(function(series) {
@@ -84,8 +84,8 @@ tv.exportTo('tv.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread(
           'exynos_flip_state (pipe:' + pipe + ', fb:' + fb + ')');
       if (kthread.openSlice) {
-        var slice = new tv.c.trace_model.Slice('', kthread.openSlice,
-            tv.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+        var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+            tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             args,
             ts - kthread.openSliceTS);

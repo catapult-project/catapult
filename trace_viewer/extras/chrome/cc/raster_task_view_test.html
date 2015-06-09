@@ -18,15 +18,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tv.b.unittest.testSuite(function() {
+tr.b.unittest.testSuite(function() {
   function createSelection() {
-    var m = new tv.c.TraceModel(g_catLTHIEvents);
+    var m = new tr.c.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
     var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
       return slice.title == 'RasterTask' || slice.title == 'AnalyzeTask';
     });
 
-    var selection = new tv.c.Selection();
+    var selection = new tr.c.Selection();
     selection.model = m;
 
     selection.push(rasterTasks[0]);
@@ -46,15 +46,15 @@ tv.b.unittest.testSuite(function() {
     var selection = createSelection();
 
     var timelineView = {model: selection.model};
-    var selectionController = new tv.c.SelectionController(timelineView);
+    var selectionController = new tr.c.SelectionController(timelineView);
 
-    var analysisEl = document.createElement('tv-c-a-analysis-view');
+    var analysisEl = document.createElement('tr-c-a-analysis-view');
     analysisEl.selectionController = selectionController;
     selectionController.changeSelectionFromTimeline(selection);
 
     assert.isDefined(analysisEl.querySelector('RasterTaskView'));
-    var sv = tv.b.findDeepElementMatching(
-        analysisEl, 'tv-c-a-multi-thread-slice-sub-view');
+    var sv = tr.b.findDeepElementMatching(
+        analysisEl, 'tr-c-a-multi-thread-slice-sub-view');
     assert.isTrue(sv.requiresTallView);
     this.addHTMLOutput(analysisEl);
   });
