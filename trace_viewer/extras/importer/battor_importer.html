@@ -68,25 +68,87 @@ tv.exportTo('tv.e.importer.battor', function() {
           tv.b.ui.getColorIdForGeneralPurposeString(name + '.' + 'value'));
       this.importPowerSamples(series);
 
-      // Find the markers for the beginning and end of the vreg sync.
+      // Find the sync markers.
       var syncMarks = this.model_.getClockSyncRecordsNamed('battor');
-      if (syncMarks.length < 2) {
+      if (syncMarks.length < 1) {
         this.model_.importWarning({
           type: 'clock_sync',
-          message: 'Cannot import BattOr measurments without a sync signal.'
+          message: 'Cannot import BattOr power trace without a sync signal.'
         });
         return;
       }
 
+      // Try each of the clock sync techinques in order of their accuracy.
+      var shiftTs = this.correlationClockSync(syncMarks, series);
+
+      if (shiftTs === undefined) {
+        this.model_.importWarning({
+          type: 'clock_sync',
+          message: 'All of the BattOr power trace clock sync techinques failed.'
+        });
+        return;
+      }
+
+      // Add a counter for power to the GUI.
+      var ctr = this.model_.kernel.getOrCreateCounter(null, 'Power');
+      if (ctr.numSeries === 0) {
+        ctr.addSeries(series);
+      }
+
+      ctr.shiftTimestampsForward(shiftTs);
+    },
+
+    /**
+     * Walks the events and populates a time series with power samples.
+     */
+    importPowerSamples: function(series) {
+      var lines = this.events_.split('\n');
+
+      // Update the model's bounds.
+      this.model_.updateBounds();
+      var minTs = 0;
+      if (this.model_.bounds.min !== undefined)
+        minTs = this.model_.bounds.min;
+
+      lines.forEach(function(line) {
+        if (line.length === 0)
+          return;
+
+        if (/^#/.test(line)) {
+          // Parse sample rate.
+          groups = sampleRateLineRE.exec(line);
+          if (!groups)
+            return;
+          this.sampleRate_ = parseInt(groups[1]);
+        } else {
+          // Parse power sample.
+          var groups = battorDataLineRE.exec(line);
+          if (!groups) {
+            this.model_.importWarning({
+              type: 'parse_error',
+              message: 'Unrecognized line: ' + line
+            });
+            return;
+          }
+
+          var time = parseFloat(groups[1]) + minTs;
+          var voltage_mV = parseFloat(groups[2]);
+          var current_mA = parseFloat(groups[3]);
+          series.addCounterSample(time, (voltage_mV * current_mA) / 1000);
+        }
+      }, this);
+    },
+
+    correlationClockSync: function(syncMarks, series) {
       // Find the regulator counter for the sync.
       var syncCtr = this.model_.kernel.counters[
           'null.vreg ' + syncMarks[0].args['regulator'] + ' enabled'];
       if (syncCtr === undefined) {
         this.model_.importWarning({
           type: 'clock_sync',
-          message: 'Cannot import BattOr power trace without sync vreg.'
+          message: 'Cannot correlate BattOr power trace without sync vreg.'
         });
-        return;
+        return undefined;
       }
 
       // Store the sync events from the regulator counter.
@@ -132,7 +194,7 @@ tv.exportTo('tv.e.importer.battor', function() {
           type: 'not_enough_samples',
           message: 'Not enough power samples to correlate with sync signal.'
         });
-        return;
+        return undefined;
       }
 
       // Cross-correlate the ground truth with the last 5s of power samples.
@@ -164,60 +226,13 @@ tv.exportTo('tv.e.importer.battor', function() {
         }
       }
 
-      // Add a counter for power to the GUI.
-      var ctr = this.model_.kernel.getOrCreateCounter(null, 'Power');
-      if (ctr.numSeries === 0) {
-        ctr.addSeries(series);
-      }
-      this.counter_ = ctr;
-
       // Shift the time of the power samples by the recovered sync start time.
       var corrPeakTs = ((minShift + corrPeakIdx) / this.sampleRate_);
       corrPeakTs *= 1000; // sec -> msec
       var syncStartTs = firstSyncEventTs - this.model_.bounds.min;
       var shiftTs = syncStartTs - corrPeakTs;
-      this.counter_.shiftTimestampsForward(shiftTs);
-    },
 
-    /**
-     * Walks the events and populates a time series with power samples.
-     */
-    importPowerSamples: function(series) {
-      var lines = this.events_.split('\n');
-
-      // Update the model's bounds.
-      this.model_.updateBounds();
-      var minTs = 0;
-      if (this.model_.bounds.min !== undefined)
-        minTs = this.model_.bounds.min;
-
-      lines.forEach(function(line) {
-        if (line.length == 0)
-          return;
-
-        if (/^#/.test(line)) {
-          // Parse sample rate.
-          groups = sampleRateLineRE.exec(line);
-          if (!groups)
-            return;
-          this.sampleRate_ = parseInt(groups[1]);
-        } else {
-          // Parse power sample.
-          var groups = battorDataLineRE.exec(line);
-          if (!groups) {
-            this.model_.importWarning({
-                type: 'parse_error',
-                message: 'Unrecognized line: ' + line
-            });
-            return;
-          }
-
-          var time = parseFloat(groups[1]) + minTs;
-          var voltage_mV = parseFloat(groups[2]);
-          var current_mA = parseFloat(groups[3]);
-          series.addCounterSample(time, (voltage_mV * current_mA) / 1000);
-        }
-      }, this);
+      return shiftTs;
     }
   };
 
