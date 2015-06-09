@@ -36,9 +36,9 @@ tv.exportTo('tv.b', function() {
    * Compares two values when one or both might be undefined. Undefined
    * values are sorted after defined.
    */
-  function comparePossiblyUndefinedValues(x, y, cmp) {
+  function comparePossiblyUndefinedValues(x, y, cmp, opt_this) {
     if (x !== undefined && y !== undefined)
-      return cmp(x, y);
+      return cmp.call(opt_this, x, y);
     if (x !== undefined)
       return -1;
     if (y !== undefined)
