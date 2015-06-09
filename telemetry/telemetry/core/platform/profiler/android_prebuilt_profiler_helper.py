@@ -7,8 +7,8 @@
 import logging
 import os
 
+from catapult_base import support_binaries
 from telemetry import decorators
-from telemetry.util import support_binaries
 
 _DEVICE_PROFILER_DIR = '/data/local/tmp/profilers/'
 

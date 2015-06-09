@@ -4,8 +4,8 @@
 
 import subprocess
 
+from catapult_base import support_binaries
 from telemetry.core import platform
-from telemetry.util import support_binaries
 
 def _PathForExecutable(executable_name):
   """Fetches the executable from cloud storage, and returns its path."""

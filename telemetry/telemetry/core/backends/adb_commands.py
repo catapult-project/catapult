@@ -10,9 +10,9 @@ import os
 import shutil
 import stat
 
+from catapult_base import support_binaries
 from telemetry.core import platform
 from telemetry.core import util
-from telemetry.util import support_binaries
 
 # This is currently a thin wrapper around Chrome Android's
 # build scripts, located in chrome/build/android. This file exists mainly to

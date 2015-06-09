@@ -6,8 +6,8 @@ import os
 import stat
 import unittest
 
+from catapult_base import support_binaries
 from telemetry import decorators
-from telemetry.util import support_binaries
 
 
 class SupportBinariesTest(unittest.TestCase):

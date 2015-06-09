@@ -12,11 +12,11 @@ import cStringIO
 import struct
 import subprocess
 
+from catapult_base import support_binaries
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.image_processing import histogram
 from telemetry.image_processing import rgba_color
-from telemetry.util import support_binaries
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
 import png  # pylint: disable=F0401

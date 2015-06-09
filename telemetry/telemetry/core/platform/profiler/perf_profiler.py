@@ -12,11 +12,11 @@ import tempfile
 
 from pylib.device import device_errors  # pylint: disable=F0401
 
+from catapult_base import support_binaries
 from telemetry.core import platform
 from telemetry.core.platform import profiler
 from telemetry.core.platform.profiler import android_profiling_helper
 from telemetry.core import util
-from telemetry.util import support_binaries
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.perf import perf_control  # pylint: disable=F0401

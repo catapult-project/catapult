@@ -11,11 +11,11 @@ import re
 import shutil
 import subprocess
 
+from catapult_base import support_binaries
 from telemetry.core import platform as telemetry_platform
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.core import util
 from telemetry import decorators
-from telemetry.util import support_binaries
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.utils import md5sum  # pylint: disable=F0401

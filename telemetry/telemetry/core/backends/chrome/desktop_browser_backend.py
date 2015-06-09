@@ -15,12 +15,12 @@ import sys
 import tempfile
 import time
 
+from catapult_base import support_binaries
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.util import path
-from telemetry.util import support_binaries
 
 
 def ParseCrashpadDateTime(date_time_str):
