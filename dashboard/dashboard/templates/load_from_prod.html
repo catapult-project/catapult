@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block head %}
+  <title>Load Data From Production</title>
+  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
+{% endblock %}
+{% block content %}
+  <h1>Load Data From Production</h1>
+  <p>Use this form to load a given master/system/test/graph/trace and all
+  associated alerts from prod onto a dev server.</p>
+  <form method="POST">
+    Test path:
+    <input name="test_path" type="text" size=200
+           value="ChromiumPerf/chromium-rel-win7-dual/kraken/Total"><br>
+    Number of points:
+    <input name="num_points" type="number" min="5" max="500" value="300"><br>
+    End revision (leave blank for latest):
+    <input name="end_rev" type="number"><br>
+    <input type="submit">
+  </form>
+  <br />
+  <p>Load recent alerts for a sheriff.</p>
+  <form method="POST">
+    Sheriff: <input name="sheriff"
+                      type="text"
+                      size=50
+                      value="Chromium Perf Sheriff"><br />
+    Number of alerts: <input name="num_alerts"
+                             type="number"
+                             min="1"
+                             max="30"
+                             value="10"></input><br />
+    Number of points: <input name="num_points"
+                             type="number"
+                             min="1"
+                             max="500"
+                             value="100"></input><br />
+    <input type="submit" value="Load alerts"></input>
+  </form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block head %}
+  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
+{% endblock %}
+{% block content %}
+  <p>The bot perf_ids listed below are externally visible. All the tests and
+  data for these bots will be shown to external users. If a perf_id is not on
+  this list, all the tests and data for the bot will be visible only to users
+  logged in with google.com accounts.</p>
+
+  <p>Note: If there is already existing data for this bot, it will not be shown
+  until you <a href="/change_internal_only">update the internal_only
+  property</a>.</p>
+
+  <form action="/bot_whitelist" method="POST">
+    {{xsrf_input|safe}}
+    <textarea rows=50 cols=100
+              name="bot_whitelist">{{bot_whitelist}}</textarea>
+    <br>
+    <input type="submit" value="Update Bot Whitelist">
+  </form>
+{% endblock %}

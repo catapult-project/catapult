@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block head %}
+  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
+{% endblock %}
+{% block content %}
+{% if error %}
+  <pre>
+  Status of the bisect job {{job_id}}: ERROR, {{error}}
+  </pre>
+{% else %}
+  <pre>
+  Status of the bisect job {{job_id}}: {{build.status}}, {{build.result}}
+
+  Master: {{build.bucket}}
+  Builder: {{build.parameters.builder_name}}
+  Test: {{build.parameters.properties.bisect_config.command}}
+  Metric: {{build.parameters.properties.bisect_config.metric}}
+  Good revision: {{build.parameters.properties.bisect_config.good_revision}}
+  Bad revision: {{build.parameters.properties.bisect_config.bad_revision}}
+  Job created on (UTC): {{build.created_utc}}
+  Job completed on(UTC): {{build.completed_utc}}
+  Buildbot link: <a href="{{build.url}}">{{build.url}}</a>
+  </pre>
+
+  <p><a href="/cancel_buildbot_job/{{job_id}}">Click here to cancel this job. (Not Yet Implemented)</a></p>
+
+  {% endif %}
+  <pre> {{status_text}} </pre>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block head %}
+  <title>Anomaly Detection Function Debugger</title>
+  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
+  <script src="{{static_dir}}/jquery_flot_bundle.js"></script>
+  <script type="text/javascript">CLOSURE_NO_DEPS = true;</script>
+  <style>
+    /* The content container contains all the content after the title. */
+    #content {
+      margin-left: 20px;
+    }
+
+    /* This class is applied to segment endpoint revision labels. */
+    .label {
+      background-color: white;
+      border: 2px solid #f90;
+      padding: 2px;
+      position: absolute;
+      z-index: 1000;
+    }
+
+    code {
+      font-weight: bold;
+    }
+  </style>
+{% endblock %}
+{% block content %}
+  <h1>Anomaly Detection Function Debugger</h1>
+  <div id="content">
+    <p>This page shows the results of running the anomaly detection function
+    on some test data for some anomaly threshold configuration.</p>
+
+    {% if plot_data and lookup %}
+      <p>The test data series is shown in <strong
+      style="color:#666">grey</strong>.  The segment and segment endpoints
+      are shown in <strong style="color:#f90">orange</strong>; if a
+      revision is specified, a <strong style="color:blue">blue</strong>
+      line is also shown indicating the position of the revision.
+      Above each detected anomaly is a label showing the revision number
+      and percent change from the median before the anomaly to the median
+      after the anomaly.</p>
+      <div id="plot" style="width: 800px; height: 400px"></div>
+    {% endif %}
+
+    {% if error %}
+      <p class="error">{{error}}</p>
+    {% endif %}
+
+    <!-- Form for changing query parameters. -->
+    <form method="GET">
+      <table>
+        <tr>
+          <td><label>Test path:</label></td>
+          <td><input type="text" name="test_path" size="100" value="{{test_path}}"></td>
+        </tr>
+        <tr>
+          <td><label>Target revision:</label></td>
+          <td><input type="text" name="rev" placeholder="280000" value="{{rev}}"></td>
+        </tr>
+        <tr>
+          <td><label>Number of points before:</label></td>
+          <td><input type="text" name="num_before" placeholder="50" value="{{num_before}}"></td>
+        </tr>
+        <tr>
+          <td><label>Number of points after:</label></td>
+          <td><input type="text" name="num_after" placeholder="10" value="{{num_after}}"></td>
+        </tr>
+      </table>
+      <p>Sheriff: {{sheriff_name}}</p>
+      <label>Threshold configuration: {{config_name}}<br>
+        <textarea name="config" rows="7" cols="60">{{config_json|safe}}</textarea>
+      </label>
+      <input type="submit" value="Update">
+    </form>
+
+    <h2>About the threshold parameters</h2>
+    <ul>
+      <li><code>max_window_size</code> is the number of points that's
+      analyzed at once, aka the "window". A larger window size generally means
+      that more points before a change-point are considered. The window size
+      must be at least twice as big as the <code>min_segment_size</code>.</li>
+      <li><code>min_segment_size</code> determines how many points must
+      be on either side of the change-point before an alert is fired. A
+      larger value makes it less sensitive to noise, but it also increases
+      the time before an alert is fired.</li>
+      <li><code>min_relative_change</code> is the minimum "regression size"
+      that's reported. For example, to disallow alerts for a change of less
+      than 5%, this can be set to 0.05.</li>
+      <li><code>min_absolute_change</code> sets a threshold on the absolute
+      numerical difference before and after an anomaly.</li>
+      <li><code>multiple_of_std_dev</code> is the only threshold
+      that directly takes noise into account. It was originally set
+      to 3.0 because, if the points within each "segment" have a normal
+      distribution, then a new point that is more than 3 standard deviations
+      from the mean has a 0.03 probability of belonging to that segment,
+      which strongly indicates that should belong to a new segment.
+      In general, a higher value means less sensitivity to noise.</li>
+    </ul>
+
+    {% if csv_url %}
+      <p><a href="{{csv_url}}">Download data as CSV</a></p>
+    {% endif %}
+    {% if graph_url %}
+      <p><a href="{{graph_url}}">See graph</a></p>
+    {% endif %}
+
+    {% if stored_anomalies %}
+      <h3>Recent Anomaly entities in the datastore for this test:</h3>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>End Revision</th>
+            <th>Bug ID</th>
+            <th>Median before anomaly</th>
+            <th>Median after anomaly</th>
+            <th>Percent changed</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for alert in stored_anomalies %}
+          <tr>
+            <td>{{alert.revision}}</td>
+            <td>{{alert.bug_id}}</td>
+            <td>{{alert.median_before}}</td>
+            <td>{{alert.median_after}}</td>
+            <td>{{alert.percent_changed}}</td>
+            <td>{{alert.timestamp}}</td>
+          </tr>
+          {% endfor %}
+      </table>
+    {% endif %}
+  </div>
+
+  {% if plot_data and lookup %}
+  <script src="{{static_dir}}/debug_alert_bin.js"></script>
+  <script>
+    // Array with data series in Flot format. Expected series are:
+    //  [0] Chart data series.
+    //  [1] Anomaly points.
+    //  [2..] Segments and their medians.
+    var DATA = {{plot_data|safe}};
+
+    // Map of indexes to revision numbers.
+    var LOOKUP = {{lookup|safe}};
+
+    // Information returned from the anomaly detection algorithm.
+    var ANOMALIES = {{anomalies|safe}};
+
+    {% if rev %}var REVISION = {{rev}};{% endif %}
+  </script>
+  {% endif %}
+{% endblock %}

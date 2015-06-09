@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block head %}
+  <link type="text/css" rel="stylesheet"
+        href="{{static_dir}}/report_style.css">
+  <title>Chrome Performance Dashboard</title>
+  <script>
+    var TEST_SUITES = {{test_suites|safe}};
+    var REVISION_INFO = {{revision_info|safe}};
+    var XSRF_TOKEN = '{{xsrf_token}}';
+    {% if dev_version %}
+    var DEV_SERVER = true;
+    {% endif %}
+  </script>
+  {# Following line needed to avoid a spurious 404 for deps.js due to the use
+     --streamed_compiled_js flag used in app.sh in development environment. #}
+  <script type="text/javascript">CLOSURE_NO_DEPS = true;</script>
+
+  <script src="{{static_dir}}/jquery_flot_bundle.js"></script>
+  <script src="{{static_dir}}/report_bin.js"></script>
+  <script src="{{static_dir}}/bisect_utils_bin.js"></script>
+
+  <script>
+    // Workaround for document.contains returning false for elements in the
+    // shadow DOM. jQuery mouse events need it to return true for scrolling
+    // to be properly accounted for. For background, see
+    // https://github.com/Polymer/polymer/issues/162 and
+    // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22141
+    jQuery.contains = function(doc, elem) {
+      shadowElems = document.getElementsByTagName('chart-container');
+      for (var i = 0; i < shadowElems.length; i++) {
+        if (shadowElems[i].shadowRoot.contains(elem)) {
+          return true;
+        }
+      }
+      return doc.contains(elem);
+    }
+  </script>
+
+  <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/components/chart-container.html">
+  <link rel="import" href="/components/login-warning.html">
+  <link rel="import" href="/components/overlay-message.html">
+
+{% endblock %}
+{% block content %}
+  <h1>Chrome Performance Dashboard</h1>
+  {%if warning_message %}
+    <overlay-message id="warning-message"  opened="true" autoCloseDisabled duration="-1">
+    {{warning_message}}
+    {% if warning_bug %}
+      <a href="http://crbug.com/{{warning_bug}}">See bug {{warning_bug}}.</a>
+    {% endif %}
+    </overlay-message>
+  {% endif %}
+  <nav id="testpicker"></nav>
+  <div id="suite-description"></div>
+  <login-warning id="login-warning" loginLink="{{login_url}}"
+                 {%if is_google_user %}hidden="true"{% endif %}>
+  </login-warning>
+  <section id="charts-container"></section>
+{% endblock %}
+{% include 'analytics.html' %}

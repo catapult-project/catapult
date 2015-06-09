@@ -24,6 +24,10 @@ _INTERNAL_ONLY_KINDS = [
     'Anomaly',
 ]
 
+# Permissions namespaces.
+EXTERNAL = 'externally_visible'
+INTERNAL = 'internal_only'
+
 
 def InstallHooks():
   """Installs datastore pre hook to add access checks to queries.

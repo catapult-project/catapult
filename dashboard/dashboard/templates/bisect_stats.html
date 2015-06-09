@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block head %}
+  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
+  <style>
+    #content {
+      margin-left: 20px;
+      overflow: hidden;
+    }
+
+    #total-chart, #platform-chart {
+      height: 300px;
+      width: 900px;
+      float: left;
+    }
+
+    .chart-wrapper {
+      overflow: hidden;
+    }
+  </style>
+
+  <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/components/quick-log.html">
+
+{% endblock %}
+{% block content %}
+  <h1>Bisect Statistics</h1>
+
+  <div id="content">
+    <h2>Bisect Run Summary</h2>
+    <div class="chart-wrapper">
+      <div id="total-chart"></div>
+      <div id="total-legend"></div>
+    </div>
+    <br />
+    <h2>Bisect Run By Platform</h2>
+    <div class="chart-wrapper">
+      <div id="platform-chart"></div>
+      <div id="platform-legend"></div>
+    </div>
+
+    <h2>Infra Failures</h2>
+    <quick-log id="bisect-infra-failure-log"
+               xsrfToken="{{xsrf_token|safe}}"
+               logLabel="Logs"
+               logNamespace="bisect_failures"
+               logName="infra"
+               loadOnReady="true"
+               expandOnReady="true"
+               style="width:900px; height: 600px; display:block;"></quick-log>
+  </div>
+
+  <script src="{{static_dir}}/jquery_flot_bundle.js"></script>
+
+  <script>
+    var ONE_WEEK_MILLISECONDS = 1000 * 60 * 60 * 24 * 7;
+
+    var GRAPH_WIDTH_PX = 900;
+
+    var GAP_SIZE_PX = 5;
+
+    // Data object for bisect results by platform.
+    // Expected to have object mapping in the form:
+    // {
+    //   'failed': {
+    //        bot_name: [[week_timestamp, count], [week_timestamp, count]],
+    //   },
+    //     'completed': {
+    //       bot_name: [[week_timestamp, count], [week_timestamp, count]],
+    //   }
+    // }
+    var SERIES_DATA = {{series_data|safe}};
+
+    // Data object for total bisect results in the form:
+    // {
+    //   'failed': [[week_timestamp, count], [week_timestamp, count]],
+    //   'completed': [[week_timestamp, count], [week_timestamp, count]]
+    // }
+    var TOTAL_SERIES_DATA = {{total_series_data|safe}};
+
+    /**
+     * Calculates bar width to make room for gap between each bar.
+     */
+    function getBarWidth(numPoint) {
+      if (numPoint < 1)
+        return 1
+      var gapPercent = GAP_SIZE_PX / (GRAPH_WIDTH_PX / numPoint);
+      if (gapPercent > 0.25) {
+        return ONE_WEEK_MILLISECONDS * 0.75;
+      } else {
+        return ONE_WEEK_MILLISECONDS - (ONE_WEEK_MILLISECONDS * gapPercent);
+      }
+    }
+
+    /**
+     * Loads chart for bisect total failed and success runs.
+     */
+    function addChartForBisectSummary() {
+      var numPoint = Math.max(TOTAL_SERIES_DATA['completed'].length,
+                              TOTAL_SERIES_DATA['failed'].length);
+      var barWidth = getBarWidth(numPoint);
+      var data = [
+        {
+          label: 'Successes',
+          data: TOTAL_SERIES_DATA['completed'],
+          color: '#0a0',
+        },
+        {
+          label: 'Fails',
+            data: TOTAL_SERIES_DATA['failed'],
+            color: '#DD4B39',
+        },
+      ];
+      var options = {
+        series: {
+          stack: true,
+          lines: {show: false, steps: false},
+          bars: {
+            show: true,
+            barWidth: barWidth,
+            fill: 1,
+          },
+        },
+        yaxis: {tickDecimals: 0},
+        xaxis: {
+          mode: 'time',
+          timeformat: '%y/%m/%d',
+        },
+        legend: {container: $('#total-legend')},
+      };
+
+      $.plot('#total-chart', data, options);
+    }
+
+    /**
+     * Loads chart for bisect runs by platform.
+     */
+    function addChartForBisectRunByPlatform() {
+      var data = [];
+      var series_names = Object.keys(SERIES_DATA['completed']);
+      series_names.sort();
+
+      // Determine bar width.
+      var numPoint = 0;
+      var barWidth = 1;
+      for (var i = 0; i < series_names.length; i++) {
+        var name = series_names[i];
+        numPoint = Math.max(SERIES_DATA['completed'][name].length,
+                            numPoint);
+        if (name in SERIES_DATA['failed']) {
+          numPoint = Math.max(SERIES_DATA['failed'][name].length,
+                              numPoint);
+        }
+      }
+      if (numPoint > 0) {
+        barWidth = getBarWidth(numPoint);
+        barWidth = barWidth / series_names.length;
+      }
+
+      // Add series data.
+      for (var i = 0; i < series_names.length; i++) {
+        var series = SERIES_DATA['completed'][series_names[i]];
+        for (var j = 0; j < series.length; j++) {
+          series[j][0] = series[j][0] + i * barWidth;
+        }
+        data.push({
+            label: series_names[i],
+            data: series,
+        });
+
+        series = SERIES_DATA['failed'][series_names[i]];
+        for (var j = 0; j < series.length; j++) {
+          series[j][0] = series[j][0] + i * barWidth;
+        }
+        data.push({
+            color: '#DD4B39',
+            data: series,
+        });
+      }
+
+      var options = {
+        series: {
+          stack: 0,
+          lines: {show: false, steps: false },
+          bars: {
+            show: true,
+            barWidth: barWidth,
+            fill: 1,
+          },
+        },
+        yaxis: {tickDecimals: 0},
+        xaxis: {
+          mode: 'time',
+          timeformat: '%y/%m/%d',
+        },
+        legend: {container: $('#platform-legend')},
+        colors: ['#4D90FE', '#37731c', '#654ea6', '#e38e39', '#a34d77',
+                 '#630000'],
+      };
+      $.plot('#platform-chart', data, options);
+    }
+
+    addChartForBisectSummary();
+    addChartForBisectRunByPlatform();
+  </script>
+{% endblock %}
+
