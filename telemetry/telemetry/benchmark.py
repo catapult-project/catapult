@@ -9,6 +9,7 @@ import shutil
 import sys
 import zipfile
 
+from catapult_base import cloud_storage
 from telemetry.core import browser_finder
 from telemetry.core import command_line
 from telemetry.core import util
@@ -19,7 +20,6 @@ from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.results import results_options
-from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
 from telemetry.web_perf import timeline_based_measurement
 

@@ -10,9 +10,9 @@ import random
 import sys
 import traceback
 
+from catapult_base import cloud_storage
 from telemetry.results import progress_reporter as progress_reporter_module
 from telemetry.results import user_story_run
-from telemetry.util import cloud_storage
 from telemetry import value as value_module
 from telemetry.value import failure
 from telemetry.value import skip

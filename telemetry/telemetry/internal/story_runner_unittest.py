@@ -6,9 +6,10 @@ import StringIO
 import sys
 import unittest
 
+from catapult_base import cloud_storage
 from telemetry import benchmark
-from telemetry import decorators
 from telemetry.core import exceptions
+from telemetry import decorators
 from telemetry.internal import story_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_test
@@ -19,7 +20,6 @@ from telemetry.story import shared_state
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
 from telemetry import user_story as user_story_module
-from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter as exception_formatter_module
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar

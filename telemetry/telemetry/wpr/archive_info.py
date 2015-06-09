@@ -9,7 +9,7 @@ import re
 import shutil
 import tempfile
 
-from telemetry.util import cloud_storage
+from catapult_base import cloud_storage
 
 
 def AssertValidCloudStorageBucket(bucket):

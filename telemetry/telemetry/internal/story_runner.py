@@ -8,13 +8,13 @@ import os
 import sys
 import time
 
+from catapult_base import cloud_storage
 from telemetry.core import exceptions
 from telemetry.core import wpr_modes
 from telemetry.internal.actions import page_action
 from telemetry.page import page_test
 from telemetry.results import results_options
 from telemetry import story
-from telemetry.util import cloud_storage
 from telemetry.util import exception_formatter
 from telemetry.value import failure
 from telemetry.value import skip

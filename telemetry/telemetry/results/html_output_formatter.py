@@ -8,11 +8,11 @@ import logging
 import os
 import re
 
-from telemetry import value as value_module
+from catapult_base import cloud_storage
 from telemetry.core import util
 from telemetry.results import chart_json_output_formatter
 from telemetry.results import output_formatter
-from telemetry.util import cloud_storage
+from telemetry import value as value_module
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'util')
 import lastchange  # pylint: disable=F0401

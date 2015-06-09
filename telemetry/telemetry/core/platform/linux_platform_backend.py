@@ -8,6 +8,7 @@ import platform
 import subprocess
 import sys
 
+from catapult_base import cloud_storage
 from catapult_base import support_binaries
 from telemetry.core.platform import linux_based_platform_backend
 from telemetry.core.platform import platform_backend
@@ -15,7 +16,6 @@ from telemetry.core.platform import posix_platform_backend
 from telemetry.core.platform.power_monitor import msr_power_monitor
 from telemetry.core import util
 from telemetry import decorators
-from telemetry.util import cloud_storage
 
 
 _POSSIBLE_PERFHOST_APPLICATIONS = [
