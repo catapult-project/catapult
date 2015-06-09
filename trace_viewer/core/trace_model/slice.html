@@ -38,6 +38,7 @@ tr.exportTo('tr.c.trace_model', function() {
     this.selfTime = undefined;
     this.cpuSelfTime = undefined;
     this.important = false;
+    this.parentThread = undefined;
 
     if (opt_duration !== undefined)
       this.duration = opt_duration;
