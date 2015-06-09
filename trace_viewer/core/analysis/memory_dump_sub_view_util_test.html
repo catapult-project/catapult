@@ -123,8 +123,9 @@ tv.b.unittest.testSuite(function() {
       units: 'Mbps'
     };
     var column = MemoryColumn.fromAttributeTraits(
-        'First Column', traits, fieldGetter('x'));
+        'first_column', 'First Column', traits, fieldGetter('x'));
     assert.instanceOf(column, MemoryColumn);
+    assert.equal(column.name, 'first_column');
     assert.equal(column.title, 'First Column');
     assert.isUndefined(column.width);
     assert.equal(column.value({x: buildStringCell('Mbps', 'very fast')}),
@@ -138,8 +139,9 @@ tv.b.unittest.testSuite(function() {
       units: 'bytes'
     };
     var column = MemoryColumn.fromAttributeTraits(
-        'Second Column', traits, fieldGetter('x'));
+        'second_column', 'Second Column', traits, fieldGetter('x'));
     assert.instanceOf(column, MemoryColumn);
+    assert.equal(column.name, 'second_column');
     assert.equal(column.title, 'Second Column');
     assert.isUndefined(column.width);
     assert.equal(column.value({x: buildScalarCell('bytes', 1024)}).numBytes,
@@ -179,8 +181,44 @@ tv.b.unittest.testSuite(function() {
     checkPercent(columns[1].width, 50);
   });
 
+  test('checkMemoryColumn_sortByImportance', function() {
+    var columns = [
+      new MemoryColumn(
+          'page_size', 'Page Size', 'bytes', fieldGetter('pgsize')),
+      new MemoryColumn(
+          'resident_size', 'Resident Size', 'bytes', fieldGetter('rss')),
+      new MemoryColumn(
+          'object_count', 'Object Count', 'objects', fieldGetter('objcount')),
+      new MemoryColumn(
+          'proportional_size', 'Proportional Size', 'bytes', fieldGetter('pss'))
+    ];
+
+    var rules = [
+      {
+        condition: 'page_size',
+        importance: 8
+      },
+      {
+        condition: /size/,
+        importance: 10
+      },
+      {
+        importance: 9
+      }
+    ];
+
+    MemoryColumn.sortByImportance(columns, rules);
+
+    assert.lengthOf(columns, 4);
+    assert.equal(columns[0].name, 'resident_size');
+    assert.equal(columns[1].name, 'proportional_size');
+    assert.equal(columns[2].name, 'object_count');
+    assert.equal(columns[3].name, 'page_size');
+  });
+
   test('checkMemoryColumn_attr', function() {
-    var c = new MemoryColumn('Test Column', 'ms', fieldGetter('x'));
+    var c = new MemoryColumn(
+        'test_column', 'Test Column', 'ms', fieldGetter('x'));
 
     // Undefined cell.
     var row = {};
@@ -197,7 +235,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_value', function() {
-    var c = new MemoryColumn('Test Column', 'ms', fieldGetter('x'));
+    var c = new MemoryColumn(
+        'test_column', 'Test Column', 'ms', fieldGetter('x'));
     assert.equal(c.title, 'Test Column');
     assert.isUndefined(c.width);
 
@@ -211,7 +250,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_cmp', function() {
-    var c = new MemoryColumn('Test Column', 'ms', fieldGetter('x'));
+    var c = new MemoryColumn(
+        'test_column', 'Test Column', 'ms', fieldGetter('x'));
 
     // Cell (or the associated attribute) undefined in one or both rows.
     assert.equal(c.cmp({}, {y: new MemoryCell(undefined)}), 0);
@@ -227,8 +267,67 @@ tv.b.unittest.testSuite(function() {
         {x: buildStringCell('v', 'smaLL')}), 0);
   });
 
+  test('checkMemoryColumn_getImportance', function() {
+    var c = new ScalarMemoryColumn(
+        'test_column', 'Test Column', 'bytes', fieldGetter('x'));
+
+    var rules1 = [];
+    assert.equal(c.getImportance(rules1), 0);
+
+    var rules2 = [
+      {
+        condition: 'test',
+        importance: 4
+      },
+      {
+        condition: /test$/,
+        importance: 2
+      }
+    ];
+    assert.equal(c.getImportance(rules2), 1);
+
+    var rules3 = [
+      {
+        condition: 'test_column',
+        importance: 10
+      },
+      {
+        importance: 5
+      }
+    ];
+    assert.equal(c.getImportance(rules3), 10);
+
+    var rules4 = [
+      {
+        condition: 'test_column2',
+        importance: 8
+      },
+      {
+        condition: /column/,
+        importance: 12
+      }
+    ];
+    assert.equal(c.getImportance(rules4), 12);
+  });
+
+  test('checkMemoryColumn_matchesNameCondition', function() {
+    var c = new ScalarMemoryColumn(
+        'test_column', 'Test Column', 'bytes', fieldGetter('x'));
+
+    assert.isTrue(c.matchesNameCondition(undefined));
+
+    assert.isFalse(c.matchesNameCondition('test'));
+    assert.isTrue(c.matchesNameCondition('test_column'));
+    assert.isFalse(c.matchesNameCondition('test_column2'));
+
+    assert.isTrue(c.matchesNameCondition(/test/));
+    assert.isTrue(c.matchesNameCondition(/^[^_]*_[^_]*$/));
+    assert.isFalse(c.matchesNameCondition(/test$/));
+  });
+
   test('checkScalarMemoryColumn_value', function() {
-    var c = new ScalarMemoryColumn('Test Column', 'bytes', fieldGetter('x'));
+    var c = new ScalarMemoryColumn(
+        'test_column', 'Test Column', 'bytes', fieldGetter('x'));
     assert.equal(c.title, 'Test Column');
     assert.isUndefined(c.width);
 
@@ -242,7 +341,8 @@ tv.b.unittest.testSuite(function() {
   });
 
   test('checkScalarMemoryColumn_cmp', function() {
-    var c = new ScalarMemoryColumn('Test Column', 'ms', fieldGetter('x'));
+    var c = new ScalarMemoryColumn(
+        'test_column', 'Test Column', 'ms', fieldGetter('x'));
 
     // Cell (or the associated attribute) undefined in one or both rows.
     assert.equal(c.cmp({}, {y: new MemoryCell(undefined)}), 0);
