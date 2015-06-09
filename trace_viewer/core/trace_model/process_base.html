@@ -93,11 +93,9 @@ tr.exportTo('tr.c.trace_model', function() {
      * specified.
      */
     shiftTimestampsForward: function(amount) {
-      for (var tid in this.threads)
-        this.threads[tid].shiftTimestampsForward(amount);
-      for (var id in this.counters)
-        this.counters[id].shiftTimestampsForward(amount);
-      this.objects.shiftTimestampsForward(amount);
+      this.iterateAllChildEventContainers(function(child) {
+          child.shiftTimestampsForward(amount);
+      });
     },
 
     /**
@@ -141,16 +139,11 @@ tr.exportTo('tr.c.trace_model', function() {
 
     updateBounds: function() {
       this.bounds.reset();
-      for (var tid in this.threads) {
-        this.threads[tid].updateBounds();
-        this.bounds.addRange(this.threads[tid].bounds);
-      }
-      for (var id in this.counters) {
-        this.counters[id].updateBounds();
-        this.bounds.addRange(this.counters[id].bounds);
-      }
-      this.objects.updateBounds();
-      this.bounds.addRange(this.objects.bounds);
+
+      this.iterateAllChildEventContainers(function(child) {
+        child.updateBounds();
+        this.bounds.addRange(child.bounds);
+      }, this);
     },
 
     addCategoriesToDict: function(categoriesDict) {
