@@ -5,8 +5,8 @@
 import os
 import stat
 
+from catapult_base import cloud_storage
 from telemetry import decorators
-from telemetry.util import cloud_storage
 from telemetry.util import path
 
 
