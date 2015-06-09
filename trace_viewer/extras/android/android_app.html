@@ -22,7 +22,7 @@ tv.exportTo('tv.e.audits', function() {
 
   var UI_THREAD_DRAW_NAMES = {
     'performTraversals': true,
-    'Choreographer#doFrame()': true
+    'Choreographer#doFrame': true
   };
   var RENDER_THREAD_DRAW_NAME = 'DrawFrame';
   var RENDER_THREAD_INDEP_DRAW_NAME = 'doFrame';
@@ -84,7 +84,8 @@ tv.exportTo('tv.e.audits', function() {
     uiThread.sliceGroup.slices.forEach(function(slice) {
       if (slice.title == 'obtainView' ||
           slice.title == 'setupListItem' ||
-          slice.title == 'deliverInputEvent')
+          slice.title == 'deliverInputEvent' ||
+          slice.title == 'RV Scroll')
         preFrameEvents.push(slice);
     });
     uiThread.asyncSliceGroup.slices.forEach(function(slice) {

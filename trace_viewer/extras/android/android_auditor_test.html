@@ -224,9 +224,9 @@ tv.b.unittest.testSuite(function() {
 
       // High level choreographer frame signal
       uiThread.sliceGroup.pushSlice(newSliceNamed(
-          'Choreographer#doFrame()', 0, 8));
+          'Choreographer#doFrame', 0, 8));
       uiThread.sliceGroup.pushSlice(newSliceNamed(
-          'Choreographer#doFrame()', 16, 20));
+          'Choreographer#doFrame', 16, 20));
 
       // Old devices only have 'performTraversals'
       uiThread.sliceGroup.pushSlice(newSliceNamed(

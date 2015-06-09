@@ -49,9 +49,6 @@ tv.exportTo('tv.e.audits', function() {
     }
     return false;
   }
-  // TODO: use sane values or different metric
-  var MAX_TIME_UNSCHEDULED = 3.0;
-  var MAX_TIME_BLOCKING_IO = 5.0;
 
   var Auditor = tv.c.Auditor;
   var AndroidModelHelper = tv.e.audits.AndroidModelHelper;
@@ -347,7 +344,7 @@ tv.exportTo('tv.e.audits', function() {
 
   AndroidAuditor.schedulingAlertInfo_ = new EventInfo(
       'Scheduling delay',
-      'Work to produce this frame was descheduled for several milliseconds, contributing to jank. Ensure that code on the UI thread doesn\'t block on work being done on other threads, and that background threads (doing e.g. network or bitmap loading) are running at android.os.Process#THREAD_PRIORITY_BACKGROUND or lower so they are less likely to interrupt the UI thread. These background threads should with a priority number of 130 or higher in the scheduling section under the Kernel process.'); // @suppress longLineCheck
+      'Work to produce this frame was descheduled for several milliseconds, contributing to jank. Ensure that code on the UI thread doesn\'t block on work being done on other threads, and that background threads (doing e.g. network or bitmap loading) are running at android.os.Process#THREAD_PRIORITY_BACKGROUND or lower so they are less likely to interrupt the UI thread. These background threads should show up with a priority number of 130 or higher in the scheduling section under the Kernel process.'); // @suppress longLineCheck
   AndroidAuditor.getSchedulingAlert_ = function(frame) {
     var totalDuration = 0;
     var totalStats = {};
@@ -602,22 +599,22 @@ tv.exportTo('tv.e.audits', function() {
       var choreographerLinks = {'Choreographer documentation': 'https://developer.android.com/reference/android/view/Choreographer.html'}; // @suppress longLineCheck
 
       registerEventInfo({
-          title: 'Choreographer#doFrame()',
+          title: 'Choreographer#doFrame',
           docLinks: choreographerLinks,
           description: 'Choreographer executes frame callbacks for inputs, animations, and rendering traversals. When this work is done, a frame will be presented to the user.'}); // @suppress longLineCheck
       registerEventInfo({
           title: 'input',
-          parent: 'Choreographer#doFrame()',
+          parent: 'Choreographer#doFrame',
           docLinks: choreographerLinks,
           description: 'Input callbacks are processed. This generally encompasses dispatching input to Views, as well as any work the Views do to process this input/gesture.'}); // @suppress longLineCheck
       registerEventInfo({
           title: 'animation',
-          parent: 'Choreographer#doFrame()',
+          parent: 'Choreographer#doFrame',
           docLinks: choreographerLinks,
           description: 'Animation callbacks are processed. This is generally minimal work, as animations determine progress for the frame, and push new state to animated objects (such as setting View properties).'}); // @suppress longLineCheck
       registerEventInfo({
           title: 'traversals',
-          parent: 'Choreographer#doFrame()',
+          parent: 'Choreographer#doFrame',
           docLinks: choreographerLinks,
           description: 'Primary draw traversals. This is the primary traversal of the View hierarchy, including layout and draw passes.'}); // @suppress longLineCheck
 
