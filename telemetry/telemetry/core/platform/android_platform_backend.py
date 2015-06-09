@@ -44,7 +44,6 @@ from pylib.device import device_errors  # pylint: disable=import-error
 from pylib.perf import cache_control  # pylint: disable=import-error
 from pylib.perf import perf_control  # pylint: disable=import-error
 from pylib.perf import thermal_throttle  # pylint: disable=import-error
-from pylib.utils import device_temp_file  # pylint: disable=import-error
 
 try:
   from pylib.perf import surface_stats_collector  # pylint: disable=import-error
@@ -386,11 +385,7 @@ class AndroidPlatformBackend(
     command = 'ps'
     if pid:
       command += ' -p %d' % pid
-    with device_temp_file.DeviceTempFile(self._device.adb) as ps_out:
-      command += ' > %s' % ps_out.name
-      self._device.RunShellCommand(command)
-      # Get rid of trailing new line and header.
-      ps = self._device.ReadFile(ps_out.name).split('\n')[1:-1]
+    ps = self._device.RunShellCommand(command, large_output=True)[1:]
     output = []
     for line in ps:
       data = line.split()
