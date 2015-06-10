@@ -99,7 +99,6 @@ tr.exportTo('tr.c.trace_model', function() {
     pushSlice: function(slice) {
       this.haveTopLevelSlicesBeenBuilt = false;
       this.slices.push(slice);
-      slice.parentThread = this.parentThread_;
       return slice;
     },
 
