@@ -15,7 +15,7 @@ from telemetry.value import failure
 
 class TestBase(unittest.TestCase):
   def setUp(self):
-    self.page_set = page_set.PageSet(file_path=os.path.dirname(__file__))
+    self.page_set = page_set.PageSet(base_dir=os.path.dirname(__file__))
     self.page_set.AddUserStory(page_module.Page(
         'http://www.bar.com/', self.page_set, self.page_set.base_dir))
 

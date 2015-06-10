@@ -16,20 +16,14 @@ INTERNAL_BUCKET = story.INTERNAL_BUCKET
     2015, 6, 25, 'Please use the UserStory class instead (crbug.com/439512). '
     'Instructions for conversion can be found in: https://goo.gl/JsaEez')
 class PageSet(story.StorySet):
-  def __init__(self, file_path=None, archive_data_file='', user_agent_type=None,
+  def __init__(self, base_dir=None, archive_data_file='', user_agent_type=None,
                serving_dirs=None, bucket=None):
-    # The default value of file_path is location of the file that define this
-    # page set instance's class.
-    # TODO(aiolos): When migrating page_sets over to story_sets, make
-    # sure that we are passing a valid directory path in to base_dir, and not
-    # a file path like we curerntly do in some cases for file_path.
-    dir_name = file_path
-    if file_path and os.path.isfile(file_path):
-      dir_name = os.path.dirname(file_path)
+    if base_dir and not os.path.isdir(base_dir):
+      raise ValueError('Invalid base_dir value')
 
     super(PageSet, self).__init__(
         archive_data_file=archive_data_file, cloud_storage_bucket=bucket,
-        base_dir=dir_name, serving_dirs=serving_dirs)
+        base_dir=base_dir, serving_dirs=serving_dirs)
 
     # These attributes can be set dynamically by the page set.
     self.user_agent_type = user_agent_type

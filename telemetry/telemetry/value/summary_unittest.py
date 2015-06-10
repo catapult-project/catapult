@@ -14,9 +14,10 @@ from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from telemetry.value import summary as summary_module
 
+
 class TestBase(unittest.TestCase):
   def setUp(self):
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
     ps.AddUserStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
     ps.AddUserStory(page_module.Page('http://www.baz.com/', ps, ps.base_dir))
     ps.AddUserStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))

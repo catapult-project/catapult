@@ -43,7 +43,7 @@ class PageTestTestCase(unittest.TestCase):
 
   def CreateEmptyPageSet(self):
     base_dir = util.GetUnittestDataDir()
-    ps = page_set_module.PageSet(file_path=base_dir)
+    ps = page_set_module.PageSet(base_dir=base_dir)
     return ps
 
   def RunMeasurement(self, measurement, ps,

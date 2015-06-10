@@ -42,7 +42,7 @@ class TestPage(unittest.TestCase):
                     (os.altsep and apage.file_path_url.endswith(os.altsep)))
 
   def testSort(self):
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
     ps.AddUserStory(page.Page('http://www.foo.com/', ps, ps.base_dir))
     ps.AddUserStory(page.Page('http://www.bar.com/', ps, ps.base_dir))
 
@@ -54,13 +54,13 @@ class TestPage(unittest.TestCase):
   def testGetUrlBaseDirAndFileForUrlBaseDir(self):
     base_dir = os.path.dirname(__file__)
     file_path = os.path.join(os.path.dirname(base_dir), 'otherdir', 'file.html')
-    ps = page_set.PageSet(file_path=base_dir,
+    ps = page_set.PageSet(base_dir=base_dir,
                           serving_dirs=[os.path.join('..', 'somedir', '')])
     ps.AddUserStory(page.Page('file://../otherdir/file.html', ps, ps.base_dir))
     self.assertPathEqual(ps[0].file_path, file_path)
 
   def testDisplayUrlForHttp(self):
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
     ps.AddUserStory(page.Page('http://www.foo.com/', ps, ps.base_dir))
     ps.AddUserStory(page.Page('http://www.bar.com/', ps, ps.base_dir))
 
@@ -68,7 +68,7 @@ class TestPage(unittest.TestCase):
     self.assertEquals(ps[1].display_name, 'http://www.bar.com/')
 
   def testDisplayUrlForHttps(self):
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
     ps.AddUserStory(page.Page('http://www.foo.com/', ps, ps.base_dir))
     ps.AddUserStory(page.Page('https://www.bar.com/', ps, ps.base_dir))
 
@@ -76,7 +76,7 @@ class TestPage(unittest.TestCase):
     self.assertEquals(ps[1].display_name, 'https://www.bar.com/')
 
   def testDisplayUrlForFile(self):
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
     ps.AddUserStory(page.Page(
         'file://../../otherdir/foo.html', ps, ps.base_dir))
     ps.AddUserStory(page.Page(
@@ -86,7 +86,7 @@ class TestPage(unittest.TestCase):
     self.assertEquals(ps[1].display_name, 'bar.html')
 
   def testDisplayUrlForFilesDifferingBySuffix(self):
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
     ps.AddUserStory(page.Page(
         'file://../../otherdir/foo.html', ps, ps.base_dir))
     ps.AddUserStory(page.Page(
@@ -96,7 +96,7 @@ class TestPage(unittest.TestCase):
     self.assertEquals(ps[1].display_name, 'foo1.html')
 
   def testDisplayUrlForFileOfDifferentPaths(self):
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
     ps.AddUserStory(page.Page('file://../../somedir/foo.html', ps, ps.base_dir))
     ps.AddUserStory(page.Page(
         'file://../../otherdir/bar.html', ps, ps.base_dir))
@@ -105,7 +105,7 @@ class TestPage(unittest.TestCase):
     self.assertEquals(ps[1].display_name, 'otherdir/bar.html')
 
   def testDisplayUrlForFileDirectories(self):
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
     ps.AddUserStory(page.Page('file://../../otherdir/foo', ps, ps.base_dir))
     ps.AddUserStory(page.Page('file://../../otherdir/bar', ps, ps.base_dir))
 
@@ -113,14 +113,14 @@ class TestPage(unittest.TestCase):
     self.assertEquals(ps[1].display_name, 'bar')
 
   def testDisplayUrlForSingleFile(self):
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
     ps.AddUserStory(page.Page(
         'file://../../otherdir/foo.html', ps, ps.base_dir))
 
     self.assertEquals(ps[0].display_name, 'foo.html')
 
   def testDisplayUrlForSingleDirectory(self):
-    ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
     ps.AddUserStory(page.Page('file://../../otherdir/foo', ps, ps.base_dir))
 
     self.assertEquals(ps[0].display_name, 'foo')
