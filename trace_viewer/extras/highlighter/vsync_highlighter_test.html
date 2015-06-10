@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/trace_model/thread.html">
+<link rel="import" href="/model/thread.html">
 <link rel="import" href="/extras/highlighter/vsync_highlighter.html">
 
 <script>
@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   var VIEW_R_WORLD = 1000;
 
   function buildModel(slices) {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var process = model.getOrCreateProcess(1);
     for (var i = 0; i < slices.length; i++) {
       var thread = process.getOrCreateThread(i);
@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function buildSlice(title, time) {
-    return new tr.c.trace_model.ThreadSlice('', title, 0, time, {});
+    return new tr.model.ThreadSlice('', title, 0, time, {});
   }
 
   function testFindVSyncTimes(slices, expectedTimes) {

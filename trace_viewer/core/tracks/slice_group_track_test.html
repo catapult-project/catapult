@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_track_view.html">
-<link rel="import" href="/core/trace_model/slice_group.html">
+<link rel="import" href="/model/slice_group.html">
 
 <script>
 'use strict';
@@ -15,12 +15,12 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var ProcessTrack = tr.c.tracks.ProcessTrack;
   var ThreadTrack = tr.c.tracks.ThreadTrack;
-  var SliceGroup = tr.c.trace_model.SliceGroup;
+  var SliceGroup = tr.model.SliceGroup;
   var SliceGroupTrack = tr.c.tracks.SliceGroupTrack;
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
 
   test('subRowBuilderBasic', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
     var sA = group.pushSlice(newSliceNamed('a', 1, 2));
@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderBasic2', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
     var sA = group.pushSlice(newSliceNamed('a', 1, 4));
@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderNestedExactly', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
 
@@ -76,7 +76,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderInstantEvents', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
 
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderTwoInstantEvents', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
 
@@ -112,7 +112,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOutOfOrderAddition', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
 
@@ -133,7 +133,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOutOfOrderAddition2', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
 
@@ -157,7 +157,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOnNestedZeroLength', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
 
@@ -179,7 +179,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOnGroup1', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
 
@@ -201,7 +201,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOnGroup2', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
 
@@ -226,7 +226,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('trackFiltering', function() {
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
     var group = t1.sliceGroup;
 
@@ -243,7 +243,7 @@ tr.b.unittest.testSuite(function() {
 test('sliceGroupContainerMap', function() {
     var vp = new tr.c.TimelineViewport();
     var containerToTrack = vp.containerToTrackObj;
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var process = model.getOrCreateProcess(123);
     var thread = process.getOrCreateThread(456);
     var group = new SliceGroup(thread);

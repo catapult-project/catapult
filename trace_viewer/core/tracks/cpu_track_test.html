@@ -7,18 +7,18 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_track_view.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Cpu = tr.c.trace_model.Cpu;
+  var Cpu = tr.model.Cpu;
   var CpuTrack = tr.c.tracks.CpuTrack;
-  var Slice = tr.c.trace_model.Slice;
-  var StackFrame = tr.c.trace_model.StackFrame;
-  var Sample = tr.c.trace_model.Sample;
-  var Thread = tr.c.trace_model.Thread;
+  var Slice = tr.model.Slice;
+  var StackFrame = tr.model.StackFrame;
+  var Sample = tr.model.Sample;
+  var Thread = tr.model.Thread;
   var Viewport = tr.c.TimelineViewport;
 
   test('basicCpu', function() {
@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('withSamples', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var thread;
     var cpu;
     model.importTraces([], false, false, function() {

@@ -9,18 +9,18 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/multi_event_sub_view.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.c.TraceModel;
-  var Thread = tr.c.trace_model.Thread;
+  var Model = tr.Model;
+  var Thread = tr.model.Thread;
   var Selection = tr.c.Selection;
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
   var newSliceCategory = tr.c.test_utils.newSliceCategory;
-  var Slice = tr.c.trace_model.Slice;
+  var Slice = tr.model.Slice;
 
   test('differentTitles', function() {
     var model = new Model();

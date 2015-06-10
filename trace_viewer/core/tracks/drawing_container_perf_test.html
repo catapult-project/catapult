@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/xhr.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/extras/full_config.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
       generalModel;
     var fileUrl = '/test_data/thread_time_visualisation.json.gz';
     var events = tr.b.getSync(fileUrl);
-    generalModel = new tr.c.TraceModel();
+    generalModel = new tr.Model();
     generalModel.importTraces([events], true);
     return generalModel;
   }
@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
       this.drawingContainer = new tr.c.tracks.DrawingContainer(this.viewport);
       this.viewport.modelTrackContainer = this.drawingContainer;
 
-      var modelTrack = new tr.c.tracks.TraceModelTrack(this.viewport);
+      var modelTrack = new tr.c.tracks.ModelTrack(this.viewport);
       this.drawingContainer.appendChild(modelTrack);
 
       modelTrack.model = model;

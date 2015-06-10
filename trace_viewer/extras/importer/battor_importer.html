@@ -6,12 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/importer/importer.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 /**
  * @fileoverview Imports text files in the BattOr format into the
- * Tracemodel. This format is output by the BattOr executable.
+ * Model. This format is output by the BattOr executable.
  *
  * This importer assumes the events arrive as a string. The unit tests provide
  * examples of the trace format.
@@ -64,7 +64,7 @@ tr.exportTo('tr.e.importer.battor', function() {
     importEvents: function(isSecondaryImport) {
       // Create series and import power samples into it.
       var name = 'power';
-      var series = new tr.c.trace_model.CounterSeries('value',
+      var series = new tr.model.CounterSeries('value',
           tr.b.ui.getColorIdForGeneralPurposeString(name + '.' + 'value'));
       this.importPowerSamples(series);
 

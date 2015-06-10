@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_view.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
@@ -26,20 +26,20 @@ tr.b.unittest.testSuite(function() {
     var testIndex = 0;
     var startTime = 0;
 
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     for (testIndex = 0; testIndex < num_tests; ++testIndex) {
       var process = model.getOrCreateProcess(10000 + testIndex);
       if (testIndex % 2 == 0) {
         var thread = process.getOrCreateThread('Thread Name Here');
-        thread.sliceGroup.pushSlice(new tr.c.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tr.model.Slice(
             'foo', 'a', 0, startTime, {}, 1));
-        thread.sliceGroup.pushSlice(new tr.c.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tr.model.Slice(
             'bar', 'b', 0, startTime + 23, {}, 10));
       } else {
         var thread = process.getOrCreateThread('Name');
-        thread.sliceGroup.pushSlice(new tr.c.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tr.model.Slice(
             'foo', 'a', 0, startTime + 4, {}, 11));
-        thread.sliceGroup.pushSlice(new tr.c.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tr.model.Slice(
             'bar', 'b', 0, startTime + 22, {}, 14));
       }
     }

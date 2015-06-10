@@ -62,7 +62,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         .getOrCreateCounter(null, 'vreg ' + ctrName + ' ' + valueName);
       // Initialize the counter's series fields if needed.
       if (ctr.series[0] === undefined) {
-        ctr.addSeries(new tr.c.trace_model.CounterSeries(valueName,
+        ctr.addSeries(new tr.model.CounterSeries(valueName,
         tr.b.ui.getColorIdForGeneralPurposeString(
         ctrName + '.' + valueName)));
       }

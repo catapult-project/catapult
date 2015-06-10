@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/guid.html">
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/base/iteration_helpers.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
@@ -19,7 +19,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.c', function() {
 
-  var EventRegistry = tr.c.trace_model.EventRegistry;
+  var EventRegistry = tr.model.EventRegistry;
 
   var RequestSelectionChangeEvent = tr.b.Event.bind(
       undefined, 'requestSelectionChange', true, false);
@@ -231,7 +231,7 @@ tr.exportTo('tr.c', function() {
 
         // If this is a flow event, then move to its slice based on the
         // offset direction.
-        if (event instanceof tr.c.trace_model.FlowEvent) {
+        if (event instanceof tr.model.FlowEvent) {
           if (offset > 0) {
             newSelection.push(event.endSlice);
           } else if (offset < 0) {

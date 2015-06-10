@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ThreadSlice = tr.model.ThreadSlice;
+  var Process = tr.model.Process;
+  var Thread = tr.model.Thread;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
+  var newThreadSlice = tr.c.test_utils.newThreadSlice;
+  var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+
+  test('threadBounds_Empty', function() {
+    var model = new tr.Model();
+    var t = new Thread(new Process(model, 7), 1);
+    t.updateBounds();
+    assert.isUndefined(t.bounds.min);
+    assert.isUndefined(t.bounds.max);
+  });
+
+  test('threadBounds_SubRow', function() {
+    var model = new tr.Model();
+    var t = new Thread(new Process(model, 7), 1);
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
+    t.updateBounds();
+    assert.equal(t.bounds.min, 1);
+    assert.equal(t.bounds.max, 4);
+  });
+
+  test('threadBounds_AsyncSliceGroup', function() {
+    var model = new tr.Model();
+    var t = new Thread(new Process(model, 7), 1);
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
+    t.asyncSliceGroup.push(newAsyncSlice(0.1, 5, t, t));
+    t.updateBounds();
+    assert.equal(t.bounds.min, 0.1);
+    assert.equal(t.bounds.max, 5.1);
+  });
+
+  test('threadBounds_Cpu', function() {
+    var model = new tr.Model();
+    var t = new Thread(new Process(model, 7), 1);
+    t.timeSlices = [newSliceNamed('x', 0, 1)];
+    t.updateBounds();
+    assert.equal(t.bounds.min, 0);
+    assert.equal(t.bounds.max, 1);
+  });
+
+  test('shiftTimestampsForwardWithCpu', function() {
+    var model = new tr.Model();
+    var t = new Thread(new Process(model, 7), 1);
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 0, {}, 3));
+    t.asyncSliceGroup.push(newAsyncSlice(0, 5, t, t));
+    t.timeSlices = [newSliceNamed('x', 0, 1)];
+
+    var shiftCount = 0;
+    t.asyncSliceGroup.shiftTimestampsForward = function(ts) {
+      if (ts == 0.32)
+        shiftCount++;
+    };
+
+    t.shiftTimestampsForward(0.32);
+
+    assert.equal(shiftCount, 1);
+    assert.equal(t.sliceGroup.slices[0].start, 0.32);
+    assert.equal(t.timeSlices[0].start, 0.32);
+  });
+
+  test('shiftTimestampsForwardWithoutCpu', function() {
+    var model = new tr.Model();
+    var t = new Thread(new Process(model, 7), 1);
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 0, {}, 3));
+    t.asyncSliceGroup.push(newAsyncSlice(0, 5, t, t));
+
+    var shiftCount = 0;
+    t.asyncSliceGroup.shiftTimestampsForward = function(ts) {
+      if (ts == 0.32)
+        shiftCount++;
+    };
+
+    t.shiftTimestampsForward(0.32);
+
+    assert.equal(shiftCount, 1);
+    assert.equal(t.sliceGroup.slices[0].start, 0.32);
+  });
+
+  test('getSchedulingStatsForRange', function() {
+    var scheduledThread = undefined;
+    var unscheduledThread = undefined;
+    var model = tr.c.test_utils.newModel(function(model) {
+      unscheduledThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      unscheduledThread.sliceGroup.pushSlice(newSliceNamed('work', 0, 20));
+
+      scheduledThread = model.getOrCreateProcess(2).getOrCreateThread(2);
+      scheduledThread.sliceGroup.pushSlice(newSliceNamed('work', 0, 20));
+      scheduledThread.timeSlices = [
+          newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNING, 0, 3),
+          newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNABLE, 3, 5),
+          newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNING, 8, 2),
+          newThreadSlice(scheduledThread, SCHEDULING_STATE.SLEEPING, 10, 10)
+      ];
+    });
+
+    // thread without scheduling states
+    var stats = unscheduledThread.getSchedulingStatsForRange(0, 20);
+    assert.deepEqual(stats, {});
+
+    // no scheduling info
+    var stats = scheduledThread.getSchedulingStatsForRange(50, 100);
+    assert.deepEqual(stats, {});
+
+    // simple query
+    var stats = scheduledThread.getSchedulingStatsForRange(0, 3);
+    var expected = {};
+    expected[SCHEDULING_STATE.RUNNING] = 3;
+    assert.deepEqual(stats, expected);
+
+    // aggregation
+    var stats = scheduledThread.getSchedulingStatsForRange(0, 20);
+    var expected = {};
+    expected[SCHEDULING_STATE.RUNNING] = 5;
+    expected[SCHEDULING_STATE.RUNNABLE] = 5;
+    expected[SCHEDULING_STATE.SLEEPING] = 10;
+    assert.deepEqual(stats, expected);
+  });
+});
+</script>
+

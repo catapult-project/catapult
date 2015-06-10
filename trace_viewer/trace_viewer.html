@@ -7,14 +7,15 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/base/ui/common.css">
 <link rel="import" href="/base/ui.html">
 <link rel="import" href="/core/timeline_view.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
+
 <script>
 'use strict';
 tr.exportTo('tr', function() {
   /**
    * Creates a trace viewer and, if given, loads the provided URL.
    *
-   * For more advanced usage, consider using TimelineView and TraceModel
+   * For more advanced usage, consider using TimelineView and Model
    * directly.
    *
    * Returns an HTMLElement that is the trace-viwer.
@@ -60,7 +61,7 @@ tr.exportTo('tr', function() {
 
       var model;
       function onResult(result) {
-        model = new tr.c.TraceModel();
+        model = new tr.Model();
         var p = model.importTracesWithProgressDialog([result], true);
         p.then(onModelLoaded, onImportFail);
       }

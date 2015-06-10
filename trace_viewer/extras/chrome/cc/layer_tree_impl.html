@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/extras/chrome/chrome_model_helper.html">
 <link rel="import" href="/extras/chrome/cc/constants.html">
 <link rel="import" href="/extras/chrome/cc/layer_impl.html">
-<link rel="import" href="/core/trace_model/object_instance.html">
+<link rel="import" href="/model/object_instance.html">
 
 <script>
 'use strict';
@@ -16,7 +16,7 @@ found in the LICENSE file.
 tr.exportTo('tr.e.cc', function() {
 
   var constants = tr.e.cc.constants;
-  var ObjectSnapshot = tr.c.trace_model.ObjectSnapshot;
+  var ObjectSnapshot = tr.model.ObjectSnapshot;
 
   /**
    * @constructor
@@ -48,19 +48,19 @@ tr.exportTo('tr.e.cc', function() {
         this.tracedInputLatencies = [];
 
         var ownProcess = this.objectInstance.parent;
-        var traceModel = ownProcess.model;
-        if (tr.e.audits.ChromeModelHelper.supportsModel(traceModel))
-          this._initializeTracedInputLatencies(traceModel);
+        var model = ownProcess.model;
+        if (tr.e.audits.ChromeModelHelper.supportsModel(model))
+          this._initializeTracedInputLatencies(model);
       }
     },
 
-    _initializeTracedInputLatencies: function(traceModel) {
-      var modelHelper = new tr.e.audits.ChromeModelHelper(traceModel);
+    _initializeTracedInputLatencies: function(model) {
+      var modelHelper = new tr.e.audits.ChromeModelHelper(model);
       if (!modelHelper.browserHelper)
         return;
 
       var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
-          traceModel.bounds);
+          model.bounds);
 
       // Convert all ids to InputLatency Async objects.
       latencyEvents.forEach(function(event) {

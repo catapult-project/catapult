@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/trace_model/attribute.html">
-<link rel="import" href="/core/trace_model/global_memory_dump.html">
-<link rel="import" href="/core/trace_model/memory_allocator_dump.html">
-<link rel="import" href="/core/trace_model/process_memory_dump.html">
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/model/global_memory_dump.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
+<link rel="import" href="/model/process_memory_dump.html">
 
 <script>
 'use strict';
@@ -18,12 +18,12 @@ found in the LICENSE file.
  * @fileoverview Helper functions for memory dump analysis sub-view tests.
  */
 tr.exportTo('tr.c.analysis', function() {
-  var GlobalMemoryDump = tr.c.trace_model.GlobalMemoryDump;
-  var ProcessMemoryDump = tr.c.trace_model.ProcessMemoryDump;
-  var MemoryAllocatorDump = tr.c.trace_model.MemoryAllocatorDump;
-  var VMRegion = tr.c.trace_model.VMRegion;
-  var VMRegionByteStats = tr.c.trace_model.VMRegionByteStats;
-  var ScalarAttribute = tr.c.trace_model.ScalarAttribute;
+  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var VMRegion = tr.model.VMRegion;
+  var VMRegionByteStats = tr.model.VMRegionByteStats;
+  var ScalarAttribute = tr.model.ScalarAttribute;
 
   function createTestGlobalMemoryDump() {
     var model = tr.c.test_utils.newModel(function(model) {

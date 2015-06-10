@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var newFlowEventEx = tr.c.test_utils.newFlowEventEx;
+  var newModel = tr.c.test_utils.newModel;
+
+  test('getCorrectModelIndices', function() {
+    var m = newModel(function(m) {
+      m.f1 = newFlowEventEx({
+        'title': 'test1',
+        start: 0,
+        end: 10,
+        id: '0x100'
+      });
+
+      m.f2 = newFlowEventEx({
+        'title': 'test2',
+        start: 0,
+        end: 10,
+        id: '0x100'
+      });
+
+      m.flowEvents.push(m.f1);
+      m.flowEvents.push(m.f2);
+    });
+
+    assert.isDefined(m.modelIndices);
+    var modelIndices = m.modelIndices;
+    assert.equal(modelIndices.getFlowEventsWithId('0x100').length, 2);
+    assert.equal(modelIndices.getFlowEventsWithId('0x100')[0].id, '0x100');
+    assert.equal(modelIndices.getFlowEventsWithId('0x101').length, 0);
+  });
+});
+</script>

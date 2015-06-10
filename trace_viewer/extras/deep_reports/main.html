@@ -28,7 +28,7 @@ tr.exportTo('tr.e.deep_reports', function() {
         url: filename
       };
       lastP = lastP.then(function() {
-        return loadTraceModelFromFileAsync(filename);
+        return loadModelFromFileAsync(filename);
       });
       lastP = lastP.then(function(model) {
         processModel(results, page, model);
@@ -37,13 +37,13 @@ tr.exportTo('tr.e.deep_reports', function() {
     return lastP;
   }
 
-  function loadTraceModelFromFileAsync(filename) {
+  function loadModelFromFileAsync(filename) {
     return tr.b.getAsync(filename).then(function(trace) {
-      var io = new tr.c.ImportOptions();
+      var io = new tr.ImportOptions();
       io.shiftWorldToZero = true;
       io.pruneEmptyContainers = false;
 
-      var m = new tr.c.TraceModel();
+      var m = new tr.Model();
       try {
         m.importTraces([trace], io);
       } catch (e) {

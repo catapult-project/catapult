@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/model/timed_event.html">
+<link rel="import" href="/base/units/util.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.model', function() {
+  function InteractionRecord(title, colorId, start, duration) {
+    tr.model.TimedEvent.call(this, start);
+    this.title = title;
+    this.colorId = colorId;
+    this.duration = duration;
+    this.args = {};
+    this.associatedEvents = [];
+  }
+  InteractionRecord.prototype = {
+    __proto__: tr.model.TimedEvent.prototype,
+
+    get subSlices() {
+      return [];
+    },
+
+    get userFriendlyName() {
+      return this.title + ' interaction at ' +
+          tr.b.units.tsString(this.start);
+    }
+  };
+
+  tr.model.EventRegistry.register(
+      InteractionRecord,
+      {
+        name: 'interaction',
+        pluralName: 'interactions',
+        singleViewElementName: 'tr-c-a-single-interaction-record-sub-view',
+        multiViewElementName: 'tr-c-a-multi-interaction-record-sub-view'
+      });
+
+  return {
+    InteractionRecord: InteractionRecord
+  };
+});
+</script>

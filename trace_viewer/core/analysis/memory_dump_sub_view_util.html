@@ -51,7 +51,7 @@ tr.exportTo('tr.c.analysis', function() {
         }
         if (existingTraits.constructor !== attrValue.constructor ||
             existingTraits.units !== attrValue.units) {
-          existingTraits.constructor = tr.c.trace_model.UnknownAttribute;
+          existingTraits.constructor = tr.model.UnknownAttribute;
           existingTraits.units = undefined;
         }
       });
@@ -75,7 +75,7 @@ tr.exportTo('tr.c.analysis', function() {
 
   MemoryColumn.fromAttributeTraits = function(name, title, traits, cellGetter) {
     var constructor;
-    if (traits.constructor === tr.c.trace_model.ScalarAttribute)
+    if (traits.constructor === tr.model.ScalarAttribute)
       constructor = ScalarMemoryColumn;
     else
       constructor = MemoryColumn;

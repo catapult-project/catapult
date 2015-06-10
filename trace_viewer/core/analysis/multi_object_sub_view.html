@@ -49,7 +49,7 @@ found in the LICENSE file.
         {
           title: 'First',
           value: function(event) {
-            if (event instanceof tr.c.trace_model.ObjectSnapshot)
+            if (event instanceof tr.model.ObjectSnapshot)
               return tr.b.units.createTimeStampSpan(event.ts);
 
             var spanEl = document.createElement('span');

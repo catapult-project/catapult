@@ -15,11 +15,11 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var Selection = tr.c.Selection;
-  var SelectionState = tr.c.trace_model.SelectionState;
+  var SelectionState = tr.model.SelectionState;
   var Task = tr.b.Task;
 
   test('instantiate', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var num_threads = 500;
     model.importTraces([], false, false, function() {
       var p100 = model.getOrCreateProcess(100);
@@ -44,14 +44,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addAllEventsMatchingFilterToSelectionAsTask', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
 
     t1.sliceGroup.pushSlice(
-        new tr.c.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
     t1.sliceGroup.pushSlice(
-        new tr.c.trace_model.ThreadSlice('', 'b', 0, 1.1, {}, 2.8));
+        new tr.model.ThreadSlice('', 'b', 0, 1.1, {}, 2.8));
 
     var t1asg = t1.asyncSliceGroup;
     t1asg.slices.push(
@@ -84,7 +84,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('emptyThreadsDeleted', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
 
@@ -95,13 +95,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('filteredCounters', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var c1 = model.kernel.getOrCreateCpu(0);
     c1.getOrCreateCounter('', 'b');
 
     var p1 = model.getOrCreateProcess(1);
     var ctr = p1.getOrCreateCounter('', 'a');
-    var series = new tr.c.trace_model.CounterSeries('a', 0);
+    var series = new tr.model.CounterSeries('a', 0);
     series.addCounterSample(0, 1);
     ctr.addSeries(series);
 
@@ -112,7 +112,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('filteredCpus', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var c1 = model.kernel.getOrCreateCpu(1);
     c1.getOrCreateCounter('', 'a');
 
@@ -123,7 +123,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('filteredProcesses', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = model.getOrCreateProcess(1);
     p1.getOrCreateCounter('', 'a');
 
@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('filteredThreads', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(2);
     t1.sliceGroup.pushSlice(tr.c.test_utils.newSlice(0, 1));
@@ -154,7 +154,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = new tr.c.TraceModel(events);
+    var model = new tr.Model(events);
     var trackView = new tr.c.TimelineTrackView();
     trackView.model = model;
     this.addHTMLOutput(trackView);
@@ -172,7 +172,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = new tr.c.TraceModel(events);
+    var model = new tr.Model(events);
     var trackView = new tr.c.TimelineTrackView();
     trackView.model = model;
     this.addHTMLOutput(trackView);
@@ -189,7 +189,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = new tr.c.TraceModel(events);
+    var model = new tr.Model(events);
     var trackView = new tr.c.TimelineTrackView();
     trackView.model = model;
     this.addHTMLOutput(trackView);

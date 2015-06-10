@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/timeline_track_view.html">
-<link rel="import" href="/core/trace_model/sample.html">
-<link rel="import" href="/core/trace_model/stack_frame.html">
+<link rel="import" href="/model/sample.html">
+<link rel="import" href="/model/stack_frame.html">
 <link rel="import" href="/core/tracks/sample_track.html">
 
 <script>
@@ -17,8 +17,8 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var Selection = tr.c.Selection;
   var SampleTrack = tr.c.tracks.SampleTrack;
-  var Sample = tr.c.trace_model.Sample;
-  var StackFrame = tr.c.trace_model.StackFrame;
+  var Sample = tr.model.Sample;
+  var StackFrame = tr.model.StackFrame;
 
   test('modelMapping', function() {
     var track = new SampleTrack(new tr.c.TimelineViewport());

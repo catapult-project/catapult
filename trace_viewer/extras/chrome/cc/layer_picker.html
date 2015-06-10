@@ -12,7 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/extras/chrome/cc/selection.html">
 <link rel="import" href="/extras/chrome/cc/util.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
-<link rel="import" href="/core/trace_model/event.html">
+<link rel="import" href="/model/event.html">
 <link rel="import" href="/base/ui/drag_handle.html">
 <link rel="import" href="/base/ui/list_view.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
@@ -206,7 +206,7 @@ tr.exportTo('tr.e.cc', function() {
 
         if (id == selectedRenderPassId) {
           renderPass.selectionState =
-              tr.c.trace_model.SelectionState.SELECTED;
+              tr.model.SelectionState.SELECTED;
         }
       }, this);
     },
@@ -246,7 +246,7 @@ tr.exportTo('tr.e.cc', function() {
           this.itemList_.appendChild(item);
 
           if (layer.layerId == selectedLayerId) {
-            layer.selectionState = tr.c.trace_model.SelectionState.SELECTED;
+            layer.selectionState = tr.model.SelectionState.SELECTED;
             item.selected = true;
           }
         }, this);

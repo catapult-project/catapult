@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/trace_model/frame.html">
+<link rel="import" href="/model/frame.html">
 <link rel="import" href="/extras/android/android_auditor.html">
 <link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
 
@@ -14,9 +14,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
+  var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
-  var FRAME_PERF_CLASS = tr.c.trace_model.FRAME_PERF_CLASS;
+  var FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
   var newThreadSlice = tr.c.test_utils.newThreadSlice;
   var TimeDuration = tr.b.units.TimeDuration;
 
@@ -339,7 +339,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('favicon', function() {
-    var createTraceModelWithJank = function(percentageJank) {
+    var createModelWithJank = function(percentageJank) {
 
       return tr.c.test_utils.newModelWithAuditor(function(model) {
         var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
@@ -351,9 +351,9 @@ tr.b.unittest.testSuite(function() {
         }
       }, tr.e.audits.AndroidAuditor);
     };
-    assert.equal(createTraceModelWithJank(3).faviconHue, 'green');
-    assert.equal(createTraceModelWithJank(10).faviconHue, 'yellow');
-    assert.equal(createTraceModelWithJank(50).faviconHue, 'red');
+    assert.equal(createModelWithJank(3).faviconHue, 'green');
+    assert.equal(createModelWithJank(10).faviconHue, 'yellow');
+    assert.equal(createModelWithJank(50).faviconHue, 'red');
   });
 });
 </script>

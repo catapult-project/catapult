@@ -66,7 +66,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ==> next_comm=ndroid.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
     ];
 
-    var m = new tr.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.Model(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
@@ -108,7 +108,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var m;
     assert.doesNotThrow(function() {
-      m = new tr.c.TraceModel(lines.join('\n'), false);
+      m = new tr.Model(lines.join('\n'), false);
     });
     assert.isTrue(m.hasImportWarnings);
     assert.equal(m.importWarnings[0].message, 'Unrecognized sleep state: F|O');
@@ -148,7 +148,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
           '==> next_comm=ndroid.launcher next_pid=584 next_prio=120'
     ];
 
-    var m = new tr.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.Model(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];

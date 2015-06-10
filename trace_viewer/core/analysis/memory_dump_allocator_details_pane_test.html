@@ -9,18 +9,18 @@ found in the LICENSE file.
 <link rel="import"
     href="/core/analysis/memory_dump_allocator_details_pane.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/trace_model/attribute.html">
-<link rel="import" href="/core/trace_model/container_memory_dump.html">
-<link rel="import" href="/core/trace_model/memory_allocator_dump.html">
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/model/container_memory_dump.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var Selection = tr.c.Selection;
-  var MemoryAllocatorDump = tr.c.trace_model.MemoryAllocatorDump;
-  var ContainerMemoryDump = tr.c.trace_model.ContainerMemoryDump;
-  var ScalarAttribute = tr.c.trace_model.ScalarAttribute;
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var ContainerMemoryDump = tr.model.ContainerMemoryDump;
+  var ScalarAttribute = tr.model.ScalarAttribute;
 
   function createMemoryAllocatorDump() {
     var memoryDump = new ContainerMemoryDump(-10);

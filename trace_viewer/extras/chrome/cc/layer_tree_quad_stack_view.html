@@ -1148,7 +1148,7 @@ tr.exportTo('tr.e.cc', function() {
       var renderProcess = lthi.objectInstance.parent;
       var tasks = [];
       renderProcess.iterateAllEvents(function(event) {
-        if (!(event instanceof tr.c.trace_model.Slice))
+        if (!(event instanceof tr.model.Slice))
           return;
 
         var tile = tr.e.cc.getTileFromRasterTaskSlice(event);

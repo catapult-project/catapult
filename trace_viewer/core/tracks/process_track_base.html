@@ -14,10 +14,10 @@ found in the LICENSE file.
 <link rel="import" href="/core/tracks/process_summary_track.html">
 <link rel="import" href="/core/tracks/spacing_track.html">
 <link rel="import" href="/core/tracks/thread_track.html">
-<link rel="import" href="/core/trace_model/trace_model_settings.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/base/ui.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/model/model_settings.html">
 
 <script>
 'use strict';
@@ -26,7 +26,6 @@ tr.exportTo('tr.c.tracks', function() {
 
   var ObjectSnapshotView = tr.c.analysis.ObjectSnapshotView;
   var ObjectInstanceView = tr.c.analysis.ObjectInstanceView;
-  var TraceModelSettings = tr.c.TraceModelSettings;
   var SpacingTrack = tr.c.tracks.SpacingTrack;
 
   /**
@@ -66,7 +65,7 @@ tr.exportTo('tr.c.tracks', function() {
       this.processBase_ = processBase;
 
       if (this.processBase_) {
-        var modelSettings = new TraceModelSettings(this.processBase_.model);
+        var modelSettings = new tr.model.ModelSettings(this.processBase_.model);
         var defaultValue = this.processBase_.important;
         this.expanded = modelSettings.getSettingFor(
             this.processBase_, 'expanded', defaultValue);
@@ -95,7 +94,7 @@ tr.exportTo('tr.c.tracks', function() {
       if (!this.processBase_)
         return;
 
-      var modelSettings = new TraceModelSettings(this.processBase_.model);
+      var modelSettings = new tr.model.ModelSettings(this.processBase_.model);
       modelSettings.setSettingFor(this.processBase_, 'expanded', expanded);
       this.updateContents_();
       this.viewport.rebuildEventToTrackMap();
@@ -242,7 +241,7 @@ tr.exportTo('tr.c.tracks', function() {
     appendCounterTracks_: function() {
       // Add counter tracks for this process.
       var counters = tr.b.dictionaryValues(this.processBase.counters);
-      counters.sort(tr.c.trace_model.Counter.compare);
+      counters.sort(tr.model.Counter.compare);
 
       // Create the counters for this process.
       counters.forEach(function(counter) {
@@ -256,7 +255,7 @@ tr.exportTo('tr.c.tracks', function() {
     appendThreadTracks_: function() {
       // Get a sorted list of threads.
       var threads = tr.b.dictionaryValues(this.processBase.threads);
-      threads.sort(tr.c.trace_model.Thread.compare);
+      threads.sort(tr.model.Thread.compare);
 
       // Create the threads.
       threads.forEach(function(thread) {

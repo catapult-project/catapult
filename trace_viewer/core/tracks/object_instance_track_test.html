@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/trace_model/object_collection.html">
-<link rel="import" href="/core/trace_model/selection_state.html">
+<link rel="import" href="/model/object_collection.html">
+<link rel="import" href="/model/selection_state.html">
 <link rel="import" href="/core/timeline_viewport.html">
 <link rel="import" href="/core/tracks/drawing_container.html">
 <link rel="import" href="/core/tracks/object_instance_track.html">
@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   var Viewport = tr.c.TimelineViewport;
 
   var createObjects = function() {
-    var objects = new tr.c.trace_model.ObjectCollection({});
+    var objects = new tr.model.ObjectCollection({});
     objects.idWasCreated('0x1000', 'tr.e.cc', 'Frame', 10);
     objects.addSnapshot('0x1000', 'tr.e.cc', 'Frame', 10, 'snapshot-1');
     objects.addSnapshot('0x1000', 'tr.e.cc', 'Frame', 25, 'snapshot-2');
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     var objects = createObjects();
     var frames = objects.getAllInstancesByTypeName()['Frame'];
     frames[0].snapshots[1].selectionState =
-        tr.c.trace_model.SelectionState.SELECTED;
+        tr.model.SelectionState.SELECTED;
 
     var div = document.createElement('div');
 
@@ -78,14 +78,14 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         9.98, 9.99, 0.1, selection);
     assert.equal(selection.length, 1);
-    assert.instanceOf(selection[0], tr.c.trace_model.ObjectSnapshot);
+    assert.instanceOf(selection[0], tr.model.ObjectSnapshot);
 
     // Hit the instance, between the 1st and 2nd snapshots
     selection = new Selection();
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         20, 20.1, 0.1, selection);
     assert.equal(selection.length, 1);
-    assert.instanceOf(selection[0], tr.c.trace_model.ObjectInstance);
+    assert.instanceOf(selection[0], tr.model.ObjectInstance);
   });
 
   test('addEventNearToProvidedEventToSelection', function() {
@@ -95,7 +95,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     var track = ObjectInstanceTrack(new Viewport());
     track.objectInstances = frames;
 
-    var instance = new tr.c.trace_model.ObjectInstance(
+    var instance = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);
 
     assert.doesNotThrow(function() {

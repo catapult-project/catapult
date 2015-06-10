@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/extras/side_panel/input_latency_side_panel.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
@@ -119,7 +119,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(panel);
 
     var selectionChanged = false;
-    panel.model = new tr.c.TraceModel(events);
+    panel.model = new tr.Model(events);
     function listener(e) {
       selectionChanged = true;
       assert.equal(e.selection.length, 3);

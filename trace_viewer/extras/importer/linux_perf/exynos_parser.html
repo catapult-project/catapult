@@ -40,7 +40,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var targetCpu = this.importer.getOrCreateCpu(0);
       var counter = targetCpu.getOrCreateCounter('', name);
       if (counter.numSeries === 0) {
-        counter.addSeries(new tr.c.trace_model.CounterSeries('frequency',
+        counter.addSeries(new tr.model.CounterSeries('frequency',
             tr.b.ui.getColorIdForGeneralPurposeString(
                 counter.name + '.' + 'frequency')));
       }
@@ -84,7 +84,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread(
           'exynos_flip_state (pipe:' + pipe + ', fb:' + fb + ')');
       if (kthread.openSlice) {
-        var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+        var slice = new tr.model.Slice('', kthread.openSlice,
             tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             args,

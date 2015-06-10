@@ -54,7 +54,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
       var asyncSliceConstructor =
-         tr.c.trace_model.AsyncSlice.getConstructor(
+         tr.model.AsyncSlice.getConstructor(
             category, name);
       var slice = new asyncSliceConstructor(
           category, name,
@@ -78,7 +78,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           slice.args = args;
           slice.endThread = kthread.thread;
           slice.subSlices = [
-            new tr.c.trace_model.AsyncSlice(category, slice.title,
+            new tr.model.AsyncSlice(category, slice.title,
                 slice.colorId, slice.start, slice.args, slice.duration)
           ];
           kthread.thread.asyncSliceGroup.push(slice);

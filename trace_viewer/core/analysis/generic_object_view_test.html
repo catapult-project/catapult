@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
-<link rel="import" href="/core/trace_model/object_instance.html">
+<link rel="import" href="/model/object_instance.html">
 
 <script>
 'use strict';
@@ -75,7 +75,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('objectSnapshotValue', function() {
     var view = document.createElement('tr-c-a-generic-object-view');
 
-    var i10 = new tr.c.trace_model.ObjectInstance(
+    var i10 = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
 
@@ -88,7 +88,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('objectInstanceValue', function() {
     var view = document.createElement('tr-c-a-generic-object-view');
 
-    var i10 = new tr.c.trace_model.ObjectInstance(
+    var i10 = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
 

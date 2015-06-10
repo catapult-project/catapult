@@ -9,17 +9,17 @@ found in the LICENSE file.
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_track_view.html">
 <link rel="import" href="/core/timeline_viewport.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var Location = tr.c.Location;
-  var Model = tr.c.TraceModel;
+  var Model = tr.Model;
 
   test('locationObj', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var process = model.getOrCreateProcess(123);
     var thread = process.getOrCreateThread(456);
 

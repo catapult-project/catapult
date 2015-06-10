@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importPowerSamplesAndTrace', function() {
-    var m = new tr.c.TraceModel(SYSTRACE_LINES.join('\n'), false);
+    var m = new tr.Model(SYSTRACE_LINES.join('\n'), false);
     m.importTraces([BATTOR_LINES.join('\n')]);
     assert.isFalse(m.hasImportWarnings);
 
@@ -72,13 +72,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importMissingLinuxTrace', function() {
-    var m = new tr.c.TraceModel(BATTOR_LINES.join('\n'), false);
+    var m = new tr.Model(BATTOR_LINES.join('\n'), false);
     assert.isTrue(m.hasImportWarnings);
   });
 
   test('importNotEnoughSamples', function() {
     var shortLines = BATTOR_LINES.slice(0, 5);
-    var m = new tr.c.TraceModel(SYSTRACE_LINES.join('\n'), false);
+    var m = new tr.Model(SYSTRACE_LINES.join('\n'), false);
     m.importTraces([shortLines.join('\n')]);
     assert.isTrue(m.hasImportWarnings);
   });

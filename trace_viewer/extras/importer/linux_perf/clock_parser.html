@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/importer/linux_perf/parser.html">
-<link rel="import" href="/core/trace_model/counter_series.html">
+<link rel="import" href="/model/counter_series.html">
 
 <script>
 'use strict';
@@ -48,7 +48,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               .getOrCreateCounter(null, name);
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {
-        ctr.addSeries(new tr.c.trace_model.CounterSeries('value',
+        ctr.addSeries(new tr.model.CounterSeries('value',
             tr.b.ui.getColorIdForGeneralPurposeString(
                 ctr.name + '.' + 'value')));
       }

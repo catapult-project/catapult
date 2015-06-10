@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/core/auditor.html">
-<link rel="import" href="/core/trace_model/event_info.html">
+<link rel="import" href="/model/event_info.html">
 <link rel="import" href="/base/range_utils.html">
 <link rel="import" href="/extras/chrome/chrome_model_helper.html">
 <link rel="import" href="/extras/rail/rail_ir_finder.html">
@@ -81,12 +81,12 @@ tr.exportTo('tr.e.audits', function() {
           if (slice.category != 'toplevel')
             return;
           if (slice.duration > 75.0) {
-            var alertInfo = new tr.c.trace_model.EventInfo(
+            var alertInfo = new tr.model.EventInfo(
                 'Task too long',
                 'Tasks taking >= 75ms are bad, and should be broken up to ' +
                 'ensure the main thread is responsive');
             var center = slice.start + 0.5 * slice.duration;
-            var alert = new tr.c.trace_model.Alert(
+            var alert = new tr.model.Alert(
                 alertInfo, center, [slice]);
             model.alerts.push(alert);
           }

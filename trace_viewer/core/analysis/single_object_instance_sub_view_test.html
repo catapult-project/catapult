@@ -8,22 +8,20 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/single_object_instance_sub_view.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TraceModel = tr.c.TraceModel;
-  var Selection = tr.c.Selection;
-  var ObjectInstance = tr.c.trace_model.ObjectInstance;
+  var ObjectInstance = tr.model.ObjectInstance;
 
   test('analyzeSelectionWithObjectInstanceUnknownType', function() {
     var i10 = new ObjectInstance({}, '0x1000', 'cat', 'someUnhandledName', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
     var s20 = i10.addSnapshot(20, {foo: 2});
 
-    var selection = new Selection();
+    var selection = new tr.c.Selection();
     selection.push(i10);
 
     var view = document.createElement('tr-c-a-single-object-instance-sub-view');

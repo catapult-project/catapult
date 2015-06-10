@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_track_view.html">
-<link rel="import" href="/core/trace_model/event.html">
-<link rel="import" href="/core/trace_model/selection_state.html">
+<link rel="import" href="/model/event.html">
+<link rel="import" href="/model/selection_state.html">
 <link rel="import" href="/core/tracks/chart_axis.html">
 <link rel="import" href="/core/tracks/chart_point.html">
 <link rel="import" href="/core/tracks/chart_series.html">
@@ -21,8 +21,8 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var Selection = tr.c.Selection;
   var Viewport = tr.c.TimelineViewport;
-  var Event = tr.c.trace_model.Event;
-  var SelectionState = tr.c.trace_model.SelectionState;
+  var Event = tr.model.Event;
+  var SelectionState = tr.model.SelectionState;
   var ChartTrack = tr.c.tracks.ChartTrack;
   var ChartSeries = tr.c.tracks.ChartSeries;
   var ChartSeriesType = tr.c.tracks.ChartSeriesType;

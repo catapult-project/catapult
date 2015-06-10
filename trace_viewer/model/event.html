@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/extension_registry.html">
+<link rel="import" href="/model/selectable_item.html">
+<link rel="import" href="/model/selection_state.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the Event class.
+ */
+tr.exportTo('tr.model', function() {
+  var SelectableItem = tr.model.SelectableItem;
+  var SelectionState = tr.model.SelectionState;
+
+  // Cached values for getCategoryParts.
+  var categoryPartsFor = {};
+
+  /**
+   * Categories are stored in comma-separated form, e.g: 'a,b' meaning
+   * that the event is part of the a and b category.
+   *
+   * This function returns the category split by string, caching the
+   * array for performance.
+   *
+   * Do not mutate the returned array!!!!
+   */
+  function getCategoryParts(category) {
+    var parts = categoryPartsFor[category];
+    if (parts !== undefined)
+      return parts;
+    parts = category.split(',');
+    categoryPartsFor[category] = parts;
+    return parts;
+  }
+
+  /**
+   * An Event is the base type for any non-container, selectable piece
+   * of data in the trace model.
+   *
+   * @constructor
+   * @extends {SelectableItem}
+   */
+  function Event() {
+    SelectableItem.call(this, this /* modelItem */);
+    this.guid_ = tr.b.GUID.allocate();
+    this.selectionState = SelectionState.NONE;
+    this.associatedAlerts = [];
+    this.info = undefined;
+  }
+
+  Event.prototype = {
+    __proto__: SelectableItem.prototype,
+
+    get guid() {
+      return this.guid_;
+    }
+  };
+
+  // Create the type registry.
+  function EventRegistry() {
+  }
+  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  options.mandatoryBaseType = Event;
+  tr.b.decorateExtensionRegistry(EventRegistry, options);
+
+  // Enforce all options objects have the right fields.
+  EventRegistry.addEventListener('will-register', function(e) {
+    var metadata = e.typeInfo.metadata;
+
+    if (metadata.name === undefined)
+      throw new Error('Registered events must provide name metadata');
+    var i = tr.b.findFirstInArray(
+      EventRegistry.getAllRegisteredTypeInfos(),
+      function(x) { return x.metadata.name === metadata.name; });
+    if (i !== undefined)
+      throw new Error('Event type with that name already registered');
+
+    if (metadata.pluralName === undefined)
+      throw new Error('Registered events must provide pluralName metadata');
+    if (metadata.singleViewElementName === undefined) {
+      throw new Error('Registered events must provide ' +
+                      'singleViewElementName metadata');
+    }
+    if (metadata.multiViewElementName === undefined) {
+      throw new Error('Registered events must provide ' +
+                      'multiViewElementName metadata');
+    }
+  });
+
+  // Helper: lookup Events indexed by type name.
+  var eventsByTypeName = undefined;
+  EventRegistry.getEventTypeInfoByTypeName = function(typeName) {
+    if (eventsByTypeName === undefined) {
+      eventsByTypeName = {};
+      EventRegistry.getAllRegisteredTypeInfos().forEach(function(typeInfo) {
+        eventsByTypeName[typeInfo.metadata.name] = typeInfo;
+      });
+    }
+    return eventsByTypeName[typeName];
+  }
+
+  // Ensure eventsByTypeName stays current.
+  EventRegistry.addEventListener('registry-changed', function() {
+    eventsByTypeName = undefined;
+  });
+
+  function convertCamelCaseToTitleCase(name) {
+    var result = name.replace(/[A-Z]/g, ' $&');
+    result = result.charAt(0).toUpperCase() + result.slice(1);
+    return result;
+  }
+
+  EventRegistry.getUserFriendlySingularName = function(typeName) {
+    var typeInfo = EventRegistry.getEventTypeInfoByTypeName(typeName);
+    var str = typeInfo.metadata.name;
+    return convertCamelCaseToTitleCase(str);
+  };
+
+  EventRegistry.getUserFriendlyPluralName = function(typeName) {
+    var typeInfo = EventRegistry.getEventTypeInfoByTypeName(typeName);
+    var str = typeInfo.metadata.pluralName;
+    return convertCamelCaseToTitleCase(str);
+  };
+
+  return {
+    Event: Event,
+    EventRegistry: EventRegistry
+  };
+});
+</script>

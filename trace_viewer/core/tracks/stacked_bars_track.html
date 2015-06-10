@@ -77,7 +77,7 @@ tr.exportTo('tr.c.tracks', function() {
      * @private
      */
     addEventNearToProvidedEventToSelection: function(event, offset, selection) {
-      if (!(event instanceof tr.c.trace_model.ObjectSnapshot))
+      if (!(event instanceof tr.model.ObjectSnapshot))
         throw new Error('Unrecognized event');
       var objectSnapshots = this.objectInstance_.snapshots;
       var index = objectSnapshots.indexOf(event);

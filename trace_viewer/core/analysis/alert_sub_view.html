@@ -78,7 +78,7 @@ found in the LICENSE file.
           }, event.title);
 
           var valueString = '';
-          if (event instanceof tr.c.trace_model.TimedEvent)
+          if (event instanceof tr.model.TimedEvent)
             valueString = 'took ' + event.duration.toFixed(2) + 'ms';
 
           rows.push({

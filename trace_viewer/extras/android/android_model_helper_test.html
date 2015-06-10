@@ -14,7 +14,6 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var AndroidModelHelper = tr.e.audits.AndroidModelHelper;
-  var TraceModel = tr.c.TraceModel;
   var newAsyncSliceNamed = tr.c.test_utils.newAsyncSliceNamed;
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
   var newSliceEx = tr.c.test_utils.newSliceEx;
@@ -103,7 +102,7 @@ tr.b.unittest.testSuite(function() {
 
       var seen = 0;
       helper.iterateImportantSlices(function(importantSlice) {
-        assert.isTrue(importantSlice instanceof tr.c.trace_model.Slice);
+        assert.isTrue(importantSlice instanceof tr.model.Slice);
         seen++;
       });
       assert.equal(seen, 1);

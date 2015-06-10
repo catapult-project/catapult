@@ -9,13 +9,13 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/multi_event_summary_table.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.c.TraceModel;
+  var Model = tr.Model;
   var Selection = tr.c.Selection;
   var newSliceEx = tr.c.test_utils.newSliceEx;
 
@@ -71,8 +71,8 @@ tr.b.unittest.testSuite(function() {
   test('noDurationNoSubRows', function() {
     var model = new Model();
 
-    var fe1 = new tr.c.trace_model.FlowEvent('cat', 1234, 'title', 7, 10, {});
-    var fe2 = new tr.c.trace_model.FlowEvent('cat', 1234, 'title', 8, 20, {});
+    var fe1 = new tr.model.FlowEvent('cat', 1234, 'title', 7, 10, {});
+    var fe2 = new tr.model.FlowEvent('cat', 1234, 'title', 8, 20, {});
 
     // Make reading some properties an explosion, as a way to ensure that they
     // aren't read.

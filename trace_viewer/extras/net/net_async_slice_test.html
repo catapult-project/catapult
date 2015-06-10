@@ -6,13 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/net/net.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/model/model.html">
+
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var AsyncSlice = tr.c.trace_model.AsyncSlice;
+  var AsyncSlice = tr.model.AsyncSlice;
   var NetAsyncSlice = tr.e.net.NetAsyncSlice;
 
   test('basic', function() {
@@ -29,7 +30,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'HTTP_STREAM_JOB', args: {}, pid: 1, ts: 100, cat: 'netlog', tid: 2, ph: 'b', id: 71}, // @suppress longLineCheck
       {name: 'HTTP_STREAM_JOB', args: {}, pid: 1, ts: 200, cat: 'netlog', tid: 2, ph: 'e', id: 71} // @suppress longLineCheck
     ];
-    var m = new tr.c.TraceModel(events);
+    var m = new tr.Model(events);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     assert.equal(t2.asyncSliceGroup.length, 1);
     assert.instanceOf(t2.asyncSliceGroup.slices[0], NetAsyncSlice);

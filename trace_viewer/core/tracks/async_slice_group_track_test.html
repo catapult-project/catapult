@@ -7,23 +7,23 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_track_view.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() { // @suppress longLineCheck
-  var AsyncSliceGroup = tr.c.trace_model.AsyncSliceGroup;
+  var AsyncSliceGroup = tr.model.AsyncSliceGroup;
   var AsyncSliceGroupTrack = tr.c.tracks.AsyncSliceGroupTrack;
-  var Process = tr.c.trace_model.Process;
+  var Process = tr.model.Process;
   var ProcessTrack = tr.c.tracks.ProcessTrack;
-  var Thread = tr.c.trace_model.Thread;
+  var Thread = tr.model.Thread;
   var ThreadTrack = tr.c.tracks.ThreadTrack;
   var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
   var newAsyncSliceNamed = tr.c.test_utils.newAsyncSliceNamed;
 
   test('filterSubRows', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('rebuildSubRows_twoNonOverlappingSlices', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('rebuildSubRows_twoOverlappingSlices', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('rebuildSubRows_threePartlyOverlappingSlices', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -111,7 +111,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('rebuildSubRows_threeOverlappingSlices', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -135,7 +135,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   // Tests that no slices and their sub slices overlap.
   test('rebuildSubRows_NonOverlappingSubSlices', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -168,7 +168,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('rebuildSubRows_NonOverlappingSubSlicesThreeNestedLevels', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
@@ -205,7 +205,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('asyncSliceGroupContainerMap', function() {
     var vp = new tr.c.TimelineViewport();
     var containerToTrack = vp.containerToTrackObj;
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var process = model.getOrCreateProcess(123);
     var thread = process.getOrCreateThread(456);
     var group = new AsyncSliceGroup(thread);

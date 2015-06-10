@@ -10,13 +10,13 @@ found in the LICENSE file.
 <link rel="import" href="/base/guid.html">
 <link rel="import" href="/base/rect.html">
 <link rel="import" href="/base/raf.html">
-<link rel="import" href="/core/trace_model/object_instance.html">
+<link rel="import" href="/model/object_instance.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.e.cc', function() {
-  var ObjectSnapshot = tr.c.trace_model.ObjectSnapshot;
+  var ObjectSnapshot = tr.model.ObjectSnapshot;
 
   // Number of pictures created. Used as an uniqueId because we are immutable.
   var PictureCount = 0;

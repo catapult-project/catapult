@@ -7,20 +7,20 @@ found in the LICENSE file.
 
 <link rel="import" href="/extras/analysis/sampling_summary.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var StackFrame = tr.c.trace_model.StackFrame;
-  var Sample = tr.c.trace_model.Sample;
+  var StackFrame = tr.model.StackFrame;
+  var Sample = tr.model.Sample;
 
   var newSliceEx = tr.c.test_utils.newSliceEx;
 
   function createSelection() {
     var selection = new tr.c.Selection();
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
 
@@ -108,7 +108,7 @@ tr.b.unittest.testSuite(function() {
 
   test('processOnlySamples', function() {
     var selection = new tr.c.Selection();
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
 
@@ -157,11 +157,11 @@ tr.b.unittest.testSuite(function() {
     // Along with the samples, push some slices too.
     // The panel should completely ignore these.
     selection.push(newSliceEx({
-      type: tr.c.trace_model.ThreadSlice,
+      type: tr.model.ThreadSlice,
       title: 'a', start: 1, duration: 2
     }));
     selection.push(newSliceEx({
-      type: tr.c.trace_model.ThreadSlice,
+      type: tr.model.ThreadSlice,
       title: 'f', start: 9, duration: 7
     }));
 

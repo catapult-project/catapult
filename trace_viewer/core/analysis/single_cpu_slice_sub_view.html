@@ -82,7 +82,7 @@ found in the LICENSE file.
     set selection(selection) {
       if (selection.length !== 1)
         throw new Error('Only supports single slices');
-      if (!(selection[0] instanceof tr.c.trace_model.CpuSlice))
+      if (!(selection[0] instanceof tr.model.CpuSlice))
         throw new Error('Only supports thread time slices');
 
       this.currentSelection_ = selection;

@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/base/ui/table.html">
-<link rel="import" href="/core/trace_model/attribute.html">
+<link rel="import" href="/model/attribute.html">
 
 <polymer-element name="tr-c-a-memory-dump-vm-regions-details-pane">
   <template>
@@ -216,14 +216,14 @@ found in the LICENSE file.
         }
         function addBytesCellIfValueDefined(columnName, value) {
           addCellIfValueDefined(columnName,
-              tr.c.trace_model.ScalarAttribute, 'bytes', value);
+              tr.model.ScalarAttribute, 'bytes', value);
         }
         addCellIfValueDefined('Start address',
-            tr.c.trace_model.StringAttribute, '',
+            tr.model.StringAttribute, '',
             hexString(vmRegion.startAddress, is64BitAddress));
         addBytesCellIfValueDefined('Virtual size', vmRegion.sizeInBytes);
         addCellIfValueDefined('Protection flags',
-            tr.c.trace_model.StringAttribute, '',
+            tr.model.StringAttribute, '',
             vmRegion.protectionFlagsToString);
         addBytesCellIfValueDefined('PSS',
             vmRegion.byteStats.proportionalResident);
@@ -298,7 +298,7 @@ found in the LICENSE file.
           return cell.attr;
         }, this);
         row.cells[name] = new tr.c.analysis.MemoryCell(
-            tr.c.trace_model.Attribute.aggregate(childAttributes));
+            tr.model.Attribute.aggregate(childAttributes));
       });
     }
 

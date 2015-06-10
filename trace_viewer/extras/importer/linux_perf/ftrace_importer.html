@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/base/ui/color_scheme.html">
 <link rel="import" href="/extras/importer/linux_perf/bus_parser.html">
 <link rel="import" href="/extras/importer/linux_perf/clock_parser.html">
@@ -27,13 +26,12 @@ found in the LICENSE file.
 <link rel="import" href="/extras/importer/linux_perf/kfunc_parser.html">
 <link rel="import" href="/core/importer/importer.html">
 <link rel="import" href="/core/importer/simple_line_reader.html">
-
+<link rel="import" href="/model/model.html">
 
 <script>
 /**
  * @fileoverview Imports text files in the Linux event trace format into the
- * Tracemodel. This format is output both by sched_trace and by Linux's perf
- * tool.
+ * Model. This format is output both by sched_trace and by Linux's perf tool.
  *
  * This importer assumes the events arrive as a string. The unit tests provide
  * examples of the trace format.
@@ -48,7 +46,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.e.importer.linux_perf', function() {
   var Importer = tr.c.importer.Importer;
-  var ClockSyncRecord = tr.c.ClockSyncRecord;
+  var ClockSyncRecord = tr.ClockSyncRecord;
 
   /**
    * Imports linux perf events into a specified model.
@@ -404,7 +402,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * on a thread means that it is not of interest to the user.
      */
     buildPerThreadCpuSlicesFromCpuState: function() {
-      var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
+      var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
 
       // Push the cpu slices to the threads that they run on.
       for (var cpuNumber in this.model_.kernel.cpus) {
@@ -462,12 +460,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             var wakeup = wakeups.shift();
             var wakeupDuration = slice.start - wakeup.ts;
             var args = {'wakeup from tid': wakeup.fromTid};
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.RUNNABLE, '',
                 wakeup.ts, args, wakeupDuration));
           }
 
-          var runningSlice = new tr.c.trace_model.ThreadTimeSlice(
+          var runningSlice = new tr.model.ThreadTimeSlice(
               thread, SCHEDULING_STATE.RUNNING, '',
               slice.start, {}, slice.duration);
           runningSlice.cpuOnWhichThreadWasRunning = slice.cpu;
@@ -492,13 +490,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             if (wakeup !== undefined) {
               midDuration = wakeup.ts - prevSlice.end;
             }
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread,
                 state, '', prevSlice.end, {}, midDuration));
             if (wakeup !== undefined) {
               var wakeupDuration = nextSlice.start - wakeup.ts;
               var args = {'wakeup from tid': wakeup.fromTid};
-              slices.push(new tr.c.trace_model.ThreadTimeSlice(
+              slices.push(new tr.model.ThreadTimeSlice(
                   thread, SCHEDULING_STATE.RUNNABLE, '',
                   wakeup.ts, args, wakeupDuration));
               wakeup = undefined;
@@ -509,37 +507,37 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             pushSleep(SCHEDULING_STATE.SLEEPING);
           } else if (prevSlice.args.stateWhenDescheduled == 'R' ||
                      prevSlice.args.stateWhenDescheduled == 'R+') {
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.RUNNABLE, '',
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D') {
             pushSleep(SCHEDULING_STATE.UNINTR_SLEEP);
           } else if (prevSlice.args.stateWhenDescheduled == 'T') {
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.STOPPED, '',
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 't') {
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.DEBUG, '',
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'Z') {
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.ZOMBIE, '', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'X') {
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.EXIT_DEAD, '',
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'x') {
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.TASK_DEAD, '',
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'K') {
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.WAKE_KILL, '',
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'W') {
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.WAKING, '',
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D|K') {
@@ -547,7 +545,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
             pushSleep(SCHEDULING_STATE.UNINTR_SLEEP_WAKING);
           } else {
-            slices.push(new tr.c.trace_model.ThreadTimeSlice(
+            slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.UNKNOWN, '',
                 prevSlice.end, {}, midDuration));
             this.model_.importWarning({
@@ -557,7 +555,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             });
           }
 
-          var runningSlice = new tr.c.trace_model.ThreadTimeSlice(
+          var runningSlice = new tr.model.ThreadTimeSlice(
               thread, SCHEDULING_STATE.RUNNING, '',
               nextSlice.start, {}, nextSlice.duration);
           runningSlice.cpuOnWhichThreadWasRunning = prevSlice.cpu;

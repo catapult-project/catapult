@@ -213,7 +213,7 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.test_utils.newModel(function(model) {
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
-      t1.sliceGroup.pushSlice(new tr.c.trace_model.ThreadSlice(
+      t1.sliceGroup.pushSlice(new tr.model.ThreadSlice(
           '', 'a', 0, 1, {}, 3));
       model.t1 = t1;
     });

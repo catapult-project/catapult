@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.c.tracks', function() {
-  var Cpu = tr.c.trace_model.Cpu;
+  var Cpu = tr.model.Cpu;
   var CpuTrack = tr.c.tracks.cpu_track;
   var ProcessTrackBase = tr.c.tracks.ProcessTrackBase;
   var SpacingTrack = tr.c.tracks.SpacingTrack;
@@ -54,7 +54,7 @@ tr.exportTo('tr.c.tracks', function() {
 
     willAppendTracks_: function() {
       var cpus = tr.b.dictionaryValues(this.kernel.cpus);
-      cpus.sort(tr.c.trace_model.Cpu.compare);
+      cpus.sort(tr.model.Cpu.compare);
 
       var didAppendAtLeastOneTrack = false;
       for (var i = 0; i < cpus.length; ++i) {

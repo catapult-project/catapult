@@ -21,7 +21,7 @@ found in the LICENSE file.
     set selection(selection) {
       if (selection.length !== 1)
         throw new Error('Only supports a single global memory dump');
-      if (!(selection[0] instanceof tr.c.trace_model.GlobalMemoryDump))
+      if (!(selection[0] instanceof tr.model.GlobalMemoryDump))
         throw new Error('Only supports global memory dumps');
       this.currentSelection_ = selection;
       this.$.memory_dump_view.processMemoryDumps = tr.b.dictionaryValues(

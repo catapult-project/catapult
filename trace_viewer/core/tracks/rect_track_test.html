@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/trace_model/slice.html">
+<link rel="import" href="/model/slice.html">
 <link rel="import" href="/core/timeline_track_view.html">
 <link rel="import" href="/core/draw_helpers.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   var Selection = tr.c.Selection;
   var RectTrack = tr.c.tracks.RectTrack;
   var Rect = tr.c.tracks.Rect;
-  var Slice = tr.c.trace_model.Slice;
+  var Slice = tr.model.Slice;
   var Viewport = tr.c.TimelineViewport;
 
   test('instantiate_withRects', function() {

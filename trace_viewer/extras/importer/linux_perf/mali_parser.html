@@ -305,7 +305,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var counter = this.model_.kernel.
           getOrCreateCounter('DVFS', counterName);
       if (counter.numSeries === 0) {
-        counter.addSeries(new tr.c.trace_model.CounterSeries(seriesName,
+        counter.addSeries(new tr.model.CounterSeries(seriesName,
             tr.b.ui.getColorIdForGeneralPurposeString(counter.name)));
       }
       counter.series.forEach(function(series) {
@@ -349,7 +349,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var counter = this.model_.kernel.
           getOrCreateCounter(cat, counterName);
       if (counter.numSeries === 0) {
-        counter.addSeries(new tr.c.trace_model.CounterSeries(seriesName,
+        counter.addSeries(new tr.model.CounterSeries(seriesName,
             tr.b.ui.getColorIdForGeneralPurposeString(counter.name)));
       }
       counter.series.forEach(function(series) {

@@ -12,7 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
 <link rel="import" href="/base/units/util.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <polymer-element name="tr-c-a-single-thread-time-slice-sub-view"
     extends="tr-c-a-sub-view">
@@ -94,7 +94,7 @@ found in the LICENSE file.
     set selection(selection) {
       if (selection.length !== 1)
         throw new Error('Only supports single slices');
-      if (!(selection[0] instanceof tr.c.trace_model.ThreadTimeSlice))
+      if (!(selection[0] instanceof tr.model.ThreadTimeSlice))
         throw new Error('Only supports thread time slices');
 
       this.currentSelection_ = selection;

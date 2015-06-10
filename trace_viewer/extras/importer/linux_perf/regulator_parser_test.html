@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
       'kworker/0:1-30321 [000] ...1 144568.654785: ' +
         'regulator_disable_complete: name=8941_smbb_boost'
     ];
-    var m = new tr.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.Model(lines.join('\n'), false);
     console.log(m.importWarnings);
     assert.isFalse(m.hasImportWarnings);
 

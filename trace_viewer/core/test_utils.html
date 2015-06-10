@@ -5,12 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/trace_model/counter.html">
-<link rel="import" href="/core/trace_model/slice.html">
-<link rel="import" href="/core/trace_model/slice_group.html">
-<link rel="import" href="/core/trace_model/stack_frame.html">
-<link rel="import" href="/core/trace_model/thread_time_slice.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/counter.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/slice.html">
+<link rel="import" href="/model/slice_group.html">
+<link rel="import" href="/model/stack_frame.html">
+<link rel="import" href="/model/thread_time_slice.html">
 
 <script>
 'use strict';
@@ -25,7 +25,7 @@ tr.exportTo('tr.c.test_utils', function() {
 
   function newAsyncSliceNamed(name, start, duration, startThread, endThread) {
     var asyncSliceConstructor =
-        tr.c.trace_model.AsyncSlice.getConstructor('', name);
+        tr.model.AsyncSlice.getConstructor('', name);
 
     var s = new asyncSliceConstructor('', name, 0, start);
     s.duration = duration;
@@ -72,7 +72,7 @@ tr.exportTo('tr.c.test_utils', function() {
       isTopLevel = false;
 
     var asyncSliceConstructor =
-        tr.c.trace_model.AsyncSlice.getConstructor(cat, title);
+        tr.model.AsyncSlice.getConstructor(cat, title);
 
     var slice = new asyncSliceConstructor(
         cat,
@@ -105,17 +105,17 @@ tr.exportTo('tr.c.test_utils', function() {
   }
 
   function newCounterNamed(parent, name) {
-    var s = new tr.c.trace_model.Counter(parent, name, null, name);
+    var s = new tr.model.Counter(parent, name, null, name);
     return s;
   }
 
   function newCounterCategory(parent, category, name) {
-    var s = new tr.c.trace_model.Counter(parent, name, category, name);
+    var s = new tr.model.Counter(parent, name, category, name);
     return s;
   }
 
   function newCounterSeries() {
-    var s = new tr.c.trace_model.CounterSeries('a', 0);
+    var s = new tr.model.CounterSeries('a', 0);
     return s;
   }
 
@@ -144,7 +144,7 @@ tr.exportTo('tr.c.test_utils', function() {
     else
       id = tr.b.GUID.allocate();
 
-    var event = new tr.c.trace_model.FlowEvent(
+    var event = new tr.model.FlowEvent(
         options.cat ? options.cat : 'cat',
         id,
         title,
@@ -175,12 +175,12 @@ tr.exportTo('tr.c.test_utils', function() {
   }
 
   function newSliceNamed(name, start, duration) {
-    var s = new tr.c.trace_model.Slice('', name, 0, start, {}, duration);
+    var s = new tr.model.Slice('', name, 0, start, {}, duration);
     return s;
   }
 
   function newThreadSlice(thread, state, start, duration, opt_cpu) {
-    var s = new tr.c.trace_model.ThreadTimeSlice(
+    var s = new tr.model.ThreadTimeSlice(
         thread, state, 'cat', start, {}, duration);
     if (opt_cpu)
       s.cpuOnWhichThreadWasRunning = opt_cpu;
@@ -194,7 +194,7 @@ tr.exportTo('tr.c.test_utils', function() {
     else
       model = undefined;
     var sf = newStackTrace(model, category, frameNames);
-    var s = new tr.c.trace_model.Sample(undefined, thread,
+    var s = new tr.model.Sample(undefined, thread,
                                         sampleName, start,
                                         sf,
                                         1);
@@ -202,7 +202,7 @@ tr.exportTo('tr.c.test_utils', function() {
   }
 
   function newSliceCategory(category, name, start, duration) {
-    var s = new tr.c.trace_model.Slice(
+    var s = new tr.model.Slice(
         category, name, 0, start, {}, duration);
     return s;
   }
@@ -242,7 +242,7 @@ tr.exportTo('tr.c.test_utils', function() {
     if (options.type)
       type = options.type;
     else
-      type = tr.c.trace_model.Slice;
+      type = tr.model.Slice;
 
     var slice = new type(
         options.cat ? options.cat : 'cat',
@@ -260,7 +260,7 @@ tr.exportTo('tr.c.test_utils', function() {
   function newStackTrace(model, category, titles) {
     var frame = undefined;
     for (var i = 0; i < titles.length; i++) {
-      frame = new tr.c.trace_model.StackFrame(frame, tr.b.GUID.allocate(),
+      frame = new tr.model.StackFrame(frame, tr.b.GUID.allocate(),
                                                  category, titles[i], 7);
       if (model)
         model.addStackFrame(frame);
@@ -269,7 +269,7 @@ tr.exportTo('tr.c.test_utils', function() {
   }
 
   function findSliceNamed(slices, name) {
-    if (slices instanceof tr.c.trace_model.SliceGroup)
+    if (slices instanceof tr.model.SliceGroup)
       slices = slices.slices;
     for (var i = 0; i < slices.length; i++)
       if (slices[i].title == name)
@@ -278,20 +278,20 @@ tr.exportTo('tr.c.test_utils', function() {
   }
 
   function newModel(customizeModelCallback) {
-    var io = new tr.c.ImportOptions();
+    var io = new tr.ImportOptions();
     io.customizeModelCallback = customizeModelCallback;
     io.shiftWorldToZero = false;
     io.pruneEmptyContainers = false;
-    return new tr.c.TraceModel([], io);
+    return new tr.Model([], io);
   }
 
   function newModelWithAuditor(customizeModelCallback, auditor) {
-    var io = new tr.c.ImportOptions();
+    var io = new tr.ImportOptions();
     io.customizeModelCallback = customizeModelCallback;
     io.shiftWorldToZero = false;
     io.pruneEmptyContainers = false;
     io.auditorConstructors = [auditor];
-    return new tr.c.TraceModel([], io);
+    return new tr.Model([], io);
   }
 
   return {

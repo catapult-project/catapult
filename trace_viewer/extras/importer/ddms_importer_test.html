@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('parseThreads', function() {
-    var m = new tr.c.TraceModel(TEST_DATA, false);
+    var m = new tr.Model(TEST_DATA, false);
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('parseMethods', function() {
-    var m = new tr.c.TraceModel(TEST_DATA, false);
+    var m = new tr.Model(TEST_DATA, false);
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.findAllThreadsNamed('Binder_1');

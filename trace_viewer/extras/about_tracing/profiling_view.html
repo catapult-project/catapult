@@ -346,7 +346,7 @@ tr.exportTo('tr.e.about_tracing', function() {
       this.uploadButton_.disabled = false;
       this.timelineView_.viewTitle = filename;
 
-      var m = new tr.c.TraceModel();
+      var m = new tr.Model();
       var p = m.importTracesWithProgressDialog([data], true);
       p.then(
           function() {

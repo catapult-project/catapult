@@ -145,14 +145,14 @@ found in the LICENSE file.
         }
       }
 
-      if (object instanceof tr.c.trace_model.ObjectSnapshot) {
+      if (object instanceof tr.model.ObjectSnapshot) {
         var link = document.createElement('tr-c-a-analysis-link');
         link.selection = new tr.c.Selection(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }
 
-      if (object instanceof tr.c.trace_model.ObjectInstance) {
+      if (object instanceof tr.model.ObjectInstance) {
         var link = document.createElement('tr-c-a-analysis-link');
         link.selection = new tr.c.Selection(object);
         this.appendElementWithLabel_(label, indent, link, suffix);

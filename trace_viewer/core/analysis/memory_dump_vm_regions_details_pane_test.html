@@ -9,14 +9,14 @@ found in the LICENSE file.
 <link rel="import"
     href="/core/analysis/memory_dump_vm_regions_details_pane.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/trace_model/process_memory_dump.html">
+<link rel="import" href="/model/process_memory_dump.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var Selection = tr.c.Selection;
-  var VMRegion = tr.c.trace_model.VMRegion;
+  var VMRegion = tr.model.VMRegion;
 
   function createVMRegions() {
     return [

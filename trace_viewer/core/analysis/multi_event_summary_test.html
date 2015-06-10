@@ -8,13 +8,13 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/multi_event_summary.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.c.TraceModel;
+  var Model = tr.Model;
   var Selection = tr.c.Selection;
   var newSliceEx = tr.c.test_utils.newSliceEx;
 
@@ -60,8 +60,8 @@ tr.b.unittest.testSuite(function() {
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     var tsg = thread.sliceGroup;
 
-    var fe1 = new tr.c.trace_model.FlowEvent('cat', 1234, 'title', 7, 10, {});
-    var fe2 = new tr.c.trace_model.FlowEvent('cat', 1234, 'title', 8, 20, {});
+    var fe1 = new tr.model.FlowEvent('cat', 1234, 'title', 7, 10, {});
+    var fe2 = new tr.model.FlowEvent('cat', 1234, 'title', 8, 20, {});
     model.flowEvents.push(fe1);
     model.flowEvents.push(fe2);
 
@@ -75,10 +75,10 @@ tr.b.unittest.testSuite(function() {
   test('summaryNumAlerts', function() {
     var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
 
-    var ALERT_INFO_1 = new tr.c.trace_model.EventInfo(
+    var ALERT_INFO_1 = new tr.model.EventInfo(
         'Alert 1', 'Critical alert');
 
-    var alert = new tr.c.trace_model.Alert(ALERT_INFO_1, 5, [slice]);
+    var alert = new tr.model.Alert(ALERT_INFO_1, 5, [slice]);
 
     var row = new tr.c.analysis.MultiEventSummary('a', [slice]);
     assert.equal(row.numAlerts, 1);

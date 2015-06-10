@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
           'cycles=6690156 ns=16725375'
 
     ];
-    var m = new tr.c.TraceModel(lines.join('\n'), false);
+    var m = new tr.Model(lines.join('\n'), false);
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();

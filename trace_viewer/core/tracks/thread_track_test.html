@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/timeline_track_view.html">
-<link rel="import" href="/core/trace_model/instant_event.html">
+<link rel="import" href="/model/instant_event.html">
 <link rel="import" href="/core/tracks/thread_track.html">
 <link rel="import" href="/base/ui/dom_helpers.html">
 
@@ -15,13 +15,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var HighlightInstantEvent = tr.c.trace_model.ThreadHighlightInstantEvent;
-  var Process = tr.c.trace_model.Process;
+  var HighlightInstantEvent = tr.model.ThreadHighlightInstantEvent;
+  var Process = tr.model.Process;
   var Selection = tr.c.Selection;
-  var StackFrame = tr.c.trace_model.StackFrame;
-  var Sample = tr.c.trace_model.Sample;
-  var Thread = tr.c.trace_model.Thread;
-  var ThreadSlice = tr.c.trace_model.ThreadSlice;
+  var StackFrame = tr.model.StackFrame;
+  var Sample = tr.model.Sample;
+  var Thread = tr.model.Thread;
+  var ThreadSlice = tr.model.ThreadSlice;
   var ThreadTrack = tr.c.tracks.ThreadTrack;
   var Viewport = tr.c.TimelineViewport;
   var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
 
   test('selectionHitTestingWithThreadTrack', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
     t1.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('filterThreadSlices', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var thread = new Thread(new Process(model, 7), 1);
     thread.sliceGroup.pushSlice(newSliceNamed('a', 0, 0));
     thread.asyncSliceGroup.push(newAsyncSliceNamed('a', 0, 5, t, t));
@@ -84,7 +84,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sampleThreadSlices', function() {
-    var model = new tr.c.TraceModel();
+    var model = new tr.Model();
     var thread;
     var cpu;
     model.importTraces([], false, false, function() {
@@ -125,7 +125,7 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(t0, tr.c.tracks.SampleTrack);
     assert.equal(t0.samples.length, 4);
     t0.samples.forEach(function(s) {
-      assert.instanceOf(s, tr.c.trace_model.Sample);
+      assert.instanceOf(s, tr.model.Sample);
     });
 
     // page_fault

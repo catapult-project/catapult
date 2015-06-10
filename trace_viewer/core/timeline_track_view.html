@@ -19,18 +19,18 @@ found in the LICENSE file.
 <link rel="import" href="/core/timeline_viewport.html">
 <link rel="import" href="/core/timeline_display_transform_animations.html">
 <link rel="import" href="/core/timing_tool.html">
-<link rel="import" href="/core/trace_model/event.html">
-<link rel="import" href="/core/trace_model/x_marker_annotation.html">
 <link rel="import" href="/core/tracks/drawing_container.html">
-<link rel="import" href="/core/tracks/trace_model_track.html">
+<link rel="import" href="/core/tracks/model_track.html">
 <link rel="import" href="/core/tracks/ruler_track.html">
+<link rel="import" href="/model/event.html">
+<link rel="import" href="/model/x_marker_annotation.html">
 
 <script>
 'use strict';
 
 /**
- * @fileoverview Interactive visualizaiton of TraceModel objects
- * based loosely on gantt charts. Each thread in the TraceModel is given a
+ * @fileoverview Interactive visualizaiton of Model objects
+ * based loosely on gantt charts. Each thread in the Model is given a
  * set of Tracks, one per subrow in the thread. The TimelineTrackView class
  * acts as a controller, creating the individual tracks, while Tracks
  * do actual drawing.
@@ -44,7 +44,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.c', function() {
   var Selection = tr.c.Selection;
-  var SelectionState = tr.c.trace_model.SelectionState;
+  var SelectionState = tr.model.SelectionState;
   var Viewport = tr.c.TimelineViewport;
 
   var tempDisplayTransform = new tr.c.TimelineDisplayTransform();
@@ -65,7 +65,7 @@ tr.exportTo('tr.c', function() {
   }
 
   /**
-   * Renders a TraceModel into a div element, making one
+   * Renders a Model into a div element, making one
    * Track for each subrow in each thread of the model, managing
    * overall track layout, and handling user interaction with the
    * viewport.
@@ -98,7 +98,7 @@ tr.exportTo('tr.c', function() {
       this.rulerTrack_ = new tr.c.tracks.RulerTrack(this.viewport_);
       this.rulerTrackContainer_.appendChild(this.rulerTrack_);
 
-      this.upperModelTrack_ = new tr.c.tracks.TraceModelTrack(this.viewport_);
+      this.upperModelTrack_ = new tr.c.tracks.ModelTrack(this.viewport_);
       this.upperModelTrack_.upperMode = true;
       this.rulerTrackContainer_.appendChild(this.upperModelTrack_);
 
@@ -110,7 +110,7 @@ tr.exportTo('tr.c', function() {
 
       this.viewport_.modelTrackContainer = this.modelTrackContainer_;
 
-      this.modelTrack_ = new tr.c.tracks.TraceModelTrack(this.viewport_);
+      this.modelTrack_ = new tr.c.tracks.ModelTrack(this.viewport_);
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
       this.timingTool_ = new tr.c.TimingTool(this.viewport_,
@@ -582,7 +582,7 @@ tr.exportTo('tr.c', function() {
 
         if (this.guideLineAnnotation_ === undefined) {
           this.guideLineAnnotation_ =
-              new tr.c.trace_model.XMarkerAnnotation(loc.xWorld);
+              new tr.model.XMarkerAnnotation(loc.xWorld);
           this.model.addAnnotation(this.guideLineAnnotation_);
         } else {
           this.guideLineAnnotation_.timestamp = loc.xWorld;
@@ -727,7 +727,7 @@ tr.exportTo('tr.c', function() {
       if (this.xNavStringMarker_)
         this.model.removeAnnotation(this.xNavStringMarker_);
       this.xNavStringMarker_ =
-          new tr.c.trace_model.XMarkerAnnotation(worldCenter);
+          new tr.model.XMarkerAnnotation(worldCenter);
       this.model.addAnnotation(this.xNavStringMarker_);
     },
 

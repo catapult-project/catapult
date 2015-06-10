@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/extras/chrome/gpu/gpu.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script src="/extras/chrome/gpu/state_test_data.js"></script>
 
@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var m = new tr.c.TraceModel(g_gpu_state_trace);
+    var m = new tr.Model(g_gpu_state_trace);
     var p = tr.b.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('gpu::State')[0];

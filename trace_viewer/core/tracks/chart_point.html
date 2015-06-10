@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/trace_model/proxy_selectable_item.html">
+<link rel="import" href="/model/proxy_selectable_item.html">
 
 <script>
 'use strict';
@@ -22,7 +22,7 @@ tr.exportTo('tr.c.tracks', function() {
    * @extends {ProxySelectableItem}
    */
   function ChartPoint(modelItem, x, y, opt_yBase) {
-    tr.c.trace_model.ProxySelectableItem.call(this, modelItem);
+    tr.model.ProxySelectableItem.call(this, modelItem);
     this.x = x;
     this.y = y;
 
@@ -33,7 +33,7 @@ tr.exportTo('tr.c.tracks', function() {
   };
 
   ChartPoint.prototype = {
-    __proto__: tr.c.trace_model.ProxySelectableItem.prototype
+    __proto__: tr.model.ProxySelectableItem.prototype
   };
 
   return {

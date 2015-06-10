@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/core/analysis/single_thread_time_slice_sub_view.html">
 <link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ==> next_comm=Android.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
     ];
 
-    return new tr.c.TraceModel(lines.join('\n'), false);
+    return new tr.Model(lines.join('\n'), false);
   }
 
   test('runningSlice', function() {

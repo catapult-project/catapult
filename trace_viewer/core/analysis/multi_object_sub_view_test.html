@@ -8,18 +8,17 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/analysis_view.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TraceModel = tr.c.TraceModel;
   var Selection = tr.c.Selection;
-  var ObjectInstance = tr.c.trace_model.ObjectInstance;
+  var ObjectInstance = tr.model.ObjectInstance;
 
   test('instantiate_analysisWithObjects', function() {
-    var model = new TraceModel();
+    var model = new tr.Model();
     var p1 = model.getOrCreateProcess(1);
     var objects = p1.objects;
     var i10 = objects.idWasCreated(

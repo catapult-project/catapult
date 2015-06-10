@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/base/sorted_array_utils.html">
-<link rel="import" href="/core/trace_model/frame.html">
+<link rel="import" href="/model/frame.html">
 <link rel="import" href="/base/range_utils.html">
 
 <script>
@@ -17,7 +17,7 @@ found in the LICENSE file.
  * such as rendering apps, and frames rendered.
  */
 tr.exportTo('tr.e.audits', function() {
-  var Frame = tr.c.trace_model.Frame;
+  var Frame = tr.model.Frame;
   var Statistics = tr.b.Statistics;
 
   var UI_THREAD_DRAW_NAMES = {

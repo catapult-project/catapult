@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/trace_model/selection_state.html">
 <link rel="import" href="/base/ui/color_scheme.html">
+<link rel="import" href="/model/selection_state.html">
 
 <script>
 'use strict';
@@ -18,7 +18,7 @@ tr.exportTo('tr.c', function() {
   var paletteRaw = tr.b.ui.getRawColorPalette();
   var palette = tr.b.ui.getColorPalette();
 
-  var SelectionState = tr.c.trace_model.SelectionState;
+  var SelectionState = tr.model.SelectionState;
 
   /**
    * Provides methods to get view values for events.

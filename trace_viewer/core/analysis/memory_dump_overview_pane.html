@@ -13,7 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/base/units/size_in_bytes_span.html">
 <link rel="import" href="/base/ui/table.html">
-<link rel="import" href="/core/trace_model/attribute.html">
+<link rel="import" href="/model/attribute.html">
 
 <polymer-element name="tr-c-a-memory-dump-overview-pane">
   <template>
@@ -105,7 +105,7 @@ found in the LICENSE file.
         var totalResident = processMemoryDump.totalResidentBytes;
         if (totalResident !== undefined) {
           var cell = new tr.c.analysis.MemoryCell(
-              new tr.c.trace_model.ScalarAttribute('bytes', totalResident));
+              new tr.model.ScalarAttribute('bytes', totalResident));
           cell.buildDetailsPane = buildVMRegionsPane;
           usedMemorySizes['Total resident'] = cell;
         }
@@ -115,7 +115,7 @@ found in the LICENSE file.
               processMemoryDump.getMostRecentTotalVmRegionStat(byteStatName);
           if (byteStat !== undefined) {
             var cell = new tr.c.analysis.MemoryCell(
-                new tr.c.trace_model.ScalarAttribute('bytes', byteStat));
+                new tr.model.ScalarAttribute('bytes', byteStat));
             cell.buildDetailsPane = buildVMRegionsPane;
             usedMemorySizes[columnTitle] = cell;
           }

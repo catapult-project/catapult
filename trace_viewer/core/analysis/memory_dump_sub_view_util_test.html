@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/trace_model/attribute.html">
+<link rel="import" href="/model/attribute.html">
 
 <script>
 'use strict';
@@ -17,8 +17,8 @@ tr.b.unittest.testSuite(function() {
   var ScalarMemoryColumn = tr.c.analysis.ScalarMemoryColumn;
   var MemoryCell = tr.c.analysis.MemoryCell;
   var fieldGetter = tr.c.analysis.fieldGetter;
-  var StringAttribute = tr.c.trace_model.StringAttribute;
-  var ScalarAttribute = tr.c.trace_model.ScalarAttribute;
+  var StringAttribute = tr.model.StringAttribute;
+  var ScalarAttribute = tr.model.ScalarAttribute;
 
   function checkPercent(string, expectedPercent) {
     assert.equal(Number(string.slice(0, -1)), expectedPercent);

@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     traces.push(atob(text));
   }
 
-  var m = new tr.c.TraceModel();
+  var m = new tr.Model();
   var p = m.importTracesWithProgressDialog(traces, true);
   p.then(
       function() {

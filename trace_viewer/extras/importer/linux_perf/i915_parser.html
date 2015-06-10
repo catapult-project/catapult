@@ -85,7 +85,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     i915FlipCloseSlice: function(ts, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_flip');
       if (kthread.openSlice) {
-        var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+        var slice = new tr.model.Slice('', kthread.openSlice,
             tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             args,
@@ -99,7 +99,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     i915GemObjectSlice: function(ts, eventName, obj, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem');
       kthread.openSlice = eventName + ':' + obj;
-      var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+      var slice = new tr.model.Slice('', kthread.openSlice,
           tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
@@ -109,7 +109,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     i915GemRingSlice: function(ts, eventName, dev, ring, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem_ring');
       kthread.openSlice = eventName + ':' + dev + '.' + ring;
-      var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+      var slice = new tr.model.Slice('', kthread.openSlice,
           tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
@@ -119,7 +119,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     i915RegSlice: function(ts, eventName, reg, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_reg');
       kthread.openSlice = eventName + ':' + reg;
-      var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+      var slice = new tr.model.Slice('', kthread.openSlice,
           tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
@@ -129,7 +129,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     i915FreqChangeSlice: function(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gpu_freq');
       kthread.openSlice = eventName;
-      var slice = new tr.c.trace_model.Slice('', kthread.openSlice,
+      var slice = new tr.model.Slice('', kthread.openSlice,
           tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 

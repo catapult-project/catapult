@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/importer/linux_perf/parser.html">
-<link rel="import" href="/core/trace_model/counter_series.html">
+<link rel="import" href="/model/counter_series.html">
 
 <script>
 'use strict';
@@ -52,7 +52,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     openAsyncSlice: function(thread, category, name, cookie, ts, args) {
       var asyncSliceConstructor =
-         tr.c.trace_model.AsyncSlice.getConstructor(
+         tr.model.AsyncSlice.getConstructor(
             category, name);
       var slice = new asyncSliceConstructor(
           category, name,
@@ -95,7 +95,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       slice.endThread = thread;
       slice.duration = ts - slice.start;
       slice.startThread.asyncSliceGroup.push(slice);
-      slice.subSlices = [new tr.c.trace_model.AsyncSlice(slice.category,
+      slice.subSlices = [new tr.model.AsyncSlice(slice.category,
           slice.title, slice.colorId, slice.start, slice.args, slice.duration)];
       delete this.openAsyncSlices[key];
     },
@@ -171,7 +171,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               .getOrCreateCounter(category, name);
           // Initialize the counter's series fields if needed.
           if (ctr.numSeries === 0) {
-            ctr.addSeries(new tr.c.trace_model.CounterSeries(value,
+            ctr.addSeries(new tr.model.CounterSeries(value,
                 tr.b.ui.getColorIdForGeneralPurposeString(
                     ctr.name + '.' + 'value')));
           }

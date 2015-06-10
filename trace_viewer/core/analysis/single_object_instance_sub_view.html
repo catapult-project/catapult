@@ -69,7 +69,7 @@ found in the LICENSE file.
     set selection(selection) {
       if (selection.length !== 1)
         throw new Error('Only supports single item selections');
-      if (!(selection[0] instanceof tr.c.trace_model.ObjectInstance))
+      if (!(selection[0] instanceof tr.model.ObjectInstance))
         throw new Error('Only supports object instances');
 
       this.$.content.textContent = '';

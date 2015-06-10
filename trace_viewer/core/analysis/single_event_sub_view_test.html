@@ -9,21 +9,21 @@ found in the LICENSE file.
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/analysis/single_event_sub_view.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.c.TraceModel;
-  var Thread = tr.c.trace_model.Thread;
+  var Model = tr.Model;
+  var Thread = tr.model.Thread;
   var Selection = tr.c.Selection;
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
   var newSliceCategory = tr.c.test_utils.newSliceCategory;
 
   function createSelection(customizeThreadCallback) {
     var model = new Model();
-    var importOptions = new tr.c.ImportOptions();
+    var importOptions = new tr.ImportOptions();
     importOptions.customizeModelCallback = function() {
       var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
       customizeThreadCallback(t53, model);
@@ -77,10 +77,10 @@ tr.b.unittest.testSuite(function() {
   test('alerts', function() {
     var slice = newSliceNamed('b', 0, 0.002);
 
-    var ALERT_INFO_1 = new tr.c.trace_model.EventInfo(
+    var ALERT_INFO_1 = new tr.model.EventInfo(
         'Alert 1', 'Critical alert');
 
-    var alert = new tr.c.trace_model.Alert(ALERT_INFO_1, 5, [slice]);
+    var alert = new tr.model.Alert(ALERT_INFO_1, 5, [slice]);
 
     var selection = new tr.c.Selection();
     selection.push(slice);
@@ -243,7 +243,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_withSingleSliceContainingInfo', function() {
     var slice = newSliceNamed('b', 0, 1);
-    slice.info = new tr.c.trace_model.EventInfo(
+    slice.info = new tr.model.EventInfo(
         'Info title', 'Description');
 
     var selection = new tr.c.Selection();

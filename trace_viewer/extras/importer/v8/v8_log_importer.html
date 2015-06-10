@@ -9,8 +9,8 @@ found in the LICENSE file.
 <link rel="import" href="/extras/importer/v8/log_reader.html">
 <link rel="import" href="/extras/importer/v8/codemap.html">
 <link rel="import" href="/core/importer/importer.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
-<link rel="import" href="/core/trace_model/slice.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/slice.html">
 
 <script>
 
@@ -32,7 +32,7 @@ tr.exportTo('tr.e.importer.v8', function() {
     this.v8_timer_thread_ = undefined;
     this.v8_thread_ = undefined;
 
-    this.root_stack_frame_ = new tr.c.trace_model.StackFrame(
+    this.root_stack_frame_ = new tr.model.StackFrame(
         undefined, 'v8-root-stack-frame',
         'v8-root-stack-frame', 'v8-root-stack-frame', 0);
 
@@ -83,7 +83,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       start /= 1000;  // Convert to milliseconds.
       length /= 1000;
       var colorId = tr.b.ui.getColorIdForGeneralPurposeString(name);
-      var slice = new tr.c.trace_model.Slice('v8', name, colorId, start,
+      var slice = new tr.model.Slice('v8', name, colorId, start,
           args, length);
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
     },
@@ -162,7 +162,7 @@ tr.exportTo('tr.e.importer.v8', function() {
           var childFrame = findChildWithEntryID(lastStackFrame, entryID);
           if (childFrame === undefined) {
             var entryName = entry ? entry.name : 'Unknown';
-            lastStackFrame = new tr.c.trace_model.StackFrame(
+            lastStackFrame = new tr.model.StackFrame(
                 lastStackFrame, 'v8sf-' + tr.b.GUID.allocate(),
                 'v8', entryName,
                 tr.b.ui.getColorIdForGeneralPurposeString(entryName));
@@ -177,7 +177,7 @@ tr.exportTo('tr.e.importer.v8', function() {
         var pcEntryID = 'v8pc-' + (pcEntry ? pcEntry.id : 'Unknown');
         if (this.model_.stackFrames[pcEntryID] === undefined) {
           var pcEntryName = pcEntry ? pcEntry.name : 'Unknown';
-          lastStackFrame = new tr.c.trace_model.StackFrame(
+          lastStackFrame = new tr.model.StackFrame(
               undefined, pcEntryID,
               'v8', pcEntryName,
               tr.b.ui.getColorIdForGeneralPurposeString(pcEntryName));
@@ -186,7 +186,7 @@ tr.exportTo('tr.e.importer.v8', function() {
         lastStackFrame = this.model_.stackFrames[pcEntryID];
       }
 
-      var sample = new tr.c.trace_model.Sample(
+      var sample = new tr.model.Sample(
           undefined, this.v8_thread_, 'V8 PC',
           start, lastStackFrame, 1);
       this.model_.samples.push(sample);
@@ -277,7 +277,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       function addSlices(slices, thread) {
         for (var i = 0; i < slices.length; i++) {
           var duration = slices[i].end - slices[i].start;
-          var slice = new tr.c.trace_model.Slice('v8', slices[i].name,
+          var slice = new tr.model.Slice('v8', slices[i].name,
               tr.b.ui.getColorIdForGeneralPurposeString(slices[i].name),
               slices[i].start, {}, duration);
           thread.sliceGroup.pushSlice(slice);

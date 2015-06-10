@@ -39,7 +39,7 @@ tr.exportTo('tr.e.cc', function() {
     var tile0;
     for (var i = 0; i < selection.length; i++) {
       var event = selection[i];
-      if (!(event instanceof tr.c.trace_model.Slice))
+      if (!(event instanceof tr.model.Slice))
         return {ok: false, why: 'Not a slice'};
 
       var tile = tr.e.cc.getTileFromRasterTaskSlice(selection[i]);

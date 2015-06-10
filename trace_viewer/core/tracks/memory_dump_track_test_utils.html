@@ -5,12 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/trace_model/attribute.html">
-<link rel="import" href="/core/trace_model/global_memory_dump.html">
-<link rel="import" href="/core/trace_model/memory_allocator_dump.html">
-<link rel="import" href="/core/trace_model/process_memory_dump.html">
-<link rel="import" href="/core/trace_model/selection_state.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/model/global_memory_dump.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
+<link rel="import" href="/model/process_memory_dump.html">
+<link rel="import" href="/model/selection_state.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
@@ -19,14 +19,13 @@ found in the LICENSE file.
  * @fileoverview Helper functions for memory dump track tests.
  */
 tr.exportTo('tr.c.tracks', function() {
-  var ProcessMemoryDump = tr.c.trace_model.ProcessMemoryDump;
-  var GlobalMemoryDump = tr.c.trace_model.GlobalMemoryDump;
-  var MemoryAllocatorDump = tr.c.trace_model.MemoryAllocatorDump;
-  var VMRegion = tr.c.trace_model.VMRegion;
-  var VMRegionByteStats = tr.c.trace_model.VMRegionByteStats;
-  var TraceModel = tr.c.TraceModel;
-  var ScalarAttribute = tr.c.trace_model.ScalarAttribute;
-  var SelectionState = tr.c.trace_model.SelectionState;
+  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var VMRegion = tr.model.VMRegion;
+  var VMRegionByteStats = tr.model.VMRegionByteStats;
+  var ScalarAttribute = tr.model.ScalarAttribute;
+  var SelectionState = tr.model.SelectionState;
 
   function createVMRegions(pssValues) {
     return pssValues.map(function(pssValue, i) {

@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/trace_model/trace_model.html">
 <link rel="import" href="/extras/full_config.html">
+<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
@@ -59,14 +59,14 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   n110100.forEach(function(val) {
     timedPerfTestWithEvents(TEST_NAMES[0] + '_' + val, function() {
       var events = getEvents(TEST_FILES_PATHS[0]);
-      var m = new tr.c.TraceModel();
+      var m = new tr.Model();
       m.importTraces([events], false, false);
     }, {iterations: val});
   });
 
   timedPerfTestWithEvents(TEST_NAMES[1] + '_1', function() {
     var events = getEvents(TEST_FILES_PATHS[1]);
-    var m = new tr.c.TraceModel();
+    var m = new tr.Model();
     m.importTraces([events], false, false);
   }, {iterations: 1});
 });

@@ -9,9 +9,9 @@ found in the LICENSE file.
 <link rel="import" href="/base/units/time_duration.html">
 <link rel="import" href="/base/units/time_stamp.html">
 <link rel="import" href="/core/auditor.html">
-<link rel="import" href="/core/trace_model/alert.html">
-<link rel="import" href="/core/trace_model/frame.html">
-<link rel="import" href="/core/trace_model/interaction_record.html">
+<link rel="import" href="/model/alert.html">
+<link rel="import" href="/model/frame.html">
+<link rel="import" href="/model/interaction_record.html">
 <link rel="import" href="/extras/android/android_model_helper.html">
 <link rel="import" href="/base/range_utils.html">
 
@@ -22,14 +22,14 @@ found in the LICENSE file.
  * @fileoverview Class for Android-specific Auditing.
  */
 tr.exportTo('tr.e.audits', function() {
-  var SCHEDULING_STATE = tr.c.trace_model.SCHEDULING_STATE;
+  var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
   var Auditor = tr.c.Auditor;
   var AndroidModelHelper = tr.e.audits.AndroidModelHelper;
   var Statistics = tr.b.Statistics;
-  var FRAME_PERF_CLASS = tr.c.trace_model.FRAME_PERF_CLASS;
-  var InteractionRecord = tr.c.trace_model.InteractionRecord;
-  var Alert = tr.c.trace_model.Alert;
-  var EventInfo = tr.c.trace_model.EventInfo;
+  var FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
+  var InteractionRecord = tr.model.InteractionRecord;
+  var Alert = tr.model.Alert;
+  var EventInfo = tr.model.EventInfo;
   var TimeDuration = tr.b.units.TimeDuration;
 
   // TODO: extract from VSYNC, since not all devices have vsync near 60fps
@@ -232,7 +232,7 @@ tr.exportTo('tr.e.audits', function() {
     // TODO(ccraik): make 'inflate' slices associated events.
     var hasInflation = false;
     for (var i = 0; i < events.length; i++) {
-      if (events[i] instanceof tr.c.trace_model.Slice &&
+      if (events[i] instanceof tr.model.Slice &&
           events[i].findDescendentSlice('inflate')) {
         hasInflation = true;
         break;

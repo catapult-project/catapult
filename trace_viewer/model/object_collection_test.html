@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/object_collection.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var TestObjectInstance = function(parent, id, category, name, creationTs) {
+    tr.model.ObjectInstance.call(
+        this, parent, id, category, name, creationTs);
+  };
+
+  TestObjectInstance.prototype = {
+    __proto__: tr.model.ObjectInstance.prototype
+  };
+
+  test('objectInstanceSubtype', function() {
+    // Register that TestObjects are bound to TestObjectInstance.
+    tr.model.ObjectInstance.register(
+        TestObjectInstance,
+        {typeName: 'TestObject'});
+
+    try {
+      var collection = new tr.model.ObjectCollection({ });
+      collection.idWasCreated(
+          '0x1000', 'tr.e.cc', 'Frame', 10);
+      collection.idWasDeleted(
+          '0x1000', 'tr.e.cc', 'Frame', 15);
+      collection.idWasCreated(
+          '0x1000', 'skia', 'TestObject', 20);
+      collection.idWasDeleted(
+          '0x1000', 'skia', 'TestObject', 25);
+
+      var testFrame = collection.getObjectInstanceAt('0x1000', 10);
+      assert.instanceOf(testFrame, tr.model.ObjectInstance);
+      assert.notInstanceOf(testFrame, TestObjectInstance);
+
+      var testObject = collection.getObjectInstanceAt('0x1000', 20);
+      assert.instanceOf(testObject, tr.model.ObjectInstance);
+      assert.instanceOf(testObject, TestObjectInstance);
+    } finally {
+      tr.model.ObjectInstance.unregister(TestObjectInstance);
+    }
+  });
+
+  test('twoSnapshots', function() {
+    var collection = new tr.model.ObjectCollection({});
+    collection.idWasCreated(
+        '0x1000', 'cat', 'Frame', 10);
+    collection.addSnapshot(
+        '0x1000', 'cat', 'Frame', 10, {foo: 1});
+    collection.addSnapshot(
+        '0x1000', 'cat', 'Frame', 20, {foo: 2});
+
+    collection.updateBounds();
+    assert.equal(collection.bounds.min, 10);
+    assert.equal(collection.bounds.max, 20);
+
+    var s0 = collection.getSnapshotAt('0x1000', 1);
+    assert.isUndefined(s0);
+
+    var s1 = collection.getSnapshotAt('0x1000', 10);
+    assert.equal(s1.args.foo, 1);
+
+    var s2 = collection.getSnapshotAt('0x1000', 15);
+    assert.equal(s2.args.foo, 1);
+    assert.equal(s1, s2);
+
+    var s3 = collection.getSnapshotAt('0x1000', 20);
+    assert.equal(s3.args.foo, 2);
+    assert.equal(s1.object, s3.object);
+
+    var s4 = collection.getSnapshotAt('0x1000', 25);
+    assert.equal(s4, s3);
+  });
+
+  test('twoObjectsSharingOneID', function() {
+    var collection = new tr.model.ObjectCollection({});
+    collection.idWasCreated(
+        '0x1000', 'tr.e.cc', 'Frame', 10);
+    collection.idWasDeleted(
+        '0x1000', 'tr.e.cc', 'Frame', 15);
+    collection.idWasCreated(
+        '0x1000', 'skia', 'Picture', 20);
+    collection.idWasDeleted(
+        '0x1000', 'skia', 'Picture', 25);
+
+    var frame = collection.getObjectInstanceAt('0x1000', 10);
+    assert.equal(frame.category, 'tr.e.cc');
+    assert.equal(frame.name, 'Frame');
+
+    var picture = collection.getObjectInstanceAt('0x1000', 20);
+    assert.equal(picture.category, 'skia');
+    assert.equal(picture.name, 'Picture');
+
+    var typeNames = tr.b.dictionaryKeys(collection.getAllInstancesByTypeName());
+    typeNames.sort();
+    assert.deepEqual(
+        ['Frame', 'Picture'],
+        typeNames);
+    assert.deepEqual(
+        [frame],
+        collection.getAllInstancesByTypeName()['Frame']);
+    assert.deepEqual(
+        [picture],
+        collection.getAllInstancesByTypeName()['Picture']);
+  });
+
+  test('createSnapDelete', function() {
+    var collection = new tr.model.ObjectCollection({});
+    collection.idWasCreated(
+        '0x1000', 'cat', 'Frame', 10);
+    collection.addSnapshot(
+        '0x1000', 'cat', 'Frame', 10, {foo: 1});
+    collection.idWasDeleted(
+        '0x1000', 'cat', 'Frame', 15);
+
+    collection.updateBounds();
+    assert.equal(collection.bounds.min, 10);
+    assert.equal(collection.bounds.max, 15);
+
+    var s10 = collection.getSnapshotAt('0x1000', 10);
+    var i10 = s10.objectInstance;
+    assert.equal(i10.creationTs, 10);
+    assert.equal(i10.deletionTs, 15);
+  });
+
+  test('boundsOnUndeletedObject', function() {
+    var collection = new tr.model.ObjectCollection({});
+    collection.idWasCreated(
+        '0x1000', 'cat', 'Frame', 10);
+    collection.addSnapshot(
+        '0x1000', 'cat', 'Frame', 15, {foo: 1});
+
+    collection.updateBounds();
+    assert.equal(10, collection.bounds.min);
+    assert.equal(15, collection.bounds.max);
+  });
+
+  test('snapshotWithCustomBaseTypeThenDelete', function() {
+    var collection = new tr.model.ObjectCollection({});
+    var s10 = collection.addSnapshot(
+        '0x1000', 'cat', 'cc::PictureLayerImpl', 10, {}, 'cc::LayerImpl');
+    collection.idWasDeleted(
+        '0x1000', 'cat', 'cc::LayerImpl', 15);
+    collection.updateBounds();
+    assert.equal(10, collection.bounds.min);
+    assert.equal(15, collection.bounds.max);
+    assert.equal(s10.objectInstance.name, 'cc::PictureLayerImpl');
+    assert.equal(s10.objectInstance.baseTypeName, 'cc::LayerImpl');
+  });
+
+  test('newWithSnapshotThatChangesBaseType', function() {
+    var collection = new tr.model.ObjectCollection({});
+    var i10 = collection.idWasCreated(
+        '0x1000', 'cat', 'cc::LayerImpl', 10);
+    var s15 = collection.addSnapshot(
+        '0x1000', 'cat', 'cc::PictureLayerImpl', 15, {}, 'cc::LayerImpl');
+    collection.updateBounds();
+    assert.equal(10, collection.bounds.min);
+    assert.equal(15, collection.bounds.max);
+    assert.equal(s15.objectInstance, i10);
+    assert.equal(i10.name, 'cc::PictureLayerImpl');
+    assert.equal(i10.baseTypeName, 'cc::LayerImpl');
+  });
+
+  test('deleteThenSnapshotWithCustomBase', function() {
+    var collection = new tr.model.ObjectCollection({});
+    collection.idWasDeleted(
+        '0x1000', 'cat', 'cc::LayerImpl', 10);
+    var s15 = collection.addSnapshot(
+        '0x1000', 'cat', 'cc::PictureLayerImpl', 15, {}, 'cc::LayerImpl');
+    collection.updateBounds();
+    assert.equal(10, collection.bounds.min);
+    assert.equal(15, collection.bounds.max);
+    assert.equal(s15.objectInstance.name, 'cc::PictureLayerImpl');
+  });
+
+  test('autoDelete', function() {
+    var collection = new tr.model.ObjectCollection({});
+    collection.idWasCreated(
+        '0x1000', 'cat', 'Frame', 10);
+    collection.addSnapshot(
+        '0x1000', 'cat', 'Frame', 10, {foo: 1});
+    collection.autoDeleteObjects(15);
+
+    var s10 = collection.getSnapshotAt('0x1000', 10);
+    var i10 = s10.objectInstance;
+    assert.equal(15, i10.deletionTs);
+  });
+});
+</script>
+

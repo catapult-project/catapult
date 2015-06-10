@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/extras/system_stats/system_stats.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/trace_model/selection_state.html">
+<link rel="import" href="/model/selection_state.html">
 <link rel="import" href="/core/timeline_viewport.html">
 <link rel="import" href="/core/tracks/drawing_container.html">
 
@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   var Viewport = tr.c.TimelineViewport;
 
   var createObjects = function() {
-    var objectInstance = new tr.c.trace_model.ObjectInstance({});
+    var objectInstance = new tr.model.ObjectInstance({});
     var snapshots = [];
 
     var stats1 = new Object();
