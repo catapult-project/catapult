@@ -5,42 +5,45 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/base.html">
-<link rel="import" href="/base/statistics.html">
-<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/extras/rail/rail_interaction_record.html">
+
 <script>
 'use strict';
 
 tr.exportTo('tr.e.audits', function() {
-
-  function RAILScore() {
+  function RAILScore(opt_irs) {
+    this.interactionRecords_ = [];
+    if (opt_irs)
+      this.interactionRecords_.push.apply(this.interactionRecords_, opt_irs);
   };
 
-  RAILScore.compute = function(rirs) {
+  RAILScore.prototype = {
+    get interactionRecords() {
+      return this.interactionRecords_;
+    },
+
+    get overallScore() {
+      if (!this.interactionRecords.length)
+        return undefined;
+      var overall = 0;
+      this.interactionRecords.forEach(function(ir) {
+        overall += Math.pow(ir.railScore, 2) / this.interactionRecords.length;
+        // TODO(benjhayden) Implement a better algorithm as discussed in the
+        // following document.
+        // https://docs.google.com/document/d/1d6cywyfR58uYBGJvq5eBebwKcVVvaaHxU1dJEj3LX3E
+      }.bind(this));
+      return overall;
+    }
+  };
+
+  RAILScore.fromModel = function(model) {
+    var rirs = model.interaction_records.filter(function(ir) {
+      return ir instanceof tr.e.audits.RAILInteractionRecord;
+    });
     if (rirs.length === 0)
-      throw new Error('Impossible');
-
-    var railScoresByTypeName = {};
-    rirs.forEach(function(ir) {
-      if (railScoresByTypeName[ir.railTypeName] === undefined)
-        railScoresByTypeName[ir.railTypeName] = [];
-      railScoresByTypeName[ir.railTypeName].push(ir);
-    });
-
-    var result = {};
-
-    var overallRailScores = [];
-    tr.b.iterItems(railScoresByTypeName, function(railTypeName, irs) {
-      var minRailScoreForType = tr.b.Statistics.sum(irs, function(ir) {
-        return ir.railScore;
-      });
-      result['sum(' + railTypeName + ')'] = minRailScoreForType;
-      overallRailScores.push(minRailScoreForType);
-    });
-
-    result.score = tr.b.Statistics.sum(overallRailScores);
-    return result;
-  }
+      return undefined;
+    return new RAILScore(rirs);
+  };
 
   return {
     RAILScore: RAILScore
