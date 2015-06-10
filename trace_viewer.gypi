@@ -361,6 +361,7 @@
       'trace_viewer/model/counter_series.html',
       'trace_viewer/model/cpu.html',
       'trace_viewer/model/cpu_slice.html',
+      'trace_viewer/model/device.html',
       'trace_viewer/model/event.html',
       'trace_viewer/model/event_container.html',
       'trace_viewer/model/event_info.html',

@@ -14,6 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/auditor.html">
 <link rel="import" href="/importer/empty_importer.html">
 <link rel="import" href="/importer/importer.html">
+<link rel="import" href="/model/device.html">
 <link rel="import" href="/model/kernel.html">
 <link rel="import" href="/model/process.html">
 <link rel="import" href="/model/sample.html">
@@ -48,6 +49,7 @@ found in the LICENSE file.
 tr.exportTo('tr', function() {
   var Importer = tr.importer.Importer;
   var Process = tr.model.Process;
+  var Device = tr.model.Device;
   var Kernel = tr.model.Kernel;
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
   var GlobalInstantEvent = tr.model.GlobalInstantEvent;
@@ -111,6 +113,7 @@ tr.exportTo('tr', function() {
 
     this.faviconHue = 'blue'; // Should be a key from favicons.html
 
+    this.device = new Device(this);
     this.kernel = new Kernel(this);
     this.processes = {};
     this.metadata = [];
@@ -168,6 +171,7 @@ tr.exportTo('tr', function() {
     },
 
     iterateAllChildEventContainers: function(callback, opt_this) {
+      callback.call(opt_this, this.device);
       callback.call(opt_this, this.kernel);
       for (var pid in this.processes)
         callback.call(opt_this, this.processes[pid]);
@@ -263,6 +267,7 @@ tr.exportTo('tr', function() {
      */
     updateCategories_: function() {
       var categoriesDict = {};
+      this.device.addCategoriesToDict(categoriesDict);
       this.kernel.addCategoriesToDict(categoriesDict);
       for (var pid in this.processes)
         this.processes[pid].addCategoriesToDict(categoriesDict);
@@ -302,6 +307,8 @@ tr.exportTo('tr', function() {
      */
     getAllCounters: function() {
       var counters = [];
+      counters.push.apply(
+          counters, tr.b.dictionaryValues(this.device.counters));
       counters.push.apply(
           counters, tr.b.dictionaryValues(this.kernel.counters));
       for (var pid in this.processes) {
