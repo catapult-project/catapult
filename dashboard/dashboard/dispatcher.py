@@ -6,7 +6,7 @@ from dashboard import ip_whitelist
 from dashboard import main
 
 _ROUTING_TABLE = [
-     ('/ip_whitelist', main.IpWhitelistHandler),
+     ('/ip_whitelist', ip_whitelist.IpWhitelistHandler),
      ('/', main.MainHandler),
 ]
 
