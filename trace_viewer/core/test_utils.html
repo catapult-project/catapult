@@ -282,6 +282,7 @@ tr.exportTo('tr.c.test_utils', function() {
     io.customizeModelCallback = customizeModelCallback;
     io.shiftWorldToZero = false;
     io.pruneEmptyContainers = false;
+    io.auditorConstructors = [];
     return new tr.Model([], io);
   }
 
