@@ -3,9 +3,10 @@
 # found in the LICENSE file.
 import json
 
-from telemetry import perf_tests_helper
+from telemetry.util import perf_tests_helper
 from telemetry import value as value_module
 from telemetry.value import histogram_util
+
 
 class HistogramValueBucket(object):
   def __init__(self, low, high, count=0):

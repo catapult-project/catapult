@@ -1,13 +1,7 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-from __future__ import absolute_import
-
-from telemetry.core import util
-
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'util', 'lib',
-                        'common')
-import perf_tests_results_helper  # pylint: disable=F0401
+from telemetry.util import perf_tests_results_helper
 
 
 FlattenList = \

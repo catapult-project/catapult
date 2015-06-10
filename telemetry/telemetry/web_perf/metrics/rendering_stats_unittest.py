@@ -5,10 +5,10 @@
 import random
 import unittest
 
-from telemetry import perf_tests_helper
 from telemetry.timeline import async_slice
 from telemetry.timeline import bounds
 from telemetry.timeline import model
+from telemetry.util import perf_tests_helper
 from telemetry.util import statistics
 from telemetry.web_perf.metrics import rendering_stats
 

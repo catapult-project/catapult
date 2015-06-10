@@ -17,8 +17,6 @@
   ],
   "file_deps": [
     "build/util/lastchange.py",
-    "build/util/lib/common/perf_result_data_type.py",
-    "build/util/lib/common/perf_tests_results_helper.py",
     "third_party/chromite/ssh_keys/testing_rsa",
     "third_party/chromite/ssh_keys/testing_rsa.pub",
     "tools/perf/unit-info.json"
