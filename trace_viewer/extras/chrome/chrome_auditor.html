@@ -63,8 +63,8 @@ tr.exportTo('tr.e.audits', function() {
       if (window.profilingView)
         return;
 
-      if (tr.e.audits.RAILIRFinder.supportsModelHelper(this.modelHelper)) {
-        var rirf = new tr.e.audits.RAILIRFinder(this.model, this.modelHelper);
+      if (tr.e.rail.RAILIRFinder.supportsModelHelper(this.modelHelper)) {
+        var rirf = new tr.e.rail.RAILIRFinder(this.model, this.modelHelper);
         rirf.findAllInteractionRecords().forEach(function(ir) {
           this.model.addInteractionRecord(ir);
         }.bind(this));

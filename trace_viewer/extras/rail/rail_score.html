@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.e.audits', function() {
+tr.exportTo('tr.e.rail', function() {
   function RAILScore(opt_irs) {
     this.interactionRecords_ = [];
     if (opt_irs)
@@ -38,7 +38,7 @@ tr.exportTo('tr.e.audits', function() {
 
   RAILScore.fromModel = function(model) {
     var rirs = model.interaction_records.filter(function(ir) {
-      return ir instanceof tr.e.audits.RAILInteractionRecord;
+      return ir instanceof tr.e.rail.RAILInteractionRecord;
     });
     if (rirs.length === 0)
       return undefined;

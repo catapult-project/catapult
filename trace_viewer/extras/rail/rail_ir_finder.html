@@ -20,7 +20,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Base class for trace data Auditors.
  */
-tr.exportTo('tr.e.audits', function() {
+tr.exportTo('tr.e.rail', function() {
   function RAILIRFinder(model, modelHelper) {
     this.model = model;
     this.modelHelper = modelHelper;
@@ -215,7 +215,7 @@ tr.exportTo('tr.e.audits', function() {
       commits.forEach(function(commitLoad, commitLoadIndex) {
         if (!commitLoad.firstFrame)
           return;
-        lirs.push(new tr.e.audits.LoadInteractionRecord(
+        lirs.push(new tr.e.rail.LoadInteractionRecord(
             commitLoad.start, commitLoad.firstFrame.end - commitLoad.start));
       });
       return lirs;
@@ -223,14 +223,14 @@ tr.exportTo('tr.e.audits', function() {
 
     findResponseInteractionRecords: function() {
       return this.getAllGestures().map(function(gesture) {
-        return new tr.e.audits.ResponseInteractionRecord(
+        return new tr.e.rail.ResponseInteractionRecord(
             gesture.expectedStart, gesture.expectedEnd - gesture.expectedStart);
       });
     },
 
     findAnimationInteractionRecords: function() {
       return this.getAllExpected60Ranges().map(function(fling) {
-        return new tr.e.audits.AnimationInteractionRecord(
+        return new tr.e.rail.AnimationInteractionRecord(
             fling.expectedStart, fling.expectedEnd - fling.expectedStart);
       });
     },
@@ -239,7 +239,7 @@ tr.exportTo('tr.e.audits', function() {
       var emptyRanges = tr.e.audits.findEmptyRangesBetweenExplicitRanges(
           otherIRs, this.model.bounds);
       return emptyRanges.map(function(range) {
-        return new tr.e.audits.IdleInteractionRecord(
+        return new tr.e.rail.IdleInteractionRecord(
             range.min, range.max - range.min);
       });
     },

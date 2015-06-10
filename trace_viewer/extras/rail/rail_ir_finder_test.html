@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
   function newRIRF(customizeModelCallback) {
     var model = tr.e.audits.newChromeModel(customizeModelCallback);
     var modelHelper = new tr.e.audits.ChromeModelHelper(model);
-    return new tr.e.audits.RAILIRFinder(model, modelHelper);
+    return new tr.e.rail.RAILIRFinder(model, modelHelper);
   }
 
   test('twoScrollsNoFling', function() {

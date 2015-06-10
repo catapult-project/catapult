@@ -23,14 +23,14 @@ tr.exportTo('tr.e.deep_reports', function() {
   RAILDeepReporter.addResultsForModel = function(results, page, model) {
     var rirs = [];
     model.interaction_records.forEach(function(ir) {
-      if (ir instanceof tr.e.audits.RAILInteractionRecord)
+      if (ir instanceof tr.e.rail.RAILInteractionRecord)
         rirs.push(ir);
     });
 
     if (rirs.length === 0)
       return;
 
-    var railScore = tr.e.audits.RAILScore.compute(rirs);
+    var railScore = tr.e.rail.RAILScore.compute(rirs);
 
     results.addValue(
         new tr.e.deep_reports.ScalarValue(

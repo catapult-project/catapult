@@ -13,13 +13,13 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('zeroInteractionRecords', function() {
-    var score = new tr.e.audits.RAILScore();
+    var score = new tr.e.rail.RAILScore();
     assert.equal(0, score.interactionRecords.length);
     assert.isUndefined(score.overallScore);
   });
 
   test('overallScore', function() {
-    var score = new tr.e.audits.RAILScore([
+    var score = new tr.e.rail.RAILScore([
       {railScore: 0.9},
       {railScore: 1.0},
       {railScore: 0.89},
@@ -34,17 +34,17 @@ tr.b.unittest.testSuite(function() {
 
   test('fromModel', function() {
     var model = tr.e.audits.newChromeModel(function(model) {
-      model.addInteractionRecord(new tr.e.audits.RAILInteractionRecord(
+      model.addInteractionRecord(new tr.e.rail.RAILInteractionRecord(
           'a', 'b', 0, 1));
     });
-    var score = tr.e.audits.RAILScore.fromModel(model);
+    var score = tr.e.rail.RAILScore.fromModel(model);
     assert.equal(1, score.interactionRecords.length);
   });
 
   test('fromEmptyModel', function() {
     var model = tr.e.audits.newChromeModel(function(model) {
     });
-    assert.isUndefined(tr.e.audits.RAILScore.fromModel(model));
+    assert.isUndefined(tr.e.rail.RAILScore.fromModel(model));
   });
 });
 </script>
