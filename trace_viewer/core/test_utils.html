@@ -19,23 +19,48 @@ found in the LICENSE file.
  * @fileoverview Helper functions for use in tracing tests.
  */
 tr.exportTo('tr.c.test_utils', function() {
-  function getStartAndDurationFromDict(options) {
-    if (options.start === undefined)
-      throw new Error('Too little info');
-    var duration;
-    if (options.duration !== undefined) {
-      if (options.end !== undefined) throw new Error('TMI');
-      duration = options.duration;
-    } else if (options.end !== undefined) {
-      if (options.duration !== undefined) throw new Error('TMI');
-      duration = options.end - options.start;
-    } else {
-      throw new Error('Too little info');
+  function _getStartAndCpuDurationFromDict(
+      options, required, startFieldName, durationFieldName, endFieldName) {
+
+    if (options[startFieldName] === undefined) {
+      if (required)
+        throw new Error('Too little information.');
+      else
+        return {start: undefined, duration: undefined};
     }
+    if (options[durationFieldName] !== undefined &&
+        options[endFieldName] !== undefined) {
+      throw new Error('Too much information.');
+    }
+    if (options[durationFieldName] === undefined &&
+        options[endFieldName] === undefined) {
+      if (required)
+        throw new Error('Too little information.');
+      else
+        return {start: undefined, duration: undefined};
+    }
+
+    var duration;
+    if (options[durationFieldName] !== undefined) {
+      duration = options[durationFieldName];
+    } else {
+      duration = options[endFieldName] - options[startFieldName];
+    }
+
     return {
-      start: options.start,
-      duration: options.duration
+      start: options[startFieldName],
+      duration: duration
     };
+  }
+
+  function getStartAndDurationFromDict(options) {
+    return _getStartAndCpuDurationFromDict(
+        options, true, 'start', 'duration', 'end');
+  }
+
+  function maybeGetCpuStartAndCpuDurationFromDict(options) {
+    return _getStartAndCpuDurationFromDict(
+        options, false, 'cpuStart', 'cpuDuration', 'cpuEnd');
   }
 
   function newAsyncSlice(start, duration, startThread, endThread) {
@@ -54,8 +79,7 @@ tr.exportTo('tr.c.test_utils', function() {
   }
 
   function newAsyncSliceEx(options) {
-    if (options.start === undefined)
-      throw new Error('Too little info');
+    var sd = getStartAndDurationFromDict(options);
 
     var cat = options.cat ? options.cat : 'cat';
     var title = options.title ? options.title : 'a';
@@ -73,17 +97,6 @@ tr.exportTo('tr.c.test_utils', function() {
     }
 
 
-    var duration;
-    if (options.duration !== undefined) {
-      if (options.end !== undefined) throw new Error('TMI');
-      duration = options.duration;
-    } else if (options.end !== undefined) {
-      if (options.duration !== undefined) throw new Error('TMI');
-      duration = options.end - options.start;
-    } else {
-      throw new Error('Too little info');
-    }
-
     var isTopLevel;
     if (options.isTopLevel !== undefined)
       isTopLevel = options.isTopLevel;
@@ -97,9 +110,9 @@ tr.exportTo('tr.c.test_utils', function() {
         cat,
         title,
         colorId,
-        options.start,
+        sd.start,
         options.args ? options.args : {},
-        duration, isTopLevel);
+        sd.duration, isTopLevel);
 
     if (options.id)
       slice.id = options.id;
@@ -146,16 +159,7 @@ tr.exportTo('tr.c.test_utils', function() {
 
     var colorId = options.colorId ? options.colorId : 0;
 
-    var duration;
-    if (options.duration !== undefined) {
-      if (options.end !== undefined) throw new Error('TMI');
-      duration = options.duration;
-    } else if (options.end !== undefined) {
-      if (options.duration !== undefined) throw new Error('TMI');
-      duration = options.end - options.start;
-    } else {
-      throw new Error('Too little info');
-    }
+    var sd = getStartAndDurationFromDict(options);
 
     var id;
     if (options.id !== undefined)
@@ -168,9 +172,9 @@ tr.exportTo('tr.c.test_utils', function() {
         id,
         title,
         colorId,
-        options.start,
+        sd.start,
         options.args ? options.args : {},
-        duration);
+        sd.duration);
 
     if (options.startStackFrame)
       event.startStackFrame = options.startStackFrame;
@@ -227,35 +231,13 @@ tr.exportTo('tr.c.test_utils', function() {
   }
 
   function newSliceEx(options) {
-    if (options.start === undefined)
-      throw new Error('Too little info');
+    var sd = getStartAndDurationFromDict(options);
 
     var title = options.title ? options.title : 'a';
 
     var colorId = options.colorId ? options.colorId : 0;
 
-    var duration;
-    if (options.duration !== undefined) {
-      if (options.end !== undefined) throw new Error('TMI');
-      duration = options.duration;
-    } else if (options.end !== undefined) {
-      if (options.duration !== undefined) throw new Error('TMI');
-      duration = options.end - options.start;
-    } else {
-      throw new Error('Too little info');
-    }
-
-    var cpuStart = options.cpuStart;
-    var cpuDuration;
-    if (options.cpuDuration !== undefined) {
-      if (cpuStart !== undefined) throw new Error('Too little info');
-      if (options.cpuEnd !== undefined) throw new Error('TMI');
-      cpuDuration = options.cpuDuration;
-    } else if (options.cpuEnd !== undefined) {
-      if (cpuStart === undefined) throw new Error('Too little info');
-      if (options.cpuDuration !== undefined) throw new Error('TMI');
-      cpuDuration = options.cpuEnd - cpuStart;
-    }
+    var cpuSD = maybeGetCpuStartAndCpuDurationFromDict(options);
 
     var type;
     if (options.type)
@@ -267,10 +249,10 @@ tr.exportTo('tr.c.test_utils', function() {
         options.cat ? options.cat : 'cat',
         title,
         colorId,
-        options.start,
+        sd.start,
         options.args ? options.args : {},
-        duration,
-        cpuStart, cpuDuration);
+        sd.duration,
+        cpuSD.start, cpuSD.duration);
 
 
     return slice;
