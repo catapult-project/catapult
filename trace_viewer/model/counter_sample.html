@@ -22,14 +22,10 @@ tr.exportTo('tr.model', function() {
   }
 
   CounterSample.groupByTimestamp = function(samples) {
-    var samplesByTimestamp = {};
-    for (var i = 0; i < samples.length; i++) {
-      var sample = samples[i];
-      var ts = sample.timestamp;
-      if (!samplesByTimestamp[ts])
-        samplesByTimestamp[ts] = [];
-      samplesByTimestamp[ts].push(sample);
-    }
+    var samplesByTimestamp = tr.b.group(samples, function(sample) {
+      return sample.timestamp;
+    });
+
     var timestamps = tr.b.dictionaryKeys(samplesByTimestamp);
     timestamps.sort();
     var groups = [];
