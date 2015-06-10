@@ -7,8 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/multi_event_sub_view.html">
-<link rel="import" href="/core/analysis/flow_classifier.html">
-<link rel="import" href="/core/analysis/related_flows.html">
+<link rel="import" href="/core/analysis/related_events.html">
 
 <polymer-element name="tr-c-a-multi-thread-slice-sub-view"
     extends="tr-c-a-sub-view">
@@ -21,7 +20,7 @@ found in the LICENSE file.
       display: flex;
       flex: 1 1 auto;
     }
-    #content > tr-c-a-related-flows {
+    #content > tr-c-a-related-events {
       margin-left: 8px;
     }
     </style>
@@ -68,20 +67,11 @@ found in the LICENSE file.
       mesv.selection = selection;
       this.$.content.appendChild(mesv);
 
-      var fc = new tr.c.analysis.FlowClassifier();
-      selection.forEach(function(slice) {
-        slice.inFlowEvents.forEach(function(flow) {
-          fc.addInFlow(flow);
-        });
-        slice.outFlowEvents.forEach(function(flow) {
-          fc.addOutFlow(flow);
-        });
-      });
-      if (fc.hasEvents) {
-        var rflows = document.createElement('tr-c-a-related-flows');
-        rflows.setFlows(
-            fc.inFlowEvents, fc.outFlowEvents, fc.internalFlowEvents);
-        this.$.content.appendChild(rflows);
+      var relatedEvents = document.createElement('tr-c-a-related-events');
+      relatedEvents.addRelatedEvents(selection);
+
+      if (relatedEvents.hasRelatedEvents()) {
+        this.$.content.appendChild(relatedEvents);
       }
     },
 

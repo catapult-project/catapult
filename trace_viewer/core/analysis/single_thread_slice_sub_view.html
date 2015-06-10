@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/single_event_sub_view.html">
-<link rel="import" href="/core/analysis/related_flows.html">
+<link rel="import" href="/core/analysis/related_events.html">
 
 <polymer-element name="tr-c-a-single-thread-slice-sub-view"
     extends="tr-c-a-sub-view">
@@ -17,16 +17,16 @@ found in the LICENSE file.
       display: flex;
       flex-direction: row;
     }
-    #flows {
+    #events {
       display: flex;
       flex-direction: column;
     }
 
     </style>
     <tr-c-a-single-event-sub-view id="content"></tr-c-a-single-event-sub-view>
-    <div id="flows">
-      <tr-c-a-related-flows id="rflows">
-      </tr-c-a-related-flows>
+    <div id="events">
+      <tr-c-a-related-events id="relatedEvents">
+      </tr-c-a-related-events>
     </div>
   </template>
 
@@ -40,22 +40,11 @@ found in the LICENSE file.
 
     set selection(selection) {
       this.$.content.selection = selection;
-      var hasFlows = false;
-      var slice;
-      if (selection) {
-        slice = selection[0];
-        hasFlows = slice.inFlowEvents.length !== 0 ||
-            slice.outFlowEvents.length !== 0;
-      }
-      if (hasFlows) {
-        this.$.rflows.style.display = '';
-        this.$.rflows.setFlows(
-          new tr.c.Selection(slice.inFlowEvents),
-          new tr.c.Selection(slice.outFlowEvents));
-      } else {
-        this.$.rflows.style.display = 'none';
-        this.$.rflows.clearFlows();
-      }
+      this.$.relatedEvents.addRelatedEvents(selection);
+      if (this.$.relatedEvents.hasRelatedEvents())
+        this.$.relatedEvents.style.display = '';
+      else
+        this.$.relatedEvents.style.display = 'none';
     }
   });
   </script>

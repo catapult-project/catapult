@@ -136,7 +136,7 @@
       'trace_viewer/core/analysis/multi_thread_time_slice_sub_view.html',
       'trace_viewer/core/analysis/object_instance_view.html',
       'trace_viewer/core/analysis/object_snapshot_view.html',
-      'trace_viewer/core/analysis/related_flows.html',
+      'trace_viewer/core/analysis/related_events.html',
       'trace_viewer/core/analysis/selection_summary_table.html',
       'trace_viewer/core/analysis/single_async_slice_sub_view.html',
       'trace_viewer/core/analysis/single_cpu_slice_sub_view.html',

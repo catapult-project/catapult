@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/analysis/analysis_link.html">
+<link rel="import" href="/core/analysis/flow_classifier.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/base/ui/table.html">
+<link rel="import" href="/base/ui/dom_helpers.html">
+
+<polymer-element name="tr-c-a-related-events">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    #table {
+      flex: 1 1 auto;
+      align-self: stretch;
+    }
+    </style>
+    <tr-b-ui-table id="table"></tr-b-ui-table>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.eventGroups_ = [];
+
+      this.$.table.tableColumns = [
+        {
+          title: 'Event(s)',
+          value: function(row) { return row.type; },
+          width: '150px'
+        },
+        {
+          title: 'Link',
+          width: '100%',
+          value: function(row) {
+            var linkEl = document.createElement('tr-c-a-analysis-link');
+            if (row.name)
+              linkEl.setSelectionAndContent(row.selection, row.name);
+            else
+              linkEl.selection = row.selection;
+            return linkEl;
+          }
+        }
+      ];
+    },
+
+    hasRelatedEvents: function() {
+      return (this.eventGroups_ && this.eventGroups_.length > 0);
+    },
+
+    addRelatedEvents: function(selection) {
+      this.addConnectedFlows_(selection);
+      this.addConnectedEvents_(selection);
+      this.updateContents_();
+    },
+
+    addConnectedFlows_: function(selection) {
+      var classifier = new tr.c.analysis.FlowClassifier();
+      selection.forEach(function(slice) {
+        if (slice.inFlowEvents) {
+          slice.inFlowEvents.forEach(function(flow) {
+            classifier.addInFlow(flow);
+          });
+        }
+        if (slice.outFlowEvents) {
+          slice.outFlowEvents.forEach(function(flow) {
+            classifier.addOutFlow(flow);
+          });
+        }
+      });
+      if (!classifier.hasEvents())
+        return;
+
+      var addToEventGroups = function(type, flowEvent) {
+        this.eventGroups_.push({
+          type: type,
+          selection: new tr.c.Selection(flowEvent),
+          name: flowEvent.title
+        });
+      };
+
+      classifier.inFlowEvents.forEach(
+          addToEventGroups.bind(this, 'Incoming flow'));
+      classifier.outFlowEvents.forEach(
+          addToEventGroups.bind(this, 'Outgoing flow'));
+      classifier.internalFlowEvents.forEach(
+          addToEventGroups.bind(this, 'Internal flow'));
+    },
+
+    addConnectedEvents_: function(selection) {
+      // Preceding and following events are only well-defined for single
+      // selections.
+      if (selection.length === 1) {
+        this.computeRelatedEventsForSlice_(selection[0]);
+        return;
+      }
+      var eventIds = {};
+      var allEventsSelection = new tr.c.Selection();
+      selection.forEach(function(slice) {
+        this.recursivelyAddRelatedEvents_(allEventsSelection, eventIds, slice,
+            function(event) {
+              var flows = [];
+              if (event.inFlowEvents)
+                flows = flows.concat(event.inFlowEvents);
+              if (event.outFlowEvents)
+                flows = flows.concat(event.outFlowEvents);
+              return flows;
+            });
+      }.bind(this));
+      // Add related events if it contains more than the original selection.
+      if (allEventsSelection.length > selection.length) {
+        this.eventGroups_.push({
+          type: 'All connected events',
+          selection: allEventsSelection
+        });
+      }
+    },
+
+    computeRelatedEventsForSlice_: function(slice) {
+      var precedingEventsSelection = undefined;
+      var followingEventsSelection = undefined;
+      if (slice.inFlowEvents && slice.inFlowEvents.length !== 0) {
+        precedingEventsSelection = new tr.c.Selection();
+        this.recursivelyAddRelatedEvents_(precedingEventsSelection, {}, slice,
+            function(event) { return event.inFlowEvents; });
+        this.eventGroups_.push({
+          type: 'Preceding events',
+          selection: precedingEventsSelection
+        });
+      }
+      if (slice.outFlowEvents && slice.outFlowEvents.length !== 0) {
+        followingEventsSelection = new tr.c.Selection();
+        this.recursivelyAddRelatedEvents_(followingEventsSelection, {}, slice,
+            function(event) { return event.outFlowEvents; });
+        this.eventGroups_.push({
+          type: 'Following events',
+          selection: followingEventsSelection
+        });
+      }
+      if (precedingEventsSelection && followingEventsSelection) {
+        var allEventsSelection = new tr.c.Selection();
+        for (var i = 0; i < precedingEventsSelection.length; ++i)
+          allEventsSelection.push(precedingEventsSelection[i]);
+        // Do not add the first event of followingEventsSelection since it's
+        // the slice too.
+        for (var i = 1; i < followingEventsSelection.length; ++i)
+          allEventsSelection.push(followingEventsSelection[i]);
+        this.eventGroups_.push({
+          type: 'All connected events',
+          selection: allEventsSelection
+        });
+      }
+    },
+
+    updateContents_: function() {
+      var table = this.$.table;
+      if (this.eventGroups_ === undefined)
+        table.tableRows = [];
+      else
+        table.tableRows = this.eventGroups_.slice();
+      table.rebuild();
+    },
+
+    recursivelyAddRelatedEvents_: function(selection, eventIds, event,
+                                           getFlows) {
+      if (!event || eventIds[event.guid])
+        return;
+      eventIds[event.guid] = true;
+      selection.push(event);
+      var flowEvents = getFlows(event);
+      if (!flowEvents)
+        return;
+      for (var i = 0; i < flowEvents.length; ++i) {
+        selection.push(flowEvents[i]);
+        this.recursivelyAddRelatedEvents_(selection, eventIds,
+            flowEvents[i].startSlice, getFlows);
+        this.recursivelyAddRelatedEvents_(selection, eventIds,
+            flowEvents[i].endSlice, getFlows);
+      }
+    }
+  });
+  </script>
+</polymer-element>

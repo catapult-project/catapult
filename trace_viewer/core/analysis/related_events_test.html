@@ -5,10 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/analysis/related_flows.html">
+<link rel="import" href="/core/analysis/related_events.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/model/thread_slice.html">
 
 <script>
 'use strict';
@@ -26,11 +27,14 @@ tr.b.unittest.testSuite(function() {
       m.t4 = m.p1.getOrCreateThread(4);
 
       m.sA = m.t2.sliceGroup.pushSlice(
-          newSliceEx({title: 'a', start: 0, end: 5}));
+          newSliceEx({title: 'a', start: 0, end: 5,
+                      type: tr.model.ThreadSlice}));
       m.sB = m.t3.sliceGroup.pushSlice(
-          newSliceEx({title: 'b', start: 10, end: 15}));
+          newSliceEx({title: 'b', start: 10, end: 15,
+                      type: tr.model.ThreadSlice}));
       m.sC = m.t4.sliceGroup.pushSlice(
-          newSliceEx({title: 'c', start: 20, end: 20}));
+          newSliceEx({title: 'c', start: 20, end: 20,
+                      type: tr.model.ThreadSlice}));
 
       m.t2.createSubSlices();
       m.t3.createSubSlices();
@@ -48,11 +52,8 @@ tr.b.unittest.testSuite(function() {
       });
     });
 
-    var inSel = new tr.c.Selection([m.f1]);
-    var outSel = new tr.c.Selection([m.f2]);
-
-    var viewEl = document.createElement('tr-c-a-related-flows');
-    viewEl.setFlows(inSel, outSel);
+    var viewEl = document.createElement('tr-c-a-related-events');
+    viewEl.addRelatedEvents(new tr.c.Selection([m.sA, m.f1, m.sB, m.f2, m.sC]));
     this.addHTMLOutput(viewEl);
   });
 
