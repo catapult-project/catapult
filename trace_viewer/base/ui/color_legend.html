@@ -18,6 +18,11 @@ tr.b.ui.getColorIdForGeneralPurposeString).
     :host {
       display: inline-block;
     }
+
+    #square {
+      font-size: 150%;  /* Make the square bigger. */
+      line-height: 0%;  /* Prevent the square from increasing legend height. */
+    }
     </style>
     <span id="square"></span>
     <span id="label"></span>
@@ -27,8 +32,8 @@ tr.b.ui.getColorIdForGeneralPurposeString).
 
   Polymer({
     ready: function() {
-      var blackLargeSquareCharCode = 11035;
-      this.$.square.innerText = String.fromCharCode(blackLargeSquareCharCode);
+      var blackSquareCharCode = 9632;
+      this.$.square.innerText = String.fromCharCode(blackSquareCharCode);
       this.label_ = undefined;
     },
 
