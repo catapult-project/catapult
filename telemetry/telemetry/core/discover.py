@@ -9,6 +9,7 @@ import re
 
 from telemetry.core import camel_case
 from telemetry import decorators
+from telemetry.internal.util import classes as classes_module
 
 
 @decorators.Cache
@@ -52,7 +53,7 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
 # and class names, then always index by class name.
 @decorators.Cache
 def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
-                    index_by_class_name=True):
+                    index_by_class_name=True, directly_constructable=False):
   """Discover all classes in |start_dir| which subclass |base_class|.
 
   Base classes that contain subclasses are ignored by default.
@@ -64,6 +65,8 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
     pattern: Unix shell-style pattern for filtering the filenames to import.
     index_by_class_name: If True, use class name converted to
         lowercase_with_underscores instead of module name in return dict keys.
+    directly_constructable: If True, will only return classes that can be
+        constructed without arguments
 
   Returns:
     dict of {module_name: class} or {underscored_class_name: class}
@@ -72,12 +75,13 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
   classes = {}
   for module in modules:
     new_classes = DiscoverClassesInModule(
-        module, base_class, index_by_class_name)
+        module, base_class, index_by_class_name, directly_constructable)
     classes = dict(classes.items() + new_classes.items())
   return classes
 
 @decorators.Cache
-def DiscoverClassesInModule(module, base_class, index_by_class_name=False):
+def DiscoverClassesInModule(module, base_class, index_by_class_name=False,
+                            directly_constructable=False):
   """Discover all classes in |module| which subclass |base_class|.
 
   Base classes that contain subclasses are ignored by default.
@@ -114,7 +118,9 @@ def DiscoverClassesInModule(module, base_class, index_by_class_name=False):
       key_name = camel_case.ToUnderscore(obj.__name__)
     else:
       key_name = module.__name__.split('.')[-1]
-    classes[key_name] = obj
+    if (not directly_constructable or
+        classes_module.IsDirectlyConstructable(obj)):
+      classes[key_name] = obj
 
   return classes
 

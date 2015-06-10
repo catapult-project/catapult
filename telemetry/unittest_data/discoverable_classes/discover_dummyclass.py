@@ -5,4 +5,5 @@
 """A dummy exception subclass used by core/discover.py's unit tests."""
 
 class DummyException(Exception):
-  pass
+  def __init__(self):
+    super(DummyException, self).__init__()

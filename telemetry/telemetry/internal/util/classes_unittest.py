@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.util import classes
+from telemetry.internal.util import classes
 
 
 class ClassWithoutInitDefOne: # pylint: disable=old-style-class, no-init
