@@ -3,9 +3,13 @@
 # found in the LICENSE file.
 # pylint: disable=W0212
 
+import datetime
 import functools
+import os
 import inspect
 import types
+import warnings
+
 
 def Cache(obj):
   """Decorator for caching read-only properties.
@@ -30,6 +34,66 @@ def Cache(obj):
       cacher.__cache[key] = obj(*args, **kwargs)
     return cacher.__cache[key]
   return Cacher
+
+
+class Deprecated(object):
+
+  def __init__(self, year, month, day, extra_guidance=''):
+    self._date_of_support_removal = datetime.date(year, month, day)
+    self._extra_guidance = extra_guidance
+
+  def _DisplayWarningMessage(self, target):
+    target_str = ''
+    if isinstance(target, types.FunctionType):
+      target_str = 'Function %s' % target.__name__
+    else:
+      target_str = 'Class %s' % target.__name__
+    warnings.warn('%s is deprecated. It will no longer be supported on %s. '
+                  'Please remove it or switch to an alternative before '
+                  'that time. %s\n'
+                  % (target_str,
+                     self._date_of_support_removal.strftime('%B %d, %Y'),
+                     self._extra_guidance),
+                  stacklevel=self._ComputeStackLevel())
+
+  def _ComputeStackLevel(self):
+    this_file, _ = os.path.splitext(__file__)
+    frame = inspect.currentframe()
+    i = 0
+    while True:
+      filename = frame.f_code.co_filename
+      if not filename.startswith(this_file):
+        return i
+      frame = frame.f_back
+      i += 1
+
+  def __call__(self, target):
+    if isinstance(target, types.FunctionType):
+      @functools.wraps(target)
+      def wrapper(*args, **kwargs):
+        self._DisplayWarningMessage(target)
+        target(*args, **kwargs)
+      return wrapper
+    elif inspect.isclass(target):
+      original_ctor = target.__init__
+
+      # We have to handle case original_ctor is object.__init__ seperately
+      # since object.__init__ does not have __module__ defined, which
+      # cause functools.wraps() to raise exception.
+      if original_ctor == object.__init__:
+        def new_ctor(*args, **kwargs):
+          self._DisplayWarningMessage(target)
+          return original_ctor(*args, **kwargs)
+      else:
+        @functools.wraps(original_ctor)
+        def new_ctor(*args, **kwargs):
+          self._DisplayWarningMessage(target)
+          return original_ctor(*args, **kwargs)
+
+      target.__init__ = new_ctor
+      return target
+    else:
+      raise TypeError('@Deprecated is only applicable to functions or classes')
 
 
 def Disabled(*args):

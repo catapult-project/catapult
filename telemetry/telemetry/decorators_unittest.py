@@ -5,6 +5,10 @@
 import unittest
 
 from telemetry import decorators
+from telemetry.core import util
+
+util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
+import mock  # pylint:disable=import-error
 
 
 class FakePlatform(object):
@@ -82,3 +86,78 @@ class TestShouldSkip(unittest.TestCase):
 
     test.SetDisabledStrings(['another_os_name', 'another_os_version_name'])
     self.assertFalse(decorators.ShouldSkip(test, possible_browser)[0])
+
+class TestDeprecation(unittest.TestCase):
+
+  @mock.patch('warnings.warn')
+  def testFunctionDeprecation(self, warn_mock):
+    @decorators.Deprecated(2015, 12, 1)
+    def Foo(x):
+      return x
+    Foo(1)
+    warn_mock.assert_called_with(
+        'Function Foo is deprecated. It will no longer be supported on '
+        'December 01, 2015. Please remove it or switch to an alternative '
+        'before that time. \n', stacklevel=4)
+
+  @mock.patch('warnings.warn')
+  def testMethodDeprecated(self, warn_mock):
+
+    class Bar(object):
+      @decorators.Deprecated(2015, 12, 1, 'Testing only.')
+      def Foo(self, x):
+        return x
+
+    Bar().Foo(1)
+    warn_mock.assert_called_with(
+        'Function Foo is deprecated. It will no longer be supported on '
+        'December 01, 2015. Please remove it or switch to an alternative '
+        'before that time. Testing only.\n', stacklevel=4)
+
+  @mock.patch('warnings.warn')
+  def testClassWithoutInitDefinedDeprecated(self, warn_mock):
+    @decorators.Deprecated(2015, 12, 1)
+    class Bar(object):
+      def Foo(self, x):
+        return x
+
+    Bar().Foo(1)
+    warn_mock.assert_called_with(
+        'Class Bar is deprecated. It will no longer be supported on '
+        'December 01, 2015. Please remove it or switch to an alternative '
+        'before that time. \n', stacklevel=4)
+
+  @mock.patch('warnings.warn')
+  def testClassWithInitDefinedDeprecated(self, warn_mock):
+
+    @decorators.Deprecated(2015, 12, 1)
+    class Bar(object):
+      def __init__(self):
+        pass
+      def Foo(self, x):
+        return x
+
+    Bar().Foo(1)
+    warn_mock.assert_called_with(
+        'Class Bar is deprecated. It will no longer be supported on '
+        'December 01, 2015. Please remove it or switch to an alternative '
+        'before that time. \n', stacklevel=4)
+
+  @mock.patch('warnings.warn')
+  def testInheritedClassDeprecated(self, warn_mock):
+    class Ba(object):
+      pass
+
+    @decorators.Deprecated(2015, 12, 1)
+    class Bar(Ba):
+      def Foo(self, x):
+        return x
+
+    class Baz(Bar):
+      pass
+
+    Baz().Foo(1)
+    warn_mock.assert_called_with(
+        'Class Bar is deprecated. It will no longer be supported on '
+        'December 01, 2015. Please remove it or switch to an alternative '
+        'before that time. \n', stacklevel=4)

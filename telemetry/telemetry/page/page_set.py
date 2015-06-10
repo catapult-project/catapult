@@ -5,13 +5,16 @@
 import os
 
 from telemetry.page import page as page_module
+from telemetry import decorators
 from telemetry import story
 
 PUBLIC_BUCKET = story.PUBLIC_BUCKET
 PARTNER_BUCKET = story.PARTNER_BUCKET
 INTERNAL_BUCKET = story.INTERNAL_BUCKET
 
-
+@decorators.Deprecated(
+    2015, 6, 25, 'Please use the UserStory class instead (crbug.com/439512). '
+    'Instructions for conversion can be found in: https://goo.gl/JsaEez')
 class PageSet(story.StorySet):
   def __init__(self, file_path=None, archive_data_file='', user_agent_type=None,
                serving_dirs=None, bucket=None):
