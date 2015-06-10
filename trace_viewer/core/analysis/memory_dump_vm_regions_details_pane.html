@@ -349,6 +349,8 @@ found in the LICENSE file.
         // TODO(petrcermak): This can be quite slow. Consider doing this somehow
         // asynchronously.
         table.rebuild();
+
+        tr.c.analysis.expandTableRowsRecursively(table);
       },
 
       createRows_: function() {

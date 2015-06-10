@@ -261,11 +261,27 @@ tr.exportTo('tr.c.analysis', function() {
     };
   }
 
+  /** Limit for the number of sub-rows for recursive table row expansion. */
+  var RECURSIVE_EXPANSION_MAX_SUB_ROW_COUNT = 10;
+
+  function expandTableRowsRecursively(table) {
+    function expandRowRecursively(row) {
+      if (row.subRows === undefined || row.subRows.length === 0)
+        return;
+      if (row.subRows.length > RECURSIVE_EXPANSION_MAX_SUB_ROW_COUNT)
+        return;
+      table.setExpandedForTableRow(row, true);
+      row.subRows.forEach(expandRowRecursively);
+    }
+    table.tableRows.forEach(expandRowRecursively);
+  }
+
   return {
     MemoryColumn: MemoryColumn,
     ScalarMemoryColumn: ScalarMemoryColumn,
     MemoryCell: MemoryCell,
-    fieldGetter: fieldGetter
+    fieldGetter: fieldGetter,
+    expandTableRowsRecursively: expandTableRowsRecursively
   };
 });
 </script>

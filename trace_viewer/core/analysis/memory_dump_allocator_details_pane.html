@@ -113,6 +113,7 @@ found in the LICENSE file.
         table.tableRows = rows;
         table.tableColumns = columns;
         table.rebuild();
+        tr.c.analysis.expandTableRowsRecursively(table);
       },
 
       createRows_: function() {

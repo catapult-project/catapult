@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/ui/table.html">
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/attribute.html">
@@ -17,6 +18,7 @@ tr.b.unittest.testSuite(function() {
   var ScalarMemoryColumn = tr.c.analysis.ScalarMemoryColumn;
   var MemoryCell = tr.c.analysis.MemoryCell;
   var fieldGetter = tr.c.analysis.fieldGetter;
+  var expandTableRowsRecursively = tr.c.analysis.expandTableRowsRecursively;
   var StringAttribute = tr.model.StringAttribute;
   var ScalarAttribute = tr.model.ScalarAttribute;
 
@@ -372,6 +374,91 @@ tr.b.unittest.testSuite(function() {
     // Multiple cells.
     var f = fieldGetter('b', 'd', 'f');
     assert.equal(f({a: 0, b: {c: 0, d: {e: 0, f: 42}}}), 42);
+  });
+
+  test('checkExpandTableRowsRecursively', function() {
+    var columns = [
+      {
+        title: 'Single column',
+        value: function(row) { return row.data; },
+        width: '100px'
+      }
+    ];
+
+    var rows = [
+      {
+        data: 'allocated',
+        subRows: [
+          {
+            data: 'v8'
+          },
+          {
+            data: 'oilpan',
+            subRows: [
+              { data: 'heaps' },
+              { data: 'objects' }
+            ]
+          },
+          {
+            data: 'skia',
+            subRows: [
+              { data: 'way' },
+              { data: 'too' },
+              { data: 'many' },
+              { data: 'sub-' },
+              { data: 'rows' },
+              { data: 'so' },
+              { data: 'that' },
+              { data: 'they' },
+              { data: 'wouldn\'t' },
+              { data: 'be' },
+              { data: 'auto-' },
+              { data: 'expanded' }
+            ]
+          }
+        ]
+      },
+      {
+        data: 'overhead',
+        subRows: [
+          {
+            data: 'internal_fragmentation'
+          },
+          {
+            data: 'external_fragmentation',
+            subRows: []
+          }
+        ]
+      }
+    ];
+
+    var table = document.createElement('tr-b-ui-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    expandTableRowsRecursively(table);
+
+    // 'allocated' row should be expanded.
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    // 'allocated/v8' row cannot be expanded (no sub-rows).
+    assert.isFalse(table.getExpandedForTableRow(rows[0].subRows[0]));
+
+    // 'allocated/oilpan' row should be expanded.
+    assert.isTrue(table.getExpandedForTableRow(rows[0].subRows[1]));
+
+    // 'allocated/skia' row should not be expanded (more than 10 sub-rows).
+    assert.isFalse(table.getExpandedForTableRow(rows[0].subRows[2]));
+
+    // 'overhead' row should be expanded.
+    assert.isTrue(table.getExpandedForTableRow(rows[1]));
+
+    // 'overhead/internal_fragmentation' cannot be expanded (no sub-rows).
+    assert.isFalse(table.getExpandedForTableRow(rows[1].subRows[0]));
+
+    // 'overhead/external_fragmentation' cannot be expanded (no sub-rows).
+    assert.isFalse(table.getExpandedForTableRow(rows[1].subRows[1]));
   });
 });
 </script>
