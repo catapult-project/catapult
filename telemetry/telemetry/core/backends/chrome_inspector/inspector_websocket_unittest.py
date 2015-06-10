@@ -52,7 +52,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
   def tearDown(self):
     self._mock_timer.Restore()
 
-  @decorators.Disabled('chromeos')  # crbug.com/483212
+  @decorators.Disabled('chromeos', 'mac')  # crbug.com/483212, crbug.com/498950
   def testDispatchNotification(self):
     inspector = inspector_websocket.InspectorWebsocket()
     fake_socket = FakeSocket(self._mock_timer)
