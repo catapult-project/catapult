@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/rail/rail_score_side_panel.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var test_utils = tr.c.test_utils;
+
+
+  function StubRAILInteractionRecord(args) {
+    var sd = test_utils.getStartAndDurationFromDict(args);
+    tr.e.rail.RAILInteractionRecord.call(
+         this, args.railTypeName, 1, sd.start, sd.duration);
+
+    this.args = args;
+  }
+
+  StubRAILInteractionRecord.prototype = {
+    __proto__: tr.e.rail.RAILInteractionRecord.prototype,
+
+    get railTypeName() {
+      return this.args.railTypeName;
+    },
+
+    get normalizedUserPain() {
+      return this.args.normalizedUserPain;
+    },
+
+    get normalizedEfficiency() {
+      return this.args.normalizedEfficiency;
+    }
+  };
+
+  test('instantiate', function() {
+    var panel = document.createElement('tr-e-rail-rail-score-side-panel');
+    panel.model = test_utils.newModel(function(model) {
+      model.addInteractionRecord(new StubRAILInteractionRecord({
+        start: 0, end: 100,
+        railTypeName: 'Idle',
+        normalizedEfficiency: 0.8,
+        normalizedUserPain: 0.0
+      }));
+      model.addInteractionRecord(new StubRAILInteractionRecord({
+        start: 100, end: 200,
+        railTypeName: 'Response',
+        normalizedEfficiency: 1.,
+        normalizedUserPain: 0.0
+      }));
+    });
+    panel.style.height = '200px';
+
+    this.addHTMLOutput(panel);
+  });
+});
+</script>

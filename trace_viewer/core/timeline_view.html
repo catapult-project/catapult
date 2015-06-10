@@ -258,6 +258,16 @@ tr.exportTo('tr.c', function() {
 
       this.sidePanelContainer_.selectionController = this.selectionController_;
 
+
+      if (window.tr.e && window.tr.e.rail && window.tr.e.rail.RAILScore) {
+        this.railScoreSpan_ = document.createElement(
+            'tr-e-rail-rail-score-span');
+        this.rightControls.appendChild(this.railScoreSpan_);
+      } else {
+        this.railScoreSpan_ = undefined;
+      }
+
+
       this.optionsDropdown_ = document.createElement('tr-b-ui-dropdown');
       this.optionsDropdown_.iconElement.textContent = 'View Options';
 
@@ -467,6 +477,8 @@ tr.exportTo('tr.c', function() {
 
       // Remove old trackView if the model has completely changed.
       if (modelInstanceChanged) {
+        if (this.railScoreSpan_)
+          this.railScoreSpan_.railScore = undefined;
         this.trackViewContainer_.textContent = '';
         if (this.trackView_) {
           this.trackView_.viewport.removeEventListener(
@@ -496,6 +508,10 @@ tr.exportTo('tr.c', function() {
         this.trackView_.model = model;
         this.trackView_.viewport.showFlowEvents = this.showFlowEvents;
         this.trackView_.viewport.highlightVSync = this.highlightVSync;
+        if (this.railScoreSpan_) {
+          var railScore = tr.e.rail.RAILScore.fromModel(model);
+          this.railScoreSpan_.railScore = railScore;
+        }
       }
 
       // Do things that are selection specific

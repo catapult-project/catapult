@@ -19,6 +19,25 @@ found in the LICENSE file.
  * @fileoverview Helper functions for use in tracing tests.
  */
 tr.exportTo('tr.c.test_utils', function() {
+  function getStartAndDurationFromDict(options) {
+    if (options.start === undefined)
+      throw new Error('Too little info');
+    var duration;
+    if (options.duration !== undefined) {
+      if (options.end !== undefined) throw new Error('TMI');
+      duration = options.duration;
+    } else if (options.end !== undefined) {
+      if (options.duration !== undefined) throw new Error('TMI');
+      duration = options.end - options.start;
+    } else {
+      throw new Error('Too little info');
+    }
+    return {
+      start: options.start,
+      duration: options.duration
+    };
+  }
+
   function newAsyncSlice(start, duration, startThread, endThread) {
     return newAsyncSliceNamed('a', start, duration, startThread, endThread);
   }
@@ -296,6 +315,7 @@ tr.exportTo('tr.c.test_utils', function() {
   }
 
   return {
+    getStartAndDurationFromDict: getStartAndDurationFromDict,
     newAsyncSlice: newAsyncSlice,
     newAsyncSliceNamed: newAsyncSliceNamed,
     newAsyncSliceEx: newAsyncSliceEx,
