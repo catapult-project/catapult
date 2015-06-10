@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/importer/jszip.html">
-<link rel="import" href="/core/importer/importer.html">
+<link rel="import" href="/importer/importer.html">
 <link rel="import" href="/model/model.html">
 
 <script>
@@ -17,7 +17,7 @@ found in the LICENSE file.
  * to an actual importer.
  */
 tr.exportTo('tr.e.importer', function() {
-  var Importer = tr.c.importer.Importer;
+  var Importer = tr.importer.Importer;
 
   var GZIP_MEMBER_HEADER_ID_SIZE = 3;
 
@@ -139,7 +139,7 @@ tr.exportTo('tr.e.importer', function() {
     }
   };
 
-  tr.c.importer.Importer.register(GzipImporter);
+  tr.importer.Importer.register(GzipImporter);
 
   return {
     GzipImporter: GzipImporter

@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/importer/importer.html">
+<link rel="import" href="/importer/importer.html">
 <link rel="import" href="/model/model.html">
 
 <script>
@@ -19,7 +19,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.importer.battor', function() {
-  var Importer = tr.c.importer.Importer;
+  var Importer = tr.importer.Importer;
 
   /**
    * Imports linux perf events into a specified model.
@@ -236,7 +236,7 @@ tr.exportTo('tr.e.importer.battor', function() {
     }
   };
 
-  tr.c.importer.Importer.register(BattorImporter);
+  tr.importer.Importer.register(BattorImporter);
 
   return {
     BattorImporter: BattorImporter,

@@ -24,8 +24,8 @@ found in the LICENSE file.
 <link rel="import" href="/extras/importer/linux_perf/workqueue_parser.html">
 <link rel="import" href="/extras/importer/linux_perf/android_parser.html">
 <link rel="import" href="/extras/importer/linux_perf/kfunc_parser.html">
-<link rel="import" href="/core/importer/importer.html">
-<link rel="import" href="/core/importer/simple_line_reader.html">
+<link rel="import" href="/importer/importer.html">
+<link rel="import" href="/importer/simple_line_reader.html">
 <link rel="import" href="/model/model.html">
 
 <script>
@@ -45,7 +45,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var Importer = tr.c.importer.Importer;
+  var Importer = tr.importer.Importer;
   var ClockSyncRecord = tr.ClockSyncRecord;
 
   /**
@@ -213,7 +213,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     if (/^<!DOCTYPE HTML>/.test(incoming_events) == false)
       return failure;
-    var r = new tr.c.importer.SimpleLineReader(incoming_events);
+    var r = new tr.importer.SimpleLineReader(incoming_events);
 
     // Try to find the data...
     if (!r.advanceToLineMatching(/^  <script>$/))
@@ -278,7 +278,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     if (/^<!DOCTYPE HTML>/.test(incoming_events) == false)
       return failure;
-    var r = new tr.c.importer.SimpleLineReader(incoming_events);
+    var r = new tr.importer.SimpleLineReader(incoming_events);
 
     // Try to find the Linux perf trace in any of the trace-data tags
     var events = [];
@@ -826,7 +826,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     }
   };
 
-  tr.c.importer.Importer.register(LinuxPerfImporter);
+  tr.importer.Importer.register(LinuxPerfImporter);
 
   return {
     LinuxPerfImporter: LinuxPerfImporter,

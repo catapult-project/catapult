@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/ui/color_scheme.html">
 <link rel="import" href="/base/quad.html">
 <link rel="import" href="/base/range.html">
-<link rel="import" href="/core/importer/importer.html">
+<link rel="import" href="/importer/importer.html">
 <link rel="import" href="/model/attribute.html">
 <link rel="import" href="/model/comment_box_annotation.html">
 <link rel="import" href="/model/instant_event.html">
@@ -31,7 +31,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.importer', function() {
 
-  var Importer = tr.c.importer.Importer;
+  var Importer = tr.importer.Importer;
 
   function deepCopy(value) {
     if (!(value instanceof Object)) {
@@ -1892,7 +1892,7 @@ tr.exportTo('tr.e.importer', function() {
     }
   };
 
-  tr.c.importer.Importer.register(TraceEventImporter);
+  tr.importer.Importer.register(TraceEventImporter);
 
   return {
     TraceEventImporter: TraceEventImporter

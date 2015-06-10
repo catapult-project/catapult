@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/extras/importer/jszip.html">
 <link rel="import" href="/model/model.html">
-<link rel="import" href="/core/importer/importer.html">
+<link rel="import" href="/importer/importer.html">
 
 <script>
 /**
@@ -16,7 +16,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.importer.ddms', function() {
-  var Importer = tr.c.importer.Importer;
+  var Importer = tr.importer.Importer;
 
   var kPid = 0;
   var kCategory = 'java';
@@ -210,7 +210,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
   };
 
   // Register the DdmsImporter to the Importer.
-  tr.c.importer.Importer.register(DdmsImporter);
+  tr.importer.Importer.register(DdmsImporter);
 
   return {
     DdmsImporter: DdmsImporter

@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/importer/importer.html">
-<link rel="import" href="/core/importer/simple_line_reader.html">
+<link rel="import" href="/importer/importer.html">
+<link rel="import" href="/importer/simple_line_reader.html">
 <link rel="import" href="/base/base64.html">
 <link rel="import" href="/model/model.html">
 
@@ -25,7 +25,7 @@ tr.exportTo('tr.e.importer', function() {
     // Clear the array before pushing data to it.
     Trace2HTMLImporter.subtraces_ = [];
 
-    var r = new tr.c.importer.SimpleLineReader(text);
+    var r = new tr.importer.SimpleLineReader(text);
 
     // Try to find viewer-data...
     while (true) {
@@ -66,7 +66,7 @@ tr.exportTo('tr.e.importer', function() {
   };
 
   Trace2HTMLImporter.prototype = {
-    __proto__: tr.c.importer.Importer.prototype,
+    __proto__: tr.importer.Importer.prototype,
 
     isTraceDataContainer: function() {
       return true;
@@ -81,7 +81,7 @@ tr.exportTo('tr.e.importer', function() {
   };
 
 
-  tr.c.importer.Importer.register(Trace2HTMLImporter);
+  tr.importer.Importer.register(Trace2HTMLImporter);
 
 
   return {

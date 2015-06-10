@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/base.html">
-<link rel="import" href="/core/importer/importer.html">
+<link rel="import" href="/importer/importer.html">
 
 <script>
 'use strict';
@@ -13,8 +13,8 @@ found in the LICENSE file.
 /**
  * @fileoverview Base class for trace data importers.
  */
-tr.exportTo('tr.c.importer', function() {
-  var Importer = tr.c.importer.Importer;
+tr.exportTo('tr.importer', function() {
+  var Importer = tr.importer.Importer;
   /**
    * Importer for empty strings and arrays.
    * @constructor
