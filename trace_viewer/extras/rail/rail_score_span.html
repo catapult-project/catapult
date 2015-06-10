@@ -24,6 +24,10 @@ found in the LICENSE file.
       this.railScore_ = undefined;
     },
 
+    ready: function() {
+      this.updateContent_();
+    },
+
     get railScore() {
       return this.railScore_;
     },
