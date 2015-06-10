@@ -13,7 +13,7 @@ import unittest
 import zipfile
 
 from catapult_base import cloud_storage
-from telemetry.util import find_dependencies
+from telemetry.internal.util import find_dependencies
 
 
 class FindDependenciesTest(unittest.TestCase):

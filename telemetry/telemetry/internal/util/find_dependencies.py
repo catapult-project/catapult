@@ -15,9 +15,9 @@ from catapult_base import cloud_storage
 from telemetry import benchmark
 from telemetry.core import command_line
 from telemetry.core import discover
-from telemetry.util import bootstrap
+from telemetry.internal.util import bootstrap
+from telemetry.internal.util import path_set
 from telemetry.util import path
-from telemetry.util import path_set
 
 DEPS_FILE = 'bootstrap_deps'
 

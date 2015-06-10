@@ -6,7 +6,7 @@
 import os
 import unittest
 
-from telemetry.util import path_set
+from telemetry.internal.util import path_set
 
 
 class PathSetTest(unittest.TestCase):

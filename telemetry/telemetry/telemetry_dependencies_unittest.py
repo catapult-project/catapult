@@ -6,8 +6,8 @@ import json
 import os
 import unittest
 
+from telemetry.internal.util import find_dependencies
 from telemetry.util import path
-from telemetry.util import find_dependencies
 
 
 _TELEMETRY_DEPS_PATH = os.path.join(
