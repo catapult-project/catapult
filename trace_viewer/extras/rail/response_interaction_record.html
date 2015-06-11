@@ -23,7 +23,66 @@ tr.exportTo('tr.e.rail', function() {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
 
     get normalizedUserPain() {
-      return 0;
+      // User pain is derived from the time between when the user thinks they
+      // begin an interation (expectedStart) and the time when the screen first
+      // changes to reflect the interaction (actualEnd).  There may be a delay
+      // between expectedStart and when chrome first starts processing the
+      // interaction (actualStart) if the main thread is busy.  The user doesn't
+      // know when actualStart is, they only know when expectedStart is. User
+      // pain, by definition, considers only what the user experiences, so
+      // "duration" is defined as actualEnd - expectedStart.
+
+      // User pain is hypothesized to rise exponentially as duration rises
+      // between 150ms and 1000ms.
+      // TODO(benjhayden, nduca) Experiment to validate this hypothesis.
+
+      // This function is graphed at
+      // https://www.desmos.com/calculator/fqhkz1ohia
+
+      var PAIN_BEGINS_AT_MS = 150;
+      var PAIN_PEAKS_AT_MS = 1000;
+
+      // PAIN_POWER is a tunable parameter that affects the shape of this
+      // function. It must be greater than 0. At about 0.7, this function is
+      // approximately linear, so if, in the course of tuning this parameter,
+      // you want to set it close to 0.7, then you might as well replace this
+      // entire function with a call to lerp(). If you want to set it close to
+      // 1, then you might as well skip the Math.pow() step in
+      // computeRawUserPain() altogether.
+      var PAIN_POWER = 1.5;
+
+      function computeRawUserPain(durationMs) {
+        var painDurationMs = durationMs - PAIN_BEGINS_AT_MS;
+        // Convert ms to seconds because this value is about to be passed
+        // to Math.exp(), so it must be small enough that Math.exp() will not
+        // run out of IEEE754 exponent bits and return Infinity.
+        var MS_PER_SECONDS = 1000;
+        var painDurationSeconds = painDurationMs / MS_PER_SECONDS;
+
+        // Raising painDurationSeconds to a non-unity power makes things more
+        // interesting and gives us a parameter to tune to change the shape of
+        // the function.
+        var tunedPainDurationSeconds = Math.pow(painDurationSeconds,
+                                                PAIN_POWER);
+        // exp() has some nice mathematical properties, but we could vary the
+        // base from e to some other positive non-unity number for another way
+        // to change the shape of the function if necessary.
+        return Math.exp(tunedPainDurationSeconds);
+        // (If you modify this function to be non-monotonic anywhere, then you
+        // should consider how that affects the clamp() at the end.)
+      }
+
+      var rawUserPain = computeRawUserPain(this.duration);
+
+      var minRawUserPain = computeRawUserPain(PAIN_BEGINS_AT_MS);
+      var maxRawUserPain = computeRawUserPain(PAIN_PEAKS_AT_MS);
+      var normalizedUserPain = tr.b.normalize(
+          rawUserPain, minRawUserPain, maxRawUserPain);
+
+      // normalizedUserPain might actually be negative if this.duration is less
+      // than PAIN_BEGINS_AT_MS, and it might be greater than 1 if this.duration
+      // is greater than PAIN_PEAKS_AT_MS, so clamp it to between 0 and 1.
+      return tr.b.clamp(normalizedUserPain, 0, 1);
     },
 
     get normalizedEfficiency() {

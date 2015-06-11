@@ -20,6 +20,10 @@ tr.exportTo('tr.b', function() {
     return lo + percentage * range;
   }
 
+  function normalize(value, lo, hi) {
+    return (value - lo) / (hi - lo);
+  }
+
   function deg2rad(deg) {
     return (Math.PI * deg) / 180.0;
   }
@@ -59,8 +63,7 @@ tr.exportTo('tr.b', function() {
       return points[0][1];
     for (var i = 1; i < points.length; ++i) {
       if (x < points[i][0]) {
-        var percent = (x - points[i - 1][0]) /
-                      (points[i][0] - points[i - 1][0]);
+        var percent = normalize(x, points[i - 1][0], points[i][0]);
         return lerp(percent, points[i - 1][1], points[i][1]);
       }
     }
@@ -103,6 +106,7 @@ tr.exportTo('tr.b', function() {
   return {
     clamp: clamp,
     lerp: lerp,
+    normalize: normalize,
     deg2rad: deg2rad
   };
 
