@@ -93,9 +93,11 @@ tr.exportTo('tr.model', function() {
      * specified.
      */
     shiftTimestampsForward: function(amount) {
-      this.iterateAllChildEventContainers(function(child) {
-          child.shiftTimestampsForward(amount);
-      });
+      for (var tid in this.threads)
+        this.threads[tid].shiftTimestampsForward(amount);
+      for (var id in this.counters)
+        this.counters[id].shiftTimestampsForward(amount);
+      this.objects.shiftTimestampsForward(amount);
     },
 
     /**
@@ -139,11 +141,16 @@ tr.exportTo('tr.model', function() {
 
     updateBounds: function() {
       this.bounds.reset();
-
-      this.iterateAllChildEventContainers(function(child) {
-        child.updateBounds();
-        this.bounds.addRange(child.bounds);
-      }, this);
+      for (var tid in this.threads) {
+        this.threads[tid].updateBounds();
+        this.bounds.addRange(this.threads[tid].bounds);
+      }
+      for (var id in this.counters) {
+        this.counters[id].updateBounds();
+        this.bounds.addRange(this.counters[id].bounds);
+      }
+      this.objects.updateBounds();
+      this.bounds.addRange(this.objects.bounds);
     },
 
     addCategoriesToDict: function(categoriesDict) {
