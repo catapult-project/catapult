@@ -249,7 +249,8 @@ tr.exportTo('tr.e.rail', function() {
       rirs.push.apply(rirs, this.findLoadInteractionRecords());
       rirs.push.apply(rirs, this.findResponseInteractionRecords());
       rirs.push.apply(rirs, this.findAnimationInteractionRecords());
-      rirs.push.apply(rirs, this.findIdleInteractionRecords(rirs));
+      // TODO(benjhayden): Reintroduce this without reintroducing #1020.
+      // rirs.push.apply(rirs, this.findIdleInteractionRecords(rirs));
       return rirs;
     }
   };
