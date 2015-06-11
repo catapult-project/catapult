@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/rail/rail_score_side_panel.html">
+<link rel="import" href="/extras/rail/stub_rail_interaction_record.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/model.html">
 
@@ -13,40 +14,16 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var test_utils = tr.c.test_utils;
-
-
-  function StubRAILInteractionRecord(args) {
-    var sd = test_utils.getStartAndDurationFromDict(args);
-    tr.e.rail.RAILInteractionRecord.call(
-         this, args.railTypeName, args.railTypeName,
-         sd.start, sd.duration);
-
-    this.args = args;
-  }
-
-  StubRAILInteractionRecord.prototype = {
-    __proto__: tr.e.rail.RAILInteractionRecord.prototype,
-
-    get normalizedUserPain() {
-      return this.args.normalizedUserPain;
-    },
-
-    get normalizedEfficiency() {
-      return this.args.normalizedEfficiency;
-    }
-  };
-
   test('instantiate', function() {
     var panel = document.createElement('tr-e-rail-rail-score-side-panel');
-    panel.model = test_utils.newModel(function(model) {
-      model.addInteractionRecord(new StubRAILInteractionRecord({
+    panel.model = tr.c.test_utils.newModel(function(model) {
+      model.addInteractionRecord(new tr.e.rail.StubRAILInteractionRecord({
         start: 0, end: 100,
         railTypeName: 'rail_idle',
         normalizedEfficiency: 0.8,
         normalizedUserPain: 0.0
       }));
-      model.addInteractionRecord(new StubRAILInteractionRecord({
+      model.addInteractionRecord(new tr.e.rail.StubRAILInteractionRecord({
         start: 100, end: 200,
         railTypeName: 'rail_response',
         normalizedEfficiency: 1.,
