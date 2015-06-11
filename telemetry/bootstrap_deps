@@ -16,6 +16,5 @@ deps = {
     "src/third_party/webpagereplay": "",
     "src/third_party/trace-viewer": "",
     "src/third_party/typ": "",
-    "src/tools/crx_id": "",
     "src/tools/perf/unit-info.json": "",
 }

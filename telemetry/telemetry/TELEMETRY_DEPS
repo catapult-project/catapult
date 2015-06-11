@@ -12,7 +12,6 @@
     "third_party/typ/",
     "third_party/pexpect/",
     "third_party/webpagereplay/",
-    "tools/crx_id/",
     "tools/telemetry/"
   ],
   "file_deps": [
