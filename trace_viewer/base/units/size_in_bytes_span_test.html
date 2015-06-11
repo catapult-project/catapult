@@ -45,6 +45,9 @@ tr.b.unittest.testSuite(function() {
     el.numBytes = 1025 * 1024 * 1024 * 1024 * 1024;
     assert.equal(el.stringContent, '1025.0 TiB');
     this.addHTMLOutput(el);
+
+    el.numBytes = -2.5 * 1024 * 1024;
+    assert.equal(el.stringContent, '-2.5 MiB');
   });
 
 });

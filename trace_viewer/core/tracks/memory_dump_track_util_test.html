@@ -195,6 +195,8 @@ tr.b.unittest.testSuite(function() {
     var dumps = createTestProcessMemoryDumps(false, true);
     var series = tr.c.tracks.buildProcessAllocatedMemoryChartSeries(dumps);
 
+    // There should be only 2 series (because 'tracing' is not shown in the
+    // charts).
     assert.lengthOf(series, 2);
 
     var so = series[0];

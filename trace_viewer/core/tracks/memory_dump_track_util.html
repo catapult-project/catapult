@@ -49,6 +49,10 @@ tr.exportTo('tr.c.tracks', function() {
       return {};
     var allocatorSizes = {};
     allocatorDumps.forEach(function(allocatorDump) {
+      // Don't show tracing overhead in the charts.
+      // TODO(petrcermak): Find a less hacky way to do this.
+      if (allocatorDump.fullName === 'tracing')
+        return;
       var allocatorSize = allocatorDump.attributes[
           ALLOCATOR_SIZE_ATTRIBUTE_NAME];
       if (allocatorSize === undefined) {

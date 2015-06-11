@@ -168,6 +168,12 @@ found in the LICENSE file.
               file: /anon_inode:dmabuf/
             }
           ]
+        },
+        {
+          // Add a separate category for the discounted tracing overhead to
+          // avoid negative 'Total/Other' sizes.
+          name: 'Discounted tracing overhead',
+          file: /\[discounted tracing overhead\]/
         }
       ]
     };

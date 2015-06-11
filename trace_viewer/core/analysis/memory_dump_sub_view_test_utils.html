@@ -29,14 +29,20 @@ tr.exportTo('tr.c.analysis', function() {
     var model = tr.c.test_utils.newModel(function(model) {
       var p1 = model.getOrCreateProcess(1);
       var p2 = model.getOrCreateProcess(2);
+      var p3 = model.getOrCreateProcess(3);
 
       var gmd = new GlobalMemoryDump(model, 42);
       model.globalMemoryDumps.push(gmd);
 
+      function addProcessMemoryDump(process, timestamp) {
+        var pmd = new ProcessMemoryDump(gmd, process, timestamp);
+        process.memoryDumps.push(pmd);
+        gmd.processMemoryDumps[process.pid] = pmd;
+        return pmd;
+      }
+
       // One process with VM regions.
-      var pmd1 = new ProcessMemoryDump(gmd, p1, 41);
-      p1.memoryDumps.push(pmd1);
-      gmd.processMemoryDumps[p1.pid] = pmd1;
+      var pmd1 = addProcessMemoryDump(p1, 41);
       pmd1.totalResidentBytes = 31457280 /* 30 MiB */;
       pmd1.vmRegions = [
         VMRegion.fromDict({
@@ -52,12 +58,42 @@ tr.exportTo('tr.c.analysis', function() {
         })
       ];
 
-      // One process with allocator dumps.
-      var pmd2 = new ProcessMemoryDump(gmd, p2, 43);
-      p2.memoryDumps.push(pmd2);
-      gmd.processMemoryDumps[p2.pid] = pmd2;
+      var pmd2 = addProcessMemoryDump(p2, 42);
+      pmd2.totalResidentBytes = 20971520 /* 20 MiB */;
+      pmd2.vmRegions = [
+        VMRegion.fromDict({
+          startAddress: 256,
+          sizeInBytes: 6000,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+              VMRegion.PROTECTION_FLAG_WRITE,
+          mappedFile: '[stack:20310]',
+          byteStats: {
+            proportionalResident: 15728640, /* 15 MiB */
+            privateDirtyResident: 1572864, /* 1.5 MiB */
+            swapped: 32 /* 32 B */
+          }
+        })
+      ];
       pmd2.memoryAllocatorDumps = (function() {
-        var oilpanDump = new MemoryAllocatorDump(pmd2, 'oilpan');
+        var mallocDump = new MemoryAllocatorDump(pmd2, 'malloc');
+        mallocDump.addAttribute('size',
+            new ScalarAttribute('bytes', 3145728) /* 3 MiB */);
+
+        var v8Dump = new MemoryAllocatorDump(pmd2, 'v8');
+        v8Dump.addAttribute('size',
+            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
+
+        var tracingDump = new MemoryAllocatorDump(pmd2, 'tracing');
+        tracingDump.addAttribute('size',
+            new ScalarAttribute('bytes', 1048576) /* 1 MiB */);
+
+        return [mallocDump, v8Dump, tracingDump];
+      })();
+
+      // One process with allocator dumps.
+      var pmd3 = addProcessMemoryDump(p3, 43);
+      pmd3.memoryAllocatorDumps = (function() {
+        var oilpanDump = new MemoryAllocatorDump(pmd3, 'oilpan');
         oilpanDump.addAttribute('size',
             new ScalarAttribute('bytes', 2147483648) /* 2 GiB */);
         oilpanDump.addAttribute('inner_size',
@@ -65,7 +101,7 @@ tr.exportTo('tr.c.analysis', function() {
         oilpanDump.addAttribute('objects_count',
             new ScalarAttribute('objects', 2015));
 
-        var v8Dump = new MemoryAllocatorDump(pmd2, 'v8');
+        var v8Dump = new MemoryAllocatorDump(pmd3, 'v8');
         v8Dump.addAttribute('size',
             new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
         v8Dump.addAttribute('inner_size',

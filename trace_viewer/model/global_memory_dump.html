@@ -39,7 +39,13 @@ tr.exportTo('tr.model', function() {
 
       this.aggregateMemoryAllocatorDumpAttributes(this.model);
       tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
-        dump.aggregateMemoryAllocatorDumpAttributes();
+        dump.aggregateMemoryAllocatorDumpAttributes(this.model);
+      }, this);
+
+      // TODO(petrcermak): Consider factoring out all the finalization code and
+      // constants to a single file.
+      tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
+        dump.discountTracingOverhead(this.model);
       }, this);
     }
   };

@@ -37,13 +37,20 @@ found in the LICENSE file.
 
       var numBytes = this.numBytes;
 
-      var prefixes = ['', 'Ki', 'Mi', 'Gi', 'Ti'];
+      var signPrefix = '';
+      if (numBytes < 0) {
+        signPrefix = '-';
+        numBytes = -numBytes;
+      }
+
+      var unitPrefixes = ['', 'Ki', 'Mi', 'Gi', 'Ti'];
       var i = 0;
-      while (numBytes >= 1024 && i < prefixes.length - 1) {
+      while (numBytes >= 1024 && i < unitPrefixes.length - 1) {
         numBytes /= 1024;
         i++;
       }
-      var sizeString = numBytes.toFixed(1) + ' ' + prefixes[i] + 'B';
+      var sizeString =
+          signPrefix + numBytes.toFixed(1) + ' ' + unitPrefixes[i] + 'B';
 
       this.$.content.textContent = sizeString;
     },

@@ -113,7 +113,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(rows, 1);
 
     var totalRow = rows[0];
-    checkRow(totalRow, 'Total', 4831838208, 8192, 0, 0, '', '', 6);
+    checkRow(totalRow, 'Total', 4831838208, 8192, 0, 0, '', '', 7);
 
     var androidRow = totalRow.subRows[0];
     checkRow(androidRow, 'Android', '', '', '', '', '', '', 3);
@@ -137,7 +137,7 @@ tr.b.unittest.testSuite(function() {
     checkRow(mmapChromeRow, '/lib/chrome.so', 536870912, 8192, '', '',
         '0000000000010000', 'r-x', undefined);
 
-    var otherRow = totalRow.subRows[5];
+    var otherRow = totalRow.subRows[6];
     checkRow(otherRow, 'Other', 4294967296, '', 0, 0, '', '', 2);
 
     var mmapOther2Row = otherRow.subRows[1];

@@ -5,8 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/model/container_memory_dump.html">
 <link rel="import" href="/base/units/util.html">
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/model/container_memory_dump.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
 
 <script>
 'use strict';
@@ -15,6 +17,26 @@ found in the LICENSE file.
  * @fileoverview Provides the ProcessMemoryDump class.
  */
 tr.exportTo('tr.model', function() {
+
+  function getValidSizeAttributeOrUndefined(memoryAllocatorDump, opt_model) {
+    var sizeAttr = memoryAllocatorDump.attributes['size'];
+    if (sizeAttr === undefined)
+      return undefined;
+
+    if (!(sizeAttr instanceof tr.model.ScalarAttribute)) {
+      if (opt_model !== undefined) {
+        opt_model.importWarning({
+          type: 'memory_dump_parse_error',
+          message: '\'size\' attribute of memory allocator dump \'' +
+              memoryAllocatorDump.fullName + '\' is not a scalar.'
+        });
+      }
+      return undefined;
+    }
+
+    return sizeAttr;
+  }
+
   /**
    * The ProcessMemoryDump represents a memory dump of a single process.
    * @constructor
@@ -26,6 +48,8 @@ tr.exportTo('tr.model', function() {
 
     this.totalResidentBytes = undefined;
     this.vmRegions_ = undefined;
+
+    this.tracingMemoryDiscounted_ = false;
   };
 
   ProcessMemoryDump.prototype = {
@@ -56,6 +80,61 @@ tr.exportTo('tr.model', function() {
         total += statValue;
       });
       return total;
+    },
+
+    discountTracingOverhead: function(opt_model) {
+      // Make sure that calling this method twice won't lead to
+      // 'double-discounting'.
+      if (this.tracingMemoryDiscounted_)
+        return;
+      this.tracingMemoryDiscounted_ = true;
+
+      var tracingDump = this.getMemoryAllocatorDumpByFullName('tracing');
+      if (tracingDump === undefined)
+        return;
+
+      var tracingSizeAttr = getValidSizeAttributeOrUndefined(
+          tracingDump, opt_model);
+      if (tracingSizeAttr === undefined)
+        return;
+
+      var tracingSize = tracingSizeAttr.value;
+
+      // Subtract the tracing size from the total.
+      if (this.totalResidentBytes !== undefined)
+        this.totalResidentBytes -= tracingSize;
+
+      // Subtract the tracing size from VM regions.
+      if (this.vmRegions_ !== undefined) {
+        this.vmRegions_.push(VMRegion.fromDict({
+          mappedFile: '[discounted tracing overhead]',
+          byteStats: {
+            privateDirtyResident: -tracingSize,
+            proportionalResident: -tracingSize
+          }
+        }));
+      }
+
+      // Subtract the tracing size from the 'malloc' MemoryAllocatorDump.
+      var mallocDump = this.getMemoryAllocatorDumpByFullName('malloc');
+      if (mallocDump !== undefined) {
+        var overheadSizeAttribute = new tr.model.ScalarAttribute(
+            'bytes', -tracingSize);
+        var overheadDump = new tr.model.MemoryAllocatorDump(
+            this, 'malloc/discounted_tracing_overhead');
+        overheadDump.parent = mallocDump;
+        overheadDump.addAttribute('size', overheadSizeAttribute);
+        mallocDump.children.push(overheadDump);
+
+        var mallocDumpSizeAttr = getValidSizeAttributeOrUndefined(
+            mallocDump, opt_model);
+        if (mallocDumpSizeAttr !== undefined)
+          mallocDumpSizeAttr.value -= tracingSize;
+
+        // Force rebuilding the memory allocator dump index (as we've just
+        // added a new memory allocator dump).
+        this.memoryAllocatorDumps = this.memoryAllocatorDumps;
+      }
     }
   };
 

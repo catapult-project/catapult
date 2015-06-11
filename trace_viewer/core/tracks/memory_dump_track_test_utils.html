@@ -89,7 +89,7 @@ tr.exportTo('tr.c.tracks', function() {
       addProcessMemoryDump(gmd2, pb, 4.99, maybePssValues([100, 50]),
           maybeDumpSizes({v8: 512}));
       addProcessMemoryDump(gmd2, pc, 5.12, undefined,
-          maybeDumpSizes({oilpan: 128, v8: 256}));
+          maybeDumpSizes({oilpan: 128, v8: 256, tracing: 65536}));
 
       var gmd3 = new GlobalMemoryDump(model, 15);
       model.globalMemoryDumps.push(gmd3);
