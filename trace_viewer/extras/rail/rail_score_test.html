@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
   test('fromModel', function() {
     var model = tr.e.audits.newChromeModel(function(model) {
       model.addInteractionRecord(new tr.e.rail.RAILInteractionRecord(
-          'a', 'b', 0, 1));
+          'Idle', 'rail_idle', 0, 1));
     });
     var score = tr.e.rail.RAILScore.fromModel(model);
     assert.equal(1, score.interactionRecords.length);

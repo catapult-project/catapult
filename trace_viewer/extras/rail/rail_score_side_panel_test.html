@@ -19,17 +19,14 @@ tr.b.unittest.testSuite(function() {
   function StubRAILInteractionRecord(args) {
     var sd = test_utils.getStartAndDurationFromDict(args);
     tr.e.rail.RAILInteractionRecord.call(
-         this, args.railTypeName, 1, sd.start, sd.duration);
+         this, args.railTypeName, args.railTypeName,
+         sd.start, sd.duration);
 
     this.args = args;
   }
 
   StubRAILInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
-
-    get railTypeName() {
-      return this.args.railTypeName;
-    },
 
     get normalizedUserPain() {
       return this.args.normalizedUserPain;
@@ -45,13 +42,13 @@ tr.b.unittest.testSuite(function() {
     panel.model = test_utils.newModel(function(model) {
       model.addInteractionRecord(new StubRAILInteractionRecord({
         start: 0, end: 100,
-        railTypeName: 'Idle',
+        railTypeName: 'rail_idle',
         normalizedEfficiency: 0.8,
         normalizedUserPain: 0.0
       }));
       model.addInteractionRecord(new StubRAILInteractionRecord({
         start: 100, end: 200,
-        railTypeName: 'Response',
+        railTypeName: 'rail_response',
         normalizedEfficiency: 1.,
         normalizedUserPain: 0.0
       }));

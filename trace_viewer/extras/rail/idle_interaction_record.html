@@ -16,16 +16,19 @@ found in the LICENSE file.
 tr.exportTo('tr.e.rail', function() {
   function IdleInteractionRecord(start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
-        this, 'Idle',
-        tr.b.ui.getColorIdForGeneralPurposeString('mt_idle'),
+        this, 'Idle', 'rail_idle',
         start, duration);
   }
 
   IdleInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
 
-    get railTypeName() {
-      return 'Idle';
+    get normalizedUserPain() {
+      return 0;
+    },
+
+    get normalizedEfficiency() {
+      return 1;
     }
   };
 

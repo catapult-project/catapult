@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
 
     var modelHelper = new tr.e.audits.ChromeModelHelper(model);
     var rir = new tr.e.rail.RAILInteractionRecord(
-        'simple', 1, 0, 100, modelHelper);
+        'simple', 'rail_response', 0, 100);
     rir.associatedEvents.push(model.rendererMain.sliceGroup.slices[0]);
     rir.updateArgs();
 
