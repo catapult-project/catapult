@@ -91,6 +91,16 @@ tr.exportTo('tr.b', function() {
       else
         this.afterTask_ = new Task(cb, thisArg);
       return this.afterTask_;
+    },
+
+    /*
+     * Adds a task after the chain of tasks.
+     */
+    enqueue: function(cb, thisArg) {
+      var lastTask = this;
+      while (lastTask.afterTask_)
+        lastTask = lastTask.afterTask_;
+      return lastTask.after(cb, thisArg);
     }
   };
 

@@ -102,8 +102,7 @@ tr.b.unittest.testSuite(function() {
     selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1
     ];
-    controller.filterText = 'asdf';
-    var promise = controller.updateFilterHits();
+    var promise = controller.startFiltering('asdf');
     promise.then(function() {
       assertArrayShallowEquals([], selectionController.selection);
       assertArrayShallowEquals([s1], selectionController.findMatches);
@@ -131,8 +130,7 @@ tr.b.unittest.testSuite(function() {
     selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1, s2, s3
     ];
-    controller.filterText = 'asdf';
-    var promise = controller.updateFilterHits();
+    var promise = controller.startFiltering('asdf');
     promise.then(function() {
       // Loop through hits then when we wrap, try moving backward.
       assertArrayShallowEquals([], selectionController.selection);
@@ -166,8 +164,7 @@ tr.b.unittest.testSuite(function() {
     selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1, s2, s3
     ];
-    controller.filterText = 'asdf';
-    var promise = controller.updateFilterHits();
+    var promise = controller.startFiltering('asdf');
     promise.then(function() {
       // Loop through hits then when we wrap, try moving backward.
       controller.findNext();
@@ -175,8 +172,7 @@ tr.b.unittest.testSuite(function() {
         s4
       ];
 
-      controller.filterText = 'asdfsf';
-      var nextPromise = controller.updateFilterHits();
+      var nextPromise = controller.startFiltering('asdfsf');
       nextPromise.then(function() {
         controller.findNext();
         assertArrayShallowEquals([s4], selectionController.selection);
@@ -195,8 +191,7 @@ tr.b.unittest.testSuite(function() {
     selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1, s2, s3
     ];
-    controller.filterText = 'asdfsf';
-    var promise = controller.updateFilterHits();
+    var promise = controller.startFiltering('asdfsf');
     promise.then(function() {
       assertArrayShallowEquals([], selectionController.selection);
       assertArrayShallowEquals([s1, s2, s3], selectionController.findMatches);
@@ -228,8 +223,7 @@ tr.b.unittest.testSuite(function() {
     controller.findNext();
 
     // Test find with filter txt.
-    controller.filterText = 'a';
-    var promise = controller.updateFilterHits();
+    var promise = controller.startFiltering('a');
     promise = promise.then(function() {
       assert.equal(selectionController.selection.length, 0);
       assert.deepEqual(tr.b.asArray(selectionController.findMatches),
@@ -240,8 +234,7 @@ tr.b.unittest.testSuite(function() {
       assert.equal(selectionController.selection[0],
                    model.t1.sliceGroup.slices[0]);
 
-      controller.filterText = 'xxx';
-      var nextPromise = controller.updateFilterHits();
+      var nextPromise = controller.startFiltering('xxx');
       nextPromise.then(function() {
         assert.equal(selectionController.findMatches.length, 0);
         assert.equal(selectionController.selection.length, 1);
@@ -260,6 +253,7 @@ tr.b.unittest.testSuite(function() {
     var controller = new tr.c.FindController(selectionController);
 
     var navToPositionCallCount = 0;
+    var findTextClearedCallCount = 0;
     var fakeUIState = {};
     selectionController.uiStateFromString = function(string) {
       if (string === '')
@@ -271,18 +265,32 @@ tr.b.unittest.testSuite(function() {
       assert.equal(uiState, fakeUIState);
       navToPositionCallCount++;
     };
-
-    controller.filterText = '2000@1.2x7';
-    controller.updateFilterHits();
-    assert.equal(navToPositionCallCount, 1);
-
-    var findTextClearedCallCount = 0;
     selectionController.findTextCleared = function() {
       findTextClearedCallCount++;
     };
-    controller.filterText = '';
-    controller.updateFilterHits();
-    assert.equal(findTextClearedCallCount, 1);
+
+    var promise = controller.startFiltering('2000@1.2x7').then(function() {
+      assert.equal(navToPositionCallCount, 1);
+    });
+    promise = promise.then(controller.startFiltering.bind(controller, ''));
+    promise = promise.then(function() {
+      assert.equal(findTextClearedCallCount, 1);
+    });
+    return promise;
+  });
+
+  test('findControllerClearAfterSet', function() {
+    var selectionController = new FakeSelectionController();
+    var controller = new tr.c.FindController(selectionController);
+    var findTextChangedToCalled = false;
+    selectionController.findTextChangedTo = function(selection) {
+      findTextChangedToCalled = true;
+    };
+    selectionController.findTextCleared = function() {
+      assert.equal(findTextChangedToCalled, true);
+    };
+    controller.startFiltering('1');
+    controller.startFiltering('');
   });
 });
 </script>

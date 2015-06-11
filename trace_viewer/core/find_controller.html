@@ -20,10 +20,10 @@ tr.exportTo('tr.c', function() {
 
   function FindController(selectionController) {
     this.selectionController_ = selectionController;
-    this.filterText_ = '';
     this.filterHits_ = new tr.c.Selection();
-    this.filterHitsDirty_ = true;
     this.currentHitIndex_ = -1;
+    this.activePromise_ = Promise.resolve();
+    this.activeTask_ = undefined;
   };
 
   FindController.prototype = {
@@ -37,54 +37,40 @@ tr.exportTo('tr.c', function() {
       return this.selectionController_;
     },
 
-    get filterText() {
-      return this.filterText_;
-    },
-
-    set filterText(f) {
-      if (f == this.filterText_)
-        return;
-      this.filterText_ = f;
-      this.filterHitsDirty_ = true;
-    },
-
-    getFilterPromise_: function(filterText) {
-      if (!this.selectionController_)
-        return;
-      var promise = Promise.resolve();
-
-
-      var sc = this.selectionController_;
-
-      var filter = new tr.c.TitleOrCategoryFilter(filterText);
-      var filterHits = new tr.c.Selection();
-      var filterTask = sc.addAllEventsMatchingFilterToSelectionAsTask(
-          filter, filterHits);
-      promise = Task.RunWhenIdle(filterTask);
-      promise.then(function() {
-        this.filterHitsDirty_ = false;
-        this.filterHits_ = filterHits;
-        sc.findTextChangedTo(filterHits);
-      }.bind(this));
-      return promise;
-    },
-
-    clearFindSelections_: function() {
-      this.selectionController_.findTextCleared();
+    enqueueOperation_: function(operation) {
+      var task;
+      if (operation instanceof tr.b.Task)
+        task = operation;
+      else
+        task = new tr.b.Task(operation, this);
+      if (this.activeTask_) {
+        this.activeTask_ = this.activeTask_.enqueue(task);
+      } else {
+        // We're enqueuing the first task, schedule it.
+        this.activeTask_ = task;
+        this.activePromise_ = Task.RunWhenIdle(this.activeTask_);
+        this.activePromise_.then(function() {
+          this.activePromise_ = undefined;
+          this.activeTask_ = undefined;
+        }.bind(this));
+      }
     },
 
     /**
-     * Updates the filter hits based on the current filtering settings. Returns
-     * a promise which resolves when |filterHits| has been refreshed.
+     * Updates the filter hits based on the provided |filterText|. Returns a
+     * promise which resolves when |filterHits| has been refreshed.
      */
-    updateFilterHits: function() {
-      var promise = Promise.resolve();
+    startFiltering: function(filterText) {
+      var sc = this.selectionController_;
+      if (!sc)
+        return;
 
-      if (!this.filterHitsDirty_)
-        return promise;
-
-      this.filterHits_ = new tr.c.Selection();
-      this.currentHitIndex_ = -1;
+      // TODO(beaudoin): Cancel anything left in the task queue, without
+      // invalidating the promise.
+      this.enqueueOperation_(function() {
+        this.filterHits_ = new tr.c.Selection();
+        this.currentHitIndex_ = -1;
+      }.bind(this));
 
       // Try constructing a UIState from the filterText.
       // UIState.fromUserFriendlyString will throw an error only if the string
@@ -92,32 +78,42 @@ tr.exportTo('tr.c', function() {
       // It will return undefined if there is no syntactic match.
       var stateFromString;
       try {
-        stateFromString = this.selectionController_.uiStateFromString(
-            this.filterText);
+        stateFromString = sc.uiStateFromString(filterText);
       } catch (e) {
-        var overlay = new tr.b.ui.Overlay();
-        overlay.textContent = e.message;
-        overlay.title = 'UI State Navigation Error';
-        overlay.visible = true;
-        return promise;
+        this.enqueueOperation_(function() {
+          var overlay = new tr.b.ui.Overlay();
+          overlay.textContent = e.message;
+          overlay.title = 'UI State Navigation Error';
+          overlay.visible = true;
+        });
+        return this.activePromise_;
       }
 
       if (stateFromString !== undefined) {
-        this.selectionController_.navToPosition(stateFromString, true);
+        this.enqueueOperation_(
+            sc.navToPosition.bind(this, stateFromString, true));
       } else {
         // filterText is not a navString here -- proceed with find and filter.
-        if (this.filterText.length === 0)
-          this.clearFindSelections_();
-        else
-          promise = this.getFilterPromise_(this.filterText);
+        if (filterText.length === 0) {
+          this.enqueueOperation_(sc.findTextCleared.bind(sc));
+        } else {
+          var filter = new tr.c.TitleOrCategoryFilter(filterText);
+          var filterHits = new tr.c.Selection();
+          this.enqueueOperation_(sc.addAllEventsMatchingFilterToSelectionAsTask(
+              filter, filterHits));
+          this.enqueueOperation_(function() {
+            this.filterHits_ = filterHits;
+            sc.findTextChangedTo(filterHits);
+          }.bind(this));
+        }
       }
-      return promise;
+      return this.activePromise_;
     },
 
     /**
      * Returns the most recent filter hits as a tr.c.Selection. Call
-     * |updateFilterHits| to ensure this is up to date after the filter
-     * settings have been changed.
+     * |startFiltering| to ensure this is up to date after the filter settings
+     * have been changed.
      */
     get filterHits() {
       return this.filterHits_;
@@ -148,11 +144,6 @@ tr.exportTo('tr.c', function() {
 
     findPrevious: function() {
       this.find_(-1);
-    },
-
-    reset: function() {
-      this.filterText_ = '';
-      this.filterHitsDirty_ = true;
     }
   };
 

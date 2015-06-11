@@ -116,7 +116,6 @@ found in the LICENSE file.
     },
 
     filterFocus: function(e) {
-      this.controller.reset();
       this.$.filter.select();
     },
 
@@ -144,10 +143,9 @@ found in the LICENSE file.
     },
 
     filterTextChanged: function() {
-      this.controller.filterText = this.$.filter.value;
       this.$.hitCount.textContent = '';
       this.$.spinner.style.visibility = 'visible';
-      this.controller.updateFilterHits().then(function() {
+      this.controller.startFiltering(this.$.filter.value).then(function() {
         this.$.spinner.style.visibility = 'hidden';
         this.updateHitCountEl();
       }.bind(this));
