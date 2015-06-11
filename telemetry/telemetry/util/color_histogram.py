@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Provides implementations of functions that operate on histograms."""
+"""Color Histograms and implementations of functions operating on them."""
 
 from __future__ import division
 

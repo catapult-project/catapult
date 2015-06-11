@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.image_processing.io import frame_generator
+from telemetry.internal.image_processing import frame_generator
 from telemetry.util import external_modules
 
 cv2 = external_modules.ImportRequiredModule('cv2')

@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import time
 
-from telemetry.image_processing import image_util
+from telemetry.util import image_util
 
 
 class InspectorPage(object):

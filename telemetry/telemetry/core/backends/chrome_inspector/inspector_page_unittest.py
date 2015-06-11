@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 
 from telemetry import decorators
-from telemetry.image_processing import image_util
 from telemetry.unittest_util import tab_test_case
+from telemetry.util import image_util
 
 
 class InspectorPageTest(tab_test_case.TabTestCase):

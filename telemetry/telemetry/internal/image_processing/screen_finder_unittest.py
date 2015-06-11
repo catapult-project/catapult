@@ -23,9 +23,9 @@ else:
       # Import modules with dependencies that may not be preset in test setup so
       # that importing this unit test doesn't cause the test runner to raise an
       # exception.
-      from telemetry.image_processing.io import fake_frame_generator
-      from telemetry.image_processing.io import video_file_frame_generator
-      from telemetry.image_processing import screen_finder
+      from telemetry.internal.image_processing import fake_frame_generator
+      from telemetry.internal.image_processing import screen_finder
+      from telemetry.internal.image_processing import video_file_frame_generator
       self.FakeFrameGenerator = fake_frame_generator.FakeFrameGenerator
       self.VideoFileFrameGenerator = \
           video_file_frame_generator.VideoFileFrameGenerator

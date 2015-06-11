@@ -18,10 +18,10 @@ import sys
 if __name__ == '__main__':
   sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
 
-from telemetry.image_processing import cv_util
-from telemetry.image_processing.io import frame_generator as \
+from telemetry.internal.image_processing import cv_util
+from telemetry.internal.image_processing import frame_generator as \
     frame_generator_module
-from telemetry.image_processing.io import video_file_frame_generator
+from telemetry.internal.image_processing import video_file_frame_generator
 from telemetry.util import external_modules
 
 np = external_modules.ImportRequiredModule('numpy')

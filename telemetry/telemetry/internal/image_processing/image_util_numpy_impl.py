@@ -5,9 +5,9 @@
 from __future__ import division
 
 from telemetry.core import util
-from telemetry.image_processing import histogram
-from telemetry.image_processing import rgba_color
 from telemetry.util import external_modules
+from telemetry.util import color_histogram
+from telemetry.util import rgba_color
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
 import png  # pylint: disable=F0401
@@ -176,10 +176,10 @@ def GetColorHistogram(image, ignore_color, tolerance):
                   (filtered[:, 2] < colorm[2]) | (filtered[:, 2] > colorp[2]))
       filtered = np.compress(in_range, filtered, axis=0)
     if len(filtered[:, 0]) == 0:
-      return histogram.ColorHistogram(np.zeros((256)), np.zeros((256)),
+      return color_histogram.ColorHistogram(np.zeros((256)), np.zeros((256)),
                                       np.zeros((256)), ignore_color)
     hist_b = np.bincount(filtered[:, 0], minlength=256)
     hist_g = np.bincount(filtered[:, 1], minlength=256)
     hist_r = np.bincount(filtered[:, 2], minlength=256)
 
-  return histogram.ColorHistogram(hist_r, hist_g, hist_b, ignore_color)
+  return color_histogram.ColorHistogram(hist_r, hist_g, hist_b, ignore_color)

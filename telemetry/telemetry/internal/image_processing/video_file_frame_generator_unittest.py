@@ -6,7 +6,7 @@ import os
 import unittest
 
 from telemetry.core import util
-from telemetry.image_processing.io import frame_generator
+from telemetry.internal.image_processing import frame_generator
 from telemetry.util import external_modules
 
 try:
@@ -20,7 +20,7 @@ else:
       # Import modules with dependencies that may not be preset in test setup so
       # that importing this unit test doesn't cause the test runner to raise an
       # exception.
-      from telemetry.image_processing.io import video_file_frame_generator
+      from telemetry.internal.image_processing import video_file_frame_generator
       self.VideoFileFrameGenerator = \
           video_file_frame_generator.VideoFileFrameGenerator
 

@@ -15,8 +15,8 @@ import subprocess
 from catapult_base import support_binaries
 from telemetry.core import platform
 from telemetry.core import util
-from telemetry.image_processing import histogram
-from telemetry.image_processing import rgba_color
+from telemetry.util import color_histogram
+from telemetry.util import rgba_color
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
 import png  # pylint: disable=F0401
@@ -71,7 +71,7 @@ class _BitmapTools(object):
     out.fromstring(response)
     assert len(out) == 768, (
         'The ColorHistogram has the wrong number of buckets: %s' % len(out))
-    return histogram.ColorHistogram(out[:256], out[256:512], out[512:],
+    return color_histogram.ColorHistogram(out[:256], out[256:512], out[512:],
                                     ignore_color)
 
   def BoundingBox(self, color, tolerance):

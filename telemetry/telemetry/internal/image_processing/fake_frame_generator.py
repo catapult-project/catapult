@@ -2,13 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.image_processing.io.frame_generator import FrameGenerator
+from telemetry.internal.image_processing import frame_generator
 from telemetry.util import external_modules
 
 np = external_modules.ImportRequiredModule('numpy')
 
 
-class FakeFrameGenerator(FrameGenerator):
+class FakeFrameGenerator(frame_generator.FrameGenerator):
   """ Fakes a Frame Generator, for testing.
 
   Attributes:

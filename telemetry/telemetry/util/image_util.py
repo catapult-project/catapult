@@ -18,10 +18,10 @@ from telemetry.util import external_modules
 np = external_modules.ImportOptionalModule('numpy')
 
 if np is None:
-  from telemetry.image_processing import image_util_bitmap_impl
+  from telemetry.internal.image_processing import image_util_bitmap_impl
   impl = image_util_bitmap_impl
 else:
-  from telemetry.image_processing import image_util_numpy_impl
+  from telemetry.internal.image_processing import image_util_numpy_impl
   impl = image_util_numpy_impl
 
 

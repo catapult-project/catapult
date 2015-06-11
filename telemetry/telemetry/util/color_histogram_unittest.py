@@ -4,48 +4,48 @@
 
 import unittest
 
-from telemetry.image_processing import histogram
-from telemetry.image_processing import image_util
-from telemetry.image_processing.rgba_color import RgbaColor
+from telemetry.util import color_histogram
+from telemetry.util import image_util
+from telemetry.util import rgba_color
 
 class HistogramDistanceTest(unittest.TestCase):
   def testNoData(self):
     hist1 = []
     hist2 = []
-    self.assertEqual(histogram.HistogramDistance(hist1, hist2), 0)
+    self.assertEqual(color_histogram.HistogramDistance(hist1, hist2), 0)
 
     hist1 = [0, 0, 0]
     hist2 = [0, 0, 0]
     self.assertRaises(
-        ValueError, lambda: histogram.HistogramDistance(hist1, hist2))
+        ValueError, lambda: color_histogram.HistogramDistance(hist1, hist2))
 
   def testWrongSizes(self):
     hist1 = [1]
     hist2 = [1, 0]
     self.assertRaises(
-        ValueError, lambda: histogram.HistogramDistance(hist1, hist2))
+        ValueError, lambda: color_histogram.HistogramDistance(hist1, hist2))
 
   def testNoDistance(self):
     hist1 = [2, 4, 1, 8, 0, 0]
     hist2 = [2, 4, 1, 8, 0, 0]
-    self.assertEqual(histogram.HistogramDistance(hist1, hist2), 0)
+    self.assertEqual(color_histogram.HistogramDistance(hist1, hist2), 0)
 
   def testNormalizeCounts(self):
     hist1 = [0, 0, 1, 0, 0]
     hist2 = [0, 0, 0, 0, 7]
-    self.assertEqual(histogram.HistogramDistance(hist1, hist2), 2)
-    self.assertEqual(histogram.HistogramDistance(hist2, hist1), 2)
+    self.assertEqual(color_histogram.HistogramDistance(hist1, hist2), 2)
+    self.assertEqual(color_histogram.HistogramDistance(hist2, hist1), 2)
 
   def testDistance(self):
     hist1 = [2, 0, 1, 3, 4]
     hist2 = [3, 1, 2, 4, 0]
-    self.assertEqual(histogram.HistogramDistance(hist1, hist2), 1)
-    self.assertEqual(histogram.HistogramDistance(hist2, hist1), 1)
+    self.assertEqual(color_histogram.HistogramDistance(hist1, hist2), 1)
+    self.assertEqual(color_histogram.HistogramDistance(hist2, hist1), 1)
 
     hist1 = [0, 1, 3, 1]
     hist2 = [2, 2, 1, 0]
-    self.assertEqual(histogram.HistogramDistance(hist1, hist2), 1.2)
-    self.assertEqual(histogram.HistogramDistance(hist2, hist1), 1.2)
+    self.assertEqual(color_histogram.HistogramDistance(hist1, hist2), 1.2)
+    self.assertEqual(color_histogram.HistogramDistance(hist2, hist1), 1.2)
 
 
 class HistogramTest(unittest.TestCase):
@@ -75,8 +75,8 @@ class HistogramTest(unittest.TestCase):
               1, 2, 3, 8, 7, 6, 5, 4, 6, 1, 2, 3]
     bmp = image_util.FromRGBPixels(4, 3, pixels)
 
-    hist = image_util.GetColorHistogram(bmp,
-                                        ignore_color=RgbaColor(1, 2, 3))
+    hist = image_util.GetColorHistogram(
+        bmp, ignore_color=rgba_color.RgbaColor(1, 2, 3))
     self.assertEquals(hist.r[1], 0)
     self.assertEquals(hist.r[5], 2)
     self.assertEquals(hist.r[8], 2)
@@ -92,7 +92,7 @@ class HistogramTest(unittest.TestCase):
     bmp = image_util.FromRGBPixels(2, 2, pixels)
 
     hist = image_util.GetColorHistogram(
-        bmp, ignore_color=RgbaColor(0, 1, 2), tolerance=1)
+        bmp, ignore_color=rgba_color.RgbaColor(0, 1, 2), tolerance=1)
     self.assertEquals(hist.r[1], 0)
     self.assertEquals(hist.r[4], 1)
     self.assertEquals(hist.r[7], 1)
@@ -110,7 +110,8 @@ class HistogramTest(unittest.TestCase):
               1, 2, 3, 1, 2, 3]
     bmp = image_util.FromRGBPixels(2, 2, pixels)
 
-    hist1 = image_util.GetColorHistogram(bmp, ignore_color=RgbaColor(1, 2, 3))
+    hist1 = image_util.GetColorHistogram(
+        bmp, ignore_color=rgba_color.RgbaColor(1, 2, 3))
     hist2 = image_util.GetColorHistogram(bmp)
 
     self.assertEquals(hist1.Distance(hist2), 0)

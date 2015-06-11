@@ -6,8 +6,8 @@ import subprocess
 
 from catapult_base import cloud_storage
 from telemetry.core import platform
-from telemetry.image_processing import image_util
-from telemetry.image_processing import rgba_color
+from telemetry.util import image_util
+from telemetry.util import rgba_color
 
 HIGHLIGHT_ORANGE_FRAME = rgba_color.WEB_PAGE_TEST_ORANGE
 

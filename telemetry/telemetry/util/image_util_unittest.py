@@ -7,8 +7,8 @@ import tempfile
 import unittest
 
 from telemetry.core import util
-from telemetry.image_processing import image_util
-from telemetry.image_processing.rgba_color import RgbaColor
+from telemetry.util import image_util
+from telemetry.util import rgba_color
 
 # This is a simple base64 encoded 2x2 PNG which contains, in order, a single
 # Red, Yellow, Blue, and Green pixel.
@@ -106,11 +106,11 @@ class ImageUtilTest(unittest.TestCase):
               0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0,
               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     bmp = image_util.FromRGBPixels(4, 3, pixels)
-    box, count = image_util.GetBoundingBox(bmp, RgbaColor(1, 0, 0))
+    box, count = image_util.GetBoundingBox(bmp, rgba_color.RgbaColor(1, 0, 0))
     self.assertEquals(box, (1, 1, 2, 1))
     self.assertEquals(count, 2)
 
-    box, count = image_util.GetBoundingBox(bmp, RgbaColor(0, 1, 0))
+    box, count = image_util.GetBoundingBox(bmp, rgba_color.RgbaColor(0, 1, 0))
     self.assertEquals(box, None)
     self.assertEquals(count, 0)
 

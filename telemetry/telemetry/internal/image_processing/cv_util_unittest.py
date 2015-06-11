@@ -17,7 +17,7 @@ else:
       # Import modules with dependencies that may not be preset in test setup so
       # that importing this unit test doesn't cause the test runner to raise an
       # exception.
-      from telemetry.image_processing import cv_util
+      from telemetry.internal.image_processing import cv_util
       self.cv_util = cv_util
 
     def testAreLinesOrthogonalish(self):
