@@ -3,8 +3,11 @@
 # found in the LICENSE file.
 import logging
 import os
+import shutil
 import sys
+import zipfile
 
+from catapult_base import cloud_storage
 from telemetry.core import browser_finder
 from telemetry.core import browser_finder_exceptions
 from telemetry.core import browser_info as browser_info_module
@@ -34,6 +37,10 @@ def _PrepareFinderOptions(finder_options, test, device_type):
                                            finder_options)
 
 class SharedPageState(shared_state.SharedState):
+  """
+  This class contains all specific logic necessary to run a Chrome browser
+  benchmark.
+  """
 
   _device_type = None
 
@@ -59,6 +66,7 @@ class SharedPageState(shared_state.SharedState):
     self._current_page = None
     self._current_tab = None
 
+    self._pregenerated_profile_archive = None
     self._test.SetOptions(self._finder_options)
 
   def _GetPossibleBrowser(self, test, finder_options):
@@ -129,6 +137,9 @@ class SharedPageState(shared_state.SharedState):
         browser_options.extra_wpr_args, make_javascript_deterministic)
 
   def WillRunUserStory(self, page):
+    if self._ShouldDownloadPregeneratedProfileArchive():
+      self._DownloadPregeneratedProfileArchive()
+
     page_set = page.page_set
     self._current_page = page
     if self._test.RestartBrowserBeforeEachPage() or page.startup_url:
@@ -303,6 +314,97 @@ class SharedPageState(shared_state.SharedState):
           results.AddProfilingFile(self._current_page,
                                    file_handle.FromFilePath(f))
 
+  def GetPregeneratedProfileArchive(self):
+    return self._pregenerated_profile_archive
+
+  def SetPregeneratedProfileArchive(self, archive):
+    """
+    Benchmarks can set a pre-generated profile archive to indicate that when
+    Chrome is launched, it should have a --user-data-dir set to the
+    pregenerated profile, rather than to an empty profile.
+
+    If the benchmark is invoked with the option --profile-dir=<dir>, that
+    option overrides this value.
+    """
+    self._pregenerated_profile_archive = archive
+
+  def _ShouldDownloadPregeneratedProfileArchive(self):
+    """Whether to download a pre-generated profile archive."""
+    # There is no pre-generated profile archive.
+    if not self.GetPregeneratedProfileArchive():
+      return False
+
+    # If profile dir is specified on command line, use that instead.
+    if self._finder_options.browser_options.profile_dir:
+      logging.warning("Profile directory specified on command line: %s, this"
+          "overrides the benchmark's default profile directory.",
+          self._finder_options.browser_options.profile_dir)
+      return False
+
+    # If the browser is remote, a local download has no effect.
+    if self._possible_browser.IsRemote():
+      return False
+
+    return True
+
+  def _DownloadPregeneratedProfileArchive(self):
+    """Download and extract the profile directory archive if one exists.
+
+    On success, updates self._finder_options.browser_options.profile_dir with
+    the directory of the extracted profile.
+    """
+    # Download profile directory from cloud storage.
+    test_data_dir = os.path.join(util.GetChromiumSrcDir(), 'tools', 'perf',
+        'generated_profiles',
+        self._possible_browser.target_os)
+    archive_name = self.GetPregeneratedProfileArchive()
+    generated_profile_archive_path = os.path.normpath(
+        os.path.join(test_data_dir, archive_name))
+
+    try:
+      cloud_storage.GetIfChanged(generated_profile_archive_path,
+          cloud_storage.PUBLIC_BUCKET)
+    except (cloud_storage.CredentialsError,
+            cloud_storage.PermissionError) as e:
+      if os.path.exists(generated_profile_archive_path):
+        # If the profile directory archive exists, assume the user has their
+        # own local copy simply warn.
+        logging.warning('Could not download Profile archive: %s',
+            generated_profile_archive_path)
+      else:
+        # If the archive profile directory doesn't exist, this is fatal.
+        logging.error('Can not run without required profile archive: %s. '
+                      'If you believe you have credentials, follow the '
+                      'instructions below.',
+                      generated_profile_archive_path)
+        logging.error(str(e))
+        sys.exit(-1)
+
+    # Check to make sure the zip file exists.
+    if not os.path.isfile(generated_profile_archive_path):
+      raise Exception("Profile directory archive not downloaded: ",
+          generated_profile_archive_path)
+
+    # The location to extract the profile into.
+    extracted_profile_dir_path = (
+        os.path.splitext(generated_profile_archive_path)[0])
+
+    # Unzip profile directory.
+    with zipfile.ZipFile(generated_profile_archive_path) as f:
+      try:
+        f.extractall(os.path.dirname(generated_profile_archive_path))
+      except e:
+        # Cleanup any leftovers from unzipping.
+        if os.path.exists(extracted_profile_dir_path):
+          shutil.rmtree(extracted_profile_dir_path)
+        logging.error("Error extracting profile directory zip file: %s", e)
+        sys.exit(-1)
+
+    # Run with freshly extracted profile directory.
+    logging.info("Using profile archive directory: %s",
+        extracted_profile_dir_path)
+    self._finder_options.browser_options.profile_dir = (
+        extracted_profile_dir_path)
 
 class SharedMobilePageState(SharedPageState):
   _device_type = 'mobile'

@@ -2,17 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
 import optparse
-import os
-import shutil
-import sys
-import zipfile
 
 from catapult_base import cloud_storage
-from telemetry.core import browser_finder
 from telemetry.core import command_line
-from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal import story_runner
 from telemetry import page
@@ -192,8 +185,6 @@ class Benchmark(command_line.Command):
             'PageTest must be used with StorySet containing only '
             'telemetry.page.Page user stories.')
 
-    self._DownloadGeneratedProfileArchive(finder_options)
-
     benchmark_metadata = self.GetMetadata()
     with results_options.CreateResults(
         benchmark_metadata, finder_options,
@@ -213,71 +204,6 @@ class Benchmark(command_line.Command):
 
       results.PrintSummary()
     return return_code
-
-  def _DownloadGeneratedProfileArchive(self, options):
-    """Download and extract profile directory archive if one exists."""
-    archive_name = getattr(self, 'generated_profile_archive', None)
-
-    # If attribute not specified, nothing to do.
-    if not archive_name:
-      return
-
-    # If profile dir specified on command line, nothing to do.
-    if options.browser_options.profile_dir:
-      logging.warning("Profile directory specified on command line: %s, this"
-          "overrides the benchmark's default profile directory.",
-          options.browser_options.profile_dir)
-      return
-
-    # Download profile directory from cloud storage.
-    found_browser = browser_finder.FindBrowser(options)
-    if found_browser.IsRemote():
-      return
-    test_data_dir = os.path.join(util.GetChromiumSrcDir(), 'tools', 'perf',
-        'generated_profiles',
-        found_browser.target_os)
-    generated_profile_archive_path = os.path.normpath(
-        os.path.join(test_data_dir, archive_name))
-
-    try:
-      cloud_storage.GetIfChanged(generated_profile_archive_path,
-          cloud_storage.PUBLIC_BUCKET)
-    except (cloud_storage.CredentialsError,
-            cloud_storage.PermissionError) as e:
-      if os.path.exists(generated_profile_archive_path):
-        # If the profile directory archive exists, assume the user has their
-        # own local copy simply warn.
-        logging.warning('Could not download Profile archive: %s',
-            generated_profile_archive_path)
-      else:
-        # If the archive profile directory doesn't exist, this is fatal.
-        logging.error('Can not run without required profile archive: %s. '
-                      'If you believe you have credentials, follow the '
-                      'instructions below.',
-                      generated_profile_archive_path)
-        logging.error(str(e))
-        sys.exit(-1)
-
-    # Unzip profile directory.
-    extracted_profile_dir_path = (
-        os.path.splitext(generated_profile_archive_path)[0])
-    if not os.path.isfile(generated_profile_archive_path):
-      raise Exception("Profile directory archive not downloaded: ",
-          generated_profile_archive_path)
-    with zipfile.ZipFile(generated_profile_archive_path) as f:
-      try:
-        f.extractall(os.path.dirname(generated_profile_archive_path))
-      except e:
-        # Cleanup any leftovers from unzipping.
-        if os.path.exists(extracted_profile_dir_path):
-          shutil.rmtree(extracted_profile_dir_path)
-        logging.error("Error extracting profile directory zip file: %s", e)
-        sys.exit(-1)
-
-    # Run with freshly extracted profile directory.
-    logging.info("Using profile archive directory: %s",
-        extracted_profile_dir_path)
-    options.browser_options.profile_dir = extracted_profile_dir_path
 
   def CreateTimelineBasedMeasurementOptions(self):
     """Return the TimelineBasedMeasurementOptions for this Benchmark.
@@ -329,6 +255,10 @@ class Benchmark(command_line.Command):
     return self.page_set()
 
   def CreateStorySet(self, options):
+    """Creates the instance of StorySet used to run the benchmark.
+
+    Can be overridden by subclasses.
+    """
     return self.CreatePageSet(options)
 
   @classmethod

@@ -16,6 +16,10 @@ INTERNAL_BUCKET = story.INTERNAL_BUCKET
     2015, 6, 25, 'Please use the UserStory class instead (crbug.com/439512). '
     'Instructions for conversion can be found in: https://goo.gl/JsaEez')
 class PageSet(story.StorySet):
+  """
+  This class contains all Chromium-specific configurations necessary to run a
+  Telemetry benchmark.
+  """
   def __init__(self, base_dir=None, archive_data_file='', user_agent_type=None,
                serving_dirs=None, bucket=None):
     if base_dir and not os.path.isdir(base_dir):
