@@ -5,14 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/ui/color_legend.html">
+<link rel="import" href="/ui/base/color_legend.html">
 <link rel="import"
     href="/core/analysis/memory_dump_allocator_details_pane.html">
 <link rel="import"
     href="/core/analysis/memory_dump_vm_regions_details_pane.html">
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/base/units/size_in_bytes_span.html">
-<link rel="import" href="/base/ui/table.html">
+<link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/model/attribute.html">
 
 <polymer-element name="tr-c-a-memory-dump-overview-pane">
@@ -41,8 +41,8 @@ found in the LICENSE file.
       }
     </style>
     <div id="label">Overview</div>
-    <tr-b-ui-table id="table">
-    </tr-b-ui-table>
+    <tr-ui-b-table id="table">
+    </tr-ui-b-table>
   </template>
   <script>
   'use strict';
@@ -173,7 +173,7 @@ found in the LICENSE file.
         var titleColumn = {
           title: 'Process',
           value: function(row) {
-            var titleEl = document.createElement('tr-b-ui-color-legend');
+            var titleEl = document.createElement('tr-ui-b-color-legend');
             titleEl.label = row.title;
             return titleEl;
           },
@@ -188,7 +188,7 @@ found in the LICENSE file.
             rows, 'usedMemorySizes');
         var allocatorSizeColumns = tr.c.analysis.MemoryColumn.fromRows(
             rows, 'allocatorSizes', function(allocatorName) {
-          var titleEl = document.createElement('tr-b-ui-color-legend');
+          var titleEl = document.createElement('tr-ui-b-color-legend');
           titleEl.label = allocatorName;
           return titleEl;
         });

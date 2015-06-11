@@ -69,7 +69,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           pid, pid);
       if (kthread.openSlice) {
         var slice = new tr.model.Slice('', kthread.openSlice,
-            tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+            tr.ui.b.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             {},
             ts - kthread.openSliceTS);

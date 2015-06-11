@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/tracks/track.html">
 <link rel="import" href="/core/filter.html">
@@ -20,7 +20,7 @@ tr.exportTo('tr.c.tracks', function() {
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var ContainerTrack = tr.b.ui.define('container-track', tr.c.tracks.Track);
+  var ContainerTrack = tr.ui.define('container-track', tr.c.tracks.Track);
   ContainerTrack.prototype = {
     __proto__: tr.c.tracks.Track.prototype,
 

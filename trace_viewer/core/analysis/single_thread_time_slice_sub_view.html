@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/ui/color_scheme.html">
+<link rel="import" href="/ui/base/color_scheme.html">
 <link rel="import" href="/base/sorted_array_utils.html">
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/core/analysis/analysis_link.html">
@@ -104,7 +104,7 @@ found in the LICENSE file.
 
       var shadowRoot = this.shadowRoot;
       shadowRoot.querySelector('#state').textContent = timeSlice.title;
-      var stateColor = tr.b.ui.getColorPalette()[timeSlice.colorId];
+      var stateColor = tr.ui.b.getColorPalette()[timeSlice.colorId];
       shadowRoot.querySelector('#state').style.backgroundColor = stateColor;
 
       shadowRoot.querySelector('#process-name').textContent =

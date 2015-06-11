@@ -4,7 +4,7 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/base/ui/color_scheme.html">
+<link rel="import" href="/ui/base/color_scheme.html">
 
 <script>
 'use strict';
@@ -28,7 +28,7 @@ tr.exportTo('tr.model', function() {
     this.title = title;
     this.description = description;
     this.docLinks = docLinks;
-    this.colorId = tr.b.ui.getColorIdForGeneralPurposeString(title);
+    this.colorId = tr.ui.b.getColorIdForGeneralPurposeString(title);
   }
 
   return {

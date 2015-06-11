@@ -121,7 +121,7 @@ tr.exportTo('tr.c.tracks', function() {
     // Build a chart series for each allocator.
     var series = [];
     tr.b.iterItems(allocatorNameToPoints, function(allocatorName, points) {
-      var colorId = tr.b.ui.getColorIdForGeneralPurposeString(allocatorName);
+      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(allocatorName);
       var renderingConfig = {
         chartType: tr.c.tracks.ChartSeriesType.LINE,
         colorId: colorId
@@ -137,7 +137,7 @@ tr.exportTo('tr.c.tracks', function() {
    * inside).
    */
   function buildMemoryLetterDots(memoryDumps) {
-    var memoryColorId = tr.b.ui.getColorIdForReservedName('memory_dump');
+    var memoryColorId = tr.ui.b.getColorIdForReservedName('memory_dump');
     return memoryDumps.map(function(memoryDump) {
       return new tr.c.tracks.LetterDot(
           memoryDump, 'M', memoryColorId, memoryDump.start);
@@ -207,7 +207,7 @@ tr.exportTo('tr.c.tracks', function() {
     var series = [];
     tr.b.iterItems(pidToPoints, function(pid, points) {
       var process = pidToProcess[pid];
-      var colorId = tr.b.ui.getColorIdForGeneralPurposeString(
+      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(
           process.userFriendlyName);
       var renderingConfig = {
         chartType: tr.c.tracks.ChartSeriesType.AREA,

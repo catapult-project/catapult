@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/utils.html">
-<link rel="import" href="/base/ui/animation.html">
+<link rel="import" href="/ui/base/animation.html">
 
 <script>
 'use strict';
@@ -16,7 +16,7 @@ tr.exportTo('tr.c', function() {
   /**
    * Pans a TimelineDisplayTransform by a given amount.
    * @constructor
-   * @extends {tr.b.ui.Animation}
+   * @extends {tr.ui.b.Animation}
    * @param {Number} deltaX The total amount of change to the transform's panX.
    * @param {Number} deltaY The total amount of change to the transform's panY.
    * @param {Number=} opt_durationMs How long the pan animation should run.
@@ -37,7 +37,7 @@ tr.exportTo('tr.c', function() {
   }
 
   TimelineDisplayTransformPanAnimation.prototype = {
-    __proto__: tr.b.ui.Animation.prototype,
+    __proto__: tr.ui.b.Animation.prototype,
 
     get affectsPanY() {
       return this.deltaY !== 0;
@@ -95,7 +95,7 @@ tr.exportTo('tr.c', function() {
    * point in addition to the amount by which to zoom.
    *
    * @constructor
-   * @extends {tr.b.ui.Animation}
+   * @extends {tr.ui.b.Animation}
    * @param {Number} goalFocalPointXWorld The X coordinate in the world which is
    * of interest.
    * @param {Number} goalFocalPointXView Where on the screen the
@@ -127,7 +127,7 @@ tr.exportTo('tr.c', function() {
   }
 
   TimelineDisplayTransformZoomToAnimation.prototype = {
-    __proto__: tr.b.ui.Animation.prototype,
+    __proto__: tr.ui.b.Animation.prototype,
 
     get affectsPanY() {
       return this.startPanY != this.goalFocalPointY;

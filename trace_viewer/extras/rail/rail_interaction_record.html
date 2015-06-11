@@ -20,7 +20,7 @@ found in the LICENSE file.
 tr.exportTo('tr.e.rail', function() {
 
   function RAILInteractionRecord(title, railTypeName, start, duration) {
-    var colorId = tr.b.ui.getColorIdForReservedName(railTypeName);
+    var colorId = tr.ui.b.getColorIdForReservedName(railTypeName);
     this.railTypeName_ = railTypeName;
     tr.model.InteractionRecord.call(this,
                                     title, colorId, start, duration);

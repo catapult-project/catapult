@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="stylesheet" href="/extras/system_stats/system_stats_instance_track.css">
 <link rel="import" href="/base/sorted_array_utils.html">
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 <link rel="import" href="/core/tracks/stacked_bars_track.html">
 <link rel="import" href="/core/tracks/object_instance_track.html">
 <link rel="import" href="/core/event_presenter.html">
@@ -18,8 +18,8 @@ found in the LICENSE file.
 tr.exportTo('tr.e.system_stats', function() {
   var EventPresenter = tr.c.EventPresenter;
 
-  var palette = tr.b.ui.getColorPalette();
-  var highlightIdBoost = tr.b.ui.getColorPaletteHighlightIdBoost();
+  var palette = tr.ui.b.getColorPalette();
+  var highlightIdBoost = tr.ui.b.getColorPaletteHighlightIdBoost();
 
   var statCount;
 
@@ -49,7 +49,7 @@ tr.exportTo('tr.e.system_stats', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var SystemStatsInstanceTrack = tr.b.ui.define(
+  var SystemStatsInstanceTrack = tr.ui.define(
       'system-stats-instance-track', tr.c.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {

@@ -9,10 +9,10 @@ found in the LICENSE file.
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
-<link rel="import" href="/base/ui/dom_helpers.html">
-<link rel="import" href="/base/ui/pie_chart.html">
-<link rel="import" href="/base/ui/sortable_table.html">
-<link rel="import" href="/base/ui/sunburst_chart.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/pie_chart.html">
+<link rel="import" href="/ui/base/sortable_table.html">
+<link rel="import" href="/ui/base/sunburst_chart.html">
 
 <template id="x-sample-summary-panel-template">
   <style>
@@ -133,7 +133,7 @@ tr.exportTo('tr.e.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   var RequestSelectionChangeEvent = tr.c.RequestSelectionChangeEvent;
-  var getColorOfKey = tr.b.ui.getColorOfKey;
+  var getColorOfKey = tr.ui.b.getColorOfKey;
 
   /**
     * @constructor
@@ -302,7 +302,7 @@ tr.exportTo('tr.e.analysis', function() {
    * @constructor
    */
   var SamplingSummaryPanel =
-      tr.b.ui.define('x-sample-summary-panel');
+      tr.ui.define('x-sample-summary-panel');
   SamplingSummaryPanel.textLabel = 'Sampling Summary';
   SamplingSummaryPanel.supportsModel = function(m) {
     if (m == undefined) {
@@ -419,7 +419,7 @@ tr.exportTo('tr.e.analysis', function() {
       }
 
       // Make it sortable.
-      tr.b.ui.SortableTable.decorate(table);
+      tr.ui.b.SortableTable.decorate(table);
 
       var calleeArea = that.querySelector('x-callees');
       calleeArea.textContent = '';
@@ -496,7 +496,7 @@ tr.exportTo('tr.e.analysis', function() {
 
       var sunburstData =
           createSunburstData(this.selection_, this.sampleType_);
-      this.chart_ = new tr.b.ui.SunburstChart();
+      this.chart_ = new tr.ui.b.SunburstChart();
       this.chart_.width = 600;
       this.chart_.height = 600;
       this.chart_.chartTitle = 'Sampling Summary';
@@ -546,7 +546,7 @@ tr.exportTo('tr.e.analysis', function() {
         sampleTypeOptions.push({label: sampleTypes[i], value: sampleTypes[i]});
 
       var toolbarEl = this.querySelector('x-toolbar');
-      this.sampleTypeSelector_ = tr.b.ui.createSelector(
+      this.sampleTypeSelector_ = tr.ui.b.createSelector(
           this,
           'sampleType',
           'samplingSummaryPanel.sampleType',

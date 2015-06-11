@@ -117,7 +117,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           pid, pid);
       if (kthread.openSliceTS) {
         var slice = new tr.model.Slice('', eventBase.threadName,
-            tr.b.ui.getColorIdForGeneralPurposeString(eventBase.threadName),
+            tr.ui.b.getColorIdForGeneralPurposeString(eventBase.threadName),
             kthread.openSliceTS,
             {
                 order: kthread.order
@@ -161,7 +161,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (kthread.openSliceTS !== undefined) {
         var slice = new tr.model.Slice(
             '', 'direct reclaim',
-            tr.b.ui.getColorIdForGeneralPurposeString(eventBase.threadName),
+            tr.ui.b.getColorIdForGeneralPurposeString(eventBase.threadName),
             kthread.openSliceTS,
             {
                 order: kthread.order,

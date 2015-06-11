@@ -81,7 +81,7 @@ tr.exportTo('tr.c', function() {
         stateFromString = sc.uiStateFromString(filterText);
       } catch (e) {
         this.enqueueOperation_(function() {
-          var overlay = new tr.b.ui.Overlay();
+          var overlay = new tr.ui.b.Overlay();
           overlay.textContent = e.message;
           overlay.title = 'UI State Navigation Error';
           overlay.visible = true;

@@ -7,7 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/unittest/constants.html">
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 <link rel="stylesheet" href="/base/unittest/common.css">
 <style>
   x-tr.b.unittest-test-resultsbase
@@ -68,7 +68,7 @@ tr.exportTo('tr.b.unittest', function() {
   /**
    * @constructor
    */
-  var HTMLTestCaseResult = tr.b.ui.define('x-html-test-case-result');
+  var HTMLTestCaseResult = tr.ui.define('x-html-test-case-result');
 
   HTMLTestCaseResult.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -221,7 +221,7 @@ tr.exportTo('tr.b.unittest', function() {
   /**
    * @constructor
    */
-  var HTMLTestResults = tr.b.ui.define('x-tr.b.unittest-test-results');
+  var HTMLTestResults = tr.ui.define('x-tr.b.unittest-test-results');
 
   HTMLTestResults.prototype = {
     __proto__: HTMLUnknownElement.prototype,

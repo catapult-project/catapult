@@ -10,8 +10,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/side_panel/side_panel.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
-<link rel="import" href="/base/ui/dom_helpers.html">
-<link rel="import" href="/base/ui/pie_chart.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/pie_chart.html">
 
 <polymer-element name="tr-e-s-time-summary-side-panel"
     extends="tr-c-side-panel">
@@ -128,7 +128,7 @@ found in the LICENSE file.
         this.chart_ = undefined;
 
         var toolbarEl = this.$.toolbar;
-        this.groupBySelector_ = tr.b.ui.createSelector(
+        this.groupBySelector_ = tr.ui.b.createSelector(
             this, 'groupBy',
             'timeSummarySidePanel.groupBy', this.groupBy_,
             [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
@@ -136,7 +136,7 @@ found in the LICENSE file.
             ]);
         toolbarEl.appendChild(this.groupBySelector_);
 
-        this.groupingUnitSelector_ = tr.b.ui.createSelector(
+        this.groupingUnitSelector_ = tr.ui.b.createSelector(
             this, 'groupingUnit',
             'timeSummarySidePanel.groupingUnit', this.groupingUnit_,
             [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
@@ -144,7 +144,7 @@ found in the LICENSE file.
             ]);
         toolbarEl.appendChild(this.groupingUnitSelector_);
 
-        this.showCpuIdleTimeCheckbox_ = tr.b.ui.createCheckBox(
+        this.showCpuIdleTimeCheckbox_ = tr.ui.b.createCheckBox(
             this, 'showCpuIdleTime',
             'timeSummarySidePanel.showCpuIdleTime', this.showCpuIdleTime_,
             'Show CPU idle time');
@@ -206,7 +206,7 @@ found in the LICENSE file.
 
       createPieChartFromResultGroups: function(
           groups, title, getValue, opt_extraData) {
-        var chart = new tr.b.ui.PieChart();
+        var chart = new tr.ui.b.PieChart();
 
         function pushDataForGroup(data, resultsForGroup, value) {
           data.push({
@@ -346,10 +346,10 @@ found in the LICENSE file.
 
         // Create summary.
         var summaryText = document.createElement('div');
-        summaryText.appendChild(tr.b.ui.createSpan({
+        summaryText.appendChild(tr.ui.b.createSpan({
           textContent: 'Total ' + this.groupingUnit_ + ': ',
           bold: true}));
-        summaryText.appendChild(tr.b.ui.createSpan({
+        summaryText.appendChild(tr.ui.b.createSpan({
           textContent: tr.b.units.tsString(getValueFromGroup(allGroup))}));
         resultArea.appendChild(summaryText);
 
@@ -379,7 +379,7 @@ found in the LICENSE file.
             extraValue);
 
         if (groups.length == 0) {
-          resultArea.appendChild(tr.b.ui.createSpan({textContent: 'No data'}));
+          resultArea.appendChild(tr.ui.b.createSpan({textContent: 'No data'}));
           return undefined;
         }
 

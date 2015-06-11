@@ -5,15 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/base/ui/common.css">
+<link rel="stylesheet" href="/ui/base/common.css">
 <link rel="stylesheet" href="/core/timeline_track_view.css">
 
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/base/properties.html">
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/base/task.html">
-<link rel="import" href="/base/ui.html">
-<link rel="import" href="/base/ui/mouse_mode_selector.html">
+<link rel="import" href="/ui/ui.html">
+<link rel="import" href="/ui/base/mouse_mode_selector.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/timeline_viewport.html">
@@ -73,7 +73,7 @@ tr.exportTo('tr.c', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var TimelineTrackView = tr.b.ui.define('div');
+  var TimelineTrackView = tr.ui.define('div');
 
   TimelineTrackView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -168,7 +168,7 @@ tr.exportTo('tr.c', function() {
     },
 
     initMouseModeSelector: function() {
-      this.mouseModeSelector_ = new tr.b.ui.MouseModeSelector(this);
+      this.mouseModeSelector_ = new tr.ui.b.MouseModeSelector(this);
       this.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.addEventListener('beginpan',
@@ -203,7 +203,7 @@ tr.exportTo('tr.c', function() {
       this.mouseModeSelector_.addEventListener('exittiming',
           this.timingTool_.onExitTiming.bind(this.timingTool_));
 
-      var m = tr.b.ui.MOUSE_SELECTOR_MODE;
+      var m = tr.ui.b.MOUSE_SELECTOR_MODE;
       this.mouseModeSelector_.supportedModeMask =
           m.SELECTION | m.PANSCAN | m.ZOOM | m.TIMING;
       this.mouseModeSelector_.settingsKey =
@@ -220,11 +220,11 @@ tr.exportTo('tr.c', function() {
       }.bind(this));
 
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.SELECTION, tr.b.ui.MODIFIER.SHIFT);
+          m.SELECTION, tr.ui.b.MODIFIER.SHIFT);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.PANSCAN, tr.b.ui.MODIFIER.SPACE);
+          m.PANSCAN, tr.ui.b.MODIFIER.SPACE);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.ZOOM, tr.b.ui.MODIFIER.CMD_OR_CTRL);
+          m.ZOOM, tr.ui.b.MODIFIER.CMD_OR_CTRL);
     },
 
     get selectionController() {
@@ -374,7 +374,7 @@ tr.exportTo('tr.c', function() {
       if (this.focusElement.tabIndex >= 0) {
         if (document.activeElement == this.focusElement)
           return true;
-        return tr.b.ui.elementIsChildOf(document.activeElement,
+        return tr.ui.elementIsChildOf(document.activeElement,
                                         this.focusElement);
       }
       return true;
@@ -523,7 +523,7 @@ tr.exportTo('tr.c', function() {
 
     onDblClick_: function(e) {
       if (this.mouseModeSelector_.mode !==
-          tr.b.ui.MOUSE_SELECTOR_MODE.SELECTION)
+          tr.ui.b.MOUSE_SELECTOR_MODE.SELECTION)
         return;
 
       var curSelection = this.selectionController_.selection;
@@ -550,7 +550,7 @@ tr.exportTo('tr.c', function() {
 
     onMouseDown_: function(e) {
       if (this.mouseModeSelector_.mode !==
-          tr.b.ui.MOUSE_SELECTOR_MODE.SELECTION)
+          tr.ui.b.MOUSE_SELECTOR_MODE.SELECTION)
         return;
       // Mouse down must start on ruler track for crosshair guide lines to draw.
       if (e.target !== this.rulerTrack_)
@@ -567,7 +567,7 @@ tr.exportTo('tr.c', function() {
       }
 
       var dt = this.viewport_.currentDisplayTransform;
-      tr.b.ui.trackMouseMovesUntilMouseUp(function(e) { // Mouse move handler.
+      tr.ui.b.trackMouseMovesUntilMouseUp(function(e) { // Mouse move handler.
         // If mouse event is on ruler, don't do anything.
         if (e.target === this.rulerTrack_)
           return;

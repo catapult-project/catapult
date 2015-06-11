@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/ui/color_scheme.html">
+<link rel="import" href="/ui/base/color_scheme.html">
 <link rel="import" href="/extras/chrome/chrome_auditor.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/model.html">
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
   function newInputLatencyEvent(tsStart, tsEnd, opt_args) {
     var e = new tr.model.AsyncSlice(
         'benchmark', 'InputLatency',
-        tr.b.ui.getColorIdForGeneralPurposeString('InputLatency'),
+        tr.ui.b.getColorIdForGeneralPurposeString('InputLatency'),
         tsStart, opt_args);
     e.duration = tsEnd - tsStart;
     return e;
@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
   function newImplRenderingStatsEvent(ts, opt_args) {
     var e = new tr.model.ThreadSlice(
         'benchmark', 'BenchmarkInstrumentation::ImplThreadRenderingStats',
-        tr.b.ui.getColorIdForGeneralPurposeString('x'),
+        tr.ui.b.getColorIdForGeneralPurposeString('x'),
         ts, opt_args, 0);
     return e;
   }

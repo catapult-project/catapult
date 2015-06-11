@@ -9,8 +9,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/side_panel/side_panel.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/base/statistics.html">
-<link rel="import" href="/base/ui/dom_helpers.html">
-<link rel="import" href="/base/ui/line_chart.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/line_chart.html">
 
 <polymer-element name='tr-e-s-input-latency-side-panel'
     extends='tr-c-side-panel'>
@@ -172,7 +172,7 @@ found in the LICENSE file.
 
       this.selectedProcessId_ = labels[0].value;
       var toolbarEl = this.$.toolbar;
-      toolbarEl.appendChild(tr.b.ui.createSelector(
+      toolbarEl.appendChild(tr.ui.b.createSelector(
           this, 'frametimeType',
           'inputLatencySidePanel.frametimeType', this.frametimeType_,
           [{label: 'Main Thread Frame Times',
@@ -180,7 +180,7 @@ found in the LICENSE file.
            {label: 'Impl Thread Frame Times',
             value: tr.e.audits.IMPL_FRAMETIME_TYPE}
           ]));
-      toolbarEl.appendChild(tr.b.ui.createSelector(
+      toolbarEl.appendChild(tr.ui.b.createSelector(
           this, 'selectedProcessId',
           'inputLatencySidePanel.selectedProcessId',
           this.selectedProcessId_,
@@ -195,7 +195,7 @@ found in the LICENSE file.
     },
 
     createLatencyLineChart: function(data, title) {
-      var chart = new tr.b.ui.LineChart();
+      var chart = new tr.ui.b.LineChart();
       var width = 600;
       if (document.body.clientWidth != undefined)
         width = document.body.clientWidth * 0.5;
@@ -252,13 +252,13 @@ found in the LICENSE file.
 
       // Create summary.
       var latencySummaryText = document.createElement('div');
-      latencySummaryText.appendChild(tr.b.ui.createSpan({
+      latencySummaryText.appendChild(tr.ui.b.createSpan({
         textContent: 'Average Latency ' + averageLatency + ' ms',
         bold: true}));
       resultArea.appendChild(latencySummaryText);
 
       var frametimeSummaryText = document.createElement('div');
-      frametimeSummaryText.appendChild(tr.b.ui.createSpan({
+      frametimeSummaryText.appendChild(tr.ui.b.createSpan({
         textContent: 'Average Frame Time ' + averageFrametime + ' ms',
         bold: true}));
       resultArea.appendChild(frametimeSummaryText);

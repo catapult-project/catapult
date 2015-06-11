@@ -86,7 +86,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('i915_flip');
       if (kthread.openSlice) {
         var slice = new tr.model.Slice('', kthread.openSlice,
-            tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+            tr.ui.b.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             args,
             ts - kthread.openSliceTS);
@@ -100,7 +100,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem');
       kthread.openSlice = eventName + ':' + obj;
       var slice = new tr.model.Slice('', kthread.openSlice,
-          tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+          tr.ui.b.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
@@ -110,7 +110,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem_ring');
       kthread.openSlice = eventName + ':' + dev + '.' + ring;
       var slice = new tr.model.Slice('', kthread.openSlice,
-          tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+          tr.ui.b.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
@@ -120,7 +120,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('i915_reg');
       kthread.openSlice = eventName + ':' + reg;
       var slice = new tr.model.Slice('', kthread.openSlice,
-          tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+          tr.ui.b.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
@@ -130,7 +130,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gpu_freq');
       kthread.openSlice = eventName;
       var slice = new tr.model.Slice('', kthread.openSlice,
-          tr.b.ui.getColorIdForGeneralPurposeString(kthread.openSlice),
+          tr.ui.b.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);

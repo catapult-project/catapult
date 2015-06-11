@@ -4,8 +4,8 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="stylesheet" href="/base/ui/common.css">
-<link rel="import" href="/base/ui.html">
+<link rel="stylesheet" href="/ui/base/common.css">
+<link rel="import" href="/ui/ui.html">
 <link rel="import" href="/core/timeline_view.html">
 <link rel="import" href="/model/model.html">
 
@@ -20,7 +20,7 @@ tr.exportTo('tr', function() {
    *
    * Returns an HTMLElement that is the trace-viwer.
    */
-  var TraceViewer = tr.b.ui.define('trace-viewer', tr.c.TimelineView);
+  var TraceViewer = tr.ui.define('trace-viewer', tr.c.TimelineView);
 
   TraceViewer.prototype = {
     __proto__: tr.c.TimelineView.prototype,
@@ -53,7 +53,7 @@ tr.exportTo('tr', function() {
       req.send(null);
 
       function onResultFail(err) {
-        var overlay = new tr.b.ui.Overlay();
+        var overlay = new tr.ui.b.Overlay();
         overlay.textContent = err + ': ' + url + ' could not be loaded';
         overlay.title = 'Failed to fetch data';
         overlay.visible = true;
@@ -74,7 +74,7 @@ tr.exportTo('tr', function() {
       }
 
       function onImportFail() {
-        var overlay = new tr.b.ui.Overlay();
+        var overlay = new tr.ui.b.Overlay();
         overlay.textContent = tr.b.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;

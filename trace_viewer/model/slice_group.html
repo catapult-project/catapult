@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/model/event_container.html">
 <link rel="import" href="/core/filter.html">
-<link rel="import" href="/base/ui/color_scheme.html">
+<link rel="import" href="/ui/base/color_scheme.html">
 <link rel="import" href="/base/guid.html">
 <link rel="import" href="/base/sorted_array_utils.html">
 
@@ -135,7 +135,7 @@ tr.exportTo('tr.model', function() {
           throw new Error('Slices must be added in increasing timestamp order');
       }
 
-      var colorId = tr.b.ui.getColorIdForGeneralPurposeString(title);
+      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {}, null,
                                             opt_tts);
@@ -206,7 +206,7 @@ tr.exportTo('tr.model', function() {
      */
     pushCompleteSlice: function(category, title, ts, duration, tts,
                                 cpuDuration, opt_args) {
-      var colorId = tr.b.ui.getColorIdForGeneralPurposeString(title);
+      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {},
                                             duration, tts, cpuDuration);

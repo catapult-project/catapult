@@ -9,9 +9,9 @@ found in the LICENSE file.
 <link rel="import" href="/core/timeline_interest_range.html">
 <link rel="import" href="/core/timeline_display_transform.html">
 <link rel="import" href="/base/events.html">
-<link rel="import" href="/base/ui/animation.html">
-<link rel="import" href="/base/ui/animation_controller.html">
-<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/ui/base/animation.html">
+<link rel="import" href="/ui/base/animation_controller.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
 
 <script>
 'use strict';
@@ -123,7 +123,7 @@ tr.exportTo('tr.c', function() {
       // Allow not providing a parent element, used by tests.
       if (this.parentEl_ === undefined)
         return;
-      return tr.b.ui.isElementAttachedToDocument(this.parentEl_);
+      return tr.ui.b.isElementAttachedToDocument(this.parentEl_);
     },
 
     onResize_: function() {
@@ -185,7 +185,7 @@ tr.exportTo('tr.c', function() {
     },
 
     initAnimationController_: function() {
-      this.dtAnimationController_ = new tr.b.ui.AnimationController();
+      this.dtAnimationController_ = new tr.ui.b.AnimationController();
       this.dtAnimationController_.addEventListener(
           'didtick', function(e) {
             this.onCurentDisplayTransformChange_(e.oldTargetState);
@@ -242,8 +242,8 @@ tr.exportTo('tr.c', function() {
     },
 
     queueDisplayTransformAnimation: function(animation) {
-      if (!(animation instanceof tr.b.ui.Animation))
-        throw new Error('animation must be instanceof tr.b.ui.Animation');
+      if (!(animation instanceof tr.ui.b.Animation))
+        throw new Error('animation must be instanceof tr.ui.b.Animation');
       this.dtAnimationController_.queueAnimation(animation);
     },
 

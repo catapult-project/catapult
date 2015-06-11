@@ -13,7 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/tracks/slice_group_track.html">
 <link rel="import" href="/core/tracks/async_slice_group_track.html">
 <link rel="import" href="/core/filter.html">
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 <link rel="import" href="/base/iteration_helpers.html">
 
 <script>
@@ -24,7 +24,7 @@ tr.exportTo('tr.c.tracks', function() {
    * Visualizes a Thread using a series of SliceTracks.
    * @constructor
    */
-  var ThreadTrack = tr.b.ui.define('thread-track',
+  var ThreadTrack = tr.ui.define('thread-track',
                                    tr.c.tracks.ContainerTrack);
   ThreadTrack.prototype = {
     __proto__: tr.c.tracks.ContainerTrack.prototype,

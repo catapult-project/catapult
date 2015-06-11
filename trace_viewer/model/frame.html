@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/model/event.html">
-<link rel="import" href="/base/ui/color_scheme.html">
+<link rel="import" href="/ui/base/color_scheme.html">
 
 <script>
 'use strict';
@@ -55,7 +55,7 @@ tr.exportTo('tr.model', function() {
     __proto__: tr.model.Event.prototype,
 
     set perfClass(perfClass) {
-      this.colorId = tr.b.ui.getColorIdForReservedName(perfClass);
+      this.colorId = tr.ui.b.getColorIdForReservedName(perfClass);
       this.perfClass_ = perfClass;
     },
 

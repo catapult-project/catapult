@@ -6,12 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/chrome/chrome_model_helper.html">
-<link rel="import" href="/base/ui/table.html">
+<link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/core/side_panel/side_panel.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/base/statistics.html">
-<link rel="import" href="/base/ui/dom_helpers.html">
-<link rel="import" href="/base/ui/line_chart.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/line_chart.html">
 
 <polymer-element name='tr-e-s-alerts-side-panel'
     extends='tr-c-side-panel'>
@@ -118,7 +118,7 @@ found in the LICENSE file.
     createAlertsTable_: function(alerts) {
       var alertsByType = this.alertsByType_(alerts);
 
-      var table = document.createElement('tr-b-ui-table');
+      var table = document.createElement('tr-ui-b-table');
       table.tableColumns = this.alertsTableColumns_();
       table.tableRows = this.alertsTableRows_(alertsByType);
       table.supportsSelection = true;

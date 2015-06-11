@@ -15,8 +15,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/raf.html">
 <link rel="import" href="/base/quad.html">
 <link rel="import" href="/base/range.html">
-<link rel="import" href="/base/ui/quad_stack_view.html">
-<link rel="import" href="/base/ui/info_bar.html">
+<link rel="import" href="/ui/base/quad_stack_view.html">
+<link rel="import" href="/ui/base/info_bar.html">
 
 <style>
 * /deep/ layer-tree-quad-stack-view {
@@ -89,7 +89,7 @@ tr.exportTo('tr.e.cc', function() {
   /**
    * @constructor
    */
-  var LayerTreeQuadStackView = tr.b.ui.define('layer-tree-quad-stack-view');
+  var LayerTreeQuadStackView = tr.ui.define('layer-tree-quad-stack-view');
 
   LayerTreeQuadStackView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -99,14 +99,14 @@ tr.exportTo('tr.e.cc', function() {
       this.pictureAsImageData_ = {}; // Maps picture.guid to PictureAsImageData.
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
-      this.infoBar_ = document.createElement('tr-b-ui-info-bar');
-      this.quadStackView_ = new tr.b.ui.QuadStackView();
+      this.infoBar_ = document.createElement('tr-ui-b-info-bar');
+      this.quadStackView_ = new tr.ui.b.QuadStackView();
       this.quadStackView_.addEventListener(
           'selectionchange', this.onQuadStackViewSelectionChange_.bind(this));
       this.extraHighlightsByLayerId_ = undefined;
       this.inputEventImageData_ = undefined;
 
-      var m = tr.b.ui.MOUSE_SELECTOR_MODE;
+      var m = tr.ui.b.MOUSE_SELECTOR_MODE;
       var mms = this.quadStackView_.mouseModeSelector;
       mms.settingsKey = 'tr.e.cc.layerTreeQuadStackView.mouseModeSelector';
       mms.setKeyCodeForMode(m.SELECTION, 'Z'.charCodeAt(0));
@@ -121,18 +121,18 @@ tr.exportTo('tr.e.cc', function() {
       this.appendChild(this.infoBar_);
       this.appendChild(this.quadStackView_);
 
-      this.tileRectsSelector_ = tr.b.ui.createSelector(
+      this.tileRectsSelector_ = tr.ui.b.createSelector(
           this, 'howToShowTiles',
           'layerView.howToShowTiles', 'none',
           createTileRectsSelectorBaseOptions());
       this.controls_.appendChild(this.tileRectsSelector_);
 
-      var tileHeatmapText = tr.b.ui.createSpan({
+      var tileHeatmapText = tr.ui.b.createSpan({
         textContent: 'Tile heatmap:'
       });
       this.controls_.appendChild(tileHeatmapText);
 
-      var tileHeatmapSelector = tr.b.ui.createSelector(
+      var tileHeatmapSelector = tr.ui.b.createSelector(
           this, 'tileHeatmapType',
           'layerView.tileHeatmapType', TILE_HEATMAP_TYPE.NONE,
           [{label: 'None',
@@ -144,7 +144,7 @@ tr.exportTo('tr.e.cc', function() {
           ]);
       this.controls_.appendChild(tileHeatmapSelector);
 
-      var showOtherLayersCheckbox = tr.b.ui.createCheckBox(
+      var showOtherLayersCheckbox = tr.ui.b.createCheckBox(
           this, 'showOtherLayers',
           'layerView.showOtherLayers', true,
           'Other layers/passes');
@@ -152,7 +152,7 @@ tr.exportTo('tr.e.cc', function() {
           'When checked, show all layers, selected or not.';
       this.controls_.appendChild(showOtherLayersCheckbox);
 
-      var showInvalidationsCheckbox = tr.b.ui.createCheckBox(
+      var showInvalidationsCheckbox = tr.ui.b.createCheckBox(
           this, 'showInvalidations',
           'layerView.showInvalidations', true,
           'Invalidations');
@@ -160,7 +160,7 @@ tr.exportTo('tr.e.cc', function() {
           'When checked, compositing invalidations are highlighted in red';
       this.controls_.appendChild(showInvalidationsCheckbox);
 
-      var showUnrecordedRegionCheckbox = tr.b.ui.createCheckBox(
+      var showUnrecordedRegionCheckbox = tr.ui.b.createCheckBox(
           this, 'showUnrecordedRegion',
           'layerView.showUnrecordedRegion', true,
           'Unrecorded area');
@@ -168,7 +168,7 @@ tr.exportTo('tr.e.cc', function() {
           'When checked, unrecorded areas are highlighted in yellow';
       this.controls_.appendChild(showUnrecordedRegionCheckbox);
 
-      var showBottlenecksCheckbox = tr.b.ui.createCheckBox(
+      var showBottlenecksCheckbox = tr.ui.b.createCheckBox(
           this, 'showBottlenecks',
           'layerView.showBottlenecks', true,
           'Bottlenecks');
@@ -176,7 +176,7 @@ tr.exportTo('tr.e.cc', function() {
           'When checked, scroll bottlenecks are highlighted';
       this.controls_.appendChild(showBottlenecksCheckbox);
 
-      var showLayoutRectsCheckbox = tr.b.ui.createCheckBox(
+      var showLayoutRectsCheckbox = tr.ui.b.createCheckBox(
           this, 'showLayoutRects',
           'layerView.showLayoutRects', false,
           'Layout rects');
@@ -184,7 +184,7 @@ tr.exportTo('tr.e.cc', function() {
           'When checked, shows rects for regions where layout happened';
       this.controls_.appendChild(showLayoutRectsCheckbox);
 
-      var showContentsCheckbox = tr.b.ui.createCheckBox(
+      var showContentsCheckbox = tr.ui.b.createCheckBox(
           this, 'showContents',
           'layerView.showContents', true,
           'Contents');
@@ -192,7 +192,7 @@ tr.exportTo('tr.e.cc', function() {
           'When checked, show the rendered contents inside the layer outlines';
       this.controls_.appendChild(showContentsCheckbox);
 
-      var showAnimationBoundsCheckbox = tr.b.ui.createCheckBox(
+      var showAnimationBoundsCheckbox = tr.ui.b.createCheckBox(
           this, 'showAnimationBounds',
           'layerView.showAnimationBounds', false,
           'Animation Bounds');
@@ -200,7 +200,7 @@ tr.exportTo('tr.e.cc', function() {
           ' a layer showing the extent of its animation.';
       this.controls_.appendChild(showAnimationBoundsCheckbox);
 
-      var showInputEventsCheckbox = tr.b.ui.createCheckBox(
+      var showInputEventsCheckbox = tr.ui.b.createCheckBox(
           this, 'showInputEvents',
           'layerView.showInputEvents', true,
           'Input events');
@@ -525,7 +525,7 @@ tr.exportTo('tr.e.cc', function() {
       }
 
       // Then create a new selector and replace the old one.
-      var new_selector = tr.b.ui.createSelector(
+      var new_selector = tr.ui.b.createSelector(
           this, 'howToShowTiles',
           'layerView.howToShowTiles', 'none',
           data);
@@ -966,11 +966,11 @@ tr.exportTo('tr.e.cc', function() {
         var unitRect = rect.asUVRectInside(layer.bounds);
         var quad = layerQuad.projectUnitRect(unitRect);
 
-        var colorId = tr.b.ui.getColorIdForGeneralPurposeString(
+        var colorId = tr.ui.b.getColorIdForGeneralPurposeString(
             highlight.colorKey);
-        colorId += tr.b.ui.getColorPaletteHighlightIdBoost();
+        colorId += tr.ui.b.getColorPaletteHighlightIdBoost();
 
-        var color = tr.b.Color.fromString(tr.b.ui.getColorPalette()[colorId]);
+        var color = tr.b.Color.fromString(tr.ui.b.getColorPalette()[colorId]);
 
         var quadForDrawing = quad.clone();
         quadForDrawing.backgroundColor = color.withAlpha(0.5).toString();
@@ -1118,7 +1118,7 @@ tr.exportTo('tr.e.cc', function() {
         this.infoBar_.removeAllButtons();
         this.infoBar_.message = 'Some problems were encountered...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new tr.b.ui.Overlay();
+          var overlay = new tr.ui.b.Overlay();
           overlay.textContent = '';
           infoBarMessages.forEach(function(message) {
             var title = document.createElement('h3');

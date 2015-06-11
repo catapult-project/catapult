@@ -12,7 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/fast_rect_renderer.html">
 <link rel="import" href="/core/draw_helpers.html">
 <link rel="import" href="/base/sorted_array_utils.html">
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 
 <script>
 'use strict';
@@ -24,7 +24,7 @@ tr.exportTo('tr.c.tracks', function() {
    * @constructor
    * @extends {HeadingTrack}
    */
-  var RectTrack = tr.b.ui.define(
+  var RectTrack = tr.ui.define(
       'rect-track', tr.c.tracks.HeadingTrack);
 
   RectTrack.prototype = {

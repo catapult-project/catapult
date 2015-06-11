@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="stylesheet" href="/core/analysis/analysis_results.css">
 
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 <link rel="import" href="/base/units/util.html">
 <link rel="import" href="/core/analysis/analysis_link.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.c.analysis', function() {
-  var AnalysisResults = tr.b.ui.define('div');
+  var AnalysisResults = tr.ui.define('div');
 
   AnalysisResults.prototype = {
     __proto__: HTMLDivElement.prototype,

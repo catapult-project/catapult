@@ -65,7 +65,7 @@ tr.exportTo('tr.e.importer.battor', function() {
       // Create series and import power samples into it.
       var name = 'power';
       var series = new tr.model.CounterSeries('value',
-          tr.b.ui.getColorIdForGeneralPurposeString(name + '.' + 'value'));
+          tr.ui.b.getColorIdForGeneralPurposeString(name + '.' + 'value'));
       this.importPowerSamples(series);
 
       // Find the sync markers.

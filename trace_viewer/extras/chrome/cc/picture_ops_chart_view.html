@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="stylesheet" href="/extras/chrome/cc/picture_ops_chart_view.css">
-<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
 
 <script>
 'use strict';
@@ -33,7 +33,7 @@ tr.exportTo('tr.e.cc', function() {
    *
    * @constructor
    */
-  var PictureOpsChartView = tr.b.ui.define('picture-ops-chart-view');
+  var PictureOpsChartView = tr.ui.define('picture-ops-chart-view');
 
   PictureOpsChartView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -63,7 +63,7 @@ tr.exportTo('tr.e.cc', function() {
       this.chart_.addEventListener('mousemove', this.onMouseMove_.bind(this));
 
       this.usePercentileScale_ = false;
-      this.usePercentileScaleCheckbox_ = tr.b.ui.createCheckBox(
+      this.usePercentileScaleCheckbox_ = tr.ui.b.createCheckBox(
           this, 'usePercentileScale',
           'PictureOpsChartView.usePercentileScale', false,
           'Limit to 95%-ile');

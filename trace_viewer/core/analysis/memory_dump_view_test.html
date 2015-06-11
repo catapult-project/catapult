@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
     var overviewPane = tr.b.findDeepElementMatching(
         viewEl, 'tr-c-a-memory-dump-overview-pane');
     var overviewTable = tr.b.findDeepElementMatching(
-        overviewPane, 'tr-b-ui-table');
+        overviewPane, 'tr-ui-b-table');
     assert.lengthOf(overviewTable.tableRows, 3);
     assert.lengthOf(overviewTable.tableColumns, 9);
 
@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() {
     var detailsPane = tr.b.findDeepElementMatching(
         viewEl, 'tr-c-a-memory-dump-allocator-details-pane');
     var detailsTable = tr.b.findDeepElementMatching(
-        detailsPane, 'tr-b-ui-table');
+        detailsPane, 'tr-ui-b-table');
     assert.lengthOf(detailsTable.tableRows, 1);
   });
 });

@@ -13,8 +13,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/units/time_stamp_span.html">
 <link rel="import" href="/base/units/size_in_bytes_span.html">
 <link rel="import" href="/base/utils.html">
-<link rel="import" href="/base/ui.html">
-<link rel="import" href="/base/ui/table.html">
+<link rel="import" href="/ui/ui.html">
+<link rel="import" href="/ui/base/table.html">
 
 <polymer-element name="tr-c-a-generic-object-view"
     is="HTMLUnknownElement">
@@ -203,7 +203,7 @@ found in the LICENSE file.
       }
 
       if (isTable(object)) {
-        var table = document.createElement('tr-b-ui-table');
+        var table = document.createElement('tr-ui-b-table');
         var columns = [];
         tr.b.iterItems(object[0], function(colName) {
           columns.push({title: colName, value: function(row) {

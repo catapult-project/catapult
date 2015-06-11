@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/core/analysis/single_event_sub_view.html">
 
@@ -28,7 +28,7 @@ found in the LICENSE file.
         // Alert description.
         var alert = this.currentSelection_[0];
 
-        var descriptionEl = tr.b.ui.createSpan({
+        var descriptionEl = tr.ui.b.createSpan({
           textContent: alert.info.description
         });
         rows.push({

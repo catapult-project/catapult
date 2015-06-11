@@ -9,7 +9,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/tracks/track.html">
 <link rel="import" href="/base/raf.html">
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 
 <script>
 'use strict';
@@ -26,7 +26,7 @@ tr.exportTo('tr.c.tracks', function() {
     ANNOTATIONS: 8
   };
 
-  var DrawingContainer = tr.b.ui.define('drawing-container',
+  var DrawingContainer = tr.ui.define('drawing-container',
                                         tr.c.tracks.Track);
 
   DrawingContainer.prototype = {

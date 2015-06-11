@@ -279,7 +279,7 @@ found in the LICENSE file.
 
     function downloadFile(file) {
       if (file.downloadUrl) {
-        var downloadingOverlay = tr.b.ui.Overlay();
+        var downloadingOverlay = tr.ui.b.Overlay();
         downloadingOverlay.title = 'Downloading...';
         downloadingOverlay.userCanClose = false;
         downloadingOverlay.msgEl = document.createElement('div');
@@ -328,22 +328,22 @@ found in the LICENSE file.
         imageList.push({'image': img, 'name': user.displayName});
       }
       for (i = 0; i < imageList.length; i++) {
-        var collabTooltip = tr.b.ui.createDiv({
+        var collabTooltip = tr.ui.b.createDiv({
             className: 'collaborator-tooltip'
         });
-        var collabTooltipContent = tr.b.ui.createDiv({
+        var collabTooltipContent = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-content'
         });
         collabTooltipContent.textContent = imageList[i].name;
         collabTooltip.appendChild(collabTooltipContent);
         collabspan.appendChild(collabTooltip);
-        var collabTooltipArrow = tr.b.ui.createDiv({
+        var collabTooltipArrow = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-arrow'});
         collabTooltip.appendChild(collabTooltipArrow);
-        var collabTooltipArrowBefore = tr.b.ui.createDiv({
+        var collabTooltipArrowBefore = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-arrow-before'});
         collabTooltipArrow.appendChild(collabTooltipArrowBefore);
-        var collabTooltipArrowAfter = tr.b.ui.createDiv({
+        var collabTooltipArrowAfter = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-arrow-after'});
         collabTooltipArrow.appendChild(collabTooltipArrowAfter);
 
@@ -410,7 +410,7 @@ found in the LICENSE file.
             timelineViewEl_.viewTitle = '';
           },
           function(err) {
-            var downloadingOverlay = new tr.b.ui.Overlay();
+            var downloadingOverlay = new tr.ui.b.Overlay();
             downloadingOverlay.textContent =
                 tr.b.normalizeException(err).message;
             downloadingOverlay.title = 'Import error';
@@ -434,7 +434,7 @@ found in the LICENSE file.
       timelineViewEl_ = document.querySelector('x-timeline-view');
       var navbar = document.getElementById('navbar');
       timelineViewEl_.style.top = navbar.offsetHeight + 'px';
-      tr.b.ui.decorate(timelineViewEl_, tr.c.TimelineView);
+      tr.ui.decorate(timelineViewEl_, tr.c.TimelineView);
     }
 
     window.addEventListener('load', onLoad);

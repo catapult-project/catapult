@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/color_scheme.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var brighten = tr.ui.b.brightenColor;
+  var desaturate = tr.ui.b.desaturateColor;
+
+  test('buildColorPalette', function() {
+    var palette = tr.ui.b.getColorPalette();
+    var rawPalette = tr.ui.b.getRawColorPalette();
+    var highlightOffset = tr.ui.b.getColorPaletteHighlightIdBoost();
+    var desaturateOffset = tr.ui.b.getColorPaletteDesaturateIdBoost();
+
+    assert.strictEqual(palette.length, rawPalette.length);
+    assert.equal(palette.length % 3, 0);
+    assert.equal(palette.length / 3, highlightOffset);
+    assert.equal((palette.length / 3) * 2, desaturateOffset);
+
+    for (var i = 0; i < rawPalette.length / 3; i++) {
+      assert.deepEqual(rawPalette[i + highlightOffset],
+                       brighten(rawPalette[i]));
+      assert.deepEqual(rawPalette[i + desaturateOffset],
+                       desaturate(rawPalette[i]));
+    }
+  });
+});
+</script>

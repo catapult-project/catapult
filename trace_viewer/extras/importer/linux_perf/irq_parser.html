@@ -81,7 +81,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         var duration = ts - thread.lastEntryTs;
         var slice = new tr.model.Slice(
             '', thread.irqName,
-            tr.b.ui.getColorIdForGeneralPurposeString(event[1]),
+            tr.ui.b.getColorIdForGeneralPurposeString(event[1]),
             thread.lastEntryTs, { ret: ret },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);
@@ -122,7 +122,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         var duration = ts - thread.lastEntryTs;
         var slice = new tr.model.Slice(
             '', action,
-            tr.b.ui.getColorIdForGeneralPurposeString(event[1]),
+            tr.ui.b.getColorIdForGeneralPurposeString(event[1]),
             thread.lastEntryTs, { vec: vec },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);

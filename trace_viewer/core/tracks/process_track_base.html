@@ -15,8 +15,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/tracks/spacing_track.html">
 <link rel="import" href="/core/tracks/thread_track.html">
 <link rel="import" href="/core/filter.html">
-<link rel="import" href="/base/ui.html">
-<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/ui/ui.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/model/model_settings.html">
 
 <script>
@@ -33,7 +33,7 @@ tr.exportTo('tr.c.tracks', function() {
    * @constructor
    */
   var ProcessTrackBase =
-      tr.b.ui.define('process-track-base', tr.c.tracks.ContainerTrack);
+      tr.ui.define('process-track-base', tr.c.tracks.ContainerTrack);
 
   ProcessTrackBase.prototype = {
 
@@ -47,10 +47,10 @@ tr.exportTo('tr.c.tracks', function() {
       this.classList.add('process-track-base');
       this.classList.add('expanded');
 
-      this.processNameEl_ = tr.b.ui.createSpan();
+      this.processNameEl_ = tr.ui.b.createSpan();
       this.processNameEl_.classList.add('process-track-name');
 
-      this.headerEl_ = tr.b.ui.createDiv({className: 'process-track-header'});
+      this.headerEl_ = tr.ui.b.createDiv({className: 'process-track-header'});
       this.headerEl_.appendChild(this.processNameEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 

@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
-<link rel="import" href="/base/ui/table.html">
+<link rel="import" href="/ui/base/table.html">
 
 <polymer-element name="tr-c-a-memory-dump-allocator-details-pane">
   <template>
@@ -108,7 +108,7 @@ found in the LICENSE file.
         var columns = this.createColumns_(rows);
 
         var table = this.ownerDocument.createElement(
-            'tr-b-ui-table');
+            'tr-ui-b-table');
         this.$.contents.appendChild(table);
         table.supportsSelection = true;
         table.tableRows = rows;

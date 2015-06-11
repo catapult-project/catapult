@@ -11,11 +11,11 @@ found in the LICENSE file.
 <link rel="import" href="/extras/chrome/cc/picture_ops_list_view.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
 <link rel="import" href="/base/key_event_manager.html">
-<link rel="import" href="/base/ui/drag_handle.html">
-<link rel="import" href="/base/ui/info_bar.html">
-<link rel="import" href="/base/ui/list_view.html">
-<link rel="import" href="/base/ui/mouse_mode_selector.html">
-<link rel="import" href="/base/ui/overlay.html">
+<link rel="import" href="/ui/base/drag_handle.html">
+<link rel="import" href="/ui/base/info_bar.html">
+<link rel="import" href="/ui/base/list_view.html">
+<link rel="import" href="/ui/base/mouse_mode_selector.html">
+<link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/base/utils.html">
 
 <template id="picture-debugger-template">
@@ -112,7 +112,7 @@ tr.exportTo('tr.e.cc', function() {
    *
    * @constructor
    */
-  var PictureDebugger = tr.b.ui.define('picture-debugger');
+  var PictureDebugger = tr.ui.define('picture-debugger');
 
   PictureDebugger.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -145,12 +145,12 @@ tr.exportTo('tr.e.cc', function() {
 
       this.trackMouse_();
 
-      var overdrawCheckbox = tr.b.ui.createCheckBox(
+      var overdrawCheckbox = tr.ui.b.createCheckBox(
           this, 'showOverdraw',
           'pictureView.showOverdraw', false,
           'Show overdraw');
 
-      var chartCheckbox = tr.b.ui.createCheckBox(
+      var chartCheckbox = tr.ui.b.createCheckBox(
           this, 'showSummaryChart',
           'pictureView.showSummaryChart', false,
           'Show timing summary');
@@ -167,7 +167,7 @@ tr.exportTo('tr.e.cc', function() {
       leftPanel.appendChild(this.drawOpsChartSummaryView_);
       leftPanel.appendChild(this.drawOpsView_);
 
-      var middleDragHandle = new tr.b.ui.DragHandle();
+      var middleDragHandle = new tr.ui.b.DragHandle();
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
@@ -176,7 +176,7 @@ tr.exportTo('tr.e.cc', function() {
           this.drawOpsChartView_,
           rightPanel.querySelector('picture-ops-chart-view'));
 
-      this.infoBar_ = document.createElement('tr-b-ui-info-bar');
+      this.infoBar_ = document.createElement('tr-ui-b-info-bar');
       this.rasterArea_.appendChild(this.infoBar_);
 
       this.insertBefore(middleDragHandle, rightPanel);
@@ -320,7 +320,7 @@ tr.exportTo('tr.e.cc', function() {
       if (this.pictureAsImageData_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new tr.b.ui.Overlay();
+          var overlay = new tr.ui.b.Overlay();
           overlay.textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           e.stopPropagation();
@@ -417,13 +417,13 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     trackMouse_: function() {
-      this.mouseModeSelector_ = new tr.b.ui.MouseModeSelector(this.rasterArea_);
+      this.mouseModeSelector_ = new tr.ui.b.MouseModeSelector(this.rasterArea_);
       this.rasterArea_.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.supportedModeMask =
-          tr.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.mode = tr.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.defaultMode = tr.b.ui.MOUSE_SELECTOR_MODE.ZOOM;
+          tr.ui.b.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.mode = tr.ui.b.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.defaultMode = tr.ui.b.MOUSE_SELECTOR_MODE.ZOOM;
       this.mouseModeSelector_.settingsKey = 'pictureDebugger.mouseModeSelector';
 
       this.mouseModeSelector_.addEventListener('beginzoom',

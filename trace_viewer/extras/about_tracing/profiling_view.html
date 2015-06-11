@@ -9,8 +9,8 @@ found in the LICENSE file.
 <link rel="import" href="/extras/about_tracing/inspector_tracing_controller_client.html">
 <link rel="import" href="/extras/about_tracing/xhr_based_tracing_controller_client.html">
 <link rel="import" href="/base/key_event_manager.html">
-<link rel="import" href="/base/ui/info_bar_group.html">
-<link rel="import" href="/base/ui/overlay.html">
+<link rel="import" href="/ui/base/info_bar_group.html">
+<link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/trace_viewer.html">
 
 <style>
@@ -45,7 +45,7 @@ x-timeline-view-buttons > #monitoring-elements {
 </style>
 
 <template id="profiling-view-template">
-  <tr-b-ui-info-bar-group></tr-b-ui-info-bar-group>
+  <tr-ui-b-info-bar-group></tr-ui-b-info-bar-group>
   <x-timeline-view>
     <x-timeline-view-buttons>
       <button id="record-button">Record</button>
@@ -93,7 +93,7 @@ tr.exportTo('tr.e.about_tracing', function() {
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var ProfilingView = tr.b.ui.define('x-profiling-view');
+  var ProfilingView = tr.ui.define('x-profiling-view');
   var THIS_DOC = document.currentScript.ownerDocument;
   var REPORT_UPLOAD_URL = 'http://crash-staging/';
 
@@ -105,9 +105,9 @@ tr.exportTo('tr.e.about_tracing', function() {
           THIS_DOC));
 
       this.timelineView_ = this.querySelector('x-timeline-view');
-      tr.b.ui.decorate(this.timelineView_, tr.c.TimelineView);
+      tr.ui.decorate(this.timelineView_, tr.c.TimelineView);
 
-      this.infoBarGroup_ = this.querySelector('tr-b-ui-info-bar-group');
+      this.infoBarGroup_ = this.querySelector('tr-ui-b-info-bar-group');
 
       // Detach the buttons. We will reattach them to the timeline view.
       // TODO(nduca): Make timeline-view have a content select="x-buttons"
@@ -225,7 +225,7 @@ tr.exportTo('tr.e.about_tracing', function() {
             buttons.querySelector('#monitor-checkbox').disabled = false;
             if (err instanceof tr.e.about_tracing.UserCancelledError)
               return;
-            tr.b.ui.Overlay.showError('Error while recording', err);
+            tr.ui.b.Overlay.showError('Error while recording', err);
           }.bind(this));
       return resultPromise;
     },
@@ -244,7 +244,7 @@ tr.exportTo('tr.e.about_tracing', function() {
           function(err) {
             if (err instanceof tr.e.about_tracing.UserCancelledError)
               return;
-            tr.b.ui.Overlay.showError('Error while monitoring', err);
+            tr.ui.b.Overlay.showError('Error while monitoring', err);
           }.bind(this));
       return resultPromise;
     },
@@ -263,7 +263,7 @@ tr.exportTo('tr.e.about_tracing', function() {
           function(err) {
             if (err instanceof tr.e.about_tracing.UserCancelledError)
               return;
-            tr.b.ui.Overlay.showError('Error while monitoring', err);
+            tr.ui.b.Overlay.showError('Error while monitoring', err);
           }.bind(this));
       return resultPromise;
     },
@@ -280,7 +280,7 @@ tr.exportTo('tr.e.about_tracing', function() {
           function(err) {
             if (err instanceof tr.e.about_tracing.UserCancelledError)
               return;
-            tr.b.ui.Overlay.showError('Error while monitoring', err);
+            tr.ui.b.Overlay.showError('Error while monitoring', err);
           }.bind(this));
       return resultPromise;
     },
@@ -295,7 +295,7 @@ tr.exportTo('tr.e.about_tracing', function() {
           function(err) {
             if (err instanceof tr.e.about_tracing.UserCancelledError)
               return;
-            tr.b.ui.Overlay.showError('Error while updating tracing states',
+            tr.ui.b.Overlay.showError('Error while updating tracing states',
                                       err);
           }.bind(this));
       return resultPromise;
@@ -354,7 +354,7 @@ tr.exportTo('tr.e.about_tracing', function() {
             this.timelineView_.updateDocumentFavicon();
           }.bind(this),
           function(err) {
-            tr.b.ui.Overlay.showError('While importing: ', err);
+            tr.ui.b.Overlay.showError('While importing: ', err);
           }.bind(this));
     },
 
@@ -457,7 +457,7 @@ tr.exportTo('tr.e.about_tracing', function() {
     },
 
     initUploadStatusOverlay_: function() {
-      this.uploadOverlay_ = tr.b.ui.Overlay();
+      this.uploadOverlay_ = tr.ui.b.Overlay();
       this.uploadOverlay_.title = 'Uploading trace...';
       this.uploadOverlay_.userCanClose = false;
       this.uploadOverlay_.visible = true;
@@ -532,7 +532,7 @@ tr.exportTo('tr.e.about_tracing', function() {
                   this.setActiveTrace(file.name, data);
                 }.bind(this),
                 function(err) {
-                  tr.b.ui.Overlay.showError('Error while loading file: ' + err);
+                  tr.ui.b.Overlay.showError('Error while loading file: ' + err);
                 });
           }.bind(this), false);
       inputElement.click();
@@ -574,7 +574,7 @@ tr.exportTo('tr.e.about_tracing', function() {
 
       var files = e.dataTransfer.files;
       if (files.length !== 1) {
-        tr.b.ui.Overlay.showError('1 file supported at a time.');
+        tr.ui.b.Overlay.showError('1 file supported at a time.');
         return;
       }
 
@@ -583,7 +583,7 @@ tr.exportTo('tr.e.about_tracing', function() {
             this.setActiveTrace(files[0].name, data);
           }.bind(this),
           function(err) {
-            tr.b.ui.Overlay.showError('Error while loading file: ' + err);
+            tr.ui.b.Overlay.showError('Error while loading file: ' + err);
           });
       return false;
     }

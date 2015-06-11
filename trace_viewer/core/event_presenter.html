@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/ui/color_scheme.html">
+<link rel="import" href="/ui/base/color_scheme.html">
 <link rel="import" href="/model/selection_state.html">
 
 <script>
@@ -15,8 +15,8 @@ found in the LICENSE file.
  * @fileoverview Provides color scheme related functions.
  */
 tr.exportTo('tr.c', function() {
-  var paletteRaw = tr.b.ui.getRawColorPalette();
-  var palette = tr.b.ui.getColorPalette();
+  var paletteRaw = tr.ui.b.getRawColorPalette();
+  var palette = tr.ui.b.getColorPalette();
 
   var SelectionState = tr.model.SelectionState;
 
@@ -31,9 +31,9 @@ tr.exportTo('tr.c', function() {
 
     getColorIdOffset_: function(event) {
       if (event.selectionState === SelectionState.SELECTED)
-        return tr.b.ui.paletteProperties.highlightIdBoost;
+        return tr.ui.b.paletteProperties.highlightIdBoost;
       else if (event.selectionState === SelectionState.DIMMED)
-        return tr.b.ui.paletteProperties.desaturateIdBoost;
+        return tr.ui.b.paletteProperties.desaturateIdBoost;
       return 0;
     },
 
@@ -56,12 +56,12 @@ tr.exportTo('tr.c', function() {
 
     getInstantSliceColor: function(instant) {
       var colorId = instant.colorId + this.getColorIdOffset_(instant);
-      return tr.b.ui.colorToRGBAString(paletteRaw[colorId], 1.0);
+      return tr.ui.b.colorToRGBAString(paletteRaw[colorId], 1.0);
     },
 
     getObjectInstanceColor: function(instance) {
       var colorId = instance.colorId + this.getColorIdOffset_(instance);
-      return tr.b.ui.colorToRGBAString(paletteRaw[colorId], 0.25);
+      return tr.ui.b.colorToRGBAString(paletteRaw[colorId], 0.25);
     },
 
     getObjectSnapshotColor: function(snapshot) {
@@ -73,7 +73,7 @@ tr.exportTo('tr.c', function() {
     getCounterSeriesColor: function(colorId, selectionState,
                                     opt_alphaMultiplier) {
       var event = {selectionState: selectionState};
-      return tr.b.ui.colorToRGBAString(
+      return tr.ui.b.colorToRGBAString(
           paletteRaw[colorId + this.getColorIdOffset_(event)],
               (opt_alphaMultiplier !== undefined ? opt_alphaMultiplier : 1.0));
     },
@@ -81,9 +81,9 @@ tr.exportTo('tr.c', function() {
     getBarSnapshotColor: function(snapshot, offset) {
       var colorId =
           (snapshot.objectInstance.colorId + offset) %
-          tr.b.ui.paletteProperties.numGeneralPurposeColorIds;
+          tr.ui.b.paletteProperties.numGeneralPurposeColorIds;
       colorId += this.getColorIdOffset_(snapshot);
-      return tr.b.ui.colorToRGBAString(paletteRaw[colorId], 1.0);
+      return tr.ui.b.colorToRGBAString(paletteRaw[colorId], 1.0);
     }
   };
 

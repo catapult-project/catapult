@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 <link rel="import" href="/core/tracks/chart_transform.html">
 <link rel="import" href="/core/tracks/heading_track.html">
 
@@ -28,7 +28,7 @@ tr.exportTo('tr.c.tracks', function() {
    * @extends {HeadingTrack}
    */
   var ChartTrack =
-      tr.b.ui.define('chart-track', tr.c.tracks.HeadingTrack);
+      tr.ui.define('chart-track', tr.c.tracks.HeadingTrack);
 
   ChartTrack.prototype = {
     __proto__: tr.c.tracks.HeadingTrack.prototype,

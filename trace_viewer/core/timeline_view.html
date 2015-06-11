@@ -5,15 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/base/ui/common.css">
+<link rel="stylesheet" href="/ui/base/common.css">
 <link rel="stylesheet" href="/core/timeline_view.css">
 
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/settings.html">
-<link rel="import" href="/base/ui/dom_helpers.html">
-<link rel="import" href="/base/ui/overlay.html">
-<link rel="import" href="/base/ui/dropdown.html">
-<link rel="import" href="/base/ui/drag_handle.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/overlay.html">
+<link rel="import" href="/ui/base/dropdown.html">
+<link rel="import" href="/ui/base/drag_handle.html">
 <link rel="import" href="/core/analysis/analysis_view.html">
 <link rel="import" href="/core/favicons.html">
 <link rel="import" href="/core/find_control.html">
@@ -222,7 +222,7 @@ tr.exportTo('tr.c', function() {
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var TimelineView = tr.b.ui.define('x-timeline-view');
+  var TimelineView = tr.ui.define('x-timeline-view');
 
   TimelineView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -268,16 +268,16 @@ tr.exportTo('tr.c', function() {
       }
 
 
-      this.optionsDropdown_ = document.createElement('tr-b-ui-dropdown');
+      this.optionsDropdown_ = document.createElement('tr-ui-b-dropdown');
       this.optionsDropdown_.iconElement.textContent = 'View Options';
 
       this.showFlowEvents_ = false;
-      this.optionsDropdown_.appendChild(tr.b.ui.createCheckBox(
+      this.optionsDropdown_.appendChild(tr.ui.b.createCheckBox(
           this, 'showFlowEvents',
           'tr.c.TimelineView.showFlowEvents', false,
           'Flow events'));
       this.highlightVSync_ = false;
-      this.highlightVSyncCheckbox_ = tr.b.ui.createCheckBox(
+      this.highlightVSyncCheckbox_ = tr.ui.b.createCheckBox(
           this, 'highlightVSync',
           'tr.c.TimelineView.highlightVSync', false,
           'Highlight VSync');
@@ -292,7 +292,7 @@ tr.exportTo('tr.c', function() {
       this.collapsingControls.appendChild(this.scriptingCtl_);
 
       this.dragEl_ = this.querySelector('x-drag-handle');
-      tr.b.ui.decorate(this.dragEl_, tr.b.ui.DragHandle);
+      tr.ui.decorate(this.dragEl_, tr.ui.b.DragHandle);
 
       this.analysisEl_ = this.querySelector('#analysis');
       this.analysisEl_.selectionController = this.selectionController_;
@@ -360,7 +360,7 @@ tr.exportTo('tr.c', function() {
       var showEl = node.querySelector('.view-help-button');
       var helpTextEl = node.querySelector('.view-help-text');
 
-      var dlg = new tr.b.ui.Overlay();
+      var dlg = new tr.ui.b.Overlay();
       dlg.title = 'chrome://tracing Help';
       dlg.classList.add('view-help-overlay');
       dlg.appendChild(node);
@@ -402,7 +402,7 @@ tr.exportTo('tr.c', function() {
       var showEl = node.querySelector('.view-metadata-button');
       var textEl = node.querySelector('.info-button-text');
 
-      var dlg = new tr.b.ui.Overlay();
+      var dlg = new tr.ui.b.Overlay();
       dlg.title = 'Metadata for trace';
       dlg.classList.add('view-metadata-overlay');
       dlg.appendChild(node);
@@ -558,7 +558,7 @@ tr.exportTo('tr.c', function() {
     },
 
     get listenToKeys_() {
-      if (!tr.b.ui.isElementAttachedToDocument(this))
+      if (!tr.ui.b.isElementAttachedToDocument(this))
         return;
       if (document.activeElement.type === 'textarea')
         return false;

@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
 
     var table = tr.b.findDeepElementMatching(
-        viewEl, 'tr-b-ui-table');
+        viewEl, 'tr-ui-b-table');
 
     var rows = table.tableRows;
     var columns = table.tableColumns;
@@ -90,7 +90,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     var table = tr.b.findDeepElementMatching(
-        viewEl, 'tr-b-ui-table');
+        viewEl, 'tr-ui-b-table');
 
     // Simulate clicking on the 'oilpan' cell of the second process.
     didFireSelectedDumpChanged = false;

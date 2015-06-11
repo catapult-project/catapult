@@ -58,7 +58,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               .getOrCreateCounter(null, 'bus ' + name + ' read');
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tr.model.CounterSeries('value',
-            tr.b.ui.getColorIdForGeneralPurposeString(
+            tr.ui.b.getColorIdForGeneralPurposeString(
                 ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
@@ -69,7 +69,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               .getOrCreateCounter(null, 'bus ' + name + ' write');
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tr.model.CounterSeries('value',
-            tr.b.ui.getColorIdForGeneralPurposeString(
+            tr.ui.b.getColorIdForGeneralPurposeString(
                 ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {

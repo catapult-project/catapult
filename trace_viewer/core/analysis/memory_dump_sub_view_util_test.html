@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/ui/table.html">
+<link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/core/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/attribute.html">
@@ -432,7 +432,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-b-ui-table');
+    var table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();

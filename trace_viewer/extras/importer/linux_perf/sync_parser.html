@@ -61,7 +61,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           value = ' ';
         var slice = new tr.model.Slice(
             '', value,
-            tr.b.ui.getColorIdForGeneralPurposeString(value),
+            tr.ui.b.getColorIdForGeneralPurposeString(value),
             thread.lastActiveTs, {},
             duration);
         thread.thread.sliceGroup.pushSlice(slice);

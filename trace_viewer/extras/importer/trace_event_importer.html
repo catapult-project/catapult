@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/ui/color_scheme.html">
+<link rel="import" href="/ui/base/color_scheme.html">
 <link rel="import" href="/base/quad.html">
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/importer/importer.html">
@@ -226,7 +226,7 @@ tr.exportTo('tr.e.importer', function() {
         for (var seriesName in event.args) {
           ctr.addSeries(new tr.model.CounterSeries(
               seriesName,
-              tr.b.ui.getColorIdForGeneralPurposeString(
+              tr.ui.b.getColorIdForGeneralPurposeString(
                   ctr.name + '.' + seriesName)));
         }
 
@@ -398,7 +398,7 @@ tr.exportTo('tr.e.importer', function() {
           return;
       }
 
-      var colorId = tr.b.ui.getColorIdForGeneralPurposeString(event.name);
+      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(event.name);
       var instantEvent = new constructor(event.cat, event.name,
           colorId, event.ts / 1000, this.deepCopyIfNeeded_(event.args));
 
@@ -431,7 +431,7 @@ tr.exportTo('tr.e.importer', function() {
         stackFrame = new tr.model.StackFrame(
             undefined, id,
             event.cat, event.name,
-            tr.b.ui.getColorIdForGeneralPurposeString(event.name));
+            tr.ui.b.getColorIdForGeneralPurposeString(event.name));
         this.model_.addStackFrame(stackFrame);
         this.traceEventSampleStackFramesByName_[event.name] = stackFrame;
       }
@@ -551,7 +551,7 @@ tr.exportTo('tr.e.importer', function() {
         var frame = new tr.model.StackFrame(
             undefined, 'g' + id,
             event.category, event.name,
-            tr.b.ui.getColorIdForGeneralPurposeString(textForColor));
+            tr.ui.b.getColorIdForGeneralPurposeString(textForColor));
         m.addStackFrame(frame);
       }
       for (var id in events) {
@@ -876,7 +876,7 @@ tr.exportTo('tr.e.importer', function() {
           var slice = new asyncSliceConstructor(
               eventStateEntry.event.cat,
               eventStateEntry.event.name,
-              tr.b.ui.getColorIdForGeneralPurposeString(
+              tr.ui.b.getColorIdForGeneralPurposeString(
                   eventStateEntry.event.name),
               startState.event.ts / 1000,
               sliceArgs,
@@ -986,7 +986,7 @@ tr.exportTo('tr.e.importer', function() {
             var slice = new asyncSliceConstructor(
                 events[0].event.cat,
                 name,
-                tr.b.ui.getColorIdForGeneralPurposeString(name),
+                tr.ui.b.getColorIdForGeneralPurposeString(name),
                 events[0].event.ts / 1000,
                 tr.b.concatenateObjects(events[0].event.args,
                                       events[events.length - 1].event.args),
@@ -1042,7 +1042,7 @@ tr.exportTo('tr.e.importer', function() {
               var subSlice = new asyncSliceConstructor(
                   events[0].event.cat,
                   subName,
-                  tr.b.ui.getColorIdForGeneralPurposeString(subName + j),
+                  tr.ui.b.getColorIdForGeneralPurposeString(subName + j),
                   events[startIndex].event.ts / 1000,
                   this.deepCopyIfNeeded_(events[j].event.args),
                   (events[endIndex].event.ts - events[startIndex].event.ts) /
@@ -1112,7 +1112,7 @@ tr.exportTo('tr.e.importer', function() {
             event.cat,
             event.id,
             event.name,
-            tr.b.ui.getColorIdForGeneralPurposeString(event.name),
+            tr.ui.b.getColorIdForGeneralPurposeString(event.name),
             event.ts / 1000,
             that.deepCopyIfNeeded_(event.args));
         flowEvent.startSlice = startSlice;
@@ -1331,7 +1331,7 @@ tr.exportTo('tr.e.importer', function() {
         }
 
         if (instance) {
-          instance.colorId = tr.b.ui.getColorIdForGeneralPurposeString(
+          instance.colorId = tr.ui.b.getColorIdForGeneralPurposeString(
               instance.typeName);
         }
       }

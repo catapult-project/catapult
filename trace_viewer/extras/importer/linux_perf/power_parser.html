@@ -54,7 +54,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tr.model.CounterSeries('state',
-            tr.b.ui.getColorIdForGeneralPurposeString(
+            tr.ui.b.getColorIdForGeneralPurposeString(
                 powerCounter.name + '.' + 'state')));
       }
       powerCounter.series.forEach(function(series) {
@@ -67,7 +67,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tr.model.CounterSeries('state',
-            tr.b.ui.getColorIdForGeneralPurposeString(powerCounter.name)));
+            tr.ui.b.getColorIdForGeneralPurposeString(powerCounter.name)));
       }
       // NB: 4294967295/-1 means an exit from the current state
       var val = (cpuState != 4294967295 ? cpuState + 1 : 0);
@@ -82,7 +82,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           targetCpu.getOrCreateCounter('', 'Clock Frequency');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tr.model.CounterSeries('state',
-            tr.b.ui.getColorIdForGeneralPurposeString(
+            tr.ui.b.getColorIdForGeneralPurposeString(
                 powerCounter.name + '.' + 'state')));
       }
       powerCounter.series.forEach(function(series) {

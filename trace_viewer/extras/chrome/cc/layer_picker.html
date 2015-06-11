@@ -13,9 +13,9 @@ found in the LICENSE file.
 <link rel="import" href="/extras/chrome/cc/util.html">
 <link rel="import" href="/core/analysis/generic_object_view.html">
 <link rel="import" href="/model/event.html">
-<link rel="import" href="/base/ui/drag_handle.html">
-<link rel="import" href="/base/ui/list_view.html">
-<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/ui/base/drag_handle.html">
+<link rel="import" href="/ui/base/list_view.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
 
 <script>
 'use strict';
@@ -29,7 +29,7 @@ tr.exportTo('tr.e.cc', function() {
   /**
    * @constructor
    */
-  var LayerPicker = tr.b.ui.define('layer-picker');
+  var LayerPicker = tr.ui.define('layer-picker');
 
   LayerPicker.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -40,7 +40,7 @@ tr.exportTo('tr.e.cc', function() {
       this.renderPassQuads_ = false;
 
 
-      this.itemList_ = new tr.b.ui.ListView();
+      this.itemList_ = new tr.ui.b.ListView();
       this.appendChild(this.controls_);
 
       this.appendChild(this.itemList_);
@@ -48,7 +48,7 @@ tr.exportTo('tr.e.cc', function() {
       this.itemList_.addEventListener(
           'selection-changed', this.onItemSelectionChanged_.bind(this));
 
-      this.controls_.appendChild(tr.b.ui.createSelector(
+      this.controls_.appendChild(tr.ui.b.createSelector(
           this, 'whichTree',
           'layerPicker.whichTree', constants.ACTIVE_TREE,
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
@@ -56,7 +56,7 @@ tr.exportTo('tr.e.cc', function() {
            {label: 'Render pass quads', value: RENDER_PASS_QUADS}]));
 
       this.showPureTransformLayers_ = false;
-      var showPureTransformLayers = tr.b.ui.createCheckBox(
+      var showPureTransformLayers = tr.ui.b.createCheckBox(
           this, 'showPureTransformLayers',
           'layerPicker.showPureTransformLayers', false,
           'Transform layers');
@@ -197,7 +197,7 @@ tr.exportTo('tr.e.cc', function() {
         var id = renderPassInfo.id;
 
         var item = this.createElementWithDepth_(renderPassInfo.depth);
-        var labelEl = item.appendChild(tr.b.ui.createSpan());
+        var labelEl = item.appendChild(tr.ui.b.createSpan());
 
         labelEl.textContent = renderPassInfo.name + ' ' + id;
         item.renderPass = renderPass;
@@ -226,11 +226,11 @@ tr.exportTo('tr.e.cc', function() {
           var id = layer.layerId;
 
           var item = this.createElementWithDepth_(layerInfo.depth);
-          var labelEl = item.appendChild(tr.b.ui.createSpan());
+          var labelEl = item.appendChild(tr.ui.b.createSpan());
 
           labelEl.textContent = layerInfo.name + ' ' + id;
 
-          var notesEl = item.appendChild(tr.b.ui.createSpan());
+          var notesEl = item.appendChild(tr.ui.b.createSpan());
           if (layerInfo.isMaskLayer)
             notesEl.textContent += '(mask)';
           if (layerInfo.isReplicaLayer)
@@ -258,7 +258,7 @@ tr.exportTo('tr.e.cc', function() {
     createElementWithDepth_: function(depth) {
       var item = document.createElement('div');
 
-      var indentEl = item.appendChild(tr.b.ui.createSpan());
+      var indentEl = item.appendChild(tr.ui.b.createSpan());
       indentEl.style.whiteSpace = 'pre';
       for (var i = 0; i < depth; i++)
         indentEl.textContent = indentEl.textContent + ' ';

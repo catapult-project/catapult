@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/tracks/multi_row_track.html">
 <link rel="import" href="/core/tracks/slice_track.html">
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 
 <script>
 'use strict';
@@ -18,7 +18,7 @@ tr.exportTo('tr.c.tracks', function() {
    * @constructor
    * @extends {MultiRowTrack}
    */
-  var AsyncSliceGroupTrack = tr.b.ui.define(
+  var AsyncSliceGroupTrack = tr.ui.define(
       'async-slice-group-track',
       tr.c.tracks.MultiRowTrack);
 

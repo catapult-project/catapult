@@ -5,16 +5,16 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 <link rel="import" href="/core/event_presenter.html">
 <link rel="import" href="/core/tracks/letter_dot_track.html">
-<link rel="import" href="/base/ui/color_scheme.html">
+<link rel="import" href="/ui/base/color_scheme.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.c.tracks', function() {
-  var palette = tr.b.ui.getColorPalette();
+  var palette = tr.ui.b.getColorPalette();
 
   var startCompare = function(x, y) { return x.start - y.start; }
 
@@ -22,7 +22,7 @@ tr.exportTo('tr.c.tracks', function() {
    * Track enabling quick selection of frame slices/events.
    * @constructor
    */
-  var FrameTrack = tr.b.ui.define(
+  var FrameTrack = tr.ui.define(
       'frame-track', tr.c.tracks.LetterDotTrack);
 
   FrameTrack.prototype = {

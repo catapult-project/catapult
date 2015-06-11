@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
 
     for (var i = 0; i < n; ++i) {
       ctr.addSeries(new tr.model.CounterSeries('value' + i,
-          tr.b.ui.getColorIdForGeneralPurposeString('value' + i)));
+          tr.ui.b.getColorIdForGeneralPurposeString('value' + i)));
     }
 
     for (var i = 0; i < samples.length; ++i) {
@@ -64,9 +64,9 @@ tr.b.unittest.testSuite(function() {
     var ctr = new Counter(undefined, 'testBasicCounter', '',
         'testBasicCounter');
     ctr.addSeries(new tr.model.CounterSeries('value1',
-        tr.b.ui.getColorIdForGeneralPurposeString('testBasicCounter.value1')));
+        tr.ui.b.getColorIdForGeneralPurposeString('testBasicCounter.value1')));
     ctr.addSeries(new tr.model.CounterSeries('value2',
-        tr.b.ui.getColorIdForGeneralPurposeString('testBasicCounter.value2')));
+        tr.ui.b.getColorIdForGeneralPurposeString('testBasicCounter.value2')));
 
     var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
     var samples = [[0, 3, 1, 2, 3, 1, 3, 3.1],

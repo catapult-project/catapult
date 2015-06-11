@@ -12,7 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/extras/chrome/cc/layer_view.html">
 <link rel="import" href="/extras/chrome/cc/tile.html">
 <link rel="import" href="/core/analysis/object_snapshot_view.html">
-<link rel="import" href="/base/ui/drag_handle.html">
+<link rel="import" href="/ui/base/drag_handle.html">
 
 <script>
 'use strict';
@@ -22,7 +22,7 @@ tr.exportTo('tr.e.cc', function() {
    * Displays a LayerTreeHostImpl snapshot in a human readable form.
    * @constructor
    */
-  var LayerTreeHostImplSnapshotView = tr.b.ui.define(
+  var LayerTreeHostImplSnapshotView = tr.ui.define(
       'layer-tree-host-impl-snapshot-view',
       tr.c.analysis.ObjectSnapshotView);
 
@@ -43,7 +43,7 @@ tr.exportTo('tr.e.cc', function() {
       this.layerView_.addEventListener(
           'selection-change',
           this.onLayerViewSelectionChanged_.bind(this));
-      this.dragHandle_ = new tr.b.ui.DragHandle();
+      this.dragHandle_ = new tr.ui.b.DragHandle();
       this.dragHandle_.horizontal = false;
       this.dragHandle_.target = this.layerView_;
 

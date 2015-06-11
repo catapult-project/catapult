@@ -63,7 +63,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       // Initialize the counter's series fields if needed.
       if (ctr.series[0] === undefined) {
         ctr.addSeries(new tr.model.CounterSeries(valueName,
-        tr.b.ui.getColorIdForGeneralPurposeString(
+        tr.ui.b.getColorIdForGeneralPurposeString(
         ctrName + '.' + valueName)));
       }
       return ctr;

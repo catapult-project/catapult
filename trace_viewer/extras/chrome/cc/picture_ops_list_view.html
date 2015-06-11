@@ -9,8 +9,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/extras/chrome/cc/constants.html">
 <link rel="import" href="/extras/chrome/cc/selection.html">
-<link rel="import" href="/base/ui/list_view.html">
-<link rel="import" href="/base/ui/dom_helpers.html">
+<link rel="import" href="/ui/base/list_view.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
 
 <script>
 'use strict';
@@ -29,13 +29,13 @@ tr.exportTo('tr.e.cc', function() {
   /**
    * @constructor
    */
-  var PictureOpsListView = tr.b.ui.define('picture-ops-list-view');
+  var PictureOpsListView = tr.ui.define('picture-ops-list-view');
 
   PictureOpsListView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.opsList_ = new tr.b.ui.ListView();
+      this.opsList_ = new tr.ui.b.ListView();
       this.appendChild(this.opsList_);
 
       this.selectedOp_ = undefined;

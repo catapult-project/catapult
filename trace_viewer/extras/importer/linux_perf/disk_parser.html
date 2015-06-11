@@ -58,7 +58,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             category, name);
       var slice = new asyncSliceConstructor(
           category, name,
-          tr.b.ui.getColorIdForGeneralPurposeString(name),
+          tr.ui.b.getColorIdForGeneralPurposeString(name),
           ts);
       slice.startThread = kthread.thread;
 

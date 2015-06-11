@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(summaryTable);
 
     var tableEl = tr.b.findDeepElementMatching(
-        summaryTable, 'tr-b-ui-table');
+        summaryTable, 'tr-ui-b-table');
     assert.equal(tableEl.tableRows[0].value, '<empty>');
     assert.equal(tableEl.tableRows[1].value, '<empty>');
   });
@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(summaryTable);
 
     var tableEl = tr.b.findDeepElementMatching(
-        summaryTable, 'tr-b-ui-table');
+        summaryTable, 'tr-ui-b-table');
     assert.equal(tableEl.tableRows[0].value, '<empty>');
     assert.equal(tableEl.tableRows[1].value, '<empty>');
   });
@@ -59,7 +59,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(summaryTable);
 
     var tableEl = tr.b.findDeepElementMatching(
-        summaryTable, 'tr-b-ui-table');
+        summaryTable, 'tr-ui-b-table');
     assert.equal(tableEl.tableRows[0].value.timestamp, 0);
     assert.equal(tableEl.tableRows[1].value.duration, 3);
   });

@@ -6,13 +6,13 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/extension_registry.html">
-<link rel="import" href="/base/ui.html">
+<link rel="import" href="/ui/ui.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.c.analysis', function() {
-  var ObjectSnapshotView = tr.b.ui.define('object-snapshot-view');
+  var ObjectSnapshotView = tr.ui.define('object-snapshot-view');
 
   ObjectSnapshotView.prototype = {
     __proto__: HTMLUnknownElement.prototype,

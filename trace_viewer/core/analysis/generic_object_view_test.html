@@ -149,7 +149,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     view.object = [{col0: 'object', col1: 0}, {col0: 'Object', col1: 1}];
     this.addHTMLOutput(view);
     var table = tr.b.findDeepElementMatching(
-        view.$.content, 'tr-b-ui-table');
+        view.$.content, 'tr-ui-b-table');
     assert.equal('col0', table.tableColumns[0].title);
     assert.equal('col1', table.tableColumns[1].title);
     assert.equal('object', table.tableColumns[0].value(table.tableRows[0]));

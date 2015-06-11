@@ -193,7 +193,7 @@ tr.b.unittest.testSuite(function() {
     subView.selection = selection;
 
     var table = tr.b.findDeepElementMatching(
-        subView, 'tr-b-ui-table');
+        subView, 'tr-ui-b-table');
     assert.equal(table.tableRows.length, 3);
     assert.equal(table.tableRows[0].value, 'b');
     assert.equal(table.tableRows[1].value.timestamp, 0);
@@ -207,7 +207,7 @@ tr.b.unittest.testSuite(function() {
     subView.selection = selection;
 
     var table = tr.b.findDeepElementMatching(
-        subView, 'tr-b-ui-table');
+        subView, 'tr-ui-b-table');
     assert.equal(table.tableRows.length, 4);
     assert.equal(table.tableRows[0].value, 'b');
     assert.equal(table.tableRows[1].value, 'foo');

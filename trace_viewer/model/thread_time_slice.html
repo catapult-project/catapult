@@ -60,7 +60,7 @@ tr.exportTo('tr.model', function() {
     __proto__: Slice.prototype,
 
     getColorForState_: function(state) {
-      var getColorIdForReservedName = tr.b.ui.getColorIdForReservedName;
+      var getColorIdForReservedName = tr.ui.b.getColorIdForReservedName;
       switch (state) {
         case SCHEDULING_STATE.RUNNABLE:
           return getColorIdForReservedName('thread_state_runnable');

@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/timeline_display_transform.html">
 <link rel="import" href="/core/timeline_display_transform_animations.html">
-<link rel="import" href="/base/ui/animation_controller.html">
+<link rel="import" href="/ui/base/animation_controller.html">
 
 <script>
 'use strict';
@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var a = new TimelineDisplayTransformPanAnimation(10, 20, 100);
 
-    var controller = new tr.b.ui.AnimationController();
+    var controller = new tr.ui.b.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var a = new TimelineDisplayTransformZoomToAnimation(10, 20, 30, 5, 100);
 
-    var controller = new tr.b.ui.AnimationController();
+    var controller = new tr.ui.b.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
@@ -67,7 +67,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     var b = new TimelineDisplayTransformPanAnimation(10, 0, 100);
     var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new tr.b.ui.AnimationController();
+    var controller = new tr.ui.b.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
