@@ -36,6 +36,7 @@ tr.exportTo('tr.model', function() {
     this.didNotFinish = false;
     this.important = false;
     this.subSlices = [];
+    this.parentContainer = undefined;
 
     this.id = undefined;
     this.startThread = undefined;
@@ -44,6 +45,7 @@ tr.exportTo('tr.model', function() {
     this.cpuDuration = undefined;
 
     this.duration = duration;
+
 
     // TODO(nduca): Forgive me for what I must do.
     this.isTopLevel = (opt_isTopLevel === true);

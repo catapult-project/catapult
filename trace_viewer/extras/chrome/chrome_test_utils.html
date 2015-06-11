@@ -77,7 +77,6 @@ tr.exportTo('tr.e.audits', function() {
     dict.title = tr.e.audits.IMPL_RENDERING_STATS;
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
-    slice.parentThread = model.rendererMain;
     return slice;
   }
 
@@ -101,7 +100,6 @@ tr.exportTo('tr.e.audits', function() {
     dict.title = 'RenderFrameImpl::didCommitProvisionalLoad';
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
-    slice.parentThread = model.rendererMain;
     return slice;
   }
 

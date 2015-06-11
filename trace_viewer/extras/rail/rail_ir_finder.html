@@ -195,8 +195,8 @@ tr.exportTo('tr.e.rail', function() {
       commits.forEach(function(commitLoad, commitLoadIndex) {
         frames.some(function(frame) {
           if ((frame.start > commitLoad.start) &&
-              (frame.parentThread.parent.pid ==
-                commitLoad.parentThread.parent.pid)) {
+              (frame.parentContainer.parent.pid ==
+                  commitLoad.parentContainer.parent.pid)) {
             if (frame.commitProvisionalLoad) return true;
             console.log('commit first frame', commitLoad.start, frame.start,
                 frame.start - commitLoad.start);

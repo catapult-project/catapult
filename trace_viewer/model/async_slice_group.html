@@ -21,8 +21,8 @@ tr.exportTo('tr.model', function() {
    * @constructor
    * @extends {tr.model.EventContainer}
    */
-  function AsyncSliceGroup(parentThread, opt_name) {
-    this.parentThread_ = parentThread;
+  function AsyncSliceGroup(parentContainer, opt_name) {
+    this.parentContainer_ = parentContainer;
     this.guid_ = tr.b.GUID.allocate();
     this.slices = [];
     this.bounds = new tr.b.Range();
@@ -37,22 +37,22 @@ tr.exportTo('tr.model', function() {
       return this.guid_;
     },
 
-    get parentThread() {
-      return this.parentThread_;
+    get parentContainer() {
+      return this.parentContainer_;
     },
 
     get model() {
-      return this.parentThread_.parent.model;
+      return this.parentContainer_.parent.model;
     },
 
     get stableId() {
-      return this.parentThread_.stableId + '.AsyncSliceGroup';
+      return this.parentContainer_.stableId + '.AsyncSliceGroup';
     },
 
     getSettingsKey: function() {
       if (!this.name_)
         return undefined;
-      var parentKey = this.parentThread_.getSettingsKey();
+      var parentKey = this.parentContainer_.getSettingsKey();
       if (!parentKey)
         return undefined;
       return parentKey + '.' + this.name_;
@@ -62,7 +62,9 @@ tr.exportTo('tr.model', function() {
      * Helper function that pushes the provided slice onto the slices array.
      */
     push: function(slice) {
+      slice.parentContainer = this.parentContainer;
       this.slices.push(slice);
+      return slice;
     },
 
     /**
@@ -124,9 +126,9 @@ tr.exportTo('tr.model', function() {
           var subGroupTitle = slice.viewSubGroupTitle;
           if (!subGroupsByTitle[subGroupTitle]) {
             subGroupsByTitle[subGroupTitle] = new AsyncSliceGroup(
-                this.parentThread_, prefix + subGroupTitle);
+                this.parentContainer_, prefix + subGroupTitle);
           }
-          subGroupsByTitle[subGroupTitle].slices.push(slice);
+          subGroupsByTitle[subGroupTitle].push(slice);
         }
         this.viewSubGroups_ = tr.b.dictionaryValues(subGroupsByTitle);
         this.viewSubGroups_.sort(function(a, b) {

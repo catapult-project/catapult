@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   var newSliceEx = tr.c.test_utils.newSliceEx;
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
   var newThreadSlice = tr.c.test_utils.newThreadSlice;
-
+  var newModel = tr.c.test_utils.newModel;
 
   test('basicBeginEnd', function() {
     var group = new SliceGroup({});
@@ -831,6 +831,21 @@ tr.b.unittest.testSuite(function() {
     assert.equal(group.slices[1].cpuSelfTime, 1);
     assert.equal(group.slices[2].cpuDuration, 3);
     assert.equal(group.slices[2].cpuSelfTime, 3);
+  });
+
+  test('sliceParentContainerSetAtPush', function() {
+    var m = newModel(function(m) {
+      m.process = m.getOrCreateProcess(123);
+      m.thread = m.process.getOrCreateThread(456);
+      m.group = new SliceGroup(m.thread);
+
+      m.sA = m.group.pushSlice(newSliceEx(
+          { title: 'sA', start: 0.0, duration: 10.0 }));
+
+      m.group.createSubSlices();
+    });
+
+    assert.deepEqual(m.sA.parentContainer, m.thread);
   });
 });
 </script>

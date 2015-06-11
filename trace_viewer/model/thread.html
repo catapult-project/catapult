@@ -49,21 +49,11 @@ tr.exportTo('tr.model', function() {
     this.samples_ = undefined; // Set during createSubSlices
 
     var that = this;
-    function ThreadSliceForThisThread(
-        cat, title, colorId, start, args, opt_duration,
-        opt_cpuStart, opt_cpuDuration) {
-      ThreadSlice.call(this, cat, title, colorId, start, args, opt_duration,
-                       opt_cpuStart, opt_cpuDuration);
-      this.parentThread = that;
-    }
-    ThreadSliceForThisThread.prototype = {
-      __proto__: ThreadSlice.prototype
-    };
 
-    this.sliceGroup = new SliceGroup(this, ThreadSliceForThisThread, 'slices');
+    this.sliceGroup = new SliceGroup(this, ThreadSlice, 'slices');
     this.timeSlices = undefined;
     this.kernelSliceGroup = new SliceGroup(
-        this, ThreadSliceForThisThread, 'kernel-slices');
+        this, ThreadSlice, 'kernel-slices');
     this.asyncSliceGroup = new AsyncSliceGroup(this, 'async-slices');
     this.bounds = new tr.b.Range();
   }

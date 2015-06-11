@@ -40,10 +40,10 @@ tr.exportTo('tr.model', function() {
    *     opt_sliceConstructor The constructor to use when creating slices.
    * @extends {tr.model.EventContainer}
    */
-  function SliceGroup(parentThread, opt_sliceConstructor, opt_name) {
+  function SliceGroup(parentContainer, opt_sliceConstructor, opt_name) {
     this.guid_ = tr.b.GUID.allocate();
 
-    this.parentThread_ = parentThread;
+    this.parentContainer_ = parentContainer;
 
     var sliceConstructor = opt_sliceConstructor || Slice;
     this.sliceConstructor = sliceConstructor;
@@ -64,22 +64,22 @@ tr.exportTo('tr.model', function() {
       return this.guid_;
     },
 
-    get parentThread() {
-      return this.parentThread_;
+    get parentContainer() {
+      return this.parentContainer_;
     },
 
     get model() {
-      return this.parentThread_.parent.model;
+      return this.parentContainer_.parent.model;
     },
 
     get stableId() {
-      return this.parentThread_.stableId + '.SliceGroup';
+      return this.parentContainer_.stableId + '.SliceGroup';
     },
 
     getSettingsKey: function() {
       if (!this.name_)
         return undefined;
-      var parentKey = this.parentThread_.getSettingsKey();
+      var parentKey = this.parentContainer_.getSettingsKey();
       if (!parentKey)
         return undefined;
       return parentKey + '.' + this.name;
@@ -98,6 +98,7 @@ tr.exportTo('tr.model', function() {
      */
     pushSlice: function(slice) {
       this.haveTopLevelSlicesBeenBuilt = false;
+      slice.parentContainer = this.parentContainer_;
       this.slices.push(slice);
       return slice;
     },
@@ -108,7 +109,10 @@ tr.exportTo('tr.model', function() {
      */
     pushSlices: function(slices) {
       this.haveTopLevelSlicesBeenBuilt = false;
-      this.slices.push.apply(this.slices, slices);
+      slices.forEach(function(slice) {
+        slice.parentContainer = this.parentContainer_;
+        this.slices.push(slice);
+      }, this);
     },
 
     /**
@@ -344,8 +348,8 @@ tr.exportTo('tr.model', function() {
     createSubSlices: function() {
       this.haveTopLevelSlicesBeenBuilt = true;
       this.createSubSlicesImpl_();
-      if (this.parentThread.timeSlices)
-        this.addCpuTimeToSubslices_(this.parentThread.timeSlices);
+      if (this.parentContainer.timeSlices)
+        this.addCpuTimeToSubslices_(this.parentContainer.timeSlices);
       this.slices.forEach(function(slice) {
         var selfTime = slice.duration;
         for (var i = 0; i < slice.subSlices.length; i++)
@@ -534,13 +538,13 @@ tr.exportTo('tr.model', function() {
     if (groupB.openPartialSlices_.length > 0)
       throw new Error('groupB has open partial slices');
 
-    if (groupA.parentThread != groupB.parentThread)
+    if (groupA.parentContainer != groupB.parentContainer)
       throw new Error('Different parent threads. Cannot merge');
 
     if (groupA.sliceConstructor != groupB.sliceConstructor)
       throw new Error('Different slice constructors. Cannot merge');
 
-    var result = new SliceGroup(groupA.parentThread,
+    var result = new SliceGroup(groupA.parentContainer,
                                 groupA.sliceConstructor,
                                 groupA.name_);
 
