@@ -110,6 +110,7 @@ found in the LICENSE file.
         var table = this.ownerDocument.createElement(
             'tr-b-ui-table');
         this.$.contents.appendChild(table);
+        table.supportsSelection = true;
         table.tableRows = rows;
         table.tableColumns = columns;
         table.rebuild();
