@@ -49,9 +49,9 @@ class HistogramValue(value_module.Value):
 
   def __repr__(self):
     if self.page:
-      page_name = self.page.name
+      page_name = self.page.display_name
     else:
-      page_name = None
+      page_name = 'None'
     return ('HistogramValue(%s, %s, %s, raw_json_string="%s", '
             'important=%s, description=%s, tir_label=%s') % (
                 page_name,

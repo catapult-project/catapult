@@ -24,9 +24,9 @@ class ListOfStringValues(value_module.Value):
 
   def __repr__(self):
     if self.page:
-      page_name = self.page.name
+      page_name = self.page.display_name
     else:
-      page_name = None
+      page_name = 'None'
     if self.same_page_merge_policy == value_module.CONCATENATE:
       merge_policy = 'CONCATENATE'
     else:
