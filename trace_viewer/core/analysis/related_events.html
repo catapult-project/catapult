@@ -36,7 +36,13 @@ found in the LICENSE file.
       this.$.table.tableColumns = [
         {
           title: 'Event(s)',
-          value: function(row) { return row.type; },
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = row.type;
+            if (row.tooltip)
+              typeEl.title = row.tooltip;
+            return typeEl;
+          },
           width: '150px'
         },
         {
@@ -61,6 +67,7 @@ found in the LICENSE file.
     addRelatedEvents: function(selection) {
       this.addConnectedFlows_(selection);
       this.addConnectedEvents_(selection);
+      this.addAncestorsAndDescendents_(selection);
       this.updateContents_();
     },
 
@@ -106,24 +113,35 @@ found in the LICENSE file.
         this.addConnectedEventsForSelection_(selection);
     },
 
+    addAncestorsAndDescendents_: function(selection) {
+      // Separating ancestors and descendents only makes sense for single
+      // selections.
+      if (selection.length === 1)
+        this.addAncestorsAndDescendentsForSlice_(selection[0]);
+      else
+        this.addAncestorsAndDescendentsForSelection_(selection);
+    },
+
     addConnectedEventsForSlice_: function(slice) {
       var precedingEventsSelection = undefined;
       var followingEventsSelection = undefined;
       if (slice.inFlowEvents && slice.inFlowEvents.length !== 0) {
         precedingEventsSelection = new tr.c.Selection();
-        this.recursivelyAddConnectedEvents_(precedingEventsSelection, {}, slice,
+        this.recursivelyAddConnectedEvents_(precedingEventsSelection, slice,
             function(event) { return event.inFlowEvents; });
         this.eventGroups_.push({
           type: 'Preceding events',
+          tooltip: 'All preceding events connected to this one by flow arrows.',
           selection: precedingEventsSelection
         });
       }
       if (slice.outFlowEvents && slice.outFlowEvents.length !== 0) {
         followingEventsSelection = new tr.c.Selection();
-        this.recursivelyAddConnectedEvents_(followingEventsSelection, {}, slice,
+        this.recursivelyAddConnectedEvents_(followingEventsSelection, slice,
             function(event) { return event.outFlowEvents; });
         this.eventGroups_.push({
           type: 'Following events',
+          tooltip: 'All following events connected to this one by flow arrows.',
           selection: followingEventsSelection
         });
       }
@@ -131,22 +149,20 @@ found in the LICENSE file.
         var allEventsSelection = new tr.c.Selection();
         for (var i = 0; i < precedingEventsSelection.length; ++i)
           allEventsSelection.push(precedingEventsSelection[i]);
-        // Do not add the first event of followingEventsSelection since it's
-        // the slice too.
-        for (var i = 1; i < followingEventsSelection.length; ++i)
+        for (var i = 0; i < followingEventsSelection.length; ++i)
           allEventsSelection.push(followingEventsSelection[i]);
         this.eventGroups_.push({
           type: 'All connected events',
+          tooltip: 'All events connected to this one by flow arrows.',
           selection: allEventsSelection
         });
       }
     },
 
     addConnectedEventsForSelection_: function(selection) {
-      var eventIds = {};
       var allEventsSelection = new tr.c.Selection();
       selection.forEach(function(slice) {
-        this.recursivelyAddConnectedEvents_(allEventsSelection, eventIds, slice,
+        this.recursivelyAddConnectedEvents_(allEventsSelection, slice,
             function(event) {
               var flows = [];
               if (event.inFlowEvents)
@@ -160,7 +176,86 @@ found in the LICENSE file.
       if (allEventsSelection.length > selection.length) {
         this.eventGroups_.push({
           type: 'All connected events',
+          tooltip: 'All events connected to this selection by flow arrows.',
           selection: allEventsSelection
+        });
+      }
+    },
+
+    recursivelyAddConnectedEvents_: function(selection, event, getFlows) {
+      if (!event || selection.contains(event))
+        return;
+      selection.push(event);
+      var flowEvents = getFlows(event);
+      if (!flowEvents)
+        return;
+      for (var i = 0; i < flowEvents.length; ++i) {
+        selection.push(flowEvents[i]);
+        this.recursivelyAddConnectedEvents_(selection, flowEvents[i].startSlice,
+            getFlows);
+        this.recursivelyAddConnectedEvents_(selection, flowEvents[i].endSlice,
+            getFlows);
+      }
+    },
+
+    addAncestorsAndDescendentsForSlice_: function(slice) {
+      if (!slice.iterateAllAncestors || !slice.iterateAllDescendents)
+        return;
+      var ancestorsSelection = new tr.c.Selection(slice);
+      var descendentsSelection = new tr.c.Selection(slice);
+      var allSlicesSelection = new tr.c.Selection(slice);
+      slice.iterateAllAncestors(function(otherSlice) {
+        ancestorsSelection.push(otherSlice);
+      });
+      slice.iterateAllDescendents(function(otherSlice) {
+        descendentsSelection.push(otherSlice);
+      });
+      if (ancestorsSelection.length > 1) {
+        this.eventGroups_.push({
+          type: 'Ancestors',
+          tooltip: 'All slices above this one on this thread.',
+          selection: ancestorsSelection
+        });
+      }
+      if (descendentsSelection.length > 1) {
+        this.eventGroups_.push({
+          type: 'Descendents',
+          tooltip: 'All slices below this one on this thread.',
+          selection: descendentsSelection
+        });
+      }
+      if (ancestorsSelection.length > 1 && descendentsSelection.length > 1) {
+        for (var i = 0; i < ancestorsSelection.length; ++i)
+          allSlicesSelection.push(ancestorsSelection[i]);
+        for (var i = 0; i < descendentsSelection.length; ++i)
+          allSlicesSelection.push(descendentsSelection[i]);
+        this.eventGroups_.push({
+          type: 'Hierarchy',
+          tooltip: 'All slices above or below this one on this thread.',
+          selection: allSlicesSelection
+        });
+      }
+    },
+
+    addAncestorsAndDescendentsForSelection_: function(selection) {
+      var allSlicesSelection = new tr.c.Selection();
+      selection.forEach(function(slice) {
+        allSlicesSelection.push(slice);
+        if (slice.iterateAllAncestors && slice.iterateAllDescendents) {
+          slice.iterateAllAncestors(function(otherSlice) {
+            allSlicesSelection.push(otherSlice);
+          });
+          slice.iterateAllDescendents(function(otherSlice) {
+            allSlicesSelection.push(otherSlice);
+          });
+        }
+      }.bind(this));
+      // Add hierarchy slices if it contains more than the original selection.
+      if (allSlicesSelection.length > selection.length) {
+        this.eventGroups_.push({
+          type: 'All hierarchies',
+          tooltip: 'All slices above or below any slice in the selection.',
+          selection: allSlicesSelection
         });
       }
     },
@@ -172,24 +267,6 @@ found in the LICENSE file.
       else
         table.tableRows = this.eventGroups_.slice();
       table.rebuild();
-    },
-
-    recursivelyAddConnectedEvents_: function(selection, eventIds, event,
-                                             getFlows) {
-      if (!event || eventIds[event.guid])
-        return;
-      eventIds[event.guid] = true;
-      selection.push(event);
-      var flowEvents = getFlows(event);
-      if (!flowEvents)
-        return;
-      for (var i = 0; i < flowEvents.length; ++i) {
-        selection.push(flowEvents[i]);
-        this.recursivelyAddConnectedEvents_(selection, eventIds,
-            flowEvents[i].startSlice, getFlows);
-        this.recursivelyAddConnectedEvents_(selection, eventIds,
-            flowEvents[i].endSlice, getFlows);
-      }
     }
   });
   </script>
