@@ -26,10 +26,10 @@ tr.exportTo('tr.model', function() {
     tr.model.EventContainer.call(this);
     this.guid_ = tr.b.GUID.allocate();
 
-    this.parent = parent;
-    this.id = id;
-    this.category = category || '';
-    this.name = name;
+    this.parent_ = parent;
+    this.id_ = id;
+    this.category_ = category || '';
+    this.name_ = name;
 
     this.series_ = [];
     this.totals = [];
@@ -41,6 +41,22 @@ tr.exportTo('tr.model', function() {
 
     get guid() {
       return this.guid_;
+    },
+
+    get parent() {
+      return this.parent_;
+    },
+
+    get id() {
+      return this.id_;
+    },
+
+    get category() {
+      return this.category_;
+    },
+
+    get name() {
+      return this.name_;
     },
 
     iterateAllEventsInThisContainer: function(eventTypePredicate,
