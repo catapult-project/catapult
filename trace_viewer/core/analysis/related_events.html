@@ -100,38 +100,18 @@ found in the LICENSE file.
     addConnectedEvents_: function(selection) {
       // Preceding and following events are only well-defined for single
       // selections.
-      if (selection.length === 1) {
-        this.computeRelatedEventsForSlice_(selection[0]);
-        return;
-      }
-      var eventIds = {};
-      var allEventsSelection = new tr.c.Selection();
-      selection.forEach(function(slice) {
-        this.recursivelyAddRelatedEvents_(allEventsSelection, eventIds, slice,
-            function(event) {
-              var flows = [];
-              if (event.inFlowEvents)
-                flows = flows.concat(event.inFlowEvents);
-              if (event.outFlowEvents)
-                flows = flows.concat(event.outFlowEvents);
-              return flows;
-            });
-      }.bind(this));
-      // Add related events if it contains more than the original selection.
-      if (allEventsSelection.length > selection.length) {
-        this.eventGroups_.push({
-          type: 'All connected events',
-          selection: allEventsSelection
-        });
-      }
+      if (selection.length === 1)
+        this.addConnectedEventsForSlice_(selection[0]);
+      else
+        this.addConnectedEventsForSelection_(selection);
     },
 
-    computeRelatedEventsForSlice_: function(slice) {
+    addConnectedEventsForSlice_: function(slice) {
       var precedingEventsSelection = undefined;
       var followingEventsSelection = undefined;
       if (slice.inFlowEvents && slice.inFlowEvents.length !== 0) {
         precedingEventsSelection = new tr.c.Selection();
-        this.recursivelyAddRelatedEvents_(precedingEventsSelection, {}, slice,
+        this.recursivelyAddConnectedEvents_(precedingEventsSelection, {}, slice,
             function(event) { return event.inFlowEvents; });
         this.eventGroups_.push({
           type: 'Preceding events',
@@ -140,7 +120,7 @@ found in the LICENSE file.
       }
       if (slice.outFlowEvents && slice.outFlowEvents.length !== 0) {
         followingEventsSelection = new tr.c.Selection();
-        this.recursivelyAddRelatedEvents_(followingEventsSelection, {}, slice,
+        this.recursivelyAddConnectedEvents_(followingEventsSelection, {}, slice,
             function(event) { return event.outFlowEvents; });
         this.eventGroups_.push({
           type: 'Following events',
@@ -162,6 +142,29 @@ found in the LICENSE file.
       }
     },
 
+    addConnectedEventsForSelection_: function(selection) {
+      var eventIds = {};
+      var allEventsSelection = new tr.c.Selection();
+      selection.forEach(function(slice) {
+        this.recursivelyAddConnectedEvents_(allEventsSelection, eventIds, slice,
+            function(event) {
+              var flows = [];
+              if (event.inFlowEvents)
+                flows = flows.concat(event.inFlowEvents);
+              if (event.outFlowEvents)
+                flows = flows.concat(event.outFlowEvents);
+              return flows;
+            });
+      }.bind(this));
+      // Add related events if it contains more than the original selection.
+      if (allEventsSelection.length > selection.length) {
+        this.eventGroups_.push({
+          type: 'All connected events',
+          selection: allEventsSelection
+        });
+      }
+    },
+
     updateContents_: function() {
       var table = this.$.table;
       if (this.eventGroups_ === undefined)
@@ -171,8 +174,8 @@ found in the LICENSE file.
       table.rebuild();
     },
 
-    recursivelyAddRelatedEvents_: function(selection, eventIds, event,
-                                           getFlows) {
+    recursivelyAddConnectedEvents_: function(selection, eventIds, event,
+                                             getFlows) {
       if (!event || eventIds[event.guid])
         return;
       eventIds[event.guid] = true;
@@ -182,9 +185,9 @@ found in the LICENSE file.
         return;
       for (var i = 0; i < flowEvents.length; ++i) {
         selection.push(flowEvents[i]);
-        this.recursivelyAddRelatedEvents_(selection, eventIds,
+        this.recursivelyAddConnectedEvents_(selection, eventIds,
             flowEvents[i].startSlice, getFlows);
-        this.recursivelyAddRelatedEvents_(selection, eventIds,
+        this.recursivelyAddConnectedEvents_(selection, eventIds,
             flowEvents[i].endSlice, getFlows);
       }
     }
