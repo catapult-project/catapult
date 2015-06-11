@@ -66,8 +66,8 @@ tr.exportTo('tr.model', function() {
     },
 
     /**
-     * @return {Counter} The counter on this process named 'name',
-     * creating it if it doesn't exist.
+     * @return {Counter} The counter on this CPU with the given category/name
+     * combination, creating it if it doesn't exist.
      */
     getOrCreateCounter: function(cat, name) {
       var id;
