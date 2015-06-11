@@ -32,6 +32,11 @@ class ActionRunner(object):
     self._tab = tab
     self._skip_waits = skip_waits
 
+  @property
+  def tab(self):
+    """Returns the tab on which actions are performed."""
+    return self._tab
+
   def _RunAction(self, action):
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
