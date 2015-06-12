@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/base.html">
-<link rel="import" href="/base/units/size_in_bytes_span.html">
+<link rel="import" href="/ui/units/size_in_bytes_span.html">
 
 <script>
 'use strict';
@@ -232,7 +232,7 @@ tr.exportTo('tr.c.analysis', function() {
 
     formatDefinedAttribute: function(attr) {
       if (this.units === 'bytes') {
-        var sizeEl = document.createElement('tr-b-u-size-in-bytes-span');
+        var sizeEl = document.createElement('tr-ui-u-size-in-bytes-span');
         sizeEl.numBytes = attr.value;
         return sizeEl;
       }

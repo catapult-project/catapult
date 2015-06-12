@@ -50,7 +50,7 @@ found in the LICENSE file.
             var spanEl = document.createElement('span');
             spanEl.textContent = 'Global memory dump at ';
             linkEl.appendChild(spanEl);
-            linkEl.appendChild(tr.b.units.createTimeStampSpan(row.start));
+            linkEl.appendChild(tr.ui.units.createTimeStampSpan(row.start));
             return linkEl;
           }
         }

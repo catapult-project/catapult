@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/core/analysis/stack_frame.html">
-<link rel="import" href="/base/units/time_stamp_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
 
 <polymer-element name="tr-c-a-single-sample-sub-view"
     extends="tr-c-a-sub-view">
@@ -68,7 +68,7 @@ found in the LICENSE file.
 
       rows.push({
           title: 'Sample time',
-          value: tr.b.units.createTimeStampSpan(sample.start)
+          value: tr.ui.units.createTimeStampSpan(sample.start)
       });
 
       var sfEl = document.createElement('tr-c-a-stack-frame');

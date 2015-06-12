@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/analysis/analysis_link.html">
 <link rel="import" href="/core/analysis/multi_event_summary.html">
 <link rel="import" href="/ui/base/table.html">
-<link rel="import" href="/base/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
 
 </script>
 <polymer-element name='tr-c-a-multi-event-summary-table'>
@@ -76,7 +76,7 @@ found in the LICENSE file.
         columns.push({
           title: 'Wall Duration (ms)',
           value: function(row) {
-            return tr.b.units.createTimeSpan(row.duration);
+            return tr.ui.units.createTimeSpan(row.duration);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -89,7 +89,7 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Duration (ms)',
           value: function(row) {
-            return tr.b.units.createTimeSpan(row.cpuDuration);
+            return tr.ui.units.createTimeSpan(row.cpuDuration);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -102,7 +102,7 @@ found in the LICENSE file.
         columns.push({
           title: 'Self time (ms)',
           value: function(row) {
-            return tr.b.units.createTimeSpan(row.selfTime);
+            return tr.ui.units.createTimeSpan(row.selfTime);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -115,7 +115,7 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Self Time (ms)',
           value: function(row) {
-            return tr.b.units.createTimeSpan(row.cpuSelfTime);
+            return tr.ui.units.createTimeSpan(row.cpuSelfTime);
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {

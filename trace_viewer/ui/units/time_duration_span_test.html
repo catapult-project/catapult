@@ -5,34 +5,34 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/units/time.html">
-<link rel="import" href="/base/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var timeSpan = document.createElement('tr-b-u-time-duration-span');
+    var timeSpan = document.createElement('tr-ui-u-time-duration-span');
     timeSpan.duration = 73;
     this.addHTMLOutput(timeSpan);
   });
   test('instantiateWitHObject', function() {
-    var timeSpan = document.createElement('tr-b-u-time-duration-span');
+    var timeSpan = document.createElement('tr-ui-u-time-duration-span');
     timeSpan.duration = new tr.b.units.TimeDuration(73);
     this.addHTMLOutput(timeSpan);
     assert.equal(timeSpan.duration, 73);
   });
   test('instantiateWithWarning', function() {
-    var timeSpan = document.createElement('tr-b-u-time-duration-span');
+    var timeSpan = document.createElement('tr-ui-u-time-duration-span');
     timeSpan.duration = 400;
     timeSpan.warning = 'there is a problem with this time';
     this.addHTMLOutput(timeSpan);
   });
 
   test('warningAndNonWarningHaveSimilarHeights', function() {
-    var spanA = document.createElement('tr-b-u-time-duration-span');
+    var spanA = document.createElement('tr-ui-u-time-duration-span');
     spanA.duration = 400;
 
-    var spanB = document.createElement('tr-b-u-time-duration-span');
+    var spanB = document.createElement('tr-ui-u-time-duration-span');
     spanB.duration = 400;
     spanB.warning = 'there is a problem with this time';
 
@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() {
       var Time = tr.b.units.Time;
       Time.currentDisplayUnit = Time.supportedUnits.ns;
 
-      var timeSpan = document.createElement('tr-b-u-time-duration-span');
+      var timeSpan = document.createElement('tr-ui-u-time-duration-span');
       timeSpan.duration = 73;
       this.addHTMLOutput(timeSpan);
 

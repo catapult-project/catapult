@@ -7,7 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/statistics.html">
 <script>
 'use strict';
-tr.exportTo('tr.b.units', function() {
+tr.exportTo('tr.ui.units', function() {
   var ArrayOfNumbersSummaryModes = {
     AVERAGE_MODE: 'average-mode',
     TOTAL_MODE: 'total-mode'
@@ -17,7 +17,7 @@ tr.exportTo('tr.b.units', function() {
   };
 });
 </script>
-<polymer-element name="tr-b-u-array-of-numbers-span">
+<polymer-element name="tr-ui-u-array-of-numbers-span">
   <template>
   </template>
   <script>
@@ -26,7 +26,7 @@ tr.exportTo('tr.b.units', function() {
   Polymer({
     created: function() {
       this.numbers_ = undefined;
-      this.summaryMode_ = tr.b.units.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
+      this.summaryMode_ = tr.ui.units.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
     },
 
     get summaryMode() {
@@ -60,7 +60,7 @@ tr.exportTo('tr.b.units', function() {
         return;
       }
 
-      var ArrayOfNumbersSummaryModes = tr.b.units.ArrayOfNumbersSummaryModes;
+      var ArrayOfNumbersSummaryModes = tr.ui.units.ArrayOfNumbersSummaryModes;
       var value;
       if (this.summaryMode_ === ArrayOfNumbersSummaryModes.AVERAGE_MODE)
         value = tr.b.Statistics.mean(this.numbers_);

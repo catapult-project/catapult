@@ -9,9 +9,9 @@ found in the LICENSE file.
 <link rel="import" href="/base/units/time_duration.html">
 <link rel="import" href="/base/units/time_stamp.html">
 <link rel="import" href="/base/units/size_in_bytes.html">
-<link rel="import" href="/base/units/time_duration_span.html">
-<link rel="import" href="/base/units/time_stamp_span.html">
-<link rel="import" href="/base/units/size_in_bytes_span.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
+<link rel="import" href="/ui/units/size_in_bytes_span.html">
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/ui/ui.html">
 <link rel="import" href="/ui/base/table.html">
@@ -165,21 +165,21 @@ found in the LICENSE file.
       }
 
       if (object instanceof tr.b.units.SizeInBytes) {
-        var el = this.ownerDocument.createElement('tr-b-u-size-in-bytes-span');
+        var el = this.ownerDocument.createElement('tr-ui-u-size-in-bytes-span');
         el.numBytes = object.numBytes;
         this.appendElementWithLabel_(label, indent, el, suffix);
         return;
       }
 
       if (object instanceof tr.b.units.TimeDuration) {
-        var el = this.ownerDocument.createElement('tr-b-u-time-duration-span');
+        var el = this.ownerDocument.createElement('tr-ui-u-time-duration-span');
         el.duration = object.duration;
         this.appendElementWithLabel_(label, indent, el, suffix);
         return;
       }
 
       if (object instanceof tr.b.units.TimeStamp) {
-        var el = this.ownerDocument.createElement('tr-b-u-time-stamp-span');
+        var el = this.ownerDocument.createElement('tr-ui-u-time-stamp-span');
         el.timestamp = object.timestamp;
         this.appendElementWithLabel_(label, indent, el, suffix);
         return;

@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/ui/base/table.html">
-<link rel="import" href="/base/units/time_duration_span.html">
-<link rel="import" href="/base/units/time_stamp_span.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
 
 <polymer-element name='tr-c-a-selection-summary-table'>
   <template>
@@ -72,12 +72,12 @@ found in the LICENSE file.
       rows.push({
         title: 'Selection start',
         value: hasRange ?
-            tr.b.units.createTimeStampSpan(selection.bounds.min) : '<empty>'
+            tr.ui.units.createTimeStampSpan(selection.bounds.min) : '<empty>'
       });
       rows.push({
         title: 'Selection extent',
         value: hasRange ?
-            tr.b.units.createTimeSpan(selection.bounds.range) : '<empty>'
+            tr.ui.units.createTimeSpan(selection.bounds.range) : '<empty>'
       });
 
       this.$.table.tableRows = rows;

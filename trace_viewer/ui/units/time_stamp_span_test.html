@@ -5,18 +5,18 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/units/time.html">
-<link rel="import" href="/base/units/time_stamp_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var timeStamp = document.createElement('tr-b-u-time-stamp-span');
+    var timeStamp = document.createElement('tr-ui-u-time-stamp-span');
     timeStamp.timestamp = 73;
     this.addHTMLOutput(timeStamp);
   });
   test('instantiateWithObject', function() {
-    var timeStamp = document.createElement('tr-b-u-time-stamp-span');
+    var timeStamp = document.createElement('tr-ui-u-time-stamp-span');
     timeStamp.timestamp = new tr.b.units.TimeStamp(73);
     this.addHTMLOutput(timeStamp);
     assert.equal(timeStamp.timestamp, 73);
@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
       var Time = tr.b.units.Time;
       Time.currentDisplayUnit = Time.supportedUnits.ns;
 
-      var timeStamp = document.createElement('tr-b-u-time-stamp-span');
+      var timeStamp = document.createElement('tr-ui-u-time-stamp-span');
       timeStamp.timestamp = 73;
       this.addHTMLOutput(timeStamp);
 

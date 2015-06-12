@@ -10,18 +10,18 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-tr.exportTo('tr.b.units', function() {
+tr.exportTo('tr.ui.units', function() {
   function createTimeSpan(duration) {
     if (duration === undefined)
       return '';
-    var span = document.createElement('tr-b-u-time-duration-span');
+    var span = document.createElement('tr-ui-u-time-duration-span');
     span.duration = duration;
     return span;
   }
 
   tr.b.units.Time.addEventListener('display-unit-changed', function(e) {
     tr.b.findDeepElementsMatching(document.body,
-      'tr-b-u-time-duration-span').forEach(function(el) {
+      'tr-ui-u-time-duration-span').forEach(function(el) {
         el.updateContent_();
       });
   });
@@ -32,7 +32,7 @@ tr.exportTo('tr.b.units', function() {
 });
 </script>
 
-<polymer-element name="tr-b-u-time-duration-span">
+<polymer-element name="tr-ui-u-time-duration-span">
   <template>
     <style>
     :host {

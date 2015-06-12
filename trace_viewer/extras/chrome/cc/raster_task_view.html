@@ -7,7 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/extras/chrome/cc/raster_task.html">
 <link rel="import" href="/extras/chrome/cc/selection.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
-<link rel="import" href="/base/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
 <link rel="import" href="/ui/base/table.html">
 
 <polymer-element name="tr-e-cc-raster-task-view"
@@ -82,7 +82,7 @@ found in the LICENSE file.
         {
           title: 'Wall Duration (ms)',
           value: function(row) {
-            return tr.b.units.createTimeSpan(row.duration);
+            return tr.ui.units.createTimeSpan(row.duration);
           },
           cmp: function(a, b) { return a.duration - b.duration; }
         }
@@ -92,7 +92,7 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Duration (ms)',
           value: function(row) {
-            return tr.b.units.createTimeSpan(row.duration);
+            return tr.ui.units.createTimeSpan(row.duration);
           },
           cmp: function(a, b) { return a.cpuDuration - b.cpuDuration; }
         });

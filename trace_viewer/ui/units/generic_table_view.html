@@ -8,8 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/base/units/generic_table.html">
-<link rel="import" href="/base/units/array_of_numbers_span.html">
-<polymer-element name="tr-b-u-generic-table-view">
+<link rel="import" href="/ui/units/array_of_numbers_span.html">
+
+<polymer-element name="tr-ui-u-generic-table-view">
   <template>
     <style>
     :host {
@@ -23,10 +24,11 @@ found in the LICENSE file.
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
 </polymer-element>
+
 <script>
 'use strict';
 
-tr.exportTo('tr.b.units', function() {
+tr.exportTo('tr.ui.units', function() {
   var TEXT_COLUMN_MODE = 1;
   var NUMERIC_COLUMN_MODE = 2;
 
@@ -102,8 +104,8 @@ tr.exportTo('tr.b.units', function() {
     value: function(item) {
       var fieldValue = item[this.fieldName];
       if (fieldValue instanceof GenericTableViewTotalsItem) {
-        var span = document.createElement('tr-b-u-array-of-numbers-span');
-        span.summaryMode = tr.b.units.ArrayOfNumbersSummaryModes.TOTAL_MODE;
+        var span = document.createElement('tr-ui-u-array-of-numbers-span');
+        span.summaryMode = tr.ui.units.ArrayOfNumbersSummaryModes.TOTAL_MODE;
         span.numbers = fieldValue.values;
         return span;
       }
@@ -116,7 +118,7 @@ tr.exportTo('tr.b.units', function() {
     }
   };
 
-  Polymer('tr-b-u-generic-table-view', {
+  Polymer('tr-ui-u-generic-table-view', {
     created: function() {
       this.items_ = undefined;
     },

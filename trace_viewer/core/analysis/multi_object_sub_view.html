@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/table.html">
-<link rel="import" href="/base/units/time_stamp_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
 <link rel="import" href="/core/analysis/analysis_link.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
 <link rel="import" href="/base/units/util.html">
@@ -50,10 +50,10 @@ found in the LICENSE file.
           title: 'First',
           value: function(event) {
             if (event instanceof tr.model.ObjectSnapshot)
-              return tr.b.units.createTimeStampSpan(event.ts);
+              return tr.ui.units.createTimeStampSpan(event.ts);
 
             var spanEl = document.createElement('span');
-            spanEl.appendChild(tr.b.units.createTimeStampSpan(
+            spanEl.appendChild(tr.ui.units.createTimeStampSpan(
                 event.creationTs));
             spanEl.appendChild(tr.ui.b.createSpan({
                 textContent: '-',
@@ -62,7 +62,7 @@ found in the LICENSE file.
             }));
             if (event.deletionTs != Number.MAX_VALUE) {
               spanEl.appendChild(
-                  tr.b.units.createTimeStampSpan(event.deletionTs));
+                  tr.ui.units.createTimeStampSpan(event.deletionTs));
             }
             return spanEl;
           },

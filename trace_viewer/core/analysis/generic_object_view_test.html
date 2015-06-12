@@ -172,21 +172,21 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     var view = document.createElement('tr-c-a-generic-object-view');
     view.object = new tr.b.units.TimeDuration(3);
     assert.isDefined(tr.b.findDeepElementMatching(
-      view.$.content, 'tr-b-u-time-duration-span'));
+      view.$.content, 'tr-ui-u-time-duration-span'));
   });
 
   test('timeStampValue', function() {
     var view = document.createElement('tr-c-a-generic-object-view');
     view.object = new tr.b.units.TimeStamp(3);
     assert.isDefined(tr.b.findDeepElementMatching(
-      view.$.content, 'tr-b-u-time-stamp-span'));
+      view.$.content, 'tr-ui-u-time-stamp-span'));
   });
 
   test('sizeInBytesValue', function() {
     var view = document.createElement('tr-c-a-generic-object-view');
     view.object = new tr.b.units.SizeInBytes(3);
     assert.isDefined(tr.b.findDeepElementMatching(
-      view.$.content, 'tr-b-u-size-in-bytes-span'));
+      view.$.content, 'tr-ui-u-size-in-bytes-span'));
   });
 
 
