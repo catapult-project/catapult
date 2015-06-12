@@ -92,53 +92,57 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sInfo.inputLatency, 10);
   });
 
-  test('testGetAssociatedEvents', function() {
+  test('testGetAssociatedEventsGeneral', function() {
     var m = newModel(function(m) {
 
       var p = m.getOrCreateProcess(1);
       var t = p.getOrCreateThread(1);
 
-      var s0 = newSliceEx({
-        title: 'a',
-        start: 0.0,
-        duration: 0.5
-      });
+      // Expectation: s3 shouldn't be included since it's not a subsequent
+      // slice of s4
+      // [     s0     ]      [    s1    ]----->[s2]
+      //   [s3] [ s4 ]-------->[s5] [s6]
 
-      var s1 = newSliceEx({
-        title: 'b',
-        start: 0.5,
-        duration: 0.5
-      });
+      m.s0 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's0', start: 0.0, duration: 2.0 }));
+      m.s1 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's1', start: 2.0, duration: 2.0 }));
+      m.s2 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's2', start: 4.0, duration: 1.0 }));
+      m.s3 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's3', start: 0.5, duration: 0.5 }));
+      m.s4 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's4', start: 1.0, duration: 0.5 }));
+      m.s5 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's5', start: 2.5, duration: 0.5 }));
+      m.s6 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's6', start: 3.0, duration: 0.5 }));
 
-      var s2 = newSliceEx({
-        title: 'c',
-        start: 1.0,
-        duration: 0.5
-      });
+      t.sliceGroup.createSubSlices();
 
-      var f1 = newFlowEventEx({
+      m.f1 = newFlowEventEx({
         'title': 'test1',
         start: 0,
         end: 10,
-        startSlice: s0,
-        endSlice: s1,
+        startSlice: m.s4,
+        endSlice: m.s5,
         id: '0x100'
       });
 
-      var f2 = newFlowEventEx({
+      m.f2 = newFlowEventEx({
         'title': 'test2',
         start: 20,
         end: 30,
-        startSlice: s1,
-        endSlice: s2,
+        startSlice: m.s1,
+        endSlice: m.s2,
         id: '0x100'
       });
 
-      m.flowEvents.push(f1);
-      m.flowEvents.push(f2);
+      m.flowEvents.push(m.f1);
+      m.flowEvents.push(m.f2);
 
       m.as0 = newAsyncSliceEx({
-        title: 'InputLatency::TestShouldReturnEmpty',
+        title: 'test1',
         cat: 'benchmark,latencyInfo',
         start: 2,
         end: 10,
@@ -148,7 +152,7 @@ tr.b.unittest.testSuite(function() {
       });
 
       m.as1 = newAsyncSliceEx({
-        title: 'InputLatency::TestShouldReturnTwoElements',
+        title: 'test2',
         cat: 'benchmark,latencyInfo',
         start: 2,
         end: 10,
@@ -159,8 +163,293 @@ tr.b.unittest.testSuite(function() {
 
     });
 
-    assert.equal(m.as0.associatedEvents.length, 0);
-    assert.equal(m.as1.associatedEvents.length, 5);
+    assert.deepEqual(m.as0.associatedEvents, []);
+    assert.deepEqual(m.as1.associatedEvents,
+        [m.f1, m.s4, m.s0, m.f2, m.s1, m.s5, m.s6, m.s2]);
+    assert.equal(m.as1.associatedEvents[0].id, '0x100');
+  });
+
+  test('getAssociatedEventsBypassRendererMain', function() {
+    var m = newModel(function(m) {
+
+      var pb = m.getOrCreateProcess(1);
+      var pr = m.getOrCreateProcess(2);
+      var mainBrowserThread = pb.getOrCreateThread(10);
+      var mainRendererThread = pr.getOrCreateThread(20);
+      var compositorThread = pr.getOrCreateThread(21);
+
+      mainBrowserThread.name = 'CrBrowserMain';
+      mainRendererThread.name = 'CrRendererMain';
+      compositorThread.name = 'Compositor';
+
+      // Expectation: None of s2 and s3 should be included
+      // CrBrowserMain:        [s0]             [s1]
+      //                         |              /|\
+      // CrRendererMain:         |   [s2] [s3]   |
+      //                        \|/              |
+      // Compositor:            [s4]-------------|
+
+      m.s0 = mainBrowserThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's0', start: 0.0, duration: 1.0 }));
+      m.s1 = mainBrowserThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's1', start: 6.0, duration: 1.0 }));
+      m.s2 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's2', start: 2.0, duration: 1.0 }));
+      m.s3 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's3', start: 4.0, duration: 1.0 }));
+      m.s4 = compositorThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's4', start: 0.5, duration: 1.0 }));
+
+      m.f1 = newFlowEventEx({
+        'title': 'test1',
+        start: 0,
+        end: 10,
+        startSlice: m.s0,
+        endSlice: m.s4,
+        id: '0x100'
+      });
+
+      m.f2 = newFlowEventEx({
+        'title': 'test2',
+        start: 20,
+        end: 30,
+        startSlice: m.s4,
+        endSlice: m.s1,
+        id: '0x100'
+      });
+
+      m.flowEvents.push(m.f1);
+      m.flowEvents.push(m.f2);
+
+      m.as0 = newAsyncSliceEx({
+        title: 'test1',
+        cat: 'benchmark,latencyInfo',
+        start: 2,
+        end: 10,
+        id: '0x101',
+        isTopLevel: true,
+        startThread: mainBrowserThread
+      });
+
+      m.as1 = newAsyncSliceEx({
+        title: 'test2',
+        cat: 'benchmark,latencyInfo',
+        start: 2,
+        end: 10,
+        id: '0x100',
+        isTopLevel: true,
+        startThread: compositorThread
+      });
+
+    });
+
+    assert.deepEqual(m.as0.associatedEvents, []);
+    assert.deepEqual(m.as1.associatedEvents, [m.f1, m.s0, m.f2, m.s4, m.s1]);
+    assert.equal(m.as1.associatedEvents[0].id, '0x100');
+  });
+
+  test('getAssociatedEventsWithoutCommit', function() {
+    var m = newModel(function(m) {
+
+      var pb = m.getOrCreateProcess(1);
+      var pr = m.getOrCreateProcess(2);
+      var mainBrowserThread = pb.getOrCreateThread(10);
+      var mainRendererThread = pr.getOrCreateThread(20);
+      var compositorThread = pr.getOrCreateThread(21);
+
+      mainBrowserThread.name = 'CrBrowserMain';
+      mainRendererThread.name = 'CrRendererMain';
+      compositorThread.name = 'Compositor';
+
+      // Expectation: s3 should be included by getOtherCasuallyRelatedEvents,
+      // but s5 shouldn't be included.
+      // CrBrowserMain:        [s0]             [s1]
+      //                         |              /|\
+      //                         |     __________|
+      //                         |     |
+      // CrRendererMain:         |   [s2] [s3]      [s5]
+      //                        \|/   /|\
+      // Compositor:            [s4]___|
+
+      m.s0 = mainBrowserThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's0', start: 0.0, duration: 1.0 }));
+      m.s1 = mainBrowserThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's1', start: 6.0, duration: 1.0 }));
+      m.s2 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's2', start: 2.0, duration: 1.0 }));
+      m.s3 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's3', start: 4.0, duration: 1.0 }));
+      m.s4 = compositorThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's4', start: 0.5, duration: 1.0 }));
+      m.s5 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's5', start: 100.0, duration: 1.0 }));
+
+      m.f1 = newFlowEventEx({
+        'title': 'f1',
+        start: 0,
+        end: 10,
+        startSlice: m.s0,
+        endSlice: m.s4,
+        id: '0x100'
+      });
+
+      m.f2 = newFlowEventEx({
+        'title': 'f2',
+        start: 20,
+        end: 30,
+        startSlice: m.s4,
+        endSlice: m.s2,
+        id: '0x100'
+      });
+
+      m.f3 = newFlowEventEx({
+        'title': 'f3',
+        start: 20,
+        end: 30,
+        startSlice: m.s2,
+        endSlice: m.s1,
+        id: '0x100'
+      });
+
+      m.flowEvents.push(m.f1);
+      m.flowEvents.push(m.f2);
+      m.flowEvents.push(m.f3);
+
+      m.as0 = newAsyncSliceEx({
+        title: 'test1',
+        cat: 'benchmark,latencyInfo',
+        start: 2,
+        end: 10,
+        id: '0x101',
+        isTopLevel: true,
+        startThread: mainBrowserThread
+      });
+
+      m.as1 = newAsyncSliceEx({
+        title: 'test2',
+        cat: 'benchmark,latencyInfo',
+        start: 2,
+        end: 10,
+        id: '0x100',
+        isTopLevel: true,
+        startThread: mainBrowserThread
+      });
+
+    });
+
+    assert.deepEqual(m.as0.associatedEvents, []);
+    assert.deepEqual(m.as1.associatedEvents,
+        [m.f1, m.s0, m.f2, m.s4, m.f3, m.s2, m.s1, m.s3]);
+    assert.equal(m.as1.associatedEvents[0].id, '0x100');
+  });
+
+  test('getAssociatedEventsWillCommit', function() {
+    var m = newModel(function(m) {
+
+      var pb = m.getOrCreateProcess(1);
+      var pr = m.getOrCreateProcess(2);
+      var mainBrowserThread = pb.getOrCreateThread(10);
+      var mainRendererThread = pr.getOrCreateThread(20);
+      var compositorThread = pr.getOrCreateThread(21);
+
+      mainBrowserThread.name = 'CrBrowserMain';
+      mainRendererThread.name = 'CrRendererMain';
+      compositorThread.name = 'Compositor';
+
+      // Expectation: s3 should be included by getOtherCasuallyRelatedEvents,
+      // but s6 shouldn't be included.
+      // CrBrowserMain:        [s0]                [ s1 ]
+      //                         |                    |
+      //                         |                    |
+      //                         |                    |
+      // CrRendererMain:         |   [  s2  ] [s3]    |      [s6]
+      //                         |   /|\  |_______    |
+      //                         |    |           |   |
+      //                        \|/   |          \|/  |
+      // Compositor:            [s4]__|          [s5]_|
+
+      m.s0 = mainBrowserThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's0', start: 0.0, duration: 1.0 }));
+      m.s1 = mainBrowserThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's1', start: 6.0, duration: 1.0 }));
+      m.s2 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's2', start: 2.0, duration: 1.0 }));
+      m.s3 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's3', start: 4.0, duration: 1.0 }));
+      m.s4 = compositorThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's4', start: 0.5, duration: 1.0 }));
+      m.s5 = compositorThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 'Scheduler::OnBeginImplFrameDeadline',
+          start: 5.5, duration: 1.0 }));
+      m.s6 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's6', start: 1000.0, duration: 1.0 }));
+
+      m.f1 = newFlowEventEx({
+        'title': 'f1',
+        start: 0,
+        end: 10,
+        startSlice: m.s0,
+        endSlice: m.s4,
+        id: '0x100'
+      });
+
+      m.f2 = newFlowEventEx({
+        'title': 'f2',
+        start: 20,
+        end: 30,
+        startSlice: m.s4,
+        endSlice: m.s2,
+        id: '0x100'
+      });
+
+      m.f3 = newFlowEventEx({
+        'title': 'f3',
+        start: 20,
+        end: 30,
+        startSlice: m.s2,
+        endSlice: m.s5,
+        id: '0x100'
+      });
+
+      m.f4 = newFlowEventEx({
+        'title': 'f3',
+        start: 20,
+        end: 30,
+        startSlice: m.s5,
+        endSlice: m.s1,
+        id: '0x100'
+      });
+
+      m.flowEvents.push(m.f1);
+      m.flowEvents.push(m.f2);
+      m.flowEvents.push(m.f3);
+      m.flowEvents.push(m.f4);
+
+      m.as0 = newAsyncSliceEx({
+        title: 'test1',
+        cat: 'benchmark,latencyInfo',
+        start: 2,
+        end: 10,
+        id: '0x101',
+        isTopLevel: true,
+        startThread: mainBrowserThread
+      });
+
+      m.as1 = newAsyncSliceEx({
+        title: 'test2',
+        cat: 'benchmark,latencyInfo',
+        start: 2,
+        end: 10,
+        id: '0x100',
+        isTopLevel: true,
+        startThread: mainBrowserThread
+      });
+
+    });
+
+    assert.deepEqual(m.as0.associatedEvents, []);
+    assert.deepEqual(m.as1.associatedEvents,
+        [m.f1, m.s0, m.f2, m.s4, m.f3, m.s2, m.f4, m.s5, m.s1, m.s3]);
     assert.equal(m.as1.associatedEvents[0].id, '0x100');
   });
 

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/model/async_slice.html">
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
 
 <script>
 'use strict';
@@ -12,11 +13,13 @@ found in the LICENSE file.
 tr.exportTo('tr.e.cc', function() {
   var AsyncSlice = tr.model.AsyncSlice;
 
-
   var UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT';
   var ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT';
   var BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT';
   var END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT';
+
+  var MAIN_RENDERER_THREAD_NAME = 'CrRendererMain';
+  var COMPOSITOR_THREAD_NAME = 'Compositor';
 
   function InputLatencyAsyncSlice() {
     AsyncSlice.apply(this, arguments);
@@ -26,26 +29,204 @@ tr.exportTo('tr.e.cc', function() {
   InputLatencyAsyncSlice.prototype = {
     __proto__: AsyncSlice.prototype,
 
+    getRendererHelper: function(flowPath) {
+      var traceModel = this.startThread.parent.model;
+      if (!tr.e.audits.ChromeModelHelper.supportsModel(traceModel))
+        return undefined;
+
+      var mainThread = undefined;
+      var compositorThread = undefined;
+
+      for (var i in flowPath) {
+        if (flowPath[i].parentContainer.name === MAIN_RENDERER_THREAD_NAME)
+          mainThread = flowPath[i].parentContainer;
+        else if (flowPath[i].parentContainer.name === COMPOSITOR_THREAD_NAME)
+          compositorThread = flowPath[i].parentContainer;
+      }
+
+      var modelHelper = new tr.e.audits.ChromeModelHelper(traceModel);
+      var rendererHelpers = modelHelper.rendererHelpers;
+
+      var pids = Object.keys(rendererHelpers);
+      for (var i = 0; i < pids.length; i++) {
+        var pid = pids[i];
+        var rendererHelper = rendererHelpers[pid];
+        if (rendererHelper.mainThread === mainThread ||
+            rendererHelper.compositorThread === compositorThread)
+          return rendererHelper;
+      }
+
+      return undefined;
+    },
+
+    constructFlowPath: function(flowEvents) {
+      var flowPath = [];
+
+      flowEvents.forEach(function(flowEvent) {
+        flowPath.push(flowEvent.startSlice.mostTopLevelSlice);
+      }, this);
+      var lastFlowEvent = flowEvents[flowEvents.length - 1];
+      flowPath.push(lastFlowEvent.endSlice.mostTopLevelSlice);
+
+      return flowPath;
+    },
+
+    addDirectlyAssociatedEvents: function(eventGUIDs, flowEvents) {
+      flowEvents.forEach(function(flowEvent, index, matchedFlowEvents) {
+        this.associatedEvents_.push(flowEvent);
+
+        flowEvent.startSlice.ancestorAndSubsequentSlices.forEach(function(s) {
+          if (!eventGUIDs[s.guid]) {
+            this.associatedEvents_.push(s);
+            eventGUIDs[s.guid] = true;
+          }
+        }, this);
+      }, this);
+
+      // Only process the endSlice for the last flowEvent
+      // this is assuming flowEvents are always followable
+      var lastFlowEvent = flowEvents[flowEvents.length - 1];
+      lastFlowEvent.endSlice.ancestorAndSubsequentSlices.forEach(function(s) {
+        if (!eventGUIDs[s.guid]) {
+          this.associatedEvents_.push(s);
+          eventGUIDs[s.guid] = true;
+        }
+      }, this);
+    },
+
+    findFirstRendererSlice: function(flowPath) {
+      for (var i in flowPath) {
+        if (flowPath[i].parentContainer.name === MAIN_RENDERER_THREAD_NAME)
+          return flowPath[i];
+      }
+
+      return undefined;
+    },
+
+    findLastRendererSlice: function(flowPath) {
+      for (var i in flowPath) {
+        // TODO (Yuhao): The current implementation actually finds a compositor
+        // slice that does draw and buffer swap. Once we trace the renderer
+        // commit, we can find the real last renderer slice.
+        // It's tracked at: https://github.com/google/trace-viewer/issues/1025
+        var commitMaker = 'Scheduler::OnBeginImplFrameDeadline';
+        if (flowPath[i].findDescendentSlice(commitMaker))
+          return flowPath[i];
+      }
+
+      return flowPath[flowPath.length - 1];
+    },
+
+    addSlicesBetweenFirstAndLast: function(eventGUIDs, firstSlice,
+        lastSlice, rendererHelper) {
+      var started = false;
+
+      var allRendererSlices = rendererHelper.mainThread.sliceGroup.slices;
+      for (var i in allRendererSlices) {
+        var slice = allRendererSlices[i];
+
+        if (slice.end > lastSlice.start)
+          break;
+
+        if (started) {
+          // TODO (Yuhao): Can we definitely find main thread slices that
+          // handle other inputs? This bug is tracked at:
+          // https://github.com/google/trace-viewer/issues/1027
+          var handleInputMarker = 'WebViewImpl::handleInputEvent';
+          if (slice.mostTopLevelSlice.findDescendentSlice(handleInputMarker))
+            continue;
+
+          if (!eventGUIDs[slice.guid]) {
+            this.associatedEvents_.push(slice);
+            eventGUIDs[slice.guid] = true;
+          }
+        } else {
+          started = (slice.guid === firstSlice.guid);
+        }
+      }
+    },
+
+    // Find the Latency::ScrollUpdate slice that started between the start
+    // and end of InputLatency::GestureScrollUpdate
+    addScrollUpdateEvents: function(compositorThread) {
+      var gestureScrollUpdateStart = this.start;
+      var gestureScrollUpdateEnd = this.end;
+
+      var allCompositorAsyncSlices =
+        compositorThread.asyncSliceGroup.slices;
+
+      for (var i in allCompositorAsyncSlices) {
+        var slice = allCompositorAsyncSlices[i];
+
+        if (slice.title === 'Latency::ScrollUpdate' &&
+            slice.start >= gestureScrollUpdateStart &&
+            slice.start < gestureScrollUpdateEnd) {
+          // Found Latency::ScrollUpdate; push all its associatedEvents
+          slice.associatedEvents.forEach(function(event) {
+            this.associatedEvents_.push(event);
+          }, this);
+          break;
+        }
+      }
+    },
+
+    addOtherCasuallyRelatedEvents: function(eventGUIDs, flowEvents) {
+      var flowPath = this.constructFlowPath(flowEvents);
+      var rendererHelper = this.getRendererHelper(flowPath);
+
+      if (rendererHelper === undefined ||
+          rendererHelper.mainThread === undefined)
+        return;
+
+      // Find the first renderer slice from the flow path. It might not
+      // exist because some inputs (e.g., scroll update) are
+      //  1) taken over by the compositor and thus bypass the renderer,
+      //  2) directly consumed by the browser process..
+      var firstRendererSlice = this.findFirstRendererSlice(flowPath);
+
+      if (firstRendererSlice === undefined) {
+        // Scroll update doesn't go through the main thread, but the compositor
+        // may go back to the main thread if there is an onscroll event handler.
+        // This is captured by a different flow event, which does not have the
+        // same ID as the Input Latency Event, but it is technically casually
+        // related to the GestureScrollUpdate input. Add them manually for now.
+        var latencyScrollUpdateMaker = 'InputLatency::GestureScrollUpdate';
+        if (this.title === latencyScrollUpdateMaker)
+          this.addScrollUpdateEvents(rendererHelper.compositorThread);
+
+        return;
+      }
+
+      // If the first renderer slice exist, we look for the last renderer slice.
+      // There are two cases:
+      //  1) the slice that commits to the compositor thread
+      //  2) renderer didn't commit, then for now we fall back to the last slice
+      //  in the flow path (which might not be a renderer slice)
+      var lastRendererSlice = this.findLastRendererSlice(flowPath);
+
+      // Push relevant slices between first and last slice
+      this.addSlicesBetweenFirstAndLast(
+          eventGUIDs, firstRendererSlice, lastRendererSlice, rendererHelper);
+    },
+
     get associatedEvents() {
       if (this.associatedEvents_ !== undefined)
         return this.associatedEvents_;
 
       this.associatedEvents_ = [];
       var modelIndices = this.startThread.parent.model.modelIndices;
-      var matchedFlowEvents = modelIndices.getFlowEventsWithId(this.id);
+      var flowEvents = modelIndices.getFlowEventsWithId(this.id);
+
+      if (flowEvents.length === 0)
+        return this.associatedEvents_;
 
       var eventGUIDs = {};
-      matchedFlowEvents.forEach(function(flowEvent) {
-        this.associatedEvents_.push(flowEvent);
-        if (flowEvent.startSlice && !eventGUIDs[flowEvent.startSlice.guid]) {
-          this.associatedEvents_.push(flowEvent.startSlice);
-          eventGUIDs[flowEvent.startSlice.guid] = 1;
-        }
-        if (flowEvent.startSlice && !eventGUIDs[flowEvent.endSlice.guid]) {
-          this.associatedEvents_.push(flowEvent.endSlice);
-          eventGUIDs[flowEvent.endSlice.guid] = 1;
-        }
-      }, this);
+      // Step 1: Get all the events that are directly connected by the flow
+      this.addDirectlyAssociatedEvents(eventGUIDs, flowEvents);
+
+      // Step 2: Get events that are casually related but not connect by flow
+      // It only takes care of the main renderer thread for now
+      this.addOtherCasuallyRelatedEvents(eventGUIDs, flowEvents);
 
       return this.associatedEvents_;
     },
