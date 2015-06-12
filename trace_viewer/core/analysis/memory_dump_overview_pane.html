@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/settings.html">
 <link rel="import" href="/ui/base/color_legend.html">
 <link rel="import"
     href="/core/analysis/memory_dump_allocator_details_pane.html">
@@ -58,6 +59,12 @@ found in the LICENSE file.
       }
     ];
 
+    // TODO(petrcermak): Using tr.b.SessionSettings is a temporary solution
+    // until we figure out how to persist analysis tab state (tracking bug:
+    // https://github.com/google/trace-viewer/issues/706).
+    var SETTINGS_KEY = 'selected_cell';
+    var SETTINGS_NAMESPACE = 'analysis.memory_dump_overview_pane';
+
     Polymer({
       // TODO(petrcermak): Consider sharing more code between
       // tr-c-a-memory-dump-overview-pane and tr-c-memory-dump-process pane
@@ -75,6 +82,7 @@ found in the LICENSE file.
           tableEvent.stopPropagation();
           var paneEvent = new Event('selected-memory-cell-changed');
           this.dispatchEvent(paneEvent);
+          this.storeSelection_();
         }.bind(this));
       },
 
@@ -167,6 +175,8 @@ found in the LICENSE file.
         this.updateColumns_(rows);
 
         this.$.table.rebuild();
+
+        this.restoreSelection_();
       },
 
       updateColumns_: function(rows) {
@@ -224,6 +234,52 @@ found in the LICENSE file.
 
         var columns = [titleColumn].concat(sizeColumns);
         this.$.table.tableColumns = columns;
+      },
+
+      storeSelection_: function() {
+        var selectedRowTitle;
+        var selectedRow = this.$.table.selectedTableRow;
+        if (selectedRow !== undefined)
+          selectedRowTitle = selectedRow.title;
+
+        var selectedColumnName;
+        var selectedColumnIndex = this.$.table.selectedColumnIndex;
+        if (selectedColumnIndex !== undefined) {
+          var selectedColumn = this.$.table.tableColumns[selectedColumnIndex];
+          selectedColumnName = selectedColumn.name;
+        }
+
+        tr.b.SessionSettings.set(
+            SETTINGS_KEY,
+            {rowTitle: selectedRowTitle, columnName: selectedColumnName},
+            SETTINGS_NAMESPACE);
+      },
+
+      restoreSelection_: function() {
+        var settings = tr.b.SessionSettings.get(
+            SETTINGS_KEY, {}, SETTINGS_NAMESPACE);
+        if (settings.rowTitle === undefined ||
+            settings.columnName === undefined)
+          return;
+
+        var selectedColumnName = settings.columnName;
+        var selectedColumnIndex = tr.b.findFirstIndexInArray(
+            this.$.table.tableColumns, function(column) {
+          return column.name === selectedColumnName;
+        });
+        if (selectedColumnIndex < 0)
+          return;
+
+        var selectedRowTitle = settings.rowTitle;
+        var selectedRow = tr.b.findFirstInArray(this.$.table.tableRows,
+            function(row) {
+          return row.title === selectedRowTitle;
+        });
+        if (selectedRow === undefined)
+          return;
+
+        this.$.table.selectedTableRow = selectedRow;
+        this.$.table.selectedColumnIndex = selectedColumnIndex;
       }
     });
   })();

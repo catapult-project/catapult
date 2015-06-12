@@ -107,5 +107,92 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(didFireSelectedDumpChanged);
     assert.isUndefined(viewEl.selectedMemoryCell);
   });
+
+  test('memory', function() {
+    var processMemoryDumps = createProcessMemoryDumps();
+
+    function simulateView(dumps, expectSelectionEventFires, callback) {
+      var view = document.createElement('tr-c-a-memory-dump-overview-pane');
+
+      var didFireSelectedDumpChanged = false;
+      view.addEventListener('selected-memory-cell-changed', function(e) {
+        didFireSelectedDumpChanged = true;
+      });
+
+      view.processMemoryDumps = dumps;
+
+      assert.equal(didFireSelectedDumpChanged, expectSelectionEventFires);
+
+      var table = tr.b.findDeepElementMatching(view, 'tr-ui-b-table');
+      callback(view, table);
+    }
+
+    // Show a view with all processes.
+    simulateView(processMemoryDumps, false, function(view, table) {
+      // No cell should be selected.
+      assert.isUndefined(view.selectedMemoryCell);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+
+      // Select the 'PSS' column of the second process (cell containing
+      // '14.0 MiB').
+      table.selectedTableRow = table.tableRows[1];
+      table.selectedColumnIndex = 2;
+    });
+
+    // Show a view with the second and third processes only.
+    simulateView(processMemoryDumps.slice(1, 3), true, function(view, table) {
+      // The 'PSS' column of the second process should still be selected.
+      assert.equal(view.selectedMemoryCell.attr.value, 14680064);
+      assert.strictEqual(table.selectedTableRow.title, 'Process 2');
+      assert.strictEqual(
+          table.tableColumns[table.selectedColumnIndex].name, 'PSS');
+    });
+
+    // Show a view with the third processes only.
+    simulateView(processMemoryDumps.slice(2, 3), false, function(view, table) {
+      // No cell should be selected (the second process is not shown).
+      assert.isUndefined(view.selectedMemoryCell);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+    });
+
+    // Show a view with all processes again.
+    simulateView(processMemoryDumps, true, function(view, table) {
+      // The 'PSS' column of the second process should be selected again.
+      assert.equal(view.selectedMemoryCell.attr.value, 14680064);
+      assert.strictEqual(table.selectedTableRow.title, 'Process 2');
+      assert.strictEqual(
+          table.tableColumns[table.selectedColumnIndex].name, 'PSS');
+
+      // Select the 'v8' column of the first process (empty cell).
+      table.selectedTableRow = table.tableRows[0];
+      table.selectedColumnIndex = 6;
+    });
+
+    // Show a view with first process only.
+    simulateView(processMemoryDumps.slice(0, 1), false, function(view, table) {
+      // Nothing should be selected (no process with a 'v8' column value is
+      // shown).
+      assert.isUndefined(view.selectedMemoryCell);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+
+      // Select 'Total resident' column of the first process (cell containing
+      // '30.0 MiB').
+      table.selectedTableRow = table.tableRows[0];
+      table.selectedColumnIndex = 1;
+    });
+
+    // Show a view with all processes again.
+    simulateView(processMemoryDumps, true, function(view, table) {
+      // The 'Total resident' column of the first process should still be
+      // selected.
+      assert.equal(view.selectedMemoryCell.attr.value, 31457280);
+      assert.strictEqual(table.selectedTableRow.title, 'Process 1');
+      assert.strictEqual(
+          table.tableColumns[table.selectedColumnIndex].name, 'Total resident');
+    });
+  });
 });
 </script>
