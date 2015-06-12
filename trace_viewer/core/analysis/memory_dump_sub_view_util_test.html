@@ -19,6 +19,9 @@ tr.b.unittest.testSuite(function() {
   var MemoryCell = tr.c.analysis.MemoryCell;
   var fieldGetter = tr.c.analysis.fieldGetter;
   var expandTableRowsRecursively = tr.c.analysis.expandTableRowsRecursively;
+  var aggregateTableRowCells = tr.c.analysis.aggregateTableRowCells;
+  var aggregateTableRowCellsRecursively =
+      tr.c.analysis.aggregateTableRowCellsRecursively;
   var StringAttribute = tr.model.StringAttribute;
   var ScalarAttribute = tr.model.ScalarAttribute;
 
@@ -459,6 +462,121 @@ tr.b.unittest.testSuite(function() {
 
     // 'overhead/external_fragmentation' cannot be expanded (no sub-rows).
     assert.isFalse(table.getExpandedForTableRow(rows[1].subRows[1]));
+  });
+
+  test('checkMemoryCell_extractAttribute', function() {
+    assert.isUndefined(MemoryCell.extractAttribute(undefined));
+
+    assert.isUndefined(MemoryCell.extractAttribute(new MemoryCell(undefined)));
+
+    var attr = new ScalarAttribute('bytes', 1024);
+    assert.strictEqual(MemoryCell.extractAttribute(new MemoryCell(attr)), attr);
+  });
+
+  test('checkAggregateTableRowCellsRecursively', function() {
+    var row = {
+      testCells: {
+        a: buildScalarCell('bytes', 17)
+      },
+      subRows: [
+        {
+          // Intentionally no testCells.
+          subRows: [
+            {
+              testCells: {
+                b: buildScalarCell('bytes', 103),
+                c: buildStringCell('', 'attribute-should-not-propagate-upwards')
+              }
+              // Intentionally no subRows.
+            },
+            {
+              testCells: {},
+              subRows: []
+            }
+          ]
+        },
+        {
+          testCells: {
+            b: buildScalarCell('bytes', 20),
+            a: buildScalarCell('bytes', 13)
+          }
+        }
+      ]
+    };
+
+    aggregateTableRowCellsRecursively(row, 'testCells');
+
+    var attrA = row.testCells.a.attr;
+    assert.instanceOf(attrA, ScalarAttribute);
+    assert.equal(attrA.units, 'bytes');
+    assert.equal(attrA.value, 17);
+
+    var attrB = row.testCells.b.attr;
+    assert.instanceOf(attrB, ScalarAttribute);
+    assert.equal(attrB.units, 'bytes');
+    assert.equal(attrB.value, 123);
+
+    assert.isUndefined(row.testCells.c.attr);
+  });
+
+  test('checkAggregateTableRowCells', function() {
+    var cell = new MemoryCell(undefined);
+    cell.foo = 'bar';
+
+    var row = {
+      // Intentionally no testCells.
+      otherCells: {
+        a: cell
+      }
+    };
+    var subRows = [
+      {
+        testCells: {
+          a: buildScalarCell('bytes', 1)
+        },
+        subRows: [
+          {
+            testCells: {
+              c: buildScalarCell('bytes', 13)
+            }
+          }
+        ]
+      },
+      {
+        testCells: {
+          a: buildScalarCell('bytes', 2),
+          b: buildScalarCell('bytes', 5)
+        },
+        otherCells: {
+          a: buildScalarCell('objects', 153),
+          b: buildStringCell('', 'attribute-should-not-propagate-upwards')
+        }
+      }
+    ];
+
+    aggregateTableRowCells(row, subRows, 'testCells');
+    aggregateTableRowCells(row, subRows, 'otherCells');
+
+    var testAttrA = row.testCells.a.attr;
+    assert.instanceOf(testAttrA, ScalarAttribute);
+    assert.equal(testAttrA.units, 'bytes');
+    assert.equal(testAttrA.value, 3);
+
+    var testAttrB = row.testCells.b.attr;
+    assert.instanceOf(testAttrB, ScalarAttribute);
+    assert.equal(testAttrB.units, 'bytes');
+    assert.equal(testAttrB.value, 5);
+
+    assert.notProperty(row.testCells, 'c');
+
+    var otherCellA = row.otherCells.a;
+    assert.equal(otherCellA.foo, 'bar');
+    var otherAttrA = otherCellA.attr;
+    assert.instanceOf(otherAttrA, ScalarAttribute);
+    assert.equal(otherAttrA.units, 'objects');
+    assert.equal(otherAttrA.value, 153);
+
+    assert.isUndefined(row.otherCells.b.attr);
   });
 });
 </script>

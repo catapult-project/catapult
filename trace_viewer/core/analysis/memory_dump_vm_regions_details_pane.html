@@ -274,40 +274,6 @@ found in the LICENSE file.
           row.subRows[matchedChildRuleIndex], vmRegion, is64BitAddress);
     }
 
-    /**
-     * Sum mmap sizes up the classification tree.
-     *
-     * Note that classes containing no memory maps will have no sizes (shown
-     * as empty cells) instead of zeros.
-     */
-    // TODO(petrcermak): This code is almost the same as
-    // MemoryAllocatorDump.aggregateAttributes. Consider sharing code between
-    // the two functions.
-    function aggregateRowCells(row) {
-      if (row.subRows === undefined)
-        return;
-
-      var cells = {};
-
-      row.subRows.forEach(function(subRow) {
-        aggregateRowCells(subRow);
-        tr.b.iterItems(subRow.cells, function(columnName) {
-          cells[columnName] = true;
-        });
-      });
-
-      tr.b.iterItems(cells, function(name) {
-        var childAttributes = row.subRows.map(function(subRow) {
-          var cell = subRow.cells[name];
-          if (cell === undefined)
-            return undefined;
-          return cell.attr;
-        }, this);
-        row.cells[name] = new tr.c.analysis.MemoryCell(
-            tr.model.Attribute.aggregate(childAttributes));
-      });
-    }
-
     Polymer({
       // TODO(petrcermak): Consider sharing more code between
       // tr-c-a-memory-dump-allocator-details-pane and
@@ -376,7 +342,7 @@ found in the LICENSE file.
         });
 
         // Aggregate attributes of the mmaps.
-        aggregateRowCells(rootRow);
+        tr.c.analysis.aggregateTableRowCellsRecursively(rootRow, 'cells');
 
         return [rootRow];
       },

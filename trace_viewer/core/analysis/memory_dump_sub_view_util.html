@@ -251,6 +251,12 @@ tr.exportTo('tr.c.analysis', function() {
     this.attr = attr;
   }
 
+  MemoryCell.extractAttribute = function(cell) {
+    if (cell === undefined)
+      return undefined;
+    return cell.attr;
+  };
+
   function fieldGetter(/* fields */) {
     var fields = tr.b.asArray(arguments);
     return function(row) {
@@ -276,12 +282,67 @@ tr.exportTo('tr.c.analysis', function() {
     table.tableRows.forEach(expandRowRecursively);
   }
 
+  // TODO(petrcermak): This code is almost the same as
+  // MemoryAllocatorDump.aggregateAttributes. Consider sharing code between
+  // the two functions.
+  function aggregateTableRowCellsRecursively(row, cellKey) {
+    var subRows = row.subRows;
+    if (subRows === undefined)
+      return;
+
+    subRows.forEach(function(subRow) {
+      aggregateTableRowCellsRecursively(subRow, cellKey);
+    });
+
+    aggregateTableRowCells(row, subRows, cellKey);
+  }
+
+  function aggregateTableRowCells(row, subRows, cellKey) {
+    var rowCells = row[cellKey];
+    if (rowCells === undefined)
+      row[cellKey] = rowCells = {};
+
+    var subRowCellNames = {};
+    subRows.forEach(function(subRow) {
+      var subRowCells = subRow[cellKey];
+      if (subRowCells === undefined)
+        return;
+      tr.b.iterItems(subRowCells, function(columnName) {
+        subRowCellNames[columnName] = true;
+      });
+    });
+
+    tr.b.iterItems(subRowCellNames, function(cellName) {
+      var subRowAttributes = subRows.map(function(subRow) {
+        var subRowCells = subRow[cellKey];
+        if (subRowCells === undefined)
+          return undefined;
+        return MemoryCell.extractAttribute(subRowCells[cellName]);
+      }, this);
+      var existingRowCell = rowCells[cellName];
+      var existingRowAttribute = MemoryCell.extractAttribute(existingRowCell);
+
+      var aggregatedAttribute =
+          tr.model.Attribute.aggregate(subRowAttributes, existingRowAttribute);
+
+      if (existingRowCell !== undefined) {
+        // The cell might contain some extra fields (e.g. custom
+        // buildDetailsPane method) which we don't want to throw away.
+        existingRowCell.attr = aggregatedAttribute;
+      } else {
+        rowCells[cellName] = new MemoryCell(aggregatedAttribute);
+      }
+    });
+  }
+
   return {
     MemoryColumn: MemoryColumn,
     ScalarMemoryColumn: ScalarMemoryColumn,
     MemoryCell: MemoryCell,
     fieldGetter: fieldGetter,
-    expandTableRowsRecursively: expandTableRowsRecursively
+    expandTableRowsRecursively: expandTableRowsRecursively,
+    aggregateTableRowCellsRecursively: aggregateTableRowCellsRecursively,
+    aggregateTableRowCells: aggregateTableRowCells
   };
 });
 </script>

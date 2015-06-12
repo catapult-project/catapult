@@ -172,6 +172,19 @@ found in the LICENSE file.
         }, this);
         this.$.table.tableRows = rows;
 
+        // Add a 'Total' row if there are at least two process memory dumps.
+        if (rows.length > 1) {
+          var totalRow = {
+            title: 'Total',
+            noLegend: true
+          };
+          tr.c.analysis.aggregateTableRowCells(
+              totalRow, rows, 'usedMemorySizes');
+          tr.c.analysis.aggregateTableRowCells(
+              totalRow, rows, 'allocatorSizes');
+          this.$.table.footerRows = [totalRow];
+        }
+
         this.updateColumns_(rows);
 
         this.$.table.rebuild();
@@ -183,6 +196,8 @@ found in the LICENSE file.
         var titleColumn = {
           title: 'Process',
           value: function(row) {
+            if (row.noLegend)
+              return row.title;
             var titleEl = document.createElement('tr-ui-b-color-legend');
             titleEl.label = row.title;
             return titleEl;
