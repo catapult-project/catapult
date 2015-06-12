@@ -41,10 +41,15 @@ tr.exportTo('tr.c.analysis', function() {
         return pmd;
       }
 
-      // One process with VM regions.
+      // One process with most recent VM regions.
+      var mostRecentGmd = new GlobalMemoryDump(model, 30);
+      var mostRecentPmd1 = new ProcessMemoryDump(mostRecentGmd, p1, 31);
+      p1.memoryDumps.push(mostRecentPmd1);
+      mostRecentGmd.processMemoryDumps[p1.pid] = mostRecentPmd1;
+
       var pmd1 = addProcessMemoryDump(p1, 41);
       pmd1.totalResidentBytes = 31457280 /* 30 MiB */;
-      pmd1.vmRegions = [
+      mostRecentPmd1.vmRegions = [
         VMRegion.fromDict({
             startAddress: 1024,
             sizeInBytes: 20971520, /* 20 MiB */
@@ -58,6 +63,7 @@ tr.exportTo('tr.c.analysis', function() {
         })
       ];
 
+      // One process with everything.
       var pmd2 = addProcessMemoryDump(p2, 42);
       pmd2.totalResidentBytes = 20971520 /* 20 MiB */;
       pmd2.vmRegions = [

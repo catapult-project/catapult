@@ -73,6 +73,10 @@ tr.exportTo('tr.model', function() {
       this.vmRegions_ = vmRegions;
     },
 
+    get hasOwnVmRegions() {
+      return this.vmRegions_ !== undefined;
+    },
+
     getMostRecentTotalVmRegionStat: function(statName) {
       if (this.mostRecentVmRegions === undefined)
         return undefined;

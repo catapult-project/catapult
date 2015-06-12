@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/ui/base/color_legend.html">
+<link rel="import" href="/ui/base/color_scheme.html">
 <link rel="import"
     href="/core/analysis/memory_dump_allocator_details_pane.html">
 <link rel="import"
@@ -64,6 +65,18 @@ found in the LICENSE file.
     // https://github.com/google/trace-viewer/issues/706).
     var SETTINGS_KEY = 'selected_cell';
     var SETTINGS_NAMESPACE = 'analysis.memory_dump_overview_pane';
+
+    var LINK_SYMBOL = String.fromCharCode(9903);
+
+    function wrapValueInColorSpan(value, color) {
+      if (!(value instanceof HTMLElement))
+        value = document.createTextNode(value);
+      var wrap = document.createElement('span');
+      wrap.style.color = color;
+      wrap.style.display = 'flex';
+      wrap.appendChild(value);
+      return wrap;
+    }
 
     Polymer({
       // TODO(petrcermak): Consider sharing more code between
@@ -137,6 +150,7 @@ found in the LICENSE file.
               var cell = new tr.c.analysis.MemoryCell(
                   new tr.model.ScalarAttribute('bytes', byteStat));
               cell.buildDetailsPane = buildVMRegionsPane;
+              cell.isOlderValue = !processMemoryDump.hasOwnVmRegions;
               usedMemorySizes[columnTitle] = cell;
             }
           }
@@ -227,22 +241,43 @@ found in the LICENSE file.
           return column.name === 'tracing';
         });
         if (tracingColumn !== undefined) {
-          var titleEl = document.createElement('span');
-          titleEl.style.color = '#999';
-          titleEl.textContent = 'tracing';
-          tracingColumn.title = titleEl;
-
+          var tracingColumnColor = tr.ui.b.getColorPalette()[
+              tr.ui.b.getColorIdForReservedName('tracing_memory_column')];
+          tracingColumn.title =
+              wrapValueInColorSpan('tracing', tracingColumnColor);
           var oldValueCallback = tracingColumn.value;
           tracingColumn.value = function(row) {
             var oldValue = oldValueCallback.call(this, row);
-            if (!(oldValue instanceof HTMLElement))
-              oldValue = document.createTextNode(oldValue);
-            var valueEl = document.createElement('span');
-            valueEl.style.color = '#999';
-            valueEl.appendChild(oldValue);
-            return valueEl;
+            return wrapValueInColorSpan(oldValue, tracingColumnColor);
           };
         }
+
+        // Make the used memory size columns blue.
+        // TODO(petrcermak): Find a less hacky way to do this.
+        usedMemorySizeColumns.forEach(function(column) {
+          column.title = wrapValueInColorSpan(column.title, 'blue');
+          var oldValueCallback = column.value;
+          column.value = function(row) {
+            var oldValue = oldValueCallback.call(this, row);
+            var cell = this.cell(row);
+            var isOlderValue = cell !== undefined && cell.isOlderValue;
+            var columnColorName = 'used_memory_column';
+            if (isOlderValue)
+              columnColorName = 'older_used_memory_column';
+            var columnColor = tr.ui.b.getColorPalette()[
+                tr.ui.b.getColorIdForReservedName(columnColorName)];
+            var wrap = wrapValueInColorSpan(oldValue, columnColor);
+            if (isOlderValue) {
+              var linkEl = document.createElement('span');
+              linkEl.textContent = LINK_SYMBOL;
+              linkEl.title = 'Older value (process did not dump memory maps)';
+              linkEl.style.paddingLeft = '4px';
+              linkEl.style.cursor = 'help';
+              wrap.appendChild(linkEl);
+            }
+            return wrap;
+          }
+        });
 
         var sizeColumns = usedMemorySizeColumns.concat(allocatorSizeColumns);
         tr.c.analysis.MemoryColumn.spaceEqually(sizeColumns);
