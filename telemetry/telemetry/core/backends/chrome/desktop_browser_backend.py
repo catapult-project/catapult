@@ -20,7 +20,7 @@ from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core import exceptions
 from telemetry.core import util
-from telemetry.util import path
+from telemetry.internal.util import path
 
 
 def ParseCrashpadDateTime(date_time_str):

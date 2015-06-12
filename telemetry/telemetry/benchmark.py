@@ -9,11 +9,11 @@ from telemetry.core import command_line
 from telemetry import decorators
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
+from telemetry.internal.util import exception_formatter
 from telemetry import page
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
-from telemetry.util import exception_formatter
 from telemetry.web_perf import timeline_based_measurement
 
 Disabled = decorators.Disabled

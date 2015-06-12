@@ -22,7 +22,7 @@ from telemetry.internal.image_processing import cv_util
 from telemetry.internal.image_processing import frame_generator as \
     frame_generator_module
 from telemetry.internal.image_processing import video_file_frame_generator
-from telemetry.util import external_modules
+from telemetry.internal.util import external_modules
 
 np = external_modules.ImportRequiredModule('numpy')
 cv2 = external_modules.ImportRequiredModule('cv2')

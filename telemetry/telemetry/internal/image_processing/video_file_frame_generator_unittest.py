@@ -7,7 +7,7 @@ import unittest
 
 from telemetry.core import util
 from telemetry.internal.image_processing import frame_generator
-from telemetry.util import external_modules
+from telemetry.internal.util import external_modules
 
 try:
   cv2 = external_modules.ImportRequiredModule('cv2')

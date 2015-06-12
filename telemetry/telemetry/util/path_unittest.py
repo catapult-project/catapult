@@ -7,7 +7,7 @@ import sys
 import unittest
 
 from telemetry import decorators
-from telemetry.util import path
+from telemetry.internal.util import path
 
 
 class PathTest(unittest.TestCase):

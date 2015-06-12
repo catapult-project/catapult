@@ -7,9 +7,9 @@ import os
 import urlparse
 
 from catapult_base import cloud_storage
+from telemetry.internal.util import path
 from telemetry.page import shared_page_state
 from telemetry import user_story
-from telemetry.util import path
 
 
 class Page(user_story.UserStory):

@@ -18,6 +18,7 @@ from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
+from telemetry.internal.util import exception_formatter
 from telemetry.page import page as page_module
 from telemetry.page import page_set
 from telemetry.page import page_test
@@ -25,7 +26,6 @@ from telemetry.page import shared_page_state
 from telemetry.page import test_expectations
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
-from telemetry.util import exception_formatter
 from unittest_data.page_sets import example_domain
 
 

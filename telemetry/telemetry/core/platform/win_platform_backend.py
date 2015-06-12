@@ -24,7 +24,7 @@ from telemetry.core.platform import platform_backend
 from telemetry.core.platform.power_monitor import msr_power_monitor
 from telemetry.core import util
 from telemetry import decorators
-from telemetry.util import path
+from telemetry.internal.util import path
 
 try:
   import pywintypes  # pylint: disable=F0401

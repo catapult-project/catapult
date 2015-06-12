@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.util import external_modules
+from telemetry.internal.util import external_modules
 
 try:
   np = external_modules.ImportRequiredModule('numpy')

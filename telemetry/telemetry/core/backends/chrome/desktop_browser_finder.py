@@ -14,7 +14,7 @@ from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
 from telemetry.core.platform import desktop_device
 from telemetry.core import possible_browser
-from telemetry.util import path
+from telemetry.internal.util import path
 
 
 class PossibleDesktopBrowser(possible_browser.PossibleBrowser):

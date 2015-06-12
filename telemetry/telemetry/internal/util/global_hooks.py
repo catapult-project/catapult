@@ -7,7 +7,7 @@
 import signal
 import sys
 
-from telemetry.util import exception_formatter
+from telemetry.internal.util import exception_formatter
 
 
 def InstallHooks():

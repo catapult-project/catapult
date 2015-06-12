@@ -7,7 +7,7 @@ import stat
 
 from catapult_base import cloud_storage
 from telemetry import decorators
-from telemetry.util import path
+from telemetry.internal.util import path
 
 
 def _GetBinPath(binary_name, arch_name, platform_name):

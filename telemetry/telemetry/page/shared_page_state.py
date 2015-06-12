@@ -16,11 +16,11 @@ from telemetry.core.platform.profiler import profiler_finder
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry import decorators
-from telemetry.page import page_test
+from telemetry.internal.util import exception_formatter
+from telemetry.internal.util import file_handle
 from telemetry.page import action_runner as action_runner_module
+from telemetry.page import page_test
 from telemetry.story import shared_state
-from telemetry.util import exception_formatter
-from telemetry.util import file_handle
 from telemetry.value import skip
 from telemetry.web_perf import timeline_based_measurement
 

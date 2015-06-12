@@ -8,7 +8,7 @@ import subprocess
 
 from telemetry.core import platform
 from telemetry.core.platform import device
-from telemetry.util import path
+from telemetry.internal.util import path
 
 
 IOSSIM_BUILD_DIRECTORIES = [

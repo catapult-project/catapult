@@ -5,7 +5,7 @@
 from __future__ import division
 
 from telemetry.core import util
-from telemetry.util import external_modules
+from telemetry.internal.util import external_modules
 from telemetry.util import color_histogram
 from telemetry.util import rgba_color
 

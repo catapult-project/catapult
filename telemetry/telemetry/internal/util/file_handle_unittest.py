@@ -6,7 +6,7 @@ import os
 import tempfile
 import unittest
 
-from telemetry.util import file_handle
+from telemetry.internal.util import file_handle
 
 
 class FileHandleUnittest(unittest.TestCase):

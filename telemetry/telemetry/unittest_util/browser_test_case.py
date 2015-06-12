@@ -6,8 +6,8 @@ import os
 import unittest
 
 from telemetry.core import browser_finder
+from telemetry.internal.util import path
 from telemetry.unittest_util import options_for_unittests
-from telemetry.util import path
 
 current_browser_options = None
 current_browser = None

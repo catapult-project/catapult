@@ -13,7 +13,7 @@ as a fallback when numpy is not present."""
 
 import base64
 
-from telemetry.util import external_modules
+from telemetry.internal.util import external_modules
 
 np = external_modules.ImportOptionalModule('numpy')
 

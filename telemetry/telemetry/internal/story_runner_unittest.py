@@ -12,6 +12,7 @@ from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
+from telemetry.internal.util import exception_formatter as ex_formatter_module
 from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.page import test_expectations
@@ -20,7 +21,6 @@ from telemetry.story import shared_state
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import system_stub
 from telemetry import user_story as user_story_module
-from telemetry.util import exception_formatter as exception_formatter_module
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from telemetry.value import summary as summary_module
@@ -160,7 +160,7 @@ class StoryRunnerTest(unittest.TestCase):
       story_runner, ['logging'])
 
   def RestoreExceptionFormatter(self):
-    story_runner.exception_formatter = exception_formatter_module
+    story_runner.exception_formatter = ex_formatter_module
     if self._story_runner_logging_stub:
       self._story_runner_logging_stub.Restore()
       self._story_runner_logging_stub = None

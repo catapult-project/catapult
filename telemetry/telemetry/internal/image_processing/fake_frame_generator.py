@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.internal.image_processing import frame_generator
-from telemetry.util import external_modules
+from telemetry.internal.util import external_modules
 
 np = external_modules.ImportRequiredModule('numpy')
 

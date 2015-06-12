@@ -8,7 +8,7 @@ from __future__ import division
 
 import collections
 
-from telemetry.util import external_modules
+from telemetry.internal.util import external_modules
 
 np = external_modules.ImportOptionalModule('numpy')
 

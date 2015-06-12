@@ -25,8 +25,8 @@ from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.core import util
 from telemetry.core import video
 from telemetry import decorators
-from telemetry.util import exception_formatter
-from telemetry.util import external_modules
+from telemetry.internal.util import exception_formatter
+from telemetry.internal.util import external_modules
 
 psutil = external_modules.ImportOptionalModule('psutil')
 util.AddDirToPythonPath(util.GetChromiumSrcDir(),
