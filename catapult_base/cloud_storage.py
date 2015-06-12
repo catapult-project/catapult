@@ -17,7 +17,7 @@ import urllib2
 
 from telemetry.core import util
 from telemetry import decorators
-from telemetry.util import path
+from telemetry.internal.util import path
 
 
 PUBLIC_BUCKET = 'chromium-telemetry'
