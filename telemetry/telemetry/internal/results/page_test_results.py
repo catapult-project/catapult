@@ -11,8 +11,8 @@ import sys
 import traceback
 
 from catapult_base import cloud_storage
-from telemetry.results import progress_reporter as progress_reporter_module
-from telemetry.results import user_story_run
+from telemetry.internal.results import progress_reporter as reporter_module
+from telemetry.internal.results import user_story_run
 from telemetry import value as value_module
 from telemetry.value import failure
 from telemetry.value import skip
@@ -47,7 +47,7 @@ class PageTestResults(object):
     self._output_stream = output_stream
     self._progress_reporter = (
         progress_reporter if progress_reporter is not None
-        else progress_reporter_module.ProgressReporter())
+        else reporter_module.ProgressReporter())
     self._output_formatters = (
         output_formatters if output_formatters is not None else [])
     self._trace_tag = trace_tag
@@ -200,7 +200,7 @@ class PageTestResults(object):
     self._progress_reporter.DidFinishAllTests(self)
 
     # Only serialize the trace if output_format is json.
-    from telemetry.results import json_output_formatter
+    from telemetry.internal.results import json_output_formatter
     if (self._output_dir and
         any(isinstance(o, json_output_formatter.JsonOutputFormatter)
             for o in self._output_formatters)):

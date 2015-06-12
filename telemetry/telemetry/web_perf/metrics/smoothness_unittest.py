@@ -4,8 +4,8 @@
 
 import unittest
 
+from telemetry.internal.results import page_test_results
 from telemetry.page import page as page_module
-from telemetry.results import page_test_results
 from telemetry.web_perf.metrics import rendering_stats
 from telemetry.web_perf.metrics import smoothness
 

@@ -7,14 +7,14 @@ import os
 import sys
 
 from telemetry.core import util
-from telemetry.results import buildbot_output_formatter
-from telemetry.results import chart_json_output_formatter
-from telemetry.results import csv_pivot_table_output_formatter
-from telemetry.results import gtest_progress_reporter
-from telemetry.results import html_output_formatter
-from telemetry.results import json_output_formatter
-from telemetry.results import page_test_results
-from telemetry.results import progress_reporter
+from telemetry.internal.results import buildbot_output_formatter
+from telemetry.internal.results import chart_json_output_formatter
+from telemetry.internal.results import csv_pivot_table_output_formatter
+from telemetry.internal.results import gtest_progress_reporter
+from telemetry.internal.results import html_output_formatter
+from telemetry.internal.results import json_output_formatter
+from telemetry.internal.results import page_test_results
+from telemetry.internal.results import progress_reporter
 
 # Allowed output formats. The default is the first item in the list.
 _OUTPUT_FORMAT_CHOICES = ('html', 'buildbot', 'gtest', 'json',

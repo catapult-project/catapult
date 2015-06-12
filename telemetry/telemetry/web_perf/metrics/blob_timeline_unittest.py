@@ -5,8 +5,8 @@
 import unittest
 
 from collections import namedtuple
+from telemetry.internal.results import page_test_results
 from telemetry.page import page
-from telemetry.results import page_test_results
 from telemetry.web_perf.metrics import blob_timeline
 from telemetry.web_perf import timeline_interaction_record
 

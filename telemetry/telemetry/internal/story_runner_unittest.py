@@ -10,11 +10,11 @@ from catapult_base import cloud_storage
 from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry import decorators
+from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.page import test_expectations
-from telemetry.results import results_options
 from telemetry import story
 from telemetry.story import shared_state
 from telemetry.unittest_util import options_for_unittests

@@ -8,10 +8,10 @@ import StringIO
 import unittest
 
 from telemetry import benchmark
+from telemetry.internal.results import chart_json_output_formatter
+from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.page import page_set
-from telemetry.results import chart_json_output_formatter
-from telemetry.results import page_test_results
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 

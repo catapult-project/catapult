@@ -4,7 +4,7 @@
 
 import csv
 
-from telemetry.results import output_formatter
+from telemetry.internal.results import output_formatter
 from telemetry.value import scalar
 
 

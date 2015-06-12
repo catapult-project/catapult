@@ -5,10 +5,10 @@
 import os
 import unittest
 
+from telemetry.internal.results import base_test_results_unittest
+from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.page import page_set
-from telemetry.results import base_test_results_unittest
-from telemetry.results import page_test_results
 from telemetry.timeline import trace_data
 from telemetry.value import failure
 from telemetry.value import histogram

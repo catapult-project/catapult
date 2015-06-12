@@ -4,7 +4,7 @@
 
 import time
 
-from telemetry.results import progress_reporter
+from telemetry.internal.results import progress_reporter
 from telemetry.value import failure
 from telemetry.value import skip
 

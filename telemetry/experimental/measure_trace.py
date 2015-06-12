@@ -9,9 +9,9 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir))
+from telemetry.internal.results import buildbot_output_formatter
+from telemetry.internal.results import page_test_results
 from telemetry.page import page as page_module
-from telemetry.results import buildbot_output_formatter
-from telemetry.results import page_test_results
 from telemetry.timeline import model
 from telemetry.timeline import tracing_timeline_data
 from telemetry.web_perf.metrics import smoothness

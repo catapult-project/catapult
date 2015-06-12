@@ -5,9 +5,9 @@
 import os
 import unittest
 
+from telemetry.internal.results import page_test_results
 from telemetry.page import page as page_module
 from telemetry.page import page_set
-from telemetry.results import page_test_results
 from telemetry.timeline import async_slice
 from telemetry.timeline import model as model_module
 from telemetry.value import scalar

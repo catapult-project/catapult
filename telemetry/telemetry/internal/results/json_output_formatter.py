@@ -4,7 +4,7 @@
 
 import json
 
-from telemetry.results import output_formatter
+from telemetry.internal.results import output_formatter
 
 
 def ResultsAsDict(page_test_results, benchmark_metadata):

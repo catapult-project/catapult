@@ -6,7 +6,7 @@ import collections
 import itertools
 import json
 
-from telemetry.results import output_formatter
+from telemetry.internal.results import output_formatter
 from telemetry.value import summary as summary_module
 
 def ResultsAsChartDict(benchmark_metadata, page_specific_values,

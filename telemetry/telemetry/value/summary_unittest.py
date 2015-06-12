@@ -5,9 +5,9 @@
 import os
 import unittest
 
+from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.page import page_set
-from telemetry.results import page_test_results
 from telemetry.value import failure
 from telemetry.value import histogram
 from telemetry.value import list_of_scalar_values

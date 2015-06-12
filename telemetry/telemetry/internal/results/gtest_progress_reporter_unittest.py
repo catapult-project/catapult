@@ -5,11 +5,11 @@
 import os
 import traceback
 
+from telemetry.internal.results import base_test_results_unittest
+from telemetry.internal.results import gtest_progress_reporter
+from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.page import page_set
-from telemetry.results import base_test_results_unittest
-from telemetry.results import gtest_progress_reporter
-from telemetry.results import page_test_results
 from telemetry.unittest_util import simple_mock
 from telemetry.unittest_util import stream
 from telemetry.value import failure

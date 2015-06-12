@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.results import user_story_run
+from telemetry.internal.results import user_story_run
 from telemetry.story import shared_state
 from telemetry.story import story_set
 from telemetry import user_story as user_story_module

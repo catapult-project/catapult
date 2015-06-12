@@ -10,8 +10,8 @@ import re
 
 from catapult_base import cloud_storage
 from telemetry.core import util
-from telemetry.results import chart_json_output_formatter
-from telemetry.results import output_formatter
+from telemetry.internal.results import chart_json_output_formatter
+from telemetry.internal.results import output_formatter
 from telemetry import value as value_module
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'util')

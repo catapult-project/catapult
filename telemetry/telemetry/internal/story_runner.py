@@ -12,8 +12,8 @@ from catapult_base import cloud_storage
 from telemetry.core import exceptions
 from telemetry.core import wpr_modes
 from telemetry.internal.actions import page_action
+from telemetry.internal.results import results_options
 from telemetry.page import page_test
-from telemetry.results import results_options
 from telemetry import story
 from telemetry.util import exception_formatter
 from telemetry.value import failure

@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.results import output_formatter
+from telemetry.internal.results import output_formatter
 from telemetry.util import perf_tests_helper
 from telemetry import value as value_module
 from telemetry.value import summary as summary_module
