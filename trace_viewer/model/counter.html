@@ -13,14 +13,17 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-/**
- * @fileoverview Provides the Counter class.
- */
 tr.exportTo('tr.model', function() {
 
   /**
-   * Stores all the samples for a given counter.
+   * A container holding all series of a given type of measurement.
+   *
+   * As an example, if we're measuring the throughput of data sent over several
+   * USB connections, the throughput of each cable might be added as a separate
+   * series to a single counter.
+   *
    * @constructor
+   * @extends {EventContainer}
    */
   function Counter(parent, id, category, name) {
     tr.model.EventContainer.call(this);

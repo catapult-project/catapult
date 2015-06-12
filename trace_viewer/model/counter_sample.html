@@ -14,6 +14,17 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
+
+  /**
+   * The value of a given measurement at a given time.
+   *
+   * As an example, if we're measuring the throughput of data sent over a USB
+   * connection, each counter sample might represent the instantaneous
+   * throughput of the connection at a given time.
+   *
+   * @constructor
+   * @extends {Event}
+   */
   function CounterSample(series, timestamp, value) {
     tr.model.Event.call(this);
     this.series_ = series;

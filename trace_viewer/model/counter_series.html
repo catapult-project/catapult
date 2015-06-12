@@ -11,12 +11,19 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-/**
- * @fileoverview Provides the CounterSeries class.
- */
 tr.exportTo('tr.model', function() {
   var CounterSample = tr.model.CounterSample;
 
+  /**
+   * A container holding all samples of a given measurement over time.
+   *
+   * As an example, a counter series might measure the throughput of data sent
+   * over a USB connection, with each sample representing the instantaneous
+   * throughput of the connection.
+   *
+   * @constructor
+   * @extends {EventContainer}
+   */
   function CounterSeries(name, color) {
     tr.model.EventContainer.call(this);
     this.guid_ = tr.b.GUID.allocate();
