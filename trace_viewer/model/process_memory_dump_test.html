@@ -300,8 +300,46 @@ tr.b.unittest.testSuite(function() {
     var mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
     assert.equal(mallocDump.attributes['size'].value, 2048);
 
+    var discountDump = pmd.getMemoryAllocatorDumpByFullName(
+        'malloc/discounted_tracing_overhead');
+    assert.strictEqual(discountDump.parent, mallocDump);
+    assert.include(mallocDump.children, discountDump);
+    assert.equal(discountDump.attributes['size'].value, -1024);
+
     var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     assert.equal(tracingDump.attributes['size'].value, 1024);
+  });
+
+  test('checkDiscountTracingOverhead_winheap', function() {
+    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+      var winheapDump = new MemoryAllocatorDump(pmd, 'winheap');
+      winheapDump.addAttribute('size', new ScalarAttribute('bytes', 5120));
+
+      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
+      tracingDump.addAttribute('size', new ScalarAttribute('bytes', 2048));
+
+      pmd.memoryAllocatorDumps = [tracingDump, winheapDump];
+    });
+
+    assert.isUndefined(pmd.totalResidentBytes);
+
+    assert.isUndefined(
+        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'));
+    assert.isUndefined(pmd.getMostRecentTotalVmRegionStat('swapped'));
+    assert.isUndefined(
+        pmd.getMostRecentTotalVmRegionStat('proportionalResident'));
+
+    var winheapDump = pmd.getMemoryAllocatorDumpByFullName('winheap');
+    assert.equal(winheapDump.attributes['size'].value, 3072);
+
+    var discountDump = pmd.getMemoryAllocatorDumpByFullName(
+        'winheap/discounted_tracing_overhead');
+    assert.strictEqual(discountDump.parent, winheapDump);
+    assert.include(winheapDump.children, discountDump);
+    assert.equal(discountDump.attributes['size'].value, -2048);
+
+    var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
+    assert.equal(tracingDump.attributes['size'].value, 2048);
   });
 
   test('checkDiscountTracingOverhead_withMostRecentVmRegionsLinks', function() {

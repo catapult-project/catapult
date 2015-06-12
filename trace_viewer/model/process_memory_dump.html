@@ -18,6 +18,10 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.model', function() {
 
+  // Names of MemoryAllocatorDump(s) from which tracing overhead should be
+  // discounted.
+  var DISCOUNTED_ALLOCATOR_NAMES = ['winheap', 'malloc'];
+
   function getValidSizeAttributeOrUndefined(memoryAllocatorDump, opt_model) {
     var sizeAttr = memoryAllocatorDump.attributes['size'];
     if (sizeAttr === undefined)
@@ -115,26 +119,33 @@ tr.exportTo('tr.model', function() {
         }));
       }
 
-      // Subtract the tracing size from the 'malloc' MemoryAllocatorDump.
-      var mallocDump = this.getMemoryAllocatorDumpByFullName('malloc');
-      if (mallocDump !== undefined) {
+      // Subtract the tracing size from the 'winheap' or 'malloc'
+      // MemoryAllocatorDump.
+      var hasDiscountedFromAllocatorDumps = DISCOUNTED_ALLOCATOR_NAMES.some(
+          function(allocatorName) {
+        var dump = this.getMemoryAllocatorDumpByFullName(allocatorName);
+        if (dump === undefined)
+          return false;
+
         var overheadSizeAttribute = new tr.model.ScalarAttribute(
             'bytes', -tracingSize);
         var overheadDump = new tr.model.MemoryAllocatorDump(
-            this, 'malloc/discounted_tracing_overhead');
-        overheadDump.parent = mallocDump;
+            this, allocatorName + '/discounted_tracing_overhead');
+        overheadDump.parent = dump;
         overheadDump.addAttribute('size', overheadSizeAttribute);
-        mallocDump.children.push(overheadDump);
+        dump.children.push(overheadDump);
 
-        var mallocDumpSizeAttr = getValidSizeAttributeOrUndefined(
-            mallocDump, opt_model);
-        if (mallocDumpSizeAttr !== undefined)
-          mallocDumpSizeAttr.value -= tracingSize;
+        var dumpSizeAttr = getValidSizeAttributeOrUndefined(dump, opt_model);
+        if (dumpSizeAttr !== undefined)
+          dumpSizeAttr.value -= tracingSize;
 
-        // Force rebuilding the memory allocator dump index (as we've just
-        // added a new memory allocator dump).
+        return true;
+      }, this);
+
+      // Force rebuilding the memory allocator dump index (if we've just added
+      // a new memory allocator dump).
+      if (hasDiscountedFromAllocatorDumps)
         this.memoryAllocatorDumps = this.memoryAllocatorDumps;
-      }
     }
   };
 
