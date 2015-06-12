@@ -25,7 +25,7 @@ _JS_PLUGINS = [os.path.join('flot', 'jquery.flot.min.js'),
                             'jquery.tablesorter.min.js'),
                os.path.join('WebKit', 'PerformanceTests', 'resources',
                             'statistics.js')]
-_UNIT_JSON = ('tools', 'perf', 'unit-info.json')
+_UNIT_JSON = (util.GetTelemetryDir(), 'telemetry', 'value', 'unit-info.json')
 
 
 # TODO(eakuefner): rewrite template to use Telemetry JSON directly
