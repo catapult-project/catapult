@@ -13,6 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/pie_chart.html">
 <link rel="import" href="/ui/base/sortable_table.html">
 <link rel="import" href="/ui/base/sunburst_chart.html">
+<link rel="import" href="/ui/utils.html">
 
 <template id="x-sample-summary-panel-template">
   <style>
@@ -344,7 +345,7 @@ tr.exportTo('tr.e.analysis', function() {
 
     decorate: function() {
       this.classList.add('x-sample-summary-panel');
-      this.appendChild(tr.b.instantiateTemplate(
+      this.appendChild(tr.ui.instantiateTemplate(
           '#x-sample-summary-panel-template', THIS_DOC));
 
       this.sampleType_ = undefined;

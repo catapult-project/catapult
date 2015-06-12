@@ -6,6 +6,8 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/ui/ui.html">
 <link rel="import" href="/base/settings.html">
+<link rel="import" href="/ui/utils.html">
+
 <script>
 'use strict';
 
@@ -69,7 +71,7 @@ tr.exportTo('tr.ui.b', function() {
 
     get projectionMatrix() {
       var rect =
-          tr.b.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
+          tr.ui.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
 
       var aspectRatio = rect.width / rect.height;
       var matrix = mat4.create();
@@ -129,8 +131,8 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       if (this.deviceRect_) {
-        var rect =
-            tr.b.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
+        var rect = tr.ui.windowRectForElement(this.canvas_).
+            scaleSize(this.pixelRatio_);
 
         this.eye_[0] = this.deviceRect_.width / 2;
         this.eye_[1] = this.deviceRect_.height / 2;
@@ -145,7 +147,7 @@ tr.exportTo('tr.ui.b', function() {
 
     updatePanByDelta: function(delta) {
       var rect =
-          tr.b.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
+          tr.ui.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
 
       // Get the eye vector, since we'll be adjusting gazeTarget.
       var eyeVector = [
@@ -322,7 +324,7 @@ tr.exportTo('tr.ui.b', function() {
 
     // Misc helper functions.
     getMousePosition_: function(e) {
-      var rect = tr.b.windowRectForElement(this.canvas_);
+      var rect = tr.ui.windowRectForElement(this.canvas_);
       return [(e.clientX - rect.x) * this.pixelRatio_,
               (e.clientY - rect.y) * this.pixelRatio_];
     },

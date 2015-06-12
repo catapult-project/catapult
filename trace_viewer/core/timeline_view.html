@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/ui/base/common.css">
 <link rel="stylesheet" href="/core/timeline_view.css">
 
-<link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/overlay.html">
@@ -23,6 +22,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/scripting_control.html">
 <link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/core/side_panel/side_panel_container.html">
+<link rel="import" href="/ui/utils.html">
 
 <template id="timeline-view-template">
   <div class="control">
@@ -228,7 +228,7 @@ tr.exportTo('tr.c', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tr.b.instantiateTemplate('#timeline-view-template', THIS_DOC);
+      var node = tr.ui.instantiateTemplate('#timeline-view-template', THIS_DOC);
       this.appendChild(node);
 
       this.titleEl_ = this.querySelector('.title');
@@ -356,7 +356,7 @@ tr.exportTo('tr.c', function() {
     },
 
     createHelpButton_: function() {
-      var node = tr.b.instantiateTemplate('#help-btn-template', THIS_DOC);
+      var node = tr.ui.instantiateTemplate('#help-btn-template', THIS_DOC);
       var showEl = node.querySelector('.view-help-button');
       var helpTextEl = node.querySelector('.view-help-text');
 
@@ -384,7 +384,7 @@ tr.exportTo('tr.c', function() {
     },
 
     createConsoleButton_: function() {
-      var node = tr.b.instantiateTemplate('#console-btn-template', THIS_DOC);
+      var node = tr.ui.instantiateTemplate('#console-btn-template', THIS_DOC);
       var toggleEl = node.querySelector('.view-console-button');
 
       function onClick(e) {
@@ -398,7 +398,7 @@ tr.exportTo('tr.c', function() {
     },
 
     createMetadataButton_: function() {
-      var node = tr.b.instantiateTemplate('#metadata-btn-template', THIS_DOC);
+      var node = tr.ui.instantiateTemplate('#metadata-btn-template', THIS_DOC);
       var showEl = node.querySelector('.view-metadata-button');
       var textEl = node.querySelector('.info-button-text');
 

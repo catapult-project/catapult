@@ -13,6 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/camera.html">
 <link rel="import" href="/ui/base/mouse_mode_selector.html">
 <link rel="import" href="/ui/base/mouse_tracker.html">
+<link rel="import" href="/ui/utils.html">
 
 <style>
 * /deep/ quad-stack-view {
@@ -372,7 +373,7 @@ tr.exportTo('tr.ui.b', function() {
     decorate: function() {
       this.className = 'quad-stack-view';
 
-      var node = tr.b.instantiateTemplate('#quad-stack-view-template',
+      var node = tr.ui.instantiateTemplate('#quad-stack-view-template',
                                           THIS_DOC);
       this.appendChild(node);
       this.updateHeaderVisibility_();

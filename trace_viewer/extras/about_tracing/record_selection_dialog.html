@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/core/filter.html">
-<link rel="import" href="/base/utils.html">
 <link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/info_bar_group.html">
+<link rel="import" href="/ui/utils.html">
 
 <template id="record-selection-dialog-template">
   <style>
@@ -198,7 +198,7 @@ tr.exportTo('tr.e.about_tracing', function() {
 
       this.classList.add('record-dialog-overlay');
 
-      var node = tr.b.instantiateTemplate('#record-selection-dialog-template',
+      var node = tr.ui.instantiateTemplate('#record-selection-dialog-template',
           THIS_DOC);
       this.appendChild(node);
 

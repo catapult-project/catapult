@@ -5,10 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/events.html">
-<link rel="import" href="/base/utils.html">
 <link rel="import" href="/ui/ui.html">
 <link rel="import" href="/ui/base/container_that_decorates_its_children.html">
+<link rel="import" href="/ui/utils.html">
+
 <link rel="stylesheet" href="/ui/base/list_view.css">
+
 <script>
 'use strict';
 
@@ -132,7 +134,7 @@ tr.exportTo('tr.ui.b', function() {
         var prev = this.selectedElement.previousSibling;
         if (prev) {
           prev.selected = true;
-          tr.b.scrollIntoViewIfNeeded(prev);
+          tr.ui.scrollIntoViewIfNeeded(prev);
           e.preventDefault();
           return true;
         }
@@ -140,7 +142,7 @@ tr.exportTo('tr.ui.b', function() {
         var next = this.selectedElement.nextSibling;
         if (next) {
           next.selected = true;
-          tr.b.scrollIntoViewIfNeeded(next);
+          tr.ui.scrollIntoViewIfNeeded(next);
           e.preventDefault();
           return true;
         }

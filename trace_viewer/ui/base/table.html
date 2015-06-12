@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/utils.html">
+<link rel="import" href="/ui/utils.html">
 
 <!--
 @fileoverview A container that constructs a table-like container.
@@ -1027,7 +1027,7 @@ found in the LICENSE file.
         if (cmdName === 'ARROW_UP') {
           var prev = htmlNode.previousElementSibling;
           if (prev) {
-            tr.b.scrollIntoViewIfNeeded(prev);
+            tr.ui.scrollIntoViewIfNeeded(prev);
             this.selectedTableRow = prev.rowInfo.userRow;
             this.focusSelected_();
             return;
@@ -1038,7 +1038,7 @@ found in the LICENSE file.
         if (cmdName === 'ARROW_DOWN') {
           var next = htmlNode.nextElementSibling;
           if (next) {
-            tr.b.scrollIntoViewIfNeeded(next);
+            tr.ui.scrollIntoViewIfNeeded(next);
             this.selectedTableRow = next.rowInfo.userRow;
             this.focusSelected_();
             return;

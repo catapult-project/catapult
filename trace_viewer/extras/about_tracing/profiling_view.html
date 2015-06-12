@@ -12,6 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/info_bar_group.html">
 <link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/trace_viewer.html">
+<link rel="import" href="/ui/utils.html">
 
 <style>
 x-profiling-view {
@@ -101,7 +102,7 @@ tr.exportTo('tr.e.about_tracing', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function(tracingControllerClient) {
-      this.appendChild(tr.b.instantiateTemplate('#profiling-view-template',
+      this.appendChild(tr.ui.instantiateTemplate('#profiling-view-template',
           THIS_DOC));
 
       this.timelineView_ = this.querySelector('x-timeline-view');

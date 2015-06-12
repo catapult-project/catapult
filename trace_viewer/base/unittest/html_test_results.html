@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/unittest/constants.html">
 <link rel="import" href="/ui/ui.html">
+<link rel="import" href="/ui/utils.html">
 
 <style>
   x-tr.b.unittest-test-resultsbase
@@ -101,7 +102,7 @@ tr.exportTo('tr.b.unittest', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.appendChild(tr.b.instantiateTemplate(
+      this.appendChild(tr.ui.instantiateTemplate(
           '#x-html-test-case-result-template', THIS_DOC));
       this.testCase_ = undefined;
       this.testCaseHRef_ = undefined;
@@ -155,7 +156,7 @@ tr.exportTo('tr.b.unittest', function() {
 
     addError: function(normalizedException) {
       var errorEl = document.createElement('x-html-test-case-error');
-      errorEl.appendChild(tr.b.instantiateTemplate(
+      errorEl.appendChild(tr.ui.instantiateTemplate(
           '#x-html-test-case-error-template', THIS_DOC));
       errorEl.querySelector('#stack').textContent = normalizedException.stack;
       this.querySelector('#details').appendChild(errorEl);

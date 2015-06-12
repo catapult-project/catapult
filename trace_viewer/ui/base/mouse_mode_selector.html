@@ -7,10 +7,10 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/base/iteration_helpers.html">
-<link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/key_event_manager.html">
 <link rel="import" href="/ui/ui.html">
 <link rel="import" href="/ui/base/mouse_tracker.html">
+<link rel="import" href="/ui/utils.html">
 
 <link rel="stylesheet" href="/ui/base/mouse_mode_selector.css">
 <link rel="stylesheet" href="/ui/base/tool_button.css">
@@ -118,7 +118,7 @@ tr.exportTo('tr.ui.b', function() {
     decorate: function(opt_targetElement) {
       this.classList.add('mouse-mode-selector');
 
-      var node = tr.b.instantiateTemplate('#mouse-mode-selector-template',
+      var node = tr.ui.instantiateTemplate('#mouse-mode-selector-template',
                                           THIS_DOC);
       this.appendChild(node);
 
@@ -518,7 +518,7 @@ tr.exportTo('tr.ui.b', function() {
 
     constrainPositionToBounds_: function(pos) {
       var parent = this.offsetParent || document.body;
-      var parentRect = tr.b.windowRectForElement(parent);
+      var parentRect = tr.ui.windowRectForElement(parent);
 
       var top = 0;
       var bottom = parentRect.height - this.offsetHeight;

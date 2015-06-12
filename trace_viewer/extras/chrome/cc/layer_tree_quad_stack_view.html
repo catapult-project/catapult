@@ -17,6 +17,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/ui/base/quad_stack_view.html">
 <link rel="import" href="/ui/base/info_bar.html">
+<link rel="import" href="/ui/utils.html">
 
 <style>
 * /deep/ layer-tree-quad-stack-view {
@@ -114,7 +115,7 @@ tr.exportTo('tr.e.cc', function() {
       mms.setKeyCodeForMode(m.ZOOM, 'C'.charCodeAt(0));
       mms.setKeyCodeForMode(m.ROTATE, 'V'.charCodeAt(0));
 
-      var node = tr.b.instantiateTemplate(
+      var node = tr.ui.instantiateTemplate(
           '#layer-tree-quad-stack-view-template', THIS_DOC);
       this.appendChild(node);
       this.appendChild(this.controls_);

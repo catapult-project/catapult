@@ -14,7 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/list_view.html">
 <link rel="import" href="/ui/base/mouse_mode_selector.html">
 <link rel="import" href="/ui/base/overlay.html">
-<link rel="import" href="/base/utils.html">
+<link rel="import" href="/ui/utils.html">
 
 <template id="display-item-debugger-template">
   <style>
@@ -142,7 +142,7 @@ tr.exportTo('tr.e.cc', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tr.b.instantiateTemplate('#display-item-debugger-template',
+      var node = tr.ui.instantiateTemplate('#display-item-debugger-template',
           THIS_DOC);
 
       this.appendChild(node);

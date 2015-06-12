@@ -396,6 +396,7 @@
       'trace_viewer/ui/units/size_in_bytes_span.html',
       'trace_viewer/ui/units/time_duration_span.html',
       'trace_viewer/ui/units/time_stamp_span.html',
+      'trace_viewer/ui/utils.html',
     ],
     'tracing_img_files': [
       'trace_viewer/extras/chrome/cc/images/input-event.png',
