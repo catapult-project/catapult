@@ -86,6 +86,8 @@ tr.exportTo('tr.c.analysis', function() {
         var tracingDump = new MemoryAllocatorDump(pmd2, 'tracing');
         tracingDump.addAttribute('size',
             new ScalarAttribute('bytes', 1048576) /* 1 MiB */);
+        tracingDump.addAttribute('resident_size',
+            new ScalarAttribute('bytes', 1572864) /* 1.5 MiB */);
 
         return [mallocDump, v8Dump, tracingDump];
       })();

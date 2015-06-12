@@ -285,17 +285,19 @@ tr.b.unittest.testSuite(function() {
 
       var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
       tracingDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
+      tracingDump.addAttribute(
+          'resident_size', new ScalarAttribute('bytes', 1000));
 
       pmd.memoryAllocatorDumps = [mallocDump, tracingDump];
     });
 
-    assert.equal(pmd.totalResidentBytes, 9216);
+    assert.equal(pmd.totalResidentBytes, 9240);
 
     assert.equal(
-        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 3072);
+        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 3096);
     assert.equal(pmd.getMostRecentTotalVmRegionStat('swapped'), 1536);
     assert.equal(
-        pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 4096);
+        pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 4120);
 
     var mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
     assert.equal(mallocDump.attributes['size'].value, 2048);
@@ -308,6 +310,7 @@ tr.b.unittest.testSuite(function() {
 
     var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     assert.equal(tracingDump.attributes['size'].value, 1024);
+    assert.equal(tracingDump.attributes['resident_size'].value, 1000);
   });
 
   test('checkDiscountTracingOverhead_winheap', function() {
@@ -359,14 +362,16 @@ tr.b.unittest.testSuite(function() {
       ];
       pmds[0].memoryAllocatorDumps = (function() {
         var tracingDump = new MemoryAllocatorDump(pmds[0], 'tracing');
-        tracingDump.addAttribute('size', new ScalarAttribute('bytes', 100));
+        tracingDump.addAttribute(
+            'resident_size', new ScalarAttribute('bytes', 100));
         return [tracingDump];
       })();
 
       pmds[1].totalResidentBytes = 2000;
       pmds[1].memoryAllocatorDumps = (function() {
         var tracingDump = new MemoryAllocatorDump(pmds[0], 'tracing');
-        tracingDump.addAttribute('size', new ScalarAttribute('bytes', 200));
+        tracingDump.addAttribute(
+            'resident_size', new ScalarAttribute('bytes', 200));
         return [tracingDump];
       })();
     });
