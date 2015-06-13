@@ -537,7 +537,7 @@ tr.exportTo('tr.e.audits', function() {
             events[events.length - 1].end - events[0].start);
         this.model.addInteractionRecord(ir);
       }.bind(this);
-      tr.e.audits.mergeExplicitRanges(events, 30, mergerFunction);
+      tr.b.mergeExplicitRanges(events, 30, mergerFunction);
     },
 
     addInputInteractionRecords: function() {
@@ -554,7 +554,7 @@ tr.exportTo('tr.e.audits', function() {
         this.model.addInteractionRecord(ir);
       }.bind(this);
       var timestampFunction = function(x) { return x.timestamp; };
-      tr.e.audits.mergeExplicitRanges(inputSamples, 30, mergerFunction,
+      tr.b.mergeExplicitRanges(inputSamples, 30, mergerFunction,
                               timestampFunction, timestampFunction);
     }
   };

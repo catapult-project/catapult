@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
       {start: 200, end: 220}
     ];
 
-    var merged = tr.e.audits.mergeExplicitRanges(inEvents, 50, simpleMerger);
+    var merged = tr.b.mergeExplicitRanges(inEvents, 50, simpleMerger);
 
     assert.equal(merged.length, 2);
     assert.deepEqual(merged[0], {start: 0, end: 120});
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
       {start: 200, end: 220}
     ];
 
-    var merged = tr.e.audits.mergeExplicitRanges(inEvents, 50, simpleMerger);
+    var merged = tr.b.mergeExplicitRanges(inEvents, 50, simpleMerger);
 
     assert.equal(merged.length, 2);
     assert.deepEqual(merged[0], {start: 0, end: 120});
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
       {start: 100, end: 120}
     ];
 
-    var merged = tr.e.audits.mergeExplicitRanges(inEvents, 50, simpleMerger);
+    var merged = tr.b.mergeExplicitRanges(inEvents, 50, simpleMerger);
 
     assert.equal(merged.length, 1);
     assert.deepEqual(merged[0], {start: 0, end: 120});
@@ -65,7 +65,7 @@ tr.b.unittest.testSuite(function() {
       {start: 150, end: 200}
     ];
 
-    var merged = tr.e.audits.mergeExplicitRanges(inEvents, 25, simpleMerger);
+    var merged = tr.b.mergeExplicitRanges(inEvents, 25, simpleMerger);
 
     assert.equal(merged.length, 2);
     assert.deepEqual(merged[0], {start: 0, end: 100});
@@ -78,7 +78,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var mergeCount = 0;
-    tr.e.audits.mergeExplicitRanges(inEvents, 25, function(events) {
+    tr.b.mergeExplicitRanges(inEvents, 25, function(events) {
       assert.deepEqual(events, inEvents);
       mergeCount++;
     });
@@ -97,7 +97,7 @@ tr.b.unittest.testSuite(function() {
         end: timestamps[timestamps.length - 1]
       };
     };
-    var merged = tr.e.audits.mergeExplicitRanges(inEvents, 15, timestampMerger,
+    var merged = tr.b.mergeExplicitRanges(inEvents, 15, timestampMerger,
                                          identityFunction, identityFunction);
     console.log(merged);
     assert.equal(merged.length, 2);
@@ -111,7 +111,7 @@ tr.b.unittest.testSuite(function() {
       {start: 1, end: 3},
       {start: 6, end: 8}
     ];
-    var ranges = tr.e.audits.findEmptyRangesBetweenExplicitRanges(
+    var ranges = tr.b.findEmptyRangesBetweenExplicitRanges(
         events, {start: 0, end: 10});
     assert.equal(3, ranges.length);
     assert.equal(0, ranges[0].min);
@@ -123,13 +123,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findEmptyRangesWithEmptyInput', function() {
-    var ranges = tr.e.audits.findEmptyRangesBetweenExplicitRanges(
+    var ranges = tr.b.findEmptyRangesBetweenExplicitRanges(
         [], {start: 0, end: 10});
     assert.equal(1, ranges.length);
     assert.equal(0, ranges[0].min);
     assert.equal(10, ranges[0].max);
 
-    ranges = tr.e.audits.findEmptyRangesBetweenExplicitRanges([]);
+    ranges = tr.b.findEmptyRangesBetweenExplicitRanges([]);
     assert.equal(0, ranges.length);
   });
 });

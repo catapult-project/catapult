@@ -93,7 +93,7 @@ tr.exportTo('tr.e.audits', function() {
         preFrameEvents.push(slice);
     });
 
-    return tr.e.audits.mergeExplicitRanges(preFrameEvents, 3, function(events) {
+    return tr.b.mergeExplicitRanges(preFrameEvents, 3, function(events) {
       return {
         start: events[0].start,
         end: events[events.length - 1].end

@@ -81,7 +81,7 @@ tr.exportTo('tr.e.rail', function() {
         return gesture;
       }
 
-      return tr.e.audits.mergeExplicitRanges(
+      return tr.b.mergeExplicitRanges(
           latencyStartPoints, 250, joinStartPointsIntoGesture);
     },
 
@@ -236,7 +236,7 @@ tr.exportTo('tr.e.rail', function() {
     },
 
     findIdleInteractionRecords: function(otherIRs) {
-      var emptyRanges = tr.e.audits.findEmptyRangesBetweenExplicitRanges(
+      var emptyRanges = tr.b.findEmptyRangesBetweenExplicitRanges(
           otherIRs, this.model.bounds);
       return emptyRanges.map(function(range) {
         return new tr.e.rail.IdleInteractionRecord(
