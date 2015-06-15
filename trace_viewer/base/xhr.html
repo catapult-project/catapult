@@ -11,8 +11,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  var THIS_DOC = document._currentScript.ownerDocument;
-
   function get(url, async) {
     var req = new XMLHttpRequest();
     var isBinary = /[.]gz$/.test(url) || /[.]zip$/.test(url);
