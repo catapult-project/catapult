@@ -820,9 +820,7 @@ found in the LICENSE file.
 
         // SupportsSelection may be off.
         if (!this.supportsSelection_) {
-          if (!this.selectedTableRowInfo_)
-            return;
-          this.selectedTableRowInfo_.htmlNode.removeAttribute('selected');
+          this.removeSelectedState_();
           this.selectedTableRowInfo_ = undefined;
           return;
         }
@@ -834,18 +832,18 @@ found in the LICENSE file.
           return !!rowInfo.htmlNode.parentElement;
         }
         if (isVisible(this.selectedTableRowInfo_)) {
-          this.selectedTableRowInfo_.htmlNode.setAttribute('selected', true);
+          this.updateSelectedState_();
           return;
         }
 
-        this.selectedTableRowInfo_.htmlNode.removeAttribute('selected');
+        this.removeSelectedState_();
         var curRowInfo = this.selectedTableRowInfo_;
         while (curRowInfo && !isVisible(curRowInfo))
           curRowInfo = curRowInfo.parentRowInfo;
 
         this.selectedTableRowInfo_ = curRowInfo;
         if (this.selectedTableRowInfo_)
-          this.selectedTableRowInfo_.htmlNode.setAttribute('selected', true);
+          this.updateSelectedState_();
       },
 
       didTableRowInfoGetClicked_: function(rowInfo, columnIndex) {
@@ -930,13 +928,17 @@ found in the LICENSE file.
         else
           e.previousSelectedTableRow = undefined;
 
-        if (this.selectedTableRowInfo_) {
-          var node = this.getSelectableNodeGivenTableRowNode_(
-              this.selectedTableRowInfo_.htmlNode);
-          node.removeAttribute('selected');
-        }
+        this.removeSelectedState_();
 
         return e;
+      },
+
+      removeSelectedState_: function() {
+        if (this.selectedTableRowInfo_ === undefined)
+          return;
+        var node = this.getSelectableNodeGivenTableRowNode_(
+            this.selectedTableRowInfo_.htmlNode);
+        node.removeAttribute('selected');
       },
 
       updateSelectedState_: function() {

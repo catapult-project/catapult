@@ -14,6 +14,12 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
 
+  function isSelected(element) {
+    if (!element.hasAttribute('selected'))
+      return false;
+    return element.getAttribute('selected') === 'true';
+  }
+
   test('instantiateEmptyTable_withoutEmptyValue', function() {
     var columns = [
       {
@@ -852,6 +858,68 @@ tr.b.unittest.testSuite(function() {
     table.performKeyCommand_('ARROW_LEFT');
     assert.equal(table.selectedTableRow, table.tableRows[1]);
     assert.equal(table.selectedColumnIndex, 2);
+  });
+
+  test('cellSelectionNested', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px',
+        supportsCellSelection: false
+      },
+      {
+        title: 'Value',
+        value: function(row) { return row.b; },
+        width: '150px'
+      }
+    ];
+
+    var rows = [
+      {
+        a: 'parent',
+        b: '1',
+        subRows: [
+          {
+            a: 'child',
+            b: '2'
+          }
+        ]
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.showHeader = true;
+    table.supportsSelection = true;
+    table.cellSelectionMode = true;
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+    this.addHTMLOutput(table);
+
+    // Expand the parent row.
+    table.setExpandedForTableRow(rows[0], true);
+
+    // Select the second cell in the child row.
+    table.selectedTableRow = rows[0].subRows[0];
+    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isFalse(isSelected(table.$.body.children[0].children[1]));
+    assert.isFalse(isSelected(table.$.body.children[1]));
+    assert.isTrue(isSelected(table.$.body.children[1].children[1]));
+
+    // Fold the parent row. The second cell in the parent row should be
+    // automatically selected.
+    table.setExpandedForTableRow(rows[0], false);
+    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isTrue(isSelected(table.$.body.children[0].children[1]));
+
+    // Expand the parent row again. Only the second cell of the parent row
+    // should still be selected.
+    table.setExpandedForTableRow(rows[0], true);
+    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isTrue(isSelected(table.$.body.children[0].children[1]));
+    assert.isFalse(isSelected(table.$.body.children[1]));
+    assert.isFalse(isSelected(table.$.body.children[1].children[1]));
   });
 
   test('headersWithHtmlElements', function() {
