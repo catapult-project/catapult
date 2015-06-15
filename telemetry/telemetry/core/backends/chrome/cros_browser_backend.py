@@ -60,7 +60,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     args.extend([
             '--enable-smooth-scrolling',
             '--enable-threaded-compositing',
-            '--enable-per-tile-painting',
             # Allow devtools to connect to chrome.
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             # Open a maximized window.
