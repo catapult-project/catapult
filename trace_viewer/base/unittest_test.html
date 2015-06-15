@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/unittest.html">
-<link rel="import" href="/base/raf.html">
+<link rel="import" href="/ui/base/raf.html">
 <script>
 'use strict';
 
@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
 
   test('async', function() {
     return new Promise(function(resolve) {
-      tr.b.requestAnimationFrame(function() {
+      tr.ui.b.requestAnimationFrame(function() {
         resolve();
       });
     });

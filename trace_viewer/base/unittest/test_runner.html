@@ -4,7 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/base/raf.html">
+<link rel="import" href="/ui/base/raf.html">
 <script>
 'use strict';
 
@@ -14,8 +14,8 @@ tr.exportTo('tr.b.unittest', function() {
   var realWindowHistoryPushState;
 
   function installGlobalTestHooks(runner) {
-    realTvOnAnimationFrameError = tr.b.onAnimationFrameError;
-    tr.b.onAnimationFrameError = function(error) {
+    realTvOnAnimationFrameError = tr.ui.b.onAnimationFrameError;
+    tr.ui.b.onAnimationFrameError = function(error) {
       runner.results.addErrorForCurrentTest(error);
     }
 
@@ -45,7 +45,7 @@ tr.exportTo('tr.b.unittest', function() {
     window.onerror = realWindowOnError;
     realWindowOnError = undefined;
 
-    tr.b.onAnimationFrameError = realTvOnAnimationFrameError;
+    tr.ui.b.onAnimationFrameError = realTvOnAnimationFrameError;
     realTvOnAnimationFrameError = undefined;
 
     window.history.pushState = realWindowHistoryPushState;
@@ -108,7 +108,7 @@ tr.exportTo('tr.b.unittest', function() {
       if (this.runOneTestCaseScheduled_)
         return;
       this.runOneTestCaseScheduled_ = true;
-      tr.b.requestIdleCallback(this.runOneTestCase_, this);
+      tr.ui.b.requestIdleCallback(this.runOneTestCase_, this);
     },
 
     runOneTestCase_: function() {

@@ -4,7 +4,7 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/base/raf.html">
+<link rel="import" href="/ui/base/raf.html">
 
 <script>
 'use strict';
@@ -111,7 +111,7 @@ tr.exportTo('tr.b', function() {
   }
 
   /**
-   * Runs a task using raf.requestIdleCallback, returning
+   * Runs a task using tr.ui.b.requestIdleCallback, returning
    * a promise for its completion.
    */
   Task.RunWhenIdle = function(task) {
@@ -127,13 +127,13 @@ tr.exportTo('tr.b', function() {
         }
 
         if (curTask) {
-          tr.b.requestIdleCallback(runAnother);
+          tr.ui.b.requestIdleCallback(runAnother);
           return;
         }
 
         resolve();
       }
-      tr.b.requestIdleCallback(runAnother);
+      tr.ui.b.requestIdleCallback(runAnother);
     });
   }
 

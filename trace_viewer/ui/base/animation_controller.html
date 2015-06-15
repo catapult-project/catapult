@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/event_target.html">
-<link rel="import" href="/base/raf.html">
+<link rel="import" href="/ui/base/raf.html">
 <link rel="import" href="/ui/base/animation.html">
 <script>
 'use strict';
@@ -89,7 +89,7 @@ tr.exportTo('tr.ui.b', function() {
       if (this.tickScheduled_)
         return;
       this.tickScheduled_ = true;
-      tr.b.requestAnimationFrame(this.tickActiveAnimation_, this);
+      tr.ui.b.requestAnimationFrame(this.tickActiveAnimation_, this);
     },
 
     cancelActiveAnimation: function(opt_now) {
@@ -122,7 +122,7 @@ tr.exportTo('tr.ui.b', function() {
 
       if (this.activeAnimation_) {
         this.tickScheduled_ = true;
-        tr.b.requestAnimationFrame(this.tickActiveAnimation_, this);
+        tr.ui.b.requestAnimationFrame(this.tickActiveAnimation_, this);
       }
 
       if (oldTargetState) {
