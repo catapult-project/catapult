@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/tracks/track.html">
+<link rel="import" href="/ui/tracks/track.html">
 <link rel="import" href="/core/ui_state.html">
 
 <script>
@@ -19,11 +19,11 @@ tr.b.unittest.testSuite(function() {
     this.processes = { 1: { threads: { 2: { stableId: '1.2' } } } };
   }
 
-  // FakeTrack needs to be an instance of tr.c.tracks.Track because a
+  // FakeTrack needs to be an instance of tr.ui.tracks.Track because a
   // location is constructed in terms of Track instances.
   function FakeTrack() { }
   FakeTrack.prototype = {
-    __proto__: tr.c.tracks.Track.prototype,
+    __proto__: tr.ui.tracks.Track.prototype,
 
     get eventContainer() {
       return { stableId: '1.2' };

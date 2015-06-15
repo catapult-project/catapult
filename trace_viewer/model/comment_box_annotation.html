@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/location.html">
 <link rel="import" href="/model/annotation.html">
 <link rel="import" href="/model/rect_annotation.html">
-<link rel="import" href="/core/tracks/comment_box_annotation_view.html">
+<link rel="import" href="/ui/annotations/comment_box_annotation_view.html">
 
 <script>
 'use strict';
@@ -47,7 +47,7 @@ tr.exportTo('tr.model', function() {
     },
 
     createView_: function(viewport) {
-      return new tr.c.annotations.CommentBoxAnnotationView(viewport, this);
+      return new tr.ui.annotations.CommentBoxAnnotationView(viewport, this);
     }
   };
 

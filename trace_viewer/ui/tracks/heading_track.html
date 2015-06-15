@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="stylesheet" href="/ui/tracks/heading_track.css">
+
+<link rel="import" href="/core/analysis/analysis_link.html">
+<link rel="import" href="/core/constants.html">
+<link rel="import" href="/ui/tracks/track.html">
+<link rel="import" href="/ui/base/ui.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+  var DOWN_ARROW = String.fromCharCode(0x25BE);
+  var RIGHT_ARROW = String.fromCharCode(0x25B8);
+
+  /**
+   * A track with a header. Provides the basic heading and tooltip
+   * infrastructure. Subclasses must implement drawing code.
+   * @constructor
+   * @extends {HTMLDivElement}
+   */
+  var HeadingTrack = tr.ui.b.define('heading-track', tr.ui.tracks.Track);
+
+  HeadingTrack.prototype = {
+    __proto__: tr.ui.tracks.Track.prototype,
+
+    decorate: function(viewport) {
+      tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
+      this.classList.add('heading-track');
+
+      this.headingDiv_ = document.createElement('heading');
+      this.headingDiv_.style.width = tr.c.constants.HEADING_WIDTH + 'px';
+      this.headingDiv_.addEventListener(
+          'click', this.onHeadingDivClicked_.bind(this));
+      this.heading_ = '';
+      this.expanded_ = undefined;
+      this.selectionGenerator_ = undefined;
+      this.updateContents_();
+    },
+
+    get heading() {
+      return this.heading_;
+    },
+
+    set heading(text) {
+      this.heading_ = text;
+      this.updateContents_();
+    },
+
+    set tooltip(text) {
+      this.headingDiv_.title = text;
+    },
+
+    set selectionGenerator(generator) {
+      this.selectionGenerator_ = generator;
+      this.updateContents_();
+    },
+
+    get expanded() {
+      return this.expanded_;
+    },
+
+    set expanded(expanded) {
+      expanded = expanded;
+      if (this.expanded_ == expanded)
+        return;
+      this.expanded_ = expanded;
+      this.expandedStateChanged_();
+    },
+
+    expandedStateChanged_: function() {
+      this.updateHeadigDiv_();
+    },
+
+    onHeadingDivClicked_: function() {
+      var e = new Event('heading-clicked', {'bubbles': true});
+      this.dispatchEvent(e);
+    },
+
+    updateContents_: function() {
+      this.updateHeadigDiv_();
+    },
+
+    updateHeadigDiv_: function() {
+      /**
+       * If this is a heading track of a sampling thread, we add a link to
+       * the heading text ("Sampling Thread"). We associate a selection
+       * generator with the link so that sampling profiling results are
+       * displayed in the bottom frame when you click the link.
+       */
+      this.headingDiv_.innerHTML = '';
+      var span = document.createElement('span');
+      span.classList.add('heading-arrow');
+      if (this.expanded === true)
+        span.textContent = DOWN_ARROW;
+      else if (this.expanded === false)
+        span.textContent = RIGHT_ARROW;
+      else
+        span.textContent = '';
+      this.headingDiv_.appendChild(span);
+
+      if (this.selectionGenerator_) {
+        this.headingLink_ = document.createElement('tr-c-a-analysis-link');
+        this.headingLink_.selection = this.selectionGenerator_;
+        this.headingLink_.textContent = '';
+        this.headingDiv_.appendChild(this.headingLink_);
+        this.headingLink_.appendChild(document.createTextNode(this.heading_));
+      } else {
+        span = document.createElement('span');
+        span.textContent = this.heading_;
+        this.headingDiv_.appendChild(span);
+      }
+      this.appendChild(this.headingDiv_);
+    },
+
+    draw: function(type, viewLWorld, viewRWorld) {
+      throw new Error('draw implementation missing');
+    }
+  };
+
+  return {
+    HeadingTrack: HeadingTrack
+  };
+});
+</script>

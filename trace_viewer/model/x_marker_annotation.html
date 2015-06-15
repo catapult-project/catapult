@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/model/annotation.html">
-<link rel="import" href="/core/tracks/x_marker_annotation_view.html">
+<link rel="import" href="/ui/annotations/x_marker_annotation_view.html">
 
 <script>
 'use strict';
@@ -37,7 +37,7 @@ tr.exportTo('tr.model', function() {
     },
 
     createView_: function(viewport) {
-      return new tr.c.annotations.XMarkerAnnotationView(viewport, this);
+      return new tr.ui.annotations.XMarkerAnnotationView(viewport, this);
     }
   };
 

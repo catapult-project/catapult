@@ -59,7 +59,7 @@ tr.exportTo('tr.c', function() {
           viewY + viewport.modelTrackContainer.canvas.offsetTop);
     // Build yComponents by calculating percentage offset with respect to
     // each parent track.
-    while (elem instanceof tr.c.tracks.Track) {
+    while (elem instanceof tr.ui.tracks.Track) {
       if (elem.eventContainer) {
         var boundRect = elem.getBoundingClientRect();
         var yPercentOffset = (viewY - boundRect.top) / boundRect.height;
@@ -86,7 +86,7 @@ tr.exportTo('tr.c', function() {
       return;
 
     var firstY = elem.getBoundingClientRect().top;
-    while (elem instanceof tr.c.tracks.Track) {
+    while (elem instanceof tr.ui.tracks.Track) {
       if (elem.eventContainer) {
         var boundRect = elem.getBoundingClientRect();
         var yPercentOffset = (firstY - boundRect.top) / boundRect.height;

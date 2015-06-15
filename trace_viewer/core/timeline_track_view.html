@@ -17,9 +17,9 @@ found in the LICENSE file.
 <link rel="import" href="/core/timeline_viewport.html">
 <link rel="import" href="/core/timeline_display_transform_animations.html">
 <link rel="import" href="/core/timing_tool.html">
-<link rel="import" href="/core/tracks/drawing_container.html">
-<link rel="import" href="/core/tracks/model_track.html">
-<link rel="import" href="/core/tracks/ruler_track.html">
+<link rel="import" href="/ui/tracks/drawing_container.html">
+<link rel="import" href="/ui/tracks/model_track.html">
+<link rel="import" href="/ui/tracks/ruler_track.html">
 <link rel="import" href="/model/event.html">
 <link rel="import" href="/model/x_marker_annotation.html">
 <link rel="import" href="/ui/base/ui.html">
@@ -91,26 +91,26 @@ tr.exportTo('tr.c', function() {
       this.selectionController_ = undefined;
 
       this.rulerTrackContainer_ =
-          new tr.c.tracks.DrawingContainer(this.viewport_);
+          new tr.ui.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.rulerTrackContainer_);
       this.rulerTrackContainer_.invalidate();
 
-      this.rulerTrack_ = new tr.c.tracks.RulerTrack(this.viewport_);
+      this.rulerTrack_ = new tr.ui.tracks.RulerTrack(this.viewport_);
       this.rulerTrackContainer_.appendChild(this.rulerTrack_);
 
-      this.upperModelTrack_ = new tr.c.tracks.ModelTrack(this.viewport_);
+      this.upperModelTrack_ = new tr.ui.tracks.ModelTrack(this.viewport_);
       this.upperModelTrack_.upperMode = true;
       this.rulerTrackContainer_.appendChild(this.upperModelTrack_);
 
       this.modelTrackContainer_ =
-          new tr.c.tracks.DrawingContainer(this.viewport_);
+          new tr.ui.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.modelTrackContainer_);
       this.modelTrackContainer_.style.display = 'block';
       this.modelTrackContainer_.invalidate();
 
       this.viewport_.modelTrackContainer = this.modelTrackContainer_;
 
-      this.modelTrack_ = new tr.c.tracks.ModelTrack(this.viewport_);
+      this.modelTrack_ = new tr.ui.tracks.ModelTrack(this.viewport_);
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
       this.timingTool_ = new tr.c.TimingTool(this.viewport_,

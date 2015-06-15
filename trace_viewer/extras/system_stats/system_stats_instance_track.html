@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/extras/system_stats/system_stats_instance_track.css">
 
 <link rel="import" href="/base/sorted_array_utils.html">
-<link rel="import" href="/core/tracks/stacked_bars_track.html">
-<link rel="import" href="/core/tracks/object_instance_track.html">
+<link rel="import" href="/ui/tracks/stacked_bars_track.html">
+<link rel="import" href="/ui/tracks/object_instance_track.html">
 <link rel="import" href="/core/event_presenter.html">
 <link rel="import" href="/ui/base/ui.html">
 
@@ -51,14 +51,14 @@ tr.exportTo('tr.e.system_stats', function() {
    */
 
   var SystemStatsInstanceTrack = tr.ui.b.define(
-      'system-stats-instance-track', tr.c.tracks.StackedBarsTrack);
+      'system-stats-instance-track', tr.ui.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {
 
-    __proto__: tr.c.tracks.StackedBarsTrack.prototype,
+    __proto__: tr.ui.tracks.StackedBarsTrack.prototype,
 
     decorate: function(viewport) {
-      tr.c.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
+      tr.ui.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
       this.classList.add('system-stats-instance-track');
       this.objectInstance_ = null;
     },
@@ -193,7 +193,7 @@ tr.exportTo('tr.e.system_stats', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tr.c.tracks.DrawType.GENERAL_EVENT:
+        case tr.ui.tracks.DrawType.GENERAL_EVENT:
           this.drawStatBars_(viewLWorld, viewRWorld);
           break;
       }
@@ -346,7 +346,7 @@ tr.exportTo('tr.e.system_stats', function() {
     }
   };
 
-  tr.c.tracks.ObjectInstanceTrack.register(
+  tr.ui.tracks.ObjectInstanceTrack.register(
       SystemStatsInstanceTrack,
       {typeName: 'base::TraceEventSystemStatsMonitor::SystemStats'});
 

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/tracks/process_track_base.html">
+<link rel="import" href="/ui/tracks/cpu_track.html">
+<link rel="import" href="/ui/tracks/spacing_track.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+  var Cpu = tr.model.Cpu;
+  var CpuTrack = tr.ui.tracks.cpu_track;
+  var ProcessTrackBase = tr.ui.tracks.ProcessTrackBase;
+  var SpacingTrack = tr.ui.tracks.SpacingTrack;
+
+  /**
+   * @constructor
+   */
+  var KernelTrack = tr.ui.b.define('kernel-track', ProcessTrackBase);
+
+  KernelTrack.prototype = {
+    __proto__: ProcessTrackBase.prototype,
+
+    decorate: function(viewport) {
+      ProcessTrackBase.prototype.decorate.call(this, viewport);
+    },
+
+
+    // Kernel maps to processBase because we derive from ProcessTrackBase.
+    set kernel(kernel) {
+      this.processBase = kernel;
+    },
+
+    get kernel() {
+      return this.processBase;
+    },
+
+    get eventContainer() {
+      return this.kernel;
+    },
+
+    get hasVisibleContent() {
+      return this.children.length > 1;
+    },
+
+    addContainersToTrackMap: function(containerToTrackMap) {
+      containerToTrackMap.addContainer(this.kernel, this);
+    },
+
+    willAppendTracks_: function() {
+      var cpus = tr.b.dictionaryValues(this.kernel.cpus);
+      cpus.sort(tr.model.Cpu.compare);
+
+      var didAppendAtLeastOneTrack = false;
+      for (var i = 0; i < cpus.length; ++i) {
+        var cpu = cpus[i];
+        var track = new tr.ui.tracks.CpuTrack(this.viewport);
+        track.detailedMode = this.expanded;
+        track.cpu = cpu;
+        if (!track.hasVisibleContent)
+          continue;
+        this.appendChild(track);
+        didAppendAtLeastOneTrack = true;
+      }
+      if (didAppendAtLeastOneTrack)
+        this.appendChild(new SpacingTrack(this.viewport));
+    }
+  };
+
+
+  return {
+    KernelTrack: KernelTrack
+  };
+});
+</script>
+

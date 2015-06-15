@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/model/selection_state.html">
 <link rel="import" href="/core/timeline_viewport.html">
-<link rel="import" href="/core/tracks/drawing_container.html">
+<link rel="import" href="/ui/tracks/drawing_container.html">
 
 <script>
 'use strict';
@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var div = document.createElement('div');
     var viewport = new Viewport(div);
-    var drawingContainer = new tr.c.tracks.DrawingContainer(viewport);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
     var track = new SystemStatsInstanceTrack(viewport);
