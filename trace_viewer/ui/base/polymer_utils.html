@@ -12,7 +12,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Helper code for working with Polymer.
  */
-tr.exportTo('tr.b', function() {
+tr.exportTo('tr.ui.b', function() {
 
   Object.observe(Polymer.elements, clearPolymerElementCaches);
 
@@ -79,35 +79,9 @@ tr.exportTo('tr.b', function() {
     return elementSubclasses[tagName];
   }
 
-  function getPolymerSubclassingDepthFrom(tagName, tagBase) {
-    if (Polymer.waitingFor().length) {
-      throw new Error('There are unresolved polymer elements. ' +
-        'Wait until Polymer.whenReady');
-    }
-
-    if (!Polymer.elements[tagBase])
-      throw new Error(tagBase + ' is not a polymer element');
-
-    if (!Polymer.elements[tagName])
-      throw new Error(tagName + ' is not a polymer element');
-
-    var steps = 0;
-
-    var tagCur = tagName;
-    while (tagCur != tagBase) {
-      steps += 1;
-      tagCur = Polymer.elements[tagCur].extends;
-      if (!tagCur)
-        throw new Error(tagName + ' does not subclass ' + tagBase);
-    }
-    return steps;
-  }
-
   return {
     getPolymerElementNamed: getPolymerElementNamed,
-
-    getPolymerElementsThatSubclass: getPolymerElementsThatSubclass,
-    getPolymerSubclassingDepthFrom: getPolymerSubclassingDepthFrom
+    getPolymerElementsThatSubclass: getPolymerElementsThatSubclass
   };
 });
 </script>

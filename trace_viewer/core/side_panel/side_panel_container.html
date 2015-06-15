@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel='import' href='/base/polymer_utils.html'>
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/core/side_panel/side_panel.html">
+<link rel='import' href='/ui/base/polymer_utils.html'>
 
 <polymer-element name='tr-c-side-panel-container' is='HTMLUnknownElement'>
   <template>
@@ -191,7 +191,8 @@ found in the LICENSE file.
       this.tabStrip_.textContent = '';
       var supportedPanelTypes = [];
 
-      var panelTypes = tr.b.getPolymerElementsThatSubclass('tr-c-side-panel');
+      var panelTypes =
+          tr.ui.b.getPolymerElementsThatSubclass('tr-c-side-panel');
       panelTypes.forEach(function(panelType) {
         var labelEl = document.createElement('tab-strip-label');
         var panel = document.createElement(panelType);

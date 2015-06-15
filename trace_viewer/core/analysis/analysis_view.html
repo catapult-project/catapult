@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/polymer_utils.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/core/analysis/tab_view.html">
 <link rel="import" href="/core/analysis/analysis_sub_view.html">
@@ -57,6 +56,8 @@ found in the LICENSE file.
 <link rel="import"
     href="/core/analysis/single_global_memory_dump_sub_view.html">
 <link rel="import" href="/core/analysis/multi_global_memory_dump_sub_view.html">
+
+<link rel="import" href="/ui/base/polymer_utils.html">
 
 <!--
 @fileoverview A component used to display an analysis of a selection,
@@ -217,7 +218,7 @@ using custom elements specialized for different event types.
         else
           tagName = eventTypeInfo.metadata.multiViewElementName;
 
-        if (!tr.b.getPolymerElementNamed(tagName))
+        if (!tr.ui.b.getPolymerElementNamed(tagName))
           throw new Error('Element not registered: ' + tagName);
 
         // Create.
