@@ -260,6 +260,36 @@ class ParseTests(unittest.TestCase):
     self.assertEquals(1, len(module.inline_scripts))
     self.assertEquals('</h2>', module.inline_scripts[0].contents)
 
+  def test_generate_js_for_headless_import(self):
+    html = """
+        <link rel="import" href="/base/math.html">
+        <script></script>
+        <script src="/base/base/computer.js"></script>
+        <link rel="import" href="/base/physics.html">
+
+        <script>
+              var html_lines = [
+                '<script>',
+                '< /script>',
+              ];
+        </script>
+
+         <script>
+          var i = '<link rel="import" href="/base/math.html">'
+         </script>
+        """
+    parser = parse_html_deps.HTMLModuleParserResults(html)
+    exepected_js = """loadHTML("./base/math.html");
+loadHTML("./base/physics.html");
+load("./base/base/computer.js");
+var html_lines = [
+                '<script>',
+                '< /script>',
+              ];
+var i = '<link rel="import" href="/base/math.html">'"""
+    generated_js = parser.GenerateJSForHeadlessImport()
+    self.assertEquals(generated_js, exepected_js)
+
 
 if __name__ == '__main__':
   unittest.main()
