@@ -29,7 +29,7 @@ tr.exportTo('tr.ui.annotations', function() {
       var viewX = dt.xWorldToView(this.annotation_.timestamp);
 
       ctx.beginPath();
-      tr.c.drawLine(ctx, viewX, 0, viewX, ctx.canvas.height);
+      tr.ui.b.drawLine(ctx, viewX, 0, viewX, ctx.canvas.height);
       ctx.strokeStyle = this.annotation_.strokeStyle;
       ctx.stroke();
     }

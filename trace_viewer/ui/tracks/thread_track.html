@@ -74,7 +74,7 @@ tr.exportTo('tr.ui.tracks', function() {
       if (this.thread_.timeSlices) {
         var timeSlicesTrack = new tr.ui.tracks.SliceTrack(this.viewport);
         timeSlicesTrack.heading = '';
-        timeSlicesTrack.height = tr.c.THIN_SLICE_HEIGHT + 'px';
+        timeSlicesTrack.height = tr.ui.b.THIN_SLICE_HEIGHT + 'px';
         timeSlicesTrack.slices = this.thread_.timeSlices;
         if (timeSlicesTrack.hasVisibleContent)
           this.appendChild(timeSlicesTrack);

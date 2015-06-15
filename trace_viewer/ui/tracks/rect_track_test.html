@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/slice.html">
 <link rel="import" href="/ui/timeline_track_view.html">
-<link rel="import" href="/core/draw_helpers.html">
+<link rel="import" href="/ui/base/draw_helpers.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 
 <script>
@@ -242,11 +242,11 @@ tr.b.unittest.testSuite(function() {
 
     // Small titles on big slices are not elided.
     stringWidthPair =
-        tr.c.elidedTitleCache_.get(
+        tr.ui.b.elidedTitleCache_.get(
             track.context(),
             pixWidth,
             smalltitle,
-            tr.c.elidedTitleCache_.labelWidth(
+            tr.ui.b.elidedTitleCache_.labelWidth(
                 track.context(),
                 smalltitle),
             1);
@@ -256,11 +256,11 @@ tr.b.unittest.testSuite(function() {
     var elidedWhenSmallEnough = false;
     for (var sliceLength = 1; sliceLength >= 0.00001; sliceLength /= 2.0) {
       stringWidthPair =
-          tr.c.elidedTitleCache_.get(
+          tr.ui.b.elidedTitleCache_.get(
               track.context(),
               pixWidth,
               smalltitle,
-              tr.c.elidedTitleCache_.labelWidth(
+              tr.ui.b.elidedTitleCache_.labelWidth(
                   track.context(),
                   smalltitle),
               sliceLength);
@@ -277,11 +277,11 @@ tr.b.unittest.testSuite(function() {
       superBigTitle += bigtitle;
     }
     stringWidthPair =
-        tr.c.elidedTitleCache_.get(
+        tr.ui.b.elidedTitleCache_.get(
             track.context(),
             pixWidth,
             superBigTitle,
-            tr.c.elidedTitleCache_.labelWidth(
+            tr.ui.b.elidedTitleCache_.labelWidth(
                 track.context(),
                 superBigTitle),
             1);

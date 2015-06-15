@@ -72,7 +72,7 @@ tr.exportTo('tr.ui.annotations', function() {
       ctx.strokeStyle = 'rgb(0, 0, 0)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      tr.c.drawLine(ctx, coords.viewX,
+      tr.ui.b.drawLine(ctx, coords.viewX,
           coords.viewY - ctx.canvas.getBoundingClientRect().top,
           coords.viewX + this.rightOffset,
           coords.viewY - this.topOffset -

@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/tracks/alert_track.html">
 <link rel="import" href="/ui/tracks/global_memory_dump_track.html">
 <link rel="import" href="/ui/tracks/process_track.html">
-<link rel="import" href="/core/draw_helpers.html">
+<link rel="import" href="/ui/base/draw_helpers.html">
 <link rel="import" href="/ui/base/ui.html">
 
 <style>
@@ -253,7 +253,7 @@ tr.exportTo('tr.ui.tracks', function() {
               this.model_.instantEvents.length === 0)
             break;
 
-          tr.c.drawInstantSlicesAsLines(
+          tr.ui.b.drawInstantSlicesAsLines(
               ctx,
               this.viewport.currentDisplayTransform,
               viewLWorld,
@@ -399,7 +399,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var tipX = flowEvent.end;
       var tipY = pixelEndY;
       var arrowHeight = (endBounds.height / 4) * pixelRatio;
-      tr.c.drawTriangle(ctx,
+      tr.ui.b.drawTriangle(ctx,
           tipX, tipY,
           tipX - arrowWidth, tipY - arrowHeight,
           tipX - arrowWidth, tipY + arrowHeight);

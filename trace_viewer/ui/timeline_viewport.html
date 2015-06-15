@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/draw_helpers.html">
+<link rel="import" href="/ui/base/draw_helpers.html">
 <link rel="import" href="/ui/timeline_interest_range.html">
 <link rel="import" href="/ui/timeline_display_transform.html">
 <link rel="import" href="/base/events.html">
@@ -355,7 +355,7 @@ tr.exportTo('tr.ui', function() {
       ctx.beginPath();
       for (var idx in this.majorMarkPositions) {
         var x = Math.floor(this.majorMarkPositions[idx]);
-        tr.c.drawLine(ctx, x, 0, x, ctx.canvas.height);
+        tr.ui.b.drawLine(ctx, x, 0, x, ctx.canvas.height);
       }
       ctx.strokeStyle = '#ddd';
       ctx.stroke();
@@ -381,7 +381,7 @@ tr.exportTo('tr.ui', function() {
           // Do conversion to viewspace here rather than on
           // x to avoid precision issues.
           var vx = Math.floor(dt.xWorldToView(x));
-          tr.c.drawLine(ctx, vx, 0, vx, ctx.canvas.height);
+          tr.ui.b.drawLine(ctx, vx, 0, vx, ctx.canvas.height);
         }
 
         x += this.gridStep;

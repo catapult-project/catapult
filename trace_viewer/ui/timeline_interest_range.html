@@ -180,7 +180,7 @@ tr.exportTo('tr.ui', function() {
       ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
 
       ctx.beginPath();
-      tr.c.drawLine(ctx, viewX, 0, viewX, height);
+      tr.ui.b.drawLine(ctx, viewX, 0, viewX, height);
       if (selected)
         ctx.strokeStyle = 'rgb(255, 0, 0)';
       else
@@ -225,12 +225,12 @@ tr.exportTo('tr.ui', function() {
         ctx.fillStyle = 'rgb(255, 0, 0)';
       else
         ctx.fillStyle = 'rgb(0, 0, 0)';
-      tr.c.drawTriangle(ctx,
+      tr.ui.b.drawTriangle(ctx,
           viewX - arrowSize * 0.75, viewY,
           viewX + arrowSize * 0.75, viewY,
           viewX, viewY + arrowSize);
       ctx.fill();
-      tr.c.drawTriangle(ctx,
+      tr.ui.b.drawTriangle(ctx,
           viewX - arrowSize * 0.75, viewY + viewHeight,
           viewX + arrowSize * 0.75, viewY + viewHeight,
           viewX, viewY + viewHeight - arrowSize);
