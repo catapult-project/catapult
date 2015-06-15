@@ -4,12 +4,14 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/base/key_event_manager.html">
+
+<link rel="import" href="/ui/base/key_event_manager.html">
+
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var KeyEventManager = tr.b.KeyEventManager;
+  var KeyEventManager = tr.ui.b.KeyEventManager;
 
   function withElementAttachedToChild(element, callback) {
     document.body.appendChild(element);

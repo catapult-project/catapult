@@ -8,9 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/extras/about_tracing/record_and_capture_controller.html">
 <link rel="import" href="/extras/about_tracing/inspector_tracing_controller_client.html">
 <link rel="import" href="/extras/about_tracing/xhr_based_tracing_controller_client.html">
-<link rel="import" href="/base/key_event_manager.html">
 <link rel="import" href="/trace_viewer.html">
 <link rel="import" href="/ui/base/info_bar_group.html">
+<link rel="import" href="/ui/base/key_event_manager.html">
 <link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/ui/base/utils.html">
 
@@ -118,7 +118,7 @@ tr.exportTo('tr.e.about_tracing', function() {
       this.timelineView_.leftControls.appendChild(buttons);
       this.initButtons_(buttons);
 
-      tr.b.KeyEventManager.instance.addListener(
+      tr.ui.b.KeyEventManager.instance.addListener(
           'keypress', this.onKeypress_, this);
 
       this.initDragAndDrop_();

@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/base/iteration_helpers.html">
-<link rel="import" href="/base/key_event_manager.html">
+<link rel="import" href="/ui/base/key_event_manager.html">
 <link rel="import" href="/ui/base/mouse_tracker.html">
 <link rel="import" href="/ui/base/ui.html">
 <link rel="import" href="/ui/base/utils.html">
@@ -145,9 +145,9 @@ tr.exportTo('tr.ui.b', function() {
       this.buttonsEl_.addEventListener('mousedown', this.onButtonMouseDown_);
       this.buttonsEl_.addEventListener('click', this.onButtonPress_.bind(this));
 
-      tr.b.KeyEventManager.instance.addListener(
+      tr.ui.b.KeyEventManager.instance.addListener(
           'keydown', this.onKeyDown_, this);
-      tr.b.KeyEventManager.instance.addListener(
+      tr.ui.b.KeyEventManager.instance.addListener(
           'keyup', this.onKeyUp_, this);
       this.keyCodeCondition = undefined;
 
