@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/xhr.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/extras/full_config.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/base/xhr.html">
 
 <script>
 'use strict';
@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
     if (generalModel !== undefined)
       generalModel;
     var fileUrl = '/test_data/thread_time_visualisation.json.gz';
-    var events = tr.b.getSync(fileUrl);
+    var events = tr.ui.b.getSync(fileUrl);
     generalModel = new tr.Model();
     generalModel.importTraces([events], true);
     return generalModel;

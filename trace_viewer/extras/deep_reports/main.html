@@ -6,11 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/base.html">
-<link rel="import" href="/base/xhr.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/extras/deep_reports/scalar_value.html">
 <link rel="import" href="/extras/deep_reports/rail_deep_reporter.html">
 <link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/ui/base/xhr.html">
+
 <script>
 'use strict';
 
@@ -38,7 +39,7 @@ tr.exportTo('tr.e.deep_reports', function() {
   }
 
   function loadModelFromFileAsync(filename) {
-    return tr.b.getAsync(filename).then(function(trace) {
+    return tr.ui.b.getAsync(filename).then(function(trace) {
       var io = new tr.ImportOptions();
       io.shiftWorldToZero = true;
       io.pruneEmptyContainers = false;

@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/base/xhr.html">
 <link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+<link rel="import" href="/ui/base/xhr.html">
 
 <script>
 'use strict';
@@ -281,7 +281,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('importSystraceHtml', function() {
-    var p = tr.b.getAsync(
+    var p = tr.ui.b.getAsync(
         '/test_data/trivial_systrace.html');
     return p.then(function(data) {
       var m = new tr.Model(data, false);

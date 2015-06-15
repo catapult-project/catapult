@@ -31,7 +31,7 @@ found in the LICENSE file.
   'use strict';
 
   function onLoad() {
-    tr.b.getAsync('/json/examples').then(function(data) {
+    tr.ui.b.getAsync('/json/examples').then(function(data) {
       var select = document.querySelector('#trace-file');
       var all_files = JSON.parse(data);
       var files = all_files.filter(function(file) {

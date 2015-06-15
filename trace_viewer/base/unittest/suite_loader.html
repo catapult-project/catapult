@@ -4,10 +4,12 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/base/event_target.html">
-<link rel="import" href="/base/xhr.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/unittest/test_suite.html">
+<link rel="import" href="/ui/base/xhr.html">
+
 <script>
 'use strict';
 
@@ -33,7 +35,7 @@ tr.exportTo('tr.b.unittest', function() {
           tmp);
     } else {
       var p;
-      p = tr.b.getAsync('/tr/json/tests');
+      p = tr.ui.b.getAsync('/tr/json/tests');
       p = p.then(
           function(data) {
             var testMetadata = JSON.parse(data);
