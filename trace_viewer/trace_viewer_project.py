@@ -20,7 +20,13 @@ def _FindAllFilesRecursive(source_paths):
         all_filenames.add(x)
   return all_filenames
 
+_D8_TESTS_ONLY_DIR = os.path.join(
+    os.path.dirname(__file__), 'build', 'test_data')
+
 def _IsFilenameATest(loader, x):
+  if x.startswith(_D8_TESTS_ONLY_DIR):
+    return False
+
   if x.endswith('_test.js'):
     return True
 
