@@ -40,6 +40,7 @@ x-timeline-view > .control::-webkit-scrollbar{
 }
 
 x-timeline-view > .control > .bar > #right-controls {
+  height: 21px;
   margin-left: auto;
 }
 
@@ -59,9 +60,11 @@ x-timeline-view > .control > .bar > span {
 
 x-timeline-view > .control > .bar > .controls button,
 x-timeline-view > .control > .bar > .controls label,
-x-timeline-view > .control > .bar > .controls tr-ui-b-dropdown {
+x-timeline-view > .control > .bar > .controls tr-ui-b-toolbar-button,
+x-timeline-view > .control > .bar > .controls tr-ui-b-dropdown,
+x-timeline-view > .control > .bar > .controls tracing-find-control {
   font-size: 14px;
-  margin: 1px 2px 1px 2px;
+  margin: 1px 1px 1px 0;
 }
 
 x-timeline-view > .control > .bar > .spacer {
@@ -107,28 +110,8 @@ x-timeline-view .selection ul {
   margin: 0;
 }
 
-.button {
-  background-color: #f8f8f8;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  color: rgba(0,0,0,0.8);
-  font-size: 14px;
-  height: 19px;
-  margin: 1px;
+tr-ui-b-toolbar-button {
   min-width: 23px;
-  text-align: center;
-}
-
-x-timeline-view > .control > .bar > .controls tr-ui-b-dropdown {
-  font-size: 12px;
-  height: 19px;
-  background-color: #f8f8f8;
-}
-
-.button:hover {
-  background-color: rgba(255, 255, 255, 1.0);
-  border: 1px solid rgba(0, 0, 0, 0.8);
-  box-shadow: 0 0 .05em rgba(0, 0, 0, 0.4);
-  color: rgba(0, 0, 0, 1);
 }
 
 .view-info-button {

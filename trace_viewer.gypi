@@ -392,6 +392,7 @@
       'trace_viewer/ui/base/sortable_table.html',
       'trace_viewer/ui/base/sunburst_chart.html',
       'trace_viewer/ui/base/table.html',
+      'trace_viewer/ui/base/toolbar_button.html',
       'trace_viewer/ui/base/ui.html',
       'trace_viewer/ui/base/utils.html',
       'trace_viewer/ui/units/size_in_bytes_span.html',

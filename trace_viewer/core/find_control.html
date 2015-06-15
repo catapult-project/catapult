@@ -7,11 +7,12 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/find_controller.html">
 <link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/ui/base/toolbar_button.html">
 
 <polymer-element name="tracing-find-control" constructor="TracingFindControl">
   <template>
     <style>
-      div.root {
+      :host {
         -webkit-user-select: none;
         display: -webkit-flex;
         position: relative;
@@ -21,38 +22,26 @@ found in the LICENSE file.
         background-color: #f8f8f8;
         border: 1px solid rgba(0, 0, 0, 0.5);
         box-sizing: border-box;
-        height: 19px;
-        margin-bottom: 1px;
-        margin-left: 0;
-        margin-right: 0;
-        margin-top: 1px;
+        margin: 0;
         padding: 0;
         width: 170px;
       }
       input:focus {
         background-color: white;
       }
-      .button {
-        background-color: #f8f8f8;
-        border: 1px solid rgba(0, 0, 0, 0.5);
+      tr-ui-b-toolbar-button {
         border-left: none;
         font-size: 14px;
-        height: 17px;
-        margin-left: 0;
-        margin-top: 1px;
-      }
-      .button :first-of-type {
-        margin-right: 0;
+        margin: 0;
       }
       #hitCount {
-        height: 19px;
         left: 0;
         opacity: 0.25;
         pointer-events: none;
         position: absolute;
         text-align: right;
         top: 2px;
-        width: 170px;
+        width: 167px;
         z-index: 1;
       }
       #spinner {
@@ -75,19 +64,21 @@ found in the LICENSE file.
       @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 
-    <div class="root">
-      <input type='text' id='filter'
-          on-input="{{ filterTextChanged }}"
-          on-keypress="{{ filterKeyPress }}"
-          on-keydown="{{ filterKeyDown }}"
-          on-blur="{{ filterBlur }}"
-          on-focus="{{ filterFocus }}"
-          on-mouseup="{{ filterMouseUp }}" />
-      <div id="spinner"></div>
-      <div class="button" on-click="{{ findPrevious }}">&larr;</div>
-      <div class="button" on-click="{{ findNext }}">&rarr;</div>
-      <div id="hitCount">0 of 0</div>
-    </div>
+    <input type='text' id='filter'
+        on-input="{{ filterTextChanged }}"
+        on-keypress="{{ filterKeyPress }}"
+        on-keydown="{{ filterKeyDown }}"
+        on-blur="{{ filterBlur }}"
+        on-focus="{{ filterFocus }}"
+        on-mouseup="{{ filterMouseUp }}" />
+    <div id="spinner"></div>
+    <tr-ui-b-toolbar-button on-click="{{ findPrevious }}">
+      &larr;
+    </tr-ui-b-toolbar-button>
+    <tr-ui-b-toolbar-button on-click="{{ findNext }}">
+      &rarr;
+    </tr-ui-b-toolbar-button>
+    <div id="hitCount">0 of 0</div>
   </template>
 
   <script>

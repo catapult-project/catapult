@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/core/timeline_view.css">
 
 <link rel="import" href="/base/settings.html">
+<link rel="import" href="/ui/base/toolbar_button.html">
 <link rel="import" href="/core/analysis/analysis_view.html">
 <link rel="import" href="/core/favicons.html">
 <link rel="import" href="/core/find_control.html">
@@ -42,7 +43,9 @@ found in the LICENSE file.
 </template>
 
 <template id="help-btn-template">
-  <div class="button view-help-button">?</div>
+  <tr-ui-b-toolbar-button class="view-help-button">
+    ?
+  </tr-ui-b-toolbar-button>
   <div class="view-help-text">
     <div class="column left">
       <h2>Navigation</h2>
@@ -204,7 +207,9 @@ found in the LICENSE file.
 </template>
 
 <template id="console-btn-template">
-  <div class="button view-console-button">&#187;</div>
+  <tr-ui-b-toolbar-button class="view-console-button">
+    &#187;
+  </tr-ui-b-toolbar-button>
 </template>
 
 <script>
