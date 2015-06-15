@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/side_panel/side_panel.html">
+<link rel="import" href="/ui/side_panel/side_panel.html">
 <link rel="import" href="/extras/side_panel/time_summary_side_panel.html">
-<link rel="import" href="/core/side_panel/side_panel_container.html">
+<link rel="import" href="/ui/side_panel/side_panel_container.html">
 <link rel="import" href="/model/model.html">
 
 <script>
@@ -45,7 +45,7 @@ tr.b.unittest.testSuite(function() {
     var selectionController = new FakeSelectionController();
     selectionController.model = createModel();
 
-    var container = document.createElement('tr-c-side-panel-container');
+    var container = document.createElement('tr-ui-side-panel-container');
     container.selectionController = selectionController;
     this.addHTMLOutput(container);
   });

@@ -18,7 +18,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/selection_controller.html">
 <link rel="import" href="/core/scripting_control.html">
 <link rel="import" href="/core/scripting_controller.html">
-<link rel="import" href="/core/side_panel/side_panel_container.html">
+<link rel="import" href="/ui/side_panel/side_panel_container.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/ui/base/dropdown.html">
@@ -36,7 +36,7 @@ found in the LICENSE file.
   </div>
   <middle-container>
     <track-view-container></track-view-container>
-    <tr-c-side-panel-container></tr-c-side-panel-container>
+    <tr-ui-side-panel-container></tr-ui-side-panel-container>
   </middle-container>
   <x-drag-handle></x-drag-handle>
   <tr-ui-a-analysis-view id="analysis"></tr-ui-a-analysis-view>
@@ -242,7 +242,7 @@ tr.exportTo('tr.c', function() {
       this.rightControlsEl_ = this.querySelector('#right-controls');
       this.collapsingControlsEl_ = this.querySelector('#collapsing-controls');
       this.sidePanelContainer_ = this.querySelector(
-          'tr-c-side-panel-container');
+          'tr-ui-side-panel-container');
       this.trackViewContainer_ = this.querySelector('track-view-container');
 
       this.selectionController_ = new tr.c.SelectionController(this);

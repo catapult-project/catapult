@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/range.html">
-<link rel="import" href="/core/side_panel/side_panel.html">
+<link rel="import" href="/ui/side_panel/side_panel.html">
 <link rel='import' href='/ui/base/polymer_utils.html'>
 
-<polymer-element name='tr-c-side-panel-container' is='HTMLUnknownElement'>
+<polymer-element name='tr-ui-side-panel-container' is='HTMLUnknownElement'>
   <template>
     <style>
     :host {
@@ -192,7 +192,7 @@ found in the LICENSE file.
       var supportedPanelTypes = [];
 
       var panelTypes =
-          tr.ui.b.getPolymerElementsThatSubclass('tr-c-side-panel');
+          tr.ui.b.getPolymerElementsThatSubclass('tr-ui-side-panel');
       panelTypes.forEach(function(panelType) {
         var labelEl = document.createElement('tab-strip-label');
         var panel = document.createElement(panelType);
