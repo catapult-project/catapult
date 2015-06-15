@@ -59,7 +59,7 @@ x-timeline-view > .control > .bar > span {
 
 x-timeline-view > .control > .bar > .controls button,
 x-timeline-view > .control > .bar > .controls label,
-x-timeline-view > .control > .bar > .controls tr-b-ui-dropdown {
+x-timeline-view > .control > .bar > .controls tr-ui-b-dropdown {
   font-size: 14px;
   margin: 1px 2px 1px 2px;
 }
@@ -118,7 +118,7 @@ x-timeline-view .selection ul {
   text-align: center;
 }
 
-x-timeline-view > .control > .bar > .controls tr-b-ui-dropdown {
+x-timeline-view > .control > .bar > .controls tr-ui-b-dropdown {
   font-size: 12px;
   height: 19px;
   background-color: #f8f8f8;
