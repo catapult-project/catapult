@@ -39,10 +39,6 @@ found in the LICENSE file.
         outline: 1px dotted rgba(0,0,0,0.1);
         outline-offset: 0;
       }
-      tr[selected],
-      td[selected] {
-        background-color: rgb(103, 199, 165);
-      }
 
       button.toggle-button {
         height: 15px;
@@ -82,15 +78,35 @@ found in the LICENSE file.
         font-weight: bold;
       }
 
-      table > tbody.row-selection-mode > tr:hover[selected],
-      table > tbody.cell-selection-mode > tr > td:hover[selected] {
-        background-color: rgb(171, 217, 202);
+      /* Selection. */
+      table > tbody.row-selection-mode > tr[selected],
+      table > tbody.cell-selection-mode > tr > td[selected] {
+        background-color: rgb(103, 199, 165);  /* turquoise */
       }
-      table > tbody.row-selection-mode > tr:hover:not(.empty-row),
-      table > tbody.cell-selection-mode > tr:not(.empty-row) >
-          td.supports-selection:hover,
+      table > tbody.cell-selection-mode.row-highlight-enabled >
+          tr.highlighted-row {
+        background-color: rgb(213, 236, 229);  /* light turquoise */
+      }
+
+      /* Hover. */
+      table > tbody.row-selection-mode >
+          tr:hover:not(.empty-row):not([selected]),
+      table > tbody.cell-selection-mode >
+          tr:not(.empty-row):not(.highlighted-row) >
+          td.supports-selection:hover:not([selected]),
       table > tfoot > tr:hover {
-        background-color: #e6e6e6
+        background-color: #e6e6e6;  /* grey */
+      }
+      table > tbody.cell-selection-mode.row-highlight-enabled >
+          tr:hover:not(.empty-row):not(.highlighted-row) {
+        background-color: #f6f6f6;  /* light grey */
+      }
+
+      /* Hover on selected and highlighted elements. */
+      table > tbody.row-selection-mode > tr:hover[selected],
+      table > tbody.cell-selection-mode > tr > td:hover[selected],
+      table > tbody.cell-selection-mode > tr.highlighted-row > td:hover {
+        background-color: rgb(171, 217, 202);  /* semi-light turquoise */
       }
 
       table > tbody > tr.empty-row > td {
@@ -795,19 +811,35 @@ found in the LICENSE file.
         this.didSelectionStateChange_();
       },
 
+      get rowHighlightEnabled() {
+        return this.rowHighlightEnabled_;
+      },
+
+      set rowHighlightEnabled(rowHighlightEnabled) {
+        this.rebuildIfNeeded_();
+        this.rowHighlightEnabled_ = !!rowHighlightEnabled;
+        this.didSelectionStateChange_();
+      },
+
       didSelectionStateChange_: function() {
         if (!this.supportsSelection_) {
           // Selection disabled.
           this.$.body.classList.remove('cell-selection-mode');
           this.$.body.classList.remove('row-selection-mode');
+          this.$.body.classList.remove('row-highlight-enabled');
         } else if (!this.cellSelectionMode_) {
           // Row selection mode.
           this.$.body.classList.remove('cell-selection-mode');
           this.$.body.classList.add('row-selection-mode');
+          this.$.body.classList.remove('row-highlight-enabled');
         } else {
           // Cell selection mode.
           this.$.body.classList.add('cell-selection-mode');
           this.$.body.classList.remove('row-selection-mode');
+          if (this.rowHighlightEnabled_)
+            this.$.body.classList.add('row-highlight-enabled');
+          else
+            this.$.body.classList.remove('row-highlight-enabled');
         }
         for (var i = 0; i < this.$.body.children.length; i++)
           this.updateTabIndexForTableRowNode_(this.$.body.children[i]);
@@ -934,19 +966,32 @@ found in the LICENSE file.
       },
 
       removeSelectedState_: function() {
-        if (this.selectedTableRowInfo_ === undefined)
-          return;
-        var node = this.getSelectableNodeGivenTableRowNode_(
-            this.selectedTableRowInfo_.htmlNode);
-        node.removeAttribute('selected');
+        this.setSelectedState_(false);
       },
 
       updateSelectedState_: function() {
+        this.setSelectedState_(true);
+      },
+
+      setSelectedState_: function(select) {
         if (this.selectedTableRowInfo_ === undefined)
           return;
-        var node = this.getSelectableNodeGivenTableRowNode_(
-          this.selectedTableRowInfo_.htmlNode);
-        node.setAttribute('selected', true);
+        var tableRowNode = this.selectedTableRowInfo_.htmlNode;
+
+        // Add/remove row highlight (if applicable).
+        if (this.cellSelectionMode_ && this.rowHighlightEnabled_) {
+          if (select)
+            tableRowNode.classList.add('highlighted-row');
+          else
+            tableRowNode.classList.remove('highlighted-row');
+        }
+
+        // Add/remove row/cell selection.
+        var node = this.getSelectableNodeGivenTableRowNode_(tableRowNode);
+        if (select)
+          node.setAttribute('selected', true);
+        else
+          node.removeAttribute('selected');
       },
 
       doesColumnIndexSupportSelection: function(columnIndex) {

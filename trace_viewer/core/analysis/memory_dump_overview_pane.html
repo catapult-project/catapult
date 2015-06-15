@@ -90,6 +90,7 @@ found in the LICENSE file.
       ready: function() {
         this.$.table.supportsSelection = true;
         this.$.table.cellSelectionMode = true;
+        this.$.table.rowHighlightEnabled = true;
         this.$.table.addEventListener('selection-changed',
             function(tableEvent) {
           tableEvent.stopPropagation();
