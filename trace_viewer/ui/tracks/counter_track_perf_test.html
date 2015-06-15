@@ -51,7 +51,7 @@ tr.b.unittest.testSuite(function() {
       setUpOnce();
       viewportDiv = document.createElement('div');
 
-      var viewport = new tr.c.TimelineViewport(viewportDiv);
+      var viewport = new tr.ui.TimelineViewport(viewportDiv);
 
       drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
       viewport.modelTrackContainer = drawingContainer;
@@ -75,7 +75,7 @@ tr.b.unittest.testSuite(function() {
       worldMid = min + range / 2;
 
       var boost = range * 0.15;
-      var dt = new tr.c.TimelineDisplayTransform();
+      var dt = new tr.ui.TimelineDisplayTransform();
       dt.xSetWorldBounds(min - boost, min + range + boost, viewportWidth);
       modelTrack.viewport.setDisplayTransformImmediately(dt);
       startScale = dt.scaleX;

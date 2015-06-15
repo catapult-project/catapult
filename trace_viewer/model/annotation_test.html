@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/location.html">
-<link rel="import" href="/core/timeline_track_view.html">
-<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/comment_box_annotation.html">
 <link rel="import" href="/model/rect_annotation.html">
@@ -25,8 +25,8 @@ tr.b.unittest.testSuite(function() {
     var thread = process.getOrCreateThread(2);
     thread.sliceGroup.pushSlice(tr.c.test_utils.newSliceNamed('a', 80, 50));
 
-    var timeline = new tr.c.TimelineTrackView();
-    var vp = new tr.c.TimelineViewport(timeline);
+    var timeline = new tr.ui.TimelineTrackView();
+    var vp = new tr.ui.TimelineViewport(timeline);
     timeline.model = model;
     timeline.focusElement = timeline;
     timeline.tabIndex = 0;

@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
 <link rel="import" href="/ui/tracks/ruler_track.html">
 
@@ -17,7 +17,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var div = document.createElement('div');
 
-    var viewport = new tr.c.TimelineViewport(div);
+    var viewport = new tr.ui.TimelineViewport(div);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
 
@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
 
     drawingContainer.invalidate();
 
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.setPanAndScale(0, track.clientWidth / 1000);
     track.viewport.setDisplayTransformImmediately(dt);
   });

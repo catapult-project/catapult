@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="stylesheet" href="/ui/base/common.css">
-<link rel="stylesheet" href="/core/timeline_track_view.css">
+<link rel="stylesheet" href="/ui/timeline_track_view.css">
 
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/base/properties.html">
@@ -14,8 +14,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/timeline_viewport.html">
-<link rel="import" href="/core/timeline_display_transform_animations.html">
+<link rel="import" href="/ui/timeline_viewport.html">
+<link rel="import" href="/ui/timeline_display_transform_animations.html">
 <link rel="import" href="/core/timing_tool.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
 <link rel="import" href="/ui/tracks/model_track.html">
@@ -42,12 +42,12 @@ found in the LICENSE file.
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-tr.exportTo('tr.c', function() {
+tr.exportTo('tr.ui', function() {
   var Selection = tr.c.Selection;
   var SelectionState = tr.model.SelectionState;
-  var Viewport = tr.c.TimelineViewport;
+  var Viewport = tr.ui.TimelineViewport;
 
-  var tempDisplayTransform = new tr.c.TimelineDisplayTransform();
+  var tempDisplayTransform = new tr.ui.TimelineDisplayTransform();
 
   function intersectRect_(r1, r2) {
     var results = new Object;
@@ -600,7 +600,7 @@ tr.exportTo('tr.c', function() {
     queueSmoothPan_: function(viewDeltaX, deltaY) {
       var deltaX = this.viewport_.currentDisplayTransform.xViewVectorToWorld(
           viewDeltaX);
-      var animation = new tr.c.TimelineDisplayTransformPanAnimation(
+      var animation = new tr.ui.TimelineDisplayTransformPanAnimation(
           deltaX, deltaY);
       this.viewport_.queueDisplayTransformAnimation(animation);
     },
@@ -624,7 +624,7 @@ tr.exportTo('tr.c', function() {
       var goalFocalPointXWorld = vp.currentDisplayTransform.xViewToWorld(
           goalFocalPointXView);
       if (smooth) {
-        var animation = new tr.c.TimelineDisplayTransformZoomToAnimation(
+        var animation = new tr.ui.TimelineDisplayTransformZoomToAnimation(
             goalFocalPointXWorld, goalFocalPointXView,
             vp.currentDisplayTransform.panY,
             scale);
@@ -657,7 +657,7 @@ tr.exportTo('tr.c', function() {
       var zoomInRatio = newScale /
           this.viewport_.currentDisplayTransform.scaleX;
 
-      var animation = new tr.c.TimelineDisplayTransformZoomToAnimation(
+      var animation = new tr.ui.TimelineDisplayTransformZoomToAnimation(
           worldCenter, viewCenter,
           this.viewport_.currentDisplayTransform.panY,
           zoomInRatio);
@@ -683,7 +683,7 @@ tr.exportTo('tr.c', function() {
           tempDisplayTransform.xPanWorldPosToViewPos(
               worldCenter, 'center', viewWidth);
           var deltaX = tempDisplayTransform.panX - dt.panX;
-          var animation = new tr.c.TimelineDisplayTransformPanAnimation(
+          var animation = new tr.ui.TimelineDisplayTransformPanAnimation(
               deltaX, 0);
           this.viewport_.queueDisplayTransformAnimation(animation);
         }
@@ -696,7 +696,7 @@ tr.exportTo('tr.c', function() {
           bounds.max,
           viewWidth);
       var deltaX = tempDisplayTransform.panX - dt.panX;
-      var animation = new tr.c.TimelineDisplayTransformPanAnimation(
+      var animation = new tr.ui.TimelineDisplayTransformPanAnimation(
           deltaX, 0);
       this.viewport_.queueDisplayTransformAnimation(animation);
     },
@@ -715,7 +715,7 @@ tr.exportTo('tr.c', function() {
       track.scrollIntoViewIfNeeded();
 
       // Perform zoom and panX animation.
-      var animation = new tr.c.TimelineDisplayTransformZoomToAnimation(
+      var animation = new tr.ui.TimelineDisplayTransformZoomToAnimation(
           worldCenter, viewCenter,
           this.viewport_.currentDisplayTransform.panY,
           zoomInRatio);

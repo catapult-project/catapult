@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/model/instant_event.html">
 <link rel="import" href="/ui/tracks/thread_track.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
   var Thread = tr.model.Thread;
   var ThreadSlice = tr.model.ThreadSlice;
   var ThreadTrack = tr.ui.tracks.ThreadTrack;
-  var Viewport = tr.c.TimelineViewport;
+  var Viewport = tr.ui.TimelineViewport;
   var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
   var newAsyncSliceNamed = tr.c.test_utils.newAsyncSliceNamed;
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
     var h = track.getBoundingClientRect().height;
     var wW = 10;
     var vW = drawingContainer.canvas.getBoundingClientRect().width;
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, wW, vW);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -75,7 +75,7 @@ tr.b.unittest.testSuite(function() {
     thread.sliceGroup.pushSlice(newSliceNamed('a', 0, 0));
     thread.asyncSliceGroup.push(newAsyncSliceNamed('a', 0, 5, t, t));
 
-    var t = new ThreadTrack(new tr.c.TimelineViewport());
+    var t = new ThreadTrack(new tr.ui.TimelineViewport());
     t.thread = thread;
 
     assert.equal(t.tracks_.length, 2);
@@ -115,7 +115,7 @@ tr.b.unittest.testSuite(function() {
                                     35, fAD, 10));
     });
 
-    var t = new ThreadTrack(new tr.c.TimelineViewport());
+    var t = new ThreadTrack(new tr.ui.TimelineViewport());
     t.thread = thread;
     assert.equal(t.tracks_.length, 2);
 

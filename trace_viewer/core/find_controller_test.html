@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/find_controller.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/timeline_track_view.html">
-<link rel="import" href="/core/timeline_view.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_view.html">
 
 <script>
 'use strict';
@@ -213,7 +213,7 @@ tr.b.unittest.testSuite(function() {
       model.t1 = t1;
     });
 
-    var timeline = new tr.c.TimelineView();
+    var timeline = new tr.ui.TimelineView();
     timeline.model = model;
 
     var selectionController = timeline.selectionController;

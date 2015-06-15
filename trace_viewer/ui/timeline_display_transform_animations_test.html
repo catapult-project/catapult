@@ -5,19 +5,19 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/timeline_display_transform.html">
-<link rel="import" href="/core/timeline_display_transform_animations.html">
 <link rel="import" href="/ui/base/animation_controller.html">
+<link rel="import" href="/ui/timeline_display_transform.html">
+<link rel="import" href="/ui/timeline_display_transform_animations.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() { // @suppress longLineCheck
-  var TimelineDisplayTransform = tr.c.TimelineDisplayTransform;
+  var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
   var TimelineDisplayTransformPanAnimation =
-      tr.c.TimelineDisplayTransformPanAnimation;
+      tr.ui.TimelineDisplayTransformPanAnimation;
   var TimelineDisplayTransformZoomToAnimation =
-      tr.c.TimelineDisplayTransformZoomToAnimation;
+      tr.ui.TimelineDisplayTransformZoomToAnimation;
 
   test('panBasic', function() {
     var target = new TimelineDisplayTransform();

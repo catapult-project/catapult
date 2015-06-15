@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/model/model.html">
 
 <script>
@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup(t1);
     g.push(newAsyncSlice(0, 1, t1, t1));
-    var track = new AsyncSliceGroupTrack(new tr.c.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = g;
 
     assert.equal(track.children.length, 1);
@@ -45,7 +45,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     s1.subSlices = [subs1];
     g.push(s1);
     g.push(newAsyncSlice(1, 1, t1, t1));
-    var track = new AsyncSliceGroupTrack(new tr.c.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = g;
     var subRows = track.subRows;
     assert.equal(subRows.length, 2);
@@ -72,7 +72,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     g.updateBounds();
 
-    var track = new AsyncSliceGroupTrack(new tr.c.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = g;
 
     var subRows = track.subRows;
@@ -95,7 +95,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     g.push(newAsyncSlice(0, 1.5, t1, t1));
     g.push(newAsyncSlice(1, 1.5, t1, t1));
     g.updateBounds();
-    var track = new AsyncSliceGroupTrack(new tr.c.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = g;
     var subRows = track.subRows;
 
@@ -121,7 +121,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     g.push(newAsyncSlice(2, 1, t1, t1));
     g.updateBounds();
 
-    var track = new AsyncSliceGroupTrack(new tr.c.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = g;
 
     var subRows = track.subRows;
@@ -152,7 +152,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     g.push(slice3);
     g.updateBounds();
 
-    var track = new AsyncSliceGroupTrack(new tr.c.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = g;
 
     var subRows = track.subRows;
@@ -187,7 +187,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     g.push(slice3);
     g.updateBounds();
 
-    var track = new AsyncSliceGroupTrack(new tr.c.TimelineViewport());
+    var track = new AsyncSliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = g;
 
     var subRows = track.subRows;
@@ -203,7 +203,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   });
 
   test('asyncSliceGroupContainerMap', function() {
-    var vp = new tr.c.TimelineViewport();
+    var vp = new tr.ui.TimelineViewport();
     var containerToTrack = vp.containerToTrackObj;
     var model = new tr.Model();
     var process = model.getOrCreateProcess(123);

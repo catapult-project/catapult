@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="stylesheet" href="/ui/base/common.css">
 
-<link rel="import" href="/core/timeline_view.html">
+<link rel="import" href="/ui/timeline_view.html">
 <link rel="import" href="/model/model.html">
 <link rel="import" href="/ui/base/ui.html">
 
@@ -21,13 +21,13 @@ tr.exportTo('tr', function() {
    *
    * Returns an HTMLElement that is the trace-viwer.
    */
-  var TraceViewer = tr.ui.b.define('trace-viewer', tr.c.TimelineView);
+  var TraceViewer = tr.ui.b.define('trace-viewer', tr.ui.TimelineView);
 
   TraceViewer.prototype = {
-    __proto__: tr.c.TimelineView.prototype,
+    __proto__: tr.ui.TimelineView.prototype,
 
     decorate: function(opt_url) {
-      tr.c.TimelineView.prototype.decorate.call(this);
+      tr.ui.TimelineView.prototype.decorate.call(this);
 
       if (opt_url === undefined)
         return;

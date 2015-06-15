@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/timeline_view.html">
+<link rel="import" href="/ui/timeline_view.html">
 <link rel="import" href="/model/model.html">
 
 <script>
@@ -91,7 +91,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var model11 = createFullyPopulatedModel(true, true);
 
-    var view = new tr.c.TimelineView();
+    var view = new tr.ui.TimelineView();
     view.style.height = '400px';
     view.style.border = '1px solid black';
     view.model = model11;
@@ -102,7 +102,7 @@ tr.b.unittest.testSuite(function() {
     var model00 = createFullyPopulatedModel(false, false);
     var model11 = createFullyPopulatedModel(true, true);
 
-    var view = new tr.c.TimelineView();
+    var view = new tr.ui.TimelineView();
     view.style.height = '400px';
     view.model = model00;
     view.model = undefined;
@@ -114,7 +114,7 @@ tr.b.unittest.testSuite(function() {
     var model = createFullyPopulatedModel(false, false);
 
     // Create a view with am model.
-    var view = new tr.c.TimelineView();
+    var view = new tr.ui.TimelineView();
     view.style.height = '400px';
     view.model = model;
     var sc = view.selectionController;

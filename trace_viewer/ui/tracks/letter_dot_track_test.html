@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/selection_state.html">
-<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
 <link rel="import" href="/ui/tracks/letter_dot_track.html">
 
@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   var LetterDot = tr.ui.tracks.LetterDot;
   var Selection = tr.c.Selection;
   var SelectionState = tr.model.SelectionState;
-  var Viewport = tr.c.TimelineViewport;
+  var Viewport = tr.ui.TimelineViewport;
 
   var createItems = function() {
     var items = [
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
     drawingContainer.invalidate();
 
     track.items = items;
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 60, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });

@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/slice.html">
-<link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/core/draw_helpers.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 
@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   var RectTrack = tr.ui.tracks.RectTrack;
   var Rect = tr.ui.tracks.Rect;
   var Slice = tr.model.Slice;
-  var Viewport = tr.c.TimelineViewport;
+  var Viewport = tr.ui.TimelineViewport;
 
   test('instantiate_withRects', function() {
     var div = document.createElement('div');
@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
       new Rect(undefined, 'c', 2, 7.6, 0.4)
     ];
 
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 8.8, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
@@ -68,7 +68,7 @@ tr.b.unittest.testSuite(function() {
       new Slice('', 'c', 2, 7.6, {}, 0.4)
     ];
 
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 8.8, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
@@ -96,7 +96,7 @@ tr.b.unittest.testSuite(function() {
       slices.push(s);
     }
     track.rects = slices;
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 1.1 * x, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
@@ -134,14 +134,14 @@ tr.b.unittest.testSuite(function() {
         new Rect(undefined, 'cccc cccc cccc', 1, 7, 0.5),
         new Rect(undefined, 'd', 2, 7.6, 1.0)
       ];
-      var dt = new tr.c.TimelineDisplayTransform();
+      var dt = new tr.ui.TimelineDisplayTransform();
       dt.xSetWorldBounds(0, 9.5, track.clientWidth);
       track.viewport.setDisplayTransformImmediately(dt);
     }
   });
 
   test('findAllObjectsMatchingInRectTrack', function() {
-    var track = new RectTrack(new tr.c.TimelineViewport());
+    var track = new RectTrack(new tr.ui.TimelineViewport());
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -182,7 +182,7 @@ tr.b.unittest.testSuite(function() {
     var wW = 10;
     var vW = drawingContainer.canvas.getBoundingClientRect().width;
 
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, wW, vW * pixelRatio);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -233,7 +233,7 @@ tr.b.unittest.testSuite(function() {
       new Slice('', bigtitle, 0, 1, {}, 1),
       new Slice('', smalltitle, 1, 2, {}, 1)
     ];
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 3.3, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -293,7 +293,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('rectTrackAddItemNearToProvidedEvent', function() {
-    var track = new RectTrack(new tr.c.TimelineViewport());
+    var track = new RectTrack(new tr.ui.TimelineViewport());
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -344,7 +344,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('rectTrackAddClosestEventToSelection', function() {
-    var track = new RectTrack(new tr.c.TimelineViewport());
+    var track = new RectTrack(new tr.ui.TimelineViewport());
     track.rects = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),

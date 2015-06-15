@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/frame.html">
-<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
 <link rel="import" href="/ui/tracks/frame_track.html">
 
@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   var FrameTrack = tr.ui.tracks.FrameTrack;
   var Selection = tr.c.Selection;
   var SelectionState = tr.model.SelectionState;
-  var Viewport = tr.c.TimelineViewport;
+  var Viewport = tr.ui.TimelineViewport;
 
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
 
@@ -57,7 +57,7 @@ tr.b.unittest.testSuite(function() {
     drawingContainer.invalidate();
 
     track.frames = frames;
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 

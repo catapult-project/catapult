@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="stylesheet" href="/ui/base/common.css">
-<link rel="stylesheet" href="/core/timeline_view.css">
+<link rel="stylesheet" href="/ui/timeline_view.css">
 
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/ui/base/toolbar_button.html">
@@ -14,7 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/favicons.html">
 <link rel="import" href="/core/find_control.html">
 <link rel="import" href="/core/find_controller.html">
-<link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/core/selection_controller.html">
 <link rel="import" href="/core/scripting_control.html">
 <link rel="import" href="/core/scripting_controller.html">
@@ -217,9 +217,9 @@ found in the LICENSE file.
 
 /**
  * @fileoverview View visualizes TRACE_EVENT events using the
- * tr.c.Timeline component and adds in selection summary and control buttons.
+ * tr.ui.Timeline component and adds in selection summary and control buttons.
  */
-tr.exportTo('tr.c', function() {
+tr.exportTo('tr.ui', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -280,12 +280,12 @@ tr.exportTo('tr.c', function() {
       this.showFlowEvents_ = false;
       this.optionsDropdown_.appendChild(tr.ui.b.createCheckBox(
           this, 'showFlowEvents',
-          'tr.c.TimelineView.showFlowEvents', false,
+          'tr.ui.TimelineView.showFlowEvents', false,
           'Flow events'));
       this.highlightVSync_ = false;
       this.highlightVSyncCheckbox_ = tr.ui.b.createCheckBox(
           this, 'highlightVSync',
-          'tr.c.TimelineView.highlightVSync', false,
+          'tr.ui.TimelineView.highlightVSync', false,
           'Highlight VSync');
       this.optionsDropdown_.appendChild(this.highlightVSyncCheckbox_);
 
@@ -499,7 +499,7 @@ tr.exportTo('tr.c', function() {
 
       // Create new trackView if needed.
       if (modelValid && !this.trackView_) {
-        this.trackView_ = new tr.c.TimelineTrackView(this);
+        this.trackView_ = new tr.ui.TimelineTrackView(this);
 
         this.trackView.selectionController = this.selectionController_;
 

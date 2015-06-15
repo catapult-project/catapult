@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/model/slice.html">
 <link rel="import" href="/ui/tracks/slice_track.html">
 
@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   var Slice = tr.model.Slice;
 
   test('modelMapping', function() {
-    var track = new SliceTrack(new tr.c.TimelineViewport());
+    var track = new SliceTrack(new tr.ui.TimelineViewport());
     var slice = new Slice('', 'a', 0, 1, {}, 1);
     track.slices = [slice];
     var me0 = track.rects[0].modelItem;

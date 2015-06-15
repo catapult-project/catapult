@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
     setUp: function(model) {
       this.viewportDiv = document.createElement('div');
 
-      this.viewport = new tr.c.TimelineViewport(this.viewportDiv);
+      this.viewport = new tr.ui.TimelineViewport(this.viewportDiv);
 
       this.drawingContainer = new tr.ui.tracks.DrawingContainer(this.viewport);
       this.viewport.modelTrackContainer = this.drawingContainer;
@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
       var range = model.bounds.range;
 
       var boost = range * 0.15;
-      var dt = new tr.c.TimelineDisplayTransform();
+      var dt = new tr.ui.TimelineDisplayTransform();
       dt.xSetWorldBounds(min - boost, min + range + boost, w);
       this.viewport.setDisplayTransformImmediately(dt);
     },
@@ -125,7 +125,7 @@ tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
 
       var w = this.drawingContainer.canvas.width;
 
-      var dt = new tr.c.TimelineDisplayTransform();
+      var dt = new tr.ui.TimelineDisplayTransform();
       dt.xSetWorldBounds(-2000, 54000, w);
       this.viewport.setDisplayTransformImmediately(dt);
     }

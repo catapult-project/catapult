@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
 <link rel="import" href="/ui/tracks/global_memory_dump_track.html">
 <link rel="import" href="/ui/tracks/memory_dump_track_test_utils.html">
@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Viewport = tr.c.TimelineViewport;
+  var Viewport = tr.ui.TimelineViewport;
   var GlobalMemoryDumpTrack = tr.ui.tracks.GlobalMemoryDumpTrack;
   var createTestGlobalMemoryDumps = tr.ui.tracks.createTestGlobalMemoryDumps;
 
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     track.memoryDumps = dumps;
     this.addHTMLOutput(div);
 
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 

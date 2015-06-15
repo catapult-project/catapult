@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/core/timing_tool.html">
 
 <script>
@@ -13,8 +13,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function create100PxWideViewportInto10WideWorld() {
-    var vp = new tr.c.TimelineViewport(document.createElement('div'));
-    var tempDisplayTransform = new tr.c.TimelineDisplayTransform();
+    var vp = new tr.ui.TimelineViewport(document.createElement('div'));
+    var tempDisplayTransform = new tr.ui.TimelineDisplayTransform();
     tempDisplayTransform.xSetWorldBounds(0, 10, 100);
     vp.setDisplayTransformImmediately(tempDisplayTransform);
 

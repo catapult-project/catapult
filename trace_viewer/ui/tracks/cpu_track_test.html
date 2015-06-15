@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/model/model.html">
 
 <script>
@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   var StackFrame = tr.model.StackFrame;
   var Sample = tr.model.Sample;
   var Thread = tr.model.Thread;
-  var Viewport = tr.c.TimelineViewport;
+  var Viewport = tr.ui.TimelineViewport;
 
   test('basicCpu', function() {
     var cpu = new Cpu({}, 7);
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
 
     track.heading = 'CPU ' + cpu.cpuNumber;
     track.cpu = cpu;
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 11.1, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
 
     track.heading = 'CPU ' + cpu.cpuNumber;
     track.cpu = cpu;
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 11.1, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });

@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/model/selection_state.html">
-<link rel="import" href="/core/timeline_viewport.html">
+<link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
 
 <script>
@@ -17,7 +17,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   var SystemStatsInstanceTrack = tr.e.system_stats.SystemStatsInstanceTrack;
-  var Viewport = tr.c.TimelineViewport;
+  var Viewport = tr.ui.TimelineViewport;
 
   var createObjects = function() {
     var objectInstance = new tr.model.ObjectInstance({});
@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     drawingContainer.invalidate();
 
     track.heading = 'testBasic';
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });

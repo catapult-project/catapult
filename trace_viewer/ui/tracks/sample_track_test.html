@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/model/sample.html">
 <link rel="import" href="/model/stack_frame.html">
 <link rel="import" href="/ui/tracks/sample_track.html">
@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
   var StackFrame = tr.model.StackFrame;
 
   test('modelMapping', function() {
-    var track = new SampleTrack(new tr.c.TimelineViewport());
+    var track = new SampleTrack(new tr.ui.TimelineViewport());
     var fA = new StackFrame(undefined, 1, 'cat', 'a', 7);
     var sample = new Sample(undefined, undefined, 'instructions_retired',
                             10, fA, 10);

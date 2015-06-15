@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/draw_helpers.html">
-<link rel="import" href="/core/timeline_interest_range.html">
-<link rel="import" href="/core/timeline_display_transform.html">
+<link rel="import" href="/ui/timeline_interest_range.html">
+<link rel="import" href="/ui/timeline_display_transform.html">
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/ui/base/animation.html">
 <link rel="import" href="/ui/base/animation_controller.html">
@@ -19,9 +19,9 @@ found in the LICENSE file.
 /**
  * @fileoverview Code for the viewport.
  */
-tr.exportTo('tr.c', function() {
-  var TimelineDisplayTransform = tr.c.TimelineDisplayTransform;
-  var TimelineInterestRange = tr.c.TimelineInterestRange;
+tr.exportTo('tr.ui', function() {
+  var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
+  var TimelineInterestRange = tr.ui.TimelineInterestRange;
 
   /**
    * ContainerToTrackObj is a class to handle building and accessing a map

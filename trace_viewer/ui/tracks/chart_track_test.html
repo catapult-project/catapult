@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/model/event.html">
 <link rel="import" href="/model/selection_state.html">
 <link rel="import" href="/ui/tracks/chart_axis.html">
@@ -20,7 +20,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var Selection = tr.c.Selection;
-  var Viewport = tr.c.TimelineViewport;
+  var Viewport = tr.ui.TimelineViewport;
   var Event = tr.model.Event;
   var SelectionState = tr.model.SelectionState;
   var ChartTrack = tr.ui.tracks.ChartTrack;
@@ -117,7 +117,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(div);
     drawingContainer.invalidate();
 
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     var pixelRatio = window.devicePixelRatio || 1;
     dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
     track.viewport.setDisplayTransformImmediately(dt);
@@ -145,7 +145,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(div);
     drawingContainer.invalidate();
 
-    var dt = new tr.c.TimelineDisplayTransform();
+    var dt = new tr.ui.TimelineDisplayTransform();
     var pixelRatio = window.devicePixelRatio || 1;
     dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
     track.viewport.setDisplayTransformImmediately(dt);
