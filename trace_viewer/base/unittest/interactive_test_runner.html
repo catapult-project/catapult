@@ -4,11 +4,12 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/base/unittest.html">
 <link rel="import" href="/base/unittest/suite_loader.html">
 <link rel="import" href="/base/unittest/test_runner.html">
 <link rel="import" href="/base/unittest/html_test_results.html">
-<link rel="import" href="/ui/utils.html">
+<link rel="import" href="/ui/base/utils.html">
 
 <style>
   x-base-interactive-test-runner {
@@ -135,7 +136,7 @@ tr.exportTo('tr.b.unittest', function() {
   /**
    * @constructor
    */
-  var InteractiveTestRunner = tr.ui.define('x-base-interactive-test-runner');
+  var InteractiveTestRunner = tr.ui.b.define('x-base-interactive-test-runner');
 
   InteractiveTestRunner.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -159,7 +160,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.onTestFailed_ = this.onTestFailed_.bind(this);
       this.onTestPassed_ = this.onTestPassed_.bind(this);
 
-      this.appendChild(tr.ui.instantiateTemplate(
+      this.appendChild(tr.ui.b.instantiateTemplate(
           '#x-base-interactive-test-runner-template', THIS_DOC));
 
       this.querySelector(

@@ -4,9 +4,12 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/ui/ui.html">
-<link rel="import" href="/ui/base/list_view.html">
+
 <link rel="stylesheet" href="/ui/base/list_and_associated_view.css">
+
+<link rel="import" href="/ui/base/list_view.html">
+<link rel="import" href="/ui/base/ui.html">
+
 <script>
 'use strict';
 
@@ -19,7 +22,7 @@ tr.exportTo('tr.ui.b', function() {
   /**
    * @constructor
    */
-  var ListAndAssociatedView = tr.ui.define('x-list-and-associated-view');
+  var ListAndAssociatedView = tr.ui.b.define('x-list-and-associated-view');
   ListAndAssociatedView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 

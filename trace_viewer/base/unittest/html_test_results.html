@@ -7,8 +7,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/unittest/constants.html">
-<link rel="import" href="/ui/ui.html">
-<link rel="import" href="/ui/utils.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/base/utils.html">
 
 <style>
   x-tr.b.unittest-test-resultsbase
@@ -96,13 +96,13 @@ tr.exportTo('tr.b.unittest', function() {
   /**
    * @constructor
    */
-  var HTMLTestCaseResult = tr.ui.define('x-html-test-case-result');
+  var HTMLTestCaseResult = tr.ui.b.define('x-html-test-case-result');
 
   HTMLTestCaseResult.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.appendChild(tr.ui.instantiateTemplate(
+      this.appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-result-template', THIS_DOC));
       this.testCase_ = undefined;
       this.testCaseHRef_ = undefined;
@@ -156,7 +156,7 @@ tr.exportTo('tr.b.unittest', function() {
 
     addError: function(normalizedException) {
       var errorEl = document.createElement('x-html-test-case-error');
-      errorEl.appendChild(tr.ui.instantiateTemplate(
+      errorEl.appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-error-template', THIS_DOC));
       errorEl.querySelector('#stack').textContent = normalizedException.stack;
       this.querySelector('#details').appendChild(errorEl);
@@ -249,7 +249,7 @@ tr.exportTo('tr.b.unittest', function() {
   /**
    * @constructor
    */
-  var HTMLTestResults = tr.ui.define('x-tr.b.unittest-test-results');
+  var HTMLTestResults = tr.ui.b.define('x-tr.b.unittest-test-results');
 
   HTMLTestResults.prototype = {
     __proto__: HTMLUnknownElement.prototype,

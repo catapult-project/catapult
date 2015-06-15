@@ -9,10 +9,6 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/core/timeline_view.css">
 
 <link rel="import" href="/base/settings.html">
-<link rel="import" href="/ui/base/dom_helpers.html">
-<link rel="import" href="/ui/base/overlay.html">
-<link rel="import" href="/ui/base/dropdown.html">
-<link rel="import" href="/ui/base/drag_handle.html">
 <link rel="import" href="/core/analysis/analysis_view.html">
 <link rel="import" href="/core/favicons.html">
 <link rel="import" href="/core/find_control.html">
@@ -22,7 +18,11 @@ found in the LICENSE file.
 <link rel="import" href="/core/scripting_control.html">
 <link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/core/side_panel/side_panel_container.html">
-<link rel="import" href="/ui/utils.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/overlay.html">
+<link rel="import" href="/ui/base/dropdown.html">
+<link rel="import" href="/ui/base/drag_handle.html">
+<link rel="import" href="/ui/base/utils.html">
 
 <template id="timeline-view-template">
   <div class="control">
@@ -222,13 +222,14 @@ tr.exportTo('tr.c', function() {
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var TimelineView = tr.ui.define('x-timeline-view');
+  var TimelineView = tr.ui.b.define('x-timeline-view');
 
   TimelineView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tr.ui.instantiateTemplate('#timeline-view-template', THIS_DOC);
+      var node =
+          tr.ui.b.instantiateTemplate('#timeline-view-template', THIS_DOC);
       this.appendChild(node);
 
       this.titleEl_ = this.querySelector('.title');
@@ -292,7 +293,7 @@ tr.exportTo('tr.c', function() {
       this.collapsingControls.appendChild(this.scriptingCtl_);
 
       this.dragEl_ = this.querySelector('x-drag-handle');
-      tr.ui.decorate(this.dragEl_, tr.ui.b.DragHandle);
+      tr.ui.b.decorate(this.dragEl_, tr.ui.b.DragHandle);
 
       this.analysisEl_ = this.querySelector('#analysis');
       this.analysisEl_.selectionController = this.selectionController_;
@@ -356,7 +357,7 @@ tr.exportTo('tr.c', function() {
     },
 
     createHelpButton_: function() {
-      var node = tr.ui.instantiateTemplate('#help-btn-template', THIS_DOC);
+      var node = tr.ui.b.instantiateTemplate('#help-btn-template', THIS_DOC);
       var showEl = node.querySelector('.view-help-button');
       var helpTextEl = node.querySelector('.view-help-text');
 
@@ -384,7 +385,7 @@ tr.exportTo('tr.c', function() {
     },
 
     createConsoleButton_: function() {
-      var node = tr.ui.instantiateTemplate('#console-btn-template', THIS_DOC);
+      var node = tr.ui.b.instantiateTemplate('#console-btn-template', THIS_DOC);
       var toggleEl = node.querySelector('.view-console-button');
 
       function onClick(e) {
@@ -398,7 +399,8 @@ tr.exportTo('tr.c', function() {
     },
 
     createMetadataButton_: function() {
-      var node = tr.ui.instantiateTemplate('#metadata-btn-template', THIS_DOC);
+      var node =
+          tr.ui.b.instantiateTemplate('#metadata-btn-template', THIS_DOC);
       var showEl = node.querySelector('.view-metadata-button');
       var textEl = node.querySelector('.info-button-text');
 

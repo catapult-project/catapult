@@ -5,9 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/ui.html">
 <link rel="stylesheet"
-href="/extras/chrome/cc/picture_ops_chart_summary_view.css">
+    href="/extras/chrome/cc/picture_ops_chart_summary_view.css">
+
+<link rel="import" href="/ui/base/ui.html">
 
 <script>
 'use strict';
@@ -34,7 +35,7 @@ tr.exportTo('tr.e.cc', function() {
    *
    * @constructor
    */
-  var PictureOpsChartSummaryView = tr.ui.define(
+  var PictureOpsChartSummaryView = tr.ui.b.define(
       'picture-ops-chart-summary-view');
 
   PictureOpsChartSummaryView.prototype = {

@@ -4,8 +4,11 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/ui/ui.html">
+
 <link rel="stylesheet" href="/ui/base/sortable_table.css">
+
+<link rel="import" href="/ui/base/ui.html">
+
 <script>
 'use strict';
 
@@ -16,7 +19,7 @@ tr.exportTo('tr.ui.b', function() {
   /**
    * @constructor
    */
-  var SortableTable = tr.ui.define('sortable-table');
+  var SortableTable = tr.ui.b.define('sortable-table');
 
   var UNSORTED_ARROW = '&#x25BF';
   var SORT_ASCENDING_ARROW = '&#x25BE';

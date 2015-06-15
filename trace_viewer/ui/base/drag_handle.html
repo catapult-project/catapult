@@ -4,8 +4,10 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/ui/ui.html">
+
 <link rel="stylesheet" href="/ui/base/drag_handle.css">
+
+<link rel="import" href="/ui/base/ui.html">
 
 <script>
 'use strict';
@@ -19,7 +21,7 @@ tr.exportTo('tr.ui.b', function() {
    * @extends {HTMLDivElement}
    * You will need to set target to be the draggable element
    */
-  var DragHandle = tr.ui.define('x-drag-handle');
+  var DragHandle = tr.ui.b.define('x-drag-handle');
 
   DragHandle.prototype = {
     __proto__: HTMLDivElement.prototype,

@@ -392,11 +392,11 @@
       'trace_viewer/ui/base/sortable_table.html',
       'trace_viewer/ui/base/sunburst_chart.html',
       'trace_viewer/ui/base/table.html',
-      'trace_viewer/ui/ui.html',
+      'trace_viewer/ui/base/ui.html',
+      'trace_viewer/ui/base/utils.html',
       'trace_viewer/ui/units/size_in_bytes_span.html',
       'trace_viewer/ui/units/time_duration_span.html',
       'trace_viewer/ui/units/time_stamp_span.html',
-      'trace_viewer/ui/utils.html',
     ],
     'tracing_img_files': [
       'trace_viewer/extras/chrome/cc/images/input-event.png',

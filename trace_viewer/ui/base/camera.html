@@ -4,9 +4,10 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/ui/ui.html">
+
 <link rel="import" href="/base/settings.html">
-<link rel="import" href="/ui/utils.html">
+<link rel="import" href="/ui/base/utils.html">
+<link rel="import" href="/ui/base/ui.html">
 
 <script>
 'use strict';
@@ -25,7 +26,7 @@ tr.exportTo('tr.ui.b', function() {
   };
 
 
-  var Camera = tr.ui.define('camera');
+  var Camera = tr.ui.b.define('camera');
 
   Camera.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -71,7 +72,8 @@ tr.exportTo('tr.ui.b', function() {
 
     get projectionMatrix() {
       var rect =
-          tr.ui.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
+          tr.ui.b.windowRectForElement(this.canvas_).
+              scaleSize(this.pixelRatio_);
 
       var aspectRatio = rect.width / rect.height;
       var matrix = mat4.create();
@@ -131,7 +133,7 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       if (this.deviceRect_) {
-        var rect = tr.ui.windowRectForElement(this.canvas_).
+        var rect = tr.ui.b.windowRectForElement(this.canvas_).
             scaleSize(this.pixelRatio_);
 
         this.eye_[0] = this.deviceRect_.width / 2;
@@ -147,7 +149,8 @@ tr.exportTo('tr.ui.b', function() {
 
     updatePanByDelta: function(delta) {
       var rect =
-          tr.ui.windowRectForElement(this.canvas_).scaleSize(this.pixelRatio_);
+          tr.ui.b.windowRectForElement(this.canvas_).
+              scaleSize(this.pixelRatio_);
 
       // Get the eye vector, since we'll be adjusting gazeTarget.
       var eyeVector = [
@@ -324,7 +327,7 @@ tr.exportTo('tr.ui.b', function() {
 
     // Misc helper functions.
     getMousePosition_: function(e) {
-      var rect = tr.ui.windowRectForElement(this.canvas_);
+      var rect = tr.ui.b.windowRectForElement(this.canvas_);
       return [(e.clientX - rect.x) * this.pixelRatio_,
               (e.clientY - rect.y) * this.pixelRatio_];
     },

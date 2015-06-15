@@ -12,7 +12,7 @@ tr.b.unittest.testSuite(function() {
   test('defineProperties', function() {
     var stateChanges = [];
 
-    var ASpan = tr.ui.define('span');
+    var ASpan = tr.ui.b.define('span');
     ASpan.prototype = {
       __proto__: HTMLSpanElement.prototype,
 

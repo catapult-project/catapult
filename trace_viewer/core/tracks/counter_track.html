@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/tracks/chart_point.html">
 <link rel="import" href="/core/tracks/chart_series.html">
 <link rel="import" href="/core/tracks/chart_track.html">
-<link rel="import" href="/ui/ui.html">
+<link rel="import" href="/ui/base/ui.html">
 
 <script>
 'use strict';
@@ -21,7 +21,7 @@ tr.exportTo('tr.c.tracks', function() {
    * @constructor
    * @extends {ChartTrack}
    */
-  var CounterTrack = tr.ui.define('counter-track', tr.c.tracks.ChartTrack);
+  var CounterTrack = tr.ui.b.define('counter-track', tr.c.tracks.ChartTrack);
 
   CounterTrack.prototype = {
     __proto__: tr.c.tracks.ChartTrack.prototype,

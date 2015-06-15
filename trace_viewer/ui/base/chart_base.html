@@ -4,9 +4,10 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/ui/ui.html">
+
 <link rel="import" href="/ui/base/color_scheme.html">
 <link rel="import" href="/ui/base/d3.html">
+<link rel="import" href="/ui/base/ui.html">
 
 <style>
   * /deep/ .chart-base #title {
@@ -59,7 +60,7 @@ tr.exportTo('tr.ui.b', function() {
    *
    * @constructor
    */
-  var ChartBase = tr.ui.define('svg', undefined, svgNS);
+  var ChartBase = tr.ui.b.define('svg', undefined, svgNS);
 
   ChartBase.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -72,7 +73,7 @@ tr.exportTo('tr.ui.b', function() {
       this.width_ = 400;
       this.height_ = 300;
 
-      // This should use tr.ui.instantiateTemplate. However, creating
+      // This should use tr.ui.b.instantiateTemplate. However, creating
       // svg-namespaced elements inside a template isn't possible. Thus, this
       // hack.
       var template = THIS_DOC.querySelector('#chart-base-template');

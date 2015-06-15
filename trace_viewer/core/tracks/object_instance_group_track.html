@@ -10,7 +10,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/tracks/multi_row_track.html">
 <link rel="import" href="/core/tracks/object_instance_track.html">
 <link rel="import" href="/base/sorted_array_utils.html">
-<link rel="import" href="/ui/ui.html">
+<link rel="import" href="/ui/base/ui.html">
+
 <script>
 'use strict';
 
@@ -20,7 +21,7 @@ tr.exportTo('tr.c.tracks', function() {
    * @constructor
    * @extends {ContainerTrack}
    */
-  var ObjectInstanceGroupTrack = tr.ui.define(
+  var ObjectInstanceGroupTrack = tr.ui.b.define(
       'object-instance-group-track', tr.c.tracks.MultiRowTrack);
 
   ObjectInstanceGroupTrack.prototype = {

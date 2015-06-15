@@ -16,7 +16,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/list_view.html">
 <link rel="import" href="/ui/base/mouse_mode_selector.html">
 <link rel="import" href="/ui/base/overlay.html">
-<link rel="import" href="/ui/utils.html">
+<link rel="import" href="/ui/base/utils.html">
 
 <template id="picture-debugger-template">
   <style>
@@ -112,13 +112,13 @@ tr.exportTo('tr.e.cc', function() {
    *
    * @constructor
    */
-  var PictureDebugger = tr.ui.define('picture-debugger');
+  var PictureDebugger = tr.ui.b.define('picture-debugger');
 
   PictureDebugger.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tr.ui.instantiateTemplate('#picture-debugger-template',
+      var node = tr.ui.b.instantiateTemplate('#picture-debugger-template',
           THIS_DOC);
 
       this.appendChild(node);

@@ -5,9 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="stylesheet" href="/ui/base/common.css">
-<link rel="import" href="/ui/ui.html">
+
 <link rel="import" href="/core/timeline_view.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/base/ui.html">
 
 <script>
 'use strict';
@@ -20,7 +21,7 @@ tr.exportTo('tr', function() {
    *
    * Returns an HTMLElement that is the trace-viwer.
    */
-  var TraceViewer = tr.ui.define('trace-viewer', tr.c.TimelineView);
+  var TraceViewer = tr.ui.b.define('trace-viewer', tr.c.TimelineView);
 
   TraceViewer.prototype = {
     __proto__: tr.c.TimelineView.prototype,

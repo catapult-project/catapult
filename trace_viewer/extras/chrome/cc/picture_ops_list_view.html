@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/extras/chrome/cc/selection.html">
 <link rel="import" href="/ui/base/list_view.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
-<link rel="import" href="/ui/utils.html">
+<link rel="import" href="/ui/base/utils.html">
 
 <script>
 'use strict';
@@ -30,7 +30,7 @@ tr.exportTo('tr.e.cc', function() {
   /**
    * @constructor
    */
-  var PictureOpsListView = tr.ui.define('picture-ops-list-view');
+  var PictureOpsListView = tr.ui.b.define('picture-ops-list-view');
 
   PictureOpsListView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -160,7 +160,7 @@ tr.exportTo('tr.e.cc', function() {
         if (s < 0) throw new Error('Invalid index');
         if (s >= this.numOps) throw new Error('Invalid index');
         this.opsList_.selectedElement = this.opsList_.getElementByIndex(s + 1);
-        tr.ui.scrollIntoViewIfNeeded(this.opsList_.selectedElement);
+        tr.ui.b.scrollIntoViewIfNeeded(this.opsList_.selectedElement);
       }
     },
 

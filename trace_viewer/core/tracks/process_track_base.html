@@ -15,9 +15,9 @@ found in the LICENSE file.
 <link rel="import" href="/core/tracks/spacing_track.html">
 <link rel="import" href="/core/tracks/thread_track.html">
 <link rel="import" href="/core/filter.html">
-<link rel="import" href="/ui/ui.html">
-<link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/model/model_settings.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
 
 <script>
 'use strict';
@@ -33,7 +33,7 @@ tr.exportTo('tr.c.tracks', function() {
    * @constructor
    */
   var ProcessTrackBase =
-      tr.ui.define('process-track-base', tr.c.tracks.ContainerTrack);
+      tr.ui.b.define('process-track-base', tr.c.tracks.ContainerTrack);
 
   ProcessTrackBase.prototype = {
 

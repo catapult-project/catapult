@@ -4,12 +4,14 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/ui/ui.html">
+
+<link rel="import" href="/ui/base/ui.html">
+
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TestElement = tr.ui.define('div');
+  var TestElement = tr.ui.b.define('div');
   TestElement.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -20,7 +22,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  var Base = tr.ui.define('div');
+  var Base = tr.ui.b.define('div');
   Base.prototype = {
     __proto__: HTMLDivElement.prototype,
     decorate: function() {
@@ -38,17 +40,17 @@ tr.b.unittest.testSuite(function() {
 
   test('decorateOnceDirectly', function() {
     var testElement = document.createElement('div');
-    tr.ui.decorate(testElement, TestElement);
+    tr.ui.b.decorate(testElement, TestElement);
     assert.equal(testElement.decorateCallCount, 1);
   });
 
   test('componentToString', function() {
     assert.equal(Base.toString(), 'div');
 
-    var Sub = tr.ui.define('Sub', Base);
+    var Sub = tr.ui.b.define('Sub', Base);
     assert.equal(Sub.toString(), 'div::sub');
 
-    var SubSub = tr.ui.define('Marine', Sub);
+    var SubSub = tr.ui.b.define('Marine', Sub);
     assert.equal(SubSub.toString(), 'div::sub::marine');
   });
 
@@ -65,7 +67,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subclassing', function() {
-    var Sub = tr.ui.define('sub', Base);
+    var Sub = tr.ui.b.define('sub', Base);
     Sub.prototype = {
       __proto__: Base.prototype,
       decorate: function() {
@@ -87,7 +89,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(subInstance.basePropertySet);
   });
 
-  var NoArgs = tr.ui.define('div');
+  var NoArgs = tr.ui.b.define('div');
   NoArgs.prototype = {
     __proto__: HTMLDivElement.prototype,
     decorate: function() {
@@ -98,7 +100,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  var Args = tr.ui.define('args', NoArgs);
+  var Args = tr.ui.b.define('args', NoArgs);
   Args.prototype = {
     __proto__: NoArgs.prototype,
     decorate: function(first) {
@@ -113,7 +115,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  var ArgsChild = tr.ui.define('args-child', Args);
+  var ArgsChild = tr.ui.b.define('args-child', Args);
   ArgsChild.prototype = {
     __proto__: Args.prototype,
     decorate: function(_, second) {
@@ -131,7 +133,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  var ArgsDecoratingChild = tr.ui.define('args-decorating-child', Args);
+  var ArgsDecoratingChild = tr.ui.b.define('args-decorating-child', Args);
   ArgsDecoratingChild.prototype = {
     __proto__: Args.prototype,
     decorate: function(first, second) {
@@ -187,7 +189,7 @@ tr.b.unittest.testSuite(function() {
 
   test('defineWithNamespace', function() {
     var svgNS = 'http://www.w3.org/2000/svg';
-    var cls = tr.ui.define('svg', undefined, svgNS);
+    var cls = tr.ui.b.define('svg', undefined, svgNS);
     cls.prototype = {
       __proto__: HTMLUnknownElement.prototype,
 
@@ -211,7 +213,7 @@ tr.b.unittest.testSuite(function() {
 
   test('defineSubclassWithNamespace', function() {
     var svgNS = 'http://www.w3.org/2000/svg';
-    var cls = tr.ui.define('svg', undefined, svgNS);
+    var cls = tr.ui.b.define('svg', undefined, svgNS);
     cls.prototype = {
       __proto__: HTMLUnknownElement.prototype,
 
@@ -228,7 +230,7 @@ tr.b.unittest.testSuite(function() {
       }
     };
 
-    var subCls = tr.ui.define('sub', cls);
+    var subCls = tr.ui.b.define('sub', cls);
     subCls.prototype = {
       __proto__: cls.prototype
     };

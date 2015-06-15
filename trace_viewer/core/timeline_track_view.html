@@ -12,8 +12,6 @@ found in the LICENSE file.
 <link rel="import" href="/base/properties.html">
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/base/task.html">
-<link rel="import" href="/ui/ui.html">
-<link rel="import" href="/ui/base/mouse_mode_selector.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/timeline_viewport.html">
@@ -24,6 +22,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/tracks/ruler_track.html">
 <link rel="import" href="/model/event.html">
 <link rel="import" href="/model/x_marker_annotation.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/base/mouse_mode_selector.html">
 
 <script>
 'use strict';
@@ -73,7 +73,7 @@ tr.exportTo('tr.c', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var TimelineTrackView = tr.ui.define('div');
+  var TimelineTrackView = tr.ui.b.define('div');
 
   TimelineTrackView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -374,7 +374,7 @@ tr.exportTo('tr.c', function() {
       if (this.focusElement.tabIndex >= 0) {
         if (document.activeElement == this.focusElement)
           return true;
-        return tr.ui.elementIsChildOf(document.activeElement,
+        return tr.ui.b.elementIsChildOf(document.activeElement,
                                         this.focusElement);
       }
       return true;

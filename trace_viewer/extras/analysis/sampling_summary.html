@@ -6,14 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/units/util.html">
-<link rel="import" href="/core/selection.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
+<link rel="import" href="/core/selection.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/pie_chart.html">
 <link rel="import" href="/ui/base/sortable_table.html">
 <link rel="import" href="/ui/base/sunburst_chart.html">
-<link rel="import" href="/ui/utils.html">
+<link rel="import" href="/ui/base/utils.html">
 
 <template id="x-sample-summary-panel-template">
   <style>
@@ -303,7 +303,7 @@ tr.exportTo('tr.e.analysis', function() {
    * @constructor
    */
   var SamplingSummaryPanel =
-      tr.ui.define('x-sample-summary-panel');
+      tr.ui.b.define('x-sample-summary-panel');
   SamplingSummaryPanel.textLabel = 'Sampling Summary';
   SamplingSummaryPanel.supportsModel = function(m) {
     if (m == undefined) {
@@ -345,7 +345,7 @@ tr.exportTo('tr.e.analysis', function() {
 
     decorate: function() {
       this.classList.add('x-sample-summary-panel');
-      this.appendChild(tr.ui.instantiateTemplate(
+      this.appendChild(tr.ui.b.instantiateTemplate(
           '#x-sample-summary-panel-template', THIS_DOC));
 
       this.sampleType_ = undefined;

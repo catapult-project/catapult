@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/core/tracks/container_track.html">
 <link rel="import" href="/core/tracks/slice_track.html">
 <link rel="import" href="/core/filter.html">
-<link rel="import" href="/ui/ui.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/base/ui.html">
 
 <script>
 'use strict';
@@ -21,7 +21,7 @@ tr.exportTo('tr.c.tracks', function() {
    * @constructor
    */
   var CpuTrack =
-      tr.ui.define('cpu-track', tr.c.tracks.ContainerTrack);
+      tr.ui.b.define('cpu-track', tr.c.tracks.ContainerTrack);
   CpuTrack.prototype = {
     __proto__: tr.c.tracks.ContainerTrack.prototype,
 

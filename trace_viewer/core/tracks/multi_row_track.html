@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/tracks/container_track.html">
 <link rel="import" href="/base/sorted_array_utils.html">
-<link rel="import" href="/ui/ui.html">
 <link rel="import" href="/model/model_settings.html">
+<link rel="import" href="/ui/base/ui.html">
 
 <script>
 'use strict';
@@ -19,7 +19,7 @@ tr.exportTo('tr.c.tracks', function() {
    * @constructor
    * @extends {ContainerTrack}
    */
-  var MultiRowTrack = tr.ui.define(
+  var MultiRowTrack = tr.ui.b.define(
       'multi-row-track', tr.c.tracks.ContainerTrack);
 
   MultiRowTrack.prototype = {

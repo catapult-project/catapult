@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/utils.html">
+<link rel="import" href="/ui/base/utils.html">
 
 <polymer-element name="instantiate-template-polymer-element-test">
   <template></template>
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
 
   test('instantiateTemplatePolymer', function() {
-    var e = tr.ui.instantiateTemplate(
+    var e = tr.ui.b.instantiateTemplate(
                 '#instantiate-template-polymer-test',
                 THIS_DOC);
     assert.equal(e.children.length, 1);
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateTemplateMultipleTemplates', function() {
-    var outerElement = tr.ui.instantiateTemplate(
+    var outerElement = tr.ui.b.instantiateTemplate(
                            '#multiple-template-test',
                            THIS_DOC);
     assert.equal(outerElement.children.length, 2);

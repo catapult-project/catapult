@@ -9,10 +9,10 @@ found in the LICENSE file.
 <link rel="import" href="/extras/about_tracing/inspector_tracing_controller_client.html">
 <link rel="import" href="/extras/about_tracing/xhr_based_tracing_controller_client.html">
 <link rel="import" href="/base/key_event_manager.html">
+<link rel="import" href="/trace_viewer.html">
 <link rel="import" href="/ui/base/info_bar_group.html">
 <link rel="import" href="/ui/base/overlay.html">
-<link rel="import" href="/trace_viewer.html">
-<link rel="import" href="/ui/utils.html">
+<link rel="import" href="/ui/base/utils.html">
 
 <style>
 x-profiling-view {
@@ -94,7 +94,7 @@ tr.exportTo('tr.e.about_tracing', function() {
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var ProfilingView = tr.ui.define('x-profiling-view');
+  var ProfilingView = tr.ui.b.define('x-profiling-view');
   var THIS_DOC = document.currentScript.ownerDocument;
   var REPORT_UPLOAD_URL = 'http://crash-staging/';
 
@@ -102,11 +102,11 @@ tr.exportTo('tr.e.about_tracing', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function(tracingControllerClient) {
-      this.appendChild(tr.ui.instantiateTemplate('#profiling-view-template',
+      this.appendChild(tr.ui.b.instantiateTemplate('#profiling-view-template',
           THIS_DOC));
 
       this.timelineView_ = this.querySelector('x-timeline-view');
-      tr.ui.decorate(this.timelineView_, tr.c.TimelineView);
+      tr.ui.b.decorate(this.timelineView_, tr.c.TimelineView);
 
       this.infoBarGroup_ = this.querySelector('tr-ui-b-info-bar-group');
 

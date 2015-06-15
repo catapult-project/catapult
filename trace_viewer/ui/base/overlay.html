@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/properties.html">
 <link rel="import" href="/base/events.html">
-<link rel="import" href="/ui/ui.html">
-<link rel="import" href="/ui/utils.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/base/utils.html">
 
 <template id="overlay-template">
   <style>
@@ -131,7 +131,7 @@ tr.exportTo('tr.ui.b', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var Overlay = tr.ui.define('overlay');
+  var Overlay = tr.ui.b.define('overlay');
 
   Overlay.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -160,7 +160,7 @@ tr.exportTo('tr.ui.b', function() {
       var createShadowRoot = this.createShadowRoot ||
           this.webkitCreateShadowRoot;
       this.shadow_ = createShadowRoot.call(this);
-      this.shadow_.appendChild(tr.ui.instantiateTemplate('#overlay-template',
+      this.shadow_.appendChild(tr.ui.b.instantiateTemplate('#overlay-template',
                                                         THIS_DOC));
 
       this.closeBtn_ = this.shadow_.querySelector('close-button');

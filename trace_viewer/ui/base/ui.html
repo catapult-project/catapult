@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.ui', function() {
+tr.exportTo('tr.ui.b', function() {
 
   /**
    * Decorates elements as an instance of a class.
@@ -36,7 +36,7 @@ tr.exportTo('tr.ui', function() {
    * the component.
    *
    * tr class:
-   * var List = tr.ui.define('list');
+   * var List = tr.ui.b.define('list');
    * List.prototype = {
    *   __proto__: HTMLUListElement.prototype,
    *   decorate: function() {
@@ -46,7 +46,7 @@ tr.exportTo('tr.ui', function() {
    * };
    *
    * Derived class:
-   * var CustomList = tr.ui.define('custom-list', List);
+   * var CustomList = tr.ui.b.define('custom-list', List);
    * CustomList.prototype = {
    *   __proto__: List.prototype,
    *   decorate: function() {
@@ -62,7 +62,7 @@ tr.exportTo('tr.ui', function() {
 
    * @param {function=} opt_parentConstructor The parent class for this new
    *     element, if subclassing is desired. If provided, the parent class must
-   *     be also a function created by tr.ui.define.
+   *     be also a function created by tr.ui.b.define.
    *
    * @param {string=} opt_tagNS The namespace in which to create the base
    *     element. Has no meaning when opt_parentConstructor is passed and must
@@ -80,7 +80,7 @@ tr.exportTo('tr.ui', function() {
     var className = className.toLowerCase();
     if (opt_parentConstructor && !opt_parentConstructor.tagName)
       throw new Error('opt_parentConstructor was not ' +
-                      'created by tr.ui.define');
+                      'created by tr.ui.b.define');
 
     // Walk up the parent constructors until we can find the type of tag
     // to create.
