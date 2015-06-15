@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/units/util.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/analysis_results.html">
+<link rel="import" href="/model/counter_sample.html">
+
+<polymer-element name="tr-ui-a-counter-sample-sub-view"
+    extends="tr-ui-a-sub-view">
+  <script>
+  'use strict';
+  (function() {
+    var CounterSample = tr.model.CounterSample;
+
+    Polymer({
+      created: function() {
+        this.currentSelection_ = undefined;
+      },
+
+      get selection() {
+        return this.currentSelection_;
+      },
+
+      set selection(selection) {
+        var results = new tr.ui.analysis.AnalysisResults();
+        this.appendChild(results);
+        this.analyzeCounterSamples_(results, selection);
+      },
+
+      analyzeCounterSamples_: function(results, allSamples) {
+        var samplesByCounter = {};
+        for (var i = 0; i < allSamples.length; i++) {
+          var ctr = allSamples[i].series.counter;
+          if (!samplesByCounter[ctr.guid])
+            samplesByCounter[ctr.guid] = [];
+          samplesByCounter[ctr.guid].push(allSamples[i]);
+        }
+
+        for (var guid in samplesByCounter) {
+          var samples = samplesByCounter[guid];
+          var ctr = samples[0].series.counter;
+
+          var timestampGroups = CounterSample.groupByTimestamp(samples);
+          if (timestampGroups.length == 1)
+            this.analyzeSingleCounterTimestamp_(results, ctr,
+                                                timestampGroups[0]);
+          else
+            this.analyzeMultipleCounterTimestamps_(results, ctr,
+                                                   timestampGroups);
+        }
+      },
+
+      analyzeSingleCounterTimestamp_: function(
+          results, ctr, samplesWithSameTimestamp) {
+        results.appendHeader('Selected counter:');
+        var table = results.appendTable('analysis-counter-table', 2);
+        results.appendInfoRow(table, 'Title', ctr.name);
+        results.appendInfoRowTime(
+            table, 'Timestamp', samplesWithSameTimestamp[0].timestamp);
+        for (var i = 0; i < samplesWithSameTimestamp.length; i++) {
+          var sample = samplesWithSameTimestamp[i];
+          results.appendInfoRow(table, sample.series.name, sample.value);
+        }
+      },
+
+      analyzeMultipleCounterTimestamps_: function(results, ctr,
+                                             samplesByTimestamp) {
+        results.appendHeader('Counter ' + ctr.name);
+        var table = results.appendTable('analysis-counter-table', 2);
+
+        var sampleIndices = [];
+        for (var i = 0; i < samplesByTimestamp.length; i++)
+          sampleIndices.push(samplesByTimestamp[i][0].getSampleIndex());
+
+        var stats = ctr.getSampleStatistics(sampleIndices);
+        for (var i = 0; i < stats.length; i++) {
+          var samples = [];
+          for (var k = 0; k < sampleIndices.length; ++k)
+            samples.push(ctr.getSeries(i).getSample(sampleIndices[k]).value);
+
+          results.appendDataRow(
+              table,
+              ctr.name + ': series(' + ctr.getSeries(i).name + ')',
+              samples,
+              null,
+              null,
+              null,
+              samples.length,
+              null,
+              stats[i]);
+        }
+      }
+    });
+  })();
+  </script>
+</polymer-element>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/ui/analysis/flow_classifier.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+
+<polymer-element name="tr-ui-a-related-events">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    #table {
+      flex: 1 1 auto;
+      align-self: stretch;
+    }
+    </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.eventGroups_ = [];
+
+      this.$.table.tableColumns = [
+        {
+          title: 'Event(s)',
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = row.type;
+            if (row.tooltip)
+              typeEl.title = row.tooltip;
+            return typeEl;
+          },
+          width: '150px'
+        },
+        {
+          title: 'Link',
+          width: '100%',
+          value: function(row) {
+            var linkEl = document.createElement('tr-ui-a-analysis-link');
+            if (row.name)
+              linkEl.setSelectionAndContent(row.selection, row.name);
+            else
+              linkEl.selection = row.selection;
+            return linkEl;
+          }
+        }
+      ];
+    },
+
+    hasRelatedEvents: function() {
+      return (this.eventGroups_ && this.eventGroups_.length > 0);
+    },
+
+    addRelatedEvents: function(selection) {
+      this.addConnectedFlows_(selection);
+      this.addConnectedEvents_(selection);
+      this.addAncestorsAndDescendents_(selection);
+      this.updateContents_();
+    },
+
+    addConnectedFlows_: function(selection) {
+      var classifier = new tr.ui.analysis.FlowClassifier();
+      selection.forEach(function(slice) {
+        if (slice.inFlowEvents) {
+          slice.inFlowEvents.forEach(function(flow) {
+            classifier.addInFlow(flow);
+          });
+        }
+        if (slice.outFlowEvents) {
+          slice.outFlowEvents.forEach(function(flow) {
+            classifier.addOutFlow(flow);
+          });
+        }
+      });
+      if (!classifier.hasEvents())
+        return;
+
+      var addToEventGroups = function(type, flowEvent) {
+        this.eventGroups_.push({
+          type: type,
+          selection: new tr.c.Selection(flowEvent),
+          name: flowEvent.title
+        });
+      };
+
+      classifier.inFlowEvents.forEach(
+          addToEventGroups.bind(this, 'Incoming flow'));
+      classifier.outFlowEvents.forEach(
+          addToEventGroups.bind(this, 'Outgoing flow'));
+      classifier.internalFlowEvents.forEach(
+          addToEventGroups.bind(this, 'Internal flow'));
+    },
+
+    addConnectedEvents_: function(selection) {
+      // Preceding and following events are only well-defined for single
+      // selections.
+      if (selection.length === 1)
+        this.addConnectedEventsForSlice_(selection[0]);
+      else
+        this.addConnectedEventsForSelection_(selection);
+    },
+
+    addAncestorsAndDescendents_: function(selection) {
+      // Separating ancestors and descendents only makes sense for single
+      // selections.
+      if (selection.length === 1)
+        this.addAncestorsAndDescendentsForSlice_(selection[0]);
+      else
+        this.addAncestorsAndDescendentsForSelection_(selection);
+    },
+
+    addConnectedEventsForSlice_: function(slice) {
+      var precedingEventsSelection = undefined;
+      var followingEventsSelection = undefined;
+      if (slice.inFlowEvents && slice.inFlowEvents.length !== 0) {
+        precedingEventsSelection = new tr.c.Selection();
+        this.recursivelyAddConnectedEvents_(precedingEventsSelection, slice,
+            function(event) { return event.inFlowEvents; });
+        this.eventGroups_.push({
+          type: 'Preceding events',
+          tooltip: 'All preceding events connected to this one by flow arrows.',
+          selection: precedingEventsSelection
+        });
+      }
+      if (slice.outFlowEvents && slice.outFlowEvents.length !== 0) {
+        followingEventsSelection = new tr.c.Selection();
+        this.recursivelyAddConnectedEvents_(followingEventsSelection, slice,
+            function(event) { return event.outFlowEvents; });
+        this.eventGroups_.push({
+          type: 'Following events',
+          tooltip: 'All following events connected to this one by flow arrows.',
+          selection: followingEventsSelection
+        });
+      }
+      if (precedingEventsSelection && followingEventsSelection) {
+        var allEventsSelection = new tr.c.Selection();
+        for (var i = 0; i < precedingEventsSelection.length; ++i)
+          allEventsSelection.push(precedingEventsSelection[i]);
+        for (var i = 0; i < followingEventsSelection.length; ++i)
+          allEventsSelection.push(followingEventsSelection[i]);
+        this.eventGroups_.push({
+          type: 'All connected events',
+          tooltip: 'All events connected to this one by flow arrows.',
+          selection: allEventsSelection
+        });
+      }
+    },
+
+    addConnectedEventsForSelection_: function(selection) {
+      var allEventsSelection = new tr.c.Selection();
+      selection.forEach(function(slice) {
+        this.recursivelyAddConnectedEvents_(allEventsSelection, slice,
+            function(event) {
+              var flows = [];
+              if (event.inFlowEvents)
+                flows = flows.concat(event.inFlowEvents);
+              if (event.outFlowEvents)
+                flows = flows.concat(event.outFlowEvents);
+              return flows;
+            });
+      }.bind(this));
+      // Add related events if it contains more than the original selection.
+      if (allEventsSelection.length > selection.length) {
+        this.eventGroups_.push({
+          type: 'All connected events',
+          tooltip: 'All events connected to this selection by flow arrows.',
+          selection: allEventsSelection
+        });
+      }
+    },
+
+    recursivelyAddConnectedEvents_: function(selection, event, getFlows) {
+      if (!event || selection.contains(event))
+        return;
+      selection.push(event);
+      var flowEvents = getFlows(event);
+      if (!flowEvents)
+        return;
+      for (var i = 0; i < flowEvents.length; ++i) {
+        selection.push(flowEvents[i]);
+        this.recursivelyAddConnectedEvents_(selection, flowEvents[i].startSlice,
+            getFlows);
+        this.recursivelyAddConnectedEvents_(selection, flowEvents[i].endSlice,
+            getFlows);
+      }
+    },
+
+    addAncestorsAndDescendentsForSlice_: function(slice) {
+      if (!slice.iterateAllAncestors || !slice.iterateAllDescendents)
+        return;
+      var ancestorsSelection = new tr.c.Selection(slice);
+      var descendentsSelection = new tr.c.Selection(slice);
+      var allSlicesSelection = new tr.c.Selection(slice);
+      slice.iterateAllAncestors(function(otherSlice) {
+        ancestorsSelection.push(otherSlice);
+      });
+      slice.iterateAllDescendents(function(otherSlice) {
+        descendentsSelection.push(otherSlice);
+      });
+      if (ancestorsSelection.length > 1) {
+        this.eventGroups_.push({
+          type: 'Ancestors',
+          tooltip: 'All slices above this one on this thread.',
+          selection: ancestorsSelection
+        });
+      }
+      if (descendentsSelection.length > 1) {
+        this.eventGroups_.push({
+          type: 'Descendents',
+          tooltip: 'All slices below this one on this thread.',
+          selection: descendentsSelection
+        });
+      }
+      if (ancestorsSelection.length > 1 && descendentsSelection.length > 1) {
+        for (var i = 0; i < ancestorsSelection.length; ++i)
+          allSlicesSelection.push(ancestorsSelection[i]);
+        for (var i = 0; i < descendentsSelection.length; ++i)
+          allSlicesSelection.push(descendentsSelection[i]);
+        this.eventGroups_.push({
+          type: 'Hierarchy',
+          tooltip: 'All slices above or below this one on this thread.',
+          selection: allSlicesSelection
+        });
+      }
+    },
+
+    addAncestorsAndDescendentsForSelection_: function(selection) {
+      var allSlicesSelection = new tr.c.Selection();
+      selection.forEach(function(slice) {
+        allSlicesSelection.push(slice);
+        if (slice.iterateAllAncestors && slice.iterateAllDescendents) {
+          slice.iterateAllAncestors(function(otherSlice) {
+            allSlicesSelection.push(otherSlice);
+          });
+          slice.iterateAllDescendents(function(otherSlice) {
+            allSlicesSelection.push(otherSlice);
+          });
+        }
+      }.bind(this));
+      // Add hierarchy slices if it contains more than the original selection.
+      if (allSlicesSelection.length > selection.length) {
+        this.eventGroups_.push({
+          type: 'All hierarchies',
+          tooltip: 'All slices above or below any slice in the selection.',
+          selection: allSlicesSelection
+        });
+      }
+    },
+
+    updateContents_: function() {
+      var table = this.$.table;
+      if (this.eventGroups_ === undefined)
+        table.tableRows = [];
+      else
+        table.tableRows = this.eventGroups_.slice();
+      table.rebuild();
+    }
+  });
+  </script>
+</polymer-element>

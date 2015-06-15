@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="stylesheet" href="/extras/chrome/gpu/state_view.css">
-<link rel="import" href="/core/analysis/object_snapshot_view.html">
+<link rel="import" href="/ui/analysis/object_snapshot_view.html">
 <link rel="import" href="/base/units/util.html">
 
 <script>
@@ -19,10 +19,10 @@ tr.exportTo('tr.e.gpu', function() {
    */
   var StateSnapshotView = tr.ui.b.define(
       'gpu-state-snapshot-view',
-      tr.c.analysis.ObjectSnapshotView);
+      tr.ui.analysis.ObjectSnapshotView);
 
   StateSnapshotView.prototype = {
-    __proto__: tr.c.analysis.ObjectSnapshotView.prototype,
+    __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('gpu-state-snapshot-view');
@@ -37,7 +37,7 @@ tr.exportTo('tr.e.gpu', function() {
       }
     }
   };
-  tr.c.analysis.ObjectSnapshotView.register(
+  tr.ui.analysis.ObjectSnapshotView.register(
     StateSnapshotView,
     {typeName: 'gpu::State'});
 

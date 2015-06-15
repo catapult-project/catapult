@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/extras/chrome/cc/raster_task.html">
 <link rel="import" href="/extras/chrome/cc/selection.html">
-<link rel="import" href="/core/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/ui/units/time_duration_span.html">
 <link rel="import" href="/ui/base/table.html">
 
@@ -24,7 +24,7 @@ found in the LICENSE file.
     </style>
     <div id="heading">
       Rasterization costs in
-      <tr-c-a-analysis-link id="link"></tr-c-a-analysis-link>
+      <tr-ui-a-analysis-link id="link"></tr-ui-a-analysis-link>
     </div>
     <tr-ui-b-table id="content"></tr-ui-b-table>
   </template>
@@ -49,7 +49,7 @@ found in the LICENSE file.
             if (row.isTotals)
               return 'Totals';
             if (row.layer) {
-              var linkEl = document.createElement('tr-c-a-analysis-link');
+              var linkEl = document.createElement('tr-ui-a-analysis-link');
               linkEl.setSelectionAndContent(
                 function() {
                   return new tr.e.cc.LayerSelection(costs.layer);

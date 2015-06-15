@@ -31,13 +31,13 @@
   overflow: auto;
 }
 
-* /deep/ layer-picker > tr-c-a-generic-object-view {
+* /deep/ layer-picker > tr-ui-a-generic-object-view {
   -webkit-flex: 0 0 auto;
   height: 200px;
   overflow: auto;
 }
 
-* /deep/ layer-picker > tr-c-a-generic-object-view * {
+* /deep/ layer-picker > tr-ui-a-generic-object-view * {
   -webkit-user-select: text !important;
   cursor: text;
 }

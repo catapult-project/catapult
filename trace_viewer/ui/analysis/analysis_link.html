@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/units/util.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/ui/base/ui.html">
+
+<polymer-element name="tr-ui-a-analysis-link" is="a">
+  <template>
+    <style>
+    :host {
+      display: inline;
+      color: -webkit-link;
+      cursor: pointer;
+      text-decoration: underline;
+      /* TODO(nduca): Whitespace is forced to normal here because the
+         analysis_results.css forces everything under it to pre. This is insane.
+         When that horrible evil class dies, then we can rip this white-space
+         restriction out.
+       */
+      white-space: normal;
+      cursor: pointer;
+    }
+    </style>
+    <content></content>
+  </template>
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.addEventListener('click', this.onClicked_.bind(this));
+      this.selection_ = undefined;
+    },
+
+    get selection() {
+      return this.selection_;
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+      this.textContent = selection.userFriendlyName;
+    },
+
+    setSelectionAndContent: function(selection, opt_textContent) {
+      this.selection_ = selection;
+      if (opt_textContent)
+        this.textContent = opt_textContent;
+    },
+
+    onClicked_: function() {
+      if (!this.selection_)
+        return;
+
+      var event = new tr.c.RequestSelectionChangeEvent();
+      if (typeof this.selection_ === 'function')
+        event.selection = this.selection_();
+      else
+        event.selection = this.selection_;
+      this.dispatchEvent(event);
+    }
+  });
+  </script>
+</polymer-element>

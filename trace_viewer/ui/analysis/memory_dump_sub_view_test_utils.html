@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/model/global_memory_dump.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
+<link rel="import" href="/model/process_memory_dump.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Helper functions for memory dump analysis sub-view tests.
+ */
+tr.exportTo('tr.ui.analysis', function() {
+  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var VMRegion = tr.model.VMRegion;
+  var VMRegionByteStats = tr.model.VMRegionByteStats;
+  var ScalarAttribute = tr.model.ScalarAttribute;
+
+  function createTestGlobalMemoryDump() {
+    var model = tr.c.test_utils.newModel(function(model) {
+      var p1 = model.getOrCreateProcess(1);
+      var p2 = model.getOrCreateProcess(2);
+      var p3 = model.getOrCreateProcess(3);
+
+      var gmd = new GlobalMemoryDump(model, 42);
+      model.globalMemoryDumps.push(gmd);
+
+      function addProcessMemoryDump(process, timestamp) {
+        var pmd = new ProcessMemoryDump(gmd, process, timestamp);
+        process.memoryDumps.push(pmd);
+        gmd.processMemoryDumps[process.pid] = pmd;
+        return pmd;
+      }
+
+      // One process with most recent VM regions.
+      var mostRecentGmd = new GlobalMemoryDump(model, 30);
+      var mostRecentPmd1 = new ProcessMemoryDump(mostRecentGmd, p1, 31);
+      p1.memoryDumps.push(mostRecentPmd1);
+      mostRecentGmd.processMemoryDumps[p1.pid] = mostRecentPmd1;
+
+      var pmd1 = addProcessMemoryDump(p1, 41);
+      pmd1.totalResidentBytes = 31457280 /* 30 MiB */;
+      mostRecentPmd1.vmRegions = [
+        VMRegion.fromDict({
+            startAddress: 1024,
+            sizeInBytes: 20971520, /* 20 MiB */
+            protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+            mappedFile: '[stack]',
+            byteStats: {
+                privateDirtyResident: 8388608, /* 8 MiB */
+                sharedCleanResident: 12582912, /* 12 MiB */
+                proportionalResident: 10485760 /* 10 MiB */
+            }
+        })
+      ];
+
+      // One process with everything.
+      var pmd2 = addProcessMemoryDump(p2, 42);
+      pmd2.totalResidentBytes = 20971520 /* 20 MiB */;
+      pmd2.vmRegions = [
+        VMRegion.fromDict({
+          startAddress: 256,
+          sizeInBytes: 6000,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+              VMRegion.PROTECTION_FLAG_WRITE,
+          mappedFile: '[stack:20310]',
+          byteStats: {
+            proportionalResident: 15728640, /* 15 MiB */
+            privateDirtyResident: 1572864, /* 1.5 MiB */
+            swapped: 32 /* 32 B */
+          }
+        })
+      ];
+      pmd2.memoryAllocatorDumps = (function() {
+        var mallocDump = new MemoryAllocatorDump(pmd2, 'malloc');
+        mallocDump.addAttribute('size',
+            new ScalarAttribute('bytes', 3145728) /* 3 MiB */);
+
+        var v8Dump = new MemoryAllocatorDump(pmd2, 'v8');
+        v8Dump.addAttribute('size',
+            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
+
+        var tracingDump = new MemoryAllocatorDump(pmd2, 'tracing');
+        tracingDump.addAttribute('size',
+            new ScalarAttribute('bytes', 1048576) /* 1 MiB */);
+        tracingDump.addAttribute('resident_size',
+            new ScalarAttribute('bytes', 1572864) /* 1.5 MiB */);
+
+        return [mallocDump, v8Dump, tracingDump];
+      })();
+
+      // One process with allocator dumps.
+      var pmd3 = addProcessMemoryDump(p3, 43);
+      pmd3.memoryAllocatorDumps = (function() {
+        var oilpanDump = new MemoryAllocatorDump(pmd3, 'oilpan');
+        oilpanDump.addAttribute('size',
+            new ScalarAttribute('bytes', 2147483648) /* 2 GiB */);
+        oilpanDump.addAttribute('inner_size',
+            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
+        oilpanDump.addAttribute('objects_count',
+            new ScalarAttribute('objects', 2015));
+
+        var v8Dump = new MemoryAllocatorDump(pmd3, 'v8');
+        v8Dump.addAttribute('size',
+            new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
+        v8Dump.addAttribute('inner_size',
+            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
+        v8Dump.addAttribute('objects_count',
+            new ScalarAttribute('objects', 204));
+
+        return [oilpanDump, v8Dump];
+      })();
+    });
+
+    return model.globalMemoryDumps[0];
+  }
+
+  function createTestProcessMemoryDumps() {
+    var globalMemoryDump = createTestGlobalMemoryDump();
+    return tr.b.dictionaryValues(globalMemoryDump.processMemoryDumps);
+  }
+
+  function createTestProcessMemoryDump() {
+    var globalMemoryDump = createTestGlobalMemoryDump();
+    return globalMemoryDump.processMemoryDumps[2];
+  }
+
+  return {
+    createTestGlobalMemoryDump: createTestGlobalMemoryDump,
+    createTestProcessMemoryDumps: createTestProcessMemoryDumps,
+    createTestProcessMemoryDump: createTestProcessMemoryDump
+  };
+});
+</script>

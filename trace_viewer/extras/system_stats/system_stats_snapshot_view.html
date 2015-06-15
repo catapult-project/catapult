@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="stylesheet" href="/extras/system_stats/system_stats_snapshot_view.css">
-<link rel="import" href="/core/analysis/object_snapshot_view.html">
+<link rel="import" href="/ui/analysis/object_snapshot_view.html">
 <link rel="import" href="/base/units/util.html">
 
 <script>
@@ -17,10 +17,10 @@ tr.exportTo('tr.e.system_stats', function() {
    * Displays a system stats snapshot in a human readable form. @constructor
    */
   var SystemStatsSnapshotView = tr.ui.b.define('system-stats-snapshot-view',
-      tr.c.analysis.ObjectSnapshotView);
+      tr.ui.analysis.ObjectSnapshotView);
 
   SystemStatsSnapshotView.prototype = {
-    __proto__: tr.c.analysis.ObjectSnapshotView.prototype,
+    __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('system-stats-snapshot-view');
@@ -71,7 +71,7 @@ tr.exportTo('tr.e.system_stats', function() {
     }
   };
 
-  tr.c.analysis.ObjectSnapshotView.register(
+  tr.ui.analysis.ObjectSnapshotView.register(
       SystemStatsSnapshotView,
       {typeName: 'base::TraceEventSystemStatsMonitor::SystemStats'});
 

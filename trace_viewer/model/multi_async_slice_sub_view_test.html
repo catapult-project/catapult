@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/analysis/multi_async_slice_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_async_slice_sub_view.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/model/model.html">
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
     selection.push(t1.asyncSliceGroup.slices[0]);
     selection.push(t1.asyncSliceGroup.slices[1]);
 
-    var viewEl = document.createElement('tr-c-a-multi-async-slice-sub-view');
+    var viewEl = document.createElement('tr-ui-a-multi-async-slice-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
   });

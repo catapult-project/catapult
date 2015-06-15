@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/chrome/cc/tile.html">
-<link rel="import" href="/core/analysis/generic_object_view.html">
-<link rel="import" href="/core/analysis/object_snapshot_view.html">
+<link rel="import" href="/ui/analysis/generic_object_view.html">
+<link rel="import" href="/ui/analysis/object_snapshot_view.html">
 <link rel="import" href="/base/units/util.html">
 
 <script>
@@ -21,10 +21,10 @@ tr.exportTo('tr.e.cc', function() {
    */
   var TileSnapshotView = tr.ui.b.define(
       'tile-snapshot-view',
-      tr.c.analysis.ObjectSnapshotView);
+      tr.ui.analysis.ObjectSnapshotView);
 
   TileSnapshotView.prototype = {
-    __proto__: tr.c.analysis.ObjectSnapshotView.prototype,
+    __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
       this.classList.add('tile-snapshot-view');
@@ -43,7 +43,7 @@ tr.exportTo('tr.e.cc', function() {
     }
   };
 
-  tr.c.analysis.ObjectSnapshotView.register(
+  tr.ui.analysis.ObjectSnapshotView.register(
       TileSnapshotView,
       {
         typeName: 'cc::Tile',

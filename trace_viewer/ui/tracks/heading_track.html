@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="stylesheet" href="/ui/tracks/heading_track.css">
 
-<link rel="import" href="/core/analysis/analysis_link.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/core/constants.html">
 <link rel="import" href="/ui/tracks/track.html">
 <link rel="import" href="/ui/base/ui.html">
@@ -106,7 +106,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.headingDiv_.appendChild(span);
 
       if (this.selectionGenerator_) {
-        this.headingLink_ = document.createElement('tr-c-a-analysis-link');
+        this.headingLink_ = document.createElement('tr-ui-a-analysis-link');
         this.headingLink_.selection = this.selectionGenerator_;
         this.headingLink_.textContent = '';
         this.headingDiv_.appendChild(this.headingLink_);

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/analysis_view.html">
+<link rel="import" href="/ui/analysis/stub_analysis_results.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Counter = tr.model.Counter;
+  var CounterSeries = tr.model.CounterSeries;
+
+  var Selection = tr.c.Selection;
+  var StubAnalysisResults = tr.ui.analysis.StubAnalysisResults;
+
+  function createSeries(ctr) {
+    var allocatedSeries = new CounterSeries('bytesallocated', 0);
+    var freeSeries = new CounterSeries('bytesfree', 1);
+
+    ctr.addSeries(allocatedSeries);
+    ctr.addSeries(freeSeries);
+
+    allocatedSeries.addCounterSample(0, 0);
+    allocatedSeries.addCounterSample(10, 25);
+    allocatedSeries.addCounterSample(20, 10);
+
+    freeSeries.addCounterSample(0, 15);
+    freeSeries.addCounterSample(10, 20);
+    freeSeries.addCounterSample(20, 5);
+  }
+
+  var createSelectionWithTwoSeriesSingleCounter = function() {
+    var ctr = new Counter(null, 0, 'foo', 'ctr[0]');
+    createSeries(ctr);
+
+    var selection = new Selection();
+    var t1track = {};
+
+    selection.push(ctr.getSeries(0).samples[1]);
+    selection.push(ctr.getSeries(1).samples[1]);
+    return selection;
+  };
+
+  test('instantiate_singleCounterWithTwoSeries', function() {
+    var selection = createSelectionWithTwoSeriesSingleCounter();
+
+    var analysisEl = document.createElement('tr-ui-a-counter-sample-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  var createSelectionWithTwoSeriesTwoCounters = function() {
+    var ctr1 = new Counter(null, 0, '', 'ctr1');
+    createSeries(ctr1);
+
+    var ctr2 = new Counter(null, 0, '', 'ctr2');
+    createSeries(ctr2);
+
+    var selection = new Selection();
+    var t1track = {};
+
+    selection.push(ctr1.getSeries(0).samples[1]);
+    selection.push(ctr1.getSeries(1).samples[1]);
+
+
+    selection.push(ctr2.getSeries(0).samples[2]);
+    selection.push(ctr2.getSeries(1).samples[2]);
+    return selection;
+  };
+
+  test('instantiate_twoCountersWithTwoSeries', function() {
+    var selection = createSelectionWithTwoSeriesTwoCounters();
+
+    var analysisEl = document.createElement('tr-ui-a-counter-sample-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  test('analyzeSelectionWithSingleCounter', function() {
+    var ctr = new Counter(null, 0, '', 'ctr');
+    var series = new CounterSeries('value', 0);
+    ctr.addSeries(series);
+
+    series.addCounterSample(0, 0);
+    series.addCounterSample(10, 10);
+
+    var selection = new Selection();
+    var t1track = {};
+    selection.push(ctr.getSeries(0).samples[1]);
+
+    var view = document.createElement('tr-ui-a-counter-sample-sub-view');
+    var results = new StubAnalysisResults();
+    view.analyzeCounterSamples_(results, selection);
+
+    assert.equal(results.tables.length, 1);
+    assert.equal(results.headers[0].label, 'Selected counter:');
+    var table = results.tables[0];
+    assert.equal(table.rows.length, 3);
+
+    assert.equal(table.rows[0].label, 'Title');
+    assert.equal(table.rows[1].label, 'Timestamp');
+    assert.equal(table.rows[2].label, 'value');
+    assert.equal(table.rows[2].text, 10);
+  });
+
+  function createSelectionWithTwoCountersDiffSeriesDiffEvents() {
+    var ctr1 = new Counter(null, 0, '', 'a');
+    var ctr1AllocatedSeries = new CounterSeries('bytesallocated', 0);
+    ctr1.addSeries(ctr1AllocatedSeries);
+
+    ctr1AllocatedSeries.addCounterSample(0, 0);
+    ctr1AllocatedSeries.addCounterSample(10, 25);
+    ctr1AllocatedSeries.addCounterSample(20, 15);
+
+    assert.equal(ctr1.name, 'a');
+    assert.equal(ctr1.numSamples, 3);
+    assert.equal(ctr1.numSeries, 1);
+
+    var ctr2 = new Counter(null, 0, '', 'b');
+    var ctr2AllocatedSeries = new CounterSeries('bytesallocated', 0);
+    var ctr2FreeSeries = new CounterSeries('bytesfree', 1);
+
+    ctr2.addSeries(ctr2AllocatedSeries);
+    ctr2.addSeries(ctr2FreeSeries);
+
+    ctr2AllocatedSeries.addCounterSample(0, 0);
+    ctr2AllocatedSeries.addCounterSample(10, 25);
+    ctr2AllocatedSeries.addCounterSample(20, 10);
+    ctr2AllocatedSeries.addCounterSample(30, 15);
+
+    ctr2FreeSeries.addCounterSample(0, 20);
+    ctr2FreeSeries.addCounterSample(10, 5);
+    ctr2FreeSeries.addCounterSample(20, 25);
+    ctr2FreeSeries.addCounterSample(30, 0);
+
+    assert.equal(ctr2.name, 'b');
+    assert.equal(ctr2.numSamples, 4);
+    assert.equal(ctr2.numSeries, 2);
+
+    var selection = new Selection();
+    var t1track = {};
+    var t2track = {};
+
+    selection.push(ctr1AllocatedSeries.samples[1]);
+    selection.push(ctr2AllocatedSeries.samples[2]);
+    selection.push(ctr2FreeSeries.samples[2]);
+
+    return selection;
+  };
+
+  test('analyzeSelectionWithComplexSeriesTwoCounters', function() {
+    var selection = createSelectionWithTwoCountersDiffSeriesDiffEvents();
+
+    var view = document.createElement('tr-ui-a-counter-sample-sub-view');
+    var results = new StubAnalysisResults();
+    view.analyzeCounterSamples_(results, selection);
+
+    assert.equal(results.tables.length, 2);
+  });
+});
+</script>

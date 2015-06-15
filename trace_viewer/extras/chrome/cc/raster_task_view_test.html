@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/event_target.html">
 <link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/core/selection_controller.html">
-<link rel="import" href="/core/analysis/analysis_view.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
 <link rel="import" href="/extras/chrome/cc/raster_task_view.html">
 <link rel="import" href="/extras/chrome/cc/raster_task_selection.html">
 <link rel="import" href="/extras/chrome/cc/layer_tree_host_impl_view.html">
@@ -50,13 +50,13 @@ tr.b.unittest.testSuite(function() {
     var timelineView = {model: selection.model};
     var selectionController = new tr.c.SelectionController(timelineView);
 
-    var analysisEl = document.createElement('tr-c-a-analysis-view');
+    var analysisEl = document.createElement('tr-ui-a-analysis-view');
     analysisEl.selectionController = selectionController;
     selectionController.changeSelectionFromTimeline(selection);
 
     assert.isDefined(analysisEl.querySelector('RasterTaskView'));
     var sv = tr.b.findDeepElementMatching(
-        analysisEl, 'tr-c-a-multi-thread-slice-sub-view');
+        analysisEl, 'tr-ui-a-multi-thread-slice-sub-view');
     assert.isTrue(sv.requiresTallView);
     this.addHTMLOutput(analysisEl);
   });

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/memory_dump_view.html">
+
+<polymer-element name="tr-ui-a-single-process-memory-dump-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <tr-ui-a-memory-dump-view id="memory_dump_view">
+    </tr-ui-a-memory-dump-view>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    set selection(selection) {
+      if (selection.length !== 1)
+        throw new Error('Only supports a single process memory dump');
+      if (!(selection[0] instanceof tr.model.ProcessMemoryDump))
+        throw new Error('Only supports process memory dumps');
+      this.currentSelection_ = selection;
+      this.$.memory_dump_view.processMemoryDumps = [selection[0]];
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    get requiresTallView() {
+      return true;
+    }
+  });
+  </script>
+</polymer-element>

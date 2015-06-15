@@ -33,7 +33,7 @@ tr.exportTo('tr.model', function() {
     __proto__: Slice.prototype,
 
     get analysisTypeName() {
-      return 'tr.c.analysis.CpuSlice';
+      return 'tr.ui.analysis.CpuSlice';
     },
 
     getAssociatedTimeslice: function() {
@@ -57,8 +57,8 @@ tr.exportTo('tr.model', function() {
       {
         name: 'cpuSlice',
         pluralName: 'cpuSlices',
-        singleViewElementName: 'tr-c-a-single-cpu-slice-sub-view',
-        multiViewElementName: 'tr-c-a-multi-cpu-slice-sub-view'
+        singleViewElementName: 'tr-ui-a-single-cpu-slice-sub-view',
+        multiViewElementName: 'tr-ui-a-multi-cpu-slice-sub-view'
       });
 
   return {
