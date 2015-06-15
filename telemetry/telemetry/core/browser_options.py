@@ -220,6 +220,7 @@ class BrowserOptions(object):
     self.extra_wpr_args = []
     self.wpr_mode = wpr_modes.WPR_OFF
     self.netsim = None
+    self.full_performance_mode = True
 
     # The amount of time Telemetry should wait for the browser to start.
     # This property is not exposed as a command line option.
