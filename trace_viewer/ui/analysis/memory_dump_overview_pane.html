@@ -164,10 +164,6 @@ found in the LICENSE file.
           if (processMemoryDump.memoryAllocatorDumps !== undefined) {
             processMemoryDump.memoryAllocatorDumps.forEach(function(dump) {
               var attr = dump.attributes['size'];
-              // TODO(petrcermak): Remove support for the old default attribute
-              // name once the correspoding change lands in Chromium.
-              if (attr === undefined)
-                attr = dump.attributes['outer_size'];
               var cell = new tr.ui.analysis.MemoryCell(attr);
               cell.buildDetailsPane = function() {
                 var pane = document.createElement(

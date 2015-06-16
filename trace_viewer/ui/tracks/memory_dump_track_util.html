@@ -17,9 +17,8 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.tracks', function() {
 
-  // TODO(petrcermak): Remove support for the old default attribute name once
-  // the correspoding change lands in Chromium.
-  var ALLOCATOR_SIZE_ATTRIBUTE_OLD_NAME = 'outer_size';
+  // TODO(petrcermak): This constant is defined and/or used in many files. It
+  // should be defined once only.
   var ALLOCATOR_SIZE_ATTRIBUTE_NAME = 'size';
 
   /**
@@ -55,10 +54,6 @@ tr.exportTo('tr.ui.tracks', function() {
         return;
       var allocatorSize = allocatorDump.attributes[
           ALLOCATOR_SIZE_ATTRIBUTE_NAME];
-      if (allocatorSize === undefined) {
-        allocatorSize = allocatorDump.attributes[
-            ALLOCATOR_SIZE_ATTRIBUTE_OLD_NAME];
-      }
       if (allocatorSize === undefined)
         return;
       var allocatorSizeValue = allocatorSize.value;
