@@ -71,6 +71,11 @@ class PageSetSmokeTest(unittest.TestCase):
           isinstance(page_set.base_dir, str),
           msg='page_set %\'s base_dir must have type string')
 
+    self.assertIsNone(
+        page_set.user_agent_type,
+        msg='page_set %s has non None user_agent_type. '
+        'The user_agent_type field is deprecated (crbug.com/439512)' % page_set)
+
     self.assertTrue(
         isinstance(page_set.archive_data_file, str),
         msg='page_set\'s archive_data_file path must have type string')
