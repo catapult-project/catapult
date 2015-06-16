@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/ui/timeline_viewport.html">
-<link rel="import" href="/core/timing_tool.html">
+<link rel="import" href="/ui/base/timing_tool.html">
 
 <script>
 'use strict';
@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
     var vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tr.c.TimingTool(vp);
+    var tool = new tr.ui.b.TimingTool(vp);
 
     tool.mouseDownAt_(1.1, 0);
     assert.isTrue(vp.interestRange.leftSelected);
@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
     var vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tr.c.TimingTool(vp);
+    var tool = new tr.ui.b.TimingTool(vp);
 
     tool.mouseDownAt_(9.1, 0);
     assert.isTrue(vp.interestRange.rightSelected);
@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
     var vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tr.c.TimingTool(vp);
+    var tool = new tr.ui.b.TimingTool(vp);
 
     tool.mouseDownAt_(5, 0);
     assert.isTrue(vp.interestRange.rightSelected);

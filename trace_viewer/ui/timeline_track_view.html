@@ -16,7 +16,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/timeline_display_transform_animations.html">
-<link rel="import" href="/core/timing_tool.html">
+<link rel="import" href="/ui/base/timing_tool.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
 <link rel="import" href="/ui/tracks/model_track.html">
 <link rel="import" href="/ui/tracks/ruler_track.html">
@@ -113,8 +113,7 @@ tr.exportTo('tr.ui', function() {
       this.modelTrack_ = new tr.ui.tracks.ModelTrack(this.viewport_);
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
-      this.timingTool_ = new tr.c.TimingTool(this.viewport_,
-                                                this);
+      this.timingTool_ = new tr.ui.b.TimingTool(this.viewport_, this);
 
       this.initMouseModeSelector();
 
