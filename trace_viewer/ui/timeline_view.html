@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/ui/base/toolbar_button.html">
 <link rel="import" href="/ui/analysis/analysis_view.html">
-<link rel="import" href="/core/favicons.html">
+<link rel="import" href="/ui/base/favicons.html">
 <link rel="import" href="/core/find_control.html">
 <link rel="import" href="/core/find_controller.html">
 <link rel="import" href="/ui/timeline_track_view.html">
@@ -325,9 +325,9 @@ tr.exportTo('tr.ui', function() {
       else
         hue = this.model.faviconHue;
 
-      var faviconData = tr.c.FaviconsByHue[hue];
+      var faviconData = tr.ui.b.FaviconsByHue[hue];
       if (faviconData === undefined)
-        faviconData = tr.c.FaviconsByHue['blue'];
+        faviconData = tr.ui.b.FaviconsByHue['blue'];
 
       // Find link if its there
       var link = document.head.querySelector('link[rel="shortcut icon"]');
