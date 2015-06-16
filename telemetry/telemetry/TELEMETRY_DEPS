@@ -17,7 +17,6 @@
   "file_deps": [
     "build/util/lastchange.py",
     "third_party/chromite/ssh_keys/testing_rsa",
-    "third_party/chromite/ssh_keys/testing_rsa.pub",
-    "tools/perf/unit-info.json"
+    "third_party/chromite/ssh_keys/testing_rsa.pub"
   ]
 }
