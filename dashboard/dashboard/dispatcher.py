@@ -5,8 +5,10 @@ import webapp2
 from dashboard import ip_whitelist
 from dashboard import main
 
-# Importing Model classes in order to register them with NDB.
-from dashboard.models import *  # pylint: disable=wildcard-import
+# Importing graph_data registers the ndb Model classes with NDB
+# so that they can be used in utils.py.
+from dashboard.models import graph_data
+
 
 _ROUTING_TABLE = [
      ('/ip_whitelist', ip_whitelist.IpWhitelistHandler),
