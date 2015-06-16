@@ -13,26 +13,16 @@ found in the LICENSE file.
  * @fileoverview Provides event merging functionality for grouping/analysis.
  */
 tr.exportTo('tr.b', function() {
-  function mergeRanges(inRanges, mergeThreshold, mergeFunction) {
-    return mergeExplicitRanges(inRanges,
-                               mergeThreshold,
-                               mergeFunction,
-                               function(r) { return r.min; },
-                               function(r) { return r.max; });
+  function convertEventsToRanges(events) {
+    return events.map(function(event) {
+      return tr.b.Range.fromExplicitRange(event.start, event.end);
+    });
   }
 
-  function mergeExplicitRanges(inRanges, mergeThreshold, mergeFunction,
-                       opt_startFunction, opt_endFunction) {
-    var startFunction = opt_startFunction;
-    var endFunction = opt_endFunction;
-    if (!startFunction)
-      startFunction = function(event) { return event.start; };
-    if (!endFunction)
-      endFunction = function(event) { return event.end; };
-
+  function mergeRanges(inRanges, mergeThreshold, mergeFunction) {
     var remainingEvents = inRanges.slice();
     remainingEvents.sort(function(x, y) {
-      return startFunction(x) - startFunction(y);
+      return x.min - y.min;
     });
 
     if (remainingEvents.length <= 1) {
@@ -50,7 +40,7 @@ tr.exportTo('tr.b', function() {
     function beginMerging() {
       currentMergeBuffer.push(remainingEvents[0]);
       remainingEvents.splice(0, 1);
-      rightEdge = endFunction(currentMergeBuffer[0]);
+      rightEdge = currentMergeBuffer[0].max;
     }
 
     function flushCurrentMergeBuffer() {
@@ -70,9 +60,9 @@ tr.exportTo('tr.b', function() {
     while (remainingEvents.length) {
       var currentEvent = remainingEvents[0];
 
-      var distanceFromRightEdge = startFunction(currentEvent) - rightEdge;
+      var distanceFromRightEdge = currentEvent.min - rightEdge;
       if (distanceFromRightEdge < mergeThreshold) {
-        rightEdge = Math.max(rightEdge, endFunction(currentEvent));
+        rightEdge = Math.max(rightEdge, currentEvent.max);
         remainingEvents.splice(0, 1);
         currentMergeBuffer.push(currentEvent);
         continue;
@@ -86,34 +76,27 @@ tr.exportTo('tr.b', function() {
     return mergedEvents;
   }
 
-  // 'opt_totalRange' allows capturing an empty range before the first of
-  // 'inRanges' and after the last of 'inRanges'.
-  function findEmptyRangesBetweenExplicitRanges(
-      inRanges, opt_totalRange, opt_startFunction, opt_endFunction) {
-    var startFunction = opt_startFunction;
-    if (!startFunction)
-      startFunction = function(range) { return range.start; };
-    var endFunction = opt_endFunction;
-    if (!endFunction)
-      endFunction = function(range) { return range.end; };
+  // Pass in |opt_totalRange| in order to find empty ranges before the first of
+  // |inRanges| and after the last of |inRanges|.
+  function findEmptyRangesBetweenRanges(inRanges, opt_totalRange) {
+    if (opt_totalRange && opt_totalRange.isEmpty)
+      opt_totalRange = undefined;
 
     var emptyRanges = [];
     if (!inRanges.length) {
-      if (opt_totalRange) {
-        emptyRanges.push(tr.b.Range.fromExplicitRange(
-            startFunction(opt_totalRange), endFunction(opt_totalRange)));
-      }
+      if (opt_totalRange)
+        emptyRanges.push(opt_totalRange);
       return emptyRanges;
     }
 
     inRanges = inRanges.slice();
     inRanges.sort(function(x, y) {
-      return startFunction(x) - startFunction(y);
+      return x.min - y.min;
     });
     if (opt_totalRange &&
-        (startFunction(opt_totalRange) < startFunction(inRanges[0]))) {
+        (opt_totalRange.min < inRanges[0].min)) {
       emptyRanges.push(tr.b.Range.fromExplicitRange(
-          startFunction(opt_totalRange), startFunction(inRanges[0])));
+          opt_totalRange.min, inRanges[0].min));
     }
 
     inRanges.forEach(function(range, index) {
@@ -122,34 +105,33 @@ tr.exportTo('tr.b', function() {
           continue;
         var other = inRanges[otherIndex];
 
-        if (startFunction(other) > endFunction(range)) {
-          // 'inRanges' is sorted, so 'other' is the first range after 'range',
+        if (other.min > range.max) {
+          // |inRanges| is sorted, so |other| is the first range after |range|,
           // and there is an empty range between them.
           emptyRanges.push(tr.b.Range.fromExplicitRange(
-              endFunction(range), startFunction(other)));
+              range.max, other.min));
           return;
         }
-        // Otherwise, 'other' starts before 'range' ends, so 'other' might
-        // possibly contain the end of 'range'.
+        // Otherwise, |other| starts before |range| ends, so |other| might
+        // possibly contain the end of |range|.
 
-        if (endFunction(other) > endFunction(range)) {
-          // 'other' does contain the end of 'range', so no empty range starts
-          // at the end of this 'range'.
+        if (other.max > range.max) {
+          // |other| does contain the end of |range|, so no empty range starts
+          // at the end of this |range|.
           return;
         }
       }
-      if (opt_totalRange &&
-          (endFunction(range) < endFunction(opt_totalRange))) {
+      if (opt_totalRange && (range.max < opt_totalRange.max)) {
         emptyRanges.push(tr.b.Range.fromExplicitRange(
-            endFunction(range), endFunction(opt_totalRange)));
+            range.max, opt_totalRange.max));
       }
     });
     return emptyRanges;
   }
 
   return {
-    findEmptyRangesBetweenExplicitRanges: findEmptyRangesBetweenExplicitRanges,
-    mergeExplicitRanges: mergeExplicitRanges,
+    convertEventsToRanges: convertEventsToRanges,
+    findEmptyRangesBetweenRanges: findEmptyRangesBetweenRanges,
     mergeRanges: mergeRanges
   };
 });

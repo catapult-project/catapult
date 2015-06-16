@@ -23,6 +23,15 @@ tr.b.unittest.testSuite(function() {
     return new tr.e.rail.RAILIRFinder(model, modelHelper);
   }
 
+  function assertInteractionRecords(actual, expected) {
+    assert.equal(expected.length, actual.length);
+    actual.forEach(function(actualIR, index) {
+      assert.equal(expected[index][0], actualIR.title);
+      assert.equal(expected[index][1], actualIR.start);
+      assert.equal(expected[index][2], actualIR.end);
+    });
+  }
+
   test('twoScrollsNoFling', function() {
     var rirf = newRIRF(function(model) {
       audits.addGeneralLatencyInfoEvent(model, {start: 0, end: 100});
@@ -100,11 +109,46 @@ tr.b.unittest.testSuite(function() {
       getCommitProvisionalLoadEventsInRange(
         rirf.model.bounds);
     assert.equal(1, loads.length);
-    var irs = rirf.findAllInteractionRecords();
-    assert.equal(1, irs.length);
-    assert.equal('Load', irs[0].title);
-    assert.equal(1, irs[0].start);
-    assert.equal(20, irs[0].end);
+    assertInteractionRecords(rirf.findAllInteractionRecords(), [
+      ['Load', 1, 20]
+    ]);
+  });
+
+  test('totalIdle', function() {
+    var rirf = newRIRF(function(model) {
+      audits.addFrameEvent(model, {start: 0, end: 10});
+    });
+    assertInteractionRecords(rirf.findAllInteractionRecords(), [
+      ['Idle', 0, 10]
+    ]);
+  });
+
+  test('MultipleIdles', function() {
+    var rirf = newRIRF(function(model) {
+      audits.addFrameEvent(model, {start: 0, end: 1});
+      audits.addProvisionalLoadEvent(model, {start: 1, end: 2});
+      audits.addFrameEvent(model, {start: 3, end: 4});
+      audits.addProvisionalLoadEvent(model, {start: 5, end: 6});
+      audits.addFrameEvent(model, {start: 7, end: 8});
+      audits.addProvisionalLoadEvent(model, {start: 9, end: 10});
+      audits.addFrameEvent(model, {start: 11, end: 12});
+      audits.addFrameEvent(model, {start: 12, end: 13});
+    });
+    assertInteractionRecords(rirf.findAllInteractionRecords(), [
+      ['Load', 1, 4],
+      ['Load', 5, 8],
+      ['Load', 9, 12],
+      ['Idle', 0, 1],
+      ['Idle', 4, 5],
+      ['Idle', 8, 9],
+      ['Idle', 12, 13]
+    ]);
+  });
+
+  test('emptyNoIdle', function() {
+    var rirf = newRIRF(function(model) {
+    });
+    assertInteractionRecords(rirf.findAllInteractionRecords(), []);
   });
 });
 </script>

@@ -533,11 +533,11 @@ tr.exportTo('tr.e.audits', function() {
       var mergerFunction = function(events) {
         var ir = new InteractionRecord('Rendering',
             tr.ui.b.getColorIdForGeneralPurposeString('mt_rendering'),
-            events[0].start,
-            events[events.length - 1].end - events[0].start);
+            events[0].min,
+            events[events.length - 1].max - events[0].min);
         this.model.addInteractionRecord(ir);
       }.bind(this);
-      tr.b.mergeExplicitRanges(events, 30, mergerFunction);
+      tr.b.mergeRanges(tr.b.convertEventsToRanges(events), 30, mergerFunction);
     },
 
     addInputInteractionRecords: function() {
@@ -549,13 +549,14 @@ tr.exportTo('tr.e.audits', function() {
       var mergerFunction = function(events) {
         var ir = new InteractionRecord('Input',
             tr.ui.b.getColorIdForGeneralPurposeString('mt_input'),
-            events[0].timestamp,
-            events[events.length - 1].timestamp - events[0].timestamp);
+            events[0].min,
+            events[events.length - 1].max - events[0].min);
         this.model.addInteractionRecord(ir);
       }.bind(this);
-      var timestampFunction = function(x) { return x.timestamp; };
-      tr.b.mergeExplicitRanges(inputSamples, 30, mergerFunction,
-                              timestampFunction, timestampFunction);
+      var inputRanges = inputSamples.map(function(sample) {
+        return tr.b.Range.fromExplicitRange(sample.timestamp, sample.timestamp);
+      });
+      tr.b.mergeRanges(inputRanges, 30, mergerFunction);
     }
   };
 

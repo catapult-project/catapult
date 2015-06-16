@@ -93,10 +93,13 @@ tr.exportTo('tr.e.audits', function() {
         preFrameEvents.push(slice);
     });
 
-    return tr.b.mergeExplicitRanges(preFrameEvents, 3, function(events) {
+    return tr.b.mergeRanges(
+        tr.b.convertEventsToRanges(preFrameEvents),
+        3,
+        function(events) {
       return {
-        start: events[0].start,
-        end: events[events.length - 1].end
+        start: events[0].min,
+        end: events[events.length - 1].max
       };
     });
   }

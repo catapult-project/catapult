@@ -58,8 +58,8 @@ tr.exportTo('tr.e.rail', function() {
 
       function latencyEventToStartPoint(latencyEvent) {
         return {
-          start: latencyEvent.start,
-          end: latencyEvent.start,
+          min: latencyEvent.start,
+          max: latencyEvent.start,
           latencyEvent: latencyEvent
         };
       }
@@ -81,8 +81,10 @@ tr.exportTo('tr.e.rail', function() {
         return gesture;
       }
 
-      return tr.b.mergeExplicitRanges(
-          latencyStartPoints, 250, joinStartPointsIntoGesture);
+      return tr.b.mergeRanges(
+          latencyStartPoints,
+          250,
+          joinStartPointsIntoGesture);
     },
 
     getAllExpectedFlingingRanges: function() {
@@ -236,8 +238,13 @@ tr.exportTo('tr.e.rail', function() {
     },
 
     findIdleInteractionRecords: function(otherIRs) {
-      var emptyRanges = tr.b.findEmptyRangesBetweenExplicitRanges(
-          otherIRs, this.model.bounds);
+      if (this.model.bounds.isEmpty) {
+        console.error('RAILIRFinder.findIdleInteractionRecords Empty model');
+        return [];
+      }
+      var emptyRanges = tr.b.findEmptyRangesBetweenRanges(
+          tr.b.convertEventsToRanges(otherIRs),
+          this.model.bounds);
       return emptyRanges.map(function(range) {
         return new tr.e.rail.IdleInteractionRecord(
             range.min, range.max - range.min);
@@ -249,8 +256,7 @@ tr.exportTo('tr.e.rail', function() {
       rirs.push.apply(rirs, this.findLoadInteractionRecords());
       rirs.push.apply(rirs, this.findResponseInteractionRecords());
       rirs.push.apply(rirs, this.findAnimationInteractionRecords());
-      // TODO(benjhayden): Reintroduce this without reintroducing #1020.
-      // rirs.push.apply(rirs, this.findIdleInteractionRecords(rirs));
+      rirs.push.apply(rirs, this.findIdleInteractionRecords(rirs));
       return rirs;
     }
   };
