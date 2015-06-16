@@ -4,6 +4,7 @@
 
 import argparse
 import dev_appserver
+import logging
 import os
 import sys
 import unittest
@@ -34,6 +35,7 @@ def main():
       'tests', nargs='*', help='Fully-qualified names of tests to run.')
   args = parser.parse_args()
   runner = unittest.TextTestRunner(verbosity=1)
+  logging.basicConfig(level=logging.CRITICAL)
   result = runner.run(_GetTests(args))
   if result.wasSuccessful():
     sys.exit(0)
