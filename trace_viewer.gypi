@@ -144,6 +144,7 @@
       'trace_viewer/extras/chrome/gpu/gpu_async_slice.html',
       'trace_viewer/extras/chrome/gpu/state.html',
       'trace_viewer/extras/chrome/gpu/state_view.html',
+      'trace_viewer/extras/chrome/layout_object.html',
       'trace_viewer/extras/chrome_config.html',
       'trace_viewer/extras/full_config.html',
       'trace_viewer/extras/highlighter/vsync_highlighter.html',
