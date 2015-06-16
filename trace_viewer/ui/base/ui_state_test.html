@@ -7,13 +7,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/ui/tracks/track.html">
-<link rel="import" href="/core/ui_state.html">
+<link rel="import" href="/ui/base/ui_state.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var UIState = tr.c.UIState;
+  var UIState = tr.ui.b.UIState;
 
   function FakeModel() {
     this.processes = { 1: { threads: { 2: { stableId: '1.2' } } } };

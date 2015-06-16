@@ -590,7 +590,7 @@ tr.exportTo('tr.ui', function() {
         }
 
         // Set the findcontrol's text to nav string of current state.
-        var state = new tr.c.UIState(loc,
+        var state = new tr.ui.b.UIState(loc,
             this.viewport_.currentDisplayTransform.scaleX);
         this.timelineView_.setFindCtlText(
             state.toUserFriendlyString(this.viewport_));

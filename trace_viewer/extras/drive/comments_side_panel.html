@@ -86,9 +86,9 @@ found in the LICENSE file.
       var uiState = JSON.parse(anchor).a[0][tr.e.drive.constants.ANCHOR_NAME];
 
       var myEvent = new CustomEvent('navigateToUIState', { detail:
-          new tr.c.UIState(new tr.c.Location(uiState.location.xWorld,
-                                             uiState.location.yComponents),
-                                             uiState.scaleX)
+          new tr.ui.b.UIState(new tr.c.Location(uiState.location.xWorld,
+                                                uiState.location.yComponents),
+                                                uiState.scaleX)
           });
       document.dispatchEvent(myEvent);
 
