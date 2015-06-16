@@ -127,7 +127,8 @@ tr.exportTo('tr.model', function() {
      * @param {Object.<string, Object>=} opt_args Arguments associated with
      * the slice.
      */
-    beginSlice: function(category, title, ts, opt_args, opt_tts) {
+    beginSlice: function(category, title, ts, opt_args, opt_tts,
+                         opt_argsStripped) {
       if (this.openPartialSlices_.length) {
         var prevSlice = this.openPartialSlices_[
             this.openPartialSlices_.length - 1];
@@ -138,7 +139,8 @@ tr.exportTo('tr.model', function() {
       var colorId = tr.ui.b.getColorIdForGeneralPurposeString(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {}, null,
-                                            opt_tts);
+                                            opt_tts, undefined,
+                                            opt_argsStripped);
       this.openPartialSlices_.push(slice);
       slice.didNotFinish = true;
       this.pushSlice(slice);
@@ -205,11 +207,12 @@ tr.exportTo('tr.model', function() {
      * the slice.
      */
     pushCompleteSlice: function(category, title, ts, duration, tts,
-                                cpuDuration, opt_args) {
+                                cpuDuration, opt_args, opt_argsStripped) {
       var colorId = tr.ui.b.getColorIdForGeneralPurposeString(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {},
-                                            duration, tts, cpuDuration);
+                                            duration, tts, cpuDuration,
+                                            opt_argsStripped);
       if (duration === undefined)
         slice.didNotFinish = true;
       this.pushSlice(slice);

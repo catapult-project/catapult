@@ -230,7 +230,10 @@ found in the LICENSE file.
       var event = this.currentSelection_[0];
 
       var rows = this.getEventRows_(event);
-      this.addArgsToRows_(rows, event.args);
+      if (event.argsStripped)
+        rows.push({ name: 'Args', value: 'Stripped' });
+      else
+        this.addArgsToRows_(rows, event.args);
 
       this.$.table.tableRows = rows;
       this.$.table.rebuild();

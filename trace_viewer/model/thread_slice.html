@@ -31,9 +31,9 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function ThreadSlice(cat, title, colorId, start, args, opt_duration,
-                       opt_cpuStart, opt_cpuDuration) {
+                       opt_cpuStart, opt_cpuDuration, opt_argsStripped) {
     Slice.call(this, cat, title, colorId, start, args, opt_duration,
-               opt_cpuStart, opt_cpuDuration);
+               opt_cpuStart, opt_cpuDuration, opt_argsStripped);
     // Do not modify this directly.
     // subSlices is configured by SliceGroup.rebuildSubRows_.
     this.subSlices = [];

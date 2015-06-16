@@ -24,7 +24,8 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function AsyncSlice(category, title, colorId, start, args, duration,
-                      opt_isTopLevel, opt_cpuStart, opt_cpuDuration) {
+                      opt_isTopLevel, opt_cpuStart, opt_cpuDuration,
+                      opt_argsStripped) {
     tr.model.TimedEvent.call(this, start);
 
     this.category = category || '';
@@ -43,6 +44,7 @@ tr.exportTo('tr.model', function() {
     this.endThread = undefined;
     this.cpuStart = undefined;
     this.cpuDuration = undefined;
+    this.argsStripped = false;
 
     this.duration = duration;
 
@@ -55,6 +57,9 @@ tr.exportTo('tr.model', function() {
 
     if (opt_cpuDuration !== undefined)
       this.cpuDuration = opt_cpuDuration;
+
+    if (opt_argsStripped !== undefined)
+      this.argsStripped = opt_argsStripped;
   };
 
   AsyncSlice.prototype = {

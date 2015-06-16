@@ -274,7 +274,7 @@ tr.exportTo('tr.e.importer', function() {
         var slice = thread.sliceGroup.beginSlice(
             event.cat, event.name, event.ts / 1000,
             this.deepCopyIfNeeded_(event.args),
-            event.tts / 1000);
+            event.tts / 1000, event.argsStripped);
         slice.startStackFrame = this.getStackFrameForEvent_(event);
       } else if (event.ph == 'I' || event.ph == 'i') {
         if (event.s !== undefined && event.s !== 't')
@@ -334,12 +334,16 @@ tr.exportTo('tr.e.importer', function() {
           event.dur === undefined ? undefined : event.dur / 1000,
           event.tts === undefined ? undefined : event.tts / 1000,
           event.tdur === undefined ? undefined : event.tdur / 1000,
-          this.deepCopyIfNeeded_(event.args));
+          this.deepCopyIfNeeded_(event.args), event.argsStripped);
       slice.startStackFrame = this.getStackFrameForEvent_(event);
       slice.endStackFrame = this.getStackFrameForEvent_(event, true);
     },
 
     processMetadataEvent: function(event) {
+      // The metadata events aren't useful without args.
+      if (event.argsStripped)
+        return;
+
       if (event.name == 'process_name') {
         var process = this.model_.getOrCreateProcess(event.pid);
         process.name = event.args.name;
@@ -497,6 +501,11 @@ tr.exportTo('tr.e.importer', function() {
       var events = this.events_;
       for (var eI = 0; eI < events.length; eI++) {
         var event = events[eI];
+        if (event.args === '__stripped__') {
+          event.argsStripped = true;
+          event.args = undefined;
+        }
+
         if (event.ph === 'B' || event.ph === 'E') {
           this.processDurationEvent(event);
 
@@ -883,7 +892,8 @@ tr.exportTo('tr.e.importer', function() {
               (endState.event.ts - startState.event.ts) / 1000,
               isTopLevel,
               thread_start,
-              thread_duration);
+              thread_duration,
+              startState.event.argsStripped);
 
           slice.startThread = startState.thread;
           slice.endThread = endState.thread;
@@ -991,7 +1001,7 @@ tr.exportTo('tr.e.importer', function() {
                 tr.b.concatenateObjects(events[0].event.args,
                                       events[events.length - 1].event.args),
                 (event.ts - events[0].event.ts) / 1000,
-                true);
+                true, undefined, undefined, events[0].event.argsStripped);
             slice.startThread = events[0].thread;
             slice.endThread = asyncEventState.thread;
             slice.id = id;
@@ -1032,7 +1042,8 @@ tr.exportTo('tr.e.importer', function() {
               var endIndex = startIndex + 1;
 
               var subName = events[j].event.name;
-              if (events[j].event.ph === 'T' || events[j].event.ph === 'p')
+              if (!events[j].event.argsStripped &&
+                  (events[j].event.ph === 'T' || events[j].event.ph === 'p'))
                 subName = subName + ':' + events[j].event.args.step;
 
               var asyncSliceConstructor =
@@ -1046,7 +1057,8 @@ tr.exportTo('tr.e.importer', function() {
                   events[startIndex].event.ts / 1000,
                   this.deepCopyIfNeeded_(events[j].event.args),
                   (events[endIndex].event.ts - events[startIndex].event.ts) /
-                      1000);
+                      1000, undefined, undefined,
+                      events[startIndex].event.argsStripped);
               subSlice.startThread = events[startIndex].thread;
               subSlice.endThread = events[endIndex].thread;
               subSlice.id = id;
