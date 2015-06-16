@@ -15,7 +15,6 @@
     "tools/telemetry/"
   ],
   "file_deps": [
-    "build/util/lastchange.py",
     "third_party/chromite/ssh_keys/testing_rsa",
     "third_party/chromite/ssh_keys/testing_rsa.pub"
   ]

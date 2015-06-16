@@ -1,6 +1,7 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import datetime
 import os
 import StringIO
 import unittest
@@ -24,7 +25,7 @@ def _MakePageSet():
 class DeterministicHtmlOutputFormatter(
     html_output_formatter.HtmlOutputFormatter):
   def _GetBuildTime(self):
-    return 'build_time'
+    return datetime.datetime(1998, 9, 4, 13, 0, 0, 7777)
 
   def _GetRevision(self):
     return 'revision'
@@ -39,6 +40,9 @@ class StringIOFile(StringIO.StringIO):
 
 
 class HtmlOutputFormatterTest(unittest.TestCase):
+
+  def setUp(self):
+    self.maxDiff = 100000
 
   def test_basic_summary(self):
     test_page_set = _MakePageSet()
@@ -61,8 +65,8 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     formatter.Format(results)
     expected = {
       "platform": "browser_type",
-      "buildTime": "build_time",
-      "label": None,
+      "buildTime": "1998-09-04T13:00:00.007777",
+      "label": 'test_name (1998-09-04 13:00:00)',
       "tests": {
         "test_name": {
           "metrics": {
@@ -89,7 +93,6 @@ class HtmlOutputFormatterTest(unittest.TestCase):
           }
         }
       },
-      "revision": "revision"
     }
     self.assertEquals(expected, formatter.GetResults())
 
@@ -112,8 +115,8 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     expected = [
       {
         "platform": "browser_type",
-        "buildTime": "build_time",
-        "label": None,
+        "buildTime": "1998-09-04T13:00:00.007777",
+        "label": 'test_name (1998-09-04 13:00:00)',
         "tests": {
           "test_name": {
             "metrics": {
@@ -140,12 +143,11 @@ class HtmlOutputFormatterTest(unittest.TestCase):
             }
           }
         },
-        "revision": "revision"
       },
       {
         "platform": "browser_type",
-        "buildTime": "build_time",
-        "label": None,
+        "buildTime": "1998-09-04T13:00:00.007777",
+        "label": 'test_name (1998-09-04 13:00:00)',
         "tests": {
           "test_name": {
             "metrics": {
@@ -172,7 +174,6 @@ class HtmlOutputFormatterTest(unittest.TestCase):
             }
           }
         },
-        "revision": "revision"
       }]
     self.assertEquals(expected, formatter.GetCombinedResults())
     last_output_len = len(output_file.getvalue())
@@ -195,8 +196,8 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     formatter.Format(results)
     expected = [{
       "platform": "browser_type",
-      "buildTime": "build_time",
-      "label": None,
+      "buildTime": "1998-09-04T13:00:00.007777",
+      "label": 'test_name (1998-09-04 13:00:00)',
       "tests": {
         "test_name": {
           "metrics": {
@@ -223,7 +224,6 @@ class HtmlOutputFormatterTest(unittest.TestCase):
           }
         }
       },
-      "revision": "revision"
     }]
     self.assertEquals(expected, formatter.GetCombinedResults())
     self.assertTrue(len(output_file.getvalue()) < last_output_len)

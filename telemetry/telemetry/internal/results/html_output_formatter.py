@@ -15,7 +15,6 @@ from telemetry.internal.results import output_formatter
 from telemetry import value as value_module
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'util')
-import lastchange  # pylint: disable=F0401
 
 
 _TEMPLATE_HTML_PATH = os.path.join(
@@ -28,6 +27,14 @@ _JS_PLUGINS = [os.path.join('flot', 'jquery.flot.min.js'),
 _UNIT_JSON = (util.GetTelemetryDir(), 'telemetry', 'value', 'unit-info.json')
 
 
+def _DatetimeInEs5CompatibleFormat(dt):
+  return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')
+
+
+def _ShortDatetimeInEs5CompatibleFormat(dt):
+  return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+
 # TODO(eakuefner): rewrite template to use Telemetry JSON directly
 class HtmlOutputFormatter(output_formatter.OutputFormatter):
   def __init__(self, output_stream, metadata, reset_results, upload_results,
@@ -36,22 +43,22 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     self._metadata = metadata
     self._reset_results = reset_results
     self._upload_results = upload_results
+    self._build_time = self._GetBuildTime()
     self._existing_results = self._ReadExistingResults(output_stream)
+    if results_label:
+      self._results_label = results_label
+    else:
+      self._results_label = '%s (%s)' % (
+          metadata.name, _ShortDatetimeInEs5CompatibleFormat(self._build_time))
     self._result = {
-        'buildTime': self._GetBuildTime(),
-        'revision': self._GetRevision(),
-        'label': results_label,
+        'buildTime': _DatetimeInEs5CompatibleFormat(self._build_time),
+        'label': self._results_label,
         'platform': browser_type,
         'tests': {}
         }
 
   def _GetBuildTime(self):
-    def _DatetimeInEs5CompatibleFormat(dt):
-      return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')
-    return _DatetimeInEs5CompatibleFormat(datetime.datetime.utcnow())
-
-  def _GetRevision(self):
-    return lastchange.FetchVersionInfo(None).revision
+    return datetime.datetime.utcnow()
 
   def _GetHtmlTemplate(self):
     with open(_TEMPLATE_HTML_PATH) as f:

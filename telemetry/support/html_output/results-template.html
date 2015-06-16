@@ -343,25 +343,17 @@ function TestResult(metric, values, associatedRun) {
 
 function TestRun(entry) {
     this.id = function() { return entry['buildTime'].replace(/[:.-]/g,''); }
-    this.revision = function () { return entry['revision']; }
     this.label = function () {
         if (labelKey in localStorage)
             return localStorage[labelKey];
-        if (entry['label'])
-            return entry['label'];
-        return 'r' + this.revision();
+        return entry['label'];
     }
     this.setLabel = function(label) { localStorage[labelKey] = label; }
     this.isHidden = function() { return localStorage[hiddenKey]; }
     this.hide = function() { localStorage[hiddenKey] = true; }
     this.show = function() { localStorage.removeItem(hiddenKey); }
     this.description = function() {
-        var label = this.label();
-        if (label != 'r' + this.revision())
-            label = ' ' + label;
-        else
-            label = '';
-        return new Date(entry['buildTime']).toLocaleString() + '\n' + entry['platform'] + ' r' + entry['revision'] + label;
+        return new Date(entry['buildTime']).toLocaleString() + '\n' + entry['platform'] + ' ' + this.label();
     }
 
     var labelKey = 'telemetry_label_' + this.id();
@@ -1263,7 +1255,7 @@ TableRow.prototype.markupForRun = function(result, referenceResult) {
     if (isNaN(result.confidenceIntervalDeltaRatio())) {
         // Don't bother showing +- Nan as it is meaningless
         confidence = '';
-    } else { 
+    } else {
         confidence = '&plusmn; ' + formatPercentage(result.confidenceIntervalDeltaRatio());
     }
 
@@ -1309,7 +1301,7 @@ TableRow.prototype.openRow = function() {
         var child = this.children[0];
         if (child.isImportant) {
           // ... and it is important (i.e. the summary row) just open it when
-          // parent is opened to save needless clicking 
+          // parent is opened to save needless clicking
           child.openRow();
         }
     }
