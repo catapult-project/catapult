@@ -11,7 +11,7 @@ import re
 import sys
 
 from telemetry.core import command_line
-from telemetry.util import path
+from telemetry.internal.util import path
 
 
 # All folders dependent on Telemetry, found using a code search.
