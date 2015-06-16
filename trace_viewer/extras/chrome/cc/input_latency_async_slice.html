@@ -161,11 +161,11 @@ tr.exportTo('tr.e.cc', function() {
         if (slice.title !== 'Latency::ScrollUpdate')
           continue;
 
-        var parentID = slice.args.data.
+        var parentId = slice.args.data.
             INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT.
             sequence_number;
 
-        if (parentID === undefined) {
+        if (parentId === undefined) {
           // Old trace, we can only rely on the timestamp to find the slice
           if (slice.start < gestureScrollUpdateStart ||
               slice.start >= gestureScrollUpdateEnd)
@@ -173,7 +173,7 @@ tr.exportTo('tr.e.cc', function() {
         } else {
           // New trace, we can definitely find the latency slice by comparing
           // its sequence number with gesture id
-          if (parseInt(parentID) !== parseInt(this.id))
+          if (parseInt(parentId) !== parseInt(this.id))
             continue;
         }
 
