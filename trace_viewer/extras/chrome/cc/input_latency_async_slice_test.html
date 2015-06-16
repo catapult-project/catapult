@@ -248,6 +248,121 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.as1.associatedEvents[0].id, '0x100');
   });
 
+  test('getAssociatedEventsBypassRendererMainWithOnScroll', function() {
+    var m = newModel(function(m) {
+
+      var pb = m.getOrCreateProcess(1);
+      var pr = m.getOrCreateProcess(2);
+      var mainBrowserThread = pb.getOrCreateThread(10);
+      var mainRendererThread = pr.getOrCreateThread(20);
+      var compositorThread = pr.getOrCreateThread(21);
+
+      mainBrowserThread.name = 'CrBrowserMain';
+      mainRendererThread.name = 'CrRendererMain';
+      compositorThread.name = 'Compositor';
+
+      // Expectation: s2 should be included but not s3
+      // GestureScrollUpdate:  [       as1        ]
+      // CrBrowserMain:        [s0]              [s1]
+      //                         |               /|\
+      // CrRendererMain:         |    [s2] [s3]   |
+      //                        \|/   /|\         |
+      // Compositor:            [s4]___|__________|
+      // ScrollUpdate:               [   as2   ]
+
+      m.s0 = mainBrowserThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's0', start: 0.0, duration: 1.0 }));
+      m.s1 = mainBrowserThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's1', start: 6.0, duration: 1.0 }));
+      m.s2 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's2', start: 2.0, duration: 1.0 }));
+      m.s3 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's3', start: 4.0, duration: 1.0 }));
+      m.s4 = compositorThread.sliceGroup.pushSlice(newSliceEx(
+          { title: 's4', start: 0.5, duration: 1.0 }));
+
+      m.f1 = newFlowEventEx({
+        'title': 'f1',
+        start: 0,
+        end: 10,
+        startSlice: m.s0,
+        endSlice: m.s4,
+        id: '0x100'
+      });
+
+      m.f2 = newFlowEventEx({
+        'title': 'f2',
+        start: 20,
+        end: 30,
+        startSlice: m.s4,
+        endSlice: m.s1,
+        id: '0x100'
+      });
+
+      m.f3 = newFlowEventEx({
+        'title': 'f3',
+        start: 20,
+        end: 30,
+        startSlice: m.s4,
+        endSlice: m.s2,
+        id: '0x800'
+      });
+
+      m.flowEvents.push(m.f1);
+      m.flowEvents.push(m.f2);
+      m.flowEvents.push(m.f3);
+
+      m.as0 = mainBrowserThread.asyncSliceGroup.push(newAsyncSliceEx({
+        title: 'InputLatency::GestureScrollUpdate',
+        cat: 'benchmark,latencyInfo',
+        args: {
+          data: {
+            INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT: 100
+          }
+        },
+        start: 2,
+        end: 10,
+        id: '0x101',
+        isTopLevel: true,
+        startThread: mainBrowserThread
+      }));
+
+      m.as1 = mainBrowserThread.asyncSliceGroup.push(newAsyncSliceEx({
+        title: 'InputLatency::GestureScrollUpdate',
+        cat: 'benchmark,latencyInfo',
+        args: {
+          data: {}
+        },
+        start: 0,
+        end: 10,
+        id: '0x100',
+        isTopLevel: true,
+        startThread: mainBrowserThread
+      }));
+
+      m.as2 = compositorThread.asyncSliceGroup.push(newAsyncSliceEx({
+        title: 'Latency::ScrollUpdate',
+        cat: 'benchmark,latencyInfo',
+        args: {
+          data: {
+            INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT: 100
+          }
+        },
+        start: 1.5,
+        end: 8,
+        id: '0x800',
+        isTopLevel: true,
+        startThread: compositorThread
+      }));
+
+    });
+
+    assert.deepEqual(m.as0.associatedEvents, []);
+    assert.deepEqual(m.as1.associatedEvents,
+        [m.f1, m.s0, m.f2, m.s4, m.s1, m.f3, m.s2]);
+    assert.equal(m.as1.associatedEvents[0].id, '0x100');
+  });
+
   test('getAssociatedEventsWithoutCommit', function() {
     var m = newModel(function(m) {
 

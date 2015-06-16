@@ -146,9 +146,9 @@ tr.exportTo('tr.e.cc', function() {
       }
     },
 
-    // Find the Latency::ScrollUpdate slice that started between the start
-    // and end of InputLatency::GestureScrollUpdate
-    addScrollUpdateEvents: function(compositorThread) {
+    // Find the Latency::ScrollUpdate slice that corresponds to the
+    // InputLatency::GestureScrollUpdate slice
+    addScrollUpdateEvents: function(eventGUIDs, compositorThread) {
       var gestureScrollUpdateStart = this.start;
       var gestureScrollUpdateEnd = this.end;
 
@@ -158,15 +158,32 @@ tr.exportTo('tr.e.cc', function() {
       for (var i in allCompositorAsyncSlices) {
         var slice = allCompositorAsyncSlices[i];
 
-        if (slice.title === 'Latency::ScrollUpdate' &&
-            slice.start >= gestureScrollUpdateStart &&
-            slice.start < gestureScrollUpdateEnd) {
-          // Found Latency::ScrollUpdate; push all its associatedEvents
-          slice.associatedEvents.forEach(function(event) {
-            this.associatedEvents_.push(event);
-          }, this);
-          break;
+        if (slice.title !== 'Latency::ScrollUpdate')
+          continue;
+
+        var parent_id = slice.args.data.
+            INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT.
+            sequence_number;
+
+        if (parent_id === undefined) {
+          // Old trace, we can only rely on the timestamp to find the slice
+          if (slice.start < gestureScrollUpdateStart ||
+              slice.start >= gestureScrollUpdateEnd)
+            continue;
+        } else {
+          // New trace, we can definitely find the latency slice by comparing
+          // its sequence number with gesture id
+          if (parseInt(parent_id) !== parseInt(this.id))
+            continue;
         }
+
+        slice.associatedEvents.forEach(function(event) {
+          if (!eventGUIDs[event.guid]) {
+            this.associatedEvents_.push(event);
+            eventGUIDs[event.guid] = true;
+          }
+        }, this);
+        break;
       }
     },
 
@@ -192,7 +209,8 @@ tr.exportTo('tr.e.cc', function() {
         // related to the GestureScrollUpdate input. Add them manually for now.
         var latencyScrollUpdateMaker = 'InputLatency::GestureScrollUpdate';
         if (this.title === latencyScrollUpdateMaker)
-          this.addScrollUpdateEvents(rendererHelper.compositorThread);
+          this.addScrollUpdateEvents(eventGUIDs,
+              rendererHelper.compositorThread);
 
         return;
       }
