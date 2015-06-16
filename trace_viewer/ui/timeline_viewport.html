@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/draw_helpers.html">
 <link rel="import" href="/ui/timeline_interest_range.html">
 <link rel="import" href="/ui/timeline_display_transform.html">
+<link rel="import" href="/ui/tracks/container_to_track_map.html">
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/ui/base/animation.html">
 <link rel="import" href="/ui/base/animation_controller.html">
@@ -22,32 +23,6 @@ found in the LICENSE file.
 tr.exportTo('tr.ui', function() {
   var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
   var TimelineInterestRange = tr.ui.TimelineInterestRange;
-
-  /**
-   * ContainerToTrackObj is a class to handle building and accessing a map
-   * between an EventContainer's stableId and its handling track.
-   *
-   * @constructor
-   */
-  function ContainerToTrackObj() {
-    this.stableIdToTrackMap_ = {};
-  }
-
-  ContainerToTrackObj.prototype = {
-    addContainer: function(container, track) {
-      if (!track)
-        throw new Error('Must provide a track.');
-      this.stableIdToTrackMap_[container.stableId] = track;
-    },
-
-    clearMap: function() {
-      this.stableIdToTrackMap_ = {};
-    },
-
-    getTrackByStableId: function(stableId) {
-      return this.stableIdToTrackMap_[stableId];
-    }
-  };
 
   /**
    * The TimelineViewport manages the transform used for navigating
@@ -99,7 +74,7 @@ tr.exportTo('tr.ui', function() {
     this.interestRange_ = new TimelineInterestRange(this);
 
     this.eventToTrackMap_ = {};
-    this.containerToTrackObj = new ContainerToTrackObj();
+    this.containerToTrackMap = new tr.ui.tracks.ContainerToTrackMap();
   }
 
   TimelineViewport.prototype = {
@@ -406,9 +381,9 @@ tr.exportTo('tr.ui', function() {
     },
 
     rebuildContainerToTrackMap: function() {
-      this.containerToTrackObj.clearMap();
+      this.containerToTrackMap.clearMap();
       this.modelTrackContainer_.addContainersToTrackMap(
-          this.containerToTrackObj);
+          this.containerToTrackMap);
     },
 
     trackForEvent: function(event) {
@@ -417,7 +392,6 @@ tr.exportTo('tr.ui', function() {
   };
 
   return {
-    ContainerToTrackObj: ContainerToTrackObj,
     TimelineViewport: TimelineViewport
   };
 });

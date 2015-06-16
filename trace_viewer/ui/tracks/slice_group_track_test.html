@@ -242,7 +242,7 @@ tr.b.unittest.testSuite(function() {
 
 test('sliceGroupContainerMap', function() {
     var vp = new tr.ui.TimelineViewport();
-    var containerToTrack = vp.containerToTrackObj;
+    var containerToTrack = vp.containerToTrackMap;
     var model = new tr.Model();
     var process = model.getOrCreateProcess(123);
     var thread = process.getOrCreateThread(456);
@@ -267,8 +267,8 @@ test('sliceGroupContainerMap', function() {
         containerToTrack.getTrackByStableId('123.456.SliceGroup'));
 
     vp.modelTrackContainer = {
-      addContainersToTrackMap: function(containerToTrackObj) {
-        processTrack.addContainersToTrackMap(containerToTrackObj);
+      addContainersToTrackMap: function(containerToTrackMap) {
+        processTrack.addContainersToTrackMap(containerToTrackMap);
       },
       addEventListener: function() {}
     };

@@ -42,12 +42,12 @@ tr.b.unittest.testSuite(function() {
     // search for the tracks and manually build the stableId map here.
     var processTracks = document.getElementsByClassName('process-track-base');
     vp.modelTrackContainer = {
-      addContainersToTrackMap: function(containerToTrackObj) {
+      addContainersToTrackMap: function(containerToTrackMap) {
         // Invoking the process track's addContainersToTrackMap is enough to
         // build the map for all children (i.e. Threads, AsyncSliceGroups)
         // as well.
         for (var i = 0; i < processTracks.length; i++)
-          processTracks[i].addContainersToTrackMap(containerToTrackObj);
+          processTracks[i].addContainersToTrackMap(containerToTrackMap);
       },
       addEventListener: function() {},
       canvas: {
@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
     vp.rebuildContainerToTrackMap();
 
     var asyncTrack =
-        vp.containerToTrackObj.getTrackByStableId('123.456.AsyncSliceGroup');
+        vp.containerToTrackMap.getTrackByStableId('123.456.AsyncSliceGroup');
     assert.isNotNull(asyncTrack);
     assert.isFalse(asyncTrack.expanded); // Make sure this starts unexpanded.
 

@@ -44,7 +44,7 @@ tr.exportTo('tr.c', function() {
     if (scaleX <= 0)
       throw new Error('Invalid ScaleX value in UI State string.');
 
-    if (!viewport.containerToTrackObj.getTrackByStableId(stableId))
+    if (!viewport.containerToTrackMap.getTrackByStableId(stableId))
       throw new Error('Invalid StableID given in UI State String.');
 
     var loc = tr.c.Location.fromStableIdAndTimestamp(

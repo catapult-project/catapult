@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   function FakeViewPort() {
-    this.containerToTrackObj = {
+    this.containerToTrackMap = {
       // "1.2" is the only valid stableId this test function accepts.
       getTrackByStableId: function(stableId) {
         if (stableId === '1.2')

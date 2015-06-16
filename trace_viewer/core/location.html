@@ -80,7 +80,7 @@ tr.exportTo('tr.c', function() {
 
     // The y components' percentage offsets will be calculated with respect to
     // the boundingRect's top of containing track.
-    var containerToTrack = viewport.containerToTrackObj;
+    var containerToTrack = viewport.containerToTrackMap;
     var elem = containerToTrack.getTrackByStableId(stableId);
     if (!elem)
       return;
@@ -112,7 +112,7 @@ tr.exportTo('tr.c', function() {
      * internal yComponents.
      */
     getContainingTrack: function(viewport) {
-      var containerToTrack = viewport.containerToTrackObj;
+      var containerToTrack = viewport.containerToTrackMap;
       for (var i in this.yComponents_) {
         var yComponent = this.yComponents_[i];
         var track = containerToTrack.getTrackByStableId(yComponent.stableId);
@@ -127,7 +127,7 @@ tr.exportTo('tr.c', function() {
      */
     toViewCoordinates: function(viewport) {
       var dt = viewport.currentDisplayTransform;
-      var containerToTrack = viewport.containerToTrackObj;
+      var containerToTrack = viewport.containerToTrackMap;
       var viewX = dt.xWorldToView(this.xWorld_);
 
       var viewY = -1;

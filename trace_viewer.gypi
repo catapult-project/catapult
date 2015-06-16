@@ -368,6 +368,7 @@
       'trace_viewer/ui/tracks/chart_series.html',
       'trace_viewer/ui/tracks/chart_track.html',
       'trace_viewer/ui/tracks/chart_transform.html',
+      'trace_viewer/ui/tracks/container_to_track_map.html',
       'trace_viewer/ui/tracks/container_track.html',
       'trace_viewer/ui/tracks/counter_track.html',
       'trace_viewer/ui/tracks/cpu_track.html',
