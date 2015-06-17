@@ -29,7 +29,7 @@ CHROME_PACKAGE_NAMES = {
        android_browser_backend_settings.ChromeShellBackendSettings,
        'ChromeShell.apk'],
   'android-webview':
-      ['org.chromium.telemetry_shell',
+      ['org.chromium.webview_shell',
        android_browser_backend_settings.WebviewBackendSettings,
        None],
   'android-webview-shell':

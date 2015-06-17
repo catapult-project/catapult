@@ -97,7 +97,7 @@ class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
 class WebviewBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self,
                package,
-               activity='org.chromium.telemetry_shell.TelemetryActivity',
+               activity='org.chromium.webview_shell.TelemetryActivity',
                cmdline_file='/data/local/tmp/webview-command-line'):
     super(WebviewBackendSettings, self).__init__(
         activity=activity,
