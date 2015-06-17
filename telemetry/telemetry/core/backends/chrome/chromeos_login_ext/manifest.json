@@ -4,7 +4,7 @@
   "name": "GaiaDummyAuthExtension",
   "version": "0.0.1",
   "manifest_version": 2,
-  "content_security_policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'",
+  "content_security_policy": "default-src 'self' blob: filesystem:; script-src 'self' blob: filesystem:; style-src 'self' blob: filesystem: 'unsafe-inline'",
   "description": "GAIA Dummy Component Extension",
   "web_accessible_resources": [
     "main.html",
