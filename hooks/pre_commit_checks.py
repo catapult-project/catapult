@@ -125,10 +125,10 @@ def _CheckCopyrightNonThirdParty(input_api):
 def _Check(input_api, license_re, sources):
   bad_files = []
   for f in sources:
+    if input_api.IsIgnoredFile(f):
+      continue
     contents = f.contents
     if not license_re.search(contents):
-      if input_api.IsIgnoredFile(f):
-        continue
       bad_files.append(f.filename)
   if bad_files:
     return [_FormatError(
