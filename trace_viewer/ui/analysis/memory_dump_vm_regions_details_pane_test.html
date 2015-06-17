@@ -31,6 +31,15 @@ tr.b.unittest.testSuite(function() {
         }
       }),
       VMRegion.fromDict({
+        mappedFile: '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0',
+        startAddress: 140296983150592,
+        sizeInBytes: 2097152,
+        protectionFlags: 0,
+        byteStats: {
+          proportionalResident: 0
+        }
+      }),
+      VMRegion.fromDict({
         startAddress: 10995116277760,
         sizeInBytes: 2147483648,
         protectionFlags: VMRegion.PROTECTION_FLAG_READ |
@@ -113,7 +122,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(rows, 1);
 
     var totalRow = rows[0];
-    checkRow(totalRow, 'Total', 4831838208, 8192, 0, 0, '', '', 7);
+    checkRow(totalRow, 'Total', 4833935360, 8192, 0, 0, '', '', 7);
 
     var androidRow = totalRow.subRows[0];
     checkRow(androidRow, 'Android', '', '', '', '', '', '', 3);
@@ -128,14 +137,18 @@ tr.b.unittest.testSuite(function() {
     checkRow(normalRow, 'Normal', '', '', '', '', '', '', 0);
 
     var filesRow = totalRow.subRows[3];
-    checkRow(filesRow, 'Files', 536870912, 8192, '', '', '', '', 7);
+    checkRow(filesRow, 'Files', 538968064, 8192, '', '', '', '', 7);
 
     var soRow = filesRow.subRows[0];
-    checkRow(soRow, 'so', 536870912, 8192, '', '', '', '', 1);
+    checkRow(soRow, 'so', 538968064, 8192, '', '', '', '', 2);
 
     var mmapChromeRow = soRow.subRows[0];
     checkRow(mmapChromeRow, '/lib/chrome.so', 536870912, 8192, '', '',
         '0000000000010000', 'r-x', undefined);
+
+    var mmapLibX11Row = soRow.subRows[1];
+    checkRow(mmapLibX11Row, '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0',
+        2097152, 0, '', '', '00007f996fd80000', '---', undefined);
 
     var otherRow = totalRow.subRows[6];
     checkRow(otherRow, 'Other', 4294967296, '', 0, 0, '', '', 2);

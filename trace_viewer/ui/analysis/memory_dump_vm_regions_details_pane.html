@@ -123,11 +123,11 @@ found in the LICENSE file.
         },
         {
           name: 'Files',
-          file: /\.((((so)|(jar)|(apk)|(ttf)|(odex)|(oat)|(arg))$)|(dex))/,
+          file: /\.((((jar)|(apk)|(ttf)|(odex)|(oat)|(arg))$)|(dex)|(so))/,
           children: [
             {
               name: 'so',
-              file: /\.so$/
+              file: /\.so/
             },
             {
               name: 'jar',
