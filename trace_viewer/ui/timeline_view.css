@@ -62,7 +62,7 @@ x-timeline-view > .control > .bar > .controls button,
 x-timeline-view > .control > .bar > .controls label,
 x-timeline-view > .control > .bar > .controls tr-ui-b-toolbar-button,
 x-timeline-view > .control > .bar > .controls tr-ui-b-dropdown,
-x-timeline-view > .control > .bar > .controls tracing-find-control {
+x-timeline-view > .control > .bar > .controls tr-ui-find-control {
   font-size: 14px;
   margin: 1px 1px 1px 0;
 }
