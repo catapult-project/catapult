@@ -202,6 +202,9 @@ class PlatformBackend(object):
   def GetCommandLine(self, pid):
     raise NotImplementedError()
 
+  def GetDeviceTypeName(self):
+    raise NotImplementedError()
+
   def GetArchName(self):
     raise NotImplementedError()
 

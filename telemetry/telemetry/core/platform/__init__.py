@@ -109,6 +109,12 @@ class Platform(object):
     """Returns True if the device has been thermally throttled."""
     return self._platform_backend.HasBeenThermallyThrottled()
 
+  def GetDeviceTypeName(self):
+    """Returns a string description of the Platform device, or None.
+
+    Examples: Nexus 7, Nexus 6, Desktop"""
+    return self._platform_backend.GetDeviceTypeName()
+
   def GetArchName(self):
     """Returns a string description of the Platform architecture.
 

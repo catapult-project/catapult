@@ -257,6 +257,9 @@ class AndroidPlatformBackend(
   def GetOSName(self):
     return 'android'
 
+  def GetDeviceTypeName(self):
+    return self._device.product_model()
+
   @decorators.Cache
   def GetOSVersionName(self):
     return self._device.GetProp('ro.build.id')[0]

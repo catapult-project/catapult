@@ -23,3 +23,6 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
     assert flush_command, 'You must build clear_system_cache first'
 
     subprocess.check_call([flush_command, '--recurse', directory])
+
+  def GetDeviceTypeName(self):
+    return 'Desktop'
