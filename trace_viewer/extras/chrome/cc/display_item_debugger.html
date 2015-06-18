@@ -262,7 +262,7 @@ tr.exportTo('tr.e.cc', function() {
       if (this.updateContentsPending_)
         return;
       this.updateContentsPending_ = true;
-      tr.ui.b.requestAnimationFrameInThisFrameIfPossible(
+      tr.b.requestAnimationFrameInThisFrameIfPossible(
           this.updateContents_.bind(this)
       );
     },

@@ -32,9 +32,9 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     controller.queueAnimation(a, 0);
 
     assert.isTrue(a.affectsPanY);
-    tr.ui.b.forcePendingRAFTasksToRun(50);
+    tr.b.forcePendingRAFTasksToRun(50);
     assert.isAbove(target.panX, 0);
-    tr.ui.b.forcePendingRAFTasksToRun(100);
+    tr.b.forcePendingRAFTasksToRun(100);
     assert.isFalse(controller.hasActiveAnimation);
     assert.equal(target.panX, 10);
     assert.equal(target.panY, 20);
@@ -54,7 +54,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     controller.queueAnimation(a, 0);
 
     assert.isFalse(a.affectsPanY);
-    tr.ui.b.forcePendingRAFTasksToRun(100);
+    tr.b.forcePendingRAFTasksToRun(100);
     assert.equal(target.scaleX, 5);
   });
 
@@ -71,13 +71,13 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     controller.target = target;
     controller.queueAnimation(a, 0);
 
-    tr.ui.b.forcePendingRAFTasksToRun(50);
+    tr.b.forcePendingRAFTasksToRun(50);
     controller.queueAnimation(b, 50);
 
-    tr.ui.b.forcePendingRAFTasksToRun(100);
+    tr.b.forcePendingRAFTasksToRun(100);
     assert.isTrue(controller.hasActiveAnimation);
 
-    tr.ui.b.forcePendingRAFTasksToRun(150);
+    tr.b.forcePendingRAFTasksToRun(150);
     assert.isFalse(controller.hasActiveAnimation);
     assert.equal(target.panX, 20);
   });

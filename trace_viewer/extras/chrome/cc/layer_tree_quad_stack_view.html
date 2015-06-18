@@ -12,9 +12,9 @@ found in the LICENSE file.
 <link rel="import" href="/extras/chrome/cc/util.html">
 <link rel="import" href="/base/color.html">
 <link rel="import" href="/base/properties.html">
+<link rel="import" href="/base/raf.html">
 <link rel="import" href="/base/quad.html">
 <link rel="import" href="/base/range.html">
-<link rel="import" href="/ui/base/raf.html">
 <link rel="import" href="/ui/base/quad_stack_view.html">
 <link rel="import" href="/ui/base/info_bar.html">
 <link rel="import" href="/ui/base/utils.html">
@@ -402,7 +402,7 @@ tr.exportTo('tr.e.cc', function() {
       if (this.updateContentsPending_)
         return;
       this.updateContentsPending_ = true;
-      tr.ui.b.requestAnimationFrameInThisFrameIfPossible(
+      tr.b.requestAnimationFrameInThisFrameIfPossible(
           this.updateContents_, this);
     },
 

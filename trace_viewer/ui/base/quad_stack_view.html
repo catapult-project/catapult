@@ -7,9 +7,9 @@ found in the LICENSE file.
 <link rel="import" href="/base/bbox2.html">
 <link rel="import" href="/base/math.html">
 <link rel="import" href="/base/quad.html">
+<link rel="import" href="/base/raf.html">
 <link rel="import" href="/base/rect.html">
 <link rel="import" href="/base/settings.html">
-<link rel="import" href="/ui/base/raf.html">
 <link rel="import" href="/ui/base/camera.html">
 <link rel="import" href="/ui/base/mouse_mode_selector.html">
 <link rel="import" href="/ui/base/mouse_tracker.html">
@@ -560,7 +560,7 @@ tr.exportTo('tr.ui.b', function() {
       if (this.redrawScheduled_)
         return false;
       this.redrawScheduled_ = true;
-      tr.ui.b.requestAnimationFrame(this.render, this);
+      tr.b.requestAnimationFrame(this.render, this);
     },
 
     onRenderRequired_: function(e) {
