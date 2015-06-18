@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
   test('brushingStateSimple', function() {
     var m = newSimpleModel();
 
-    var bs = new tr.c.BrushingState();
+    var bs = new tr.ui.b.BrushingState();
     bs.selection = new Selection([m.sA]);
 
     bs.applyToModelSelectionState(m);
@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
   test('brushingStateWithSimpleHighlight', function() {
     var m = newSimpleModel();
 
-    var bs = new tr.c.BrushingState();
+    var bs = new tr.ui.b.BrushingState();
     bs.selection = new Selection([m.sA]);
     bs.findMatches = new Selection([m.sA, m.sB]);
 
@@ -65,7 +65,7 @@ tr.b.unittest.testSuite(function() {
   test('brushingTransfer', function() {
     var m = newSimpleModel();
 
-    var bs = new tr.c.BrushingState();
+    var bs = new tr.ui.b.BrushingState();
     bs.selection = new Selection([m.sA]);
 
     var bs2 = bs.clone();
@@ -85,7 +85,7 @@ tr.b.unittest.testSuite(function() {
   test('equality', function() {
     var m = newSimpleModel();
 
-    var bs = new tr.c.BrushingState();
+    var bs = new tr.ui.b.BrushingState();
     bs.selection = new Selection([m.sA]);
     bs.findMatches = new Selection([m.sB]);
     bs.applyToModelSelectionState = new Selection([m.sC]);

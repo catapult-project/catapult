@@ -57,7 +57,7 @@ tr.b.unittest.testSuite(function() {
     var m = timelineView.model;
 
     // Setting causes change.
-    var bs = new tr.c.BrushingState();
+    var bs = new tr.ui.b.BrushingState();
     bs.selection = new Selection([m.sA]);
     assert.isTrue(doesCauseChangeToFire(
         selectionController,
@@ -77,7 +77,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(selectionController.currentBrushingState.isAppliedToModel);
 
     // Setting to something different unapplies the old bs.
-    var bs3 = new tr.c.BrushingState();
+    var bs3 = new tr.ui.b.BrushingState();
     bs3.findMatches = new Selection([m.sA, m.sB]);
     selectionController.currentBrushingState = bs3;
     assert.isTrue(bs3.isAppliedToModel);
