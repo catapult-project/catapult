@@ -86,7 +86,7 @@ found in the LICENSE file.
       var uiState = JSON.parse(anchor).a[0][tr.e.drive.constants.ANCHOR_NAME];
 
       var myEvent = new CustomEvent('navigateToUIState', { detail:
-          new tr.ui.b.UIState(new tr.c.Location(uiState.location.xWorld,
+          new tr.ui.b.UIState(new tr.ui.b.Location(uiState.location.xWorld,
                                                 uiState.location.yComponents),
                                                 uiState.scaleX)
           });
@@ -94,7 +94,7 @@ found in the LICENSE file.
 
       if (this.annotationFromComment_)
         this.model.removeAnnotation(this.annotationFromComment_);
-      var loc = new tr.c.Location(uiState.location.xWorld,
+      var loc = new tr.ui.b.Location(uiState.location.xWorld,
                                   uiState.location.yComponents);
 
       var text = sender.comment.author.displayName + ': ' +

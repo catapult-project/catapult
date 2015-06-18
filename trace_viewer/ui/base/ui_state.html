@@ -5,13 +5,13 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/location.html">
+<link rel="import" href="/ui/base/location.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var Location = tr.c.Location;
+  var Location = tr.ui.b.Location;
 
   /**
    * UIState is a class that represents the current state of the timeline by
@@ -47,7 +47,7 @@ tr.exportTo('tr.ui.b', function() {
     if (!viewport.containerToTrackMap.getTrackByStableId(stableId))
       throw new Error('Invalid StableID given in UI State String.');
 
-    var loc = tr.c.Location.fromStableIdAndTimestamp(
+    var loc = tr.ui.b.Location.fromStableIdAndTimestamp(
         viewport, stableId, timestamp);
     return new UIState(loc, scaleX);
   }

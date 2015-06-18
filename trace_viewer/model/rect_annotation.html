@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/location.html">
+<link rel="import" href="/ui/base/location.html">
 <link rel="import" href="/model/annotation.html">
 <link rel="import" href="/ui/annotations/rect_annotation_view.html">
 
@@ -25,9 +25,9 @@ tr.exportTo('tr.model', function() {
   RectAnnotation.fromDict = function(dict) {
     var args = dict.args;
     var startLoc =
-        new tr.c.Location(args.start.xWorld, args.start.yComponents);
+        new tr.ui.b.Location(args.start.xWorld, args.start.yComponents);
     var endLoc =
-        new tr.c.Location(args.end.xWorld, args.end.yComponents);
+        new tr.ui.b.Location(args.end.xWorld, args.end.yComponents);
     return new tr.model.RectAnnotation(startLoc, endLoc);
   }
 

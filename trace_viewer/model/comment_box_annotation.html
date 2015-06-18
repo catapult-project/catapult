@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/location.html">
+<link rel="import" href="/ui/base/location.html">
 <link rel="import" href="/model/annotation.html">
 <link rel="import" href="/model/rect_annotation.html">
 <link rel="import" href="/ui/annotations/comment_box_annotation_view.html">
@@ -25,7 +25,7 @@ tr.exportTo('tr.model', function() {
   CommentBoxAnnotation.fromDict = function(dict) {
     var args = dict.args;
     var location =
-        new tr.c.Location(args.location.xWorld, args.location.yComponents);
+        new tr.ui.b.Location(args.location.xWorld, args.location.yComponents);
     return new tr.model.CommentBoxAnnotation(location, args.text);
   };
 

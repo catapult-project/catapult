@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/location.html">
+<link rel="import" href="/ui/base/location.html">
 <link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/core/test_utils.html">
@@ -38,8 +38,8 @@ tr.b.unittest.testSuite(function() {
   test('rectAnnotation', function() {
     var fakeYComponents1 = [{stableId: '1.2', yPercentOffset: 0.3}];
     var fakeYComponents2 = [{stableId: '1.2', yPercentOffset: 0.9}];
-    var start = new tr.c.Location(50, fakeYComponents1);
-    var end = new tr.c.Location(100, fakeYComponents2);
+    var start = new tr.ui.b.Location(50, fakeYComponents1);
+    var end = new tr.ui.b.Location(100, fakeYComponents2);
     var rectAnnotation = new tr.model.RectAnnotation(start, end);
     assert.equal(rectAnnotation.startLocation, start);
     assert.equal(rectAnnotation.endLocation, end);
@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
 
   test('commentBoxAnnotation', function() {
     var fakeYComponents = [{stableId: '1.2', yPercentOffset: 0.5}];
-    var location = new tr.c.Location(120, fakeYComponents);
+    var location = new tr.ui.b.Location(120, fakeYComponents);
     var text = 'abc';
     var commentBoxAnnotation =
         new tr.model.CommentBoxAnnotation(location, text);
