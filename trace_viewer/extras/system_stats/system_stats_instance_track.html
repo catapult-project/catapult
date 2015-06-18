@@ -10,14 +10,14 @@ found in the LICENSE file.
 <link rel="import" href="/base/sorted_array_utils.html">
 <link rel="import" href="/ui/tracks/stacked_bars_track.html">
 <link rel="import" href="/ui/tracks/object_instance_track.html">
-<link rel="import" href="/core/event_presenter.html">
+<link rel="import" href="/ui/base/event_presenter.html">
 <link rel="import" href="/ui/base/ui.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.e.system_stats', function() {
-  var EventPresenter = tr.c.EventPresenter;
+  var EventPresenter = tr.ui.b.EventPresenter;
 
   var palette = tr.ui.b.getColorPalette();
   var highlightIdBoost = tr.ui.b.getColorPaletteHighlightIdBoost();
