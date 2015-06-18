@@ -32,10 +32,10 @@ found in the LICENSE file.
     },
 
     get relatedEventsToHighlight() {
-      if (!this.currentSelection_)
+      if (!this.$.content.selection)
         return undefined;
       var selection = new tr.c.Selection();
-      this.currentSelection_.forEach(function(asyncEvent) {
+      this.$.content.selection.forEach(function(asyncEvent) {
         if (!asyncEvent.associatedEvents)
           return;
         asyncEvent.associatedEvents.forEach(function(event) {
