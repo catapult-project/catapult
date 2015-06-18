@@ -225,8 +225,16 @@ tr.exportTo('tr.e.rail', function() {
 
     findResponseInteractionRecords: function() {
       return this.getAllGestures().map(function(gesture) {
-        return new tr.e.rail.ResponseInteractionRecord(
+        var ir = new tr.e.rail.ResponseInteractionRecord(
             gesture.expectedStart, gesture.expectedEnd - gesture.expectedStart);
+
+        gesture.latencyEvents.forEach(function(latencyEvent) {
+          ir.associatedEvents.push(latencyEvent);
+          latencyEvent.associatedEvents.forEach(function(event) {
+            ir.associatedEvents.push(event);
+          });
+        });
+        return ir;
       });
     },
 

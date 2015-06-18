@@ -67,31 +67,36 @@ tr.exportTo('tr.e.audits', function() {
         var rirf = new tr.e.rail.RAILIRFinder(this.model, this.modelHelper);
         rirf.findAllInteractionRecords().forEach(function(ir) {
           this.model.addInteractionRecord(ir);
-        }.bind(this));
-      }
 
-      this.addBigTaskAlerts();
+          var alerts = this.createAlertsForIR_(ir);
+          alerts.forEach(function(alert) {
+            this.model.alerts.push(alert);
+          }, this);
+        }, this);
+      }
     },
 
-    addBigTaskAlerts: function() {
-      var model = this.model;
-      tr.b.iterItems(this.modelHelper.rendererHelpers, function(pid, renderer) {
-        var slices = renderer.mainThread.sliceGroup.slices;
-        slices.forEach(function(slice) {
-          if (slice.category != 'toplevel')
-            return;
-          if (slice.duration > 75.0) {
-            var alertInfo = new tr.model.EventInfo(
-                'Task too long',
-                'Tasks taking >= 75ms are bad, and should be broken up to ' +
-                'ensure the main thread is responsive');
-            var center = slice.start + 0.5 * slice.duration;
-            var alert = new tr.model.Alert(
-                alertInfo, center, [slice]);
-            model.alerts.push(alert);
-          }
-        });
+    createAlertsForIR_: function(ir) {
+      var allAlerts = [];
+      ir.associatedEvents.forEach(function(slice) {
+        if (!(event instanceof tr.model.Slice))
+          return;
+        var slice = event;
+
+        if (slice.category != 'toplevel')
+          return;
+        if (slice.duration > 75.0) {
+          var alertInfo = new tr.model.EventInfo(
+              'Task too long',
+              'Tasks taking >= 75ms are bad, and should be broken up to ' +
+              'ensure the main thread is responsive');
+          var center = slice.start + 0.5 * slice.duration;
+          var alert = new tr.model.Alert(
+              alertInfo, center, [slice]);
+          allAlerts.push(alert);
+        }
       });
+      return allAlerts;
     }
   };
 
