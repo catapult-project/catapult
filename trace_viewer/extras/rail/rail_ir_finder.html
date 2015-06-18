@@ -230,6 +230,9 @@ tr.exportTo('tr.e.rail', function() {
 
         gesture.latencyEvents.forEach(function(latencyEvent) {
           ir.associatedEvents.push(latencyEvent);
+          if (latencyEvent.associatedEvents === undefined)
+            return;
+
           latencyEvent.associatedEvents.forEach(function(event) {
             ir.associatedEvents.push(event);
           });
