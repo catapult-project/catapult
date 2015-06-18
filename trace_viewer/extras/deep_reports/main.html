@@ -8,8 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/extras/deep_reports/scalar_value.html">
-<link rel="import" href="/extras/deep_reports/rail_deep_reporter.html">
-<link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/extras/rail/rail_score.html">
 <link rel="import" href="/ui/base/xhr.html">
 
 <script>
@@ -55,28 +54,16 @@ tr.exportTo('tr.e.deep_reports', function() {
   }
 
   function processModel(results, page, model) {
-    /* TODO(nduca): Need eakeufner's Telemetry value system here so we can
-     * be smart in aggregating results.
-    */
-    results.addValue(tr.e.deep_reports.ScalarValue.fromDict(page, {
-      type: 'scalar',
-      name: 'numProcesses', units: 'processes', important: true,
-      value: model.numProcesses
-    }));
+    var railScore = tr.e.rail.RAILScore.fromModel(model);
+    if (railScore === undefined)
+      return;
 
-    tr.e.deep_reports.RAILDeepReporter.addResultsForModel(results, page, model);
-
-    if (tr.e.audits.ChromeModelHelper.supportsModel(model)) {
-      var helper = new tr.e.audits.ChromeModelHelper(model);
-      if (false) {
-        var latencyEvents = helper.browserHelper.getLatencyEventsInRange(
-          model.bounds);
-        window.allTitles = window.allTitles || {};
-        latencyEvents.forEach(function(event) {
-          window.allTitles[event.title] = true;
-        });
-      }
-    }
+    results.addValue(
+        new tr.e.deep_reports.ScalarValue(
+            page, 'numRailIRs', 'ms', railScore.interactionRecords.length));
+    results.addValue(
+      new tr.e.deep_reports.ScalarValue(
+        page, 'railScore', 'rails', railScore.overallScore));
   }
 
   return {
