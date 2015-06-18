@@ -13,7 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/analysis/analysis_view.html">
 <link rel="import" href="/ui/base/favicons.html">
 <link rel="import" href="/ui/find_control.html">
-<link rel="import" href="/core/find_controller.html">
+<link rel="import" href="/ui/find_controller.html">
 <link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/core/selection_controller.html">
 <link rel="import" href="/core/scripting_control.html">
@@ -249,7 +249,7 @@ tr.exportTo('tr.ui', function() {
       this.selectionController_.historyEnabled = true;
 
       this.findCtl_ = new TracingFindControl();
-      this.findCtl_.controller = new tr.c.FindController(
+      this.findCtl_.controller = new tr.ui.FindController(
           this.selectionController_);
       this.findCtl_.addEventListener('keydown', function(e) {
         if (e.keyCode === 27) { // ESC

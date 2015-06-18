@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/task.html">
-<link rel="import" href="/core/find_controller.html">
+<link rel="import" href="/ui/find_controller.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/ui/timeline_view.html">
@@ -75,14 +75,14 @@ tr.b.unittest.testSuite(function() {
 
   test('findControllerNoModel', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tr.c.FindController(selectionController);
+    var controller = new tr.ui.FindController(selectionController);
     controller.findNext();
     controller.findPrevious();
   });
 
   test('findControllerEmptyHit', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tr.c.FindController(selectionController);
+    var controller = new tr.ui.FindController(selectionController);
 
     selectionController.selection = new tr.c.Selection();
     selectionController.findMatches = new tr.c.Selection();
@@ -96,7 +96,7 @@ tr.b.unittest.testSuite(function() {
 
   test('findControllerOneHit', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tr.c.FindController(selectionController);
+    var controller = new tr.ui.FindController(selectionController);
 
     var s1 = {guid: 1};
     selectionController.addAllEventsMatchingFilterToSelectionReturnValue = [
@@ -121,7 +121,7 @@ tr.b.unittest.testSuite(function() {
 
   test('findControllerMultipleHits', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tr.c.FindController(selectionController);
+    var controller = new tr.ui.FindController(selectionController);
 
     var s1 = {guid: 1};
     var s2 = {guid: 2};
@@ -154,7 +154,7 @@ tr.b.unittest.testSuite(function() {
 
   test('findControllerChangeFilterAfterNext', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tr.c.FindController(selectionController);
+    var controller = new tr.ui.FindController(selectionController);
 
     var s1 = {guid: 1};
     var s2 = {guid: 2};
@@ -183,7 +183,7 @@ tr.b.unittest.testSuite(function() {
 
   test('findControllerSelectsAllItemsFirst', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tr.c.FindController(selectionController);
+    var controller = new tr.ui.FindController(selectionController);
 
     var s1 = {guid: 1};
     var s2 = {guid: 2};
@@ -250,7 +250,7 @@ tr.b.unittest.testSuite(function() {
 
   test('findControllerNavigation', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tr.c.FindController(selectionController);
+    var controller = new tr.ui.FindController(selectionController);
 
     var navToPositionCallCount = 0;
     var findTextClearedCallCount = 0;
@@ -281,7 +281,7 @@ tr.b.unittest.testSuite(function() {
 
   test('findControllerClearAfterSet', function() {
     var selectionController = new FakeSelectionController();
-    var controller = new tr.c.FindController(selectionController);
+    var controller = new tr.ui.FindController(selectionController);
     var findTextChangedToCalled = false;
     selectionController.findTextChangedTo = function(selection) {
       findTextChangedToCalled = true;
