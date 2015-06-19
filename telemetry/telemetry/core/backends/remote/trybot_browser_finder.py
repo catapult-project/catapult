@@ -29,7 +29,8 @@ EXCLUDED_BOTS = {
     'win_x64_perf_bisect_builder',
     'linux_perf_bisect_builder',
     'mac_perf_bisect_builder',
-    'android_perf_bisect_builder'
+    'android_perf_bisect_builder',
+    'android_arm64_perf_bisect_builder'
 }
 
 INCLUDE_BOTS = [
