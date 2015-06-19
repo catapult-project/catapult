@@ -18,6 +18,7 @@ tr.b.unittest.testSuite(function() {
   var newSliceEx = tr.c.test_utils.newSliceEx;
   var newFlowEventEx = tr.c.test_utils.newFlowEventEx;
   var newModel = tr.c.test_utils.newModel;
+  var Selection = tr.c.Selection;
 
   test('matchByType_oldStyle', function() {
     var sOuter = newAsyncSliceEx({
@@ -163,9 +164,9 @@ tr.b.unittest.testSuite(function() {
 
     });
 
-    assert.deepEqual(m.as0.associatedEvents, []);
-    assert.deepEqual(m.as1.associatedEvents,
-        [m.f1, m.s4, m.s0, m.f2, m.s1, m.s5, m.s6, m.s2]);
+    assert.isTrue(m.as0.associatedEvents.length === 0);
+    assert.isTrue(m.as1.associatedEvents.equals(
+        new Selection([m.f1, m.s4, m.s0, m.f2, m.s1, m.s5, m.s6, m.s2])));
     assert.equal(m.as1.associatedEvents[0].id, '0x100');
   });
 
@@ -243,8 +244,9 @@ tr.b.unittest.testSuite(function() {
 
     });
 
-    assert.deepEqual(m.as0.associatedEvents, []);
-    assert.deepEqual(m.as1.associatedEvents, [m.f1, m.s0, m.f2, m.s4, m.s1]);
+    assert.isTrue(m.as0.associatedEvents.length === 0);
+    assert.isTrue(m.as1.associatedEvents.equals(
+        new Selection([m.f1, m.s0, m.f2, m.s4, m.s1])));
     assert.equal(m.as1.associatedEvents[0].id, '0x100');
   });
 
@@ -357,9 +359,9 @@ tr.b.unittest.testSuite(function() {
 
     });
 
-    assert.deepEqual(m.as0.associatedEvents, []);
-    assert.deepEqual(m.as1.associatedEvents,
-        [m.f1, m.s0, m.f2, m.s4, m.s1, m.f3, m.s2]);
+    assert.isTrue(m.as0.associatedEvents.length === 0);
+    assert.isTrue(m.as1.associatedEvents.equals(
+        new Selection([m.f1, m.s0, m.f2, m.s4, m.s1, m.f3, m.s2])));
     assert.equal(m.as1.associatedEvents[0].id, '0x100');
   });
 
@@ -452,9 +454,9 @@ tr.b.unittest.testSuite(function() {
 
     });
 
-    assert.deepEqual(m.as0.associatedEvents, []);
-    assert.deepEqual(m.as1.associatedEvents,
-        [m.f1, m.s0, m.f2, m.s4, m.f3, m.s2, m.s1, m.s3]);
+    assert.isTrue(m.as0.associatedEvents.length === 0);
+    assert.isTrue(m.as1.associatedEvents.equals(
+        new Selection([m.f1, m.s0, m.f2, m.s4, m.f3, m.s2, m.s1, m.s3])));
     assert.equal(m.as1.associatedEvents[0].id, '0x100');
   });
 
@@ -562,9 +564,9 @@ tr.b.unittest.testSuite(function() {
 
     });
 
-    assert.deepEqual(m.as0.associatedEvents, []);
-    assert.deepEqual(m.as1.associatedEvents,
-        [m.f1, m.s0, m.f2, m.s4, m.f3, m.s2, m.f4, m.s5, m.s1, m.s3]);
+    assert.isTrue(m.as0.associatedEvents.length === 0);
+    assert.isTrue(m.as1.associatedEvents.equals(new Selection(
+        [m.f1, m.s0, m.f2, m.s4, m.f3, m.s2, m.f4, m.s5, m.s1, m.s3])));
     assert.equal(m.as1.associatedEvents[0].id, '0x100');
   });
 

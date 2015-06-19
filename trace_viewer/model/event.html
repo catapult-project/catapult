@@ -52,7 +52,7 @@ tr.exportTo('tr.model', function() {
     SelectableItem.call(this, this /* modelItem */);
     this.guid_ = tr.b.GUID.allocate();
     this.selectionState = SelectionState.NONE;
-    this.associatedAlerts = [];
+    this.associatedAlerts = new tr.c.Selection();
     this.info = undefined;
   }
 

@@ -16,6 +16,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var newModel = tr.c.test_utils.newModel;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+
   test('selectionObject', function() {
     var model = new tr.Model();
     var p1 = model.getOrCreateProcess(1);
@@ -184,6 +187,29 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(s1.equals(s2));
     assert.isFalse(s1.equals(s3));
     assert.isFalse(s1.equals(s4));
+  });
+
+  test('filter', function() {
+    var m = newModel(function(m) {
+
+      var p = m.getOrCreateProcess(1);
+      var t = p.getOrCreateThread(1);
+
+      m.s0 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's0', start: 0.0, duration: 1.0 }));
+      m.s1 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's1', start: 0.0, duration: 1.0 }));
+      m.s2 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's2', start: 0.0, duration: 1.0 }));
+
+      m.sel = new tr.c.Selection([m.s0, m.s1, m.s2]);
+    });
+
+    var res = m.sel.filter(function(slice) {
+      return slice.title === 's0';
+    });
+
+    assert.isTrue(res.equals(new tr.c.Selection([m.s0])));
   });
 
 });

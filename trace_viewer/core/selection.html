@@ -252,6 +252,17 @@ tr.exportTo('tr.c', function() {
       return newSelection;
     },
 
+    filter: function(fn, opt_this) {
+      var res = new Selection();
+
+      this.forEach(function(slice) {
+        if (fn.call(this, slice))
+          res.push(slice);
+      }, opt_this);
+
+      return res;
+    },
+
     forEach: function(fn, opt_this) {
       for (var i = 0; i < this.length; i++)
         fn.call(opt_this, this[i], i);

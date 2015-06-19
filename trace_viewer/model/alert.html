@@ -17,7 +17,7 @@ tr.exportTo('tr.model', function() {
     tr.model.TimedEvent.call(this, start);
     this.info = info;
     this.args = opt_args || {};
-    this.associatedEvents = opt_associatedEvents || [];
+    this.associatedEvents = new tr.c.Selection(opt_associatedEvents);
     this.associatedEvents.forEach(function(event) {
       event.associatedAlerts.push(this);
     }, this);

@@ -31,7 +31,7 @@ found in the LICENSE file.
     get relatedEventsToHighlight() {
       if (!this.currentSelection_)
         return undefined;
-      return new tr.c.Selection(this.currentSelection_[0].associatedEvents);
+      return this.currentSelection_[0].associatedEvents;
     }
   });
   </script>

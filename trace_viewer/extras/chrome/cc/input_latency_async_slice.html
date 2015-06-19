@@ -6,12 +6,14 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/model/async_slice.html">
 <link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/core/selection.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.e.cc', function() {
   var AsyncSlice = tr.model.AsyncSlice;
+  var Selection = tr.c.Selection;
 
   var UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT';
   var ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT';
@@ -23,7 +25,7 @@ tr.exportTo('tr.e.cc', function() {
 
   function InputLatencyAsyncSlice() {
     AsyncSlice.apply(this, arguments);
-    this.associatedEvents_ = undefined;
+    this.associatedEvents_ = new Selection();
   }
 
   InputLatencyAsyncSlice.prototype = {
@@ -71,15 +73,12 @@ tr.exportTo('tr.e.cc', function() {
       return flowPath;
     },
 
-    addDirectlyAssociatedEvents: function(eventGUIDs, flowEvents) {
+    addDirectlyAssociatedEvents: function(flowEvents) {
       flowEvents.forEach(function(flowEvent, index, matchedFlowEvents) {
         this.associatedEvents_.push(flowEvent);
 
         flowEvent.startSlice.ancestorAndSubsequentSlices.forEach(function(s) {
-          if (!eventGUIDs[s.guid]) {
-            this.associatedEvents_.push(s);
-            eventGUIDs[s.guid] = true;
-          }
+          this.associatedEvents_.push(s);
         }, this);
       }, this);
 
@@ -87,10 +86,7 @@ tr.exportTo('tr.e.cc', function() {
       // this is assuming flowEvents are always followable
       var lastFlowEvent = flowEvents[flowEvents.length - 1];
       lastFlowEvent.endSlice.ancestorAndSubsequentSlices.forEach(function(s) {
-        if (!eventGUIDs[s.guid]) {
-          this.associatedEvents_.push(s);
-          eventGUIDs[s.guid] = true;
-        }
+        this.associatedEvents_.push(s);
       }, this);
     },
 
@@ -117,7 +113,7 @@ tr.exportTo('tr.e.cc', function() {
       return flowPath[flowPath.length - 1];
     },
 
-    addSlicesBetweenFirstAndLast: function(eventGUIDs, firstSlice,
+    addSlicesBetweenFirstAndLast: function(firstSlice,
         lastSlice, rendererHelper) {
       var started = false;
 
@@ -136,10 +132,7 @@ tr.exportTo('tr.e.cc', function() {
           if (slice.mostTopLevelSlice.findDescendentSlice(handleInputMarker))
             continue;
 
-          if (!eventGUIDs[slice.guid]) {
-            this.associatedEvents_.push(slice);
-            eventGUIDs[slice.guid] = true;
-          }
+          this.associatedEvents_.push(slice);
         } else {
           started = (slice.guid === firstSlice.guid);
         }
@@ -148,7 +141,7 @@ tr.exportTo('tr.e.cc', function() {
 
     // Find the Latency::ScrollUpdate slice that corresponds to the
     // InputLatency::GestureScrollUpdate slice
-    addScrollUpdateEvents: function(eventGUIDs, compositorThread) {
+    addScrollUpdateEvents: function(compositorThread) {
       var gestureScrollUpdateStart = this.start;
       var gestureScrollUpdateEnd = this.end;
 
@@ -178,16 +171,13 @@ tr.exportTo('tr.e.cc', function() {
         }
 
         slice.associatedEvents.forEach(function(event) {
-          if (!eventGUIDs[event.guid]) {
-            this.associatedEvents_.push(event);
-            eventGUIDs[event.guid] = true;
-          }
+          this.associatedEvents_.push(event);
         }, this);
         break;
       }
     },
 
-    addOtherCasuallyRelatedEvents: function(eventGUIDs, flowEvents) {
+    addOtherCasuallyRelatedEvents: function(flowEvents) {
       var flowPath = this.constructFlowPath(flowEvents);
       var rendererHelper = this.getRendererHelper(flowPath);
 
@@ -209,8 +199,7 @@ tr.exportTo('tr.e.cc', function() {
         // related to the GestureScrollUpdate input. Add them manually for now.
         var latencyScrollUpdateMaker = 'InputLatency::GestureScrollUpdate';
         if (this.title === latencyScrollUpdateMaker)
-          this.addScrollUpdateEvents(eventGUIDs,
-              rendererHelper.compositorThread);
+          this.addScrollUpdateEvents(rendererHelper.compositorThread);
 
         return;
       }
@@ -223,28 +212,26 @@ tr.exportTo('tr.e.cc', function() {
       var lastRendererSlice = this.findLastRendererSlice(flowPath);
 
       // Push relevant slices between first and last slice
-      this.addSlicesBetweenFirstAndLast(
-          eventGUIDs, firstRendererSlice, lastRendererSlice, rendererHelper);
+      this.addSlicesBetweenFirstAndLast(firstRendererSlice,
+          lastRendererSlice, rendererHelper);
     },
 
     get associatedEvents() {
-      if (this.associatedEvents_ !== undefined)
+      if (this.associatedEvents_.length !== 0)
         return this.associatedEvents_;
 
-      this.associatedEvents_ = [];
       var modelIndices = this.startThread.parent.model.modelIndices;
       var flowEvents = modelIndices.getFlowEventsWithId(this.id);
 
       if (flowEvents.length === 0)
         return this.associatedEvents_;
 
-      var eventGUIDs = {};
       // Step 1: Get all the events that are directly connected by the flow
-      this.addDirectlyAssociatedEvents(eventGUIDs, flowEvents);
+      this.addDirectlyAssociatedEvents(flowEvents);
 
       // Step 2: Get events that are casually related but not connect by flow
       // It only takes care of the main renderer thread for now
-      this.addOtherCasuallyRelatedEvents(eventGUIDs, flowEvents);
+      this.addOtherCasuallyRelatedEvents(flowEvents);
 
       return this.associatedEvents_;
     },

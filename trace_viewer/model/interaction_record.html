@@ -17,7 +17,7 @@ tr.exportTo('tr.model', function() {
     this.colorId = colorId;
     this.duration = duration;
     this.args = {};
-    this.associatedEvents = [];
+    this.associatedEvents = new tr.c.Selection();
   }
   InteractionRecord.prototype = {
     __proto__: tr.model.TimedEvent.prototype,

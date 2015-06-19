@@ -40,13 +40,13 @@ found in the LICENSE file.
       if (selection.length != 1)
         throw new Error('Only supports single frame!');
       this.currentSelection_ = selection;
-      this.$.asv.selection = new tr.c.Selection(selection[0].associatedAlerts);
+      this.$.asv.selection = selection[0].associatedAlerts;
     },
 
     get relatedEventsToHighlight() {
       if (!this.currentSelection_)
         return undefined;
-      return new tr.c.Selection(this.currentSelection_[0].associatedEvents);
+      return this.currentSelection_[0].associatedEvents;
     }
   });
   </script>
