@@ -173,7 +173,7 @@ def FindAllAvailableBrowsers(finder_options, device):
                                              False, browser_directory))
     else:
       raise exceptions.PathMissingError(
-          '%s specified by --browser-executable does not exist',
+          '%s specified by --browser-executable does not exist' %
           normalized_executable)
 
   def AddIfFound(browser_type, build_dir, type_dir, app_name, content_shell):
