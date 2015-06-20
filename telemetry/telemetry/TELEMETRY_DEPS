@@ -5,17 +5,15 @@
   ],
   "directory_deps": [
     "build/android/pylib/",
-    "chrome/test/data/extensions/",
     "third_party/android_testrunner/",
     "third_party/android_tools/sdk/platform-tools/",
     "third_party/trace-viewer/",
     "third_party/typ/",
     "third_party/pexpect/",
     "third_party/webpagereplay/",
-    "tools/telemetry/"
+    "tools/telemetry/",
+    "third_party/chromite/ssh_keys/"
   ],
   "file_deps": [
-    "third_party/chromite/ssh_keys/testing_rsa",
-    "third_party/chromite/ssh_keys/testing_rsa.pub"
   ]
 }

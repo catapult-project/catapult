@@ -9,8 +9,8 @@ from telemetry.core import util
 BASE_PROFILE_TYPES = ['clean', 'default']
 
 PROFILE_TYPE_MAPPING = {
-  'typical_user': 'chrome/test/data/extensions/profiles/content_scripts1',
-  'power_user': 'chrome/test/data/extensions/profiles/extension_webrequest',
+  'typical_user': 'content_scripts1',
+  'power_user': 'extension_webrequest',
 }
 
 def GetProfileTypes():
@@ -27,7 +27,7 @@ def GetProfileDir(profile_type):
     return None
 
   path = os.path.join(
-      util.GetChromiumSrcDir(), *PROFILE_TYPE_MAPPING[profile_type].split('/'))
+      util.GetTelemetryDir(), 'telemetry', 'internal', 'browser_profiles')
 
   assert os.path.exists(path)
   return path
