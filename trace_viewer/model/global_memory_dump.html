@@ -5,8 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/model/container_memory_dump.html">
 <link rel="import" href="/base/units/util.html">
+<link rel="import" href="/model/container_memory_dump.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
 
 <script>
 'use strict';
@@ -26,27 +27,228 @@ tr.exportTo('tr.model', function() {
     this.processMemoryDumps = {};
   }
 
+  var SIZE_ATTRIBUTE_NAME = 'size';
+  var SUBSYSTEM_SIZE_ATTRIBUTE_NAME = 'subsystem_size';
+
   GlobalMemoryDump.prototype = {
     __proto__: tr.model.ContainerMemoryDump.prototype,
 
     get userFriendlyName() {
-      return 'Global memory dump ' + ' at ' +
-          tr.b.units.tsString(this.start);
+      return 'Global memory dump at ' + tr.b.units.tsString(this.start);
     },
 
     calculateGraphAttributes: function() {
-      // TODO(petrcermak): Calculate sizes using the graph.
+      this.calculateSubsystemSizes();
+      this.aggregateAttributes();
+      this.discountTracingOverhead();
+    },
 
-      this.aggregateMemoryAllocatorDumpAttributes(this.model);
-      tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
-        dump.aggregateMemoryAllocatorDumpAttributes(this.model);
-      }, this);
+    /**
+     * Calculate the subsystem size of all memory allocator dumps in the dump
+     * graph.
+     *
+     * The subsystem size refers to the allocated size of a (sub)component. It
+     * is a natural extension of the optional size attribute provided by
+     * MemoryAllocatorDump(s):
+     *
+     *   - If a MAD provides a size, then its subsystem size is assumed to be
+     *     equal to it.
+     *   - If a MAD does not provide a size, then its subsystem size is assumed
+     *     to be the maximum of (1) the subsystem size of the largest owner of
+     *     the MAD and (2) the aggregated subsystem size of the MAD's children.
+     *
+     * Metric motivation: "How big is a (sub)system?"
+     *
+     * Please refer to the Memory Dump Graph Metric Calculation design document
+     * for more details (https://goo.gl/fKg0dt).
+     */
+    calculateSubsystemSizes: function() {
+      this.traverseAllocatorDumpsInDepthFirstPostOrder(
+          this.calculateMemoryAllocatorDumpSubsystemSize_);
+    },
 
+    /**
+     * Calculate the subsystem size of the given MemoryAllocatorDump. This
+     * method assumes that the subsytem size of both the children and owners
+     * of the dump has already been calculated.
+     */
+    calculateMemoryAllocatorDumpSubsystemSize_: function(dump) {
+      // This flag becomes true if the subsystem_size attribute of the current
+      // dump should be defined, i.e. if (1) the current dump's size is defined,
+      // (2) the subsystem_size of at least one of its children is defined or
+      // (3) the subsystem size of at least one of its owners is defined.
+      var shouldDefineSubsystemSize = false;
+
+      // This helper function returns the numeric value of the subsystem_size
+      // attribute of the given dependent memory allocator dump. If the
+      // attribute is defined, the shouldDefineSubsystemSize flag above is also
+      // set to true (because condition (2) or (3) is satisfied). Otherwise,
+      // zero is returned (and the flag is left unchanged).
+      function getDependencySubsystemSize(dependencyDump) {
+        var attr = dependencyDump.attributes[SUBSYSTEM_SIZE_ATTRIBUTE_NAME];
+        if (attr === undefined)
+          return 0;
+        shouldDefineSubsystemSize = true;
+        return attr.value;
+      }
+
+      // 1. Get the size provided by the dump. If present, define a function
+      // for checking dependent size consistency (a dump must always be bigger
+      // than all its children aggregated together and/or its largest owner).
+      var sizeAttribute = dump.getValidSizeAttributeOrUndefined(
+          SIZE_ATTRIBUTE_NAME, this.model);
+      var size = 0;
+      var checkDependentSizeIsConsistent = function() { /* no-op */ };
+      if (sizeAttribute !== undefined) {
+        size = sizeAttribute.value;
+        shouldDefineSubsystemSize = true;
+        checkDependentSizeIsConsistent = function(dependentSize,
+            dependentName) {
+          if (size >= dependentSize)
+            return;
+          this.model.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'provided size of memory allocator dump \'' +
+                dump.fullName + '\' (' + tr.b.units.tsString(size) + ')' +
+                ' is less than ' + dependentName +
+                ' (' + tr.b.units.tsString(dependentSize) + ').'
+          });
+        }.bind(this);
+      }
+
+      // 2. Aggregate subsystem_size of children. The recursive function
+      // traverses all descendants and ensures that double-counting due to
+      // ownership within a subsystem is avoided.
+      var aggregatedChildrenSize = 0;
+      function aggregateDescendantDump(descendantDump) {
+        // Don't count this descendant dump if it owns another descendant of
+        // the current dump (would cause double-counting).
+        var ownedDumpLink = descendantDump.owns;
+        if (ownedDumpLink !== undefined &&
+            ownedDumpLink.target.isDescendantOf(dump))
+          return;
+
+        // If this descendant dump is a leaf node, add its subsystem_size to
+        // the aggregated size.
+        if (descendantDump.children.length === 0) {
+          aggregatedChildrenSize +=
+              getDependencySubsystemSize(descendantDump);
+          return;
+        }
+
+        // If this descendant dump is an intermediate node, recurse down into
+        // its children. Note that the dump's subsystem size is NOT added
+        // because it is an aggregate of its children (would cause
+        // double-counting).
+        descendantDump.children.forEach(aggregateDescendantDump);
+      }
+      dump.children.forEach(aggregateDescendantDump);
+      checkDependentSizeIsConsistent(
+          aggregatedChildrenSize, 'the aggregated size of its children');
+
+      // 3. Calculate the largest owner subsystem_size.
+      var largestOwnerSize = 0;
+      dump.ownedBy.forEach(function(ownershipLink) {
+        var owner = ownershipLink.source;
+        var ownerSize = getDependencySubsystemSize(owner);
+        largestOwnerSize = Math.max(largestOwnerSize, ownerSize);
+      });
+      checkDependentSizeIsConsistent(
+          largestOwnerSize, 'the size of its largest owner');
+
+      // If neither the dump nor any of its dependencies (children and owners)
+      // provide a size, do NOT add a zero 'subsystem_size' attribute.
+      if (!shouldDefineSubsystemSize)
+        return;
+
+      // A dump must always be bigger than all its children aggregated
+      // together and/or its largest owner.
+      var subsystemSize = Math.max(
+          size, aggregatedChildrenSize, largestOwnerSize);
+
+      dump.addAttribute(
+          SUBSYSTEM_SIZE_ATTRIBUTE_NAME,
+          new tr.model.ScalarAttribute('bytes', subsystemSize));
+
+      // Add a virtual child to make up for extra size of the dump with
+      // respect to its children (if applicable).
+      if (aggregatedChildrenSize < subsystemSize &&
+          dump.children !== undefined && dump.children.length > 0) {
+        var virtualChild = new tr.model.MemoryAllocatorDump(
+            dump.containerMemoryDump, dump.fullName + '/<unspecified>');
+        virtualChild.parent = dump;
+        dump.children.unshift(virtualChild);
+        virtualChild.addAttribute(
+            SUBSYSTEM_SIZE_ATTRIBUTE_NAME,
+            new tr.model.ScalarAttribute(
+                'bytes', subsystemSize - aggregatedChildrenSize));
+      }
+    },
+
+    aggregateAttributes: function() {
+      this.iterateRootAllocatorDumps(function(dump) {
+        dump.aggregateAttributes(this.model);
+      });
+    },
+
+    discountTracingOverhead: function() {
       // TODO(petrcermak): Consider factoring out all the finalization code and
       // constants to a single file.
       tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
         dump.discountTracingOverhead(this.model);
       }, this);
+    },
+
+    iterateContainerDumps: function(fn) {
+      fn.call(this, this);
+      tr.b.iterItems(this.processMemoryDumps, function(pid, processDump) {
+        fn.call(this, processDump);
+      }, this);
+    },
+
+    iterateRootAllocatorDumps: function(fn) {
+      this.iterateContainerDumps(function(containerDump) {
+        var memoryAllocatorDumps = containerDump.memoryAllocatorDumps;
+        if (memoryAllocatorDumps === undefined)
+          return;
+        memoryAllocatorDumps.forEach(fn, this);
+      });
+    },
+
+    /**
+     * Traverse the memory dump graph in a depth first post-order, i.e.
+     * children and owners of a memory allocator dump are visited before the
+     * dump itself. This method will throw an exception if the graph contains
+     * a cycle.
+     */
+    traverseAllocatorDumpsInDepthFirstPostOrder: function(fn) {
+      var visitedDumps = new WeakSet();
+      var openDumps = new WeakSet();
+
+      function visit(dump) {
+        if (visitedDumps.has(dump))
+          return;
+
+        if (openDumps.has(dump))
+          throw new Error(dump.userFriendlyName + ' contains a cycle');
+        openDumps.add(dump);
+
+        // Visit owners before the dumps they own.
+        dump.ownedBy.forEach(function(ownershipLink) {
+          visit.call(this, ownershipLink.source);
+        }, this);
+
+        // Visit children before parents.
+        dump.children.forEach(visit, this);
+
+        // Actually visit the current memory allocator dump.
+        fn.call(this, dump);
+
+        openDumps.delete(dump);
+        visitedDumps.add(dump);
+      }
+
+      this.iterateRootAllocatorDumps(visit);
     }
   };
 

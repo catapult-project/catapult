@@ -61,15 +61,6 @@ tr.exportTo('tr.model', function() {
       }
 
       return this.memoryAllocatorDumpsByFullName_[fullName];
-    },
-
-    aggregateMemoryAllocatorDumpAttributes: function(opt_model) {
-      if (this.memoryAllocatorDumps_ === undefined)
-        return;
-
-      this.memoryAllocatorDumps_.forEach(function(dump) {
-        dump.aggregateAttributes(opt_model);
-      });
     }
   };
 

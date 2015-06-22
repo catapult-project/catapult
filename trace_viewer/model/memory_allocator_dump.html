@@ -43,6 +43,16 @@ tr.exportTo('tr.model', function() {
       return this.fullName.substring(this.fullName.lastIndexOf('/') + 1);
     },
 
+    isDescendantOf: function(otherDump) {
+      var dump = this;
+      while (dump !== undefined) {
+        if (dump === otherDump)
+          return true;
+        dump = dump.parent;
+      }
+      return false;
+    },
+
     addAttribute: function(name, value) {
       if (name in this.attributes)
         throw new Error('Duplicate attribute name: ' + name + '.');
@@ -67,6 +77,25 @@ tr.exportTo('tr.model', function() {
         this.attributes[name] = tr.model.Attribute.aggregate(
             childAttributes, currentAttribute, opt_model);
       }, this);
+    },
+
+    getValidSizeAttributeOrUndefined: function(sizeAttrName, opt_model) {
+      var sizeAttr = this.attributes[sizeAttrName];
+      if (sizeAttr === undefined)
+        return undefined;
+
+      if (!(sizeAttr instanceof tr.model.ScalarAttribute)) {
+        if (opt_model !== undefined) {
+          opt_model.importWarning({
+            type: 'memory_dump_parse_error',
+            message: '\'' + sizeAttrName + '\' attribute of memory allocator ' +
+                'dump \'' + memoryAllocatorDump.fullName + '\' is not a scalar.'
+          });
+        }
+        return undefined;
+      }
+
+      return sizeAttr;
     }
   };
 

@@ -18,9 +18,12 @@ tr.b.unittest.testSuite(function() {
   var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
   var ScalarAttribute = tr.model.ScalarAttribute;
 
-  function setUpParentChildRelationship(parent, child) {
-    child.parent = parent;
-    parent.children.push(child);
+  function newChildDump(parentDump, name) {
+    var childDump = new MemoryAllocatorDump(
+        parentDump.containerMemoryDump, parentDump.fullName + '/' + name);
+    childDump.parent = parentDump;
+    parentDump.children.push(childDump);
+    return childDump;
   }
 
   test('memoryAllocatorDumps_aggregateAttributes', function() {
@@ -29,29 +32,23 @@ tr.b.unittest.testSuite(function() {
     var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
     oilpanDump.addAttribute('objects_count', new ScalarAttribute('objects', 7));
 
-    var oilpanBucket1Dump = new MemoryAllocatorDump(
-        md, 'oilpan/bucket1', oilpanDump);
+    var oilpanBucket1Dump = newChildDump(oilpanDump, 'bucket1');
     oilpanBucket1Dump.addAttribute('size',
         new ScalarAttribute('bytes', 512));
     oilpanBucket1Dump.addAttribute('objects_count',
         new ScalarAttribute('objects', 3));
     oilpanBucket1Dump.addAttribute('inner_size',
         new ScalarAttribute('bytes', 256));
-    setUpParentChildRelationship(oilpanDump, oilpanBucket1Dump);
 
-    var oilpanBucket2Dump = new MemoryAllocatorDump(
-        md, 'oilpan/bucket2', oilpanDump);
-    setUpParentChildRelationship(oilpanDump, oilpanBucket2Dump);
+    var oilpanBucket2Dump = newChildDump(oilpanDump, 'bucket2');
 
-    var oilpanBucket2StringsDump = new MemoryAllocatorDump(
-        md, 'oilpan/bucket2/strings', oilpanBucket2Dump);
+    var oilpanBucket2StringsDump = newChildDump(oilpanBucket2Dump, 'strings');
     oilpanBucket2StringsDump.addAttribute('size',
         new ScalarAttribute('bytes', 512));
     oilpanBucket2StringsDump.addAttribute('objects_count',
         new ScalarAttribute('objects', 4));
     oilpanBucket2StringsDump.addAttribute('inner_size',
         new ScalarAttribute('bytes', 512));
-    setUpParentChildRelationship(oilpanBucket2Dump, oilpanBucket2StringsDump);
 
     oilpanDump.aggregateAttributes();
 
@@ -71,6 +68,36 @@ tr.b.unittest.testSuite(function() {
         'objects_count'].value, 4);
     assert.equal(oilpanBucket2StringsDump.attributes['inner_size'].value, 512);
     assert.equal(oilpanBucket2StringsDump.attributes['size'].value, 512);
+  });
+
+  test('memoryAllocatorDumps_isDescendantOf', function() {
+    var md = new ContainerMemoryDump(42);
+
+    var v8Dump = new MemoryAllocatorDump(md, 'v8');
+    var v8HeapsDump = newChildDump(v8Dump, 'heaps');
+    var v8ObjectsDump = newChildDump(v8Dump, 'objects');
+    var v8Object1Dump = newChildDump(v8ObjectsDump, 'obj1');
+    var v8Object2Dump = newChildDump(v8ObjectsDump, 'obj2');
+
+    var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
+
+    assert.isTrue(v8Dump.isDescendantOf(v8Dump));
+    assert.isTrue(v8HeapsDump.isDescendantOf(v8Dump));
+    assert.isTrue(v8ObjectsDump.isDescendantOf(v8Dump));
+    assert.isTrue(v8Object1Dump.isDescendantOf(v8Dump));
+    assert.isTrue(v8Object2Dump.isDescendantOf(v8Dump));
+    assert.isTrue(v8ObjectsDump.isDescendantOf(v8ObjectsDump));
+    assert.isTrue(v8Object1Dump.isDescendantOf(v8ObjectsDump));
+    assert.isTrue(v8Object2Dump.isDescendantOf(v8ObjectsDump));
+    assert.isTrue(oilpanDump.isDescendantOf(oilpanDump));
+
+    assert.isFalse(v8Dump.isDescendantOf(oilpanDump));
+    assert.isFalse(v8Dump.isDescendantOf(v8HeapsDump));
+    assert.isFalse(v8Dump.isDescendantOf(v8ObjectsDump));
+    assert.isFalse(v8Dump.isDescendantOf(v8Object1Dump));
+    assert.isFalse(v8Dump.isDescendantOf(v8Object2Dump));
+    assert.isFalse(v8Object1Dump.isDescendantOf(v8Object2Dump));
+    assert.isFalse(v8Object2Dump.isDescendantOf(v8Object1Dump));
   });
 
   test('memoryAllocatorDumpLink_instantiate', function() {
