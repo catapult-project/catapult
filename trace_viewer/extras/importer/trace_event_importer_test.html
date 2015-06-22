@@ -2691,7 +2691,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
                     type: 'scalar', units: 'objects', value: '2f'
                   },
                   inner_size: {type: 'scalar', units: 'bytes', value: '1000'},
-                  size: {type: 'scalar', units: 'bytes', value: '4000'}
+                  size: {type: 'scalar', units: 'bytes', value: '8000'}
                 }
               },
               'oilpan/heap1': {
@@ -2754,7 +2754,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.include(d.memoryAllocatorDumps, v8Root);
 
     assert.equal(oilpanRoot.attributes['objects_count'].value, 47);
-    assert.equal(oilpanRoot.attributes['size'].value, 16384);
+    assert.equal(oilpanRoot.attributes['size'].value, 32768);
     assert.equal(oilpanRoot.attributes['inner_size'].value, 4096);
     assert.equal(oilpanRoot.children.length, 2);
 
@@ -3043,7 +3043,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
               'local': {
                 guid: '4',
                 attrs: {
-                  size: {type: 'scalar', units: 'ft', value: '3'}
+                  length: {type: 'scalar', units: 'bytes', value: '3'}
                 }
               },
               'global/shared': {
@@ -3180,7 +3180,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         'local');
     assert.isDefined(rendererDumpLocal);
     assert.include(rendererDump.memoryAllocatorDumps, rendererDumpLocal);
-    assert.equal(rendererDumpLocal.attributes['size'].value, 3);
+    assert.equal(rendererDumpLocal.attributes['length'].value, 3);
     assert.isUndefined(rendererDumpLocal.attributes['area']);
     assert.lengthOf(rendererDumpLocal.children, 0);
     assert.isUndefined(rendererDumpLocal.parent);

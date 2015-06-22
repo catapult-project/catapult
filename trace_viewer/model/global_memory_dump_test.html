@@ -120,7 +120,7 @@ tr.b.unittest.testSuite(function() {
    *       skip the corresponding tree recipe node and will not create a MAD
    *       for it (not allowed in root recipes).
    *
-   * Other fields (most importantly 'subsystem_size') of a tree recipe are
+   * Other fields (most importantly 'expected_size') of a tree recipe are
    * ignored by this function.
    */
   function buildDumpTrees(allTreeRecipes, opt_model) {
@@ -161,7 +161,7 @@ tr.b.unittest.testSuite(function() {
 
         if (treeRecipe.children !== undefined) {
           treeRecipe.children.forEach(function(childTreeRecipe) {
-            // Virtual children are added during subsystem size calculation.
+            // Virtual children are added during size calculation.
             if (childTreeRecipe['skip_build'] === true)
               return;
             var childDump =
@@ -338,16 +338,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   /**
-   * Check that container memory dumps have the expected structure with
-   * subsystem sizes as described by tree recipes. The fields of a tree recipe
-   * are used by this function to check the properties of a MemoryAllocatorDump
-   * as follows (see the buildDumpTrees documentation for more details about
-   * the structure of tree recipes):
+   * Check that container memory dumps have the expected structure with sizes
+   * as described by tree recipes. The fields of a tree recipe are used by this
+   * function to check the properties of a MemoryAllocatorDump as follows (see
+   * the buildDumpTrees documentation for more details about the structure of
+   * tree recipes):
    *
    *   name: Expected name of the MAD.
-   *   expected_subsystem_size: Expected value of the 'subsystem_size'
-   *       attribute of the MAD (no 'subsystem_size' attribute expected if
-   *       undefined).
+   *   expected_size: Expected value of the 'size' attribute of the MAD (no
+   *       'size' attribute expected if undefined).
    *   children: List of tree recipes for child MADs (no children expected if
    *       undefined).
    *
@@ -393,9 +392,8 @@ tr.b.unittest.testSuite(function() {
             expectedFullName), dump, errorMessagePrefix +
             'is not indexed in its container memory dump');
 
-        // Check that 'subsystem_size' was calculated correctly.
-        assertSizeAttribute(
-            dump, 'subsystem_size', treeRecipe['expected_subsystem_size']);
+        // Check that 'size' was calculated correctly.
+        assertSizeAttribute(dump, 'size', treeRecipe['expected_size']);
 
         // Check children recursively.
         var actualChildren = dump.children;
@@ -510,15 +508,15 @@ tr.b.unittest.testSuite(function() {
     }, 'invalid parent');
   });
 
-  test('testSanityCheck_checkDumpTrees_invalidSubsystemSize', function() {
+  test('testSanityCheck_checkDumpTrees_invalidSize', function() {
     // Invalid parent link.
     var containerDumps = createContainerDumps(1);
     var gmd = containerDumps[0];
     var pmd = containerDumps[1];
     var rootDump = new MemoryAllocatorDump(pmd, 'root');
-    rootDump.addAttribute('subsystem_size', new ScalarAttribute('bytes', 100));
+    rootDump.addAttribute('size', new ScalarAttribute('bytes', 100));
     var parentDump = new MemoryAllocatorDump(pmd, 'root/parent');
-    parentDump.addAttribute('subsystem_size', new ScalarAttribute('bytes', 49));
+    parentDump.addAttribute('size', new ScalarAttribute('bytes', 49));
     rootDump.children.push(parentDump);
     parentDump.parent = rootDump;
     pmd.memoryAllocatorDumps = [rootDump];
@@ -529,42 +527,42 @@ tr.b.unittest.testSuite(function() {
         [
           {
             'name': 'root',
-            'expected_subsystem_size': 100,
+            'expected_size': 100,
             'children': [
               {
                 'name': 'parent',
-                'expected_subsystem_size': 50  // This should be 49.
+                'expected_size': 50  // This should be 49.
               }
             ]
           }
         ]
       ]);
-    }, /expected.*'subsystem_size'.*value.*\b50\b.*got.*\b49\b/);
+    }, /expected.*'size'.*value.*\b50\b.*got.*\b49\b/);
   });
 
   /**
    * Build container memory dumps from tree recipes, let the resulting
-   * GlobalMemoryDump calculate subsystem sizes, and then check that the
-   * augmented container memory dumps have the expected structure with
-   * correct subsystem sizes (as described by the same tree recipes).
+   * GlobalMemoryDump calculate sizes, and then check that the augmented
+   * container memory dumps have the expected structure with correct sizes (as
+   * described by the same tree recipes).
    *
    * See the documentation for buildDumpTrees and checkDumpTrees for more
    * details about the structure of tree recipes.
    */
-  function testSubsystemSizesCalculation(allTreeRecipes) {
+  function testSizesCalculation(allTreeRecipes) {
     var containerDumps = buildDumpTrees(allTreeRecipes);
     var gmd = containerDumps[0];
-    gmd.calculateSubsystemSizes();
+    gmd.calculateSizes();
     checkDumpTrees(containerDumps, allTreeRecipes);
   }
 
-  // Check that the testSubsystemSizesCalculation testing helper method above
+  // Check that the testSizesCalculation testing helper method above
   // actually performs the expected checks. Since it will be used heavily
   // throughout this file (where it is expected to pass), we only need to
   // verify that it does indeed fail when it should.
-  test('testSanityCheck_testSubsystemSizesCalculation', function() {
+  test('testSanityCheck_testSizesCalculation', function() {
     assert.throws(function() {
-      testSubsystemSizesCalculation([
+      testSizesCalculation([
         [],
         undefined,
         [
@@ -573,28 +571,28 @@ tr.b.unittest.testSuite(function() {
           },
           {
             'name': 'malloc',
-            'expected_subsystem_size': 100,
+            'expected_size': 100,
             'children': [
               {
                 'name': 'allocated_objects',
                 'size': 100,
-                'expected_subsystem_size': 100
+                'expected_size': 100
               },
               {
                 'name': 'extra',
                 'size': 20,
-                'expected_subsystem_size': 20
+                'expected_size': 20
               }
             ]
           }
         ]
       ]);
-    }, /expected.*'subsystem_size'.*value.*\b100\b.*got.*\b120\b/);
+    }, /expected.*'size'.*value.*\b100\b.*got.*\b120\b/);
   });
 
   function calculationTest(caseName, treeRecipes) {
-    test('calculateSubsystemSizes_' + caseName, function() {
-      testSubsystemSizesCalculation(treeRecipes);
+    test('calculateSizes_' + caseName, function() {
+      testSizesCalculation(treeRecipes);
     });
   }
 
@@ -844,7 +842,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'shared',
         'size': 1024,
-        'expected_subsystem_size': 1024
+        'expected_size': 1024
       }
     ],
     [  // PMD.
@@ -859,18 +857,18 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'shared',
         'size': 0,
-        'expected_subsystem_size': 0
+        'expected_size': 0
       }
     ],
     [  // PMD1.
       {
         'name': 'gpu',
-        'expected_subsystem_size': 0,
+        'expected_size': 0,
         'children': [
           {
             'name': 'zero',
             'size': 0,
-            'expected_subsystem_size': 0
+            'expected_size': 0
           }
         ]
       }
@@ -878,12 +876,12 @@ tr.b.unittest.testSuite(function() {
     [  // PMD2.
       {
         'name': 'gpu',
-        'expected_subsystem_size': 0,
+        'expected_size': 0,
         'children': [
           {
             'name': 'zero',
             'size': 0,
-            'expected_subsystem_size': 0
+            'expected_size': 0
           },
           {
             'name': 'undefined'
@@ -913,17 +911,17 @@ tr.b.unittest.testSuite(function() {
     [
       {
         'name': 'parent',
-        'expected_subsystem_size': 384,
+        'expected_size': 384,
         'children': [
           {
             'name': 'child1',
             'size': 128,
-            'expected_subsystem_size': 128
+            'expected_size': 128
           },
           {
             'name': 'child2',
             'size': 256,
-            'expected_subsystem_size': 256
+            'expected_size': 256
           }
         ]
       }
@@ -935,7 +933,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'parent',
         'size': 0,
-        'expected_subsystem_size': 0,
+        'expected_size': 0,
         'children': [
           {
             'name': 'child1'
@@ -953,12 +951,12 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'parent',
         'size': 2048,
-        'expected_subsystem_size': 2048,
+        'expected_size': 2048,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 2048
+            'expected_size': 2048
           },
           {
             'name': 'child1'
@@ -976,7 +974,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'parent',
         'size': 4096,
-        'expected_subsystem_size': 4096,
+        'expected_size': 4096,
         'children': [
           {
             'name': 'child1'
@@ -984,7 +982,7 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'child2',
             'size': 4096,
-            'expected_subsystem_size': 4096
+            'expected_size': 4096
           }
         ]
       }
@@ -996,12 +994,12 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'parent',
         'size': 6144,
-        'expected_subsystem_size': 6144,
+        'expected_size': 6144,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 2048
+            'expected_size': 2048
           },
           {
             'name': 'child1'
@@ -1009,7 +1007,7 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'child2',
             'size': 4096,
-            'expected_subsystem_size': 4096
+            'expected_size': 4096
           }
         ]
       }
@@ -1021,17 +1019,17 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'parent',
         'size': 100,
-        'expected_subsystem_size': 100,
+        'expected_size': 100,
         'children': [
           {
             'name': 'child1',
             'size': 70,
-            'expected_subsystem_size': 70
+            'expected_size': 70
           },
           {
             'name': 'child2',
             'size': 30,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           }
         ]
       }
@@ -1043,22 +1041,22 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'parent',
         'size': 150,
-        'expected_subsystem_size': 150,
+        'expected_size': 150,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 50
+            'expected_size': 50
           },
           {
             'name': 'child1',
             'size': 70,
-            'expected_subsystem_size': 70
+            'expected_size': 70
           },
           {
             'name': 'child2',
             'size': 30,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           }
         ]
       }
@@ -1069,12 +1067,12 @@ tr.b.unittest.testSuite(function() {
     [
       {
         'name': 'parent',
-        'expected_subsystem_size': 49,
+        'expected_size': 49,
         'children': [
           {
             'name': 'child1',
             'size': 49,
-            'expected_subsystem_size': 49
+            'expected_size': 49
           },
           {
             'name': 'child2'
@@ -1089,55 +1087,55 @@ tr.b.unittest.testSuite(function() {
     [  // PMD.
       {
         'name': 'v8',
-        'expected_subsystem_size': 36,
+        'expected_size': 36,
         'children': [
           {
             'name': 'isolate1',
             'size': 10,
-            'expected_subsystem_size': 10,
+            'expected_size': 10,
             'children': [
               {
                 'skip_build': true,
                 'name': '<unspecified>',
-                'expected_subsystem_size': 3
+                'expected_size': 3
               },
               {
                 'name': 'objects',
                 'size': 3,
-                'expected_subsystem_size': 3
+                'expected_size': 3
               },
               {
                 'name': 'heaps',
                 'size': 4,
-                'expected_subsystem_size': 4
+                'expected_size': 4
               }
             ]
           },
           {
             'name': 'isolate2',
             'size': 12,
-            'expected_subsystem_size': 12,
+            'expected_size': 12,
             'children': [
               {
                 'name': 'objects',
                 'size': 5,
-                'expected_subsystem_size': 5
+                'expected_size': 5
               },
               {
                 'name': 'heaps',
                 'size': 7,
-                'expected_subsystem_size': 7
+                'expected_size': 7
               }
             ]
           },
           {
             'name': 'isolate3',
-            'expected_subsystem_size': 14,
+            'expected_size': 14,
             'children': [
               {
                 'name': 'objects',
                 'size': 14,
-                'expected_subsystem_size': 14
+                'expected_size': 14
               },
               {
                 'name': 'heaps'
@@ -1176,7 +1174,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'bitmap',
         'size': 15,
-        'expected_subsystem_size': 15,
+        'expected_size': 15,
         'guid': 7
       }
     ],
@@ -1198,7 +1196,7 @@ tr.b.unittest.testSuite(function() {
     [  // GMD.
       {
         'name': 'bitmap',
-        'expected_subsystem_size': 9,
+        'expected_size': 9,
         'guid': 7
       }
     ],
@@ -1206,7 +1204,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'tile',
         'size': 5,
-        'expected_subsystem_size': 5,
+        'expected_size': 5,
         'owns': 7
       }
     ],
@@ -1214,7 +1212,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'chunk',
         'size': 9,
-        'expected_subsystem_size': 9,
+        'expected_size': 9,
         'owns': 7
       }
     ]
@@ -1224,7 +1222,7 @@ tr.b.unittest.testSuite(function() {
     [  // GMD.
       {
         'name': 'bitmap',
-        'expected_subsystem_size': 16,
+        'expected_size': 16,
         'guid': 7
       }
     ],
@@ -1232,7 +1230,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'tile',
         'size': 16,
-        'expected_subsystem_size': 16,
+        'expected_size': 16,
         'owns': 7
       }
     ],
@@ -1249,7 +1247,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'bitmap',
         'size': 20,
-        'expected_subsystem_size': 20,
+        'expected_size': 20,
         'guid': 7
       }
     ],
@@ -1263,7 +1261,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'chunk',
         'size': 18,
-        'expected_subsystem_size': 18,
+        'expected_size': 18,
         'owns': 7
       }
     ]
@@ -1274,7 +1272,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'bitmap',
         'size': 60,
-        'expected_subsystem_size': 60,
+        'expected_size': 60,
         'guid': 7
       }
     ],
@@ -1282,7 +1280,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'tile',
         'size': 29,
-        'expected_subsystem_size': 29,
+        'expected_size': 29,
         'owns': 7
       }
     ],
@@ -1290,7 +1288,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'chunk',
         'size': 19,
-        'expected_subsystem_size': 19,
+        'expected_size': 19,
         'owns': 7
       }
     ]
@@ -1300,14 +1298,14 @@ tr.b.unittest.testSuite(function() {
     [  // GMD.
       {
         'name': 'bitmap',
-        'expected_subsystem_size': 50,
+        'expected_size': 50,
         'guid': 7
       }
     ],
     [  // PMD1.
       {
         'name': 'tile',
-        'expected_subsystem_size': 50,
+        'expected_size': 50,
         'owns': 7,
         'guid': 0
       },
@@ -1315,7 +1313,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'object1',
         'size': 30,
         'owns': 0,
-        'expected_subsystem_size': 30
+        'expected_size': 30
       },
       {
         'name': 'object2',
@@ -1325,14 +1323,14 @@ tr.b.unittest.testSuite(function() {
         'name': 'object3',
         'size': 50,
         'owns': 0,
-        'expected_subsystem_size': 50
+        'expected_size': 50
       }
     ],
     [  // PMD2.
       {
         'name': 'chunk',
         'size': 40,
-        'expected_subsystem_size': 40,
+        'expected_size': 40,
         'owns': 7
       }
     ]
@@ -1343,17 +1341,17 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'bitmap',
         'guid': 7,
-        'expected_subsystem_size': 48,
+        'expected_size': 48,
         'children': [
           {
             'name': 'subbitmap1',
             'size': 32,
-            'expected_subsystem_size': 32
+            'expected_size': 32
           },
           {
             'name': 'subbitmap2',
             'size': 16,
-            'expected_subsystem_size': 16
+            'expected_size': 16
           }
         ]
       }
@@ -1361,19 +1359,19 @@ tr.b.unittest.testSuite(function() {
     [  // PMD.
       {
         'name': 'tile',
-        'expected_subsystem_size': 31,
+        'expected_size': 31,
         'guid': 8,
         'owns': 7,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 7
+            'expected_size': 7
           },
           {
             'name': 'subtile',
             'size': 24,
-            'expected_subsystem_size': 24
+            'expected_size': 24
           }
         ]
       },
@@ -1381,7 +1379,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'cc',
         'owns': 8,
         'size': 31,
-        'expected_subsystem_size': 31
+        'expected_size': 31
       }
     ]
   ]);
@@ -1391,17 +1389,17 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'bitmap',
         'size': 96,
-        'expected_subsystem_size': 96,
+        'expected_size': 96,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 32
+            'expected_size': 32
           },
           {
             'name': 'subbitmap',
             'guid': 2,
-            'expected_subsystem_size': 64
+            'expected_size': 64
           }
         ]
       }
@@ -1409,13 +1407,13 @@ tr.b.unittest.testSuite(function() {
     [  // PMD.
       {
         'name': 'tile',
-        'expected_subsystem_size': 64,
+        'expected_size': 64,
         'children': [
           {
             'name': 'subtile',
             'guid': 1,
             'owns': 2,
-            'expected_subsystem_size': 64
+            'expected_size': 64
           }
         ]
       },
@@ -1423,7 +1421,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'cc',
         'owns': 1,
         'size': 64,
-        'expected_subsystem_size': 64
+        'expected_size': 64
       }
     ]
   ]);
@@ -1433,17 +1431,17 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'bitmap',
         'size': 96,
-        'expected_subsystem_size': 96,
+        'expected_size': 96,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 32
+            'expected_size': 32
           },
           {
             'name': 'subbitmap',
             'guid': 2,
-            'expected_subsystem_size': 64
+            'expected_size': 64
           }
         ]
       }
@@ -1451,13 +1449,13 @@ tr.b.unittest.testSuite(function() {
     [  // PMD.
       {
         'name': 'tile',
-        'expected_subsystem_size': 64,
+        'expected_size': 64,
         'owns': 2,
         'children': [
           {
             'name': 'subtile',
             'guid': 1,
-            'expected_subsystem_size': 64
+            'expected_size': 64
           }
         ]
       },
@@ -1465,7 +1463,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'cc',
         'owns': 1,
         'size': 64,
-        'expected_subsystem_size': 64
+        'expected_size': 64
       }
     ]
   ]);
@@ -1492,13 +1490,13 @@ tr.b.unittest.testSuite(function() {
     [
       {
         'name': 'v8',
-        'expected_subsystem_size': 10,
+        'expected_size': 10,
         'children': [
           {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 10,
-            'expected_subsystem_size': 10
+            'expected_size': 10
           },
           {
             'name': 'v8/objects',
@@ -1513,18 +1511,18 @@ tr.b.unittest.testSuite(function() {
     [
       {
         'name': 'v8',
-        'expected_subsystem_size': 20,
+        'expected_size': 20,
         'children': [
           {
             'name': 'v8/heaps',
             'guid': 1,
-            'expected_subsystem_size': 20
+            'expected_size': 20
           },
           {
             'name': 'v8/objects',
             'owns': 1,
             'size': 20,
-            'expected_subsystem_size': 20
+            'expected_size': 20
           }
         ]
       }
@@ -1535,19 +1533,19 @@ tr.b.unittest.testSuite(function() {
     [
       {
         'name': 'v8',
-        'expected_subsystem_size': 30,
+        'expected_size': 30,
         'children': [
           {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 30,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           },
           {
             'name': 'v8/objects',
             'owns': 1,
             'size': 20,
-            'expected_subsystem_size': 20
+            'expected_size': 20
           }
         ]
       }
@@ -1559,13 +1557,13 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'size': 30,
-        'expected_subsystem_size': 30,
+        'expected_size': 30,
         'children': [
           {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 30,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           },
           {
             'name': 'v8/objects',
@@ -1581,18 +1579,18 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'size': 40,
-        'expected_subsystem_size': 40,
+        'expected_size': 40,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 10
+            'expected_size': 10
           },
           {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 30,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           },
           {
             'name': 'v8/objects',
@@ -1608,18 +1606,18 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'size': 30,
-        'expected_subsystem_size': 30,
+        'expected_size': 30,
         'children': [
           {
             'name': 'v8/heaps',
             'guid': 1,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           },
           {
             'name': 'v8/objects',
             'owns': 1,
             'size': 30,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           }
         ]
       }
@@ -1631,23 +1629,23 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'size': 40,
-        'expected_subsystem_size': 40,
+        'expected_size': 40,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 10
+            'expected_size': 10
           },
           {
             'name': 'v8/heaps',
             'guid': 1,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           },
           {
             'name': 'v8/objects',
             'owns': 1,
             'size': 30,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           }
         ]
       }
@@ -1659,19 +1657,19 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'size': 30,
-        'expected_subsystem_size': 30,
+        'expected_size': 30,
         'children': [
           {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 30,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           },
           {
             'name': 'v8/objects',
             'owns': 1,
             'size': 15,
-            'expected_subsystem_size': 15
+            'expected_size': 15
           }
         ]
       }
@@ -1683,24 +1681,24 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'size': 35,
-        'expected_subsystem_size': 35,
+        'expected_size': 35,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 5
+            'expected_size': 5
           },
           {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 30,
-            'expected_subsystem_size': 30
+            'expected_size': 30
           },
           {
             'name': 'v8/objects',
             'owns': 1,
             'size': 15,
-            'expected_subsystem_size': 15
+            'expected_size': 15
           }
         ]
       }
@@ -1711,60 +1709,60 @@ tr.b.unittest.testSuite(function() {
     [
       {
         'name': 'root',
-        'expected_subsystem_size': 17,
+        'expected_size': 17,
         'children': [
           {
             'name': 'parent1',
             'size': 10,
-            'expected_subsystem_size': 10,
+            'expected_size': 10,
             'children': [
               {
                 'name': '<unspecified>',
                 'skip_build': true,
-                'expected_subsystem_size': 2
+                'expected_size': 2
               },
               {
                 'name': 'child',
                 'guid': 1,
                 'size': 8,
-                'expected_subsystem_size': 8
+                'expected_size': 8
               }
             ]
           },
           {
             'name': 'parent2',
             'size': 8,
-            'expected_subsystem_size': 8,
+            'expected_size': 8,
             'children': [
               {
                 'name': '<unspecified>',
                 'skip_build': true,
-                'expected_subsystem_size': 3
+                'expected_size': 3
               },
               {
                 'name': 'child',
                 'guid': 2,
                 'owns': 1,
                 'size': 5,
-                'expected_subsystem_size': 5
+                'expected_size': 5
               }
             ]
           },
           {
             'name': 'parent3',
             'size': 7,
-            'expected_subsystem_size': 7,
+            'expected_size': 7,
             'children': [
               {
                 'name': '<unspecified>',
                 'skip_build': true,
-                'expected_subsystem_size': 4
+                'expected_size': 4
               },
               {
                 'name': 'child',
                 'owns': 2,
                 'size': 3,
-                'expected_subsystem_size': 3
+                'expected_size': 3
               }
             ]
           }
@@ -1780,31 +1778,31 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'unknown',
         'guid': 2,
-        'expected_subsystem_size': 16
+        'expected_size': 16
       }
     ],
     [  // PMD1, Browser process.
       {
         'name': 'sharedbitmap',
         'size': 17,
-        'expected_subsystem_size': 17,
+        'expected_size': 17,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 1
+            'expected_size': 1
           },
           {
             'name': '0x7',
             'size': 16,
-            'expected_subsystem_size': 16,
+            'expected_size': 16,
             'owns': 2,
             'importance': 1,
             'children': [
               {
                 'name': '<unspecified>',
                 'skip_build': true,
-                'expected_subsystem_size': 16
+                'expected_size': 16
               },
               {
                 'name': 'y'
@@ -1817,22 +1815,22 @@ tr.b.unittest.testSuite(function() {
     [  // PMD2, Renderer process.
       {
         'name': 'v8',
-        'expected_subsystem_size': 13,
+        'expected_size': 13,
         'children': [
           {
             'name': 'heaps',
             'guid': 100,
-            'expected_subsystem_size': 12,
+            'expected_size': 12,
             'children': [
               {
                 'name': '1',
                 'size': 8,
-                'expected_subsystem_size': 8,
+                'expected_size': 8,
                 'owns': 2
               },
               {
                 'name': '2',
-                'expected_subsystem_size': 4,
+                'expected_size': 4,
                 'size': 4
               }
             ]
@@ -1840,17 +1838,17 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'objects',
             'size': 10,
-            'expected_subsystem_size': 10,
+            'expected_size': 10,
             'children': [
               {
                 'name': '<unspecified>',
                 'skip_build': true,
-                'expected_subsystem_size': 1
+                'expected_size': 1
               },
               {
                 'name': 'strings',
                 'size': 9,
-                'expected_subsystem_size': 9,
+                'expected_size': 9,
                 'owns': 100,
                 'importance': 2
               }
@@ -1869,23 +1867,23 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'root1',
         'size': 24,
-        'expected_subsystem_size': 24,
+        'expected_size': 24,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_subsystem_size': 4
+            'expected_size': 4
           },
           {
             'name': 'parent',
-            'size': 17,  // Invalid: child has larger subsystem size.
-            'expected_subsystem_size': 20,
+            'size': 17,  // Invalid: child has larger size.
+            'expected_size': 20,
             'children': [
               {
                 'name': 'child',
                 'guid': 1,
-                'size': 10,  // Invalid: owner has larger subsystem size.
-                'expected_subsystem_size': 20
+                'size': 10,  // Invalid: owner has larger size.
+                'expected_size': 20
               }
             ]
           }
@@ -1895,13 +1893,13 @@ tr.b.unittest.testSuite(function() {
         'name': 'root2',
         'owns': 1,
         'size': 20,
-        'expected_subsystem_size': 20
+        'expected_size': 20
       }
     ]
   ]);
 
-  // Check that subsystem size calculation is NOT preceded by attribute
-  // aggregation, which recursively sums up size attributes.
+  // Check that size calculation is NOT preceded by attribute
+  // aggregation, which would recursively sum up size attributes.
   test('calculateGraphAttributes', function() {
     var model = tr.c.test_utils.newModel(function(model) {
       buildDumpTrees([
@@ -1928,20 +1926,15 @@ tr.b.unittest.testSuite(function() {
     var pmd = model.getProcess(0).memoryDumps[0];
 
     var rootDump = pmd.getMemoryAllocatorDumpByFullName('root');
-    // Summed up by GlobalMemoryDump.aggregateAttributes().
-    assertSizeAttribute(rootDump, 'size', 30);
-    // Aggregated by GlobalMemoryDump.calculateSubsystemSizes().
-    assertSizeAttribute(rootDump, 'subsystem_size', 20);
+    assertSizeAttribute(rootDump, 'size', 20);
 
     var ownerChildDump = pmd.getMemoryAllocatorDumpByFullName(
         'root/owner_child');
     assertSizeAttribute(ownerChildDump, 'size', 10);
-    assertSizeAttribute(ownerChildDump, 'subsystem_size', 10);
 
     var ownedChildDump = pmd.getMemoryAllocatorDumpByFullName(
         'root/owned_child');
     assertSizeAttribute(ownedChildDump, 'size', 20);
-    assertSizeAttribute(ownedChildDump, 'subsystem_size', 20);
   });
 });
 </script>
