@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/analysis/sampling_summary.html">
+<link rel="import" href="/ui/extras/analysis/sampling_summary.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/model.html">
 
@@ -102,7 +102,7 @@ tr.b.unittest.testSuite(function() {
       ]
     };
 
-    var sunburstData = tr.e.analysis.createSunburstData(s, 'cycles');
+    var sunburstData = tr.ui.e.analysis.createSunburstData(s, 'cycles');
     assert.equal(JSON.stringify(sunburstData), JSON.stringify(expect));
   });
 
@@ -165,7 +165,7 @@ tr.b.unittest.testSuite(function() {
       title: 'f', start: 9, duration: 7
     }));
 
-    var sunburstData = tr.e.analysis.createSunburstData(
+    var sunburstData = tr.ui.e.analysis.createSunburstData(
         selection, 'page_misses');
     assert.equal(JSON.stringify(sunburstData), JSON.stringify(expect));
   });
@@ -204,14 +204,14 @@ tr.b.unittest.testSuite(function() {
       ]
     };
 
-    var sunburstData = tr.e.analysis.createSunburstData(s, 'page_misses');
+    var sunburstData = tr.ui.e.analysis.createSunburstData(s, 'page_misses');
     assert.equal(JSON.stringify(sunburstData), JSON.stringify(expect));
   });
 
   test('instantiate', function() {
     var s = createSelection();
 
-    var panel = new tr.e.analysis.SamplingSummaryPanel();
+    var panel = new tr.ui.e.analysis.SamplingSummaryPanel();
     this.addHTMLOutput(panel);
     panel.style.border = '1px solid black';
     panel.selection = s;

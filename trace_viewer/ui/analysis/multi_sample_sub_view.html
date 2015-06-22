@@ -34,8 +34,8 @@ found in the LICENSE file.
       this.$.content.textContent = '';
       this.currentSelection_ = selection;
 
-      if (tr.isDefined('tr.e.analysis.SamplingSummaryPanel')) {
-        var panel = new tr.e.analysis.SamplingSummaryPanel();
+      if (tr.isDefined('tr.ui.e.analysis.SamplingSummaryPanel')) {
+        var panel = new tr.ui.e.analysis.SamplingSummaryPanel();
         this.$.content.appendChild(panel);
         panel.selection = selection;
       } else {
