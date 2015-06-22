@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/side_panel/input_latency_side_panel.html">
+<link rel="import" href="/ui/extras/side_panel/input_latency_side_panel.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/model.html">
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
         latency: 23
       }
     ];
-    var lc = document.createElement('tr-e-s-input-latency-side-panel');
+    var lc = document.createElement('tr-ui-e-s-input-latency-side-panel');
     var latencyChart = lc.createLatencyLineChart(latencyData, 'latency');
     this.addHTMLOutput(latencyChart);
 
@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
         frametime: 23
       }
     ];
-    var lc = document.createElement('tr-e-s-input-latency-side-panel');
+    var lc = document.createElement('tr-ui-e-s-input-latency-side-panel');
     var frametimeChart = lc.createLatencyLineChart(frametimeData, 'frametime');
     this.addHTMLOutput(frametimeChart);
   });
@@ -115,7 +115,7 @@ tr.b.unittest.testSuite(function() {
       'name': 'thread_name',
       'args': {'name': 'CrBrowserMain'}});
 
-    var panel = document.createElement('tr-e-s-input-latency-side-panel');
+    var panel = document.createElement('tr-ui-e-s-input-latency-side-panel');
     this.addHTMLOutput(panel);
 
     var selectionChanged = false;

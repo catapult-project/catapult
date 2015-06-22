@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/side_panel/time_summary_side_panel.html">
+<link rel="import" href="/ui/extras/side_panel/time_summary_side_panel.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/model.html">
 
@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('group', function() {
-    var ts = document.createElement('tr-e-s-time-summary-side-panel');
+    var ts = document.createElement('tr-ui-e-s-time-summary-side-panel');
     var m = createModel();
     var group = ts.generateResultsForGroup(m, 'foo');
     group.appendThreadSlices(m.bounds, m.processes[1].threads[2]);
@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var ts = document.createElement('tr-e-s-time-summary-side-panel');
+    var ts = document.createElement('tr-ui-e-s-time-summary-side-panel');
 
     var groups = [];
     var m = new tr.Model();
@@ -158,7 +158,7 @@ tr.b.unittest.testSuite(function() {
     var newGroups = ts.trimPieChartData(groups, otherGroup, getValueFromGroup);
 
     // Visualize the data once its trimmed.
-    var ce = document.createElement('tr-e-s-time-summary-side-panel');
+    var ce = document.createElement('tr-ui-e-s-time-summary-side-panel');
     var chart = ce.createPieChartFromResultGroups(
         newGroups, 'Trimmed', getValueFromGroup);
     this.addHTMLOutput(chart);
@@ -168,7 +168,7 @@ tr.b.unittest.testSuite(function() {
   test('basicInWallTimeMode', function() {
     var m = createModel();
 
-    var panel = document.createElement('tr-e-s-time-summary-side-panel');
+    var panel = document.createElement('tr-ui-e-s-time-summary-side-panel');
     this.addHTMLOutput(panel);
     panel.model = m;
     panel.groupingUnit = 'Wall time';
@@ -178,7 +178,7 @@ tr.b.unittest.testSuite(function() {
   test('basicInCpuTimeModeButNoCpuData', function() {
     var m = createModel();
 
-    var panel = document.createElement('tr-e-s-time-summary-side-panel');
+    var panel = document.createElement('tr-ui-e-s-time-summary-side-panel');
     this.addHTMLOutput(panel);
     panel.model = m;
     panel.groupingUnit = 'CPU time';
@@ -190,7 +190,7 @@ tr.b.unittest.testSuite(function() {
       provideSoftwareMeasuredCpuCount: true
     });
 
-    var panel = document.createElement('tr-e-s-time-summary-side-panel');
+    var panel = document.createElement('tr-ui-e-s-time-summary-side-panel');
     this.addHTMLOutput(panel);
     panel.model = m;
     panel.groupingUnit = 'CPU time';
