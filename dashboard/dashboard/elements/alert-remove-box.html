@@ -1,0 +1,48 @@
+<!--
+The alert-remove-box element provides the functionality of dis-associating
+an alert from an issue on the issue tracker.
+-->
+<link rel="import" href="xhr-element.html">
+
+<polymer-element name="alert-remove-box" attributes="xsrfToken key">
+  <template>
+    <style>
+      .closebox {
+        cursor: pointer;
+        vertical-align: middle;
+        margin-bottom: 2px;
+      }
+    </style>
+    <xhr-element id="xhr"></xhr-element>
+    <img src="/closebox.png"
+         id="icon"
+         class="closebox"
+         on-click="{{onRemoveBug}}"
+         alt="Undo alert triage">
+  </template>
+  <script>
+    Polymer('alert-remove-box', {
+      /**
+       * Sends a request to /edit_anomalies to reset the bug ID of this alert.
+       */
+      onRemoveBug: function(event, detail, sender) {
+        event.preventDefault();
+        this.$.icon.src = '//www.google.com/images/spin-10.gif';
+        var params = {
+          'keys': this.key,
+          'bug_id': 'REMOVE'
+        }
+        this.$.xhr.send('/edit_anomalies', this.xsrfToken, params,
+          function(info) {
+            this.$.icon.src = '/closebox.png';
+            this.fire('untriaged', {'key': this.key});
+          }.bind(this),
+          function(msg) {
+            this.$.icon.src = '/closebox.png';
+            alert(msg);
+          }.bind(this)
+        );
+      }
+    });
+  </script>
+</polymer-element>

@@ -1,0 +1,413 @@
+<!--
+The triage-dialog element is the dialog box that is shown when a user clicks
+on an alert, or clicks on a "triage" button on the alerts page. It allows the
+-->
+<link rel="import" href="../../third_party/polymer/components/paper-button/paper-button.html">
+<link rel="import" href="xhr-element.html">
+
+<polymer-element name="triage-dialog" attributes="xsrfToken alerts">
+  <template>
+    <style>
+      #dialog {
+        background: white;
+        padding: 16px 20px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, .2);
+        border: solid 1px #acacac;
+        border-bottom-color: #999;
+        margin-bottom: 0.5em;
+      }
+
+      .error {
+        color: #dd4b39;
+        font-weight: bold;
+      }
+
+      fieldset {
+        margin: 0.5em;
+        border: 1px solid #ebebeb;
+      }
+
+      /* Form controls outside of a fieldset that we want to line up with
+         controls inside the fieldset. */
+      .outside-fieldset {
+        margin-left: 1.75em;
+      }
+
+      .submit-button {
+        background-color: #4285f4;
+        color: white;
+      }
+    </style>
+    <form id="dialog" onSubmit="return false;">
+      <xhr-element id="xhr"></xhr-element>
+      <template bind if="{{stepTriage}}">
+        <fieldset name="Triage">
+          <legend>Triage</legend>
+          <paper-button class="submit-button" raised on-click="{{fileNewBug}}">New bug</paper-button>
+          <paper-button class="submit-button" raised on-click="{{associateWithBug}}">Existing bug</paper-button>
+          <paper-button class="submit-button" raised on-click="{{markIgnored}}">Ignore</paper-button>
+        </fieldset>
+        <fieldset name="Fix-up alert">
+          <legend>Fix-up</legend>
+          <select class="kennedy-button" id="nudgeSelect" hidden?="{{!nudgeList}}" on-change="{{nudgeAlert}}">
+            <option template repeat="{{nudgeList}}" value="{{endRevision}}" selected?="{{selected}}">
+              Nudge {{amount}} {{displayEndRevision}} ({{value}})
+            </option>
+          </select>
+          <paper-button raised on-click="{{markInvalid}}">Invalid</paper-button>
+        </fieldset>
+        <paper-button class="outside-fieldset" raised on-click="{{hide}}">Cancel</paper-button>
+      </template>
+      <template bind if="{{stepLoading}}">
+        <img src="//www.google.com/images/loading.gif">
+      </template>
+      <template bind if="{{stepFinished}}">
+        <template bind if="{{successMessage}}">
+          {{successMessage}}
+        </template>
+        <template bind if="{{errorMessage}}">
+          <div class="error">There was a problem triaging the bug:</div>
+          {{errorMessage}}
+        </template>
+        <br>
+        <paper-button class="outside-fieldset" raised on-click="{{hide}}">Cancel</paper-button>
+      </template>
+    </form>
+  </template>
+  <script>
+    Polymer('triage-dialog', {
+
+      // A string describing the magnitude of change from zero to non-zero.
+      FREAKIN_HUGE: 'zero-to-nonzero',
+
+      /**
+       * Custom element lifecycle callback.
+       * Called when the triage-dialog element is ready.
+       */
+      ready: function() {
+        this.bugWindow = null;
+        this.hide();
+        // Event listener for the message event.
+        // The message event can be fired when another window, such as the
+        // create bug dialog window, uses window.postMessage().
+        // This is used so that the triage dialog is hidden when the popup
+        // window is shown.
+        window.addEventListener('message', function(e) {
+          if (!e || !e.data) {
+            return;
+          }
+          var data = JSON.parse(e.data);
+          if (data['action'] == 'bug_create_result') {
+            if (this.bugWindow) {
+              this.bugWindow.close();
+            }
+            this.showCreatedBugResult(data);
+            this.hide();
+            this.fire('triaged', {
+              'alerts': this.alerts,
+              'bugid': data['bugid']
+            });
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }.bind(this), true);
+      },
+
+      /**
+       * Show popup message for filed bug result.
+       *
+       * @param {object} dataObject with info about filed bug set from
+       *     bug_result.html.
+       */
+      showCreatedBugResult: function(data) {
+        var message = 'Bug <a href="http://crbug.com/{{bugid}}" target="_blank">' +
+                      '{{bugid}}</a> created/updated. ';
+        if (data['bisect_error'].length > 0) {
+          message += '<\ br>Failed to start bisect: {{bisect_error}}';
+        } else {
+          message += 'Rietveld issue <a href="{{rietveld_url}}/' +
+                     '{{rietveld_issue_id}}"' +
+                     ' target="_blank">{{rietveld_issue_id}}</a>';
+        }
+        message = this.template(message, data);
+        var messageBar = document.getElementById('message-bar');
+        messageBar.updateContent(message);
+      },
+
+      /**
+       * Initializes and displays the triage dialog.
+       */
+      show: function() {
+        if (this.alerts && this.alerts.length && this.alerts[0].nudgeList) {
+          this.nudgeList = this.alerts[0].nudgeList;
+        } else {
+          this.nudgeList = null;
+        }
+        this.setState('triage');
+        this.bugid = null;
+        this.errorMessage = null;
+        this.successMessage = null;
+        this.checkedNudge = false;
+        this.$.dialog.style.display = '';
+      },
+
+      /**
+       * Hides the triage dialog.
+       */
+      hide: function() {
+        if (this.bugWindow) {
+          this.bugWindow.close();
+        }
+        this.$.dialog.style.display = 'none';
+        return false;
+      },
+
+      /**
+       * Updates the this.fileBugKeys based on this.alerts.
+       */
+      alertsChanged: function() {
+        this.fileBugKeys = [];
+        if (this.alerts && this.alerts.length) {
+          this.fileBugKeys = this.alerts.map(function(a) { return a.key; });
+        }
+      },
+
+      /**
+       * Opens a window with the /file_bug page, and fills in the form.
+       */
+      fileNewBug: function() {
+        var details = this.getBugDetails();
+        var data = [
+          {name: 'keys', value: this.fileBugKeys.join(',')},
+          {name: 'summary', value: details.summary},
+        ];
+        this.bugWindow = this.openAndPost('/file_bug', data, 'edit_bugs');
+      },
+
+      /**
+       * Opens a window with the /associate_alerts page, which allows the user
+       * to associate an alert with an existing issue.
+       */
+      associateWithBug: function() {
+        this.bugWindow = this.openAndPost('/associate_alerts',
+            [{name: 'keys', value: this.fileBugKeys.join(',')}], 'edit_bugs');
+      },
+
+      /**
+       * Marks an alert as invalid.
+       */
+      markInvalid: function() {
+        this.changeBugId(-1);
+        if (!this.errorMessage) {
+          this.successMessage = 'Alert(s) marked invalid.';
+        }
+      },
+
+      /**
+       * Marks an alert as invalid.
+       */
+      markIgnored: function() {
+        this.changeBugId(-2);
+        if (!this.errorMessage) {
+          this.successMessage = 'Alert(s) marked ignored.';
+        }
+      },
+
+      /**
+       * Changes the bug ID of the selected alerts.
+       */
+      changeBugId: function(bugId) {
+        var params = {keys: this.fileBugKeys};
+        this.bugid = bugId;
+        params.bug_id = this.bugid;
+        this.setState('loading');
+        this.$.xhr.send('/edit_anomalies', this.xsrfToken, params,
+          function() {
+            this.fire('triaged', {
+              'alerts': this.alerts,
+              'bugid': this.bugid
+            });
+            this.setState('finished');
+          }.bind(this),
+          function(msg) {
+            this.errorMessage = msg;
+            this.setState('finished');
+          }.bind(this));
+      },
+
+      /**
+       * Move an alert's position.
+       */
+      nudgeAlert: function() {
+        var info = this.getNudgedInfo();
+        var params = {
+          'keys': this.fileBugKeys,
+          'new_start_revision': info.startRevision,
+          'new_end_revision': info.endRevision,
+        };
+        this.setState('loading');
+        this.$.xhr.send('/edit_anomalies', this.xsrfToken, params,
+          function() {
+            this.errorMessage = null;
+            this.fire('alertChangedRevisions', {
+              'startRev': info.startRevision,
+              'endRev': info.endRevision,
+              'newDataIndex': info.dataIndex,
+              'alerts': this.alerts
+            });
+            this.successMessage = 'Alert moved.';
+            this.setState('finished');
+          }.bind(this),
+          function(msg) {
+            this.errorMessage = msg;
+            this.setState('finished');
+          }.bind(this));
+      },
+
+      /**
+       * Gets the item in the nudge list that was selected.
+       * Note that this.nudgeList is populated in chart-container.
+       */
+      getNudgedInfo: function() {
+        var index = this.shadowRoot.getElementById('nudgeSelect').selectedIndex;
+        return this.nudgeList[index];
+      },
+
+      /**
+       * Sets the state of the triage dialog.
+       *
+       * The state affects the contents of the triage-dialog element through
+       * affecting conditionally-bound templates. See:
+       * http://www.polymer-project.org/platform/template.html#if
+       *
+       * The possible states are:
+       *   triage: The dialog has been opened and the form is ready.
+       *   loading: Action has just been taken, and we're waiting for response.
+       *   finished: The dialog is finished now,
+       *
+       * @param {string} The new state.
+       */
+      setState: function(state) {
+        this.stepTriage = state == 'triage';
+        this.stepLoading = state == 'loading';
+        this.stepFinished = state == 'finished';
+      },
+
+      /**
+       * Gets information to fill in when filing a new bug.
+       * @return {Object}
+       */
+      getBugDetails: function() {
+        var type = 'improvement';
+        var percentMin = Infinity;
+        var percentMax = -Infinity;
+        var maxRegressionFound = false;
+        var startRev = Infinity;
+        var endRev = -Infinity;
+        for (var i = 0; i < this.alerts.length; i++) {
+          var alert = this.alerts[i];
+          if (!alert.improvement) {
+            type = 'regression';
+          }
+          var percent = Infinity;
+          if (alert.percent_changed == this.FREAKIN_HUGE && !maxRegressionFound) {
+            maxRegressionFound = true;
+          }
+          else
+            percent = Math.abs(parseFloat(alert.percent_changed));
+          if (percent < percentMin) {
+            percentMin = percent;
+          }
+          if (percent > percentMax) {
+            percentMax = percent;
+          }
+          if (alert.start_revision < startRev) {
+            startRev = alert.start_revision;
+          }
+          if (alert.end_revision > endRev) {
+            endRev = alert.end_revision;
+          }
+        }
+
+        // Round the percentages to 1 decimal place.
+        percentMin = Math.round(percentMin * 10) / 10;
+        percentMax = Math.round(percentMax * 10) / 10;
+        var minMax = percentMin + '%-' + percentMax + '%';
+        if (maxRegressionFound ) {
+          if (percentMin == Infinity) {
+            // Both percentMin and percentMax were at Infinity.
+            // Record a "freakin' huge" (TM) regression.
+            minMax = 'A ' + this.FREAKIN_HUGE;
+          }
+          else {
+            // Regressions ranged from Infinity to some other lower percentage.
+            minMax = 'A ' + this.FREAKIN_HUGE + ' to ' + percentMin + '%';
+          }
+        }
+        else if (percentMin == percentMax) {
+          minMax = percentMin + '%';
+        }
+
+        var alert = this.alerts[0];
+        var summary = ('MIN-MAX CHANGE in TESTSUITE at START:END'
+            .replace('MIN-MAX', minMax)
+            .replace('CHANGE', type)
+            .replace('MASTER', alert.master)
+            .replace('TESTSUITE', alert.testsuite)
+            .replace('START', String(startRev))
+            .replace('END', String(endRev)));
+        return {
+          summary: summary,
+        }
+      },
+
+      /**
+       * Opens a new window and post data.
+       *
+       * GET request has limited URL length. This method allows us to send a
+       * POST request and receive the response on a new window.
+       *
+       * @param {string} url URL endpoint to post to.
+       * @param {Array.<Object>} data Array of objects with have name and
+       *     value properties. This is the data to post.
+       * @param {string} target Window name.
+       * @return {Object} The window that was opened.
+       */
+      openAndPost: function(url, data, target) {
+        var popup = window.open('about:blank', target, 'width=600,height=480');
+        var form = document.createElement('form');
+        form.action = url;
+        form.method = 'POST';
+        form.target = target;
+        if (data) {
+          for (var i = 0; i < data.length; i++) {
+            var input = document.createElement('textarea');
+            input.name = data[i].name;
+            input.value = (typeof data[i].value === 'object' ?
+                JSON.stringify(data[i].value) : data[i].value);
+            form.appendChild(input);
+          }
+        }
+        form.style.display = 'none';
+        document.body.appendChild(form);
+        form.submit();
+        return popup;
+      },
+
+      /**
+       * String substitution using "{{" and "}}" for placeholders.
+       *
+       * @param {string} str String template.
+       * @param {Object} data Dictionary with values to replace.
+       * @return {string} The replaced string.
+       */
+      template: function(str, data) {
+        for (var key in data) {
+          var find = '{{' + key + '}}';
+          str = str.replace(new RegExp(find, 'g'), data[key]);
+        }
+        return str;
+      },
+    });
+  </script>
+</polymer-element>

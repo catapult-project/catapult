@@ -1,0 +1,28 @@
+{
+  "name": "core-a11y-keys",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#^0.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^1"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "version": "0.5.6",
+  "homepage": "https://github.com/Polymer/core-a11y-keys",
+  "_release": "0.5.6",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.5.6",
+    "commit": "f44ae2fde2027757b4c79d8c12dbdc10df3e035e"
+  },
+  "_source": "git://github.com/Polymer/core-a11y-keys.git",
+  "_target": "^0.5",
+  "_originalSource": "Polymer/core-a11y-keys"
+}

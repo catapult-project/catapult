@@ -7,15 +7,15 @@
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^1.1.4"
   },
-  "version": "0.5.6",
+  "version": "0.5.5",
   "homepage": "https://github.com/Polymer/paper-shadow",
-  "_release": "0.5.6",
+  "_release": "0.5.5",
   "_resolution": {
     "type": "version",
-    "tag": "0.5.6",
-    "commit": "3e6a1cd4a1c4b26ae56d57c839d75c49c48c651d"
+    "tag": "0.5.5",
+    "commit": "ca5f5a38d1a174eeb3eaf5e9949da8a8236997bb"
   },
   "_source": "git://github.com/Polymer/paper-shadow.git",
-  "_target": "^0.5.0",
+  "_target": "0.5.5",
   "_originalSource": "Polymer/paper-shadow"
 }

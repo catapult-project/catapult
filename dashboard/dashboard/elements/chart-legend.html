@@ -1,0 +1,204 @@
+<!--
+Attributes:
+  tests: A list of trace names.
+  indicesToGraph: List of indices of traces that are selected.
+  coreEndIndex: Index of the last "core" trace, or -1 if none.
+  disableUnselected: Whether non-selected traces should be non-selectable
+      (i.e. if they're still loading)
+-->
+<polymer-element name="chart-legend" attributes="tests indicesToGraph coreEndIndex disableUnselected">
+  <template>
+    <style>
+      .header {
+        margin-bottom: 1em;
+      }
+
+      .header input[type=checkbox] {
+        vertical-align: top;
+      }
+
+      div[loading] {
+        opacity: 0.5;
+      }
+
+      .test-name {
+        font-weight: bold;
+        margin-left: 10px;
+        word-break: break-all;
+      }
+
+      .dots {
+        float: right;
+      }
+
+      .test-description {
+        margin-bottom: 1em;
+        margin-top: 1em;
+      }
+
+      .last-important-test {
+        border-bottom: 1px solid #ebebeb;
+        margin-bottom: 10px;
+      }
+
+      /* Make sure to update chartOptions.colors in chart-container.html too! */
+      .line-color-0 {color: #4D90FE;}
+      .line-color-1 {color: #FFE83B;}
+      .line-color-2 {color: #8E4EFE;}
+      .line-color-3 {color: #FFB83B;}
+      .line-color-4 {color: #194FA5;}
+      .line-color-5 {color: #A69413;}
+      .line-color-6 {color: #4C19A5;}
+      .line-color-7 {color: #A67113;}
+      .line-color-8 {color: #9DC3FF;}
+      .line-color-9 {color: #FFF293;}
+      .line-color-10 {color: #C19DFF;}
+      .line-color-11 {color: #FFD893;}
+      .line-color-12 {color: #5B81BF;}
+      .line-color-13 {color: #BFB251;}
+      .line-color-14 {color: #805BBF;}
+      .line-color-15 {color: #BF9751;}
+      .line-color-16 {color: #79ADFF;}
+      .line-color-17 {color: #FFEE6C;}
+      .line-color-18 {color: #AA7AFF;}
+      .line-color-19 {color: #FFCA6C;}
+      .line-color-20 {color: #3415B0;}
+      .line-color-21 {color: #04819E;}
+      .line-color-22 {color: #B40097;}
+      .line-color-23 {color: #FFCF00;}
+      .line-color-24 {color: #1C0772;}
+      .line-color-25 {color: #38B2CE;}
+      .line-color-26 {color: #750062;}
+      .line-color-27 {color: #A68700;}
+      .line-color-28 {color: #846FD7;}
+      .line-color-29 {color: #60B9CE;}
+      .line-color-30 {color: #D962C7;}
+      .line-color-31 {color: #FFE573;}
+      .line-color-32 {color: #3E2D84;}
+      .line-color-33 {color: #206676;}
+      .line-color-34 {color: #872277;}
+      .line-color-35 {color: #BFA430;}
+      .line-color-36 {color: #6549D7;}
+      .line-color-37 {color: #015367;}
+      .line-color-38 {color: #D936C0;}
+      .line-color-39 {color: #FFDB40;}
+
+    </style>
+    <div id="checkboxes">
+      <template repeat={{tests}}>
+        <div id="{{index}}" loading?="{{loading}}">
+          <div class="header">
+            <label>
+              <input type="checkbox"
+                     checked="{{selected}}"
+                     on-change="{{onCheckboxChanged}}"
+                     disabled?="{{loading}}">
+              <span class="{{testColorClass}}"><span class="test-name">{{name}}</span></span>
+            </label>
+            <img class="dots" src="/dots.png" on-click="{{toggleDescription}}" data-test="{{name}}"></div>
+          <div class="details" id="{{name}}" hidden>
+            <div class="test-info">{{direction}} is better</div>
+            <div class="test-info">Units: {{units}}</div>
+            <div class="test-info test-description">{{description}}</div>
+            <div><a href="/new_points?pattern={{path}}">See new points</a></div>
+            <div><a href="/graph_csv?test_path={{path}}">Download as CSV</a></div>
+            <div><a href="/debug_alert?test_path={{path}}">Debug alert page</a></div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </template>
+  <script>
+    Polymer('chart-legend', {
+
+      /**
+       * Initializes this Polymer element.
+       */
+      ready: function() {
+        this.tests = [];
+      },
+
+      /**
+       * Shows or hides the detailed description for an item in the legend.
+       */
+      toggleDescription: function(event, detail, sender) {
+        var description = sender.parentNode.nextElementSibling;
+        description.hidden = !description.hidden;
+      },
+
+      /**
+       * Event handler for the change event for the checkboxes.
+       * Sets this.indicesToGraph to the set of currently selected indices.
+       */
+      onCheckboxChanged: function(event, detail, sender) {
+        // Update the indices to graph based on which ones are selected.
+        this.indicesToGraph = this.tests.reduce(
+          function(previousValue, currentValue, index, array) {
+            if (currentValue.selected) {
+              previousValue.push(index);
+            }
+            return previousValue;
+        }, []);
+      },
+
+      /**
+       * Changed watcher for this.indicesToGraph.
+       * Updates the state of this.tests.
+       */
+      indicesToGraphChanged: function() {
+        this.updateSelected();
+      },
+
+      /**
+       * Updates the state of this.tests based on this.indicesToGraph.
+       */
+      updateSelected: function() {
+        for (var i = 0; i < this.tests.length; i++) {
+          this.tests[i].selected = this.indicesToGraph.indexOf(i) != -1;
+        }
+      },
+
+      /**
+       * Changed watcher for this.disableUnselected.
+       * Marks unselected traces as loading, and thus disabled.
+       */
+      disableUnselectedChanged: function() {
+        for (var i = 0; i < this.tests.length; i++) {
+          if (this.disableUnselected && !this.tests[i].selected) {
+            this.tests[i].loading = true;
+          } else {
+            this.tests[i].loading = false;
+          }
+        }
+      },
+
+      /**
+       * Changed watcher for this.tests.
+       * Updates the legend element when test data arrives.
+       */
+      testsChanged: function() {
+        this.updateSelected();
+        this.disableUnselectedChanged();
+
+        // Show a line after the core traces in the appropriate spot.
+        var checkboxes = this.$.checkboxes;
+        if (!checkboxes) {
+          return;
+        }
+        var coreEndIndex = this.coreEndIndex;
+        if (coreEndIndex == -1) {
+          return;  // No core traces.
+        }
+        // After update, show a line after the core traces.
+        window.setTimeout(function() {
+          // The first child in the checkboxes isn't a legend item.
+          var index = coreEndIndex + 1;
+          if (!checkboxes.children[index]) {
+            return;
+          }
+          checkboxes.children[index].classList.add('last-important-test');
+        }, 0);
+      }
+    });
+  </script>
+</polymer-element>

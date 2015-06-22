@@ -78,7 +78,7 @@ def _FetchAnomalyKeys(sheriff_key, include_improvements, include_triaged):
     query = query.filter(
         anomaly.Anomaly.recovered == False)
 
-  query = query.order(-anomaly.Anomaly.end_revision)
+  query = query.order(-anomaly.Anomaly.timestamp)
   return query.fetch(limit=_MAX_ANOMALIES_TO_COUNT, keys_only=True)
 
 
@@ -94,10 +94,14 @@ def _FetchStoppageAlerts(sheriff_key, include_triaged):
   """
   query = stoppage_alert.StoppageAlert.query(
       stoppage_alert.StoppageAlert.sheriff == sheriff_key)
+
   if not include_triaged:
     query = query.filter(
         stoppage_alert.StoppageAlert.bug_id == None)
-  query = query.order(-stoppage_alert.StoppageAlert.end_revision)
+    query = query.filter(
+        stoppage_alert.StoppageAlert.recovered == False)
+
+  query = query.order(-stoppage_alert.StoppageAlert.timestamp)
   return query.fetch(limit=_MAX_STOPPAGE_ALERTS)
 
 
@@ -145,6 +149,7 @@ def _GetStoppageAlertDict(stoppage_alert_entity):
   alert_dict = _AlertDict(stoppage_alert_entity)
   alert_dict.update({
       'mail_sent': stoppage_alert_entity.mail_sent,
+      'recovered': stoppage_alert_entity.recovered,
   })
   return alert_dict
 

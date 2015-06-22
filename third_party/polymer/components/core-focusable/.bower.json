@@ -13,6 +13,6 @@
     "commit": "3a345535d2eeaf86669f709da5b603d5a3ec731a"
   },
   "_source": "git://github.com/Polymer/core-focusable.git",
-  "_target": "^0.5.0",
+  "_target": "^0.5",
   "_originalSource": "Polymer/core-focusable"
 }

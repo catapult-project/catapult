@@ -1,0 +1,128 @@
+<!--
+The 'overlay-message' displays overlayed popup ontop of content.
+
+By default 'overlay-message' will close whenever other elements are focused
+as well as automatically disappear after 'duration'.
+
+Example usage:
+
+  <overlay-message id="message" opened="true">Draft saved.</overlay-message>
+
+Or:
+
+  var message = document.getElementById("message");
+  message.updateContent("Draft saved.");
+
+Position is default at the center of the screen.  Position can be changed
+by overriding style attributes:
+
+  overlay-message {
+    top: 26px;
+    left: 10px;
+  }
+
+-->
+<link rel="import" href="../../third_party/polymer/components/core-overlay/core-overlay.html">
+<link rel="import" href="../../third_party/polymer/components/paper-shadow/paper-shadow.html">
+
+<polymer-element
+    name="overlay-message"
+    attributes="text autoCloseDisabled transition duration opened maxWidth">
+  <template>
+    <style>
+      :host {
+        border: 1px solid #f0c36d;
+        background-color: #f9edbe;
+        padding: 4px;
+        position: static !important;
+      }
+
+      #container {
+        overflow: hidden;
+      }
+    </style>
+
+
+    <paper-shadow z="1" hasPosition></paper-shadow>
+
+    <core-overlay id="overlay" target="{{}}" opened="{{opened}}"
+        autoCloseDisabled="{{autoCloseDisabled}}"
+        sizingTarget="{{$.container}}" transition="{{transition}}"></core-overlay>
+
+    <div id="container" horizontal layout  max-width="{{maxWidth}}">
+      <div class="message-content" flex id="content"></div>
+      <div class="message-content">
+        <content></content>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer('overlay-message', {
+
+      /**
+       * Number of milliseconds to stay opened. 0 to stay open indefinitely.
+       */
+      duration: 6000,
+
+      /**
+       * Whether to close overlay if focus is taken somewhere else.
+       */
+      autoCloseDisabled: false,
+
+      ready: function() {
+        this.$.overlay.addEventListener(
+            'core-overlay-close-completed',
+            this.onCoreOverlayClosed.bind(this), false);
+      },
+
+      /**
+       * Update content and open 'overlay-message'.  If 'overlay-message' is
+       * already opened, it will close then re-open.
+       */
+      updateContent: function(content) {
+        this.$.content.innerHTML = content;
+        if (this.opened) {
+          this.shouldOpen = true;
+        } else {
+          this.show();
+        }
+      },
+
+      /**
+       * On "opened" changed, add a timer to hide overlay.
+       */
+      openedChanged: function() {
+        if (this.opened && this.duration > 0) {
+          this.hideJob && this.hideJob.stop();
+          this.hideJob = this.job(this.hideJob, this.hide, this.duration);
+        }
+      },
+
+      /**
+       * Handler for core overlay closed event.
+       */
+      onCoreOverlayClosed: function(event) {
+        if (this.shouldOpen) {
+          this.shouldOpen = false;
+          this.show();
+        }
+      },
+
+      /**
+       * Hide this overlay message.
+       */
+      hide: function() {
+        this.opened = false;
+      },
+
+      /**
+       * Show this overlay message.
+       */
+      show: function() {
+        this.opened = true;
+      },
+    });
+  </script>
+</polymer-element>

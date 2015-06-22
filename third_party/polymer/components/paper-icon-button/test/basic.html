@@ -10,34 +10,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>paper-button a11y tests</title>
+  <title>paper-icon-button basic tests</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
   <script src="../../webcomponentsjs/webcomponents.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
 
-  <link href="../paper-button.html" rel="import">
+  <link href="../../core-icons/core-icons.html" rel="import">
+  <link href="../paper-icon-button.html" rel="import">
 
 </head>
 <body>
 
-  <paper-button id="button1" disabled>button</paper-button>
+  <div style="font-size:40px;">
+    Toolbar
+    <paper-icon-button id="button1" icon="add"></paper-icon-button>
+  </div>
 
   <script>
 
     var b1 = document.getElementById('button1');
 
-    test('aria role is a button', function() {
-      assert.strictEqual('button', b1.getAttribute('role'));
-    });
+    function centerOf(element) {
+      var rect = element.getBoundingClientRect();
+      return {left: rect.left + rect.width / 2, top: rect.top + rect.height / 2};
+    }
 
-    test('aria-disabled is set', function(done) {
-      assert.ok(b1.hasAttribute('aria-disabled'));
-      b1.removeAttribute('disabled');
-      asyncPlatformFlush(function() {
-        assert.ok(!b1.hasAttribute('aria-disabled'));
-        done();
-      });
+    function approxEqual(p1, p2) {
+      return Math.round(p1.left) == Math.round(p2.left) && Math.round(p1.top) == Math.round(p2.top);
+    }
+
+    test('renders correctly independent of font size', function() {
+      assert.ok(approxEqual(centerOf(b1.$.icon), centerOf(b1)));
     });
 
   </script>

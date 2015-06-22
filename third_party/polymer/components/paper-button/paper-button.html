@@ -30,8 +30,7 @@ create a button with an icon and some text:
       custom button content
     </paper-button>
 
-Styling
--------
+## Styling
 
 Style the button with CSS as you would a normal DOM element.
 
@@ -58,6 +57,7 @@ The opacity of the ripple is not customizable via CSS.
 
 <link href="../polymer/polymer.html" rel="import">
 <link href="../paper-shadow/paper-shadow.html" rel="import">
+<link href="../core-a11y-keys/core-a11y-keys.html" rel="import">
 
 <link href="paper-button-base.html" rel="import">
 
@@ -99,7 +99,7 @@ role="button">
         text-transform: inherit;
       }
 
-      #shadow {
+      #bg, #shadow {
         border-radius: inherit;
       }
 
@@ -116,6 +116,7 @@ role="button">
       ::content > a {
         height: 100%;
         padding: 0.7em 0.57em;
+        margin: -0.7em -0.57em;
         /* flex */
         -ms-flex: 1 1 0.000000001px;
         -webkit-flex: 1;
@@ -134,6 +135,8 @@ role="button">
     <div class="button-content" relative layout horizontal center-center>
       <content></content>
     </div>
+
+    <core-a11y-keys keys="space enter" target="{{}}" on-keys-pressed="{{_activate}}"></core-a11y-keys>
 
   </template>
 
@@ -171,6 +174,22 @@ role="button">
          */
         fill: true
 
+      },
+
+      _activate: function() {
+        this.click();
+        this.fire('tap');
+        if (!this.pressed) {
+          var bcr = this.getBoundingClientRect();
+          var x = bcr.left + (bcr.width / 2);
+          var y = bcr.top + (bcr.height / 2);
+          this.downAction({x: x, y: y});
+          var fn = function fn() {
+            this.upAction();
+            this.removeEventListener('keyup', fn);
+          }.bind(this);
+          this.addEventListener('keyup', fn);
+        }
       }
 
     });

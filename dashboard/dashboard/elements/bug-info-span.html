@@ -1,0 +1,29 @@
+<!--
+The bug-info-span is a in-line element showing a bug ID with link, etc.
+TODO(qyearsley): Expand this element and use it in chart-tooltip.
+-->
+<link rel="import" href="alert-remove-box.html">
+
+<polymer-element name="bug-info-span">
+  <template>
+    <a href="/group_report?bug_id={{bugId}}"
+       hidden?="{{!(bugId > 0)}}">{{bugId}}</a>
+    <span hidden?="{{bugId != -1}}">Invalid</span>
+    <span hidden?="{{bugId != -2}}">Ignored</span>
+    <span hidden?="{{!recovered}}">Recovered</span>
+    <alert-remove-box hidden?="{{!bugId}}"
+                      key="{{key}}"
+                      xsrfToken="{{xsrfToken}}">
+    </alert-remove-box>
+  </template>
+  <script>
+  Polymer('bug-info-span', {
+    publish: {
+      bugId: null,
+      xsrfToken: null,
+      recovered: false,
+      key: null,
+    }
+  });
+  </script>
+</polymer-element>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>alert-remove-box test</title>
+  <link type="text/css" rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/mocha/2.2.1/mocha.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/mocha/2.2.1/mocha.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/chai/2.1.1/chai.min.js"></script>
+  <link rel="import" href="../../third_party/polymer/components/polymer/polymer.html">
+  <link rel="import" href="alert-remove-box.html">
+</head>
+<body>
+<div id="mocha"></div>
+
+<script>
+'use strict';
+
+var assert = chai.assert;
+mocha.setup('tdd');
+
+/**
+ * Mock XMLHttpRequest which returns a canned response.
+ */
+function XMLHttpRequestMock(responseText, expectedData) {
+  return function() {
+    this.responseText = responseText;
+    this.status = 200;
+    this.onload = function() {};
+    this.onerror = function() {};
+    this.open = function() {};
+    this.setRequestHeader = function() {};
+    this.send = function(data) {
+      if (expectedData != undefined) {
+        assert.equal(data, expectedData);
+      }
+      this.onload();
+    }
+  }
+}
+
+suite('alert-remove-box', function() {
+
+  suite('onRemoveBug', function() {
+
+    setup(function() {
+      window.untriagedEventFired = false;
+    });
+
+    test('The expected request parameters are used.', function(done) {
+      var box = document.createElement('alert-remove-box');
+      box.key = 'alert-key';
+      box.xsrfToken = 'xsrf-token';
+      window.XMLHttpRequest = new XMLHttpRequestMock(
+          '{"bug_id": "REMOVE"}',
+          'xsrf_token=xsrf-token&keys=alert-key&bug_id=REMOVE');
+      window.setTimeout(function() {
+        // Wait for a small amount of time to allow Polymer to update,
+        // so that the right alert key is used in the XMLHttpRequest.
+        box.onRemoveBug(new Event('click'));
+        done();
+      }, 10);
+    });
+
+    test('An "untriaged" event is fired when the XHR completes.', function() {
+      var box = document.createElement('alert-remove-box');
+      box.key = 'alert-key';
+      box.xsrfToken = 'xsrf-token';
+      window.XMLHttpRequest = new XMLHttpRequestMock('{"bug_id": "REMOVE"}');
+      box.addEventListener('untriaged', function() {
+        window.untriagedEventFired = true;
+      });
+      box.onRemoveBug(new Event('click'));
+      assert.isTrue(window.untriagedEventFired);
+    });
+  });
+});
+
+mocha.run();
+</script>
+</body>
+</html>

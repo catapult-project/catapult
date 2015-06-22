@@ -62,8 +62,10 @@ license that can be found in the LICENSE file.
 
   </style>
 </head>
-<body unresolved onclick="clickAction(event);">
+<body unresolved>
 
+  <template is="auto-binding">
+    <div id="clicker" on-tap="{{clickAction}}">
   <section>
 
     <div>Flat buttons</div>
@@ -109,12 +111,28 @@ license that can be found in the LICENSE file.
 
   <section>
 
+    <div>Toggle buttons</div>
+
+    <paper-button toggle>button</paper-button>
+
+    <paper-button toggle raised noink>noink</paper-button>
+
+    <paper-button toggle active class="colored">active</paper-button>
+
+    <paper-button toggle raised active class="colored">active</paper-button>
+
+  </section>
+
+  <section>
+
     <div>Styling options</div>
 
     <paper-button class="hover">hover</paper-button>
     <paper-button class="blue-ripple">custom ripple</paper-button>
 
   </section>
+</div>
+</template>
 
   <script>
 
@@ -128,6 +146,10 @@ license that can be found in the LICENSE file.
         }
       }
     }
+
+    addEventListener('template-bound', function(e) {
+      e.target.clickAction = clickAction;
+    });
 
   </script>
 

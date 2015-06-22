@@ -1,5 +1,4 @@
 """Unit tests for alerts module."""
-
 import unittest
 
 import webapp2
@@ -94,6 +93,9 @@ class AlertsTest(testing_common.TestCase):
     response = self.testapp.get('/alerts')
     anomaly_list = testing_common.GetEmbeddedVariable(response, 'ANOMALY_LIST')
     self.assertEqual(12, len(anomaly_list))
+    # The test below depends on the order of the items, but the order is not
+    # guaranteed; it depends on the timestamps, which depend on put order.
+    anomaly_list.sort(key=lambda a: -a['end_revision'])
     expected_end_rev = 10110
     for alert in anomaly_list:
       self.assertEqual(expected_end_rev, alert['end_revision'])
@@ -119,6 +121,9 @@ class AlertsTest(testing_common.TestCase):
     # that have a bug ID that is not None.
     self.assertEqual(14, len(anomaly_list))
     expected_end_rev = 10130
+    # The test below depends on the order of the items, but the order is not
+    # guaranteed; it depends on the timestamps, which depend on put order.
+    anomaly_list.sort(key=lambda a: -a['end_revision'])
     for alert in anomaly_list:
       if expected_end_rev == 10130:
         self.assertEqual(12345, alert['bug_id'])
@@ -162,18 +167,20 @@ class AlertsTest(testing_common.TestCase):
     sheriff.Sheriff(id='Sheriff', patterns=['M/b/*/*']).put()
     testing_common.AddDataToMockDataStore(
         ['M'], ['b'], {'foo': {'bar': {}}})
-    first_paint = utils.TestKey('M/b/foo/bar')
-    testing_common.AddRows('M/b/foo/bar', [
-        {'id': 9800, 'value': 8},
-        {'id': 9802, 'value': 10},
-    ])
-    for row in graph_data.Row.query().fetch():
-      stoppage_alert.CreateStoppageAlert(first_paint.get(), row).put()
+    test_key = utils.TestKey('M/b/foo/bar')
+    testing_common.AddRows(
+        'M/b/foo/bar', [{'id': 9800, 'value': 1}, {'id': 9802, 'value': 2}])
+    for row in graph_data.Row.query():
+      stoppage_alert.CreateStoppageAlert(test_key.get(), row).put()
     response = self.testapp.get('/alerts?sheriff=Sheriff')
     stoppage_alert_list = testing_common.GetEmbeddedVariable(
         response, 'STOPPAGE_ALERT_LIST')
     self.assertEqual(2, len(stoppage_alert_list))
     self.assertEqual(1, len(response.html('alerts-table')))
+
+  def testGet_WithNoAlerts_HasImageAndNoAlertsTable(self):
+    response = self.testapp.get('/alerts')
+    self.assertEqual(0, len(response.html('alerts-table')))
 
 
 if __name__ == '__main__':

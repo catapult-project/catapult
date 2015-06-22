@@ -1,0 +1,989 @@
+<link rel="import" href="../../third_party/polymer/components/paper-button/paper-button.html">
+<link rel="import" href="bisect-status.html">
+<link rel="import" href="bug-info-span.html">
+<link rel="import" href="revision-range.html">
+<link rel="import" href="triage-dialog.html">
+
+<polymer-element name="alerts-table"
+                 attributes="sortBy sortDirection xsrfToken">
+  <template>
+    <style>
+      #alerts {
+        border-collapse: collapse;
+        border-spacing: 0;
+        font-size: small;
+      }
+
+      #alerts thead {
+        cursor: pointer;
+      }
+
+      #alerts thead th {
+        font-weight: bold;
+      }
+
+      #alerts thead th,
+      #alerts thead td {
+        border-bottom: 1px solid #8c8b8b;
+        padding: 10px;
+      }
+
+      #alerts thead th:active,
+      #alerts thead td:active {
+        outline: none;
+      }
+
+      #alerts #checkheader {
+        padding: 0;
+      }
+
+      #alerts tbody tr {
+        background-color: white;
+        height: 26px;
+      }
+
+      #alerts tbody tr.selected {
+        background-color: #b0bed9;
+      }
+
+      #alerts tbody td {
+        padding: 3px 5px 3px 5px;
+        position: relative;
+      }
+
+      #alerts tbody td:first-child {
+        text-align: center;
+        padding-right: 3px;
+        padding-left: 3px;
+      }
+
+      #alerts tbody th, #alerts tbody td {
+        border-bottom: 1px solid #ddd;
+      }
+
+      #alerts tbody tr:first-child th,
+      #alerts tbody tr:first-child td {
+        border-top: none;
+      }
+
+      #alerts tbody tr:not(.group-member):hover {
+        background-color: whitesmoke;
+      }
+
+      #alerts tbody tr.group-member:hover >  td:not(:first-child) {
+        background-color: whitesmoke;
+      }
+
+      #alerts tbody tr.group-member td {
+        border-bottom: none;
+      }
+
+      #alerts tbody tr td:first-child, #alerts thead th:first-child {
+        border-right: 1px solid transparent;
+      }
+
+      #alerts tbody tr.group-member td:first-child {
+        border-bottom: 0px solid #ddd;
+        border-right: 1px solid #ddd;
+      }
+
+      #alerts tbody tr.group-member+tr.group-header td {
+        border-top: 1px solid #ddd;
+      }
+
+      #alerts tbody tr[expanded] td:not(:first-child)  {
+        border-bottom: none;
+      }
+
+      #alerts tbody td:last-child, #alerts thead th:last-child {
+        padding: 0;
+      }
+
+      th[data-sort-direction=down] {
+        background-image: url('/down_icon.png');
+        background-origin: padding-box;
+        background-position: right;
+        background-repeat: no-repeat;
+        background-size: 10px;
+      }
+
+      th[data-sort-direction=up] {
+        background-image: url('/up_icon.png');
+        background-origin: padding-box;
+        background-position: right;
+        background-repeat: no-repeat;
+        background-size: 10px;
+      }
+
+      .delta {
+        color: #a00;
+        width: 70px;
+        text-align: right;
+        word-wrap: break-word;
+      }
+
+      tr[improvement] .delta {
+        color: #0a0;
+      }
+
+      /* Checkboxes */
+      input[type=checkbox]:checked::after {
+        content: url(/check_no_box.png);
+        display: block;
+        position: absolute;
+        top: -6px;
+        left: -5px;
+      }
+
+      input[type=checkbox]:focus {
+        outline: none;
+        border-color: #4d90fe;
+      }
+
+      input[type=checkbox] {
+        -webkit-appearance: none;
+        width: 13px;
+        height: 13px;
+        border: 1px solid #c6c6c6;
+        border-radius: 1px;
+        box-sizing: border-box;
+        cursor: default;
+        position: relative;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0;
+      }
+
+      #alerts tbody tr[highlighted] td {
+        background-color: #ffffd6;
+      }
+
+      #alerts tbody tr.group-member td:not(:first-child):not([highlighted]),
+      #alerts tbody tr[expanded]:not([highlighted]) {
+        background-color: #ebf2fc !important;
+      }
+
+      #alerts tbody tr.group-member[highlighted] td:not(:first-child),
+      #alerts tbody tr.group-header[highlighted] {
+        background-color: #ffffd6 !important;
+      }
+
+      #alerts tbody tr.group-member[highlighted] td:first-child {
+        background-color: transparent !important;
+      }
+
+      /* The graph-icon elements are for links to view associated graphs. */
+      .graph-icon {
+        vertical-align: middle;
+        opacity: 0.6;
+      }
+
+      /* The kd-button class is used for the numbers next to rows
+         with grouped alerts. */
+      #alerts .kd-button {
+        background-color: #f5f5f5;
+        background-image: linear-gradient(top, #f5f5f5, #f1f1f1);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 2px;
+        color: #444;
+        cursor: default;
+        display: block;
+        font-size: 11px;
+        font-weight: bold;
+        height: 27px;
+        line-height: 27px;
+        margin: auto;
+        min-width: 54px;
+        padding: 0 8px;
+        text-align: center;
+        transition: all 0.218s;
+        vertical-align: middle;
+      }
+
+      #alerts .kd-button[expanded] {
+        background-color: #eee;
+        background-image: linear-gradient(top, #eee, #e0e0e0);
+        border: 1px solid #ccc;
+        box-shadow: inset 0px 1px 2px rgba(0, 0, 0, 0.1);
+        color: #333;
+      }
+
+      #alerts .kd-button.counter {
+        height: 14px;
+        line-height: 14px;
+        min-width: 17px;
+        padding: 2px;
+        width: 17px;
+      }
+
+      #alerts .kd-button:hover {
+        background-color: #f8f8f8;
+        background-image: linear-gradient(top, #f8f8f8, #f1f1f1);
+        border: 1px solid #c6c6c6;
+        box-shadow: 0px 1px 1px rgba(0,0,0,0.1);
+        color: #222;
+        transition: all 0.0s;
+      }
+
+      #alerts .kd-button[hidden] {
+        display: none;
+      }
+
+      /* Triage dialog at the top level when the user clicks the triage button. */
+      triage-dialog {
+        position: absolute;
+        margin-top: 30px;
+        z-index: 1000;
+      }
+    </style>
+    <div>
+      <triage-dialog id="triage" on-triaged="{{onTriaged}}" xsrfToken="{{xsrfToken}}">
+      </triage-dialog>
+      <paper-button raised id="file-bug-button" on-click="{{showTriageDialog}}">
+        Triage
+      </paper-button>
+      <paper-button raised id="graph-button" on-click="{{showGraphs}}">
+        Graph
+      </paper-button>
+    </div>
+    <table id="alerts">
+      <thead>
+      <tr>
+        <th hidden?={{!isGroupView}}></th>
+        <th id="checkheader">
+          <input type="checkbox" id="header-checkbox" on-change="{{onHeaderCheckboxChange}}">
+        </th>
+        <th></th>
+        <th id="bug_id" on-click="{{columnHeaderClicked}}">Bug ID</valth>
+        <th id="end_revision" on-click="{{columnHeaderClicked}}">Revisions</th>
+        <th id="master" on-click="{{columnHeaderClicked}}">Master</th>
+        <th id="bot" on-click="{{columnHeaderClicked}}">Bot</th>
+        <th id="testsuite" on-click="{{columnHeaderClicked}}">Test Suite</th>
+        <th id="test" on-click="{{columnHeaderClicked}}">Test</th>
+        <template repeat="{{extraColumns}}">
+          <th id="{{key}}" on-click="{{columnHeaderClicked}}">{{label}}</th>
+        </template>
+      </tr>
+      </thead>
+      <tbody>
+      <template repeat="{{alertList}}">
+        <tr class="{{rowType}}"
+            improvement?={{improvement}}
+            triaged?={{triaged}}
+            hidden?={{hideRow}}
+            highlighted?={{highlighted}}
+            expanded?={{expanded}}
+            on-click="{{onRowClicked}}">
+
+          <td hidden?="{{!isGroupView}}">
+            <a class="kd-button counter"
+               expanded?={{expanded}}
+               on-click="{{onExpandGroupButtonClicked}}"
+               hidden?="{{!(size > 1)}}">{{size}}</a>
+          </td>
+          <td>
+            <input type="checkbox"
+                   id="{{key}}"
+                   checked="{{selected}}"
+                   on-change="{{onCheckboxChange}}">
+          </td>
+
+          <td>
+            <a href="{{dashboard_link}}" target="_blank">
+              <img class="graph-icon" src="/graph.png" alt="Open Graph">
+            </a>
+          </td>
+
+          <td hidden?="{{hide_bug_id}}">
+            <bug-info-span bugId="{{bug_id}}"
+                           key="{{key}}"
+                           xsrfToken="{{xsrfToken}}"
+                           on-untriaged="{{onUntriaged}}">
+            </bug-info-span>
+            <bisect-status hidden?="{{!(bug_id > 0)}}"
+                           status="{{bisect_status}}">
+            </bisect-status>
+          </td>
+          <td class="revision_range">
+            <revision-range start={{start_revision}} end="{{end_revision}}"></revision-range>
+          </td>
+          <td class="master"><label>{{master}}</label><label hidden?="{{(!additionColumnValues.master || expanded)}}">...</label></td>
+          <td class="bot"><label>{{bot}}</label><label hidden?="{{(!additionColumnValues.bot || expanded)}}">...</label></td>
+          <td class="testsuite"><label>{{testsuite}}</label><label hidden?="{{(!additionColumnValues.testsuite || expanded)}}">...</label></td>
+          <td class="test"><label>{{test}}</label><label hidden?="{{(!additionColumnValues.test || expanded)}}">...</label></td>
+
+          <template repeat="{{extraColumns}}">
+            <td class="{{key}}"><label>{{value}}</td>
+          </template>
+        </tr>
+      </template>
+      </tbody>
+    </table>
+  </template>
+  <script>
+  (function() {
+
+    /**
+     * Constructs a URI for the report page for this group of alerts.
+     * @param {Array.<Object>} group The group of alerts to graph.
+     * @return {string} The URI of the graph.
+     */
+    function getGraphUri(alerts) {
+      var keys = [];
+      for (var i = 0; i < alerts.length; i++) {
+        keys.push(alerts[i]['key']);
+      }
+      return '/group_report?keys=' + keys.join(',');
+    }
+
+    Polymer('alerts-table', {
+
+      /**
+       * Whether alert list is displayed in group or not.
+       */
+      isGroupView: false,
+
+      /**
+       * The field to sort by. Note that this will be both the id of a th
+       * element in the table, and a property of an item in the alert list.
+       */
+      sortBy: 'end_revision',
+
+      /**
+       * Sort direction, either 'down' (increasing) or 'up' (decreasing).
+       */
+      sortDirection: 'down',
+
+      /**
+       * Previous id of checkbox input element that was checked.
+       */
+      previousCheckboxId: null,
+
+      /**
+       * Current id of checkbox input element that was checked.
+       */
+      currentCheckboxId: null,
+
+      NUM_ALERTS_TO_CHECK_ON_INIT: 10,
+
+      /**
+       * Custom element lifecycle callback, called once this element is ready.
+       */
+      ready: function() {
+        this.checkedAlerts = [];
+        if (this.alertList) {
+          this.initialize();
+        }
+      },
+
+      /**
+       * Initializes the table.
+       * This should be called after this.alertList has been set.
+       */
+      initialize: function() {
+        this.alertList.forEach(function(alert) {
+          // The xsrf token is set for each row of the table here so that the
+          // alert-remove-box in each row can also have the xsrf token.
+          alert.xsrfToken = this.xsrfToken;
+        }, this);
+        this.initRowsBasedOnQueryParameters();
+        this.updateBugColumn();
+        if (this.extraColumns) {
+          this.prepareExtraColumnsForHeader();
+          this.prepareExtraColumnsForBodyRows();
+        }
+        this.maybeDisableButtons();
+      },
+
+      /**
+       * Sets the columnHeaderClicked function for items in this.extraColumns.
+       * This is done so that this function is available for binding in the
+       * template above, so that the table can be sorted by any of the extra
+       * columns.
+       */
+      prepareExtraColumnsForHeader: function() {
+        // Set the columnHeaderClicked so it can be used in in the repeat
+        // template above in the table header.
+        this.extraColumns.forEach(function(column) {
+          column.columnHeaderClicked = this.columnHeaderClicked.bind(this);
+          this.columnHeaderClicked.bind(this);
+        }, this);
+      },
+
+      /**
+       * Sets an extraColumns property on each of the items in this.alertList.
+       * This is done so that it can be used in in the repeat template above.
+       */
+      prepareExtraColumnsForBodyRows: function() {
+        // Set the columnHeaderClicked so it can be used in in the repeat
+        // template above in the table header.
+        this.alertList.forEach(function(alert) {
+          alert.extraColumns = this.extraColumns.map(function(column) {
+            return {key: column.key, value: alert[column.key]};
+          });
+        }, this);
+      },
+
+      /**
+       * Displays alerts in groups.
+       */
+      showAlertsGrouped: function() {
+        var groupMap = {};
+        var alertOrder = [];
+        for (var i = this.alertList.length - 1; i >= 0; i--) {
+          var alert = this.alertList[i];
+          if (alert.group) {
+            if (alert.group in groupMap) {
+              alert.rowType = 'group-member';
+              alert.hideRow = true;
+              groupMap[alert.group].push(alert);
+              groupMap[alert.group][0].size += 1;
+            } else {
+              alert.rowType = 'group-header';
+              alert.size = 1;
+              groupMap[alert.group] = [alert];
+              alertOrder.push(alert.group);
+            }
+          } else {
+            alert.rowType = 'group-header';
+            alert.size = 1;
+            groupMap[i] = [alert];
+            alertOrder.push(i);
+          }
+        }
+        var orderedAlertList = [];
+        for (var i = alertOrder.length - 1; i >= 0; i--) {
+          orderedAlertList.push.apply(orderedAlertList, groupMap[alertOrder[i]]);
+        }
+        this.alertList = orderedAlertList;
+        this.addEllipsis();
+        this.isGroupView = true;
+      },
+
+      /**
+       * Adds ellipsis to each column in header rows that contains different
+       * values than its group member rows.
+       */
+      addEllipsis: function() {
+        for (var i = 0; i < this.alertList.length; i++) {
+          var alert = this.alertList[i];
+          if (alert.rowType == 'group-header' && alert.size > 1) {
+            alert.additionColumnValues = {};
+            for (var j = i + 1; j < this.alertList.length; j++) {
+              var memberAlert = this.alertList[j];
+              if (memberAlert.rowType == 'group-member') {
+                if (memberAlert.master != alert.master) {
+                  alert.additionColumnValues['master'] = true;
+                }
+                if (memberAlert.bot != alert.bot) {
+                  alert.additionColumnValues['bot'] = true;
+                }
+                if (memberAlert.testsuite != alert.testsuite) {
+                  alert.additionColumnValues['testsuite'] = true;
+                }
+                if (memberAlert.test != alert.test) {
+                  alert.additionColumnValues['test'] = true;
+                }
+              } else {
+                break;
+              }
+              i++;
+            }
+          }
+        }
+      },
+
+      /**
+       * Displays alerts in non-grouped format.
+       */
+      showAlertsNonGrouped: function() {
+        this.alertList.forEach(function(alert) {
+          alert.rowType = null;
+        });
+        this.isGroupView = false;
+      },
+
+      /**
+       * Toggles expansion of a group of alerts.
+       */
+      onExpandGroupButtonClicked: function(event, detail, sender) {
+        var row = sender.parentNode.parentNode;
+        var alertIndex = row.rowIndex - 1;
+        var alert = this.alertList[alertIndex];
+        var isExpand = !alert.expanded;
+        alert.expanded = isExpand;
+        for (var i = alertIndex + 1; i < this.alertList.length; i++) {
+          if (this.alertList[i].group == alert.group) {
+            this.alertList[i].hideRow = !isExpand;
+          } else {
+            break;
+          }
+        }
+      },
+
+      /**
+       *  Shows, hides and checks alert rows depending on URL parameters.
+       */
+      initRowsBasedOnQueryParameters: function() {
+        var keys = uri.getParameter('keys');
+        if (keys != null) {
+          this.selectAlertsInKeysParameter(keys);
+        }
+
+        // When we're looking at alerts for a particular bug, we usually want
+        // to see the graphs right away, but we also don't want to select too
+        // many alerts at once.
+        if (uri.getParameter('bug_id') &&
+            this.alertList.length <= this.NUM_ALERTS_TO_CHECK_ON_INIT)  {
+          this.selectFirstNAlerts(this.NUM_ALERTS_TO_CHECK_ON_INIT);
+        }
+
+        // In general, we want to group alerts on the main alerts page.
+        // In that case, parameters like keys, bug_id, etc. will not be given.
+        if (uri.getParameter('improvements') ||
+            uri.getParameter('triaged') ||
+            uri.getParameter('bug_id') ||
+            uri.getParameter('keys') ||
+            uri.getParameter('rev')) {
+          this.showAlertsNonGrouped();
+        } else {
+          this.showAlertsGrouped();
+        }
+      },
+
+      /**
+       * Checks the alerts enumerated in the "keys" query parameter parameter.
+       * @param {string} keys The value of the "keys" query parameter.
+       */
+      selectAlertsInKeysParameter: function(keys) {
+        var keySet = {};
+        keys.split(',').forEach(function(k) {
+          keySet[k] = true;
+        });
+        for (var i = 0; i < this.alertList.length; i++) {
+          if (keySet[this.alertList[i].key]) {
+            this.alertList[i].selected = true;
+            this.alertList[i].hideRow = false;
+          } else if (this.alertList[i].improvement) {
+            this.alertList[i].hideRow = true;
+          }
+        }
+        this.onCheckboxChange();
+      },
+
+      /**
+       * Selects the first |n| alerts in the table from the top.
+       */
+      selectFirstNAlerts: function(n) {
+        for (var i = 0; i < Math.min(n, this.alertList.length); i++) {
+          this.alertList[i].selected = true;
+          this.alertList[i].hideRow = false;
+        }
+        this.onCheckboxChange();
+      },
+
+      /**
+       * Shows or hides the bug id column depending on whether there are any
+       * triaged alerts listed in the table.
+       */
+      updateBugColumn: function() {
+        // Make a list of all bug IDs that indicate an alert is triaged.
+        // This includes the pseudo-bug-ids indicating invalid or ignored.
+        // Note: The 'hideRow' parameter is set in static/alerts.js, and it
+        // indicates that the 'triaged' query parameter is not set.
+        var alertsWithBugs = this.alertList.filter(function(alertRow) {
+          return alertRow.bug_id && !alertRow.hideRow;
+        });
+        var shouldHideBugId = alertsWithBugs.length == 0;
+        // Hide the bug id th element.
+        if (shouldHideBugId) {
+          this.$.bug_id.style.display = 'none';
+        }
+        // Hide all of the bug id data cells in the table.
+        this.alertList.forEach(function(alertRow) {
+          alertRow.hide_bug_id = shouldHideBugId;
+        });
+      },
+
+      /**
+       * Shows or hides the group counter column depending on group view.
+       */
+      isGroupViewChanged: function() {
+        for (var i = 0; i < this.alertList.length; i++) {
+          this.alertList[i].isGroupView = this.isGroupView;
+        }
+      },
+
+      /**
+       * An event handler for the untriaged event which is fired by an
+       * alert-remove-box when the user removes a bug from an alert.
+       * @param {Event} event The event object.
+       * @param {Object} detail Parameters sent with the event.
+       * @param {Element} sender The element that sent the event.
+       */
+      onUntriaged: function(event, detail, sender) {
+        var key = detail.key;
+        for (var i = 0; i < this.alertList.length; i++) {
+          if (this.alertList[i]['key'] == key) {
+            this.alertList[i]['bug_id'] = null;
+          }
+        }
+      },
+
+      /**
+       * Either unchecks or checks all alerts.
+       */
+      onHeaderCheckboxChange: function(event, detail, sender) {
+        for (var i = 0; i < this.alertList.length; i++) {
+          var alert = this.alertList[i];
+          if (event.target.checked) {
+            if (!alert.hideRow) {
+              alert.selected = true;
+              this.updateGroupCheckboxes(alert, i, true);
+            }
+          } else {
+            alert.selected = false;
+          }
+        }
+        this.onCheckboxChange();
+      },
+
+      sortByChanged: function() {
+        this.sort();
+        this.fire('sortby', this.sortBy);
+      },
+
+      sortDirectionChanged: function() {
+        this.sort();
+        this.fire('sortdirection', this.sortDirection);
+      },
+
+      /**
+       * Callback for the click event for a column header.
+       * @param {Event} event
+       * @param {number} detail
+       * @param {Element} sender
+       */
+      columnHeaderClicked: function(event, detail, sender) {
+        this.sortBy = sender.id;
+        var newDirection = 'down';
+        // Because the <th> element may have been added based on an entry in
+        // this.extraColumns, this.$[this.sortBy] may not work.
+        var th = this.$.alerts.querySelector('#' + this.sortBy);
+        if (th.getAttribute('data-sort-direction') == 'down') {
+          newDirection = 'up';
+        }
+        this.sortDirection = newDirection;
+      },
+
+      /**
+       * Update the table headers to indicate the current table sorting.
+       */
+      updateHeaders: function() {
+        var headers = this.$.alerts.querySelectorAll('th');
+        for (var i = 0; i < headers.length; i++) {
+          if (headers[i].id == this.sortBy) {
+            headers[i].setAttribute('data-sort-direction', this.sortDirection);
+          } else {
+            headers[i].removeAttribute('data-sort-direction');
+          }
+        }
+      },
+
+      /**
+       * Sorts the alert list according to the current values of the properties
+       * sortDirection and sortBy.
+       */
+      sort: function() {
+        var order = this.sortDirection == 'down' ? 1 : -1;
+        var sortBy = this.sortBy;
+
+        // Map of group id to list of alert objects.
+        var groupMap = {};
+        // List of alerts that should be sorted.  If this is a group view,
+        // only group header alerts are added.
+        var alertsToSort = [];
+        for (var i = 0; i < this.alertList.length; i++) {
+          var alert = this.alertList[i];
+          // Associate the current index with each element, to enable stable
+          // sorting.
+          alert.index = i;
+
+          // Create list of group header alerts to sort by group.
+          if (this.isGroupView && alert.group) {
+            if (alert.group in groupMap) {
+              groupMap[alert.group].push(alert);
+            } else {
+              groupMap[alert.group] = [alert];
+              alertsToSort.push(alert);
+            }
+          } else {
+            alertsToSort.push(alert);
+          }
+        }
+
+        /**
+         * Compares two alert Objects to determine which should come first.
+         * @param {Object} alertA The first alert.
+         * @param {Object} alertB The second alert.
+         * @return A negative number if alertA is first, positive otherwise.
+         */
+        var compareAlerts = function(alertA, alertB) {
+          var valA = String(alertA[sortBy]).toLowerCase();
+          var valB = String(alertB[sortBy]).toLowerCase();
+
+          // If the values can be parsed as non-zero numbers, then compare
+          // numerically. Otherwise, compare lexically.
+          var parseNumber = function(str) {
+            return Number(str.match(/^\d*(\.\d+)?/)[0]);
+          }
+          var numA = parseNumber(valA)
+          var numB = parseNumber(valB);
+          if (numA && numB) {
+            var result = numA - numB;
+          } else {
+            var result = (valA < valB) ? -1 : (valA > valB) ? 1 : 0;
+          }
+
+          // If the alerts are equivalent on the current column, sort by their
+          // previous position. This provides a stable sort, so that users can
+          // sort by multiple columns.
+          if (result == 0)
+            result = alertA.index - alertB.index;
+
+          return result * order;
+        };
+        alertsToSort.sort(compareAlerts);
+
+        var sortedAlertList = [];
+        alertsToSort.forEach(function(alert) {
+          if (alert.group in groupMap) {
+            sortedAlertList.push.apply(sortedAlertList, groupMap[alert.group]);
+          } else {
+            sortedAlertList.push(alert);
+          }
+        });
+        this.alertList = sortedAlertList;
+        this.updateHeaders();
+      },
+
+      /**
+       * Gets the intersection of the revision ranges of alerts.
+       *
+       * For example, if there were two checked alerts with the ranges
+       * [200, 400] and [300, 500], this function will return an object which
+       * represents the range [300, 400].
+       *
+       * The input and output revision ranges are inclusive; that is, both
+       * start and end revision are included in the range. Thus the minimum
+       * revision range for alerts with ranges [110, 120] and [120, 130] is
+       * [120, 120].
+       *
+       * @param {Array.<Object>}
+       *
+       * @return {(Object|null)} An object containing start and end revision,
+       *     or null if the checked alerts don't overlap.
+       */
+      getMinimumRevisionRange: function(alerts) {
+        if (!alerts || alerts.length == 0) {
+          return null;
+        }
+        // Start with the range of the first alert, and then narrow it down.
+        var start = alerts[0]['start_revision'];
+        var end = alerts[0]['end_revision'];
+        for (var i = 1; i < alerts.length; i++) {
+          var a = alerts[i];
+          if (a['start_revision'] > start) {
+            if (a['start_revision'] > end) {
+              return null;
+            }
+            start = a['start_revision'];
+          }
+          if (a['end_revision'] < end) {
+            if (a['end_revision'] < start) {
+              return null;
+            }
+            end = a['end_revision'];
+          }
+        }
+        return {'start': start, 'end': end};
+      },
+
+      /**
+       * Gets a sublist of the given list of alerts whose revision range
+       * falls within the given range.
+       * Precondition: start <= end, and for each alert in the given list,
+       *     start_revision <= end_revision.
+       * @param {Array.<Object>} alerts
+       * @param {number} start
+       * @param {number} end
+       * @param {Array.<Object>} Alerts that have an overlapping revision range.
+       */
+      getOverlappingAlerts: function(alerts, start, end) {
+        return alerts.filter(function(a, index, array) {
+          return (a['start_revision'] <= end && a['end_revision'] >= start);
+        });
+      },
+
+      /**
+       * Highlights alerts that overlap with checked alerts minimum revision range.
+       */
+      updateHighlights: function() {
+        this.alertList.forEach(function(alertRow) {
+          alertRow.highlighted = false;
+        });
+        var minRevisionRange = this.getMinimumRevisionRange(this.checkedAlerts);
+        if (!minRevisionRange) {
+          return;
+        }
+        var overlappingAlerts = this.getOverlappingAlerts(
+            this.alertList, minRevisionRange.start, minRevisionRange.end);
+        if (overlappingAlerts.length > 1) {
+          overlappingAlerts.forEach(function(alertRow) {
+            alertRow.highlighted = true;
+          });
+        }
+      },
+
+      /**
+       * Handles shift-click selecting checkboxes and selecting rows in group.
+       */
+      onRowClicked: function(event, detail, sender) {
+        if (event.shiftKey && this.previousCheckboxId &&
+            this.currentCheckboxId) {
+          if (this.previousCheckboxId == this.currentCheckboxId) {
+            return;
+          }
+          var prevIndex = 0, currentIndex = 0, isChecked = null;
+          for (var i = 0; i < this.alertList.length; i++) {
+            if (this.alertList[i].key == this.previousCheckboxId) {
+              prevIndex = i;
+            } else if (this.alertList[i].key == this.currentCheckboxId) {
+              currentIndex = i;
+              isChecked = this.alertList[i].selected;
+            }
+          }
+          // Go through and check/uncheck.
+          if (prevIndex < currentIndex) {
+            for (var i = prevIndex; i < currentIndex; i++) {
+              if (!this.alertList[i].hideRow) {
+                this.alertList[i].selected = isChecked;
+                this.updateGroupCheckboxes(this.alertList[i], i, isChecked);
+              }
+            }
+          } else {
+            for (var i = prevIndex; i > currentIndex; i--) {
+              if (!this.alertList[i].hideRow) {
+                this.alertList[i].selected = isChecked;
+                this.updateGroupCheckboxes(this.alertList[i], i, isChecked);
+              }
+            }
+          }
+          this.onCheckboxChange();
+        }
+      },
+
+      /**
+       * Checks or unchecks hidden group member rows.
+       */
+      updateGroupCheckboxes: function(alert, alertIndex, isChecked) {
+        if (alert.rowType == 'group-header' && !alert.expanded) {
+          for (var i = alertIndex + 1; i < this.alertList.length; i++) {
+            if (this.alertList[i].rowType == 'group-member') {
+              this.alertList[i].selected = isChecked;
+            } else {
+              break;
+            }
+          }
+        }
+      },
+
+      /**
+       * Event handler for the change event of any of the checkboxes for any
+       * alert in the table.
+       */
+      onCheckboxChange: function(event, detail, sender) {
+        if (sender) {
+          // Checks group member rows.
+          var alertIndex = sender.parentNode.parentNode.rowIndex - 1;
+          var alert = this.alertList[alertIndex];
+          this.updateGroupCheckboxes(alert, alertIndex, alert.selected);
+
+          this.previousCheckboxId = this.currentCheckboxId;
+          this.currentCheckboxId = sender.id;
+        }
+        // Update the list of checked alerts.
+        this.checkedAlerts = this.alertList.filter(function(alertRow) {
+          return alertRow.selected;
+        });
+        this.updateHeaderCheckbox();
+        this.updateHighlights();
+        this.maybeDisableButtons();
+        this.fire('changeselection');
+      },
+
+      /**
+       * Checks the header checkbox if all checkboxes below are checked.
+       */
+      updateHeaderCheckbox: function() {
+        if (this.checkedAlerts.length == this.alertList.length) {
+          this.$['header-checkbox'].checked = true;
+        } else {
+          this.$['header-checkbox'].checked = false;
+        }
+      },
+
+      /**
+       * Disables or enables the triage and graph buttons depending on whether there
+       * are any alerts currently checked.
+       */
+      maybeDisableButtons: function() {
+        var buttonsDisabled = this.checkedAlerts.length == 0;
+        this.$['file-bug-button'].disabled = buttonsDisabled;
+        this.$['graph-button'].disabled = buttonsDisabled;
+      },
+
+      /**
+       * Opens a new window on the /report page for the currently checked alerts.
+       */
+      showGraphs: function() {
+        window.open(getGraphUri(this.checkedAlerts));
+      },
+
+      /**
+       * Shows the UI to file a bug on the given group of alerts.
+       * @param {Event} e The event for the button click.
+       */
+      showTriageDialog: function(e) {
+        this.$.triage.alerts = this.checkedAlerts;
+        this.$.triage.show();
+        e.stopPropagation();
+      },
+
+      /**
+       * Handles the 'triaged' event sent by the triage dialog; updates the UI
+       * for alerts that have been triaged.
+       * @param {Event} e
+       */
+      onTriaged: function(e) {
+        var triagedKeys = e.detail.alerts.map(function(alert) {
+          return alert.key;
+        });
+        var triagedBugId = e.detail.bugid;
+        this.checkedAlerts.forEach(function(alert) {
+          if (triagedKeys.indexOf(alert.key) != -1) {
+            alert['bug_id'] = triagedBugId;
+            if (!uri.getParameter('triaged')) {
+              alert.hideRow = true;
+              alert.selected = false;
+            }
+          }
+        });
+        this.onCheckboxChange();
+        this.updateBugColumn();
+      }
+    });
+  })();
+  </script>
+</polymer-element>

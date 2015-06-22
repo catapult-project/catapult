@@ -19,8 +19,11 @@ class StoppageAlert(alert.Alert):
   Thus, two StoppageAlert entities can not be created for the same stoppage
   event.
   """
-  # Whether or not a mail notification has been sent for this alert.
+  # Whether a mail notification has been sent for this alert.
   mail_sent = ndb.BooleanProperty(indexed=True, default=False)
+
+  # Whether new points have been received for the test after this alert.
+  recovered = ndb.BooleanProperty(indexed=True, default=False)
 
   @ndb.ComputedProperty
   def revision(self):
@@ -73,6 +76,8 @@ def CreateStoppageAlert(test, row):
       id=row.revision,
       internal_only=test.internal_only,
       sheriff=test.sheriff)
+  test.stoppage_alert = new_alert.key
+  test.put()
   alert_group.GroupAlerts([new_alert], test.suite_name, 'StoppageAlert')
   return new_alert
 

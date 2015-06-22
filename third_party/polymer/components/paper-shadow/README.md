@@ -1,4 +1,4 @@
 paper-shadow
 ============
 
-See the [component page](https://www.polymer-project.org/0.5/docs/elements/paper-shadow.html) for more information.
+See the [component page](http://polymer-project.org/docs/elements/paper-elements.html#paper-shadow) for more information.

@@ -10,32 +10,39 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>paper-button basic tests</title>
+  <title>core-icon-button basic tests</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
   <script src="../../webcomponentsjs/webcomponents.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
 
-  <link href="../paper-button.html" rel="import">
+  <link href="../../core-icon-button.html" rel="import">
 
 </head>
 <body>
 
-  <paper-button id="button1">button</paper-button>
+  <core-icon-button id="button1" disabled></core-icon-button>
 
   <script>
 
+    function flushLayoutAndRender(callback) {
+      flush(function() {
+        document.body.offsetTop;
+        requestAnimationFrame(function() {
+          callback();
+        });
+      });
+    }
+
     var b1 = document.getElementById('button1');
 
-    test('can set raised imperatively', function(done) {
-      assert.ok(!b1.shadowRoot.querySelector('paper-shadow'));
-      b1.raised = true;
-      flush(function() {
-        var shadow = b1.shadowRoot.querySelector('paper-shadow');
-        assert.ok(shadow);
-        assert.notEqual(getComputedStyle(shadow.$['shadow-top'])['box-shadow'], 'none');
-        done();
-      });
+    test('default', function() {
+      // it renders!
+      assert.ok(true);
+    });
+
+    test('HTML disabled attribute should bind downwards', function() {
+      assert.equal(true, b1.disabled);
     });
 
   </script>

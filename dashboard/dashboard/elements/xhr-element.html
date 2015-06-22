@@ -1,0 +1,43 @@
+<polymer-element name="xhr-element">
+  <script>
+    Polymer('xhr-element', {
+      LOGIN_ERROR_MESSAGE: 'Please check if you are logged in with a ' +
+                           'google.com or chromium.org account in the ' +
+                           'upper right corner of the page.',
+      handleError: function(req, callback) {
+        callback(this.LOGIN_ERROR_MESSAGE);
+      },
+      handleLoad: function(req, loadCallback, errorCallback) {
+        if (req.status != 200) {
+          errorCallback('HTTP error ' + req.status);
+          return;
+        }
+        try {
+          var response = JSON.parse(req.responseText);
+        } catch (e) {
+          errorCallback(this.LOGIN_ERROR_MESSAGE);
+          return;
+        }
+        if (response.error) {
+          errorCallback(response.error);
+          return;
+        }
+        loadCallback(response);
+      },
+      send: function(url, xsrfToken, params, loadCallback, errorCallback) {
+        var postdata = 'xsrf_token=' + encodeURIComponent(xsrfToken);
+        for (var name in params) {
+          postdata += '&' + name + '=' + encodeURIComponent(params[name]);
+        }
+        var req = new XMLHttpRequest();
+        req.onerror = this.handleError.bind(this, req, errorCallback);
+        req.onload = this.handleLoad.bind(this, req, loadCallback, errorCallback);
+        req.open('post', url, true);
+        req.setRequestHeader('Content-type',
+                             'application/x-www-form-urlencoded');
+        req.send(postdata);
+        return req;
+      }
+    });
+  </script>
+</polymer-element>

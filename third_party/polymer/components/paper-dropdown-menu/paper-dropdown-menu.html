@@ -1,0 +1,184 @@
+<!--
+Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!--
+
+`paper-dropdown-menu` works together with `paper-dropdown` and `core-menu` to
+implement a drop-down menu. The currently selected item is displayed in the
+control. If no item is selected, the `label` is displayed instead.
+
+The child element with the class `dropdown` will be used as the drop-down
+menu. It should be a `paper-dropdown` or other overlay element. You should
+also provide a `core-selector` or other selector element, such as `core-menu`,
+in the drop-down. You should apply the class `menu` to the selector element.
+
+Example:
+
+    <paper-dropdown-menu label="Your favorite pastry">
+        <paper-dropdown class="dropdown">
+            <core-menu class="menu">
+                <paper-item>Croissant</paper-item>
+                <paper-item>Donut</paper-item>
+                <paper-item>Financier</paper-item>
+                <paper-item>Madeleine</paper-item>
+            </core-menu>
+        </paper-dropdown>
+    </paper-dropdown-menu>
+
+This example renders a drop-down menu with 4 options.
+
+@group Paper Elements
+@element paper-dropdown-menu
+@extends core-dropdown-base
+@mixins Polymer.CoreFocusable https://github.com/polymer/core-focusable
+@status unstable
+@homepage github.io
+-->
+
+<!--
+Fired when an item's selection state is changed. This event is fired both
+when an item is selected or deselected. The `isSelected` detail property
+contains the selection state.
+
+@event core-select
+@param {Object} detail
+  @param {boolean} detail.isSelected true for selection and false for deselection
+  @param {Object} detail.item the item element
+-->
+<link href="../polymer/polymer.html" rel="import">
+
+<link href="../core-a11y-keys/core-a11y-keys.html" rel="import">
+<link href="../core-dropdown/core-dropdown-base.html" rel="import">
+<link href="../core-focusable/core-focusable.html" rel="import">
+<link href="../core-icon/core-icon.html" rel="import">
+<link href="../core-icons/core-icons.html" rel="import">
+<link href="../paper-shadow/paper-shadow.html" rel="import">
+
+<style shim-shadowdom>
+  html /deep/ #paper-dropdown-menu-dropdown {
+    margin: 12px;
+    overflow: visible;
+  }
+
+  html /deep/ #paper-dropdown-menu-dropdown #menu {
+    padding: 8px 0;
+    margin: 0;
+  }
+
+  html /deep/ #paper-dropdown-menu-dropdown .menu-container {
+    overflow: auto;
+    max-height: 100%;
+    max-width: 100%;
+  }
+</style>
+
+<polymer-element name="paper-dropdown-menu" extends="core-dropdown-base" relative layout inline horizontal center tabindex="0">
+<template>
+
+  <style>
+    :host {
+      -moz-user-select: none;
+      -ms-user-select: none;
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: pointer;
+      padding: 0.5em 0 0.25em;
+      margin: 0.75em 0;
+      border-bottom: 1px solid #757575;
+      outline: none;
+    }
+
+    #label:not(.selectedItem), #arrow {
+      color: #757575;
+    }
+
+    #label {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  </style>
+
+  <core-a11y-keys target="{{}}" keys="enter space" on-keys-pressed="{{toggleOverlay}}"></core-a11y-keys>
+
+  <div flex auto id="label">{{selectedItemLabel || label}}</div>
+  <core-icon id="arrow" icon="{{opened ? openedIcon : closedIcon}}"></core-icon>
+
+  <content></content>
+
+</template>
+<script>
+
+(function() {
+
+  var p = {
+
+    publish: {
+
+      /**
+       * A label for the control. The label is displayed if no item is selected.
+       *
+       * @attribute label
+       * @type string
+       * @default 'Select an item'
+       */
+      label: 'Select an item',
+
+      /**
+       * The icon to display when the drop-down is opened.
+       *
+       * @attribute openedIcon
+       * @type string
+       * @default 'arrow-drop-up'
+       */
+      openedIcon: 'arrow-drop-up',
+
+      /**
+       * The icon to display when the drop-down is closed.
+       *
+       * @attribute closedIcon
+       * @type string
+       * @default 'arrow-drop-down'
+       */
+      closedIcon: 'arrow-drop-down'
+
+    },
+
+    selectedItemLabel: '',
+
+    overlayListeners: {
+      'core-overlay-open': 'openAction',
+      'core-activate': 'activateAction',
+      'core-select': 'selectAction'
+    },
+
+    activateAction: function(e) {
+      this.opened = false;
+    },
+
+    selectAction: function(e) {
+      var detail = e.detail;
+      if (detail.isSelected) {
+        this.$.label.classList.add('selectedItem');
+        this.selectedItemLabel = detail.item.label || detail.item.textContent;
+      } else {
+        this.$.label.classList.remove('selectedItem');
+        this.selectedItemLabel = '';
+      }
+    }
+
+  };
+
+  Polymer.mixin2(p, Polymer.CoreFocusable);
+  Polymer(p);
+
+})();
+
+</script>
+</polymer-element>

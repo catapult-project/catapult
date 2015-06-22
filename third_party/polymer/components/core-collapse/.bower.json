@@ -1,0 +1,22 @@
+{
+  "name": "core-collapse",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#^0.5",
+    "core-resizable": "Polymer/core-resizable#^0.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^1.1.0"
+  },
+  "version": "0.5.6",
+  "homepage": "https://github.com/Polymer/core-collapse",
+  "_release": "0.5.6",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.5.6",
+    "commit": "ffdee7801136f8f6cb16cbd52714cbc3f52850fc"
+  },
+  "_source": "git://github.com/Polymer/core-collapse.git",
+  "_target": "^0.5",
+  "_originalSource": "Polymer/core-collapse"
+}

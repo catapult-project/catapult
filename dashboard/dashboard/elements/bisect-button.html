@@ -1,0 +1,82 @@
+<link rel="import" href="../../third_party/polymer/components/paper-button/paper-button.html">
+<link rel="import" href="bisect-form.html">
+
+<polymer-element name="bisect-button" attributes="bisectInfo bugId xsrfToken">
+  <template>
+    <style>
+      /*
+       * A special style for the "enabled" attribute is used because when style
+       * is applied to the button element, it seems to override the paper-button
+       * [disabled] style.
+       * The selector #button:enabled doesn't work because the underlying
+       * element inside paper-button is a div, not a form element.
+       */
+      #button[enabled] {
+        background-color: #4285f4;
+        color: white;
+      }
+
+      /*
+       * Style for when this custom element when it has the class "mini".
+       * See: http://www.polymer-project.org/articles/styling-elements.html
+       */
+      :host(.mini) #button {
+        height: 22px;
+        line-height: 0.5em;
+        margin-left: 5px;
+        padding-top: 0;
+      }
+    </style>
+    <paper-button raised
+        id="button"
+        disabled?={{!canBisect}}
+        enabled?={{canBisect}}
+        on-click="{{onBisect}}">Bisect</paper-button>
+    <bisect-form
+        id="bisect"
+        xsrfToken="{{xsrfToken}}"
+        goodRevision="{{bisectInfo.goodRev}}"
+        badRevision="{{bisectInfo.badRev}}"
+        testPath="{{bisectInfo.testPath}}"
+        bugId="{{bugId}}"></bisect-form>
+  </template>
+  <script>
+    (function() {
+      Polymer('bisect-button', {
+        /**
+         * Initializes this element; this is an element lifecycle callback.
+         */
+        ready: function() {
+          this.update();
+        },
+
+        /**
+         * Updates the bisect button when the bisectInfo is set.
+         */
+        bisectInfoChanged: function() {
+          this.update();
+        },
+
+        /**
+         * Updates the canBisect state based on the bisectInfo state.
+         */
+        update: function() {
+          if (!this.bisectInfo) {
+            this.canBisect = false;
+            return;
+          }
+          var testPath = this.bisectInfo.testPath;
+          var rev = this.bisectInfo.badRev;
+          this.canBisect = bisect_utils.canBisect(testPath, rev);
+        },
+
+        /**
+         * Displays the bisect-form when the bisect button is clicked.
+         */
+        onBisect: function() {
+          this.$.bisect.show();
+        },
+      });
+    })();
+  </script>
+</polymer-element>

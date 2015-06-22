@@ -1,0 +1,151 @@
+<link rel="import" href="bisect-button.html">
+
+<polymer-element name="bug-info">
+  <template>
+    <style>
+      #container {
+        display: flex;
+        display: -webkit-flex;
+        -webkit-flex-direction: column;
+        flex-direction: column;
+        margin-left: 1px;
+        margin-top: 3px;
+      }
+
+      #container p {
+        margin-top: 7px;
+        margin-bottom: 7px;
+      }
+
+      .warning {
+        font-weight: bold;
+        color: red;
+      }
+    </style>
+    <div id="container" style="display:none">
+      <div class="info-bar">
+        <p><a href="http://crbug.com/{{bugId}}">crbug.com/{{bugId}}</a></p>
+        <p>
+          <span id="revision_range"></span>
+          <span id="warning" class="warning"></span>
+          <bisect-button id="bisect" class="mini"></bisect-button>
+        </p>
+        <template bind if="{{ownerInfo}}">
+          <p>
+            Owners:
+            <template repeat="{{owner, index in ownerInfo}}">
+              <!--TODO(chrisphan): Link this to bug comment dialog.-->
+              <a href="#" onclick="return false;">{{owner.email}}</a>
+              <span hidden?="{{index == ownerInfo.length - 1}}"> | </span>
+            </template>
+          </p>
+        </template>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer('bug-info', {
+      alertsTable: null,
+      bugId: null,
+
+      /**
+       * Initializes this element.
+       * @param {Number} bugId A bug ID number.
+       * @param {HTMLElement} alertsTable HTML element of alerts-table.
+       * @param {Array.<Object>} ownerInfo List of owners info.
+       */
+      initialize: function(bugId, alertsTable, ownerInfo) {
+        this.$.container.style.display = '';
+        this.bugId = bugId;
+        this.alertsTable = alertsTable;
+        this.ownerInfo = ownerInfo;
+        this.alertsTable.addEventListener('changeselection',
+            this.updateBugInfo.bind(this), false);
+        this.updateBugInfo();
+      },
+
+      /**
+       * Displays bug info; this will be either a revision range or a warning.
+       */
+      updateBugInfo: function() {
+        var alerts = this.getCheckedOrAllAlerts();
+        if (alerts.length == 0) {
+          this.$.warning.textContent =
+              'WARNING: There appear to be no alerts associated with this bug.';
+          return;
+        }
+
+        var minRevRange = this.alertsTable.getMinimumRevisionRange(alerts);
+        if (minRevRange) {
+          var info = 'Minimum revision range for ' + alerts.length;
+          info += (alerts.length == 1) ? ' alert: ' : ' alerts: ';
+          info += minRevRange['start'] + ':' + minRevRange['end'];
+          this.$.revision_range.innerText = info;
+          this.updateBisectButton(alerts, minRevRange);
+          return;
+        } else {
+          this.$.warning.textContent =
+              'WARNING: Non-overlapping alerts are grouped together.';
+        }
+      },
+
+      /**
+       * Gets checked alerts, or all displayed alerts if none are checked.
+       *
+       * @param {Array.<Object>} alerts List of alerts.
+       * @param {Object} minRevRange Minimum revision range.
+       *
+       * @return {Array.<Object>} List of alerts.
+       */
+      getCheckedOrAllAlerts: function(alerts, minRevRange) {
+        var alerts = this.alertsTable['checkedAlerts'];
+        if (!alerts || alerts.length == 0) {
+          alerts = this.alertsTable['alertList'].filter(
+              function(alertRow) {
+                return !alertRow.hideRow;
+              });
+        }
+        return alerts;
+      },
+
+      /**
+       * Displays a bisect button.
+       *
+       * TODO(qyearsley) Change this to use a test path based on a response
+       * from /bisect_group.
+       *
+       * @param {Array.<Object>} alerts List of alerts.
+       * @param {Object} minRevRange Minimum revision range.
+       */
+      updateBisectButton: function(alerts, minRevRange) {
+        this.$.bisect.bugId = this.bugId;
+        // minRevRange['start'] is the first possible bad revision.
+        // Subtracting one to get the last known good revision.
+        this.$.bisect.bisectInfo = {
+          badRev: minRevRange['end'],
+          goodRev: minRevRange['start'] - 1,
+          testPath: this.getTestpathFromStartRev(alerts, minRevRange['start'])
+        };
+      },
+
+      /**
+       * Gets test path from the alert with the matching start revision number.
+       *
+       * @param {Number} start_revision A start revision number.
+       *
+       * @return {(String|null)} The test path.
+       */
+      getTestpathFromStartRev: function(alerts, startRevision) {
+        for (var i = 0; i < alerts.length; i++) {
+          if (alerts[i]['start_revision'] == startRevision) {
+            return alerts[i]['master'] + '/' +
+                   alerts[i]['bot'] + '/' +
+                   alerts[i]['testsuite'] + '/' +
+                   alerts[i]['test'];
+          }
+        }
+        return null;
+      }
+    });
+  </script>
+</polymer-element>

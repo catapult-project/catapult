@@ -1,0 +1,191 @@
+<!--
+The chart-tooltip element is the box that is shown when you hover over or click
+on a point on a graph. It shows more detailed information about the point that
+was just clicked.
+-->
+<link rel="import" href="alert-remove-box.html">
+<link rel="import" href="bisect-button.html">
+<link rel="import" href="trace-button.html">
+<link rel="import" href="triage-dialog.html">
+
+<polymer-element
+    name="chart-tooltip"
+    attributes="testPath value bugId pointId revisions links alerts xsrfToken">
+  <template>
+    <style>
+      .chart-tooltip-container {
+        background-color: white;
+        border: 1px solid rgba(0, 0, 0, .2);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        padding: 6px;
+      }
+
+      .chart-tooltip-container div {
+        margin-bottom: 15px;
+      }
+
+      bisect-button {
+        margin-top: 15px;
+      }
+
+      trace-button {
+        margin-top: 15px;
+      }
+
+      #test-name {
+        width : 300px;
+        word-wrap: break-word;
+      }
+    </style>
+    <div class="chart-tooltip-container">
+
+      <triage-dialog id="triage"
+                     xsrfToken="{{xsrfToken}}"
+                     alerts="{{alerts}}"></triage-dialog>
+
+      <!-- TODO(qyearsley): Either (1) Display alert details on mouse-over as
+           well as click (The alerts attribute is only set currently on click,
+           not on hover) OR (2) Display alert details in the triage dialog. -->
+      <template bind repeat="{{alerts}}">
+        <div class="important">
+          <b>Alert information:</b><br>
+          Median of segment before: {{median_before_anomaly}}<br>
+          Median of segment after: {{median_after_anomaly}}<br>
+          Relative change: {{percent_changed}}<br>
+        </div>
+      </template>
+
+      <div id="test-name">
+        Test: {{parentPath}}/<b>{{seriesName}}</b>
+      </div>
+
+      <div>
+        Value: <b>{{value}}</b> <span hidden?={{!stddev}}>(± {{stddev}})</span>
+      </div>
+
+      <div>
+        <span hidden?={{!pointId}}>Point ID: {{pointId}}</span><br>
+        <span hidden?={{!timestamp}}>Time added: {{timestamp}}</span>
+      </div>
+
+      <template bind if="{{bugId}}">
+        <div>
+          <span hidden?={{alertInvalidOrIgnored}}>Bug ID:
+            <b><a target="_blank" href="http://crbug.com/{{bugId}}">{{bugId}}</a></b>
+            <span class="{{bugState}} "hidden?="{{!bugStatus}}">({{bugStatus}})</span>
+          </span>
+
+          <span hidden?="{{bugId != -1}}">Invalid alert</span>
+          <span hidden?="{{bugId != -2}}">Ignored alert</span>
+          <span hidden?="{{!recovered}}">Recovered alert</span>
+          <alert-remove-box key="{{alertKey}}" xsrfToken="{{xsrfToken}}" on-untriaged="{{onUntriaged}}">
+          </alert-remove-box><br>
+          <a href="/group_report?keys={{alertKey}}">View alert graph</a>
+        </div>
+      </template>
+
+      <div>
+        <template repeat={{revisions}}>
+          {{name}}<template bind if="{{start}}"> range</template>:
+          <b>
+            <a href="{{url}}" on-click="{{onRevisionRangeClick}}">
+              <template bind if="{{start}}">{{displayStart}} - </template>
+              {{displayEnd}}
+            </a>
+          </b><br>
+        </template>
+      </div>
+
+      <div>
+        <template repeat={{links}}>
+          <span class="annotation-link"><a href="{{url}}" target="_blank">{{text}}</a></span><br>
+        </template>
+      </div>
+
+      <span>
+        <bisect-button xsrfToken="{{xsrfToken}}"
+                       bugId="{{bugId}}"
+                       bisectInfo="{{bisectInfo}}"></bisect-button>
+        <trace-button xsrfToken="{{xsrfToken}}"
+                       bugId="{{bugId}}"
+                       traceInfo="{{bisectInfo}}"></trace-button>
+      </span>
+    </div>
+  </template>
+  <script>
+    Polymer('chart-tooltip', {
+      traceName: null,
+      value: null,
+      stddev: null,
+      hideStddev: true,
+      bugId: null,
+      stdioUri: null,
+      hideStdioUri: true,
+      bugStatusLink: 'https://www.googleapis.com/projecthosting/v2/projects/chromium/issues/BUGID?key=AIzaSyDrEBALf59D7TkOuz-bBuOnN2OqzD70NCQ',
+      revisions: [],
+
+      testPathChanged: function() {
+        if (this.testPath) {
+          var parts = this.testPath.split('/');
+          this.seriesName = parts.pop();
+          this.parentPath = parts.join('/');
+        }
+      },
+
+      /**
+       * Shows the CL descriptions for the given revision range.
+       */
+      onRevisionRangeClick: function(event, detail, sender) {
+        window.open(sender.href, 'changelog', 'width=1000,height=1000');
+        event.preventDefault();
+      },
+
+      /**
+       * Updates the display of the triage-dialog.
+       * This method is called whenever the value of this.alerts changes,
+       * e.g. by chart-container when an alert is triaged.
+       */
+      alertsChanged: function() {
+        // The triage-dialog should be shown when there is some non-triaged
+        // alert, and hidden otherwise.
+        if (this.alerts && this.alerts.length) {
+          this.$.triage.show();
+        } else {
+          this.$.triage.hide();
+        }
+      },
+
+      /**
+       * Updates the interface when the bug ID changes.
+       */
+      bugIdChanged: function() {
+        this.bugStatus = this.bugState = null;
+        // If there is a bug ID, request its state and status. Note that these
+        // are two different things -- state is closed/open, whereas status
+        // includes things like available, started, duplicate, etc.
+        if (this.bugId && this.bugId > 0) {
+          var url = this.bugStatusLink.replace('BUGID', this.bugId);
+          var req = new XMLHttpRequest();
+          var self = this;
+          req.onload = function() {
+            var json = JSON.parse(req.responseText);
+            self.bugStatus = json.status;
+            self.bugState = json.state;
+          };
+          req.open('get', url, true);
+          req.send();
+        }
+      },
+
+      /**
+       * Fires a 'triaged' event, which should be caught in chart-container.
+       */
+      onUntriaged: function(event, detail, sender) {
+        this.fire('triaged', {
+          'alerts': this.triagedAlerts,
+          'bugid': null
+        })
+      },
+    });
+  </script>
+</polymer-element>

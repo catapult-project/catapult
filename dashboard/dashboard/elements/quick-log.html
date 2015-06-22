@@ -1,0 +1,450 @@
+<link rel="import" href="xhr-element.html">
+
+<polymer-element name="quick-log"
+                 attributes="logLabel logNamespace logName logFilter
+                             loadOnReady expandOnReady xsrfToken">
+  <template>
+    <style>
+      /**
+       * These are the intended layouts for quick-log element:
+       * 1. Height grows with logs and keep a maximum height.
+       * 2. Width is inherit by parent container unless specified.
+       * 3. Holds HTML logs and preverses line-break.
+       */
+      #container {
+        min-width: 800px;
+        width: 100%;
+        margin: 0 auto;
+      }
+
+      .label-container {
+        text-align: right;
+        padding-bottom: 5px;
+        padding-right: 2px;
+      }
+
+      .arrow-right {
+        background-image: url(/arrow_right.png);
+      }
+
+      .arrow-down {
+        background-image: url(/arrow_down.png);
+      }
+
+      .toggle-arrow {
+        background-repeat: no-repeat;
+        height: 100%;
+        width: 20px;
+        margin-top: 2px;
+        display: block;
+        cursor: pointer;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: moz-none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      #log-label {
+        padding-left: 18px;
+        background-position: left center;
+        background-repeat: no-repeat;
+        cursor: pointer;
+        vertical-align: middle;
+        color: #15c;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: moz-none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      #refresh-btn {
+        background: url(/refresh-21.png);
+        background-color: transparent;
+        background-repeat: no;
+        cursor: pointer;
+        border: none;
+        width: 21px;
+        height: 21px;
+        text-decoration: none;
+        outline-style: none;
+        vertical-align: middle;
+      }
+
+      #refresh-btn:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+
+      #content {
+        display: block;
+        position:relative;
+        width:100%;
+      }
+
+      #inner-content {
+        display: block;
+        position: absolute;
+        width: 100%;
+      }
+
+      .content-bar {
+        display: block;
+        background-color: #f5f5f5;
+        height: 25px;
+        line-height: 25px;
+        padding: 0 5px 0 10px;
+        border-bottom: 1px solid #ebebeb;
+        text-align: right;
+      }
+
+      #wrapper {
+         overflow: scroll;
+         max-height: 250px;
+         display: block;
+         overflow: auto;
+      }
+
+      #logs {
+        width: 100%;
+        height: 100%;
+        border-bottom: 1px solid #e5e5e5;
+        border-collapse: collapse;
+      }
+
+      #logs tr {
+        border-bottom: 1px solid #e5e5e5;
+      }
+
+      #logs tr:hover {
+        background-color: #ffffd6
+      }
+
+      #logs td {
+        margin: 0;
+        padding: 0;
+      }
+
+      #logs tr td:first-child {
+        vertical-align: top;
+        text-align: left;
+        width: 23px;
+      }
+
+      #logs td .message {
+        position: relative;
+        height: 26px;
+      }
+
+      #logs td .message.expand {
+        height: auto !important;
+      }
+
+      #logs td .message pre {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        margin: 0;
+        padding: 5px 0;
+        font-family: inherit;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      /* Wraps text and also preverses line break.*/
+      #logs td .message.expand pre {
+        white-space: pre-line;
+        position: static;
+        height: auto !important;
+      }
+
+      .loading-img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    </style>
+    <div id="container">
+      <xhr-element id="xhr"></xhr-element>
+
+      <div class="label-container">
+        <span id="log-label"
+              class="arrow-right"
+              on-click="{{toggleView}}">{{logLabel}}</span>
+      </div>
+
+      <div id="content" style="display:none">
+        <div id="inner-content">
+          <div class="content-bar">
+             <input id="refresh-btn" type="button" on-click="{{refresh}}"/>
+          </div>
+          <div id="wrapper">
+            <table id="logs"></table>
+            <template bind if="{{stepLoading}}">
+              <img class="loading-img"
+                   height="25"
+                   width="25"
+                   src="//www.google.com/images/loading.gif"/>
+            </template>
+            <template bind if="{{errorMessage}}">
+              <div class="error">{{errorMessage}}</div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer('quick-log', {
+
+      MAX_LOG_SIZE: 100,
+
+      /**
+       * Custom element lifecycle callback, called once this element is ready.
+       */
+      ready: function() {
+        this.logList = [];
+        this.xhr = null;
+        if (this.loadOnReady) {
+          this.getLogs();
+          if (this.expandOnReady) {
+            this.show();
+          }
+        }
+      },
+
+      /**
+       * Initializes log parameters and send a request to get logs.
+       * @param {string} logLabel The label of log handle for
+       *                 expanding log container.
+       * @param {string} logNamespace
+       * @param {string} logName
+       * @param {string} logFilter A regex string to filter logs.
+       */
+      initialize: function(logLabel, logNamespace, logName, logFilter) {
+        this.logLabel = logLabel;
+        this.logNamespace = logNamespace;
+        this.logName = logName;
+        this.logFilter = logFilter;
+        this.clear();
+        this.getLogs();
+      },
+
+      /**
+       * Sends XMLHttpRequest to get logs.
+       * @param {boolean} latest True to get the latest logs,
+                          False to get older logs.
+       * @param {Number} size Number of logs to retrieve.
+       */
+      getLogs: function(latest, size) {
+        latest = (latest == undefined ? true : latest);
+        size = size || this.MAX_LOG_SIZE;
+        if (this.xhr) {
+          this.xhr.abort();
+          this.xhr = null;
+        }
+        this.setState('loading');
+        var params = {
+           namespace: this.logNamespace,
+           name: this.logName,
+           size: size
+        }
+        if (this.logFilter) {
+          params['filter'] = this.logFilter;
+        }
+        if (this.logList.length > 0) {
+          if (latest) {
+            params['after_index'] = this.logList[0].index;
+          } else {
+            var lastIndex = this.logList[this.logList.length-1].index;
+            params['before_index'] = lastIndex;
+          }
+        }
+        this.xhr = this.$.xhr.send('/get_logs', this.xsrfToken, params,
+          function(logs) {
+            this.errorMessage = null;
+            this.setState('finished');
+            if (logs.length > 0) {
+              this.updateLogs(logs);
+            }
+          }.bind(this),
+          function(msg) {
+            this.errorMessage = msg;
+            this.setState('finished');
+          }.bind(this)
+        );
+      },
+
+      /**
+       * Updates current displaying logs with new logs.
+       * @param {Array.<Object>} newLogs Array of log objects.
+       */
+      updateLogs: function(newLogs) {
+        if (this.logList.length == 0) {
+          this.logList = newLogs.slice(0, this.MAX_LOG_SIZE);
+          this.insertLogRows(this.logList);
+          return;
+        }
+        var lastIndex = this.logList[this.logList.length-1].index;
+        var newIndex = newLogs[0].index;
+        if (lastIndex >= newIndex) {
+          // Prepend new logs.
+          this.logList.push.apply(this.logList, newLogs);
+          this.insertLogRows(newLogs);
+        } else {
+          // Append new logs.
+          this.logList.unshift.apply(this.logList, newLogs);
+          this.insertLogRows(newLogs, true);
+        }
+      },
+
+      /**
+       * Inserts list of logs into HTML table.
+       * @param {Array.<Object>} logs Array of log objects.
+       * @param {boolean} insertBefore True to insert pre-pend,
+                          False to append.
+       */
+      insertLogRows: function(logs, insertBefore) {
+        var table = this.$.logs;
+        for (var i = 0; i < logs.length; i++) {
+          var row = document.createElement('tr');
+
+          var expandTd = document.createElement('td');
+          row.appendChild(expandTd);
+          var span = document.createElement('span');
+          span.className = 'toggle-arrow arrow-right';
+          expandTd.appendChild(span);
+
+          var td = document.createElement('td');
+          var messageDiv = document.createElement('div');
+          messageDiv.className = 'message';
+          row.appendChild(td);
+          td.appendChild(messageDiv);
+          messageDiv.innerHTML = '<pre>' + logs[i].message + '</pre>';
+          span.onclick = this.onLogToggleClick.bind(this, messageDiv);
+
+          if (insertBefore) {
+            if (table.rows.length >= this.MAX_LOG_SIZE) {
+              table.deleteRow(table.rows.length - 1);
+            }
+            table.insertBefore(row, table.childNodes[0]);
+          } else {
+            if (table.rows.length >= this.MAX_LOG_SIZE) {
+              table.deleteRow(0);
+            }
+            table.appendChild(row);
+          }
+        }
+        this.updateHeight();
+      },
+
+      /**
+       * Toggles show/hide log.
+       */
+      onLogToggleClick: function(messageDiv, e) {
+        var arrowIcon = e.target;
+        if (arrowIcon.className.indexOf('arrow-right') > -1) {
+          arrowIcon.className = 'toggle-arrow arrow-down';
+          messageDiv.className = 'message expand';
+        } else {
+          arrowIcon.className = 'toggle-arrow arrow-right';
+          messageDiv.className = 'message';
+        }
+        this.updateHeight();
+      },
+
+      /**
+       * Specifies loading state.
+       */
+      setState: function(state) {
+        switch(state) {
+          case 'loading':
+            this.stepLoading = true;
+            this.$['refresh-btn'].disabled = true;
+            break;
+          case 'finished':
+            this.stepLoading = false;
+            this.$['refresh-btn'].disabled = false;
+            break;
+        }
+      },
+
+      /**
+       * Toggles show/hide log container.
+       */
+      toggleView: function() {
+        if (this.$.content.style.display == '') {
+          this.hide();
+        } else {
+          this.show();
+          this.scrollIntoView();
+        }
+      },
+
+      /**
+       * Scrolls into view if log container is out of view.
+       */
+      scrollIntoView: function() {
+        var el = this.$.content;
+        var bottomOfPage = window.pageYOffset + window.innerHeight;
+        var bottomOfEl = el.offsetTop + el.offsetHeight;
+        if (bottomOfEl > bottomOfPage) {
+          el.scrollIntoView();
+        }
+      },
+
+      /**
+       * Refreshes log container.
+       */
+      refresh: function() {
+        if (this.stepLoading) {
+          return;
+        }
+        this.getLogs();
+      },
+
+      /**
+       * Shows log container.
+       */
+      show: function() {
+        this.$['log-label'].className = 'arrow-down';
+        this.$.content.style.display = '';
+        if (!this.stepLoading) {
+          this.$['refresh-btn'].disabled = false;
+        }
+        this.updateHeight();
+      },
+
+      /**
+       * Hides log container.
+       */
+      hide: function() {
+        this.$['log-label'].className = 'arrow-right'
+        this.$.content.style.display = 'none';
+        this.$['refresh-btn'].disabled = true;
+      },
+
+      /**
+       * Clear logs.
+       */
+      clear: function() {
+        this.logList = [];
+        this.$.logs.innerHTML = '';
+      },
+
+      /**
+       * Since we use absolute inner div, we'll keep the parent div updated
+       * to make sure this element doesn't overlape elements below.
+       */
+      updateHeight: function() {
+        this.$.content.style.height = this.$['inner-content'].offsetHeight +
+            'px';
+      },
+    });
+  </script>
+</polymer-element>

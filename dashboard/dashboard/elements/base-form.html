@@ -1,0 +1,71 @@
+<polymer-element
+    name="base-form"
+    attributes="xsrfToken testPath goodRevision badRevision bugId">
+  <script>
+    Polymer('base-form', {
+        /**
+         * Hides the bisect form.
+         */
+        hide: function() {
+          this.$['ui-container'].style.display = 'none';
+        },
+
+        /**
+         * Shows an error message.
+         */
+        setError: function(msg) {
+          this.$.loading.style.display = 'none';
+          this.setStep('errorMessage', msg);
+        },
+
+        /**
+         * Transitions to another step in the bisect process.
+         *
+         * @param {string} step Name of the step to transition to.
+         * @param {string} opt_msg Error message.
+         */
+        setStep: function(step, opt_msg) {
+          switch (step) {
+            case 'enterData':
+              this.enterData = true;
+              this.performBisect = false;
+              this.errorMessage = null;
+              break;
+            case 'performBisect':
+              this.enterData = false;
+              this.performBisect = true;
+              this.errorMessage = null;
+              break;
+            case 'jobSubmitted':
+              this.enterData = false;
+              this.performBisect = false;
+              this.jobSubmitted = true;
+              this.errorMessage = null;
+              break;
+            case 'errorMessage':
+              this.enterData = false;
+              this.performBisect = false;
+              this.errorMessage = opt_msg;
+              break;
+          }
+          this.updateSize();
+        },
+
+        /**
+         * Updates the size of the bisect form box.
+         */
+        updateSize: function() {
+          // Ensure widths/heights are correct.
+          Platform.performMicrotaskCheckpoint();
+
+          // Position the UI container box.
+          var halfDocWidth = document.documentElement.offsetWidth / 2;
+          var halfDocHeight = document.documentElement.offsetHeight / 2;
+          var halfBoxWidth = this.$['ui-container'].offsetWidth / 2;
+          var halfBoxHeight = this.$['ui-container'].offsetHeight / 2;
+          this.$['ui-container'].style.left = (halfDocWidth - halfBoxWidth) + 'px';
+          this.$['ui-container'].style.top = (halfDocHeight - halfBoxHeight) + 'px';
+        }
+    });
+  </script>
+</polymer-element>

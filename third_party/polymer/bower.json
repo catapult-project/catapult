@@ -2,7 +2,11 @@
   "name": "catapult",
   "private": true,
   "dependencies": {
-    "polymer": "Polymer/polymer#0.5.2",
-    "paper-button": "Polymer/paper-button#0.5.2"
+    "polymer": "Polymer/polymer#0.5.5",
+    "paper-button": "Polymer/paper-button#0.5.5",
+    "paper-dropdown": "Polymer/paper-dropdown#0.5.5",
+    "paper-dropdown-menu": "Polymer/paper-dropdown-menu#0.5.5",
+    "paper-shadow": "Polymer/paper-shadow#0.5.5",
+    "core-overlay": "Polymer/core-overlay#0.5.5"
   }
 }

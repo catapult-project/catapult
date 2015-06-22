@@ -1,0 +1,27 @@
+<link rel="import" href="../../third_party/polymer/components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../third_party/polymer/components/paper-dropdown/paper-dropdown.html">
+<link rel="import" href="../../third_party/polymer/components/core-menu/core-menu.html">
+<link rel="import" href="../../third_party/polymer/components/paper-item/paper-item.html">
+
+<polymer-element name="select-menu" attributes="menuItems">
+  <template>
+  <style>
+  </style>
+  <paper-dropdown-menu>
+    <paper-dropdown class="dropdown">
+      <core-menu class="menu" valueattr="label" id="menu">
+        <template repeat="{{menuItems}}">
+          <paper-item label="{{}}">{{}}</paper-item>
+        </template>
+      </core-menu>
+    </paper-dropdown>
+  </paper-dropdown-menu>
+  </template>
+  <script>
+    Polymer('select-menu', {
+      select: function(label) {
+        this.$.menu.selected = label;
+      }
+    });
+  </script>
+</polymer-element>

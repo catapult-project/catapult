@@ -1,0 +1,296 @@
+<!--
+The bisect-form element includes the form for all of the different stages of
+the bisect process after the user clicks on the bisect button.
+-->
+<link rel="import" href="../../third_party/polymer/components/paper-button/paper-button.html">
+<link rel="import" href="base-form.html">
+<link rel="import" href="xhr-element.html">
+
+<polymer-element name="bisect-form" extends="base-form">
+  <template>
+    <style>
+      #ui-container {
+        background: white;
+        border-bottom-color: #999;
+        border: solid 1px #acacac;
+        box-shadow: 0 4px 16px rgba(0,0,0,.2);
+        padding: 16px 20px;
+        position: fixed;
+        z-index: 10000;
+      }
+
+      #loading {
+        background-color: white;
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-align-items: center;
+        align-items: center;
+        justify-content: center;
+        -webkit-justify-content: center;
+      }
+
+      input[type=text], input[type=number] {
+        border-radius: 1px;
+        border: 1px solid #d9d9d9;
+        border-top: 1px solid #c0c0c0;
+        font-size: 13px;
+        height: 25px;  /* 29px total height incl padding+border */
+        width: 300px;
+        padding: 1px 2px;
+      }
+
+      .error {
+        color: #dd4b39;
+        font-weight: bold;
+      }
+
+      .submit-button {
+        background-color: #4285f4;
+        color: white;
+      }
+    </style>
+    <div id="ui-container" style="display:none">
+      <xhr-element id="xhr"></xhr-element>
+
+      <form hidden?="{{!enterData}}">
+        <table>
+          <tr>
+            <td>Bisect bot:</td>
+            <td>
+              <input type="text" list="bot-list" id="bot" value="{{bot}}">
+              <datalist id="bot-list">
+                <template repeat="{{name in botList}}">
+                  <option value="{{name}}"></option>
+                </template>
+              </datalist>
+            </td>
+          </tr>
+          <tr>
+            <td>Metric:</td>
+            <td>
+              <input type="text" list="metric-list" id="metric" value="{{metric}}">
+              <datalist id="metric-list">
+                <template repeat="{{name in metricList}}">
+                  <option value="{{name}}"></option>
+                </template>
+              </datalist>
+            </td>
+          </tr>
+          <tr>
+            <td>Bug ID:</td>
+            <td><input type="number"
+                       name="bug_id"
+                       value="{{bugId}}"></td>
+          </tr>
+          <tr>
+            <td>Good revision:</td>
+            <td><input type="text"
+                       name="good_revision"
+                       value="{{goodRevision}}"
+                       pattern="\d{6}|[0-9a-fA-F]{40}"></td>
+          </tr>
+          <tr>
+            <td>Bad revision:</td>
+            <td><input type="text"
+                       name="bad_revision"
+                       value="{{badRevision}}"
+                       pattern="\d{6}|[0-9a-fA-F]{40}"></td>
+          </tr>
+          <tr>
+            <td>Repeat count:</td>
+            <td><input type="number"
+                       name="repeat_count"
+                       min="1"
+                       max="100"
+                       value="{{repeatCount}}"></td>
+          </tr>
+          <tr>
+            <td>Max time (min):</td>
+            <td><input type="number"
+                       name="max_time_minutes"
+                       min="1"
+                       max="60"
+                       value="{{maxTimeMinutes}}"></td>
+          </tr>
+          <tr>
+            <td>Truncate percent:</td>
+            <td><input type="number"
+                       min="1"
+                       max="49"
+                       name="truncate_percent"
+                       value="{{truncatePercent}}"></td>
+          </tr>
+          <tr id="use-archive">
+            <td>Use archive:</td>
+            <td><input type="checkbox"
+                       id="use-archive-checkbox"
+                       on-change="{{onUseArchiveChange}}"
+                       checked>
+            </td>
+          </tr>
+          <tr>
+            <td>Bisect mode:</td>
+            <td>
+              <input type="text"
+                     list="bisect-mode-list"
+                     value="{{bisectMode}}"
+                     pattern="mean|std_dev|return_code">
+              <datalist id="bisect-mode-list">
+                <option value="mean"></option>
+                <option value="std_dev"></option>
+                <option value="return_code"></option>
+              </datalist>
+              <p class="error" hidden?="{{bisectMode != 'return_code'}}">
+                If you would like to bisect on a test failure, please carefully
+                check the revision range on the buildbot status page and update
+                the <b>Good Revision</b> and <b>Bad Revision</b> fields above
+                accordingly. Note that the revisions for a test failure will
+                <b>not</b> show up on the graph.
+              </p>
+            </td>
+          </tr>
+          <tr id="use-recipe">
+            <td>Use recipe (beta):</td>
+            <td><input type="checkbox"
+                       id="use-recipe-checkbox"
+                       on-change="{{onUseRecipeChange}}"></td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <paper-button class="submit-button" raised on-click="{{onSendToTrybot}}">Start bisect</paper-button>
+              <paper-button raised on-click="{{hide}}">Close</paper-button>
+            </td>
+          </tr>
+        </table>
+      </form>
+
+      <div hidden?="{{!jobSubmitted}}">
+        <p><b>Job submitted!</b></p>
+        <p><a href="{{issueUrl}}" target="_blank">View job {{issueId}}.</a></p>
+        <paper-button raised on-click="{{hide}}">Close</paper-button>
+      </div>
+
+      <div hidden?="{{!errorMessage}}">
+        <p class="error">An error occurred: {{errorMessage}}</p>
+        <paper-button raised on-click="{{hide}}">Close</paper-button>
+      </div>
+      <div id="loading"><img src="//www.google.com/images/loading.gif"></div>
+    </div>
+  </template>
+  <script>
+    Polymer('bisect-form', {
+
+      // Default values of variables that are bound to inputs in the form.
+      // See: http://www.chromium.org/developers/speed-infra/perf-try-bots-bisect-bots/config
+      repeatCount: 20,
+      maxTimeMinutes: 20,
+      truncatePercent: 25,
+      useArchive: true,
+      useRecipe: false,
+      bisectMode: 'mean',
+
+      /**
+       * Initializes and shows the bisect form.
+       */
+      show: function() {
+        this.$.loading.style.display = '';
+        this.$['ui-container'].style.display = '';
+        this.setStep('enterData');
+        this.$.xhr.send('/start_try_job', this.xsrfToken,
+          {
+            'test_path': this.testPath,
+            'step': 'prefill-info'
+          },
+          function successCallback(info) {
+            this.bot = info['bisect_bot']
+            this.botList = info['all_bots'];
+            this.metric = info['default_metric'];
+            this.metricList = info['all_metrics'];
+            this.setUseArchive(info['use_archive']);
+
+            // Platform.performMicrotaskCheckpoint signals Polymer to update
+            // bound elements based on their model objects.
+            Platform.performMicrotaskCheckpoint();
+
+            this.email = info['email'];
+            this.suite = info['suite'];
+            this.master = info['master'];
+            this.internalOnly = info['internal_only'];
+
+            this.updateSize();  // <select> fields may now be much wider.
+            this.$.loading.style.display = 'none';
+          }.bind(this),
+          function errorCallback(msg) {
+            this.setError(msg);
+          }.bind(this));
+      },
+
+      /**
+       * Shows or hides the use-archive checkbox.
+       * @param {string} canUseArchive A boolean specifying whether
+       *     it is possible to use archived builds according to /start_try_job.
+       */
+      setUseArchive: function(canUseArchive) {
+        this.$['use-archive'].style.display = (canUseArchive ? '' : 'none');
+        this.useArchive = canUseArchive;
+      },
+
+      onUseArchiveChange: function() {
+        this.useArchive = this.$['use-archive-checkbox'].checked;
+      },
+
+      onUseRecipeChange: function() {
+        this.useRecipe = this.$['use-recipe-checkbox'].checked;
+      },
+
+      /**
+       * Makes a request to /start_try_job to perform a bisect.
+       */
+      onSendToTrybot: function(event) {
+        event.preventDefault();
+        this.$.loading.style.display = '';
+        var params = {
+            'step': 'perform-bisect',
+            'bisect_bot': this.bot,
+            'suite': this.suite,
+            'metric': this.metric,
+            'good_revision': this.goodRevision,
+            'bad_revision': this.badRevision,
+            'repeat_count': this.repeatCount,
+            'max_time_minutes': this.maxTimeMinutes,
+            'truncate_percent': this.truncatePercent,
+            'use_archive': this.useArchive ? 'true' : '',
+            'use_recipe': this.useRecipe ? 'true' : '',
+            'master': this.master,
+            'internal_only': this.internalOnly,
+            'bisect_mode': this.bisectMode,
+        };
+        if (this.bugId) {
+          params['bug_id'] = this.bugId;
+        }
+        this.$.xhr.send(
+            '/start_try_job', this.xsrfToken, params,
+            function successCallback(info) {
+              this.issueId = info['issue_id'];
+              this.issueUrl = info['issue_url'];
+              this.setStep('jobSubmitted');
+              this.$.loading.style.display = 'none';
+
+              // Refresh bisect result log element.
+              var bisectLog = document.getElementById('bisect-result-log');
+              if (bisectLog) {
+                bisectLog['refresh']();
+              }
+            }.bind(this),
+            function errorCallback(msg) {
+              this.setError(msg);
+            }.bind(this));
+        }
+      });
+  </script>
+</polymer-element>

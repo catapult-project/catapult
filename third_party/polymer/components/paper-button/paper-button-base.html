@@ -13,7 +13,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 `paper-button-base` is the base class for button-like elements with ripple and optional shadow.
 
 @element paper-button-base
-@mixins Polymer.CoreFocusable
+@mixins Polymer.CoreFocusable https://github.com/polymer/core-focusable
 @status unstable
 -->
 
@@ -30,28 +30,58 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     var p = {
 
       eventDelegates: {
-        down: 'downAction'
+        down: 'downAction',
+        up: 'upAction'
+      },
+
+      toggleBackground: function() {
+        if (this.active) {
+
+          if (!this.$.bg) {
+            var bg = document.createElement('div');
+            bg.setAttribute('id', 'bg');
+            bg.setAttribute('fit', '');
+            bg.style.opacity = 0.25;
+            this.$.bg = bg;
+            this.shadowRoot.insertBefore(bg, this.shadowRoot.firstChild);
+          }
+          this.$.bg.style.backgroundColor = getComputedStyle(this).color;
+
+        } else {
+
+          if (this.$.bg) {
+            this.$.bg.style.backgroundColor = '';
+          }
+        }
       },
 
       activeChanged: function() {
         this.super();
 
-        if (this.$.ripple) {
-          if (this.active) {
-            // FIXME: remove when paper-ripple can have a default 'down' state.
-            if (!this.lastEvent) {
-              var rect = this.getBoundingClientRect();
-              this.lastEvent = {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2
-              }
-            }
+        if (this.toggle && (!this.lastEvent || this.matches(':host-context([noink])'))) {
+          this.toggleBackground();
+        }
+      },
+
+      pressedChanged: function() {
+        this.super();
+
+        if (!this.lastEvent) {
+          return;
+        }
+
+        if (this.$.ripple && !this.hasAttribute('noink')) {
+          if (this.pressed) {
             this.$.ripple.downAction(this.lastEvent);
           } else {
             this.$.ripple.upAction();
           }
         }
 
+        this.adjustZ();
+      },
+
+      focusedChanged: function() {
         this.adjustZ();
       },
 
@@ -80,6 +110,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.$.shadow.setZ(2);
         } else if (this.disabled) {
           this.$.shadow.setZ(0);
+        } else if (this.focused) {
+          this.$.shadow.setZ(3);
         } else {
           this.$.shadow.setZ(1);
         }
@@ -107,6 +139,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.shadowRoot.insertBefore(ripple, this.shadowRoot.firstChild);
           // No need to forward the event to the ripple because the ripple
           // is triggered in activeChanged
+        }
+      },
+
+      upAction: function() {
+        this._upAction();
+
+        if (this.toggle) {
+          this.toggleBackground();
+          if (this.$.ripple) {
+            this.$.ripple.cancel();
+          }
         }
       }
 

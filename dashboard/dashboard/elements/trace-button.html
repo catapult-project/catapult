@@ -1,0 +1,76 @@
+<link rel="import" href="../../third_party/polymer/components/paper-button/paper-button.html">
+<link rel="import" href="trace-form.html">
+
+<polymer-element name="trace-button" attributes="traceInfo bugId xsrfToken">
+  <template>
+    <style>
+      /*
+       * FIXME: This style is duplicated from the bisect-form style.
+       * See the comments there.
+       */
+      #button[enabled] {
+        background-color: #4285f4;
+        color: white;
+      }
+
+      :host(.mini) #button {
+        height: 22px;
+        line-height: 0.5em;
+        margin-left: 5px;
+        padding-top: 0;
+      }
+    </style>
+    <paper-button raised
+        id="button"
+        disabled?={{!canTrace}}
+        enabled?={{canTrace}}
+        on-click="{{onTrace}}">Trace</paper-button>
+    <trace-form
+        id="trace"
+        xsrfToken="{{xsrfToken}}"
+        goodRevision="{{traceInfo.goodRev}}"
+        badRevision="{{traceInfo.badRev}}"
+        testPath="{{traceInfo.testPath}}"
+        rerunInfo="{{traceInfo.traceRerunInfo}}"
+        bugId="{{bugId}}"></trace-form>
+  </template>
+  <script>
+    (function() {
+      Polymer('trace-button', {
+        /**
+         * Initializes this element; this is an element lifecycle callback.
+         */
+        ready: function() {
+          this.update();
+        },
+
+        /**
+         * Updates the trace button when the traceInfo is set.
+         */
+        traceInfoChanged: function() {
+          this.update();
+        },
+
+        /**
+         * Updates the canTrace state based on the traceInfo state.
+         */
+        update: function() {
+          if (!this.traceInfo) {
+            this.canTrace = false;
+            return;
+          }
+          var testPath = this.traceInfo.testPath;
+          var rev = this.traceInfo.badRev;
+          this.canTrace = bisect_utils.canBisect(testPath, rev);
+        },
+
+        /**
+         * Displays the trace-form when the trace button is clicked.
+         */
+        onTrace: function() {
+          this.$.trace.show();
+        },
+      });
+    })();
+  </script>
+</polymer-element>
