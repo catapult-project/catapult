@@ -5,8 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/about_tracing/mock_tracing_controller_client.html">
-<link rel="import" href="/extras/about_tracing/record_and_capture_controller.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/mock_tracing_controller_client.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/record_and_capture_controller.html">
 
 <script>
 'use strict';
@@ -21,7 +23,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('fullRecording', function() {
     return new Promise(function(resolve, reject) {
-      var mock = new tr.e.about_tracing.MockTracingControllerClient();
+      var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
       mock.expectRequest('endRecording', function() {
         return '';
       });
@@ -45,7 +47,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         return JSON.stringify(testData);
       });
 
-      var recordingPromise = tr.e.about_tracing.beginRecording(mock);
+      var recordingPromise = tr.ui.e.about_tracing.beginRecording(mock);
 
       return recordingPromise.then(
           function(data) {
@@ -62,7 +64,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
   test('monitoring', function() {
     return new Promise(function(resolve, reject) {
-      var mock = new tr.e.about_tracing.MockTracingControllerClient();
+      var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
 
       mock.expectRequest('beginMonitoring', function(monitoringOptions) {
         assert.typeOf(monitoringOptions.categoryFilter, 'string');
@@ -70,7 +72,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         assert.typeOf(monitoringOptions.useSampling, 'boolean');
         assert.typeOf(monitoringOptions.tracingRecordMode, 'string');
         setTimeout(function() {
-          var capturePromise = tr.e.about_tracing.captureMonitoring(mock);
+          var capturePromise = tr.ui.e.about_tracing.captureMonitoring(mock);
           capturePromise.then(
               function(data) {
                 var testDataString = JSON.stringify(testData);
@@ -85,7 +87,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
       mock.expectRequest('captureMonitoring', function(data) {
         setTimeout(function() {
-          var endPromise = tr.e.about_tracing.endMonitoring(mock);
+          var endPromise = tr.ui.e.about_tracing.endMonitoring(mock);
           endPromise.then(
               function(data) {
                 mock.assertAllRequestsHandled();
@@ -101,7 +103,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       mock.expectRequest('endMonitoring', function(data) {
       });
 
-      tr.e.about_tracing.beginMonitoring(mock);
+      tr.ui.e.about_tracing.beginMonitoring(mock);
     });
   });
 });

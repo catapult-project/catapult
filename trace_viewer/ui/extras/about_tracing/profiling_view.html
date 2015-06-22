@@ -5,9 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/about_tracing/record_and_capture_controller.html">
-<link rel="import" href="/extras/about_tracing/inspector_tracing_controller_client.html">
-<link rel="import" href="/extras/about_tracing/xhr_based_tracing_controller_client.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/record_and_capture_controller.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/inspector_tracing_controller_client.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/xhr_based_tracing_controller_client.html">
 <link rel="import" href="/trace_viewer.html">
 <link rel="import" href="/ui/base/info_bar_group.html">
 <link rel="import" href="/ui/base/key_event_manager.html">
@@ -69,7 +72,7 @@ x-timeline-view-buttons > #monitoring-elements {
  * @fileoverview ProfilingView glues the View control to
  * TracingController.
  */
-tr.exportTo('tr.e.about_tracing', function() {
+tr.exportTo('tr.ui.e.about_tracing', function() {
   function readFile(file) {
     return new Promise(function(resolve, reject) {
       var reader = new FileReader();
@@ -127,10 +130,10 @@ tr.exportTo('tr.e.about_tracing', function() {
         this.tracingControllerClient_ = tracingControllerClient;
       } else if (window.DevToolsHost !== undefined) {
         this.tracingControllerClient_ =
-            new tr.e.about_tracing.InspectorTracingControllerClient();
+            new tr.ui.e.about_tracing.InspectorTracingControllerClient();
       } else {
         this.tracingControllerClient_ =
-            new tr.e.about_tracing.XhrBasedTracingControllerClient();
+            new tr.ui.e.about_tracing.XhrBasedTracingControllerClient();
       }
 
       this.isRecording_ = false;
@@ -189,7 +192,7 @@ tr.exportTo('tr.e.about_tracing', function() {
 
     updateTracingControllerSpecificState_: function() {
       var isInspector = this.tracingControllerClient_ instanceof
-          tr.e.about_tracing.InspectorTracingControllerClient;
+          tr.ui.e.about_tracing.InspectorTracingControllerClient;
 
       if (isInspector) {
         this.infoBarGroup_.addMessage(
@@ -213,7 +216,7 @@ tr.exportTo('tr.e.about_tracing', function() {
       var buttons = this.querySelector('x-timeline-view-buttons');
       buttons.querySelector('#monitor-checkbox').disabled = true;
       buttons.querySelector('#monitor-checkbox').checked = false;
-      var resultPromise = tr.e.about_tracing.beginRecording(
+      var resultPromise = tr.ui.e.about_tracing.beginRecording(
           this.tracingControllerClient_);
       resultPromise.then(
           function(data) {
@@ -224,7 +227,7 @@ tr.exportTo('tr.e.about_tracing', function() {
           function(err) {
             this.isRecording_ = false;
             buttons.querySelector('#monitor-checkbox').disabled = false;
-            if (err instanceof tr.e.about_tracing.UserCancelledError)
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
               return;
             tr.ui.b.Overlay.showError('Error while recording', err);
           }.bind(this));
@@ -238,12 +241,12 @@ tr.exportTo('tr.e.about_tracing', function() {
         throw new Error('Already monitoring');
       var buttons = this.querySelector('x-timeline-view-buttons');
       var resultPromise =
-          tr.e.about_tracing.beginMonitoring(this.tracingControllerClient_);
+          tr.ui.e.about_tracing.beginMonitoring(this.tracingControllerClient_);
       resultPromise.then(
           function() {
           }.bind(this),
           function(err) {
-            if (err instanceof tr.e.about_tracing.UserCancelledError)
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
               return;
             tr.ui.b.Overlay.showError('Error while monitoring', err);
           }.bind(this));
@@ -257,12 +260,12 @@ tr.exportTo('tr.e.about_tracing', function() {
         throw new Error('Monitoring is disabled');
       var buttons = this.querySelector('x-timeline-view-buttons');
       var resultPromise =
-          tr.e.about_tracing.endMonitoring(this.tracingControllerClient_);
+          tr.ui.e.about_tracing.endMonitoring(this.tracingControllerClient_);
       resultPromise.then(
           function() {
           }.bind(this),
           function(err) {
-            if (err instanceof tr.e.about_tracing.UserCancelledError)
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
               return;
             tr.ui.b.Overlay.showError('Error while monitoring', err);
           }.bind(this));
@@ -273,13 +276,14 @@ tr.exportTo('tr.e.about_tracing', function() {
       if (!this.isMonitoring_)
         throw new Error('Monitoring is disabled');
       var resultPromise =
-          tr.e.about_tracing.captureMonitoring(this.tracingControllerClient_);
+          tr.ui.e.about_tracing.captureMonitoring(
+              this.tracingControllerClient_);
       resultPromise.then(
           function(data) {
             this.setActiveTrace('trace.json', data, true);
           }.bind(this),
           function(err) {
-            if (err instanceof tr.e.about_tracing.UserCancelledError)
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
               return;
             tr.ui.b.Overlay.showError('Error while monitoring', err);
           }.bind(this));
@@ -288,13 +292,14 @@ tr.exportTo('tr.e.about_tracing', function() {
 
     getMonitoringStatus: function() {
       var resultPromise =
-          tr.e.about_tracing.getMonitoringStatus(this.tracingControllerClient_);
+          tr.ui.e.about_tracing.getMonitoringStatus(
+              this.tracingControllerClient_);
       resultPromise.then(
           function(status) {
             this.onMonitoringStateChanged_(status.isMonitoring);
           }.bind(this),
           function(err) {
-            if (err instanceof tr.e.about_tracing.UserCancelledError)
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
               return;
             tr.ui.b.Overlay.showError('Error while updating tracing states',
                                       err);

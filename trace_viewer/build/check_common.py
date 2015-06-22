@@ -45,7 +45,7 @@ Correct listing:
 
 def GetKnownFiles():
   p = trace_viewer_project.TraceViewerProject()
-  m = p.loader.LoadModule(module_name='extras.about_tracing.about_tracing')
+  m = p.loader.LoadModule(module_name='ui.extras.about_tracing.about_tracing')
   absolute_filenames = m.GetAllDependentFilenamesRecursive(
       include_raw_scripts=False)
 

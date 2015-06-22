@@ -5,13 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/about_tracing/tracing_controller_client.html">
-<link rel="import" href="/extras/about_tracing/inspector_connection.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/tracing_controller_client.html">
+<link rel="import" href="/ui/extras/about_tracing/inspector_connection.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.e.about_tracing', function() {
+tr.exportTo('tr.ui.e.about_tracing', function() {
   function createResolvedPromise(data) {
     var promise = new Promise(function(resolve, reject) {
       if (data)
@@ -43,12 +44,12 @@ tr.exportTo('tr.e.about_tracing', function() {
   function InspectorTracingControllerClient() {
     this.recording_ = false;
     this.bufferUsage_ = 0;
-    this.conn_ = tr.e.about_tracing.InspectorConnection.instance;
+    this.conn_ = tr.ui.e.about_tracing.InspectorConnection.instance;
     this.currentTraceTextChunks_ = undefined;
   }
 
   InspectorTracingControllerClient.prototype = {
-    __proto__: tr.e.about_tracing.TracingControllerClient.prototype,
+    __proto__: tr.ui.e.about_tracing.TracingControllerClient.prototype,
 
     beginMonitoring: function(monitoringOptions) {
       throw new Error('Not implemented');

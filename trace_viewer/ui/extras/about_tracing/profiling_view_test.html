@@ -5,9 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/about_tracing/mock_tracing_controller_client.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/mock_tracing_controller_client.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
-<link rel="import" href="/extras/about_tracing/profiling_view.html">
+<link rel="import" href="/ui/extras/about_tracing/profiling_view.html">
 
 <script>
 'use strict';
@@ -28,10 +29,10 @@ tr.b.unittest.testSuite(function() {
     useSampling: false
   };
 
-  var ProfilingView = tr.e.about_tracing.ProfilingView;
+  var ProfilingView = tr.ui.e.about_tracing.ProfilingView;
 
   test('recording', function() {
-    var mock = new tr.e.about_tracing.MockTracingControllerClient();
+    var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
     mock.expectRequest('getMonitoringStatus', function() {
       return btoa(JSON.stringify(monitoringOptions));
@@ -75,7 +76,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('monitoring', function() {
-    var mock = new tr.e.about_tracing.MockTracingControllerClient();
+    var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
     mock.expectRequest('getMonitoringStatus', function() {
       return btoa(JSON.stringify(monitoringOptions));
@@ -129,7 +130,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('upload', function() {
-    var mock = new tr.e.about_tracing.MockTracingControllerClient();
+    var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
     mock.expectRequest('getMonitoringStatus', function() {
       return btoa(JSON.stringify(monitoringOptions));

@@ -5,12 +5,13 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/about_tracing/tracing_controller_client.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/tracing_controller_client.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.e.about_tracing', function() {
+tr.exportTo('tr.ui.e.about_tracing', function() {
   function MockTracingControllerClient() {
     this.requests = [];
     this.nextRequestIndex = 0;
@@ -18,7 +19,7 @@ tr.exportTo('tr.e.about_tracing', function() {
   }
 
   MockTracingControllerClient.prototype = {
-    __proto__: tr.e.about_tracing.TracingControllerClient.prototype,
+    __proto__: tr.ui.e.about_tracing.TracingControllerClient.prototype,
 
     expectRequest: function(method, generateResponse) {
       var generateResponseCb;

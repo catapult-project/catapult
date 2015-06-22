@@ -14,9 +14,9 @@ def main(args):
   parser = optparse.OptionParser(usage="%prog --outdir=<directory>")
   parser.add_option("--outdir", dest="out_dir",
                     help="Where to place generated content")
-  parser.add_option('--no-min', dest='no_min', default=False, 
+  parser.add_option('--no-min', dest='no_min', default=False,
                     action='store_true',
-                    help='skip minification')                    
+                    help='skip minification')
   options, args = parser.parse_args(args)
 
   if not options.out_dir:
@@ -24,7 +24,7 @@ def main(args):
     parser.print_help()
     return 1
 
-  filenames = ["extras/about_tracing/about_tracing.html"]
+  filenames = ["ui/extras/about_tracing/about_tracing.html"]
   project = trace_viewer_project.TraceViewerProject()
   load_sequence = project.CalcLoadSequenceForModuleFilenames(filenames)
 
