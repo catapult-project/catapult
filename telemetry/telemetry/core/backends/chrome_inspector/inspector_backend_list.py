@@ -82,9 +82,14 @@ class InspectorBackendList(collections.Sequence):
       self._wrapper_dict[context_id] = wrapper
     return self._wrapper_dict[context_id]
 
-  def __iter__(self):
+  def IterContextIds(self):
     self._Update()
     return iter(self._filtered_context_ids)
+
+  def __iter__(self):
+    self._Update()
+    for context_id in self._filtered_context_ids:
+      yield self.GetTabById(context_id)
 
   def __len__(self):
     self._Update()

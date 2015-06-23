@@ -28,7 +28,7 @@ class ExtensionBackendDict(collections.Mapping):
 
   def __getitem__(self, extension_id):
     extensions = []
-    for context_id in self._extension_backend_list:
+    for context_id in self._extension_backend_list.IterContextIds():
       if self.ContextIdToExtensionId(context_id) == extension_id:
         extensions.append(
             self._extension_backend_list.GetBackendFromContextId(context_id))
@@ -37,8 +37,8 @@ class ExtensionBackendDict(collections.Mapping):
     return extensions
 
   def __iter__(self):
-    for context_id in self._extension_backend_list:
-      yield self.ContextIdToExtensionId(context_id)
+    for context_id in self._extension_backend_list.IterContextIds():
+      yield self._extension_backend_list.GetBackendFromContextId(context_id)
 
   def __len__(self):
     return len(self._extension_backend_list)

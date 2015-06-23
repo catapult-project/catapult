@@ -16,7 +16,7 @@ class TabListBackendTest(tab_test_case.TabTestCase):
 
     # Check that the tab.id matches context_id.
     tabs = []
-    for context_id in self.tabs:
+    for context_id in self.tabs._tab_list_backend.IterContextIds():
       tab = self.tabs.GetTabById(context_id)
       self.assertEquals(tab.id, context_id)
       tabs.append(self.tabs.GetTabById(context_id))
@@ -27,9 +27,7 @@ class TabListBackendTest(tab_test_case.TabTestCase):
     while len(self.tabs) < 2:
       self.tabs.New()
 
-    tabs = []
-    for context_id in self.tabs:
-      tabs.append(self.tabs.GetTabById(context_id))
+    tabs = [t for t in self.tabs]
 
     # Crash the first tab.
     self.assertRaises(exceptions.DevtoolsTargetCrashException,

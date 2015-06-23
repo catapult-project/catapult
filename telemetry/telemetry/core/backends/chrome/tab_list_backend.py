@@ -48,7 +48,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     if response != 'Target is closing':
       raise TabUnexpectedResponseException('Received response: %s' % response)
 
-    util.WaitFor(lambda: tab_id not in self, timeout=5)
+    util.WaitFor(lambda: tab_id not in self.IterContextIds(), timeout=5)
 
   def ActivateTab(self, tab_id, timeout=30):
     """Activates the tab with the given debugger_url.
