@@ -13,7 +13,7 @@ PARTNER_BUCKET = story.PARTNER_BUCKET
 INTERNAL_BUCKET = story.INTERNAL_BUCKET
 
 @decorators.Deprecated(
-    2015, 6, 25, 'Please use the UserStory class instead (crbug.com/439512). '
+    2015, 6, 30, 'Please use the StorySet class instead (crbug.com/439512). '
     'Instructions for conversion can be found in: https://goo.gl/JsaEez')
 class PageSet(story.StorySet):
   """
