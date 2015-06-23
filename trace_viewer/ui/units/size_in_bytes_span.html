@@ -4,7 +4,9 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/base/units/size_in_bytes.html">
+
 <polymer-element name="tr-ui-u-size-in-bytes-span">
   <template>
     <style>
@@ -35,24 +37,8 @@ found in the LICENSE file.
       else
         this.numBytes_ = numBytesOrSizeInBytes;
 
-      var numBytes = this.numBytes;
-
-      var signPrefix = '';
-      if (numBytes < 0) {
-        signPrefix = '-';
-        numBytes = -numBytes;
-      }
-
-      var unitPrefixes = ['', 'Ki', 'Mi', 'Gi', 'Ti'];
-      var i = 0;
-      while (numBytes >= 1024 && i < unitPrefixes.length - 1) {
-        numBytes /= 1024;
-        i++;
-      }
-      var sizeString =
-          signPrefix + numBytes.toFixed(1) + ' ' + unitPrefixes[i] + 'B';
-
-      this.$.content.textContent = sizeString;
+      this.$.content.textContent =
+          tr.b.units.SizeInBytes.format(this.numBytes_);
     },
 
     get stringContent() {
