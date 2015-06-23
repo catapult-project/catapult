@@ -58,6 +58,30 @@ tr.b.unittest.testSuite(function() {
           privateDirtyResident: 0,
           swapped: 0
         }
+      }),
+      VMRegion.fromDict({
+        mappedFile: '/dev/ashmem/dalvik-zygote space',
+        startAddress: 13194139533312,
+        sizeInBytes: 100,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_EXECUTE,
+        byteStats: {
+          proportionalResident: 100,
+          privateDirtyResident: 0,
+          swapped: 0
+        }
+      }),
+      VMRegion.fromDict({
+        mappedFile: '/dev/ashmem/libc malloc',
+        startAddress: 14293651161088,
+        sizeInBytes: 200,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_EXECUTE,
+        byteStats: {
+          proportionalResident: 200,
+          privateDirtyResident: 0,
+          swapped: 0
+        }
       })
     ];
   }
@@ -122,16 +146,16 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(rows, 1);
 
     var totalRow = rows[0];
-    checkRow(totalRow, 'Total', 4833935360, 8192, 0, 0, '', '', 7);
+    checkRow(totalRow, 'Total', 4833935660, 8492, 0, 0, '', '', 7);
 
     var androidRow = totalRow.subRows[0];
-    checkRow(androidRow, 'Android', '', '', '', '', '', '', 3);
+    checkRow(androidRow, 'Android', 100, 100, 0, 0, '', '', 3);
 
     var javaRuntimeRow = androidRow.subRows[0];
-    checkRow(javaRuntimeRow, 'Java runtime', '', '', '', '', '', '', 5);
+    checkRow(javaRuntimeRow, 'Java runtime', 100, 100, 0, 0, '', '', 5);
 
     var spacesRow = javaRuntimeRow.subRows[0];
-    checkRow(spacesRow, 'Spaces', '', '', '', '', '', '', 4);
+    checkRow(spacesRow, 'Spaces', 100, 100, 0, 0, '', '', 4);
 
     var normalRow = spacesRow.subRows[0];
     checkRow(normalRow, 'Normal', '', '', '', '', '', '', 0);

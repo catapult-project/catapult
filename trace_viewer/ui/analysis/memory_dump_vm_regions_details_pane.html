@@ -59,7 +59,7 @@ found in the LICENSE file.
       children: [
         {
           name: 'Android',
-          file: /^\/dev\/ashmem/,
+          file: /^\/dev\/ashmem(?!\/libc malloc)/,
           children: [
             {
               name: 'Java runtime',
