@@ -71,6 +71,14 @@ tr.b.unittest.testSuite(function() {
     });
   });
 
+  test('importAlreadyHasPower', function() {
+    var m = new tv.c.TraceModel(SYSTRACE_LINES.join('\n'), false);
+    m.importTraces([BATTOR_LINES.join('\n')]);
+    assert.isFalse(m.hasImportWarnings);
+    m.importTraces([BATTOR_LINES.join('\n')]);
+    assert.isTrue(m.hasImportWarnings);
+  });
+
   test('importMissingLinuxTrace', function() {
     var m = new tr.Model(BATTOR_LINES.join('\n'), false);
     assert.isTrue(m.hasImportWarnings);
