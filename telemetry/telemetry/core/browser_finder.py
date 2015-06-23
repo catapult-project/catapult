@@ -7,15 +7,15 @@
 import logging
 import operator
 
-from telemetry.core.backends.chrome import android_browser_finder
-from telemetry.core.backends.chrome import cros_browser_finder
-from telemetry.core.backends.chrome import desktop_browser_finder
-from telemetry.core.backends.chrome import ios_browser_finder
-from telemetry.core.backends.mandoline import desktop_mandoline_finder
-from telemetry.core.backends.remote import trybot_browser_finder
 from telemetry.core import browser_finder_exceptions
 from telemetry.core import device_finder
 from telemetry import decorators
+from telemetry.internal.backends.chrome import android_browser_finder
+from telemetry.internal.backends.chrome import cros_browser_finder
+from telemetry.internal.backends.chrome import desktop_browser_finder
+from telemetry.internal.backends.chrome import ios_browser_finder
+from telemetry.internal.backends.mandoline import desktop_mandoline_finder
+from telemetry.internal.backends.remote import trybot_browser_finder
 
 BROWSER_FINDERS = [
   desktop_browser_finder,

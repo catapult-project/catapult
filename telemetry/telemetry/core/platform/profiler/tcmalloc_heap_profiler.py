@@ -6,8 +6,8 @@ import logging
 import os
 import sys
 
-from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.platform import profiler
+from telemetry.internal.backends.chrome import android_browser_finder
 
 # Enviroment variables to (android properties, default value) mapping.
 _ENV_VARIABLES = {

@@ -6,10 +6,10 @@ import json
 import logging
 import os
 
-from telemetry.core.backends import codepen_credentials_backend
-from telemetry.core.backends import facebook_credentials_backend
-from telemetry.core.backends import google_credentials_backend
 from telemetry.core import util
+from telemetry.internal.backends import codepen_credentials_backend
+from telemetry.internal.backends import facebook_credentials_backend
+from telemetry.internal.backends import google_credentials_backend
 from telemetry.unittest_util import options_for_unittests
 
 

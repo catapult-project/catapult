@@ -5,9 +5,9 @@
 import logging
 import os
 
-from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.platform import profiler
 from telemetry.core import util
+from telemetry.internal.backends.chrome import android_browser_finder
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:

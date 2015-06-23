@@ -7,10 +7,10 @@ import re
 import subprocess
 import sys
 
-from telemetry.core.backends import adb_commands
 from telemetry.core.platform import device
 from telemetry.core.platform.profiler import monsoon
 from telemetry.core import util
+from telemetry.internal.backends import adb_commands
 
 
 class AndroidDevice(device.Device):

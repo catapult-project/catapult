@@ -5,9 +5,9 @@
 import os
 
 from catapult_base import support_binaries
-from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.platform import profiler
 from telemetry.core import util
+from telemetry.internal.backends.chrome import android_browser_finder
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import intent  # pylint: disable=F0401

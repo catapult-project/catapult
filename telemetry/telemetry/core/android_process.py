@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.backends import adb_commands
-from telemetry.core.backends.chrome_inspector import devtools_client_backend
 from telemetry.core import web_contents
+from telemetry.internal.backends import adb_commands
+from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 
 class WebViewNotFoundException(Exception):
   pass

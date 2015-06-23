@@ -4,9 +4,9 @@
 
 
 from telemetry.core import android_app
-from telemetry.core.backends import android_app_backend
 from telemetry.core import platform
 from telemetry.core.platform import android_action_runner
+from telemetry.internal.backends import android_app_backend
 
 class AndroidPlatform(platform.Platform):
 

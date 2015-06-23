@@ -7,10 +7,10 @@ import time
 import unittest
 
 from telemetry.core import android_app
-from telemetry.core.backends import android_app_backend
 from telemetry.core import platform as platform_module
 from telemetry.core.platform import android_device
 from telemetry.core import util
+from telemetry.internal.backends import android_app_backend
 from telemetry.unittest_util import options_for_unittests
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')

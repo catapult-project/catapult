@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.core.backends.chrome import crx_id
+from telemetry.internal.backends.chrome import crx_id
 
 
 class ExtensionPathNonExistentException(Exception):
