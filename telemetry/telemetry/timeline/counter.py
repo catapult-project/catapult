@@ -15,7 +15,11 @@ class CounterSample(object):
 
   @property
   def name(self):
-    return None
+    return self._counter.full_name
+
+  @property
+  def value(self):
+    return self._counter.samples[self._sample_index]
 
   @property
   def start(self):

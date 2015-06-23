@@ -41,16 +41,24 @@ class CounterIterEventsInThisContainerTest(unittest.TestCase):
 
   def testAllMatch(self):
     self.counter.timestamps = [111, 222]
+    self.counter.samples = [100, 200]
     events = self.counter.IterEventsInThisContainer(
         event_type_predicate=lambda x: True,
         event_predicate=lambda x: True)
     self.assertIsInstance(events, types.GeneratorType)
-    self.assertEqual([111, 222], [s.start for s in events])
+    eventlist = list(events)
+    self.assertEqual([111, 222], [s.start for s in eventlist])
+    self.assertEqual(['cat.name', 'cat.name'], [s.name for s in eventlist])
+    self.assertEqual([100, 200], [s.value for s in eventlist])
 
   def testPartialMatch(self):
     self.counter.timestamps = [111, 222]
+    self.counter.samples = [100, 200]
     events = self.counter.IterEventsInThisContainer(
         event_type_predicate=lambda x: True,
         event_predicate=lambda x: x.start > 200)
     self.assertIsInstance(events, types.GeneratorType)
-    self.assertEqual([222], [s.start for s in events])
+    eventlist = list(events)
+    self.assertEqual([222], [s.start for s in eventlist])
+    self.assertEqual(['cat.name'], [s.name for s in eventlist])
+    self.assertEqual([200], [s.value for s in eventlist])
