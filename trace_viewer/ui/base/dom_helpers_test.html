@@ -9,6 +9,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
 
   test('simpleSpanAndDiv', function() {
     var divEl = tr.ui.b.createDiv({
@@ -110,6 +111,32 @@ tr.b.unittest.testSuite(function() {
     assert.equal(target.scale, 0.75);
     assert.equal(sel.selectedValue, 0.75);
     assert.equal(undefined), 0.75, tr.b.Settings.get('myScale');
+  });
+
+  test('asHTMLOrTextNode_string', function() {
+    // Default owner document.
+    var node = tr.ui.b.asHTMLOrTextNode('Hello, World!');
+    assert.instanceOf(node, Node);
+    assert.equal(node.textContent, 'Hello, World!');
+    assert.strictEqual(node.ownerDocument, document);
+
+    // Custom owner document.
+    var node = tr.ui.b.asHTMLOrTextNode('Bye, World!', THIS_DOC);
+    assert.instanceOf(node, Node);
+    assert.equal(node.textContent, 'Bye, World!');
+    assert.strictEqual(node.ownerDocument, THIS_DOC);
+  });
+
+  test('asHTMLOrTextNode_node', function() {
+    // Node object. Owner document should NOT be modified.
+    var node = document.createTextNode('Hi', THIS_DOC);
+    assert.strictEqual(tr.ui.b.asHTMLOrTextNode(node), node);
+    assert.strictEqual(node.ownerDocument, document);
+
+    // HTMLElement object. Owner document should NOT be modified.
+    var node = THIS_DOC.createElement('div');
+    assert.strictEqual(tr.ui.b.asHTMLOrTextNode(node), node);
+    assert.strictEqual(node.ownerDocument, THIS_DOC);
   });
 });
 </script>

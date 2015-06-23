@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/utils.html">
 
 <!--
@@ -536,13 +537,13 @@ found in the LICENSE file.
 
         var INDENT_SPACE = indentation * 16;
         var INDENT_SPACE_NO_BUTTON = indentation * 16 + BASIC_INDENTATION;
-        var tr = this.ownerDocument.createElement('tr');
-        rowInfo.htmlNode = tr;
+        var trElement = this.ownerDocument.createElement('tr');
+        rowInfo.htmlNode = trElement;
         rowInfo.indentation = indentation;
-        tr.rowInfo = rowInfo;
+        trElement.rowInfo = rowInfo;
 
         for (var i = 0; i < this.tableColumns_.length;) {
-          var td = this.appendNewElement_(tr, 'td');
+          var td = this.appendNewElement_(trElement, 'td');
           td.columnIndex = i;
 
           var column = this.tableColumns_[i];
@@ -570,10 +571,7 @@ found in the LICENSE file.
             }
           }
 
-          if (value instanceof HTMLElement)
-            td.appendChild(value);
-          else
-            td.appendChild(this.ownerDocument.createTextNode(value));
+          td.appendChild(tr.ui.b.asHTMLOrTextNode(value, this.ownerDocument));
 
           i += colSpan;
         }
@@ -585,7 +583,7 @@ found in the LICENSE file.
           needsClickListener = true;
 
         if (needsClickListener) {
-          tr.addEventListener('click', function(e) {
+          trElement.addEventListener('click', function(e) {
             e.stopPropagation();
             if (e.target.tagName == 'EXPAND-BUTTON') {
               this.setExpandedForUserRow_(
@@ -595,9 +593,9 @@ found in the LICENSE file.
             }
 
             function getTD(cur) {
-              if (cur == tr)
+              if (cur === trElement)
                 throw new Error('woah');
-              if (cur.parentElement === tr)
+              if (cur.parentElement === trElement)
                 return cur;
               return getTD(cur.parentElement);
             }
@@ -698,17 +696,15 @@ found in the LICENSE file.
               this.tableRows_, this.tableRowsInfo_, 0,
               undefined, undefined);
           if (this.tableRows_.length === 0 && this.emptyValue_ !== undefined) {
-            var tr = this.ownerDocument.createElement('tr');
-            this.$.body.appendChild(tr);
-            tr.classList.add('empty-row');
+            var trElement = this.ownerDocument.createElement('tr');
+            this.$.body.appendChild(trElement);
+            trElement.classList.add('empty-row');
             var td = this.ownerDocument.createElement('td');
-            tr.appendChild(td);
+            trElement.appendChild(td);
             td.colSpan = this.tableColumns_.length;
             var emptyValue = this.emptyValue_;
-            if (emptyValue instanceof HTMLElement)
-              td.appendChild(emptyValue);
-            else
-              td.appendChild(this.ownerDocument.createTextNode(emptyValue));
+            td.appendChild(
+                tr.ui.b.asHTMLOrTextNode(emptyValue, this.ownerDocument));
           }
           this.bodyDirty_ = false;
         }
@@ -1200,11 +1196,8 @@ found in the LICENSE file.
     set cellTitle(value) {
       this.cellTitle_ = value;
 
-      var titleNode;
-      if (this.cellTitle_ instanceof Node)
-        titleNode = this.cellTitle_;
-      else
-        titleNode = this.ownerDocument.createTextNode(this.cellTitle_);
+      var titleNode = tr.ui.b.asHTMLOrTextNode(
+          this.cellTitle_, this.ownerDocument);
 
       this.$.title.innerText = '';
       this.$.title.appendChild(titleNode);

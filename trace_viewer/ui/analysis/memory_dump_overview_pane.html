@@ -14,6 +14,7 @@ found in the LICENSE file.
     href="/ui/analysis/memory_dump_vm_regions_details_pane.html">
 <link rel="import" href="/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/ui/units/size_in_bytes_span.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/model/attribute.html">
 
@@ -69,12 +70,10 @@ found in the LICENSE file.
     var LINK_SYMBOL = String.fromCharCode(9903);
 
     function wrapValueInColorSpan(value, color) {
-      if (!(value instanceof HTMLElement))
-        value = document.createTextNode(value);
       var wrap = document.createElement('span');
       wrap.style.color = color;
       wrap.style.display = 'flex';
-      wrap.appendChild(value);
+      wrap.appendChild(tr.ui.b.asHTMLOrTextNode(value));
       return wrap;
     }
 

@@ -263,6 +263,13 @@ tr.exportTo('tr.ui.b', function() {
     return (cur === el.ownerDocument || cur.nodeName === '#document-fragment');
   }
 
+  function asHTMLOrTextNode(value, opt_ownerDocument) {
+    if (value instanceof Node)
+      return value;
+    var ownerDocument = opt_ownerDocument || document;
+    return ownerDocument.createTextNode(value);
+  }
+
   return {
     createSpan: createSpan,
     createDiv: createDiv,
@@ -270,7 +277,8 @@ tr.exportTo('tr.ui.b', function() {
     createSelector: createSelector,
     createOptionGroup: createOptionGroup,
     createCheckBox: createCheckBox,
-    isElementAttachedToDocument: isElementAttachedToDocument
+    isElementAttachedToDocument: isElementAttachedToDocument,
+    asHTMLOrTextNode: asHTMLOrTextNode
   };
 });
 </script>
