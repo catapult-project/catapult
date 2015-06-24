@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/side_panel/side_panel.html">
 <link rel="import" href="/model/comment_box_annotation.html">
 
-<link rel="import" href="/extras/drive/comments_side_panel.html">
+<link rel="import" href="/ui/extras/drive/comments_side_panel.html">
 
 <script>
 'use strict';
@@ -17,12 +17,12 @@ found in the LICENSE file.
   function addDriveCommentWithUIState_(text, uiState) {
     gapi.client.load('drive', 'v2', function() {
       var request = gapi.client.drive.revisions.get({
-        'fileId': tr.e.drive.getDriveFileId(),
+        'fileId': tr.ui.e.drive.getDriveFileId(),
         'revisionId': 'head'
       });
       request.execute(function(resp) {
         var anchorObject = {};
-        anchorObject[tr.e.drive.constants.ANCHOR_NAME] = uiState;
+        anchorObject[tr.ui.e.drive.constants.ANCHOR_NAME] = uiState;
         var anchor = {
           'r': resp.id,
           'a': [anchorObject]
@@ -30,7 +30,7 @@ found in the LICENSE file.
         anchor = JSON.stringify(anchor);
         gapi.client.load('drive', 'v2', function() {
           var request = gapi.client.drive.comments.insert({
-            'fileId': tr.e.drive.getDriveFileId(),
+            'fileId': tr.ui.e.drive.getDriveFileId(),
             'resource': {'content': text, 'anchor': anchor}
           });
           request.execute();
@@ -47,7 +47,7 @@ found in the LICENSE file.
                             onCommentWithUIState.bind(this));
 }());
 
-tr.exportTo('tr.e.analysis', function() {
+tr.exportTo('tr.ui.e.drive.analysis', function() {
   function DefaultCommentProvider() { }
 
   DefaultCommentProvider.prototype = {
@@ -71,7 +71,7 @@ tr.exportTo('tr.e.analysis', function() {
       var self = this;
       gapi.client.load('drive', 'v2', function() {
         var request = gapi.client.drive.comments.list({
-          'fileId': tr.e.drive.getDriveFileId()
+          'fileId': tr.ui.e.drive.getDriveFileId()
         });
         request.execute(function(results) {
           self.attachedElement_.comments_ = results.items;
@@ -83,7 +83,7 @@ tr.exportTo('tr.e.analysis', function() {
       var self = this;
       gapi.client.load('drive', 'v2', function() {
         var request = gapi.client.drive.comments.insert({
-          'fileId': tr.e.drive.getDriveFileId(),
+          'fileId': tr.ui.e.drive.getDriveFileId(),
           'resource': {'content': body}
         });
         request.execute(function(resp) {

@@ -20,6 +20,10 @@ handlers:
   static_dir: trace_viewer/extras
   secure: always
 
+- url: /ui
+  static_dir: trace_viewer/ui
+  secure: always
+
 - url: /components
   static_dir: third_party/components
   secure: always
@@ -44,6 +48,6 @@ handlers:
   secure: always
 
 - url: /.*
-  static_files: trace_viewer/extras/drive/index.html
-  upload: trace_viewer/extras/drive/index.html
+  static_files: trace_viewer/ui/extras/drive/index.html
+  upload: trace_viewer/ui/extras/drive/index.html
   secure: always

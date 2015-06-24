@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/drive/comments_side_panel.html">
+<link rel="import" href="/ui/extras/drive/comments_side_panel.html">
 <link rel="import" href="/core/test_utils.html">
 
 <script>
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var panel = document.createElement('tr-e-d-comments-side-panel');
+    var panel = document.createElement('tr-ui-e-drive-comments-side-panel');
     panel.setCommentProvider(new StubCommentProvider);
     this.addHTMLOutput(panel);
   });

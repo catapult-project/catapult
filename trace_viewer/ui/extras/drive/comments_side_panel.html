@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/drive/comment_element.html">
+<link rel="import" href="/ui/extras/drive/comment_element.html">
 
-<polymer-element name='tr-e-d-comments-side-panel'
+<polymer-element name='tr-ui-e-drive-comments-side-panel'
     extends='tr-ui-side-panel'>
   <template>
     <style>
@@ -41,8 +41,9 @@ found in the LICENSE file.
     <toolbar id='toolbar'></toolbar>
     <result-area id='result_area'>
       <template repeat="{{ comment in comments_ }}">
-        <comment-element comment="{{comment}}"
-                         on-click="{{commentClick}}"></comment-element>
+        <tr-ui-e-drive-comment-element comment="{{comment}}"
+                         on-click="{{commentClick}}">
+        </tr-ui-e-drive-comment-element>
       </template>
       <div id="comments-textarea-container">
         <textarea id="commentinput" on-focus='{{textAreaFocus}}'
@@ -69,8 +70,10 @@ found in the LICENSE file.
     },
 
     attached: function() {
-      if (this.commentProvider_ === undefined)
-        this.commentProvider_ = new tr.e.analysis.DefaultCommentProvider();
+      if (this.commentProvider_ === undefined) {
+        this.commentProvider_ =
+            new tr.ui.e.drive.analysis.DefaultCommentProvider();
+      }
       this.commentProvider_.attachToElement(this);
     },
 
@@ -83,7 +86,8 @@ found in the LICENSE file.
       if (anchor === undefined)
         return;
 
-      var uiState = JSON.parse(anchor).a[0][tr.e.drive.constants.ANCHOR_NAME];
+      var uiState =
+          JSON.parse(anchor).a[0][tr.ui.e.drive.constants.ANCHOR_NAME];
 
       var myEvent = new CustomEvent('navigateToUIState', { detail:
           new tr.ui.b.UIState(new tr.ui.b.Location(uiState.location.xWorld,
