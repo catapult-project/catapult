@@ -130,6 +130,15 @@ def _ListFiles(base_directory, should_include_dir, should_include_file):
   return sorted(matching_files)
 
 
+def _IsSourceDir(dir_name):
+  return dir_name[0] != '.' and dir_name != 'third_party'
+
+
+def _IsPythonModule(file_name):
+  _, ext = os.path.splitext(file_name)
+  return ext == '.py'
+
+
 class Count(command_line.Command):
   """Print the number of public modules."""
 
@@ -209,8 +218,7 @@ class Mv(command_line.Command):
       source_dir = os.path.dirname(os.path.normpath(source))
 
       if os.path.isdir(source):
-        source_files = _ListFiles(source,
-                                  self._IsSourceDir, self._IsPythonModule)
+        source_files = _ListFiles(source, _IsSourceDir, _IsPythonModule)
       else:
         source_files = (source,)
 
@@ -260,8 +268,7 @@ class Mv(command_line.Command):
         return import_group
 
     for base_dir in BASE_DIRS:
-      for module_path in _ListFiles(base_dir,
-                                    self._IsSourceDir, self._IsPythonModule):
+      for module_path in _ListFiles(base_dir, _IsSourceDir, _IsPythonModule):
         if not _TransformImportGroups(module_path, _UpdateImportGroup):
           continue
 
@@ -271,18 +278,34 @@ class Mv(command_line.Command):
 
     return 0
 
-  @staticmethod
-  def _IsSourceDir(dir_name):
-    return dir_name[0] != '.' and dir_name != 'third_party'
 
-  @staticmethod
-  def _IsPythonModule(file_name):
-    _, ext = os.path.splitext(file_name)
-    return ext == '.py'
+class Sort(command_line.Command):
+  """Sort imports."""
+
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
+    parser.add_argument('target', nargs='*')
+
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
+    for target in args.target:
+      if not os.path.exists(target):
+        parser.error('"%s" not found.' % target)
+
+  def Run(self, args):
+    if args.target:
+      targets = args.target
+    else:
+      targets = BASE_DIRS
+
+    for base_dir in targets:
+      for module_path in _ListFiles(base_dir, _IsSourceDir, _IsPythonModule):
+        SortImportGroups(module_path)
+    return 0
 
 
 class RefactorCommand(command_line.SubcommandCommand):
-  commands = (Count, Mv,)
+  commands = (Count, Mv, Sort,)
 
 
 if __name__ == '__main__':
