@@ -63,41 +63,41 @@ found in the LICENSE file.
           children: [
             {
               name: 'Java runtime',
-              file: /^\/dev\/ashmem\/dalvik-.*$/,
+              file: /^\/dev\/ashmem\/dalvik-/,
               children: [
                 {
                   name: 'Spaces',
-                  file: /\bspace/,
+                  file: /\/dalvik-(alloc|main|large object|non moving|zygote) space/,  // @suppress longLineCheck
                   children: [
                     {
                       name: 'Normal',
-                      file: /(alloc)|(main)/
+                      file: /\/dalvik-(alloc|main)/
                     },
                     {
                       name: 'Large',
-                      file: /large.object/
+                      file: /\/dalvik-large object/
                     },
                     {
                       name: 'Zygote',
-                      file: /zygote/
+                      file: /\/dalvik-zygote/
                     },
                     {
                       name: 'Non-moving',
-                      file: /non.moving/
+                      file: /\/dalvik-non moving/
                     }
                   ]
                 },
                 {
                   name: 'Linear Alloc',
-                  file: /LinearAlloc/
+                  file: /\/dalvik-LinearAlloc/
                 },
                 {
                   name: 'Indirect Reference Table',
-                  file: /indirect.ref/
+                  file: /\/dalvik-indirect.ref/
                 },
                 {
                   name: 'Cache',
-                  file: /jit-code-cache/
+                  file: /\/dalvik-jit-code-cache/
                 },
                 {
                   name: 'Accounting'
@@ -106,7 +106,7 @@ found in the LICENSE file.
             },
             {
               name: 'Cursor',
-              file: /CursorWindow/
+              file: /\/CursorWindow/
             },
             {
               name: 'Ashmem'
