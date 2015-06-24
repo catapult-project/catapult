@@ -53,7 +53,7 @@ CHROME_PACKAGE_NAMES = {
        android_browser_backend_settings.ChromeBackendSettings,
        None],
   'android-chrome-dev':
-      ['com.google.android.apps.chrome_dev',
+      ['com.chrome.dev',
        android_browser_backend_settings.ChromeBackendSettings,
        None],
   'android-chrome-canary':
