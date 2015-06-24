@@ -7,14 +7,14 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/base/iteration_helpers.html">
-<link rel="import" href="/extras/deep_reports/scalar_value.html">
 <link rel="import" href="/extras/rail/rail_score.html">
+<link rel="import" href="/ui/extras/deep_reports/scalar_value.html">
 <link rel="import" href="/ui/base/xhr.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.e.deep_reports', function() {
+tr.exportTo('tr.ui.e.deep_reports', function() {
   /**
    * Runs deep reports on the provided files, and pushes telemetry-style
    * values to the results object.
@@ -59,10 +59,10 @@ tr.exportTo('tr.e.deep_reports', function() {
       return;
 
     results.addValue(
-        new tr.e.deep_reports.ScalarValue(
+        new tr.ui.e.deep_reports.ScalarValue(
             page, 'numRailIRs', 'ms', railScore.interactionRecords.length));
     results.addValue(
-      new tr.e.deep_reports.ScalarValue(
+      new tr.ui.e.deep_reports.ScalarValue(
         page, 'railScore', 'rails', railScore.overallScore));
   }
 

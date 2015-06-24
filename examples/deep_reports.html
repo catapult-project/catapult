@@ -16,8 +16,9 @@ found in the LICENSE file.
 <link rel="import" href="/trace_viewer.html">
 <link rel="import" href="/extras/full_config.html">
 
-<link rel="import" href="/extras/deep_reports/main.html">
-<link rel="import" href="/extras/deep_reports/html_results.html">
+<link rel="import" href="/ui/extras/deep_reports/main.html">
+<link rel="import" href="/ui/extras/deep_reports/html_results.html">
+
 <style>
   body {
     font-family: sans-serif;
@@ -26,7 +27,9 @@ found in the LICENSE file.
 </head>
 <body>
   <select id="trace-dir"></select>
-  <tr-e-dr-html-results id="results"></tr-e-dr-html-results>
+  <tr-ui-e-deep-reports-html-results id="results">
+  </tr-ui-e-deep-reports-html-results>
+
   <script>
   'use strict';
 
@@ -119,7 +122,7 @@ found in the LICENSE file.
     var filesInDir = selectEl.filesByDirName[dirName];
     var results = document.querySelector('#results');
     results.clear();
-    tr.e.deep_reports.main(results, filesInDir).then(
+    tr.ui.e.deep_reports.main(results, filesInDir).then(
       function success() {
       },
       function error(err) {
