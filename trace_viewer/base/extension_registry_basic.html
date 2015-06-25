@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/extension_registry_base.html">
+<link rel="import" href="/base/events.html">
 <script>
 'use strict';
 
@@ -37,13 +38,13 @@ tr.exportTo('tr.b', function() {
           constructor,
           metadata);
 
-      var e = new Event('will-register');
+      var e = new tr.b.Event('will-register');
       e.typeInfo = typeInfo;
       registry.dispatchEvent(e);
 
       registry.registeredTypeInfos_.push(typeInfo);
 
-      e = new Event('registry-changed');
+      e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
 
@@ -51,14 +52,14 @@ tr.exportTo('tr.b', function() {
       savedStateStack.push(registry.registeredTypeInfos_);
       registry.registeredTypeInfos_ = [];
 
-      var e = new Event('registry-changed');
+      var e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
     registry.popCleanStateAfterTest = function() {
       registry.registeredTypeInfos_ = savedStateStack[0];
       savedStateStack.splice(0, 1);
 
-      var e = new Event('registry-changed');
+      var e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
 
@@ -75,7 +76,7 @@ tr.exportTo('tr.b', function() {
         throw new Error(constructor + ' not registered');
       registry.registeredTypeInfos_.splice(foundIndex, 1);
 
-      var e = new Event('registry-changed');
+      var e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
 

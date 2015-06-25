@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/extension_registry_base.html">
+<link rel="import" href="/base/events.html">
 <link rel="import" href="/base/category_util.html">
 <script>
 'use strict';
@@ -63,7 +64,7 @@ tr.exportTo('tr.b', function() {
         }
       });
 
-      var e = new Event('will-register');
+      var e = new tr.b.Event('will-register');
       e.typeInfo = typeInfo;
       registry.dispatchEvent(e);
 
@@ -76,7 +77,7 @@ tr.exportTo('tr.b', function() {
       });
       registry.registeredTypeInfos_.push(typeInfo);
 
-      var e = new Event('registry-changed');
+      var e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
 
@@ -89,7 +90,7 @@ tr.exportTo('tr.b', function() {
       registry.registeredTypeInfos_ = [];
       registry.typeNameToTypeInfoMap_ = {};
       registry.categoryPartToTypeInfoMap_ = {};
-      var e = new Event('registry-changed');
+      var e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
 
@@ -100,7 +101,7 @@ tr.exportTo('tr.b', function() {
       registry.registeredTypeInfos_ = state.registeredTypeInfos;
       registry.typeNameToTypeInfoMap_ = state.typeNameToTypeInfoMap;
       registry.categoryPartToTypeInfoMap_ = state.categoryPartToTypeInfoMap;
-      var e = new Event('registry-changed');
+      var e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
 
@@ -123,7 +124,7 @@ tr.exportTo('tr.b', function() {
       typeInfo.categoryParts.forEach(function(categoryPart) {
         delete registry.categoryPartToTypeInfoMap_[categoryPart];
       });
-      var e = new Event('registry-changed');
+      var e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
 
