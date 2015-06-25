@@ -7,7 +7,7 @@ from telemetry.page import page_test
 class TimelineBasedPageTest(page_test.PageTest):
   """Page test that collects metrics with TimelineBasedMeasurement."""
   def __init__(self, tbm):
-    super(TimelineBasedPageTest, self).__init__('RunPageInteractions')
+    super(TimelineBasedPageTest, self).__init__()
     self._measurement = tbm
 
   @property
