@@ -1,6 +1,7 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import logging
 import os
 import unittest
@@ -10,7 +11,6 @@ from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
 import mock  # pylint: disable=import-error
-
 
 
 class TestBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
@@ -36,6 +36,28 @@ class LinuxBasedPlatformBackendTest(unittest.TestCase):
   def SetMockFileInBackend(self, backend, real_file, mock_file):
     with open(os.path.join(util.GetUnittestDataDir(), real_file)) as f:
       backend.SetMockFile(mock_file, f.read())
+
+  def testGetSystemCommitCharge(self):
+    if not linux_based_platform_backend.resource:
+      logging.warning('Test not supported')
+      return
+
+    backend = TestBackend()
+    self.SetMockFileInBackend(backend, 'proc_meminfo', '/proc/meminfo')
+    result = backend.GetSystemCommitCharge()
+    # 25252140 == MemTotal - MemFree - Buffers - Cached (in kB)
+    self.assertEquals(result, 25252140)
+
+  def testGetSystemTotalPhysicalMemory(self):
+    if not linux_based_platform_backend.resource:
+      logging.warning('Test not supported')
+      return
+
+    backend = TestBackend()
+    self.SetMockFileInBackend(backend, 'proc_meminfo', '/proc/meminfo')
+    result = backend.GetSystemTotalPhysicalMemory()
+    # 67479191552 == MemTotal * 1024
+    self.assertEquals(result, 67479191552)
 
   def testGetCpuStatsBasic(self):
     if not linux_based_platform_backend.resource:

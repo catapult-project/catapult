@@ -23,15 +23,16 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
   Subclasses must implement RunCommand, GetFileContents, GetPsOutput, and
   ParseCStateSample."""
 
+  # Get the commit charge in kB.
   def GetSystemCommitCharge(self):
     meminfo_contents = self.GetFileContents('/proc/meminfo')
     meminfo = self._GetProcFileDict(meminfo_contents)
     if not meminfo:
       return None
-    return (self._ConvertKbToByte(meminfo['MemTotal'])
-            - self._ConvertKbToByte(meminfo['MemFree'])
-            - self._ConvertKbToByte(meminfo['Buffers'])
-            - self._ConvertKbToByte(meminfo['Cached']))
+    return (self._ConvertToKb(meminfo['MemTotal'])
+            - self._ConvertToKb(meminfo['MemFree'])
+            - self._ConvertToKb(meminfo['Buffers'])
+            - self._ConvertToKb(meminfo['Cached']))
 
   @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
@@ -39,7 +40,7 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
     meminfo = self._GetProcFileDict(meminfo_contents)
     if not meminfo:
       return None
-    return self._ConvertKbToByte(meminfo['MemTotal'])
+    return self._ConvertToBytes(meminfo['MemTotal'])
 
   def GetCpuStats(self, pid):
     results = {}
@@ -66,16 +67,16 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
     if not status or not stats or 'Z' in status['State']:
       return {}
     vm = int(stats[22])
-    vm_peak = (self._ConvertKbToByte(status['VmPeak'])
+    vm_peak = (self._ConvertToBytes(status['VmPeak'])
                if 'VmPeak' in status else vm)
     wss = int(stats[23]) * resource.getpagesize()
-    wss_peak = (self._ConvertKbToByte(status['VmHWM'])
+    wss_peak = (self._ConvertToBytes(status['VmHWM'])
                 if 'VmHWM' in status else wss)
 
     private_dirty_bytes = 0
     for line in self._GetProcFileForPid(pid, 'smaps').splitlines():
       if line.startswith('Private_Dirty:'):
-        private_dirty_bytes += self._ConvertKbToByte(line.split(':')[1].strip())
+        private_dirty_bytes += self._ConvertToBytes(line.split(':')[1].strip())
 
     return {'VM': vm,
             'VMPeak': vm_peak,
@@ -137,8 +138,11 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
         raise exceptions.ProcessGoneException()
       raise
 
-  def _ConvertKbToByte(self, value):
-    return int(value.replace('kB', '')) * 1024
+  def _ConvertToKb(self, value):
+    return int(value.replace('kB', ''))
+
+  def _ConvertToBytes(self, value):
+    return self._ConvertToKb(value) * 1024
 
   def _GetProcFileDict(self, contents):
     retval = {}
