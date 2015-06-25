@@ -17,3 +17,22 @@ def GetPreferredTryMasters(project, change):
       'Catapult Windows Tryserver': set(['defaulttests']),
     }
   }
+
+
+def _CommonChecks(input_api, output_api):
+  results = []
+  results.extend(input_api.canned_checks.CheckOwners(
+      input_api, output_api, source_file_filter=None))
+  return results
+
+
+def CheckChangeOnUpload(input_api, output_api):
+  results = []
+  results.extend(_CommonChecks(input_api, output_api))
+  return results
+
+
+def CheckChangeOnCommit(input_api, output_api):
+  results = []
+  results.extend(_CommonChecks(input_api, output_api))
+  return results
