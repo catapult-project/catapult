@@ -5,13 +5,6 @@
 """Brings in Chrome Android's android_commands module, which itself is a
 thin(ish) wrapper around adb."""
 
-import logging
-import os
-import shutil
-import stat
-
-from catapult_base import support_binaries
-from telemetry.core import platform
 from telemetry.core import util
 
 # This is currently a thin wrapper around Chrome Android's
@@ -20,7 +13,6 @@ from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib import android_commands  # pylint: disable=F0401
-from pylib import constants  # pylint: disable=F0401
 try:
   from pylib import ports  # pylint: disable=F0401
 except Exception:
@@ -73,70 +65,3 @@ class AdbCommands(object):
 
   def IsUserBuild(self):
     return self._device.GetProp('ro.build.type') == 'user'
-
-
-def GetBuildTypeOfPath(path):
-  if not path:
-    return None
-  for build_dir, build_type in util.GetBuildDirectories():
-    if os.path.join(build_dir, build_type) in path:
-      return build_type
-  return None
-
-
-def SetupPrebuiltTools(adb):
-  """Some of the android pylib scripts we depend on are lame and expect
-  binaries to be in the out/ directory. So we copy any prebuilt binaries there
-  as a prereq."""
-
-  # TODO(bulach): Build the targets for x86/mips.
-  device_tools = [
-    'file_poller',
-    'forwarder_dist/device_forwarder',
-    'md5sum_dist/md5sum_bin',
-    'purge_ashmem',
-    'run_pie',
-  ]
-
-  host_tools = [
-    'bitmaptools',
-    'md5sum_bin_host',
-  ]
-
-  if platform.GetHostPlatform().GetOSName() == 'linux':
-    host_tools.append('host_forwarder')
-
-  arch_name = adb.device().GetABI()
-  has_device_prebuilt = (arch_name.startswith('armeabi')
-                         or arch_name.startswith('arm64'))
-  if not has_device_prebuilt:
-    logging.warning('Unknown architecture type: %s' % arch_name)
-    return all([support_binaries.FindLocallyBuiltPath(t) for t in device_tools])
-
-  build_type = None
-  for t in device_tools + host_tools:
-    executable = os.path.basename(t)
-    locally_built_path = support_binaries.FindLocallyBuiltPath(t)
-    if not build_type:
-      build_type = GetBuildTypeOfPath(locally_built_path) or 'Release'
-      constants.SetBuildType(build_type)
-    dest = os.path.join(constants.GetOutDirectory(), t)
-    if not locally_built_path:
-      logging.info('Setting up prebuilt %s', dest)
-      if not os.path.exists(os.path.dirname(dest)):
-        os.makedirs(os.path.dirname(dest))
-      platform_name = ('android' if t in device_tools else
-                       platform.GetHostPlatform().GetOSName())
-      bin_arch_name = (arch_name if t in device_tools else
-                       platform.GetHostPlatform().GetArchName())
-      prebuilt_path = support_binaries.FindPath(
-          executable, bin_arch_name, platform_name)
-      if not prebuilt_path or not os.path.exists(prebuilt_path):
-        raise NotImplementedError("""
-%s must be checked into cloud storage.
-Instructions:
-http://www.chromium.org/developers/telemetry/upload_to_cloud_storage
-""" % t)
-      shutil.copyfile(prebuilt_path, dest)
-      os.chmod(dest, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-  return True

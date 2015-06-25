@@ -29,11 +29,16 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     android_platform_backend.psutil = None
     self.battery_patcher = mock.patch.object(battery_utils, 'BatteryUtils')
     self.battery_patcher.start()
+    self.setup_prebuilt_tool_patcher = mock.patch(
+        'telemetry.core.platform.android_platform_backend._SetupPrebuiltTools')
+    m = self.setup_prebuilt_tool_patcher.start()
+    m.return_value = True
 
   def tearDown(self):
     self._stubs.Restore()
     android_platform_backend.psutil = self._actual_ps_util
     self.battery_patcher.stop()
+    self.setup_prebuilt_tool_patcher.stop()
 
   @decorators.Disabled('chromeos')
   def testGetCpuStats(self):
@@ -167,11 +172,16 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
     self.battery_patcher = mock.patch.object(battery_utils, 'BatteryUtils')
     self.battery_patcher.start()
     self._actual_ps_util = android_platform_backend.psutil
+    self.setup_prebuilt_tool_patcher = mock.patch(
+        'telemetry.core.platform.android_platform_backend._SetupPrebuiltTools')
+    m = self.setup_prebuilt_tool_patcher.start()
+    m.return_value = True
 
   def tearDown(self):
     self._stubs.Restore()
     android_platform_backend.psutil = self._actual_ps_util
     self.battery_patcher.stop()
+    self.setup_prebuilt_tool_patcher.stop()
 
   @decorators.Disabled('chromeos')
   def testPsutil1(self):

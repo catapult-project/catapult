@@ -143,9 +143,6 @@ class AdbCommandsModuleStub(object):
   def GetAttachedDevices(self):
     return self.attached_devices
 
-  def SetupPrebuiltTools(self, _):
-    return True
-
   def CleanupLeftoverProcesses(self):
     pass
 
