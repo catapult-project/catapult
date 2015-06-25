@@ -5,17 +5,17 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/rail/rail_score_side_panel.html">
-<link rel="import" href="/extras/rail/stub_rail_interaction_record.html">
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/rail/stub_rail_interaction_record.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/extras/rail/rail_score_side_panel.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var panel = document.createElement('tr-e-rail-rail-score-side-panel');
+    var panel = document.createElement('tr-ui-e-rail-rail-score-side-panel');
     panel.model = tr.c.test_utils.newModel(function(model) {
       model.addInteractionRecord(new tr.e.rail.StubRAILInteractionRecord({
         start: 0, end: 100,
