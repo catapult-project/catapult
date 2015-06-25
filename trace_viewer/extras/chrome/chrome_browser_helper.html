@@ -66,7 +66,6 @@ tr.exportTo('tr.e.audits', function() {
         return (slice.title.indexOf('InputLatency') === 0) &&
             rangeOfInterest.intersectsExplicitRange(slice.start, slice.end);
       });
-      return latencyEvents;
     },
 
     getAllAsyncSlicesMatching: function(pred, opt_this) {
