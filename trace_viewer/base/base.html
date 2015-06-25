@@ -28,20 +28,14 @@ this.tr = (function() {
    * example:
    * 'a.b.c' -> a = {};a.b={};a.b.c={};
    * @param {string} name Name of the object that this file defines.
-   * @param {*=} opt_object The object to expose at the end of the path.
-   * @param {Object=} opt_objectToExportTo The object to add the path to;
-   *     default is {@code global}.
    * @private
    */
-  function exportPath(name, opt_object, opt_objectToExportTo) {
+  function exportPath(name) {
     var parts = name.split('.');
-    var cur = opt_objectToExportTo || global;
+    var cur = global;
 
     for (var part; parts.length && (part = parts.shift());) {
-      if (!parts.length && opt_object !== undefined) {
-        // last part and we have an object; use it
-        cur[part] = opt_object;
-      } else if (part in cur) {
+      if (part in cur) {
         cur = cur[part];
       } else {
         cur = cur[part] = {};
@@ -50,10 +44,10 @@ this.tr = (function() {
     return cur;
   };
 
-  function isDefined(name, opt_globalObject) {
+  function isDefined(name) {
     var parts = name.split('.');
 
-    var curObject = opt_globalObject || global;
+    var curObject = global;
 
     for (var i = 0; i < parts.length; i++) {
       var partName = parts[i];
