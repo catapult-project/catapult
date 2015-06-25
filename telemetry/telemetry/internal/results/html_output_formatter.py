@@ -24,7 +24,8 @@ _JS_PLUGINS = [os.path.join('flot', 'jquery.flot.min.js'),
                             'jquery.tablesorter.min.js'),
                os.path.join('WebKit', 'PerformanceTests', 'resources',
                             'statistics.js')]
-_UNIT_JSON = (util.GetTelemetryDir(), 'telemetry', 'value', 'unit-info.json')
+_UNIT_JSON = os.path.join(
+    util.GetTelemetryDir(), 'telemetry', 'value', 'unit-info.json')
 
 
 def _DatetimeInEs5CompatibleFormat(dt):
@@ -72,7 +73,7 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     return plugins
 
   def _GetUnitJson(self):
-    with open(os.path.join(util.GetChromiumSrcDir(), *_UNIT_JSON)) as f:
+    with open(_UNIT_JSON) as f:
       return f.read()
 
   def _ReadExistingResults(self, output_stream):
