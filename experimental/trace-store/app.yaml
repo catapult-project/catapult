@@ -4,7 +4,7 @@
 
 application: trace-upload
 
-version: 1
+version: 3
 api_version: 1
 runtime: python27
 threadsafe: true
