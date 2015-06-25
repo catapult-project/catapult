@@ -3,11 +3,11 @@
  * found in the LICENSE file.
  */
 
-.heap-instance-track {
+.tr-ui-e-tcmalloc-heap-instance-track {
   height: 150px;
 }
 
-.heap-instance-track ul {
+.tr-ui-e-tcmalloc-heap-instance-track ul {
   list-style: none;
   list-style-position: outside;
   margin: 0;

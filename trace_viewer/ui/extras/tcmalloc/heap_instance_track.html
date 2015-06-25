@@ -5,18 +5,18 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/extras/tcmalloc/heap_instance_track.css">
+<link rel="stylesheet" href="/ui/extras/tcmalloc/heap_instance_track.css">
 
+<link rel="import" href="/base/sorted_array_utils.html">
 <link rel="import" href="/ui/tracks/stacked_bars_track.html">
 <link rel="import" href="/ui/tracks/object_instance_track.html">
 <link rel="import" href="/ui/base/event_presenter.html">
-<link rel="import" href="/base/sorted_array_utils.html">
 <link rel="import" href="/ui/base/ui.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.e.tcmalloc', function() {
+tr.exportTo('tr.ui.e.tcmalloc', function() {
   var EventPresenter = tr.ui.b.EventPresenter;
 
   /**
@@ -26,7 +26,7 @@ tr.exportTo('tr.e.tcmalloc', function() {
    */
 
   var HeapInstanceTrack = tr.ui.b.define(
-      'heap-instance-track', tr.ui.tracks.StackedBarsTrack);
+      'tr-ui-e-tcmalloc-heap-instance-track', tr.ui.tracks.StackedBarsTrack);
 
   HeapInstanceTrack.prototype = {
 
@@ -34,7 +34,7 @@ tr.exportTo('tr.e.tcmalloc', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('heap-instance-track');
+      this.classList.add('tr-ui-e-tcmalloc-heap-instance-track');
       this.objectInstance_ = null;
     },
 

@@ -3,35 +3,35 @@
  * found in the LICENSE file.
  */
 
-.subhead {
+.tr-ui-e-tcmalloc-instance-view .subhead {
   font-size: small;
   padding-bottom: 10px;
 }
 
-.tcmalloc-instance-view #args {
+.tr-ui-e-tcmalloc-instance-view #args {
   white-space: pre;
 }
 
-.tcmalloc-instance-view #snapshots > * {
+.tr-ui-e-tcmalloc-instance-view #snapshots > * {
   display: block;
 }
 
-.tcmalloc-instance-view {
+.tr-ui-e-tcmalloc-instance-view {
   overflow: auto;
 }
 
-.tcmalloc-instance-view * {
+.tr-ui-e-tcmalloc-instance-view * {
   -webkit-user-select: text;
 }
 
-.tcmalloc-instance-view .title {
+.tr-ui-e-tcmalloc-instance-view .title {
   border-bottom: 1px solid rgb(128, 128, 128);
   font-size: 110%;
   font-weight: bold;
 }
 
-.tcmalloc-instance-view td,
-.tcmalloc-instance-view th {
+.tr-ui-e-tcmalloc-instance-view td,
+.tr-ui-e-tcmalloc-instance-view th {
   font-size: small;
   text-align: right;
 }

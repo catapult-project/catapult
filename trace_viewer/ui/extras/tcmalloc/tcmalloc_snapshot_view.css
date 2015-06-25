@@ -3,12 +3,12 @@
  * found in the LICENSE file.
  */
 
-.subhead {
+.tr-ui-e-tcmalloc-heap-snapshot-view .subhead {
   font-size: small;
   padding-bottom: 10px;
 }
 
-.tcmalloc-snapshot-view ul {
+.tr-ui-e-tcmalloc-heap-snapshot-view ul {
   background-position: 0 5px;
   background-repeat: no-repeat;
   cursor: pointer;
@@ -18,7 +18,7 @@
   padding-left: 15px;
 }
 
-.tcmalloc-snapshot-view li {
+.tr-ui-e-tcmalloc-heap-snapshot-view li {
   background-position: 0 5px;
   background-repeat: no-repeat;
   cursor: pointer;
@@ -28,17 +28,17 @@
 }
 
 /* Collapsed state for list element */
-.tcmalloc-snapshot-view .collapsed {
+.tr-ui-e-tcmalloc-heap-snapshot-view .collapsed {
   background-image: url(./images/expand.png);
 }
 
 /* Expanded state for list element. Must be located under the collapsed one. */
-.tcmalloc-snapshot-view .expanded {
+.tr-ui-e-tcmalloc-heap-snapshot-view .expanded {
   background-image: url(./images/collapse.png);
 }
 
 /* Allocation size in MB, right-aligned for easier comparison of columns. */
-.trace-bytes {
+.tr-ui-e-tcmalloc-heap-snapshot-view .trace-bytes {
   display: inline-block;
   padding-right: 10px;
   text-align: right;
@@ -46,7 +46,7 @@
 }
 
 /* Trace allocation count. */
-.trace-allocs {
+.tr-ui-e-tcmalloc-heap-snapshot-view .trace-allocs {
   display: inline-block;
   padding-right: 10px;
   text-align: right;
@@ -54,6 +54,6 @@
 }
 
 /* Trace name, inline so it appears to the right of the byte count. */
-.trace-name {
+.tr-ui-e-tcmalloc-heap-snapshot-view .trace-name {
   display: inline-block;
 }
